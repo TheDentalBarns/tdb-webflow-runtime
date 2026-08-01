@@ -1,10 +1,11 @@
 {
   "name": "tdb-custom-swiper",
   "private": true,
-  "version": "8.4.7-tdb.1",
+  "version": "8.4.7-tdb.2",
   "type": "module",
   "scripts": {
-    "build": "node build.mjs",
+    "patch": "node patch-swiper.mjs",
+    "build": "npm run patch && node build.mjs",
     "check": "node check.mjs"
   },
   "dependencies": {
