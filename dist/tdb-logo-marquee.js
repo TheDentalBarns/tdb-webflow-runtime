@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.5.1';
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
     itemSelector: '.partner_logos',
@@ -115,9 +115,11 @@
 
     function measureLoopWidth() {
       const firstOriginal = track.querySelector(
-        `${CONFIG.itemSelector}:not([${CLONE_ATTR}])`)
+        `${CONFIG.itemSelector}:not([${CLONE_ATTR}])`
       );
-      const firstClone = track.querySelector(`${CONFIG.itemSelector}[${CLONE_ATTR}]`);
+      const firstClone = track.querySelector(
+        `${CONFIG.itemSelector}[${CLONE_ATTR}]`
+      );
 
       if (!firstOriginal || !firstClone) return 0;
       const width = firstClone.offsetLeft - firstOriginal.offsetLeft;
@@ -193,7 +195,7 @@
       try {
         track.setPointerCapture(pointerId);
       } catch (error) {
-        // Pointer capture is an enhancement, not a requirement.
+        // Pointer capture is optional.
       }
     }
 
@@ -217,7 +219,7 @@
       try {
         track.releasePointerCapture(pointerId);
       } catch (error) {
-        // The pointer may already have been released by the browser.
+        // The browser may already have released it.
       }
 
       dragging = false;
@@ -245,7 +247,6 @@
       track.style.removeProperty('transform');
       track.style.removeProperty('will-change');
       track.style.removeProperty('touch-action');
-
       instances.delete(track);
     }
 
@@ -294,7 +295,6 @@
 
     const instance = {
       version: VERSION,
-      track,
       refresh: applyMeasurement,
       destroy,
       status: () => ({
@@ -308,11 +308,9 @@
     };
 
     instances.set(track, instance);
-
     applyMeasurement();
     requestAnimationFrame(() => requestAnimationFrame(scheduleMeasure));
     rafId = requestAnimationFrame(frame);
-
     return instance;
   }
 
@@ -338,10 +336,9 @@
 
     const observer = new MutationObserver(mutations => {
       const mayContainTrack = mutations.some(mutation =>
-        Array.from(mutation.addedNodes).some(
-          node =>
-            node instanceof Element &&
-            (node.matches(CONFIG.selector) || node.querySelector(CONFIG.selector))
+        Array.from(mutation.addedNodes).some(node =>
+          node instanceof Element &&
+          (node.matches(CONFIG.selector) || node.querySelector(CONFIG.selector))
         )
       );
 
