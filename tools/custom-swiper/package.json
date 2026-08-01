@@ -1,0 +1,16 @@
+{
+  "name": "tdb-custom-swiper",
+  "private": true,
+  "version": "8.4.7-tdb.1",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "node check.mjs"
+  },
+  "dependencies": {
+    "swiper": "8.4.7"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.8"
+  }
+}
