@@ -53,6 +53,31 @@ Handles:
 
 The treatment-specific Smile Gallery ordering script remains inline because it must correct slide order before the gallery is revealed. The GSAP logo slider remains separate and is not part of this module.
 
+### Consent `v0.3.0`
+
+Source:
+
+```text
+src/consent/consent.js
+```
+
+Distribution build:
+
+```text
+dist/tdb-consent.js
+```
+
+Handles:
+
+- Cookie settings link behaviour
+- Existing CookieScript consent-state checks
+- Consent-gated Google Analytics, Intellimize and Meta Pixel loading
+- Elfsight loading after a consent decision
+- Duplicate script and duplicate initialisation protection
+- Safe repeat refresh and status inspection
+
+The Elfsight timer-shell display and navbar interaction remain inline because they are interface behaviour rather than consent loading.
+
 ## Production loading
 
 Use fixed release tags rather than `main`.
@@ -72,6 +97,15 @@ Sliders:
 loadScript(
   'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.2.0/dist/tdb-sliders.js',
   'data-tdb-sliders-js'
+);
+```
+
+Consent:
+
+```javascript
+loadScript(
+  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.3.0/dist/tdb-consent.js',
+  'data-tdb-consent-js'
 );
 ```
 
