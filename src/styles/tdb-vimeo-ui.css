@@ -1,0 +1,182 @@
+/* TDB Vimeo deferred interaction styles v0.1.0
+ * First-frame layout, placeholders and default play/pause/loading visibility remain inline in Webflow.
+ */
+
+/* Hero playback states */
+[data-vimeo-hero-shell][data-vimeo-ui='playing'] .vimeo-controls-layer .vimeo-player__play,
+[data-vimeo-hero-shell][data-vimeo-ui='loading'] .vimeo-controls-layer .vimeo-player__play,
+[data-vimeo-hero-shell][data-vimeo-ui='awaiting-consent'] .vimeo-controls-layer .vimeo-player__play,
+[data-vimeo-hero-shell][data-vimeo-ui='playing'][data-vimeo-buffering='true'] .vimeo-controls-layer .vimeo-player__play {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+[data-vimeo-hero-shell][data-vimeo-ui='playing'] .vimeo-controls-layer .vimeo-player__pause,
+[data-vimeo-hero-shell][data-vimeo-ui='playing'][data-vimeo-buffering='true'] .vimeo-controls-layer .vimeo-player__pause {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+[data-vimeo-hero-shell][data-vimeo-ui='loading'] .vimeo-controls-layer .vimeo-player__pause,
+[data-vimeo-hero-shell][data-vimeo-ui='awaiting-consent'] .vimeo-controls-layer .vimeo-player__pause {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: none;
+}
+
+[data-vimeo-hero-shell][data-vimeo-ui='loading'] .vimeo-controls-layer .vimeo-player__pause .vimeo-player__btn svg,
+[data-vimeo-hero-shell][data-vimeo-ui='awaiting-consent'] .vimeo-controls-layer .vimeo-player__pause .vimeo-player__btn svg {
+  opacity: 0;
+}
+
+[data-vimeo-hero-shell][data-vimeo-ui='playing'] .vimeo-controls-layer .vimeo-player__loading {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+[data-vimeo-hero-shell][data-vimeo-ui='loading'] .vimeo-controls-layer .vimeo-player__loading,
+[data-vimeo-hero-shell][data-vimeo-ui='awaiting-consent'] .vimeo-controls-layer .vimeo-player__loading,
+[data-vimeo-hero-shell][data-vimeo-ui='playing'][data-vimeo-buffering='true'] .vimeo-controls-layer .vimeo-player__loading {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: none;
+  transition: opacity 0.12s ease 0.12s, visibility 0s linear 0s;
+}
+
+[data-vimeo-hero-shell][data-vimeo-ui='playing'][data-vimeo-buffering='true'] .vimeo-controls-layer .vimeo-player__pause .vimeo-player__btn svg {
+  opacity: 1;
+}
+
+/* Shared pulse */
+@keyframes tdbBtnPulseOpacity {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.vimeo-controls-layer .vimeo-player__btn-pulse,
+.vimeo-player .vimeo-player__btn-pulse {
+  opacity: 0;
+  visibility: visible;
+  pointer-events: none;
+  animation: none;
+}
+
+[data-vimeo-hero-shell][data-vimeo-pulse='true'] .vimeo-controls-layer .vimeo-player__btn-pulse,
+.vimeo-player[data-vimeo-playing='false'] .vimeo-player__btn-pulse {
+  animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate;
+  will-change: opacity;
+}
+
+[data-vimeo-hero-shell][data-vimeo-pulse='false'] .vimeo-controls-layer .vimeo-player__btn-pulse,
+.vimeo-player[data-vimeo-playing='true'] .vimeo-player__btn-pulse,
+.vimeo-player[data-vimeo-awaiting-consent='true'] .vimeo-player__btn-pulse,
+.vimeo-player[data-vimeo-loading='true'] .vimeo-player__btn-pulse {
+  opacity: 0;
+  animation: none;
+  will-change: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-vimeo-hero-shell][data-vimeo-pulse='true'] .vimeo-controls-layer .vimeo-player__btn-pulse,
+  .vimeo-player[data-vimeo-playing='false'] .vimeo-player__btn-pulse {
+    animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate !important;
+    visibility: visible !important;
+    will-change: opacity !important;
+  }
+
+  [data-vimeo-hero-shell][data-vimeo-pulse='false'] .vimeo-controls-layer .vimeo-player__btn-pulse,
+  .vimeo-player[data-vimeo-playing='true'] .vimeo-player__btn-pulse,
+  .vimeo-player[data-vimeo-awaiting-consent='true'] .vimeo-player__btn-pulse,
+  .vimeo-player[data-vimeo-loading='true'] .vimeo-player__btn-pulse {
+    animation: none !important;
+    opacity: 0 !important;
+    visibility: visible !important;
+    will-change: auto !important;
+  }
+}
+
+/* Hero and ambient runtime transitions */
+[data-vimeo-player-init]:not([data-vimeo-content-init])[data-vimeo-started='true'] .vimeo-bg__placeholder,
+[data-vimeo-ambient-init][data-ambient-started='true'] .vimeo-bg__placeholder {
+  opacity: 0;
+  visibility: hidden;
+}
+
+[data-vimeo-player-init]:not([data-vimeo-content-init])[data-placeholder-hidden='true'] .vimeo-bg__placeholder,
+[data-vimeo-ambient-init][data-placeholder-hidden='true'] .vimeo-bg__placeholder {
+  display: none !important;
+}
+
+/* Content Vimeo playback states */
+.vimeo-player[data-vimeo-started='true'] .vimeo-player__iframe {
+  opacity: 1;
+  visibility: visible;
+}
+
+.vimeo-player[data-vimeo-started='true'] .vimeo-player__placeholder {
+  opacity: 0;
+}
+
+.vimeo-player[data-vimeo-playing='false'] .vimeo-player__dark {
+  opacity: 0.33;
+}
+
+.vimeo-player[data-vimeo-activated='false'][data-vimeo-playing='false'] .vimeo-player__dark,
+.vimeo-player[data-vimeo-activated='true'][data-vimeo-started='true'] .vimeo-player__dark {
+  opacity: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vimeo-player:hover .vimeo-player__dark {
+    opacity: 0.33 !important;
+  }
+}
+
+.vimeo-player[data-vimeo-playing='true'] .vimeo-player__pause {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.vimeo-player[data-vimeo-activated='true'][data-vimeo-playing='false'] .vimeo-player__pause .vimeo-player__btn,
+.vimeo-player[data-vimeo-activated='true'][data-vimeo-playing='true']:hover .vimeo-player__pause .vimeo-player__btn {
+  opacity: 1;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .vimeo-player[data-vimeo-activated='true'][data-vimeo-playing='true'] .vimeo-player__pause .vimeo-player__btn {
+    opacity: 1 !important;
+  }
+}
+
+.vimeo-player[data-vimeo-playing='true'] .vimeo-player__play {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.vimeo-player .vimeo-player__play svg,
+.vimeo-player .vimeo-player__pause svg {
+  transition: opacity 0.15s ease;
+}
+
+.vimeo-player[data-vimeo-awaiting-consent='true'] .vimeo-player__play svg,
+.vimeo-player[data-vimeo-loading='true'] .vimeo-player__play svg,
+.vimeo-player[data-vimeo-awaiting-consent='true'] .vimeo-player__pause svg,
+.vimeo-player[data-vimeo-loading='true'] .vimeo-player__pause svg {
+  opacity: 0 !important;
+}
+
+.vimeo-player[data-vimeo-awaiting-consent='true'] .vimeo-player__loading,
+.vimeo-player[data-vimeo-loading='true'] .vimeo-player__loading {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.12s ease 0.12s, visibility 0s linear 0s;
+}
+
+.vimeo-player[data-vimeo-playing='true'][data-vimeo-loaded='true'] .vimeo-player__loading {
+  opacity: 0;
+  visibility: hidden;
+}
