@@ -1,9 +1,9 @@
 name: Build custom Swiper
 
 on:
-  push:
+  pull_request:
     branches:
-      - build/custom-swiper-8.4.7
+      - main
     paths:
       - 'tools/custom-swiper/**'
       - '.github/workflows/build-custom-swiper.yml'
@@ -19,13 +19,13 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-          cache-dependency-path: tools/custom-swiper/package-lock.json
 
       - name: Install exact build dependencies
         working-directory: tools/custom-swiper
@@ -40,6 +40,7 @@ jobs:
         run: npm run check
 
       - name: Commit generated artifact
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         run: |
           if git diff --quiet -- dist/tdb-swiper-8.4.7.min.js tools/custom-swiper/package-lock.json; then
             echo 'Generated files are already current.'
@@ -50,4 +51,4 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add dist/tdb-swiper-8.4.7.min.js tools/custom-swiper/package-lock.json
           git commit -m 'Build custom Swiper 8.4.7 artifact'
-          git push
+          git push origin HEAD:${{ github.head_ref }}
