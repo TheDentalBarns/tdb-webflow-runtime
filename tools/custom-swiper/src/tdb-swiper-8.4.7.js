@@ -7,6 +7,7 @@ import Swiper, {
   Parallax,
 } from 'swiper';
 
+// Register only the modules used by the TDB highlight and parallax sliders.
 Swiper.use([
   A11y,
   Autoplay,
