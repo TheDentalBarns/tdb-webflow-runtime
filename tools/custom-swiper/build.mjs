@@ -22,7 +22,7 @@ await build({
     'process.env.NODE_ENV': '"production"',
   },
   banner: {
-    js: '/*! TDB custom Swiper 8.4.7 | Core + A11y, Autoplay, Keyboard, Navigation, Pagination, Parallax | Swiper MIT License */',
+    js: '/*! TDB custom Swiper 8.4.7-tdb.2 | CVE-2026-27212 backport | Core + A11y, Autoplay, Keyboard, Navigation, Pagination, Parallax | Swiper MIT License */',
   },
 });
 
