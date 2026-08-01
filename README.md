@@ -51,7 +51,7 @@ Handles:
 - Dynamically inserted slider components
 - Duplicate Swiper protection
 
-The treatment-specific Smile Gallery ordering script remains inline because it must correct slide order before the gallery is revealed. The GSAP logo slider remains separate and is not part of this module.
+The treatment-specific Smile Gallery ordering script remains inline because it must correct slide order before the gallery is revealed.
 
 ### Consent `v0.3.0`
 
@@ -78,9 +78,60 @@ Handles:
 
 The Elfsight timer-shell display and navbar interaction remain inline because they are interface behaviour rather than consent loading.
 
+### Native logo marquee `v0.5.0`
+
+Source:
+
+```text
+src/logo-marquee/logo-marquee.js
+```
+
+Distribution build:
+
+```text
+dist/tdb-logo-marquee.js
+```
+
+Replaces the GSAP + Observer logo marquee while preserving:
+
+- Continuous desktop and mobile motion
+- Seamless duplicated-logo looping
+- Pointer and touch dragging
+- Frame-rate-independent smoothing
+- IntersectionObserver pause when off-screen
+- Resize and late-image recalculation
+- Dynamic element discovery
+- Accessible, non-focusable cloned logos
+- Safe repeat initialisation and cleanup
+
+Default Webflow selectors:
+
+```text
+.logo-slider .partner-featured_component
+.partner_logos
+```
+
+Optional settings can be supplied before loading the script:
+
+```javascript
+window.TDBLogoMarqueeConfig = {
+  speedDesktop: 40,
+  speedMobile: 22,
+  smoothing: 0.18
+};
+```
+
+Inspection and lifecycle API:
+
+```javascript
+TDBLogoMarquee.status();
+TDBLogoMarquee.refresh();
+TDBLogoMarquee.destroy();
+```
+
 ## Production loading
 
-Use fixed release tags rather than `main`.
+Use fixed release tags or commit-pinned URLs rather than `main`.
 
 Forms:
 
@@ -106,6 +157,15 @@ Consent:
 loadScript(
   'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.3.0/dist/tdb-consent.js',
   'data-tdb-consent-js'
+);
+```
+
+Native logo marquee staging loader:
+
+```javascript
+loadScript(
+  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@COMMIT_SHA/dist/tdb-logo-marquee.js',
+  'data-tdb-logo-marquee-js'
 );
 ```
 
