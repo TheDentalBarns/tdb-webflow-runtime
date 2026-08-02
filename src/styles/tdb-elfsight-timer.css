@@ -1,0 +1,47 @@
+.tdb-elfsight-shell {
+  --tdb-hide-offset: 6rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  transition:
+    transform 420ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 260ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+html.tdb-timer-hidden .tdb-elfsight-shell {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(0, calc(-1 * var(--tdb-hide-offset)), 0);
+}
+
+html.tdb-timer-hidden .elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translate3d(0, -6rem, 0) !important;
+  transition:
+    transform 420ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 260ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+  will-change: transform, opacity;
+}
+
+@media (max-width: 767px) {
+  #tdb-elfsight-timer-shell {
+    --tdb-hide-offset: 100%;
+    z-index: 998 !important;
+    transition:
+      transform 420ms cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 420ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  html.tdb-timer-hidden #tdb-elfsight-timer-shell .elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb {
+    transform: none !important;
+    opacity: 1 !important;
+    transition: none !important;
+  }
+}
