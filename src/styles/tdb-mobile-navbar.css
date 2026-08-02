@@ -1,0 +1,200 @@
+@media screen and (max-width: 767px) {
+  .navbar10_logo-link,
+  .menu-icon5 {
+    transition: filter 420ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .navbar10_link,
+  #nav-button-link {
+    transition: color 420ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .navbar_line {
+    visibility: visible;
+    z-index: 3;
+  }
+
+  .navbar10_component.is-trans,
+  .navbar10_component.z-hold {
+    border-bottom: 0 !important;
+  }
+
+  html:is(.tdb-nav-at-top, .tdb-nav-clear-cycle):has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open)) .navbar10_component {
+    background-color: #f9f2e6 !important;
+  }
+
+  html:has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open)) .navbar_line {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: none !important;
+  }
+
+  .w-nav-overlay {
+    background-color: transparent !important;
+  }
+
+  html.tdb-nav-at-top .navbar10_menu {
+    background-color: rgba(249, 242, 230, 0.84);
+  }
+
+  html:is(.tdb-nav-at-top, .tdb-nav-clear-cycle) .navbar10_menu {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html:is(.tdb-nav-at-top, .tdb-nav-clear-cycle):has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open)) .navbar10_menu {
+    animation: tdb-menu-clear-to-solid 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  html.tdb-nav-clear-cycle:not(:has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open))) .navbar10_menu {
+    animation: tdb-menu-solid-to-clear 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  .navbar10_menu-left,
+  .navbar10_menu-right {
+    opacity: 0;
+    transform: translate3d(0, -0.75rem, 0);
+    animation: none;
+    will-change: opacity, transform;
+  }
+
+  .navbar10_menu[data-nav-menu-open] .navbar10_menu-left,
+  .navbar10_menu[data-nav-menu-open] .navbar10_menu-right {
+    animation: tdb-mobile-nav-text-motion 520ms cubic-bezier(0.5, 0, 1, 1) 70ms both;
+  }
+
+  .navbar10_component {
+    background-color: transparent !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .tdb-nav-bar-glass {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background-color: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    transition:
+      background-color 420ms cubic-bezier(0.4, 0, 0.2, 1),
+      -webkit-backdrop-filter 420ms cubic-bezier(0.4, 0, 0.2, 1),
+      backdrop-filter 420ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)) .navbar10_component.is-trans .tdb-nav-bar-glass {
+    background-color: rgba(249, 242, 230, 0.84);
+    -webkit-backdrop-filter: saturate(150%) blur(20px);
+    backdrop-filter: saturate(150%) blur(20px);
+  }
+
+  html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)) .navbar10_menu {
+    background-color: rgba(249, 242, 230, 0.75);
+    -webkit-backdrop-filter: saturate(150%) blur(20px) !important;
+    backdrop-filter: saturate(150%) blur(20px) !important;
+  }
+
+  html:is(.tdb-nav-at-top, .tdb-nav-clear-cycle) .tdb-nav-bar-glass {
+    background-color: transparent !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    animation: none !important;
+  }
+
+  html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)):has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open)) .tdb-nav-bar-glass {
+    animation: tdb-nav-bar-open 420ms cubic-bezier(0.4, 0, 0.2, 1) both !important;
+  }
+
+  html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)):has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open)) .navbar10_menu {
+    animation: tdb-nav-menu-open 420ms cubic-bezier(0.4, 0, 0.2, 1) both !important;
+  }
+
+  html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)) .navbar10_component.z-hold:not(:has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open))) .tdb-nav-bar-glass {
+    animation: tdb-nav-bar-close 420ms cubic-bezier(0.4, 0, 0.2, 1) both !important;
+  }
+
+  html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)) .navbar10_component.z-hold:not(:has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open))) .navbar10_menu {
+    animation: tdb-nav-menu-close 420ms cubic-bezier(0.4, 0, 0.2, 1) both !important;
+  }
+
+  @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    html .navbar10_menu {
+      background-color: rgba(249, 242, 230, 0.95);
+    }
+  }
+}
+
+@keyframes tdb-menu-clear-to-solid {
+  from {
+    background-color: rgba(249, 242, 230, 0);
+  }
+  to {
+    background-color: #f9f2e6;
+  }
+}
+
+@keyframes tdb-menu-solid-to-clear {
+  from {
+    background-color: #f9f2e6;
+  }
+  to {
+    background-color: rgba(249, 242, 230, 0);
+  }
+}
+
+@keyframes tdb-mobile-nav-text-motion {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -0.75rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes tdb-nav-bar-open {
+  from {
+    background-color: rgba(249, 242, 230, 0.84);
+  }
+  to {
+    background-color: #f9f2e6;
+  }
+}
+
+@keyframes tdb-nav-menu-open {
+  from {
+    background-color: rgba(249, 242, 230, 0.75);
+  }
+  to {
+    background-color: #f9f2e6;
+  }
+}
+
+@keyframes tdb-nav-bar-close {
+  from {
+    background-color: #f9f2e6;
+  }
+  to {
+    background-color: rgba(249, 242, 230, 0.84);
+  }
+}
+
+@keyframes tdb-nav-menu-close {
+  from {
+    background-color: #f9f2e6;
+  }
+  to {
+    background-color: rgba(249, 242, 230, 0.75);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar10_menu-left,
+  .navbar10_menu-right {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
