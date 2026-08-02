@@ -1,0 +1,186 @@
+function loadScript(src, attrName, async = true) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[${attrName}]`)) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = src;
+    script.type = 'text/javascript';
+    script.charset = 'UTF-8';
+    script.async = async;
+    script.setAttribute(attrName, 'true');
+    script.onload = resolve;
+    script.onerror = reject;
+
+    document.head.appendChild(script);
+  });
+}
+
+function initLenis() {
+  if (document.documentElement.classList.contains('w-editor')) return;
+  if (!window.Lenis) return;
+  if (window.lenis) return;
+
+  window.lenis = new Lenis({
+    autoRaf: true,
+    smoothWheel: true,
+    syncTouch: false,
+  });
+}
+
+function loadOtherAssets() {
+  const cookieScriptPromise = loadScript(
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/CookieScript@v1.0.1/cookie-script.js',
+    'data-cookie-script-js',
+  );
+
+  const swiperPromise = loadScript(
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b3a0f0f2a1e57b5a67db5f5159c449cff07eebd6/dist/tdb-swiper-8.4.7.min.js',
+    'data-swiper-js',
+  );
+
+  const sliderRuntimePromise = swiperPromise.then(() =>
+    loadScript(
+      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.2.0/dist/tdb-sliders.js',
+      'data-tdb-sliders-js',
+    ),
+  );
+
+  const otherPromises = [
+    loadScript(
+      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@v1.0.0/dist/tdb-attribution.min.js',
+      'data-tdb-attribution-js',
+    ),
+    loadScript(
+      'https://cdn.jsdelivr.net/npm/@finsweet/attributes-scrolldisable@1.6.2/scrolldisable.js',
+      'data-scrolldisable-js',
+    ),
+    swiperPromise,
+    sliderRuntimePromise,
+    loadScript(
+      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-vimeo-js@v1.0.1/dist/vimeo-controller.min.js',
+      'data-vimeo-controller-js',
+    ),
+  ];
+
+  return Promise.allSettled([cookieScriptPromise, ...otherPromises]);
+}
+
+function loadLenisAssets() {
+  const lenisJsPromise = loadScript(
+    'https://cdn.jsdelivr.net/npm/lenis@1.3.19/dist/lenis.min.js',
+    'data-lenis-js',
+  );
+
+  Promise.allSettled([lenisJsPromise]).then(() => {
+    initLenis();
+  });
+}
+
+function triggerAfterSettledLCP(callback) {
+  let ran = false;
+  let settleTimer = null;
+  let fallbackTimer = null;
+
+  function runOnce() {
+    if (ran) return;
+    ran = true;
+    callback();
+  }
+
+  fallbackTimer = setTimeout(() => {
+    runOnce();
+  }, 4000);
+
+  if ('PerformanceObserver' in window) {
+    try {
+      const observer = new PerformanceObserver(() => {
+        clearTimeout(settleTimer);
+
+        settleTimer = setTimeout(() => {
+          clearTimeout(fallbackTimer);
+          observer.disconnect();
+          runOnce();
+        }, 1000);
+      });
+
+      observer.observe({
+        type: 'largest-contentful-paint',
+        buffered: true,
+      });
+
+      document.addEventListener(
+        'visibilitychange',
+        () => {
+          if (document.visibilityState === 'hidden') {
+            clearTimeout(fallbackTimer);
+            clearTimeout(settleTimer);
+            observer.disconnect();
+            runOnce();
+          }
+        },
+        { once: true },
+      );
+    } catch (e) {
+      runOnce();
+    }
+  } else {
+    runOnce();
+  }
+}
+
+function triggerAfterLoadIdle(callback) {
+  function run() {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(
+        () => {
+          requestAnimationFrame(callback);
+        },
+        { timeout: 2000 },
+      );
+    } else {
+      setTimeout(() => {
+        requestAnimationFrame(callback);
+      }, 300);
+    }
+  }
+
+  if (document.readyState === 'complete') {
+    run();
+  } else {
+    window.addEventListener('load', run, { once: true });
+  }
+}
+
+loadScript(
+  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.1.0/dist/tdb-forms.min.js',
+  'data-tdb-forms-js',
+).catch(() => {
+  console.error('TDB Forms failed to load');
+});
+
+loadScript(
+  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.3.0/dist/tdb-consent.js',
+  'data-tdb-consent-js',
+).catch(() => {
+  console.error('TDB Consent failed to load');
+});
+
+loadScript(
+  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.4.0/dist/tdb-vip-drawer.js',
+  'data-tdb-vip-drawer-js',
+).catch(() => {
+  console.error('TDB VIP Drawer failed to load');
+});
+
+loadScript(
+  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e4e5959b107d4b996ffa1ca3a60e622bc96e7c65/dist/tdb-logo-marquee.js',
+  'data-tdb-logo-marquee-js',
+).catch(() => {
+  console.error('TDB Logo Marquee failed to load');
+});
+
+triggerAfterSettledLCP(loadOtherAssets);
+triggerAfterLoadIdle(loadLenisAssets);
