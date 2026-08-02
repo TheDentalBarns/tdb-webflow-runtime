@@ -1,0 +1,44 @@
+html {
+  scroll-behavior: auto !important;
+}
+
+.no-scroll {
+  overflow: hidden;
+  height: 100vh;
+}
+
+.w-slider-dot {
+  background-color: var(--base-color-brand--orange-2) !important;
+}
+
+.w-slider-dot.w-active {
+  background-color: var(--base-color-brand--orange-3) !important;
+}
+
+[data-fade-slide] {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease-out;
+}
+
+[data-fade-slide].is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 400ms ease-in;
+}
+
+.parallax-swiper_component.is-moving [data-fade-slide] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 150ms ease-out !important;
+}
+
+input[type='submit'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input[type='submit'].submit-enabled {
+  opacity: 1;
+  cursor: pointer;
+}
