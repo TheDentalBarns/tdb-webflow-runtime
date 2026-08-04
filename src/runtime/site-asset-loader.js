@@ -156,6 +156,7 @@ function triggerAfterLoadIdle(callback) {
 
 function prepareFormsLoader() {
   const formSelector = 'form';
+  const proximityExcludedFormSelector = '#vip-drawer-form';
   const vipIntentSelector = 'a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
   const observedForms = new WeakSet();
   let loadingPromise = null;
@@ -197,6 +198,7 @@ function prepareFormsLoader() {
 
   function observeForm(form) {
     if (!(form instanceof HTMLFormElement) || observedForms.has(form)) return;
+    if (form.matches(proximityExcludedFormSelector)) return;
     observedForms.add(form);
 
     if (!proximityObserver) {
