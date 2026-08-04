@@ -237,12 +237,105 @@ function prepareFormsLoader() {
 
 prepareFormsLoader();
 
-loadScript(
-  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.4.0/dist/tdb-vip-drawer.js',
-  'data-tdb-vip-drawer-js',
-).catch(() => {
-  console.error('TDB VIP Drawer failed to load');
-});
+function prepareVIPDrawerLoader() {
+  const drawer = document.getElementById('tdb-vip-drawer');
+  if (!drawer) return;
+
+  const mobileQuery = matchMedia('(max-width:767px)');
+  const triggerSelector =
+    '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
+  let loadingPromise = null;
+  let armed = false;
+  let lcpTriggerArmed = false;
+
+  function cleanup() {
+    armed = false;
+    window.removeEventListener('scroll', onMeaningfulScroll);
+    document.removeEventListener('click', onIntentClick, true);
+    document.removeEventListener('keydown', onIntentKeydown, true);
+  }
+
+  function loadDrawer() {
+    if (!mobileQuery.matches) return Promise.resolve();
+    if (loadingPromise) return loadingPromise;
+
+    window.removeEventListener('scroll', onMeaningfulScroll);
+    loadingPromise = loadScript(
+      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.4.0/dist/tdb-vip-drawer.js',
+      'data-tdb-vip-drawer-js',
+    )
+      .then(() => {
+        cleanup();
+      })
+      .catch(error => {
+        document.querySelector('script[data-tdb-vip-drawer-js]')?.remove();
+        loadingPromise = null;
+        console.error('TDB VIP Drawer failed to load');
+        throw error;
+      });
+
+    return loadingPromise;
+  }
+
+  function openAfterLoad(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    loadDrawer().then(() => {
+      window.TDBVIPDrawer?.open();
+    });
+  }
+
+  function findTrigger(event) {
+    const target = event.target;
+    if (!(target instanceof Element)) return null;
+    return target.closest(triggerSelector);
+  }
+
+  function onIntentClick(event) {
+    if (!mobileQuery.matches || window.TDBVIPDrawer) return;
+    if (!findTrigger(event)) return;
+    openAfterLoad(event);
+  }
+
+  function onIntentKeydown(event) {
+    if (!mobileQuery.matches || window.TDBVIPDrawer) return;
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    if (!findTrigger(event)) return;
+    openAfterLoad(event);
+  }
+
+  function onMeaningfulScroll() {
+    if (!mobileQuery.matches) return;
+    const y = Math.max(window.scrollY, document.documentElement.scrollTop, 0);
+    if (y < 32) return;
+    loadDrawer();
+  }
+
+  function arm() {
+    if (armed || !mobileQuery.matches || window.TDBVIPDrawer) return;
+    armed = true;
+    window.addEventListener('scroll', onMeaningfulScroll, { passive: true });
+    document.addEventListener('click', onIntentClick, true);
+    document.addEventListener('keydown', onIntentKeydown, true);
+
+    if (!lcpTriggerArmed) {
+      lcpTriggerArmed = true;
+      triggerAfterSettledLCP(loadDrawer);
+    }
+  }
+
+  function sync() {
+    if (mobileQuery.matches) arm();
+    else if (!window.TDBVIPDrawer) cleanup();
+  }
+
+  if (mobileQuery.addEventListener) mobileQuery.addEventListener('change', sync);
+  else mobileQuery.addListener?.(sync);
+
+  sync();
+}
+
+prepareVIPDrawerLoader();
 
 loadScript(
   'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@9ecc45134d68ac301a98b60e8a8e2971894c60ab/dist/tdb-logo-marquee.js',
