@@ -176,7 +176,7 @@ loadScript(
 });
 
 loadScript(
-  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e4e5959b107d4b996ffa1ca3a60e622bc96e7c65/dist/tdb-logo-marquee.js',
+  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@9ecc45134d68ac301a98b60e8a8e2971894c60ab/dist/tdb-logo-marquee.js',
   'data-tdb-logo-marquee-js',
 ).catch(() => {
   console.error('TDB Logo Marquee failed to load');
