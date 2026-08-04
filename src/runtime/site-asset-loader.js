@@ -32,7 +32,7 @@ function initLenis() {
 
 function loadOtherAssets() {
   const cookieScriptPromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/CookieScript@v1.0.1/cookie-script.js',
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/CookieScript@06867aa292da495320b9dd315833324e481d7b47/tdb-cookie-consent.min.js',
     'data-cookie-script-js',
   );
 
