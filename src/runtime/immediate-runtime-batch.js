@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.1.0-cookie-slide-test';
   const mobileQuery = matchMedia('(max-width:767px)');
   const vipTriggerSelector =
     '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
@@ -29,7 +29,6 @@
     });
   }
 
-  // Consent is intentionally requested first.
   const consentPromise = loadScript(
     'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.3.0/dist/tdb-consent.js',
     'data-tdb-consent-js',
@@ -39,7 +38,6 @@
     throw error;
   });
 
-  // These requests begin immediately afterwards, with no LCP or idle delay.
   const logoMarqueePromise = loadScript(
     'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@9ecc45134d68ac301a98b60e8a8e2971894c60ab/dist/tdb-logo-marquee.js',
     'data-tdb-logo-marquee-js',
@@ -70,10 +68,9 @@
         )
       : Promise.resolve();
 
-  // CookieScript still waits for the consent coordinator to be ready.
   const cookieScriptPromise = consentPromise.then(() =>
     loadScript(
-      'https://cdn.jsdelivr.net/gh/TheDentalBarns/CookieScript@06867aa292da495320b9dd315833324e481d7b47/tdb-cookie-consent.min.js',
+      'https://cdn.jsdelivr.net/gh/TheDentalBarns/CookieScript@e8fc208cfd52e07997c796c5f7b221b478a939a8/tdb-cookie-consent-slide-up-test.js',
       'data-cookie-script-js',
       () => Boolean(window.CookieScript?.instance),
     ),
