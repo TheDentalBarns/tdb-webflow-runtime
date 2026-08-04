@@ -154,12 +154,103 @@ function triggerAfterLoadIdle(callback) {
   }
 }
 
-loadScript(
-  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.1.0/dist/tdb-forms.min.js',
-  'data-tdb-forms-js',
-).catch(() => {
-  console.error('TDB Forms failed to load');
-});
+function prepareFormsLoader() {
+  const formSelector = 'form';
+  const vipIntentSelector = 'a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
+  const observedForms = new WeakSet();
+  let loadingPromise = null;
+  let proximityObserver = null;
+  let discoveryObserver = null;
+
+  function cleanup() {
+    proximityObserver?.disconnect();
+    discoveryObserver?.disconnect();
+    document.removeEventListener('focusin', onIntent, true);
+    document.removeEventListener('pointerdown', onIntent, true);
+    document.removeEventListener('keydown', onIntent, true);
+    document.removeEventListener('submit', onIntent, true);
+  }
+
+  function loadForms() {
+    if (loadingPromise) return loadingPromise;
+
+    cleanup();
+    loadingPromise = loadScript(
+      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.1.0/dist/tdb-forms.min.js',
+      'data-tdb-forms-js',
+    ).catch(error => {
+      console.error('TDB Forms failed to load');
+      throw error;
+    });
+
+    return loadingPromise;
+  }
+
+  function onIntent(event) {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    if (target.closest(formSelector) || target.closest(vipIntentSelector)) {
+      loadForms();
+    }
+  }
+
+  function observeForm(form) {
+    if (!(form instanceof HTMLFormElement) || observedForms.has(form)) return;
+    observedForms.add(form);
+
+    if (!proximityObserver) {
+      loadForms();
+      return;
+    }
+
+    proximityObserver.observe(form);
+  }
+
+  function discoverForms(root = document) {
+    if (root instanceof HTMLFormElement) observeForm(root);
+    root.querySelectorAll?.(formSelector).forEach(observeForm);
+  }
+
+  if ('IntersectionObserver' in window) {
+    proximityObserver = new IntersectionObserver(
+      entries => {
+        if (entries.some(entry => entry.isIntersecting)) loadForms();
+      },
+      { rootMargin: '600px 0px' },
+    );
+  }
+
+  document.addEventListener('focusin', onIntent, true);
+  document.addEventListener('pointerdown', onIntent, true);
+  document.addEventListener('keydown', onIntent, true);
+  document.addEventListener('submit', onIntent, true);
+
+  function startDiscovery() {
+    discoverForms();
+
+    discoveryObserver = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node instanceof Element) discoverForms(node);
+        });
+      });
+    });
+
+    discoveryObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startDiscovery, { once: true });
+  } else {
+    startDiscovery();
+  }
+}
+
+prepareFormsLoader();
 
 loadScript(
   'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.3.0/dist/tdb-consent.js',
