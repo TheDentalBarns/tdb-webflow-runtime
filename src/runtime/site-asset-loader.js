@@ -13,15 +13,13 @@ function loadScript(src, attrName, async = true) {
     script.setAttribute(attrName, 'true');
     script.onload = resolve;
     script.onerror = reject;
-
     document.head.appendChild(script);
   });
 }
 
 function initLenis() {
   if (document.documentElement.classList.contains('w-editor')) return;
-  if (!window.Lenis) return;
-  if (window.lenis) return;
+  if (!window.Lenis || window.lenis) return;
 
   window.lenis = new Lenis({
     autoRaf: true,
@@ -31,9 +29,19 @@ function initLenis() {
 }
 
 function loadOtherAssets() {
-  const cookieScriptPromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/CookieScript@06867aa292da495320b9dd315833324e481d7b47/tdb-cookie-consent.min.js',
-    'data-cookie-script-js',
+  const consentPromise = loadScript(
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.3.0/dist/tdb-consent.js',
+    'data-tdb-consent-js',
+  ).catch(error => {
+    console.error('TDB Consent failed to load');
+    throw error;
+  });
+
+  const cookieScriptPromise = consentPromise.then(() =>
+    loadScript(
+      'https://cdn.jsdelivr.net/gh/TheDentalBarns/CookieScript@06867aa292da495320b9dd315833324e481d7b47/tdb-cookie-consent.min.js',
+      'data-cookie-script-js',
+    ),
   );
 
   const swiperPromise = loadScript(
@@ -90,15 +98,12 @@ function triggerAfterSettledLCP(callback) {
     callback();
   }
 
-  fallbackTimer = setTimeout(() => {
-    runOnce();
-  }, 4000);
+  fallbackTimer = setTimeout(runOnce, 4000);
 
   if ('PerformanceObserver' in window) {
     try {
       const observer = new PerformanceObserver(() => {
         clearTimeout(settleTimer);
-
         settleTimer = setTimeout(() => {
           clearTimeout(fallbackTimer);
           observer.disconnect();
@@ -106,24 +111,20 @@ function triggerAfterSettledLCP(callback) {
         }, 1000);
       });
 
-      observer.observe({
-        type: 'largest-contentful-paint',
-        buffered: true,
-      });
+      observer.observe({ type: 'largest-contentful-paint', buffered: true });
 
       document.addEventListener(
         'visibilitychange',
         () => {
-          if (document.visibilityState === 'hidden') {
-            clearTimeout(fallbackTimer);
-            clearTimeout(settleTimer);
-            observer.disconnect();
-            runOnce();
-          }
+          if (document.visibilityState !== 'hidden') return;
+          clearTimeout(fallbackTimer);
+          clearTimeout(settleTimer);
+          observer.disconnect();
+          runOnce();
         },
         { once: true },
       );
-    } catch (e) {
+    } catch (error) {
       runOnce();
     }
   } else {
@@ -134,24 +135,14 @@ function triggerAfterSettledLCP(callback) {
 function triggerAfterLoadIdle(callback) {
   function run() {
     if ('requestIdleCallback' in window) {
-      requestIdleCallback(
-        () => {
-          requestAnimationFrame(callback);
-        },
-        { timeout: 2000 },
-      );
+      requestIdleCallback(() => requestAnimationFrame(callback), { timeout: 2000 });
     } else {
-      setTimeout(() => {
-        requestAnimationFrame(callback);
-      }, 300);
+      setTimeout(() => requestAnimationFrame(callback), 300);
     }
   }
 
-  if (document.readyState === 'complete') {
-    run();
-  } else {
-    window.addEventListener('load', run, { once: true });
-  }
+  if (document.readyState === 'complete') run();
+  else window.addEventListener('load', run, { once: true });
 }
 
 function prepareFormsLoader() {
@@ -190,10 +181,7 @@ function prepareFormsLoader() {
   function onIntent(event) {
     const target = event.target;
     if (!(target instanceof Element)) return;
-
-    if (target.closest(formSelector) || target.closest(vipIntentSelector)) {
-      loadForms();
-    }
+    if (target.closest(formSelector) || target.closest(vipIntentSelector)) loadForms();
   }
 
   function observeForm(form) {
@@ -230,7 +218,6 @@ function prepareFormsLoader() {
 
   function startDiscovery() {
     discoverForms();
-
     discoveryObserver = new MutationObserver(mutations => {
       mutations.forEach(mutation => {
         mutation.addedNodes.forEach(node => {
@@ -238,11 +225,7 @@ function prepareFormsLoader() {
         });
       });
     });
-
-    discoveryObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
+    discoveryObserver.observe(document.body, { childList: true, subtree: true });
   }
 
   if (document.readyState === 'loading') {
@@ -253,13 +236,6 @@ function prepareFormsLoader() {
 }
 
 prepareFormsLoader();
-
-loadScript(
-  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.3.0/dist/tdb-consent.js',
-  'data-tdb-consent-js',
-).catch(() => {
-  console.error('TDB Consent failed to load');
-});
 
 loadScript(
   'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.4.0/dist/tdb-vip-drawer.js',
