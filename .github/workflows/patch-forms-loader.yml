@@ -1,76 +1,10 @@
-name: Patch forms loader
+name: Archived forms loader patch
 
 on:
-  push:
-    branches:
-      - perf/forms-loader-v0.1.1
-
-permissions:
-  contents: write
+  workflow_dispatch:
 
 jobs:
-  patch:
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+  archived:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: perf/forms-loader-v0.1.1
-
-      - name: Exclude mobile drawer form from proximity loading
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          files = [
-              Path('src/runtime/site-asset-loader.js'),
-              Path('dist/tdb-footer-runtime.min.js'),
-          ]
-
-          old_constants = """function prepareFormsLoader() {
-  const formSelector = 'form';
-  const vipIntentSelector = 'a[href*=\"#vip\" i], [href*=\"#vip\" i], [data-vip-open]';
-  const observedForms = new WeakSet();
-"""
-          new_constants = """function prepareFormsLoader() {
-  const formSelector = 'form';
-  const proximityExcludedFormSelector = '#vip-drawer-form';
-  const vipIntentSelector = 'a[href*=\"#vip\" i], [href*=\"#vip\" i], [data-vip-open]';
-  const observedForms = new WeakSet();
-"""
-
-          old_observe = """  function observeForm(form) {
-    if (!(form instanceof HTMLFormElement) || observedForms.has(form)) return;
-    observedForms.add(form);
-
-    if (!proximityObserver) {
-"""
-          new_observe = """  function observeForm(form) {
-    if (!(form instanceof HTMLFormElement) || observedForms.has(form)) return;
-    if (form.matches(proximityExcludedFormSelector)) return;
-    observedForms.add(form);
-
-    if (!proximityObserver) {
-"""
-
-          for path in files:
-              text = path.read_text()
-              if old_constants not in text:
-                  raise SystemExit(f'Constants pattern missing in {path}')
-              if old_observe not in text:
-                  raise SystemExit(f'Observer pattern missing in {path}')
-              text = text.replace(old_constants, new_constants, 1)
-              text = text.replace(old_observe, new_observe, 1)
-              path.write_text(text)
-          PY
-
-          node --check src/runtime/site-asset-loader.js
-          node --check dist/tdb-footer-runtime.min.js
-
-      - name: Commit corrected loader
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/runtime/site-asset-loader.js dist/tdb-footer-runtime.min.js
-          git commit -m "Exclude mobile drawer form from proximity loading [skip ci]"
-          git push origin HEAD:perf/forms-loader-v0.1.1
+      - run: echo "Patch already applied; workflow retained only for audit history."
