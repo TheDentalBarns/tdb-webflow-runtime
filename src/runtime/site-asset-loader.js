@@ -77,6 +77,11 @@ function loadOtherAssets() {
 }
 
 function loadLenisAssets() {
+  const eligibleDevice = matchMedia(
+    '(min-width:768px) and (hover:hover) and (pointer:fine)',
+  );
+  if (!eligibleDevice.matches) return;
+
   const lenisJsPromise = loadScript(
     'https://cdn.jsdelivr.net/npm/lenis@1.3.19/dist/lenis.min.js',
     'data-lenis-js',
