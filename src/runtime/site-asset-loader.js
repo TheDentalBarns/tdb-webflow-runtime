@@ -44,18 +44,6 @@ function loadOtherAssets() {
     ),
   );
 
-  const swiperPromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b3a0f0f2a1e57b5a67db5f5159c449cff07eebd6/dist/tdb-swiper-8.4.7.min.js',
-    'data-swiper-js',
-  );
-
-  const sliderRuntimePromise = swiperPromise.then(() =>
-    loadScript(
-      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.2.0/dist/tdb-sliders.js',
-      'data-tdb-sliders-js',
-    ),
-  );
-
   const otherPromises = [
     loadScript(
       'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@v1.0.0/dist/tdb-attribution.min.js',
@@ -65,8 +53,6 @@ function loadOtherAssets() {
       'https://cdn.jsdelivr.net/npm/@finsweet/attributes-scrolldisable@1.6.2/scrolldisable.js',
       'data-scrolldisable-js',
     ),
-    swiperPromise,
-    sliderRuntimePromise,
     loadScript(
       'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-vimeo-js@v1.0.1/dist/vimeo-controller.min.js',
       'data-vimeo-controller-js',
@@ -341,6 +327,108 @@ function prepareVIPDrawerLoader() {
 }
 
 prepareVIPDrawerLoader();
+
+function prepareSliderLoader() {
+  const sliderSelector = '.highlight-swiper_component, .parallax-swiper_component';
+  const observedSliders = new WeakSet();
+  let loadingPromise = null;
+  let proximityObserver = null;
+  let discoveryObserver = null;
+
+  function cleanup() {
+    proximityObserver?.disconnect();
+    discoveryObserver?.disconnect();
+    document.removeEventListener('pointerdown', onIntent, true);
+    document.removeEventListener('keydown', onIntent, true);
+  }
+
+  function loadSliders() {
+    if (loadingPromise) return loadingPromise;
+
+    cleanup();
+    loadingPromise = loadScript(
+      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b3a0f0f2a1e57b5a67db5f5159c449cff07eebd6/dist/tdb-swiper-8.4.7.min.js',
+      'data-swiper-js',
+    )
+      .then(() =>
+        loadScript(
+          'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.2.0/dist/tdb-sliders.js',
+          'data-tdb-sliders-js',
+        ),
+      )
+      .catch(error => {
+        console.error('TDB Sliders failed to load');
+        throw error;
+      });
+
+    return loadingPromise;
+  }
+
+  function onIntent(event) {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (target.closest(sliderSelector)) loadSliders();
+  }
+
+  function observeSlider(slider) {
+    if (!(slider instanceof Element) || observedSliders.has(slider)) return;
+    observedSliders.add(slider);
+
+    if (!proximityObserver) {
+      loadSliders();
+      return;
+    }
+
+    proximityObserver.observe(slider);
+  }
+
+  function discoverSliders(root = document) {
+    if (root instanceof Element && root.matches(sliderSelector)) observeSlider(root);
+    root.querySelectorAll?.(sliderSelector).forEach(observeSlider);
+  }
+
+  if ('IntersectionObserver' in window) {
+    proximityObserver = new IntersectionObserver(
+      entries => {
+        if (entries.some(entry => entry.isIntersecting)) loadSliders();
+      },
+      { rootMargin: '800px 0px' },
+    );
+  }
+
+  document.addEventListener('pointerdown', onIntent, true);
+  document.addEventListener('keydown', onIntent, true);
+
+  function startDiscovery() {
+    discoverSliders();
+    discoveryObserver = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node instanceof Element) discoverSliders(node);
+        });
+      });
+    });
+    discoveryObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startDiscovery, { once: true });
+  } else {
+    startDiscovery();
+  }
+
+  window.TDBSliderLoader = Object.freeze({
+    version: '0.1.0',
+    load: loadSliders,
+    status: () => ({
+      loaded: Boolean(window.TDBSliders),
+      loading: Boolean(loadingPromise),
+      swiperAvailable: typeof window.Swiper === 'function',
+    }),
+  });
+}
+
+prepareSliderLoader();
 
 loadScript(
   'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@9ecc45134d68ac301a98b60e8a8e2971894c60ab/dist/tdb-logo-marquee.js',
