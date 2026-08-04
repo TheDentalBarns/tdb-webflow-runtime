@@ -469,12 +469,15 @@ html.lenis body {
   }
 
   #tdb-vip-drawer .tdb-vip-drawer-arrow {
+    --tdb-vip-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='m18 6-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10z'/%3E%3C/svg%3E");
     display: block;
     flex: 0 0 auto;
     width: 0.75rem;
     height: 0.625rem;
     margin-left: auto;
-    background: url('https://s3.amazonaws.com/webflow-prod-assets/677cf86cf9952f978d94d80c/678503c5b3e550705cf3f986_arrow.svg') center/contain no-repeat;
+    background-color: currentColor;
+    -webkit-mask: var(--tdb-vip-arrow) center/contain no-repeat;
+    mask: var(--tdb-vip-arrow) center/contain no-repeat;
     transform: rotate(-90deg);
     transition: transform var(--tdb-vip-tab-duration) var(--tdb-vip-tab-ease);
   }
