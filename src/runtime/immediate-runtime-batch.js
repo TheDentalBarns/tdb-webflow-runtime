@@ -1,10 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.5.0-attribution-intent';
-  const mobileQuery = matchMedia('(max-width:767px)');
-  const vipTriggerSelector =
-    '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
+  const VERSION = '0.6.0-attribution-intent';
 
   function loadScript(src, attrName, readyCheck) {
     const existing = document.querySelector(`script[${attrName}]`);
@@ -68,41 +65,6 @@
     'data-vimeo-controller-js',
   );
 
-  const vipDrawerPromise =
-    mobileQuery.matches && document.getElementById('tdb-vip-drawer')
-      ? loadScript(
-          'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.4.0/dist/tdb-vip-drawer.js',
-          'data-tdb-vip-drawer-js',
-          () => Boolean(window.TDBVIPDrawer),
-        )
-      : Promise.resolve();
-
-  function findVipTrigger(event) {
-    const target = event.target;
-    if (!(target instanceof Element)) return null;
-    return target.closest(vipTriggerSelector);
-  }
-
-  function openVipAfterLoad(event) {
-    if (!mobileQuery.matches || window.TDBVIPDrawer || !findVipTrigger(event)) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    vipDrawerPromise.then(() => window.TDBVIPDrawer?.open());
-  }
-
-  function openVipAfterKey(event) {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
-    openVipAfterLoad(event);
-  }
-
-  document.addEventListener('click', openVipAfterLoad, true);
-  document.addEventListener('keydown', openVipAfterKey, true);
-
-  vipDrawerPromise.finally(() => {
-    document.removeEventListener('click', openVipAfterLoad, true);
-    document.removeEventListener('keydown', openVipAfterKey, true);
-  });
-
   const ready = Promise.allSettled([
     consentPromise,
     cookieScriptPromise,
@@ -110,7 +72,6 @@
     attributionPromise,
     scrollDisablePromise,
     vimeoPromise,
-    vipDrawerPromise,
   ]);
 
   window.TDBImmediateRuntimeBatch = Object.freeze({
@@ -123,6 +84,7 @@
       attribution: Boolean(window.TDBAttribution),
       attributionVersion: window.TDBAttribution?.version || null,
       logoMarquee: Boolean(window.TDBLogoMarquee),
+      vipDrawerLoader: Boolean(window.TDBVIPDrawerLoader),
       vipDrawer: Boolean(window.TDBVIPDrawer),
     }),
   });
