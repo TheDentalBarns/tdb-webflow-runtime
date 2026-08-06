@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.6.0-attribution-intent';
+  const VERSION = '0.6.1-attribution-smile-ids';
 
   function loadScript(src, attrName, readyCheck) {
     const existing = document.querySelector(`script[${attrName}]`);
@@ -50,7 +50,7 @@
   );
 
   const attributionPromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@01237bc6785820198ea770f4abfb86f03cd40026/dist/tdb-attribution.min.js',
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@1ed0f46f46934bb952dcb7a299c12bcf166a910d/dist/tdb-attribution.min.js',
     'data-tdb-attribution-js',
     () => Boolean(window.TDBAttribution),
   );
