@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.6.2-attribution-smile-swipes';
+  const VERSION = '0.6.3-attribution-pricing-views';
 
   function loadScript(src, attrName, readyCheck) {
     const existing = document.querySelector(`script[${attrName}]`);
@@ -50,7 +50,7 @@
   );
 
   const attributionPromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@233119e2f68966c3f1dffed1aec6dd69ca662fc1/dist/tdb-attribution.min.js',
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@e5000092abe9b399683c78b56346e9668e981705/dist/tdb-attribution.min.js',
     'data-tdb-attribution-js',
     () => Boolean(window.TDBAttribution),
   );
