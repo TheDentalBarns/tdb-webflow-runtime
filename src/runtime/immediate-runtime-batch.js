@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.6.3-attribution-pricing-views';
+  const VERSION = '0.6.4-attribution-consent-recheck';
 
   function loadScript(src, attrName, readyCheck) {
     const existing = document.querySelector(`script[${attrName}]`);
@@ -50,7 +50,7 @@
   );
 
   const attributionPromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@e5000092abe9b399683c78b56346e9668e981705/dist/tdb-attribution.min.js',
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@afee7b723073c1d3965b5a10eb29e225b7ef55c1/dist/tdb-attribution.min.js',
     'data-tdb-attribution-js',
     () => Boolean(window.TDBAttribution),
   );
