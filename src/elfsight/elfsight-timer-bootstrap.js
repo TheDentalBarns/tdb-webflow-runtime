@@ -3,6 +3,8 @@
   const shellId = 'tdb-elfsight-timer-shell';
   const appClass = 'elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb';
   const mobileQuery = matchMedia('(max-width:767px)');
+  const path = location.pathname.replace(/\/+$/, '') || '/';
+  const revealViewports = path === '/' || path === '/location' ? 3 : 1;
   let viewportHeight = 0;
 
   function attachTimerState(shell) {
@@ -27,7 +29,10 @@
         (navbar.classList.contains('z-hold') ||
           (navbar.classList.contains('is-trans') && !(navbar.style.transform || '').includes('-100%')));
 
-      root.classList.toggle('tdb-timer-hidden', scrollTop < viewportHeight || mobileNavbarVisible);
+      root.classList.toggle(
+        'tdb-timer-hidden',
+        scrollTop < viewportHeight * revealViewports || mobileNavbarVisible,
+      );
     };
 
     const requestUpdate = () => {
