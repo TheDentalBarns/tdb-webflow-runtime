@@ -17,7 +17,7 @@ Production JavaScript and CSS runtime for The Dental Barns Webflow website.
 | `dist/tdb-ui.css` | `1.0.0` | `ec075e95bfb21fecd083fc1d4f48aecc771d9440` | Deferred global UI styles |
 | `dist/tdb-navbar.min.js` | `1.0.0` | `0c4f2c8abd91eaf491ae41abebcc71c6e8cd0370` | Navbar state and mobile text motion |
 | `dist/tdb-immediate-runtime-batch.min.js` | `1.0.0` | `00716e8f8ab2aec55e6a4688efafe475d75a3b01` | Consent-first and immediate runtime loading |
-| `dist/tdb-footer-runtime.min.js` | `1.0.0` | `72aeb7f0ab9861f1aaf9ebb32e07522de47971fa` | Deferred forms, sliders, Lenis and supporting UI |
+| `dist/tdb-footer-runtime.min.js` | `1.0.2` | `f5fda2c134733f1b0c745264fb6d0c69fd396ef7` | Deferred forms, sliders, Lenis, Elfsight timer and supporting UI |
 
 The immediate runtime loads CookieScript `3.0.0` from its own immutable repository commit.
 
