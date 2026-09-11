@@ -1,5 +1,5 @@
 (()=>{
-  const VERSION='0.1.5';
+  const VERSION='0.1.6';
   const mq=matchMedia('(min-width:768px)');
   const d=document.getElementById('tdb-vip-drawer');
   if(!d||d.dataset.tdbVipDesktopInit==='true')return;
@@ -154,48 +154,6 @@
     return true;
   }
 
-  let elfsightShell=null,elfsightObserver=null,hashWatch=0;
-
-  function onElfsightClick(e){
-    if(!mq.matches||st===2||st===3)return;
-    routeY=pageY();
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    openDrawer();
-  }
-
-  function bindElfsightShell(){
-    const shell=document.getElementById('tdb-elfsight-timer-shell');
-    if(!shell)return false;
-    if(shell===elfsightShell)return true;
-    if(elfsightShell)elfsightShell.removeEventListener('click',onElfsightClick,true);
-    elfsightShell=shell;
-    elfsightShell.addEventListener('click',onElfsightClick,true);
-    return true;
-  }
-
-  function startElfsightBinding(){
-    if(bindElfsightShell())return;
-    if(!document.body||elfsightObserver)return;
-    elfsightObserver=new MutationObserver(()=>{
-      if(bindElfsightShell()){
-        elfsightObserver.disconnect();
-        elfsightObserver=null;
-      }
-    });
-    elfsightObserver.observe(document.body,{childList:true,subtree:true});
-  }
-
-  function syncHashWatch(){
-    if(mq.matches){
-      if(!hashWatch)hashWatch=setInterval(()=>{if(isVipHash())routeVipHash()},80);
-    }else if(hashWatch){
-      clearInterval(hashWatch);
-      hashWatch=0;
-    }
-  }
-
   function scrollCheck(){
     if(!mq.matches||st===2||st===3){tick=0;return}
     const y=pageY(),delta=y-ly;
@@ -270,11 +228,8 @@
       d.classList.add('is-ready');
       ly=routeY=pageY();
       refresh();
-      startElfsightBinding();
-      syncHashWatch();
       requestAnimationFrame(routeVipHash);
     }else{
-      syncHashWatch();
       reset();
       d.classList.remove('is-ready');
     }
@@ -289,6 +244,6 @@
     close:closeDrawer,
     reset,
     routeVipHash,
-    status:()=>({state:st,desktop:mq.matches,treatment:T?T.slug:null,elfsightBound:!!elfsightShell})
+    status:()=>({state:st,desktop:mq.matches,treatment:T?T.slug:null})
   });
 })();
