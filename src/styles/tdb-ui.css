@@ -344,16 +344,9 @@ html.lenis body {
   z-index: 2147483647 !important;
 }
 
-/* TDB parallax slider UI v1.1.0
- * Shared controls are defined once; media queries only position them.
+/* TDB parallax slider UI v1.2.0
+ * Loaded with the slider runtime. First-frame visibility protection lives in tdb-runtime-ui.css.
  */
-
-@media (min-width: 768px), (max-width: 767px) and (orientation: portrait) {
-  .tdb-entry-pending [data-fade-slide] {
-    opacity: 0 !important;
-    pointer-events: none !important;
-  }
-}
 
 html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide,
 html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide {
