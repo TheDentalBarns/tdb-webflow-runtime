@@ -1,4 +1,4 @@
-/* TDB desktop VIP drawer v0.1.0
+/* TDB desktop VIP drawer v0.1.1
  * Desktop-only companion to the existing mobile drawer.
  * The mobile implementation remains in tdb-ui.css and tdb-vip-drawer.js unchanged.
  */
@@ -10,6 +10,8 @@
     --tdb-vip-desktop-drawer-duration: 500ms;
     --tdb-vip-desktop-drawer-ease: ease;
     --tdb-vip-desktop-handle-height: 5rem;
+    --tdb-vip-desktop-page-gutter: 3%;
+    --tdb-vip-desktop-content-max: 90rem;
   }
 
   html.tdb-vip-desktop-open { overflow: hidden !important; }
@@ -88,7 +90,8 @@
     width: 100%;
     height: var(--tdb-vip-desktop-handle-height);
     min-height: var(--tdb-vip-desktop-handle-height);
-    padding: 0 clamp(2rem, 5vw, 5rem) !important;
+    padding-left: var(--tdb-vip-desktop-page-gutter) !important;
+    padding-right: var(--tdb-vip-desktop-page-gutter) !important;
     gap: 1rem;
     background: transparent !important;
     color: #fff !important;
@@ -152,6 +155,8 @@
     min-height: 0;
     overflow: hidden;
     background: transparent !important;
+    padding-left: var(--tdb-vip-desktop-page-gutter);
+    padding-right: var(--tdb-vip-desktop-page-gutter);
   }
 
   #tdb-vip-drawer.is-open .tdb-vip-drawer-body {
@@ -172,13 +177,16 @@
     background-color: transparent !important;
   }
 
-  #tdb-vip-drawer .tdb-vip-drawer-body .padding-global {
+  #tdb-vip-drawer .tdb-vip-drawer-body > .vip-form_wrapper {
     width: 100%;
-    max-width: 56rem;
+    max-width: var(--tdb-vip-desktop-content-max);
     margin-left: auto;
     margin-right: auto;
-    padding-left: clamp(2rem, 5vw, 5rem) !important;
-    padding-right: clamp(2rem, 5vw, 5rem) !important;
+  }
+
+  #tdb-vip-drawer .tdb-vip-drawer-body .vip-form_btm {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
   }
 
   #tdb-vip-drawer .padding-section-large {
@@ -259,9 +267,4 @@
     background: rgba(255, 255, 255, 0.1) !important;
     color: #fff !important;
   }
-}
-
-@media (min-width: 768px) and (prefers-reduced-motion: reduce) {
-  #tdb-vip-drawer,
-  #tdb-vip-drawer .tdb-vip-drawer-arrow { transition-duration: 1ms !important; }
 }
