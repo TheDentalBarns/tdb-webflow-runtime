@@ -269,6 +269,14 @@ html {
   transition: opacity 150ms ease-out !important;
 }
 
+/* First-frame slider guard stays global; full slider controls load with the slider runtime. */
+@media (min-width: 768px), (max-width: 767px) and (orientation: portrait) {
+  .tdb-entry-pending [data-fade-slide] {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+}
+
 input[type='submit'] {
   opacity: 0.5;
   cursor: not-allowed;
