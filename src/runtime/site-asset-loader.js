@@ -1,7 +1,12 @@
 function loadScript(src, attrName, async = true) {
   return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[${attrName}]`)) {
-      resolve();
+    const existing = document.querySelector(`script[${attrName}]`);
+    if (existing) {
+      if (existing.dataset.tdbLoaded === 'true') resolve(existing);
+      else {
+        existing.addEventListener('load', () => resolve(existing), { once: true });
+        existing.addEventListener('error', reject, { once: true });
+      }
       return;
     }
 
@@ -11,7 +16,10 @@ function loadScript(src, attrName, async = true) {
     script.charset = 'UTF-8';
     script.async = async;
     script.setAttribute(attrName, 'true');
-    script.onload = resolve;
+    script.onload = () => {
+      script.dataset.tdbLoaded = 'true';
+      resolve(script);
+    };
     script.onerror = reject;
     document.head.appendChild(script);
   });
@@ -28,101 +36,6 @@ function initLenis() {
   });
 }
 
-function loadOtherAssets() {
-  const consentPromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.3.0/dist/tdb-consent.js',
-    'data-tdb-consent-js',
-  ).catch(error => {
-    console.error('TDB Consent failed to load');
-    throw error;
-  });
-
-  const cookieScriptPromise = consentPromise.then(() =>
-    loadScript(
-      'https://cdn.jsdelivr.net/gh/TheDentalBarns/CookieScript@06867aa292da495320b9dd315833324e481d7b47/tdb-cookie-consent.min.js',
-      'data-cookie-script-js',
-    ),
-  );
-
-  const otherPromises = [
-    loadScript(
-      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@v1.0.0/dist/tdb-attribution.min.js',
-      'data-tdb-attribution-js',
-    ),
-    loadScript(
-      'https://cdn.jsdelivr.net/npm/@finsweet/attributes-scrolldisable@1.6.2/scrolldisable.js',
-      'data-scrolldisable-js',
-    ),
-    loadScript(
-      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-vimeo-js@v1.0.1/dist/vimeo-controller.min.js',
-      'data-vimeo-controller-js',
-    ),
-  ];
-
-  return Promise.allSettled([cookieScriptPromise, ...otherPromises]);
-}
-
-function loadLenisAssets() {
-  const eligibleDevice = matchMedia(
-    '(min-width:768px) and (hover:hover) and (pointer:fine)',
-  );
-  if (!eligibleDevice.matches) return;
-
-  const lenisJsPromise = loadScript(
-    'https://cdn.jsdelivr.net/npm/lenis@1.3.19/dist/lenis.min.js',
-    'data-lenis-js',
-  );
-
-  Promise.allSettled([lenisJsPromise]).then(() => {
-    initLenis();
-  });
-}
-
-function triggerAfterSettledLCP(callback) {
-  let ran = false;
-  let settleTimer = null;
-  let fallbackTimer = null;
-
-  function runOnce() {
-    if (ran) return;
-    ran = true;
-    callback();
-  }
-
-  fallbackTimer = setTimeout(runOnce, 4000);
-
-  if ('PerformanceObserver' in window) {
-    try {
-      const observer = new PerformanceObserver(() => {
-        clearTimeout(settleTimer);
-        settleTimer = setTimeout(() => {
-          clearTimeout(fallbackTimer);
-          observer.disconnect();
-          runOnce();
-        }, 1000);
-      });
-
-      observer.observe({ type: 'largest-contentful-paint', buffered: true });
-
-      document.addEventListener(
-        'visibilitychange',
-        () => {
-          if (document.visibilityState !== 'hidden') return;
-          clearTimeout(fallbackTimer);
-          clearTimeout(settleTimer);
-          observer.disconnect();
-          runOnce();
-        },
-        { once: true },
-      );
-    } catch (error) {
-      runOnce();
-    }
-  } else {
-    runOnce();
-  }
-}
-
 function triggerAfterLoadIdle(callback) {
   function run() {
     if ('requestIdleCallback' in window) {
@@ -134,6 +47,16 @@ function triggerAfterLoadIdle(callback) {
 
   if (document.readyState === 'complete') run();
   else window.addEventListener('load', run, { once: true });
+}
+
+function loadLenisAssets() {
+  const eligibleDevice = matchMedia('(min-width:768px) and (hover:hover) and (pointer:fine)');
+  if (!eligibleDevice.matches) return;
+
+  loadScript(
+    'https://cdn.jsdelivr.net/npm/lenis@1.3.19/dist/lenis.min.js',
+    'data-lenis-js',
+  ).then(initLenis).catch(() => console.error('TDB Lenis failed to load'));
 }
 
 function prepareFormsLoader() {
@@ -156,16 +79,15 @@ function prepareFormsLoader() {
 
   function loadForms() {
     if (loadingPromise) return loadingPromise;
-
     cleanup();
     loadingPromise = loadScript(
       'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.1.0/dist/tdb-forms.min.js',
       'data-tdb-forms-js',
     ).catch(error => {
+      loadingPromise = null;
       console.error('TDB Forms failed to load');
       throw error;
     });
-
     return loadingPromise;
   }
 
@@ -176,16 +98,10 @@ function prepareFormsLoader() {
   }
 
   function observeForm(form) {
-    if (!(form instanceof HTMLFormElement) || observedForms.has(form)) return;
-    if (form.matches(proximityExcludedFormSelector)) return;
+    if (!(form instanceof HTMLFormElement) || observedForms.has(form) || form.matches(proximityExcludedFormSelector)) return;
     observedForms.add(form);
-
-    if (!proximityObserver) {
-      loadForms();
-      return;
-    }
-
-    proximityObserver.observe(form);
+    if (!proximityObserver) loadForms();
+    else proximityObserver.observe(form);
   }
 
   function discoverForms(root = document) {
@@ -195,9 +111,7 @@ function prepareFormsLoader() {
 
   if ('IntersectionObserver' in window) {
     proximityObserver = new IntersectionObserver(
-      entries => {
-        if (entries.some(entry => entry.isIntersecting)) loadForms();
-      },
+      entries => { if (entries.some(entry => entry.isIntersecting)) loadForms(); },
       { rootMargin: '600px 0px' },
     );
   }
@@ -210,34 +124,26 @@ function prepareFormsLoader() {
   function startDiscovery() {
     discoverForms();
     discoveryObserver = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
-          if (node instanceof Element) discoverForms(node);
-        });
-      });
+      mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
+        if (node instanceof Element) discoverForms(node);
+      }));
     });
     discoveryObserver.observe(document.body, { childList: true, subtree: true });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startDiscovery, { once: true });
-  } else {
-    startDiscovery();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startDiscovery, { once: true });
+  else startDiscovery();
 }
-
-prepareFormsLoader();
 
 function prepareVIPDrawerLoader() {
   const drawer = document.getElementById('tdb-vip-drawer');
   if (!drawer) return;
 
-  const mobileQuery = matchMedia('(max-width:767px)');
-  const triggerSelector =
-    '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
+  const triggerSelector = '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
   let loadingPromise = null;
   let armed = false;
-  let lcpTriggerArmed = false;
+
+  const realDrawerReady = () => Boolean(window.TDBVIPDrawer && !window.TDBVIPDrawer._tdbBridge);
 
   function cleanup() {
     armed = false;
@@ -247,86 +153,70 @@ function prepareVIPDrawerLoader() {
   }
 
   function loadDrawer() {
-    if (!mobileQuery.matches) return Promise.resolve();
+    if (realDrawerReady()) return Promise.resolve(window.TDBVIPDrawer);
     if (loadingPromise) return loadingPromise;
 
-    window.removeEventListener('scroll', onMeaningfulScroll);
     loadingPromise = loadScript(
-      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@28fa8d3043e0d0aea8a531e2a98954c35ccaea10/dist/tdb-vip-drawer.js',
+      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@432ab3ab12553c9bbff97123453272ebde1ad6da/dist/tdb-vip-drawer.js',
       'data-tdb-vip-drawer-js',
-    )
-      .then(() => {
-        cleanup();
-      })
-      .catch(error => {
-        document.querySelector('script[data-tdb-vip-drawer-js]')?.remove();
-        loadingPromise = null;
-        console.error('TDB VIP Drawer failed to load');
-        throw error;
-      });
+    ).then(() => {
+      cleanup();
+      return window.TDBVIPDrawer;
+    }).catch(error => {
+      document.querySelector('script[data-tdb-vip-drawer-js]')?.remove();
+      loadingPromise = null;
+      console.error('TDB VIP Drawer failed to load');
+      throw error;
+    });
 
     return loadingPromise;
+  }
+
+  function findTrigger(event) {
+    const target = event.target;
+    return target instanceof Element ? target.closest(triggerSelector) : null;
   }
 
   function openAfterLoad(event) {
     event.preventDefault();
     event.stopPropagation();
-    loadDrawer().then(() => {
-      window.TDBVIPDrawer?.open();
-    });
-  }
-
-  function findTrigger(event) {
-    const target = event.target;
-    if (!(target instanceof Element)) return null;
-    return target.closest(triggerSelector);
+    loadDrawer().then(api => api?.open?.());
   }
 
   function onIntentClick(event) {
-    if (!mobileQuery.matches || window.TDBVIPDrawer) return;
-    if (!findTrigger(event)) return;
+    if (realDrawerReady() || !findTrigger(event)) return;
     openAfterLoad(event);
   }
 
   function onIntentKeydown(event) {
-    if (!mobileQuery.matches || window.TDBVIPDrawer) return;
-    if (event.key !== 'Enter' && event.key !== ' ') return;
-    if (!findTrigger(event)) return;
+    if (realDrawerReady() || (event.key !== 'Enter' && event.key !== ' ') || !findTrigger(event)) return;
     openAfterLoad(event);
   }
 
   function onMeaningfulScroll() {
-    if (!mobileQuery.matches) return;
-    const y = Math.max(window.scrollY, document.documentElement.scrollTop, 0);
-    if (y < 32) return;
+    if (Math.max(window.scrollY, document.documentElement.scrollTop, 0) < 32) return;
     loadDrawer();
   }
 
   function arm() {
-    if (armed || !mobileQuery.matches || window.TDBVIPDrawer) return;
+    if (armed || realDrawerReady()) return;
     armed = true;
     window.addEventListener('scroll', onMeaningfulScroll, { passive: true });
     document.addEventListener('click', onIntentClick, true);
     document.addEventListener('keydown', onIntentKeydown, true);
-
-    if (!lcpTriggerArmed) {
-      lcpTriggerArmed = true;
-      triggerAfterSettledLCP(loadDrawer);
-    }
   }
 
-  function sync() {
-    if (mobileQuery.matches) arm();
-    else if (!window.TDBVIPDrawer) cleanup();
-  }
+  arm();
 
-  if (mobileQuery.addEventListener) mobileQuery.addEventListener('change', sync);
-  else mobileQuery.addListener?.(sync);
+  if (/^#vip/i.test(location.hash || '')) loadDrawer();
+  else triggerAfterLoadIdle(loadDrawer);
 
-  sync();
+  window.TDBVIPDrawerLoader = Object.freeze({
+    version: '1.0.0',
+    load: loadDrawer,
+    status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) }),
+  });
 }
-
-prepareVIPDrawerLoader();
 
 function prepareSliderLoader() {
   const sliderSelector = '.highlight-swiper_component, .parallax-swiper_component';
@@ -344,42 +234,31 @@ function prepareSliderLoader() {
 
   function loadSliders() {
     if (loadingPromise) return loadingPromise;
-
     cleanup();
     loadingPromise = loadScript(
       'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b3a0f0f2a1e57b5a67db5f5159c449cff07eebd6/dist/tdb-swiper-8.4.7.min.js',
       'data-swiper-js',
-    )
-      .then(() =>
-        loadScript(
-          'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@31386d986982aa60eb6c9199b6e6b4c03693897b/dist/tdb-sliders.js',
-          'data-tdb-sliders-js',
-        ),
-      )
-      .catch(error => {
-        console.error('TDB Sliders failed to load');
-        throw error;
-      });
-
+    ).then(() => loadScript(
+      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@31386d986982aa60eb6c9199b6e6b4c03693897b/dist/tdb-sliders.js',
+      'data-tdb-sliders-js',
+    )).catch(error => {
+      loadingPromise = null;
+      console.error('TDB Sliders failed to load');
+      throw error;
+    });
     return loadingPromise;
   }
 
   function onIntent(event) {
     const target = event.target;
-    if (!(target instanceof Element)) return;
-    if (target.closest(sliderSelector)) loadSliders();
+    if (target instanceof Element && target.closest(sliderSelector)) loadSliders();
   }
 
   function observeSlider(slider) {
     if (!(slider instanceof Element) || observedSliders.has(slider)) return;
     observedSliders.add(slider);
-
-    if (!proximityObserver) {
-      loadSliders();
-      return;
-    }
-
-    proximityObserver.observe(slider);
+    if (!proximityObserver) loadSliders();
+    else proximityObserver.observe(slider);
   }
 
   function discoverSliders(root = document) {
@@ -389,9 +268,7 @@ function prepareSliderLoader() {
 
   if ('IntersectionObserver' in window) {
     proximityObserver = new IntersectionObserver(
-      entries => {
-        if (entries.some(entry => entry.isIntersecting)) loadSliders();
-      },
+      entries => { if (entries.some(entry => entry.isIntersecting)) loadSliders(); },
       { rootMargin: '800px 0px' },
     );
   }
@@ -402,40 +279,24 @@ function prepareSliderLoader() {
   function startDiscovery() {
     discoverSliders();
     discoveryObserver = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
-          if (node instanceof Element) discoverSliders(node);
-        });
-      });
+      mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
+        if (node instanceof Element) discoverSliders(node);
+      }));
     });
     discoveryObserver.observe(document.body, { childList: true, subtree: true });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startDiscovery, { once: true });
-  } else {
-    startDiscovery();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startDiscovery, { once: true });
+  else startDiscovery();
 
   window.TDBSliderLoader = Object.freeze({
     version: '0.1.0',
     load: loadSliders,
-    status: () => ({
-      loaded: Boolean(window.TDBSliders),
-      loading: Boolean(loadingPromise),
-      swiperAvailable: typeof window.Swiper === 'function',
-    }),
+    status: () => ({ loaded: Boolean(window.TDBSliders), loading: Boolean(loadingPromise), swiperAvailable: typeof window.Swiper === 'function' }),
   });
 }
 
+prepareFormsLoader();
+prepareVIPDrawerLoader();
 prepareSliderLoader();
-
-loadScript(
-  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@9ecc45134d68ac301a98b60e8a8e2971894c60ab/dist/tdb-logo-marquee.js',
-  'data-tdb-logo-marquee-js',
-).catch(() => {
-  console.error('TDB Logo Marquee failed to load');
-});
-
-triggerAfterSettledLCP(loadOtherAssets);
 triggerAfterLoadIdle(loadLenisAssets);
