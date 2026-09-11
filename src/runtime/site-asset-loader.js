@@ -91,6 +91,22 @@ function triggerAfterLoadIdle(callback) {
   else window.addEventListener('load', run, { once: true });
 }
 
+const LENIS_WARM_SESSION_KEY = 'tdb-lenis-warm';
+
+function isLenisWarmSession() {
+  try {
+    return sessionStorage.getItem(LENIS_WARM_SESSION_KEY) === '1';
+  } catch (error) {
+    return false;
+  }
+}
+
+function markLenisWarmSession() {
+  try {
+    sessionStorage.setItem(LENIS_WARM_SESSION_KEY, '1');
+  } catch (error) {}
+}
+
 function loadLenisAssets() {
   const eligibleDevice = matchMedia('(min-width:768px) and (hover:hover) and (pointer:fine)');
   if (!eligibleDevice.matches) return;
@@ -99,6 +115,18 @@ function loadLenisAssets() {
     'https://cdn.jsdelivr.net/npm/lenis@1.3.19/dist/lenis.min.js',
     'data-lenis-js',
   ).then(initLenis).catch(() => console.error('TDB Lenis failed to load'));
+}
+
+function startLenisForSession() {
+  if (isLenisWarmSession()) {
+    loadLenisAssets();
+    return;
+  }
+
+  triggerAfterLoadIdle(() => {
+    markLenisWarmSession();
+    loadLenisAssets();
+  });
 }
 
 function prepareFormsLoader() {
@@ -341,4 +369,4 @@ function prepareSliderLoader() {
 prepareFormsLoader();
 prepareVIPDrawerLoader();
 prepareSliderLoader();
-triggerAfterLoadIdle(loadLenisAssets);
+startLenisForSession();
