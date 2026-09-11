@@ -1,5 +1,5 @@
 (()=>{
-  const VERSION='0.1.1';
+  const VERSION='0.1.2';
   const mq=matchMedia('(min-width:768px)');
   const d=document.getElementById('tdb-vip-drawer');
   if(!d||d.dataset.tdbVipDesktopInit==='true')return;
@@ -29,6 +29,7 @@
   const T=slug&&{slug,label:C[slug][0],vals:C[slug][1]};
 
   h.removeAttribute('href');
+  h.removeAttribute('data-vip-open');
   h.setAttribute('role','button');
   h.tabIndex=0;
   h.setAttribute('aria-expanded','false');
@@ -153,6 +154,35 @@
     return true;
   }
 
+  function ensureElfsightBridge(){
+    const shell=document.getElementById('tdb-elfsight-timer-shell');
+    let hit=shell&&shell.querySelector('.tdb-vip-desktop-elfsight-hit');
+    if(!mq.matches){
+      if(hit)hit.style.display='none';
+      return;
+    }
+    if(!shell)return;
+    if(hit){hit.style.display='block';return}
+    hit=document.createElement('button');
+    hit.type='button';
+    hit.className='tdb-vip-desktop-elfsight-hit';
+    hit.setAttribute('aria-label','Join the VIP waitlist');
+    hit.style.cssText='all:unset;position:absolute;inset:0;display:block;z-index:2147483647;cursor:pointer;pointer-events:auto;';
+    hit.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation()},{capture:true});
+    hit.addEventListener('click',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      routeY=pageY();
+      openDrawer();
+    },true);
+    shell.appendChild(hit);
+  }
+
+  if(document.body){
+    new MutationObserver(ensureElfsightBridge).observe(document.body,{childList:true});
+    ensureElfsightBridge();
+  }
+
   function scrollCheck(){
     if(!mq.matches||st===2||st===3){tick=0;return}
     const y=pageY(),delta=y-ly;
@@ -221,7 +251,10 @@
   },{rootMargin:'120px 0px'}).observe(vip);
 
   function sync(){
+    ensureElfsightBridge();
     if(mq.matches){
+      h.removeAttribute('href');
+      h.removeAttribute('data-vip-open');
       d.classList.add('is-ready');
       ly=routeY=pageY();
       refresh();
@@ -241,6 +274,7 @@
     close:closeDrawer,
     reset,
     routeVipHash,
-    status:()=>({state:st,desktop:mq.matches,treatment:T?T.slug:null})
+    ensureElfsightBridge,
+    status:()=>({state:st,desktop:mq.matches,treatment:T?T.slug:null,elfsightBridge:!!document.querySelector('.tdb-vip-desktop-elfsight-hit')})
   });
 })();
