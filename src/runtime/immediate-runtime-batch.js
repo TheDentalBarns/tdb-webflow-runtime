@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.7.0-deferred-footer';
+  const VERSION = '0.7.1-parallel-footer';
   const FOOTER_RUNTIME_URL = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@09c99f4eb0cb8eb67ee8bf92f849a99618248e9f/dist/tdb-footer-runtime.min.js';
   let footerRuntimePromise = null;
 
@@ -65,6 +65,8 @@
     'data-vimeo-controller-js',
   );
 
+  const footerRuntimeReadyPromise = loadFooterRuntime();
+
   const ready = Promise.allSettled([
     consentPromise,
     cookieScriptPromise,
@@ -72,6 +74,7 @@
     attributionPromise,
     scrollDisablePromise,
     vimeoPromise,
+    footerRuntimeReadyPromise,
   ]);
 
   function loadFooterRuntime() {
@@ -90,16 +93,6 @@
     });
 
     return footerRuntimePromise;
-  }
-
-  function scheduleFooterRuntime() {
-    const run = () => {
-      if ('requestIdleCallback' in window) requestIdleCallback(loadFooterRuntime, { timeout: 1600 });
-      else setTimeout(loadFooterRuntime, 300);
-    };
-
-    if (document.readyState === 'complete') run();
-    else window.addEventListener('load', run, { once: true });
   }
 
   function waitForRealVIPDrawer() {
@@ -168,7 +161,6 @@
   document.addEventListener('focusin', onDeferredIntent, true);
 
   if (/^#vip/i.test(location.hash || '')) openVIPDrawer().catch(() => {});
-  else scheduleFooterRuntime();
 
   window.TDBImmediateRuntimeBatch = Object.freeze({
     version: VERSION,
