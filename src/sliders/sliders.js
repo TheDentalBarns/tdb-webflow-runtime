@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.2.1';
+  const VERSION = '0.2.2';
   const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
   const PARALLAX_SELECTOR = '.parallax-swiper_component';
   const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
@@ -266,13 +266,43 @@
     markInitialised(component, 'parallax');
 
     if (desktopEntryMotion) {
-      requestAnimationFrame(() => {
-        swiper.slideNext();
+      const nextButton = component.querySelector('.swiper-btn-next');
+
+      const finishEntryFallback = () => {
+        if (!desktopEntryPending) return;
+        desktopEntryPending = false;
+        component.classList.remove('tdb-entry-pending');
+        setMoving(false);
+        showActiveAfter(FADE_IN_DELAY_NEXT);
+      };
+
+      const advanceOnce = () => {
+        if (swiper.destroyed || !desktopEntryPending) return;
+
+        swiper.update();
+        if (swiper.params.loop && typeof swiper.loopFix === 'function') {
+          swiper.loopFix();
+        }
+
+        swiper.slideNext(swiper.params.speed, true);
+
         setTimeout(() => {
-          if (!desktopEntryPending) return;
-          desktopEntryPending = false;
-          component.classList.remove('tdb-entry-pending');
-        }, swiper.params.speed + FADE_IN_DELAY_NEXT + 200);
+          if (!desktopEntryPending || swiper.destroyed || swiper.animating) return;
+          nextButton?.dispatchEvent(
+            new MouseEvent('click', { bubbles: true, cancelable: true })
+          );
+        }, 100);
+
+        setTimeout(
+          finishEntryFallback,
+          swiper.params.speed + FADE_IN_DELAY_NEXT + 300
+        );
+      };
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setTimeout(advanceOnce, 120);
+        });
       });
     }
   }
