@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.2.1';
   const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
   const PARALLAX_SELECTOR = '.parallax-swiper_component';
   const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
@@ -9,6 +9,27 @@
   const MAX_SWIPER_TRIES = 120;
   const SWIPER_RETRY_MS = 100;
   const VIEWPORT_MARGIN = '100px';
+  const DESKTOP_QUERY = '(min-width:768px)';
+  const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
+  function getCurrentPath() {
+    return location.pathname.replace(/\/+$/, '') || '/';
+  }
+
+  function isDesktopEntryPage() {
+    const path = getCurrentPath();
+    return (
+      (path === '/' || path === '/location') &&
+      matchMedia(DESKTOP_QUERY).matches
+    );
+  }
+
+  function shouldRunDesktopEntry() {
+    return (
+      isDesktopEntryPage() &&
+      !matchMedia(REDUCED_MOTION_QUERY).matches
+    );
+  }
 
   function getSwiperElement(component) {
     return component?.querySelector?.('.swiper') || null;
@@ -93,16 +114,21 @@
     const swiperEl = getSwiperElement(component);
     if (!swiperEl || typeof window.Swiper !== 'function') return;
 
+    const desktopEntryPage = isDesktopEntryPage();
+    const desktopEntryMotion = shouldRunDesktopEntry();
+
     const swiper = new window.Swiper(swiperEl, {
       slidesPerView: 1,
       observer: false,
       observeParents: false,
       centeredSlides: true,
       watchSlidesProgress: true,
-      autoplay: {
-        delay: 4500,
-        disableOnInteraction: false
-      },
+      autoplay: desktopEntryPage
+        ? false
+        : {
+            delay: 4500,
+            disableOnInteraction: false
+          },
       grabCursor: true,
       loop: true,
       loopAdditionalSlides: 1,
@@ -192,6 +218,7 @@
     setMoving(false);
 
     let gestureHidden = false;
+    let desktopEntryPending = desktopEntryMotion;
 
     swiper.on('touchStart', () => {
       gestureHidden = false;
@@ -215,9 +242,16 @@
     swiper.on('slideChangeTransitionEnd', () => {
       gestureHidden = false;
       const direction = swiper.swipeDirection || 'next';
-      showActiveAfter(
-        direction === 'prev' ? FADE_IN_DELAY_PREV : FADE_IN_DELAY_NEXT
-      );
+      const revealDelay =
+        direction === 'prev' ? FADE_IN_DELAY_PREV : FADE_IN_DELAY_NEXT;
+
+      showActiveAfter(revealDelay);
+
+      if (desktopEntryPending) {
+        desktopEntryPending = false;
+        setTimeout(() => component.classList.remove('tdb-entry-pending'), revealDelay);
+      }
+
       setTimeout(() => setMoving(false), 0);
     });
 
@@ -230,6 +264,17 @@
     });
 
     markInitialised(component, 'parallax');
+
+    if (desktopEntryMotion) {
+      requestAnimationFrame(() => {
+        swiper.slideNext();
+        setTimeout(() => {
+          if (!desktopEntryPending) return;
+          desktopEntryPending = false;
+          component.classList.remove('tdb-entry-pending');
+        }, swiper.params.speed + FADE_IN_DELAY_NEXT + 200);
+      });
+    }
   }
 
   function initByType(type, component) {
@@ -259,6 +304,10 @@
     if (component.getAttribute(OBSERVED_ATTRIBUTE) === 'true') return;
 
     component.setAttribute(OBSERVED_ATTRIBUTE, 'true');
+
+    if (type === 'parallax' && shouldRunDesktopEntry()) {
+      component.classList.add('tdb-entry-pending');
+    }
 
     if (!('IntersectionObserver' in window)) {
       waitForSwiperAndInit(type, component);
