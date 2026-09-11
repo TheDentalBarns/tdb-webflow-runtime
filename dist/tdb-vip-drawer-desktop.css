@@ -1,4 +1,4 @@
-/* TDB desktop VIP drawer v0.1.1
+/* TDB desktop VIP drawer v0.1.2
  * Desktop-only companion to the existing mobile drawer.
  * The mobile implementation remains in tdb-ui.css and tdb-vip-drawer.js unchanged.
  */
@@ -11,7 +11,7 @@
     --tdb-vip-desktop-drawer-ease: ease;
     --tdb-vip-desktop-handle-height: 5rem;
     --tdb-vip-desktop-page-gutter: 3%;
-    --tdb-vip-desktop-content-max: 90rem;
+    --tdb-vip-desktop-content-max: 52rem;
   }
 
   html.tdb-vip-desktop-open { overflow: hidden !important; }
