@@ -1,0 +1,56 @@
+name: Build consolidated UI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'tools/build-ui.py'
+      - 'src/styles/tdb-elfsight-timer.css'
+      - 'src/styles/tdb-vimeo-ui.css'
+      - 'src/styles/tdb-runtime-ui.css'
+      - 'src/styles/tdb-deferred-ui.css'
+      - 'src/styles/tdb-slider-ui.css'
+      - 'src/styles/tdb-vip-drawer-desktop.css'
+      - '.github/workflows/build-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Build consolidated UI
+        run: python tools/build-ui.py
+
+      - name: Validate generated artifact
+        run: |
+          test -s src/styles/tdb-ui.css
+          test -s dist/tdb-ui.css
+          cmp src/styles/tdb-ui.css dist/tdb-ui.css
+
+      - name: Commit generated artifact
+        run: |
+          if [ -z "$(git status --porcelain -- src/styles/tdb-ui.css dist/tdb-ui.css)" ]; then
+            echo 'Generated UI files are already current.'
+            exit 0
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/styles/tdb-ui.css dist/tdb-ui.css
+          git commit -m 'Build consolidated UI artifact'
+          git push origin HEAD:main
