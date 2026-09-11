@@ -352,7 +352,7 @@ function prepareSliderLoader() {
     )
       .then(() =>
         loadScript(
-          'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.2.0/dist/tdb-sliders.js',
+          'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b904f48977981095a0611c3746a070990533949c/dist/tdb-sliders.js',
           'data-tdb-sliders-js',
         ),
       )
