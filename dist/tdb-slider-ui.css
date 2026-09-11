@@ -3,7 +3,7 @@
  */
 
 /* TDB parallax slider UI v1.2.0
- * Loaded with the slider runtime. First-frame visibility protection lives in tdb-runtime-ui.css.
+ * Included once in the deferred UI build. First-frame visibility protection lives in tdb-runtime-ui.css.
  */
 
 html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide,
