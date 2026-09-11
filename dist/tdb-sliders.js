@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.2.1';
   const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
   const PARALLAX_SELECTOR = '.parallax-swiper_component';
   const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
@@ -9,6 +9,27 @@
   const MAX_SWIPER_TRIES = 120;
   const SWIPER_RETRY_MS = 100;
   const VIEWPORT_MARGIN = '100px';
+  const DESKTOP_QUERY = '(min-width:768px)';
+  const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
+  function getCurrentPath() {
+    return location.pathname.replace(/\/+$/, '') || '/';
+  }
+
+  function isDesktopEntryPage() {
+    const path = getCurrentPath();
+    return (
+      (path === '/' || path === '/location') &&
+      matchMedia(DESKTOP_QUERY).matches
+    );
+  }
+
+  function shouldRunDesktopEntry() {
+    return (
+      isDesktopEntryPage() &&
+      !matchMedia(REDUCED_MOTION_QUERY).matches
+    );
+  }
 
   function getSwiperElement(component) {
     return component?.querySelector?.('.swiper') || null;
@@ -29,8 +50,10 @@
 
   function initHighlightSwiper(component) {
     if (!component || isInitialised(component)) return;
+
     const swiperEl = getSwiperElement(component);
     const countEl = component.querySelector('.swiper-count');
+
     if (!swiperEl || typeof window.Swiper !== 'function') return;
 
     const swiper = new window.Swiper(swiperEl, {
@@ -44,8 +67,13 @@
       rewind: true,
       speed: 175,
       preloadImages: false,
-      lazy: { loadOnTransitionStart: false, loadPrevNext: false },
-      keyboard: { enabled: true },
+      lazy: {
+        loadOnTransitionStart: false,
+        loadPrevNext: false
+      },
+      keyboard: {
+        enabled: true
+      },
       navigation: {
         nextEl: component.querySelector('.swiper-btn-next'),
         prevEl: component.querySelector('.swiper-btn-prev'),
@@ -59,8 +87,14 @@
         clickable: true
       },
       breakpoints: {
-        768: { slidesPerView: 1, touchRatio: 1 },
-        0: { slidesPerView: 1, touchRatio: 1.5 }
+        768: {
+          slidesPerView: 1,
+          touchRatio: 1
+        },
+        0: {
+          slidesPerView: 1,
+          touchRatio: 1.5
+        }
       }
     });
 
@@ -76,8 +110,12 @@
 
   function initParallaxSwiper(component) {
     if (!component || isInitialised(component)) return;
+
     const swiperEl = getSwiperElement(component);
     if (!swiperEl || typeof window.Swiper !== 'function') return;
+
+    const desktopEntryPage = isDesktopEntryPage();
+    const desktopEntryMotion = shouldRunDesktopEntry();
 
     const swiper = new window.Swiper(swiperEl, {
       slidesPerView: 1,
@@ -85,7 +123,12 @@
       observeParents: false,
       centeredSlides: true,
       watchSlidesProgress: true,
-      autoplay: { delay: 4500, disableOnInteraction: false },
+      autoplay: desktopEntryPage
+        ? false
+        : {
+            delay: 4500,
+            disableOnInteraction: false
+          },
       grabCursor: true,
       loop: true,
       loopAdditionalSlides: 1,
@@ -93,7 +136,9 @@
       parallax: true,
       speed: 400,
       effect: 'slide',
-      keyboard: { enabled: true },
+      keyboard: {
+        enabled: true
+      },
       spaceBetween: 0,
       resistanceRatio: 0,
       touchReleaseOnEdges: true,
@@ -111,8 +156,14 @@
         clickable: true
       },
       breakpoints: {
-        768: { slidesPerView: 1, touchRatio: 1 },
-        0: { slidesPerView: 1, touchRatio: 1.5 }
+        768: {
+          slidesPerView: 1,
+          touchRatio: 1
+        },
+        0: {
+          slidesPerView: 1,
+          touchRatio: 1.5
+        }
       }
     });
 
@@ -131,7 +182,11 @@
 
     function setVisible(slide, visible) {
       if (!slide) return;
-      getFadeElements(slide).forEach(node => node.classList.toggle('is-visible', visible));
+
+      getFadeElements(slide).forEach(node => {
+        node.classList.toggle('is-visible', visible);
+      });
+
       if (visible) visibleSlides.add(slide);
       else visibleSlides.delete(slide);
     }
@@ -163,6 +218,7 @@
     setMoving(false);
 
     let gestureHidden = false;
+    let desktopEntryPending = desktopEntryMotion;
 
     swiper.on('touchStart', () => {
       gestureHidden = false;
@@ -186,7 +242,16 @@
     swiper.on('slideChangeTransitionEnd', () => {
       gestureHidden = false;
       const direction = swiper.swipeDirection || 'next';
-      showActiveAfter(direction === 'prev' ? FADE_IN_DELAY_PREV : FADE_IN_DELAY_NEXT);
+      const revealDelay =
+        direction === 'prev' ? FADE_IN_DELAY_PREV : FADE_IN_DELAY_NEXT;
+
+      showActiveAfter(revealDelay);
+
+      if (desktopEntryPending) {
+        desktopEntryPending = false;
+        setTimeout(() => component.classList.remove('tdb-entry-pending'), revealDelay);
+      }
+
       setTimeout(() => setMoving(false), 0);
     });
 
@@ -199,6 +264,17 @@
     });
 
     markInitialised(component, 'parallax');
+
+    if (desktopEntryMotion) {
+      requestAnimationFrame(() => {
+        swiper.slideNext();
+        setTimeout(() => {
+          if (!desktopEntryPending) return;
+          desktopEntryPending = false;
+          component.classList.remove('tdb-entry-pending');
+        }, swiper.params.speed + FADE_IN_DELAY_NEXT + 200);
+      });
+    }
   }
 
   function initByType(type, component) {
@@ -209,19 +285,29 @@
   function waitForSwiperAndInit(type, component, tries = 0) {
     if (!component || !document.documentElement.contains(component)) return;
     if (isInitialised(component)) return;
+
     if (typeof window.Swiper === 'function') {
       initByType(type, component);
       return;
     }
+
     if (tries < MAX_SWIPER_TRIES) {
-      setTimeout(() => waitForSwiperAndInit(type, component, tries + 1), SWIPER_RETRY_MS);
+      setTimeout(
+        () => waitForSwiperAndInit(type, component, tries + 1),
+        SWIPER_RETRY_MS
+      );
     }
   }
 
   function observeComponent(component, type) {
     if (!component || isInitialised(component)) return;
     if (component.getAttribute(OBSERVED_ATTRIBUTE) === 'true') return;
+
     component.setAttribute(OBSERVED_ATTRIBUTE, 'true');
+
+    if (type === 'parallax' && shouldRunDesktopEntry()) {
+      component.classList.add('tdb-entry-pending');
+    }
 
     if (!('IntersectionObserver' in window)) {
       waitForSwiperAndInit(type, component);
@@ -236,7 +322,9 @@
           waitForSwiperAndInit(type, entry.target);
         });
       },
-      { rootMargin: VIEWPORT_MARGIN }
+      {
+        rootMargin: VIEWPORT_MARGIN
+      }
     );
 
     observer.observe(component);
@@ -268,7 +356,10 @@
       });
     });
 
-    mutationObserver.observe(document.body, { childList: true, subtree: true });
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
 
     window.TDBSliders = Object.freeze({
       version: VERSION,
