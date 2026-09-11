@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.2.2';
+  const VERSION = '0.2.3';
   const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
   const PARALLAX_SELECTOR = '.parallax-swiper_component';
   const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
@@ -10,7 +10,6 @@
   const SWIPER_RETRY_MS = 100;
   const VIEWPORT_MARGIN = '100px';
   const DESKTOP_QUERY = '(min-width:768px)';
-  const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
   function getCurrentPath() {
     return location.pathname.replace(/\/+$/, '') || '/';
@@ -25,10 +24,7 @@
   }
 
   function shouldRunDesktopEntry() {
-    return (
-      isDesktopEntryPage() &&
-      !matchMedia(REDUCED_MOTION_QUERY).matches
-    );
+    return isDesktopEntryPage();
   }
 
   function getSwiperElement(component) {
