@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.7.3-warm-lenis-footer';
+  const VERSION = '0.8.0-priority-ready';
 
   function loadScript(src, attrName, readyCheck) {
     const existing = document.querySelector(`script[${attrName}]`);
@@ -69,6 +69,19 @@
     () => Boolean(window.TDBFooterRuntime),
   );
 
+  const priorityReady = Promise.allSettled([
+    consentPromise,
+    cookieScriptPromise,
+    logoMarqueePromise,
+    attributionPromise,
+    footerRuntimePromise,
+  ]);
+
+  priorityReady.then(() => {
+    window.__TDB_PRIORITY_READY__ = true;
+    window.dispatchEvent(new Event('tdb:priority-ready'));
+  });
+
   const ready = Promise.allSettled([
     consentPromise,
     cookieScriptPromise,
@@ -81,8 +94,10 @@
 
   window.TDBImmediateRuntimeBatch = Object.freeze({
     version: VERSION,
+    priorityReady,
     ready,
     status: () => ({
+      priorityReady: Boolean(window.__TDB_PRIORITY_READY__),
       consent: Boolean(window.TDBConsent),
       cookieScript: Boolean(window.CookieScript?.instance),
       cookieVersion: window.CookieScript?.instance?.version || null,
