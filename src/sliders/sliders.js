@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.2.3';
+  const VERSION = '0.3.0';
   const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
   const PARALLAX_SELECTOR = '.parallax-swiper_component';
   const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
@@ -10,21 +10,28 @@
   const SWIPER_RETRY_MS = 100;
   const VIEWPORT_MARGIN = '100px';
   const DESKTOP_QUERY = '(min-width:768px)';
+  const MOBILE_PORTRAIT_QUERY = '(max-width:767px) and (orientation:portrait)';
+  const REDUCED_MOTION_QUERY = '(prefers-reduced-motion:reduce)';
 
   function getCurrentPath() {
     return location.pathname.replace(/\/+$/, '') || '/';
   }
 
-  function isDesktopEntryPage() {
+  function isEntryPage() {
     const path = getCurrentPath();
-    return (
-      (path === '/' || path === '/location') &&
-      matchMedia(DESKTOP_QUERY).matches
-    );
+    return path === '/' || path === '/location';
   }
 
-  function shouldRunDesktopEntry() {
-    return isDesktopEntryPage();
+  function isDesktopEntryPage() {
+    return isEntryPage() && matchMedia(DESKTOP_QUERY).matches;
+  }
+
+  function isMobileEntryPage() {
+    return (
+      isEntryPage() &&
+      matchMedia(MOBILE_PORTRAIT_QUERY).matches &&
+      !matchMedia(REDUCED_MOTION_QUERY).matches
+    );
   }
 
   function getSwiperElement(component) {
@@ -44,12 +51,34 @@
     component.dataset.tdbSliderType = type;
   }
 
+  function placeMobileParallaxControls(component) {
+    if (!isEntryPage() || !matchMedia(MOBILE_PORTRAIT_QUERY).matches) return;
+    const swiperEl = component.querySelector(':scope > .swiper');
+    const controls = component.querySelector(':scope > .swiper_functions-btm.hide');
+    if (swiperEl && controls) swiperEl.appendChild(controls);
+  }
+
+  function configurePageNavigation(root = document) {
+    if (!isEntryPage()) return;
+
+    if (matchMedia(MOBILE_PORTRAIT_QUERY).matches) {
+      document.documentElement.classList.add('tdb-slider-next');
+      root.querySelectorAll?.(PARALLAX_SELECTOR).forEach(placeMobileParallaxControls);
+      if (root instanceof Element && root.matches(PARALLAX_SELECTOR)) {
+        placeMobileParallaxControls(root);
+      }
+    }
+
+    if (matchMedia(DESKTOP_QUERY).matches) {
+      document.documentElement.classList.add('tdb-slider-desktop');
+    }
+  }
+
   function initHighlightSwiper(component) {
     if (!component || isInitialised(component)) return;
 
     const swiperEl = getSwiperElement(component);
     const countEl = component.querySelector('.swiper-count');
-
     if (!swiperEl || typeof window.Swiper !== 'function') return;
 
     const swiper = new window.Swiper(swiperEl, {
@@ -67,9 +96,7 @@
         loadOnTransitionStart: false,
         loadPrevNext: false
       },
-      keyboard: {
-        enabled: true
-      },
+      keyboard: { enabled: true },
       navigation: {
         nextEl: component.querySelector('.swiper-btn-next'),
         prevEl: component.querySelector('.swiper-btn-prev'),
@@ -83,20 +110,13 @@
         clickable: true
       },
       breakpoints: {
-        768: {
-          slidesPerView: 1,
-          touchRatio: 1
-        },
-        0: {
-          slidesPerView: 1,
-          touchRatio: 1.5
-        }
+        768: { slidesPerView: 1, touchRatio: 1 },
+        0: { slidesPerView: 1, touchRatio: 1.5 }
       }
     });
 
     function updateCount() {
-      if (!countEl) return;
-      countEl.textContent = `${swiper.activeIndex + 1} of ${swiper.slides.length}`;
+      if (countEl) countEl.textContent = `${swiper.activeIndex + 1} of ${swiper.slides.length}`;
     }
 
     updateCount();
@@ -107,11 +127,14 @@
   function initParallaxSwiper(component) {
     if (!component || isInitialised(component)) return;
 
+    placeMobileParallaxControls(component);
+
     const swiperEl = getSwiperElement(component);
     if (!swiperEl || typeof window.Swiper !== 'function') return;
 
-    const desktopEntryPage = isDesktopEntryPage();
-    const desktopEntryMotion = shouldRunDesktopEntry();
+    const desktopEntry = isDesktopEntryPage();
+    const mobileEntry = isMobileEntryPage();
+    const entryMotion = desktopEntry || mobileEntry;
 
     const swiper = new window.Swiper(swiperEl, {
       slidesPerView: 1,
@@ -119,7 +142,7 @@
       observeParents: false,
       centeredSlides: true,
       watchSlidesProgress: true,
-      autoplay: desktopEntryPage
+      autoplay: entryMotion
         ? false
         : {
             delay: 4500,
@@ -132,9 +155,7 @@
       parallax: true,
       speed: 400,
       effect: 'slide',
-      keyboard: {
-        enabled: true
-      },
+      keyboard: { enabled: true },
       spaceBetween: 0,
       resistanceRatio: 0,
       touchReleaseOnEdges: true,
@@ -152,14 +173,8 @@
         clickable: true
       },
       breakpoints: {
-        768: {
-          slidesPerView: 1,
-          touchRatio: 1
-        },
-        0: {
-          slidesPerView: 1,
-          touchRatio: 1.5
-        }
+        768: { slidesPerView: 1, touchRatio: 1 },
+        0: { slidesPerView: 1, touchRatio: 1.5 }
       }
     });
 
@@ -167,6 +182,9 @@
     const FADE_IN_DELAY_PREV = 140;
     const fadeCache = new WeakMap();
     const visibleSlides = new Set();
+    let showTimeout = null;
+    let gestureHidden = false;
+    let entryPending = entryMotion;
 
     function getFadeElements(slide) {
       if (!slide) return [];
@@ -178,11 +196,7 @@
 
     function setVisible(slide, visible) {
       if (!slide) return;
-
-      getFadeElements(slide).forEach(node => {
-        node.classList.toggle('is-visible', visible);
-      });
-
+      getFadeElements(slide).forEach(node => node.classList.toggle('is-visible', visible));
       if (visible) visibleSlides.add(slide);
       else visibleSlides.delete(slide);
     }
@@ -190,8 +204,6 @@
     function hideAllVisible() {
       Array.from(visibleSlides).forEach(slide => setVisible(slide, false));
     }
-
-    let showTimeout = null;
 
     function cancelShow() {
       if (!showTimeout) return;
@@ -209,12 +221,15 @@
       showTimeout = setTimeout(() => setVisible(activeSlide, true), delay);
     }
 
+    function completeEntry(revealDelay = FADE_IN_DELAY_NEXT) {
+      if (!entryPending) return;
+      entryPending = false;
+      setTimeout(() => component.classList.remove('tdb-entry-pending'), revealDelay);
+    }
+
     swiper.slides.forEach(slide => setVisible(slide, false));
     setVisible(swiper.slides[swiper.activeIndex], true);
     setMoving(false);
-
-    let gestureHidden = false;
-    let desktopEntryPending = desktopEntryMotion;
 
     swiper.on('touchStart', () => {
       gestureHidden = false;
@@ -238,16 +253,9 @@
     swiper.on('slideChangeTransitionEnd', () => {
       gestureHidden = false;
       const direction = swiper.swipeDirection || 'next';
-      const revealDelay =
-        direction === 'prev' ? FADE_IN_DELAY_PREV : FADE_IN_DELAY_NEXT;
-
+      const revealDelay = direction === 'prev' ? FADE_IN_DELAY_PREV : FADE_IN_DELAY_NEXT;
       showActiveAfter(revealDelay);
-
-      if (desktopEntryPending) {
-        desktopEntryPending = false;
-        setTimeout(() => component.classList.remove('tdb-entry-pending'), revealDelay);
-      }
-
+      completeEntry(revealDelay);
       setTimeout(() => setMoving(false), 0);
     });
 
@@ -261,44 +269,40 @@
 
     markInitialised(component, 'parallax');
 
-    if (desktopEntryMotion) {
+    if (mobileEntry) {
+      swiper.autoplay?.stop();
+      swiper.slideNext();
+      return;
+    }
+
+    if (desktopEntry) {
       const nextButton = component.querySelector('.swiper-btn-next');
 
       const finishEntryFallback = () => {
-        if (!desktopEntryPending) return;
-        desktopEntryPending = false;
+        if (!entryPending) return;
+        entryPending = false;
         component.classList.remove('tdb-entry-pending');
         setMoving(false);
         showActiveAfter(FADE_IN_DELAY_NEXT);
       };
 
       const advanceOnce = () => {
-        if (swiper.destroyed || !desktopEntryPending) return;
+        if (swiper.destroyed || !entryPending) return;
 
         swiper.update();
-        if (swiper.params.loop && typeof swiper.loopFix === 'function') {
-          swiper.loopFix();
-        }
-
+        if (swiper.params.loop && typeof swiper.loopFix === 'function') swiper.loopFix();
         swiper.slideNext(swiper.params.speed, true);
 
         setTimeout(() => {
-          if (!desktopEntryPending || swiper.destroyed || swiper.animating) return;
-          nextButton?.dispatchEvent(
-            new MouseEvent('click', { bubbles: true, cancelable: true })
-          );
+          if (!entryPending || swiper.destroyed || swiper.animating) return;
+          nextButton?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
         }, 100);
 
-        setTimeout(
-          finishEntryFallback,
-          swiper.params.speed + FADE_IN_DELAY_NEXT + 300
-        );
+        setTimeout(finishEntryFallback, swiper.params.speed + FADE_IN_DELAY_NEXT + 300);
       };
 
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setTimeout(advanceOnce, 120);
-        });
+        requestAnimationFrame(() => setTimeout(advanceOnce, 120));
       });
     }
   }
@@ -309,8 +313,7 @@
   }
 
   function waitForSwiperAndInit(type, component, tries = 0) {
-    if (!component || !document.documentElement.contains(component)) return;
-    if (isInitialised(component)) return;
+    if (!component || !document.documentElement.contains(component) || isInitialised(component)) return;
 
     if (typeof window.Swiper === 'function') {
       initByType(type, component);
@@ -318,10 +321,7 @@
     }
 
     if (tries < MAX_SWIPER_TRIES) {
-      setTimeout(
-        () => waitForSwiperAndInit(type, component, tries + 1),
-        SWIPER_RETRY_MS
-      );
+      setTimeout(() => waitForSwiperAndInit(type, component, tries + 1), SWIPER_RETRY_MS);
     }
   }
 
@@ -331,7 +331,7 @@
 
     component.setAttribute(OBSERVED_ATTRIBUTE, 'true');
 
-    if (type === 'parallax' && shouldRunDesktopEntry()) {
+    if (type === 'parallax' && (isDesktopEntryPage() || isMobileEntryPage())) {
       component.classList.add('tdb-entry-pending');
     }
 
@@ -348,31 +348,36 @@
           waitForSwiperAndInit(type, entry.target);
         });
       },
-      {
-        rootMargin: VIEWPORT_MARGIN
-      }
+      { rootMargin: VIEWPORT_MARGIN }
     );
 
     observer.observe(component);
   }
 
   function refresh(root = document) {
+    configurePageNavigation(root);
+
     if (root instanceof Element) {
       if (root.matches(HIGHLIGHT_SELECTOR)) observeComponent(root, 'highlight');
       if (root.matches(PARALLAX_SELECTOR)) observeComponent(root, 'parallax');
     }
 
-    root.querySelectorAll?.(HIGHLIGHT_SELECTOR).forEach(component => {
-      observeComponent(component, 'highlight');
-    });
+    root.querySelectorAll?.(HIGHLIGHT_SELECTOR).forEach(component => observeComponent(component, 'highlight'));
+    root.querySelectorAll?.(PARALLAX_SELECTOR).forEach(component => observeComponent(component, 'parallax'));
+  }
 
-    root.querySelectorAll?.(PARALLAX_SELECTOR).forEach(component => {
-      observeComponent(component, 'parallax');
+  function onNavigationClick(event) {
+    const button = event.target.closest?.('.swiper-btn-prev,.swiper-btn-next');
+    if (!button || !button.closest(PARALLAX_SELECTOR)) return;
+    const wrapper = button.closest('.swiper-buttons-wrapper');
+    wrapper?.querySelectorAll('.swiper-btn-prev,.swiper-btn-next').forEach(candidate => {
+      candidate.classList.toggle('is-selected', candidate === button);
     });
   }
 
   function start() {
     refresh();
+    document.addEventListener('click', onNavigationClick);
 
     const mutationObserver = new MutationObserver(mutations => {
       mutations.forEach(mutation => {
@@ -382,10 +387,7 @@
       });
     });
 
-    mutationObserver.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
+    mutationObserver.observe(document.body, { childList: true, subtree: true });
 
     window.TDBSliders = Object.freeze({
       version: VERSION,
