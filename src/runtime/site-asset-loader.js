@@ -252,7 +252,7 @@ function prepareVIPDrawerLoader() {
 
     window.removeEventListener('scroll', onMeaningfulScroll);
     loadingPromise = loadScript(
-      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.4.0/dist/tdb-vip-drawer.js',
+      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@28fa8d3043e0d0aea8a531e2a98954c35ccaea10/dist/tdb-vip-drawer.js',
       'data-tdb-vip-drawer-js',
     )
       .then(() => {
@@ -352,7 +352,7 @@ function prepareSliderLoader() {
     )
       .then(() =>
         loadScript(
-          'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b904f48977981095a0611c3746a070990533949c/dist/tdb-sliders.js',
+          'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@31386d986982aa60eb6c9199b6e6b4c03693897b/dist/tdb-sliders.js',
           'data-tdb-sliders-js',
         ),
       )
