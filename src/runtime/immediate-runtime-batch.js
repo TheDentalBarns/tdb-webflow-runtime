@@ -1,9 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.7.1-parallel-footer';
-  const FOOTER_RUNTIME_URL = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@09c99f4eb0cb8eb67ee8bf92f849a99618248e9f/dist/tdb-footer-runtime.min.js';
-  let footerRuntimePromise = null;
+  const VERSION = '0.7.2-simple-seven-loader';
 
   function loadScript(src, attrName, readyCheck) {
     const existing = document.querySelector(`script[${attrName}]`);
@@ -65,7 +63,11 @@
     'data-vimeo-controller-js',
   );
 
-  const footerRuntimeReadyPromise = loadFooterRuntime();
+  const footerRuntimePromise = loadScript(
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@534661ac941f5a48a98e6595e10ac48e54168e27/dist/tdb-footer-runtime.min.js',
+    'data-tdb-footer-runtime-js',
+    () => Boolean(window.TDBFooterRuntime),
+  );
 
   const ready = Promise.allSettled([
     consentPromise,
@@ -74,98 +76,12 @@
     attributionPromise,
     scrollDisablePromise,
     vimeoPromise,
-    footerRuntimeReadyPromise,
+    footerRuntimePromise,
   ]);
-
-  function loadFooterRuntime() {
-    if (window.TDBFooterRuntime) return Promise.resolve(window.TDBFooterRuntime);
-    if (footerRuntimePromise) return footerRuntimePromise;
-
-    footerRuntimePromise = loadScript(
-      FOOTER_RUNTIME_URL,
-      'data-tdb-footer-runtime-js',
-      () => Boolean(window.TDBFooterRuntime),
-    ).then(() => window.TDBFooterRuntime).catch(error => {
-      document.querySelector('script[data-tdb-footer-runtime-js]')?.remove();
-      footerRuntimePromise = null;
-      console.error('TDB Footer Runtime failed to load');
-      throw error;
-    });
-
-    return footerRuntimePromise;
-  }
-
-  function waitForRealVIPDrawer() {
-    return new Promise((resolve, reject) => {
-      let tries = 0;
-      const check = () => {
-        const api = window.TDBVIPDrawer;
-        if (api && !api._tdbBridge) return resolve(api);
-        if (++tries > 200) return reject(new Error('TDB VIP Drawer did not initialise'));
-        setTimeout(check, 25);
-      };
-      check();
-    });
-  }
-
-  function openVIPDrawer() {
-    return loadFooterRuntime()
-      .then(() => window.TDBVIPDrawerLoader?.load?.())
-      .then(waitForRealVIPDrawer)
-      .then(api => api.open());
-  }
-
-  const vipBridge = Object.freeze({
-    version: 'bridge-1.0.0',
-    _tdbBridge: true,
-    open: openVIPDrawer,
-    close: () => waitForRealVIPDrawer().then(api => api.close()),
-  });
-
-  if (!window.TDBVIPDrawer || window.TDBVIPDrawer._tdbBridge) window.TDBVIPDrawer = vipBridge;
-  if (!window.TDBVIPDrawerDesktop || window.TDBVIPDrawerDesktop._tdbBridge) window.TDBVIPDrawerDesktop = vipBridge;
-
-  const vipSelector = 'a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
-
-  function findVIPTrigger(event) {
-    const target = event.target;
-    if (target instanceof Element) {
-      const match = target.closest(vipSelector);
-      if (match) return match;
-    }
-    return event.composedPath?.().find(node => node instanceof Element && node.matches?.(vipSelector)) || null;
-  }
-
-  function onEarlyVIPClick(event) {
-    if (!window.TDBVIPDrawer?._tdbBridge || !findVIPTrigger(event)) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    event.stopPropagation();
-    openVIPDrawer().catch(() => {});
-  }
-
-  function onEarlyVIPKeydown(event) {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
-    onEarlyVIPClick(event);
-  }
-
-  document.addEventListener('click', onEarlyVIPClick, true);
-  document.addEventListener('keydown', onEarlyVIPKeydown, true);
-
-  const deferredIntentSelector = 'form, .highlight-swiper_component, .parallax-swiper_component';
-  function onDeferredIntent(event) {
-    const target = event.target;
-    if (target instanceof Element && target.closest(deferredIntentSelector)) loadFooterRuntime();
-  }
-  document.addEventListener('pointerdown', onDeferredIntent, true);
-  document.addEventListener('focusin', onDeferredIntent, true);
-
-  if (/^#vip/i.test(location.hash || '')) openVIPDrawer().catch(() => {});
 
   window.TDBImmediateRuntimeBatch = Object.freeze({
     version: VERSION,
     ready,
-    loadFooterRuntime,
     status: () => ({
       consent: Boolean(window.TDBConsent),
       cookieScript: Boolean(window.CookieScript?.instance),
@@ -175,7 +91,7 @@
       logoMarquee: Boolean(window.TDBLogoMarquee),
       footerRuntime: Boolean(window.TDBFooterRuntime),
       vipDrawerLoader: Boolean(window.TDBVIPDrawerLoader),
-      vipDrawer: Boolean(window.TDBVIPDrawer && !window.TDBVIPDrawer._tdbBridge),
+      vipDrawer: Boolean(window.TDBVIPDrawer),
     }),
   });
 })();
