@@ -31,9 +31,9 @@ html.lenis body {
   transition-behavior: allow-discrete;
 }
 
-/* CookieScript presentation overrides */
-#cookiescript_injected,
-#cookiescript_injected *,
+/* Active cookiescript_* compatibility rules retained pending full-page visual checks.
+ * Obsolete third-party container/badge overrides removed. The custom consent
+ * component owns #tdb-consent-root and its overlay stacking. */
 [id*='cookiescript'],
 [id*='cookiescript'] *,
 [class*='cookiescript'],
@@ -42,15 +42,8 @@ html.lenis body {
   animation: none !important;
 }
 
-#cookiescript_injected,
 [id*='cookiescript'],
 [class*='cookiescript'] {
   opacity: 1 !important;
   transform: none !important;
-}
-
-/* Consent UI must always sit above site overlays */
-#cookiescript_injected,
-#cookiescript_badge {
-  z-index: 2147483647 !important;
 }
