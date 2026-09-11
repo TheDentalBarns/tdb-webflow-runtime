@@ -1,4 +1,4 @@
-name: Build consolidated UI
+name: Build UI artifacts
 
 on:
   push:
@@ -11,6 +11,7 @@ on:
       - 'src/styles/tdb-runtime-ui.css'
       - 'src/styles/tdb-deferred-ui.css'
       - 'src/styles/tdb-slider-ui.css'
+      - 'src/styles/tdb-vip-drawer-shared.css'
       - 'src/styles/tdb-vip-drawer-desktop.css'
       - '.github/workflows/build-ui.yml'
   workflow_dispatch:
@@ -33,24 +34,26 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Build consolidated UI
+      - name: Build UI artifacts
         run: python tools/build-ui.py
 
-      - name: Validate generated artifact
+      - name: Validate generated artifacts
         run: |
           test -s src/styles/tdb-ui.css
           test -s dist/tdb-ui.css
+          test -s dist/tdb-vip.css
+          test -s dist/tdb-slider-ui.css
           cmp src/styles/tdb-ui.css dist/tdb-ui.css
 
-      - name: Commit generated artifact
+      - name: Commit generated artifacts
         run: |
-          if [ -z "$(git status --porcelain -- src/styles/tdb-ui.css dist/tdb-ui.css)" ]; then
+          if [ -z "$(git status --porcelain -- src/styles/tdb-ui.css dist/tdb-ui.css dist/tdb-vip.css dist/tdb-slider-ui.css)" ]; then
             echo 'Generated UI files are already current.'
             exit 0
           fi
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/styles/tdb-ui.css dist/tdb-ui.css
-          git commit -m 'Build consolidated UI artifact'
+          git add src/styles/tdb-ui.css dist/tdb-ui.css dist/tdb-vip.css dist/tdb-slider-ui.css
+          git commit -m 'Build UI artifacts'
           git push origin HEAD:main
