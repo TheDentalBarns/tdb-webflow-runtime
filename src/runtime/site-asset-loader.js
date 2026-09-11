@@ -110,24 +110,124 @@ function loadScript(src, attrName, async = true) {
   });
 }
 
-function loadStyle(href, attrName) {
-  return new Promise((resolve, reject) => {
-    const existing = document.querySelector(`link[${attrName}]`);
-    if (existing) {
-      if (existing.sheet || existing.dataset.tdbLoaded === 'true') resolve(existing);
-      else {
-        existing.addEventListener('load', () => resolve(existing), { once: true });
-        existing.addEventListener('error', reject, { once: true });
+/* Global UI is already requested by the head. This code never adds feature CSS. */
+let tdbUIFlight = null;
+const tdbUIIsReady = () => getComputedStyle(document.documentElement)
+  .getPropertyValue('--tdb-ui-ready').trim() === '1';
+
+function tdbEnsureUI() {
+  if (tdbUIIsReady()) return Promise.resolve();
+  if (tdbUIFlight) return tdbUIFlight;
+  const link = document.querySelector('link[data-tdb-ui-css]') ||
+    Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+      .find(node => /\/dist\/tdb-ui\.css(?:[?#]|$)/.test(node.href));
+  if (!link) return Promise.reject(new Error('TDB global UI link is missing'));
+
+  function waitFor(link, retries) {
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      let timeout;
+      function cleanup() {
+        clearTimeout(timeout);
+        link.removeEventListener('load', loaded);
+        link.removeEventListener('error', failed);
       }
-      return;
+      function fail(error) {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        link.dataset.tdbLoadFailed = 'true';
+        if (!retries || !link.isConnected) return reject(error);
+        const replacement = link.cloneNode(false);
+        // Keep the original location: appending to head would change cascade order.
+        ['onload', 'onerror', 'data-tdb-loaded', 'data-tdb-load-failed']
+          .forEach(name => replacement.removeAttribute(name));
+        replacement.media = 'print';
+        const next = waitFor(replacement, retries - 1);
+        link.replaceWith(replacement);
+        next.then(resolve, reject);
+      }
+      function loaded() {
+        if (settled) return;
+        link.media = 'all';
+        if (!tdbUIIsReady()) return fail(new Error('TDB UI bundle is stale or incomplete'));
+        settled = true;
+        cleanup();
+        link.dataset.tdbLoaded = 'true';
+        delete link.dataset.tdbLoadFailed;
+        resolve();
+      }
+      function failed() { fail(new Error('TDB global UI request failed')); }
+      link.addEventListener('load', loaded);
+      link.addEventListener('error', failed);
+      timeout = setTimeout(() => fail(new Error('TDB global UI request timed out')), 15000);
+      if (link.dataset.tdbLoadFailed === 'true') failed();
+      else if (link.sheet) loaded();
+    });
+  }
+  tdbUIFlight = waitFor(link, 1).finally(() => { tdbUIFlight = null; });
+  return tdbUIFlight;
+}
+
+function tdbPreloadVIPScript(src) {
+  if (tdbUIIsReady() || document.querySelector('link[data-tdb-vip-preload]') ||
+      document.querySelector('script[data-tdb-vip-drawer-js]')) return;
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = 'script';
+  link.href = src;
+  link.setAttribute('data-tdb-vip-preload', 'true');
+  // Match the existing classic script's request mode: no crossorigin attribute.
+  link.onerror = () => link.remove();
+  document.head.appendChild(link);
+}
+
+function tdbLoadVIPScript(src, retries = 1) {
+  if (window.TDBVIPDrawer) return Promise.resolve(window.TDBVIPDrawer);
+  return new Promise((resolve, reject) => {
+    let script = document.querySelector('script[data-tdb-vip-drawer-js]');
+    const isNew = !script;
+    let settled = false;
+    let timeout;
+    if (isNew) {
+      script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      script.charset = 'UTF-8';
+      script.setAttribute('data-tdb-vip-drawer-js', 'true');
     }
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    link.setAttribute(attrName, 'true');
-    link.onload = () => { link.dataset.tdbLoaded = 'true'; resolve(link); };
-    link.onerror = reject;
-    document.head.appendChild(link);
+    function cleanup() {
+      clearTimeout(timeout);
+      script.removeEventListener('load', loaded);
+      script.removeEventListener('error', failed);
+    }
+    function fail(error, allowRetry = true) {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      script.remove();
+      document.querySelector('link[data-tdb-vip-preload]')?.remove();
+      if (!allowRetry || !retries) return reject(error);
+      setTimeout(() => tdbLoadVIPScript(src, retries - 1).then(resolve, reject), 250);
+    }
+    function loaded() {
+      if (settled) return;
+      if (!window.TDBVIPDrawer) {
+        // Replaying a partly executed runtime is not a network recovery strategy.
+        return fail(new Error('TDB VIP script loaded without a ready API'), false);
+      }
+      settled = true;
+      cleanup();
+      script.dataset.tdbLoaded = 'true';
+      document.querySelector('link[data-tdb-vip-preload]')?.remove();
+      resolve(window.TDBVIPDrawer);
+    }
+    function failed() { fail(new Error('TDB VIP request failed')); }
+    script.addEventListener('load', loaded);
+    script.addEventListener('error', failed);
+    timeout = setTimeout(() => fail(new Error('TDB VIP request timed out')), 15000);
+    if (isNew) document.head.appendChild(script);
+    else if (script.dataset.tdbLoaded === 'true') loaded();
   });
 }
 
@@ -233,7 +333,6 @@ function prepareVIPDrawerLoader() {
   if (!drawer) return;
 
   const triggerSelector = '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
-  const cssUrl = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d23bdbad45aae58517ad2c249c365420bb844fc0/dist/tdb-vip.css';
   const jsUrl = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@432ab3ab12553c9bbff97123453272ebde1ad6da/dist/tdb-vip-drawer.js';
   let loadingPromise = null;
   let armed = false;
@@ -249,15 +348,16 @@ function prepareVIPDrawerLoader() {
   function loadDrawer() {
     if (realDrawerReady()) return Promise.resolve(window.TDBVIPDrawer);
     if (loadingPromise) return loadingPromise;
-    loadingPromise = loadStyle(cssUrl, 'data-tdb-vip-css')
-      .then(() => loadScript(jsUrl, 'data-tdb-vip-drawer-js'))
+    // Preload in parallel only when the global CSS is still outstanding.
+    tdbPreloadVIPScript(jsUrl);
+    loadingPromise = tdbEnsureUI()
+      .then(() => tdbLoadVIPScript(jsUrl))
       .then(() => {
         cleanup();
         return window.TDBVIPDrawer;
       })
       .catch(error => {
-        document.querySelector('link[data-tdb-vip-css]')?.remove();
-        document.querySelector('script[data-tdb-vip-drawer-js]')?.remove();
+        document.querySelector('link[data-tdb-vip-preload]')?.remove();
         loadingPromise = null;
         console.error('TDB VIP Drawer failed to load');
         throw error;
@@ -272,7 +372,7 @@ function prepareVIPDrawerLoader() {
   function openAfterLoad(event) {
     event.preventDefault();
     event.stopPropagation();
-    loadDrawer().then(api => api?.open?.());
+    loadDrawer().then(api => api?.open?.()).catch(() => {});
   }
   function onIntentClick(event) {
     if (realDrawerReady() || !findTrigger(event)) return;
@@ -289,21 +389,21 @@ function prepareVIPDrawerLoader() {
     document.addEventListener('keydown', onIntentKeydown, true);
   }
 
+  const loadSafely = () => { loadDrawer().catch(() => {}); };
   arm();
-  if (/^#vip/i.test(location.hash || '')) loadDrawer();
-  else if (window.__TDB_PRIORITY_READY__) loadDrawer();
-  else window.addEventListener('tdb:priority-ready', loadDrawer, { once: true });
+  if (/^#vip/i.test(location.hash || '')) loadSafely();
+  else if (window.__TDB_PRIORITY_READY__) loadSafely();
+  else window.addEventListener('tdb:priority-ready', loadSafely, { once: true });
 
   window.TDBVIPDrawerLoader = Object.freeze({
-    version: '1.1.0',
+    version: '1.2.0',
     load: loadDrawer,
-    status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) }),
+    status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) && !realDrawerReady(), uiReady: tdbUIIsReady() }),
   });
 }
 
 function prepareSliderLoader() {
   const selector = '.highlight-swiper_component, .parallax-swiper_component';
-  const cssUrl = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d23bdbad45aae58517ad2c249c365420bb844fc0/dist/tdb-slider-ui.css';
   const observed = new WeakSet();
   let loadingPromise = null;
   let proximityObserver = null;
@@ -319,7 +419,7 @@ function prepareSliderLoader() {
     if (loadingPromise) return loadingPromise;
     cleanup();
     loadingPromise = Promise.all([
-      loadStyle(cssUrl, 'data-tdb-slider-css'),
+      tdbEnsureUI(),
       loadScript('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b3a0f0f2a1e57b5a67db5f5159c449cff07eebd6/dist/tdb-swiper-8.4.7.min.js', 'data-swiper-js'),
     ]).then(() => loadScript(
       'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@31386d986982aa60eb6c9199b6e6b4c03693897b/dist/tdb-sliders.js',
@@ -408,7 +508,7 @@ startLenisForSession();
 })();
 
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.2.0',
+  version: '1.3.0',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,
