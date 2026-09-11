@@ -36,6 +36,48 @@ function initLenis() {
   });
 }
 
+function triggerAfterLCP(callback) {
+  let ran = false;
+  let settleTimer = null;
+  let fallbackTimer = null;
+
+  function runOnce() {
+    if (ran) return;
+    ran = true;
+    callback();
+  }
+
+  fallbackTimer = setTimeout(runOnce, 2500);
+
+  if ('PerformanceObserver' in window) {
+    try {
+      const observer = new PerformanceObserver(() => {
+        clearTimeout(settleTimer);
+        settleTimer = setTimeout(() => {
+          clearTimeout(fallbackTimer);
+          observer.disconnect();
+          runOnce();
+        }, 100);
+      });
+
+      observer.observe({ type: 'largest-contentful-paint', buffered: true });
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'hidden') return;
+        clearTimeout(fallbackTimer);
+        clearTimeout(settleTimer);
+        observer.disconnect();
+        runOnce();
+      }, { once: true });
+    } catch (error) {
+      runOnce();
+    }
+  } else if (document.readyState === 'complete') {
+    runOnce();
+  } else {
+    addEventListener('load', runOnce, { once: true });
+  }
+}
+
 function triggerAfterLoadIdle(callback) {
   function run() {
     if ('requestIdleCallback' in window) {
@@ -143,7 +185,7 @@ function prepareVIPDrawerLoader() {
   let loadingPromise = null;
   let armed = false;
 
-  const realDrawerReady = () => Boolean(window.TDBVIPDrawer && !window.TDBVIPDrawer._tdbBridge);
+  const realDrawerReady = () => Boolean(window.TDBVIPDrawer);
 
   function cleanup() {
     armed = false;
@@ -209,10 +251,10 @@ function prepareVIPDrawerLoader() {
   arm();
 
   if (/^#vip/i.test(location.hash || '')) loadDrawer();
-  else triggerAfterLoadIdle(loadDrawer);
+  else triggerAfterLCP(loadDrawer);
 
   window.TDBVIPDrawerLoader = Object.freeze({
-    version: '1.0.0',
+    version: '1.0.1',
     load: loadDrawer,
     status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) }),
   });
