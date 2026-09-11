@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.7.2-simple-seven-loader';
+  const VERSION = '0.7.3-warm-lenis-footer';
 
   function loadScript(src, attrName, readyCheck) {
     const existing = document.querySelector(`script[${attrName}]`);
@@ -64,7 +64,7 @@
   );
 
   const footerRuntimePromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@534661ac941f5a48a98e6595e10ac48e54168e27/dist/tdb-footer-runtime.min.js',
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@9d1450044eda104df1c8f261a2d6335108c3186c/dist/tdb-footer-runtime.min.js',
     'data-tdb-footer-runtime-js',
     () => Boolean(window.TDBFooterRuntime),
   );
