@@ -801,10 +801,6 @@ html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide 
   }
 }
 
-/* Homepage only: no drawer layout before scroll or explicit intent. */
-html[data-wf-page="677cf86df9952f978d94d8a9"] #tdb-vip-drawer:not([data-tdb-vip-prepared]) {
-  display: none !important;
-}
 /* Readiness is read on html only; it must not invalidate descendants. */
 @property --tdb-ui-ready {
   syntax: "<number>";
