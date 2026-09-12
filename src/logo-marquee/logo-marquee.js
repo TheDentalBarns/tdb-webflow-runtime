@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.6.0';
+  const VERSION = '0.6.1';
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
     itemSelector: '.partner_logos',
@@ -22,6 +22,9 @@
     ...DEFAULTS,
     ...(window.TDBLogoMarqueeConfig || {})
   };
+  // MediaQueryList.matches stays live as the viewport changes. Reuse the list
+  // rather than creating another one on every animation frame.
+  const mobileMediaQuery = window.matchMedia?.(CONFIG.mobileMedia);
 
   const INIT_ATTR = 'data-tdb-logo-marquee-init';
   const CLONE_ATTR = 'data-tdb-logo-marquee-clone';
@@ -45,7 +48,7 @@
   }
 
   function getSpeed() {
-    return window.matchMedia?.(CONFIG.mobileMedia)?.matches
+    return mobileMediaQuery?.matches
       ? CONFIG.speedMobile
       : CONFIG.speedDesktop;
   }

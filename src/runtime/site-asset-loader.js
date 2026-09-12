@@ -361,7 +361,9 @@ function prepareVIPDrawerLoader() {
   let loadingPromise = null;
   let armed = false;
   let openPending = false;
-  const pageY = () => Math.max(scrollY, document.documentElement.scrollTop, 0);
+  // Prefer the window scroll offset, including zero, without also asking the
+  // root element for layout. Retain the element fallback for older engines.
+  const pageY = () => Math.max(window.scrollY ?? document.documentElement.scrollTop ?? 0, 0);
   const scrollSeed = { lastY: pageY(), up: 0, down: 0, peek: false };
   const realDrawerReady = () => Boolean(window.TDBVIPDrawer);
 
