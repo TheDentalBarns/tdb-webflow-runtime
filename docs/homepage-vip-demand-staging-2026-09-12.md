@@ -11,7 +11,7 @@ CSS remains consolidated in `tdb-ui.css`. On the homepage the seven drawer varia
 Assets:
 - UI and homepage-only VIP runtime: `5f162a629a8ee7f5c8a1e79dc5206429c22961cf`.
 - Footer v1.4.0: `8b96b2cb5aa58bdef1d078002a88f4503bc49396`.
-- Immediate v0.8.4-homepage-vip-demand pins that footer.
+- Immediate v0.8.4-homepage-vip-demand: `360877d9d623b3b2b95c56c4b4ee9ad601a92da4`, pins that footer.
 
 Webflow changes: update site UI and immediate immutable pins and manifest; append the following guard to homepage head only:
 
@@ -28,3 +28,13 @@ Validation: 31 Node/JSDOM checks pass against source and minified builds, includ
 Rollback: restore global UI pin `87f6c34ef90d66430dd443246c41d9f82d94a3d9`; immediate pin `3d392f3a5bc4e1ab0ed775171aa9e0868d47d954` (footer `0cc87ff5e83d802a9cdffc27b757c071001af96e`); remove only the homepage style block marked `data-tdb-homepage-vip-demand`; publish staging only. Keep the existing tooltip consolidation and forms/slider recovery changes.
 
 Production publication is not authorised by this pass.
+
+## Staging verification completed
+
+All four CDN assets returned HTTP 200 and exactly matched tested local bytes. Webflow saved code was read back before staging-only publication. Production homepage HTML remained byte-for-byte identical (424,051 bytes).
+
+Live Chrome desktop checks confirmed: untouched homepage drawer display none, zero layout boxes, no prepared attribute and no VIP runtime script; html readiness 1, body readiness 0, and no root VIP handle variable. A first-click open loaded exactly one new VIP runtime, reached top 0 at viewport height 936, and bound both forms and attribution. Escape closed the drawer. A separate untouched homepage prepared on downward scroll, peeked after a 200px upward scroll at pageY 800, and hid on a subsequent 200px downward scroll.
+
+The VIP become-a-patient landing page had no homepage guard, retained automatic preparation using the old VIP runtime pin, and its hero CTA opened the drawer. No application console errors were observed; the browser extension logged unrelated metadata errors. Mobile cold-click and scroll-handover behaviour was covered in automated tests; live mobile viewport verification was not available in this browser surface.
+
+No new GTmetrix run was launched. The original full settings could not be reproduced confidently from the exported HAR/Lighthouse metadata. TBT impact remains to be measured using the user's saved test profile; CSS download and parse work remains, and the change does not claim to eliminate the entire prior 97ms task.
