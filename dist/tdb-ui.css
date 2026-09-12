@@ -805,10 +805,5 @@ html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide 
 html[data-wf-page="677cf86df9952f978d94d8a9"] #tdb-vip-drawer:not([data-tdb-vip-prepared]) {
   display: none !important;
 }
-/* Readiness is read on html only; it must not invalidate descendants. */
-@property --tdb-ui-ready {
-  syntax: "<number>";
-  inherits: false;
-  initial-value: 0;
-}
+/* Readiness is read on html; keep the marker unregistered for this staging experiment. */
 html { --tdb-ui-ready: 1; }
