@@ -4,8 +4,7 @@
  */
 
 @media (min-width: 768px) {
-  html:where(:not([data-wf-page="677cf86df9952f978d94d8a9"])),
-html:where([data-wf-page="677cf86df9952f978d94d8a9"]) #tdb-vip-drawer {
+  html {
     --tdb-vip-desktop-page-gutter: 3%;
     --tdb-vip-desktop-content-max: 52rem;
   }
