@@ -354,33 +354,53 @@ function prepareVIPDrawerLoader() {
   const drawer = document.getElementById('tdb-vip-drawer');
   if (!drawer) return;
 
+  const demand = document.documentElement.getAttribute('data-wf-page') === '677cf86df9952f978d94d8a9';
   const triggerSelector = '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
-  const jsUrl = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@432ab3ab12553c9bbff97123453272ebde1ad6da/dist/tdb-vip-drawer.js';
+  const legacyUrl = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@432ab3ab12553c9bbff97123453272ebde1ad6da/dist/tdb-vip-drawer.js';
+  const jsUrl = demand ? 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@5f162a629a8ee7f5c8a1e79dc5206429c22961cf/dist/tdb-vip-drawer.js' : legacyUrl;
   let loadingPromise = null;
   let armed = false;
-
+  let openPending = false;
+  const pageY = () => Math.max(scrollY, document.documentElement.scrollTop, 0);
+  const scrollSeed = { lastY: pageY(), up: 0, down: 0, peek: false };
   const realDrawerReady = () => Boolean(window.TDBVIPDrawer);
 
   function cleanup() {
     armed = false;
     document.removeEventListener('click', onIntentClick, true);
     document.removeEventListener('keydown', onIntentKeydown, true);
+    document.removeEventListener('pointerover', onPrepareIntent, true);
+    document.removeEventListener('pointerdown', onPrepareIntent, true);
+    document.removeEventListener('focusin', onPrepareIntent, true);
+    window.removeEventListener('scroll', onPrepareScroll);
+    window.removeEventListener('pageshow', onPageShow);
+    window.removeEventListener('hashchange', onHashChange);
   }
 
   function loadDrawer() {
-    if (realDrawerReady()) return Promise.resolve(window.TDBVIPDrawer);
     if (loadingPromise) return loadingPromise;
-    // Preload in parallel only when the global CSS is still outstanding.
+    if (realDrawerReady()) return Promise.resolve(window.TDBVIPDrawer);
     tdbPreloadVIPScript(jsUrl);
     loadingPromise = tdbEnsureUI()
-      .then(() => tdbLoadVIPScript(jsUrl))
       .then(() => {
+        if (demand) {
+          // Resolve the hidden starting geometry only after actual demand, before
+          // the runtime can enable transitions or replay an immediate open.
+          drawer.setAttribute('data-tdb-vip-prepared', 'true');
+          drawer.getBoundingClientRect();
+        }
+        return tdbLoadVIPScript(jsUrl);
+      })
+      .then(() => {
+        const api = window.TDBVIPDrawer;
+        if (demand) api.resumeScroll?.(scrollSeed);
         cleanup();
-        return window.TDBVIPDrawer;
+        return api;
       })
       .catch(error => {
         document.querySelector('link[data-tdb-vip-preload]')?.remove();
         loadingPromise = null;
+        if (demand && !realDrawerReady()) drawer.removeAttribute('data-tdb-vip-prepared');
         console.error('TDB VIP Drawer failed to load');
         throw error;
       });
@@ -391,10 +411,18 @@ function prepareVIPDrawerLoader() {
     const target = event.target;
     return target instanceof Element ? target.closest(triggerSelector) : null;
   }
+  function fallbackToForm() {
+    const section = Array.from(document.querySelectorAll('#VIP')).find(node => !drawer.contains(node));
+    section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
   function openAfterLoad(event) {
     event.preventDefault();
     event.stopPropagation();
-    loadDrawer().then(api => api?.open?.()).catch(() => {});
+    if (openPending) return;
+    openPending = true;
+    loadDrawer().then(api => api?.open?.()).catch(() => {
+      if (demand) fallbackToForm();
+    }).finally(() => { openPending = false; });
   }
   function onIntentClick(event) {
     if (realDrawerReady() || !findTrigger(event)) return;
@@ -404,23 +432,59 @@ function prepareVIPDrawerLoader() {
     if (realDrawerReady() || (event.key !== 'Enter' && event.key !== ' ') || !findTrigger(event)) return;
     openAfterLoad(event);
   }
+  const loadSafely = () => { loadDrawer().catch(() => {}); };
+  function onPrepareIntent(event) {
+    if (findTrigger(event)) loadSafely();
+  }
+  function onPrepareScroll() {
+    const y = pageY();
+    const delta = y - scrollSeed.lastY;
+    if (!delta) return;
+    if (delta > 0) {
+      scrollSeed.up = 0;
+      scrollSeed.down += delta;
+      if (scrollSeed.down > 140) scrollSeed.peek = false;
+    } else {
+      scrollSeed.down = 0;
+      scrollSeed.up += -delta;
+      if (scrollSeed.up > 120 && y > innerHeight * 0.5) scrollSeed.peek = true;
+    }
+    if (y <= innerHeight * 0.5) scrollSeed.peek = false;
+    scrollSeed.lastY = y;
+    // First actual movement gives the download a head start before a reversal.
+    loadSafely();
+  }
+  function onPageShow() {
+    if (pageY() > 0) loadSafely();
+  }
+  function onHashChange() {
+    if (/^#vip/i.test(location.hash || '')) loadSafely();
+  }
   function arm() {
     if (armed || realDrawerReady()) return;
     armed = true;
     document.addEventListener('click', onIntentClick, true);
     document.addEventListener('keydown', onIntentKeydown, true);
+    if (demand) {
+      document.addEventListener('pointerover', onPrepareIntent, true);
+      document.addEventListener('pointerdown', onPrepareIntent, true);
+      document.addEventListener('focusin', onPrepareIntent, true);
+      window.addEventListener('scroll', onPrepareScroll, { passive: true });
+      window.addEventListener('pageshow', onPageShow, { passive: true });
+      window.addEventListener('hashchange', onHashChange);
+    }
   }
 
-  const loadSafely = () => { loadDrawer().catch(() => {}); };
   arm();
   if (/^#vip/i.test(location.hash || '')) loadSafely();
+  else if (demand) onPageShow();
   else if (window.__TDB_PRIORITY_READY__) loadSafely();
   else window.addEventListener('tdb:priority-ready', loadSafely, { once: true });
 
   window.TDBVIPDrawerLoader = Object.freeze({
-    version: '1.2.0',
+    version: '1.3.0',
     load: loadDrawer,
-    status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) && !realDrawerReady(), uiReady: tdbUIIsReady() }),
+    status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) && !realDrawerReady(), uiReady: tdbUIIsReady(), demand }),
   });
 }
 
@@ -536,7 +600,7 @@ startLenisForSession();
 })();
 
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.3.1',
+  version: '1.4.0',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,

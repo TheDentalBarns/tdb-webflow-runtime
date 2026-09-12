@@ -2,7 +2,8 @@
  * Included once in the deferred UI build. Critical hidden-state guard remains inline in Webflow.
  */
 
-html {
+html:where(:not([data-wf-page="677cf86df9952f978d94d8a9"])),
+html:where([data-wf-page="677cf86df9952f978d94d8a9"]) #tdb-vip-drawer {
   --tdb-vip-tab-duration: 420ms;
   --tdb-vip-tab-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --tdb-vip-drawer-duration: 500ms;

@@ -2,7 +2,7 @@
   "name": "tdb-runtime-loader-tests",
   "private": true,
   "scripts": {
-    "test": "node --test loader-recovery.test.cjs"
+    "test": "node --test *.test.cjs"
   },
   "devDependencies": {
     "jsdom": "26.1.0"

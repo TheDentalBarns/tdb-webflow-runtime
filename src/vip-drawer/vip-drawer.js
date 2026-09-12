@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.5.1';
   const mobileQuery = matchMedia('(max-width:767px)');
   const desktopQuery = matchMedia('(min-width:768px)');
   const drawer = document.getElementById('tdb-vip-drawer');
@@ -441,8 +441,23 @@
   setTimeout(hideTitle, 600);
   syncMode();
 
+  // The homepage loader tracks direction while this runtime downloads. Preserve
+  // that gesture without opening over the native VIP form or above the threshold.
+  function resumeScroll(seed) {
+    if (!seed || state !== 0) return;
+    lastY = routeY = pageY();
+    up = Math.max(0, Number(seed.up) || 0);
+    down = Math.max(0, Number(seed.down) || 0);
+    if (vipSection) {
+      const rect = vipSection.getBoundingClientRect();
+      near = rect.bottom >= -120 && rect.top <= innerHeight + 120;
+    }
+    if (seed.peek && lastY > innerHeight * 0.5 && !near) peek();
+  }
+
   const api = Object.freeze({
     version: VERSION,
+    resumeScroll,
     refresh,
     open: openDrawer,
     close: closeDrawer,
