@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.8.4-homepage-vip-demand';
+  const VERSION = '0.8.5-performance-cleanup';
 
   function loadScript(src, attrName, readyCheck) {
     const existing = document.querySelector(`script[${attrName}]`);
@@ -42,7 +42,7 @@
   );
 
   const logoMarqueePromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@9ecc45134d68ac301a98b60e8a8e2971894c60ab/dist/tdb-logo-marquee.js',
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@66a28eb999d7d001d2b69e7ce3b9fce27d63ec4e/dist/tdb-logo-marquee.js',
     'data-tdb-logo-marquee-js',
     () => Boolean(window.TDBLogoMarquee),
   );
@@ -64,7 +64,7 @@
   );
 
   const footerRuntimePromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8b96b2cb5aa58bdef1d078002a88f4503bc49396/dist/tdb-footer-runtime.min.js',
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@66a28eb999d7d001d2b69e7ce3b9fce27d63ec4e/dist/tdb-footer-runtime.min.js',
     'data-tdb-footer-runtime-js',
     () => Boolean(window.TDBFooterRuntime),
   );
