@@ -1,0 +1,26 @@
+{
+  "baseline": {
+    "global_ui": "5f162a629a8ee7f5c8a1e79dc5206429c22961cf",
+    "immediate": "fbeac3b3aba3c662aa2f89acba175616e85b4605",
+    "footer": "66a28eb999d7d001d2b69e7ce3b9fce27d63ec4e",
+    "homepage_drawer": "5f162a629a8ee7f5c8a1e79dc5206429c22961cf",
+    "other_drawer": "432ab3ab12553c9bbff97123453272ebde1ad6da"
+  },
+  "repo": "TheDentalBarns/tdb-webflow-runtime",
+  "review_branch": "codex/frontend-housekeeping-20260913",
+  "production_published": false,
+  "production_all_four_domains_last_published": "2026-09-12T19:20:19.204Z",
+  "staging": {
+    "global_ui": "c868196ea7711143c3182090246124a6c79b86b5",
+    "immediate": "c2ee70f6b229f6156ff126fabb9d509e2441543b",
+    "footer": "b12d8a2d308cdccc55485e4f70b0abc9d7490c32",
+    "homepage_drawer": "71ff4c4be481a56d7dc11c09a7b0563850f7838b/dist/tdb-vip-drawer.js",
+    "other_drawer": "71ff4c4be481a56d7dc11c09a7b0563850f7838b/dist/tdb-vip-drawer-legacy.js"
+  },
+  "staging_last_published": "2026-09-13T08:27:38.773Z",
+  "harness_present": false,
+  "gallery_page_id": "6aa3efd54f3f705caf98c687",
+  "gallery_footer_sha256": "ae5b5c08567462cb63012f548e9387ed8848262b66d9e2e532a2476e1b8d984a",
+  "gallery_change": "Remove one createDDEffect call from browse captions; preserve modal effect",
+  "validation": "Final clean staging browser smoke and all40page source comparison passed; physicaltouch/keyboard andlive submission untested."
+}

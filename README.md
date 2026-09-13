@@ -1,5 +1,7 @@
 # TDB Webflow Runtime
 
+> Deployment record (13 September2026): see [the verified staging release manifest](docs/frontend-housekeeping-release-2026-09-13.json). This audit branch preserves the approved deployed baseline; production was not republished. Historical pins below may describe earlier releases.
+
 Production JavaScript and CSS runtime for The Dental Barns Webflow website.
 
 ## Release policy
