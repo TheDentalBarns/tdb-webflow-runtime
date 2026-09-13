@@ -510,7 +510,7 @@ function prepareSliderLoader() {
       tdbEnsureUI(),
       loadScriptWithRecovery('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b3a0f0f2a1e57b5a67db5f5159c449cff07eebd6/dist/tdb-swiper-8.4.7.min.js', 'data-swiper-js'),
     ]).then(() => loadScriptWithRecovery(
-      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@31386d986982aa60eb6c9199b6e6b4c03693897b/dist/tdb-sliders.js',
+      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0df9b1a1dfbf96cd9346ef17996cd5797dc99986/dist/tdb-sliders.js',
       'data-tdb-sliders-js',
     )).then(script => {
       loaded = true;
