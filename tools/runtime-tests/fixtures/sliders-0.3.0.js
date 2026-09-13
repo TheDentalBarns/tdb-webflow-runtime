@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.4.0';
+  const VERSION = '0.3.0';
   const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
   const PARALLAX_SELECTOR = '.parallax-swiper_component';
   const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
@@ -12,133 +12,6 @@
   const DESKTOP_QUERY = '(min-width:768px)';
   const MOBILE_PORTRAIT_QUERY = '(max-width:767px) and (orientation:portrait)';
   const REDUCED_MOTION_QUERY = '(prefers-reduced-motion:reduce)';
-  const FIRST_VIEW_ATTRIBUTE = 'data-tdb-slider-first-view';
-  const firstViewStates = new Map();
-  const firstViewHandled = new WeakSet();
-
-  // Prepare near the viewport, but move only after the actual slider enters it.
-  // This deliberately does not share the parallax caption/opacity machinery.
-  function prepareHighlightFirstView(component) {
-    if (firstViewHandled.has(component) || firstViewStates.has(component)) return;
-    const swiperEl = getSwiperElement(component);
-    if (!swiperEl) return;
-
-    const motion = matchMedia(REDUCED_MOTION_QUERY);
-    const intentEvents = ['pointerdown', 'touchstart', 'keydown', 'click', 'focusin'];
-    let swiper = null;
-    let observer = null;
-    let inView = false;
-    let frame = 0;
-    let timer = 0;
-    let finished = false;
-
-    function cancelScheduled() {
-      if (frame) cancelAnimationFrame(frame);
-      if (timer) clearTimeout(timer);
-      frame = timer = 0;
-    }
-
-    function finish(reason) {
-      if (finished) return;
-      finished = true;
-      cancelScheduled();
-      observer?.disconnect();
-      intentEvents.forEach(type => component.removeEventListener(type, onIntent, true));
-      document.removeEventListener('visibilitychange', onVisibility);
-      if (motion.removeEventListener) motion.removeEventListener('change', onMotion);
-      else motion.removeListener?.(onMotion);
-      swiper?.off('touchStart slideChange', onIntent);
-      swiper?.off('beforeDestroy', onDestroy);
-      firstViewStates.delete(component);
-      firstViewHandled.add(component);
-      component.setAttribute(FIRST_VIEW_ATTRIBUTE, reason);
-    }
-
-    function onIntent() { finish('skipped-interaction'); }
-    function onDestroy() { finish('skipped-destroyed'); }
-    function onMotion() { if (motion.matches) finish('skipped-reduced-motion'); }
-    function onVisibility() {
-      if (document.hidden) cancelScheduled();
-      else schedule();
-    }
-
-    function canAdvance() {
-      if (finished || !swiper) return false;
-      if (!document.documentElement.contains(component) || swiper.destroyed) {
-        finish('skipped-detached');
-        return false;
-      }
-      if (motion.matches) {
-        finish('skipped-reduced-motion');
-        return false;
-      }
-      if (component.contains(document.activeElement) || swiper.activeIndex !== 0 || swiper.animating) {
-        finish('skipped-interaction');
-        return false;
-      }
-      return inView && !document.hidden;
-    }
-
-    function advance() {
-      timer = 0;
-      if (!canAdvance()) return;
-      const rect = swiperEl.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0 || rect.bottom <= 0 || rect.right <= 0 ||
-          rect.top >= window.innerHeight || rect.left >= window.innerWidth) return;
-      if (getComputedStyle(swiperEl).visibility !== 'visible' ||
-          swiperEl.closest('[hidden], [inert], [aria-hidden="true"]')) {
-        finish('skipped-hidden');
-        return;
-      }
-      swiper.update();
-      if (!canAdvance()) return;
-      if (swiper.slides.length < 2 || swiper.isLocked || !swiper.enabled) {
-        finish('skipped-unavailable');
-        return;
-      }
-      // Consume before slideNext: its callbacks must not schedule a second move.
-      finish('advanced');
-      swiper.slideNext(swiper.params.speed, true);
-    }
-
-    function schedule() {
-      if (frame || timer || !canAdvance()) return;
-      frame = requestAnimationFrame(() => {
-        frame = requestAnimationFrame(() => {
-          frame = 0;
-          if (canAdvance()) timer = setTimeout(advance, 120);
-        });
-      });
-    }
-
-    firstViewStates.set(component, {
-      cancel: () => finish('skipped-detached'),
-      bind(instance) {
-        if (finished) return;
-        swiper = instance;
-        if (swiper.slides.length < 2) { finish('skipped-unavailable'); return; }
-        swiper.on('touchStart slideChange', onIntent);
-        swiper.on('beforeDestroy', onDestroy);
-        schedule();
-      }
-    });
-    component.setAttribute(FIRST_VIEW_ATTRIBUTE, 'pending');
-    if (motion.matches) { finish('skipped-reduced-motion'); return; }
-    // Without reliable visibility observation, leave navigation entirely manual.
-    if (!('IntersectionObserver' in window)) { finish('skipped-unsupported'); return; }
-    intentEvents.forEach(type => component.addEventListener(type, onIntent, { capture: true, passive: true }));
-    document.addEventListener('visibilitychange', onVisibility);
-    if (motion.addEventListener) motion.addEventListener('change', onMotion);
-    else motion.addListener?.(onMotion);
-    observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        inView = entry.isIntersecting && entry.intersectionRatio > 0;
-        if (inView) schedule();
-        else cancelScheduled();
-      });
-    }, { rootMargin: '0px', threshold: 0 });
-    observer.observe(swiperEl);
-  }
 
   function getCurrentPath() {
     return location.pathname.replace(/\/+$/, '') || '/';
@@ -217,8 +90,7 @@
       grabCursor: true,
       slideToClickedSlide: true,
       rewind: true,
-      speed: 400,
-      autoplay: false,
+      speed: 175,
       preloadImages: false,
       lazy: {
         loadOnTransitionStart: false,
@@ -250,7 +122,6 @@
     updateCount();
     swiper.on('slideChange', updateCount);
     markInitialised(component, 'highlight');
-    firstViewStates.get(component)?.bind(swiper);
   }
 
   function initParallaxSwiper(component) {
@@ -459,7 +330,6 @@
     if (component.getAttribute(OBSERVED_ATTRIBUTE) === 'true') return;
 
     component.setAttribute(OBSERVED_ATTRIBUTE, 'true');
-    if (type === 'highlight') prepareHighlightFirstView(component);
 
     if (type === 'parallax' && (isDesktopEntryPage() || isMobileEntryPage())) {
       component.classList.add('tdb-entry-pending');
@@ -515,12 +385,6 @@
           if (node instanceof Element) refresh(node);
         });
       });
-      // Detached roots must not retain viewport/media/document listeners.
-      if (mutations.some(mutation => mutation.removedNodes.length)) {
-        firstViewStates.forEach((state, component) => {
-          if (!document.documentElement.contains(component)) state.cancel();
-        });
-      }
     });
 
     mutationObserver.observe(document.body, { childList: true, subtree: true });
