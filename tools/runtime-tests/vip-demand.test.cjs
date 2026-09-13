@@ -5,6 +5,7 @@ const path=require('node:path');
 const {JSDOM,ResourceLoader,VirtualConsole}=require('jsdom');
 const footer=fs.readFileSync(process.env.TDB_RUNTIME_FILE||path.resolve(__dirname,'../../src/runtime/site-asset-loader.js'),'utf8');
 const vip=fs.readFileSync(process.env.TDB_VIP_FILE||path.resolve(__dirname,'../../src/vip-drawer/vip-drawer.js'),'utf8');
+const EXPECTED_LEGACY_VIP_URL = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@432ab3ab12553c9bbff97123453272ebde1ad6da/dist/tdb-vip-drawer.js';
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 const turns=async()=>{await pause(15);};
 async function setup(t,{home=true,mobile=false,y=0,hash='',near=false}={}){
@@ -79,9 +80,9 @@ test('restored deep position prepares immediately but does not invent a peek',as
 test('homepage desktop VIP hash prepares and opens without scrolling',async t=>{
  const h=await setup(t,{hash:'#VIP'});assert.equal(h.vipRequests().length,1);await h.finish();assert.equal(h.w.TDBVIPDrawer.status().state,2);
 });
-test('VIP landing page retains priority-ready loading and the old runtime pin',async t=>{
+test('VIP landing page retains priority-ready loading and its distinct runtime dependency',async t=>{
  const h=await setup(t,{home:false});assert.equal(h.vipRequests().length,0);h.w.dispatchEvent(new h.w.Event('tdb:priority-ready'));await turns();
- assert.equal(h.vipRequests().length,1);assert.match(h.vipRequests()[0].url,/@432ab3ab12553c9bbff97123453272ebde1ad6da\//);assert.equal(h.prepared(),false);
+ assert.equal(h.vipRequests().length,1);assert.equal(h.vipRequests()[0].url,EXPECTED_LEGACY_VIP_URL);assert.equal(h.prepared(),false);
 });
 test('persistent request failure restores dormant guard and routes a retained click to the native form',async t=>{
  const h=await setup(t);h.event('click');await turns();h.vipRequests()[0].reject(new Error('network'));

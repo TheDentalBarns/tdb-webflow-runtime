@@ -7,6 +7,11 @@ on:
     paths:
       - 'src/runtime/site-asset-loader.js'
       - 'src/runtime/immediate-runtime-batch.js'
+      - 'src/vip-drawer/vip-focus.js'
+      - 'src/vip-drawer/vip-drawer.js'
+      - 'src/vip-drawer/vip-drawer-legacy.js'
+      - 'tools/runtime-build/**'
+      - 'tools/runtime-tests/**'
       - '.github/workflows/build-runtime.yml'
   workflow_dispatch:
 
@@ -21,7 +26,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
         with:
-          ref: main
+          ref: ${{ github.ref }}
 
       - name: Set up Node
         uses: actions/setup-node@v6
@@ -30,23 +35,30 @@ jobs:
 
       - name: Build minified runtimes
         run: |
-          npx --yes terser@5 src/runtime/site-asset-loader.js --compress --mangle --output dist/tdb-footer-runtime.min.js
-          npx --yes terser@5 src/runtime/immediate-runtime-batch.js --compress --mangle --output dist/tdb-immediate-runtime-batch.min.js
+          npm ci --ignore-scripts --prefix tools/runtime-build
+          npm run build --prefix tools/runtime-build
 
       - name: Validate artifacts
         run: |
           test -s dist/tdb-footer-runtime.min.js
           test -s dist/tdb-immediate-runtime-batch.min.js
+          node --check dist/tdb-footer-runtime.min.js
+          node --check dist/tdb-immediate-runtime-batch.min.js
+          node --check dist/tdb-vip-drawer.js
+          node --check dist/tdb-vip-drawer-legacy.js
+          npm ci --ignore-scripts --prefix tools/runtime-tests
+          TDB_RUNTIME_FILE="$PWD/dist/tdb-footer-runtime.min.js" TDB_VIP_FILE="$PWD/dist/tdb-vip-drawer.js" npm test --prefix tools/runtime-tests
+          TDB_VIP_SOURCE="$PWD/dist/tdb-vip-drawer-legacy.js" node --test tools/runtime-tests/vip-focus-layer.test.cjs
 
       - name: Commit generated artifacts
         run: |
-          if [ -z "$(git status --porcelain -- dist/tdb-footer-runtime.min.js dist/tdb-immediate-runtime-batch.min.js)" ]; then
+          if [ -z "$(git status --porcelain -- dist/tdb-footer-runtime.min.js dist/tdb-immediate-runtime-batch.min.js dist/tdb-vip-drawer.js dist/tdb-vip-drawer-legacy.js)" ]; then
             echo 'Generated runtime files are already current.'
             exit 0
           fi
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add dist/tdb-footer-runtime.min.js dist/tdb-immediate-runtime-batch.min.js
+          git add dist/tdb-footer-runtime.min.js dist/tdb-immediate-runtime-batch.min.js dist/tdb-vip-drawer.js dist/tdb-vip-drawer-legacy.js
           git commit -m 'Build runtime artifacts'
-          git push origin HEAD:main
+          git push origin HEAD:${{ github.ref_name }}
