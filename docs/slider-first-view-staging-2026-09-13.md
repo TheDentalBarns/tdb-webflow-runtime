@@ -1,6 +1,8 @@
 # Slider first-view staging release — 13 September 2026
 
-Highlight sliders now use version 0.4.2: 400 ms slide transitions, one advance when first actually in view, then manual navigation with autoplay disabled. Swiper's native `preventInteractionOnTransition` guard ignores extra commands while the current move runs. The next press works immediately at rest, with no stored commands, replay, extra settling timer or custom queue listeners. The user rejected the intermediate v0.4.1 queue, which is superseded by this release. No caption fading or image parallax is added. Existing parallax, native testimonials, layout and other runtime contracts remain unchanged.
+Slider version 0.4.3 accepts new presses and touch swipes immediately while a previous move is running. Both highlight and parallax use `preventInteractionOnTransition: false`; parallax additionally uses `loopPreventsSlide: false` so its looping arrow controls respond like its touch swipes. There is no queue, replay, transition lock, settling timer or custom navigation listener. The user rejected both the intermediate v0.4.1 queue and the v0.4.2 wait-at-rest handling; this release supersedes them.
+
+Highlight sliders retain 400 ms slide transitions, one advance when first actually in view, then manual navigation with autoplay disabled. No caption fading or image parallax is added to highlight sliders. Parallax changes only the two interaction-lock options; its existing image motion, caption effects, entry behaviour and layout remain intact. Native testimonials and other runtime contracts are unchanged.
 
 The critical head rule in `src/styles/tdb-smile-initial.css` hides only `[data-tdb-smile-slider="true"] .smile-card` before IX2 starts. This matches all 32 audited smile instances (729 detail containers in the retained route captures), which have no authored inline opacity. Normal CSS priority allows existing inline reveal opacity to win. Do not set height, display, visibility or `!important`: IX2 clears its inline height after opening. Titles, prices, images and overlay interactions retain their existing styling. Insert this rule inline in the global head; a deferred stylesheet would allow the first-paint flash.
 
@@ -8,14 +10,14 @@ The 59-route audit mapped 50 highlight instances across 38 routes (32 smile, 16 
 
 ## Immutable chain
 
-- Slider: `37d99ea79eca4481286aef7f82439f182bd57635`, `dist/tdb-sliders.js`
-- Footer 1.4.4: `aad22e5f91b3fd650fe6063f0ca628459dcee275`, `dist/tdb-footer-runtime.min.js`
-- Immediate 0.8.10-slider-rest-staging: use this commit's immutable SHA and `dist/tdb-immediate-runtime-batch.min.js`.
+- Slider: `ac915795748e427b59302f57a6dc79cb64c4c1d6`, `dist/tdb-sliders.js`
+- Footer 1.4.5: `e705688f77382f7f1a561581873bcc3767cd2b43`, `dist/tdb-footer-runtime.min.js`
+- Immediate 0.8.11-slider-responsive-staging: use this commit's immutable SHA and `dist/tdb-immediate-runtime-batch.min.js`.
 - Swiper core and CSS pins are unchanged.
 
 ## Validation
 
-Run `node tools/runtime-tests/slider-first-view.test.mjs` for 37 deterministic full-controller checks. A separate local check using the retained real Swiper 8.4.7 core and Navigation module confirmed four immediate presses start only one full 400 ms move. The next press is accepted synchronously after transition end; ignored taps never replay, and previous rewind still works. CSS transition-end events were supplied explicitly in JSDOM; this is not a physical-device test. The critical rule was also checked before scripts and with inline reveal overrides. The retained footer and immediate artifacts were reproduced byte-for-byte before changing pins, using Terser 5.44.0 and the retained build input order. Browser/staging acceptance is recorded separately after publishing.
+Run `node tools/runtime-tests/slider-first-view.test.mjs` for 37 deterministic full-controller checks. The retained parallax implementation is compared with only the two intended interaction options changed. A separate integration check using actual Swiper 8.4.7 Navigation and touch event handlers confirmed that both types accept three next presses, a previous press and two new swipes before the current 400 ms motion finishes. No movement replays after input ends. The JSDOM fixture supplies computed translation components and explicit CSS transition-end events; physical-device feel is not simulated. The critical opacity rule was checked before scripts and with inline reveal overrides. The retained footer and immediate artifacts were reproduced byte-for-byte before changing pins, using Terser 5.44.0 and the retained build input order. Browser/staging acceptance is recorded separately after publishing.
 
 ## Publishing and rollback
 
