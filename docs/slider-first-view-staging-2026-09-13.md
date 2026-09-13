@@ -1,6 +1,6 @@
 # Slider first-view staging release — 13 September 2026
 
-Highlight sliders now use version 0.4.1: 400 ms slide transitions, one advance when first actually in view, then manual navigation with autoplay disabled. Rapid next/previous presses queue in order and wait for transition end plus one frame before the next move. Pending manual requests are discarded when the tab hides or the instance is destroyed. No caption fading or image parallax is added. Existing parallax, native testimonials, layout and other runtime contracts remain unchanged.
+Highlight sliders now use version 0.4.2: 400 ms slide transitions, one advance when first actually in view, then manual navigation with autoplay disabled. Swiper's native `preventInteractionOnTransition` guard ignores extra commands while the current move runs. The next press works immediately at rest, with no stored commands, replay, extra settling timer or custom queue listeners. The user rejected the intermediate v0.4.1 queue, which is superseded by this release. No caption fading or image parallax is added. Existing parallax, native testimonials, layout and other runtime contracts remain unchanged.
 
 The critical head rule in `src/styles/tdb-smile-initial.css` hides only `[data-tdb-smile-slider="true"] .smile-card` before IX2 starts. This matches all 32 audited smile instances (729 detail containers in the retained route captures), which have no authored inline opacity. Normal CSS priority allows existing inline reveal opacity to win. Do not set height, display, visibility or `!important`: IX2 clears its inline height after opening. Titles, prices, images and overlay interactions retain their existing styling. Insert this rule inline in the global head; a deferred stylesheet would allow the first-paint flash.
 
@@ -8,14 +8,14 @@ The 59-route audit mapped 50 highlight instances across 38 routes (32 smile, 16 
 
 ## Immutable chain
 
-- Slider: `0e220e5fdb4d8dd0cfc3b36196735a8e0c2175c8`, `dist/tdb-sliders.js`
-- Footer 1.4.3: `ff2158a5253f6d6569f68fc0c822a2d4181883db`, `dist/tdb-footer-runtime.min.js`
-- Immediate 0.8.9-slider-queue-staging: use this commit's immutable SHA and `dist/tdb-immediate-runtime-batch.min.js`.
+- Slider: `37d99ea79eca4481286aef7f82439f182bd57635`, `dist/tdb-sliders.js`
+- Footer 1.4.4: `aad22e5f91b3fd650fe6063f0ca628459dcee275`, `dist/tdb-footer-runtime.min.js`
+- Immediate 0.8.10-slider-rest-staging: use this commit's immutable SHA and `dist/tdb-immediate-runtime-batch.min.js`.
 - Swiper core and CSS pins are unchanged.
 
 ## Validation
 
-Run `node tools/runtime-tests/slider-first-view.test.mjs` for 43 deterministic full-controller checks. A separate local check using the retained real Swiper 8.4.7 core and Navigation module confirmed three immediate next presses and one previous press play as four full 400 ms moves in order, including rewind. CSS transition-end events were supplied explicitly in JSDOM; this is not a physical-device test. The critical rule was also checked before scripts and with inline reveal overrides. The retained footer and immediate artifacts were reproduced byte-for-byte before changing pins, using Terser 5.44.0 and the retained build input order. Browser/staging acceptance is recorded separately after publishing.
+Run `node tools/runtime-tests/slider-first-view.test.mjs` for 37 deterministic full-controller checks. A separate local check using the retained real Swiper 8.4.7 core and Navigation module confirmed four immediate presses start only one full 400 ms move. The next press is accepted synchronously after transition end; ignored taps never replay, and previous rewind still works. CSS transition-end events were supplied explicitly in JSDOM; this is not a physical-device test. The critical rule was also checked before scripts and with inline reveal overrides. The retained footer and immediate artifacts were reproduced byte-for-byte before changing pins, using Terser 5.44.0 and the retained build input order. Browser/staging acceptance is recorded separately after publishing.
 
 ## Publishing and rollback
 
