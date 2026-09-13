@@ -1,4 +1,4 @@
-/* TDB VIP keyboard/focus layer v1.0.0.
+/* TDB VIP keyboard/focus layer v1.0.1.
  * Bundled before site-asset-loader in tdb-footer-runtime.min.js. Reads the
  * existing drawer classes without replacing loading or interaction ownership. */
 (() => {
@@ -8,6 +8,13 @@
   const handle = drawer?.querySelector('.tdb-vip-drawer-handle');
   if (!drawer || !body || !handle || drawer.dataset.tdbVipFocusBound === 'true') return;
   drawer.dataset.tdbVipFocusBound = 'true';
+  // Programmatic focus from the Elfsight banner can retain :focus-visible
+  // after a pointer activation. Suppress only the handle's pointer outline;
+  // keyboard input immediately restores the site's existing focus styling.
+  const focusStyle = document.createElement('style');
+  focusStyle.dataset.tdbVipPointerFocus = 'true';
+  focusStyle.textContent = '#tdb-vip-drawer .tdb-vip-drawer-handle[data-tdb-vip-pointer-focus]:focus{outline:none!important}';
+  document.head.appendChild(focusStyle);
   const original = new Map(['role', 'aria-modal', 'aria-label', 'tabindex'].map(name => [name, drawer.getAttribute(name)]));
   const background = new Map();
   const selector = 'a[href],area[href],button,input:not([type="hidden"]),select,textarea,iframe,[tabindex],[contenteditable="true"]';
@@ -30,9 +37,13 @@
     const candidate = trigger(event.target);
     if (candidate && !drawer.contains(candidate)) latestTrigger = candidate;
   }
-  document.addEventListener('pointerdown', rememberTrigger, true);
+  document.addEventListener('pointerdown', event => {
+    handle.setAttribute('data-tdb-vip-pointer-focus', '');
+    rememberTrigger(event);
+  }, true);
   document.addEventListener('click', rememberTrigger, true);
   document.addEventListener('keydown', event => {
+    if (!event.metaKey && !event.altKey && !event.ctrlKey) handle.removeAttribute('data-tdb-vip-pointer-focus');
     if (event.key === 'Enter' || event.key === ' ') rememberTrigger(event);
   }, true);
 
