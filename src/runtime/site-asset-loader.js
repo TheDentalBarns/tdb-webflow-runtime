@@ -356,8 +356,8 @@ function prepareVIPDrawerLoader() {
 
   const demand = document.documentElement.getAttribute('data-wf-page') === '677cf86df9952f978d94d8a9';
   const triggerSelector = '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
-  const legacyUrl = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@432ab3ab12553c9bbff97123453272ebde1ad6da/dist/tdb-vip-drawer.js';
-  const jsUrl = demand ? 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@5f162a629a8ee7f5c8a1e79dc5206429c22961cf/dist/tdb-vip-drawer.js' : legacyUrl;
+  const legacyUrl = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@71ff4c4be481a56d7dc11c09a7b0563850f7838b/dist/tdb-vip-drawer-legacy.js';
+  const jsUrl = demand ? 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@71ff4c4be481a56d7dc11c09a7b0563850f7838b/dist/tdb-vip-drawer.js' : legacyUrl;
   let loadingPromise = null;
   let armed = false;
   let openPending = false;
@@ -602,7 +602,7 @@ startLenisForSession();
 })();
 
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.4.0',
+  version: '1.4.1',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,

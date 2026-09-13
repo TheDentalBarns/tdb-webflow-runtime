@@ -5,7 +5,7 @@ const path=require('node:path');
 const {JSDOM,ResourceLoader,VirtualConsole}=require('jsdom');
 const footer=fs.readFileSync(process.env.TDB_RUNTIME_FILE||path.resolve(__dirname,'../../src/runtime/site-asset-loader.js'),'utf8');
 const vip=fs.readFileSync(process.env.TDB_VIP_FILE||path.resolve(__dirname,'../../src/vip-drawer/vip-drawer.js'),'utf8');
-const EXPECTED_LEGACY_VIP_URL = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@432ab3ab12553c9bbff97123453272ebde1ad6da/dist/tdb-vip-drawer.js';
+const EXPECTED_LEGACY_VIP_URL = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@71ff4c4be481a56d7dc11c09a7b0563850f7838b/dist/tdb-vip-drawer-legacy.js';
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 const turns=async()=>{await pause(15);};
 async function setup(t,{home=true,mobile=false,y=0,hash='',near=false}={}){
