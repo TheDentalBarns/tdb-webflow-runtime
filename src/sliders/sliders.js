@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.4.2';
+  const VERSION = '0.4.3';
   const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
   const PARALLAX_SELECTOR = '.parallax-swiper_component';
   const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
@@ -219,7 +219,7 @@
       rewind: true,
       speed: 400,
       autoplay: false,
-      preventInteractionOnTransition: true,
+      preventInteractionOnTransition: false,
       preloadImages: false,
       lazy: {
         loadOnTransitionStart: false,
@@ -280,6 +280,8 @@
           },
       grabCursor: true,
       loop: true,
+      loopPreventsSlide: false,
+      preventInteractionOnTransition: false,
       loopAdditionalSlides: 1,
       slideToClickedSlide: true,
       parallax: true,

@@ -135,16 +135,17 @@ function harness({reduced = false, io = true, count = 3, core = true, width = 13
   };
 }
 
-test('Full candidate parses and retained parallax implementation is byte-identical',()=>{
+test('Full candidate parses; parallax changes only the two interaction locks',()=>{
   new vm.Script(source);
   const block=text=>text.split('  function initParallaxSwiper(component) {')[1].split('  function initByType')[0];
-  assert.equal(block(source),block(baseline));
+  const expected=block(baseline).replace('      loop: true,','      loop: true,\n      loopPreventsSlide: false,\n      preventInteractionOnTransition: false,');
+  assert.equal(block(source),expected);
 });
 for (const width of [390,767,768,1363]) test(`Options preserve layout, navigation and gesture policy at ${width}px`,()=>{
   const h=harness({width}); h.proximity();
   const options=text=>vm.runInNewContext('('+text.split('function initHighlightSwiper(component)')[1].match(/new window\.Swiper\(swiperEl, (\{[\s\S]*?\n    \})\);/)[1]+')',{window:{innerWidth:width},component:{querySelector:s=>s}});
   const before=JSON.parse(JSON.stringify(options(baseline))), after=JSON.parse(JSON.stringify(options(source)));
-  before.speed=400; before.autoplay=false; before.preventInteractionOnTransition=true; assert.deepEqual(after,before);
+  before.speed=400; before.autoplay=false; before.preventInteractionOnTransition=false; assert.deepEqual(after,before);
   assert.equal(h.instances[0].params.speed,400); assert.equal(h.instances[0].params.autoplay,false);
   assert.equal(h.instances[0].params.parallax,undefined);
 });
