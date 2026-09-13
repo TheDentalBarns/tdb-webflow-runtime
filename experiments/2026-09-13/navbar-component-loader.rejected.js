@@ -1,3 +1,4 @@
+// REJECTED: loses early navbar script discovery. See docs/component-loading-guards-2026-09-13.md.
 (() => {
   'use strict';
 
