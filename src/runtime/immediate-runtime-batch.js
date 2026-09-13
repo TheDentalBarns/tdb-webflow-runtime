@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.8.6-a11y-staging';
+  const VERSION = '0.8.7-vimeo-guard-staging';
 
   function loadScript(src, attrName, readyCheck) {
     const existing = document.querySelector(`script[${attrName}]`);
@@ -58,10 +58,29 @@
     'data-scrolldisable-js',
   );
 
-  const vimeoPromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-vimeo-js@v1.0.1/dist/vimeo-controller.min.js',
-    'data-vimeo-controller-js',
-  );
+  function loadVimeoWhenPresent() {
+    // Match the controller's complete component contract, including CMS content players.
+    const component = document.querySelector(
+      '[data-vimeo-hero-shell], [data-vimeo-ambient-init], [data-vimeo-player-init][data-vimeo-content-init]',
+    );
+    if (component) {
+      return loadScript(
+        'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-vimeo-js@v1.0.1/dist/vimeo-controller.min.js',
+        'data-vimeo-controller-js',
+      );
+    }
+
+    // Normally this deferred runtime runs after parsing. Preserve discovery if
+    // it is ever moved earlier: an unfinished document cannot prove absence.
+    if (document.readyState === 'loading') {
+      return new Promise(resolve => {
+        document.addEventListener('DOMContentLoaded', () => resolve(loadVimeoWhenPresent()), { once: true });
+      });
+    }
+    return Promise.resolve(null);
+  }
+
+  const vimeoPromise = loadVimeoWhenPresent();
 
   const footerRuntimePromise = loadScript(
     'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b12d8a2d308cdccc55485e4f70b0abc9d7490c32/dist/tdb-footer-runtime.min.js',
