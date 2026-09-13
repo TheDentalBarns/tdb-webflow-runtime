@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.4.1';
+  const VERSION = '0.4.2';
   const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
   const PARALLAX_SELECTOR = '.parallax-swiper_component';
   const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
@@ -201,66 +201,6 @@
     }
   }
 
-  function queueHighlightNavigation(swiper) {
-    const originalNext = swiper.slideNext;
-    const originalPrev = swiper.slidePrev;
-    const pending = [];
-    let frame = 0;
-    let disposed = false;
-
-    function clearPending() {
-      pending.length = 0;
-      if (frame) cancelAnimationFrame(frame);
-      frame = 0;
-    }
-
-    function drain() {
-      if (disposed || frame || swiper.animating || !pending.length) return;
-      // Let the completed transition settle before starting the next request.
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        if (disposed || swiper.destroyed || document.hidden || !swiper.enabled) {
-          clearPending();
-          return;
-        }
-        if (swiper.animating) return;
-        const request = pending.shift();
-        if (!request) return;
-        request.method.apply(swiper, request.args);
-        if (!swiper.animating) drain();
-      });
-    }
-
-    function enqueue(method, args) {
-      if (disposed || swiper.destroyed || !swiper.enabled || document.hidden) return false;
-      if (swiper.animating || frame || pending.length) {
-        pending.push({ method, args });
-        drain();
-        return false;
-      }
-      return method.apply(swiper, args);
-    }
-
-    function next(...args) { return enqueue(originalNext, args); }
-    function prev(...args) { return enqueue(originalPrev, args); }
-    function onVisibility() { if (document.hidden) clearPending(); }
-    function dispose() {
-      disposed = true;
-      clearPending();
-      document.removeEventListener('visibilitychange', onVisibility);
-      swiper.off('transitionEnd', drain);
-      swiper.off('beforeDestroy', dispose);
-      if (swiper.slideNext === next) swiper.slideNext = originalNext;
-      if (swiper.slidePrev === prev) swiper.slidePrev = originalPrev;
-    }
-
-    swiper.slideNext = next;
-    swiper.slidePrev = prev;
-    swiper.on('transitionEnd', drain);
-    swiper.on('beforeDestroy', dispose);
-    document.addEventListener('visibilitychange', onVisibility);
-  }
-
   function initHighlightSwiper(component) {
     if (!component || isInitialised(component)) return;
 
@@ -303,8 +243,6 @@
         0: { slidesPerView: 1, touchRatio: 1.5 }
       }
     });
-
-    queueHighlightNavigation(swiper);
 
     function updateCount() {
       if (countEl) countEl.textContent = `${swiper.activeIndex + 1} of ${swiper.slides.length}`;
