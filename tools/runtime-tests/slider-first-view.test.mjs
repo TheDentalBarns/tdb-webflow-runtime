@@ -44,7 +44,7 @@ class Element extends Events {
   closest() { return this.hiddenAncestor ? this.parent : null; }
 }
 
-function harness({reduced = false, io = true, count = 3, core = true, width = 1363} = {}) {
+function harness({reduced = false, io = true, count = 3, core = true, width = 1363, animated = false} = {}) {
   const components = [], observers = [], instances = [], mutations = [];
   let now = 0, nextID = 1;
   const jobs = new Map();
@@ -82,8 +82,14 @@ function harness({reduced = false, io = true, count = 3, core = true, width = 13
     off(types, fn) { types.split(' ').forEach(type=>this.removeEventListener(type,fn)); }
     update() { this.updateCount++; }
     slideNext(speed = this.params.speed, callbacks = true) {
-      this.calls.push({speed,callbacks}); this.activeIndex = (this.activeIndex+1) % this.slides.length;
+      this.calls.push({speed,callbacks,direction:'next'}); this.activeIndex = (this.activeIndex+1) % this.slides.length;
       if (callbacks) this.emit('slideChange');
+      if (animated && speed) {this.animating=true; later(()=>{this.animating=false;this.emit('transitionEnd');},speed);}
+    }
+    slidePrev(speed = this.params.speed, callbacks = true) {
+      this.calls.push({speed,callbacks,direction:'prev'}); this.activeIndex = (this.activeIndex-1+this.slides.length) % this.slides.length;
+      if (callbacks) this.emit('slideChange');
+      if (animated && speed) {this.animating=true; later(()=>{this.animating=false;this.emit('transitionEnd');},speed);}
     }
     destroy() { this.emit('beforeDestroy'); this.destroyed = true; }
   }
@@ -138,7 +144,7 @@ for (const width of [390,767,768,1363]) test(`Options preserve layout, navigatio
   const h=harness({width}); h.proximity();
   const options=text=>vm.runInNewContext('('+text.split('function initHighlightSwiper(component)')[1].match(/new window\.Swiper\(swiperEl, (\{[\s\S]*?\n    \})\);/)[1]+')',{window:{innerWidth:width},component:{querySelector:s=>s}});
   const before=JSON.parse(JSON.stringify(options(baseline))), after=JSON.parse(JSON.stringify(options(source)));
-  before.speed=400; before.autoplay=false; assert.deepEqual(after,before);
+  before.speed=400; before.autoplay=false; before.preventInteractionOnTransition=true; assert.deepEqual(after,before);
   assert.equal(h.instances[0].params.speed,400); assert.equal(h.instances[0].params.autoplay,false);
   assert.equal(h.instances[0].params.parallax,undefined);
 });
@@ -153,7 +159,7 @@ test('First view moves exactly once after layout settles, then no autoplay',()=>
   h.advance(1); assert.equal(h.instances[0].calls.length,1); assert.equal(h.instances[0].calls[0].speed,400);
   h.advance(60000); assert.equal(h.instances[0].calls.length,1); assert.equal(h.status(),'advanced');
   assert.equal(h.c.querySelector('.swiper-count').textContent,'2 of 3');
-  assert.equal(h.c.listenerCount(),0); assert.equal(h.doc.events.get('visibilitychange').size,0); assert.equal(h.motion.listenerCount(),0);
+  assert.equal(h.c.listenerCount(),0); assert.equal(h.doc.events.get('visibilitychange').size,1); assert.equal(h.motion.listenerCount(),0);
 });
 test('Returning to viewport and calling refresh do not replay the entry move',()=>{
   const h=harness(); h.proximity(); h.visibility(); h.advance(1000); h.visibility(false); h.visibility();
@@ -243,6 +249,40 @@ test('First-view logic writes no opacity, image transforms or parallax moving cl
   h.c.children.forEach(el=>{assert.deepEqual(el.style,{}); assert.deepEqual(el.classWrites,[]);});
   const block=source.split('  function prepareHighlightFirstView(component) {')[1].split('  function getCurrentPath()')[0];
   assert.ok(!/opacity|data-fade-slide|\.style\.|classList/.test(block));
+});
+
+test('Rapid next/previous requests run sequentially at full duration and in order',()=>{
+  const h=harness({animated:true}); h.proximity(); const s=h.instances[0];
+  s.slideNext(); s.slideNext(); s.slidePrev(); s.slideNext();
+  h.advance(399); assert.equal(s.calls.length,1); assert.equal(s.activeIndex,1);
+  h.advance(17); assert.equal(s.calls.length,2); assert.equal(s.activeIndex,2);
+  h.advance(416); assert.equal(s.calls.length,3); assert.equal(s.activeIndex,1);
+  h.advance(416); assert.equal(s.calls.length,4); assert.equal(s.activeIndex,2);
+  assert.deepEqual(s.calls.map(c=>c.direction),['next','next','prev','next']);
+  assert.ok(s.calls.every(c=>c.speed===400)); h.advance(60000); assert.equal(s.calls.length,4);
+});
+test('A press during the settling frame joins the back of the queue',()=>{
+  const h=harness({animated:true}); h.proximity(); const s=h.instances[0];
+  s.slideNext(); s.slideNext(); h.advance(400); s.slidePrev(); h.advance(1000);
+  assert.deepEqual(s.calls.map(c=>c.direction),['next','next','prev']);
+});
+test('Manual presses during first-view movement wait rather than interrupt it',()=>{
+  const h=harness({animated:true}); h.proximity(); h.visibility(); h.advance(200); const s=h.instances[0];
+  assert.equal(s.calls.length,1); s.slideNext(); s.slideNext(); h.advance(200); assert.equal(s.calls.length,1);
+  h.advance(1500); assert.equal(s.calls.length,3); assert.equal(s.activeIndex,0); assert.equal(h.status(),'advanced');
+});
+test('Hidden tab discards pending manual requests without creating autoplay',()=>{
+  const h=harness({animated:true}); h.proximity(); const s=h.instances[0]; s.slideNext(); s.slideNext();
+  h.doc.hidden=true; h.doc.emit('visibilitychange'); h.advance(1000); h.doc.hidden=false; h.doc.emit('visibilitychange');
+  h.advance(1000); assert.equal(s.calls.length,1);
+});
+test('Destroy clears queued navigation and its document listener',()=>{
+  const h=harness({animated:true}); h.proximity(); const s=h.instances[0]; s.slideNext(); s.slideNext(); s.destroy();
+  h.advance(1000); assert.equal(s.calls.length,1); assert.equal(h.doc.events.get('visibilitychange').size,0);
+});
+test('Zero-duration requests do not leave the queue stuck',()=>{
+  const h=harness({animated:true}); h.proximity(); const s=h.instances[0]; s.slideNext(); s.slideNext(0); s.slidePrev();
+  h.advance(1500); assert.equal(s.calls.length,3); assert.equal(s.activeIndex,1);
 });
 
 const output={status:results.every(r=>r.passed)?'PASS':'FAIL',checks:results.length,results,

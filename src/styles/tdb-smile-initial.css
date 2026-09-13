@@ -1,0 +1,5 @@
+/* Critical head style: hide press-to-reveal details before IX2 initializes.
+   Keep normal priority so the existing inline reveal animation can override it. */
+[data-tdb-smile-slider="true"] .smile-card {
+  opacity: 0;
+}
