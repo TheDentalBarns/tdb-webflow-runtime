@@ -523,3 +523,14 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] #tdb-vip-drawer:not([data-tdb-vip-
   initial-value: 0;
 }
 html { --tdb-ui-ready: 1; }
+
+/* Preserve Swiper's live announcements without rendering them as page text. */
+.parallax-swiper_component .swiper-notification,
+.highlight-swiper_component .swiper-notification {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: -1000;
+}
