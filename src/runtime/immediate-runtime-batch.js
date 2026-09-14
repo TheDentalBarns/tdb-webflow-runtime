@@ -1,67 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.8.17-native-scroll-staging';
-
-  // Replace only Webflow's mobile anchor animation. Its empty-link handling
-  // and the site's drawer, tab and filter click handlers remain registered.
-  (window.Webflow = window.Webflow || []).push(() => {
-    const wf = window.Webflow;
-    const $ = window.jQuery;
-    const scrollModule = wf.require?.('scroll');
-    if (!$ || !scrollModule?.ready || wf.env?.('editor')) return;
-    const mobile = matchMedia('(max-width: 767px)');
-    let active = false;
-    function sync() {
-      if (mobile.matches === active) return;
-      active = mobile.matches;
-      if (active) $(document).off('click.wf-scroll');
-      else scrollModule.ready();
-      document.documentElement.dataset.tdbAnchorScroll = active ? 'native' : 'webflow';
-    }
-    sync();
-    mobile.addEventListener('change', sync);
-    // Webflow can rebind its delegated handler after our ready callback.
-    // Remove that handler before this click reaches the document's bubble
-    // listeners. Do not cancel propagation: target interactions and the
-    // drawer's own handlers must still receive the original click.
-    document.addEventListener('click', () => {
-      if (mobile.matches) $(document).off('click.wf-scroll');
-    }, true);
-    document.addEventListener('click', event => {
-      if (!active || event.defaultPrevented || event.button !== 0 ||
-          event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const link = event.target.closest?.('a[href]');
-      if (!link || link.hasAttribute('download') ||
-          (link.target && link.target !== '_self') ||
-          link.closest('.w-tab-link,[data-tdb-vip-open],#tdb-vip-drawer,[role="dialog"]')) return;
-      const url = new URL(link.href, location.href);
-      if (url.origin !== location.origin || url.pathname !== location.pathname ||
-          url.search !== location.search || !url.hash || url.hash === '#' ||
-          url.hash.toLowerCase() === '#vip') return;
-      let id;
-      try { id = decodeURIComponent(url.hash.slice(1)); } catch (_) { return; }
-      const target = document.getElementById(id);
-      if (!target || !target.getClientRects().length) return;
-      event.preventDefault();
-      // Keep the existing fixed-header and optional centred-target contract.
-      const header = document.querySelector('header, body > .header, body > .w-nav:not([data-no-scroll])');
-      const offset = header && getComputedStyle(header).position === 'fixed'
-        ? header.getBoundingClientRect().height : 0;
-      const rect = target.getBoundingClientRect();
-      let top = window.scrollY + rect.top - offset;
-      if (target.dataset.scroll === 'mid' && rect.height < innerHeight - offset)
-        top -= (innerHeight - offset - rect.height) / 2;
-      if (location.hash !== url.hash) history.pushState({ hash: url.hash }, '', url.hash);
-      const tabindex = target.getAttribute('tabindex');
-      if (tabindex === null) target.setAttribute('tabindex', '-1');
-      target.focus({ preventScroll: true });
-      if (tabindex === null) target.removeAttribute('tabindex');
-      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches ||
-        document.body.getAttribute('data-wf-scroll-motion') === 'none';
-      window.scrollTo({ top: Math.max(0, top), behavior: reduce ? 'instant' : 'smooth' });
-    });
-  });
+  const VERSION = '0.8.15-demand-css-staging';
 
   function loadScript(src, attrName, readyCheck) {
     const existing = document.querySelector(`script[${attrName}]`);
