@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.4.3';
+  const VERSION = '0.5.0';
   const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
   const PARALLAX_SELECTOR = '.parallax-swiper_component';
   const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
@@ -72,7 +72,7 @@
         finish('skipped-reduced-motion');
         return false;
       }
-      if (component.contains(document.activeElement) || swiper.activeIndex !== 0 || swiper.animating) {
+      if (component.contains(document.activeElement) || swiper.realIndex !== 0 || swiper.animating) {
         finish('skipped-interaction');
         return false;
       }
@@ -201,12 +201,97 @@
     }
   }
 
+  // Swiper 8 repeats end cards with DOM copies. Webflow's existing interaction
+  // targets still refer to the original cards. Route only the copies' card
+  // events through those originals and mirror their visual state. Swiper keeps
+  // owning pointer/touch navigation; no second card animation is introduced.
+  function bindLoopCards(component, swiper) {
+    const sources = new WeakMap();
+    const copies = new Map();
+    const observer = new MutationObserver(records => {
+      records.forEach(record => {
+        const targets = copies.get(record.target);
+        if (!targets) return;
+        const value = record.target.getAttribute(record.attributeName);
+        targets.forEach(target => {
+          if (value === null) target.removeAttribute(record.attributeName);
+          else if (target.getAttribute(record.attributeName) !== value) target.setAttribute(record.attributeName, value);
+        });
+      });
+    });
+
+    function mapCopies() {
+      observer.disconnect();
+      copies.clear();
+      const originals = new Map();
+      swiper.slides.forEach(slide => {
+        if (!slide.classList.contains('swiper-slide-duplicate')) {
+          originals.set(slide.getAttribute('data-swiper-slide-index'), slide);
+        }
+      });
+      swiper.slides.forEach(slide => {
+        if (!slide.classList.contains('swiper-slide-duplicate')) return;
+        const original = originals.get(slide.getAttribute('data-swiper-slide-index'));
+        if (!original) return;
+        sources.set(slide, original);
+        const originalsBelow = original.querySelectorAll('*');
+        slide.querySelectorAll('*').forEach((copy, index) => {
+          const source = originalsBelow[index];
+          if (!source) return;
+          sources.set(copy, source);
+          if (!copies.has(source)) copies.set(source, []);
+          copies.get(source).push(copy);
+        });
+      });
+      originals.forEach(slide => observer.observe(slide, {
+        subtree: true, attributes: true,
+        attributeFilter: ['style', 'class', 'aria-expanded']
+      }));
+    }
+
+    function relay(event) {
+      const source = sources.get(event.target);
+      if (!source || !event.target.closest('.swiper-slide-duplicate')) return;
+      // A completed swipe must never turn into an accidental card/link click.
+      if (event.type === 'click' && !swiper.allowClick) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+      const forwarded = new MouseEvent(event.type, {
+        bubbles: true, cancelable: true, view: window,
+        clientX: event.clientX, clientY: event.clientY,
+        screenX: event.screenX, screenY: event.screenY,
+        button: event.button, buttons: event.buttons, detail: event.detail,
+        ctrlKey: event.ctrlKey, shiftKey: event.shiftKey,
+        altKey: event.altKey, metaKey: event.metaKey,
+        relatedTarget: sources.get(event.relatedTarget) || event.relatedTarget
+      });
+      event.stopImmediatePropagation();
+      // The original link retains its native destination and card handlers.
+      if (event.type === 'click') event.preventDefault();
+      source.dispatchEvent(forwarded);
+    }
+
+    const events = ['mouseover', 'mouseout', 'click'];
+    events.forEach(type => component.addEventListener(type, relay, true));
+    mapCopies();
+    swiper.on('breakpoint', mapCopies);
+    swiper.on('beforeDestroy', () => {
+      observer.disconnect();
+      copies.clear();
+      events.forEach(type => component.removeEventListener(type, relay, true));
+      swiper.off('breakpoint', mapCopies);
+    });
+  }
+
   function initHighlightSwiper(component) {
     if (!component || isInitialised(component)) return;
 
     const swiperEl = getSwiperElement(component);
     const countEl = component.querySelector('.swiper-count');
     if (!swiperEl || typeof window.Swiper !== 'function') return;
+    const slideCount = swiperEl.querySelectorAll('.swiper-wrapper > .swiper-slide:not(.swiper-slide-duplicate)').length;
 
     const swiper = new window.Swiper(swiperEl, {
       slidesPerView: 3,
@@ -216,7 +301,10 @@
       spaceBetween: window.innerWidth <= 768 ? window.innerWidth * 0.05 : 20,
       grabCursor: true,
       slideToClickedSlide: true,
-      rewind: true,
+      rewind: false,
+      loop: slideCount > 1,
+      loopAdditionalSlides: 1,
+      loopPreventsSlide: false,
       speed: 400,
       autoplay: false,
       preventInteractionOnTransition: false,
@@ -245,11 +333,17 @@
     });
 
     function updateCount() {
-      if (countEl) countEl.textContent = `${swiper.activeIndex + 1} of ${swiper.slides.length}`;
+      if (countEl) countEl.textContent = `${swiper.realIndex + 1} of ${slideCount}`;
     }
 
     updateCount();
     swiper.on('slideChange', updateCount);
+    if (swiper.params.loop) {
+      bindLoopCards(component, swiper);
+      // Settle on the original card at either join. This is an invisible
+      // position correction, so existing card focus and interactions survive.
+      swiper.on('slideChangeTransitionEnd', () => swiper.loopFix());
+    }
     markInitialised(component, 'highlight');
     firstViewStates.get(component)?.bind(swiper);
   }
@@ -534,9 +628,24 @@
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', start, { once: true });
-  } else {
+  // This staging build is embedded in Webflow's footer. Keep the existing
+  // proximity loader responsible for requesting Swiper and the global UI.
+  // Capture their load events so slow requests remain safe without polling.
+  let started = false;
+  function startWhenReady() {
+    if (started || document.readyState === 'loading' || typeof window.Swiper !== 'function') return;
+    if (getComputedStyle(document.documentElement).getPropertyValue('--tdb-ui-ready').trim() !== '1') return;
+    started = true;
+    document.removeEventListener('load', onDependencyLoad, true);
     start();
   }
+  function onDependencyLoad(event) {
+    if (event.target.matches?.('script[data-swiper-js],link[data-tdb-ui-css],link[href*="/dist/tdb-ui.css"]')) {
+      // A stylesheet's onload handler may switch its media to "all".
+      queueMicrotask(startWhenReady);
+    }
+  }
+  document.addEventListener('load', onDependencyLoad, true);
+  document.addEventListener('DOMContentLoaded', startWhenReady, { once: true });
+  startWhenReady();
 })();
