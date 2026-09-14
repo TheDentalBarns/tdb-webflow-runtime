@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.8.13-slider-cdn-staging';
+  const VERSION = '0.8.14-slider-css-staging';
 
   function loadScript(src, attrName, readyCheck) {
     const existing = document.querySelector(`script[${attrName}]`);
@@ -83,7 +83,7 @@
   const vimeoPromise = loadVimeoWhenPresent();
 
   const footerRuntimePromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@6e5d37ae4baf4e3db6f1149fbf959dbc76134b50/dist/tdb-footer-runtime.min.js',
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@637b27a19c3a562196147e08aaec74ff4d7d684b/dist/tdb-footer-runtime.min.js',
     'data-tdb-footer-runtime-js',
     () => Boolean(window.TDBFooterRuntime),
   );
