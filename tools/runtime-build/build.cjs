@@ -7,7 +7,7 @@ const targets = [
   { source: ['src/sliders/slider-focus.js', 'src/sliders/sliders.js'], output: 'dist/tdb-sliders.js', newline: true },
   { source: ['src/tooltips/tooltips.js'], output: 'dist/tdb-tooltips.js', newline: true },
   { source: ['src/vip-drawer/vip-focus.js', 'src/runtime/deferred-ui.js', 'src/runtime/site-asset-loader.js'], output: 'dist/tdb-footer-runtime.min.js' },
-  { source: ['src/runtime/immediate-runtime-batch.js'], output: 'dist/tdb-immediate-runtime-batch.min.js' },
+  { source: ['src/sliders/parallax-controls.js', 'src/runtime/immediate-runtime-batch.js'], output: 'dist/tdb-immediate-runtime-batch.min.js' },
   { source: ['src/vip-drawer/vip-drawer.js'], output: 'dist/tdb-vip-drawer.js', newline: true },
   { source: ['src/vip-drawer/vip-drawer-legacy.js'], output: 'dist/tdb-vip-drawer-legacy.js', newline: true },
 ];

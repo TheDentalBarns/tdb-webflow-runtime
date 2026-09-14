@@ -1,4 +1,4 @@
-/* TDB slider UI v1.3.5
+/* TDB slider UI v1.4.0
  * Controls, transitions and live-announcement presentation.
  * The head requests this sheet; the slider loader waits for its readiness flag.
  * First-frame hidden-state guards remain in tdb-runtime-ui.css.
@@ -28,75 +28,6 @@
   transition: opacity 150ms ease-out !important;
 }
 
-html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide,
-html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide {
-  display: flex !important;
-  position: absolute;
-  z-index: 30;
-  pointer-events: none;
-}
-
-html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide .swiper-pagination,
-html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide .swiper-pagination {
-  display: none !important;
-}
-
-html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide :is(.swiper-btn-prev, .swiper-btn-next),
-html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide :is(.swiper-btn-prev, .swiper-btn-next) {
-  display: flex !important;
-  color: #fff;
-  border-color: #fff;
-  background: rgba(0, 0, 0, 0.38);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  pointer-events: auto;
-  transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease;
-}
-
-html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide :is(.swiper-btn-prev, .swiper-btn-next).is-selected,
-html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide :is(.swiper-btn-prev, .swiper-btn-next).is-selected {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-@media (max-width: 767px) and (orientation: portrait) {
-  html.tdb-slider-next .parallax-swiper_component > .swiper {
-    position: relative;
-  }
-
-  html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide {
-    right: 2rem;
-    bottom: 2.5rem;
-    width: auto;
-    padding-top: 0;
-  }
-
-  html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide .swiper-buttons-wrapper {
-    gap: 0.75rem;
-  }
-}
-
-@media (min-width: 768px) {
-  html.tdb-slider-desktop .parallax-swiper_component {
-    position: relative;
-  }
-
-  html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide {
-    left: 50%;
-    top: 50%;
-    width: 100vw;
-    box-sizing: border-box;
-    padding: 0 3vw;
-    align-items: center;
-    transform: translate(-50%, -50%);
-  }
-
-  html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide .swiper-buttons-wrapper {
-    width: 100%;
-    justify-content: space-between;
-    gap: 0;
-  }
-}
-
 /* Preserve Swiper's live announcements without rendering them as page text. */
 .parallax-swiper_component .swiper-notification,
 .highlight-swiper_component .swiper-notification {
@@ -106,53 +37,6 @@ html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide 
   pointer-events: none;
   opacity: 0;
   z-index: -1000;
-}
-
-/* Entry-page CTA: a single stationary layer, outside the moving slide track. */
-.has-static-parallax-cta > .swiper { position: relative; }
-.has-static-parallax-cta .service-card-button-wrap { min-height: 2.75rem; }
-.has-static-parallax-cta .tdb-parallax-cta-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  padding: 2rem;
-  pointer-events: none;
-}
-.has-static-parallax-cta .tdb-parallax-cta-layer.is-location { justify-content: flex-start; }
-.has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary {
-  pointer-events: auto;
-  opacity: 1;
-  visibility: visible;
-  /* The original .vip.animate class owned these glass colours. This
-   * stationary button must override the generic opaque-white hover variant,
-   * including the sticky :hover state left behind by touch browsers. */
-  background-color: rgba(0, 0, 0, 0.3);
-  color: #fff;
-  border-color: #fff;
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease;
-}
-.has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary:active,
-.has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary.is-touch-held,
-.has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary:focus-visible {
-  background-color: #fff;
-  color: #000;
-}
-@media (hover: hover) and (pointer: fine) {
-  .has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary:hover {
-    background-color: #fff;
-    color: #000;
-  }
-}
-@media (max-width: 767px) and (orientation: portrait) {
-  .has-static-parallax-cta .tdb-parallax-cta-layer {
-    justify-content: flex-start;
-    padding-bottom: 2.5rem;
-  }
 }
 
 /* This readiness flag must not invalidate descendants. */
