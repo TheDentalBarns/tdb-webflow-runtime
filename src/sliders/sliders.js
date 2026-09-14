@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.5.1';
   const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
   const PARALLAX_SELECTOR = '.parallax-swiper_component';
   const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
@@ -628,19 +628,21 @@
     });
   }
 
-  // This staging build is embedded in Webflow's footer. Keep the existing
-  // proximity loader responsible for requesting Swiper and the global UI.
+  // The bundle also serves focus-only native/logo strips. The motion runtime
+  // still waits for Swiper and both stylesheets before initializing cards.
   // Capture their load events so slow requests remain safe without polling.
   let started = false;
   function startWhenReady() {
     if (started || document.readyState === 'loading' || typeof window.Swiper !== 'function') return;
-    if (getComputedStyle(document.documentElement).getPropertyValue('--tdb-ui-ready').trim() !== '1') return;
+    const style = getComputedStyle(document.documentElement);
+    if (style.getPropertyValue('--tdb-ui-ready').trim() !== '1' ||
+        style.getPropertyValue('--tdb-slider-ui-ready').trim() !== '1') return;
     started = true;
     document.removeEventListener('load', onDependencyLoad, true);
     start();
   }
   function onDependencyLoad(event) {
-    if (event.target.matches?.('script[data-swiper-js],link[data-tdb-ui-css],link[href*="/dist/tdb-ui.css"]')) {
+    if (event.target.matches?.('script[data-swiper-js],link[data-tdb-ui-css],link[href*="/dist/tdb-ui.css"],link[data-tdb-slider-ui-css],link[href*="/dist/tdb-slider-ui.css"]')) {
       // A stylesheet's onload handler may switch its media to "all".
       queueMicrotask(startWhenReady);
     }
