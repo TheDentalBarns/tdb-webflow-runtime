@@ -61,3 +61,41 @@ test('Location is supported and unrelated pages retain their original controls',
   const h = setup(t, '/location');assert(h.button);assert(h.button.parentElement.classList.contains('is-location'));
   const other = setup(t, '/about-us');assert.equal(other.controller, null);assert.equal(other.el.innerHTML, other.original);
 });
+
+function pointer(h, target, type = 'pointerdown', pointerType = 'touch') {
+  const event = new h.w.Event(type, { bubbles: true });
+  Object.defineProperty(event, 'pointerType', { value: pointerType });
+  target.dispatchEvent(event);
+}
+for (const route of ['/', '/location']) {
+  test(`touch highlight holds on release and clears on page exit and cached return: ${route}`, t => {
+    const h = setup(t, route);
+    pointer(h, h.button.firstElementChild);
+    pointer(h, h.button, 'pointerup');
+    assert(h.button.classList.contains('is-touch-held'));
+    h.w.dispatchEvent(new h.w.PageTransitionEvent('pagehide', { persisted: true }));
+    assert(!h.button.classList.contains('is-touch-held'));
+    assert(h.button.classList.contains('is-cta-reset'));
+    pointer(h, h.button);
+    assert(h.button.classList.contains('is-touch-held'));
+    assert(!h.button.classList.contains('is-cta-reset'));
+    h.w.dispatchEvent(new h.w.PageTransitionEvent('pageshow', { persisted: true }));
+    assert(!h.button.classList.contains('is-touch-held'));
+    assert.equal(h.button.getAttribute('href'), '/services/one');
+    h.select(1);
+    assert.equal(h.button.getAttribute('href'), '/services/two');
+  });
+}
+test('cancel, outside tap and keyboard clear touch feedback; disabled and mouse presses do not latch', t => {
+  const h = setup(t);
+  for (const clear of [() => pointer(h, h.button, 'pointercancel'), () => pointer(h, h.w.document.body), () => h.button.dispatchEvent(new h.w.KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))]) {
+    pointer(h, h.button);assert(h.button.classList.contains('is-touch-held'));
+    clear();assert(!h.button.classList.contains('is-touch-held'));
+  }
+  pointer(h, h.button, 'pointerdown', 'mouse');assert(!h.button.classList.contains('is-touch-held'));
+  h.controller.setBusy(true);pointer(h, h.button);assert(!h.button.classList.contains('is-touch-held'));
+  h.controller.setBusy(false);h.handlers.get('beforeDestroy')();
+  const classes = h.button.className;
+  h.w.dispatchEvent(new h.w.PageTransitionEvent('pageshow', { persisted: true }));
+  assert.equal(h.button.className, classes);
+});

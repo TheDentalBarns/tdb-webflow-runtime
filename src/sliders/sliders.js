@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.5.2';
+  const VERSION = '0.5.3';
   const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
   const PARALLAX_SELECTOR = '.parallax-swiper_component';
   const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
@@ -392,6 +392,20 @@
 
     let swiper = null;
     let busy = false;
+    // Own touch feedback explicitly: native :hover can survive a Back restore.
+    function resetTouchFeedback() {
+      button.classList.add('is-cta-reset');
+      button.classList.remove('is-touch-held');
+    }
+    function onPointerDown(event) {
+      button.classList.remove('is-cta-reset');
+      const pressed = button.contains(event.target) && !busy &&
+        button.getAttribute('aria-disabled') !== 'true';
+      button.classList.toggle('is-touch-held', pressed && event.pointerType === 'touch');
+    }
+    function onKeyDown() {
+      button.classList.remove('is-cta-reset', 'is-touch-held');
+    }
     function sync() {
       const slide = swiper?.slides[swiper.activeIndex] || slides[0];
       const index = slide?.getAttribute('data-tdb-parallax-cta-index');
@@ -420,6 +434,11 @@
     function destroy() {
       swiper?.off('slideChange', sync);
       button.removeEventListener('click', onClick);
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('keydown', onKeyDown, true);
+      button.removeEventListener('pointercancel', resetTouchFeedback);
+      window.removeEventListener('pagehide', resetTouchFeedback);
+      window.removeEventListener('pageshow', resetTouchFeedback);
       layer.remove();
       component.classList.remove('has-static-parallax-cta');
       slides.forEach(slide => slide.removeAttribute('data-tdb-parallax-cta-index'));
@@ -428,6 +447,11 @@
       });
     }
     button.addEventListener('click', onClick);
+    document.addEventListener('pointerdown', onPointerDown, { capture: true, passive: true });
+    document.addEventListener('keydown', onKeyDown, true);
+    button.addEventListener('pointercancel', resetTouchFeedback);
+    window.addEventListener('pagehide', resetTouchFeedback);
+    window.addEventListener('pageshow', resetTouchFeedback);
     sync();
     return {
       bind(instance) {

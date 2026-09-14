@@ -1,4 +1,4 @@
-/* TDB slider UI v1.3.3
+/* TDB slider UI v1.3.4
  * Controls, transitions and live-announcement presentation.
  * The head requests this sheet; the slider loader waits for its readiness flag.
  * First-frame hidden-state guards remain in tdb-runtime-ui.css.
@@ -137,15 +137,20 @@ html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide 
   transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease;
 }
 .has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary:active,
+.has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary.is-touch-held,
 .has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary:focus-visible {
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: #fff;
   color: #000;
 }
 @media (hover: hover) and (pointer: fine) {
   .has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary:hover {
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: #fff;
     color: #000;
   }
+}
+/* Do not animate a cached touch highlight when navigating back. */
+.has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary.is-cta-reset {
+  transition: none;
 }
 @media (max-width: 767px) and (orientation: portrait) {
   .has-static-parallax-cta .tdb-parallax-cta-layer {
