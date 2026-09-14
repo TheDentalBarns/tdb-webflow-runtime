@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.8.16-native-scroll-staging';
+  const VERSION = '0.8.17-native-scroll-staging';
 
   // Replace only Webflow's mobile anchor animation. Its empty-link handling
   // and the site's drawer, tab and filter click handlers remain registered.
@@ -21,6 +21,13 @@
     }
     sync();
     mobile.addEventListener('change', sync);
+    // Webflow can rebind its delegated handler after our ready callback.
+    // Remove that handler before this click reaches the document's bubble
+    // listeners. Do not cancel propagation: target interactions and the
+    // drawer's own handlers must still receive the original click.
+    document.addEventListener('click', () => {
+      if (mobile.matches) $(document).off('click.wf-scroll');
+    }, true);
     document.addEventListener('click', event => {
       if (!active || event.defaultPrevented || event.button !== 0 ||
           event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;

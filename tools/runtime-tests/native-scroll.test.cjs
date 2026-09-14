@@ -11,9 +11,19 @@ function setup(mobile=true){
  function click(id='link',opts={}){const e=new w.MouseEvent('click',{bubbles:true,cancelable:true,...opts});w.document.getElementById(id).dispatchEvent(e);return e;}
  return {w,calls,removed,media,click,restoreCount:()=>restored,reduce:()=>reduced=true};
 }
-test('native animation, header offset, history and keyboard focus',()=>{const s=setup();s.click();assert.deepEqual(s.removed,['click.wf-scroll']);assert.equal(s.calls[0].top,1920);assert.equal(s.calls[0].behavior,'smooth');assert.equal(s.w.location.hash,'#section');assert.equal(s.w.document.activeElement.id,'section');assert.equal(s.w.document.activeElement.hasAttribute('tabindex'),false);});
+test('native animation, header offset, history and keyboard focus',()=>{const s=setup();s.click();assert.ok(s.removed.length > 0 && s.removed.every(n=>n==='click.wf-scroll'));assert.equal(s.calls[0].top,1920);assert.equal(s.calls[0].behavior,'smooth');assert.equal(s.w.location.hash,'#section');assert.equal(s.w.document.activeElement.id,'section');assert.equal(s.w.document.activeElement.hasAttribute('tabindex'),false);});
 test('rapid presses retarget with no duplicate history',()=>{const s=setup();s.click();s.click();assert.equal(s.calls.length,2);assert.equal(s.w.history.length,2);});
 test('reduced motion is instant',()=>{const s=setup();s.reduce();s.click();assert.equal(s.calls[0].behavior,'instant');});
 test('desktop unchanged and breakpoint restores Webflow',()=>{const s=setup(false);s.click();assert.equal(s.calls.length,0);assert.equal(s.removed.length,0);s.media.matches=true;s.media.change();s.click();assert.equal(s.calls.length,1);s.media.matches=false;s.media.change();assert.equal(s.restoreCount(),1);});
 test('VIP, tabs, modified, external and cancelled clicks excluded',()=>{const s=setup();s.click('vip');s.click('link',{ctrlKey:true});const a=s.w.document.getElementById('link');a.className='w-tab-link';s.click();a.className='';a.href='/location#section';s.click();a.href='#section';a.addEventListener('click',e=>e.preventDefault());s.click();assert.equal(s.calls.length,0);});
 test('centred destination supported',()=>{const s=setup();s.w.document.getElementById('section').dataset.scroll='mid';s.click();assert.equal(s.calls[0].top,1776);});
+test('late Webflow rebind cannot win the first click; target handlers still run',()=>{
+ const s=setup();let webflowRuns=0,targetRuns=0;
+ const lateHandler=e=>{webflowRuns++;e.preventDefault();};
+ s.w.document.addEventListener('click',lateHandler);
+  // The closure retains the original jQuery reference: wire the existing off
+ // recorder to simulate jQuery's removal of a newly bound delegated listener.
+ s.removed.push=function(name){if(name==='click.wf-scroll')s.w.document.removeEventListener('click',lateHandler);return Array.prototype.push.call(this,name);};
+ s.w.document.getElementById('link').addEventListener('click',()=>targetRuns++);
+ s.click();assert.equal(webflowRuns,0);assert.equal(targetRuns,1);assert.equal(s.calls.length,1);assert.equal(s.calls[0].behavior,'smooth');
+});
