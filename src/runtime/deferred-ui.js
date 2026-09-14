@@ -1,5 +1,5 @@
 /* Hosted feature modules share the release pin; loading stays in the footer runtime. */
-const TDB_MODULE_ROOT = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@1767ffc25f44bf507dd4d9c1a8ecacbdce00f26f/dist/';
+const TDB_MODULE_ROOT = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@61cec90cdba3d42a29d3c31194b692c251e8d421/dist/';
 function tdbEnsureSliderRuntime() {
   return tdbEnsureUI().then(() => loadScriptWithRecovery(TDB_MODULE_ROOT + 'tdb-sliders.js', 'data-tdb-sliders-js'));
 }
@@ -42,8 +42,8 @@ function prepareTooltipLoader() {
 
 function prepareSliderFocusLoader() {
   function start() {
-    const selector = '.highlight-swiper_component,.parallax-swiper_component,.swiper,.w-slider,.logo-slider';
-    const sliders = [...document.querySelectorAll(selector)];
+    const selector = '.highlight-swiper_component,.parallax-swiper_component,.swiper,.w-slider';
+    const sliders = [...document.querySelectorAll(selector)].filter(slider => !slider.closest('.logo-slider'));
     if (!sliders.length || window.TDBSliderFocus) return;
     let flight = null, loaded = false, observer, seed = null;
     const types = ['pointerover', 'focusin', 'pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'click', 'keydown'];
@@ -66,7 +66,7 @@ function prepareSliderFocusLoader() {
     }
     function onIntent(event) {
       const target = event.target;
-      const slider = target.closest?.(selector);
+      const slider = target.closest?.('.logo-slider') ? null : target.closest?.(selector);
       if (event.type === 'pointerdown') {
         seed = slider ? { down: snapshot(event), y: window.scrollY } : null;
       } else if (event.type === 'pointermove') {
@@ -89,7 +89,10 @@ function prepareSliderFocusLoader() {
       observer = new IntersectionObserver(entries => {
         if (entries.some(entry => entry.isIntersecting)) demand();
       }, { rootMargin: '100px 0px' });
-      sliders.forEach(slider => observer.observe(slider));
+      // Custom motion sliders already preload through the 800px motion loader.
+      // This observer is only for native/standalone sliders needing focus alone.
+      sliders.filter(slider => !slider.closest('.highlight-swiper_component,.parallax-swiper_component'))
+        .forEach(slider => observer.observe(slider));
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });

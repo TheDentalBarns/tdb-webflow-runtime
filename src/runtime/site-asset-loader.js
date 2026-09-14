@@ -558,10 +558,10 @@ function prepareSliderLoader() {
   const loadSafely = () => { loadSliders().catch(() => {}); };
   function onIntent(event) {
     const target = event.target;
-    if (target instanceof Element && target.closest(selector)) loadSafely();
+    if (target instanceof Element && !target.closest('.logo-slider') && target.closest(selector)) loadSafely();
   }
   function observeSlider(slider) {
-    if (!(slider instanceof Element) || observed.has(slider)) return;
+    if (!(slider instanceof Element) || slider.closest('.logo-slider') || observed.has(slider)) return;
     observed.add(slider);
     if (!proximityObserver) loadSafely();
     else proximityObserver.observe(slider);
@@ -589,7 +589,7 @@ function prepareSliderLoader() {
   else start();
 
   window.TDBSliderLoader = Object.freeze({
-    version: '0.2.3',
+    version: '0.2.4',
     load: loadSliders,
     status: () => ({ loaded: Boolean(window.TDBSliders), loading: !loaded && Boolean(loadingPromise), swiperAvailable: typeof window.Swiper === 'function' }),
   });
@@ -636,7 +636,7 @@ startLenisForSession();
 })();
 
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.4.10',
+  version: '1.4.11',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,
