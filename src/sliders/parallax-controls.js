@@ -23,7 +23,7 @@
   // carousel one stationary, keyboard-accessible call to action.
   function prepareParallaxCTA(component, swiperEl) {
     if (!/^\/(?:location\/?)?$/.test(window.location.pathname)) return null;
-    const slides = Array.from(swiperEl.querySelectorAll('.swiper-slide'));
+    const slides = Array.from(swiperEl.querySelectorAll(':scope > .swiper-wrapper > .swiper-slide:not(.swiper-slide-duplicate)'));
     const sources = slides.map(slide => {
       const link = slide.querySelector('.service-card-button-wrap a[href]');
       return link && {
@@ -54,7 +54,7 @@
     button.removeAttribute('data-fade-slide');
     button.classList.remove('fade', 'animate');
     button.setAttribute('data-tdb-parallax-cta', '');
-    if (restored && stored.held) button.classList.add('is-touch-held');
+    if (restored && stored.held) button.classList.add('is-touch-held', 'is-touch-input');
     [button, ...button.querySelectorAll('[id]')].forEach(node => node.removeAttribute('id'));
     const layer = document.createElement('div');
     layer.className = 'tdb-parallax-cta-layer';
@@ -71,7 +71,9 @@
       });
     });
     component.classList.add('has-static-parallax-cta');
-    swiperEl.appendChild(layer);
+    // Swiper captures clicks on its container, even outside its slide wrapper.
+    // Keep this independent link outside that gesture/click-suppression boundary.
+    component.appendChild(layer);
 
     let swiper = null;
     let busy = false;
@@ -81,6 +83,8 @@
     let interacted = false;
     let touch = null;
     let pressed = false;
+    let touchInput = restored && Boolean(stored.held);
+    let gestureMoved = false;
     let scrollStart = window.scrollY;
     let scrollIntent = false;
     function persist() {
@@ -102,18 +106,30 @@
       button.classList.remove('is-touch-held');
       persist();
     }
-    function resetScrollIntent() { scrollIntent = false; touch = null; pressed = false; }
+    function resetScrollIntent() { scrollIntent = false; touch = null; pressed = false; gestureMoved = false; }
     function onPageHide() { persist(); resetScrollIntent(); }
+    function holdTouchFeedback() {
+      if (busy || button.getAttribute('aria-disabled') === 'true') return;
+      touchInput = true;
+      button.classList.add('is-touch-input', 'is-touch-held');
+    }
     function onTouchStart(event) {
       const point = event.touches[0];
-      touch = point ? { x: point.clientX, y: point.clientY } : null;
+      touch = point ? { x: point.clientX, y: point.clientY, inComponent: component.contains(event.target) } : null;
       scrollStart = window.scrollY;
       scrollIntent = false;
+      gestureMoved = false;
+      if (touch?.inComponent) interacted = true;
+      if (button.contains(event.target)) holdTouchFeedback();
     }
     function onTouchMove(event) {
       const point = event.touches[0];
       if (!touch || !point) return;
       const x = Math.abs(point.clientX - touch.x), y = Math.abs(point.clientY - touch.y);
+      if (Math.max(x, y) > 8 && touch.inComponent) {
+        gestureMoved = true;
+        resetTouchFeedback();
+      }
       if (y > 8 && y > x) {
         scrollIntent = true;
         onScroll(); // Composited mobile scroll can precede touchmove delivery.
@@ -130,19 +146,27 @@
       resetTouchFeedback();
     }
     function onPointerDown(event) {
+      gestureMoved = false;
+      if (component.contains(event.target)) interacted = true;
       pressed = button.contains(event.target) && !busy &&
         button.getAttribute('aria-disabled') !== 'true';
-      if (event.pointerType === 'touch') {
-        if (pressed) button.classList.add('is-touch-held');
-      } else resetTouchFeedback();
+      if (event.pointerType === 'touch' || event.pointerType === 'pen') {
+        if (pressed) holdTouchFeedback();
+      } else {
+        touchInput = false;
+        button.classList.remove('is-touch-input');
+        resetTouchFeedback();
+      }
     }
     function onPointerUp() { pressed = false; }
     function onPointerCancel() {
       // A navigation can cancel pointers after click; keep the latched feedback.
-      if (pressed && scrollIntent) resetTouchFeedback();
+      if (pressed) resetTouchFeedback();
       pressed = false;
     }
     function onKeyDown() {
+      touchInput = false;
+      button.classList.remove('is-touch-input');
       resetTouchFeedback();
     }
     function sync() {
@@ -168,8 +192,13 @@
       button.tabIndex = busy ? -1 : 0;
     }
     function onClick(event) {
-      if (busy || button.getAttribute('aria-disabled') === 'true') event.preventDefault();
-      else persist();
+      if (event.defaultPrevented || busy || gestureMoved || button.getAttribute('aria-disabled') === 'true') {
+        event.preventDefault();
+        resetTouchFeedback();
+      } else {
+        if (touchInput || event.pointerType === 'touch' || event.sourceCapabilities?.firesTouchEvents) holdTouchFeedback();
+        persist();
+      }
     }
     function runPendingNavigation() {
       if (!pendingDirection || pendingLoad || !window.TDBSliderLoader || destroyed) return;
@@ -191,7 +220,10 @@
     }
     function onNavigationIntent(event) {
       const control = event.target.closest?.('.swiper-btn-prev,.swiper-btn-next');
-      if (!control || swiper || (event.type === 'keydown' && !['Enter', ' '].includes(event.key))) return;
+      if (!control || (event.type === 'keydown' && !['Enter', ' '].includes(event.key))) return;
+      resetTouchFeedback();
+      interacted = true;
+      if (swiper) return;
       event.preventDefault();
       event.stopPropagation();
       interacted = true;
@@ -202,7 +234,8 @@
     function destroy() {
       destroyed = true;
       controllers.delete(component);
-      swiper?.off('slideChange', sync);
+      swiper?.off('slideChange', onSlideChange);
+      swiper?.off('sliderFirstMove', resetTouchFeedback);
       button.removeEventListener('click', onClick);
       document.removeEventListener('pointerdown', onPointerDown, true);
       document.removeEventListener('pointerup', onPointerUp, true);
@@ -240,13 +273,23 @@
     window.addEventListener('pagehide', onPageHide);
     window.addEventListener('pageshow', resetScrollIntent);
     sync();
+    let activeSourceIndex = button.getAttribute('href') ? initialIndex : -1;
+    function onSlideChange() {
+      const slide = swiper?.slides[swiper.activeIndex];
+      const index = Number(slide?.getAttribute('data-tdb-parallax-cta-index'));
+      // A loop correction can swap clone/original without changing the CMS card.
+      if (index !== activeSourceIndex) resetTouchFeedback();
+      activeSourceIndex = index;
+      sync();
+    }
     return {
       initialIndex,
       get skipEntry() { return restored || interacted; },
       bind(instance) {
         if (swiper === instance) return;
         swiper = instance;
-        swiper.on('slideChange', sync);
+        swiper.on('slideChange', onSlideChange);
+        swiper.on('sliderFirstMove', resetTouchFeedback);
         swiper.on('beforeDestroy', destroy);
         sync();
       },
@@ -265,7 +308,7 @@
   function start() {
     if (entry) document.querySelectorAll('.parallax-swiper_component').forEach(component => prepare(component));
   }
-  window.TDBParallaxControls = Object.freeze({ version: '1.0.0', prepare });
+  window.TDBParallaxControls = Object.freeze({ version: '1.1.0', prepare });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
 })();

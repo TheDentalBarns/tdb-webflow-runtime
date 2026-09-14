@@ -1,4 +1,4 @@
-/* TDB initial parallax controls v1.0.0: Home and Location page head. */
+/* TDB initial parallax controls v1.1.0: Home and Location page head. */
 html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide,
 html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide {
   display: flex !important;
@@ -69,6 +69,7 @@ html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide 
 }
 
 /* Entry-page CTA: a single stationary layer, outside the moving slide track. */
+.has-static-parallax-cta,
 .has-static-parallax-cta > .swiper { position: relative; }
 .has-static-parallax-cta .service-card-button-wrap { min-height: 2.75rem; }
 .has-static-parallax-cta .tdb-parallax-cta-layer {
@@ -96,14 +97,18 @@ html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide 
   backdrop-filter: blur(20px);
   transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease;
 }
-.has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary:active,
-.has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary.is-touch-held,
-.has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary:focus-visible {
+.has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary.is-touch-held {
   background-color: #fff;
   color: #000;
+  /* Store a settled white frame on navigation; only release uses the fade. */
+  transition-duration: 0s;
+}
+.has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
 }
 @media (hover: hover) and (pointer: fine) {
-  .has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary:hover {
+  .has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary:not(.is-touch-input):not([aria-disabled="true"]):hover {
     background-color: #fff;
     color: #000;
   }

@@ -8,7 +8,7 @@ const source = fs.readFileSync(path.resolve(__dirname, '../../src/sliders/parall
 
 function setup(t, route = '/', missing = false, options = {}) {
   const card = (href, title, extra = '') => `<div class="swiper-slide"><div class="showcase-content_btm"><div class="service-card-mobile-title">${title}</div><div class="service-card-button-wrap">${href ? `<a aria-hidden="true" class="button fade animate" href="${href}"><div>Discover service</div><svg aria-hidden="true"></svg></a>` : ''}</div>${extra}</div></div>`;
-  const dom = new JSDOM(`<div class="parallax-swiper_component"><div class="swiper"><div class="swiper-wrapper" aria-hidden="true">${card('/services/one', 'One')}${card(missing ? '' : '/services/two', 'Two', '<a class="button" href="/legacy">Obsolete</a>')}</div></div><div class="swiper_functions-btm hide"><div class="swiper-buttons-wrapper"><div class="swiper-btn-prev"></div><div class="swiper-btn-next"></div></div></div></div>`, { url: 'https://dentalbarns.webflow.io' + route, runScripts: 'outside-only' });
+  const dom = new JSDOM(`<div class="parallax-swiper_component"><div class="swiper"><div class="swiper-wrapper" aria-hidden="true">${card('/services/one', 'One')}${card(missing ? '' : '/services/two', 'Two', '<a class="button" href="/legacy">Obsolete</a>')}</div></div><div class="swiper_functions-btm hide"><div class="swiper-buttons-wrapper"><div class="swiper-btn-prev"></div><div class="swiper-btn-next"></div></div></div></div>`, { url: 'https://dentalbarns.webflow.io' + route, runScripts: 'outside-only', pretendToBeVisual: true });
   t.after(() => dom.window.close());
   const w = dom.window, c = w.document.querySelector('.parallax-swiper_component'), el = c.querySelector('.swiper');
   const original = el.innerHTML;
@@ -29,6 +29,7 @@ test('one stationary accessible button follows CMS destinations and removes dupl
   const h = setup(t);
   assert.equal(h.c.querySelectorAll('a').length, 1);
   assert.equal(h.button.closest('.swiper-wrapper'), null);
+  assert.equal(h.button.closest('.swiper'), null);
   assert.equal(h.button.getAttribute('aria-hidden'), null);
   assert.equal(h.button.getAttribute('href'), '/services/one');
   h.select(1);
@@ -72,10 +73,10 @@ function pointer(h, target, type = 'pointerdown', pointerType = 'touch') {
   target.dispatchEvent(event);
 }
 
-function touch(h, type, x, y) {
+function touch(h, type, x, y, target = h.w.document.body) {
   const event = new h.w.Event(type, { bubbles: true });
   Object.defineProperty(event, 'touches', { value: [{clientX:x,clientY:y}] });
-  h.w.document.body.dispatchEvent(event);
+  target.dispatchEvent(event);
 }
 function scroll(h, y) {
   Object.defineProperty(h.w, 'scrollY', { value:y, configurable:true });
@@ -124,11 +125,13 @@ for (const route of ['/', '/location']) {
     assert.equal(again.button.getAttribute('href'),'/services/two');
   });
 }
-test('horizontal movement and post-click pointer cancellation preserve white; vertical cancellation releases it', t => {
+test('post-click cancellation keeps white; horizontal swipe inside the carousel releases it without vertical scroll', t => {
   const h=setup(t);pointer(h,h.button);pointer(h,h.button,'pointerup');
   pointer(h,h.button,'pointercancel');assert(h.button.classList.contains('is-touch-held'));
-  touch(h,'touchstart',20,200);touch(h,'touchmove',80,198);scroll(h,20);
+  touch(h,'touchstart',20,200);touch(h,'touchmove',80,198);
   assert(h.button.classList.contains('is-touch-held'));
+  touch(h,'touchstart',20,200,h.el);touch(h,'touchmove',80,198,h.el);
+  assert(!h.button.classList.contains('is-touch-held'));
   pointer(h,h.button);touch(h,'touchstart',20,200);touch(h,'touchmove',20,150);
   pointer(h,h.button,'pointercancel');assert(!h.button.classList.contains('is-touch-held'));
 });
@@ -183,10 +186,67 @@ test('early white and dark states share one uninterrupted fade and constant blur
   assert.equal(rest['backdrop-filter'],'blur(20px)');
   assert(rest.transition.includes('background-color 300ms ease'));
   assert.equal(held['background-color'],'#fff');assert.equal(held.transition,undefined);
+  assert.equal(held['transition-duration'],'0s');
+  css.walkRules(rule=>{
+    if(rule.selector.includes(':focus-visible'))assert(!rule.nodes.some(n=>n.prop==='background-color'));
+    assert(!rule.selector.includes(':active'));
+  });
 });
 test('a deliberate reload retains the normal fresh entry behaviour',t=>{
   const state={tdbParallax:{'/:0':{index:1,href:'/services/two',held:true}}};
   const h=setup(t,'/',false,{state,navigation:'reload'});
   assert.equal(h.controller.initialIndex,0);assert.equal(h.controller.skipEntry,false);
   assert(!h.button.classList.contains('is-touch-held'));
+});
+
+test('arrows release held white before and after Swiper binds',t=>{
+  for(const bind of [false,true]){
+    const h=setup(t,'/',false,{bind});pointer(h,h.button);pointer(h,h.button,'pointerup');
+    h.c.querySelector('.swiper-btn-next').dispatchEvent(new h.w.MouseEvent('click',{bubbles:true,cancelable:true}));
+    assert(!h.button.classList.contains('is-touch-held'));
+    assert.equal(h.w.history.state.tdbParallax['/:0'].held,false);
+  }
+});
+test('CMS slide changes release white but loop correction to the same CMS card preserves it',t=>{
+  const h=setup(t);pointer(h,h.button);pointer(h,h.button,'pointerup');
+  const clone=h.swiper.slides[0].cloneNode(true);h.swiper.slides.push(clone);
+  h.select(2);assert(h.button.classList.contains('is-touch-held'));
+  h.select(1);assert(!h.button.classList.contains('is-touch-held'));
+  pointer(h,h.button);pointer(h,h.button,'pointerup');h.handlers.get('sliderFirstMove')();
+  assert(!h.button.classList.contains('is-touch-held'));
+});
+test('touch fallback latches and persists; a moved or disabled touch cannot navigate or re-latch',t=>{
+  const h=setup(t);touch(h,'touchstart',100,200,h.button);
+  assert(h.button.classList.contains('is-touch-held'));clickWithoutNavigation(h);
+  assert.equal(h.w.history.state.tdbParallax['/:0'].held,true);
+  touch(h,'touchstart',100,200,h.button);touch(h,'touchmove',140,200,h.button);
+  const click=new h.w.MouseEvent('click',{bubbles:true,cancelable:true});h.button.dispatchEvent(click);
+  assert(click.defaultPrevented);assert(!h.button.classList.contains('is-touch-held'));
+  h.controller.setBusy(true);touch(h,'touchstart',100,200,h.button);
+  assert(!h.button.classList.contains('is-touch-held'));
+});
+test('actual deployed Swiper loops keep one CMS link and cannot suppress its independent click',t=>{
+  const h=setup(t,'/',false,{bind:false});
+  h.w.eval(fs.readFileSync(path.resolve(__dirname,'../../dist/tdb-swiper-8.4.7.min.js'),'utf8'));
+  const real=new h.w.Swiper(h.el,{width:400,height:500,loop:true,loopAdditionalSlides:1,slidesPerView:1,speed:0,preloadImages:false,a11y:false});
+  h.controller.bind(real);
+  for(let i=0;i<7;i++){
+    real.slideNext(0);
+    const index=real.slides[real.activeIndex].getAttribute('data-tdb-parallax-cta-index');
+    assert.equal(h.button.getAttribute('href'),index==='0'?'/services/one':'/services/two');
+    assert.equal(h.c.querySelectorAll('[data-tdb-parallax-cta]').length,1);
+    assert.equal(h.el.querySelectorAll('.swiper-slide a').length,0);
+  }
+  // A completed/cancelled drag can leave Swiper suppressing the next click.
+  real.allowClick=false;
+  let blocked;
+  const capture=e=>{blocked=e.defaultPrevented;e.preventDefault();};
+  h.button.addEventListener('click',capture);
+  h.button.dispatchEvent(new h.w.MouseEvent('click',{bubbles:true,cancelable:true}));
+  assert.equal(blocked,false,'stationary CTA must retain native navigation');
+  // The old placement reproduced the bug with the very same vendor instance.
+  h.el.appendChild(h.button.parentElement);
+  h.button.dispatchEvent(new h.w.MouseEvent('click',{bubbles:true,cancelable:true}));
+  assert.equal(blocked,true,'old inner-container placement is suppressed');
+  real.destroy();
 });

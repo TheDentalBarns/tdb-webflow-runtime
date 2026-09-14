@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.6.0';
+  const VERSION = '0.6.1';
   const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
   const PARALLAX_SELECTOR = '.parallax-swiper_component';
   const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
@@ -496,6 +496,7 @@
 
       const advanceOnce = () => {
         if (swiper.destroyed || !entryPending) return;
+        if (cta?.skipEntry) { finishEntryFallback(); return; }
 
         swiper.update();
         if (swiper.params.loop && typeof swiper.loopFix === 'function') swiper.loopFix();

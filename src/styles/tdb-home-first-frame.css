@@ -1,0 +1,11 @@
+/* Home first frame: the poster is content, not a timed JS reveal. */
+.hero-vimeo_background-video-wrapper {
+  opacity: 1;
+  transition: none;
+}
+
+/* IX2 action a-52 starts at opacity 0. Hand ownership to its first inline write
+ * so the marquee heading cannot flash at full brightness while IX2 loads. */
+.section_logo-features .partner-banner-heading:not([style*="opacity"]) {
+  opacity: 0;
+}
