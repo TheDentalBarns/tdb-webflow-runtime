@@ -16,3 +16,10 @@ Validation: eighteen focused controller tests plus thirteen existing deferred-lo
 Tradeoff: lightweight controls and 4,536 raw bytes of page-specific CSS now arrive during initial setup. The deferred slider bundle is smaller; this is an intentional redistribution toward early readiness, not a claimed initial-download saving. No measured performance improvement is promised.
 
 Rollback: remove only the style[data-tdb-initial-parallax-controls] block from the current Home and Location heads. In the current global footer, restore immediate pin af5c4ce17ae555557f2e000e8ee57eff1a32c172 and reconcile manifest comments to footer cbb59b04c9a38e957de8a32c1bf8290bd5cad0a5 and slider 17ee4abe875ce8acf959f584628ab04cc3fada3b. Preserve unrelated edits. Publish Webflow subdomain only, customDomains empty. Production is outside this change.
+
+## Staging verification
+Published 2026-09-14 at 21:25:36.382 UTC. Immediate pin 1dc5aeed5f0c9e5c39096726017701f43633ce1c; footer eb71e908eb096ea8d0ad7797eec16bb6725d925a; slider f94f7b3dd24084385aa5c58ecc2814a30e9d1516. All five served assets (including inline CSS source) matched local builds byte for byte. Both pages served the new pin and exactly one early-controls style block.
+
+Live desktop browser: Home and Location each had one visible CTA plus the arrows before motion initialization or a Swiper script request. Home next changed the CMS link from Cosmetic Dentistry to Restorative Dentistry. Following that link navigated to /services/general-dentistry; browser Back returned to Home with that same link and a single CTA. Location's next arrow worked after initialization, retaining /first-visit and one CTA. These actual browser checks do not substitute for physical mobile touch testing. Cached and rebuilt white-state behavior is covered by local controlled tests; a physical phone remains the final visual check.
+
+All four production domains retained publication timestamp 2026-09-12T19:20:19.204Z.
