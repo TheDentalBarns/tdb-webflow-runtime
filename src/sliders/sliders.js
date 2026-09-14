@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.5.1';
+  const VERSION = '0.5.2';
   const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
   const PARALLAX_SELECTOR = '.parallax-swiper_component';
   const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
@@ -348,6 +348,98 @@
     firstViewStates.get(component)?.bind(swiper);
   }
 
+  // Keep the CMS links as the source of truth, but give each entry-page
+  // carousel one stationary, keyboard-accessible call to action.
+  function prepareParallaxCTA(component, swiperEl) {
+    if (!/^\/(?:location\/?)?$/.test(window.location.pathname)) return null;
+    const slides = Array.from(swiperEl.querySelectorAll('.swiper-slide'));
+    const sources = slides.map(slide => {
+      const link = slide.querySelector('.service-card-button-wrap a[href]');
+      return link && {
+        href: link.getAttribute('href'),
+        target: link.getAttribute('target'),
+        rel: link.getAttribute('rel'),
+        label: link.textContent.replace(/\s+/g, ' ').trim(),
+        title: slide.querySelector('.service-card-mobile-title')?.textContent.trim() || ''
+      };
+    });
+    const sourceButton = swiperEl.querySelector('.service-card-button-wrap a[href]');
+    if (!sourceButton) return null;
+
+    const button = sourceButton.cloneNode(true);
+    button.removeAttribute('aria-hidden');
+    button.removeAttribute('tabindex');
+    button.removeAttribute('data-fade-slide');
+    button.classList.remove('fade', 'animate');
+    button.setAttribute('data-tdb-parallax-cta', '');
+    [button, ...button.querySelectorAll('[id]')].forEach(node => node.removeAttribute('id'));
+    const layer = document.createElement('div');
+    layer.className = 'tdb-parallax-cta-layer';
+    if (window.location.pathname.replace(/\/$/, '') === '/location') layer.classList.add('is-location');
+    layer.appendChild(button);
+
+    const removed = [];
+    slides.forEach((slide, index) => {
+      slide.setAttribute('data-tdb-parallax-cta-index', String(index));
+      // Location also has obsolete button copies outside the canonical wrapper.
+      slide.querySelectorAll('.showcase-content_btm a.button').forEach(node => {
+        removed.push({ node, parent: node.parentNode, next: node.nextSibling });
+        node.remove();
+      });
+    });
+    component.classList.add('has-static-parallax-cta');
+    swiperEl.appendChild(layer);
+
+    let swiper = null;
+    let busy = false;
+    function sync() {
+      const slide = swiper?.slides[swiper.activeIndex] || slides[0];
+      const index = slide?.getAttribute('data-tdb-parallax-cta-index');
+      const source = index == null ? null : sources[Number(index)];
+      if (!source?.href) {
+        button.removeAttribute('href');
+        button.setAttribute('aria-disabled', 'true');
+        button.tabIndex = -1;
+        return;
+      }
+      button.setAttribute('href', source.href);
+      for (const key of ['target', 'rel']) {
+        if (source[key]) button.setAttribute(key, source[key]);
+        else button.removeAttribute(key);
+      }
+      // Reuse the original button's text node container and arrow artwork.
+      if (button.firstElementChild) button.firstElementChild.textContent = source.label;
+      button.setAttribute('aria-label', source.title ? `${source.label}: ${source.title}` : source.label);
+      if (busy) button.setAttribute('aria-disabled', 'true');
+      else button.removeAttribute('aria-disabled');
+      button.tabIndex = busy ? -1 : 0;
+    }
+    function onClick(event) {
+      if (busy || button.getAttribute('aria-disabled') === 'true') event.preventDefault();
+    }
+    function destroy() {
+      swiper?.off('slideChange', sync);
+      button.removeEventListener('click', onClick);
+      layer.remove();
+      component.classList.remove('has-static-parallax-cta');
+      slides.forEach(slide => slide.removeAttribute('data-tdb-parallax-cta-index'));
+      removed.slice().reverse().forEach(({ node, parent, next }) => {
+        parent.insertBefore(node, next?.parentNode === parent ? next : null);
+      });
+    }
+    button.addEventListener('click', onClick);
+    sync();
+    return {
+      bind(instance) {
+        swiper = instance;
+        swiper.on('slideChange', sync);
+        swiper.on('beforeDestroy', destroy);
+        sync();
+      },
+      setBusy(value) { busy = value; sync(); }
+    };
+  }
+
   function initParallaxSwiper(component) {
     if (!component || isInitialised(component)) return;
 
@@ -359,6 +451,8 @@
     const desktopEntry = isDesktopEntryPage();
     const mobileEntry = isMobileEntryPage();
     const entryMotion = desktopEntry || mobileEntry;
+
+    const cta = prepareParallaxCTA(component, swiperEl);
 
     const swiper = new window.Swiper(swiperEl, {
       slidesPerView: 1,
@@ -404,6 +498,8 @@
       }
     });
 
+    cta?.bind(swiper);
+
     const FADE_IN_DELAY_NEXT = 100;
     const FADE_IN_DELAY_PREV = 140;
     const fadeCache = new WeakMap();
@@ -439,6 +535,7 @@
 
     function setMoving(moving) {
       component.classList.toggle('is-moving', moving);
+      cta?.setBusy(moving);
     }
 
     function showActiveAfter(delay) {

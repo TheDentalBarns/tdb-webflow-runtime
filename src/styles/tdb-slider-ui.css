@@ -1,4 +1,4 @@
-/* TDB slider UI v1.3.0
+/* TDB slider UI v1.3.1
  * Controls, transitions and live-announcement presentation.
  * The head requests this sheet; the slider loader waits for its readiness flag.
  * First-frame hidden-state guards remain in tdb-runtime-ui.css.
@@ -106,6 +106,34 @@ html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide 
   pointer-events: none;
   opacity: 0;
   z-index: -1000;
+}
+
+/* Entry-page CTA: a single stationary layer, outside the moving slide track. */
+.has-static-parallax-cta > .swiper { position: relative; }
+.has-static-parallax-cta .service-card-button-wrap { min-height: 2.75rem; }
+.has-static-parallax-cta .tdb-parallax-cta-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 2rem;
+  pointer-events: none;
+}
+.has-static-parallax-cta .tdb-parallax-cta-layer.is-location { justify-content: flex-start; }
+.has-static-parallax-cta [data-tdb-parallax-cta] {
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+@media (max-width: 767px) and (orientation: portrait) {
+  .has-static-parallax-cta .tdb-parallax-cta-layer {
+    justify-content: flex-start;
+    padding-bottom: 2.5rem;
+  }
 }
 
 /* This readiness flag must not invalidate descendants. */
