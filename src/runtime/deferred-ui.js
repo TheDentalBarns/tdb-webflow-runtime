@@ -1,6 +1,6 @@
 /* Hosted feature modules share the release pin; loading stays in the footer runtime. */
 const TDB_MODULE_ROOT = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@61cec90cdba3d42a29d3c31194b692c251e8d421/dist/';
-const TDB_SLIDER_ROOT = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@086f9665db3463352507602a3122dfc846f06314/dist/';
+const TDB_SLIDER_ROOT = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@047b1d11b970d14edfd30c8c1bbfc6055762e55f/dist/';
 function tdbEnsureSliderRuntime() {
   return tdbEnsureUI().then(() => loadScriptWithRecovery(TDB_SLIDER_ROOT + 'tdb-sliders.js', 'data-tdb-sliders-js'));
 }
