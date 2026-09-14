@@ -1,18 +1,17 @@
-/* TDB slider focus v1.0.1: deliberate input parks site chrome; normal scrolling releases it. */
+/* TDB slider focus v1.1.0: actual slider intent uses the shared navbar scroll controller. */
 (() => {
   'use strict';
   const html = document.documentElement;
   if (html.dataset.tdbSliderFocusReady) return;
-  html.dataset.tdbSliderFocusReady = '1.0.1';
+  html.dataset.tdbSliderFocusReady = '1.1.0';
 
-  const SLIDERS = '.highlight-swiper_component,.parallax-swiper_component,.swiper,.w-slider,.logo-slider';
+  const SLIDERS = '.highlight-swiper_component,.parallax-swiper_component,.swiper,.w-slider';
   const CONTROLS = '.swiper-btn-prev,.swiper-btn-next,.swiper-bullet,.swiper-pagination-bullet,.w-slider-arrow-left,.w-slider-arrow-right,.w-slider-dot';
   const FIELDS = 'input,textarea,select,[contenteditable="true"]';
   const GALLERY = '[data-tdb-sg-overlay],.tdb-sg-filter-dock';
-  const AWAY = 'tdb-slider-focus';
   let state = null, gesture = null, releaseFrame = 0, menuTimer = 0, retryTimer = 0;
 
-  const rootFor = target => target?.closest?.(SLIDERS);
+  const rootFor = target => target?.closest?.('.logo-slider') ? null : target?.closest?.(SLIDERS);
   const unavailable = target => target?.closest?.('[disabled],[aria-disabled="true"],[hidden],[inert]');
   const galleryOwnsChrome = () => html.classList.contains('tdb-sg-chrome-away') || html.classList.contains('tdb-sg-locked');
 
@@ -24,7 +23,7 @@
   function release() {
     cancelRelease();
     clearTimeout(menuTimer); clearTimeout(retryTimer);
-    html.classList.remove(AWAY);
+    window.TDBNavScroll?.release();
     if (state?.nav) {
       if (state.value) state.nav.style.setProperty('--tdb-slider-nav-away', state.value, state.priority);
       else state.nav.style.removeProperty('--tdb-slider-nav-away');
@@ -39,7 +38,7 @@
   }
 
   function focusSlider(slider) {
-    if (!slider || unavailable(slider) || galleryOwnsChrome()) return;
+    if (!slider || unavailable(slider) || galleryOwnsChrome() || !window.TDBNavScroll) return;
     cancelRelease();
     if (!state) {
       const nav = document.querySelector('.navbar10_component');
@@ -50,14 +49,14 @@
         const distance = Math.max(nav.offsetHeight, ...parts.filter(part => part.getClientRects().length && getComputedStyle(part).visibility !== 'hidden').map(part => part.getBoundingClientRect().bottom - top));
         nav.style.setProperty('--tdb-slider-nav-away', distance + 'px');
       }
-      html.classList.add(AWAY);
       const vip = document.getElementById('tdb-vip-drawer');
       if (vip?.matches('.is-open,.is-peeking')) window.TDBVIPDrawer?.close?.();
       menuTimer = setTimeout(closeNativeMenus, 430);
       // Respect the native menu's short opening guard.
       retryTimer = setTimeout(closeNativeMenus, 680);
     }
-    state.slider = slider; state.y = window.scrollY; state.up = state.down = 0;
+    state.slider = slider;
+    window.TDBNavScroll.focus(scheduleRelease, () => Boolean(gesture?.horizontal));
   }
 
   function controlFor(target) {
@@ -88,7 +87,7 @@
 
   const endGesture = event => {
     if (gesture?.id !== event.pointerId) return;
-    if (gesture.horizontal && state) { state.y = window.scrollY; state.up = state.down = 0; }
+    if (gesture.horizontal && state) focusSlider(gesture.slider);
     gesture = null;
   };
   document.addEventListener('pointerup', endGesture, { capture: true, passive: true });
@@ -117,6 +116,7 @@
     // Swiper's existing keyboard navigation can be active with body focus.
     if (event.target !== document.body && event.target !== html) return;
     const slider = [...document.querySelectorAll('.swiper')].find(element => {
+      if (!rootFor(element)) return false;
       const rect = element.getBoundingClientRect();
       return rect.width > 0 && rect.height > 0 && rect.top < innerHeight && rect.bottom > 0 && rect.right > 0 && rect.left < innerWidth && !unavailable(element);
     });
@@ -124,20 +124,13 @@
   }
   document.addEventListener('keydown', onKeyDown, { capture: true, passive: true });
 
-  window.addEventListener('scroll', () => {
-    if (!state) return;
-    const y = window.scrollY, delta = y - state.y;
-    state.y = y;
-    if (gesture?.horizontal) { state.up = state.down = 0; return; }
-    if (delta > 0) { state.up = 0; state.down += delta; }
-    else if (delta < 0) { state.down = 0; state.up -= delta; }
-    if (state.up <= 120 && state.down <= 140 && !(y <= 40 && delta < 0)) return;
+  function scheduleRelease() {
     if (releaseFrame) return;
     // Let the existing nav, timer and VIP scroll handlers settle first.
     releaseFrame = requestAnimationFrame(() => {
       releaseFrame = requestAnimationFrame(() => { releaseFrame = 0; release(); });
     });
-  }, { passive: true });
+  }
 
   const explicitChromeIntent = event => {
     if (!state) return;
