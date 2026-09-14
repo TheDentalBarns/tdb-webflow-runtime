@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.5.3';
+  const VERSION = '0.5.4';
   const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
   const PARALLAX_SELECTOR = '.parallax-swiper_component';
   const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
@@ -392,19 +392,29 @@
 
     let swiper = null;
     let busy = false;
-    // Own touch feedback explicitly: native :hover can survive a Back restore.
+    // Preserve touch feedback across Back; fade it only when the user scrolls.
+    // Restored scroll positions must not be mistaken for a new scroll gesture.
+    let scrollIntent = false;
     function resetTouchFeedback() {
-      button.classList.add('is-cta-reset');
       button.classList.remove('is-touch-held');
     }
+    function resetScrollIntent() { scrollIntent = false; }
+    function onWheel() { scrollIntent = true; }
+    function onScroll() {
+      if (!scrollIntent) return;
+      scrollIntent = false;
+      resetTouchFeedback();
+    }
     function onPointerDown(event) {
-      button.classList.remove('is-cta-reset');
+      scrollIntent = true;
       const pressed = button.contains(event.target) && !busy &&
         button.getAttribute('aria-disabled') !== 'true';
-      button.classList.toggle('is-touch-held', pressed && event.pointerType === 'touch');
+      if (event.pointerType === 'touch') {
+        if (pressed) button.classList.add('is-touch-held');
+      } else resetTouchFeedback();
     }
     function onKeyDown() {
-      button.classList.remove('is-cta-reset', 'is-touch-held');
+      resetTouchFeedback();
     }
     function sync() {
       const slide = swiper?.slides[swiper.activeIndex] || slides[0];
@@ -437,8 +447,10 @@
       document.removeEventListener('pointerdown', onPointerDown, true);
       document.removeEventListener('keydown', onKeyDown, true);
       button.removeEventListener('pointercancel', resetTouchFeedback);
-      window.removeEventListener('pagehide', resetTouchFeedback);
-      window.removeEventListener('pageshow', resetTouchFeedback);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('pagehide', resetScrollIntent);
+      window.removeEventListener('pageshow', resetScrollIntent);
       layer.remove();
       component.classList.remove('has-static-parallax-cta');
       slides.forEach(slide => slide.removeAttribute('data-tdb-parallax-cta-index'));
@@ -450,8 +462,10 @@
     document.addEventListener('pointerdown', onPointerDown, { capture: true, passive: true });
     document.addEventListener('keydown', onKeyDown, true);
     button.addEventListener('pointercancel', resetTouchFeedback);
-    window.addEventListener('pagehide', resetTouchFeedback);
-    window.addEventListener('pageshow', resetTouchFeedback);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('wheel', onWheel, { passive: true });
+    window.addEventListener('pagehide', resetScrollIntent);
+    window.addEventListener('pageshow', resetScrollIntent);
     sync();
     return {
       bind(instance) {

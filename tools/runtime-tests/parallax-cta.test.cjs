@@ -68,34 +68,60 @@ function pointer(h, target, type = 'pointerdown', pointerType = 'touch') {
   target.dispatchEvent(event);
 }
 for (const route of ['/', '/location']) {
-  test(`touch highlight holds on release and clears on page exit and cached return: ${route}`, t => {
+  test(`touch feedback survives release and Back, then clears on user scroll: ${route}`, t => {
     const h = setup(t, route);
     pointer(h, h.button.firstElementChild);
     pointer(h, h.button, 'pointerup');
     assert(h.button.classList.contains('is-touch-held'));
     h.w.dispatchEvent(new h.w.PageTransitionEvent('pagehide', { persisted: true }));
-    assert(!h.button.classList.contains('is-touch-held'));
-    assert(h.button.classList.contains('is-cta-reset'));
-    pointer(h, h.button);
     assert(h.button.classList.contains('is-touch-held'));
-    assert(!h.button.classList.contains('is-cta-reset'));
+    h.w.dispatchEvent(new h.w.Event('scroll'));
     h.w.dispatchEvent(new h.w.PageTransitionEvent('pageshow', { persisted: true }));
+    h.w.dispatchEvent(new h.w.Event('scroll'));
+    assert(h.button.classList.contains('is-touch-held'), 'restoring scroll position preserves highlight');
+    pointer(h, h.w.document.body);
+    assert(h.button.classList.contains('is-touch-held'), 'touching before scrolling keeps highlight');
+    h.w.dispatchEvent(new h.w.Event('scroll'));
     assert(!h.button.classList.contains('is-touch-held'));
-    assert.equal(h.button.getAttribute('href'), '/services/one');
+    assert(!h.button.classList.contains('is-cta-reset'), 'return fade must not be disabled');
     h.select(1);
     assert.equal(h.button.getAttribute('href'), '/services/two');
+    pointer(h, h.button);
+    assert(h.button.classList.contains('is-touch-held'), 'next tap restores highlight');
   });
 }
-test('cancel, outside tap and keyboard clear touch feedback; disabled and mouse presses do not latch', t => {
+test('wheel scroll, cancelled gesture and keyboard clear feedback; disabled presses do not latch', t => {
   const h = setup(t);
-  for (const clear of [() => pointer(h, h.button, 'pointercancel'), () => pointer(h, h.w.document.body), () => h.button.dispatchEvent(new h.w.KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))]) {
+  for (const clear of [
+    () => { h.w.dispatchEvent(new h.w.WheelEvent('wheel')); h.w.dispatchEvent(new h.w.Event('scroll')); },
+    () => pointer(h, h.button, 'pointercancel'),
+    () => h.button.dispatchEvent(new h.w.KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))
+  ]) {
     pointer(h, h.button);assert(h.button.classList.contains('is-touch-held'));
     clear();assert(!h.button.classList.contains('is-touch-held'));
   }
   pointer(h, h.button, 'pointerdown', 'mouse');assert(!h.button.classList.contains('is-touch-held'));
   h.controller.setBusy(true);pointer(h, h.button);assert(!h.button.classList.contains('is-touch-held'));
-  h.controller.setBusy(false);h.handlers.get('beforeDestroy')();
+  h.controller.setBusy(false);pointer(h, h.button);h.handlers.get('beforeDestroy')();
   const classes = h.button.className;
+  h.w.dispatchEvent(new h.w.Event('scroll'));
   h.w.dispatchEvent(new h.w.PageTransitionEvent('pageshow', { persisted: true }));
-  assert.equal(h.button.className, classes);
+  assert.equal(h.button.className, classes, 'destroy removes lifecycle and scroll listeners');
+});
+test('white and dark states share an uninterrupted 300ms colour fade and constant blur', () => {
+  const postcss = require('postcss');
+  const css = postcss.parse(fs.readFileSync(path.resolve(__dirname, '../../src/styles/tdb-slider-ui.css'), 'utf8'));
+  const base = '.has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary';
+  let rest, held;
+  css.walkRules(rule => {
+    assert(!rule.selector.includes('is-cta-reset'));
+    if (rule.selector === base) rest = Object.fromEntries(rule.nodes.filter(n => n.type === 'decl').map(n => [n.prop,n.value]));
+    if (rule.selector.includes('.is-touch-held')) held = Object.fromEntries(rule.nodes.filter(n => n.type === 'decl').map(n => [n.prop,n.value]));
+  });
+  assert.equal(rest['background-color'], 'rgba(0, 0, 0, 0.3)');
+  assert.equal(rest['backdrop-filter'], 'blur(20px)');
+  assert(rest.transition.includes('background-color 300ms ease'));
+  assert.equal(held['background-color'], '#fff');
+  assert.equal(held.transition, undefined);
+  assert.equal(held['backdrop-filter'], undefined);
 });
