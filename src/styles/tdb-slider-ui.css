@@ -1,4 +1,4 @@
-/* TDB slider UI v1.3.2
+/* TDB slider UI v1.3.3
  * Controls, transitions and live-announcement presentation.
  * The head requests this sheet; the slider loader waits for its readiness flag.
  * First-frame hidden-state guards remain in tdb-runtime-ui.css.
@@ -122,13 +122,30 @@ html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide 
   pointer-events: none;
 }
 .has-static-parallax-cta .tdb-parallax-cta-layer.is-location { justify-content: flex-start; }
-.has-static-parallax-cta [data-tdb-parallax-cta] {
+.has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary {
   pointer-events: auto;
   opacity: 1;
   visibility: visible;
+  /* The original .vip.animate class owned these glass colours. This
+   * stationary button must override the generic opaque-white hover variant,
+   * including the sticky :hover state left behind by touch browsers. */
+  background-color: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  border-color: #fff;
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease;
+}
+.has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary:active,
+.has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary:focus-visible {
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #000;
+}
+@media (hover: hover) and (pointer: fine) {
+  .has-static-parallax-cta .tdb-parallax-cta-layer [data-tdb-parallax-cta].button.is-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #000;
+  }
 }
 @media (max-width: 767px) and (orientation: portrait) {
   .has-static-parallax-cta .tdb-parallax-cta-layer {
