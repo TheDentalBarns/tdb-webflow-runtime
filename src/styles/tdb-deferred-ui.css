@@ -439,79 +439,6 @@ html:where([data-wf-page="677cf86df9952f978d94d8a9"]) #tdb-vip-drawer {
   }
 }
 
-/* TDB parallax slider UI v1.2.0
- * Included once in the deferred UI build. First-frame visibility protection lives in tdb-runtime-ui.css.
- */
-
-html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide,
-html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide {
-  display: flex !important;
-  position: absolute;
-  z-index: 30;
-  pointer-events: none;
-}
-
-html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide .swiper-pagination,
-html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide .swiper-pagination {
-  display: none !important;
-}
-
-html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide :is(.swiper-btn-prev, .swiper-btn-next),
-html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide :is(.swiper-btn-prev, .swiper-btn-next) {
-  display: flex !important;
-  color: #fff;
-  border-color: #fff;
-  background: rgba(0, 0, 0, 0.38);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  pointer-events: auto;
-  transition: background-color 0.25s ease;
-}
-
-html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide :is(.swiper-btn-prev, .swiper-btn-next).is-selected,
-html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide :is(.swiper-btn-prev, .swiper-btn-next).is-selected {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-@media (max-width: 767px) and (orientation: portrait) {
-  html.tdb-slider-next .parallax-swiper_component > .swiper {
-    position: relative;
-  }
-
-  html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide {
-    right: 2rem;
-    bottom: 2.5rem;
-    width: auto;
-    padding-top: 0;
-  }
-
-  html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide .swiper-buttons-wrapper {
-    gap: 0.75rem;
-  }
-}
-
-@media (min-width: 768px) {
-  html.tdb-slider-desktop .parallax-swiper_component {
-    position: relative;
-  }
-
-  html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide {
-    left: 50%;
-    top: 50%;
-    width: 100vw;
-    box-sizing: border-box;
-    padding: 0 3vw;
-    align-items: center;
-    transform: translate(-50%, -50%);
-  }
-
-  html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide .swiper-buttons-wrapper {
-    width: 100%;
-    justify-content: space-between;
-    gap: 0;
-  }
-}
-
 /* Homepage only: no drawer layout before scroll or explicit intent. */
 html[data-wf-page="677cf86df9952f978d94d8a9"] #tdb-vip-drawer:not([data-tdb-vip-prepared]) {
   display: none !important;
@@ -524,13 +451,3 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] #tdb-vip-drawer:not([data-tdb-vip-
 }
 html { --tdb-ui-ready: 1; }
 
-/* Preserve Swiper's live announcements without rendering them as page text. */
-.parallax-swiper_component .swiper-notification,
-.highlight-swiper_component .swiper-notification {
-  position: absolute;
-  left: 0;
-  top: 0;
-  pointer-events: none;
-  opacity: 0;
-  z-index: -1000;
-}

@@ -1,6 +1,32 @@
-/* TDB parallax slider UI v1.2.0
- * Included once in the deferred UI build. First-frame visibility protection lives in tdb-runtime-ui.css.
+/* TDB slider UI v1.3.0
+ * Controls, transitions and live-announcement presentation.
+ * The head requests this sheet; the slider loader waits for its readiness flag.
+ * First-frame hidden-state guards remain in tdb-runtime-ui.css.
  */
+
+.w-slider-dot {
+  background-color: var(--base-color-brand--orange-2) !important;
+}
+
+.w-slider-dot.w-active {
+  background-color: var(--base-color-brand--orange-3) !important;
+}
+
+[data-fade-slide] {
+  transition: opacity 200ms ease-out;
+}
+
+[data-fade-slide].is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 400ms ease-in;
+}
+
+.parallax-swiper_component.is-moving [data-fade-slide] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 150ms ease-out !important;
+}
 
 html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide,
 html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide {
@@ -70,3 +96,22 @@ html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide 
     gap: 0;
   }
 }
+
+/* Preserve Swiper's live announcements without rendering them as page text. */
+.parallax-swiper_component .swiper-notification,
+.highlight-swiper_component .swiper-notification {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: -1000;
+}
+
+/* This readiness flag must not invalidate descendants. */
+@property --tdb-slider-ui-ready {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+html { --tdb-slider-ui-ready: 1; }

@@ -129,18 +129,20 @@ function loadScriptWithRecovery(src, attrName) {
   return flight;
 }
 
-/* Global UI is already requested by the head. This code never adds feature CSS. */
-let tdbUIFlight = null;
-const tdbUIIsReady = () => getComputedStyle(document.documentElement)
-  .getPropertyValue('--tdb-ui-ready').trim() === '1';
+/* Both stylesheets are requested by the head. Keep recovery in their original cascade positions. */
+const tdbStyleFlights = new Map();
+const tdbStyleIsReady = property => getComputedStyle(document.documentElement)
+  .getPropertyValue(property).trim() === '1';
+const tdbUIIsReady = () => tdbStyleIsReady('--tdb-ui-ready');
 
-function tdbEnsureUI() {
-  if (tdbUIIsReady()) return Promise.resolve();
-  if (tdbUIFlight) return tdbUIFlight;
-  const link = document.querySelector('link[data-tdb-ui-css]') ||
+function tdbEnsureStylesheet(attribute, filename, property, label) {
+  const isReady = () => tdbStyleIsReady(property);
+  if (isReady()) return Promise.resolve();
+  if (tdbStyleFlights.has(attribute)) return tdbStyleFlights.get(attribute);
+  const link = document.querySelector(`link[${attribute}]`) ||
     Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-      .find(node => /\/dist\/tdb-ui\.css(?:[?#]|$)/.test(node.href));
-  if (!link) return Promise.reject(new Error('TDB global UI link is missing'));
+      .find(node => node.href.split(/[?#]/)[0].endsWith('/dist/' + filename));
+  if (!link) return Promise.reject(new Error(`TDB ${label} link is missing`));
 
   function waitFor(link, retries) {
     return new Promise((resolve, reject) => {
@@ -169,23 +171,31 @@ function tdbEnsureUI() {
       function loaded() {
         if (settled) return;
         link.media = 'all';
-        if (!tdbUIIsReady()) return fail(new Error('TDB UI bundle is stale or incomplete'));
+        if (!isReady()) return fail(new Error(`TDB ${label} bundle is stale or incomplete`));
         settled = true;
         cleanup();
         link.dataset.tdbLoaded = 'true';
         delete link.dataset.tdbLoadFailed;
         resolve();
       }
-      function failed() { fail(new Error('TDB global UI request failed')); }
+      function failed() { fail(new Error(`TDB ${label} request failed`)); }
       link.addEventListener('load', loaded);
       link.addEventListener('error', failed);
-      timeout = setTimeout(() => fail(new Error('TDB global UI request timed out')), 15000);
+      timeout = setTimeout(() => fail(new Error(`TDB ${label} request timed out`)), 15000);
       if (link.dataset.tdbLoadFailed === 'true') failed();
       else if (link.sheet) loaded();
     });
   }
-  tdbUIFlight = waitFor(link, 1).finally(() => { tdbUIFlight = null; });
-  return tdbUIFlight;
+  const flight = waitFor(link, 1).finally(() => tdbStyleFlights.delete(attribute));
+  tdbStyleFlights.set(attribute, flight);
+  return flight;
+}
+
+function tdbEnsureUI() {
+  return tdbEnsureStylesheet('data-tdb-ui-css', 'tdb-ui.css', '--tdb-ui-ready', 'global UI');
+}
+function tdbEnsureSliderUI() {
+  return tdbEnsureStylesheet('data-tdb-slider-ui-css', 'tdb-slider-ui.css', '--tdb-slider-ui-ready', 'slider UI');
 }
 
 function tdbPreloadVIPScript(src) {
@@ -508,6 +518,7 @@ function prepareSliderLoader() {
     if (loadingPromise) return loadingPromise;
     loadingPromise = Promise.all([
       tdbEnsureUI(),
+      tdbEnsureSliderUI(),
       loadScriptWithRecovery('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b3a0f0f2a1e57b5a67db5f5159c449cff07eebd6/dist/tdb-swiper-8.4.7.min.js', 'data-swiper-js'),
     ]).then(() => loadScriptWithRecovery(
       'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@6d209f97dca2b83e74cef251b065461baba9bc18/dist/tdb-sliders.js',
@@ -557,7 +568,7 @@ function prepareSliderLoader() {
   else start();
 
   window.TDBSliderLoader = Object.freeze({
-    version: '0.2.1',
+    version: '0.2.2',
     load: loadSliders,
     status: () => ({ loaded: Boolean(window.TDBSliders), loading: !loaded && Boolean(loadingPromise), swiperAvailable: typeof window.Swiper === 'function' }),
   });
@@ -602,7 +613,7 @@ startLenisForSession();
 })();
 
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.4.7',
+  version: '1.4.8',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,

@@ -29,7 +29,7 @@ async function setup(t, options = {}) {
   virtualConsole.on('jsdomError', error => jsErrors.push(error));
   // Runtime error messages are expected in the persistent-failure cases.
   virtualConsole.on('error', () => {});
-  const dom = new JSDOM(`<!doctype html><html style="--tdb-ui-ready:1"><head></head><body>
+  const dom = new JSDOM(`<!doctype html><html style="--tdb-ui-ready:1;--tdb-slider-ui-ready:1"><head></head><body>
     <form id="normal-form"><input id="field"><button type="submit">Send</button></form>
     <form id="vip-drawer-form"><input id="vip-field"></form>
     <a id="vip-intent" href="#VIP">Join VIP</a>
