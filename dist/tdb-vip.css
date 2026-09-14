@@ -328,6 +328,14 @@ html.tdb-vip-menu-away .navbar-bg_layer {
   }
 }
 
+/* Apply the complete drawer sheet before revealing its geometry. */
+@property --tdb-vip-ui-ready {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+html { --tdb-vip-ui-ready: 1; }
+
 /* TDB desktop VIP drawer v0.2.0
  * Shared presentation lives in tdb-vip-drawer-shared.css.
  * This file contains desktop-only geometry and form layout differences.

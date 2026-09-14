@@ -11,6 +11,7 @@ async function setup(t, { missingCSS = false } = {}) {
   const requests = [];
   class Network extends ResourceLoader {
     fetch(url, { element }) {
+      if (element.hasAttribute('data-tdb-ui-css')) { const done = Promise.resolve(Buffer.from('html{--tdb-ui-ready:1}')); done.abort = () => {}; return done; }
       const kind = element.tagName === 'LINK' ? 'css' : element.hasAttribute('data-swiper-js') ? 'swiper' : 'sliders';
       let resolve, reject;
       const result = new Promise((yes, no) => { resolve = yes; reject = no; });
@@ -23,7 +24,7 @@ async function setup(t, { missingCSS = false } = {}) {
   virtualConsole.on('jsdomError', () => {});
   virtualConsole.on('error', () => {});
   const dom = new JSDOM(`<!doctype html><html style="--tdb-ui-ready:1"><head>
-    <style id="before"></style>
+    <link data-tdb-ui-css rel="stylesheet" href="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@release/dist/tdb-ui.css"><style id="before"></style>
     ${missingCSS ? '' : '<link data-tdb-slider-ui-css rel="stylesheet" media="print" href="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@release/dist/tdb-slider-ui.css">'}
     <style id="after"></style></head><body><div class="parallax-swiper_component"><button>Next</button></div></body></html>`, {
     url: 'https://dentalbarns.webflow.io/', runScripts: 'dangerously', resources: new Network(), virtualConsole,
@@ -64,7 +65,7 @@ test('slider initialization waits for CSS even when Swiper finishes first', asyn
   assert.equal(h.count('sliders'), 0, 'No unstyled slider initialization');
   await h.finish('css');
   assert.equal(h.pending('css'), undefined);
-  assert.equal(h.window.document.querySelector('link').media, 'all');
+  assert.equal(h.window.document.querySelector('link[data-tdb-slider-ui-css]').media, 'all');
   await h.finish('sliders');
   await flight;
   await h.load();
@@ -121,8 +122,17 @@ test('stale CSS cannot initialize sliders and later intent can recover', async t
   assert.equal(h.window.sliderExecutions, 1);
 });
 
-test('missing slider CSS refuses unstyled initialization', async t => {
+test('a missing feature link is created only on demand, using the shared immutable release', async t => {
   const h = await setup(t, { missingCSS: true });
-  await assert.rejects(h.load(), /slider UI link is missing/);
+  assert.equal(h.count('css'), 0);
+  const flight = h.load();
+  assert.equal(h.count('css'), 1);
+  assert.equal(h.pending('css').element.href, 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@release/dist/tdb-slider-ui.css');
+  assert.ok(h.pending('css').element.previousElementSibling.hasAttribute('data-tdb-ui-css'));
+  await h.finish('swiper');
   assert.equal(h.count('sliders'), 0);
+  await h.finish('css');
+  await h.finish('sliders');
+  await flight;
+  assert.equal(h.count('css'), 1);
 });

@@ -323,3 +323,11 @@ html.tdb-vip-menu-away .navbar-bg_layer {
     padding-inline: 5%;
   }
 }
+
+/* Apply the complete drawer sheet before revealing its geometry. */
+@property --tdb-vip-ui-ready {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+html { --tdb-vip-ui-ready: 1; }

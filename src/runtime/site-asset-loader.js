@@ -129,7 +129,7 @@ function loadScriptWithRecovery(src, attrName) {
   return flight;
 }
 
-/* Both stylesheets are requested by the head. Keep recovery in their original cascade positions. */
+/* Only shared UI is requested by the head. Feature CSS is requested when its runtime is needed. */
 const tdbStyleFlights = new Map();
 const tdbStyleIsReady = property => getComputedStyle(document.documentElement)
   .getPropertyValue(property).trim() === '1';
@@ -194,12 +194,36 @@ function tdbEnsureStylesheet(attribute, filename, property, label) {
 function tdbEnsureUI() {
   return tdbEnsureStylesheet('data-tdb-ui-css', 'tdb-ui.css', '--tdb-ui-ready', 'global UI');
 }
-function tdbEnsureSliderUI() {
-  return tdbEnsureStylesheet('data-tdb-slider-ui-css', 'tdb-slider-ui.css', '--tdb-slider-ui-ready', 'slider UI');
+function tdbEnsureFeatureCSS(attribute, filename, property, label) {
+  if (tdbStyleIsReady(property)) return Promise.resolve();
+  let link = document.querySelector(`link[${attribute}]`);
+  if (!link) {
+    const shared = document.querySelector('link[data-tdb-ui-css]') ||
+      Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+        .find(node => /\/dist\/tdb-ui\.css(?:[?#]|$)/.test(node.href));
+    if (!shared) return Promise.reject(new Error('TDB global UI link is missing'));
+    link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = new URL(filename, shared.href).href;
+    link.setAttribute(attribute, 'true');
+    // Match the old bundle's cascade: after shared UI, before later page overrides.
+    shared.insertAdjacentElement('afterend', link);
+  }
+  return tdbEnsureStylesheet(attribute, filename, property, label);
 }
+function tdbEnsureSliderUI() {
+  return tdbEnsureFeatureCSS('data-tdb-slider-ui-css', 'tdb-slider-ui.css', '--tdb-slider-ui-ready', 'slider UI');
+}
+function tdbEnsureVIPUI() {
+  return tdbEnsureFeatureCSS('data-tdb-vip-ui-css', 'tdb-vip.css', '--tdb-vip-ui-ready', 'VIP UI');
+}
+function tdbEnsureContentVideoUI() {
+  return tdbEnsureFeatureCSS('data-tdb-vimeo-content-ui-css', 'tdb-vimeo-content-ui.css', '--tdb-vimeo-content-ui-ready', 'content-video UI');
+}
+window.TDBFeatureCSS = Object.freeze({ contentVideo: tdbEnsureContentVideoUI });
 
 function tdbPreloadVIPScript(src) {
-  if (tdbUIIsReady() || document.querySelector('link[data-tdb-vip-preload]') ||
+  if ((tdbUIIsReady() && tdbStyleIsReady('--tdb-vip-ui-ready')) || document.querySelector('link[data-tdb-vip-preload]') ||
       document.querySelector('script[data-tdb-vip-drawer-js]')) return;
   const link = document.createElement('link');
   link.rel = 'preload';
@@ -393,7 +417,7 @@ function prepareVIPDrawerLoader() {
     if (loadingPromise) return loadingPromise;
     if (realDrawerReady()) return Promise.resolve(window.TDBVIPDrawer);
     tdbPreloadVIPScript(jsUrl);
-    loadingPromise = tdbEnsureUI()
+    loadingPromise = Promise.all([tdbEnsureUI(), tdbEnsureVIPUI()])
       .then(() => {
         if (demand) {
           // Resolve the hidden starting geometry only after actual demand, before
@@ -494,7 +518,7 @@ function prepareVIPDrawerLoader() {
   else window.addEventListener('tdb:priority-ready', loadSafely, { once: true });
 
   window.TDBVIPDrawerLoader = Object.freeze({
-    version: '1.3.0',
+    version: '1.3.1',
     load: loadDrawer,
     status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) && !realDrawerReady(), uiReady: tdbUIIsReady(), demand }),
   });
@@ -568,7 +592,7 @@ function prepareSliderLoader() {
   else start();
 
   window.TDBSliderLoader = Object.freeze({
-    version: '0.2.2',
+    version: '0.2.3',
     load: loadSliders,
     status: () => ({ loaded: Boolean(window.TDBSliders), loading: !loaded && Boolean(loadingPromise), swiperAvailable: typeof window.Swiper === 'function' }),
   });
@@ -613,7 +637,7 @@ startLenisForSession();
 })();
 
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.4.8',
+  version: '1.4.9',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,

@@ -1,0 +1,2 @@
+/* Critical: release height as soon as IX2 writes opacity, preserving its AUTO height cleanup. */
+.highlight-swiper_component .layout423_card-content-bottom:not([style*="opacity"]){opacity:0;height:0;transform:translate3d(0,20px,0)}
