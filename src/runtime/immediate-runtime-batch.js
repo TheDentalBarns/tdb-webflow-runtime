@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.8.14-slider-css-staging';
+  const VERSION = '0.8.15-demand-css-staging';
 
   function loadScript(src, attrName, readyCheck) {
     const existing = document.querySelector(`script[${attrName}]`);
@@ -64,10 +64,14 @@
       '[data-vimeo-hero-shell], [data-vimeo-ambient-init], [data-vimeo-player-init][data-vimeo-content-init]',
     );
     if (component) {
-      return loadScript(
+      const contentPlayer = document.querySelector('[data-vimeo-player-init][data-vimeo-content-init]');
+      const cssReady = contentPlayer
+        ? footerRuntimePromise.then(() => window.TDBFeatureCSS.contentVideo())
+        : Promise.resolve();
+      return cssReady.then(() => loadScript(
         'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-vimeo-js@v1.0.1/dist/vimeo-controller.min.js',
         'data-vimeo-controller-js',
-      );
+      ));
     }
 
     // Normally this deferred runtime runs after parsing. Preserve discovery if
@@ -80,13 +84,13 @@
     return Promise.resolve(null);
   }
 
-  const vimeoPromise = loadVimeoWhenPresent();
-
   const footerRuntimePromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@637b27a19c3a562196147e08aaec74ff4d7d684b/dist/tdb-footer-runtime.min.js',
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@2f8ff525fc254a7524d42bf6b12db5f3e8c4d59f/dist/tdb-footer-runtime.min.js',
     'data-tdb-footer-runtime-js',
     () => Boolean(window.TDBFooterRuntime),
   );
+
+  const vimeoPromise = loadVimeoWhenPresent();
 
   const priorityReady = Promise.allSettled([
     consentPromise,
