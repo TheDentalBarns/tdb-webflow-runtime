@@ -593,6 +593,7 @@ function prepareSliderLoader() {
     load: loadSliders,
     status: () => ({ loaded: Boolean(window.TDBSliders), loading: !loaded && Boolean(loadingPromise), swiperAvailable: typeof window.Swiper === 'function' }),
   });
+  window.dispatchEvent(new Event('tdb:slider-loader-ready'));
 }
 
 prepareFormsLoader();
@@ -636,7 +637,7 @@ startLenisForSession();
 })();
 
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.4.11',
+  version: '1.4.12',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,
