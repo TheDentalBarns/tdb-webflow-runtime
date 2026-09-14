@@ -212,7 +212,7 @@ function tdbEnsureFeatureCSS(attribute, filename, property, label) {
   return tdbEnsureStylesheet(attribute, filename, property, label);
 }
 function tdbEnsureSliderUI() {
-  return tdbEnsureFeatureCSS('data-tdb-slider-ui-css', 'tdb-slider-ui.css', '--tdb-slider-ui-ready', 'slider UI');
+  return tdbEnsureFeatureCSS('data-tdb-slider-ui-css', TDB_SLIDER_ROOT + 'tdb-slider-ui.css', '--tdb-slider-ui-ready', 'slider UI');
 }
 function tdbEnsureVIPUI() {
   return tdbEnsureFeatureCSS('data-tdb-vip-ui-css', 'tdb-vip.css', '--tdb-vip-ui-ready', 'VIP UI');
