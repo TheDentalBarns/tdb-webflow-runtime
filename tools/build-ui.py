@@ -7,6 +7,7 @@ GLOBAL_SOURCES = [
     ROOT / 'src/styles/tdb-vimeo-ui.css',
     ROOT / 'src/styles/tdb-runtime-ui.css',
     ROOT / 'src/styles/tdb-deferred-ui.css',
+    ROOT / 'src/styles/tdb-slider-focus.css',
 ]
 
 VIP_SOURCES = [

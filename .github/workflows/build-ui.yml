@@ -11,6 +11,7 @@ on:
       - 'src/styles/tdb-runtime-ui.css'
       - 'src/styles/tdb-deferred-ui.css'
       - 'src/styles/tdb-slider-ui.css'
+      - 'src/styles/tdb-slider-focus.css'
       - 'src/styles/tdb-vip-drawer-shared.css'
       - 'src/styles/tdb-vip-drawer-desktop.css'
       - '.github/workflows/build-ui.yml'

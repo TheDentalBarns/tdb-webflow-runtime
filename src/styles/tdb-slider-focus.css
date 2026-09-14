@@ -1,0 +1,30 @@
+/* TDB slider focus CSS v1.0.1: match navbar travel without an early banner fade. */
+.elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb {
+  transition: transform 420ms cubic-bezier(.4,0,.2,1),opacity 260ms cubic-bezier(.4,0,.2,1),visibility 0s !important;
+}
+html.tdb-slider-focus .navbar10_component {
+  transform: translateY(calc(-1 * var(--tdb-slider-nav-away,100%))) !important;
+  pointer-events: none !important;
+  transition: transform 420ms cubic-bezier(.4,0,.2,1) !important;
+}
+html.tdb-slider-focus .navbar-bg_layer {
+  transform: translateY(-100%) !important;
+  pointer-events: none !important;
+  transition: transform 420ms cubic-bezier(.4,0,.2,1) !important;
+}
+html.tdb-slider-focus #tdb-vip-drawer {
+  transform: translate3d(0,100%,0) !important;
+  pointer-events: none !important;
+  transition: transform 420ms cubic-bezier(.4,0,.2,1) !important;
+}
+html.tdb-slider-focus .elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb {
+  transform: translate3d(0,-100%,0) !important;
+  opacity: 1 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transition: transform 420ms cubic-bezier(.4,0,.2,1),visibility 0s 420ms !important;
+}
+@media(prefers-reduced-motion:reduce) {
+  html:root .elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb { transition:none !important; }
+  html.tdb-slider-focus :is(.navbar10_component,.navbar-bg_layer,#tdb-vip-drawer,.elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb) { transition:none !important; }
+}
