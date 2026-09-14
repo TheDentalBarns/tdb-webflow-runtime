@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.8.15-demand-css-staging';
+  const VERSION = '0.8.18-deferred-ui-staging';
 
   function loadScript(src, attrName, readyCheck) {
     const existing = document.querySelector(`script[${attrName}]`);
@@ -85,7 +85,7 @@
   }
 
   const footerRuntimePromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@2f8ff525fc254a7524d42bf6b12db5f3e8c4d59f/dist/tdb-footer-runtime.min.js',
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@271f7b23e45aa4fde7b2a81248690de281cb6d87/dist/tdb-footer-runtime.min.js',
     'data-tdb-footer-runtime-js',
     () => Boolean(window.TDBFooterRuntime),
   );
