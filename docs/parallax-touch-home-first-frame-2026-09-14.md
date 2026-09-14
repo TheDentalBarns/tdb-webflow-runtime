@@ -23,3 +23,15 @@ This is a reliability and first-frame presentation change, not a file-size optim
 ## Rollback
 
 Restore the prior Home/Location `data-tdb-initial-parallax-controls` blocks; remove only Home's `data-tdb-home-first-frame` and `data-tdb-home-poster-preload` additions; restore `.hero-vimeo_background-video-wrapper` in Home's existing timed reveal CSS/selector. Restore immediate pin 1dc5aeed5f0c9e5c39096726017701f43633ce1c and reconcile footer/slider manifest pins to the baseline above. Preserve unrelated changes, then publish only the Webflow subdomain (`customDomains: []`). Exact before/after page code is retained in the accompanying checkpoint JSON.
+
+## Published release and live checks
+
+Published staging at 2026-09-14T21:58:13.494Z. Immediate `d05960427433fb20d32a0762eff2253b1c270f96`; footer `c770bfe8d55cfb9af9928ca66b2ff4d347742ea1`; sliders and early CSS source `9280e180bb887553f2ad59829b990212b7c2eaa1`. Six CDN resources matched local sources/builds byte for byte. Home and Location each serve one initial-controls style block and the new immediate pin. Only Home has the first-frame CSS and the two mutually exclusive responsive poster preload tags.
+
+All 36 focused tests passed; the 13 footer/loader checks also passed against the final pinned footer build. On fresh live desktop loads, both CTAs existed before Swiper initialization, outside its event container, with rgba(0,0,0,.3) and blur(20px). Home poster was decoded and visible at document interactive. Hero height remained 936px and marquee height 354.296875px.
+
+Live Home next-arrow traversal visited CMS indices 2, 3, 4, loop-clone 0, 1, 2 with the expected respective routes and exactly one CTA throughout. No originals or clones contained extra CTA links. The physical-phone touch rendering and short recorded viewport/height shift remain unverified; no supported touch-device emulation was available in this browser.
+
+All four production domains retained their prior 2026-09-12T19:20:19.204Z publication timestamp.
+
+Additional live navigation: Home's CTA opened `/services/fast-track`; Back restored that same route on one CTA; Forward reopened the service page. Location's next control advanced to CMS index 2 with one `/first-visit` CTA; clicking opened `/first-visit`. Physical touch colour feedback is covered by the controlled tests, not claimed as a real-phone visual test.

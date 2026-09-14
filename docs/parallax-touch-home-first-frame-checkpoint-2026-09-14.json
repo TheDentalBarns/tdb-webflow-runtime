@@ -52,5 +52,50 @@
       "location": "footer",
       "content": "<script>\n  (function () {\n    setTimeout(function () {\n      requestAnimationFrame(function () {\n        const targets = document.querySelectorAll('.navbar10_logo, .menu-icon5');\n        targets.forEach(function (el) {\n          el.classList.add('visible');\n        });\n      });\n    }, 10);\n  })();\n</script>"
     }
-  ]
+  ],
+  "release_pins": {
+    "slider": "9280e180bb887553f2ad59829b990212b7c2eaa1",
+    "footer": "c770bfe8d55cfb9af9928ca66b2ff4d347742ea1",
+    "immediate": "d05960427433fb20d32a0762eff2253b1c270f96"
+  },
+  "published_at": "2026-09-14T21:58:13.494Z",
+  "cdn_verification": [
+    {
+      "path": "dist/tdb-sliders.js",
+      "sha": "9280e180bb887553f2ad59829b990212b7c2eaa1",
+      "bytes": 14819,
+      "sha256": "1df5362341215daba573fedf864d5db4317a80027df1053f24aecff414787ba6"
+    },
+    {
+      "path": "dist/tdb-slider-ui.css",
+      "sha": "9280e180bb887553f2ad59829b990212b7c2eaa1",
+      "bytes": 1363,
+      "sha256": "c0d7c38cb997d07d91bca8c8e76291310f567a54200f6af2e214de9a3491c07f"
+    },
+    {
+      "path": "src/styles/tdb-parallax-controls.css",
+      "sha": "9280e180bb887553f2ad59829b990212b7c2eaa1",
+      "bytes": 4677,
+      "sha256": "c2ca30a1ed54bf0f278ea5b624e16498fb389e67b090ab4f59a2237c687a4854"
+    },
+    {
+      "path": "src/styles/tdb-home-first-frame.css",
+      "sha": "9280e180bb887553f2ad59829b990212b7c2eaa1",
+      "bytes": 394,
+      "sha256": "bf9b93838104ce73b86914fb9a670439b3605a2b1b059962d437748bb01604a3"
+    },
+    {
+      "path": "dist/tdb-footer-runtime.min.js",
+      "sha": "c770bfe8d55cfb9af9928ca66b2ff4d347742ea1",
+      "bytes": 22724,
+      "sha256": "895f57ab815c70c0c82e83050c3763046238e4b53357f39d768772e07051d217"
+    },
+    {
+      "path": "dist/tdb-immediate-runtime-batch.min.js",
+      "sha": "d05960427433fb20d32a0762eff2253b1c270f96",
+      "bytes": 10857,
+      "sha256": "5a85e9024bbcc11c44ea8313f04610747e4056aacb106f5c224c3d3f44bdaebd"
+    }
+  ],
+  "global_footer_after": "<!-- Webflow section-link motion trial: use Webflow\u2019s own instant-scroll option. -->\n<script data-tdb-webflow-scroll-motion>document.body.setAttribute(\"data-wf-scroll-motion\",\"none\");</script>\n\n<!-- TDB WEBFLOW STAGING MANIFEST -->\n<!-- Tooltips v1.0.0 | SHA 61cec90cdba3d42a29d3c31194b692c251e8d421 | matching elements only; proximity or intent -->\n<!-- Navbar runtime v1.1.0 | SHA 61cec90cdba3d42a29d3c31194b692c251e8d421 -->\n<!-- Immediate runtime v0.9.1 parallax-touch-staging | SHA d05960427433fb20d32a0762eff2253b1c270f96 -->\n<!-- Footer runtime v1.4.13 | loaded by immediate | SHA c770bfe8d55cfb9af9928ca66b2ff4d347742ea1 -->\n<!-- Global UI | SHA 2f8ff525fc254a7524d42bf6b12db5f3e8c4d59f | early UI, hero playback and shared focus/Elfsight easing -->\n<!-- VIP CSS | SHA 2f8ff525fc254a7524d42bf6b12db5f3e8c4d59f | first scroll/intent on Home; ready before drawer preparation -->\n<!-- VIP variants | SHA 71ff4c4be481a56d7dc11c09a7b0563850f7838b | focus and nested consent guards -->\n<!-- Slider runtime v0.6.1 with shared scroll focus v1.1.0 | SHA 9280e180bb887553f2ad59829b990212b7c2eaa1 | Home/Location stationary CMS CTA; existing slide motion preserved -->\n<!-- Slider CSS v1.4.0 | SHA 9280e180bb887553f2ad59829b990212b7c2eaa1 | motion styles; early arrows and 20px-blur CTA CSS in Home/Location heads; gesture-aware touch feedback -->\n<!-- Content-video CSS | SHA 2f8ff525fc254a7524d42bf6b12db5f3e8c4d59f | content-player pages only, before controller; hero-only path stays independent -->\n\n<noscript>\n  <img height=\"1\" width=\"1\" style=\"display:none\" src=\"https://www.facebook.com/tr?id=1326762815429148&ev=PageView&noscript=1\" alt=\"\" />\n</noscript>\n\n<script defer src=\"https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@61cec90cdba3d42a29d3c31194b692c251e8d421/dist/tdb-navbar.min.js\"></script>\n\n<!-- TDB Immediate runtime v0.9.1 | SHA d05960427433fb20d32a0762eff2253b1c270f96 -->\n<script defer src=\"https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d05960427433fb20d32a0762eff2253b1c270f96/dist/tdb-immediate-runtime-batch.min.js\"></script>\n\n"
 }
