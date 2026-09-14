@@ -1,0 +1,39 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const { JSDOM, ResourceLoader, VirtualConsole } = require('jsdom');
+const base = path.resolve(__dirname, '../..');
+const read = f => fs.readFileSync(path.join(base, f), 'utf8');
+const source = read('src/runtime/deferred-ui.js') + '\n' + read('src/runtime/site-asset-loader.js');
+const focus = read('src/sliders/slider-focus.js');
+const tip = '<div class="partner"><a href="#" class="tooltip2_element-wrapper">Partner</a><div class="tooltip2_tooltip-wrapper" style="padding:10px"><span class="tooltip2_pointer is-bottom"></span>Details</div></div>';
+const turns = async () => { await new Promise(r=>setTimeout(r,0)); await new Promise(r=>setTimeout(r,0)); };
+async function setup(t, html='') {
+ const requests=[], observers=[], frames=new Map();let frameId=0;
+ class Network extends ResourceLoader {
+  fetch(url,{element}) {let resolve,reject;const flight=new Promise((yes,no)=>{resolve=yes;reject=no;});flight.abort=()=>{};requests.push({url,element,resolve,reject,done:false});return flight;}
+ }
+ const vc=new VirtualConsole();vc.on('jsdomError',()=>{});
+ const dom=new JSDOM('<html style="--tdb-ui-ready:1"><head></head><body><nav class="navbar10_component"></nav>'+html+'</body></html>',{url:'https://dentalbarns.webflow.io/',runScripts:'dangerously',resources:new Network(),virtualConsole:vc,beforeParse(w){
+  w.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){}});
+  w.requestIdleCallback=()=>1;
+  w.requestAnimationFrame=fn=>{frames.set(++frameId,fn);return frameId;};
+  w.cancelAnimationFrame=id=>frames.delete(id);
+  w.IntersectionObserver=class {constructor(callback,options){this.callback=callback;this.options=options;this.nodes=[];observers.push(this);}observe(n){this.nodes.push(n);}unobserve(n){this.nodes=this.nodes.filter(x=>x!==n);}disconnect(){this.nodes=[];}};
+ }});
+ t.after(()=>dom.window.close());const w=dom.window;
+ w.eval(source);await turns();
+ function event(el,type,props={}){const e=new w.Event(type,{bubbles:true,cancelable:true});Object.assign(e,{button:0,isPrimary:true,pointerId:1,clientX:0,clientY:0,...props});el.dispatchEvent(e);}
+ async function finish(name,code){const r=requests.find(x=>!x.done&&x.url.endsWith(name));assert.ok(r,'Requested '+name);r.done=true;r.resolve(Buffer.from(code??read('dist/'+name)));await turns();}
+ function near(margin){const o=observers.find(o=>o.options?.rootMargin===margin);assert.ok(o);o.callback(o.nodes.map(target=>({target,isIntersecting:true,intersectionRatio:1})),o);}
+ return {w,requests,observers,frames,event,finish,near};
+}
+test('absent tooltips and far sliders add no feature requests',async t=>{const h=await setup(t,'<div class="logo-slider"></div>');assert.equal(h.requests.length,0);assert.ok(!h.observers.some(o=>o.options?.rootMargin==='600px 0px'&&o.nodes.length));});
+test('tooltip proximity loads one module; repeated intent shares it',async t=>{const h=await setup(t,tip);h.near('600px 0px');const a=h.w.document.querySelector('a');h.event(a,'pointerover');h.event(a,'focusin');await turns();assert.equal(h.requests.length,1);assert.match(h.requests[0].url,/tdb-tooltips.js$/);await h.finish('tdb-tooltips.js');h.event(a,'pointerover');await turns();assert.equal(h.requests.length,1);assert.ok(h.w.TDBTooltips);assert.equal(h.w.iconWrapperClass,undefined);});
+test('focus-only native slider loads bundle without Swiper or slider CSS; first click is preserved',async t=>{const h=await setup(t,'<div class="w-slider"><button class="w-slider-arrow-right">Next</button></div>');const b=h.w.document.querySelector('button');let clicks=0;b.addEventListener('click',()=>clicks++);h.event(b,'pointerdown');h.event(b,'pointerup');h.event(b,'click');await turns();assert.equal(h.requests.length,1);assert.match(h.requests[0].url,/tdb-sliders.js$/);await h.finish('tdb-sliders.js');assert.equal(clicks,1,'No synthetic/replayed page click');assert.ok(h.w.document.documentElement.classList.contains('tdb-slider-focus'));assert.equal(h.w.document.querySelectorAll('script[data-swiper-js],link[data-tdb-slider-ui-css]').length,0);});
+test('first logo drag during download activates focus without issuing slide commands',async t=>{const h=await setup(t,'<div class="logo-slider"><span>Logo</span></div>');const el=h.w.document.querySelector('span');h.event(el,'pointerdown');h.event(el,'pointermove',{clientX:40,clientY:2});h.event(el,'pointerup',{clientX:40,clientY:2});h.event(el,'click');await turns();await h.finish('tdb-sliders.js');assert.ok(h.w.document.documentElement.classList.contains('tdb-slider-focus'));});
+test('vertical scrolling cancels delayed slider focus',async t=>{const h=await setup(t,'<div class="w-slider"><button class="w-slider-arrow-right">Next</button></div>');h.event(h.w.document.querySelector('button'),'pointerdown');h.w.scrollY=200;await turns();await h.finish('tdb-sliders.js');assert.ok(!h.w.document.documentElement.classList.contains('tdb-slider-focus'));});
+test('focus behaviour covers every family and excludes fields/filters',async t=>{const h=await setup(t);h.w.eval(focus);for(const name of ['highlight-swiper_component','parallax-swiper_component','swiper','w-slider','logo-slider']){const el=h.w.document.createElement('div');el.className=name;el.innerHTML='<button class="swiper-btn-next">Next</button><input>';h.w.document.body.append(el);h.event(el.querySelector('button'),'click');assert.ok(h.w.document.documentElement.classList.contains('tdb-slider-focus'),name);h.event(h.w.document.body,'keydown',{key:'Escape'});h.event(el.querySelector('input'),'keydown',{key:'ArrowRight'});assert.ok(!h.w.document.documentElement.classList.contains('tdb-slider-focus'));el.remove();}h.w.document.body.insertAdjacentHTML('beforeend','<div data-tdb-sg-overlay><div class="swiper"><button class="swiper-btn-next"></button></div></div>');h.event(h.w.document.querySelector('button'),'click');assert.ok(!h.w.document.documentElement.classList.contains('tdb-slider-focus'));});
+test('tooltips loaded with existing keyboard focus position immediately and flip at viewport edge',async t=>{const h=await setup(t,tip);const w=h.w,a=w.document.querySelector('a'),box=w.document.querySelector('.tooltip2_tooltip-wrapper');Object.defineProperties(w.document.documentElement,{clientWidth:{value:300},clientHeight:{value:300}});a.getBoundingClientRect=()=>({left:0,right:20,top:250,bottom:270,width:20,height:20});box.getBoundingClientRect=()=>({width:160,height:80});a.focus();await turns();await h.finish('tdb-tooltips.js');assert.equal(box.style.bottom,'100%');assert.equal(box.style.transform,'translateX(70px)');const count=h.frames.size;w.TDBTooltips.refresh();h.event(a,'focusin');assert.equal(h.frames.size,count,'One positioning frame loop');});
+test('motion runtime waits for slider CSS when focus bundle arrives early',async t=>{const h=await setup(t,'<div class="highlight-swiper_component"><div class="swiper"></div></div>');h.w.Swiper=function(){};h.w.eval(read('dist/tdb-sliders.js'));assert.equal(h.w.document.querySelector('.highlight-swiper_component').getAttribute('data-tdb-slider-observed'),null);h.w.document.documentElement.style.setProperty('--tdb-slider-ui-ready','1');const link=h.w.document.createElement('link');link.setAttribute('data-tdb-slider-ui-css','true');h.w.document.head.append(link);link.dispatchEvent(new h.w.Event('load'));await turns();assert.equal(h.w.document.querySelector('.highlight-swiper_component').getAttribute('data-tdb-slider-observed'),'true');});

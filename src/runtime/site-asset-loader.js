@@ -544,10 +544,7 @@ function prepareSliderLoader() {
       tdbEnsureUI(),
       tdbEnsureSliderUI(),
       loadScriptWithRecovery('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b3a0f0f2a1e57b5a67db5f5159c449cff07eebd6/dist/tdb-swiper-8.4.7.min.js', 'data-swiper-js'),
-    ]).then(() => loadScriptWithRecovery(
-      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@6d209f97dca2b83e74cef251b065461baba9bc18/dist/tdb-sliders.js',
-      'data-tdb-sliders-js',
-    )).then(script => {
+    ]).then(tdbEnsureSliderRuntime).then(script => {
       loaded = true;
       cleanup();
       return script;
@@ -601,6 +598,8 @@ function prepareSliderLoader() {
 prepareFormsLoader();
 prepareVIPDrawerLoader();
 prepareSliderLoader();
+prepareTooltipLoader();
+prepareSliderFocusLoader();
 startLenisForSession();
 
 (() => {
@@ -637,7 +636,7 @@ startLenisForSession();
 })();
 
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.4.9',
+  version: '1.4.10',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,

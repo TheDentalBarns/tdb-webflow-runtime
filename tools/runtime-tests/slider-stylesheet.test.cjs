@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { JSDOM, ResourceLoader, VirtualConsole } = require('jsdom');
-const source = fs.readFileSync(process.env.TDB_RUNTIME_FILE || path.resolve(__dirname, '../../src/runtime/site-asset-loader.js'), 'utf8');
+const source = fs.readFileSync(path.resolve(__dirname, '../../src/runtime/deferred-ui.js'), 'utf8') + '\n' + fs.readFileSync(process.env.TDB_RUNTIME_FILE || path.resolve(__dirname, '../../src/runtime/site-asset-loader.js'), 'utf8');
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const turns = async () => { await pause(0); await pause(0); };
 
