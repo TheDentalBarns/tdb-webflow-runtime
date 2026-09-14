@@ -1,4 +1,4 @@
-/* TDB slider UI v1.3.1
+/* TDB slider UI v1.3.2
  * Controls, transitions and live-announcement presentation.
  * The head requests this sheet; the slider loader waits for its readiness flag.
  * First-frame hidden-state guards remain in tdb-runtime-ui.css.
@@ -50,7 +50,7 @@ html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide 
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   pointer-events: auto;
-  transition: background-color 0.25s ease;
+  transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease;
 }
 
 html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide :is(.swiper-btn-prev, .swiper-btn-next).is-selected,
@@ -128,6 +128,7 @@ html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide 
   visibility: visible;
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
+  transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease;
 }
 @media (max-width: 767px) and (orientation: portrait) {
   .has-static-parallax-cta .tdb-parallax-cta-layer {
