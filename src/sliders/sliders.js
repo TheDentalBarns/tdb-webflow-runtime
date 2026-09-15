@@ -265,7 +265,9 @@
       observer: true,
       observeParents: true,
       watchSlidesProgress: true,
-      spaceBetween: window.innerWidth <= 768 ? window.innerWidth * 0.05 : 20,
+      spaceBetween: window.innerWidth < 768 && component.hasAttribute('data-tdb-smile-slider')
+        ? window.innerWidth * 0.02
+        : window.innerWidth <= 768 ? window.innerWidth * 0.05 : 20,
       grabCursor: true,
       slideToClickedSlide: true,
       rewind: false,
@@ -295,7 +297,7 @@
       },
       breakpoints: {
         768: { slidesPerView: 1, touchRatio: 1 },
-        0: { slidesPerView: 1, touchRatio: 1.5 }
+        0: { slidesPerView: 1, touchRatio: 1 }
       }
     });
 
@@ -368,7 +370,7 @@
       },
       breakpoints: {
         768: { slidesPerView: 1, touchRatio: 1 },
-        0: { slidesPerView: 1, touchRatio: 1.5 }
+        0: { slidesPerView: 1, touchRatio: 1 }
       }
     });
 
