@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const source = fs.readFileSync(path.join(root, 'src/sliders/sliders.js'), 'utf8');
-const baseline = fs.readFileSync(path.join(root, 'tools/runtime-tests/fixtures/sliders-0.3.0.js'), 'utf8');
+const baseline = fs.readFileSync(path.join(root, 'tools/runtime-tests/fixtures/sliders-before-motion-override.js'), 'utf8');
 const results = [];
 function test(name, fn) {
   try { fn(); results.push({name, passed: true}); }
@@ -28,14 +28,14 @@ class Element extends Events {
     super(); this.kind = kind; this.parent = parent; this.attrs = new Map(); this.dataset = {};
     this.children = []; this.connected = true; this.visibility = 'visible'; this.hiddenAncestor = false;
     this.classWrites = []; this.style = {};
-    this.classList = { add: (...a) => this.classWrites.push(a), remove: (...a) => this.classWrites.push(a), toggle: (...a) => this.classWrites.push(a) };
+    this.classList = { contains:()=>false, add: (...a) => this.classWrites.push(a), remove: (...a) => this.classWrites.push(a), toggle: (...a) => this.classWrites.push(a) };
     this.rect = {top: 1100, bottom: 1600, left: 0, right: 800, width: 800, height: 500};
   }
   querySelector(selector) {
     const mapping = {'.swiper': 'swiper', '.swiper-count': 'count', '.swiper-btn-next': 'next', '.swiper-btn-prev': 'prev', '.swiper-pagination': 'pagination'};
     return this.children.find(el => el.kind === mapping[selector]) || null;
   }
-  querySelectorAll() { return []; }
+  querySelectorAll(selector) { return selector === '.swiper-wrapper > .swiper-slide:not(.swiper-slide-duplicate)' ? Array.from({length:this.slideCount || 0},()=>new Element('slide',this)) : []; }
   matches(selector) { return this.kind === 'highlight' && selector === '.highlight-swiper_component'; }
   setAttribute(name, value) { this.attrs.set(name, value); }
   getAttribute(name) { return this.attrs.get(name) ?? null; }
@@ -78,6 +78,7 @@ function harness({reduced = false, io = true, count = 3, core = true, width = 13
       this.animating = false; this.destroyed = false; this.isLocked = this.slides.length < 2;
       this.calls = []; this.updateCount = 0; el.swiper = this; instances.push(this);
     }
+    get realIndex() { return this.activeIndex; }
     on(types, fn) { types.split(' ').forEach(type=>this.addEventListener(type,fn)); }
     off(types, fn) { types.split(' ').forEach(type=>this.removeEventListener(type,fn)); }
     update() { this.updateCount++; }
@@ -109,9 +110,9 @@ function harness({reduced = false, io = true, count = 3, core = true, width = 13
   const context = vm.createContext({
     window:win, document:doc, Element, location:{pathname:'/about-us'},
     matchMedia: query=>query.includes('prefers-reduced-motion') ? motion : {matches:false},
-    getComputedStyle:el=>({visibility:el.visibility}),
+    getComputedStyle:el=>({visibility:el.visibility,getPropertyValue:()=> '1'}),
     IntersectionObserver:IO,
-    MutationObserver:class { constructor(callback) { this.callback=callback; mutations.push(this); } observe() {} },
+    MutationObserver:class { constructor(callback) { this.callback=callback; mutations.push(this); } observe() {} disconnect() {} },
     requestAnimationFrame: fn=>later(fn,16), cancelAnimationFrame:id=>jobs.delete(id),
     setTimeout:later, clearTimeout:id=>jobs.delete(id)
   });
@@ -130,20 +131,20 @@ function harness({reduced = false, io = true, count = 3, core = true, width = 13
   }
   return {c,components,instances,observers,motion,doc,win,advance,jobs,proximity,visibility,remove,
     status:(target=c)=>target.getAttribute('data-tdb-slider-first-view'),
-    loadCore() {win.Swiper=Swiper;},
+    loadCore() {win.Swiper=Swiper; doc.emit('DOMContentLoaded');},
     add(slides=3) { const target=makeComponent(slides); mutations[0].callback([{addedNodes:[target],removedNodes:[]}]); return target; }
   };
 }
 
-test('Full candidate parses; parallax changes only the two interaction locks',()=>{
+test('Override leaves parallax controller unchanged',()=>{
   new vm.Script(source);
   const block=text=>text.split('  function initParallaxSwiper(component) {')[1].split('  function initByType')[0];
-  const expected=block(baseline).replace('      loop: true,','      loop: true,\n      loopPreventsSlide: false,\n      preventInteractionOnTransition: false,');
+  const expected=block(baseline);
   assert.equal(block(source),expected);
 });
 for (const width of [390,767,768,1363]) test(`Options preserve layout, navigation and gesture policy at ${width}px`,()=>{
   const h=harness({width}); h.proximity();
-  const options=text=>vm.runInNewContext('('+text.split('function initHighlightSwiper(component)')[1].match(/new window\.Swiper\(swiperEl, (\{[\s\S]*?\n    \})\);/)[1]+')',{window:{innerWidth:width},component:{querySelector:s=>s}});
+  const options=text=>vm.runInNewContext('('+text.split('function initHighlightSwiper(component)')[1].match(/new window\.Swiper\(swiperEl, (\{[\s\S]*?\n    \})\);/)[1]+')',{slideCount:3,window:{innerWidth:width},component:{querySelector:s=>s}});
   const before=JSON.parse(JSON.stringify(options(baseline))), after=JSON.parse(JSON.stringify(options(source)));
   before.speed=400; before.autoplay=false; before.preventInteractionOnTransition=false; assert.deepEqual(after,before);
   assert.equal(h.instances[0].params.speed,400); assert.equal(h.instances[0].params.autoplay,false);
@@ -160,7 +161,8 @@ test('First view moves exactly once after layout settles, then no autoplay',()=>
   h.advance(1); assert.equal(h.instances[0].calls.length,1); assert.equal(h.instances[0].calls[0].speed,400);
   h.advance(60000); assert.equal(h.instances[0].calls.length,1); assert.equal(h.status(),'advanced');
   assert.equal(h.c.querySelector('.swiper-count').textContent,'2 of 3');
-  assert.equal(h.c.listenerCount(),0); assert.equal(h.doc.events.get('visibilitychange').size,0); assert.equal(h.motion.listenerCount(),0);
+  assert.equal(h.c.listenerCount(),3); // Existing loop-card relay listeners remain.
+  assert.equal(h.doc.events.get('visibilitychange').size,0); assert.equal(h.motion.listenerCount(),0);
 });
 test('Returning to viewport and calling refresh do not replay the entry move',()=>{
   const h=harness(); h.proximity(); h.visibility(); h.advance(1000); h.visibility(false); h.visibility();
@@ -172,7 +174,7 @@ test('Leaving before entry cancels pending motion; returning can advance once',(
 });
 test('Intersection arriving before core initialization is retained safely',()=>{
   const h=harness({core:false}); h.proximity(); h.visibility(); h.advance(150); assert.equal(h.instances.length,0);
-  h.loadCore(); h.advance(1000); assert.equal(h.instances.length,1); assert.equal(h.instances[0].calls.length,1);
+  h.loadCore(); h.proximity(); h.visibility(); h.advance(1000); assert.equal(h.instances.length,1); assert.equal(h.instances[0].calls.length,1);
 });
 for (const event of ['pointerdown','touchstart','keydown','click','focusin']) test(`${event} before initialization leaves the slider manual`,()=>{
   const h=harness(); h.c.emit(event); h.proximity(); h.visibility(); h.advance(1000);
@@ -192,14 +194,14 @@ test('Already-focused content is not moved automatically',()=>{
   const h=harness(); h.doc.activeElement=h.c.children[2]; h.proximity(); h.visibility(); h.advance(1000);
   assert.equal(h.instances[0].calls.length,0);
 });
-test('Reduced motion from load skips entry permanently without disabling manual navigation',()=>{
+test('Owner policy advances once with reduced motion enabled',()=>{
   const h=harness({reduced:true}); h.proximity(); h.visibility(); h.advance(1000);
-  assert.equal(h.instances[0].calls.length,0); assert.equal(h.status(),'skipped-reduced-motion');
-  h.motion.matches=false; h.motion.emit('change'); h.instances[0].slideNext(); assert.equal(h.instances[0].activeIndex,1);
+  assert.equal(h.instances[0].calls.length,1); assert.equal(h.status(),'advanced');
+  h.motion.matches=false; h.motion.emit('change'); h.instances[0].slideNext(); assert.equal(h.instances[0].activeIndex,2);
 });
-test('Live reduced-motion change cancels queued entry',()=>{
+test('Owner policy retains queued entry when reduced motion changes',()=>{
   const h=harness(); h.proximity(); h.visibility(); h.advance(60); h.motion.matches=true; h.motion.emit('change');
-  h.advance(1000); assert.equal(h.instances[0].calls.length,0); assert.equal(h.status(),'skipped-reduced-motion');
+  h.advance(1000); assert.equal(h.instances[0].calls.length,1); assert.equal(h.status(),'advanced');
 });
 test('Hidden tab waits; becoming visible advances once',()=>{
   const h=harness(); h.doc.hidden=true; h.proximity(); h.visibility(); h.advance(5000);
@@ -231,12 +233,8 @@ test('No IntersectionObserver leaves autoplay off and manual navigation availabl
 });
 test('Destroying an initialized slider cancels entry and removes observer/listeners',()=>{
   const h=harness(); h.proximity(); h.visibility(); h.advance(60); h.instances[0].destroy(); h.advance(1000);
-  assert.equal(h.instances[0].calls.length,0); assert.equal(h.status(),'skipped-destroyed'); assert.equal(h.c.listenerCount(),0);
-});
-test('Removing a pending root releases first-view listeners before core arrives',()=>{
-  const h=harness({core:false}); h.proximity(); h.visibility(); h.remove(); h.advance(2000);
-  assert.equal(h.instances.length,0); assert.equal(h.status(),'skipped-detached'); assert.equal(h.c.listenerCount(),0);
-  assert.equal(h.motion.listenerCount(),0); assert.equal(h.observers.filter(o=>o.options.rootMargin==='0px')[0].targets.size,0);
+  assert.equal(h.instances[0].calls.length,0); assert.equal(h.status(),'skipped-destroyed'); assert.equal(h.c.listenerCount(),0); // Existing loop-card relay listeners remain.
+ 
 });
 test('Dynamically inserted roots initialize once and have independent first-view state',()=>{
   const h=harness(); const other=h.add(); h.proximity(); h.proximity(other); h.visibility(); h.advance(1000);

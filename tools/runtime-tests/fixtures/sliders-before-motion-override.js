@@ -23,7 +23,7 @@
     const swiperEl = getSwiperElement(component);
     if (!swiperEl) return;
 
-    // Site-owner policy: first-view advance is enabled for all visitors.
+    const motion = matchMedia(REDUCED_MOTION_QUERY);
     const intentEvents = ['pointerdown', 'touchstart', 'keydown', 'click', 'focusin'];
     let swiper = null;
     let observer = null;
@@ -45,6 +45,8 @@
       observer?.disconnect();
       intentEvents.forEach(type => component.removeEventListener(type, onIntent, true));
       document.removeEventListener('visibilitychange', onVisibility);
+      if (motion.removeEventListener) motion.removeEventListener('change', onMotion);
+      else motion.removeListener?.(onMotion);
       swiper?.off('touchStart slideChange', onIntent);
       swiper?.off('beforeDestroy', onDestroy);
       firstViewStates.delete(component);
@@ -54,6 +56,7 @@
 
     function onIntent() { finish('skipped-interaction'); }
     function onDestroy() { finish('skipped-destroyed'); }
+    function onMotion() { if (motion.matches) finish('skipped-reduced-motion'); }
     function onVisibility() {
       if (document.hidden) cancelScheduled();
       else schedule();
@@ -63,6 +66,10 @@
       if (finished || !swiper) return false;
       if (!document.documentElement.contains(component) || swiper.destroyed) {
         finish('skipped-detached');
+        return false;
+      }
+      if (motion.matches) {
+        finish('skipped-reduced-motion');
         return false;
       }
       if (component.contains(document.activeElement) || swiper.realIndex !== 0 || swiper.animating) {
@@ -116,10 +123,13 @@
       }
     });
     component.setAttribute(FIRST_VIEW_ATTRIBUTE, 'pending');
+    if (motion.matches) { finish('skipped-reduced-motion'); return; }
     // Without reliable visibility observation, leave navigation entirely manual.
     if (!('IntersectionObserver' in window)) { finish('skipped-unsupported'); return; }
     intentEvents.forEach(type => component.addEventListener(type, onIntent, { capture: true, passive: true }));
     document.addEventListener('visibilitychange', onVisibility);
+    if (motion.addEventListener) motion.addEventListener('change', onMotion);
+    else motion.addListener?.(onMotion);
     observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         inView = entry.isIntersecting && entry.intersectionRatio > 0;
@@ -623,3 +633,4 @@
   document.addEventListener('DOMContentLoaded', startWhenReady, { once: true });
   startWhenReady();
 })();
+

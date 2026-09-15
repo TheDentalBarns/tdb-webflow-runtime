@@ -284,7 +284,4 @@ html.tdb-slider-focus .elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb {
   pointer-events: none !important;
   transition: transform 420ms cubic-bezier(.4,0,.2,1),visibility 0s 420ms !important;
 }
-@media(prefers-reduced-motion:reduce) {
-  html:root .elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb { transition:none !important; }
-  html.tdb-slider-focus :is(.navbar10_component,.navbar-bg_layer,#tdb-vip-drawer,.elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb) { transition:none !important; }
-}
+/* Site-owner policy: slider-focus transitions remain enabled for all visitors. */
