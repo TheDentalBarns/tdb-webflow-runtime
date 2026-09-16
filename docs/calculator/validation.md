@@ -6,10 +6,10 @@
 
 - Repository: TheDentalBarns/tdb-webflow-runtime
 - Feature branch: codex/treatment-calculator-20260916
-- Runtime version: 1.4.0
+- Runtime version: 1.4.1
 - Staging baseline: 15144e3414803974be24852368fa4b8a12303d9d
-- Calculator JS/CSS asset commit: f39c81c7b5b78b769bc40c4d8dfd31326ae29d62
-- Global-footer loader commit: 41b7db4a2efd2deec0a52c15aa2431bd65ca985d
+- Calculator JS/CSS asset commit: 6be97bd18b4daac96dda24d571cc6d1a265cb2f9
+- Global-footer loader commit: 3dfe2fa31f527b401b14f64e54c8f55e578efa20
 - Pilot: https://dentalbarns.webflow.io/dental-cost-lichfield#treatment-calculator
 - Service/FAQ entry: https://dentalbarns.webflow.io/services/fast-track
 
@@ -17,7 +17,7 @@ All other global runtime pins were preserved. The temporary responsive acceptanc
 
 ## Automated checks
 
-37 deterministic and DOM integration tests pass. Coverage includes CMS parsing, price changes, per-unit quantities, assessment bundling, missing prices, inclusions, hygiene, component restrictions, persistence/reset, context conflicts, text escaping, exact finance reconciliation, calendar boundaries, dated fallback allowances, tier-specific aligner timing, per-arch Smile Trial pricing, separate upper/lower veneer stages, section-entry navigation focus, drawer/VIP handoff, timeline selection without scrolling, inline wedding expansion and reduced-motion handling for amount changes.
+38 deterministic and DOM integration tests pass. Coverage includes CMS parsing, price changes, per-unit quantities, assessment bundling, missing prices, inclusions, hygiene, component restrictions, persistence/reset, context conflicts, text escaping, exact finance reconciliation, calendar boundaries, dated fallback allowances, tier-specific aligner timing, per-arch Smile Trial pricing, separate upper/lower veneer stages, section-entry navigation focus, drawer/VIP handoff, timeline selection without scrolling, inline wedding expansion, reduced-motion handling for amount changes and independently overlapping timeline emphasis.
 
 ## Published browser checks
 
@@ -35,12 +35,12 @@ All other global runtime pins were preserved. The temporary responsive acceptanc
 | Estimate colours | #222 header, orange-3 investment/breakdown titles, cream total |
 | Target card | Cream heading with asterisk and estimate qualifications |
 | Reserved message space | At 320px, short and long completion messages both produce a 396.75px card, 35px note and slider offset 166.796875px from card top |
-| Information control | 1px circle/strokes; same Gallery rotate/cross pattern; settled mark opacity 0 and cross opacity 1 when open; 20px panel blur |
+| Information control | Transparent background with orange-3 icon (#d6cab4) and 1px circle. Open state: orange-2 fill at 84%, black icon, information opacity 0 and cross opacity 1; 20px blur |
 | Whitening alignment | Information button left coordinate equals aligners: 209.34375px at 320px viewport |
 | Tooth guidance | Tooltip sits immediately beside the number control; 390px check showed a 6.8px gap |
 | Deadline panel | Begins 5px below the button at 320px; panel/card widths both 288px |
 | Wedding advice | Expands the existing deadline panel from 252.97px to 347.13px; no nested tooltip |
-| Timeline emphasis | Selected row opacity 1; other rows 0.5. Trial opening and closing both retain scrollTop 4302 |
+| Timeline emphasis | At 390px: neighbouring row opacities 1 and 0.997, followed by 0.835, 0.595 and 0.5. Whole rows and dots have overlapping 600ms transitions. Direct trial taps open and close at the same scrollTop 3683; one semantic current stage remains |
 | Bottom buttons | Native 13.3347px typography at 320px. One assessment action, without arrow; Restart keeps the up arrow |
 | Assessment-only | Clears treatment selection, shows £450; heading at 93.44px below the 80px floating bar |
 | Finance below threshold | Grey control remains tappable and explains £250 minimum borrowing after the £450 assessment |
@@ -63,3 +63,11 @@ Gumline bonding retains its canonical per-tooth price and uses an area count, on
 Finance retains 0%, 3–12 months, default 12 months, at least £250 borrowing, and a minimum upfront payment equal to the CMS assessment price. The short cooling-off reminder is within the initial planning allowance. No structured clinical summary is injected into the existing VIP form.
 
 See README.md for editor guidance and webflow-register.json for identifiers. Production was not published by this task.
+
+## v1.4.1 follow-up acceptance
+
+The closed information buttons now have no fill or backdrop blur and retain orange information strokes. The active state retains the existing darker cream glass, black close mark and Gallery rotation. Published mobile computed styles confirm both states, including return to transparent after closing. No CMS or pricing rules changed.
+
+Timeline emphasis now uses an independent continuous proximity curve for each row instead of the current-stage class controlling all opacity. Adjacent rows can brighten together; only the nearest stage is semantically current. The same fade applies to the square markers. The existing frame-batched scroll listener handles inline and drawer views; no perpetual animation loop was added. Reduced-motion CSS still removes transitions.
+
+The 390px staging review showed calculator clientWidth and scrollWidth both 390. One initial automated locator click moved the scroll position; subsequent direct coordinate taps confirmed that the actual stage handler opens and closes without scrolling. The temporary responsive frame was removed and staging republished. All unrelated footer code was preserved.
