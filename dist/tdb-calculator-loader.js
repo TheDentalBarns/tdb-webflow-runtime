@@ -1,7 +1,7 @@
-/* TDB Treatment Calculator loader v1.4.4. URLs are immutable release pins. */
+/* TDB Treatment Calculator loader v1.4.6. URLs are immutable release pins. */
 (function(){
  'use strict';if(window.__tdbCalculatorLoader)return;window.__tdbCalculatorLoader=true;
- const base='https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@36f4512532d682728b4cc1be26bd8e5374798118';
+ const base='https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@75a002dd51bc3e41a3d037e9a426b30bb1472d66';
  const selector='[data-tdb-calc-open],a[href$="#treatment-calculator"]';
  let loading=null;
  function asset(type,url){return new Promise((resolve,reject)=>{const el=document.createElement(type==='css'?'link':'script');let timer;
