@@ -399,7 +399,12 @@
     if(link)link.click();else location.assign('/vip');
   }
   function start(){
-    document.querySelectorAll('[data-tdb-calculator="inline"]').forEach(root=>{if(root.hasAttribute('data-tdb-calc-ready'))return;root.setAttribute('data-tdb-calc-ready','true');new View(root,configFrom(root),'inline').init();});
+    document.querySelectorAll('[data-tdb-calculator="inline"]').forEach(root=>{if(root.hasAttribute('data-tdb-calc-ready'))return;root.setAttribute('data-tdb-calc-ready','true');
+      // Keep the compact estimate below the site's existing announcement bar.
+      const banner=document.querySelector('.eapps-countdown-timer-position-bar');
+      const inset=()=>root.style.setProperty('--calc-sticky-top',Math.max(68,Math.ceil(banner?.getBoundingClientRect().height||0)+8)+'px');
+      inset();if(banner&&'ResizeObserver'in window)new ResizeObserver(inset).observe(banner);
+      new View(root,configFrom(root),'inline').init();});
     document.addEventListener('click',event=>{const a=event.target.closest(SELECTOR);if(!a||event.defaultPrevented||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button>0)return;event.preventDefault();open(a);});
   }
   window.TDBCalculator=Object.freeze({version:C.VERSION,open,close,refresh:()=>{records=null;for(const v of views)v.init();}});
