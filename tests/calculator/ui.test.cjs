@@ -160,3 +160,20 @@ test('scrolling gives neighbouring timeline rows overlapping emphasis while reta
  await scroll();assert.ok(opacity(last)<1,'scrolling resumes the shared focus band after a tap');
  }finally{x.dom.window.close();}
 });
+
+test('dismissing a tooltip restores shared calculator focus until the section leaves view',async()=>{
+ const x=await setup({viewport:true});try{
+ let focuses=0,releases=0;
+ x.w.TDBNavScroll={focus(){focuses++;x.d.documentElement.classList.add('tdb-slider-focus');},release(){releases++;x.d.documentElement.classList.remove('tdb-slider-focus');}};
+ x.root.getBoundingClientRect=()=>({height:1000,top:100,bottom:1100});
+ x.viewport(true);x.choose('[data-category=cosmetic]');x.choose('[data-action=info]');
+ const before=focuses;x.d.documentElement.classList.remove('tdb-slider-focus');
+ x.d.body.dispatchEvent(new x.w.MouseEvent('pointerdown',{bubbles:true,cancelable:true}));
+ assert.equal(x.root.querySelector('.tdbc-info.is-open'),null);
+ assert.ok(focuses>before);assert.equal(releases,0);
+ assert.ok(x.d.documentElement.classList.contains('tdbc-chrome-away'));
+ assert.ok(x.d.documentElement.classList.contains('tdb-slider-focus'));
+ x.d.body.click();assert.equal(releases,0);
+ x.viewport(false);assert.equal(releases,1);assert.equal(x.d.documentElement.classList.contains('tdbc-chrome-away'),false);
+ }finally{x.dom.window.close();}
+});

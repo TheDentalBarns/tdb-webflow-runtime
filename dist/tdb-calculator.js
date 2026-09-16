@@ -1,11 +1,11 @@
-/* TDB Treatment Calculator v1.4.3 — deterministic pricing and planning rules. */
+/* TDB Treatment Calculator v1.4.4 — deterministic pricing and planning rules. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.TDBCalculatorCore = api;
 })(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
-  const VERSION = '1.4.3';
+  const VERSION = '1.4.4';
   const IDS = Object.freeze({
     assessment: '6aa293f6253d574a41978d9e', design: '68386f15264c9bdb140b5f2e',
     whitening: '681ce51276b22da0b0660090', aligners: '67a227e75f8c501023eb066b',
@@ -243,7 +243,7 @@
   return Object.freeze({VERSION,IDS,OPTIONS,parsePrice,recordFromFields,newState,normaliseState,allowedOptions,estimate,payment,finance,parseDate,iso,addDays,addMonths,plan,schedule,suggestedStart,timeline,duration,completionTimeline});
 });
 
-/* TDB Treatment Calculator v1.4.3 — shared inline/drawer controller. */
+/* TDB Treatment Calculator v1.4.4 — shared inline/drawer controller. */
 (function () {
   'use strict';
   if(window.TDBCalculator)return;
@@ -339,9 +339,9 @@
   }
   let focusedView=null,focusEpoch=0;
   function releaseFocus(){if(!focusedView)return;focusedView.root.classList.remove('is-focused');document.documentElement.classList.remove('tdbc-chrome-away');focusedView=null;++focusEpoch;window.TDBNavScroll?.release();}
-  function focusView(view){
+  function focusView(view,restore=false){
     if(view.suspended)return;
-    if(focusedView===view)return;
+    if(focusedView===view&&!restore)return;
     const epoch=++focusEpoch;
     if(focusedView)focusedView.root.classList.remove('is-focused');focusedView=view;
     view.root.classList.add('is-focused');document.documentElement.classList.add('tdbc-chrome-away');
@@ -551,15 +551,28 @@
     let dismissTap=false;
     const outsideTooltip=target=>document.querySelector('.tdbc-info.is-open')&&!target.closest?.('.tdbc-info.is-open');
     const consume=event=>{event.preventDefault();event.stopImmediatePropagation();};
+    const dismissTooltipTap=event=>{
+      const root=document.querySelector('.tdbc-info.is-open')?.closest('.tdb-calc');
+      const owner=views.find(view=>view.root===root);
+      closeTooltips();consume(event);
+      if(owner?.mode==='inline'){
+        const b=owner.root.getBoundingClientRect();
+        owner.visible=b.height>0&&b.top<innerHeight&&b.bottom>0;
+      }
+      // Other page controllers can release shared focus on an outside tap.
+      // Reassert the visible calculator's hold rather than treating dismissal as exit.
+      if(owner&&(owner.visible||owner.mode==='drawer'&&dialog?.open))focusView(owner,true);
+      else syncViewportFocus();
+    };
     window.addEventListener('pointerdown',event=>{
       dismissTap=!!outsideTooltip(event.target);
-      if(dismissTap){closeTooltips();consume(event);}
+      if(dismissTap){dismissTooltipTap(event);return;}
       syncViewportFocus();
     },{capture:true,passive:false});
     window.addEventListener('pointerup',event=>{if(dismissTap)consume(event);},{capture:true,passive:false});
     window.addEventListener('pointercancel',()=>{dismissTap=false;},true);
     window.addEventListener('click',event=>{
-      if(dismissTap||outsideTooltip(event.target)){dismissTap=false;closeTooltips();consume(event);}
+      if(dismissTap||outsideTooltip(event.target)){dismissTap=false;dismissTooltipTap(event);}
     },true);
     window.addEventListener('keydown',()=>{dismissTap=false;},true);
     document.addEventListener('keydown',event=>{if(event.key==='Escape'&&(document.querySelector('.tdbc-info.is-open')||views.some(v=>v.timingWarning))){closeTooltips();for(const v of views)v.dismissTimingWarning();event.preventDefault();event.stopImmediatePropagation();}},true);
