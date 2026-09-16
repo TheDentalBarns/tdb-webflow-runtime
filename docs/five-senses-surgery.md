@@ -16,21 +16,25 @@ Lifecycle checks: `node tools/five-senses/check.mjs`.
 
 ## Registered scene and reveal
 
-The supplied vertical photograph, `TheDentalBarns-076 (2).jpg`, is the visual reference. Its entire 3:4 composition is contained in the viewport with dark matte space where required; no outpainting or cropping is applied at runtime. All authoring plates are 1086 × 1448. Two material plates and one transparent atlas replace a full image for every combination of senses.
+The supplied vertical photograph, `TheDentalBarns-076 (2).jpg`, is the visual reference. Following the approved review change, its 3:4 composition fills the viewport with a shared cover crop. Landscape framing favours the rear worktop. There is no outpainting, stretching, or camera movement between states. All authoring plates are 1086 × 1448. Two material plates and one transparent atlas replace a full image for every combination of senses.
 
 The images are AI-assisted photographic prototype assets. Structural registration and object integration still require a professional retouching pass before a production launch. The generated blue chair deliberately has a conventional chair shape. This is an experiential comparison, not documentation of a real alternative surgery.
 
 | Control | Owned state |
 | --- | --- |
-| Sight | Warm neutral master versus restrained cool clinical grade; subtle moving leaf shadows only with Sight and plant on |
+| Sight | Lighting, shadow softness/movement and chair upholstery colour. ON gives the existing chair shape a warm pearlised mica treatment; OFF gives blue upholstery, brighter clinical light, LED glare above and below the worktop, hard static shadows and a faint pulsing chair reflection. |
 | Sound | Uninitiated → calm TDB-inspired audio, then calm/clinical toggle; headphones appear with the calm state |
 | Smell | Plant and faint botanical motes versus a very slight atmospheric veil |
-| Touch | Warm cabinetry, parquet and brown premium chair versus generic pale cabinetry, speckled lino, blue chair and a yellow sharps bin |
+| Touch | Chair shape and physical materials: premium chair, warm cabinetry and parquet versus a conventional chair, pale cabinetry, speckled lino and a yellow sharps bin. Upholstery colour belongs to Sight. |
 | Taste | An Aesop-style mouthwash bottle on the rear worktop |
 
-The renderer composites only the old and next requested photographs. WebGL mixes those textures using a feathered circular distance mask originating at the actual selected button centre. The transition lasts 3200ms with smooth acceleration and settlement. It never swaps the entire image underneath an ornamental ring. Multiple rapid inputs preserve the current transition and coalesce into one latest pending state. Both textures use the identical photo rectangle.
+Revision 0.3 starts all five states OFF. Sound remains uninitiated and silent until a deliberate Sound gesture. Sight receives initial keyboard focus for this lighting review.
 
-WebGL is preferred for the soft edge and subtle lighting/atmosphere. If it is unavailable or its context is lost, Canvas 2D preserves the actual feathered circular reveal using a separate surface and a destination-in radial gradient, with simplified lighting. Reduced motion uses a 180ms dissolve and disables ambient animation. Users can pause ambient motion independently.
+The renderer prepares the requested photograph once on a fixed 1086 × 1448 canvas and caches up to four complete scenes. Chair recolouring, clinical grading and static glare are baked during preparation, never during the reveal. A native CSS radial mask reveals the actual warm photograph from the Sight button over 1600ms. Turning Sight OFF places the cold photograph underneath and shrinks the outgoing warm photograph from the furthest viewport corner back into the button. Both photographs use the same cover rectangle. The opaque mask edge travels past every corner, and completion explicitly leaves one unmasked scene.
+
+Only the radius is updated by requestAnimationFrame during the 1.6-second reveal. No idle JavaScript rendering loop, repeated full-resolution filters, WebGL context, or live SVG blur is required. Photographic foliage alpha from the existing atlas supplies prepared half-resolution shadows: soft and gently moving when warm, harder and static when cold. A separate half-resolution reflection layer pulses very slightly on the cold chair using opacity only. Ambient motion is CSS driven. The cached warm/cold scenes are reused on repeated toggles.
+
+Multiple rapid inputs preserve the active transition and coalesce into one latest pending state. Resize settles the active transition. Reduced motion uses a 180ms dissolve and disables shadows/motes/reflection animation. The pause control also stops the chair reflection and natural shadow movement.
 
 ## Asset provenance and size
 
@@ -42,15 +46,15 @@ The photographic WebP assets total approximately 383KB. They are hosted in TDB's
 
 ## Lifecycle and accessibility
 
-Native modal dialog supplies focus containment and background inertness. Close and Escape abort requests, stop/disconnect audio immediately, close the AudioContext, cancel pending transitions/animation, dispose of images and GPU objects, restore owned scroll state and return focus to the opener. Lenis is stopped and restarted only when this module owns that stop. A new entry starts Sound uninitiated again. Hiding the document also stops audio and requires a new Sound gesture.
+Native modal dialog supplies focus containment and background inertness. Close and Escape abort requests, stop/disconnect audio immediately, close the AudioContext, cancel pending transitions/animation, dispose of images and prepared canvases, restore owned scroll state and return focus to the opener. Lenis is stopped and restarted only when this module owns that stop. A new entry starts Sound uninitiated again. Hiding the document also stops audio and requires a new Sound gesture.
 
 The first Sound activation resumes the AudioContext synchronously inside the gesture, then decodes the prefetched audio. It schedules clinical ambience → near silence → quiet birds/piano over the reveal. Generation checks prevent late decode completion after closing from starting audio. Sound OFF deliberately means the conventional soundscape, not mute. The accessible description states this.
 
 Buttons support Tab, Enter/Space, and Left/Right/Home/End navigation. Each sense exposes `aria-pressed`; first Sound exposes its Begin label and loading status. State changes are announced. The five controls use space-between across the same desktop 3vw and mobile 5vw gutters, not a centered cluster.
 
-The render back buffer is capped at 2.2 million pixels and DPR 1.65. Only active reveals render continuously. Subtle ambient motion runs at a reduced cadence; pausing, reduced motion, document hiding and closing stop it. Diagnostic data attributes expose renderer, transition phase/progress, frame count and audio lifecycle for browser review.
+Canvas preparation stays at the registered source resolution; cover positioning is CSS only. Four cached scenes bound working memory and are released when closed. Diagnostic data attributes expose version, scene build count/duration, reveal direction/phase/progress, visible sense state and audio lifecycle for review.
 
-Review URLs `?preview=mobile` and `?preview=tablet` create actual 390px and 768px iframe viewports. `?renderer=canvas` exercises the supported fallback. These are explicit QA query modes, not controls in the visitor experience.
+Review URLs `?preview=mobile` and `?preview=tablet` create actual 390px and 768px iframe viewports. These are explicit QA query modes, not controls in the visitor experience.
 
 ## Before expanding to three rooms
 

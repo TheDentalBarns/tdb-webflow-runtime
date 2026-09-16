@@ -1,10 +1,9 @@
 import {SceneRenderer} from './scene-renderer.js';
-/* TDB Five Senses v0.2.0 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.3.0 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
-const IMAGE_SIZE = [1086, 1448];
-const DURATION = 3200;
+const DURATION = 1600;
 const SENSES = ['sight', 'sound', 'smell', 'touch', 'taste'];
 const LABELS = ['Sight', 'Sound', 'Smell', 'Touch', 'Taste'];
 const assetURL=(name,base)=>typeof base==='string'?new URL(name,base):base[name];
@@ -128,7 +127,7 @@ export class Soundscape {
 export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let disposed=false,renderer=null,audio=null,audioReady=false,audioPending=false,motionPaused=false,hasBegun=false;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  const initial={sight:true,sound:false,smell:true,touch:true,taste:true};
+  const initial={sight:false,sound:false,smell:false,touch:false,taste:false};
   const requested={...initial},queue=new TransitionQueue(initial),scope=new AbortController();
   const listen=(el,event,fn,options={})=>el.addEventListener(event,fn,{...options,signal:scope.signal});
   const loaded=await Promise.allSettled(['surgery-warm.webp','surgery-clinical.webp','surgery-objects.webp'].map(name=>imageAsset(assetURL(name,assetBase),signal)));
@@ -137,7 +136,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     throw new Error(signal.aborted?'Closed':'The photograph could not load. Please try again.');
   }
   const images={warm:loaded[0].value,clinical:loaded[1].value,objects:loaded[2].value};
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.2.0';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.3.0';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -170,10 +169,12 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   function begin(active){
     if(!active||disposed)return;
     const duration=reduced.matches?180:DURATION;
+    const reverse=active.from.sight&&!active.state.sight;
+    dialog.dataset.transitionDirection=reverse?'contract':'expand';
     dialog.dataset.phase='transition';dialog.dataset.transitionProgress='0';dialog.dataset.transitionStarted=String(Math.round(performance.now()));
     if(audioReady&&(active.intro||active.from.sound!==active.state.sound))audio.transition(active.state.sound,active.intro);
     const started=performance.now();
-    renderer.reveal(active.state,active.origin,{duration,reduced:reduced.matches,onProgress:p=>{dialog.dataset.transitionProgress=String(p);}}).then(complete=>{
+    renderer.reveal(active.state,active.origin,{duration,reverse,reduced:reduced.matches,onProgress:p=>{dialog.dataset.transitionProgress=String(p);}}).then(complete=>{
       if(!complete||disposed||signal.aborted||queue.active!==active)return;
       dialog.dataset.lastTransitionMs=String(Math.round(performance.now()-started));
       const pending=queue.finish();dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
@@ -225,5 +226,5 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   dialog.dataset.visibleState=JSON.stringify(initial);updateControls();
   await new Promise(resolve=>requestAnimationFrame(resolve));
   if(signal.aborted){cleanup();return;}
-  dialog.classList.add('tdb-senses-ready');controls[1].focus({preventScroll:true});return{cleanup};
+  dialog.classList.add('tdb-senses-ready');controls[0].focus({preventScroll:true});return{cleanup};
 }
