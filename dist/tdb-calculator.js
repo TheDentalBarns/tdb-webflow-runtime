@@ -1,11 +1,11 @@
-/* TDB Treatment Calculator v1.4.2 — deterministic pricing and planning rules. */
+/* TDB Treatment Calculator v1.4.3 — deterministic pricing and planning rules. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.TDBCalculatorCore = api;
 })(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
-  const VERSION = '1.4.2';
+  const VERSION = '1.4.3';
   const IDS = Object.freeze({
     assessment: '6aa293f6253d574a41978d9e', design: '68386f15264c9bdb140b5f2e',
     whitening: '681ce51276b22da0b0660090', aligners: '67a227e75f8c501023eb066b',
@@ -243,7 +243,7 @@
   return Object.freeze({VERSION,IDS,OPTIONS,parsePrice,recordFromFields,newState,normaliseState,allowedOptions,estimate,payment,finance,parseDate,iso,addDays,addMonths,plan,schedule,suggestedStart,timeline,duration,completionTimeline});
 });
 
-/* TDB Treatment Calculator v1.4.2 — shared inline/drawer controller. */
+/* TDB Treatment Calculator v1.4.3 — shared inline/drawer controller. */
 (function () {
   'use strict';
   if(window.TDBCalculator)return;
@@ -425,7 +425,7 @@
       expand('treatments',active,'<section class="tdbc-step" data-node="step-2">'+step('02','Shape your estimate')+'<p class="tdbc-help tdbc-step-intro text-size-small">Explore freely. Your dentist will help confirm the right treatments.</p>'+['cosmetic','restorative'].filter(k=>state.categories.includes(k)&&this.config[k]).map(k=>'<section class="tdbc-treatment-group" data-node="group-'+k+'" aria-label="'+k+' treatments"><div role="heading" aria-level="4" class="text-style-tagline-restored tdbc-dd-fade">'+(k==='cosmetic'?'Cosmetic treatments':'Restorative treatments')+'</div>'+available.filter(o=>o.category===k).map(o=>this.option(o,e)).join('')+'</section>').join('')+'</section>')+
       expand('journey',hasEstimate,hasEstimate?(selected?this.timelineControls(e):'')+this.assessment(e)+(e.cosmetic?this.hygiene(e):'')+this.summary(e):'')+
       (active?'<footer class="tdbc-footnote" data-node="footnote"><p class="text-size-tiny">A guide to possibilities, subject to assessment and your confirmed treatment plan. Your selections stay in this tab for up to four hours.</p><div class="tdbc-actions">'+actionButton('reset','Restart estimate',true)+actionButton('start-assessment','Prefer to start with an assessment?',false,false)+'</div></footer>':'');
-      patch(this.root,'<div class="tdbc-shell container-large" data-node="shell"><header class="tdbc-header" data-node="header" tabindex="-1"><p class="text-style-tagline-restored tdbc-dd-fade">YOUR SMILE, YOUR POSSIBILITIES</p><h2 class="heading-style-h3"'+(this.mode==='drawer'?' id="tdbc-dialog-title"':'')+'>Explore your treatment costs</h2><p class="text-size-small">Start with what matters to you. We’ll bring together a guide to your investment and timing.</p></header>'+
+      patch(this.root,'<div class="tdbc-shell container-large padding-section-large" data-node="shell"><header class="tdbc-header" data-node="header" tabindex="-1"><p class="text-style-tagline-restored tdbc-dd-fade">YOUR SMILE, YOUR POSSIBILITIES</p><h2 class="heading-style-h3"'+(this.mode==='drawer'?' id="tdbc-dialog-title"':'')+'>Explore your treatment costs</h2><p class="text-size-small">Start with what matters to you. We’ll bring together a guide to your investment and timing.</p></header>'+
       (this.context?'<div class="tdbc-notice text-size-small" data-node="context"><p>Your existing estimate is saved. Continue with it, or start with the options from this page.</p><div class="tdbc-actions"><button type="button" data-action="keep" class="tdbc-text-button">Keep my estimate</button><button type="button" data-action="context" class="tdbc-text-button">Start with these options</button></div></div>':'')+
       ('<div class="tdbc-live '+(hasEstimate?'has-estimate':'')+'" data-node="live" aria-hidden="'+!hasEstimate+'" '+(hasEstimate?'':'inert')+'><button type="button" class="tdbc-live-button" data-action="estimate" aria-label="View your full estimate"><span class="tdbc-live-copy"><span class="text-size-tiny">Your estimate</span><span class="tdbc-live-value text-size-small">'+tag+'<strong data-output="live">'+esc(priceText(e))+'</strong></span></span><span class="tdbc-live-copy"><span class="text-size-tiny">Estimated duration</span><span class="tdbc-live-value text-size-small">'+clock+'<span data-output="duration">'+esc(C.duration(records,e,today()))+'</span></span></span><span class="icon-embed-xxsmall is-down w-embed tdbc-scroll-arrow">'+arrow+'</span></button>'+(this.mode==='drawer'?'<button type="button" class="tdbc-live-close" data-action="close" aria-label="Close calculator">×</button>':'')+'</div>')+'<div class="tdbc-main" data-node="main">'+form+'</div></div><footer class="tdbc-section-footer" data-node="section-footer"><div class="container-large"><div class="max-width-xsmall"><p class="text-style-tagline-restored">We believe everyone deserves to feel good about their smile</p></div></div></footer>');
       this.outputs();
