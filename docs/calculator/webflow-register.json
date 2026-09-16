@@ -167,6 +167,33 @@
         "format": "integer",
         "precision": 1
       }
+    },
+    {
+      "displayName": "Calculator tier 1 friendly",
+      "helpText": "Optional patient-friendly description for this existing price tier in the calculator.",
+      "id": "644f5fe89a8bb026366587f72e6103b6",
+      "isEditable": true,
+      "isRequired": false,
+      "slug": "calculator-tier-1-friendly",
+      "type": "PlainText"
+    },
+    {
+      "displayName": "Calculator tier 2 friendly",
+      "helpText": "Optional patient-friendly description for this existing price tier in the calculator.",
+      "id": "84f7758d6d9ee52d71313b8bc35fe348",
+      "isEditable": true,
+      "isRequired": false,
+      "slug": "calculator-tier-2-friendly",
+      "type": "PlainText"
+    },
+    {
+      "displayName": "Calculator tier 3 friendly",
+      "helpText": "Optional patient-friendly description for this existing price tier in the calculator.",
+      "id": "6ee33c4ab643f13f5343ffa12489020a",
+      "isEditable": true,
+      "isRequired": false,
+      "slug": "calculator-tier-3-friendly",
+      "type": "PlainText"
     }
   ],
   "populatedValues": [
@@ -207,7 +234,10 @@
         "calculator-includes-whitening": true,
         "calculator-label": "Invisalign\u00ae / clear aligners",
         "calculator-record-id": "67a227e75f8c501023eb066b",
-        "calculator-tooltip": "Gradually straighten your teeth using clear aligners. Your dentist confirms the right system and complexity tier. Whitening, hygiene and retainers are included."
+        "calculator-tooltip": "Gradually straighten your teeth using clear aligners. Your dentist confirms the right system and the changes needed. Whitening, hygiene and retainers are included.",
+        "calculator-tier-1-friendly": "Small alignment tweaks",
+        "calculator-tier-2-friendly": "Moderate crowding or spacing",
+        "calculator-tier-3-friendly": "More complex alignment and bite changes"
       },
       "id": "67a227e75f8c501023eb066b"
     },
@@ -218,7 +248,10 @@
         "calculator-duration-unit": "weeks",
         "calculator-label": "Composite bonding",
         "calculator-record-id": "681ce7a6838a937aa274f5e6",
-        "calculator-tooltip": "Hand-sculpted composite to refine tooth shape and appearance. Fees vary with complexity; the estimate shows the published tiers."
+        "calculator-tooltip": "Hand-sculpted composite to refine tooth shape and appearance. Choose the description closest to the changes you have in mind; your dentist confirms the care and price.",
+        "calculator-tier-1-friendly": "Small chips or blemishes",
+        "calculator-tier-2-friendly": "Refine shape and symmetry",
+        "calculator-tier-3-friendly": "A complete tooth reshape"
       },
       "id": "681ce7a6838a937aa274f5e6"
     },

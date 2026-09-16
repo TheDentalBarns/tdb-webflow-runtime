@@ -31,7 +31,7 @@ test('drawer preserves estimate, discloses context conflicts, restores focus and
   dialog.dispatchEvent(new x.w.Event('cancel',{cancelable:true}));assert.equal(dialog.open,false);assert.equal(x.d.activeElement,trigger);assert.equal(x.d.documentElement.style.overflow,'');
   await x.w.TDBCalculator.open(trigger);dialog.querySelector('[data-action=context]').click();assert.equal(dialog.querySelector('[data-category=restorative]'),null);assert.equal(dialog.querySelector('[data-select=bonding]').checked,true);
   assert.ok(dialog.querySelector('[data-finance]'));
-  let vip=0;x.w.TDBVIPDrawer={open(){vip++;}};dialog.querySelector('[data-action=vip]').click();assert.equal(vip,1);assert.equal(dialog.open,false);
+  let vip=0;x.w.TDBVIPDrawer={open(){vip++;}};x.d.addEventListener('click',e=>{if(e.target.closest('a[href="#VIP"]')){e.preventDefault();e.stopPropagation();}},true);dialog.querySelector('[data-action=vip]').click();assert.equal(vip,1);assert.equal(dialog.open,false);
   assert.ok(x.w.sessionStorage.getItem('tdb-treatment-estimate-v1'));assert.match(x.text(),/Composite bonding/);
  }finally{x.dom.window.close();}
 });
