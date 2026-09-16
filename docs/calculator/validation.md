@@ -1,38 +1,64 @@
-# Calculator validation and deployment status
+# Calculator staging validation
 
-16 September 2026. **Implementation prepared; staging runtime deployment blocked.**
+16 September 2026. The user explicitly approved repository upload and staging publication. Production publishing remains outside this release.
 
-## Completed
+## Release
 
-- Audited existing CMS, prices, treatment inclusions, assessment package, runtime pins and VIP integration.
-- Added nine optional fields to the existing Pricings collection and populated thirteen active canonical records. No canonical name/price was permanently changed. The archived examination's temporary calculator metadata was cleared.
-- Added a reusable inline component to the pricing page and reusable entry block to the Services template. Both have independent category and finance controls. Finance defaults off pending confirmed lending terms.
-- Prepared two existing finance FAQ CTA links. Browser inspection confirms the entry block and both FAQ links on the Signature Assessment staging service page.
-- Published native CMS bindings/configuration to the Webflow subdomain only. Production custom domains were omitted from every publish request.
-- A temporary staging-only change to gumline label and price (£225 → £226) appeared in the native rendered feed without a code edit. Restored label to Gumline bonding, price/tier to £225; restoration was verified in the staged browser DOM. This proves CMS transport; live calculator rendering remains unverified until runtime connection.
-- Nineteen automated core/DOM integration tests pass. Coverage includes prices/tiers/units, missing data, assessment bundling, included whitening/hygiene, category restrictions, context conflicts, payment reconciliation, date sequencing/month boundaries, persistence, Escape/focus restoration logic, VIP dispatch, CMS escaping and Webflow's omitted false configuration markers.
-- All new runtime files pass syntax checks. The combined JS is about 44 KB raw / 14 KB gzip; scoped CSS about 15 KB raw / 4 KB gzip; demand loader about 2.3 KB raw / 1.1 KB gzip. These are build-size measurements, not a Lighthouse/performance score.
-- A standalone private HTML review file contains the same code and a labelled 16 September CMS snapshot. It demonstrates the inline UI and contextual drawers without publishing assets. Its finance controls are explicitly for review.
+- Repository: TheDentalBarns/tdb-webflow-runtime
+- Feature branch: codex/treatment-calculator-20260916
+- Staging baseline: 15144e3414803974be24852368fa4b8a12303d9d
+- Calculator JS/CSS asset pin: d153db4c274c737585bc21f9d665c61ca639be2a
+- Loader: dist/tdb-calculator-loader.js, pinned to those assets. The Webflow global footer points to the immutable commit containing this loader.
+- Pilot: https://dentalbarns.webflow.io/dental-cost-lichfield#treatment-calculator
+- Service/FAQ entry: https://dentalbarns.webflow.io/services/fast-track
 
-## Blocking approval
+All pre-existing global runtime URLs are preserved. The additional loader fetches full calculator assets near the pricing component or when a drawer is requested. No custom production domain was included in any publish request.
 
-Automatic approval review rejected `github_create_tree` for `TheDentalBarns/tdb-webflow-runtime` because new code and CMS/pricing metadata would be transmitted to a public repository without explicit user approval. No GitHub tree/commit/branch was created remotely. No alternative public hosting or upload was attempted.
+## Verification
 
-The global Webflow footer remains unchanged; there is **no calculator loader installed**. Native component fallback content and normal pricing links remain usable. The staging page is therefore prepared, not a working end-to-end calculator yet. Production was not published, and the production pricing HTML had no calculator component/loader markers.
+Nineteen deterministic/DOM integration tests pass. They cover price parsing, quantities and tiers, assessment bundling, missing data, aligner inclusions, hygiene allowance, category restrictions, context conflicts, persistence/reset, escaped CMS strings, payment bounds and rounding, calendar month/leap-year dates, sequence dependencies, past/tight dates, focus logic and VIP dispatch.
 
-The provided browser could inspect the public staging site, but rejected the private localhost preview with `ERR_BLOCKED_BY_CLIENT`. No alternative browser mechanism was used to bypass that restriction.
+Live staged browser checks:
 
-## Remaining acceptance work after approval
+| Check | Result |
+| --- | --- |
+| Progressive categories and treatment inputs | Passed |
+| Whitening + assessment | £1,245 starting estimate |
+| Add aligners | £4,645–£6,845; whitening and hygiene included |
+| Remove aligners | Original whitening selection and £1,245 estimate restored |
+| Composite bonding quantity | Two teeth: £1,240–£1,640 including assessment |
+| Target date and assessment slider | Finish window changes; original target retained |
+| Unknown gumline timing | Sequence visible; precise completion date withheld |
+| Service and FAQ triggers | Open the same drawer and preserve the estimate |
+| Same-tab navigation | Estimate restored on service page |
+| Escape/close | Drawer closes, scroll lock clears, trigger receives focus |
+| Keyboard Tab/Shift+Tab | Focus remains within open calculator |
+| Join VIP | Calculator closes and existing VIP drawer opens; no form submitted |
+| Finance visibility | Off in both Webflow components and plain FAQ entry |
+| Treatment tooltip | Opens through the native information control |
+| Responsive layout | Inspected at 1363, 768, 390 and 320 CSS pixels; no horizontal overflow |
+| Mobile drawer | Full width at 390px, one scrolling area, 44px close control |
 
-1. Publish the reviewed source/assets to the existing public repository's feature branch, preserving the staging base; never overwrite main.
-2. Build the loader using the resulting immutable asset SHA, commit it, and append only its versioned script to the current Webflow footer.
-3. Publish Webflow staging only. Verify pricing inline, service/FAQ drawers, CMS refresh, actual VIP handoff, keyboard focus/scroll behaviour, and mobile/tablet/desktop layout in the real staged browser. No enquiry submissions.
-4. Resolve any visual/integration findings, record exact release pins and update this report. Do not claim responsive visual QA or real-site performance comparisons before this step.
+Responsive checks used same-origin frames on staging, giving the actual page a narrow viewport. This is layout and browser interaction coverage, not a claim of physical iOS/Android touch-device testing. The temporary frame harness is removed after acceptance.
 
-## Policy decisions left visible
+The mobile running estimate originally sat partly behind the existing announcement bar. The final scoped adjustment reserves that bar's measured height and updates when it resizes. It does not change the announcement bar or global navigation controller.
 
-- Finance: confirm minimum borrowing, deposit bounds, supported terms within 3–12 months and assessment eligibility before enabling. Existing published material confirms only up to twelve months at 0%, subject to eligibility. Current code uses a provisional assessment-paid-separately illustration.
-- Clinical timings: the brief's durations are planning assumptions. Extractions, gumline bonding, hygiene and restorative/shade dependencies withhold exact dates pending assessment.
-- VIP: existing route is integrated without inventing unsupported form fields. No calculator summary is transmitted automatically.
+## CMS publication proof
 
-See README.md for editor instructions and rollback; webflow-register.json lists component/field/element IDs and FAQ originals. Audit snapshots remain in the task workspace.
+With the calculator running on staging, temporarily changed Gumline bonding to “Gumline bonding — CMS check” and its headline/first-tier price from £225 to £226. After staging publication and reload, the calculator displayed the new label and a £676 estimate including the £450 assessment. No calculator code changed during this proof. Restored the original label and both £225 price fields, then republished staging.
+
+Thirteen active canonical pricing records are mapped. Nine optional CMS fields were added. Existing canonical names and commercial prices are preserved. The archived examination is unused and its temporary calculator metadata was cleared. See webflow-register.json for IDs and FAQ originals.
+
+## Performance and regression scope
+
+The new module is approximately 44 KB JS / 14 KB gzip, 15 KB CSS / 4 KB gzip, plus a 2.3 KB / 1.1 KB gzip loader. These are payload measurements, not a Lighthouse score or a new HAR comparison. CSS is scoped to the calculator. Existing pricing content, global script pins and the VIP form remain in place. No new analytics events or detailed treatment payloads were added.
+
+## Decisions still required before enabling optional features
+
+- Finance: minimum borrowing, deposit bounds, supported terms within 3–12 months and assessment eligibility. Existing published material confirms only up to twelve months at 0%, subject to eligibility. The completed illustration keeps assessment payment separate provisionally; Show Finance remains off.
+- Clinical timing: durations come from the brief. Extractions, gumline bonding, additional hygiene and certain restorative/shade dependencies still require assessment before a dated plan.
+- VIP: no verified supported structured-summary field exists, so selections remain in the tab rather than being injected into the form.
+
+An initial automatic review blocked the public repository upload. The user subsequently explicitly approved upload and staging publication. Deployment proceeded through the existing repository and Webflow workflow; no alternative public hosting was used.
+
+See README.md for editorial use and rollback. Production has not been published by this task.
