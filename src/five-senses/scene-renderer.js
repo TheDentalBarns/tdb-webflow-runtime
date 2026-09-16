@@ -116,19 +116,30 @@ function makeSurface(images,state){
   return canvas;
 }
 
-function leafShadows(images,warm){
-  // Reuse photographic foliage alpha at half resolution instead of synthetic leaves
-  // or a live SVG blur. Only this prepared layer's transform moves in the browser.
+function leafShadows(images,state){
+  // A soft-edged photographic foliage sample avoids a synthetic leaf stencil.
+  const foliage=document.createElement('canvas');foliage.width=585;foliage.height=540;
+  const f=foliage.getContext('2d');f.drawImage(images.objects,0,211,585,540,0,0,585,540);
+  f.globalCompositeOperation='destination-in';
+  const fade=f.createLinearGradient(0,180,0,530);fade.addColorStop(0,'#000');fade.addColorStop(.7,'#0007');fade.addColorStop(1,'#0000');f.fillStyle=fade;f.fillRect(0,0,585,540);
   const canvas=document.createElement('canvas');canvas.width=543;canvas.height=724;
   const ctx=canvas.getContext('2d');ctx.scale(.5,.5);
-  ctx.beginPath();
-  ctx.moveTo(374,245);ctx.lineTo(704,270);ctx.lineTo(704,480);ctx.lineTo(594,493);ctx.lineTo(471,622);ctx.lineTo(424,707);ctx.lineTo(376,689);ctx.closePath();
+  ctx.save();ctx.beginPath();
+  ctx.moveTo(374,245);ctx.lineTo(1086,290);ctx.lineTo(1086,748);ctx.lineTo(376,689);ctx.closePath();
   ctx.moveTo(0,666);ctx.lineTo(379,581);ctx.lineTo(423,862);ctx.lineTo(290,1100);ctx.lineTo(103,1398);ctx.lineTo(0,1431);ctx.closePath();ctx.clip();
-  ctx.filter=`blur(${warm?7:1.1}px)`;
-  ctx.save();ctx.transform(.76,.2,-.30,.59,331,275);ctx.drawImage(images.objects,0,211,585,540,0,0,585,540);ctx.restore();
-  ctx.save();ctx.transform(.73,-.36,.08,.92,-140,829);ctx.drawImage(images.objects,0,211,585,540,0,0,585,540);ctx.restore();
-  ctx.filter='none';ctx.globalCompositeOperation='source-in';ctx.fillStyle='#11180f';ctx.fillRect(0,0,PHOTO_WIDTH,PHOTO_HEIGHT);
-  canvas.className=`tdb-senses-leaf-shadows ${warm?'is-warm':'is-cold'}`;canvas.setAttribute('aria-hidden','true');return canvas;
+  ctx.filter=`blur(${state.sight?5:1}px)`;
+  ctx.save();ctx.transform(.76,.2,-.30,.59,331,275);ctx.drawImage(foliage,0,0);ctx.restore();
+  ctx.save();ctx.transform(.73,-.36,.08,.92,-140,829);ctx.drawImage(foliage,0,0);ctx.restore();ctx.restore();
+  ctx.globalCompositeOperation='source-in';ctx.fillStyle='#11180f';ctx.fillRect(0,0,PHOTO_WIDTH,PHOTO_HEIGHT);
+  // Shadows fall on the room surfaces behind the actual chair silhouette.
+  ctx.globalCompositeOperation='destination-out';ctx.fillStyle='#000';
+  const chair=state.touch?
+    'M428 787Q454 681 544 571Q631 463 695 483Q819 544 930 516Q1005 500 1044 566L1086 727V922Q1022 1010 873 1051Q719 1089 581 1010Q418 929 428 787Z':
+    'M432 789Q447 696 541 579Q620 475 704 493Q843 530 927 518Q1018 507 1050 612L1086 745V945Q1013 1028 903 1060Q750 1072 601 1008Q419 918 432 789Z';
+  ctx.fill(new Path2D(chair));
+  ctx.fill(new Path2D('M718 371Q739 301 820 302Q939 297 953 360Q976 457 922 480Q822 504 754 470Q709 444 718 371Z'));
+  foliage.width=1;foliage.height=1;
+  canvas.className=`tdb-senses-leaf-shadows ${state.sight?'is-warm':'is-cold'}`;canvas.setAttribute('aria-hidden','true');return canvas;
 }
 
 export class SceneRenderer{
@@ -142,7 +153,7 @@ export class SceneRenderer{
     if(this.cache.has(key)){const scene=this.cache.get(key);this.cache.delete(key);this.cache.set(key,scene);return scene;}
     const started=performance.now(),node=document.createElement('div');node.className='tdb-senses-scene';node.dataset.state=key;node.dataset.sight=state.sight?'warm':'cold';
     const photo=document.createElement('div');photo.className='tdb-senses-photo';photo.append(makeSurface(this.images,state));
-    photo.append(leafShadows(this.images,state.sight));
+    photo.append(leafShadows(this.images,state));
     if(!state.sight)photo.append(chairGlare(state.touch));
     if(state.smell){const motes=document.createElement('div');motes.className='tdb-senses-motes';motes.innerHTML=[0,1,2,3,4,5,6].map(i=>`<i style="left:${6+i*7.1}%;top:${28+(i*11)%49}%;animation-delay:${-i*2.8}s"></i>`).join('');photo.append(motes);}
     node.append(photo);const scene={node,photo,state:{...state}};this.cache.set(key,scene);this.builds++;
