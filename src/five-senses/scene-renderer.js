@@ -1,4 +1,4 @@
-/* Prepared photographic scenes. Only the reveal mask and shadow transforms animate. */
+/* Prepared photographic scenes. Only the reveal mask and a restrained reflection opacity animate. */
 const PHOTO_WIDTH=1086,PHOTO_HEIGHT=1448;
 
 export function coverGeometry(width,height){
@@ -28,28 +28,51 @@ function coldLighting(ctx){
   ctx.drawImage(ctx.canvas,0,0);ctx.restore();
   ctx.save();ctx.globalCompositeOperation='color';ctx.fillStyle='rgba(134,169,208,.23)';ctx.fillRect(0,0,PHOTO_WIDTH,PHOTO_HEIGHT);ctx.restore();
 
-  // A clinical white LED directly beneath the registered front worktop lip.
-  // Its narrow core, bloom and downward spill share the counter's perspective.
-  const start={x:373,y:239},end={x:1085,y:287};
-  ctx.save();ctx.beginPath();ctx.moveTo(start.x,start.y);ctx.lineTo(end.x,end.y);ctx.lineTo(end.x,445);ctx.lineTo(start.x,383);ctx.closePath();ctx.clip();
-  const spill=ctx.createLinearGradient(0,240,0,425);spill.addColorStop(0,'rgba(168,212,253,.56)');spill.addColorStop(.3,'rgba(181,220,254,.26)');spill.addColorStop(1,'rgba(198,222,249,0)');
-  ctx.globalCompositeOperation='screen';ctx.fillStyle=spill;ctx.fillRect(365,235,725,215);ctx.restore();
-  ctx.save();ctx.globalCompositeOperation='screen';ctx.lineCap='butt';
-  for(const [width,blur,colour] of [[28,64,'rgba(115,179,248,.40)'],[17,37,'rgba(164,215,255,.66)'],[8,15,'rgba(213,240,255,.90)'],[3.2,4,'rgba(250,254,255,1)']]){
-    ctx.strokeStyle=colour;ctx.lineWidth=width;ctx.shadowBlur=blur;ctx.shadowColor=colour;
-    ctx.beginPath();ctx.moveTo(start.x,start.y);ctx.lineTo(end.x,end.y);ctx.stroke();
+  // Cores follow measured edges in the registered plate, not viewport offsets.
+  // Keep the emitter narrow; bloom is a low-opacity halo, not a wide painted bar.
+  function strip(x1,y1,x2,y2){
+    ctx.save();ctx.globalCompositeOperation='screen';ctx.lineCap='butt';
+    for(const [width,blur,colour] of [[7,19,'rgba(201,225,243,.21)'],[3.8,8,'rgba(224,242,253,.57)'],[1.8,2,'rgba(252,254,255,.94)']]){
+      ctx.lineWidth=width;ctx.strokeStyle=colour;ctx.shadowBlur=blur;ctx.shadowColor=colour;
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+    }
+    ctx.restore();
   }
-  ctx.restore();
-  // The second strip sits above the sink on the actual rear upstand edge.
-  // Both fittings stay registered with the photograph when the viewport crops.
-  ctx.save();ctx.globalCompositeOperation='screen';ctx.lineCap='butt';
-  for(const [width,blur,colour] of [[31,66,'rgba(115,183,252,.43)'],[20,38,'rgba(174,222,255,.66)'],[8,16,'rgba(219,243,255,.92)'],[3,4,'rgba(252,255,255,1)']]){
-    ctx.strokeStyle=colour;ctx.lineWidth=width;ctx.shadowBlur=blur;ctx.shadowColor=colour;
-    ctx.beginPath();ctx.moveTo(508,31);ctx.lineTo(1086,50);ctx.stroke();
+  // The front edge drops 55px across the plate. Seat the light in the underside.
+  const start={x:382,y:231},end={x:1086,y:286};
+  ctx.save();ctx.beginPath();ctx.moveTo(start.x,start.y);ctx.lineTo(end.x,end.y);ctx.lineTo(end.x,345);ctx.lineTo(start.x,290);ctx.closePath();ctx.clip();
+  const spill=ctx.createLinearGradient(0,234,0,334);spill.addColorStop(0,'rgba(226,240,250,.16)');spill.addColorStop(1,'rgba(226,240,250,0)');
+  ctx.globalCompositeOperation='screen';ctx.fillStyle=spill;ctx.fillRect(380,230,706,120);ctx.restore();
+  strip(start.x,start.y,end.x,end.y);
+
+  // Trace the lower edge of the rear ledge. The tap handle sits in front of it.
+  ctx.save();
+  const visible=new Path2D('M0 0H1086V1448H0Z M624 10Q631 8 637 15L633 34Q631 47 621 54L582 79L578 73L610 49Q621 37 623 14Z');
+  ctx.clip(visible,'evenodd');strip(503,34,1086,54);ctx.restore();
+}
+
+function floorReflections(ctx){
+  // Reflected window light on the lino: elongated along the floor plane and
+  // modulated by the original grain, with the chair and armrest occluding it.
+  const x0=0,y0=570,width=580,height=814;
+  const region=document.createElement('canvas');region.width=width;region.height=height;
+  const m=region.getContext('2d');m.translate(0,-y0);m.fillStyle='#fff';
+  m.fill(new Path2D('M0 707L195 584L246 565L383 591L425 816Q420 894 493 953Q529 989 578 1018L576 1058L507 1047Q419 1080 347 1138Q220 1221 92 1448L0 1448Z'));
+  m.globalCompositeOperation='destination-out';
+  m.fill(new Path2D('M145 1065Q164 1031 189 1009L317 941Q339 930 363 939L423 973Q455 990 452 1044L426 1038Q407 1030 393 1016L344 1001L211 1101Q183 1118 153 1102Q140 1087 145 1065Z'));
+  const mask=m.getImageData(0,0,width,height).data,pixels=ctx.getImageData(x0,y0,width,height),data=pixels.data;
+  const smooth=(a,b,v)=>{const p=Math.max(0,Math.min(1,(v-a)/(b-a)));return p*p*(3-2*p);};
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+    const i=(y*width+x)*4;if(!mask[i+3])continue;
+    const py=y+y0;
+    const first=Math.exp(-Math.pow((x-(112-(py-690)*.038))/(15+(py-690)*.013),2))*smooth(650,795,py)*(1-smooth(1200,1384,py))*.30;
+    const second=Math.exp(-Math.pow((x-(304-(py-730)*.10))/(11+Math.max(0,py-730)*.012),2))*smooth(715,850,py)*(1-smooth(1070,1290,py))*.21;
+    const light=.2126*data[i]+.7152*data[i+1]+.0722*data[i+2];
+    const grain=.45+.55*Math.max(0,Math.min(1,(light-95)/95));
+    const alpha=(first+second)*grain*mask[i+3]/255;
+    for(let c=0;c<3;c++)data[i+c]=data[i+c]+(255-data[i+c])*alpha;
   }
-  const glare=ctx.createRadialGradient(700,105,4,700,105,215);
-  glare.addColorStop(0,'rgba(178,220,255,.35)');glare.addColorStop(1,'rgba(178,220,255,0)');
-  ctx.fillStyle=glare;ctx.fillRect(475,30,450,235);ctx.restore();
+  ctx.putImageData(pixels,x0,y0);region.width=1;region.height=1;
 }
 
 // Upholstery and its geometry are separate concerns. Recolour only the registered
@@ -81,23 +104,26 @@ function chairColour(ctx,state){
   ctx.putImageData(pixels,0,0);
 }
 
-function chairGlare(touch){
+function chairGlare(surface){
+  // Derive the glint from the photograph's real upholstery highlights. This
+  // preserves the curved reflection, grain and seams instead of painting an orb.
+  const x=711,y=296,width=260,height=199;
+  const source=surface.getContext('2d').getImageData(x,y,width,height);
+  const detail=document.createElement('canvas');detail.width=width;detail.height=height;
+  const dc=detail.getContext('2d'),pixels=dc.createImageData(width,height);
+  for(let i=0;i<source.data.length;i+=4){
+    const r=source.data[i],g=source.data[i+1],b=source.data[i+2];
+    const material=Math.max(0,Math.min(1,(b-r-12)/24));
+    const light=.2126*r+.7152*g+.0722*b;
+    const specular=Math.pow(Math.max(0,Math.min(1,(light-73)/76)),1.65);
+    pixels.data[i]=236;pixels.data[i+1]=245;pixels.data[i+2]=251;
+    pixels.data[i+3]=255*.48*specular*material;
+  }
+  dc.putImageData(pixels,0,0);
   const canvas=document.createElement('canvas');canvas.width=543;canvas.height=724;
   const ctx=canvas.getContext('2d');ctx.scale(.5,.5);
-  function reflection(x,y,rx,ry,angle,alpha,colour='219,241,255'){
-    ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.scale(rx,ry);
-    const g=ctx.createRadialGradient(0,0,.05,0,0,1);
-    g.addColorStop(0,`rgba(${colour},${alpha})`);g.addColorStop(.35,`rgba(${colour},${alpha*.48})`);g.addColorStop(1,`rgba(${colour},0)`);
-    ctx.fillStyle=g;ctx.fillRect(-1,-1,2,2);ctx.restore();
-  }
-  // Blue light scatters beyond the headrest edge; a smaller white-blue reflection
-  // keeps the glare attached to the upholstery. The halo is intentionally visible.
-  reflection(827,362,137,126,.22,.42,'93,168,250');
-  reflection(784,355,67,96,.38,.55,'146,204,255');
-  reflection(773,346,24,54,.42,.68,'232,248,255');
-  reflection(876,406,40,71,.32,.48);
-  reflection(touch?854:940,touch?859:794,38,151,.29,.25);
-  reflection(621,1198,122,17,.19,.19);
+  ctx.save();ctx.globalAlpha=.18;ctx.filter='blur(5px)';ctx.drawImage(detail,x,y);ctx.restore();
+  ctx.drawImage(detail,x,y);detail.width=1;detail.height=1;
   canvas.className='tdb-senses-chair-glare';canvas.setAttribute('aria-hidden','true');return canvas;
 }
 
@@ -106,6 +132,7 @@ function makeSurface(images,state){
   const ctx=canvas.getContext('2d',{alpha:false});
   ctx.drawImage(state.touch?images.warm:images.clinical,0,0,PHOTO_WIDTH,PHOTO_HEIGHT);
   chairColour(ctx,state);
+  if(!state.sight&&!state.touch)floorReflections(ctx);
   if(state.smell){contactShadow(ctx,227,829,92,.52,.19);ctx.drawImage(images.objects,0,211,585,733,0,252,525,585);}
   if(state.sound){contactShadow(ctx,459,1335,136,.25,.24);ctx.drawImage(images.objects,280,1145,375,240,280,1145,375,240);}
   if(state.taste){contactShadow(ctx,806,188,44,.4,.15);ctx.drawImage(images.objects,743,30,108,177,759,45,89,158);}
@@ -126,8 +153,8 @@ export class SceneRenderer{
     const key=['sight','sound','smell','touch','taste'].map(k=>Number(state[k])).join('');
     if(this.cache.has(key)){const scene=this.cache.get(key);this.cache.delete(key);this.cache.set(key,scene);return scene;}
     const started=performance.now(),node=document.createElement('div');node.className='tdb-senses-scene';node.dataset.state=key;node.dataset.sight=state.sight?'warm':'cold';
-    const photo=document.createElement('div');photo.className='tdb-senses-photo';photo.append(makeSurface(this.images,state));
-    if(!state.sight)photo.append(chairGlare(state.touch));
+    const photo=document.createElement('div');photo.className='tdb-senses-photo';const surface=makeSurface(this.images,state);photo.append(surface);
+    if(!state.sight)photo.append(chairGlare(surface));
     if(state.smell){const motes=document.createElement('div');motes.className='tdb-senses-motes';motes.innerHTML=[0,1,2,3,4,5,6].map(i=>`<i style="left:${6+i*7.1}%;top:${28+(i*11)%49}%;animation-delay:${-i*2.8}s"></i>`).join('');photo.append(motes);}
     node.append(photo);const scene={node,photo,state:{...state}};this.cache.set(key,scene);this.builds++;
     this.position(scene);this.report({builds:this.builds,buildMs:Math.round(performance.now()-started)});

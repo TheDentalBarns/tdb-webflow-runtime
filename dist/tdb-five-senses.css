@@ -11,7 +11,7 @@
 .tdb-senses-revealing{mask-image:radial-gradient(circle at var(--tdb-senses-origin-x) var(--tdb-senses-origin-y),#000 calc(var(--tdb-senses-reveal-radius) - var(--tdb-senses-feather)/2),#0000 calc(var(--tdb-senses-reveal-radius) + var(--tdb-senses-feather)/2));-webkit-mask-image:radial-gradient(circle at var(--tdb-senses-origin-x) var(--tdb-senses-origin-y),#000 calc(var(--tdb-senses-reveal-radius) - var(--tdb-senses-feather)/2),#0000 calc(var(--tdb-senses-reveal-radius) + var(--tdb-senses-feather)/2));mask-mode:alpha;mask-repeat:no-repeat;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;-webkit-mask-size:100% 100%}
 .tdb-senses-motes,.tdb-senses-chair-glare{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .tdb-senses-chair-glare{opacity:.86;animation:tdb-senses-light-hum 3.7s ease-in-out infinite;will-change:opacity}
-@keyframes tdb-senses-light-hum{0%,100%{opacity:.80}50%{opacity:.97}}
+@keyframes tdb-senses-light-hum{0%,100%{opacity:.86}50%{opacity:.94}}
 .tdb-senses-motes i{position:absolute;width:3px;height:1.4px;border-radius:100%;background:#efe5c9;opacity:0;animation:tdb-senses-botanical-drift 17s linear infinite}
 .tdb-senses-motion-paused .tdb-senses-motes i,.tdb-senses-motion-paused .tdb-senses-chair-glare{animation-play-state:paused}
 @keyframes tdb-senses-botanical-drift{0%,100%{opacity:0;transform:translate3d(0,0,0) rotate(-20deg)}20%,75%{opacity:.13}90%{opacity:0;transform:translate3d(9px,-27px,0) rotate(50deg)}}
