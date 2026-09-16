@@ -38,11 +38,11 @@
             focusState = { onRelease, isDragging };
             lastScrollTop = Math.max(scrollY || root.scrollTop || 0, 0);
             upwardDistance = downwardDistance = 0;
-            root.classList.add('tdb-slider-focus');
+            if (!root.classList.contains('tdb-slider-focus')) root.classList.add('tdb-slider-focus');
         },
         release() {
             focusState = null;
-            root.classList.remove('tdb-slider-focus');
+            if (root.classList.contains('tdb-slider-focus')) root.classList.remove('tdb-slider-focus');
         }
     });
     function collectTransparentElements() {
