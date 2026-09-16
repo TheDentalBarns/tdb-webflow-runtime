@@ -32,7 +32,7 @@ function coldLighting(ctx){
   // Keep the emitter narrow; bloom is a low-opacity halo, not a wide painted bar.
   function strip(x1,y1,x2,y2){
     ctx.save();ctx.globalCompositeOperation='screen';ctx.lineCap='butt';
-    for(const [width,blur,colour] of [[7,19,'rgba(201,225,243,.21)'],[3.8,8,'rgba(224,242,253,.57)'],[1.8,2,'rgba(252,254,255,.94)']]){
+    for(const [width,blur,colour] of [[11,23,'rgba(207,229,245,.26)'],[5,9,'rgba(228,243,253,.66)'],[2,2,'rgba(252,254,255,.98)']]){
       ctx.lineWidth=width;ctx.strokeStyle=colour;ctx.shadowBlur=blur;ctx.shadowColor=colour;
       ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
     }
@@ -62,15 +62,25 @@ function floorReflections(ctx){
   m.fill(new Path2D('M145 1065Q164 1031 189 1009L317 941Q339 930 363 939L423 973Q455 990 452 1044L426 1038Q407 1030 393 1016L344 1001L211 1101Q183 1118 153 1102Q140 1087 145 1065Z'));
   const mask=m.getImageData(0,0,width,height).data,pixels=ctx.getImageData(x0,y0,width,height),data=pixels.data;
   const smooth=(a,b,v)=>{const p=Math.max(0,Math.min(1,(v-a)/(b-a)));return p*p*(3-2*p);};
-  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
-    const i=(y*width+x)*4;if(!mask[i+3])continue;
-    const py=y+y0;
-    const first=Math.exp(-Math.pow((x-(112-(py-690)*.038))/(15+(py-690)*.013),2))*smooth(650,795,py)*(1-smooth(1200,1384,py))*.30;
-    const second=Math.exp(-Math.pow((x-(304-(py-730)*.10))/(11+Math.max(0,py-730)*.012),2))*smooth(715,850,py)*(1-smooth(1070,1290,py))*.21;
-    const light=.2126*data[i]+.7152*data[i+1]+.0722*data[i+2];
-    const grain=.45+.55*Math.max(0,Math.min(1,(light-95)/95));
-    const alpha=(first+second)*grain*mask[i+3]/255;
-    for(let c=0;c<3;c++)data[i+c]=data[i+c]+(255-data[i+c])*alpha;
+  // Row constants and a small Gaussian lookup avoid repeated transcendental
+  // calculations over the whole floor during first-scene preparation.
+  const gaussian=Float32Array.from({length:257},(_,i)=>Math.exp(-Math.pow(i*3/256,2)));
+  for(let y=0;y<height;y++){
+    const py=y+y0,c1=214-(py-690)*.016,c2=304-(py-730)*.10;
+    const w1=15+(py-690)*.013,w2=11+Math.max(0,py-730)*.012;
+    const a1=smooth(650,795,py)*(1-smooth(1200,1384,py))*.30;
+    const a2=smooth(715,850,py)*(1-smooth(1070,1290,py))*.21;
+    if(a1+a2===0)continue;
+    const left=Math.max(0,Math.floor(Math.min(c1-3*w1,c2-3*w2))),right=Math.min(width,Math.ceil(Math.max(c1+3*w1,c2+3*w2)));
+    for(let x=left;x<right;x++){
+      const i=(y*width+x)*4;if(!mask[i+3])continue;
+      const d1=Math.round(Math.abs(x-c1)/w1*256/3),d2=Math.round(Math.abs(x-c2)/w2*256/3);
+      const first=d1<=256?gaussian[d1]*a1:0,second=d2<=256?gaussian[d2]*a2:0;
+      const light=.2126*data[i]+.7152*data[i+1]+.0722*data[i+2];
+      const grain=.45+.55*Math.max(0,Math.min(1,(light-95)/95));
+      const alpha=(first+second)*grain*mask[i+3]/255;
+      for(let c=0;c<3;c++)data[i+c]=data[i+c]+(255-data[i+c])*alpha;
+    }
   }
   ctx.putImageData(pixels,x0,y0);region.width=1;region.height=1;
 }
