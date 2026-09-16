@@ -7,7 +7,7 @@
 - Repository: TheDentalBarns/tdb-webflow-runtime
 - Feature branch: codex/treatment-calculator-20260916
 - Staging baseline: 15144e3414803974be24852368fa4b8a12303d9d
-- Calculator JS/CSS asset pin: d153db4c274c737585bc21f9d665c61ca639be2a
+- Calculator JS/CSS asset pin: 67164451006ed5c2410dc18bab10f30b56d71e02
 - Loader: dist/tdb-calculator-loader.js, pinned to those assets. The Webflow global footer points to the immutable commit containing this loader.
 - Pilot: https://dentalbarns.webflow.io/dental-cost-lichfield#treatment-calculator
 - Service/FAQ entry: https://dentalbarns.webflow.io/services/fast-track
