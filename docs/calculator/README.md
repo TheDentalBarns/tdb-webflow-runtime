@@ -25,10 +25,11 @@ All fields are optional. Existing required fields, canonical names, prices and u
 | calculator-includes-whitening | Switch | Inclusion flag on aligner record |
 | calculator-includes-hygiene | Switch | Inclusion flag on aligner record |
 | calculator-booking-deposit | Number | GBP amount within assessment total |
+| calculator-tier-1-friendly / -2-friendly / -3-friendly | Plain text | Friendly cosmetic complexity descriptions alongside existing tier prices |
 
 ## Canonical mapping
 
-Metal filling replacement and new fillings are distinct user intents mapped to the same existing filling price. Count distinct restored surfaces; do not count the same surface under both options. Other quantity treatments use teeth. Maximum 32 teeth / 160 surfaces are input bounds, not recommendations.
+Metal filling replacement and new fillings are distinct user intents mapped to the same existing filling price. Replacement always uses the existing Tier 3 price; new fillings and other restorations show a guide range without a complexity selector. Count distinct restored surfaces; do not count the same surface under both options. Other quantity treatments use teeth. Maximum 32 teeth / 160 surfaces are input bounds, not recommendations.
 
 | Pricing ID | Calculator label | Authoritative headline | Planning duration |
 | --- | --- | --- | --- |
@@ -63,7 +64,7 @@ For any additional link/button, set a normal fallback URL `/dental-cost-lichfiel
    data-finance="false" data-treatment="bonding">Explore treatment costs</a>
 ```
 
-The hash URL is also sufficient for FAQ CTA fields. No matching on link text is used. Finance defaults off for plain FAQ links. The two pilot FAQ CTAs are “Do you offer finance for cosmetic dentistry in Lichfield?” and “Do you offer 0% finance for treatment planned through the Signature Assessment?”. Only their CTA label/link changes.
+The hash URL is also sufficient for FAQ CTA fields. No matching on link text is used. Finance defaults on for plain FAQ links; `data-finance="false"` disables it. The two pilot FAQ CTAs are “Do you offer finance for cosmetic dentistry in Lichfield?” and “Do you offer 0% finance for treatment planned through the Signature Assessment?”. Only their CTA label/link changes.
 
 A contextual trigger uses its preselection on an empty estimate. If an estimate exists, it offers to retain it or explicitly start with the new options. Restricted contexts disclose existing selections instead of charging invisibly. Closing/reopening and same-tab navigation retain state for four hours from the last change. Reset clears it. No treatment details are placed in URLs or new analytics calls.
 
@@ -76,9 +77,9 @@ A contextual trigger uses its preselection on an empty estimate. If an estimate 
 - Aligner timing uses 10–18 calendar months, not a fixed number of weeks. Dates preserve month-end/leap-year behaviour. Changing the assessment slider preserves the target and updates the projected finish. No diary availability is claimed.
 - Tooth counts change price, not duration. Final scheduling may combine visits or require additional visits.
 
-## Finance release gate
+## Finance illustration
 
-The site confirms up to twelve months interest-free, subject to eligibility. Minimum borrowing, permitted deposits, supported shorter terms and assessment eligibility remain unconfirmed. The completed 0% payment illustration is a staging feature; leave **Show Finance off** until the practice confirms these terms. The current provisional model pays the £450 assessment separately and applies the adjustable deposit only to treatment. The assessment booking deposit is never deducted again. Terms are bounded to 3–12 months. Integer-pence calculations adjust the final payment to reconcile exactly. Do not present this as an application or approval.
+The practice requested 0% illustrations over 3–12 months, with at least £250 financed after the upfront payment. The minimum upfront payment is the current CMS Signature Assessment price (£450 at this release); it is included once in the estimate. The separate £225 appointment booking deposit remains part of that assessment, never an extra charge. The deposit slider is capped so the lower guide price retains at least £250 borrowing. Below that threshold the calculator explains why an illustration is unavailable. Integer-pence calculations adjust the final payment to reconcile exactly. Finance is enabled on the pilot and entry component; its existing boolean property remains available. This is an illustration, subject to eligibility and lender approval.
 
 ## VIP handoff
 
@@ -96,7 +97,7 @@ node tools/build-calculator.cjs FULL_ASSET_COMMIT_SHA
 
 The dependency-free runtime is split into deterministic core, shared view, scoped CSS and demand loader. jsdom is used only by the repository's existing test environment, never shipped. The global footer appends one versioned loader script; all previous runtime pins are retained. Full JS/CSS only load near the inline section or after a drawer trigger. No framework or management API credentials are shipped.
 
-Automated tests cover 19 meaningful scenarios across pricing, bundling, restrictions, persistence, context conflicts, VIP handoff, text escaping, finance and date boundaries. See `validation.md` for actual staged-browser evidence and release pins.
+Automated tests cover 24 scenarios across pricing, bundling, restrictions, persistence, context conflicts, VIP handoff, text escaping, finance and date boundaries. See `validation.md` for actual staged-browser evidence and release pins.
 
 ## Rollback
 
@@ -108,3 +109,11 @@ Automated tests cover 19 meaningful scenarios across pricing, bundling, restrict
 6. Publish staging only to verify rollback. Production rollback/publication needs its own authorisation.
 
 Code lives on a dedicated feature branch from the current staging runtime base `15144e3414803974be24852368fa4b8a12303d9d`. No existing global bundle is replaced.
+
+## September refinement
+
+The initial view contains only the introduction and category choice. A selected category opens treatments; treatment selection adds Step 3 (target date), Signature Assessment, cosmetic hygiene preparation and the estimate. A small assessment-first action remains available after choosing a category. The top estimate includes duration and scrolls to the estimate. Its mobile height is 6rem with a 20px dark glass backdrop.
+
+Visual controls use the existing site colour variables, text classes, VIP checkbox and upward-arrow button, original smile slider info SVG, pricing accordion timing and the Smile Gallery filter reveal. The category subheadings follow the existing DD text opacity keyframes. Calculator interaction calls the shared navbar focus controller; the same travel behaviour hides navigation, VIP and the portalled Elfsight bar. Click outside or Escape dismisses information panels.
+
+Friendly complexity choices are enabled for aligners and bonding only and read from the optional CMS fields. Whitening has no expandable controls. The estimate lists assessment, hygiene, restorative items, aligners, whitening and finishing cosmetic work in that order.

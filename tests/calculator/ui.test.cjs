@@ -13,13 +13,13 @@ async function setup(){
 }
 test('progressive UI calculates through user controls and keeps included whitening explicit',async()=>{
  const x=await setup();try{
-  assert.equal(x.root.querySelector('[data-select]'),null);assert.equal(x.root.querySelector('.tdbc-starting-option').open,false);
+  assert.equal(x.root.querySelector('[data-select]'),null);assert.equal(x.root.querySelector('.tdbc-summary'),null);assert.equal(x.root.querySelector('.tdbc-live'),null);
   x.choose('[data-category=cosmetic]');x.choose('[data-select=whitening]');assert.match(x.text(),/1,245/);
   x.choose('[data-select=aligners]');assert.match(x.text(),/4,645.*6,845/);assert.equal(x.root.querySelector('[data-select=whitening]').disabled,true);
   x.choose('[data-select=aligners]');assert.equal(x.root.querySelector('[data-select=whitening]').checked,true);assert.match(x.text(),/1,245/);
-  x.choose('[data-action=finance-yes]');assert.equal(x.root.querySelector('[data-range=term]').value,'12');
-  const dep=x.root.querySelector('[data-range=deposit]');dep.value='10000';dep.dispatchEvent(new x.w.Event('input',{bubbles:true}));assert.match(x.root.querySelector('[data-output=finance]').textContent,/57.91/);
-  x.choose('[data-action=reset]');assert.match(x.text(),/Choose your treatments/);assert.equal(x.root.querySelector('[data-select]'),null);
+  x.choose('[data-finance]');assert.equal(x.root.querySelector('[data-range=term]').value,'12');
+  const dep=x.root.querySelector('[data-range=deposit]');dep.value='55000';dep.dispatchEvent(new x.w.Event('input',{bubbles:true}));assert.match(x.root.querySelector('[data-output=finance]').textContent,/57.91/);
+  x.choose('[data-action=reset]');assert.equal(x.root.querySelector('.tdbc-summary'),null);assert.equal(x.root.querySelector('[data-select]'),null);
  }finally{x.dom.window.close();}
 });
 test('drawer preserves estimate, discloses context conflicts, restores focus and hands off VIP',async()=>{
@@ -30,7 +30,7 @@ test('drawer preserves estimate, discloses context conflicts, restores focus and
   assert.match(dialog.textContent,/Your existing estimate is saved/);assert.match(dialog.textContent,/New fillings/);
   dialog.dispatchEvent(new x.w.Event('cancel',{cancelable:true}));assert.equal(dialog.open,false);assert.equal(x.d.activeElement,trigger);assert.equal(x.d.documentElement.style.overflow,'');
   await x.w.TDBCalculator.open(trigger);dialog.querySelector('[data-action=context]').click();assert.equal(dialog.querySelector('[data-category=restorative]'),null);assert.equal(dialog.querySelector('[data-select=bonding]').checked,true);
-  assert.equal(dialog.querySelector('[data-action=finance-yes]'),null);
+  assert.ok(dialog.querySelector('[data-finance]'));
   let vip=0;x.w.TDBVIPDrawer={open(){vip++;}};dialog.querySelector('[data-action=vip]').click();assert.equal(vip,1);assert.equal(dialog.open,false);
   assert.ok(x.w.sessionStorage.getItem('tdb-treatment-estimate-v1'));assert.match(x.text(),/Composite bonding/);
  }finally{x.dom.window.close();}
@@ -47,6 +47,21 @@ test('Webflow omitted boolean markers override stale attribute defaults',async()
   container.innerHTML='<div hidden data-tdb-calc-config="true"><span data-tdb-calc-toggle="cosmetic"></span></div><a href="#treatment-calculator" data-finance="true" data-restorative="true">Open configured calculator</a>';
   x.d.body.append(container);await x.w.TDBCalculator.open(container.querySelector('a'));
   const dialog=x.d.querySelector('dialog');assert.ok(dialog.querySelector('[data-category=cosmetic]'));assert.equal(dialog.querySelector('[data-category=restorative]'),null);
-  dialog.querySelector('[data-select=whitening]').click();assert.equal(dialog.querySelector('[data-action=finance-yes]'),null);
+  dialog.querySelector('[data-category=cosmetic]').click();dialog.querySelector('[data-select=whitening]').click();assert.equal(dialog.querySelector('[data-finance]'),null);
+ }finally{x.dom.window.close();}
+});
+
+test('friendly complexity, no whitening expansion and persistent slider focus',async()=>{
+ const x=await setup();try{
+ x.choose('[data-category=cosmetic]');assert.equal(x.root.querySelector('.tdbc-summary'),null);x.choose('[data-select=whitening]');assert.equal(x.root.querySelector('[data-node="option-whitening"] [data-panel]'),null);assert.match(x.root.querySelector('[data-output=duration]').textContent,/7 weeks/);
+ x.choose('[data-select=bonding]');const choice=x.root.querySelector('[data-tier=bonding][value="1"]');choice.click();assert.equal(x.root.querySelector('[data-tier=bonding][value="1"]'),choice);assert.equal(choice.checked,true);assert.match(x.root.querySelector('.tdbc-complexity').textContent,/Small alignment tweaks|Small chips or blemishes/);
+ x.choose('[data-finance]');const slider=x.root.querySelector('[data-range=deposit]');slider.focus();slider.value='60000';slider.dispatchEvent(new x.w.Event('input',{bubbles:true}));assert.equal(x.root.querySelector('[data-range=deposit]'),slider);assert.equal(x.d.activeElement,slider);
+ x.choose('[data-category=restorative]');x.choose('[data-select=replacement]');assert.equal(x.root.querySelector('[data-tier=replacement]'),null);assert.match(x.root.querySelector('[data-node="option-replacement"]').textContent,/495/);
+ }finally{x.dom.window.close();}
+});
+test('tooltips close on page interaction and calculator controls use shared navigation focus',async()=>{
+ const x=await setup();try{let focus=0,release=0;x.w.TDBNavScroll={focus(){focus++;},release(){release++;}};
+ x.choose('[data-category=cosmetic]');const info=x.root.querySelector('[data-action=info]');info.dispatchEvent(new x.w.Event('pointerdown',{bubbles:true}));info.click();assert.equal(info.getAttribute('aria-expanded'),'true');assert.ok(focus);
+ x.d.body.dispatchEvent(new x.w.Event('pointerdown',{bubbles:true}));assert.equal(info.getAttribute('aria-expanded'),'false');assert.ok(release);
  }finally{x.dom.window.close();}
 });

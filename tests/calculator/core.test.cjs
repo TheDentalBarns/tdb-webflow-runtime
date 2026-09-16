@@ -23,7 +23,7 @@ test('quantities, uncertainty and selected tiers preserve CMS units and price ra
  let e=C.estimate(records,s);assert.equal(e.min,282000);assert.equal(e.max,402000);assert.equal(e.starting,true);
  s.selected.bonding.tier=1;e=C.estimate(records,s);assert.equal(e.min,342000);assert.equal(e.max,342000);
  const f=state(['fillings','replacement']);f.selected.fillings.qty=2;f.selected.replacement.qty=3;
- e=C.estimate(records,f);assert.equal(e.min,192500);assert.equal(e.lines.find(l=>l.key==='fillings').record.unit,'surface');
+ e=C.estimate(records,f);assert.equal(e.min,252500);assert.equal(e.lines.find(l=>l.key==='fillings').record.unit,'surface');
 });
 test('aligners include whitening and hygiene in either selection order; removing aligners restores intent',()=>{
  for(const keys of [['whitening','aligners'],['aligners','whitening'],['aligners']]){
@@ -46,16 +46,16 @@ test('untrusted saved quantities and terms are bounded; inactive categories clea
  const s=C.normaliseState({categories:['cosmetic'],selected:{bonding:{qty:999,tier:99},rct:{qty:2},aligners:{qty:30}},term:30,deposit:-50,target:'2026-02-30'});
  assert.equal(s.selected.bonding.qty,32);assert.equal(s.selected.bonding.tier,null);assert.equal(s.selected.aligners.qty,1);assert.equal(s.selected.rct,undefined);assert.equal(s.term,12);assert.equal(s.deposit,0);assert.equal(s.target,'');
 });
-test('finance keeps the £225 assessment booking deposit inside the £450 assessment',()=>{
- const e=C.estimate(records,state(['whitening'])),f=C.finance(e,10000,12);
+test('finance includes the assessment once in a minimum £450 upfront payment',()=>{
+ const e=C.estimate(records,state(['whitening'])),f=C.finance(e,55000,12);
  assert.equal(f.assessment,45000);assert.equal(f.low.balance,69500);assert.equal(f.low.monthly,5791);assert.equal(f.low.final,5799);
- assert.equal(f.assessment+f.deposit+f.low.monthly*11+f.low.final,e.min);
+ assert.equal(f.deposit+f.low.monthly*11+f.low.final,e.min);
 });
 test('finance bounds, exact reconciliation and treatment removal',()=>{
  const e=C.estimate(records,state(['whitening']));
- assert.equal(C.finance(e,999999,3).low.balance,0);assert.equal(C.finance(e,-100,3).low.monthly,26500);
+ assert.equal(C.finance(e,999999,3).low.balance,25000);assert.equal(C.finance(e,-100,3).low.monthly,26500);
  for(let balance=0;balance<9999;balance+=137)for(const term of [3,12]){const p=C.payment(balance,term);assert.equal(p.monthly*(term-1)+p.final,balance);}
- assert.equal(C.finance(e,300000,12).deposit,79500);
+ assert.equal(C.finance(e,300000,12).deposit,99500);
  assert.throws(()=>C.payment(100,13),RangeError);
 });
 test('CMS changes flow through without changing identifiers or code',()=>{
@@ -92,4 +92,20 @@ test('past/tight targets retain target and project from a non-past assessment',(
  const t=C.timeline(records,e,'2026-09-15','2026-09-16');assert.equal(t.targetPast,true);assert.equal(t.tight,true);assert.equal(t.start,'2026-09-16');assert.equal(t.finishMax,'2026-11-04');
  const moved=C.timeline(records,e,'2026-12-31','2026-09-16','2026-12-01');assert.equal(moved.target,'2026-12-31');assert.equal(moved.finishMax,'2027-01-19');assert.equal(moved.meetsTarget,false);
  const ancient=C.timeline(records,e,'1900-01-01','2026-09-16');assert.equal(ancient.targetPast,true);assert.equal(ancient.suggestedEarliest,null);
+});
+
+test('replacement always uses CMS tier 3 and restorative choices ignore stale tiers',()=>{
+ const s=state(['replacement','crowns']);s.selected.replacement.tier=0;s.selected.crowns.tier=2;
+ const e=C.estimate(records,s);assert.equal(e.lines.find(x=>x.key==='replacement').min,49500);assert.equal(e.lines.find(x=>x.key==='replacement').max,49500);assert.equal(e.lines.find(x=>x.key==='crowns').min,99500);
+});
+test('estimate ordering matches preparation, restorative and cosmetic sequence',()=>{
+ const e=C.estimate(records,state(['veneers','aligners','fillings','rct','bonding']));
+ assert.deepEqual(e.lines.map(x=>x.key),['assessment','hygiene','fillings','rct','aligners','whitening-included','bonding','veneers']);
+ assert.equal(C.duration(records,C.estimate(records,state(['whitening'])),'2026-09-16'),'7 weeks');
+ assert.equal(C.duration(records,C.estimate(records,state(['extractions'])),'2026-09-16'),'Timing at assessment');
+});
+test('borrowing threshold and deposit bounds reconcile across both ends of a range',()=>{
+ assert.equal(C.finance(C.estimate(records,state(['gumline'])),0,12),null);
+ const e=C.estimate(records,state(['bonding']));
+ for(const deposit of [-1,45000,59500,999999])for(const term of [3,12]){const f=C.finance(e,deposit,term);assert.ok(f.deposit>=45000);assert.ok(f.low.balance>=25000);for(const [p,total]of [[f.low,e.min],[f.high,e.max]])assert.equal(f.deposit+p.monthly*(term-1)+p.final,total);}
 });

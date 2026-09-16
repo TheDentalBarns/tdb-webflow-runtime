@@ -173,7 +173,7 @@
     {
       "fieldData": {
         "calculator-booking-deposit": 225,
-        "calculator-label": "Signature Assessment ✦",
+        "calculator-label": "Signature Assessment \u2726",
         "calculator-record-id": "6aa293f6253d574a41978d9e",
         "calculator-tooltip": "Your starting appointment combines Smile Design, a comprehensive examination and appropriate diagnostics. Your plan and costs are discussed on the day; a written report follows."
       },
@@ -194,7 +194,7 @@
         "calculator-duration-unit": "weeks",
         "calculator-label": "Whitening",
         "calculator-record-id": "681ce51276b22da0b0660090",
-        "calculator-tooltip": "Enlighten® whitening to brighten your natural teeth. Allow three weeks for whitening and two weeks for the colour to settle."
+        "calculator-tooltip": "Enlighten\u00ae whitening to brighten your natural teeth. Allow three weeks for whitening and two weeks for the colour to settle."
       },
       "id": "681ce51276b22da0b0660090"
     },
@@ -205,7 +205,7 @@
         "calculator-duration-unit": "months",
         "calculator-includes-hygiene": true,
         "calculator-includes-whitening": true,
-        "calculator-label": "Invisalign® / clear aligners",
+        "calculator-label": "Invisalign\u00ae / clear aligners",
         "calculator-record-id": "67a227e75f8c501023eb066b",
         "calculator-tooltip": "Gradually straighten your teeth using clear aligners. Your dentist confirms the right system and complexity tier. Whitening, hygiene and retainers are included."
       },
@@ -295,7 +295,7 @@
     },
     {
       "fieldData": {
-        "calculator-label": "Airflow® hygiene",
+        "calculator-label": "Airflow\u00ae hygiene",
         "calculator-record-id": "681dfde1b4412464104bca59",
         "calculator-tooltip": "Hygiene may be recommended to prepare for cosmetic treatment. It is included with the clear aligner package; additional care depends on your needs."
       },
@@ -317,5 +317,11 @@
         "cta-button-link": "https://www.thedentalbarns.co.uk/dental-cost-lichfield"
       }
     }
-  ]
+  ],
+  "friendlyTierFields": {
+    "calculator-tier-1-friendly": "644f5fe89a8bb026366587f72e6103b6",
+    "calculator-tier-2-friendly": "84f7758d6d9ee52d71313b8bc35fe348",
+    "calculator-tier-3-friendly": "6ee33c4ab643f13f5343ffa12489020a"
+  },
+  "financeEnabled": true
 }

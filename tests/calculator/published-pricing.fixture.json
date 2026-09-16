@@ -33,7 +33,10 @@
     "deposit": "",
     "record": "67a227e75f8c501023eb066b",
     "whitening": true,
-    "hygiene": true
+    "hygiene": true,
+    "tier1friendly": "Small alignment tweaks",
+    "tier2friendly": "Moderate crowding or spacing",
+    "tier3friendly": "More complex alignment and bite changes"
   },
   {
     "tooltip": "Enlighten® whitening to brighten your natural teeth. Allow three weeks for whitening and two weeks for the colour to settle.",
@@ -67,7 +70,10 @@
     "tier5": "",
     "label": "Composite bonding",
     "deposit": "",
-    "record": "681ce7a6838a937aa274f5e6"
+    "record": "681ce7a6838a937aa274f5e6",
+    "tier1friendly": "Small chips or blemishes",
+    "tier2friendly": "Refine shape and symmetry",
+    "tier3friendly": "A complete tooth reshape"
   },
   {
     "tooltip": "Tooth-coloured composite to cover selected exposed or worn areas near the gumline. It does not regrow gum tissue; suitability is assessed individually.",

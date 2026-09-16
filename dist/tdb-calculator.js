@@ -5,7 +5,7 @@
   else root.TDBCalculatorCore = api;
 })(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
-  const VERSION = '1.0.0';
+  const VERSION = '1.1.0';
   const IDS = Object.freeze({
     assessment: '6aa293f6253d574a41978d9e', design: '68386f15264c9bdb140b5f2e',
     whitening: '681ce51276b22da0b0660090', aligners: '67a227e75f8c501023eb066b',
@@ -50,6 +50,7 @@
       tooltip:String(f.tooltip||'').trim(), rawPrice:String(f.price||''),
       valid, min:valid?price.min:null,max:valid?Math.max(price.min,...vals):null,
       from:!!price?.from,unit:price?.unit||'',tiers:vals,
+      tierLabels:[1,2,3].map(n=>String(f['tier'+n+'friendly']||'').trim()),
       timing:timing?{min:Number(f.min),max:Number(f.max),unit:f.unit}:null,
       includesWhitening:f.whitening===true||f.whitening==='true',
       includesHygiene:f.hygiene===true||f.hygiene==='true',
@@ -66,7 +67,7 @@
     for(const o of OPTIONS){
       const v=raw.selected&&own(raw.selected,o.key)?raw.selected[o.key]:null;
       if(v&&s.categories.includes(o.category)){
-        s.selected[o.key]={qty:o.quantity?clamp(Math.floor(Number(v.qty)||1),1,o.record==='fillings'||o.key==='fillings'?160:32):1,tier:Number.isInteger(v.tier)&&v.tier>=0&&v.tier<=4?v.tier:null};
+        s.selected[o.key]={qty:o.quantity?clamp(Math.floor(Number(v.qty)||1),1,o.record==='fillings'||o.key==='fillings'?160:32):1,tier:o.key==='replacement'?2:['aligners','bonding'].includes(o.key)&&Number.isInteger(v.tier)&&v.tier>=0&&v.tier<=2?v.tier:null};
       }
     }
     s.assessment=['none','design','signature'].includes(raw.assessment)?raw.assessment:'none';
@@ -103,6 +104,8 @@
     }
     if(whitenIncluded&&!state.selected.whitening)add('whitening-included','whitening',1,null,true);
     if(cosmetic&&(hygieneIncluded||state.hygiene))add('hygiene','hygiene',1,null,hygieneIncluded);
+    const order=['assessment','hygiene','extractions','replacement','fillings','rct','crowns','onlays','aligners','whitening','whitening-included','gumline','bonding','veneers'];
+    lines.sort((a,b)=>order.indexOf(a.key)-order.indexOf(b.key));
     const priced=lines.filter(l=>l.min!==null);
     const min=priced.reduce((n,l)=>n+l.min,0),max=priced.reduce((n,l)=>n+l.max,0);
     const starting=lines.some(l=>l.from),assessmentLine=lines.find(l=>l.key==='assessment');
@@ -116,11 +119,12 @@
   }
   function finance(estimate,deposit,term){
     if(!estimate.complete||!estimate.lines.length)return null;
-    // Assessment is paid separately. Never finance or subtract its booking deposit again.
-    const assessmentMin=estimate.assessmentLine?.min||0,assessmentMax=estimate.assessmentLine?.max||0;
-    const min=Math.max(0,estimate.min-assessmentMin),max=Math.max(0,estimate.max-assessmentMax);
-    const actualDeposit=clamp(Math.round(Number(deposit)||0),0,min),months=clamp(Math.round(Number(term)||12),3,12);
-    return {deposit:actualDeposit,limit:min,assessment:assessmentMin,low:payment(min-actualDeposit,months),high:payment(max-actualDeposit,months)};
+    // The upfront payment includes the assessment once. At least £250 remains to finance.
+    const minimumDeposit=estimate.assessmentLine?.min||0,minimumBorrowing=25000;
+    if(!minimumDeposit||estimate.min-minimumDeposit<minimumBorrowing)return null;
+    const limit=estimate.min-minimumBorrowing;
+    const actualDeposit=clamp(Math.round(Number(deposit)||0),minimumDeposit,limit),months=clamp(Math.round(Number(term)||12),3,12);
+    return {deposit:actualDeposit,minimumDeposit,minimumBorrowing,limit,assessment:minimumDeposit,low:payment(estimate.min-actualDeposit,months),high:payment(estimate.max-actualDeposit,months)};
   }
   function parseDate(value){
     if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
@@ -192,10 +196,19 @@
       tight:!!earliest&&earliest<today,targetPast:!!parseDate(target)&&target<today,
       meetsTarget:!!result.finishMax&&!!parseDate(target)&&result.finishMax<=target};
   }
-  return Object.freeze({VERSION,IDS,OPTIONS,parsePrice,recordFromFields,newState,normaliseState,allowedOptions,estimate,payment,finance,parseDate,iso,addDays,addMonths,plan,schedule,suggestedStart,timeline});
+  function duration(records,e,today){
+    if(!e.required)return 'Choose treatments';
+    const s=schedule(plan(records,e),today);
+    if(!s.reliable)return 'Timing at assessment';
+    const days=d=>Math.round((parseDate(d)-parseDate(today))/86400000);
+    const months=days(s.finishMax)>=90,divisor=months?30.4375:7;
+    const min=Math.ceil(days(s.finishMin)/divisor),max=Math.ceil(days(s.finishMax)/divisor);
+    return (min===max?min:min+'–'+max)+' '+(months?'months':'weeks');
+  }
+  return Object.freeze({VERSION,IDS,OPTIONS,parsePrice,recordFromFields,newState,normaliseState,allowedOptions,estimate,payment,finance,parseDate,iso,addDays,addMonths,plan,schedule,suggestedStart,timeline,duration});
 });
 
-/* TDB Treatment Calculator v1.0.0 — shared inline/drawer controller. */
+/* TDB Treatment Calculator v1.1.0 — shared inline/drawer controller. */
 (function () {
   'use strict';
   if(window.TDBCalculator)return;
@@ -220,7 +233,7 @@
     const out=Object.create(null);
     doc.querySelectorAll('[data-tdb-calc-record]').forEach(el=>{
       const id=el.getAttribute('data-tdb-calc-record');if(!/^[0-9a-f]{24}$/.test(id||''))return;
-      const f={record:id};for(const key of ['name','label','price','tooltip','min','max','unit','deposit','tier1','tier2','tier3','tier4','tier5'])f[key]=el.getAttribute('data-'+key)||'';
+      const f={record:id};for(const key of ['name','label','price','tooltip','min','max','unit','deposit','tier1','tier2','tier3','tier4','tier5','tier1friendly','tier2friendly','tier3friendly'])f[key]=el.getAttribute('data-'+key)||'';
       for(const key of ['whitening','hygiene'])f[key]=[...doc.querySelectorAll('[data-tdb-calc-included="'+key+'"]')].some(marker=>marker.getAttribute('data-record')===id&&!marker.classList.contains('w-condition-invisible'));
       out[id]=C.recordFromFields(f);
     });
@@ -239,7 +252,7 @@
   function configFrom(el){
     const host=el.closest('[data-tdb-calc-entry]')||el,config={preselect:el.getAttribute('data-treatment')||host.getAttribute('data-treatment')||''};
     const nativeConfig=host.querySelector('[data-tdb-calc-config]');
-    for(const key of ['cosmetic','restorative','finance']){const marker=host.querySelector('[data-tdb-calc-toggle="'+key+'"]');config[key]=nativeConfig?!!marker&&!marker.classList.contains('w-condition-invisible'):key==='finance'?el.getAttribute('data-finance')==='true':el.getAttribute('data-'+key)!=='false';}
+    for(const key of ['cosmetic','restorative','finance']){const marker=host.querySelector('[data-tdb-calc-toggle="'+key+'"]');config[key]=nativeConfig?!!marker&&!marker.classList.contains('w-condition-invisible'):el.getAttribute('data-'+key)!=='false';}
     return config;
   }
   function renderAll(except){for(const view of views)if(view!==except)view.render();save();}
@@ -256,78 +269,97 @@
       const o=C.allowedOptions(config).find(o=>o.key===config.preselect);
       if(o){state.categories=[...new Set([...state.categories,o.category])];state.selected[o.key]={qty:1,tier:null};}
     }
-    if(!state.categories.length){if(config.cosmetic&&!config.restorative)state.categories=['cosmetic'];if(!config.cosmetic&&config.restorative)state.categories=['restorative'];}
   }
+
+  const infoIcon='<svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24m0 192a88 88 0 1 1 88-88a88.1 88.1 0 0 1-88 88m8-48a8 8 0 0 1-16 0v-48a8 8 0 0 1 16 0Zm-8-72a12 12 0 1 1 12-12a12 12 0 0 1-12 12Z"/></svg>';
+  const arrow='<svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path fill="currentColor" d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10z"/></svg>';
+  const chevron='<span class="tdbc-chevron" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path fill="currentColor" d="M16.5303 20.8839C16.2374 21.1768 15.7626 21.1768 15.4697 20.8839L7.82318 13.2374C7.53029 12.9445 7.53029 12.4697 7.82318 12.1768L8.17674 11.8232C8.46963 11.5303 8.9445 11.5303 9.2374 11.8232L16 18.5858L22.7626 11.8232C23.0555 11.5303 23.5303 11.5303 23.8232 11.8232L24.1768 12.1768C24.4697 12.4697 24.4697 12.9445 24.1768 13.2374L16.5303 20.8839Z"/></svg></span>';
+  const check=on=>'<span aria-hidden="true" class="w-checkbox-input w-checkbox-input--inputType-custom form_checkbox-icon '+(on?'w--redirected-checked':'')+'"></span>';
+  const step=(n,label)=>'<h3 class="tdbc-step-heading heading-style-h4"><span class="tdbc-number text-size-tiny">'+n+'</span><span>'+label+'</span></h3>';
+  const expand=(key,on,html)=>'<div class="tdbc-expand '+(on?'is-expanded':'')+'" data-node="expand-'+key+'" data-panel="'+key+'" aria-hidden="'+!on+'" '+(on?'':'inert')+'><div class="tdbc-expand-inner"><div class="tdbc-expand-body">'+html+'</div></div></div>';
+  // Keep real controls and expansion panels mounted while their values change.
+  // This preserves keyboard focus, slider drags and the site's open/close motion.
+  function patch(parent,html){
+    const template=document.createElement('template');template.innerHTML=html;
+    const key=n=>n.nodeType===1?(n.getAttribute('data-node')||n.id||n.getAttribute('data-control')):null;
+    function children(dst,src){
+      const old=[...dst.childNodes],byKey=new Map(old.filter(key).map(n=>[key(n),n]));let i=0;
+      for(const fresh of [...src.childNodes]){
+        const k=key(fresh),at=dst.childNodes[i];let node=k?byKey.get(k):at&&!key(at)&&at.nodeType===fresh.nodeType&&at.nodeName===fresh.nodeName?at:null;
+        if(!node||node.nodeName!==fresh.nodeName){node=fresh.cloneNode(true);dst.insertBefore(node,at||null);if(node.nodeType===1){const panels=[...(node.matches('.tdbc-expand.is-expanded')?[node]:[]),...node.querySelectorAll('.tdbc-expand.is-expanded')];panels.forEach(el=>{el.classList.add('is-entering');requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove('is-entering')));});}}
+        else{if(node!==at)dst.insertBefore(node,at||null);if(node.nodeType===3){if(node.textContent!==fresh.textContent)node.textContent=fresh.textContent;}else if(node.nodeType===1){
+          for(const a of [...node.attributes])if(!fresh.hasAttribute(a.name)&&!['data-dd-ready','style'].includes(a.name))node.removeAttribute(a.name);
+          for(const a of fresh.attributes)if(node.getAttribute(a.name)!==a.value)node.setAttribute(a.name,a.value);
+          if(node instanceof HTMLInputElement){if(node.value!==fresh.value)node.value=fresh.value;node.checked=fresh.checked;node.disabled=fresh.disabled;}
+          children(node,fresh);
+        }}i++;
+      }
+      while(dst.childNodes.length>i)dst.lastChild.remove();
+    }
+    children(parent,template.content);
+  }
+  let focusedView=null,focusMove=false,focusEpoch=0;
+  function releaseFocus(){if(!focusedView)return;focusedView.root.classList.remove('is-focused');document.documentElement.classList.remove('tdbc-chrome-away');focusedView=null;window.TDBNavScroll?.release();}
+  function focusView(view){
+    const epoch=++focusEpoch;
+    if(focusedView&&focusedView!==view)focusedView.root.classList.remove('is-focused');focusedView=view;
+    view.root.classList.add('is-focused');document.documentElement.classList.add('tdbc-chrome-away');
+    const nav=document.querySelector('.navbar10_component');
+    if(nav){const b=nav.getBoundingClientRect(),parts=[nav,...nav.querySelectorAll('.w-nav-overlay,.navbar10_menu[data-nav-menu-open],.navbar10_dropdown-list.w--open')];nav.style.setProperty('--tdb-slider-nav-away',Math.max(nav.offsetHeight,...parts.filter(p=>p.getClientRects().length).map(p=>p.getBoundingClientRect().bottom-b.top))+'px');}
+    window.TDBNavScroll?.focus(()=>{requestAnimationFrame(()=>requestAnimationFrame(()=>{if(epoch===focusEpoch)releaseFocus();}));},()=>focusMove||view.mode==='drawer');
+  }
+  function closeTooltips(except){document.querySelectorAll('.tdbc-info.is-open').forEach(info=>{if(info===except)return;info.classList.remove('is-open');info.querySelector('button').setAttribute('aria-expanded','false');const p=info.querySelector('[role="tooltip"]');p.setAttribute('aria-hidden','true');p.inert=true;});}
+
   class View {
-    constructor(root,config,mode){this.root=root;this.config=config;this.mode=mode;this.id='tdbc-'+(++sequence);this.context=null;this.ready=false;this.stageOpen=false;
-      root.classList.add('tdb-calc');root.addEventListener('change',e=>this.change(e));root.addEventListener('input',e=>this.input(e));root.addEventListener('click',e=>this.click(e));views.push(this);}
-    async init(){this.root.setAttribute('aria-busy','true');try{await getRecords();this.ready=true;contextual(this,this.config);this.render();renderAll(this);}catch(_){this.root.innerHTML='<div class="tdbc-shell"><h2>Explore your treatment costs</h2><p>We couldn’t load the current prices. Please try again or view our fee guide.</p><button type="button" class="tdbc-button" data-action="retry">Try again</button> <a href="'+PRICE_PATH+'">View fees</a></div>';}finally{this.root.removeAttribute('aria-busy');}}
-    focusKey(){const a=document.activeElement;return this.root.contains(a)?a?.getAttribute('data-control'):null;}
+    constructor(root,config,mode){this.root=root;this.config=config;this.mode=mode;this.id='tdbc-'+(++sequence);this.context=null;this.ready=false;this.breakdown=true;
+      root.classList.add('tdb-calc');root.addEventListener('change',e=>this.change(e));root.addEventListener('input',e=>this.input(e));root.addEventListener('click',e=>this.click(e));
+      root.addEventListener('pointerdown',()=>focusView(this),{passive:true});root.addEventListener('focusin',()=>focusView(this));views.push(this);}
+    async init(){this.root.setAttribute('aria-busy','true');try{await getRecords();this.ready=true;contextual(this,this.config);this.render();renderAll(this);}catch(_){this.root.innerHTML='<div class="tdbc-shell"><h2 class="heading-style-h3">Explore your treatment costs</h2><p>We couldn’t load the current prices. Please try again or view our fee guide.</p><button type="button" class="button is-secondary" data-action="retry">Try again</button> <a href="'+PRICE_PATH+'">View fees</a></div>';}finally{this.root.removeAttribute('aria-busy');}}
     render(){
       if(!this.ready)return;
-      const focus=this.focusKey(),details=[...this.root.querySelectorAll('details[open]')].map(d=>d.dataset.detail);
       const e=C.estimate(records,state,this.config),id=this.id;
       if(e.hiddenSelections.length&&!this.context){this.context={...this.config};this.config.cosmetic=this.config.restorative=true;return this.render();}
-      const selected=e.selected.length,available=C.allowedOptions(this.config);
-      this.root.innerHTML='<div class="tdbc-shell">'+
-        '<header class="tdbc-header"><p class="tdbc-kicker">YOUR SMILE, YOUR POSSIBILITIES</p><h2'+(this.mode==='drawer'?' id="tdbc-dialog-title"':'')+'>Explore your treatment costs</h2><p>Start with what matters to you. We’ll bring together a guide to your investment and timing.</p></header>'+
-        (this.context?'<div class="tdbc-notice"><p>Your existing estimate is saved. Continue with it, or start with the options from this page.</p><div class="tdbc-actions"><button type="button" data-action="keep" class="tdbc-text-button">Keep my estimate</button><button type="button" data-action="context" class="tdbc-text-button">Start with these options</button></div></div>':'')+
-        '<div class="tdbc-live" aria-live="polite" aria-atomic="true"><span>'+tag+' Your estimate</span><strong data-output="live">'+esc(priceText(e))+'</strong></div>'+
-        '<div class="tdbc-layout"><div class="tdbc-main">'+
-        '<fieldset class="tdbc-step"><legend><span class="tdbc-number">01</span> What would you like to explore?</legend><p class="tdbc-help">Choose one or both.</p><div class="tdbc-categories">'+
-        ['cosmetic','restorative'].filter(k=>this.config[k]).map(k=>'<label class="tdbc-category '+(state.categories.includes(k)?'is-selected':'')+'"><input type="checkbox" data-control="category-'+k+'" data-category="'+k+'" '+(state.categories.includes(k)?'checked':'')+'><span><strong>'+(k==='cosmetic'?'Cosmetic':'Restorative')+'</strong><small>'+(k==='cosmetic'?'Improve my smile':'Restore my teeth')+'</small></span><span class="tdbc-check" aria-hidden="true"></span></label>').join('')+'</div></fieldset>'+
-        (state.categories.length?'<section class="tdbc-step"><h3><span class="tdbc-number">02</span> Shape your estimate</h3><p class="tdbc-help">Explore freely. Your dentist will help confirm the right treatments.</p>'+['cosmetic','restorative'].filter(k=>state.categories.includes(k)&&this.config[k]).map(k=>'<fieldset class="tdbc-treatment-group"><legend>'+ (k==='cosmetic'?'Cosmetic treatments':'Restorative treatments')+'</legend>'+available.filter(o=>o.category===k).map(o=>this.option(o,e)).join('')+'</fieldset>').join('')+'</section>':'')+
-        (selected?this.assessment(e):'<details class="tdbc-starting-option" data-detail="starting"><summary>Explore the starting assessment</summary>'+this.assessment(e)+'</details>')+
-        (e.cosmetic?this.hygiene(e):'')+
-        (selected&&this.config.finance?this.financeControls(e):'')+
-        (selected?this.timelineControls(e):'')+
-        '</div><aside class="tdbc-summary" aria-label="Your estimated investment"><div data-output="summary"></div></aside></div>'+
-        '<footer class="tdbc-footnote">A guide to possibilities, subject to assessment and your confirmed treatment plan. Your selections stay in this tab for up to four hours. <button type="button" class="tdbc-text-button" data-action="reset" data-control="reset">Reset estimate</button></footer></div>';
+      const active=state.categories.length>0,selected=e.selected.length,hasEstimate=active&&e.lines.length>0,available=C.allowedOptions(this.config);
+      const form='<section class="tdbc-step" data-node="step-1" aria-labelledby="'+id+'-explore"><div id="'+id+'-explore">'+step('01','What would you like to explore?')+'</div><p class="tdbc-help text-size-small">Choose one or both.</p><div class="tdbc-categories">'+
+      ['cosmetic','restorative'].filter(k=>this.config[k]).map(k=>'<label class="tdbc-category form_checkbox '+(state.categories.includes(k)?'is-selected':'')+'"><input type="checkbox" data-control="category-'+k+'" data-category="'+k+'" '+(state.categories.includes(k)?'checked':'')+'>'+check(state.categories.includes(k))+'<span><span class="text-style-tagline-restored">'+(k==='cosmetic'?'Cosmetic':'Restorative')+'</span><small class="text-size-tiny">'+(k==='cosmetic'?'Improve my smile':'Restore my teeth')+'</small></span></label>').join('')+'</div></section>'+
+      expand('treatments',active,'<section class="tdbc-step" data-node="step-2">'+step('02','Shape your estimate')+'<p class="tdbc-help text-size-small">Explore freely. Your dentist will help confirm the right treatments.</p>'+['cosmetic','restorative'].filter(k=>state.categories.includes(k)&&this.config[k]).map(k=>'<section class="tdbc-treatment-group" data-node="group-'+k+'" aria-label="'+k+' treatments"><h4 class="text-style-tagline-restored tdbc-dd-fade">'+(k==='cosmetic'?'Cosmetic treatments':'Restorative treatments')+'</h4>'+available.filter(o=>o.category===k).map(o=>this.option(o,e)).join('')+'</section>').join('')+(!hasEstimate?'<button type="button" class="tdbc-text-button text-size-small" data-action="start-assessment">Prefer to start with an assessment?</button>':'')+'</section>')+
+      expand('journey',hasEstimate,hasEstimate?(selected?this.timelineControls(e):'')+this.assessment(e)+(e.cosmetic?this.hygiene(e):'')+this.summary(e):'')+
+      (active?'<footer class="tdbc-footnote text-size-tiny" data-node="footnote">A guide to possibilities, subject to assessment and your confirmed treatment plan. Your selections stay in this tab for up to four hours. <button type="button" class="tdbc-text-button" data-action="reset" data-control="reset">Reset estimate</button></footer>':'');
+      patch(this.root,'<div class="tdbc-shell" data-node="shell"><header class="tdbc-header" data-node="header"><p class="text-style-tagline-restored">YOUR SMILE, YOUR POSSIBILITIES</p><h2 class="heading-style-h3"'+(this.mode==='drawer'?' id="tdbc-dialog-title"':'')+'>Explore your treatment costs</h2><p class="text-size-small">Start with what matters to you. We’ll bring together a guide to your investment and timing.</p></header>'+
+      (this.context?'<div class="tdbc-notice text-size-small" data-node="context"><p>Your existing estimate is saved. Continue with it, or start with the options from this page.</p><div class="tdbc-actions"><button type="button" data-action="keep" class="tdbc-text-button">Keep my estimate</button><button type="button" data-action="context" class="tdbc-text-button">Start with these options</button></div></div>':'')+
+      (hasEstimate?'<button type="button" class="tdbc-live" data-node="live" data-action="estimate" aria-label="View your full estimate"><span class="tdbc-live-copy"><span class="text-size-tiny">Your estimate</span><strong class="text-size-small" data-output="live">'+esc(priceText(e))+'</strong></span><span class="tdbc-live-copy"><span class="text-size-tiny">Estimated duration</span><span class="text-size-small" data-output="duration">'+esc(C.duration(records,e,today()))+'</span></span>'+chevron+'</button>':'')+'<div class="tdbc-main" data-node="main">'+form+'</div></div>');
       this.outputs();
-      for(const d of this.root.querySelectorAll('details'))if(details.includes(d.dataset.detail))d.open=true;
-      if(focus){const el=[...this.root.querySelectorAll('[data-control]')].find(x=>x.dataset.control===focus);el?.focus({preventScroll:true});}
     }
     option(o,e){
-      const r=records[C.IDS[o.record||o.key]],v=state.selected[o.key],on=!!v,included=o.key==='whitening'&&e.whitenIncluded;
-      const label=name(o),rid=this.id+'-'+o.key,quantityUnit=r?.unit||(o.quantity?'tooth':'');
-      return '<div class="tdbc-option '+(on||included?'is-selected':'')+'"><div class="tdbc-option-row"><label class="tdbc-option-label" for="'+rid+'"><input id="'+rid+'" type="checkbox" data-control="select-'+o.key+'" data-select="'+o.key+'" '+(on||included?'checked ':'')+(included?'disabled ':'')+'><span class="tdbc-check" aria-hidden="true"></span><span><strong>'+esc(label)+'</strong><small>'+(included?'Included with your aligners':esc(recordPrice(r)))+'</small></span></label><details class="tdbc-info" data-detail="'+o.key+'"><summary aria-label="About '+esc(label)+'">i</summary><p>'+esc(r?.tooltip||'Your dentist will confirm suitability, fees and the treatment sequence at your assessment.')+(o.key==='replacement'?' Count the surfaces to be replaced. Keep these separate from any new fillings below.':'')+'</p></details></div>'+
-      (on&&!included?'<div class="tdbc-option-controls">'+(o.quantity?'<label for="'+rid+'-qty">'+(quantityUnit==='surface'?'Surfaces to restore':'Number of teeth')+'</label><div class="tdbc-quantity"><button type="button" data-action="minus" data-key="'+o.key+'" aria-label="Fewer '+esc(label)+'" '+(v.qty<=1?'disabled':'')+'>−</button><input id="'+rid+'-qty" data-control="qty-'+o.key+'" data-qty="'+o.key+'" type="number" inputmode="numeric" min="1" max="'+(quantityUnit==='surface'?160:32)+'" step="1" value="'+v.qty+'"><button type="button" data-action="plus" data-key="'+o.key+'" aria-label="More '+esc(label)+'">+</button></div>'+(quantityUnit==='surface'?'<p class="tdbc-help">One tooth may need several surfaces restored. If unsure, use one surface for a starting guide.</p>':''):'')+
-      (r?.tiers.length>1?'<label class="tdbc-tier-label" for="'+rid+'-tier">'+(o.key==='aligners'?'Treatment complexity':'Pricing tier')+'</label><select id="'+rid+'-tier" data-control="tier-'+o.key+'" data-tier="'+o.key+'"><option value="" '+(v.tier===null?'selected':'')+'>I’m not sure — show a range</option>'+r.tiers.map((p,i)=>'<option value="'+i+'" '+(v.tier===i?'selected':'')+'>Tier '+(i+1)+' · '+esc(currency(p))+(r.unit?' / '+r.unit:'')+'</option>').join('')+'</select><p class="tdbc-help">Your dentist confirms the appropriate tier.</p>':'')+'</div>':'')+'</div>';
+      const r=records[C.IDS[o.record||o.key]],v=state.selected[o.key],on=!!v,included=o.key==='whitening'&&e.whitenIncluded,label=name(o),rid=this.id+'-'+o.key,unit=r?.unit||(o.quantity?'tooth':'');
+      const complexity=['aligners','bonding'].includes(o.key)&&r?.tierLabels?.some(Boolean),hasControls=o.quantity||complexity;
+      const quoted=o.key==='replacement'&&r?.valid&&r.tiers[2]?currency(r.tiers[2])+(unit?' / '+unit:''):recordPrice(r);
+      const row='<div class="tdbc-option-row"><label class="tdbc-option-label form_checkbox" for="'+rid+'"><input id="'+rid+'" type="checkbox" data-control="select-'+o.key+'" data-select="'+o.key+'" '+(on||included?'checked ':'')+(included?'disabled ':'')+(hasControls?'aria-expanded="'+on+'" aria-controls="'+rid+'-controls"':'')+'>'+check(on||included)+'<span><span class="text-size-small">'+esc(label)+'</span><small class="text-size-tiny">'+(included?'Included with your aligners':esc(quoted))+'</small></span>'+(hasControls?chevron:'')+'</label><div class="tdbc-info" data-node="info-'+o.key+'"><button type="button" class="tdbc-info-button" data-action="info" aria-label="About '+esc(label)+'" aria-expanded="false" aria-controls="'+rid+'-tip">'+infoIcon+'</button><div class="tdbc-info-panel text-size-small" role="tooltip" id="'+rid+'-tip" aria-hidden="true" inert>'+esc(r?.tooltip||'Your dentist will confirm suitability, fees and the treatment sequence at your assessment.')+(o.key==='replacement'?' Count the surfaces to be replaced separately from any new fillings.':'')+'</div></div></div>';
+      const controls=!hasControls?'':expand('option-'+o.key,on&&!included,'<div class="tdbc-option-controls" id="'+rid+'-controls">'+(o.quantity?'<label class="text-size-small" for="'+rid+'-qty">'+(unit==='surface'?'Surfaces to restore':'Number of teeth')+'</label><div class="tdbc-quantity"><button type="button" data-action="minus" data-key="'+o.key+'" aria-label="Fewer '+esc(label)+'" '+((v?.qty||1)<=1?'disabled':'')+'>−</button><input id="'+rid+'-qty" data-control="qty-'+o.key+'" data-qty="'+o.key+'" type="number" inputmode="numeric" min="1" max="'+(unit==='surface'?160:32)+'" step="1" value="'+(v?.qty||1)+'"><button type="button" data-action="plus" data-key="'+o.key+'" aria-label="More '+esc(label)+'">+</button></div>'+(unit==='surface'?'<p class="tdbc-help text-size-tiny">One tooth may need several surfaces restored. If unsure, use one surface for a starting guide.</p>':''):'')+
+      (complexity?'<fieldset class="tdbc-complexity"><legend class="text-size-small">'+(o.key==='aligners'?'What would you like to improve?':'What changes do you have in mind?')+'</legend>'+r.tierLabels.map((label,i)=>label&&r.tiers[i]?'<label class="tdbc-choice form_checkbox text-size-small"><input type="radio" name="'+rid+'-complexity" data-control="tier-'+o.key+'-'+i+'" data-tier="'+o.key+'" value="'+i+'" '+(v?.tier===i?'checked':'')+'>'+check(v?.tier===i)+'<span>'+esc(label)+'</span></label>':'').join('')+'<p class="tdbc-help text-size-tiny">Choose the closest description, or leave these blank for a guide range. Your dentist will confirm what’s right for you.</p>'+(v?.tier!==null&&v?.tier!==undefined?'<button type="button" class="tdbc-text-button text-size-tiny" data-action="clear-tier" data-key="'+o.key+'">Show a guide range</button>':'')+'</fieldset>':'')+'</div>');
+      return '<div class="tdbc-option '+(on||included?'is-selected':'')+'" data-node="option-'+o.key+'">'+row+controls+'</div>';
     }
-    assessment(e){
-      const a=records[C.IDS.assessment],d=records[C.IDS.design];
-      return '<section class="tdbc-step tdbc-assessment"><p class="tdbc-kicker">EVERY JOURNEY STARTS HERE</p><h3>'+esc(a?.label||'Signature Assessment ✦')+'</h3><p>Smile Design and a comprehensive examination, together with Dr Keely.</p><ul class="tdbc-included"><li><span>Smile Design</span><span>Included</span></li><li><span>Comprehensive examination & appropriate diagnostics</span><span>Included</span></li><li><span>Itemised plan, costs & written report</span><span>Included</span></li></ul>'+
-      '<div class="tdbc-assessment-price"><strong>'+esc(recordPrice(a))+'</strong><span>'+esc(a?.bookingDeposit!==null&&a?.bookingDeposit!==undefined?currency(a.bookingDeposit)+' booking deposit, included in the total':'Booking details confirmed with your appointment')+'</span></div>'+
-      (e.required?'<p class="tdbc-help">Automatically included once in your estimate. No separate examination or Smile Design fees are added.</p>':'<label class="tdbc-manual"><input type="checkbox" data-control="assessment" data-assessment="signature" '+(state.assessment==='signature'?'checked':'')+'> Include Signature Assessment</label>'+(d?.valid?'<label class="tdbc-manual"><input type="checkbox" data-control="design" data-assessment="design" '+(state.assessment==='design'?'checked':'')+'> Explore Smile Design only · '+esc(recordPrice(d))+'</label><p class="tdbc-help">Selecting treatment combines your starting care into Signature Assessment.</p>':''))+'</section>';
-    }
-    hygiene(e){const r=records[C.IDS.hygiene];return '<section class="tdbc-step tdbc-preparation"><h3>Healthy foundations first</h3><p>We’ll review your gum health before cosmetic treatment.</p>'+(e.hygieneIncluded?'<p class="tdbc-inclusion">Airflow® hygiene is included with your aligner package.</p>':'<p class="tdbc-help">Hygiene is recommended where needed and is not yet included in this estimate.</p><label class="tdbc-manual"><input type="checkbox" data-control="hygiene" data-hygiene '+(state.hygiene?'checked':'')+'> Add a hygiene allowance · '+esc(recordPrice(r))+'</label>')+'<p class="tdbc-help">Any additional periodontal care will be discussed after assessment.</p></section>';}
-    financeControls(e){const f=C.finance(e,state.deposit,state.term);return '<section class="tdbc-step"><h3>'+tag+' Spread your investment</h3><p class="tdbc-help">Would you like a monthly payment illustration?</p><div class="tdbc-toggle" role="group" aria-label="Explore finance"><button type="button" data-action="finance-no" data-control="finance-no" aria-pressed="'+!state.finance+'">No</button><button type="button" data-action="finance-yes" data-control="finance-yes" aria-pressed="'+state.finance+'">Yes, explore 0%</button></div>'+(state.finance&&f?'<div class="tdbc-finance-controls"><label for="'+this.id+'-deposit">Treatment deposit <output data-output="deposit">'+esc(currency(f.deposit))+'</output></label><input id="'+this.id+'-deposit" type="range" min="0" max="'+f.limit+'" step="100" value="'+f.deposit+'" data-control="deposit" data-range="deposit" aria-valuetext="'+esc(currency(f.deposit))+'"><label class="tdbc-sr" for="'+this.id+'-deposit-value">Treatment deposit in pounds</label><input id="'+this.id+'-deposit-value" type="number" min="0" max="'+(f.limit/100)+'" step="1" value="'+(f.deposit/100)+'" data-control="deposit-number" data-deposit-number><label for="'+this.id+'-term">Illustrative term <output data-output="term">'+state.term+' months</output></label><input id="'+this.id+'-term" type="range" min="3" max="12" step="1" value="'+state.term+'" data-control="term" data-range="term" aria-valuetext="'+state.term+' months"><div class="tdbc-range-labels"><span>3 months</span><span>12 months</span></div><div data-output="finance"></div><p class="tdbc-help">Illustration only. Available terms, minimum borrowing and deposit requirements are confirmed with your treatment plan, subject to eligibility and lender approval. The assessment is shown separately.</p></div>':state.finance?'<p>Complete pricing is needed before we can show a monthly illustration.</p>':'')+'</section>';}
-    timelineControls(e){const t=C.timeline(records,e,state.target,today(),state.start);return '<section class="tdbc-step"><h3>'+clock+' A date to look forward to</h3><p class="tdbc-help">An occasion in mind? Explore when your journey might begin.</p><label for="'+this.id+'-target">Target completion date <span class="tdbc-optional">Optional</span></label><input id="'+this.id+'-target" type="date" data-control="target" data-date="target" value="'+esc(state.target)+'"><div data-output="timeline"></div>'+(t.reliable&&state.target&&t.suggestedEarliest?'<div class="tdbc-date-controls"><label for="'+this.id+'-start">Explore an assessment date</label><input id="'+this.id+'-start" type="date" data-control="start" data-date="start" value="'+t.start+'" min="'+today()+'"><label class="tdbc-sr" for="'+this.id+'-date-slider">Move the assessment earlier or later</label><input id="'+this.id+'-date-slider" type="range" data-control="date-slider" data-range="start" min="0" max="'+Math.max(1095,Math.ceil((C.parseDate(t.start)-C.parseDate(today()))/86400000)+365)+'" step="1" value="'+Math.round((C.parseDate(t.start)-C.parseDate(today()))/86400000)+'" aria-valuetext="'+esc(dateText(t.start))+'"><div class="tdbc-range-labels"><span>Earlier</span><span>Later</span></div><p class="tdbc-help">This explores timing; it does not book or check available appointments.</p></div>':'')+'</section>';}
+    assessment(e){const a=records[C.IDS.assessment],d=records[C.IDS.design];return '<section class="tdbc-step tdbc-assessment" data-node="assessment"><p class="text-style-tagline-restored">Every journey starts here</p>'+step(e.required?'04':'03',esc(a?.label||'Signature Assessment'))+'<p class="text-size-small">Smile Design and a comprehensive examination, together with Dr Keely.</p><ul class="tdbc-included text-size-small">'+['Smile Design','Comprehensive examination & appropriate diagnostics','Itemised plan, costs & written report'].map(t=>'<li><span class="tdbc-included-mark" aria-hidden="true"></span><span>'+t+'</span></li>').join('')+'</ul><div class="tdbc-assessment-price"><strong class="heading-style-h4">'+esc(recordPrice(a))+'</strong><span class="text-size-tiny">'+esc(a?.bookingDeposit!==null&&a?.bookingDeposit!==undefined?currency(a.bookingDeposit)+' booking deposit, included in the total':'Booking details confirmed with your appointment')+'</span></div>'+(e.required?'<p class="tdbc-help text-size-tiny">Included once in your estimate. Smile Design and your examination are bundled together.</p>':'<label class="tdbc-manual form_checkbox text-size-small"><input type="checkbox" data-control="assessment" data-assessment="signature" '+(state.assessment==='signature'?'checked':'')+'>'+check(state.assessment==='signature')+'<span>Include Signature Assessment</span></label>'+(d?.valid?'<label class="tdbc-manual form_checkbox text-size-small"><input type="checkbox" data-control="design" data-assessment="design" '+(state.assessment==='design'?'checked':'')+'>'+check(state.assessment==='design')+'<span>Explore Smile Design only · '+esc(recordPrice(d))+'</span></label>':''))+'</section>';}
+    hygiene(e){const r=records[C.IDS.hygiene];return '<section class="tdbc-step" data-node="hygiene">'+step('05','Healthy foundations')+'<p class="text-size-small">We’ll review your gum health before cosmetic treatment.</p>'+(e.hygieneIncluded?'<p class="text-size-small">Airflow® hygiene is included with your aligner package.</p>':'<label class="tdbc-manual form_checkbox text-size-small"><input type="checkbox" data-control="hygiene" data-hygiene '+(state.hygiene?'checked':'')+'>'+check(state.hygiene)+'<span>Add a hygiene allowance · '+esc(recordPrice(r))+'</span></label><p class="tdbc-help text-size-tiny">Recommended where needed. Add this allowance to include it in your estimate.</p>')+'<p class="tdbc-help text-size-tiny">Any additional periodontal care will be discussed after assessment.</p></section>';}
+    summary(e){return '<section class="tdbc-summary" data-output="summary" id="'+this.id+'-estimate" data-node="estimate" tabindex="-1" aria-label="Your estimated investment"><p class="text-style-tagline-restored">Your estimated investment</p><div class="tdbc-total heading-style-h3" data-output="total">'+esc(priceText(e))+'</div><p class="tdbc-summary-duration text-size-small">'+clock+'<span>Estimated duration: <span data-output="duration-summary">'+esc(C.duration(records,e,today()))+'</span></span></p>'+(e.required?'<p class="tdbc-help text-size-tiny">Includes two weeks after your assessment for planning. Timing is confirmed with your treatment plan.</p>':'')+'<div class="tdbc-breakdown"><button type="button" class="tdbc-disclosure text-style-tagline-restored" data-action="breakdown" aria-expanded="'+this.breakdown+'" aria-controls="'+this.id+'-breakdown">Your breakdown'+chevron+'</button>'+expand('breakdown',this.breakdown,'<ul class="text-size-small" id="'+this.id+'-breakdown">'+e.lines.map(l=>'<li><span>'+esc(l.label)+(l.qty>1?' <small class="text-size-tiny">× '+l.qty+(l.record?.unit==='surface'?' surfaces':' teeth')+'</small>':'')+'</span><strong>'+(l.included?'Included':l.min===null?'To confirm':esc(range(l.min,l.max)))+'</strong></li>').join('')+'</ul>')+'</div>'+(!e.complete?'<p class="tdbc-notice text-size-small">Some prices need confirmation: '+esc(e.missing.join(', '))+'. The subtotal excludes these items.</p>':'')+(e.cosmetic&&!e.hygieneIncluded&&!state.hygiene?'<p class="tdbc-help text-size-tiny">Hygiene, if needed, is additional.</p>':'')+(this.config.finance?this.financeControls(e):'')+'<a class="button is-icon is-secondary is-alternate tdbc-vip w-inline-block" href="#VIP" data-action="vip"><span>Join VIP</span><span class="icon-embed-xxsmall is-up w-embed">'+arrow+'</span></a><p class="tdbc-help text-size-tiny">Discuss your options and take the next step with us.</p></section>';}
+    financeControls(e){const f=C.finance(e,state.deposit,state.term);return '<div class="tdbc-finance" data-node="finance"><label class="tdbc-manual form_checkbox tdbc-finance-toggle text-size-small"><input type="checkbox" data-control="finance" data-finance '+(state.finance?'checked':'')+' aria-expanded="'+state.finance+'" aria-controls="'+this.id+'-finance">'+check(state.finance)+'<span>Finance available · explore 0%<small class="text-size-tiny">From £250, over 3–12 months</small></span>'+chevron+'</label>'+expand('finance',state.finance,'<div class="tdbc-finance-controls" id="'+this.id+'-finance">'+(f?'<label class="text-size-small" for="'+this.id+'-deposit">Upfront payment <output data-output="deposit">'+esc(currency(f.deposit))+'</output></label><input id="'+this.id+'-deposit" type="range" min="'+f.minimumDeposit+'" max="'+f.limit+'" step="100" value="'+f.deposit+'" data-control="deposit" data-range="deposit" aria-valuetext="'+esc(currency(f.deposit))+'"><div class="tdbc-range-labels text-size-tiny"><span>'+esc(currency(f.minimumDeposit))+' minimum</span><span>'+esc(currency(f.limit))+'</span></div><label class="tdbc-sr" for="'+this.id+'-deposit-value">Upfront payment in pounds</label><input id="'+this.id+'-deposit-value" class="form_input" type="number" min="'+f.minimumDeposit/100+'" max="'+f.limit/100+'" step="1" value="'+f.deposit/100+'" data-control="deposit-number" data-deposit-number><p class="tdbc-help text-size-tiny">Includes your '+esc(currency(f.assessment))+' Signature Assessment, counted once in the total.</p><label class="text-size-small" for="'+this.id+'-term">Repayment term <output data-output="term">'+state.term+' months</output></label><input id="'+this.id+'-term" type="range" min="3" max="12" step="1" value="'+state.term+'" data-control="term" data-range="term" aria-valuetext="'+state.term+' months"><div class="tdbc-range-labels text-size-tiny"><span>3 months</span><span>12 months</span></div><div data-output="finance"></div><p class="tdbc-help text-size-tiny">Illustration at 0% interest, subject to eligibility and lender approval. Your confirmed treatment plan sets the final amount.</p>':'<p class="text-size-small">Finance illustrations need complete pricing and at least £250 remaining after your assessment payment.</p>')+'</div>')+'</div>';}
+    timelineControls(e){const t=C.timeline(records,e,state.target,today(),state.start);return '<section class="tdbc-step" data-node="timeline">'+step('03','A date to look forward to')+'<p class="tdbc-help text-size-small">An occasion in mind? Explore when your journey might begin.</p><label class="text-size-small" for="'+this.id+'-target">Target completion date <span class="tdbc-optional text-size-tiny">Optional</span></label><input class="form_input" id="'+this.id+'-target" type="date" data-control="target" data-date="target" value="'+esc(state.target)+'"><div data-output="timeline"></div>'+(t.reliable&&state.target&&t.suggestedEarliest?'<div class="tdbc-date-controls"><label class="text-size-small" for="'+this.id+'-start">Explore an assessment date</label><input class="form_input" id="'+this.id+'-start" type="date" data-control="start" data-date="start" value="'+t.start+'" min="'+today()+'"><label class="tdbc-sr" for="'+this.id+'-date-slider">Move the assessment earlier or later</label><input id="'+this.id+'-date-slider" type="range" data-control="date-slider" data-range="start" min="0" max="'+Math.max(1095,Math.ceil((C.parseDate(t.start)-C.parseDate(today()))/86400000)+365)+'" step="1" value="'+Math.round((C.parseDate(t.start)-C.parseDate(today()))/86400000)+'" aria-valuetext="'+esc(dateText(t.start))+'"><div class="tdbc-range-labels text-size-tiny"><span>Earlier</span><span>Later</span></div><p class="tdbc-help text-size-tiny">This explores timing; it does not book or check available appointments.</p></div>':'')+'</section>';}
     outputs(){
-      const e=C.estimate(records,state,this.config),summary=this.root.querySelector('[data-output="summary"]');
-      const f=C.finance(e,state.deposit,state.term);
+      const e=C.estimate(records,state,this.config),f=C.finance(e,state.deposit,state.term);
       if(f&&state.deposit!==f.deposit){state.deposit=f.deposit;save();}
-      const live=this.root.querySelector('[data-output="live"]');if(live&&live.textContent!==priceText(e))live.textContent=priceText(e);
-      if(summary)summary.innerHTML='<p class="tdbc-kicker">YOUR ESTIMATED INVESTMENT</p><div class="tdbc-total">'+esc(priceText(e))+'</div>'+(e.min!==e.max?'<p class="tdbc-help">Guide range across the published pricing tiers.</p>':'')+
-      (e.lines.length?'<details class="tdbc-breakdown" data-detail="breakdown" open><summary>View your breakdown</summary><ul>'+e.lines.map(l=>'<li><span>'+esc(l.label)+(l.qty>1?' <small>× '+l.qty+(l.record?.unit==='surface'?' surfaces':' teeth')+'</small>':'')+'</span><strong>'+(l.included?'Included':l.min===null?'To confirm':esc(range(l.min,l.max)))+'</strong></li>').join('')+'</ul></details>':'<p>Select the treatments you’d like to explore. Your estimate will appear here.</p>')+
-      (!e.complete?'<p class="tdbc-warning">Some prices need confirmation: '+esc(e.missing.join(', '))+'. The subtotal excludes these items.</p>':'')+
-      (e.cosmetic&&!e.hygieneIncluded&&!state.hygiene?'<p class="tdbc-help">Hygiene, if needed, is additional.</p>':'')+
-      (state.finance&&this.config.finance&&f?'<div class="tdbc-summary-monthly"><span>0% illustration over '+state.term+' months</span><strong>'+esc(range(f.low.monthly,f.high.monthly))+'<small> / month</small></strong><span>Assessment and treatment deposit paid separately.</span></div>':'')+
-      '<a class="tdbc-button tdbc-button-light" href="/vip" data-action="vip">Join VIP <span aria-hidden="true">↗</span></a><p class="tdbc-help">Discuss your options and take the next step with us.</p>';
-      const financeOut=this.root.querySelector('[data-output="finance"]');
-      if(financeOut&&f)financeOut.innerHTML='<dl class="tdbc-finance-facts"><div><dt>Treatment guide</dt><dd>'+esc(range(e.min-(e.assessmentLine?.min||0),e.max-(e.assessmentLine?.max||0)))+'</dd></div><div><dt>Treatment deposit</dt><dd>'+esc(currency(f.deposit))+'</dd></div><div><dt>Amount to spread</dt><dd>'+esc(range(f.low.balance,f.high.balance))+'</dd></div><div><dt>Monthly payment at 0%</dt><dd>'+esc(range(f.low.monthly,f.high.monthly))+'</dd></div><div><dt>Final payment</dt><dd>'+esc(range(f.low.final,f.high.final))+'</dd></div><div><dt>Assessment, paid separately</dt><dd>'+esc(currency(f.assessment))+'</dd></div></dl>'+(f.high.balance===0?'<p>No treatment balance remains to spread.</p>':'');
-      const depositOut=this.root.querySelector('[data-output="deposit"]');if(depositOut)depositOut.textContent=currency(f?.deposit||0);
-      const termOut=this.root.querySelector('[data-output="term"]');if(termOut)termOut.textContent=state.term+' months';
-      const tOut=this.root.querySelector('[data-output="timeline"]');if(tOut)tOut.innerHTML=this.timelineOutput(e);
+      const set=(key,value)=>{const el=this.root.querySelector('[data-output="'+key+'"]');if(el&&el.textContent!==value)el.textContent=value;};
+      set('live',priceText(e));set('total',priceText(e));set('duration',C.duration(records,e,today()));set('duration-summary',C.duration(records,e,today()));set('deposit',currency(f?.deposit||0));set('term',state.term+' months');
+      const facts=this.root.querySelector('[data-output="finance"]');if(facts&&f)patch(facts,'<div class="tdbc-summary-monthly"><span class="text-size-tiny">0% over '+state.term+' months</span><strong class="heading-style-h4">'+esc(range(f.low.monthly,f.high.monthly))+'<small class="text-size-small"> / month</small></strong></div><dl class="tdbc-finance-facts text-size-small">'+[['Total estimate',range(e.min,e.max)],['Upfront, including assessment',currency(f.deposit)],['Amount financed',range(f.low.balance,f.high.balance)],['Final monthly payment',range(f.low.final,f.high.final)]].map(([a,b])=>'<div><dt>'+esc(a)+'</dt><dd>'+esc(b)+'</dd></div>').join('')+'</dl>');
+      const tOut=this.root.querySelector('[data-output="timeline"]');if(tOut)patch(tOut,this.timelineOutput(e));
     }
     timelineOutput(e){
       const t=C.timeline(records,e,state.target,today(),state.start),dated=!!state.target&&t.reliable&&!!t.suggestedEarliest;
       let html='';
-      if(t.plan.unknown.length)html+='<p class="tdbc-notice">We can map your treatment stages, but need to assess '+esc(t.plan.unknown.join(', '))+' before suggesting a completion date.</p>';
-      if(t.targetPast)html+='<p class="tdbc-warning">Your target date has passed. Choose a future date to explore your options.</p>';
-      else if(t.tight)html+='<p class="tdbc-notice">Your target date may be tight. We’re used to helping patients plan around important occasions. At your assessment, we can explore what may be achievable, including a staged approach.</p>';
+      if(t.plan.unknown.length)html+='<p class="tdbc-notice text-size-small">We can map your treatment stages, but need to assess '+esc(t.plan.unknown.join(', '))+' before suggesting a completion date.</p>';
+      if(t.targetPast)html+='<p class="tdbc-warning text-size-small">Your target date has passed. Choose a future date to explore your options.</p>';
+      else if(t.tight)html+='<p class="tdbc-notice text-size-small">Your target date may be tight. We’re used to helping patients plan around important occasions. At your assessment, we can explore what may be achievable, including a staged approach.</p>';
       if(dated){html+='<div class="tdbc-date-result"><span>To aim for '+esc(dateText(state.target))+'</span><strong>Assessment '+esc(dateRange(t.suggestedEarliest,t.suggestedLatest))+'</strong><p>'+(t.suggestedEarliest!==t.suggestedLatest?'The earlier date allows for the longer treatment estimate.':'Based on the illustrative sequence below.')+'</p></div><div class="tdbc-date-result is-current"><span>Your explored assessment: '+esc(dateText(t.start))+'</span><strong>Estimated finish '+esc(dateRange(t.finishMin,t.finishMax))+'</strong><p>'+(t.meetsTarget?'This guide fits within your target date.':'This guide may extend beyond your target date.')+'</p></div>';}
-      html+='<ol class="tdbc-timeline"><li><span class="tdbc-dot"></span><div><small>'+(dated?esc(dateText(t.start)):'Week 1')+'</small><strong>Signature Assessment ✦</strong><p>Smile Design, examination and your treatment plan.</p></div></li><li><span class="tdbc-dot"></span><div><small>'+(dated?esc(dateRange(t.start,C.iso(C.addDays(C.parseDate(t.start),14)))):'Two-week allowance after assessment')+'</small><strong>Prepare for treatment</strong><p>Plan your appointments and any care needed first.</p></div></li>';
+      html+='<ol class="tdbc-timeline text-size-small"><li><span class="tdbc-dot"></span><div><small class="text-size-tiny">'+(dated?esc(dateText(t.start)):'Week 1')+'</small><strong>Signature Assessment ✦</strong><p>Smile Design, examination and your treatment plan.</p></div></li><li><span class="tdbc-dot"></span><div><small class="text-size-tiny">'+(dated?esc(dateRange(t.start,C.iso(C.addDays(C.parseDate(t.start),14)))):'Two-week allowance after assessment')+'</small><strong>Prepare for treatment</strong><p>Plan your appointments and any care needed first.</p></div></li>';
       let elapsed=2,uncertain=false;
       for(const stage of t.stages){let label;
         if(dated)label=dateRange(stage.startMin,stage.endMax);
@@ -335,14 +367,15 @@
         else if(stage.timing.unit==='months'){label=stage.timing.min+'–'+stage.timing.max+' months';uncertain=true;}
         else if(uncertain)label=stage.timing.min===0?'Treatment appointment':stage.timing.min+' weeks';
         else {label=stage.timing.max===0?'Week '+(elapsed+1):'Weeks '+(elapsed+1)+'–'+(elapsed+stage.timing.max);elapsed+=stage.timing.max;}
-        html+='<li><span class="tdbc-dot"></span><div><small>'+esc(label)+'</small><strong>'+esc(stage.label)+'</strong>'+(stage.key==='whitening'?'<p>Three weeks of whitening, then two weeks for colour settling.</p>':'')+'</div></li>';
+        html+='<li><span class="tdbc-dot"></span><div><small class="text-size-tiny">'+esc(label)+'</small><strong>'+esc(stage.label)+'</strong>'+(stage.key==='whitening'?'<p>Three weeks of whitening, then two weeks for colour settling.</p>':'')+'</div></li>';
       }
-      html+='</ol>'+t.plan.notes.map(n=>'<p class="tdbc-help">'+esc(n)+'</p>').join('');return html;
+      html+='</ol>'+t.plan.notes.map(n=>'<p class="tdbc-help text-size-tiny">'+esc(n)+'</p>').join('');return html;
     }
     change(event){
       const el=event.target;if(!this.ready)return;
-      if(el.dataset.category){const k=el.dataset.category;if(el.checked)state.categories=[...new Set([...state.categories,k])];else{state.categories=state.categories.filter(c=>c!==k);C.OPTIONS.filter(o=>o.category===k).forEach(o=>delete state.selected[o.key]);}state.start='';}
+      if(el.dataset.category){const k=el.dataset.category;if(el.checked)state.categories=[...new Set([...state.categories,k])];else{state.categories=state.categories.filter(c=>c!==k);C.OPTIONS.filter(o=>o.category===k).forEach(o=>delete state.selected[o.key]);}state.start='';if(!state.categories.length){state.assessment='none';state.finance=false;state.hygiene=false;}}
       else if(el.dataset.select){if(el.checked)state.selected[el.dataset.select]={qty:1,tier:null};else delete state.selected[el.dataset.select];state.start='';}
+      else if(el.hasAttribute('data-finance'))state.finance=el.checked;
       else if(el.dataset.qty){const o=C.OPTIONS.find(o=>o.key===el.dataset.qty);const limit=o?.record==='fillings'||o?.key==='fillings'?160:32;state.selected[el.dataset.qty].qty=Math.max(1,Math.min(limit,Math.floor(Number(el.value)||1)));}
       else if(el.dataset.tier)state.selected[el.dataset.tier].tier=el.value===''?null:Number(el.value);
       else if(el.dataset.assessment)state.assessment=el.checked?el.dataset.assessment:'none';
@@ -359,12 +392,15 @@
       this.outputs();save();
     }
     click(event){const el=event.target.closest('[data-action]');if(!el)return;const action=el.dataset.action;
+      if(action==='info'){const info=el.closest('.tdbc-info'),open=!info.classList.contains('is-open');closeTooltips();info.classList.toggle('is-open',open);el.setAttribute('aria-expanded',String(open));const panel=info.querySelector('[role=tooltip]');panel.setAttribute('aria-hidden',String(!open));panel.inert=!open;return;}
+      if(action==='estimate'){const summary=this.root.querySelector('.tdbc-summary');if(summary){focusMove=true;focusView(this);summary.focus({preventScroll:true});if(this.mode==='inline'&&window.lenis?.scrollTo)window.lenis.scrollTo(summary,{offset:-112,onComplete:()=>{focusMove=false;focusView(this);}});else summary.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>{focusMove=false;},1600);}return;}
       if(action==='retry'){this.init();return;}
-      if(action==='vip'){event.preventDefault();goVIP(el);return;}
+      if(action==='vip'){event.preventDefault();releaseFocus();goVIP(el);return;}
       if(!this.ready)return;
-      if(action==='reset'){state=C.newState();this.context=null;try{sessionStorage.removeItem(STORAGE);}catch(_){} }
-      else if(action==='finance-yes')state.finance=true;
-      else if(action==='finance-no')state.finance=false;
+      if(action==='reset'){releaseFocus();state=C.newState();this.context=null;try{sessionStorage.removeItem(STORAGE);}catch(_){} }
+      else if(action==='start-assessment')state.assessment='signature';
+      else if(action==='clear-tier'){if(state.selected[el.dataset.key])state.selected[el.dataset.key].tier=null;}
+      else if(action==='breakdown')this.breakdown=!this.breakdown;
       else if(action==='plus'||action==='minus'){const o=C.OPTIONS.find(o=>o.key===el.dataset.key),v=state.selected[el.dataset.key];if(v)v.qty=Math.max(1,Math.min(o?.record==='fillings'||o?.key==='fillings'?160:32,v.qty+(action==='plus'?1:-1)));}
       else if(action==='keep')this.context=null;
       else if(action==='context'){const config=this.context;state=C.newState();if(config)contextual(this,config);}
@@ -383,13 +419,13 @@
   }
   async function open(trigger){
     if(typeof HTMLDialogElement==='undefined'){location.assign(PRICE_PATH+'#treatment-calculator');return;}
-    makeDialog();lastTrigger=trigger;const config=configFrom(trigger);
+    makeDialog();lastTrigger=trigger;focusView(drawerView);const config=configFrom(trigger);
     try{window.TDBVIPDrawer?.reset?.();}catch(_){}
     if(!dialog.open){oldOverflow=document.documentElement.style.overflow;oldPadding=document.documentElement.style.paddingRight;const gap=innerWidth-document.documentElement.clientWidth;document.documentElement.style.overflow='hidden';if(gap>0)document.documentElement.style.paddingRight=gap+'px';scrollWasStopped=!!window.lenis?.isStopped;try{window.lenis?.stop?.();}catch(_){}dialog.showModal();}
     dialog.scrollTop=0;dialog.querySelector('[data-tdb-calc-close]').focus({preventScroll:true});
     if(!drawerView.ready){drawerView.config=config;await drawerView.init();}else{contextual(drawerView,config);drawerView.render();save();}
   }
-  function close(restore=true){if(!dialog?.open)return;dialog.close();document.documentElement.style.overflow=oldOverflow;document.documentElement.style.paddingRight=oldPadding;try{if(!scrollWasStopped)window.lenis?.start?.();}catch(_){}if(restore&&lastTrigger?.isConnected)lastTrigger.focus({preventScroll:true});renderAll(drawerView);}
+  function close(restore=true){if(!dialog?.open)return;releaseFocus();dialog.close();document.documentElement.style.overflow=oldOverflow;document.documentElement.style.paddingRight=oldPadding;try{if(!scrollWasStopped)window.lenis?.start?.();}catch(_){}if(restore&&lastTrigger?.isConnected)lastTrigger.focus({preventScroll:true});renderAll(drawerView);}
   function goVIP(invoker){save();close(false);try{
       if(window.TDBVIPDrawer?.open){window.TDBVIPDrawer.open();return;}
       if(window.TDBVIPDrawerLoader?.open){window.TDBVIPDrawerLoader.open();return;}
@@ -400,15 +436,9 @@
   }
   function start(){
     document.querySelectorAll('[data-tdb-calculator="inline"]').forEach(root=>{if(root.hasAttribute('data-tdb-calc-ready'))return;root.setAttribute('data-tdb-calc-ready','true');
-      // Keep the compact estimate below the site's existing announcement bar.
-      // Elfsight renders a fixed bar outside its zero-height placeholder.
-      // Watch briefly for that bar, then keep only a size observer on it.
-      let pendingBanner=null;
-      const connectBanner=()=>{const banner=document.querySelector('.eapps-countdown-timer-position-bar');if(!banner)return false;
-        pendingBanner?.disconnect();const inset=()=>root.style.setProperty('--calc-sticky-top',Math.max(88,Math.ceil(banner.getBoundingClientRect().height)+8)+'px');
-        inset();if('ResizeObserver'in window)new ResizeObserver(inset).observe(banner);return true;};
-      if(!connectBanner()&&'MutationObserver'in window){pendingBanner=new MutationObserver(connectBanner);pendingBanner.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});setTimeout(()=>pendingBanner.disconnect(),15000);}
       new View(root,configFrom(root),'inline').init();});
+    document.addEventListener('pointerdown',event=>{if(!event.target.closest('.tdbc-info'))closeTooltips();if(focusedView&&!event.target.closest('.tdb-calc,.tdbc-dialog'))releaseFocus();},{capture:true,passive:true});
+    document.addEventListener('keydown',event=>{if(event.key==='Escape'&&document.querySelector('.tdbc-info.is-open')){closeTooltips();event.preventDefault();event.stopImmediatePropagation();}},true);
     document.addEventListener('click',event=>{const a=event.target.closest(SELECTOR);if(!a||event.defaultPrevented||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button>0)return;event.preventDefault();open(a);});
   }
   window.TDBCalculator=Object.freeze({version:C.VERSION,open,close,refresh:()=>{records=null;for(const v of views)v.init();}});

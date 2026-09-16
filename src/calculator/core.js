@@ -5,7 +5,7 @@
   else root.TDBCalculatorCore = api;
 })(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
-  const VERSION = '1.0.0';
+  const VERSION = '1.1.0';
   const IDS = Object.freeze({
     assessment: '6aa293f6253d574a41978d9e', design: '68386f15264c9bdb140b5f2e',
     whitening: '681ce51276b22da0b0660090', aligners: '67a227e75f8c501023eb066b',
@@ -50,6 +50,7 @@
       tooltip:String(f.tooltip||'').trim(), rawPrice:String(f.price||''),
       valid, min:valid?price.min:null,max:valid?Math.max(price.min,...vals):null,
       from:!!price?.from,unit:price?.unit||'',tiers:vals,
+      tierLabels:[1,2,3].map(n=>String(f['tier'+n+'friendly']||'').trim()),
       timing:timing?{min:Number(f.min),max:Number(f.max),unit:f.unit}:null,
       includesWhitening:f.whitening===true||f.whitening==='true',
       includesHygiene:f.hygiene===true||f.hygiene==='true',
@@ -66,7 +67,7 @@
     for(const o of OPTIONS){
       const v=raw.selected&&own(raw.selected,o.key)?raw.selected[o.key]:null;
       if(v&&s.categories.includes(o.category)){
-        s.selected[o.key]={qty:o.quantity?clamp(Math.floor(Number(v.qty)||1),1,o.record==='fillings'||o.key==='fillings'?160:32):1,tier:Number.isInteger(v.tier)&&v.tier>=0&&v.tier<=4?v.tier:null};
+        s.selected[o.key]={qty:o.quantity?clamp(Math.floor(Number(v.qty)||1),1,o.record==='fillings'||o.key==='fillings'?160:32):1,tier:o.key==='replacement'?2:['aligners','bonding'].includes(o.key)&&Number.isInteger(v.tier)&&v.tier>=0&&v.tier<=2?v.tier:null};
       }
     }
     s.assessment=['none','design','signature'].includes(raw.assessment)?raw.assessment:'none';
@@ -103,6 +104,8 @@
     }
     if(whitenIncluded&&!state.selected.whitening)add('whitening-included','whitening',1,null,true);
     if(cosmetic&&(hygieneIncluded||state.hygiene))add('hygiene','hygiene',1,null,hygieneIncluded);
+    const order=['assessment','hygiene','extractions','replacement','fillings','rct','crowns','onlays','aligners','whitening','whitening-included','gumline','bonding','veneers'];
+    lines.sort((a,b)=>order.indexOf(a.key)-order.indexOf(b.key));
     const priced=lines.filter(l=>l.min!==null);
     const min=priced.reduce((n,l)=>n+l.min,0),max=priced.reduce((n,l)=>n+l.max,0);
     const starting=lines.some(l=>l.from),assessmentLine=lines.find(l=>l.key==='assessment');
@@ -116,11 +119,12 @@
   }
   function finance(estimate,deposit,term){
     if(!estimate.complete||!estimate.lines.length)return null;
-    // Assessment is paid separately. Never finance or subtract its booking deposit again.
-    const assessmentMin=estimate.assessmentLine?.min||0,assessmentMax=estimate.assessmentLine?.max||0;
-    const min=Math.max(0,estimate.min-assessmentMin),max=Math.max(0,estimate.max-assessmentMax);
-    const actualDeposit=clamp(Math.round(Number(deposit)||0),0,min),months=clamp(Math.round(Number(term)||12),3,12);
-    return {deposit:actualDeposit,limit:min,assessment:assessmentMin,low:payment(min-actualDeposit,months),high:payment(max-actualDeposit,months)};
+    // The upfront payment includes the assessment once. At least £250 remains to finance.
+    const minimumDeposit=estimate.assessmentLine?.min||0,minimumBorrowing=25000;
+    if(!minimumDeposit||estimate.min-minimumDeposit<minimumBorrowing)return null;
+    const limit=estimate.min-minimumBorrowing;
+    const actualDeposit=clamp(Math.round(Number(deposit)||0),minimumDeposit,limit),months=clamp(Math.round(Number(term)||12),3,12);
+    return {deposit:actualDeposit,minimumDeposit,minimumBorrowing,limit,assessment:minimumDeposit,low:payment(estimate.min-actualDeposit,months),high:payment(estimate.max-actualDeposit,months)};
   }
   function parseDate(value){
     if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
@@ -192,5 +196,14 @@
       tight:!!earliest&&earliest<today,targetPast:!!parseDate(target)&&target<today,
       meetsTarget:!!result.finishMax&&!!parseDate(target)&&result.finishMax<=target};
   }
-  return Object.freeze({VERSION,IDS,OPTIONS,parsePrice,recordFromFields,newState,normaliseState,allowedOptions,estimate,payment,finance,parseDate,iso,addDays,addMonths,plan,schedule,suggestedStart,timeline});
+  function duration(records,e,today){
+    if(!e.required)return 'Choose treatments';
+    const s=schedule(plan(records,e),today);
+    if(!s.reliable)return 'Timing at assessment';
+    const days=d=>Math.round((parseDate(d)-parseDate(today))/86400000);
+    const months=days(s.finishMax)>=90,divisor=months?30.4375:7;
+    const min=Math.ceil(days(s.finishMin)/divisor),max=Math.ceil(days(s.finishMax)/divisor);
+    return (min===max?min:min+'–'+max)+' '+(months?'months':'weeks');
+  }
+  return Object.freeze({VERSION,IDS,OPTIONS,parsePrice,recordFromFields,newState,normaliseState,allowedOptions,estimate,payment,finance,parseDate,iso,addDays,addMonths,plan,schedule,suggestedStart,timeline,duration});
 });
