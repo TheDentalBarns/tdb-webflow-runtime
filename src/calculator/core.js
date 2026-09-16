@@ -1,11 +1,11 @@
-/* TDB Treatment Calculator v1.3.0 — deterministic pricing and planning rules. */
+/* TDB Treatment Calculator v1.4.0 — deterministic pricing and planning rules. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.TDBCalculatorCore = api;
 })(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
-  const VERSION = '1.3.0';
+  const VERSION = '1.4.0';
   const IDS = Object.freeze({
     assessment: '6aa293f6253d574a41978d9e', design: '68386f15264c9bdb140b5f2e',
     whitening: '681ce51276b22da0b0660090', aligners: '67a227e75f8c501023eb066b',
@@ -222,10 +222,10 @@
   }
   function duration(records,e,today){
     if(!e.required)return e.assessmentLine?'Assessment only':'Choose treatments';
-    const s=schedule(plan(records,e),today);
+    const p=plan(records,e),s=schedule(p,today);
 
     const days=d=>Math.round((parseDate(d)-parseDate(today))/86400000);
-    const months=days(s.finishMax)>=90,divisor=months?30.4375:7;
+    const months=p.stages.some(stage=>stage.timing.unit==='months'),divisor=months?30.4375:7;
     const min=Math.ceil(days(s.finishMin)/divisor),max=Math.ceil(days(s.finishMax)/divisor);
     return (min===max?min:min+'–'+max)+' '+(months?'months':'weeks');
   }

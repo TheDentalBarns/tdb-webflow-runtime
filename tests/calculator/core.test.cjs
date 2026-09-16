@@ -148,7 +148,7 @@ test('veneer appointments follow trial, upper preparation/fitting, then lower pr
  const s=state(['veneers']);s.selected.veneers.arches=['upper','lower'];
  let t=C.completionTimeline(records,C.estimate(records,s),'2026-01-17');
  assert.deepEqual(t.stages.map(x=>[x.key,x.startMin]),[['trial','2026-01-31'],['veneers-upper-prep','2026-02-07'],['veneers-upper-fit','2026-03-07'],['veneers-lower-prep','2026-03-14'],['veneers-lower-fit','2026-04-11']]);assert.equal(t.finishMin,'2026-04-11');
- s.hygiene=true;t=C.completionTimeline(records,C.estimate(records,s),'2026-01-17');assert.equal(t.stages[0].key,'hygiene');assert.equal(t.stages[0].startMin,'2026-01-31');assert.equal(t.stages[1].startMin,'2026-02-14');
+ s.hygiene=true;assert.equal(C.duration(records,C.estimate(records,s),'2026-01-17'),'14 weeks');t=C.completionTimeline(records,C.estimate(records,s),'2026-01-17');assert.equal(t.stages[0].key,'hygiene');assert.equal(t.stages[0].startMin,'2026-01-31');assert.equal(t.stages[1].startMin,'2026-02-14');
  const r=state(['rct','veneers']);t=C.completionTimeline(records,C.estimate(records,r),'2026-01-17');assert.equal(t.stages.find(x=>x.key==='trial').startMin,'2026-02-28');
  const lower=state(['veneers']);lower.selected.veneers.arches=['lower'];t=C.completionTimeline(records,C.estimate(records,lower),'2026-01-17');assert.deepEqual(t.stages.map(x=>x.key),['trial','veneers-lower-prep','veneers-lower-fit']);assert.equal(t.finishMin,'2026-03-07');
 });

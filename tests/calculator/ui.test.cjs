@@ -112,3 +112,20 @@ test('floating estimate stays mounted, toggles access, and scrolls to the full e
  x.choose('[data-action=reset]');assert.equal(x.root.querySelector('.tdbc-live'),bar);assert.equal(bar.getAttribute('aria-hidden'),'true');
  }finally{x.dom.window.close();}
 });
+
+test('timeline clicks move emphasis and open a stage without scrolling; wedding advice expands in the deadline panel',async()=>{
+ const x=await setup();try{
+ x.choose('[data-category=cosmetic]');x.choose('[data-select=veneers]');let scrolls=0;x.w.lenis={scrollTo(){scrolls++;}};x.w.HTMLElement.prototype.scrollIntoView=function(){scrolls++;};
+ x.choose('[data-action=stage][data-key=trial]');assert.equal(x.root.querySelector('[data-stage=trial]').classList.contains('is-current'),true);assert.equal(x.root.querySelector('[data-action=stage][data-key=trial]').getAttribute('aria-expanded'),'true');assert.equal(scrolls,0);
+ x.choose('[data-action=stage][data-key=veneers-upper-prep]');assert.equal(x.root.querySelector('[data-stage=trial]').classList.contains('is-current'),false);assert.equal(x.root.querySelector('[data-stage=veneers-upper-prep]').classList.contains('is-current'),true);assert.equal(scrolls,0);
+ x.choose('[data-action=sooner]');const panel=x.root.querySelector('.tdbc-timing-warning');assert.equal(panel.hidden,false);x.choose('[data-action=bridal]');assert.equal(panel.querySelector('[data-action=bridal]').getAttribute('aria-expanded'),'true');assert.equal(panel.querySelector('[role=tooltip]'),null);assert.match(panel.textContent,/makeup trials/);assert.equal(scrolls,0);
+ x.choose('[data-action=bridal]');assert.equal(panel.querySelector('[data-action=bridal]').getAttribute('aria-expanded'),'false');
+ }finally{x.dom.window.close();}
+});
+test('live price changes animate once, respect reduced motion, and retain exact displayed totals',async()=>{
+ const x=await setup();try{
+ x.choose('[data-category=cosmetic]');x.choose('[data-select=bonding]');let animations=0;const live=x.root.querySelector('[data-output=live]');live.animate=function(){animations++;return {cancel(){}};};
+ x.choose('[data-action=plus][data-key=bonding]');assert.equal(animations,1);assert.match(live.textContent,/1,240/);x.choose('[data-action=breakdown]');assert.equal(animations,1);
+ x.w.matchMedia=()=>({matches:true});x.choose('[data-action=plus][data-key=bonding]');assert.equal(animations,1);assert.match(live.textContent,/1,635/);
+ }finally{x.dom.window.close();}
+});
