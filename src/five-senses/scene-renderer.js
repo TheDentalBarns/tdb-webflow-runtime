@@ -1,6 +1,6 @@
 /* Prepared photographic scenes. Only the reveal mask and shadow transforms animate. */
 const PHOTO_WIDTH=1086,PHOTO_HEIGHT=1448;
-let registeredRadius=null,shadowID=0;
+let shadowID=0;
 
 export function coverGeometry(width,height){
   const scale=Math.max(width/PHOTO_WIDTH,height/PHOTO_HEIGHT);
@@ -74,19 +74,10 @@ function shadowMarkup(warm){
   return `<svg viewBox="0 0 1086 1448" aria-hidden="true"><defs><filter id="${id}-soft" x="-30%" y="-20%" width="160%" height="140%"><feGaussianBlur stdDeviation="${warm?6:.7}"/></filter><clipPath id="${id}-surfaces"><path d="M374 245 1015 290 1020 305 704 314 704 469 593 487 470 622 424 707 376 689Z M0 666 379 581 423 862 290 1100 103 1398 0 1431Z"/></clipPath></defs><g clip-path="url(#${id}-surfaces)"><g fill="#11180f" filter="url(#${id}-soft)"><path d="M395 286Q474 398 540 612L536 615Q465 397 391 290Z M405 643Q308 784 137 1090L131 1085Q300 786 397 640Z"/>${leaves.map(([cx,cy,rx,ry,a])=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" transform="rotate(${a} ${cx} ${cy})"/>`).join('')}</g></g></svg>`;
 }
 
-function canAnimateRadius(){
-  if(registeredRadius!==null)return registeredRadius;
-  if(!window.CSS?.registerProperty)return registeredRadius=false;
-  try{CSS.registerProperty({name:'--tdb-senses-reveal-radius',syntax:'<length>',inherits:false,initialValue:'0px'});registeredRadius=true;}
-  catch(error){registeredRadius=error.name==='InvalidModificationError';}
-  return registeredRadius;
-}
-
 export class SceneRenderer{
   constructor(stage,images,report){
     this.stage=stage;this.images=images;this.report=report;this.cache=new Map();this.current=null;this.active=null;this.builds=0;this.disposed=false;
-    stage.dataset.renderer='prepared-scenes';this.nativeRadius=canAnimateRadius();
-    stage.dataset.maskDriver=this.nativeRadius?'css-animation':'radius-only-raf';
+    stage.dataset.renderer='prepared-scenes';stage.dataset.maskDriver='radius-only-raf';
     this.resize();
   }
   scene(state){
@@ -146,14 +137,13 @@ export class SceneRenderer{
         if(this.active===active)this.active=null;this.prune();resolve(complete);
       }};
       this.active=active;
-      if(reduced||this.nativeRadius){
-        const keys=reduced?[{opacity:0},{opacity:1}]:[{'--tdb-senses-reveal-radius':'-12px'},{'--tdb-senses-reveal-radius':`${endRadius}px`}];
-        active.animation=node.animate(keys,{duration,easing:'linear',fill:'both'});
+      if(reduced){
+        active.animation=node.animate([{opacity:0},{opacity:1}],{duration,easing:'linear',fill:'both'});
         active.animation.finished.then(()=>active.finish(true),()=>{});
       }else{
         const start=performance.now();const tick=now=>{
           if(active.done||this.disposed)return;const p=Math.min(1,(now-start)/duration);
-          node.style.setProperty('--tdb-senses-reveal-radius',`${-12+p*(endRadius+12)}px`);
+          node.style.setProperty('--tdb-senses-reveal-radius',`${(-12+p*(endRadius+12)).toFixed(2)}px`);
           if(p===1)active.finish(true);else active.frame=requestAnimationFrame(tick);
         };active.frame=requestAnimationFrame(tick);
       }
