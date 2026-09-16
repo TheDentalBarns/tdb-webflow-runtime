@@ -1,5 +1,6 @@
 .tdb-senses{--tdb-senses-gutter:3vw;--tdb-senses-cream:#f5f1e6;background:#131210;color:var(--tdb-senses-cream);font-family:"Sweet Sans Pro x",Verdana,sans-serif;font-weight:300}
 .tdb-senses *{box-sizing:border-box}
+.tdb-senses .tdb-senses-title{text-transform:none}
 .tdb-senses::backdrop{background:#131210}
 .tdb-senses-stage,.tdb-senses-shade{position:absolute;inset:0;pointer-events:none}
 .tdb-senses-stage{opacity:0;transition:opacity .65s ease}

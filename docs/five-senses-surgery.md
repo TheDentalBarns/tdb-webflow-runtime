@@ -30,7 +30,7 @@ The images are AI-assisted photographic prototype assets. Structural registratio
 
 The renderer composites only the old and next requested photographs. WebGL mixes those textures using a feathered circular distance mask originating at the actual selected button centre. The transition lasts 3200ms with smooth acceleration and settlement. It never swaps the entire image underneath an ornamental ring. Multiple rapid inputs preserve the current transition and coalesce into one latest pending state. Both textures use the identical photo rectangle.
 
-WebGL is preferred for the soft edge and subtle lighting/atmosphere. If it is unavailable or its context is lost, Canvas 2D preserves the actual circular reveal with a hard edge and simplified lighting. Reduced motion uses a 180ms dissolve and disables ambient animation. Users can pause ambient motion independently.
+WebGL is preferred for the soft edge and subtle lighting/atmosphere. If it is unavailable or its context is lost, Canvas 2D preserves the actual feathered circular reveal using a separate surface and a destination-in radial gradient, with simplified lighting. Reduced motion uses a 180ms dissolve and disables ambient animation. Users can pause ambient motion independently.
 
 ## Asset provenance and size
 

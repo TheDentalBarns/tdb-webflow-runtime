@@ -1,6 +1,8 @@
 /* Page-scoped first paint. The photographic module loads on entry. */
 .tdb-senses-entry{--tdb-entry-gutter:3vw;box-sizing:border-box;min-height:100svh;padding:34px var(--tdb-entry-gutter) 25px;background:#eeeae2;color:#252822;font-family:"Sweet Sans Pro x",Verdana,sans-serif;font-weight:300;display:flex;flex-direction:column;justify-content:space-between}
 .tdb-senses-entry *{box-sizing:border-box}
+.tdb-senses-entry .tdb-senses-entry-heading{text-transform:none}
+.tdb-senses-entry .tdb-senses-enter{width:fit-content;max-width:100%;text-decoration:none}
 .tdb-senses-entry-brand{font-size:12px;font-weight:400;letter-spacing:.22em}
 .tdb-senses-entry-content{padding:72px 0 86px;width:min(850px,100%)}
 .tdb-senses-entry-kicker{margin:0 0 30px;font-size:10px;line-height:1.5;letter-spacing:.16em}

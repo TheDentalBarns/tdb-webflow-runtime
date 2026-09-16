@@ -132,10 +132,10 @@ function compose(images, state) {
   const overlay = images.objects;
   if (state.smell) {
     // Separate contact shadow works over both parquet and lino.
-    ctx.save(); ctx.translate(243, 817); ctx.scale(1, .17);
-    const shadow = ctx.createRadialGradient(0,0,5,0,0,82);
-    shadow.addColorStop(0,'rgba(15,12,6,.22)'); shadow.addColorStop(1,'rgba(15,12,6,0)');
-    ctx.fillStyle = shadow; ctx.fillRect(-82,-82,164,164); ctx.restore();
+    ctx.save(); ctx.translate(227, 829); ctx.scale(1, .19);
+    const shadow = ctx.createRadialGradient(0,0,16,0,0,92);
+    shadow.addColorStop(0,'rgba(15,12,6,.52)'); shadow.addColorStop(1,'rgba(15,12,6,0)');
+    ctx.fillStyle = shadow; ctx.fillRect(-92,-92,184,184); ctx.restore();
     ctx.drawImage(overlay, 0, 211, 585, 733, 0, 252, 525, 585);
   }
   if (state.sound) {
@@ -145,7 +145,13 @@ function compose(images, state) {
     ctx.fillStyle=shadow; ctx.fillRect(-136,-136,272,272); ctx.restore();
     ctx.drawImage(overlay, 280, 1145, 375, 240, 280, 1145, 375, 240);
   }
-  if (state.taste) ctx.drawImage(overlay, 743, 30, 108, 177, 759, 39, 89, 158);
+  if (state.taste) {
+    ctx.save();ctx.translate(806,188);ctx.scale(1,.15);
+    const shadow=ctx.createRadialGradient(0,0,5,0,0,44);
+    shadow.addColorStop(0,'rgba(18,15,9,.4)');shadow.addColorStop(1,'rgba(18,15,9,0)');
+    ctx.fillStyle=shadow;ctx.fillRect(-44,-44,88,88);ctx.restore();
+    ctx.drawImage(overlay,743,30,108,177,759,45,89,158);
+  }
   return canvas;
 }
 
@@ -208,9 +214,14 @@ class Renderer {
         this.dispose();
         const replacement=canvas.cloneNode(); canvas.replaceWith(replacement); this.canvas=replacement;
         this.gl=null;
+        this.canvas.dataset.rendererReason='shader-unavailable';
       }
     }
-    if(!this.gl){this.ctx=this.canvas.getContext('2d',{alpha:false});this.canvas.dataset.renderer='canvas';}
+    if(!this.gl){
+      this.ctx=this.canvas.getContext('2d',{alpha:false});this.canvas.dataset.renderer='canvas';
+      this.canvas.dataset.rendererReason ||= forceCanvas?'requested-fallback':'webgl-unavailable';
+      this.layer=document.createElement('canvas');this.layerCtx=this.layer.getContext('2d');
+    }
   }
   setupGL() {
     const gl=this.gl;
@@ -241,6 +252,7 @@ class Renderer {
     // Bound the back buffer independently of a phone's physical DPR.
     this.dpr=Math.min(window.devicePixelRatio||1,1.65,Math.sqrt(2200000/(rect.width*rect.height)));
     this.canvas.width=Math.max(1,Math.round(rect.width*this.dpr));this.canvas.height=Math.max(1,Math.round(rect.height*this.dpr));
+    if(this.layer){this.layer.width=this.canvas.width;this.layer.height=this.canvas.height;}
     const scale=Math.min(rect.width/IMAGE_SIZE[0],rect.height/IMAGE_SIZE[1]);
     this.photo=[(rect.width-IMAGE_SIZE[0]*scale)/2,(rect.height-IMAGE_SIZE[1]*scale)/2,IMAGE_SIZE[0]*scale,IMAGE_SIZE[1]*scale];
     if(this.gl)this.gl.viewport(0,0,this.canvas.width,this.canvas.height);
@@ -265,13 +277,36 @@ class Renderer {
       gl.uniform2f(u.oldSenses,Number(from.sight),Number(from.smell));gl.uniform2f(u.newSenses,Number(to.sight),Number(to.smell));
       gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
     }else{
-      const ctx=this.ctx,[x,y,w,h]=this.photo;
+      const ctx=this.ctx,layer=this.layerCtx,[x,y,w,h]=this.photo;
       ctx.setTransform(this.dpr,0,0,this.dpr,0,0);
-      const draw=(image,state)=>{ctx.fillStyle=state.sight?'#131210':'#101214';ctx.fillRect(0,0,this.width,this.height);ctx.filter=state.sight?'none':'saturate(.8) contrast(1.07)';ctx.drawImage(image,x,y,w,h);ctx.filter='none';};
-      draw(this.old,from);ctx.save();
-      if(mixAll>=0)ctx.globalAlpha=mixAll;
-      else{ctx.beginPath();ctx.arc(origin.x,origin.y,Math.max(0,radius),0,Math.PI*2);ctx.clip();}
-      draw(this.next,to);ctx.restore();
+      layer.setTransform(this.dpr,0,0,this.dpr,0,0);
+      const draw=(target,image,state)=>{
+        target.fillStyle=state.sight?'#131210':'#101214';target.fillRect(0,0,this.width,this.height);
+        target.filter=state.sight?'none':'saturate(.89) contrast(1.07)';target.drawImage(image,x,y,w,h);target.filter='none';
+        target.save();target.beginPath();target.rect(x,y,w,h);target.clip();
+        if(!state.sight){target.fillStyle='rgba(131,173,218,.075)';target.globalCompositeOperation='color';target.fillRect(x,y,w,h);target.globalCompositeOperation='source-over';}
+        if(!state.smell){target.fillStyle=`rgba(157,157,150,${.023+.004*Math.sin(time*.13)})`;target.fillRect(x,y,w,h);}
+        else{
+          if(state.sight){
+            target.fillStyle='rgba(19,22,15,.03)';
+            for(let i=0;i<3;i++){target.beginPath();target.ellipse(x+w*(.15+i*.06+Math.sin(time*.23+i)*.01),y+h*(.67+i*.045),w*.065,h*.018,-.15,0,Math.PI*2);target.fill();}
+          }
+          target.fillStyle='rgba(234,226,199,.16)';
+          for(let i=0;i<7;i++){const px=.04+((i*.173+Math.sin(time*.08+i)*.016+1)%1)*.52,py=.24+((i*.231-time*.007+100)%1)*.55;target.beginPath();target.ellipse(x+px*w,y+py*h,w*.002,h*.001,-.4,0,Math.PI*2);target.fill();}
+        }
+        target.restore();
+      };
+      draw(ctx,this.old,from);
+      layer.clearRect(0,0,this.width,this.height);
+      if(mixAll>=0||radius+feather*.5>0){
+        draw(layer,this.next,to);
+        if(mixAll<0){
+          const mask=layer.createRadialGradient(origin.x,origin.y,Math.max(0,radius-feather*.5),origin.x,origin.y,Math.max(.01,radius+feather*.5));
+          mask.addColorStop(0,'#fff');mask.addColorStop(1,'#fff0');
+          layer.globalCompositeOperation='destination-in';layer.fillStyle=mask;layer.fillRect(0,0,this.width,this.height);layer.globalCompositeOperation='source-over';
+        }
+        ctx.save();if(mixAll>=0)ctx.globalAlpha=mixAll;ctx.drawImage(this.layer,0,0,this.width,this.height);ctx.restore();
+      }
     }
   }
   dispose(){
@@ -281,6 +316,7 @@ class Renderer {
       this.gl.getExtension('WEBGL_lose_context')?.loseContext();
     }
     this.old=null;this.next=null;
+    if(this.layer){this.layer.width=1;this.layer.height=1;this.layer=null;this.layerCtx=null;}
   }
 }
 

@@ -74,7 +74,11 @@
     dialog.addEventListener('cancel',event=>{event.preventDefault();close(session);});
     dialog.showModal();dialog.querySelector('button').focus();run(session);
   }
-  document.querySelectorAll('[data-tdb-senses-open]').forEach(button=>button.addEventListener('click',()=>open(button)));
+  document.querySelectorAll('[data-tdb-senses-open]').forEach(button=>{
+    button.setAttribute('role','button');
+    button.addEventListener('click',event=>{event.preventDefault();open(button);});
+    if(button.tagName!=='BUTTON')button.addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();open(button);}});
+  });
   window.addEventListener('pagehide',()=>{if(active)close(active);});
   window.TDBFiveSensesEntry=Object.freeze({version:'0.1.0'});
 })();
