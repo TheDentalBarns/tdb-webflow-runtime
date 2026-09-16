@@ -194,145 +194,260 @@
       "isRequired": false,
       "slug": "calculator-tier-3-friendly",
       "type": "PlainText"
+    },
+    {
+      "id": "1ee67b68c8337a28332b79afff94b0c4",
+      "isEditable": true,
+      "isRequired": false,
+      "type": "Number",
+      "slug": "calculator-tier-1-duration-minimum",
+      "displayName": "Calculator tier 1 duration minimum",
+      "helpText": "Optional tier-specific planning duration, using Calculator duration unit.",
+      "validations": {
+        "format": "integer",
+        "allowNegative": true,
+        "precision": 1
+      }
+    },
+    {
+      "id": "4cf73e20032549b83559de8bd65f76c0",
+      "isEditable": true,
+      "isRequired": false,
+      "type": "Number",
+      "slug": "calculator-tier-1-duration-maximum",
+      "displayName": "Calculator tier 1 duration maximum",
+      "helpText": "Optional tier-specific planning duration, using Calculator duration unit.",
+      "validations": {
+        "format": "integer",
+        "allowNegative": true,
+        "precision": 1
+      }
+    },
+    {
+      "id": "99e91004f52eb6bcaf64c57f33a0f0ea",
+      "isEditable": true,
+      "isRequired": false,
+      "type": "Number",
+      "slug": "calculator-tier-2-duration-minimum",
+      "displayName": "Calculator tier 2 duration minimum",
+      "helpText": "Optional tier-specific planning duration, using Calculator duration unit.",
+      "validations": {
+        "format": "integer",
+        "allowNegative": true,
+        "precision": 1
+      }
+    },
+    {
+      "id": "b2298060dee395c5d727c1501e6a90bb",
+      "isEditable": true,
+      "isRequired": false,
+      "type": "Number",
+      "slug": "calculator-tier-2-duration-maximum",
+      "displayName": "Calculator tier 2 duration maximum",
+      "helpText": "Optional tier-specific planning duration, using Calculator duration unit.",
+      "validations": {
+        "format": "integer",
+        "allowNegative": true,
+        "precision": 1
+      }
+    },
+    {
+      "id": "8723f40d05104ccf6b7dfb9f6c252635",
+      "isEditable": true,
+      "isRequired": false,
+      "type": "Number",
+      "slug": "calculator-tier-3-duration-minimum",
+      "displayName": "Calculator tier 3 duration minimum",
+      "helpText": "Optional tier-specific planning duration, using Calculator duration unit.",
+      "validations": {
+        "format": "integer",
+        "allowNegative": true,
+        "precision": 1
+      }
+    },
+    {
+      "id": "d7a7d0c433ac3c9f895f1aa89aee867c",
+      "isEditable": true,
+      "isRequired": false,
+      "type": "Number",
+      "slug": "calculator-tier-3-duration-maximum",
+      "displayName": "Calculator tier 3 duration maximum",
+      "helpText": "Optional tier-specific planning duration, using Calculator duration unit.",
+      "validations": {
+        "format": "integer",
+        "allowNegative": true,
+        "precision": 1
+      }
     }
   ],
   "populatedValues": [
     {
+      "id": "6aaaa3d4ef8655079897b000",
       "fieldData": {
-        "calculator-booking-deposit": 225,
-        "calculator-label": "Signature Assessment \u2726",
-        "calculator-record-id": "6aa293f6253d574a41978d9e",
-        "calculator-tooltip": "Your starting appointment combines Smile Design, a comprehensive examination and appropriate diagnostics. Your plan and costs are discussed on the day; a written report follows."
-      },
-      "id": "6aa293f6253d574a41978d9e"
+        "calculator-label": "Smile Trial",
+        "calculator-record-id": "6aaaa3d4ef8655079897b000",
+        "calculator-tooltip": "A preview of your planned smile before veneer preparation. Included with every veneer plan and charged once for each selected arch.",
+        "calculator-duration-minimum": 1,
+        "calculator-duration-maximum": 1,
+        "calculator-duration-unit": "weeks",
+        "calculator-includes-whitening": false,
+        "calculator-includes-hygiene": false
+      }
     },
     {
+      "id": "6aa293f6253d574a41978d9e",
+      "fieldData": {
+        "calculator-label": "Signature Assessment ✦",
+        "calculator-record-id": "6aa293f6253d574a41978d9e",
+        "calculator-tooltip": "Your starting appointment combines Smile Design, a comprehensive examination and appropriate diagnostics. Your plan and costs are discussed on the day; a written report follows.",
+        "calculator-booking-deposit": 225
+      }
+    },
+    {
+      "id": "6a61ce5648ee7f280db22a34",
+      "fieldData": {
+        "calculator-label": "Root canal treatment",
+        "calculator-record-id": "6a61ce5648ee7f280db22a34",
+        "calculator-tooltip": "Treatment inside a tooth to address an affected root canal. Complexity and the need for a separate crown or other restoration are confirmed at assessment.",
+        "calculator-duration-minimum": 2,
+        "calculator-duration-maximum": 2,
+        "calculator-duration-unit": "weeks"
+      }
+    },
+    {
+      "id": "68d7cfac090cb5cda1b931d9",
+      "fieldData": {
+        "calculator-label": "Porcelain onlays",
+        "calculator-record-id": "68d7cfac090cb5cda1b931d9",
+        "calculator-tooltip": "A bespoke porcelain restoration covering part of a tooth. Suitability and the amount of tooth needing restoration are assessed first.",
+        "calculator-duration-minimum": 4,
+        "calculator-duration-maximum": 4,
+        "calculator-duration-unit": "weeks"
+      }
+    },
+    {
+      "id": "68d7ca91db5f05043ba12fa1",
+      "fieldData": {
+        "calculator-label": "Porcelain crowns",
+        "calculator-record-id": "68d7ca91db5f05043ba12fa1",
+        "calculator-tooltip": "A bespoke porcelain restoration covering a tooth. The estimate varies with complexity; any root canal treatment is a separate selection.",
+        "calculator-duration-minimum": 4,
+        "calculator-duration-maximum": 4,
+        "calculator-duration-unit": "weeks"
+      }
+    },
+    {
+      "id": "68d6b282da240abf72520b6a",
+      "fieldData": {
+        "calculator-label": "New fillings",
+        "calculator-record-id": "68d6b282da240abf72520b6a",
+        "calculator-tooltip": "Tooth-coloured composite for damaged teeth. Published prices are per surface. A tooth may need more than one surface restored.",
+        "calculator-duration-minimum": 0,
+        "calculator-duration-maximum": 0,
+        "calculator-duration-unit": "weeks"
+      }
+    },
+    {
+      "id": "68d6affec0a324b379f2c5b5",
+      "fieldData": {
+        "calculator-label": "Extractions",
+        "calculator-record-id": "68d6affec0a324b379f2c5b5",
+        "calculator-tooltip": "Removal of a tooth where appropriate. Complexity, healing time and any replacement options need individual assessment.",
+        "calculator-duration-minimum": 2,
+        "calculator-duration-maximum": 4,
+        "calculator-duration-unit": "weeks"
+      }
+    },
+    {
+      "id": "68386f15264c9bdb140b5f2e",
       "fieldData": {
         "calculator-label": "Smile Design",
         "calculator-record-id": "68386f15264c9bdb140b5f2e",
         "calculator-tooltip": "Explore your smile and goals with Dr Keely. Included within the Signature Assessment when you select treatment."
-      },
-      "id": "68386f15264c9bdb140b5f2e"
+      }
     },
     {
-      "fieldData": {
-        "calculator-duration-maximum": 5,
-        "calculator-duration-minimum": 5,
-        "calculator-duration-unit": "weeks",
-        "calculator-label": "Whitening",
-        "calculator-record-id": "681ce51276b22da0b0660090",
-        "calculator-tooltip": "Enlighten\u00ae whitening to brighten your natural teeth. Allow three weeks for whitening and two weeks for the colour to settle."
-      },
-      "id": "681ce51276b22da0b0660090"
-    },
-    {
-      "fieldData": {
-        "calculator-duration-maximum": 18,
-        "calculator-duration-minimum": 10,
-        "calculator-duration-unit": "months",
-        "calculator-includes-hygiene": true,
-        "calculator-includes-whitening": true,
-        "calculator-label": "Invisalign\u00ae / clear aligners",
-        "calculator-record-id": "67a227e75f8c501023eb066b",
-        "calculator-tooltip": "Gradually straighten your teeth using clear aligners. Your dentist confirms the right system and the changes needed. Whitening, hygiene and retainers are included.",
-        "calculator-tier-1-friendly": "Small alignment tweaks",
-        "calculator-tier-2-friendly": "Moderate crowding or spacing",
-        "calculator-tier-3-friendly": "More complex alignment and bite changes"
-      },
-      "id": "67a227e75f8c501023eb066b"
-    },
-    {
-      "fieldData": {
-        "calculator-duration-maximum": 2,
-        "calculator-duration-minimum": 2,
-        "calculator-duration-unit": "weeks",
-        "calculator-label": "Composite bonding",
-        "calculator-record-id": "681ce7a6838a937aa274f5e6",
-        "calculator-tooltip": "Hand-sculpted composite to refine tooth shape and appearance. Choose the description closest to the changes you have in mind; your dentist confirms the care and price.",
-        "calculator-tier-1-friendly": "Small chips or blemishes",
-        "calculator-tier-2-friendly": "Refine shape and symmetry",
-        "calculator-tier-3-friendly": "A complete tooth reshape"
-      },
-      "id": "681ce7a6838a937aa274f5e6"
-    },
-    {
-      "fieldData": {
-        "calculator-duration-maximum": 4,
-        "calculator-duration-minimum": 4,
-        "calculator-duration-unit": "weeks",
-        "calculator-label": "Porcelain veneers",
-        "calculator-record-id": "681dfc7415fdf2571f077b0f",
-        "calculator-tooltip": "Bespoke porcelain restorations for the visible surfaces of teeth. Your dentist confirms suitability, preparation and the final shade."
-      },
-      "id": "681dfc7415fdf2571f077b0f"
-    },
-    {
+      "id": "68386aca9ee514c02cdda9ee",
       "fieldData": {
         "calculator-label": "Gumline bonding",
         "calculator-record-id": "68386aca9ee514c02cdda9ee",
-        "calculator-tooltip": "Tooth-coloured composite to cover selected exposed or worn areas near the gumline. It does not regrow gum tissue; suitability is assessed individually."
-      },
-      "id": "68386aca9ee514c02cdda9ee"
-    },
-    {
-      "fieldData": {
-        "calculator-duration-maximum": 0,
-        "calculator-duration-minimum": 0,
-        "calculator-duration-unit": "weeks",
-        "calculator-label": "New fillings",
-        "calculator-record-id": "68d6b282da240abf72520b6a",
-        "calculator-tooltip": "Tooth-coloured composite for damaged teeth. Published prices are per surface. A tooth may need more than one surface restored."
-      },
-      "id": "68d6b282da240abf72520b6a"
-    },
-    {
-      "fieldData": {
-        "calculator-duration-maximum": 2,
+        "calculator-tooltip": "Tooth-coloured composite to cover selected exposed or worn areas near the gumline. It does not regrow gum tissue; suitability is assessed individually.",
         "calculator-duration-minimum": 2,
-        "calculator-duration-unit": "weeks",
-        "calculator-label": "Root canal treatment",
-        "calculator-record-id": "6a61ce5648ee7f280db22a34",
-        "calculator-tooltip": "Treatment inside a tooth to address an affected root canal. Complexity and the need for a separate crown or other restoration are confirmed at assessment."
-      },
-      "id": "6a61ce5648ee7f280db22a34"
+        "calculator-duration-maximum": 2,
+        "calculator-duration-unit": "weeks"
+      }
     },
     {
+      "id": "681dfde1b4412464104bca59",
       "fieldData": {
-        "calculator-duration-maximum": 4,
-        "calculator-duration-minimum": 4,
-        "calculator-duration-unit": "weeks",
-        "calculator-label": "Porcelain crowns",
-        "calculator-record-id": "68d7ca91db5f05043ba12fa1",
-        "calculator-tooltip": "A bespoke porcelain restoration covering a tooth. The estimate varies with complexity; any root canal treatment is a separate selection."
-      },
-      "id": "68d7ca91db5f05043ba12fa1"
-    },
-    {
-      "fieldData": {
-        "calculator-duration-maximum": 4,
-        "calculator-duration-minimum": 4,
-        "calculator-duration-unit": "weeks",
-        "calculator-label": "Porcelain onlays",
-        "calculator-record-id": "68d7cfac090cb5cda1b931d9",
-        "calculator-tooltip": "A bespoke porcelain restoration covering part of a tooth. Suitability and the amount of tooth needing restoration are assessed first."
-      },
-      "id": "68d7cfac090cb5cda1b931d9"
-    },
-    {
-      "fieldData": {
-        "calculator-label": "Extractions",
-        "calculator-record-id": "68d6affec0a324b379f2c5b5",
-        "calculator-tooltip": "Removal of a tooth where appropriate. Complexity, healing time and any replacement options need individual assessment."
-      },
-      "id": "68d6affec0a324b379f2c5b5"
-    },
-    {
-      "fieldData": {
-        "calculator-label": "Airflow\u00ae hygiene",
+        "calculator-label": "Airflow® hygiene",
         "calculator-record-id": "681dfde1b4412464104bca59",
-        "calculator-tooltip": "Hygiene may be recommended to prepare for cosmetic treatment. It is included with the clear aligner package; additional care depends on your needs."
-      },
-      "id": "681dfde1b4412464104bca59"
+        "calculator-tooltip": "Hygiene may be recommended to prepare for cosmetic treatment. It is included with the clear aligner package; additional care depends on your needs.",
+        "calculator-duration-minimum": 1,
+        "calculator-duration-maximum": 1,
+        "calculator-duration-unit": "weeks"
+      }
+    },
+    {
+      "id": "681dfc7415fdf2571f077b0f",
+      "fieldData": {
+        "calculator-label": "Porcelain veneers",
+        "calculator-record-id": "681dfc7415fdf2571f077b0f",
+        "calculator-tooltip": "Bespoke porcelain restorations for the visible surfaces of teeth. Your dentist confirms suitability, preparation and the final shade.",
+        "calculator-duration-minimum": 4,
+        "calculator-duration-maximum": 4,
+        "calculator-duration-unit": "weeks",
+        "calculator-tier-1-friendly": "Minor shape adjustments",
+        "calculator-tier-2-friendly": "Reshape my smile",
+        "calculator-tier-3-friendly": "Replace existing veneers"
+      }
+    },
+    {
+      "id": "681ce7a6838a937aa274f5e6",
+      "fieldData": {
+        "calculator-label": "Composite bonding",
+        "calculator-record-id": "681ce7a6838a937aa274f5e6",
+        "calculator-tooltip": "Hand-sculpted composite to refine tooth shape and appearance. Choose the description closest to the changes you have in mind; your dentist confirms the care and price.",
+        "calculator-duration-minimum": 2,
+        "calculator-duration-maximum": 2,
+        "calculator-duration-unit": "weeks",
+        "calculator-tier-1-friendly": "Small chips or blemishes",
+        "calculator-tier-2-friendly": "Refine shape and symmetry",
+        "calculator-tier-3-friendly": "A complete tooth reshape"
+      }
+    },
+    {
+      "id": "681ce51276b22da0b0660090",
+      "fieldData": {
+        "calculator-label": "Whitening",
+        "calculator-record-id": "681ce51276b22da0b0660090",
+        "calculator-tooltip": "Enlighten® whitening to brighten your natural teeth. Allow three weeks for whitening and two weeks for the colour to settle.",
+        "calculator-duration-minimum": 5,
+        "calculator-duration-maximum": 5,
+        "calculator-duration-unit": "weeks"
+      }
+    },
+    {
+      "id": "67a227e75f8c501023eb066b",
+      "fieldData": {
+        "calculator-label": "Invisalign® / clear aligners",
+        "calculator-record-id": "67a227e75f8c501023eb066b",
+        "calculator-tooltip": "Gradually straighten your teeth using clear aligners. Your dentist confirms the right system and the changes needed. Whitening, hygiene and retainers are included.",
+        "calculator-duration-minimum": 6,
+        "calculator-duration-maximum": 18,
+        "calculator-duration-unit": "months",
+        "calculator-includes-whitening": true,
+        "calculator-includes-hygiene": true,
+        "calculator-tier-1-friendly": "Small alignment tweaks",
+        "calculator-tier-2-friendly": "Moderate crowding or spacing",
+        "calculator-tier-3-friendly": "More complex alignment and bite changes",
+        "calculator-tier-1-duration-minimum": 6,
+        "calculator-tier-1-duration-maximum": 10,
+        "calculator-tier-2-duration-minimum": 10,
+        "calculator-tier-2-duration-maximum": 12,
+        "calculator-tier-3-duration-minimum": 12,
+        "calculator-tier-3-duration-maximum": 18
+      }
     }
   ],
   "faqBefore": [
@@ -356,5 +471,14 @@
     "calculator-tier-2-friendly": "84f7758d6d9ee52d71313b8bc35fe348",
     "calculator-tier-3-friendly": "6ee33c4ab643f13f5343ffa12489020a"
   },
-  "financeEnabled": true
+  "financeEnabled": true,
+  "tierDurationFields": {
+    "calculator-tier-1-duration-minimum": "1ee67b68c8337a28332b79afff94b0c4",
+    "calculator-tier-1-duration-maximum": "4cf73e20032549b83559de8bd65f76c0",
+    "calculator-tier-2-duration-minimum": "99e91004f52eb6bcaf64c57f33a0f0ea",
+    "calculator-tier-2-duration-maximum": "b2298060dee395c5d727c1501e6a90bb",
+    "calculator-tier-3-duration-minimum": "8723f40d05104ccf6b7dfb9f6c252635",
+    "calculator-tier-3-duration-maximum": "d7a7d0c433ac3c9f895f1aa89aee867c"
+  },
+  "smileTrialRecord": "6aaaa3d4ef8655079897b000"
 }

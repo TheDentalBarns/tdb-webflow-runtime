@@ -4,7 +4,7 @@ Staging pilot, 16 September 2026. Production publishing is not authorised by thi
 
 ## Edit the content
 
-Use the existing **Pricings** CMS collection (`67a2267b404fe73dfb1d8dee`). Prices remain in `price` and `tier-1` through `tier-5`; no prices are hardcoded in the application. Update the headline and corresponding first tier together. Accepted values are £450, From £795, and £395 per tooth/surface/lesion, with optional comma separators and pence. Missing, inconsistent or ambiguous values show **Price to confirm** and disable the payment illustration. The displayed range spans the published tiers and is not a final quote.
+Use the existing **Pricings** CMS collection (`67a2267b404fe73dfb1d8dee`). Prices remain in `price` and `tier-1` through `tier-5`; no prices are hardcoded in the application. Update the headline and corresponding first tier together. Accepted values are £450, From £795, and £395 per tooth/surface/lesion/area/arch, with optional comma separators and pence. Missing, inconsistent or ambiguous values show **Price to confirm** and disable the payment illustration. The displayed range spans the published tiers and is not a final quote.
 
 `Calculator label` overrides the canonical name; clearing it restores the canonical name. `Calculator tooltip` supplies the information text. Mapping uses the existing pricing record ID, never its name. The optional `Calculator record ID` mirrors that ID solely to emit a native CMS data attribute. Do not edit this identifier. Related treatment references on the canonical pricing record remain intact.
 
@@ -12,7 +12,7 @@ Publish CMS changes using the normal site workflow. Staging publication previews
 
 ## Added fields
 
-All fields are optional. Existing required fields, canonical names, prices and unrelated content are unchanged.
+All calculator fields are optional. Smile Trial has its own £995-per-arch pricing item; the veneer feature list now describes the required trial and its fee. Existing treatment prices are unchanged.
 
 | Field | Type | Purpose |
 | --- | --- | --- |
@@ -26,26 +26,28 @@ All fields are optional. Existing required fields, canonical names, prices and u
 | calculator-includes-hygiene | Switch | Inclusion flag on aligner record |
 | calculator-booking-deposit | Number | GBP amount within assessment total |
 | calculator-tier-1-friendly / -2-friendly / -3-friendly | Plain text | Friendly cosmetic complexity descriptions alongside existing tier prices |
+| calculator-tier-1-duration-minimum / -maximum (also tiers 2 and 3) | Number | Optional timing range for that tier, in the record’s duration unit |
 
 ## Canonical mapping
 
-Metal filling replacement and new fillings are distinct user intents mapped to the same existing filling price. Replacement always uses the existing Tier 3 price; new fillings and other restorations show a guide range without a complexity selector. Count distinct restored surfaces; do not count the same surface under both options. Other quantity treatments use teeth. Maximum 32 teeth / 160 surfaces are input bounds, not recommendations.
+Metal filling replacement and new fillings are distinct user intents mapped to the same existing filling price. Replacement always uses the existing Tier 3 price; new fillings and other restorations show a guide range without a complexity selector. Count distinct restored surfaces; do not count the same surface under both options. Gumline bonding asks for areas, with one area per tooth and its existing per-tooth price. It is not a separate gum-contouring treatment. Other quantity treatments use teeth. Maximum 32 teeth / 160 surfaces are input bounds, not recommendations.
 
 | Pricing ID | Calculator label | Authoritative headline | Planning duration |
 | --- | --- | --- | --- |
-| 681dfc7415fdf2571f077b0f | Porcelain veneers | From £995 per tooth | 4–4 weeks |
-| 67a227e75f8c501023eb066b | Invisalign® / clear aligners | From £4,195 | 10–18 months |
+| 681dfc7415fdf2571f077b0f | Porcelain veneers | From £995 per tooth | 4 weeks from preparation to fitting |
+| 67a227e75f8c501023eb066b | Invisalign® / clear aligners | From £4,195 | 6–10 / 10–12 / 12–18 calendar months by tier |
 | 681ce51276b22da0b0660090 | Whitening | From £795 | 5–5 weeks |
 | 681ce7a6838a937aa274f5e6 | Composite bonding | From £395 per tooth | 2–2 weeks |
-| 68386aca9ee514c02cdda9ee | Gumline bonding | From £225 per tooth | Confirm clinically |
-| 681dfde1b4412464104bca59 | Airflow® hygiene | From £195 | Confirm clinically |
+| 68386aca9ee514c02cdda9ee | Gumline bonding | From £225 per tooth | Indicative 2-week allowance |
+| 681dfde1b4412464104bca59 | Airflow® hygiene | From £195 | 1 week before subsequent treatment |
 | 6aa293f6253d574a41978d9e | Signature Assessment ✦ | £450 | Confirm clinically |
 | 68386f15264c9bdb140b5f2e | Smile Design | £225 | Confirm clinically |
 | 68d6b282da240abf72520b6a | New fillings | From £295 per surface | 0–0 weeks |
 | 6a61ce5648ee7f280db22a34 | Root canal treatment | From £995 | 2–2 weeks |
-| 68d7cfac090cb5cda1b931d9 | Porcelain onlays | From £995 per tooth | 4–4 weeks |
-| 68d7ca91db5f05043ba12fa1 | Porcelain crowns | From £995 per tooth | 4–4 weeks |
-| 68d6affec0a324b379f2c5b5 | Extractions | From £295 per tooth | Confirm clinically |
+| 68d7cfac090cb5cda1b931d9 | Porcelain onlays | From £995 per tooth | 4 weeks from preparation to fitting |
+| 68d7ca91db5f05043ba12fa1 | Porcelain crowns | From £995 per tooth | 4 weeks from preparation to fitting |
+| 68d6affec0a324b379f2c5b5 | Extractions | From £295 per tooth | Indicative 2–4-week allowance |
+| 6aaaa3d4ef8655079897b000 | Smile Trial | £995 per arch | 1 week from trial to preparation |
 
 The canonical £450 Signature Assessment contains Smile Design and the comprehensive examination. Its £225 booking deposit is part of £450. The separate £225 Smile Design option is available before treatment is selected; any treatment upgrades the starting care to Signature Assessment once. Deselecting all treatment returns to the user's manual starting choice, or no starting choice. Reset clears everything. Archived examination and duplicate cosmetic-category package rows are not used.
 
@@ -73,9 +75,11 @@ A contextual trigger uses its preselection on an empty estimate. If an estimate 
 - Aligner inclusions are confirmed by existing CMS package features: whitening, hygiene and retainers. The calculator charges whitening/hygiene zero when their inclusion switches are set. A previously selected whitening option becomes chargeable again after removing aligners.
 - Every cosmetic selection calls out gum health. Existing FAQ policy makes hygiene conditional on clinical need; outside aligners the user may explicitly add its allowance. Additional periodontal care is unpriced.
 - Restorative stages precede cosmetic stages. Aligners precede whitening, then final bonding/veneers. Whitening contains three weeks plus two settling weeks. The assessment lead-in is fourteen days. Durations come from the user-supplied brief and remain illustrative.
-- Extractions, gumline bonding and additional hygiene have unconfirmed timing. Crowns/onlays combined with aligners/whitening need a clinical sequencing decision. These combinations show stages but withhold precise finish/assessment dates.
-- Aligner timing uses 10–18 calendar months, not a fixed number of weeks. Dates preserve month-end/leap-year behaviour. The target initially uses the earliest estimated finish from an assessment today. The adjacent slider moves the assessment and every stage later; longer treatment ranges remain visible. A manually chosen date is converted to a non-past assessment date. Attempts to move before the earliest finish show the deadline message. No diary availability is claimed.
+- Every plan keeps an indicative date. Gumline bonding uses a 2-week planning allowance and extractions 2–4 weeks; these are editable assumptions, not clinical recovery promises. Hygiene is scheduled two weeks after assessment, with one week before subsequent treatment. Any shade-related changes to restorative sequencing are explained in the plan notes.
+- Aligner timing uses CMS tier ranges of 6–10, 10–12 or 12–18 calendar months, not a fixed number of weeks. Without a tier choice the range is 6–18 months. Dates preserve month-end/leap-year behaviour. The target initially uses the earliest estimated finish from an assessment today. The adjacent slider moves the assessment and every stage later; longer treatment ranges remain visible. A manually chosen date is converted to a non-past assessment date. Attempts to move before the earliest finish show the deadline message. No diary availability is claimed.
 - Tooth counts change price, not duration. Final scheduling may combine visits or require additional visits.
+- Veneers always add Smile Trial at the current CMS fee for each selected arch. Upper/lower selection changes only the trial fee; the tooth count remains the total veneer quantity. At least one arch is selected. Trial occurs at least two weeks after assessment or the last required appointment, then preparation one week later and fitting four weeks later. With both arches, upper fitting is followed by lower preparation one week later and lower fitting four weeks after that. Crowns/onlays have separate preparation/fitting stages four weeks apart.
+- Clickable timeline stages disclose the selected care, price and short description. Repeated preparation/fitting stages reference the same treatment fee and explicitly count it only once. A brief finance arrangement/cooling-off reminder fits within the initial two-week planning allowance.
 
 ## Finance illustration
 
@@ -97,7 +101,7 @@ node tools/build-calculator.cjs FULL_ASSET_COMMIT_SHA
 
 The dependency-free runtime is split into deterministic core, shared view, scoped CSS and demand loader. jsdom is used only by the repository's existing test environment, never shipped. The global footer appends one versioned loader script; all previous runtime pins are retained. Full JS/CSS only load near the inline section or after a drawer trigger. No framework or management API credentials are shipped.
 
-Automated tests cover 28 scenarios across pricing, bundling, restrictions, persistence, context conflicts, VIP handoff, text escaping, finance and date boundaries. See `validation.md` for actual staged-browser evidence and release pins.
+Automated tests cover 35 scenarios across pricing, bundling, restrictions, persistence, context conflicts, VIP handoff, text escaping, finance and date boundaries. See `validation.md` for actual staged-browser evidence and release pins.
 
 ## Rollback
 
@@ -105,23 +109,23 @@ Automated tests cover 28 scenarios across pricing, bundling, restrictions, persi
 2. Remove the pricing-page Treatment Calculator instance and the service-template Treatment Calculator Entry instance. Removing these new components restores the original page structures.
 3. Restore both pilot FAQ CTA labels to “View Dental Fees” and their URLs to `https://www.thedentalbarns.co.uk/dental-cost-lichfield` (original values also recorded in the private audit snapshot).
 4. Remove the eight empty CMS-feed embeds and two inclusion marker embeds if retiring the feature. Their element IDs are recorded in `webflow-register.json`.
-5. Optional new CMS fields can remain unused. If removing the schema, first clear this feature's bindings and confirm no new editorial consumers. Existing commercial fields and records need no rollback because their production values were not changed.
+5. Optional new CMS fields can remain unused. If removing the schema, first clear this feature's bindings and confirm no new editorial consumers. If reverting the latest refinement, remove the new Smile Trial pricing item only after removing its runtime dependency, and restore the veneer feature-3 wording from the prior release. Production values were not published by this task.
 6. Publish staging only to verify rollback. Production rollback/publication needs its own authorisation.
 
 Code lives on a dedicated feature branch from the current staging runtime base `15144e3414803974be24852368fa4b8a12303d9d`. No existing global bundle is replaced.
 
 ## Current interaction pattern
 
-The initial view contains the introduction, category choice and a compact dark footer using the existing footer tagline style. A selected category opens treatments; treatment selection adds Step 3 (target date), Signature Assessment, cosmetic hygiene preparation and the estimate. Restart estimate clears choices, collapses the form and returns immediately to its top.
+The initial view contains the introduction, category choice and a compact orange-3 footer with cream text using the existing footer tagline style. A selected category opens treatments; treatment selection adds Step 3 (target date), Signature Assessment, cosmetic hygiene preparation and the estimate. Restart estimate clears choices, collapses the form and returns immediately to its top.
 
-The running estimate is fixed to the viewport top while the calculator section is visible. Its mobile height is 6rem, with a 20px dark glass backdrop. Price-tag and clock icons sit beside the values on the second row. The site's down-arrow button scrolls to the full estimate. The drawer includes a close control in this bar.
+The running estimate is fixed to the viewport top while the calculator section is visible. It stays mounted outside document flow and slides in/out over 420ms using the navbar easing; there is no conditional header padding. Its mobile height is 6rem, with a 20px dark glass backdrop. Price-tag and clock icons sit beside the values on the second row. The site's down-arrow button scrolls to the full estimate. The drawer includes a close control in this bar.
 
 The calculator uses the native padding-global and container-large classes, with orange-3 section rules. Treatment group headings use the same div and text-style-tagline-restored class as the pricing page, together with DD text opacity keyframes. Expansion follows the existing FAQ and price action lists: height changes immediately, content fades over 300ms and moves from -20px to rest over 400ms; the chevron rotates over 400ms. There is no panel-height tween.
 
-Tooltips open from cream circular chevron buttons and use the gallery filter's darker cream at 84% opacity and 20px backdrop blur. Cosmetic quantity guidance explains six front teeth (3–3) and eight (4–4). Outside clicks and Escape close the panels. Friendly complexity choices are enabled for aligners and bonding only, using their CMS fields. There is no guide-range reset link or whitening expansion.
+Tooltips open from orange circular information icons, with the expansion chevron at the row end and use the gallery filter's darker cream at 84% opacity and 20px backdrop blur. Cosmetic quantity guidance explains six front teeth (3–3) and eight (4–4). Outside clicks and Escape close the panels. Unselected treatment and complexity choices are grey; selected choices are black. Friendly complexity choices are enabled for aligners, bonding and veneers, using their CMS fields. There is no guide-range reset link or whitening expansion.
 
 Viewport entry holds the shared navigation focus state without requiring a form interaction. Calculator-specific CSS keeps the navigation, VIP bar and portalled Elfsight bar away even if another runtime attempts to reveal them. They are released when the section leaves view or the calculator hands off to VIP.
 
-The target completion card starts with the shortest estimated duration, including the two-week assessment lead-in. It keeps the longer finish date visible for uncertain ranges, and never implies diary availability. The slider explores up to two years of additional delay; a date input supports direct selection within that interval. A leftward attempt at the minimum opens an inline deadline message. Unknown clinical timing continues to show stages without a fabricated date.
+The target completion card starts with the shortest estimated duration, including the two-week assessment lead-in. It keeps the longer finish date visible for uncertain ranges, and never implies diary availability. The slider explores up to two years of additional delay; a date input supports direct selection within that interval. A leftward attempt at the minimum opens an inline deadline message. The asterisk explains that dates are a rough guide, with healing, refinements and appointment availability affecting the confirmed plan. Missing timing fields use documented planning defaults and disclose that allowance. The full-width deadline panel includes bridal context and a makeup-trial tip.
 
-The estimate has a cream total panel and darker breakdown/finance panel. Lines follow assessment, hygiene, restorative care, aligners, whitening and finishing cosmetic work. The native VIP checkbox and upward-arrow CTA are retained.
+The estimate has a dark total and breakdown/finance panel, with the investment and breakdown titles in orange-3. Below-threshold finance stays grey but tappable to explain the £250 borrowing minimum. The final actions offer both Restart estimate (up arrow) and assessment-only, using the native TDB button classes. Lines follow assessment, hygiene, restorative care, aligners, whitening and finishing cosmetic work. The native VIP checkbox and upward-arrow CTA are retained.

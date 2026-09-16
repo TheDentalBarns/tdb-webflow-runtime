@@ -15,7 +15,7 @@ async function setup(options={}){
 }
 test('progressive UI calculates through user controls and keeps included whitening explicit',async()=>{
  const x=await setup();try{
-  assert.equal(x.root.querySelector('[data-select]'),null);assert.equal(x.root.querySelector('.tdbc-summary'),null);assert.equal(x.root.querySelector('.tdbc-live'),null);
+  assert.equal(x.root.querySelector('[data-select]'),null);assert.equal(x.root.querySelector('.tdbc-summary'),null);assert.equal(x.root.querySelector('.tdbc-live').classList.contains('has-estimate'),false);
   x.choose('[data-category=cosmetic]');x.choose('[data-select=whitening]');assert.match(x.text(),/1,245/);
   x.choose('[data-select=aligners]');assert.match(x.text(),/4,645.*6,845/);assert.equal(x.root.querySelector('[data-select=whitening]').disabled,true);
   x.choose('[data-select=aligners]');assert.equal(x.root.querySelector('[data-select=whitening]').checked,true);assert.match(x.text(),/1,245/);
@@ -73,7 +73,7 @@ test('entering the section holds navigation away without interaction, and restar
  x.viewport(true);assert.ok(x.d.documentElement.classList.contains('tdbc-chrome-away'));assert.equal(held(),true);
  x.d.body.dispatchEvent(new x.w.Event('pointerdown',{bubbles:true}));assert.equal(release,0);
  x.choose('[data-category=cosmetic]');x.choose('[data-select=whitening]');x.choose('[data-action=reset]');
- assert.equal(x.root.querySelector('.tdbc-live'),null);assert.equal(x.root.querySelector('.tdbc-summary'),null);assert.equal(x.root.querySelector('[data-select]'),null);assert.equal(scroll.target,x.root);assert.equal(scroll.options.immediate,true);
+ assert.equal(x.root.querySelector('.tdbc-live').classList.contains('has-estimate'),false);assert.equal(x.root.querySelector('.tdbc-summary'),null);assert.equal(x.root.querySelector('[data-select]'),null);assert.equal(scroll.target,x.root);assert.equal(scroll.options.immediate,true);
  assert.ok(x.d.documentElement.classList.contains('tdbc-chrome-away'));x.viewport(false);assert.equal(x.d.documentElement.classList.contains('tdbc-chrome-away'),false);assert.equal(release,1);
  }finally{x.dom.window.close();}
 });
@@ -86,5 +86,29 @@ test('the target date follows the slider and an earlier attempt shows the deadli
  slider.value='21';slider.dispatchEvent(new x.w.Event('input',{bubbles:true}));assert.equal(x.root.querySelector('[data-range=completion]'),slider);assert.ok(target.value>initial);assert.equal(x.root.querySelector('.tdbc-timing-warning').hidden,true);
  target.value='2020-01-01';target.dispatchEvent(new x.w.Event('change',{bubbles:true}));assert.equal(x.root.querySelector('[data-date=target]').value,initial);assert.equal(x.root.querySelector('.tdbc-timing-warning').hidden,false);
  x.choose('[data-finance]');const term=x.root.querySelector('[data-range=term]');term.value='3';term.dispatchEvent(new x.w.Event('input',{bubbles:true}));x.choose('[data-finance]');x.choose('[data-finance]');assert.equal(x.root.querySelector('[data-range=term]').value,'12');assert.match(x.root.querySelector('[data-output=finance]').textContent,/Interest charges£0/);
+ }finally{x.dom.window.close();}
+});
+
+test('veneer arches update the trial fee, tiers update the tooth price, and timeline stages disclose selections',async()=>{
+ const x=await setup();try{
+ x.choose('[data-category=cosmetic]');x.choose('[data-select=veneers]');assert.match(x.text(),/Smile Trial/);assert.match(x.text(),/2,440/);
+ x.choose('[data-arch=lower]');assert.match(x.text(),/3,435/);assert.match(x.text(),/2 arches/);assert.equal(x.root.querySelector('[data-qty=veneers]').value,'1');
+ x.choose('[data-tier=veneers][value="1"]');assert.match(x.text(),/3,635/);x.choose('[data-action=stage][data-key=trial]');assert.equal(x.root.querySelector('[data-action=stage][data-key=trial]').getAttribute('aria-expanded'),'true');assert.match(x.root.querySelector('[data-node=stage-trial]').textContent,/1,990/);
+ const total=x.text();x.choose('[data-action=option][data-key=veneers]');assert.equal(x.root.querySelector('[data-select=veneers]').checked,true);assert.equal(x.text(),total);
+ x.choose('[data-action=start-assessment]');assert.match(x.text(),/450/);assert.doesNotMatch(x.text(),/Smile Trial/);assert.equal(x.root.querySelector('[data-select=veneers]').checked,false);
+ }finally{x.dom.window.close();}
+});
+test('unavailable finance remains tappable with an explanation and recovers when borrowing is sufficient',async()=>{
+ const x=await setup();try{
+ x.choose('[data-category=cosmetic]');x.choose('[data-select=gumline]');assert.ok(x.root.querySelector('[data-date=target]').value);assert.equal(x.root.querySelector('input[data-finance]'),null);
+ x.choose('.tdbc-finance-disabled');assert.equal(x.root.querySelector('.tdbc-finance-disabled').getAttribute('aria-expanded'),'true');assert.match(x.root.querySelector('.tdbc-finance-info').textContent,/at least £250/);
+ x.choose('[data-action=plus][data-key=gumline]');assert.ok(x.root.querySelector('input[data-finance]'));x.choose('input[data-finance]');assert.equal(x.root.querySelector('[data-range=term]').value,'12');
+ }finally{x.dom.window.close();}
+});
+test('floating estimate stays mounted, toggles access, and scrolls to the full estimate',async()=>{
+ const x=await setup({viewport:true});try{
+ let scroll;x.w.lenis={scrollTo(target,options){scroll={target,options};}};x.viewport(true);const bar=x.root.querySelector('.tdbc-live');assert.equal(bar.getAttribute('aria-hidden'),'true');
+ x.choose('[data-category=cosmetic]');x.choose('[data-select=whitening]');assert.equal(x.root.querySelector('.tdbc-live'),bar);assert.equal(bar.getAttribute('aria-hidden'),'false');x.choose('[data-action=estimate]');assert.equal(scroll.target,x.root.querySelector('.tdbc-summary'));
+ x.choose('[data-action=reset]');assert.equal(x.root.querySelector('.tdbc-live'),bar);assert.equal(bar.getAttribute('aria-hidden'),'true');
  }finally{x.dom.window.close();}
 });

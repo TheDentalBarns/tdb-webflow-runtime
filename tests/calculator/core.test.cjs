@@ -5,7 +5,7 @@ const fixture=require('./published-pricing.fixture.json');
 const records=Object.fromEntries(fixture.map(f=>[f.record,C.recordFromFields(f)]));
 const state=(keys,extra={})=>({...C.newState(),categories:['cosmetic','restorative'],selected:Object.fromEntries(keys.map(k=>[k,{qty:1,tier:null}])),...extra});
 test('published records have valid prices; ambiguous and malformed prices fail visibly',()=>{
- assert.equal(Object.keys(records).length,13);for(const r of Object.values(records))assert.equal(r.valid,true,r.name);
+ assert.equal(Object.keys(records).length,14);for(const r of Object.values(records))assert.equal(r.valid,true,r.name);
  for(const p of ['POA','£100–£200','from 100','£0','£100 + fees','£1,00'])assert.equal(C.parsePrice(p),null);
  assert.deepEqual(C.parsePrice('From £1,295.50 per tooth'),{min:129550,from:true,unit:'tooth'});
  const broken={...records,[C.IDS.bonding]:{...records[C.IDS.bonding],valid:false}};
@@ -72,12 +72,14 @@ test('restorative work precedes cosmetic work with a two-week lead-in',()=>{
 });
 test('aligner uncertainty uses calendar months and retains whitening settling afterwards',()=>{
  const e=C.estimate(records,state(['aligners'])),s=C.schedule(C.plan(records,e),'2026-01-17');
- assert.deepEqual(s.stages.map(x=>x.key),['aligners','whitening']);assert.equal(s.finishMin,'2027-01-04');assert.equal(s.finishMax,'2027-09-04');
+ assert.deepEqual(s.stages.map(x=>x.key),['hygiene','aligners','whitening']);assert.equal(s.finishMin,'2026-09-11');assert.equal(s.finishMax,'2027-09-11');
 });
-test('unknown clinical dependencies withhold precise dates rather than assuming zero',()=>{
- for(const keys of [['extractions'],['gumline'],['crowns','aligners'],['onlays','whitening']]){
-  const t=C.timeline(records,C.estimate(records,state(keys)),'2028-12-01','2026-09-16');assert.equal(t.reliable,false);assert.equal(t.suggestedEarliest,null);assert.equal(t.finishMax,null);
+test('all selected treatments retain indicative dates, including hygiene and gumline areas',()=>{
+ for(const keys of [['extractions'],['gumline'],['crowns','aligners'],['onlays','whitening'],C.OPTIONS.map(o=>o.key)]){
+  const t=C.completionTimeline(records,C.estimate(records,state(keys,{hygiene:true})),'2026-09-16');assert.equal(t.reliable,true);assert.ok(t.finishMin>t.start);assert.ok(t.finishMax>=t.finishMin);
  }
+ const missingTiming={...records,[C.IDS.gumline]:{...records[C.IDS.gumline],timing:null}};
+ const t=C.completionTimeline(missingTiming,C.estimate(missingTiming,state(['gumline'])),'2026-09-16');assert.equal(t.finishMin,'2026-10-14');assert.match(t.plan.notes.join(' '),/Indicative planning allowances/);
 });
 test('backward planning respects month ends, leap years and the requested finish',()=>{
  const p=C.plan(records,C.estimate(records,state(['aligners','bonding'])));
@@ -100,9 +102,9 @@ test('replacement always uses CMS tier 3 and restorative choices ignore stale ti
 });
 test('estimate ordering matches preparation, restorative and cosmetic sequence',()=>{
  const e=C.estimate(records,state(['veneers','aligners','fillings','rct','bonding']));
- assert.deepEqual(e.lines.map(x=>x.key),['assessment','hygiene','fillings','rct','aligners','whitening-included','bonding','veneers']);
+ assert.deepEqual(e.lines.map(x=>x.key),['assessment','hygiene','fillings','rct','aligners','whitening-included','bonding','trial','veneers']);
  assert.equal(C.duration(records,C.estimate(records,state(['whitening'])),'2026-09-16'),'7 weeks');
- assert.equal(C.duration(records,C.estimate(records,state(['extractions'])),'2026-09-16'),'Timing at assessment');
+ assert.equal(C.duration(records,C.estimate(records,state(['extractions'])),'2026-09-16'),'4–6 weeks');
 });
 test('borrowing threshold and deposit bounds reconcile across both ends of a range',()=>{
  assert.equal(C.finance(C.estimate(records,state(['gumline'])),0,12),null);
@@ -118,10 +120,39 @@ test('completion planning starts at the earliest finish and shifts the whole pla
  const early=C.completionTimeline(records,e,'2026-09-16',0,'2026-10-01');
  assert.equal(early.tooSoon,true);assert.equal(early.offset,0);assert.equal(early.finishMin,first.finishMin);
 });
-test('completion targets retain calendar uncertainty and withhold unknown clinical timing',()=>{
+test('completion targets retain calendar uncertainty and show indicative extraction dates',()=>{
  const e=C.estimate(records,state(['aligners']));
- const t=C.completionTimeline(records,e,'2026-01-17');assert.equal(t.finishMin,'2027-01-04');assert.equal(t.finishMax,'2027-09-04');
+ const t=C.completionTimeline(records,e,'2026-01-17');assert.equal(t.finishMin,'2026-09-11');assert.equal(t.finishMax,'2027-09-11');
  const selected=C.completionTimeline(records,e,'2026-01-17',0,'2028-02-29');
  assert.ok(selected.start>='2026-01-17');assert.ok(selected.finishMin<='2028-02-29');assert.ok(selected.finishMax>selected.finishMin);
- const unknown=C.completionTimeline(records,C.estimate(records,state(['extractions'])),'2026-09-16');assert.equal(unknown.reliable,false);assert.equal(unknown.earliestCompletion,null);
+ const unknown=C.completionTimeline(records,C.estimate(records,state(['extractions'])),'2026-09-16');assert.equal(unknown.reliable,true);assert.equal(unknown.earliestCompletion,'2026-10-14');
+});
+
+test('aligner tiers change both CMS price and calendar duration',()=>{
+ const expected=[[419500,6,10,'2026-09-11','2027-01-11'],[529500,10,12,'2027-01-11','2027-03-14'],[639500,12,18,'2027-03-14','2027-09-11']];
+ for(const [tier,[price,min,max,finishMin,finishMax]] of expected.entries()){
+  const s=state(['aligners']);s.selected.aligners.tier=tier;const e=C.estimate(records,s),t=C.completionTimeline(records,e,'2026-01-17');
+  assert.equal(e.lines.find(l=>l.key==='aligners').min,price);assert.deepEqual(t.stages.find(l=>l.key==='aligners').timing,{min,max,unit:'months'});assert.equal(t.finishMin,finishMin);assert.equal(t.finishMax,finishMax);
+ }
+ const changed={...records,[C.IDS.aligners]:{...records[C.IDS.aligners],tierTimings:[{min:7,max:9,unit:'months'}]}};
+ const s=state(['aligners']);s.selected.aligners.tier=0;assert.deepEqual(C.plan(changed,C.estimate(changed,s)).stages.find(x=>x.key==='aligners').timing,{min:7,max:9,unit:'months'});
+});
+test('Smile Trial is priced once per arch and veneer tooth quantity is unchanged',()=>{
+ const s=state(['veneers']);s.selected.veneers={qty:6,tier:1,arches:['upper']};
+ const upper=C.estimate(records,s);assert.equal(upper.min,861500);assert.equal(upper.max,861500);assert.equal(upper.lines.find(l=>l.key==='trial').min,99500);
+ s.selected.veneers.arches=['upper','lower'];const both=C.estimate(records,s);assert.equal(both.min,961000);assert.equal(both.lines.find(l=>l.key==='veneers').min,717000);assert.equal(both.lines.find(l=>l.key==='trial').qty,2);
+ const changed={...records,[C.IDS.trial]:{...records[C.IDS.trial],min:100000,max:100000}};assert.equal(C.estimate(changed,s).min,962000);
+ assert.deepEqual(C.normaliseState(state(['veneers'])).selected.veneers.arches,['upper']);delete s.selected.veneers;assert.equal(C.estimate(records,s).lines.some(l=>l.key==='trial'),false);
+});
+test('veneer appointments follow trial, upper preparation/fitting, then lower preparation/fitting',()=>{
+ const s=state(['veneers']);s.selected.veneers.arches=['upper','lower'];
+ let t=C.completionTimeline(records,C.estimate(records,s),'2026-01-17');
+ assert.deepEqual(t.stages.map(x=>[x.key,x.startMin]),[['trial','2026-01-31'],['veneers-upper-prep','2026-02-07'],['veneers-upper-fit','2026-03-07'],['veneers-lower-prep','2026-03-14'],['veneers-lower-fit','2026-04-11']]);assert.equal(t.finishMin,'2026-04-11');
+ s.hygiene=true;t=C.completionTimeline(records,C.estimate(records,s),'2026-01-17');assert.equal(t.stages[0].key,'hygiene');assert.equal(t.stages[0].startMin,'2026-01-31');assert.equal(t.stages[1].startMin,'2026-02-14');
+ const r=state(['rct','veneers']);t=C.completionTimeline(records,C.estimate(records,r),'2026-01-17');assert.equal(t.stages.find(x=>x.key==='trial').startMin,'2026-02-28');
+ const lower=state(['veneers']);lower.selected.veneers.arches=['lower'];t=C.completionTimeline(records,C.estimate(records,lower),'2026-01-17');assert.deepEqual(t.stages.map(x=>x.key),['trial','veneers-lower-prep','veneers-lower-fit']);assert.equal(t.finishMin,'2026-03-07');
+});
+test('hygiene adds a week before treatment and crowns/onlays share preparation and fitting dates',()=>{
+ const t=C.completionTimeline(records,C.estimate(records,state(['whitening'],{hygiene:true})),'2026-01-17');assert.equal(t.stages[0].startMin,'2026-01-31');assert.equal(t.stages[1].startMin,'2026-02-07');
+ const r=C.completionTimeline(records,C.estimate(records,state(['crowns','onlays'])),'2026-01-17');assert.deepEqual(r.stages.map(x=>[x.key,x.startMin]),[['restoration-prep','2026-01-31'],['restoration-fit','2026-02-28']]);assert.equal(r.finishMin,'2026-02-28');
 });

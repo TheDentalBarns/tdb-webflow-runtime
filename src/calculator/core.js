@@ -1,11 +1,11 @@
-/* TDB Treatment Calculator v1.2.0 — deterministic pricing and planning rules. */
+/* TDB Treatment Calculator v1.3.0 — deterministic pricing and planning rules. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.TDBCalculatorCore = api;
 })(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
-  const VERSION = '1.2.0';
+  const VERSION = '1.3.0';
   const IDS = Object.freeze({
     assessment: '6aa293f6253d574a41978d9e', design: '68386f15264c9bdb140b5f2e',
     whitening: '681ce51276b22da0b0660090', aligners: '67a227e75f8c501023eb066b',
@@ -13,7 +13,7 @@
     gumline: '68386aca9ee514c02cdda9ee', fillings: '68d6b282da240abf72520b6a',
     rct: '6a61ce5648ee7f280db22a34', crowns: '68d7ca91db5f05043ba12fa1',
     onlays: '68d7cfac090cb5cda1b931d9', extractions: '68d6affec0a324b379f2c5b5',
-    hygiene: '681dfde1b4412464104bca59'
+    hygiene: '681dfde1b4412464104bca59', trial: '6aaaa3d4ef8655079897b000'
   });
   const OPTIONS = Object.freeze([
     {key:'whitening',category:'cosmetic',quantity:false},
@@ -33,25 +33,28 @@
   const clamp = (v,min,max) => Math.min(max,Math.max(min,v));
   function parsePrice(raw) {
     const text=String(raw||'').replace(/\u00a0/g,' ').trim();
-    const match=text.match(/^(from\s+)?£\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?)(?:\s+per\s+(tooth|surface|lesion))?$/i);
+    const match=text.match(/^(from\s+)?£\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?)(?:\s+per\s+(tooth|surface|lesion|arch|area))?$/i);
     if (!match) return null;
     const pennies=Math.round(Number(match[2].replace(/,/g,''))*100);
     if (!Number.isSafeInteger(pennies)||pennies<=0) return null;
     return {min:pennies,from:!!match[1],unit:(match[3]||'').toLowerCase()};
+  }
+  function timingFromFields(min,max,unit){
+    return finite(min)&&finite(max)&&Number(min)>=0&&Number(max)>=Number(min)&&['weeks','months'].includes(unit)&&Number(max)<=(unit==='months'?120:520)?{min:Number(min),max:Number(max),unit}:null;
   }
   function recordFromFields(f) {
     const price=parsePrice(f.price), tiers=[1,2,3,4,5].map(n=>f['tier'+n]).filter(v=>String(v||'').trim());
     const parsed=tiers.map(parsePrice);
     const valid=!!price && parsed.every(Boolean) && (!parsed.length || parsed[0].min===price.min);
     const vals=valid ? parsed.map(p=>p.min) : [];
-    const timing=finite(f.min)&&finite(f.max)&&Number(f.min)>=0&&Number(f.max)>=Number(f.min)&&['weeks','months'].includes(f.unit)&&Number(f.max)<=(f.unit==='months'?120:520);
     return {
       id:f.record, name:String(f.name||'').trim(), label:String(f.label||f.name||'').trim(),
       tooltip:String(f.tooltip||'').trim(), rawPrice:String(f.price||''),
       valid, min:valid?price.min:null,max:valid?Math.max(price.min,...vals):null,
       from:!!price?.from,unit:price?.unit||'',tiers:vals,
       tierLabels:[1,2,3].map(n=>String(f['tier'+n+'friendly']||'').trim()),
-      timing:timing?{min:Number(f.min),max:Number(f.max),unit:f.unit}:null,
+      timing:timingFromFields(f.min,f.max,f.unit),
+      tierTimings:[1,2,3].map(n=>timingFromFields(f['tier'+n+'min'],f['tier'+n+'max'],f.unit)),
       includesWhitening:f.whitening===true||f.whitening==='true',
       includesHygiene:f.hygiene===true||f.hygiene==='true',
       bookingDeposit:finite(f.deposit)?Math.round(Number(f.deposit)*100):null
@@ -67,7 +70,8 @@
     for(const o of OPTIONS){
       const v=raw.selected&&own(raw.selected,o.key)?raw.selected[o.key]:null;
       if(v&&s.categories.includes(o.category)){
-        s.selected[o.key]={qty:o.quantity?clamp(Math.floor(Number(v.qty)||1),1,o.record==='fillings'||o.key==='fillings'?160:32):1,tier:o.key==='replacement'?2:['aligners','bonding'].includes(o.key)&&Number.isInteger(v.tier)&&v.tier>=0&&v.tier<=2?v.tier:null};
+        s.selected[o.key]={qty:o.quantity?clamp(Math.floor(Number(v.qty)||1),1,o.record==='fillings'||o.key==='fillings'?160:32):1,tier:o.key==='replacement'?2:['aligners','bonding','veneers'].includes(o.key)&&Number.isInteger(v.tier)&&v.tier>=0&&v.tier<=2?v.tier:null};
+        if(o.key==='veneers'){const arches=['upper','lower'].filter(a=>Array.isArray(v.arches)&&v.arches.includes(a));s.selected.veneers.arches=arches.length?arches:['upper'];}
       }
     }
     s.assessment=['none','design','signature'].includes(raw.assessment)?raw.assessment:'none';
@@ -89,7 +93,7 @@
     const required=selected.length>0, assessment=required?'signature':state.assessment;
     function add(key,recordKey,quantity=1,tier=null,included=false,label){
       const r=records[IDS[recordKey]];
-      const l={key,recordKey,record:r,label:label||r?.label||recordKey,qty:quantity,included};
+      const l={key,recordKey,record:r,label:label||r?.label||recordKey,qty:quantity,tier,included};
       if(included){l.min=l.max=0;l.from=false;}
       else if(!r?.valid){l.min=l.max=null;missing.push(l.label);}
       else{
@@ -105,7 +109,8 @@
     }
     if(whitenIncluded&&!state.selected.whitening)add('whitening-included','whitening',1,null,true);
     if(cosmetic&&(hygieneIncluded||state.hygiene))add('hygiene','hygiene',1,null,hygieneIncluded);
-    const order=['assessment','hygiene','extractions','replacement','fillings','rct','crowns','onlays','aligners','whitening','whitening-included','gumline','bonding','veneers'];
+    if(selected.some(o=>o.key==='veneers'))add('trial','trial',state.selected.veneers.arches.length);
+    const order=['assessment','hygiene','extractions','replacement','fillings','rct','crowns','onlays','aligners','whitening','whitening-included','gumline','bonding','trial','veneers'];
     lines.sort((a,b)=>order.indexOf(a.key)-order.indexOf(b.key));
     const priced=lines.filter(l=>l.min!==null);
     const min=priced.reduce((n,l)=>n+l.min,0),max=priced.reduce((n,l)=>n+l.max,0);
@@ -142,42 +147,60 @@
   }
   function stageDate(d,t,which){return t.unit==='months'?addMonths(d,t[which]):addDays(d,t[which]*7);}
   function plan(records,e){
-    const stages=[],unknown=[],has=k=>e.selected.some(o=>o.key===k);
-    function push(key,label){
-      const r=records[IDS[key]],t=r?.timing;
-      stages.push({key,label:label||r?.label||key,timing:t});if(!t)unknown.push(label||r?.label||key);
+    const stages=[],assumed=[],has=k=>e.selected.some(o=>o.key===k);
+    const weeks=(min,max=min)=>({min,max,unit:'weeks'});
+    const defaults={extractions:weeks(2,4),fillings:weeks(0),rct:weeks(2),crowns:weeks(4),onlays:weeks(4),aligners:{min:6,max:18,unit:'months'},whitening:weeks(5),gumline:weeks(2),bonding:weeks(2),hygiene:weeks(1),trial:weeks(1),veneers:weeks(4)};
+    function timing(key){
+      const r=records[IDS[key]],tier=e.state.selected[key]?.tier;
+      const t=(Number.isInteger(tier)&&r?.tierTimings?.[tier])||r?.timing;
+      if(!t)assumed.push(r?.label||key);
+      return t||defaults[key];
     }
-    if(!e.required)return {stages,unknown,notes:[]};
-    const notes=['Illustrative sequence, subject to assessment and appointment availability. More teeth or complex care may need additional visits.'];
-    if(has('extractions'))push('extractions');
-    if(has('fillings')||has('replacement'))push('fillings',has('replacement')&&has('fillings')?'Fillings & metal filling replacement':has('replacement')?'Metal filling replacement':undefined);
+    function push(key,label,options={}){
+      const r=records[IDS[key]];
+      stages.push({key,label:label||r?.label||key,timing:timing(key),costKeys:[key],description:r?.tooltip||'',...options});
+    }
+    if(!e.required)return {stages,unknown:[],notes:[]};
+    const notes=['A first look at how your journey could unfold. Appointment availability, healing, refinements and your confirmed plan may change these dates.'];
+    if(e.lines.some(l=>l.key==='hygiene'))push('hygiene',undefined,{appointment:true,description:'Healthy foundations before treatment. We allow one week after hygiene before the next treatment; a Smile Trial follows at least two weeks later.'});
+    if(has('extractions'))push('extractions',undefined,{appointment:true,description:'Your selected extractions, with an indicative allowance before the next stage. Healing and any replacement plan are assessed individually.'});
+    if(has('fillings')||has('replacement'))push('fillings',has('replacement')&&has('fillings')?'Fillings & metal filling replacement':has('replacement')?'Metal filling replacement':undefined,{appointment:true,costKeys:['fillings','replacement']});
     if(has('rct'))push('rct');
-    const shadeWork=has('whitening')||has('aligners');
-    // Crowns/onlays may be needed for stability, or delayed for final shade matching.
-    // Without tooth-level clinical decisions, withhold a precise completion date.
-    for(const k of ['crowns','onlays'])if(has(k)){
-      push(k);if(shadeWork)unknown.push('Timing of '+(records[IDS[k]]?.label||k)+' around whitening/aligners');
+    const restorations=['crowns','onlays'].filter(has);
+    if(restorations.length){
+      const times=restorations.map(timing),label=restorations.join(' & ');
+      const t=weeks(Math.max(...times.map(v=>v.min)),Math.max(...times.map(v=>v.max)));
+      stages.push({key:'restoration-prep',label:'Prepare '+label,timing:t,appointment:true,costKeys:restorations,sharedFee:true,description:'Preparation for your selected '+label+'. The fitting appointment follows around four weeks later.'});
+      stages.push({key:'restoration-fit',label:'Fit '+label,timing:weeks(0),appointment:true,costKeys:restorations,sharedFee:true,description:'Fit your bespoke porcelain restorations and check the bite. Preparation and fitting share one treatment fee.'});
+      if(has('whitening')||has('aligners'))notes.push('Restorative care is shown first. Your dentist may adjust the order for tooth stability or final shade matching.');
     }
-    if(e.cosmetic)notes.push(e.hygieneIncluded?'Hygiene is included with aligners. Its appointment is arranged as part of preparation.':'Healthy gums come first. Any hygiene or periodontal care needed may affect timing.');
-    if(e.state.hygiene&&!e.hygieneIncluded)unknown.push('Hygiene preparation');
+    if(e.cosmetic&&!e.lines.some(l=>l.key==='hygiene'))notes.push('Hygiene may be needed before cosmetic care. Add the allowance to see its price and place in your timeline.');
     if(has('aligners'))push('aligners');
-    if(has('whitening')||e.whitenIncluded)push('whitening','Whitening & colour settling');
+    if(has('whitening')||e.whitenIncluded)push('whitening','Whitening & colour settling',{costKeys:['whitening','whitening-included'],description:'Three weeks of whitening, then two weeks for the colour to settle.'});
     if(has('gumline'))push('gumline');
     if(has('bonding'))push('bonding');
-    if(has('veneers'))push('veneers');
-    if(has('bonding')&&has('veneers'))notes.push('Bonding and veneers are shown in separate stages. Your dentist may combine appointments where appropriate.');
-    return {stages,unknown:[...new Set(unknown)],notes};
+    if(has('veneers')){
+      const arches=e.state.selected.veneers.arches;
+      push('trial',records[IDS.trial]?.label||'Smile Trial',{appointment:true,minGap:14,description:'Preview your planned '+arches.join(' and ')+' smile before preparation. Charged once per selected arch. Allow one week from the trial to preparation.'});
+      for(const [index,arch] of arches.entries()){
+        stages.push({key:'veneers-'+arch+'-prep',label:'Prepare '+arch+' veneers',timing:timing('veneers'),appointment:true,minGap:index?7:0,costKeys:['veneers'],sharedFee:true,description:index?'Prepare the lower arch, one week after the upper veneers are fitted.':'Prepare the '+arch+' arch, one week after your Smile Trial.'});
+        stages.push({key:'veneers-'+arch+'-fit',label:'Fit '+arch+' veneers',timing:weeks(0),appointment:true,costKeys:['veneers'],sharedFee:true,description:'Fit the '+arch+' veneers around four weeks after preparation, then check the fit, appearance and bite.'});
+      }
+    }
+    if(assumed.length)notes.push('Indicative planning allowances are used for '+[...new Set(assumed)].join(', ')+'. Your dentist will confirm the timing.');
+    return {stages,unknown:[],notes};
   }
   function schedule(plan,start){
     if(!parseDate(start))throw new RangeError('Invalid assessment date');
-    const initial=parseDate(start);let low=addDays(initial,14),high=addDays(initial,14);
-    let reliable=plan.unknown.length===0;
+    const initial=parseDate(start);let low=addDays(initial,14),high=addDays(initial,14),lastLow=initial,lastHigh=initial;
     const stages=plan.stages.map(s=>{
+      if(s.minGap){low=new Date(Math.max(low,addDays(lastLow,s.minGap)));high=new Date(Math.max(high,addDays(lastHigh,s.minGap)));}
       const fromMin=low,fromMax=high;
-      if(s.timing){low=stageDate(low,s.timing,'min');high=stageDate(high,s.timing,'max');}else reliable=false;
+      low=stageDate(low,s.timing,'min');high=stageDate(high,s.timing,'max');
+      lastLow=s.appointment?fromMin:low;lastHigh=s.appointment?fromMax:high;
       return {...s,startMin:iso(fromMin),startMax:iso(fromMax),endMin:iso(low),endMax:iso(high)};
     });
-    return {start,stages,finishMin:reliable?iso(low):null,finishMax:reliable?iso(high):null,reliable};
+    return {start,stages,finishMin:iso(low),finishMax:iso(high),reliable:true};
   }
   function suggestedStart(plan,target,which){
     const end=parseDate(target);if(!end||plan.unknown.length||!plan.stages.length)return null;
@@ -198,9 +221,9 @@
       meetsTarget:!!result.finishMax&&!!parseDate(target)&&result.finishMax<=target};
   }
   function duration(records,e,today){
-    if(!e.required)return 'Choose treatments';
+    if(!e.required)return e.assessmentLine?'Assessment only':'Choose treatments';
     const s=schedule(plan(records,e),today);
-    if(!s.reliable)return 'Timing at assessment';
+
     const days=d=>Math.round((parseDate(d)-parseDate(today))/86400000);
     const months=days(s.finishMax)>=90,divisor=months?30.4375:7;
     const min=Math.ceil(days(s.finishMin)/divisor),max=Math.ceil(days(s.finishMax)/divisor);

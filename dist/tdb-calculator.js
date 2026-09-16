@@ -1,11 +1,11 @@
-/* TDB Treatment Calculator v1.2.0 — deterministic pricing and planning rules. */
+/* TDB Treatment Calculator v1.3.0 — deterministic pricing and planning rules. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.TDBCalculatorCore = api;
 })(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
-  const VERSION = '1.2.0';
+  const VERSION = '1.3.0';
   const IDS = Object.freeze({
     assessment: '6aa293f6253d574a41978d9e', design: '68386f15264c9bdb140b5f2e',
     whitening: '681ce51276b22da0b0660090', aligners: '67a227e75f8c501023eb066b',
@@ -13,7 +13,7 @@
     gumline: '68386aca9ee514c02cdda9ee', fillings: '68d6b282da240abf72520b6a',
     rct: '6a61ce5648ee7f280db22a34', crowns: '68d7ca91db5f05043ba12fa1',
     onlays: '68d7cfac090cb5cda1b931d9', extractions: '68d6affec0a324b379f2c5b5',
-    hygiene: '681dfde1b4412464104bca59'
+    hygiene: '681dfde1b4412464104bca59', trial: '6aaaa3d4ef8655079897b000'
   });
   const OPTIONS = Object.freeze([
     {key:'whitening',category:'cosmetic',quantity:false},
@@ -33,25 +33,28 @@
   const clamp = (v,min,max) => Math.min(max,Math.max(min,v));
   function parsePrice(raw) {
     const text=String(raw||'').replace(/\u00a0/g,' ').trim();
-    const match=text.match(/^(from\s+)?£\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?)(?:\s+per\s+(tooth|surface|lesion))?$/i);
+    const match=text.match(/^(from\s+)?£\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?)(?:\s+per\s+(tooth|surface|lesion|arch|area))?$/i);
     if (!match) return null;
     const pennies=Math.round(Number(match[2].replace(/,/g,''))*100);
     if (!Number.isSafeInteger(pennies)||pennies<=0) return null;
     return {min:pennies,from:!!match[1],unit:(match[3]||'').toLowerCase()};
+  }
+  function timingFromFields(min,max,unit){
+    return finite(min)&&finite(max)&&Number(min)>=0&&Number(max)>=Number(min)&&['weeks','months'].includes(unit)&&Number(max)<=(unit==='months'?120:520)?{min:Number(min),max:Number(max),unit}:null;
   }
   function recordFromFields(f) {
     const price=parsePrice(f.price), tiers=[1,2,3,4,5].map(n=>f['tier'+n]).filter(v=>String(v||'').trim());
     const parsed=tiers.map(parsePrice);
     const valid=!!price && parsed.every(Boolean) && (!parsed.length || parsed[0].min===price.min);
     const vals=valid ? parsed.map(p=>p.min) : [];
-    const timing=finite(f.min)&&finite(f.max)&&Number(f.min)>=0&&Number(f.max)>=Number(f.min)&&['weeks','months'].includes(f.unit)&&Number(f.max)<=(f.unit==='months'?120:520);
     return {
       id:f.record, name:String(f.name||'').trim(), label:String(f.label||f.name||'').trim(),
       tooltip:String(f.tooltip||'').trim(), rawPrice:String(f.price||''),
       valid, min:valid?price.min:null,max:valid?Math.max(price.min,...vals):null,
       from:!!price?.from,unit:price?.unit||'',tiers:vals,
       tierLabels:[1,2,3].map(n=>String(f['tier'+n+'friendly']||'').trim()),
-      timing:timing?{min:Number(f.min),max:Number(f.max),unit:f.unit}:null,
+      timing:timingFromFields(f.min,f.max,f.unit),
+      tierTimings:[1,2,3].map(n=>timingFromFields(f['tier'+n+'min'],f['tier'+n+'max'],f.unit)),
       includesWhitening:f.whitening===true||f.whitening==='true',
       includesHygiene:f.hygiene===true||f.hygiene==='true',
       bookingDeposit:finite(f.deposit)?Math.round(Number(f.deposit)*100):null
@@ -67,7 +70,8 @@
     for(const o of OPTIONS){
       const v=raw.selected&&own(raw.selected,o.key)?raw.selected[o.key]:null;
       if(v&&s.categories.includes(o.category)){
-        s.selected[o.key]={qty:o.quantity?clamp(Math.floor(Number(v.qty)||1),1,o.record==='fillings'||o.key==='fillings'?160:32):1,tier:o.key==='replacement'?2:['aligners','bonding'].includes(o.key)&&Number.isInteger(v.tier)&&v.tier>=0&&v.tier<=2?v.tier:null};
+        s.selected[o.key]={qty:o.quantity?clamp(Math.floor(Number(v.qty)||1),1,o.record==='fillings'||o.key==='fillings'?160:32):1,tier:o.key==='replacement'?2:['aligners','bonding','veneers'].includes(o.key)&&Number.isInteger(v.tier)&&v.tier>=0&&v.tier<=2?v.tier:null};
+        if(o.key==='veneers'){const arches=['upper','lower'].filter(a=>Array.isArray(v.arches)&&v.arches.includes(a));s.selected.veneers.arches=arches.length?arches:['upper'];}
       }
     }
     s.assessment=['none','design','signature'].includes(raw.assessment)?raw.assessment:'none';
@@ -89,7 +93,7 @@
     const required=selected.length>0, assessment=required?'signature':state.assessment;
     function add(key,recordKey,quantity=1,tier=null,included=false,label){
       const r=records[IDS[recordKey]];
-      const l={key,recordKey,record:r,label:label||r?.label||recordKey,qty:quantity,included};
+      const l={key,recordKey,record:r,label:label||r?.label||recordKey,qty:quantity,tier,included};
       if(included){l.min=l.max=0;l.from=false;}
       else if(!r?.valid){l.min=l.max=null;missing.push(l.label);}
       else{
@@ -105,7 +109,8 @@
     }
     if(whitenIncluded&&!state.selected.whitening)add('whitening-included','whitening',1,null,true);
     if(cosmetic&&(hygieneIncluded||state.hygiene))add('hygiene','hygiene',1,null,hygieneIncluded);
-    const order=['assessment','hygiene','extractions','replacement','fillings','rct','crowns','onlays','aligners','whitening','whitening-included','gumline','bonding','veneers'];
+    if(selected.some(o=>o.key==='veneers'))add('trial','trial',state.selected.veneers.arches.length);
+    const order=['assessment','hygiene','extractions','replacement','fillings','rct','crowns','onlays','aligners','whitening','whitening-included','gumline','bonding','trial','veneers'];
     lines.sort((a,b)=>order.indexOf(a.key)-order.indexOf(b.key));
     const priced=lines.filter(l=>l.min!==null);
     const min=priced.reduce((n,l)=>n+l.min,0),max=priced.reduce((n,l)=>n+l.max,0);
@@ -142,42 +147,60 @@
   }
   function stageDate(d,t,which){return t.unit==='months'?addMonths(d,t[which]):addDays(d,t[which]*7);}
   function plan(records,e){
-    const stages=[],unknown=[],has=k=>e.selected.some(o=>o.key===k);
-    function push(key,label){
-      const r=records[IDS[key]],t=r?.timing;
-      stages.push({key,label:label||r?.label||key,timing:t});if(!t)unknown.push(label||r?.label||key);
+    const stages=[],assumed=[],has=k=>e.selected.some(o=>o.key===k);
+    const weeks=(min,max=min)=>({min,max,unit:'weeks'});
+    const defaults={extractions:weeks(2,4),fillings:weeks(0),rct:weeks(2),crowns:weeks(4),onlays:weeks(4),aligners:{min:6,max:18,unit:'months'},whitening:weeks(5),gumline:weeks(2),bonding:weeks(2),hygiene:weeks(1),trial:weeks(1),veneers:weeks(4)};
+    function timing(key){
+      const r=records[IDS[key]],tier=e.state.selected[key]?.tier;
+      const t=(Number.isInteger(tier)&&r?.tierTimings?.[tier])||r?.timing;
+      if(!t)assumed.push(r?.label||key);
+      return t||defaults[key];
     }
-    if(!e.required)return {stages,unknown,notes:[]};
-    const notes=['Illustrative sequence, subject to assessment and appointment availability. More teeth or complex care may need additional visits.'];
-    if(has('extractions'))push('extractions');
-    if(has('fillings')||has('replacement'))push('fillings',has('replacement')&&has('fillings')?'Fillings & metal filling replacement':has('replacement')?'Metal filling replacement':undefined);
+    function push(key,label,options={}){
+      const r=records[IDS[key]];
+      stages.push({key,label:label||r?.label||key,timing:timing(key),costKeys:[key],description:r?.tooltip||'',...options});
+    }
+    if(!e.required)return {stages,unknown:[],notes:[]};
+    const notes=['A first look at how your journey could unfold. Appointment availability, healing, refinements and your confirmed plan may change these dates.'];
+    if(e.lines.some(l=>l.key==='hygiene'))push('hygiene',undefined,{appointment:true,description:'Healthy foundations before treatment. We allow one week after hygiene before the next treatment; a Smile Trial follows at least two weeks later.'});
+    if(has('extractions'))push('extractions',undefined,{appointment:true,description:'Your selected extractions, with an indicative allowance before the next stage. Healing and any replacement plan are assessed individually.'});
+    if(has('fillings')||has('replacement'))push('fillings',has('replacement')&&has('fillings')?'Fillings & metal filling replacement':has('replacement')?'Metal filling replacement':undefined,{appointment:true,costKeys:['fillings','replacement']});
     if(has('rct'))push('rct');
-    const shadeWork=has('whitening')||has('aligners');
-    // Crowns/onlays may be needed for stability, or delayed for final shade matching.
-    // Without tooth-level clinical decisions, withhold a precise completion date.
-    for(const k of ['crowns','onlays'])if(has(k)){
-      push(k);if(shadeWork)unknown.push('Timing of '+(records[IDS[k]]?.label||k)+' around whitening/aligners');
+    const restorations=['crowns','onlays'].filter(has);
+    if(restorations.length){
+      const times=restorations.map(timing),label=restorations.join(' & ');
+      const t=weeks(Math.max(...times.map(v=>v.min)),Math.max(...times.map(v=>v.max)));
+      stages.push({key:'restoration-prep',label:'Prepare '+label,timing:t,appointment:true,costKeys:restorations,sharedFee:true,description:'Preparation for your selected '+label+'. The fitting appointment follows around four weeks later.'});
+      stages.push({key:'restoration-fit',label:'Fit '+label,timing:weeks(0),appointment:true,costKeys:restorations,sharedFee:true,description:'Fit your bespoke porcelain restorations and check the bite. Preparation and fitting share one treatment fee.'});
+      if(has('whitening')||has('aligners'))notes.push('Restorative care is shown first. Your dentist may adjust the order for tooth stability or final shade matching.');
     }
-    if(e.cosmetic)notes.push(e.hygieneIncluded?'Hygiene is included with aligners. Its appointment is arranged as part of preparation.':'Healthy gums come first. Any hygiene or periodontal care needed may affect timing.');
-    if(e.state.hygiene&&!e.hygieneIncluded)unknown.push('Hygiene preparation');
+    if(e.cosmetic&&!e.lines.some(l=>l.key==='hygiene'))notes.push('Hygiene may be needed before cosmetic care. Add the allowance to see its price and place in your timeline.');
     if(has('aligners'))push('aligners');
-    if(has('whitening')||e.whitenIncluded)push('whitening','Whitening & colour settling');
+    if(has('whitening')||e.whitenIncluded)push('whitening','Whitening & colour settling',{costKeys:['whitening','whitening-included'],description:'Three weeks of whitening, then two weeks for the colour to settle.'});
     if(has('gumline'))push('gumline');
     if(has('bonding'))push('bonding');
-    if(has('veneers'))push('veneers');
-    if(has('bonding')&&has('veneers'))notes.push('Bonding and veneers are shown in separate stages. Your dentist may combine appointments where appropriate.');
-    return {stages,unknown:[...new Set(unknown)],notes};
+    if(has('veneers')){
+      const arches=e.state.selected.veneers.arches;
+      push('trial',records[IDS.trial]?.label||'Smile Trial',{appointment:true,minGap:14,description:'Preview your planned '+arches.join(' and ')+' smile before preparation. Charged once per selected arch. Allow one week from the trial to preparation.'});
+      for(const [index,arch] of arches.entries()){
+        stages.push({key:'veneers-'+arch+'-prep',label:'Prepare '+arch+' veneers',timing:timing('veneers'),appointment:true,minGap:index?7:0,costKeys:['veneers'],sharedFee:true,description:index?'Prepare the lower arch, one week after the upper veneers are fitted.':'Prepare the '+arch+' arch, one week after your Smile Trial.'});
+        stages.push({key:'veneers-'+arch+'-fit',label:'Fit '+arch+' veneers',timing:weeks(0),appointment:true,costKeys:['veneers'],sharedFee:true,description:'Fit the '+arch+' veneers around four weeks after preparation, then check the fit, appearance and bite.'});
+      }
+    }
+    if(assumed.length)notes.push('Indicative planning allowances are used for '+[...new Set(assumed)].join(', ')+'. Your dentist will confirm the timing.');
+    return {stages,unknown:[],notes};
   }
   function schedule(plan,start){
     if(!parseDate(start))throw new RangeError('Invalid assessment date');
-    const initial=parseDate(start);let low=addDays(initial,14),high=addDays(initial,14);
-    let reliable=plan.unknown.length===0;
+    const initial=parseDate(start);let low=addDays(initial,14),high=addDays(initial,14),lastLow=initial,lastHigh=initial;
     const stages=plan.stages.map(s=>{
+      if(s.minGap){low=new Date(Math.max(low,addDays(lastLow,s.minGap)));high=new Date(Math.max(high,addDays(lastHigh,s.minGap)));}
       const fromMin=low,fromMax=high;
-      if(s.timing){low=stageDate(low,s.timing,'min');high=stageDate(high,s.timing,'max');}else reliable=false;
+      low=stageDate(low,s.timing,'min');high=stageDate(high,s.timing,'max');
+      lastLow=s.appointment?fromMin:low;lastHigh=s.appointment?fromMax:high;
       return {...s,startMin:iso(fromMin),startMax:iso(fromMax),endMin:iso(low),endMax:iso(high)};
     });
-    return {start,stages,finishMin:reliable?iso(low):null,finishMax:reliable?iso(high):null,reliable};
+    return {start,stages,finishMin:iso(low),finishMax:iso(high),reliable:true};
   }
   function suggestedStart(plan,target,which){
     const end=parseDate(target);if(!end||plan.unknown.length||!plan.stages.length)return null;
@@ -198,9 +221,9 @@
       meetsTarget:!!result.finishMax&&!!parseDate(target)&&result.finishMax<=target};
   }
   function duration(records,e,today){
-    if(!e.required)return 'Choose treatments';
+    if(!e.required)return e.assessmentLine?'Assessment only':'Choose treatments';
     const s=schedule(plan(records,e),today);
-    if(!s.reliable)return 'Timing at assessment';
+
     const days=d=>Math.round((parseDate(d)-parseDate(today))/86400000);
     const months=days(s.finishMax)>=90,divisor=months?30.4375:7;
     const min=Math.ceil(days(s.finishMin)/divisor),max=Math.ceil(days(s.finishMax)/divisor);
@@ -220,7 +243,7 @@
   return Object.freeze({VERSION,IDS,OPTIONS,parsePrice,recordFromFields,newState,normaliseState,allowedOptions,estimate,payment,finance,parseDate,iso,addDays,addMonths,plan,schedule,suggestedStart,timeline,duration,completionTimeline});
 });
 
-/* TDB Treatment Calculator v1.2.0 — shared inline/drawer controller. */
+/* TDB Treatment Calculator v1.3.0 — shared inline/drawer controller. */
 (function () {
   'use strict';
   if(window.TDBCalculator)return;
@@ -245,7 +268,7 @@
     const out=Object.create(null);
     doc.querySelectorAll('[data-tdb-calc-record]').forEach(el=>{
       const id=el.getAttribute('data-tdb-calc-record');if(!/^[0-9a-f]{24}$/.test(id||''))return;
-      const f={record:id};for(const key of ['name','label','price','tooltip','min','max','unit','deposit','tier1','tier2','tier3','tier4','tier5','tier1friendly','tier2friendly','tier3friendly'])f[key]=el.getAttribute('data-'+key)||'';
+      const f={record:id};for(const key of ['name','label','price','tooltip','min','max','unit','deposit','tier1','tier2','tier3','tier4','tier5','tier1friendly','tier2friendly','tier3friendly','tier1min','tier1max','tier2min','tier2max','tier3min','tier3max'])f[key]=el.getAttribute('data-'+key)||'';
       for(const key of ['whitening','hygiene'])f[key]=[...doc.querySelectorAll('[data-tdb-calc-included="'+key+'"]')].some(marker=>marker.getAttribute('data-record')===id&&!marker.classList.contains('w-condition-invisible'));
       out[id]=C.recordFromFields(f);
     });
@@ -285,7 +308,10 @@
 
   const arrow='<svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path fill="currentColor" d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10z"/></svg>';
   const chevron='<span class="tdbc-chevron" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path fill="currentColor" d="M16.5303 20.8839C16.2374 21.1768 15.7626 21.1768 15.4697 20.8839L7.82318 13.2374C7.53029 12.9445 7.53029 12.4697 7.82318 12.1768L8.17674 11.8232C8.46963 11.5303 8.9445 11.5303 9.2374 11.8232L16 18.5858L22.7626 11.8232C23.0555 11.5303 23.5303 11.5303 23.8232 11.8232L24.1768 12.1768C24.4697 12.4697 24.4697 12.9445 24.1768 13.2374L16.5303 20.8839Z"/></svg></span>';
-  const tip=(id,label,text)=>'<div class="tdbc-info" data-node="info-'+id+'"><button type="button" class="tdbc-info-button" data-action="info" aria-label="'+esc(label)+'" aria-expanded="false" aria-controls="'+id+'-tip">'+chevron+'</button><div class="tdbc-info-panel text-size-small" role="tooltip" id="'+id+'-tip" aria-hidden="true" inert>'+esc(text)+'</div></div>';
+  const infoIcon='<svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24m0 192a88 88 0 1 1 88-88a88.1 88.1 0 0 1-88 88m8-48a8 8 0 0 1-16 0v-48a8 8 0 0 1 16 0Zm-8-72a12 12 0 1 1 12-12a12 12 0 0 1-12 12Z"/></svg>';
+  const tip=(id,label,text)=>'<div class="tdbc-info" data-node="info-'+id+'"><button type="button" class="tdbc-info-button" data-action="info" aria-label="'+esc(label)+'" aria-expanded="false" aria-controls="'+id+'-tip">'+infoIcon+'</button><div class="tdbc-info-panel text-size-small" role="tooltip" id="'+id+'-tip" aria-hidden="true" inert>'+esc(text)+'</div></div>';
+  const actionButton=(action,label,up=false,alternate=false)=>'<button type="button" class="button is-icon is-secondary '+(alternate?'is-alternate ':'')+'w-inline-block" data-action="'+action+'"><span>'+label+'</span><span class="icon-embed-xxsmall '+(up?'is-up ':'')+'w-embed">'+arrow+'</span></button>';
+  const lineQuantity=l=>l.qty>1?' × '+l.qty+' '+(l.record?.unit==='arch'?'arches':l.record?.unit==='surface'?'surfaces':l.key==='gumline'?'areas':'teeth'):'';
   const check=on=>'<span aria-hidden="true" class="w-checkbox-input w-checkbox-input--inputType-custom form_checkbox-icon '+(on?'w--redirected-checked':'')+'"></span>';
   const step=(n,label)=>'<h3 class="tdbc-step-heading heading-style-h4"><span class="tdbc-number text-size-tiny">'+n+'</span><span>'+label+'</span></h3>';
   const expand=(key,on,html)=>'<div class="tdbc-expand '+(on?'is-expanded':'')+'" data-node="expand-'+key+'" data-panel="'+key+'" aria-hidden="'+!on+'" '+(on?'':'inert')+'><div class="tdbc-expand-inner"><div class="tdbc-expand-body">'+html+'</div></div></div>';
@@ -335,7 +361,7 @@
   function closeTooltips(except){document.querySelectorAll('.tdbc-info.is-open').forEach(info=>{if(info===except)return;info.classList.remove('is-open');info.querySelector('button').setAttribute('aria-expanded','false');const p=info.querySelector('[role="tooltip"]');p.setAttribute('aria-hidden','true');p.inert=true;});}
 
   class View {
-    constructor(root,config,mode){this.root=root;this.config=config;this.mode=mode;this.id='tdbc-'+(++sequence);this.context=null;this.ready=false;this.breakdown=true;this.visible=false;this.suspended=false;this.timingWarning=false;this.dateDrag=null;
+    constructor(root,config,mode){this.root=root;this.config=config;this.mode=mode;this.id='tdbc-'+(++sequence);this.context=null;this.ready=false;this.breakdown=true;this.visible=false;this.suspended=false;this.timingWarning=false;this.dateDrag=null;this.stageOpen=new Set();this.optionClosed=new Set();
       root.classList.add('tdb-calc','padding-global');root.addEventListener('change',e=>this.change(e));root.addEventListener('input',e=>this.input(e));root.addEventListener('click',e=>this.click(e));
       root.addEventListener('pointerdown',event=>{this.suspended=false;focusView(this);if(event.target.dataset.range==='completion')this.dateDrag={pointer:event.pointerId,x:event.clientX,slider:event.target};},{passive:true});
       root.addEventListener('focusin',()=>{this.suspended=false;focusView(this);});
@@ -352,32 +378,34 @@
       const e=C.estimate(records,state,this.config),id=this.id;
       if(e.hiddenSelections.length&&!this.context){this.context={...this.config};this.config.cosmetic=this.config.restorative=true;return this.render();}
       const active=state.categories.length>0,selected=e.selected.length,hasEstimate=active&&e.lines.length>0,available=C.allowedOptions(this.config);
-      const form='<section class="tdbc-step" data-node="step-1" aria-labelledby="'+id+'-explore"><div id="'+id+'-explore">'+step('01','What would you like to explore?')+'</div><p class="tdbc-help text-size-small">Choose one or both.</p><div class="tdbc-categories">'+
+      const form='<section class="tdbc-step" data-node="step-1" aria-labelledby="'+id+'-explore"><div id="'+id+'-explore">'+step('01','What would you like to explore?')+'</div><p class="tdbc-help tdbc-step-intro text-size-small">Choose one or both.</p><div class="tdbc-categories">'+
       ['cosmetic','restorative'].filter(k=>this.config[k]).map(k=>'<label class="tdbc-category form_checkbox '+(state.categories.includes(k)?'is-selected':'')+'"><input type="checkbox" data-control="category-'+k+'" data-category="'+k+'" '+(state.categories.includes(k)?'checked':'')+'>'+check(state.categories.includes(k))+'<span><span class="text-style-tagline-restored">'+(k==='cosmetic'?'Cosmetic':'Restorative')+'</span><small class="text-size-tiny">'+(k==='cosmetic'?'Improve my smile':'Restore my teeth')+'</small></span></label>').join('')+'</div></section>'+
-      expand('treatments',active,'<section class="tdbc-step" data-node="step-2">'+step('02','Shape your estimate')+'<p class="tdbc-help text-size-small">Explore freely. Your dentist will help confirm the right treatments.</p>'+['cosmetic','restorative'].filter(k=>state.categories.includes(k)&&this.config[k]).map(k=>'<section class="tdbc-treatment-group" data-node="group-'+k+'" aria-label="'+k+' treatments"><div role="heading" aria-level="4" class="text-style-tagline-restored tdbc-dd-fade">'+(k==='cosmetic'?'Cosmetic treatments':'Restorative treatments')+'</div>'+available.filter(o=>o.category===k).map(o=>this.option(o,e)).join('')+'</section>').join('')+(!hasEstimate?'<button type="button" class="tdbc-text-button text-size-small" data-action="start-assessment">Prefer to start with an assessment?</button>':'')+'</section>')+
+      expand('treatments',active,'<section class="tdbc-step" data-node="step-2">'+step('02','Shape your estimate')+'<p class="tdbc-help tdbc-step-intro text-size-small">Explore freely. Your dentist will help confirm the right treatments.</p>'+['cosmetic','restorative'].filter(k=>state.categories.includes(k)&&this.config[k]).map(k=>'<section class="tdbc-treatment-group" data-node="group-'+k+'" aria-label="'+k+' treatments"><div role="heading" aria-level="4" class="text-style-tagline-restored tdbc-dd-fade">'+(k==='cosmetic'?'Cosmetic treatments':'Restorative treatments')+'</div>'+available.filter(o=>o.category===k).map(o=>this.option(o,e)).join('')+'</section>').join('')+(!hasEstimate?actionButton('start-assessment','Prefer to start with an assessment?'):'')+'</section>')+
       expand('journey',hasEstimate,hasEstimate?(selected?this.timelineControls(e):'')+this.assessment(e)+(e.cosmetic?this.hygiene(e):'')+this.summary(e):'')+
-      (active?'<footer class="tdbc-footnote text-size-tiny" data-node="footnote">A guide to possibilities, subject to assessment and your confirmed treatment plan. Your selections stay in this tab for up to four hours. <button type="button" class="tdbc-text-button" data-action="reset" data-control="reset">Restart estimate</button></footer>':'');
-      patch(this.root,'<div class="tdbc-shell container-large" data-node="shell"><header class="tdbc-header" data-node="header" tabindex="-1"><p class="text-style-tagline-restored">YOUR SMILE, YOUR POSSIBILITIES</p><h2 class="heading-style-h3"'+(this.mode==='drawer'?' id="tdbc-dialog-title"':'')+'>Explore your treatment costs</h2><p class="text-size-small">Start with what matters to you. We’ll bring together a guide to your investment and timing.</p></header>'+
+      (active?'<footer class="tdbc-footnote text-size-tiny" data-node="footnote"><p>A guide to possibilities, subject to assessment and your confirmed treatment plan. Your selections stay in this tab for up to four hours.</p><div class="tdbc-actions">'+actionButton('reset','Restart estimate',true)+actionButton('start-assessment','Prefer to start with an assessment?')+'</div></footer>':'');
+      patch(this.root,'<div class="tdbc-shell container-large" data-node="shell"><header class="tdbc-header" data-node="header" tabindex="-1"><p class="text-style-tagline-restored tdbc-dd-fade">YOUR SMILE, YOUR POSSIBILITIES</p><h2 class="heading-style-h3"'+(this.mode==='drawer'?' id="tdbc-dialog-title"':'')+'>Explore your treatment costs</h2><p class="text-size-small">Start with what matters to you. We’ll bring together a guide to your investment and timing.</p></header>'+
       (this.context?'<div class="tdbc-notice text-size-small" data-node="context"><p>Your existing estimate is saved. Continue with it, or start with the options from this page.</p><div class="tdbc-actions"><button type="button" data-action="keep" class="tdbc-text-button">Keep my estimate</button><button type="button" data-action="context" class="tdbc-text-button">Start with these options</button></div></div>':'')+
-      (hasEstimate?'<div class="tdbc-live" data-node="live"><button type="button" class="tdbc-live-button" data-action="estimate" aria-label="View your full estimate"><span class="tdbc-live-copy"><span class="text-size-tiny">Your estimate</span><span class="tdbc-live-value text-size-small">'+tag+'<strong data-output="live">'+esc(priceText(e))+'</strong></span></span><span class="tdbc-live-copy"><span class="text-size-tiny">Estimated duration</span><span class="tdbc-live-value text-size-small">'+clock+'<span data-output="duration">'+esc(C.duration(records,e,today()))+'</span></span></span><span class="icon-embed-xxsmall is-down w-embed tdbc-scroll-arrow">'+arrow+'</span></button>'+(this.mode==='drawer'?'<button type="button" class="tdbc-live-close" data-action="close" aria-label="Close calculator">×</button>':'')+'</div>':'')+'<div class="tdbc-main" data-node="main">'+form+'</div></div><footer class="tdbc-section-footer" data-node="section-footer"><div class="container-large"><div class="max-width-xsmall"><p class="text-style-tagline-restored">We believe everyone deserves to feel good about their smile</p></div></div></footer>');
+      ('<div class="tdbc-live '+(hasEstimate?'has-estimate':'')+'" data-node="live" aria-hidden="'+!hasEstimate+'" '+(hasEstimate?'':'inert')+'><button type="button" class="tdbc-live-button" data-action="estimate" aria-label="View your full estimate"><span class="tdbc-live-copy"><span class="text-size-tiny">Your estimate</span><span class="tdbc-live-value text-size-small">'+tag+'<strong data-output="live">'+esc(priceText(e))+'</strong></span></span><span class="tdbc-live-copy"><span class="text-size-tiny">Estimated duration</span><span class="tdbc-live-value text-size-small">'+clock+'<span data-output="duration">'+esc(C.duration(records,e,today()))+'</span></span></span><span class="icon-embed-xxsmall is-down w-embed tdbc-scroll-arrow">'+arrow+'</span></button>'+(this.mode==='drawer'?'<button type="button" class="tdbc-live-close" data-action="close" aria-label="Close calculator">×</button>':'')+'</div>')+'<div class="tdbc-main" data-node="main">'+form+'</div></div><footer class="tdbc-section-footer" data-node="section-footer"><div class="container-large"><div class="max-width-xsmall"><p class="text-style-tagline-restored">We believe everyone deserves to feel good about their smile</p></div></div></footer>');
       this.outputs();
     }
     option(o,e){
       const r=records[C.IDS[o.record||o.key]],v=state.selected[o.key],on=!!v,included=o.key==='whitening'&&e.whitenIncluded,label=name(o),rid=this.id+'-'+o.key,unit=r?.unit||(o.quantity?'tooth':'');
-      const complexity=['aligners','bonding'].includes(o.key)&&r?.tierLabels?.some(Boolean),hasControls=o.quantity||complexity;
+      const complexity=['aligners','bonding','veneers'].includes(o.key)&&r?.tierLabels?.some(Boolean),hasControls=o.quantity||complexity,expanded=on&&!included&&!this.optionClosed.has(o.key);
       const quoted=o.key==='replacement'&&r?.valid&&r.tiers[2]?currency(r.tiers[2])+(unit?' / '+unit:''):recordPrice(r);
-      const row='<div class="tdbc-option-row"><label class="tdbc-option-label form_checkbox" for="'+rid+'"><input id="'+rid+'" type="checkbox" data-control="select-'+o.key+'" data-select="'+o.key+'" '+(on||included?'checked ':'')+(included?'disabled ':'')+(hasControls?'aria-expanded="'+on+'" aria-controls="'+rid+'-controls"':'')+'>'+check(on||included)+'<span><span class="text-size-small">'+esc(label)+'</span><small class="text-size-tiny">'+(included?'Included with your aligners':esc(quoted))+'</small></span>'+(hasControls?chevron:'')+'</label>'+tip(rid,'About '+label,(r?.tooltip||'Your dentist will confirm suitability, fees and the treatment sequence at your assessment.')+(o.key==='replacement'?' Count the surfaces to be replaced separately from any new fillings.':''))+'</div>';
-      const controls=!hasControls?'':expand('option-'+o.key,on&&!included,'<div class="tdbc-option-controls" id="'+rid+'-controls">'+(o.quantity?'<div class="tdbc-quantity-label"><label class="text-size-small" for="'+rid+'-qty">'+(unit==='surface'?'Surfaces to restore':'Number of teeth')+'</label>'+(o.category==='cosmetic'?tip(rid+'-quantity','How many teeth should I include?','Think about the teeth you would like to improve, or those you see when you smile. A typical smile treatment may cover six front teeth (3–3) or eight (4–4). Choose what feels relevant to you; your dentist will help confirm the right number.'): '')+'</div><div class="tdbc-quantity"><button type="button" data-action="minus" data-key="'+o.key+'" aria-label="Fewer '+esc(label)+'" '+((v?.qty||1)<=1?'disabled':'')+'>−</button><input id="'+rid+'-qty" data-control="qty-'+o.key+'" data-qty="'+o.key+'" type="number" inputmode="numeric" min="1" max="'+(unit==='surface'?160:32)+'" step="1" value="'+(v?.qty||1)+'"><button type="button" data-action="plus" data-key="'+o.key+'" aria-label="More '+esc(label)+'">+</button></div>'+(unit==='surface'?'<p class="tdbc-help text-size-tiny">One tooth may need several surfaces restored. If unsure, use one surface for a starting guide.</p>':''):'')+
-      (complexity?'<fieldset class="tdbc-complexity"><legend class="text-size-small">'+(o.key==='aligners'?'What would you like to improve?':'What changes do you have in mind?')+'</legend>'+r.tierLabels.map((label,i)=>label&&r.tiers[i]?'<label class="tdbc-choice form_checkbox text-size-small"><input type="radio" name="'+rid+'-complexity" data-control="tier-'+o.key+'-'+i+'" data-tier="'+o.key+'" value="'+i+'" '+(v?.tier===i?'checked':'')+'>'+check(v?.tier===i)+'<span>'+esc(label)+'</span></label>':'').join('')+'<p class="tdbc-help text-size-tiny">Choose the closest description. Your dentist will confirm what’s right for you.</p>'+'</fieldset>':'')+'</div>');
-      return '<div class="tdbc-option '+(on||included?'is-selected':'')+'" data-node="option-'+o.key+'">'+row+controls+'</div>';
+      const row='<div class="tdbc-option-row"><label class="tdbc-option-label form_checkbox" for="'+rid+'"><input id="'+rid+'" type="checkbox" data-control="select-'+o.key+'" data-select="'+o.key+'" '+(on||included?'checked ':'')+(included?'disabled ':'')+'>'+check(on||included)+'<span><span class="text-size-small">'+esc(label)+'</span><small class="text-size-tiny">'+(included?'Included with your aligners':esc(quoted))+'</small></span></label>'+tip(rid,'About '+label,(r?.tooltip||'Your dentist will confirm suitability, fees and the treatment sequence at your assessment.')+(o.key==='replacement'?' Count the surfaces to be replaced separately from any new fillings.':''))+(hasControls?'<button type="button" class="tdbc-option-expand" data-action="option" data-key="'+o.key+'" aria-label="Options for '+esc(label)+'" aria-expanded="'+expanded+'" aria-controls="'+rid+'-controls">'+chevron+'</button>':'')+'</div>';
+      const quantity=o.quantity?'<label class="text-size-small" for="'+rid+'-qty">'+(unit==='surface'?'Surfaces to restore':o.key==='gumline'?'Number of areas':'Number of teeth')+'</label><div class="tdbc-quantity-row"><div class="tdbc-quantity"><button type="button" data-action="minus" data-key="'+o.key+'" aria-label="Fewer '+esc(label)+'" '+((v?.qty||1)<=1?'disabled':'')+'>−</button><input id="'+rid+'-qty" data-control="qty-'+o.key+'" data-qty="'+o.key+'" type="number" inputmode="numeric" min="1" max="'+(unit==='surface'?160:32)+'" step="1" value="'+(v?.qty||1)+'"><button type="button" data-action="plus" data-key="'+o.key+'" aria-label="More '+esc(label)+'">+</button></div>'+(o.category==='cosmetic'?tip(rid+'-quantity',o.key==='gumline'?'How many areas should I include?':'How many teeth should I include?',o.key==='gumline'?'Count one area for each tooth with an exposed or worn gumline you would like us to look at. The fee is per tooth; this is gumline bonding, rather than gum contouring.':'Think about the teeth you would like to improve, or those you see when you smile. A typical smile treatment may cover six front teeth (3–3) or eight (4–4). Your dentist will help confirm the right number.'): '')+'</div>'+(unit==='surface'?'<p class="tdbc-help text-size-tiny">One tooth may need several surfaces restored. If unsure, use one surface for a starting guide.</p>':o.key==='gumline'?'<p class="tdbc-help text-size-tiny">One area per tooth. The estimate uses the published per-tooth fee.</p>':''):'';
+      const trial=records[C.IDS.trial],arches=v?.arches||['upper'];
+      const archOptions=o.key==='veneers'?'<fieldset class="tdbc-complexity tdbc-arches"><legend class="text-size-small">Which arches are you considering?</legend>'+['upper','lower'].map(arch=>'<label class="tdbc-choice form_checkbox text-size-small"><input type="checkbox" data-control="arch-'+arch+'" data-arch="'+arch+'" '+(arches.includes(arch)?'checked ':'')+(arches.includes(arch)&&arches.length===1?'disabled':'')+'>'+check(arches.includes(arch))+'<span>'+arch[0].toUpperCase()+arch.slice(1)+' arch</span></label>').join('')+'<p class="tdbc-help text-size-tiny">'+esc(trial?.label||'Smile Trial')+' · '+esc(recordPrice(trial))+'. Added for each selected arch. Keep the total number of veneers in the teeth box above.</p></fieldset>':'';
+      const choices=complexity?'<fieldset class="tdbc-complexity"><legend class="text-size-small">'+(o.key==='aligners'?'What would you like to improve?':'What changes do you have in mind?')+'</legend>'+r.tierLabels.map((label,i)=>label&&r.tiers[i]?'<label class="tdbc-choice form_checkbox text-size-small"><input type="radio" name="'+rid+'-complexity" data-control="tier-'+o.key+'-'+i+'" data-tier="'+o.key+'" value="'+i+'" '+(v?.tier===i?'checked':'')+'>'+check(v?.tier===i)+'<span>'+esc(label)+(o.key==='aligners'&&r.tierTimings[i]?'<small class="text-size-tiny">'+r.tierTimings[i].min+'–'+r.tierTimings[i].max+' months</small>':'')+'</span></label>':'').join('')+'<p class="tdbc-help text-size-tiny">Choose the closest description. Your dentist will confirm what’s right for you.</p></fieldset>':'';
+      return '<div class="tdbc-option '+(on||included?'is-selected':'')+'" data-node="option-'+o.key+'">'+row+(hasControls?expand('option-'+o.key,expanded,'<div class="tdbc-option-controls" id="'+rid+'-controls">'+quantity+choices+archOptions+'</div>'):'')+'</div>';
     }
-    assessment(e){const a=records[C.IDS.assessment],d=records[C.IDS.design];return '<section class="tdbc-step tdbc-assessment" data-node="assessment">'+step(e.required?'04':'03',esc(a?.label||'Signature Assessment'))+'<p class="text-size-small">Smile Design and a comprehensive examination, together with Dr Keely.</p><ul class="tdbc-included text-size-small">'+['Smile Design','Comprehensive examination & appropriate diagnostics','Itemised plan, costs & written report'].map(t=>'<li><span class="tdbc-included-mark" aria-hidden="true"></span><span>'+t+'</span></li>').join('')+'</ul><div class="tdbc-assessment-price"><strong class="heading-style-h4">'+esc(recordPrice(a))+'</strong><span class="text-size-tiny">'+esc(a?.bookingDeposit!==null&&a?.bookingDeposit!==undefined?currency(a.bookingDeposit)+' booking deposit, included in the total':'Booking details confirmed with your appointment')+'</span></div>'+(e.required?'<p class="tdbc-help text-size-tiny">Included once in your estimate. Smile Design and your examination are bundled together.</p>':'<label class="tdbc-manual form_checkbox text-size-small"><input type="checkbox" data-control="assessment" data-assessment="signature" '+(state.assessment==='signature'?'checked':'')+'>'+check(state.assessment==='signature')+'<span>Include Signature Assessment</span></label>'+(d?.valid?'<label class="tdbc-manual form_checkbox text-size-small"><input type="checkbox" data-control="design" data-assessment="design" '+(state.assessment==='design'?'checked':'')+'>'+check(state.assessment==='design')+'<span>Explore Smile Design only · '+esc(recordPrice(d))+'</span></label>':''))+'</section>';}
+    assessment(e){const a=records[C.IDS.assessment],d=records[C.IDS.design];return '<section class="tdbc-step tdbc-assessment" data-node="assessment">'+step(e.required?'04':'03',esc(a?.label||'Signature Assessment'))+'<p class="tdbc-step-intro text-size-small">Smile Design and a comprehensive examination, together with Dr Keely.</p><ul class="tdbc-included text-size-small">'+['Smile Design','Comprehensive examination & appropriate diagnostics','Itemised plan, costs & written report'].map(t=>'<li><span class="tdbc-included-mark" aria-hidden="true"></span><span>'+t+'</span></li>').join('')+'</ul><div class="tdbc-assessment-price"><strong class="heading-style-h4">'+esc(recordPrice(a))+'</strong><span class="text-size-tiny">'+esc(a?.bookingDeposit!==null&&a?.bookingDeposit!==undefined?currency(a.bookingDeposit)+' booking deposit, included in the total':'Booking details confirmed with your appointment')+'</span></div>'+(e.required?'<p class="tdbc-help text-size-tiny">Included once in your estimate. Smile Design and your examination are bundled together.</p>':'<label class="tdbc-manual form_checkbox text-size-small"><input type="checkbox" data-control="assessment" data-assessment="signature" '+(state.assessment==='signature'?'checked':'')+'>'+check(state.assessment==='signature')+'<span>Include Signature Assessment</span></label>'+(d?.valid?'<label class="tdbc-manual form_checkbox text-size-small"><input type="checkbox" data-control="design" data-assessment="design" '+(state.assessment==='design'?'checked':'')+'>'+check(state.assessment==='design')+'<span>Explore Smile Design only · '+esc(recordPrice(d))+'</span></label>':''))+'</section>';}
     hygiene(e){const r=records[C.IDS.hygiene];return '<section class="tdbc-step" data-node="hygiene">'+step('05','Healthy foundations')+'<p class="text-size-small">We’ll review your gum health before cosmetic treatment.</p>'+(e.hygieneIncluded?'<p class="text-size-small">Airflow® hygiene is included with your aligner package.</p>':'<label class="tdbc-manual form_checkbox text-size-small"><input type="checkbox" data-control="hygiene" data-hygiene '+(state.hygiene?'checked':'')+'>'+check(state.hygiene)+'<span>Add a hygiene allowance · '+esc(recordPrice(r))+'</span></label><p class="tdbc-help text-size-tiny">Recommended where needed. Add this allowance to include it in your estimate.</p>')+'<p class="tdbc-help text-size-tiny">Any additional periodontal care will be discussed after assessment.</p></section>';}
-    summary(e){return '<section class="tdbc-summary" data-output="summary" id="'+this.id+'-estimate" data-node="estimate" tabindex="-1" aria-label="Your estimated investment"><div class="tdbc-summary-total"><p class="text-style-tagline-restored">Your estimated investment</p><div class="tdbc-total heading-style-h3" data-output="total">'+esc(priceText(e))+'</div><p class="tdbc-summary-duration text-size-small">'+clock+'<span>Estimated duration: <span data-output="duration-summary">'+esc(C.duration(records,e,today()))+'</span></span></p>'+(e.required?'<p class="tdbc-help text-size-tiny">Includes two weeks after your assessment for planning. Timing is confirmed with your treatment plan.</p>':'')+'</div><div class="tdbc-summary-details"><div class="tdbc-breakdown"><button type="button" class="tdbc-disclosure text-style-tagline-restored" data-action="breakdown" aria-expanded="'+this.breakdown+'" aria-controls="'+this.id+'-breakdown">Your breakdown'+chevron+'</button>'+expand('breakdown',this.breakdown,'<ul class="text-size-small" id="'+this.id+'-breakdown">'+e.lines.map(l=>'<li><span>'+esc(l.label)+(l.qty>1?' <small class="text-size-tiny">× '+l.qty+(l.record?.unit==='surface'?' surfaces':' teeth')+'</small>':'')+'</span><strong>'+(l.included?'Included':l.min===null?'To confirm':esc(range(l.min,l.max)))+'</strong></li>').join('')+'</ul>')+'</div>'+(!e.complete?'<p class="tdbc-notice text-size-small">Some prices need confirmation: '+esc(e.missing.join(', '))+'. The subtotal excludes these items.</p>':'')+(e.cosmetic&&!e.hygieneIncluded&&!state.hygiene?'<p class="tdbc-help text-size-tiny">Hygiene, if needed, is additional.</p>':'')+(this.config.finance?this.financeControls(e):'')+'<a class="button is-icon is-secondary is-alternate tdbc-vip w-inline-block" href="/vip" data-action="vip"><span>Join VIP</span><span class="icon-embed-xxsmall is-up w-embed">'+arrow+'</span></a><p class="tdbc-help text-size-tiny">Discuss your options and take the next step with us.</p></div></section>';}
-    financeControls(e){const f=C.finance(e,state.deposit,state.term);return '<div class="tdbc-finance" data-node="finance"><label class="tdbc-manual form_checkbox tdbc-finance-toggle text-size-small"><input type="checkbox" data-control="finance" data-finance '+(state.finance?'checked':'')+' aria-expanded="'+state.finance+'" aria-controls="'+this.id+'-finance">'+check(state.finance)+'<span>Finance available · explore 0%<small class="text-size-tiny">From £250, over 3–12 months</small></span>'+chevron+'</label>'+expand('finance',state.finance,'<div class="tdbc-finance-controls" id="'+this.id+'-finance">'+(f?'<label class="text-size-small" for="'+this.id+'-deposit">Upfront payment <output data-output="deposit">'+esc(currency(f.deposit))+'</output></label><input id="'+this.id+'-deposit" type="range" min="'+f.minimumDeposit+'" max="'+f.limit+'" step="100" value="'+f.deposit+'" data-control="deposit" data-range="deposit" aria-valuetext="'+esc(currency(f.deposit))+'"><div class="tdbc-range-labels text-size-tiny"><span>'+esc(currency(f.minimumDeposit))+' minimum</span><span>'+esc(currency(f.limit))+'</span></div><label class="tdbc-sr" for="'+this.id+'-deposit-value">Upfront payment in pounds</label><input id="'+this.id+'-deposit-value" class="form_input" type="number" min="'+f.minimumDeposit/100+'" max="'+f.limit/100+'" step="1" value="'+f.deposit/100+'" data-control="deposit-number" data-deposit-number><p class="tdbc-help text-size-tiny">Includes your '+esc(currency(f.assessment))+' Signature Assessment, counted once in the total.</p><label class="text-size-small" for="'+this.id+'-term">Repayment term <output data-output="term">'+state.term+' months</output></label><input id="'+this.id+'-term" type="range" min="3" max="12" step="1" value="'+state.term+'" data-control="term" data-range="term" aria-valuetext="'+state.term+' months"><div class="tdbc-range-labels text-size-tiny"><span>3 months</span><span>12 months</span></div><div data-output="finance"></div><p class="tdbc-help text-size-tiny">Illustration at 0% interest, subject to eligibility and lender approval. Your confirmed treatment plan sets the final amount.</p>':'<p class="text-size-small">Finance illustrations need complete pricing and at least £250 remaining after your assessment payment.</p>')+'</div>')+'</div>';}
+    summary(e){return '<section class="tdbc-summary" data-output="summary" id="'+this.id+'-estimate" data-node="estimate" tabindex="-1" aria-label="Your estimated investment"><div class="tdbc-summary-total"><p class="text-style-tagline-restored">Your estimated investment</p><div class="tdbc-total heading-style-h3" data-output="total">'+esc(priceText(e))+'</div><p class="tdbc-summary-duration text-size-small">'+clock+'<span>Estimated duration: <span data-output="duration-summary">'+esc(C.duration(records,e,today()))+'</span></span></p>'+(e.required?'<p class="tdbc-help text-size-tiny">Includes two weeks after your assessment for planning. Timing is confirmed with your treatment plan.</p>':'')+'</div><div class="tdbc-summary-details"><div class="tdbc-breakdown"><button type="button" class="tdbc-disclosure text-style-tagline-restored" data-action="breakdown" aria-expanded="'+this.breakdown+'" aria-controls="'+this.id+'-breakdown">Your breakdown'+chevron+'</button>'+expand('breakdown',this.breakdown,'<ul class="text-size-small" id="'+this.id+'-breakdown">'+e.lines.map(l=>'<li><span>'+esc(l.label)+(l.qty>1?' <small class="text-size-tiny">'+esc(lineQuantity(l))+'</small>':'')+'</span><strong>'+(l.included?'Included':l.min===null?'To confirm':esc(range(l.min,l.max)))+'</strong></li>').join('')+'</ul>')+'</div>'+(!e.complete?'<p class="tdbc-notice text-size-small">Some prices need confirmation: '+esc(e.missing.join(', '))+'. The subtotal excludes these items.</p>':'')+(e.cosmetic&&!e.hygieneIncluded&&!state.hygiene?'<p class="tdbc-help text-size-tiny">Hygiene, if needed, is additional.</p>':'')+(this.config.finance?this.financeControls(e):'')+'<a class="button is-icon is-secondary is-alternate tdbc-vip w-inline-block" href="/vip" data-action="vip"><span>Join VIP</span><span class="icon-embed-xxsmall is-up w-embed">'+arrow+'</span></a><p class="tdbc-help text-size-tiny">Discuss your options and take the next step with us.</p></div></section>';}
+    financeControls(e){const f=C.finance(e,state.deposit,state.term);if(!f)return '<div class="tdbc-finance tdbc-finance-unavailable" data-node="finance"><div class="tdbc-info tdbc-finance-info" data-node="info-finance"><button type="button" class="tdbc-info-button tdbc-finance-disabled form_checkbox text-size-small" data-action="info" aria-label="Why finance is unavailable for this estimate" aria-expanded="false" aria-controls="'+this.id+'-finance-help">'+check(false)+'<span>Explore 0% finance<small class="text-size-tiny">From £250, over 3–12 months</small></span>'+infoIcon+'</button><div class="tdbc-info-panel text-size-small" id="'+this.id+'-finance-help" role="tooltip" aria-hidden="true" inert>Finance needs at least £250 to borrow after the '+esc(currency(e.assessmentLine?.min||45000))+' assessment payment. '+(e.complete?'Add further treatment to explore an illustration.':'We also need to confirm all selected prices first.')+'</div></div></div>';return '<div class="tdbc-finance" data-node="finance"><label class="tdbc-manual form_checkbox tdbc-finance-toggle text-size-small"><input type="checkbox" data-control="finance" data-finance '+(state.finance?'checked':'')+' aria-expanded="'+state.finance+'" aria-controls="'+this.id+'-finance">'+check(state.finance)+'<span>Finance available · explore 0%<small class="text-size-tiny">From £250, over 3–12 months</small></span>'+chevron+'</label>'+expand('finance',state.finance,'<div class="tdbc-finance-controls" id="'+this.id+'-finance">'+(f?'<label class="text-size-small" for="'+this.id+'-deposit">Upfront payment <output data-output="deposit">'+esc(currency(f.deposit))+'</output></label><input id="'+this.id+'-deposit" type="range" min="'+f.minimumDeposit+'" max="'+f.limit+'" step="100" value="'+f.deposit+'" data-control="deposit" data-range="deposit" aria-valuetext="'+esc(currency(f.deposit))+'"><div class="tdbc-range-labels text-size-tiny"><span>'+esc(currency(f.minimumDeposit))+' minimum</span><span>'+esc(currency(f.limit))+'</span></div><label class="tdbc-sr" for="'+this.id+'-deposit-value">Upfront payment in pounds</label><input id="'+this.id+'-deposit-value" class="form_input" type="number" min="'+f.minimumDeposit/100+'" max="'+f.limit/100+'" step="1" value="'+f.deposit/100+'" data-control="deposit-number" data-deposit-number><p class="tdbc-help text-size-tiny">Includes your '+esc(currency(f.assessment))+' Signature Assessment, counted once in the total.</p><label class="text-size-small" for="'+this.id+'-term">Repayment term <output data-output="term">'+state.term+' months</output></label><input id="'+this.id+'-term" type="range" min="3" max="12" step="1" value="'+state.term+'" data-control="term" data-range="term" aria-valuetext="'+state.term+' months"><div class="tdbc-range-labels text-size-tiny"><span>3 months</span><span>12 months</span></div><div data-output="finance"></div><p class="tdbc-help text-size-tiny">Illustration at 0% interest, subject to eligibility and lender approval. Your confirmed treatment plan sets the final amount.</p>':'<p class="text-size-small">Finance illustrations need complete pricing and at least £250 remaining after your assessment payment.</p>')+'</div>')+'</div>';}
     timelineControls(e){
       const t=C.completionTimeline(records,e,today(),state.delay),id=this.id;
-      return '<section class="tdbc-step" data-node="timeline">'+step('03','A date to look forward to')+'<div class="tdbc-target-card"><label class="text-style-tagline-restored" for="'+id+'-target">Target completion date</label>'+(t.reliable?'<div class="tdbc-target-field heading-style-h4"><output data-output="target-display" aria-hidden="true">'+esc(dateText(t.finishMin))+'</output><input class="form_input tdbc-target-date" id="'+id+'-target" type="date" data-control="target" data-date="target" value="'+t.finishMin+'" min="'+t.earliestCompletion+'" max="'+t.latestCompletion+'"></div><p class="text-size-small" data-output="completion-range"></p><div class="tdbc-date-controls"><label class="tdbc-sr" for="'+id+'-date-slider">Move your target completion later</label><input id="'+id+'-date-slider" type="range" data-control="date-slider" data-range="completion" min="0" max="730" step="1" value="'+t.offset+'" aria-valuetext="'+esc(dateText(t.finishMin))+'"><div class="tdbc-range-labels text-size-tiny"><span>As soon as possible</span><span>Later</span></div><button type="button" class="tdbc-text-button text-size-tiny" data-action="sooner">Need it sooner?</button><div class="tdbc-timing-warning text-size-small" role="status" '+(this.timingWarning?'':'hidden')+'><button type="button" class="tdbc-warning-close" data-action="dismiss-timing" aria-label="Close timing message">×</button><p>The selected plan needs more time. We’re used to working with tight deadlines and can explore other options with you to see what may be achievable sooner.</p></div></div><p class="tdbc-help text-size-tiny">Starts with the earliest estimate. Move right to explore a later finish. Appointment availability and your final plan are confirmed with you.</p>':'<p class="heading-style-h4">Timing at assessment</p><p class="text-size-small">We’ll help you find a date once the care and timing below are confirmed.</p>')+'</div><div data-output="timeline"></div></section>';
+      return '<section class="tdbc-step" data-node="timeline">'+step('03','A date to look forward to')+'<div class="tdbc-target-card"><label class="text-style-tagline-restored" for="'+id+'-target">Target completion date*</label><div class="tdbc-target-field heading-style-h4"><output data-output="target-display" aria-hidden="true">'+esc(dateText(t.finishMin))+'</output><input class="form_input tdbc-target-date" id="'+id+'-target" type="date" data-control="target" data-date="target" value="'+t.finishMin+'" min="'+t.earliestCompletion+'" max="'+t.latestCompletion+'"></div><p class="text-size-small" data-output="completion-range"></p><div class="tdbc-date-controls"><label class="tdbc-sr" for="'+id+'-date-slider">Move your target completion later</label><input id="'+id+'-date-slider" type="range" data-control="date-slider" data-range="completion" min="0" max="730" step="1" value="'+t.offset+'" aria-valuetext="'+esc(dateText(t.finishMin))+'"><div class="tdbc-range-labels text-size-tiny"><span>As soon as possible</span><span>Later</span></div>'+actionButton('sooner','Need it sooner?',false,true)+'</div><p class="tdbc-help text-size-tiny">*A little direction while you explore, rather than a promise of a date. Your teeth, healing, refinements and appointment availability all play a part. We’ll talk through what’s realistic together at your assessment.</p><div class="tdbc-timing-warning text-size-small" role="status" '+(this.timingWarning?'':'hidden')+'><button type="button" class="tdbc-warning-close" data-action="dismiss-timing" aria-label="Close timing message">×</button><p>Your selected plan needs a little more time. We’re no strangers to deadlines: being based at a wedding venue, we see plenty of brides and have become experienced at exploring what may be possible for the day that matters. Let’s talk about the date, your priorities and the options for getting you closer to your smile in time.</p><div class="tdbc-bridal-tip"><span aria-hidden="true" class="tdbc-diamond">◇</span><span>Planning a wedding?</span>'+tip(id+'-bridal','A tip for your wedding makeup trial','Aim to finish your smile treatment before your makeup trials where possible. The shade of your teeth can influence the balance of your makeup, so it helps to see the finished look together.')+'</div></div></div><div data-output="timeline"></div></section>';
     }
     outputs(){
       const e=C.estimate(records,state,this.config),f=C.finance(e,state.deposit,state.term);
@@ -393,29 +421,24 @@
       const tOut=this.root.querySelector('[data-output="timeline"]');if(tOut)patch(tOut,this.timelineOutput(e));
     }
     timelineOutput(e){
-      const t=C.completionTimeline(records,e,today(),state.delay),dated=t.reliable;
-      let html='';
-      if(t.plan.unknown.length)html+='<p class="tdbc-notice text-size-small">We can map your treatment stages, but need to assess '+esc(t.plan.unknown.join(', '))+' before suggesting a completion date.</p>';
-      if(dated)html+='<div class="tdbc-date-result text-size-small"><span>Start with your assessment</span><strong data-output="assessment-date">'+esc(dateText(t.start))+'</strong><p class="tdbc-help text-size-tiny">Includes a two-week allowance before treatment begins.</p></div>';
-      html+='<ol class="tdbc-timeline text-size-small"><li><span class="tdbc-dot"></span><div><small class="text-size-tiny">'+(dated?esc(dateText(t.start)):'Week 1')+'</small><strong>Signature Assessment ✦</strong><p>Smile Design, examination and your treatment plan.</p></div></li><li><span class="tdbc-dot"></span><div><small class="text-size-tiny">'+(dated?esc(dateRange(t.start,C.iso(C.addDays(C.parseDate(t.start),14)))):'Two-week allowance after assessment')+'</small><strong>Prepare for treatment</strong><p>Plan your appointments and any care needed first.</p></div></li>';
-      let elapsed=2,uncertain=false;
-      for(const stage of t.stages){let label;
-        if(dated)label=dateRange(stage.startMin,stage.endMax);
-        else if(!stage.timing){label='Timing at assessment';uncertain=true;}
-        else if(stage.timing.unit==='months'){label=stage.timing.min+'–'+stage.timing.max+' months';uncertain=true;}
-        else if(uncertain)label=stage.timing.min===0?'Treatment appointment':stage.timing.min+' weeks';
-        else {label=stage.timing.max===0?'Week '+(elapsed+1):'Weeks '+(elapsed+1)+'–'+(elapsed+stage.timing.max);elapsed+=stage.timing.max;}
-        html+='<li><span class="tdbc-dot"></span><div><small class="text-size-tiny">'+esc(label)+'</small><strong>'+esc(stage.label)+'</strong>'+(stage.key==='whitening'?'<p>Three weeks of whitening, then two weeks for colour settling.</p>':'')+'</div></li>';
+      const t=C.completionTimeline(records,e,today(),state.delay);
+      const stages=[{key:'assessment',label:e.assessmentLine?.label||'Signature Assessment ✦',startMin:t.start,startMax:t.start,endMax:t.start,appointment:true,costKeys:['assessment'],description:'Smile Design, examination and your treatment plan.'},{key:'prepare',label:'Prepare for treatment',startMin:t.start,endMax:C.iso(C.addDays(C.parseDate(t.start),14)),costKeys:[],description:'Plan your appointments. Arrange finance if needed · allow 14 days for cooling-off.'},...t.stages];
+      let html='<div class="tdbc-date-result text-size-small"><span>Start with your assessment</span><strong data-output="assessment-date">'+esc(dateText(t.start))+'</strong><p class="tdbc-help text-size-tiny">A two-week planning allowance before your first treatment appointment.</p></div><ol class="tdbc-timeline text-size-small">';
+      for(const stage of stages){
+        const on=this.stageOpen.has(stage.key),lines=e.lines.filter(l=>stage.costKeys.includes(l.key)),panelId=this.id+'-stage-'+stage.key;
+        const detail='<div id="'+panelId+'" class="tdbc-stage-detail"><p>'+esc(stage.description)+'</p>'+lines.map(l=>'<div class="tdbc-stage-cost"><span>'+esc(l.label+lineQuantity(l))+(Number.isInteger(l.tier)&&l.record?.tierLabels?.[l.tier]?'<small class="text-size-tiny">'+esc(l.record.tierLabels[l.tier])+'</small>':'')+'</span><strong>'+(l.included?'Included':l.min===null?'To confirm':esc(range(l.min,l.max)))+'</strong></div>').join('')+(stage.sharedFee?'<p class="tdbc-help text-size-tiny">Your total treatment fee, counted once in the estimate; preparation and fitting are included.</p>':!lines.length?'<p class="tdbc-help text-size-tiny">Planning allowance · no additional treatment fee.</p>':'')+'</div>';
+        html+='<li data-node="stage-'+stage.key+'"><span class="tdbc-dot"></span><div class="tdbc-stage"><button type="button" class="tdbc-stage-toggle" data-action="stage" data-key="'+stage.key+'" aria-expanded="'+on+'" aria-controls="'+panelId+'"><span><small class="text-size-tiny">'+esc(dateRange(stage.startMin,stage.appointment?stage.startMax:stage.endMax))+'</small><strong>'+esc(stage.label)+'</strong></span>'+chevron+'</button>'+expand('stage-'+stage.key,on,detail)+'</div></li>';
       }
-      html+='</ol>'+t.plan.notes.map(n=>'<p class="tdbc-help text-size-tiny">'+esc(n)+'</p>').join('');return html;
+      return html+'</ol>'+t.plan.notes.map(n=>'<p class="tdbc-help text-size-tiny">'+esc(n)+'</p>').join('');
     }
     change(event){
       const el=event.target;if(!this.ready)return;
       if(el.dataset.category){const k=el.dataset.category;if(el.checked)state.categories=[...new Set([...state.categories,k])];else{state.categories=state.categories.filter(c=>c!==k);C.OPTIONS.filter(o=>o.category===k).forEach(o=>delete state.selected[o.key]);}state.start='';state.delay=0;this.dismissTimingWarning();if(!state.categories.length){state.assessment='none';state.finance=false;state.hygiene=false;}}
-      else if(el.dataset.select){if(el.checked)state.selected[el.dataset.select]={qty:1,tier:null};else delete state.selected[el.dataset.select];state.start='';state.delay=0;this.dismissTimingWarning();}
+      else if(el.dataset.select){this.optionClosed.delete(el.dataset.select);if(el.checked)state.selected[el.dataset.select]={qty:1,tier:null};else delete state.selected[el.dataset.select];state.start='';state.delay=0;this.dismissTimingWarning();}
       else if(el.hasAttribute('data-finance')){state.finance=el.checked;if(state.finance)state.term=12;}
       else if(el.dataset.qty){const o=C.OPTIONS.find(o=>o.key===el.dataset.qty);const limit=o?.record==='fillings'||o?.key==='fillings'?160:32;state.selected[el.dataset.qty].qty=Math.max(1,Math.min(limit,Math.floor(Number(el.value)||1)));}
-      else if(el.dataset.tier)state.selected[el.dataset.tier].tier=el.value===''?null:Number(el.value);
+      else if(el.dataset.tier){state.selected[el.dataset.tier].tier=el.value===''?null:Number(el.value);state.delay=0;this.dismissTimingWarning();}
+      else if(el.dataset.arch){const v=state.selected.veneers;if(v){const arches=v.arches||['upper'];v.arches=el.checked?[...new Set([...arches,el.dataset.arch])]:arches.filter(a=>a!==el.dataset.arch);state.delay=0;this.dismissTimingWarning();}}
       else if(el.dataset.assessment)state.assessment=el.checked?el.dataset.assessment:'none';
       else if(el.hasAttribute('data-hygiene')){state.hygiene=el.checked;state.start='';state.delay=0;this.dismissTimingWarning();}
       else if(el.hasAttribute('data-deposit-number'))state.deposit=Math.max(0,Math.round((Number(el.value)||0)*100));
@@ -438,8 +461,10 @@
       if(action==='retry'){this.init();return;}
       if(action==='vip'){event.preventDefault();for(const v of views)v.suspended=true;releaseFocus();goVIP(el);return;}
       if(!this.ready)return;
-      if(action==='reset'){state=C.newState();this.context=null;this.breakdown=true;this.dismissTimingWarning();try{sessionStorage.removeItem(STORAGE);}catch(_){}renderAll();this.scrollToStart();return;}
-      else if(action==='start-assessment')state.assessment='signature';
+      if(action==='reset'){state=C.newState();this.context=null;this.breakdown=true;this.stageOpen.clear();this.optionClosed.clear();this.dismissTimingWarning();try{sessionStorage.removeItem(STORAGE);}catch(_){}renderAll();this.scrollToStart();return;}
+      else if(action==='start-assessment'){const categories=state.categories;state=C.newState();state.categories=categories;state.assessment='signature';this.stageOpen.clear();this.optionClosed.clear();this.dismissTimingWarning();renderAll();const section=this.root.querySelector('[data-node=assessment]');section?.scrollIntoView?.({behavior:'smooth',block:'start'});return;}
+      else if(action==='stage'){this.stageOpen.has(el.dataset.key)?this.stageOpen.delete(el.dataset.key):this.stageOpen.add(el.dataset.key);this.outputs();return;}
+      else if(action==='option'){const key=el.dataset.key;if(!state.selected[key]){state.selected[key]={qty:1,tier:null};this.optionClosed.delete(key);state.delay=0;}else if(this.optionClosed.has(key))this.optionClosed.delete(key);else this.optionClosed.add(key);state=C.normaliseState(state);}
       else if(action==='breakdown')this.breakdown=!this.breakdown;
       else if(action==='plus'||action==='minus'){const o=C.OPTIONS.find(o=>o.key===el.dataset.key),v=state.selected[el.dataset.key];if(v)v.qty=Math.max(1,Math.min(o?.record==='fillings'||o?.key==='fillings'?160:32,v.qty+(action==='plus'?1:-1)));}
       else if(action==='keep')this.context=null;
@@ -477,7 +502,7 @@
   function start(){
     document.querySelectorAll('[data-tdb-calculator="inline"]').forEach(root=>{if(root.hasAttribute('data-tdb-calc-ready'))return;root.setAttribute('data-tdb-calc-ready','true');
       new View(root,configFrom(root),'inline').init();});
-    document.addEventListener('pointerdown',event=>{if(!event.target.closest('.tdbc-info'))closeTooltips();if(!event.target.closest('.tdbc-date-controls'))for(const v of views)v.dismissTimingWarning();syncViewportFocus();},{capture:true,passive:true});
+    document.addEventListener('pointerdown',event=>{if(!event.target.closest('.tdbc-info'))closeTooltips();if(!event.target.closest('.tdbc-target-card'))for(const v of views)v.dismissTimingWarning();syncViewportFocus();},{capture:true,passive:true});
     document.addEventListener('keydown',event=>{if(event.key==='Escape'&&(document.querySelector('.tdbc-info.is-open')||views.some(v=>v.timingWarning))){closeTooltips();for(const v of views)v.dismissTimingWarning();event.preventDefault();event.stopImmediatePropagation();}},true);
     document.addEventListener('click',event=>{const a=event.target.closest(SELECTOR);if(!a||event.defaultPrevented||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button>0)return;event.preventDefault();open(a);});
   }
