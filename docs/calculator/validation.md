@@ -6,10 +6,10 @@
 
 - Repository: TheDentalBarns/tdb-webflow-runtime
 - Feature branch: codex/treatment-calculator-20260916
-- Runtime version: 1.4.1
+- Runtime version: 1.4.2
 - Staging baseline: 15144e3414803974be24852368fa4b8a12303d9d
-- Calculator JS/CSS asset commit: 6be97bd18b4daac96dda24d571cc6d1a265cb2f9
-- Global-footer loader commit: 3dfe2fa31f527b401b14f64e54c8f55e578efa20
+- Calculator JS/CSS asset commit: 14d4081e9f429106dbceafec71b9fa736f176c2b
+- Global-footer loader commit: 34d5802adcae71d549f950a25eb5b2139a8f6eb9
 - Pilot: https://dentalbarns.webflow.io/dental-cost-lichfield#treatment-calculator
 - Service/FAQ entry: https://dentalbarns.webflow.io/services/fast-track
 
@@ -17,7 +17,7 @@ All other global runtime pins were preserved. The temporary responsive acceptanc
 
 ## Automated checks
 
-38 deterministic and DOM integration tests pass. Coverage includes CMS parsing, price changes, per-unit quantities, assessment bundling, missing prices, inclusions, hygiene, component restrictions, persistence/reset, context conflicts, text escaping, exact finance reconciliation, calendar boundaries, dated fallback allowances, tier-specific aligner timing, per-arch Smile Trial pricing, separate upper/lower veneer stages, section-entry navigation focus, drawer/VIP handoff, timeline selection without scrolling, inline wedding expansion, reduced-motion handling for amount changes and independently overlapping timeline emphasis.
+39 deterministic and DOM integration tests pass. Coverage includes CMS parsing, price changes, per-unit quantities, assessment bundling, missing prices, inclusions, hygiene, component restrictions, persistence/reset, context conflicts, text escaping, exact finance reconciliation, calendar boundaries, dated fallback allowances, tier-specific aligner timing, per-arch Smile Trial pricing, separate upper/lower veneer stages, section-entry navigation focus, drawer/VIP handoff, timeline selection without scrolling, inline wedding expansion, reduced-motion handling for amount changes and independently overlapping timeline emphasis and consuming tooltip-dismissal taps before page controls.
 
 ## Published browser checks
 
@@ -33,15 +33,15 @@ All other global runtime pins were preserved. The temporary responsive acceptanc
 | Floating estimate | Fixed top 0, 6rem high; header document position and 0px top padding stay unchanged when selecting treatments |
 | Footer | #222 background, orange-3 text (#d6cab4) |
 | Estimate colours | #222 header, orange-3 investment/breakdown titles, cream total |
-| Target card | Cream heading with asterisk and estimate qualifications |
+| Target card | Orange-3 heading (#d6cab4), matching the estimate title, with asterisk and estimate qualifications |
 | Reserved message space | At 320px, short and long completion messages both produce a 396.75px card, 35px note and slider offset 166.796875px from card top |
 | Information control | Transparent background with orange-3 icon (#d6cab4) and 1px circle. Open state: orange-2 fill at 84%, black icon, information opacity 0 and cross opacity 1; 20px blur |
 | Whitening alignment | Information button left coordinate equals aligners: 209.34375px at 320px viewport |
 | Tooth guidance | Tooltip sits immediately beside the number control; 390px check showed a 6.8px gap |
-| Deadline panel | Begins 5px below the button at 320px; panel/card widths both 288px |
-| Wedding advice | Expands the existing deadline panel from 252.97px to 347.13px; no nested tooltip |
+| Deadline panel | Inline chevron disclosure; static positioning, darker cream at 84% with 20px blur; both outer and wedding chevrons expand independently |
+| Wedding advice | Nested chevron expands within the deadline panel; no nested tooltip |
 | Timeline emphasis | At 390px: neighbouring row opacities 1 and 0.997, followed by 0.835, 0.595 and 0.5. Whole rows and dots have overlapping 600ms transitions. Direct trial taps open and close at the same scrollTop 3683; one semantic current stage remains |
-| Bottom buttons | Native 13.3347px typography at 320px. One assessment action, without arrow; Restart keeps the up arrow |
+| Bottom buttons | Native filled black buttons with white text. One assessment action, without arrow; Restart keeps the up arrow. At 390px there is 68.125px between the final button and dark footer |
 | Assessment-only | Clears treatment selection, shows £450; heading at 93.44px below the 80px floating bar |
 | Finance below threshold | Grey control remains tappable and explains £250 minimum borrowing after the £450 assessment |
 | Mobile drawer | At 320px, width/scrollWidth both 320; floating bar top 0 and height 80px (6rem); close works |
@@ -71,3 +71,12 @@ The closed information buttons now have no fill or backdrop blur and retain oran
 Timeline emphasis now uses an independent continuous proximity curve for each row instead of the current-stage class controlling all opacity. Adjacent rows can brighten together; only the nearest stage is semantically current. The same fade applies to the square markers. The existing frame-batched scroll listener handles inline and drawer views; no perpetual animation loop was added. Reduced-motion CSS still removes transitions.
 
 The 390px staging review showed calculator clientWidth and scrollWidth both 390. One initial automated locator click moved the scroll position; subsequent direct coordinate taps confirmed that the actual stage handler opens and closes without scrolling. The temporary responsive frame was removed and staging republished. All unrelated footer code was preserved.
+
+## v1.4.2 follow-up acceptance
+
+- At 390px the assessment price and its supporting note both start at x=19.5px. The hygiene control and both supporting notes also start at x=19.5px. Only introductory section text keeps the heading inset.
+- Both final actions use existing base button classes: computed black background and white text. An additional 2.5rem after the action pair increases separation before the footer.
+- Target completion and estimated investment headings both compute to orange-3, rgb(214, 202, 180). The date itself retains cream.
+- Need it sooner is an inline chevron disclosure, using the shared content fade/translation. Its panel uses orange-2 at 84% and 20px backdrop blur. Planning a wedding is a second, nested chevron; both expanded together were checked visually at 390px. Clicking elsewhere does not close an inline disclosure. Tight-date attempts still open this guidance automatically.
+- Published mobile treatment test: first tap while a tooltip is open closes it with the checkbox still false; second tap selects it. Published native Services menu test: before=false, first tap=false with zero open tooltips, second tap=true. Window capture consumes pointer down/up and click for dismissal, including a keyboard-click fallback; cancellation and the next gesture clear the guard.
+- All 39 tests pass. The temporary responsive frame was removed and staging republished. No CMS values or production domains changed.
