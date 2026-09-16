@@ -67,6 +67,19 @@ test('tooltips close on page interaction and calculator controls use shared navi
  x.d.body.dispatchEvent(new x.w.Event('pointerdown',{bubbles:true}));assert.equal(info.getAttribute('aria-expanded'),'false');assert.ok(release);
  }finally{x.dom.window.close();}
 });
+test('the first outside tap dismisses a tooltip without activating the page; the next tap works',async()=>{
+ const x=await setup();try{
+ x.choose('[data-category=cosmetic]');const info=x.root.querySelector('[data-action=info]');
+ const menu=x.d.createElement('button');menu.textContent='Menu';x.d.body.append(menu);
+ let clicks=0,downs=0,ups=0;menu.addEventListener('click',()=>clicks++);menu.addEventListener('pointerdown',()=>downs++);menu.addEventListener('pointerup',()=>ups++);
+ const tap=()=>{for(const type of ['pointerdown','pointerup'])menu.dispatchEvent(new x.w.MouseEvent(type,{bubbles:true,cancelable:true}));menu.click();};
+ info.click();const panel=x.root.querySelector('.tdbc-info.is-open [role=tooltip]');panel.click();assert.equal(info.getAttribute('aria-expanded'),'true');
+ tap();assert.equal(info.getAttribute('aria-expanded'),'false');assert.deepEqual([downs,ups,clicks],[0,0,0]);
+ tap();assert.deepEqual([downs,ups,clicks],[1,1,1]);
+ info.click();menu.click();assert.equal(clicks,1);assert.equal(info.getAttribute('aria-expanded'),'false');menu.click();assert.equal(clicks,2);
+ info.click();menu.dispatchEvent(new x.w.MouseEvent('pointerdown',{bubbles:true,cancelable:true}));menu.dispatchEvent(new x.w.Event('pointercancel',{bubbles:true}));tap();assert.equal(clicks,3);
+ }finally{x.dom.window.close();}
+});
 test('entering the section holds navigation away without interaction, and restart collapses and returns to the start',async()=>{
  const x=await setup({viewport:true});try{
  let held,release=0,scroll;x.w.TDBNavScroll={focus(callback,hold){held=hold;},release(){release++;}};x.w.lenis={scrollTo(target,options){scroll={target,options};}};
@@ -82,9 +95,9 @@ test('the target date follows the slider and an earlier attempt shows the deadli
  x.choose('[data-category=cosmetic]');x.choose('[data-select=whitening]');
  const target=x.root.querySelector('[data-date=target]'),slider=x.root.querySelector('[data-range=completion]'),initial=target.value;
  assert.equal(slider.value,'0');assert.equal(target.value,target.min);
- slider.dispatchEvent(new x.w.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));assert.equal(x.root.querySelector('.tdbc-timing-warning').hidden,false);
- slider.value='21';slider.dispatchEvent(new x.w.Event('input',{bubbles:true}));assert.equal(x.root.querySelector('[data-range=completion]'),slider);assert.ok(target.value>initial);assert.equal(x.root.querySelector('.tdbc-timing-warning').hidden,true);
- target.value='2020-01-01';target.dispatchEvent(new x.w.Event('change',{bubbles:true}));assert.equal(x.root.querySelector('[data-date=target]').value,initial);assert.equal(x.root.querySelector('.tdbc-timing-warning').hidden,false);
+ slider.dispatchEvent(new x.w.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));assert.equal(x.root.querySelector('[data-panel=deadline]').getAttribute('aria-hidden'),'false');
+ slider.value='21';slider.dispatchEvent(new x.w.Event('input',{bubbles:true}));assert.equal(x.root.querySelector('[data-range=completion]'),slider);assert.ok(target.value>initial);assert.equal(x.root.querySelector('[data-panel=deadline]').getAttribute('aria-hidden'),'true');
+ target.value='2020-01-01';target.dispatchEvent(new x.w.Event('change',{bubbles:true}));assert.equal(x.root.querySelector('[data-date=target]').value,initial);assert.equal(x.root.querySelector('[data-panel=deadline]').getAttribute('aria-hidden'),'false');
  x.choose('[data-finance]');const term=x.root.querySelector('[data-range=term]');term.value='3';term.dispatchEvent(new x.w.Event('input',{bubbles:true}));x.choose('[data-finance]');x.choose('[data-finance]');assert.equal(x.root.querySelector('[data-range=term]').value,'12');assert.match(x.root.querySelector('[data-output=finance]').textContent,/Interest charges£0/);
  }finally{x.dom.window.close();}
 });
@@ -102,7 +115,7 @@ test('unavailable finance remains tappable with an explanation and recovers when
  const x=await setup();try{
  x.choose('[data-category=cosmetic]');x.choose('[data-select=gumline]');assert.ok(x.root.querySelector('[data-date=target]').value);assert.equal(x.root.querySelector('input[data-finance]'),null);
  x.choose('.tdbc-finance-disabled');assert.equal(x.root.querySelector('.tdbc-finance-disabled').getAttribute('aria-expanded'),'true');assert.match(x.root.querySelector('.tdbc-finance-info').textContent,/at least £250/);
- x.choose('[data-action=plus][data-key=gumline]');assert.ok(x.root.querySelector('input[data-finance]'));x.choose('input[data-finance]');assert.equal(x.root.querySelector('[data-range=term]').value,'12');
+ x.choose('[data-action=plus][data-key=gumline]');assert.equal(x.root.querySelector('input[data-finance]'),null);x.choose('[data-action=plus][data-key=gumline]');assert.ok(x.root.querySelector('input[data-finance]'));x.choose('input[data-finance]');assert.equal(x.root.querySelector('[data-range=term]').value,'12');
  }finally{x.dom.window.close();}
 });
 test('floating estimate stays mounted, toggles access, and scrolls to the full estimate',async()=>{
@@ -118,8 +131,8 @@ test('timeline clicks move emphasis and open a stage without scrolling; wedding 
  x.choose('[data-category=cosmetic]');x.choose('[data-select=veneers]');let scrolls=0;x.w.lenis={scrollTo(){scrolls++;}};x.w.HTMLElement.prototype.scrollIntoView=function(){scrolls++;};
  x.choose('[data-action=stage][data-key=trial]');assert.equal(x.root.querySelector('[data-stage=trial]').classList.contains('is-current'),true);assert.equal(x.root.querySelector('[data-action=stage][data-key=trial]').getAttribute('aria-expanded'),'true');assert.equal(scrolls,0);
  x.choose('[data-action=stage][data-key=veneers-upper-prep]');assert.equal(x.root.querySelector('[data-stage=trial]').classList.contains('is-current'),false);assert.equal(x.root.querySelector('[data-stage=veneers-upper-prep]').classList.contains('is-current'),true);assert.equal(scrolls,0);
- x.choose('[data-action=sooner]');const panel=x.root.querySelector('.tdbc-timing-warning');assert.equal(panel.hidden,false);x.choose('[data-action=bridal]');assert.equal(panel.querySelector('[data-action=bridal]').getAttribute('aria-expanded'),'true');assert.equal(panel.querySelector('[role=tooltip]'),null);assert.match(panel.textContent,/makeup trials/);assert.equal(scrolls,0);
- x.choose('[data-action=bridal]');assert.equal(panel.querySelector('[data-action=bridal]').getAttribute('aria-expanded'),'false');
+ x.choose('[data-action=sooner]');const panel=x.root.querySelector('.tdbc-timing-warning');assert.equal(x.root.querySelector('[data-action=sooner]').getAttribute('aria-expanded'),'true');assert.equal(x.root.querySelector('[data-panel=deadline]').getAttribute('aria-hidden'),'false');x.choose('[data-action=bridal]');assert.equal(panel.querySelector('[data-action=bridal]').getAttribute('aria-expanded'),'true');assert.equal(panel.querySelector('[role=tooltip]'),null);assert.match(panel.textContent,/makeup trials/);assert.equal(scrolls,0);
+ x.choose('[data-action=bridal]');assert.equal(panel.querySelector('[data-action=bridal]').getAttribute('aria-expanded'),'false');x.d.body.dispatchEvent(new x.w.Event('pointerdown',{bubbles:true}));assert.equal(x.root.querySelector('[data-action=sooner]').getAttribute('aria-expanded'),'true');x.choose('[data-action=sooner]');assert.equal(x.root.querySelector('[data-panel=deadline]').getAttribute('aria-hidden'),'true');
  }finally{x.dom.window.close();}
 });
 test('live price changes animate once, respect reduced motion, and retain exact displayed totals',async()=>{
