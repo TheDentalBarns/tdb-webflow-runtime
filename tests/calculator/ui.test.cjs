@@ -177,3 +177,15 @@ test('dismissing a tooltip restores shared calculator focus until the section le
  x.viewport(false);assert.equal(releases,1);assert.equal(x.d.documentElement.classList.contains('tdbc-chrome-away'),false);
  }finally{x.dom.window.close();}
 });
+
+test('deadline and wedding disclosures leave unrelated expansion contents mounted and untouched',async()=>{
+ const x=await setup();try{
+  x.choose('[data-category=cosmetic]');x.choose('[data-select=aligners]');
+  const estimate=x.root.querySelector('[data-output=summary]'),treatments=x.root.querySelector('[data-panel=option-aligners]');
+  const observer=new x.w.MutationObserver(()=>{});observer.observe(estimate,{subtree:true,attributes:true,childList:true,characterData:true});
+  for(const selector of ['[data-action=sooner]','[data-action=bridal]','[data-action=bridal]','[data-action=sooner]']){
+   x.choose(selector);assert.deepEqual(observer.takeRecords(),[]);assert.equal(x.root.querySelector('[data-output=summary]'),estimate);
+  }
+  observer.disconnect();
+ }finally{x.dom.window.close();}
+});

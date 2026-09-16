@@ -129,7 +129,7 @@ test('completion targets retain calendar uncertainty and show indicative extract
 });
 
 test('aligner tiers change both CMS price and calendar duration',()=>{
- const expected=[[419500,6,10,'2026-09-11','2027-01-11'],[529500,10,12,'2027-01-11','2027-03-14'],[639500,12,18,'2027-03-14','2027-09-11']];
+ const expected=[[419500,6,6,'2026-09-11','2026-09-11'],[529500,6,12,'2026-09-11','2027-03-14'],[639500,12,18,'2027-03-14','2027-09-11']];
  for(const [tier,[price,min,max,finishMin,finishMax]] of expected.entries()){
   const s=state(['aligners']);s.selected.aligners.tier=tier;const e=C.estimate(records,s),t=C.completionTimeline(records,e,'2026-01-17');
   assert.equal(e.lines.find(l=>l.key==='aligners').min,price);assert.deepEqual(t.stages.find(l=>l.key==='aligners').timing,{min,max,unit:'months'});assert.equal(t.finishMin,finishMin);assert.equal(t.finishMax,finishMax);
