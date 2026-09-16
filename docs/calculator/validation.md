@@ -6,10 +6,10 @@
 
 - Repository: TheDentalBarns/tdb-webflow-runtime
 - Feature branch: codex/treatment-calculator-20260916
-- Runtime version: 1.4.2
+- Runtime version: 1.4.3
 - Staging baseline: 15144e3414803974be24852368fa4b8a12303d9d
-- Calculator JS/CSS asset commit: 14d4081e9f429106dbceafec71b9fa736f176c2b
-- Global-footer loader commit: 34d5802adcae71d549f950a25eb5b2139a8f6eb9
+- Calculator JS/CSS asset commit: 5be0676a288c292a8c5cc70981ea7ded8ce9a8fb
+- Global-footer loader commit: e455c45ec6f277e46763abdbec8b27328f5b8036
 - Pilot: https://dentalbarns.webflow.io/dental-cost-lichfield#treatment-calculator
 - Service/FAQ entry: https://dentalbarns.webflow.io/services/fast-track
 
@@ -17,7 +17,7 @@ All other global runtime pins were preserved. The temporary responsive acceptanc
 
 ## Automated checks
 
-39 deterministic and DOM integration tests pass. Coverage includes CMS parsing, price changes, per-unit quantities, assessment bundling, missing prices, inclusions, hygiene, component restrictions, persistence/reset, context conflicts, text escaping, exact finance reconciliation, calendar boundaries, dated fallback allowances, tier-specific aligner timing, per-arch Smile Trial pricing, separate upper/lower veneer stages, section-entry navigation focus, drawer/VIP handoff, timeline selection without scrolling, inline wedding expansion, reduced-motion handling for amount changes and independently overlapping timeline emphasis and consuming tooltip-dismissal taps before page controls.
+The 39 deterministic and DOM integration tests passed for behavioural release v1.4.2. The spacing-only v1.4.3 follow-up was checked with a fresh build, JavaScript syntax check, diff check and published mobile/desktop geometry; no additional behavioural tests were needed. Coverage includes CMS parsing, price changes, per-unit quantities, assessment bundling, missing prices, inclusions, hygiene, component restrictions, persistence/reset, context conflicts, text escaping, exact finance reconciliation, calendar boundaries, dated fallback allowances, tier-specific aligner timing, per-arch Smile Trial pricing, separate upper/lower veneer stages, section-entry navigation focus, drawer/VIP handoff, timeline selection without scrolling, inline wedding expansion, reduced-motion handling for amount changes and independently overlapping timeline emphasis and consuming tooltip-dismissal taps before page controls.
 
 ## Published browser checks
 
@@ -41,7 +41,7 @@ All other global runtime pins were preserved. The temporary responsive acceptanc
 | Deadline panel | Inline chevron disclosure; static positioning, darker cream at 84% with 20px blur; both outer and wedding chevrons expand independently |
 | Wedding advice | Nested chevron expands within the deadline panel; no nested tooltip |
 | Timeline emphasis | At 390px: neighbouring row opacities 1 and 0.997, followed by 0.835, 0.595 and 0.5. Whole rows and dots have overlapping 600ms transitions. Direct trial taps open and close at the same scrollTop 3683; one semantic current stage remains |
-| Bottom buttons | Native filled black buttons with white text. One assessment action, without arrow; Restart keeps the up arrow. At 390px there is 68.125px between the final button and dark footer |
+| Bottom buttons | Native filled black buttons with white text. One assessment action, without arrow; Restart keeps the up arrow. At 390px there is 109.016px between the final button and dark footer, matching the next section’s native 109.021px padding |
 | Assessment-only | Clears treatment selection, shows £450; heading at 93.44px below the 80px floating bar |
 | Finance below threshold | Grey control remains tappable and explains £250 minimum borrowing after the £450 assessment |
 | Mobile drawer | At 320px, width/scrollWidth both 320; floating bar top 0 and height 80px (6rem); close works |
@@ -80,3 +80,9 @@ The 390px staging review showed calculator clientWidth and scrollWidth both 390.
 - Need it sooner is an inline chevron disclosure, using the shared content fade/translation. Its panel uses orange-2 at 84% and 20px backdrop blur. Planning a wedding is a second, nested chevron; both expanded together were checked visually at 390px. Clicking elsewhere does not close an inline disclosure. Tight-date attempts still open this guidance automatically.
 - Published mobile treatment test: first tap while a tooltip is open closes it with the checkbox still false; second tap selects it. Published native Services menu test: before=false, first tap=false with zero open tooltips, second tap=true. Window capture consumes pointer down/up and click for dismissal, including a keyboard-click fallback; cancellation and the next gesture clear the guard.
 - All 39 tests pass. The temporary responsive frame was removed and staging republished. No CMS values or production domains changed.
+
+## v1.4.3 spacing acceptance
+
+The calculator shell now uses the existing padding-section-large class for its bottom spacing. Custom bottom padding was removed from the final footnote and from the category step when collapsed, so only the native section gap remains. The same class supplies the top padding above Cosmetic Dentistry in the next section, including its responsive rules.
+
+Published 390px checks: selected-plan gap 109.015625px; collapsed category gap 109.015625px; native reference padding 109.021px. Desktop expanded gap: 104.4375px against native reference 104.439px. Differences are browser subpixel rounding. A stale desktop preview timed out; a fresh tab completed the desktop measurement. The temporary mobile frame was removed before the final staging publication. No pricing, CMS content or interaction behaviour changed.
