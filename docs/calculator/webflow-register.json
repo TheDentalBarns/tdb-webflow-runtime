@@ -1,0 +1,321 @@
+{
+  "site": "677cf86cf9952f978d94d80c",
+  "pricingPage": "677cfbbb752fa1bb44264481",
+  "pricingCollection": "67a2267b404fe73dfb1d8dee",
+  "baseCommit": "15144e3414803974be24852368fa4b8a12303d9d",
+  "components": [
+    {
+      "c": "753062ad-9d80-105d-d2a0-2dbd8260ceae",
+      "els": [
+        "f3f7939b-5d17-7f84-fde1-cbf50a6372fc",
+        "f3f7939b-5d17-7f84-fde1-cbf50a6372fd",
+        "f3f7939b-5d17-7f84-fde1-cbf50a6372fe"
+      ],
+      "page": "677cfbbb752fa1bb44264481",
+      "props": [
+        "6d08d103-7aa1-2a71-883f-7316a161e22e",
+        "4d336cb0-d036-fa81-8e5f-0e1acf14fc4e",
+        "8ea11d7e-9aae-9d39-0d9e-cea29d9502c2"
+      ]
+    },
+    {
+      "c": "5c8dd311-b4e5-1146-64c4-78343ed1d3f5",
+      "els": [
+        "b7857547-4f28-bc34-720f-3d7b3973b247",
+        "b7857547-4f28-bc34-720f-3d7b3973b248",
+        "b7857547-4f28-bc34-720f-3d7b3973b249"
+      ],
+      "page": "6785071ede094cc233e0c72b",
+      "props": [
+        "86e6039d-d8e2-0762-33ea-373380118e5a",
+        "b554e8f6-f1c3-9129-4c48-c50e79303f78",
+        "36ff4cc2-cc90-f34a-73c8-0cfe674f4ce4"
+      ]
+    }
+  ],
+  "feeds": [
+    {
+      "component": "677cfbbb752fa1bb44264481",
+      "element": "08aba96e-8d75-4ce5-f72a-dc6d6d3a6b3a"
+    },
+    {
+      "component": "677cfbbb752fa1bb44264481",
+      "element": "d824becd-54b5-ff57-6cda-1a0420dd15ee"
+    },
+    {
+      "component": "677cfbbb752fa1bb44264481",
+      "element": "55619c21-2f59-baf2-3fcd-0c32f9ddf752"
+    },
+    {
+      "component": "677cfbbb752fa1bb44264481",
+      "element": "207bbc7b-1775-d7fe-79d3-02fd2149f348"
+    },
+    {
+      "component": "677cfbbb752fa1bb44264481",
+      "element": "2dce467f-d379-4add-8d02-107ef873ee3e"
+    },
+    {
+      "component": "677cfbbb752fa1bb44264481",
+      "element": "d9d49c76-b678-175f-86d2-e692394c5d98"
+    },
+    {
+      "component": "677cfbbb752fa1bb44264481",
+      "element": "c2f33d1b-364e-c6c4-d478-1a7a82191168"
+    },
+    {
+      "component": "677cfbbb752fa1bb44264481",
+      "element": "217d6eb1-b514-6050-aee1-7321017f995f"
+    }
+  ],
+  "inclusionMarkers": [
+    "2ef2b2da-8058-9500-1ea3-1e9ec64bad0c",
+    "cbb1c87f-7d92-f5ea-970a-3eb48bed7e07"
+  ],
+  "newFields": [
+    {
+      "displayName": "Calculator label",
+      "helpText": "Optional friendly name in the treatment calculator. Blank uses the pricing item name.",
+      "id": "6e9ca526ead05c9c63a966b66609f6a2",
+      "isEditable": true,
+      "isRequired": false,
+      "slug": "calculator-label",
+      "type": "PlainText"
+    },
+    {
+      "displayName": "Calculator record ID",
+      "helpText": "Stable CMS pricing item ID used by the calculator. Do not edit after setup.",
+      "id": "a725e2a3b346178a0bf1c9a8dcc5f33a",
+      "isEditable": true,
+      "isRequired": false,
+      "slug": "calculator-record-id",
+      "type": "PlainText"
+    },
+    {
+      "displayName": "Calculator tooltip",
+      "helpText": "Short patient-friendly explanation for the calculator information button.",
+      "id": "e02086483fdb8d9c337d7b7cebbb1784",
+      "isEditable": true,
+      "isRequired": false,
+      "slug": "calculator-tooltip",
+      "type": "PlainText"
+    },
+    {
+      "displayName": "Calculator duration minimum",
+      "helpText": "Indicative planning duration. Blank means timing must be assessed.",
+      "id": "abd941069c4d403e14e90ac06b993355",
+      "isEditable": true,
+      "isRequired": false,
+      "slug": "calculator-duration-minimum",
+      "type": "Number",
+      "validations": {
+        "allowNegative": true,
+        "format": "integer",
+        "precision": 1
+      }
+    },
+    {
+      "displayName": "Calculator duration maximum",
+      "helpText": "Indicative upper planning duration. Blank means timing must be assessed.",
+      "id": "ddaf765c2732883f9bffccd19415bde4",
+      "isEditable": true,
+      "isRequired": false,
+      "slug": "calculator-duration-maximum",
+      "type": "Number",
+      "validations": {
+        "allowNegative": true,
+        "format": "integer",
+        "precision": 1
+      }
+    },
+    {
+      "displayName": "Calculator duration unit",
+      "helpText": "Use weeks or months. Whitening duration includes colour settling.",
+      "id": "a57bd9edaa2cf847d2b148186e5f169f",
+      "isEditable": true,
+      "isRequired": false,
+      "slug": "calculator-duration-unit",
+      "type": "PlainText"
+    },
+    {
+      "displayName": "Calculator includes whitening",
+      "helpText": "Aligner package includes whitening; no separate whitening charge.",
+      "id": "a49ae810f8eed9d25ac99900cb9986a0",
+      "isEditable": true,
+      "isRequired": false,
+      "slug": "calculator-includes-whitening",
+      "type": "Switch"
+    },
+    {
+      "displayName": "Calculator includes hygiene",
+      "helpText": "Package includes a hygiene appointment; no separate charge.",
+      "id": "3c00836fc30fee7e0237c566bad243c6",
+      "isEditable": true,
+      "isRequired": false,
+      "slug": "calculator-includes-hygiene",
+      "type": "Switch"
+    },
+    {
+      "displayName": "Calculator booking deposit",
+      "helpText": "Booking deposit in GBP, included in this appointment total.",
+      "id": "6a6bf82ee7dbbe67955d0ea53956ed69",
+      "isEditable": true,
+      "isRequired": false,
+      "slug": "calculator-booking-deposit",
+      "type": "Number",
+      "validations": {
+        "allowNegative": true,
+        "format": "integer",
+        "precision": 1
+      }
+    }
+  ],
+  "populatedValues": [
+    {
+      "fieldData": {
+        "calculator-booking-deposit": 225,
+        "calculator-label": "Signature Assessment ✦",
+        "calculator-record-id": "6aa293f6253d574a41978d9e",
+        "calculator-tooltip": "Your starting appointment combines Smile Design, a comprehensive examination and appropriate diagnostics. Your plan and costs are discussed on the day; a written report follows."
+      },
+      "id": "6aa293f6253d574a41978d9e"
+    },
+    {
+      "fieldData": {
+        "calculator-label": "Smile Design",
+        "calculator-record-id": "68386f15264c9bdb140b5f2e",
+        "calculator-tooltip": "Explore your smile and goals with Dr Keely. Included within the Signature Assessment when you select treatment."
+      },
+      "id": "68386f15264c9bdb140b5f2e"
+    },
+    {
+      "fieldData": {
+        "calculator-duration-maximum": 5,
+        "calculator-duration-minimum": 5,
+        "calculator-duration-unit": "weeks",
+        "calculator-label": "Whitening",
+        "calculator-record-id": "681ce51276b22da0b0660090",
+        "calculator-tooltip": "Enlighten® whitening to brighten your natural teeth. Allow three weeks for whitening and two weeks for the colour to settle."
+      },
+      "id": "681ce51276b22da0b0660090"
+    },
+    {
+      "fieldData": {
+        "calculator-duration-maximum": 18,
+        "calculator-duration-minimum": 10,
+        "calculator-duration-unit": "months",
+        "calculator-includes-hygiene": true,
+        "calculator-includes-whitening": true,
+        "calculator-label": "Invisalign® / clear aligners",
+        "calculator-record-id": "67a227e75f8c501023eb066b",
+        "calculator-tooltip": "Gradually straighten your teeth using clear aligners. Your dentist confirms the right system and complexity tier. Whitening, hygiene and retainers are included."
+      },
+      "id": "67a227e75f8c501023eb066b"
+    },
+    {
+      "fieldData": {
+        "calculator-duration-maximum": 2,
+        "calculator-duration-minimum": 2,
+        "calculator-duration-unit": "weeks",
+        "calculator-label": "Composite bonding",
+        "calculator-record-id": "681ce7a6838a937aa274f5e6",
+        "calculator-tooltip": "Hand-sculpted composite to refine tooth shape and appearance. Fees vary with complexity; the estimate shows the published tiers."
+      },
+      "id": "681ce7a6838a937aa274f5e6"
+    },
+    {
+      "fieldData": {
+        "calculator-duration-maximum": 4,
+        "calculator-duration-minimum": 4,
+        "calculator-duration-unit": "weeks",
+        "calculator-label": "Porcelain veneers",
+        "calculator-record-id": "681dfc7415fdf2571f077b0f",
+        "calculator-tooltip": "Bespoke porcelain restorations for the visible surfaces of teeth. Your dentist confirms suitability, preparation and the final shade."
+      },
+      "id": "681dfc7415fdf2571f077b0f"
+    },
+    {
+      "fieldData": {
+        "calculator-label": "Gumline bonding",
+        "calculator-record-id": "68386aca9ee514c02cdda9ee",
+        "calculator-tooltip": "Tooth-coloured composite to cover selected exposed or worn areas near the gumline. It does not regrow gum tissue; suitability is assessed individually."
+      },
+      "id": "68386aca9ee514c02cdda9ee"
+    },
+    {
+      "fieldData": {
+        "calculator-duration-maximum": 0,
+        "calculator-duration-minimum": 0,
+        "calculator-duration-unit": "weeks",
+        "calculator-label": "New fillings",
+        "calculator-record-id": "68d6b282da240abf72520b6a",
+        "calculator-tooltip": "Tooth-coloured composite for damaged teeth. Published prices are per surface. A tooth may need more than one surface restored."
+      },
+      "id": "68d6b282da240abf72520b6a"
+    },
+    {
+      "fieldData": {
+        "calculator-duration-maximum": 2,
+        "calculator-duration-minimum": 2,
+        "calculator-duration-unit": "weeks",
+        "calculator-label": "Root canal treatment",
+        "calculator-record-id": "6a61ce5648ee7f280db22a34",
+        "calculator-tooltip": "Treatment inside a tooth to address an affected root canal. Complexity and the need for a separate crown or other restoration are confirmed at assessment."
+      },
+      "id": "6a61ce5648ee7f280db22a34"
+    },
+    {
+      "fieldData": {
+        "calculator-duration-maximum": 4,
+        "calculator-duration-minimum": 4,
+        "calculator-duration-unit": "weeks",
+        "calculator-label": "Porcelain crowns",
+        "calculator-record-id": "68d7ca91db5f05043ba12fa1",
+        "calculator-tooltip": "A bespoke porcelain restoration covering a tooth. The estimate varies with complexity; any root canal treatment is a separate selection."
+      },
+      "id": "68d7ca91db5f05043ba12fa1"
+    },
+    {
+      "fieldData": {
+        "calculator-duration-maximum": 4,
+        "calculator-duration-minimum": 4,
+        "calculator-duration-unit": "weeks",
+        "calculator-label": "Porcelain onlays",
+        "calculator-record-id": "68d7cfac090cb5cda1b931d9",
+        "calculator-tooltip": "A bespoke porcelain restoration covering part of a tooth. Suitability and the amount of tooth needing restoration are assessed first."
+      },
+      "id": "68d7cfac090cb5cda1b931d9"
+    },
+    {
+      "fieldData": {
+        "calculator-label": "Extractions",
+        "calculator-record-id": "68d6affec0a324b379f2c5b5",
+        "calculator-tooltip": "Removal of a tooth where appropriate. Complexity, healing time and any replacement options need individual assessment."
+      },
+      "id": "68d6affec0a324b379f2c5b5"
+    },
+    {
+      "fieldData": {
+        "calculator-label": "Airflow® hygiene",
+        "calculator-record-id": "681dfde1b4412464104bca59",
+        "calculator-tooltip": "Hygiene may be recommended to prepare for cosmetic treatment. It is included with the clear aligner package; additional care depends on your needs."
+      },
+      "id": "681dfde1b4412464104bca59"
+    }
+  ],
+  "faqBefore": [
+    {
+      "id": "6aa020275641f0ebf24635ad",
+      "fieldData": {
+        "cta-button-text": "View Dental Fees",
+        "cta-button-link": "https://www.thedentalbarns.co.uk/dental-cost-lichfield"
+      }
+    },
+    {
+      "id": "6a635c1f3b58a9356a8380de",
+      "fieldData": {
+        "cta-button-text": "View Dental Fees",
+        "cta-button-link": "https://www.thedentalbarns.co.uk/dental-cost-lichfield"
+      }
+    }
+  ]
+}
