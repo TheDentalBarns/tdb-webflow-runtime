@@ -265,7 +265,7 @@
       observer: true,
       observeParents: true,
       watchSlidesProgress: true,
-      spaceBetween: window.innerWidth < 768 && component.hasAttribute('data-tdb-smile-slider')
+      spaceBetween: window.innerWidth < 768 && (component.hasAttribute('data-tdb-smile-slider') || component.querySelector('a[href^="/treatments/"]') || document.documentElement.getAttribute('data-wf-page') === '677cfbe37aba5fbbc2154c24')
         ? window.innerWidth * 0.02
         : window.innerWidth <= 768 ? window.innerWidth * 0.05 : 20,
       grabCursor: true,
