@@ -109,3 +109,19 @@ test('borrowing threshold and deposit bounds reconcile across both ends of a ran
  const e=C.estimate(records,state(['bonding']));
  for(const deposit of [-1,45000,59500,999999])for(const term of [3,12]){const f=C.finance(e,deposit,term);assert.ok(f.deposit>=45000);assert.ok(f.low.balance>=25000);for(const [p,total]of [[f.low,e.min],[f.high,e.max]])assert.equal(f.deposit+p.monthly*(term-1)+p.final,total);}
 });
+test('completion planning starts at the earliest finish and shifts the whole plan later',()=>{
+ const e=C.estimate(records,state(['whitening']));
+ const first=C.completionTimeline(records,e,'2026-09-16');
+ assert.equal(first.start,'2026-09-16');assert.equal(first.finishMin,'2026-11-04');assert.equal(first.offset,0);
+ const later=C.completionTimeline(records,e,'2026-09-16',21);
+ assert.equal(later.start,'2026-10-07');assert.equal(later.finishMin,'2026-11-25');assert.equal(later.stages[0].startMin,'2026-10-21');
+ const early=C.completionTimeline(records,e,'2026-09-16',0,'2026-10-01');
+ assert.equal(early.tooSoon,true);assert.equal(early.offset,0);assert.equal(early.finishMin,first.finishMin);
+});
+test('completion targets retain calendar uncertainty and withhold unknown clinical timing',()=>{
+ const e=C.estimate(records,state(['aligners']));
+ const t=C.completionTimeline(records,e,'2026-01-17');assert.equal(t.finishMin,'2027-01-04');assert.equal(t.finishMax,'2027-09-04');
+ const selected=C.completionTimeline(records,e,'2026-01-17',0,'2028-02-29');
+ assert.ok(selected.start>='2026-01-17');assert.ok(selected.finishMin<='2028-02-29');assert.ok(selected.finishMax>selected.finishMin);
+ const unknown=C.completionTimeline(records,C.estimate(records,state(['extractions'])),'2026-09-16');assert.equal(unknown.reliable,false);assert.equal(unknown.earliestCompletion,null);
+});

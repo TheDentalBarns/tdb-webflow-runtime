@@ -1,11 +1,11 @@
-/* TDB Treatment Calculator v1.0.0 — deterministic pricing and planning rules. */
+/* TDB Treatment Calculator v1.2.0 — deterministic pricing and planning rules. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.TDBCalculatorCore = api;
 })(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
-  const VERSION = '1.1.0';
+  const VERSION = '1.2.0';
   const IDS = Object.freeze({
     assessment: '6aa293f6253d574a41978d9e', design: '68386f15264c9bdb140b5f2e',
     whitening: '681ce51276b22da0b0660090', aligners: '67a227e75f8c501023eb066b',
@@ -58,7 +58,7 @@
     };
   }
   function newState() {
-    return {categories:[],selected:{},assessment:'none',hygiene:false,finance:false,deposit:0,term:12,target:'',start:''};
+    return {categories:[],selected:{},assessment:'none',hygiene:false,finance:false,deposit:0,term:12,target:'',start:'',delay:0};
   }
   function normaliseState(raw) {
     const s=newState();
@@ -75,6 +75,7 @@
     s.deposit=finite(raw.deposit)?clamp(Math.round(Number(raw.deposit)),0,100000000):0;
     s.term=clamp(Math.round(Number(raw.term)||12),3,12);
     s.target=parseDate(raw.target)?raw.target:'';s.start=parseDate(raw.start)?raw.start:'';
+    s.delay=clamp(Math.round(Number(raw.delay)||0),0,730);
     return s;
   }
   function allowedOptions(config={}){
@@ -205,5 +206,16 @@
     const min=Math.ceil(days(s.finishMin)/divisor),max=Math.ceil(days(s.finishMax)/divisor);
     return (min===max?min:min+'–'+max)+' '+(months?'months':'weeks');
   }
-  return Object.freeze({VERSION,IDS,OPTIONS,parsePrice,recordFromFields,newState,normaliseState,allowedOptions,estimate,payment,finance,parseDate,iso,addDays,addMonths,plan,schedule,suggestedStart,timeline,duration});
+  function completionTimeline(records,e,today,delay=0,requestedTarget=''){
+    const p=plan(records,e),now=parseDate(today);if(!now)throw new RangeError('Invalid today');
+    const earliest=schedule(p,today);let offset=clamp(Math.round(Number(delay)||0),0,730),tooSoon=false;
+    if(earliest.reliable&&parseDate(requestedTarget)){
+      tooSoon=requestedTarget<earliest.finishMin;
+      const suggested=suggestedStart(p,requestedTarget,'min');
+      offset=suggested?clamp(Math.round((parseDate(suggested)-now)/86400000),0,730):0;
+    }
+    const result=schedule(p,iso(addDays(now,offset)));
+    return {...result,plan:p,offset,tooSoon,earliestCompletion:earliest.finishMin,latestCompletion:schedule(p,iso(addDays(now,730))).finishMin};
+  }
+  return Object.freeze({VERSION,IDS,OPTIONS,parsePrice,recordFromFields,newState,normaliseState,allowedOptions,estimate,payment,finance,parseDate,iso,addDays,addMonths,plan,schedule,suggestedStart,timeline,duration,completionTimeline});
 });
