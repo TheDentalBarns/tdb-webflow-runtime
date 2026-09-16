@@ -1,7 +1,7 @@
 /* TDB Treatment Calculator loader v1.1.0. URLs are immutable release pins. */
 (function(){
  'use strict';if(window.__tdbCalculatorLoader)return;window.__tdbCalculatorLoader=true;
- const base='https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@db895b75c212d34f75ad2dca2d60375504c27520';
+ const base='https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@014876c868bf355954ee16eaec0731c73d3f6fb0';
  const selector='[data-tdb-calc-open],a[href$="#treatment-calculator"]';
  let loading=null;
  function asset(type,url){return new Promise((resolve,reject)=>{const el=document.createElement(type==='css'?'link':'script');let timer;
