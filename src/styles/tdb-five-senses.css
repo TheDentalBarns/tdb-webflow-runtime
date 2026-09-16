@@ -3,9 +3,20 @@
 .tdb-senses .tdb-senses-title{text-transform:none}
 .tdb-senses::backdrop{background:#131210}
 .tdb-senses-stage,.tdb-senses-shade{position:absolute;inset:0;pointer-events:none}
-.tdb-senses-stage{opacity:0;transition:opacity .65s ease}
+.tdb-senses-stage{opacity:0;transition:opacity .35s ease;overflow:hidden;isolation:isolate}
 .tdb-senses-ready .tdb-senses-stage{opacity:1}
-.tdb-senses-canvas{display:block;width:100%;height:100%}
+.tdb-senses-scene{position:absolute;inset:0;overflow:hidden;contain:paint;background:#131210}
+.tdb-senses-photo{position:absolute;overflow:hidden}
+.tdb-senses-photo-image{display:block;width:100%;height:100%}
+.tdb-senses-revealing{mask-image:radial-gradient(circle at var(--tdb-senses-origin-x) var(--tdb-senses-origin-y),#000 calc(var(--tdb-senses-reveal-radius) - var(--tdb-senses-feather)/2),#0000 calc(var(--tdb-senses-reveal-radius) + var(--tdb-senses-feather)/2));-webkit-mask-image:radial-gradient(circle at var(--tdb-senses-origin-x) var(--tdb-senses-origin-y),#000 calc(var(--tdb-senses-reveal-radius) - var(--tdb-senses-feather)/2),#0000 calc(var(--tdb-senses-reveal-radius) + var(--tdb-senses-feather)/2));mask-mode:alpha;mask-repeat:no-repeat;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;-webkit-mask-size:100% 100%}
+.tdb-senses-leaf-shadows,.tdb-senses-motes{position:absolute;inset:0;pointer-events:none}
+.tdb-senses-leaf-shadows svg{display:block;width:100%;height:100%}
+.tdb-senses-leaf-shadows.is-warm{opacity:.15;transform-origin:30% 50%;animation:tdb-senses-leaf-drift 18s ease-in-out infinite alternate;will-change:transform}
+.tdb-senses-leaf-shadows.is-cold{opacity:.23}
+.tdb-senses-motes i{position:absolute;width:3px;height:1.4px;border-radius:100%;background:#efe5c9;opacity:0;animation:tdb-senses-botanical-drift 17s linear infinite}
+.tdb-senses-motion-paused .tdb-senses-leaf-shadows,.tdb-senses-motion-paused .tdb-senses-motes i{animation-play-state:paused}
+@keyframes tdb-senses-leaf-drift{from{transform:translate3d(-5px,1px,0) rotate(-.6deg)}to{transform:translate3d(7px,-3px,0) rotate(.6deg)}}
+@keyframes tdb-senses-botanical-drift{0%,100%{opacity:0;transform:translate3d(0,0,0) rotate(-20deg)}20%,75%{opacity:.13}90%{opacity:0;transform:translate3d(9px,-27px,0) rotate(50deg)}}
 .tdb-senses-shade{background:linear-gradient(180deg,rgba(12,14,11,.13),transparent 35%,transparent 58%,rgba(12,14,11,.54));opacity:.9}
 .tdb-senses-top{position:absolute;top:max(22px,env(safe-area-inset-top));left:var(--tdb-senses-gutter);right:var(--tdb-senses-gutter);display:flex;align-items:center;justify-content:space-between;z-index:2}
 .tdb-senses-room{display:flex;align-items:center;gap:14px;font-size:10px;line-height:1;letter-spacing:.07em;text-shadow:0 1px 6px #0008}
@@ -40,4 +51,4 @@
 @keyframes tdb-senses-breathe{0%,100%{box-shadow:0 0 0 0 #f5f1e606;background:#eee9dc16}50%{box-shadow:0 0 0 9px #f5f1e605;background:#eee9dc2d}}
 @media(max-width:600px){.tdb-senses{--tdb-senses-gutter:5vw}.tdb-senses-top{top:max(17px,env(safe-area-inset-top))}.tdb-senses-room{font-size:9px;gap:11px}.tdb-senses-utilities{gap:8px}.tdb-senses-title{top:16%;font-size:clamp(36px,9vw,52px);line-height:1.08}.tdb-senses-controls{bottom:max(24px,calc(env(safe-area-inset-bottom) + 15px))}.tdb-senses-control{--circle-size:clamp(44px,13vw,58px)}.tdb-senses-circle svg{width:23px;height:23px}.tdb-senses-name{margin-top:10px;font-size:9px}.tdb-senses-value{font-size:6px;margin-top:5px}.tdb-senses-begin{bottom:calc(var(--circle-size) + 44px);font-size:7px}.tdb-senses-shade{background:linear-gradient(180deg,#0c0e0b24,transparent 36%,transparent 65%,#0c0e0b52)}}
 @media(max-height:520px) and (min-width:601px){.tdb-senses-title{font-size:34px;top:24%}.tdb-senses-controls{bottom:15px}.tdb-senses-control{--circle-size:48px}.tdb-senses-circle svg{width:23px;height:23px}.tdb-senses-name{margin-top:7px;font-size:9px}.tdb-senses-value{margin-top:3px}.tdb-senses-begin{bottom:calc(var(--circle-size) + 39px)}}
-@media(prefers-reduced-motion:reduce){.tdb-senses-stage,.tdb-senses-title,.tdb-senses-circle{transition:none}.tdb-senses-awaiting-sound [data-sense="sound"] .tdb-senses-circle{animation:none}}
+@media(prefers-reduced-motion:reduce){.tdb-senses-stage,.tdb-senses-title,.tdb-senses-circle{transition:none}.tdb-senses-awaiting-sound [data-sense="sound"] .tdb-senses-circle,.tdb-senses-leaf-shadows,.tdb-senses-motes i{animation:none}}

@@ -56,7 +56,7 @@
     try{
       const [module]=await Promise.all([import(moduleURL),loadStyle()]);
       if(active!==session||session.controller.signal.aborted)return;
-      await module.mountExperience({dialog:session.dialog,signal:session.controller.signal,assetBase,onClose:()=>close(session),forceCanvas:query.get('renderer')==='canvas'});
+      await module.mountExperience({dialog:session.dialog,signal:session.controller.signal,assetBase,onClose:()=>close(session)});
     }catch(error){
       if(active!==session||session.controller.signal.aborted)return;
       session.dialog.className='tdb-senses-loading';
@@ -80,5 +80,5 @@
     if(button.tagName!=='BUTTON')button.addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();open(button);}});
   });
   window.addEventListener('pagehide',()=>{if(active)close(active);});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.1.0'});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.2.0'});
 })();

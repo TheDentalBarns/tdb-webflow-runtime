@@ -1,7 +1,18 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const source=await readFile(new URL('../../src/five-senses/five-senses.js',import.meta.url),'utf8');
-const {TransitionQueue,Soundscape}=await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+const {TransitionQueue,Soundscape}=await import(`data:text/javascript;base64,${Buffer.from(source.replace(/^import .*;\n/,'')).toString('base64')}`);
+const sceneSource=await readFile(new URL('../../src/five-senses/scene-renderer.js',import.meta.url),'utf8');
+const {coverGeometry,revealRadius}=await import(`data:text/javascript;base64,${Buffer.from(sceneSource).toString('base64')}`);
+for(const [w,h] of [[320,568],[390,844],[412,915],[768,1024],[1363,936],[1920,1080],[2560,1440]]){
+  const photo=coverGeometry(w,h);
+  assert.ok(photo.x<=0&&photo.y<=0&&photo.x+photo.width>=w-.01&&photo.y+photo.height>=h-.01,'The crop must fill every edge');
+  assert.ok(Math.abs(photo.width/photo.height-.75)<.00001,'The photograph must retain its aspect ratio');
+  for(const x of [.05,.275,.5,.725,.95]){
+    const origin={x:w*x,y:h*.9},radius=revealRadius(w,h,origin,20);
+    for(const [cx,cy] of [[0,0],[w,0],[0,h],[w,h]])assert.ok(radius-10>Math.hypot(cx-origin.x,cy-origin.y),'The opaque part of the mask must pass every viewport corner');
+  }
+}
 const initial={sight:true,sound:false,smell:true,touch:true,taste:true};
 const queue=new TransitionQueue(initial);
 const first=queue.request({...initial,touch:false},{x:100,y:700});

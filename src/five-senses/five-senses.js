@@ -1,4 +1,5 @@
-/* TDB Five Senses v0.1.0 — Surgery photographic proof of concept.
+import {SceneRenderer} from './scene-renderer.js';
+/* TDB Five Senses v0.2.0 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -124,227 +125,22 @@ export class Soundscape {
   }
 }
 
-function compose(images, state) {
-  const canvas = document.createElement('canvas');
-  [canvas.width, canvas.height] = IMAGE_SIZE;
-  const ctx = canvas.getContext('2d', { alpha: false });
-  ctx.drawImage(state.touch ? images.warm : images.clinical, 0, 0, ...IMAGE_SIZE);
-  const overlay = images.objects;
-  if (state.smell) {
-    // Separate contact shadow works over both parquet and lino.
-    ctx.save(); ctx.translate(227, 829); ctx.scale(1, .19);
-    const shadow = ctx.createRadialGradient(0,0,16,0,0,92);
-    shadow.addColorStop(0,'rgba(15,12,6,.52)'); shadow.addColorStop(1,'rgba(15,12,6,0)');
-    ctx.fillStyle = shadow; ctx.fillRect(-92,-92,184,184); ctx.restore();
-    ctx.drawImage(overlay, 0, 211, 585, 733, 0, 252, 525, 585);
-  }
-  if (state.sound) {
-    ctx.save(); ctx.translate(459, 1335); ctx.scale(1,.24);
-    const shadow = ctx.createRadialGradient(0,0,8,0,0,136);
-    shadow.addColorStop(0,'rgba(9,8,6,.25)'); shadow.addColorStop(1,'rgba(9,8,6,0)');
-    ctx.fillStyle=shadow; ctx.fillRect(-136,-136,272,272); ctx.restore();
-    ctx.drawImage(overlay, 280, 1145, 375, 240, 280, 1145, 375, 240);
-  }
-  if (state.taste) {
-    ctx.save();ctx.translate(806,188);ctx.scale(1,.15);
-    const shadow=ctx.createRadialGradient(0,0,5,0,0,44);
-    shadow.addColorStop(0,'rgba(18,15,9,.4)');shadow.addColorStop(1,'rgba(18,15,9,0)');
-    ctx.fillStyle=shadow;ctx.fillRect(-44,-44,88,88);ctx.restore();
-    ctx.drawImage(overlay,743,30,108,177,759,45,89,158);
-  }
-  return canvas;
-}
-
-const VERTEX = `attribute vec2 position; varying vec2 vUV;
-void main(){vUV=position*.5+.5;gl_Position=vec4(position,0.,1.);}`;
-const FRAGMENT = `precision mediump float;
-varying vec2 vUV;
-uniform sampler2D oldImage; uniform sampler2D newImage;
-uniform vec2 viewport; uniform vec4 photoRect; uniform vec2 origin;
-uniform float radius; uniform float feather; uniform float mixAll; uniform float clock;
-uniform vec2 oldSenses; uniform vec2 newSenses;
-float oval(vec2 p, vec2 centre, vec2 size){vec2 d=(p-centre)/size;return exp(-dot(d,d)*2.);}
-vec3 scene(sampler2D picture, vec2 senses, vec2 p){
-  vec2 uv=(p-photoRect.xy)/photoRect.zw;
-  vec3 matte=mix(vec3(.064,.071,.076),vec3(.074,.071,.064),senses.x);
-  if(uv.x<0.||uv.x>1.||uv.y<0.||uv.y>1.)return matte;
-  vec3 colour=texture2D(picture,uv).rgb;
-  if(senses.x<.5){
-    float light=dot(colour,vec3(.2126,.7152,.0722));
-    colour=mix(colour,vec3(light),.11)*vec3(.89,.99,1.12);
-    colour=(colour-.5)*1.07+.5;
-    float glare=oval(uv,vec2(.1,.14),vec2(.14,.55));
-    colour+=glare*vec3(.012,.021,.032);
-  } else if(senses.y>.5){
-    float drift=sin(clock*.23)*.011;
-    float shade=oval(uv,vec2(.16+drift,.67),vec2(.075,.022));
-    shade+=oval(uv,vec2(.26-drift*.7,.73),vec2(.07,.028));
-    shade+=oval(uv,vec2(.13+drift,.78),vec2(.09,.025));
-    colour*=1.-shade*.033;
-  }
-  if(senses.y<.5){
-    float veil=.023+.004*sin(uv.y*12.+uv.x*8.+clock*.13);
-    colour=mix(colour,vec3(.61,.61,.59),veil);
-  }else{
-    for(int i=0;i<7;i++){
-      float f=float(i);
-      vec2 q=vec2(.04+fract(f*.173+sin(clock*.08+f)*.016)*.52,
-        .24+fract(f*.231-clock*.007)*.55);
-      float petal=oval(uv,q,vec2(.0028,.0015));
-      colour=mix(colour,vec3(.91,.87,.75),petal*.12);
-    }
-  }
-  return clamp(colour,0.,1.);
-}
-void main(){
-  vec2 p=vec2(vUV.x,1.-vUV.y)*viewport;
-  vec3 before=scene(oldImage,oldSenses,p);
-  vec3 after=scene(newImage,newSenses,p);
-  float mask=mixAll>=0.?mixAll:1.-smoothstep(radius-feather*.5,radius+feather*.5,distance(p,origin));
-  gl_FragColor=vec4(mix(before,after,mask),1.);
-}`;
-
-class Renderer {
-  constructor(canvas,forceCanvas=false) {
-    this.canvas=canvas; this.width=0; this.height=0; this.old=null; this.next=null;
-    this.gl=forceCanvas?null:canvas.getContext('webgl',{alpha:false,antialias:false,depth:false,stencil:false,preserveDrawingBuffer:false});
-    if (this.gl) {
-      try { this.setupGL(); this.canvas.dataset.renderer='webgl'; }
-      catch (e) {
-        this.dispose();
-        const replacement=canvas.cloneNode(); canvas.replaceWith(replacement); this.canvas=replacement;
-        this.gl=null;
-        this.canvas.dataset.rendererReason='shader-unavailable';
-      }
-    }
-    if(!this.gl){
-      this.ctx=this.canvas.getContext('2d',{alpha:false});this.canvas.dataset.renderer='canvas';
-      this.canvas.dataset.rendererReason ||= forceCanvas?'requested-fallback':'webgl-unavailable';
-      this.layer=document.createElement('canvas');this.layerCtx=this.layer.getContext('2d');
-    }
-  }
-  setupGL() {
-    const gl=this.gl;
-    const shader=(type,source)=>{
-      const sh=gl.createShader(type);gl.shaderSource(sh,source);gl.compileShader(sh);
-      if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh));
-      return sh;
-    };
-    const vs=shader(gl.VERTEX_SHADER,VERTEX),fs=shader(gl.FRAGMENT_SHADER,FRAGMENT);
-    const program=gl.createProgram();gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);
-    if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error('Renderer unavailable');
-    gl.deleteShader(vs);gl.deleteShader(fs);gl.useProgram(program);this.program=program;
-    this.buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);
-    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-    const pos=gl.getAttribLocation(program,'position');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
-    this.uniforms={};
-    for(const name of ['viewport','photoRect','origin','radius','feather','mixAll','clock','oldSenses','newSenses'])this.uniforms[name]=gl.getUniformLocation(program,name);
-    this.textures=[0,1].map((i)=>{
-      const tex=gl.createTexture();gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,tex);
-      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-      gl.uniform1i(gl.getUniformLocation(program,i?'newImage':'oldImage'),i);return tex;
-    });
-  }
-  resize() {
-    const rect=this.canvas.getBoundingClientRect();
-    this.width=rect.width;this.height=rect.height;
-    // Bound the back buffer independently of a phone's physical DPR.
-    this.dpr=Math.min(window.devicePixelRatio||1,1.65,Math.sqrt(2200000/(rect.width*rect.height)));
-    this.canvas.width=Math.max(1,Math.round(rect.width*this.dpr));this.canvas.height=Math.max(1,Math.round(rect.height*this.dpr));
-    if(this.layer){this.layer.width=this.canvas.width;this.layer.height=this.canvas.height;}
-    const scale=Math.min(rect.width/IMAGE_SIZE[0],rect.height/IMAGE_SIZE[1]);
-    this.photo=[(rect.width-IMAGE_SIZE[0]*scale)/2,(rect.height-IMAGE_SIZE[1]*scale)/2,IMAGE_SIZE[0]*scale,IMAGE_SIZE[1]*scale];
-    if(this.gl)this.gl.viewport(0,0,this.canvas.width,this.canvas.height);
-  }
-  images(old,next) {
-    this.old=old;this.next=next;
-    if(!this.gl)return;
-    const gl=this.gl;
-    [old,next].forEach((image,i)=>{
-      gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,this.textures[i]);
-      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);
-      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);
-    });
-  }
-  frame({from,to,origin,radius,feather,mixAll,time}) {
-    if(!this.old||!this.width)return;
-    if(this.gl){
-      const gl=this.gl,u=this.uniforms;
-      gl.uniform2f(u.viewport,this.width,this.height);gl.uniform4fv(u.photoRect,this.photo);
-      gl.uniform2f(u.origin,origin.x,origin.y);gl.uniform1f(u.radius,radius);gl.uniform1f(u.feather,feather);
-      gl.uniform1f(u.mixAll,mixAll);gl.uniform1f(u.clock,time);
-      gl.uniform2f(u.oldSenses,Number(from.sight),Number(from.smell));gl.uniform2f(u.newSenses,Number(to.sight),Number(to.smell));
-      gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-    }else{
-      const ctx=this.ctx,layer=this.layerCtx,[x,y,w,h]=this.photo;
-      ctx.setTransform(this.dpr,0,0,this.dpr,0,0);
-      layer.setTransform(this.dpr,0,0,this.dpr,0,0);
-      const draw=(target,image,state)=>{
-        target.fillStyle=state.sight?'#131210':'#101214';target.fillRect(0,0,this.width,this.height);
-        target.filter=state.sight?'none':'saturate(.89) contrast(1.07)';target.drawImage(image,x,y,w,h);target.filter='none';
-        target.save();target.beginPath();target.rect(x,y,w,h);target.clip();
-        if(!state.sight){target.fillStyle='rgba(131,173,218,.075)';target.globalCompositeOperation='color';target.fillRect(x,y,w,h);target.globalCompositeOperation='source-over';}
-        if(!state.smell){target.fillStyle=`rgba(157,157,150,${.023+.004*Math.sin(time*.13)})`;target.fillRect(x,y,w,h);}
-        else{
-          if(state.sight){
-            target.fillStyle='rgba(19,22,15,.03)';
-            for(let i=0;i<3;i++){target.beginPath();target.ellipse(x+w*(.15+i*.06+Math.sin(time*.23+i)*.01),y+h*(.67+i*.045),w*.065,h*.018,-.15,0,Math.PI*2);target.fill();}
-          }
-          target.fillStyle='rgba(234,226,199,.16)';
-          for(let i=0;i<7;i++){const px=.04+((i*.173+Math.sin(time*.08+i)*.016+1)%1)*.52,py=.24+((i*.231-time*.007+100)%1)*.55;target.beginPath();target.ellipse(x+px*w,y+py*h,w*.002,h*.001,-.4,0,Math.PI*2);target.fill();}
-        }
-        target.restore();
-      };
-      draw(ctx,this.old,from);
-      layer.clearRect(0,0,this.width,this.height);
-      if(mixAll>=0||radius+feather*.5>0){
-        draw(layer,this.next,to);
-        if(mixAll<0){
-          const mask=layer.createRadialGradient(origin.x,origin.y,Math.max(0,radius-feather*.5),origin.x,origin.y,Math.max(.01,radius+feather*.5));
-          mask.addColorStop(0,'#fff');mask.addColorStop(1,'#fff0');
-          layer.globalCompositeOperation='destination-in';layer.fillStyle=mask;layer.fillRect(0,0,this.width,this.height);layer.globalCompositeOperation='source-over';
-        }
-        ctx.save();if(mixAll>=0)ctx.globalAlpha=mixAll;ctx.drawImage(this.layer,0,0,this.width,this.height);ctx.restore();
-      }
-    }
-  }
-  dispose(){
-    if(this.gl){
-      this.textures?.forEach(t=>this.gl.deleteTexture(t));
-      if(this.buffer)this.gl.deleteBuffer(this.buffer);if(this.program)this.gl.deleteProgram(this.program);
-      this.gl.getExtension('WEBGL_lose_context')?.loseContext();
-    }
-    this.old=null;this.next=null;
-    if(this.layer){this.layer.width=1;this.layer.height=1;this.layer=null;this.layerCtx=null;}
-  }
-}
-
-export async function mountExperience({dialog,signal,assetBase,onClose,forceCanvas=false}) {
-  let disposed=false,frameID=0,timerID=0,images=null,renderer=null,audio=null;
-  let audioReady=false,audioPending=false,motionPaused=false,hasBegun=false;
-  let ambientTime=0,lastFrameTime=0,drawCount=0;
+export async function mountExperience({dialog,signal,assetBase,onClose}) {
+  let disposed=false,renderer=null,audio=null,audioReady=false,audioPending=false,motionPaused=false,hasBegun=false;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const initial={sight:true,sound:false,smell:true,touch:true,taste:true};
-  const requested={...initial};const queue=new TransitionQueue(initial);
-  const scope=new AbortController();
+  const requested={...initial},queue=new TransitionQueue(initial),scope=new AbortController();
   const listen=(el,event,fn,options={})=>el.addEventListener(event,fn,{...options,signal:scope.signal});
-  const readyImages=await Promise.allSettled([
-    imageAsset(assetURL('surgery-warm.webp',assetBase),signal),
-    imageAsset(assetURL('surgery-clinical.webp',assetBase),signal),
-    imageAsset(assetURL('surgery-objects.webp',assetBase),signal)
-  ]);
-  if(signal.aborted||readyImages.some(r=>r.status==='rejected')){
-    readyImages.forEach(r=>{if(r.status==='fulfilled')r.value.close?.();});
+  const loaded=await Promise.allSettled(['surgery-warm.webp','surgery-clinical.webp','surgery-objects.webp'].map(name=>imageAsset(assetURL(name,assetBase),signal)));
+  if(signal.aborted||loaded.some(r=>r.status==='rejected')){
+    loaded.forEach(r=>{if(r.status==='fulfilled')r.value.close?.();});
     throw new Error(signal.aborted?'Closed':'The photograph could not load. Please try again.');
   }
-  images={warm:readyImages[0].value,clinical:readyImages[1].value,objects:readyImages[2].value};
-  dialog.classList.add('tdb-senses');
-  dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';
-  dialog.innerHTML=`<div class="tdb-senses-stage"><canvas class="tdb-senses-canvas" aria-hidden="true"></canvas></div>
-    <div class="tdb-senses-shade" aria-hidden="true"></div>
-    <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div>
-    <div class="tdb-senses-utilities"><button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
+  const images={warm:loaded[0].value,clinical:loaded[1].value,objects:loaded[2].value};
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.2.0';
+  dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
+    <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
+    <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
     <button type="button" class="tdb-senses-close" aria-label="Close experience">${svg('<path d="m9 9 14 14M23 9 9 23"/>')}</button></div></header>
     <h2 id="tdb-senses-title" class="tdb-senses-title">Every sense,<br>considered.</h2>
     <p id="tdb-senses-description" class="tdb-senses-sr">Explore the Surgery. Each control switches one considered detail on or off. Sound starts only when you activate Begin. Sound off plays the conventional soundscape. Close stops all audio. Escape closes the experience.</p>
@@ -352,134 +148,82 @@ export async function mountExperience({dialog,signal,assetBase,onClose,forceCanv
     <p class="tdb-senses-message" aria-live="polite"></p><p class="tdb-senses-sr tdb-senses-announcement" aria-live="polite"></p>`;
   dialog.setAttribute('aria-labelledby','tdb-senses-title');dialog.setAttribute('aria-describedby','tdb-senses-description');
   const controls=Array.from(dialog.querySelectorAll('[data-sense]'));
-  const announcement=dialog.querySelector('.tdb-senses-announcement');
-  const message=dialog.querySelector('.tdb-senses-message');
-  const motion=dialog.querySelector('.tdb-senses-motion');
-  renderer=new Renderer(dialog.querySelector('canvas'),forceCanvas);
-  renderer.resize();
-  let currentSurface=compose(images,initial),nextSurface=currentSurface;
-  renderer.images(currentSurface,nextSurface);
+  const announcement=dialog.querySelector('.tdb-senses-announcement'),message=dialog.querySelector('.tdb-senses-message'),motion=dialog.querySelector('.tdb-senses-motion');
+  const stage=dialog.querySelector('.tdb-senses-stage');
+  renderer=new SceneRenderer(stage,images,stats=>{dialog.dataset.sceneBuilds=String(stats.builds);dialog.dataset.lastBuildMs=String(stats.buildMs);});
+  renderer.render(initial);
   const createAudio=()=>new Soundscape(assetBase,signal,state=>{dialog.dataset.audioState=state;});
   audio=createAudio();audio.prefetch().catch(()=>{});
 
   function updateControls(){
     controls.forEach((button,i)=>{
-      const sense=SENSES[i],value=!!requested[sense];
-      button.setAttribute('aria-pressed',String(value));
+      const sense=SENSES[i],value=!!requested[sense];button.setAttribute('aria-pressed',String(value));
       button.dataset.state=sense==='sound'&&!audioReady?'pending':value?'on':'off';
       button.querySelector('.tdb-senses-value').textContent=sense==='sound'&&!audioReady?'':value?'ON':'OFF';
-      if(sense==='sound'){
-        button.setAttribute('aria-label',audioReady?'Sound':'Begin sound experience');
-        button.setAttribute('aria-busy',String(audioPending));
-      }
+      if(sense==='sound'){button.setAttribute('aria-label',audioReady?'Sound':'Begin sound experience');button.setAttribute('aria-busy',String(audioPending));}
     });
-    dialog.classList.toggle('tdb-senses-awaiting-sound',!audioReady);
-    dialog.classList.toggle('tdb-senses-has-begun',hasBegun);
-    motion.hidden=reduced.matches;
-    motion.setAttribute('aria-pressed',String(motionPaused));
-    motion.setAttribute('aria-label',motionPaused?'Resume ambient motion':'Pause ambient motion');
+    dialog.classList.toggle('tdb-senses-awaiting-sound',!audioReady);dialog.classList.toggle('tdb-senses-has-begun',hasBegun);
+    motion.hidden=reduced.matches;motion.setAttribute('aria-pressed',String(motionPaused));motion.setAttribute('aria-label',motionPaused?'Resume ambient motion':'Pause ambient motion');
     motion.innerHTML=svg(motionPaused?'<path d="m12 8 13 8-13 8V8Z"/>':'<path d="M12 9v14M20 9v14"/>');
-  }
-  function cancelFrame(){cancelAnimationFrame(frameID);clearTimeout(timerID);frameID=0;timerID=0;}
-  function schedule(){
-    if(disposed||document.hidden||frameID||timerID)return;
-    frameID=requestAnimationFrame(frame);
+    renderer.motion(motionPaused||reduced.matches||document.hidden);
   }
   function begin(active){
-    if(!active)return;
-    active.started=performance.now();
-    nextSurface=compose(images,active.state);
-    renderer.images(currentSurface,nextSurface);
-    dialog.dataset.phase='transition';
+    if(!active||disposed)return;
+    const duration=reduced.matches?180:DURATION;
+    dialog.dataset.phase='transition';dialog.dataset.transitionProgress='0';dialog.dataset.transitionStarted=String(Math.round(performance.now()));
     if(audioReady&&(active.intro||active.from.sound!==active.state.sound))audio.transition(active.state.sound,active.intro);
-    cancelFrame();schedule();
-  }
-  function frame(now){
-    frameID=0;timerID=0;if(disposed||document.hidden)return;
-    if(lastFrameTime&&!motionPaused&&!reduced.matches)ambientTime+=Math.min(now-lastFrameTime,100)/1000;
-    lastFrameTime=now;
-    const active=queue.active;
-    const progress=active?Math.min(1,(now-active.started)/(reduced.matches?180:DURATION)):1;
-    // Gentle acceleration and settlement, not the abrupt ease-out of a ripple.
-    const eased=progress*progress*(3-2*progress);
-    const origin=active?.origin||{x:renderer.width/2,y:renderer.height};
-    const maxRadius=Math.max(...[[0,0],[renderer.width,0],[0,renderer.height],[renderer.width,renderer.height]].map(([x,y])=>Math.hypot(x-origin.x,y-origin.y)))+32;
-    renderer.frame({from:active?.from||queue.visible,to:active?.state||queue.visible,origin,
-      radius:-24+eased*(maxRadius+24),feather:Math.max(18,Math.min(renderer.width,renderer.height)*.045),
-      mixAll:!active?1:reduced.matches?progress:-1,time:ambientTime});
-    drawCount++;dialog.dataset.transitionProgress=progress.toFixed(2);dialog.dataset.frames=String(drawCount);
-    if(active&&progress>=1){
-      currentSurface=nextSurface;
-      const pending=queue.finish();
-      renderer.images(currentSurface,currentSurface);
-      dialog.dataset.phase='ready';
-      if(pending){begin(pending);return;}
-    }
-    if(queue.active)schedule();
-    else if(!motionPaused&&!reduced.matches){timerID=setTimeout(()=>{timerID=0;schedule();},42);}
+    const started=performance.now();
+    renderer.reveal(active.state,active.origin,{duration,reduced:reduced.matches,onProgress:p=>{dialog.dataset.transitionProgress=String(p);}}).then(complete=>{
+      if(!complete||disposed||signal.aborted||queue.active!==active)return;
+      dialog.dataset.lastTransitionMs=String(Math.round(performance.now()-started));
+      const pending=queue.finish();dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
+      dialog.dataset.visibleState=JSON.stringify(queue.visible);
+      if(pending)begin(pending);
+    });
   }
   function activate(sense,button,intro=false){
-    const rect=button.querySelector('.tdb-senses-circle').getBoundingClientRect();
-    const bounds=renderer.canvas.getBoundingClientRect();
+    const rect=button.querySelector('.tdb-senses-circle').getBoundingClientRect(),bounds=stage.getBoundingClientRect();
     const origin={x:rect.left+rect.width/2-bounds.left,y:rect.top+rect.height/2-bounds.top};
-    begin(queue.request(requested,origin,intro));
-    updateControls();
+    hasBegun=true;updateControls();begin(queue.request(requested,origin,intro));
     announcement.textContent=`${LABELS[SENSES.indexOf(sense)]} ${requested[sense]?'on':'off'}.`;
   }
   controls.forEach((button,i)=>listen(button,'click',async()=>{
     const sense=SENSES[i];message.textContent='';
     if(sense==='sound'&&!audioReady){
-      if(audioPending)return;
-      audioPending=true;updateControls();
-      const attempt=audio;
+      if(audioPending)return;audioPending=true;updateControls();const attempt=audio;
       try{
         await attempt.unlock();if(disposed||signal.aborted||audio!==attempt)return;
-        audioReady=true;hasBegun=true;requested.sound=true;
-        activate('sound',button,true);
+        audioReady=true;requested.sound=true;activate('sound',button,true);
       }catch(error){
         if(disposed||signal.aborted||audio!==attempt)return;
-        audio.stop();audio=createAudio();
-        audioPending=false;
-        message.textContent='Sound could not start. Tap BEGIN to try again.';
-        dialog.dataset.audioState='uninitiated';
-      }finally{if(audio===attempt){audioPending=false;if(!disposed)updateControls();}}
+        audio.stop();audio=createAudio();audioPending=false;message.textContent='Sound could not start. Tap BEGIN to try again.';dialog.dataset.audioState='uninitiated';
+      }finally{if(audio===attempt)audioPending=false;if(!disposed)updateControls();}
       return;
     }
     requested[sense]=!requested[sense];activate(sense,button);
   }));
   listen(dialog.querySelector('.tdb-senses-close'),'click',onClose);
-  listen(motion,'click',()=>{motionPaused=!motionPaused;updateControls();cancelFrame();schedule();});
+  listen(motion,'click',()=>{motionPaused=!motionPaused;updateControls();});
   listen(dialog,'keydown',event=>{
     if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)||!event.target.closest('[data-sense]'))return;
     event.preventDefault();const current=controls.indexOf(event.target.closest('[data-sense]'));
-    const next=event.key==='Home'?0:event.key==='End'?4:(current+(event.key==='ArrowRight'?1:4))%5;controls[next].focus();
+    controls[event.key==='Home'?0:event.key==='End'?4:(current+(event.key==='ArrowRight'?1:4))%5].focus();
   });
-  const resize=new ResizeObserver(()=>{if(disposed)return;renderer.resize();schedule();});resize.observe(dialog);
-  listen(renderer.canvas,'webglcontextlost',event=>{
-    event.preventDefault();if(disposed)return;
-    const replacement=renderer.canvas.cloneNode();renderer.canvas.replaceWith(replacement);
-    renderer=new Renderer(replacement,true);renderer.resize();renderer.images(currentSurface,nextSurface);
-    cancelFrame();schedule();
-  });
-  listen(reduced,'change',()=>{updateControls();cancelFrame();schedule();});
+  const resize=new ResizeObserver(()=>{if(!disposed)renderer.resize();});resize.observe(stage);
+  listen(reduced,'change',()=>{renderer.finish();updateControls();});
   listen(document,'visibilitychange',()=>{
-    cancelFrame();lastFrameTime=0;
     if(document.hidden){
       audio.stop();audio=createAudio();audioReady=false;audioPending=false;requested.sound=false;
-      queue.cancel();queue.visible={...requested};
-      currentSurface=compose(images,requested);nextSurface=currentSurface;renderer.images(currentSurface,currentSurface);
-      dialog.dataset.audioState='uninitiated';dialog.dataset.phase='ready';updateControls();
-    }else schedule();
+      queue.cancel();queue.visible={...requested};renderer.render(requested);dialog.dataset.audioState='uninitiated';dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
+    }
+    updateControls();
   });
   const cleanup=()=>{
-    if(disposed)return;disposed=true;cancelFrame();queue.cancel();audio.stop();scope.abort();resize.disconnect();renderer.dispose();
-    Object.values(images).forEach(image=>image.close?.());currentSurface=null;nextSurface=null;images=null;
+    if(disposed)return;disposed=true;queue.cancel();audio.stop();scope.abort();resize.disconnect();renderer.destroy();Object.values(images).forEach(image=>image.close?.());
   };
   signal.addEventListener('abort',cleanup,{once:true});
-  updateControls();frame(performance.now());
+  dialog.dataset.visibleState=JSON.stringify(initial);updateControls();
   await new Promise(resolve=>requestAnimationFrame(resolve));
   if(signal.aborted){cleanup();return;}
-  dialog.classList.add('tdb-senses-ready');
-  controls[1].focus({preventScroll:true});
-  return {cleanup};
+  dialog.classList.add('tdb-senses-ready');controls[1].focus({preventScroll:true});return{cleanup};
 }
