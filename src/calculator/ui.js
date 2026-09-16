@@ -204,10 +204,13 @@
   function start(){
     document.querySelectorAll('[data-tdb-calculator="inline"]').forEach(root=>{if(root.hasAttribute('data-tdb-calc-ready'))return;root.setAttribute('data-tdb-calc-ready','true');
       // Keep the compact estimate below the site's existing announcement bar.
-      // Observe the existing embed before its asynchronous widget adds classes/height.
-      const banner=document.querySelector('.eapps-countdown-timer-position-bar,.elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb');
-      const inset=()=>root.style.setProperty('--calc-sticky-top',Math.max(68,Math.ceil(banner?.getBoundingClientRect().height||0)+8)+'px');
-      inset();if(banner&&'ResizeObserver'in window)new ResizeObserver(inset).observe(banner);
+      // Elfsight renders a fixed bar outside its zero-height placeholder.
+      // Watch briefly for that bar, then keep only a size observer on it.
+      let pendingBanner=null;
+      const connectBanner=()=>{const banner=document.querySelector('.eapps-countdown-timer-position-bar');if(!banner)return false;
+        pendingBanner?.disconnect();const inset=()=>root.style.setProperty('--calc-sticky-top',Math.max(88,Math.ceil(banner.getBoundingClientRect().height)+8)+'px');
+        inset();if('ResizeObserver'in window)new ResizeObserver(inset).observe(banner);return true;};
+      if(!connectBanner()&&'MutationObserver'in window){pendingBanner=new MutationObserver(connectBanner);pendingBanner.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});setTimeout(()=>pendingBanner.disconnect(),15000);}
       new View(root,configFrom(root),'inline').init();});
     document.addEventListener('click',event=>{const a=event.target.closest(SELECTOR);if(!a||event.defaultPrevented||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button>0)return;event.preventDefault();open(a);});
   }
