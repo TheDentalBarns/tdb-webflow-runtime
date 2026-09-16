@@ -28,20 +28,14 @@ function coldLighting(ctx){
   ctx.drawImage(ctx.canvas,0,0);ctx.restore();
   ctx.save();ctx.globalCompositeOperation='color';ctx.fillStyle='rgba(134,169,208,.23)';ctx.fillRect(0,0,PHOTO_WIDTH,PHOTO_HEIGHT);ctx.restore();
 
-  // Hard, static window-frame shadows across the exposed floor.
-  ctx.save();ctx.beginPath();ctx.moveTo(0,653);ctx.lineTo(384,566);ctx.lineTo(425,854);ctx.lineTo(220,1210);ctx.lineTo(0,1435);ctx.closePath();ctx.clip();
-  ctx.fillStyle='rgba(19,30,42,.19)';
-  ctx.beginPath();ctx.moveTo(89,615);ctx.lineTo(108,610);ctx.lineTo(401,1398);ctx.lineTo(370,1415);ctx.closePath();ctx.fill();
-  ctx.beginPath();ctx.moveTo(0,970);ctx.lineTo(0,955);ctx.lineTo(469,833);ctx.lineTo(477,854);ctx.closePath();ctx.fill();ctx.restore();
-
   // A clinical white LED directly beneath the registered front worktop lip.
   // Its narrow core, bloom and downward spill share the counter's perspective.
   const start={x:373,y:239},end={x:1085,y:287};
   ctx.save();ctx.beginPath();ctx.moveTo(start.x,start.y);ctx.lineTo(end.x,end.y);ctx.lineTo(end.x,445);ctx.lineTo(start.x,383);ctx.closePath();ctx.clip();
-  const spill=ctx.createLinearGradient(0,240,0,425);spill.addColorStop(0,'rgba(198,222,249,.43)');spill.addColorStop(.3,'rgba(198,222,249,.17)');spill.addColorStop(1,'rgba(198,222,249,0)');
+  const spill=ctx.createLinearGradient(0,240,0,425);spill.addColorStop(0,'rgba(168,212,253,.56)');spill.addColorStop(.3,'rgba(181,220,254,.26)');spill.addColorStop(1,'rgba(198,222,249,0)');
   ctx.globalCompositeOperation='screen';ctx.fillStyle=spill;ctx.fillRect(365,235,725,215);ctx.restore();
   ctx.save();ctx.globalCompositeOperation='screen';ctx.lineCap='butt';
-  for(const [width,blur,colour] of [[15,27,'rgba(157,196,240,.40)'],[7,12,'rgba(200,226,253,.78)'],[2.7,3,'rgba(247,253,255,.98)']]){
+  for(const [width,blur,colour] of [[28,64,'rgba(115,179,248,.40)'],[17,37,'rgba(164,215,255,.66)'],[8,15,'rgba(213,240,255,.90)'],[3.2,4,'rgba(250,254,255,1)']]){
     ctx.strokeStyle=colour;ctx.lineWidth=width;ctx.shadowBlur=blur;ctx.shadowColor=colour;
     ctx.beginPath();ctx.moveTo(start.x,start.y);ctx.lineTo(end.x,end.y);ctx.stroke();
   }
@@ -49,12 +43,12 @@ function coldLighting(ctx){
   // The second strip sits above the sink on the actual rear upstand edge.
   // Both fittings stay registered with the photograph when the viewport crops.
   ctx.save();ctx.globalCompositeOperation='screen';ctx.lineCap='butt';
-  for(const [width,blur,colour] of [[18,30,'rgba(165,208,249,.40)'],[6,11,'rgba(211,237,255,.86)'],[2.5,2,'rgba(249,254,255,1)']]){
+  for(const [width,blur,colour] of [[31,66,'rgba(115,183,252,.43)'],[20,38,'rgba(174,222,255,.66)'],[8,16,'rgba(219,243,255,.92)'],[3,4,'rgba(252,255,255,1)']]){
     ctx.strokeStyle=colour;ctx.lineWidth=width;ctx.shadowBlur=blur;ctx.shadowColor=colour;
     ctx.beginPath();ctx.moveTo(508,31);ctx.lineTo(1086,50);ctx.stroke();
   }
   const glare=ctx.createRadialGradient(700,105,4,700,105,215);
-  glare.addColorStop(0,'rgba(215,235,255,.23)');glare.addColorStop(1,'rgba(215,235,255,0)');
+  glare.addColorStop(0,'rgba(178,220,255,.35)');glare.addColorStop(1,'rgba(178,220,255,0)');
   ctx.fillStyle=glare;ctx.fillRect(475,30,450,235);ctx.restore();
 }
 
@@ -90,15 +84,20 @@ function chairColour(ctx,state){
 function chairGlare(touch){
   const canvas=document.createElement('canvas');canvas.width=543;canvas.height=724;
   const ctx=canvas.getContext('2d');ctx.scale(.5,.5);
-  function reflection(x,y,rx,ry,angle,alpha){
+  function reflection(x,y,rx,ry,angle,alpha,colour='219,241,255'){
     ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.scale(rx,ry);
-    const g=ctx.createRadialGradient(0,0,.08,0,0,1);
-    g.addColorStop(0,`rgba(233,245,255,${alpha})`);g.addColorStop(.32,`rgba(211,235,255,${alpha*.45})`);g.addColorStop(1,'rgba(211,235,255,0)');
+    const g=ctx.createRadialGradient(0,0,.05,0,0,1);
+    g.addColorStop(0,`rgba(${colour},${alpha})`);g.addColorStop(.35,`rgba(${colour},${alpha*.48})`);g.addColorStop(1,`rgba(${colour},0)`);
     ctx.fillStyle=g;ctx.fillRect(-1,-1,2,2);ctx.restore();
   }
-  reflection(876,406,32,62,.32,.40);
-  reflection(touch?854:940,touch?859:794,38,151,.29,.31);
-  reflection(621,1198,122,17,.19,.22);
+  // Blue light scatters beyond the headrest edge; a smaller white-blue reflection
+  // keeps the glare attached to the upholstery. The halo is intentionally visible.
+  reflection(827,362,137,126,.22,.42,'93,168,250');
+  reflection(784,355,67,96,.38,.55,'146,204,255');
+  reflection(773,346,24,54,.42,.68,'232,248,255');
+  reflection(876,406,40,71,.32,.48);
+  reflection(touch?854:940,touch?859:794,38,151,.29,.25);
+  reflection(621,1198,122,17,.19,.19);
   canvas.className='tdb-senses-chair-glare';canvas.setAttribute('aria-hidden','true');return canvas;
 }
 
@@ -116,31 +115,6 @@ function makeSurface(images,state){
   return canvas;
 }
 
-function leafShadows(images,state){
-  // A soft-edged photographic foliage sample avoids a synthetic leaf stencil.
-  const foliage=document.createElement('canvas');foliage.width=585;foliage.height=540;
-  const f=foliage.getContext('2d');f.drawImage(images.objects,0,211,585,540,0,0,585,540);
-  f.globalCompositeOperation='destination-in';
-  const fade=f.createLinearGradient(0,180,0,530);fade.addColorStop(0,'#000');fade.addColorStop(.7,'#0007');fade.addColorStop(1,'#0000');f.fillStyle=fade;f.fillRect(0,0,585,540);
-  const canvas=document.createElement('canvas');canvas.width=543;canvas.height=724;
-  const ctx=canvas.getContext('2d');ctx.scale(.5,.5);
-  ctx.save();ctx.beginPath();
-  ctx.moveTo(374,245);ctx.lineTo(1086,290);ctx.lineTo(1086,748);ctx.lineTo(376,689);ctx.closePath();
-  ctx.moveTo(0,666);ctx.lineTo(379,581);ctx.lineTo(423,862);ctx.lineTo(290,1100);ctx.lineTo(103,1398);ctx.lineTo(0,1431);ctx.closePath();ctx.clip();
-  ctx.filter=`blur(${state.sight?5:1}px)`;
-  ctx.save();ctx.transform(.76,.2,-.30,.59,331,275);ctx.drawImage(foliage,0,0);ctx.restore();
-  ctx.save();ctx.transform(.73,-.36,.08,.92,-140,829);ctx.drawImage(foliage,0,0);ctx.restore();ctx.restore();
-  ctx.globalCompositeOperation='source-in';ctx.fillStyle='#11180f';ctx.fillRect(0,0,PHOTO_WIDTH,PHOTO_HEIGHT);
-  // Shadows fall on the room surfaces behind the actual chair silhouette.
-  ctx.globalCompositeOperation='destination-out';ctx.fillStyle='#000';
-  const chair=state.touch?
-    'M428 787Q454 681 544 571Q631 463 695 483Q819 544 930 516Q1005 500 1044 566L1086 727V922Q1022 1010 873 1051Q719 1089 581 1010Q418 929 428 787Z':
-    'M432 789Q447 696 541 579Q620 475 704 493Q843 530 927 518Q1018 507 1050 612L1086 745V945Q1013 1028 903 1060Q750 1072 601 1008Q419 918 432 789Z';
-  ctx.fill(new Path2D(chair));
-  ctx.fill(new Path2D('M718 371Q739 301 820 302Q939 297 953 360Q976 457 922 480Q822 504 754 470Q709 444 718 371Z'));
-  foliage.width=1;foliage.height=1;
-  canvas.className=`tdb-senses-leaf-shadows ${state.sight?'is-warm':'is-cold'}`;canvas.setAttribute('aria-hidden','true');return canvas;
-}
 
 export class SceneRenderer{
   constructor(stage,images,report){
@@ -153,7 +127,6 @@ export class SceneRenderer{
     if(this.cache.has(key)){const scene=this.cache.get(key);this.cache.delete(key);this.cache.set(key,scene);return scene;}
     const started=performance.now(),node=document.createElement('div');node.className='tdb-senses-scene';node.dataset.state=key;node.dataset.sight=state.sight?'warm':'cold';
     const photo=document.createElement('div');photo.className='tdb-senses-photo';photo.append(makeSurface(this.images,state));
-    photo.append(leafShadows(this.images,state));
     if(!state.sight)photo.append(chairGlare(state.touch));
     if(state.smell){const motes=document.createElement('div');motes.className='tdb-senses-motes';motes.innerHTML=[0,1,2,3,4,5,6].map(i=>`<i style="left:${6+i*7.1}%;top:${28+(i*11)%49}%;animation-delay:${-i*2.8}s"></i>`).join('');photo.append(motes);}
     node.append(photo);const scene={node,photo,state:{...state}};this.cache.set(key,scene);this.builds++;
@@ -235,11 +208,12 @@ export class SceneRenderer{
   }
 }
 
-/* TDB Five Senses v0.3.0 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.4.0 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
-const DURATION = 1600;
+const DURATION = 1200;
+const OFF_DURATION = 800;
 const SENSES = ['sight', 'sound', 'smell', 'touch', 'taste'];
 const LABELS = ['Sight', 'Sound', 'Smell', 'Touch', 'Taste'];
 const assetURL=(name,base)=>typeof base==='string'?new URL(name,base):base[name];
@@ -372,7 +346,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     throw new Error(signal.aborted?'Closed':'The photograph could not load. Please try again.');
   }
   const images={warm:loaded[0].value,clinical:loaded[1].value,objects:loaded[2].value};
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.3.0';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.4.0';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -404,8 +378,8 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   }
   function begin(active){
     if(!active||disposed)return;
-    const duration=reduced.matches?180:DURATION;
     const reverse=active.from.sight&&!active.state.sight;
+    const duration=reduced.matches?180:reverse?OFF_DURATION:DURATION;
     dialog.dataset.transitionDirection=reverse?'contract':'expand';
     dialog.dataset.phase='transition';dialog.dataset.transitionProgress='0';dialog.dataset.transitionStarted=String(Math.round(performance.now()));
     if(audioReady&&(active.intro||active.from.sound!==active.state.sound))audio.transition(active.state.sound,active.intro);

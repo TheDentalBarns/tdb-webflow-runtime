@@ -22,19 +22,19 @@ The images are AI-assisted photographic prototype assets. Structural registratio
 
 | Control | Owned state |
 | --- | --- |
-| Sight | Lighting, shadow softness/movement and chair upholstery colour. ON gives the existing chair shape a warm pearlised mica treatment; OFF gives blue upholstery, brighter clinical light, LED glare above and below the worktop, hard static shadows and a faint pulsing chair reflection. |
+| Sight | Lighting, shadow softness/movement and chair upholstery colour. ON gives the existing chair shape a warm pearlised mica treatment; OFF gives blue upholstery, brighter clinical light, broad harsh LED bloom above and below the worktop, and a prominent blue headrest haze with a slight pulse. All added window/leaf shadow effects have been removed for the cold-light review. |
 | Sound | Uninitiated → calm TDB-inspired audio, then calm/clinical toggle; headphones appear with the calm state |
 | Smell | Plant and faint botanical motes versus a very slight atmospheric veil |
 | Touch | Chair shape and physical materials: premium chair, warm cabinetry and parquet versus a conventional chair, pale cabinetry, speckled lino and a yellow sharps bin. Upholstery colour belongs to Sight. |
 | Taste | An Aesop-style mouthwash bottle on the rear worktop |
 
-Revision 0.3 starts all five states OFF. Sound remains uninitiated and silent until a deliberate Sound gesture. Sight receives initial keyboard focus for this lighting review.
+Revision 0.4 starts all five states OFF. Sound remains uninitiated and silent until a deliberate Sound gesture. Sight receives initial keyboard focus for this lighting review.
 
-The renderer prepares the requested photograph once on a fixed 1086 × 1448 canvas and caches up to four complete scenes. Chair recolouring, clinical grading and static glare are baked during preparation, never during the reveal. A native CSS radial mask reveals the actual warm photograph from the Sight button over 1600ms. Turning Sight OFF places the cold photograph underneath and shrinks the outgoing warm photograph from the furthest viewport corner back into the button. Both photographs use the same cover rectangle. The opaque mask edge travels past every corner, and completion explicitly leaves one unmasked scene.
+The renderer prepares the requested photograph once on a fixed 1086 × 1448 canvas and caches up to four complete scenes. Chair recolouring, clinical grading and static glare are baked during preparation, never during the reveal. A native CSS radial mask reveals the actual warm photograph from the Sight button over 1200ms. Turning Sight OFF places the cold photograph underneath and shrinks the outgoing warm photograph from the furthest viewport corner back into the button over 800ms. Both photographs use the same cover rectangle. The opaque mask edge travels past every corner, and completion explicitly leaves one unmasked scene.
 
-Only the radius is updated by requestAnimationFrame during the 1.6-second reveal. No idle JavaScript rendering loop, repeated full-resolution filters, WebGL context, or live SVG blur is required. Photographic foliage alpha from the existing atlas supplies prepared half-resolution shadows: soft and gently moving when warm, harder and static when cold. A separate half-resolution reflection layer pulses very slightly on the cold chair using opacity only. Ambient motion is CSS driven. The cached warm/cold scenes are reused on repeated toggles.
+Only the radius is updated by requestAnimationFrame during the 1.2-second ON / 0.8-second OFF reveal. No idle JavaScript rendering loop, repeated full-resolution filters, WebGL context, or live SVG blur is required. The latest review removes every custom window-frame and foliage shadow layer. Ordinary shadows already in the photograph remain. Cold LED glare is baked once; a half-resolution headrest haze/reflection layer pulses slightly using opacity only. No extra image download is needed. The cached warm/cold scenes are reused on repeated toggles.
 
-Multiple rapid inputs preserve the active transition and coalesce into one latest pending state. Resize settles the active transition. Reduced motion uses a 180ms dissolve and disables shadows/motes/reflection animation. The pause control also stops the chair reflection and natural shadow movement.
+Multiple rapid inputs preserve the active transition and coalesce into one latest pending state. Resize settles the active transition. Reduced motion uses a 180ms dissolve and disables motes/reflection animation. The pause control also stops the chair reflection.
 
 ## Asset provenance and size
 
