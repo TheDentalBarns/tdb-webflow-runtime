@@ -74,12 +74,12 @@ A contextual trigger uses its preselection on an empty estimate. If an estimate 
 - Every cosmetic selection calls out gum health. Existing FAQ policy makes hygiene conditional on clinical need; outside aligners the user may explicitly add its allowance. Additional periodontal care is unpriced.
 - Restorative stages precede cosmetic stages. Aligners precede whitening, then final bonding/veneers. Whitening contains three weeks plus two settling weeks. The assessment lead-in is fourteen days. Durations come from the user-supplied brief and remain illustrative.
 - Extractions, gumline bonding and additional hygiene have unconfirmed timing. Crowns/onlays combined with aligners/whitening need a clinical sequencing decision. These combinations show stages but withhold precise finish/assessment dates.
-- Aligner timing uses 10–18 calendar months, not a fixed number of weeks. Dates preserve month-end/leap-year behaviour. Changing the assessment slider preserves the target and updates the projected finish. No diary availability is claimed.
+- Aligner timing uses 10–18 calendar months, not a fixed number of weeks. Dates preserve month-end/leap-year behaviour. The target initially uses the earliest estimated finish from an assessment today. The adjacent slider moves the assessment and every stage later; longer treatment ranges remain visible. A manually chosen date is converted to a non-past assessment date. Attempts to move before the earliest finish show the deadline message. No diary availability is claimed.
 - Tooth counts change price, not duration. Final scheduling may combine visits or require additional visits.
 
 ## Finance illustration
 
-The practice requested 0% illustrations over 3–12 months, with at least £250 financed after the upfront payment. The minimum upfront payment is the current CMS Signature Assessment price (£450 at this release); it is included once in the estimate. The separate £225 appointment booking deposit remains part of that assessment, never an extra charge. The deposit slider is capped so the lower guide price retains at least £250 borrowing. Below that threshold the calculator explains why an illustration is unavailable. Integer-pence calculations adjust the final payment to reconcile exactly. Finance is enabled on the pilot and entry component; its existing boolean property remains available. This is an illustration, subject to eligibility and lender approval.
+The practice requested 0% illustrations over 3–12 months, with at least £250 financed after the upfront payment. The minimum upfront payment is the current CMS Signature Assessment price (£450 at this release); it is included once in the estimate. The separate £225 appointment booking deposit remains part of that assessment, never an extra charge. The deposit slider is capped so the lower guide price retains at least £250 borrowing. Below that threshold the calculator explains why an illustration is unavailable. The finance panel opens at twelve months, with a slider back to three months and an explicit £0 interest line. Integer-pence calculations adjust the final payment to reconcile exactly. Finance is enabled on the pilot and entry component; its existing boolean property remains available. This is an illustration, subject to eligibility and lender approval.
 
 ## VIP handoff
 
@@ -97,7 +97,7 @@ node tools/build-calculator.cjs FULL_ASSET_COMMIT_SHA
 
 The dependency-free runtime is split into deterministic core, shared view, scoped CSS and demand loader. jsdom is used only by the repository's existing test environment, never shipped. The global footer appends one versioned loader script; all previous runtime pins are retained. Full JS/CSS only load near the inline section or after a drawer trigger. No framework or management API credentials are shipped.
 
-Automated tests cover 24 scenarios across pricing, bundling, restrictions, persistence, context conflicts, VIP handoff, text escaping, finance and date boundaries. See `validation.md` for actual staged-browser evidence and release pins.
+Automated tests cover 28 scenarios across pricing, bundling, restrictions, persistence, context conflicts, VIP handoff, text escaping, finance and date boundaries. See `validation.md` for actual staged-browser evidence and release pins.
 
 ## Rollback
 
@@ -110,10 +110,18 @@ Automated tests cover 24 scenarios across pricing, bundling, restrictions, persi
 
 Code lives on a dedicated feature branch from the current staging runtime base `15144e3414803974be24852368fa4b8a12303d9d`. No existing global bundle is replaced.
 
-## September refinement
+## Current interaction pattern
 
-The initial view contains only the introduction and category choice. A selected category opens treatments; treatment selection adds Step 3 (target date), Signature Assessment, cosmetic hygiene preparation and the estimate. A small assessment-first action remains available after choosing a category. The top estimate includes duration and scrolls to the estimate. Its mobile height is 6rem with a 20px dark glass backdrop.
+The initial view contains the introduction, category choice and a compact dark footer using the existing footer tagline style. A selected category opens treatments; treatment selection adds Step 3 (target date), Signature Assessment, cosmetic hygiene preparation and the estimate. Restart estimate clears choices, collapses the form and returns immediately to its top.
 
-Visual controls use the existing site colour variables, text classes, VIP checkbox and upward-arrow button, original smile slider info SVG, pricing accordion timing and the Smile Gallery filter reveal. The category subheadings follow the existing DD text opacity keyframes. Calculator interaction calls the shared navbar focus controller; the same travel behaviour hides navigation, VIP and the portalled Elfsight bar. Click outside or Escape dismisses information panels.
+The running estimate is fixed to the viewport top while the calculator section is visible. Its mobile height is 6rem, with a 20px dark glass backdrop. Price-tag and clock icons sit beside the values on the second row. The site's down-arrow button scrolls to the full estimate. The drawer includes a close control in this bar.
 
-Friendly complexity choices are enabled for aligners and bonding only and read from the optional CMS fields. Whitening has no expandable controls. The estimate lists assessment, hygiene, restorative items, aligners, whitening and finishing cosmetic work in that order.
+The calculator uses the native padding-global and container-large classes, with orange-3 section rules. Treatment group headings use the same div and text-style-tagline-restored class as the pricing page, together with DD text opacity keyframes. Expansion follows the existing FAQ and price action lists: height changes immediately, content fades over 300ms and moves from -20px to rest over 400ms; the chevron rotates over 400ms. There is no panel-height tween.
+
+Tooltips open from cream circular chevron buttons and use the gallery filter's darker cream at 84% opacity and 20px backdrop blur. Cosmetic quantity guidance explains six front teeth (3–3) and eight (4–4). Outside clicks and Escape close the panels. Friendly complexity choices are enabled for aligners and bonding only, using their CMS fields. There is no guide-range reset link or whitening expansion.
+
+Viewport entry holds the shared navigation focus state without requiring a form interaction. Calculator-specific CSS keeps the navigation, VIP bar and portalled Elfsight bar away even if another runtime attempts to reveal them. They are released when the section leaves view or the calculator hands off to VIP.
+
+The target completion card starts with the shortest estimated duration, including the two-week assessment lead-in. It keeps the longer finish date visible for uncertain ranges, and never implies diary availability. The slider explores up to two years of additional delay; a date input supports direct selection within that interval. A leftward attempt at the minimum opens an inline deadline message. Unknown clinical timing continues to show stages without a fabricated date.
+
+The estimate has a cream total panel and darker breakdown/finance panel. Lines follow assessment, hygiene, restorative care, aligners, whitening and finishing cosmetic work. The native VIP checkbox and upward-arrow CTA are retained.
