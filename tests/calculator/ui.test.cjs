@@ -129,3 +129,21 @@ test('live price changes animate once, respect reduced motion, and retain exact 
  x.w.matchMedia=()=>({matches:true});x.choose('[data-action=plus][data-key=bonding]');assert.equal(animations,1);assert.match(live.textContent,/1,635/);
  }finally{x.dom.window.close();}
 });
+test('scrolling gives neighbouring timeline rows overlapping emphasis while retaining one current stage',async()=>{
+ const x=await setup();try{
+ x.choose('[data-category=cosmetic]');x.choose('[data-select=veneers]');
+ const rows=[...x.root.querySelectorAll('.tdbc-timeline-row')],centre=x.w.innerHeight*.42;
+ let shift=0;
+ rows.forEach((row,i)=>{row.getBoundingClientRect=()=>({top:centre-80+i*80-shift,bottom:centre+i*80-shift,height:80});});
+ const scroll=async()=>{x.w.dispatchEvent(new x.w.Event('scroll'));await new Promise(resolve=>x.w.requestAnimationFrame(resolve));};
+ const opacity=row=>Number(row.style.getPropertyValue('--tdbc-stage-opacity'));
+ await scroll();
+ assert.ok(opacity(rows[0])>.9&&opacity(rows[1])>.9,'two neighbouring stages can be bright together');
+ assert.equal(x.root.querySelectorAll('[aria-current=step]').length,1);
+ const before=opacity(rows[2]);shift=20;await scroll();const after=opacity(rows[2]);
+ assert.ok(after>before&&after<1,'the next row brightens progressively before it becomes current');
+ x.choose('[data-action=stage][data-key=veneers-upper-fit]');await new Promise(resolve=>x.w.requestAnimationFrame(resolve));
+ const last=x.root.querySelector('[data-stage=veneers-upper-fit]');assert.equal(opacity(last),1);
+ await scroll();assert.ok(opacity(last)<1,'scrolling resumes the shared focus band after a tap');
+ }finally{x.dom.window.close();}
+});

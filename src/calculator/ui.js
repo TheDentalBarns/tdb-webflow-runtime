@@ -1,4 +1,4 @@
-/* TDB Treatment Calculator v1.4.0 — shared inline/drawer controller. */
+/* TDB Treatment Calculator v1.4.1 — shared inline/drawer controller. */
 (function () {
   'use strict';
   if(window.TDBCalculator)return;
@@ -136,13 +136,24 @@
     updateTimelineFocus(){
       if(!this.ready||this.mode==='drawer'&&!dialog?.open)return;
       const rows=[...this.root.querySelectorAll('.tdbc-timeline-row')];if(!rows.length)return;
+      const target=innerHeight*.42,top=this.root.querySelector('.tdbc-live')?.offsetHeight||0;
+      const full=Math.max(48,innerHeight*.08),reach=Math.max(180,innerHeight*.32);
+      // Read all positions before writing styles. Each row fades independently,
+      // so neighbouring stages overlap instead of sharing one on/off highlight.
+      const positions=rows.map(row=>{const b=row.getBoundingClientRect();return {row,b,distance:Math.abs(b.top+Math.min(b.height,80)/2-target)};});
       if(!this.timelineManual){
-        const target=innerHeight*.42,top=this.root.querySelector('.tdbc-live')?.offsetHeight||0;
-        const visible=rows.map(row=>({row,b:row.getBoundingClientRect()})).filter(x=>x.b.bottom>top&&x.b.top<innerHeight);
-        visible.sort((a,b)=>Math.abs(a.b.top+Math.min(a.b.height,80)/2-target)-Math.abs(b.b.top+Math.min(b.b.height,80)/2-target));
+        const visible=positions.filter(x=>x.b.bottom>top&&x.b.top<innerHeight);
+        visible.sort((a,b)=>a.distance-b.distance);
         if(visible[0])this.activeStage=visible[0].row.dataset.stage;
       }
-      for(const row of rows){const current=row.dataset.stage===this.activeStage;row.classList.toggle('is-current',current);const button=row.querySelector('.tdbc-stage-toggle');if(current)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');}
+      for(const {row,distance} of positions){
+        const current=row.dataset.stage===this.activeStage;
+        const progress=Math.max(0,Math.min(1,(reach-distance)/(reach-full)));
+        const emphasis=this.timelineManual&&current?1:progress*progress*(3-2*progress);
+        row.style.setProperty('--tdbc-stage-opacity',(.5+.5*emphasis).toFixed(3));
+        row.style.setProperty('--tdbc-stage-emphasis',(emphasis*100).toFixed(1)+'%');
+        row.classList.toggle('is-current',current);const button=row.querySelector('.tdbc-stage-toggle');if(current)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');
+      }
     }
     animateLive(value){
       const changed=this.liveText!==null&&this.liveText!==value;this.liveText=value;
