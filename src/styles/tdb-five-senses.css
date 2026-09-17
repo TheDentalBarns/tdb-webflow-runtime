@@ -117,3 +117,10 @@
 .tdb-senses-all span{height:12px;width:1px;background:currentColor;opacity:.35}
 @media(max-width:600px){.tdb-senses-all{bottom:max(121px,calc(env(safe-area-inset-bottom) + 111px))}.tdb-senses-all button{font-size:9px}}
 @media(max-height:520px) and (min-width:601px){.tdb-senses-all{bottom:105px}}
+
+/* Batch actions appear after the opening reveal; matching targets are subdued. */
+.tdb-senses-all{opacity:0;pointer-events:none;transition:opacity .45s ease}
+.tdb-senses-interactive .tdb-senses-all{opacity:1;pointer-events:auto}
+.tdb-senses-all button{transition:opacity .25s ease}
+.tdb-senses-all button:disabled{opacity:.3}
+@media(prefers-reduced-motion:reduce){.tdb-senses-all,.tdb-senses-all button{transition:none}}

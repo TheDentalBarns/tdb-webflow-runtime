@@ -169,3 +169,8 @@ On a normal Sound ON toggle, road/clinical audio fades to zero in 150ms. Piano/b
 ### Prototype 0.21.0 — complete-experience batch captions
 
 All-sense actions fade out the caption immediately and suppress individual descriptions during the sequence. A global Before/After caption fades in only once the batch timer and every active reveal have finished, including both Sound pulses. The After explains five senses working in harmony; Before describes the functional but clinical experience TDB wanted to move beyond. Individual actions cancel pending batch messaging. Includes second-pulse calm audio and slower Sound-last batches.
+
+
+### Prototype 0.21.1 — calm batch pacing and state-aware actions
+
+Batch controls fade in over 450ms after the opening reveal enables interaction. All on is disabled/subdued when all requested states are on; All off behaves symmetrically. During a batch its own target is disabled while the opposite remains available to reverse pending work. Trigger spacing is now 540ms, 50% longer than 360ms. Sound remains last for All on. Reduced motion omits fades and stagger.

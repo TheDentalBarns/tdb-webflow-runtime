@@ -1,5 +1,5 @@
 import {SceneRenderer} from './scene-renderer.js';
-/* TDB Five Senses v0.21.0 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.21.1 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -144,7 +144,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.21.0';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.21.1';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -179,7 +179,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
       while(remaining.length){const next=remaining.shift();if(requested[next]!==on){sense=next;break;}}
       if(!sense){finishAll();return;}
       requested[sense]=on;activate(sense,controls[SENSES.indexOf(sense)],false,true);
-      if(remaining.length)allTimer=setTimeout(step,reduced.matches?0:360);
+      if(remaining.length)allTimer=setTimeout(step,reduced.matches?0:540);
     };
     step();
   }
@@ -199,7 +199,11 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   audio=createAudio();audio.prefetch().catch(()=>{});
 
   function updateControls(){
-    allButtons.forEach(button=>{button.disabled=!interactionReady;});
+    dialog.classList.toggle('tdb-senses-interactive',interactionReady);
+    allButtons.forEach(button=>{
+      const on=button.dataset.all==='on';
+      button.disabled=!interactionReady||(allTarget!==null?allTarget===on:SENSES.every(sense=>requested[sense]===on));
+    });
     controls.forEach((button,i)=>{
       button.disabled=!interactionReady;
       const sense=SENSES[i],value=!!requested[sense];button.setAttribute('aria-pressed',String(value));
