@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const source=await readFile(new URL('../../src/five-senses/five-senses.js',import.meta.url),'utf8');
-const {SenseTransitions,Soundscape,breezeBuffer}=await import(`data:text/javascript;base64,${Buffer.from(source.replace(/^import .*;\n/,'')).toString('base64')}`);
+const {SenseTransitions,Soundscape}=await import(`data:text/javascript;base64,${Buffer.from(source.replace(/^import .*;\n/,'')).toString('base64')}`);
 const sceneSource=await readFile(new URL('../../src/five-senses/scene-renderer.js',import.meta.url),'utf8');
 const {coverGeometry,revealRadius,SceneRenderer,RippleField,rippleEase}=await import(`data:text/javascript;base64,${Buffer.from(sceneSource).toString('base64')}`);
 for(const [w,h] of [[320,568],[390,844],[412,915],[768,1024],[1363,936],[1920,1080],[2560,1440]]){
@@ -92,24 +92,18 @@ renderer.finish();assert.equal(await reduced,true);
 const closing=renderer.reveal({...initial,taste:false},origin,{sense:'taste',duration:800});renderer.cancel();assert.equal(await closing,false);assert.equal(frames.size,0);assert.equal(renderer.timer,0);
 console.log('Passed: viewport coverage, independent concurrent reveals, stale completion protection, organic easing, continuous reversal, double Sound pulse, reduced motion, idle scheduling and cancellation.');
 
-// Scent is an independent gain: switching Sound must leave its automation intact.
+// Only the two Sound soundscapes are created: Smell has no audio source.
 const gainLog=()=>({value:0,events:[],cancelScheduledValues(){},cancelAndHoldAtTime(t){this.events.push(['hold',t]);},setValueAtTime(v,t){this.events.push(['set',v,t]);},linearRampToValueAtTime(v,t){this.events.push(['ramp',v,t]);},disconnect(){}});
-const independent=new Soundscape('',new AbortController().signal,()=>{});
-independent.context={currentTime:4,close:()=>Promise.resolve()};independent.ready=true;
-independent.gains=[{gain:gainLog(),disconnect(){}},{gain:gainLog(),disconnect(){}}];
-const breezeParam=gainLog();let disconnected=false;
-independent.breezeGain={gain:breezeParam,disconnect(){disconnected=true;}};
-independent.scent(true,1.2);assert.deepEqual(breezeParam.events.at(-1),['ramp',.12,5.2]);
-const before=JSON.stringify(breezeParam.events);independent.transition(false);
-assert.equal(JSON.stringify(breezeParam.events),before,'Sound OFF must not cut out the Scent layer');
-independent.scent(false,.8);assert.deepEqual(breezeParam.events.at(-1),['ramp',0,4.8]);
-independent.stop();assert.ok(disconnected);assert.equal(breezeParam.value,0);assert.equal(independent.breezeGain,null);
-let channels;
-breezeBuffer({createBuffer(n,length,rate){channels=Array.from({length:n},()=>new Float32Array(length));return{getChannelData:i=>channels[i]};}});
-for(const channel of channels){
- assert.ok(channel.every(Number.isFinite));
- const rms=Math.sqrt(channel.reduce((a,v)=>a+v*v,0)/channel.length);
- assert.ok(rms>.01&&rms<.08,'The air layer must stay restrained');
- assert.ok(Math.abs(channel.at(-1)-channel[22050])<.06,'The loop boundary must not introduce a click');
+class ReadyAudioContext extends FakeAudioContext{
+  decodeAudioData(){return Promise.resolve({});}
+  createGain(){return{gain:gainLog(),connect(){},disconnect(){}};}
 }
-console.log('Passed: independent Scent audio, fade targets, immediate cleanup and seamless quiet breeze buffer.');
+window.AudioContext=ReadyAudioContext;
+const playback=new Soundscape('',new AbortController().signal,()=>{});
+playback.prefetch=()=>Promise.resolve([new ArrayBuffer(1),new ArrayBuffer(1)]);
+await playback.unlock();assert.equal(playback.sources.length,2,'Only clinical and calm Sound tracks should be started');
+playback.transition(true,true);assert.deepEqual(playback.gains[1].gain.events.at(-1),['ramp',.85,.775]);
+playback.transition(false);assert.deepEqual(playback.gains[0].gain.events.at(-1),['set',.65,0]);
+assert.deepEqual(playback.gains[1].gain.events.at(-1),['set',0,0]);
+playback.stop();assert.equal(playback.sources.length,0);assert.equal(playback.gains.length,0);assert.equal(playback.context,null);
+console.log('Passed: only two Sound tracks, calm/clinical targets, immediate cleanup and late decode cancellation.');

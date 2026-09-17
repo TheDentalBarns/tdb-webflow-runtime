@@ -351,7 +351,7 @@ vec4 over(vec4 under,vec4 top){return top+under*(1.0-top.a);}
 vec3 ring(vec3 colour,vec2 p,vec4 w){
   if(w.w<=0.0||w.z<=0.0)return colour;
   float d=length(p-w.xy)-w.z;
-  float shadow=(1.0-smoothstep(0.0,30.0,-d))*smoothstep(1.0,5.0,-d)*w.w*.18;
+  float shadow=(1.0-smoothstep(0.0,90.0,-d))*smoothstep(1.0,5.0,-d)*w.w*.18;
   float line=(1.0-smoothstep(.28,1.2,abs(d)))*w.w*.8;
   colour*=1.0-shadow;
   return mix(colour,vec3(.961,.945,.902),line);
