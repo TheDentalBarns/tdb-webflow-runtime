@@ -1,18 +1,18 @@
 import {SceneRenderer} from './scene-renderer.js';
-/* TDB Five Senses v0.8.0 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.9.0 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
-const DURATION = 1200;
-const OFF_DURATION = 800;
+const DURATION = 600;
+const OFF_DURATION = 400;
 const SENSES = ['sight', 'sound', 'smell', 'touch', 'taste'];
 const LABELS = ['Sight', 'Sound', 'Smell', 'Touch', 'Taste'];
 const DETAILS={
  sight:['Harsh clinical lighting and sterile colours.','Warm, high-quality lighting, without the glare.'],
  sound:['The familiar sounds of a clinical surgery.','Gentle birdsong and piano, for a calmer moment.'],
- smell:['A clinical atmosphere.','A fresher feeling, with a touch of nature.'],
+ smell:['A clinical atmosphere.','Fresh greenery and a softly scented candle.'],
  touch:['Cool, clinical surfaces.','Soft upholstery and warm, tactile finishes.'],
- taste:['The usual clinical setting.','A moment to pause, with a comforting drink.']
+ taste:['Clinical dispensers and familiar surgery essentials.','A considered mouthwash ritual, with a more homely feel.']
 };
 const assetURL=(name,base)=>typeof base==='string'?new URL(name,base):base[name];
 const ICONS = [
@@ -26,8 +26,8 @@ const svg = body => `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" 
 
 export class TransitionQueue {
   constructor(initial) { this.visible = { ...initial }; this.active = null; this.pending = null; }
-  request(state, origin, intro = false) {
-    const request = { state: { ...state }, origin, intro: intro || !!(this.pending?.intro && state.sound) };
+  request(state, origin, intro = false, sense = null) {
+    const request = { state: { ...state }, origin, sense, intro: intro || !!(this.pending?.intro && state.sound) };
     if (this.active) { this.pending = request; return null; }
     return this.begin(request);
   }
@@ -43,6 +43,10 @@ export class TransitionQueue {
     return pending ? this.begin(pending) : null;
   }
   cancel() { this.active = null; this.pending = null; }
+}
+
+export function isReverseTransition(active) {
+  return active.sense ? !active.state[active.sense] : SENSES.some(sense => active.from[sense] && !active.state[sense]);
 }
 
 async function imageAsset(url, signal) {
@@ -112,9 +116,9 @@ export class Soundscape {
     const clinical = this.gains[0].gain, calm = this.gains[1].gain;
     if (on) {
       if(intro){clinical.setValueAtTime(.55,t);}
-      clinical.linearRampToValueAtTime(0,t+.30);
-      calm.setValueAtTime(0,t);calm.setValueAtTime(0,t+.35);
-      calm.linearRampToValueAtTime(.85,t+1.55);
+      clinical.linearRampToValueAtTime(0,t+.15);
+      calm.setValueAtTime(0,t);calm.setValueAtTime(0,t+.175);
+      calm.linearRampToValueAtTime(.85,t+.775);
     } else {
       clinical.setValueAtTime(.65,t);calm.setValueAtTime(0,t);
     }
@@ -136,13 +140,13 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   const initial={sight:false,sound:false,smell:false,touch:false,taste:false};
   const requested={...initial},queue=new TransitionQueue(initial),scope=new AbortController();
   const listen=(el,event,fn,options={})=>el.addEventListener(event,fn,{...options,signal:scope.signal});
-  const loaded=await Promise.allSettled(['surgery-warm.webp','surgery-clinical.webp','surgery-objects.webp'].map(name=>imageAsset(assetURL(name,assetBase),signal)));
+  const loaded=await Promise.allSettled(['surgery-warm.webp','surgery-clinical-clean.webp','surgery-objects.webp','scent-candle.webp','taste-clinical.webp'].map(name=>imageAsset(assetURL(name,assetBase),signal)));
   if(signal.aborted||loaded.some(r=>r.status==='rejected')){
     loaded.forEach(r=>{if(r.status==='fulfilled')r.value.close?.();});
     throw new Error(signal.aborted?'Closed':'The photograph could not load. Please try again.');
   }
-  const images={warm:loaded[0].value,clinical:loaded[1].value,objects:loaded[2].value};
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.8.0';
+  const images={warm:loaded[0].value,clinical:loaded[1].value,objects:loaded[2].value,candle:loaded[3].value,tasteClinical:loaded[4].value};
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.9.0';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -175,13 +179,13 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   }
   function begin(active){
     if(!active||disposed)return;
-    const reverse=active.from.sight&&!active.state.sight;
+    const reverse=isReverseTransition(active);
     const duration=reduced.matches?180:reverse?OFF_DURATION:DURATION;
     dialog.dataset.transitionDirection=reverse?'contract':'expand';
     dialog.dataset.phase='transition';dialog.dataset.transitionProgress='0';dialog.dataset.transitionStarted=String(Math.round(performance.now()));
     if(audioReady&&(active.intro||active.from.sound!==active.state.sound))audio.transition(active.state.sound,active.intro);
     const started=performance.now();
-    renderer.reveal(active.state,active.origin,{duration,reverse,doublePulse:active.state.sound&&!active.from.sound,reduced:reduced.matches,onProgress:p=>{dialog.dataset.transitionProgress=String(p);}}).then(complete=>{
+    renderer.reveal(active.state,active.origin,{duration,reverse,doublePulse:!reverse&&active.state.sound&&!active.from.sound,reduced:reduced.matches,onProgress:p=>{dialog.dataset.transitionProgress=String(p);}}).then(complete=>{
       if(!complete||disposed||signal.aborted||queue.active!==active)return;
       dialog.dataset.lastTransitionMs=String(Math.round(performance.now()-started));
       const pending=queue.finish();dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
@@ -195,7 +199,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     const detail=dialog.querySelector('.tdb-senses-detail');detail.hidden=false;
     detail.querySelector('.tdb-senses-detail-name').textContent=LABELS[SENSES.indexOf(sense)];
     detail.querySelector('.tdb-senses-detail-copy').textContent=(requested[sense]?'After — ':'Before — ')+DETAILS[sense][Number(requested[sense])];
-    hasBegun=true;updateControls();begin(queue.request(requested,origin,intro));
+    hasBegun=true;updateControls();begin(queue.request(requested,origin,intro,sense));
     announcement.textContent=`${LABELS[SENSES.indexOf(sense)]} ${requested[sense]?'on':'off'}.`;
   }
   controls.forEach((button,i)=>listen(button,'click',async()=>{

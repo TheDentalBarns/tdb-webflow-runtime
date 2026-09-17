@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const source=await readFile(new URL('../../src/five-senses/five-senses.js',import.meta.url),'utf8');
-const {TransitionQueue,Soundscape}=await import(`data:text/javascript;base64,${Buffer.from(source.replace(/^import .*;\n/,'')).toString('base64')}`);
+const {TransitionQueue,Soundscape,isReverseTransition}=await import(`data:text/javascript;base64,${Buffer.from(source.replace(/^import .*;\n/,'')).toString('base64')}`);
 const sceneSource=await readFile(new URL('../../src/five-senses/scene-renderer.js',import.meta.url),'utf8');
 const {coverGeometry,revealRadius,SceneRenderer}=await import(`data:text/javascript;base64,${Buffer.from(sceneSource).toString('base64')}`);
 for(const [w,h] of [[320,568],[390,844],[412,915],[768,1024],[1363,936],[1920,1080],[2560,1440]]){
@@ -32,6 +32,21 @@ assert.deepEqual(next.origin,{x:600,y:700});
 queue.finish();assert.deepEqual(queue.visible,latest);
 queue.request(initial,{x:0,y:0});queue.request(latest,{x:0,y:0});queue.cancel();
 assert.equal(queue.active,null);assert.equal(queue.pending,null);
+for(const sense of ['sight','sound','smell','touch','taste']){
+  const q=new TransitionQueue({[sense]:true});
+  assert.equal(isReverseTransition(q.request({[sense]:false},{x:1,y:2},false,sense)),true,`${sense} OFF must contract`);
+  q.finish();
+  assert.equal(isReverseTransition(q.request({[sense]:true},{x:1,y:2},false,sense)),false,`${sense} ON must expand`);
+}
+const scheduled=[[],[]],mix=new Soundscape('',{aborted:false},()=>{});
+mix.ready=true;mix.context={currentTime:10};
+mix.gains=scheduled.map(events=>({gain:{cancelAndHoldAtTime(){},setValueAtTime:(value,time)=>events.push({kind:'set',value,time}),linearRampToValueAtTime:(value,time)=>events.push({kind:'ramp',value,time})}}));
+mix.transition(true);
+assert.equal(scheduled[0].at(-1).value,0);
+assert.ok(scheduled[0].at(-1).time<scheduled[1].at(-2).time,'Clinical sound must reach silence before the second pulse introduces calm sound');
+assert.ok(scheduled[1].at(-1).time<=10.8,'Sound fade should finish with the faster reveal');
+mix.transition(false);
+assert.deepEqual(scheduled.map(events=>events.at(-1)),[{kind:'set',value:.65,time:10},{kind:'set',value:0,time:10}],'Sound OFF must switch audio immediately');
 
 let release;
 let sourceStarts=0;

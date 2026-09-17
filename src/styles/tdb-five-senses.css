@@ -25,11 +25,11 @@
 .tdb-senses-motion{width:38px;height:38px;opacity:.72}
 .tdb-senses-motion svg{width:24px;height:24px}
 .tdb-senses-motion[hidden]{display:none}
-.tdb-senses-title{position:absolute;top:21%;left:var(--tdb-senses-gutter);margin:0;font-family:inherit;font-weight:300;font-size:clamp(36px,4.8vw,72px);line-height:1.09;letter-spacing:-.055em;text-shadow:0 2px 22px #0003;transition:opacity 1.4s ease;pointer-events:none}
+.tdb-senses-title{position:absolute;top:21%;left:var(--tdb-senses-gutter);margin:0;font-family:inherit;font-weight:300;font-size:clamp(36px,4.8vw,72px);line-height:1.09;letter-spacing:-.055em;text-shadow:0 2px 22px #0003;transition:opacity .7s ease;pointer-events:none}
 .tdb-senses-has-begun .tdb-senses-title{opacity:0}
 .tdb-senses-controls{position:absolute;bottom:max(25px,calc(env(safe-area-inset-bottom) + 15px));left:var(--tdb-senses-gutter);right:var(--tdb-senses-gutter);display:flex;align-items:flex-end;justify-content:space-between;gap:0;z-index:3}
 .tdb-senses-control{--circle-size:clamp(54px,5.8vw,82px);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:0;min-width:var(--circle-size);padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-.tdb-senses-circle{display:grid;place-items:center;flex:none;width:var(--circle-size);height:var(--circle-size);border:1px solid #f5f1e648;border-radius:50%;background:#e9e5d60a;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:background .45s,border-color .45s,opacity .45s;box-shadow:0 3px 18px #00000009}
+.tdb-senses-circle{display:grid;place-items:center;flex:none;width:var(--circle-size);height:var(--circle-size);border:1px solid #f5f1e648;border-radius:50%;background:#e9e5d60a;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:background .225s,border-color .225s,opacity .225s;box-shadow:0 3px 18px #00000009}
 .tdb-senses-circle svg{width:29px;height:29px;opacity:.88}
 .tdb-senses-control[data-state="on"] .tdb-senses-circle{border-color:#f5f1e694;background:#eee9dc1c}
 .tdb-senses-control[data-state="off"] .tdb-senses-circle{opacity:.58}
@@ -62,12 +62,11 @@
 .tdb-senses-motion-paused .tdb-senses-haze{animation-play-state:paused}
 @media(prefers-reduced-motion:reduce){.tdb-senses-haze{animation:none}}
 
-/* Keep the controls clear of the mobile browser and show the active change. */
-.tdb-senses .tdb-senses-controls{bottom:calc(12rem + env(safe-area-inset-bottom))}
+/* The active change sits below the room label; controls retain their bottom inset. */
 .tdb-senses-detail{position:absolute;top:max(82px,calc(env(safe-area-inset-top) + 64px));left:var(--tdb-senses-gutter);right:var(--tdb-senses-gutter);max-width:330px;pointer-events:none;text-shadow:0 1px 8px #0009;z-index:2}
 .tdb-senses-detail[hidden]{display:none}
 .tdb-senses-detail p{margin:0;font-family:inherit;color:inherit;font-weight:300}
 .tdb-senses-detail-name{font-size:14px;line-height:1.4;letter-spacing:.05em}
 .tdb-senses-detail-copy{padding-top:8px;font-size:11px;line-height:1.65;max-width:29em}
-.tdb-senses-message{bottom:calc(12rem + 150px + env(safe-area-inset-bottom))}
-@media(max-height:520px){.tdb-senses .tdb-senses-controls{bottom:clamp(20px,14vh,12rem)}.tdb-senses-detail{max-width:260px}.tdb-senses-message{bottom:8px}}
+
+@media(max-height:520px){.tdb-senses-detail{max-width:260px}.tdb-senses-message{bottom:8px}}
