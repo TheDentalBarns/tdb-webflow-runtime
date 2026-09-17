@@ -203,3 +203,11 @@ Added an aria-hidden 44px waveform immediately left of the top speaker. Eleven 1
 ### v0.23.1 — Independent mute and Sound sequence
 
 The top speaker mutes the master output without changing a sense or starting a ripple. The Sound sense reveals headphones and quietens clinical noise with its first wave; its second wave starts calm audio and lights the Sound button. Added noise-cancelling headphones to the Sound copy. The illustrative waveform is quiet while muted or between Sound phases. Mute preserves the scheduled audio transition.
+
+### v0.23.2 — Chair contour correction
+
+The cupboard light spill now excludes the standard headrest using its own silhouette. Refined the premium shoulder mask to follow the top seam, bringing the left edge inward and lifting its descending right edge.
+
+### v0.23.3 — Soundscape illustration independent of mute
+
+Master mute leaves the waveform active. The first Sound wave eases clinical audio and the illustrated amplitude down over 350ms, then the second wave brings calm audio and amplitude up over 600ms. Returning to clinical uses a quick 120ms crossfade.

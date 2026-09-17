@@ -22,7 +22,7 @@ function contactShadow(ctx,x,y,radius,alpha,squash=.18){
   ctx.fillStyle=gradient;ctx.fillRect(-radius,-radius,radius*2,radius*2);ctx.restore();
 }
 
-function coldLighting(ctx){
+function coldLighting(ctx,state){
   // This grading and all glare are baked once, never filtered during the reveal.
   ctx.save();ctx.globalCompositeOperation='copy';ctx.filter='saturate(.79) contrast(1.085) brightness(1.105)';
   ctx.drawImage(ctx.canvas,0,0);ctx.restore();
@@ -42,7 +42,9 @@ function coldLighting(ctx){
   const start={x:382,y:231},end={x:1086,y:286};
   // Light falls down the cupboard plane; grain and joints remain visible.
   ctx.save();ctx.beginPath();ctx.moveTo(382,234);ctx.lineTo(1086,289);ctx.lineTo(1086,389);ctx.lineTo(391,334);ctx.closePath();
-  ctx.moveTo(714,387);ctx.bezierCurveTo(716,359,733,332,760,319);ctx.bezierCurveTo(779,310,791,313,813,317);ctx.bezierCurveTo(846,321,887,320,921,324);ctx.bezierCurveTo(945,328,955,346,960,371);ctx.bezierCurveTo(967,403,959,439,942,461);ctx.lineTo(878,487);ctx.lineTo(800,479);ctx.lineTo(723,443);ctx.closePath();ctx.clip('evenodd');
+  if(state.touch){ctx.moveTo(714,387);ctx.bezierCurveTo(716,359,733,332,760,319);ctx.bezierCurveTo(779,310,791,313,813,317);ctx.bezierCurveTo(846,321,887,320,921,324);ctx.bezierCurveTo(945,328,955,346,960,371);ctx.bezierCurveTo(967,403,959,439,942,461);ctx.lineTo(878,487);ctx.lineTo(800,479);ctx.lineTo(723,443);ctx.closePath();}
+  else{ctx.moveTo(717,401);ctx.bezierCurveTo(718,350,748,304,789,301);ctx.bezierCurveTo(823,296,879,302,903,307);ctx.bezierCurveTo(939,313,957,339,958,377);ctx.lineTo(957,437);ctx.lineTo(914,489);ctx.lineTo(783,487);ctx.lineTo(718,446);ctx.closePath();}
+  ctx.clip('evenodd');
   ctx.translate(382,234);ctx.transform(1,55/704,0,1,0,0);
   const spill=ctx.createLinearGradient(0,0,-8,100);
   spill.addColorStop(0,'rgba(226,240,250,.23)');spill.addColorStop(.35,'rgba(226,240,250,.10)');spill.addColorStop(1,'rgba(226,240,250,0)');
@@ -110,7 +112,7 @@ function chairColour(ctx,state){
     // The pale highlights are still leather: never punch holes based on luminance.
     const paths=[
       'M714 387C716 359 733 332 760 319C779 310 791 313 813 317C846 321 887 320 921 324C945 328 955 346 960 371C967 403 959 439 942 461C926 482 906 488 878 487L800 479C765 475 739 462 723 443C712 429 710 411 714 387Z',
-      'M677 478C654 475 638 484 621 495L596 525L571 550L549 575L528 600L491 650L457 700C440 730 426 764 426 788C425 808 434 828 444 850C455 869 471 886 486 903C511 923 529 940 544 952C565 969 581 981 598 989L600 997Q625 1010 650 1018Q675 1026 700 1032Q750 1045 800 1051Q838 1058 875 1052C933 1030 980 1006 1021 983C1059 957 1080 951 1086 937L1086 634C1070 587 1050 546 1020 528C991 511 955 511 913 522C861 536 814 529 763 512C735 503 698 480 677 478Z',
+      'M677 481C654 479 638 487 621 498L596 525L571 550L549 575L528 600L491 650L457 700C440 730 426 764 426 788C425 808 434 828 444 850C455 869 471 886 486 903C511 923 529 940 544 952C565 969 581 981 598 989L600 997Q625 1010 650 1018Q675 1026 700 1032Q750 1045 800 1051Q838 1058 875 1052C933 1030 980 1006 1021 983C1059 957 1080 951 1086 937L1086 634C1070 587 1050 545 1020 531C991 513 965 509 940 513C910 518 893 525 867 525C825 525 794 519 763 507C731 495 701 481 677 481Z',
       'M96 1448L114 1400L143 1350L184 1300L228 1250L276 1200L333 1150L388 1108C425 1085 457 1064 486 1055C509 1048 534 1048 555 1060Q582 1057 614 1069C697 1090 789 1119 879 1134Q910 1128 939 1144L914 1190L889 1240Q875 1264 883 1278Q905 1298 938 1299L954 1286Q978 1308 986 1332Q995 1361 979 1401L963 1448Z'
     ];
     m.filter='blur(.6px)';m.lineWidth=2;m.strokeStyle='#fff';paths.forEach(path=>{const contour=new Path2D(path);m.fill(contour);m.stroke(contour);});
@@ -159,7 +161,7 @@ function makeSurface(images,state){
   ctx.drawImage(state.touch?images.warm:images.clinical,0,0,PHOTO_WIDTH,PHOTO_HEIGHT);
   chairColour(ctx,state);
   if(!state.sight)floorReflections(ctx);
-  if(!state.sight)coldLighting(ctx);
+  if(!state.sight)coldLighting(ctx,state);
   
   canvas.className='tdb-senses-photo-image';canvas.setAttribute('aria-hidden','true');
   return canvas;
@@ -545,7 +547,7 @@ export class SceneRenderer{
   destroy(){if(this.disposed)return;this.disposed=true;this.cancel();this.scope.abort();this.gpu?.destroy();this.stage.replaceChildren();this.artwork.destroy();this.layers=[];this.photos=[];}
 }
 
-/* TDB Five Senses v0.23.1 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.23.3 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -656,13 +658,13 @@ export class Soundscape {
     const clinical = this.gains[0].gain, calm = this.gains[1].gain;
     if (on) {
       if(intro){clinical.setValueAtTime(0,t);}
-      clinical.linearRampToValueAtTime(0,t+.15);
+      clinical.linearRampToValueAtTime(0,t+(intro?.15:.35));
       // Normal Sound ON: silence the first pulse, then start calm with the second at 600ms.
       const calmDelay=intro?.175:.6;
       calm.setValueAtTime(0,t);calm.setValueAtTime(0,t+calmDelay);
       calm.linearRampToValueAtTime(.85,t+calmDelay+.6);
     } else {
-      clinical.setValueAtTime(.65,t);calm.setValueAtTime(0,t);
+      clinical.linearRampToValueAtTime(.65,t+.12);calm.linearRampToValueAtTime(0,t+.12);
     }
   }
   setMuted(muted) {
@@ -699,7 +701,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.23.1';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.23.3';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities"><span class="tdb-senses-waveform" data-mode="silent" aria-hidden="true"><svg viewBox="0 0 44 24" fill="none" stroke="currentColor" stroke-width="1">${[5,9,15,19,13,21,16,11,18,9,5].map((h,i)=>`<path d="M${2+i*4} ${12-h/2}v${h}" style="--wave-delay:${-i*.19}s;--wave-duration:${2.8+i%3*.35}s;--road-duration:${.21+i%4*.035}s"/>`).join('')}</svg></span>
     <button type="button" class="tdb-senses-motion" aria-label="Turn Sound on" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -773,7 +775,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     startButton.querySelector('.tdb-senses-start-label').textContent=audioPending?'STARTING…':'START';
     dialog.classList.toggle('tdb-senses-awaiting-sound',!audioReady);dialog.classList.toggle('tdb-senses-has-begun',hasBegun);
     motion.hidden=false;motion.disabled=!interactionReady;
-    dialog.querySelector('.tdb-senses-waveform').dataset.mode=!audioReady||muted||soundOnPending?'silent':requested.sound?'calm':'road';
+    dialog.querySelector('.tdb-senses-waveform').dataset.mode=!audioReady?'silent':soundOnPending?'quiet':requested.sound?'calm':'road';
     const soundLit=audioReady&&!muted;
     motion.setAttribute('aria-pressed',String(muted));motion.setAttribute('aria-label',muted?'Unmute audio':'Mute audio');
     motion.innerHTML=svg('<path d="M5 12h5l7-6v20l-7-6H5Z"/>'+(soundLit?'<path d="M21 11q5 5 0 10M24 7q9 9 0 18"/>':'<path d="m22 12 8 8m0-8-8 8"/>'));

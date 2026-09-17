@@ -134,3 +134,10 @@
 @keyframes tdb-senses-wave-calm{0%,100%{transform:scaleY(.28)}50%{transform:scaleY(.8)}}
 @keyframes tdb-senses-wave-road{0%,100%{transform:scaleY(.22)}20%{transform:scaleY(.95)}45%{transform:scaleY(.38)}65%{transform:scaleY(1)}85%{transform:scaleY(.5)}}
 @media(prefers-reduced-motion:reduce){.tdb-senses-waveform[data-mode] path{animation:none;transform:scaleY(.55)}}
+
+/* The illustration follows the soundscape even when the master output is muted. */
+.tdb-senses-waveform svg{transform:scaleY(1);transform-origin:center;transition:transform .6s ease-in-out}
+.tdb-senses-waveform[data-mode="quiet"] svg{transform:scaleY(.025);transition-duration:.35s}
+.tdb-senses-waveform[data-mode="quiet"] path{animation-name:tdb-senses-wave-road;animation-duration:var(--road-duration);animation-timing-function:steps(2,end)}
+.tdb-senses-waveform[data-mode="road"] svg{transition-duration:.12s}
+@media(prefers-reduced-motion:reduce){.tdb-senses-waveform[data-mode] path{animation:none;transform:scaleY(.55)}.tdb-senses-waveform svg{transition:none}}

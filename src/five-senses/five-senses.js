@@ -1,5 +1,5 @@
 import {SceneRenderer} from './scene-renderer.js';
-/* TDB Five Senses v0.23.1 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.23.3 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -110,13 +110,13 @@ export class Soundscape {
     const clinical = this.gains[0].gain, calm = this.gains[1].gain;
     if (on) {
       if(intro){clinical.setValueAtTime(0,t);}
-      clinical.linearRampToValueAtTime(0,t+.15);
+      clinical.linearRampToValueAtTime(0,t+(intro?.15:.35));
       // Normal Sound ON: silence the first pulse, then start calm with the second at 600ms.
       const calmDelay=intro?.175:.6;
       calm.setValueAtTime(0,t);calm.setValueAtTime(0,t+calmDelay);
       calm.linearRampToValueAtTime(.85,t+calmDelay+.6);
     } else {
-      clinical.setValueAtTime(.65,t);calm.setValueAtTime(0,t);
+      clinical.linearRampToValueAtTime(.65,t+.12);calm.linearRampToValueAtTime(0,t+.12);
     }
   }
   setMuted(muted) {
@@ -153,7 +153,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.23.1';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.23.3';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities"><span class="tdb-senses-waveform" data-mode="silent" aria-hidden="true"><svg viewBox="0 0 44 24" fill="none" stroke="currentColor" stroke-width="1">${[5,9,15,19,13,21,16,11,18,9,5].map((h,i)=>`<path d="M${2+i*4} ${12-h/2}v${h}" style="--wave-delay:${-i*.19}s;--wave-duration:${2.8+i%3*.35}s;--road-duration:${.21+i%4*.035}s"/>`).join('')}</svg></span>
     <button type="button" class="tdb-senses-motion" aria-label="Turn Sound on" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -227,7 +227,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     startButton.querySelector('.tdb-senses-start-label').textContent=audioPending?'STARTING…':'START';
     dialog.classList.toggle('tdb-senses-awaiting-sound',!audioReady);dialog.classList.toggle('tdb-senses-has-begun',hasBegun);
     motion.hidden=false;motion.disabled=!interactionReady;
-    dialog.querySelector('.tdb-senses-waveform').dataset.mode=!audioReady||muted||soundOnPending?'silent':requested.sound?'calm':'road';
+    dialog.querySelector('.tdb-senses-waveform').dataset.mode=!audioReady?'silent':soundOnPending?'quiet':requested.sound?'calm':'road';
     const soundLit=audioReady&&!muted;
     motion.setAttribute('aria-pressed',String(muted));motion.setAttribute('aria-label',muted?'Unmute audio':'Mute audio');
     motion.innerHTML=svg('<path d="M5 12h5l7-6v20l-7-6H5Z"/>'+(soundLit?'<path d="M21 11q5 5 0 10M24 7q9 9 0 18"/>':'<path d="m22 12 8 8m0-8-8 8"/>'));
