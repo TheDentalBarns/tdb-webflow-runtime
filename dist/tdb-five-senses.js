@@ -544,7 +544,7 @@ export class SceneRenderer{
   destroy(){if(this.disposed)return;this.disposed=true;this.cancel();this.scope.abort();this.gpu?.destroy();this.stage.replaceChildren();this.artwork.destroy();this.layers=[];this.photos=[];}
 }
 
-/* TDB Five Senses v0.22.1 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.22.2 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -689,7 +689,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.22.1';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.22.2';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Turn Sound on" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -751,7 +751,10 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     });
     controls.forEach((button,i)=>{
       button.disabled=!interactionReady;
-      const sense=SENSES[i],value=!!requested[sense];button.setAttribute('aria-pressed',String(value));
+      const sense=SENSES[i];
+      const settlingOff=!requested[sense]&&(queue.target[sense]!==requested[sense]||queue.active.has(sense));
+      const value=settlingOff?button.dataset.state==='on':!!requested[sense];
+      button.setAttribute('aria-pressed',String(value));
       button.dataset.state=sense==='sound'&&!audioReady?'pending':value?'on':'off';
       button.querySelector('.tdb-senses-value').textContent=value?'ON':'OFF';
       if(sense==='sound'){button.setAttribute('aria-label',audioReady?'Sound':'Begin sound experience');button.setAttribute('aria-busy',String(audioPending));}
@@ -760,8 +763,9 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     startButton.querySelector('.tdb-senses-start-label').textContent=audioPending?'STARTING…':'START';
     dialog.classList.toggle('tdb-senses-awaiting-sound',!audioReady);dialog.classList.toggle('tdb-senses-has-begun',hasBegun);
     motion.hidden=false;motion.disabled=!interactionReady;
-    motion.setAttribute('aria-pressed',String(!!requested.sound));motion.setAttribute('aria-label',requested.sound?'Turn Sound off':'Turn Sound on');
-    motion.innerHTML=svg('<path d="M5 12h5l7-6v20l-7-6H5Z"/>'+(requested.sound?'<path d="M21 11q5 5 0 10M24 7q9 9 0 18"/>':'<path d="m22 12 8 8m0-8-8 8"/>'));
+    const soundLit=controls[1].getAttribute('aria-pressed')==='true';
+    motion.setAttribute('aria-pressed',String(soundLit));motion.setAttribute('aria-label',requested.sound?'Turn Sound off':'Turn Sound on');
+    motion.innerHTML=svg('<path d="M5 12h5l7-6v20l-7-6H5Z"/>'+(soundLit?'<path d="M21 11q5 5 0 10M24 7q9 9 0 18"/>':'<path d="m22 12 8 8m0-8-8 8"/>'));
     renderer.motion(motionPaused||reduced.matches||document.hidden);
   }
   function begin(active){
@@ -776,7 +780,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
       if(!complete||disposed||signal.aborted||queue.active.get(active.sense)!==active)return;
       dialog.dataset.lastTransitionMs=String(Math.round(performance.now()-started));
       queue.finish(active);dialog.dataset.phase=queue.active.size?'transition':'ready';dialog.dataset.transitionProgress='1';
-      dialog.dataset.visibleState=JSON.stringify(queue.visible);
+      dialog.dataset.visibleState=JSON.stringify(queue.visible);updateControls();
       if(active.intro){interactionReady=true;updateControls();controls[1].focus({preventScroll:true});}
       finishAll();
     });

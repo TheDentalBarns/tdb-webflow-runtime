@@ -184,3 +184,8 @@ Retraced the premium chair seat near its upper-left support, included the backre
 ### Prototype 0.22.1 — top Sound control
 
 The top play/pause utility now mirrors the Sound sense, using a speaker/crossed-speaker icon and the same state, ripple and audio sequence. All-sense actions update it too. It unlocks after Start; OFF retains the established conventional soundscape. Reduced-motion support remains automatic. Includes the upholstery and LED refinements above.
+
+
+### Prototype 0.22.2 — button OFF state follows the circle
+
+Sense buttons retain their lit state while their OFF ripple contracts; completion updates their label, styling and pressed state. Reversing an unfinished ON reveal also retains the current lit state until contraction finishes. The top Sound icon follows the bottom button, while the audio still transitions at activation. All-sense eligibility continues to use requested targets.
