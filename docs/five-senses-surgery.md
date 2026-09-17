@@ -75,3 +75,9 @@ Validation: original transition/late-decode checks plus independent Scent gain, 
 Moved the candle to the front-left countertop corner beside the basin (fixed image-space base 424,216). Added soft, fading alpha reflections beneath the candle, Aesop and clinical props, with a restrained amber candle glow. Reflections are derived from each prop and share its state layer; disconnected clinical silhouettes meet their own bases. A countertop mask excludes the basin and front fascia. These layers are prepared with cached scenes, adding no continuous drawing work or asset download.
 
 Reduced Scent breeze gain from 0.30 to 0.12 (about 8 dB lower). Existing independence and cleanup checks pass with the revised target.
+
+### Prototype 0.15.0 — upholstery edges and air details
+
+Extended the Touch-ON/Sight-OFF upholstery contour along the backrest's lower lip and around the rear/right seat cushions. A local underside guard retains the metal support's colour. Chair texture, stitching and shaded volume remain derived from the photograph.
+
+Smell ON now carries seven small five-petal blossoms and two leaf sprigs. Smell OFF retains its haze and adds 26 sparse, softly blurred round airborne specks. Both live inside each scene's photographic mask, pause with ambient motion, and show static restrained details for reduced motion. No additional image downloads or continuous JavaScript rendering.

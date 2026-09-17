@@ -54,9 +54,14 @@
 /* Prototype refinement: photographic objects fade only after the reveal arrives. */
 .tdb-senses-object{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .tdb-senses-reveal-ring{position:absolute;transform:translate(-50%,-50%);border:1px solid #f5f1e6;border-radius:50%;pointer-events:none;z-index:1}
-.tdb-senses-motes i.leaf{width:7px;height:3.4px;border-radius:100% 0 100% 0;background:linear-gradient(145deg,#b0bc87,#708958);filter:blur(.25px)}
-.tdb-senses-motes i.leaf:nth-child(even){width:5px;height:2.5px;filter:blur(.5px)}
-@keyframes tdb-senses-botanical-drift{0%,100%{opacity:0;transform:translate3d(0,0,0) rotate(-30deg)}20%,70%{opacity:.42}90%{opacity:0;transform:translate3d(18px,-56px,0) rotate(75deg)}}
+/* Botanical traces stay recognisable at the portrait cover scale. */
+.tdb-senses-motes i.blossom,.tdb-senses-motes i.sprig{width:var(--mote-size);height:var(--mote-size);border-radius:0;background:none;color:var(--mote-colour);filter:blur(.15px)}
+.tdb-senses-motes svg{display:block;width:100%;height:100%}
+.tdb-senses-motes i.sprig{filter:blur(.3px)}
+@keyframes tdb-senses-botanical-drift{0%,100%{opacity:0;transform:translate3d(0,0,0) rotate(-25deg)}20%,70%{opacity:.44}90%{opacity:0;transform:translate3d(18px,-56px,0) rotate(55deg)}}
+.tdb-senses-motes i.spore{width:var(--mote-size);height:var(--mote-size);border-radius:50%;background:radial-gradient(circle,#fffdf1 0%,#eeeadeb3 40%,#eeeade00 75%);filter:blur(var(--mote-blur));animation-name:tdb-senses-dust-drift}
+@keyframes tdb-senses-dust-drift{0%,100%{opacity:0;transform:translate3d(0,0,0)}18%,76%{opacity:var(--mote-alpha)}92%{opacity:0;transform:translate3d(22px,-32px,0)}}
+@media(prefers-reduced-motion:reduce){.tdb-senses-motes i.blossom,.tdb-senses-motes i.sprig{opacity:.28}.tdb-senses-motes i.spore{opacity:var(--mote-alpha)}}
 .tdb-senses-haze{position:absolute;inset:-5%;pointer-events:none;background:radial-gradient(ellipse at 25% 45%,#e6e5db30,transparent 65%),radial-gradient(ellipse at 76% 30%,#dce0df24,transparent 60%),linear-gradient(115deg,#dce0da0d,#ece9df17 50%,#cfd5d510);animation:tdb-senses-air-drift 24s ease-in-out infinite alternate}
 @keyframes tdb-senses-air-drift{from{transform:translate3d(-1%,0,0);opacity:.75}to{transform:translate3d(1%,1%,0);opacity:1}}
 .tdb-senses-motion-paused .tdb-senses-haze{animation-play-state:paused}
