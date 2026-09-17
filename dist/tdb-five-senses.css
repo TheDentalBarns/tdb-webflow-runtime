@@ -103,3 +103,7 @@
 
 /* Match the site touch treatment; keyboard focus-visible stays available. */
 .tdb-senses button{-webkit-tap-highlight-color:transparent}
+
+/* One clear aperture opens the blurred introduction; Start remains sharp. */
+.tdb-senses-intro-blur{position:absolute;inset:0;z-index:4;pointer-events:none;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat}
+.tdb-senses-intro-blur[hidden]{display:none}

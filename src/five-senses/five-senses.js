@@ -1,5 +1,5 @@
 import {SceneRenderer} from './scene-renderer.js';
-/* TDB Five Senses v0.18.5 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.19.0 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -141,7 +141,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.18.5';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.19.0';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -149,6 +149,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     <h2 id="tdb-senses-title" class="tdb-senses-title">Every sense,<br>considered.</h2>
     <div class="tdb-senses-detail" hidden><p class="tdb-senses-detail-name"></p><p class="tdb-senses-detail-state"></p><p class="tdb-senses-detail-copy"></p></div>
     <p id="tdb-senses-description" class="tdb-senses-sr">Explore the Surgery. Each control switches one considered detail on or off. Sound starts only when you activate Start. Sound off plays the conventional soundscape. Close stops all audio. Escape closes the experience.</p>
+    <div class="tdb-senses-intro-blur" aria-hidden="true"></div>
     <button type="button" class="tdb-senses-start" aria-label="Start experience with sound"><span class="tdb-senses-circle">${svg('<path d="M5 12h5l7-6v20l-7-6H5Z M21 11q5 5 0 10 M24 7q9 9 0 18"/>')}</span><span class="tdb-senses-start-label">START</span></button>
     <div class="tdb-senses-controls" role="group" aria-label="Five senses">${SENSES.map((sense,i)=>`<button type="button" class="tdb-senses-control" data-sense="${sense}" aria-label="${sense==='sound'?'Begin sound experience':LABELS[i]}" aria-pressed="${initial[sense]}"><span class="tdb-senses-circle">${svg(ICONS[i])}</span><span class="tdb-senses-name">${LABELS[i]}</span><span class="tdb-senses-value">${sense==='sound'?'':initial[sense]?'ON':'OFF'}</span></button>`).join('')}</div>
     <p class="tdb-senses-message" aria-live="polite"></p><p class="tdb-senses-sr tdb-senses-announcement" aria-live="polite"></p>`;
@@ -158,6 +159,14 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   const stage=dialog.querySelector('.tdb-senses-stage'),startButton=dialog.querySelector('.tdb-senses-start');
   renderer=new SceneRenderer(stage,images,stats=>{dialog.dataset.sceneBuilds=String(stats.builds);dialog.dataset.lastBuildMs=String(stats.buildMs);},artwork);
   renderer.render(initial);
+  const introBlur=dialog.querySelector('.tdb-senses-intro-blur');
+  function resetIntroBlur(){introBlur.hidden=false;introBlur.style.cssText='';}
+  function revealIntroBlur(p,sample){
+    if(p>=1){introBlur.hidden=true;return;}
+    if(!sample?.radial){introBlur.style.opacity=String(1-p);return;}
+    const mask=`radial-gradient(circle at ${sample.origin.x}px ${sample.origin.y}px,transparent ${Math.max(0,sample.radius-2)}px,#000 ${Math.max(0,sample.radius+2)}px)`;
+    introBlur.style.maskImage=mask;introBlur.style.webkitMaskImage=mask;
+  }
   const createAudio=()=>new Soundscape(assetBase,signal,state=>{dialog.dataset.audioState=state;});
   audio=createAudio();audio.prefetch().catch(()=>{});
 
@@ -184,7 +193,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     dialog.dataset.phase='transition';dialog.dataset.transitionProgress='0';dialog.dataset.transitionStarted=String(Math.round(performance.now()));
     if(audioReady&&(active.intro||active.from.sound!==active.state.sound))audio.transition(active.state.sound,active.intro);
     const started=performance.now();
-    renderer.reveal(active.state,active.origin,{sense:active.sense,duration,reverse,doublePulse:!reverse&&active.state.sound&&!active.from.sound,reduced:reduced.matches,onProgress:p=>{dialog.dataset.transitionProgress=String(p);}}).then(complete=>{
+    renderer.reveal(active.state,active.origin,{sense:active.sense,duration,reverse,doublePulse:!active.intro&&!reverse&&active.state.sound&&!active.from.sound,reduced:reduced.matches,onProgress:(p,sample)=>{dialog.dataset.transitionProgress=String(p);if(active.intro)revealIntroBlur(p,sample);}}).then(complete=>{
       if(!complete||disposed||signal.aborted||queue.active.get(active.sense)!==active)return;
       dialog.dataset.lastTransitionMs=String(Math.round(performance.now()-started));
       queue.finish(active);dialog.dataset.phase=queue.active.size?'transition':'ready';dialog.dataset.transitionProgress='1';
@@ -249,7 +258,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   listen(reduced,'change',()=>{renderer.finish();updateControls();});
   listen(document,'visibilitychange',()=>{
     if(document.hidden){
-      audio.stop();audio=createAudio();audioReady=false;audioPending=false;requested.sound=false;hasBegun=false;interactionReady=false;hideDetail();
+      audio.stop();audio=createAudio();audioReady=false;audioPending=false;requested.sound=false;hasBegun=false;interactionReady=false;hideDetail();resetIntroBlur();
       queue.cancel();queue.visible={...requested};queue.target={...requested};renderer.render(requested);dialog.dataset.audioState='uninitiated';dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
     }
     updateControls();

@@ -513,6 +513,7 @@ export class SceneRenderer{
     if(this.disposed)return;const started=performance.now();
     for(const [sense,request] of this.requests)if(now>=request.wave.start+request.wave.delay+request.wave.duration){this.field.settle(sense);this.requests.delete(sense);request.onProgress?.(1);request.resolve(true);}
     const samples=this.field.samples(now);this.gpu?.draw(samples);
+    for(const [sense,request] of this.requests){const sample=samples[RIPPLE_SENSES.indexOf(sense)];request.onProgress?.(sample.progress,sample);}
     for(const layer of this.layers){const style=gateStyle(samples,layer.gates),key=style.visibility+style.opacity+style.maskImage;if(key!==layer.last){Object.assign(layer.node.style,style);layer.last=key;}}
     if(this.rings.length){
       const circles=samples.filter(s=>s.radial&&s.ring>0).map(s=>({x:s.origin.x,y:s.origin.y,r:s.radius,alpha:s.ring}));

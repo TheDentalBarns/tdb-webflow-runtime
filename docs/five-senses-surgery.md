@@ -144,3 +144,8 @@ Added a 220ms blank interval after an existing caption fades out, before its rep
 ### Prototype 0.18.5 — consistent touch feedback
 
 Disabled the browser tap-highlight colour for every experience button, including Start and utility controls. Existing focus-visible keyboard indicators remain. Includes the longer Sound gap and caption pause.
+
+
+### Prototype 0.19.0 — blurred introduction
+
+Opening UI and scene sit beneath a 20px backdrop blur, with the central Start button remaining sharp. The deliberate Start gesture unlocks music and opens one expanding clear aperture on the existing Sound reveal clock, with no echo or leading delay. Later Sound toggles keep their two waves 600ms apart. The blur layer is removed after entry, so it incurs no continuing filter cost. Reduced motion dissolves it; resize completion, page visibility reset and close follow the existing lifecycle.
