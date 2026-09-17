@@ -96,7 +96,7 @@ function chairColour(ctx,state){
     const m=region.getContext('2d');m.fillStyle='#fff';
     const paths=[
       'M715 389Q716 345 747 319Q771 302 817 315L922 324Q949 329 958 366Q975 420 940 463Q921 488 884 489L798 480Q746 475 721 451Q706 433 715 389Z',
-      'M431 751Q448 647 543 550Q611 478 677 481Q704 480 756 505Q835 545 919 520Q990 498 1033 539Q1070 581 1086 637V894Q1072 950 1007 991Q937 1033 838 1044Q710 1057 587 1008Q482 969 442 892Q415 839 431 751Z',
+      'M431 751Q448 647 543 550Q611 478 677 481Q704 480 756 505Q835 545 919 520Q990 498 1033 539Q1070 581 1086 637V894Q1072 950 1007 991Q937 1033 838 1044Q710 1040 603 985Q492 940 449 871Q419 814 431 751Z',
       'M110 1448Q156 1294 275 1165Q388 1040 472 1052L560 1068Q650 1080 711 1102L877 1140L879 1227Q871 1283 915 1293L951 1311L968 1360L940 1448Z'
     ];paths.forEach(path=>m.fill(new Path2D(path)));
     // Inset the tint from the silhouette so cabinet pixels and pale seams stay clean.
@@ -106,7 +106,7 @@ function chairColour(ctx,state){
   }
   for(let y=298;y<PHOTO_HEIGHT;y++)for(let x=84;x<PHOTO_WIDTH;x++){
     const i=(y*PHOTO_WIDTH+x)*4,r=data[i],g=data[i+1],b=data[i+2];
-    const amount=state.touch?mask[i+3]/255:Math.min(1,Math.max(0,(b-r-8)/17))*Math.min(1,Math.max(0,(b-g-3)/9));
+    const amount=state.touch?(mask[i+3]/255)*Math.min(1,Math.max(0,(139-r)/43)):Math.min(1,Math.max(0,(b-r-8)/17))*Math.min(1,Math.max(0,(b-g-3)/9));
     if(!amount)continue;
     const light=(.2126*r+.7152*g+.0722*b)*(state.touch?1.50:1)+ (state.touch?42:0);
     // Mica follows the bronze/taupe highlights in the supplied real photograph.
