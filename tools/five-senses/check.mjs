@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const source=await readFile(new URL('../../src/five-senses/five-senses.js',import.meta.url),'utf8');
-const {TransitionQueue,Soundscape,breezeBuffer}=await import(`data:text/javascript;base64,${Buffer.from(source.replace(/^import .*;\n/,'')).toString('base64')}`);
+const {SenseTransitions,Soundscape,breezeBuffer}=await import(`data:text/javascript;base64,${Buffer.from(source.replace(/^import .*;\n/,'')).toString('base64')}`);
 const sceneSource=await readFile(new URL('../../src/five-senses/scene-renderer.js',import.meta.url),'utf8');
-const {coverGeometry,revealRadius,SceneRenderer}=await import(`data:text/javascript;base64,${Buffer.from(sceneSource).toString('base64')}`);
+const {coverGeometry,revealRadius,SceneRenderer,RippleField,rippleEase}=await import(`data:text/javascript;base64,${Buffer.from(sceneSource).toString('base64')}`);
 for(const [w,h] of [[320,568],[390,844],[412,915],[768,1024],[1363,936],[1920,1080],[2560,1440]]){
   const photo=coverGeometry(w,h);
   assert.ok(photo.x<=0&&photo.y<=0&&photo.x+photo.width>=w-.01&&photo.y+photo.height>=h-.01,'The crop must fill every edge');
@@ -14,24 +14,30 @@ for(const [w,h] of [[320,568],[390,844],[412,915],[768,1024],[1363,936],[1920,10
   }
 }
 const initial={sight:true,sound:false,smell:true,touch:true,taste:true};
-const queue=new TransitionQueue(initial);
-const first=queue.request({...initial,touch:false},{x:100,y:700});
-assert.equal(first.from.touch,true);
-assert.equal(queue.visible.touch,true,'Visible surface must not change before the mask finishes');
-const second={...initial,touch:false,sight:false};
-queue.request(second,{x:0,y:700});
-const latest={...second,taste:false};
-queue.request(latest,{x:600,y:700});
-assert.equal(queue.active,first,'A rapid second tap must not replace the active masked photograph');
-const next=queue.finish();
-assert.equal(queue.visible.touch,false);
-assert.equal(next.from.sight,true);
-assert.equal(next.state.sight,false);
-assert.equal(next.state.taste,false);
-assert.deepEqual(next.origin,{x:600,y:700});
-queue.finish();assert.deepEqual(queue.visible,latest);
-queue.request(initial,{x:0,y:0});queue.request(latest,{x:0,y:0});queue.cancel();
-assert.equal(queue.active,null);assert.equal(queue.pending,null);
+const queue=new SenseTransitions(initial);
+const a=queue.request({...initial,touch:false},{x:100,y:700},false,'touch');
+const b=queue.request({...initial,touch:false,sight:false},{x:0,y:700},false,'sight');
+const c=queue.request({...initial,touch:false,sight:false,taste:false},{x:600,y:700},false,'taste');
+assert.equal(queue.active.size,3,'Consecutive taps must all start immediately');
+queue.finish(b);assert.equal(queue.visible.sight,false);assert.equal(queue.visible.touch,true,'One completion must not settle other active senses');
+queue.finish(c);queue.finish(a);assert.deepEqual(queue.visible,{...initial,touch:false,sight:false,taste:false});
+const stale=queue.request({...initial,sound:true},{x:100,y:700},false,'sound');
+const latest=queue.request(initial,{x:100,y:700},false,'sound');
+assert.equal(queue.finish(stale),false,'A superseded completion cannot overwrite the latest tap');
+assert.equal(queue.active.get('sound'),latest);queue.cancel();assert.equal(queue.active.size,0);
+assert.equal(rippleEase(0),0);assert.equal(rippleEase(1),1);
+assert.ok(rippleEase(.25)>.4&&rippleEase(.25)<.55);
+assert.ok(rippleEase(.5)-rippleEase(.25)>rippleEase(.75)-rippleEase(.5),'The wave must decelerate smoothly');
+const field=new RippleField(initial),origin={x:44,y:770};
+field.start('sight',false,origin,900,0,{duration:800});
+const radiusBefore=field.sample('sight',320).radius;
+field.start('sight',true,origin,900,320,{duration:1200});
+assert.equal(field.sample('sight',320).radius,radiusBefore,'Retapping must reverse from the current radius without jumping');
+field.start('touch',false,{x:300,y:770},900,350,{duration:800});
+assert.equal(field.waves.size,2);assert.equal(field.sample('touch',350).radius,900);
+field.settle('touch');assert.equal(field.state.touch,false);assert.equal(field.waves.size,1);
+for(let i=0;i<100;i++)field.start('sight',!!(i%2),origin,900,400+i,{duration:1200});
+assert.equal(field.waves.size,1,'Rapid re-taps must not accumulate textures or wave histories');
 
 let release;
 let sourceStarts=0;
@@ -54,65 +60,37 @@ await assert.rejects(unlock,{name:'AbortError'});
 assert.equal(sourceStarts,0,'Closing while decoding must never create a late playing source');
 assert.equal(sound.context,null);assert.equal(sound.ready,false);
 assert.deepEqual(reports,['preparing','stopped']);
-// Exercise the real reveal method: OFF must mask the outgoing warm photograph,
-// shrink it over the new cold photograph, then remove the mask entirely.
-const frames=new Map();let frameID=0;
+// Exercise the actual renderer scheduler without a GPU: one RAF for all senses,
+// independent completion, reversal, reduced motion, resize settlement and cleanup.
+const frames=new Map();let frameID=0,clock=1000;
 globalThis.requestAnimationFrame=callback=>{frames.set(++frameID,callback);return frameID;};
 globalThis.cancelAnimationFrame=id=>frames.delete(id);
-function node(){
-  const classes=new Set(),styleValues=new Map();
-  return {parentNode:null,children:[],attachments:0,dataset:{},animations:[],
-    get isConnected(){return this.root||!!this.parentNode?.isConnected;},
-    remove(){if(this.parentNode){const p=this.parentNode;p.children.splice(p.children.indexOf(this),1);this.parentNode=null;}},
-    append(...nodes){for(const n of nodes){n.remove();this.children.push(n);n.parentNode=this;n.attachments++;}},
-    insertBefore(n,reference){n.remove();this.children.splice(this.children.indexOf(reference),0,n);n.parentNode=this;n.attachments++;},
-    replaceChildren(...nodes){for(const child of [...this.children])child.remove();this.append(...nodes);},
-    cloneNode(){return node();},getAnimations(){return this.animations;},
-    classList:{add:v=>classes.add(v),remove:v=>classes.delete(v),contains:v=>classes.has(v),toggle:(v,on)=>on?classes.add(v):classes.delete(v)},
-    style:{setProperty:(k,v)=>styleValues.set(k,v),removeProperty:k=>styleValues.delete(k),getPropertyValue:k=>styleValues.get(k)}};
-}
-globalThis.document={createElement:()=>node(),timeline:{currentTime:5000}};
-const cold={node:node(),state:{sight:false},photo:{querySelectorAll:()=>[]}},warm={node:node(),state:{sight:true},photo:{querySelectorAll:()=>[]}};
-const stage=node();stage.root=true;stage.append(cold.node);
-const animation=()=>({effect:{target:{matches:()=>true}},currentTime:0,startTime:null,playState:'running',play(){this.playState='running';},pause(){this.playState='paused';}});
-cold.node.animations=[animation()];warm.node.animations=[animation()];
-const renderer=Object.assign(Object.create(SceneRenderer.prototype),{stage,current:cold,active:null,width:390,height:844,disposed:false,motionEpoch:2000,motionHeld:0,paused:false,scene:state=>state.sight?warm:cold,prune(){}});
-const origin={x:44,y:770};
-const forward=renderer.reveal({sight:true},origin,{duration:1600,reduced:false});
-assert.deepEqual(stage.children.slice(0,2),[cold.node,warm.node]);
-assert.equal(warm.node.animations[0].currentTime,3000,'A new scene must join the existing ambient clock');
-assert.equal(warm.node.animations[0].startTime,2000);
-assert.ok(warm.node.classList.contains('tdb-senses-revealing'));
-assert.equal(warm.node.style.getPropertyValue('--tdb-senses-reveal-radius'),'-12px');
-renderer.finish();assert.equal(await forward,true);assert.deepEqual(stage.children,[warm.node]);
-assert.equal(warm.node.attachments,1,'Settling must not detach/reinsert the visible scene and restart its effects');
-assert.ok(!warm.node.classList.contains('tdb-senses-revealing'));
-const reverse=renderer.reveal({sight:false},origin,{duration:1600,reverse:true,reduced:false});
-assert.deepEqual(stage.children.slice(0,2),[cold.node,warm.node],'Cold must sit below the outgoing warm circle');
-const full=parseFloat(warm.node.style.getPropertyValue('--tdb-senses-reveal-radius'));
-assert.ok(full>Math.hypot(390-44,770));
-assert.ok(warm.node.classList.contains('tdb-senses-revealing'),'The outgoing photograph itself must be masked');
-assert.ok(!cold.node.classList.contains('tdb-senses-revealing'));
-frames.get(renderer.active.frame)(performance.now()+800);
-const half=parseFloat(warm.node.style.getPropertyValue('--tdb-senses-reveal-radius'));
-assert.ok(half>0&&half<full*.6,'OFF radius must shrink');
-frames.get(renderer.active.frame)(performance.now()+1700);
-assert.equal(await reverse,true);assert.deepEqual(stage.children,[cold.node]);
-assert.ok(!warm.node.classList.contains('tdb-senses-revealing'));
-const cancelled=renderer.reveal({sight:true},origin,{duration:1600,reduced:false});renderer.active.finish(false);
-assert.equal(await cancelled,false);assert.deepEqual(stage.children,[cold.node]);
-assert.ok(!warm.node.classList.contains('tdb-senses-revealing'));
-document.timeline.currentTime=8000;renderer.motion(true);
-assert.equal(cold.node.animations[0].currentTime,6000);assert.equal(cold.node.animations[0].playState,'paused');
-document.timeline.currentTime=12000;
-const pausedReveal=renderer.reveal({sight:true},origin,{duration:1200,reduced:false,doublePulse:true});
-assert.equal(warm.node.animations[0].currentTime,6000,'Toggling while paused must preserve the held ambient position');
-assert.equal(warm.node.animations[0].playState,'paused');
-assert.equal(stage.children.length,4,'The Sound introduction must keep both rings');
-renderer.finish();await pausedReveal;renderer.motion(false);
-assert.equal(renderer.motionEpoch,6000);assert.equal(warm.node.animations[0].startTime,6000);
-assert.equal(warm.node.animations[0].playState,'running');
-console.log('Passed: viewport coverage, expand/contract, double rings, cleanup, continuous/paused ambient phase, queued state coalescing, and late audio cancellation.');
+Object.defineProperty(globalThis,'performance',{value:{now:()=>clock},configurable:true});
+let lastSamples,draws=0;
+const stage={dataset:{},classList:{toggle(){}},replaceChildren(){}};
+const renderer=Object.assign(Object.create(SceneRenderer.prototype),{stage,field:new RippleField(initial),requests:new Map(),layers:[],rings:[],photos:[],frame:0,timer:0,width:390,height:844,disposed:false,stats:{draws:0,maxCPU:0},gpu:{draw(samples){lastSamples=samples;draws++;}}});
+const sight=renderer.reveal({...initial,sight:false},origin,{sense:'sight',duration:800});
+clock+=100;
+const touch=renderer.reveal({...initial,touch:false},{x:300,y:770},{sense:'touch',duration:800});
+clock+=100;
+const smell=renderer.reveal({...initial,smell:false},{x:200,y:770},{sense:'smell',duration:800});
+assert.equal(renderer.requests.size,3);assert.equal(frames.size,1,'There must be one shared animation callback, not one per ripple');
+assert.equal(stage.dataset.peakRipples,'3');
+clock=1850;renderer.draw(clock);assert.equal(await sight,true);assert.equal(renderer.requests.size,2);
+assert.equal(lastSamples[0].amount,0);assert.ok(lastSamples[2].radial&&lastSamples[3].radial);
+clock=1950;renderer.draw(clock);assert.equal(await touch,true);assert.equal(renderer.requests.size,1);
+clock=2050;renderer.draw(clock);assert.equal(await smell,true);assert.equal(renderer.requests.size,0);assert.equal(frames.size,0);assert.equal(renderer.timer,0);
+const sounding=renderer.reveal({...initial,sound:true},origin,{sense:'sound',duration:1200,doublePulse:true});
+clock+=90;renderer.draw(clock);assert.ok(lastSamples[1].echo);assert.equal(lastSamples[1].progress,0,'Sound keeps its leading pulse before the reveal');
+clock+=200;renderer.draw(clock);assert.ok(lastSamples[1].progress>0);
+const retap=renderer.reveal({...initial,sound:false},origin,{sense:'sound',duration:800});
+assert.equal(await sounding,false);assert.equal(renderer.requests.size,1);
+renderer.finish();assert.equal(await retap,true);assert.equal(renderer.field.state.sound,false);assert.equal(frames.size,0);
+const reduced=renderer.reveal({...initial,sight:true},origin,{sense:'sight',duration:180,reduced:true});
+clock+=90;renderer.draw(clock);assert.equal(lastSamples[0].radial,false);assert.equal(lastSamples[0].ring,0);assert.ok(lastSamples[0].amount>0&&lastSamples[0].amount<1);
+renderer.finish();assert.equal(await reduced,true);
+const closing=renderer.reveal({...initial,taste:false},origin,{sense:'taste',duration:800});renderer.cancel();assert.equal(await closing,false);assert.equal(frames.size,0);assert.equal(renderer.timer,0);
+console.log('Passed: viewport coverage, independent concurrent reveals, stale completion protection, organic easing, continuous reversal, double Sound pulse, reduced motion, idle scheduling and cancellation.');
 
 // Scent is an independent gain: switching Sound must leave its automation intact.
 const gainLog=()=>({value:0,events:[],cancelScheduledValues(){},cancelAndHoldAtTime(t){this.events.push(['hold',t]);},setValueAtTime(v,t){this.events.push(['set',v,t]);},linearRampToValueAtTime(v,t){this.events.push(['ramp',v,t]);},disconnect(){}});

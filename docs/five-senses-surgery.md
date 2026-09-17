@@ -91,3 +91,19 @@ The loader now prepares all four Sight/Touch surfaces and nine compact, transpar
 Ambient CSS animations join one shared timeline when scenes enter the stage. Transition completion removes only the outgoing scene; it no longer detaches and reinserts the surviving one. This prevents flowers, spores, haze and the headrest glint from restarting or jumping when another sense changes. Pause holds that same timeline, including newly revealed scenes. Particle motion uses composited transforms and opacity; soft round specks use their existing gradient instead of per-particle blur filters.
 
 Validation: expanded lifecycle checks exercise continuous phase, pause/resume during scene changes, both Sound rings and scene attachment continuity. A native-canvas comparison against the previous composition produced identical pixels in four representative warm/cold and premium/clinical combinations, including all props, shadows and countertop reflections. Reveal diagnostics also record frame counts, gaps over 50 ms and the largest gap without adding an idle rendering loop.
+
+### Approved checkpoint — 0.16.0
+
+David approved the botanical placement and smooth cached version on 17 September 2026. Preserve `checkpoint/five-senses-approved-v0.16.0` at commit `726591dc5caf534ce95126e4ce61fb82800e9716`. To restore it, pin the test page's existing loader URL to that commit; its Webflow photographic asset map remains unchanged. This is the reference for subsequent ripple work.
+
+### Prototype 0.17.0 — independent organic ripples
+
+Each sense now owns one spatial reveal. Tapping different controls starts overlapping ripples immediately. At their intersection, Sight and Touch independently determine lighting/upholstery and material geometry; Sound, Smell and Taste control their own props. Re-tapping the same sense reverses from its current radius without jumping or accumulating history. The previous serial pending-state queue is replaced with per-sense completion tracking, so an older completion cannot restore stale settings.
+
+The ripple radius uses `1 - (1 - progress)^2.2`: a brisk opening followed by a gentle deceleration, with no elastic bounce. The approved 1200 ms ON and 800 ms OFF durations remain. Cream circle lines have a restrained inner shadow and fade near completion. Sound retains its leading second pulse.
+
+A small WebGL compositor uses five textures (four approved photographic plates and a 1024px alpha atlas), one draw call per frame, a capped 1.6-megapixel drawing buffer and one shared RAF for up to five active reveals. No texture uploads, image filtering or full-scene construction occur on taps. Rendering stops when all waves settle. Ambient flowers, spores, haze and headrest motion remain in permanent CSS layers, preserving their phase. Graphics resources and audio are disposed on close.
+
+If WebGL is unavailable or its context is lost, a fixed set of prepared CSS layers applies the same independent masks. The fallback uses isolated alpha blending for props and intersected masks; `?senses-renderer=css` selects it explicitly for review. Reduced motion uses short independent dissolves. Resize settles current targets, while closing cancels them.
+
+Validation: deterministic checks cover three simultaneous reveals, independent completion, stale callbacks, repeated reversals, bounded wave counts, both Sound rings, reduced motion, one RAF, zero idle scheduling and audio cleanup. The actual OpenGL ES shader compiles and matches six approved photographic combinations within one 8-bit channel value. A separate full-frame test of overlapping Sight/Touch masks, including both feathered boundaries, matches the independently composed reference within 1.04 channel values. Engineering reference: [WebGL best practices](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices).

@@ -294,6 +294,134 @@ class PreparedArtwork{
   }
 }
 
+// Independent channels use the same spatial mask in the photograph, props and air.
+// A repeated tap retargets its existing radius; work stays bounded at five waves.
+export const RIPPLE_SENSES=['sight','sound','smell','touch','taste'];
+export const rippleEase=p=>1-Math.pow(1-Math.max(0,Math.min(1,p)),2.2);
+export class RippleField{
+  constructor(state={}){this.state={...state};this.waves=new Map();}
+  sample(sense,now){
+    const w=this.waves.get(sense);
+    if(!w)return{amount:Number(!!this.state[sense]),radial:false,ring:0,progress:1};
+    const p=Math.max(0,Math.min(1,(now-w.start-w.delay)/w.duration)),e=rippleEase(p);
+    return{...w,progress:p,radial:!w.reduced,radius:w.from+(w.to-w.from)*e,amount:w.fromAmount+(Number(w.target)-w.fromAmount)*e,
+      ring:w.reduced?0:Math.min(1,p*14)*Math.min(1,(1-p)*6),
+      echo:w.echo&&now<w.start+w.duration?{radius:-12+rippleEase((now-w.start)/w.duration)*(w.end+12),alpha:Math.min(1,Math.max(0,(now-w.start)/w.duration)*14)*Math.min(1,Math.max(0,1-(now-w.start)/w.duration)*6)*.55}:null};
+  }
+  start(sense,target,origin,end,now,{duration,reduced=false,doublePulse=false}={}){
+    const previous=this.waves.get(sense),at=this.sample(sense,now),from=at.radial?at.radius:at.amount?end:-12;
+    const wave={sense,target,origin:{...origin},end,from,to:target?end:-12,fromAmount:at.amount,start:now,duration,
+      reduced,delay:doublePulse&&!reduced&&!previous?175:0,echo:doublePulse&&!reduced&&!previous};
+    this.waves.set(sense,wave);return wave;
+  }
+  settle(sense){const w=this.waves.get(sense);if(w){this.state[sense]=w.target;this.waves.delete(sense);}return w;}
+  samples(now){return RIPPLE_SENSES.map(sense=>this.sample(sense,now));}
+}
+
+function gateStyle(samples,gates){
+  const masks=[];let opacity=1;
+  for(const [index,invert=false] of gates){
+    const s=samples[index];
+    if(!s.radial){opacity*=invert?1-s.amount:s.amount;continue;}
+    const r=s.radius,x=s.origin.x,y=s.origin.y;
+    masks.push(`radial-gradient(circle at ${x}px ${y}px,${invert?'#0000':'#000'} ${Math.max(0,r-10)}px,${invert?'#000':'#0000'} ${Math.max(.01,r+10)}px)`);
+  }
+  return{visibility:opacity===0?'hidden':'visible',opacity:String(opacity),maskImage:masks.join(',')||'none',webkitMaskImage:masks.join(',')||'none'};
+}
+
+const VERTEX_SHADER='attribute vec2 aPosition;varying vec2 vUV;void main(){vUV=vec2((aPosition.x+1.0)*.5,(1.0-aPosition.y)*.5);gl_Position=vec4(aPosition,0.0,1.0);}';
+// Five texture units: four registered material/light plates and one alpha atlas.
+// Premultiplied sprites retain the approved translucent shadows/reflections.
+export const RIPPLE_FRAGMENT_SHADER=`
+precision highp float;
+varying vec2 vUV;
+uniform sampler2D uBase0,uBase1,uBase2,uBase3,uAtlas;
+uniform vec2 uViewport;
+uniform vec4 uPhoto;
+uniform vec4 uWave[5];
+uniform vec2 uState[5];
+uniform vec4 uEcho;
+float maskValue(vec2 p,vec4 w,vec2 s){return s.x<0.0?1.0-smoothstep(w.z-10.0,w.z+10.0,length(p-w.xy)):s.x;}
+vec4 sprite(vec2 p,vec4 bounds,vec2 atlas){
+  vec2 q=(p-bounds.xy)/bounds.zw;
+  if(q.x<0.0||q.y<0.0||q.x>1.0||q.y>1.0)return vec4(0.0);
+  return texture2D(uAtlas,(atlas+q*bounds.zw)/1024.0);
+}
+vec4 over(vec4 under,vec4 top){return top+under*(1.0-top.a);}
+vec3 ring(vec3 colour,vec2 p,vec4 w){
+  if(w.w<=0.0||w.z<=0.0)return colour;
+  float d=length(p-w.xy)-w.z;
+  float shadow=(1.0-smoothstep(0.0,30.0,-d))*smoothstep(1.0,5.0,-d)*w.w*.18;
+  float line=(1.0-smoothstep(.28,1.2,abs(d)))*w.w*.8;
+  colour*=1.0-shadow;
+  return mix(colour,vec3(.961,.945,.902),line);
+}
+void main(){
+  vec2 p=vUV*uViewport,uv=(p-uPhoto.xy)/uPhoto.zw,photo=uv*vec2(1086.0,1448.0);
+  float sight=maskValue(p,uWave[0],uState[0]),sound=maskValue(p,uWave[1],uState[1]);
+  float smell=maskValue(p,uWave[2],uState[2]),touch=maskValue(p,uWave[3],uState[3]),taste=maskValue(p,uWave[4],uState[4]);
+  vec4 colour=mix(mix(texture2D(uBase0,uv),texture2D(uBase1,uv),sight),mix(texture2D(uBase2,uv),texture2D(uBase3,uv),sight),touch);
+  colour=over(colour,sprite(photo,vec4(0.0,180.0,535.0,710.0),vec2(2.0,2.0))*smell);
+  vec4 headphones=mix(sprite(photo,vec4(270.0,1135.0,400.0,255.0),vec2(539.0,2.0)),sprite(photo,vec4(270.0,1135.0,400.0,255.0),vec2(539.0,259.0)),sight);
+  colour=over(colour,headphones*sound);
+  vec4 clinical=mix(sprite(photo,vec4(730.0,15.0,195.0,260.0),vec2(2.0,716.0)),sprite(photo,vec4(730.0,15.0,195.0,260.0),vec2(201.0,716.0)),sight);
+  vec4 aesop=mix(sprite(photo,vec4(730.0,15.0,195.0,260.0),vec2(400.0,716.0)),sprite(photo,vec4(730.0,15.0,195.0,260.0),vec2(599.0,716.0)),sight);
+  colour=over(colour,mix(clinical,aesop,taste));
+  vec4 candle=mix(sprite(photo,vec4(380.0,130.0,100.0,115.0),vec2(798.0,716.0)),sprite(photo,vec4(380.0,130.0,100.0,115.0),vec2(900.0,716.0)),sight);
+  colour=over(colour,candle*smell);
+  for(int i=0;i<5;i++)colour.rgb=ring(colour.rgb,p,uWave[i]);
+  colour.rgb=ring(colour.rgb,p,uEcho);
+  gl_FragColor=vec4(colour.rgb,1.0);
+}`;
+
+class GPUComposite{
+  constructor(art){
+    this.canvas=document.createElement('canvas');this.canvas.className='tdb-senses-gpu';
+    const gl=this.canvas.getContext('webgl',{alpha:true,antialias:false,depth:false,stencil:false,premultipliedAlpha:true,preserveDrawingBuffer:false,powerPreference:'low-power'});
+    if(!gl)throw new Error('WebGL unavailable');
+    this.gl=gl;this.textures=[];
+    try{
+      const program=gl.createProgram(),vertex=gl.createShader(gl.VERTEX_SHADER),fragment=gl.createShader(gl.FRAGMENT_SHADER);this.program=program;
+      gl.shaderSource(vertex,VERTEX_SHADER);gl.shaderSource(fragment,RIPPLE_FRAGMENT_SHADER);gl.compileShader(vertex);gl.compileShader(fragment);
+      gl.attachShader(program,vertex);gl.attachShader(program,fragment);gl.bindAttribLocation(program,0,'aPosition');gl.linkProgram(program);
+      gl.deleteShader(vertex);gl.deleteShader(fragment);
+      if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program)||'Shader unavailable');
+      gl.useProgram(program);this.buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);
+      gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+      this.uniforms={};for(const name of ['uViewport','uPhoto','uWave[0]','uState[0]','uEcho'])this.uniforms[name]=gl.getUniformLocation(program,name);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,true);
+      for(const [index,sight,touch] of [[0,false,false],[1,true,false],[2,false,true],[3,true,true]])this.texture(art.surface({sight,touch}).surface,index,'uBase'+index);
+      const atlas=document.createElement('canvas');atlas.width=atlas.height=1024;const ctx=atlas.getContext('2d');
+      for(const [sense,sight,taste,x,y] of [['smell',true,true,2,2],['sound',false,true,539,2],['sound',true,true,539,259],['taste',false,false,2,716],['taste',true,false,201,716],['taste',false,true,400,716],['taste',true,true,599,716],['candle',false,true,798,716],['candle',true,true,900,716]])ctx.drawImage(art.object({sight,taste},sense).canvas,x,y);
+      this.texture(atlas,4,'uAtlas');atlas.width=atlas.height=1;
+      if(gl.getError()!==gl.NO_ERROR)throw new Error('GPU texture allocation unavailable');
+      this.waveData=new Float32Array(20);this.stateData=new Float32Array(10);this.echoData=new Float32Array(4);
+    }catch(error){this.destroy();throw error;}
+  }
+  texture(source,index,name){
+    const gl=this.gl,texture=gl.createTexture();this.textures.push(texture);gl.activeTexture(gl.TEXTURE0+index);gl.bindTexture(gl.TEXTURE_2D,texture);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);gl.uniform1i(gl.getUniformLocation(this.program,name),index);
+  }
+  resize(width,height,photo){
+    // Source-quality ceiling, including high-DPI phones; never a 4K full-screen buffer.
+    const ratio=Math.min(window.devicePixelRatio||1,2,Math.sqrt(1600000/(width*height)),1086/photo.width*1.5);
+    this.canvas.width=Math.max(1,Math.round(width*ratio));this.canvas.height=Math.max(1,Math.round(height*ratio));
+    this.gl.viewport(0,0,this.canvas.width,this.canvas.height);this.gl.uniform2f(this.uniforms.uViewport,width,height);this.gl.uniform4f(this.uniforms.uPhoto,photo.x,photo.y,photo.width,photo.height);
+  }
+  draw(samples){
+    const gl=this.gl;this.echoData.fill(0);
+    samples.forEach((s,i)=>{const n=i*4;this.waveData[n]=s.origin?.x||0;this.waveData[n+1]=s.origin?.y||0;this.waveData[n+2]=s.radius||0;this.waveData[n+3]=s.ring||0;this.stateData[i*2]=s.radial?-1:s.amount;
+      if(s.echo)this.echoData.set([s.origin.x,s.origin.y,s.echo.radius,s.echo.alpha]);});
+    gl.uniform4fv(this.uniforms['uWave[0]'],this.waveData);gl.uniform2fv(this.uniforms['uState[0]'],this.stateData);gl.uniform4fv(this.uniforms.uEcho,this.echoData);gl.drawArrays(gl.TRIANGLES,0,6);
+  }
+  destroy(){
+    if(!this.gl)return;const gl=this.gl;for(const t of this.textures)gl.deleteTexture(t);if(this.buffer)gl.deleteBuffer(this.buffer);if(this.program)gl.deleteProgram(this.program);
+    gl.getExtension('WEBGL_lose_context')?.loseContext();this.gl=null;this.canvas.remove();
+  }
+}
+
 export class SceneRenderer{
   static async prepareAssets(images,signal){
     const art=new PreparedArtwork(images),tasks=[];
@@ -303,170 +431,108 @@ export class SceneRenderer{
       for(const sense of ['sound','candle'])tasks.push(()=>art.object({sight},sense));
       for(const taste of [true,false])tasks.push(()=>art.object({sight,taste},'taste'));
     }
-    try{
-      for(const task of tasks){
-        if(signal.aborted)throw new DOMException('Closed','AbortError');
-        task();
-        // Let the loading UI paint and process Close between preparation steps.
-        await new Promise(resolve=>setTimeout(resolve,0));
-      }
-      if(signal.aborted)throw new DOMException('Closed','AbortError');
-      return art;
+    try{for(const task of tasks){if(signal.aborted)throw new DOMException('Closed','AbortError');task();await new Promise(resolve=>setTimeout(resolve,0));}
+      if(signal.aborted)throw new DOMException('Closed','AbortError');return art;
     }catch(error){art.destroy();throw error;}
   }
   constructor(stage,images,report,artwork){
-    this.stage=stage;this.images=images;this.report=report;this.cache=new Map();this.artwork=artwork||new PreparedArtwork(images);
-    this.current=null;this.active=null;this.builds=0;this.disposed=false;this.motionEpoch=this.now();this.motionHeld=0;this.paused=false;
-    stage.dataset.renderer='cached-composite-scenes';stage.dataset.maskDriver='radius-only-raf';
-    this.resize();
+    const started=performance.now();this.stage=stage;this.report=report;this.artwork=artwork;this.layers=[];this.photos=[];this.requests=new Map();this.field=new RippleField();this.frame=0;this.timer=0;this.disposed=false;
+    this.rings=[];this.scope=new AbortController();this.stats={draws:0,maxCPU:0};
+    try{if(new URLSearchParams(location.search).get('senses-renderer')==='css')throw new Error('CSS review mode');
+      this.gpu=new GPUComposite(artwork);stage.append(this.gpu.canvas);stage.dataset.renderer='gpu-independent-ripples';
+      this.gpu.canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();if(this.disposed)return;this.gpu=null;stage.dataset.gpuFallback='Context lost';event.target.remove();this.makeFallback();this.resize(true);this.draw(performance.now());},{signal:this.scope.signal});
+    }catch(error){stage.dataset.gpuFallback=error.message;this.makeFallback();}
+    this.makeAmbient();this.resize(true);report({builds:1,buildMs:Math.round(performance.now()-started)});
   }
-  now(){return document.timeline?.currentTime??performance.now();}
-  syncMotion(scene){
-    if(!scene?.node.isConnected)return;
-    const now=this.now(),elapsed=this.paused?this.motionHeld:now-this.motionEpoch;
-    for(const animation of scene.node.getAnimations({subtree:true})){
-      const target=animation.effect?.target;
-      if(!target?.matches('.tdb-senses-motes i,.tdb-senses-haze,.tdb-senses-chair-glare'))continue;
-      animation.currentTime=elapsed;
-      if(this.paused)animation.pause();
-      else{animation.play();animation.startTime=now-elapsed;}
-    }
+  layer(parent=this.stage,gates=[],add=false){
+    const node=document.createElement('div');node.className='tdb-senses-layer'+(add?' tdb-senses-add':'');parent.append(node);this.layers.push({node,gates,last:''});return node;
   }
-  settle(scene){
-    for(const node of [...this.stage.children])if(node!==scene.node)node.remove();
-    if(scene.node.parentNode!==this.stage){this.stage.append(scene.node);this.syncMotion(scene);}
-  }
-  scene(state){
-    const key=['sight','sound','smell','touch','taste'].map(k=>Number(state[k])).join('');
-    if(this.cache.has(key)){const scene=this.cache.get(key);this.cache.delete(key);this.cache.set(key,scene);return scene;}
-    const started=performance.now(),node=document.createElement('div');node.className='tdb-senses-scene';node.dataset.state=key;node.dataset.sight=state.sight?'warm':'cold';
+  photograph(parent,canvas,bounds=null){
     const photo=document.createElement('div');photo.className='tdb-senses-photo';
-    const prepared=this.artwork.surface(state);
-    const canvas=document.createElement('canvas');canvas.width=PHOTO_WIDTH;canvas.height=PHOTO_HEIGHT;
-    canvas.className='tdb-senses-photo-image';canvas.setAttribute('aria-hidden','true');
-    const ctx=canvas.getContext('2d',{alpha:false});ctx.drawImage(prepared.surface,0,0);
+    if(bounds){const [x,y,width,height]=bounds;Object.assign(canvas.style,{position:'absolute',left:`${x/PHOTO_WIDTH*100}%`,top:`${y/PHOTO_HEIGHT*100}%`,width:`${width/PHOTO_WIDTH*100}%`,height:`${height/PHOTO_HEIGHT*100}%`});}
+    else canvas.className='tdb-senses-photo-image';
+    photo.append(canvas);parent.append(photo);this.photos.push(photo);return photo;
+  }
+  makeFallback(){
+    this.stage.dataset.renderer='css-independent-ripples';
+    const root=document.createElement('div');root.className='tdb-senses-layer';this.stage.prepend(root);this.fallback=root;
+    // Two opaque material groups avoid dark seams at intersecting feathered masks.
+    for(const touch of [false,true]){
+      const material=this.layer(root,touch?[[3]]:[]);
+      for(const sight of [false,true])this.photograph(this.layer(material,sight?[[0]]:[]),this.artwork.surface({sight,touch}).surface);
+    }
     for(const sense of ['smell','sound','taste','candle']){
-      if(sense==='candle'?!state.smell:!state[sense]&&sense!=='taste')continue;
-      const sprite=this.artwork.object(state,sense);ctx.drawImage(sprite.canvas,sprite.x,sprite.y,sprite.width,sprite.height);
+      const group=this.layer(root);group.classList.add('tdb-senses-blend');
+      for(const sight of sense==='smell'?[true]:[false,true])for(const taste of sense==='taste'?[false,true]:[true]){
+        const gates=sense==='smell'?[[2]]:[[0,!sight]];
+        if(sense==='sound')gates.push([1]);if(sense==='candle')gates.push([2]);if(sense==='taste')gates.push([4,!taste]);
+        const sprite=this.artwork.object({sight,taste},sense);
+        this.photograph(this.layer(group,gates,true),sprite.canvas,[sprite.x,sprite.y,sprite.width,sprite.height]);
+      }
     }
-    photo.append(canvas);
-    if(prepared.glare){
-      const g=prepared.glare,glare=document.createElement('canvas');glare.width=g.canvas.width;glare.height=g.canvas.height;
-      glare.className='tdb-senses-chair-glare';glare.getContext('2d').drawImage(g.canvas,0,0);
-      Object.assign(glare.style,{left:`${g.x/PHOTO_WIDTH*100}%`,top:`${g.y/PHOTO_HEIGHT*100}%`,width:`${g.width/PHOTO_WIDTH*100}%`,height:`${g.height/PHOTO_HEIGHT*100}%`});
-      photo.append(glare);
-    }
-    const air=document.createElement('div');air.setAttribute('aria-hidden','true');
-    air.className=`tdb-senses-motes ${state.smell?'tdb-senses-botanicals':'tdb-senses-dust'}`;
-    if(state.smell){
-      const blossom=`<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor">${[0,72,144,216,288].map(a=>`<ellipse cx="12" cy="7.4" rx="3.1" ry="4.4" transform="rotate(${a} 12 12)"/>`).join('')}</g><circle cx="12" cy="12" r="2.3" fill="#cbbb7c"/></svg>`;
-      const leaves='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21Q9 13 14 4" fill="none" stroke="#91a578" stroke-width="1"/><path d="M12 14Q3 14 5 7Q12 7 12 14M12 11Q13 3 20 3Q20 10 12 11" fill="#91a578"/></svg>';
-      const spots=[[24,30],[30,42],[34,34],[21,47],[38,25],[29,53],[40,17],[36,20],[23,38]];
-      air.innerHTML=spots.map(([x,y],i)=>`<i class="${i===3||i===7?'sprig':'blossom'}" style="left:${x}%;top:${y}%;--mote-size:${13+i%3*2}px;--mote-colour:${i%3===0?'#e9d5d3':'#f1e9d5'};animation-delay:${-i*3.8}s;animation-duration:${20+i*1.4}s">${i===3||i===7?leaves:blossom}</i>`).join('');
-    }else{
-      const haze=document.createElement('div');haze.className='tdb-senses-haze';haze.setAttribute('aria-hidden','true');photo.append(haze);
-      air.innerHTML=Array.from({length:26},(_,i)=>`<i class="spore" style="left:${18+(i*19.7)%68}%;top:${17+(i*13.3)%60}%;--mote-size:${2+i%4}px;--mote-alpha:${.14+i%4*.06};animation-delay:${-i*2.7}s;animation-duration:${24+i%7*2}s"></i>`).join('');
-    }
-    photo.append(air);
-    node.append(photo);const scene={node,photo,state:{...state}};this.cache.set(key,scene);this.builds++;
-    this.position(scene);this.report({builds:this.builds,buildMs:Math.round(performance.now()-started)});
-    return scene;
+    for(let i=0;i<6;i++){const ring=document.createElement('div');ring.className='tdb-senses-reveal-ring';ring.hidden=true;this.stage.append(ring);this.rings.push(ring);}
   }
-  prune(){
-    while(this.cache.size>4){
-      const candidate=[...this.cache].find(([,scene])=>scene!==this.current&&scene!==this.active?.next&&!scene.node.isConnected);
-      if(!candidate)break;const [key,scene]=candidate;scene.node.querySelectorAll('canvas').forEach(canvas=>{canvas.width=1;canvas.height=1;});this.cache.delete(key);
+  makeAmbient(){
+    // These nodes remain connected: changing another sense never resets their drift.
+    for(const touch of [false,true]){
+      const g=this.artwork.surface({sight:false,touch}).glare;g.canvas.className='tdb-senses-chair-glare';
+      this.photograph(this.layer(this.stage,[[0,true],[3,!touch]]),g.canvas,[g.x,g.y,g.width,g.height]);
+    }
+    for(const fresh of [false,true]){
+      const layer=this.layer(this.stage,[[2,!fresh]]),photo=document.createElement('div');photo.className='tdb-senses-photo';this.photos.push(photo);layer.append(photo);
+      const air=document.createElement('div');air.className=`tdb-senses-motes ${fresh?'tdb-senses-botanicals':'tdb-senses-dust'}`;
+      if(fresh){
+        const blossom=`<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor">${[0,72,144,216,288].map(a=>`<ellipse cx="12" cy="7.4" rx="3.1" ry="4.4" transform="rotate(${a} 12 12)"/>`).join('')}</g><circle cx="12" cy="12" r="2.3" fill="#cbbb7c"/></svg>`;
+        const leaves='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21Q9 13 14 4" fill="none" stroke="#91a578" stroke-width="1"/><path d="M12 14Q3 14 5 7Q12 7 12 14M12 11Q13 3 20 3Q20 10 12 11" fill="#91a578"/></svg>';
+        const spots=[[24,30],[30,42],[34,34],[21,47],[38,25],[29,53],[40,17],[36,20],[23,38]];
+        air.innerHTML=spots.map(([x,y],i)=>`<i class="${i===3||i===7?'sprig':'blossom'}" style="left:${x}%;top:${y}%;--mote-size:${13+i%3*2}px;--mote-colour:${i%3===0?'#e9d5d3':'#f1e9d5'};animation-delay:${-i*3.8}s;animation-duration:${20+i*1.4}s">${i===3||i===7?leaves:blossom}</i>`).join('');
+      }else{
+        const haze=document.createElement('div');haze.className='tdb-senses-haze';photo.append(haze);
+        air.innerHTML=Array.from({length:26},(_,i)=>`<i class="spore" style="left:${18+(i*19.7)%68}%;top:${17+(i*13.3)%60}%;--mote-size:${2+i%4}px;--mote-alpha:${.14+i%4*.06};animation-delay:${-i*2.7}s;animation-duration:${24+i%7*2}s"></i>`).join('');
+      }
+      photo.append(air);
     }
   }
-  position(scene){
-    const r=this.photo;
-    Object.assign(scene.photo.style,{width:`${r.width}px`,height:`${r.height}px`,left:`${r.x}px`,top:`${r.y}px`});
-  }
-  resize(){
-    const rect=this.stage.getBoundingClientRect();if(!rect.width||!rect.height)return;
-    if(this.width===rect.width&&this.height===rect.height)return;
-    this.width=rect.width;this.height=rect.height;this.photo=coverGeometry(rect.width,rect.height);
-    this.cache.forEach(scene=>this.position(scene));
-    this.stage.dataset.photoRect=JSON.stringify(this.photo);
-    // Resizing cannot leave a partially revealed photograph on screen.
-    this.active?.finish(true);
+  resize(force=false){
+    const {width,height}=this.stage.getBoundingClientRect();if(!width||!height||!force&&width===this.width&&height===this.height)return;
+    this.width=width;this.height=height;this.photo=coverGeometry(width,height);const r=this.photo;
+    this.photos.forEach(photo=>Object.assign(photo.style,{left:r.x+'px',top:r.y+'px',width:r.width+'px',height:r.height+'px'}));
+    this.gpu?.resize(width,height,r);this.stage.dataset.photoRect=JSON.stringify(r);this.finish();this.draw(performance.now());
   }
   render(state){
-    this.active?.finish(false);
-    const next=this.scene(state);this.settle(next);this.current=next;
-    next.node.classList.remove('tdb-senses-revealing');next.node.style.removeProperty('opacity');this.prune();
+    this.cancel();this.field=new RippleField(state);this.draw(performance.now());
   }
-  reveal(state,origin,{duration,reverse=false,reduced,onProgress,doublePulse=false}){
-    this.active?.finish(false);
-    const next=this.scene(state),previous=this.current;
-    if(next===previous)return Promise.resolve(true);
-    // ON: the new scene grows over the old. OFF: the current scene contracts
-    // over the full new scene beneath it, all the way back into the control.
-    const contracting=reverse&&!reduced&&!!previous;
-    const ring=document.createElement('div');ring.className='tdb-senses-reveal-ring';
-    Object.assign(ring.style,{left:`${origin.x}px`,top:`${origin.y}px`});
-    const leading=doublePulse&&!reduced?ring.cloneNode():null;
-    const delay=leading?175:0,total=duration+delay;
-    const maskNode=contracting?previous.node:next.node,feather=20,endRadius=revealRadius(this.width,this.height,origin,feather);
-    maskNode.classList.add('tdb-senses-revealing');
-    maskNode.style.setProperty('--tdb-senses-origin-x',`${origin.x}px`);maskNode.style.setProperty('--tdb-senses-origin-y',`${origin.y}px`);
-    maskNode.style.setProperty('--tdb-senses-feather',`${feather}px`);maskNode.style.setProperty('--tdb-senses-reveal-radius',`${contracting?endRadius:-12}px`);
-    this.stage.dataset.radiusEnd=String(endRadius);this.stage.dataset.origin=JSON.stringify(origin);this.stage.dataset.direction=contracting?'contract':'expand';
-    if(reduced){maskNode.classList.remove('tdb-senses-revealing');maskNode.style.opacity='0';}
-    if(contracting)this.stage.insertBefore(next.node,maskNode);else this.stage.append(next.node);
-    this.syncMotion(next);
-    if(!reduced)this.stage.append(...(leading?[leading,ring]:[ring]));
-    return new Promise(resolve=>{
-      const active={next,animation:null,frame:0,frameStats:{frames:0,longFrames:0,maxGap:0},timers:[],done:false,finish:complete=>{
-        if(active.done)return;active.done=true;ring.remove();leading?.remove();active.timers.forEach(clearTimeout);cancelAnimationFrame(active.frame);
-        this.stage.dataset.revealFrames=String(active.frameStats.frames);this.stage.dataset.revealLongFrames=String(active.frameStats.longFrames);this.stage.dataset.revealMaxFrameGap=String(Math.round(active.frameStats.maxGap));
-        // Settle to exactly one unmasked photograph at either endpoint, including
-        // cancellation/resize paths; no half mask can survive animation rounding.
-        maskNode.classList.remove('tdb-senses-revealing');maskNode.style.removeProperty('opacity');active.animation?.cancel();
-        if(complete&&!this.disposed){this.settle(next);this.current=next;onProgress?.(1);}
-        else if(previous&&!this.disposed)this.settle(previous);
-        else next.node.remove();
-        if(this.active===active)this.active=null;this.prune();resolve(complete);
-      }};
-      this.active=active;
-      if(reduced){
-        active.animation=next.node.animate([{opacity:0},{opacity:1}],{duration,easing:'linear',fill:'both'});
-        active.animation.finished.then(()=>active.finish(true),()=>{});
-      }else{
-        const start=performance.now();let lastFrame=start;
-        const tick=now=>{
-          if(active.done||this.disposed)return;
-          const gap=now-lastFrame;lastFrame=now;active.frameStats.frames++;active.frameStats.maxGap=Math.max(active.frameStats.maxGap,gap);if(gap>50)active.frameStats.longFrames++;
-          const elapsed=now-start,p=Math.max(0,Math.min(1,(elapsed-delay)/duration));
-          if(leading){
-            const lp=Math.min(1,elapsed/duration),size=Math.max(0,(-12+lp*(endRadius+12))*2);
-            leading.style.width=size+'px';leading.style.height=size+'px';
-            leading.style.opacity=lp===1?'0':'1';
-            ring.style.visibility=elapsed<delay?'hidden':'visible';
-          }
-          const radius=contracting?endRadius-p*(endRadius+12):-12+p*(endRadius+12);
-          maskNode.style.setProperty('--tdb-senses-reveal-radius',`${radius.toFixed(2)}px`);
-          const diameter=Math.max(0,radius*2);ring.style.width=`${diameter}px`;ring.style.height=`${diameter}px`;
-          if(p===1)active.finish(true);else active.frame=requestAnimationFrame(tick);
-        };active.frame=requestAnimationFrame(tick);
-      }
-      for(const p of [.25,.5,.75])active.timers.push(setTimeout(()=>{if(!active.done)onProgress?.(p);},total*p));
-      active.timers.push(setTimeout(()=>active.finish(true),total+80));
-    });
+  reveal(state,origin,{sense,duration,reduced=false,doublePulse=false,onProgress}){
+    const now=performance.now();const prior=this.requests.get(sense);if(prior){prior.resolve(false);this.requests.delete(sense);}
+    const wave=this.field.start(sense,!!state[sense],origin,revealRadius(this.width,this.height,origin),now,{duration,reduced,doublePulse});
+    const promise=new Promise(resolve=>this.requests.set(sense,{wave,resolve,onProgress}));
+    this.stage.dataset.peakRipples=String(Math.max(Number(this.stage.dataset.peakRipples||0),this.requests.size));
+    this.draw(now);this.schedule();return promise;
   }
-
-  motion(paused){
-    if(this.paused===paused)return;
-    const now=this.now();
-    if(paused)this.motionHeld=now-this.motionEpoch;
-    else this.motionEpoch=now-this.motionHeld;
-    this.paused=paused;this.stage.classList.toggle('tdb-senses-motion-paused',paused);
-    this.syncMotion(this.current);if(this.active)this.syncMotion(this.active.next);
+  draw(now){
+    if(this.disposed)return;const started=performance.now();
+    for(const [sense,request] of this.requests)if(now>=request.wave.start+request.wave.delay+request.wave.duration){this.field.settle(sense);this.requests.delete(sense);request.onProgress?.(1);request.resolve(true);}
+    const samples=this.field.samples(now);this.gpu?.draw(samples);
+    for(const layer of this.layers){const style=gateStyle(samples,layer.gates),key=style.visibility+style.opacity+style.maskImage;if(key!==layer.last){Object.assign(layer.node.style,style);layer.last=key;}}
+    if(this.rings.length){
+      const circles=samples.filter(s=>s.radial&&s.ring>0).map(s=>({x:s.origin.x,y:s.origin.y,r:s.radius,alpha:s.ring}));
+      const sound=samples[1];if(sound.echo)circles.push({x:sound.origin.x,y:sound.origin.y,r:sound.echo.radius,alpha:sound.echo.alpha});
+      this.rings.forEach((ring,i)=>{const c=circles[i];ring.hidden=!c;if(c)Object.assign(ring.style,{left:c.x+'px',top:c.y+'px',width:Math.max(0,c.r*2)+'px',height:Math.max(0,c.r*2)+'px',opacity:String(c.alpha)});});
+    }
+    this.stats.draws++;this.stats.maxCPU=Math.max(this.stats.maxCPU,performance.now()-started);
+    this.stage.dataset.activeRipples=String(this.requests.size);
+    if(!this.requests.size){this.stopScheduling();this.stage.dataset.renderState='idle';this.stage.dataset.draws=String(this.stats.draws);this.stage.dataset.maxSubmitMs=this.stats.maxCPU.toFixed(2);}
   }
-  finish(){this.active?.finish(true);}
-  destroy(){
-    this.disposed=true;this.active?.finish(false);this.stage.replaceChildren();
-    this.cache.forEach(scene=>scene.node.querySelectorAll('canvas').forEach(canvas=>{canvas.width=1;canvas.height=1;}));
-    this.artwork.destroy();this.cache.clear();this.current=null;this.images=null;
+  schedule(){
+    if(this.disposed||!this.requests.size)return;this.stage.dataset.renderState='animating';
+    if(!this.frame)this.frame=requestAnimationFrame(now=>{this.frame=0;this.draw(now);this.schedule();});
+    const end=Math.min(...[...this.requests.values()].map(r=>r.wave.start+r.wave.delay+r.wave.duration));
+    if(this.deadline!==end||!this.timer){clearTimeout(this.timer);this.deadline=end;
+      this.timer=setTimeout(()=>{this.timer=0;this.deadline=0;this.draw(performance.now());this.schedule();},Math.max(16,end-performance.now()+40));}
   }
+  stopScheduling(){cancelAnimationFrame(this.frame);clearTimeout(this.timer);this.frame=0;this.timer=0;this.deadline=0;}
+  cancel(){this.stopScheduling();for(const r of this.requests.values())r.resolve(false);this.requests.clear();this.field.waves.clear();}
+  finish(){for(const sense of [...this.requests.keys()]){this.field.settle(sense);const r=this.requests.get(sense);this.requests.delete(sense);r.onProgress?.(1);r.resolve(true);}this.stopScheduling();if(this.width)this.draw(performance.now());}
+  motion(paused){this.stage.classList.toggle('tdb-senses-motion-paused',paused);}
+  destroy(){if(this.disposed)return;this.disposed=true;this.cancel();this.scope.abort();this.gpu?.destroy();this.stage.replaceChildren();this.artwork.destroy();this.layers=[];this.photos=[];}
 }

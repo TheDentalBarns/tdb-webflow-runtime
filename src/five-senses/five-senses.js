@@ -1,5 +1,5 @@
 import {SceneRenderer} from './scene-renderer.js';
-/* TDB Five Senses v0.16.0 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.17.0 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -24,25 +24,17 @@ const ICONS = [
 ];
 const svg = body => `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
 
-export class TransitionQueue {
-  constructor(initial) { this.visible = { ...initial }; this.active = null; this.pending = null; }
-  request(state, origin, intro = false, sense = null) {
-    const request = { state: { ...state }, origin, sense, intro: intro || !!(this.pending?.intro && state.sound) };
-    if (this.active) { this.pending = request; return null; }
-    return this.begin(request);
+export class SenseTransitions {
+  constructor(initial){this.visible={...initial};this.target={...initial};this.active=new Map();}
+  request(state,origin,intro=false,sense){
+    const request={from:{...this.target},state:{...state},origin,intro,sense};
+    this.target={...state};this.active.set(sense,request);return request;
   }
-  begin(request) {
-    this.active = { from: { ...this.visible }, ...request, started: 0 };
-    return this.active;
+  finish(request){
+    if(this.active.get(request.sense)!==request)return false;
+    this.visible[request.sense]=request.state[request.sense];this.active.delete(request.sense);return true;
   }
-  finish() {
-    if (this.active) this.visible = { ...this.active.state };
-    this.active = null;
-    const pending = this.pending;
-    this.pending = null;
-    return pending ? this.begin(pending) : null;
-  }
-  cancel() { this.active = null; this.pending = null; }
+  cancel(){this.active.clear();}
 }
 
 export function isReverseTransition(active) {
@@ -174,7 +166,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let disposed=false,renderer=null,audio=null,audioReady=false,audioPending=false,motionPaused=false,hasBegun=false,interactionReady=false;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const initial={sight:true,sound:false,smell:true,touch:true,taste:true};
-  const requested={...initial},queue=new TransitionQueue(initial),scope=new AbortController();
+  const requested={...initial},queue=new SenseTransitions(initial),scope=new AbortController();
   const listen=(el,event,fn,options={})=>el.addEventListener(event,fn,{...options,signal:scope.signal});
   const loaded=await Promise.allSettled(['surgery-warm.webp','surgery-clinical-clean.webp','surgery-objects.webp','scent-candle.webp','taste-clinical.webp'].map(name=>imageAsset(assetURL(name,assetBase),signal)));
   if(signal.aborted||loaded.some(r=>r.status==='rejected')){
@@ -185,7 +177,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.16.0';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.17.0';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -229,13 +221,12 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     if(audioReady&&(active.intro||active.from.sound!==active.state.sound))audio.transition(active.state.sound,active.intro);
     if(audioReady&&(active.intro||active.from.smell!==active.state.smell)){audio.scent(active.state.smell,duration/1000);dialog.dataset.scentAudio=active.state.smell?'on':'off';}
     const started=performance.now();
-    renderer.reveal(active.state,active.origin,{duration,reverse,doublePulse:!reverse&&active.state.sound&&!active.from.sound,reduced:reduced.matches,onProgress:p=>{dialog.dataset.transitionProgress=String(p);}}).then(complete=>{
-      if(!complete||disposed||signal.aborted||queue.active!==active)return;
+    renderer.reveal(active.state,active.origin,{sense:active.sense,duration,reverse,doublePulse:!reverse&&active.state.sound&&!active.from.sound,reduced:reduced.matches,onProgress:p=>{dialog.dataset.transitionProgress=String(p);}}).then(complete=>{
+      if(!complete||disposed||signal.aborted||queue.active.get(active.sense)!==active)return;
       dialog.dataset.lastTransitionMs=String(Math.round(performance.now()-started));
-      const pending=queue.finish();dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
+      queue.finish(active);dialog.dataset.phase=queue.active.size?'transition':'ready';dialog.dataset.transitionProgress='1';
       dialog.dataset.visibleState=JSON.stringify(queue.visible);
       if(active.intro){interactionReady=true;updateControls();controls[1].focus({preventScroll:true});}
-      if(pending)begin(pending);
     });
   }
   function activate(sense,button,intro=false){
@@ -275,7 +266,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   listen(document,'visibilitychange',()=>{
     if(document.hidden){
       audio.stop();audio=createAudio();audioReady=false;audioPending=false;requested.sound=false;hasBegun=false;interactionReady=false;dialog.querySelector('.tdb-senses-detail').hidden=true;
-      queue.cancel();queue.visible={...requested};renderer.render(requested);dialog.dataset.audioState='uninitiated';dialog.dataset.scentAudio='off';dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
+      queue.cancel();queue.visible={...requested};queue.target={...requested};renderer.render(requested);dialog.dataset.audioState='uninitiated';dialog.dataset.scentAudio='off';dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
     }
     updateControls();
   });
