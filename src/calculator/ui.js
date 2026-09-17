@@ -1,4 +1,4 @@
-/* TDB Treatment Calculator v1.4.6 — shared inline/drawer controller. */
+/* TDB Treatment Calculator v1.4.7 — shared inline/drawer controller. */
 (function () {
   'use strict';
   if(window.TDBCalculator)return;
@@ -117,7 +117,7 @@
   function closeTooltips(except){document.querySelectorAll('.tdbc-info.is-open').forEach(info=>{if(info===except)return;info.classList.remove('is-open');info.querySelector('button').setAttribute('aria-expanded','false');const p=info.querySelector('[role="tooltip"]');p.setAttribute('aria-hidden','true');p.inert=true;});}
 
   class View {
-    constructor(root,config,mode){this.root=root;this.config=config;this.mode=mode;this.id='tdbc-'+(++sequence);this.context=null;this.ready=false;this.breakdown=true;this.visible=false;this.suspended=false;this.timingWarning=false;this.dateDrag=null;this.stageOpen=new Set();this.optionClosed=new Set();this.activeStage='assessment';this.timelineManual=false;this.timelineFrame=0;this.bridalOpen=false;this.liveText=null;this.liveAnimation=null;
+    constructor(root,config,mode){this.root=root;this.config=config;this.mode=mode;this.id='tdbc-'+(++sequence);this.context=null;this.ready=false;this.breakdown=true;this.visible=false;this.suspended=false;this.timingWarning=false;this.dateDrag=null;this.stageOpen=new Set();this.optionClosed=new Set();this.optionPreview=new Set();this.optionDrafts={};this.activeStage='assessment';this.timelineManual=false;this.timelineFrame=0;this.bridalOpen=false;this.liveText=null;this.liveAnimation=null;
       root.classList.add('tdb-calc','padding-global');root.addEventListener('change',e=>this.change(e));root.addEventListener('input',e=>this.input(e));root.addEventListener('click',e=>this.click(e));
       root.addEventListener('pointerdown',event=>{this.suspended=false;focusView(this);if(event.target.dataset.range==='completion')this.dateDrag={pointer:event.pointerId,x:event.clientX,slider:event.target};},{passive:true});
       root.addEventListener('focusin',()=>{this.suspended=false;focusView(this);});
@@ -186,8 +186,8 @@
       this.outputs();
     }
     option(o,e){
-      const r=records[C.IDS[o.record||o.key]],v=state.selected[o.key],on=!!v,included=o.key==='whitening'&&e.whitenIncluded,label=name(o),rid=this.id+'-'+o.key,unit=r?.unit||(o.quantity?'tooth':'');
-      const complexity=['aligners','bonding','veneers'].includes(o.key)&&r?.tierLabels?.some(Boolean),hasControls=o.quantity||complexity,expanded=on&&!included&&!this.optionClosed.has(o.key);
+      const r=records[C.IDS[o.record||o.key]],v=state.selected[o.key]||this.optionDrafts[o.key],on=!!state.selected[o.key],included=o.key==='whitening'&&e.whitenIncluded,label=name(o),rid=this.id+'-'+o.key,unit=r?.unit||(o.quantity?'tooth':'');
+      const complexity=['aligners','bonding','veneers'].includes(o.key)&&r?.tierLabels?.some(Boolean),hasControls=o.quantity||complexity,expanded=!included&&(on?!this.optionClosed.has(o.key):this.optionPreview.has(o.key));
       const quoted=o.key==='replacement'&&r?.valid&&r.tiers[2]?currency(r.tiers[2])+(unit?' / '+unit:''):recordPrice(r);
       const row='<div class="tdbc-option-row"><label class="tdbc-option-label form_checkbox" for="'+rid+'"><input id="'+rid+'" type="checkbox" data-control="select-'+o.key+'" data-select="'+o.key+'" '+(on||included?'checked ':'')+(included?'disabled ':'')+'>'+check(on||included)+'<span><span class="text-size-small">'+esc(label)+'</span><small class="text-size-tiny">'+(included?'Included with your aligners':esc(quoted))+'</small></span></label>'+tip(rid,'About '+label,(r?.tooltip||'Your dentist will confirm suitability, fees and the treatment sequence at your assessment.')+(o.key==='replacement'?' Count the surfaces to be replaced separately from any new fillings.':''))+(hasControls?'<button type="button" class="tdbc-option-expand" data-action="option" data-key="'+o.key+'" aria-label="Options for '+esc(label)+'" aria-expanded="'+expanded+'" aria-controls="'+rid+'-controls">'+chevron+'</button>':'<span class="tdbc-option-spacer" aria-hidden="true"></span>')+'</div>';
       const quantity=o.quantity?'<label class="text-size-small" for="'+rid+'-qty">'+(unit==='surface'?'Surfaces to restore':o.key==='gumline'?'Number of areas':'Number of teeth')+'</label><div class="tdbc-quantity-row"><div class="tdbc-quantity"><button type="button" data-action="minus" data-key="'+o.key+'" aria-label="Fewer '+esc(label)+'" '+((v?.qty||1)<=1?'disabled':'')+'>−</button><input id="'+rid+'-qty" data-control="qty-'+o.key+'" data-qty="'+o.key+'" type="number" inputmode="numeric" min="1" max="'+(unit==='surface'?160:32)+'" step="1" value="'+(v?.qty||1)+'"><button type="button" data-action="plus" data-key="'+o.key+'" aria-label="More '+esc(label)+'">+</button></div>'+(o.category==='cosmetic'?tip(rid+'-quantity',o.key==='gumline'?'How many areas should I include?':'How many teeth should I include?',o.key==='gumline'?'Count one area for each tooth with an exposed or worn gumline you would like us to look at. The fee is per tooth; this is gumline bonding, rather than gum contouring.':'Think about the teeth you would like to improve, or those you see when you smile. A typical smile treatment may cover six front teeth (3–3) or eight (4–4). Your dentist will help confirm the right number.'): '')+'</div>'+(unit==='surface'?'<p class="tdbc-help text-size-tiny">One tooth may need several surfaces restored. If unsure, use one surface for a starting guide.</p>':o.key==='gumline'?'<p class="tdbc-help text-size-tiny">One area per tooth. The estimate uses the published per-tooth fee.</p>':''):'';
@@ -230,14 +230,15 @@
       }
       return html+'</ol>'+t.plan.notes.map(n=>'<p class="tdbc-help text-size-tiny">'+esc(n)+'</p>').join('');
     }
+    optionValue(key){return state.selected[key]||(this.optionDrafts[key]||={qty:1,tier:null});}
     change(event){
       const el=event.target;if(!this.ready)return;
       if(el.dataset.category){const k=el.dataset.category;if(el.checked)state.categories=[...new Set([...state.categories,k])];else{state.categories=state.categories.filter(c=>c!==k);C.OPTIONS.filter(o=>o.category===k).forEach(o=>delete state.selected[o.key]);}state.start='';state.delay=0;this.dismissTimingWarning();if(!state.categories.length){state.assessment='none';state.finance=false;state.hygiene=false;}}
-      else if(el.dataset.select){this.optionClosed.delete(el.dataset.select);if(el.checked)state.selected[el.dataset.select]={qty:1,tier:null};else delete state.selected[el.dataset.select];state.start='';state.delay=0;this.dismissTimingWarning();}
+      else if(el.dataset.select){this.optionClosed.delete(el.dataset.select);if(el.checked)state.selected[el.dataset.select]={...this.optionValue(el.dataset.select)};else{this.optionDrafts[el.dataset.select]={...state.selected[el.dataset.select]};delete state.selected[el.dataset.select];}state.start='';state.delay=0;this.dismissTimingWarning();}
       else if(el.hasAttribute('data-finance')){state.finance=el.checked;if(state.finance)state.term=12;}
-      else if(el.dataset.qty){const o=C.OPTIONS.find(o=>o.key===el.dataset.qty);const limit=o?.record==='fillings'||o?.key==='fillings'?160:32;state.selected[el.dataset.qty].qty=Math.max(1,Math.min(limit,Math.floor(Number(el.value)||1)));}
-      else if(el.dataset.tier){state.selected[el.dataset.tier].tier=el.value===''?null:Number(el.value);state.delay=0;this.dismissTimingWarning();}
-      else if(el.dataset.arch){const v=state.selected.veneers;if(v){const arches=v.arches||['upper'];v.arches=el.checked?[...new Set([...arches,el.dataset.arch])]:arches.filter(a=>a!==el.dataset.arch);state.delay=0;this.dismissTimingWarning();}}
+      else if(el.dataset.qty){const o=C.OPTIONS.find(o=>o.key===el.dataset.qty);const limit=o?.record==='fillings'||o?.key==='fillings'?160:32;this.optionValue(el.dataset.qty).qty=Math.max(1,Math.min(limit,Math.floor(Number(el.value)||1)));}
+      else if(el.dataset.tier){this.optionValue(el.dataset.tier).tier=el.value===''?null:Number(el.value);if(state.selected[el.dataset.tier]){state.delay=0;this.dismissTimingWarning();}}
+      else if(el.dataset.arch){const v=this.optionValue('veneers');const arches=v.arches||['upper'];v.arches=el.checked?[...new Set([...arches,el.dataset.arch])]:arches.filter(a=>a!==el.dataset.arch);if(state.selected.veneers){state.delay=0;this.dismissTimingWarning();}}
       else if(el.dataset.assessment)state.assessment=el.checked?el.dataset.assessment:'none';
       else if(el.hasAttribute('data-hygiene')){state.hygiene=el.checked;state.start='';state.delay=0;this.dismissTimingWarning();}
       else if(el.hasAttribute('data-deposit-number'))state.deposit=Math.max(0,Math.round((Number(el.value)||0)*100));
@@ -266,12 +267,21 @@
       if(action==='retry'){this.init();return;}
       if(action==='vip'){event.preventDefault();for(const v of views)v.suspended=true;releaseFocus();goVIP(el);return;}
       if(!this.ready)return;
-      if(action==='reset'){state=C.newState();this.context=null;this.breakdown=true;this.stageOpen.clear();this.optionClosed.clear();this.activeStage='assessment';this.timelineManual=false;this.bridalOpen=false;this.dismissTimingWarning();try{sessionStorage.removeItem(STORAGE);}catch(_){}renderAll();this.scrollToStart();return;}
-      else if(action==='start-assessment'){const categories=state.categories;state=C.newState();state.categories=categories;state.assessment='signature';this.stageOpen.clear();this.optionClosed.clear();this.activeStage='assessment';this.timelineManual=false;this.bridalOpen=false;this.dismissTimingWarning();renderAll();const section=this.root.querySelector('[data-node=assessment]');section?.scrollIntoView?.({behavior:'smooth',block:'start'});return;}
+      if(action==='reset'){state=C.newState();this.context=null;this.breakdown=true;this.stageOpen.clear();this.optionClosed.clear();this.optionPreview.clear();this.optionDrafts={};this.activeStage='assessment';this.timelineManual=false;this.bridalOpen=false;this.dismissTimingWarning();try{sessionStorage.removeItem(STORAGE);}catch(_){}renderAll();this.scrollToStart();return;}
+      else if(action==='start-assessment'){const categories=state.categories;state=C.newState();state.categories=categories;state.assessment='signature';this.stageOpen.clear();this.optionClosed.clear();this.optionPreview.clear();this.optionDrafts={};this.activeStage='assessment';this.timelineManual=false;this.bridalOpen=false;this.dismissTimingWarning();renderAll();const section=this.root.querySelector('[data-node=assessment]');section?.scrollIntoView?.({behavior:'smooth',block:'start'});return;}
       else if(action==='stage'){this.activeStage=el.dataset.key;this.timelineManual=true;this.stageOpen.has(el.dataset.key)?this.stageOpen.delete(el.dataset.key):this.stageOpen.add(el.dataset.key);this.outputs();return;}
-      else if(action==='option'){const key=el.dataset.key;if(!state.selected[key]){state.selected[key]={qty:1,tier:null};this.optionClosed.delete(key);state.delay=0;}else if(this.optionClosed.has(key))this.optionClosed.delete(key);else this.optionClosed.add(key);state=C.normaliseState(state);}
+      else if(action==='option'){
+        const key=el.dataset.key,on=!!state.selected[key];
+        const open=on?this.optionClosed.has(key):!this.optionPreview.has(key);
+        if(on){open?this.optionClosed.delete(key):this.optionClosed.add(key);}
+        else{open?this.optionPreview.add(key):this.optionPreview.delete(key);}
+        el.setAttribute('aria-expanded',String(open));
+        const panel=this.root.querySelector('[data-panel="option-'+key+'"]');
+        if(panel){panel.classList.toggle('is-expanded',open);panel.setAttribute('aria-hidden',String(!open));panel.inert=!open;}
+        this.queueTimelineFocus();return;
+      }
       else if(action==='breakdown')this.breakdown=!this.breakdown;
-      else if(action==='plus'||action==='minus'){const o=C.OPTIONS.find(o=>o.key===el.dataset.key),v=state.selected[el.dataset.key];if(v)v.qty=Math.max(1,Math.min(o?.record==='fillings'||o?.key==='fillings'?160:32,v.qty+(action==='plus'?1:-1)));}
+      else if(action==='plus'||action==='minus'){const o=C.OPTIONS.find(o=>o.key===el.dataset.key),v=this.optionValue(el.dataset.key);if(v)v.qty=Math.max(1,Math.min(o?.record==='fillings'||o?.key==='fillings'?160:32,v.qty+(action==='plus'?1:-1)));}
       else if(action==='keep')this.context=null;
       else if(action==='context'){const config=this.context;state=C.newState();if(config)contextual(this,config);}
       else return;

@@ -189,3 +189,20 @@ test('deadline and wedding disclosures leave unrelated expansion contents mounte
   observer.disconnect();
  }finally{x.dom.window.close();}
 });
+
+test('treatment expansion and draft options do not select a treatment',async()=>{
+ const x=await setup();try{
+  x.choose('[data-category=cosmetic]');
+  x.choose('[data-action=option][data-key=bonding]');
+  assert.equal(x.root.querySelector('[data-select=bonding]').checked,false);
+  assert.equal(x.root.querySelector('[data-panel=option-bonding]').getAttribute('aria-hidden'),'false');
+  x.choose('[data-action=plus][data-key=bonding]');
+  x.choose('[data-tier=bonding][value="1"]');
+  assert.equal(x.root.querySelector('[data-select=bonding]').checked,false);
+  x.choose('[data-select=bonding]');
+  assert.equal(x.root.querySelector('[data-qty=bonding]').value,'2');
+  assert.equal(x.root.querySelector('[data-tier=bonding][value="1"]').checked,true);
+  const total=x.text();x.choose('[data-action=option][data-key=bonding]');
+  assert.equal(x.text(),total);assert.equal(x.root.querySelector('[data-select=bonding]').checked,true);
+ }finally{x.dom.window.close();}
+});
