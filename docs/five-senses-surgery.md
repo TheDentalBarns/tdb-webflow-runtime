@@ -154,3 +154,8 @@ Opening UI and scene sit beneath a 20px backdrop blur, with the central Start bu
 ### Prototype 0.20.0 — all-sense controls and clear opening title
 
 Added All on / All off above the sense controls. A batch checks requested states and triggers only mismatches, 180ms apart, with each ripple originating at its own sense button. Repeated batch commands replace pending triggers; an individual toggle cancels remaining triggers, retaining already active independent reveals. Close and page visibility reset cancel the timer. Controls unlock only after Start. Reduced motion omits the stagger. Sound OFF retains its established conventional soundscape. The opening title now sits above the 20px blur alongside Start.
+
+
+### Prototype 0.20.1 — slower all-sense sequence
+
+Doubled batch trigger spacing from 180ms to 360ms. All on orders Sight, Smell, Touch, Taste, then Sound, skipping matching states. All off retains sense order at the slower spacing. Individual ripple durations are unchanged.

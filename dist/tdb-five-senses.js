@@ -538,7 +538,7 @@ export class SceneRenderer{
   destroy(){if(this.disposed)return;this.disposed=true;this.cancel();this.scope.abort();this.gpu?.destroy();this.stage.replaceChildren();this.artwork.destroy();this.layers=[];this.photos=[];}
 }
 
-/* TDB Five Senses v0.20.0 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.20.1 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -680,7 +680,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.20.0';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.20.1';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -700,14 +700,15 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   function cancelAll(){clearTimeout(allTimer);allTimer=0;}
   function setAll(on){
     cancelAll();if(!interactionReady||disposed)return;
-    const remaining=SENSES.filter(sense=>requested[sense]!==on);
+    const order=on?[...SENSES.filter(sense=>sense!=='sound'),'sound']:SENSES;
+    const remaining=order.filter(sense=>requested[sense]!==on);
     const step=()=>{
       allTimer=0;if(disposed||signal.aborted||!interactionReady)return;
       let sense;
       while(remaining.length){const next=remaining.shift();if(requested[next]!==on){sense=next;break;}}
       if(!sense)return;
       requested[sense]=on;activate(sense,controls[SENSES.indexOf(sense)]);
-      if(remaining.length)allTimer=setTimeout(step,reduced.matches?0:180);
+      if(remaining.length)allTimer=setTimeout(step,reduced.matches?0:360);
     };
     step();
   }
