@@ -100,3 +100,6 @@
 
 /* Static hero-style shade: darkest at the left, fading across and down. */
 .tdb-senses-shade::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(12,14,11,.68),rgba(12,14,11,.42) 48%,transparent 88%);mask-image:linear-gradient(180deg,#000 0%,#000 36%,transparent 78%);-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 36%,transparent 78%)}
+
+/* Match the site touch treatment; keyboard focus-visible stays available. */
+.tdb-senses button{-webkit-tap-highlight-color:transparent}

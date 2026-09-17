@@ -537,7 +537,7 @@ export class SceneRenderer{
   destroy(){if(this.disposed)return;this.disposed=true;this.cancel();this.scope.abort();this.gpu?.destroy();this.stage.replaceChildren();this.artwork.destroy();this.layers=[];this.photos=[];}
 }
 
-/* TDB Five Senses v0.18.3 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.18.5 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -679,7 +679,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.18.3';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.18.5';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -739,8 +739,8 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     const revision=++detailRevision;
     const opacity=detail.hidden?0:Number(getComputedStyle(detail).opacity);
     detailAnimation?.cancel();detailAnimation=null;
-    const fade=async(from,to,duration)=>{
-      detailAnimation=detail.animate([{opacity:from},{opacity:to}],{duration,easing:'ease-in-out',fill:'forwards'});
+    const fade=async(from,to,duration,delay=0)=>{
+      detailAnimation=detail.animate([{opacity:from},{opacity:to}],{duration,delay,easing:'ease-in-out',fill:'both'});
       try{await detailAnimation.finished;return revision===detailRevision&&!disposed&&!signal.aborted;}
       catch{return false;}
     };
@@ -750,7 +750,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     detail.querySelector('.tdb-senses-detail-state').textContent=on?'After':'Before';
     detail.querySelector('.tdb-senses-detail-copy').textContent=DETAILS[sense][Number(on)];
     detail.hidden=false;
-    if(!reduced.matches&&!await fade(0,1,380))return;
+    if(!reduced.matches&&!await fade(0,1,380,opacity>0?220:0))return;
     detailAnimation?.cancel();detailAnimation=null;
   }
   function activate(sense,button,intro=false){

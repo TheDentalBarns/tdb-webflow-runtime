@@ -134,3 +134,13 @@ Descriptions fade out over 180ms before the latest requested description fades i
 ### Prototype 0.18.3 — wider Sound wave spacing
 
 Doubled the Sound leading-wave gap from 300ms to 600ms. Each wave retains its existing duration and organic easing. Caption fades and audio playback timing remain unchanged.
+
+
+### Prototype 0.18.4 — breathing space between captions
+
+Added a 220ms blank interval after an existing caption fades out, before its replacement fades in. Initial caption appearance has no added delay. The animation holds zero opacity during the delay and remains cancellable on rapid taps or close. Includes the 600ms Sound wave gap from 0.18.3.
+
+
+### Prototype 0.18.5 — consistent touch feedback
+
+Disabled the browser tap-highlight colour for every experience button, including Start and utility controls. Existing focus-visible keyboard indicators remain. Includes the longer Sound gap and caption pause.
