@@ -211,3 +211,11 @@ The cupboard light spill now excludes the standard headrest using its own silhou
 ### v0.23.3 — Soundscape illustration independent of mute
 
 Master mute leaves the waveform active. The first Sound wave eases clinical audio and the illustrated amplitude down over 350ms, then the second wave brings calm audio and amplitude up over 600ms. Returning to clinical uses a quick 120ms crossfade.
+
+### v0.24.0 — Performance pass
+
+Approved visual/interaction baseline: `b8591da2f38c16e634d63fd07a25b3d4336aeef8`, preserved on `checkpoint/five-senses-approved-v0.23.3`.
+
+Replaced the CSS fallback's full-screen mask/blend stack and expanding shadow boxes with one bounded Canvas 2D renderer. Photographic plates and cropped transparent props are prepared at viewport resolution on resize. The GPU path skips unneeded light/material and hidden object texture reads. Hidden ambient layers no longer paint; mask strings are shared per channel, the RAF callback is reused, and diagnostic DOM writes are kept out of each frame.
+
+Opt-in `?senses-profile=1` records a bounded set of frame intervals only during active reveals. The stage exposes median/p95 frame intervals and slow-frame counts when idle. This is diagnostic data, not an iPhone FPS claim. The cloud browser currently reports WebGL unavailable. Real iPhone Safari profiling remains an external verification item.

@@ -332,8 +332,12 @@ function gateStyle(samples,gates){
   for(const [index,invert=false] of gates){
     const s=samples[index];
     if(!s.radial){opacity*=invert?1-s.amount:s.amount;continue;}
-    const r=s.radius,x=s.origin.x,y=s.origin.y;
-    masks.push(`radial-gradient(circle at ${x}px ${y}px,${invert?'#0000':'#000'} ${Math.max(0,r-10)}px,${invert?'#000':'#0000'} ${Math.max(.01,r+10)}px)`);
+    if(!s.cssMasks){
+      const r=s.radius.toFixed(2),x=s.origin.x.toFixed(2),y=s.origin.y.toFixed(2);
+      const low=Math.max(0,Number(r)-10),high=Math.max(.01,Number(r)+10);
+      s.cssMasks=[`radial-gradient(circle at ${x}px ${y}px,#000 ${low}px,#0000 ${high}px)`,`radial-gradient(circle at ${x}px ${y}px,#0000 ${low}px,#000 ${high}px)`];
+    }
+    masks.push(s.cssMasks[Number(invert)]);
   }
   return{visibility:opacity===0?'hidden':'visible',opacity:String(opacity),maskImage:masks.join(',')||'none',webkitMaskImage:masks.join(',')||'none'};
 }
@@ -365,19 +369,32 @@ vec3 ring(vec3 colour,vec2 p,vec4 w){
   colour*=1.0-shadow;
   return mix(colour,vec3(.961,.945,.902),line);
 }
+vec4 lightPlate(vec2 uv,float sight,bool plush){
+  if(sight<=0.0)return plush?texture2D(uBase2,uv):texture2D(uBase0,uv);
+  if(sight>=1.0)return plush?texture2D(uBase3,uv):texture2D(uBase1,uv);
+  return plush?mix(texture2D(uBase2,uv),texture2D(uBase3,uv),sight):mix(texture2D(uBase0,uv),texture2D(uBase1,uv),sight);
+}
+vec4 tonedSprite(vec2 photo,vec4 bounds,vec2 cold,vec2 warm,float sight){
+  if(sight<=0.0)return sprite(photo,bounds,cold);
+  if(sight>=1.0)return sprite(photo,bounds,warm);
+  return mix(sprite(photo,bounds,cold),sprite(photo,bounds,warm),sight);
+}
 void main(){
   vec2 p=vUV*uViewport,uv=(p-uPhoto.xy)/uPhoto.zw,photo=uv*vec2(1086.0,1448.0);
   float sight=maskValue(p,uWave[0],uState[0]),sound=maskValue(p,uWave[1],uState[1]);
   float smell=maskValue(p,uWave[2],uState[2]),touch=maskValue(p,uWave[3],uState[3]),taste=maskValue(p,uWave[4],uState[4]);
-  vec4 colour=mix(mix(texture2D(uBase0,uv),texture2D(uBase1,uv),sight),mix(texture2D(uBase2,uv),texture2D(uBase3,uv),sight),touch);
-  colour=over(colour,sprite(photo,vec4(0.0,180.0,535.0,710.0),vec2(2.0,2.0))*smell);
-  vec4 headphones=mix(sprite(photo,vec4(270.0,1135.0,400.0,255.0),vec2(539.0,2.0)),sprite(photo,vec4(270.0,1135.0,400.0,255.0),vec2(539.0,259.0)),sight);
-  colour=over(colour,headphones*sound);
-  vec4 clinical=mix(sprite(photo,vec4(730.0,15.0,195.0,260.0),vec2(2.0,716.0)),sprite(photo,vec4(730.0,15.0,195.0,260.0),vec2(201.0,716.0)),sight);
-  vec4 aesop=mix(sprite(photo,vec4(730.0,15.0,195.0,260.0),vec2(400.0,716.0)),sprite(photo,vec4(730.0,15.0,195.0,260.0),vec2(599.0,716.0)),sight);
-  colour=over(colour,mix(clinical,aesop,taste));
-  vec4 candle=mix(sprite(photo,vec4(380.0,130.0,100.0,115.0),vec2(798.0,716.0)),sprite(photo,vec4(380.0,130.0,100.0,115.0),vec2(900.0,716.0)),sight);
-  colour=over(colour,candle*smell);
+  vec4 colour;
+  if(touch<=0.0)colour=lightPlate(uv,sight,false);
+  else if(touch>=1.0)colour=lightPlate(uv,sight,true);
+  else colour=mix(lightPlate(uv,sight,false),lightPlate(uv,sight,true),touch);
+  if(smell>0.0)colour=over(colour,sprite(photo,vec4(0.0,180.0,535.0,710.0),vec2(2.0,2.0))*smell);
+  if(sound>0.0)colour=over(colour,tonedSprite(photo,vec4(270.0,1135.0,400.0,255.0),vec2(539.0,2.0),vec2(539.0,259.0),sight)*sound);
+  vec4 props;
+  if(taste<=0.0)props=tonedSprite(photo,vec4(730.0,15.0,195.0,260.0),vec2(2.0,716.0),vec2(201.0,716.0),sight);
+  else if(taste>=1.0)props=tonedSprite(photo,vec4(730.0,15.0,195.0,260.0),vec2(400.0,716.0),vec2(599.0,716.0),sight);
+  else props=mix(tonedSprite(photo,vec4(730.0,15.0,195.0,260.0),vec2(2.0,716.0),vec2(201.0,716.0),sight),tonedSprite(photo,vec4(730.0,15.0,195.0,260.0),vec2(400.0,716.0),vec2(599.0,716.0),sight),taste);
+  colour=over(colour,props);
+  if(smell>0.0)colour=over(colour,tonedSprite(photo,vec4(380.0,130.0,100.0,115.0),vec2(798.0,716.0),vec2(900.0,716.0),sight)*smell);
   for(int i=0;i<5;i++)colour.rgb=ring(colour.rgb,p,uWave[i]);
   colour.rgb=ring(colour.rgb,p,uEcho);
   gl_FragColor=vec4(colour.rgb,1.0);
@@ -431,6 +448,99 @@ class GPUComposite{
   }
 }
 
+// A bounded fallback surface replaces full-screen CSS mask/blend stacks. Plates
+// and small prop buffers are scaled once on resize, never resampled per frame.
+export class RasterComposite{
+  constructor(art){
+    this.art=art;this.canvas=document.createElement('canvas');this.canvas.className='tdb-senses-raster';
+    this.ctx=this.canvas.getContext('2d',{alpha:false});this.buffers=[];
+  }
+  buffer(w,h){const c=document.createElement('canvas');c.width=Math.max(1,Math.round(w));c.height=Math.max(1,Math.round(h));this.buffers.push(c);return c;}
+  resize(width,height,photo){
+    for(const c of this.buffers)c.width=c.height=1;this.buffers=[];
+    this.width=width;this.height=height;this.photo=photo;
+    this.ratio=Math.min(window.devicePixelRatio||1,2,Math.sqrt(1600000/(width*height)),1086/photo.width*1.5);
+    const w=Math.max(1,Math.round(width*this.ratio)),h=Math.max(1,Math.round(height*this.ratio));
+    this.canvas.width=w;this.canvas.height=h;this.rx=w/width;this.ry=h/height;
+    this.plates=[];
+    for(const touch of [false,true])for(const sight of [false,true]){
+      const c=this.buffer(w,h),ctx=c.getContext('2d');
+      ctx.drawImage(this.art.surface({sight,touch}).surface,photo.x*this.rx,photo.y*this.ry,photo.width*this.rx,photo.height*this.ry);this.plates.push(c);
+    }
+    this.material=this.buffer(w,h);this.light=this.buffer(w,h);
+    this.groups={};
+    for(const sense of ['smell','sound','taste','candle']){
+      const [x,y,sw,sh]=OBJECT_BOUNDS[sense],scale=photo.width/PHOTO_WIDTH;
+      const bounds={x:photo.x+x*scale,y:photo.y+y*scale,width:sw*scale,height:sh*scale};
+      const bw=Math.max(1,Math.ceil(bounds.width*this.rx)),bh=Math.max(1,Math.ceil(bounds.height*this.ry));
+      const group={...bounds,plates:[],mix:this.buffer(bw,bh),temp:this.buffer(bw,bh),extra:this.buffer(bw,bh)};
+      for(const taste of sense==='taste'?[false,true]:[true])for(const sight of [false,true]){
+        const c=this.buffer(bw,bh);c.getContext('2d').drawImage(this.art.object({sight,taste},sense).canvas,0,0,bw,bh);group.plates.push(c);
+      }
+      this.groups[sense]=group;
+    }
+  }
+  // Apply exactly the same 20px feather as the photographic shader. All masks
+  // are bounded to the surface being drawn (props use small cropped buffers).
+  mask(canvas,sample,invert=false,bounds=null){
+    const ctx=canvas.getContext('2d');ctx.save();
+    ctx.globalCompositeOperation='destination-in';
+    if(!sample.radial)ctx.fillStyle=`rgba(0,0,0,${invert?1-sample.amount:sample.amount})`;
+    else{
+      const sx=bounds?canvas.width/bounds.width:this.rx,sy=bounds?canvas.height/bounds.height:this.ry;
+      ctx.scale(sx,sy);
+      const x=sample.origin.x-(bounds?.x||0),y=sample.origin.y-(bounds?.y||0),r=sample.radius;
+      const g=ctx.createRadialGradient(x,y,Math.max(0,r-10),x,y,Math.max(.01,r+10));
+      // smoothstep alpha agrees with the GPU feather within subpixel rounding.
+      for(let i=0;i<=8;i++){const p=i/8,a=p*p*(3-2*p);g.addColorStop(p,`rgba(0,0,0,${invert?a:1-a})`);}
+      ctx.fillStyle=g;
+    }
+    const bw=bounds?.width||this.width,bh=bounds?.height||this.height;
+    ctx.fillRect(0,0,sample.radial?bw:canvas.width,sample.radial?bh:canvas.height);ctx.restore();
+  }
+  copy(target,source){const ctx=target.getContext('2d');ctx.globalCompositeOperation='copy';ctx.drawImage(source,0,0);ctx.globalCompositeOperation='source-over';return ctx;}
+  opaqueLight(target,offset,sight){
+    if(!sight.radial&&(sight.amount===0||sight.amount===1)){this.copy(target,this.plates[offset+sight.amount]);return;}
+    const ctx=this.copy(target,this.plates[offset]);this.copy(this.light,this.plates[offset+1]);this.mask(this.light,sight);ctx.drawImage(this.light,0,0);
+  }
+  tone(group,offset,sight,target=group.mix){
+    if(!sight.radial&&(sight.amount===0||sight.amount===1))return group.plates[offset+sight.amount];
+    const ctx=this.copy(target,group.plates[offset]);this.mask(target,sight,true,group);
+    this.copy(group.temp,group.plates[offset+1]);this.mask(group.temp,sight,false,group);
+    ctx.globalCompositeOperation='lighter';ctx.drawImage(group.temp,0,0);ctx.globalCompositeOperation='source-over';return target;
+  }
+  draw(samples){
+    const [sight,sound,smell,touch,taste]=samples,ctx=this.ctx;
+    if(!touch.radial&&(touch.amount===0||touch.amount===1))this.opaqueLight(this.canvas,touch.amount*2,sight);
+    else{
+      this.opaqueLight(this.canvas,0,sight);this.opaqueLight(this.material,2,sight);this.mask(this.material,touch);ctx.drawImage(this.material,0,0);
+    }
+    for(const sense of ['smell','sound','taste','candle']){
+      const gate=sense==='sound'?sound:sense==='taste'?null:smell;
+      if(gate&&!gate.radial&&gate.amount===0)continue;
+      const group=this.groups[sense];let sprite;
+      if(sense==='taste'&&(taste.radial||taste.amount>0&&taste.amount<1)){
+        const off=this.tone(group,0,sight,group.mix);if(off!==group.mix)this.copy(group.mix,off);this.mask(group.mix,taste,true,group);
+        const on=this.tone(group,2,sight,group.extra);if(on!==group.extra)this.copy(group.extra,on);this.mask(group.extra,taste,false,group);
+        const g=group.mix.getContext('2d');g.globalCompositeOperation='lighter';g.drawImage(group.extra,0,0);g.globalCompositeOperation='source-over';sprite=group.mix;
+      }else sprite=this.tone(group,sense==='taste'?taste.amount*2:0,sight);
+      if(gate&&(gate.radial||gate.amount!==1)){if(sprite!==group.mix)this.copy(group.mix,sprite);this.mask(group.mix,gate,false,group);sprite=group.mix;}
+      ctx.drawImage(sprite,group.x*this.rx,group.y*this.ry,group.width*this.rx,group.height*this.ry);
+    }
+    ctx.save();ctx.scale(this.rx,this.ry);
+    for(const s of samples){if(s.radial&&s.ring>0)this.ring(s.origin.x,s.origin.y,s.radius,s.ring);if(s.echo)this.ring(s.origin.x,s.origin.y,s.echo.radius,s.echo.alpha);}
+    ctx.restore();
+  }
+  ring(x,y,r,alpha){
+    if(r<=0)return;const ctx=this.ctx;
+    const g=ctx.createRadialGradient(x,y,Math.max(0,r-112),x,y,r);
+    g.addColorStop(0,'#0000');g.addColorStop(.62,`rgba(0,0,0,${alpha*.055})`);g.addColorStop(.95,`rgba(0,0,0,${alpha*.18})`);g.addColorStop(1,'#0000');
+    ctx.fillStyle=g;ctx.fillRect(0,0,this.width,this.height);
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.lineWidth=1;ctx.strokeStyle=`rgba(245,241,230,${alpha})`;ctx.stroke();
+  }
+  destroy(){for(const c of this.buffers)c.width=c.height=1;this.buffers=[];this.canvas.width=this.canvas.height=1;this.canvas.remove();this.art=null;}
+}
+
 export class SceneRenderer{
   static async prepareAssets(images,signal){
     const art=new PreparedArtwork(images),tasks=[];
@@ -446,7 +556,8 @@ export class SceneRenderer{
   }
   constructor(stage,images,report,artwork){
     const started=performance.now();this.stage=stage;this.report=report;this.artwork=artwork;this.layers=[];this.photos=[];this.requests=new Map();this.field=new RippleField();this.frame=0;this.timer=0;this.disposed=false;
-    this.rings=[];this.scope=new AbortController();this.stats={draws:0,maxCPU:0};
+    this.profile=new URLSearchParams(location.search).get('senses-profile')==='1';this.frameTimes=[];this.lastFrame=0;
+    this.tick=now=>{if(this.profile&&this.lastFrame){this.frameTimes.push(now-this.lastFrame);if(this.frameTimes.length>600)this.frameTimes.shift();}this.lastFrame=now;this.frame=0;this.draw(now);this.schedule();};this.rings=[];this.scope=new AbortController();this.stats={draws:0,maxCPU:0};
     try{if(new URLSearchParams(location.search).get('senses-renderer')==='css')throw new Error('CSS review mode');
       this.gpu=new GPUComposite(artwork);stage.append(this.gpu.canvas);stage.dataset.renderer='gpu-independent-ripples';
       this.gpu.canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();if(this.disposed)return;this.gpu=null;stage.dataset.gpuFallback='Context lost';event.target.remove();this.makeFallback();this.resize(true);this.draw(performance.now());},{signal:this.scope.signal});
@@ -463,23 +574,8 @@ export class SceneRenderer{
     photo.append(canvas);parent.append(photo);this.photos.push(photo);return photo;
   }
   makeFallback(){
-    this.stage.dataset.renderer='css-independent-ripples';
-    const root=document.createElement('div');root.className='tdb-senses-layer';this.stage.prepend(root);this.fallback=root;
-    // Two opaque material groups avoid dark seams at intersecting feathered masks.
-    for(const touch of [false,true]){
-      const material=this.layer(root,touch?[[3]]:[]);
-      for(const sight of [false,true])this.photograph(this.layer(material,sight?[[0]]:[]),this.artwork.surface({sight,touch}).surface);
-    }
-    for(const sense of ['smell','sound','taste','candle']){
-      const group=this.layer(root);group.classList.add('tdb-senses-blend');
-      for(const sight of sense==='smell'?[true]:[false,true])for(const taste of sense==='taste'?[false,true]:[true]){
-        const gates=sense==='smell'?[[2]]:[[0,!sight]];
-        if(sense==='sound')gates.push([1]);if(sense==='candle')gates.push([2]);if(sense==='taste')gates.push([4,!taste]);
-        const sprite=this.artwork.object({sight,taste},sense);
-        this.photograph(this.layer(group,gates,true),sprite.canvas,[sprite.x,sprite.y,sprite.width,sprite.height]);
-      }
-    }
-    for(let i=0;i<6;i++){const ring=document.createElement('div');ring.className='tdb-senses-reveal-ring';ring.hidden=true;this.stage.append(ring);this.rings.push(ring);}
+    this.stage.dataset.renderer='canvas-independent-ripples';
+    this.raster=new RasterComposite(this.artwork);this.stage.prepend(this.raster.canvas);
   }
   makeAmbient(){
     // These nodes remain connected: changing another sense never resets their drift.
@@ -506,7 +602,7 @@ export class SceneRenderer{
     const {width,height}=this.stage.getBoundingClientRect();if(!width||!height||!force&&width===this.width&&height===this.height)return;
     this.width=width;this.height=height;this.photo=coverGeometry(width,height);const r=this.photo;
     this.photos.forEach(photo=>Object.assign(photo.style,{left:r.x+'px',top:r.y+'px',width:r.width+'px',height:r.height+'px'}));
-    this.gpu?.resize(width,height,r);this.stage.dataset.photoRect=JSON.stringify(r);this.finish();this.draw(performance.now());
+    this.gpu?.resize(width,height,r);this.raster?.resize(width,height,r);this.stage.dataset.photoRect=JSON.stringify(r);this.finish();
   }
   render(state){
     this.cancel();this.field=new RippleField(state);this.draw(performance.now());
@@ -521,33 +617,33 @@ export class SceneRenderer{
   draw(now){
     if(this.disposed)return;const started=performance.now();
     for(const [sense,request] of this.requests)if(now>=request.wave.start+request.wave.delay+request.wave.duration){this.field.settle(sense);this.requests.delete(sense);request.onProgress?.(1);request.resolve(true);}
-    const samples=this.field.samples(now);this.gpu?.draw(samples);
+    const samples=this.field.samples(now);this.gpu?.draw(samples);this.raster?.draw(samples);
     for(const [sense,request] of this.requests){const sample=samples[RIPPLE_SENSES.indexOf(sense)];request.onProgress?.(sample.progress,sample);}
-    for(const layer of this.layers){const style=gateStyle(samples,layer.gates),key=style.visibility+style.opacity+style.maskImage;if(key!==layer.last){Object.assign(layer.node.style,style);layer.last=key;}}
+    for(const layer of this.layers){const style=gateStyle(samples,layer.gates),key=style.visibility+style.opacity+style.maskImage;if(key!==layer.last){Object.assign(layer.node.style,style);layer.node.hidden=style.visibility==='hidden';layer.last=key;}}
     if(this.rings.length){
       const circles=samples.filter(s=>s.radial&&s.ring>0).map(s=>({x:s.origin.x,y:s.origin.y,r:s.radius,alpha:s.ring}));
       const sound=samples[1];if(sound.echo)circles.push({x:sound.origin.x,y:sound.origin.y,r:sound.echo.radius,alpha:sound.echo.alpha});
       this.rings.forEach((ring,i)=>{const c=circles[i];ring.hidden=!c;if(c)Object.assign(ring.style,{left:c.x+'px',top:c.y+'px',width:Math.max(0,c.r*2)+'px',height:Math.max(0,c.r*2)+'px',opacity:String(c.alpha)});});
     }
     this.stats.draws++;this.stats.maxCPU=Math.max(this.stats.maxCPU,performance.now()-started);
-    this.stage.dataset.activeRipples=String(this.requests.size);
-    if(!this.requests.size){this.stopScheduling();this.stage.dataset.renderState='idle';this.stage.dataset.draws=String(this.stats.draws);this.stage.dataset.maxSubmitMs=this.stats.maxCPU.toFixed(2);}
+    if(this.lastActive!==this.requests.size){this.lastActive=this.requests.size;this.stage.dataset.activeRipples=String(this.lastActive);}
+    if(!this.requests.size){this.stopScheduling();this.stage.dataset.renderState='idle';this.stage.dataset.draws=String(this.stats.draws);this.stage.dataset.maxSubmitMs=this.stats.maxCPU.toFixed(2);if(this.profile&&this.frameTimes.length){const times=[...this.frameTimes].sort((a,b)=>a-b);this.stage.dataset.frameProfile=JSON.stringify({samples:times.length,medianMs:+times[Math.floor(times.length*.5)].toFixed(2),p95Ms:+times[Math.floor(times.length*.95)].toFixed(2),over34ms:times.filter(t=>t>34).length});}}
   }
   schedule(){
-    if(this.disposed||!this.requests.size)return;this.stage.dataset.renderState='animating';
-    if(!this.frame)this.frame=requestAnimationFrame(now=>{this.frame=0;this.draw(now);this.schedule();});
-    const end=Math.min(...[...this.requests.values()].map(r=>r.wave.start+r.wave.delay+r.wave.duration));
+    if(this.disposed||!this.requests.size)return;if(this.stage.dataset.renderState!=='animating')this.stage.dataset.renderState='animating';
+    if(!this.frame)this.frame=requestAnimationFrame(this.tick);
+    let end=Infinity;for(const r of this.requests.values())end=Math.min(end,r.wave.start+r.wave.delay+r.wave.duration);
     if(this.deadline!==end||!this.timer){clearTimeout(this.timer);this.deadline=end;
       this.timer=setTimeout(()=>{this.timer=0;this.deadline=0;this.draw(performance.now());this.schedule();},Math.max(16,end-performance.now()+40));}
   }
-  stopScheduling(){cancelAnimationFrame(this.frame);clearTimeout(this.timer);this.frame=0;this.timer=0;this.deadline=0;}
+  stopScheduling(){this.lastFrame=0;cancelAnimationFrame(this.frame);clearTimeout(this.timer);this.frame=0;this.timer=0;this.deadline=0;}
   cancel(){this.stopScheduling();for(const r of this.requests.values())r.resolve(false);this.requests.clear();this.field.waves.clear();}
   finish(){for(const sense of [...this.requests.keys()]){this.field.settle(sense);const r=this.requests.get(sense);this.requests.delete(sense);r.onProgress?.(1);r.resolve(true);}this.stopScheduling();if(this.width)this.draw(performance.now());}
   motion(paused){this.stage.classList.toggle('tdb-senses-motion-paused',paused);}
-  destroy(){if(this.disposed)return;this.disposed=true;this.cancel();this.scope.abort();this.gpu?.destroy();this.stage.replaceChildren();this.artwork.destroy();this.layers=[];this.photos=[];}
+  destroy(){if(this.disposed)return;this.disposed=true;this.cancel();this.scope.abort();this.gpu?.destroy();this.raster?.destroy();this.stage.replaceChildren();this.artwork.destroy();this.layers=[];this.photos=[];}
 }
 
-/* TDB Five Senses v0.23.3 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.24.0 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -701,7 +797,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.23.3';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.24.0';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities"><span class="tdb-senses-waveform" data-mode="silent" aria-hidden="true"><svg viewBox="0 0 44 24" fill="none" stroke="currentColor" stroke-width="1">${[5,9,15,19,13,21,16,11,18,9,5].map((h,i)=>`<path d="M${2+i*4} ${12-h/2}v${h}" style="--wave-delay:${-i*.19}s;--wave-duration:${2.8+i%3*.35}s;--road-duration:${.21+i%4*.035}s"/>`).join('')}</svg></span>
     <button type="button" class="tdb-senses-motion" aria-label="Turn Sound on" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -778,7 +874,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     dialog.querySelector('.tdb-senses-waveform').dataset.mode=!audioReady?'silent':soundOnPending?'quiet':requested.sound?'calm':'road';
     const soundLit=audioReady&&!muted;
     motion.setAttribute('aria-pressed',String(muted));motion.setAttribute('aria-label',muted?'Unmute audio':'Mute audio');
-    motion.innerHTML=svg('<path d="M5 12h5l7-6v20l-7-6H5Z"/>'+(soundLit?'<path d="M21 11q5 5 0 10M24 7q9 9 0 18"/>':'<path d="m22 12 8 8m0-8-8 8"/>'));
+    if(motion.dataset.audible!==String(soundLit)){motion.dataset.audible=String(soundLit);motion.innerHTML=svg('<path d="M5 12h5l7-6v20l-7-6H5Z"/>'+(soundLit?'<path d="M21 11q5 5 0 10M24 7q9 9 0 18"/>':'<path d="m22 12 8 8m0-8-8 8"/>'));}
     renderer.motion(motionPaused||reduced.matches||document.hidden);
   }
   function begin(active){
@@ -789,7 +885,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     dialog.dataset.phase='transition';dialog.dataset.transitionProgress='0';dialog.dataset.transitionStarted=String(Math.round(performance.now()));
     if(audioReady&&(active.intro||active.from.sound!==active.state.sound))audio.transition(active.state.sound,active.intro);
     const started=performance.now();
-    renderer.reveal(active.state,active.origin,{sense:active.sense,duration,reverse,doublePulse:!active.intro&&!reverse&&active.state.sound&&!active.from.sound,reduced:reduced.matches,onProgress:(p,sample)=>{dialog.dataset.transitionProgress=String(p);if(active.intro)revealIntroBlur(p,sample);if(active.sense==='sound'&&soundOnPending&&(p>=1||sample?.elapsed>=600)){soundOnPending=false;updateControls();}}}).then(complete=>{
+    renderer.reveal(active.state,active.origin,{sense:active.sense,duration,reverse,doublePulse:!active.intro&&!reverse&&active.state.sound&&!active.from.sound,reduced:reduced.matches,onProgress:(p,sample)=>{if(active.intro)revealIntroBlur(p,sample);if(active.sense==='sound'&&soundOnPending&&(p>=1||sample?.elapsed>=600)){soundOnPending=false;updateControls();}}}).then(complete=>{
       if(!complete||disposed||signal.aborted||queue.active.get(active.sense)!==active)return;
       dialog.dataset.lastTransitionMs=String(Math.round(performance.now()-started));
       queue.finish(active);dialog.dataset.phase=queue.active.size?'transition':'ready';dialog.dataset.transitionProgress='1';
