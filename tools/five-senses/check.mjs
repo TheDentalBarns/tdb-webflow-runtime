@@ -61,18 +61,31 @@ globalThis.requestAnimationFrame=callback=>{frames.set(++frameID,callback);retur
 globalThis.cancelAnimationFrame=id=>frames.delete(id);
 function node(){
   const classes=new Set(),styleValues=new Map();
-  return {remove(){},classList:{add:v=>classes.add(v),remove:v=>classes.delete(v),contains:v=>classes.has(v)},style:{setProperty:(k,v)=>styleValues.set(k,v),removeProperty:k=>styleValues.delete(k),getPropertyValue:k=>styleValues.get(k)}};
+  return {parentNode:null,children:[],attachments:0,dataset:{},animations:[],
+    get isConnected(){return this.root||!!this.parentNode?.isConnected;},
+    remove(){if(this.parentNode){const p=this.parentNode;p.children.splice(p.children.indexOf(this),1);this.parentNode=null;}},
+    append(...nodes){for(const n of nodes){n.remove();this.children.push(n);n.parentNode=this;n.attachments++;}},
+    insertBefore(n,reference){n.remove();this.children.splice(this.children.indexOf(reference),0,n);n.parentNode=this;n.attachments++;},
+    replaceChildren(...nodes){for(const child of [...this.children])child.remove();this.append(...nodes);},
+    cloneNode(){return node();},getAnimations(){return this.animations;},
+    classList:{add:v=>classes.add(v),remove:v=>classes.delete(v),contains:v=>classes.has(v),toggle:(v,on)=>on?classes.add(v):classes.delete(v)},
+    style:{setProperty:(k,v)=>styleValues.set(k,v),removeProperty:k=>styleValues.delete(k),getPropertyValue:k=>styleValues.get(k)}};
 }
-globalThis.document={createElement:()=>node()};
+globalThis.document={createElement:()=>node(),timeline:{currentTime:5000}};
 const cold={node:node(),state:{sight:false},photo:{querySelectorAll:()=>[]}},warm={node:node(),state:{sight:true},photo:{querySelectorAll:()=>[]}};
-const stage={dataset:{},children:[cold.node],replaceChildren(...nodes){this.children=nodes;},append(n){this.children.push(n);}};
-const renderer=Object.assign(Object.create(SceneRenderer.prototype),{stage,current:cold,active:null,width:390,height:844,disposed:false,scene:state=>state.sight?warm:cold,prune(){}});
+const stage=node();stage.root=true;stage.append(cold.node);
+const animation=()=>({effect:{target:{matches:()=>true}},currentTime:0,startTime:null,playState:'running',play(){this.playState='running';},pause(){this.playState='paused';}});
+cold.node.animations=[animation()];warm.node.animations=[animation()];
+const renderer=Object.assign(Object.create(SceneRenderer.prototype),{stage,current:cold,active:null,width:390,height:844,disposed:false,motionEpoch:2000,motionHeld:0,paused:false,scene:state=>state.sight?warm:cold,prune(){}});
 const origin={x:44,y:770};
 const forward=renderer.reveal({sight:true},origin,{duration:1600,reduced:false});
 assert.deepEqual(stage.children.slice(0,2),[cold.node,warm.node]);
+assert.equal(warm.node.animations[0].currentTime,3000,'A new scene must join the existing ambient clock');
+assert.equal(warm.node.animations[0].startTime,2000);
 assert.ok(warm.node.classList.contains('tdb-senses-revealing'));
 assert.equal(warm.node.style.getPropertyValue('--tdb-senses-reveal-radius'),'-12px');
 renderer.finish();assert.equal(await forward,true);assert.deepEqual(stage.children,[warm.node]);
+assert.equal(warm.node.attachments,1,'Settling must not detach/reinsert the visible scene and restart its effects');
 assert.ok(!warm.node.classList.contains('tdb-senses-revealing'));
 const reverse=renderer.reveal({sight:false},origin,{duration:1600,reverse:true,reduced:false});
 assert.deepEqual(stage.children.slice(0,2),[cold.node,warm.node],'Cold must sit below the outgoing warm circle');
@@ -89,7 +102,17 @@ assert.ok(!warm.node.classList.contains('tdb-senses-revealing'));
 const cancelled=renderer.reveal({sight:true},origin,{duration:1600,reduced:false});renderer.active.finish(false);
 assert.equal(await cancelled,false);assert.deepEqual(stage.children,[cold.node]);
 assert.ok(!warm.node.classList.contains('tdb-senses-revealing'));
-console.log('Passed: viewport coverage, real photograph expand/contract and cleanup, pending state coalescing, and late audio decode cancellation.');
+document.timeline.currentTime=8000;renderer.motion(true);
+assert.equal(cold.node.animations[0].currentTime,6000);assert.equal(cold.node.animations[0].playState,'paused');
+document.timeline.currentTime=12000;
+const pausedReveal=renderer.reveal({sight:true},origin,{duration:1200,reduced:false,doublePulse:true});
+assert.equal(warm.node.animations[0].currentTime,6000,'Toggling while paused must preserve the held ambient position');
+assert.equal(warm.node.animations[0].playState,'paused');
+assert.equal(stage.children.length,4,'The Sound introduction must keep both rings');
+renderer.finish();await pausedReveal;renderer.motion(false);
+assert.equal(renderer.motionEpoch,6000);assert.equal(warm.node.animations[0].startTime,6000);
+assert.equal(warm.node.animations[0].playState,'running');
+console.log('Passed: viewport coverage, expand/contract, double rings, cleanup, continuous/paused ambient phase, queued state coalescing, and late audio cancellation.');
 
 // Scent is an independent gain: switching Sound must leave its automation intact.
 const gainLog=()=>({value:0,events:[],cancelScheduledValues(){},cancelAndHoldAtTime(t){this.events.push(['hold',t]);},setValueAtTime(v,t){this.events.push(['set',v,t]);},linearRampToValueAtTime(v,t){this.events.push(['ramp',v,t]);},disconnect(){}});

@@ -1,4 +1,4 @@
-/* Prepared photographic scenes. Only the reveal mask and a restrained reflection opacity animate. */
+/* Cached photographic composites. Ambient motion shares one timeline across scenes. */
 const PHOTO_WIDTH=1086,PHOTO_HEIGHT=1448;
 
 export function coverGeometry(width,height){
@@ -262,48 +262,115 @@ function objectLayer(images,state,sense){
 }
 
 
+// Keep the expensive colour/mask/reflection work out of sense-button events.
+// Small transparent sprites are prepared once, then flattened into each scene.
+const OBJECT_BOUNDS={smell:[0,180,535,710],sound:[270,1135,400,255],taste:[730,15,195,260],candle:[380,130,100,115]};
+function croppedArtwork(source,[x,y,width,height],scale=1){
+  const canvas=document.createElement('canvas');canvas.width=Math.ceil(width*scale);canvas.height=Math.ceil(height*scale);
+  canvas.getContext('2d').drawImage(source,x*scale,y*scale,width*scale,height*scale,0,0,canvas.width,canvas.height);
+  source.width=1;source.height=1;return{canvas,x,y,width,height};
+}
+class PreparedArtwork{
+  constructor(images){this.images=images;this.surfaces=new Map();this.objects=new Map();this.disposed=false;}
+  surface(state){
+    const key=Number(state.sight)+':'+Number(state.touch);
+    if(!this.surfaces.has(key)){
+      const surface=makeSurface(this.images,state);
+      const glare=state.sight?null:croppedArtwork(chairGlare(surface),[700,284,286,230],.5);
+      this.surfaces.set(key,{surface,glare});
+    }
+    return this.surfaces.get(key);
+  }
+  object(state,sense){
+    const key=sense==='smell'?'plant':sense+':'+Number(state.sight)+(sense==='taste'?':'+Number(state.taste):'');
+    if(!this.objects.has(key))this.objects.set(key,croppedArtwork(objectLayer(this.images,state,sense),OBJECT_BOUNDS[sense]));
+    return this.objects.get(key);
+  }
+  destroy(){
+    if(this.disposed)return;this.disposed=true;
+    for(const {surface,glare} of this.surfaces.values()){surface.width=surface.height=1;if(glare)glare.canvas.width=glare.canvas.height=1;}
+    for(const {canvas} of this.objects.values())canvas.width=canvas.height=1;
+    this.surfaces.clear();this.objects.clear();this.images=null;
+  }
+}
+
 export class SceneRenderer{
-  constructor(stage,images,report){
-    this.stage=stage;this.images=images;this.report=report;this.cache=new Map();this.surfaces=new Map();this.current=null;this.active=null;this.builds=0;this.disposed=false;
-    stage.dataset.renderer='prepared-scenes';stage.dataset.maskDriver='radius-only-raf';
+  static async prepareAssets(images,signal){
+    const art=new PreparedArtwork(images),tasks=[];
+    for(const sight of [true,false])for(const touch of [true,false])tasks.push(()=>art.surface({sight,touch}));
+    tasks.push(()=>art.object({sight:true},'smell'));
+    for(const sight of [true,false]){
+      for(const sense of ['sound','candle'])tasks.push(()=>art.object({sight},sense));
+      for(const taste of [true,false])tasks.push(()=>art.object({sight,taste},'taste'));
+    }
+    try{
+      for(const task of tasks){
+        if(signal.aborted)throw new DOMException('Closed','AbortError');
+        task();
+        // Let the loading UI paint and process Close between preparation steps.
+        await new Promise(resolve=>setTimeout(resolve,0));
+      }
+      if(signal.aborted)throw new DOMException('Closed','AbortError');
+      return art;
+    }catch(error){art.destroy();throw error;}
+  }
+  constructor(stage,images,report,artwork){
+    this.stage=stage;this.images=images;this.report=report;this.cache=new Map();this.artwork=artwork||new PreparedArtwork(images);
+    this.current=null;this.active=null;this.builds=0;this.disposed=false;this.motionEpoch=this.now();this.motionHeld=0;this.paused=false;
+    stage.dataset.renderer='cached-composite-scenes';stage.dataset.maskDriver='radius-only-raf';
     this.resize();
   }
-  prepared(state){
-    const key=Number(state.sight)+':'+Number(state.touch);
-    let entry=this.surfaces.get(key);
-    if(entry)this.surfaces.delete(key);
-    else{const surface=makeSurface(this.images,state);entry={surface,glare:state.sight?null:chairGlare(surface)};}
-    this.surfaces.set(key,entry);
-    // Two photographic backgrounds cover object-only toggles and the latest
-    // lighting/material reversal. Scene copies remain independently maskable.
-    while(this.surfaces.size>2){const [oldKey,old]=this.surfaces.entries().next().value;for(const canvas of [old.surface,old.glare])if(canvas){canvas.width=1;canvas.height=1;}this.surfaces.delete(oldKey);}
-    return entry;
+  now(){return document.timeline?.currentTime??performance.now();}
+  syncMotion(scene){
+    if(!scene?.node.isConnected)return;
+    const now=this.now(),elapsed=this.paused?this.motionHeld:now-this.motionEpoch;
+    for(const animation of scene.node.getAnimations({subtree:true})){
+      const target=animation.effect?.target;
+      if(!target?.matches('.tdb-senses-motes i,.tdb-senses-haze,.tdb-senses-chair-glare'))continue;
+      animation.currentTime=elapsed;
+      if(this.paused)animation.pause();
+      else{animation.play();animation.startTime=now-elapsed;}
+    }
+  }
+  settle(scene){
+    for(const node of [...this.stage.children])if(node!==scene.node)node.remove();
+    if(scene.node.parentNode!==this.stage){this.stage.append(scene.node);this.syncMotion(scene);}
   }
   scene(state){
     const key=['sight','sound','smell','touch','taste'].map(k=>Number(state[k])).join('');
     if(this.cache.has(key)){const scene=this.cache.get(key);this.cache.delete(key);this.cache.set(key,scene);return scene;}
     const started=performance.now(),node=document.createElement('div');node.className='tdb-senses-scene';node.dataset.state=key;node.dataset.sight=state.sight?'warm':'cold';
     const photo=document.createElement('div');photo.className='tdb-senses-photo';
-    const prepared=this.prepared(state);
-    for(const source of [prepared.surface,prepared.glare])if(source){
-      const canvas=document.createElement('canvas');canvas.width=source.width;canvas.height=source.height;canvas.className=source.className;canvas.setAttribute('aria-hidden','true');canvas.getContext('2d').drawImage(source,0,0);photo.append(canvas);
+    const prepared=this.artwork.surface(state);
+    const canvas=document.createElement('canvas');canvas.width=PHOTO_WIDTH;canvas.height=PHOTO_HEIGHT;
+    canvas.className='tdb-senses-photo-image';canvas.setAttribute('aria-hidden','true');
+    const ctx=canvas.getContext('2d',{alpha:false});ctx.drawImage(prepared.surface,0,0);
+    for(const sense of ['smell','sound','taste','candle']){
+      if(sense==='candle'?!state.smell:!state[sense]&&sense!=='taste')continue;
+      const sprite=this.artwork.object(state,sense);ctx.drawImage(sprite.canvas,sprite.x,sprite.y,sprite.width,sprite.height);
     }
-    for(const sense of ['smell','sound','taste'])if(state[sense]||sense==='taste')photo.append(objectLayer(this.images,state,sense));
-    if(state.smell)photo.append(objectLayer(this.images,state,'candle'));
+    photo.append(canvas);
+    if(prepared.glare){
+      const g=prepared.glare,glare=document.createElement('canvas');glare.width=g.canvas.width;glare.height=g.canvas.height;
+      glare.className='tdb-senses-chair-glare';glare.getContext('2d').drawImage(g.canvas,0,0);
+      Object.assign(glare.style,{left:`${g.x/PHOTO_WIDTH*100}%`,top:`${g.y/PHOTO_HEIGHT*100}%`,width:`${g.width/PHOTO_WIDTH*100}%`,height:`${g.height/PHOTO_HEIGHT*100}%`});
+      photo.append(glare);
+    }
     const air=document.createElement('div');air.setAttribute('aria-hidden','true');
     air.className=`tdb-senses-motes ${state.smell?'tdb-senses-botanicals':'tdb-senses-dust'}`;
     if(state.smell){
       const blossom=`<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor">${[0,72,144,216,288].map(a=>`<ellipse cx="12" cy="7.4" rx="3.1" ry="4.4" transform="rotate(${a} 12 12)"/>`).join('')}</g><circle cx="12" cy="12" r="2.3" fill="#cbbb7c"/></svg>`;
       const leaves='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21Q9 13 14 4" fill="none" stroke="#91a578" stroke-width="1"/><path d="M12 14Q3 14 5 7Q12 7 12 14M12 11Q13 3 20 3Q20 10 12 11" fill="#91a578"/></svg>';
-      air.innerHTML=Array.from({length:9},(_,i)=>`<i class="${i===3||i===7?'sprig':'blossom'}" style="left:${23+(i*17)%51}%;top:${26+(i*13)%45}%;--mote-size:${13+i%3*2}px;--mote-colour:${i%3===0?'#e9d5d3':'#f1e9d5'};animation-delay:${-i*3.8}s;animation-duration:${20+i*1.4}s">${i===3||i===7?leaves:blossom}</i>`).join('');
+      const spots=[[24,30],[30,42],[34,34],[21,47],[38,25],[29,53],[40,17],[36,20],[23,38]];
+      air.innerHTML=spots.map(([x,y],i)=>`<i class="${i===3||i===7?'sprig':'blossom'}" style="left:${x}%;top:${y}%;--mote-size:${13+i%3*2}px;--mote-colour:${i%3===0?'#e9d5d3':'#f1e9d5'};animation-delay:${-i*3.8}s;animation-duration:${20+i*1.4}s">${i===3||i===7?leaves:blossom}</i>`).join('');
     }else{
       const haze=document.createElement('div');haze.className='tdb-senses-haze';haze.setAttribute('aria-hidden','true');photo.append(haze);
-      air.innerHTML=Array.from({length:26},(_,i)=>`<i class="spore" style="left:${18+(i*19.7)%68}%;top:${17+(i*13.3)%60}%;--mote-size:${2+i%4}px;--mote-blur:${.3+i%3*.45}px;--mote-alpha:${.14+i%4*.06};animation-delay:${-i*2.7}s;animation-duration:${24+i%7*2}s"></i>`).join('');
+      air.innerHTML=Array.from({length:26},(_,i)=>`<i class="spore" style="left:${18+(i*19.7)%68}%;top:${17+(i*13.3)%60}%;--mote-size:${2+i%4}px;--mote-alpha:${.14+i%4*.06};animation-delay:${-i*2.7}s;animation-duration:${24+i%7*2}s"></i>`).join('');
     }
     photo.append(air);
     node.append(photo);const scene={node,photo,state:{...state}};this.cache.set(key,scene);this.builds++;
     this.position(scene);this.report({builds:this.builds,buildMs:Math.round(performance.now()-started)});
-    this.prune();return scene;
+    return scene;
   }
   prune(){
     while(this.cache.size>4){
@@ -326,7 +393,7 @@ export class SceneRenderer{
   }
   render(state){
     this.active?.finish(false);
-    const next=this.scene(state);this.stage.replaceChildren(next.node);this.current=next;
+    const next=this.scene(state);this.settle(next);this.current=next;
     next.node.classList.remove('tdb-senses-revealing');next.node.style.removeProperty('opacity');this.prune();
   }
   reveal(state,origin,{duration,reverse=false,reduced,onProgress,doublePulse=false}){
@@ -346,16 +413,18 @@ export class SceneRenderer{
     maskNode.style.setProperty('--tdb-senses-feather',`${feather}px`);maskNode.style.setProperty('--tdb-senses-reveal-radius',`${contracting?endRadius:-12}px`);
     this.stage.dataset.radiusEnd=String(endRadius);this.stage.dataset.origin=JSON.stringify(origin);this.stage.dataset.direction=contracting?'contract':'expand';
     if(reduced){maskNode.classList.remove('tdb-senses-revealing');maskNode.style.opacity='0';}
-    if(contracting)this.stage.replaceChildren(next.node,maskNode);else this.stage.append(next.node);
+    if(contracting)this.stage.insertBefore(next.node,maskNode);else this.stage.append(next.node);
+    this.syncMotion(next);
     if(!reduced)this.stage.append(...(leading?[leading,ring]:[ring]));
     return new Promise(resolve=>{
-      const active={next,animation:null,frame:0,timers:[],done:false,finish:complete=>{
+      const active={next,animation:null,frame:0,frameStats:{frames:0,longFrames:0,maxGap:0},timers:[],done:false,finish:complete=>{
         if(active.done)return;active.done=true;ring.remove();leading?.remove();active.timers.forEach(clearTimeout);cancelAnimationFrame(active.frame);
+        this.stage.dataset.revealFrames=String(active.frameStats.frames);this.stage.dataset.revealLongFrames=String(active.frameStats.longFrames);this.stage.dataset.revealMaxFrameGap=String(Math.round(active.frameStats.maxGap));
         // Settle to exactly one unmasked photograph at either endpoint, including
         // cancellation/resize paths; no half mask can survive animation rounding.
         maskNode.classList.remove('tdb-senses-revealing');maskNode.style.removeProperty('opacity');active.animation?.cancel();
-        if(complete&&!this.disposed){this.stage.replaceChildren(next.node);this.current=next;onProgress?.(1);}
-        else if(previous&&!this.disposed)this.stage.replaceChildren(previous.node);
+        if(complete&&!this.disposed){this.settle(next);this.current=next;onProgress?.(1);}
+        else if(previous&&!this.disposed)this.settle(previous);
         else next.node.remove();
         if(this.active===active)this.active=null;this.prune();resolve(complete);
       }};
@@ -364,8 +433,10 @@ export class SceneRenderer{
         active.animation=next.node.animate([{opacity:0},{opacity:1}],{duration,easing:'linear',fill:'both'});
         active.animation.finished.then(()=>active.finish(true),()=>{});
       }else{
-        const start=performance.now();const tick=now=>{
+        const start=performance.now();let lastFrame=start;
+        const tick=now=>{
           if(active.done||this.disposed)return;
+          const gap=now-lastFrame;lastFrame=now;active.frameStats.frames++;active.frameStats.maxGap=Math.max(active.frameStats.maxGap,gap);if(gap>50)active.frameStats.longFrames++;
           const elapsed=now-start,p=Math.max(0,Math.min(1,(elapsed-delay)/duration));
           if(leading){
             const lp=Math.min(1,elapsed/duration),size=Math.max(0,(-12+lp*(endRadius+12))*2);
@@ -384,12 +455,18 @@ export class SceneRenderer{
     });
   }
 
-  motion(paused){this.stage.classList.toggle('tdb-senses-motion-paused',paused);}
+  motion(paused){
+    if(this.paused===paused)return;
+    const now=this.now();
+    if(paused)this.motionHeld=now-this.motionEpoch;
+    else this.motionEpoch=now-this.motionHeld;
+    this.paused=paused;this.stage.classList.toggle('tdb-senses-motion-paused',paused);
+    this.syncMotion(this.current);if(this.active)this.syncMotion(this.active.next);
+  }
   finish(){this.active?.finish(true);}
   destroy(){
     this.disposed=true;this.active?.finish(false);this.stage.replaceChildren();
     this.cache.forEach(scene=>scene.node.querySelectorAll('canvas').forEach(canvas=>{canvas.width=1;canvas.height=1;}));
-    this.surfaces.forEach(entry=>{for(const canvas of [entry.surface,entry.glare])if(canvas){canvas.width=1;canvas.height=1;}});
-    this.surfaces.clear();this.cache.clear();this.current=null;this.images=null;
+    this.artwork.destroy();this.cache.clear();this.current=null;this.images=null;
   }
 }

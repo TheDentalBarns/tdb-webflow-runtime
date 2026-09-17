@@ -81,3 +81,13 @@ Reduced Scent breeze gain from 0.30 to 0.12 (about 8 dB lower). Existing indepen
 Extended the Touch-ON/Sight-OFF upholstery contour along the backrest's lower lip and around the rear/right seat cushions. A local underside guard retains the metal support's colour. Chair texture, stitching and shaded volume remain derived from the photograph.
 
 Smell ON now carries seven small five-petal blossoms and two leaf sprigs. Smell OFF retains its haze and adds 26 sparse, softly blurred round airborne specks. Both live inside each scene's photographic mask, pause with ambient motion, and show static restrained details for reduced motion. No additional image downloads or continuous JavaScript rendering.
+
+### Prototype 0.16.0 — responsive toggles and continuous ambient motion
+
+Flowers and sprigs are anchored in image coordinates around the plant and candle (21–40% across, 17–53% down), so they follow the same responsive crop and remain near their source.
+
+The loader now prepares all four Sight/Touch surfaces and nine compact, transparent prop variants before revealing the experience, yielding between tasks and honouring Close. Sense taps only composite cached artwork into one opaque canvas. Four finished scenes remain cached; cold headrest motion uses a small cropped canvas instead of a full-frame transparent layer. All prepared resources are released on close. Image downloads, registration, reflections, sense ownership and reveal timings are unchanged.
+
+Ambient CSS animations join one shared timeline when scenes enter the stage. Transition completion removes only the outgoing scene; it no longer detaches and reinserts the surviving one. This prevents flowers, spores, haze and the headrest glint from restarting or jumping when another sense changes. Pause holds that same timeline, including newly revealed scenes. Particle motion uses composited transforms and opacity; soft round specks use their existing gradient instead of per-particle blur filters.
+
+Validation: expanded lifecycle checks exercise continuous phase, pause/resume during scene changes, both Sound rings and scene attachment continuity. A native-canvas comparison against the previous composition produced identical pixels in four representative warm/cold and premium/clinical combinations, including all props, shadows and countertop reflections. Reveal diagnostics also record frame counts, gaps over 50 ms and the largest gap without adding an idle rendering loop.

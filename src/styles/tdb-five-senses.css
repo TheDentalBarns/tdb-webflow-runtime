@@ -12,7 +12,7 @@
 .tdb-senses-motes,.tdb-senses-chair-glare{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .tdb-senses-chair-glare{opacity:.86;animation:tdb-senses-light-hum 3.7s ease-in-out infinite;will-change:opacity}
 @keyframes tdb-senses-light-hum{0%,100%{opacity:.86}50%{opacity:.94}}
-.tdb-senses-motes i{position:absolute;width:3px;height:1.4px;border-radius:100%;background:#efe5c9;opacity:0;animation:tdb-senses-botanical-drift 17s linear infinite}
+.tdb-senses-motes i{position:absolute;width:3px;height:1.4px;border-radius:100%;background:#efe5c9;opacity:0;animation:tdb-senses-botanical-drift 17s linear infinite;will-change:transform,opacity}
 .tdb-senses-motion-paused .tdb-senses-motes i,.tdb-senses-motion-paused .tdb-senses-chair-glare{animation-play-state:paused}
 @keyframes tdb-senses-botanical-drift{0%,100%{opacity:0;transform:translate3d(0,0,0) rotate(-20deg)}20%,75%{opacity:.13}90%{opacity:0;transform:translate3d(9px,-27px,0) rotate(50deg)}}
 .tdb-senses-shade{background:linear-gradient(180deg,rgba(12,14,11,.13),transparent 35%,transparent 58%,rgba(12,14,11,.54));opacity:.9}
@@ -53,16 +53,16 @@
 
 /* Prototype refinement: photographic objects fade only after the reveal arrives. */
 .tdb-senses-object{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.tdb-senses-reveal-ring{position:absolute;transform:translate(-50%,-50%);border:1px solid #f5f1e6;border-radius:50%;pointer-events:none;z-index:1}
+.tdb-senses-reveal-ring{position:absolute;transform:translate(-50%,-50%);border:1px solid #f5f1e6;border-radius:50%;pointer-events:none;z-index:1;contain:layout style}
 /* Botanical traces stay recognisable at the portrait cover scale. */
-.tdb-senses-motes i.blossom,.tdb-senses-motes i.sprig{width:var(--mote-size);height:var(--mote-size);border-radius:0;background:none;color:var(--mote-colour);filter:blur(.15px)}
+.tdb-senses-motes i.blossom,.tdb-senses-motes i.sprig{width:var(--mote-size);height:var(--mote-size);border-radius:0;background:none;color:var(--mote-colour)}
 .tdb-senses-motes svg{display:block;width:100%;height:100%}
-.tdb-senses-motes i.sprig{filter:blur(.3px)}
+
 @keyframes tdb-senses-botanical-drift{0%,100%{opacity:0;transform:translate3d(0,0,0) rotate(-25deg)}20%,70%{opacity:.44}90%{opacity:0;transform:translate3d(18px,-56px,0) rotate(55deg)}}
-.tdb-senses-motes i.spore{width:var(--mote-size);height:var(--mote-size);border-radius:50%;background:radial-gradient(circle,#fffdf1 0%,#eeeadeb3 40%,#eeeade00 75%);filter:blur(var(--mote-blur));animation-name:tdb-senses-dust-drift}
+.tdb-senses-motes i.spore{width:var(--mote-size);height:var(--mote-size);border-radius:50%;background:radial-gradient(circle,#fffdf1 0%,#eeeadeb3 40%,#eeeade00 75%);animation-name:tdb-senses-dust-drift}
 @keyframes tdb-senses-dust-drift{0%,100%{opacity:0;transform:translate3d(0,0,0)}18%,76%{opacity:var(--mote-alpha)}92%{opacity:0;transform:translate3d(22px,-32px,0)}}
 @media(prefers-reduced-motion:reduce){.tdb-senses-motes i.blossom,.tdb-senses-motes i.sprig{opacity:.28}.tdb-senses-motes i.spore{opacity:var(--mote-alpha)}}
-.tdb-senses-haze{position:absolute;inset:-5%;pointer-events:none;background:radial-gradient(ellipse at 25% 45%,#e6e5db30,transparent 65%),radial-gradient(ellipse at 76% 30%,#dce0df24,transparent 60%),linear-gradient(115deg,#dce0da0d,#ece9df17 50%,#cfd5d510);animation:tdb-senses-air-drift 24s ease-in-out infinite alternate}
+.tdb-senses-haze{position:absolute;inset:-5%;pointer-events:none;background:radial-gradient(ellipse at 25% 45%,#e6e5db30,transparent 65%),radial-gradient(ellipse at 76% 30%,#dce0df24,transparent 60%),linear-gradient(115deg,#dce0da0d,#ece9df17 50%,#cfd5d510);animation:tdb-senses-air-drift 24s ease-in-out infinite alternate;will-change:transform,opacity}
 @keyframes tdb-senses-air-drift{from{transform:translate3d(-1%,0,0);opacity:.75}to{transform:translate3d(1%,1%,0);opacity:1}}
 .tdb-senses-motion-paused .tdb-senses-haze{animation-play-state:paused}
 @media(prefers-reduced-motion:reduce){.tdb-senses-haze{animation:none}}
