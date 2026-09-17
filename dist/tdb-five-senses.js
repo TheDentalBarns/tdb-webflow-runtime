@@ -538,7 +538,7 @@ export class SceneRenderer{
   destroy(){if(this.disposed)return;this.disposed=true;this.cancel();this.scope.abort();this.gpu?.destroy();this.stage.replaceChildren();this.artwork.destroy();this.layers=[];this.photos=[];}
 }
 
-/* TDB Five Senses v0.20.2 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.21.0 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -547,6 +547,7 @@ const OFF_DURATION = 800;
 const SENSES = ['sight', 'sound', 'smell', 'touch', 'taste'];
 const LABELS = ['Sight', 'Sound', 'Smell', 'Touch', 'Taste'];
 const DETAILS={
+ all:['Everything works, but the feeling is distinctly clinical. Harsh light, hard edges, busy sounds and familiar smells can bring back memories of uncomfortable or hurried visits. Function alone does not always help you feel at ease. That is the experience we wanted to move beyond, considering how the whole environment feels, as well as how it works.','Every sense plays its part. Warm light, gentle sound, fresh air, soft textures and thoughtful hospitality work in harmony to complete the picture. One or two considered touches can make a difference, but leave a sense out and something feels missing. At The Dental Barns, all five come together to create a place where you can feel truly at ease.'],
  sight:['Cool overhead lighting, hard shadows and clinical finishes. Bright reflections draw attention to equipment and surfaces, giving the room the familiar feel of a conventional surgery.','Warm, professionally designed lighting brings a softer feel to the room, without the glare. A complementary palette of gentle colours and natural finishes makes every detail feel considered, creating a space that feels welcoming from the moment you settle in.'],
  sound:['The bustle of the high street, conversations and dental equipment form a busy backdrop. Even before treatment begins, those familiar sounds can make it difficult to switch off.','Gentle birdsong and soothing piano run throughout the practice, setting an unhurried pace. Our treatment rooms are set apart from the sounds of dental equipment, giving you a quieter space to settle into and a little distance from the busy world outside.'],
  smell:['The familiar scent of cleaning agents and still, enclosed air. It is a small part of the surroundings, but one that can make a room feel distinctly clinical.','Fresh outdoor air is filtered and brought into the surgery through our heat-exchange ventilation, with our signature scent adding a subtle finishing touch. It is a quietly considered part of the environment, keeping the atmosphere fresh, gentle and welcoming throughout your visit.'],
@@ -682,7 +683,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.20.2';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.21.0';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -698,18 +699,25 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   dialog.setAttribute('aria-labelledby','tdb-senses-title');dialog.setAttribute('aria-describedby','tdb-senses-description');
   const controls=Array.from(dialog.querySelectorAll('[data-sense]'));
   const allButtons=Array.from(dialog.querySelectorAll('[data-all]'));
-  let allTimer=0;
-  function cancelAll(){clearTimeout(allTimer);allTimer=0;}
+  let allTimer=0,allTarget=null;
+  function cancelAll(){clearTimeout(allTimer);allTimer=0;allTarget=null;}
+  function finishAll(){
+    if(allTarget===null||allTimer||queue.active.size||disposed)return;
+    const on=allTarget;if(!SENSES.every(sense=>requested[sense]===on))return;
+    allTarget=null;void showDetail('all',on);
+    announcement.textContent=on?'All senses on.':'All senses off.';
+  }
   function setAll(on){
     cancelAll();if(!interactionReady||disposed)return;
+    allTarget=on;void fadeDetailOut();
     const order=on?[...SENSES.filter(sense=>sense!=='sound'),'sound']:SENSES;
     const remaining=order.filter(sense=>requested[sense]!==on);
     const step=()=>{
       allTimer=0;if(disposed||signal.aborted||!interactionReady)return;
       let sense;
       while(remaining.length){const next=remaining.shift();if(requested[next]!==on){sense=next;break;}}
-      if(!sense)return;
-      requested[sense]=on;activate(sense,controls[SENSES.indexOf(sense)]);
+      if(!sense){finishAll();return;}
+      requested[sense]=on;activate(sense,controls[SENSES.indexOf(sense)],false,true);
       if(remaining.length)allTimer=setTimeout(step,reduced.matches?0:360);
     };
     step();
@@ -759,12 +767,21 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
       queue.finish(active);dialog.dataset.phase=queue.active.size?'transition':'ready';dialog.dataset.transitionProgress='1';
       dialog.dataset.visibleState=JSON.stringify(queue.visible);
       if(active.intro){interactionReady=true;updateControls();controls[1].focus({preventScroll:true});}
+      finishAll();
     });
   }
   const detail=dialog.querySelector('.tdb-senses-detail');
   let detailAnimation=null,detailRevision=0;
   function hideDetail(){
     ++detailRevision;detailAnimation?.cancel();detailAnimation=null;detail.hidden=true;
+  }
+  async function fadeDetailOut(){
+    if(detail.hidden||reduced.matches){hideDetail();return;}
+    const revision=++detailRevision,opacity=Number(getComputedStyle(detail).opacity);
+    detailAnimation?.cancel();
+    detailAnimation=detail.animate([{opacity},{opacity:0}],{duration:180,easing:'ease-in-out',fill:'forwards'});
+    try{await detailAnimation.finished;}catch{return;}
+    if(revision===detailRevision){detail.hidden=true;detailAnimation.cancel();detailAnimation=null;}
   }
   async function showDetail(sense,on){
     const revision=++detailRevision;
@@ -777,17 +794,17 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     };
     if(!reduced.matches&&opacity>0&&!await fade(opacity,0,180))return;
     if(revision!==detailRevision||disposed||signal.aborted)return;
-    detail.querySelector('.tdb-senses-detail-name').textContent=LABELS[SENSES.indexOf(sense)];
+    detail.querySelector('.tdb-senses-detail-name').textContent=sense==='all'?'Every sense, considered.':LABELS[SENSES.indexOf(sense)];
     detail.querySelector('.tdb-senses-detail-state').textContent=on?'After':'Before';
     detail.querySelector('.tdb-senses-detail-copy').textContent=DETAILS[sense][Number(on)];
     detail.hidden=false;
     if(!reduced.matches&&!await fade(0,1,380,opacity>0?220:0))return;
     detailAnimation?.cancel();detailAnimation=null;
   }
-  function activate(sense,button,intro=false){
+  function activate(sense,button,intro=false,batch=false){
     const rect=button.querySelector('.tdb-senses-circle').getBoundingClientRect(),bounds=stage.getBoundingClientRect();
     const origin={x:rect.left+rect.width/2-bounds.left,y:rect.top+rect.height/2-bounds.top};
-    if(intro)hideDetail();else void showDetail(sense,requested[sense]);
+    if(intro)hideDetail();else if(!batch)void showDetail(sense,requested[sense]);
     hasBegun=true;updateControls();begin(queue.request(requested,origin,intro,sense));
     announcement.textContent=`${LABELS[SENSES.indexOf(sense)]} ${requested[sense]?'on':'off'}.`;
   }

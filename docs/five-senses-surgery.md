@@ -164,3 +164,8 @@ Doubled batch trigger spacing from 180ms to 360ms. All on orders Sight, Smell, T
 ### Prototype 0.20.2 — Sound pause follows the two pulses
 
 On a normal Sound ON toggle, road/clinical audio fades to zero in 150ms. Piano/birdsong remains silent until 600ms, matching the second pulse, then fades in over 600ms. The single-circle introductory Start retains its own early music onset. Audio scheduling remains on the audio clock and is cancelled by toggles/close. The 360ms batch spacing and Sound-last All on order remain.
+
+
+### Prototype 0.21.0 — complete-experience batch captions
+
+All-sense actions fade out the caption immediately and suppress individual descriptions during the sequence. A global Before/After caption fades in only once the batch timer and every active reveal have finished, including both Sound pulses. The After explains five senses working in harmony; Before describes the functional but clinical experience TDB wanted to move beyond. Individual actions cancel pending batch messaging. Includes second-pulse calm audio and slower Sound-last batches.
