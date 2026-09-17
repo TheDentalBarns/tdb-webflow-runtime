@@ -159,3 +159,8 @@ Added All on / All off above the sense controls. A batch checks requested states
 ### Prototype 0.20.1 — slower all-sense sequence
 
 Doubled batch trigger spacing from 180ms to 360ms. All on orders Sight, Smell, Touch, Taste, then Sound, skipping matching states. All off retains sense order at the slower spacing. Individual ripple durations are unchanged.
+
+
+### Prototype 0.20.2 — Sound pause follows the two pulses
+
+On a normal Sound ON toggle, road/clinical audio fades to zero in 150ms. Piano/birdsong remains silent until 600ms, matching the second pulse, then fades in over 600ms. The single-circle introductory Start retains its own early music onset. Audio scheduling remains on the audio clock and is cancelled by toggles/close. The 360ms batch spacing and Sound-last All on order remain.
