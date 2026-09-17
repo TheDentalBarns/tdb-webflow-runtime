@@ -193,10 +193,10 @@ function objectLayer(images,state,sense){
     groundedProp(ctx,images.objects,[0,211,585,733],{x:227,y:829,width:525,height:585,slope:.03,shadow:.25});ctx.restore();
   }
   if(sense==='sound'){
-    const x=state.touch?585:550,y=state.touch?1270:1295;
-    canvas.dataset.anchor=`${x},${y-90}`;
-    groundedProp(ctx,images.objects,[280,1145,375,240],{x,y,width:335,height:215,angle:state.touch?.10:.16,shadow:.28});
-    objectTone(ctx,state,[360,1020,440,340]);
+    canvas.dataset.anchor='468,1265';
+    contactShadow(ctx,459,1335,136,.25,.24);
+    ctx.drawImage(images.objects,280,1145,375,240,280,1145,375,240);
+    objectTone(ctx,state,[280,1145,375,240]);
   }
   if(sense==='taste'){
     canvas.dataset.anchor='804,124';canvas.dataset.object=state.taste?'aesop':'clinical-dispenser-and-sharps';
@@ -206,9 +206,9 @@ function objectLayer(images,state,sense){
     ctx.restore();objectTone(ctx,state,[735,25,165,190],!state.taste);
   }
   if(sense==='candle'){
-    canvas.dataset.anchor='428,170';canvas.dataset.object='candle';
+    canvas.dataset.anchor='419,198';canvas.dataset.object='candle';
     ctx.save();ctx.filter='blur(1.15px) brightness(.9) saturate(.85)';
-    groundedProp(ctx,images.candle,[0,0,images.candle.width,images.candle.height],{x:429,y:203,width:54,height:62,slope:0,shadow:.20});
+    groundedProp(ctx,images.candle,[0,0,images.candle.width,images.candle.height],{x:419,y:222,width:44,height:48,slope:0,shadow:.20});
     ctx.restore();objectTone(ctx,state,[395,120,70,100]);
   }
   return canvas;

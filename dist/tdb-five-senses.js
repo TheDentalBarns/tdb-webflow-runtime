@@ -193,10 +193,10 @@ function objectLayer(images,state,sense){
     groundedProp(ctx,images.objects,[0,211,585,733],{x:227,y:829,width:525,height:585,slope:.03,shadow:.25});ctx.restore();
   }
   if(sense==='sound'){
-    const x=state.touch?585:550,y=state.touch?1270:1295;
-    canvas.dataset.anchor=`${x},${y-90}`;
-    groundedProp(ctx,images.objects,[280,1145,375,240],{x,y,width:335,height:215,angle:state.touch?.10:.16,shadow:.28});
-    objectTone(ctx,state,[360,1020,440,340]);
+    canvas.dataset.anchor='468,1265';
+    contactShadow(ctx,459,1335,136,.25,.24);
+    ctx.drawImage(images.objects,280,1145,375,240,280,1145,375,240);
+    objectTone(ctx,state,[280,1145,375,240]);
   }
   if(sense==='taste'){
     canvas.dataset.anchor='804,124';canvas.dataset.object=state.taste?'aesop':'clinical-dispenser-and-sharps';
@@ -206,9 +206,9 @@ function objectLayer(images,state,sense){
     ctx.restore();objectTone(ctx,state,[735,25,165,190],!state.taste);
   }
   if(sense==='candle'){
-    canvas.dataset.anchor='428,170';canvas.dataset.object='candle';
+    canvas.dataset.anchor='419,198';canvas.dataset.object='candle';
     ctx.save();ctx.filter='blur(1.15px) brightness(.9) saturate(.85)';
-    groundedProp(ctx,images.candle,[0,0,images.candle.width,images.candle.height],{x:429,y:203,width:54,height:62,slope:0,shadow:.20});
+    groundedProp(ctx,images.candle,[0,0,images.candle.width,images.candle.height],{x:419,y:222,width:44,height:48,slope:0,shadow:.20});
     ctx.restore();objectTone(ctx,state,[395,120,70,100]);
   }
   return canvas;
@@ -454,7 +454,7 @@ export class Soundscape {
     });
     const clinical = this.gains[0].gain, calm = this.gains[1].gain;
     if (on) {
-      if(intro){clinical.setValueAtTime(.55,t);}
+      if(intro){clinical.setValueAtTime(0,t);}
       clinical.linearRampToValueAtTime(0,t+.15);
       calm.setValueAtTime(0,t);calm.setValueAtTime(0,t+.175);
       calm.linearRampToValueAtTime(.85,t+.775);
@@ -474,9 +474,9 @@ export class Soundscape {
 }
 
 export async function mountExperience({dialog,signal,assetBase,onClose}) {
-  let disposed=false,renderer=null,audio=null,audioReady=false,audioPending=false,motionPaused=false,hasBegun=false;
+  let disposed=false,renderer=null,audio=null,audioReady=false,audioPending=false,motionPaused=false,hasBegun=false,interactionReady=false;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  const initial={sight:false,sound:false,smell:false,touch:false,taste:false};
+  const initial={sight:true,sound:false,smell:true,touch:true,taste:true};
   const requested={...initial},queue=new TransitionQueue(initial),scope=new AbortController();
   const listen=(el,event,fn,options={})=>el.addEventListener(event,fn,{...options,signal:scope.signal});
   const loaded=await Promise.allSettled(['surgery-warm.webp','surgery-clinical-clean.webp','surgery-objects.webp','scent-candle.webp','taste-clinical.webp'].map(name=>imageAsset(assetURL(name,assetBase),signal)));
@@ -485,20 +485,21 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     throw new Error(signal.aborted?'Closed':'The photograph could not load. Please try again.');
   }
   const images={warm:loaded[0].value,clinical:loaded[1].value,objects:loaded[2].value,candle:loaded[3].value,tasteClinical:loaded[4].value};
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.11.0';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.12.0';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
     <button type="button" class="tdb-senses-close" aria-label="Close experience">${svg('<path d="m9 9 14 14M23 9 9 23"/>')}</button></div></header>
     <h2 id="tdb-senses-title" class="tdb-senses-title">Every sense,<br>considered.</h2>
     <div class="tdb-senses-detail" hidden><p class="tdb-senses-detail-name"></p><p class="tdb-senses-detail-copy"></p></div>
-    <p id="tdb-senses-description" class="tdb-senses-sr">Explore the Surgery. Each control switches one considered detail on or off. Sound starts only when you activate Begin. Sound off plays the conventional soundscape. Close stops all audio. Escape closes the experience.</p>
-    <div class="tdb-senses-controls" role="group" aria-label="Five senses">${SENSES.map((sense,i)=>`<button type="button" class="tdb-senses-control" data-sense="${sense}" aria-label="${sense==='sound'?'Begin sound experience':LABELS[i]}" aria-pressed="${initial[sense]}">${sense==='sound'?'<span class="tdb-senses-begin">BEGIN<i aria-hidden="true"></i></span>':''}<span class="tdb-senses-circle">${svg(ICONS[i])}</span><span class="tdb-senses-name">${LABELS[i]}</span><span class="tdb-senses-value">${sense==='sound'?'':initial[sense]?'ON':'OFF'}</span></button>`).join('')}</div>
+    <p id="tdb-senses-description" class="tdb-senses-sr">Explore the Surgery. Each control switches one considered detail on or off. Sound starts only when you activate Start. Sound off plays the conventional soundscape. Close stops all audio. Escape closes the experience.</p>
+    <button type="button" class="tdb-senses-start" aria-label="Start experience with sound"><span class="tdb-senses-circle">${svg('<path d="M5 12h5l7-6v20l-7-6H5Z M21 11q5 5 0 10 M24 7q9 9 0 18"/>')}</span><span class="tdb-senses-start-label">START</span></button>
+    <div class="tdb-senses-controls" role="group" aria-label="Five senses">${SENSES.map((sense,i)=>`<button type="button" class="tdb-senses-control" data-sense="${sense}" aria-label="${sense==='sound'?'Begin sound experience':LABELS[i]}" aria-pressed="${initial[sense]}"><span class="tdb-senses-circle">${svg(ICONS[i])}</span><span class="tdb-senses-name">${LABELS[i]}</span><span class="tdb-senses-value">${sense==='sound'?'':initial[sense]?'ON':'OFF'}</span></button>`).join('')}</div>
     <p class="tdb-senses-message" aria-live="polite"></p><p class="tdb-senses-sr tdb-senses-announcement" aria-live="polite"></p>`;
   dialog.setAttribute('aria-labelledby','tdb-senses-title');dialog.setAttribute('aria-describedby','tdb-senses-description');
   const controls=Array.from(dialog.querySelectorAll('[data-sense]'));
   const announcement=dialog.querySelector('.tdb-senses-announcement'),message=dialog.querySelector('.tdb-senses-message'),motion=dialog.querySelector('.tdb-senses-motion');
-  const stage=dialog.querySelector('.tdb-senses-stage');
+  const stage=dialog.querySelector('.tdb-senses-stage'),startButton=dialog.querySelector('.tdb-senses-start');
   renderer=new SceneRenderer(stage,images,stats=>{dialog.dataset.sceneBuilds=String(stats.builds);dialog.dataset.lastBuildMs=String(stats.buildMs);});
   renderer.render(initial);
   const createAudio=()=>new Soundscape(assetBase,signal,state=>{dialog.dataset.audioState=state;});
@@ -506,11 +507,14 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
 
   function updateControls(){
     controls.forEach((button,i)=>{
+      button.disabled=!interactionReady;
       const sense=SENSES[i],value=!!requested[sense];button.setAttribute('aria-pressed',String(value));
       button.dataset.state=sense==='sound'&&!audioReady?'pending':value?'on':'off';
-      button.querySelector('.tdb-senses-value').textContent=sense==='sound'&&!audioReady?'':value?'ON':'OFF';
+      button.querySelector('.tdb-senses-value').textContent=value?'ON':'OFF';
       if(sense==='sound'){button.setAttribute('aria-label',audioReady?'Sound':'Begin sound experience');button.setAttribute('aria-busy',String(audioPending));}
     });
+    startButton.hidden=hasBegun;startButton.disabled=audioPending;startButton.setAttribute('aria-busy',String(audioPending));
+    startButton.querySelector('.tdb-senses-start-label').textContent=audioPending?'STARTING…':'START';
     dialog.classList.toggle('tdb-senses-awaiting-sound',!audioReady);dialog.classList.toggle('tdb-senses-has-begun',hasBegun);
     motion.hidden=reduced.matches;motion.setAttribute('aria-pressed',String(motionPaused));motion.setAttribute('aria-label',motionPaused?'Resume ambient motion':'Pause ambient motion');
     motion.innerHTML=svg(motionPaused?'<path d="m12 8 13 8-13 8V8Z"/>':'<path d="M12 9v14M20 9v14"/>');
@@ -529,31 +533,33 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
       dialog.dataset.lastTransitionMs=String(Math.round(performance.now()-started));
       const pending=queue.finish();dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
       dialog.dataset.visibleState=JSON.stringify(queue.visible);
+      if(active.intro){interactionReady=true;updateControls();controls[1].focus({preventScroll:true});}
       if(pending)begin(pending);
     });
   }
   function activate(sense,button,intro=false){
     const rect=button.querySelector('.tdb-senses-circle').getBoundingClientRect(),bounds=stage.getBoundingClientRect();
     const origin={x:rect.left+rect.width/2-bounds.left,y:rect.top+rect.height/2-bounds.top};
-    const detail=dialog.querySelector('.tdb-senses-detail');detail.hidden=false;
+    const detail=dialog.querySelector('.tdb-senses-detail');detail.hidden=intro;
     detail.querySelector('.tdb-senses-detail-name').textContent=LABELS[SENSES.indexOf(sense)];
     detail.querySelector('.tdb-senses-detail-copy').textContent=(requested[sense]?'After — ':'Before — ')+DETAILS[sense][Number(requested[sense])];
     hasBegun=true;updateControls();begin(queue.request(requested,origin,intro,sense));
     announcement.textContent=`${LABELS[SENSES.indexOf(sense)]} ${requested[sense]?'on':'off'}.`;
   }
-  controls.forEach((button,i)=>listen(button,'click',async()=>{
+  listen(startButton,'click',async()=>{
+    if(audioPending||hasBegun)return;
+    message.textContent='';audioPending=true;updateControls();const attempt=audio;
+    try{
+      await attempt.unlock();if(disposed||signal.aborted||audio!==attempt)return;
+      audioReady=true;requested.sound=true;activate('sound',startButton,true);
+    }catch(error){
+      if(disposed||signal.aborted||audio!==attempt)return;
+      audio.stop();audio=createAudio();audioPending=false;message.textContent='Sound could not start. Tap START to try again.';dialog.dataset.audioState='uninitiated';
+    }finally{if(audio===attempt)audioPending=false;if(!disposed)updateControls();}
+  });
+  controls.forEach((button,i)=>listen(button,'click',()=>{
+    if(!interactionReady)return;
     const sense=SENSES[i];message.textContent='';
-    if(sense==='sound'&&!audioReady){
-      if(audioPending)return;audioPending=true;updateControls();const attempt=audio;
-      try{
-        await attempt.unlock();if(disposed||signal.aborted||audio!==attempt)return;
-        audioReady=true;requested.sound=true;activate('sound',button,true);
-      }catch(error){
-        if(disposed||signal.aborted||audio!==attempt)return;
-        audio.stop();audio=createAudio();audioPending=false;message.textContent='Sound could not start. Tap BEGIN to try again.';dialog.dataset.audioState='uninitiated';
-      }finally{if(audio===attempt)audioPending=false;if(!disposed)updateControls();}
-      return;
-    }
     requested[sense]=!requested[sense];activate(sense,button);
   }));
   listen(dialog.querySelector('.tdb-senses-close'),'click',onClose);
@@ -567,7 +573,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   listen(reduced,'change',()=>{renderer.finish();updateControls();});
   listen(document,'visibilitychange',()=>{
     if(document.hidden){
-      audio.stop();audio=createAudio();audioReady=false;audioPending=false;requested.sound=false;
+      audio.stop();audio=createAudio();audioReady=false;audioPending=false;requested.sound=false;hasBegun=false;interactionReady=false;dialog.querySelector('.tdb-senses-detail').hidden=true;
       queue.cancel();queue.visible={...requested};renderer.render(requested);dialog.dataset.audioState='uninitiated';dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
     }
     updateControls();
@@ -579,5 +585,5 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   dialog.dataset.visibleState=JSON.stringify(initial);updateControls();
   await new Promise(resolve=>requestAnimationFrame(resolve));
   if(signal.aborted){cleanup();return;}
-  dialog.classList.add('tdb-senses-ready');controls[0].focus({preventScroll:true});return{cleanup};
+  dialog.classList.add('tdb-senses-ready');startButton.focus({preventScroll:true});return{cleanup};
 }
