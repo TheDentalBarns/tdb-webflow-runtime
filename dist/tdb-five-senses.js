@@ -362,11 +362,12 @@ vec4 sprite(vec2 p,vec4 bounds,vec2 atlas){
 }
 vec4 over(vec4 under,vec4 top){return top+under*(1.0-top.a);}
 vec3 ring(vec3 colour,vec2 p,vec4 w){
-  if(w.w<=0.0||w.z<=0.0)return colour;
+  if(abs(w.w)<=0.0||w.z<=0.0)return colour;
   float d=length(p-w.xy)-w.z;
   float wash=(1.0-smoothstep(0.0,180.0,-d))*smoothstep(0.0,4.0,-d)*w.w*.8;
-  float line=(1.0-smoothstep(.28,1.2,abs(d)))*w.w*.8;
-  colour=mix(colour,vec3(1.0),wash);
+  float line=(1.0-smoothstep(.28,1.2,abs(d)))*abs(w.w)*.8;
+  if(w.w>0.0)colour=mix(colour,vec3(1.0),wash);
+  else colour*=1.0-(1.0-smoothstep(0.0,90.0,-d))*smoothstep(1.0,5.0,-d)*abs(w.w)*.18;
   return mix(colour,vec3(.961,.945,.902),line);
 }
 vec4 lightPlate(vec2 uv,float sight,bool plush){
@@ -438,7 +439,7 @@ class GPUComposite{
   }
   draw(samples){
     const gl=this.gl;this.echoData.fill(0);
-    samples.forEach((s,i)=>{const n=i*4;this.waveData[n]=s.origin?.x||0;this.waveData[n+1]=s.origin?.y||0;this.waveData[n+2]=s.radius||0;this.waveData[n+3]=s.ring||0;this.stateData[i*2]=s.radial?-1:s.amount;
+    samples.forEach((s,i)=>{const n=i*4;this.waveData[n]=s.origin?.x||0;this.waveData[n+1]=s.origin?.y||0;this.waveData[n+2]=s.radius||0;this.waveData[n+3]=(s.ring||0)*(s.target===false?-1:1);this.stateData[i*2]=s.radial?-1:s.amount;
       if(s.echo)this.echoData.set([s.origin.x,s.origin.y,s.echo.radius,s.echo.alpha]);});
     gl.uniform4fv(this.uniforms['uWave[0]'],this.waveData);gl.uniform2fv(this.uniforms['uState[0]'],this.stateData);gl.uniform4fv(this.uniforms.uEcho,this.echoData);gl.drawArrays(gl.TRIANGLES,0,6);
   }
@@ -559,13 +560,14 @@ export class RasterComposite{
       ctx.drawImage(sprite,group.x*this.rx,group.y*this.ry,group.width*this.rx,group.height*this.ry);
     }
     ctx.save();ctx.scale(this.rx,this.ry);
-    for(const s of samples){if(s.radial&&s.ring>0)this.ring(s.origin.x,s.origin.y,s.radius,s.ring);if(s.echo)this.ring(s.origin.x,s.origin.y,s.echo.radius,s.echo.alpha);}
+    for(const s of samples){if(s.radial&&s.ring>0)this.ring(s.origin.x,s.origin.y,s.radius,s.ring,s.target!==false);if(s.echo)this.ring(s.origin.x,s.origin.y,s.echo.radius,s.echo.alpha);}
     ctx.restore();
   }
-  ring(x,y,r,alpha){
+  ring(x,y,r,alpha,on=true){
     if(r<=0)return;const ctx=this.ctx;
-    const g=ctx.createRadialGradient(x,y,Math.max(0,r-180),x,y,r);
-    for(let i=0;i<=12;i++){const t=i/12,d=(1-t)*Math.min(r,180),u=Math.min(1,d/180),edge=Math.min(1,d/4),a=(1-u*u*(3-2*u))*edge*edge*(3-2*edge)*alpha*.8;g.addColorStop(t,`rgba(255,255,255,${a})`);}
+    const g=ctx.createRadialGradient(x,y,Math.max(0,r-(on?180:112)),x,y,r);
+    if(on)for(let i=0;i<=12;i++){const t=i/12,d=(1-t)*Math.min(r,180),u=Math.min(1,d/180),edge=Math.min(1,d/4),a=(1-u*u*(3-2*u))*edge*edge*(3-2*edge)*alpha*.8;g.addColorStop(t,`rgba(255,255,255,${a})`);}
+    else {g.addColorStop(0,'#0000');g.addColorStop(.62,`rgba(0,0,0,${alpha*.055})`);g.addColorStop(.95,`rgba(0,0,0,${alpha*.18})`);g.addColorStop(1,'#0000');}
     ctx.fillStyle=g;ctx.fillRect(0,0,this.width,this.height);
     ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.lineWidth=1;ctx.strokeStyle=`rgba(245,241,230,${alpha})`;ctx.stroke();
   }

@@ -227,3 +227,6 @@ Share each channel mask across affected props and bypass fully covered/excluded 
 
 ## White wash trial — v0.24.2
 Replaced dark moving ripple shadows with a white inner wash, peaking near 80% opacity and fading inward over 180 CSS pixels. Applies to single and double ripples, including the initial Start reveal. GPU and bounded Canvas paths share the same smooth falloff; no additional blur layers or animation loops. Existing timing and settled photography remain unchanged.
+
+### v0.24.3 — directional ripple treatment
+ON and Start retain the long 80% white wash. OFF restores the v0.24.1 dark inner shadow in both GPU and Canvas renderers. Direction follows each independent channel target, including mid-wave reversals. Sound echoes remain white.
