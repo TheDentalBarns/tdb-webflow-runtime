@@ -223,3 +223,7 @@ Opt-in `?senses-profile=1` records a bounded set of frame intervals only during 
 ### v0.24.1 — Shared fallback masks and bounded motion buffer
 
 Share each channel mask across affected props and bypass fully covered/excluded regions. Use a smaller photographic working buffer while the fallback animates, then restore full detail on settlement. Pause invisible ambient animation without restarting its nodes. Release decoded inputs after preparation and dispose failed GPU resources on context loss. Added reproducible native composition checks and a performance report with explicit cloud/Safari limitations.
+
+
+## White wash trial — v0.24.2
+Replaced dark moving ripple shadows with a white inner wash, peaking near 80% opacity and fading inward over 180 CSS pixels. Applies to single and double ripples, including the initial Start reveal. GPU and bounded Canvas paths share the same smooth falloff; no additional blur layers or animation loops. Existing timing and settled photography remain unchanged.

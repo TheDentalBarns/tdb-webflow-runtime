@@ -364,9 +364,9 @@ vec4 over(vec4 under,vec4 top){return top+under*(1.0-top.a);}
 vec3 ring(vec3 colour,vec2 p,vec4 w){
   if(w.w<=0.0||w.z<=0.0)return colour;
   float d=length(p-w.xy)-w.z;
-  float shadow=(1.0-smoothstep(0.0,90.0,-d))*smoothstep(1.0,5.0,-d)*w.w*.18;
+  float wash=(1.0-smoothstep(0.0,180.0,-d))*smoothstep(0.0,4.0,-d)*w.w*.8;
   float line=(1.0-smoothstep(.28,1.2,abs(d)))*w.w*.8;
-  colour*=1.0-shadow;
+  colour=mix(colour,vec3(1.0),wash);
   return mix(colour,vec3(.961,.945,.902),line);
 }
 vec4 lightPlate(vec2 uv,float sight,bool plush){
@@ -564,8 +564,8 @@ export class RasterComposite{
   }
   ring(x,y,r,alpha){
     if(r<=0)return;const ctx=this.ctx;
-    const g=ctx.createRadialGradient(x,y,Math.max(0,r-112),x,y,r);
-    g.addColorStop(0,'#0000');g.addColorStop(.62,`rgba(0,0,0,${alpha*.055})`);g.addColorStop(.95,`rgba(0,0,0,${alpha*.18})`);g.addColorStop(1,'#0000');
+    const g=ctx.createRadialGradient(x,y,Math.max(0,r-180),x,y,r);
+    for(let i=0;i<=12;i++){const t=i/12,d=(1-t)*Math.min(r,180),u=Math.min(1,d/180),edge=Math.min(1,d/4),a=(1-u*u*(3-2*u))*edge*edge*(3-2*edge)*alpha*.8;g.addColorStop(t,`rgba(255,255,255,${a})`);}
     ctx.fillStyle=g;ctx.fillRect(0,0,this.width,this.height);
     ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.lineWidth=1;ctx.strokeStyle=`rgba(245,241,230,${alpha})`;ctx.stroke();
   }
