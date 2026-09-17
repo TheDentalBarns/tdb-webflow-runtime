@@ -202,7 +202,7 @@ function objectLayer(images,state,sense){
     canvas.dataset.anchor='804,124';canvas.dataset.object=state.taste?'aesop':'clinical-dispenser-and-sharps';
     ctx.save();ctx.filter=state.taste?'none':'blur(.85px)';
     if(state.taste){contactShadow(ctx,806,188,44,.4,.15);ctx.drawImage(images.objects,743,30,108,177,759,45,89,158);}
-    else groundedProp(ctx,images.tasteClinical,[0,0,images.tasteClinical.width,images.tasteClinical.height],{x:825,y:206,width:146,height:136,slope:0,shadow:.12});
+    else groundedProp(ctx,images.tasteClinical,[0,0,images.tasteClinical.width,images.tasteClinical.height],{x:807,y:206,width:130,height:126,slope:0,shadow:.12});
     ctx.restore();objectTone(ctx,state,[737,25,175,205],!state.taste);
   }
   if(sense==='candle'){
