@@ -1,5 +1,5 @@
 import {SceneRenderer} from './scene-renderer.js';
-/* TDB Five Senses v0.9.0 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.9.1 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -146,7 +146,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     throw new Error(signal.aborted?'Closed':'The photograph could not load. Please try again.');
   }
   const images={warm:loaded[0].value,clinical:loaded[1].value,objects:loaded[2].value,candle:loaded[3].value,tasteClinical:loaded[4].value};
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.9.0';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.9.1';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>

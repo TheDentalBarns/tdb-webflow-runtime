@@ -204,16 +204,30 @@ function objectLayer(images,state,sense){
 
 export class SceneRenderer{
   constructor(stage,images,report){
-    this.stage=stage;this.images=images;this.report=report;this.cache=new Map();this.current=null;this.active=null;this.builds=0;this.disposed=false;
+    this.stage=stage;this.images=images;this.report=report;this.cache=new Map();this.surfaces=new Map();this.current=null;this.active=null;this.builds=0;this.disposed=false;
     stage.dataset.renderer='prepared-scenes';stage.dataset.maskDriver='radius-only-raf';
     this.resize();
+  }
+  prepared(state){
+    const key=Number(state.sight)+':'+Number(state.touch);
+    let entry=this.surfaces.get(key);
+    if(entry)this.surfaces.delete(key);
+    else{const surface=makeSurface(this.images,state);entry={surface,glare:state.sight?null:chairGlare(surface)};}
+    this.surfaces.set(key,entry);
+    // Two photographic backgrounds cover object-only toggles and the latest
+    // lighting/material reversal. Scene copies remain independently maskable.
+    while(this.surfaces.size>2){const [oldKey,old]=this.surfaces.entries().next().value;for(const canvas of [old.surface,old.glare])if(canvas){canvas.width=1;canvas.height=1;}this.surfaces.delete(oldKey);}
+    return entry;
   }
   scene(state){
     const key=['sight','sound','smell','touch','taste'].map(k=>Number(state[k])).join('');
     if(this.cache.has(key)){const scene=this.cache.get(key);this.cache.delete(key);this.cache.set(key,scene);return scene;}
     const started=performance.now(),node=document.createElement('div');node.className='tdb-senses-scene';node.dataset.state=key;node.dataset.sight=state.sight?'warm':'cold';
-    const photo=document.createElement('div');photo.className='tdb-senses-photo';const surface=makeSurface(this.images,state);photo.append(surface);
-    if(!state.sight)photo.append(chairGlare(surface));
+    const photo=document.createElement('div');photo.className='tdb-senses-photo';
+    const prepared=this.prepared(state);
+    for(const source of [prepared.surface,prepared.glare])if(source){
+      const canvas=document.createElement('canvas');canvas.width=source.width;canvas.height=source.height;canvas.className=source.className;canvas.setAttribute('aria-hidden','true');canvas.getContext('2d').drawImage(source,0,0);photo.append(canvas);
+    }
     for(const sense of ['smell','sound','taste'])if(state[sense]||sense==='taste')photo.append(objectLayer(this.images,state,sense));
     if(state.smell)photo.append(objectLayer(this.images,state,'candle'));
     if(state.smell){const motes=document.createElement('div');motes.className='tdb-senses-motes';motes.innerHTML=[0,1,2,3,4,5].map(i=>`<i class="leaf" style="left:${10+i*9.1}%;top:${27+(i*11)%38}%;animation-delay:${-i*3.4}s;animation-duration:${19+i*1.7}s"></i>`).join('');photo.append(motes);}
@@ -306,11 +320,12 @@ export class SceneRenderer{
   destroy(){
     this.disposed=true;this.active?.finish(false);this.stage.replaceChildren();
     this.cache.forEach(scene=>scene.node.querySelectorAll('canvas').forEach(canvas=>{canvas.width=1;canvas.height=1;}));
-    this.cache.clear();this.current=null;this.images=null;
+    this.surfaces.forEach(entry=>{for(const canvas of [entry.surface,entry.glare])if(canvas){canvas.width=1;canvas.height=1;}});
+    this.surfaces.clear();this.cache.clear();this.current=null;this.images=null;
   }
 }
 
-/* TDB Five Senses v0.9.0 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.9.1 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -457,7 +472,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     throw new Error(signal.aborted?'Closed':'The photograph could not load. Please try again.');
   }
   const images={warm:loaded[0].value,clinical:loaded[1].value,objects:loaded[2].value,candle:loaded[3].value,tasteClinical:loaded[4].value};
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.9.0';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.9.1';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
