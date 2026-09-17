@@ -100,7 +100,8 @@ function chairColour(ctx,state){
       'M714 387C716 359 733 332 760 319C779 310 791 313 813 317C846 321 887 320 921 324C945 328 955 346 960 371C967 403 959 439 942 461C926 482 906 488 878 487L800 479C765 475 739 462 723 443C712 429 710 411 714 387Z',
       'M677 483C654 480 638 489 623 500L599 525L574 550L552 575L531 600L495 650L461 700C445 730 434 764 434 788C433 808 441 828 451 850C462 869 476 886 490 900C511 923 529 940 544 952C565 969 581 981 598 989C666 1018 750 1032 835 1028C903 1027 970 1008 1016 973C1057 940 1077 903 1086 855L1086 634C1070 587 1050 546 1020 528C991 511 955 511 913 522C861 536 814 529 763 512C735 503 698 485 677 483Z',
       'M105 1448L121 1400L150 1350L190 1300L234 1250L282 1200L337 1150L391 1108L423 1080L435 1060Q458 1042 491 1057C521 1067 552 1069 579 1078C661 1098 726 1109 784 1125L879 1142L879 1226C876 1251 879 1273 895 1288L945 1309C970 1328 979 1357 966 1392L948 1448Z'
-    ];paths.forEach(path=>m.fill(new Path2D(path)));
+    ];
+    m.filter='blur(1px)';paths.forEach(path=>m.fill(new Path2D(path)));
     mask=m.getImageData(0,0,PHOTO_WIDTH,PHOTO_HEIGHT).data;
     region.width=1;region.height=1;
   }
@@ -146,12 +147,6 @@ function makeSurface(images,state){
   ctx.drawImage(state.touch?images.warm:images.clinical,0,0,PHOTO_WIDTH,PHOTO_HEIGHT);
   chairColour(ctx,state);
   if(!state.sight)floorReflections(ctx);
-  if(!state.sight&&state.touch){
-    // Hard window-frame shadows, clipped to the exposed wooden floor.
-    ctx.save();ctx.clip(new Path2D("M0 708L199 588L381 593L427 821Q414 905 493 953L316 941L185 1009L145 1080L0 1200Z"));
-    ctx.fillStyle="rgba(29,39,51,.20)";
-    ctx.fill(new Path2D("M155 580L175 580L60 1230L30 1230Z M0 895L430 717L435 738L0 929Z"));ctx.restore();
-  }
   if(!state.sight)coldLighting(ctx);
   
   canvas.className='tdb-senses-photo-image';canvas.setAttribute('aria-hidden','true');
@@ -219,7 +214,7 @@ export class SceneRenderer{
     const next=this.scene(state);this.stage.replaceChildren(next.node);this.current=next;
     next.node.classList.remove('tdb-senses-revealing');next.node.style.removeProperty('opacity');this.prune();
   }
-  reveal(state,origin,{duration,reverse=false,reduced,onProgress}){
+  reveal(state,origin,{duration,reverse=false,reduced,onProgress,doublePulse=false}){
     this.active?.finish(false);
     const next=this.scene(state),previous=this.current;
     if(next===previous)return Promise.resolve(true);
@@ -237,6 +232,8 @@ export class SceneRenderer{
     }
     const ring=document.createElement('div');ring.className='tdb-senses-reveal-ring';
     Object.assign(ring.style,{left:`${origin.x}px`,top:`${origin.y}px`});
+    const leading=doublePulse&&!reduced?ring.cloneNode():null;
+    const delay=leading?350:0,total=duration+delay;
     const maskNode=contracting?previous.node:next.node,feather=20,endRadius=revealRadius(this.width,this.height,origin,feather);
     maskNode.classList.add('tdb-senses-revealing');
     maskNode.style.setProperty('--tdb-senses-origin-x',`${origin.x}px`);maskNode.style.setProperty('--tdb-senses-origin-y',`${origin.y}px`);
@@ -244,10 +241,10 @@ export class SceneRenderer{
     this.stage.dataset.radiusEnd=String(endRadius);this.stage.dataset.origin=JSON.stringify(origin);this.stage.dataset.direction=contracting?'contract':'expand';
     if(reduced){maskNode.classList.remove('tdb-senses-revealing');maskNode.style.opacity='0';}
     if(contracting)this.stage.replaceChildren(next.node,maskNode);else this.stage.append(next.node);
-    if(!reduced)this.stage.append(ring);
+    if(!reduced)this.stage.append(...(leading?[leading,ring]:[ring]));
     return new Promise(resolve=>{
       const active={next,animation:null,frame:0,timers:[],done:false,finish:complete=>{
-        if(active.done)return;active.done=true;ring.remove();arrivals.forEach(({layer})=>layer.style.removeProperty('opacity'));active.timers.forEach(clearTimeout);cancelAnimationFrame(active.frame);
+        if(active.done)return;active.done=true;ring.remove();leading?.remove();arrivals.forEach(({layer})=>layer.style.removeProperty('opacity'));active.timers.forEach(clearTimeout);cancelAnimationFrame(active.frame);
         // Settle to exactly one unmasked photograph at either endpoint, including
         // cancellation/resize paths; no half mask can survive animation rounding.
         maskNode.classList.remove('tdb-senses-revealing');maskNode.style.removeProperty('opacity');active.animation?.cancel();
@@ -262,7 +259,14 @@ export class SceneRenderer{
         active.animation.finished.then(()=>active.finish(true),()=>{});
       }else{
         const start=performance.now();const tick=now=>{
-          if(active.done||this.disposed)return;const p=Math.min(1,(now-start)/duration);
+          if(active.done||this.disposed)return;
+          const elapsed=now-start,p=Math.max(0,Math.min(1,(elapsed-delay)/duration));
+          if(leading){
+            const lp=Math.min(1,elapsed/duration),size=Math.max(0,(-12+lp*(endRadius+12))*2);
+            leading.style.width=size+'px';leading.style.height=size+'px';
+            leading.style.opacity=lp===1?'0':'1';
+            ring.style.visibility=elapsed<delay?'hidden':'visible';
+          }
           const radius=contracting?endRadius-p*(endRadius+12):-12+p*(endRadius+12);
           maskNode.style.setProperty('--tdb-senses-reveal-radius',`${radius.toFixed(2)}px`);
           const diameter=Math.max(0,radius*2);ring.style.width=`${diameter}px`;ring.style.height=`${diameter}px`;
@@ -273,8 +277,8 @@ export class SceneRenderer{
           if(p===1)active.finish(true);else active.frame=requestAnimationFrame(tick);
         };active.frame=requestAnimationFrame(tick);
       }
-      for(const p of [.25,.5,.75])active.timers.push(setTimeout(()=>{if(!active.done)onProgress?.(p);},duration*p));
-      active.timers.push(setTimeout(()=>active.finish(true),duration+80));
+      for(const p of [.25,.5,.75])active.timers.push(setTimeout(()=>{if(!active.done)onProgress?.(p);},total*p));
+      active.timers.push(setTimeout(()=>active.finish(true),total+80));
     });
   }
 

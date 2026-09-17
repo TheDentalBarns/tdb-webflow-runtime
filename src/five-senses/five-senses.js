@@ -1,5 +1,5 @@
 import {SceneRenderer} from './scene-renderer.js';
-/* TDB Five Senses v0.5.0 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.8.0 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -7,6 +7,13 @@ const DURATION = 1200;
 const OFF_DURATION = 800;
 const SENSES = ['sight', 'sound', 'smell', 'touch', 'taste'];
 const LABELS = ['Sight', 'Sound', 'Smell', 'Touch', 'Taste'];
+const DETAILS={
+ sight:['Harsh clinical lighting and sterile colours.','Warm, high-quality lighting, without the glare.'],
+ sound:['The familiar sounds of a clinical surgery.','Gentle birdsong and piano, for a calmer moment.'],
+ smell:['A clinical atmosphere.','A fresher feeling, with a touch of nature.'],
+ touch:['Cool, clinical surfaces.','Soft upholstery and warm, tactile finishes.'],
+ taste:['The usual clinical setting.','A moment to pause, with a comforting drink.']
+};
 const assetURL=(name,base)=>typeof base==='string'?new URL(name,base):base[name];
 const ICONS = [
   '<path d="M3 16s4.5-8 13-8 13 8 13 8-4.5 8-13 8S3 16 3 16Z"/><circle cx="16" cy="16" r="4.5"/>',
@@ -103,15 +110,13 @@ export class Soundscape {
       else { const value = g.gain.value; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(value, t); }
     });
     const clinical = this.gains[0].gain, calm = this.gains[1].gain;
-    if (intro) {
-      clinical.setValueAtTime(0, t);
-      clinical.linearRampToValueAtTime(.55, t + .15);
-      clinical.linearRampToValueAtTime(0, t + 1.18);
-      calm.setValueAtTime(0, t); calm.setValueAtTime(0, t + 1.48);
-      calm.linearRampToValueAtTime(.85, t + 3.1);
+    if (on) {
+      if(intro){clinical.setValueAtTime(.55,t);}
+      clinical.linearRampToValueAtTime(0,t+.30);
+      calm.setValueAtTime(0,t);calm.setValueAtTime(0,t+.35);
+      calm.linearRampToValueAtTime(.85,t+1.55);
     } else {
-      clinical.linearRampToValueAtTime(on ? 0 : .65, t + 1.8);
-      calm.linearRampToValueAtTime(on ? .85 : 0, t + 2.6);
+      clinical.setValueAtTime(.65,t);calm.setValueAtTime(0,t);
     }
   }
   stop() {
@@ -137,12 +142,13 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     throw new Error(signal.aborted?'Closed':'The photograph could not load. Please try again.');
   }
   const images={warm:loaded[0].value,clinical:loaded[1].value,objects:loaded[2].value};
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.5.0';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.8.0';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
     <button type="button" class="tdb-senses-close" aria-label="Close experience">${svg('<path d="m9 9 14 14M23 9 9 23"/>')}</button></div></header>
     <h2 id="tdb-senses-title" class="tdb-senses-title">Every sense,<br>considered.</h2>
+    <div class="tdb-senses-detail" hidden><p class="tdb-senses-detail-name"></p><p class="tdb-senses-detail-copy"></p></div>
     <p id="tdb-senses-description" class="tdb-senses-sr">Explore the Surgery. Each control switches one considered detail on or off. Sound starts only when you activate Begin. Sound off plays the conventional soundscape. Close stops all audio. Escape closes the experience.</p>
     <div class="tdb-senses-controls" role="group" aria-label="Five senses">${SENSES.map((sense,i)=>`<button type="button" class="tdb-senses-control" data-sense="${sense}" aria-label="${sense==='sound'?'Begin sound experience':LABELS[i]}" aria-pressed="${initial[sense]}">${sense==='sound'?'<span class="tdb-senses-begin">BEGIN<i aria-hidden="true"></i></span>':''}<span class="tdb-senses-circle">${svg(ICONS[i])}</span><span class="tdb-senses-name">${LABELS[i]}</span><span class="tdb-senses-value">${sense==='sound'?'':initial[sense]?'ON':'OFF'}</span></button>`).join('')}</div>
     <p class="tdb-senses-message" aria-live="polite"></p><p class="tdb-senses-sr tdb-senses-announcement" aria-live="polite"></p>`;
@@ -175,7 +181,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     dialog.dataset.phase='transition';dialog.dataset.transitionProgress='0';dialog.dataset.transitionStarted=String(Math.round(performance.now()));
     if(audioReady&&(active.intro||active.from.sound!==active.state.sound))audio.transition(active.state.sound,active.intro);
     const started=performance.now();
-    renderer.reveal(active.state,active.origin,{duration,reverse,reduced:reduced.matches,onProgress:p=>{dialog.dataset.transitionProgress=String(p);}}).then(complete=>{
+    renderer.reveal(active.state,active.origin,{duration,reverse,doublePulse:active.state.sound&&!active.from.sound,reduced:reduced.matches,onProgress:p=>{dialog.dataset.transitionProgress=String(p);}}).then(complete=>{
       if(!complete||disposed||signal.aborted||queue.active!==active)return;
       dialog.dataset.lastTransitionMs=String(Math.round(performance.now()-started));
       const pending=queue.finish();dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
@@ -186,6 +192,9 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   function activate(sense,button,intro=false){
     const rect=button.querySelector('.tdb-senses-circle').getBoundingClientRect(),bounds=stage.getBoundingClientRect();
     const origin={x:rect.left+rect.width/2-bounds.left,y:rect.top+rect.height/2-bounds.top};
+    const detail=dialog.querySelector('.tdb-senses-detail');detail.hidden=false;
+    detail.querySelector('.tdb-senses-detail-name').textContent=LABELS[SENSES.indexOf(sense)];
+    detail.querySelector('.tdb-senses-detail-copy').textContent=(requested[sense]?'After — ':'Before — ')+DETAILS[sense][Number(requested[sense])];
     hasBegun=true;updateControls();begin(queue.request(requested,origin,intro));
     announcement.textContent=`${LABELS[SENSES.indexOf(sense)]} ${requested[sense]?'on':'off'}.`;
   }

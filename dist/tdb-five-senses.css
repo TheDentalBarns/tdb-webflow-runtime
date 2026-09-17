@@ -61,3 +61,13 @@
 @keyframes tdb-senses-air-drift{from{transform:translate3d(-1%,0,0);opacity:.75}to{transform:translate3d(1%,1%,0);opacity:1}}
 .tdb-senses-motion-paused .tdb-senses-haze{animation-play-state:paused}
 @media(prefers-reduced-motion:reduce){.tdb-senses-haze{animation:none}}
+
+/* Keep the controls clear of the mobile browser and show the active change. */
+.tdb-senses .tdb-senses-controls{bottom:calc(12rem + env(safe-area-inset-bottom))}
+.tdb-senses-detail{position:absolute;top:max(82px,calc(env(safe-area-inset-top) + 64px));left:var(--tdb-senses-gutter);right:var(--tdb-senses-gutter);max-width:330px;pointer-events:none;text-shadow:0 1px 8px #0009;z-index:2}
+.tdb-senses-detail[hidden]{display:none}
+.tdb-senses-detail p{margin:0;font-family:inherit;color:inherit;font-weight:300}
+.tdb-senses-detail-name{font-size:14px;line-height:1.4;letter-spacing:.05em}
+.tdb-senses-detail-copy{padding-top:8px;font-size:11px;line-height:1.65;max-width:29em}
+.tdb-senses-message{bottom:calc(12rem + 150px + env(safe-area-inset-bottom))}
+@media(max-height:520px){.tdb-senses .tdb-senses-controls{bottom:clamp(20px,14vh,12rem)}.tdb-senses-detail{max-width:260px}.tdb-senses-message{bottom:8px}}
