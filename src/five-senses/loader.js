@@ -80,5 +80,5 @@
     if(button.tagName!=='BUTTON')button.addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();open(button);}});
   });
   window.addEventListener('pagehide',()=>{if(active)close(active);});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.9.1'});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.10.0'});
 })();

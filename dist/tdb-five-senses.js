@@ -168,35 +168,48 @@ function objectTone(ctx,state,rect,clinical=false){
   ctx.putImageData(pixels,x,y);
 }
 
+// Fit the visible object, not its transparent export rectangle. Grounding and
+// perspective therefore remain consistent across props with different padding.
+function groundedProp(ctx,image,source,{x,y,width,height,slope=0,angle=0,shadow=.25}){
+  const crop=document.createElement('canvas');crop.width=source[2];crop.height=source[3];
+  const c=crop.getContext('2d');c.drawImage(image,...source,0,0,crop.width,crop.height);
+  const pixels=c.getImageData(0,0,crop.width,crop.height).data;
+  let left=crop.width,top=crop.height,right=0,bottom=0;
+  for(let py=0;py<crop.height;py++)for(let px=0;px<crop.width;px++)if(pixels[(py*crop.width+px)*4+3]>20){left=Math.min(left,px);right=Math.max(right,px+1);top=Math.min(top,py);bottom=Math.max(bottom,py+1);}
+  if(right<=left||bottom<=top)return;
+  const sw=right-left,sh=bottom-top,scale=Math.min(width/sw,height/sh),w=sw*scale,h=sh*scale;
+  ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.transform(1,slope,0,1,0,0);
+  contactShadow(ctx,0,0,w*.48,shadow,.14);
+  ctx.drawImage(crop,left,top,sw,sh,-w/2,-h,w,h);ctx.restore();crop.width=1;crop.height=1;
+}
+
 function objectLayer(images,state,sense){
   const canvas=document.createElement('canvas');canvas.width=PHOTO_WIDTH;canvas.height=PHOTO_HEIGHT;
   canvas.className='tdb-senses-object';canvas.dataset.sense=sense==='candle'?'smell':sense;
   canvas.dataset.tone=state.sight?'warm':'cold';
   const ctx=canvas.getContext('2d');
-  if(sense==='smell'){canvas.dataset.anchor='245,560';contactShadow(ctx,227,829,92,.32,.19);ctx.save();ctx.filter='blur(3px) saturate(.76) contrast(.88) brightness(1.06)';ctx.drawImage(images.objects,0,211,585,733,0,252,525,585);ctx.restore();}
+  if(sense==='smell'){
+    canvas.dataset.anchor='227,550';ctx.save();ctx.filter='blur(3px) saturate(.76) contrast(.88) brightness(1.06)';
+    groundedProp(ctx,images.objects,[0,211,585,733],{x:227,y:829,width:525,height:585,slope:.03,shadow:.25});ctx.restore();
+  }
   if(sense==='sound'){
-    canvas.dataset.anchor='538,1195';
-    contactShadow(ctx,530,1265,136,.25,.24);
-    ctx.drawImage(images.objects,280,1145,375,240,350,1075,375,240);
-    objectTone(ctx,state,[350,1075,375,240]);
+    const x=state.touch?585:550,y=state.touch?1270:1295;
+    canvas.dataset.anchor=`${x},${y-90}`;
+    groundedProp(ctx,images.objects,[280,1145,375,240],{x,y,width:335,height:215,angle:state.touch?.10:.16,shadow:.28});
+    objectTone(ctx,state,[360,1020,440,340]);
   }
   if(sense==='taste'){
-    canvas.dataset.anchor='804,124';
-    canvas.dataset.object=state.taste?'aesop':'clinical-dispenser-and-sharps';
-    if(state.taste){
-      contactShadow(ctx,806,188,44,.4,.15);ctx.drawImage(images.objects,743,30,108,177,759,45,89,158);
-      objectTone(ctx,state,[759,45,89,158]);
-    }else{
-      contactShadow(ctx,816,201,66,.26,.14);
-      ctx.save();ctx.filter='blur(.5px) brightness(.87)';ctx.drawImage(images.tasteClinical,753,50,128,153);ctx.restore();
-      objectTone(ctx,state,[753,50,128,153],true);
-    }
+    canvas.dataset.anchor='804,124';canvas.dataset.object=state.taste?'aesop':'clinical-dispenser-and-sharps';
+    ctx.save();ctx.filter='blur(.5px)';
+    if(state.taste)groundedProp(ctx,images.objects,[743,30,108,177],{x:804,y:195,width:89,height:158,slope:.078,shadow:.26});
+    else groundedProp(ctx,images.tasteClinical,[0,0,images.tasteClinical.width,images.tasteClinical.height],{x:817,y:203,width:128,height:153,slope:.078,shadow:.26});
+    ctx.restore();objectTone(ctx,state,[735,25,165,190],!state.taste);
   }
   if(sense==='candle'){
-    canvas.dataset.anchor='428,150';canvas.dataset.object='candle';
-    contactShadow(ctx,429,203,30,.22,.16);
-    ctx.save();ctx.filter='blur(.65px) brightness(.9) saturate(.85)';ctx.drawImage(images.candle,405,135,48,68);ctx.restore();
-    objectTone(ctx,state,[405,135,48,68]);
+    canvas.dataset.anchor='428,170';canvas.dataset.object='candle';
+    ctx.save();ctx.filter='blur(.65px) brightness(.9) saturate(.85)';
+    groundedProp(ctx,images.candle,[0,0,images.candle.width,images.candle.height],{x:429,y:203,width:48,height:68,slope:.078,shadow:.22});
+    ctx.restore();objectTone(ctx,state,[395,120,70,100]);
   }
   return canvas;
 }
@@ -325,12 +338,12 @@ export class SceneRenderer{
   }
 }
 
-/* TDB Five Senses v0.9.1 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.10.0 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
-const DURATION = 600;
-const OFF_DURATION = 400;
+const DURATION = 1200;
+const OFF_DURATION = 800;
 const SENSES = ['sight', 'sound', 'smell', 'touch', 'taste'];
 const LABELS = ['Sight', 'Sound', 'Smell', 'Touch', 'Taste'];
 const DETAILS={
@@ -472,7 +485,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     throw new Error(signal.aborted?'Closed':'The photograph could not load. Please try again.');
   }
   const images={warm:loaded[0].value,clinical:loaded[1].value,objects:loaded[2].value,candle:loaded[3].value,tasteClinical:loaded[4].value};
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.9.1';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.10.0';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
