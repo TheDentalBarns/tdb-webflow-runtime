@@ -71,7 +71,7 @@
       const v=raw.selected&&own(raw.selected,o.key)?raw.selected[o.key]:null;
       if(v&&s.categories.includes(o.category)){
         s.selected[o.key]={qty:o.quantity?clamp(Math.floor(Number(v.qty)||1),1,o.record==='fillings'||o.key==='fillings'?160:32):1,tier:o.key==='replacement'?2:['aligners','bonding','veneers'].includes(o.key)&&Number.isInteger(v.tier)&&v.tier>=0&&v.tier<=2?v.tier:null};
-        if(o.key==='veneers'){const arches=['upper','lower'].filter(a=>Array.isArray(v.arches)&&v.arches.includes(a));s.selected.veneers.arches=arches.length?arches:['upper'];}
+        if(o.key==='veneers'){const arches=['upper','lower'].filter(a=>Array.isArray(v.arches)&&v.arches.includes(a));s.selected.veneers.arches=s.selected.veneers.qty>16?['upper','lower']:arches.length?arches:['upper'];}
       }
     }
     s.assessment=['none','design','signature'].includes(raw.assessment)?raw.assessment:'none';

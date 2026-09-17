@@ -219,3 +219,17 @@ test('aligner options omit duration copy while their selected tier still changes
   assert.notEqual(x.root.querySelector('[data-output=duration]').textContent,mild);
  }finally{x.dom.window.close();}
 });
+
+test('veneer quantities above 16 require both arches through typing and step controls',async()=>{
+ const x=await setup();try{
+  x.choose('[data-category=cosmetic]');x.choose('[data-select=veneers]');
+  const quantity=n=>{const input=x.root.querySelector('[data-qty=veneers]');input.value=String(n);input.dispatchEvent(new x.w.Event('change',{bubbles:true}));};
+  quantity(16);assert.equal(x.root.querySelector('[data-arch=lower]').checked,false);
+  x.choose('[data-action=plus][data-key=veneers]');
+  for(const arch of ['upper','lower']){const input=x.root.querySelector('[data-arch='+arch+']');assert.equal(input.checked,true);assert.equal(input.disabled,true);}
+  assert.match(x.text(),/2 arches/);assert.ok(x.root.querySelector('[data-key=veneers-lower-prep]'));
+  x.choose('[data-action=minus][data-key=veneers]');assert.equal(x.root.querySelector('[data-arch=lower]').disabled,false);
+  x.choose('[data-arch=upper]');assert.equal(x.root.querySelector('[data-arch=upper]').checked,false);
+  quantity(32);assert.equal(x.root.querySelector('[data-arch=upper]').checked,true);assert.equal(x.root.querySelector('[data-arch=lower]').checked,true);assert.match(x.text(),/2 arches/);
+ }finally{x.dom.window.close();}
+});

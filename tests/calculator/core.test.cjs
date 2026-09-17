@@ -161,3 +161,10 @@ test('hygiene adds a week before treatment and crowns/onlays share preparation a
  const t=C.completionTimeline(records,C.estimate(records,state(['whitening'],{hygiene:true})),'2026-01-17');assert.equal(t.stages[0].startMin,'2026-01-31');assert.equal(t.stages[1].startMin,'2026-02-07');
  const r=C.completionTimeline(records,C.estimate(records,state(['crowns','onlays'])),'2026-01-17');assert.deepEqual(r.stages.map(x=>[x.key,x.startMin]),[['restoration-prep','2026-01-31'],['restoration-fit','2026-02-28']]);assert.equal(r.finishMin,'2026-02-28');
 });
+
+test('more than 16 veneers normalise to both arches and include two Smile Trials',()=>{
+ const s=state(['veneers']);s.selected.veneers={qty:17,tier:0,arches:['lower']};
+ assert.deepEqual(C.normaliseState(s).selected.veneers.arches,['upper','lower']);
+ const e=C.estimate(records,s);assert.equal(e.lines.find(l=>l.key==='trial').qty,2);
+ s.selected.veneers.qty=16;assert.deepEqual(C.normaliseState(s).selected.veneers.arches,['lower']);
+});
