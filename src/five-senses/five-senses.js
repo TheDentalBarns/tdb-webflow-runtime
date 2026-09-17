@@ -1,5 +1,5 @@
 import {SceneRenderer} from './scene-renderer.js';
-/* TDB Five Senses v0.18.0 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.18.1 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -8,11 +8,11 @@ const OFF_DURATION = 800;
 const SENSES = ['sight', 'sound', 'smell', 'touch', 'taste'];
 const LABELS = ['Sight', 'Sound', 'Smell', 'Touch', 'Taste'];
 const DETAILS={
- sight:['Cool lighting, hard shadows and clinical finishes.','Warm, professionally designed light without the glare. A considered, complementary colour palette.'],
- sound:['The bustle of the high street, dental equipment and a busy environment.','Birdsong and soothing piano throughout. Quiet rooms, set apart from the sounds of dental equipment.'],
- smell:['Cleaning agents and still, enclosed air.','Fresh outdoor air, filtered through heat-exchange ventilation and infused with our signature scent.'],
- touch:['Clinical surfaces and hard edges.','A plush, softly upholstered treatment chair. Textured wood and finishes with the familiar warmth of home.'],
- taste:['Nothing beyond the usual tastes of dentistry.','Coffee, a macaron and thoughtful finishing touches: complimentary Aesop hand wash and mouth rinse.']
+ sight:['Cool overhead lighting, hard shadows and clinical finishes. Bright reflections draw attention to equipment and surfaces, giving the room the familiar feel of a conventional surgery.','Warm, professionally designed lighting brings a softer feel to the room, without the glare. A complementary palette of gentle colours and natural finishes makes every detail feel considered, creating a space that feels welcoming from the moment you settle in.'],
+ sound:['The bustle of the high street, conversations and dental equipment form a busy backdrop. Even before treatment begins, those familiar sounds can make it difficult to switch off.','Gentle birdsong and soothing piano run throughout the practice, setting an unhurried pace. Our treatment rooms are set apart from the sounds of dental equipment, giving you a quieter space to settle into and a little distance from the busy world outside.'],
+ smell:['The familiar scent of cleaning agents and still, enclosed air. It is a small part of the surroundings, but one that can make a room feel distinctly clinical.','Fresh outdoor air is filtered and brought into the surgery through our heat-exchange ventilation, with our signature scent adding a subtle finishing touch. It is a quietly considered part of the environment, keeping the atmosphere fresh, gentle and welcoming throughout your visit.'],
+ touch:['Clinical surfaces and hard edges put function first. From the chair beneath you to the finishes around it, there is little of the softness and texture you would choose at home.','Settle into a plush, softly upholstered treatment chair, surrounded by textured wood and finishes chosen for their warmth. From the surfaces you touch to the chair that supports you, each detail brings a familiar sense of home into your time with us.'],
+ taste:['Nothing beyond the usual tastes of dentistry. The visit centres on treatment, with few of the small gestures of hospitality that invite you to pause and feel at home.','A coffee, a macaron and a moment to yourself. Our hospitality is part of the experience, with complimentary Aesop hand wash and mouth rinse among the thoughtful finishing touches. Small details, chosen to make your visit feel personal and a little more like home.']
 };
 const assetURL=(name,base)=>typeof base==='string'?new URL(name,base):base[name];
 const ICONS = [
@@ -141,7 +141,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.18.0';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.18.1';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>

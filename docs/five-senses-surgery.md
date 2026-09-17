@@ -119,3 +119,8 @@ Following the immediate review, extended the travelling circle's inner shadow fr
 ### Prototype 0.18.0 — editorial copy and separated Sound pulses
 
 Increased the Sound leading-pulse separation from 175ms to 300ms without changing the reveal duration or adding rendering work. Rewrote all ten Before/After descriptions using the supplied TDB details. Retained the page's existing Sweet Sans Pro x font, with a larger sense name, a restrained uppercase state label and readable 13px description. No new font requests. Smell remains silent.
+
+
+### Prototype 0.18.1 — fuller explanations and hero shade
+
+Expanded all ten captions to explain the contrast and TDB design decisions. Retained Sweet Sans and the readable 13px body. Removed text shadows, replacing them with a static left-weighted dark gradient fading across and down behind the UI. No animation, filter, extra font or JavaScript rendering work is added.
