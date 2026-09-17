@@ -194,3 +194,12 @@ Sense buttons retain their lit state while their OFF ripple contracts; completio
 ### Prototype 0.22.3 — ripples meet the button edge
 
 Pass the measured button radius into the shared ripple field. Expanding circles and the Sound echo begin at that edge; contractions end there. Mid-wave reversals retain their current radius. ON buttons light immediately; OFF buttons remain lit until contraction completes. Includes the revised chair mask, softer LED spill and top Sound icon.
+
+
+### Prototype 0.23.0 — illustrative sound waveform
+
+Added an aria-hidden 44px waveform immediately left of the top speaker. Eleven 1px strokes animate with short irregular steps for conventional road/clinical audio and slower eased breathing for calm piano/birdsong. Silent before Start; follows Sound and all-sense actions. CSS transforms avoid audio analysis and extra JS frame callbacks. Reduced motion leaves a static trace.
+
+### v0.23.1 — Independent mute and Sound sequence
+
+The top speaker mutes the master output without changing a sense or starting a ripple. The Sound sense reveals headphones and quietens clinical noise with its first wave; its second wave starts calm audio and lights the Sound button. Added noise-cancelling headphones to the Sound copy. The illustrative waveform is quiet while muted or between Sound phases. Mute preserves the scheduled audio transition.

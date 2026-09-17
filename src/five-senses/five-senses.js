@@ -1,5 +1,5 @@
 import {SceneRenderer} from './scene-renderer.js';
-/* TDB Five Senses v0.22.3 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.23.1 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -10,7 +10,7 @@ const LABELS = ['Sight', 'Sound', 'Smell', 'Touch', 'Taste'];
 const DETAILS={
  all:['Everything works, but the feeling is distinctly clinical. Harsh light, hard edges, busy sounds and familiar smells can bring back memories of uncomfortable or hurried visits. Function alone does not always help you feel at ease. That is the experience we wanted to move beyond, considering how the whole environment feels, as well as how it works.','Every sense plays its part. Warm light, gentle sound, fresh air, soft textures and thoughtful hospitality work in harmony to complete the picture. One or two considered touches can make a difference, but leave a sense out and something feels missing. At The Dental Barns, all five come together to create a place where you can feel truly at ease.'],
  sight:['Cool overhead lighting, hard shadows and clinical finishes. Bright reflections draw attention to equipment and surfaces, giving the room the familiar feel of a conventional surgery.','Warm, professionally designed lighting brings a softer feel to the room, without the glare. A complementary palette of gentle colours and natural finishes makes every detail feel considered, creating a space that feels welcoming from the moment you settle in.'],
- sound:['The bustle of the high street, conversations and dental equipment form a busy backdrop. Even before treatment begins, those familiar sounds can make it difficult to switch off.','Gentle birdsong and soothing piano run throughout the practice, setting an unhurried pace. Our treatment rooms are set apart from the sounds of dental equipment, giving you a quieter space to settle into and a little distance from the busy world outside.'],
+ sound:['The bustle of the high street, conversations and dental equipment form a busy backdrop. Even before treatment begins, those familiar sounds can make it difficult to switch off.','Noise-cancelling headphones help the busy world fall away. Gentle birdsong and soothing piano set an unhurried pace, while treatment rooms set apart from dental equipment offer a quieter place to settle. From the sound around you to the music you choose, each detail helps you feel more at ease.'],
  smell:['The familiar scent of cleaning agents and still, enclosed air. It is a small part of the surroundings, but one that can make a room feel distinctly clinical.','Fresh outdoor air is filtered and brought into the surgery through our heat-exchange ventilation, with our signature scent adding a subtle finishing touch. It is a quietly considered part of the environment, keeping the atmosphere fresh, gentle and welcoming throughout your visit.'],
  touch:['Clinical surfaces and hard edges put function first. From the chair beneath you to the finishes around it, there is little of the softness and texture you would choose at home.','Settle into a plush, softly upholstered treatment chair, surrounded by textured wood and finishes chosen for their warmth. From the surfaces you touch to the chair that supports you, each detail brings a familiar sense of home into your time with us.'],
  taste:['Nothing beyond the usual tastes of dentistry. The visit centres on treatment, with few of the small gestures of hospitality that invite you to pause and feel at home.','A coffee, a macaron and a moment to yourself. Our hospitality is part of the experience, with complimentary Aesop hand wash and mouth rinse among the thoughtful finishing touches. Small details, chosen to make your visit feel personal and a little more like home.']
@@ -62,7 +62,7 @@ export class Soundscape {
   constructor(base, signal, report) {
     this.base = base; this.signal = signal; this.report = report;
     this.context = null; this.sources = []; this.gains = []; this.generation = 0;
-    this.ready = false; this.requested = null; this.bytes = null;
+    this.ready = false; this.requested = null; this.bytes = null; this.master = null; this.muted = false;
   }
   prefetch() {
     if (this.bytes) return this.bytes;
@@ -89,11 +89,12 @@ export class Soundscape {
       try { await context.close(); } catch (_) {}
       throw new DOMException('Audio start cancelled', 'AbortError');
     }
+    this.master = context.createGain(); this.master.gain.value = this.muted ? 0 : 1; this.master.connect(context.destination);
     decoded.forEach(buffer => {
       const source = context.createBufferSource();
       const gain = context.createGain();
       source.buffer = buffer; source.loop = true; gain.gain.value = 0;
-      source.connect(gain); gain.connect(context.destination); source.start();
+      source.connect(gain); gain.connect(this.master); source.start();
       this.sources.push(source); this.gains.push(gain);
     });
     this.ready = true; this.report('running');
@@ -118,11 +119,19 @@ export class Soundscape {
       clinical.setValueAtTime(.65,t);calm.setValueAtTime(0,t);
     }
   }
+  setMuted(muted) {
+    this.muted = muted;
+    if (!this.master || !this.context) return;
+    const gain=this.master.gain,t=this.context.currentTime;
+    gain.cancelScheduledValues(t);gain.setValueAtTime(gain.value,t);
+    gain.linearRampToValueAtTime(muted?0:1,t+.04);
+  }
   stop() {
     this.generation++; this.ready = false;
     this.gains.forEach(g => { try { g.gain.cancelScheduledValues(0); g.gain.value = 0; g.disconnect(); } catch (_) {} });
     this.sources.forEach(s => { try { s.stop(); s.disconnect(); } catch (_) {} });
     this.sources = []; this.gains = [];
+    this.master?.disconnect(); this.master=null;
     const context = this.context; this.context = null;
     if (context) context.close().catch(() => {});
     this.report('stopped');
@@ -130,7 +139,7 @@ export class Soundscape {
 }
 
 export async function mountExperience({dialog,signal,assetBase,onClose}) {
-  let disposed=false,renderer=null,audio=null,audioReady=false,audioPending=false,motionPaused=false,hasBegun=false,interactionReady=false;
+  let disposed=false,renderer=null,audio=null,audioReady=false,audioPending=false,motionPaused=false,hasBegun=false,interactionReady=false,muted=false,soundOnPending=false;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const initial={sight:true,sound:false,smell:true,touch:true,taste:true};
   const requested={...initial},queue=new SenseTransitions(initial),scope=new AbortController();
@@ -144,14 +153,14 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.22.3';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.23.1';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
-    <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
+    <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities"><span class="tdb-senses-waveform" data-mode="silent" aria-hidden="true"><svg viewBox="0 0 44 24" fill="none" stroke="currentColor" stroke-width="1">${[5,9,15,19,13,21,16,11,18,9,5].map((h,i)=>`<path d="M${2+i*4} ${12-h/2}v${h}" style="--wave-delay:${-i*.19}s;--wave-duration:${2.8+i%3*.35}s;--road-duration:${.21+i%4*.035}s"/>`).join('')}</svg></span>
     <button type="button" class="tdb-senses-motion" aria-label="Turn Sound on" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
     <button type="button" class="tdb-senses-close" aria-label="Close experience">${svg('<path d="m9 9 14 14M23 9 9 23"/>')}</button></div></header>
     <h2 id="tdb-senses-title" class="tdb-senses-title">Every sense,<br>considered.</h2>
     <div class="tdb-senses-detail" hidden><p class="tdb-senses-detail-name"></p><p class="tdb-senses-detail-state"></p><p class="tdb-senses-detail-copy"></p></div>
-    <p id="tdb-senses-description" class="tdb-senses-sr">Explore the Surgery. Each control switches one considered detail on or off. Sound starts only when you activate Start. Sound off plays the conventional soundscape. Close stops all audio. Escape closes the experience.</p>
+    <p id="tdb-senses-description" class="tdb-senses-sr">Explore the Surgery. Each control switches one considered detail on or off. Sound starts only when you activate Start. Sound off plays the conventional soundscape. The top speaker mutes or unmutes all audio without changing the scene. Close stops all audio. Escape closes the experience.</p>
     <div class="tdb-senses-intro-blur" aria-hidden="true"></div>
     <button type="button" class="tdb-senses-start" aria-label="Start experience with sound"><span class="tdb-senses-circle">${svg('<path d="M5 12h5l7-6v20l-7-6H5Z M21 11q5 5 0 10 M24 7q9 9 0 18"/>')}</span><span class="tdb-senses-start-label">START</span></button>
     <div class="tdb-senses-all" role="group" aria-label="Set all senses"><button type="button" data-all="on">All on</button><span aria-hidden="true"></span><button type="button" data-all="off">All off</button></div>
@@ -208,7 +217,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
       button.disabled=!interactionReady;
       const sense=SENSES[i];
       const settlingOff=!requested[sense]&&(queue.target[sense]!==requested[sense]||queue.active.has(sense));
-      const value=settlingOff?button.dataset.state==='on':!!requested[sense];
+      const value=sense==='sound'&&soundOnPending?false:settlingOff?button.dataset.state==='on':!!requested[sense];
       button.setAttribute('aria-pressed',String(value));
       button.dataset.state=sense==='sound'&&!audioReady?'pending':value?'on':'off';
       button.querySelector('.tdb-senses-value').textContent=value?'ON':'OFF';
@@ -218,8 +227,9 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     startButton.querySelector('.tdb-senses-start-label').textContent=audioPending?'STARTING…':'START';
     dialog.classList.toggle('tdb-senses-awaiting-sound',!audioReady);dialog.classList.toggle('tdb-senses-has-begun',hasBegun);
     motion.hidden=false;motion.disabled=!interactionReady;
-    const soundLit=controls[1].getAttribute('aria-pressed')==='true';
-    motion.setAttribute('aria-pressed',String(soundLit));motion.setAttribute('aria-label',requested.sound?'Turn Sound off':'Turn Sound on');
+    dialog.querySelector('.tdb-senses-waveform').dataset.mode=!audioReady||muted||soundOnPending?'silent':requested.sound?'calm':'road';
+    const soundLit=audioReady&&!muted;
+    motion.setAttribute('aria-pressed',String(muted));motion.setAttribute('aria-label',muted?'Unmute audio':'Mute audio');
     motion.innerHTML=svg('<path d="M5 12h5l7-6v20l-7-6H5Z"/>'+(soundLit?'<path d="M21 11q5 5 0 10M24 7q9 9 0 18"/>':'<path d="m22 12 8 8m0-8-8 8"/>'));
     renderer.motion(motionPaused||reduced.matches||document.hidden);
   }
@@ -231,7 +241,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     dialog.dataset.phase='transition';dialog.dataset.transitionProgress='0';dialog.dataset.transitionStarted=String(Math.round(performance.now()));
     if(audioReady&&(active.intro||active.from.sound!==active.state.sound))audio.transition(active.state.sound,active.intro);
     const started=performance.now();
-    renderer.reveal(active.state,active.origin,{sense:active.sense,duration,reverse,doublePulse:!active.intro&&!reverse&&active.state.sound&&!active.from.sound,reduced:reduced.matches,onProgress:(p,sample)=>{dialog.dataset.transitionProgress=String(p);if(active.intro)revealIntroBlur(p,sample);}}).then(complete=>{
+    renderer.reveal(active.state,active.origin,{sense:active.sense,duration,reverse,doublePulse:!active.intro&&!reverse&&active.state.sound&&!active.from.sound,reduced:reduced.matches,onProgress:(p,sample)=>{dialog.dataset.transitionProgress=String(p);if(active.intro)revealIntroBlur(p,sample);if(active.sense==='sound'&&soundOnPending&&(p>=1||sample?.elapsed>=600)){soundOnPending=false;updateControls();}}}).then(complete=>{
       if(!complete||disposed||signal.aborted||queue.active.get(active.sense)!==active)return;
       dialog.dataset.lastTransitionMs=String(Math.round(performance.now()-started));
       queue.finish(active);dialog.dataset.phase=queue.active.size?'transition':'ready';dialog.dataset.transitionProgress='1';
@@ -275,6 +285,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     const rect=(button.querySelector('.tdb-senses-circle')||button).getBoundingClientRect(),bounds=stage.getBoundingClientRect();
     const origin={x:rect.left+rect.width/2-bounds.left,y:rect.top+rect.height/2-bounds.top,radius:Math.min(rect.width,rect.height)/2};
     if(intro)hideDetail();else if(!batch)void showDetail(sense,requested[sense]);
+    if(sense==='sound')soundOnPending=!!requested.sound&&!intro&&!reduced.matches;
     hasBegun=true;updateControls();begin(queue.request(requested,origin,intro,sense));
     announcement.textContent=`${LABELS[SENSES.indexOf(sense)]} ${requested[sense]?'on':'off'}.`;
   }
@@ -296,7 +307,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     requested[sense]=!requested[sense];activate(sense,button);
   }));
   listen(dialog.querySelector('.tdb-senses-close'),'click',onClose);
-  listen(motion,'click',()=>{if(!interactionReady)return;cancelAll();requested.sound=!requested.sound;activate('sound',motion);});
+  listen(motion,'click',()=>{if(!interactionReady)return;muted=!muted;audio.setMuted(muted);updateControls();});
   listen(dialog,'keydown',event=>{
     if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)||!event.target.closest('[data-sense]'))return;
     event.preventDefault();const current=controls.indexOf(event.target.closest('[data-sense]'));
@@ -306,7 +317,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   listen(reduced,'change',()=>{renderer.finish();updateControls();});
   listen(document,'visibilitychange',()=>{
     if(document.hidden){
-      cancelAll();audio.stop();audio=createAudio();audioReady=false;audioPending=false;requested.sound=false;hasBegun=false;interactionReady=false;hideDetail();resetIntroBlur();
+      cancelAll();audio.stop();audio=createAudio();audioReady=false;audioPending=false;requested.sound=false;hasBegun=false;interactionReady=false;muted=false;soundOnPending=false;hideDetail();resetIntroBlur();
       queue.cancel();queue.visible={...requested};queue.target={...requested};renderer.render(requested);dialog.dataset.audioState='uninitiated';dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
     }
     updateControls();

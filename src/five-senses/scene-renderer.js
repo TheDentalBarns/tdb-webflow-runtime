@@ -309,10 +309,10 @@ export class RippleField{
   sample(sense,now){
     const w=this.waves.get(sense);
     if(!w)return{amount:Number(!!this.state[sense]),radial:false,ring:0,progress:1};
-    const p=Math.max(0,Math.min(1,(now-w.start-w.delay)/w.duration)),e=rippleEase(p);
-    return{...w,progress:p,radial:!w.reduced,radius:w.from+(w.to-w.from)*e,amount:w.fromAmount+(Number(w.target)-w.fromAmount)*e,
+    const p=Math.max(0,Math.min(1,(now-w.start)/w.duration)),e=rippleEase(p);
+    return{...w,elapsed:now-w.start,progress:p,radial:!w.reduced,radius:w.from+(w.to-w.from)*e,amount:w.fromAmount+(Number(w.target)-w.fromAmount)*e,
       ring:w.reduced?0:Math.min(1,p*14)*Math.min(1,(1-p)*6),
-      echo:w.echo&&now<w.start+w.duration?{radius:w.edge+rippleEase((now-w.start)/w.duration)*(w.end-w.edge),alpha:Math.min(1,Math.max(0,(now-w.start)/w.duration)*14)*Math.min(1,Math.max(0,1-(now-w.start)/w.duration)*6)*.55}:null};
+      echo:w.echo&&now>=w.start+w.delay&&now<w.start+w.delay+w.duration?{radius:w.edge+rippleEase((now-w.start-w.delay)/w.duration)*(w.end-w.edge),alpha:Math.min(1,Math.max(0,(now-w.start-w.delay)/w.duration)*14)*Math.min(1,Math.max(0,1-(now-w.start-w.delay)/w.duration)*6)*.55}:null};
   }
   start(sense,target,origin,end,now,{duration,reduced=false,doublePulse=false}={}){
     const edge=origin.radius??0;
