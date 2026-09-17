@@ -311,7 +311,7 @@ export class RippleField{
   start(sense,target,origin,end,now,{duration,reduced=false,doublePulse=false}={}){
     const previous=this.waves.get(sense),at=this.sample(sense,now),from=at.radial?at.radius:at.amount?end:-12;
     const wave={sense,target,origin:{...origin},end,from,to:target?end:-12,fromAmount:at.amount,start:now,duration,
-      reduced,delay:doublePulse&&!reduced&&!previous?175:0,echo:doublePulse&&!reduced&&!previous};
+      reduced,delay:doublePulse&&!reduced&&!previous?300:0,echo:doublePulse&&!reduced&&!previous};
     this.waves.set(sense,wave);return wave;
   }
   settle(sense){const w=this.waves.get(sense);if(w){this.state[sense]=w.target;this.waves.delete(sense);}return w;}

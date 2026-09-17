@@ -71,8 +71,9 @@
 .tdb-senses-detail{position:absolute;top:max(82px,calc(env(safe-area-inset-top) + 64px));left:var(--tdb-senses-gutter);right:var(--tdb-senses-gutter);max-width:330px;pointer-events:none;text-shadow:0 1px 8px #0009;z-index:2}
 .tdb-senses-detail[hidden]{display:none}
 .tdb-senses-detail p{margin:0;font-family:inherit;color:inherit;font-weight:300}
-.tdb-senses-detail-name{font-size:14px;line-height:1.4;letter-spacing:.05em}
-.tdb-senses-detail-copy{padding-top:8px;font-size:11px;line-height:1.65;max-width:29em}
+.tdb-senses-detail-name{font-size:clamp(20px,2vw,26px);line-height:1.2;letter-spacing:-.025em}
+.tdb-senses-detail-state{padding-top:14px;font-size:9px;line-height:1.4;letter-spacing:.16em;text-transform:uppercase;opacity:.8}
+.tdb-senses-detail-copy{padding-top:6px;font-size:13px;line-height:1.65;letter-spacing:0;max-width:29em}
 
 @media(max-height:520px){.tdb-senses-detail{max-width:260px}.tdb-senses-message{bottom:8px}}
 

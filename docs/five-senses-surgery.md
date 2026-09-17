@@ -114,3 +114,8 @@ Staging verification for 0.17.0: five concurrent desktop ripples and three concu
 ### Prototype 0.17.1 — longer ripple shadows; silent Smell
 
 Following the immediate review, extended the travelling circle's inner shadow from a 30px to a 90px falloff, retaining its restrained opacity and narrow cream line. The CSS fallback uses a matching broader inset shadow. Removed the Smell breeze source, generated buffer, gain and automation entirely. Smell now changes only its visual elements; Sound retains the calm birds/piano and conventional soundscapes. The Start gesture and all close/reopen audio safeguards remain. Updated the audio lifecycle check to verify exactly two Sound tracks and their gain targets.
+
+
+### Prototype 0.18.0 — editorial copy and separated Sound pulses
+
+Increased the Sound leading-pulse separation from 175ms to 300ms without changing the reveal duration or adding rendering work. Rewrote all ten Before/After descriptions using the supplied TDB details. Retained the page's existing Sweet Sans Pro x font, with a larger sense name, a restrained uppercase state label and readable 13px description. No new font requests. Smell remains silent.
