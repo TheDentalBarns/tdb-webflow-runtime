@@ -94,21 +94,21 @@ function chairColour(ctx,state){
   if(state.touch){
     const region=document.createElement('canvas');region.width=PHOTO_WIDTH;region.height=PHOTO_HEIGHT;
     const m=region.getContext('2d');m.fillStyle='#fff';
+    // Trace the three upholstered pieces independently of their brightness.
+    // The pale highlights are still leather: never punch holes based on luminance.
     const paths=[
-      'M715 389Q716 345 747 319Q771 302 817 315L922 324Q949 329 958 366Q975 420 940 463Q921 488 884 489L798 480Q746 475 721 451Q706 433 715 389Z',
-      'M431 751Q448 647 543 550Q611 478 677 481Q704 480 756 505Q835 545 919 520Q990 498 1033 539Q1070 581 1086 637V894Q1072 950 1007 991Q937 1033 838 1044Q710 1040 603 985Q492 940 449 871Q419 814 431 751Z',
-      'M110 1448Q156 1294 275 1165Q388 1040 472 1052L560 1068Q650 1080 711 1102L877 1140L879 1227Q871 1283 915 1293L951 1311L968 1360L940 1448Z'
+      'M714 387C716 359 733 332 760 319C779 310 791 313 813 317C846 321 887 320 921 324C945 328 955 346 960 371C967 403 959 439 942 461C926 482 906 488 878 487L800 479C765 475 739 462 723 443C712 429 710 411 714 387Z',
+      'M677 483C654 480 638 489 623 500L599 525L574 550L552 575L531 600L495 650L461 700C445 730 434 764 434 788C433 808 441 828 451 850C462 869 476 886 490 900C511 923 529 940 544 952C565 969 581 981 598 989C666 1018 750 1032 835 1028C903 1027 970 1008 1016 973C1057 940 1077 903 1086 855L1086 634C1070 587 1050 546 1020 528C991 511 955 511 913 522C861 536 814 529 763 512C735 503 698 485 677 483Z',
+      'M105 1448L121 1400L150 1350L190 1300L234 1250L282 1200L337 1150L391 1108L423 1080L435 1060Q458 1042 491 1057C521 1067 552 1069 579 1078C661 1098 726 1109 784 1125L879 1142L879 1226C876 1251 879 1273 895 1288L945 1309C970 1328 979 1357 966 1392L948 1448Z'
     ];paths.forEach(path=>m.fill(new Path2D(path)));
-    // Inset the tint from the silhouette so cabinet pixels and pale seams stay clean.
-    m.globalCompositeOperation='destination-out';m.lineWidth=13;paths.forEach(path=>m.stroke(new Path2D(path)));
     mask=m.getImageData(0,0,PHOTO_WIDTH,PHOTO_HEIGHT).data;
     region.width=1;region.height=1;
   }
   for(let y=298;y<PHOTO_HEIGHT;y++)for(let x=84;x<PHOTO_WIDTH;x++){
     const i=(y*PHOTO_WIDTH+x)*4,r=data[i],g=data[i+1],b=data[i+2];
-    const amount=state.touch?(mask[i+3]/255)*Math.min(1,Math.max(0,(139-r)/43)):Math.min(1,Math.max(0,(b-r-8)/17))*Math.min(1,Math.max(0,(b-g-3)/9));
+    const amount=state.touch?mask[i+3]/255:Math.min(1,Math.max(0,(b-r-8)/17))*Math.min(1,Math.max(0,(b-g-3)/9));
     if(!amount)continue;
-    const light=(.2126*r+.7152*g+.0722*b)*(state.touch?1.50:1)+ (state.touch?42:0);
+    const light=(.2126*r+.7152*g+.0722*b)*(state.touch?1.30:1)+ (state.touch?25:0);
     // Mica follows the bronze/taupe highlights in the supplied real photograph.
     const high=Math.min(1,Math.max(0,(light-105)/100));
     const target=state.sight?[light*(1.16-high*.08),light*(.96+high*.03),light*(.70+high*.16)]:[light*.66,light*.91,light*1.28];
@@ -153,7 +153,7 @@ function makeSurface(images,state){
     ctx.fill(new Path2D("M155 580L175 580L60 1230L30 1230Z M0 895L430 717L435 738L0 929Z"));ctx.restore();
   }
   if(!state.sight)coldLighting(ctx);
-  if(!state.smell){ctx.fillStyle='rgba(157,157,150,.025)';ctx.fillRect(0,0,PHOTO_WIDTH,PHOTO_HEIGHT);}
+  
   canvas.className='tdb-senses-photo-image';canvas.setAttribute('aria-hidden','true');
   return canvas;
 }
@@ -163,7 +163,7 @@ function objectLayer(images,state,sense){
   const canvas=document.createElement('canvas');canvas.width=PHOTO_WIDTH;canvas.height=PHOTO_HEIGHT;
   canvas.className='tdb-senses-object';canvas.dataset.sense=sense;
   const ctx=canvas.getContext('2d');
-  if(sense==='smell'){contactShadow(ctx,227,829,92,.52,.19);ctx.drawImage(images.objects,0,211,585,733,0,252,525,585);}
+  if(sense==='smell'){contactShadow(ctx,227,829,92,.32,.19);ctx.save();ctx.filter='blur(3px) saturate(.76) contrast(.88) brightness(1.06)';ctx.drawImage(images.objects,0,211,585,733,0,252,525,585);ctx.restore();}
   if(sense==='sound'){
     canvas.dataset.tone=state.sight?'warm':state.touch?'cold-mica':'cold-blue';
     contactShadow(ctx,459,1335,136,.25,.24);
@@ -189,7 +189,8 @@ export class SceneRenderer{
     const photo=document.createElement('div');photo.className='tdb-senses-photo';const surface=makeSurface(this.images,state);photo.append(surface);
     if(!state.sight)photo.append(chairGlare(surface));
     for(const sense of ['smell','sound','taste'])if(state[sense])photo.append(objectLayer(this.images,state,sense));
-    if(state.smell){const motes=document.createElement('div');motes.className='tdb-senses-motes';motes.innerHTML=[0,1,2,3,4,5,6,7,8].map(i=>`<i class="${i%3===0?'flower':'leaf'}" style="left:${6+i*7.1}%;top:${28+(i*11)%49}%;animation-delay:${-i*2.8}s"></i>`).join('');photo.append(motes);}
+    if(state.smell){const motes=document.createElement('div');motes.className='tdb-senses-motes';motes.innerHTML=[0,1,2,3,4,5].map(i=>`<i class="leaf" style="left:${10+i*9.1}%;top:${27+(i*11)%38}%;animation-delay:${-i*3.4}s;animation-duration:${19+i*1.7}s"></i>`).join('');photo.append(motes);}
+    if(!state.smell){const haze=document.createElement('div');haze.className='tdb-senses-haze';haze.setAttribute('aria-hidden','true');photo.append(haze);}
     node.append(photo);const scene={node,photo,state:{...state}};this.cache.set(key,scene);this.builds++;
     this.position(scene);this.report({builds:this.builds,buildMs:Math.round(performance.now()-started)});
     this.prune();return scene;
