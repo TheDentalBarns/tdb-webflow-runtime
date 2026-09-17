@@ -107,3 +107,13 @@
 /* One clear aperture opens the blurred introduction; Start remains sharp. */
 .tdb-senses-intro-blur{position:absolute;inset:0;z-index:4;pointer-events:none;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat}
 .tdb-senses-intro-blur[hidden]{display:none}
+
+/* Keep the introduction headline sharp above the opening blur. */
+.tdb-senses-title{z-index:5}
+.tdb-senses-all{position:absolute;bottom:max(154px,calc(env(safe-area-inset-bottom) + 144px));left:var(--tdb-senses-gutter);right:var(--tdb-senses-gutter);z-index:3;display:flex;justify-content:center;align-items:center;gap:18px}
+.tdb-senses-all button{border:0;padding:10px 5px;background:none;color:inherit;font:inherit;font-size:10px;letter-spacing:.06em;cursor:pointer}
+.tdb-senses-all button:disabled{opacity:.4;cursor:default}
+.tdb-senses-all button:focus-visible{outline:1px solid currentColor;outline-offset:3px}
+.tdb-senses-all span{height:12px;width:1px;background:currentColor;opacity:.35}
+@media(max-width:600px){.tdb-senses-all{bottom:max(121px,calc(env(safe-area-inset-bottom) + 111px))}.tdb-senses-all button{font-size:9px}}
+@media(max-height:520px) and (min-width:601px){.tdb-senses-all{bottom:105px}}

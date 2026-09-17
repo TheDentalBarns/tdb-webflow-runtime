@@ -149,3 +149,8 @@ Disabled the browser tap-highlight colour for every experience button, including
 ### Prototype 0.19.0 — blurred introduction
 
 Opening UI and scene sit beneath a 20px backdrop blur, with the central Start button remaining sharp. The deliberate Start gesture unlocks music and opens one expanding clear aperture on the existing Sound reveal clock, with no echo or leading delay. Later Sound toggles keep their two waves 600ms apart. The blur layer is removed after entry, so it incurs no continuing filter cost. Reduced motion dissolves it; resize completion, page visibility reset and close follow the existing lifecycle.
+
+
+### Prototype 0.20.0 — all-sense controls and clear opening title
+
+Added All on / All off above the sense controls. A batch checks requested states and triggers only mismatches, 180ms apart, with each ripple originating at its own sense button. Repeated batch commands replace pending triggers; an individual toggle cancels remaining triggers, retaining already active independent reveals. Close and page visibility reset cancel the timer. Controls unlock only after Start. Reduced motion omits the stagger. Sound OFF retains its established conventional soundscape. The opening title now sits above the 20px blur alongside Start.
