@@ -116,8 +116,8 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 .tdbc-step-header::before{content:"";position:absolute;inset:-1px;border:1px solid currentColor;color:var(--base-color-brand--orange-3);pointer-events:none}
 .tdbc-step-header .tdbc-number{background:transparent;isolation:isolate}
 .tdbc-step-header .tdbc-number::before{content:"";position:absolute;inset:0;z-index:-1;background:currentColor;color:var(--base-color-brand--orange-3);pointer-events:none}
-@keyframes tdbc-step-frame{0%,15%,85%,100%{color:var(--base-color-brand--orange-3)}40%,60%{color:var(--base-color-neutral--neutral-darker)}}
-@keyframes tdbc-step-numeral{0%,15%,85%,100%{color:var(--base-color-neutral--neutral-darker)}40%,60%{color:var(--base-color-brand--orange-1)}}
+@keyframes tdbc-step-frame{0%,15%{color:var(--base-color-brand--orange-3)}40%,100%{color:var(--base-color-neutral--neutral-darker)}}
+@keyframes tdbc-step-numeral{0%,15%{color:var(--base-color-neutral--neutral-darker)}40%,100%{color:var(--base-color-brand--orange-1)}}
 @supports(animation-timeline:view()){
  .tdbc-step-header{view-timeline:--tdbc-step block}
  .tdbc-step-header .tdbc-number::before{animation:tdbc-step-frame ease-in-out both;animation-timeline:--tdbc-step;animation-range:entry 0% exit 0%}
