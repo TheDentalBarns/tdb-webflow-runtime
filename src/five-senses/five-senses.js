@@ -1,5 +1,5 @@
 import {SceneRenderer} from './scene-renderer.js';
-/* TDB Five Senses v0.21.1 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.22.1 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -144,10 +144,10 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.21.1';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.22.1';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
-    <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
+    <button type="button" class="tdb-senses-motion" aria-label="Turn Sound on" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
     <button type="button" class="tdb-senses-close" aria-label="Close experience">${svg('<path d="m9 9 14 14M23 9 9 23"/>')}</button></div></header>
     <h2 id="tdb-senses-title" class="tdb-senses-title">Every sense,<br>considered.</h2>
     <div class="tdb-senses-detail" hidden><p class="tdb-senses-detail-name"></p><p class="tdb-senses-detail-state"></p><p class="tdb-senses-detail-copy"></p></div>
@@ -214,8 +214,9 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     startButton.hidden=hasBegun;startButton.disabled=audioPending;startButton.setAttribute('aria-busy',String(audioPending));
     startButton.querySelector('.tdb-senses-start-label').textContent=audioPending?'STARTING…':'START';
     dialog.classList.toggle('tdb-senses-awaiting-sound',!audioReady);dialog.classList.toggle('tdb-senses-has-begun',hasBegun);
-    motion.hidden=reduced.matches;motion.setAttribute('aria-pressed',String(motionPaused));motion.setAttribute('aria-label',motionPaused?'Resume ambient motion':'Pause ambient motion');
-    motion.innerHTML=svg(motionPaused?'<path d="m12 8 13 8-13 8V8Z"/>':'<path d="M12 9v14M20 9v14"/>');
+    motion.hidden=false;motion.disabled=!interactionReady;
+    motion.setAttribute('aria-pressed',String(!!requested.sound));motion.setAttribute('aria-label',requested.sound?'Turn Sound off':'Turn Sound on');
+    motion.innerHTML=svg('<path d="M5 12h5l7-6v20l-7-6H5Z"/>'+(requested.sound?'<path d="M21 11q5 5 0 10M24 7q9 9 0 18"/>':'<path d="m22 12 8 8m0-8-8 8"/>'));
     renderer.motion(motionPaused||reduced.matches||document.hidden);
   }
   function begin(active){
@@ -267,7 +268,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     detailAnimation?.cancel();detailAnimation=null;
   }
   function activate(sense,button,intro=false,batch=false){
-    const rect=button.querySelector('.tdb-senses-circle').getBoundingClientRect(),bounds=stage.getBoundingClientRect();
+    const rect=(button.querySelector('.tdb-senses-circle')||button).getBoundingClientRect(),bounds=stage.getBoundingClientRect();
     const origin={x:rect.left+rect.width/2-bounds.left,y:rect.top+rect.height/2-bounds.top};
     if(intro)hideDetail();else if(!batch)void showDetail(sense,requested[sense]);
     hasBegun=true;updateControls();begin(queue.request(requested,origin,intro,sense));
@@ -291,7 +292,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     requested[sense]=!requested[sense];activate(sense,button);
   }));
   listen(dialog.querySelector('.tdb-senses-close'),'click',onClose);
-  listen(motion,'click',()=>{motionPaused=!motionPaused;updateControls();});
+  listen(motion,'click',()=>{if(!interactionReady)return;cancelAll();requested.sound=!requested.sound;activate('sound',motion);});
   listen(dialog,'keydown',event=>{
     if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)||!event.target.closest('[data-sense]'))return;
     event.preventDefault();const current=controls.indexOf(event.target.closest('[data-sense]'));

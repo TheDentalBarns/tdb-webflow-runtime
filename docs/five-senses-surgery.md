@@ -174,3 +174,13 @@ All-sense actions fade out the caption immediately and suppress individual descr
 ### Prototype 0.21.1 — calm batch pacing and state-aware actions
 
 Batch controls fade in over 450ms after the opening reveal enables interaction. All on is disabled/subdued when all requested states are on; All off behaves symmetrically. During a batch its own target is disabled while the opposite remains available to reverse pending work. Trigger spacing is now 540ms, 50% longer than 360ms. Sound remains last for All on. Reduced motion omits fades and stagger.
+
+
+### Prototype 0.22.0 — upholstery contours and integrated LED light
+
+Retraced the premium chair seat near its upper-left support, included the backrest shoulder and dark lower upholstered edge, and removed the luminance-dependent lower-edge mask. LED emitters now use blurred strokes rather than sharp cores, with wider soft bloom. Added restrained screen-blended spill down the cupboard fronts and across the worktop, excluding the headrest and sink bowl. Texture, joints, source colour grading and prop reflections remain. All work is prepared once in cached surfaces, with no new animation-frame work.
+
+
+### Prototype 0.22.1 — top Sound control
+
+The top play/pause utility now mirrors the Sound sense, using a speaker/crossed-speaker icon and the same state, ripple and audio sequence. All-sense actions update it too. It unlocks after Start; OFF retains the established conventional soundscape. Reduced-motion support remains automatic. Includes the upholstery and LED refinements above.

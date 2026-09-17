@@ -29,20 +29,32 @@ function coldLighting(ctx){
   ctx.save();ctx.globalCompositeOperation='color';ctx.fillStyle='rgba(134,169,208,.23)';ctx.fillRect(0,0,PHOTO_WIDTH,PHOTO_HEIGHT);ctx.restore();
 
   // Cores follow measured edges in the registered plate, not viewport offsets.
-  // Keep the emitter narrow; bloom is a low-opacity halo, not a wide painted bar.
+  // Blur the emitter itself as well as its halo, so no drawn white edge survives.
   function strip(x1,y1,x2,y2){
-    ctx.save();ctx.globalCompositeOperation='screen';ctx.lineCap='butt';
-    for(const [width,blur,colour] of [[23,38,'rgba(207,229,245,.30)'],[11,23,'rgba(207,229,245,.32)'],[5,9,'rgba(228,243,253,.66)'],[2,2,'rgba(252,254,255,.98)']]){
-      ctx.lineWidth=width;ctx.strokeStyle=colour;ctx.shadowBlur=blur;ctx.shadowColor=colour;
+    ctx.save();ctx.globalCompositeOperation='screen';ctx.lineCap='round';
+    for(const [width,blur,colour] of [[28,24,'rgba(207,229,245,.30)'],[14,12,'rgba(219,237,249,.36)'],[7,5,'rgba(234,246,254,.64)'],[3,2.6,'rgba(252,254,255,.90)']]){
+      ctx.lineWidth=width;ctx.strokeStyle=colour;ctx.filter=`blur(${blur}px)`;
       ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
     }
     ctx.restore();
   }
   // The front edge drops 55px across the plate. Seat the light in the underside.
   const start={x:382,y:231},end={x:1086,y:286};
-  ctx.save();ctx.beginPath();ctx.moveTo(start.x,start.y);ctx.lineTo(end.x,end.y);ctx.lineTo(end.x,345);ctx.lineTo(start.x,290);ctx.closePath();ctx.clip();
-  const spill=ctx.createLinearGradient(0,234,0,334);spill.addColorStop(0,'rgba(226,240,250,.16)');spill.addColorStop(1,'rgba(226,240,250,0)');
-  ctx.globalCompositeOperation='screen';ctx.fillStyle=spill;ctx.fillRect(380,230,706,120);ctx.restore();
+  // Light falls down the cupboard plane; grain and joints remain visible.
+  ctx.save();ctx.beginPath();ctx.moveTo(382,234);ctx.lineTo(1086,289);ctx.lineTo(1086,389);ctx.lineTo(391,334);ctx.closePath();
+  ctx.moveTo(714,387);ctx.bezierCurveTo(716,359,733,332,760,319);ctx.bezierCurveTo(779,310,791,313,813,317);ctx.bezierCurveTo(846,321,887,320,921,324);ctx.bezierCurveTo(945,328,955,346,960,371);ctx.bezierCurveTo(967,403,959,439,942,461);ctx.lineTo(878,487);ctx.lineTo(800,479);ctx.lineTo(723,443);ctx.closePath();ctx.clip('evenodd');
+  ctx.translate(382,234);ctx.transform(1,55/704,0,1,0,0);
+  const spill=ctx.createLinearGradient(0,0,-8,100);
+  spill.addColorStop(0,'rgba(226,240,250,.23)');spill.addColorStop(.35,'rgba(226,240,250,.10)');spill.addColorStop(1,'rgba(226,240,250,0)');
+  ctx.globalCompositeOperation='screen';ctx.fillStyle=spill;ctx.fillRect(0,0,704,100);ctx.restore();
+
+  // A broad, soft reflection on the worktop, with the sink bowl excluded.
+  ctx.save();ctx.beginPath();ctx.moveTo(368,211);ctx.lineTo(503,142);ctx.lineTo(1086,177);ctx.lineTo(1086,274);ctx.lineTo(370,230);ctx.closePath();
+  ctx.ellipse(601,185,148,29,.025,0,Math.PI*2);ctx.clip('evenodd');
+  ctx.globalCompositeOperation='screen';
+  const topLight=ctx.createLinearGradient(0,146,0,275);
+  topLight.addColorStop(0,'rgba(227,242,252,.18)');topLight.addColorStop(.5,'rgba(227,242,252,.09)');topLight.addColorStop(1,'rgba(227,242,252,0)');
+  ctx.fillStyle=topLight;ctx.fillRect(368,142,718,140);ctx.restore();
   strip(start.x,start.y,end.x,end.y);
 
   // Trace the lower edge of the rear ledge. The tap handle sits in front of it.
@@ -98,8 +110,8 @@ function chairColour(ctx,state){
     // The pale highlights are still leather: never punch holes based on luminance.
     const paths=[
       'M714 387C716 359 733 332 760 319C779 310 791 313 813 317C846 321 887 320 921 324C945 328 955 346 960 371C967 403 959 439 942 461C926 482 906 488 878 487L800 479C765 475 739 462 723 443C712 429 710 411 714 387Z',
-      'M677 483C654 480 638 489 621 500L596 525L571 550L549 575L528 600L491 650L457 700C440 730 426 764 426 788C425 808 434 828 444 850C455 869 471 886 486 903C511 923 529 940 544 952C565 969 581 981 598 989C661 1033 745 1058 826 1055C899 1055 973 1023 1021 983C1059 957 1080 951 1086 937L1086 634C1070 587 1050 546 1020 528C991 511 955 511 913 522C861 536 814 529 763 512C735 503 698 485 677 483Z',
-      'M96 1448L114 1400L143 1350L184 1300L228 1250L276 1200L333 1150L388 1108L423 1080L435 1060Q458 1042 491 1053Q522 1044 555 1060Q582 1057 614 1069C697 1090 789 1119 879 1134Q910 1128 939 1144L914 1190L889 1240Q875 1264 883 1278Q905 1298 938 1299L954 1286Q978 1308 986 1332Q995 1361 979 1401L963 1448Z'
+      'M677 478C654 475 638 484 621 495L596 525L571 550L549 575L528 600L491 650L457 700C440 730 426 764 426 788C425 808 434 828 444 850C455 869 471 886 486 903C511 923 529 940 544 952C565 969 581 981 598 989L600 997Q625 1010 650 1018Q675 1026 700 1032Q750 1045 800 1051Q838 1058 875 1052C933 1030 980 1006 1021 983C1059 957 1080 951 1086 937L1086 634C1070 587 1050 546 1020 528C991 511 955 511 913 522C861 536 814 529 763 512C735 503 698 480 677 478Z',
+      'M96 1448L114 1400L143 1350L184 1300L228 1250L276 1200L333 1150L388 1108C425 1085 457 1064 486 1055C509 1048 534 1048 555 1060Q582 1057 614 1069C697 1090 789 1119 879 1134Q910 1128 939 1144L914 1190L889 1240Q875 1264 883 1278Q905 1298 938 1299L954 1286Q978 1308 986 1332Q995 1361 979 1401L963 1448Z'
     ];
     m.filter='blur(.6px)';m.lineWidth=2;m.strokeStyle='#fff';paths.forEach(path=>{const contour=new Path2D(path);m.fill(contour);m.stroke(contour);});
     mask=m.getImageData(0,0,PHOTO_WIDTH,PHOTO_HEIGHT).data;
@@ -108,12 +120,6 @@ function chairColour(ctx,state){
   for(let y=298;y<PHOTO_HEIGHT;y++)for(let x=84;x<PHOTO_WIDTH;x++){
     const i=(y*PHOTO_WIDTH+x)*4,r=data[i],g=data[i+1],b=data[i+2];
     let amount=state.touch?mask[i+3]/255:Math.min(1,Math.max(0,(b-r-8)/17))*Math.min(1,Math.max(0,(b-g-3)/9));
-    // At the backrest's bottom contour, keep the pale metal support outside
-    // the blue while including the dark upholstered lip above it.
-    if(state.touch&&y>1008&&y<1060&&x>600&&x<915){
-      const edgeLight=.2126*r+.7152*g+.0722*b;
-      amount*=Math.min(1,Math.max(0,(95-edgeLight)/25));
-    }
     if(!amount)continue;
     const light=(.2126*r+.7152*g+.0722*b)*(state.touch?1.30:1)+ (state.touch?25:0);
     // Mica follows the bronze/taupe highlights in the supplied real photograph.
