@@ -50,3 +50,10 @@
 @media(max-width:600px){.tdb-senses{--tdb-senses-gutter:5vw}.tdb-senses-top{top:max(17px,env(safe-area-inset-top))}.tdb-senses-room{font-size:9px;gap:11px}.tdb-senses-utilities{gap:8px}.tdb-senses-title{top:16%;font-size:clamp(36px,9vw,52px);line-height:1.08}.tdb-senses-controls{bottom:max(24px,calc(env(safe-area-inset-bottom) + 15px))}.tdb-senses-control{--circle-size:clamp(44px,13vw,58px)}.tdb-senses-circle svg{width:23px;height:23px}.tdb-senses-name{margin-top:10px;font-size:9px}.tdb-senses-value{font-size:6px;margin-top:5px}.tdb-senses-begin{bottom:calc(var(--circle-size) + 44px);font-size:7px}.tdb-senses-shade{background:linear-gradient(180deg,#0c0e0b24,transparent 36%,transparent 65%,#0c0e0b52)}}
 @media(max-height:520px) and (min-width:601px){.tdb-senses-title{font-size:34px;top:24%}.tdb-senses-controls{bottom:15px}.tdb-senses-control{--circle-size:48px}.tdb-senses-circle svg{width:23px;height:23px}.tdb-senses-name{margin-top:7px;font-size:9px}.tdb-senses-value{margin-top:3px}.tdb-senses-begin{bottom:calc(var(--circle-size) + 39px)}}
 @media(prefers-reduced-motion:reduce){.tdb-senses-stage,.tdb-senses-title,.tdb-senses-circle{transition:none}.tdb-senses-awaiting-sound [data-sense="sound"] .tdb-senses-circle,.tdb-senses-motes i,.tdb-senses-chair-glare{animation:none}}
+
+/* Prototype refinement: photographic objects fade only after the reveal arrives. */
+.tdb-senses-object{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.tdb-senses-reveal-ring{position:absolute;transform:translate(-50%,-50%);border:1px solid #f5f1e6;border-radius:50%;pointer-events:none;z-index:1}
+.tdb-senses-motes i.leaf{width:7px;height:3px;border-radius:100% 0 100% 0;background:#bfc9a2}
+.tdb-senses-motes i.flower{width:4px;height:4px;border-radius:50%;background:#eee1ce;box-shadow:3px 0 #e8d3bf,-3px 0 #e8d3bf,0 3px #e8d3bf,0 -3px #e8d3bf}
+@keyframes tdb-senses-botanical-drift{0%,100%{opacity:0;transform:translate3d(0,0,0) rotate(-20deg)}20%,75%{opacity:.38}90%{opacity:0;transform:translate3d(16px,-48px,0) rotate(65deg)}}

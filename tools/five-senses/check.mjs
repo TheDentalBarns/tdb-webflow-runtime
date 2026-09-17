@@ -61,20 +61,21 @@ globalThis.requestAnimationFrame=callback=>{frames.set(++frameID,callback);retur
 globalThis.cancelAnimationFrame=id=>frames.delete(id);
 function node(){
   const classes=new Set(),styleValues=new Map();
-  return {classList:{add:v=>classes.add(v),remove:v=>classes.delete(v),contains:v=>classes.has(v)},style:{setProperty:(k,v)=>styleValues.set(k,v),removeProperty:k=>styleValues.delete(k),getPropertyValue:k=>styleValues.get(k)}};
+  return {remove(){},classList:{add:v=>classes.add(v),remove:v=>classes.delete(v),contains:v=>classes.has(v)},style:{setProperty:(k,v)=>styleValues.set(k,v),removeProperty:k=>styleValues.delete(k),getPropertyValue:k=>styleValues.get(k)}};
 }
-const cold={node:node()},warm={node:node()};
+globalThis.document={createElement:()=>node()};
+const cold={node:node(),state:{sight:false},photo:{querySelectorAll:()=>[]}},warm={node:node(),state:{sight:true},photo:{querySelectorAll:()=>[]}};
 const stage={dataset:{},children:[cold.node],replaceChildren(...nodes){this.children=nodes;},append(n){this.children.push(n);}};
 const renderer=Object.assign(Object.create(SceneRenderer.prototype),{stage,current:cold,active:null,width:390,height:844,disposed:false,scene:state=>state.sight?warm:cold,prune(){}});
 const origin={x:44,y:770};
 const forward=renderer.reveal({sight:true},origin,{duration:1600,reduced:false});
-assert.deepEqual(stage.children,[cold.node,warm.node]);
+assert.deepEqual(stage.children.slice(0,2),[cold.node,warm.node]);
 assert.ok(warm.node.classList.contains('tdb-senses-revealing'));
 assert.equal(warm.node.style.getPropertyValue('--tdb-senses-reveal-radius'),'-12px');
 renderer.finish();assert.equal(await forward,true);assert.deepEqual(stage.children,[warm.node]);
 assert.ok(!warm.node.classList.contains('tdb-senses-revealing'));
 const reverse=renderer.reveal({sight:false},origin,{duration:1600,reverse:true,reduced:false});
-assert.deepEqual(stage.children,[cold.node,warm.node],'Cold must sit below the outgoing warm circle');
+assert.deepEqual(stage.children.slice(0,2),[cold.node,warm.node],'Cold must sit below the outgoing warm circle');
 const full=parseFloat(warm.node.style.getPropertyValue('--tdb-senses-reveal-radius'));
 assert.ok(full>Math.hypot(390-44,770));
 assert.ok(warm.node.classList.contains('tdb-senses-revealing'),'The outgoing photograph itself must be masked');

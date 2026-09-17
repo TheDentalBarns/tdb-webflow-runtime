@@ -32,7 +32,7 @@ function coldLighting(ctx){
   // Keep the emitter narrow; bloom is a low-opacity halo, not a wide painted bar.
   function strip(x1,y1,x2,y2){
     ctx.save();ctx.globalCompositeOperation='screen';ctx.lineCap='butt';
-    for(const [width,blur,colour] of [[11,23,'rgba(207,229,245,.26)'],[5,9,'rgba(228,243,253,.66)'],[2,2,'rgba(252,254,255,.98)']]){
+    for(const [width,blur,colour] of [[23,38,'rgba(207,229,245,.30)'],[11,23,'rgba(207,229,245,.32)'],[5,9,'rgba(228,243,253,.66)'],[2,2,'rgba(252,254,255,.98)']]){
       ctx.lineWidth=width;ctx.strokeStyle=colour;ctx.shadowBlur=blur;ctx.shadowColor=colour;
       ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
     }
@@ -95,9 +95,9 @@ function chairColour(ctx,state){
     const region=document.createElement('canvas');region.width=PHOTO_WIDTH;region.height=PHOTO_HEIGHT;
     const m=region.getContext('2d');m.fillStyle='#fff';
     const paths=[
-      'M719 367Q744 304 815 314L919 321Q969 333 966 403Q964 460 925 483Q837 505 768 475Q706 449 719 367Z',
-      'M428 787Q454 681 544 571Q631 463 695 483Q819 544 930 516Q1005 500 1044 566L1086 727V922Q1022 1010 873 1051Q719 1089 581 1010Q418 929 428 787Z',
-      'M91 1448Q166 1304 307 1164Q411 1070 500 1047Q530 1041 565 1059L897 1135L891 1216Q876 1279 955 1305Q1007 1310 985 1390L965 1448Z'
+      'M715 389Q716 345 747 319Q771 302 817 315L922 324Q949 329 958 366Q975 420 940 463Q921 488 884 489L798 480Q746 475 721 451Q706 433 715 389Z',
+      'M431 751Q448 647 543 550Q611 478 677 481Q704 480 756 505Q835 545 919 520Q990 498 1033 539Q1070 581 1086 637V894Q1072 950 1007 991Q937 1033 838 1044Q710 1057 587 1008Q482 969 442 892Q415 839 431 751Z',
+      'M110 1448Q156 1294 275 1165Q388 1040 472 1052L560 1068Q650 1080 711 1102L877 1140L879 1227Q871 1283 915 1293L951 1311L968 1360L940 1448Z'
     ];paths.forEach(path=>m.fill(new Path2D(path)));mask=m.getImageData(0,0,PHOTO_WIDTH,PHOTO_HEIGHT).data;
     region.width=1;region.height=1;
   }
@@ -105,7 +105,7 @@ function chairColour(ctx,state){
     const i=(y*PHOTO_WIDTH+x)*4,r=data[i],g=data[i+1],b=data[i+2];
     const amount=state.touch?mask[i+3]/255:Math.min(1,Math.max(0,(b-r-8)/17))*Math.min(1,Math.max(0,(b-g-3)/9));
     if(!amount)continue;
-    const light=.2126*r+.7152*g+.0722*b;
+    const light=(.2126*r+.7152*g+.0722*b)*(state.touch?1.38:1)+ (state.touch?24:0);
     // Mica follows the bronze/taupe highlights in the supplied real photograph.
     const high=Math.min(1,Math.max(0,(light-105)/100));
     const target=state.sight?[light*(1.16-high*.08),light*(.96+high*.03),light*(.70+high*.16)]:[light*.66,light*.91,light*1.28];
@@ -142,13 +142,33 @@ function makeSurface(images,state){
   const ctx=canvas.getContext('2d',{alpha:false});
   ctx.drawImage(state.touch?images.warm:images.clinical,0,0,PHOTO_WIDTH,PHOTO_HEIGHT);
   chairColour(ctx,state);
-  if(!state.sight&&!state.touch)floorReflections(ctx);
-  if(state.smell){contactShadow(ctx,227,829,92,.52,.19);ctx.drawImage(images.objects,0,211,585,733,0,252,525,585);}
-  if(state.sound){contactShadow(ctx,459,1335,136,.25,.24);ctx.drawImage(images.objects,280,1145,375,240,280,1145,375,240);}
-  if(state.taste){contactShadow(ctx,806,188,44,.4,.15);ctx.drawImage(images.objects,743,30,108,177,759,45,89,158);}
+  if(!state.sight)floorReflections(ctx);
+  if(!state.sight&&state.touch){
+    // Hard window-frame shadows, clipped to the exposed wooden floor.
+    ctx.save();ctx.clip(new Path2D("M0 708L199 588L381 593L427 821Q414 905 493 953L316 941L185 1009L145 1080L0 1200Z"));
+    ctx.fillStyle="rgba(29,39,51,.20)";
+    ctx.fill(new Path2D("M155 580L175 580L60 1230L30 1230Z M0 895L430 717L435 738L0 929Z"));ctx.restore();
+  }
   if(!state.sight)coldLighting(ctx);
   if(!state.smell){ctx.fillStyle='rgba(157,157,150,.025)';ctx.fillRect(0,0,PHOTO_WIDTH,PHOTO_HEIGHT);}
   canvas.className='tdb-senses-photo-image';canvas.setAttribute('aria-hidden','true');
+  return canvas;
+}
+
+
+function objectLayer(images,state,sense){
+  const canvas=document.createElement('canvas');canvas.width=PHOTO_WIDTH;canvas.height=PHOTO_HEIGHT;
+  canvas.className='tdb-senses-object';canvas.dataset.sense=sense;
+  const ctx=canvas.getContext('2d');
+  if(sense==='smell'){contactShadow(ctx,227,829,92,.52,.19);ctx.drawImage(images.objects,0,211,585,733,0,252,525,585);}
+  if(sense==='sound'){
+    canvas.dataset.tone=state.sight?'warm':state.touch?'cold-mica':'cold-blue';
+    contactShadow(ctx,459,1335,136,.25,.24);
+    ctx.filter=state.sight?'sepia(.18) saturate(.85) brightness(1.06)':state.touch?'saturate(.65) brightness(1.18)':'saturate(.5) brightness(1.09)';
+    ctx.drawImage(images.objects,280,1145,375,240,280,1145,375,240);ctx.filter='none';
+    ctx.globalCompositeOperation='source-atop';ctx.fillStyle=state.sight?'rgba(213,169,102,.07)':state.touch?'rgba(174,199,223,.10)':'rgba(88,143,208,.16)';ctx.fillRect(280,1145,375,240);
+  }
+  if(sense==='taste'){contactShadow(ctx,806,188,44,.4,.15);ctx.drawImage(images.objects,743,30,108,177,759,45,89,158);}
   return canvas;
 }
 
@@ -165,7 +185,8 @@ export class SceneRenderer{
     const started=performance.now(),node=document.createElement('div');node.className='tdb-senses-scene';node.dataset.state=key;node.dataset.sight=state.sight?'warm':'cold';
     const photo=document.createElement('div');photo.className='tdb-senses-photo';const surface=makeSurface(this.images,state);photo.append(surface);
     if(!state.sight)photo.append(chairGlare(surface));
-    if(state.smell){const motes=document.createElement('div');motes.className='tdb-senses-motes';motes.innerHTML=[0,1,2,3,4,5,6].map(i=>`<i style="left:${6+i*7.1}%;top:${28+(i*11)%49}%;animation-delay:${-i*2.8}s"></i>`).join('');photo.append(motes);}
+    for(const sense of ['smell','sound','taste'])if(state[sense])photo.append(objectLayer(this.images,state,sense));
+    if(state.smell){const motes=document.createElement('div');motes.className='tdb-senses-motes';motes.innerHTML=[0,1,2,3,4,5,6,7,8].map(i=>`<i class="${i%3===0?'flower':'leaf'}" style="left:${6+i*7.1}%;top:${28+(i*11)%49}%;animation-delay:${-i*2.8}s"></i>`).join('');photo.append(motes);}
     node.append(photo);const scene={node,photo,state:{...state}};this.cache.set(key,scene);this.builds++;
     this.position(scene);this.report({builds:this.builds,buildMs:Math.round(performance.now()-started)});
     this.prune();return scene;
@@ -201,6 +222,17 @@ export class SceneRenderer{
     // ON: the new scene grows over the old. OFF: the current scene contracts
     // over the full new scene beneath it, all the way back into the control.
     const contracting=reverse&&!reduced&&!!previous;
+    const arrivals=[];
+    if(!reduced&&previous){
+      const anchors={smell:[245,560],sound:[467,1265],taste:[804,124]};
+      for(const layer of next.photo.querySelectorAll('.tdb-senses-object')){
+        const sense=layer.dataset.sense;if(previous.state[sense])continue;
+        const [ax,ay]=anchors[sense],x=this.photo.x+ax*this.photo.width/PHOTO_WIDTH,y=this.photo.y+ay*this.photo.height/PHOTO_HEIGHT;
+        layer.style.opacity='0';arrivals.push({layer,distance:Math.hypot(x-origin.x,y-origin.y),hit:null});
+      }
+    }
+    const ring=document.createElement('div');ring.className='tdb-senses-reveal-ring';
+    Object.assign(ring.style,{left:`${origin.x}px`,top:`${origin.y}px`});
     const maskNode=contracting?previous.node:next.node,feather=20,endRadius=revealRadius(this.width,this.height,origin,feather);
     maskNode.classList.add('tdb-senses-revealing');
     maskNode.style.setProperty('--tdb-senses-origin-x',`${origin.x}px`);maskNode.style.setProperty('--tdb-senses-origin-y',`${origin.y}px`);
@@ -208,9 +240,10 @@ export class SceneRenderer{
     this.stage.dataset.radiusEnd=String(endRadius);this.stage.dataset.origin=JSON.stringify(origin);this.stage.dataset.direction=contracting?'contract':'expand';
     if(reduced){maskNode.classList.remove('tdb-senses-revealing');maskNode.style.opacity='0';}
     if(contracting)this.stage.replaceChildren(next.node,maskNode);else this.stage.append(next.node);
+    if(!reduced)this.stage.append(ring);
     return new Promise(resolve=>{
       const active={next,animation:null,frame:0,timers:[],done:false,finish:complete=>{
-        if(active.done)return;active.done=true;active.timers.forEach(clearTimeout);cancelAnimationFrame(active.frame);
+        if(active.done)return;active.done=true;ring.remove();arrivals.forEach(({layer})=>layer.style.removeProperty('opacity'));active.timers.forEach(clearTimeout);cancelAnimationFrame(active.frame);
         // Settle to exactly one unmasked photograph at either endpoint, including
         // cancellation/resize paths; no half mask can survive animation rounding.
         maskNode.classList.remove('tdb-senses-revealing');maskNode.style.removeProperty('opacity');active.animation?.cancel();
@@ -228,6 +261,11 @@ export class SceneRenderer{
           if(active.done||this.disposed)return;const p=Math.min(1,(now-start)/duration);
           const radius=contracting?endRadius-p*(endRadius+12):-12+p*(endRadius+12);
           maskNode.style.setProperty('--tdb-senses-reveal-radius',`${radius.toFixed(2)}px`);
+          const diameter=Math.max(0,radius*2);ring.style.width=`${diameter}px`;ring.style.height=`${diameter}px`;
+          for(const item of arrivals){
+            if(item.hit===null&&(contracting?radius<=item.distance:radius>=item.distance))item.hit=now;
+            if(item.hit!==null)item.layer.style.opacity=String(Math.min(1,(now-item.hit)/220));
+          }
           if(p===1)active.finish(true);else active.frame=requestAnimationFrame(tick);
         };active.frame=requestAnimationFrame(tick);
       }
