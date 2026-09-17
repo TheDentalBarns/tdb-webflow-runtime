@@ -189,3 +189,8 @@ The top play/pause utility now mirrors the Sound sense, using a speaker/crossed-
 ### Prototype 0.22.2 — button OFF state follows the circle
 
 Sense buttons retain their lit state while their OFF ripple contracts; completion updates their label, styling and pressed state. Reversing an unfinished ON reveal also retains the current lit state until contraction finishes. The top Sound icon follows the bottom button, while the audio still transitions at activation. All-sense eligibility continues to use requested targets.
+
+
+### Prototype 0.22.3 — ripples meet the button edge
+
+Pass the measured button radius into the shared ripple field. Expanding circles and the Sound echo begin at that edge; contractions end there. Mid-wave reversals retain their current radius. ON buttons light immediately; OFF buttons remain lit until contraction completes. Includes the revised chair mask, softer LED spill and top Sound icon.

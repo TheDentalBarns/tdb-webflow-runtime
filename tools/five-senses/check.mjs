@@ -110,3 +110,11 @@ assert.deepEqual(playback.gains[0].gain.events.at(-1),['ramp',0,.15],'Road and c
 assert.deepEqual(playback.gains[1].gain.events.slice(-3),[['set',0,0],['set',0,.6],['ramp',.85,1.2]],'Calm stays silent until the second pulse');
 playback.stop();assert.equal(playback.sources.length,0);assert.equal(playback.gains.length,0);assert.equal(playback.context,null);
 console.log('Passed: only two Sound tracks, calm/clinical targets, immediate cleanup and late decode cancellation.');
+
+const edgeField=new RippleField({sight:false,sound:false,smell:false,touch:false,taste:false});
+edgeField.start('sound',true,{x:100,y:100,radius:29},900,0,{duration:1200,doublePulse:true});
+assert.equal(edgeField.sample('sound',0).radius,29);
+assert.equal(edgeField.sample('sound',0).echo.radius,29);
+edgeField.settle('sound');
+assert.equal(edgeField.start('sound',false,{x:100,y:100,radius:29},900,2000,{duration:800}).to,29);
+console.log('Passed: main and echo waves originate and contract at the button edge.');

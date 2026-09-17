@@ -312,11 +312,12 @@ export class RippleField{
     const p=Math.max(0,Math.min(1,(now-w.start-w.delay)/w.duration)),e=rippleEase(p);
     return{...w,progress:p,radial:!w.reduced,radius:w.from+(w.to-w.from)*e,amount:w.fromAmount+(Number(w.target)-w.fromAmount)*e,
       ring:w.reduced?0:Math.min(1,p*14)*Math.min(1,(1-p)*6),
-      echo:w.echo&&now<w.start+w.duration?{radius:-12+rippleEase((now-w.start)/w.duration)*(w.end+12),alpha:Math.min(1,Math.max(0,(now-w.start)/w.duration)*14)*Math.min(1,Math.max(0,1-(now-w.start)/w.duration)*6)*.55}:null};
+      echo:w.echo&&now<w.start+w.duration?{radius:w.edge+rippleEase((now-w.start)/w.duration)*(w.end-w.edge),alpha:Math.min(1,Math.max(0,(now-w.start)/w.duration)*14)*Math.min(1,Math.max(0,1-(now-w.start)/w.duration)*6)*.55}:null};
   }
   start(sense,target,origin,end,now,{duration,reduced=false,doublePulse=false}={}){
-    const previous=this.waves.get(sense),at=this.sample(sense,now),from=at.radial?at.radius:at.amount?end:-12;
-    const wave={sense,target,origin:{...origin},end,from,to:target?end:-12,fromAmount:at.amount,start:now,duration,
+    const edge=origin.radius??0;
+    const previous=this.waves.get(sense),at=this.sample(sense,now),from=at.radial?at.radius:at.amount?end:edge;
+    const wave={sense,target,origin:{...origin},edge,end,from,to:target?end:edge,fromAmount:at.amount,start:now,duration,
       reduced,delay:doublePulse&&!reduced&&!previous?600:0,echo:doublePulse&&!reduced&&!previous};
     this.waves.set(sense,wave);return wave;
   }
@@ -544,7 +545,7 @@ export class SceneRenderer{
   destroy(){if(this.disposed)return;this.disposed=true;this.cancel();this.scope.abort();this.gpu?.destroy();this.stage.replaceChildren();this.artwork.destroy();this.layers=[];this.photos=[];}
 }
 
-/* TDB Five Senses v0.22.2 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.22.3 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -689,7 +690,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.22.2';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.22.3';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Turn Sound on" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -818,7 +819,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   }
   function activate(sense,button,intro=false,batch=false){
     const rect=(button.querySelector('.tdb-senses-circle')||button).getBoundingClientRect(),bounds=stage.getBoundingClientRect();
-    const origin={x:rect.left+rect.width/2-bounds.left,y:rect.top+rect.height/2-bounds.top};
+    const origin={x:rect.left+rect.width/2-bounds.left,y:rect.top+rect.height/2-bounds.top,radius:Math.min(rect.width,rect.height)/2};
     if(intro)hideDetail();else if(!batch)void showDetail(sense,requested[sense]);
     hasBegun=true;updateControls();begin(queue.request(requested,origin,intro,sense));
     announcement.textContent=`${LABELS[SENSES.indexOf(sense)]} ${requested[sense]?'on':'off'}.`;
