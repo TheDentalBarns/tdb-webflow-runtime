@@ -311,7 +311,7 @@ export class RippleField{
   start(sense,target,origin,end,now,{duration,reduced=false,doublePulse=false}={}){
     const previous=this.waves.get(sense),at=this.sample(sense,now),from=at.radial?at.radius:at.amount?end:-12;
     const wave={sense,target,origin:{...origin},end,from,to:target?end:-12,fromAmount:at.amount,start:now,duration,
-      reduced,delay:doublePulse&&!reduced&&!previous?300:0,echo:doublePulse&&!reduced&&!previous};
+      reduced,delay:doublePulse&&!reduced&&!previous?600:0,echo:doublePulse&&!reduced&&!previous};
     this.waves.set(sense,wave);return wave;
   }
   settle(sense){const w=this.waves.get(sense);if(w){this.state[sense]=w.target;this.waves.delete(sense);}return w;}
@@ -537,7 +537,7 @@ export class SceneRenderer{
   destroy(){if(this.disposed)return;this.disposed=true;this.cancel();this.scope.abort();this.gpu?.destroy();this.stage.replaceChildren();this.artwork.destroy();this.layers=[];this.photos=[];}
 }
 
-/* TDB Five Senses v0.18.2 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.18.3 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -679,7 +679,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.18.2';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.18.3';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>

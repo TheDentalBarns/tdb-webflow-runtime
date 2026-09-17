@@ -82,7 +82,7 @@ clock=1950;renderer.draw(clock);assert.equal(await touch,true);assert.equal(rend
 clock=2050;renderer.draw(clock);assert.equal(await smell,true);assert.equal(renderer.requests.size,0);assert.equal(frames.size,0);assert.equal(renderer.timer,0);
 const sounding=renderer.reveal({...initial,sound:true},origin,{sense:'sound',duration:1200,doublePulse:true});
 clock+=90;renderer.draw(clock);assert.ok(lastSamples[1].echo);assert.equal(lastSamples[1].progress,0,'Sound keeps its leading pulse before the reveal');
-clock+=260;renderer.draw(clock);assert.ok(lastSamples[1].progress>0);
+clock+=560;renderer.draw(clock);assert.ok(lastSamples[1].progress>0);
 const retap=renderer.reveal({...initial,sound:false},origin,{sense:'sound',duration:800});
 assert.equal(await sounding,false);assert.equal(renderer.requests.size,1);
 renderer.finish();assert.equal(await retap,true);assert.equal(renderer.field.state.sound,false);assert.equal(frames.size,0);

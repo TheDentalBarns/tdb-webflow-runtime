@@ -129,3 +129,8 @@ Expanded all ten captions to explain the contrast and TDB design decisions. Reta
 ### Prototype 0.18.2 — caption fades
 
 Descriptions fade out over 180ms before the latest requested description fades in over 380ms. First appearance fades in directly. Opacity-only Web Animations avoid frame-by-frame JavaScript; repeated taps cancel the previous animation at its current opacity and only the latest caption is applied. Closing or hiding the page cancels pending caption work. Reduced motion switches text immediately.
+
+
+### Prototype 0.18.3 — wider Sound wave spacing
+
+Doubled the Sound leading-wave gap from 300ms to 600ms. Each wave retains its existing duration and organic easing. Caption fades and audio playback timing remain unchanged.
