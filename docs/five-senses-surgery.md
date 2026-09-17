@@ -69,3 +69,9 @@ Asset exports: `assets/five-senses/scent-candle-v3.webp` and `assets/five-senses
 Scent owns an independent, synthesized stereo air-rustle buffer. It uses filtered noise with slow gust envelopes and a blended loop boundary, prepared once after Start. It fades with Scent's reveal and continues with either Sound state. It has no extra download or idle JavaScript loop. Close and page hiding stop it with the rest of the audio. Reopening requires Start again.
 
 Validation: original transition/late-decode checks plus independent Scent gain, fade targets, cleanup and buffer seam/amplitude checks; mobile staging visual and interaction review.
+
+### Prototype 0.14.0 — countertop reflections
+
+Moved the candle to the front-left countertop corner beside the basin (fixed image-space base 424,216). Added soft, fading alpha reflections beneath the candle, Aesop and clinical props, with a restrained amber candle glow. Reflections are derived from each prop and share its state layer; disconnected clinical silhouettes meet their own bases. A countertop mask excludes the basin and front fascia. These layers are prepared with cached scenes, adding no continuous drawing work or asset download.
+
+Reduced Scent breeze gain from 0.30 to 0.12 (about 8 dB lower). Existing independence and cleanup checks pass with the revised target.

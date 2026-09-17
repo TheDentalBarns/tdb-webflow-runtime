@@ -168,9 +168,31 @@ function objectTone(ctx,state,rect,clinical=false){
   ctx.putImageData(pixels,x,y);
 }
 
+// A separate alpha surface reflects the existing prop pixels onto the counter.
+// The counter remains visible; the sink bowl and front fascia cannot receive it.
+function counterReflection(ctx,image,source,placement,{depth=30,opacity=.18,amber=false}={}){
+  const [sx,sy,sw,sh]=source,[x,y,w,h]=placement;
+  const layer=document.createElement('canvas');layer.width=PHOTO_WIDTH;layer.height=PHOTO_HEIGHT;
+  const c=layer.getContext('2d');
+  c.save();c.translate(x,y);c.scale(1,-depth/h);
+  c.drawImage(image,sx,sy,sw,sh,0,-h,w,h);c.restore();
+  c.globalCompositeOperation='destination-in';
+  const fade=c.createLinearGradient(0,y,0,y+depth);
+  fade.addColorStop(0,`rgba(0,0,0,${opacity})`);fade.addColorStop(.5,`rgba(0,0,0,${opacity*.45})`);fade.addColorStop(1,'rgba(0,0,0,0)');
+  c.fillStyle=fade;c.fillRect(x-4,y-1,w+8,depth+3);
+  if(amber){
+    c.globalCompositeOperation='source-over';c.save();c.translate(x+w*.5,y+depth*.4);c.scale(1,.42);
+    const glow=c.createRadialGradient(0,0,0,0,0,w*.43);glow.addColorStop(0,'rgba(255,204,116,.26)');glow.addColorStop(1,'rgba(255,175,60,0)');
+    c.fillStyle=glow;c.fillRect(-w/2,-w/2,w,w);c.restore();
+  }
+  ctx.save();ctx.beginPath();ctx.moveTo(368,211);ctx.lineTo(503,142);ctx.lineTo(1086,177);ctx.lineTo(1086,274);ctx.lineTo(370,230);ctx.closePath();
+  ctx.ellipse(601,185,148,29,.025,0,Math.PI*2);ctx.clip('evenodd');
+  ctx.filter='blur(1.3px)';ctx.drawImage(layer,0,0);ctx.restore();layer.width=1;layer.height=1;
+}
+
 // Fit the visible object, not its transparent export rectangle. Grounding and
 // perspective therefore remain consistent across props with different padding.
-function groundedProp(ctx,image,source,{x,y,width,height,slope=0,angle=0,shadow=.25}){
+function groundedProp(ctx,image,source,{x,y,width,height,slope=0,angle=0,shadow=.25,reflection=null}){
   const crop=document.createElement('canvas');crop.width=source[2];crop.height=source[3];
   const c=crop.getContext('2d');c.drawImage(image,...source,0,0,crop.width,crop.height);
   const pixels=c.getImageData(0,0,crop.width,crop.height).data;
@@ -178,6 +200,25 @@ function groundedProp(ctx,image,source,{x,y,width,height,slope=0,angle=0,shadow=
   for(let py=0;py<crop.height;py++)for(let px=0;px<crop.width;px++)if(pixels[(py*crop.width+px)*4+3]>20){left=Math.min(left,px);right=Math.max(right,px+1);top=Math.min(top,py);bottom=Math.max(bottom,py+1);}
   if(right<=left||bottom<=top)return;
   const sw=right-left,sh=bottom-top,scale=Math.min(width/sw,height/sh),w=sw*scale,h=sh*scale;
+  if(reflection){
+    // Separate disconnected silhouettes so each reflection meets its own base.
+    const columns=[];
+    for(let px=left;px<right;px++){
+      let bottomY=0;
+      for(let py=top;py<bottom;py++)if(pixels[(py*crop.width+px)*4+3]>35)bottomY=py+1;
+      columns.push(bottomY);
+    }
+    let start=-1;
+    for(let i=0;i<=columns.length;i++){
+      if(i<columns.length&&columns[i]){if(start<0)start=i;}
+      else if(start>=0){
+        const end=i,base=Math.max(...columns.slice(start,end));
+        if(end-start>2)counterReflection(ctx,crop,[left+start,top,end-start,base-top],
+          [x-w/2+start*scale,y-h+(base-top)*scale,(end-start)*scale,(base-top)*scale],reflection);
+        start=-1;
+      }
+    }
+  }
   ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.transform(1,slope,0,1,0,0);
   contactShadow(ctx,0,0,w*.48,shadow,.14);
   ctx.drawImage(crop,left,top,sw,sh,-w/2,-h,w,h);ctx.restore();crop.width=1;crop.height=1;
@@ -201,15 +242,15 @@ function objectLayer(images,state,sense){
   if(sense==='taste'){
     canvas.dataset.anchor='804,124';canvas.dataset.object=state.taste?'aesop':'clinical-dispenser-and-sharps';
     ctx.save();ctx.filter=state.taste?'none':'blur(.85px)';
-    if(state.taste){contactShadow(ctx,806,188,44,.4,.15);ctx.drawImage(images.objects,743,30,108,177,759,45,89,158);}
-    else groundedProp(ctx,images.tasteClinical,[0,0,images.tasteClinical.width,images.tasteClinical.height],{x:807,y:206,width:130,height:126,slope:0,shadow:.12});
-    ctx.restore();objectTone(ctx,state,[737,25,175,205],!state.taste);
+    if(state.taste){counterReflection(ctx,images.objects,[743,30,108,177],[759,203,89,158],{depth:34,opacity:.18});contactShadow(ctx,806,188,44,.4,.15);ctx.drawImage(images.objects,743,30,108,177,759,45,89,158);}
+    else groundedProp(ctx,images.tasteClinical,[0,0,images.tasteClinical.width,images.tasteClinical.height],{x:807,y:206,width:130,height:126,slope:0,shadow:.12,reflection:{depth:34,opacity:.24}});
+    ctx.restore();objectTone(ctx,state,[737,25,175,235],!state.taste);
   }
   if(sense==='candle'){
-    canvas.dataset.anchor='448,154';canvas.dataset.object='candle';
+    canvas.dataset.anchor='424,189';canvas.dataset.object='candle';
     ctx.save();ctx.filter='blur(.65px) saturate(.9)';
-    groundedProp(ctx,images.candle,[0,0,images.candle.width,images.candle.height],{x:448,y:182,width:46,height:62,slope:0,shadow:.12});
-    ctx.restore();objectTone(ctx,state,[408,105,85,90]);
+    groundedProp(ctx,images.candle,[0,0,images.candle.width,images.candle.height],{x:424,y:216,width:46,height:62,slope:0,shadow:.12,reflection:{depth:18,opacity:.24,amber:true}});
+    ctx.restore();objectTone(ctx,state,[388,145,80,93]);
   }
   return canvas;
 }
@@ -338,7 +379,7 @@ export class SceneRenderer{
   }
 }
 
-/* TDB Five Senses v0.13.0 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.14.0 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -495,7 +536,7 @@ export class Soundscape {
     const gain=this.breezeGain.gain,t=this.context.currentTime;
     if(gain.cancelAndHoldAtTime)gain.cancelAndHoldAtTime(t);
     else{const value=gain.value;gain.cancelScheduledValues(t);gain.setValueAtTime(value,t);}
-    gain.linearRampToValueAtTime(on?.30:0,t+duration);
+    gain.linearRampToValueAtTime(on?.12:0,t+duration);
   }
   stop() {
     if(this.breezeGain){try{this.breezeGain.gain.cancelScheduledValues(0);this.breezeGain.gain.value=0;this.breezeGain.disconnect();}catch(_){}this.breezeGain=null;}
@@ -521,7 +562,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     throw new Error(signal.aborted?'Closed':'The photograph could not load. Please try again.');
   }
   const images={warm:loaded[0].value,clinical:loaded[1].value,objects:loaded[2].value,candle:loaded[3].value,tasteClinical:loaded[4].value};
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.13.0';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.14.0';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>

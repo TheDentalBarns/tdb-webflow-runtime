@@ -98,7 +98,7 @@ independent.context={currentTime:4,close:()=>Promise.resolve()};independent.read
 independent.gains=[{gain:gainLog(),disconnect(){}},{gain:gainLog(),disconnect(){}}];
 const breezeParam=gainLog();let disconnected=false;
 independent.breezeGain={gain:breezeParam,disconnect(){disconnected=true;}};
-independent.scent(true,1.2);assert.deepEqual(breezeParam.events.at(-1),['ramp',.30,5.2]);
+independent.scent(true,1.2);assert.deepEqual(breezeParam.events.at(-1),['ramp',.12,5.2]);
 const before=JSON.stringify(breezeParam.events);independent.transition(false);
 assert.equal(JSON.stringify(breezeParam.events),before,'Sound OFF must not cut out the Scent layer');
 independent.scent(false,.8);assert.deepEqual(breezeParam.events.at(-1),['ramp',0,4.8]);
