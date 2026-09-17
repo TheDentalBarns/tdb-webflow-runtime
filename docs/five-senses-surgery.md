@@ -219,3 +219,7 @@ Approved visual/interaction baseline: `b8591da2f38c16e634d63fd07a25b3d4336aeef8`
 Replaced the CSS fallback's full-screen mask/blend stack and expanding shadow boxes with one bounded Canvas 2D renderer. Photographic plates and cropped transparent props are prepared at viewport resolution on resize. The GPU path skips unneeded light/material and hidden object texture reads. Hidden ambient layers no longer paint; mask strings are shared per channel, the RAF callback is reused, and diagnostic DOM writes are kept out of each frame.
 
 Opt-in `?senses-profile=1` records a bounded set of frame intervals only during active reveals. The stage exposes median/p95 frame intervals and slow-frame counts when idle. This is diagnostic data, not an iPhone FPS claim. The cloud browser currently reports WebGL unavailable. Real iPhone Safari profiling remains an external verification item.
+
+### v0.24.1 — Shared fallback masks and bounded motion buffer
+
+Share each channel mask across affected props and bypass fully covered/excluded regions. Use a smaller photographic working buffer while the fallback animates, then restore full detail on settlement. Pause invisible ambient animation without restarting its nodes. Release decoded inputs after preparation and dispose failed GPU resources on context loss. Added reproducible native composition checks and a performance report with explicit cloud/Safari limitations.

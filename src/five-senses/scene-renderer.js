@@ -459,15 +459,16 @@ export class RasterComposite{
   resize(width,height,photo){
     for(const c of this.buffers)c.width=c.height=1;this.buffers=[];
     this.width=width;this.height=height;this.photo=photo;
-    this.ratio=Math.min(window.devicePixelRatio||1,2,Math.sqrt(1600000/(width*height)),1086/photo.width*1.5);
+    this.fullRatio=Math.min(window.devicePixelRatio||1,2,Math.sqrt(1600000/(width*height)),1086/photo.width*1.5);
+    this.ratio=Math.min(this.fullRatio,.75,Math.sqrt(185000/(width*height)));
     const w=Math.max(1,Math.round(width*this.ratio)),h=Math.max(1,Math.round(height*this.ratio));
-    this.canvas.width=w;this.canvas.height=h;this.rx=w/width;this.ry=h/height;
+    this.motionWidth=w;this.motionHeight=h;this.canvas.width=w;this.canvas.height=h;this.rx=w/width;this.ry=h/height;this.settledKey=null;
     this.plates=[];
     for(const touch of [false,true])for(const sight of [false,true]){
       const c=this.buffer(w,h),ctx=c.getContext('2d');
       ctx.drawImage(this.art.surface({sight,touch}).surface,photo.x*this.rx,photo.y*this.ry,photo.width*this.rx,photo.height*this.ry);this.plates.push(c);
     }
-    this.material=this.buffer(w,h);this.light=this.buffer(w,h);
+    this.material=this.buffer(w,h);this.light=this.buffer(w,h);this.masks=Array.from({length:5},()=>this.buffer(w,h));
     this.groups={};
     for(const sense of ['smell','sound','taste','candle']){
       const [x,y,sw,sh]=OBJECT_BOUNDS[sense],scale=photo.width/PHOTO_WIDTH;
@@ -480,23 +481,33 @@ export class RasterComposite{
       this.groups[sense]=group;
     }
   }
-  // Apply exactly the same 20px feather as the photographic shader. All masks
-  // are bounded to the surface being drawn (props use small cropped buffers).
+  localSample(sample,bounds){
+    if(!sample.radial)return sample;
+    const {x,y,width,height}=bounds,ox=sample.origin.x,oy=sample.origin.y;
+    const far=Math.hypot(Math.max(Math.abs(x-ox),Math.abs(x+width-ox)),Math.max(Math.abs(y-oy),Math.abs(y+height-oy)));
+    if(far<=sample.radius-10)return{radial:false,amount:1};
+    const near=Math.hypot(Math.max(x-ox,0,ox-x-width),Math.max(y-oy,0,oy-y-height));
+    if(near>=sample.radius+10)return{radial:false,amount:0};
+    return sample;
+  }
+  // One shared mask per active channel, reused by every affected prop. Surfaces
+  // completely inside/outside the wave bypass mask creation and blending.
   mask(canvas,sample,invert=false,bounds=null){
-    const ctx=canvas.getContext('2d');ctx.save();
-    ctx.globalCompositeOperation='destination-in';
-    if(!sample.radial)ctx.fillStyle=`rgba(0,0,0,${invert?1-sample.amount:sample.amount})`;
-    else{
-      const sx=bounds?canvas.width/bounds.width:this.rx,sy=bounds?canvas.height/bounds.height:this.ry;
-      ctx.scale(sx,sy);
-      const x=sample.origin.x-(bounds?.x||0),y=sample.origin.y-(bounds?.y||0),r=sample.radius;
-      const g=ctx.createRadialGradient(x,y,Math.max(0,r-10),x,y,Math.max(.01,r+10));
-      // smoothstep alpha agrees with the GPU feather within subpixel rounding.
-      for(let i=0;i<=8;i++){const p=i/8,a=p*p*(3-2*p);g.addColorStop(p,`rgba(0,0,0,${invert?a:1-a})`);}
-      ctx.fillStyle=g;
+    const ctx=canvas.getContext('2d');
+    if(!sample.radial){
+      const alpha=invert?1-sample.amount:sample.amount;if(alpha===1)return;
+      if(alpha===0){ctx.clearRect(0,0,canvas.width,canvas.height);return;}
+      ctx.save();ctx.globalCompositeOperation='destination-in';ctx.fillStyle=`rgba(0,0,0,${alpha})`;ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore();return;
     }
-    const bw=bounds?.width||this.width,bh=bounds?.height||this.height;
-    ctx.fillRect(0,0,sample.radial?bw:canvas.width,sample.radial?bh:canvas.height);ctx.restore();
+    if(!sample.rasterMask){
+      const mask=this.masks[sample.rasterIndex],m=mask.getContext('2d');m.save();m.scale(this.rx,this.ry);
+      const {x,y}=sample.origin,r=sample.radius,g=m.createRadialGradient(x,y,Math.max(0,r-10),x,y,Math.max(.01,r+10));
+      for(let i=0;i<=8;i++){const p=i/8;g.addColorStop(p,`rgba(0,0,0,${1-p*p*(3-2*p)})`);}
+      m.globalCompositeOperation='copy';m.fillStyle=g;m.fillRect(0,0,this.width,this.height);m.restore();sample.rasterMask=mask;
+    }
+    const sx=bounds?canvas.width/bounds.width:this.rx,sy=bounds?canvas.height/bounds.height:this.ry;
+    ctx.save();ctx.globalCompositeOperation=invert?'destination-out':'destination-in';
+    ctx.drawImage(sample.rasterMask,-(bounds?.x||0)*sx,-(bounds?.y||0)*sy,this.width*sx,this.height*sy);ctx.restore();
   }
   copy(target,source){const ctx=target.getContext('2d');ctx.globalCompositeOperation='copy';ctx.drawImage(source,0,0);ctx.globalCompositeOperation='source-over';return ctx;}
   opaqueLight(target,offset,sight){
@@ -509,21 +520,41 @@ export class RasterComposite{
     this.copy(group.temp,group.plates[offset+1]);this.mask(group.temp,sight,false,group);
     ctx.globalCompositeOperation='lighter';ctx.drawImage(group.temp,0,0);ctx.globalCompositeOperation='source-over';return target;
   }
+  drawSettled(samples){
+    const key=samples.map(s=>s.amount).join('');if(this.settledKey===key)return;this.settledKey=key;
+    const width=Math.max(1,Math.round(this.width*this.fullRatio)),height=Math.max(1,Math.round(this.height*this.fullRatio));
+    if(this.canvas.width!==width||this.canvas.height!==height){this.canvas.width=width;this.canvas.height=height;}
+    const scaleX=width/this.width,scaleY=height/this.height,r=this.photo,ctx=this.ctx;
+    const state=Object.fromEntries(RIPPLE_SENSES.map((k,i)=>[k,!!samples[i].amount]));
+    ctx.globalCompositeOperation='copy';ctx.drawImage(this.art.surface(state).surface,r.x*scaleX,r.y*scaleY,r.width*scaleX,r.height*scaleY);ctx.globalCompositeOperation='source-over';
+    for(const sense of ['smell','sound','taste','candle']){
+      if(sense!=='taste'&&!(sense==='candle'?state.smell:state[sense]))continue;
+      const sprite=this.art.object(state,sense),scale=r.width/PHOTO_WIDTH;
+      ctx.drawImage(sprite.canvas,(r.x+sprite.x*scale)*scaleX,(r.y+sprite.y*scale)*scaleY,sprite.width*scale*scaleX,sprite.height*scale*scaleY);
+    }
+  }
   draw(samples){
-    const [sight,sound,smell,touch,taste]=samples,ctx=this.ctx;
+    if(samples.every(s=>!s.radial&&(s.amount===0||s.amount===1))){this.drawSettled(samples);return;}
+    this.settledKey=null;
+    if(this.canvas.width!==this.motionWidth||this.canvas.height!==this.motionHeight){this.canvas.width=this.motionWidth;this.canvas.height=this.motionHeight;}
+    for(let i=0;i<samples.length;i++)samples[i].rasterIndex=i;
+    const viewport={x:0,y:0,width:this.width,height:this.height};
+    const sight=this.localSample(samples[0],viewport),touch=this.localSample(samples[3],viewport),ctx=this.ctx;
+    const [_,sound,smell,,taste]=samples;
     if(!touch.radial&&(touch.amount===0||touch.amount===1))this.opaqueLight(this.canvas,touch.amount*2,sight);
     else{
       this.opaqueLight(this.canvas,0,sight);this.opaqueLight(this.material,2,sight);this.mask(this.material,touch);ctx.drawImage(this.material,0,0);
     }
     for(const sense of ['smell','sound','taste','candle']){
-      const gate=sense==='sound'?sound:sense==='taste'?null:smell;
+      const group=this.groups[sense],rawGate=sense==='sound'?sound:sense==='taste'?null:smell;
+      const gate=rawGate?this.localSample(rawGate,group):null;
       if(gate&&!gate.radial&&gate.amount===0)continue;
-      const group=this.groups[sense];let sprite;
-      if(sense==='taste'&&(taste.radial||taste.amount>0&&taste.amount<1)){
-        const off=this.tone(group,0,sight,group.mix);if(off!==group.mix)this.copy(group.mix,off);this.mask(group.mix,taste,true,group);
-        const on=this.tone(group,2,sight,group.extra);if(on!==group.extra)this.copy(group.extra,on);this.mask(group.extra,taste,false,group);
+      const tone=this.localSample(sight,group),flavour=this.localSample(taste,group);let sprite;
+      if(sense==='taste'&&(flavour.radial||flavour.amount>0&&flavour.amount<1)){
+        const off=this.tone(group,0,tone,group.mix);if(off!==group.mix)this.copy(group.mix,off);this.mask(group.mix,flavour,true,group);
+        const on=this.tone(group,2,tone,group.extra);if(on!==group.extra)this.copy(group.extra,on);this.mask(group.extra,flavour,false,group);
         const g=group.mix.getContext('2d');g.globalCompositeOperation='lighter';g.drawImage(group.extra,0,0);g.globalCompositeOperation='source-over';sprite=group.mix;
-      }else sprite=this.tone(group,sense==='taste'?taste.amount*2:0,sight);
+      }else sprite=this.tone(group,sense==='taste'?flavour.amount*2:0,tone);
       if(gate&&(gate.radial||gate.amount!==1)){if(sprite!==group.mix)this.copy(group.mix,sprite);this.mask(group.mix,gate,false,group);sprite=group.mix;}
       ctx.drawImage(sprite,group.x*this.rx,group.y*this.ry,group.width*this.rx,group.height*this.ry);
     }
@@ -551,7 +582,7 @@ export class SceneRenderer{
       for(const taste of [true,false])tasks.push(()=>art.object({sight,taste},'taste'));
     }
     try{for(const task of tasks){if(signal.aborted)throw new DOMException('Closed','AbortError');task();await new Promise(resolve=>setTimeout(resolve,0));}
-      if(signal.aborted)throw new DOMException('Closed','AbortError');return art;
+      if(signal.aborted)throw new DOMException('Closed','AbortError');art.images=null;return art;
     }catch(error){art.destroy();throw error;}
   }
   constructor(stage,images,report,artwork){
@@ -560,7 +591,7 @@ export class SceneRenderer{
     this.tick=now=>{if(this.profile&&this.lastFrame){this.frameTimes.push(now-this.lastFrame);if(this.frameTimes.length>600)this.frameTimes.shift();}this.lastFrame=now;this.frame=0;this.draw(now);this.schedule();};this.rings=[];this.scope=new AbortController();this.stats={draws:0,maxCPU:0};
     try{if(new URLSearchParams(location.search).get('senses-renderer')==='css')throw new Error('CSS review mode');
       this.gpu=new GPUComposite(artwork);stage.append(this.gpu.canvas);stage.dataset.renderer='gpu-independent-ripples';
-      this.gpu.canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();if(this.disposed)return;this.gpu=null;stage.dataset.gpuFallback='Context lost';event.target.remove();this.makeFallback();this.resize(true);this.draw(performance.now());},{signal:this.scope.signal});
+      this.gpu.canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();if(this.disposed)return;const failed=this.gpu;this.gpu=null;failed?.destroy();stage.dataset.gpuFallback='Context lost';event.target.remove();this.makeFallback();this.resize(true);this.draw(performance.now());},{signal:this.scope.signal});
     }catch(error){stage.dataset.gpuFallback=error.message;this.makeFallback();}
     this.makeAmbient();this.resize(true);report({builds:1,buildMs:Math.round(performance.now()-started)});
   }
@@ -619,7 +650,7 @@ export class SceneRenderer{
     for(const [sense,request] of this.requests)if(now>=request.wave.start+request.wave.delay+request.wave.duration){this.field.settle(sense);this.requests.delete(sense);request.onProgress?.(1);request.resolve(true);}
     const samples=this.field.samples(now);this.gpu?.draw(samples);this.raster?.draw(samples);
     for(const [sense,request] of this.requests){const sample=samples[RIPPLE_SENSES.indexOf(sense)];request.onProgress?.(sample.progress,sample);}
-    for(const layer of this.layers){const style=gateStyle(samples,layer.gates),key=style.visibility+style.opacity+style.maskImage;if(key!==layer.last){Object.assign(layer.node.style,style);layer.node.hidden=style.visibility==='hidden';layer.last=key;}}
+    for(const layer of this.layers){const style=gateStyle(samples,layer.gates),key=style.visibility+style.opacity+style.maskImage;if(key!==layer.last){Object.assign(layer.node.style,style);layer.node.dataset.ambientHidden=String(style.visibility==='hidden');layer.last=key;}}
     if(this.rings.length){
       const circles=samples.filter(s=>s.radial&&s.ring>0).map(s=>({x:s.origin.x,y:s.origin.y,r:s.radius,alpha:s.ring}));
       const sound=samples[1];if(sound.echo)circles.push({x:sound.origin.x,y:sound.origin.y,r:sound.echo.radius,alpha:sound.echo.alpha});
