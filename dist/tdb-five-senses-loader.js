@@ -7,7 +7,7 @@
   const moduleURL=new URL('dist/tdb-five-senses.js',root).href;
   const styleURL=new URL('dist/tdb-five-senses.css',root).href;
   const assetBase=JSON.parse(script.dataset.assets||'{}');
-  for(const name of ['calm.mp3','clinical.mp3','scent-candle.webp','taste-clinical.webp','surgery-clinical-clean.webp'])assetBase[name]=new URL(`assets/five-senses/${name}`,root).href;
+  for(const name of ['calm.mp3','clinical.mp3','scent-candle.webp','taste-clinical.webp','surgery-clinical-clean.webp'])if(!assetBase[name])assetBase[name]=new URL(`assets/five-senses/${name}`,root).href;
   const query=new URLSearchParams(location.search);
   // Explicit review URLs provide real narrow iframe viewports, never normal entry UI.
   if(['mobile','tablet'].includes(query.get('preview'))&&!query.has('embedded')){
@@ -80,5 +80,5 @@
     if(button.tagName!=='BUTTON')button.addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();open(button);}});
   });
   window.addEventListener('pagehide',()=>{if(active)close(active);});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.10.0'});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.11.0'});
 })();

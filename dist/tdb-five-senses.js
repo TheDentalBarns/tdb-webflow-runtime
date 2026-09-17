@@ -200,15 +200,15 @@ function objectLayer(images,state,sense){
   }
   if(sense==='taste'){
     canvas.dataset.anchor='804,124';canvas.dataset.object=state.taste?'aesop':'clinical-dispenser-and-sharps';
-    ctx.save();ctx.filter='blur(.5px)';
-    if(state.taste)groundedProp(ctx,images.objects,[743,30,108,177],{x:804,y:195,width:89,height:158,slope:.078,shadow:.26});
-    else groundedProp(ctx,images.tasteClinical,[0,0,images.tasteClinical.width,images.tasteClinical.height],{x:817,y:203,width:128,height:153,slope:.078,shadow:.26});
+    ctx.save();ctx.filter=state.taste?'none':'blur(1.35px) brightness(.91)';
+    if(state.taste){contactShadow(ctx,806,188,44,.4,.15);ctx.drawImage(images.objects,743,30,108,177,759,45,89,158);}
+    else groundedProp(ctx,images.tasteClinical,[0,0,images.tasteClinical.width,images.tasteClinical.height],{x:817,y:203,width:128,height:153,slope:0,shadow:.22});
     ctx.restore();objectTone(ctx,state,[735,25,165,190],!state.taste);
   }
   if(sense==='candle'){
     canvas.dataset.anchor='428,170';canvas.dataset.object='candle';
-    ctx.save();ctx.filter='blur(.65px) brightness(.9) saturate(.85)';
-    groundedProp(ctx,images.candle,[0,0,images.candle.width,images.candle.height],{x:429,y:203,width:48,height:68,slope:.078,shadow:.22});
+    ctx.save();ctx.filter='blur(1.15px) brightness(.9) saturate(.85)';
+    groundedProp(ctx,images.candle,[0,0,images.candle.width,images.candle.height],{x:429,y:203,width:54,height:62,slope:0,shadow:.20});
     ctx.restore();objectTone(ctx,state,[395,120,70,100]);
   }
   return canvas;
@@ -338,7 +338,7 @@ export class SceneRenderer{
   }
 }
 
-/* TDB Five Senses v0.10.0 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.11.0 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -485,7 +485,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     throw new Error(signal.aborted?'Closed':'The photograph could not load. Please try again.');
   }
   const images={warm:loaded[0].value,clinical:loaded[1].value,objects:loaded[2].value,candle:loaded[3].value,tasteClinical:loaded[4].value};
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.10.0';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.11.0';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>

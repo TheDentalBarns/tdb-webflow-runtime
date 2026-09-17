@@ -70,3 +70,8 @@
 .tdb-senses-detail-copy{padding-top:8px;font-size:11px;line-height:1.65;max-width:29em}
 
 @media(max-height:520px){.tdb-senses-detail{max-width:260px}.tdb-senses-message{bottom:8px}}
+
+/* Broad soft depth under the controls and travelling circle. */
+.tdb-senses-circle{box-shadow:0 12px 36px 9px rgba(0,0,0,.25),0 3px 12px rgba(0,0,0,.16)}
+.tdb-senses-reveal-ring{box-shadow:0 0 34px 12px rgba(0,0,0,.20)}
+@keyframes tdb-senses-breathe{0%,100%{box-shadow:0 12px 36px 9px #0004,0 0 0 0 #f5f1e606;background:#eee9dc16}50%{box-shadow:0 12px 36px 9px #0004,0 0 0 9px #f5f1e605;background:#eee9dc2d}}
