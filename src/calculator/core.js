@@ -1,11 +1,11 @@
-/* TDB Treatment Calculator v1.4.7 — deterministic pricing and planning rules. */
+/* TDB Treatment Calculator v1.4.8 — deterministic pricing and planning rules. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.TDBCalculatorCore = api;
 })(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
-  const VERSION = '1.4.7';
+  const VERSION = '1.4.8';
   const IDS = Object.freeze({
     assessment: '6aa293f6253d574a41978d9e', design: '68386f15264c9bdb140b5f2e',
     whitening: '681ce51276b22da0b0660090', aligners: '67a227e75f8c501023eb066b',
@@ -221,7 +221,7 @@
       meetsTarget:!!result.finishMax&&!!parseDate(target)&&result.finishMax<=target};
   }
   function duration(records,e,today){
-    if(!e.required)return e.assessmentLine?'Assessment only':'Choose treatments';
+    if(!e.required)return e.assessmentLine?(e.lines.length===1?(e.assessment==='design'?'60 minutes':'90 minutes'):'Assessment only'):'Choose treatments';
     const p=plan(records,e),s=schedule(p,today);
 
     const days=d=>Math.round((parseDate(d)-parseDate(today))/86400000);

@@ -190,19 +190,32 @@ test('deadline and wedding disclosures leave unrelated expansion contents mounte
  }finally{x.dom.window.close();}
 });
 
-test('treatment expansion and draft options do not select a treatment',async()=>{
+test('chevrons only expand; choosing a quantity or tier selects the treatment',async()=>{
  const x=await setup();try{
   x.choose('[data-category=cosmetic]');
   x.choose('[data-action=option][data-key=bonding]');
   assert.equal(x.root.querySelector('[data-select=bonding]').checked,false);
   assert.equal(x.root.querySelector('[data-panel=option-bonding]').getAttribute('aria-hidden'),'false');
   x.choose('[data-action=plus][data-key=bonding]');
-  x.choose('[data-tier=bonding][value="1"]');
-  assert.equal(x.root.querySelector('[data-select=bonding]').checked,false);
+  assert.equal(x.root.querySelector('[data-select=bonding]').checked,true);
   x.choose('[data-select=bonding]');
+  x.choose('[data-tier=bonding][value="1"]');
+  assert.equal(x.root.querySelector('[data-select=bonding]').checked,true);
   assert.equal(x.root.querySelector('[data-qty=bonding]').value,'2');
   assert.equal(x.root.querySelector('[data-tier=bonding][value="1"]').checked,true);
   const total=x.text();x.choose('[data-action=option][data-key=bonding]');
   assert.equal(x.text(),total);assert.equal(x.root.querySelector('[data-select=bonding]').checked,true);
+ }finally{x.dom.window.close();}
+});
+test('aligner options omit duration copy while their selected tier still changes the estimate timing',async()=>{
+ const x=await setup();try{
+  x.choose('[data-category=cosmetic]');x.choose('[data-action=option][data-key=aligners]');
+  assert.equal(x.root.querySelector('[data-select=aligners]').checked,false);
+  assert.doesNotMatch(x.root.querySelector('[data-panel=option-aligners]').textContent,/months/);
+  x.choose('[data-tier=aligners][value="0"]');
+  assert.equal(x.root.querySelector('[data-select=aligners]').checked,true);
+  const mild=x.root.querySelector('[data-output=duration]').textContent;
+  x.choose('[data-tier=aligners][value="2"]');
+  assert.notEqual(x.root.querySelector('[data-output=duration]').textContent,mild);
  }finally{x.dom.window.close();}
 });

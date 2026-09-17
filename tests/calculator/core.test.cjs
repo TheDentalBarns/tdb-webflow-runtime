@@ -18,6 +18,11 @@ test('assessment is manual before treatment, automatic once, never charges packa
  const e=C.estimate(records,state(['whitening'],{assessment:'design'}));assert.equal(e.min,124500);assert.equal(e.assessment,'signature');assert.equal(e.lines.filter(l=>l.key==='assessment').length,1);
  assert.equal(C.estimate(records,state([],{assessment:'design'})).min,22500);
 });
+test('standalone Smile Design and Signature Assessment show appointment minutes',()=>{
+ assert.equal(C.duration(records,C.estimate(records,state([],{assessment:'design'})),'2026-09-17'),'60 minutes');
+ assert.equal(C.duration(records,C.estimate(records,state([],{assessment:'signature'})),'2026-09-17'),'90 minutes');
+ assert.match(C.duration(records,C.estimate(records,state(['aligners'])),'2026-09-17'),/months$/);
+});
 test('quantities, uncertainty and selected tiers preserve CMS units and price ranges',()=>{
  const s=state(['bonding']);s.selected.bonding.qty=6;
  let e=C.estimate(records,s);assert.equal(e.min,282000);assert.equal(e.max,402000);assert.equal(e.starting,true);
