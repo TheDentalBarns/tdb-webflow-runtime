@@ -7,7 +7,7 @@
 .tdbc-shell{width:100%;max-width:90rem;margin:0 auto;padding-top:4rem;padding-inline:0}
 .tdbc-header{max-width:48rem;margin-bottom:2rem}.tdbc-header>p:first-child{margin-bottom:1rem}.tdbc-header h2{margin:0 0 1.5rem}
 .tdbc-main{width:100%}.tdbc-main:not(:has(.tdbc-footnote))>[data-node=step-1]{padding-bottom:0}.tdbc-step{padding:3rem 0;margin:0;border:0;border-top:1px solid var(--base-color-brand--orange-3);min-width:0}
-.tdbc-step-heading{display:flex;align-items:center;gap:1rem;margin:0 0 1rem}.tdbc-number{display:grid;place-items:center;flex:0 0 2.5rem;width:2.5rem;height:2.5rem;background:var(--base-color-neutral--neutral-darker);color:var(--base-color-brand--orange-1);letter-spacing:normal}
+.tdbc-step-heading{display:flex;align-items:center;gap:1rem;margin:0 0 1rem}.tdbc-number{display:grid;place-items:center;flex:0 0 2.5rem;width:2.5rem;height:2.5rem;background:var(--base-color-brand--orange-3);color:var(--base-color-neutral--neutral-darker);letter-spacing:normal}
 .tdbc-help{color:var(--calc-muted)}.tdb-calc p{margin:0 0 1rem}.tdbc-categories{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.5rem}
 .tdb-calc .form_checkbox{position:relative;display:flex;align-items:center;gap:.875rem;padding:0;margin:0;min-width:0;cursor:pointer;font-weight:400}
 .tdb-calc .form_checkbox input[type=checkbox],.tdb-calc .form_checkbox input[type=radio]{position:absolute;opacity:0;width:1px;height:1px;margin:0}
