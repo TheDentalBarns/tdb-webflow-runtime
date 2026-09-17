@@ -1,5 +1,5 @@
 import {SceneRenderer} from './scene-renderer.js';
-/* TDB Five Senses v0.11.0 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.13.0 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -65,11 +65,35 @@ async function imageAsset(url, signal) {
   finally { URL.revokeObjectURL(objectURL); }
 }
 
+// A quiet seamless air-rustle buffer, prepared once after the user's gesture.
+// Periodic gust envelopes avoid a constant hiss; no continuous JavaScript work.
+export function breezeBuffer(context) {
+  const rate=22050,seconds=16,length=rate*seconds;
+  const buffer=context.createBuffer(2,length,rate);
+  for(let channel=0;channel<2;channel++){
+    const data=buffer.getChannelData(channel);let low=0,slow=0,seed=1979+channel*101;
+    for(let i=0;i<length;i++){
+      seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+      low=.88*low+.12*(seed/2147483648-1);slow=.995*slow+.005*low;
+      const phase=2*Math.PI*i/length;
+      const gust=.52+.26*Math.sin(phase+channel*.12)+.12*Math.sin(phase*3+.7);
+      data[i]=(low-slow)*gust*.45;
+    }
+    // Equal-power wrap blend removes the buffer seam without fading to silence.
+    const overlap=rate;
+    for(let i=0;i<overlap;i++){
+      const angle=i/overlap*Math.PI/2;
+      data[length-overlap+i]=data[length-overlap+i]*Math.cos(angle)+data[i]*Math.sin(angle);
+    }
+  }
+  return buffer;
+}
+
 export class Soundscape {
   constructor(base, signal, report) {
     this.base = base; this.signal = signal; this.report = report;
     this.context = null; this.sources = []; this.gains = []; this.generation = 0;
-    this.ready = false; this.requested = null; this.bytes = null;
+    this.ready = false; this.requested = null; this.bytes = null; this.breezeGain = null;
   }
   prefetch() {
     if (this.bytes) return this.bytes;
@@ -103,6 +127,10 @@ export class Soundscape {
       source.connect(gain); gain.connect(context.destination); source.start();
       this.sources.push(source); this.gains.push(gain);
     });
+    const breeze=context.createBufferSource(),breezeGain=context.createGain();
+    breeze.buffer=breezeBuffer(context);breeze.loop=true;breeze.loopStart=1;breeze.loopEnd=16;
+    breezeGain.gain.value=0;breeze.connect(breezeGain);breezeGain.connect(context.destination);breeze.start(0,1);
+    this.sources.push(breeze);this.breezeGain=breezeGain;
     this.ready = true; this.report('running');
   }
   transition(on, intro = false) {
@@ -123,7 +151,15 @@ export class Soundscape {
       clinical.setValueAtTime(.65,t);calm.setValueAtTime(0,t);
     }
   }
+  scent(on,duration=1.2) {
+    if(!this.ready||this.signal.aborted||!this.breezeGain)return;
+    const gain=this.breezeGain.gain,t=this.context.currentTime;
+    if(gain.cancelAndHoldAtTime)gain.cancelAndHoldAtTime(t);
+    else{const value=gain.value;gain.cancelScheduledValues(t);gain.setValueAtTime(value,t);}
+    gain.linearRampToValueAtTime(on?.30:0,t+duration);
+  }
   stop() {
+    if(this.breezeGain){try{this.breezeGain.gain.cancelScheduledValues(0);this.breezeGain.gain.value=0;this.breezeGain.disconnect();}catch(_){}this.breezeGain=null;}
     this.generation++; this.ready = false;
     this.gains.forEach(g => { try { g.gain.cancelScheduledValues(0); g.gain.value = 0; g.disconnect(); } catch (_) {} });
     this.sources.forEach(s => { try { s.stop(); s.disconnect(); } catch (_) {} });
@@ -146,7 +182,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     throw new Error(signal.aborted?'Closed':'The photograph could not load. Please try again.');
   }
   const images={warm:loaded[0].value,clinical:loaded[1].value,objects:loaded[2].value,candle:loaded[3].value,tasteClinical:loaded[4].value};
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.12.0';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.13.0';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -188,6 +224,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     dialog.dataset.transitionDirection=reverse?'contract':'expand';
     dialog.dataset.phase='transition';dialog.dataset.transitionProgress='0';dialog.dataset.transitionStarted=String(Math.round(performance.now()));
     if(audioReady&&(active.intro||active.from.sound!==active.state.sound))audio.transition(active.state.sound,active.intro);
+    if(audioReady&&(active.intro||active.from.smell!==active.state.smell)){audio.scent(active.state.smell,duration/1000);dialog.dataset.scentAudio=active.state.smell?'on':'off';}
     const started=performance.now();
     renderer.reveal(active.state,active.origin,{duration,reverse,doublePulse:!reverse&&active.state.sound&&!active.from.sound,reduced:reduced.matches,onProgress:p=>{dialog.dataset.transitionProgress=String(p);}}).then(complete=>{
       if(!complete||disposed||signal.aborted||queue.active!==active)return;
@@ -235,7 +272,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   listen(document,'visibilitychange',()=>{
     if(document.hidden){
       audio.stop();audio=createAudio();audioReady=false;audioPending=false;requested.sound=false;hasBegun=false;interactionReady=false;dialog.querySelector('.tdb-senses-detail').hidden=true;
-      queue.cancel();queue.visible={...requested};renderer.render(requested);dialog.dataset.audioState='uninitiated';dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
+      queue.cancel();queue.visible={...requested};renderer.render(requested);dialog.dataset.audioState='uninitiated';dialog.dataset.scentAudio='off';dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
     }
     updateControls();
   });

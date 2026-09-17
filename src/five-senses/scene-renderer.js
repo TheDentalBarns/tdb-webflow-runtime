@@ -200,16 +200,16 @@ function objectLayer(images,state,sense){
   }
   if(sense==='taste'){
     canvas.dataset.anchor='804,124';canvas.dataset.object=state.taste?'aesop':'clinical-dispenser-and-sharps';
-    ctx.save();ctx.filter=state.taste?'none':'blur(1.35px) brightness(.91)';
+    ctx.save();ctx.filter=state.taste?'none':'blur(.85px)';
     if(state.taste){contactShadow(ctx,806,188,44,.4,.15);ctx.drawImage(images.objects,743,30,108,177,759,45,89,158);}
-    else groundedProp(ctx,images.tasteClinical,[0,0,images.tasteClinical.width,images.tasteClinical.height],{x:817,y:203,width:128,height:153,slope:0,shadow:.22});
-    ctx.restore();objectTone(ctx,state,[735,25,165,190],!state.taste);
+    else groundedProp(ctx,images.tasteClinical,[0,0,images.tasteClinical.width,images.tasteClinical.height],{x:825,y:206,width:146,height:136,slope:0,shadow:.12});
+    ctx.restore();objectTone(ctx,state,[737,25,175,205],!state.taste);
   }
   if(sense==='candle'){
-    canvas.dataset.anchor='419,198';canvas.dataset.object='candle';
-    ctx.save();ctx.filter='blur(1.15px) brightness(.9) saturate(.85)';
-    groundedProp(ctx,images.candle,[0,0,images.candle.width,images.candle.height],{x:419,y:222,width:44,height:48,slope:0,shadow:.20});
-    ctx.restore();objectTone(ctx,state,[395,120,70,100]);
+    canvas.dataset.anchor='448,154';canvas.dataset.object='candle';
+    ctx.save();ctx.filter='blur(.65px) saturate(.9)';
+    groundedProp(ctx,images.candle,[0,0,images.candle.width,images.candle.height],{x:448,y:182,width:46,height:62,slope:0,shadow:.12});
+    ctx.restore();objectTone(ctx,state,[408,105,85,90]);
   }
   return canvas;
 }

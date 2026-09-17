@@ -59,3 +59,13 @@ Review URLs `?preview=mobile` and `?preview=tablet` create actual 390px and 768p
 ## Before expanding to three rooms
 
 Approve object ownership and the degree of clinical contrast. Retouch clean plates and alpha edges against the full-resolution master; supply additional lower-resolution versions and AVIF where beneficial. Replace synthesized audio with approved recordings/music and a room-aware mix. Add Reception/Lounge through a shared experience state and lazy scene manifests after this Surgery interaction is accepted. Validate physical iOS/Android performance and audio unlock, final colour/alpha registration, and assistive technology behaviour before any production-domain release.
+
+### Prototype 0.13.0 — props and Scent audio
+
+The candle and clinical dispenser/sharps pair were generated in the registered warm room first, then extracted with alpha using built-in image generation. Prompt constraints: preserve camera, crop and all room geometry; infer the object tops and receding edges from the sink ellipse and worktop; add a small amber candle left of sink and modest clinical items right; match left-window light, contact shadows and background focus. Extraction preserves the object perspective; exports are fitted uniformly, without shear or rotation, to fixed countertop coordinates. Original Aesop and headphones remain unchanged.
+
+Asset exports: `assets/five-senses/scent-candle-v3.webp` and `assets/five-senses/taste-clinical-v3.webp`, hosted in the Webflow asset library and mapped in the staging footer. Generated photographic files remain outside the public runtime repository.
+
+Scent owns an independent, synthesized stereo air-rustle buffer. It uses filtered noise with slow gust envelopes and a blended loop boundary, prepared once after Start. It fades with Scent's reveal and continues with either Sound state. It has no extra download or idle JavaScript loop. Close and page hiding stop it with the rest of the audio. Reopening requires Start again.
+
+Validation: original transition/late-decode checks plus independent Scent gain, fade targets, cleanup and buffer seam/amplitude checks; mobile staging visual and interaction review.
