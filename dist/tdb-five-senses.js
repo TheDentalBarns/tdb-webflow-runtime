@@ -537,7 +537,7 @@ export class SceneRenderer{
   destroy(){if(this.disposed)return;this.disposed=true;this.cancel();this.scope.abort();this.gpu?.destroy();this.stage.replaceChildren();this.artwork.destroy();this.layers=[];this.photos=[];}
 }
 
-/* TDB Five Senses v0.18.1 — Surgery photographic proof of concept.
+/* TDB Five Senses v0.18.2 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
@@ -679,7 +679,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let artwork;
   try{artwork=await SceneRenderer.prepareAssets(images,signal);}
   catch(error){Object.values(images).forEach(image=>image.close?.());throw error;}
-  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.18.1';
+  dialog.classList.add('tdb-senses');dialog.dataset.audioState='uninitiated';dialog.dataset.scene='surgery';dialog.dataset.phase='ready';dialog.dataset.version='0.18.2';
   dialog.innerHTML=`<div class="tdb-senses-stage" aria-hidden="true"></div><div class="tdb-senses-shade" aria-hidden="true"></div>
     <header class="tdb-senses-top"><div class="tdb-senses-room">Surgery<span aria-hidden="true"></span></div><div class="tdb-senses-utilities">
     <button type="button" class="tdb-senses-motion" aria-label="Pause ambient motion" aria-pressed="false">${svg('<path d="M12 9v14M20 9v14"/>')}</button>
@@ -730,13 +730,33 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
       if(active.intro){interactionReady=true;updateControls();controls[1].focus({preventScroll:true});}
     });
   }
+  const detail=dialog.querySelector('.tdb-senses-detail');
+  let detailAnimation=null,detailRevision=0;
+  function hideDetail(){
+    ++detailRevision;detailAnimation?.cancel();detailAnimation=null;detail.hidden=true;
+  }
+  async function showDetail(sense,on){
+    const revision=++detailRevision;
+    const opacity=detail.hidden?0:Number(getComputedStyle(detail).opacity);
+    detailAnimation?.cancel();detailAnimation=null;
+    const fade=async(from,to,duration)=>{
+      detailAnimation=detail.animate([{opacity:from},{opacity:to}],{duration,easing:'ease-in-out',fill:'forwards'});
+      try{await detailAnimation.finished;return revision===detailRevision&&!disposed&&!signal.aborted;}
+      catch{return false;}
+    };
+    if(!reduced.matches&&opacity>0&&!await fade(opacity,0,180))return;
+    if(revision!==detailRevision||disposed||signal.aborted)return;
+    detail.querySelector('.tdb-senses-detail-name').textContent=LABELS[SENSES.indexOf(sense)];
+    detail.querySelector('.tdb-senses-detail-state').textContent=on?'After':'Before';
+    detail.querySelector('.tdb-senses-detail-copy').textContent=DETAILS[sense][Number(on)];
+    detail.hidden=false;
+    if(!reduced.matches&&!await fade(0,1,380))return;
+    detailAnimation?.cancel();detailAnimation=null;
+  }
   function activate(sense,button,intro=false){
     const rect=button.querySelector('.tdb-senses-circle').getBoundingClientRect(),bounds=stage.getBoundingClientRect();
     const origin={x:rect.left+rect.width/2-bounds.left,y:rect.top+rect.height/2-bounds.top};
-    const detail=dialog.querySelector('.tdb-senses-detail');detail.hidden=intro;
-    detail.querySelector('.tdb-senses-detail-name').textContent=LABELS[SENSES.indexOf(sense)];
-    detail.querySelector('.tdb-senses-detail-state').textContent=requested[sense]?'After':'Before';
-    detail.querySelector('.tdb-senses-detail-copy').textContent=DETAILS[sense][Number(requested[sense])];
+    if(intro)hideDetail();else void showDetail(sense,requested[sense]);
     hasBegun=true;updateControls();begin(queue.request(requested,origin,intro,sense));
     announcement.textContent=`${LABELS[SENSES.indexOf(sense)]} ${requested[sense]?'on':'off'}.`;
   }
@@ -767,13 +787,13 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   listen(reduced,'change',()=>{renderer.finish();updateControls();});
   listen(document,'visibilitychange',()=>{
     if(document.hidden){
-      audio.stop();audio=createAudio();audioReady=false;audioPending=false;requested.sound=false;hasBegun=false;interactionReady=false;dialog.querySelector('.tdb-senses-detail').hidden=true;
+      audio.stop();audio=createAudio();audioReady=false;audioPending=false;requested.sound=false;hasBegun=false;interactionReady=false;hideDetail();
       queue.cancel();queue.visible={...requested};queue.target={...requested};renderer.render(requested);dialog.dataset.audioState='uninitiated';dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
     }
     updateControls();
   });
   const cleanup=()=>{
-    if(disposed)return;disposed=true;queue.cancel();audio.stop();scope.abort();resize.disconnect();renderer.destroy();Object.values(images).forEach(image=>image.close?.());
+    if(disposed)return;disposed=true;hideDetail();queue.cancel();audio.stop();scope.abort();resize.disconnect();renderer.destroy();Object.values(images).forEach(image=>image.close?.());
   };
   signal.addEventListener('abort',cleanup,{once:true});
   dialog.dataset.visibleState=JSON.stringify(initial);updateControls();

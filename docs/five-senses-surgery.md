@@ -124,3 +124,8 @@ Increased the Sound leading-pulse separation from 175ms to 300ms without changin
 ### Prototype 0.18.1 — fuller explanations and hero shade
 
 Expanded all ten captions to explain the contrast and TDB design decisions. Retained Sweet Sans and the readable 13px body. Removed text shadows, replacing them with a static left-weighted dark gradient fading across and down behind the UI. No animation, filter, extra font or JavaScript rendering work is added.
+
+
+### Prototype 0.18.2 — caption fades
+
+Descriptions fade out over 180ms before the latest requested description fades in over 380ms. First appearance fades in directly. Opacity-only Web Animations avoid frame-by-frame JavaScript; repeated taps cancel the previous animation at its current opacity and only the latest caption is applied. Closing or hiding the page cancels pending caption work. Reduced motion switches text immediately.
