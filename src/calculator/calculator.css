@@ -112,12 +112,15 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 .tdb-calc .tdbc-step-header .tdbc-step-intro{min-height:2lh;margin:0;color:var(--calc-muted)}
 @media(max-width:767px){.tdbc-step-header{padding-left:3rem}}
 
-/* Fade only the header decoration on the existing DD scroll curve. */
-.tdbc-step-header::before{content:"";position:absolute;inset:-1px;border:1px solid var(--base-color-brand--orange-3);pointer-events:none}
+/* Solid orange framing switches to black while the header is in scroll focus. */
+.tdbc-step-header::before{content:"";position:absolute;inset:-1px;border:1px solid currentColor;color:var(--base-color-brand--orange-3);pointer-events:none}
 .tdbc-step-header .tdbc-number{background:transparent;isolation:isolate}
-.tdbc-step-header .tdbc-number::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--base-color-brand--orange-3);pointer-events:none}
+.tdbc-step-header .tdbc-number::before{content:"";position:absolute;inset:0;z-index:-1;background:currentColor;color:var(--base-color-brand--orange-3);pointer-events:none}
+@keyframes tdbc-step-frame{0%,70%,100%{color:var(--base-color-brand--orange-3)}30%{color:var(--base-color-neutral--neutral-darker)}}
+@keyframes tdbc-step-numeral{0%,70%,100%{color:var(--base-color-neutral--neutral-darker)}30%{color:var(--base-color-brand--orange-1)}}
 @supports(animation-timeline:view()){
  .tdbc-step-header{view-timeline:--tdbc-step block}
- .tdbc-step-header::before,.tdbc-step-header .tdbc-number::before{animation:tdbc-dd-text linear both;animation-timeline:--tdbc-step;animation-range:entry 0% exit 0%}
+ .tdbc-step-header::before,.tdbc-step-header .tdbc-number::before{animation:tdbc-step-frame steps(1,end) both;animation-timeline:--tdbc-step;animation-range:entry 0% exit 0%}
+ .tdbc-step-header .tdbc-number{animation:tdbc-step-numeral steps(1,end) both;animation-timeline:--tdbc-step;animation-range:entry 0% exit 0%}
 }
 @media(prefers-reduced-motion:reduce){.tdbc-step-header::before,.tdbc-step-header .tdbc-number::before{animation:none!important}}
