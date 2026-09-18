@@ -140,7 +140,8 @@ export class Soundscape {
 
 export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let disposed=false,renderer=null,audio=null,audioReady=false,audioPending=false,motionPaused=false,hasBegun=false,interactionReady=false,muted=false,soundOnPending=false;
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  // Staging review: full motion explicitly requested.
+  const reduced={matches:false,addEventListener(){}};
   const initial={sight:true,sound:false,smell:true,touch:true,taste:true};
   const requested={...initial},queue=new SenseTransitions(initial),scope=new AbortController();
   const listen=(el,event,fn,options={})=>el.addEventListener(event,fn,{...options,signal:scope.signal});
@@ -332,3 +333,4 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   if(signal.aborted){cleanup();return;}
   dialog.classList.add('tdb-senses-ready');startButton.focus({preventScroll:true});return{cleanup};
 }
+

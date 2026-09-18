@@ -49,7 +49,7 @@
 @keyframes tdb-senses-breathe{0%,100%{box-shadow:0 0 0 0 #f5f1e606;background:#eee9dc16}50%{box-shadow:0 0 0 9px #f5f1e605;background:#eee9dc2d}}
 @media(max-width:600px){.tdb-senses{--tdb-senses-gutter:5vw}.tdb-senses-top{top:max(17px,env(safe-area-inset-top))}.tdb-senses-room{font-size:9px;gap:11px}.tdb-senses-utilities{gap:8px}.tdb-senses-title{top:16%;font-size:clamp(36px,9vw,52px);line-height:1.08}.tdb-senses-controls{bottom:max(24px,calc(env(safe-area-inset-bottom) + 15px))}.tdb-senses-control{--circle-size:clamp(44px,13vw,58px)}.tdb-senses-circle svg{width:23px;height:23px}.tdb-senses-name{margin-top:10px;font-size:9px}.tdb-senses-value{font-size:6px;margin-top:5px}.tdb-senses-begin{bottom:calc(var(--circle-size) + 44px);font-size:7px}.tdb-senses-shade{background:linear-gradient(180deg,#0c0e0b24,transparent 36%,transparent 65%,#0c0e0b52)}}
 @media(max-height:520px) and (min-width:601px){.tdb-senses-title{font-size:34px;top:24%}.tdb-senses-controls{bottom:15px}.tdb-senses-control{--circle-size:48px}.tdb-senses-circle svg{width:23px;height:23px}.tdb-senses-name{margin-top:7px;font-size:9px}.tdb-senses-value{margin-top:3px}.tdb-senses-begin{bottom:calc(var(--circle-size) + 39px)}}
-@media(prefers-reduced-motion:reduce){.tdb-senses-stage,.tdb-senses-title,.tdb-senses-circle{transition:none}.tdb-senses-awaiting-sound [data-sense="sound"] .tdb-senses-circle,.tdb-senses-motes i,.tdb-senses-chair-glare{animation:none}}
+
 
 /* Prototype refinement: photographic objects fade only after the reveal arrives. */
 .tdb-senses-object{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
@@ -61,11 +61,11 @@
 @keyframes tdb-senses-botanical-drift{0%,100%{opacity:0;transform:translate3d(0,0,0) rotate(-25deg)}20%,70%{opacity:.44}90%{opacity:0;transform:translate3d(18px,-56px,0) rotate(55deg)}}
 .tdb-senses-motes i.spore{width:var(--mote-size);height:var(--mote-size);border-radius:50%;background:radial-gradient(circle,#fffdf1 0%,#eeeadeb3 40%,#eeeade00 75%);animation-name:tdb-senses-dust-drift}
 @keyframes tdb-senses-dust-drift{0%,100%{opacity:0;transform:translate3d(0,0,0)}18%,76%{opacity:var(--mote-alpha)}92%{opacity:0;transform:translate3d(22px,-32px,0)}}
-@media(prefers-reduced-motion:reduce){.tdb-senses-motes i.blossom,.tdb-senses-motes i.sprig{opacity:.28}.tdb-senses-motes i.spore{opacity:var(--mote-alpha)}}
+
 .tdb-senses-haze{position:absolute;inset:-5%;pointer-events:none;background:radial-gradient(ellipse at 25% 45%,#e6e5db30,transparent 65%),radial-gradient(ellipse at 76% 30%,#dce0df24,transparent 60%),linear-gradient(115deg,#dce0da0d,#ece9df17 50%,#cfd5d510);animation:tdb-senses-air-drift 24s ease-in-out infinite alternate;will-change:transform,opacity}
 @keyframes tdb-senses-air-drift{from{transform:translate3d(-1%,0,0);opacity:.75}to{transform:translate3d(1%,1%,0);opacity:1}}
 .tdb-senses-motion-paused .tdb-senses-haze{animation-play-state:paused}
-@media(prefers-reduced-motion:reduce){.tdb-senses-haze{animation:none}}
+
 
 /* The active change sits below the room label; controls retain their bottom inset. */
 .tdb-senses-detail{position:absolute;top:max(82px,calc(env(safe-area-inset-top) + 64px));left:var(--tdb-senses-gutter);right:var(--tdb-senses-gutter);max-width:330px;pointer-events:none;z-index:2}
@@ -123,7 +123,7 @@
 .tdb-senses-interactive .tdb-senses-all{opacity:1;pointer-events:auto}
 .tdb-senses-all button{transition:opacity .25s ease}
 .tdb-senses-all button:disabled{opacity:.3}
-@media(prefers-reduced-motion:reduce){.tdb-senses-all,.tdb-senses-all button{transition:none}}
+
 
 /* Illustrative 1px sound trace; CSS motion needs no audio analyser or JS loop. */
 .tdb-senses-waveform{width:44px;height:24px;display:block;opacity:.7;pointer-events:none}
@@ -133,15 +133,25 @@
 .tdb-senses-waveform[data-mode="silent"] path{animation:none;transform:scaleY(.08);opacity:.45}
 @keyframes tdb-senses-wave-calm{0%,100%{transform:scaleY(.28)}50%{transform:scaleY(.8)}}
 @keyframes tdb-senses-wave-road{0%,100%{transform:scaleY(.22)}20%{transform:scaleY(.95)}45%{transform:scaleY(.38)}65%{transform:scaleY(1)}85%{transform:scaleY(.5)}}
-@media(prefers-reduced-motion:reduce){.tdb-senses-waveform[data-mode] path{animation:none;transform:scaleY(.55)}}
+
 
 /* The illustration follows the soundscape even when the master output is muted. */
 .tdb-senses-waveform svg{transform:scaleY(1);transform-origin:center;transition:transform .6s ease-in-out}
 .tdb-senses-waveform[data-mode="quiet"] svg{transform:scaleY(.025);transition-duration:.35s}
 .tdb-senses-waveform[data-mode="quiet"] path{animation-name:tdb-senses-wave-road;animation-duration:var(--road-duration);animation-timing-function:steps(2,end)}
 .tdb-senses-waveform[data-mode="road"] svg{transition-duration:.12s}
-@media(prefers-reduced-motion:reduce){.tdb-senses-waveform[data-mode] path{animation:none;transform:scaleY(.55)}.tdb-senses-waveform svg{transition:none}}
+
 
 /* Bounded fallback avoids expanding layout and shadow raster surfaces. */
 .tdb-senses-raster{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .tdb-senses-layer[data-ambient-hidden="true"] .tdb-senses-motes i,.tdb-senses-layer[data-ambient-hidden="true"] .tdb-senses-haze,.tdb-senses-layer[data-ambient-hidden="true"] .tdb-senses-chair-glare{animation-play-state:paused;will-change:auto}
+
+
+/* Shared TDB typography and bounded page gutters. */
+.tdb-senses{--tdb-senses-gutter:max(3vw,calc((100vw - 90rem)/2));--tdb-senses-cream:var(--base-color-brand--cream-1,#faf3e6)}
+.tdb-senses .tdb-senses-title{font-size:3.5rem;line-height:1.2;letter-spacing:.225rem;text-transform:uppercase;font-weight:400;max-width:calc(100% - 2 * var(--tdb-senses-gutter))}
+.tdb-senses-detail-name,.tdb-senses-room,.tdb-senses-name{text-transform:uppercase;letter-spacing:.1em}
+.tdb-senses-detail{max-width:26rem}
+.tdb-senses-detail-copy{font-size:.875rem;line-height:1.6}
+.tdb-senses-all button{text-decoration:underline;text-underline-offset:.3em}
+@media(max-width:767px){.tdb-senses{--tdb-senses-gutter:5vw}.tdb-senses .tdb-senses-title{font-size:2.5rem;letter-spacing:.12rem}.tdb-senses-detail{max-width:min(26rem,90vw)}}

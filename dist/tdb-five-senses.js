@@ -676,6 +676,7 @@ export class SceneRenderer{
   destroy(){if(this.disposed)return;this.disposed=true;this.cancel();this.scope.abort();this.gpu?.destroy();this.raster?.destroy();this.stage.replaceChildren();this.artwork.destroy();this.layers=[];this.photos=[];}
 }
 
+
 /* TDB Five Senses v0.24.1 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
@@ -817,7 +818,8 @@ export class Soundscape {
 
 export async function mountExperience({dialog,signal,assetBase,onClose}) {
   let disposed=false,renderer=null,audio=null,audioReady=false,audioPending=false,motionPaused=false,hasBegun=false,interactionReady=false,muted=false,soundOnPending=false;
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  // Staging review: full motion explicitly requested.
+  const reduced={matches:false,addEventListener(){}};
   const initial={sight:true,sound:false,smell:true,touch:true,taste:true};
   const requested={...initial},queue=new SenseTransitions(initial),scope=new AbortController();
   const listen=(el,event,fn,options={})=>el.addEventListener(event,fn,{...options,signal:scope.signal});
@@ -1009,3 +1011,4 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
   if(signal.aborted){cleanup();return;}
   dialog.classList.add('tdb-senses-ready');startButton.focus({preventScroll:true});return{cleanup};
 }
+
