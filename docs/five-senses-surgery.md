@@ -238,3 +238,11 @@ Closing with unmuted, ready calm audio transfers only the piano/birdsong loop to
 The standalone URL redirects in its page head to Home with `?five-senses=1`. A conditional Home head cover keeps the loading appearance continuous until the loader opens the dialog. The query is consumed with replaceState; closing reveals the already-loaded homepage without navigation. The old standalone close-and-redirect interception is removed. The 900ms loading-to-Start handover and pause/restore behavior for existing page media remain.
 
 Validation: automated audio ownership/mute/cleanup and media restoration checks; staging direct-entry, close-before-Start, calm-close, mute/unmute, clinical-close and reopen checks. Physical iPhone Safari remains a user-device verification.
+
+
+### Loader v0.14.3 — Loading Vimeo handover and continuous Start circle
+The media hold captures pending playback intent as well as active playback. Ready-but-paused loading players resume explicitly after close; readiness arriving after close remains attached to the release continuation. A generation prevents obsolete close callbacks from restarting playback after another opening. User-paused players stay paused and idle players use the existing consent-aware refresh.
+
+The floating audio control fades in over 600ms. The empty loading arc keeps its rotation phase and closes into a complete ring over 700ms; that same DOM circle becomes the Start control while its glass fill, speaker icon and START label appear during a 900ms scene handover. Completion removes the progress SVG and all temporary animations. Reduced motion completes immediately. The floating control retains 20px blur and 1rem inset.
+
+Run `node tools/five-senses/check-media-handover.cjs` for pending-readiness, user pause, idle, page-exit and reopen race checks. Actual Vimeo playback is blocked by connection-security screening in the cloud browser.
