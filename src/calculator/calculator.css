@@ -158,3 +158,8 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 .tdbc-vip-overlay #tdb-vip-drawer{pointer-events:auto}
 
 .tdbc-dialog .tdbc-live{padding-inline:var(--tdbc-drawer-gutter,3vw);width:var(--tdbc-drawer-width,min(60rem,94vw));right:var(--tdbc-drawer-scrollbar,0px)}
+
+.tdbc-live .tdbc-scroll-arrow{clip-path:inset(0 0 100%);opacity:0;transform:translateY(-3px);transition:clip-path 420ms cubic-bezier(.4,0,.2,1),opacity 300ms ease,transform 420ms cubic-bezier(.4,0,.2,1)}
+.tdbc-live.is-populated .tdbc-scroll-arrow{clip-path:inset(0);opacity:1;transform:translateY(0)}
+.tdbc-live-button[aria-disabled=true]{cursor:default}
+.tdbc-dialog .tdbc-live{transform:none;visibility:visible;opacity:1;pointer-events:auto;transition:none}
