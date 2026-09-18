@@ -816,7 +816,7 @@ export class Soundscape {
   }
 }
 
-export async function mountExperience({dialog,signal,assetBase,onClose}) {
+export async function mountExperience({dialog,signal,assetBase,onClose,loadingCover=null,closeControl=null}) {
   let disposed=false,renderer=null,audio=null,audioReady=false,audioPending=false,motionPaused=false,hasBegun=false,interactionReady=false,muted=false,soundOnPending=false;
   // Staging review: full motion explicitly requested.
   const reduced={matches:false,addEventListener(){}};
@@ -846,6 +846,13 @@ export async function mountExperience({dialog,signal,assetBase,onClose}) {
     <div class="tdb-senses-all" role="group" aria-label="Set all senses"><button type="button" data-all="on">All on</button><span aria-hidden="true"></span><button type="button" data-all="off">All off</button></div>
     <div class="tdb-senses-controls" role="group" aria-label="Five senses">${SENSES.map((sense,i)=>`<button type="button" class="tdb-senses-control" data-sense="${sense}" aria-label="${sense==='sound'?'Begin sound experience':LABELS[i]}" aria-pressed="${initial[sense]}"><span class="tdb-senses-circle">${svg(ICONS[i])}</span><span class="tdb-senses-name">${LABELS[i]}</span><span class="tdb-senses-value">${sense==='sound'?'':initial[sense]?'ON':'OFF'}</span></button>`).join('')}</div>
     <p class="tdb-senses-message" aria-live="polite"></p><p class="tdb-senses-sr tdb-senses-announcement" aria-live="polite"></p>`;
+  // Carry the loading cover and close control across the DOM handover.
+  if(loadingCover)dialog.append(loadingCover);
+  if(closeControl){
+    const duplicate=dialog.querySelector('.tdb-senses-close');
+    duplicate.style.visibility='hidden';duplicate.tabIndex=-1;duplicate.setAttribute('aria-hidden','true');
+    dialog.append(closeControl);
+  }
   dialog.setAttribute('aria-labelledby','tdb-senses-title');dialog.setAttribute('aria-describedby','tdb-senses-description');
   const controls=Array.from(dialog.querySelectorAll('[data-sense]'));
   const allButtons=Array.from(dialog.querySelectorAll('[data-all]'));

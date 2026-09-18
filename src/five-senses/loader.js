@@ -18,6 +18,22 @@
     if(main){main.className='tdb-senses-preview';main.replaceChildren();const label=document.createElement('p');label.textContent=`${width} × ${height} · ${kind} viewport`;main.append(label,frame);}
     return;
   }
+  const shellStyle=document.createElement('style');
+  shellStyle.dataset.tdbSensesShell='';
+  shellStyle.textContent=`
+dialog[data-tdb-senses-shell]{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;outline:none;--tdb-senses-gutter:3vw;color:var(--tdb-senses-cream,#f5f1e6)!important}
+dialog[data-tdb-senses-shell]:not(.tdb-senses){background:#222!important}
+dialog[data-tdb-senses-shell]::backdrop{background:#131210;opacity:1;transition:opacity 500ms ease!important}
+dialog[data-tdb-senses-shell][data-senses-closing]::backdrop{opacity:0!important}
+dialog[data-tdb-senses-shell] .tdb-senses-loading-view{position:absolute;inset:0;z-index:30;display:grid;align-content:center;justify-items:center;gap:1rem;margin:0;background:#222;color:#f5f1e6}
+dialog[data-tdb-senses-shell] .tdb-senses-loading-text{color:#f5f1e6!important;font:inherit}
+dialog[data-tdb-senses-shell] .tdb-senses-persistent-close{position:absolute;z-index:40;top:max(22px,env(safe-area-inset-top));right:var(--tdb-senses-gutter);display:grid;place-items:center;width:44px;height:44px;padding:7px;margin:0;border:0;border-radius:50%;background:transparent!important;color:#fff!important;cursor:pointer;-webkit-tap-highlight-color:transparent}
+dialog[data-tdb-senses-shell] .tdb-senses-persistent-close svg{width:30px;height:30px;filter:drop-shadow(0 1px 5px #0008)}
+dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus:not(:focus-visible){outline:none}
+dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline:1px solid #fff;outline-offset:2px}
+@media(max-width:767px){dialog[data-tdb-senses-shell]{--tdb-senses-gutter:5vw}}
+`;
+  document.head.append(shellStyle);
   let active=null,stylePromise=null;
   function loadStyle(){
     if(stylePromise)return stylePromise;
@@ -47,6 +63,7 @@
   function close(session){
     if(active!==session||session.closing)return;
     session.closing=true;
+    session.dialog.dataset.sensesClosing='';
     session.dialog.querySelectorAll('audio,video').forEach(media=>media.pause());
     // Keep the dialog, focus trap and page lock until its exit has finished.
     const motion=session.dialog.animate([
@@ -55,31 +72,39 @@
     ],{duration:500,easing:'ease',fill:'forwards'});
     motion.finished.catch(()=>{}).then(()=>dispose(session));
   }
-  function loading(session){
+  function loading(session,error=false){
     const {dialog}=session;
     dialog.className='tdb-senses-loading';dialog.setAttribute('aria-label','Loading the Five Senses experience');
     dialog.removeAttribute('aria-labelledby');dialog.removeAttribute('aria-describedby');
-    dialog.innerHTML='<button class="tdb-senses-loading-close" type="button" aria-label="Close experience">×</button><div class="tdb-senses-loading-view"><span class="tdb-senses-loading-ring" aria-hidden="true"></span><p class="tdb-senses-loading-text" role="status">A moment to arrive.</p></div>';
-    dialog.querySelector('button').addEventListener('click',()=>close(session),{once:true});
+    if(!session.closeControl){
+      const control=document.createElement('button');control.type='button';control.className='tdb-senses-loading-close tdb-senses-persistent-close';control.setAttribute('aria-label','Close experience');
+      control.innerHTML='<svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1"><path d="m9 9 14 14M23 9 9 23"/></svg>';
+      control.addEventListener('click',()=>close(session));session.closeControl=control;
+    }
+    const cover=document.createElement('div');cover.className='tdb-senses-loading-view';
+    cover.innerHTML=error?'<p class="tdb-senses-loading-text" role="alert">The experience could not load.<br>Please try again.</p><button class="tdb-senses-loading-retry" type="button">Try again</button>':'<span class="tdb-senses-loading-ring" aria-hidden="true"></span><p class="tdb-senses-loading-text" role="status">A moment to arrive.</p>';
+    session.loadingCover=cover;dialog.replaceChildren(session.closeControl,cover);
+    if(error){cover.querySelector('button').addEventListener('click',()=>run(session),{once:true});cover.querySelector('button').focus();}
   }
   async function run(session){
+    if(active!==session||session.closing)return;
     loading(session);
     try{
       const [module]=await Promise.all([import(moduleURL),loadStyle()]);
-      if(active!==session||session.controller.signal.aborted)return;
-      await module.mountExperience({dialog:session.dialog,signal:session.controller.signal,assetBase,onClose:()=>close(session)});
+      if(active!==session||session.closing||session.controller.signal.aborted)return;
+      await module.mountExperience({dialog:session.dialog,signal:session.controller.signal,assetBase,onClose:()=>close(session),loadingCover:session.loadingCover,closeControl:session.closeControl});
+      if(active!==session||session.closing||session.controller.signal.aborted)return;
+      const cover=session.loadingCover;
+      await cover.animate([{opacity:1},{opacity:0}],{duration:350,easing:'ease',fill:'forwards'}).finished.catch(()=>{});
+      cover.remove();
     }catch(error){
-      if(active!==session||session.controller.signal.aborted)return;
-      session.dialog.className='tdb-senses-loading';
-      session.dialog.innerHTML='<button class="tdb-senses-loading-close" type="button" aria-label="Close experience">×</button><div class="tdb-senses-loading-view"><p class="tdb-senses-loading-text" role="alert">The experience could not load.<br>Please try again.</p><button class="tdb-senses-loading-retry" type="button">Try again</button></div>';
-      session.dialog.querySelector('.tdb-senses-loading-close').addEventListener('click',()=>close(session),{once:true});
-      session.dialog.querySelector('.tdb-senses-loading-retry').addEventListener('click',()=>run(session),{once:true});
-      session.dialog.querySelector('.tdb-senses-loading-retry').focus();
+      if(active!==session||session.closing||session.controller.signal.aborted)return;
+      loading(session,true);
     }
   }
   function open(opener){
     if(active)return;
-    const dialog=document.createElement('dialog');
+    const dialog=document.createElement('dialog');dialog.dataset.tdbSensesShell='';
     const session={dialog,opener,controller:new AbortController(),restore:lockScroll()};
     active=session;document.body.append(dialog);loading(session);
     dialog.addEventListener('cancel',event=>{event.preventDefault();close(session);});
@@ -96,5 +121,5 @@
     if(button.tagName!=='BUTTON')button.addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();open(button);}});
   });
   window.addEventListener('pagehide',()=>{if(active)dispose(active);});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.12.1'});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.13.0'});
 })();
