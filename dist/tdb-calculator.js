@@ -502,7 +502,7 @@
     }
     click(event){const el=event.target.closest('[data-action]');if(!el)return;const action=el.dataset.action;
       if(action==='info'){const info=el.closest('.tdbc-info'),open=!info.classList.contains('is-open');closeTooltips();info.classList.toggle('is-open',open);el.setAttribute('aria-expanded',String(open));const panel=info.querySelector('[role=tooltip]');panel.setAttribute('aria-hidden',String(!open));panel.inert=!open;return;}
-      if(action==='estimate'){const summary=this.root.querySelector('.tdbc-summary');if(summary){focusView(this);summary.focus({preventScroll:true});if(this.mode==='inline'&&window.lenis?.scrollTo)window.lenis.scrollTo(summary,{offset:-(parseFloat(getComputedStyle(document.documentElement).fontSize)*7)});else if(this.mode==='drawer'&&dialog){const offset=parseFloat(getComputedStyle(document.documentElement).fontSize)*7;dialog.scrollTo({top:dialog.scrollTop+summary.getBoundingClientRect().top-dialog.getBoundingClientRect().top-offset,behavior:'smooth'});}else summary.scrollIntoView?.({behavior:'smooth',block:'start'});}return;}
+      if(action==='estimate'){const summary=this.root.querySelector('.tdbc-summary');if(summary){focusView(this);summary.focus({preventScroll:true});if(this.mode==='inline'&&window.lenis?.scrollTo)window.lenis.scrollTo(summary,{offset:-(parseFloat(getComputedStyle(document.documentElement).fontSize)*7)});else if(this.mode==='drawer'&&dialog){const offset=parseFloat(getComputedStyle(document.documentElement).fontSize)*7;scrollEstimate(dialog,dialog.scrollTop+summary.getBoundingClientRect().top-dialog.getBoundingClientRect().top-offset);}else summary.scrollIntoView?.({behavior:'smooth',block:'start'});}return;}
       if(action==='close'){close();return;}
       if(action==='sooner'){this.setTimingWarning(!this.timingWarning);return;}
       if(action==='bridal'){
@@ -549,15 +549,22 @@
     dialog.addEventListener('click',e=>{if(e.target===dialog){const b=dialog.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)close();}});
     dialog.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const f=[...dialog.querySelectorAll('button,a[href],input,select,summary,[tabindex="0"]')].filter(x=>!x.disabled&&x.getClientRects().length);const first=f[0],last=f[f.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}});
   }
+  let estimateScrollFrame=0;
+  function scrollEstimate(target,top){
+    cancelAnimationFrame(estimateScrollFrame);
+    const from=target.scrollTop,end=Math.max(0,Math.min(top,target.scrollHeight-target.clientHeight)),started=performance.now();
+    const tick=now=>{const p=Math.min(1,(now-started)/650),ease=p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;target.scrollTop=from+(end-from)*ease;if(p<1)estimateScrollFrame=requestAnimationFrame(tick);};
+    estimateScrollFrame=requestAnimationFrame(tick);
+  }
   async function open(trigger){
     if(typeof HTMLDialogElement==='undefined'){location.assign(PRICE_PATH+'#treatment-calculator');return;}
-    makeDialog();lastTrigger=trigger;drawerView.suspended=false;focusView(drawerView);const config=configFrom(trigger);
+    makeDialog();const initialConfig=configFrom(trigger);if(!drawerView.ready){drawerView.config=initialConfig;await drawerView.init();}lastTrigger=trigger;drawerView.suspended=false;focusView(drawerView);const config=configFrom(trigger);
     try{window.TDBVIPDrawer?.reset?.();}catch(_){}
     if(!dialog.open){oldOverflow=document.documentElement.style.overflow;oldPadding=document.documentElement.style.paddingRight;const gap=innerWidth-document.documentElement.clientWidth;document.documentElement.style.overflow='hidden';if(gap>0)document.documentElement.style.paddingRight=gap+'px';scrollWasStopped=!!window.lenis?.isStopped;try{window.lenis?.stop?.();}catch(_){}dialog.showModal();}
     dialog.dispatchEvent(new Event('tdbc-layout'));dialog.scrollTop=0;dialog.querySelector('[data-tdb-calc-close]').focus({preventScroll:true});
     if(!drawerView.ready){drawerView.config=config;await drawerView.init();}else{contextual(drawerView,config);drawerView.render();save();}
   }
-  function close(restore=true){if(!dialog?.open)return;releaseFocus();dialog.close();document.documentElement.style.overflow=oldOverflow;document.documentElement.style.paddingRight=oldPadding;try{if(!scrollWasStopped)window.lenis?.start?.();}catch(_){}if(restore&&lastTrigger?.isConnected)lastTrigger.focus({preventScroll:true});renderAll(drawerView);syncViewportFocus();}
+  function close(restore=true){if(!dialog?.open)return;dialog.style.setProperty('--tdbc-close-scroll',dialog.scrollTop+'px');releaseFocus();dialog.close();document.documentElement.style.overflow=oldOverflow;document.documentElement.style.paddingRight=oldPadding;try{if(!scrollWasStopped)window.lenis?.start?.();}catch(_){}if(restore&&lastTrigger?.isConnected)lastTrigger.focus({preventScroll:true});renderAll(drawerView);syncViewportFocus();}
   function overlayVIP(invoker){
     if(!dialog?.open||!window.TDBVIPDrawer?.open)return false;
     const vip=document.getElementById('tdb-vip-drawer');if(!vip)return false;
@@ -618,6 +625,6 @@
     document.addEventListener('keydown',event=>{if(event.key==='Escape'&&(document.querySelector('.tdbc-info.is-open')||views.some(v=>v.timingWarning))){closeTooltips();for(const v of views)v.dismissTimingWarning();event.preventDefault();event.stopImmediatePropagation();}},true);
     document.addEventListener('click',event=>{const a=event.target.closest(SELECTOR);if(!a||event.defaultPrevented||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button>0)return;event.preventDefault();open(a);});
   }
-  window.TDBCalculator=Object.freeze({version:C.VERSION,open,close,refresh:()=>{records=null;for(const v of views)v.init();}});
+  window.TDBCalculator=Object.freeze({version:C.VERSION,open,close,preload:getRecords,refresh:()=>{records=null;for(const v of views)v.init();}});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();

@@ -154,7 +154,7 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 
 /* The existing VIP drawer sits in its own top layer above a preserved calculator. */
 .tdbc-vip-overlay{position:fixed;inset:0;width:100%;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;overflow:visible;pointer-events:none}
-.tdbc-vip-overlay::backdrop{background:color-mix(in srgb,var(--base-color-brand--black) 35%,transparent)}
+.tdbc-vip-overlay::backdrop{background:transparent}
 .tdbc-vip-overlay #tdb-vip-drawer{pointer-events:auto}
 
 .tdbc-dialog .tdbc-live{padding-inline:var(--tdbc-drawer-gutter,3vw);width:var(--tdbc-drawer-width,min(60rem,94vw));right:var(--tdbc-drawer-scrollbar,0px)}
@@ -163,3 +163,9 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 .tdbc-live.is-populated .tdbc-scroll-arrow{clip-path:inset(0);opacity:1;transform:translateY(0)}
 .tdbc-live-button[aria-disabled=true]{cursor:default}
 .tdbc-dialog .tdbc-live{transform:none;visibility:visible;opacity:1;pointer-events:auto;transition:none}
+
+/* Rotate the glyph independently of its downward reveal. */
+.tdbc-scroll-arrow svg{transform:rotate(90deg)}
+/* During the closing transform, fixed controls use the scrolled dialog as their containing block. */
+.tdbc-dialog:not([open]) .tdbc-live{top:var(--tdbc-close-scroll,0px)}
+.tdbc-dialog:not([open]) .tdbc-drawer-close-dock{top:calc(var(--tdbc-close-scroll,0px) + 6rem)}
