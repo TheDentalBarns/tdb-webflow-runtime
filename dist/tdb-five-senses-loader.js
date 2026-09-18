@@ -51,7 +51,7 @@
     // Keep the dialog, focus trap and page lock until its exit has finished.
     const motion=session.dialog.animate([
       {transform:'translate3d(0,0,0)',opacity:1},
-      {transform:'translate3d(0,20%,0)',opacity:0}
+      {transform:'translate3d(0,100%,0)',opacity:1}
     ],{duration:500,easing:'ease',fill:'forwards'});
     motion.finished.catch(()=>{}).then(()=>dispose(session));
   }
@@ -96,5 +96,5 @@
     if(button.tagName!=='BUTTON')button.addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();open(button);}});
   });
   window.addEventListener('pagehide',()=>{if(active)dispose(active);});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.12.0'});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.12.1'});
 })();
