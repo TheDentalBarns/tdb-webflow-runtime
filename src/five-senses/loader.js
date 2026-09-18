@@ -39,8 +39,8 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close svg{width:30px;height
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus:not(:focus-visible){outline:none}
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline:1px solid #fff;outline-offset:2px}
 @media(max-width:600px){dialog[data-tdb-senses-shell]{--tdb-senses-gutter:5vw}dialog[data-tdb-senses-shell] .tdb-senses-persistent-close{top:max(17px,env(safe-area-inset-top))}}
-.tdb-senses-page-audio{position:fixed;right:max(22px,env(safe-area-inset-right));bottom:max(24px,env(safe-area-inset-bottom));z-index:10001;display:grid;place-items:center;width:48px;height:48px;padding:10px;border:1px solid #f5f1e680;border-radius:50%;background:#25231ee6;color:#f5f1e6;box-shadow:0 4px 20px #0003;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.tdb-senses-page-audio svg{display:block;width:26px;height:26px}
+.tdb-senses-page-audio{position:fixed;right:max(22px,env(safe-area-inset-right));bottom:max(24px,env(safe-area-inset-bottom));z-index:10001;display:grid;place-items:center;box-sizing:border-box;width:4rem;height:4rem;padding:0;border:1px solid rgba(255,255,255,.25);border-radius:50%;background:rgba(100,100,100,.2);color:#fff;box-shadow:none;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tdb-senses-page-audio svg{display:block;width:1.75rem;height:1.75rem}
 .tdb-senses-page-audio:focus-visible{outline:2px solid #f5f1e6;outline-offset:4px}
 `;
   document.head.append(shellStyle);
@@ -233,7 +233,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
   });
   window.addEventListener('pagehide',()=>{stopPageAudio();if(active)dispose(active,false);});
   document.addEventListener('visibilitychange',()=>{if(document.hidden){stopPageAudio();active?.calmAudio?.stop();}});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.14.0'});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.14.1'});
   // A direct experience link arrives on Home before any audio is unlocked.
   if(location.pathname==='/'&&query.get('five-senses')==='1'){
     const url=new URL(location.href);url.searchParams.delete('five-senses');history.replaceState(history.state,'',url);
