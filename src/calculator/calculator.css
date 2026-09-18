@@ -127,3 +127,6 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 
 /* Inline estimate uses the same outer gutter and inner container as the form. */
 .tdb-calc .tdbc-live-button{padding-inline:0}
+
+/* Desktop banner content aligns with the estimate panel inset. */
+@media(min-width:768px){.tdb-calc .tdbc-live-button{padding-inline:2.5rem}}
