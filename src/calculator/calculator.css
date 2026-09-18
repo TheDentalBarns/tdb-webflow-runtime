@@ -133,7 +133,7 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 
 /* Calculator drawer: native dialog motion and gallery-style close control. */
 .tdbc-dialog{transform:translateX(100%);transition:transform 420ms cubic-bezier(.4,0,.2,1),display 420ms allow-discrete,overlay 420ms allow-discrete}
-.tdbc-dialog[open]{transform:translateX(0)}
+.tdbc-dialog[open]{transform:none}
 .tdbc-dialog::backdrop{opacity:0;transition:opacity 420ms ease,display 420ms allow-discrete,overlay 420ms allow-discrete}
 .tdbc-dialog[open]::backdrop{opacity:1}
 @starting-style{.tdbc-dialog[open]{transform:translateX(100%)}.tdbc-dialog[open]::backdrop{opacity:0}}
