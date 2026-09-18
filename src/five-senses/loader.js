@@ -26,6 +26,7 @@ dialog[data-tdb-senses-shell]{position:fixed;inset:0;width:100vw;height:100dvh;m
 dialog[data-tdb-senses-shell]:not(.tdb-senses){background:#222!important}
 dialog[data-tdb-senses-shell]::backdrop{background:#131210;opacity:1;transition:opacity 500ms ease!important}
 dialog[data-tdb-senses-shell][data-senses-opening]::backdrop,dialog[data-tdb-senses-shell][data-senses-closing]::backdrop{opacity:0!important}
+dialog[data-tdb-senses-shell][data-senses-handover] .tdb-senses-start{opacity:0;pointer-events:none}
 dialog[data-tdb-senses-shell] .tdb-senses-loading-view{position:absolute;inset:0;z-index:30;display:grid;align-content:center;justify-items:center;gap:1rem;margin:0;background:#222;color:#f5f1e6}
 dialog[data-tdb-senses-shell] .tdb-senses-loading-ring{display:block;box-sizing:border-box;width:88px;height:88px;flex:none;border:1px solid #f5f1e638;border-top-color:#f5f1e6;border-radius:50%;animation:tdb-senses-shell-turn 1.3s linear infinite}
 dialog[data-tdb-senses-shell] .tdb-senses-loading-anchor{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:16px;font:inherit}
@@ -67,15 +68,60 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
       if(ownsLenis&&window.lenis===lenis){lenis.start();lenis.resize?.();}
     };
   }
-  function dispose(session){
+  // Borrow existing players; never create an iframe, load an SDK or request consent.
+  function holdPageMedia(){
+    let held=true;
+    const entries=Array.from(document.querySelectorAll('[data-vimeo-player-init]')).map(root=>{
+      const entry={root,autoplay:root.getAttribute('data-vimeo-autoplay'),resume:root.getAttribute('data-vimeo-playing')==='true'||root._heroState?.ui==='playing'||!!root._ambientState?.playing};
+      root.setAttribute('data-vimeo-autoplay','false');
+      const attach=player=>{
+        if(!held||!player)return;
+        entry.player=player;
+        entry.pause=()=>{if(held)Promise.resolve(player.pause()).catch(()=>{});};
+        player.on('play',entry.pause);
+        return player.getPaused().catch(()=>null).then(paused=>{
+          entry.resume=entry.resume||paused===false;
+          if(held)return player.pause();
+        }).catch(()=>{});
+      };
+      entry.pending=root._vimeoPlayer?Promise.resolve(attach(root._vimeoPlayer)):Promise.resolve(root._vimeoPlayerPromise).then(attach).catch(()=>{});
+      return entry;
+    });
+    const videos=Array.from(document.querySelectorAll('video')).map(video=>{
+      const entry={video,resume:!video.paused&&!video.ended};
+      entry.pause=()=>{if(held)video.pause();};video.addEventListener('play',entry.pause);entry.pause();return entry;
+    });
+    return(resume=true)=>{
+      if(!held)return;held=false;
+      for(const entry of entries){
+        const {root}=entry;
+        if(root.getAttribute('data-vimeo-autoplay')==='false'){
+          if(entry.autoplay===null)root.removeAttribute('data-vimeo-autoplay');else root.setAttribute('data-vimeo-autoplay',entry.autoplay);
+        }
+        if(entry.player)entry.player.off('play',entry.pause);
+        entry.pending.finally(()=>{
+          const rect=root.getBoundingClientRect();
+          if(resume&&!active&&!document.hidden&&root.isConnected&&entry.resume&&rect.width&&rect.height&&rect.bottom>0&&rect.top<innerHeight){
+            Promise.resolve(entry.player?.play()).catch(()=>{});
+          }
+        });
+      }
+      for(const {video,resume:wasPlaying,pause} of videos){
+        video.removeEventListener('play',pause);
+        if(resume&&!active&&!document.hidden&&video.isConnected&&wasPlaying)Promise.resolve(video.play()).catch(()=>{});
+      }
+    };
+  }
+  function dispose(session,resumeMedia=true){
     if(active!==session)return;
     active=null;
     clearTimeout(session.closeTimer);
+    session.handover?.forEach(motion=>motion.cancel());
     try{
       session.controller.abort();
     }finally{
       try{session.dialog.close();session.dialog.remove();}
-      finally{session.restore();}
+      finally{session.restore();session.releaseMedia(resumeMedia);}
     }
     if(session.opener.isConnected)session.opener.focus({preventScroll:true});
   }
@@ -109,14 +155,28 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
   async function run(session){
     if(active!==session||session.closing)return;
     loading(session);
+    session.dialog.dataset.sensesHandover='';
     try{
       const [module]=await Promise.all([import(moduleURL),loadStyle()]);
       if(active!==session||session.closing||session.controller.signal.aborted)return;
       await module.mountExperience({dialog:session.dialog,signal:session.controller.signal,assetBase,onClose:()=>close(session),loadingCover:session.loadingCover,closeControl:session.closeControl});
       if(active!==session||session.closing||session.controller.signal.aborted)return;
-      const cover=session.loadingCover;
-      await cover.animate([{opacity:1},{opacity:0}],{duration:350,easing:'ease',fill:'forwards'}).finished.catch(()=>{});
-      cover.remove();
+      const cover=session.loadingCover,anchor=cover.querySelector('.tdb-senses-loading-anchor');
+      const start=session.dialog.querySelector('.tdb-senses-start');
+      const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
+      const duration=reduced?0:900,easing='cubic-bezier(.4,0,.2,1)';
+      if(start)start.inert=true;
+      const motions=[
+        cover.animate([{opacity:1},{opacity:0}],{duration,easing,fill:'forwards'}),
+        ...(anchor?[anchor.animate([{opacity:1},{opacity:0}],{duration:reduced?0:350,easing,fill:'forwards'})]:[]),
+        ...(start?[start.animate([{opacity:0},{opacity:1}],{duration:reduced?0:600,delay:reduced?0:300,easing,fill:'both'})]:[])
+      ];
+      session.handover=motions;
+      await Promise.all(motions.map(motion=>motion.finished.catch(()=>{})));
+      if(active!==session||session.closing||session.controller.signal.aborted)return;
+      cover.remove();delete session.dialog.dataset.sensesHandover;
+      motions.forEach(motion=>motion.cancel());session.handover=null;
+      if(start){start.inert=false;start.focus({preventScroll:true});}
     }catch(error){
       if(active!==session||session.closing||session.controller.signal.aborted)return;
       loading(session,true);
@@ -125,7 +185,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
   function open(opener){
     if(active)return;
     const dialog=document.createElement('dialog');dialog.dataset.tdbSensesShell='';
-    const session={dialog,opener,controller:new AbortController(),restore:lockScroll()};
+    const session={dialog,opener,controller:new AbortController(),restore:lockScroll(),releaseMedia:holdPageMedia()};
     active=session;document.body.append(dialog);loading(session);
     dialog.addEventListener('cancel',event=>{event.preventDefault();close(session);});
     dialog.addEventListener('close',()=>dispose(session));
@@ -143,6 +203,6 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     button.addEventListener('click',event=>{event.preventDefault();open(button);});
     if(button.tagName!=='BUTTON')button.addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();open(button);}});
   });
-  window.addEventListener('pagehide',()=>{if(active)dispose(active);});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.13.3'});
+  window.addEventListener('pagehide',()=>{if(active)dispose(active,false);});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.13.4'});
 })();
