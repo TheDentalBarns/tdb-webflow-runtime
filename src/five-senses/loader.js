@@ -27,6 +27,11 @@ dialog[data-tdb-senses-shell]:not(.tdb-senses){background:#222!important}
 dialog[data-tdb-senses-shell]::backdrop{background:#131210;opacity:1;transition:opacity 500ms ease!important}
 dialog[data-tdb-senses-shell][data-senses-opening]::backdrop,dialog[data-tdb-senses-shell][data-senses-closing]::backdrop{opacity:0!important}
 dialog[data-tdb-senses-shell] .tdb-senses-loading-view{position:absolute;inset:0;z-index:30;display:grid;align-content:center;justify-items:center;gap:1rem;margin:0;background:#222;color:#f5f1e6}
+dialog[data-tdb-senses-shell] .tdb-senses-loading-ring{display:block;box-sizing:border-box;width:88px;height:88px;flex:none;border:1px solid #f5f1e638;border-top-color:#f5f1e6;border-radius:50%;animation:tdb-senses-shell-turn 1.3s linear infinite}
+dialog[data-tdb-senses-shell] .tdb-senses-loading-anchor{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:16px;font:inherit}
+dialog[data-tdb-senses-shell] .tdb-senses-loading-anchor .tdb-senses-loading-text{margin:0;font-size:11px;letter-spacing:.18em;white-space:nowrap}
+@keyframes tdb-senses-shell-turn{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){dialog[data-tdb-senses-shell] .tdb-senses-loading-ring{animation:none}}
 dialog[data-tdb-senses-shell] .tdb-senses-loading-text{color:#f5f1e6!important;font:inherit}
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close{position:absolute;z-index:40;top:max(22px,env(safe-area-inset-top));right:var(--tdb-senses-gutter);display:grid;place-items:center;width:44px;height:44px;padding:7px;margin:0;border:0;border-radius:50%;background:transparent!important;color:#fff!important;cursor:pointer;-webkit-tap-highlight-color:transparent}
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close svg{width:30px;height:30px;filter:drop-shadow(0 1px 5px #0008)}
@@ -97,7 +102,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
       control.addEventListener('click',()=>close(session));session.closeControl=control;
     }
     const cover=document.createElement('div');cover.className='tdb-senses-loading-view';
-    cover.innerHTML=error?'<p class="tdb-senses-loading-text" role="alert">The experience could not load.<br>Please try again.</p><button class="tdb-senses-loading-retry" type="button">Try again</button>':'<span class="tdb-senses-loading-ring" aria-hidden="true"></span><p class="tdb-senses-loading-text" role="status">A moment to arrive.</p>';
+    cover.innerHTML=error?'<p class="tdb-senses-loading-text" role="alert">The experience could not load.<br>Please try again.</p><button class="tdb-senses-loading-retry" type="button">Try again</button>':'<div class="tdb-senses-loading-anchor"><span class="tdb-senses-loading-ring" aria-hidden="true"></span><p class="tdb-senses-loading-text" role="status">A moment to arrive.</p></div>';
     session.loadingCover=cover;dialog.replaceChildren(session.closeControl,cover);
     if(error){cover.querySelector('button').addEventListener('click',()=>run(session),{once:true});cover.querySelector('button').focus();}
   }
@@ -139,5 +144,5 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     if(button.tagName!=='BUTTON')button.addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();open(button);}});
   });
   window.addEventListener('pagehide',()=>{if(active)dispose(active);});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.13.2'});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.13.3'});
 })();

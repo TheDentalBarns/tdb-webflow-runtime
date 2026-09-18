@@ -756,18 +756,42 @@ export class Soundscape {
     const AudioContextType = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextType) throw new Error('Audio is unavailable in this browser');
     const generation = ++this.generation;
+    // Classify deliberate music playback where Audio Session is supported.
+    try {
+      const session = navigator.audioSession;
+      if (session) { this.audioSession = session; this.previousSessionType = session.type; session.type = 'playback'; }
+    } catch (_) {}
     this.context = new AudioContextType();
     const context = this.context;
+    this.master = context.createGain(); this.master.gain.value = this.muted ? 0 : 1; this.master.connect(context.destination);
+    // Connect and start during the gesture, before downloading or decoding.
+    const prime = context.createBufferSource();
+    prime.buffer = context.createBuffer(1, context.sampleRate, context.sampleRate);
+    prime.loop = true; prime.connect(this.master); prime.start(); this.prime = prime;
     const resumed = context.resume();
     this.report('preparing');
-    const bytes = await this.prefetch();
-    const decoded = await Promise.all(bytes.map(buffer => context.decodeAudioData(buffer.slice(0))));
-    await resumed;
+    let timer, abort;
+    const cancelled = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error('Audio start timed out')), 20000);
+      abort = () => reject(new DOMException('Audio start cancelled', 'AbortError'));
+      this.signal.addEventListener('abort', abort, {once:true});
+      if (this.signal.aborted) abort();
+    });
+    let decoded;
+    try {
+      [, decoded] = await Promise.race([
+        Promise.all([resumed, this.prefetch().then(bytes => Promise.all(bytes.map(buffer => context.decodeAudioData(buffer.slice(0)))))]),
+        cancelled
+      ]);
+    } finally {
+      clearTimeout(timer); this.signal.removeEventListener('abort', abort);
+      try { prime.stop(); prime.disconnect(); } catch (_) {}
+      if (this.prime === prime) this.prime = null;
+    }
     if (generation !== this.generation || this.signal.aborted || context.state !== 'running') {
       try { await context.close(); } catch (_) {}
       throw new DOMException('Audio start cancelled', 'AbortError');
     }
-    this.master = context.createGain(); this.master.gain.value = this.muted ? 0 : 1; this.master.connect(context.destination);
     decoded.forEach(buffer => {
       const source = context.createBufferSource();
       const gain = context.createGain();
@@ -806,6 +830,10 @@ export class Soundscape {
   }
   stop() {
     this.generation++; this.ready = false;
+    try { this.prime?.stop(); this.prime?.disconnect(); } catch (_) {}
+    this.prime = null;
+    try { if (this.audioSession?.type === 'playback') this.audioSession.type = this.previousSessionType; } catch (_) {}
+    this.audioSession = null;
     this.gains.forEach(g => { try { g.gain.cancelScheduledValues(0); g.gain.value = 0; g.disconnect(); } catch (_) {} });
     this.sources.forEach(s => { try { s.stop(); s.disconnect(); } catch (_) {} });
     this.sources = []; this.gains = [];
