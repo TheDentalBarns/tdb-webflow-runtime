@@ -10,7 +10,7 @@
   for(const name of ['calm.mp3','clinical.mp3','scent-candle.webp','taste-clinical.webp','surgery-clinical-clean.webp'])if(!assetBase[name])assetBase[name]=new URL(`assets/five-senses/${name}`,root).href;
   const query=new URLSearchParams(location.search);
   // Explicit review URLs provide real narrow iframe viewports, never normal entry UI.
-  if(['mobile','tablet'].includes(query.get('preview'))&&!query.has('embedded')){
+  if(['mobile','tablet'].includes(query.get('preview'))&&!query.has('embedded')&&query.get('five-senses')!=='1'){
     const kind=query.get('preview'),width=kind==='mobile'?390:768,height=kind==='mobile'?844:1024;
     const url=new URL(location.href);url.searchParams.delete('preview');url.searchParams.set('embedded','1');
     const frame=document.createElement('iframe');frame.src=url.href;frame.title=`${kind} experience preview`;frame.width=String(width);frame.height=String(height);frame.allow='autoplay';
@@ -39,9 +39,31 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close svg{width:30px;height
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus:not(:focus-visible){outline:none}
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline:1px solid #fff;outline-offset:2px}
 @media(max-width:600px){dialog[data-tdb-senses-shell]{--tdb-senses-gutter:5vw}dialog[data-tdb-senses-shell] .tdb-senses-persistent-close{top:max(17px,env(safe-area-inset-top))}}
+.tdb-senses-page-audio{position:fixed;right:max(22px,env(safe-area-inset-right));bottom:max(24px,env(safe-area-inset-bottom));z-index:10001;display:grid;place-items:center;width:48px;height:48px;padding:10px;border:1px solid #f5f1e680;border-radius:50%;background:#25231ee6;color:#f5f1e6;box-shadow:0 4px 20px #0003;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tdb-senses-page-audio svg{display:block;width:26px;height:26px}
+.tdb-senses-page-audio:focus-visible{outline:2px solid #f5f1e6;outline-offset:4px}
 `;
   document.head.append(shellStyle);
-  let active=null,stylePromise=null;
+  let active=null,stylePromise=null,pageAudio=null;
+  function stopPageAudio(){
+    if(!pageAudio)return;
+    pageAudio.audio.stop();pageAudio.button.remove();pageAudio=null;
+  }
+  function keepPageAudio(audio){
+    stopPageAudio();
+    if(!audio?.ready||document.hidden){audio?.stop();return;}
+    const button=document.createElement('button');button.type='button';button.className='tdb-senses-page-audio';
+    const update=()=>{
+      button.setAttribute('aria-label',audio.muted?'Unmute piano and birdsong':'Mute piano and birdsong');
+      button.setAttribute('aria-pressed',String(audio.muted));button.dataset.audioState=audio.muted?'muted':'playing';
+      button.innerHTML='<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h5l7-6v20l-7-6H5Z"/>'+(audio.muted?'<path d="m22 12 8 8m0-8-8 8"/>':'<path d="M21 11q5 5 0 10M24 7q9 9 0 18"/>')+'</svg>';
+    };
+    button.addEventListener('click',()=>{
+      if(audio.muted)audio.context?.resume().catch(()=>{});
+      audio.setMuted(!audio.muted);update();
+    });
+    pageAudio={audio,button};update();document.body.append(button);
+  }
   function loadStyle(){
     if(stylePromise)return stylePromise;
     stylePromise=new Promise((resolve,reject)=>{
@@ -121,13 +143,17 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
       session.controller.abort();
     }finally{
       try{session.dialog.close();session.dialog.remove();}
-      finally{session.restore();session.releaseMedia(resumeMedia);}
+      finally{session.restore();session.releaseMedia(resumeMedia&&!session.calmAudio);}
     }
-    if(session.opener.isConnected)session.opener.focus({preventScroll:true});
+    if(session.calmAudio){if(resumeMedia)keepPageAudio(session.calmAudio);else session.calmAudio.stop();session.calmAudio=null;}
+    if(session.opener?.isConnected)session.opener.focus({preventScroll:true});
+    else{const target=document.querySelector('main,h1');if(target){const tab=target.getAttribute('tabindex');target.tabIndex=-1;target.focus({preventScroll:true});if(tab===null)target.removeAttribute('tabindex');else target.setAttribute('tabindex',tab);}}
   }
   function close(session){
     if(active!==session||session.closing)return;
     session.closing=true;
+    session.calmAudio=session.experience?.releaseAudio();
+    session.dialog.inert=true;
     session.dialog.dataset.sensesClosing='';
     session.dialog.querySelectorAll('audio,video').forEach(media=>media.pause());
     // Keep the dialog, focus trap and page lock until its exit has finished.
@@ -159,7 +185,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     try{
       const [module]=await Promise.all([import(moduleURL),loadStyle()]);
       if(active!==session||session.closing||session.controller.signal.aborted)return;
-      await module.mountExperience({dialog:session.dialog,signal:session.controller.signal,assetBase,onClose:()=>close(session),loadingCover:session.loadingCover,closeControl:session.closeControl});
+      session.experience=await module.mountExperience({dialog:session.dialog,signal:session.controller.signal,assetBase,onClose:()=>close(session),loadingCover:session.loadingCover,closeControl:session.closeControl});
       if(active!==session||session.closing||session.controller.signal.aborted)return;
       const cover=session.loadingCover,anchor=cover.querySelector('.tdb-senses-loading-anchor');
       const start=session.dialog.querySelector('.tdb-senses-start');
@@ -182,8 +208,9 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
       loading(session,true);
     }
   }
-  function open(opener){
+  function open(opener,automatic=false){
     if(active)return;
+    stopPageAudio();
     const dialog=document.createElement('dialog');dialog.dataset.tdbSensesShell='';
     const session={dialog,opener,controller:new AbortController(),restore:lockScroll(),releaseMedia:holdPageMedia()};
     active=session;document.body.append(dialog);loading(session);
@@ -191,8 +218,9 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     dialog.addEventListener('close',()=>dispose(session));
     dialog.dataset.sensesOpening='';
     dialog.showModal();
+    document.documentElement.classList.remove('tdb-senses-boot');
     requestAnimationFrame(()=>requestAnimationFrame(()=>{if(active===session&&!session.closing)delete dialog.dataset.sensesOpening;}));
-    dialog.animate([
+    if(!automatic)dialog.animate([
       {transform:'translate3d(0,20%,0)',opacity:0},
       {transform:'translate3d(0,0,0)',opacity:1}
     ],{duration:500,easing:'ease'});
@@ -203,6 +231,12 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     button.addEventListener('click',event=>{event.preventDefault();open(button);});
     if(button.tagName!=='BUTTON')button.addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();open(button);}});
   });
-  window.addEventListener('pagehide',()=>{if(active)dispose(active,false);});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.13.4'});
+  window.addEventListener('pagehide',()=>{stopPageAudio();if(active)dispose(active,false);});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){stopPageAudio();active?.calmAudio?.stop();}});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.14.0'});
+  // A direct experience link arrives on Home before any audio is unlocked.
+  if(location.pathname==='/'&&query.get('five-senses')==='1'){
+    const url=new URL(location.href);url.searchParams.delete('five-senses');history.replaceState(history.state,'',url);
+    open(null,true);
+  }
 })();

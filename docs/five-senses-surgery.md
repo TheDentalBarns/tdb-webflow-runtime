@@ -230,3 +230,11 @@ Replaced dark moving ripple shadows with a white inner wash, peaking near 80% op
 
 ### v0.24.3 — directional ripple treatment
 ON and Start retain the long 80% white wash. OFF restores the v0.24.1 dark inner shadow in both GPU and Canvas renderers. Direction follows each independent channel target, including mid-wave reversals. Sound echoes remain white.
+
+
+### v0.14.0 loader — Calm audio after close and Home-backed direct entry
+Closing with unmuted, ready calm audio transfers only the piano/birdsong loop to a page-level mute control. The clinical source is stopped and disconnected; the scene, renderer, images and dialog listeners are released as usual. Clinical, muted and uninitiated exits stop audio. Reopening, hiding the document or leaving the page stops retained audio; this is same-page continuation, not cross-navigation playback.
+
+The standalone URL redirects in its page head to Home with `?five-senses=1`. A conditional Home head cover keeps the loading appearance continuous until the loader opens the dialog. The query is consumed with replaceState; closing reveals the already-loaded homepage without navigation. The old standalone close-and-redirect interception is removed. The 900ms loading-to-Start handover and pause/restore behavior for existing page media remain.
+
+Validation: automated audio ownership/mute/cleanup and media restoration checks; staging direct-entry, close-before-Start, calm-close, mute/unmute, clinical-close and reopen checks. Physical iPhone Safari remains a user-device verification.

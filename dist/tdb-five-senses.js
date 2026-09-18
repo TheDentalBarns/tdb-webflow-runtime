@@ -828,6 +828,14 @@ export class Soundscape {
     gain.cancelScheduledValues(t);gain.setValueAtTime(gain.value,t);
     gain.linearRampToValueAtTime(muted?0:1,t+.04);
   }
+  retainCalm() {
+    if (!this.ready || !this.requested || this.muted || this.context?.state !== 'running') return false;
+    // The page player retains only the calm loop, with no reference to the dialog.
+    this.report = () => {};
+    try { this.sources[0]?.stop(); this.sources[0]?.disconnect(); this.gains[0]?.disconnect(); } catch (_) {}
+    this.sources[0] = null; this.gains[0] = null; this.bytes = null;
+    return true;
+  }
   stop() {
     this.generation++; this.ready = false;
     try { this.prime?.stop(); this.prime?.disconnect(); } catch (_) {}
@@ -846,6 +854,8 @@ export class Soundscape {
 
 export async function mountExperience({dialog,signal,assetBase,onClose,loadingCover=null,closeControl=null}) {
   let disposed=false,renderer=null,audio=null,audioReady=false,audioPending=false,motionPaused=false,hasBegun=false,interactionReady=false,muted=false,soundOnPending=false;
+  const audioLifetime=new AbortController();
+  let audioTransferred=false;
   // Staging review: full motion explicitly requested.
   const reduced={matches:false,addEventListener(){}};
   const initial={sight:true,sound:false,smell:true,touch:true,taste:true};
@@ -868,7 +878,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose,loadingCo
     <button type="button" class="tdb-senses-close" aria-label="Close experience">${svg('<path d="m9 9 14 14M23 9 9 23"/>')}</button></div></header>
     <h2 id="tdb-senses-title" class="tdb-senses-title">Every sense,<br>considered.</h2>
     <div class="tdb-senses-detail" hidden><p class="tdb-senses-detail-name"></p><p class="tdb-senses-detail-state"></p><p class="tdb-senses-detail-copy"></p></div>
-    <p id="tdb-senses-description" class="tdb-senses-sr">Explore the Surgery. Each control switches one considered detail on or off. Sound starts only when you activate Start. Sound off plays the conventional soundscape. The top speaker mutes or unmutes all audio without changing the scene. Close stops all audio. Escape closes the experience.</p>
+    <p id="tdb-senses-description" class="tdb-senses-sr">Explore the Surgery. Each control switches one considered detail on or off. Sound starts only when you activate Start. Sound off plays the conventional soundscape. The top speaker mutes or unmutes all audio without changing the scene. Closing with calm audio playing keeps the music on, with a floating mute button on the page. Other audio stops on close. Escape closes the experience.</p>
     <div class="tdb-senses-intro-blur" aria-hidden="true"></div>
     <button type="button" class="tdb-senses-start" aria-label="Start experience with sound"><span class="tdb-senses-circle">${svg('<path d="M5 12h5l7-6v20l-7-6H5Z M21 11q5 5 0 10 M24 7q9 9 0 18"/>')}</span><span class="tdb-senses-start-label">START</span></button>
     <div class="tdb-senses-all" role="group" aria-label="Set all senses"><button type="button" data-all="on">All on</button><span aria-hidden="true"></span><button type="button" data-all="off">All off</button></div>
@@ -919,7 +929,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose,loadingCo
     const mask=`radial-gradient(circle at ${sample.origin.x}px ${sample.origin.y}px,transparent ${Math.max(0,sample.radius-2)}px,#000 ${Math.max(0,sample.radius+2)}px)`;
     introBlur.style.maskImage=mask;introBlur.style.webkitMaskImage=mask;
   }
-  const createAudio=()=>new Soundscape(assetBase,signal,state=>{dialog.dataset.audioState=state;});
+  const createAudio=()=>new Soundscape(assetBase,audioLifetime.signal,state=>{dialog.dataset.audioState=state;});
   audio=createAudio();audio.prefetch().catch(()=>{});
 
   function updateControls(){
@@ -1031,6 +1041,7 @@ export async function mountExperience({dialog,signal,assetBase,onClose,loadingCo
   const resize=new ResizeObserver(()=>{if(!disposed)renderer.resize();});resize.observe(stage);
   listen(reduced,'change',()=>{renderer.finish();updateControls();});
   listen(document,'visibilitychange',()=>{
+    if(audioTransferred)return;
     if(document.hidden){
       cancelAll();audio.stop();audio=createAudio();audioReady=false;audioPending=false;requested.sound=false;hasBegun=false;interactionReady=false;muted=false;soundOnPending=false;hideDetail();resetIntroBlur();
       queue.cancel();queue.visible={...requested};queue.target={...requested};renderer.render(requested);dialog.dataset.audioState='uninitiated';dialog.dataset.phase='ready';dialog.dataset.transitionProgress='1';
@@ -1038,12 +1049,18 @@ export async function mountExperience({dialog,signal,assetBase,onClose,loadingCo
     updateControls();
   });
   const cleanup=()=>{
-    if(disposed)return;disposed=true;cancelAll();hideDetail();queue.cancel();audio.stop();scope.abort();resize.disconnect();renderer.destroy();Object.values(images).forEach(image=>image.close?.());
+    if(disposed)return;disposed=true;cancelAll();hideDetail();queue.cancel();if(!audioTransferred){audioLifetime.abort();audio.stop();}scope.abort();resize.disconnect();renderer.destroy();Object.values(images).forEach(image=>image.close?.());
+  };
+  const releaseAudio=()=>{
+    cancelAll();
+    if(!disposed&&!audioTransferred&&!document.hidden&&audioReady&&requested.sound&&!soundOnPending&&audio.retainCalm()){
+      audioTransferred=true;return audio;
+    }
+    audioLifetime.abort();audio.stop();return null;
   };
   signal.addEventListener('abort',cleanup,{once:true});
   dialog.dataset.visibleState=JSON.stringify(initial);updateControls();
   await new Promise(resolve=>requestAnimationFrame(resolve));
   if(signal.aborted){cleanup();return;}
-  dialog.classList.add('tdb-senses-ready');startButton.focus({preventScroll:true});return{cleanup};
+  dialog.classList.add('tdb-senses-ready');startButton.focus({preventScroll:true});return{cleanup,releaseAudio};
 }
-
