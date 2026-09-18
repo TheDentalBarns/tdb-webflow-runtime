@@ -24,14 +24,14 @@
 dialog[data-tdb-senses-shell]{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;outline:none;--tdb-senses-gutter:3vw;color:var(--tdb-senses-cream,#f5f1e6)!important}
 dialog[data-tdb-senses-shell]:not(.tdb-senses){background:#222!important}
 dialog[data-tdb-senses-shell]::backdrop{background:#131210;opacity:1;transition:opacity 500ms ease!important}
-dialog[data-tdb-senses-shell][data-senses-closing]::backdrop{opacity:0!important}
+dialog[data-tdb-senses-shell][data-senses-opening]::backdrop,dialog[data-tdb-senses-shell][data-senses-closing]::backdrop{opacity:0!important}
 dialog[data-tdb-senses-shell] .tdb-senses-loading-view{position:absolute;inset:0;z-index:30;display:grid;align-content:center;justify-items:center;gap:1rem;margin:0;background:#222;color:#f5f1e6}
 dialog[data-tdb-senses-shell] .tdb-senses-loading-text{color:#f5f1e6!important;font:inherit}
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close{position:absolute;z-index:40;top:max(22px,env(safe-area-inset-top));right:var(--tdb-senses-gutter);display:grid;place-items:center;width:44px;height:44px;padding:7px;margin:0;border:0;border-radius:50%;background:transparent!important;color:#fff!important;cursor:pointer;-webkit-tap-highlight-color:transparent}
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close svg{width:30px;height:30px;filter:drop-shadow(0 1px 5px #0008)}
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus:not(:focus-visible){outline:none}
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline:1px solid #fff;outline-offset:2px}
-@media(max-width:767px){dialog[data-tdb-senses-shell]{--tdb-senses-gutter:5vw}}
+@media(max-width:600px){dialog[data-tdb-senses-shell]{--tdb-senses-gutter:5vw}dialog[data-tdb-senses-shell] .tdb-senses-persistent-close{top:max(17px,env(safe-area-inset-top))}}
 `;
   document.head.append(shellStyle);
   let active=null,stylePromise=null;
@@ -108,7 +108,9 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     const session={dialog,opener,controller:new AbortController(),restore:lockScroll()};
     active=session;document.body.append(dialog);loading(session);
     dialog.addEventListener('cancel',event=>{event.preventDefault();close(session);});
+    dialog.dataset.sensesOpening='';
     dialog.showModal();
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{if(active===session&&!session.closing)delete dialog.dataset.sensesOpening;}));
     dialog.animate([
       {transform:'translate3d(0,20%,0)',opacity:0},
       {transform:'translate3d(0,0,0)',opacity:1}
@@ -121,5 +123,5 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     if(button.tagName!=='BUTTON')button.addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();open(button);}});
   });
   window.addEventListener('pagehide',()=>{if(active)dispose(active);});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.13.0'});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.13.1'});
 })();
