@@ -135,11 +135,11 @@ test('timeline clicks move emphasis and open a stage without scrolling; wedding 
  x.choose('[data-action=bridal]');assert.equal(panel.querySelector('[data-action=bridal]').getAttribute('aria-expanded'),'false');x.d.body.dispatchEvent(new x.w.Event('pointerdown',{bubbles:true}));assert.equal(x.root.querySelector('[data-action=sooner]').getAttribute('aria-expanded'),'true');x.choose('[data-action=sooner]');assert.equal(x.root.querySelector('[data-panel=deadline]').getAttribute('aria-hidden'),'true');
  }finally{x.dom.window.close();}
 });
-test('live price changes animate once, respect reduced motion, and retain exact displayed totals',async()=>{
+test('live price changes animate once even with reduced motion, and retain exact displayed totals',async()=>{
  const x=await setup();try{
  x.choose('[data-category=cosmetic]');x.choose('[data-select=bonding]');let animations=0;const live=x.root.querySelector('[data-output=live]');live.animate=function(){animations++;return {cancel(){}};};
  x.choose('[data-action=plus][data-key=bonding]');assert.equal(animations,1);assert.match(live.textContent,/1,240/);x.choose('[data-action=breakdown]');assert.equal(animations,1);
- x.w.matchMedia=()=>({matches:true});x.choose('[data-action=plus][data-key=bonding]');assert.equal(animations,1);assert.match(live.textContent,/1,635/);
+ x.w.matchMedia=()=>({matches:true});x.choose('[data-action=plus][data-key=bonding]');assert.equal(animations,2);assert.match(live.textContent,/1,635/);
  }finally{x.dom.window.close();}
 });
 test('scrolling gives neighbouring timeline rows overlapping emphasis while retaining one current stage',async()=>{

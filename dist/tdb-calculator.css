@@ -4,7 +4,7 @@
 .tdb-calc *,.tdbc-dialog *{box-sizing:border-box}
 .tdb-calc [hidden],.tdbc-dialog [hidden]{display:none!important}
 .tdb-calc input{user-select:text!important;-webkit-user-select:text!important}
-.tdbc-shell{width:100%;max-width:90rem;margin:0 auto;padding-top:4rem;padding-inline:0}
+.tdbc-shell{width:100%;margin-inline:auto}
 .tdbc-header{max-width:48rem;margin-bottom:2rem}.tdbc-header>p:first-child{margin-bottom:1rem}.tdbc-header h2{margin:0 0 1.5rem}
 .tdbc-main{width:100%}.tdbc-main:not(:has(.tdbc-footnote))>[data-node=step-1]{padding-bottom:0}.tdbc-step{padding:3rem 0;margin:0;border:0;border-top:1px solid var(--base-color-brand--orange-3);min-width:0}
 .tdbc-step-heading{display:flex;align-items:center;gap:1rem;margin:0 0 1rem}.tdbc-number{display:grid;place-items:center;flex:0 0 2.5rem;width:2.5rem;height:2.5rem;background:var(--base-color-brand--orange-3);color:var(--base-color-neutral--neutral-darker);letter-spacing:normal}
@@ -60,7 +60,7 @@
 .tdbc-target-card{position:relative;padding:2.5rem;background:var(--base-color-neutral--neutral-darker);color:var(--base-color-brand--orange-1);--calc-muted:var(--base-color-brand--orange-2);margin-top:2rem}
 .tdbc-target-card>label{display:block;margin-bottom:1.25rem;color:var(--base-color-brand--orange-3)}.tdbc-completion-note{display:grid;margin-bottom:1rem}.tdbc-completion-note>p{grid-area:1 / 1;margin:0}.tdbc-completion-reserve{visibility:hidden;pointer-events:none;user-select:none!important}
 .tdbc-target-field{position:relative;color:var(--base-color-brand--orange-1)}.tdbc-target-field output{position:absolute;left:0;right:2rem;top:.25rem;pointer-events:none}.tdbc-target-field:focus-within output{visibility:hidden}.tdbc-target-card .tdbc-target-field input[type=date]{color:transparent}.tdbc-target-card .tdbc-target-field input[type=date]:focus{color:inherit}.tdbc-target-card input[type=date]{border:0;border-bottom:1px solid var(--base-color-brand--orange-3);color:inherit;color-scheme:dark;padding:.25rem 0 .75rem;margin:0 0 1rem;font:inherit;background:transparent;min-width:0;letter-spacing:normal}
-.tdbc-date-controls{position:static;padding-top:.5rem}.tdbc-date-controls .tdbc-range-labels{margin-bottom:.5rem}.tdbc-deadline-dock{margin:1rem 0 1.5rem}.tdbc-sooner-toggle{font:inherit}.tdbc-deadline-dock>[data-panel=deadline]{margin-inline:-2.5rem;background:var(--calc-cream)}
+.tdbc-date-controls{position:static;padding-top:.5rem}.tdbc-date-controls .tdbc-range-labels{margin-bottom:.5rem}.tdbc-deadline-dock{margin:1rem 0 1.5rem}.tdbc-sooner-toggle{font:inherit}.tdbc-deadline-dock>[data-panel=deadline]{margin-inline:-2.5rem;background:var(--calc-dark-cream)}
 .tdbc-timing-warning{padding:1.5rem 2.5rem;background:transparent;color:var(--calc-ink)}.tdbc-timing-warning .tdbc-bridal-tip{border-color:color-mix(in srgb,var(--calc-ink) 24%,transparent)}.tdbc-timing-warning p{margin:0}
 .tdbc-date-result{padding:2rem 0 1rem}.tdbc-date-result span{color:var(--calc-muted);display:block}.tdbc-date-result strong{font-weight:400;display:block;margin:.5rem 0}.tdbc-date-result p{margin:0}
 .tdbc-timeline{list-style:none;margin:2rem 0;padding:0}.tdbc-timeline li{position:relative;display:flex;gap:1.25rem;min-height:4.75rem;padding-bottom:1.5rem}.tdbc-timeline li:not(:last-child):before{content:'';position:absolute;top:.5rem;bottom:-.5rem;left:.25rem;width:1px;background:var(--calc-line)}.tdbc-dot{flex:0 0 .5625rem;width:.5625rem;height:.5625rem;border:1px solid var(--calc-ink);background:var(--calc-cream);margin-top:.4375rem;z-index:1}.tdbc-timeline small{color:var(--calc-muted);display:block;margin-bottom:.375rem}.tdbc-timeline strong{font-weight:400;display:block}.tdbc-timeline p{margin:.5rem 0 0}
@@ -81,7 +81,7 @@ html.tdbc-chrome-away .navbar10_component{transform:translateY(calc(-1 * var(--t
 html.tdbc-chrome-away .navbar-bg_layer{transform:translateY(-100%)!important;pointer-events:none!important;transition:transform 420ms cubic-bezier(.4,0,.2,1)!important}
 html.tdbc-chrome-away #tdb-vip-drawer{transform:translate3d(0,100%,0)!important;pointer-events:none!important;transition:transform 420ms cubic-bezier(.4,0,.2,1)!important}
 html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb,html.tdbc-chrome-away .eapps-countdown-timer-position-bar{transform:translate3d(0,-100%,0)!important;visibility:hidden!important;pointer-events:none!important;transition:transform 420ms cubic-bezier(.4,0,.2,1),visibility 0s 420ms!important}
-@media(max-width:767px){.tdbc-shell{padding-top:2.5rem}.tdbc-header{margin-bottom:2rem}.tdbc-step{padding:2.5rem 0}.tdbc-categories{gap:.75rem}.tdb-calc .tdbc-category{padding:1rem .75rem;align-items:flex-start}.tdbc-category .form_checkbox-icon{margin-top:.25rem}.tdbc-step-heading{gap:.75rem}.tdbc-number{flex-basis:2.25rem;width:2.25rem;height:2.25rem}.tdbc-summary-total,.tdbc-target-card{padding:1.5rem}.tdbc-summary-details{padding:1rem 1.5rem 1.5rem}.tdbc-option-controls{padding-left:0}.tdbc-live-button{padding:.75rem 5%;gap:.75rem}.tdbc-live-copy{gap:.375rem}.tdbc-footnote .tdbc-actions{flex-direction:column;align-items:stretch}.tdbc-footnote .button{margin:0}.tdbc-dialog,.tdbc-dialog .tdbc-live{width:100%}.tdbc-dialog{height:100dvh}.tdbc-drawer-bar{padding:.75rem 3%;padding-top:max(.75rem,env(safe-area-inset-top))}.tdbc-dialog .tdbc-shell{padding-top:2rem}.tdbc-assessment-price{gap:1rem}.tdbc-finance-facts>div{flex-wrap:wrap}.tdbc-finance-facts dd{margin-left:auto}.tdbc-section-footer{margin-inline:-5.55556%;padding:2rem 5.55556%}}
+@media(max-width:767px){.tdbc-header{margin-bottom:2rem}.tdbc-step{padding:2.5rem 0}.tdbc-categories{gap:.75rem}.tdb-calc .tdbc-category{padding:1rem .75rem;align-items:flex-start}.tdbc-category .form_checkbox-icon{margin-top:.25rem}.tdbc-step-heading{gap:.75rem}.tdbc-number{flex-basis:2.25rem;width:2.25rem;height:2.25rem}.tdbc-summary-total,.tdbc-target-card{padding:1.5rem}.tdbc-summary-details{padding:1rem 1.5rem 1.5rem}.tdbc-option-controls{padding-left:0}.tdbc-live-button{padding:.75rem 5%;gap:.75rem}.tdbc-live-copy{gap:.375rem}.tdbc-footnote .tdbc-actions{flex-direction:column;align-items:stretch}.tdbc-footnote .button{margin:0}.tdbc-dialog,.tdbc-dialog .tdbc-live{width:100%}.tdbc-dialog{height:100dvh}.tdbc-drawer-bar{padding:.75rem 3%;padding-top:max(.75rem,env(safe-area-inset-top))}.tdbc-dialog .tdbc-shell{padding-top:2rem}.tdbc-assessment-price{gap:1rem}.tdbc-finance-facts>div{flex-wrap:wrap}.tdbc-finance-facts dd{margin-left:auto}.tdbc-section-footer{margin-inline:-5.55556%;padding:2rem 5.55556%}}
 @media(max-width:380px){.tdbc-categories{grid-template-columns:1fr}.tdb-calc .tdbc-category{min-height:4.5rem}.tdbc-live-button{gap:.5rem}.tdbc-live-value{gap:.375rem}.tdbc-live-close{flex-basis:2.75rem;margin-right:0}.tdbc-total{font-size:1.75rem}}
 
 .tdb-calc .tdbc-step-intro{margin-left:3.5rem}
@@ -98,7 +98,6 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 .tdbc-assessment{scroll-margin-top:7rem}
 @media(max-width:767px){.tdbc-deadline-dock>[data-panel=deadline]{margin-inline:-1.5rem}.tdbc-timing-warning{padding:1.5rem}.tdb-calc .tdbc-step-intro{margin-left:3rem}.tdbc-stage-cost{flex-wrap:wrap}.tdbc-stage-cost>strong{margin-left:auto}.tdbc-footnote .button{white-space:normal}}
 
-@media(prefers-reduced-motion:reduce){.tdb-calc *,.tdbc-dialog *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
 /* Existing Webflow action list a-52, “DD - Text Effect”: opacity 0/.5/.5/.1.
    A native view timeline makes the same effect work for CMS-generated headings. */
@@ -123,4 +122,5 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
  .tdbc-step-header .tdbc-number::before{animation:tdbc-step-frame ease-in-out both;animation-timeline:--tdbc-step;animation-range:entry 0% exit 0%}
  .tdbc-step-header .tdbc-number{animation:tdbc-step-numeral ease-in-out both;animation-timeline:--tdbc-step;animation-range:entry 0% exit 0%}
 }
-@media(prefers-reduced-motion:reduce){.tdbc-step-header::before,.tdbc-step-header .tdbc-number::before{animation:none!important}}
+
+.tdbc-price-guide .tdbc-header{margin-bottom:0}.tdbc-price-guide{border-bottom:1px solid var(--calc-line)}
