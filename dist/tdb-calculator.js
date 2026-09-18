@@ -582,13 +582,13 @@
     try{window.TDBVIPDrawer.open();opened=vip.classList.contains('is-open');}catch(_){restore();return false;}
     return true;
   }
-  function goVIP(invoker){save();if(overlayVIP(invoker))return;close(false);try{
+  function goVIP(invoker){save();const interest=state.assessment==='design'?'Smile Design':'Signature Assessment';window.TDBVIPInterest?.fromCalculator(interest);if(overlayVIP(invoker))return;close(false);try{
       if(window.TDBVIPDrawer?.open){window.TDBVIPDrawer.open();return;}
       if(window.TDBVIPDrawerLoader?.open){window.TDBVIPDrawerLoader.open();return;}
     }catch(_){}
     // Existing native VIP route is the safe fallback. No new submission fields are invented.
     const link=[...document.querySelectorAll('a[href="#VIP"],a[href="#vip"]')].find(a=>!a.closest('.tdb-calc'));
-    if(link)link.click();else location.assign('/vip');
+    if(link)link.click();else location.assign('/vip?interest='+encodeURIComponent(interest));
   }
   function start(){
     document.querySelectorAll('[data-tdb-calculator="inline"]').forEach(root=>{if(root.hasAttribute('data-tdb-calc-ready'))return;root.setAttribute('data-tdb-calc-ready','true');
