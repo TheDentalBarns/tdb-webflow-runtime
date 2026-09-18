@@ -39,10 +39,21 @@
     rootStyle.overflow='hidden';bodyStyle.overflow='hidden';
     return()=>{rootStyle.overflow=oldRoot;bodyStyle.overflow=oldBody;if(ownsLenis&&window.lenis===lenis)lenis.start();};
   }
-  function close(session){
+  function dispose(session){
     if(active!==session)return;
     active=null;session.controller.abort();session.dialog.close();session.dialog.remove();session.restore();
     session.opener.focus({preventScroll:true});
+  }
+  function close(session){
+    if(active!==session||session.closing)return;
+    session.closing=true;
+    session.dialog.querySelectorAll('audio,video').forEach(media=>media.pause());
+    // Keep the dialog, focus trap and page lock until its exit has finished.
+    const motion=session.dialog.animate([
+      {transform:'translate3d(0,0,0)',opacity:1},
+      {transform:'translate3d(0,20%,0)',opacity:0}
+    ],{duration:500,easing:'ease',fill:'forwards'});
+    motion.finished.catch(()=>{}).then(()=>dispose(session));
   }
   function loading(session){
     const {dialog}=session;
@@ -72,13 +83,18 @@
     const session={dialog,opener,controller:new AbortController(),restore:lockScroll()};
     active=session;document.body.append(dialog);loading(session);
     dialog.addEventListener('cancel',event=>{event.preventDefault();close(session);});
-    dialog.showModal();dialog.querySelector('button').focus();run(session);
+    dialog.showModal();
+    dialog.animate([
+      {transform:'translate3d(0,20%,0)',opacity:0},
+      {transform:'translate3d(0,0,0)',opacity:1}
+    ],{duration:500,easing:'ease'});
+    dialog.querySelector('button').focus();run(session);
   }
   document.querySelectorAll('[data-tdb-senses-open]').forEach(button=>{
     button.setAttribute('role','button');
     button.addEventListener('click',event=>{event.preventDefault();open(button);});
     if(button.tagName!=='BUTTON')button.addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();open(button);}});
   });
-  window.addEventListener('pagehide',()=>{if(active)close(active);});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.11.0'});
+  window.addEventListener('pagehide',()=>{if(active)dispose(active);});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.12.0'});
 })();
