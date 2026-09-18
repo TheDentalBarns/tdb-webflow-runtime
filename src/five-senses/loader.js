@@ -21,6 +21,7 @@
   const shellStyle=document.createElement('style');
   shellStyle.dataset.tdbSensesShell='';
   shellStyle.textContent=`
+html.tdb-senses-scroll-locked,html.tdb-senses-scroll-locked body{overflow:hidden!important}
 dialog[data-tdb-senses-shell]{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;outline:none;--tdb-senses-gutter:3vw;color:var(--tdb-senses-cream,#f5f1e6)!important}
 dialog[data-tdb-senses-shell]:not(.tdb-senses){background:#222!important}
 dialog[data-tdb-senses-shell]::backdrop{background:#131210;opacity:1;transition:opacity 500ms ease!important}
@@ -47,18 +48,31 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     return stylePromise;
   }
   function lockScroll(){
-    const rootStyle=document.documentElement.style,bodyStyle=document.body.style;
-    const oldRoot=rootStyle.overflow,oldBody=bodyStyle.overflow;
+    const root=document.documentElement;
     const lenis=window.lenis;
     const ownsLenis=!!(lenis&&typeof lenis.stop==='function'&&typeof lenis.start==='function'&&!lenis.isStopped);
     if(ownsLenis)lenis.stop();
-    rootStyle.overflow='hidden';bodyStyle.overflow='hidden';
-    return()=>{rootStyle.overflow=oldRoot;bodyStyle.overflow=oldBody;if(ownsLenis&&window.lenis===lenis)lenis.start();};
+    // A separate lock never saves or restores a menu's transient overflow value.
+    root.classList.add('tdb-senses-scroll-locked');
+    let released=false;
+    return()=>{
+      if(released)return;
+      released=true;
+      root.classList.remove('tdb-senses-scroll-locked');
+      if(ownsLenis&&window.lenis===lenis){lenis.start();lenis.resize?.();}
+    };
   }
   function dispose(session){
     if(active!==session)return;
-    active=null;session.controller.abort();session.dialog.close();session.dialog.remove();session.restore();
-    session.opener.focus({preventScroll:true});
+    active=null;
+    clearTimeout(session.closeTimer);
+    try{
+      session.controller.abort();
+    }finally{
+      try{session.dialog.close();session.dialog.remove();}
+      finally{session.restore();}
+    }
+    if(session.opener.isConnected)session.opener.focus({preventScroll:true});
   }
   function close(session){
     if(active!==session||session.closing)return;
@@ -70,6 +84,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
       {transform:'translate3d(0,0,0)',opacity:1},
       {transform:'translate3d(0,100%,0)',opacity:1}
     ],{duration:500,easing:'ease',fill:'forwards'});
+    session.closeTimer=setTimeout(()=>dispose(session),600);
     motion.finished.catch(()=>{}).then(()=>dispose(session));
   }
   function loading(session,error=false){
@@ -108,6 +123,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     const session={dialog,opener,controller:new AbortController(),restore:lockScroll()};
     active=session;document.body.append(dialog);loading(session);
     dialog.addEventListener('cancel',event=>{event.preventDefault();close(session);});
+    dialog.addEventListener('close',()=>dispose(session));
     dialog.dataset.sensesOpening='';
     dialog.showModal();
     requestAnimationFrame(()=>requestAnimationFrame(()=>{if(active===session&&!session.closing)delete dialog.dataset.sensesOpening;}));
@@ -123,5 +139,5 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     if(button.tagName!=='BUTTON')button.addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();open(button);}});
   });
   window.addEventListener('pagehide',()=>{if(active)dispose(active);});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.13.1'});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.13.2'});
 })();
