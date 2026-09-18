@@ -1,0 +1,675 @@
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#000000" />
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+<meta name="color-scheme" content="dark light" />
+
+<style data-tdb-card-first-frame>
+/* Critical: release height as soon as IX2 writes opacity, preserving its AUTO height cleanup. */
+.highlight-swiper_component .layout423_card-content-bottom:not([style*="opacity"]){opacity:0;height:0;transform:translate3d(0,20px,0)}
+</style>
+
+<style>
+.faq3_answer:not([style*="opacity"]),
+.pricing_btm-accordion:not([style*="opacity"]) {
+  height: 0;
+  overflow: hidden;
+}
+</style>
+
+
+<style>
+  html,
+  body {
+    background: #000;
+  }
+</style>
+
+<style>
+  .text-style-tagline.smile {
+    font-size: clamp(0.3rem, calc(-0.25rem + 3.5vw), 0.875rem) !important;
+    line-height: 1.5 !important;
+    letter-spacing: 0.0875rem !important;
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    height: auto !important;
+  }
+</style>
+
+<style>
+  /* --- Typography & Quality --- */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -o-font-smoothing: antialiased;
+    -webkit-appearance: none;
+  }
+
+  html {
+    font-size: calc(0.75rem + 0.20833333333333331vw);
+  }
+  @media screen and (max-width: 1920px) {
+    html {
+      font-size: calc(0.75rem + 0.20833333333333337vw);
+    }
+  }
+  @media screen and (max-width: 1440px) {
+    html {
+      font-size: calc(0.8438475546305931rem + 0.10405827263267431vw);
+    }
+  }
+  @media screen and (max-width: 479px) {
+    html {
+      font-size: calc(0.7497384937238494rem + 0.41841004184100417vw);
+    }
+  }
+
+  body {
+    background-color: #f9f2e6 !important;
+  }
+
+  /* --- Navbar & Layering --- */
+  .navbar10_component {
+    z-index: 999;
+    transition:
+      transform 420ms cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 420ms cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+
+  .navbar10_component.z-hold {
+    z-index: 10000 !important;
+  }
+
+  .navbar_line {
+    transition: opacity 420ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .navbar-bg_layer {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .navbar-bg_layer.is-visible {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  @media screen and (max-width: 767px) {
+    .navbar10_logo-link,
+    .menu-icon5 {
+      transition: filter 420ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .navbar10_link,
+    #nav-button-link {
+      transition: color 420ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .navbar_line {
+      visibility: visible;
+      z-index: 3;
+    }
+
+    .navbar10_component.is-trans,
+    .navbar10_component.z-hold {
+      border-bottom: 0 !important;
+    }
+
+    html:is(.tdb-nav-at-top, .tdb-nav-clear-cycle):has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open)) .navbar10_component {
+      background-color: #f9f2e6 !important;
+    }
+
+    html:has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open)) .navbar_line {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      transition: none !important;
+    }
+
+    .w-nav-overlay {
+      background-color: transparent !important;
+    }
+
+    html.tdb-nav-at-top .navbar10_menu {
+      background-color: rgba(249, 242, 230, 0.84);
+    }
+
+    html:is(.tdb-nav-at-top, .tdb-nav-clear-cycle) .navbar10_menu {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+
+    html:is(.tdb-nav-at-top, .tdb-nav-clear-cycle):has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open)) .navbar10_menu {
+      animation: tdb-menu-clear-to-solid 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+
+    html.tdb-nav-clear-cycle:not(:has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open))) .navbar10_menu {
+      animation: tdb-menu-solid-to-clear 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+
+    .navbar10_menu-left,
+    .navbar10_menu-right {
+      opacity: 0;
+      transform: translate3d(0, -0.75rem, 0);
+      animation: none;
+      will-change: opacity, transform;
+    }
+
+    .navbar10_menu[data-nav-menu-open] .navbar10_menu-left,
+    .navbar10_menu[data-nav-menu-open] .navbar10_menu-right {
+      animation: tdb-mobile-nav-text-motion 520ms cubic-bezier(0.5, 0, 1, 1) 70ms both;
+    }
+
+    .navbar10_component {
+      background-color: transparent !important;
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+
+    .tdb-nav-bar-glass {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background-color: transparent;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      transition:
+        background-color 420ms cubic-bezier(0.4, 0, 0.2, 1),
+        -webkit-backdrop-filter 420ms cubic-bezier(0.4, 0, 0.2, 1),
+        backdrop-filter 420ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)) .navbar10_component.is-trans .tdb-nav-bar-glass {
+      background-color: rgba(249, 242, 230, 0.84);
+      -webkit-backdrop-filter: saturate(150%) blur(20px);
+      backdrop-filter: saturate(150%) blur(20px);
+    }
+
+    html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)) .navbar10_menu {
+      background-color: rgba(249, 242, 230, 0.75);
+      -webkit-backdrop-filter: saturate(150%) blur(20px) !important;
+      backdrop-filter: saturate(150%) blur(20px) !important;
+    }
+
+    html:is(.tdb-nav-at-top, .tdb-nav-clear-cycle) .tdb-nav-bar-glass {
+      background-color: transparent !important;
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+      animation: none !important;
+    }
+
+    html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)):has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open)) .tdb-nav-bar-glass {
+      animation: tdb-nav-bar-open 420ms cubic-bezier(0.4, 0, 0.2, 1) both !important;
+    }
+
+    html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)):has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open)) .navbar10_menu {
+      animation: tdb-nav-menu-open 420ms cubic-bezier(0.4, 0, 0.2, 1) both !important;
+    }
+
+    html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)) .navbar10_component.z-hold:not(:has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open))) .tdb-nav-bar-glass {
+      animation: tdb-nav-bar-close 420ms cubic-bezier(0.4, 0, 0.2, 1) both !important;
+    }
+
+    html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)) .navbar10_component.z-hold:not(:has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open))) .navbar10_menu {
+      animation: tdb-nav-menu-close 420ms cubic-bezier(0.4, 0, 0.2, 1) both !important;
+    }
+
+    @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+      html .navbar10_menu {
+        background-color: rgba(249, 242, 230, 0.95);
+      }
+    }
+  }
+
+  @keyframes tdb-menu-clear-to-solid {
+    from { background-color: rgba(249, 242, 230, 0); }
+    to { background-color: #f9f2e6; }
+  }
+
+  @keyframes tdb-menu-solid-to-clear {
+    from { background-color: #f9f2e6; }
+    to { background-color: rgba(249, 242, 230, 0); }
+  }
+
+  @keyframes tdb-mobile-nav-text-motion {
+    from { opacity: 0; transform: translate3d(0, -0.75rem, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+
+  @keyframes tdb-nav-bar-open {
+    from { background-color: rgba(249, 242, 230, 0.84); }
+    to { background-color: #f9f2e6; }
+  }
+
+  @keyframes tdb-nav-menu-open {
+    from { background-color: rgba(249, 242, 230, 0.75); }
+    to { background-color: #f9f2e6; }
+  }
+
+  @keyframes tdb-nav-bar-close {
+    from { background-color: #f9f2e6; }
+    to { background-color: rgba(249, 242, 230, 0.84); }
+  }
+
+  @keyframes tdb-nav-menu-close {
+    from { background-color: #f9f2e6; }
+    to { background-color: rgba(249, 242, 230, 0.75); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .navbar10_menu-left,
+    .navbar10_menu-right {
+      opacity: 1 !important;
+      transform: none !important;
+      animation: none !important;
+    }
+  }
+</style>
+
+<style>
+  .vimeo-player[data-vimeo-update-size='cover'] {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    height: 100%;
+    min-height: 100%;
+    max-height: 100%;
+  }
+
+  .vimeo-controls-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .vimeo-controls-layer [data-vimeo-control] { pointer-events: auto; }
+
+  .vimeo-controls-layer .vimeo-player__play,
+  .vimeo-controls-layer .vimeo-player__pause {
+    z-index: 60;
+    transition: none !important;
+    animation: none !important;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .vimeo-controls-layer .vimeo-player__loading {
+    z-index: 70;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.45s ease, visibility 0s linear 0.45s;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .vimeo-controls-layer .vimeo-player__play .vimeo-player__btn,
+  .vimeo-controls-layer .vimeo-player__pause .vimeo-player__btn,
+  .vimeo-controls-layer .vimeo-player__play svg,
+  .vimeo-controls-layer .vimeo-player__pause svg,
+  .vimeo-controls-layer .vimeo-player__loading .vimeo-player__btn,
+  .vimeo-controls-layer .vimeo-player__loading svg {
+    transition: none !important;
+    animation: none !important;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .video-overlay-layer,
+  .vimeo-bg__placeholder,
+  [data-vimeo-hero-content],
+  [data-vimeo-hero-content] > * { pointer-events: none; }
+
+  [data-vimeo-hero-content] a,
+  [data-vimeo-hero-content] button,
+  [data-vimeo-hero-content] [role='button'],
+  [data-vimeo-hero-content] input,
+  [data-vimeo-hero-content] select,
+  [data-vimeo-hero-content] textarea { pointer-events: auto; }
+
+  .vimeo-controls-layer .vimeo-player__play {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .vimeo-controls-layer .vimeo-player__pause {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .video-overlay-layer {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .vimeo-bg,
+  .vimeo-bg__placeholder,
+  .vimeo-bg__iframe { background: transparent; }
+
+  .vimeo-bg__placeholder {
+    z-index: 2;
+    opacity: 1;
+    visibility: visible;
+    display: block;
+    pointer-events: none;
+    transition: opacity 0.45s ease, visibility 0s linear 0.45s;
+  }
+
+  .vimeo-bg__iframe {
+    z-index: 1;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: none;
+    transition: none;
+  }
+
+  .vimeo-bg__iframe iframe { background: transparent; }
+  [data-vimeo-player-init]:not([data-vimeo-ambient-init]):not([data-vimeo-content-init]) .vimeo-bg__iframe { position: relative; }
+
+  .vimeo-player .vimeo-player__iframe {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease;
+  }
+
+  .vimeo-player .vimeo-player__btn {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+
+  .vimeo-player .vimeo-player__pause {
+    display: flex;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .vimeo-player .vimeo-player__pause .vimeo-player__btn { opacity: 0; }
+  .vimeo-player .vimeo-player__play { opacity: 1; pointer-events: auto; transition: none; }
+
+  .vimeo-player .vimeo-player__loading {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.45s ease, visibility 0s linear 0.45s;
+  }
+</style>
+
+<style>
+  .cb-priority,
+  .invisalign-priority,
+  .veneers-priority,
+  [class*='cb-priority'],
+  [class*='invisalign-priority'],
+  [class*='veneers-priority'] { display: none !important; }
+
+  html.tdb-smile-sorting .gallery17_component .highlight-swiper_component { visibility: hidden; }
+</style>
+
+<script>
+  (function () {
+    const path = window.location.pathname.toLowerCase();
+    const treatmentPages = ['composite-bonding', 'invisalign', 'veneers'];
+    if (treatmentPages.some((treatment) => path.includes(treatment))) {
+      document.documentElement.classList.add('tdb-smile-sorting');
+    }
+  })();
+</script>
+
+<style>
+  #tdb-mobile-vip-cta,
+  #tdb-vip-drawer {
+    display: none !important;
+  }
+
+  @media (max-width: 767px) {
+    #tdb-vip-drawer {
+      display: flex !important;
+      visibility: hidden;
+    }
+  }
+</style>
+
+<!-- TDB early shared UI with slider focus and Elfsight easing | SHA 48124a90eddd39bf4ae611d00b9fe80583b98872 -->
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@48124a90eddd39bf4ae611d00b9fe80583b98872/dist/tdb-ui.css"
+  media="print"
+  onload="
+    this.onload = null;
+    this.media = 'all';
+  "
+/>
+
+<noscript>
+  <!-- TDB early shared UI with slider focus and Elfsight easing | SHA 48124a90eddd39bf4ae611d00b9fe80583b98872 -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@48124a90eddd39bf4ae611d00b9fe80583b98872/dist/tdb-ui.css"
+  />
+</noscript>
+
+
+<!-- Shared partner and form styles: one copy per page. -->
+<style data-tdb-shared-component-styles>
+.logo-slider .partner-featured_component{width:max-content;display:flex;gap:12vw;padding:0 1vw 0 0;user-select:none;cursor:grab}
+select.placeholder{color:rgba(0,0,0,.6)}
+select:not(.placeholder){color:#000}
+</style>
+
+
+
+<style data-tdb-smile-card-design>
+/* TDB shared smile cards v1.1: full-width composite image, labels, numbering and CMS facts. */
+[data-tdb-smile-slider] .swiper-slide.smile { container-type:inline-size; }
+[data-tdb-smile-slider] .layout423_card.text-color-alternate.smile {
+  --tdb-smile-pad:1.25rem;
+  --tdb-smile-heading-height:8rem;
+  --tdb-smile-footer-height:calc(9rem + var(--tdb-smile-extra-lines,0) * 1.25rem);
+  --tdb-smile-media-size:100cqw;
+  --tdb-smile-ink:var(--base-color-brand--black,#000);
+  --tdb-smile-surface:var(--base-color-brand--orange-1,#f9f2e6);
+  --tdb-smile-muted:var(--base-color-neutral--neutral,#888);
+  --tdb-smile-icon-invert:0;
+  aspect-ratio:auto;
+  height:calc(var(--tdb-smile-heading-height) + var(--tdb-smile-media-size) + var(--tdb-smile-footer-height));
+  padding:0;
+  background:var(--tdb-smile-surface);
+}
+[data-tdb-smile-slider] .layout423_card.smile:has(> .layout423_card-content.w-variant-a6dd2098-844a-775c-39a4-fe1d4e445b09) {
+  --tdb-smile-ink:#fff;
+  --tdb-smile-surface:#000;
+  --tdb-smile-muted:rgba(255,255,255,.6);
+  --tdb-smile-icon-invert:1;
+}
+[data-tdb-smile-slider] .layout423_card.smile > .layout423_image-wrapper.smile {
+  width:auto;
+  height:var(--tdb-smile-media-size);
+  inset:var(--tdb-smile-heading-height) 0 auto;
+}
+[data-tdb-smile-slider] .layout423_image-wrapper.smile > .layout423_image.smile {
+  display:block; width:100%; height:100%; aspect-ratio:1; object-fit:cover;
+}
+[data-tdb-smile-slider] .layout423_image-wrapper.smile > .layout423_overlay.smile {
+  z-index:1; inset:0; width:100%; height:100%;
+}
+
+[data-tdb-smile-slider] .tdb-smile-image-label {
+  position:absolute; z-index:2; right:.75rem; left:auto; bottom:.75rem; opacity:.7;
+  color:var(--base-color-brand--white,#fff); font-size:.75rem; line-height:1.5;
+  font-weight:400; letter-spacing:.0875rem; text-transform:uppercase;
+  text-shadow:none; pointer-events:none; transition:opacity 300ms ease;
+}
+[data-tdb-smile-slider] .tdb-smile-image-label.is-before { bottom:calc(50% + .75rem); }
+[data-tdb-smile-slider] .layout423_card-content.smile > .margin-top.smile.left {
+  display:flex; flex-direction:column; justify-content:center; align-items:stretch;
+  gap:.8rem; height:var(--tdb-smile-heading-height); min-height:var(--tdb-smile-heading-height);
+  flex-shrink:0; padding:.75rem var(--tdb-smile-pad); margin:0;
+}
+[data-tdb-smile-slider] .layout423_card-content.smile > .margin-top.smile.left > .tagline-smile-layout {
+  height:auto; min-height:0; width:100%; color:var(--tdb-smile-ink);
+}
+[data-tdb-smile-slider] .tdb-smile-kicker {
+  display:flex; justify-content:space-between; align-items:center; gap:.5rem;
+  width:100%; font-size:clamp(10px,2.4cqw,12px); line-height:1.5;
+  letter-spacing:.06em; text-transform:uppercase;
+}
+[data-tdb-smile-slider] .tdb-smile-kicker-title { color:var(--tdb-smile-muted); }
+[data-tdb-smile-slider] .tdb-smile-card-number { color:var(--tdb-smile-muted); white-space:nowrap; }
+[data-tdb-smile-slider] .layout423_card-content.smile > .margin-top.smile:not(.left) {
+  height:var(--tdb-smile-footer-height); min-height:var(--tdb-smile-footer-height);
+  flex-shrink:0; padding:.75rem var(--tdb-smile-pad); margin:0;
+}
+[data-tdb-smile-slider] .tdb-smile-summary-ready > .smile-iconset { display:none; }
+[data-tdb-smile-slider] .tdb-smile-summary {
+  width:100%; min-width:0; color:var(--tdb-smile-ink);
+  font-size:clamp(10px,2.4cqw,12px); line-height:1.5;
+}
+[data-tdb-smile-slider] .tdb-smile-treatments {
+  margin:0 0 .5rem; padding:0; list-style:none;
+  min-height:calc(var(--tdb-smile-treatment-lines,3) * 1.5em);
+  color:var(--tdb-smile-muted); letter-spacing:.06em; text-transform:uppercase;
+}
+[data-tdb-smile-slider] .tdb-smile-treatments li {
+  display:flex; align-items:center; gap:.45rem; min-height:1.5em; margin:0; padding:0;
+}
+[data-tdb-smile-slider] .tdb-smile-treatments img {
+  width:1rem; height:1rem; flex:0 0 1rem; object-fit:contain;
+  opacity:.5; filter:invert(var(--tdb-smile-icon-invert));
+}
+[data-tdb-smile-slider] .tdb-smile-facts {
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:stretch; min-height:3em;
+}
+[data-tdb-smile-slider] .tdb-smile-fact {
+  display:flex; align-items:center; justify-content:center; gap:.35rem; min-width:0;
+  position:relative; padding:0 .4rem; text-align:center; letter-spacing:.04em; text-transform:uppercase;
+}
+[data-tdb-smile-slider] .tdb-smile-fact:first-child { justify-content:flex-start; text-align:left; padding-left:0; }
+[data-tdb-smile-slider] .tdb-smile-fact:last-child {
+  justify-content:flex-end; text-align:right; padding-right:0; letter-spacing:normal; text-transform:none;
+}
+[data-tdb-smile-slider] .tdb-smile-fact + .tdb-smile-fact::before {
+  content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
+  width:1px; height:1.25em; background:var(--base-color-brand--orange-3,#d6cab4);
+}
+[data-tdb-smile-slider] .tdb-smile-fact > span { min-width:0; overflow-wrap:break-word; }
+[data-tdb-smile-slider] .tdb-smile-fact svg,[data-tdb-smile-slider] .tdb-smile-fact img {
+  display:block; width:1rem; height:1rem; flex:0 0 1rem; object-fit:contain;
+}
+[data-tdb-smile-slider] .tdb-smile-fact img { transform:scale(1.3); margin-right:.15rem; filter:invert(var(--tdb-smile-icon-invert)); }
+
+/* Mobile smile-card preview; main-wrapper retains viewport clipping. */
+@media (max-width: 767px) {
+  :is(.testimonial15_client-image-wrapper, .smile-slider, .layout194_image-wrapper):has([data-tdb-smile-slider]),
+  [data-tdb-smile-slider],
+  [data-tdb-smile-slider] > .swiper {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Let Home's grid item shrink without clipping the neighbouring cards. */
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .testimonial15_client-image-wrapper:has([data-tdb-smile-slider]) {
+    min-width: 0;
+  }
+
+}
+
+  /* Match original/loop-copy emphasis on all screen sizes. */
+  :is([data-tdb-smile-slider], .highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component) > .swiper.swiper-initialized > .swiper-wrapper > .swiper-slide {
+    opacity: .5;
+    transition: opacity 300ms ease;
+  }
+  :is([data-tdb-smile-slider], .highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component) > .swiper.swiper-initialized > .swiper-wrapper > :is(.swiper-slide-active, .swiper-slide-duplicate-active) {
+    opacity: 1;
+  }
+
+/* Expanded view adds only the CMS description; facts stay in the summary. */
+[data-tdb-smile-slider] .layout423_card-content.smile {
+  z-index: 3;
+}
+[data-tdb-smile-slider] .layout423_card.smile:has(.tdb-smile-summary) .smile-card > :is(.treatment-smile, .button.smile) {
+  display: none;
+}
+[data-tdb-smile-slider] .smile-card > .paragraph-smile.descript {
+  margin-top: 0;
+  opacity: 1;
+  color: #fff;
+}
+/* Follow IX2's reveal state: hover-out collapses height to zero while
+   retaining opacity 1, so either zero height or opacity restores labels. */
+[data-tdb-smile-slider] .layout423_card.smile:has(.smile-card[style*="opacity:"]:not([style*="opacity: 0;"]):not([style*="height: 0px;"])) .tdb-smile-image-label {
+  opacity: 0;
+}
+
+/* Treatment/technology reveal links share the site's glass button presentation.
+   Keep the native link/card and IX2 reveal ownership, including loop copies. */
+:is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom .button.is-link {
+  display:inline-flex;
+  width:fit-content;
+  max-width:100%;
+  align-items:center;
+  justify-content:center;
+  gap:.75rem;
+  padding:.55rem 1.2rem;
+  border:1px solid var(--base-color-brand--white,#fff);
+  border-radius:var(--border-radius--small,.3125rem);
+  background-color:rgba(0,0,0,.3);
+  color:var(--base-color-brand--white,#fff);
+  line-height:1.5;
+  opacity:1;
+  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(20px);
+  transition:background-color 300ms ease,color 300ms ease,border-color 300ms ease;
+}
+:is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom .button.is-link > .text-style-tagline-restored {
+  font:inherit;
+  letter-spacing:normal;
+  text-transform:none;
+}
+:is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom .button.is-link:active {
+  background-color:rgba(255,255,255,.8);
+  color:var(--base-color-brand--black,#000);
+}
+:is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom .button.is-link:focus-visible {
+  outline:2px solid currentColor;
+  outline-offset:4px;
+}
+@media (hover:hover) and (pointer:fine) {
+  :is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom .button.is-link:hover {
+    background-color:rgba(255,255,255,.8);
+    color:var(--base-color-brand--black,#000);
+  }
+}
+
+/* IX2 keeps height/movement. CSS separates the description's settled dimming
+   from the whole reveal, so the glass CTA can reach full opacity. */
+:is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom {
+  opacity:0 !important;
+  transition:opacity 200ms cubic-bezier(.165,.84,.44,1);
+}
+:is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom[style*="opacity:"]:not([style*="opacity: 0;"]):not([style*="height: 0px;"]) {
+  opacity:1 !important;
+  transition-duration:300ms;
+}
+:is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom > .margin-top.margin-small {
+  opacity:.5;
+}
+</style>
