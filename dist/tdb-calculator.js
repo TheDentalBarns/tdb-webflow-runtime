@@ -502,7 +502,7 @@
     }
     click(event){const el=event.target.closest('[data-action]');if(!el)return;const action=el.dataset.action;
       if(action==='info'){const info=el.closest('.tdbc-info'),open=!info.classList.contains('is-open');closeTooltips();info.classList.toggle('is-open',open);el.setAttribute('aria-expanded',String(open));const panel=info.querySelector('[role=tooltip]');panel.setAttribute('aria-hidden',String(!open));panel.inert=!open;return;}
-      if(action==='estimate'){const summary=this.root.querySelector('.tdbc-summary');if(summary){focusView(this);summary.focus({preventScroll:true});if(this.mode==='inline'&&window.lenis?.scrollTo)window.lenis.scrollTo(summary,{offset:-(parseFloat(getComputedStyle(document.documentElement).fontSize)*7)});else summary.scrollIntoView?.({behavior:'smooth',block:'start'});}return;}
+      if(action==='estimate'){const summary=this.root.querySelector('.tdbc-summary');if(summary){focusView(this);summary.focus({preventScroll:true});if(this.mode==='inline'&&window.lenis?.scrollTo)window.lenis.scrollTo(summary,{offset:-(parseFloat(getComputedStyle(document.documentElement).fontSize)*7)});else if(this.mode==='drawer'&&dialog){const offset=parseFloat(getComputedStyle(document.documentElement).fontSize)*7;dialog.scrollTo({top:dialog.scrollTop+summary.getBoundingClientRect().top-dialog.getBoundingClientRect().top-offset,behavior:'smooth'});}else summary.scrollIntoView?.({behavior:'smooth',block:'start'});}return;}
       if(action==='close'){close();return;}
       if(action==='sooner'){this.setTimingWarning(!this.timingWarning);return;}
       if(action==='bridal'){
@@ -554,7 +554,24 @@
     if(!drawerView.ready){drawerView.config=config;await drawerView.init();}else{contextual(drawerView,config);drawerView.render();save();}
   }
   function close(restore=true){if(!dialog?.open)return;releaseFocus();dialog.close();document.documentElement.style.overflow=oldOverflow;document.documentElement.style.paddingRight=oldPadding;try{if(!scrollWasStopped)window.lenis?.start?.();}catch(_){}if(restore&&lastTrigger?.isConnected)lastTrigger.focus({preventScroll:true});renderAll(drawerView);syncViewportFocus();}
-  function goVIP(invoker){save();close(false);try{
+  function overlayVIP(invoker){
+    if(!dialog?.open||!window.TDBVIPDrawer?.open)return false;
+    const vip=document.getElementById('tdb-vip-drawer');if(!vip)return false;
+    const parent=vip.parentNode,next=vip.nextSibling,position=dialog.scrollTop;
+    const host=document.createElement('dialog');host.className='tdbc-vip-overlay';host.setAttribute('aria-label','Join VIP');host.setAttribute('data-lenis-prevent','');
+    document.body.append(host);host.append(vip);host.showModal();
+    let opened=false,finished=false;
+    const restore=()=>{if(finished)return;finished=true;observer.disconnect();host.close();parent.insertBefore(vip,next?.parentNode===parent?next:null);host.remove();
+      document.documentElement.style.overflow='hidden';try{window.lenis?.stop?.();}catch(_){}
+      drawerView.suspended=false;focusView(drawerView);dialog.scrollTop=position;invoker?.focus({preventScroll:true});
+    };
+    const observer=new MutationObserver(()=>{if(vip.classList.contains('is-open'))opened=true;if(opened&&!vip.classList.contains('is-open')&&!vip.classList.contains('is-closing'))restore();});
+    observer.observe(vip,{attributes:true,attributeFilter:['class']});
+    host.addEventListener('cancel',e=>{e.preventDefault();window.TDBVIPDrawer?.close?.();});
+    try{window.TDBVIPDrawer.open();opened=vip.classList.contains('is-open');}catch(_){restore();return false;}
+    return true;
+  }
+  function goVIP(invoker){save();if(overlayVIP(invoker))return;close(false);try{
       if(window.TDBVIPDrawer?.open){window.TDBVIPDrawer.open();return;}
       if(window.TDBVIPDrawerLoader?.open){window.TDBVIPDrawerLoader.open();return;}
     }catch(_){}

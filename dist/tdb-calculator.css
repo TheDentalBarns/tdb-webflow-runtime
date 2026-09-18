@@ -151,3 +151,8 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 .tdbc-dialog .tdbc-live-button{padding-inline:0}
 .tdbc-dialog .tdbc-drawer-root{padding-top:12rem}
 .tdbc-dialog .tdbc-drawer-close-dock{top:6rem}
+
+/* The existing VIP drawer sits in its own top layer above a preserved calculator. */
+.tdbc-vip-overlay{position:fixed;inset:0;width:100%;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;overflow:visible;pointer-events:none}
+.tdbc-vip-overlay::backdrop{background:color-mix(in srgb,var(--base-color-brand--black) 35%,transparent)}
+.tdbc-vip-overlay #tdb-vip-drawer{pointer-events:auto}

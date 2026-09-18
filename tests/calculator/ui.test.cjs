@@ -233,3 +233,14 @@ test('veneer quantities above 16 require both arches through typing and step con
   quantity(32);assert.equal(x.root.querySelector('[data-arch=upper]').checked,true);assert.equal(x.root.querySelector('[data-arch=lower]').checked,true);assert.match(x.text(),/2 arches/);
  }finally{x.dom.window.close();}
 });
+test('VIP overlays the drawer and restores the exact form and scroll position',async()=>{
+ const x=await setup();try{
+ x.choose('[data-category=cosmetic]');x.choose('[data-select=bonding]');await x.w.TDBCalculator.open(x.d.getElementById('open'));
+ const dialog=x.d.querySelector('.tdbc-dialog'),vip=x.d.createElement('div');vip.id='tdb-vip-drawer';x.d.body.append(vip);
+ x.w.TDBVIPDrawer={open(){vip.classList.add('is-open');},close(){vip.classList.remove('is-open');}};
+ dialog.scrollTop=420;const form=dialog.querySelector('.tdbc-main'),button=dialog.querySelector('[data-action=vip]');button.click();
+ assert.equal(dialog.open,true);assert.equal(x.d.querySelector('.tdbc-vip-overlay').open,true);assert.equal(dialog.querySelector('.tdbc-main'),form);
+ x.w.TDBVIPDrawer.close();await new Promise(r=>setImmediate(r));assert.equal(x.d.querySelector('.tdbc-vip-overlay'),null);assert.equal(dialog.open,true);assert.equal(dialog.scrollTop,420);assert.equal(vip.parentNode,x.d.body);assert.equal(x.d.documentElement.style.overflow,'hidden');
+ let scroll;dialog.scrollTo=o=>{scroll=o};x.w.matchMedia=()=>({matches:true});dialog.querySelector('[data-action=estimate]').click();assert.equal(scroll.behavior,'smooth');
+ }finally{x.dom.window.close();}
+});
