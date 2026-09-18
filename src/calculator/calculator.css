@@ -130,3 +130,18 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 
 /* Desktop banner content aligns with the estimate panel inset. */
 @media(min-width:768px){.tdb-calc .tdbc-live-button{padding-inline:2.5rem}}
+
+/* Calculator drawer: native dialog motion and gallery-style close control. */
+.tdbc-dialog{transform:translateX(100%);transition:transform 420ms cubic-bezier(.4,0,.2,1),display 420ms allow-discrete,overlay 420ms allow-discrete}
+.tdbc-dialog[open]{transform:translateX(0)}
+.tdbc-dialog::backdrop{opacity:0;transition:opacity 420ms ease,display 420ms allow-discrete,overlay 420ms allow-discrete}
+.tdbc-dialog[open]::backdrop{opacity:1}
+@starting-style{.tdbc-dialog[open]{transform:translateX(100%)}.tdbc-dialog[open]::backdrop{opacity:0}}
+.tdbc-dialog .tdbc-section-footer .tdbc-dd-fade{animation:none!important;opacity:1!important}
+.tdbc-dialog .tdbc-drawer-root{padding-top:6rem}
+.tdbc-dialog:has(.tdbc-live.has-estimate) .tdbc-drawer-root{padding-top:12rem}
+.tdbc-drawer-close-dock{position:fixed;z-index:1100;top:0;right:0;width:6rem;height:6rem;display:grid;place-items:center;pointer-events:none}
+.tdbc-dialog:has(.tdbc-live.has-estimate) .tdbc-drawer-close-dock{top:6rem}
+.tdbc-drawer-close-dock button{pointer-events:auto;display:grid;place-items:center;width:max(3rem,48px);height:max(3rem,48px);padding:0;border:1px solid var(--calc-line);border-radius:50%;color:var(--calc-ink);background:color-mix(in srgb,var(--calc-dark-cream) 84%,transparent);backdrop-filter:saturate(150%) blur(20px);-webkit-backdrop-filter:saturate(150%) blur(20px);cursor:pointer;transition:background-color 300ms ease}
+.tdbc-drawer-close-dock svg{width:1.35rem;height:1.35rem}
+.tdbc-drawer-close-dock button:hover{background:var(--calc-line)}
