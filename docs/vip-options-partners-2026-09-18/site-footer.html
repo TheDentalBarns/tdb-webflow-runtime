@@ -1,0 +1,50 @@
+<!-- Webflow section-link motion trial: use Webflow’s own instant-scroll option. -->
+<script data-tdb-webflow-scroll-motion>document.body.setAttribute("data-wf-scroll-motion","none");</script>
+
+<!-- TDB WEBFLOW STAGING MANIFEST -->
+<!-- Tooltips v1.0.0 | SHA 61cec90cdba3d42a29d3c31194b692c251e8d421 | matching elements only; proximity or intent -->
+<!-- Navbar runtime v1.1.0 | SHA f783eb1a88169174e9d4901e1e68cae17ac39866 | idempotent slider focus preserves swipe settlement -->
+<!-- Immediate runtime v0.9.1 parallax-touch-staging | SHA 15144e3414803974be24852368fa4b8a12303d9d -->
+<!-- Footer runtime v1.4.13 | loaded by immediate | SHA ffb4177d594992c884a2221679e3245b76265a6f -->
+<!-- Global UI | SHA 48124a90eddd39bf4ae611d00b9fe80583b98872 | early UI, hero playback and shared focus/Elfsight easing -->
+<!-- VIP CSS | SHA 48124a90eddd39bf4ae611d00b9fe80583b98872 | first scroll/intent on Home; ready before drawer preparation -->
+<!-- VIP variants | SHA 71ff4c4be481a56d7dc11c09a7b0563850f7838b | focus and nested consent guards -->
+<!-- Slider runtime | SHA 59a7ba5a8ed95c07d738e067e65795a3daf23c05 | 1x mobile touch; mobile smile preview gap -->
+<!-- Slider CSS v1.4.0 | SHA 48124a90eddd39bf4ae611d00b9fe80583b98872 | motion styles; early arrows and 20px-blur CTA CSS in Home/Location heads; gesture-aware touch feedback -->
+<!-- Content-video CSS | SHA 48124a90eddd39bf4ae611d00b9fe80583b98872 | content-player pages only, before controller; hero-only path stays independent -->
+
+<noscript>
+  <img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1326762815429148&ev=PageView&noscript=1" alt="" />
+</noscript>
+
+<script defer src="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@f783eb1a88169174e9d4901e1e68cae17ac39866/dist/tdb-navbar.min.js"></script>
+
+<!-- TDB Immediate runtime v0.9.1 | SHA 15144e3414803974be24852368fa4b8a12303d9d -->
+<script defer src="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@15144e3414803974be24852368fa4b8a12303d9d/dist/tdb-immediate-runtime-batch.min.js"></script>
+
+<script data-tdb-smile-card-design>(()=>{const e=(e,t,r)=>{const i=document.createElement(e);return i.className=t,void 0!==r&&(i.textContent=r),i},t=t=>{const r=e("img","");return r.src=t,r.alt="",r.width=16,r.height=16,r.loading="lazy",r.decoding="async",r},r=e=>Array.from(e.querySelectorAll(".smile-card .treatment-smile")).filter(e=>!e.classList.contains("w-condition-invisible")&&e.querySelector(".paragraph-smile")?.textContent.trim());document.querySelectorAll("[data-tdb-smile-slider]").forEach(i=>{const s=i.querySelector(".swiper-wrapper");if(!s||i.hasAttribute("data-tdb-smile-card-design"))return;i.setAttribute("data-tdb-smile-card-design","1");const l=()=>{const l=Array.from(s.children).filter(e=>e.matches(".swiper-slide")&&e.querySelector(".layout423_card.smile")),a=l.filter(e=>!e.classList.contains("swiper-slide-duplicate")),n=a.length;let o=3;a.forEach(e=>{o=Math.max(o,r(e.querySelector(".layout423_card.smile")).length)}),i.style.setProperty("--tdb-smile-treatment-lines",o),i.style.setProperty("--tdb-smile-extra-lines",o-3),l.forEach(i=>{const s=i.querySelector(".layout423_card.smile");(i=>{const s=i.querySelector(".layout423_card-content.smile"),l=s?.querySelector(":scope > .margin-top.smile.left"),a=s?.querySelector(":scope > .margin-top.smile:not(.left)"),n=s?.querySelector(".smile-card"),o=i.querySelector(".layout423_image-wrapper.smile");if(!(l&&a&&n&&o))return;if(!l.querySelector(".tdb-smile-kicker")){const t=e("div","tdb-smile-kicker");t.append(e("span","tdb-smile-kicker-title","Smile transformation"),e("span","tdb-smile-card-number")),l.prepend(t)}if(o.querySelector(".tdb-smile-image-label")||o.append(e("span","tdb-smile-image-label is-before","Before"),e("span","tdb-smile-image-label is-after","After")),a.querySelector(".tdb-smile-summary"))return;const c=a.querySelectorAll(".smile-iconset:last-child > .tagline-smile-layout"),d=a.querySelectorAll(".smile-iconset:last-child svg"),m=n.querySelector(".button.smile > :last-child")?.textContent.trim();if(2!==c.length||2!==d.length||!m)return;const u=e("div","tdb-smile-summary"),p=e("ul","tdb-smile-treatments");p.setAttribute("aria-label","Treatments carried out"),r(i).forEach(r=>{const i=e("li",""),s=r.querySelector("img")?.getAttribute("src");s&&i.append(t(s)),i.append(e("span","",r.querySelector(".paragraph-smile").textContent.trim())),p.append(i)});const b=e("div","tdb-smile-facts");c.forEach((t,r)=>{const i=e("div","tdb-smile-fact"),s=d[r].cloneNode(!0);s.removeAttribute("id"),s.setAttribute("aria-hidden","true"),s.setAttribute("focusable","false"),s.removeAttribute("role"),i.append(s,e("span","",t.textContent.trim())),b.append(i)});const y=e("div","tdb-smile-fact");y.append(t("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/678aba6948c1f2433e11fcd0_Logo%20Icon%20-%2024%2048_Core%20Value%20Lotus%20Print%20192.svg"),e("span","",m)),b.append(y),u.append(p,b),a.append(u),a.classList.add("tdb-smile-summary-ready")})(s);const l=i.getAttribute("data-swiper-slide-index"),o=null!==l&&Number.isInteger(Number(l))?Number(l):a.indexOf(i),c=s.querySelector(".tdb-smile-card-number");if(c&&o>=0&&o<n){const e=String(o+1).padStart(2,"0")+" / "+String(n).padStart(2,"0");c.textContent!==e&&(c.textContent=e)}})};l();const a=new MutationObserver(()=>{i.isConnected?l():a.disconnect()});a.observe(s,{childList:!0})})})();</script>
+
+
+<!-- TDB Treatment Calculator v1.4.9 — staging pilot -->
+<script defer src="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@291eaa44359343b5ce9d5c112f74c7a0c7592500/dist/tdb-calculator-loader.js"></script>
+
+<script data-tdb-vip-appointment-options>
+(() => {
+  const selector = 'select[name="Treatment-Of-Interest"],select[name="Treatment of Interest"]';
+  function update(select) {
+    const previous = select.value;
+    let assessment = [...select.options].find(o => /^(Fast Track|Signature Assessment)$/.test(o.value));
+    if (!assessment) return;
+    assessment.textContent = 'Signature Assessment';
+    assessment.value = 'Signature Assessment';
+    let design = [...select.options].find(o => o.value === 'Smile Design');
+    if (!design) design = new Option('Smile Design', 'Smile Design');
+    select.insertBefore(design, assessment);
+    const unsure = [...select.options].find(o => /not sure|don.t know/i.test(o.textContent));
+    if (unsure) select.append(unsure);
+    select.value = previous === 'Fast Track' ? 'Signature Assessment' : previous;
+  }
+  document.querySelectorAll(selector).forEach(update);
+  document.addEventListener('focusin', e => { if (e.target.matches?.(selector)) update(e.target); });
+})();
+</script>
