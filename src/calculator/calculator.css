@@ -156,3 +156,5 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 .tdbc-vip-overlay{position:fixed;inset:0;width:100%;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;overflow:visible;pointer-events:none}
 .tdbc-vip-overlay::backdrop{background:color-mix(in srgb,var(--base-color-brand--black) 35%,transparent)}
 .tdbc-vip-overlay #tdb-vip-drawer{pointer-events:auto}
+
+.tdbc-dialog .tdbc-live{padding-inline:var(--tdbc-drawer-gutter,3vw);width:var(--tdbc-drawer-width,min(60rem,94vw));right:var(--tdbc-drawer-scrollbar,0px)}

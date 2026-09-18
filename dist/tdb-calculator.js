@@ -540,6 +540,10 @@
     dialog=document.createElement('dialog');dialog.className='tdbc-dialog';dialog.setAttribute('aria-labelledby','tdbc-dialog-title');dialog.setAttribute('data-lenis-prevent','');
     dialog.innerHTML='<div class="tdbc-drawer-close-dock"><button type="button" data-tdb-calc-close aria-label="Close calculator"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg></button></div><div class="tdbc-drawer-root"><div class="tdbc-shell"><h2 id="tdbc-dialog-title">Explore your treatment costs</h2><p>Loading current prices…</p></div></div>';
     document.body.append(dialog);drawerView=new View(dialog.querySelector('.tdbc-drawer-root'),{cosmetic:true,restorative:true,finance:true},'drawer');
+    const syncDrawerWidth=()=>{if(!dialog.open)return;dialog.style.setProperty('--tdbc-drawer-gutter',getComputedStyle(drawerView.root).paddingLeft);dialog.style.setProperty('--tdbc-drawer-width',dialog.clientWidth+'px');dialog.style.setProperty('--tdbc-drawer-scrollbar',(dialog.offsetWidth-dialog.clientWidth)+'px');};
+    if('ResizeObserver'in window)new ResizeObserver(syncDrawerWidth).observe(drawerView.root);
+    window.addEventListener('resize',syncDrawerWidth,{passive:true});dialog.addEventListener('tdbc-layout',syncDrawerWidth);
+
     dialog.querySelector('[data-tdb-calc-close]').addEventListener('click',()=>close());
     dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
     dialog.addEventListener('click',e=>{if(e.target===dialog){const b=dialog.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)close();}});
@@ -550,7 +554,7 @@
     makeDialog();lastTrigger=trigger;drawerView.suspended=false;focusView(drawerView);const config=configFrom(trigger);
     try{window.TDBVIPDrawer?.reset?.();}catch(_){}
     if(!dialog.open){oldOverflow=document.documentElement.style.overflow;oldPadding=document.documentElement.style.paddingRight;const gap=innerWidth-document.documentElement.clientWidth;document.documentElement.style.overflow='hidden';if(gap>0)document.documentElement.style.paddingRight=gap+'px';scrollWasStopped=!!window.lenis?.isStopped;try{window.lenis?.stop?.();}catch(_){}dialog.showModal();}
-    dialog.scrollTop=0;dialog.querySelector('[data-tdb-calc-close]').focus({preventScroll:true});
+    dialog.dispatchEvent(new Event('tdbc-layout'));dialog.scrollTop=0;dialog.querySelector('[data-tdb-calc-close]').focus({preventScroll:true});
     if(!drawerView.ready){drawerView.config=config;await drawerView.init();}else{contextual(drawerView,config);drawerView.render();save();}
   }
   function close(restore=true){if(!dialog?.open)return;releaseFocus();dialog.close();document.documentElement.style.overflow=oldOverflow;document.documentElement.style.paddingRight=oldPadding;try{if(!scrollWasStopped)window.lenis?.start?.();}catch(_){}if(restore&&lastTrigger?.isConnected)lastTrigger.focus({preventScroll:true});renderAll(drawerView);syncViewportFocus();}
