@@ -1,3 +1,15 @@
+// Yield after a rendering opportunity; abort remains responsive during preparation.
+export function preparationPaint(signal){
+ return new Promise((resolve,reject)=>{
+  let frame=0,timer=0,done=false;
+  const finish=()=>{if(done)return;done=true;cancelAnimationFrame(frame);clearTimeout(timer);signal?.removeEventListener('abort',abort);signal?.aborted?reject(new DOMException('Closed','AbortError')):resolve();};
+  const abort=()=>finish();
+  if(signal?.aborted){finish();return}
+  signal?.addEventListener('abort',abort,{once:true});
+  timer=setTimeout(finish,80);
+  frame=requestAnimationFrame(()=>{clearTimeout(timer);timer=setTimeout(finish,0)});
+ });
+}
 /* Cached photographic composites. Ambient motion shares one timeline across scenes. */
 const PHOTO_WIDTH=1086,PHOTO_HEIGHT=1448;
 
@@ -101,7 +113,7 @@ function floorReflections(ctx){
 
 // Upholstery and its geometry are separate concerns. Recolour only the registered
 // upholstery pixels once during scene preparation; retain all texture and highlights.
-function chairColour(ctx,state){
+function* chairColourSteps(ctx,state){
   if(state.sight===state.touch)return;
   const canvas=ctx.canvas,pixels=ctx.getImageData(0,0,canvas.width,canvas.height),data=pixels.data;
   let mask=null;
@@ -119,7 +131,9 @@ function chairColour(ctx,state){
     mask=m.getImageData(0,0,PHOTO_WIDTH,PHOTO_HEIGHT).data;
     region.width=1;region.height=1;
   }
-  for(let y=298;y<PHOTO_HEIGHT;y++)for(let x=84;x<PHOTO_WIDTH;x++){
+  for(let y=298;y<PHOTO_HEIGHT;y++){
+    if((y-298)%32===0)yield;
+    for(let x=84;x<PHOTO_WIDTH;x++){
     const i=(y*PHOTO_WIDTH+x)*4,r=data[i],g=data[i+1],b=data[i+2];
     let amount=state.touch?mask[i+3]/255:Math.min(1,Math.max(0,(b-r-8)/17))*Math.min(1,Math.max(0,(b-g-3)/9));
     if(!amount)continue;
@@ -128,6 +142,7 @@ function chairColour(ctx,state){
     const high=Math.min(1,Math.max(0,(light-105)/100));
     const target=state.sight?[light*(1.16-high*.08),light*(.96+high*.03),light*(.70+high*.16)]:[light*.66,light*.91,light*1.28];
     for(let c=0;c<3;c++)data[i+c]=data[i+c]*(1-amount)+target[c]*amount;
+  }
   }
   ctx.putImageData(pixels,0,0);
 }
@@ -155,18 +170,24 @@ function chairGlare(surface){
   canvas.className='tdb-senses-chair-glare';canvas.setAttribute('aria-hidden','true');return canvas;
 }
 
-function makeSurface(images,state){
+function* surfaceSteps(images,state){
   const canvas=document.createElement('canvas');canvas.width=PHOTO_WIDTH;canvas.height=PHOTO_HEIGHT;
   const ctx=canvas.getContext('2d',{alpha:false});
   ctx.drawImage(state.touch?images.warm:images.clinical,0,0,PHOTO_WIDTH,PHOTO_HEIGHT);
-  chairColour(ctx,state);
+  yield canvas;
+  yield* chairColourSteps(ctx,state);
+  yield;
   if(!state.sight)floorReflections(ctx);
+  yield;
   if(!state.sight)coldLighting(ctx,state);
   
   canvas.className='tdb-senses-photo-image';canvas.setAttribute('aria-hidden','true');
   return canvas;
 }
 
+function makeSurface(images,state){
+ const steps=surfaceSteps(images,state);let result;do{result=steps.next()}while(!result.done);return result.value;
+}
 
 function objectTone(ctx,state,rect,clinical=false){
   // Grade the object pixels themselves so pale labels and cushions follow Sight.
@@ -577,13 +598,26 @@ export class RasterComposite{
 export class SceneRenderer{
   static async prepareAssets(images,signal){
     const art=new PreparedArtwork(images),tasks=[];
-    for(const sight of [true,false])for(const touch of [true,false])tasks.push(()=>art.surface({sight,touch}));
+    for(const sight of [true,false])for(const touch of [true,false])tasks.push(async()=>{
+      const state={sight,touch},steps=surfaceSteps(images,state);let result=steps.next(),started=performance.now();
+      const entry={surface:result.value,glare:null};art.surfaces.set(Number(sight)+':'+Number(touch),entry);
+      do{
+        if(signal.aborted)throw new DOMException('Closed','AbortError');
+        result=steps.next();
+        if(!result.done&&performance.now()-started>=6){await preparationPaint(signal);started=performance.now();}
+      }while(!result.done);
+      const surface=result.value;
+      // Register immediately so cancellation also releases this canvas.
+      entry.surface=surface;
+      await preparationPaint(signal);
+      entry.glare=sight?null:croppedArtwork(chairGlare(surface),[700,284,286,230],.5);
+    });
     tasks.push(()=>art.object({sight:true},'smell'));
     for(const sight of [true,false]){
       for(const sense of ['sound','candle'])tasks.push(()=>art.object({sight},sense));
       for(const taste of [true,false])tasks.push(()=>art.object({sight,taste},'taste'));
     }
-    try{for(const task of tasks){if(signal.aborted)throw new DOMException('Closed','AbortError');task();await new Promise(resolve=>setTimeout(resolve,0));}
+    try{for(const task of tasks){if(signal.aborted)throw new DOMException('Closed','AbortError');await task();await preparationPaint(signal);}
       if(signal.aborted)throw new DOMException('Closed','AbortError');art.images=null;return art;
     }catch(error){art.destroy();throw error;}
   }
@@ -675,3 +709,4 @@ export class SceneRenderer{
   motion(paused){this.stage.classList.toggle('tdb-senses-motion-paused',paused);}
   destroy(){if(this.disposed)return;this.disposed=true;this.cancel();this.scope.abort();this.gpu?.destroy();this.raster?.destroy();this.stage.replaceChildren();this.artwork.destroy();this.layers=[];this.photos=[];}
 }
+

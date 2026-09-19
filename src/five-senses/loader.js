@@ -29,13 +29,13 @@ dialog[data-tdb-senses-shell][data-senses-opening]::backdrop,dialog[data-tdb-sen
 dialog[data-tdb-senses-shell][data-senses-handover] .tdb-senses-start{opacity:0;pointer-events:none}
 dialog[data-tdb-senses-shell] .tdb-senses-loading-view{position:absolute;inset:0;z-index:30;display:grid;align-content:center;justify-items:center;gap:1rem;margin:0;background:#222;color:#f5f1e6}
 dialog[data-tdb-senses-shell] .tdb-senses-loading-ring{position:relative;display:block;box-sizing:border-box;width:88px;height:88px;flex:none;border:0;border-radius:50%}
-dialog[data-tdb-senses-shell] svg.tdb-senses-progress-ring{position:absolute;inset:0;display:block;width:100%;height:100%;opacity:1;animation:tdb-senses-shell-turn 1.3s linear infinite;overflow:visible}
+dialog[data-tdb-senses-shell] svg.tdb-senses-progress-ring{position:absolute;inset:0;display:block;width:100%;height:100%;opacity:1;animation:tdb-senses-shell-turn 1.3s linear infinite;overflow:visible;will-change:transform;transform-origin:50% 50%;backface-visibility:hidden}
 dialog[data-tdb-senses-shell] .tdb-senses-start-forming{position:relative;border-color:transparent;background:transparent;box-shadow:none;transition:none}
 dialog[data-tdb-senses-shell] .tdb-senses-start-forming svg.tdb-senses-progress-ring{inset:-1px;width:calc(100% + 2px);height:calc(100% + 2px)}
 dialog[data-tdb-senses-shell] .tdb-senses-start-forming .tdb-senses-start-icon{opacity:0}
 dialog[data-tdb-senses-shell] .tdb-senses-loading-anchor{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:16px;font:inherit}
 dialog[data-tdb-senses-shell] .tdb-senses-loading-anchor .tdb-senses-loading-text{margin:0;font-size:11px;letter-spacing:.18em;white-space:nowrap}
-@keyframes tdb-senses-shell-turn{to{transform:rotate(360deg)}}
+@keyframes tdb-senses-shell-turn{from{transform:translateZ(0) rotate(0deg)}to{transform:translateZ(0) rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){dialog[data-tdb-senses-shell] svg.tdb-senses-progress-ring{animation:none}}
 dialog[data-tdb-senses-shell] .tdb-senses-loading-text{color:#f5f1e6!important;font:inherit}
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close{position:absolute;z-index:40;top:max(22px,env(safe-area-inset-top));right:var(--tdb-senses-gutter);display:grid;place-items:center;width:44px;height:44px;padding:7px;margin:0;border:0;border-radius:50%;background:transparent!important;color:#fff!important;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -206,6 +206,9 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     loading(session);
     session.dialog.dataset.sensesHandover='';
     try{
+      // Paint and composite the spinner before module evaluation or scene work.
+      await new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));
+      if(active!==session||session.closing||session.controller.signal.aborted)return;
       const [module]=await Promise.all([import(moduleURL),loadStyle()]);
       if(active!==session||session.closing||session.controller.signal.aborted)return;
       session.experience=await module.mountExperience({dialog:session.dialog,signal:session.controller.signal,assetBase,onClose:()=>close(session),loadingCover:session.loadingCover,closeControl:session.closeControl});
@@ -280,3 +283,4 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     open(null,true);
   }
 })();
+
