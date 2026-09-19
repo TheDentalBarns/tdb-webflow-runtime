@@ -51,7 +51,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
   let active=null,stylePromise=null,pageAudio=null,mediaHoldVersion=0;
   function stopPageAudio(){
     if(!pageAudio)return;
-    pageAudio.audio.stop();pageAudio.button.remove();pageAudio=null;
+    pageAudio.releaseLayer?.();pageAudio.audio.stop();pageAudio.button.remove();pageAudio=null;
   }
   function keepPageAudio(audio){
     stopPageAudio();
@@ -67,6 +67,26 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
       audio.setMuted(!audio.muted);update();
     });
     pageAudio={audio,button};update();document.body.append(button);
+    // Native modal dialogs make body siblings inert regardless of z-index.
+    // Reuse this button inside the active calculator, including its VIP dialog.
+    const dialogs=new Set();
+    const place=()=>{
+      const vip=document.querySelector('dialog.tdbc-vip-overlay[open]');
+      const host=vip?.querySelector('#tdb-vip-drawer')||vip||document.querySelector('dialog.tdbc-dialog[open]')||document.body;
+      if(button.parentNode!==host){const focused=document.activeElement===button;host.append(button);if(focused)button.focus({preventScroll:true});}
+    };
+    const stateObserver=new MutationObserver(place);
+    const discover=()=>{
+      document.querySelectorAll('dialog.tdbc-dialog,dialog.tdbc-vip-overlay').forEach(dialog=>{
+        if(dialogs.has(dialog))return;dialogs.add(dialog);stateObserver.observe(dialog,{attributes:true,attributeFilter:['open']});
+      });
+      place();
+    };
+    const treeObserver=new MutationObserver(records=>{
+      if(records.some(record=>[...record.addedNodes,...record.removedNodes].some(node=>node.nodeType===1&&(node.matches?.('dialog')||node.querySelector?.('dialog')))))discover();
+    });
+    treeObserver.observe(document.body,{childList:true,subtree:true});discover();
+    pageAudio.releaseLayer=()=>{treeObserver.disconnect();stateObserver.disconnect();dialogs.clear();};
     if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
       button.animate([{opacity:0},{opacity:1}],{duration:600,easing:'ease-in-out'});
     }
@@ -166,7 +186,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
       session.controller.abort();
     }finally{
       try{session.dialog.close();session.dialog.remove();}
-      finally{session.restore();session.releaseMedia(resumeMedia);}
+      finally{session.restore();if(resumeMedia)window.TDBVIPDrawer?.close?.();session.releaseMedia(resumeMedia);}
     }
     if(session.calmAudio){if(resumeMedia)keepPageAudio(session.calmAudio);else session.calmAudio.stop();session.calmAudio=null;}
     if(session.opener?.isConnected)session.opener.focus({preventScroll:true});
@@ -175,6 +195,8 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
   function close(session){
     if(active!==session||session.closing)return;
     session.closing=true;
+    // Dismiss the drawer through its own controller; leave navbar control alone.
+    window.TDBVIPDrawer?.close?.();
     session.calmAudio=session.experience?.releaseAudio();
     session.dialog.inert=true;
     session.dialog.dataset.sensesClosing='';
@@ -276,7 +298,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
   });
   window.addEventListener('pagehide',()=>{stopPageAudio();if(active)dispose(active,false);});
   document.addEventListener('visibilitychange',()=>{if(document.hidden){stopPageAudio();active?.calmAudio?.stop();}});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.14.3'});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.14.5'});
   // A direct experience link arrives on Home before any audio is unlocked.
   if(location.pathname==='/'&&query.get('five-senses')==='1'){
     const url=new URL(location.href);url.searchParams.delete('five-senses');history.replaceState(history.state,'',url);
