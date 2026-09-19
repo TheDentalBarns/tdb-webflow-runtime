@@ -149,9 +149,10 @@
 
 /* Shared TDB typography and bounded page gutters. */
 .tdb-senses{--tdb-senses-gutter:max(3vw,calc((100vw - 90rem)/2));--tdb-senses-cream:var(--base-color-brand--cream-1,#faf3e6)}
-.tdb-senses .tdb-senses-title{font-size:3.5rem;line-height:1.2;letter-spacing:.225rem;text-transform:uppercase;font-weight:400;max-width:calc(100% - 2 * var(--tdb-senses-gutter))}
+.tdb-senses .tdb-senses-title{font-size:3.5rem;line-height:1.2;letter-spacing:.225rem;text-transform:uppercase;font-weight:300;max-width:calc(100% - 2 * var(--tdb-senses-gutter))}
 .tdb-senses-detail-name,.tdb-senses-room,.tdb-senses-name{text-transform:uppercase;letter-spacing:.1em}
 .tdb-senses-detail{max-width:26rem}
 .tdb-senses-detail-copy{font-size:.875rem;line-height:1.6}
 .tdb-senses-all button{text-decoration:underline;text-underline-offset:.3em}
 @media(max-width:767px){.tdb-senses{--tdb-senses-gutter:5vw}.tdb-senses .tdb-senses-title{font-size:2.5rem;letter-spacing:.12rem}.tdb-senses-detail{max-width:min(26rem,90vw)}}
+
