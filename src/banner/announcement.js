@@ -1,4 +1,4 @@
-/* TDB Announcement 1.4.0. Shares existing shell/consent/drawer controllers.
+/* TDB Announcement 1.5.0. Shares existing shell/consent/drawer controllers.
  * Uses published CMS text; shares consent, shell motion and drawer routing.
  */
 (() => {
@@ -26,6 +26,7 @@
   let signatureState = signatureOnly, interacting = false, moving = false, suspended = false;
   const dwell = 8000;
   let rotationLeft = dwell, rotationEnd = 0;
+  let manual = false, gesture = null, slideDirection = -1, suppressClickUntil = 0;
   const events = ['CookieScriptLoaded', 'CookieScriptAccept', 'CookieScriptAcceptAll', 'CookieScriptReject', 'CookieScriptClose'];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const CSS = `
@@ -34,18 +35,19 @@ const CSS = `
 html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elfsight-timer-shell,html.tdb-sg-locked #tdb-elfsight-timer-shell{transform:translate3d(0,-100%,0)!important;opacity:1!important;visibility:hidden!important;pointer-events:none!important;transition:transform 420ms cubic-bezier(.4,0,.2,1),visibility 0s 420ms!important}
 .tdb-announcement{width:100%;height:6rem;min-height:6rem;box-sizing:border-box;margin:0;padding-block:0;border:0;border-radius:0;display:flex;align-items:center;justify-content:center;gap:12px;background:var(--base-color-brand--black,#000);color:var(--base-color-brand--orange-1,#f9f2e6);font:inherit;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tdb-announcement:focus-visible{outline:1px solid currentColor;outline-offset:-6px}
+.tdb-announcement{touch-action:pan-y pinch-zoom;user-select:none}
+.tdb-announcement::before{content:"";width:3rem;flex:0 0 3rem}
 .tdb-announcement-viewport{display:block;flex:1;min-width:0;overflow:hidden}
 .tdb-announcement-track{display:flex;align-items:center;width:100%;transform:translateX(0)}
 .tdb-announcement-panel{display:grid;flex:0 0 100%;min-width:0;grid-template-rows:20px 36px;gap:4px}
 .tdb-announcement-title{display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:400;line-height:20px;opacity:.7}
 .tdb-announcement-lower{display:flex;align-items:flex-start;justify-content:center;min-width:0;font-size:18px;line-height:24px;font-weight:400;font-variant-numeric:tabular-nums}
-.tdb-announcement-circle,.tdb-announcement-clock{display:flex;align-items:center;justify-content:center;width:3rem;height:3rem;flex:0 0 3rem;border-radius:50%;box-sizing:border-box}
-.tdb-announcement-circle{border:1px solid color-mix(in srgb,currentColor 35%,transparent)}
-.tdb-announcement-clock svg{display:block;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.5;transform:rotate(-90deg)}
-.tdb-announcement-clock circle:first-child{opacity:.25}
-.tdb-announcement-clock circle:last-child{stroke-width:2;stroke-dasharray:1;stroke-dashoffset:1}
-.tdb-announcement-clock.is-static{visibility:hidden}
-.tdb-announcement-circle svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.25}
+.tdb-announcement-circle{position:relative;display:flex;align-items:center;justify-content:center;width:3rem;height:3rem;flex:0 0 3rem;border-radius:50%;box-sizing:border-box;color:var(--base-color-brand--orange-3,#d6cab4)}
+.tdb-announcement-circle .tdb-announcement-dial{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1;transform:rotate(-90deg)}
+.tdb-announcement-dial circle:first-child{opacity:.3}
+.tdb-announcement-progress{opacity:.65;stroke-dasharray:1;stroke-dashoffset:1}
+.tdb-announcement[data-rotation="manual"] .tdb-announcement-progress,.tdb-announcement[data-rotation="static"] .tdb-announcement-progress{visibility:hidden}
+.tdb-announcement-circle .tdb-announcement-arrow{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.25}
 .tdb-announcement [hidden]{display:none!important}
 .tdb-announcement-countdown{display:flex;align-items:flex-start;gap:8px}
 .tdb-announcement-unit{display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -103,10 +105,24 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
   function settleSlide() {
     if (!moving) return;
     clearTimeout(slideTimer); slideTimer = 0;
-    track.append(track.firstElementChild);
+    if (slideDirection < 0) track.append(track.firstElementChild);
     track.style.transition = 'none'; track.style.transform = 'translateX(0)';
     moving = false; signatureState = !signatureState;
     render();
+  }
+  function slide(direction = -1, prepared = false) {
+    if (moving || signatureOnly) return;
+    pauseRotation(); slideDirection = direction;
+    if (direction > 0 && !prepared) {
+      track.prepend(track.lastElementChild);
+      track.style.transition = 'none'; track.style.transform = 'translateX(-100%)';
+    }
+    track.getBoundingClientRect();
+    moving = true; rotationLeft = dwell; render();
+    if (reduced.matches) { settleSlide(); return; }
+    track.style.transition = 'transform 400ms ease';
+    track.style.transform = direction < 0 ? 'translateX(-100%)' : 'translateX(0)';
+    slideTimer = setTimeout(settleSlide, 450);
   }
   function pauseRotation() {
     if (!rotation) return;
@@ -115,28 +131,26 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     progress.style.transition = 'none'; progress.style.strokeDashoffset = String(rotationLeft / dwell);
   }
   function rotate() {
-    if (signatureOnly || interacting || moving || !isVisible()) return;
+    if (signatureOnly || manual || gesture || interacting || moving || !isVisible()) return;
     progress.style.transition = 'none'; progress.style.strokeDashoffset = String(rotationLeft / dwell);
     progress.getBoundingClientRect();
     progress.style.transition = 'stroke-dashoffset ' + rotationLeft + 'ms linear'; progress.style.strokeDashoffset = '0';
     rotationEnd = performance.now() + rotationLeft;
     rotation = setTimeout(() => {
-      rotation = 0; rotationLeft = dwell; moving = true; render();
-      if (reduced.matches) { settleSlide(); return; }
-      // Same 400ms transform travel as the existing Swiper controls, with no opacity fade.
-      track.style.transition = 'transform 400ms ease'; track.style.transform = 'translateX(-100%)';
-      slideTimer = setTimeout(settleSlide, 450);
+      rotation = 0; slide();
     }, rotationLeft);
   }
   function render() {
     clearTimeout(timer); timer = 0;
     if (!button) return;
     const visible = isVisible();
+    if (!visible && gesture) cancelGesture();
     if (!visible && moving) { settleSlide(); return; }
     button.tabIndex = visible ? 0 : -1; shell.setAttribute('aria-hidden', String(!visible));
     const remaining = Math.max(0, Math.ceil((time(config.deadline) - Date.now()) / 1000)) || 0;
     mode = signatureState ? 'signature' : remaining ? 'countdown' : 'rest';
     button.dataset.mode = mode;
+    button.dataset.rotation = signatureOnly ? 'static' : manual ? 'manual' : 'auto';
     smilePanel.setAttribute('aria-hidden', String(signatureState));
     signaturePanel.setAttribute('aria-hidden', String(!signatureState));
     setText(smileTitle, (preview ? 'Preview · ' : '') + (remaining ? config.title : config.bookedTitle));
@@ -166,14 +180,65 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
       if (mode === 'countdown') timer = setTimeout(render, 1000 - Date.now() % 1000 + 10);
       else if (signatureState && untilSlot > 0) timer = setTimeout(render, Math.min(untilSlot + 10, 2147483647));
     }
-    if (!visible || interacting) pauseRotation();
+    if (!visible || interacting || gesture || manual) pauseRotation();
     else if (!rotation && !moving) rotate();
   }
   function openDrawer(event) {
     event.preventDefault(); event.stopPropagation();
+    if (performance.now() < suppressClickUntil) return;
     if (matchMedia('(max-width:767px)').matches) document.querySelector('#tdb-vip-drawer .tdb-vip-drawer-handle')?.click();
     else if (window.TDBVIPDrawerDesktop?.open) window.TDBVIPDrawerDesktop.open();
     else window.TDBVIPDrawerLoader?.load?.().then(api => api?.open?.()).catch(() => {});
+  }
+  function cancelGesture() {
+    if (!gesture) return;
+    const previous = gesture; gesture = null;
+    if (previous.dragging) {
+      if (previous.direction > 0) track.append(track.firstElementChild);
+      track.style.transition = 'none'; track.style.transform = 'translateX(0)';
+      suppressClickUntil = performance.now() + 600;
+    }
+    if (button.hasPointerCapture?.(previous.id)) button.releasePointerCapture(previous.id);
+  }
+  function bindSwiping() {
+    if (signatureOnly) return;
+    button.addEventListener('pointerdown', event => {
+      if (!event.isPrimary || event.button !== 0 || moving || !isVisible()) return;
+      // A new deliberate tap remains an ordinary drawer action after a previous swipe.
+      suppressClickUntil = 0;
+      gesture = {id:event.pointerId,x:event.clientX,y:event.clientY,dx:0,dragging:false};
+      pauseRotation();
+    });
+    button.addEventListener('pointermove', event => {
+      if (!gesture || gesture.id !== event.pointerId) return;
+      const dx = event.clientX - gesture.x, dy = event.clientY - gesture.y;
+      if (!gesture.dragging) {
+        if (Math.max(Math.abs(dx),Math.abs(dy)) < 10) return;
+        if (Math.abs(dy) >= Math.abs(dx)) { cancelGesture(); render(); return; }
+        gesture.dragging = true; gesture.direction = dx < 0 ? -1 : 1;
+        gesture.width = track.getBoundingClientRect().width;
+        if (gesture.direction > 0) track.prepend(track.lastElementChild);
+        track.style.transition = 'none'; button.setPointerCapture?.(event.pointerId);
+      }
+      gesture.dx = gesture.direction < 0 ? Math.max(-gesture.width,Math.min(0,dx)) : Math.min(gesture.width,Math.max(0,dx));
+      if (!reduced.matches) track.style.transform = 'translateX(' + (gesture.dx - (gesture.direction > 0 ? gesture.width : 0)) + 'px)';
+    });
+    button.addEventListener('pointerup', event => {
+      if (!gesture || gesture.id !== event.pointerId) return;
+      const previous = gesture;
+      if (!previous.dragging || Math.abs(previous.dx) < Math.min(40,previous.width * .15)) { cancelGesture(); render(); return; }
+      gesture = null; manual = true; pauseRotation();
+      suppressClickUntil = performance.now() + 600;
+      if (button.hasPointerCapture?.(event.pointerId)) button.releasePointerCapture(event.pointerId);
+      slide(previous.direction,true);
+    });
+    const cancel = event => { if (gesture?.id === event.pointerId) { cancelGesture(); render(); } };
+    button.addEventListener('pointercancel', cancel); button.addEventListener('lostpointercapture', cancel);
+    button.addEventListener('pointerleave', event => { if (gesture && !gesture.dragging) cancel(event); });
+    button.addEventListener('keydown', event => {
+      if (!['ArrowLeft','ArrowRight'].includes(event.key) || moving || gesture) return;
+      event.preventDefault(); manual = true; slide(event.key === 'ArrowLeft' ? -1 : 1);
+    });
   }
   function start() {
     if (started || dataLoading || !active || !shell) return;
@@ -200,7 +265,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     }
     started = true;
     events.forEach(name => window.removeEventListener(name, consentReady));
-    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.4.0'; style.textContent = CSS;
+    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.5.0'; style.textContent = CSS;
     document.head.append(style);
     button = element('button', 'tdb-announcement padding-global'); button.type = 'button';
     button.setAttribute('aria-haspopup', 'dialog'); button.setAttribute('aria-controls', 'tdb-vip-drawer');
@@ -219,12 +284,14 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     if (!signatureOnly) track.append(smilePanel); track.append(signaturePanel); viewport.append(track);
     const circle = element('span', 'tdb-announcement-circle'); circle.setAttribute('aria-hidden', 'true');
     const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); arrow.setAttribute('viewBox', '0 0 16 16');
+    arrow.setAttribute('class', 'tdb-announcement-arrow');
     arrow.innerHTML = '<path d="M3 6l5-4 5 4M8 2v12"/>'; circle.append(arrow);
-    const clock = element('span', 'tdb-announcement-clock' + (signatureOnly ? ' is-static' : '')); clock.setAttribute('aria-hidden', 'true');
     const dial = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); dial.setAttribute('viewBox', '0 0 44 44');
-    dial.innerHTML = '<circle cx="22" cy="22" r="21"/><circle cx="22" cy="22" r="21" pathLength="1"/>';
-    progress = dial.lastElementChild; clock.append(dial); button.append(clock, viewport, circle);
+    dial.setAttribute('class', 'tdb-announcement-dial');
+    dial.innerHTML = '<circle cx="22" cy="22" r="21.5"/><circle class="tdb-announcement-progress" cx="22" cy="22" r="21.5" pathLength="1"/>';
+    progress = dial.lastElementChild; circle.append(dial); button.append(viewport, circle);
     button.addEventListener('click', openDrawer);
+    bindSwiping();
     button.addEventListener('animationend', event => event.target.classList.remove('is-changing'));
     track.addEventListener('transitionend', event => { if (event.target === track && event.propertyName === 'transform') settleSlide(); });
     shell.setAttribute('data-tdb-announcement-pending', ''); shell.append(button);
@@ -235,7 +302,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     const observer = new MutationObserver(render); observer.observe(root, { attributes: true, attributeFilter: ['class'] });
     const drawer = document.getElementById('tdb-vip-drawer'); if (drawer) observer.observe(drawer, { attributes: true, attributeFilter: ['class'] });
     document.addEventListener('visibilitychange', render); window.addEventListener('pageshow', () => { suspended = false; render(); });
-    window.addEventListener('pagehide', () => { suspended = true; clearTimeout(timer); timer = 0; pauseRotation(); if (moving) settleSlide(); });
+    window.addEventListener('pagehide', () => { suspended = true; clearTimeout(timer); timer = 0; pauseRotation(); cancelGesture(); if (moving) settleSlide(); });
     render();
     function reveal() {
       if (getComputedStyle(root).getPropertyValue('--tdb-ui-ready').trim() !== '1') return;
@@ -249,13 +316,13 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     start();
   }
   window.TDBAnnouncement = Object.freeze({
-    version: '1.4.0',
+    version: '1.5.0',
     mount(target) {
       if (shell) return;
       shell = target; shell.hidden = true; active = decisionExists();
       if (active) start(); else events.forEach(name => window.addEventListener(name, consentReady));
     },
     configure(next) { overrides = { ...overrides, ...next }; config = { ...config, ...next }; mode = last = ''; render(); },
-    status: () => ({ version: '1.4.0', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), preview })
+    status: () => ({ version: '1.5.0', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), preview, manual })
   });
 })();
