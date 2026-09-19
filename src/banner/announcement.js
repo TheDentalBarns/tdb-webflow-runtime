@@ -1,4 +1,4 @@
-/* TDB Announcement 1.1.0. Shares existing shell/consent/drawer controllers.
+/* TDB Announcement 1.2.0. Shares existing shell/consent/drawer controllers.
  * CMS values are published in the shared footer: no API, font or vendor requests.
  */
 (() => {
@@ -18,7 +18,7 @@
   };
   let config = { ...defaults, ...window.TDBAnnouncementConfig };
   const signatureOnly = /^\/services\/fast-track\/?$/.test(location.pathname);
-  let shell, button, title, rest, action, counters, pauseButton;
+  let shell, button, title, rest, action, counters, pauseButton, progressFill, progressAnimation;
   const digits = [];
   let timer = 0, rotation = 0, active = false, started = false, mode = '', last = '';
   let signatureState = signatureOnly, paused = false, interacting = false;
@@ -28,8 +28,8 @@ const CSS = `
 #tdb-elfsight-timer-shell[hidden]{display:none!important}
 #tdb-elfsight-timer-shell[data-tdb-announcement-pending]{visibility:hidden!important;transform:translate3d(0,-100%,0)!important;opacity:0!important;pointer-events:none!important;transition:none!important}
 html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elfsight-timer-shell,html.tdb-sg-locked #tdb-elfsight-timer-shell{transform:translate3d(0,-100%,0)!important;opacity:1!important;visibility:hidden!important;pointer-events:none!important;transition:transform 420ms cubic-bezier(.4,0,.2,1),visibility 0s 420ms!important}
-.tdb-announcement-pause{position:absolute;right:12px;bottom:8px;padding:4px;border:0;background:transparent;color:var(--base-color-brand--orange-1,#f9f2e6);font:inherit;font-size:10px;line-height:16px;opacity:.65;cursor:pointer}
-.tdb-announcement.is-switching>span{animation:tdb-announcement-message 420ms ease both}
+.tdb-announcement-pause{position:absolute;left:12px;top:12px;width:28px;height:28px;padding:6px;border:0;background:transparent;color:var(--base-color-brand--orange-1,#f9f2e6);cursor:pointer;display:grid;place-items:center}.tdb-announcement-pause[hidden]{display:none!important}.tdb-announcement-pause:focus-visible{outline:1px solid currentColor;outline-offset:2px}.tdb-announcement-progress{width:14px;height:14px;border:1px solid currentColor;border-radius:50%;overflow:hidden;display:block}.tdb-announcement-progress-fill{display:block;width:100%;height:100%;background:currentColor;transform:scaleY(0);transform-origin:center bottom}.tdb-announcement-pause[aria-pressed=true]{opacity:.55}
+.tdb-announcement>span{transition:opacity 220ms ease}.tdb-announcement.is-fading-out>span{opacity:0}.tdb-announcement.is-switching>span{animation:tdb-announcement-message 360ms ease both}
 @keyframes tdb-announcement-message{from{opacity:0;transform:translateY(2px)}to{opacity:1;transform:translateY(0)}}
 .tdb-announcement{width:100%;min-height:6rem;box-sizing:border-box;margin:0;padding:0 calc(24px + 5%);border:0;border-radius:0;display:flex;align-items:center;justify-content:center;gap:20px;background:var(--base-color-brand--black,#000);color:var(--base-color-brand--orange-1,#f9f2e6);font:inherit;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tdb-announcement:focus-visible{outline:1px solid currentColor;outline-offset:-6px}
@@ -47,7 +47,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
 @keyframes tdb-announcement-number{from{transform:translateY(-.16em);opacity:.35}to{transform:translateY(0);opacity:1}}
 @media(max-width:640px){.tdb-announcement-title,.tdb-announcement-action{font-size:14px;line-height:20px}.tdb-announcement-rest{font-size:12px;line-height:18px}}
 @media(max-width:480px){.tdb-announcement{flex-direction:column;gap:4px}.tdb-announcement-countdown{gap:4px;margin:0}.tdb-announcement-value{font-size:13px;line-height:16px}.tdb-announcement-copy{gap:2px}}
-@media(prefers-reduced-motion:reduce){.tdb-announcement-digit.is-changing,.tdb-announcement.is-switching>span{animation:none}}
+@media(prefers-reduced-motion:reduce){.tdb-announcement-digit.is-changing,.tdb-announcement.is-switching>span{animation:none}.tdb-announcement>span{transition:none}}
 `;
 
   function decisionExists() {
@@ -78,14 +78,32 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     const clock = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date);
     return 'Next appointment · ' + day + ', ' + clock;
   }
+  function stopRotation() {
+    clearTimeout(rotation); rotation = 0;
+    progressAnimation?.cancel(); progressAnimation = null;
+    button?.classList.remove('is-fading-out', 'is-switching');
+  }
   function rotate() {
     clearTimeout(rotation); rotation = 0;
+    progressAnimation?.cancel(); progressAnimation = null;
     if (signatureOnly || paused || interacting || !isVisible()) return;
-    rotation = setTimeout(() => {
+    if (!reduced.matches) progressAnimation = progressFill.animate(
+      [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }],
+      { duration: 8000, easing: 'linear', fill: 'forwards' }
+    );
+    const swap = () => {
       rotation = 0; signatureState = !signatureState;
+      button.classList.remove('is-fading-out');
       if (!reduced.matches) button.classList.add('is-switching');
       render();
-    }, 8000);
+    };
+    rotation = setTimeout(() => {
+      if (reduced.matches) swap();
+      else {
+        button.classList.add('is-fading-out');
+        rotation = setTimeout(swap, 220);
+      }
+    }, reduced.matches ? 8000 : 7780);
   }
   function render() {
     clearTimeout(timer); timer = 0;
@@ -129,7 +147,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
       else if (signatureState && untilSlot > 0) timer = setTimeout(render, Math.min(untilSlot + 10, 2147483647));
     }
     // Repeated digit updates must not restart the eight-second message interval.
-    if (!visible || paused || interacting) { clearTimeout(rotation); rotation = 0; }
+    if (!visible || paused || interacting) stopRotation();
     else if (!rotation) rotate();
   }
   function openDrawer(event) {
@@ -142,7 +160,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     if (started || !active || !shell) return;
     started = true;
     events.forEach(name => window.removeEventListener(name, consentReady));
-    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.1.0'; style.textContent = CSS;
+    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.2.0'; style.textContent = CSS;
     document.head.append(style);
     button = element('button', 'tdb-announcement'); button.type = 'button';
     button.setAttribute('aria-haspopup', 'dialog'); button.setAttribute('aria-controls', 'tdb-vip-drawer');
@@ -159,10 +177,12 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     });
     button.append(copy, counters); button.addEventListener('click', openDrawer);
     button.addEventListener('animationend', event => { event.target.classList.remove('is-changing'); if (event.animationName === 'tdb-announcement-message') button.classList.remove('is-switching'); });
-    pauseButton = element('button', 'tdb-announcement-pause', 'Ⅱ'); pauseButton.type = 'button'; pauseButton.hidden = signatureOnly;
+    pauseButton = element('button', 'tdb-announcement-pause'); pauseButton.type = 'button'; pauseButton.hidden = signatureOnly;
+    const progress = element('span', 'tdb-announcement-progress'); progress.setAttribute('aria-hidden', 'true');
+    progressFill = element('span', 'tdb-announcement-progress-fill'); progress.append(progressFill); pauseButton.append(progress);
     pauseButton.setAttribute('aria-label', 'Pause banner messages'); pauseButton.setAttribute('aria-pressed', 'false');
     pauseButton.addEventListener('click', () => {
-      paused = !paused; pauseButton.textContent = paused ? '▷' : 'Ⅱ';
+      paused = !paused;
       pauseButton.setAttribute('aria-label', paused ? 'Resume banner messages' : 'Pause banner messages');
       pauseButton.setAttribute('aria-pressed', String(paused)); render();
     });
@@ -174,7 +194,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     const observer = new MutationObserver(render); observer.observe(root, { attributes: true, attributeFilter: ['class'] });
     const drawer = document.getElementById('tdb-vip-drawer'); if (drawer) observer.observe(drawer, { attributes: true, attributeFilter: ['class'] });
     document.addEventListener('visibilitychange', render); window.addEventListener('pageshow', render);
-    window.addEventListener('pagehide', () => { clearTimeout(timer); clearTimeout(rotation); timer = rotation = 0; });
+    window.addEventListener('pagehide', () => { clearTimeout(timer); timer = 0; stopRotation(); });
     render();
     // Shared CSS is deferred. Never paint an unpositioned shell while it is arriving.
     function reveal() {
@@ -190,7 +210,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     start();
   }
   window.TDBAnnouncement = Object.freeze({
-    version: '1.1.0',
+    version: '1.2.0',
     mount(target) {
       if (shell) return;
       shell = target; shell.hidden = true;
@@ -198,6 +218,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
       if (active) start(); else events.forEach(name => window.addEventListener(name, consentReady));
     },
     configure(next) { config = { ...config, ...next }; mode = last = ''; render(); },
-    status: () => ({ version: '1.1.0', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), preview })
+    status: () => ({ version: '1.2.0', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), preview })
   });
 })();
+
