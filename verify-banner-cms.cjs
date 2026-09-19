@@ -6,7 +6,7 @@ const values=fields=>Object.entries(fields).map(([k,v])=>`<div data-banner-field
 function setup({path='/',embedded=true,saved=true,mobile=false,fields=fieldValues}={}){
  const dom=new JSDOM('<!doctype html><html><head><style>:root{--tdb-ui-ready:1}</style></head><body>'+(embedded?'<div data-tdb-banner-item>'+values(fields)+'</div>':'')+'<div id="tdb-vip-drawer"><button class="tdb-vip-drawer-handle"></button></div><div id="tdb-elfsight-timer-shell" class="tdb-elfsight-shell"></div></body></html>',{url:'https://dentalbarns.webflow.io'+path,runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window,d=w.document;let clock=Date.parse('2026-09-19T11:00:00Z'),id=0,calls=0;const tasks=new Map();
- w.Date.now=()=>clock;w.matchMedia=q=>({matches:mobile&&q.includes('767')});
+ w.Date.now=()=>clock;w.performance.now=()=>clock;w.matchMedia=q=>({matches:mobile&&q.includes('767')});
  w.setTimeout=(fn,ms)=>{const n=++id;tasks.set(n,{fn,at:clock+ms});return n};w.clearTimeout=n=>tasks.delete(n);
  w.requestAnimationFrame=fn=>w.setTimeout(fn,16);
  w.fetch=async()=>{calls++;return {ok:true,text:async()=>values(fields)}};
@@ -21,7 +21,13 @@ function setup({path='/',embedded=true,saved=true,mobile=false,fields=fieldValue
  assert.equal(a.w.TDBAnnouncement.status().deadline,'2026-09-25T08:00:00.000Z','UK 09:00 maps to BST UTC08');assert.equal(a.w.TDBAnnouncement.status().mode,'countdown');
  assert.equal(a.d.querySelector('.tdb-announcement-pause'),null,'pause control removed');
  const track=a.d.querySelector('.tdb-announcement-track');
- a.tick(7990);assert.equal(track.style.transform,'translateX(-100%)','message travels left');a.tick(450);assert.equal(a.w.TDBAnnouncement.status().mode,'signature');assert.equal(track.firstElementChild.dataset.message,'signature');assert.equal(track.style.transform,'translateX(0)');
+ const progress=a.d.querySelector('.tdb-announcement-clock circle:last-child');
+ a.tick(3000);a.d.querySelector('#tdb-elfsight-timer-shell').dispatchEvent(new a.w.Event('mouseenter'));
+ const held=Number(progress.style.strokeDashoffset);assert.ok(held>.60&&held<.64,'progress retains the unelapsed portion when paused');
+ a.tick(10000);assert.equal(track.firstElementChild.dataset.message,'smile','reading pause holds message and progress together');
+ a.d.querySelector('#tdb-elfsight-timer-shell').dispatchEvent(new a.w.Event('mouseleave'));
+ assert.ok(parseFloat(progress.style.transition.split(' ')[1])<5100,'resume uses remaining dwell, not a new interval');
+ a.tick(4990);assert.equal(track.style.transform,'translateX(-100%)','message travels left');a.tick(450);assert.equal(a.w.TDBAnnouncement.status().mode,'signature');assert.equal(track.firstElementChild.dataset.message,'signature');assert.equal(track.style.transform,'translateX(0)');
  assert.equal(a.d.querySelector('[data-message="signature"] .tdb-announcement-title').textContent,'Signature Assessment ✦ Next appointment','CMS title is used verbatim');assert.equal(a.d.querySelector('[data-message="signature"] .tdb-announcement-lower').textContent,'Tue 22 Sept · 09:30');
  a.tick(8450);assert.equal(a.w.TDBAnnouncement.status().mode,'countdown');assert.equal(track.firstElementChild.dataset.message,'smile','loop also travels left');
  a.d.querySelector('#tdb-elfsight-timer-shell').dispatchEvent(new a.w.Event('mouseenter'));a.tick(9000);assert.equal(a.w.TDBAnnouncement.status().mode,'countdown','reading hover pauses rotation');

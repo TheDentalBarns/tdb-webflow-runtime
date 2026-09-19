@@ -39,3 +39,7 @@ slider hiding and page lifecycle. Browser QA covers published CMS output and pan
 
 Old vendor countdown measured 1,673,497 raw / 461,460 local-gzip bytes.
 Shared platform 44,147 raw /14,737 gzip may remain needed by other Elfsight widgets.
+
+
+## Clock and slide merge (1.4.0)
+Both circular controls use 3rem, matching the shared slider arrows. The decorative cream ring fills clockwise over the same 8-second dwell that schedules the 400ms leftward slide. Hover, focus, hidden shell and page visibility suspend both together, preserving remaining time. Signature-only pages retain a static message without a clock. No separate pause button or extra animation library.
