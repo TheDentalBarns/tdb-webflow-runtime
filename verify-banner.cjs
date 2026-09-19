@@ -1,0 +1,42 @@
+const {JSDOM}=require('/tmp/tdb-banner-tools/node_modules/jsdom');
+const fs=require('fs'),assert=require('node:assert/strict');
+const source=fs.readFileSync('src/banner/announcement.js','utf8');
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+function setup(saved=false,mobile=false){
+ const dom=new JSDOM('<!doctype html><html class="tdb-timer-hidden"><head><style>:root{--tdb-ui-ready:1}</style></head><body><div id="tdb-vip-drawer"><button class="tdb-vip-drawer-handle"></button></div><div id="tdb-elfsight-timer-shell" class="tdb-elfsight-shell"></div></body></html>',{url:'https://dentalbarns.webflow.io/',runScripts:'outside-only',pretendToBeVisual:true});
+ const w=dom.window;w.matchMedia=q=>({matches:q.includes('767')&&mobile});
+ if(saved)w.document.cookie='CookieScriptConsent='+encodeURIComponent(JSON.stringify({action:'reject',categories:['strict']}));
+ w.eval(source);w.TDBAnnouncement.mount(w.document.getElementById('tdb-elfsight-timer-shell'));
+ return {dom,w,d:w.document};
+}
+(async()=>{
+ const {dom,w,d}=setup();
+ assert.equal(d.querySelector('.tdb-announcement'),null,'new visitor waits for consent');
+ w.dispatchEvent(new w.Event('CookieScriptLoaded'));assert.equal(w.TDBAnnouncement.status().mounted,false);
+ w.dispatchEvent(new w.Event('scroll'));assert.equal(w.TDBAnnouncement.status().mounted,false,'scroll does not bypass consent');
+ w.dispatchEvent(new w.Event('CookieScriptReject'));await pause(580);
+ assert.equal(w.TDBAnnouncement.status().mode,'rest');assert.equal(w.TDBAnnouncement.status().ticking,false);
+ assert.equal(d.querySelector('.tdb-announcement').tabIndex,-1);
+ d.documentElement.classList.remove('tdb-timer-hidden');await pause(0);
+ assert.equal(d.querySelector('.tdb-announcement').tabIndex,0);
+ d.documentElement.classList.add('tdb-slider-focus');await pause(0);assert.equal(d.querySelector('.tdb-announcement').tabIndex,-1);assert.equal(d.getElementById('tdb-elfsight-timer-shell').getAttribute('aria-hidden'),'true');d.documentElement.classList.remove('tdb-slider-focus');await pause(0);
+ let opened=0;w.TDBVIPDrawerDesktop={open(){opened++}};d.querySelector('.tdb-announcement').click();assert.equal(opened,1);
+ let clock=Date.now();w.Date.now=()=>clock;
+ w.TDBAnnouncement.configure({deadline:new Date(clock+90061000).toISOString(),title:'Next Smile Design release'});
+ assert.equal(w.TDBAnnouncement.status().mode,'countdown');
+ assert.deepEqual([...d.querySelectorAll('.tdb-announcement-value')].map(e=>e.textContent),['01','01','01','01']);
+ clock+=1000;d.dispatchEvent(new w.Event('visibilitychange'));
+ assert.deepEqual([...d.querySelectorAll('.tdb-announcement-value')].map(e=>e.textContent),['01','01','01','00']);
+ assert.equal(d.querySelectorAll('.is-changing').length,1,'only changed digit animates');
+ d.documentElement.classList.add('tdb-timer-hidden');await pause(0);assert.equal(w.TDBAnnouncement.status().ticking,false);
+ clock+=90061000;d.documentElement.classList.remove('tdb-timer-hidden');await pause(0);
+ assert.equal(w.TDBAnnouncement.status().mode,'rest','expired timer returns to rest');
+ w.TDBAnnouncement.configure({deadline:'2027-01-01T10:00:00'});assert.equal(w.TDBAnnouncement.status().mode,'rest','unqualified timezone rejected');
+ w.eval(source);w.TDBAnnouncement.mount(d.getElementById('tdb-elfsight-timer-shell'));assert.equal(d.querySelectorAll('.tdb-announcement').length,1);
+ assert.equal(d.querySelectorAll('script[src]').length,0,'no dependency requests');
+ dom.window.close();
+ const saved=setup(true,true);await pause(580);assert.equal(saved.w.TDBAnnouncement.status().mounted,true,'saved rejected consent works');
+ let mobileOpened=0;saved.d.querySelector('.tdb-vip-drawer-handle').addEventListener('click',()=>mobileOpened++);saved.d.querySelector('.tdb-announcement').click();assert.equal(mobileOpened,1);saved.dom.window.close();
+ const accepted=setup();accepted.w.dispatchEvent(new accepted.w.Event('CookieScriptAcceptAll'));assert.equal(accepted.w.TDBAnnouncement.status().mounted,true);accepted.dom.window.close();
+ console.log('PASS: consent/new/returning, single mount, rest/no timer, deadline rollover/expiry, hidden pause, changed-digit motion, desktop/mobile drawer routing, no dependency requests.');
+})().catch(e=>{console.error(e);process.exitCode=1});

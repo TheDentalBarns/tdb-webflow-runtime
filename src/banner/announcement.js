@@ -1,24 +1,36 @@
-/* TDB Announcement 1.0.0. Mounted by the existing footer timer-shell controller.
- * The shared shell owns scroll, navigation and overlay motion. No vendor loader.
- * No deadline is guessed: null retains the currently published rest state.
+/* TDB Announcement 1.1.0. Shares existing shell/consent/drawer controllers.
+ * CMS values are published in the shared footer: no API, font or vendor requests.
  */
 (() => {
   'use strict';
   if (window.TDBAnnouncement) return;
+  const root = document.documentElement;
+  const preview = location.hostname === 'dentalbarns.webflow.io' && new URLSearchParams(location.search).has('banner-preview');
+  const row = document.querySelector('[data-tdb-banner-item="' + (preview ? 'preview' : 'active') + '"]');
+  const field = name => row?.querySelector('[data-banner-field="' + name + '"]')?.textContent.trim() || '';
   const defaults = {
-    deadline: null,
-    title: 'September VIP Smile Consultations',
-    rest: 'Smile Design is currently fully booked',
-    action: 'Signature Assessment ✦ appointments available'
+    deadline: field('smile-release-time') || null,
+    nextSlot: field('next-signature-slot') || null,
+    title: field('smile-countdown-text') || 'Smile Design appointments released in',
+    rest: field('smile-waitlist-text') || 'Smile Design is fully booked · Join the waitlist',
+    signature: field('signature-heading') || 'Signature Assessment',
+    action: field('signature-availability-text') || 'Appointments available'
   };
   let config = { ...defaults, ...window.TDBAnnouncementConfig };
-  let shell, button, copy, title, rest, action, counters, digits = [], timer = 0;
-  let active = false, started = false, mode = '', last = '';
-  const root = document.documentElement;
+  const signatureOnly = /^\/services\/fast-track\/?$/.test(location.pathname);
+  let shell, button, title, rest, action, counters, pauseButton;
+  const digits = [];
+  let timer = 0, rotation = 0, active = false, started = false, mode = '', last = '';
+  let signatureState = signatureOnly, paused = false, interacting = false;
   const events = ['CookieScriptLoaded', 'CookieScriptAccept', 'CookieScriptAcceptAll', 'CookieScriptReject', 'CookieScriptClose'];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const CSS = `
-.tdb-elfsight-shell[data-tdb-announcement-pending]{transform:translate3d(0,-100%,0);opacity:0;pointer-events:none}
+#tdb-elfsight-timer-shell[hidden]{display:none!important}
+#tdb-elfsight-timer-shell[data-tdb-announcement-pending]{visibility:hidden!important;transform:translate3d(0,-100%,0)!important;opacity:0!important;pointer-events:none!important;transition:none!important}
+html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elfsight-timer-shell,html.tdb-sg-locked #tdb-elfsight-timer-shell{transform:translate3d(0,-100%,0)!important;opacity:1!important;visibility:hidden!important;pointer-events:none!important;transition:transform 420ms cubic-bezier(.4,0,.2,1),visibility 0s 420ms!important}
+.tdb-announcement-pause{position:absolute;right:12px;bottom:8px;padding:4px;border:0;background:transparent;color:var(--base-color-brand--orange-1,#f9f2e6);font:inherit;font-size:10px;line-height:16px;opacity:.65;cursor:pointer}
+.tdb-announcement.is-switching>span{animation:tdb-announcement-message 420ms ease both}
+@keyframes tdb-announcement-message{from{opacity:0;transform:translateY(2px)}to{opacity:1;transform:translateY(0)}}
 .tdb-announcement{width:100%;min-height:6rem;box-sizing:border-box;margin:0;padding:0 calc(24px + 5%);border:0;border-radius:0;display:flex;align-items:center;justify-content:center;gap:20px;background:var(--base-color-brand--black,#000);color:var(--base-color-brand--orange-1,#f9f2e6);font:inherit;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tdb-announcement:focus-visible{outline:1px solid currentColor;outline-offset:-6px}
 .tdb-announcement-copy{display:flex;flex-direction:column;align-items:center;gap:3px;line-height:24px}
@@ -35,155 +47,157 @@ const CSS = `
 @keyframes tdb-announcement-number{from{transform:translateY(-.16em);opacity:.35}to{transform:translateY(0);opacity:1}}
 @media(max-width:640px){.tdb-announcement-title,.tdb-announcement-action{font-size:14px;line-height:20px}.tdb-announcement-rest{font-size:12px;line-height:18px}}
 @media(max-width:480px){.tdb-announcement{flex-direction:column;gap:4px}.tdb-announcement-countdown{gap:4px;margin:0}.tdb-announcement-value{font-size:13px;line-height:16px}.tdb-announcement-copy{gap:2px}}
-@media(prefers-reduced-motion:reduce){.tdb-announcement-digit.is-changing{animation:none}}
+@media(prefers-reduced-motion:reduce){.tdb-announcement-digit.is-changing,.tdb-announcement.is-switching>span{animation:none}}
 `;
 
   function decisionExists() {
     if (window.TDBConsent?.status?.().elfsight) return true;
-    const row = document.cookie.split('; ').find(x => x.startsWith('CookieScriptConsent='));
-    if (!row) return false;
-    try { return /"action"|"a":|accept|reject|close/.test(decodeURIComponent(row)); }
+    const cookie = document.cookie.split('; ').find(x => x.startsWith('CookieScriptConsent='));
+    if (!cookie) return false;
+    try { return /"action"|"a":|accept|reject|close/.test(decodeURIComponent(cookie)); }
     catch (_) { return false; }
   }
-
   function element(tag, className, text) {
     const node = document.createElement(tag);
     node.className = className;
     if (text !== undefined) node.textContent = text;
     return node;
   }
-
   function isVisible() {
-    return !document.hidden && !shell.hasAttribute('data-tdb-announcement-pending') && !root.classList.contains('tdb-timer-hidden') &&
+    return !document.hidden && !shell.hidden && !shell.hasAttribute('data-tdb-announcement-pending') &&
+      !root.matches('.tdb-timer-hidden,.tdb-slider-focus,.tdb-sg-chrome-away,.tdb-sg-locked') &&
       !document.querySelector('#tdb-vip-drawer.is-open,#tdb-vip-drawer.is-closing');
   }
-
-  function deadlineTime() {
-    // Require an explicit timezone; browser-local dates would disagree between visitors.
-    return typeof config.deadline === 'string' && /(?:Z|[+-]\d{2}:\d{2})$/.test(config.deadline)
-      ? Date.parse(config.deadline) : NaN;
+  function time(value) {
+    return typeof value === 'string' && /(?:Z|[+-]\d{2}:\d{2})$/.test(value) ? Date.parse(value) : NaN;
   }
-
+  function slotText() {
+    const date = time(config.nextSlot);
+    if (!(date > Date.now())) return config.action;
+    const day = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', weekday: 'short', ...(date - Date.now() > 604800000 ? { day: 'numeric', month: 'short' } : {}) }).format(date);
+    const clock = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date);
+    return 'Next appointment · ' + day + ', ' + clock;
+  }
+  function rotate() {
+    clearTimeout(rotation); rotation = 0;
+    if (signatureOnly || paused || interacting || !isVisible()) return;
+    rotation = setTimeout(() => {
+      rotation = 0; signatureState = !signatureState;
+      if (!reduced.matches) button.classList.add('is-switching');
+      render();
+    }, 8000);
+  }
   function render() {
-    clearTimeout(timer);
-    timer = 0;
+    clearTimeout(timer); timer = 0;
     if (!button) return;
     const visible = isVisible();
     button.tabIndex = visible ? 0 : -1;
-    button.setAttribute('aria-hidden', String(!visible));
-    const remaining = Math.max(0, Math.ceil((deadlineTime() - Date.now()) / 1000)) || 0;
-    const nextMode = remaining ? 'countdown' : 'rest';
+    pauseButton.tabIndex = visible && !signatureOnly ? 0 : -1;
+    shell.setAttribute('aria-hidden', String(!visible));
+    const remaining = Math.max(0, Math.ceil((time(config.deadline) - Date.now()) / 1000)) || 0;
+    const nextMode = signatureState ? 'signature' : remaining ? 'countdown' : 'rest';
     if (mode !== nextMode) {
-      mode = nextMode;
-      button.dataset.mode = mode;
-      title.hidden = !remaining;
-      rest.hidden = action.hidden = Boolean(remaining);
-      counters.hidden = !remaining;
-      button.setAttribute('aria-label', remaining ? config.title + '. Open VIP appointments' : config.rest + '. ' + config.action + '. Open VIP appointments');
+      mode = nextMode; button.dataset.mode = mode;
+      title.hidden = mode !== 'countdown';
+      rest.hidden = mode === 'countdown';
+      action.hidden = mode === 'countdown';
+      counters.hidden = mode !== 'countdown';
     }
-    if (!remaining) return;
-    const values = [Math.floor(remaining / 86400), Math.floor(remaining / 3600) % 24, Math.floor(remaining / 60) % 60, remaining % 60];
-    const formatted = values.map(n => String(n).padStart(2, '0'));
-    formatted.forEach((value, i) => {
-      const box = digits[i];
-      if (box.children.length !== value.length) {
-        box.replaceChildren(...[...value].map(n => element('span', 'tdb-announcement-digit', n)));
-        return;
-      }
-      [...box.children].forEach((digit, j) => {
-        if (digit.textContent === value[j]) return;
-        digit.textContent = value[j];
-        if (last && visible && !reduced.matches) digit.classList.add('is-changing');
+    title.textContent = (preview ? 'Preview · ' : '') + config.title;
+    rest.textContent = (preview ? 'Preview · ' : '') + (signatureState ? config.signature : 'Smile Design · fully booked');
+    action.firstChild.textContent = signatureState ? slotText() : config.rest.replace(/^Smile Design (?:is )?fully booked\s*[·—-]?\s*/i, '') || 'Join the waitlist';
+    button.setAttribute('aria-label', mode === 'countdown' ? title.textContent + '. Open VIP appointments' : rest.textContent + '. ' + action.textContent + '. Open VIP appointments');
+    if (mode === 'countdown') {
+      const values = [Math.floor(remaining / 86400), Math.floor(remaining / 3600) % 24, Math.floor(remaining / 60) % 60, remaining % 60];
+      const formatted = values.map(n => String(n).padStart(2, '0'));
+      formatted.forEach((value, i) => {
+        const box = digits[i];
+        if (box.children.length !== value.length) {
+          box.replaceChildren(...[...value].map(n => element('span', 'tdb-announcement-digit', n))); return;
+        }
+        [...box.children].forEach((digit, j) => {
+          if (digit.textContent === value[j]) return;
+          digit.textContent = value[j];
+          if (last && visible && !reduced.matches) digit.classList.add('is-changing');
+        });
       });
-    });
-    last = formatted.join(':');
-    if (visible) timer = setTimeout(render, 1000 - (Date.now() % 1000) + 10);
-  }
-
-  function updateCopy() {
-    if (!button) return;
-    title.textContent = config.title;
-    rest.textContent = config.rest;
-    action.firstChild.textContent = config.action;
-    mode = last = '';
-    render();
-  }
-
-  function openDrawer(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (matchMedia('(max-width:767px)').matches) {
-      document.querySelector('#tdb-vip-drawer .tdb-vip-drawer-handle')?.click();
-    } else if (window.TDBVIPDrawerDesktop?.open) {
-      window.TDBVIPDrawerDesktop.open();
-    } else {
-      window.TDBVIPDrawerLoader?.load?.().then(api => api?.open?.()).catch(() => {});
+      last = formatted.join(':');
     }
+    if (visible) {
+      const untilSlot = time(config.nextSlot) - Date.now();
+      if (mode === 'countdown') timer = setTimeout(render, 1000 - Date.now() % 1000 + 10);
+      else if (signatureState && untilSlot > 0) timer = setTimeout(render, Math.min(untilSlot + 10, 2147483647));
+    }
+    // Repeated digit updates must not restart the eight-second message interval.
+    if (!visible || paused || interacting) { clearTimeout(rotation); rotation = 0; }
+    else if (!rotation) rotate();
   }
-
+  function openDrawer(event) {
+    event.preventDefault(); event.stopPropagation();
+    if (matchMedia('(max-width:767px)').matches) document.querySelector('#tdb-vip-drawer .tdb-vip-drawer-handle')?.click();
+    else if (window.TDBVIPDrawerDesktop?.open) window.TDBVIPDrawerDesktop.open();
+    else window.TDBVIPDrawerLoader?.load?.().then(api => api?.open?.()).catch(() => {});
+  }
   function start() {
     if (started || !active || !shell) return;
     started = true;
     events.forEach(name => window.removeEventListener(name, consentReady));
-    const style = element('style', '');
-    style.dataset.tdbAnnouncement = '1.0.0';
-    style.textContent = CSS;
+    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.1.0'; style.textContent = CSS;
     document.head.append(style);
-    button = element('button', 'tdb-announcement');
-    button.type = 'button';
-    button.setAttribute('aria-haspopup', 'dialog');
-    button.setAttribute('aria-controls', 'tdb-vip-drawer');
-    copy = element('span', 'tdb-announcement-copy');
-    title = element('span', 'tdb-announcement-title');
-    rest = element('span', 'tdb-announcement-rest');
-    action = element('span', 'tdb-announcement-action');
+    button = element('button', 'tdb-announcement'); button.type = 'button';
+    button.setAttribute('aria-haspopup', 'dialog'); button.setAttribute('aria-controls', 'tdb-vip-drawer');
+    const copy = element('span', 'tdb-announcement-copy');
+    title = element('span', 'tdb-announcement-title'); rest = element('span', 'tdb-announcement-rest'); action = element('span', 'tdb-announcement-action');
     action.append(document.createTextNode(''));
     const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    arrow.setAttribute('viewBox', '0 0 16 16');
-    arrow.setAttribute('aria-hidden', 'true');
-    arrow.innerHTML = '<path d="M3 6l5-4 5 4M8 2v12"/>';
-    action.append(arrow);
-    copy.append(title, rest, action);
-    counters = element('span', 'tdb-announcement-countdown');
-    counters.setAttribute('aria-hidden', 'true');
+    arrow.setAttribute('viewBox', '0 0 16 16'); arrow.setAttribute('aria-hidden', 'true');
+    arrow.innerHTML = '<path d="M3 6l5-4 5 4M8 2v12"/>'; action.append(arrow); copy.append(title, rest, action);
+    counters = element('span', 'tdb-announcement-countdown'); counters.setAttribute('aria-hidden', 'true');
     ['Days', 'Hours', 'Minutes', 'Seconds'].forEach(label => {
-      const unit = element('span', 'tdb-announcement-unit');
-      const value = element('span', 'tdb-announcement-value');
-      digits.push(value);
-      unit.append(value, element('small', '', label));
-      counters.append(unit);
+      const unit = element('span', 'tdb-announcement-unit'), value = element('span', 'tdb-announcement-value');
+      digits.push(value); unit.append(value, element('small', '', label)); counters.append(unit);
     });
-    button.append(copy, counters);
-    button.addEventListener('click', openDrawer);
-    button.addEventListener('animationend', event => event.target.classList.remove('is-changing'));
-    shell.setAttribute('data-tdb-announcement-pending', '');
-    shell.append(button);
-    const observer = new MutationObserver(render);
-    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
-    const drawer = document.getElementById('tdb-vip-drawer');
-    if (drawer) observer.observe(drawer, { attributes: true, attributeFilter: ['class'] });
-    document.addEventListener('visibilitychange', render);
-    window.addEventListener('pageshow', render);
-    window.addEventListener('pagehide', () => { clearTimeout(timer); timer = 0; });
-    updateCopy();
-    setTimeout(() => { shell.removeAttribute('data-tdb-announcement-pending'); render(); }, 500);
+    button.append(copy, counters); button.addEventListener('click', openDrawer);
+    button.addEventListener('animationend', event => { event.target.classList.remove('is-changing'); if (event.animationName === 'tdb-announcement-message') button.classList.remove('is-switching'); });
+    pauseButton = element('button', 'tdb-announcement-pause', 'Ⅱ'); pauseButton.type = 'button'; pauseButton.hidden = signatureOnly;
+    pauseButton.setAttribute('aria-label', 'Pause banner messages'); pauseButton.setAttribute('aria-pressed', 'false');
+    pauseButton.addEventListener('click', () => {
+      paused = !paused; pauseButton.textContent = paused ? '▷' : 'Ⅱ';
+      pauseButton.setAttribute('aria-label', paused ? 'Resume banner messages' : 'Pause banner messages');
+      pauseButton.setAttribute('aria-pressed', String(paused)); render();
+    });
+    shell.setAttribute('data-tdb-announcement-pending', ''); shell.append(button, pauseButton);
+    shell.addEventListener('mouseenter', () => { interacting = true; render(); });
+    shell.addEventListener('mouseleave', () => { interacting = shell.contains(document.activeElement); render(); });
+    shell.addEventListener('focusin', () => { interacting = true; render(); });
+    shell.addEventListener('focusout', event => { if (!shell.contains(event.relatedTarget)) { interacting = false; render(); } });
+    const observer = new MutationObserver(render); observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+    const drawer = document.getElementById('tdb-vip-drawer'); if (drawer) observer.observe(drawer, { attributes: true, attributeFilter: ['class'] });
+    document.addEventListener('visibilitychange', render); window.addEventListener('pageshow', render);
+    window.addEventListener('pagehide', () => { clearTimeout(timer); clearTimeout(rotation); timer = rotation = 0; });
+    render();
+    // Shared CSS is deferred. Never paint an unpositioned shell while it is arriving.
+    function reveal() {
+      if (getComputedStyle(root).getPropertyValue('--tdb-ui-ready').trim() !== '1') return;
+      document.removeEventListener('load', reveal, true);
+      shell.hidden = false;
+      requestAnimationFrame(() => requestAnimationFrame(() => { shell.removeAttribute('data-tdb-announcement-pending'); render(); }));
+    }
+    setTimeout(() => { document.addEventListener('load', reveal, true); reveal(); }, 500);
   }
-
   function consentReady(event) {
     if (event?.type !== 'CookieScriptLoaded' || decisionExists()) active = true;
     start();
   }
-
   window.TDBAnnouncement = Object.freeze({
-    version: '1.0.0',
+    version: '1.1.0',
     mount(target) {
       if (shell) return;
-      shell = target;
+      shell = target; shell.hidden = true;
       active = decisionExists();
-      if (active) start();
-      else events.forEach(name => window.addEventListener(name, consentReady));
+      if (active) start(); else events.forEach(name => window.addEventListener(name, consentReady));
     },
-    configure(next) { config = { ...config, ...next }; updateCopy(); },
-    status: () => ({ version: '1.0.0', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer) })
+    configure(next) { config = { ...config, ...next }; mode = last = ''; render(); },
+    status: () => ({ version: '1.1.0', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), preview })
   });
 })();
