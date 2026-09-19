@@ -1,34 +1,41 @@
-# Native banner staging pilot v1.2.0
+# Native banner v1.3.0 — staging pilot
 
-CMS collection: Banner Settings (6aae66a4a90480deba7364b1).
-Edit Active banner (slug active), then publish to the intended domain.
-Use the calendar date fields with their separate 24-hour UK time fields.
-The runtime converts Europe/London time with GMT/BST and rejects nonexistent spring-forward times.
-Staging pilot: Smile Design Friday 25 September 2026 09:00 UK; Signature Tuesday 22 September 09:30 UK.
-These are user-requested pilot dates, not verified booking-system availability.
+Edit Webflow CMS > Banner Settings > Active banner, then publish:
+- Signature Assessment title: complete first line, used verbatim, including icon/punctuation.
+- Next Signature date + Next Signature UK time: calendar date + HH:mm in Europe/London.
+- Signature availability text: lower line when no future slot is set.
+- Smile countdown title: first line while the release date is in the future.
+- Smile release date + Smile release UK time: deadline, converted for GMT/BST.
+- Smile booked title + Smile booked action: first/second lines with a blank or expired deadline.
 
-Display: context above; date, waitlist action or countdown and upward arrow below.
-Signature /services/fast-track stays static. Other pages rotate two messages every 8 seconds.
-Pause has a separate 44px tap target and stops click propagation.
-Hover/focus, hidden pages, slider focus and open drawers pause rotation.
-The original 6rem shell, scroll thresholds, consent gate, VIP routing and numeric motion remain.
-The button uses Webflow's existing padding-global class.
+Pilot examples requested by user: Smile release Fri 25 September 2026 09:00 UK;
+Signature appointment Tue 22 September 2026 09:30 UK. Not verified booking-system inventory.
 
-CMS delivery:
-Home has native hidden CMS text bindings. Webflow's current tool surface cannot create live CMS
-bindings inside shared components. Other pages read /banner-settings/active after consent,
-using only inert data-banner-field nodes. No scripts from that response are executed or inserted.
-The settings template is noindex and its CMS items are excluded from the sitemap.
-No API token, extra library, font or external settings service is used.
-A failed/timed-out settings read falls back to the waitlist/availability copy.
-Preview query ?banner-preview=countdown on staging uses the preview CMS item.
-Blank/expired release dates show waitlist; expired Signature slots show availability fallback.
-The fetch is absent on pages with embedded settings, otherwise one per page load after consent.
+Display: fixed 6rem height, padding-global, matching title/lower-row positions, smaller timer,
+stationary circled up-arrow at the right. No pause control.
+Two persistent panels travel left at 400ms (matching existing Swiper speed), reordered after
+the transition for a continuous leftward loop with no opacity fade and no Swiper dependency.
+Messages change every 8 seconds; hover/focus and hidden/overlay states suspend rotation.
+Signature /services/fast-track contains one static panel. Other pages contain both.
+Reduced motion skips panel/numeral animation.
 
-Visibility fixes:
-Initial scroll state applies synchronously; shell remains unpainted until UI CSS is ready.
-Native shell responds to tdb-slider-focus / tdb-sg-chrome-away / tdb-sg-locked.
+Existing consent choice, timer-shell scroll thresholds, slider focus classes and VIP action retained.
+The shell cannot paint before deferred shared UI CSS arrives; initial scroll state is synchronous.
 
-Verification: verify-banner.cjs and verify-banner-cms.cjs; staging scroll, slider, CMS date,
-pause and drawer checks. Old vendor countdown: 1,673,497 bytes raw / 461,460 local gzip.
-Platform loader: 44,147 raw /14,737 gzip, still potentially shared by other widgets.
+CMS transport: native hidden data bindings on Home; other pages fetch the published
+/banner-settings/active HTML once after consent and parse only inert data-banner-field text.
+No API token, external settings service, font or extra runtime dependency.
+The template is noindex and items are excluded from the sitemap. Failure/timeout uses fallback copy.
+?banner-preview=countdown on staging selects the example preview item.
+
+Collection 6aae66a4a90480deba7364b1; active item 6aae67a1e8b724b14bafae67;
+template page 6aae66a5a90480deba7364b7; Home list 5fec2967-95a2-0a53-4153-f83bfe82b919.
+Webflow's current headless tools cannot bind live CMS inside shared components. The abandoned
+shared-footer list and temporary trials were removed.
+
+Tests: verify-banner.cjs and verify-banner-cms.cjs cover consent, data loading, BST, missing
+spring-forward hour, verbatim CMS copy, looping direction, expiry, mobile/desktop drawer routing,
+slider hiding and page lifecycle. Browser QA covers published CMS output and panel geometry.
+
+Old vendor countdown measured 1,673,497 raw / 461,460 local-gzip bytes.
+Shared platform 44,147 raw /14,737 gzip may remain needed by other Elfsight widgets.
