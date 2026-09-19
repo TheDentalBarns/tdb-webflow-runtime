@@ -47,3 +47,7 @@ Both circular controls use 3rem, matching the shared slider arrows. The decorati
 
 ## Integrated arrow progress and manual swipe (1.5.0)
 The sole 3rem circle is the right-hand up arrow, with a thin progress ring in the shared orange-3 darker cream. Horizontal pointer dragging moves either way. A completed swipe or keyboard arrow navigation stops automatic rotation for the page visit and hides the progress arc, while the actual appointment countdown continues. Pointer capture and click suppression prevent a swipe from opening VIP; a later deliberate tap still opens it. Vertical scrolling and pinch zoom remain native. Signature-only pages remain static.
+
+
+## Swipe stability fix (1.5.1)
+Reproduced a bubbling lostpointercapture event from a child cancelling the banner's newly acquired touch capture. Capture now belongs to the banner from pointerdown and child handover events are ignored. Reduced-motion users still get direct finger-following; autonomous travel remains suppressed for their preference. Modern browsers settle slides on Web Animation finish rather than an elapsed 450ms timer. Regression checks cover capture handover, reduced-motion drag, delayed animation completion, both directions and no unintended drawer opening.

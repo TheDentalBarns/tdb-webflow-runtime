@@ -1,4 +1,4 @@
-/* TDB Announcement 1.5.0. Shares existing shell/consent/drawer controllers.
+/* TDB Announcement 1.5.1. Shares existing shell/consent/drawer controllers.
  * Uses published CMS text; shares consent, shell motion and drawer routing.
  */
 (() => {
@@ -27,6 +27,7 @@
   const dwell = 8000;
   let rotationLeft = dwell, rotationEnd = 0;
   let manual = false, gesture = null, slideDirection = -1, suppressClickUntil = 0;
+  let slideAnimation = null;
   const events = ['CookieScriptLoaded', 'CookieScriptAccept', 'CookieScriptAcceptAll', 'CookieScriptReject', 'CookieScriptClose'];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const CSS = `
@@ -105,6 +106,8 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
   function settleSlide() {
     if (!moving) return;
     clearTimeout(slideTimer); slideTimer = 0;
+    const animation = slideAnimation; slideAnimation = null;
+    if (animation) { animation.onfinish = null; animation.cancel(); }
     if (slideDirection < 0) track.append(track.firstElementChild);
     track.style.transition = 'none'; track.style.transform = 'translateX(0)';
     moving = false; signatureState = !signatureState;
@@ -117,11 +120,21 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
       track.prepend(track.lastElementChild);
       track.style.transition = 'none'; track.style.transform = 'translateX(-100%)';
     }
-    track.getBoundingClientRect();
+    const from = track.style.transform || 'translateX(0)';
     moving = true; rotationLeft = dwell; render();
     if (reduced.matches) { settleSlide(); return; }
+    const target = direction < 0 ? 'translateX(-100%)' : 'translateX(0)';
+    // Let the browser's animation completion own settlement, including under load.
+    if (typeof track.animate === 'function') {
+      track.style.transition = 'none';
+      slideAnimation = track.animate([{transform:from},{transform:target}],{duration:400,easing:'ease',fill:'forwards'});
+      slideAnimation.onfinish = settleSlide;
+      track.style.transform = target;
+      return;
+    }
+    track.getBoundingClientRect();
     track.style.transition = 'transform 400ms ease';
-    track.style.transform = direction < 0 ? 'translateX(-100%)' : 'translateX(0)';
+    track.style.transform = target;
     slideTimer = setTimeout(settleSlide, 450);
   }
   function pauseRotation() {
@@ -207,6 +220,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
       // A new deliberate tap remains an ordinary drawer action after a previous swipe.
       suppressClickUntil = 0;
       gesture = {id:event.pointerId,x:event.clientX,y:event.clientY,dx:0,dragging:false};
+      button.setPointerCapture?.(event.pointerId);
       pauseRotation();
     });
     button.addEventListener('pointermove', event => {
@@ -221,7 +235,8 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
         track.style.transition = 'none'; button.setPointerCapture?.(event.pointerId);
       }
       gesture.dx = gesture.direction < 0 ? Math.max(-gesture.width,Math.min(0,dx)) : Math.min(gesture.width,Math.max(0,dx));
-      if (!reduced.matches) track.style.transform = 'translateX(' + (gesture.dx - (gesture.direction > 0 ? gesture.width : 0)) + 'px)';
+      // Direct finger movement remains responsive even when decorative motion is reduced.
+      track.style.transform = 'translateX(' + (gesture.dx - (gesture.direction > 0 ? gesture.width : 0)) + 'px)';
     });
     button.addEventListener('pointerup', event => {
       if (!gesture || gesture.id !== event.pointerId) return;
@@ -233,7 +248,12 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
       slide(previous.direction,true);
     });
     const cancel = event => { if (gesture?.id === event.pointerId) { cancelGesture(); render(); } };
-    button.addEventListener('pointercancel', cancel); button.addEventListener('lostpointercapture', cancel);
+    button.addEventListener('pointercancel', cancel);
+    button.addEventListener('lostpointercapture', event => {
+      // A child's implicit touch capture can be handed to this button. Its bubbling
+      // loss event must not cancel the new owner's gesture.
+      if (event.target === button) cancel(event);
+    });
     button.addEventListener('pointerleave', event => { if (gesture && !gesture.dragging) cancel(event); });
     button.addEventListener('keydown', event => {
       if (!['ArrowLeft','ArrowRight'].includes(event.key) || moving || gesture) return;
@@ -265,7 +285,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     }
     started = true;
     events.forEach(name => window.removeEventListener(name, consentReady));
-    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.5.0'; style.textContent = CSS;
+    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.5.1'; style.textContent = CSS;
     document.head.append(style);
     button = element('button', 'tdb-announcement padding-global'); button.type = 'button';
     button.setAttribute('aria-haspopup', 'dialog'); button.setAttribute('aria-controls', 'tdb-vip-drawer');
@@ -316,13 +336,13 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     start();
   }
   window.TDBAnnouncement = Object.freeze({
-    version: '1.5.0',
+    version: '1.5.1',
     mount(target) {
       if (shell) return;
       shell = target; shell.hidden = true; active = decisionExists();
       if (active) start(); else events.forEach(name => window.addEventListener(name, consentReady));
     },
     configure(next) { overrides = { ...overrides, ...next }; config = { ...config, ...next }; mode = last = ''; render(); },
-    status: () => ({ version: '1.5.0', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), preview, manual })
+    status: () => ({ version: '1.5.1', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), preview, manual, reducedMotion:reduced.matches })
   });
 })();
