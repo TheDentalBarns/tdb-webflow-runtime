@@ -197,7 +197,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     pauseButton.setAttribute('aria-label', 'Pause banner messages'); pauseButton.setAttribute('aria-pressed', 'false');
     pauseButton.addEventListener('click', event => {
       event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation();
-      paused = !paused; pauseButton.textContent = paused ? '▷' : 'Ⅱ';
+      paused = !paused; if (!paused) interacting = false; pauseButton.textContent = paused ? '▷' : 'Ⅱ';
       pauseButton.setAttribute('aria-label', paused ? 'Resume banner messages' : 'Pause banner messages');
       pauseButton.setAttribute('aria-pressed', String(paused)); render();
     });
