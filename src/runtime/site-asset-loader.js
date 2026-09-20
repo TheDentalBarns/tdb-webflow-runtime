@@ -1,7 +1,6 @@
 (() => {
   const root = document.documentElement;
   const shellId = 'tdb-elfsight-timer-shell';
-  const appClass = 'elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb';
   const mobileQuery = matchMedia('(max-width:767px)');
   const path = location.pathname.replace(/\/+$/, '') || '/';
   const revealViewports = path === '/' || path === '/location' ? 4 : 1;
@@ -32,7 +31,7 @@
     addEventListener('resize', () => { updateViewportHeight(); requestUpdate(); }, { passive: true });
     addEventListener('orientationchange', () => { updateViewportHeight(); requestUpdate(); }, { passive: true });
     mobileQuery.addEventListener ? mobileQuery.addEventListener('change', requestUpdate) : mobileQuery.addListener(requestUpdate);
-    requestUpdate();
+    updateState();
   }
 
   function createTimerShell() {
@@ -41,13 +40,10 @@
       shell = document.createElement('div');
       shell.id = shellId;
       shell.className = 'tdb-elfsight-shell';
-      const widget = document.createElement('div');
-      widget.className = appClass;
-      widget.setAttribute('data-elfsight-app', '');
-      shell.appendChild(widget);
       document.body.appendChild(shell);
     }
     attachTimerState(shell);
+    window.TDBAnnouncement.mount(shell);
   }
 
   function scheduleTimerShell() {
@@ -220,7 +216,7 @@ function tdbEnsureVIPUI() {
 function tdbEnsureContentVideoUI() {
   return tdbEnsureFeatureCSS('data-tdb-vimeo-content-ui-css', 'tdb-vimeo-content-ui.css', '--tdb-vimeo-content-ui-ready', 'content-video UI');
 }
-window.TDBFeatureCSS = Object.freeze({ contentVideo: tdbEnsureContentVideoUI });
+window.TDBFeatureCSS = Object.freeze({ contentVideo: tdbEnsureContentVideoUI, ui: tdbEnsureUI });
 
 function tdbPreloadVIPScript(src) {
   if ((tdbUIIsReady() && tdbStyleIsReady('--tdb-vip-ui-ready')) || document.querySelector('link[data-tdb-vip-preload]') ||
@@ -637,7 +633,7 @@ startLenisForSession();
 })();
 
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.4.13',
+  version: '1.4.21',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,

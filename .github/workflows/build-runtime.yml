@@ -5,11 +5,13 @@ on:
     branches:
       - main
     paths:
+      - 'src/banner/**'
       - 'src/runtime/site-asset-loader.js'
       - 'src/runtime/immediate-runtime-batch.js'
       - 'src/vip-drawer/vip-focus.js'
       - 'src/vip-drawer/vip-drawer.js'
       - 'src/vip-drawer/vip-drawer-legacy.js'
+      - 'tools/check-banner-release.cjs'
       - 'tools/runtime-build/**'
       - 'tools/runtime-tests/**'
       - '.github/workflows/build-runtime.yml'
@@ -40,9 +42,12 @@ jobs:
 
       - name: Validate artifacts
         run: |
+          test -s dist/tdb-announcement.min.js
           test -s dist/tdb-footer-runtime.min.js
           test -s dist/tdb-immediate-runtime-batch.min.js
+          node --check dist/tdb-announcement.min.js
           node --check dist/tdb-footer-runtime.min.js
+          node tools/check-banner-release.cjs
           node --check dist/tdb-immediate-runtime-batch.min.js
           node --check dist/tdb-vip-drawer.js
           node --check dist/tdb-vip-drawer-legacy.js
@@ -52,13 +57,13 @@ jobs:
 
       - name: Commit generated artifacts
         run: |
-          if [ -z "$(git status --porcelain -- dist/tdb-footer-runtime.min.js dist/tdb-immediate-runtime-batch.min.js dist/tdb-vip-drawer.js dist/tdb-vip-drawer-legacy.js)" ]; then
+          if [ -z "$(git status --porcelain -- dist/tdb-announcement.min.js dist/tdb-footer-runtime.min.js dist/tdb-immediate-runtime-batch.min.js dist/tdb-vip-drawer.js dist/tdb-vip-drawer-legacy.js)" ]; then
             echo 'Generated runtime files are already current.'
             exit 0
           fi
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add dist/tdb-footer-runtime.min.js dist/tdb-immediate-runtime-batch.min.js dist/tdb-vip-drawer.js dist/tdb-vip-drawer-legacy.js
+          git add dist/tdb-announcement.min.js dist/tdb-footer-runtime.min.js dist/tdb-immediate-runtime-batch.min.js dist/tdb-vip-drawer.js dist/tdb-vip-drawer-legacy.js
           git commit -m 'Build runtime artifacts'
           git push origin HEAD:${{ github.ref_name }}

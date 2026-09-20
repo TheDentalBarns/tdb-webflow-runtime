@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { JSDOM, ResourceLoader, VirtualConsole } = require('jsdom');
-const source = fs.readFileSync(path.resolve(__dirname, '../../src/runtime/deferred-ui.js'), 'utf8') + '\n' + fs.readFileSync(process.env.TDB_RUNTIME_FILE || path.resolve(__dirname, '../../src/runtime/site-asset-loader.js'), 'utf8');
+const source = process.env.TDB_RUNTIME_FILE ? fs.readFileSync(process.env.TDB_RUNTIME_FILE, 'utf8') : fs.readFileSync(path.resolve(__dirname, '../../src/runtime/deferred-ui.js'), 'utf8') + '\n' + fs.readFileSync(path.resolve(__dirname, '../../src/runtime/site-asset-loader.js'), 'utf8');
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const turns = async () => { await pause(0); await pause(0); };
 
@@ -122,12 +122,12 @@ test('stale CSS cannot initialize sliders and later intent can recover', async t
   assert.equal(h.window.sliderExecutions, 1);
 });
 
-test('a missing feature link is created only on demand, using the shared immutable release', async t => {
+test('a missing feature link is created only on demand, using the configured immutable feature release', async t => {
   const h = await setup(t, { missingCSS: true });
   assert.equal(h.count('css'), 0);
   const flight = h.load();
   assert.equal(h.count('css'), 1);
-  assert.equal(h.pending('css').element.href, 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@release/dist/tdb-slider-ui.css');
+  assert.equal(h.pending('css').element.href, 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@59a7ba5a8ed95c07d738e067e65795a3daf23c05/dist/tdb-slider-ui.css');
   assert.ok(h.pending('css').element.previousElementSibling.hasAttribute('data-tdb-ui-css'));
   await h.finish('swiper');
   assert.equal(h.count('sliders'), 0);

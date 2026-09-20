@@ -18,7 +18,7 @@ async function setup(t,{home=true,mobile=false,y=0,hash='',near=false}={}){
   }
  }
  const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e));vc.on('error',()=>{});
- const dom=new JSDOM(`<!doctype html><html data-wf-page="${home?'677cf86df9952f978d94d8a9':'vip-page'}" style="--tdb-ui-ready:1"><head></head><body>
+ const dom=new JSDOM(`<!doctype html><html data-wf-page="${home?'677cf86df9952f978d94d8a9':'vip-page'}" style="--tdb-ui-ready:1;--tdb-vip-ui-ready:1"><head></head><body>
  <a id="cta" href="#VIP">Join VIP</a><section id="VIP"><form id="main-form"></form></section>
  <div id="tdb-vip-drawer"><a class="tdb-vip-drawer-handle" href="#VIP"><span class="tdb-vip-drawer-label">Join VIP</span></a><div class="tdb-vip-drawer-body"><form id="vip-drawer-form"></form></div></div></body></html>`,{
  url:`https://dentalbarns.webflow.io/${home?'':'vip/become-a-patient'}${hash}`,runScripts:'dangerously',resources:new Network(),virtualConsole:vc,

@@ -3,6 +3,7 @@ const path = require('node:path');
 const terser = require(process.env.TDB_TERSER_MODULE || 'terser');
 const root = path.resolve(__dirname, '../..');
 const targets = [
+  { source: ['src/banner/announcement.js'], output: 'dist/tdb-announcement.min.js' },
   { source: ['src/navbar/navbar.js'], output: 'dist/tdb-navbar.min.js', newline: true },
   { source: ['src/sliders/slider-focus.js', 'src/sliders/sliders.js'], output: 'dist/tdb-sliders.js', newline: true },
   { source: ['src/tooltips/tooltips.js'], output: 'dist/tdb-tooltips.js', newline: true },
@@ -18,7 +19,11 @@ const targets = [
     const inputs = Object.fromEntries(target.source.map(file => [file, fs.readFileSync(path.join(root, file), 'utf8')]));
     const result = await terser.minify(inputs, { compress: true, mangle: true });
     if (!result.code) throw new Error(`Empty build: ${target.output}`);
-    const output = result.code + (target.newline ? '\n' : '');
+    let output = result.code + (target.newline ? '\n' : '');
+    if (target.output === 'dist/tdb-footer-runtime.min.js') {
+      const banner = await terser.minify(fs.readFileSync(path.join(root, 'src/banner/announcement.js'), 'utf8'), {compress:true, mangle:true});
+      output = banner.code + output;
+    }
     fs.writeFileSync(path.join(root, target.output), output);
     process.stdout.write(`${target.output}: ${Buffer.byteLength(output)} bytes\n`);
   }

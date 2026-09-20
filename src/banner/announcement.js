@@ -1,14 +1,20 @@
-/* TDB Announcement 1.5.1. Shares existing shell/consent/drawer controllers.
+/* TDB Announcement 1.6.0. Shares existing shell/consent/drawer controllers.
  * Uses published CMS text; shares consent, shell motion and drawer routing.
  */
 (() => {
   'use strict';
   if (window.TDBAnnouncement) return;
   const root = document.documentElement;
+  const formatters = new Map(), labels = new Map();
+  const formatter = (key, options) => {
+    if (!formatters.has(key)) formatters.set(key, new Intl.DateTimeFormat('en-GB', {timeZone:'Europe/London', ...options}));
+    return formatters.get(key);
+  };
   const preview = location.hostname === 'dentalbarns.webflow.io' && new URLSearchParams(location.search).has('banner-preview');
   let row = [...document.querySelectorAll('[data-tdb-banner-item]')].find(el => (el.getAttribute('data-tdb-banner-item') || el.querySelector('[data-banner-field="slug"]')?.textContent.trim()) === (preview ? 'preview' : 'active'));
   const field = name => row?.querySelector('[data-banner-field="' + name + '"]')?.textContent.trim() || '';
-  const defaults = {
+  const defaults = readConfig();
+  function readConfig() { return {
     deadline: ukDate(field('smile-release-time'), field('smile-release-uk-time')),
     nextSlot: ukDate(field('next-signature-slot'), field('next-signature-uk-time')),
     title: field('smile-countdown-text') || 'Smile Design · Appointments released in',
@@ -16,14 +22,14 @@
     bookedTitle: field('smile-booked-title') || 'Smile Design · Fully booked',
     signature: field('signature-heading') || 'Signature Assessment ✦ Next appointment',
     action: field('signature-availability-text') || 'Appointments available'
-  };
+  }; }
   let overrides = { ...window.TDBAnnouncementConfig };
-  let config = { ...defaults, ...overrides }, dataRequested = false, dataLoading = false;
+  let config = { ...defaults, ...overrides }, dataRequested = false, dataLoading = false, dataAttempts = 0, dataRetry = 0, dataState = row ? 'ready' : 'idle';
   const signatureOnly = /^\/services\/fast-track\/?$/.test(location.pathname);
   let shell, button, track, progress, smilePanel, signaturePanel, smileTitle, signatureTitle, smileAction, signatureAction, counters;
   const digits = [];
   let timer = 0, rotation = 0, slideTimer = 0, active = false, started = false, mode = '', last = '';
-  let signatureState = signatureOnly, interacting = false, moving = false, suspended = false;
+  let signatureState = signatureOnly, interacting = false, hovered = false, moving = false, suspended = false, lastVisible = false;
   const dwell = 8000;
   let rotationLeft = dwell, rotationEnd = 0;
   let manual = false, gesture = null, slideDirection = -1, suppressClickUntil = 0;
@@ -67,7 +73,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     if (!Number.isFinite(day)) return null;
     const [hour, minute] = clock.split(':').map(Number);
     const wall = day + (hour * 60 + minute) * 60000;
-    const parts = value => Object.fromEntries(new Intl.DateTimeFormat('en-GB', {timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(value).map(p => [p.type,p.value]));
+    const parts = value => Object.fromEntries(formatter('parts', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(value).map(p => [p.type,p.value]));
     const local = value => { const p = parts(value); return Date.UTC(+p.year,+p.month-1,+p.day,+p.hour,+p.minute,+p.second); };
     let utc = wall;
     for (let i = 0; i < 2; i++) utc = wall - (local(utc) - utc);
@@ -86,6 +92,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     if (text !== undefined) node.textContent = text;
     return node;
   }
+  function attribute(node, key, value) { value = String(value); if (node.getAttribute(key) !== value) node.setAttribute(key, value); }
   function setText(node, value) { if (node.textContent !== value) node.textContent = value; }
   function isVisible() {
     return !suspended && !document.hidden && !shell.hidden && !shell.hasAttribute('data-tdb-announcement-pending') &&
@@ -98,16 +105,19 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
   function slotText(value = config.nextSlot) {
     const date = time(value);
     if (!(date > Date.now())) return config.action;
-    const day = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', weekday: 'short', day: 'numeric', month: 'short' }).format(date);
-    const clock = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date);
-    return day + ' · ' + clock;
+    if (!labels.has(value)) {
+      const day = formatter('day', {weekday:'short', day:'numeric', month:'short'}).format(date);
+      const clock = formatter('clock', {hour:'2-digit', minute:'2-digit', hourCycle:'h23'}).format(date);
+      labels.set(value, day + ' · ' + clock);
+    }
+    return labels.get(value);
   }
 
   function settleSlide() {
     if (!moving) return;
     clearTimeout(slideTimer); slideTimer = 0;
     const animation = slideAnimation; slideAnimation = null;
-    if (animation) { animation.onfinish = null; animation.cancel(); }
+    if (animation) { animation.onfinish = animation.oncancel = null; animation.cancel(); }
     if (slideDirection < 0) track.append(track.firstElementChild);
     track.style.transition = 'none'; track.style.transform = 'translateX(0)';
     moving = false; signatureState = !signatureState;
@@ -127,10 +137,12 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     // Let the browser's animation completion own settlement, including under load.
     if (typeof track.animate === 'function') {
       track.style.transition = 'none';
-      slideAnimation = track.animate([{transform:from},{transform:target}],{duration:400,easing:'ease',fill:'forwards'});
-      slideAnimation.onfinish = settleSlide;
-      track.style.transform = target;
-      return;
+      try {
+        slideAnimation = track.animate([{transform:from},{transform:target}],{duration:400,easing:'ease',fill:'forwards'});
+        slideAnimation.onfinish = slideAnimation.oncancel = settleSlide;
+        track.style.transform = target;
+        return;
+      } catch (_) { slideAnimation = null; } // CSS path also supports an unavailable animation API.
     }
     track.getBoundingClientRect();
     track.style.transition = 'transform 400ms ease';
@@ -156,22 +168,23 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
   function render() {
     clearTimeout(timer); timer = 0;
     if (!button) return;
-    const visible = isVisible();
+    const visible = lastVisible = isVisible();
     if (!visible && gesture) cancelGesture();
     if (!visible && moving) { settleSlide(); return; }
-    button.tabIndex = visible ? 0 : -1; shell.setAttribute('aria-hidden', String(!visible));
+    attribute(button, 'tabindex', visible ? 0 : -1); attribute(shell, 'aria-hidden', !visible);
     const remaining = Math.max(0, Math.ceil((time(config.deadline) - Date.now()) / 1000)) || 0;
     mode = signatureState ? 'signature' : remaining ? 'countdown' : 'rest';
-    button.dataset.mode = mode;
-    button.dataset.rotation = signatureOnly ? 'static' : manual ? 'manual' : 'auto';
-    smilePanel.setAttribute('aria-hidden', String(signatureState));
-    signaturePanel.setAttribute('aria-hidden', String(!signatureState));
+    attribute(button, 'data-mode', mode);
+    attribute(button, 'data-rotation', signatureOnly ? 'static' : manual ? 'manual' : 'auto');
+    attribute(smilePanel, 'aria-hidden', signatureState);
+    attribute(signaturePanel, 'aria-hidden', !signatureState);
     setText(smileTitle, (preview ? 'Preview · ' : '') + (remaining ? config.title : config.bookedTitle));
     setText(signatureTitle, (preview ? 'Preview · ' : '') + config.signature);
     setText(smileAction, config.rest); setText(signatureAction, slotText());
-    counters.hidden = !remaining; smileAction.hidden = Boolean(remaining);
+    if (counters.hidden !== !remaining) counters.hidden = !remaining;
+    if (smileAction.hidden !== Boolean(remaining)) smileAction.hidden = Boolean(remaining);
     const label = signatureState ? signatureTitle.textContent + '. ' + signatureAction.textContent : smileTitle.textContent + '. ' + (remaining ? slotText(config.deadline) : config.rest);
-    button.setAttribute('aria-label', label + '. Open VIP appointments');
+    attribute(button, 'aria-label', label + '. Open VIP appointments');
     if (remaining) {
       const values = [Math.floor(remaining / 86400), Math.floor(remaining / 3600) % 24, Math.floor(remaining / 60) % 60, remaining % 60];
       const formatted = values.map(n => String(n).padStart(2, '0'));
@@ -260,32 +273,44 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
       event.preventDefault(); manual = true; slide(event.key === 'ArrowLeft' ? -1 : 1);
     });
   }
+  async function loadSettings() {
+    if (dataLoading || suspended || dataAttempts >= 3) return;
+    clearTimeout(dataRetry); dataRetry = 0;
+    dataRequested = dataLoading = true; dataState = 'loading'; dataAttempts++;
+    const abort = new AbortController(), timeout = setTimeout(() => abort.abort(), 4000);
+    try {
+      const response = await fetch('/banner-settings/' + (preview ? 'preview' : 'active'), {signal:abort.signal, credentials:'omit'});
+      if (!response.ok) throw new Error('http');
+      const html = await response.text();
+      // Parse only inert field nodes; never insert or execute the fetched page.
+      const values = html.match(/<div[^>]*data-banner-field="[^"]+"[^>]*>[^<]*<\/div>/g);
+      const candidate = new DOMParser().parseFromString(values?.join('') || '', 'text/html').body;
+      const fields = ['slug','smile-release-time','smile-release-uk-time','next-signature-slot','next-signature-uk-time','smile-countdown-text','smile-waitlist-text','smile-booked-title','signature-heading','signature-availability-text'];
+      if (fields.some(name => candidate.querySelectorAll('[data-banner-field="' + name + '"]').length !== 1) ||
+          candidate.querySelector('[data-banner-field="slug"]').textContent.trim() !== (preview ? 'preview' : 'active')) throw new Error('fields');
+      for (const [date, clock] of [['smile-release-time','smile-release-uk-time'],['next-signature-slot','next-signature-uk-time']]) {
+        const d = candidate.querySelector('[data-banner-field="' + date + '"]').textContent.trim();
+        const c = candidate.querySelector('[data-banner-field="' + clock + '"]').textContent.trim();
+        if ((d || c) && !ukDate(d, c)) throw new Error('date');
+      }
+      row = candidate; config = {...readConfig(), ...overrides}; labels.clear(); dataState = 'ready';
+    } catch (_) {
+      dataState = 'unavailable';
+      // A network error is not evidence that appointments are available or fully booked.
+      config = {...defaults, deadline:null, nextSlot:null, bookedTitle:'Smile Design', rest:'Join The Dental Barns VIP', action:'Enquire about appointments', ...overrides};
+      if (dataAttempts < 2) dataRetry = setTimeout(loadSettings, 750);
+      else console.warn('TDB banner: settings unavailable; waiting for connection recovery.');
+    } finally {
+      clearTimeout(timeout); dataLoading = false;
+      if (started) render(); else start();
+    }
+  }
   function start() {
     if (started || dataLoading || !active || !shell) return;
-    if (!row && !dataRequested && typeof fetch === 'function') {
-      dataRequested = dataLoading = true;
-      const abort = new AbortController(), timeout = setTimeout(() => abort.abort(), 4000);
-      fetch('/banner-settings/' + (preview ? 'preview' : 'active'), {signal:abort.signal, credentials:'omit'})
-        .then(response => { if (!response.ok) throw new Error('Banner settings unavailable'); return response.text(); })
-        .then(html => {
-          // Parse only our inert value nodes. Never insert the page or execute its scripts.
-          const values = html.match(/<div[^>]*data-banner-field="[^"]+"[^>]*>[^<]*<\/div>/g);
-          if (!values?.length) return;
-          row = new DOMParser().parseFromString(values.join(''), 'text/html').body;
-          config = { ...defaults,
-            deadline:ukDate(field('smile-release-time'),field('smile-release-uk-time')),
-            nextSlot:ukDate(field('next-signature-slot'),field('next-signature-uk-time')),
-            title:field('smile-countdown-text') || defaults.title,
-            rest:field('smile-waitlist-text') || defaults.rest,
-            bookedTitle:field('smile-booked-title') || defaults.bookedTitle,
-            signature:field('signature-heading') || defaults.signature,
-            action:field('signature-availability-text') || defaults.action, ...overrides };
-        }).catch(() => {}).finally(() => { clearTimeout(timeout); dataLoading = false; start(); });
-      return;
-    }
+    if (!row && !dataRequested && typeof fetch === 'function') { loadSettings(); return; }
     started = true;
     events.forEach(name => window.removeEventListener(name, consentReady));
-    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.5.1'; style.textContent = CSS;
+    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.6.0'; style.textContent = CSS;
     document.head.append(style);
     button = element('button', 'tdb-announcement padding-global'); button.type = 'button';
     button.setAttribute('aria-haspopup', 'dialog'); button.setAttribute('aria-controls', 'tdb-vip-drawer');
@@ -315,34 +340,45 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     button.addEventListener('animationend', event => event.target.classList.remove('is-changing'));
     track.addEventListener('transitionend', event => { if (event.target === track && event.propertyName === 'transform') settleSlide(); });
     shell.setAttribute('data-tdb-announcement-pending', ''); shell.append(button);
-    shell.addEventListener('mouseenter', () => { interacting = true; render(); });
-    shell.addEventListener('mouseleave', () => { interacting = shell.contains(document.activeElement); render(); });
+    shell.addEventListener('mouseenter', () => { hovered = interacting = true; render(); });
+    shell.addEventListener('mouseleave', () => { hovered = false; interacting = shell.contains(document.activeElement); render(); });
     shell.addEventListener('focusin', () => { interacting = true; render(); });
-    shell.addEventListener('focusout', event => { if (!shell.contains(event.relatedTarget)) { interacting = false; render(); } });
-    const observer = new MutationObserver(render); observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+    shell.addEventListener('focusout', event => { if (!shell.contains(event.relatedTarget)) { interacting = hovered; render(); } });
+    const observer = new MutationObserver(() => { if (isVisible() !== lastVisible) render(); }); observer.observe(root, { attributes: true, attributeFilter: ['class'] });
     const drawer = document.getElementById('tdb-vip-drawer'); if (drawer) observer.observe(drawer, { attributes: true, attributeFilter: ['class'] });
-    document.addEventListener('visibilitychange', render); window.addEventListener('pageshow', () => { suspended = false; render(); });
-    window.addEventListener('pagehide', () => { suspended = true; clearTimeout(timer); timer = 0; pauseRotation(); cancelGesture(); if (moving) settleSlide(); });
+    document.addEventListener('visibilitychange', render); window.addEventListener('pageshow', () => { suspended = false; render(); recover(); });
+    window.addEventListener('pagehide', () => { suspended = true; clearTimeout(dataRetry); dataRetry = 0; clearTimeout(timer); timer = 0; pauseRotation(); cancelGesture(); if (moving) settleSlide(); });
     render();
     function reveal() {
       if (getComputedStyle(root).getPropertyValue('--tdb-ui-ready').trim() !== '1') return;
-      document.removeEventListener('load', reveal, true); shell.hidden = false;
+      document.removeEventListener('load', onStyleLoad, true); shell.hidden = false;
       requestAnimationFrame(() => requestAnimationFrame(() => { shell.removeAttribute('data-tdb-announcement-pending'); render(); }));
     }
-    setTimeout(() => { document.addEventListener('load', reveal, true); reveal(); }, 500);
+    // Run after the stylesheet's own onload switches media from print to all.
+    function onStyleLoad() { requestAnimationFrame(reveal); }
+    setTimeout(() => {
+      document.addEventListener('load', onStyleLoad, true);
+      if (window.TDBFeatureCSS?.ui) window.TDBFeatureCSS.ui().then(reveal).catch(() => console.warn('TDB banner: shared styles unavailable.'));
+      else reveal();
+    }, 500);
   }
+  function recover() {
+    if (active && dataState === 'unavailable') loadSettings();
+  }
+  window.addEventListener('online', recover);
+
   function consentReady(event) {
     if (event?.type !== 'CookieScriptLoaded' || decisionExists()) active = true;
     start();
   }
   window.TDBAnnouncement = Object.freeze({
-    version: '1.5.1',
+    version: '1.6.0',
     mount(target) {
       if (shell) return;
       shell = target; shell.hidden = true; active = decisionExists();
       if (active) start(); else events.forEach(name => window.addEventListener(name, consentReady));
     },
-    configure(next) { overrides = { ...overrides, ...next }; config = { ...config, ...next }; mode = last = ''; render(); },
-    status: () => ({ version: '1.5.1', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), preview, manual, reducedMotion:reduced.matches })
+    configure(next) { overrides = { ...overrides, ...next }; config = { ...config, ...next }; labels.clear(); mode = last = ''; render(); },
+    status: () => ({ version: '1.6.0', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
   });
 })();
