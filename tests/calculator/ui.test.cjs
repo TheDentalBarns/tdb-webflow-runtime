@@ -6,6 +6,8 @@ const core=fs.readFileSync(require.resolve('../../src/calculator/core.js'),'utf8
 async function setup(options={}){
  const dom=new JSDOM('<!doctype html><body><main data-tdb-calculator="inline" data-finance="true"></main><a id="open" data-tdb-calc-open href="/dental-cost-lichfield#treatment-calculator">Open</a><a id="restricted" data-tdb-calc-open data-restorative="false" data-treatment="bonding" href="#treatment-calculator">Cosmetic</a></body>',{url:'https://example.org/dental-cost-lichfield',runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window,d=w.document;
+ w.fetch=options.fetch||async function(){return {ok:true,text:async()=>'<div data-banner-field="slug">active</div>'};};
+ if(options.clock)w.Date.now=()=>options.clock.now;
  let viewport;
  if(options.viewport)w.IntersectionObserver=class{constructor(callback){viewport=visible=>callback([{isIntersecting:visible}]);}observe(){}};
  for(const f of fixture){const el=d.createElement('div');el.hidden=true;el.setAttribute('data-tdb-calc-record',f.record);for(const [k,v]of Object.entries(f))if(!['record','whitening','hygiene'].includes(k))el.setAttribute('data-'+k,v);d.body.append(el);for(const key of ['whitening','hygiene'])if(f[key]){const m=d.createElement('span');m.setAttribute('data-tdb-calc-included',key);m.setAttribute('data-record',f.record);d.body.append(m);}}
@@ -242,5 +244,61 @@ test('VIP overlays the drawer and restores the exact form and scroll position',a
  assert.equal(dialog.open,true);assert.equal(x.d.querySelector('.tdbc-vip-overlay').open,true);assert.equal(dialog.querySelector('.tdbc-main'),form);
  x.w.TDBVIPDrawer.close();await new Promise(r=>setImmediate(r));assert.equal(x.d.querySelector('.tdbc-vip-overlay'),null);assert.equal(dialog.open,true);assert.equal(dialog.scrollTop,420);assert.equal(vip.parentNode,x.d.body);assert.equal(x.d.documentElement.style.overflow,'hidden');
  x.d.documentElement.style.fontSize='16px';dialog.querySelector('.tdbc-summary').getBoundingClientRect=()=>({top:-420});let frame;x.w.requestAnimationFrame=cb=>{frame=cb;return 1};x.w.matchMedia=()=>({matches:true});Object.defineProperty(dialog,'scrollHeight',{value:3000});Object.defineProperty(dialog,'clientHeight',{value:800});dialog.querySelector('[data-action=estimate]').click();assert.equal(dialog.scrollTop,420);assert.equal(typeof frame,'function');frame(x.w.performance.now()+325);assert.ok(dialog.scrollTop<420&&dialog.scrollTop>0);frame(x.w.performance.now()+700);assert.equal(dialog.scrollTop,0);dialog.scrollTop=420;x.w.TDBCalculator.close();assert.equal(dialog.style.getPropertyValue('--tdbc-close-scroll'),'420px');
+ }finally{x.dom.window.close();}
+});
+
+const availabilityFeed=(date='October 2, 2099',time='14:55',slug='active')=>({ok:true,text:async()=>'<div data-banner-field="slug">'+slug+'</div><div data-banner-field="next-signature-slot">'+date+'</div><div data-banner-field="next-signature-uk-time">'+time+'</div>'});
+const settle=()=>new Promise(r=>setImmediate(r));
+test('inline and drawer use the first assessment slot, deduplicate requests and retain later planning',async()=>{
+ let calls=0,next='October 2, 2099';const x=await setup({fetch:async()=>{calls++;return availabilityFeed(next);}});
+ try{
+  x.choose('[data-category=cosmetic]');x.choose('[data-select=whitening]');
+  assert.match(x.root.querySelector('[data-output=availability]').textContent,/2 Oct 2099 · 14:55/);
+  assert.equal(x.root.querySelector('[data-availability-status]').dataset.live,'true');
+  assert.equal(x.root.querySelector('[data-date=target]').value,'2099-11-20');
+  assert.match(x.root.querySelector('[data-output=assessment-date]').textContent,/2 Oct 2099 · 14:55/);
+  const slider=x.root.querySelector('[data-range=completion]');slider.value='21';slider.dispatchEvent(new x.w.Event('input',{bubbles:true}));
+  assert.equal(x.root.querySelector('[data-date=target]').value,'2099-12-11');
+  assert.match(x.root.querySelector('[data-output=timeline]').textContent,/Your illustrative assessment date/);
+  assert.doesNotMatch(x.root.querySelector('[data-output=assessment-date]').textContent,/14:55/);
+  await x.w.TDBCalculator.open(x.d.getElementById('open'));
+  assert.equal(calls,1);assert.match(x.d.querySelector('dialog [data-output=availability]').textContent,/2 Oct 2099/);
+  next='October 5, 2099';x.choose('[data-action=availability]');await settle();
+  assert.equal(calls,2);assert.equal(x.root.querySelector('[data-range=completion]'),slider);assert.equal(slider.value,'21');
+  assert.match(x.d.querySelector('dialog [data-output=availability]').textContent,/5 Oct 2099/);
+  assert.equal(x.root.querySelector('[data-date=target]').value,'2099-12-14');
+ }finally{x.dom.window.close();}
+});
+test('freshness expires after five minutes and a failed refresh never claims a live date',async()=>{
+ const clock={now:Date.parse('2099-09-20T12:00:00Z')};let failed=false;
+ const x=await setup({clock,fetch:async()=>{if(failed)throw Error('offline');return availabilityFeed();}});
+ try{
+  x.choose('[data-category=cosmetic]');x.choose('[data-select=whitening]');
+  clock.now+=300001;
+  const slider=x.root.querySelector('[data-range=completion]');slider.dispatchEvent(new x.w.Event('input',{bubbles:true}));
+  assert.equal(x.root.querySelector('[data-availability-status]').dataset.live,'false');
+  assert.match(x.root.querySelector('[data-output=availability]').textContent,/Last checked over five minutes ago/);
+  failed=true;x.choose('[data-action=availability]');await settle();
+  assert.equal(x.root.querySelector('[data-availability-status]').dataset.live,'false');
+  assert.match(x.root.querySelector('[data-output=availability]').textContent,/Unable to check live availability/);
+  assert.match(x.root.querySelector('[data-output=availability]').textContent,/2 Oct 2099/);
+  assert.equal(x.root.querySelector('[data-action=availability]').disabled,false);
+  failed=false;x.choose('[data-action=availability]');await settle();
+  assert.equal(x.root.querySelector('[data-availability-status]').dataset.live,'true');
+ }finally{x.dom.window.close();}
+});
+test('missing, past and malformed feed dates remain illustrative; Smile Design has no Signature date',async()=>{
+ for(const response of [availabilityFeed('',''),availabilityFeed('October 2, 2000'),availabilityFeed('October 2, 2099','14:55','wrong')]){
+  const x=await setup({fetch:async()=>response});try{
+   x.choose('[data-category=cosmetic]');x.choose('[data-select=whitening]');
+   assert.equal(x.root.querySelector('[data-availability-status]').dataset.live,'false');
+   assert.match(x.root.querySelector('[data-output=timeline]').textContent,/Illustrative assessment date/);
+   assert.match(x.root.querySelector('[data-output=availability]').textContent,/Dates below are illustrative/);
+  }finally{x.dom.window.close();}
+ }
+ const x=await setup({fetch:async()=>availabilityFeed()});try{
+  x.choose('[data-category=cosmetic]');x.choose('[data-select=whitening]');x.choose('[data-action=start-assessment]');
+  assert.match(x.root.querySelector('[data-output=availability]').textContent,/2 Oct 2099/);
+  x.choose('[data-assessment=design]');assert.equal(x.root.querySelector('[data-output=availability]'),null);
  }finally{x.dom.window.close();}
 });

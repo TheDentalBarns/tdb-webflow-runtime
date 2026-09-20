@@ -168,3 +168,12 @@ test('more than 16 veneers normalise to both arches and include two Smile Trials
  const e=C.estimate(records,s);assert.equal(e.lines.find(l=>l.key==='trial').qty,2);
  s.selected.veneers.qty=16;assert.deepEqual(C.normaliseState(s).selected.veneers.arches,['lower']);
 });
+
+test('assessment availability resolves UK wall time across GMT/BST and rejects invalid dates',()=>{
+ assert.deepEqual(C.assessmentSlot('October 2, 2026','14:55'),{day:'2026-10-02',time:'14:55',at:Date.parse('2026-10-02T13:55:00Z')});
+ assert.equal(C.assessmentSlot('January 2, 2027','14:55').at,Date.parse('2027-01-02T14:55:00Z'));
+ assert.equal(C.assessmentSlot('March 29, 2026','01:30'),null);
+ assert.equal(C.assessmentSlot('February 30, 2027','14:55'),null);
+ assert.equal(C.assessmentSlot('October 2, 2026','24:00'),null);
+ assert.equal(C.assessmentSlot('','14:55'),null);
+});

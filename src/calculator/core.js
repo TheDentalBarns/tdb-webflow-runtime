@@ -1,11 +1,11 @@
-/* TDB Treatment Calculator v1.4.9 — deterministic pricing and planning rules. */
+/* TDB Treatment Calculator v1.5.0 — deterministic pricing and planning rules. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.TDBCalculatorCore = api;
 })(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
-  const VERSION = '1.4.9';
+  const VERSION = '1.5.0';
   const IDS = Object.freeze({
     assessment: '6aa293f6253d574a41978d9e', design: '68386f15264c9bdb140b5f2e',
     whitening: '681ce51276b22da0b0660090', aligners: '67a227e75f8c501023eb066b',
@@ -140,6 +140,20 @@
     return date.getUTCFullYear()===y&&date.getUTCMonth()===m-1&&date.getUTCDate()===d?date:null;
   }
   const iso=d=>d.toISOString().slice(0,10);
+  // The CMS exposes a UK calendar date and wall-clock time separately.
+  // Resolve London time explicitly, including BST, without the visitor's timezone.
+  function assessmentSlot(date,time){
+    if(!date||!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))return null;
+    const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const match=String(date).match(/^([A-Za-z]+) (\d{1,2}), (\d{4})$/);
+    const day=match?match[3]+'-'+String(months.indexOf(match[1])+1).padStart(2,'0')+'-'+match[2].padStart(2,'0'):date;
+    if(!parseDate(day))return null;
+    const desired=Date.parse(day+'T'+time+':00Z');
+    const format=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
+    const wall=t=>{const p=Object.fromEntries(format.formatToParts(t).map(x=>[x.type,x.value]));return Date.UTC(+p.year,+p.month-1,+p.day,+p.hour,+p.minute,+p.second);};
+    let at=desired;for(let i=0;i<2;i++)at=desired-(wall(at)-at);
+    return wall(at)===desired?{day,time,at}:null;
+  }
   const addDays=(d,n)=>new Date(d.getTime()+n*86400000);
   function addMonths(date,n){
     const d=new Date(date),day=d.getUTCDate();d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+n);
@@ -240,5 +254,5 @@
     const result=schedule(p,iso(addDays(now,offset)));
     return {...result,plan:p,offset,tooSoon,earliestCompletion:earliest.finishMin,latestCompletion:schedule(p,iso(addDays(now,730))).finishMin};
   }
-  return Object.freeze({VERSION,IDS,OPTIONS,parsePrice,recordFromFields,newState,normaliseState,allowedOptions,estimate,payment,finance,parseDate,iso,addDays,addMonths,plan,schedule,suggestedStart,timeline,duration,completionTimeline});
+  return Object.freeze({VERSION,IDS,OPTIONS,parsePrice,recordFromFields,newState,normaliseState,allowedOptions,estimate,payment,finance,parseDate,assessmentSlot,iso,addDays,addMonths,plan,schedule,suggestedStart,timeline,duration,completionTimeline});
 });

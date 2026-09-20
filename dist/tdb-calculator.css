@@ -9,6 +9,13 @@
 .tdbc-main{width:100%}.tdbc-main:not(:has(.tdbc-footnote))>[data-node=step-1]{padding-bottom:0}.tdbc-step{padding:3rem 0;margin:0;border:0;border-top:1px solid var(--base-color-brand--orange-3);min-width:0}
 .tdbc-step-heading{display:flex;align-items:center;gap:1rem;margin:0 0 1rem}.tdbc-number{display:grid;place-items:center;flex:0 0 2.5rem;width:2.5rem;height:2.5rem;background:var(--base-color-brand--orange-3);color:var(--base-color-neutral--neutral-darker);letter-spacing:normal}
 .tdbc-help{color:var(--calc-muted)}.tdb-calc p{margin:0 0 1rem}.tdbc-categories{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.5rem}
+/* The same 6px dark-cream live pulse used by the assessment banners. */
+.tdb-calc [data-availability-status]{position:relative;padding-left:16px}
+.tdb-calc [data-availability-status]::before,.tdb-calc [data-availability-status]::after{content:'';position:absolute;left:0;top:calc(50% - 3px);width:6px;height:6px;border-radius:50%;background:#888;pointer-events:none}
+.tdb-calc [data-availability-status]::after{opacity:0}
+.tdb-calc [data-availability-status][data-live=true]::before,.tdb-calc [data-availability-status][data-live=true]::after{background:var(--base-color-brand--orange-3,#d6cab4)}
+.tdb-calc [data-availability-status][data-live=true]::after{animation:calculator-live-pulse 2.8s ease-out infinite}
+@keyframes calculator-live-pulse{0%{transform:scale(1);opacity:0}12%{opacity:.7}70%,100%{transform:scale(2.4);opacity:0}}
 .tdb-calc .form_checkbox{position:relative;display:flex;align-items:center;gap:.875rem;padding:0;margin:0;min-width:0;cursor:pointer;font-weight:400}
 .tdb-calc .form_checkbox input[type=checkbox],.tdb-calc .form_checkbox input[type=radio]{position:absolute;opacity:0;width:1px;height:1px;margin:0}
 .tdb-calc .form_checkbox-icon{position:relative;flex-shrink:0;margin:0;float:none}
