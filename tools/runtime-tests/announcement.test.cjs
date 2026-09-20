@@ -88,15 +88,30 @@ function setup({path='/',embedded=true,saved=true,mobile=false,reduced=false,ani
  a=setup();a.tick(550);a.w.HTMLElement.prototype.animate=()=>{throw Error('animation unavailable')};
  a.d.querySelector('.tdb-announcement').dispatchEvent(new a.w.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));a.tick(500);assert.equal(a.w.TDBAnnouncement.status().mode,'signature','CSS fallback handles animation setup errors');a.close();
  // A fresh tap must work even while the preceding swipe is still settling.
- for(const [delay,animationDelay] of [[100,400],[450,400],[500,900]]){
+ for(const direction of [-1,1])for(const [delay,animationDelay] of [[100,400],[450,400],[500,900]]){
    a=setup({mobile:true,animationDelay});a.tick(550);
    const b=a.d.querySelector('.tdb-announcement'),track=a.d.querySelector('.tdb-announcement-track');
    track.getBoundingClientRect=()=>({width:300});let opened=0;
    a.d.querySelector('.tdb-vip-drawer-handle').addEventListener('click',()=>opened++);
    const pointer=(type,x)=>{const e=new a.w.MouseEvent(type,{bubbles:true,clientX:x,clientY:30,button:0});Object.defineProperties(e,{pointerId:{value:1},isPrimary:{value:true}});b.dispatchEvent(e)};
-   pointer('pointerdown',250);pointer('pointermove',170);pointer('pointerup',170);b.click();assert.equal(opened,0,'swipe-generated click stays suppressed');
+   pointer('pointerdown',150);pointer('pointermove',150+direction*80);pointer('pointerup',150+direction*80);b.click();assert.equal(opened,0,'swipe-generated click stays suppressed');
    a.tick(delay);pointer('pointerdown',220);pointer('pointerup',220);b.click();assert.equal(opened,1,'first fresh tap opens VIP during/after slide settlement');
    a.tick(1000);assert.equal(b.dataset.mode,'signature','interrupted slide settles exactly once');a.close();
+ }
+ // A real touch tap should not depend on a later compatibility click being delivered.
+ for(const direction of [-1,1]){
+   a=setup({mobile:true});a.tick(550);let opened=0;
+   const b=a.d.querySelector('.tdb-announcement'),track=a.d.querySelector('.tdb-announcement-track');
+   b.getBoundingClientRect=()=>({left:0,right:300,top:0,bottom:90});track.getBoundingClientRect=()=>({width:300});
+   a.d.querySelector('.tdb-vip-drawer-handle').addEventListener('click',()=>opened++);
+   const pointer=(type,x,y=30)=>{const e=new a.w.MouseEvent(type,{bubbles:true,cancelable:true,clientX:x,clientY:y,button:0});Object.defineProperties(e,{pointerId:{value:7},isPrimary:{value:true},pointerType:{value:'touch'}});b.dispatchEvent(e)};
+   pointer('pointerdown',150);pointer('pointermove',150+direction*80);pointer('pointerup',150+direction*80);b.click();assert.equal(opened,0,'touch swipe never opens drawer');
+   a.tick(100);pointer('pointerdown',250);pointer('pointerup',250);
+   assert.equal(opened,1,'first touch tap opens without a compatibility click in either direction');
+   b.click();assert.equal(opened,1,'compatibility click cannot toggle drawer twice');
+   pointer('pointerdown',250);pointer('pointerup',320);b.click();assert.equal(opened,1,'release outside button does not activate');
+   pointer('pointerdown',200);pointer('pointermove',200,70);pointer('pointerup',200,70);b.click();assert.equal(opened,1,'vertical scroll does not activate');
+   a.close();
  }
  // Filled animation must be released only after the final DOM/order is prepared.
  for(const direction of ['ArrowLeft','ArrowRight']){

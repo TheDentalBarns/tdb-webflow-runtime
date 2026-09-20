@@ -1,4 +1,4 @@
-/* TDB Announcement 1.6.4. Shares existing shell/consent/drawer controllers.
+/* TDB Announcement 1.6.5. Shares existing shell/consent/drawer controllers.
  * Uses published CMS text; shares consent, shell motion and drawer routing.
  */
 (() => {
@@ -234,6 +234,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
       track.style.transition = 'none'; track.style.transform = 'translateX(0)';
       suppressClickUntil = performance.now() + 600;
     }
+    if (previous.touch) suppressClickUntil = performance.now() + 600;
     if (button.hasPointerCapture?.(previous.id)) button.releasePointerCapture(previous.id);
   }
   function bindSwiping() {
@@ -244,7 +245,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
       if (moving) settleSlide();
       // A new deliberate tap remains an ordinary drawer action after a previous swipe.
       suppressClickUntil = 0;
-      gesture = {id:event.pointerId,x:event.clientX,y:event.clientY,dx:0,dragging:false};
+      gesture = {id:event.pointerId,x:event.clientX,y:event.clientY,dx:0,dragging:false,touch:event.pointerType === 'touch' || event.pointerType === 'pen'};
       button.setPointerCapture?.(event.pointerId);
       pauseRotation();
     });
@@ -266,6 +267,17 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     button.addEventListener('pointerup', event => {
       if (!gesture || gesture.id !== event.pointerId) return;
       const previous = gesture;
+      if (!previous.dragging && previous.touch) {
+        const bounds = button.getBoundingClientRect();
+        const inside = event.clientX >= bounds.left && event.clientX <= bounds.right && event.clientY >= bounds.top && event.clientY <= bounds.bottom;
+        cancelGesture(); render();
+        if (inside && isVisible()) {
+          // Touch activation does not depend on Safari delivering a compatibility click.
+          suppressClickUntil = 0; openDrawer(event);
+          suppressClickUntil = performance.now() + 600;
+        }
+        return;
+      }
       if (!previous.dragging || Math.abs(previous.dx) < Math.min(40,previous.width * .15)) { cancelGesture(); render(); return; }
       gesture = null; manual = true; pauseRotation();
       suppressClickUntil = performance.now() + 600;
@@ -322,7 +334,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     if (!row && !dataRequested && typeof fetch === 'function') { loadSettings(); return; }
     started = true;
     events.forEach(name => window.removeEventListener(name, consentReady));
-    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.6.4'; style.textContent = CSS;
+    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.6.5'; style.textContent = CSS;
     document.head.append(style);
     button = element('button', 'tdb-announcement padding-global'); button.type = 'button';
     button.setAttribute('aria-haspopup', 'dialog'); button.setAttribute('aria-controls', 'tdb-vip-drawer');
@@ -384,13 +396,13 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     start();
   }
   window.TDBAnnouncement = Object.freeze({
-    version: '1.6.4',
+    version: '1.6.5',
     mount(target) {
       if (shell) return;
       shell = target; shell.hidden = true; active = decisionExists();
       if (active) start(); else events.forEach(name => window.addEventListener(name, consentReady));
     },
     configure(next) { overrides = { ...overrides, ...next }; config = { ...config, ...next }; labels.clear(); mode = last = ''; render(); },
-    status: () => ({ version: '1.6.4', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
+    status: () => ({ version: '1.6.5', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
   });
 })();
