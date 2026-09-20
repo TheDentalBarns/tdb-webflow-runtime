@@ -258,7 +258,7 @@
 });
 
 
-/* TDB Treatment Calculator v1.5.1 — shared inline/drawer controller. */
+/* TDB Treatment Calculator v1.5.2 — shared inline/drawer controller. */
 (function () {
   'use strict';
   if(window.TDBCalculator)return;
@@ -282,13 +282,14 @@
   const futureSlot=()=>availability.slot?.at>Date.now()?availability.slot:null;
   const availabilityLive=()=>!!futureSlot()&&!availability.error&&!availability.pending&&Date.now()-availability.checked<AVAILABILITY_TTL;
   const planningStart=()=>futureSlot()?.day||today();
-  const slotText=slot=>dateText(slot.day)+' · '+slot.time;
+  const assessmentDateText=day=>dateText(day).replace(/^\d+/,n=>{const d=Number(n),suffix=d%100>=11&&d%100<=13?'th':({1:'st',2:'nd',3:'rd'}[d%10]||'th');return n+suffix;});
   const refreshIcon='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path vector-effect="non-scaling-stroke" d="M17.656854 17.656854A8 8 0 1 1 17.656854 6.343146L19.071068 7.757359M15.571068 7.757359h3.5v-3.5"/></svg>';
   function availabilityMarkup(start=''){
     const slot=futureSlot(),later=!!slot&&!!start&&start!==slot.day,live=availabilityLive()&&!later;
     const status=availability.pending?'Checking live availability…':later?'Illustrative assessment date':live?'Live availability':availability.error?'Unable to check live availability':slot?'Last checked over five minutes ago':'No live appointment date available';
-    const date=later?dateText(start):slot?slotText(slot):availability.pending?'Checking…':'Please enquire';
-    return '<span class="text-style-tagline-restored">Start with your Signature Assessment ✦ '+(later?'on':'as soon as')+'</span><div data-availability-details><div class="tdbc-availability-date-row"><strong class="heading-style-h4" data-output="assessment-date">'+esc(date)+'*</strong><button type="button" data-action="availability" aria-label="Refresh live availability" '+(availability.pending?'disabled aria-busy="true"':'')+'>'+refreshIcon+'</button></div><span class="text-size-tiny" data-availability-status data-live="'+live+'" aria-live="polite">'+status+'</span></div><p class="tdbc-help text-size-tiny">*'+(slot?'Subject to availability; this does not reserve an appointment.':'Dates are illustrative until appointment availability is confirmed.')+(start?' A two-week planning allowance follows your assessment.':'')+'</p>';
+    const day=later?start:slot?.day,date=day?assessmentDateText(day):availability.pending?'Checking…':'Please enquire';
+    const detail=(day?date+(!later&&slot?' · '+slot.time:'')+' · ':'')+status+'*';
+    return '<span class="text-style-tagline-restored">Start with your Signature Assessment ✦ '+(later?'on':'as soon as')+'</span><div data-availability-details><div class="tdbc-availability-date-row"><strong class="heading-style-h4" data-output="assessment-date">'+esc(date)+'</strong><button type="button" data-action="availability" aria-label="Refresh live availability" '+(availability.pending?'disabled aria-busy="true"':'')+'>'+refreshIcon+'</button></div><span class="text-size-tiny" data-availability-status data-live="'+live+'" aria-live="polite">'+esc(detail)+'</span></div><p class="tdbc-help text-size-tiny">*'+(slot?'Subject to availability; this does not reserve an appointment.':'Dates are illustrative until appointment availability is confirmed.')+(start?' A two-week planning allowance follows your assessment.':'')+'</p>';
   }
   const availabilityBlock=(start='')=>'<div class="tdbc-date-result text-size-small" data-output="availability" data-assessment-start="'+esc(start)+'">'+availabilityMarkup(start)+'</div>';
   function updateAvailability(){
