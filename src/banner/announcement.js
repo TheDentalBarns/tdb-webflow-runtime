@@ -1,4 +1,4 @@
-/* TDB Announcement 1.6.1. Shares existing shell/consent/drawer controllers.
+/* TDB Announcement 1.6.2. Shares existing shell/consent/drawer controllers.
  * Uses published CMS text; shares consent, shell motion and drawer routing.
  */
 (() => {
@@ -50,11 +50,11 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
 .tdb-announcement-title{display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:400;line-height:20px;opacity:.7}
 .tdb-announcement-lower{display:flex;align-items:flex-start;justify-content:center;min-width:0;font-size:18px;line-height:24px;font-weight:400;font-variant-numeric:tabular-nums}
 .tdb-announcement-slot{position:relative;justify-self:center}
-.tdb-announcement-slot[data-live="true"]::before,.tdb-announcement-slot[data-live="true"]::after{content:"";position:absolute;left:-16px;top:calc(.5lh - 3px);width:6px;height:6px;border-radius:50%;background:var(--base-color-brand--orange-3,#d6cab4);pointer-events:none}
-.tdb-announcement-slot[data-live="true"]::before{opacity:.8}
+.tdb-announcement-slot[data-live="true"]::before,.tdb-announcement-slot[data-live="true"]::after{content:"";position:absolute;left:-16px;top:calc(.5lh - 3px);width:6px;height:6px;border-radius:50%;background:var(--base-color-brand--orange-1,#f9f2e6);pointer-events:none}
+.tdb-announcement-slot[data-live="true"]::before{opacity:1}
 .tdb-announcement-slot[data-live="true"]::after{opacity:0;animation:tdb-announcement-live 2.8s ease-out infinite;animation-play-state:paused}
 .tdb-announcement-slot[data-pulse="true"]::after{animation-play-state:running}
-@keyframes tdb-announcement-live{0%{transform:scale(1);opacity:.35}70%,100%{transform:scale(2.4);opacity:0}}
+@keyframes tdb-announcement-live{0%{transform:scale(1);opacity:.6}70%,100%{transform:scale(2.4);opacity:0}}
 .tdb-announcement-circle{position:relative;display:flex;align-items:center;justify-content:center;width:3rem;height:3rem;flex:0 0 3rem;border-radius:50%;box-sizing:border-box;color:var(--base-color-brand--orange-3,#d6cab4)}
 .tdb-announcement-circle .tdb-announcement-dial{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1;transform:rotate(-90deg)}
 .tdb-announcement-dial circle:first-child{opacity:.3}
@@ -318,7 +318,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     if (!row && !dataRequested && typeof fetch === 'function') { loadSettings(); return; }
     started = true;
     events.forEach(name => window.removeEventListener(name, consentReady));
-    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.6.1'; style.textContent = CSS;
+    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.6.2'; style.textContent = CSS;
     document.head.append(style);
     button = element('button', 'tdb-announcement padding-global'); button.type = 'button';
     button.setAttribute('aria-haspopup', 'dialog'); button.setAttribute('aria-controls', 'tdb-vip-drawer');
@@ -380,13 +380,13 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     start();
   }
   window.TDBAnnouncement = Object.freeze({
-    version: '1.6.1',
+    version: '1.6.2',
     mount(target) {
       if (shell) return;
       shell = target; shell.hidden = true; active = decisionExists();
       if (active) start(); else events.forEach(name => window.addEventListener(name, consentReady));
     },
     configure(next) { overrides = { ...overrides, ...next }; config = { ...config, ...next }; labels.clear(); mode = last = ''; render(); },
-    status: () => ({ version: '1.6.1', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
+    status: () => ({ version: '1.6.2', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
   });
 })();
