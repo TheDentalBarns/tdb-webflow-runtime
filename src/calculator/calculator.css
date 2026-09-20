@@ -25,6 +25,9 @@
 .tdb-calc[data-availability-loading] [data-output=assessment-date],.tdb-calc[data-availability-loading] [data-output=target-display]{font-size:1rem;line-height:1.5;font-weight:400;letter-spacing:normal;text-transform:none;color:var(--calc-muted);min-height:2.4rem;display:flex;align-items:center}
 .tdb-calc[data-availability-loading] .tdbc-target-field:focus-within output{visibility:visible}
 .tdb-calc[data-availability-loading] [data-range=completion]{cursor:wait}
+.tdb-calc[data-availability-loading] :is([data-output=assessment-date],[data-output=target-display],[data-availability-status],.tdbc-stage-toggle small){animation:tdbc-loading-text 1.6s ease-in-out infinite}
+@keyframes tdbc-loading-text{0%,100%{opacity:1}50%{opacity:.45}}
+@media(prefers-reduced-motion:reduce){.tdb-calc[data-availability-loading] :is([data-output=assessment-date],[data-output=target-display],[data-availability-status],.tdbc-stage-toggle small){animation:none;opacity:.7}}
 .tdb-calc [data-action=availability]{display:flex;align-items:center;justify-content:center;width:3rem;height:3rem;flex:0 0 3rem;padding:0;background:transparent;border:1px solid currentColor;border-radius:50%;color:var(--calc-ink);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color 300ms ease}
 .tdb-calc [data-action=availability]:disabled{cursor:wait}
 .tdb-calc [data-action=availability]:active,.tdb-calc [data-action=availability][aria-busy=true]{background-color:color-mix(in srgb,var(--base-color-brand--orange-3,#d6cab4) 30%,transparent)}
