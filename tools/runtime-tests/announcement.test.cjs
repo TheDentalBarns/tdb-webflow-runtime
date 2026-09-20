@@ -87,6 +87,14 @@ function setup({path='/',embedded=true,saved=true,mobile=false,reduced=false,ani
  }
  a=setup();a.tick(550);a.w.HTMLElement.prototype.animate=()=>{throw Error('animation unavailable')};
  a.d.querySelector('.tdb-announcement').dispatchEvent(new a.w.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));a.tick(500);assert.equal(a.w.TDBAnnouncement.status().mode,'signature','CSS fallback handles animation setup errors');a.close();
+ // Filled animation must be released only after the final DOM/order is prepared.
+ for(const direction of ['ArrowLeft','ArrowRight']){
+   a=setup();a.tick(550);let released;
+   const animate=a.w.HTMLElement.prototype.animate;
+   a.w.HTMLElement.prototype.animate=function(...args){const track=this,animation=animate.apply(this,args),cancel=animation.cancel;animation.cancel=function(){released={transform:track.style.transform,message:track.firstElementChild.dataset.message};cancel.call(this)};return animation};
+   a.d.querySelector('.tdb-announcement').dispatchEvent(new a.w.KeyboardEvent('keydown',{key:direction,bubbles:true}));a.tick(450);
+   assert.deepEqual(released,{transform:'translateX(0)',message:'signature'},'settled slide is ready before compositor release');a.close();
+ }
  // Unrelated root classes do not rewrite the banner; date formatters are reused.
  a=setup();a.tick(550);let writes=0,formats=0;const button=a.d.querySelector('.tdb-announcement');const original=button.setAttribute;
  button.setAttribute=function(...args){writes++;return original.apply(this,args)};const IntlFormatter=a.w.Intl.DateTimeFormat;a.w.Intl.DateTimeFormat=function(...args){formats++;return new IntlFormatter(...args)};
