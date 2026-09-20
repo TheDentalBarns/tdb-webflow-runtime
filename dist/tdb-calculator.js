@@ -1,11 +1,11 @@
-/* TDB Treatment Calculator v1.5.3 — deterministic pricing and planning rules. */
+/* TDB Treatment Calculator v1.5.4 — deterministic pricing and planning rules. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.TDBCalculatorCore = api;
 })(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
-  const VERSION = '1.5.3';
+  const VERSION = '1.5.4';
   const IDS = Object.freeze({
     assessment: '6aa293f6253d574a41978d9e', design: '68386f15264c9bdb140b5f2e',
     whitening: '681ce51276b22da0b0660090', aligners: '67a227e75f8c501023eb066b',
@@ -258,7 +258,7 @@
 });
 
 
-/* TDB Treatment Calculator v1.5.3 — shared inline/drawer controller. */
+/* TDB Treatment Calculator v1.5.4 — shared inline/drawer controller. */
 (function () {
   'use strict';
   if(window.TDBCalculator)return;
@@ -289,8 +289,8 @@
     const slot=futureSlot(),later=!!slot&&!!start&&start!==slot.day,live=availabilityLive()&&!later;
     const status=availability.pending?'Checking live availability':availability.error?(slot?(later?'Couldn’t refresh — showing previous estimate':'Couldn’t refresh — showing last checked availability'):'Unable to check live availability'):later?'Illustrative assessment date':live?'Live availability':slot?'Last checked over five minutes ago':'No live appointment date available';
     const day=later?start:slot?.day,date=availability.pending?'Checking live availability':day?assessmentDateText(day):'Please enquire';
-    const detail=(!availability.pending&&day?date+(!later&&slot?' · '+slot.time:'')+' · ':'')+status+'*';
-    return '<span class="text-style-tagline-restored">Start with your Signature Assessment ✦ '+(later?'on':'as soon as')+'</span><div data-availability-details><div class="tdbc-availability-date-row"><strong class="heading-style-h4" data-output="assessment-date">'+esc(date)+'</strong><button type="button" data-action="availability" aria-label="Refresh live availability" '+(availability.pending?'disabled aria-busy="true"':'')+'>'+refreshIcon+'</button></div><span class="text-size-tiny" data-availability-status data-live="'+live+'" aria-live="polite">'+esc(detail)+'</span></div><p class="tdbc-help text-size-tiny">*'+(slot?'Subject to availability; this does not reserve an appointment.':'Dates are illustrative until appointment availability is confirmed.')+(start?' A two-week planning allowance follows your assessment.':'')+'</p>';
+    const detail=status+(!availability.pending&&day?': '+date+(!later&&slot?' · '+slot.time:''):'')+'*';
+    return '<span class="text-style-tagline-restored">Start with your Signature Assessment ✦ '+(later?'on':'as soon as')+'</span><div data-availability-details><div class="tdbc-availability-date-row"><strong class="heading-style-h4" data-output="assessment-date">'+esc(date)+'</strong><button type="button" data-action="availability" aria-label="Refresh live availability" '+(availability.pending?'disabled aria-busy="true"':'')+'>'+refreshIcon+'</button></div><span class="text-size-tiny" data-availability-status data-live="'+live+'" aria-live="polite">'+esc(detail)+'</span></div><p class="tdbc-help text-size-tiny">*'+(slot&&!later?'Our diary updates live, and this time is not reserved.':'This is an illustrative date, not a reserved appointment.')+' Join VIP to receive your booking link and secure your appointment.'+'</p>';
   }
   const availabilityBlock=(start='')=>'<div class="tdbc-date-result text-size-small" data-output="availability" data-assessment-start="'+esc(start)+'">'+availabilityMarkup(start)+'</div>';
   function updateAvailability(){

@@ -1,4 +1,4 @@
-/* TDB Treatment Calculator v1.5.3. Site tokens, typography and existing control classes. */
+/* TDB Treatment Calculator v1.5.4. Site tokens, typography and existing control classes. */
 [data-tdb-calculator=inline]{scroll-margin-top:0;background:var(--base-color-brand--orange-1)}
 .tdb-calc,.tdbc-dialog{--calc-cream:var(--base-color-brand--orange-1);--calc-dark-cream:var(--base-color-brand--orange-2);--calc-ink:var(--base-color-brand--black);--calc-line:var(--base-color-brand--orange-3);--calc-muted:var(--base-color-neutral--neutral);font-family:var(--font-family--primary);color:var(--calc-ink);box-sizing:border-box}
 .tdb-calc *,.tdbc-dialog *{box-sizing:border-box}
@@ -168,16 +168,7 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 .tdbc-dialog:has(.tdbc-live.has-estimate) .tdbc-drawer-close-dock{top:6rem}
 .tdbc-drawer-close-dock button{pointer-events:auto;display:grid;place-items:center;width:max(3rem,48px);height:max(3rem,48px);padding:0;border:1px solid var(--calc-line);border-radius:50%;color:var(--calc-ink);background:color-mix(in srgb,var(--calc-dark-cream) 84%,transparent);backdrop-filter:saturate(150%) blur(20px);-webkit-backdrop-filter:saturate(150%) blur(20px);cursor:pointer;transition:background-color 300ms ease}
 .tdbc-drawer-close-dock svg{width:1.35rem;height:1.35rem}
-.tdbc-drawer-close-dock button:hover{background:var(--calc-line)}
-
-/* Pop-outs fit their content and always retain the estimate strip. */
-.tdbc-dialog{inset:0 0 auto auto;height:auto;max-height:100dvh}
-.tdbc-dialog .tdbc-live-button{padding-inline:0}
-.tdbc-dialog .tdbc-drawer-root{padding-top:12rem}
-.tdbc-dialog .tdbc-drawer-close-dock{top:6rem}
-
-/* The existing VIP drawer sits in its own top layer above a preserved calculator. */
-.tdbc-vip-overlay{position:fixed;inset:0;width:100%;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;overflow:visible;pointer-events:none}
+.…136 tokens truncated…gin:0;padding:0;border:0;background:transparent;overflow:visible;pointer-events:none}
 .tdbc-vip-overlay::backdrop{background:transparent}
 .tdbc-vip-overlay #tdb-vip-drawer{pointer-events:auto}
 

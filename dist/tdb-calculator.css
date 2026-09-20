@@ -1,4 +1,4 @@
-/* TDB Treatment Calculator v1.5.3. Site tokens, typography and existing control classes. */
+/* TDB Treatment Calculator v1.5.4. Site tokens, typography and existing control classes. */
 [data-tdb-calculator=inline]{scroll-margin-top:0;background:var(--base-color-brand--orange-1)}
 .tdb-calc,.tdbc-dialog{--calc-cream:var(--base-color-brand--orange-1);--calc-dark-cream:var(--base-color-brand--orange-2);--calc-ink:var(--base-color-brand--black);--calc-line:var(--base-color-brand--orange-3);--calc-muted:var(--base-color-neutral--neutral);font-family:var(--font-family--primary);color:var(--calc-ink);box-sizing:border-box}
 .tdb-calc *,.tdbc-dialog *{box-sizing:border-box}
