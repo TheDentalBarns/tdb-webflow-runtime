@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.9.7-banner-live-dot';
+  const VERSION = '0.9.8-banner-live-dot';
 
   function loadScript(src, attrName, readyCheck) {
     const existing = document.querySelector(`script[${attrName}]`);
@@ -85,7 +85,7 @@
   }
 
   const footerRuntimePromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3447dbf609684559ecd19efc2d888b5d1d1fc4b4/dist/tdb-footer-runtime.min.js',
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@74bf2b12539cba6ef2c5abb82919624b13bc74dc/dist/tdb-footer-runtime.min.js',
     'data-tdb-footer-runtime-js',
     () => Boolean(window.TDBFooterRuntime),
   );
