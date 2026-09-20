@@ -1,4 +1,4 @@
-/* TDB Announcement 1.6.6. Shares existing shell/consent/drawer controllers.
+/* TDB Announcement 1.6.7. Shares existing shell/consent/drawer controllers.
  * Uses published CMS text; shares consent, shell motion and drawer routing.
  */
 (() => {
@@ -32,7 +32,7 @@
   let signatureState = signatureOnly, interacting = false, hovered = false, moving = false, suspended = false, lastVisible = false;
   const dwell = 8000;
   let rotationLeft = dwell, rotationEnd = 0;
-  let manual = false, gesture = null, slideDirection = -1, suppressClickUntil = 0;
+  let manual = false, gesture = null, slideDirection = -1, suppressClickUntil = 0, openedTouch = null;
   let slideAnimation = null;
   const events = ['CookieScriptLoaded', 'CookieScriptAccept', 'CookieScriptAcceptAll', 'CookieScriptReject', 'CookieScriptClose'];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -43,6 +43,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
 .tdb-announcement{width:100%;height:6rem;min-height:6rem;box-sizing:border-box;margin:0;padding-block:0;border:0;border-radius:0;display:flex;align-items:center;justify-content:center;gap:12px;background:var(--base-color-brand--black,#000);color:var(--base-color-brand--orange-1,#f9f2e6);font:inherit;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tdb-announcement:focus-visible{outline:1px solid currentColor;outline-offset:-6px}
 .tdb-announcement{touch-action:pan-y pinch-zoom;user-select:none}
+.tdb-announcement *{pointer-events:none}
 .tdb-announcement::before{content:"";width:3rem;flex:0 0 3rem}
 .tdb-announcement-viewport{display:block;flex:1;min-width:0;overflow:hidden}
 .tdb-announcement-track{display:flex;align-items:center;width:100%;transform:translateX(0);will-change:transform}
@@ -222,9 +223,12 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
   function openDrawer(event) {
     event.preventDefault(); event.stopPropagation();
     if (performance.now() < suppressClickUntil) return;
-    if (matchMedia('(max-width:767px)').matches) document.querySelector('#tdb-vip-drawer .tdb-vip-drawer-handle')?.click();
-    else if (window.TDBVIPDrawerDesktop?.open) window.TDBVIPDrawerDesktop.open();
-    else window.TDBVIPDrawerLoader?.load?.().then(api => api?.open?.()).catch(() => {});
+    // Opening is idempotent and waits for a cold drawer on either screen size.
+    // Clicking the drawer's hidden toggle can lose the first mobile intent.
+    const api = window.TDBVIPDrawer || window.TDBVIPDrawerDesktop;
+    if (api?.open) api.open();
+    else if (window.TDBVIPDrawerLoader?.load) window.TDBVIPDrawerLoader.load().then(api => api?.open?.()).catch(() => {});
+    else document.querySelector('#tdb-vip-drawer .tdb-vip-drawer-handle')?.click();
   }
   function cancelGesture() {
     if (!gesture) return;
@@ -239,20 +243,27 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
   }
   function bindSwiping() {
     if (signatureOnly) return;
-    // Touch opens on pointerup. Catch its follow-up click before the drawer's
-    // document-capture outside-click handler can mistake it for a new dismissal.
+    // A fresh press is a separate action, including an immediate outside dismissal.
+    window.addEventListener('pointerdown', () => { openedTouch = null; }, true);
+    // Opening makes the page inert and can retarget the compatibility click.
+    // Match that same touch before the drawer's document-capture outside handler.
     window.addEventListener('click', event => {
-      if (!button.contains(event.target) || performance.now() >= suppressClickUntil) return;
+      if (performance.now() >= suppressClickUntil) return;
+      const sameTouch = openedTouch && event.detail > 0 &&
+        (event.pointerId === undefined || event.pointerId === openedTouch.id) &&
+        Math.abs(event.clientX - openedTouch.x) < 4 && Math.abs(event.clientY - openedTouch.y) < 4;
+      if (!button.contains(event.target) && !sameTouch) return;
+      openedTouch = null;
       event.preventDefault(); event.stopImmediatePropagation();
     }, true);
     button.addEventListener('pointerdown', event => {
       if (!event.isPrimary || event.button !== 0 || !isVisible()) return;
-      // Finish the previous swipe before accepting this separate pointer sequence.
-      if (moving) settleSlide();
       // A new deliberate tap remains an ordinary drawer action after a previous swipe.
       suppressClickUntil = 0;
       gesture = {id:event.pointerId,x:event.clientX,y:event.clientY,dx:0,dragging:false,touch:event.pointerType === 'touch' || event.pointerType === 'pen'};
       button.setPointerCapture?.(event.pointerId);
+      // Own the stable button before settling/reordering an automatic slide.
+      if (moving) settleSlide();
       pauseRotation();
     });
     button.addEventListener('pointermove', event => {
@@ -279,6 +290,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
         cancelGesture(); render();
         if (inside && isVisible()) {
           // Touch activation does not depend on Safari delivering a compatibility click.
+          openedTouch = {id:event.pointerId,x:event.clientX,y:event.clientY};
           suppressClickUntil = 0; openDrawer(event);
           suppressClickUntil = performance.now() + 600;
         }
@@ -297,7 +309,9 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
       // loss event must not cancel the new owner's gesture.
       if (event.target === button) cancel(event);
     });
-    button.addEventListener('pointerleave', event => { if (gesture && !gesture.dragging) cancel(event); });
+    button.addEventListener('pointerleave', event => {
+      if (gesture && !gesture.dragging && !button.hasPointerCapture?.(event.pointerId)) cancel(event);
+    });
     button.addEventListener('keydown', event => {
       if (!['ArrowLeft','ArrowRight'].includes(event.key) || moving || gesture) return;
       event.preventDefault(); manual = true; slide(event.key === 'ArrowLeft' ? -1 : 1);
@@ -340,7 +354,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     if (!row && !dataRequested && typeof fetch === 'function') { loadSettings(); return; }
     started = true;
     events.forEach(name => window.removeEventListener(name, consentReady));
-    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.6.6'; style.textContent = CSS;
+    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.6.7'; style.textContent = CSS;
     document.head.append(style);
     button = element('button', 'tdb-announcement padding-global'); button.type = 'button';
     button.setAttribute('aria-haspopup', 'dialog'); button.setAttribute('aria-controls', 'tdb-vip-drawer');
@@ -402,13 +416,13 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     start();
   }
   window.TDBAnnouncement = Object.freeze({
-    version: '1.6.6',
+    version: '1.6.7',
     mount(target) {
       if (shell) return;
       shell = target; shell.hidden = true; active = decisionExists();
       if (active) start(); else events.forEach(name => window.addEventListener(name, consentReady));
     },
     configure(next) { overrides = { ...overrides, ...next }; config = { ...config, ...next }; labels.clear(); mode = last = ''; render(); },
-    status: () => ({ version: '1.6.6', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
+    status: () => ({ version: '1.6.7', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
   });
 })();

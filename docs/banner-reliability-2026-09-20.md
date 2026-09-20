@@ -25,3 +25,11 @@ Local verification: all 85 runtime tests pass against the rebuilt footer; the ba
 The 1.6.5 pointerup activation opened VIP on touch, but the ensuing compatibility click reached the drawer's document-capture outside-click handler before the banner could suppress it. This immediately changed the drawer from open to closing. Suppressed banner clicks now stop at window capture; unrelated outside clicks and deliberate new taps retain their existing behaviour.
 
 Regression verified with the deployed legacy drawer controller for a direct touch tap and after left/right swipes. The test fails with drawer state 3 (closing) before the fix and passes with state 2 (open) afterwards. Separate outside taps still close the drawer immediately. Source and minified banner suites and release consistency checks pass. No drawer, consent, animation or CMS changes.
+
+## Banner 1.6.7 first interaction correction
+
+The user reported that opening still depended on first swiping. The rotating text and SVG are now decorative pointer targets: the stable banner button owns the gesture, with capture established before settling a moving slide. A boundary notification cannot cancel a captured tap; cancellation and release-outside checks remain in place.
+
+Mobile and desktop both call the drawer's explicit open API, or await its shared loader before opening. This retains the first intent during loading and avoids routing through the hidden handle's toggle. The compatibility-click guard also recognises the originating touch if opening the drawer changes the click target. A new pointer press clears that match, so a separate outside tap still dismisses immediately.
+
+Regression coverage includes initial taps before any swipe, taps during automatic rotation, loading completion, captured boundary events, original and retargeted compatibility clicks against the actual deployed drawer controller, both swipe directions, release outside and vertical scrolling. These are deterministic DOM/event tests; they do not replace a real iOS Safari check. The staging browser is desktop Chrome.

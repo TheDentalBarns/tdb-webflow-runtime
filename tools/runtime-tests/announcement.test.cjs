@@ -115,7 +115,7 @@ function setup({path='/',embedded=true,saved=true,mobile=false,reduced=false,ani
  }
  // Use the deployed drawer controller: its document-capture outside-click handler
  // runs before the banner's target click handler and must not close a touch open.
- for(const direction of [0,-1,1]){
+ for(const direction of [0,-1,1])for(const retargeted of [false,true]){
    a=setup({mobile:true});a.tick(550);
    const drawer=a.d.getElementById('tdb-vip-drawer');
    drawer.querySelector('button').innerHTML='<span class="tdb-vip-drawer-label">Join VIP</span>';
@@ -128,12 +128,44 @@ function setup({path='/',embedded=true,saved=true,mobile=false,reduced=false,ani
    if(direction){pointer('pointerdown',150);pointer('pointermove',150+direction*80);pointer('pointerup',150+direction*80);b.click();a.tick(100);}
    pointer('pointerdown',250);pointer('pointerup',250);
    assert.equal(a.w.TDBVIPDrawer.status().state,2,'touch release opens the real drawer');
-   b.click();
+   if(retargeted){
+     const click=new a.w.MouseEvent('click',{bubbles:true,cancelable:true,detail:1,clientX:250,clientY:30});
+     Object.defineProperties(click,{pointerId:{value:7},pointerType:{value:'touch'}});
+     a.d.body.dispatchEvent(click);
+   }else b.click();
    assert.equal(a.w.TDBVIPDrawer.status().state,2,'compatibility click must not reach the drawer outside-click handler');
+   a.d.body.dispatchEvent(new a.w.MouseEvent('pointerdown',{bubbles:true}));
    a.d.body.click();
    assert.equal(a.w.TDBVIPDrawer.status().state,3,'a separate outside tap still closes the drawer immediately');
    await a.flush();
    a.close();
+ }
+ // A first touch must retain its intent while the drawer is still loading.
+ for(const phase of [550,8600]){
+   a=setup({mobile:true});a.tick(phase);
+   const b=a.d.querySelector('.tdb-announcement');
+   b.getBoundingClientRect=()=>({left:0,right:300,top:0,bottom:90});
+   let opened=0,loads=0,ready;
+   a.w.TDBVIPDrawerLoader={load:()=>{loads++;return new Promise(resolve=>{ready=resolve})}};
+   const pointer=type=>{const e=new a.w.MouseEvent(type,{bubbles:true,cancelable:true,clientX:250,clientY:30,button:0});Object.defineProperties(e,{pointerId:{value:9},isPrimary:{value:true},pointerType:{value:'touch'}});b.dispatchEvent(e)};
+   pointer('pointerdown');pointer('pointerup');b.click();
+   assert.equal(loads,1,'first touch requests the shared drawer loader before any swipe');
+   ready({open:()=>opened++});await a.flush();
+   assert.equal(opened,1,'initial tap opens once when drawer readiness resolves');
+   assert.equal(b.dataset.rotation,'auto','opening does not require or manufacture a swipe');a.close();
+ }
+ // Captured touches can cross a moving descendant's boundary. The release is
+ // still ours; only pointercancel, lost capture or release outside cancels it.
+ a=setup({mobile:true});a.tick(8600);
+ {
+   const b=a.d.querySelector('.tdb-announcement');let capture=false,opened=0;
+   b.getBoundingClientRect=()=>({left:0,right:300,top:0,bottom:90});
+   b.setPointerCapture=()=>{capture=true};b.hasPointerCapture=()=>capture;b.releasePointerCapture=()=>{capture=false};
+   a.w.TDBVIPDrawer={open:()=>opened++};
+   const pointer=type=>{const e=new a.w.MouseEvent(type,{bubbles:true,cancelable:true,clientX:250,clientY:30,button:0});Object.defineProperties(e,{pointerId:{value:9},isPrimary:{value:true},pointerType:{value:'touch'}});b.dispatchEvent(e)};
+   pointer('pointerdown');pointer('pointerleave');pointer('pointerup');b.click();
+   assert.equal(opened,1,'boundary notification cannot discard a captured first tap during rotation');
+   assert.equal(a.w.getComputedStyle(b.querySelector('.tdb-announcement-circle')).pointerEvents,'none','decorative descendants cannot own the native touch target');a.close();
  }
  // Filled animation must be released only after the final DOM/order is prepared.
  for(const direction of ['ArrowLeft','ArrowRight']){
