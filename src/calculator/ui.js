@@ -1,4 +1,4 @@
-/* TDB Treatment Calculator v1.5.2 — shared inline/drawer controller. */
+/* TDB Treatment Calculator v1.5.3 — shared inline/drawer controller. */
 (function () {
   'use strict';
   if(window.TDBCalculator)return;
@@ -22,13 +22,14 @@
   const futureSlot=()=>availability.slot?.at>Date.now()?availability.slot:null;
   const availabilityLive=()=>!!futureSlot()&&!availability.error&&!availability.pending&&Date.now()-availability.checked<AVAILABILITY_TTL;
   const planningStart=()=>futureSlot()?.day||today();
+  const TIMELINE_LOADING='Updating your timeline…';
   const assessmentDateText=day=>dateText(day).replace(/^\d+/,n=>{const d=Number(n),suffix=d%100>=11&&d%100<=13?'th':({1:'st',2:'nd',3:'rd'}[d%10]||'th');return n+suffix;});
   const refreshIcon='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path vector-effect="non-scaling-stroke" d="M17.656854 17.656854A8 8 0 1 1 17.656854 6.343146L19.071068 7.757359M15.571068 7.757359h3.5v-3.5"/></svg>';
   function availabilityMarkup(start=''){
     const slot=futureSlot(),later=!!slot&&!!start&&start!==slot.day,live=availabilityLive()&&!later;
-    const status=availability.pending?'Checking live availability…':later?'Illustrative assessment date':live?'Live availability':availability.error?'Unable to check live availability':slot?'Last checked over five minutes ago':'No live appointment date available';
-    const day=later?start:slot?.day,date=day?assessmentDateText(day):availability.pending?'Checking…':'Please enquire';
-    const detail=(day?date+(!later&&slot?' · '+slot.time:'')+' · ':'')+status+'*';
+    const status=availability.pending?'Checking live availability…':availability.error?(slot?(later?'Couldn’t refresh — showing previous estimate':'Couldn’t refresh — showing last checked availability'):'Unable to check live availability'):later?'Illustrative assessment date':live?'Live availability':slot?'Last checked over five minutes ago':'No live appointment date available';
+    const day=later?start:slot?.day,date=availability.pending?'Checking live availability…':day?assessmentDateText(day):'Please enquire';
+    const detail=(!availability.pending&&day?date+(!later&&slot?' · '+slot.time:'')+' · ':'')+status+'*';
     return '<span class="text-style-tagline-restored">Start with your Signature Assessment ✦ '+(later?'on':'as soon as')+'</span><div data-availability-details><div class="tdbc-availability-date-row"><strong class="heading-style-h4" data-output="assessment-date">'+esc(date)+'</strong><button type="button" data-action="availability" aria-label="Refresh live availability" '+(availability.pending?'disabled aria-busy="true"':'')+'>'+refreshIcon+'</button></div><span class="text-size-tiny" data-availability-status data-live="'+live+'" aria-live="polite">'+esc(detail)+'</span></div><p class="tdbc-help text-size-tiny">*'+(slot?'Subject to availability; this does not reserve an appointment.':'Dates are illustrative until appointment availability is confirmed.')+(start?' A two-week planning allowance follows your assessment.':'')+'</p>';
   }
   const availabilityBlock=(start='')=>'<div class="tdbc-date-result text-size-small" data-output="availability" data-assessment-start="'+esc(start)+'">'+availabilityMarkup(start)+'</div>';
@@ -255,17 +256,19 @@
     }
     outputs(){
       const e=C.estimate(records,state,this.config),f=C.finance(e,state.deposit,state.term);
+      const pending=!!availability.pending;
+      this.root.toggleAttribute('data-availability-loading',pending);
       if(f&&state.deposit!==f.deposit){state.deposit=f.deposit;save();}
       const set=(key,value)=>{const el=this.root.querySelector('[data-output="'+key+'"]');if(el&&el.textContent!==value)el.textContent=value;};
       set('live',priceText(e));this.animateLive(priceText(e));set('total',priceText(e));set('duration',C.duration(records,e,today()));set('duration-summary',C.duration(records,e,today()));set('deposit',currency(f?.deposit||0));set('term',state.term+' months');
       const facts=this.root.querySelector('[data-output="finance"]');if(facts&&f)patch(facts,'<div class="tdbc-summary-monthly"><span class="text-size-tiny">0% over '+state.term+' months</span><strong class="heading-style-h4">'+esc(range(f.low.monthly,f.high.monthly))+'<small class="text-size-small"> / month</small></strong></div><dl class="tdbc-finance-facts text-size-small">'+[['Total estimate',range(e.min,e.max)],['Upfront, including assessment',currency(f.deposit)],['Amount financed',range(f.low.balance,f.high.balance)],['Interest charges',currency(0)],['Final monthly payment',range(f.low.final,f.high.final)]].map(([a,b])=>'<div><dt>'+esc(a)+'</dt><dd>'+esc(b)+'</dd></div>').join('')+'</dl>');
       const t=C.completionTimeline(records,e,planningStart(),state.delay),target=this.root.querySelector('[data-date="target"]'),slider=this.root.querySelector('[data-range="completion"]');
-      if(target&&t.reliable){target.value=t.finishMin;target.min=t.earliestCompletion;target.max=t.latestCompletion;}
-      if(slider){slider.value=String(t.offset);slider.setAttribute('aria-valuetext',dateText(t.finishMin));}
-      set('target-display',dateText(t.finishMin));
-      set('completion-range',t.finishMin===t.finishMax?'Earliest estimated finish for your selected plan.':'Earliest estimated finish. Your plan may take until '+dateText(t.finishMax)+'.');
+      if(target){target.disabled=pending;target.setAttribute('aria-busy',String(pending));if(pending)target.value='';else if(t.reliable){target.value=t.finishMin;target.min=t.earliestCompletion;target.max=t.latestCompletion;}}
+      if(slider){slider.disabled=pending;slider.value=String(t.offset);slider.setAttribute('aria-valuetext',pending?TIMELINE_LOADING:dateText(t.finishMin));}
+      set('target-display',pending?TIMELINE_LOADING:dateText(t.finishMin));
+      set('completion-range',pending?'Checking your assessment date before updating the estimates.':t.finishMin===t.finishMax?'Earliest estimated finish for your selected plan.':'Earliest estimated finish. Your plan may take until '+dateText(t.finishMax)+'.');
       this.root.querySelectorAll('[data-output=availability]').forEach(node=>patch(node,availabilityMarkup(node.dataset.assessmentStart)));
-      const tOut=this.root.querySelector('[data-output="timeline"]');if(tOut){patch(tOut,this.timelineOutput(e));this.queueTimelineFocus();}
+      const tOut=this.root.querySelector('[data-output="timeline"]');if(tOut){tOut.setAttribute('aria-busy',String(pending));patch(tOut,this.timelineOutput(e));this.queueTimelineFocus();}
     }
     timelineOutput(e){
       const t=C.completionTimeline(records,e,planningStart(),state.delay);
@@ -274,7 +277,7 @@
       for(const stage of stages){
         const on=this.stageOpen.has(stage.key),lines=e.lines.filter(l=>stage.costKeys.includes(l.key)),panelId=this.id+'-stage-'+stage.key;
         const detail='<div id="'+panelId+'" class="tdbc-stage-detail"><p>'+esc(stage.description)+'</p>'+lines.map(l=>'<div class="tdbc-stage-cost"><span>'+esc(l.label+lineQuantity(l))+(Number.isInteger(l.tier)&&l.record?.tierLabels?.[l.tier]?'<small class="text-size-tiny">'+esc(l.record.tierLabels[l.tier])+'</small>':'')+'</span><strong>'+(l.included?'Included':l.min===null?'To confirm':esc(range(l.min,l.max)))+'</strong></div>').join('')+(stage.sharedFee?'<p class="tdbc-help text-size-tiny">Your total treatment fee, counted once in the estimate; preparation and fitting are included.</p>':!lines.length?'<p class="tdbc-help text-size-tiny">Planning allowance · no additional treatment fee.</p>':'')+'</div>';
-        html+='<li class="tdbc-timeline-row '+(stage.key===this.activeStage?'is-current':'')+'" data-stage="'+stage.key+'" data-node="stage-'+stage.key+'"><span class="tdbc-dot"></span><div class="tdbc-stage"><button type="button" class="tdbc-stage-toggle" data-action="stage" data-key="'+stage.key+'" aria-expanded="'+on+'" aria-controls="'+panelId+'"><span><small class="text-size-tiny">'+esc(dateRange(stage.startMin,stage.appointment?stage.startMax:stage.endMax))+'</small><strong>'+esc(stage.label)+'</strong></span>'+chevron+'</button>'+expand('stage-'+stage.key,on,detail)+'</div></li>';
+        html+='<li class="tdbc-timeline-row '+(stage.key===this.activeStage?'is-current':'')+'" data-stage="'+stage.key+'" data-node="stage-'+stage.key+'"><span class="tdbc-dot"></span><div class="tdbc-stage"><button type="button" class="tdbc-stage-toggle" data-action="stage" data-key="'+stage.key+'" aria-expanded="'+on+'" aria-controls="'+panelId+'"><span><small class="text-size-tiny">'+esc(availability.pending?TIMELINE_LOADING:dateRange(stage.startMin,stage.appointment?stage.startMax:stage.endMax))+'</small><strong>'+esc(stage.label)+'</strong></span>'+chevron+'</button>'+expand('stage-'+stage.key,on,detail)+'</div></li>';
       }
       return html+'</ol>'+t.plan.notes.map(n=>'<p class="tdbc-help text-size-tiny">'+esc(n)+'</p>').join('');
     }
@@ -436,4 +439,3 @@
   window.TDBCalculator=Object.freeze({version:C.VERSION,open,close,preload:getRecords,refresh:()=>{records=null;for(const v of views)v.init();}});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
-

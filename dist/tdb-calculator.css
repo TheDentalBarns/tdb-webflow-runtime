@@ -1,4 +1,4 @@
-/* TDB Treatment Calculator v1.5.2. Site tokens, typography and existing control classes. */
+/* TDB Treatment Calculator v1.5.3. Site tokens, typography and existing control classes. */
 [data-tdb-calculator=inline]{scroll-margin-top:0;background:var(--base-color-brand--orange-1)}
 .tdb-calc,.tdbc-dialog{--calc-cream:var(--base-color-brand--orange-1);--calc-dark-cream:var(--base-color-brand--orange-2);--calc-ink:var(--base-color-brand--black);--calc-line:var(--base-color-brand--orange-3);--calc-muted:var(--base-color-neutral--neutral);font-family:var(--font-family--primary);color:var(--calc-ink);box-sizing:border-box}
 .tdb-calc *,.tdbc-dialog *{box-sizing:border-box}
@@ -22,6 +22,9 @@
 .tdb-calc [data-availability-details] strong{flex:1;min-width:0;margin:0;overflow-wrap:anywhere}
 .tdb-calc .tdbc-target-field,.tdb-calc [data-output=assessment-date]{font-size:2rem;line-height:1.2;font-weight:300;letter-spacing:.15rem;text-transform:uppercase}
 .tdb-calc [data-output=assessment-date]{text-transform:none}
+.tdb-calc[data-availability-loading] [data-output=assessment-date],.tdb-calc[data-availability-loading] [data-output=target-display]{font-size:1rem;line-height:1.5;font-weight:400;letter-spacing:normal;text-transform:none;color:var(--calc-muted);min-height:2.4rem;display:flex;align-items:center}
+.tdb-calc[data-availability-loading] .tdbc-target-field:focus-within output{visibility:visible}
+.tdb-calc[data-availability-loading] [data-range=completion]{cursor:wait}
 .tdb-calc [data-action=availability]{display:flex;align-items:center;justify-content:center;width:3rem;height:3rem;flex:0 0 3rem;padding:0;background:transparent;border:1px solid currentColor;border-radius:50%;color:var(--calc-ink);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color 300ms ease}
 .tdb-calc [data-action=availability]:disabled{cursor:wait}
 .tdb-calc [data-action=availability]:active,.tdb-calc [data-action=availability][aria-busy=true]{background-color:color-mix(in srgb,var(--base-color-brand--orange-3,#d6cab4) 30%,transparent)}
