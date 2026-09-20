@@ -255,17 +255,21 @@ test('inline and drawer use the first assessment slot, deduplicate requests and 
   x.choose('[data-category=cosmetic]');x.choose('[data-select=whitening]');
   assert.match(x.root.querySelector('[data-output=availability]').textContent,/2 Oct 2099 · 14:55/);
   assert.equal(x.root.querySelector('[data-availability-status]').dataset.live,'true');
+  assert.equal(x.root.querySelectorAll('[data-output=availability]').length,1);
+  assert.ok(x.root.querySelector('.tdbc-target-card').compareDocumentPosition(x.root.querySelector('[data-output=availability]'))&4);
+  assert.match(x.root.querySelector('[data-output=availability]').textContent,/Start with your Signature Assessment ✦ as soon as/);
+  assert.ok(x.root.querySelector('[data-action=availability] svg'));
   assert.equal(x.root.querySelector('[data-date=target]').value,'2099-11-20');
   assert.match(x.root.querySelector('[data-output=assessment-date]').textContent,/2 Oct 2099 · 14:55/);
   const slider=x.root.querySelector('[data-range=completion]');slider.value='21';slider.dispatchEvent(new x.w.Event('input',{bubbles:true}));
   assert.equal(x.root.querySelector('[data-date=target]').value,'2099-12-11');
-  assert.match(x.root.querySelector('[data-output=timeline]').textContent,/Your illustrative assessment date/);
+  assert.match(x.root.querySelector('[data-output=timeline]').textContent,/Illustrative assessment date/);
   assert.doesNotMatch(x.root.querySelector('[data-output=assessment-date]').textContent,/14:55/);
   await x.w.TDBCalculator.open(x.d.getElementById('open'));
-  assert.equal(calls,1);assert.match(x.d.querySelector('dialog [data-output=availability]').textContent,/2 Oct 2099/);
+  assert.equal(calls,1);assert.match(x.d.querySelector('dialog [data-output=availability]').textContent,/23 Oct 2099/);
   next='October 5, 2099';x.choose('[data-action=availability]');await settle();
   assert.equal(calls,2);assert.equal(x.root.querySelector('[data-range=completion]'),slider);assert.equal(slider.value,'21');
-  assert.match(x.d.querySelector('dialog [data-output=availability]').textContent,/5 Oct 2099/);
+  assert.match(x.d.querySelector('dialog [data-output=availability]').textContent,/26 Oct 2099/);
   assert.equal(x.root.querySelector('[data-date=target]').value,'2099-12-14');
  }finally{x.dom.window.close();}
 });
@@ -292,13 +296,30 @@ test('missing, past and malformed feed dates remain illustrative; Smile Design h
   const x=await setup({fetch:async()=>response});try{
    x.choose('[data-category=cosmetic]');x.choose('[data-select=whitening]');
    assert.equal(x.root.querySelector('[data-availability-status]').dataset.live,'false');
-   assert.match(x.root.querySelector('[data-output=timeline]').textContent,/Illustrative assessment date/);
-   assert.match(x.root.querySelector('[data-output=availability]').textContent,/Dates below are illustrative/);
+   assert.match(x.root.querySelector('[data-output=timeline]').textContent,/No live appointment date available|Unable to check live availability/);
+   assert.match(x.root.querySelector('[data-output=availability]').textContent,/Dates are illustrative/);
   }finally{x.dom.window.close();}
  }
  const x=await setup({fetch:async()=>availabilityFeed()});try{
   x.choose('[data-category=cosmetic]');x.choose('[data-select=whitening]');x.choose('[data-action=start-assessment]');
   assert.match(x.root.querySelector('[data-output=availability]').textContent,/2 Oct 2099/);
   x.choose('[data-assessment=design]');assert.equal(x.root.querySelector('[data-output=availability]'),null);
+ }finally{x.dom.window.close();}
+});
+
+test('assessment refresh retains busy feedback until two complete turns and the new date is ready',async()=>{
+ let date='October 2, 2099';const x=await setup({fetch:async()=>availabilityFeed(date)});
+ try{
+  x.choose('[data-category=cosmetic]');x.choose('[data-select=whitening]');
+  let finish,turns,cancelled=false;
+  const icon=x.root.querySelector('[data-action=availability] svg');
+  icon.animate=()=>({currentTime:100,effect:{updateTiming(t){turns=t.iterations;}},finished:new Promise(r=>{finish=r;}),cancel(){cancelled=true;}});
+  date='October 5, 2099';x.choose('[data-action=availability]');await settle();
+  const button=x.root.querySelector('[data-action=availability]');
+  assert.equal(button.getAttribute('aria-busy'),'true');assert.equal(button.disabled,true);
+  assert.equal(turns,2);assert.match(x.root.querySelector('[data-output=assessment-date]').textContent,/2 Oct 2099/);
+  finish();await settle();
+  assert.equal(button.getAttribute('aria-busy'),null);assert.equal(button.disabled,false);assert.equal(cancelled,true);
+  assert.match(x.root.querySelector('[data-output=assessment-date]').textContent,/5 Oct 2099/);
  }finally{x.dom.window.close();}
 });

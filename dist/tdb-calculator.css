@@ -16,6 +16,14 @@
 .tdb-calc [data-availability-status][data-live=true]::before,.tdb-calc [data-availability-status][data-live=true]::after{background:var(--base-color-brand--orange-3,#d6cab4)}
 .tdb-calc [data-availability-status][data-live=true]::after{animation:calculator-live-pulse 2.8s ease-out infinite}
 @keyframes calculator-live-pulse{0%{transform:scale(1);opacity:0}12%{opacity:.7}70%,100%{transform:scale(2.4);opacity:0}}
+/* Reuse the assessment banner's circular refresh control and held feedback. */
+.tdb-calc [data-availability-details]{display:flex;align-items:center;gap:1rem;margin:.75rem 0}
+.tdb-calc [data-availability-details]>div{display:flex;align-items:center;flex-wrap:wrap;gap:.5rem 1rem;flex:1;min-width:0}
+.tdb-calc [data-availability-details] strong{margin:0}
+.tdb-calc [data-action=availability]{display:flex;align-items:center;justify-content:center;width:3rem;height:3rem;flex:0 0 3rem;padding:0;background:transparent;border:1px solid currentColor;border-radius:50%;color:var(--base-color-brand--orange-3,#d6cab4);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color 300ms ease}
+.tdb-calc [data-action=availability]:disabled{cursor:wait}
+.tdb-calc [data-action=availability]:active,.tdb-calc [data-action=availability][aria-busy=true]{background-color:color-mix(in srgb,var(--base-color-brand--orange-3,#d6cab4) 30%,transparent)}
+.tdb-calc [data-action=availability] svg{display:block;flex-shrink:0;transform-box:view-box;transform-origin:50% 50%;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
 .tdb-calc .form_checkbox{position:relative;display:flex;align-items:center;gap:.875rem;padding:0;margin:0;min-width:0;cursor:pointer;font-weight:400}
 .tdb-calc .form_checkbox input[type=checkbox],.tdb-calc .form_checkbox input[type=radio]{position:absolute;opacity:0;width:1px;height:1px;margin:0}
 .tdb-calc .form_checkbox-icon{position:relative;flex-shrink:0;margin:0;float:none}

@@ -282,12 +282,14 @@
   const availabilityLive=()=>!!futureSlot()&&!availability.error&&!availability.pending&&Date.now()-availability.checked<AVAILABILITY_TTL;
   const planningStart=()=>futureSlot()?.day||today();
   const slotText=slot=>dateText(slot.day)+' · '+slot.time;
-  function availabilityMarkup(){
-    const slot=futureSlot(),live=availabilityLive();
-    const status=availability.pending?'Checking live availability…':live?'Live availability':availability.error?'Unable to check live availability':slot?'Last checked over five minutes ago':'No live appointment date available';
-    return '<span>First available Signature Assessment ✦</span><strong>'+(slot?esc(slotText(slot)):availability.pending?'Checking…':'Please enquire')+'</strong><p class="tdbc-help text-size-tiny" aria-live="polite"><span data-availability-status data-live="'+live+'">'+status+'</span></p><button type="button" class="tdbc-text-button text-size-tiny" data-action="availability" '+(availability.pending?'disabled aria-busy="true"':'')+'>Refresh availability</button><p class="tdbc-help text-size-tiny">'+(slot?'Availability can change; this does not reserve an appointment.':'Dates below are illustrative until appointment availability is confirmed.')+'</p>';
+  const refreshIcon='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path vector-effect="non-scaling-stroke" d="M17.656854 17.656854A8 8 0 1 1 17.656854 6.343146L19.071068 7.757359M15.571068 7.757359h3.5v-3.5"/></svg>';
+  function availabilityMarkup(start=''){
+    const slot=futureSlot(),later=!!slot&&!!start&&start!==slot.day,live=availabilityLive()&&!later;
+    const status=availability.pending?'Checking live availability…':later?'Illustrative assessment date':live?'Live availability':availability.error?'Unable to check live availability':slot?'Last checked over five minutes ago':'No live appointment date available';
+    const date=later?dateText(start):slot?slotText(slot):availability.pending?'Checking…':'Please enquire';
+    return '<span>Start with your Signature Assessment ✦ '+(later?'on':'as soon as')+'</span><div data-availability-details><div><strong data-output="assessment-date">'+esc(date)+'*</strong><span class="text-size-tiny" data-availability-status data-live="'+live+'" aria-live="polite">'+status+'</span></div><button type="button" data-action="availability" aria-label="Refresh live availability" '+(availability.pending?'disabled aria-busy="true"':'')+'>'+refreshIcon+'</button></div><p class="tdbc-help text-size-tiny">*'+(slot?'Subject to availability; this does not reserve an appointment.':'Dates are illustrative until appointment availability is confirmed.')+(start?' A two-week planning allowance follows your assessment.':'')+'</p>';
   }
-  const availabilityBlock=()=>'<div class="tdbc-date-result text-size-small" data-output="availability">'+availabilityMarkup()+'</div>';
+  const availabilityBlock=(start='')=>'<div class="tdbc-date-result text-size-small" data-output="availability" data-assessment-start="'+esc(start)+'">'+availabilityMarkup(start)+'</div>';
   function updateAvailability(){
     clearTimeout(availability.timer);
     const slot=futureSlot(),freshUntil=availability.checked+AVAILABILITY_TTL;
@@ -297,7 +299,8 @@
   function getAvailability(force=false){
     if(availability.pending)return availability.pending;
     if(!force&&availability.checked&&!availability.error&&Date.now()-availability.checked<AVAILABILITY_TTL&&(!availability.slot||futureSlot()))return Promise.resolve();
-    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),4000);
+    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),4000),spins=[];
+    async function finishTurns(){await Promise.all(spins.map(async spin=>{try{spin.effect.updateTiming({iterations:Math.max(2,Math.ceil((spin.currentTime||0)/700))});await spin.finished;}catch(_){}}));}
     availability.pending=Promise.resolve().then(async()=>{
       const preview=location.hostname.endsWith('.webflow.io')&&new URLSearchParams(location.search).has('banner-preview');
       const slug=preview?'preview':'active';
@@ -307,13 +310,17 @@
       const field=name=>doc.querySelector('[data-banner-field="'+name+'"]')?.textContent.trim()||'';
       if(field('slug')!==slug)throw Error('Invalid availability feed');
       const slot=C.assessmentSlot(field('next-signature-slot'),field('next-signature-uk-time'));
+      await finishTurns();
       availability.slot=slot?.at>Date.now()?slot:null;
       availability.checked=Date.now();availability.error=false;
-    }).catch(()=>{availability.error=true;}).finally(()=>{
+    }).catch(async()=>{await finishTurns();availability.error=true;}).finally(()=>{
       clearTimeout(timeout);availability.pending=null;
       updateAvailability();
+      spins.forEach(spin=>spin.cancel());
     });
-    updateAvailability();return availability.pending;
+    updateAvailability();
+    if(force)document.querySelectorAll('.tdb-calc [data-action=availability] svg').forEach(icon=>{if(typeof icon.animate==='function')spins.push(icon.animate([{transform:'rotate(0deg)'},{transform:'rotate(360deg)'}],{duration:700,easing:'linear',iterations:Infinity}));});
+    return availability.pending;
   }
   try{const stored=JSON.parse(sessionStorage.getItem(STORAGE)||'null');if(stored?.version===1&&Date.now()-stored.at<TTL)state=C.normaliseState(stored.state);else sessionStorage.removeItem(STORAGE);}catch(_){/* Storage is optional. */}
   function save(){try{sessionStorage.setItem(STORAGE,JSON.stringify({version:1,at:Date.now(),state}));}catch(_){}}
@@ -502,7 +509,7 @@
       const t=C.completionTimeline(records,e,planningStart(),state.delay),id=this.id;
       const wedding='<div class="tdbc-bridal-tip"><button type="button" class="tdbc-disclosure tdbc-bridal-toggle" data-action="bridal" aria-expanded="'+this.bridalOpen+'" aria-controls="'+id+'-bridal"><span><span class="tdbc-diamond" aria-hidden="true">◇</span> Planning a wedding?</span>'+chevron+'</button>'+expand('bridal',this.bridalOpen,'<p id="'+id+'-bridal">Aim to finish your smile treatment before your makeup trials where possible. The shade of your teeth can influence the balance of your makeup, so it helps to see the finished look together.</p>')+'</div>';
       const warning='<div id="'+id+'-deadline" class="tdbc-timing-warning text-size-small"><p>Your selected plan needs a little more time. We’re no strangers to deadlines: being based at a wedding venue, we see plenty of brides and grooms and have become experienced at exploring what may be possible for the day that matters. Let’s talk about the date, your priorities and the options for getting you closer to your smile in time.</p>'+wedding+'</div>';
-      return '<section class="tdbc-step" data-node="timeline">'+step('03','A date to look forward to')+availabilityBlock()+'<div class="tdbc-target-card"><label class="text-style-tagline-restored" for="'+id+'-target">Target completion date*</label><div class="tdbc-target-field heading-style-h4"><output data-output="target-display" aria-hidden="true">'+esc(dateText(t.finishMin))+'</output><input class="form_input tdbc-target-date" id="'+id+'-target" type="date" data-control="target" data-date="target" value="'+t.finishMin+'" min="'+t.earliestCompletion+'" max="'+t.latestCompletion+'"></div><div class="tdbc-completion-note text-size-small"><p data-output="completion-range"></p><p class="tdbc-completion-reserve" aria-hidden="true">Earliest estimated finish. Your plan may take until 28 September 2099.</p></div><div class="tdbc-date-controls"><label class="tdbc-sr" for="'+id+'-date-slider">Move your target completion later</label><input id="'+id+'-date-slider" type="range" data-control="date-slider" data-range="completion" min="0" max="730" step="1" value="'+t.offset+'" aria-valuetext="'+esc(dateText(t.finishMin))+'"><div class="tdbc-range-labels text-size-tiny"><span>As soon as possible</span><span>Later</span></div></div><div class="tdbc-deadline-dock">'+'<button type="button" class="tdbc-disclosure tdbc-sooner-toggle text-size-small" data-action="sooner" aria-expanded="'+this.timingWarning+'" aria-controls="'+id+'-deadline"><span>Need it sooner?</span>'+chevron+'</button>'+expand('deadline',this.timingWarning,warning)+'</div><p class="tdbc-help text-size-tiny">*A little direction while you explore, rather than a promise of a date. Your teeth, healing, refinements and appointment availability all play a part. We’ll talk through what’s realistic together at your assessment.</p></div><div data-output="timeline"></div></section>';
+      return '<section class="tdbc-step" data-node="timeline">'+step('03','A date to look forward to')+'<div class="tdbc-target-card"><label class="text-style-tagline-restored" for="'+id+'-target">Target completion date*</label><div class="tdbc-target-field heading-style-h4"><output data-output="target-display" aria-hidden="true">'+esc(dateText(t.finishMin))+'</output><input class="form_input tdbc-target-date" id="'+id+'-target" type="date" data-control="target" data-date="target" value="'+t.finishMin+'" min="'+t.earliestCompletion+'" max="'+t.latestCompletion+'"></div><div class="tdbc-completion-note text-size-small"><p data-output="completion-range"></p><p class="tdbc-completion-reserve" aria-hidden="true">Earliest estimated finish. Your plan may take until 28 September 2099.</p></div><div class="tdbc-date-controls"><label class="tdbc-sr" for="'+id+'-date-slider">Move your target completion later</label><input id="'+id+'-date-slider" type="range" data-control="date-slider" data-range="completion" min="0" max="730" step="1" value="'+t.offset+'" aria-valuetext="'+esc(dateText(t.finishMin))+'"><div class="tdbc-range-labels text-size-tiny"><span>As soon as possible</span><span>Later</span></div></div><div class="tdbc-deadline-dock">'+'<button type="button" class="tdbc-disclosure tdbc-sooner-toggle text-size-small" data-action="sooner" aria-expanded="'+this.timingWarning+'" aria-controls="'+id+'-deadline"><span>Need it sooner?</span>'+chevron+'</button>'+expand('deadline',this.timingWarning,warning)+'</div><p class="tdbc-help text-size-tiny">*A little direction while you explore, rather than a promise of a date. Your teeth, healing, refinements and appointment availability all play a part. We’ll talk through what’s realistic together at your assessment.</p></div><div data-output="timeline"></div></section>';
     }
     outputs(){
       const e=C.estimate(records,state,this.config),f=C.finance(e,state.deposit,state.term);
@@ -515,13 +522,13 @@
       if(slider){slider.value=String(t.offset);slider.setAttribute('aria-valuetext',dateText(t.finishMin));}
       set('target-display',dateText(t.finishMin));
       set('completion-range',t.finishMin===t.finishMax?'Earliest estimated finish for your selected plan.':'Earliest estimated finish. Your plan may take until '+dateText(t.finishMax)+'.');
-      this.root.querySelectorAll('[data-output=availability]').forEach(node=>patch(node,availabilityMarkup()));
+      this.root.querySelectorAll('[data-output=availability]').forEach(node=>patch(node,availabilityMarkup(node.dataset.assessmentStart)));
       const tOut=this.root.querySelector('[data-output="timeline"]');if(tOut){patch(tOut,this.timelineOutput(e));this.queueTimelineFocus();}
     }
     timelineOutput(e){
       const t=C.completionTimeline(records,e,planningStart(),state.delay);
       const stages=[{key:'assessment',label:e.assessmentLine?.label||'Signature Assessment ✦',startMin:t.start,startMax:t.start,endMax:t.start,appointment:true,costKeys:['assessment'],description:'Smile Design, examination and your treatment plan.'},{key:'prepare',label:'Prepare for treatment',startMin:t.start,endMax:C.iso(C.addDays(C.parseDate(t.start),14)),costKeys:[],description:'Plan your appointments. Arrange finance if needed · allow 14 days for cooling-off.'},...t.stages];
-      let html='<div class="tdbc-date-result text-size-small"><span>'+(!futureSlot()?'Illustrative assessment date':state.delay?'Your illustrative assessment date':'Start with your assessment')+'</span><strong data-output="assessment-date">'+esc(dateText(t.start)+(futureSlot()?.day===t.start?' · '+futureSlot().time:''))+'</strong><p class="tdbc-help text-size-tiny">A two-week planning allowance before your first treatment appointment.</p></div><ol class="tdbc-timeline text-size-small">';
+      let html=availabilityBlock(t.start)+'<ol class="tdbc-timeline text-size-small">';
       for(const stage of stages){
         const on=this.stageOpen.has(stage.key),lines=e.lines.filter(l=>stage.costKeys.includes(l.key)),panelId=this.id+'-stage-'+stage.key;
         const detail='<div id="'+panelId+'" class="tdbc-stage-detail"><p>'+esc(stage.description)+'</p>'+lines.map(l=>'<div class="tdbc-stage-cost"><span>'+esc(l.label+lineQuantity(l))+(Number.isInteger(l.tier)&&l.record?.tierLabels?.[l.tier]?'<small class="text-size-tiny">'+esc(l.record.tierLabels[l.tier])+'</small>':'')+'</span><strong>'+(l.included?'Included':l.min===null?'To confirm':esc(range(l.min,l.max)))+'</strong></div>').join('')+(stage.sharedFee?'<p class="tdbc-help text-size-tiny">Your total treatment fee, counted once in the estimate; preparation and fitting are included.</p>':!lines.length?'<p class="tdbc-help text-size-tiny">Planning allowance · no additional treatment fee.</p>':'')+'</div>';
