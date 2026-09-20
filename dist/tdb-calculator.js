@@ -257,7 +257,8 @@
   return Object.freeze({VERSION,IDS,OPTIONS,parsePrice,recordFromFields,newState,normaliseState,allowedOptions,estimate,payment,finance,parseDate,assessmentSlot,iso,addDays,addMonths,plan,schedule,suggestedStart,timeline,duration,completionTimeline});
 });
 
-/* TDB Treatment Calculator v1.5.0 — shared inline/drawer controller. */
+
+/* TDB Treatment Calculator v1.5.1 — shared inline/drawer controller. */
 (function () {
   'use strict';
   if(window.TDBCalculator)return;
@@ -287,7 +288,7 @@
     const slot=futureSlot(),later=!!slot&&!!start&&start!==slot.day,live=availabilityLive()&&!later;
     const status=availability.pending?'Checking live availability…':later?'Illustrative assessment date':live?'Live availability':availability.error?'Unable to check live availability':slot?'Last checked over five minutes ago':'No live appointment date available';
     const date=later?dateText(start):slot?slotText(slot):availability.pending?'Checking…':'Please enquire';
-    return '<span>Start with your Signature Assessment ✦ '+(later?'on':'as soon as')+'</span><div data-availability-details><div><strong data-output="assessment-date">'+esc(date)+'*</strong><span class="text-size-tiny" data-availability-status data-live="'+live+'" aria-live="polite">'+status+'</span></div><button type="button" data-action="availability" aria-label="Refresh live availability" '+(availability.pending?'disabled aria-busy="true"':'')+'>'+refreshIcon+'</button></div><p class="tdbc-help text-size-tiny">*'+(slot?'Subject to availability; this does not reserve an appointment.':'Dates are illustrative until appointment availability is confirmed.')+(start?' A two-week planning allowance follows your assessment.':'')+'</p>';
+    return '<span class="text-style-tagline-restored">Start with your Signature Assessment ✦ '+(later?'on':'as soon as')+'</span><div data-availability-details><div class="tdbc-availability-date-row"><strong class="heading-style-h4" data-output="assessment-date">'+esc(date)+'*</strong><button type="button" data-action="availability" aria-label="Refresh live availability" '+(availability.pending?'disabled aria-busy="true"':'')+'>'+refreshIcon+'</button></div><span class="text-size-tiny" data-availability-status data-live="'+live+'" aria-live="polite">'+status+'</span></div><p class="tdbc-help text-size-tiny">*'+(slot?'Subject to availability; this does not reserve an appointment.':'Dates are illustrative until appointment availability is confirmed.')+(start?' A two-week planning allowance follows your assessment.':'')+'</p>';
   }
   const availabilityBlock=(start='')=>'<div class="tdbc-date-result text-size-small" data-output="availability" data-assessment-start="'+esc(start)+'">'+availabilityMarkup(start)+'</div>';
   function updateAvailability(){
@@ -694,3 +695,4 @@
   window.TDBCalculator=Object.freeze({version:C.VERSION,open,close,preload:getRecords,refresh:()=>{records=null;for(const v of views)v.init();}});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
+

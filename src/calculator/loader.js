@@ -1,4 +1,4 @@
-/* TDB Treatment Calculator loader v1.5.0. URLs are immutable release pins. */
+/* TDB Treatment Calculator loader v1.5.1. URLs are immutable release pins. */
 (function(){
  'use strict';if(window.__tdbCalculatorLoader)return;window.__tdbCalculatorLoader=true;
  const base='__TDB_CALCULATOR_ASSET_BASE__';
@@ -23,3 +23,4 @@
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
+
