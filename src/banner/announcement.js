@@ -1,4 +1,4 @@
-/* TDB Announcement 1.6.0. Shares existing shell/consent/drawer controllers.
+/* TDB Announcement 1.6.1. Shares existing shell/consent/drawer controllers.
  * Uses published CMS text; shares consent, shell motion and drawer routing.
  */
 (() => {
@@ -49,6 +49,12 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
 .tdb-announcement-panel{display:grid;flex:0 0 100%;min-width:0;grid-template-rows:20px 36px;gap:4px}
 .tdb-announcement-title{display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:400;line-height:20px;opacity:.7}
 .tdb-announcement-lower{display:flex;align-items:flex-start;justify-content:center;min-width:0;font-size:18px;line-height:24px;font-weight:400;font-variant-numeric:tabular-nums}
+.tdb-announcement-slot{position:relative;justify-self:center}
+.tdb-announcement-slot[data-live="true"]::before,.tdb-announcement-slot[data-live="true"]::after{content:"";position:absolute;left:-16px;top:calc(.5lh - 3px);width:6px;height:6px;border-radius:50%;background:var(--base-color-brand--orange-3,#d6cab4);pointer-events:none}
+.tdb-announcement-slot[data-live="true"]::before{opacity:.8}
+.tdb-announcement-slot[data-live="true"]::after{opacity:0;animation:tdb-announcement-live 2.8s ease-out infinite;animation-play-state:paused}
+.tdb-announcement-slot[data-pulse="true"]::after{animation-play-state:running}
+@keyframes tdb-announcement-live{0%{transform:scale(1);opacity:.35}70%,100%{transform:scale(2.4);opacity:0}}
 .tdb-announcement-circle{position:relative;display:flex;align-items:center;justify-content:center;width:3rem;height:3rem;flex:0 0 3rem;border-radius:50%;box-sizing:border-box;color:var(--base-color-brand--orange-3,#d6cab4)}
 .tdb-announcement-circle .tdb-announcement-dial{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1;transform:rotate(-90deg)}
 .tdb-announcement-dial circle:first-child{opacity:.3}
@@ -64,7 +70,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
 .tdb-announcement-unit small{font-size:.5rem;line-height:10px;font-weight:400;opacity:.7}
 @keyframes tdb-announcement-number{from{transform:translateY(-.16em);opacity:.35}to{transform:translateY(0);opacity:1}}
 @media(max-width:640px){.tdb-announcement{gap:8px}.tdb-announcement-panel{grid-template-rows:32px 32px;gap:3px}.tdb-announcement-title{font-size:12px;line-height:16px}.tdb-announcement-lower{font-size:14px;line-height:22px}.tdb-announcement-countdown{gap:5px}.tdb-announcement-value{font-size:13px;line-height:18px;padding:1px 3px}.tdb-announcement-unit small{line-height:8px}}
-@media(prefers-reduced-motion:reduce){.tdb-announcement-digit.is-changing{animation:none}.tdb-announcement-track{transition:none!important}}
+@media(prefers-reduced-motion:reduce){.tdb-announcement-digit.is-changing,.tdb-announcement-slot[data-live="true"]::after{animation:none}.tdb-announcement-track{transition:none!important}}
 `;
   function ukDate(date, clock) {
     // Webflow publishes date text without its time. Keep an explicit, editable UK clock field.
@@ -181,6 +187,8 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     setText(smileTitle, (preview ? 'Preview · ' : '') + (remaining ? config.title : config.bookedTitle));
     setText(signatureTitle, (preview ? 'Preview · ' : '') + config.signature);
     setText(smileAction, config.rest); setText(signatureAction, slotText());
+    attribute(signatureAction, 'data-live', dataState === 'ready' && time(config.nextSlot) > Date.now());
+    attribute(signatureAction, 'data-pulse', visible && signatureState && !moving);
     if (counters.hidden !== !remaining) counters.hidden = !remaining;
     if (smileAction.hidden !== Boolean(remaining)) smileAction.hidden = Boolean(remaining);
     const label = signatureState ? signatureTitle.textContent + '. ' + signatureAction.textContent : smileTitle.textContent + '. ' + (remaining ? slotText(config.deadline) : config.rest);
@@ -310,7 +318,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     if (!row && !dataRequested && typeof fetch === 'function') { loadSettings(); return; }
     started = true;
     events.forEach(name => window.removeEventListener(name, consentReady));
-    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.6.0'; style.textContent = CSS;
+    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.6.1'; style.textContent = CSS;
     document.head.append(style);
     button = element('button', 'tdb-announcement padding-global'); button.type = 'button';
     button.setAttribute('aria-haspopup', 'dialog'); button.setAttribute('aria-controls', 'tdb-vip-drawer');
@@ -319,7 +327,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     signaturePanel = element('span', 'tdb-announcement-panel'); signaturePanel.dataset.message = 'signature';
     smileTitle = element('span', 'tdb-announcement-title'); signatureTitle = element('span', 'tdb-announcement-title');
     const smileLower = element('span', 'tdb-announcement-lower');
-    smileAction = element('span', 'tdb-announcement-action'); signatureAction = element('span', 'tdb-announcement-lower');
+    smileAction = element('span', 'tdb-announcement-action'); signatureAction = element('span', 'tdb-announcement-lower tdb-announcement-slot');
     counters = element('span', 'tdb-announcement-countdown'); counters.setAttribute('aria-hidden', 'true');
     ['Days', 'Hours', 'Minutes', 'Seconds'].forEach(label => {
       const unit = element('span', 'tdb-announcement-unit'), value = element('span', 'tdb-announcement-value');
@@ -372,13 +380,13 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     start();
   }
   window.TDBAnnouncement = Object.freeze({
-    version: '1.6.0',
+    version: '1.6.1',
     mount(target) {
       if (shell) return;
       shell = target; shell.hidden = true; active = decisionExists();
       if (active) start(); else events.forEach(name => window.addEventListener(name, consentReady));
     },
     configure(next) { overrides = { ...overrides, ...next }; config = { ...config, ...next }; labels.clear(); mode = last = ''; render(); },
-    status: () => ({ version: '1.6.0', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
+    status: () => ({ version: '1.6.1', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
   });
 })();
