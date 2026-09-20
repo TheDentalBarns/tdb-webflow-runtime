@@ -87,6 +87,17 @@ function setup({path='/',embedded=true,saved=true,mobile=false,reduced=false,ani
  }
  a=setup();a.tick(550);a.w.HTMLElement.prototype.animate=()=>{throw Error('animation unavailable')};
  a.d.querySelector('.tdb-announcement').dispatchEvent(new a.w.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));a.tick(500);assert.equal(a.w.TDBAnnouncement.status().mode,'signature','CSS fallback handles animation setup errors');a.close();
+ // A fresh tap must work even while the preceding swipe is still settling.
+ for(const [delay,animationDelay] of [[100,400],[450,400],[500,900]]){
+   a=setup({mobile:true,animationDelay});a.tick(550);
+   const b=a.d.querySelector('.tdb-announcement'),track=a.d.querySelector('.tdb-announcement-track');
+   track.getBoundingClientRect=()=>({width:300});let opened=0;
+   a.d.querySelector('.tdb-vip-drawer-handle').addEventListener('click',()=>opened++);
+   const pointer=(type,x)=>{const e=new a.w.MouseEvent(type,{bubbles:true,clientX:x,clientY:30,button:0});Object.defineProperties(e,{pointerId:{value:1},isPrimary:{value:true}});b.dispatchEvent(e)};
+   pointer('pointerdown',250);pointer('pointermove',170);pointer('pointerup',170);b.click();assert.equal(opened,0,'swipe-generated click stays suppressed');
+   a.tick(delay);pointer('pointerdown',220);pointer('pointerup',220);b.click();assert.equal(opened,1,'first fresh tap opens VIP during/after slide settlement');
+   a.tick(1000);assert.equal(b.dataset.mode,'signature','interrupted slide settles exactly once');a.close();
+ }
  // Filled animation must be released only after the final DOM/order is prepared.
  for(const direction of ['ArrowLeft','ArrowRight']){
    a=setup();a.tick(550);let released;

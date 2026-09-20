@@ -1,4 +1,4 @@
-/* TDB Announcement 1.6.3. Shares existing shell/consent/drawer controllers.
+/* TDB Announcement 1.6.4. Shares existing shell/consent/drawer controllers.
  * Uses published CMS text; shares consent, shell motion and drawer routing.
  */
 (() => {
@@ -239,7 +239,9 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
   function bindSwiping() {
     if (signatureOnly) return;
     button.addEventListener('pointerdown', event => {
-      if (!event.isPrimary || event.button !== 0 || moving || !isVisible()) return;
+      if (!event.isPrimary || event.button !== 0 || !isVisible()) return;
+      // Finish the previous swipe before accepting this separate pointer sequence.
+      if (moving) settleSlide();
       // A new deliberate tap remains an ordinary drawer action after a previous swipe.
       suppressClickUntil = 0;
       gesture = {id:event.pointerId,x:event.clientX,y:event.clientY,dx:0,dragging:false};
@@ -320,7 +322,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     if (!row && !dataRequested && typeof fetch === 'function') { loadSettings(); return; }
     started = true;
     events.forEach(name => window.removeEventListener(name, consentReady));
-    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.6.3'; style.textContent = CSS;
+    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.6.4'; style.textContent = CSS;
     document.head.append(style);
     button = element('button', 'tdb-announcement padding-global'); button.type = 'button';
     button.setAttribute('aria-haspopup', 'dialog'); button.setAttribute('aria-controls', 'tdb-vip-drawer');
@@ -382,13 +384,13 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     start();
   }
   window.TDBAnnouncement = Object.freeze({
-    version: '1.6.3',
+    version: '1.6.4',
     mount(target) {
       if (shell) return;
       shell = target; shell.hidden = true; active = decisionExists();
       if (active) start(); else events.forEach(name => window.addEventListener(name, consentReady));
     },
     configure(next) { overrides = { ...overrides, ...next }; config = { ...config, ...next }; labels.clear(); mode = last = ''; render(); },
-    status: () => ({ version: '1.6.3', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
+    status: () => ({ version: '1.6.4', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
   });
 })();
