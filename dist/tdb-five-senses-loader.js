@@ -43,7 +43,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close svg{width:30px;height
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus:not(:focus-visible){outline:none}
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline:1px solid #fff;outline-offset:2px}
 @media(max-width:600px){dialog[data-tdb-senses-shell]{--tdb-senses-gutter:5vw}dialog[data-tdb-senses-shell] .tdb-senses-persistent-close{top:max(17px,env(safe-area-inset-top))}}
-.tdb-senses-page-audio{position:fixed;inset:auto 1rem 1rem auto;margin:0;z-index:10001;display:grid;place-items:center;box-sizing:border-box;width:4rem;height:4rem;padding:0;border:1px solid rgba(255,255,255,.25);border-radius:50%;background:rgba(100,100,100,.2);color:#fff;box-shadow:none;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tdb-senses-page-audio{position:fixed;inset:auto max(1rem,env(safe-area-inset-right)) max(1rem,env(safe-area-inset-bottom)) auto;margin:0;z-index:2147483500;display:grid;place-items:center;box-sizing:border-box;width:4rem;height:4rem;padding:0;border:1px solid rgba(255,255,255,.25);border-radius:50%;background:rgba(100,100,100,.2);color:#fff;box-shadow:none;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tdb-senses-page-audio::backdrop{background:transparent;pointer-events:none}
 .tdb-senses-page-audio svg{display:block;width:1.75rem;height:1.75rem}
 .tdb-senses-page-audio:focus-visible{outline:2px solid #f5f1e6;outline-offset:4px}
@@ -59,7 +59,6 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     if(!audio?.ready||document.hidden){audio?.stop();return;}
     const button=document.createElement('button');button.type='button';button.className='tdb-senses-page-audio';
     const topLayer=typeof button.showPopover==='function';
-    if(topLayer)button.setAttribute('popover','manual');
     const update=()=>{
       button.setAttribute('aria-label',audio.muted?'Unmute piano and birdsong':'Mute piano and birdsong');
       button.setAttribute('aria-pressed',String(audio.muted));button.dataset.audioState=audio.muted?'muted':'playing';
@@ -70,19 +69,27 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
       audio.setMuted(!audio.muted);update();
     });
     pageAudio={audio,button};update();document.body.append(button);
-    // Keep one button and one click handler. A manual popover paints above the
-    // calculator without inheriting its slide transform. Modal ancestry keeps
-    // the same control interactive and included in the dialog's keyboard trap.
+    // The ordinary page owns a fixed button, with no popover lifecycle after
+    // the experience closes. Only an open modal needs the top layer: keep the
+    // same button above its slide transform and within its keyboard trap.
     const dialogs=new Set();
     const place=()=>{
       const vip=document.querySelector('dialog.tdbc-vip-overlay[open]');
       const host=vip?.querySelector('#tdb-vip-drawer')||vip||document.querySelector('dialog.tdbc-dialog[open]')||document.body;
       const focused=document.activeElement===button;
-      if(button.parentNode!==host){
-        if(topLayer&&button.matches(':popover-open'))button.hidePopover();
-        host.append(button);
+      const modal=host!==document.body;
+      if(topLayer&&(!modal||button.parentNode!==host)){
+        if(button.matches(':popover-open'))button.hidePopover();
+        button.removeAttribute('popover');
       }
-      if(topLayer&&!button.matches(':popover-open'))button.showPopover();
+      if(button.parentNode!==host)host.append(button);
+      if(topLayer&&modal){
+        button.setAttribute('popover','manual');
+        if(!button.matches(':popover-open')){
+          try{button.showPopover();}
+          catch{button.removeAttribute('popover');}
+        }
+      }
       if(focused&&document.activeElement!==button)button.focus({preventScroll:true});
     };
     const stateObserver=new MutationObserver(place);
@@ -308,7 +315,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
   });
   window.addEventListener('pagehide',()=>{stopPageAudio();if(active)dispose(active,false);});
   document.addEventListener('visibilitychange',()=>{if(document.hidden){stopPageAudio();active?.calmAudio?.stop();}});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.14.5'});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.14.6'});
   // A direct experience link arrives on Home before any audio is unlocked.
   if(location.pathname==='/'&&query.get('five-senses')==='1'){
     const url=new URL(location.href);url.searchParams.delete('five-senses');history.replaceState(history.state,'',url);
