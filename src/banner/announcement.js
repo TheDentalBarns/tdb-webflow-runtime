@@ -25,7 +25,7 @@
   }; }
   let overrides = { ...window.TDBAnnouncementConfig };
   let config = { ...defaults, ...overrides }, dataRequested = false, dataLoading = false, dataAttempts = 0, dataRetry = 0, dataState = row ? 'ready' : 'idle';
-  const signatureOnly = /^\/services\/fast-track\/?$/.test(location.pathname);
+  const signatureOnly = /^\/services\/(?:fast-track|signature-assessment)\/?$/.test(location.pathname);
   let shell, button, track, progress, smilePanel, signaturePanel, smileTitle, signatureTitle, smileAction, signatureAction, counters;
   const digits = [];
   let timer = 0, rotation = 0, slideTimer = 0, active = false, started = false, mode = '', last = '';
