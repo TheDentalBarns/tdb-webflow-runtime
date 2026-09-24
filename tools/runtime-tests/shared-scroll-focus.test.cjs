@@ -5,7 +5,7 @@ const path=require('node:path');
 const {JSDOM}=require('jsdom');
 const base=path.resolve(__dirname,'../..');
 const read=f=>fs.readFileSync(path.join(base,f),'utf8');
-function setup(t,mobile=false,source='dist/tdb-navbar.min.js') {
+function setup(t,mobile=false,source='dist/tdb-navbar.min.js',navbar=true) {
  const frames=new Map();let id=0,scrollListeners=0;
  const dom=new JSDOM('<html><body><nav class="navbar10_component" transparent-nav="true"><button class="navbar10_menu-button"></button><div class="w-nav-menu navbar10_menu"></div></nav><div class="swiper"><button class="swiper-btn-next">Next</button></div></body></html>',{runScripts:'dangerously',url:'https://dentalbarns.webflow.io/'});
  t.after(()=>dom.window.close());const w=dom.window;
@@ -13,6 +13,7 @@ function setup(t,mobile=false,source='dist/tdb-navbar.min.js') {
  w.matchMedia=q=>({matches:q.includes('max-width')?mobile:!mobile,addEventListener(){}});
  w.requestAnimationFrame=fn=>{frames.set(++id,fn);return id;};w.cancelAnimationFrame=i=>frames.delete(i);
  const add=w.addEventListener.bind(w);w.addEventListener=(type,...args)=>{if(type==='scroll')scrollListeners++;return add(type,...args);};
+ if(!navbar)w.document.querySelector('nav').remove();
  w.eval(read(source));
  function flush(){for(let i=0;i<4;i++){const pending=[...frames.values()];frames.clear();pending.forEach(fn=>fn());}}
  function event(el,type,props={}){const e=new w.Event(type,{bubbles:true,cancelable:true});Object.assign(e,{button:0,isPrimary:true,pointerId:1,clientX:0,clientY:0,...props});el.dispatchEvent(e);}
@@ -31,3 +32,27 @@ for(const mobile of [false,true])test('shared scroll release and interruption on
  h.event(h.button,'click');h.w.document.documentElement.classList.add('tdb-sg-locked');return Promise.resolve().then(()=>{assert.ok(!h.focused());});
 });
 test('mobile protected zone still releases focus near the top',t=>{const h=setup(t,true);h.scroll(200);h.w.eval(read('src/sliders/slider-focus.js'));h.event(h.button,'click');h.scroll(100);assert.ok(h.focused());h.scroll(39);assert.ok(!h.focused());});
+
+for(const mobile of [false,true])test('navbar-free slider focus on '+(mobile?'mobile':'desktop'),t=>{
+ const h=setup(t,mobile,'dist/tdb-navbar.min.js',false);h.scroll(2000);
+ assert.equal(h.w.TDBNavScroll,undefined);h.w.eval(read('src/sliders/slider-focus.js'));
+ h.event(h.button,'click');assert.ok(h.focused());h.scroll(1880);assert.ok(h.focused());h.scroll(1879);assert.ok(!h.focused());
+ h.event(h.button,'click');h.scroll(2019);assert.ok(h.focused());h.scroll(2020);assert.ok(!h.focused());
+ h.event(h.button,'click');h.scroll(1970);h.scroll(2020);h.scroll(1920);assert.ok(h.focused());h.event(h.button,'click');h.scroll(1820);assert.ok(h.focused());h.scroll(1799);assert.ok(!h.focused());
+ for(const direction of [-1,1]){
+  h.event(h.button.parentElement,'pointerdown');h.event(h.button.parentElement,'pointermove',{clientX:direction*60});
+  assert.ok(h.focused());h.scroll(h.w.scrollY+200);assert.ok(h.focused());
+  h.event(h.button.parentElement,'pointerup',{clientX:direction*60});h.scroll(h.w.scrollY-120);assert.ok(h.focused());h.scroll(h.w.scrollY-1);assert.ok(!h.focused());
+ }
+ h.event(h.button.parentElement,'pointerdown');h.event(h.button.parentElement,'pointermove',{clientY:60});assert.ok(!h.focused(),'Vertical gesture ignored');h.event(h.button.parentElement,'pointercancel');
+ h.w.document.body.insertAdjacentHTML('beforeend','<div class="logo-slider"><div class="swiper"><button class="swiper-btn-next">Logo</button></div></div><div class="w-slider"><button class="w-slider-arrow-right">Testimonial</button></div><div id="tdb-vip-drawer"><button>VIP</button></div>');
+ const logo=h.w.document.querySelector('.logo-slider button');
+ for(const type of ['pointerdown','pointermove','pointerup','click','keydown'])h.event(logo,type,{clientX:type==='pointermove'?60:0,key:'ArrowRight'});
+ assert.ok(!h.focused(),'Marquee excluded');
+ h.event(h.w.document.querySelector('.w-slider button'),'click');assert.ok(h.focused());
+ h.event(h.w.document.querySelector('#tdb-vip-drawer button'),'pointerdown');assert.ok(!h.focused(),'VIP intent restores chrome');
+ h.event(h.button,'click');h.event(h.w.document.body,'keydown',{key:'Escape'});assert.ok(!h.focused());
+ h.scroll(100);h.event(h.button,'click');h.scroll(39);assert.ok(!h.focused(),'Near-top release');
+ for(const type of ['resize','pagehide']){h.event(h.button,'click');h.event(h.w,type);assert.ok(!h.focused());}
+ h.event(h.button,'click');h.w.document.documentElement.classList.add('tdb-sg-locked');return Promise.resolve().then(()=>assert.ok(!h.focused(),'Gallery retains its own chrome ownership'));
+});

@@ -1,15 +1,40 @@
-/* TDB slider focus v1.1.0: actual slider intent uses the shared navbar scroll controller. */
+/* TDB slider focus v1.2.0: page chrome focus with an optional navbar participant. */
 (() => {
   'use strict';
   const html = document.documentElement;
   if (html.dataset.tdbSliderFocusReady) return;
-  html.dataset.tdbSliderFocusReady = '1.1.0';
+  html.dataset.tdbSliderFocusReady = '1.2.0';
 
   const SLIDERS = '.highlight-swiper_component,.parallax-swiper_component,.swiper,.w-slider';
   const CONTROLS = '.swiper-btn-prev,.swiper-btn-next,.swiper-bullet,.swiper-pagination-bullet,.w-slider-arrow-left,.w-slider-arrow-right,.w-slider-dot';
   const FIELDS = 'input,textarea,select,[contenteditable="true"]';
   const GALLERY = '[data-tdb-sg-overlay],.tdb-sg-filter-dock';
   let state = null, gesture = null, releaseFrame = 0, menuTimer = 0, retryTimer = 0;
+  let scrollFrame = 0;
+  const scrollTop = () => Math.max(window.scrollY || html.scrollTop || 0, 0);
+
+  // Navbar pages keep their existing scroll controller. Only pages without it
+  // need this temporary observer, using the same directional release thresholds.
+  function updateFocusScroll() {
+    scrollFrame = 0;
+    if (!state || state.controller) return;
+    const y = scrollTop(), delta = y - state.y;
+    state.y = y;
+    if (gesture?.horizontal) state.up = state.down = 0;
+    else if (delta > 0) { state.up = 0; state.down += delta; }
+    else if (delta < 0) { state.down = 0; state.up -= delta; }
+    if (state.up > 120 || state.down > 140 || (y <= 40 && delta < 0)) scheduleRelease();
+  }
+
+  function requestFocusScroll() {
+    if (!scrollFrame) scrollFrame = requestAnimationFrame(updateFocusScroll);
+  }
+
+  function stopFocusScroll() {
+    window.removeEventListener('scroll', requestFocusScroll);
+    if (scrollFrame) cancelAnimationFrame(scrollFrame);
+    scrollFrame = 0;
+  }
 
   const rootFor = target => target?.closest?.('.logo-slider') ? null : target?.closest?.(SLIDERS);
   const unavailable = target => target?.closest?.('[disabled],[aria-disabled="true"],[hidden],[inert]');
@@ -23,7 +48,9 @@
   function release() {
     cancelRelease();
     clearTimeout(menuTimer); clearTimeout(retryTimer);
-    window.TDBNavScroll?.release();
+    stopFocusScroll();
+    state?.controller?.release();
+    if (html.classList.contains('tdb-slider-focus')) html.classList.remove('tdb-slider-focus');
     if (state?.nav) {
       if (state.value) state.nav.style.setProperty('--tdb-slider-nav-away', state.value, state.priority);
       else state.nav.style.removeProperty('--tdb-slider-nav-away');
@@ -38,7 +65,7 @@
   }
 
   function focusSlider(slider) {
-    if (!slider || unavailable(slider) || galleryOwnsChrome() || !window.TDBNavScroll) return;
+    if (!slider || unavailable(slider) || galleryOwnsChrome()) return;
     cancelRelease();
     if (!state) {
       const nav = document.querySelector('.navbar10_component');
@@ -56,7 +83,14 @@
       retryTimer = setTimeout(closeNativeMenus, 680);
     }
     state.slider = slider;
-    window.TDBNavScroll.focus(scheduleRelease, () => Boolean(gesture?.horizontal));
+    state.controller = window.TDBNavScroll || null;
+    stopFocusScroll();
+    if (state.controller) state.controller.focus(scheduleRelease, () => Boolean(gesture?.horizontal));
+    else {
+      state.y = scrollTop(); state.up = state.down = 0;
+      window.addEventListener('scroll', requestFocusScroll, { passive: true });
+    }
+    if (!html.classList.contains('tdb-slider-focus')) html.classList.add('tdb-slider-focus');
   }
 
   function controlFor(target) {
