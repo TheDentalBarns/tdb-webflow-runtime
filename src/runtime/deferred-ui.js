@@ -2,7 +2,7 @@
 const TDB_MODULE_ROOT = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@61cec90cdba3d42a29d3c31194b692c251e8d421/dist/';
 const TDB_SLIDER_ROOT = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@59a7ba5a8ed95c07d738e067e65795a3daf23c05/dist/';
 function tdbEnsureSliderRuntime() {
-  return tdbEnsureUI().then(() => loadScriptWithRecovery(TDB_SLIDER_ROOT + 'tdb-sliders.js', 'data-tdb-sliders-js'));
+  return tdbEnsureUI().then(() => loadScriptWithRecovery('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@fb73433b4597f1f515aad5697f2cda4e53f763f5/dist/tdb-sliders.js', 'data-tdb-sliders-js'));
 }
 
 function prepareTooltipLoader() {
