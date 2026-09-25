@@ -301,7 +301,7 @@
   carouselObserver.observe(document.body,{childList:true,subtree:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{initReviewCarousels();ensureNervousCarousel();carouselObserver.disconnect();},{once:true});
   else{initReviewCarousels();ensureNervousCarousel();carouselObserver.disconnect();}
-  window.TDBPowerSnippets = Object.freeze({ version, mode: data.mode, capturedOn: data.capturedOn, sourceIcon, quoteMark: QUOTE_MARK, contextForPath, preview: data });
+  window.TDBPowerSnippets = Object.freeze({ version, mode: data.mode, capturedOn: data.capturedOn, sourceIcon, quoteMark: QUOTE_MARK, contextForPath, preview: data, loadDrawer });
   // The quote slot and its preceding badge already exist at this script position.
   // Populate their final layout now, not at DOMContentLoaded or after a download.
   start();

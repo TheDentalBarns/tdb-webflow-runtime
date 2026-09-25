@@ -81,3 +81,12 @@ button.tdb-rv-source{border:0;background:transparent;color:inherit;padding:0;cur
 
 .tdb-rv-response{margin-top:2rem;padding:1.5rem 0 0;background:transparent;border-top:1px solid var(--rv-cream);color:var(--rv-cream)}
 .tdb-rv-response p{font:inherit;line-height:1.7;margin:0;white-space:pre-wrap}
+
+/* Desktop follows the cost calculator: panel, close control and bars travel together. */
+.tdb-rv-overlay.is-desktop::before{background:rgba(0,0,0,.5);transition:opacity 420ms ease}
+.tdb-rv-overlay.is-desktop .tdb-rv-panel{width:min(60rem,94vw);transform:translateX(100%);transition:transform 420ms cubic-bezier(.4,0,.2,1)}
+.tdb-rv-overlay.is-desktop.is-open .tdb-rv-panel{transform:translateX(0)}
+.tdb-rv-overlay.is-desktop .tdb-rv-panel::before{opacity:1;transition:none}
+.tdb-rv-overlay.is-desktop .tdb-rv-frame{opacity:1;transform:none;transition:none}
+.tdb-rv-overlay.is-desktop .tdb-rv-header,.tdb-rv-overlay.is-desktop .tdb-rv-navigation{transform:none;transition:none}
+html.tdb-rv-chrome-away:has(.tdb-rv-overlay.is-desktop:not([hidden])) .navbar10_component,html.tdb-rv-chrome-away:has(.tdb-rv-overlay.is-desktop:not([hidden])) .navbar-bg_layer{z-index:2147483499!important}
