@@ -1,4 +1,4 @@
-/* TDB Power Snippets v1.0.1 — staging design preview, no carousel. */
+/* TDB Power Snippets v1.0.2 — staging design preview, no carousel. */
 (function () {
   'use strict';
   function contextForPath(path) {
@@ -27,7 +27,7 @@
   }
   // A later production publication must not enable this draft preview.
   if (location.hostname !== 'dentalbarns.webflow.io' || window.TDBPowerSnippets) return;
-  const version = '1.0.1';
+  const version = '1.0.2';
   const assetBase = new URL('.', document.currentScript.src).href;
   const dataNode = document.querySelector('[data-tdb-review-preview-data]');
   if (!dataNode) return;

@@ -1,4 +1,4 @@
-# Power snippets: staging design preview v1.0.1
+# Power snippets: staging design preview v1.0.2
 
 Adds one static review excerpt below the shared review badge in Hero - Headline and Hero - Headline VIP. Each component has a Reviews > Show power snippet boolean, default true. Its visibility binding is native Webflow. No carousel or automatic rotation is introduced.
 
@@ -22,4 +22,7 @@ The preview count is 83 platform review entries: Google 55, Doctify 23, Facebook
 
 Google, Facebook and Yell vectors are derived from the existing Webflow review badge. Doctify icon is the unmodified transparent icon served by its official blog: https://wp-global-media.s3.eu-central-1.amazonaws.com/wp-content/uploads/sites/6/2021/07/cropped-Instagram-profile-720x720-1-192x192.png
 
-Register the JS as a separate Webflow hosted script using the resulting immutable full commit SHA and SHA-384 integrity. It loads its sibling CSS only on staging; existing site custom-code blocks are not replaced. Publish only with customDomains: [] and publishToWebflowSubdomain: true. Rollback: remove the separately registered Power Snippets site script, or switch off the native component toggle. Custom-domain publication requires a separate instruction.
+The new quote embeds load the JS directly with an immutable SHA and SHA-384 integrity. Webflow registered-script application was unavailable; site-wide replacement was rejected by approval review. The JS loads its sibling CSS only on staging. Existing custom-code blocks and applied-script configuration are not replaced. Publish only with customDomains: [] and publishToWebflowSubdomain: true. Rollback: remove the script tag from the two newly added quote embeds, or switch off the native component toggle. Custom-domain publication requires a separate instruction.
+
+
+Visual QA v1.0.2: override the inherited 60vh height from the existing max-width-medium align-center combo for these new quote containers only; stack the badge disclosure beneath its badge and allow the badge to wrap on narrow screens.
