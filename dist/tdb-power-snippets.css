@@ -1,4 +1,4 @@
-/* TDB Power Snippets v1.0.6 — uses existing quotation typography and brand colour. */
+/* TDB Power Snippets v1.0.7 — uses existing quotation typography and brand colour. */
 [data-tdb-power-snippet]:not([data-tdb-review-ready]){display:none}
 [data-tdb-power-snippet][data-tdb-review-ready]{display:block;height:auto;min-height:0;text-align:center}
 .is-review:has(> .button[data-tdb-review-updated]){flex-direction:column;height:auto}
@@ -7,8 +7,8 @@
 .tdb-power-quote-mark svg{display:block;width:100%;height:100%}
 .tdb-power-quote-body{border:0;padding:0;margin:0;font:inherit}
 .tdb-power-quote-body p{margin:0;white-space:normal;text-wrap:pretty}
-.tdb-power-quote-attribution{display:flex;align-items:center;justify-content:center;gap:.65rem;margin-top:2rem;font-style:normal;will-change:opacity}
-.tdb-review-source-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:1.35rem;height:1.35rem;line-height:1}
+.tdb-power-quote-attribution{display:flex;align-items:center;justify-content:center;gap:.65rem;margin-top:2rem;font-style:normal;opacity:0;will-change:opacity}
+.tdb-review-source-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:1.35rem;height:1.35rem;aspect-ratio:1;overflow:hidden;line-height:1}
 .tdb-review-source-icon svg,.tdb-review-source-icon img{display:block;width:100%;height:100%;object-fit:contain}
 .tdb-review-source-icon.is-grayscale{filter:grayscale(1)}
 .tdb-review-history{font-size:.75rem;line-height:1.5;margin:1rem 0 0;color:#6b655e}

@@ -47,3 +47,9 @@ Home now matches the distance from section top to subhero heading beneath the re
 ### v1.0.6 — Location reviews and dark variant
 Added location topic, verbatim excerpt and location snippet rank to the review CMS. Location uses Hayley Rose’s Facebook excerpt about fields and streams. The existing dark Hero - Headline variant reduces quote ornament opacity to 35%, preserving layout and attribution animation.
 Location also matches outer bottom spacing to the section-to-heading distance, recalculated on resize.
+
+
+### v1.0.7 — Stable initial rendering
+The shared embeds now run the snapshot renderer synchronously at their parser position. Critical review CSS is bundled into the renderer and installed before it inserts SVGs or reveals the quote. No separate review stylesheet or deferred script fetch controls the first layout. The exact selected quote therefore occupies its natural responsive height immediately, instead of inserting below the badge after DOMContentLoaded. The attribution SVG has intrinsic dimensions and a fixed, clipped square wrapper, with grayscale applied before insertion. Attribution opacity is set directly to its current scroll position at startup; subsequent scroll uses the existing DD smoothing. Home/Location outer spacing is established in that same initial task and avoids redundant margin writes. No content selection, tallies, native visibility switches or production hostname guard changed.
+
+Deployment: build the runtime with the CSS placeholder replaced, then include that exact built source inline after the existing JSON snapshot inside both new review embeds. The runtime remains versioned in GitHub; no patient snapshot data is committed. To reproduce the build, run `python scripts/build-power-snippets.py`.
