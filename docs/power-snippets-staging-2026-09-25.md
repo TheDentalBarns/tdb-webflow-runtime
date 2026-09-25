@@ -2,7 +2,7 @@
 
 Adds one static review excerpt below the shared review badge in Hero - Headline and Hero - Headline VIP. Each component has a Reviews > Show power snippet boolean, default true. Its visibility binding is native Webflow. No carousel or automatic rotation is introduced.
 
-The quote uses the site's existing speech-mark SVG, text-size-large typography and monochrome icon-first attribution. Attribution follows the DD - Text Effect opacity stops: 0% = 0, 50–75% = .5, 100% = .1; smoothing .5. Reduced-motion preference renders the attribution fully visible.
+The quote uses the site's existing speech-mark SVG, text-size-large typography and monochrome icon-first attribution. Attribution follows the DD - Text Effect opacity stops: 0% = 0, 50–75% = .5, 100% = .1; smoothing .5. As requested in the v1.0.3 refinement, attribution animates regardless of reduced-motion preference.
 
 ## Draft-only boundary
 
@@ -26,3 +26,10 @@ The new quote embeds load the JS directly with an immutable SHA and SHA-384 inte
 
 
 Visual QA v1.0.2: override the inherited 60vh height from the existing max-width-medium align-center combo for these new quote containers only; stack the badge disclosure beneath its badge and allow the badge to wrap on narrow screens.
+
+
+## v1.0.3 user refinements
+
+Equal badge-to-quote-mark and quote-mark-to-text gaps: 2rem desktop, 1.5rem below 480px; existing larger outer spacing below the reviewer is retained. Attribution now clones the actual badge SVG and applies grayscale(1), preserving gradient shading; gradient IDs are made unique. The DD fade is unchanged. Doctify uses the supplied logo-light.svg with only its two wordmark paths removed and an icon-sized viewBox; it is a true inline SVG at the same 2rem box size as the other badge icons. Removed the visible historic-Doctify disclosure at the user’s request; historical provenance and provisional rating basis remain in the CMS and this record.
+
+The user explicitly requested the snippet attribution to stay animated when reduced motion is enabled. Only the review module’s reduced-motion bypass was removed; other site modules are unchanged.
