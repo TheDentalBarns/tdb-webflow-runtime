@@ -7,7 +7,7 @@
 .tdb-ri-viewport{position:relative;overflow:hidden;height:var(--ri-height);touch-action:pan-y pinch-zoom;outline-offset:4px}
 .tdb-ri-cell{position:absolute;inset:0 auto auto 0;height:100%;container:tdb-reviews / inline-size;min-width:0;margin:0;background:var(--rv-paper)}
 /* Fixed grid rows keep every preview and its Read more control aligned. */
-.tdb-ri .tdb-ri-card{position:relative;inset:auto;display:grid;grid-template-rows:var(--ri-quote-height) 4.5rem minmax(0,1fr) max(2.75rem,44px);gap:.5rem;width:100%;height:100%;padding:0;background:var(--rv-paper);overflow:hidden;overflow:clip;overscroll-behavior:auto;touch-action:pan-y pinch-zoom;outline-offset:-2px}
+.tdb-ri .tdb-ri-card{position:relative;inset:auto;display:grid;grid-template-rows:var(--ri-quote-height) 4.5rem minmax(0,1fr) max(2.75rem,44px);gap:.5rem;width:100%;height:100%;padding:0 0 1rem;background:var(--base-color-brand--orange-2,#ebe2d2);border-radius:0;overflow:hidden;overflow:clip;overscroll-behavior:auto;touch-action:pan-y pinch-zoom;outline-offset:-2px}
 .tdb-ri .tdb-rv-quote-layer{height:100%;width:100%;margin:0;padding:.75rem 1rem;gap:.5rem;border-radius:0}
 .tdb-ri .tdb-rv-mark{height:2.5rem;flex-basis:2.5rem;gap:1rem}
 .tdb-ri .tdb-rv-mark svg{height:2.5rem;width:2.5rem;flex-basis:2.5rem}
@@ -30,10 +30,9 @@
 .tdb-ri :is(button,a,[tabindex]):focus-visible{outline:1px solid currentColor;outline-offset:3px}
 .tdb-ri .tdb-rv-body:focus-visible{outline-offset:2px}
 .tdb-ri-loading{display:grid;place-items:center;height:calc(var(--ri-height) + 1.5rem + max(3rem,44px));color:var(--rv-cream);font-size:.9rem}
-@media(max-width:767px){.tdb-ri{--ri-gap:12px}.tdb-ri .tdb-rv-by,.tdb-ri .tdb-rv-body,.tdb-ri .tdb-ri-read-more{margin-left:0;margin-right:0}}
+@media(max-width:767px){.tdb-ri{--ri-gap:12px}}
 /* One share for the snippet, two for the body, with the byline and Read more reserved. */
 @container tdb-review-previews (max-width:767px){
  .tdb-ri-viewport,.tdb-ri-loading{--ri-height:clamp(27rem,calc(100svh - 10rem),37rem)}
  .tdb-ri .tdb-ri-card{grid-template-rows:minmax(0,1fr) 4.5rem minmax(0,2fr) max(2.75rem,44px)}
- .tdb-ri .tdb-rv-by,.tdb-ri .tdb-rv-body,.tdb-ri .tdb-ri-read-more{margin-left:0;margin-right:0}
 }
