@@ -222,6 +222,67 @@
     addEventListener('resize', scheduleFade, { passive: true });
     addEventListener('pageshow', setInitialFade);
   }
+
+  function initReviewCarousels(){
+    const context=contextForPath(location.pathname)||'default';
+    const records=data.carousels?.[context]||data.carousels?.default;
+    if(!records?.length)return;
+    document.querySelectorAll('.testimonial_slider.w-slider').forEach(old=>{
+      if(!old.parentElement.querySelector('.testimonial15_rating-wrapper')||!old.querySelector('.w-slider-nav'))return;
+      const root=element('div','tdb-review-carousel');root.setAttribute('role','region');root.setAttribute('aria-label','Featured patient reviews');root.setAttribute('aria-roledescription','carousel');
+      root.dataset.reviewContext=context;
+      const viewport=element('div','tdb-rc-viewport'),dots=element('div','tdb-rc-dots');
+      let active=0,timer=0,reveal=0,moving=null,gesture=null,suppressUntil=0,inView=false,hover=false,focused=false,paused=false;
+      const slides=records.map((r,i)=>{
+        const card=element('div','tdb-rc-card');card.setAttribute('role','group');card.setAttribute('aria-roledescription','slide');card.setAttribute('aria-label',(i+1)+' of '+records.length);
+        const quote=element('div','tdb-rc-open');quote.tabIndex=0;quote.setAttribute('role','button');quote.setAttribute('aria-haspopup','dialog');quote.setAttribute('aria-label','Read the full review by '+r.name);quote.dataset.tdbReviewOpen=r.id;
+        quote.append(element('p','tdb-rc-quote text-size-large',r.excerpt));
+        const name=element('div','tdb-rc-name text-style-tagline-restored');name.append(sourceIcon(r.platform,true),element('span','',r.name));quote.append(name);
+        quote.addEventListener('click',()=>{if(performance.now()>suppressUntil&&!moving)openDrawer(quote,r.id);});
+        quote.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openDrawer(quote,r.id);}});
+        card.append(quote);viewport.append(card);return card;
+      });
+      const controls=records.map((r,i)=>{
+        const b=element('button','tdb-rc-dot');b.type='button';b.setAttribute('aria-label','Show patient review '+(i+1)+' of '+records.length);b.append(element('span'));
+        b.addEventListener('click',()=>go(i,i<active?-1:1));dots.append(b);return b;
+      });
+      const pause=element('button','tdb-rc-pause tdb-review-sr-only','Pause rotating reviews');pause.type='button';pause.addEventListener('click',()=>{paused=!paused;pause.textContent=paused?'Resume rotating reviews':'Pause rotating reviews';schedule();});
+      root.append(viewport,dots,pause);
+      function paint(){
+        slides.forEach((n,i)=>{n.inert=i!==active;n.setAttribute('aria-hidden',String(i!==active));n.style.transform='translateX('+(i===active?0:100)+'%)';n.style.visibility=i===active?'visible':'hidden';});
+        controls.forEach((b,i)=>b.setAttribute('aria-pressed',String(i===active)));
+      }
+      function schedule(){clearTimeout(timer);if(inView&&!hover&&!focused&&!paused&&!document.hidden)timer=setTimeout(()=>{if(document.querySelector('[data-tdb-review-overlay]:not([hidden])')){schedule();return;}go((active+1)%slides.length,1);},5000);}
+      function finish(){if(!moving)return;const m=moving;moving=null;m.animations.forEach(a=>a.cancel());active=m.target;paint();}
+      function go(target,direction=1,offset=0){
+        if(moving)finish();if(target===active){schedule();return;}
+        clearTimeout(reveal);clearTimeout(timer);
+        const from=slides[active],to=slides[target];slides.forEach(n=>n.classList.remove('is-settled'));
+        to.style.visibility='visible';to.inert=true;const width=viewport.clientWidth;
+        const duration=Math.max(120,400*(1-Math.min(Math.abs(offset)/width,.8)));
+        const animations=[from.animate([{transform:'translateX('+offset+'px)'},{transform:'translateX('+(-direction*width)+'px)'}],{duration,easing:'ease',fill:'forwards'}),to.animate([{transform:'translateX('+(direction*width+offset)+'px)'},{transform:'translateX(0px)'}],{duration,easing:'ease',fill:'forwards'})];
+        const state=moving={target,animations};
+        Promise.all(animations.map(a=>a.finished.catch(()=>{}))).then(()=>{if(moving!==state)return;finish();reveal=setTimeout(()=>slides[active].classList.add('is-settled'),direction<0?140:100);schedule();});
+      }
+      viewport.addEventListener('pointerdown',e=>{if(!e.isPrimary||e.button!==0)return;finish();gesture={id:e.pointerId,x:e.clientX,y:e.clientY,dx:0,horizontal:false};clearTimeout(timer);});
+      viewport.addEventListener('pointermove',e=>{if(!gesture||gesture.id!==e.pointerId)return;const dx=e.clientX-gesture.x,dy=e.clientY-gesture.y;if(!gesture.horizontal){if(Math.abs(dy)>12&&Math.abs(dy)>Math.abs(dx)){gesture=null;schedule();return;}if(Math.abs(dx)<12)return;gesture.horizontal=true;viewport.setPointerCapture(e.pointerId);slides[active].classList.remove('is-settled');}
+        e.preventDefault();gesture.dx=dx;const dir=dx<0?1:-1,target=(active+dir+slides.length)%slides.length;slides[active].style.transform='translateX('+dx+'px)';slides[target].style.visibility='visible';slides[target].style.transform='translateX('+(dir*viewport.clientWidth+dx)+'px)';
+      },{passive:false});
+      function end(e,cancel){if(!gesture||e.pointerId!==gesture.id)return;const g=gesture;gesture=null;if(viewport.hasPointerCapture(e.pointerId))viewport.releasePointerCapture(e.pointerId);if(g.horizontal){suppressUntil=performance.now()+600;const dir=g.dx<0?1:-1;if(!cancel&&Math.abs(g.dx)>40)go((active+dir+slides.length)%slides.length,dir,g.dx);else{paint();reveal=setTimeout(()=>slides[active].classList.add('is-settled'),60);schedule();}}else schedule();}
+      viewport.addEventListener('pointerup',e=>end(e,false));viewport.addEventListener('pointercancel',e=>end(e,true));
+      root.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();const dir=e.key==='ArrowRight'?1:-1;if(moving)finish();go((active+dir+slides.length)%slides.length,dir);}});
+      root.addEventListener('mouseenter',()=>{hover=true;clearTimeout(timer);});root.addEventListener('mouseleave',()=>{hover=false;schedule();});
+      root.addEventListener('focusin',()=>{focused=true;clearTimeout(timer);});root.addEventListener('focusout',()=>{requestAnimationFrame(()=>{focused=root.contains(document.activeElement);schedule();});});
+      document.addEventListener('visibilitychange',schedule);
+      new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;schedule();},{threshold:.25}).observe(root);
+      old.replaceWith(root);paint();slides[0].classList.add('is-settled');
+    });
+  }
+  // Replace only the five-star patient testimonial component, before Webflow initialises it.
+  const carouselObserver=new MutationObserver(initReviewCarousels);
+  carouselObserver.observe(document.body,{childList:true,subtree:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{initReviewCarousels();carouselObserver.disconnect();},{once:true});
+  else{initReviewCarousels();carouselObserver.disconnect();}
   window.TDBPowerSnippets = Object.freeze({ version, mode: data.mode, capturedOn: data.capturedOn, sourceIcon, quoteMark: QUOTE_MARK, contextForPath, preview: data });
   // The quote slot and its preceding badge already exist at this script position.
   // Populate their final layout now, not at DOMContentLoaded or after a download.

@@ -27,3 +27,17 @@
 [data-tdb-review-open]:focus-visible{outline:2px solid currentColor;outline-offset:.5rem}
 [data-tdb-review-open][aria-busy="true"]{cursor:progress}
 .tdb-review-load-error{font-size:.85rem;text-align:center}
+
+.tdb-review-carousel{position:relative;width:100%;min-height:300px;text-align:center}
+.tdb-rc-viewport{display:grid;overflow:hidden;touch-action:pan-y pinch-zoom}
+.tdb-rc-card{grid-area:1/1;min-width:0;display:flex;align-items:center;justify-content:center;padding:.5rem;box-sizing:border-box;visibility:hidden}
+.tdb-rc-open{width:100%;cursor:pointer;outline-offset:-2px}
+.tdb-rc-quote{margin:0;opacity:0;transition:opacity 400ms ease-out;text-wrap:pretty}
+.tdb-rc-card.is-settled .tdb-rc-quote{opacity:1}
+.tdb-rc-name{display:flex;align-items:center;justify-content:center;gap:.65rem;margin-top:2rem;opacity:1!important}
+.tdb-rc-dots{display:flex;justify-content:center;gap:0;margin-top:2rem}
+.tdb-rc-dot{display:grid;place-items:center;width:44px;height:44px;border:0;padding:0;background:transparent;cursor:pointer}
+.tdb-rc-dot span{width:.8rem;height:.8rem;border-radius:50%;background:var(--base-color-brand--orange-2,#ebe2d2)}
+.tdb-rc-dot[aria-pressed="true"] span{background:var(--base-color-brand--orange-3,#d6cab4)}
+.tdb-review-carousel :focus-visible{outline:1px solid currentColor;outline-offset:3px}
+.tdb-rc-pause:focus{position:static;width:auto;height:auto;clip:auto;white-space:normal;padding:.5rem;background:transparent;border:1px solid currentColor}
