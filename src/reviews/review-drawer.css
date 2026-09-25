@@ -3,7 +3,7 @@
 .tdb-rv-overlay[hidden],.tdb-rv-overlay [hidden]{display:none!important}
 .tdb-rv-overlay::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.38);opacity:0;transition:opacity 300ms ease}
 .tdb-rv-overlay.is-open::before{opacity:1;transition-duration:200ms}
-.tdb-rv-panel{--rv-header:6.5rem;--rv-footer:6rem;--rv-gutter:2.5rem;--rv-quote-height:14rem;position:absolute;inset:0 0 0 auto;width:min(52rem,100%);height:100%;height:100dvh;background:transparent;container:tdb-reviews / size;overflow:hidden;box-shadow:-1rem 0 4rem #0002}
+.tdb-rv-panel{--rv-header:6rem;--rv-footer:6rem;--rv-gutter:2.5rem;--rv-quote-height:14rem;position:absolute;inset:0 0 0 auto;width:min(52rem,100%);height:100%;height:100dvh;background:transparent;container:tdb-reviews / size;overflow:hidden;box-shadow:-1rem 0 4rem #0002}
 .tdb-rv-panel::before{content:"";position:absolute;inset:0;background:var(--rv-paper);pointer-events:none;opacity:0;transition:opacity 300ms ease}
 .is-open .tdb-rv-panel::before{opacity:1;transition-duration:200ms}
 .tdb-rv-frame{position:absolute;inset:0;opacity:0;transform:translate3d(0,20%,0);transition:transform 500ms ease,opacity 300ms ease}
