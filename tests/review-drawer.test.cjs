@@ -8,10 +8,10 @@ test('relevant ordering keeps all reviews and prioritises matching care',()=>{
 });
 test('snippet entry opens its exact source even across duplicate platforms',()=>{
  const records=[r('google',{duplicate:'same'}),r('facebook',{platform:'Facebook',duplicate:'same'})];
- assert.deepEqual(chooseReviews(records,{preferredId:'facebook'}).map(x=>x.id),['facebook']);
+ assert.deepEqual(chooseReviews(records,{preferredId:'facebook'}).map(x=>x.id),['facebook','google']);
  assert.deepEqual(chooseReviews(records,{platform:'Google'}).map(x=>x.id),['google']);
 });
-test('newest ignores editorial preference and filters before deduplicating',()=>{
+test('newest ignores editorial preference and filters reviews',()=>{
  const records=[r('old',{topics:['nervous'],date:'2020-01-01'}),r('new',{topics:['nervous'],date:'2026-01-01'}),r('other',{date:'2026-09-01'})];
  assert.deepEqual(chooseReviews(records,{topic:'nervous',sort:'newest',preferredId:'old'}).map(x=>x.id),['new','old']);
 });

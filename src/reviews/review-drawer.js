@@ -1,4 +1,4 @@
-/* TDB Patient Reviews v1.5.0 — staging-only, Smile Gallery motion and continuous reading. */
+/* TDB Patient Reviews v1.6.0 — staging-only, Smile Gallery motion and continuous reading. */
 (function () {
   'use strict';
   function chooseReviews(records, options) {
@@ -12,15 +12,14 @@
       const match=Number(b.topics.includes(effectiveContext))-Number(a.topics.includes(effectiveContext)); if(match)return match;
       return (relevance(a)||999)-(relevance(b)||999)||a.rank-b.rank||a.id.localeCompare(b.id);
     });
-    const seen=new Set();
-    return list.filter(r=>{const key=r.duplicate||r.id;if(seen.has(key))return false;seen.add(key);return true;});
+    return list;
   }
   function safeURL(url) { try { const u=new URL(url);return u.protocol==='https:'?u.href:'';} catch (_) { return ''; } }
   if(typeof module==='object'&&module.exports){module.exports={chooseReviews,safeURL};return;}
   if(location.hostname!=='dentalbarns.webflow.io'||window.TDBReviewDrawer)return;
   const api=window.TDBPowerSnippets;
   if(!api)return;
-  const style=document.createElement('style');style.dataset.tdbReviewDrawerStyles='1.5.0';style.textContent=__DRAWER_CSS__;document.head.append(style);
+  const style=document.createElement('style');style.dataset.tdbReviewDrawerStyles='1.6.0';style.textContent=__DRAWER_CSS__;document.head.append(style);
   const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
   const button=(label,cls,action)=>{const b=el('button',cls);b.type='button';b.setAttribute('aria-label',label);if(action)b.addEventListener('click',action);return b;};
   const arrow=()=>{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 16 16');s.setAttribute('aria-hidden','true');s.innerHTML='<path fill="currentColor" d="M12.6893 7.25L6.96967 1.53033L8.03033 0.469666L15.5607 8L8.03033 15.5303L6.96967 14.4697L12.6893 8.75H0.5V7.25H12.6893Z"/>';return s;};
@@ -62,10 +61,34 @@
     const slide=el('article','tdb-rv-slide');slide.tabIndex=0;slide.dataset.reviewId=r.id;slide.setAttribute('aria-label','Review by '+r.name);slide.setAttribute('data-lenis-prevent','');
     const quote=el('div','tdb-rv-quote-layer'),mark=el('div','tdb-rv-mark');mark.innerHTML=api.quoteMark;mark.setAttribute('aria-hidden','true');quote.append(mark,el('blockquote','tdb-rv-quote-text',reviewExcerpt(r)));
     const by=el('div','tdb-rv-by'),identity=el('div','tdb-rv-identity'),date=el('div','tdb-rv-date'),time=el('time','',dateLabel(r));if(r.date)time.dateTime=r.date;date.append(clock(),time);identity.append(el('div','tdb-rv-name',r.name),date);
-    const source=el('div','tdb-rv-source');const icon=api.sourceIcon(r.platform,false);icon.className='tdb-rv-platform-icon';icon.title=r.platform;source.append(icon,el('span','tdb-review-sr-only',r.platform),stars(r.rating,r.platform));by.append(identity,source);
+    const source=button(r.platform==='Doctify'?'About these Doctify reviews':'Open '+r.platform+' source','tdb-rv-source',()=>openSource(r));const icon=api.sourceIcon(r.platform,false);icon.className='tdb-rv-platform-icon';icon.title=r.platform;source.append(icon,el('span','tdb-review-sr-only',r.platform),stars(r.rating,r.platform));by.append(identity,source);
     const body=el('div','tdb-rv-body');body.id='tdb-rv-body-'+r.id;body.setAttribute('aria-label','Full review by '+r.name);body.append(el('p','',r.text));
     slide.append(quote,by);if(r.historic)slide.append(el('div','tdb-rv-historic','Dr Keely · review from a previous practice'));slide.append(body);
+    body.tabIndex=0;body.setAttribute('role',r.platform==='Doctify'?'button':'link');body.setAttribute('aria-label',r.platform==='Doctify'?'Read about this Doctify review':'Open '+r.platform+' source for this review');
+    let start=null;body.addEventListener('pointerdown',e=>{start={x:e.clientX,y:e.clientY};},{passive:true});
+    body.addEventListener('click',e=>{if(transition||window.getSelection()?.toString()||start&&Math.hypot(e.clientX-start.x,e.clientY-start.y)>10)return;openSource(r);});
+    body.addEventListener('keydown',e=>{if(e.key==='Enter'||r.platform==='Doctify'&&e.key===' '){e.preventDefault();openSource(r);}});
+
     return slide;
+  }
+  let sourceNote;
+  function openSource(r){
+    if(r.platform!=='Doctify'){
+      const url=safeURL(r.url)||(r.platform==='Facebook'?'https://www.facebook.com/thedentalbarns/reviews/':r.platform==='Google'?'https://www.google.com/maps/search/?api=1&query=The+Dental+Barns+Blackbrook+Lichfield':'');
+      if(url)window.open(url,'_blank','noopener,noreferrer');return;
+    }
+    if(!sourceNote){
+      sourceNote=el('dialog','tdb-rv-note');sourceNote.setAttribute('aria-labelledby','tdb-rv-note-title');
+      const heading=el('h3','','About these Doctify reviews');heading.id='tdb-rv-note-title';
+      sourceNote.append(heading,el('p','','These reviews are from genuine patients and were SMS-verified by Doctify. We’re proud of the feedback Dr Keely received.'),
+        el('p','','Dr Keely chose not to renew her Doctify subscription, so these historic reviews are not currently published there. Copies are available on request.'),
+        el('p','tdb-rv-note-small','This feedback relates to care Dr Keely provided at previous practices.'));
+      const done=button('Close review information','tdb-rv-note-close',()=>sourceNote.close());done.textContent='Close';sourceNote.append(done);
+      sourceNote.addEventListener('keydown',e=>e.stopPropagation());
+      sourceNote.addEventListener('click',e=>{if(e.target===sourceNote){const b=sourceNote.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)sourceNote.close();}});
+      panel.append(sourceNote);
+    }
+    sourceNote.showModal();
   }
   function rememberScroll(){if(current)scrollPositions.set(current.dataset.reviewId,current.scrollTop);}
   function hideQuoteText(){clearTimeout(quoteTimer);current?.querySelector('.tdb-rv-quote-text')?.classList.remove('is-visible');}
@@ -157,5 +180,5 @@
   addEventListener('scroll',()=>{if(!chrome?.waiting||overlay&&!overlay.hidden)return;const dy=scrollY-chrome.y;chrome.y=scrollY;if(dy>0){chrome.up=0;chrome.down+=dy;}else if(dy<0){chrome.down=0;chrome.up-=dy;}if(chrome.up>120||chrome.down>140||scrollY<=40&&dy<0)requestAnimationFrame(()=>requestAnimationFrame(()=>{if(overlay.hidden)releaseChrome();}));},{passive:true});
   document.addEventListener('focusin',e=>{if(chrome?.waiting&&e.target.closest?.('.navbar10_component,#tdb-vip-drawer'))releaseChrome();});
   addEventListener('click',e=>{if(chrome?.waiting&&/#vip/i.test(e.target.closest?.('a[href]')?.getAttribute('href')||''))releaseChrome();},true);
-  window.TDBReviewDrawer=Object.freeze({version:'1.5.0',open,close});
+  window.TDBReviewDrawer=Object.freeze({version:'1.6.0',open,close});
 })();
