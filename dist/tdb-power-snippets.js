@@ -1,4 +1,4 @@
-/* TDB Power Snippets v1.0.7 — staging design preview, no carousel. */
+/* TDB Power Snippets v1.1.0 — staging design preview, no carousel. */
 (function () {
   'use strict';
   function contextForPath(path) {
@@ -30,7 +30,7 @@
   }
   // A later production publication must not enable this draft preview.
   if (location.hostname !== 'dentalbarns.webflow.io' || window.TDBPowerSnippets) return;
-  const version = '1.0.7';
+  const version = '1.1.0';
   const dataNode = document.querySelector('[data-tdb-review-preview-data]');
   if (!dataNode) return;
   let data;
@@ -40,7 +40,7 @@
   // The Webflow embed runs this inline during parsing, with no CDN round trip.
   const css = document.createElement('style');
   css.dataset.tdbReviewStyles = version;
-  css.textContent = "/* TDB Power Snippets v1.0.7 \u2014 uses existing quotation typography and brand colour. */\n[data-tdb-power-snippet]:not([data-tdb-review-ready]){display:none}\n[data-tdb-power-snippet][data-tdb-review-ready]{display:block;height:auto;min-height:0;text-align:center}\n.is-review:has(> .button[data-tdb-review-updated]){flex-direction:column;height:auto}\n.tdb-power-quote{margin:0 auto;max-width:100%}\n.tdb-power-quote-mark{display:block;margin:0 auto 2rem}\n.tdb-power-quote-mark svg{display:block;width:100%;height:100%}\n.tdb-power-quote-body{border:0;padding:0;margin:0;font:inherit}\n.tdb-power-quote-body p{margin:0;white-space:normal;text-wrap:pretty}\n.tdb-power-quote-attribution{display:flex;align-items:center;justify-content:center;gap:.65rem;margin-top:2rem;font-style:normal;opacity:0;will-change:opacity}\n.tdb-review-source-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:1.35rem;height:1.35rem;aspect-ratio:1;overflow:hidden;line-height:1}\n.tdb-review-source-icon svg,.tdb-review-source-icon img{display:block;width:100%;height:100%;object-fit:contain}\n.tdb-review-source-icon.is-grayscale{filter:grayscale(1)}\n.tdb-review-history{font-size:.75rem;line-height:1.5;margin:1rem 0 0;color:#6b655e}\n.tdb-review-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}\n@media(max-width:479px){\n .button.is-review[data-tdb-review-updated]{column-gap:.45rem;row-gap:.35rem;flex-wrap:wrap;justify-content:center;padding-left:.85rem;padding-right:.85rem;max-width:100%}\n .button.is-review[data-tdb-review-updated] .testimonial15_rating-wrapper{column-gap:.15rem}\n .tdb-power-quote-mark{margin-bottom:1.5rem}\n .tdb-power-quote-attribution{margin-top:1.5rem;letter-spacing:.08em}\n}\n\n/* Follow the existing native dark subhero variant. */\n[data-wf--hero---headline--variant=\"dark\"] .tdb-power-quote-mark{opacity:.35}\n";
+  css.textContent = "/* TDB Power Snippets v1.1.0 \u2014 uses existing quotation typography and brand colour. */\n[data-tdb-power-snippet]:not([data-tdb-review-ready]){display:none}\n[data-tdb-power-snippet][data-tdb-review-ready]{display:block;height:auto;min-height:0;text-align:center}\n.is-review:has(> .button[data-tdb-review-updated]){flex-direction:column;height:auto}\n.tdb-power-quote{margin:0 auto;max-width:100%}\n.tdb-power-quote-mark{display:block;margin:0 auto 2rem}\n.tdb-power-quote-mark svg{display:block;width:100%;height:100%}\n.tdb-power-quote-body{border:0;padding:0;margin:0;font:inherit}\n.tdb-power-quote-body p{margin:0;white-space:normal;text-wrap:pretty}\n.tdb-power-quote-attribution{display:flex;align-items:center;justify-content:center;gap:.65rem;margin-top:2rem;font-style:normal;opacity:0;will-change:opacity}\n.tdb-review-source-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:1.35rem;height:1.35rem;aspect-ratio:1;overflow:hidden;line-height:1}\n.tdb-review-source-icon svg,.tdb-review-source-icon img{display:block;width:100%;height:100%;object-fit:contain}\n.tdb-review-source-icon.is-grayscale{filter:grayscale(1)}\n.tdb-review-history{font-size:.75rem;line-height:1.5;margin:1rem 0 0;color:#6b655e}\n.tdb-review-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}\n@media(max-width:479px){\n .button.is-review[data-tdb-review-updated]{column-gap:.45rem;row-gap:.35rem;flex-wrap:wrap;justify-content:center;padding-left:.85rem;padding-right:.85rem;max-width:100%}\n .button.is-review[data-tdb-review-updated] .testimonial15_rating-wrapper{column-gap:.15rem}\n .tdb-power-quote-mark{margin-bottom:1.5rem}\n .tdb-power-quote-attribution{margin-top:1.5rem;letter-spacing:.08em}\n}\n\n/* Follow the existing native dark subhero variant. */\n[data-wf--hero---headline--variant=\"dark\"] .tdb-power-quote-mark{opacity:.35}\n\n[data-tdb-review-open]{cursor:pointer;touch-action:manipulation}\n[data-tdb-review-open]:focus-visible{outline:2px solid currentColor;outline-offset:.5rem}\n[data-tdb-review-open][aria-busy=\"true\"]{cursor:progress}\n.tdb-review-load-error{font-size:.85rem;text-align:center}\n";
   document.head.append(css);
   const QUOTE_MARK = "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" aria-hidden=\"true\" role=\"img\" class=\"iconify iconify--bx\" width=\"100%\" height=\"100%\" preserveAspectRatio=\"xMidYMid meet\" viewBox=\"0 0 24 24\"><path d=\"M6.5 10c-.223 0-.437.034-.65.065c.069-.232.14-.468.254-.68c.114-.308.292-.575.469-.844c.148-.291.409-.488.601-.737c.201-.242.475-.403.692-.604c.213-.21.492-.315.714-.463c.232-.133.434-.28.65-.35l.539-.222l.474-.197l-.485-1.938l-.597.144c-.191.048-.424.104-.689.171c-.271.05-.56.187-.882.312c-.318.142-.686.238-1.028.466c-.344.218-.741.4-1.091.692c-.339.301-.748.562-1.05.945c-.33.358-.656.734-.909 1.162c-.293.408-.492.856-.702 1.299c-.19.443-.343.896-.468 1.336c-.237.882-.343 1.72-.384 2.437c-.034.718-.014 1.315.028 1.747c.015.204.043.402.063.539l.025.168l.026-.006A4.5 4.5 0 1 0 6.5 10zm11 0c-.223 0-.437.034-.65.065c.069-.232.14-.468.254-.68c.114-.308.292-.575.469-.844c.148-.291.409-.488.601-.737c.201-.242.475-.403.692-.604c.213-.21.492-.315.714-.463c.232-.133.434-.28.65-.35l.539-.222l.474-.197l-.485-1.938l-.597.144c-.191.048-.424.104-.689.171c-.271.05-.56.187-.882.312c-.317.143-.686.238-1.028.467c-.344.218-.741.4-1.091.692c-.339.301-.748.562-1.05.944c-.33.358-.656.734-.909 1.162c-.293.408-.492.856-.702 1.299c-.19.443-.343.896-.468 1.336c-.237.882-.343 1.72-.384 2.437c-.034.718-.014 1.315.028 1.747c.015.204.043.402.063.539l.025.168l.026-.006A4.5 4.5 0 1 0 17.5 10z\" fill=\"currentColor\"></path></svg>";
   const DOCTIFY_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"-3 -5 42 42\" fill=\"#fff\" width=\"100%\" height=\"100%\" aria-hidden=\"true\" focusable=\"false\">\n    <path d=\"M27.888 5.277c-4.948-.517-7.311 3.558-9.925 4.379a8.437 8.437 0 0 1-.914.021c.014.005.028.012.042.016 2.73.236 6.145-1.23 9.742 1.73 6.453 5.312 2.005 15.359-9.25 19.367a28.16 28.16 0 0 0 2.295.697c1.538.397 3.192.024 4.496-.888C38.28 20.855 38.076 6.347 27.888 5.277z\" fill=\"#00E5D0\" />\n    <path d=\"M27.888 5.277c-4.948-.517-7.311 3.558-9.925 4.379a8.437 8.437 0 0 1-.914.021c.014.005.028.012.042.016 2.73.236 6.145-1.23 9.742 1.73 6.453 5.312 2.005 15.359-9.25 19.367a28.16 28.16 0 0 0 2.295.697c1.538.397 3.192.024 4.496-.888C38.28 20.855 38.076 6.347 27.888 5.277z\" fill=\"url(#a)\" />\n    <path d=\"M7.321 5.277c4.947-.517 7.311 3.558 9.925 4.379.296.026.601.028.913.021-.014.005-.027.012-.041.016-2.73.236-6.146-1.23-9.742 1.73-6.453 5.312-2.005 15.359 9.249 19.367-.735.259-1.501.492-2.294.697-1.538.397-3.192.024-4.497-.888C-3.07 20.855-2.867 6.347 7.321 5.277z\" fill=\"url(#b)\" />\n    <path d=\"M17.585 30.79a30.87 30.87 0 0 1-2.399.737C7.493 27.925 3.303 21.452 5.312 16.469c-.677 5.202 3.962 11.402 12.273 14.321z\" fill=\"url(#c)\" />\n    <path d=\"M26.833 11.423c-3.597-2.961-7.013-1.494-9.742-1.73-.014-.005-.028-.012-.042-.016-2.56-.056-5.622-.93-8.828 1.711-6.471 5.33-1.973 15.422 9.36 19.402 11.257-4.008 15.705-14.055 9.252-19.367z\" fill=\"url(#d)\" />\n    <path d=\"M12.872 3.953c-1.505-.842-1.694-2.681-.199-2.979a5.078 5.078 0 0 1 3.755.72c1.9 1.232 2.391 4.324 1.49 6.197-.192.398-.715.372-.979.019-1.119-1.503-2.563-3.114-4.067-3.957z\" fill=\"url(#e)\" />\n    <defs>\n        <radialGradient id=\"a\" cx=\"0\" cy=\"0\" r=\"1\" gradientUnits=\"userSpaceOnUse\" gradientTransform=\"rotate(-33.658 34.068 -24.922) scale(22.8641 23.0496)\">\n            <stop offset=\".537\" stop-color=\"#1CDFCD\" />\n            <stop offset=\"1\" stop-color=\"#00AA9C\" />\n        </radialGradient>\n        <radialGradient id=\"b\" cx=\"0\" cy=\"0\" r=\"1\" gradientUnits=\"userSpaceOnUse\" gradientTransform=\"rotate(178.58 9 5.763) scale(18.1446 18.2918)\">\n            <stop stop-color=\"#1DDFCE\" />\n            <stop offset=\".992\" stop-color=\"#2B5AE0\" />\n        </radialGradient>\n        <radialGradient id=\"d\" cx=\"0\" cy=\"0\" r=\"1\" gradientUnits=\"userSpaceOnUse\" gradientTransform=\"rotate(-151.073 18.22 8.492) scale(25.7248 25.9335)\">\n            <stop offset=\".088\" stop-color=\"#2B59E0\" />\n            <stop offset=\".797\" stop-color=\"#1DDFCE\" />\n        </radialGradient>\n        <radialGradient id=\"e\" cx=\"0\" cy=\"0\" r=\"1\" gradientUnits=\"userSpaceOnUse\" gradientTransform=\"matrix(6.88307 4.5002 -4.353 6.65794 13.462 3.598)\">\n            <stop offset=\".192\" stop-color=\"#2B59E0\" />\n            <stop offset=\".793\" stop-color=\"#1DDFCE\" />\n        </radialGradient>\n        <linearGradient id=\"c\" x1=\"15.396\" y1=\"30.976\" x2=\"5.758\" y2=\"21.463\" gradientUnits=\"userSpaceOnUse\">\n            <stop stop-color=\"#2B59E0\" />\n            <stop offset=\"1\" stop-color=\"#071037\" stop-opacity=\"0\" />\n        </linearGradient>\n    </defs>\n</svg>";
@@ -129,8 +129,14 @@
     vendorRow.append(doctify);
     // Existing component is aria-hidden; make the new tally available to AT.
     badge.removeAttribute('aria-hidden');
-    badge.setAttribute('role', 'img');
-    badge.setAttribute('aria-label', 'Combined preview rating ' + data.average.toFixed(2) + ' out of 5; ' + data.total + ' reviews across Google, Facebook, Yell and Doctify.');
+    badge.setAttribute('role', 'button');
+    badge.tabIndex = 0;
+    badge.setAttribute('aria-haspopup', 'dialog');
+    badge.setAttribute('aria-expanded', 'false');
+    badge.dataset.tdbReviewOpen = '';
+    badge.addEventListener('click', () => openDrawer(badge));
+    badge.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openDrawer(badge); } });
+    badge.setAttribute('aria-label', 'Read ' + data.total + ' patient reviews. Combined rating ' + data.average.toFixed(2) + ' out of 5.');
     badge.dataset.tdbReviewUpdated = version;
   }
   function render(slot) {
@@ -150,6 +156,14 @@
     caption.append(element('span', 'tdb-review-sr-only', ' — ' + review.platform));
     figure.append(ornament, quote, caption);
     if (review.historic) figure.append(element('p', 'tdb-review-history', 'Review of Dr Keely at a previous practice · ' + review.platform));
+    figure.setAttribute('role', 'button');
+    figure.tabIndex = 0;
+    figure.setAttribute('aria-haspopup', 'dialog');
+    figure.setAttribute('aria-expanded', 'false');
+    figure.setAttribute('aria-label', 'Read the full review by ' + review.reviewer);
+    figure.dataset.tdbReviewOpen = review.id;
+    figure.addEventListener('click', () => openDrawer(figure, review.id));
+    figure.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openDrawer(figure, review.id); } });
     slot.replaceChildren(figure);
     host.dataset.tdbReviewContext = context;
     host.dataset.tdbReviewId = review.id;
@@ -168,11 +182,39 @@
     const gap = heading.getBoundingClientRect().top - section.getBoundingClientRect().top;
     if (gap > 0 && Math.abs((parseFloat(root.style.marginBottom) || 0) - gap) > .5) root.style.marginBottom = gap + 'px';
   }
+  let drawerPromise;
+  function loadDrawer() {
+    if (window.TDBReviewDrawer) return Promise.resolve(window.TDBReviewDrawer);
+    if (!drawerPromise) drawerPromise = new Promise((resolve, reject) => {
+      if (!data.drawerScript) { reject(new Error('Review drawer is unavailable.')); return; }
+      const script = document.createElement('script');
+      script.src = data.drawerScript; script.crossOrigin = 'anonymous';
+      if (data.drawerIntegrity) script.integrity = data.drawerIntegrity;
+      script.onload = () => window.TDBReviewDrawer ? resolve(window.TDBReviewDrawer) : reject(new Error('Review drawer did not load.'));
+      script.onerror = () => { script.remove(); reject(new Error('Please try opening the reviews again.')); };
+      document.head.append(script);
+    }).catch(error => { drawerPromise = null; throw error; });
+    return drawerPromise;
+  }
+  async function openDrawer(trigger, reviewId) {
+    if (trigger.getAttribute('aria-busy') === 'true') return;
+    trigger.setAttribute('aria-busy', 'true');
+    try { document.querySelector('[data-tdb-review-error]')?.remove(); await (await loadDrawer()).open(trigger, reviewId); }
+    catch (error) {
+      let status = document.querySelector('[data-tdb-review-error]');
+      if (!status) { status = element('p', 'tdb-review-load-error'); status.dataset.tdbReviewError = ''; status.setAttribute('role', 'status'); trigger.insertAdjacentElement('afterend', status); }
+      status.textContent = 'The reviews could not load. Please tap again.';
+    } finally { trigger.removeAttribute('aria-busy'); }
+  }
   function start() {
     document.querySelectorAll('.button.is-review').forEach(updateBadge);
     document.querySelectorAll('[data-tdb-review-quote]').forEach(render);
     matchOuterSpacing();
     setInitialFade();
+    document.querySelectorAll('[data-tdb-review-open]').forEach(trigger => {
+      trigger.addEventListener('pointerenter', () => loadDrawer().catch(() => {}), {once:true});
+      trigger.addEventListener('focus', () => loadDrawer().catch(() => {}), {once:true});
+    });
     document.fonts?.ready.then(matchOuterSpacing);
     addEventListener('resize', matchOuterSpacing, { passive: true });
     addEventListener('pageshow', matchOuterSpacing);
@@ -180,7 +222,7 @@
     addEventListener('resize', scheduleFade, { passive: true });
     addEventListener('pageshow', setInitialFade);
   }
-  window.TDBPowerSnippets = Object.freeze({ version, mode: data.mode, capturedOn: data.capturedOn });
+  window.TDBPowerSnippets = Object.freeze({ version, mode: data.mode, capturedOn: data.capturedOn, sourceIcon, quoteMark: QUOTE_MARK, contextForPath, preview: data });
   // The quote slot and its preceding badge already exist at this script position.
   // Populate their final layout now, not at DOMContentLoaded or after a download.
   start();

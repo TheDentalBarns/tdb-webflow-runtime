@@ -1,4 +1,4 @@
-/* TDB Power Snippets v1.0.7 — staging design preview, no carousel. */
+/* TDB Power Snippets v1.1.0 — staging design preview, no carousel. */
 (function () {
   'use strict';
   function contextForPath(path) {
@@ -30,7 +30,7 @@
   }
   // A later production publication must not enable this draft preview.
   if (location.hostname !== 'dentalbarns.webflow.io' || window.TDBPowerSnippets) return;
-  const version = '1.0.7';
+  const version = '1.1.0';
   const dataNode = document.querySelector('[data-tdb-review-preview-data]');
   if (!dataNode) return;
   let data;
@@ -129,8 +129,14 @@
     vendorRow.append(doctify);
     // Existing component is aria-hidden; make the new tally available to AT.
     badge.removeAttribute('aria-hidden');
-    badge.setAttribute('role', 'img');
-    badge.setAttribute('aria-label', 'Combined preview rating ' + data.average.toFixed(2) + ' out of 5; ' + data.total + ' reviews across Google, Facebook, Yell and Doctify.');
+    badge.setAttribute('role', 'button');
+    badge.tabIndex = 0;
+    badge.setAttribute('aria-haspopup', 'dialog');
+    badge.setAttribute('aria-expanded', 'false');
+    badge.dataset.tdbReviewOpen = '';
+    badge.addEventListener('click', () => openDrawer(badge));
+    badge.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openDrawer(badge); } });
+    badge.setAttribute('aria-label', 'Read ' + data.total + ' patient reviews. Combined rating ' + data.average.toFixed(2) + ' out of 5.');
     badge.dataset.tdbReviewUpdated = version;
   }
   function render(slot) {
@@ -150,6 +156,14 @@
     caption.append(element('span', 'tdb-review-sr-only', ' — ' + review.platform));
     figure.append(ornament, quote, caption);
     if (review.historic) figure.append(element('p', 'tdb-review-history', 'Review of Dr Keely at a previous practice · ' + review.platform));
+    figure.setAttribute('role', 'button');
+    figure.tabIndex = 0;
+    figure.setAttribute('aria-haspopup', 'dialog');
+    figure.setAttribute('aria-expanded', 'false');
+    figure.setAttribute('aria-label', 'Read the full review by ' + review.reviewer);
+    figure.dataset.tdbReviewOpen = review.id;
+    figure.addEventListener('click', () => openDrawer(figure, review.id));
+    figure.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openDrawer(figure, review.id); } });
     slot.replaceChildren(figure);
     host.dataset.tdbReviewContext = context;
     host.dataset.tdbReviewId = review.id;
@@ -168,11 +182,39 @@
     const gap = heading.getBoundingClientRect().top - section.getBoundingClientRect().top;
     if (gap > 0 && Math.abs((parseFloat(root.style.marginBottom) || 0) - gap) > .5) root.style.marginBottom = gap + 'px';
   }
+  let drawerPromise;
+  function loadDrawer() {
+    if (window.TDBReviewDrawer) return Promise.resolve(window.TDBReviewDrawer);
+    if (!drawerPromise) drawerPromise = new Promise((resolve, reject) => {
+      if (!data.drawerScript) { reject(new Error('Review drawer is unavailable.')); return; }
+      const script = document.createElement('script');
+      script.src = data.drawerScript; script.crossOrigin = 'anonymous';
+      if (data.drawerIntegrity) script.integrity = data.drawerIntegrity;
+      script.onload = () => window.TDBReviewDrawer ? resolve(window.TDBReviewDrawer) : reject(new Error('Review drawer did not load.'));
+      script.onerror = () => { script.remove(); reject(new Error('Please try opening the reviews again.')); };
+      document.head.append(script);
+    }).catch(error => { drawerPromise = null; throw error; });
+    return drawerPromise;
+  }
+  async function openDrawer(trigger, reviewId) {
+    if (trigger.getAttribute('aria-busy') === 'true') return;
+    trigger.setAttribute('aria-busy', 'true');
+    try { document.querySelector('[data-tdb-review-error]')?.remove(); await (await loadDrawer()).open(trigger, reviewId); }
+    catch (error) {
+      let status = document.querySelector('[data-tdb-review-error]');
+      if (!status) { status = element('p', 'tdb-review-load-error'); status.dataset.tdbReviewError = ''; status.setAttribute('role', 'status'); trigger.insertAdjacentElement('afterend', status); }
+      status.textContent = 'The reviews could not load. Please tap again.';
+    } finally { trigger.removeAttribute('aria-busy'); }
+  }
   function start() {
     document.querySelectorAll('.button.is-review').forEach(updateBadge);
     document.querySelectorAll('[data-tdb-review-quote]').forEach(render);
     matchOuterSpacing();
     setInitialFade();
+    document.querySelectorAll('[data-tdb-review-open]').forEach(trigger => {
+      trigger.addEventListener('pointerenter', () => loadDrawer().catch(() => {}), {once:true});
+      trigger.addEventListener('focus', () => loadDrawer().catch(() => {}), {once:true});
+    });
     document.fonts?.ready.then(matchOuterSpacing);
     addEventListener('resize', matchOuterSpacing, { passive: true });
     addEventListener('pageshow', matchOuterSpacing);
@@ -180,7 +222,7 @@
     addEventListener('resize', scheduleFade, { passive: true });
     addEventListener('pageshow', setInitialFade);
   }
-  window.TDBPowerSnippets = Object.freeze({ version, mode: data.mode, capturedOn: data.capturedOn });
+  window.TDBPowerSnippets = Object.freeze({ version, mode: data.mode, capturedOn: data.capturedOn, sourceIcon, quoteMark: QUOTE_MARK, contextForPath, preview: data });
   // The quote slot and its preceding badge already exist at this script position.
   // Populate their final layout now, not at DOMContentLoaded or after a download.
   start();

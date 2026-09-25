@@ -1,4 +1,4 @@
-/* TDB Power Snippets v1.0.7 — uses existing quotation typography and brand colour. */
+/* TDB Power Snippets v1.1.0 — uses existing quotation typography and brand colour. */
 [data-tdb-power-snippet]:not([data-tdb-review-ready]){display:none}
 [data-tdb-power-snippet][data-tdb-review-ready]{display:block;height:auto;min-height:0;text-align:center}
 .is-review:has(> .button[data-tdb-review-updated]){flex-direction:column;height:auto}
@@ -22,3 +22,8 @@
 
 /* Follow the existing native dark subhero variant. */
 [data-wf--hero---headline--variant="dark"] .tdb-power-quote-mark{opacity:.35}
+
+[data-tdb-review-open]{cursor:pointer;touch-action:manipulation}
+[data-tdb-review-open]:focus-visible{outline:2px solid currentColor;outline-offset:.5rem}
+[data-tdb-review-open][aria-busy="true"]{cursor:progress}
+.tdb-review-load-error{font-size:.85rem;text-align:center}

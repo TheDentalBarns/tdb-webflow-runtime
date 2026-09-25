@@ -37,7 +37,7 @@ The user explicitly requested the snippet attribution to stay animated when redu
 
 ## v1.0.4 spacing and editorial variety
 
-Restore the native margin-xxlarge spacing beneath the badge, matching the text-to-badge spacing above, rather than matching the smaller quote-mark-to-text spacing. Keep the larger outer spacing below attribution. Replace repeated global picks with one fixed, contextually relevant CMS excerpt per main page group: Home Hannah Birkett; VIP Maria Mogford; nervous care Louise Bishton; veneers Connie Greenaway; cosmetic Chloe Morris; Smile Design Haley Allen; assessment Rebecca Baddeley; hygiene Sarah Scotton-Peters (Facebook); clear aligners Sherry Garcha; Invisalign Aneeqa Adil; bonding Amie Scott; whitening Samantha Fletcher; restorative Sanj. Existing global CMS ranks remain unchanged; these are deliberate page selections, not a re-ranking or random rotation.
+Restore the native margin-xxlarge spacing beneath the badge, matching the text-to-badge spacing above, rather than matching the smaller quote-mark-to-text spacing. Keep the larger outer spacing below attribution. Replace repeated global picks with one fixed, contextually relevant CMS excerpt per main page group: Home, VIP, nervous care, veneers, cosmetic, Smile Design, assessment, hygiene, clear aligners, Invisalign, bonding, whitening and restorative. Reviewer identities and selected content remain in Webflow. Existing global CMS ranks remain unchanged; these are deliberate page selections, not a re-ranking or random rotation.
 
 
 ### v1.0.5 — Home outer spacing
@@ -45,7 +45,7 @@ Home now matches the distance from section top to subhero heading beneath the re
 
 
 ### v1.0.6 — Location reviews and dark variant
-Added location topic, verbatim excerpt and location snippet rank to the review CMS. Location uses Hayley Rose’s Facebook excerpt about fields and streams. The existing dark Hero - Headline variant reduces quote ornament opacity to 35%, preserving layout and attribution animation.
+Added location topic, verbatim excerpt and location snippet rank to the review CMS. Location uses a Facebook excerpt about the surroundings. The existing dark Hero - Headline variant reduces quote ornament opacity to 35%, preserving layout and attribution animation.
 Location also matches outer bottom spacing to the section-to-heading distance, recalculated on resize.
 
 
@@ -53,3 +53,15 @@ Location also matches outer bottom spacing to the section-to-heading distance, r
 The shared embeds now run the snapshot renderer synchronously at their parser position. Critical review CSS is bundled into the renderer and installed before it inserts SVGs or reveals the quote. No separate review stylesheet or deferred script fetch controls the first layout. The exact selected quote therefore occupies its natural responsive height immediately, instead of inserting below the badge after DOMContentLoaded. The attribution SVG has intrinsic dimensions and a fixed, clipped square wrapper, with grayscale applied before insertion. Attribution opacity is set directly to its current scroll position at startup; subsequent scroll uses the existing DD smoothing. Home/Location outer spacing is established in that same initial task and avoids redundant margin writes. No content selection, tallies, native visibility switches or production hostname guard changed.
 
 Deployment: build the runtime with the CSS placeholder replaced, then include that exact built source inline after the existing JSON snapshot inside both new review embeds. The runtime remains versioned in GitHub; no patient snapshot data is committed. To reproduce the build, run `python scripts/build-power-snippets.py`.
+
+### v1.1.0 — Patient review drawer
+
+The badge now opens the review collection, ordered for the current page. Clicking a power snippet opens its exact review first. The separate drawer module loads on intent, so the v1.0.7 synchronous first render is preserved. It follows Smile Gallery v24 entrance/exit timings, horizontal drag thresholds, bottom navigation arrows, native navbar/VIP displacement and delayed chrome restoration. Mobile uses the full viewport; desktop uses a right-side panel. Keyboard focus is trapped, the background is inert and scroll-locked, and closing restores the originating control and scroll position.
+
+Each slide has the existing platform vector and star artwork, quotation mark, a fixed snippet area, reviewer/date, a fixed review area and a source link. Read more gives long text additional space inside the panel and allows internal scrolling; Read less restores the summary. Recorded ratings are shown accurately, including the four-star Doctify review; unrated Yell entries are labelled. Historic Doctify cards identify Dr Keely's previous-practice provenance. Profile links are labelled View on [platform] rather than presented as exact review permalinks.
+
+Light controls provide topic, relevant/newest ordering and an optional source filter. All sources deduplicates the two cross-posted pairs. The snapshot contains 82 visible source entries, producing 80 slides in All sources. The excluded one-star review text is absent from the snapshot; its rating remains in the 83-entry aggregate. The score-information panel explains the difference and the Facebook/Yell calculation basis. No CMS approval or publication flags are changed.
+
+Data is an inert gzip/base64 script in a separate embed inside each existing shared hero component, decoded only when the drawer opens. The runtime uses native DecompressionStream in current browsers and offers a retry message if loading fails. It remains a staging snapshot, not an automatic CMS feed. Do not commit patient content to the public runtime repository. The drawer bundle is pinned to an immutable GitHub commit with SHA-384 integrity; no site-wide custom code is replaced.
+
+Validation: four Node tests cover relevance ordering, exact snippet entry across cross-posted sources, newest/filter/dedup behaviour and safe source URLs. A staging-only `?review-preview=mobile` layout mode constrains the real panel to 390 by 844 CSS pixels for narrow-layout inspection; it is not device emulation. Manual staging interaction checks are recorded after deployment. Rollback: restore both v1.0.7 power embeds; the inert drawer-data embeds can remain or be removed. No custom domains are published.
