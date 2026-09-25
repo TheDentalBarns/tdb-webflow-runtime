@@ -38,3 +38,7 @@ The user explicitly requested the snippet attribution to stay animated when redu
 ## v1.0.4 spacing and editorial variety
 
 Restore the native margin-xxlarge spacing beneath the badge, matching the text-to-badge spacing above, rather than matching the smaller quote-mark-to-text spacing. Keep the larger outer spacing below attribution. Replace repeated global picks with one fixed, contextually relevant CMS excerpt per main page group: Home Hannah Birkett; VIP Maria Mogford; nervous care Louise Bishton; veneers Connie Greenaway; cosmetic Chloe Morris; Smile Design Haley Allen; assessment Rebecca Baddeley; hygiene Sarah Scotton-Peters (Facebook); clear aligners Sherry Garcha; Invisalign Aneeqa Adil; bonding Amie Scott; whitening Samantha Fletcher; restorative Sanj. Existing global CMS ranks remain unchanged; these are deliberate page selections, not a re-ranking or random rotation.
+
+
+### v1.0.5 — Home outer spacing
+Home now matches the distance from section top to subhero heading beneath the reviewer attribution. Recalculates on resize and font readiness; treatment and service templates are unchanged.

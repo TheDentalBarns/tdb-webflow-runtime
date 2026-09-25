@@ -1,4 +1,4 @@
-/* TDB Power Snippets v1.0.4 — uses existing quotation typography and brand colour. */
+/* TDB Power Snippets v1.0.5 — uses existing quotation typography and brand colour. */
 [data-tdb-power-snippet]:not([data-tdb-review-ready]){display:none}
 [data-tdb-power-snippet][data-tdb-review-ready]{display:block;height:auto;min-height:0;text-align:center}
 .is-review:has(> .button[data-tdb-review-updated]){flex-direction:column;height:auto}
