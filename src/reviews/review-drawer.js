@@ -1,4 +1,4 @@
-/* TDB Patient Reviews v1.4.0 — staging-only, Smile Gallery motion and continuous reading. */
+/* TDB Patient Reviews v1.5.0 — staging-only, Smile Gallery motion and continuous reading. */
 (function () {
   'use strict';
   function chooseReviews(records, options) {
@@ -20,7 +20,7 @@
   if(location.hostname!=='dentalbarns.webflow.io'||window.TDBReviewDrawer)return;
   const api=window.TDBPowerSnippets;
   if(!api)return;
-  const style=document.createElement('style');style.dataset.tdbReviewDrawerStyles='1.4.0';style.textContent=__DRAWER_CSS__;document.head.append(style);
+  const style=document.createElement('style');style.dataset.tdbReviewDrawerStyles='1.5.0';style.textContent=__DRAWER_CSS__;document.head.append(style);
   const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
   const button=(label,cls,action)=>{const b=el('button',cls);b.type='button';b.setAttribute('aria-label',label);if(action)b.addEventListener('click',action);return b;};
   const arrow=()=>{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 16 16');s.setAttribute('aria-hidden','true');s.innerHTML='<path fill="currentColor" d="M12.6893 7.25L6.96967 1.53033L8.03033 0.469666L15.5607 8L8.03033 15.5303L6.96967 14.4697L12.6893 8.75H0.5V7.25H12.6893Z"/>';return s;};
@@ -153,5 +153,5 @@
   addEventListener('scroll',()=>{if(!chrome?.waiting||overlay&&!overlay.hidden)return;const dy=scrollY-chrome.y;chrome.y=scrollY;if(dy>0){chrome.up=0;chrome.down+=dy;}else if(dy<0){chrome.down=0;chrome.up-=dy;}if(chrome.up>120||chrome.down>140||scrollY<=40&&dy<0)requestAnimationFrame(()=>requestAnimationFrame(()=>{if(overlay.hidden)releaseChrome();}));},{passive:true});
   document.addEventListener('focusin',e=>{if(chrome?.waiting&&e.target.closest?.('.navbar10_component,#tdb-vip-drawer'))releaseChrome();});
   addEventListener('click',e=>{if(chrome?.waiting&&/#vip/i.test(e.target.closest?.('a[href]')?.getAttribute('href')||''))releaseChrome();},true);
-  window.TDBReviewDrawer=Object.freeze({version:'1.4.0',open,close});
+  window.TDBReviewDrawer=Object.freeze({version:'1.5.0',open,close});
 })();
