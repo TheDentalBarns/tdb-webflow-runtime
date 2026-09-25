@@ -31,8 +31,8 @@
 .tdb-ri .tdb-rv-body:focus-visible{outline-offset:2px}
 .tdb-ri-loading{display:grid;place-items:center;height:calc(var(--ri-height) + 1.5rem + max(3rem,44px));color:var(--rv-cream);font-size:.9rem}
 @media(max-width:767px){.tdb-ri{--ri-gap:12px}}
-/* One share for the snippet, two for the body, with the byline and Read more reserved. */
+/* Match the drawer's 14rem quote panel; reserve twice that height for the body. */
 @container tdb-review-previews (max-width:767px){
- .tdb-ri-viewport,.tdb-ri-loading{--ri-height:clamp(27rem,calc(100svh - 10rem),37rem)}
- .tdb-ri .tdb-ri-card{grid-template-rows:minmax(0,1fr) 4.5rem minmax(0,2fr) max(2.75rem,44px)}
+ .tdb-ri-viewport,.tdb-ri-loading{--ri-quote-height:14rem;--ri-height:calc(var(--ri-quote-height) * 3 + 4.5rem + max(2.75rem,44px) + 2.5rem)}
+ .tdb-ri .tdb-ri-card{grid-template-rows:var(--ri-quote-height) 4.5rem calc(var(--ri-quote-height) * 2) max(2.75rem,44px)}
 }
