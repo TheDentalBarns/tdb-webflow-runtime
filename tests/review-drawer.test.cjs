@@ -15,6 +15,10 @@ test('newest ignores editorial preference and filters before deduplicating',()=>
  const records=[r('old',{topics:['nervous'],date:'2020-01-01'}),r('new',{topics:['nervous'],date:'2026-01-01'}),r('other',{date:'2026-09-01'})];
  assert.deepEqual(chooseReviews(records,{topic:'nervous',sort:'newest',preferredId:'old'}).map(x=>x.id),['new','old']);
 });
+test('an explicit topic uses its own ranking instead of the page or snippet preference',()=>{
+ const records=[r('page-pick',{topics:['nervous'],rank:1,nRank:5}),r('strongest-nervous',{topics:['nervous'],rank:10,nRank:1})];
+ assert.deepEqual(chooseReviews(records,{topic:'nervous',context:'location',preferredId:'page-pick'}).map(x=>x.id),['strongest-nervous','page-pick']);
+});
 test('source links reject script/data and non-HTTPS URLs',()=>{
  for(const url of ['javascript:alert(1)','data:text/html,x','http://example.com','/unknown'])assert.equal(safeURL(url),'');
  assert.equal(safeURL('https://www.facebook.com/thedentalbarns/'),'https://www.facebook.com/thedentalbarns/');

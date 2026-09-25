@@ -5,11 +5,12 @@
   function chooseReviews(records, options) {
     const { topic='all', platform='all', sort='relevant', context='default', preferredId='' } = options;
     const list=records.filter(r=>(topic==='all'||r.topics.includes(topic))&&(platform==='all'||r.platform===platform));
-    const relevance=r=>context==='nervous'?r.nRank:context==='invisalign'?r.iRank:context==='location'?r.lRank:r.rank;
+    const effectiveContext=topic==='all'?context:topic;
+    const relevance=r=>effectiveContext==='nervous'?r.nRank:effectiveContext==='invisalign'?r.iRank:effectiveContext==='location'?r.lRank:r.rank;
     list.sort((a,b)=>{
       if(sort==='newest') return (Date.parse(b.date)||0)-(Date.parse(a.date)||0)||a.rank-b.rank||a.id.localeCompare(b.id);
-      const preferred=(b.id===preferredId)-(a.id===preferredId); if(preferred)return preferred;
-      const match=Number(b.topics.includes(context))-Number(a.topics.includes(context)); if(match)return match;
+      const preferred=topic==='all'?(b.id===preferredId)-(a.id===preferredId):0; if(preferred)return preferred;
+      const match=Number(b.topics.includes(effectiveContext))-Number(a.topics.includes(effectiveContext)); if(match)return match;
       return (relevance(a)||999)-(relevance(b)||999)||a.rank-b.rank||a.id.localeCompare(b.id);
     });
     const seen=new Set();
@@ -114,7 +115,7 @@
     const hideInfo=button('Close score information','tdb-rv-filter-done',()=>{details.hidden=true;info.setAttribute('aria-expanded','false');info.focus();});hideInfo.textContent='Close';details.append(hideInfo);
     const frame=el('div','tdb-rv-frame');track=el('div','tdb-rv-track');track.setAttribute('aria-roledescription','carousel');track.setAttribute('aria-label','Patient reviews');frame.append(track);
     const nav=el('footer','tdb-rv-navigation');nav.setAttribute('aria-label','Review navigation');position=el('div','tdb-rv-position');position.setAttribute('role','status');position.setAttribute('aria-live','polite');position.setAttribute('aria-atomic','true');const arrows=el('div','tdb-rv-arrows');prev=button('Previous review','tdb-rv-arrow is-prev',()=>step(-1));next=button('Next review','tdb-rv-arrow',()=>step(1));prev.append(arrow());next.append(arrow());arrows.append(prev,next);nav.append(position,arrows);
-    panel.append(frame,header,filterPanel,details,nav);overlay.append(panel);document.body.append(overlay);
+    panel.append(header,filterPanel,details,frame,nav);overlay.append(panel);document.body.append(overlay);
     overlay.addEventListener('click',e=>{if(e.target===overlay)close();});
     overlay.addEventListener('keydown',e=>{
       if(e.key==='Escape'){e.preventDefault();if(!details.hidden){details.hidden=true;info.setAttribute('aria-expanded','false');info.focus();}else if(!filterPanel.hidden){setFiltersOpen(false);filterButton.focus();}else close();return;}
@@ -142,7 +143,7 @@
     opening=true;
     try{
       data=await getData();if(!data?.records?.length)throw Error('No reviews available.');create();
-      sourceTrigger=trigger;context=api.contextForPath(location.pathname)||'default';preferredId=reviewId||api.preview.contexts[context]?.id||'';topic=platform='all';sort='relevant';topicSelect.value=platformSelect.value='all';sortSelect.value='relevant';filterPanel.hidden=details.hidden=true;filterButton.setAttribute('aria-expanded','false');summary.querySelector('.tdb-rv-info').setAttribute('aria-expanded','false');refresh();
+      sourceTrigger=trigger;context=api.contextForPath(location.pathname)||'default';preferredId=reviewId||'';topic=platform='all';sort='relevant';topicSelect.value=platformSelect.value='all';sortSelect.value='relevant';filterPanel.hidden=details.hidden=true;filterButton.setAttribute('aria-expanded','false');summary.querySelector('.tdb-rv-info').setAttribute('aria-expanded','false');refresh();
       overlay.hidden=false;checkOverflow(current);sourceTrigger?.setAttribute('aria-expanded','true');hideChrome();lockPage();closeBtn.focus({preventScroll:true});
       requestAnimationFrame(()=>requestAnimationFrame(()=>{if(overlay.hidden||closing)return;overlay.classList.add('is-open');openTimer=setTimeout(()=>{if(!closing){overlay.classList.add('is-controls-visible');checkOverflow(current);}},reduced()?0:420);}));
     }finally{opening=false;}
