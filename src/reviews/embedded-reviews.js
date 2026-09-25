@@ -6,7 +6,7 @@
   if(location.hostname!=='dentalbarns.webflow.io'||location.pathname.replace(/\/+$/,'')!==''){
     const legacy=document.createElement('div');legacy.className='elfsight-app-616d754e-cd36-44fc-bf8e-49bde9baae09';legacy.setAttribute('data-elfsight-app-lazy','');host.append(legacy);return;
   }
-  const style=document.createElement('style');style.dataset.tdbEmbeddedReviewStyles='1.4.0';style.textContent=__EMBEDDED_CSS__;document.head.append(style);
+  const style=document.createElement('style');style.dataset.tdbEmbeddedReviewStyles='1.4.1';style.textContent=__EMBEDDED_CSS__;document.head.append(style);
   host.closest('.section_google-reviews')?.classList.add('tdb-review-inline-section');
   const root=document.createElement('div');root.className='tdb-ri swiper';root.setAttribute('role','region');root.setAttribute('aria-label','Patient reviews');root.setAttribute('aria-roledescription','carousel');root.setAttribute('aria-busy','true');root.dataset.tdbEmbeddedReviews='';
   // Reuse the drawer's staging-only narrow preview for the embedded card layout.
