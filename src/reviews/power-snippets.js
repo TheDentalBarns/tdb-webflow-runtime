@@ -1,9 +1,10 @@
-/* TDB Power Snippets v1.0.5 — staging design preview, no carousel. */
+/* TDB Power Snippets v1.0.6 — staging design preview, no carousel. */
 (function () {
   'use strict';
   function contextForPath(path) {
     path = path.toLowerCase().replace(/\/+$/, '') || '/';
     if (/facial-aesthetics/.test(path)) return null;
+    if (path === '/location') return 'location';
     if (/nervous/.test(path)) return 'nervous';
     if (/invisalign/.test(path)) return 'invisalign';
     if (/clear-aligners/.test(path)) return 'clear-aligners';
@@ -29,7 +30,7 @@
   }
   // A later production publication must not enable this draft preview.
   if (location.hostname !== 'dentalbarns.webflow.io' || window.TDBPowerSnippets) return;
-  const version = '1.0.5';
+  const version = '1.0.6';
   const assetBase = new URL('.', document.currentScript.src).href;
   const dataNode = document.querySelector('[data-tdb-review-preview-data]');
   if (!dataNode) return;
@@ -146,13 +147,13 @@
     host.dataset.tdbReviewReady = version;
     animated.push({ el: caption, opacity: 1 });
   }
-  // Home includes both section padding and heading margin above its subhero.
+  // Home and Location include both section padding and heading margin above its subhero.
   // Match that combined distance below the attribution without changing templates.
-  function matchHomeSpacing() {
-    if (location.pathname.replace(/\/+$/, '') !== '') return;
+  function matchOuterSpacing() {
+    if (!['', '/location'].includes(location.pathname.replace(/\/+$/, ''))) return;
     const host = document.querySelector('[data-tdb-power-snippet][data-tdb-review-ready]');
     const root = host?.parentElement;
-    const section = root?.closest('.section_gallery14');
+    const section = root?.closest('section');
     const heading = root?.querySelector('h2');
     if (!section || !heading || !host.getClientRects().length) return;
     const gap = heading.getBoundingClientRect().top - section.getBoundingClientRect().top;
@@ -162,11 +163,11 @@
     document.querySelectorAll('.button.is-review').forEach(updateBadge);
     document.querySelectorAll('[data-tdb-review-quote]').forEach(render);
     scheduleFade();
-    matchHomeSpacing();
-    css.addEventListener('load', matchHomeSpacing, { once: true });
-    document.fonts?.ready.then(matchHomeSpacing);
-    addEventListener('resize', matchHomeSpacing, { passive: true });
-    addEventListener('pageshow', matchHomeSpacing);
+    matchOuterSpacing();
+    css.addEventListener('load', matchOuterSpacing, { once: true });
+    document.fonts?.ready.then(matchOuterSpacing);
+    addEventListener('resize', matchOuterSpacing, { passive: true });
+    addEventListener('pageshow', matchOuterSpacing);
     addEventListener('scroll', scheduleFade, { passive: true });
     addEventListener('resize', scheduleFade, { passive: true });
     addEventListener('pageshow', scheduleFade);

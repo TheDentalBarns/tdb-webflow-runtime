@@ -42,3 +42,8 @@ Restore the native margin-xxlarge spacing beneath the badge, matching the text-t
 
 ### v1.0.5 — Home outer spacing
 Home now matches the distance from section top to subhero heading beneath the reviewer attribution. Recalculates on resize and font readiness; treatment and service templates are unchanged.
+
+
+### v1.0.6 — Location reviews and dark variant
+Added location topic, verbatim excerpt and location snippet rank to the review CMS. Location uses Hayley Rose’s Facebook excerpt about fields and streams. The existing dark Hero - Headline variant reduces quote ornament opacity to 35%, preserving layout and attribution animation.
+Location also matches outer bottom spacing to the section-to-heading distance, recalculated on resize.
