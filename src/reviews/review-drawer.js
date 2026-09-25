@@ -64,6 +64,8 @@
     const source=button(r.platform==='Doctify'?'About these Doctify reviews':'Open '+r.platform+' source','tdb-rv-source',()=>openSource(r));const icon=api.sourceIcon(r.platform,false);icon.className='tdb-rv-platform-icon';icon.title=r.platform;source.append(icon,el('span','tdb-review-sr-only',r.platform),stars(r.rating,r.platform));by.append(identity,source);
     const body=el('div','tdb-rv-body');body.id='tdb-rv-body-'+r.id;body.setAttribute('aria-label','Full review by '+r.name);body.append(el('p','',r.text));
     slide.append(quote,by);if(r.historic)slide.append(el('div','tdb-rv-historic','Dr Keely · review from a previous practice'));slide.append(body);
+    if(r.showResponse&&r.response){const response=el('aside','tdb-rv-response');response.setAttribute('aria-label','The Dental Barns response');response.append(el('h3','','The Dental Barns response'),el('p','',r.response));slide.append(response);}
+
     body.tabIndex=0;body.setAttribute('role',r.platform==='Doctify'?'button':'link');body.setAttribute('aria-label',r.platform==='Doctify'?'Read about this Doctify review':'Open '+r.platform+' source for this review');
     let start=null;body.addEventListener('pointerdown',e=>{start={x:e.clientX,y:e.clientY};},{passive:true});
     body.addEventListener('click',e=>{if(transition||window.getSelection()?.toString()||start&&Math.hypot(e.clientX-start.x,e.clientY-start.y)>10)return;openSource(r);});
@@ -74,7 +76,7 @@
   let sourceNote;
   function openSource(r){
     if(r.platform!=='Doctify'){
-      const url=safeURL(r.url)||(r.platform==='Facebook'?'https://www.facebook.com/thedentalbarns/reviews/':r.platform==='Google'?'https://www.google.com/maps/search/?api=1&query=The+Dental+Barns+Blackbrook+Lichfield':'');
+      const url=safeURL(r.url)||(r.platform==='Facebook'?'https://www.facebook.com/thedentalbarns/reviews/':r.platform==='Google'?'https://maps.app.goo.gl/pNwZ1zif6LhHUfr1A':'');
       if(url)window.open(url,'_blank','noopener,noreferrer');return;
     }
     if(!sourceNote){

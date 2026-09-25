@@ -78,3 +78,7 @@ button.tdb-rv-source{border:0;background:transparent;color:inherit;padding:0;cur
 .tdb-rv-note .tdb-rv-note-small{font-size:.8rem}
 .tdb-rv-note-close{border:1px solid var(--rv-cream);background:transparent;padding:.6rem 1rem;font:inherit;color:inherit;cursor:pointer}
 @keyframes tdb-rv-note-in{from{opacity:0;transform:translateX(.5rem);clip-path:inset(0 0 0 100%)}to{opacity:1;transform:none;clip-path:inset(0)}}
+
+.tdb-rv-response{margin-top:2rem;padding:1.5rem;background:var(--base-color-brand--orange-2,#ebe2d2);border-top:1px solid var(--rv-cream)}
+.tdb-rv-response h3{font:inherit;font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;margin:0 0 1rem}
+.tdb-rv-response p{font:inherit;line-height:1.7;margin:0;white-space:pre-wrap}

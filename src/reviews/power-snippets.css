@@ -28,9 +28,9 @@
 [data-tdb-review-open][aria-busy="true"]{cursor:progress}
 .tdb-review-load-error{font-size:.85rem;text-align:center}
 
-.tdb-review-carousel{position:relative;width:100%;min-height:300px;text-align:center}
-.tdb-rc-viewport{min-height:300px;display:grid;overflow:hidden;touch-action:pan-y pinch-zoom}
-.tdb-rc-card{grid-area:1/1;min-width:0;display:flex;align-items:flex-start;justify-content:center;padding:0;box-sizing:border-box;visibility:hidden}
+.tdb-review-carousel{display:flow-root;position:relative;width:100%;min-height:300px;text-align:center}
+.tdb-rc-viewport{min-height:calc(300px + var(--tdb-rc-star-gap,0px));margin-top:calc(-1 * var(--tdb-rc-star-gap,0px));display:grid;overflow:hidden;touch-action:pan-y pinch-zoom}
+.tdb-rc-card{grid-area:1/1;min-width:0;display:flex;align-items:center;justify-content:center;padding:0;box-sizing:border-box;visibility:hidden}
 .tdb-rc-open{width:100%;cursor:pointer;outline-offset:-2px;opacity:0;transition:opacity 400ms ease-out}
 .tdb-rc-card.is-settled .tdb-rc-open{opacity:1}
 .tdb-rc-quote{margin:0;text-wrap:pretty}

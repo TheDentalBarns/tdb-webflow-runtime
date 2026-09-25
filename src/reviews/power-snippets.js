@@ -275,7 +275,11 @@
       root.addEventListener('focusin',()=>{focused=true;clearTimeout(timer);});root.addEventListener('focusout',()=>{requestAnimationFrame(()=>{focused=root.contains(document.activeElement);schedule();});});
       document.addEventListener('visibilitychange',schedule);
       new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;schedule();},{threshold:.25}).observe(root);
-      old.replaceWith(root);paint();slides[0].classList.add('is-settled');setInitialFade();
+      old.replaceWith(root);
+      const fixedStars=root.parentElement.querySelector('.testimonial15_rating-wrapper');
+      function centre(){if(!fixedStars)return;const gap=Math.max(0,root.getBoundingClientRect().top-fixedStars.getBoundingClientRect().bottom);root.style.setProperty('--tdb-rc-star-gap',gap+'px');}
+      centre();new ResizeObserver(centre).observe(root.parentElement);
+      paint();slides[0].classList.add('is-settled');setInitialFade();
     });
   }
   function ensureNervousCarousel(){
