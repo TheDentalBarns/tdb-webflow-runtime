@@ -237,7 +237,7 @@
         const card=element('div','tdb-rc-card');card.setAttribute('role','group');card.setAttribute('aria-roledescription','slide');card.setAttribute('aria-label',(i+1)+' of '+records.length);
         const quote=element('div','tdb-rc-open');quote.tabIndex=0;quote.setAttribute('role','button');quote.setAttribute('aria-haspopup','dialog');quote.setAttribute('aria-label','Read the full review by '+r.name);quote.dataset.tdbReviewOpen=r.id;
         quote.append(element('p','tdb-rc-quote text-size-large',r.excerpt));
-        const name=element('div','tdb-rc-name text-style-tagline-restored');name.append(sourceIcon(r.platform,true),element('span','',r.name));quote.append(name);
+        const name=element('div','tdb-rc-name text-style-tagline-restored');name.append(sourceIcon(r.platform,true),element('span','',r.name));quote.append(name);animated.push({el:name,opacity:0});
         quote.addEventListener('click',()=>{if(performance.now()>suppressUntil&&!moving)openDrawer(quote,r.id);});
         quote.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openDrawer(quote,r.id);}});
         card.append(quote);viewport.append(card);return card;
@@ -275,7 +275,7 @@
       root.addEventListener('focusin',()=>{focused=true;clearTimeout(timer);});root.addEventListener('focusout',()=>{requestAnimationFrame(()=>{focused=root.contains(document.activeElement);schedule();});});
       document.addEventListener('visibilitychange',schedule);
       new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;schedule();},{threshold:.25}).observe(root);
-      old.replaceWith(root);paint();slides[0].classList.add('is-settled');
+      old.replaceWith(root);paint();slides[0].classList.add('is-settled');setInitialFade();
     });
   }
   function ensureNervousCarousel(){
