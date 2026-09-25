@@ -86,7 +86,11 @@
     if(transition!==t)return;transition=null;t.animations.forEach(a=>a.cancel());if(commit)index+=t.direction;
     if(t.from.contains(document.activeElement))closeBtn.focus({preventScroll:true});setCurrent(commit?t.to:t.from,commit?(t.direction<0?140:100):60);
   }
-  function step(direction){drag=null;if(beginSlide(direction))settle(true);}
+  function step(direction){
+    drag=null;if(closing)return;
+    if(transition){const t=transition;transition=null;t.animations.forEach(a=>a.cancel());index+=t.direction;setCurrent(t.to);}
+    if(beginSlide(direction))settle(true);
+  }
   function refresh(){
     cancelSlide();list=chooseReviews(data.records,{context,preferredId});index=0;
     if(list.length)setCurrent(makeSlide(list[0]));else{current=null;track.replaceChildren(el('div','tdb-rv-empty','No reviews available.'));updatePosition();}
