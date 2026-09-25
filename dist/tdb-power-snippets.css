@@ -1,7 +1,7 @@
-/* TDB Power Snippets v1.0.3 — uses existing quotation typography and brand colour. */
+/* TDB Power Snippets v1.0.4 — uses existing quotation typography and brand colour. */
 [data-tdb-power-snippet]:not([data-tdb-review-ready]){display:none}
 [data-tdb-power-snippet][data-tdb-review-ready]{display:block;height:auto;min-height:0;text-align:center}
-.is-review:has(> .button[data-tdb-review-updated]){flex-direction:column;height:auto;margin-bottom:2rem}
+.is-review:has(> .button[data-tdb-review-updated]){flex-direction:column;height:auto}
 .tdb-power-quote{margin:0 auto;max-width:100%}
 .tdb-power-quote-mark{display:block;margin:0 auto 2rem}
 .tdb-power-quote-mark svg{display:block;width:100%;height:100%}
@@ -16,7 +16,6 @@
 @media(max-width:479px){
  .button.is-review[data-tdb-review-updated]{column-gap:.45rem;row-gap:.35rem;flex-wrap:wrap;justify-content:center;padding-left:.85rem;padding-right:.85rem;max-width:100%}
  .button.is-review[data-tdb-review-updated] .testimonial15_rating-wrapper{column-gap:.15rem}
- .is-review:has(> .button[data-tdb-review-updated]){margin-bottom:1.5rem}
  .tdb-power-quote-mark{margin-bottom:1.5rem}
  .tdb-power-quote-attribution{margin-top:1.5rem;letter-spacing:.08em}
 }

@@ -1,4 +1,4 @@
-/* TDB Power Snippets v1.0.3 — staging design preview, no carousel. */
+/* TDB Power Snippets v1.0.4 — staging design preview, no carousel. */
 (function () {
   'use strict';
   function contextForPath(path) {
@@ -13,7 +13,9 @@
     if (/hygiene/.test(path)) return 'hygiene';
     if (/signature-assessment|fast-track|first-visit/.test(path)) return 'assessment';
     if (/general-dentistry|restorative/.test(path)) return 'restorative';
-    if (/cosmetic|smile-design/.test(path)) return 'cosmetic';
+    if (/smile-design/.test(path)) return 'smile-design';
+    if (/cosmetic/.test(path)) return 'cosmetic';
+    if (/^\/vip\//.test(path)) return 'vip';
     return 'default';
   }
   // Matches the existing IX2 “DD - Text Effect” opacity keyframes.
@@ -27,7 +29,7 @@
   }
   // A later production publication must not enable this draft preview.
   if (location.hostname !== 'dentalbarns.webflow.io' || window.TDBPowerSnippets) return;
-  const version = '1.0.3';
+  const version = '1.0.4';
   const assetBase = new URL('.', document.currentScript.src).href;
   const dataNode = document.querySelector('[data-tdb-review-preview-data]');
   if (!dataNode) return;

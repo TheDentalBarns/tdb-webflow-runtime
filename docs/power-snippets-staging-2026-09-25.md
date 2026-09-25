@@ -33,3 +33,8 @@ Visual QA v1.0.2: override the inherited 60vh height from the existing max-width
 Equal badge-to-quote-mark and quote-mark-to-text gaps: 2rem desktop, 1.5rem below 480px; existing larger outer spacing below the reviewer is retained. Attribution now clones the actual badge SVG and applies grayscale(1), preserving gradient shading; gradient IDs are made unique. The DD fade is unchanged. Doctify uses the supplied logo-light.svg with only its two wordmark paths removed and an icon-sized viewBox; it is a true inline SVG at the same 2rem box size as the other badge icons. Removed the visible historic-Doctify disclosure at the user’s request; historical provenance and provisional rating basis remain in the CMS and this record.
 
 The user explicitly requested the snippet attribution to stay animated when reduced motion is enabled. Only the review module’s reduced-motion bypass was removed; other site modules are unchanged.
+
+
+## v1.0.4 spacing and editorial variety
+
+Restore the native margin-xxlarge spacing beneath the badge, matching the text-to-badge spacing above, rather than matching the smaller quote-mark-to-text spacing. Keep the larger outer spacing below attribution. Replace repeated global picks with one fixed, contextually relevant CMS excerpt per main page group: Home Hannah Birkett; VIP Maria Mogford; nervous care Louise Bishton; veneers Connie Greenaway; cosmetic Chloe Morris; Smile Design Haley Allen; assessment Rebecca Baddeley; hygiene Sarah Scotton-Peters (Facebook); clear aligners Sherry Garcha; Invisalign Aneeqa Adil; bonding Amie Scott; whitening Samantha Fletcher; restorative Sanj. Existing global CMS ranks remain unchanged; these are deliberate page selections, not a re-ranking or random rotation.
