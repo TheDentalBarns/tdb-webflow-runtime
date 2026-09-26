@@ -8,6 +8,6 @@ Partner logos supplies the original SVG, Short heading, Award result and year, a
 
 The page-level native CMS feed resolves the reference fields on publish. The component reads it without API requests, credentials or a generated content snapshot. For reuse on other templates, add the same three-slot feed in that page's CMS context. Existing logo banners are unchanged.
 
-Presentation: three columns on desktop, three rows on mobile, all centred. Original SVG logos are static black with reserved dimensions. Titles and award results sit beneath the logos, followed by the short explanation with the same DD opacity curve and smoothing as review names. No carousel or automatic movement.
+Presentation: three columns on desktop, three rows on mobile, with logos on the left and left-aligned text on the right. Original SVG logos are static black with reserved dimensions. Titles and award results sit alongside the logos, followed by the short explanation with the same DD opacity curve and smoothing as review names. No carousel or automatic movement.
 
 Only staging publication is authorised. Runtime script is pinned to an immutable GitHub commit; CSS is also inlined in the component embed to reserve space and hide the CMS feed before JavaScript runs.
