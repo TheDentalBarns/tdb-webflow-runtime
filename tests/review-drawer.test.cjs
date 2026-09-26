@@ -23,3 +23,10 @@ test('source links reject script/data and non-HTTPS URLs',()=>{
  for(const url of ['javascript:alert(1)','data:text/html,x','http://example.com','/unknown'])assert.equal(safeURL(url),'');
  assert.equal(safeURL('https://www.facebook.com/thedentalbarns/'),'https://www.facebook.com/thedentalbarns/');
 });
+test('later platform copies follow distinct reviews, with one-star reviews always last',()=>{
+ const records=[r('a',{rank:1,duplicate:'a'}),r('a-copy',{rank:2,duplicate:'a',platform:'Facebook'}),r('b',{rank:3,duplicate:'b'}),r('b-copy',{rank:4,duplicate:'b',platform:'Yell'}),r('independent',{rank:5}),r('one-star',{rating:1,rank:0})];
+ assert.deepEqual(chooseReviews(records,{}).map(x=>x.id),['a','b','independent','a-copy','b-copy','one-star']);
+ assert.equal(chooseReviews(records,{preferredId:'one-star'}).at(-1).id,'one-star');
+ assert.equal(chooseReviews(records,{sort:'newest'}).at(-1).id,'one-star');
+ assert.equal(chooseReviews(records,{}).length,records.length);
+});

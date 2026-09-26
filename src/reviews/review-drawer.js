@@ -1,4 +1,4 @@
-/* TDB Patient Reviews v1.8.2 — staging-only, shared reviews and treatment-style mobile cards. */
+/* TDB Patient Reviews v1.9.0 — staging-only, shared reviews and treatment-style mobile cards. */
 (function () {
   'use strict';
   function chooseReviews(records, options) {
@@ -12,14 +12,21 @@
       const match=Number(b.topics.includes(effectiveContext))-Number(a.topics.includes(effectiveContext)); if(match)return match;
       return (relevance(a)||999)-(relevance(b)||999)||a.rank-b.rank||a.id.localeCompare(b.id);
     });
-    return list;
+    // Keep the first relevant copy in place, then later platform copies, then one-star reviews.
+    const seen=new Set(),first=[],duplicates=[],oneStar=[];
+    for(const r of list){
+      if(Number(r.rating)===1){oneStar.push(r);continue;}
+      if(r.duplicate&&seen.has(r.duplicate))duplicates.push(r);
+      else{first.push(r);if(r.duplicate)seen.add(r.duplicate);}
+    }
+    return [...first,...duplicates,...oneStar];
   }
   function safeURL(url) { try { const u=new URL(url);return u.protocol==='https:'?u.href:'';} catch (_) { return ''; } }
   if(typeof module==='object'&&module.exports){module.exports={chooseReviews,safeURL};return;}
   if(location.hostname!=='dentalbarns.webflow.io'||window.TDBReviewDrawer)return;
   const api=window.TDBPowerSnippets;
   if(!api)return;
-  const style=document.createElement('style');style.dataset.tdbReviewDrawerStyles='1.8.2';style.textContent=__DRAWER_CSS__;document.head.append(style);
+  const style=document.createElement('style');style.dataset.tdbReviewDrawerStyles='1.9.0';style.textContent=__DRAWER_CSS__;document.head.append(style);
   const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
   const button=(label,cls,action)=>{const b=el('button',cls);b.type='button';b.setAttribute('aria-label',label);if(action)b.addEventListener('click',action);return b;};
   const arrow=()=>{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 16 16');s.setAttribute('aria-hidden','true');s.innerHTML='<path fill="currentColor" d="M12.6893 7.25L6.96967 1.53033L8.03033 0.469666L15.5607 8L8.03033 15.5303L6.96967 14.4697L12.6893 8.75H0.5V7.25H12.6893Z"/>';return s;};
@@ -43,7 +50,7 @@
     const row=el('span','tdb-rv-stars');
     if(!rating){row.append(el('span','tdb-rv-unrated','Rating not supplied'));return row;}
     row.setAttribute('role','img');row.setAttribute('aria-label',platformName==='Facebook'?'Facebook recommendation, shown as five stars':rating+' out of 5 stars');
-    const native=document.querySelector('.button.is-review .testimonial15_rating-icon:not(.vendor) svg');
+    const native=document.querySelector('.button.is-review .testimonial15_rating-icon:not(.vendor) svg')||api.sourceIcon('Star',false).querySelector('svg');
     for(let i=0;i<5;i++){const box=el('span',i<rating?'':'is-empty');box.setAttribute('aria-hidden','true');if(native)box.append(native.cloneNode(true));else box.textContent='★';row.append(box);}
     return row;
   }
@@ -130,8 +137,8 @@
     if(beginSlide(direction))settle(true);
   }
   function refresh(){
-    cancelSlide();list=chooseReviews(data.records,{context,preferredId});index=0;
-    if(list.length)setCurrent(makeSlide(list[0]));else{current=null;track.replaceChildren(el('div','tdb-rv-empty','No reviews available.'));updatePosition();}
+    cancelSlide();list=chooseReviews(data.records,{context,preferredId});index=Math.max(0,list.findIndex(r=>r.id===preferredId));
+    if(list.length)setCurrent(makeSlide(list[index]));else{current=null;track.replaceChildren(el('div','tdb-rv-empty','No reviews available.'));updatePosition();}
   }
   // The Gallery's separate 400/600ms quintic movement and rotation, always animated.
   function animateDismiss(open){
@@ -304,5 +311,5 @@
   addEventListener('scroll',()=>{if(!chrome?.waiting||overlay&&!overlay.hidden)return;const dy=scrollY-chrome.y;chrome.y=scrollY;if(dy>0){chrome.up=0;chrome.down+=dy;}else if(dy<0){chrome.down=0;chrome.up-=dy;}if(chrome.up>120||chrome.down>140||scrollY<=40&&dy<0)requestAnimationFrame(()=>requestAnimationFrame(()=>{if(overlay.hidden)releaseChrome();}));},{passive:true});
   document.addEventListener('focusin',e=>{if(chrome?.waiting&&e.target.closest?.('.navbar10_component,#tdb-vip-drawer'))releaseChrome();});
   addEventListener('click',e=>{if(chrome?.waiting&&/#vip/i.test(e.target.closest?.('a[href]')?.getAttribute('href')||''))releaseChrome();},true);
-  window.TDBReviewDrawer=Object.freeze({version:'1.8.2',open,close,mountEmbedded});
+  window.TDBReviewDrawer=Object.freeze({version:'1.9.0',open,close,mountEmbedded});
 })();

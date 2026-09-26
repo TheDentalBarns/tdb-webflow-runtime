@@ -30,7 +30,8 @@
   }
   // A later production publication must not enable this draft preview.
   if (location.hostname !== 'dentalbarns.webflow.io' || window.TDBPowerSnippets) return;
-  const version = '1.1.0';
+  const version = '1.2.0';
+  const platformIcons = __PLATFORM_ICONS__;
   const dataNode = document.querySelector('[data-tdb-review-preview-data]');
   if (!dataNode) return;
   let data;
@@ -64,6 +65,7 @@
       const originals = [...document.querySelectorAll('.button.is-review .vendor svg')];
       const original = originals.find(el => (el.getAttribute('data-src') || '').includes('-' + platform.toLowerCase() + '-'));
       svg = original?.cloneNode(true);
+      if(!svg&&platformIcons[platform]){const template=document.createElement('template');template.innerHTML=platformIcons[platform];svg=template.content.firstElementChild;}
     }
     if (svg) {
       // Preserve gradients while avoiding duplicate IDs in cloned SVGs.
