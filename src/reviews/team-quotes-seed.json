@@ -1,0 +1,212 @@
+[
+  {
+    "id": "keely--first-visit-1",
+    "text": "Smile makeovers are my favourite part of dentistry. There’s nothing better than seeing someone light up with confidence.",
+    "author": "Dr Keely Thorne",
+    "rank": 1,
+    "label": "Confidence through smile makeovers",
+    "page": "/services/cosmetic-dentist",
+    "tags": [
+      "cosmetic",
+      "smile-design",
+      "natural-results"
+    ],
+    "originalPage": "/first-visit"
+  },
+  {
+    "id": "david--first-visit-2",
+    "text": "The Dental Barns was purpose-built with smile makeovers in mind — a space designed to relax and entertain, while integrating advanced technology to ensure even the finest details are never overlooked.",
+    "author": "David Drew",
+    "rank": 2,
+    "label": "A space for smile makeovers",
+    "page": "/services/cosmetic-dentist",
+    "tags": [
+      "cosmetic",
+      "smile-design",
+      "natural-results"
+    ],
+    "originalPage": "/first-visit"
+  },
+  {
+    "id": "keely--first-visit-3",
+    "text": "I love natural dentistry. The biggest compliment is when patients feel amazing — but it's not obvious that it's their teeth that have been improved.",
+    "author": "Dr Keely Thorne",
+    "rank": 3,
+    "label": "Natural-looking dentistry",
+    "page": "/services/cosmetic-dentist",
+    "tags": [
+      "cosmetic",
+      "smile-design",
+      "natural-results"
+    ],
+    "originalPage": "/first-visit"
+  },
+  {
+    "id": "keely--services-1",
+    "text": "Our aim is for you to leave your consultation with clarity and confidence about how to achieve your dream smile.",
+    "author": "Dr Keely Thorne",
+    "rank": 1,
+    "label": "Clarity at your first consultation",
+    "page": "/first-visit",
+    "tags": [
+      "first-visit",
+      "assessment",
+      "clear-explanations"
+    ],
+    "originalPage": "/services"
+  },
+  {
+    "id": "david--services-2",
+    "text": "Technology plays a crucial role in helping you understand your options and visualise what's possible. That’s why we invest in industry-leading systems to ensure clarity, precision, and confidence at every step.",
+    "author": "David Drew",
+    "rank": 2,
+    "label": "Understanding your options",
+    "page": "/first-visit",
+    "tags": [
+      "first-visit",
+      "assessment",
+      "clear-explanations"
+    ],
+    "originalPage": "/services"
+  },
+  {
+    "id": "keely--services-3",
+    "text": "We’ll design your perfect smile together, but first, I want to take the time to really understand what matters most to you",
+    "author": "Dr Keely Thorne",
+    "rank": 3,
+    "label": "Listening before planning",
+    "page": "/first-visit",
+    "tags": [
+      "first-visit",
+      "assessment",
+      "clear-explanations"
+    ],
+    "originalPage": "/services"
+  },
+  {
+    "id": "keely--contact-1",
+    "text": "Whether it’s your first enquiry or your fiftieth visit, we’re here to make your experience personal, comfortable, and completely yours.",
+    "author": "Dr Keely Thorne",
+    "rank": 1,
+    "label": "Personal care at every stage",
+    "page": "/contact",
+    "tags": [
+      "contact",
+      "team",
+      "comfort"
+    ],
+    "originalPage": "/contact"
+  },
+  {
+    "id": "david--contact-2",
+    "text": "Every inch of this practice was built with intention — from the scent in the air to the technology we use. It’s all designed to help you feel relaxed, informed, and cared for",
+    "author": "David Drew",
+    "rank": 2,
+    "label": "Designed with intention",
+    "page": "/contact",
+    "tags": [
+      "contact",
+      "team",
+      "comfort"
+    ],
+    "originalPage": "/contact"
+  },
+  {
+    "id": "keely--contact-3",
+    "text": "We care deeply about doing the right thing — with honesty, empathy, and no pressure. You're in control of your journey from the moment you get in touch.",
+    "author": "Dr Keely Thorne",
+    "rank": 3,
+    "label": "Honest unpressured advice",
+    "page": "/contact",
+    "tags": [
+      "contact",
+      "team",
+      "comfort"
+    ],
+    "originalPage": "/contact"
+  },
+  {
+    "id": "keely--location-1",
+    "text": "Welcome to The Dental Barns, a space where exceptional care feels effortless. Nestled in a serene rural setting, our practice balances accessibility and tranquility. Experience dental care that prioritises your well-being as much as your smile.",
+    "author": "Dr Keely Thorne",
+    "rank": 1,
+    "label": "Care in the countryside",
+    "page": "/location",
+    "tags": [
+      "location",
+      "calm-environment",
+      "comfort"
+    ],
+    "originalPage": "/location"
+  },
+  {
+    "id": "david--location-2",
+    "text": "We fell in love with our Lichfield location as  It perfectly aligns what we set out to achieve at The Dental Barns. Unlike a bustling high-street dentist, our calm and beautiful setting helps you feel at ease from the moment you arrive.",
+    "author": "David Drew",
+    "rank": 2,
+    "label": "Why we chose Blackbrook",
+    "page": "/location",
+    "tags": [
+      "location",
+      "calm-environment",
+      "comfort"
+    ],
+    "originalPage": "/location"
+  },
+  {
+    "id": "keely--location-3",
+    "text": "Being an appointment-only destination, Blackbrook Barns in Lichfield offers exclusivity and a peaceful, enjoyable experience from the moment you arrive.",
+    "author": "Dr Keely Thorne",
+    "rank": 3,
+    "label": "An appointment-only destination",
+    "page": "/location",
+    "tags": [
+      "location",
+      "calm-environment",
+      "comfort"
+    ],
+    "originalPage": "/location"
+  },
+  {
+    "id": "keely---1",
+    "text": "The Dental Barns embodies everything I’m passionate about – a tranquil, welcoming space where friendly care meets exceptional dentistry.",
+    "author": "Dr Keely Thorne",
+    "rank": 1,
+    "label": "Care and welcome",
+    "page": "/",
+    "tags": [
+      "home",
+      "comfort",
+      "team"
+    ],
+    "originalPage": "/"
+  },
+  {
+    "id": "david---2",
+    "text": "We designed and built The Dental Barns from the ground up, carefully considering every detail to prioritise our patients' comfort and experience.",
+    "author": "David Drew",
+    "rank": 2,
+    "label": "Designed for comfort",
+    "page": "/",
+    "tags": [
+      "home",
+      "comfort",
+      "team"
+    ],
+    "originalPage": "/"
+  },
+  {
+    "id": "keely---3",
+    "text": "Every detail was carefully considered to ensure the space doesn’t feel clinical. I drew inspiration from top hotels to create an environment where you can forget you’re in a dental practice.",
+    "author": "Dr Keely Thorne",
+    "rank": 3,
+    "label": "A non-clinical setting",
+    "page": "/",
+    "tags": [
+      "home",
+      "comfort",
+      "team"
+    ],
+    "originalPage": "/"
+  }
+]

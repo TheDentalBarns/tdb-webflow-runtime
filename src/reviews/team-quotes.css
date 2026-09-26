@@ -1,0 +1,6 @@
+/* Shared carousel rules are prepended by the build from power-snippets.css. */
+[data-tdb-team-quote-feed],[data-tdb-team-quotes-empty]{display:none!important}
+[data-tdb-team-quote-pending] .testimonial_slider{visibility:hidden}
+.tdb-team-quotes .tdb-rc-open{cursor:default}
+.tdb-team-quotes .tdb-rc-name{display:block}
+.tdb-team-quotes .tdb-rc-quote{white-space:normal}
