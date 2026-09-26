@@ -284,25 +284,11 @@
       paint();slides[0].classList.add('is-settled');setInitialFade();
     });
   }
-  function ensureNervousCarousel(){
-    if(contextForPath(location.pathname)!=='nervous'||document.querySelector('.tdb-review-carousel'))return;
-    const original=document.querySelector('.section_standard-testimonial');
-    if(!original)return;
-    const copy=original.cloneNode(true);
-    copy.querySelectorAll('[id],[data-w-id]').forEach(n=>{n.removeAttribute('id');n.removeAttribute('data-w-id');});
-    const ornament=copy.querySelector('.testimonial_wrapper');
-    const stars=element('div','testimonial15_rating-wrapper');
-    const native=document.querySelector('.button.is-review .testimonial15_rating-icon:not(.vendor)');
-    if(!ornament||!native)return;
-    for(let i=0;i<5;i++)stars.append(native.cloneNode(true));
-    const gap=element('div','margin-bottom margin-xlarge');gap.append(stars);ornament.replaceChildren(gap);
-    original.before(copy);initReviewCarousels();
-  }
   // Replace only the five-star patient testimonial component, before Webflow initialises it.
   const carouselObserver=new MutationObserver(initReviewCarousels);
   carouselObserver.observe(document.body,{childList:true,subtree:true});
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{initReviewCarousels();ensureNervousCarousel();carouselObserver.disconnect();},{once:true});
-  else{initReviewCarousels();ensureNervousCarousel();carouselObserver.disconnect();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{initReviewCarousels();carouselObserver.disconnect();},{once:true});
+  else{initReviewCarousels();carouselObserver.disconnect();}
   window.TDBPowerSnippets = Object.freeze({ version, mode: data.mode, capturedOn: data.capturedOn, sourceIcon, quoteMark: QUOTE_MARK, contextForPath, preview: data, loadDrawer });
   // The quote slot and its preceding badge already exist at this script position.
   // Populate their final layout now, not at DOMContentLoaded or after a download.

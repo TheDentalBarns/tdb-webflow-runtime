@@ -13,4 +13,4 @@
 
 .tdb-awards-heading{display:flex;align-items:center;justify-content:center;gap:1.25rem}
 .tdb-awards-heading::before,.tdb-awards-heading::after{content:"";display:block;flex:1;min-width:0;height:1px;background:var(--award-cream)}
-.tdb-awards-heading h2{flex:0 0 auto;margin:0;text-align:center}
+.tdb-awards-heading h2{color:var(--award-cream);flex:0 0 auto;margin:0;text-align:center}
