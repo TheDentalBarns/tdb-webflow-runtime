@@ -1,9 +1,9 @@
-/* TDB Instagram cards v0.4.0 — manual CMS snapshot, shared slider mechanics. */
+/* TDB Instagram cards v0.5.0 — manual CMS snapshot, shared slider mechanics. */
 (() => {
   'use strict';
   const data = window.TDBInstagramManualData;
   if (!data || window.TDBInstagramFeed) return;
-  const VERSION = '0.4.0';
+  const VERSION = '0.5.0';
   const LOGO = 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/681c892759ed35c51acb5fe3_the-dental-barns-blackbrook-lichfield-logo.svg.svg';
   const iconPaths = {
     heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
@@ -133,23 +133,41 @@
     addMetric(share, post.shares, 'shares');
     actions.append(share);
     const open = link(post.url, 'tdb-ig-open', 'View post on Instagram');
-    open.append(el('span', '', 'View post'), galleryArrow('next'));
+    open.append(el('span', 'tdb-ig-open-label', 'View post'), galleryArrow('next'));
     footer.append(actions, open);
     article.append(header, photo, footer);
     slide.append(article);
     return slide;
   }
 
+  function selectPosts(config, mount) {
+    const parse = value => (value || '').toLowerCase().split(',').map(tag => tag.trim()).filter(Boolean);
+    const include = parse(mount.dataset.tdbIgTags);
+    const exclude = parse(mount.dataset.tdbIgExcludeTags);
+    const source = include.length ? Object.values(data.posts) : config.posts.map(id => data.posts[id]).filter(Boolean);
+    return source.filter(post => {
+      const tags = post.tags || [];
+      const included = !include.length || (mount.dataset.tdbIgTagMode === 'all'
+        ? include.every(tag => tags.includes(tag)) : include.some(tag => tags.includes(tag)));
+      return included && !exclude.some(tag => tags.includes(tag));
+    });
+  }
+
   function render(mount) {
     const config = data.feeds[mount.dataset.tdbIgWidget];
     if (!config || mount.dataset.tdbIgReady) return;
-    const posts = config.posts.map(id => data.posts[id]).filter(Boolean);
-    if (!posts.length) return;
+    const posts = selectPosts(config, mount);
+    if (!posts.length) {
+      mount.replaceChildren(el('p', 'tdb-ig-empty', 'More moments coming soon.'));
+      mount.dataset.tdbIgReady = VERSION;
+      mount.removeAttribute('aria-busy');
+      return;
+    }
     const root = el('div', 'highlight-swiper_component tdb-ig-feed');
     root.dataset.tdbIgFeed = config.key;
     root.setAttribute('role', 'region');
     root.setAttribute('aria-roledescription', 'carousel');
-    root.setAttribute('aria-label', config.label + ' Instagram gallery');
+    root.setAttribute('aria-label', (mount.dataset.tdbIgLabel || config.label) + ' Instagram gallery');
     const viewport = el('div', 'swiper tdb-ig-viewport');
     const wrapper = el('div', 'swiper-wrapper');
     posts.forEach((post, index) => wrapper.append(card(post, index, posts.length)));

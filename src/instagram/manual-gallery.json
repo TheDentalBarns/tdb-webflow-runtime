@@ -1,6 +1,29 @@
 {
-  "version": "0.4.0",
+  "version": "0.5.0",
   "importedAt": "2026-09-26",
+  "tags": {
+    "meet-the-team": "Meet the Team",
+    "happy-patients": "Happy Patients",
+    "awards": "Awards",
+    "patient-experience": "Patient Experience",
+    "veneers": "Veneers",
+    "composite-bonding": "Composite Bonding",
+    "invisalign": "Invisalign",
+    "the-practice": "The Practice",
+    "nervous-patients": "Nervous Patients",
+    "patient-stories": "Patient Stories",
+    "team": "Team",
+    "comfort": "Comfort",
+    "first-visit": "First Visit",
+    "hygiene": "Hygiene",
+    "dental-technology": "Dental Technology",
+    "smile-makeovers": "Smile Makeovers",
+    "refreshments": "Refreshments",
+    "five-senses": "Five Senses",
+    "practice-setting": "Practice Setting",
+    "seasonal": "Seasonal",
+    "whitening": "Whitening"
+  },
   "posts": {
     "DdhXEQ2F66H": {
       "shortcode": "DdhXEQ2F66H",
@@ -11,6 +34,11 @@
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 1080,
       "height": 1440,
+      "tags": [
+        "the-practice",
+        "practice-setting",
+        "seasonal"
+      ],
       "likes": 30,
       "comments": 2
     },
@@ -23,6 +51,12 @@
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
       "height": 640,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "practice-setting",
+        "patient-experience"
+      ],
       "likes": 536,
       "comments": 7
     },
@@ -35,6 +69,13 @@
       "alt": "🍂 What does Zoe choose to watch when she’s the patient? — cover image",
       "width": 360,
       "height": 640,
+      "tags": [
+        "team",
+        "meet-the-team",
+        "comfort",
+        "five-senses",
+        "patient-experience"
+      ],
       "likes": 31
     },
     "DdZpEuikbEm": {
@@ -46,6 +87,11 @@
       "alt": "🍂 Autumn has arrived at The Dental Barns.",
       "width": 1080,
       "height": 1440,
+      "tags": [
+        "the-practice",
+        "practice-setting",
+        "seasonal"
+      ],
       "likes": 15
     },
     "DdXJF4-EUGl": {
@@ -56,7 +102,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbbdf00b2e38856c922_6ab7bc9086c563fd3fbcc99e_tdb-getting-comfortable-cover-image-ddxjf4-eugl.webp",
       "alt": "✨ Getting comfortable. — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DdQvp9DjMxI": {
       "shortcode": "DdQvp9DjMxI",
@@ -66,7 +118,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbbdf00b2e38856c912_6ab7bc9076a5f592a5b82ec0_tdb-instagram-post-ddqvp9djmxi-cover-image-ddqvp9djmxi.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 535
+      "height": 535,
+      "tags": [
+        "the-practice",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DdL3_kdoPAL": {
       "shortcode": "DdL3_kdoPAL",
@@ -76,7 +133,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbbdf00b2e38856c91c_6ab7bc90547dbe41cb49588b_tdb-bringing-a-little-of-the-outside-in-ddl3_kdopal.webp",
       "alt": "🌸 Bringing a little of the outside, in. 🌿",
       "width": 1080,
-      "height": 1439
+      "height": 1439,
+      "tags": [
+        "the-practice",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DdKR8lZit7N": {
       "shortcode": "DdKR8lZit7N",
@@ -86,7 +148,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbbdf00b2e38856c90c_6ab7bc9086c563fd3fbcc95a_tdb-sounds-of-the-dental-barns-cover-image-ddkr8lzit7n.webp",
       "alt": "🌸 Sounds of The Dental Barns... 🎧 — cover image",
       "width": 360,
-      "height": 641
+      "height": 641,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DdHkwyxmKe-": {
       "shortcode": "DdHkwyxmKe-",
@@ -96,7 +164,11 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbcdf00b2e38856c92c_6ab7bc90547dbe41cb4958b7_tdb-a-view-we-ll-never-tire-of-ddhkwyxmke-.webp",
       "alt": "🌸 A view we’ll never tire of. 🌿",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "practice-setting"
+      ]
     },
     "DdBfTjhEZFP": {
       "shortcode": "DdBfTjhEZFP",
@@ -106,7 +178,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbadf00b2e38856c8f9_6ab7bc8f915ccc32474d670b_tdb-instagram-post-ddbftjhezfp-cover-image-ddbftjhezfp.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "Dc9T_LKiQFa": {
       "shortcode": "Dc9T_LKiQFa",
@@ -116,7 +193,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbbdf00b2e38856c900_6ab7bc8f8ea175d5fb66184d_tdb-modern-dentistry-is-about-the-technology-behind-yo-dc9t_lkiqfa.webp",
       "alt": "🦷 Modern dentistry is about the technology behind your care, too.",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "hygiene",
+        "dental-technology",
+        "patient-experience"
+      ]
     },
     "Dc4ITVjAjNA": {
       "shortcode": "Dc4ITVjAjNA",
@@ -126,7 +209,14 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbbdf00b2e38856c909_6ab7bc8f700a173839ff8605_tdb-instagram-post-dc4itvjajna-cover-image-dc4itvjajna.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "refreshments",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "Dct5S7uDSan": {
       "shortcode": "Dct5S7uDSan",
@@ -136,7 +226,10 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbbdf00b2e38856c90f_6ab7bc8f6c51a06a27327046_tdb-instagram-post-dct5s7udsan-cover-image-dct5s7udsan.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice"
+      ]
     },
     "DcomyKWCgR_": {
       "shortcode": "DcomyKWCgR_",
@@ -146,7 +239,11 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd80e358f9a5102ea410_6ab7bc8ebf4d16c9f55da342_tdb-a-beautiful-setting-for-a-beautifully-considered-p-dcomykwcgr_.webp",
       "alt": "🌸 A beautiful setting for a beautifully considered practice. — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "practice-setting"
+      ]
     },
     "DclnwqHIOYv": {
       "shortcode": "DclnwqHIOYv",
@@ -156,7 +253,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbadf00b2e38856c8ec_6ab7bc8f700a173839ff85b3_tdb-welcome-to-the-dental-barns-dclnwqhioyv.webp",
       "alt": "🌸 Welcome to The Dental Barns.",
       "width": 1080,
-      "height": 1439
+      "height": 1439,
+      "tags": [
+        "the-practice",
+        "first-visit",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DceUnt_gFxm": {
       "shortcode": "DceUnt_gFxm",
@@ -166,7 +269,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbadf00b2e38856c8fc_6ab7bc8e547dbe41cb4957bb_tdb-ever-wondered-where-the-flowers-at-the-dental-barn-dceunt_gfxm.webp",
       "alt": "🌸 Ever wondered where the flowers at The Dental Barns come from? — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DccAt-0FAku": {
       "shortcode": "DccAt-0FAku",
@@ -176,7 +284,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbadf00b2e38856c8ef_6ab7bc8e05bdd4c6b609f15a_tdb-instagram-post-dccat-0faku-cover-image-dccat-0faku.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "first-visit",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DcZJFikjpDY": {
       "shortcode": "DcZJFikjpDY",
@@ -186,7 +300,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbadf00b2e38856c8f6_6ab7bc8d547dbe41cb49573a_tdb-a-little-refresh-before-or-after-your-appointment--dczjfikjpdy.webp",
       "alt": "🌸 A little refresh, before or after your appointment. — cover image",
       "width": 360,
-      "height": 477
+      "height": 477,
+      "tags": [
+        "the-practice",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DcV4ytjoKPm": {
       "shortcode": "DcV4ytjoKPm",
@@ -196,7 +315,11 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd80e358f9a5102ea417_6ab7bc8e76a5f592a5b82e25_tdb-a-little-bit-of-the-garden-brought-inside-dcv4ytjokpm.webp",
       "alt": "🌸 A little bit of the garden, brought inside.",
       "width": 1080,
-      "height": 1439
+      "height": 1439,
+      "tags": [
+        "the-practice",
+        "five-senses"
+      ]
     },
     "DcRpQColRG0": {
       "shortcode": "DcRpQColRG0",
@@ -206,7 +329,10 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd80e358f9a5102ea3ff_6ab7bc8db8684bdee11fd817_tdb-instagram-post-dcrpqcolrg0-cover-image-dcrpqcolrg0.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 539
+      "height": 539,
+      "tags": [
+        "the-practice"
+      ]
     },
     "DcJ9RRhAaG3": {
       "shortcode": "DcJ9RRhAaG3",
@@ -216,7 +342,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd80e358f9a5102ea409_6ab7bc8d5308f55e1e30a696_tdb-instagram-post-dcj9rrhaag3-cover-image-dcj9rrhaag3.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DcEllTZiWXu": {
       "shortcode": "DcEllTZiWXu",
@@ -226,7 +358,10 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd80e358f9a5102ea404_6ab7bc8c6c51a06a27326f68_tdb-we-were-delighted-to-be-featured-in-privatedentist-dcelltziwxu.webp",
       "alt": "🌸 We were delighted to be featured in @privatedentistry magazine. — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice"
+      ]
     },
     "DcBt6c9EkZi": {
       "shortcode": "DcBt6c9EkZi",
@@ -236,7 +371,14 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7fe358f9a5102ea3f2_6ab7bc8c6c51a06a27326f42_tdb-the-ritual-cover-image-dcbt6c9ekzi.webp",
       "alt": "🌸 The Ritual — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "five-senses",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "Db_lYIYEXl3": {
       "shortcode": "Db_lYIYEXl3",
@@ -246,7 +388,11 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd80e358f9a5102ea3fc_6ab7bc8c4234702c3066df96_tdb-moments-like-these-remind-us-why-we-do-what-we-do--db_lyiyexl3.webp",
       "alt": "🌸 Moments like these remind us why we do what we do. — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "patient-experience"
+      ]
     },
     "Db36_eXIG6o": {
       "shortcode": "Db36_eXIG6o",
@@ -257,6 +403,16 @@
       "alt": "🌸 Calming. Refreshments. Kindness.",
       "width": 1080,
       "height": 1350,
+      "tags": [
+        "team",
+        "the-practice",
+        "meet-the-team",
+        "comfort",
+        "first-visit",
+        "refreshments",
+        "patient-stories",
+        "patient-experience"
+      ],
       "likes": 8
     },
     "Db0W6PIl08B": {
@@ -267,7 +423,14 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd80e358f9a5102ea40c_6ab7bc8d6c51a06a27326f90_tdb-a-visit-to-the-hygienist-doesn-t-have-to-be-uncomf-db0w6pil08b.webp",
       "alt": "🌸 A visit to the hygienist doesn't have to be uncomfortable.",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "hygiene",
+        "dental-technology",
+        "patient-experience"
+      ]
     },
     "DbyhghfkfqG": {
       "shortcode": "DbyhghfkfqG",
@@ -277,7 +440,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7fe358f9a5102ea3e1_6ab7bc788ea175d5fb6610d0_tdb-instagram-post-dbyhghfkfqg-cover-image-dbyhghfkfqg.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "patient-experience"
+      ]
     },
     "DbvqycHFRiA": {
       "shortcode": "DbvqycHFRiA",
@@ -287,7 +455,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7fe358f9a5102ea3ef_6ab7bc7976a5f592a5b82796_tdb-fresh-flowers-thoughtful-details-a-warm-welcome-dbvqychfria.webp",
       "alt": "🌸 Fresh flowers. Thoughtful details. A warm welcome.",
       "width": 1080,
-      "height": 1435
+      "height": 1435,
+      "tags": [
+        "the-practice",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DbtX7hMghD3": {
       "shortcode": "DbtX7hMghD3",
@@ -298,6 +471,13 @@
       "alt": "🌸 Some reviews mean more than words can ever express. — cover image",
       "width": 360,
       "height": 640,
+      "tags": [
+        "team",
+        "the-practice",
+        "meet-the-team",
+        "patient-stories",
+        "patient-experience"
+      ],
       "likes": 28,
       "comments": 2
     },
@@ -309,7 +489,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7fe358f9a5102ea3e9_6ab7bc7877606d0bcf8a62cc_tdb-instagram-post-dbreurkgrij-cover-image-dbreurkgrij.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "Dbl8R3_DcYk": {
       "shortcode": "Dbl8R3_DcYk",
@@ -319,7 +504,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7ee358f9a5102ea3d1_6ab7bc78d513fb650ce8474b_tdb-your-experience-at-the-dental-barns-begins-long-be-dbl8r3_dcyk.webp",
       "alt": "🌸 Your experience at The Dental Barns begins long before your appointment. — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "first-visit",
+        "refreshments",
+        "patient-experience"
+      ]
     },
     "DbitJoej0GF": {
       "shortcode": "DbitJoej0GF",
@@ -329,7 +520,15 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7fe358f9a5102ea3de_6ab7bc781fe561aa0b8a7f51_tdb-your-visit-begins-long-before-your-appointment-dbitjoej0gf.webp",
       "alt": "🌸 Your visit begins long before your appointment.",
       "width": 1080,
-      "height": 1439
+      "height": 1439,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "first-visit",
+        "refreshments",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DbggDZ9jlCP": {
       "shortcode": "DbggDZ9jlCP",
@@ -339,7 +538,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7ee358f9a5102ea3cd_6ab7bc77ceb091fbb098be89_tdb-the-little-details-matter-cover-image-dbggdz9jlcp.webp",
       "alt": "🌸 The little details matter. — cover image",
       "width": 360,
-      "height": 478
+      "height": 478,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "Dbdw-g1iDww": {
       "shortcode": "Dbdw-g1iDww",
@@ -349,7 +554,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7ee358f9a5102ea3c3_6ab7bc77d8bd41f7f2d75623_tdb-instagram-post-dbdw-g1idww-cover-image-dbdw-g1idww.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 467
+      "height": 467,
+      "tags": [
+        "the-practice",
+        "first-visit",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "Dbau3wiDchE": {
       "shortcode": "Dbau3wiDchE",
@@ -359,7 +570,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7fe358f9a5102ea3e4_6ab7bc78d13db97bb83c3167_tdb-every-finishing-touch-has-a-purpose-cover-image-dbau3widche.webp",
       "alt": "🌸 Every finishing touch has a purpose. — cover image",
       "width": 360,
-      "height": 638
+      "height": 638,
+      "tags": [
+        "the-practice",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DbWOsmooCDS": {
       "shortcode": "DbWOsmooCDS",
@@ -369,7 +585,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7ee358f9a5102ea3d6_6ab7bc77686d68a8f74ca33b_tdb-every-visit-begins-here-dbwosmoocds.webp",
       "alt": "🌸 Every visit begins here.",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "first-visit",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DbS7x9gjjCl": {
       "shortcode": "DbS7x9gjjCl",
@@ -379,7 +601,14 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7ee358f9a5102ea3bb_6ab7bc77547dbe41cb494e1a_tdb-calm-relaxing-mindful-dbs7x9gjjcl.webp",
       "alt": "🌿 Calm. Relaxing. Mindful.",
       "width": 1080,
-      "height": 1439
+      "height": 1439,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "first-visit",
+        "patient-stories",
+        "patient-experience"
+      ]
     },
     "DbQPsoKDZfr": {
       "shortcode": "DbQPsoKDZfr",
@@ -389,7 +618,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7ee358f9a5102ea3b7_6ab7bc7577606d0bcf8a61c4_tdb-instagram-post-dbqpsokdzfr-cover-image-dbqpsokdzfr.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 446
+      "height": 446,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DbNnGctAM-9": {
       "shortcode": "DbNnGctAM-9",
@@ -399,7 +634,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7ee358f9a5102ea3c6_6ab7bc755308f55e1e30a34c_tdb-every-member-of-our-team-has-their-own-favourite-f-dbnngctam-9.webp",
       "alt": "🌿 Every member of our team has their own favourite finishing touch. — cover image",
       "width": 359,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DbLw3yujlQ3": {
       "shortcode": "DbLw3yujlQ3",
@@ -409,7 +649,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7de358f9a5102ea3a9_6ab7bc758ea175d5fb660f79_tdb-a-calm-environment-begins-long-before-your-appoint-dblw3yujlq3.webp",
       "alt": "🌸 A calm environment begins long before your appointment.",
       "width": 1080,
-      "height": 1421
+      "height": 1421,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DbB3RHnCZ_n": {
       "shortcode": "DbB3RHnCZ_n",
@@ -419,7 +665,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5d4234702c30670c02_6ab7bc751fe561aa0b8a7d6e_tdb-july-at-the-dental-barns-cover-image-dbb3rhncz_n.webp",
       "alt": "🌸 July at The Dental Barns — cover image",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "practice-setting",
+        "seasonal"
+      ]
     },
     "Da0O92MlWGC": {
       "shortcode": "Da0O92MlWGC",
@@ -429,7 +680,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7ee358f9a5102ea3b3_6ab7bc75d513fb650ce84654_tdb-the-little-details-make-all-the-difference-da0o92mlwgc.webp",
       "alt": "The little details make all the difference. 🌺",
       "width": 1440,
-      "height": 1920
+      "height": 1920,
+      "tags": [
+        "the-practice",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DatCdtnixvN": {
       "shortcode": "DatCdtnixvN",
@@ -439,7 +695,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7de358f9a5102ea3af_6ab7bc74686d68a8f74ca216_tdb-a-little-glimpse-inside-our-decontamination-room-c-datcdtnixvn.webp",
       "alt": "A little glimpse inside our decontamination room. 🌿 — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DaqfsiGiCXS": {
       "shortcode": "DaqfsiGiCXS",
@@ -449,7 +711,11 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7de358f9a5102ea3a5_6ab7bc74686d68a8f74ca1e3_tdb-instagram-post-daqfsigicxs-cover-image-daqfsigicxs.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "patient-experience"
+      ]
     },
     "DaixkoRkr0o": {
       "shortcode": "DaixkoRkr0o",
@@ -459,7 +725,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5d4234702c30670bf2_6ab7bc7476a5f592a5b82697_tdb-instagram-post-daixkorkr0o-cover-image-daixkorkr0o.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "smile-makeovers",
+        "patient-stories"
+      ]
     },
     "DaexXebC3nu": {
       "shortcode": "DaexXebC3nu",
@@ -469,7 +740,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5c4234702c30670be5_6ab7bc741fe561aa0b8a7cd1_tdb-it-s-the-little-touches-that-make-all-the-differen-daexxebc3nu.webp",
       "alt": "It's the little touches that make all the difference. 🌸 — cover image",
       "width": 360,
-      "height": 639
+      "height": 639,
+      "tags": [
+        "the-practice",
+        "five-senses",
+        "seasonal"
+      ]
     },
     "DYEnJncjtJz": {
       "shortcode": "DYEnJncjtJz",
@@ -479,7 +755,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd7de358f9a5102ea3ac_6ab7bc74bf4d16c9f55d95bb_tdb-bringing-a-little-bit-of-spring-indoors-cover-imag-dyenjncjtjz.webp",
       "alt": "Bringing a little bit of spring indoors 🌿 — cover image",
       "width": 1080,
-      "height": 1439
+      "height": 1439,
+      "tags": [
+        "the-practice",
+        "five-senses",
+        "seasonal"
+      ]
     },
     "DXj1DezlWmJ": {
       "shortcode": "DXj1DezlWmJ",
@@ -489,7 +770,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5d4234702c30670bf7_6ab7bc73af814dcf844d0681_tdb-ah-the-humble-espresso-dxj1dezlwmj.webp",
       "alt": "Ah, the humble espresso! ☕",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "refreshments",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DU8y0htgW1Y": {
       "shortcode": "DU8y0htgW1Y",
@@ -499,7 +786,11 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5d4234702c30670bef_6ab7bc738a6ac06f5fb5b2e1_tdb-13-things-that-make-sense-at-the-dental-barns-cove-du8y0htgw1y.webp",
       "alt": "13 things that make sense at The Dental Barns 🌿 — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "patient-experience"
+      ]
     },
     "DU6bNCziXgs": {
       "shortcode": "DU6bNCziXgs",
@@ -509,7 +800,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5c4234702c30670bde_6ab7bc7316209a9d8dd5333b_tdb-instagram-post-du6bnczixgs-cover-image-du6bnczixgs.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DU25Zx9DDSu": {
       "shortcode": "DU25Zx9DDSu",
@@ -519,7 +816,14 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5c4234702c30670be2_6ab7bc73286be234b3ad51fb_tdb-swipe-to-see-how-cozy-cozy-can-be-cover-image-du25zx9ddsu.webp",
       "alt": "→ Swipe to see how cozy cozy can be 🥰 — cover image",
       "width": 1080,
-      "height": 1350
+      "height": 1350,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "refreshments",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DU0o2bfDDxx": {
       "shortcode": "DU0o2bfDDxx",
@@ -529,7 +833,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5c4234702c30670bd5_6ab7bc72ac7f79790230cca1_tdb-little-touches-du0o2bfddxx.webp",
       "alt": "Little touches 🤍",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "refreshments",
+        "patient-experience"
+      ]
     },
     "DUxjcyklaPg": {
       "shortcode": "DUxjcyklaPg",
@@ -539,7 +848,14 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5b4234702c30670bc0_6ab7bc73ceb091fbb098bd24_tdb-swipe-to-be-tempted-cover-image-duxjcyklapg.webp",
       "alt": "→ Swipe to be tempted 😊 — cover image",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "refreshments",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DUwOckGEpZ4": {
       "shortcode": "DUwOckGEpZ4",
@@ -549,7 +865,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5a4234702c30670bb4_6ab7bc72ceb091fbb098bd0f_tdb-swipe-to-be-tempted-cover-image-duwockgepz4.webp",
       "alt": "→ Swipe to be tempted 😊 — cover image",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "refreshments",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DUtiohgEi6K": {
       "shortcode": "DUtiohgEi6K",
@@ -559,7 +881,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5b4234702c30670bc8_6ab7bc72686d68a8f74ca123_tdb-instagram-post-dutiohgei6k-dutiohgei6k.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "first-visit",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DUqyEmeFK7H": {
       "shortcode": "DUqyEmeFK7H",
@@ -569,7 +897,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5b4234702c30670bbd_6ab7bc7184bcc73655faf2d7_tdb-swipe-to-see-how-a-dental-surgery-can-feel-less-de-duqyemefk7h.webp",
       "alt": "→ Swipe to see how a dental surgery can feel... less dental 🥰 — cover image",
       "width": 1080,
-      "height": 1350
+      "height": 1350,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DUYwvJIFM3N": {
       "shortcode": "DUYwvJIFM3N",
@@ -579,7 +913,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5a4234702c30670baf_6ab7bc63ceb091fbb098b67d_tdb-t-h-e-r-i-t-u-a-l-cover-image-duywvjifm3n.webp",
       "alt": "T H E R I T U A L // — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DTc_VV_DjV5": {
       "shortcode": "DTc_VV_DjV5",
@@ -589,7 +929,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5b4234702c30670bcb_6ab7bc71ab89ee14339a221f_tdb-no-waiting-rooms-just-living-rooms-cover-image-dtc_vv_djv5.webp",
       "alt": "No waiting rooms. Just living rooms 🥰 — cover image",
       "width": 1080,
-      "height": 1350
+      "height": 1350,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DTdSlNbAHA3": {
       "shortcode": "DTdSlNbAHA3",
@@ -599,7 +945,11 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5a4234702c30670b8e_6ab7bc63d13db97bb83c2f3f_tdb-a-uk-dental-first-cover-image-dtdslnbaha3.webp",
       "alt": "A UK Dental First 💫 — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "dental-technology"
+      ]
     },
     "DTah2Kgkyxn": {
       "shortcode": "DTah2Kgkyxn",
@@ -609,7 +959,14 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5a4234702c30670ba0_6ab7bc628639a31507674e2f_tdb-t-h-e-r-i-t-u-a-l-cover-image-dtah2kgkyxn.webp",
       "alt": "T H E  R I T U A L // — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "refreshments",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DTYX7VtCf9L": {
       "shortcode": "DTYX7VtCf9L",
@@ -620,6 +977,11 @@
       "alt": "Seeing our patients happy makes us happy. 🤍",
       "width": 1080,
       "height": 1351,
+      "tags": [
+        "patient-stories",
+        "happy-patients",
+        "patient-experience"
+      ],
       "likes": 12
     },
     "DTWIMz8FX82": {
@@ -631,6 +993,10 @@
       "alt": "A lovely moment from 2025... ✨ — cover image",
       "width": 360,
       "height": 640,
+      "tags": [
+        "the-practice",
+        "awards"
+      ],
       "likes": 76
     },
     "DTSRPOSkkq0": {
@@ -641,7 +1007,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5a4234702c30670ba6_6ab7bc63ceb091fbb098b651_tdb-a-little-snow-day-at-the-dental-barns-cover-image-dtsrposkkq0.webp",
       "alt": "A little snow day at The Dental Barns ❄️ — cover image",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "practice-setting",
+        "seasonal"
+      ]
     },
     "DTDQvNWD_Lb": {
       "shortcode": "DTDQvNWD_Lb",
@@ -651,7 +1022,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5a4234702c30670ba3_6ab7bc625623c728f2c83edd_tdb-january-mornings-at-the-dental-barns-cover-image-dtdqvnwd_lb.webp",
       "alt": "January mornings at The Dental Barns. ☀️🌿 — cover image",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "practice-setting",
+        "seasonal"
+      ]
     },
     "DTA7Y7AFRLl": {
       "shortcode": "DTA7Y7AFRLl",
@@ -661,7 +1037,11 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd5a4234702c30670b8a_6ab7bc62b8684bdee11fcde7_tdb-smile-makeovers-naturally-cover-image-dta7y7afrll.webp",
       "alt": "Smile makeovers. Naturally. ✨ — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "smile-makeovers"
+      ]
     },
     "DS5RtgjD_uf": {
       "shortcode": "DS5RtgjD_uf",
@@ -671,7 +1051,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd594234702c30670b84_6ab7bc6286c563fd3fbcc460_tdb-a-quiet-reminder-of-where-the-calm-lives-cover-ima-ds5rtgjd_uf.webp",
       "alt": "A quiet reminder of where the calm lives. 🌿 — cover image",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DS3HWQQDOJ4": {
       "shortcode": "DS3HWQQDOJ4",
@@ -681,7 +1067,14 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd594234702c30670b6e_6ab7bc62ab89ee14339a1c8f_tdb-a-quiet-reminder-of-where-the-calm-lives-cover-ima-ds3hwqqdoj4.webp",
       "alt": "A quiet reminder of where the calm lives. 🌿 — cover image",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "first-visit",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DS0LcjqDK4H": {
       "shortcode": "DS0LcjqDK4H",
@@ -691,7 +1084,14 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd594234702c30670b78_6ab7bc61b4645496e048329d_tdb-a-quiet-reminder-of-where-the-calm-lives-cover-ima-ds0lcjqdk4h.webp",
       "alt": "A quiet reminder of where the calm lives. 🌿 — cover image",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "five-senses",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DSxN7LuCDr6": {
       "shortcode": "DSxN7LuCDr6",
@@ -701,7 +1101,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf8af814dcf844d1d1b_6ab7bc6116209a9d8dd52f84_tdb-part-1-2-cover-image-dsxn7lucdr6.webp",
       "alt": "Part 1/2 ✨ — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "patient-stories",
+        "patient-experience"
+      ]
     },
     "DSxtRqBDXfD": {
       "shortcode": "DSxtRqBDXfD",
@@ -711,7 +1116,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd594234702c30670b7b_6ab7bc6189941a81fffe2a1a_tdb-part-2-2-cover-image-dsxtrqbdxfd.webp",
       "alt": "Part 2/2 ✨ — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "patient-stories",
+        "patient-experience"
+      ]
     },
     "DSu81cqDf9F": {
       "shortcode": "DSu81cqDf9F",
@@ -721,7 +1131,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd594234702c30670b72_6ab7bc61686cd4d54c4c5017_tdb-instagram-post-dsu81cqdf9f-cover-image-dsu81cqdf9f.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DSqSqr4Atlb": {
       "shortcode": "DSqSqr4Atlb",
@@ -731,7 +1146,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf8af814dcf844d1d18_6ab7bc60168d87291cc6146f_tdb-getting-comfortable-cover-image-dsqsqr4atlb.webp",
       "alt": "Getting comfortable. ✨ — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DSnSe7Xjj2X": {
       "shortcode": "DSnSe7Xjj2X",
@@ -741,7 +1162,11 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf8af814dcf844d1d0f_6ab7bc5fac7f79790230c8ac_tdb-first-in-the-uk-first-impressions-of-the-new-3shap-dsnse7xjj2x.webp",
       "alt": "First in the UK — first impressions of the new 3Shape TRIOS 6. ✨ — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "dental-technology"
+      ]
     },
     "DSnaT73jODQ": {
       "shortcode": "DSnaT73jODQ",
@@ -751,7 +1176,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bd594234702c30670b75_6ab7bc61ab89ee14339a1c51_tdb-a-few-final-christmas-moments-before-we-wrap-up-fo-dsnat73jodq.webp",
       "alt": "A few final Christmas moments before we wrap up for the year. 🎄",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "practice-setting",
+        "seasonal",
+        "patient-experience"
+      ]
     },
     "DSkthFMjY0Z": {
       "shortcode": "DSkthFMjY0Z",
@@ -761,7 +1192,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf8af814dcf844d1d13_6ab7bc6005bdd4c6b609e2a4_tdb-a-small-detail-but-one-that-matters-dskthfmjy0z.webp",
       "alt": "A small detail, but one that matters. ✨",
       "width": 1080,
-      "height": 1434
+      "height": 1434,
+      "tags": [
+        "the-practice",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DSiBgz-AWg1": {
       "shortcode": "DSiBgz-AWg1",
@@ -771,7 +1207,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf8af814dcf844d1d05_6ab7bc60b01ad718964c5b27_tdb-settling-in-cover-image-dsibgz-awg1.webp",
       "alt": "Settling in. ✨ — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "first-visit",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DSiIxG4jpDU": {
       "shortcode": "DSiIxG4jpDU",
@@ -781,7 +1223,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf8af814dcf844d1d0a_6ab7bc6089941a81fffe29e6_tdb-instagram-post-dsiixg4jpdu-cover-image-dsiixg4jpdu.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 1080,
-      "height": 1350
+      "height": 1350,
+      "tags": [
+        "the-practice",
+        "five-senses",
+        "practice-setting"
+      ]
     },
     "DSak3dHlC-U": {
       "shortcode": "DSak3dHlC-U",
@@ -791,7 +1238,15 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf7af814dcf844d1ce9_6ab7bc5f547dbe41cb4942ea_tdb-settling-in-cover-image-dsak3dhlc-u.webp",
       "alt": "Settling in. ☕ — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "first-visit",
+        "refreshments",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DSUR0XwAm4h": {
       "shortcode": "DSUR0XwAm4h",
@@ -801,7 +1256,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf8af814dcf844d1cfa_6ab7bc5fb8684bdee11fcd2a_tdb-day-six-12-days-of-christmas-cover-image-dsur0xwam4h.webp",
       "alt": "DAY SIX | 12 Days of Christmas 🎁 — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "five-senses",
+        "seasonal",
+        "patient-experience"
+      ]
     },
     "DSMjgxeFNjp": {
       "shortcode": "DSMjgxeFNjp",
@@ -811,7 +1272,11 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf7af814dcf844d1ce4_6ab7bc5fd513fb650ce8430a_tdb-day-five-12-days-of-christmas-cover-image-dsmjgxefnjp.webp",
       "alt": "DAY FIVE | 12 Days of Christmas 🎁 — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "seasonal"
+      ]
     },
     "DSJ-ofsDyEK": {
       "shortcode": "DSJ-ofsDyEK",
@@ -821,7 +1286,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf6af814dcf844d1cd1_6ab7bc5eb8684bdee11fccee_tdb-day-four-12-days-of-christmas-cover-image-dsj-ofsdyek.webp",
       "alt": "DAY FOUR | 12 Days of Christmas 🎁 — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "refreshments",
+        "seasonal",
+        "patient-experience"
+      ]
     },
     "DSK2ILFj9CL": {
       "shortcode": "DSK2ILFj9CL",
@@ -831,7 +1302,10 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf8af814dcf844d1cfd_6ab7bc5f168d87291cc6135c_tdb-instagram-post-dsk2ilfj9cl-cover-image-dsk2ilfj9cl.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice"
+      ]
     },
     "DSCQQEqATaY": {
       "shortcode": "DSCQQEqATaY",
@@ -841,7 +1315,11 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf7af814dcf844d1cf2_6ab7bc5e168d87291cc612ed_tdb-day-three-12-days-of-christmas-cover-image-dscqqeqatay.webp",
       "alt": "DAY THREE | 12 Days of Christmas 🎁 — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "seasonal"
+      ]
     },
     "DR_rdRNiFhQ": {
       "shortcode": "DR_rdRNiFhQ",
@@ -851,7 +1329,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf7af814dcf844d1ce1_6ab7bc5e8ea175d5fb6607fb_tdb-day-two-12-days-of-christmas-cover-image-dr_rdrnifhq.webp",
       "alt": "DAY TWO | 12 Days of Christmas 🎁 — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "five-senses",
+        "seasonal",
+        "patient-experience"
+      ]
     },
     "DR7Iw9FjjQE": {
       "shortcode": "DR7Iw9FjjQE",
@@ -861,7 +1345,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf7af814dcf844d1ced_6ab7bc5e84bcc73655faed98_tdb-instagram-post-dr7iw9fjjqe-cover-image-dr7iw9fjjqe.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "five-senses",
+        "patient-experience"
+      ]
     },
     "DRyzeqJiXR8": {
       "shortcode": "DRyzeqJiXR8",
@@ -871,7 +1361,13 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf7af814dcf844d1cd8_6ab7bc5d1fe561aa0b8a73d5_tdb-day-one-12-days-of-christmas-cover-image-dryzeqjixr8.webp",
       "alt": "DAY ONE | 12 Days of Christmas 🎁 — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "five-senses",
+        "seasonal",
+        "patient-experience"
+      ]
     },
     "DRvH6ZSkq-8": {
       "shortcode": "DRvH6ZSkq-8",
@@ -882,6 +1378,9 @@
       "alt": "🌟 Award-Winning Excellence at The Dental Barns! 🌟 — cover image",
       "width": 360,
       "height": 640,
+      "tags": [
+        "awards"
+      ],
       "likes": 123,
       "comments": 8
     },
@@ -894,6 +1393,9 @@
       "alt": "BEST PRACTICE BRAND & DESIGN 🏆",
       "width": 1080,
       "height": 1434,
+      "tags": [
+        "awards"
+      ],
       "likes": 49,
       "comments": 4
     },
@@ -906,6 +1408,10 @@
       "alt": "DIGITAL PRACTICE OF THE YEAR 🏆",
       "width": 1080,
       "height": 1434,
+      "tags": [
+        "awards",
+        "dental-technology"
+      ],
       "likes": 28
     },
     "DRm0XIrj51F": {
@@ -917,6 +1423,9 @@
       "alt": "PRACTICE MANAGER OF THE YEAR 🏆",
       "width": 1080,
       "height": 1434,
+      "tags": [
+        "awards"
+      ],
       "likes": 82,
       "comments": 16
     },
@@ -928,7 +1437,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf6af814dcf844d1cd4_6ab7bc5db8684bdee11fccbd_tdb-and-just-like-that-the-season-has-changed-cover-im-drindvvivmq.webp",
       "alt": "And just like that... the season has changed. 🍂 ➡️ 🎄 — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "practice-setting",
+        "seasonal"
+      ]
     },
     "DRSeBPNj-4C": {
       "shortcode": "DRSeBPNj-4C",
@@ -939,6 +1453,9 @@
       "alt": "Our tickets have arrived! 🎫🤩",
       "width": 1080,
       "height": 1440,
+      "tags": [
+        "awards"
+      ],
       "likes": 85,
       "comments": 10
     },
@@ -950,7 +1467,12 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf6af814dcf844d1cce_6ab7bc5d1fe561aa0b8a7446_tdb-november-at-the-dental-barns-cover-image-drnexkcgm2k.webp",
       "alt": "November at The Dental Barns 🍂✨ — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "tags": [
+        "the-practice",
+        "practice-setting",
+        "seasonal"
+      ]
     },
     "DRKxlVniQL7": {
       "shortcode": "DRKxlVniQL7",
@@ -960,7 +1482,14 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bcf7af814dcf844d1cdd_6ab7bc5e686cd4d54c4c4f7a_tdb-instagram-post-drkxlvniql7-drkxlvniql7.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "tags": [
+        "the-practice",
+        "comfort",
+        "refreshments",
+        "practice-setting",
+        "patient-experience"
+      ]
     },
     "DP6rGmPkiZg": {
       "shortcode": "DP6rGmPkiZg",
@@ -971,6 +1500,10 @@
       "alt": "💫 The Dental Barns - 7 Award Nominations! 💫 — cover image",
       "width": 360,
       "height": 640,
+      "tags": [
+        "awards",
+        "practice-setting"
+      ],
       "likes": 53,
       "comments": 9
     },
@@ -983,6 +1516,12 @@
       "alt": "💫 The Dental Barns - 7 Award Nominations! 💫",
       "width": 1080,
       "height": 1424,
+      "tags": [
+        "awards",
+        "dental-technology",
+        "nervous-patients",
+        "patient-experience"
+      ],
       "likes": 149,
       "comments": 8
     },
@@ -995,6 +1534,9 @@
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
       "height": 640,
+      "tags": [
+        "awards"
+      ],
       "likes": 649,
       "comments": 14
     },
@@ -1007,6 +1549,11 @@
       "alt": "Patient Spotlight: Sarah! ✨",
       "width": 1080,
       "height": 1351,
+      "tags": [
+        "patient-stories",
+        "happy-patients",
+        "patient-experience"
+      ],
       "likes": 17
     },
     "DOvkOjeiZgE": {
@@ -1018,6 +1565,11 @@
       "alt": "Patient Spotlight: Vivienne! ✨",
       "width": 1080,
       "height": 1351,
+      "tags": [
+        "patient-stories",
+        "happy-patients",
+        "patient-experience"
+      ],
       "likes": 9
     },
     "DOdiqgsjoPl": {
@@ -1029,6 +1581,11 @@
       "alt": "Patient Spotlight: Laura! ✨",
       "width": 1080,
       "height": 1351,
+      "tags": [
+        "patient-stories",
+        "happy-patients",
+        "patient-experience"
+      ],
       "likes": 15
     },
     "DN5fiBADNvx": {
@@ -1040,6 +1597,11 @@
       "alt": "Patient Spotlight: Felix! ✨",
       "width": 1080,
       "height": 1351,
+      "tags": [
+        "patient-stories",
+        "happy-patients",
+        "patient-experience"
+      ],
       "likes": 16
     },
     "DNqBdbmOw7m": {
@@ -1051,6 +1613,11 @@
       "alt": "Patient Spotlight: Anita! ✨",
       "width": 1080,
       "height": 1351,
+      "tags": [
+        "patient-stories",
+        "happy-patients",
+        "patient-experience"
+      ],
       "likes": 34
     },
     "DKnLZqJoIhy": {
@@ -1062,6 +1629,9 @@
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 1080,
       "height": 1436,
+      "tags": [
+        "awards"
+      ],
       "likes": 255,
       "comments": 28
     },
@@ -1074,6 +1644,9 @@
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
       "height": 639,
+      "tags": [
+        "awards"
+      ],
       "likes": 146,
       "comments": 12
     },
@@ -1086,6 +1659,9 @@
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 1080,
       "height": 1350,
+      "tags": [
+        "awards"
+      ],
       "likes": 36
     },
     "DFTE8zMTNyd": {
@@ -1097,6 +1673,11 @@
       "alt": "Journey Arch – Saskia",
       "width": 1080,
       "height": 1351,
+      "tags": [
+        "patient-stories",
+        "happy-patients",
+        "patient-experience"
+      ],
       "likes": 18,
       "comments": 1
     },
@@ -1109,6 +1690,11 @@
       "alt": "The Private Dentistry Awards 2024 Update! — cover image",
       "width": 1080,
       "height": 1350,
+      "tags": [
+        "awards",
+        "dental-technology",
+        "nervous-patients"
+      ],
       "likes": 92,
       "comments": 1
     },
@@ -1121,6 +1707,11 @@
       "alt": "Smile Arch - Racheal",
       "width": 1080,
       "height": 1351,
+      "tags": [
+        "patient-stories",
+        "happy-patients",
+        "patient-experience"
+      ],
       "likes": 16,
       "comments": 2
     },
@@ -1133,6 +1724,11 @@
       "alt": "Journey Arch - @andyscottonpeters",
       "width": 1080,
       "height": 1351,
+      "tags": [
+        "patient-stories",
+        "happy-patients",
+        "patient-experience"
+      ],
       "likes": 22,
       "comments": 1
     },
@@ -1145,6 +1741,12 @@
       "alt": "@dentistry #PrivateDentistryAwards24",
       "width": 1440,
       "height": 1440,
+      "tags": [
+        "awards",
+        "hygiene",
+        "dental-technology",
+        "patient-experience"
+      ],
       "likes": 6,
       "comments": 1
     },
@@ -1157,6 +1759,10 @@
       "alt": "@dentistry #PrivateDentistryAwards24",
       "width": 1440,
       "height": 1440,
+      "tags": [
+        "awards",
+        "practice-setting"
+      ],
       "likes": 14,
       "comments": 1
     },
@@ -1169,6 +1775,9 @@
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 1440,
       "height": 1800,
+      "tags": [
+        "awards"
+      ],
       "likes": 206,
       "comments": 9
     }

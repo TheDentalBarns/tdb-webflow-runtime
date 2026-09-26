@@ -1,4 +1,4 @@
-/* TDB Instagram cards v0.4.0. Shared Swiper owns motion and page chrome. */
+/* TDB Instagram cards v0.5.0. Shared Swiper owns motion and page chrome. */
 /* Replace legacy Elfsight dimensions and let grid items shrink around the track. */
 html[data-tdb-instagram-preview] .w-embed:has(> :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b6a21bed,.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,.elfsight-app-35374f05-af95-4b8c-9480-e091c19319c8,.elfsight-app-3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04,[data-tdb-ig-widget])){width:100%;min-width:0;max-width:100%;height:auto;min-height:0;max-height:none;overflow:visible}
 html[data-tdb-instagram-preview] .award-image_left:has(:is(.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,[data-tdb-ig-widget])){width:100%;min-width:0;max-width:100%;height:auto;min-height:0;max-height:none}
@@ -7,7 +7,7 @@ html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b
 html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b6a21bed,.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,.elfsight-app-35374f05-af95-4b8c-9480-e091c19319c8,.elfsight-app-3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04,[data-tdb-ig-widget]):not([data-tdb-ig-ready]){position:relative;width:100%;min-width:0}
 html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b6a21bed,.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,.elfsight-app-35374f05-af95-4b8c-9480-e091c19319c8,.elfsight-app-3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04,[data-tdb-ig-widget]):not([data-tdb-ig-ready])::before{content:"";display:block;width:var(--tdb-ig-card-width);aspect-ratio:4/5;box-sizing:content-box;padding-block:8.5rem;margin-inline:auto;pointer-events:none}
 [data-tdb-ig-widget]{min-width:0;width:100%;overflow:hidden}
-.tdb-ig-feed{position:relative;width:100%;max-width:100%;min-width:0;margin-inline:auto;overflow:visible;color:var(--base-color-brand--black,#111);font-family:inherit}
+.tdb-ig-feed{position:relative;width:100%;max-width:100%;min-width:0;margin-inline:auto;overflow:visible;color:var(--base-color-brand--black,#111);font-family:inherit;text-align:left}
 .tdb-ig-feed > .tdb-ig-viewport{width:var(--tdb-ig-card-width,100%);height:auto;min-width:0;margin:0 auto;overflow:visible}
 .tdb-ig-feed .swiper-wrapper{position:relative;display:flex;align-items:flex-start;width:100%;box-sizing:content-box}
 .tdb-ig-feed .tdb-ig-slide{flex-shrink:0;height:auto;opacity:.5;transition:opacity 300ms ease}
@@ -19,8 +19,8 @@ html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b
 .tdb-ig-feed .tdb-ig-photo{display:block;width:100%;height:125cqw;object-fit:cover;object-position:center;max-width:none;border:0;border-radius:0;user-select:none;-webkit-user-drag:none}
 .tdb-ig-feed .tdb-ig-bar{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%;height:6rem;padding:1rem 1.25rem;overflow:hidden;color:#111;border:0;border-radius:0;box-shadow:none}
 .tdb-ig-feed .tdb-ig-reflection,.tdb-ig-feed .tdb-ig-glass{position:absolute;inset:0;pointer-events:none}
-.tdb-ig-feed .tdb-ig-reflection{z-index:0;overflow:hidden}
-.tdb-ig-feed .tdb-ig-reflection-photo{position:absolute;left:0;display:block;width:100%;height:125cqw;object-fit:cover;object-position:center;max-width:none;transform:scaleY(-1);user-select:none;-webkit-user-drag:none}
+.tdb-ig-feed .tdb-ig-reflection{z-index:0;inset-inline:3px;overflow:hidden}
+.tdb-ig-feed .tdb-ig-reflection-photo{position:absolute;left:-3px;display:block;width:calc(100% + 6px);height:125cqw;object-fit:cover;object-position:center;max-width:none;transform:scaleY(-1);user-select:none;-webkit-user-drag:none}
 .tdb-ig-feed .tdb-ig-top .tdb-ig-reflection-photo{bottom:0}
 .tdb-ig-feed .tdb-ig-bottom .tdb-ig-reflection-photo{top:0}
 .tdb-ig-feed .tdb-ig-glass{z-index:1;background:rgba(255,252,247,.88);-webkit-backdrop-filter:saturate(150%) blur(20px);backdrop-filter:saturate(150%) blur(20px)}
@@ -74,5 +74,5 @@ html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b
  .tdb-ig-feed .tdb-ig-action .tdb-ig-icon{width:22px;height:22px}
  .tdb-ig-feed .tdb-ig-open{gap:.5rem}
 }
-@container(max-width:400px){.tdb-ig-feed .tdb-ig-open>span{display:none}.tdb-ig-feed .tdb-ig-open{width:44px;justify-content:center}.tdb-ig-feed .tdb-ig-bar{padding-inline:.75rem}}
+@container(max-width:400px){.tdb-ig-feed .tdb-ig-open-label{display:none}.tdb-ig-feed .tdb-ig-open{width:44px;flex:0 0 44px;justify-content:center}.tdb-ig-feed .tdb-ig-bar{padding-inline:.75rem}}
 @supports not ((backdrop-filter:blur(20px)) or (-webkit-backdrop-filter:blur(20px))){.tdb-ig-feed .tdb-ig-glass{background:rgba(249,242,230,.94)}}

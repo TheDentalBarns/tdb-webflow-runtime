@@ -1,4 +1,4 @@
-/* TDB Instagram staging bootstrap v0.4.0. Pin @RELEASE@ after committing. */
+/* TDB Instagram staging bootstrap v0.5.0. Pin @RELEASE@ after committing. */
 (() => {
   if (location.hostname !== 'dentalbarns.webflow.io') return;
   const widgets = ['d03f7f34-0953-4575-946c-bca5b6a21bed','9abfdbc1-5cc2-4de0-bf56-1093d967c2be','35374f05-af95-4b8c-9480-e091c19319c8','3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04'];
@@ -17,7 +17,7 @@
   if (!mounts.length) return;
   const script = document.createElement('script');
   script.src = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@@RELEASE@/dist/tdb-instagram-feed.js';
-  script.dataset.tdbInstagramJs = '0.4.0';
+  script.dataset.tdbInstagramJs = '0.5.0';
   script.onerror = () => mounts.forEach(node => {
     node.removeAttribute('aria-busy');
     const link = document.createElement('a');
