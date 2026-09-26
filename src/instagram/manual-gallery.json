@@ -1,5 +1,5 @@
 {
-  "version": "0.2.1",
+  "version": "0.3.0",
   "importedAt": "2026-09-26",
   "posts": {
     "DdhXEQ2F66H": {
@@ -10,7 +10,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbbdf00b2e38856c915_6ab7bc9116209a9d8dd53ab9_tdb-instagram-post-ddhxeq2f66h-cover-image-ddhxeq2f66h.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "likes": 30,
+      "comments": 2
     },
     "DdeOgbDjsKm": {
       "shortcode": "DdeOgbDjsKm",
@@ -20,7 +22,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbcdf00b2e38856c931_6ab7bc9105bdd4c6b609f251_tdb-instagram-post-ddeogbdjskm-cover-image-ddeogbdjskm.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "likes": 536,
+      "comments": 7
     },
     "DdcQvThD51y": {
       "shortcode": "DdcQvThD51y",
@@ -30,7 +34,8 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbcdf00b2e38856c934_6ab7bc91b8684bdee11fd952_tdb-what-does-zoe-choose-to-watch-when-she-s-the-patie-ddcqvthd51y.webp",
       "alt": "🍂 What does Zoe choose to watch when she’s the patient? — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "likes": 31
     },
     "DdZpEuikbEm": {
       "shortcode": "DdZpEuikbEm",
@@ -40,7 +45,8 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbcdf00b2e38856c938_6ab7bc91d8bd41f7f2d75e5e_tdb-autumn-has-arrived-at-the-dental-barns-ddzpeuikbem.webp",
       "alt": "🍂 Autumn has arrived at The Dental Barns.",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "likes": 15
     },
     "DdXJF4-EUGl": {
       "shortcode": "DdXJF4-EUGl",
@@ -250,7 +256,8 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbcdf00b2e38856c940_6ab7bc92700a173839ff86ac_tdb-calming-refreshments-kindness-db36_exig6o.webp",
       "alt": "🌸 Calming. Refreshments. Kindness.",
       "width": 1080,
-      "height": 1350
+      "height": 1350,
+      "likes": 8
     },
     "Db0W6PIl08B": {
       "shortcode": "Db0W6PIl08B",
@@ -290,7 +297,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7bdbcdf00b2e38856c93d_6ab7bc9289941a81fffe3aee_tdb-some-reviews-mean-more-than-words-can-ever-express-dbtx7hmghd3.webp",
       "alt": "🌸 Some reviews mean more than words can ever express. — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "likes": 28,
+      "comments": 2
     },
     "DbrEUrkgriJ": {
       "shortcode": "DbrEUrkgriJ",
@@ -610,7 +619,8 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b971686d68a8f74b5666_6ab7b810d507ffd7a11d1bb2_tdb-seeing-our-patients-happy-makes-us-happy-dtyx7vtcf9l.webp",
       "alt": "Seeing our patients happy makes us happy. 🤍",
       "width": 1080,
-      "height": 1351
+      "height": 1351,
+      "likes": 12
     },
     "DTWIMz8FX82": {
       "shortcode": "DTWIMz8FX82",
@@ -620,7 +630,8 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b972686d68a8f74b567f_6ab7b8113ba8342970ce258d_tdb-a-lovely-moment-from-2025-cover-image-dtwimz8fx82.webp",
       "alt": "A lovely moment from 2025... ✨ — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "likes": 76
     },
     "DTSRPOSkkq0": {
       "shortcode": "DTSRPOSkkq0",
@@ -870,7 +881,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b972686d68a8f74b568e_6ab7b8118ea175d5fb649172_tdb-award-winning-excellence-at-the-dental-barns-cover-drvh6zskq-8.webp",
       "alt": "🌟 Award-Winning Excellence at The Dental Barns! 🌟 — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "likes": 123,
+      "comments": 8
     },
     "DRsHhHUjNe7": {
       "shortcode": "DRsHhHUjNe7",
@@ -880,7 +893,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b972686d68a8f74b5693_6ab7b81276a5f592a5b71127_tdb-best-practice-brand-design-drshhhujne7.webp",
       "alt": "BEST PRACTICE BRAND & DESIGN 🏆",
       "width": 1080,
-      "height": 1434
+      "height": 1434,
+      "likes": 49,
+      "comments": 4
     },
     "DRpEb9Fjdyj": {
       "shortcode": "DRpEb9Fjdyj",
@@ -890,7 +905,8 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b973686d68a8f74b56ad_6ab7b812b4645496e0474e8d_tdb-digital-practice-of-the-year-drpeb9fjdyj.webp",
       "alt": "DIGITAL PRACTICE OF THE YEAR 🏆",
       "width": 1080,
-      "height": 1434
+      "height": 1434,
+      "likes": 28
     },
     "DRm0XIrj51F": {
       "shortcode": "DRm0XIrj51F",
@@ -900,7 +916,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b972686d68a8f74b569e_6ab7b81252ac8bff7a218015_tdb-practice-manager-of-the-year-drm0xirj51f.webp",
       "alt": "PRACTICE MANAGER OF THE YEAR 🏆",
       "width": 1080,
-      "height": 1434
+      "height": 1434,
+      "likes": 82,
+      "comments": 16
     },
     "DRiNdvviVMq": {
       "shortcode": "DRiNdvviVMq",
@@ -920,7 +938,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b974686d68a8f74b56ba_6ab7b81252ac8bff7a21802a_tdb-our-tickets-have-arrived-drsebpnj-4c.webp",
       "alt": "Our tickets have arrived! 🎫🤩",
       "width": 1080,
-      "height": 1440
+      "height": 1440,
+      "likes": 85,
+      "comments": 10
     },
     "DRNExKcgM2k": {
       "shortcode": "DRNExKcgM2k",
@@ -950,7 +970,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b973686d68a8f74b56b0_6ab7b81271ddca5f7c71bfa8_tdb-the-dental-barns-7-award-nominations-cover-image-dp6rgmpkizg.webp",
       "alt": "💫 The Dental Barns - 7 Award Nominations! 💫 — cover image",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "likes": 53,
+      "comments": 9
     },
     "DP1EDvNDwh8": {
       "shortcode": "DP1EDvNDwh8",
@@ -960,7 +982,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b974686d68a8f74b56bd_6ab7b813faa1e1f58a0c8e9a_tdb-the-dental-barns-7-award-nominations-dp1edvndwh8.webp",
       "alt": "💫 The Dental Barns - 7 Award Nominations! 💫",
       "width": 1080,
-      "height": 1424
+      "height": 1424,
+      "likes": 149,
+      "comments": 8
     },
     "DPt8CzsCvyo": {
       "shortcode": "DPt8CzsCvyo",
@@ -970,7 +994,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b974686d68a8f74b56c4_6ab7b81386c563fd3fbbc2c5_tdb-instagram-post-dpt8czscvyo-cover-image-dpt8czscvyo.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 640
+      "height": 640,
+      "likes": 649,
+      "comments": 14
     },
     "DPBnSXhDnMC": {
       "shortcode": "DPBnSXhDnMC",
@@ -980,7 +1006,8 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b971686d68a8f74b5660_6ab7b80fd900577db5a99eae_tdb-patient-spotlight-sarah-dpbnsxhdnmc.webp",
       "alt": "Patient Spotlight: Sarah! ✨",
       "width": 1080,
-      "height": 1351
+      "height": 1351,
+      "likes": 17
     },
     "DOvkOjeiZgE": {
       "shortcode": "DOvkOjeiZgE",
@@ -990,7 +1017,8 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b972686d68a8f74b5679_6ab7b811df00b2e388565ae1_tdb-patient-spotlight-vivienne-dovkojeizge.webp",
       "alt": "Patient Spotlight: Vivienne! ✨",
       "width": 1080,
-      "height": 1351
+      "height": 1351,
+      "likes": 9
     },
     "DOdiqgsjoPl": {
       "shortcode": "DOdiqgsjoPl",
@@ -1000,7 +1028,8 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b972686d68a8f74b5676_6ab7b811686cd4d54c4b73e8_tdb-patient-spotlight-laura-dodiqgsjopl.webp",
       "alt": "Patient Spotlight: Laura! ✨",
       "width": 1080,
-      "height": 1351
+      "height": 1351,
+      "likes": 15
     },
     "DN5fiBADNvx": {
       "shortcode": "DN5fiBADNvx",
@@ -1010,7 +1039,8 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b972686d68a8f74b5682_6ab7b811df00b2e388565af8_tdb-patient-spotlight-felix-dn5fibadnvx.webp",
       "alt": "Patient Spotlight: Felix! ✨",
       "width": 1080,
-      "height": 1351
+      "height": 1351,
+      "likes": 16
     },
     "DNqBdbmOw7m": {
       "shortcode": "DNqBdbmOw7m",
@@ -1020,7 +1050,8 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b971686d68a8f74b5670_6ab7b810e48381cd338ba8ef_tdb-patient-spotlight-anita-dnqbdbmow7m.webp",
       "alt": "Patient Spotlight: Anita! ✨",
       "width": 1080,
-      "height": 1351
+      "height": 1351,
+      "likes": 34
     },
     "DKnLZqJoIhy": {
       "shortcode": "DKnLZqJoIhy",
@@ -1030,7 +1061,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b974686d68a8f74b56cd_6ab7b813d8300e3a2a7d7fb3_tdb-instagram-post-dknlzqjoihy-dknlzqjoihy.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 1080,
-      "height": 1436
+      "height": 1436,
+      "likes": 255,
+      "comments": 28
     },
     "DKkZ_zeo25C": {
       "shortcode": "DKkZ_zeo25C",
@@ -1040,7 +1073,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b975686d68a8f74b56dc_6ab7b8138ea175d5fb6491b3_tdb-instagram-post-dkkz-zeo25c-cover-image-dkkz_zeo25c.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 360,
-      "height": 639
+      "height": 639,
+      "likes": 146,
+      "comments": 12
     },
     "DI3dBH5tk7p": {
       "shortcode": "DI3dBH5tk7p",
@@ -1050,7 +1085,8 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b975686d68a8f74b56f3_6ab7b813d8300e3a2a7d7fd1_tdb-instagram-post-di3dbh5tk7p-di3dbh5tk7p.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 1080,
-      "height": 1350
+      "height": 1350,
+      "likes": 36
     },
     "DFTE8zMTNyd": {
       "shortcode": "DFTE8zMTNyd",
@@ -1060,7 +1096,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b6eafaa1e1f58a0c223b_6ab7b6180be4800b55374ad8_tdb-journey-arch-saskia-dfte8zmtnyd.webp",
       "alt": "Journey Arch – Saskia",
       "width": 1080,
-      "height": 1351
+      "height": 1351,
+      "likes": 18,
+      "comments": 1
     },
     "DEX2tLWPMQb": {
       "shortcode": "DEX2tLWPMQb",
@@ -1070,7 +1108,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b975686d68a8f74b56f0_6ab7b81416209a9d8dd407cd_tdb-the-private-dentistry-awards-2024-update-cover-ima-dex2tlwpmqb.webp",
       "alt": "The Private Dentistry Awards 2024 Update! — cover image",
       "width": 1080,
-      "height": 1350
+      "height": 1350,
+      "likes": 92,
+      "comments": 1
     },
     "DCj-360RjHI": {
       "shortcode": "DCj-360RjHI",
@@ -1080,7 +1120,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b971686d68a8f74b565a_6ab7b8104eabdfc2d0cc3e87_tdb-smile-arch-racheal-dcj-360rjhi.webp",
       "alt": "Smile Arch - Racheal",
       "width": 1080,
-      "height": 1351
+      "height": 1351,
+      "likes": 16,
+      "comments": 2
     },
     "DB4P2IFpmjP": {
       "shortcode": "DB4P2IFpmjP",
@@ -1090,7 +1132,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b971686d68a8f74b565d_6ab7b810faa1e1f58a0c8e07_tdb-journey-arch-andyscottonpeters-db4p2ifpmjp.webp",
       "alt": "Journey Arch - @andyscottonpeters",
       "width": 1080,
-      "height": 1351
+      "height": 1351,
+      "likes": 22,
+      "comments": 1
     },
     "DBk8IEmPTkj": {
       "shortcode": "DBk8IEmPTkj",
@@ -1100,7 +1144,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b975686d68a8f74b56e6_6ab7b814d8300e3a2a7d8009_tdb-dentistry-privatedentistryawards24-dbk8iemptkj.webp",
       "alt": "@dentistry #PrivateDentistryAwards24",
       "width": 1440,
-      "height": 1440
+      "height": 1440,
+      "likes": 6,
+      "comments": 1
     },
     "DBmE7VgMOX5": {
       "shortcode": "DBmE7VgMOX5",
@@ -1110,7 +1156,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b975686d68a8f74b56e1_6ab7b81452ac8bff7a2180b7_tdb-dentistry-privatedentistryawards24-dbme7vgmox5.webp",
       "alt": "@dentistry #PrivateDentistryAwards24",
       "width": 1440,
-      "height": 1440
+      "height": 1440,
+      "likes": 14,
+      "comments": 1
     },
     "C_8m1oWIr4g": {
       "shortcode": "C_8m1oWIr4g",
@@ -1120,7 +1168,9 @@
       "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b973686d68a8f74b56a9_6ab7b8124eabdfc2d0cc3f1d_tdb-instagram-post-c-8m1owir4g-cover-image-c_8m1owir4g.webp",
       "alt": "A moment at The Dental Barns, shared on Instagram.",
       "width": 1440,
-      "height": 1800
+      "height": 1800,
+      "likes": 206,
+      "comments": 9
     }
   },
   "feeds": {

@@ -1,14 +1,14 @@
-/* TDB Instagram cards v0.2.1 — manual CMS snapshot, shared slider mechanics. */
+/* TDB Instagram cards v0.3.0 — manual CMS snapshot, shared slider mechanics. */
 (() => {
   'use strict';
   const data = window.TDBInstagramManualData;
   if (!data || window.TDBInstagramFeed) return;
-  const VERSION = '0.2.1';
+  const VERSION = '0.3.0';
   const LOGO = 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/681c892759ed35c51acb5fe3_the-dental-barns-blackbrook-lichfield-logo.svg.svg';
   const iconPaths = {
-    heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
-    comment: '<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/>',
-    share: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+    heart: '<path fill="currentColor" stroke="none" d="M12 21.3 2.5 12C-3 6.4 5.4-1.1 12 5.3 18.6-1.1 27 6.4 21.5 12Z"/>',
+    comment: '<path d="M21 11.5a9 9 0 0 1-13.4 7.9L3 21l1.5-4.8A9 9 0 1 1 21 11.5Z"/>',
+    share: '<path d="M21.3 3H3.4a1.4 1.4 0 0 0-1 2.4l6 5.8 3.1 8.3a1.4 1.4 0 0 0 2.5.2l8.5-14.6A1.4 1.4 0 0 0 21.3 3Z"/><path d="m8.4 11.2 9.1-5.4"/>',
     next: '<path d="M4 12h16m-6-6 6 6-6 6"/>',
     previous: '<path d="M20 12H4m6-6-6 6 6 6"/>',
     instagram: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r=".8" fill="currentColor" stroke="none"/>'
@@ -33,7 +33,7 @@
       return svg;
     }
     const span = el('span', 'tdb-ig-icon-wrap');
-    span.innerHTML = '<svg class="tdb-ig-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + iconPaths[name] + '</svg>';
+    span.innerHTML = '<svg class="tdb-ig-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">' + iconPaths[name] + '</svg>';
     return span.firstElementChild;
   }
 
@@ -84,6 +84,14 @@
     return node;
   }
 
+  function addMetric(node, value, label) {
+    if (Number.isSafeInteger(value) && value >= 0) {
+      node.append(el('span', 'tdb-ig-metric', new Intl.NumberFormat('en-GB').format(value)));
+      node.setAttribute('aria-label', value + ' ' + label + '. ' + node.getAttribute('aria-label'));
+    }
+    return node;
+  }
+
   function card(post, index, count) {
     const slide = el('div', 'swiper-slide tdb-ig-slide');
     slide.setAttribute('role', 'group');
@@ -126,12 +134,13 @@
     const footer = el('footer', 'tdb-ig-bar tdb-ig-bottom');
     footer.append(...reflection(photo));
     const actions = el('div', 'tdb-ig-actions');
-    actions.append(link(post.url, 'tdb-ig-action', 'Like this post on Instagram', 'heart'), link(post.url, 'tdb-ig-action', 'Comment on this post on Instagram', 'comment'));
+    actions.append(addMetric(link(post.url, 'tdb-ig-action', 'View likes on Instagram', 'heart'), post.likes, 'likes'), addMetric(link(post.url, 'tdb-ig-action', 'Comment on this post on Instagram', 'comment'), post.comments, 'comments'));
     const share = el('button', 'tdb-ig-action tdb-ig-share');
     share.type = 'button';
     share.setAttribute('aria-label', 'Share this Instagram post');
     share.dataset.shareUrl = post.url;
     share.append(icon('share'));
+    addMetric(share, post.shares, 'shares');
     actions.append(share);
     const open = link(post.url, 'tdb-ig-open', 'View post on Instagram');
     open.append(el('span', '', 'View post'), icon('next'));
