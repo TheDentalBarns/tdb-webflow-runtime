@@ -5,12 +5,12 @@
   window.__tdbServiceAwards=true;
   const animated=[];
   let frame=0;
-  // DD keyframe timing and smoothing, normalised to full cream-logo opacity.
+  // Same DD opacity keyframes and smoothing as the review-name text effect.
   function opacityAtProgress(progress){const p=Math.max(0,Math.min(1,progress));return p<.5?p:p<=.75?.5:.5-(p-.75)*1.6;}
   function paint(initial=false){
     frame=0;let settling=false;
     animated.forEach(s=>{
-      const target=2*opacityAtProgress((innerHeight-s.el.getBoundingClientRect().top)/innerHeight);
+      const target=opacityAtProgress((innerHeight-s.el.getBoundingClientRect().top)/innerHeight);
       s.opacity=initial?target:s.opacity+(target-s.opacity)*.5;
       s.el.style.opacity=s.opacity.toFixed(3);
       if(Math.abs(target-s.opacity)>.001)settling=true;
@@ -42,7 +42,7 @@
         logo.style.setProperty('--award-image',`url(${JSON.stringify(r.image)})`);
         const copy=node('div','tdb-award-text');
         copy.append(node('h3','tdb-award-title',r.heading),node('p','tdb-award-result',r.result),node('p','tdb-award-copy',r.copy));
-        card.append(logo,copy);grid.append(card);animated.push({el:logo,opacity:0});
+        card.append(logo,copy);grid.append(card);animated.push({el:copy.querySelector('.tdb-award-copy'),opacity:0});
       });
       if(!seen.size)root.hidden=true;
     });
