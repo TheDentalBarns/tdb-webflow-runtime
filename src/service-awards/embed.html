@@ -2,7 +2,7 @@
 .tdb-service-awards{--award-cream:var(--base-color-brand--orange-3,#d6cab4);color:var(--base-color-brand--black,#000)}
 .tdb-awards-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2.5rem;min-height:15rem;border-bottom:1px solid var(--award-cream)}
 .tdb-award{display:grid;grid-template-columns:8rem minmax(0,1fr);align-items:center;gap:1.5rem;min-width:0;margin:0;padding:1.5rem 0;text-align:left}
-.tdb-award-logo{display:block;width:100%;height:10rem;opacity:1;background:#000;mask:var(--award-image) center/contain no-repeat;-webkit-mask:var(--award-image) center/contain no-repeat}
+.tdb-award-logo{display:block;width:100%;height:10rem;transform:scale(1.15);transform-origin:center;opacity:1;background:#000;mask:var(--award-image) center/contain no-repeat;-webkit-mask:var(--award-image) center/contain no-repeat}
 .tdb-award-title{margin:0 0 .4rem;font:inherit;font-size:1rem;line-height:1.4;letter-spacing:.03em}
 .tdb-award-result{margin:0 0 .65rem;font-size:.75rem;line-height:1.5;color:var(--base-color-neutral--neutral,#666)}
 .tdb-award-text{width:100%;max-width:22rem;min-width:0;padding-left:1.5rem;border-left:1px solid var(--award-cream)}
@@ -10,4 +10,8 @@
 @media(max-width:1100px){.tdb-awards-grid{gap:1.5rem}.tdb-award{grid-template-columns:6.5rem minmax(0,1fr);gap:1rem}.tdb-award-text{padding-left:1rem}}
 @media(max-width:767px){.tdb-awards-grid{grid-template-columns:1fr;gap:0;min-height:37rem;border-bottom:0}.tdb-award{grid-template-columns:7.5rem minmax(0,1fr);gap:1rem;min-height:12rem;padding:1.75rem 0}.tdb-award:first-child{padding-top:0}.tdb-award+.tdb-award{border-top:1px solid var(--award-cream)}.tdb-award-logo{height:9.5rem}.tdb-award-text{padding-left:1.25rem;max-width:none}.tdb-award-title{font-size:1rem}.tdb-award-copy{font-size:.875rem}}
 @media(max-width:359px){.tdb-award{grid-template-columns:6rem minmax(0,1fr);gap:.75rem}.tdb-award-text{padding-left:.75rem}}
-</style><section class="tdb-service-awards margin-top margin-xxhuge" data-tdb-service-awards aria-label="Recognition for our practice"><div class="margin-bottom margin-medium text-align-center"><h2 class="text-style-tagline-restored">Our Recognition</h2></div><div class="tdb-awards-grid"></div></section><script defer src="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d2b5e96ae57fda72900143048dcfc38423623987/src/service-awards/service-awards.js"></script>
+
+.tdb-awards-heading{display:flex;align-items:center;justify-content:center;gap:1.25rem}
+.tdb-awards-heading::before,.tdb-awards-heading::after{content:"";display:block;flex:1;min-width:0;height:1px;background:var(--award-cream)}
+.tdb-awards-heading h2{flex:0 0 auto;margin:0;text-align:center}
+</style><section class="tdb-service-awards margin-top margin-xxhuge" data-tdb-service-awards aria-label="Recognition for our practice"><div class="margin-bottom margin-medium text-align-center tdb-awards-heading"><h2 class="text-style-tagline-restored">Our Recognition</h2></div><div class="tdb-awards-grid"></div></section><script defer src="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d2b5e96ae57fda72900143048dcfc38423623987/src/service-awards/service-awards.js"></script>
