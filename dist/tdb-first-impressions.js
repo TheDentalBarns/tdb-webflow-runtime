@@ -86,7 +86,7 @@
     function end(event,cancelled){
       const state=drag;if(!state||state.id!==event.pointerId)return;drag=null;
       if(viewport.hasPointerCapture(event.pointerId))viewport.releasePointerCapture(event.pointerId);
-      if(!state.horizontal){if(!cancelled){const node=event.target.closest('.tdb-fi-card');const item=Array.from(cells).find(([,n])=>n===node);if(item&&item[0]!==active)go(item[0]);}return;}
+      if(!state.horizontal){if(!cancelled){const rect=viewport.getBoundingClientRect(),width=cells.get(active).getBoundingClientRect().width,centre=(rect.width-width)/2,x=event.clientX-rect.left;if(x<centre)go(active-1);else if(x>centre+width)go(active+1);}return;}
       const distance=Math.abs(state.dx),elapsed=Math.max(1,event.timeStamp-state.time);
       const commit=!cancelled&&(distance>Math.max(40,.13*stride)||distance>20&&distance/elapsed>.45);
       go(active+(commit?(state.dx<0?1:-1):0),state.dx);
