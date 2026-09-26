@@ -1,6 +1,6 @@
 # Instagram card prototype — staging, 26 September 2026
 
-Version: 0.5.0.
+Version: 0.5.1.
 
 ## Scope
 
@@ -32,12 +32,12 @@ Rebuild with `python tools/build-instagram.py CMS_SNAPSHOT MEDIA_MANIFEST`. Then
 Rollback: remove the `data-tdb-instagram-preview-flag`, `data-tdb-instagram-card-style` and `data-tdb-instagram-staging` blocks from site custom code and republish staging. Original Webflow embed content remains intact.
 
 
-## Topic tags and card refinements — v0.5.0
+## Topic tags and card refinements — v0.5.1
 
 Media Gallery's existing Categories multi-reference is the canonical tag field. The Media Categories collection now contains 21 reusable tags. All 112 covers/titles were reviewed; 98 posts received additional editorial topics. Original four feed memberships remain unchanged. The full source captions were missing for all 112 posts and only two original hashtag strings were available, so treatment labels were not inferred from patient appearance or branded bags.
 
 The manual bundle includes CMS tag slugs on every post. Existing mounts can opt into a relevant feed using `data-tdb-ig-tags="comfort,nervous-patients"` (any matching tag), `data-tdb-ig-tag-mode="all"` for an intersection, `data-tdb-ig-exclude-tags="seasonal"` to omit a topic and `data-tdb-ig-label="Feeling comfortable"` for its accessible title. Tagged feeds draw from the whole gallery. With no tag attribute, the original feed membership and order are retained. Empty tag results render a short empty state rather than unrelated posts. CMS edits still require rebuilding this explicit staging snapshot.
 
-Awards text alignment is reset to left, matching every other card. The narrow-card rule now hides only `.tdb-ig-open-label`, leaving the native arrow visible. Reflected image layers are inset by 3 CSS pixels at each side, with their source image alignment retained; the glass layer remains full width to cover the previous edge bleed.
+Awards text alignment is reset to left, matching every other card. The narrow-card rule now hides only `.tdb-ig-open-label`, leaving the native arrow visible. Both reflected images are explicitly 6 CSS pixels narrower than their bars and start 3 pixels from the left edge. The card, bar and reflection wrapper backgrounds are transparent; the photo loading colour is restricted to the main photo. This leaves transparent 3-pixel side gaps beneath the full-width glass overlay, so its backdrop blur samples the page background at the edges. This shared rule applies to every feed, desktop/mobile and loop copy.
 
 Coverage after review: The Practice 87; Patient Experience 75; Practice Setting 35; Five Senses 33; Comfort 30; Awards 16; Seasonal 16; Patient Stories 15; Refreshments 13; First Visit 12; Happy Patients 9; Dental Technology 8; Team 3; Meet the Team 3; Hygiene 3; Nervous Patients 2; Smile Makeovers 2; Invisalign, Composite Bonding, Veneers and Whitening 0 confirmed. Tags overlap. The two Nervous Patients posts explicitly show the relevant award category. Existing Meet the Team membership is inherited from the legacy import and needs editorial review: its covers concern reviews and in-chair viewing rather than staff biographies.
