@@ -12,4 +12,4 @@ Presentation: three columns on desktop, three rows on mobile, with logos on the 
 
 Only staging publication is authorised. Runtime script is pinned to an immutable GitHub commit; CSS is also inlined in the component embed to reserve space and hide the CMS feed before JavaScript runs.
 
-The awards section uses the existing `margin-top margin-xxlarge` utilities for separation from the intro buttons. Larger logos have a 1px orange-3 vertical divider beside them; mobile rows have horizontal separators. No recognition heading is displayed.
+The awards section uses the existing `margin-top margin-xxhuge` utilities for separation from the intro buttons. Larger logos have a 1px orange-3 vertical divider beside them; mobile rows have horizontal separators. The Our Recognition heading uses the existing tagline style, without an adjacent line.
