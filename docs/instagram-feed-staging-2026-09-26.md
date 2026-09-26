@@ -1,6 +1,6 @@
 # Instagram card prototype — staging, 26 September 2026
 
-Version: 0.1.0.
+Version: 0.2.0.
 
 ## Scope
 
@@ -10,14 +10,14 @@ The data is an explicit manual CMS export, not an Instagram API connection or li
 
 ## Appearance and behaviour
 
-- Square photo cards, edge-to-edge images, no decorative borders or dividers.
-- Top and bottom bars use backdrop-filter blur(20px), with a readable opaque fallback.
+- Full-width cards with square corners, edge-to-edge images and no decorative borders or dividers. Main photos retain their full native aspect ratio; the viewport follows the active photo height.
+- Separate 6rem top and bottom strips mirror the top/bottom edges of the same image. Navigation-matched glass uses rgba(249,242,230,.75) with saturate(150%) blur(20px), plus a readable opaque fallback. The main photo is not overlaid or blurred.
 - Original TDB logo SVG, static at the top left inside a static colour ring. No logo animation, rotation, transition or transform.
-- Modern Instagram glyph at the top right; SVG heart, comment, share and view-post arrow below. The glyph is reused from the site's Instagram footer link.
+- White modern Instagram glyph at the top right; SVG heart, comment, share and view-post arrow below. The glyph is reused from the site's Instagram footer link.
 - Counts are omitted because the manual import does not contain verified engagement totals. Like/comment links open the original Instagram post; share copies or shares its permalink.
 - Uses .highlight-swiper_component and the existing pinned TDBSliders 0.6.1 runtime. The existing engine owns the 400ms movement, one-time first-view advance, loop handling, drag, keyboard and navigation.
 - Existing TDBSliderFocus 1.2.0 owns banner, navbar and VIP-footer movement and release; no parallel focus controller is added.
-- Adjacent cards are half-opacity, with masked edges. Header/footer overlays remain sharp except for the image backdrop.
+- Adjacent cards use the Smile Gallery half-opacity emphasis, with no edge mask. Smile Gallery arrow SVGs and native control classes provide the circular buttons on the right and pagination count on the left.
 
 ## Integration
 
