@@ -1,0 +1,43 @@
+/* TDB Power Snippets v1.1.0 — uses existing quotation typography and brand colour. */
+[data-tdb-power-snippet]:not([data-tdb-review-ready]){display:none}
+[data-tdb-power-snippet][data-tdb-review-ready]{display:block;height:auto;min-height:0;text-align:center}
+.is-review:has(> .button[data-tdb-review-updated]){flex-direction:column;height:auto}
+.tdb-power-quote{margin:0 auto;max-width:100%}
+.tdb-power-quote-mark{display:block;margin:0 auto 2rem}
+.tdb-power-quote-mark svg{display:block;width:100%;height:100%}
+.tdb-power-quote-body{border:0;padding:0;margin:0;font:inherit}
+.tdb-power-quote-body p{margin:0;white-space:normal;text-wrap:pretty}
+.tdb-power-quote-attribution{display:flex;align-items:center;justify-content:center;gap:.65rem;margin-top:2rem;font-style:normal;opacity:0;will-change:opacity}
+.tdb-review-source-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:1.35rem;height:1.35rem;aspect-ratio:1;overflow:hidden;line-height:1}
+.tdb-review-source-icon svg,.tdb-review-source-icon img{display:block;width:100%;height:100%;object-fit:contain}
+.tdb-review-source-icon.is-grayscale{filter:grayscale(1)}
+.tdb-review-history{font-size:.75rem;line-height:1.5;margin:1rem 0 0;color:#6b655e}
+.tdb-review-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:479px){
+ .button.is-review[data-tdb-review-updated]{column-gap:.45rem;row-gap:.35rem;flex-wrap:wrap;justify-content:center;padding-left:.85rem;padding-right:.85rem;max-width:100%}
+ .button.is-review[data-tdb-review-updated] .testimonial15_rating-wrapper{column-gap:.15rem}
+ .tdb-power-quote-mark{margin-bottom:1.5rem}
+ .tdb-power-quote-attribution{margin-top:1.5rem;letter-spacing:.08em}
+}
+
+/* Follow the existing native dark subhero variant. */
+[data-wf--hero---headline--variant="dark"] .tdb-power-quote-mark{opacity:.35}
+
+[data-tdb-review-open]{cursor:pointer;touch-action:manipulation}
+[data-tdb-review-open]:focus-visible{outline:2px solid currentColor;outline-offset:.5rem}
+[data-tdb-review-open][aria-busy="true"]{cursor:progress}
+.tdb-review-load-error{font-size:.85rem;text-align:center}
+
+.tdb-review-carousel{display:flow-root;position:relative;width:100%;min-height:300px;text-align:center}
+.tdb-rc-viewport{min-height:calc(300px + var(--tdb-rc-star-gap,0px));margin-top:calc(-1 * var(--tdb-rc-star-gap,0px));display:grid;overflow:hidden;touch-action:pan-y pinch-zoom}
+.tdb-rc-card{grid-area:1/1;min-width:0;display:flex;align-items:center;justify-content:center;padding:0;box-sizing:border-box;visibility:hidden}
+.tdb-rc-open{width:100%;cursor:pointer;outline-offset:-2px;opacity:0;transition:opacity 400ms ease-out}
+.tdb-rc-card.is-settled .tdb-rc-open{opacity:1}
+.tdb-rc-quote{margin:0;text-wrap:pretty}
+.tdb-rc-name{display:flex;align-items:center;justify-content:center;gap:.65rem;margin-top:2rem;will-change:opacity}
+.tdb-rc-dots{position:absolute;top:100%;left:0;right:0;display:flex;justify-content:center;gap:6px;margin-top:0}
+.tdb-rc-dot{display:grid;place-items:center;width:1rem;height:44px;border:0;padding:0;background:transparent;cursor:pointer}
+.tdb-rc-dot span{width:1rem;height:1rem;border-radius:50%;background:var(--base-color-brand--orange-2,#ebe2d2)}
+.tdb-rc-dot[aria-pressed="true"] span{background:var(--base-color-brand--orange-3,#d6cab4)}
+.tdb-review-carousel :focus-visible{outline:1px solid currentColor;outline-offset:3px}
+.tdb-rc-pause:focus{position:static;width:auto;height:auto;clip:auto;white-space:normal;padding:.5rem;background:transparent;border:1px solid currentColor}
