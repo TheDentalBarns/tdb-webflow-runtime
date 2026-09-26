@@ -1,6 +1,6 @@
-/* TDB Instagram staging bootstrap v0.5.3. Pin @RELEASE@ after committing. */
+/* TDB Instagram bootstrap v0.5.3. Pin @RELEASE@ after committing. */
 (() => {
-  if (location.hostname !== 'dentalbarns.webflow.io') return;
+  if (!['dentalbarns.webflow.io','thedentalbarns.com','www.thedentalbarns.com','thedentalbarns.co.uk','www.thedentalbarns.co.uk'].includes(location.hostname)) return;
   const widgets = ['d03f7f34-0953-4575-946c-bca5b6a21bed','9abfdbc1-5cc2-4de0-bf56-1093d967c2be','35374f05-af95-4b8c-9480-e091c19319c8','3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04'];
   const mounts = [];
   widgets.forEach(id => document.querySelectorAll('.elfsight-app-' + id).forEach(node => {
