@@ -1,6 +1,6 @@
 # Instagram card prototype — staging, 26 September 2026
 
-Version: 0.3.2.
+Version: 0.4.0.
 
 ## Scope
 
@@ -10,7 +10,7 @@ The data is an explicit manual CMS export, not an Instagram API connection or li
 
 ## Appearance and behaviour
 
-- Cards fill their gallery column up to 32rem, with square corners and no decorative borders or dividers. Every main photo uses the same 4:5 frame; fixed sizing prevents portrait posts changing the page height. Wide placements show adjacent cards inside a clipped section. Narrow columns and mobile retain 100% width.
+- Cards fill their entire gallery column, with square corners and no decorative borders or dividers. Desktop two-column sections show one full-width card with no neighbouring peeks. Wide Instagram sections show a centred row of three cards, with the existing half-opacity adjacent-card emphasis, 20px gaps and full-width controls. Every main photo uses the same 4:5 frame. Mobile retains the full-width card, 2vw gap and faded neighbouring peeks.
 - Separate 6rem top and bottom strips mirror the top/bottom edges of the same image. Navigation-matched glass uses rgba(255,252,247,.88) with saturate(150%) blur(20px), plus a readable opaque fallback. The main photo is not overlaid or blurred.
 - Original TDB logo SVG, static at the top left inside a static colour ring. No logo animation, rotation, transition or transform.
 - All card headers and profile links use thedentalbarns. Original post links and source provenance are retained.
@@ -23,7 +23,7 @@ The data is an explicit manual CMS export, not an Instagram API connection or li
 
 ## Integration
 
-Before the bundle loads, a staging-only head flag enables placeholders with the exact 4:5 image + 12rem glass bars + 5rem controls geometry. Mobile overflow follows Smile Gallery so faded neighbours remain visible. Instagram embed wrappers use natural height before and after hydration; this replaces First Visit’s legacy .code-embed-5 height:140vw mobile rule, which otherwise consumes the section’s bottom padding and clips the arrows.
+Before the bundle loads, a staging-only head flag enables placeholders with the exact 4:5 image + 12rem glass bars + 5rem controls geometry. Mobile overflow follows Smile Gallery so faded neighbours remain visible. Instagram embed wrappers use natural height and full available width before and after hydration. This replaces legacy 50vh/40vw width and 140vw/90vh height constraints. Awards grid items explicitly use min-width:0, width:100% and natural height; inline-size containment on each known Instagram mount prevents the flex slide track from contributing an expanding min-content width. The same rules cover Home and First Visit awards, Happy Patients, Meet the Team and The Practice. Desktop placeholder widths use the same one-column or three-card calculation as the final viewport, preserving section space before the bundle loads.
 
 The source stylesheet is appended once to the Webflow site head. The bootstrap is appended once to the footer; it checks the staging hostname and renames only the four known Instagram mounts before loading the immutable bundle. Other Elfsight widgets retain their classes and existing loader behaviour.
 
