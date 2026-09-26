@@ -1,6 +1,6 @@
 # Instagram card prototype — staging, 26 September 2026
 
-Version: 0.3.1.
+Version: 0.3.2.
 
 ## Scope
 
@@ -14,7 +14,7 @@ The data is an explicit manual CMS export, not an Instagram API connection or li
 - Separate 6rem top and bottom strips mirror the top/bottom edges of the same image. Navigation-matched glass uses rgba(255,252,247,.88) with saturate(150%) blur(20px), plus a readable opaque fallback. The main photo is not overlaid or blurred.
 - Original TDB logo SVG, static at the top left inside a static colour ring. No logo animation, rotation, transition or transform.
 - All card headers and profile links use thedentalbarns. Original post links and source provenance are retained.
-- Larger black modern Instagram glyph at the top right; Instagram-style black filled heart, outlined comment bubble, rounded share plane and view-post arrow below. The filled heart is a visual treatment, not a claim about the visitor’s Instagram like state. The glyph is reused from the site's Instagram footer link.
+- Larger black modern Instagram glyph at the top right; Crisp 1 CSS-pixel outline heart, comment bubble and sharp share plane below. The bubble is mirrored across the vertical axis so its tail points right. The view-post arrow uses the exact Smile Gallery SVG. The camera glyph uses the same thin outline treatment as the action icons.
 - Likes, comments and shares are optional CMS integers. Only verified present values render next to the corresponding icon; missing values are not shown as zero. Like/comment links open the original post, while Share shares/copies the post URL.
 - 31 like counts and 19 comment counts were migrated from visible legacy feed labels on 26 September 2026. Their upstream cache age is unknown and recorded in CMS. No share counts were available. Live sync and remaining counts require the Instagram account’s authorised API/Insights connection.
 - Uses .highlight-swiper_component and the existing pinned TDBSliders 0.6.1 runtime. The existing engine owns the 400ms movement, one-time first-view advance, loop handling, drag, keyboard and navigation.

@@ -1,4 +1,4 @@
-/* TDB Instagram cards v0.3.1. Shared Swiper owns motion and page chrome. */
+/* TDB Instagram cards v0.3.2. Shared Swiper owns motion and page chrome. */
 /* Replace legacy embed height (First Visit mobile: 140vw) with actual card flow. */
 html[data-tdb-instagram-preview] .w-embed:has(> :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b6a21bed,.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,.elfsight-app-35374f05-af95-4b8c-9480-e091c19319c8,.elfsight-app-3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04,[data-tdb-ig-widget])){height:auto;min-height:0;max-height:none;overflow:visible}
 /* Reserve the finished 4:5 image, two 6rem bars and 5rem controls before JS loads. */
@@ -36,6 +36,8 @@ html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b
 .tdb-ig-feed .tdb-ig-instagram .tdb-ig-icon{width:2.35rem;height:2.35rem}
 .tdb-ig-feed .tdb-ig-instagram svg [fill]:not([fill="none"]){fill:currentColor}
 .tdb-ig-feed .tdb-ig-icon{display:block;width:1.65rem;height:1.65rem;flex:0 0 auto}
+.tdb-ig-feed .tdb-ig-icon :is(path,rect,circle){vector-effect:non-scaling-stroke}
+.tdb-ig-feed .tdb-ig-icon[data-tdb-ig-icon="comment"]{transform:scaleX(-1)}
 .tdb-ig-feed .tdb-ig-actions{display:flex;align-items:center;gap:.5rem}
 .tdb-ig-feed .tdb-ig-action:has(.tdb-ig-metric){display:flex;gap:.4rem;width:auto;min-width:44px;padding-inline:.25rem}
 .tdb-ig-feed .tdb-ig-metric{font-size:.85rem;line-height:1;font-variant-numeric:tabular-nums}
