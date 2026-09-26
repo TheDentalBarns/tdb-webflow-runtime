@@ -34,3 +34,9 @@ Original embed for rollback:
 ```
 
 Build with `python scripts/build-first-impressions.py COMMIT_SHA`. The generated embed pins code to the immutable commit. The site has a restrictive CSP; runtime/image sources remain on its already-used GitHub CDN or Webflow asset host.
+
+## First Visit colour variations
+
+The First Visit **First Visit Reviews** instance uses the native Light cream variant (`229ad46b-7655-52f0-4637-62fe40c1c1ed`), overriding the section background with the existing orange-1 token. The shared reviews base remains orange-2.
+
+The First Visit **5 Senses Experience Entry** instance (`61d10ec2-0f42-f64e-45d3-ca00a045955b`) uses a native Dark variant (`a3682485-50d7-4efc-6485-7220e9c18314`): #222 background, white heading/body, white outlined button and white lotus icon. The light base remains available on the other instance. The variant overrides the inherited icon-button text colour and keeps a subtle light hover fill. Layout, copy, spacing and drawer trigger remain unchanged.
