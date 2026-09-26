@@ -1,6 +1,6 @@
 # Instagram card prototype — staging, 26 September 2026
 
-Version: 0.2.0.
+Version: 0.2.1.
 
 ## Scope
 
@@ -10,9 +10,10 @@ The data is an explicit manual CMS export, not an Instagram API connection or li
 
 ## Appearance and behaviour
 
-- Full-width cards with square corners, edge-to-edge images and no decorative borders or dividers. Main photos retain their full native aspect ratio; the viewport follows the active photo height.
+- Cards fill their gallery column up to 32rem, with square corners and no decorative borders or dividers. Every main photo uses the same 4:5 frame; fixed sizing prevents portrait posts changing the page height. Wide placements show adjacent cards inside a clipped section. Narrow columns and mobile retain 100% width.
 - Separate 6rem top and bottom strips mirror the top/bottom edges of the same image. Navigation-matched glass uses rgba(249,242,230,.75) with saturate(150%) blur(20px), plus a readable opaque fallback. The main photo is not overlaid or blurred.
 - Original TDB logo SVG, static at the top left inside a static colour ring. No logo animation, rotation, transition or transform.
+- All card headers and profile links use thedentalbarns. Original post links and source provenance are retained.
 - White modern Instagram glyph at the top right; SVG heart, comment, share and view-post arrow below. The glyph is reused from the site's Instagram footer link.
 - Counts are omitted because the manual import does not contain verified engagement totals. Like/comment links open the original Instagram post; share copies or shares its permalink.
 - Uses .highlight-swiper_component and the existing pinned TDBSliders 0.6.1 runtime. The existing engine owns the 400ms movement, one-time first-view advance, loop handling, drag, keyboard and navigation.

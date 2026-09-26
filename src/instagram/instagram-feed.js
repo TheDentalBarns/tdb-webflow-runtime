@@ -1,9 +1,9 @@
-/* TDB Instagram cards v0.2.0 — manual CMS snapshot, shared slider mechanics. */
+/* TDB Instagram cards v0.2.1 — manual CMS snapshot, shared slider mechanics. */
 (() => {
   'use strict';
   const data = window.TDBInstagramManualData;
   if (!data || window.TDBInstagramFeed) return;
-  const VERSION = '0.2.0';
+  const VERSION = '0.2.1';
   const LOGO = 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/681c892759ed35c51acb5fe3_the-dental-barns-blackbrook-lichfield-logo.svg.svg';
   const iconPaths = {
     heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
@@ -60,29 +60,18 @@
     return [strip, glass];
   }
 
-  function fitActivePhoto(viewport) {
-    // Preserve each imported photo's full aspect ratio. Swiper still owns motion.
-    let frame = 0;
+  function matchGallerySpacing(viewport) {
     const sync = () => {
-      frame = 0;
       const swiper = viewport.swiper;
       const gap = window.innerWidth < 768 ? window.innerWidth * 0.02 : 20;
       if (swiper && !swiper.destroyed && swiper.params.spaceBetween !== gap) {
         swiper.params.spaceBetween = gap;
         swiper.update();
       }
-      const active = viewport.querySelector('.swiper-slide-active .tdb-ig-card') || viewport.querySelector('.tdb-ig-card');
-      if (!active) return;
-      const height = active.getBoundingClientRect().height;
-      if (height && Math.abs(viewport.getBoundingClientRect().height - height) > 0.5) viewport.style.height = height + 'px';
     };
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(sync); };
-    const resize = new ResizeObserver(schedule);
-    resize.observe(viewport);
-    viewport.querySelectorAll('.tdb-ig-card').forEach(card => resize.observe(card));
-    const slides = new MutationObserver(schedule);
-    slides.observe(viewport, { subtree: true, attributes: true, attributeFilter: ['class'], childList: true });
-    schedule();
+    new ResizeObserver(sync).observe(viewport);
+    new MutationObserver(sync).observe(viewport, { attributes: true, attributeFilter: ['class'] });
+    sync();
   }
 
   function link(url, className, label, iconName) {
@@ -113,7 +102,7 @@
 
     const header = el('header', 'tdb-ig-bar tdb-ig-top');
     header.append(...reflection(photo));
-    const profile = link('https://www.instagram.com/' + encodeURIComponent(post.account) + '/', 'tdb-ig-profile', 'Visit ' + post.account + ' on Instagram');
+    const profile = link('https://www.instagram.com/thedentalbarns/', 'tdb-ig-profile', 'Visit thedentalbarns on Instagram');
     const avatar = el('span', 'tdb-ig-avatar');
     const inner = el('span', 'tdb-ig-avatar-inner');
     const logo = el('img', 'tdb-ig-logo');
@@ -125,7 +114,7 @@
     inner.append(logo);
     avatar.append(inner);
     const details = el('span', 'tdb-ig-identity');
-    details.append(el('span', 'tdb-ig-account', post.account));
+    details.append(el('span', 'tdb-ig-account', 'thedentalbarns'));
     if (post.date) {
       const date = el('time', 'tdb-ig-date', new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(post.date)));
       date.dateTime = post.date.slice(0, 10);
@@ -189,7 +178,7 @@
     mount.replaceChildren(root);
     mount.dataset.tdbIgReady = VERSION;
     mount.removeAttribute('aria-busy');
-    fitActivePhoto(viewport);
+    matchGallerySpacing(viewport);
   }
 
   function refresh() {
