@@ -1,13 +1,41 @@
 /* Shared treatment motion: 400ms slide, 300ms neighbour fade, rapid arrows and one entry move. */
 (function(){
   'use strict';
-  const VERSION='1.0.0';
+  const VERSION='1.1.0';
+  const BADGE='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m12 1 2.7 2.1 3.4-.1 1 3.3 2.9 1.8-.9 3.3.9 3.3-2.9 1.8-1 3.3-3.4-.1L12 23l-2.7-2.1-3.4.1-1-3.3L2 15.9l.9-3.3L2 9.3l2.9-1.8 1-3.3 3.4.1Z"/><path d="m7.5 12 3 3 6-6" fill="none" stroke="#222" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const CLOCK='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor"/><path d="M12 5v7h6" stroke="currentColor"/></svg>';
+  function element(tag,className,text){const node=document.createElement(tag);node.className=className;if(text)node.textContent=text;return node;}
+  function cmsCards(){
+    const feed=document.querySelector('[data-tdb-first-impressions-feed]');
+    if(!feed)return [];
+    return Array.from(feed.querySelectorAll('.w-dyn-item')).flatMap(item=>{
+      const value=key=>item.querySelector('[data-fi-'+key+']')?.textContent.trim()||'';
+      const source=item.querySelector('[data-fi-image]'),src=source?.getAttribute('src');
+      const words=['word-one','word-two','word-three'].map(value),initials=value('initials');
+      if(!src||!initials||words.some(word=>!word))return [];
+      const card=element('figure','tdb-fi-card swiper-slide');card.dataset.fiSlug=value('slug');card.setAttribute('role','group');card.setAttribute('aria-roledescription','slide');
+      const image=element('img','');image.src=src;image.width=1080;image.height=1440;image.loading='lazy';image.decoding='async';image.draggable=false;image.alt=value('image-description')||source.alt||initials+'’s handwritten first-visit card: '+words.join(', ')+'.';
+      const caption=element('figcaption','tdb-fi-banner'),line=element('p','tdb-fi-words',words.join(' · '));
+      const meta=element('div','tdb-fi-meta'),author=element('span','tdb-fi-initials',initials),verified=item.querySelector('[data-fi-verified]');
+      if(verified&&!verified.hidden&&!verified.classList.contains('w-condition-invisible')&&getComputedStyle(verified).display!=='none'){
+        const badge=element('span','tdb-fi-verified');badge.setAttribute('role','img');badge.setAttribute('aria-label','Verified patient');badge.innerHTML=BADGE;author.append(badge);
+      }
+      meta.append(author);
+      const dateText=value('date'),date=dateText?new Date(dateText):null;
+      if(date&&!Number.isNaN(date.getTime())){
+        const time=element('time','tdb-fi-date');time.dateTime=date.toISOString().slice(0,10);time.innerHTML=CLOCK;time.append(document.createTextNode(new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(date)));meta.append(time);
+      }
+      caption.append(line,meta);card.append(image,caption);return [card];
+    });
+  }
   function mount(root){
     if(root.dataset.fiMounted)return;
     const viewport=root.querySelector('.tdb-fi-viewport'),count=root.querySelector('.tdb-fi-count');
     const previous=root.querySelector('.swiper-btn-prev'),next=root.querySelector('.swiper-btn-next');
-    const originals=Array.from(viewport?.querySelectorAll('.tdb-fi-card')||[]);
-    if(!viewport||!originals.length)return;
+    if(!viewport)return;
+    const originals=cmsCards();root.dataset.fiSource='cms';root.setAttribute('aria-busy','false');
+    if(!originals.length){root.hidden=true;return;}
+    viewport.replaceChildren();
     root.dataset.fiMounted=VERSION;
     if(location.hostname==='dentalbarns.webflow.io'&&new URLSearchParams(location.search).get('first-impressions-preview')==='mobile')root.dataset.fiPreview='mobile';
     const total=originals.length,cells=new Map();
