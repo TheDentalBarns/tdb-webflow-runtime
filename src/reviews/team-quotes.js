@@ -172,7 +172,8 @@
     document.querySelectorAll('.section_standard-testimonial').forEach(section=>{
       if(section.querySelector('.testimonial15_rating-wrapper')){section.removeAttribute('data-tdb-team-quote-pending');return;}
       const old=section.querySelector('.testimonial_slider.w-slider');if(!old)return;
-      const feed=section.querySelector('[data-tdb-team-quote-feed]');if(!feed)return;
+      // Webflow's CMS field bindings resolve at page scope, outside components.
+      const feed=document.querySelector('[data-tdb-team-quote-feed]');if(!feed)return;
       const all=readFeed(feed);
       if(!all.length){section.removeAttribute('data-tdb-team-quote-pending');return;}
       const records=chooseTeamQuotes(all,location.pathname);
