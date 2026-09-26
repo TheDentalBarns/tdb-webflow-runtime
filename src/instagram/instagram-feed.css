@@ -1,4 +1,6 @@
-/* TDB Instagram cards v0.3.0. Shared Swiper owns motion and page chrome. */
+/* TDB Instagram cards v0.3.1. Shared Swiper owns motion and page chrome. */
+/* Replace legacy embed height (First Visit mobile: 140vw) with actual card flow. */
+html[data-tdb-instagram-preview] .w-embed:has(> :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b6a21bed,.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,.elfsight-app-35374f05-af95-4b8c-9480-e091c19319c8,.elfsight-app-3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04,[data-tdb-ig-widget])){height:auto;min-height:0;max-height:none;overflow:visible}
 /* Reserve the finished 4:5 image, two 6rem bars and 5rem controls before JS loads. */
 html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b6a21bed,.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,.elfsight-app-35374f05-af95-4b8c-9480-e091c19319c8,.elfsight-app-3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04,[data-tdb-ig-widget]):not([data-tdb-ig-ready]){position:relative;width:100%;min-width:0}
 html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b6a21bed,.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,.elfsight-app-35374f05-af95-4b8c-9480-e091c19319c8,.elfsight-app-3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04,[data-tdb-ig-widget]):not([data-tdb-ig-ready])::before{content:"";display:block;width:min(100%,32rem);aspect-ratio:4/5;box-sizing:content-box;padding-block:8.5rem;margin-inline:auto;pointer-events:none}

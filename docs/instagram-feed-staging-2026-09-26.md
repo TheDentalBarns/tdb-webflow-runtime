@@ -1,6 +1,6 @@
 # Instagram card prototype — staging, 26 September 2026
 
-Version: 0.3.0.
+Version: 0.3.1.
 
 ## Scope
 
@@ -23,7 +23,7 @@ The data is an explicit manual CMS export, not an Instagram API connection or li
 
 ## Integration
 
-Before the bundle loads, a staging-only head flag enables placeholders with the exact 4:5 image + 12rem glass bars + 5rem controls geometry. Mobile overflow follows Smile Gallery so faded neighbours remain visible.
+Before the bundle loads, a staging-only head flag enables placeholders with the exact 4:5 image + 12rem glass bars + 5rem controls geometry. Mobile overflow follows Smile Gallery so faded neighbours remain visible. Instagram embed wrappers use natural height before and after hydration; this replaces First Visit’s legacy .code-embed-5 height:140vw mobile rule, which otherwise consumes the section’s bottom padding and clips the arrows.
 
 The source stylesheet is appended once to the Webflow site head. The bootstrap is appended once to the footer; it checks the staging hostname and renames only the four known Instagram mounts before loading the immutable bundle. Other Elfsight widgets retain their classes and existing loader behaviour.
 

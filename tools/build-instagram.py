@@ -18,7 +18,7 @@ mapping = [
     ('35374f05-af95-4b8c-9480-e091c19319c8', 'meet-the-team', 'Meet the Team', '6ab7b9fabdfdf7aa5db35591'),
     ('3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04', 'the-practice', 'The Practice', '6ab7b41d76a5f592a5b6dd3f'),
 ]
-data = {'version': '0.3.0', 'importedAt': '2026-09-26', 'posts': {}, 'feeds': {}}
+data = {'version': '0.3.1', 'importedAt': '2026-09-26', 'posts': {}, 'feeds': {}}
 items.sort(key=lambda item: item['fieldData'].get('date') or '', reverse=True)
 items.sort(key=lambda item: (not item['fieldData'].get('featured', False), item['fieldData'].get('display-order') or 0))
 for item in items:
@@ -41,6 +41,6 @@ for widget, key, label, category in mapping:
     assert ids
     data['feeds'][widget] = {'key': key, 'label': label, 'posts': ids}
 (SOURCE / 'manual-gallery.json').write_text(json.dumps(data, indent=2, ensure_ascii=False) + '\n')
-bundle = '/* TDB Instagram manual gallery v0.3.0 | 26 September 2026 */\nwindow.TDBInstagramManualData=' + json.dumps(data, separators=(',', ':'), ensure_ascii=False) + ';\n' + (SOURCE / 'instagram-feed.js').read_text()
+bundle = '/* TDB Instagram manual gallery v0.3.1 | 26 September 2026 */\nwindow.TDBInstagramManualData=' + json.dumps(data, separators=(',', ':'), ensure_ascii=False) + ';\n' + (SOURCE / 'instagram-feed.js').read_text()
 (ROOT / 'dist/tdb-instagram-feed.js').write_text(bundle)
 print(json.dumps({'posts': len(data['posts']), 'feeds': {v['label']: len(v['posts']) for v in data['feeds'].values()}, 'bundle_bytes': len(bundle.encode())}))

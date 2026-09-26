@@ -1,9 +1,9 @@
-/* TDB Instagram cards v0.3.0 — manual CMS snapshot, shared slider mechanics. */
+/* TDB Instagram cards v0.3.1 — manual CMS snapshot, shared slider mechanics. */
 (() => {
   'use strict';
   const data = window.TDBInstagramManualData;
   if (!data || window.TDBInstagramFeed) return;
-  const VERSION = '0.3.0';
+  const VERSION = '0.3.1';
   const LOGO = 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/681c892759ed35c51acb5fe3_the-dental-barns-blackbrook-lichfield-logo.svg.svg';
   const iconPaths = {
     heart: '<path fill="currentColor" stroke="none" d="M12 21.3 2.5 12C-3 6.4 5.4-1.1 12 5.3 18.6-1.1 27 6.4 21.5 12Z"/>',
