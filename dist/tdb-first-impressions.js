@@ -2,7 +2,7 @@
 (function(){
   'use strict';
   const VERSION='1.1.0';
-  const BADGE='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m12 1 2.7 2.1 3.4-.1 1 3.3 2.9 1.8-.9 3.3.9 3.3-2.9 1.8-1 3.3-3.4-.1L12 23l-2.7-2.1-3.4.1-1-3.3L2 15.9l.9-3.3L2 9.3l2.9-1.8 1-3.3 3.4.1Z"/><path d="m7.5 12 3 3 6-6" fill="none" stroke="#222" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const BADGE='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.000 1.000 L15.138 4.424 L19.778 4.222 L19.576 8.862 L23.000 12.000 L19.576 15.138 L19.778 19.778 L15.138 19.576 L12.000 23.000 L8.862 19.576 L4.222 19.778 L4.424 15.138 L1.000 12.000 L4.424 8.862 L4.222 4.222 L8.862 4.424 Z"/><path d="m7.5 12 3 3 6-6" fill="none" stroke="#222" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const CLOCK='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor"/><path d="M12 5v7h6" stroke="currentColor"/></svg>';
   function element(tag,className,text){const node=document.createElement(tag);node.className=className;if(text)node.textContent=text;return node;}
   function cmsCards(){
