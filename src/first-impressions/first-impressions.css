@@ -1,0 +1,31 @@
+/* First Impressions — portrait photographs with a fixed frosted caption. */
+.tdb-first-impressions{--fi-paper:var(--base-color-brand--orange-1,#f9f2e6);--fi-ink:var(--base-color-brand--black,#000);--fi-cream:var(--base-color-brand--orange-3,#d6cab4);--fi-card-width:min(30vw,28rem);--fi-card-height:calc(var(--fi-card-width) * 4 / 3);--fi-gap:20px;position:relative;width:100%;overflow:visible;background:transparent;color:var(--fi-ink);isolation:isolate}
+.tdb-first-impressions *{box-sizing:border-box}
+.tdb-fi-viewport{position:relative;width:100vw;margin-inline:calc(50% - 50vw);height:var(--fi-card-height);overflow:hidden;overflow:clip;touch-action:pan-y pinch-zoom;outline-offset:-3px;cursor:grab}
+.tdb-fi-viewport:active{cursor:grabbing}
+.tdb-fi-card{position:absolute;top:0;left:calc((100% - var(--fi-card-width)) / 2);width:var(--fi-card-width);height:var(--fi-card-height);aspect-ratio:3/4;margin:0;overflow:hidden;background:var(--fi-paper);opacity:.5;transition:opacity 300ms ease;contain:layout paint}
+.tdb-fi-card.is-current{opacity:1}
+.tdb-fi-card:nth-child(2){transform:translate3d(calc(var(--fi-card-width) + var(--fi-gap)),0,0)}
+.tdb-fi-card:nth-child(3){transform:translate3d(calc(-1 * (var(--fi-card-width) + var(--fi-gap))),0,0)}
+.tdb-fi-card>img{display:block;width:100%;height:100%;aspect-ratio:3/4;object-fit:contain;user-select:none;-webkit-user-drag:none}
+.tdb-fi-banner{position:absolute;z-index:1;inset:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:.45rem;width:100%;height:6rem;padding:.6rem 1.1rem;background:rgba(249,242,230,.7);backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%);color:var(--fi-ink);text-align:center}
+.tdb-fi-words{margin:0;font:inherit;font-size:1.125rem;line-height:1.4;font-weight:400;overflow-wrap:normal}
+.tdb-fi-meta{display:flex;align-items:center;justify-content:center;gap:.8rem;min-height:1.25rem;font-size:.8rem;line-height:1.4}
+.tdb-fi-initials{display:inline-flex;align-items:center;gap:.4rem;letter-spacing:.1em;text-transform:uppercase}
+.tdb-fi-verified{display:inline-flex;width:.95rem;height:.95rem;flex:0 0 .95rem;color:var(--fi-ink)}
+.tdb-fi-verified svg{display:block;width:100%;height:100%}
+.tdb-fi-date{display:inline-flex;align-items:center;gap:.35rem;color:#827b6e;white-space:nowrap}
+.tdb-fi-date svg{width:.9rem;height:.9rem}
+.tdb-fi-navigation{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:max(3rem,44px);margin-top:1.5rem;padding:0;background:transparent}
+.tdb-fi-count{color:var(--fi-ink);opacity:.25;font:inherit;font-size:.875rem;line-height:1.5;letter-spacing:.15em}
+.tdb-first-impressions .swiper-buttons-wrapper{display:flex;align-items:center;gap:1rem;position:static;margin:0;padding:0}
+.tdb-first-impressions .slider-arrow{appearance:none;display:grid;place-items:center;position:static;flex:0 0 3rem;width:3rem;height:3rem;min-width:44px;min-height:44px;margin:0;padding:0;border:1px solid currentColor;border-radius:50%;background:transparent;color:var(--fi-ink);cursor:pointer;transition:background-color 300ms ease,opacity 300ms ease;touch-action:manipulation}
+.tdb-first-impressions .slider-arrow svg{display:block;width:1rem;height:1rem}
+.tdb-first-impressions .swiper-btn-prev svg{transform:rotate(180deg)}
+.tdb-first-impressions .slider-arrow:not(:disabled):hover,.tdb-first-impressions .slider-arrow:not(:disabled):active{background:var(--base-color-brand--orange-2,#ebe2d2)}
+.tdb-first-impressions .slider-arrow:disabled{opacity:.3;cursor:default}
+.tdb-first-impressions :is(button,[tabindex]):focus-visible{outline:1px solid currentColor;outline-offset:3px}
+@media(max-width:767px){.tdb-first-impressions{--fi-card-width:90vw;--fi-gap:2vw}.tdb-fi-banner{height:6rem}.tdb-fi-words{font-size:1.1rem}}
+/* A staging-only narrow preview exercises the same card geometry, without claiming device emulation. */
+.tdb-first-impressions[data-fi-preview=mobile]{--fi-card-width:351px;--fi-gap:7.8px;max-width:351px;margin-inline:auto}
+.tdb-first-impressions[data-fi-preview=mobile] .tdb-fi-viewport{width:390px;margin-inline:-19.5px}
