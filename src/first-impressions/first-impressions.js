@@ -1,9 +1,9 @@
 /* Shared treatment motion: 400ms slide, 300ms neighbour fade, rapid arrows and one entry move. */
 (function(){
   'use strict';
-  const VERSION='1.1.0';
+  const VERSION='1.2.0';
   const BADGE='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.000 1.000 L15.138 4.424 L19.778 4.222 L19.576 8.862 L23.000 12.000 L19.576 15.138 L19.778 19.778 L15.138 19.576 L12.000 23.000 L8.862 19.576 L4.222 19.778 L4.424 15.138 L1.000 12.000 L4.424 8.862 L4.222 4.222 L8.862 4.424 Z"/><path d="m7.5 12 3 3 6-6" fill="none" stroke="#222" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  const CLOCK='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor"/><path d="M12 5v7h6" stroke="currentColor"/></svg>';
+  const CLOCK='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path fill="currentColor" d="M128 28a100 100 0 1 0 100 100A100.11 100.11 0 0 0 128 28m0 192a92 92 0 1 1 92-92a92.1 92.1 0 0 1-92 92m60-92a4 4 0 0 1-4 4h-56a4 4 0 0 1-4-4V72a4 4 0 0 1 8 0v52h52a4 4 0 0 1 4 4"/></svg>';
   function element(tag,className,text){const node=document.createElement(tag);node.className=className;if(text)node.textContent=text;return node;}
   function cmsCards(){
     const feed=document.querySelector('[data-tdb-first-impressions-feed]');
@@ -21,9 +21,10 @@
         const badge=element('span','tdb-fi-verified');badge.setAttribute('role','img');badge.setAttribute('aria-label','Verified patient');badge.innerHTML=BADGE;author.append(badge);
       }
       meta.append(author);
-      const dateText=value('date'),date=dateText?new Date(dateText):null;
+      const dateText=value('date'),month=value('month'),monthOnly=!dateText&&/^\d{4}-(0[1-9]|1[0-2])$/.test(month);
+      const date=dateText?new Date(dateText):monthOnly?new Date(month+'-01T00:00:00Z'):null;
       if(date&&!Number.isNaN(date.getTime())){
-        const time=element('time','tdb-fi-date');time.dateTime=date.toISOString().slice(0,10);time.innerHTML=CLOCK;time.append(document.createTextNode(new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(date)));meta.append(time);
+        const time=element('time','tdb-fi-date');time.dateTime=monthOnly?month:date.toISOString().slice(0,10);time.innerHTML=CLOCK;time.append(document.createTextNode(new Intl.DateTimeFormat('en-GB',monthOnly?{month:'long',year:'numeric',timeZone:'UTC'}:{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(date)));meta.append(time);
       }
       caption.append(line,meta);card.append(image,caption);return [card];
     });

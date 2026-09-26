@@ -1,5 +1,80 @@
 [
-  {"slug":"jh-calm-relaxing-great","initials":"JH","words":["Calm","Relaxing","Great"],"date":null,"verified":true,"rank":1,"imagePath":"dist/first-impressions/jh-calm-relaxing-great.webp","imageWidth":1080,"imageHeight":1440},
-  {"slug":"ec-calming-refreshments-kindness","initials":"EC","words":["Calming","Refreshments","Kindness"],"date":null,"verified":true,"rank":2,"imagePath":"dist/first-impressions/ec-calming-refreshments-kindness.webp","imageWidth":1080,"imageHeight":1440},
-  {"slug":"sd-calm-relaxing-informative","initials":"SD","words":["Calm","Relaxing","Informative"],"date":null,"verified":true,"rank":3,"imagePath":"dist/first-impressions/sd-calm-relaxing-informative.webp","imageWidth":1080,"imageHeight":1440}
+  {
+    "slug": "jh-calm-relaxing-great",
+    "initials": "JH",
+    "words": [
+      "Calm",
+      "Relaxing",
+      "Great"
+    ],
+    "date": null,
+    "verified": true,
+    "rank": 1,
+    "imagePath": "dist/first-impressions/jh-calm-relaxing-great.webp",
+    "imageWidth": 1080,
+    "imageHeight": 1440,
+    "month": "2026-07",
+    "topics": [
+      "first-visit",
+      "calm-environment",
+      "comfort"
+    ],
+    "relatedServices": [
+      "678a8ce548a42d21d6408138"
+    ],
+    "relatedTreatments": []
+  },
+  {
+    "slug": "ec-calming-refreshments-kindness",
+    "initials": "EC",
+    "words": [
+      "Calming",
+      "Refreshments",
+      "Kindness"
+    ],
+    "date": null,
+    "verified": true,
+    "rank": 2,
+    "imagePath": "dist/first-impressions/ec-calming-refreshments-kindness.webp",
+    "imageWidth": 1080,
+    "imageHeight": 1440,
+    "month": "2026-07",
+    "topics": [
+      "first-visit",
+      "calm-environment",
+      "comfort",
+      "welcoming-team",
+      "refreshments"
+    ],
+    "relatedServices": [
+      "678a8ce548a42d21d6408138"
+    ],
+    "relatedTreatments": []
+  },
+  {
+    "slug": "sd-calm-relaxing-informative",
+    "initials": "SD",
+    "words": [
+      "Calm",
+      "Relaxing",
+      "Informative"
+    ],
+    "date": null,
+    "verified": true,
+    "rank": 3,
+    "imagePath": "dist/first-impressions/sd-calm-relaxing-informative.webp",
+    "imageWidth": 1080,
+    "imageHeight": 1440,
+    "month": "2026-07",
+    "topics": [
+      "first-visit",
+      "calm-environment",
+      "comfort",
+      "clear-explanations"
+    ],
+    "relatedServices": [
+      "678a8ce548a42d21d6408138"
+    ],
+    "relatedTreatments": []
+  }
 ]

@@ -1,14 +1,110 @@
 {
-  "collection": {"displayName":"First Impressions","singularName":"First Impression","slug":"first-impressions"},
+  "collection": {
+    "displayName": "First Impressions",
+    "singularName": "First Impression",
+    "slug": "first-impressions"
+  },
   "fields": [
-    {"displayName":"Card image","type":"Image","isRequired":true,"helpText":"Portrait original, 1080 × 1440 (3:4)."},
-    {"displayName":"Word one","type":"PlainText","isRequired":true},
-    {"displayName":"Word two","type":"PlainText","isRequired":true},
-    {"displayName":"Word three","type":"PlainText","isRequired":true},
-    {"displayName":"Review date","type":"DateTime","isRequired":false,"helpText":"Patient feedback date; leave blank if unknown. Do not use import date."},
-    {"displayName":"Initials","type":"PlainText","isRequired":true},
-    {"displayName":"Verified patient","type":"Switch","isRequired":false,"helpText":"Display the star/check badge when the practice has verified this feedback."},
-    {"displayName":"Display order","type":"Number","isRequired":false,"helpText":"Lower numbers appear first."},
-    {"displayName":"Image description","type":"PlainText","isRequired":false}
+    {
+      "displayName": "Card image",
+      "type": "Image",
+      "isRequired": true,
+      "helpText": "Portrait original, 1080 \u00d7 1440 (3:4)."
+    },
+    {
+      "displayName": "Word one",
+      "type": "PlainText",
+      "isRequired": true
+    },
+    {
+      "displayName": "Word two",
+      "type": "PlainText",
+      "isRequired": true
+    },
+    {
+      "displayName": "Word three",
+      "type": "PlainText",
+      "isRequired": true
+    },
+    {
+      "displayName": "Review date",
+      "type": "DateTime",
+      "isRequired": false,
+      "helpText": "Patient feedback date; leave blank if unknown. Do not use import date."
+    },
+    {
+      "displayName": "Initials",
+      "type": "PlainText",
+      "isRequired": true
+    },
+    {
+      "displayName": "Verified patient",
+      "type": "Switch",
+      "isRequired": false,
+      "helpText": "Display the star/check badge when the practice has verified this feedback."
+    },
+    {
+      "displayName": "Display order",
+      "type": "Number",
+      "isRequired": false,
+      "helpText": "Lower numbers appear first."
+    },
+    {
+      "displayName": "Image description",
+      "type": "PlainText",
+      "isRequired": false
+    },
+    {
+      "displayName": "Review month",
+      "type": "PlainText",
+      "isRequired": false,
+      "helpText": "YYYY-MM when only month and year are known. Leave Review date blank unless the day is known."
+    },
+    {
+      "displayName": "Topic first visit",
+      "type": "Switch",
+      "isRequired": false
+    },
+    {
+      "displayName": "Topic calm environment",
+      "type": "Switch",
+      "isRequired": false
+    },
+    {
+      "displayName": "Topic comfort",
+      "type": "Switch",
+      "isRequired": false
+    },
+    {
+      "displayName": "Topic clear explanations",
+      "type": "Switch",
+      "isRequired": false
+    },
+    {
+      "displayName": "Topic welcoming team",
+      "type": "Switch",
+      "isRequired": false
+    },
+    {
+      "displayName": "Topic refreshments",
+      "type": "Switch",
+      "isRequired": false
+    },
+    {
+      "displayName": "Related services",
+      "type": "MultiReference",
+      "isRequired": false,
+      "metadata": {
+        "collectionId": "6785071ede094cc233e0c717"
+      }
+    },
+    {
+      "displayName": "Related treatments",
+      "type": "MultiReference",
+      "isRequired": false,
+      "metadata": {
+        "collectionId": "678507282f3f5412bfe2b4e6"
+      }
+    }
   ]
 }

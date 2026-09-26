@@ -1,6 +1,6 @@
 # First Impressions
 
-The three supplied patient cards are JH (Calm, Relaxing, Great), EC (Calming, Refreshments, Kindness), and SD (Calm, Relaxing, Informative). The originals are unchanged 1080 × 1440 WebP files. Their dates were not supplied and are intentionally empty; do not substitute import dates.
+The three supplied patient cards are JH (Calm, Relaxing, Great), EC (Calming, Refreshments, Kindness), and SD (Calm, Relaxing, Informative). The originals are unchanged 1080 × 1440 WebP files. David supplied July 2026 for all three cards. Store `review-month: 2026-07` and leave the exact Review date empty. The runtime displays July 2026 with the same clock SVG as the review drawer, using `datetime="2026-07"`; no day is invented. An exact Review date takes precedence when supplied.
 
 ## CMS
 
@@ -13,7 +13,7 @@ A hidden page-level Collection List (`f6ff16c3-7917-5b1f-f498-eebbf88bd474`) sup
 ## Layout and behaviour
 
 - Critical CSS reserves the full 3:4 portrait and navigation space before JavaScript or images load.
-- Portraits are uncropped, with a fixed 6rem caption banner matching the image-card buttons: transparent background and 20px backdrop blur, with no black tint. Captions retain white, left-aligned text and the existing 5% padding rhythm. No corner gradient. The verified badge uses a regular eight-point star, symmetric horizontally, vertically and diagonally, with the tick retained.
+- Portraits are uncropped, with a fixed 6rem caption banner matching the image-card buttons: transparent background and 20px backdrop blur, with no black tint. Captions retain white text and the existing 5% padding rhythm; the three-word headline is centred horizontally. No corner gradient. The verified badge uses a regular eight-point star, symmetric horizontally, vertically and diagonally, with the tick retained.
 - First Impressions uses the site's light cream section background.
 - One central card, neighbours faded to 50%, 300ms fade and 400ms slide. Circular arrows and the native black-at-25%-opacity count match other sliders.
 - Looping next/previous; rapid clicks advance immediately without an interaction lock. Horizontal pointer gestures and arrow keys work. Vertical page scrolling is preserved.
@@ -40,3 +40,7 @@ Build with `python scripts/build-first-impressions.py COMMIT_SHA`. The generated
 The First Visit **First Visit Reviews** instance uses the native Light cream variant (`229ad46b-7655-52f0-4637-62fe40c1c1ed`), overriding the section background with the existing orange-1 token. The shared reviews base remains orange-2.
 
 The First Visit **5 Senses Experience Entry** instance (`61d10ec2-0f42-f64e-45d3-ca00a045955b`) uses a native Dark variant (`a3682485-50d7-4efc-6485-7220e9c18314`): #222 background, white heading/body, white outlined button and white lotus icon. The light base remains available on the other instance. The variant overrides the inherited icon-button text colour and keeps a subtle light hover fill. Layout, copy, spacing and drawer trigger remain unchanged.
+
+## Reusable tags
+
+Topic switches use the existing review naming convention. All three cards: First visit, Calm environment, Comfort. EC additionally: Welcoming team and Refreshments. SD additionally: Clear explanations. All link to Nervous Patient Care as a relevant service page; this is editorial relevance, not a claim that each reviewer had anxiety. Related treatments are intentionally empty because no treatment is stated. Both service and treatment fields are multi-references to the existing CMS collections, ready for reuse.
