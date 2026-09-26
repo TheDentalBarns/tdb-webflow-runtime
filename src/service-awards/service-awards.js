@@ -5,12 +5,12 @@
   window.__tdbServiceAwards=true;
   const animated=[];
   let frame=0;
-  // Identical keyframes and smoothing to the review-name DD text effect.
+  // DD keyframe timing and smoothing, normalised to full cream-logo opacity.
   function opacityAtProgress(progress){const p=Math.max(0,Math.min(1,progress));return p<.5?p:p<=.75?.5:.5-(p-.75)*1.6;}
   function paint(initial=false){
     frame=0;let settling=false;
     animated.forEach(s=>{
-      const target=opacityAtProgress((innerHeight-s.el.getBoundingClientRect().top)/innerHeight);
+      const target=2*opacityAtProgress((innerHeight-s.el.getBoundingClientRect().top)/innerHeight);
       s.opacity=initial?target:s.opacity+(target-s.opacity)*.5;
       s.el.style.opacity=s.opacity.toFixed(3);
       if(Math.abs(target-s.opacity)>.001)settling=true;
