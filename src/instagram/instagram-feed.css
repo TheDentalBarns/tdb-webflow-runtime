@@ -1,4 +1,4 @@
-/* TDB Instagram cards v0.5.2. Shared Swiper owns motion and page chrome. */
+/* TDB Instagram cards v0.5.3. Shared Swiper owns motion and page chrome. */
 /* Replace legacy Elfsight dimensions and let grid items shrink around the track. */
 html[data-tdb-instagram-preview] .w-embed:has(> :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b6a21bed,.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,.elfsight-app-35374f05-af95-4b8c-9480-e091c19319c8,.elfsight-app-3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04,[data-tdb-ig-widget])){width:100%;min-width:0;max-width:100%;height:auto;min-height:0;max-height:none;overflow:visible}
 html[data-tdb-instagram-preview] .award-image_left:has(:is(.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,[data-tdb-ig-widget])){width:100%;min-width:0;max-width:100%;height:auto;min-height:0;max-height:none}
@@ -17,16 +17,15 @@ html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b
 .tdb-ig-feed .tdb-ig-slide.swiper-slide-duplicate-active{opacity:1}
 .tdb-ig-feed .tdb-ig-card{position:relative;isolation:isolate;display:block;width:100%;overflow:hidden;margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;container-type:inline-size}
 .tdb-ig-feed .tdb-ig-photo{display:block;width:100%;height:125cqw;object-fit:cover;object-position:center;max-width:none;border:0;border-radius:0;background:#e4dccd;user-select:none;-webkit-user-drag:none}
-.tdb-ig-feed .tdb-ig-bar{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%;height:6rem;padding:1rem 1.25rem;overflow:hidden;color:#111;border:0;border-radius:0;background:transparent;box-shadow:none;-webkit-backdrop-filter:saturate(150%) blur(20px);backdrop-filter:saturate(150%) blur(20px)}
+.tdb-ig-feed .tdb-ig-bar{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%;height:6rem;padding:1rem 1.25rem;overflow:hidden;color:#111;border:0;border-radius:0;background:transparent;box-shadow:none}
 .tdb-ig-feed .tdb-ig-reflection,.tdb-ig-feed .tdb-ig-glass{position:absolute;inset:0;pointer-events:none}
-/* Clip the complete filtered mirror surface, not just the image's layout box.
-   Direct image blur prevents a sharp transformed-image seam in mobile compositing.
-   The bar separately blurs the page behind the transparent 3px side gaps. */
+/* Crop only the mirrored source by 3px on each side; retain the original glass.
+   The glass extends past the crop so its own compositing edge is outside the bar. */
 .tdb-ig-feed .tdb-ig-reflection{inset:0 3px;z-index:0;overflow:hidden;clip-path:inset(0);background:transparent}
-.tdb-ig-feed .tdb-ig-reflection-photo{position:absolute;left:0;display:block;width:100%;height:125cqw;object-fit:cover;object-position:center;max-width:none;border:0;border-radius:0;transform:scaleY(-1);filter:saturate(150%) blur(20px);user-select:none;-webkit-user-drag:none}
+.tdb-ig-feed .tdb-ig-reflection-photo{position:absolute;left:-3px;display:block;width:calc(100% + 6px);height:125cqw;object-fit:cover;object-position:center;max-width:none;border:0;border-radius:0;transform:scaleY(-1);user-select:none;-webkit-user-drag:none}
 .tdb-ig-feed .tdb-ig-top .tdb-ig-reflection-photo{bottom:0}
 .tdb-ig-feed .tdb-ig-bottom .tdb-ig-reflection-photo{top:0}
-.tdb-ig-feed .tdb-ig-glass{z-index:1;background:rgba(255,252,247,.88)}
+.tdb-ig-feed .tdb-ig-glass{inset:0 -3px;z-index:1;background:rgba(255,252,247,.88);-webkit-backdrop-filter:saturate(150%) blur(20px);backdrop-filter:saturate(150%) blur(20px)}
 .tdb-ig-feed .tdb-ig-bar > :not(.tdb-ig-reflection):not(.tdb-ig-glass){position:relative;z-index:2}
 .tdb-ig-feed a{color:inherit;text-decoration:none}
 .tdb-ig-feed .tdb-ig-profile{display:flex;align-items:center;gap:1rem;min-width:0}
