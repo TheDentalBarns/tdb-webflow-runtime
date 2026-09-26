@@ -1,4 +1,4 @@
-/* First Impressions — CMS portraits with a dark corner gradient and white caption. */
+/* First Impressions — CMS portraits with the shared translucent button blur. */
 [data-tdb-first-impressions-feed]{display:none!important}
 .tdb-first-impressions{--fi-paper:var(--base-color-brand--orange-1,#f9f2e6);--fi-ink:var(--base-color-brand--black,#000);--fi-cream:var(--base-color-brand--orange-3,#d6cab4);--fi-card-width:min(30vw,28rem);--fi-card-height:calc(var(--fi-card-width) * 4 / 3);--fi-gap:20px;position:relative;width:100%;overflow:visible;background:transparent;color:var(--fi-ink);isolation:isolate}
 .tdb-first-impressions *{box-sizing:border-box}
@@ -9,8 +9,7 @@
 .tdb-fi-card:nth-child(2){transform:translate3d(calc(var(--fi-card-width) + var(--fi-gap)),0,0)}
 .tdb-fi-card:nth-child(3){transform:translate3d(calc(-1 * (var(--fi-card-width) + var(--fi-gap))),0,0)}
 .tdb-fi-card>img{display:block;width:100%;height:100%;aspect-ratio:3/4;object-fit:contain;user-select:none;-webkit-user-drag:none}
-.tdb-fi-card::after{content:"";position:absolute;z-index:1;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(0,0,0,.82) 0%,rgba(0,0,0,.58) 18%,rgba(0,0,0,.16) 38%,transparent 58%)}
-.tdb-fi-banner{position:absolute;z-index:2;inset:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:.45rem;width:100%;height:6rem;margin:0;padding:.75rem 5%;background:transparent;color:#fff;text-align:left}
+.tdb-fi-banner{position:absolute;z-index:2;inset:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:.45rem;width:100%;height:6rem;margin:0;padding:.75rem 5%;background:rgba(0,0,0,.3);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#fff;text-align:left}
 .tdb-fi-words{margin:0;font:inherit;font-size:1.125rem;line-height:1.4;font-weight:400;overflow-wrap:normal}
 .tdb-fi-meta{display:flex;align-items:center;justify-content:flex-start;gap:.8rem;min-height:1.25rem;font-size:.8rem;line-height:1.4}
 .tdb-fi-initials{display:inline-flex;align-items:center;gap:.4rem;letter-spacing:.1em;text-transform:uppercase}
