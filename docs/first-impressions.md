@@ -13,7 +13,7 @@ A hidden page-level Collection List (`f6ff16c3-7917-5b1f-f498-eebbf88bd474`) sup
 ## Layout and behaviour
 
 - Critical CSS reserves the full 3:4 portrait and navigation space before JavaScript or images load.
-- Portraits are uncropped, with a fixed 6rem caption banner matching the image-card buttons: 30% black background and 20px backdrop blur. Captions retain white, left-aligned text and the existing 5% padding rhythm. No corner gradient.
+- Portraits are uncropped, with a fixed 6rem caption banner matching the image-card buttons: transparent background and 20px backdrop blur, with no black tint. Captions retain white, left-aligned text and the existing 5% padding rhythm. No corner gradient.
 - First Impressions uses the site's light cream section background.
 - One central card, neighbours faded to 50%, 300ms fade and 400ms slide. Circular arrows and the native black-at-25%-opacity count match other sliders.
 - Looping next/previous; rapid clicks advance immediately without an interaction lock. Horizontal pointer gestures and arrow keys work. Vertical page scrolling is preserved.
