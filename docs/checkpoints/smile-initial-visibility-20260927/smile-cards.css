@@ -1,0 +1,318 @@
+/* Hide CMS values before the presentation controller prepares them. */
+[data-tdb-smile-slider]:not([data-tdb-smile-card-design]) :is([data-tdb-smile-title],.treatment-smile,.paragraph-smile,.button.smile>:last-child,.smile-iconset .tagline-smile-layout){opacity:0}
+
+/* TDB shared smile cards v3.2: hidden initial text; visible pagination; static label/icons. */
+[data-tdb-smile-slider] {
+  --tdb-smile-pad:1.25rem;
+  --tdb-smile-footer-height:calc(9rem + var(--tdb-smile-extra-lines,0) * 1.25rem);
+  --tdb-smile-controls-width:7rem;
+  position:relative;
+  container-type:inline-size;
+}
+[data-tdb-smile-slider] .swiper-slide.smile { container-type:inline-size; }
+[data-tdb-smile-slider] .layout423_card.text-color-alternate.smile {
+  --tdb-smile-heading-height:8rem;
+  --tdb-smile-media-size:100cqw;
+  --tdb-smile-ink:var(--base-color-brand--black,#000);
+  --tdb-smile-surface:var(--base-color-brand--orange-1,#f9f2e6);
+  --tdb-smile-muted:var(--base-color-neutral--neutral,#888);
+  --tdb-smile-icon-invert:0;
+  aspect-ratio:auto;
+  height:calc(var(--tdb-smile-heading-height) + var(--tdb-smile-media-size) + var(--tdb-smile-footer-height));
+  padding:0;
+  background:var(--tdb-smile-surface);
+}
+[data-tdb-smile-slider] .layout423_card.smile:has(> .layout423_card-content.w-variant-a6dd2098-844a-775c-39a4-fe1d4e445b09) {
+  --tdb-smile-ink:#fff;
+  --tdb-smile-surface:#000;
+  --tdb-smile-muted:rgba(255,255,255,.6);
+  --tdb-smile-icon-invert:1;
+}
+[data-tdb-smile-slider] .layout423_card.smile > .layout423_image-wrapper.smile {
+  width:auto;
+  height:var(--tdb-smile-media-size);
+  inset:var(--tdb-smile-heading-height) 0 auto;
+}
+[data-tdb-smile-slider] .layout423_image-wrapper.smile > .layout423_image.smile {
+  display:block; width:100%; height:100%; aspect-ratio:1; object-fit:cover;
+}
+[data-tdb-smile-slider] .layout423_image-wrapper.smile > .layout423_overlay.smile {
+  z-index:1; inset:0; width:100%; height:100%;
+}
+
+[data-tdb-smile-slider] .tdb-smile-image-label {
+  --tdb-smile-text-opacity:.7;
+  --tdb-smile-text-pointer-events:none;
+  position:absolute; z-index:2; right:.75rem; left:auto; bottom:.75rem; opacity:.7;
+  color:var(--base-color-brand--white,#fff); font-size:.75rem; line-height:1.5;
+  font-weight:400; letter-spacing:.0875rem; text-transform:uppercase;
+  text-shadow:none; pointer-events:none; transition:opacity 300ms ease;
+}
+[data-tdb-smile-slider] .tdb-smile-image-label.is-before { bottom:calc(50% + .75rem); }
+[data-tdb-smile-slider] .layout423_card-content.smile > .margin-top.smile.left {
+  display:flex; flex-direction:column; justify-content:center; align-items:stretch;
+  gap:.8rem; height:var(--tdb-smile-heading-height); min-height:var(--tdb-smile-heading-height);
+  flex-shrink:0; padding:.75rem var(--tdb-smile-pad); margin:0;
+}
+[data-tdb-smile-slider] .layout423_card-content.smile > .margin-top.smile.left > .tagline-smile-layout {
+  height:auto; min-height:3em; width:100%; color:var(--tdb-smile-ink);
+}
+[data-tdb-smile-slider] .tdb-smile-kicker {
+  display:flex; justify-content:space-between; align-items:center; gap:.5rem;
+  width:calc(100% - 5rem); font-size:clamp(10px,2.4cqw,12px); line-height:1.5;
+  letter-spacing:.06em; text-transform:uppercase;
+}
+[data-tdb-smile-slider] .tdb-smile-kicker-title { color:var(--tdb-smile-muted); }
+[data-tdb-smile-slider] .layout423_card.smile .tdb-smile-kicker,
+[data-tdb-smile-slider] .tdb-smile-summary > .tdb-smile-facts { visibility:hidden; }
+[data-tdb-smile-slider] > .tdb-smile-static-kicker {
+  position:absolute; z-index:4; top:calc((8rem - .8rem - 2.625rem - 1.5em) / 2);
+  left:var(--tdb-smile-pad); right:calc(var(--tdb-smile-pad) + 5rem);
+  color:var(--base-color-neutral--neutral,#888); font-size:clamp(10px,2.4cqw,12px);
+  line-height:1.5; letter-spacing:.06em; text-transform:uppercase; pointer-events:none;
+}
+[data-tdb-smile-slider] > .tdb-smile-counter {
+  position:absolute; z-index:4; top:calc((8rem - .8rem - 2.625rem - 1.5em) / 2); right:var(--tdb-smile-pad);
+  color:var(--base-color-neutral--neutral,#888); white-space:nowrap;
+  font-size:clamp(10px,2.4cqw,12px); line-height:1.5; letter-spacing:.06em;
+  font-variant-numeric:tabular-nums; pointer-events:none;
+  display:inline-flex; align-items:center; gap:.5em;
+}
+[data-tdb-smile-slider] .tdb-smile-counter-current {
+  position:relative; display:block; width:2.4ch; height:1.5em; overflow:hidden; text-align:center; opacity:1;
+}
+[data-tdb-smile-slider] .tdb-smile-counter-value {
+  position:absolute; inset:0; display:block; width:100%; height:100%;
+}
+[data-tdb-smile-slider] .tdb-smile-counter-divider {
+  display:block; width:1.8em; height:1px; background:currentColor;
+}
+[data-tdb-smile-slider] .tdb-smile-counter-total { min-width:2.4ch; text-align:right; }
+[data-tdb-smile-slider] .tdb-smile-counter-label {
+  position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%);
+}
+.gallery17_component[data-wf--slider---smile-gallery--variant="dark"] > [data-tdb-smile-slider] > :is(.tdb-smile-counter,.tdb-smile-static-kicker) {
+  color:rgba(255,255,255,.6);
+}
+[data-tdb-smile-slider] .layout423_card-content.smile > .margin-top.smile:not(.left) {
+  height:var(--tdb-smile-footer-height); min-height:var(--tdb-smile-footer-height);
+  flex-shrink:0; padding:.75rem var(--tdb-smile-pad); margin:0;
+}
+[data-tdb-smile-slider] .tdb-smile-summary-ready > .smile-iconset { display:none; }
+[data-tdb-smile-slider] .tdb-smile-summary {
+  width:100%; min-width:0; color:var(--tdb-smile-ink);
+  font-size:clamp(10px,2.4cqw,12px); line-height:1.5;
+}
+[data-tdb-smile-slider] .tdb-smile-treatments {
+  margin:.5rem 0 0; padding:0 calc(var(--tdb-smile-controls-width) + 1rem) 0 0; list-style:none;
+  min-height:calc(var(--tdb-smile-treatment-lines,3) * 1.5em);
+  color:var(--tdb-smile-muted); letter-spacing:.06em; text-transform:uppercase;
+}
+[data-tdb-smile-slider] .tdb-smile-treatments li {
+  display:flex; align-items:center; gap:.45rem; min-height:1.5em; margin:0; padding:0;
+}
+[data-tdb-smile-slider] .tdb-smile-treatments img {
+  width:1rem; height:1rem; flex:0 0 1rem; object-fit:contain;
+  opacity:.5; filter:invert(var(--tdb-smile-icon-invert));
+}
+[data-tdb-smile-slider] .tdb-smile-facts {
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:stretch; min-height:3em;
+}
+[data-tdb-smile-slider] .tdb-smile-fact {
+  display:flex; align-items:center; justify-content:center; gap:.35rem; min-width:0;
+  position:relative; padding:0 .4rem; text-align:center; letter-spacing:.04em; text-transform:uppercase;
+}
+[data-tdb-smile-slider] .tdb-smile-fact:first-child { justify-content:flex-start; text-align:left; padding-left:0; }
+[data-tdb-smile-slider] .tdb-smile-fact:last-child {
+  justify-content:flex-end; text-align:right; padding-right:0; letter-spacing:normal; text-transform:none;
+}
+[data-tdb-smile-slider] .tdb-smile-fact + .tdb-smile-fact::before {
+  content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
+  width:1px; height:1.25em; background:var(--base-color-brand--orange-3,#d6cab4);
+}
+[data-tdb-smile-slider] .tdb-smile-fact > span { min-width:0; overflow-wrap:break-word; }
+[data-tdb-smile-slider] .tdb-smile-fact svg,[data-tdb-smile-slider] .tdb-smile-fact img {
+  display:block; width:1rem; height:1rem; flex:0 0 1rem; object-fit:contain;
+}
+[data-tdb-smile-slider] .tdb-smile-fact img { transform:scale(1.3); margin-right:.15rem; filter:invert(var(--tdb-smile-icon-invert)); }
+[data-tdb-smile-slider] > .tdb-smile-static-facts {
+  --tdb-smile-icon-invert:0;
+  --tdb-smile-value-color:var(--base-color-neutral--neutral,#888);
+  position:absolute; z-index:4; left:var(--tdb-smile-pad); right:var(--tdb-smile-pad);
+  height:3em; color:var(--base-color-brand--black,#000);
+  font-size:clamp(10px,2.4cqw,12px); line-height:1.5; pointer-events:none;
+}
+.gallery17_component[data-wf--slider---smile-gallery--variant="dark"] > [data-tdb-smile-slider] > .tdb-smile-static-facts {
+  --tdb-smile-icon-invert:1; color:#fff;
+  --tdb-smile-value-color:rgba(255,255,255,.6);
+}
+[data-tdb-smile-slider] .tdb-smile-fact-ticker {
+  position:relative; display:block; height:1.5em; overflow:hidden; flex-shrink:1;
+  color:var(--tdb-smile-value-color); opacity:0;
+}
+[data-tdb-smile-slider] .tdb-smile-fact-ticker.is-ready {
+  opacity:1; transition:opacity 400ms ease-in;
+}
+[data-tdb-smile-slider] .tdb-smile-fact-value {
+  position:absolute; inset:0; display:grid; align-content:center; width:100%; height:100%;
+  min-width:0; overflow-wrap:break-word;
+}
+
+/* Keep the existing controls outside the translated track. The treatment row
+   sits below the 3em facts row and the unchanged .5rem gap. */
+[data-tdb-smile-slider] > .swiper_functions-btm {
+  position:absolute;
+  z-index:4;
+  right:var(--tdb-smile-pad);
+  bottom:calc((var(--tdb-smile-footer-height) - .5rem - 3em) / 2);
+  transform:translateY(50%);
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  width:var(--tdb-smile-controls-width);
+  height:3rem;
+  margin:0;
+  padding:0;
+  font-size:clamp(10px,2.4cqw,12px);
+  pointer-events:none;
+}
+[data-tdb-smile-slider] > .swiper_functions-btm > .swiper-count {
+  display:none;
+}
+[data-tdb-smile-slider] > .swiper_functions-btm > .swiper-buttons-wrapper {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:.75rem;
+  width:100%;
+  pointer-events:auto;
+}
+[data-tdb-smile-slider] > .swiper_functions-btm .slider-arrow {
+  display:grid;
+  place-items:center;
+  flex:0 0 3rem;
+  width:3rem;
+  height:3rem;
+  padding:0;
+  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(20px);
+  transition:background-color 300ms ease,color 300ms ease,border-color 300ms ease;
+}
+[data-tdb-smile-slider] > .swiper_functions-btm .slider-arrow-icon {
+  display:grid;
+  place-items:center;
+}
+
+/* Mobile smile-card preview; main-wrapper retains viewport clipping. */
+@media (max-width: 767px) {
+  :is(.testimonial15_client-image-wrapper, .smile-slider, .layout194_image-wrapper):has([data-tdb-smile-slider]),
+  [data-tdb-smile-slider],
+  [data-tdb-smile-slider] > .swiper {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Let Home's grid item shrink without clipping the neighbouring cards. */
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .testimonial15_client-image-wrapper:has([data-tdb-smile-slider]) {
+    min-width: 0;
+  }
+
+}
+
+  /* Match original/loop-copy emphasis on all screen sizes. */
+  :is([data-tdb-smile-slider], .highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component) > .swiper.swiper-initialized > .swiper-wrapper > .swiper-slide {
+    opacity: .5;
+    transition: opacity 300ms ease;
+  }
+  :is([data-tdb-smile-slider], .highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component) > .swiper.swiper-initialized > .swiper-wrapper > :is(.swiper-slide-active, .swiper-slide-duplicate-active) {
+    opacity: 1;
+  }
+
+/* Expanded view adds only the CMS description; facts stay in the summary. */
+[data-tdb-smile-slider] .layout423_card-content.smile {
+  z-index: 3;
+}
+[data-tdb-smile-slider] .layout423_card.smile:has(.tdb-smile-summary) .smile-card > :is(.treatment-smile, .button.smile) {
+  display: none;
+}
+[data-tdb-smile-slider] .smile-card > .paragraph-smile.descript {
+  margin-top: 0;
+  opacity: 1;
+  color: #fff;
+}
+/* Use the parallax timings on card text only. The is-moving state stays on
+   descendants so Swiper's ancestor observer stays quiet. */
+[data-tdb-smile-slider] .layout423_card.smile [data-fade-slide] {
+  opacity:0; pointer-events:none; transition:opacity 200ms ease-out;
+}
+[data-tdb-smile-slider] .layout423_card.smile [data-fade-slide].is-visible {
+  opacity:var(--tdb-smile-text-opacity,1); pointer-events:var(--tdb-smile-text-pointer-events,auto);
+  transition:opacity 400ms ease-in;
+}
+[data-tdb-smile-slider] .layout423_card.smile [data-fade-slide].is-moving {
+  opacity:0; pointer-events:none; transition:opacity 150ms ease-out;
+}
+@media (prefers-reduced-motion:reduce) {
+  [data-tdb-smile-slider] .layout423_card.smile [data-fade-slide] { transition:none!important; }
+  [data-tdb-smile-slider] :is(.tdb-smile-counter-current,.tdb-smile-fact-ticker) { transition:none!important; }
+}
+/* Follow IX2's reveal state: hover-out collapses height to zero while
+   retaining opacity 1, so either zero height or opacity restores labels. */
+[data-tdb-smile-slider] .layout423_card.smile:has(.smile-card[style*="opacity:"]:not([style*="opacity: 0;"]):not([style*="height: 0px;"])) .tdb-smile-image-label {
+  opacity: 0;
+}
+
+/* Treatment/technology reveal links share the site's glass button presentation.
+   Keep the native link/card and IX2 reveal ownership, including loop copies. */
+:is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom .button.is-link {
+  display:inline-flex;
+  width:fit-content;
+  max-width:100%;
+  align-items:center;
+  justify-content:center;
+  gap:.75rem;
+  padding:.55rem 1.2rem;
+  border:1px solid var(--base-color-brand--white,#fff);
+  border-radius:var(--border-radius--small,.3125rem);
+  background-color:rgba(0,0,0,.3);
+  color:var(--base-color-brand--white,#fff);
+  line-height:1.5;
+  opacity:1;
+  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(20px);
+  transition:background-color 300ms ease,color 300ms ease,border-color 300ms ease;
+}
+:is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom .button.is-link > .text-style-tagline-restored {
+  font:inherit;
+  letter-spacing:normal;
+  text-transform:none;
+}
+:is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom .button.is-link:active {
+  background-color:rgba(255,255,255,.8);
+  color:var(--base-color-brand--black,#000);
+}
+:is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom .button.is-link:focus-visible {
+  outline:2px solid currentColor;
+  outline-offset:4px;
+}
+@media (hover:hover) and (pointer:fine) {
+  :is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom .button.is-link:hover {
+    background-color:rgba(255,255,255,.8);
+    color:var(--base-color-brand--black,#000);
+  }
+}
+
+/* IX2 keeps height/movement. CSS separates the description's settled dimming
+   from the whole reveal, so the glass CTA can reach full opacity. */
+:is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom {
+  opacity:0 !important;
+  transition:opacity 200ms cubic-bezier(.165,.84,.44,1);
+}
+:is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom[style*="opacity:"]:not([style*="opacity: 0;"]):not([style*="height: 0px;"]) {
+  opacity:1 !important;
+  transition-duration:300ms;
+}
+:is(.highlight-swiper_component:has(a[href^="/treatments/"]), html[data-wf-page="677cfbe37aba5fbbc2154c24"] .highlight-swiper_component:not([data-tdb-smile-slider])) .layout423_card-content-bottom > .margin-top.margin-small {
+  opacity:.5;
+}
