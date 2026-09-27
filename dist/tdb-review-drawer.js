@@ -274,15 +274,18 @@
       const available=quote.clientHeight-parseFloat(css.paddingTop)-parseFloat(css.paddingBottom)-mark.getBoundingClientRect().height-parseFloat(css.rowGap);
       n.style.setProperty('--ri-quote-lines',Math.max(1,Math.min(6,Math.floor(available/parseFloat(getComputedStyle(copy).lineHeight)))));
     }
+    function updateCount(target){
+      const first=recordIndex(target),end=Math.min(records.length,first+perView);
+      const countText=String(first+1).padStart(2,'0')+(perView>1?'–'+String(end).padStart(2,'0'):'');
+      countTicker.update(countText,target<previousCount?-1:1);previousCount=target;
+      count.setAttribute('aria-label',countText+' of '+records.length);
+    }
     function paint(){
       around(active);
       cells.forEach((n,i)=>{const visible=i>=active&&i<active+perView;n.style.width=width+'px';n.style.transform='translate3d('+((i-active)*stride+centre)+'px,0,0)';n.inert=!visible;n.setAttribute('aria-hidden',String(!visible));});
       markCurrent(active);
       cells.forEach(fitPreview);
-      const first=recordIndex(active),end=Math.min(records.length,first+perView);
-      const countText=String(first+1).padStart(2,'0')+(perView>1?'–'+String(end).padStart(2,'0'):'');
-      countTicker.update(countText,active<previousCount?-1:1);previousCount=active;
-      count.setAttribute('aria-label',countText+' of '+records.length);
+      updateCount(active);
       updateArrows(active);
     }
     function finish(){
@@ -292,7 +295,7 @@
     function go(target,offset=0){
       finish();if(!compact)target=Math.max(0,Math.min(last(),target));
       if(target===active&&!offset){revealQuotes(60);return;}
-      around(active,target);hideQuotes();
+      updateCount(target);around(active,target);hideQuotes();
       if(cells.get(active)?.contains(document.activeElement)&&target!==active)viewport.focus({preventScroll:true});
       const direction=target<active?-1:1;
       const duration=Math.max(120,Math.min(400,400*Math.abs((target-active)*stride-offset)/Math.max(1,stride)));
