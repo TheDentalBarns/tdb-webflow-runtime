@@ -193,3 +193,6 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 /* During the closing transform, fixed controls use the scrolled dialog as their containing block. */
 .tdbc-dialog:not([open]) .tdbc-live{top:var(--tdbc-close-scroll,0px)}
 .tdbc-dialog:not([open]) .tdbc-drawer-close-dock{top:calc(var(--tdbc-close-scroll,0px) + 6rem)!important}
+
+/* Separate banner destinations; preserve shared banner geometry. */
+.tdbc-live-target{margin:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;min-height:44px}.tdbc-arrow-target{display:flex;align-items:center;justify-content:center;min-width:44px}.tdbc-live-target:focus-visible{outline:1px solid currentColor;outline-offset:4px}
