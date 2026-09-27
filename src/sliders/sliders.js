@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.6.1';
+  const VERSION = '0.7.0-banner-parallax';
   const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
   const PARALLAX_SELECTOR = '.parallax-swiper_component';
   const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
@@ -323,9 +323,11 @@
     const swiperEl = getSwiperElement(component);
     if (!swiperEl || typeof window.Swiper !== 'function') return;
 
-    const desktopEntry = isDesktopEntryPage();
-    const mobileEntry = isMobileEntryPage();
-    const entryMotion = desktopEntry || mobileEntry;
+    const banner = component.hasAttribute('data-tdb-banner-parallax');
+    const bannerMotion = banner && !matchMedia(REDUCED_MOTION_QUERY).matches;
+    const desktopEntry = isDesktopEntryPage() || (bannerMotion && matchMedia(DESKTOP_QUERY).matches);
+    const mobileEntry = isMobileEntryPage() || (bannerMotion && matchMedia(MOBILE_PORTRAIT_QUERY).matches);
+    const entryMotion = desktopEntry || mobileEntry || banner;
 
     const cta = window.TDBParallaxControls?.prepare(component, swiperEl);
 
@@ -343,7 +345,7 @@
             disableOnInteraction: false
           },
       grabCursor: true,
-      loop: true,
+      loop: !banner || swiperEl.querySelectorAll('.swiper-slide').length > 1,
       loopPreventsSlide: false,
       preventInteractionOnTransition: false,
       loopAdditionalSlides: 1,
@@ -382,7 +384,7 @@
     const visibleSlides = new Set();
     let showTimeout = null;
     let gestureHidden = false;
-    let entryPending = entryMotion && !cta?.skipEntry;
+    let entryPending = (desktopEntry || mobileEntry) && !cta?.skipEntry;
     component.classList.toggle('tdb-entry-pending', entryPending);
 
     function getFadeElements(slide) {
@@ -557,6 +559,7 @@
   }
 
   function refresh(root = document) {
+    window.TDBBannerParallax?.refresh(root);
     if (root instanceof Element) {
       if (root.matches(HIGHLIGHT_SELECTOR)) observeComponent(root, 'highlight');
       if (root.matches(PARALLAX_SELECTOR)) observeComponent(root, 'parallax');

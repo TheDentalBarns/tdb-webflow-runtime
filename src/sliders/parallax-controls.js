@@ -6,13 +6,13 @@
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
   const entry = path === '/' || path === '/location';
   function configure(component) {
-    if (!entry) return;
+    if (!entry && !component.hasAttribute('data-tdb-banner-parallax')) return;
     const mobile = matchMedia('(max-width:767px) and (orientation:portrait)').matches;
     document.documentElement.classList.toggle('tdb-slider-next', mobile);
     document.documentElement.classList.toggle('tdb-slider-desktop', matchMedia('(min-width:768px)').matches);
     const swiper = component.querySelector(':scope > .swiper');
     const controls = component.querySelector(':scope > .swiper_functions-btm.hide');
-    if (mobile && swiper && controls) swiper.appendChild(controls);
+    if (mobile && swiper && controls && !component.hasAttribute('data-tdb-banner-parallax')) swiper.appendChild(controls);
     component.querySelectorAll('.swiper-btn-prev,.swiper-btn-next').forEach(button => {
       button.tabIndex = 0;
       button.setAttribute('role', 'button');
@@ -22,7 +22,7 @@
   // Keep the CMS links as the source of truth, but give each entry-page
   // carousel one stationary, keyboard-accessible call to action.
   function prepareParallaxCTA(component, swiperEl) {
-    if (!/^\/(?:location\/?)?$/.test(window.location.pathname)) return null;
+    if (!entry && !component.hasAttribute('data-tdb-banner-parallax')) return null;
     const slides = Array.from(swiperEl.querySelectorAll(':scope > .swiper-wrapper > .swiper-slide:not(.swiper-slide-duplicate)'));
     const sources = slides.map(slide => {
       const link = slide.querySelector('.service-card-button-wrap a[href]');
@@ -173,6 +173,7 @@
       const slide = swiper?.slides[swiper.activeIndex] || slides[initialIndex];
       const index = slide?.getAttribute('data-tdb-parallax-cta-index');
       const source = index == null ? null : sources[Number(index)];
+      if (component.hasAttribute('data-tdb-banner-parallax')) button.hidden = !source?.href;
       if (!source?.href) {
         button.removeAttribute('href');
         button.setAttribute('aria-disabled', 'true');
@@ -298,7 +299,7 @@
   }
 
   function prepare(component, swiperEl = component.querySelector(':scope > .swiper')) {
-    if (!entry || !swiperEl) return null;
+    if ((!entry && !component.hasAttribute('data-tdb-banner-parallax')) || !swiperEl) return null;
     if (controllers.has(component)) return controllers.get(component);
     configure(component);
     const controller = prepareParallaxCTA(component, swiperEl);
@@ -306,9 +307,9 @@
     return controller;
   }
   function start() {
-    if (entry) document.querySelectorAll('.parallax-swiper_component').forEach(component => prepare(component));
+    document.querySelectorAll('.parallax-swiper_component').forEach(component => prepare(component));
   }
-  window.TDBParallaxControls = Object.freeze({ version: '1.1.0', prepare });
+  window.TDBParallaxControls = Object.freeze({ version: '1.2.0-banner-parallax', prepare });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
 })();
