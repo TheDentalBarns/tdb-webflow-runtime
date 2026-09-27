@@ -133,7 +133,7 @@
           for(const a of [...node.attributes])if(!fresh.hasAttribute(a.name)&&!['data-dd-ready','style'].includes(a.name))node.removeAttribute(a.name);
           for(const a of fresh.attributes)if(node.getAttribute(a.name)!==a.value)node.setAttribute(a.name,a.value);
           if(node instanceof HTMLInputElement){if(node.value!==fresh.value)node.value=fresh.value;node.checked=fresh.checked;node.disabled=fresh.disabled;}
-          children(node,fresh);
+          if(!['live','total','duration','duration-summary'].includes(node.getAttribute('data-output')))children(node,fresh);
         }}i++;
       }
       while(dst.childNodes.length>i)dst.lastChild.remove();
@@ -260,7 +260,13 @@
       this.root.toggleAttribute('data-availability-loading',pending);
       if(f&&state.deposit!==f.deposit){state.deposit=f.deposit;save();}
       const set=(key,value)=>{const el=this.root.querySelector('[data-output="'+key+'"]');if(el&&el.textContent!==value)el.textContent=value;};
-      set('live',priceText(e));this.animateLive(priceText(e));set('total',priceText(e));set('duration',C.duration(records,e,today()));set('duration-summary',C.duration(records,e,today()));set('deposit',currency(f?.deposit||0));set('term',state.term+' months');
+      const durationText=C.duration(records,e,today());
+      const durationNumbers=durationText.match(/\d+(?:\.\d+)?/g)||[];
+      const durationUnit=/months/.test(durationText)?30.4375*1440:/weeks/.test(durationText)?7*1440:/days/.test(durationText)?1440:/hours/.test(durationText)?60:1;
+      const durationValue=durationNumbers.length?Number(durationNumbers[durationNumbers.length-1])*durationUnit:0;
+      const roll=(key,text,value)=>window.TDBTicker?window.TDBTicker.update(this.root.querySelector('[data-output="'+key+'"]'),text,value):set(key,text);
+      roll('live',priceText(e),e.min+e.max);roll('total',priceText(e),e.min+e.max);
+      roll('duration',durationText,durationValue);roll('duration-summary',durationText,durationValue);set('deposit',currency(f?.deposit||0));set('term',state.term+' months');
       const facts=this.root.querySelector('[data-output="finance"]');if(facts&&f)patch(facts,'<div class="tdbc-summary-monthly"><span class="text-size-tiny">0% over '+state.term+' months</span><strong class="heading-style-h4">'+esc(range(f.low.monthly,f.high.monthly))+'<small class="text-size-small"> / month</small></strong></div><dl class="tdbc-finance-facts text-size-small">'+[['Total estimate',range(e.min,e.max)],['Upfront, including assessment',currency(f.deposit)],['Amount financed',range(f.low.balance,f.high.balance)],['Interest charges',currency(0)],['Final monthly payment',range(f.low.final,f.high.final)]].map(([a,b])=>'<div><dt>'+esc(a)+'</dt><dd>'+esc(b)+'</dd></div>').join('')+'</dl>');
       const t=C.completionTimeline(records,e,planningStart(),state.delay),target=this.root.querySelector('[data-date="target"]'),slider=this.root.querySelector('[data-range="completion"]');
       if(target){target.disabled=pending;target.setAttribute('aria-busy',String(pending));if(pending)target.value='';else if(t.reliable){target.value=t.finishMin;target.min=t.earliestCompletion;target.max=t.latestCompletion;}}

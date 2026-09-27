@@ -1,0 +1,7 @@
+[data-tdb-ticker]{position:relative;display:inline-grid!important;vertical-align:middle;overflow:hidden;line-height:1.5;max-width:100%;font-variant-numeric:tabular-nums}
+.tdb-tick-size{visibility:hidden;grid-area:1/1;white-space:nowrap}
+.tdb-tick-value{position:absolute;inset:0;display:grid;align-content:center;white-space:nowrap}
+.tdb-tick-pagination{display:flex;align-items:center;gap:.5em;font-variant-numeric:tabular-nums}
+.tdb-tick-count{width:2.4ch;text-align:center}.tdb-tick-rule{width:1.8em;height:1px;background:currentColor}.tdb-tick-total{min-width:2.4ch}
+.tdb-calc [data-output=live],.tdb-calc [data-output=total]{min-width:min(12ch,100%)}
+.tdb-calc [data-output=duration],.tdb-calc [data-output=duration-summary]{min-width:min(14ch,100%)}
