@@ -1,13 +1,13 @@
-/* TDB Instagram cards v0.5.3. Shared Swiper owns motion and page chrome. */
+/* TDB Instagram cards v0.6.0. Shared Swiper owns motion and page chrome. */
 /* Replace legacy Elfsight dimensions and let grid items shrink around the track. */
 html[data-tdb-instagram-preview] .w-embed:has(> :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b6a21bed,.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,.elfsight-app-35374f05-af95-4b8c-9480-e091c19319c8,.elfsight-app-3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04,[data-tdb-ig-widget])){width:100%;min-width:0;max-width:100%;height:auto;min-height:0;max-height:none;overflow:visible}
 html[data-tdb-instagram-preview] .award-image_left:has(:is(.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,[data-tdb-ig-widget])){width:100%;min-width:0;max-width:100%;height:auto;min-height:0;max-height:none}
 html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b6a21bed,.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,.elfsight-app-35374f05-af95-4b8c-9480-e091c19319c8,.elfsight-app-3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04,[data-tdb-ig-widget]){--tdb-ig-card-width:100%;width:100%;min-width:0;max-width:100%;contain:inline-size}
-/* Reserve the finished 4:5 image, two 6rem bars and 5rem controls before JS loads. */
+/* Reserve the finished 4:5 image and two 6rem bars before JS loads. */
 html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b6a21bed,.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,.elfsight-app-35374f05-af95-4b8c-9480-e091c19319c8,.elfsight-app-3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04,[data-tdb-ig-widget]):not([data-tdb-ig-ready]){position:relative;width:100%;min-width:0}
-html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b6a21bed,.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,.elfsight-app-35374f05-af95-4b8c-9480-e091c19319c8,.elfsight-app-3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04,[data-tdb-ig-widget]):not([data-tdb-ig-ready])::before{content:"";display:block;width:var(--tdb-ig-card-width);aspect-ratio:4/5;box-sizing:content-box;padding-block:8.5rem;margin-inline:auto;pointer-events:none}
+html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b6a21bed,.elfsight-app-35374f05-af95-4b8c-9480-e091c19319c8,.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,.elfsight-app-3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04,[data-tdb-ig-widget]):not([data-tdb-ig-ready])::before{content:"";display:block;width:var(--tdb-ig-card-width);aspect-ratio:4/5;box-sizing:content-box;padding-block:6rem;margin-inline:auto;pointer-events:none}
 [data-tdb-ig-widget]{min-width:0;width:100%;overflow:hidden}
-.tdb-ig-feed{position:relative;width:100%;max-width:100%;min-width:0;margin-inline:auto;overflow:visible;color:var(--base-color-brand--black,#111);font-family:inherit;text-align:left}
+.tdb-ig-feed{--tdb-ig-pad:1.25rem;--tdb-ig-header-controls:8rem;position:relative;width:100%;max-width:100%;min-width:0;margin-inline:auto;overflow:visible;color:var(--base-color-brand--black,#111);font-family:inherit;text-align:left}
 .tdb-ig-feed > .tdb-ig-viewport{width:var(--tdb-ig-card-width,100%);height:auto;min-width:0;margin:0 auto;overflow:visible}
 .tdb-ig-feed .swiper-wrapper{position:relative;display:flex;align-items:flex-start;width:100%;box-sizing:content-box}
 .tdb-ig-feed .tdb-ig-slide{flex-shrink:0;height:auto;opacity:.5;transition:opacity 300ms ease}
@@ -17,7 +17,9 @@ html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b
 .tdb-ig-feed .tdb-ig-slide.swiper-slide-duplicate-active{opacity:1}
 .tdb-ig-feed .tdb-ig-card{position:relative;isolation:isolate;display:block;width:100%;overflow:hidden;margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;container-type:inline-size}
 .tdb-ig-feed .tdb-ig-photo{display:block;width:100%;height:125cqw;object-fit:cover;object-position:center;max-width:none;border:0;border-radius:0;background:#e4dccd;user-select:none;-webkit-user-drag:none}
-.tdb-ig-feed .tdb-ig-bar{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%;height:6rem;padding:1rem 1.25rem;overflow:hidden;color:#111;border:0;border-radius:0;background:transparent;box-shadow:none}
+.tdb-ig-feed .tdb-ig-bar{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%;height:6rem;padding:1rem var(--tdb-ig-pad);overflow:hidden;color:#111;border:0;border-radius:0;background:transparent;box-shadow:none}
+.tdb-ig-feed .tdb-ig-top{padding-right:calc(var(--tdb-ig-pad) + var(--tdb-ig-header-controls) + .5rem)}
+.tdb-ig-feed .tdb-ig-bottom{padding-right:calc(var(--tdb-ig-pad) + 7rem + .75rem)}
 .tdb-ig-feed .tdb-ig-reflection,.tdb-ig-feed .tdb-ig-glass{position:absolute;inset:0;pointer-events:none}
 /* Crop only the mirrored source by 3px on each side; retain the original glass.
    The glass extends past the crop so its own compositing edge is outside the bar. */
@@ -34,7 +36,7 @@ html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b
 .tdb-ig-feed .tdb-ig-logo{width:100%;height:100%;object-fit:contain;filter:invert(1);border:0}
 .tdb-ig-feed .tdb-ig-avatar,.tdb-ig-feed .tdb-ig-avatar-inner,.tdb-ig-feed .tdb-ig-logo{animation:none!important;transition:none!important;transform:none!important}
 .tdb-ig-feed .tdb-ig-identity{display:flex;flex-direction:column;gap:.35rem;min-width:0}
-.tdb-ig-feed .tdb-ig-account{font-size:clamp(12px,3.9cqw,1.1rem);font-weight:500;line-height:1.2;letter-spacing:.025em;white-space:nowrap}
+.tdb-ig-feed .tdb-ig-account{font-size:clamp(12px,3.9cqw,1.1rem);font-weight:500;line-height:1.2;letter-spacing:.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tdb-ig-feed .tdb-ig-date{font-size:.75rem;font-weight:400;line-height:1.4;letter-spacing:.12em;text-transform:uppercase;color:rgba(17,17,17,.66)}
 .tdb-ig-feed .tdb-ig-instagram{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;color:#111}
 .tdb-ig-feed .tdb-ig-instagram .tdb-ig-icon{width:2.35rem;height:2.35rem}
@@ -46,16 +48,19 @@ html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b
 .tdb-ig-feed .tdb-ig-action:has(.tdb-ig-metric){display:flex;gap:.4rem;width:auto;min-width:44px;padding-inline:.25rem}
 .tdb-ig-feed .tdb-ig-metric{font-size:.85rem;line-height:1;font-variant-numeric:tabular-nums}
 .tdb-ig-feed .tdb-ig-action{display:grid;place-items:center;width:44px;height:44px;min-width:0;margin:0;padding:0;background:transparent;color:inherit;border:0;border-radius:0;box-shadow:none;cursor:pointer;transition:opacity 200ms ease}
-.tdb-ig-feed .tdb-ig-action:hover,.tdb-ig-feed .tdb-ig-open:hover{opacity:.6}
-.tdb-ig-feed .tdb-ig-open{display:flex;align-items:center;justify-content:flex-end;gap:.75rem;min-height:44px;font-size:1rem;letter-spacing:.025em;white-space:nowrap;transition:opacity 200ms ease}
-.tdb-ig-feed .tdb-ig-open .tdb-ig-icon{width:1.5rem;height:1.5rem}
-/* Smile Gallery controls, scoped here because Webflow omits unused page styles. */
-.tdb-ig-feed .swiper_functions-btm{display:flex;justify-content:space-between;align-items:center;padding-top:2rem}
-.tdb-ig-feed .swiper-buttons-wrapper{display:flex;gap:1rem}
-.tdb-ig-feed .swiper-count{opacity:.25}
-.tdb-ig-feed .slider-arrow{display:flex;align-items:center;justify-content:center;width:3rem;height:3rem;padding:0;border:1px solid currentColor;border-radius:100%;background:transparent;color:inherit;font:inherit;cursor:pointer;transition:color 50ms,background-color 50ms}
+.tdb-ig-feed .tdb-ig-action:hover{opacity:.6}
+/* One stationary control frame matches the centred card in every layout. */
+.tdb-ig-feed > .tdb-ig-static-frame{position:absolute;z-index:4;inset:0 auto 0 50%;width:var(--tdb-ig-card-width,100%);transform:translateX(-50%);container-type:inline-size;pointer-events:none}
+.tdb-ig-feed .tdb-ig-heading-controls{position:absolute;top:3rem;right:var(--tdb-ig-pad);transform:translateY(-50%);display:flex;align-items:center;justify-content:flex-end;gap:.5rem;width:var(--tdb-ig-header-controls);height:44px}
+.tdb-ig-feed .tdb-ig-heading-controls .tdb-ig-instagram{pointer-events:auto}
+.tdb-ig-feed .swiper-count{flex:0 0 auto;font-size:clamp(10px,2.4cqw,12px);line-height:1.5;letter-spacing:.025em;font-variant-numeric:tabular-nums;white-space:nowrap;color:rgba(17,17,17,.55);opacity:1}
+.tdb-ig-feed .tdb-ig-count-divider{width:1px;height:1rem;flex:0 0 1px;background:currentColor;opacity:.35}
+/* Reuse Smile Gallery's 3rem circles, 1rem gap and 20px backdrop blur. */
+.tdb-ig-feed .tdb-ig-controls{position:absolute;right:var(--tdb-ig-pad);bottom:3rem;transform:translateY(50%);display:flex;justify-content:flex-end;align-items:center;width:7rem;height:3rem;margin:0;padding:0;pointer-events:none}
+.tdb-ig-feed .swiper-buttons-wrapper{display:flex;align-items:center;justify-content:center;gap:1rem;width:100%;pointer-events:auto}
+.tdb-ig-feed .slider-arrow{display:grid;place-items:center;flex:0 0 3rem;width:3rem;height:3rem;padding:0;border:1px solid currentColor;border-radius:100%;background:transparent;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:inherit;font:inherit;cursor:pointer;transition:color 50ms,background-color 50ms}
 .tdb-ig-feed .slider-arrow:hover{background-color:#ffffff36;border-color:var(--base-color-brand--orange-3,#d6cab4);color:var(--base-color-brand--orange-3,#d6cab4)}
-.tdb-ig-feed .slider-arrow-icon{display:flex;flex-direction:column;justify-content:center;align-items:center;width:1rem;height:1rem}
+.tdb-ig-feed .slider-arrow-icon{display:grid;place-items:center;width:1rem;height:1rem}
 .tdb-ig-feed .tdb-ig-controls[hidden]{display:none}
 .tdb-ig-feed .tdb-ig-notice{position:absolute;top:100%;left:0;width:100%;text-align:center;font-size:12px;line-height:1.5}
 .tdb-ig-feed :is(a,button):focus-visible{outline:2px solid currentColor;outline-offset:3px}
@@ -68,13 +73,13 @@ html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b
 @media(max-width:767px){
  html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b6a21bed,.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,.elfsight-app-35374f05-af95-4b8c-9480-e091c19319c8,.elfsight-app-3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04,[data-tdb-ig-widget]):not([data-tdb-ig-ready])::before{width:100%}
  [data-tdb-ig-widget]{overflow:visible}
- .tdb-ig-feed{max-width:none;overflow:visible}
- .tdb-ig-feed .tdb-ig-bar{padding-inline:1rem;gap:.5rem}
+ .tdb-ig-feed{--tdb-ig-pad:1rem;max-width:none;overflow:visible}
+ .tdb-ig-feed .tdb-ig-bar{gap:.5rem}
  .tdb-ig-feed .tdb-ig-avatar{width:3.25rem;height:3.25rem;flex-basis:3.25rem;padding:2px}
  .tdb-ig-feed .tdb-ig-profile{gap:.7rem}
  .tdb-ig-feed .tdb-ig-actions{gap:0}
  .tdb-ig-feed .tdb-ig-action .tdb-ig-icon{width:22px;height:22px}
- .tdb-ig-feed .tdb-ig-open{gap:.5rem}
 }
-@container(max-width:400px){.tdb-ig-feed .tdb-ig-open-label{display:none}.tdb-ig-feed .tdb-ig-open{width:44px;flex:0 0 44px;justify-content:center}.tdb-ig-feed .tdb-ig-bar{padding-inline:.75rem}}
+@container(max-width:400px){.tdb-ig-feed .tdb-ig-bar,.tdb-ig-feed .tdb-ig-heading-controls,.tdb-ig-feed .tdb-ig-controls{--tdb-ig-pad:.75rem}}
+@container(max-width:340px){.tdb-ig-feed .tdb-ig-avatar{width:2.75rem;height:2.75rem;flex-basis:2.75rem}.tdb-ig-feed .tdb-ig-profile{gap:.5rem}.tdb-ig-feed .tdb-ig-date{font-size:.65rem;letter-spacing:.08em}}
 @supports not ((backdrop-filter:blur(20px)) or (-webkit-backdrop-filter:blur(20px))){.tdb-ig-feed .tdb-ig-glass{background:rgba(249,242,230,.94)}}

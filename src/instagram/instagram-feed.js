@@ -1,9 +1,9 @@
-/* TDB Instagram cards v0.5.3 — manual CMS snapshot, shared slider mechanics. */
+/* TDB Instagram cards v0.6.0 — stationary card controls, shared slider mechanics. */
 (() => {
   'use strict';
   const data = window.TDBInstagramManualData;
   if (!data || window.TDBInstagramFeed) return;
-  const VERSION = '0.5.3';
+  const VERSION = '0.6.0';
   const LOGO = 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/681c892759ed35c51acb5fe3_the-dental-barns-blackbrook-lichfield-logo.svg.svg';
   const iconPaths = {
     heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
@@ -50,10 +50,21 @@
     return [strip, glass];
   }
 
-  function matchGallerySpacing(viewport) {
+  function matchGallerySpacing(viewport, posts, postLink) {
+    let boundSwiper;
+    const syncPostLink = () => {
+      const post = posts[boundSwiper?.realIndex || 0];
+      if (post) postLink.href = post.url;
+    };
     const sync = () => {
       const swiper = viewport.swiper;
       const gap = window.innerWidth < 768 ? window.innerWidth * 0.02 : 20;
+      if (swiper && !swiper.destroyed && swiper !== boundSwiper) {
+        boundSwiper?.off('slideChange', syncPostLink);
+        boundSwiper = swiper;
+        swiper.on('slideChange', syncPostLink);
+        syncPostLink();
+      }
       if (swiper && !swiper.destroyed && swiper.params.spaceBetween !== gap) {
         swiper.params.spaceBetween = gap;
         swiper.update();
@@ -119,7 +130,7 @@
       details.append(date);
     }
     profile.append(avatar, details);
-    header.append(profile, link(post.url, 'tdb-ig-instagram', 'View this post on Instagram', 'instagram'));
+    header.append(profile);
 
     const footer = el('footer', 'tdb-ig-bar tdb-ig-bottom');
     footer.append(...reflection(photo));
@@ -132,9 +143,7 @@
     share.append(icon('share'));
     addMetric(share, post.shares, 'shares');
     actions.append(share);
-    const open = link(post.url, 'tdb-ig-open', 'View post on Instagram');
-    open.append(el('span', 'tdb-ig-open-label', 'View post'), galleryArrow('next'));
-    footer.append(actions, open);
+    footer.append(actions);
     article.append(header, photo, footer);
     slide.append(article);
     return slide;
@@ -172,30 +181,38 @@
     const wrapper = el('div', 'swiper-wrapper');
     posts.forEach((post, index) => wrapper.append(card(post, index, posts.length)));
     viewport.append(wrapper);
+    // A single frame sits over the current card, outside Swiper's moving track.
+    const frame = el('div', 'tdb-ig-static-frame');
+    const headingControls = el('div', 'tdb-ig-heading-controls');
+    const counter = el('span', 'swiper-count', '1 of ' + posts.length);
+    counter.setAttribute('aria-live', 'polite');
+    counter.setAttribute('aria-atomic', 'true');
+    const divider = el('span', 'tdb-ig-count-divider');
+    divider.setAttribute('aria-hidden', 'true');
+    const postLink = link(posts[0].url, 'tdb-ig-instagram', 'View this post on Instagram', 'instagram');
+    headingControls.append(counter, divider, postLink);
     const controls = el('div', 'swiper_functions-btm tdb-ig-controls');
     const buttons = el('div', 'swiper-buttons-wrapper');
     const previous = el('button', 'slider-arrow swiper-btn-prev is-dark tdb-ig-nav');
     previous.type = 'button';
     previous.setAttribute('aria-label', 'Previous ' + config.label.toLowerCase() + ' post');
     previous.append(galleryArrow('previous'));
-    const counter = el('span', 'swiper-count', '1 of ' + posts.length);
-    counter.setAttribute('aria-live', 'polite');
-    counter.setAttribute('aria-atomic', 'true');
     const next = el('button', 'slider-arrow swiper-btn-next is-dark tdb-ig-nav');
     next.type = 'button';
     next.setAttribute('aria-label', 'Next ' + config.label.toLowerCase() + ' post');
     next.append(galleryArrow('next'));
     buttons.append(previous, next);
-    controls.append(counter, buttons);
+    controls.append(buttons);
     if (posts.length < 2) controls.hidden = true;
     const notice = el('span', 'tdb-ig-notice');
     notice.setAttribute('role', 'status');
     notice.setAttribute('aria-live', 'polite');
-    root.append(viewport, controls, notice);
+    frame.append(headingControls, controls);
+    root.append(viewport, frame, notice);
     mount.replaceChildren(root);
     mount.dataset.tdbIgReady = VERSION;
     mount.removeAttribute('aria-busy');
-    matchGallerySpacing(viewport);
+    matchGallerySpacing(viewport, posts, postLink);
   }
 
   function refresh() {
@@ -217,7 +234,7 @@
         if (notice) { notice.textContent = 'Post link copied'; setTimeout(() => { notice.textContent = ''; }, 2500); }
       } else window.open(url, '_blank', 'noopener,noreferrer');
     } catch (error) {
-      if (error.name !== 'AbortError' && notice) notice.textContent = 'Use View post to open and share on Instagram.';
+      if (error.name !== 'AbortError' && notice) notice.textContent = 'Use the Instagram icon to open and share this post.';
     }
   });
 
