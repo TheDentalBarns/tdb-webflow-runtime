@@ -1,9 +1,9 @@
-/* TDB Instagram cards v0.6.3 — stationary details, tickers and video markers. */
+/* TDB Instagram cards v0.6.4 — stationary details, tickers and fading video markers. */
 (() => {
   'use strict';
   const data = window.TDBInstagramManualData;
   if (!data || window.TDBInstagramFeed) return;
-  const VERSION = '0.6.3';
+  const VERSION = '0.6.4';
   const numberFormat = new Intl.NumberFormat('en-GB');
   const dateFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
   const LOGO = 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/681c892759ed35c51acb5fe3_the-dental-barns-blackbrook-lichfield-logo.svg.svg';
@@ -14,7 +14,7 @@
     next: '<path d="M4 12h16m-6-6 6 6-6 6"/>',
     previous: '<path d="M20 12H4m6-6-6 6 6 6"/>',
     instagram: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r=".8" fill="currentColor" stroke="none"/>',
-    video: '<rect x="3" y="6" width="12" height="12"/><path d="m15 10 6-4v12l-6-4"/>'
+    video: '<path fill="currentColor" fill-rule="evenodd" stroke="none" d="M8 3h8a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5V8a5 5 0 0 1 5-5Zm2.55 5.4A1 1 0 0 0 9 9.23v5.54a1 1 0 0 0 1.55.83l4.16-2.77a1 1 0 0 0 0-1.66Z"/>'
   };
 
   function el(tag, className, text) {
@@ -100,8 +100,13 @@
   function matchGallerySpacing(viewport, posts, postLink, panels, pagination, initialIndex) {
     const component = viewport.closest('.tdb-ig-feed');
     let boundSwiper;
-    let revealTimer = 0, dragging = false, ready = false;
+    let revealTimer = 0, dragging = false, ready = false, videoReady = false;
     const cancelReveal = () => { clearTimeout(revealTimer); revealTimer = 0; };
+    const hideVideos = () => {
+      cancelReveal();
+      videoReady = false;
+      panels.forEach(panel => panel.hideVideo());
+    };
     const syncSlideLabels = () => {
       // Swiper numbers the rotated track; announce the logical post number.
       boundSwiper?.slides.forEach(slide => {
@@ -117,28 +122,30 @@
       panels.forEach(panel => panel.update(posts[(index + panel.offset + posts.length) % posts.length], direction));
       pagination.update(index, direction);
     };
-    const canReveal = () => !ready && boundSwiper && !boundSwiper.destroyed && !boundSwiper.animating && !dragging &&
+    const canReveal = () => !videoReady && boundSwiper && !boundSwiper.destroyed && !boundSwiper.animating && !dragging &&
       component.isConnected && component.getAttribute('data-tdb-slider-first-view') !== 'pending';
-    const revealAfterEntry = () => {
+    const revealAfterSettling = () => {
       if (revealTimer || !canReveal()) return;
       revealTimer = setTimeout(() => {
         revealTimer = 0;
         if (!canReveal()) return;
         syncDetails();
-        panels.forEach(panel => panel.show());
+        if (!ready) panels.forEach(panel => panel.show());
         ready = true;
+        panels.forEach(panel => panel.showVideo());
+        videoReady = true;
       }, 100);
     };
     const handlers = {
-      slideChange: syncDetails,
+      slideChange: () => { hideVideos(); syncDetails(); },
       slidesLengthChange: syncSlideLabels,
       slidesGridLengthChange: syncSlideLabels,
       snapGridLengthChange: syncSlideLabels,
       touchStart: () => { dragging = true; cancelReveal(); },
-      sliderMove: cancelReveal,
-      touchEnd: () => { dragging = false; revealAfterEntry(); },
-      transitionStart: cancelReveal,
-      transitionEnd: () => { syncDetails(); revealAfterEntry(); },
+      sliderMove: hideVideos,
+      touchEnd: () => { dragging = false; revealAfterSettling(); },
+      transitionStart: hideVideos,
+      transitionEnd: () => { syncDetails(); revealAfterSettling(); },
       beforeDestroy: () => { cancelReveal(); dragging = false; panels.forEach(panel => panel.stop()); pagination.stop(); }
     };
     const sync = () => {
@@ -155,7 +162,7 @@
         swiper.params.spaceBetween = gap;
         swiper.update();
       }
-      revealAfterEntry();
+      revealAfterSettling();
     };
     new ResizeObserver(sync).observe(viewport);
     new MutationObserver(sync).observe(viewport, { attributes: true, attributeFilter: ['class'] });
@@ -206,7 +213,19 @@
     const videoBadge = el('span', 'tdb-ig-video-badge');
     videoBadge.setAttribute('role', 'img');
     videoBadge.setAttribute('aria-label', 'Video post');
-    videoBadge.append(icon('video'));
+    videoBadge.setAttribute('aria-hidden', 'true');
+    const videoSymbol = el('span', 'tdb-ig-video-symbol');
+    videoSymbol.append(icon('video'));
+    videoBadge.append(videoSymbol);
+    let isVideo = false;
+    const hideVideo = () => {
+      videoBadge.classList.remove('is-visible');
+      videoBadge.setAttribute('aria-hidden', 'true');
+    };
+    const showVideo = () => {
+      videoBadge.classList.toggle('is-visible', isVideo);
+      videoBadge.setAttribute('aria-hidden', String(!isVideo));
+    };
     const actions = el('div', 'tdb-ig-actions tdb-ig-fixed-actions');
     const metrics = [
       ['likes', 'heart', 'View likes on Instagram'],
@@ -227,7 +246,7 @@
     });
     const update = (post, direction) => {
       panel.dataset.igPost = post.shortcode;
-      videoBadge.hidden = post.mediaType !== 'video';
+      isVideo = post.mediaType === 'video';
       metrics.forEach(metric => {
         const { key, node, label, roll } = metric;
         const known = hasMetric(post[key]);
@@ -251,13 +270,13 @@
     panel.append(profile, videoBadge, actions);
     update(posts[(initialIndex + offset + posts.length) % posts.length], 1);
     return {
-      panel, offset, update,
+      panel, offset, update, hideVideo, showVideo,
       show: () => {
         ready = true;
         date.classList.add('is-ready');
         metrics.forEach(metric => metric.value?.classList.add('is-ready'));
       },
-      stop: () => { dateTicker.stop(); metrics.forEach(metric => metric.roll?.stop()); }
+      stop: () => { hideVideo(); dateTicker.stop(); metrics.forEach(metric => metric.roll?.stop()); }
     };
   }
 

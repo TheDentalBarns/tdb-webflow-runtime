@@ -1,4 +1,4 @@
-/* TDB Instagram cards v0.6.3. Shared Swiper owns motion and page chrome. */
+/* TDB Instagram cards v0.6.4. Shared Swiper owns motion and page chrome. */
 /* Replace legacy Elfsight dimensions and let grid items shrink around the track. */
 html[data-tdb-instagram-preview] .w-embed:has(> :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b6a21bed,.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,.elfsight-app-35374f05-af95-4b8c-9480-e091c19319c8,.elfsight-app-3cbfb5f1-fbeb-4c0c-b53c-6a91daa4aa04,[data-tdb-ig-widget])){width:100%;min-width:0;max-width:100%;height:auto;min-height:0;max-height:none;overflow:visible}
 html[data-tdb-instagram-preview] .award-image_left:has(:is(.elfsight-app-9abfdbc1-5cc2-4de0-bf56-1093d967c2be,[data-tdb-ig-widget])){width:100%;min-width:0;max-width:100%;height:auto;min-height:0;max-height:none}
@@ -42,8 +42,9 @@ html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b
 .tdb-ig-feed .tdb-ig-instagram .tdb-ig-icon{width:2.35rem;height:2.35rem}
 .tdb-ig-feed .tdb-ig-instagram svg [fill]:not([fill="none"]){fill:currentColor}
 .tdb-ig-feed .tdb-ig-video-badge{position:absolute;top:calc(6rem + var(--tdb-ig-pad));right:var(--tdb-ig-pad);display:grid;place-items:center;width:44px;height:44px;color:#fff;pointer-events:none}
-.tdb-ig-feed .tdb-ig-video-badge .tdb-ig-icon{width:2.35rem;height:2.35rem}
-.tdb-ig-feed .tdb-ig-video-badge[hidden]{display:none}
+.tdb-ig-feed .tdb-ig-video-symbol{display:block;width:2.35rem;height:2.35rem;clip-path:inset(12.5% round .489583rem);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);opacity:0;transition:opacity 150ms ease-out}
+.tdb-ig-feed .tdb-ig-video-symbol .tdb-ig-icon{width:100%;height:100%}
+.tdb-ig-feed .tdb-ig-video-badge.is-visible .tdb-ig-video-symbol{opacity:1;transition:opacity 400ms ease-in}
 .tdb-ig-feed .tdb-ig-icon{display:block;width:1.65rem;height:1.65rem;flex:0 0 auto}
 .tdb-ig-feed .tdb-ig-icon :is(path,rect,circle){vector-effect:non-scaling-stroke}
 .tdb-ig-feed .tdb-ig-icon[data-tdb-ig-icon="comment"]{transform:scaleX(-1)}
@@ -104,4 +105,4 @@ html[data-tdb-instagram-preview] :is(.elfsight-app-d03f7f34-0953-4575-946c-bca5b
 @container(max-width:400px){.tdb-ig-feed .tdb-ig-bar,.tdb-ig-feed .tdb-ig-heading-controls,.tdb-ig-feed .tdb-ig-controls,.tdb-ig-feed .tdb-ig-details-panel{--tdb-ig-pad:.75rem}}
 @container(max-width:340px){.tdb-ig-feed .tdb-ig-avatar{width:2.75rem;height:2.75rem;flex-basis:2.75rem}.tdb-ig-feed .tdb-ig-profile{gap:.5rem}.tdb-ig-feed .tdb-ig-date{font-size:.65rem;letter-spacing:.08em}}
 @supports not ((backdrop-filter:blur(20px)) or (-webkit-backdrop-filter:blur(20px))){.tdb-ig-feed .tdb-ig-glass{background:rgba(249,242,230,.94)}}
-@media(prefers-reduced-motion:reduce){.tdb-ig-feed :is(.tdb-ig-date,.tdb-ig-metric){transition:none!important}}
+@media(prefers-reduced-motion:reduce){.tdb-ig-feed :is(.tdb-ig-date,.tdb-ig-metric,.tdb-ig-video-symbol){transition:none!important}}

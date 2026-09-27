@@ -31,3 +31,9 @@ Carry the existing imported CMS media type into the public snapshot. The 56 vide
 Rotate only the displayed cyclic track so its initial card is the last logical post. The shared slider's existing one-time viewport advance then lands on logical post 1 (the latest post), with correct pagination, links and neighbouring details. Original feed ordering in the snapshot stays intact.
 
 Dates and engagement values start at zero opacity with their space reserved; pagination stays visible. While hidden, variable values update without ticker animation. The values reveal 100ms after the entry movement settles, with a 400ms fade; subsequent changes keep their established ticker. Readiness observes the existing first-view lifecycle and also handles a skipped entry, a single post or an interrupted drag. Only value leaves receive readiness classes, preserving fixed icons and avoiding parent observer churn.
+
+## Rounded video badge — v0.6.4
+
+Replace the outlined camera with a solid white rounded square and a transparent, softly rounded play cut-out. The square uses the Instagram SVG's exact 3–21 bounds and 5-unit corner radius, the same 2.35rem SVG viewport and the existing 44px alignment frame. A 20px backdrop blur is clipped to the square's footprint, behind the crisp white artwork; the image is visible through the play cut-out. Position and responsive padding stay aligned with the Instagram icon above.
+
+The marker now fades out over 150ms on slide movement, including video-to-video transitions. Once the new slide settles, it waits 100ms and fades in over 400ms if that post is a video. Images and carousels retain a hidden marker without toggling display. Entry loading, rapid navigation and abandoned drags share the existing settled-slide checks, and reduced motion removes the fade. The original last-to-first entry, hidden initial variables, tickers and static controls remain intact.
