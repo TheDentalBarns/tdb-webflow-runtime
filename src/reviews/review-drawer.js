@@ -80,6 +80,7 @@
         more.disabled=true;
         try{await open(more,r.id);}finally{more.disabled=false;}
       });
+      more.style.visibility='hidden';more.dataset.hasResponse=String(Boolean(r.showResponse&&r.response));
       more.textContent='Read more';more.setAttribute('aria-haspopup','dialog');more.setAttribute('aria-expanded','false');
       slide.append(quote,by,body,more);return slide;
     }
@@ -247,6 +248,9 @@
     function fitPreview(n){
       const body=n.querySelector('.tdb-rv-body'),text=body.firstElementChild;
       n.style.setProperty('--ri-body-lines',Math.max(1,Math.floor(body.clientHeight/parseFloat(getComputedStyle(text).lineHeight))));
+      const more=n.querySelector('.tdb-ri-read-more');
+      const truncated=text.scrollHeight>Math.min(text.clientHeight,body.clientHeight)+1;
+      more.style.visibility=truncated||more.dataset.hasResponse==='true'?'visible':'hidden';
       const quote=n.querySelector('.tdb-rv-quote-layer'),mark=quote.firstElementChild,copy=quote.lastElementChild,css=getComputedStyle(quote);
       const available=quote.clientHeight-parseFloat(css.paddingTop)-parseFloat(css.paddingBottom)-mark.getBoundingClientRect().height-parseFloat(css.rowGap);
       n.style.setProperty('--ri-quote-lines',Math.max(1,Math.min(6,Math.floor(available/parseFloat(getComputedStyle(copy).lineHeight)))));
