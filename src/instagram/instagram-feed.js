@@ -1,9 +1,11 @@
-/* TDB Instagram cards v0.6.0 — stationary card controls, shared slider mechanics. */
+/* TDB Instagram cards v0.6.1 — stationary details, shared slider mechanics. */
 (() => {
   'use strict';
   const data = window.TDBInstagramManualData;
   if (!data || window.TDBInstagramFeed) return;
-  const VERSION = '0.6.0';
+  const VERSION = '0.6.1';
+  const numberFormat = new Intl.NumberFormat('en-GB');
+  const dateFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
   const LOGO = 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/681c892759ed35c51acb5fe3_the-dental-barns-blackbrook-lichfield-logo.svg.svg';
   const iconPaths = {
     heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
@@ -50,20 +52,50 @@
     return [strip, glass];
   }
 
-  function matchGallerySpacing(viewport, posts, postLink) {
+  function matchGallerySpacing(viewport, posts, postLink, panels) {
     let boundSwiper;
-    const syncPostLink = () => {
-      const post = posts[boundSwiper?.realIndex || 0];
-      if (post) postLink.href = post.url;
+    let revealTimer;
+    const cancelReveal = () => { clearTimeout(revealTimer); };
+    const syncDetails = (includeDate = false) => {
+      const index = boundSwiper?.realIndex || 0;
+      postLink.href = posts[index].url;
+      panels.forEach(panel => panel.update(posts[(index + panel.offset + posts.length) % posts.length], includeDate));
+    };
+    const hideDates = () => {
+      cancelReveal();
+      panels.forEach(({ date }) => {
+        date.classList.add('is-moving');
+        date.classList.remove('is-visible');
+      });
+    };
+    const showDatesAfter = delay => {
+      cancelReveal();
+      panels.forEach(({ date }) => date.classList.remove('is-moving'));
+      revealTimer = setTimeout(() => {
+        syncDetails(true);
+        panels.forEach(({ date }) => date.classList.add('is-visible'));
+      }, delay);
+    };
+    // Match the hero parallax: hide on movement, then reveal 100/140ms after
+    // settling (or 60ms after an abandoned drag). Only the date changes opacity.
+    const handlers = {
+      touchStart: cancelReveal,
+      sliderMove: hideDates,
+      slideChange: () => syncDetails(),
+      slideChangeTransitionStart: hideDates,
+      slideChangeTransitionEnd: () => showDatesAfter(boundSwiper?.swipeDirection === 'prev' ? 140 : 100),
+      touchEnd: () => { if (!boundSwiper?.animating) showDatesAfter(60); },
+      beforeDestroy: cancelReveal
     };
     const sync = () => {
       const swiper = viewport.swiper;
       const gap = window.innerWidth < 768 ? window.innerWidth * 0.02 : 20;
       if (swiper && !swiper.destroyed && swiper !== boundSwiper) {
-        boundSwiper?.off('slideChange', syncPostLink);
+        if (boundSwiper) Object.entries(handlers).forEach(([event, handler]) => boundSwiper.off(event, handler));
         boundSwiper = swiper;
-        swiper.on('slideChange', syncPostLink);
-        syncPostLink();
+        Object.entries(handlers).forEach(([event, handler]) => swiper.on(event, handler));
+        syncDetails(true);
+        if (swiper.animating) hideDates();
       }
       if (swiper && !swiper.destroyed && swiper.params.spaceBetween !== gap) {
         swiper.params.spaceBetween = gap;
@@ -85,12 +117,70 @@
     return node;
   }
 
-  function addMetric(node, value, label) {
-    if (Number.isSafeInteger(value) && value >= 0) {
-      node.append(el('span', 'tdb-ig-metric', new Intl.NumberFormat('en-GB').format(value)));
-      node.setAttribute('aria-label', value + ' ' + label + '. ' + node.getAttribute('aria-label'));
+  const hasMetric = value => Number.isSafeInteger(value) && value >= 0;
+
+  function staticDetails(posts, offset) {
+    const panel = el('div', 'tdb-ig-details-panel' + (offset ? ' is-neighbour' : ''));
+    panel.dataset.igOffset = String(offset);
+    if (offset) {
+      // Preserve the faded neighbouring-card appearance without duplicate
+      // keyboard stops or announcements outside the current card.
+      panel.setAttribute('aria-hidden', 'true');
+      panel.inert = true;
     }
-    return node;
+    const profile = link('https://www.instagram.com/thedentalbarns/', 'tdb-ig-profile tdb-ig-fixed-profile', 'Visit thedentalbarns on Instagram');
+    const avatar = el('span', 'tdb-ig-avatar');
+    const inner = el('span', 'tdb-ig-avatar-inner');
+    const logo = el('img', 'tdb-ig-logo');
+    logo.src = LOGO;
+    logo.alt = '';
+    logo.width = 52;
+    logo.height = 52;
+    logo.loading = 'lazy';
+    inner.append(logo);
+    avatar.append(inner);
+    const details = el('span', 'tdb-ig-identity');
+    details.append(el('span', 'tdb-ig-account', 'thedentalbarns'));
+    const date = el('time', 'tdb-ig-date is-visible');
+    date.setAttribute('data-fade-slide', '');
+    details.append(date);
+    profile.append(avatar, details);
+    const actions = el('div', 'tdb-ig-actions tdb-ig-fixed-actions');
+    const metrics = [
+      ['likes', 'heart', 'View likes on Instagram'],
+      ['comments', 'comment', 'Comment on this post on Instagram'],
+      ['shares', 'share', 'Share this Instagram post']
+    ].map(([key, artwork, label]) => {
+      const node = key === 'shares' ? el('button', 'tdb-ig-action tdb-ig-share') : link(posts[0].url, 'tdb-ig-action', label);
+      if (key === 'shares') node.type = 'button';
+      node.append(icon(artwork));
+      const known = posts.map(post => post[key]).filter(hasMetric);
+      const value = known.length ? el('span', 'tdb-ig-metric') : null;
+      if (value) {
+        value.style.setProperty('--tdb-ig-metric-width', Math.max(2, ...known.map(count => numberFormat.format(count).length)) + 'ch');
+        node.append(value);
+      }
+      actions.append(node);
+      return { key, node, value, label };
+    });
+    const update = (post, includeDate) => {
+      panel.dataset.igPost = post.shortcode;
+      metrics.forEach(({ key, node, value, label }) => {
+        const known = hasMetric(post[key]);
+        if (value) value.textContent = known ? numberFormat.format(post[key]) : '';
+        node.setAttribute('aria-label', (known ? post[key] + ' ' + key + '. ' : '') + label);
+        if (key === 'shares') node.dataset.shareUrl = post.url;
+        else node.href = post.url;
+      });
+      if (includeDate) {
+        date.textContent = post.date ? dateFormat.format(new Date(post.date)) : '';
+        if (post.date) date.dateTime = post.date.slice(0, 10);
+        else date.removeAttribute('datetime');
+      }
+    };
+    panel.append(profile, actions);
+    update(posts[(offset + posts.length) % posts.length], true);
+    return { panel, date, offset, update };
   }
 
   function card(post, index, count) {
@@ -108,42 +198,10 @@
     photo.loading = 'lazy';
     photo.decoding = 'async';
     photo.draggable = false;
-
     const header = el('header', 'tdb-ig-bar tdb-ig-top');
     header.append(...reflection(photo));
-    const profile = link('https://www.instagram.com/thedentalbarns/', 'tdb-ig-profile', 'Visit thedentalbarns on Instagram');
-    const avatar = el('span', 'tdb-ig-avatar');
-    const inner = el('span', 'tdb-ig-avatar-inner');
-    const logo = el('img', 'tdb-ig-logo');
-    logo.src = LOGO;
-    logo.alt = '';
-    logo.width = 52;
-    logo.height = 52;
-    logo.loading = 'lazy';
-    inner.append(logo);
-    avatar.append(inner);
-    const details = el('span', 'tdb-ig-identity');
-    details.append(el('span', 'tdb-ig-account', 'thedentalbarns'));
-    if (post.date) {
-      const date = el('time', 'tdb-ig-date', new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(post.date)));
-      date.dateTime = post.date.slice(0, 10);
-      details.append(date);
-    }
-    profile.append(avatar, details);
-    header.append(profile);
-
     const footer = el('footer', 'tdb-ig-bar tdb-ig-bottom');
     footer.append(...reflection(photo));
-    const actions = el('div', 'tdb-ig-actions');
-    actions.append(addMetric(link(post.url, 'tdb-ig-action', 'View likes on Instagram', 'heart'), post.likes, 'likes'), addMetric(link(post.url, 'tdb-ig-action', 'Comment on this post on Instagram', 'comment'), post.comments, 'comments'));
-    const share = el('button', 'tdb-ig-action tdb-ig-share');
-    share.type = 'button';
-    share.setAttribute('aria-label', 'Share this Instagram post');
-    share.dataset.shareUrl = post.url;
-    share.append(icon('share'));
-    addMetric(share, post.shares, 'shares');
-    actions.append(share);
-    footer.append(actions);
     article.append(header, photo, footer);
     slide.append(article);
     return slide;
@@ -183,8 +241,11 @@
     viewport.append(wrapper);
     // A single frame sits over the current card, outside Swiper's moving track.
     const frame = el('div', 'tdb-ig-static-frame');
+    const panels = (posts.length > 1 ? [-1, 0, 1] : [0]).map(offset => staticDetails(posts, offset));
+    panels.forEach(({ panel }) => frame.append(panel));
     const headingControls = el('div', 'tdb-ig-heading-controls');
     const counter = el('span', 'swiper-count', '1 of ' + posts.length);
+    counter.style.width = (String(posts.length).length * 2 + 4) + 'ch';
     counter.setAttribute('aria-live', 'polite');
     counter.setAttribute('aria-atomic', 'true');
     const divider = el('span', 'tdb-ig-count-divider');
@@ -212,7 +273,7 @@
     mount.replaceChildren(root);
     mount.dataset.tdbIgReady = VERSION;
     mount.removeAttribute('aria-busy');
-    matchGallerySpacing(viewport, posts, postLink);
+    matchGallerySpacing(viewport, posts, postLink, panels);
   }
 
   function refresh() {
