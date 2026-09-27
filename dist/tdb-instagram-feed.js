@@ -104,6 +104,14 @@ window.TDBInstagramManualData={"version":"0.6.3","importedAt":"2026-09-26","tags
     let boundSwiper;
     let revealTimer = 0, dragging = false, ready = false;
     const cancelReveal = () => { clearTimeout(revealTimer); revealTimer = 0; };
+    const syncSlideLabels = () => {
+      // Swiper numbers the rotated track; announce the logical post number.
+      boundSwiper?.slides.forEach(slide => {
+        const index = (Number(slide.getAttribute('data-swiper-slide-index') || 0) + initialIndex) % posts.length;
+        const label = (index + 1) + ' of ' + posts.length;
+        if (slide.getAttribute('aria-label') !== label) slide.setAttribute('aria-label', label);
+      });
+    };
     const syncDetails = () => {
       const index = ((boundSwiper?.realIndex || 0) + initialIndex) % posts.length;
       const direction = boundSwiper && boundSwiper.activeIndex < boundSwiper.previousIndex ? -1 : 1;
@@ -125,6 +133,9 @@ window.TDBInstagramManualData={"version":"0.6.3","importedAt":"2026-09-26","tags
     };
     const handlers = {
       slideChange: syncDetails,
+      slidesLengthChange: syncSlideLabels,
+      slidesGridLengthChange: syncSlideLabels,
+      snapGridLengthChange: syncSlideLabels,
       touchStart: () => { dragging = true; cancelReveal(); },
       sliderMove: cancelReveal,
       touchEnd: () => { dragging = false; revealAfterEntry(); },
@@ -139,6 +150,7 @@ window.TDBInstagramManualData={"version":"0.6.3","importedAt":"2026-09-26","tags
         if (boundSwiper) Object.entries(handlers).forEach(([event, handler]) => boundSwiper.off(event, handler));
         boundSwiper = swiper;
         Object.entries(handlers).forEach(([event, handler]) => swiper.on(event, handler));
+        syncSlideLabels();
         syncDetails();
       }
       if (swiper && !swiper.destroyed && swiper.params.spaceBetween !== gap) {
