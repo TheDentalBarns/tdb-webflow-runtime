@@ -1,9 +1,9 @@
-/* TDB Instagram cards v0.6.1 — stationary details, shared slider mechanics. */
+/* TDB Instagram cards v0.6.2 — stationary details with Smile Gallery tickers. */
 (() => {
   'use strict';
   const data = window.TDBInstagramManualData;
   if (!data || window.TDBInstagramFeed) return;
-  const VERSION = '0.6.1';
+  const VERSION = '0.6.2';
   const numberFormat = new Intl.NumberFormat('en-GB');
   const dateFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
   const LOGO = 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/681c892759ed35c51acb5fe3_the-dental-barns-blackbrook-lichfield-logo.svg.svg';
@@ -21,6 +21,50 @@
     if (className) node.className = className;
     if (text !== undefined) node.textContent = text;
     return node;
+  }
+
+  // Match Smile Gallery's fixed viewport, 400ms roll and interruption handling.
+  function ticker(viewport, reduced) {
+    let value = null, animations = [], revision = 0;
+    const item = text => {
+      const node = el('span', 'tdb-ig-ticker-value', text);
+      node.setAttribute('aria-hidden', 'true');
+      return node;
+    };
+    const stop = () => {
+      revision++;
+      animations.forEach(animation => animation.cancel());
+      animations = [];
+      if (value !== null) viewport.replaceChildren(item(value));
+    };
+    return {
+      stop,
+      update(text, direction) {
+        if (value === text) return;
+        const previous = value;
+        stop();
+        value = text;
+        const incoming = item(text);
+        if (previous === null || reduced.matches || !viewport.animate) {
+          viewport.replaceChildren(incoming);
+          return;
+        }
+        const outgoing = item(previous);
+        const token = revision;
+        viewport.replaceChildren(outgoing, incoming);
+        const timing = { duration: 400, easing: 'ease-in-out', fill: 'both' };
+        animations = [
+          outgoing.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(' + (-direction * 100) + '%)' }], timing),
+          incoming.animate([{ transform: 'translateY(' + (direction * 100) + '%)' }, { transform: 'translateY(0)' }], timing)
+        ];
+        animations[1].onfinish = () => {
+          if (token !== revision) return;
+          viewport.replaceChildren(incoming);
+          animations.forEach(animation => animation.cancel());
+          animations = [];
+        };
+      }
+    };
   }
 
   function icon(name) {
@@ -52,40 +96,19 @@
     return [strip, glass];
   }
 
-  function matchGallerySpacing(viewport, posts, postLink, panels) {
+  function matchGallerySpacing(viewport, posts, postLink, panels, pagination) {
     let boundSwiper;
-    let revealTimer;
-    const cancelReveal = () => { clearTimeout(revealTimer); };
-    const syncDetails = (includeDate = false) => {
+    const syncDetails = () => {
       const index = boundSwiper?.realIndex || 0;
+      const direction = boundSwiper && boundSwiper.activeIndex < boundSwiper.previousIndex ? -1 : 1;
       postLink.href = posts[index].url;
-      panels.forEach(panel => panel.update(posts[(index + panel.offset + posts.length) % posts.length], includeDate));
+      panels.forEach(panel => panel.update(posts[(index + panel.offset + posts.length) % posts.length], direction));
+      pagination.update(index, direction);
     };
-    const hideDates = () => {
-      cancelReveal();
-      panels.forEach(({ date }) => {
-        date.classList.add('is-moving');
-        date.classList.remove('is-visible');
-      });
-    };
-    const showDatesAfter = delay => {
-      cancelReveal();
-      panels.forEach(({ date }) => date.classList.remove('is-moving'));
-      revealTimer = setTimeout(() => {
-        syncDetails(true);
-        panels.forEach(({ date }) => date.classList.add('is-visible'));
-      }, delay);
-    };
-    // Match the hero parallax: hide on movement, then reveal 100/140ms after
-    // settling (or 60ms after an abandoned drag). Only the date changes opacity.
     const handlers = {
-      touchStart: cancelReveal,
-      sliderMove: hideDates,
-      slideChange: () => syncDetails(),
-      slideChangeTransitionStart: hideDates,
-      slideChangeTransitionEnd: () => showDatesAfter(boundSwiper?.swipeDirection === 'prev' ? 140 : 100),
-      touchEnd: () => { if (!boundSwiper?.animating) showDatesAfter(60); },
-      beforeDestroy: cancelReveal
+      slideChange: syncDetails,
+      slideChangeTransitionEnd: syncDetails,
+      beforeDestroy: () => { panels.forEach(panel => panel.stop()); pagination.stop(); }
     };
     const sync = () => {
       const swiper = viewport.swiper;
@@ -94,8 +117,7 @@
         if (boundSwiper) Object.entries(handlers).forEach(([event, handler]) => boundSwiper.off(event, handler));
         boundSwiper = swiper;
         Object.entries(handlers).forEach(([event, handler]) => swiper.on(event, handler));
-        syncDetails(true);
-        if (swiper.animating) hideDates();
+        syncDetails();
       }
       if (swiper && !swiper.destroyed && swiper.params.spaceBetween !== gap) {
         swiper.params.spaceBetween = gap;
@@ -119,7 +141,7 @@
 
   const hasMetric = value => Number.isSafeInteger(value) && value >= 0;
 
-  function staticDetails(posts, offset) {
+  function staticDetails(posts, offset, reduced) {
     const panel = el('div', 'tdb-ig-details-panel' + (offset ? ' is-neighbour' : ''));
     panel.dataset.igOffset = String(offset);
     if (offset) {
@@ -141,8 +163,9 @@
     avatar.append(inner);
     const details = el('span', 'tdb-ig-identity');
     details.append(el('span', 'tdb-ig-account', 'thedentalbarns'));
-    const date = el('time', 'tdb-ig-date is-visible');
-    date.setAttribute('data-fade-slide', '');
+    const date = el('time', 'tdb-ig-date tdb-ig-ticker');
+    const dateTicker = ticker(date, reduced);
+    let previousDate = null;
     details.append(date);
     profile.append(avatar, details);
     const actions = el('div', 'tdb-ig-actions tdb-ig-fixed-actions');
@@ -155,32 +178,59 @@
       if (key === 'shares') node.type = 'button';
       node.append(icon(artwork));
       const known = posts.map(post => post[key]).filter(hasMetric);
-      const value = known.length ? el('span', 'tdb-ig-metric') : null;
+      const value = known.length ? el('span', 'tdb-ig-metric tdb-ig-ticker') : null;
       if (value) {
         value.style.setProperty('--tdb-ig-metric-width', Math.max(2, ...known.map(count => numberFormat.format(count).length)) + 'ch');
         node.append(value);
       }
       actions.append(node);
-      return { key, node, value, label };
+      return { key, node, value, label, roll: value ? ticker(value, reduced) : null, previous: null };
     });
-    const update = (post, includeDate) => {
+    const update = (post, direction) => {
       panel.dataset.igPost = post.shortcode;
-      metrics.forEach(({ key, node, value, label }) => {
+      metrics.forEach(metric => {
+        const { key, node, label, roll } = metric;
         const known = hasMetric(post[key]);
-        if (value) value.textContent = known ? numberFormat.format(post[key]) : '';
+        const valueDirection = known && hasMetric(metric.previous) ? (post[key] < metric.previous ? -1 : 1) : direction;
+        roll?.update(known ? numberFormat.format(post[key]) : '', valueDirection);
+        metric.previous = post[key];
         node.setAttribute('aria-label', (known ? post[key] + ' ' + key + '. ' : '') + label);
         if (key === 'shares') node.dataset.shareUrl = post.url;
         else node.href = post.url;
       });
-      if (includeDate) {
-        date.textContent = post.date ? dateFormat.format(new Date(post.date)) : '';
-        if (post.date) date.dateTime = post.date.slice(0, 10);
-        else date.removeAttribute('datetime');
-      }
+      const nextDate = post.date ? Date.parse(post.date) : NaN;
+      const knownDate = Number.isFinite(nextDate);
+      const dateText = knownDate ? dateFormat.format(new Date(nextDate)) : '';
+      const dateDirection = knownDate && previousDate !== null ? (nextDate < previousDate ? -1 : 1) : direction;
+      dateTicker.update(dateText, dateDirection);
+      date.setAttribute('aria-label', dateText);
+      if (knownDate) date.dateTime = post.date.slice(0, 10);
+      else date.removeAttribute('datetime');
+      previousDate = knownDate ? nextDate : null;
     };
     panel.append(profile, actions);
-    update(posts[(offset + posts.length) % posts.length], true);
-    return { panel, date, offset, update };
+    update(posts[(offset + posts.length) % posts.length], 1);
+    return { panel, offset, update, stop: () => { dateTicker.stop(); metrics.forEach(metric => metric.roll?.stop()); } };
+  }
+
+  function pagination(total, reduced) {
+    const counter = el('span', 'tdb-ig-count');
+    const current = el('span', 'tdb-ig-count-current tdb-ig-ticker');
+    const divider = el('span', 'tdb-ig-count-rule');
+    const totalNumber = el('span', 'tdb-ig-count-total', String(total).padStart(2, '0'));
+    const label = el('span', 'tdb-ig-count-label');
+    [current, divider, totalNumber].forEach(node => node.setAttribute('aria-hidden', 'true'));
+    counter.setAttribute('aria-live', 'polite');
+    counter.setAttribute('aria-atomic', 'true');
+    counter.append(current, divider, totalNumber, label);
+    const roll = ticker(current, reduced);
+    const update = (index, direction) => {
+      roll.update(String(index + 1).padStart(2, '0'), direction);
+      const text = 'Post ' + (index + 1) + ' of ' + total;
+      if (label.textContent !== text) label.textContent = text;
+    };
+    update(0, 1);
+    return { counter, update, stop: roll.stop };
   }
 
   function card(post, index, count) {
@@ -241,17 +291,15 @@
     viewport.append(wrapper);
     // A single frame sits over the current card, outside Swiper's moving track.
     const frame = el('div', 'tdb-ig-static-frame');
-    const panels = (posts.length > 1 ? [-1, 0, 1] : [0]).map(offset => staticDetails(posts, offset));
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    const panels = (posts.length > 1 ? [-1, 0, 1] : [0]).map(offset => staticDetails(posts, offset, reduced));
     panels.forEach(({ panel }) => frame.append(panel));
     const headingControls = el('div', 'tdb-ig-heading-controls');
-    const counter = el('span', 'swiper-count', '1 of ' + posts.length);
-    counter.style.width = (String(posts.length).length * 2 + 4) + 'ch';
-    counter.setAttribute('aria-live', 'polite');
-    counter.setAttribute('aria-atomic', 'true');
+    const count = pagination(posts.length, reduced);
     const divider = el('span', 'tdb-ig-count-divider');
     divider.setAttribute('aria-hidden', 'true');
     const postLink = link(posts[0].url, 'tdb-ig-instagram', 'View this post on Instagram', 'instagram');
-    headingControls.append(counter, divider, postLink);
+    headingControls.append(count.counter, divider, postLink);
     const controls = el('div', 'swiper_functions-btm tdb-ig-controls');
     const buttons = el('div', 'swiper-buttons-wrapper');
     const previous = el('button', 'slider-arrow swiper-btn-prev is-dark tdb-ig-nav');
@@ -273,7 +321,7 @@
     mount.replaceChildren(root);
     mount.dataset.tdbIgReady = VERSION;
     mount.removeAttribute('aria-busy');
-    matchGallerySpacing(viewport, posts, postLink, panels);
+    matchGallerySpacing(viewport, posts, postLink, panels, count);
   }
 
   function refresh() {
