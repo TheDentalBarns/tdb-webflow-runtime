@@ -1,5 +1,5 @@
 {
-  "version": "0.6.2",
+  "version": "0.6.3",
   "importedAt": "2026-09-26",
   "tags": {
     "meet-the-team": "Meet the Team",
@@ -40,7 +40,8 @@
         "seasonal"
       ],
       "likes": 30,
-      "comments": 2
+      "comments": 2,
+      "mediaType": "carousel"
     },
     "DdeOgbDjsKm": {
       "shortcode": "DdeOgbDjsKm",
@@ -58,7 +59,8 @@
         "patient-experience"
       ],
       "likes": 536,
-      "comments": 7
+      "comments": 7,
+      "mediaType": "video"
     },
     "DdcQvThD51y": {
       "shortcode": "DdcQvThD51y",
@@ -76,7 +78,8 @@
         "five-senses",
         "patient-experience"
       ],
-      "likes": 31
+      "likes": 31,
+      "mediaType": "video"
     },
     "DdZpEuikbEm": {
       "shortcode": "DdZpEuikbEm",
@@ -92,7 +95,8 @@
         "practice-setting",
         "seasonal"
       ],
-      "likes": 15
+      "likes": 15,
+      "mediaType": "image"
     },
     "DdXJF4-EUGl": {
       "shortcode": "DdXJF4-EUGl",
@@ -108,7 +112,8 @@
         "comfort",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DdQvp9DjMxI": {
       "shortcode": "DdQvp9DjMxI",
@@ -123,7 +128,8 @@
         "the-practice",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DdL3_kdoPAL": {
       "shortcode": "DdL3_kdoPAL",
@@ -138,7 +144,8 @@
         "the-practice",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DdKR8lZit7N": {
       "shortcode": "DdKR8lZit7N",
@@ -154,7 +161,8 @@
         "comfort",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DdHkwyxmKe-": {
       "shortcode": "DdHkwyxmKe-",
@@ -168,7 +176,8 @@
       "tags": [
         "the-practice",
         "practice-setting"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DdBfTjhEZFP": {
       "shortcode": "DdBfTjhEZFP",
@@ -183,7 +192,8 @@
         "the-practice",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "Dc9T_LKiQFa": {
       "shortcode": "Dc9T_LKiQFa",
@@ -199,7 +209,8 @@
         "hygiene",
         "dental-technology",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "Dc4ITVjAjNA": {
       "shortcode": "Dc4ITVjAjNA",
@@ -216,7 +227,8 @@
         "refreshments",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "carousel"
     },
     "Dct5S7uDSan": {
       "shortcode": "Dct5S7uDSan",
@@ -229,7 +241,8 @@
       "height": 640,
       "tags": [
         "the-practice"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DcomyKWCgR_": {
       "shortcode": "DcomyKWCgR_",
@@ -243,7 +256,8 @@
       "tags": [
         "the-practice",
         "practice-setting"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DclnwqHIOYv": {
       "shortcode": "DclnwqHIOYv",
@@ -259,7 +273,8 @@
         "first-visit",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DceUnt_gFxm": {
       "shortcode": "DceUnt_gFxm",
@@ -274,7 +289,8 @@
         "the-practice",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DccAt-0FAku": {
       "shortcode": "DccAt-0FAku",
@@ -290,7 +306,8 @@
         "first-visit",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DcZJFikjpDY": {
       "shortcode": "DcZJFikjpDY",
@@ -305,7 +322,8 @@
         "the-practice",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DcV4ytjoKPm": {
       "shortcode": "DcV4ytjoKPm",
@@ -319,7 +337,8 @@
       "tags": [
         "the-practice",
         "five-senses"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DcRpQColRG0": {
       "shortcode": "DcRpQColRG0",
@@ -332,7 +351,8 @@
       "height": 539,
       "tags": [
         "the-practice"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DcJ9RRhAaG3": {
       "shortcode": "DcJ9RRhAaG3",
@@ -348,7 +368,8 @@
         "comfort",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DcEllTZiWXu": {
       "shortcode": "DcEllTZiWXu",
@@ -361,7 +382,8 @@
       "height": 640,
       "tags": [
         "the-practice"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DcBt6c9EkZi": {
       "shortcode": "DcBt6c9EkZi",
@@ -378,7 +400,8 @@
         "five-senses",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "Db_lYIYEXl3": {
       "shortcode": "Db_lYIYEXl3",
@@ -392,7 +415,8 @@
       "tags": [
         "the-practice",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "Db36_eXIG6o": {
       "shortcode": "Db36_eXIG6o",
@@ -413,7 +437,8 @@
         "patient-stories",
         "patient-experience"
       ],
-      "likes": 8
+      "likes": 8,
+      "mediaType": "image"
     },
     "Db0W6PIl08B": {
       "shortcode": "Db0W6PIl08B",
@@ -430,7 +455,8 @@
         "hygiene",
         "dental-technology",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DbyhghfkfqG": {
       "shortcode": "DbyhghfkfqG",
@@ -445,7 +471,8 @@
         "the-practice",
         "comfort",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DbvqycHFRiA": {
       "shortcode": "DbvqycHFRiA",
@@ -460,7 +487,8 @@
         "the-practice",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DbtX7hMghD3": {
       "shortcode": "DbtX7hMghD3",
@@ -479,7 +507,8 @@
         "patient-experience"
       ],
       "likes": 28,
-      "comments": 2
+      "comments": 2,
+      "mediaType": "video"
     },
     "DbrEUrkgriJ": {
       "shortcode": "DbrEUrkgriJ",
@@ -494,7 +523,8 @@
         "the-practice",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "Dbl8R3_DcYk": {
       "shortcode": "Dbl8R3_DcYk",
@@ -510,7 +540,8 @@
         "first-visit",
         "refreshments",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DbitJoej0GF": {
       "shortcode": "DbitJoej0GF",
@@ -528,7 +559,8 @@
         "refreshments",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DbggDZ9jlCP": {
       "shortcode": "DbggDZ9jlCP",
@@ -544,7 +576,8 @@
         "comfort",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "Dbdw-g1iDww": {
       "shortcode": "Dbdw-g1iDww",
@@ -560,7 +593,8 @@
         "first-visit",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "Dbau3wiDchE": {
       "shortcode": "Dbau3wiDchE",
@@ -575,7 +609,8 @@
         "the-practice",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DbWOsmooCDS": {
       "shortcode": "DbWOsmooCDS",
@@ -591,7 +626,8 @@
         "first-visit",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DbS7x9gjjCl": {
       "shortcode": "DbS7x9gjjCl",
@@ -608,7 +644,8 @@
         "first-visit",
         "patient-stories",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DbQPsoKDZfr": {
       "shortcode": "DbQPsoKDZfr",
@@ -624,7 +661,8 @@
         "comfort",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DbNnGctAM-9": {
       "shortcode": "DbNnGctAM-9",
@@ -639,7 +677,8 @@
         "the-practice",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DbLw3yujlQ3": {
       "shortcode": "DbLw3yujlQ3",
@@ -655,7 +694,8 @@
         "comfort",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DbB3RHnCZ_n": {
       "shortcode": "DbB3RHnCZ_n",
@@ -670,7 +710,8 @@
         "the-practice",
         "practice-setting",
         "seasonal"
-      ]
+      ],
+      "mediaType": "carousel"
     },
     "Da0O92MlWGC": {
       "shortcode": "Da0O92MlWGC",
@@ -685,7 +726,8 @@
         "the-practice",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DatCdtnixvN": {
       "shortcode": "DatCdtnixvN",
@@ -701,7 +743,8 @@
         "comfort",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DaqfsiGiCXS": {
       "shortcode": "DaqfsiGiCXS",
@@ -715,7 +758,8 @@
       "tags": [
         "the-practice",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DaixkoRkr0o": {
       "shortcode": "DaixkoRkr0o",
@@ -730,7 +774,8 @@
         "the-practice",
         "smile-makeovers",
         "patient-stories"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DaexXebC3nu": {
       "shortcode": "DaexXebC3nu",
@@ -745,7 +790,8 @@
         "the-practice",
         "five-senses",
         "seasonal"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DYEnJncjtJz": {
       "shortcode": "DYEnJncjtJz",
@@ -760,7 +806,8 @@
         "the-practice",
         "five-senses",
         "seasonal"
-      ]
+      ],
+      "mediaType": "carousel"
     },
     "DXj1DezlWmJ": {
       "shortcode": "DXj1DezlWmJ",
@@ -776,7 +823,8 @@
         "refreshments",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DU8y0htgW1Y": {
       "shortcode": "DU8y0htgW1Y",
@@ -790,7 +838,8 @@
       "tags": [
         "the-practice",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DU6bNCziXgs": {
       "shortcode": "DU6bNCziXgs",
@@ -806,7 +855,8 @@
         "comfort",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "carousel"
     },
     "DU25Zx9DDSu": {
       "shortcode": "DU25Zx9DDSu",
@@ -823,7 +873,8 @@
         "refreshments",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "carousel"
     },
     "DU0o2bfDDxx": {
       "shortcode": "DU0o2bfDDxx",
@@ -838,7 +889,8 @@
         "the-practice",
         "refreshments",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DUxjcyklaPg": {
       "shortcode": "DUxjcyklaPg",
@@ -855,7 +907,8 @@
         "refreshments",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "carousel"
     },
     "DUwOckGEpZ4": {
       "shortcode": "DUwOckGEpZ4",
@@ -871,7 +924,8 @@
         "refreshments",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "carousel"
     },
     "DUtiohgEi6K": {
       "shortcode": "DUtiohgEi6K",
@@ -887,7 +941,8 @@
         "first-visit",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DUqyEmeFK7H": {
       "shortcode": "DUqyEmeFK7H",
@@ -903,7 +958,8 @@
         "comfort",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "carousel"
     },
     "DUYwvJIFM3N": {
       "shortcode": "DUYwvJIFM3N",
@@ -919,7 +975,8 @@
         "comfort",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DTc_VV_DjV5": {
       "shortcode": "DTc_VV_DjV5",
@@ -935,7 +992,8 @@
         "comfort",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "carousel"
     },
     "DTdSlNbAHA3": {
       "shortcode": "DTdSlNbAHA3",
@@ -949,7 +1007,8 @@
       "tags": [
         "the-practice",
         "dental-technology"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DTah2Kgkyxn": {
       "shortcode": "DTah2Kgkyxn",
@@ -966,7 +1025,8 @@
         "refreshments",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DTYX7VtCf9L": {
       "shortcode": "DTYX7VtCf9L",
@@ -982,7 +1042,8 @@
         "happy-patients",
         "patient-experience"
       ],
-      "likes": 12
+      "likes": 12,
+      "mediaType": "image"
     },
     "DTWIMz8FX82": {
       "shortcode": "DTWIMz8FX82",
@@ -997,7 +1058,8 @@
         "the-practice",
         "awards"
       ],
-      "likes": 76
+      "likes": 76,
+      "mediaType": "video"
     },
     "DTSRPOSkkq0": {
       "shortcode": "DTSRPOSkkq0",
@@ -1012,7 +1074,8 @@
         "the-practice",
         "practice-setting",
         "seasonal"
-      ]
+      ],
+      "mediaType": "carousel"
     },
     "DTDQvNWD_Lb": {
       "shortcode": "DTDQvNWD_Lb",
@@ -1027,7 +1090,8 @@
         "the-practice",
         "practice-setting",
         "seasonal"
-      ]
+      ],
+      "mediaType": "carousel"
     },
     "DTA7Y7AFRLl": {
       "shortcode": "DTA7Y7AFRLl",
@@ -1041,7 +1105,8 @@
       "tags": [
         "the-practice",
         "smile-makeovers"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DS5RtgjD_uf": {
       "shortcode": "DS5RtgjD_uf",
@@ -1057,7 +1122,8 @@
         "comfort",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "carousel"
     },
     "DS3HWQQDOJ4": {
       "shortcode": "DS3HWQQDOJ4",
@@ -1074,7 +1140,8 @@
         "first-visit",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "carousel"
     },
     "DS0LcjqDK4H": {
       "shortcode": "DS0LcjqDK4H",
@@ -1091,7 +1158,8 @@
         "five-senses",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "carousel"
     },
     "DSxN7LuCDr6": {
       "shortcode": "DSxN7LuCDr6",
@@ -1106,7 +1174,8 @@
         "the-practice",
         "patient-stories",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DSxtRqBDXfD": {
       "shortcode": "DSxtRqBDXfD",
@@ -1121,7 +1190,8 @@
         "the-practice",
         "patient-stories",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DSu81cqDf9F": {
       "shortcode": "DSu81cqDf9F",
@@ -1136,7 +1206,8 @@
         "the-practice",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DSqSqr4Atlb": {
       "shortcode": "DSqSqr4Atlb",
@@ -1152,7 +1223,8 @@
         "comfort",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DSnSe7Xjj2X": {
       "shortcode": "DSnSe7Xjj2X",
@@ -1166,7 +1238,8 @@
       "tags": [
         "the-practice",
         "dental-technology"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DSnaT73jODQ": {
       "shortcode": "DSnaT73jODQ",
@@ -1182,7 +1255,8 @@
         "practice-setting",
         "seasonal",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DSkthFMjY0Z": {
       "shortcode": "DSkthFMjY0Z",
@@ -1197,7 +1271,8 @@
         "the-practice",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DSiBgz-AWg1": {
       "shortcode": "DSiBgz-AWg1",
@@ -1213,7 +1288,8 @@
         "first-visit",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DSiIxG4jpDU": {
       "shortcode": "DSiIxG4jpDU",
@@ -1228,7 +1304,8 @@
         "the-practice",
         "five-senses",
         "practice-setting"
-      ]
+      ],
+      "mediaType": "carousel"
     },
     "DSak3dHlC-U": {
       "shortcode": "DSak3dHlC-U",
@@ -1246,7 +1323,8 @@
         "refreshments",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DSUR0XwAm4h": {
       "shortcode": "DSUR0XwAm4h",
@@ -1262,7 +1340,8 @@
         "five-senses",
         "seasonal",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DSMjgxeFNjp": {
       "shortcode": "DSMjgxeFNjp",
@@ -1276,7 +1355,8 @@
       "tags": [
         "the-practice",
         "seasonal"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DSJ-ofsDyEK": {
       "shortcode": "DSJ-ofsDyEK",
@@ -1292,7 +1372,8 @@
         "refreshments",
         "seasonal",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DSK2ILFj9CL": {
       "shortcode": "DSK2ILFj9CL",
@@ -1305,7 +1386,8 @@
       "height": 640,
       "tags": [
         "the-practice"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DSCQQEqATaY": {
       "shortcode": "DSCQQEqATaY",
@@ -1319,7 +1401,8 @@
       "tags": [
         "the-practice",
         "seasonal"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DR_rdRNiFhQ": {
       "shortcode": "DR_rdRNiFhQ",
@@ -1335,7 +1418,8 @@
         "five-senses",
         "seasonal",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DR7Iw9FjjQE": {
       "shortcode": "DR7Iw9FjjQE",
@@ -1351,7 +1435,8 @@
         "comfort",
         "five-senses",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DRyzeqJiXR8": {
       "shortcode": "DRyzeqJiXR8",
@@ -1367,7 +1452,8 @@
         "five-senses",
         "seasonal",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DRvH6ZSkq-8": {
       "shortcode": "DRvH6ZSkq-8",
@@ -1382,7 +1468,8 @@
         "awards"
       ],
       "likes": 123,
-      "comments": 8
+      "comments": 8,
+      "mediaType": "video"
     },
     "DRsHhHUjNe7": {
       "shortcode": "DRsHhHUjNe7",
@@ -1397,7 +1484,8 @@
         "awards"
       ],
       "likes": 49,
-      "comments": 4
+      "comments": 4,
+      "mediaType": "image"
     },
     "DRpEb9Fjdyj": {
       "shortcode": "DRpEb9Fjdyj",
@@ -1412,7 +1500,8 @@
         "awards",
         "dental-technology"
       ],
-      "likes": 28
+      "likes": 28,
+      "mediaType": "image"
     },
     "DRm0XIrj51F": {
       "shortcode": "DRm0XIrj51F",
@@ -1427,7 +1516,8 @@
         "awards"
       ],
       "likes": 82,
-      "comments": 16
+      "comments": 16,
+      "mediaType": "image"
     },
     "DRiNdvviVMq": {
       "shortcode": "DRiNdvviVMq",
@@ -1442,7 +1532,8 @@
         "the-practice",
         "practice-setting",
         "seasonal"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DRSeBPNj-4C": {
       "shortcode": "DRSeBPNj-4C",
@@ -1457,7 +1548,8 @@
         "awards"
       ],
       "likes": 85,
-      "comments": 10
+      "comments": 10,
+      "mediaType": "image"
     },
     "DRNExKcgM2k": {
       "shortcode": "DRNExKcgM2k",
@@ -1472,7 +1564,8 @@
         "the-practice",
         "practice-setting",
         "seasonal"
-      ]
+      ],
+      "mediaType": "video"
     },
     "DRKxlVniQL7": {
       "shortcode": "DRKxlVniQL7",
@@ -1489,7 +1582,8 @@
         "refreshments",
         "practice-setting",
         "patient-experience"
-      ]
+      ],
+      "mediaType": "image"
     },
     "DP6rGmPkiZg": {
       "shortcode": "DP6rGmPkiZg",
@@ -1505,7 +1599,8 @@
         "practice-setting"
       ],
       "likes": 53,
-      "comments": 9
+      "comments": 9,
+      "mediaType": "video"
     },
     "DP1EDvNDwh8": {
       "shortcode": "DP1EDvNDwh8",
@@ -1523,7 +1618,8 @@
         "patient-experience"
       ],
       "likes": 149,
-      "comments": 8
+      "comments": 8,
+      "mediaType": "image"
     },
     "DPt8CzsCvyo": {
       "shortcode": "DPt8CzsCvyo",
@@ -1538,7 +1634,8 @@
         "awards"
       ],
       "likes": 649,
-      "comments": 14
+      "comments": 14,
+      "mediaType": "video"
     },
     "DPBnSXhDnMC": {
       "shortcode": "DPBnSXhDnMC",
@@ -1554,7 +1651,8 @@
         "happy-patients",
         "patient-experience"
       ],
-      "likes": 17
+      "likes": 17,
+      "mediaType": "image"
     },
     "DOvkOjeiZgE": {
       "shortcode": "DOvkOjeiZgE",
@@ -1570,7 +1668,8 @@
         "happy-patients",
         "patient-experience"
       ],
-      "likes": 9
+      "likes": 9,
+      "mediaType": "image"
     },
     "DOdiqgsjoPl": {
       "shortcode": "DOdiqgsjoPl",
@@ -1586,7 +1685,8 @@
         "happy-patients",
         "patient-experience"
       ],
-      "likes": 15
+      "likes": 15,
+      "mediaType": "image"
     },
     "DN5fiBADNvx": {
       "shortcode": "DN5fiBADNvx",
@@ -1602,7 +1702,8 @@
         "happy-patients",
         "patient-experience"
       ],
-      "likes": 16
+      "likes": 16,
+      "mediaType": "image"
     },
     "DNqBdbmOw7m": {
       "shortcode": "DNqBdbmOw7m",
@@ -1618,7 +1719,8 @@
         "happy-patients",
         "patient-experience"
       ],
-      "likes": 34
+      "likes": 34,
+      "mediaType": "image"
     },
     "DKnLZqJoIhy": {
       "shortcode": "DKnLZqJoIhy",
@@ -1633,7 +1735,8 @@
         "awards"
       ],
       "likes": 255,
-      "comments": 28
+      "comments": 28,
+      "mediaType": "image"
     },
     "DKkZ_zeo25C": {
       "shortcode": "DKkZ_zeo25C",
@@ -1648,7 +1751,8 @@
         "awards"
       ],
       "likes": 146,
-      "comments": 12
+      "comments": 12,
+      "mediaType": "video"
     },
     "DI3dBH5tk7p": {
       "shortcode": "DI3dBH5tk7p",
@@ -1662,7 +1766,8 @@
       "tags": [
         "awards"
       ],
-      "likes": 36
+      "likes": 36,
+      "mediaType": "image"
     },
     "DFTE8zMTNyd": {
       "shortcode": "DFTE8zMTNyd",
@@ -1679,7 +1784,8 @@
         "patient-experience"
       ],
       "likes": 18,
-      "comments": 1
+      "comments": 1,
+      "mediaType": "image"
     },
     "DEX2tLWPMQb": {
       "shortcode": "DEX2tLWPMQb",
@@ -1696,7 +1802,8 @@
         "nervous-patients"
       ],
       "likes": 92,
-      "comments": 1
+      "comments": 1,
+      "mediaType": "carousel"
     },
     "DCj-360RjHI": {
       "shortcode": "DCj-360RjHI",
@@ -1713,7 +1820,8 @@
         "patient-experience"
       ],
       "likes": 16,
-      "comments": 2
+      "comments": 2,
+      "mediaType": "image"
     },
     "DB4P2IFpmjP": {
       "shortcode": "DB4P2IFpmjP",
@@ -1730,7 +1838,8 @@
         "patient-experience"
       ],
       "likes": 22,
-      "comments": 1
+      "comments": 1,
+      "mediaType": "image"
     },
     "DBk8IEmPTkj": {
       "shortcode": "DBk8IEmPTkj",
@@ -1748,7 +1857,8 @@
         "patient-experience"
       ],
       "likes": 6,
-      "comments": 1
+      "comments": 1,
+      "mediaType": "image"
     },
     "DBmE7VgMOX5": {
       "shortcode": "DBmE7VgMOX5",
@@ -1764,7 +1874,8 @@
         "practice-setting"
       ],
       "likes": 14,
-      "comments": 1
+      "comments": 1,
+      "mediaType": "image"
     },
     "C_8m1oWIr4g": {
       "shortcode": "C_8m1oWIr4g",
@@ -1779,7 +1890,8 @@
         "awards"
       ],
       "likes": 206,
-      "comments": 9
+      "comments": 9,
+      "mediaType": "carousel"
     }
   },
   "feeds": {
