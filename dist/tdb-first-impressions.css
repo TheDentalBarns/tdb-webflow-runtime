@@ -30,3 +30,23 @@
 /* A staging-only narrow preview exercises the same card geometry, without claiming device emulation. */
 .tdb-first-impressions[data-fi-preview=mobile]{--fi-card-width:351px;--fi-gap:7.8px;max-width:351px;margin-inline:auto}
 .tdb-first-impressions[data-fi-preview=mobile] .tdb-fi-viewport{width:390px;margin-inline:-19.5px}
+
+/* Stationary glass panels over the centre portrait; no extra navigation height. */
+.tdb-fi-fixed-banner,.tdb-fi-navigation{position:absolute;z-index:3;left:50%;width:var(--fi-card-width);transform:translateX(-50%);height:6rem;padding:.75rem calc(var(--fi-card-width) * .05);margin:0;background:transparent;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#fff}
+.tdb-fi-fixed-banner{top:0;right:auto;pointer-events:none}
+.tdb-fi-navigation{bottom:0;min-height:6rem}
+.tdb-fi-card.is-current>.tdb-fi-banner{visibility:hidden}
+.tdb-fi-card .tdb-fi-words,.tdb-fi-card .tdb-fi-meta{visibility:hidden}
+.tdb-fi-fixed-banner .tdb-fi-words{opacity:0;transition:opacity 150ms ease-out}
+.tdb-fi-fixed-banner .tdb-fi-words.is-ready{opacity:1;transition:opacity 400ms ease-in}
+.tdb-fi-ticker{position:relative;display:inline-block;height:1.5em;overflow:hidden;vertical-align:middle;line-height:1.5}
+.tdb-fi-ticker-value{position:absolute;inset:0;display:grid;align-content:center;width:100%;height:100%;white-space:nowrap}
+.tdb-fi-initial-value,.tdb-fi-date-value{opacity:0;color:rgba(255,255,255,.7)}
+.tdb-fi-initial-value.is-ready,.tdb-fi-date-value.is-ready{opacity:1}
+.tdb-fi-date{opacity:1}
+.tdb-fi-date[hidden]{display:none}
+.tdb-fi-count{display:flex;align-items:center;gap:.5em;color:rgba(255,255,255,.7);opacity:1;font-variant-numeric:tabular-nums;letter-spacing:.06em}
+.tdb-fi-count-current{width:2.4ch;text-align:center}
+.tdb-fi-count-rule{width:1.8em;height:1px;background:currentColor}
+.tdb-first-impressions .slider-arrow{color:#fff}
+.tdb-first-impressions .slider-arrow:not(:disabled):hover,.tdb-first-impressions .slider-arrow:not(:disabled):active{background:#ffffff36}
