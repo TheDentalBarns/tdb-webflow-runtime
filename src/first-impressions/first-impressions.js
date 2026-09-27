@@ -1,7 +1,7 @@
 /* Shared treatment motion: 400ms slide, 300ms neighbour fade, rapid arrows and one entry move. */
 (function(){
   'use strict';
-  const VERSION='1.3.0';
+  const VERSION='1.4.0';
   const BADGE='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.000 1.000 L15.138 4.424 L19.778 4.222 L19.576 8.862 L23.000 12.000 L19.576 15.138 L19.778 19.778 L15.138 19.576 L12.000 23.000 L8.862 19.576 L4.222 19.778 L4.424 15.138 L1.000 12.000 L4.424 8.862 L4.222 4.222 L8.862 4.424 Z"/><path d="m7.5 12 3 3 6-6" fill="none" stroke="#222" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const CLOCK='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path fill="currentColor" d="M128 28a100 100 0 1 0 100 100A100.11 100.11 0 0 0 128 28m0 192a92 92 0 1 1 92-92a92.1 92.1 0 0 1-92 92m60-92a4 4 0 0 1-4 4h-56a4 4 0 0 1-4-4V72a4 4 0 0 1 8 0v52h52a4 4 0 0 1 4 4"/></svg>';
   function element(tag,className,text){const node=document.createElement(tag);node.className=className;if(text)node.textContent=text;return node;}
@@ -26,7 +26,12 @@
       if(date&&!Number.isNaN(date.getTime())){
         const time=element('time','tdb-fi-date');time.dateTime=monthOnly?month:date.toISOString().slice(0,10);time.innerHTML=CLOCK;time.append(document.createTextNode(new Intl.DateTimeFormat('en-GB',monthOnly?{month:'long',year:'numeric',timeZone:'UTC'}:{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(date)));meta.append(time);
       }
-      caption.append(line,meta);card.append(image,caption);return [card];
+      caption.append(line,meta);
+      const reflection=position=>{
+        const bar=element('div','tdb-fi-image-strip is-'+position),crop=element('span','tdb-fi-reflection'),copy=image.cloneNode(false),glass=element('span','tdb-fi-glass');
+        bar.setAttribute('aria-hidden','true');copy.alt='';copy.className='tdb-fi-reflection-photo';crop.append(copy);bar.append(crop,glass);return bar;
+      };
+      card.append(reflection('top'),image,reflection('bottom'),caption);return [card];
     });
   }
   // Shared Smile Gallery / Instagram ticker: fixed slots, 400ms, interruptible.
@@ -66,7 +71,7 @@
     const current=element('span','tdb-fi-ticker tdb-fi-count-current'),separator=element('span','tdb-fi-count-rule'),totalLabel=element('span','',String(total).padStart(2,'0'));
     separator.setAttribute('aria-hidden','true');count.replaceChildren(current,separator,totalLabel);
     const initialRoll=ticker(initials),dateRoll=ticker(dateValue),countRoll=ticker(current);
-    initials.style.width=Math.max(2,...originals.map(n=>n.querySelector('.tdb-fi-initials').firstChild.textContent.trim().length))+'ch';
+    initials.style.width=Math.max(2,...originals.map(n=>n.querySelector('.tdb-fi-initials').firstChild.textContent.trim().length))+1.2+'ch';
     dateValue.style.width=Math.max(1,...originals.map(n=>n.querySelector('.tdb-fi-date')?.textContent.length||0))+'ch';
     let shown=null,revealTimer=0;
     function hideWords(){clearTimeout(revealTimer);words.classList.remove('is-ready');}
