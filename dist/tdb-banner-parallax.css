@@ -21,7 +21,7 @@
 .tdb-banner-parallax .service-card-mobile-copy {max-width:22rem;margin:0;}
 .tdb-banner-parallax .service-card-mobile-copy p {font-size:1.125rem;line-height:1.5;opacity:.75;margin:0;}
 .tdb-banner-parallax .showcase-content_btm {display:flex;justify-content:space-between;align-items:center;gap:2rem;}
-.tdb-banner-parallax .service-card-mobile-title {max-width:calc(100% - 16rem);margin:0;font-size:1.5rem;font-weight:400;line-height:1.3;letter-spacing:.1rem;text-transform:uppercase;}
+.tdb-banner-parallax .service-card-mobile-title {max-width:calc(100% - 16rem);margin:0;font-size:1.5rem;font-weight:300;line-height:1.3;letter-spacing:.1rem;text-transform:uppercase;}
 .tdb-banner-parallax .service-card-button-wrap {min-height:2.75rem;}
 .tdb-banner-parallax [data-fade-slide] {opacity:0;transition:opacity 200ms ease-out;}
 .tdb-banner-parallax [data-fade-slide].is-visible {opacity:1;transition:opacity 400ms ease-in;}
