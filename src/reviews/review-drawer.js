@@ -204,6 +204,22 @@
   }
   // Embedded previews share content with the drawer and open the exact selected review.
   // Keep only the visible cards and their neighbours in the DOM.
+  function ticker(viewport){
+    let value=null,animations=[],revision=0;
+    const item=text=>{const node=el('span','tdb-ri-ticker-value',text);node.setAttribute('aria-hidden','true');return node;};
+    const stop=()=>{revision++;animations.forEach(a=>a.cancel());animations=[];if(value!==null)viewport.replaceChildren(item(value));};
+    return {update(text,direction=1,animate=true){
+      if(value===text)return;
+      const previous=value;stop();value=text;viewport.setAttribute('aria-label',text);
+      const incoming=item(text);
+      if(previous===null||!animate||!viewport.animate){viewport.replaceChildren(incoming);return;}
+      const outgoing=item(previous),token=revision;viewport.replaceChildren(outgoing,incoming);
+      const timing={duration:400,easing:'ease-in-out',fill:'both'};
+      animations=[outgoing.animate([{transform:'translateY(0)'},{transform:'translateY('+(-direction*100)+'%)'}],timing),incoming.animate([{transform:'translateY('+(direction*100)+'%)'},{transform:'translateY(0)'}],timing)];
+      animations[1].onfinish=()=>{if(token!==revision)return;viewport.replaceChildren(incoming);animations.forEach(a=>a.cancel());animations=[];};
+    }};
+  }
+
   async function mountEmbedded(root){
     if(root.dataset.reviewMounted)return;
     const snapshot=await getData();
@@ -218,6 +234,9 @@
     const following=button('Next patient reviews','slider-arrow swiper-btn-next is-dark',()=>move(1));
     previous.append(arrow());following.append(arrow());arrows.append(previous,following);nav.append(count,arrows);
     root.replaceChildren(viewport,nav);
+    const currentCount=el('span','tdb-ri-count-current'),countRule=el('span','tdb-ri-count-rule'),totalCount=el('span','',String(records.length).padStart(2,'0'));
+    countRule.setAttribute('aria-hidden','true');count.replaceChildren(currentCount,countRule,totalCount);
+    const countTicker=ticker(currentCount);let previousCount=0;
     const cells=new Map();
     let active=0,perView=1,stride=0,width=0,height=0,centre=0,compact=false,moving=null,dragging=null,reveal=0,suppressUntil=0;
     const recordIndex=i=>(i%records.length+records.length)%records.length;
@@ -261,7 +280,9 @@
       markCurrent(active);
       cells.forEach(fitPreview);
       const first=recordIndex(active),end=Math.min(records.length,first+perView);
-      count.textContent=String(first+1).padStart(2,'0')+(perView>1?'–'+String(end).padStart(2,'0'):'')+' / '+records.length;
+      const countText=String(first+1).padStart(2,'0')+(perView>1?'–'+String(end).padStart(2,'0'):'');
+      countTicker.update(countText,active<previousCount?-1:1);previousCount=active;
+      count.setAttribute('aria-label',countText+' of '+records.length);
       updateArrows(active);
     }
     function finish(){

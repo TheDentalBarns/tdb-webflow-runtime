@@ -93,3 +93,15 @@ html.tdb-rv-chrome-away:has(.tdb-rv-overlay.is-desktop:not([hidden])) .navbar10_
 
 /* Embedded outline follows the snippet fill, leaving the body light. */
 .tdb-ri .tdb-ri-card{border-color:var(--base-color-brand--orange-2,#ebe2d2)}
+
+/* Shared fixed controls sit inside the embedded card frame. */
+.tdb-ri .tdb-ri-viewport{height:calc(var(--ri-height) + 5rem)}
+.tdb-ri .tdb-ri-card{padding-bottom:6rem}
+.tdb-ri .tdb-ri-navigation{position:absolute;z-index:3;bottom:0;left:0;width:100%;height:5rem;min-height:5rem;margin:0;padding:1rem;background:transparent;pointer-events:none}
+.tdb-ri .tdb-ri-navigation button{pointer-events:auto}
+.tdb-ri .tdb-ri-position{display:flex;align-items:center;gap:.5em;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.tdb-ri-count-current{position:relative;display:block;width:7ch;height:1.5em;overflow:hidden}
+.tdb-ri-ticker-value{position:absolute;inset:0;display:grid;align-content:center;width:100%;height:100%;white-space:nowrap}
+.tdb-ri-count-rule{display:block;width:1.8em;height:1px;background:currentColor}
+.tdb-ri.is-compact .tdb-ri-count-current{width:2.4ch}
+.tdb-ri .tdb-ri-loading{height:calc(var(--ri-height) + 5rem)}
