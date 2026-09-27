@@ -50,4 +50,21 @@
 .tdb-fi-count-rule{width:1.8em;height:1px;background:currentColor}
 .tdb-first-impressions .slider-arrow{color:#fff}
 .tdb-first-impressions .slider-arrow:not(:disabled):hover,.tdb-first-impressions .slider-arrow:not(:disabled):active{background:#ffffff36}
-</style><div class="tdb-first-impressions swiper" data-tdb-first-impressions data-fi-source="cms" role="region" aria-label="First visit, first impressions" aria-roledescription="carousel" aria-busy="true"><div class="tdb-fi-viewport" tabindex="0" aria-label="Patient first impressions. Use left and right arrow keys to browse."></div><div class="tdb-fi-navigation"><div class="tdb-fi-count" role="status" aria-live="polite" aria-atomic="true"></div><div class="swiper-buttons-wrapper"><button class="slider-arrow swiper-btn-prev is-dark" type="button" aria-label="Previous first impression" disabled><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M12.6893 7.25L6.96967 1.53033L8.03033 0.469666L15.5607 8L8.03033 15.5303L6.96967 14.4697L12.6893 8.75H0.5V7.25H12.6893Z"/></svg></button><button class="slider-arrow swiper-btn-next is-dark" type="button" aria-label="Next first impression" disabled><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M12.6893 7.25L6.96967 1.53033L8.03033 0.469666L15.5607 8L8.03033 15.5303L6.96967 14.4697L12.6893 8.75H0.5V7.25H12.6893Z"/></svg></button></div></div></div><script defer src="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b503e4f896212878227ab23d9102971165ba46f7/dist/tdb-first-impressions.js"></script>
+
+/* Moving mirrored extensions retain the entire original portrait. */
+.tdb-first-impressions{--fi-photo-height:calc(var(--fi-card-width) * 4 / 3);--fi-card-height:calc(var(--fi-photo-height) + 12rem)}
+.tdb-fi-card{aspect-ratio:auto}
+.tdb-fi-card>img{position:absolute;top:6rem;left:0;height:var(--fi-photo-height);width:100%;object-fit:contain}
+.tdb-fi-card>.tdb-fi-banner{display:none}
+.tdb-fi-image-strip{position:absolute;left:0;right:0;height:6rem;overflow:hidden;pointer-events:none}
+.tdb-fi-image-strip.is-top{top:0}
+.tdb-fi-image-strip.is-bottom{bottom:0}
+.tdb-fi-reflection{position:absolute;inset:0 3px;overflow:hidden;clip-path:inset(0)}
+.tdb-fi-reflection-photo{position:absolute;left:-3px;display:block;width:calc(100% + 6px);height:var(--fi-photo-height);max-width:none;object-fit:contain;transform:scaleY(-1);user-select:none;-webkit-user-drag:none}
+.tdb-fi-image-strip.is-top .tdb-fi-reflection-photo{bottom:0}
+.tdb-fi-image-strip.is-bottom .tdb-fi-reflection-photo{top:0}
+.tdb-fi-glass{position:absolute;inset:0 -3px;background:transparent;backdrop-filter:saturate(150%) blur(20px);-webkit-backdrop-filter:saturate(150%) blur(20px)}
+.tdb-fi-fixed-banner,.tdb-fi-navigation{backdrop-filter:none;-webkit-backdrop-filter:none}
+.tdb-fi-initial-value .tdb-fi-ticker-value{text-align:center}
+.tdb-first-impressions .slider-arrow:not(:disabled):is(:hover,:active){background:rgba(128,128,128,.3);border-color:#fff;color:#fff}
+</style><div class="tdb-first-impressions swiper" data-tdb-first-impressions data-fi-source="cms" role="region" aria-label="First visit, first impressions" aria-roledescription="carousel" aria-busy="true"><div class="tdb-fi-viewport" tabindex="0" aria-label="Patient first impressions. Use left and right arrow keys to browse."></div><div class="tdb-fi-navigation"><div class="tdb-fi-count" role="status" aria-live="polite" aria-atomic="true"></div><div class="swiper-buttons-wrapper"><button class="slider-arrow swiper-btn-prev is-dark" type="button" aria-label="Previous first impression" disabled><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M12.6893 7.25L6.96967 1.53033L8.03033 0.469666L15.5607 8L8.03033 15.5303L6.96967 14.4697L12.6893 8.75H0.5V7.25H12.6893Z"/></svg></button><button class="slider-arrow swiper-btn-next is-dark" type="button" aria-label="Next first impression" disabled><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M12.6893 7.25L6.96967 1.53033L8.03033 0.469666L15.5607 8L8.03033 15.5303L6.96967 14.4697L12.6893 8.75H0.5V7.25H12.6893Z"/></svg></button></div></div></div><script defer src="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e3c0f299e7274d946916c8e9a3f0033197fdc5bb/dist/tdb-first-impressions.js"></script>
