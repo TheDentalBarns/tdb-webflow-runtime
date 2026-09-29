@@ -1,7 +1,7 @@
 /* Homepage desktop review pass. Webflow desktop starts at 992px. */
 @media (min-width:992px) {
   /* Use the navbar's own settled state; do not create a competing scroll threshold. */
-  html[data-wf-page="677cf86df9952f978d94d8a9"]:has(.navbar10_component[style*="translateY(0)"]) #tdb-elfsight-timer-shell {
+  html[data-wf-page="677cf86df9952f978d94d8a9"]:has(.navbar10_component:is([style*="translateY(0)"],[style*="translateY(0px)"])) #tdb-elfsight-timer-shell {
     transform:translate3d(0,-100%,0)!important;
     opacity:1!important;
     visibility:hidden!important;
@@ -13,6 +13,7 @@
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-banner-parallax.parallax-swiper_component {
     width:100%;max-width:100%;left:auto;margin-inline:0;
   }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-banner-parallax.parallax-swiper_component > .swiper {overflow:visible}
   html[data-wf-page="677cf86df9952f978d94d8a9"] .highlight-swiper_component:not([data-tdb-smile-slider]):not([data-tdb-ig-feed]):has(.layout423_card:not(.smile)) {
     width:100%;max-width:100%;left:auto;margin-inline:0;
   }
@@ -41,6 +42,8 @@
   }
 
   /* Exact First Impressions geometry: a 3:4 portrait plus the two 6rem bars. */
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-review-inline-section .padding-section-large {padding-block:7rem}
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-review-inline-section .margin-top.margin-xlarge.review {margin-top:7rem}
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri {
     --ri-card-width:min(30vw,28rem);
     --ri-card-height:calc(var(--ri-card-width) * 4 / 3 + 12rem);
@@ -51,8 +54,6 @@
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-viewport {
     width:100vw;margin-inline:calc(50% - 50vw);height:var(--ri-card-height);
     overflow:hidden;overflow:clip;cursor:grab;
-    mask-image:linear-gradient(to right,transparent,#000 3vw,#000 calc(100% - 3vw),transparent);
-    -webkit-mask-image:linear-gradient(to right,transparent,#000 3vw,#000 calc(100% - 3vw),transparent);
   }
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-viewport:active {cursor:grabbing}
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-loading {height:var(--ri-card-height)}
