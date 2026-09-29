@@ -1,0 +1,81 @@
+/* Homepage desktop review pass. Webflow desktop starts at 992px. */
+@media (min-width:992px) {
+  /* Use the navbar's own settled state; do not create a competing scroll threshold. */
+  html[data-wf-page="677cf86df9952f978d94d8a9"]:has(.navbar10_component[style*="translateY(0)"]) #tdb-elfsight-timer-shell {
+    transform:translate3d(0,-100%,0)!important;
+    opacity:1!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+    transition:transform 420ms cubic-bezier(.4,0,.2,1),visibility 0s 420ms!important;
+  }
+
+  /* Treatments occupy the same inset container as the service parallax. */
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-banner-parallax.parallax-swiper_component {
+    width:100%;max-width:100%;left:auto;margin-inline:0;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .highlight-swiper_component:not([data-tdb-smile-slider]):not([data-tdb-ig-feed]):has(.layout423_card:not(.smile)) {
+    width:100%;max-width:100%;left:auto;margin-inline:0;
+  }
+
+  /* Temporarily retain the established slide/fade/ticker motion on desktop Home. */
+  html[data-wf-page="677cf86df9952f978d94d8a9"] [data-tdb-smile-slider] .layout423_card.smile [data-fade-slide],
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-banner-parallax [data-fade-slide] {
+    transition:opacity 200ms ease-out!important;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] [data-tdb-smile-slider] .layout423_card.smile [data-fade-slide].is-visible,
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-banner-parallax [data-fade-slide].is-visible {
+    transition:opacity 400ms ease-in!important;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] [data-tdb-smile-slider] .layout423_card.smile [data-fade-slide].is-moving,
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-banner-parallax.is-moving [data-fade-slide] {
+    transition:opacity 150ms ease-out!important;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ig-feed :is(.tdb-ig-date,.tdb-ig-metric) {
+    transition:opacity 400ms ease-in!important;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ig-feed .tdb-ig-video-symbol {
+    transition:opacity 150ms ease-out!important;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ig-feed .tdb-ig-video-badge.is-visible .tdb-ig-video-symbol {
+    transition:opacity 400ms ease-in!important;
+  }
+
+  /* Exact First Impressions geometry: a 3:4 portrait plus the two 6rem bars. */
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri {
+    --ri-card-width:min(30vw,28rem);
+    --ri-card-height:calc(var(--ri-card-width) * 4 / 3 + 12rem);
+    --ri-quote-height:14rem;
+    --ri-gap:20px;
+    background:transparent;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-viewport {
+    width:100vw;margin-inline:calc(50% - 50vw);height:var(--ri-card-height);
+    overflow:hidden;overflow:clip;cursor:grab;
+    mask-image:linear-gradient(to right,transparent,#000 3vw,#000 calc(100% - 3vw),transparent);
+    -webkit-mask-image:linear-gradient(to right,transparent,#000 3vw,#000 calc(100% - 3vw),transparent);
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-viewport:active {cursor:grabbing}
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-loading {height:var(--ri-card-height)}
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-cell {opacity:.5;transition:opacity 300ms ease}
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-cell.is-current {opacity:1}
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-card {
+    grid-template-rows:var(--ri-quote-height) 4.5rem minmax(0,1fr) max(2.75rem,44px);
+    padding-bottom:6rem;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-navigation {
+    left:50%;width:var(--ri-card-width);transform:translateX(-50%);
+    height:6rem;min-height:6rem;padding:1rem;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-count-current {width:2.4ch}
+
+  /* Keep the original scrolling element and viewport width while a review is open.
+     Input guards and the stopped Lenis instance own the desktop page lock. */
+  html[data-wf-page="677cf86df9952f978d94d8a9"][data-tdb-rv-preserve-scroll] {
+    overflow-x:var(--tdb-rv-html-overflow-x)!important;
+    overflow-y:var(--tdb-rv-html-overflow-y)!important;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"][data-tdb-rv-preserve-scroll] body {
+    overflow-x:var(--tdb-rv-body-overflow-x)!important;
+    overflow-y:var(--tdb-rv-body-overflow-y)!important;
+  }
+}
