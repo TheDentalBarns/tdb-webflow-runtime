@@ -27,12 +27,12 @@
   const api=window.TDBPowerSnippets;
   if(!api)return;
   const homeDesktop=()=>document.documentElement.dataset.wfPage==='677cf86df9952f978d94d8a9'&&matchMedia('(min-width:992px)').matches;
-  const style=document.createElement('style');style.dataset.tdbReviewDrawerStyles='1.9.2-home-static.3';style.textContent=__DRAWER_CSS__;document.head.append(style);
+  const style=document.createElement('style');style.dataset.tdbReviewDrawerStyles='1.9.2-home-static.4';style.textContent=__DRAWER_CSS__;document.head.append(style);
   const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
   const button=(label,cls,action)=>{const b=el('button',cls);b.type='button';b.setAttribute('aria-label',label);if(action)b.addEventListener('click',action);return b;};
   const arrow=()=>{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 16 16');s.setAttribute('aria-hidden','true');s.innerHTML='<path fill="currentColor" d="M12.6893 7.25L6.96967 1.53033L8.03033 0.469666L15.5607 8L8.03033 15.5303L6.96967 14.4697L12.6893 8.75H0.5V7.25H12.6893Z"/>';return s;};
   const clock=()=>{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 256 256');s.setAttribute('aria-hidden','true');s.setAttribute('focusable','false');s.innerHTML='<path fill="currentColor" d="M128 28a100 100 0 1 0 100 100A100.11 100.11 0 0 0 128 28m0 192a92 92 0 1 1 92-92a92.1 92.1 0 0 1-92 92m60-92a4 4 0 0 1-4 4h-56a4 4 0 0 1-4-4V72a4 4 0 0 1 8 0v52h52a4 4 0 0 1 4 4"/>';return s;};
-  let dataPromise,data,overlay,panel,track,closeBtn,prev,next,position,quoteTimer=0;
+  let dataPromise,data,overlay,panel,track,drawerMark,closeBtn,prev,next,position,quoteTimer=0;
   let list=[],index=0,current,sourceTrigger,lock,chrome,opening=false,closing=false,drag=null,transition=null,closeTimer=0,vipTimer=0;
   let context='default',preferredId='',dismissAnimations=[];
   const scrollPositions=new Map();
@@ -94,6 +94,10 @@
       }else slide.append(quote,by,body,more);
       return slide;
     }
+    if(document.documentElement.dataset.wfPage==='677cf86df9952f978d94d8a9'){
+      const copy=el('div','tdb-rv-quote-copy');copy.append(quote.querySelector('.tdb-rv-quote-text'));quote.append(copy);
+      slide.addEventListener('scroll',()=>{if(slide===current)positionDrawerQuote();},{passive:true});
+    }
     slide.append(quote,by);if(r.historic)slide.append(el('div','tdb-rv-historic','Dr Keely · review from a previous practice'));slide.append(body);
     if(r.showResponse&&r.response){const response=el('aside','tdb-rv-response');response.setAttribute('aria-label','The Dental Barns response');response.append(el('p','',r.response));slide.append(response);}
 
@@ -124,9 +128,24 @@
     sourceNote.showModal();
   }
   function rememberScroll(){if(current)scrollPositions.set(current.dataset.reviewId,current.scrollTop);}
+  function positionDrawerQuote(){
+    if(!drawerMark||!current||overlay.hidden)return;
+    const mark=current.querySelector('.tdb-rv-mark').getBoundingClientRect(),frame=track.getBoundingClientRect();
+    // Keep the artwork outside both moving slides, but let it scroll out with its quote.
+    drawerMark.style.top=(mark.top-frame.top)+'px';drawerMark.style.width=mark.width+'px';
+  }
+  function layoutDrawerQuote(){
+    if(!drawerMark||!current||overlay.hidden)return;
+    const quote=current.querySelector('.tdb-rv-quote-layer'),copy=quote.querySelector('.tdb-rv-quote-text'),mark=quote.querySelector('.tdb-rv-mark');
+    const markHeight=mark.getBoundingClientRect().height,lineHeight=parseFloat(getComputedStyle(copy).lineHeight);
+    const blockHeight=Math.min(lineHeight*4,Math.max(0,quote.clientHeight-markHeight));
+    panel.style.setProperty('--rv-quote-block-height',blockHeight+'px');
+    panel.style.setProperty('--rv-quote-equal-gap',Math.max(0,(quote.clientHeight-markHeight-blockHeight)/3)+'px');
+    positionDrawerQuote();
+  }
   function hideQuoteText(){clearTimeout(quoteTimer);current?.querySelector('.tdb-rv-quote-text')?.classList.remove('is-visible');}
   function showQuoteText(delay=100){hideQuoteText();const text=current?.querySelector('.tdb-rv-quote-text');quoteTimer=setTimeout(()=>{if(!closing&&text)text.classList.add('is-visible');},delay);}
-  function setCurrent(slide,delay=100){track.replaceChildren(slide);current=slide;slide.style.removeProperty('transform');slide.inert=false;slide.removeAttribute('aria-hidden');slide.scrollTop=scrollPositions.get(slide.dataset.reviewId)||0;track.removeAttribute('aria-busy');updatePosition();showQuoteText(delay);}
+  function setCurrent(slide,delay=100){track.replaceChildren(slide);current=slide;slide.style.removeProperty('transform');slide.inert=false;slide.removeAttribute('aria-hidden');slide.scrollTop=scrollPositions.get(slide.dataset.reviewId)||0;track.removeAttribute('aria-busy');layoutDrawerQuote();updatePosition();showQuoteText(delay);}
   function updatePosition(){window.TDBTicker?window.TDBTicker.count(position,index+1,list.length):position.textContent=list.length?(index+1)+' / '+list.length:'0 reviews';prev.disabled=index<=0;next.disabled=index>=list.length-1;}
   function cancelSlide(){if(!transition)return;transition.animations.forEach(a=>a.cancel());transition=null;drag=null;if(current)setCurrent(current);}
   function beginSlide(direction){
@@ -171,6 +190,12 @@
     closeBtn=button('Close reviews','tdb-rv-dismiss',close);const lines=el('span','tdb-rv-dismiss-lines');for(let i=0;i<3;i++)lines.append(el('span'));closeBtn.append(lines);top.append(title,closeBtn);
     const summary=el('div','tdb-rv-summary'),scoreStars=stars(5,'Combined');scoreStars.setAttribute('aria-label',data.average.toFixed(2)+' out of 5');summary.append(el('strong','',data.average.toFixed(2)),scoreStars,el('span','tdb-rv-total',data.total+' reviews'));header.append(top,summary);
     const frame=el('div','tdb-rv-frame');track=el('div','tdb-rv-track');track.setAttribute('role','group');track.setAttribute('aria-roledescription','carousel');track.setAttribute('aria-label','Patient reviews');frame.append(track);
+    if(document.documentElement.dataset.wfPage==='677cf86df9952f978d94d8a9'){
+      panel.classList.add('tdb-rv-has-static');
+      const layer=el('div','tdb-rv-static-layer');layer.setAttribute('aria-hidden','true');
+      drawerMark=el('div','tdb-rv-mark tdb-rv-static-mark');drawerMark.innerHTML=api.quoteMark;layer.append(drawerMark);frame.append(layer);
+      new ResizeObserver(layoutDrawerQuote).observe(track);document.fonts?.ready.then(layoutDrawerQuote);
+    }
     const nav=el('footer','tdb-rv-navigation');nav.setAttribute('aria-label','Review navigation');position=el('div','tdb-rv-position');position.setAttribute('role','status');position.setAttribute('aria-live','polite');position.setAttribute('aria-atomic','true');const arrows=el('div','tdb-rv-arrows');prev=button('Previous review','tdb-rv-arrow is-prev',()=>step(-1));next=button('Next review','tdb-rv-arrow',()=>step(1));prev.append(arrow());next.append(arrow());arrows.append(prev,next);nav.append(position,arrows);
     panel.append(header,frame,nav);overlay.append(panel);document.body.append(overlay);
     overlay.addEventListener('click',e=>{if(e.target===overlay)close();});
@@ -221,7 +246,7 @@
       data=await getData();if(!data?.records?.length)throw Error('No reviews available.');create();
       overlay.classList.toggle('is-desktop',matchMedia('(min-width:768px)').matches&&new URLSearchParams(location.search).get('review-preview')!=='mobile');
       sourceTrigger=trigger;context=api.contextForPath(location.pathname)||'default';preferredId=reviewId||'';refresh();
-      overlay.hidden=false;if(current)current.scrollTop=scrollPositions.get(current.dataset.reviewId)||0;hideQuoteText();sourceTrigger?.setAttribute('aria-expanded','true');hideChrome();lockPage();closeBtn.focus({preventScroll:true});
+      overlay.hidden=false;if(current)current.scrollTop=scrollPositions.get(current.dataset.reviewId)||0;layoutDrawerQuote();hideQuoteText();sourceTrigger?.setAttribute('aria-expanded','true');hideChrome();lockPage();closeBtn.focus({preventScroll:true});
       requestAnimationFrame(()=>requestAnimationFrame(()=>{if(overlay.hidden||closing)return;overlay.classList.add('is-open','is-controls-visible');animateDismiss(true);showQuoteText(500);}));
     }finally{opening=false;}
   }
