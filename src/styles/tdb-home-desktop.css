@@ -141,6 +141,7 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .slider-arrow 
 /* Match First Impressions hover and press on desktop and touch screens. */
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .slider-arrow {
   appearance:none;transition:background-color 300ms ease,opacity 300ms ease;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 }
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .slider-arrow:not(:disabled):is(:hover,:active) {
   background:rgba(128,128,128,.3);border-color:#fff;color:#fff;
