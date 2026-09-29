@@ -9,7 +9,7 @@ Scope: Home, Webflow page 677cf86df9952f978d94d8a9. Initial fixes apply at width
 - Desktop review locking preserves root/body overflow values and scroll geometry; inert siblings, wheel/touch guards, stopped Lenis and a scroll pin prevent background movement. Closing restores prior values and scroll handling.
 - Review cards have a moving 6rem footer matching the quote header background. The stationary controls layer stays transparent, with dark cream arrow icons and outlines. This explicitly requested footer styling applies on mobile as well. No page-edge gradient is used.
 - Only quote marks and carousel controls stay fixed. Names, dates, source icons and stars belong to the moving cards, with their experimental tickers removed. This applies on desktop and mobile Home.
-- Quote marks and all metadata are visible only on the focused card. Neighbouring cards show only the faded review body; their Read more controls and historic-practice labels are hidden too.
+- Quote marks and summary snippets are visible only on the focused card. Names, dates, source icons and stars remain visible on every moving card, with neighbours sharing the card's half-opacity. Neighbouring Read more controls and historic-practice labels remain hidden.
 - For a four-line quote, the space above the quote marks, between the marks and text, and below the text is equal. Shorter snippets stay vertically centred inside the same reserved four-line area.
 - Previous-practice attribution sits at the bottom left of the review body opposite Read more. Both use dark cream and appear only on the focused card.
 
