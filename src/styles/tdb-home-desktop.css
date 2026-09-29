@@ -138,4 +138,11 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .tdb-ri-card-a
 }
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture :is(.tdb-rv-quote-text,.tdb-rv-mark) {color:#fff}
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .slider-arrow {color:#fff;border-color:#fff}
+/* Match First Impressions hover and press on desktop and touch screens. */
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .slider-arrow {
+  appearance:none;transition:background-color 300ms ease,opacity 300ms ease;
+}
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .slider-arrow:not(:disabled):is(:hover,:active) {
+  background:rgba(128,128,128,.3);border-color:#fff;color:#fff;
+}
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .tdb-ri-position {color:rgba(255,255,255,.7);opacity:1}
