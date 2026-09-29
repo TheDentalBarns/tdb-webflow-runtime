@@ -83,7 +83,7 @@
 
 /* Requested follow-up: homepage review footers also apply on mobile. */
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-card {
-  border:0;background:#ebe2d2;
+  border:0;background:rgba(255,255,255,.95);
 }
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-card::after {
   content:"";position:absolute;left:0;right:0;bottom:0;height:6rem;
