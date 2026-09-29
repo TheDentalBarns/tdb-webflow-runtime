@@ -94,26 +94,17 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .slider-arrow {
   color:var(--base-color-brand--orange-3,#d6cab4);
 }
 
-/* Fixed review details, like the Instagram cards, on desktop and mobile. */
-html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-static .tdb-ri-card :is(.tdb-rv-mark,.tdb-rv-name,.tdb-rv-date,.tdb-rv-source) {visibility:hidden}
+/* Only quote marks and carousel controls remain fixed, desktop and mobile. */
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-static .tdb-ri-card .tdb-rv-mark {visibility:hidden}
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-static .tdb-rv-quote-layer {justify-content:flex-start;padding-block:0;row-gap:var(--ri-quote-equal-gap,1.5rem)}
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-static .tdb-ri-card .tdb-rv-mark {margin-top:var(--ri-quote-equal-gap,1.5rem)}
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-quote-copy {display:flex;flex:0 0 var(--ri-quote-block-height,6.09rem);height:var(--ri-quote-block-height,6.09rem);align-items:center;justify-content:center;width:100%;min-height:0}
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-static-layer {position:absolute;inset:0;z-index:2;overflow:hidden;overflow:clip;pointer-events:none}
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-static-panel {position:absolute;top:0;height:100%;opacity:0;visibility:hidden;pointer-events:none;container:tdb-reviews / inline-size}
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-static-panel.is-current {opacity:1;visibility:visible}
-html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-cell:not(.is-current) :is(.tdb-ri-read-more,.tdb-ri-historic) {visibility:hidden!important}
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-cell:not(.is-current) :is(.tdb-rv-name,.tdb-rv-date,.tdb-rv-source,.tdb-ri-read-more,.tdb-ri-historic) {visibility:hidden!important}
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-static-mark {position:absolute;top:calc(var(--ri-quote-equal-gap,1.5rem) + 1px);left:50%;transform:translateX(-50%);width:calc(100% - 2rem - 2px);max-width:23rem;margin:0}
-html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-static-date {position:absolute;top:var(--ri-date-top);left:var(--ri-date-left);margin:0}
-html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-static-date > svg {color:#000}
-html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-static-source {position:absolute;top:var(--ri-source-top);right:var(--ri-source-right);margin:0;pointer-events:auto}
-html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-meta-ticker {position:relative;display:inline-block;height:1.5em;overflow:hidden;vertical-align:middle;line-height:1.5}
-html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-name-ticker {position:absolute;top:var(--ri-name-top);left:var(--ri-name-left);width:var(--ri-name-width);height:1.5em}
-html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-date-ticker {width:20ch}
-html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-meta-value {position:absolute;inset:0;display:flex;align-items:center;width:100%;height:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-source-ticker {width:1.5rem;height:1.5rem;flex:0 0 1.5rem}
-html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-static-source .tdb-ri-star-ticker {display:inline-block}
-html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-star-value {display:flex;width:100%;height:100%;color:inherit}
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-card-actions {display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:44px;padding:0 1rem}
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-card-actions .tdb-ri-historic {margin:0;color:var(--base-color-brand--orange-3,#d6cab4)}
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-card-actions .tdb-ri-read-more {margin:0 0 0 auto;color:var(--base-color-brand--orange-3,#d6cab4)}
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-card .tdb-rv-date > svg {color:#000}
