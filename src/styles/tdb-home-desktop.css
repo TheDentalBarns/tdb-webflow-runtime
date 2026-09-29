@@ -108,3 +108,25 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-card-actions {display:flex
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-card-actions .tdb-ri-historic {margin:0;color:var(--base-color-brand--orange-3,#d6cab4)}
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-card-actions .tdb-ri-read-more {margin:0 0 0 auto;color:var(--base-color-brand--orange-3,#d6cab4)}
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-card .tdb-rv-date > svg {color:#000}
+
+/* First Impressions texture: mirrored image edges and the same 20px glass blur.
+   Decorative layers stay inside each moving card and never affect its grid. */
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .tdb-rv-quote-layer {isolation:isolate}
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .tdb-rv-quote-layer::before {
+  content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
+  background-image:var(--ri-texture-image);background-size:100% auto;background-position:center top;background-repeat:no-repeat;transform:scaleY(-1);
+}
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .tdb-rv-quote-layer::after {
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:transparent;backdrop-filter:saturate(150%) blur(20px);-webkit-backdrop-filter:saturate(150%) blur(20px);
+}
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .tdb-ri-card::after {
+  background-image:var(--ri-texture-image);background-size:100% auto;background-position:center bottom;background-repeat:no-repeat;transform:scaleY(-1);
+}
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .tdb-ri-card-actions::after {
+  content:"";position:absolute;inset:auto 0 0;height:6rem;z-index:1;pointer-events:none;
+  background:transparent;backdrop-filter:saturate(150%) blur(20px);-webkit-backdrop-filter:saturate(150%) blur(20px);
+}
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture :is(.tdb-rv-quote-text,.tdb-rv-mark) {color:#fff}
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .slider-arrow {color:#fff;border-color:#fff}
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .tdb-ri-position {color:rgba(255,255,255,.7);opacity:1}
