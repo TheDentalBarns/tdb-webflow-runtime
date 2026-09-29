@@ -34,7 +34,7 @@
 .tdb-rv-mark svg{display:block;width:3.5rem;height:3.5rem;flex:0 0 3.5rem}
 .tdb-rv-quote-text{width:100%;max-width:36rem;min-height:0;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;border:0;padding:0;margin:0;text-align:center;color:#222222;font:inherit;font-size:1.2rem;line-height:1.45;text-wrap:pretty;opacity:0;transition:opacity 400ms ease-out}
 .tdb-rv-quote-text.is-visible{opacity:1}
-/* Home pop-out mirrors the embedded four-line quote and stationary artwork. */
+/* Shared pop-outs reserve four quote lines and keep the artwork stationary. */
 .tdb-rv-has-static .tdb-rv-quote-layer{padding-block:0;justify-content:flex-start;gap:var(--rv-quote-equal-gap,1rem)}
 .tdb-rv-has-static .tdb-rv-slide .tdb-rv-mark{visibility:hidden;margin-top:var(--rv-quote-equal-gap,1rem)}
 .tdb-rv-has-static .tdb-rv-quote-copy{display:flex;flex:0 0 var(--rv-quote-block-height,6.96rem);height:var(--rv-quote-block-height,6.96rem);align-items:center;justify-content:center;width:100%;min-height:0}
