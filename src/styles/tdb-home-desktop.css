@@ -111,12 +111,21 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-card .tdb-rv-date > svg {c
 
 /* First Impressions texture: mirrored image edges and the same 20px glass blur.
    Decorative layers stay inside each moving card and never affect its grid. */
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture [data-ri-texture-index="0"] {--ri-texture-image:var(--ri-texture-image-0)}
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture [data-ri-texture-index="1"] {--ri-texture-image:var(--ri-texture-image-1)}
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture [data-ri-texture-index="2"] {--ri-texture-image:var(--ri-texture-image-2)}
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .tdb-rv-quote-layer {isolation:isolate}
-html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .tdb-rv-quote-layer::before {
-  content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
-  background-image:var(--ri-texture-image);background-size:100% auto;background-position:center top;background-repeat:no-repeat;transform:scaleY(-1);
+/* Crop the clean top 15% before blurring, then reflect that exact strip.
+   This excludes the printed card and orange stars at every screen width. */
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .tdb-rv-quote-layer::before,
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .tdb-rv-quote-layer::after {
+  content:"";position:absolute;inset:0 0 auto;height:50%;z-index:-2;pointer-events:none;
+  background-image:var(--ri-texture-image);background-size:100% 666.666667%;background-position:center top;background-repeat:no-repeat;
 }
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .tdb-rv-quote-layer::after {
+  top:50%;transform:scaleY(-1);
+}
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .tdb-ri-quote-copy::before {
   content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
   background:transparent;backdrop-filter:saturate(150%) blur(20px);-webkit-backdrop-filter:saturate(150%) blur(20px);
 }
