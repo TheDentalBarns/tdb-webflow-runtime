@@ -83,7 +83,7 @@
 /* Desktop parallax neighbours: contained blur, sharp card edges. */
 @media (min-width:992px) {
   .parallax-swiper_component .swiper-slide.is-showcase {
-    opacity:1!important;
+    opacity:1!important;padding-inline:10px;box-sizing:border-box;
   }
   .parallax-swiper_component .swiper-slide.is-showcase .showcase_card {
     overflow:hidden;isolation:isolate;
