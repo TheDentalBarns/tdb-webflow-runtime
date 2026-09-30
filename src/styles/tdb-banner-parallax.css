@@ -78,7 +78,9 @@
 }
 @media (prefers-reduced-motion:reduce) {
   .tdb-banner-parallax [data-fade-slide],.tdb-banner-parallax.is-moving [data-fade-slide] {transition:none!important;}
-}\n/* Desktop parallax neighbours: 30% transparent, fully opaque in focus. */
+}
+
+/* Desktop parallax neighbours: 30% transparent, fully opaque in focus. */
 @media (min-width:992px) {
   .parallax-swiper_component .swiper-slide.is-showcase {
     opacity:.7!important;transition:opacity 300ms ease;
