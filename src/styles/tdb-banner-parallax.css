@@ -80,12 +80,12 @@
   .tdb-banner-parallax [data-fade-slide],.tdb-banner-parallax.is-moving [data-fade-slide] {transition:none!important;}
 }
 
-/* Desktop parallax neighbours: 30% transparent, fully opaque in focus. */
+/* Desktop parallax neighbours: blur clears smoothly on the focused slide. */
 @media (min-width:992px) {
   .parallax-swiper_component .swiper-slide.is-showcase {
-    opacity:.7!important;transition:opacity 300ms ease;
+    opacity:1!important;filter:blur(20px);transition:filter 300ms ease;
   }
   .parallax-swiper_component .swiper-slide.is-showcase.swiper-slide-active {
-    opacity:1!important;
+    filter:blur(0);
   }
 }
