@@ -1,12 +1,3 @@
-/* Desktop parallax neighbours: 30% transparent, fully opaque in focus. */
-@media (min-width:992px) {
-  .parallax-swiper_component .swiper-slide.is-showcase {
-    opacity:.7!important;transition:opacity 300ms ease;
-  }
-  .parallax-swiper_component .swiper-slide.is-showcase.swiper-slide-active {
-    opacity:1!important;
-  }
-}
 /* CMS banners: measured service-parallax layout, independently scoped. */
 .tdb-banner-parallax.parallax-swiper_component {
   position:relative;width:100vw;max-width:none;left:50%;margin-left:-50vw;margin-right:0;
@@ -87,4 +78,12 @@
 }
 @media (prefers-reduced-motion:reduce) {
   .tdb-banner-parallax [data-fade-slide],.tdb-banner-parallax.is-moving [data-fade-slide] {transition:none!important;}
+}\n/* Desktop parallax neighbours: 30% transparent, fully opaque in focus. */
+@media (min-width:992px) {
+  .parallax-swiper_component .swiper-slide.is-showcase {
+    opacity:.7!important;transition:opacity 300ms ease;
+  }
+  .parallax-swiper_component .swiper-slide.is-showcase.swiper-slide-active {
+    opacity:1!important;
+  }
 }
