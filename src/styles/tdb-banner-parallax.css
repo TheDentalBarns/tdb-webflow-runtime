@@ -80,12 +80,20 @@
   .tdb-banner-parallax [data-fade-slide],.tdb-banner-parallax.is-moving [data-fade-slide] {transition:none!important;}
 }
 
-/* Desktop parallax neighbours: blur clears smoothly on the focused slide. */
+/* Desktop parallax neighbours: contained blur, sharp card edges. */
 @media (min-width:992px) {
   .parallax-swiper_component .swiper-slide.is-showcase {
-    opacity:1!important;filter:blur(20px);transition:filter 300ms ease;
+    opacity:1!important;
   }
-  .parallax-swiper_component .swiper-slide.is-showcase.swiper-slide-active {
-    filter:blur(0);
+  .parallax-swiper_component .swiper-slide.is-showcase .showcase_card {
+    overflow:hidden;isolation:isolate;
+  }
+  .parallax-swiper_component .swiper-slide.is-showcase .showcase_card::after {
+    content:"";position:absolute;inset:0;z-index:25;pointer-events:none;
+    -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+    transition:backdrop-filter 300ms ease,-webkit-backdrop-filter 300ms ease;
+  }
+  .parallax-swiper_component .swiper-slide.is-showcase.swiper-slide-active .showcase_card::after {
+    -webkit-backdrop-filter:blur(0);backdrop-filter:blur(0);
   }
 }
