@@ -150,6 +150,8 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .slider-arrow:not(:disable
   background:rgba(128,128,128,.3);border-color:#fff;color:#fff;
 }
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri-has-texture .tdb-ri-position {color:rgba(255,255,255,.7);opacity:1}
+/* Instagram metadata belongs only to the focused card, at every width. */
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ig-feed .tdb-ig-details-panel.is-neighbour {display:none;}
 /* Match Services typography at tablet and mobile widths. */
 @media (max-width:991px) {
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-banner-parallax .service-card-mobile-title {font-size:1.75rem;}
