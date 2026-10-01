@@ -5,12 +5,12 @@
   const style = document.createElement('style');
   style.dataset.tdbSummaryCardStyle = '';
   style.textContent = `
-.button.is-review[data-tdb-summary-card]{display:inline-flex;flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:0;width:max-content;max-width:100%;height:auto}
-.tdb-summary-rating{display:flex;align-items:center;justify-content:center;gap:.5rem;min-width:0}
-.tdb-summary-action{display:flex;align-items:center;justify-content:space-between;gap:1rem;border-top:1px solid var(--base-color-brand--orange-2,#ebe2d2);margin-top:.6rem;padding-top:.6rem;width:100%;text-align:left}
+.button.is-review[data-tdb-summary-card]{display:inline-grid;grid-template-rows:1fr 1fr;align-items:stretch;gap:0;width:max-content;max-width:100%;height:auto;padding-top:0;padding-bottom:0}
+.tdb-summary-rating{display:flex;align-items:center;justify-content:center;gap:.5rem;min-width:0;padding-block:.6rem;box-sizing:border-box}
+.tdb-summary-action{display:flex;align-items:center;justify-content:space-between;gap:1rem;border-top:1px solid var(--base-color-brand--orange-2,#ebe2d2);margin-top:0;padding-block:.6rem;width:100%;text-align:left;box-sizing:border-box}
 .tdb-summary-label{font-size:.75rem;font-weight:400;line-height:1.4;letter-spacing:.1em;text-transform:uppercase;color:#8f887b}
-.tdb-summary-arrow{display:flex;align-items:center;justify-content:center;flex:0 0 2rem;width:2rem;height:2rem;box-sizing:border-box;border:1px solid var(--base-color-brand--orange-3,#d6cab4);border-radius:50%;color:var(--base-color-brand--orange-3,#d6cab4);background:transparent;transition:background-color 300ms ease,color 300ms ease}
-.tdb-summary-arrow svg{width:.85rem;height:.85rem;display:block}
+.tdb-summary-arrow{display:flex;align-items:center;justify-content:center;flex:0 0 3rem;width:3rem;height:3rem;box-sizing:border-box;border:1px solid var(--base-color-brand--orange-3,#d6cab4);border-radius:50%;color:var(--base-color-brand--orange-3,#d6cab4);background:transparent;transition:background-color 300ms ease,color 300ms ease}
+.tdb-summary-arrow svg{width:1rem;height:1rem;display:block}
 @media(hover:hover) and (pointer:fine){.button.is-review[data-tdb-summary-card]:hover .tdb-summary-arrow{background:var(--base-color-brand--orange-3,#d6cab4);color:#fff}}
 .button.is-review[data-tdb-summary-card]:active .tdb-summary-arrow{background:var(--base-color-brand--orange-3,#d6cab4);color:#fff;transition-duration:0s}
 @media(max-width:479px){.tdb-summary-rating{gap:.4rem}.tdb-summary-action{gap:.65rem}.tdb-summary-label{font-size:.7rem;letter-spacing:.08em}}
