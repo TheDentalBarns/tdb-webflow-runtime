@@ -58,3 +58,19 @@ test('swipe after tap never re-centres, including delayed synthetic click and sl
  const x=a.status().currentX;a.tick();assert.ok(a.status().currentX<x);
  a.pointer('pointerdown',140);a.pointer('pointerup',140);item.click();assert.equal(a.status().paused,true);assert.equal(a.status().selected,'2');
 });
+
+test('mobile implicit capture handoff does not release the drag or interrupt its throw',t=>{
+ const a=fixture(t);const item=a.track.children[2];item.click();for(let i=0;i<150;i++)a.tick();
+ a.pointer('pointerdown',240);a.pointer('pointermove',220);
+ const handoff=new a.w.Event('lostpointercapture',{bubbles:true});
+ Object.assign(handoff,{pointerId:1});item.querySelector('img').dispatchEvent(handoff);
+ assert.equal(a.status().dragging,true,'child capture loss is a handoff, not the end of the gesture');
+ const x=a.status().currentX;a.pointer('pointermove',180);assert.equal(a.status().currentX,x-40);
+ a.pointer('pointermove',110);a.pointer('pointerup',110);
+ assert.ok(a.status().momentum<0);assert.equal(a.status().paused,false);assert.equal(a.status().selected,null);
+ const released=a.status().currentX;a.tick();assert.ok(a.status().currentX<released);
+ item.click();assert.equal(a.status().paused,false,'release click cannot snap back to the selection');
+ a.pointer('pointerdown',110);a.pointer('pointermove',140);
+ const lost=new a.w.Event('lostpointercapture',{bubbles:true});Object.assign(lost,{pointerId:1});a.track.dispatchEvent(lost);
+ assert.equal(a.status().dragging,false,'a real loss of track capture still ends the gesture');
+});

@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.8.1';
+  const VERSION = '0.8.2';
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
     itemSelector: '.partner_logos',
@@ -405,7 +405,12 @@
     track.addEventListener('pointermove', onPointerMove, { signal, passive: false });
     window.addEventListener('pointerup', endPointer, { signal });
     track.addEventListener('pointercancel', endPointer, { signal });
-    track.addEventListener('lostpointercapture', endPointer, { signal });
+    // Touch starts with implicit capture on the logo/image. Moving capture to
+    // the track emits a bubbling lostpointercapture from that child. It is a
+    // handoff, not a release: keep following the finger until the track loses it.
+    track.addEventListener('lostpointercapture', event => {
+      if (event.target === track) endPointer(event);
+    }, { signal });
     track.addEventListener('click', onClick, { signal, capture: true });
     track.addEventListener('pointerover', onTooltipIntent, { signal, passive: true });
     track.addEventListener('focusin', onTooltipIntent, { signal });
