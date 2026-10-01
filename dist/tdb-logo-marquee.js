@@ -343,6 +343,7 @@
       const item = event.target.closest(CONFIG.itemSelector);
       if (!item || !item.matches(':focus-visible')) return;
       centre(item);
+      selected = null; // Focusing pauses; the first activation selects rather than resumes.
       track.querySelectorAll(CONFIG.itemSelector).forEach(copy => {
         copy.toggleAttribute('data-tdb-keyboard-focus', copy.dataset.tdbLogoIndex === item.dataset.tdbLogoIndex);
       });
