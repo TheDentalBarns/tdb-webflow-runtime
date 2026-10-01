@@ -26,12 +26,12 @@ test('desktop ignores reduced motion and keeps 40px/s; mobile retains 22px/s and
  const b=fixture(t);b.tick(100);const y=b.status().targetX;b.tick(100);assert.ok(Math.abs(b.status().targetX-y+2.2)<1e-6);
  const c=fixture(t,{reduced:true});c.tick(100);assert.equal(c.status().currentX,0);
 });
-test('mobile throw carries release velocity, pauses after settling, suppresses release-click and resumes outside',t=>{
+test('mobile throw carries release velocity into auto motion, suppresses delayed release-click and resumes outside',t=>{
  const a=fixture(t);a.tick();a.pointer('pointerdown',100);a.pointer('pointermove',150);a.pointer('pointermove',220);a.pointer('pointerup',220);
- const released=a.status().currentX;assert.ok(a.status().momentum>0);assert.equal(a.status().paused,true);
+ const released=a.status().currentX;assert.ok(a.status().momentum>0);assert.equal(a.status().paused,false);
  a.track.dispatchEvent(new a.w.MouseEvent('click',{bubbles:true}));assert.ok(a.status().momentum>0);
  a.tick();assert.ok(a.status().currentX>released);const v=a.status().momentum;a.tick();assert.ok(a.status().momentum<v);
- for(let i=0;i<240;i++)a.tick();assert.equal(a.status().momentum,0);assert.equal(a.status().paused,true);assert.ok(Math.abs(a.status().targetX-a.status().currentX)<.1);
+ for(let i=0;i<240;i++)a.tick();assert.equal(a.status().momentum,0);assert.equal(a.status().paused,false);assert.equal(a.status().selected,null);assert.ok(Math.abs(a.status().targetX-a.status().currentX)<.1);
  a.w.document.querySelector('#outside').click();assert.equal(a.status().paused,false);const x=a.status().currentX;a.tick();assert.ok(a.status().currentX<x);
 });
 test('catching a settle follows finger; vertical gesture and page scroll resume; reverse throws retain direction',t=>{
@@ -46,4 +46,15 @@ test('repeat selection resumes from same position and nearest centring survives 
  assert.equal(a.status().selected,'0');assert.equal(a.status().paused,true);
  const x=a.status().currentX;item.click();assert.equal(a.status().paused,false);assert.equal(a.status().currentX,x);
  assert.equal(a.media.length,3);
+});
+
+test('swipe after tap never re-centres, including delayed synthetic click and slow release',t=>{
+ const a=fixture(t);const item=a.track.children[2];item.click();for(let i=0;i<150;i++)a.tick();
+ a.pointer('pointerdown',200);a.pointer('pointermove',140);a.pointer('pointerup',140,0,120);
+ assert.equal(a.status().paused,false);assert.equal(a.status().selected,null);
+ for(let i=0;i<60;i++)a.tick();
+ item.dispatchEvent(new a.w.MouseEvent('click',{bubbles:true}));
+ assert.equal(a.status().paused,false);assert.equal(a.status().selected,null);
+ const x=a.status().currentX;a.tick();assert.ok(a.status().currentX<x);
+ a.pointer('pointerdown',140);a.pointer('pointerup',140);item.click();assert.equal(a.status().paused,true);assert.equal(a.status().selected,'2');
 });

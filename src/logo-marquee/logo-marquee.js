@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.8.0';
+  const VERSION = '0.8.1';
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
     itemSelector: '.partner_logos',
@@ -129,9 +129,9 @@
 
     let paused = reduceMotion();
     let momentum = 0;
+    let coasting = false;
     let samples = [];
     let pageY = window.scrollY;
-    let ignoreClickUntil = 0;
     let selected = null;
     let startY = 0;
     let startX = 0;
@@ -225,22 +225,22 @@
       lastFrameAt = now;
 
       if (ready) {
-        if (momentum && !dragging) {
-          // Integrate exponential deceleration, independent of frame rate.
+        if (coasting && !dragging) {
+          // Carry the throw into the existing automatic speed, without snapping.
+          const cruise = -getSpeed();
           const decay = Math.exp(-4.2 * deltaSeconds);
-          currentX += momentum * (1 - decay) / 4.2;
-          momentum *= decay;
+          currentX += cruise * deltaSeconds + (momentum-cruise) * (1-decay) / 4.2;
+          momentum = cruise + (momentum-cruise) * decay;
           targetX = currentX;
-          if (Math.abs(momentum) < 24) {
-            momentum = 0;
-            setTransform(wrapX(currentX, loopWidth));
-            settle();
-          }
+          if (Math.abs(momentum-cruise) < 2) { coasting = false; momentum = 0; }
         } else if (!dragging) {
-          if (!paused && !reduceMotion()) targetX -= getSpeed() * deltaSeconds;
-          const smoothing = paused ? .11 : CONFIG.smoothing;
-          const frameSmoothing = 1 - Math.pow(1 - smoothing, deltaSeconds * 60);
-          currentX += (targetX - currentX) * frameSmoothing;
+          if (!paused && !reduceMotion()) {
+            currentX -= getSpeed() * deltaSeconds;
+            targetX = currentX;
+          } else {
+            const frameSmoothing = 1 - Math.pow(1-.11, deltaSeconds * 60);
+            currentX += (targetX-currentX) * frameSmoothing;
+          }
         }
 
         if (Math.abs(currentX) > 1000000 || Math.abs(targetX) > 1000000) {
@@ -252,13 +252,13 @@
         setTransform(wrapX(currentX, loopWidth));
       }
 
-      if (!rafId && ((!paused && !reduceMotion()) || momentum || Math.abs(targetX-currentX) > .05)) rafId = requestAnimationFrame(frame);
+      if (!rafId && ((!paused && !reduceMotion()) || coasting || Math.abs(targetX-currentX) > .05)) rafId = requestAnimationFrame(frame);
     }
 
     function centre(item) {
       if (!item || !ready) return;
       paused = true;
-      momentum = 0;
+      momentum = 0; coasting = false;
       selected = item.dataset.tdbLogoIndex;
       const box = item.getBoundingClientRect();
       const view = viewport.getBoundingClientRect();
@@ -272,33 +272,21 @@
         resume();
       } else centre(item);
     }
-    function settle() {
-      const view = viewport.getBoundingClientRect();
-      const middle = view.left + view.width / 2;
-      const items = [...track.querySelectorAll(CONFIG.itemSelector)];
-      const nearest = items.reduce((best,item) => {
-        const r = item.getBoundingClientRect();
-        const distance = Math.abs(shortestDelta(middle-r.left-r.width/2,loopWidth));
-        return !best || distance < best.distance ? {item,distance} : best;
-      },null);
-      centre(nearest?.item);
-    }
-
     function resume() {
       if (dragging) return;
-      paused = reduceMotion(); selected = null; momentum = 0;
+      paused = reduceMotion(); selected = null; momentum = 0; coasting = false;
       targetX = currentX;
       if (!paused) startAnimation();
     }
     function onPointerDown(event) {
       if (!ready || event.button > 0 || event.isPrimary === false || pointerId !== null) return;
       // Catch a moving logo exactly where the finger lands, including mid-settle.
-      momentum = 0; targetX = currentX; paused = true; stopAnimation();
+      momentum = 0; coasting = false; targetX = currentX; paused = true; stopAnimation();
       pointerId = event.pointerId;
       startX = lastPointerX = event.clientX; startY = event.clientY;
       samples = [{x:event.clientX,t:event.timeStamp}];
       horizontal = false; dragging = false;
-      suppressNextClick = false; ignoreClickUntil = 0;
+      suppressNextClick = false;
     }
     function onPointerMove(event) {
       if (event.pointerId !== pointerId) return;
@@ -324,18 +312,21 @@
       pointerId = null; dragging = false; horizontal = false;
       try { track.releasePointerCapture(id); } catch (_) {}
       if (moved) {
-        suppressNextClick = true; ignoreClickUntil = performance.now() + 450;
+        suppressNextClick = true;
         const first = samples[0], last = samples[samples.length-1];
         const dt = last.t-first.t;
         momentum = !reduceMotion() && event.type === 'pointerup' && event.timeStamp-last.t < 90 && dt > 0
           ? clamp((last.x-first.x) / dt * 1000,-2800,2800) : 0;
-        if (Math.abs(momentum) >= 80) startAnimation();
-        else { momentum = 0; settle(); }
+        selected = null;
+        paused = reduceMotion();
+        coasting = !paused;
+        targetX = currentX;
+        if (coasting) startAnimation();
       } else if (event.type !== 'pointerup') resume();
     }
     function onClick(event) {
       // Pointer capture can retarget the release-click to the track itself.
-      if (suppressNextClick && performance.now() < ignoreClickUntil) {
+      if (suppressNextClick) {
         suppressNextClick = false;
         event.preventDefault(); event.stopImmediatePropagation(); return;
       }
@@ -357,10 +348,11 @@
       if (event.key !== 'Enter' && event.key !== ' ') return;
       const item = event.target.closest(CONFIG.itemSelector);
       if (!item) return;
+      suppressNextClick = false;
       event.preventDefault(); event.stopImmediatePropagation(); select(item);
     }
     function onReducedChange() {
-      momentum = 0; targetX = currentX;
+      momentum = 0; coasting = false; targetX = currentX;
       if (reduceMotion()) { paused = true; stopAnimation(); }
       else resume();
     }
@@ -425,7 +417,7 @@
         ([entry]) => {
           active = Boolean(entry?.isIntersecting);
           if (active) startAnimation();
-          else { paused = reduceMotion(); selected = null; momentum = 0; targetX = currentX; stopAnimation(); }
+          else { paused = reduceMotion(); selected = null; momentum = 0; coasting = false; targetX = currentX; stopAnimation(); }
         },
         { rootMargin: `${CONFIG.activeViewportMargin}px 0px` }
       );
@@ -469,6 +461,7 @@
         dragging,
         paused,
         momentum,
+        coasting,
         selected,
         loopWidth,
         currentX,

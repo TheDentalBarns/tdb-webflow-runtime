@@ -36,6 +36,31 @@
     action.append(label,arrow);
     badge.append(row,action);
     badge.dataset.tdbSummaryCard = '1';
+    // Use the same preferred review and relevance list as the adjacent quote.
+    function openFeatured(event) {
+      if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
+      const selector = '[data-tdb-power-snippet][data-tdb-review-ready] [data-tdb-review-open]';
+      let scope = badge.parentElement;
+      while (scope && !scope.querySelector(selector)) scope = scope.parentElement;
+      const quote = scope?.querySelector(selector);
+      const reviewId = quote?.dataset.tdbReviewOpen;
+      const api = window.TDBPowerSnippets;
+      if (!reviewId || !api?.loadDrawer) return;
+      event.preventDefault(); event.stopImmediatePropagation();
+      if (badge.getAttribute('aria-busy') === 'true') return;
+      badge.setAttribute('aria-busy','true');
+      document.querySelector('[data-tdb-summary-error]')?.remove();
+      api.loadDrawer().then(drawer => drawer.open(badge,reviewId)).catch(() => {
+        const message = document.createElement('p');
+        message.dataset.tdbSummaryError = '';
+        message.className = 'tdb-review-load-error';
+        message.setAttribute('role','status');
+        message.textContent = 'The reviews could not load. Please tap again.';
+        badge.insertAdjacentElement('afterend',message);
+      }).finally(() => badge.removeAttribute('aria-busy'));
+    }
+    badge.addEventListener('click',openFeatured,{capture:true});
+    badge.addEventListener('keydown',openFeatured,{capture:true});
     updateLabel();
     new MutationObserver(updateLabel).observe(badge,{attributes:true,attributeFilter:['aria-label']});
   }
