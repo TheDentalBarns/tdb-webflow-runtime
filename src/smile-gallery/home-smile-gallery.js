@@ -13,7 +13,7 @@
         const template = document.createElement('template');
         template.innerHTML = await response.text();
         const total = template.content.querySelectorAll('[data-tdb-sg-list] [data-tdb-sg-case]').length;
-        if (total > 0) label.textContent = 'See our ' + total.toLocaleString('en-GB') + (total === 1 ? ' smile' : ' smiles');
+        if (total > 0) label.textContent = 'Explore ' + total.toLocaleString('en-GB') + (total === 1 ? ' smile transformation' : ' smile transformations');
       } catch (_) { /* The gallery link remains usable if the count is unavailable. */ }
     }
     // Load ahead of the button without adding work to the homepage's first view.
@@ -39,7 +39,7 @@
       '<div class="margin-bottom margin-small"><h2 class="heading-style-h2">See what’s possible for your smile.</h2></div>' +
       '<p class="text-size-medium opacity-75">Explore real patient transformations, with treatment details, time and costs alongside each case.</p>';
     outro.classList.add('tdb-home-smile-link');
-    outro.innerHTML = '<a class="button is-icon is-secondary w-inline-block" href="/smile-gallery"><div>See our smiles</div>' +
+    outro.innerHTML = '<a class="button is-icon is-secondary w-inline-block" href="/smile-gallery"><div>Explore smile transformations</div>' +
       '<div class="icon-embed-xxsmall w-embed"><svg width="100%" height="100%" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path fill="currentColor" d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10z"></path></svg></div></a>';
     galleryCount(outro.querySelector('a'), section);
   }
