@@ -28,7 +28,7 @@
 
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const style = document.createElement('style');
-  style.textContent = `.logo-slider .partner_logos{cursor:grab;touch-action:pan-y}.logo-slider .partner_logos:focus-visible{outline:1px solid #a79b86;outline-offset:-3px}@media(hover:hover) and (pointer:fine){.logo-slider .partner_logos:hover .logo_image{opacity:.8}}`;
+  style.textContent = `.logo-slider .partner_logos{cursor:grab;touch-action:pan-y}.logo-slider .partner_logos:focus-visible,.logo-slider .partner_logos[data-tdb-keyboard-focus]{outline:1px solid #a79b86;outline-offset:-3px}@media(hover:hover) and (pointer:fine){.logo-slider .partner_logos:hover .logo_image{opacity:.8}}`;
   document.head.append(style);
 
   const INIT_ATTR = 'data-tdb-logo-marquee-init';
@@ -85,6 +85,7 @@
     clone.setAttribute(CLONE_ATTR, 'true');
     clone.setAttribute('aria-hidden', 'true');
     clone.removeAttribute('id');
+    clone.setAttribute('tabindex', '-1');
 
     clone.querySelectorAll('[id]').forEach(element => element.removeAttribute('id'));
     clone
@@ -338,6 +339,15 @@
       instances.delete(track);
     }
 
+    track.addEventListener('focusin', event => {
+      const item = event.target.closest(CONFIG.itemSelector);
+      if (!item || !item.matches(':focus-visible')) return;
+      centre(item);
+      track.querySelectorAll(CONFIG.itemSelector).forEach(copy => {
+        copy.toggleAttribute('data-tdb-keyboard-focus', copy.dataset.tdbLogoIndex === item.dataset.tdbLogoIndex);
+      });
+    }, { signal });
+    track.addEventListener('focusout', () => track.querySelectorAll('[data-tdb-keyboard-focus]').forEach(item => item.removeAttribute('data-tdb-keyboard-focus')), { signal });
     track.addEventListener('keydown', onKey, { signal });
     track.addEventListener('dragstart', event => event.preventDefault(), { signal });
     reduced.addEventListener('change', onReducedChange, { signal });
