@@ -93,7 +93,7 @@
     -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
     transition:backdrop-filter var(--tdb-parallax-duration,400ms) ease,-webkit-backdrop-filter var(--tdb-parallax-duration,400ms) ease;
   }
-  .parallax-swiper_component .swiper-slide.is-showcase.swiper-slide-active .showcase_card::after {
+  .parallax-swiper_component .swiper-slide.is-showcase:is(.swiper-slide-active,.swiper-slide-duplicate-active) .showcase_card::after {
     -webkit-backdrop-filter:blur(0);backdrop-filter:blur(0);
   }
 }

@@ -426,6 +426,9 @@
     const visibleSlides = new Set();
     let showTimeout = null;
     let gestureHidden = false;
+    let loopFixing = false;
+    swiper.on('beforeLoopFix', () => { loopFixing = true; });
+    swiper.on('loopFix', () => { loopFixing = false; });
     let entryPending = (desktopEntry || mobileEntry) && !cta?.skipEntry;
     component.classList.toggle('tdb-entry-pending', entryPending);
 
@@ -445,7 +448,7 @@
     }
 
     function hideAllVisible() {
-      Array.from(visibleSlides).forEach(slide => setVisible(slide, false));
+      swiper.slides.forEach(slide => setVisible(slide, false));
     }
 
     function cancelShow() {
@@ -461,8 +464,13 @@
 
     function showActiveAfter(delay) {
       cancelShow();
-      const activeSlide = swiper.slides[swiper.activeIndex];
-      showTimeout = setTimeout(() => setVisible(activeSlide, true), delay);
+      showTimeout = setTimeout(() => {
+        showTimeout = null;
+        if (swiper.destroyed || swiper.animating || gestureHidden) return;
+        const active = swiper.slides[swiper.activeIndex];
+        const index = active?.getAttribute('data-swiper-slide-index');
+        swiper.slides.forEach(slide => setVisible(slide, slide === active || (index !== null && slide.getAttribute('data-swiper-slide-index') === index)));
+      }, delay);
     }
 
     function completeEntry(revealDelay = FADE_IN_DELAY_NEXT) {
@@ -489,18 +497,20 @@
     });
 
     swiper.on('slideChangeTransitionStart', () => {
+      if (loopFixing) return;
       cancelShow();
       setMoving(true);
       hideAllVisible();
     });
 
     swiper.on('slideChangeTransitionEnd', () => {
+      if (loopFixing) return;
       gestureHidden = false;
       const direction = swiper.swipeDirection || 'next';
       const revealDelay = direction === 'prev' ? FADE_IN_DELAY_PREV : FADE_IN_DELAY_NEXT;
       showActiveAfter(revealDelay);
       completeEntry(revealDelay);
-      setTimeout(() => setMoving(false), 0);
+      setMoving(false);
     });
 
     swiper.on('touchEnd', () => {
