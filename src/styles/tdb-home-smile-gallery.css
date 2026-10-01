@@ -1,0 +1,25 @@
+/* Homepage gallery: keep the shared card, typography and mobile spacing rules. */
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro {
+  width:100%;max-width:64rem;margin-inline:auto;text-align:left;
+}
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-link {
+  display:flex;justify-content:center;align-items:center;
+}
+@media (min-width:992px) {
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .section_smile-gallery .testimonial15_slide-content {
+    display:flex;flex-direction:column;align-items:stretch;row-gap:4rem;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .section_smile-gallery .testimonial15_content-right {margin-bottom:0}
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .section_smile-gallery .testimonial15_client-image-wrapper {
+    position:relative;top:auto;width:100%;max-width:none;min-width:0;overflow:visible;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .section_smile-gallery [data-tdb-smile-slider] {
+    width:min(30vw,28rem);margin-inline:auto;overflow:visible;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .section_smile-gallery [data-tdb-smile-slider] > .swiper {overflow:visible}
+  /* Keep neighbour text hidden even during a loop-copy handoff. Static controls
+     and fact icons retain their existing layer over the centre card. */
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .section_smile-gallery [data-tdb-smile-slider] .swiper-slide:not(.swiper-slide-active):not(.swiper-slide-duplicate-active) [data-fade-slide] {
+    opacity:0!important;pointer-events:none;
+  }
+}
