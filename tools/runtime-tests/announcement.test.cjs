@@ -19,20 +19,33 @@ function setup({path='/',embedded=true,saved=true,mobile=false,reduced=false,ani
  return {w,d,tick,flush,calls:()=>calls,close:()=>w.close()};
 }
 (async()=>{
+ // Signature availability has priority on first paint, including the fully-booked state.
+ for(const mobile of [false,true])for(const embedded of [false,true]){
+   const priority=setup({mobile,embedded,fields:{...fieldValues,'smile-release-time':'September 18, 2026'}});
+   await priority.flush();priority.tick(550);
+   const rail=priority.d.querySelector('.tdb-announcement-track');
+   assert.equal(rail.firstElementChild.dataset.message,'signature','next Signature Assessment is first');
+   assert.equal(rail.firstElementChild.getAttribute('aria-hidden'),'false');
+   assert.match(priority.d.querySelector('.tdb-announcement').getAttribute('aria-label'),/^Signature Assessment/);
+   priority.tick(8500);assert.equal(priority.w.TDBAnnouncement.status().mode,'rest','fully-booked message follows');
+   assert.equal(rail.firstElementChild.dataset.message,'smile');
+   priority.tick(8500);assert.equal(priority.w.TDBAnnouncement.status().mode,'signature','rotation returns to next date');
+   priority.close();
+ }
  let a=setup({mobile:true});assert.equal(a.calls(),0,'embedded CMS has zero data requests');assert.equal(a.d.querySelector('#tdb-elfsight-timer-shell').hidden,true,'never paints while pending');a.tick(550);
- assert.equal(a.w.TDBAnnouncement.status().deadline,'2026-09-25T08:00:00.000Z','UK 09:00 maps to BST UTC08');assert.equal(a.w.TDBAnnouncement.status().mode,'countdown');
+ assert.equal(a.w.TDBAnnouncement.status().deadline,'2026-09-25T08:00:00.000Z','UK 09:00 maps to BST UTC08');assert.equal(a.w.TDBAnnouncement.status().mode,'signature');
  assert.equal(a.d.querySelector('.tdb-announcement-pause'),null,'pause control removed');
  const track=a.d.querySelector('.tdb-announcement-track');
  const progress=a.d.querySelector('.tdb-announcement-progress');
  a.tick(3000);a.d.querySelector('#tdb-elfsight-timer-shell').dispatchEvent(new a.w.Event('mouseenter'));
  const held=Number(progress.style.strokeDashoffset);assert.ok(held>.60&&held<.64,'progress retains the unelapsed portion when paused');
- a.tick(10000);assert.equal(track.firstElementChild.dataset.message,'smile','reading pause holds message and progress together');
+ a.tick(10000);assert.equal(track.firstElementChild.dataset.message,'signature','reading pause holds message and progress together');
  a.d.querySelector('#tdb-elfsight-timer-shell').dispatchEvent(new a.w.Event('mouseleave'));
  assert.ok(parseFloat(progress.style.transition.split(' ')[1])<5100,'resume uses remaining dwell, not a new interval');
- a.tick(4990);assert.equal(track.style.transform,'translateX(-100%)','message travels left');a.tick(450);assert.equal(a.w.TDBAnnouncement.status().mode,'signature');assert.equal(track.firstElementChild.dataset.message,'signature');assert.equal(track.style.transform,'translateX(0)');
+ a.tick(4990);assert.equal(track.style.transform,'translateX(-100%)','message travels left');a.tick(450);assert.equal(a.w.TDBAnnouncement.status().mode,'countdown');assert.equal(track.firstElementChild.dataset.message,'smile');assert.equal(track.style.transform,'translateX(0)');
  assert.equal(a.d.querySelector('[data-message="signature"] .tdb-announcement-title').textContent,'Signature Assessment ✦ Next appointment','CMS title is used verbatim');assert.equal(a.d.querySelector('[data-message="signature"] .tdb-announcement-lower').textContent,'Tue 22 Sept · 09:30');
- a.tick(8450);assert.equal(a.w.TDBAnnouncement.status().mode,'countdown');assert.equal(track.firstElementChild.dataset.message,'smile','loop also travels left');
- a.d.querySelector('#tdb-elfsight-timer-shell').dispatchEvent(new a.w.Event('mouseenter'));a.tick(9000);assert.equal(a.w.TDBAnnouncement.status().mode,'countdown','reading hover pauses rotation');
+ a.tick(8450);assert.equal(a.w.TDBAnnouncement.status().mode,'signature');assert.equal(track.firstElementChild.dataset.message,'signature','loop also travels left');
+ a.d.querySelector('#tdb-elfsight-timer-shell').dispatchEvent(new a.w.Event('mouseenter'));a.tick(9000);assert.equal(a.w.TDBAnnouncement.status().mode,'signature','reading hover pauses rotation');
  let opens=0;a.d.querySelector('.tdb-vip-drawer-handle').addEventListener('click',()=>opens++);a.d.querySelector('.tdb-announcement').click();assert.equal(opens,1,'main mobile action retained');
  a.w.TDBAnnouncement.configure({deadline:null,bookedTitle:'Custom CMS booked heading',rest:'Custom CMS waitlist action'});assert.equal(a.d.querySelector('[data-message="smile"] .tdb-announcement-title').textContent,'Custom CMS booked heading');assert.equal(a.d.querySelector('.tdb-announcement-action').textContent,'Custom CMS waitlist action');
  a.d.documentElement.classList.add('tdb-slider-focus');await a.flush();assert.equal(a.w.TDBAnnouncement.status().ticking,false);assert.equal(a.d.querySelector('.tdb-announcement').tabIndex,-1);a.close();
@@ -44,20 +57,20 @@ function setup({path='/',embedded=true,saved=true,mobile=false,reduced=false,ani
  assert.equal(a.d.querySelector('.tdb-announcement-clock'),null,'only the arrow circle remains');
  assert.ok(a.d.querySelector('.tdb-announcement-circle .tdb-announcement-progress'),'progress belongs to the arrow');
  pointer('pointerdown',250);pointer('pointermove',180);const childCapture=new a.w.Event('lostpointercapture',{bubbles:true});Object.defineProperty(childCapture,'pointerId',{value:1});rail.firstElementChild.dispatchEvent(childCapture);assert.equal(rail.style.transform,'translateX(-70px)','message follows left drag');pointer('pointerup',180);control.click();assert.equal(swipeOpens,0,'swipe synthetic click does not open VIP');a.tick(450);
- assert.equal(control.dataset.mode,'signature');assert.equal(control.dataset.rotation,'manual');a.tick(25000);assert.equal(control.dataset.mode,'signature','manual choice stops auto rotation');
- pointer('pointerdown',100);pointer('pointermove',180);assert.equal(rail.style.transform,'translateX(-220px)','message follows right drag');pointer('pointerup',180);control.click();a.tick(450);assert.equal(control.dataset.mode,'countdown');assert.equal(swipeOpens,0);
+ assert.equal(control.dataset.mode,'countdown');assert.equal(control.dataset.rotation,'manual');a.tick(25000);assert.equal(control.dataset.mode,'countdown','manual choice stops auto rotation');
  const beforeSeconds=a.d.querySelectorAll('.tdb-announcement-value')[3].textContent;a.tick(2000);assert.notEqual(a.d.querySelectorAll('.tdb-announcement-value')[3].textContent,beforeSeconds,'real deadline continues after manual swipe');
+ pointer('pointerdown',100);pointer('pointermove',180);assert.equal(rail.style.transform,'translateX(-220px)','message follows right drag');pointer('pointerup',180);control.click();a.tick(450);assert.equal(control.dataset.mode,'signature');assert.equal(swipeOpens,0);
  pointer('pointerdown',200);pointer('pointerup',200);control.click();assert.equal(swipeOpens,1,'subsequent deliberate tap still opens VIP');
  a.close();
- a=setup();a.tick(550);const b=a.d.querySelector('.tdb-announcement');b.dispatchEvent(new a.w.KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));a.tick(450);assert.equal(b.dataset.mode,'signature');assert.equal(b.dataset.rotation,'manual','keyboard navigation also stops rotation');a.close();
+ a=setup();a.tick(550);const b=a.d.querySelector('.tdb-announcement');b.dispatchEvent(new a.w.KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));a.tick(450);assert.equal(b.dataset.mode,'countdown');assert.equal(b.dataset.rotation,'manual','keyboard navigation also stops rotation');a.close();
  a=setup({mobile:true,reduced:true});a.tick(550);
  const reducedButton=a.d.querySelector('.tdb-announcement'),reducedRail=a.d.querySelector('.tdb-announcement-track');reducedRail.getBoundingClientRect=()=>({width:300});
  for(const [type,x] of [['pointerdown',250],['pointermove',170]]){const e=new a.w.MouseEvent(type,{bubbles:true,clientX:x,clientY:20,button:0});Object.defineProperties(e,{pointerId:{value:7},isPrimary:{value:true}});reducedButton.dispatchEvent(e);}
  assert.equal(reducedRail.style.transform,'translateX(-80px)','reduced motion still follows direct finger movement');
- const up=new a.w.MouseEvent('pointerup',{bubbles:true,clientX:170,clientY:20,button:0});Object.defineProperties(up,{pointerId:{value:7},isPrimary:{value:true}});reducedButton.dispatchEvent(up);assert.equal(reducedButton.dataset.mode,'signature','reduced-motion swipe settles immediately and correctly');a.close();
- a=setup({animationDelay:900});a.tick(8540);a.tick(450);assert.equal(a.d.querySelector('.tdb-announcement-track').firstElementChild.dataset.message,'smile','slow animation is not prematurely reordered by a fixed timer');a.tick(450);assert.equal(a.d.querySelector('.tdb-announcement-track').firstElementChild.dataset.message,'signature','settlement follows actual animation finish');a.close();
+ const up=new a.w.MouseEvent('pointerup',{bubbles:true,clientX:170,clientY:20,button:0});Object.defineProperties(up,{pointerId:{value:7},isPrimary:{value:true}});reducedButton.dispatchEvent(up);assert.equal(reducedButton.dataset.mode,'countdown','reduced-motion swipe settles immediately and correctly');a.close();
+ a=setup({animationDelay:900});a.tick(8540);a.tick(450);assert.equal(a.d.querySelector('.tdb-announcement-track').firstElementChild.dataset.message,'signature','slow animation is not prematurely reordered by a fixed timer');a.tick(450);assert.equal(a.d.querySelector('.tdb-announcement-track').firstElementChild.dataset.message,'smile','settlement follows actual animation finish');a.close();
  a=setup({path:'/services/fast-track'});a.tick(550);assert.equal(a.w.TDBAnnouncement.status().mode,'signature');assert.equal(a.d.querySelector('.tdb-announcement-track').children.length,1);a.tick(20000);assert.equal(a.w.TDBAnnouncement.status().mode,'signature');a.w.dispatchEvent(new a.w.Event('pagehide'));assert.equal(a.w.TDBAnnouncement.status().ticking,false);a.close();
- a=setup({embedded:false,saved:false});assert.equal(a.calls(),0,'no settings read before consent');a.w.dispatchEvent(new a.w.Event('CookieScriptReject'));assert.equal(a.calls(),1);a.w.dispatchEvent(new a.w.Event('CookieScriptAccept'));assert.equal(a.w.TDBAnnouncement.status().mounted,false,'duplicate consent does not paint fallback during read');await a.flush();a.tick(550);assert.equal(a.calls(),1);assert.equal(a.w.TDBAnnouncement.status().mode,'countdown');a.close();
+ a=setup({embedded:false,saved:false});assert.equal(a.calls(),0,'no settings read before consent');a.w.dispatchEvent(new a.w.Event('CookieScriptReject'));assert.equal(a.calls(),1);a.w.dispatchEvent(new a.w.Event('CookieScriptAccept'));assert.equal(a.w.TDBAnnouncement.status().mounted,false,'duplicate consent does not paint fallback during read');await a.flush();a.tick(550);assert.equal(a.calls(),1);assert.equal(a.w.TDBAnnouncement.status().mode,'signature');a.close();
  a=setup({fields:{...fieldValues,'smile-release-time':'March 28, 2027','smile-release-uk-time':'01:30'}});assert.equal(a.w.TDBAnnouncement.status().deadline,null,'nonexistent UK spring-forward time rejected');a.close();
 
  // Network failures must never manufacture availability, and recover without a reload.
@@ -82,11 +95,11 @@ function setup({path='/',embedded=true,saved=true,mobile=false,reduced=false,ani
  for(const direction of ['ArrowLeft','ArrowRight']){
    a=setup();a.tick(550);let animation;const animate=a.w.HTMLElement.prototype.animate;a.w.HTMLElement.prototype.animate=function(...args){return animation=animate.apply(this,args)};
    const b=a.d.querySelector('.tdb-announcement');b.dispatchEvent(new a.w.KeyboardEvent('keydown',{key:direction,bubbles:true}));animation.cancel();a.tick(1000);
-   assert.equal(b.dataset.mode,'signature');assert.equal(a.d.querySelector('.tdb-announcement-track').style.transform,'translateX(0)');
-   b.dispatchEvent(new a.w.KeyboardEvent('keydown',{key:direction,bubbles:true}));a.tick(450);assert.equal(b.dataset.mode,'countdown','swipe can continue after cancellation');a.close();
+   assert.equal(b.dataset.mode,'countdown');assert.equal(a.d.querySelector('.tdb-announcement-track').style.transform,'translateX(0)');
+   b.dispatchEvent(new a.w.KeyboardEvent('keydown',{key:direction,bubbles:true}));a.tick(450);assert.equal(b.dataset.mode,'signature','swipe can continue after cancellation');a.close();
  }
  a=setup();a.tick(550);a.w.HTMLElement.prototype.animate=()=>{throw Error('animation unavailable')};
- a.d.querySelector('.tdb-announcement').dispatchEvent(new a.w.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));a.tick(500);assert.equal(a.w.TDBAnnouncement.status().mode,'signature','CSS fallback handles animation setup errors');a.close();
+ a.d.querySelector('.tdb-announcement').dispatchEvent(new a.w.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));a.tick(500);assert.equal(a.w.TDBAnnouncement.status().mode,'countdown','CSS fallback handles animation setup errors');a.close();
  // A fresh tap must work even while the preceding swipe is still settling.
  for(const direction of [-1,1])for(const [delay,animationDelay] of [[100,400],[450,400],[500,900]]){
    a=setup({mobile:true,animationDelay});a.tick(550);
@@ -96,7 +109,7 @@ function setup({path='/',embedded=true,saved=true,mobile=false,reduced=false,ani
    const pointer=(type,x)=>{const e=new a.w.MouseEvent(type,{bubbles:true,clientX:x,clientY:30,button:0});Object.defineProperties(e,{pointerId:{value:1},isPrimary:{value:true}});b.dispatchEvent(e)};
    pointer('pointerdown',150);pointer('pointermove',150+direction*80);pointer('pointerup',150+direction*80);b.click();assert.equal(opened,0,'swipe-generated click stays suppressed');
    a.tick(delay);pointer('pointerdown',220);pointer('pointerup',220);b.click();assert.equal(opened,1,'first fresh tap opens VIP during/after slide settlement');
-   a.tick(1000);assert.equal(b.dataset.mode,'signature','interrupted slide settles exactly once');a.close();
+   a.tick(1000);assert.equal(b.dataset.mode,'countdown','interrupted slide settles exactly once');a.close();
  }
  // A real touch tap should not depend on a later compatibility click being delivered.
  for(const direction of [-1,1]){
@@ -173,7 +186,7 @@ function setup({path='/',embedded=true,saved=true,mobile=false,reduced=false,ani
    const animate=a.w.HTMLElement.prototype.animate;
    a.w.HTMLElement.prototype.animate=function(...args){const track=this,animation=animate.apply(this,args),cancel=animation.cancel;animation.cancel=function(){released={transform:track.style.transform,message:track.firstElementChild.dataset.message};cancel.call(this)};return animation};
    a.d.querySelector('.tdb-announcement').dispatchEvent(new a.w.KeyboardEvent('keydown',{key:direction,bubbles:true}));a.tick(450);
-   assert.deepEqual(released,{transform:'translateX(0)',message:'signature'},'settled slide is ready before compositor release');a.close();
+   assert.deepEqual(released,{transform:'translateX(0)',message:'smile'},'settled slide is ready before compositor release');a.close();
  }
  // Unrelated root classes do not rewrite the banner; date formatters are reused.
  a=setup();a.tick(550);let writes=0,formats=0;const button=a.d.querySelector('.tdb-announcement');const original=button.setAttribute;

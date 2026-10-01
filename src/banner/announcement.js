@@ -1,4 +1,4 @@
-/* TDB Announcement 1.6.7. Shares existing shell/consent/drawer controllers.
+/* TDB Announcement 1.6.8. Shares existing shell/consent/drawer controllers.
  * Uses published CMS text; shares consent, shell motion and drawer routing.
  */
 (() => {
@@ -29,7 +29,7 @@
   let shell, button, track, progress, smilePanel, signaturePanel, smileTitle, signatureTitle, smileAction, signatureAction, counters;
   const digits = [];
   let timer = 0, rotation = 0, slideTimer = 0, active = false, started = false, mode = '', last = '';
-  let signatureState = signatureOnly, interacting = false, hovered = false, moving = false, suspended = false, lastVisible = false;
+  let signatureState = true, interacting = false, hovered = false, moving = false, suspended = false, lastVisible = false;
   const dwell = 8000;
   let rotationLeft = dwell, rotationEnd = 0;
   let manual = false, gesture = null, slideDirection = -1, suppressClickUntil = 0, openedTouch = null;
@@ -354,7 +354,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     if (!row && !dataRequested && typeof fetch === 'function') { loadSettings(); return; }
     started = true;
     events.forEach(name => window.removeEventListener(name, consentReady));
-    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.6.7'; style.textContent = CSS;
+    const style = element('style', ''); style.dataset.tdbAnnouncement = '1.6.8'; style.textContent = CSS;
     document.head.append(style);
     button = element('button', 'tdb-announcement padding-global'); button.type = 'button';
     button.setAttribute('aria-haspopup', 'dialog'); button.setAttribute('aria-controls', 'tdb-vip-drawer');
@@ -370,7 +370,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
       digits.push(value); unit.append(value, element('small', '', label)); counters.append(unit);
     });
     smileLower.append(counters, smileAction); smilePanel.append(smileTitle, smileLower); signaturePanel.append(signatureTitle, signatureAction);
-    if (!signatureOnly) track.append(smilePanel); track.append(signaturePanel); viewport.append(track);
+    track.append(signaturePanel); if (!signatureOnly) track.append(smilePanel); viewport.append(track);
     const circle = element('span', 'tdb-announcement-circle'); circle.setAttribute('aria-hidden', 'true');
     const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); arrow.setAttribute('viewBox', '0 0 16 16');
     arrow.setAttribute('class', 'tdb-announcement-arrow');
@@ -416,13 +416,13 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     start();
   }
   window.TDBAnnouncement = Object.freeze({
-    version: '1.6.7',
+    version: '1.6.8',
     mount(target) {
       if (shell) return;
       shell = target; shell.hidden = true; active = decisionExists();
       if (active) start(); else events.forEach(name => window.addEventListener(name, consentReady));
     },
     configure(next) { overrides = { ...overrides, ...next }; config = { ...config, ...next }; labels.clear(); mode = last = ''; render(); },
-    status: () => ({ version: '1.6.7', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
+    status: () => ({ version: '1.6.8', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
   });
 })();
