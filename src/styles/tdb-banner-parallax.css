@@ -91,7 +91,7 @@
   .parallax-swiper_component .swiper-slide.is-showcase .showcase_card::after {
     content:"";position:absolute;inset:0;z-index:25;pointer-events:none;
     -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
-    transition:backdrop-filter 300ms ease,-webkit-backdrop-filter 300ms ease;
+    transition:backdrop-filter var(--tdb-parallax-duration,400ms) ease,-webkit-backdrop-filter var(--tdb-parallax-duration,400ms) ease;
   }
   .parallax-swiper_component .swiper-slide.is-showcase.swiper-slide-active .showcase_card::after {
     -webkit-backdrop-filter:blur(0);backdrop-filter:blur(0);

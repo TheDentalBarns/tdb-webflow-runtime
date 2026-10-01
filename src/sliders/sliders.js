@@ -317,6 +317,47 @@
     firstViewStates.get(component)?.bind(swiper);
   }
 
+
+  function parallaxDuration(swiperEl) {
+    if (!matchMedia('(min-width:992px)').matches) return 400;
+    const width = swiperEl.clientWidth;
+    return Math.round(Math.min(950, Math.max(650, 400 * Math.sqrt(width / 375))));
+  }
+
+  function bindParallaxDuration(component, swiperEl, swiper) {
+    let frame = 0;
+    let pending = null;
+    const desktop = matchMedia('(min-width:992px)');
+    function apply() {
+      if (swiper.destroyed || pending === null || swiper.animating) return;
+      const duration = pending;
+      pending = null;
+      swiper.params.speed = duration;
+      swiper.originalParams.speed = duration;
+      component.style.setProperty('--tdb-parallax-duration', duration + 'ms');
+    }
+    function schedule() {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        pending = parallaxDuration(swiperEl);
+        apply();
+      });
+    }
+    const observer = new ResizeObserver(schedule);
+    observer.observe(swiperEl);
+    desktop.addEventListener('change', schedule);
+    swiper.on('slideChangeTransitionEnd', apply);
+    component.style.setProperty('--tdb-parallax-duration', swiper.params.speed + 'ms');
+    swiper.on('beforeDestroy', () => {
+      observer.disconnect();
+      desktop.removeEventListener('change', schedule);
+      if (frame) cancelAnimationFrame(frame);
+      swiper.off('slideChangeTransitionEnd', apply);
+      component.style.removeProperty('--tdb-parallax-duration');
+    });
+  }
+
   function initParallaxSwiper(component) {
     if (!component || isInitialised(component)) return;
 
@@ -351,7 +392,7 @@
       loopAdditionalSlides: 1,
       slideToClickedSlide: true,
       parallax: true,
-      speed: 400,
+      speed: parallaxDuration(swiperEl),
       effect: 'slide',
       keyboard: { enabled: true },
       spaceBetween: 0,
@@ -376,6 +417,7 @@
       }
     });
 
+    bindParallaxDuration(component, swiperEl, swiper);
     cta?.bind(swiper);
 
     const FADE_IN_DELAY_NEXT = 100;
