@@ -6,7 +6,7 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro h2 {
   margin:0;line-height:1.2;letter-spacing:normal;text-transform:none;
 }
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-link {
-  display:flex;justify-content:center;align-items:center;
+  display:flex;width:100%;align-self:stretch;justify-content:center;align-items:center;
 }
 @media (min-width:992px) {
   /* Use the existing large-heading scale with the reference's sentence case. */
