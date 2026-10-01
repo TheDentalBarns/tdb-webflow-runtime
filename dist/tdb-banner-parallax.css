@@ -82,8 +82,10 @@
 
 /* Desktop parallax neighbours: contained blur, sharp card edges. */
 @media (min-width:992px) {
+  /* Same gap as the site's three-photo grid; Swiper owns the actual spacing. */
+  .parallax-swiper_component {column-gap:2rem}
   .parallax-swiper_component .swiper-slide.is-showcase {
-    opacity:1!important;padding-inline:10px;box-sizing:border-box;
+    opacity:1!important;padding-inline:0;box-sizing:border-box;
   }
   .parallax-swiper_component .swiper-slide.is-showcase .showcase_card {
     overflow:hidden;isolation:isolate;

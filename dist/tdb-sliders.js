@@ -445,6 +445,31 @@
     });
   }
 
+  function highlightGap(component) {
+    if (window.innerWidth < 768 && (component.hasAttribute('data-tdb-smile-slider') || component.querySelector('a[href^="/treatments/"]') || document.documentElement.getAttribute('data-wf-page') === '677cfbe37aba5fbbc2154c24')) return window.innerWidth * 0.02;
+    return window.innerWidth <= 768 ? window.innerWidth * 0.05 : 20;
+  }
+
+  function desktopGridGap(component, fallback) {
+    if (!matchMedia('(min-width:992px)').matches) return fallback;
+    const homeGallery = document.documentElement.dataset.wfPage === '677cf86df9952f978d94d8a9' && component.matches('.section_smile-gallery [data-tdb-smile-slider]');
+    if (!component.matches(PARALLAX_SELECTOR) && !homeGallery) return fallback;
+    // Computed columnGap resolves the reference grid's rem spacing to pixels.
+    const gap = parseFloat(getComputedStyle(component).columnGap);
+    return Number.isFinite(gap) ? gap : fallback;
+  }
+
+  function bindGridGap(component, swiper, fallback) {
+    const sync = () => {
+      const gap = desktopGridGap(component, fallback());
+      swiper.params.spaceBetween = gap;
+      swiper.originalParams.spaceBetween = gap;
+    };
+    // Swiper's own resize pass updates the slide positions after this read.
+    swiper.on('beforeResize breakpoint', sync);
+    swiper.on('beforeDestroy', () => swiper.off('beforeResize breakpoint', sync));
+  }
+
   function initHighlightSwiper(component) {
     if (!component || isInitialised(component)) return;
 
@@ -458,9 +483,7 @@
       observer: true,
       observeParents: true,
       watchSlidesProgress: true,
-      spaceBetween: window.innerWidth < 768 && (component.hasAttribute('data-tdb-smile-slider') || component.querySelector('a[href^="/treatments/"]') || document.documentElement.getAttribute('data-wf-page') === '677cfbe37aba5fbbc2154c24')
-        ? window.innerWidth * 0.02
-        : window.innerWidth <= 768 ? window.innerWidth * 0.05 : 20,
+      spaceBetween: desktopGridGap(component, highlightGap(component)),
       grabCursor: true,
       slideToClickedSlide: true,
       rewind: false,
@@ -493,6 +516,10 @@
         0: { slidesPerView: 1, touchRatio: 1 }
       }
     });
+
+    if (component.matches('.section_smile-gallery [data-tdb-smile-slider]') && document.documentElement.dataset.wfPage === '677cf86df9952f978d94d8a9') {
+      bindGridGap(component, swiper, () => highlightGap(component));
+    }
 
     function updateCount() {
       if (countEl) countEl.textContent = `${swiper.realIndex + 1} of ${slideCount}`;
@@ -588,7 +615,7 @@
       speed: parallaxDuration(swiperEl),
       effect: 'slide',
       keyboard: { enabled: true },
-      spaceBetween: 0,
+      spaceBetween: desktopGridGap(component, 0),
       resistanceRatio: 0,
       touchReleaseOnEdges: true,
       followFinger: true,
@@ -610,6 +637,7 @@
       }
     });
 
+    bindGridGap(component, swiper, () => 0);
     bindParallaxDuration(component, swiperEl, swiper);
     cta?.bind(swiper);
 

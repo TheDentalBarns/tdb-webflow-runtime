@@ -15,21 +15,30 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-link {
 @media (min-width:992px) {
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro,
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro :is(h2,p) {text-align:center}
-  /* Use the existing large-heading scale with the reference's sentence case. */
-  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro h2 {font-size:3.5rem;letter-spacing:normal;text-transform:none}
-  /* 4rem row gap + 3rem here matches the standard 7rem section padding below. */
-  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-link {margin-top:3rem}
+  /* Keep the site's capitalised heading treatment on desktop too. */
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro h2 {font-size:3.5rem;letter-spacing:.1rem;text-transform:uppercase}
   html[data-wf-page="677cf86df9952f978d94d8a9"] .section_smile-gallery .testimonial15_slide-content {
-    display:flex;flex-direction:column;align-items:stretch;row-gap:4rem;
+    display:flex;flex-direction:column;align-items:stretch;row-gap:7rem;
   }
   html[data-wf-page="677cf86df9952f978d94d8a9"] .section_smile-gallery .testimonial15_content-right {margin-bottom:0}
   html[data-wf-page="677cf86df9952f978d94d8a9"] .section_smile-gallery .testimonial15_client-image-wrapper {
     position:relative;top:auto;width:100%;max-width:none;min-width:0;overflow:visible;
   }
   html[data-wf-page="677cf86df9952f978d94d8a9"] .section_smile-gallery [data-tdb-smile-slider] {
-    width:min(30vw,28rem);margin-inline:auto;overflow:visible;
+    /* Three equal cards fill the existing globally padded container. */
+    width:calc((100% - 4rem) / 3);margin-inline:auto;overflow:visible;column-gap:2rem;
+    --tdb-smile-pad:4.55cqw;
   }
   html[data-wf-page="677cf86df9952f978d94d8a9"] .section_smile-gallery [data-tdb-smile-slider] > .swiper {overflow:visible}
+  /* Card-relative text stays proportional when the page's rem scale changes. */
+  html[data-wf-page="677cf86df9952f978d94d8a9"] [data-tdb-smile-slider] [data-tdb-smile-title] {
+    font-size:3.2cqw;line-height:1.5;letter-spacing:.1em;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] [data-tdb-smile-slider] :is(.tdb-smile-kicker,.tdb-smile-static-kicker,.tdb-smile-counter,.tdb-smile-summary,.tdb-smile-static-facts) {font-size:2.4cqw}
+  html[data-wf-page="677cf86df9952f978d94d8a9"] [data-tdb-smile-slider] > :is(.tdb-smile-static-kicker,.tdb-smile-counter) {
+    top:calc((8rem - .8rem - 9.6cqw - 1.5em) / 2);
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] [data-tdb-smile-slider] .tdb-smile-image-label {font-size:2.73cqw;letter-spacing:.1167em}
   /* Keep neighbour text hidden even during a loop-copy handoff. Static controls
      and fact icons retain their existing layer over the centre card. */
   html[data-wf-page="677cf86df9952f978d94d8a9"] .section_smile-gallery [data-tdb-smile-slider] .swiper-slide:not(.swiper-slide-active):not(.swiper-slide-duplicate-active) [data-fade-slide] {
