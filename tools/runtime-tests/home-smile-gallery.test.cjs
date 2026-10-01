@@ -21,3 +21,23 @@ test('homepage becomes introduction, unchanged CMS gallery, one standard gallery
 test('the shared gallery on other pages is untouched',t=>{
  const w=fixture(t,'another-page'),before=w.document.body.innerHTML;w.eval(source);w.document.dispatchEvent(new w.Event('DOMContentLoaded'));assert.equal(w.document.body.innerHTML,before);
 });
+test('button uses the full gallery count, loads near the section and handles new totals',async t=>{
+ for(const total of [30,31,1]){
+  const w=fixture(t);let calls=0,observer;
+  w.IntersectionObserver=class{constructor(cb){this.cb=cb;observer=this;}observe(){}disconnect(){this.disconnected=true;}};
+  w.fetch=async(url,options)=>{calls++;assert.equal(url,'/smile-gallery');assert.equal(options.priority,'low');return {ok:true,text:async()=>'<div data-tdb-sg-list>'+Array.from({length:total},()=>'<details data-tdb-sg-case></details>').join('')+'</div><details data-tdb-sg-case></details>'};};
+  w.eval(source);w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
+  const button=w.document.querySelector('.tdb-home-smile-link a');assert.equal(button.firstElementChild.textContent,'See our smiles');assert.equal(calls,0);
+  observer.cb([{isIntersecting:false}]);assert.equal(calls,0);
+  observer.cb([{isIntersecting:true}]);await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(button.firstElementChild.textContent,'See our '+total+(total===1?' smile':' smiles'));assert.equal(calls,1);assert.equal(observer.disconnected,true);
+  assert.equal(w.document.querySelectorAll('[data-tdb-sg-case]').length,0);
+ }
+});
+test('an unavailable or empty full gallery keeps a working generic link',async t=>{
+ for(const mode of ['failure','empty']){
+  const w=fixture(t);w.fetch=async()=>{if(mode==='failure')throw Error('offline');return {ok:true,text:async()=>'<main></main>'};};
+  w.eval(source);w.document.dispatchEvent(new w.Event('DOMContentLoaded'));await new Promise(resolve=>setImmediate(resolve));
+  const button=w.document.querySelector('.tdb-home-smile-link a');assert.equal(button.textContent,'See our smiles');assert.equal(button.getAttribute('href'),'/smile-gallery');
+ }
+});

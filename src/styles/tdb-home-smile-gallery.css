@@ -12,6 +12,9 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro .text-style-
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-link {
   display:flex;width:100%;align-self:stretch;justify-content:center;align-items:center;
 }
+@media (max-width:767px) {
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-link {justify-content:flex-start}
+}
 @media (min-width:992px) {
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro,
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro :is(h2,p) {text-align:center}

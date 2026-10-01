@@ -1,0 +1,5 @@
+/* Match Location's charcoal section using the existing brand colour tokens. */
+html[data-wf-page="677cf86df9952f978d94d8a9"] #All-treatments {
+  background-color:var(--base-color-neutral--neutral-darker,#222);
+  color:var(--base-color-brand--white,#fff);
+}
