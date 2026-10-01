@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.6.1';
+  const VERSION = '0.7.0';
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
     itemSelector: '.partner_logos',
@@ -25,6 +25,11 @@
   // MediaQueryList.matches stays live as the viewport changes. Reuse the list
   // rather than creating another one on every animation frame.
   const mobileMediaQuery = window.matchMedia?.(CONFIG.mobileMedia);
+
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const style = document.createElement('style');
+  style.textContent = `.logo-slider .partner_logos{cursor:grab;touch-action:pan-y}.logo-slider .partner_logos:focus-visible{outline:1px solid #a79b86;outline-offset:-3px}@media(hover:hover) and (pointer:fine){.logo-slider .partner_logos:hover .logo_image{opacity:.8}}`;
+  document.head.append(style);
 
   const INIT_ATTR = 'data-tdb-logo-marquee-init';
   const CLONE_ATTR = 'data-tdb-logo-marquee-clone';
@@ -105,6 +110,13 @@
     track.style.touchAction = 'pan-y';
     prepareVisibleLogos(track);
 
+    originals.forEach((item, index) => {
+      item.dataset.tdbLogoIndex = index;
+      item.setAttribute('role', 'button');
+      item.setAttribute('tabindex', '0');
+      item.setAttribute('aria-label', (item.querySelector(CONFIG.logoSelector)?.alt || 'Logo ' + (index + 1)) + ': centre and pause; activate again to resume');
+      item.querySelectorAll('img').forEach(img => img.draggable = false);
+    });
     const fragment = document.createDocumentFragment();
     originals.forEach(original => fragment.appendChild(makeClone(original)));
     track.appendChild(fragment);
@@ -112,6 +124,12 @@
     const controller = new AbortController();
     const { signal } = controller;
 
+    let paused = reduced.matches;
+    let selected = null;
+    let startY = 0;
+    let startX = 0;
+    let horizontal = false;
+    const viewport = track.closest('.logo-slider');
     let loopWidth = 0;
     let targetX = 0;
     let currentX = 0;
@@ -120,7 +138,6 @@
     let dragging = false;
     let pointerId = null;
     let lastPointerX = 0;
-    let dragDistance = 0;
     let suppressNextClick = false;
     let rafId = 0;
     let lastFrameAt = performance.now();
@@ -178,6 +195,7 @@
       measureAttempts = 0;
       ready = true;
       setTransform(wrapX(currentX, loopWidth));
+      if (paused && selected !== null) centre(originals[Number(selected)]);
       startAnimation();
     }
 
@@ -200,7 +218,7 @@
       lastFrameAt = now;
 
       if (ready) {
-        targetX -= getSpeed() * deltaSeconds;
+        if (!paused && !dragging && !reduced.matches) targetX -= getSpeed() * deltaSeconds;
 
         const frameSmoothing = 1 - Math.pow(1 - CONFIG.smoothing, deltaSeconds * 60);
         currentX += (targetX - currentX) * frameSmoothing;
@@ -214,53 +232,82 @@
         setTransform(wrapX(currentX, loopWidth));
       }
 
-      rafId = requestAnimationFrame(frame);
+      if ((!paused && !reduced.matches) || dragging || Math.abs(targetX-currentX) > .05) rafId = requestAnimationFrame(frame);
+    }
+
+    function centre(item) {
+      if (!item || !ready) return;
+      paused = true;
+      selected = item.dataset.tdbLogoIndex;
+      const box = item.getBoundingClientRect();
+      const view = viewport.getBoundingClientRect();
+      targetX = currentX + shortestDelta(view.left + view.width / 2 - box.left - box.width / 2, loopWidth);
+      if (reduced.matches) { currentX = targetX; setTransform(wrapX(currentX,loopWidth)); }
+      startAnimation();
+    }
+    function select(item) {
+      if (!item) return;
+      if (paused && selected === item.dataset.tdbLogoIndex) {
+        paused = false; selected = null; targetX = currentX; startAnimation();
+      } else centre(item);
+    }
+    function settle() {
+      const view = viewport.getBoundingClientRect();
+      const middle = view.left + view.width / 2;
+      const items = [...track.querySelectorAll(CONFIG.itemSelector)];
+      const nearest = items.reduce((best,item) => {
+        const r = item.getBoundingClientRect();
+        const distance = Math.abs(shortestDelta(middle-r.left-r.width/2,loopWidth));
+        return !best || distance < best.distance ? {item,distance} : best;
+      },null);
+      centre(nearest?.item);
     }
 
     function onPointerDown(event) {
-      if (!ready || event.button > 0) return;
-
-      dragging = true;
+      if (!ready || event.button > 0 || pointerId !== null) return;
       pointerId = event.pointerId;
-      lastPointerX = event.clientX;
-      dragDistance = 0;
+      startX = lastPointerX = event.clientX; startY = event.clientY;
+      horizontal = false; dragging = false;
       suppressNextClick = false;
-
-      try {
-        track.setPointerCapture(pointerId);
-      } catch (error) {}
     }
-
     function onPointerMove(event) {
-      if (!dragging || event.pointerId !== pointerId) return;
-
-      const deltaX = event.clientX - lastPointerX;
-      lastPointerX = event.clientX;
-      dragDistance += Math.abs(deltaX);
-      targetX += deltaX;
-
-      if (dragDistance > CONFIG.dragClickThreshold) {
-        suppressNextClick = true;
-        event.preventDefault();
+      if (event.pointerId !== pointerId) return;
+      const dx = event.clientX-startX, dy = event.clientY-startY;
+      if (!horizontal) {
+        if (Math.abs(dy) > CONFIG.dragClickThreshold && Math.abs(dy) > Math.abs(dx)) { pointerId = null; return; }
+        if (Math.abs(dx) <= CONFIG.dragClickThreshold) return;
+        horizontal = dragging = true; paused = true; selected = null;
+        targetX = currentX;
+        try { track.setPointerCapture(pointerId); } catch (_) {}
       }
+      event.preventDefault(); suppressNextClick = true;
+      const delta = event.clientX-lastPointerX; lastPointerX = event.clientX;
+      currentX += delta; targetX = currentX;
+      setTransform(wrapX(currentX,loopWidth));
     }
-
     function endPointer(event) {
-      if (!dragging || (event && event.pointerId !== pointerId)) return;
-
-      try {
-        track.releasePointerCapture(pointerId);
-      } catch (error) {}
-
-      dragging = false;
-      pointerId = null;
+      if (event.pointerId !== pointerId) return;
+      const id = pointerId; pointerId = null; dragging = false;
+      try { track.releasePointerCapture(id); } catch (_) {}
+      if (horizontal) { suppressNextClick = true; settle(); }
+      horizontal = false;
     }
-
     function onClick(event) {
-      if (!suppressNextClick) return;
-      suppressNextClick = false;
-      event.preventDefault();
-      event.stopImmediatePropagation();
+      const item = event.target.closest(CONFIG.itemSelector);
+      if (!item) return;
+      event.preventDefault(); event.stopImmediatePropagation();
+      if (suppressNextClick) { suppressNextClick = false; return; }
+      select(item);
+    }
+    function onKey(event) {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const item = event.target.closest(CONFIG.itemSelector);
+      if (!item) return;
+      event.preventDefault(); event.stopImmediatePropagation(); select(item);
+    }
+    function onReducedChange() {
+      paused = reduced.matches; targetX = currentX; selected = null;
+      if (paused) stopAnimation(); else startAnimation();
     }
 
     function onTooltipIntent(event) {
@@ -291,9 +338,12 @@
       instances.delete(track);
     }
 
+    track.addEventListener('keydown', onKey, { signal });
+    track.addEventListener('dragstart', event => event.preventDefault(), { signal });
+    reduced.addEventListener('change', onReducedChange, { signal });
     track.addEventListener('pointerdown', onPointerDown, { signal });
     track.addEventListener('pointermove', onPointerMove, { signal, passive: false });
-    track.addEventListener('pointerup', endPointer, { signal });
+    window.addEventListener('pointerup', endPointer, { signal });
     track.addEventListener('pointercancel', endPointer, { signal });
     track.addEventListener('lostpointercapture', endPointer, { signal });
     track.addEventListener('click', onClick, { signal, capture: true });
@@ -349,6 +399,8 @@
         active,
         running: Boolean(rafId),
         dragging,
+        paused,
+        selected,
         loopWidth,
         currentX,
         targetX
