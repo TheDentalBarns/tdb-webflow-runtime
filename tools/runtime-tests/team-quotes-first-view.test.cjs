@@ -4,10 +4,10 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {JSDOM}=require('jsdom');
 const source=fs.readFileSync(path.resolve(__dirname,'../../dist/tdb-team-quotes.js'),'utf8');
-function fixture(t,{pathname='/',width=390,reduced=true}={}){
+function fixture(t,{pathname='/',width=390,reduced=true,total=3}={}){
  let now=0,id=0;const timers=new Map(),observers=[],animations=[],counts=[];
  const quotes=['Care and welcome','Designed for comfort','A non-clinical setting'];
- const html='<section class="section_standard-testimonial"><div class="testimonial_wrapper"><div class="icon-embed-medium"></div><div class="testimonial_slider w-slider"></div></div></section><div data-tdb-team-quote-feed><div class="w-dyn-item"><span data-tdb-team-author>Dr Keely Thorne</span><span data-tdb-team-role>Principal Dentist</span><div data-tdb-team-quote-content>'+quotes.map((q,i)=>'<h3>'+q+'</h3><blockquote>Quote '+i+'</blockquote><p>Page: '+pathname+'</p><p>Rank: '+(i+1)+'</p>').join('')+'</div></div></div>';
+ const html='<section class="section_standard-testimonial"><div class="testimonial_wrapper"><div class="icon-embed-medium"></div><div class="testimonial_slider w-slider"></div></div></section><div data-tdb-team-quote-feed><div class="w-dyn-item"><span data-tdb-team-author>Dr Keely Thorne</span><span data-tdb-team-role>Principal Dentist</span><div data-tdb-team-quote-content>'+quotes.slice(0,total).map((q,i)=>'<h3>'+q+'</h3><blockquote>Quote '+i+'</blockquote><p>Page: '+pathname+'</p><p>Rank: '+(i+1)+'</p>').join('')+'</div></div></div>';
  const dom=new JSDOM(html,{url:'https://dentalbarns.webflow.io'+pathname,runScripts:'outside-only',pretendToBeVisual:true,beforeParse(w){
   w.matchMedia=()=>({matches:reduced});w.innerWidth=width;
   w.setTimeout=(cb,delay)=>{timers.set(++id,{cb,at:now+delay});return id;};w.clearTimeout=id=>timers.delete(id);
@@ -26,21 +26,27 @@ function fixture(t,{pathname='/',width=390,reduced=true}={}){
  const pointer=(type,x,y=0)=>{const e=new w.Event(type,{bubbles:true,cancelable:true});Object.assign(e,{pointerId:1,isPrimary:true,button:0,clientX:x,clientY:y});viewport.dispatchEvent(e);};
  return {w,root,viewport,animations,counts,tick,finish,pointer,observer:observers[0]};
 }
-test('first visible entry advances exactly once on desktop and mobile, including reduced motion',async t=>{
+test('second quote is settled on the first draw with no initial slide or ticker animation',async t=>{
  for(const width of [390,1440]){
-  const a=fixture(t,{width});assert.equal(a.root.dataset.tdbSliderFirstView,'pending');a.tick(5000);assert.equal(a.animations.length,0);
-  a.observer.cb([{isIntersecting:true}]);a.tick(121);assert.equal(a.root.dataset.tdbSliderFirstView,'advanced');assert.equal(a.animations.length,2);assert.equal(a.animations[0].options.duration,400);
-  await a.finish();assert.equal(a.root.querySelector('[aria-hidden="false"]').getAttribute('aria-label'),'2 of 3');
-  assert.equal(a.root.querySelector('.tdb-team-position').textContent,'02 — 03');assert.equal(a.root.querySelectorAll('.tdb-rc-dot,.tdb-rc-pause').length,0);
-  a.tick(30000);a.observer.cb([{isIntersecting:false}]);a.observer.cb([{isIntersecting:true}]);a.tick(30000);assert.equal(a.animations.length,2);
-  a.viewport.dispatchEvent(new a.w.KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));await a.finish();assert.equal(a.root.querySelector('[aria-hidden="false"]').getAttribute('aria-label'),'3 of 3');
-  a.viewport.dispatchEvent(new a.w.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));await a.finish();assert.equal(a.root.querySelector('[aria-hidden="false"]').getAttribute('aria-label'),'2 of 3');assert.ok(a.counts.some(c=>c.current===2&&c.direction===-1));
+  const a=fixture(t,{width});assert.equal(a.root.dataset.tdbSliderFirstView,'drawn');
+  const initial=a.root.querySelector('[aria-hidden="false"]');
+  assert.equal(initial.getAttribute('aria-label'),'2 of 3');assert.ok(initial.classList.contains('is-settled'));
+  assert.equal(a.root.querySelector('.tdb-rc-card').style.visibility,'hidden');assert.equal(a.root.querySelector('.tdb-rc-card').inert,true);
+  assert.equal(a.root.querySelector('.tdb-team-position').textContent,'02 — 03');assert.deepEqual(a.counts.map(c=>c.current),[2]);
+  assert.equal(a.animations.length,0);a.tick(30000);assert.equal(a.animations.length,0);
+  a.viewport.dispatchEvent(new a.w.KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));
+  assert.equal(a.animations.length,2);assert.equal(a.animations[0].options.duration,400);await a.finish();a.tick(101);
+  assert.equal(a.root.querySelector('[aria-hidden="false"]').getAttribute('aria-label'),'3 of 3');assert.ok(a.root.querySelector('[aria-hidden="false"]').classList.contains('is-settled'));
+  a.viewport.dispatchEvent(new a.w.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));await a.finish();
+  assert.equal(a.root.querySelector('[aria-hidden="false"]').getAttribute('aria-label'),'2 of 3');assert.ok(a.counts.some(c=>c.current===2&&c.direction===-1));
  }
 });
-test('manual swipe before entry consumes auto advance and page-specific quotes still work',async t=>{
+test('manual swipes animate normally across page-specific quote sets',async t=>{
  for(const pathname of ['/first-visit','/location','/services/nervous-patient-care']){
-  const a=fixture(t,{pathname});a.observer.cb([{isIntersecting:true}]);a.pointer('pointerdown',220);a.pointer('pointermove',100);a.pointer('pointerup',100);await a.finish();
-  assert.equal(a.root.dataset.tdbSliderFirstView,'skipped-interaction');assert.equal(a.root.querySelector('[aria-hidden="false"]').getAttribute('aria-label'),'2 of 3');
-  a.tick(10000);assert.equal(a.animations.length,2);
+  const a=fixture(t,{pathname});a.pointer('pointerdown',220);a.pointer('pointermove',100);a.pointer('pointerup',100);await a.finish();
+  assert.equal(a.root.querySelector('[aria-hidden="false"]').getAttribute('aria-label'),'3 of 3');a.tick(10000);assert.equal(a.animations.length,2);
  }
+});
+test('a single quote is visible immediately and has no pagination',t=>{
+ const a=fixture(t,{total:1});assert.equal(a.root.querySelector('[aria-hidden="false"]').getAttribute('aria-label'),'1 of 1');assert.ok(a.root.querySelector('.tdb-rc-card').classList.contains('is-settled'));assert.equal(a.root.querySelector('.tdb-team-position'),null);assert.equal(a.animations.length,0);
 });
