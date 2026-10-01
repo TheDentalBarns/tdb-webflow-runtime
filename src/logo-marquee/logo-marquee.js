@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.7.0';
+  const VERSION = '0.8.0';
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
     itemSelector: '.partner_logos',
@@ -27,6 +27,8 @@
   const mobileMediaQuery = window.matchMedia?.(CONFIG.mobileMedia);
 
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const desktop = matchMedia('(min-width: 992px)');
+  const reduceMotion = () => reduced.matches && !desktop.matches;
   const style = document.createElement('style');
   style.textContent = `.logo-slider .partner_logos{cursor:grab;touch-action:pan-y}.logo-slider .partner_logos:focus-visible,.logo-slider .partner_logos[data-tdb-keyboard-focus]{outline:1px solid #a79b86;outline-offset:-3px}@media(hover:hover) and (pointer:fine){.logo-slider .partner_logos:hover .logo_image{opacity:.8}}`;
   document.head.append(style);
@@ -125,7 +127,11 @@
     const controller = new AbortController();
     const { signal } = controller;
 
-    let paused = reduced.matches;
+    let paused = reduceMotion();
+    let momentum = 0;
+    let samples = [];
+    let pageY = window.scrollY;
+    let ignoreClickUntil = 0;
     let selected = null;
     let startY = 0;
     let startX = 0;
@@ -196,7 +202,7 @@
       measureAttempts = 0;
       ready = true;
       setTransform(wrapX(currentX, loopWidth));
-      if (paused && selected !== null) centre(originals[Number(selected)]);
+      if (paused && !dragging && !momentum && selected !== null) centre(originals[Number(selected)]);
       startAnimation();
     }
 
@@ -219,10 +225,23 @@
       lastFrameAt = now;
 
       if (ready) {
-        if (!paused && !dragging && !reduced.matches) targetX -= getSpeed() * deltaSeconds;
-
-        const frameSmoothing = 1 - Math.pow(1 - CONFIG.smoothing, deltaSeconds * 60);
-        currentX += (targetX - currentX) * frameSmoothing;
+        if (momentum && !dragging) {
+          // Integrate exponential deceleration, independent of frame rate.
+          const decay = Math.exp(-4.2 * deltaSeconds);
+          currentX += momentum * (1 - decay) / 4.2;
+          momentum *= decay;
+          targetX = currentX;
+          if (Math.abs(momentum) < 24) {
+            momentum = 0;
+            setTransform(wrapX(currentX, loopWidth));
+            settle();
+          }
+        } else if (!dragging) {
+          if (!paused && !reduceMotion()) targetX -= getSpeed() * deltaSeconds;
+          const smoothing = paused ? .11 : CONFIG.smoothing;
+          const frameSmoothing = 1 - Math.pow(1 - smoothing, deltaSeconds * 60);
+          currentX += (targetX - currentX) * frameSmoothing;
+        }
 
         if (Math.abs(currentX) > 1000000 || Math.abs(targetX) > 1000000) {
           const wrappedCurrent = wrapX(currentX, loopWidth);
@@ -233,23 +252,24 @@
         setTransform(wrapX(currentX, loopWidth));
       }
 
-      if ((!paused && !reduced.matches) || dragging || Math.abs(targetX-currentX) > .05) rafId = requestAnimationFrame(frame);
+      if (!rafId && ((!paused && !reduceMotion()) || momentum || Math.abs(targetX-currentX) > .05)) rafId = requestAnimationFrame(frame);
     }
 
     function centre(item) {
       if (!item || !ready) return;
       paused = true;
+      momentum = 0;
       selected = item.dataset.tdbLogoIndex;
       const box = item.getBoundingClientRect();
       const view = viewport.getBoundingClientRect();
       targetX = currentX + shortestDelta(view.left + view.width / 2 - box.left - box.width / 2, loopWidth);
-      if (reduced.matches) { currentX = targetX; setTransform(wrapX(currentX,loopWidth)); }
+      if (reduceMotion()) { currentX = targetX; setTransform(wrapX(currentX,loopWidth)); }
       startAnimation();
     }
     function select(item) {
       if (!item) return;
       if (paused && selected === item.dataset.tdbLogoIndex) {
-        paused = false; selected = null; targetX = currentX; startAnimation();
+        resume();
       } else centre(item);
     }
     function settle() {
@@ -264,41 +284,74 @@
       centre(nearest?.item);
     }
 
+    function resume() {
+      if (dragging) return;
+      paused = reduceMotion(); selected = null; momentum = 0;
+      targetX = currentX;
+      if (!paused) startAnimation();
+    }
     function onPointerDown(event) {
-      if (!ready || event.button > 0 || pointerId !== null) return;
+      if (!ready || event.button > 0 || event.isPrimary === false || pointerId !== null) return;
+      // Catch a moving logo exactly where the finger lands, including mid-settle.
+      momentum = 0; targetX = currentX; paused = true; stopAnimation();
       pointerId = event.pointerId;
       startX = lastPointerX = event.clientX; startY = event.clientY;
+      samples = [{x:event.clientX,t:event.timeStamp}];
       horizontal = false; dragging = false;
-      suppressNextClick = false;
+      suppressNextClick = false; ignoreClickUntil = 0;
     }
     function onPointerMove(event) {
       if (event.pointerId !== pointerId) return;
       const dx = event.clientX-startX, dy = event.clientY-startY;
       if (!horizontal) {
-        if (Math.abs(dy) > CONFIG.dragClickThreshold && Math.abs(dy) > Math.abs(dx)) { pointerId = null; return; }
+        if (Math.abs(dy) > CONFIG.dragClickThreshold && Math.abs(dy) > Math.abs(dx)) {
+          pointerId = null; resume(); return;
+        }
         if (Math.abs(dx) <= CONFIG.dragClickThreshold) return;
-        horizontal = dragging = true; paused = true; selected = null;
-        targetX = currentX;
+        horizontal = dragging = true; selected = null;
         try { track.setPointerCapture(pointerId); } catch (_) {}
       }
       event.preventDefault(); suppressNextClick = true;
       const delta = event.clientX-lastPointerX; lastPointerX = event.clientX;
+      samples.push({x:event.clientX,t:event.timeStamp});
+      while (samples.length > 2 && samples[1].t < event.timeStamp - 100) samples.shift();
       currentX += delta; targetX = currentX;
       setTransform(wrapX(currentX,loopWidth));
     }
     function endPointer(event) {
       if (event.pointerId !== pointerId) return;
-      const id = pointerId; pointerId = null; dragging = false;
+      const id = pointerId, moved = horizontal;
+      pointerId = null; dragging = false; horizontal = false;
       try { track.releasePointerCapture(id); } catch (_) {}
-      if (horizontal) { suppressNextClick = true; settle(); }
-      horizontal = false;
+      if (moved) {
+        suppressNextClick = true; ignoreClickUntil = performance.now() + 450;
+        const first = samples[0], last = samples[samples.length-1];
+        const dt = last.t-first.t;
+        momentum = !reduceMotion() && event.type === 'pointerup' && event.timeStamp-last.t < 90 && dt > 0
+          ? clamp((last.x-first.x) / dt * 1000,-2800,2800) : 0;
+        if (Math.abs(momentum) >= 80) startAnimation();
+        else { momentum = 0; settle(); }
+      } else if (event.type !== 'pointerup') resume();
     }
     function onClick(event) {
+      // Pointer capture can retarget the release-click to the track itself.
+      if (suppressNextClick && performance.now() < ignoreClickUntil) {
+        suppressNextClick = false;
+        event.preventDefault(); event.stopImmediatePropagation(); return;
+      }
+      suppressNextClick = false;
       const item = event.target.closest(CONFIG.itemSelector);
-      if (!item) return;
-      event.preventDefault(); event.stopImmediatePropagation();
-      if (suppressNextClick) { suppressNextClick = false; return; }
-      select(item);
+      if (!item) { resume(); return; }
+      event.preventDefault(); event.stopImmediatePropagation(); select(item);
+    }
+    function onOutsideClick(event) {
+      if (!track.contains(event.target)) resume();
+    }
+    function onPageScroll() {
+      const nextY = window.scrollY;
+      if (Math.abs(nextY-pageY) < 8) return;
+      pageY = nextY;
+      if (!dragging && (paused || momentum)) resume();
     }
     function onKey(event) {
       if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -307,8 +360,9 @@
       event.preventDefault(); event.stopImmediatePropagation(); select(item);
     }
     function onReducedChange() {
-      paused = reduced.matches; targetX = currentX; selected = null;
-      if (paused) stopAnimation(); else startAnimation();
+      momentum = 0; targetX = currentX;
+      if (reduceMotion()) { paused = true; stopAnimation(); }
+      else resume();
     }
 
     function onTooltipIntent(event) {
@@ -352,6 +406,9 @@
     track.addEventListener('keydown', onKey, { signal });
     track.addEventListener('dragstart', event => event.preventDefault(), { signal });
     reduced.addEventListener('change', onReducedChange, { signal });
+    desktop.addEventListener('change', onReducedChange, { signal });
+    document.addEventListener('click', onOutsideClick, { signal, capture:true });
+    window.addEventListener('scroll', onPageScroll, { signal, passive:true });
     track.addEventListener('pointerdown', onPointerDown, { signal });
     track.addEventListener('pointermove', onPointerMove, { signal, passive: false });
     window.addEventListener('pointerup', endPointer, { signal });
@@ -368,7 +425,7 @@
         ([entry]) => {
           active = Boolean(entry?.isIntersecting);
           if (active) startAnimation();
-          else stopAnimation();
+          else { paused = reduceMotion(); selected = null; momentum = 0; targetX = currentX; stopAnimation(); }
         },
         { rootMargin: `${CONFIG.activeViewportMargin}px 0px` }
       );
@@ -411,6 +468,7 @@
         running: Boolean(rafId),
         dragging,
         paused,
+        momentum,
         selected,
         loopWidth,
         currentX,
