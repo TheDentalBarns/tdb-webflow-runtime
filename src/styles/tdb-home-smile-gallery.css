@@ -16,7 +16,8 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-link {
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro,
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro :is(h2,p) {text-align:center}
   /* Keep the site's capitalised heading treatment on desktop too. */
-  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro h2 {font-size:3.5rem;letter-spacing:.1rem;text-transform:uppercase}
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro h2 {font-size:2.25rem;letter-spacing:.1em;text-transform:uppercase}
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro p {font-size:1.3125rem;line-height:1.5;opacity:1}
   html[data-wf-page="677cf86df9952f978d94d8a9"] .section_smile-gallery .testimonial15_slide-content {
     display:flex;flex-direction:column;align-items:stretch;row-gap:7rem;
   }

@@ -158,7 +158,8 @@
     };
     const sync = () => {
       const swiper = viewport.swiper;
-      const gap = window.innerWidth < 768 ? window.innerWidth * 0.02 : 20;
+      const fullWidthDesktop = window.innerWidth >= 992 && component.closest('.section_standard-instagram-slider');
+      const gap = fullWidthDesktop ? (parseFloat(getComputedStyle(component).columnGap) || 20) : window.innerWidth < 768 ? window.innerWidth * 0.02 : 20;
       if (swiper && !swiper.destroyed && swiper !== boundSwiper) {
         if (boundSwiper) Object.entries(handlers).forEach(([event, handler]) => boundSwiper.off(event, handler));
         boundSwiper = swiper;

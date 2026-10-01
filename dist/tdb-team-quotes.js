@@ -36,7 +36,7 @@
   }
   if (!['dentalbarns.webflow.io','thedentalbarns.com','www.thedentalbarns.com','thedentalbarns.co.uk','www.thedentalbarns.co.uk'].includes(location.hostname) || window.TDBTeamQuotes) return;
   const css = document.createElement('style');
-  css.dataset.tdbTeamQuoteStyles = '1.1.1'; css.textContent = ".tdb-review-carousel{display:flow-root;position:relative;width:100%;min-height:300px;text-align:center}\n.tdb-rc-viewport{min-height:calc(300px + var(--tdb-rc-star-gap,0px));margin-top:calc(-1 * var(--tdb-rc-star-gap,0px));display:grid;overflow:hidden;touch-action:pan-y pinch-zoom}\n.tdb-rc-card{grid-area:1/1;min-width:0;display:flex;align-items:center;justify-content:center;padding:0;box-sizing:border-box;visibility:hidden}\n.tdb-rc-open{width:100%;cursor:pointer;outline-offset:-2px;opacity:0;transition:opacity 400ms ease-out}\n.tdb-rc-card.is-settled .tdb-rc-open{opacity:1}\n.tdb-rc-quote{margin:0;text-wrap:pretty}\n.tdb-rc-name{display:flex;align-items:center;justify-content:center;gap:.65rem;margin-top:2rem;will-change:opacity}\n.tdb-rc-dots{position:absolute;top:100%;left:0;right:0;display:flex;justify-content:center;gap:6px;margin-top:0}\n.tdb-rc-dot{display:grid;place-items:center;width:1rem;height:44px;border:0;padding:0;background:transparent;cursor:pointer}\n.tdb-rc-dot span{width:1rem;height:1rem;border-radius:50%;background:var(--base-color-brand--orange-2,#ebe2d2)}\n.tdb-rc-dot[aria-pressed=\"true\"] span{background:var(--base-color-brand--orange-3,#d6cab4)}\n.tdb-review-carousel :focus-visible{outline:1px solid currentColor;outline-offset:3px}\n.tdb-rc-pause:focus{position:static;width:auto;height:auto;clip:auto;white-space:normal;padding:.5rem;background:transparent;border:1px solid currentColor}\n\n.tdb-review-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}\n/* Shared carousel rules are prepended by the build from power-snippets.css. */\n[data-tdb-team-quote-feed],[data-tdb-team-quotes-empty]{display:none!important}\n[data-tdb-team-quote-pending] .testimonial_slider{visibility:hidden}\n.tdb-team-quotes .tdb-rc-open{cursor:default}\n.tdb-team-quotes .tdb-rc-name{display:block}\n.tdb-team-quotes .tdb-rc-quote{white-space:normal}\n"; css.textContent += '\n.tdb-team-quotes .tdb-rc-open{transition:opacity 400ms ease-out!important}\n.tdb-team-position{position:absolute;top:100%;left:0;right:0;min-height:44px;justify-content:center;color:var(--base-color-brand--orange-3,#d6cab4);letter-spacing:.06em;font-size:1rem;line-height:1.5}'; document.head.append(css);
+  css.dataset.tdbTeamQuoteStyles = '1.2.0'; css.textContent = ".tdb-review-carousel{display:flow-root;position:relative;width:100%;min-height:300px;text-align:center}\n.tdb-rc-viewport{min-height:calc(300px + var(--tdb-rc-star-gap,0px));margin-top:calc(-1 * var(--tdb-rc-star-gap,0px));display:grid;overflow:hidden;touch-action:pan-y pinch-zoom}\n.tdb-rc-card{grid-area:1/1;min-width:0;display:flex;align-items:center;justify-content:center;padding:0;box-sizing:border-box;visibility:hidden}\n.tdb-rc-open{width:100%;cursor:pointer;outline-offset:-2px;opacity:0;transition:opacity 400ms ease-out}\n.tdb-rc-card.is-settled .tdb-rc-open{opacity:1}\n.tdb-rc-quote{margin:0;text-wrap:pretty}\n.tdb-rc-name{display:flex;align-items:center;justify-content:center;gap:.65rem;margin-top:2rem;will-change:opacity}\n.tdb-rc-dots{position:absolute;top:100%;left:0;right:0;display:flex;justify-content:center;gap:6px;margin-top:0}\n.tdb-rc-dot{display:grid;place-items:center;width:1rem;height:44px;border:0;padding:0;background:transparent;cursor:pointer}\n.tdb-rc-dot span{width:1rem;height:1rem;border-radius:50%;background:var(--base-color-brand--orange-2,#ebe2d2)}\n.tdb-rc-dot[aria-pressed=\"true\"] span{background:var(--base-color-brand--orange-3,#d6cab4)}\n.tdb-review-carousel :focus-visible{outline:1px solid currentColor;outline-offset:3px}\n.tdb-rc-pause:focus{position:static;width:auto;height:auto;clip:auto;white-space:normal;padding:.5rem;background:transparent;border:1px solid currentColor}\n\n.tdb-review-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}\n/* Shared carousel rules are prepended by the build from power-snippets.css. */\n[data-tdb-team-quote-feed],[data-tdb-team-quotes-empty]{display:none!important}\n[data-tdb-team-quote-pending] .testimonial_slider{visibility:hidden}\n.tdb-team-quotes .tdb-rc-open{cursor:default}\n.tdb-team-quotes .tdb-rc-name{display:block}\n.tdb-team-quotes .tdb-rc-quote{white-space:normal}\n"; css.textContent += '\n.tdb-team-quotes .tdb-rc-open{transition:opacity 400ms ease-out!important}\n.tdb-team-quotes .tdb-rc-card.is-first-entry .tdb-rc-open{transition:none!important}\n.tdb-team-position{position:absolute;top:100%;left:0;right:0;min-height:44px;justify-content:center;color:var(--base-color-brand--orange-3,#d6cab4);letter-spacing:.06em;font-size:1rem;line-height:1.5}'; document.head.append(css);
   const animated = [];
   let frame = 0;
   function fade() {
@@ -85,14 +85,18 @@
   function mount(old, records, section) {
     const root = element('div','tdb-review-carousel tdb-team-quotes');
     root.setAttribute('role','region'); root.setAttribute('aria-label','From our team'); root.setAttribute('aria-roledescription','carousel');
-    root.dataset.tdbTeamQuotes = '1.1.1'; root.dataset.quoteCount = records.length;
+    root.dataset.tdbTeamQuotes = '1.2.0'; root.dataset.quoteCount = records.length;
     const viewport = element('div','tdb-rc-viewport'), count = element('div','tdb-team-position');
     count.setAttribute('role','status'); count.setAttribute('aria-live','polite'); count.setAttribute('aria-atomic','true');
     viewport.tabIndex = 0; viewport.setAttribute('aria-label','Team quotes. Use left and right arrow keys to change quote.');
-    // Mount directly on the second quote. Prepare its settled state before the
-    // browser can paint it, so there is no first-quote flash or initial fade.
-    let active=Math.min(1,records.length-1), reveal=0, moving=null, gesture=null;
-    root.dataset.tdbSliderFirstView = 'drawn';
+    // Start at 01 with hidden text. First view brings in 02 already opaque.
+    let active=0, reveal=0, moving=null, gesture=null, entryTimer=0, entryObserver=null;
+    let entryPending=records.length>1;
+    root.dataset.tdbSliderFirstView = entryPending?'pending':'drawn';
+    function cancelEntry() {
+      clearTimeout(entryTimer);entryTimer=0;entryObserver?.disconnect();
+      if(entryPending){entryPending=false;root.dataset.tdbSliderFirstView='manual';}
+    }
     const slides = records.map((record,i) => {
       const card = element('div','tdb-rc-card'); card.dataset.quoteId = record.id;
       card.setAttribute('role','group'); card.setAttribute('aria-roledescription','slide'); card.setAttribute('aria-label',(i+1)+' of '+records.length);
@@ -116,21 +120,23 @@
       clearTimeout(reveal); const target=active;
       reveal=setTimeout(()=>{if(!moving&&!gesture&&active===target)slides[target].classList.add('is-settled');},delay);
     }
-    function finish() { if(!moving)return;const state=moving;moving=null;state.animations.forEach(a=>a.cancel());active=state.target;paint(); }
-    function go(target,direction=1,offset=0) {
+    function finish() { if(!moving)return;const state=moving;moving=null;state.animations.forEach(a=>a.cancel());active=state.target;paint();if(state.entry){slides[active].classList.remove('is-first-entry');root.dataset.tdbSliderFirstView='drawn';} }
+    function go(target,direction=1,offset=0,entry=false) {
       clearTimeout(reveal); finish();
       if(target===active){paint();settle();return;}
       updateCount(target,direction);
       const from=slides[active],to=slides[target],width=viewport.clientWidth;
-      slides.forEach(n=>n.classList.remove('is-settled')); to.style.visibility='visible';to.inert=true;
+      slides.forEach(n=>n.classList.remove('is-settled'));
+      if(entry)to.classList.add('is-first-entry','is-settled');
+      to.style.visibility='visible';to.inert=true;
       const duration=Math.max(120,400*(1-Math.min(Math.abs(offset)/width,.8)));
       const animations=[from.animate([{transform:'translateX('+offset+'px)'},{transform:'translateX('+(-direction*width)+'px)'}],{duration,easing:'ease',fill:'forwards'}),to.animate([{transform:'translateX('+(direction*width+offset)+'px)'},{transform:'translateX(0px)'}],{duration,easing:'ease',fill:'forwards'})];
-      const state=moving={target,animations};
-      Promise.all(animations.map(a=>a.finished.catch(()=>{}))).then(()=>{if(moving!==state)return;finish();settle(direction<0?140:100);});
+      const state=moving={target,animations,entry};
+      Promise.all(animations.map(a=>a.finished.catch(()=>{}))).then(()=>{if(moving!==state)return;finish();if(!entry)settle(direction<0?140:100);});
     }
     viewport.addEventListener('pointerdown',event=>{
       if(!event.isPrimary||event.button!==0||records.length<2)return;
-      finish();clearTimeout(reveal);gesture={id:event.pointerId,x:event.clientX,y:event.clientY,dx:0,horizontal:false};
+      cancelEntry();finish();clearTimeout(reveal);gesture={id:event.pointerId,x:event.clientX,y:event.clientY,dx:0,horizontal:false};
     });
     viewport.addEventListener('pointermove',event=>{
       if(!gesture||gesture.id!==event.pointerId)return;
@@ -153,10 +159,22 @@
       else {paint();settle(60);}
     }
     viewport.addEventListener('pointerup',event=>end(event,false));viewport.addEventListener('pointercancel',event=>end(event,true));
-    root.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();const direction=event.key==='ArrowRight'?1:-1;finish();go((active+direction+slides.length)%slides.length,direction);}});
-    // Only subsequent navigation uses the normal slide and content animations.
-    slides[active].classList.add('is-settled');paint();
+    root.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();cancelEntry();const direction=event.key==='ArrowRight'?1:-1;finish();go((active+direction+slides.length)%slides.length,direction);}});
+    if(!entryPending)slides[active].classList.add('is-settled');paint();
     old.replaceWith(root);section.removeAttribute('data-tdb-team-quote-pending');
+    if(entryPending){
+      entryObserver=new IntersectionObserver(entries=>{
+        const visible=entries.some(e=>e.isIntersecting&&e.intersectionRatio>=.2);
+        clearTimeout(entryTimer);
+        if(!visible||!entryPending)return;
+        entryTimer=setTimeout(()=>{
+          if(!entryPending||gesture||moving)return;
+          entryPending=false;entryObserver.disconnect();root.dataset.tdbSliderFirstView='moving';
+          go(1,1,0,true);
+        },120);
+      },{threshold:.2});
+      entryObserver.observe(viewport);
+    }
     const ornament=root.parentElement.querySelector('.testimonial_wrapper .icon-embed-medium');
     function centre(){if(!ornament)return;root.style.setProperty('--tdb-rc-star-gap',Math.max(0,root.getBoundingClientRect().top-ornament.getBoundingClientRect().bottom)+'px');}
     centre();new ResizeObserver(centre).observe(root.parentElement);document.fonts?.ready.then(centre);
@@ -175,6 +193,6 @@
     });
   }
   addEventListener('scroll',scheduleFade,{passive:true});addEventListener('resize',scheduleFade,{passive:true});addEventListener('pageshow',scheduleFade);
-  window.TDBTeamQuotes=Object.freeze({version:'1.1.1'});
+  window.TDBTeamQuotes=Object.freeze({version:'1.2.0'});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

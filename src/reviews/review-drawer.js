@@ -415,9 +415,11 @@
     function move(direction){finish();go(active+direction);}
     function measure(){
       const nextDesktop=homeDesktop();
-      const measured=viewport.clientWidth,measuredHeight=viewport.clientHeight,nextCompact=nextDesktop||root.clientWidth<=767,nextPerView=nextCompact?1:measured>=1000?3:measured>=680?2:1;
-      const gap=nextDesktop?20:nextCompact?measured*.02:parseFloat(getComputedStyle(root).getPropertyValue('--ri-gap'))||20;
-      const nextWidth=nextDesktop?Math.min(innerWidth*.3,parseFloat(getComputedStyle(document.documentElement).fontSize)*28):nextCompact?root.clientWidth:(measured-gap*(nextPerView-1))/nextPerView,nextCentre=nextCompact?(measured-nextWidth)/2:0;
+      const measured=viewport.clientWidth,nextCompact=nextDesktop||root.clientWidth<=767,nextPerView=nextCompact?1:measured>=1000?3:measured>=680?2:1;
+      const gap=nextDesktop?(parseFloat(getComputedStyle(root).columnGap)||20):nextCompact?measured*.02:parseFloat(getComputedStyle(root).getPropertyValue('--ri-gap'))||20;
+      const nextWidth=nextDesktop?(root.getBoundingClientRect().width-2*gap)/3:nextCompact?root.clientWidth:(measured-gap*(nextPerView-1))/nextPerView,nextCentre=nextCompact?(measured-nextWidth)/2:0;
+      if(nextDesktop)root.style.setProperty('--ri-card-width',nextWidth+'px');else root.style.removeProperty('--ri-card-width');
+      const measuredHeight=viewport.clientHeight;
       if(nextDesktop===centredDesktop&&nextCompact===compact&&nextPerView===perView&&Math.abs(nextWidth-width)<.5&&Math.abs(measuredHeight-height)<.5&&Math.abs(nextCentre-centre)<.5)return;
       finish();dragging=null;centredDesktop=nextDesktop;compact=nextCompact;root.classList.toggle('is-compact',compact);root.classList.toggle('is-centred-desktop',centredDesktop);perView=nextPerView;width=nextWidth;height=measuredHeight;centre=nextCentre;stride=width+gap;active=compact?recordIndex(active):Math.min(recordIndex(active),last());paint();positionStaticQuote();revealQuotes(0);
     }

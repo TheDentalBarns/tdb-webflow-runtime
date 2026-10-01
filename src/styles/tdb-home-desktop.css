@@ -45,10 +45,10 @@
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-review-inline-section .padding-section-large {padding-block:7rem}
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-review-inline-section .margin-top.margin-xlarge.review {margin-top:7rem}
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri {
-    --ri-card-width:min(30vw,28rem);
+    --ri-card-width:calc((min(94vw,90rem) - 4rem) / 3);
     --ri-card-height:calc(var(--ri-card-width) * 4 / 3 + 12rem);
     --ri-quote-height:14rem;
-    --ri-gap:20px;
+    --ri-gap:2rem;column-gap:2rem;
     background:transparent;
   }
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-viewport {
