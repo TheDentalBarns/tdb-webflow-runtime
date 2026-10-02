@@ -10,8 +10,10 @@
 .tdb-summary-action{display:flex;align-items:center;justify-content:space-between;gap:1rem;border-top:1px solid var(--base-color-brand--orange-2,#ebe2d2);margin-top:0;padding-block:.6rem;width:100%;text-align:left;box-sizing:border-box}
 .tdb-summary-label{font-size:.75rem;font-weight:400;line-height:1.4;letter-spacing:.1em;text-transform:uppercase;color:#8f887b}
 .tdb-summary-arrow{display:flex;align-items:center;justify-content:center;flex:0 0 3rem;width:3rem;height:3rem;box-sizing:border-box;border:1px solid var(--base-color-brand--orange-3,#d6cab4);border-radius:50%;color:var(--base-color-brand--orange-3,#d6cab4);background:transparent;transition:background-color 300ms ease,color 300ms ease}
-.tdb-summary-arrow svg{width:1rem;height:1rem;display:block;transform:rotate(0deg);transform-origin:center;transition:transform 300ms var(--tdb-vip-drawer-ease,ease) 0s}
-.button.is-review[data-tdb-summary-card][aria-expanded="true"] .tdb-summary-arrow svg{transform:rotate(180deg);transition-delay:var(--tdb-vip-drawer-duration,500ms)}
+.tdb-summary-arrow svg{width:1rem;height:1rem;display:block;transform:rotate(0deg);transform-origin:center;transition:transform 300ms var(--tdb-vip-drawer-ease,ease) 0s!important}
+/* Start on activation, including the first lazy load; reverse as closing starts.
+   Keep this specific arrow animation enabled under reduced-motion preferences. */
+.button.is-review[data-tdb-summary-card]:is([aria-busy="true"],[aria-expanded="true"]) .tdb-summary-arrow svg{transform:rotate(180deg)}
 @media(hover:hover) and (pointer:fine){.button.is-review[data-tdb-summary-card]:hover .tdb-summary-arrow{background:var(--base-color-brand--orange-3,#d6cab4);color:#fff}}
 .button.is-review[data-tdb-summary-card]:active .tdb-summary-arrow{background:var(--base-color-brand--orange-3,#d6cab4);color:#fff;transition-duration:0s}
 @media(max-width:479px){.tdb-summary-rating{gap:.4rem}.tdb-summary-action{gap:.65rem}.tdb-summary-label{font-size:.7rem;letter-spacing:.08em}}
