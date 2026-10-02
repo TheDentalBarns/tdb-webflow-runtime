@@ -120,7 +120,11 @@
       const m=moving;moving=null;m.animations.forEach(animation=>animation.cancel());active=m.target;paint();revealWords();
     }
     function go(target,offset=0){
-      finish();if(total<2||target===active&&!offset){revealWords();return;}
+      // Preserve the rendered track position when another arrow interrupts.
+      if(moving){
+        offset=new DOMMatrixReadOnly(getComputedStyle(cells.get(active)).transform).m41;
+        const old=moving;moving=null;old.animations.forEach(a=>a.cancel());
+      }if(total<2||target===active&&!offset){revealWords();return;}
       hideWords();syncDetails(target);neighbours(active,target);
       const base=carouselDuration(viewport.clientWidth),duration=Math.max(120,Math.min(base,base*Math.abs((target-active)*stride-offset)/Math.max(1,stride)));
       const animations=[];
@@ -128,7 +132,7 @@
       mark(target);const current=moving={target,animations};
       Promise.all(animations.map(animation=>animation.finished.catch(()=>{}))).then(()=>{if(moving===current)finish();});
     }
-    function move(direction){finish();go(active+direction);}
+    function move(direction){go((moving?.target??active)+direction);}
     function measure(){
       const sample=cells.values().next().value;
       if(!sample)return;

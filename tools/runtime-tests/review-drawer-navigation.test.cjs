@@ -11,23 +11,30 @@ function navigation(index = 0) {
   const context = vm.createContext({
     matchMedia: () => ({matches:false}), window: {}, document: { activeElement: null },
     position: {}, prev: {}, next: {}, closeBtn: { focus() {} },
-    list: Array.from({ length: 5 }, () => ({})), index, transition: null, drag: null,
+    list: Array.from({ length: 5 }, (_,i) => ({id:String(i)})), index, transition: null, drag: null,
     closing: false, current: null,
   });
   vm.runInContext(`
     ${section('  function carouselDuration', '  function chooseReviews')}
-    function slide() {
-      return { contains: () => false, animate() {
+    const track={children:[],append(node){this.children.push(node)}};
+    const scrollPositions=new Map();
+    const getComputedStyle=node=>({transform:String(node.x||0)});
+    class DOMMatrixReadOnly{constructor(value){this.m41=Number(value)||0;}}
+    function hideQuoteText(){}
+    function makeSlide(record){return slide(record.id);}
+    function slide(id) {
+      return { dataset:{reviewId:id}, setAttribute(){}, contains: () => false, animate(frames,options) {
         let resolve;
         const finished = new Promise(done => resolve = done);
-        return { finished, finish: resolve, cancel: resolve };
+        return { finished, finish: resolve, cancel: resolve, frames, options };
       }};
     }
-    current = slide();
-    function setCurrent(value) { current = value; updatePosition(); }
+    current = slide(String(index));track.append(current);
+    function setCurrent(value) { current = value;track.children=[value]; updatePosition(); }
     function beginSlide(direction) {
       if (transition || !list[index + direction]) return null;
-      return transition = { from: current, to: slide(), direction,
+      const to=slide(String(index+direction));to.x=direction*390;track.append(to);
+      return transition = { from: current, to, direction,
         width: 390, offset: 0, animations: [], settling: false };
     }
     ${section('  function updatePosition', '  function cancelSlide')}
@@ -88,3 +95,13 @@ test('last-review controls change at transition start and allow an immediate rev
   await finish(n);
   assert.equal(n.index, 3);
 });
+
+ test('an interrupted drawer transition keeps its rendered positions and uses page width timing',async()=>{
+  const n=navigation();n.window.innerWidth=1440;n.matchMedia=()=>({matches:true});n.step(1);
+  n.transition.from.x=-120;n.transition.to.x=270;n.step(1);
+  assert.equal(n.index,0,'no forced completion before the retarget');
+  assert.equal(n.transition.animations[0].frames[0].transform,'translate3d(-120px,0,0)');
+  assert.equal(n.transition.animations[1].frames[0].transform,'translate3d(270px,0,0)');
+  assert.equal(n.transition.animations[0].options.duration,784);
+  await finish(n);assert.equal(n.index,2);
+ });

@@ -328,6 +328,7 @@
       bindGridGap(component, swiper, () => highlightGap(component));
     }
 
+    bindParallaxInterruptions(swiper);
     bindParallaxDuration(component, swiperEl, swiper, '--tdb-carousel-duration');
 
     function updateCount() {
@@ -487,9 +488,17 @@
       const inFlight = this.animating;
       const images = inFlight ? poses() : null;
       const previous = this.activeIndex;
+      const anchor = inFlight ? this.slides[previous]?.getBoundingClientRect().left : null;
       if (images) freeze(images);
       const result = nativeLoopFix.call(this);
       if (images && this.activeIndex !== previous) {
+        // Snap-grid widths describe the destination, while expanding cards
+        // still have their visible intermediate widths. Rebase by the actual
+        // matching card edge, rather than letting that difference move it.
+        const nextAnchor = this.slides[this.activeIndex]?.getBoundingClientRect().left;
+        if (anchor != null && nextAnchor != null && Math.abs(anchor-nextAnchor) > .1) {
+          this.setTranslate(this.getTranslate() + anchor-nextAnchor);
+        }
         // The loop changes DOM copies without changing their visible position.
         // Transfer each rendered image pose to its corresponding new copy.
         poses().forEach(next => {

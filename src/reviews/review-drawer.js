@@ -160,7 +160,7 @@
   function translate(t,offset){t.offset=offset;t.from.style.transform='translate3d('+offset+'px,0,0)';t.to.style.transform='translate3d('+(t.direction*t.width+offset)+'px,0,0)';}
   async function settle(commit){
     const t=transition;if(!t||t.settling)return;t.settling=true;t.commit=commit;
-    const dest=commit?-t.direction*t.width:0,base=carouselDuration(t.width),duration=Math.max(120,Math.min(base,base*Math.abs(dest-t.offset)/t.width));
+    const dest=commit?-t.direction*t.width:0,base=carouselDuration(window.innerWidth||t.width),duration=Math.max(120,Math.min(base,base*Math.abs(dest-t.offset)/t.width));
     // Accept rapid taps and reversals against the destination, just like the embed.
     updatePosition(index+(commit?t.direction:0),commit?t.direction:-t.direction);
     if(duration){t.animations=[t.from.animate([{transform:'translate3d('+t.offset+'px,0,0)'},{transform:'translate3d('+dest+'px,0,0)'}],{duration,easing:'ease',fill:'forwards'}),t.to.animate([{transform:'translate3d('+(t.direction*t.width+t.offset)+'px,0,0)'},{transform:'translate3d('+(t.direction*t.width+dest)+'px,0,0)'}],{duration,easing:'ease',fill:'forwards'})];await Promise.all(t.animations.map(a=>a.finished.catch(()=>{})));}
@@ -169,7 +169,27 @@
   }
   function step(direction){
     drag=null;if(closing)return;
-    if(transition){const t=transition;transition=null;t.animations.forEach(a=>a.cancel());if(t.commit!==false)index+=t.direction;setCurrent(t.commit===false?t.from:t.to);}
+    if(transition){
+      const old=transition,target=(old.targetIndex??(index+(old.commit===false?0:old.direction)))+direction;
+      if(!list[target])return;
+      // Keep every currently visible card at its actual position. Retarget
+      // the track without completing the old animation or replacing its DOM.
+      const width=old.width,poses=[...track.children].map(node=>({node,i:list.findIndex(r=>r.id===node.dataset.reviewId),x:new DOMMatrixReadOnly(getComputedStyle(node).transform).m41}));
+      transition=null;old.animations.forEach(a=>a.cancel());
+      let incoming=poses.find(p=>p.i===target)?.node;
+      if(!incoming){
+        incoming=makeSlide(list[target]);track.append(incoming);
+        incoming.scrollTop=scrollPositions.get(incoming.dataset.reviewId)||0;
+        const anchor=poses[0];poses.push({node:incoming,i:target,x:anchor.x+(target-anchor.i)*width});
+      }
+      const duration=carouselDuration(window.innerWidth||width),state=transition={from:current,to:incoming,direction:Math.sign(target-index)||direction,width,offset:0,animations:[],settling:true,commit:true,targetIndex:target};
+      hideQuoteText();updatePosition(target,direction);
+      state.animations=poses.map(({node,i,x})=>{node.inert=true;node.setAttribute('aria-hidden','true');return node.animate([{transform:'translate3d('+x+'px,0,0)'},{transform:'translate3d('+((i-target)*width)+'px,0,0)'}],{duration,easing:'ease',fill:'forwards'});});
+      Promise.all(state.animations.map(a=>a.finished.catch(()=>{}))).then(()=>{
+        if(transition!==state)return;transition=null;state.animations.forEach(a=>a.cancel());index=target;setCurrent(incoming,direction<0?140:100);
+      });
+      return;
+    }
     if(beginSlide(direction))settle(true);
   }
   function refresh(){
@@ -403,7 +423,11 @@
       const m=moving;moving=null;m.animations.forEach(a=>a.cancel());active=m.target;paint();revealQuotes(60);
     }
     function go(target,offset=0){
-      finish();if(!compact)target=Math.max(0,Math.min(last(),target));
+      // Preserve the rendered track position when another arrow interrupts.
+      if(moving){
+        offset=cells.get(active).getBoundingClientRect().left-viewport.getBoundingClientRect().left-centre;
+        const old=moving;moving=null;old.animations.forEach(a=>a.cancel());
+      }if(!compact)target=Math.max(0,Math.min(last(),target));
       if(target===active&&!offset){revealQuotes(60);return;}
       updateCount(target);around(active,target);hideQuotes();
       if(cells.get(active)?.contains(document.activeElement)&&target!==active)viewport.focus({preventScroll:true});
@@ -418,7 +442,7 @@
       const state=moving={target,animations};
       Promise.all(animations.map(a=>a.finished.catch(()=>{}))).then(()=>{if(moving!==state)return;finish();revealQuotes(direction<0?140:100);});
     }
-    function move(direction){finish();go(active+direction);}
+    function move(direction){go((moving?.target??active)+direction);}
     function measure(){
       const nextDesktop=matchMedia('(min-width:992px)').matches;
       const measured=viewport.clientWidth,nextCompact=nextDesktop||root.clientWidth<=767,nextPerView=nextCompact?1:measured>=1000?3:measured>=680?2:1;
