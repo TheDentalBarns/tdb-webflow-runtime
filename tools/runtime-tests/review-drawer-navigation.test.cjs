@@ -141,6 +141,8 @@ test('only a scrolled-away quote mark fades back with the incoming text',()=>{
     const drawerMark={style:{opacity:'1'},offsetWidth:100};
     const c=vm.createContext({current,drawerMark,closing:false,quoteTimer:0,clearTimeout(){},setTimeout(fn){reveal=fn},track:{children:[current,slide],replaceChildren(){},removeAttribute(){}},layoutDrawerQuote(){},updatePosition(){}});
     vm.runInContext(section('  function hideQuoteText','  function updatePosition'),c);
+    c.hideQuoteText();assert.equal(drawerMark.style.opacity,scrollTop?'0':'1','Fade starts before slide position resets');
+    assert.equal(drawerMark.style.transition,scrollTop?'opacity 400ms ease-out':undefined);
     c.setCurrent(slide);assert.equal(drawerMark.style.opacity,scrollTop?'0':'1');
     reveal();assert.equal(text.classList.visible,true);assert.equal(drawerMark.style.opacity,'1');
     assert.equal(drawerMark.style.transition,scrollTop?'opacity 400ms ease-out':undefined);
