@@ -42,7 +42,7 @@
   );
 
   const logoMarqueePromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@66a28eb999d7d001d2b69e7ce3b9fce27d63ec4e/dist/tdb-logo-marquee.js',
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b2cdb78ea3934eb414e755fe9ec725ff6a87cb9b/dist/tdb-logo-marquee.js',
     'data-tdb-logo-marquee-js',
     () => Boolean(window.TDBLogoMarquee),
   );
@@ -85,7 +85,7 @@
   }
 
   const footerRuntimePromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@39a4ddb9fb7292010ced0072ac0afc42b0711a7b/dist/tdb-footer-runtime.min.js',
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@78bce6683c3cd0c7b1db015a5d8d320b456a7dfb/dist/tdb-footer-runtime.min.js',
     'data-tdb-footer-runtime-js',
     () => Boolean(window.TDBFooterRuntime),
   );
