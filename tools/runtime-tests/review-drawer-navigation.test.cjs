@@ -126,9 +126,23 @@ test('off-screen reviews reset while a cancelled swipe retains the current scrol
   const slide=id=>({dataset:{reviewId:id},scrollTop:240,style:{removeProperty(){}},removeAttribute(){}});
   const first=slide('first'),second=slide('second');second.scrollTop=0;
   const track={children:[first,second],replaceChildren(s){this.children=[s]},removeAttribute(){}};
-  const c=vm.createContext({track,current:first,layoutDrawerQuote(){},updatePosition(){},showQuoteText(){}});
+  const c=vm.createContext({track,drawerMark:null,current:first,layoutDrawerQuote(){},updatePosition(){},showQuoteText(){}});
   vm.runInContext(section('  function setCurrent','  function updatePosition'),c);
   c.setCurrent(first);assert.equal(first.scrollTop,240,'Cancelled swipe stays where the user was reading');
   track.children=[first,second];c.setCurrent(second);
   assert.equal(first.scrollTop,0,'Outgoing review resets after it leaves the screen');assert.equal(second.scrollTop,0);
+});
+
+test('only a scrolled-away quote mark fades back with the incoming text',()=>{
+  for(const scrollTop of [0,240]){
+    let reveal;const text={classList:{add(){this.visible=true},remove(){this.visible=false}}};
+    const slide={scrollTop:0,style:{removeProperty(){}},removeAttribute(){},querySelector(){return text}};
+    const current={scrollTop,querySelector(){return text}};
+    const drawerMark={style:{opacity:'1'},offsetWidth:100};
+    const c=vm.createContext({current,drawerMark,closing:false,quoteTimer:0,clearTimeout(){},setTimeout(fn){reveal=fn},track:{children:[current,slide],replaceChildren(){},removeAttribute(){}},layoutDrawerQuote(){},updatePosition(){}});
+    vm.runInContext(section('  function hideQuoteText','  function updatePosition'),c);
+    c.setCurrent(slide);assert.equal(drawerMark.style.opacity,scrollTop?'0':'1');
+    reveal();assert.equal(text.classList.visible,true);assert.equal(drawerMark.style.opacity,'1');
+    assert.equal(drawerMark.style.transition,scrollTop?'opacity 400ms ease-out':undefined);
+  }
 });
