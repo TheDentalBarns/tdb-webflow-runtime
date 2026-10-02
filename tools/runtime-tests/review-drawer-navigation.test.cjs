@@ -12,14 +12,14 @@ test('review close holds the page lock for its width-based panel duration',()=>{
     const styles=new Map(),callbacks=[];let unlocked=false;
     const c=vm.createContext({window:{innerWidth:width},matchMedia:()=>({matches:width>=992}),
       overlay:{hidden:false,style:{setProperty:(key,value)=>styles.set(key,value)},classList:{remove(){},add(){},contains:()=>width>=768}},
-      closing:false,vipTimer:0,closeTimer:0,drag:null,chrome:null,lock:null,sourceTrigger:null,dismissAnimations:[],
+      current:{scrollTop:180},closing:false,vipTimer:0,closeTimer:0,drag:null,chrome:null,lock:null,sourceTrigger:null,dismissAnimations:[],
       clearTimeout(){},setTimeout(fn,ms){callbacks.push({fn,ms})},cancelSlide(){},hideQuoteText(){},rememberScroll(){},animateDismiss(){},releaseChrome(){},unlockPage(){unlocked=true},
       document:{querySelector:()=>null,querySelectorAll:()=>[]},scrollY:0,
     });
     vm.runInContext(section('  function carouselDuration','  function chooseReviews')+section('  function syncDrawerDuration','  async function open')+section('  function close(){','  // Embedded previews'),c);
     c.close();assert.equal(styles.get('--rv-duration'),expected+'ms');
     assert.equal(callbacks[0].ms,expected);assert.equal(unlocked,false);assert.equal(c.overlay.hidden,false);
-    callbacks[0].fn();assert.equal(unlocked,true);assert.equal(c.overlay.hidden,true);
+    callbacks[0].fn();assert.equal(unlocked,true);assert.equal(c.overlay.hidden,true);assert.equal(c.current.scrollTop,0);
   }
 });
 
@@ -121,3 +121,14 @@ test('last-review controls change at transition start and allow an immediate rev
   assert.equal(n.transition.animations[0].options.duration,784);
   await finish(n);assert.equal(n.index,2);
  });
+
+test('off-screen reviews reset while a cancelled swipe retains the current scroll',()=>{
+  const slide=id=>({dataset:{reviewId:id},scrollTop:240,style:{removeProperty(){}},removeAttribute(){}});
+  const first=slide('first'),second=slide('second');second.scrollTop=0;
+  const track={children:[first,second],replaceChildren(s){this.children=[s]},removeAttribute(){}};
+  const c=vm.createContext({track,current:first,layoutDrawerQuote(){},updatePosition(){},showQuoteText(){}});
+  vm.runInContext(section('  function setCurrent','  function updatePosition'),c);
+  c.setCurrent(first);assert.equal(first.scrollTop,240,'Cancelled swipe stays where the user was reading');
+  track.children=[first,second];c.setCurrent(second);
+  assert.equal(first.scrollTop,0,'Outgoing review resets after it leaves the screen');assert.equal(second.scrollTop,0);
+});

@@ -1,4 +1,4 @@
-/* TDB Patient Reviews v1.9.5 — shared pop-outs with stationary quote artwork. */
+/* TDB Patient Reviews v1.9.6 — shared pop-outs with stationary quote artwork. */
 (function () {
   'use strict';
 
@@ -33,7 +33,7 @@
   const api=window.TDBPowerSnippets;
   if(!api)return;
   const homeDesktop=()=>document.documentElement.dataset.wfPage==='677cf86df9952f978d94d8a9'&&matchMedia('(min-width:992px)').matches;
-  const style=document.createElement('style');style.dataset.tdbReviewDrawerStyles='1.9.5-static-quotes';style.textContent=__DRAWER_CSS__;document.head.append(style);
+  const style=document.createElement('style');style.dataset.tdbReviewDrawerStyles='1.9.6-reset-scroll';style.textContent=__DRAWER_CSS__;document.head.append(style);
   const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
   const button=(label,cls,action)=>{const b=el('button',cls);b.type='button';b.setAttribute('aria-label',label);if(action)b.addEventListener('click',action);return b;};
   const arrow=()=>{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 16 16');s.setAttribute('aria-hidden','true');s.innerHTML='<path fill="currentColor" d="M12.6893 7.25L6.96967 1.53033L8.03033 0.469666L15.5607 8L8.03033 15.5303L6.96967 14.4697L12.6893 8.75H0.5V7.25H12.6893Z"/>';return s;};
@@ -41,7 +41,6 @@
   let dataPromise,data,overlay,panel,track,drawerMark,closeBtn,prev,next,position,quoteTimer=0;
   let list=[],index=0,current,sourceTrigger,lock,chrome,opening=false,closing=false,drag=null,transition=null,closeTimer=0,vipTimer=0;
   let context='default',preferredId='',dismissAnimations=[];
-  const scrollPositions=new Map();
   function getData(){
     if(!dataPromise)dataPromise=(async()=>{
       const node=document.querySelector('[data-tdb-review-drawer-data]');
@@ -131,7 +130,6 @@
     (noteHost||document.body).append(sourceNote);
     sourceNote.showModal();
   }
-  function rememberScroll(){if(current)scrollPositions.set(current.dataset.reviewId,current.scrollTop);}
   function positionDrawerQuote(){
     if(!drawerMark||!current||overlay.hidden)return;
     const mark=current.querySelector('.tdb-rv-mark').getBoundingClientRect(),frame=track.getBoundingClientRect();
@@ -149,12 +147,12 @@
   }
   function hideQuoteText(){clearTimeout(quoteTimer);current?.querySelector('.tdb-rv-quote-text')?.classList.remove('is-visible');}
   function showQuoteText(delay=100){hideQuoteText();const text=current?.querySelector('.tdb-rv-quote-text');quoteTimer=setTimeout(()=>{if(!closing&&text)text.classList.add('is-visible');},delay);}
-  function setCurrent(slide,delay=100){track.replaceChildren(slide);current=slide;slide.style.removeProperty('transform');slide.inert=false;slide.removeAttribute('aria-hidden');slide.scrollTop=scrollPositions.get(slide.dataset.reviewId)||0;track.removeAttribute('aria-busy');layoutDrawerQuote();updatePosition();showQuoteText(delay);}
+  function setCurrent(slide,delay=100){for(const old of track.children)if(old!==slide)old.scrollTop=0;track.replaceChildren(slide);current=slide;slide.style.removeProperty('transform');slide.inert=false;slide.removeAttribute('aria-hidden');track.removeAttribute('aria-busy');layoutDrawerQuote();updatePosition();showQuoteText(delay);}
   function updatePosition(target=index,direction){window.TDBTicker?window.TDBTicker.count(position,target+1,list.length,direction):position.textContent=list.length?(target+1)+' / '+list.length:'0 reviews';prev.disabled=target<=0;next.disabled=target>=list.length-1;}
   function cancelSlide(){if(!transition)return;transition.animations.forEach(a=>a.cancel());transition=null;drag=null;if(current)setCurrent(current);}
   function beginSlide(direction){
     if(closing||transition||!list[index+direction])return null;
-    hideQuoteText();rememberScroll();const width=track.clientWidth,incoming=makeSlide(list[index+direction]);incoming.inert=true;incoming.setAttribute('aria-hidden','true');incoming.style.transform='translate3d('+(direction*width)+'px,0,0)';track.append(incoming);incoming.scrollTop=scrollPositions.get(incoming.dataset.reviewId)||0;track.setAttribute('aria-busy','true');
+    hideQuoteText();const width=track.clientWidth,incoming=makeSlide(list[index+direction]);incoming.inert=true;incoming.setAttribute('aria-hidden','true');incoming.style.transform='translate3d('+(direction*width)+'px,0,0)';track.append(incoming);incoming.scrollTop=0;track.setAttribute('aria-busy','true');
     transition={from:current,to:incoming,direction,width,offset:0,animations:[],settling:false};return transition;
   }
   function translate(t,offset){t.offset=offset;t.from.style.transform='translate3d('+offset+'px,0,0)';t.to.style.transform='translate3d('+(t.direction*t.width+offset)+'px,0,0)';}
@@ -179,7 +177,7 @@
       let incoming=poses.find(p=>p.i===target)?.node;
       if(!incoming){
         incoming=makeSlide(list[target]);track.append(incoming);
-        incoming.scrollTop=scrollPositions.get(incoming.dataset.reviewId)||0;
+        incoming.scrollTop=0;
         const anchor=poses[0];poses.push({node:incoming,i:target,x:anchor.x+(target-anchor.i)*width});
       }
       const duration=carouselDuration(window.innerWidth||width),state=transition={from:current,to:incoming,direction:Math.sign(target-index)||direction,width,offset:0,animations:[],settling:true,commit:true,targetIndex:target};
@@ -270,17 +268,17 @@
       data=await getData();if(!data?.records?.length)throw Error('No reviews available.');create();
       overlay.classList.toggle('is-desktop',matchMedia('(min-width:768px)').matches&&new URLSearchParams(location.search).get('review-preview')!=='mobile');
       sourceTrigger=trigger;context=api.contextForPath(location.pathname)||'default';preferredId=reviewId||'';refresh();
-      syncDrawerDuration();overlay.hidden=false;if(current)current.scrollTop=scrollPositions.get(current.dataset.reviewId)||0;layoutDrawerQuote();hideQuoteText();sourceTrigger?.setAttribute('aria-expanded','true');hideChrome();lockPage();closeBtn.focus({preventScroll:true});
+      syncDrawerDuration();overlay.hidden=false;if(current)current.scrollTop=0;layoutDrawerQuote();hideQuoteText();sourceTrigger?.setAttribute('aria-expanded','true');hideChrome();lockPage();closeBtn.focus({preventScroll:true});
       requestAnimationFrame(()=>requestAnimationFrame(()=>{if(overlay.hidden||closing)return;overlay.classList.add('is-open','is-controls-visible');animateDismiss(true);showQuoteText(500);}));
     }finally{opening=false;}
   }
   function close(){
-    if(!overlay||overlay.hidden||closing)return;closing=true;clearTimeout(vipTimer);cancelSlide();hideQuoteText();rememberScroll();drag=null;
+    if(!overlay||overlay.hidden||closing)return;closing=true;clearTimeout(vipTimer);cancelSlide();hideQuoteText();drag=null;
     window.TDBVIPDrawer?.reset?.();lock?.lenis?.stop();document.querySelector('.navbar10_menu-button[aria-expanded="true"]')?.click();document.querySelectorAll('.navbar10_dropdown-toggle[aria-expanded="true"]').forEach(n=>n.click());
     const closeDuration=syncDrawerDuration();
     overlay.classList.remove('is-open','is-controls-visible');overlay.classList.add('is-closing');animateDismiss(false);sourceTrigger?.setAttribute('aria-expanded','false');
     const desktop=overlay.classList.contains('is-desktop');
-    closeTimer=setTimeout(()=>{overlay.hidden=true;overlay.classList.remove('is-closing');dismissAnimations.forEach(a=>a.cancel());dismissAnimations=[];unlockPage();closing=false;sourceTrigger?.focus({preventScroll:true});if(desktop)releaseChrome();else if(chrome)Object.assign(chrome,{waiting:true,y:scrollY,up:0,down:0});},closeDuration);
+    closeTimer=setTimeout(()=>{overlay.hidden=true;if(current)current.scrollTop=0;overlay.classList.remove('is-closing');dismissAnimations.forEach(a=>a.cancel());dismissAnimations=[];unlockPage();closing=false;sourceTrigger?.focus({preventScroll:true});if(desktop)releaseChrome();else if(chrome)Object.assign(chrome,{waiting:true,y:scrollY,up:0,down:0});},closeDuration);
   }
   // Embedded previews share content with the drawer and open the exact selected review.
   // Keep only the visible cards and their neighbours in the DOM.
@@ -479,5 +477,5 @@
   addEventListener('scroll',()=>{if(!chrome?.waiting||overlay&&!overlay.hidden)return;const dy=scrollY-chrome.y;chrome.y=scrollY;if(dy>0){chrome.up=0;chrome.down+=dy;}else if(dy<0){chrome.down=0;chrome.up-=dy;}if(chrome.up>120||chrome.down>140||scrollY<=40&&dy<0)requestAnimationFrame(()=>requestAnimationFrame(()=>{if(overlay.hidden)releaseChrome();}));},{passive:true});
   document.addEventListener('focusin',e=>{if(chrome?.waiting&&e.target.closest?.('.navbar10_component,#tdb-vip-drawer'))releaseChrome();});
   addEventListener('click',e=>{if(chrome?.waiting&&/#vip/i.test(e.target.closest?.('a[href]')?.getAttribute('href')||''))releaseChrome();},true);
-  window.TDBReviewDrawer=Object.freeze({version:'1.9.5-static-quotes',open,close,mountEmbedded});
+  window.TDBReviewDrawer=Object.freeze({version:'1.9.6-reset-scroll',open,close,mountEmbedded});
 })();
