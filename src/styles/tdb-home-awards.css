@@ -1,0 +1,23 @@
+/* Home awards use exactly the same 94vw / 90rem, 2rem-gap card grid. */
+html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-awards-trio{display:none}
+@media(min-width:992px){
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .section_awards .container-large{width:100%;max-width:90rem}
+  [data-tdb-awards-layout] .tdb-home-awards-intro{text-align:left;width:100%;max-width:none;margin-bottom:3rem}
+  [data-tdb-awards-layout] .tdb-home-awards-intro p{width:100%;max-width:none}
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-awards-trio{display:block}
+  [data-tdb-awards-layout] .tdb-service-awards{margin:0 0 3rem}
+  [data-tdb-awards-layout] .tdb-awards-heading{display:none}
+  [data-tdb-awards-layout] .tdb-awards-grid{gap:2rem;min-height:0;padding-bottom:3rem}
+  [data-tdb-awards-layout] .tdb-award{grid-template-columns:7rem minmax(0,1fr);gap:1.25rem;padding:0;align-items:center}
+  [data-tdb-awards-layout] .tdb-award-logo{height:9rem}
+  [data-tdb-awards-layout] .tdb-award-text{max-width:none;padding-left:1.25rem}
+  [data-tdb-awards-layout] .tdb-award-title{height:1.4rem;white-space:nowrap;margin-bottom:.4rem}
+  [data-tdb-awards-layout] .tdb-award-result{height:1.125rem;white-space:nowrap;margin-bottom:.65rem}
+  [data-tdb-awards-layout] .tdb-award-copy{height:4.2rem;line-height:1.4rem;text-wrap:pretty}
+  [data-tdb-awards-layout] .faq3_content{grid-template-columns:minmax(0,2fr) minmax(0,1fr);column-gap:2rem;align-items:start}
+  /* Two single columns plus their middle gutter, then one single column. */
+  [data-tdb-awards-layout] .faq3_content{grid-template-columns:minmax(0,calc((100% - 4rem)/3*2 + 2rem)) minmax(0,calc((100% - 4rem)/3))}
+  [data-tdb-awards-layout] .faq3_list{min-width:0}
+  [data-tdb-awards-layout] .award-image_left{width:100%;min-width:0;max-width:100%;align-self:start}
+  [data-tdb-awards-layout] .tdb-home-awards-label{margin:0 0 2rem;color:var(--base-color-brand--orange-3,#d6cab4)}
+}
