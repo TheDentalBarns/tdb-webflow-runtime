@@ -354,6 +354,16 @@
     return Math.round(Math.min(950, Math.max(650, 400 * Math.sqrt(width / 375))));
   }
 
+  function mobileTreatmentGrid(component) {
+    return document.documentElement.dataset.wfPage === '677cf86df9952f978d94d8a9' &&
+      component.matches('#All-treatments .tdb-banner-parallax');
+  }
+
+  function parallaxGap(component) {
+    return mobileTreatmentGrid(component) && matchMedia('(max-width:767px)').matches
+      ? window.innerWidth * .02 : 0;
+  }
+
   function bindParallaxDuration(component, swiperEl, swiper, property = '--tdb-parallax-duration', measureWidth = () => swiperEl.clientWidth) {
     let frame = 0;
     let pending = null;
@@ -390,10 +400,12 @@
     });
   }
 
-  // Only converted CMS banners use the expanding desktop card grid. Swiper
+  // Converted CMS banners use the expanding grid; Home treatments also use it on phones. Swiper
   // still owns gestures, looping, parallax, blur classes and caption timing.
   function bindBannerGrid(component, swiperEl, swiper) {
     const desktop = matchMedia('(min-width:992px)');
+    const mobile = matchMedia('(max-width:767px)');
+    const hasMobileGrid = mobileTreatmentGrid(component);
     const nativeSlideTo = swiper.slideTo;
     let motions = [], wideKey = null;
     const stop = () => { motions.forEach(motion => motion.cancel()); motions = []; };
@@ -408,7 +420,7 @@
     }
     swiper.on('beforeInit', () => mark(swiper.params.initialSlide || 0));
     swiper.slideTo = function(index = 0, speed = this.params.speed, callbacks = true, internal, initial) {
-      if (!desktop.matches) return nativeSlideTo.call(this, index, speed, callbacks, internal, initial);
+      if (!desktop.matches && !(hasMobileGrid && mobile.matches)) return nativeSlideTo.call(this, index, speed, callbacks, internal, initial);
       const targetIndex = Math.max(0, Number(index));
       const target = this.slides[targetIndex];
       if (!target || (this.animating && this.params.preventInteractionOnTransition) || (!this.enabled && !internal && !initial)) {
@@ -446,8 +458,9 @@
     const onResize = () => { stop(); if (swiper.initialized) mark(swiper.activeIndex); };
     swiper.on('beforeResize', onResize);
     desktop.addEventListener('change', onResize);
+    mobile.addEventListener('change', onResize);
     swiper.on('beforeDestroy', () => {
-      stop(); desktop.removeEventListener('change', onResize);
+      stop(); desktop.removeEventListener('change', onResize); mobile.removeEventListener('change', onResize);
       swiper.off('beforeResize', onResize); swiper.slideTo = nativeSlideTo;
       swiperEl.querySelectorAll('[data-tdb-banner-wide]').forEach(slide => slide.removeAttribute('data-tdb-banner-wide'));
     });
@@ -570,7 +583,7 @@
       speed: parallaxDuration(swiperEl),
       effect: 'slide',
       keyboard: { enabled: true },
-      spaceBetween: desktopGridGap(component, 0),
+      spaceBetween: desktopGridGap(component, parallaxGap(component)),
       resistanceRatio: 0,
       touchReleaseOnEdges: true,
       followFinger: true,
@@ -589,13 +602,13 @@
       breakpoints: {
         ...(banner ? {992: {slidesPerView:'auto', centeredSlides:false, touchRatio:1}} : {}),
         768: { slidesPerView: 1, centeredSlides:true, touchRatio: 1 },
-        0: { slidesPerView: 1, centeredSlides:true, touchRatio: 1 }
+        0: { slidesPerView: mobileTreatmentGrid(component) ? 'auto' : 1, centeredSlides:!mobileTreatmentGrid(component), touchRatio: 1 }
       }
     });
 
     if (banner) { bindBannerGrid(component, swiperEl, swiper); swiper.init(); }
     bindParallaxInterruptions(swiper);
-    bindGridGap(component, swiper, () => 0);
+    bindGridGap(component, swiper, () => parallaxGap(component));
     bindParallaxDuration(component, swiperEl, swiper);
     cta?.bind(swiper);
 
@@ -703,7 +716,7 @@
     // A short desktop drag can settle on the same expanding card, which emits
     // a reset transition rather than slideChangeTransitionEnd.
     if (banner) swiper.on('slideResetTransitionEnd', () => {
-      if (!matchMedia('(min-width:992px)').matches || loopFixing) return;
+      if (loopFixing) return;
       gestureHidden = false;
       setMoving(false);
       showActiveAfter(60);

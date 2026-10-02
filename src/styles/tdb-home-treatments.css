@@ -3,3 +3,39 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] #All-treatments {
   background-color:var(--base-color-neutral--neutral-darker,#222);
   color:var(--base-color-brand--white,#fff);
 }
+
+/* Mobile treatments share the gallery/review inset and 2vw card gap.
+   The focused card is 90vw; neighbours keep half that width during a swipe. */
+@media (max-width:767px) {
+  html[data-wf-page="677cf86df9952f978d94d8a9"] #All-treatments :is(.tdb-banner-parallax,.highlight-swiper_component) {
+    --tdb-treatment-width:90vw;
+    width:var(--tdb-treatment-width);max-width:none;left:auto;margin-inline:0;
+    height:max(70svh,35rem);min-height:35rem;overflow:visible;column-gap:2vw;
+  }
+  #All-treatments .tdb-banner-parallax > .swiper {width:100%;overflow:visible}
+  #All-treatments .tdb-banner-parallax > .swiper > .swiper-wrapper > .swiper-slide.is-showcase {
+    width:calc(var(--tdb-treatment-width) / 2);padding-inline:0;box-sizing:border-box;
+  }
+  #All-treatments .tdb-banner-parallax > .swiper > .swiper-wrapper > .swiper-slide.is-showcase[data-tdb-banner-wide],
+  #All-treatments .tdb-banner-parallax > .swiper:not(.swiper-initialized) > .swiper-wrapper > .swiper-slide.is-showcase:first-child {
+    width:var(--tdb-treatment-width);
+  }
+  /* Keep the image and copy at their focused sizes. The narrow card crops them;
+     neither the photograph nor the title reflows as the card changes width. */
+  #All-treatments .tdb-banner-parallax .showcase_image {
+    width:calc(var(--tdb-treatment-width) * 1.4);left:50%;right:auto;
+    margin-left:calc(var(--tdb-treatment-width) * -.7);margin-right:0;
+  }
+  #All-treatments .tdb-banner-parallax .showcase-card_content.text-color-alternate {
+    z-index:26;width:var(--tdb-treatment-width);padding:1.25rem;
+  }
+  #All-treatments .tdb-banner-parallax .service-card-mobile-title[data-fade-slide] {
+    width:calc(var(--tdb-treatment-width) - 2.5rem);max-width:none;
+    opacity:1!important;transform:none!important;transition:none!important;animation:none!important;
+  }
+  #All-treatments .tdb-banner-parallax .service-card-mobile-copy {
+    width:calc(var(--tdb-treatment-width) - 2.5rem);max-width:none;
+  }
+  #All-treatments .tdb-banner-parallax > .swiper_functions-btm.hide {right:1.25rem;bottom:1.25rem}
+  #All-treatments .tdb-banner-parallax > .tdb-parallax-cta-layer {padding:1.25rem}
+}
