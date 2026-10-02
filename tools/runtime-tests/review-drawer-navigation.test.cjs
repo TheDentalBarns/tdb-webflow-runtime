@@ -7,6 +7,22 @@ const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../../src/reviews/review-drawer.js'), 'utf8');
 const section = (from, to) => source.slice(source.indexOf(from), source.indexOf(to));
 
+test('review close holds the page lock for its width-based panel duration',()=>{
+  for(const [width,expected] of [[390,400],[1440,784],[3840,950]]){
+    const styles=new Map(),callbacks=[];let unlocked=false;
+    const c=vm.createContext({window:{innerWidth:width},matchMedia:()=>({matches:width>=992}),
+      overlay:{hidden:false,style:{setProperty:(key,value)=>styles.set(key,value)},classList:{remove(){},add(){},contains:()=>width>=768}},
+      closing:false,vipTimer:0,closeTimer:0,drag:null,chrome:null,lock:null,sourceTrigger:null,dismissAnimations:[],
+      clearTimeout(){},setTimeout(fn,ms){callbacks.push({fn,ms})},cancelSlide(){},hideQuoteText(){},rememberScroll(){},animateDismiss(){},releaseChrome(){},unlockPage(){unlocked=true},
+      document:{querySelector:()=>null,querySelectorAll:()=>[]},scrollY:0,
+    });
+    vm.runInContext(section('  function carouselDuration','  function chooseReviews')+section('  function syncDrawerDuration','  async function open')+section('  function close(){','  // Embedded previews'),c);
+    c.close();assert.equal(styles.get('--rv-duration'),expected+'ms');
+    assert.equal(callbacks[0].ms,expected);assert.equal(unlocked,false);assert.equal(c.overlay.hidden,false);
+    callbacks[0].fn();assert.equal(unlocked,true);assert.equal(c.overlay.hidden,true);
+  }
+});
+
 function navigation(index = 0) {
   const context = vm.createContext({
     matchMedia: () => ({matches:false}), window: {}, document: { activeElement: null },

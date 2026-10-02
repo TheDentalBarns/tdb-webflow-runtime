@@ -1,4 +1,4 @@
-/* TDB Patient Reviews v1.9.4 — shared pop-outs with stationary quote artwork. */
+/* TDB Patient Reviews v1.9.5 — shared pop-outs with stationary quote artwork. */
 (function () {
   'use strict';
 
@@ -33,7 +33,7 @@
   const api=window.TDBPowerSnippets;
   if(!api)return;
   const homeDesktop=()=>document.documentElement.dataset.wfPage==='677cf86df9952f978d94d8a9'&&matchMedia('(min-width:992px)').matches;
-  const style=document.createElement('style');style.dataset.tdbReviewDrawerStyles='1.9.4-static-quotes';style.textContent=__DRAWER_CSS__;document.head.append(style);
+  const style=document.createElement('style');style.dataset.tdbReviewDrawerStyles='1.9.5-static-quotes';style.textContent=__DRAWER_CSS__;document.head.append(style);
   const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
   const button=(label,cls,action)=>{const b=el('button',cls);b.type='button';b.setAttribute('aria-label',label);if(action)b.addEventListener('click',action);return b;};
   const arrow=()=>{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 16 16');s.setAttribute('aria-hidden','true');s.innerHTML='<path fill="currentColor" d="M12.6893 7.25L6.96967 1.53033L8.03033 0.469666L15.5607 8L8.03033 15.5303L6.96967 14.4697L12.6893 8.75H0.5V7.25H12.6893Z"/>';return s;};
@@ -230,7 +230,7 @@
     track.addEventListener('pointerdown',e=>{if(closing||transition||!current||!e.isPrimary||(e.pointerType==='mouse'&&e.button!==0)||e.target.closest('button,a,select,input'))return;drag={id:e.pointerId,x:e.clientX,y:e.clientY,time:e.timeStamp,horizontal:false};});
     track.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!drag.horizontal){if(Math.abs(dy)>12&&Math.abs(dy)>Math.abs(dx)){drag=null;return;}if(Math.abs(dx)<12||Math.abs(dx)<1.3*Math.abs(dy))return;drag.horizontal=true;if(!beginSlide(dx<0?1:-1)){drag=null;return;}track.setPointerCapture?.(e.pointerId);}if(transition&&!transition.settling){e.preventDefault();const t=transition;translate(t,-t.direction*Math.max(0,Math.min(.95*t.width,-dx*t.direction)));}},{passive:false});
     const end=(e,cancel)=>{if(!drag||drag.id!==e.pointerId)return;const d=drag;drag=null;if(track.hasPointerCapture?.(e.pointerId))track.releasePointerCapture(e.pointerId);if(!d.horizontal||!transition)return;const distance=Math.abs(transition.offset),elapsed=Math.max(1,e.timeStamp-d.time);settle(!cancel&&(distance>Math.max(45,.13*transition.width)||(distance>20&&distance/elapsed>.45)));};track.addEventListener('pointerup',e=>end(e,false));track.addEventListener('pointercancel',e=>end(e,true));
-    addEventListener('resize',()=>{cancelSlide();});
+    addEventListener('resize',()=>{cancelSlide();if(!closing)syncDrawerDuration();});
   }
   function hideChrome(){
     if(chrome){chrome.waiting=false;return;}
@@ -262,6 +262,7 @@
   }
   function lockPage(){if(lock)return;const siblings=[...document.body.children].filter(n=>n!==overlay&&!['SCRIPT','STYLE','LINK'].includes(n.tagName));lock={siblings:siblings.map(n=>[n,n.inert]),x:scrollX,y:scrollY,lenis:window.lenis,resume:!!window.lenis&&!window.lenis.isStopped,sgLocked:document.documentElement.classList.contains('tdb-sg-locked')};preserveDesktopScroll(lock);siblings.forEach(n=>n.inert=true);lock.lenis?.stop();document.documentElement.classList.add('tdb-sg-locked','tdb-rv-locked');}
   function unlockPage(){if(!lock)return;const saved=lock;lock=null;saved.siblings.forEach(([n,inert])=>n.inert=inert);document.documentElement.classList.remove('tdb-rv-locked');if(!saved.sgLocked)document.documentElement.classList.remove('tdb-sg-locked');if(Math.abs(scrollY-saved.y)>1||Math.abs(scrollX-saved.x)>1)window.scrollTo(saved.x,saved.y);if(saved.resume)saved.lenis?.start();saved.releaseDesktopScroll?.();}
+  function syncDrawerDuration(){const milliseconds=carouselDuration(window.innerWidth);overlay?.style.setProperty('--rv-duration',milliseconds+'ms');return milliseconds;}
   async function open(trigger,reviewId){
     if(opening||closing||overlay&&!overlay.hidden)return;
     opening=true;
@@ -269,16 +270,17 @@
       data=await getData();if(!data?.records?.length)throw Error('No reviews available.');create();
       overlay.classList.toggle('is-desktop',matchMedia('(min-width:768px)').matches&&new URLSearchParams(location.search).get('review-preview')!=='mobile');
       sourceTrigger=trigger;context=api.contextForPath(location.pathname)||'default';preferredId=reviewId||'';refresh();
-      overlay.hidden=false;if(current)current.scrollTop=scrollPositions.get(current.dataset.reviewId)||0;layoutDrawerQuote();hideQuoteText();sourceTrigger?.setAttribute('aria-expanded','true');hideChrome();lockPage();closeBtn.focus({preventScroll:true});
+      syncDrawerDuration();overlay.hidden=false;if(current)current.scrollTop=scrollPositions.get(current.dataset.reviewId)||0;layoutDrawerQuote();hideQuoteText();sourceTrigger?.setAttribute('aria-expanded','true');hideChrome();lockPage();closeBtn.focus({preventScroll:true});
       requestAnimationFrame(()=>requestAnimationFrame(()=>{if(overlay.hidden||closing)return;overlay.classList.add('is-open','is-controls-visible');animateDismiss(true);showQuoteText(500);}));
     }finally{opening=false;}
   }
   function close(){
     if(!overlay||overlay.hidden||closing)return;closing=true;clearTimeout(vipTimer);cancelSlide();hideQuoteText();rememberScroll();drag=null;
     window.TDBVIPDrawer?.reset?.();lock?.lenis?.stop();document.querySelector('.navbar10_menu-button[aria-expanded="true"]')?.click();document.querySelectorAll('.navbar10_dropdown-toggle[aria-expanded="true"]').forEach(n=>n.click());
+    const closeDuration=syncDrawerDuration();
     overlay.classList.remove('is-open','is-controls-visible');overlay.classList.add('is-closing');animateDismiss(false);sourceTrigger?.setAttribute('aria-expanded','false');
     const desktop=overlay.classList.contains('is-desktop');
-    closeTimer=setTimeout(()=>{overlay.hidden=true;overlay.classList.remove('is-closing');dismissAnimations.forEach(a=>a.cancel());dismissAnimations=[];unlockPage();closing=false;sourceTrigger?.focus({preventScroll:true});if(desktop)releaseChrome();else if(chrome)Object.assign(chrome,{waiting:true,y:scrollY,up:0,down:0});},desktop?420:600);
+    closeTimer=setTimeout(()=>{overlay.hidden=true;overlay.classList.remove('is-closing');dismissAnimations.forEach(a=>a.cancel());dismissAnimations=[];unlockPage();closing=false;sourceTrigger?.focus({preventScroll:true});if(desktop)releaseChrome();else if(chrome)Object.assign(chrome,{waiting:true,y:scrollY,up:0,down:0});},closeDuration);
   }
   // Embedded previews share content with the drawer and open the exact selected review.
   // Keep only the visible cards and their neighbours in the DOM.
@@ -477,5 +479,5 @@
   addEventListener('scroll',()=>{if(!chrome?.waiting||overlay&&!overlay.hidden)return;const dy=scrollY-chrome.y;chrome.y=scrollY;if(dy>0){chrome.up=0;chrome.down+=dy;}else if(dy<0){chrome.down=0;chrome.up-=dy;}if(chrome.up>120||chrome.down>140||scrollY<=40&&dy<0)requestAnimationFrame(()=>requestAnimationFrame(()=>{if(overlay.hidden)releaseChrome();}));},{passive:true});
   document.addEventListener('focusin',e=>{if(chrome?.waiting&&e.target.closest?.('.navbar10_component,#tdb-vip-drawer'))releaseChrome();});
   addEventListener('click',e=>{if(chrome?.waiting&&/#vip/i.test(e.target.closest?.('a[href]')?.getAttribute('href')||''))releaseChrome();},true);
-  window.TDBReviewDrawer=Object.freeze({version:'1.9.4-static-quotes',open,close,mountEmbedded});
+  window.TDBReviewDrawer=Object.freeze({version:'1.9.5-static-quotes',open,close,mountEmbedded});
 })();

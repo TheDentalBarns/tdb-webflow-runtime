@@ -9,7 +9,7 @@
 .tdb-rv-frame{position:absolute;inset:0;opacity:0;transform:translate3d(0,20%,0);transition:transform 500ms ease,opacity 300ms ease}
 .is-open .tdb-rv-frame{opacity:1;transform:translate3d(0,0,0);transition-duration:500ms,200ms}
 .tdb-rv-track{position:absolute;inset:0;overflow:hidden;touch-action:pan-y pinch-zoom}
-.tdb-rv-header{position:absolute;inset:0 0 auto;z-index:4;isolation:isolate;height:calc(var(--rv-header) + env(safe-area-inset-top,0px));box-sizing:border-box;padding:calc(.5rem + env(safe-area-inset-top,0px)) var(--rv-gutter) .75rem;transform:translate3d(0,-100%,0);transition:transform 420ms cubic-bezier(.4,0,.2,1)}
+.tdb-rv-header{position:absolute;inset:0 0 auto;z-index:4;isolation:isolate;height:calc(var(--rv-header) + env(safe-area-inset-top,0px));box-sizing:border-box;padding:calc(.5rem + env(safe-area-inset-top,0px)) var(--rv-gutter) .75rem;transform:translate3d(0,-100%,0);transition:transform var(--rv-duration,400ms) cubic-bezier(.4,0,.2,1)}
 .tdb-rv-header::before{content:"";position:absolute;z-index:-1;inset:0;background:rgba(249,242,230,.84);-webkit-backdrop-filter:saturate(150%) blur(20px);backdrop-filter:saturate(150%) blur(20px);pointer-events:none}
 .is-controls-visible .tdb-rv-header{transform:translate3d(0,0,0)}
 .tdb-rv-heading{display:flex;align-items:center;justify-content:space-between;gap:1rem;height:3rem;padding-right:48px;}
@@ -53,7 +53,7 @@
 .tdb-rv-source .tdb-rv-stars>span{width:1rem;height:1rem}
 .tdb-rv-body,.tdb-rv-response{font-size:.96rem;line-height:1.7}
 .tdb-rv-body p{margin:0;white-space:pre-wrap}
-.tdb-rv-navigation{position:absolute;z-index:5;inset:auto 0 0;display:flex;align-items:center;justify-content:space-between;gap:1rem;box-sizing:border-box;height:calc(var(--rv-footer) + env(safe-area-inset-bottom,0px));padding:0 var(--rv-gutter) env(safe-area-inset-bottom,0px);background:color-mix(in srgb,var(--base-color-neutral--neutral-darker,#222) 94%,transparent);color:var(--rv-paper);-webkit-backdrop-filter:saturate(150%) blur(20px);backdrop-filter:saturate(150%) blur(20px);transform:translate3d(0,100%,0);transition:transform 420ms cubic-bezier(.4,0,.2,1)}
+.tdb-rv-navigation{position:absolute;z-index:5;inset:auto 0 0;display:flex;align-items:center;justify-content:space-between;gap:1rem;box-sizing:border-box;height:calc(var(--rv-footer) + env(safe-area-inset-bottom,0px));padding:0 var(--rv-gutter) env(safe-area-inset-bottom,0px);background:color-mix(in srgb,var(--base-color-neutral--neutral-darker,#222) 94%,transparent);color:var(--rv-paper);-webkit-backdrop-filter:saturate(150%) blur(20px);backdrop-filter:saturate(150%) blur(20px);transform:translate3d(0,100%,0);transition:transform var(--rv-duration,400ms) cubic-bezier(.4,0,.2,1)}
 .is-controls-visible .tdb-rv-navigation{transform:translate3d(0,0,0)}
 .tdb-rv-position{font-size:.875rem;letter-spacing:.15em}
 .tdb-rv-arrows{display:flex;gap:1rem}
@@ -90,8 +90,8 @@ button.tdb-rv-source{border:0;background:transparent;color:inherit;padding:0;cur
 .tdb-rv-response p{font:inherit;line-height:1.7;margin:0;white-space:pre-wrap}
 
 /* Desktop follows the cost calculator: panel, close control and bars travel together. */
-.tdb-rv-overlay.is-desktop::before{background:rgba(0,0,0,.5);transition:opacity 420ms ease}
-.tdb-rv-overlay.is-desktop .tdb-rv-panel{width:min(60rem,94vw);transform:translateX(100%);transition:transform 420ms cubic-bezier(.4,0,.2,1)}
+.tdb-rv-overlay.is-desktop::before{background:rgba(0,0,0,.5);transition:opacity var(--rv-duration,400ms) ease}
+.tdb-rv-overlay.is-desktop .tdb-rv-panel{width:min(60rem,94vw);transform:translateX(100%);transition:transform var(--rv-duration,400ms) cubic-bezier(.4,0,.2,1)}
 .tdb-rv-overlay.is-desktop.is-open .tdb-rv-panel{transform:translateX(0)}
 .tdb-rv-overlay.is-desktop .tdb-rv-panel::before{opacity:1;transition:none}
 .tdb-rv-overlay.is-desktop .tdb-rv-frame{opacity:1;transform:none;transition:none}

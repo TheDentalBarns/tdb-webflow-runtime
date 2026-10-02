@@ -1,9 +1,9 @@
-/* TDB USP drawer v1.1.1. Continuous navigation, width-aware motion and shared hover cadence. */
+/* TDB USP drawer v1.2.0. Direct dragging and shared width-aware drawer motion. */
 (function () {
   'use strict';
   if (window.TDBUSPDrawer) return;
   const style = document.createElement('style');
-  style.dataset.tdbUspStyles = '1.1.1'; style.textContent = __USP_CSS__;
+  style.dataset.tdbUspStyles = '1.2.0'; style.textContent = __USP_CSS__;
   const root = document.documentElement;
   const el = (tag, cls, text) => { const node = document.createElement(tag); node.className = cls || ''; if (text !== undefined) node.textContent = text; return node; };
   const button = (label, cls, action) => { const node = el('button', cls); node.type = 'button'; node.setAttribute('aria-label', label); if (action) node.addEventListener('click', action); return node; };
@@ -42,7 +42,10 @@
   }
   function step(direction) {
     if (closing || !overlay || overlay.hidden || records.length < 2) return;
-    const destination = target + direction;
+    clearDrag();
+    animateTo(target + direction, duration(window.innerWidth), direction);
+  }
+  function animateTo(destination, milliseconds, direction) {
     // Read actual in-flight positions before cancelling: every rapid tap or reversal starts there.
     const poses = slides.map(slide => ({slide, slot:Number(slide.dataset.slot), x:new DOMMatrixReadOnly(getComputedStyle(slide).transform).m41}));
     const outgoing = slides.find(slide => Number(slide.dataset.slot) === target);
@@ -57,11 +60,56 @@
     if (frame.contains(document.activeElement)) dismiss.focus({ preventScroll: true });
     frame.setAttribute('aria-busy', 'true'); slides.forEach(slide => { slide.inert = true; slide.setAttribute('aria-hidden', 'true'); });
     position(direction);
-    animations = poses.map(({slide,slot,x}) => slide.animate([{ transform: 'translate3d(' + x + 'px,0,0)' }, { transform: 'translate3d(' + ((slot - target) * width) + 'px,0,0)' }], { duration: duration(window.innerWidth), easing: 'ease', fill: 'forwards' }));
+    animations = poses.map(({slide,slot,x}) => slide.animate([{ transform: 'translate3d(' + x + 'px,0,0)' }, { transform: 'translate3d(' + ((slot - target) * width) + 'px,0,0)' }], { duration: milliseconds, easing: 'ease', fill: 'forwards' }));
     Promise.all(animations.map(a => a.finished.catch(() => {}))).then(() => {
       if (token !== revision) return;
       finish(); stop();
     });
+  }
+  function clearDrag() {
+    const previous = drag; drag = null;
+    frame?.classList.remove('is-dragging');
+    if (previous && frame.hasPointerCapture?.(previous.id)) frame.releasePointerCapture(previous.id);
+    return previous;
+  }
+  function endDrag(event, cancelled = false) {
+    if (!drag || event.pointerId !== drag.id) return;
+    const previous = clearDrag();
+    if (!previous.horizontal) return;
+    const distance = Math.abs(previous.offset), elapsed = Math.max(1, event.timeStamp - previous.time);
+    const commit = !cancelled && (distance > Math.max(45, .13 * previous.width) || (distance > 20 && distance / elapsed > .45));
+    const destination = target + (commit ? previous.direction : 0);
+    const remaining = Math.abs((commit ? -previous.direction * previous.width : 0) - previous.offset);
+    const base = duration(window.innerWidth);
+    animateTo(destination, Math.max(120, Math.min(base, base * remaining / previous.width)), commit ? previous.direction : -previous.direction);
+  }
+  function bindDragging() {
+    frame.addEventListener('pointerdown', event => {
+      if (closing || animations.length || drag || records.length < 2 || !event.isPrimary ||
+          (event.pointerType === 'mouse' && event.button !== 0) || event.target.closest('a,button,input,select,textarea')) return;
+      drag = { id:event.pointerId, x:event.clientX, y:event.clientY, time:event.timeStamp, horizontal:false, offset:0 };
+    });
+    frame.addEventListener('pointermove', event => {
+      if (!drag || event.pointerId !== drag.id) return;
+      const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
+      if (!drag.horizontal) {
+        if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { clearDrag(); return; }
+        if (Math.abs(dx) < 12 || Math.abs(dx) < 1.3 * Math.abs(dy)) return;
+        drag.horizontal = true; drag.direction = dx < 0 ? 1 : -1; drag.width = frame.clientWidth;
+        scrollPositions.set(logical(target), slides[0].scrollTop);
+        const incoming = makeSlide(target + drag.direction);
+        incoming.inert = true; incoming.setAttribute('aria-hidden', 'true');
+        frame.append(incoming); incoming.scrollTop = scrollPositions.get(logical(target + drag.direction)) || 0;
+        slides.push(incoming); frame.setAttribute('aria-busy', 'true'); frame.classList.add('is-dragging');
+        frame.setPointerCapture?.(event.pointerId);
+      }
+      event.preventDefault();
+      drag.offset = -drag.direction * Math.max(0, Math.min(.95 * drag.width, -dx * drag.direction));
+      slides.forEach(slide => { slide.style.transform = 'translate3d(' + ((Number(slide.dataset.slot) - target) * drag.width + drag.offset) + 'px,0,0)'; });
+    }, { passive:false });
+    frame.addEventListener('pointerup', event => endDrag(event));
+    frame.addEventListener('pointercancel', event => endDrag(event, true));
+    frame.addEventListener('lostpointercapture', event => { if (event.target === frame) endDrag(event, true); });
   }
   function makeSlide(slot) {
     const record = records[logical(slot)], slide = el('article', 'tdb-usp-slide'), content = el('div', 'tdb-usp-content'), copy = el('div', 'tdb-usp-copy');
@@ -104,11 +152,8 @@
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
       }
     });
-    frame.addEventListener('pointerdown', e => { if (e.isPrimary && !closing && !e.target.closest('a,button') && (e.pointerType !== 'mouse' || e.button === 0)) drag = { id:e.pointerId, x:e.clientX, y:e.clientY }; }, { passive:true });
-    frame.addEventListener('pointermove', e => { if (drag && drag.id === e.pointerId && Math.abs(e.clientY - drag.y) > 20 && Math.abs(e.clientY - drag.y) > Math.abs(e.clientX - drag.x)) drag = null; }, { passive:true });
-    frame.addEventListener('pointerup', e => { const d = drag; drag = null; if (!d || d.id !== e.pointerId || window.getSelection()?.toString()) return; const dx = e.clientX - d.x, dy = e.clientY - d.y; if (Math.abs(dx) > 45 && Math.abs(dx) > 1.3 * Math.abs(dy)) step(dx < 0 ? 1 : -1); });
-    frame.addEventListener('pointercancel', () => { drag = null; });
-    new ResizeObserver(() => { if (overlay.hidden) return; stop(); finish(); overlay.style.setProperty('--usp-duration', duration(window.innerWidth) + 'ms'); }).observe(frame);
+    bindDragging();
+    new ResizeObserver(() => { if (overlay.hidden || closing) return; clearDrag(); stop(); finish(); overlay.style.setProperty('--usp-duration', duration(window.innerWidth) + 'ms'); }).observe(frame);
   }
   function lockPage() {
     const nav = document.querySelector('.navbar10_component');
@@ -142,7 +187,7 @@
   }
   function close() {
     if (!overlay || overlay.hidden || closing) return;
-    closing = true; clearTimeout(vipTimer); stop(); finish(); drag = null;
+    closing = true; clearTimeout(vipTimer); clearDrag(); stop(); finish();
     if (slides[0]) scrollPositions.set(logical(target), slides[0].scrollTop);
     const closeDuration = duration(window.innerWidth); overlay.style.setProperty('--usp-duration', closeDuration + 'ms');
     window.TDBVIPDrawer?.reset?.(); lock?.lenis?.stop();
@@ -169,7 +214,7 @@
       const trigger = e.target.closest('[data-tdb-usp-trigger]'); if (!trigger) return;
       e.preventDefault(); e.stopImmediatePropagation(); const i = Number(trigger.dataset.tdbUspTrigger); open(i, records[i].launch);
     }, true);
-    window.TDBUSPDrawer = Object.freeze({ version:'1.1.1', close });
+    window.TDBUSPDrawer = Object.freeze({ version:'1.2.0', close });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once:true }); else start();
 })();

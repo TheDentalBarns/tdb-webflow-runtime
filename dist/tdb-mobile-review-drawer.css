@@ -1,7 +1,7 @@
 /* Review drawer presentation: shared glass header and close control.
    Mobile side-drawer motion uses the runtime's non-desktop state. */
-.tdb-rv-overlay:not(.is-desktop)::before{background:rgba(0,0,0,.5);transition:opacity 420ms ease}
-.tdb-rv-overlay:not(.is-desktop) .tdb-rv-panel{transform:translateX(100%);transition:transform 420ms cubic-bezier(.4,0,.2,1)!important}
+.tdb-rv-overlay:not(.is-desktop)::before{background:rgba(0,0,0,.5);transition:opacity var(--rv-duration,400ms) ease}
+.tdb-rv-overlay:not(.is-desktop) .tdb-rv-panel{transform:translateX(100%);transition:transform var(--rv-duration,400ms) cubic-bezier(.4,0,.2,1)!important}
 .tdb-rv-overlay:not(.is-desktop).is-open .tdb-rv-panel{transform:translateX(0)}
 .tdb-rv-overlay:not(.is-desktop) .tdb-rv-panel::before{opacity:1;transition:none}
 .tdb-rv-overlay:not(.is-desktop) .tdb-rv-frame{opacity:1;transform:none;transition:none}
