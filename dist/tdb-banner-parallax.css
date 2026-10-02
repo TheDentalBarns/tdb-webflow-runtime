@@ -124,6 +124,19 @@
     width:calc(var(--tdb-banner-double) * 1.4);left:50%;right:auto;
     margin-left:calc(var(--tdb-banner-double) * -.7);margin-right:0;
   }
+  /* Titles use one fixed grid column in both card sizes, above the image blur. */
+  .tdb-banner-parallax .showcase-card_content.text-color-alternate {z-index:26}
+  .tdb-banner-parallax .showcase-content_btm {display:contents}
+  .tdb-banner-parallax .service-card-mobile-title[data-fade-slide] {
+    position:absolute;top:2rem;left:2rem;
+    width:calc(var(--tdb-banner-single) - 4rem);max-width:calc(var(--tdb-banner-single) - 4rem);
+    opacity:1!important;transform:none!important;transition:none!important;animation:none!important;
+  }
+  .tdb-banner-parallax .service-card-mobile-copy {
+    position:absolute;left:2rem;bottom:2rem;
+    width:calc(var(--tdb-banner-single) - 4rem);max-width:22rem;
+  }
+  .tdb-banner-parallax .service-card-button-wrap {position:absolute;right:2rem;bottom:2rem}
 }
 @media (min-width:1920px) {
   .tdb-banner-parallax.parallax-swiper_component .showcase_image {

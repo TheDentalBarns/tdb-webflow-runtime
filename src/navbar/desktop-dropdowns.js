@@ -49,10 +49,25 @@
     item.animations.forEach(animation => animation.cancel());
     item.animations = [];
   }
+  // Webflow's .w--open owns the desktop width, inset, padding and cream fill.
+  // Keep those exact values until the closing animation has fully disappeared.
+  const appearanceProperties = ['left','right','top','width','min-width','max-width','box-sizing','background-color','padding-left','padding-right','padding-top','padding-bottom'];
+  function holdAppearance(item) {
+    if (item.appearance) return;
+    const style = getComputedStyle(item.panel);
+    const values = appearanceProperties.map(property => [property,style.getPropertyValue(property)]);
+    item.appearance = appearanceProperties.map(property => [property,item.panel.style.getPropertyValue(property),item.panel.style.getPropertyPriority(property)]);
+    values.forEach(([property,value]) => item.panel.style.setProperty(property,value,property === 'padding-top' || property === 'padding-bottom' ? '' : 'important'));
+  }
+  function releaseAppearance(item) {
+    item.appearance?.forEach(([property,value,priority]) => value ? item.panel.style.setProperty(property,value,priority) : item.panel.style.removeProperty(property));
+    item.appearance = null;
+  }
   function reset(item) {
     item.generation++;
     cancel(item);
     item.panel.removeAttribute('data-tdb-desktop-panel');
+    releaseAppearance(item);
     item.panel.inert = item.originalInert;
     item.open = item.live = false;
   }
@@ -63,9 +78,12 @@
     const content = [...container.querySelectorAll('.navbar10_dropdown-content-left,.navbar10_dropdown-content-right')];
     const wasLive = item.live;
     const height = wasLive ? panel.getBoundingClientRect().height : 0;
+    const startPaddingTop = wasLive ? getComputedStyle(panel).paddingTop : '0px';
+    const startPaddingBottom = wasLive ? getComputedStyle(panel).paddingBottom : '0px';
     const translate = wasLive ? getComputedStyle(container).transform : 'translateY(-100%)';
     const previous = content.map(el => ({opacity:wasLive ? getComputedStyle(el).opacity : '0',transform:wasLive ? getComputedStyle(el).transform : 'translateY(-0.75rem)'}));
     cancel(item);
+    if (open) holdAppearance(item);
     const generation = ++item.generation;
     item.open = open;
     item.live = true;
@@ -80,7 +98,10 @@
     };
     // A height reveal avoids compositing a moving scroll container through an
     // animated clip-path, which can flash or clip sideways during closing.
-    motion(panel,[{height:height+'px'},{height:open ? container.getBoundingClientRect().height+'px' : '0px'}],{duration:500,easing:'cubic-bezier(0.165,0.84,0.44,1)'});
+    const paddingTop = getComputedStyle(panel).paddingTop;
+    const paddingBottom = getComputedStyle(panel).paddingBottom;
+    const fullHeight = container.getBoundingClientRect().height + (parseFloat(paddingTop)||0) + (parseFloat(paddingBottom)||0);
+    motion(panel,[{height:height+'px',paddingTop:startPaddingTop,paddingBottom:startPaddingBottom},{height:open ? fullHeight+'px' : '0px',paddingTop:open ? paddingTop : '0px',paddingBottom:open ? paddingBottom : '0px'}],{duration:500,easing:'cubic-bezier(0.165,0.84,0.44,1)'});
     motion(container,[{transform:translate},{transform:open ? 'translateY(0)' : 'translateY(-100%)'}],{duration:500,easing:'cubic-bezier(0.165,0.84,0.44,1)'});
     content.forEach((el,i) => motion(el, open ? [previous[i],{opacity:1,transform:'translateY(0)'}] : [
       {...previous[i],offset:0},{opacity:.5,transform:'translateY(-0.2rem)',offset:.2},
@@ -112,7 +133,42 @@
     if (!panels.some(item => item.open && item.panel.contains(event.target))) event.preventDefault();
   },{capture:true,passive:false});
   desktop.addEventListener('change',sync);
+  addEventListener('resize',() => {
+    if (!desktop.matches) return;
+    panels.filter(item => item.open && item.panel.dataset.tdbDesktopPanel === 'open').forEach(item => {
+      releaseAppearance(item);holdAppearance(item);
+    });
+  },{passive:true});
   addEventListener('pagehide',() => {panels.forEach(reset);syncLock();});
   addEventListener('pageshow',sync);
   sync();
+
+  // Warm only menu images, after a consent decision and the initial page load.
+  // Two low-priority decodes at a time avoid a burst of work on the first click.
+  let consentDecided = false, warming = false;
+  const idle = task => 'requestIdleCallback' in window ? requestIdleCallback(task,{timeout:2000}) : setTimeout(task,150);
+  function warmImages() {
+    if (!desktop.matches || !consentDecided || warming) return;
+    if (document.readyState !== 'complete') {addEventListener('load',warmImages,{once:true});return;}
+    warming = true;
+    const queue = panels.flatMap(item => [...item.panel.querySelectorAll('img')]);
+    async function batch() {
+      if (!desktop.matches) {warming=false;return;}
+      await Promise.allSettled(queue.splice(0,2).map(async image => {
+        image.fetchPriority='low';image.decoding='async';image.loading='eager';
+        try {await image.decode?.();} catch (_) { /* Opening never waits on an image. */ }
+      }));
+      if (queue.length) idle(batch);
+    }
+    idle(batch);
+  }
+  function consentComplete() {consentDecided=true;warmImages();}
+  function storedConsent() {
+    const cookie=document.cookie.split('; ').find(value=>value.startsWith('CookieScriptConsent='));
+    try {if(cookie && /"action"|"a":|accept|reject|close/.test(decodeURIComponent(cookie))) consentComplete();} catch (_) {}
+  }
+  ['CookieScriptAccept','CookieScriptAcceptAll','CookieScriptReject','CookieScriptClose'].forEach(type=>addEventListener(type,consentComplete));
+  addEventListener('CookieScriptLoaded',storedConsent);
+  desktop.addEventListener('change',warmImages);
+  storedConsent();
 })();
