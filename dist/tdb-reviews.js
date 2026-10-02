@@ -352,7 +352,7 @@
       wrapper.append(card);viewport.append(wrapper);cells.set(i,wrapper);return wrapper;
     }
     function around(from,to=from){
-      const buffer=centredDesktop?2:1;
+      const buffer=centredDesktop?Math.max(3,Math.ceil(viewport.clientWidth/Math.max(1,stride))):1;
       const low=compact?Math.min(from,to)-buffer:Math.max(0,Math.min(from,to)-1),high=compact?Math.max(from,to)+buffer:Math.min(records.length-1,Math.max(from,to)+perView);
       for(let i=low;i<=high;i++)cell(i);
       cells.forEach((n,i)=>{if(i<low||i>high){n.remove();cells.delete(i);}});
@@ -414,10 +414,10 @@
     }
     function move(direction){finish();go(active+direction);}
     function measure(){
-      const nextDesktop=homeDesktop();
+      const nextDesktop=matchMedia('(min-width:992px)').matches;
       const measured=viewport.clientWidth,nextCompact=nextDesktop||root.clientWidth<=767,nextPerView=nextCompact?1:measured>=1000?3:measured>=680?2:1;
       const gap=nextDesktop?(parseFloat(getComputedStyle(root).columnGap)||20):nextCompact?measured*.02:parseFloat(getComputedStyle(root).getPropertyValue('--ri-gap'))||20;
-      const nextWidth=nextDesktop?(root.getBoundingClientRect().width-2*gap)/3:nextCompact?root.clientWidth:(measured-gap*(nextPerView-1))/nextPerView,nextCentre=nextCompact?(measured-nextWidth)/2:0;
+      const nextWidth=nextDesktop?(root.getBoundingClientRect().width-2*gap)/3:nextCompact?root.clientWidth:(measured-gap*(nextPerView-1))/nextPerView,nextCentre=nextDesktop?root.getBoundingClientRect().left-viewport.getBoundingClientRect().left:nextCompact?(measured-nextWidth)/2:0;
       if(nextDesktop)root.style.setProperty('--ri-card-width',nextWidth+'px');else root.style.removeProperty('--ri-card-width');
       const measuredHeight=viewport.clientHeight;
       if(nextDesktop===centredDesktop&&nextCompact===compact&&nextPerView===perView&&Math.abs(nextWidth-width)<.5&&Math.abs(measuredHeight-height)<.5&&Math.abs(nextCentre-centre)<.5)return;

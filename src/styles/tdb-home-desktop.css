@@ -64,7 +64,7 @@
     padding-bottom:6rem;
   }
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-navigation {
-    left:50%;width:var(--ri-card-width);transform:translateX(-50%);
+    left:0;width:var(--ri-card-width);transform:none;
     height:6rem;min-height:6rem;padding:1rem;
   }
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-count-current {width:2.4ch}

@@ -17,7 +17,9 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-link {
 }
 @media (min-width:992px) {
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro,
-  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro :is(h2,p) {text-align:center}
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro :is(h2,p) {text-align:left}
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro {margin-inline:0 auto}
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-link {justify-content:flex-start}
   /* Keep the site's capitalised heading treatment on desktop too. */
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro h2 {font-size:2.25rem;letter-spacing:.1em;text-transform:uppercase}
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-intro p {font-size:1.3125rem;line-height:1.5;opacity:1}
@@ -30,7 +32,7 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-link {
   }
   html[data-wf-page="677cf86df9952f978d94d8a9"] .section_smile-gallery [data-tdb-smile-slider] {
     /* Three equal cards fill the existing globally padded container. */
-    width:calc((100% - 4rem) / 3);margin-inline:auto;overflow:visible;column-gap:2rem;
+    width:calc((100% - 4rem) / 3);margin-inline:0 auto;overflow:visible;column-gap:2rem;
     --tdb-smile-pad:4.55cqw;
     --tdb-smile-title-size:clamp(11px,3.2cqw,24px);
   }
@@ -46,7 +48,7 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-smile-link {
   html[data-wf-page="677cf86df9952f978d94d8a9"] [data-tdb-smile-slider] .tdb-smile-image-label {font-size:clamp(10px,2.73cqw,20px);letter-spacing:.1167em}
   html[data-wf-page="677cf86df9952f978d94d8a9"] [data-tdb-smile-slider] .paragraph-smile.descript {font-size:clamp(12px,3.66cqw,24px)}
   /* Keep neighbour text hidden even during a loop-copy handoff. Static controls
-     and fact icons retain their existing layer over the centre card. */
+     and fact icons retain their existing layer over the focused card. */
   html[data-wf-page="677cf86df9952f978d94d8a9"] .section_smile-gallery [data-tdb-smile-slider] .swiper-slide:not(.swiper-slide-active):not(.swiper-slide-duplicate-active) [data-fade-slide] {
     opacity:0!important;pointer-events:none;
   }

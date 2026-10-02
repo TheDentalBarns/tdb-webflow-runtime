@@ -7,14 +7,14 @@ const read=p=>fs.readFileSync(path.resolve(__dirname,'../../',p),'utf8');
 const review=read('src/reviews/review-drawer.js');
 function reviewFixture(viewportWidth,rootWidth,desktop,gap=30){
  const properties=new Map();
- const context=vm.createContext({homeDesktop:()=>desktop,root:{clientWidth:rootWidth,getBoundingClientRect:()=>({width:rootWidth}),style:{setProperty:(k,v)=>properties.set(k,v),removeProperty:k=>properties.delete(k)},classList:{toggle(){}}},viewport:{clientWidth:viewportWidth,clientHeight:720},getComputedStyle:()=>({columnGap:String(gap),getPropertyValue:()=>20}),centredDesktop:false,compact:false,perView:0,width:0,height:0,centre:0,stride:0,active:0,finish(){},paint(){},positionStaticQuote(){},revealQuotes(){},recordIndex:x=>x,last:()=>10});
+ const context=vm.createContext({matchMedia:()=>({matches:desktop}),root:{clientWidth:rootWidth,getBoundingClientRect:()=>({width:rootWidth,left:(viewportWidth-rootWidth)/2}),style:{setProperty:(k,v)=>properties.set(k,v),removeProperty:k=>properties.delete(k)},classList:{toggle(){}}},viewport:{clientWidth:viewportWidth,clientHeight:720,getBoundingClientRect:()=>({left:0})},getComputedStyle:()=>({columnGap:String(gap),getPropertyValue:()=>20}),centredDesktop:false,compact:false,perView:0,width:0,height:0,centre:0,stride:0,active:0,finish(){},paint(){},positionStaticQuote(){},revealQuotes(){},recordIndex:x=>x,last:()=>10});
  vm.runInContext(review.slice(review.indexOf('    function measure(){'),review.indexOf("    viewport.addEventListener('pointerdown'")),context);context.measure();return {context,properties};
 }
-test('homepage review neighbours meet the globally padded edges with two rem-scaled gaps',()=>{
+test('desktop review focus meets the left content edge and three cards fill the grid',()=>{
  for(const [vw,rw,gap] of [[992,932.48,24],[1363,1281.25,29.8398],[1920,1804.8,42],[2560,2200,48]]){
   const {context:c}=reviewFixture(vw,rw,true,gap);
-  assert.ok(Math.abs(c.centre-c.stride-(vw-rw)/2)<.001);
-  assert.ok(Math.abs(c.centre+c.stride+c.width-(vw+rw)/2)<.001);
+  assert.ok(Math.abs(c.centre-(vw-rw)/2)<.001);
+  assert.ok(Math.abs(c.centre+2*c.stride+c.width-(vw+rw)/2)<.001);
  }
 });
 test('tablet and mobile review widths retain their existing calculations',()=>{
