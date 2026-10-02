@@ -15,13 +15,13 @@ function fixture(t,width=1440,loaded=true){
  return {w,media,animations,panels,idle,get decoded(){return decoded;},load(){loaded=true;w.dispatchEvent(new w.Event('load'));},async set(i,open){panels[i].classList.toggle('w--open',open);toggles[i].setAttribute('aria-expanded',String(open));await tick();},async finish(){animations.forEach(a=>a.finish());await tick();},tick,get locked(){return w.document.documentElement.classList.contains('tdb-desktop-nav-locked');},get flushes(){return flushes;},get stops(){return stops;}};
 }
 test('desktop opens with mobile cadence despite reduced-motion settings and blocks background wheel only',async t=>{
- const h=fixture(t);assert(!h.locked);await h.set(0,true);assert(h.locked);assert.equal(h.flushes,1);assert.equal(h.stops,0);
+ const h=fixture(t);assert(!h.locked);await h.set(0,true);assert(h.locked);assert(h.w.document.querySelector('.tdb-desktop-nav-backdrop').classList.contains('is-open'));assert.equal(h.flushes,1);assert.equal(h.stops,0);
  assert.deepEqual(h.animations.map(a=>a.options.duration),[500,500,520,520]);assert.equal(h.animations[2].options.delay,70);
  for(const [target,prevented] of [[h.w.document.querySelector('main'),true],[h.panels[0].querySelector('a'),false]]){const event=new h.w.WheelEvent('wheel',{bubbles:true,cancelable:true,deltaY:100});target.dispatchEvent(event);assert.equal(event.defaultPrevented,prevented);}
  await h.finish();assert.equal(h.panels[0].dataset.tdbDesktopPanel,'open');
 });
 test('closing remains rendered, inert and locked until the reverse animation ends',async t=>{
- const h=fixture(t);await h.set(0,true);await h.finish();await h.set(0,false);assert(h.locked);assert.equal(h.panels[0].dataset.tdbDesktopPanel,'closing');assert.equal(h.panels[0].inert,true);assert.equal(h.animations.at(-1).options.duration,420);
+ const h=fixture(t);await h.set(0,true);await h.finish();await h.set(0,false);assert(h.locked);assert.equal(h.panels[0].dataset.tdbDesktopPanel,'closing');assert(!h.w.document.querySelector('.tdb-desktop-nav-backdrop').classList.contains('is-open'));assert.equal(h.panels[0].inert,true);assert.equal(h.animations.at(-1).options.duration,420);
  await h.finish();assert(!h.locked);assert(!h.panels[0].hasAttribute('data-tdb-desktop-panel'));assert(!h.w.document.body.hasAttribute('data-lenis-prevent'));
 });
 test('rapid reopen cancels stale closure; switching menus keeps one continuous scroll lock',async t=>{

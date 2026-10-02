@@ -1,6 +1,12 @@
 /* TDB Power Snippets v1.1.0 — staging design preview, no carousel. */
 (function () {
   'use strict';
+
+  // Match parallax timing on desktop; smaller breakpoints retain 400ms.
+  function carouselDuration(width) {
+    return matchMedia('(min-width:992px)').matches
+      ? Math.round(Math.min(950, Math.max(650, 400 * Math.sqrt(width / 375)))) : 400;
+  }
   function contextForPath(path) {
     path = path.toLowerCase().replace(/\/+$/, '') || '/';
     if (/facial-aesthetics/.test(path)) return null;
@@ -275,7 +281,7 @@
       slides.forEach(n=>n.classList.remove('is-settled'));
       if(entry)to.classList.add('is-first-entry','is-settled');
       to.style.visibility='visible';to.inert=true;
-      const duration=Math.max(120,400*(1-Math.min(Math.abs(offset)/width,.8)));
+      const duration=Math.max(120,carouselDuration(width)*(1-Math.min(Math.abs(offset)/width,.8)));
       const animations=[from.animate([{transform:'translateX('+offset+'px)'},{transform:'translateX('+(-direction*width)+'px)'}],{duration,easing:'ease',fill:'forwards'}),to.animate([{transform:'translateX('+(direction*width+offset)+'px)'},{transform:'translateX(0px)'}],{duration,easing:'ease',fill:'forwards'})];
       const state=moving={target,animations,entry};
       Promise.all(animations.map(a=>a.finished.catch(()=>{}))).then(()=>{if(moving!==state)return;finish();if(!entry)settle(direction<0?140:100);});

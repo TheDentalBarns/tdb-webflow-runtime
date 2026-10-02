@@ -1,6 +1,12 @@
 /* Shared treatment motion: 400ms slide, 300ms neighbour fade, rapid arrows and one entry move. */
 (function(){
   'use strict';
+
+  // Match parallax timing on desktop; smaller breakpoints retain 400ms.
+  function carouselDuration(width) {
+    return matchMedia('(min-width:992px)').matches
+      ? Math.round(Math.min(950, Math.max(650, 400 * Math.sqrt(width / 375)))) : 400;
+  }
   const VERSION='1.4.1';
   const BADGE='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.000 1.000 L15.138 4.424 L19.778 4.222 L19.576 8.862 L23.000 12.000 L19.576 15.138 L19.778 19.778 L15.138 19.576 L12.000 23.000 L8.862 19.576 L4.222 19.778 L4.424 15.138 L1.000 12.000 L4.424 8.862 L4.222 4.222 L8.862 4.424 Z"/><path d="m7.5 12 3 3 6-6" fill="none" stroke="#222" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const CLOCK='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path fill="currentColor" d="M128 28a100 100 0 1 0 100 100A100.11 100.11 0 0 0 128 28m0 192a92 92 0 1 1 92-92a92.1 92.1 0 0 1-92 92m60-92a4 4 0 0 1-4 4h-56a4 4 0 0 1-4-4V72a4 4 0 0 1 8 0v52h52a4 4 0 0 1 4 4"/></svg>';
@@ -116,7 +122,7 @@
     function go(target,offset=0){
       finish();if(total<2||target===active&&!offset){revealWords();return;}
       hideWords();syncDetails(target);neighbours(active,target);
-      const duration=Math.max(120,Math.min(400,400*Math.abs((target-active)*stride-offset)/Math.max(1,stride)));
+      const base=carouselDuration(viewport.clientWidth),duration=Math.max(120,Math.min(base,base*Math.abs((target-active)*stride-offset)/Math.max(1,stride)));
       const animations=[];
       cells.forEach((node,i)=>{node.inert=true;node.setAttribute('aria-hidden','true');animations.push(node.animate([{transform:'translate3d('+((i-active)*stride+offset)+'px,0,0)'},{transform:'translate3d('+((i-target)*stride)+'px,0,0)'}],{duration,easing:'ease',fill:'forwards'}));});
       mark(target);const current=moving={target,animations};

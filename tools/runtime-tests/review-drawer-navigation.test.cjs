@@ -9,12 +9,13 @@ const section = (from, to) => source.slice(source.indexOf(from), source.indexOf(
 
 function navigation(index = 0) {
   const context = vm.createContext({
-    window: {}, document: { activeElement: null },
+    matchMedia: () => ({matches:false}), window: {}, document: { activeElement: null },
     position: {}, prev: {}, next: {}, closeBtn: { focus() {} },
     list: Array.from({ length: 5 }, () => ({})), index, transition: null, drag: null,
     closing: false, current: null,
   });
   vm.runInContext(`
+    ${section('  function carouselDuration', '  function chooseReviews')}
     function slide() {
       return { contains: () => false, animate() {
         let resolve;

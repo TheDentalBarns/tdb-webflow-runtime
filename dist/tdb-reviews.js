@@ -1,6 +1,12 @@
 /* TDB Patient Reviews v1.9.4 — shared pop-outs with stationary quote artwork. */
 (function () {
   'use strict';
+
+  // Match parallax timing on desktop; smaller breakpoints retain 400ms.
+  function carouselDuration(width) {
+    return matchMedia('(min-width:992px)').matches
+      ? Math.round(Math.min(950, Math.max(650, 400 * Math.sqrt(width / 375)))) : 400;
+  }
   function chooseReviews(records, options) {
     const { topic='all', platform='all', sort='relevant', context='default', preferredId='' } = options;
     const list=records.filter(r=>(topic==='all'||r.topics.includes(topic))&&(platform==='all'||r.platform===platform));
@@ -154,7 +160,7 @@
   function translate(t,offset){t.offset=offset;t.from.style.transform='translate3d('+offset+'px,0,0)';t.to.style.transform='translate3d('+(t.direction*t.width+offset)+'px,0,0)';}
   async function settle(commit){
     const t=transition;if(!t||t.settling)return;t.settling=true;t.commit=commit;
-    const dest=commit?-t.direction*t.width:0,duration=Math.max(120,Math.min(400,400*Math.abs(dest-t.offset)/t.width));
+    const dest=commit?-t.direction*t.width:0,base=carouselDuration(t.width),duration=Math.max(120,Math.min(base,base*Math.abs(dest-t.offset)/t.width));
     // Accept rapid taps and reversals against the destination, just like the embed.
     updatePosition(index+(commit?t.direction:0),commit?t.direction:-t.direction);
     if(duration){t.animations=[t.from.animate([{transform:'translate3d('+t.offset+'px,0,0)'},{transform:'translate3d('+dest+'px,0,0)'}],{duration,easing:'ease',fill:'forwards'}),t.to.animate([{transform:'translate3d('+(t.direction*t.width+t.offset)+'px,0,0)'},{transform:'translate3d('+(t.direction*t.width+dest)+'px,0,0)'}],{duration,easing:'ease',fill:'forwards'})];await Promise.all(t.animations.map(a=>a.finished.catch(()=>{})));}
@@ -403,7 +409,7 @@
       if(cells.get(active)?.contains(document.activeElement)&&target!==active)viewport.focus({preventScroll:true});
       const direction=target<active?-1:1;
       syncStatic(target);
-      const duration=Math.max(120,Math.min(400,400*Math.abs((target-active)*stride-offset)/Math.max(1,stride)));
+      const base=carouselDuration(root.clientWidth),duration=Math.max(120,Math.min(base,base*Math.abs((target-active)*stride-offset)/Math.max(1,stride)));
       const animations=[];
       cells.forEach((n,i)=>{n.style.width=width+'px';n.inert=true;fitPreview(n);animations.push(n.animate([{transform:'translate3d('+((i-active)*stride+centre+offset)+'px,0,0)'},{transform:'translate3d('+((i-target)*stride+centre)+'px,0,0)'}],{duration,easing:'ease',fill:'forwards'}));});
       markCurrent(target);

@@ -23,9 +23,22 @@
     .navbar10_component .w-dropdown-list[data-tdb-desktop-panel] :is(.navbar10_dropdown-content-left,.navbar10_dropdown-content-right){animation:none!important;transition:none!important}
   }`;
   document.head.append(css);
+  // Same dimming as the patient review drawer, below both dropdown panels.
+  const backdrop = document.createElement('div');
+  backdrop.className = 'tdb-desktop-nav-backdrop';
+  backdrop.setAttribute('aria-hidden', 'true');
+  document.body.append(backdrop);
+  css.textContent += `
+    .tdb-desktop-nav-backdrop{position:fixed;inset:0;z-index:2147483400;background:rgba(0,0,0,.5);opacity:0;visibility:hidden;pointer-events:none;transition:opacity 420ms ease,visibility 0s 420ms}
+    @media(min-width:992px){
+      html.tdb-desktop-nav-locked .navbar10_component{z-index:2147483401!important}
+      html.tdb-desktop-nav-locked .tdb-desktop-nav-backdrop{visibility:visible;pointer-events:auto;transition-delay:0s}
+      .tdb-desktop-nav-backdrop.is-open{opacity:1}
+    }`;
   let lock = null;
   function syncLock() {
     const active = desktop.matches && panels.some(item => item.live);
+    backdrop.classList.toggle('is-open', desktop.matches && panels.some(item => item.open));
     if (active && !lock) {
       lock = { prevent: document.body.getAttribute('data-lenis-prevent') };
       // Finish any already-running smooth wheel movement at its visible position.

@@ -9,7 +9,7 @@ function fixture(t,{pathname='/',width=390,reduced=true,total=3}={}){
  const quotes=['Care and welcome','Designed for comfort','A non-clinical setting'];
  const html='<section class="section_standard-testimonial"><div class="testimonial_wrapper"><div class="icon-embed-medium"></div><div class="testimonial_slider w-slider"></div></div></section><div data-tdb-team-quote-feed><div class="w-dyn-item"><span data-tdb-team-author>Dr Keely Thorne</span><span data-tdb-team-role>Principal Dentist</span><div data-tdb-team-quote-content>'+quotes.slice(0,total).map((q,i)=>'<h3>'+q+'</h3><blockquote>Quote '+i+'</blockquote><p>Page: '+pathname+'</p><p>Rank: '+(i+1)+'</p>').join('')+'</div></div></div>';
  const dom=new JSDOM(html,{url:'https://dentalbarns.webflow.io'+pathname,runScripts:'outside-only',pretendToBeVisual:true,beforeParse(w){
-  w.matchMedia=()=>({matches:reduced});w.innerWidth=width;
+  w.matchMedia=query=>({matches:query.includes('min-width:992px')?width>=992:reduced});w.innerWidth=width;
   w.setTimeout=(cb,delay)=>{timers.set(++id,{cb,at:now+delay});return id;};w.clearTimeout=id=>timers.delete(id);
   w.requestAnimationFrame=()=>++id;w.cancelAnimationFrame=()=>{};
   w.IntersectionObserver=class{constructor(cb){this.cb=cb;observers.push(this);}observe(){}disconnect(){this.disconnected=true;}};
@@ -38,7 +38,7 @@ test('first view starts at hidden 01 then slides to opaque 02 without a text fad
   const incoming=a.root.querySelectorAll('.tdb-rc-card')[1];
   assert.equal(a.w.getComputedStyle(incoming.querySelector('.tdb-rc-open')).opacity,'1');
   assert.equal(a.w.getComputedStyle(incoming.querySelector('.tdb-rc-open')).transition,'none');
-  assert.equal(a.animations.length,2);assert.equal(a.animations[0].options.duration,400);
+  assert.equal(a.animations.length,2);assert.equal(a.animations[0].options.duration,width>=992?784:400);
   await a.finish();assert.equal(a.root.dataset.tdbSliderFirstView,'drawn');assert.equal(incoming.inert,false);
   assert.ok(incoming.classList.contains('is-settled'));assert.ok(!incoming.classList.contains('is-first-entry'));
   assert.equal(a.root.querySelector('.tdb-team-position').textContent,'02 — 03');

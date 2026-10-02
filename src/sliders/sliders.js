@@ -297,7 +297,7 @@
       loop: slideCount > 1,
       loopAdditionalSlides: 1,
       loopPreventsSlide: false,
-      speed: 400,
+      speed: parallaxDuration(swiperEl),
       autoplay: false,
       preventInteractionOnTransition: false,
       preloadImages: false,
@@ -328,6 +328,8 @@
       bindGridGap(component, swiper, () => highlightGap(component));
     }
 
+    bindParallaxDuration(component, swiperEl, swiper, '--tdb-carousel-duration');
+
     function updateCount() {
       if (countEl) countEl.textContent = `${swiper.realIndex + 1} of ${slideCount}`;
     }
@@ -351,7 +353,7 @@
     return Math.round(Math.min(950, Math.max(650, 400 * Math.sqrt(width / 375))));
   }
 
-  function bindParallaxDuration(component, swiperEl, swiper) {
+  function bindParallaxDuration(component, swiperEl, swiper, property = '--tdb-parallax-duration') {
     let frame = 0;
     let pending = null;
     const desktop = matchMedia('(min-width:992px)');
@@ -361,7 +363,7 @@
       pending = null;
       swiper.params.speed = duration;
       swiper.originalParams.speed = duration;
-      component.style.setProperty('--tdb-parallax-duration', duration + 'ms');
+      component.style.setProperty(property, duration + 'ms');
     }
     function schedule() {
       if (frame) return;
@@ -375,13 +377,13 @@
     observer.observe(swiperEl);
     desktop.addEventListener('change', schedule);
     swiper.on('slideChangeTransitionEnd', apply);
-    component.style.setProperty('--tdb-parallax-duration', swiper.params.speed + 'ms');
+    component.style.setProperty(property, swiper.params.speed + 'ms');
     swiper.on('beforeDestroy', () => {
       observer.disconnect();
       desktop.removeEventListener('change', schedule);
       if (frame) cancelAnimationFrame(frame);
       swiper.off('slideChangeTransitionEnd', apply);
-      component.style.removeProperty('--tdb-parallax-duration');
+      component.style.removeProperty(property);
     });
   }
 
