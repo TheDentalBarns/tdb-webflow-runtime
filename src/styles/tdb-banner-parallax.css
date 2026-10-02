@@ -101,3 +101,21 @@
 .parallax-swiper_component .swiper-slide.is-showcase:is(.swiper-slide-active,.swiper-slide-duplicate-active) .showcase_card::after {
   -webkit-backdrop-filter:blur(0);backdrop-filter:blur(0);
 }
+
+/* Treatment/technology/partner banners: two grid columns in focus, one outside.
+   Native service and Location image parallax components are not converted CMS
+   banners and deliberately retain their existing desktop geometry. */
+@media (min-width:992px) {
+  .tdb-banner-parallax.parallax-swiper_component {
+    --tdb-banner-grid: min(94vw,90rem);
+    --tdb-banner-single: calc((var(--tdb-banner-grid) - 4rem) / 3);
+    --tdb-banner-double: calc(2 * var(--tdb-banner-single) + 2rem);
+    width:var(--tdb-banner-grid)!important;max-width:none!important;
+    left:50%!important;margin-left:calc(var(--tdb-banner-grid) / -2)!important;margin-right:0!important;
+  }
+  .tdb-banner-parallax.parallax-swiper_component > .swiper {width:100%;overflow:visible}
+  .tdb-banner-parallax.parallax-swiper_component > .swiper > .swiper-wrapper > .swiper-slide.is-showcase {width:var(--tdb-banner-single)}
+  .tdb-banner-parallax.parallax-swiper_component > .swiper > .swiper-wrapper > .swiper-slide.is-showcase[data-tdb-banner-wide],
+  .tdb-banner-parallax.parallax-swiper_component > .swiper:not(.swiper-initialized) > .swiper-wrapper > .swiper-slide.is-showcase:first-child {width:var(--tdb-banner-double)}
+  .tdb-banner-parallax.parallax-swiper_component > .tdb-parallax-cta-layer {left:0;right:auto;width:var(--tdb-banner-double)}
+}

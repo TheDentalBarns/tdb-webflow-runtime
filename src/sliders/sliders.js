@@ -385,6 +385,66 @@
     });
   }
 
+  // Only converted CMS banners use the expanding desktop card grid. Swiper
+  // still owns gestures, looping, parallax, blur classes and caption timing.
+  function bindBannerGrid(component, swiperEl, swiper) {
+    const desktop = matchMedia('(min-width:992px)');
+    const nativeSlideTo = swiper.slideTo;
+    let motions = [], wideKey = null;
+    const stop = () => { motions.forEach(motion => motion.cancel()); motions = []; };
+    const keyOf = (slide, index) => slide.getAttribute('data-swiper-slide-index') ?? String(index);
+    function mark(index) {
+      const slides = [...swiperEl.querySelectorAll(':scope > .swiper-wrapper > .swiper-slide')];
+      const target = slides[index];
+      if (!target) return slides;
+      wideKey = keyOf(target, index);
+      slides.forEach((slide, i) => slide.toggleAttribute('data-tdb-banner-wide', keyOf(slide, i) === wideKey));
+      return slides;
+    }
+    swiper.on('beforeInit', () => mark(swiper.params.initialSlide || 0));
+    swiper.slideTo = function(index = 0, speed = this.params.speed, callbacks = true, internal, initial) {
+      if (!desktop.matches) return nativeSlideTo.call(this, index, speed, callbacks, internal, initial);
+      const targetIndex = Math.max(0, Number(index));
+      const target = this.slides[targetIndex];
+      if (!target || (this.animating && this.params.preventInteractionOnTransition) || (!this.enabled && !internal && !initial)) {
+        return nativeSlideTo.call(this, index, speed, callbacks, internal, initial);
+      }
+      // Loop correction swaps identical copies. Preserve an in-flight width
+      // animation rather than flashing its final width at the join.
+      if (internal && speed === 0 && keyOf(target, targetIndex) === wideKey) {
+        return nativeSlideTo.call(this, index, speed, callbacks, internal, initial);
+      }
+      const slides = [...this.slides];
+      const from = slides.map(slide => slide.getBoundingClientRect().width);
+      stop();
+      mark(targetIndex);
+      // Measure final widths before Swiper calculates its destination. The
+      // animation then restores each visual starting width before the paint.
+      this.updateSlides();
+      const to = slides.map(slide => slide.getBoundingClientRect().width);
+      if (this.initialized && speed > 0) {
+        const easing = getComputedStyle(this.wrapperEl).transitionTimingFunction.match(/^[a-z-]+\([^)]*\)|^[a-z-]+/)?.[0] || 'ease';
+        motions = slides.flatMap((slide, i) => Math.abs(from[i] - to[i]) < .1 ? [] : [slide.animate(
+          [{width:from[i]+'px'}, {width:to[i]+'px'}], {duration:speed, easing, fill:'both'}
+        )]);
+        const batch = motions;
+        Promise.all(batch.map(motion => motion.finished.catch(() => {}))).then(() => {
+          if (motions !== batch) return;
+          stop();
+        });
+      }
+      return nativeSlideTo.call(this, index, speed, callbacks, internal, initial);
+    };
+    const onResize = () => { stop(); if (swiper.initialized) mark(swiper.activeIndex); };
+    swiper.on('beforeResize', onResize);
+    desktop.addEventListener('change', onResize);
+    swiper.on('beforeDestroy', () => {
+      stop(); desktop.removeEventListener('change', onResize);
+      swiper.off('beforeResize', onResize); swiper.slideTo = nativeSlideTo;
+      swiperEl.querySelectorAll('[data-tdb-banner-wide]').forEach(slide => slide.removeAttribute('data-tdb-banner-wide'));
+    });
+  }
+
   function initParallaxSwiper(component) {
     if (!component || isInitialised(component)) return;
 
@@ -400,6 +460,7 @@
     const cta = window.TDBParallaxControls?.prepare(component, swiperEl);
 
     const swiper = new window.Swiper(swiperEl, {
+      init: !banner,
       slidesPerView: 1,
       initialSlide: cta?.initialIndex || 0,
       observer: false,
@@ -439,11 +500,13 @@
         clickable: true
       },
       breakpoints: {
-        768: { slidesPerView: 1, touchRatio: 1 },
-        0: { slidesPerView: 1, touchRatio: 1 }
+        ...(banner ? {992: {slidesPerView:'auto', centeredSlides:false, touchRatio:1}} : {}),
+        768: { slidesPerView: 1, centeredSlides:true, touchRatio: 1 },
+        0: { slidesPerView: 1, centeredSlides:true, touchRatio: 1 }
       }
     });
 
+    if (banner) { bindBannerGrid(component, swiperEl, swiper); swiper.init(); }
     bindGridGap(component, swiper, () => 0);
     bindParallaxDuration(component, swiperEl, swiper);
     cta?.bind(swiper);
