@@ -17,10 +17,10 @@ function fixture(t,width=1440){
  p.getBoundingClientRect=function(){return {width:size(this),height:700,x:0,y:0,left:0,top:0,right:size(this),bottom:700};};
  w.getComputedStyle=el=>{const style=baseComputed(el);return new Proxy(style,{get(target,key){if(key==='transitionTimingFunction')return 'cubic-bezier(0.25, 0.1, 0.25, 1)';if(key==='getPropertyValue')return name=>name==='width'?size(el)+'px':target.getPropertyValue(name);return Reflect.get(target,key);}});};
  p.animate=function(frames,opts){const el=this;let resolve;const a={from:parseFloat(frames[0].width),to:parseFloat(frames[1].width),progress:0,opts,finished:new Promise(r=>resolve=r),cancel(){if(el._motion===a)el._motion=null;resolve();}};el._motion=a;return a;};
- w.eval(swiperSource);w.eval(helper+';window.bindBannerGrid=bindBannerGrid;');
+ w.eval(swiperSource);w.eval(helper+';window.bindBannerGrid=bindBannerGrid;window.bindParallaxInterruptions=bindParallaxInterruptions;');
  const el=w.document.querySelector('.swiper');
  const swiper=new w.Swiper(el,{init:false,slidesPerView:1,centeredSlides:true,loop:true,loopAdditionalSlides:1,loopPreventsSlide:false,preventInteractionOnTransition:false,speed:800,spaceBetween:30,breakpoints:{992:{slidesPerView:'auto',centeredSlides:false},0:{slidesPerView:1,centeredSlides:true}}});
- w.bindBannerGrid(el.parentElement,el,swiper);swiper.init();swiper.getTranslate=()=>swiper.translate;
+ w.bindBannerGrid(el.parentElement,el,swiper);swiper.init();w.bindParallaxInterruptions(swiper);swiper.getTranslate=()=>swiper.translate;
  function finish(){for(const s of swiper.slides)if(s._motion){s._motion.progress=1;s._motion.cancel();}swiper.transitionEnd();}
  return {w,el,swiper,finish,size};
 }
@@ -39,7 +39,30 @@ test('rapid interrupted selection continues from visible widths instead of snapp
  const {swiper:s}=fixture(t);s.slideNext();for(const slide of s.slides)if(slide._motion)slide._motion.progress=.4;
  const outgoing=s.slides[s.activeIndex];s.slideNext();assert.equal(s.realIndex,2);assert.equal(outgoing._motion.from,579);assert.equal(outgoing._motion.to,405);
 });
+test('selecting the already moving target leaves its existing motion running',t=>{
+ const {swiper:s}=fixture(t);s.slideNext();
+ const active=s.slides[s.activeIndex], motion=active._motion;
+ s.slideTo(s.activeIndex);
+ assert.equal(active._motion,motion);
+ assert.equal(s.wrapperEl.style.transitionDuration,'800ms');
+});
 test('mobile retains native full-width centred slides with no width animations',t=>{
  const {swiper:s,finish}=fixture(t,390);assert.equal(s.params.slidesPerView,1);assert.equal(s.params.centeredSlides,true);
  s.slideNext();assert.equal(s.realIndex,1);assert.equal([...s.slides].some(slide=>slide._motion),false);finish();
+});
+test('rapid previous across a loop join follows the selected card rather than falling back to index zero',t=>{
+ const {swiper:s}=fixture(t);
+ s.slidePrev();assert.equal(s.realIndex,5);
+ // The transition is only part-way to the cloned last card, not at its snap.
+ let read=0;const target=s.translate;
+ s.getTranslate=()=>++read===1?target-180:s.translate;
+ s.slidePrev();
+ assert.equal(s.realIndex,4);
+ assert.equal(s.translate,-s.slidesGrid[s.activeIndex]);
+});
+test('mobile rapid previous also preserves the logical selection at the loop join',t=>{
+ const {swiper:s}=fixture(t,390);s.slidePrev();assert.equal(s.realIndex,5);
+ const target=s.translate;let read=0;s.getTranslate=()=>++read===1?target-180:s.translate;
+ s.slidePrev();assert.equal(s.realIndex,4);
+ assert.equal([...s.slides].some(slide=>slide._motion),false);
 });

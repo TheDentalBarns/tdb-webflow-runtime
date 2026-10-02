@@ -409,6 +409,9 @@
       if (!target || (this.animating && this.params.preventInteractionOnTransition) || (!this.enabled && !internal && !initial)) {
         return nativeSlideTo.call(this, index, speed, callbacks, internal, initial);
       }
+      if (this.animating && targetIndex === this.activeIndex && speed > 0) {
+        return nativeSlideTo.call(this, index, speed, callbacks, internal, initial);
+      }
       // Loop correction swaps identical copies. Preserve an in-flight width
       // animation rather than flashing its final width at the join.
       if (internal && speed === 0 && keyOf(target, targetIndex) === wideKey) {
@@ -442,6 +445,77 @@
       stop(); desktop.removeEventListener('change', onResize);
       swiper.off('beforeResize', onResize); swiper.slideTo = nativeSlideTo;
       swiperEl.querySelectorAll('[data-tdb-banner-wide]').forEach(slide => slide.removeAttribute('data-tdb-banner-wide'));
+    });
+  }
+
+  // Keep interrupted CSS movement on the same clock as the banner width tween.
+  // Native CSS reversals can shorten their duration; explicitly restart from
+  // the rendered pose so rapid reversals still use the configured full cadence.
+  function bindParallaxInterruptions(swiper) {
+    const nativeSlideTo = swiper.slideTo;
+    const nativeLoopFix = swiper.loopFix;
+    const nativeSlidePrev = swiper.slidePrev;
+    const selector = '[data-swiper-parallax], [data-swiper-parallax-x], [data-swiper-parallax-y]';
+    function poses() {
+      return [...swiper.slides].flatMap((slide, index) => {
+        const key = slide.getAttribute('data-swiper-slide-index') ?? String(index);
+        const x = slide.getBoundingClientRect().left;
+        return [...slide.querySelectorAll(selector)].map((el, slot) => ({
+          el, key, slot, x, transform: getComputedStyle(el).transform
+        }));
+      });
+    }
+    function freeze(images) {
+      const wrapper = swiper.wrapperEl;
+      const transform = getComputedStyle(wrapper).transform;
+      wrapper.style.transitionDuration = '0ms';
+      wrapper.style.transform = transform;
+      images.forEach(({el, transform: imageTransform}) => {
+        el.style.transitionDuration = '0ms';
+        el.style.transform = imageTransform;
+      });
+      // Commit the visual start before native Swiper writes its next destination.
+      void wrapper.offsetWidth;
+    }
+    swiper.slideTo = function(index = 0, speed = this.params.speed, callbacks = true, internal, initial) {
+      if (speed > 0 && Number(index) !== this.activeIndex && this.animating && !this.params.preventInteractionOnTransition) freeze(poses());
+      return nativeSlideTo.call(this, index, speed, callbacks, internal, initial);
+    };
+    swiper.loopFix = function() {
+      const inFlight = this.animating;
+      const images = inFlight ? poses() : null;
+      const previous = this.activeIndex;
+      if (images) freeze(images);
+      const result = nativeLoopFix.call(this);
+      if (images && this.activeIndex !== previous) {
+        // The loop changes DOM copies without changing their visible position.
+        // Transfer each rendered image pose to its corresponding new copy.
+        poses().forEach(next => {
+          const candidates = images.filter(p => p.key === next.key && p.slot === next.slot);
+          const prior = candidates.reduce((best, p) => !best || Math.abs(p.x-next.x)<Math.abs(best.x-next.x) ? p : best, null);
+          if (prior) {
+            next.el.style.transitionDuration = '0ms';
+            next.el.style.transform = prior.transform;
+          }
+        });
+        void this.wrapperEl.offsetWidth;
+      }
+      return result;
+    };
+    swiper.slidePrev = function(speed = this.params.speed, callbacks = true, internal) {
+      if (!this.enabled) return this;
+      if (!this.params.loop || this.params.slidesPerGroup !== 1) return nativeSlidePrev.call(this, speed, callbacks, internal);
+      if (this.animating && this.params.loopPreventsSlide) return false;
+      this.loopFix();
+      // During loop correction the visible translate deliberately lies between
+      // snap points. Native slidePrev searches that value in snapGrid and can
+      // fall back to index zero. Navigate from the logical selection instead.
+      return this.slideTo(this.activeIndex - 1, speed, callbacks, internal);
+    };
+    swiper.on('beforeDestroy', () => {
+      swiper.slideTo = nativeSlideTo;
+      swiper.loopFix = nativeLoopFix;
+      swiper.slidePrev = nativeSlidePrev;
     });
   }
 
@@ -507,6 +581,7 @@
     });
 
     if (banner) { bindBannerGrid(component, swiperEl, swiper); swiper.init(); }
+    bindParallaxInterruptions(swiper);
     bindGridGap(component, swiper, () => 0);
     bindParallaxDuration(component, swiperEl, swiper);
     cta?.bind(swiper);
