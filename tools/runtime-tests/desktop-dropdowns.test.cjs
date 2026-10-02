@@ -21,7 +21,7 @@ test('desktop opens with mobile cadence despite reduced-motion settings and bloc
 });
 test('closing remains rendered, inert and locked until the reverse animation ends',async t=>{
  const h=fixture(t);await h.set(0,true);await h.finish();await h.set(0,false);assert(h.locked);assert.equal(h.panels[0].dataset.tdbDesktopPanel,'closing');assert.equal(h.panels[0].inert,true);assert.equal(h.animations.at(-1).options.duration,420);
- await h.finish();assert(!h.locked);assert(!h.panels[0].hasAttribute('data-tdb-desktop-panel'));assert(!h.w.document.documentElement.hasAttribute('data-lenis-prevent'));
+ await h.finish();assert(!h.locked);assert(!h.panels[0].hasAttribute('data-tdb-desktop-panel'));assert(!h.w.document.body.hasAttribute('data-lenis-prevent'));
 });
 test('rapid reopen cancels stale closure; switching menus keeps one continuous scroll lock',async t=>{
  const h=fixture(t);await h.set(0,true);await h.set(0,false);await h.set(0,true);await h.finish();assert(h.locked);assert.equal(h.panels[0].dataset.tdbDesktopPanel,'open');
@@ -30,5 +30,5 @@ test('rapid reopen cancels stale closure; switching menus keeps one continuous s
 });
 test('mobile is untouched and a breakpoint change releases desktop styles and lock',async t=>{
  const mobile=fixture(t,390);await mobile.set(0,true);assert(!mobile.locked);assert.equal(mobile.animations.length,0);
- const h=fixture(t);h.w.document.documentElement.setAttribute('data-lenis-prevent','existing');await h.set(0,true);h.media.matches=false;h.media.change();await h.tick();assert(!h.locked);assert(!h.panels[0].hasAttribute('data-tdb-desktop-panel'));assert.equal(h.w.document.documentElement.getAttribute('data-lenis-prevent'),'existing');
+ const h=fixture(t);h.w.document.body.setAttribute('data-lenis-prevent','existing');await h.set(0,true);h.media.matches=false;h.media.change();await h.tick();assert(!h.locked);assert(!h.panels[0].hasAttribute('data-tdb-desktop-panel'));assert.equal(h.w.document.body.getAttribute('data-lenis-prevent'),'existing');
 });

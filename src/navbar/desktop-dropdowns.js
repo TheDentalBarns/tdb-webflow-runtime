@@ -14,10 +14,12 @@
   const css = document.createElement('style');
   css.dataset.tdbDesktopDropdowns = '';
   css.textContent = `@media(min-width:992px){
-    html.tdb-desktop-nav-locked{overflow:hidden!important;overscroll-behavior:none;scrollbar-gutter:stable}
+    html.tdb-desktop-nav-locked{overflow:hidden!important;overscroll-behavior:none}
     html.tdb-desktop-nav-locked .navbar10_component{transform:translateY(0)!important}
     .navbar10_component .w-dropdown-list[data-tdb-desktop-panel]{display:block!important;opacity:1!important;overflow:hidden;animation:none!important;transition:none!important}
     .navbar10_component .w-dropdown-list[data-tdb-desktop-panel]>.navbar10_container{max-height:calc(100dvh - var(--tdb-desktop-nav-height,5rem));overflow-y:auto;overscroll-behavior:contain;animation:none!important;transition:none!important}
+    .navbar10_component .w-dropdown-list[data-tdb-desktop-panel]>.navbar10_container:focus{outline:none!important}
+    .navbar10_component .w-dropdown-list[data-tdb-desktop-panel] :is(a,button,[role=button]):focus-visible{outline:1px solid #d6cab4!important;outline-offset:3px}
     .navbar10_component .w-dropdown-list[data-tdb-desktop-panel] :is(.navbar10_dropdown-content-left,.navbar10_dropdown-content-right){animation:none!important;transition:none!important}
   }`;
   document.head.append(css);
@@ -25,17 +27,19 @@
   function syncLock() {
     const active = desktop.matches && panels.some(item => item.live);
     if (active && !lock) {
-      lock = { prevent: root.getAttribute('data-lenis-prevent') };
+      lock = { prevent: document.body.getAttribute('data-lenis-prevent') };
       // Finish any already-running smooth wheel movement at its visible position.
       // Prevent new Lenis gestures without stopping its lifecycle (drawers share it).
       window.lenis?.scrollTo?.(scrollY, {immediate:true, force:true});
-      root.setAttribute('data-lenis-prevent', '');
+      // Lenis excludes its root element from the event path check. The body
+      // must carry this attribute so it covers every page and menu gesture.
+      document.body.setAttribute('data-lenis-prevent', '');
       root.classList.add('tdb-desktop-nav-locked');
       nav.setAttribute('data-tdb-desktop-dropdown', '');
       window.TDBNavScroll?.release?.();
     } else if (!active && lock) {
-      if (lock.prevent === null) root.removeAttribute('data-lenis-prevent');
-      else root.setAttribute('data-lenis-prevent', lock.prevent);
+      if (lock.prevent === null) document.body.removeAttribute('data-lenis-prevent');
+      else document.body.setAttribute('data-lenis-prevent', lock.prevent);
       root.classList.remove('tdb-desktop-nav-locked');
       nav.removeAttribute('data-tdb-desktop-dropdown');
       lock = null;
@@ -58,7 +62,7 @@
     if (!container) return;
     const content = [...container.querySelectorAll('.navbar10_dropdown-content-left,.navbar10_dropdown-content-right')];
     const wasLive = item.live;
-    const clip = wasLive ? getComputedStyle(panel).clipPath : 'inset(0px 0px 100% 0px)';
+    const height = wasLive ? panel.getBoundingClientRect().height : 0;
     const translate = wasLive ? getComputedStyle(container).transform : 'translateY(-100%)';
     const previous = content.map(el => ({opacity:wasLive ? getComputedStyle(el).opacity : '0',transform:wasLive ? getComputedStyle(el).transform : 'translateY(-0.75rem)'}));
     cancel(item);
@@ -74,7 +78,9 @@
       item.animations.push(animation);
       return animation;
     };
-    motion(panel,[{clipPath:clip === 'none' ? 'inset(0px)' : clip},{clipPath:open ? 'inset(0px)' : 'inset(0px 0px 100% 0px)'}],{duration:500,easing:'cubic-bezier(0.165,0.84,0.44,1)'});
+    // A height reveal avoids compositing a moving scroll container through an
+    // animated clip-path, which can flash or clip sideways during closing.
+    motion(panel,[{height:height+'px'},{height:open ? container.getBoundingClientRect().height+'px' : '0px'}],{duration:500,easing:'cubic-bezier(0.165,0.84,0.44,1)'});
     motion(container,[{transform:translate},{transform:open ? 'translateY(0)' : 'translateY(-100%)'}],{duration:500,easing:'cubic-bezier(0.165,0.84,0.44,1)'});
     content.forEach((el,i) => motion(el, open ? [previous[i],{opacity:1,transform:'translateY(0)'}] : [
       {...previous[i],offset:0},{opacity:.5,transform:'translateY(-0.2rem)',offset:.2},
@@ -84,7 +90,7 @@
     ],{duration:open ? 520 : 420,delay:open ? 70 : 0,easing:open ? 'cubic-bezier(0.5,0,1,1)' : 'cubic-bezier(0,0,0.2,1)'}));
     Promise.all(item.animations.map(animation => animation.finished.catch(() => {}))).then(() => {
       if (generation !== item.generation) return;
-      if (open) panel.setAttribute('data-tdb-desktop-panel','open');
+      if (open) {cancel(item);panel.setAttribute('data-tdb-desktop-panel','open');}
       else {reset(item);syncLock();}
     });
   }
