@@ -1,12 +1,18 @@
 /* Home awards use exactly the same 94vw / 90rem, 2rem-gap card grid. */
 html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-awards-trio{display:none}
-/* Own the initial state so late Webflow interaction setup cannot close it. */
+/* Keep the newest award open reliably; match FAQ DD a-50/a-51 motion.
+   The answer height changes immediately. Only opening text and the spacer animate. */
 [data-tdb-awards-layout] .faq3_accordion[data-tdb-award-open] > .faq3_answer{height:0!important;opacity:0!important;transform:translateY(-20px)!important;overflow:hidden}
 [data-tdb-awards-layout] .faq3_accordion[data-tdb-award-open="true"] > .faq3_answer{height:var(--tdb-award-answer-height)!important;opacity:.5!important;transform:translateY(0)!important}
 [data-tdb-awards-layout] .faq3_accordion[data-tdb-award-open] > .accordion-spacer{height:0!important}
+[data-tdb-awards-layout] .faq3_accordion[data-tdb-award-open="true"] > .accordion-spacer{height:20px!important}
 [data-tdb-awards-layout] .faq3_accordion[data-tdb-award-open] .faq3_icon-wrapper{transform:rotate(0deg)!important}
 [data-tdb-awards-layout] .faq3_accordion[data-tdb-award-open="true"] .faq3_icon-wrapper{transform:rotate(180deg)!important}
-[data-tdb-awards-motion] .faq3_answer{transition:height 400ms ease,opacity 300ms ease,transform 400ms ease!important}
+/* Sampled outQuart follows the existing Webflow FAQ easing. */
+[data-tdb-awards-layout]{--tdb-faq-out-quart:linear(0,.185494 5%,.3439 10%,.477994 15%,.5904 20%,.683594 25%,.7599 30%,.821494 35%,.8704 40%,.908494 45%,.9375 50%,.958994 55%,.9744 60%,.984994 65%,.9919 70%,.996094 75%,.9984 80%,.999494 85%,.9999 90%,.999994 95%,1)}
+[data-tdb-awards-motion] .faq3_answer{transition:none!important}
+[data-tdb-awards-motion] .faq3_accordion[data-tdb-award-open="true"] > .faq3_answer{transition:opacity 300ms linear,transform 400ms var(--tdb-faq-out-quart)!important}
+[data-tdb-awards-motion] .accordion-spacer{transition:height 300ms var(--tdb-faq-out-quart)!important}
 [data-tdb-awards-motion] .faq3_icon-wrapper{transition:transform 400ms ease!important}
 [data-tdb-awards-layout] .faq3_question:focus-visible{outline:1px solid currentColor;outline-offset:4px}
 @media(min-width:992px){
