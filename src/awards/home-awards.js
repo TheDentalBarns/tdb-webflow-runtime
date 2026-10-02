@@ -1,4 +1,4 @@
-/* Home awards: reuse the service recognition component, with desktop grid placement. */
+/* Home awards: service recognition rows on mobile, a three-column desktop grid. */
 (()=>{
   'use strict';
   if(document.documentElement.dataset.wfPage!=='677cf86df9952f978d94d8a9')return;
@@ -22,8 +22,10 @@
     intro.classList.add('tdb-home-awards-intro');
     trioWrapper.classList.add('tdb-home-awards-trio');
     const desktop=matchMedia('(min-width:992px)');
+    const mobile=matchMedia('(max-width:767px)');
+    const instagram=grid.querySelector('.award-image_left');
     function place(){
-      if(desktop.matches){
+      if(desktop.matches||mobile.matches){
         component.insertBefore(intro,grid);
         component.insertBefore(trioWrapper,grid);
         list.prepend(label);
@@ -34,8 +36,13 @@
         originalParent.insertBefore(trioWrapper,originalNext);
         paragraph.textContent=originalCopy;
       }
+      // DOM order follows the mobile reading/tab order as well as the visual order.
+      if(instagram){
+        if(mobile.matches)grid.insertBefore(instagram,list);
+        else grid.append(instagram);
+      }
     }
-    place();desktop.addEventListener('change',place);
+    place();desktop.addEventListener('change',place);mobile.addEventListener('change',place);
     // Webflow's late IX setup can reset an accordion opened with a synthetic
     // click. Own this section's state explicitly, including keyboard and ARIA.
     const questions=Array.from(list.querySelectorAll('.faq3_question'));

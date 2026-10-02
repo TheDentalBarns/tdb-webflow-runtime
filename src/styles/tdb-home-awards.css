@@ -37,3 +37,23 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-awards-trio{display:none
   [data-tdb-awards-layout] .award-image_left{grid-column:1!important;grid-row:1!important;width:100%;min-width:0;max-width:100%;align-self:start}
   [data-tdb-awards-layout] .tdb-home-awards-label{margin:0 0 2rem;color:var(--base-color-brand--orange-3,#d6cab4)}
 }
+
+/* Match the review-to-headphones section padding at each mobile breakpoint. */
+@media(max-width:767px){
+  [data-tdb-awards-layout]{--tdb-awards-space:4rem}
+  [data-tdb-awards-layout] .padding-section-large{padding-block:var(--tdb-awards-space)}
+  [data-tdb-awards-layout] .faq3_component{display:flex;flex-direction:column;gap:var(--tdb-awards-space)}
+  [data-tdb-awards-layout] .tdb-home-awards-intro{width:100%;max-width:none;margin:0;text-align:left}
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-awards-trio{display:block}
+  [data-tdb-awards-layout] .tdb-service-awards{margin:0!important}
+  [data-tdb-awards-layout] .tdb-awards-heading{display:none}
+  [data-tdb-awards-layout] .tdb-awards-grid{min-height:0}
+  [data-tdb-awards-layout] .tdb-award:last-child{padding-bottom:0}
+  [data-tdb-awards-layout] .faq3_content{display:flex;flex-direction:column;gap:var(--tdb-awards-space);width:100%}
+  [data-tdb-awards-layout] .faq3_content > .show-on-tablet{display:none}
+  [data-tdb-awards-layout] :is(.award-image_left,.faq3_list){position:static;min-height:0;width:100%;max-width:100%;margin:0;padding:0}
+  [data-tdb-awards-layout] .tdb-home-awards-label{margin:0 0 2rem;color:var(--base-color-brand--orange-3,#d6cab4)}
+}
+@media(max-width:479px){
+  [data-tdb-awards-layout]{--tdb-awards-space:8rem}
+}
