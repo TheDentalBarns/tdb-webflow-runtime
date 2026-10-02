@@ -17,17 +17,16 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-awards-trio{display:none
   [data-tdb-awards-layout] .tdb-service-awards{margin:0 0 3rem!important}
   [data-tdb-awards-layout] .tdb-awards-heading{display:none}
   [data-tdb-awards-layout] .tdb-awards-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:2rem;min-height:0;padding-bottom:3rem;border-bottom:0;align-items:stretch}
-  [data-tdb-awards-layout] .tdb-award{position:relative;grid-template-columns:7rem minmax(0,1fr);gap:1.25rem;padding:0;align-items:center}
-  [data-tdb-awards-layout] .tdb-award::before{content:"";position:absolute;left:-.65rem;top:50%;transform:translateY(-50%);width:5px;height:7.775rem;max-height:100%;background:color-mix(in srgb,var(--award-cream,#d6cab4) 75%,#000);pointer-events:none}
+  [data-tdb-awards-layout] .tdb-award{position:relative;grid-template-columns:7rem minmax(0,1fr);gap:1.25rem;padding:0 0 0 calc(1.25rem + 5px);align-items:center}
+  [data-tdb-awards-layout] .tdb-award::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:5px;height:7.775rem;max-height:100%;background:var(--award-cream,#d6cab4);pointer-events:none}
   [data-tdb-awards-layout] .tdb-award-logo{height:9rem}
   [data-tdb-awards-layout] .tdb-award-text{max-width:none;padding-left:1.25rem}
   [data-tdb-awards-layout] .tdb-award-title{height:1.4rem;white-space:nowrap;margin-bottom:.4rem}
   [data-tdb-awards-layout] .tdb-award-result{height:1.125rem;white-space:nowrap;margin-bottom:.65rem}
   [data-tdb-awards-layout] .tdb-award-copy{height:4.2rem;line-height:1.4rem;text-wrap:pretty}
-  [data-tdb-awards-layout] .faq3_content{grid-template-columns:minmax(0,2fr) minmax(0,1fr);column-gap:2rem;align-items:start}
-  /* Two single columns plus their middle gutter, then one single column. */
-  [data-tdb-awards-layout] .faq3_content{grid-template-columns:minmax(0,calc((100% - 4rem)/3*2 + 2rem)) minmax(0,calc((100% - 4rem)/3))}
-  [data-tdb-awards-layout] .faq3_list{min-width:0;padding-right:2rem;box-sizing:border-box}
-  [data-tdb-awards-layout] .award-image_left{width:100%;min-width:0;max-width:100%;align-self:start}
+  /* One Instagram card on the left; the remaining two columns for awards. */
+  [data-tdb-awards-layout] .faq3_content{grid-template-columns:minmax(0,calc((100% - 4rem)/3)) minmax(0,calc((100% - 4rem)/3*2 + 2rem));column-gap:2rem;align-items:start}
+  [data-tdb-awards-layout] .faq3_list{grid-column:2;grid-row:1;min-width:0;padding-left:2rem;box-sizing:border-box}
+  [data-tdb-awards-layout] .award-image_left{grid-column:1!important;grid-row:1!important;width:100%;min-width:0;max-width:100%;align-self:start}
   [data-tdb-awards-layout] .tdb-home-awards-label{margin:0 0 2rem;color:var(--base-color-brand--orange-3,#d6cab4)}
 }
