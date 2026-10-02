@@ -1,0 +1,10 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('fs'),{JSDOM}=require('jsdom');
+for(const width of [390,1363])test('service progress follows rendered positions at '+width,()=>{
+ const d=new JSDOM('<html data-wf-page="677cf86df9952f978d94d8a9"><div class="section_gallery14"><div class="parallax-swiper_component"><div class="swiper"><div class="swiper-wrapper"></div></div></div></div>',{runScripts:'outside-only'}),w=d.window,v=w.document.querySelector('.swiper'),wrap=v.firstChild;
+ let pose=0;const callbacks={},frames=[];w.requestAnimationFrame=fn=>(frames.push(fn),frames.length);w.cancelAnimationFrame=()=>{};
+ const keys=[4,0,1,2,3,4,0];const slides=keys.map((key,i)=>{const el=w.document.createElement('div');el.setAttribute('data-swiper-slide-index',key);el.getBoundingClientRect=()=>({left:(i-1-pose)*width,width});wrap.append(el);return el;});
+ v.getBoundingClientRect=()=>({left:0,width});v.swiper={slides,on:(e,fn)=>callbacks[e]=fn,animating:false};
+ w.eval(fs.readFileSync(require('path').join(__dirname,'../../src/sliders/home-service-progress.js'),'utf8'));
+ const value=()=>Number(Number(v.querySelector('.tdb-service-progress-fill').style.transform.match(/[\d.]+/)[0]).toFixed(8));const update=x=>{pose=x;callbacks.setTranslate();while(frames.length)frames.shift()();};
+ assert.equal(value(),.2);update(.5);assert.equal(value(),.3);update(0);assert.equal(value(),.2);update(4);assert.equal(value(),1);update(4.5);assert.equal(value(),.6);update(5);assert.equal(value(),.2);update(-.5);assert.equal(value(),.6);update(2);assert.equal(value(),.6);assert.equal(v.querySelectorAll('.tdb-service-progress').length,1);d.window.close();
+});
