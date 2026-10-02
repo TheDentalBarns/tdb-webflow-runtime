@@ -5,6 +5,9 @@
   /* Webflow still writes hover colours to neighbours; only the focused card
      may reveal its hover overlay. Keep card clicks and dragging intact. */
   [data-tdb-smile-slider] .swiper-slide:not(.swiper-slide-active) .layout423_overlay.smile {background-color:transparent!important;opacity:0!important}
+  /* Footer facts and controls do not activate the card's image treatment. */
+  [data-tdb-smile-slider] .swiper-slide-active .layout423_card :is(.layout423_overlay.smile,.smile-card){transition:opacity 300ms ease}
+  [data-tdb-smile-slider] .swiper-slide-active .layout423_card:has(.tdb-smile-summary-ready:hover) :is(.layout423_overlay.smile,.smile-card){opacity:0!important}
   .tdb-ig-feed > .tdb-ig-viewport {margin-left:0;margin-right:auto}
   .tdb-ig-feed > .tdb-ig-static-frame {left:0;transform:none}
   html[data-tdb-instagram-preview] .section_standard-instagram-slider :is([data-tdb-ig-widget],[data-tdb-ig-ready])::before {margin-left:0;margin-right:auto}

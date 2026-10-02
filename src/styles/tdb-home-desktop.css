@@ -69,11 +69,13 @@
   }
   html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-ri .tdb-ri-count-current {width:2.4ch}
 
-  /* Keep the original scrolling element and viewport width while a review is open.
-     Input guards and the stopped Lenis instance own the desktop page lock. */
+  /* Lock the viewport natively while preserving the body's existing overflow.
+     Locking both elements changes parallax scroll containers; leaving both
+     scrollable makes the reactive position guard visibly snap the page back. */
   html[data-wf-page="677cf86df9952f978d94d8a9"][data-tdb-rv-preserve-scroll] {
     overflow-x:var(--tdb-rv-html-overflow-x)!important;
-    overflow-y:var(--tdb-rv-html-overflow-y)!important;
+    overflow-y:hidden!important;
+    scrollbar-gutter:stable;
   }
   html[data-wf-page="677cf86df9952f978d94d8a9"][data-tdb-rv-preserve-scroll] body {
     overflow-x:var(--tdb-rv-body-overflow-x)!important;
