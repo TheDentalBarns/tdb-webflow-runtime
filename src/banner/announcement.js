@@ -419,13 +419,13 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     start();
   }
   window.TDBAnnouncement = Object.freeze({
-    version: '1.6.8',
+    version: '1.6.9',
     mount(target) {
       if (shell) return;
       shell = target; shell.hidden = true; active = decisionExists();
       if (active) start(); else events.forEach(name => window.addEventListener(name, consentReady));
     },
     configure(next) { overrides = { ...overrides, ...next }; config = { ...config, ...next }; labels.clear(); mode = last = ''; render(); },
-    status: () => ({ version: '1.6.8', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
+    status: () => ({ version: '1.6.9', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
   });
 })();
