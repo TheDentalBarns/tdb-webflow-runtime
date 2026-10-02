@@ -207,14 +207,15 @@
                 updateTransparentState();
             });
         }
-        const dropdownToggle = document.querySelector(".navbar10_dropdown-toggle");
-        if (dropdownToggle) {
+        const dropdownToggles = [...navbar.querySelectorAll(".navbar10_dropdown-toggle")];
+        if (dropdownToggles.length) {
             new MutationObserver(() => {
-                dropdownState = dropdownToggle.classList.contains("w--open");
+                dropdownState = navbar.hasAttribute('data-tdb-desktop-dropdown') || dropdownToggles.some(toggle => toggle.classList.contains("w--open"));
                 updateTransparentState();
-            }).observe(dropdownToggle, {
+            }).observe(navbar, {
                 attributes: true,
-                attributeFilter: [ "class" ]
+                subtree: true,
+                attributeFilter: [ "class", "data-tdb-desktop-dropdown" ]
             });
         }
         const menuButton = document.querySelector(".navbar10_menu-button");
