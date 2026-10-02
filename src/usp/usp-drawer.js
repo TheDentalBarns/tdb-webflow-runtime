@@ -1,9 +1,9 @@
-/* TDB USP drawer v1.0.0. Webflow owns the five content records; this owns their shared presentation. */
+/* TDB USP drawer v1.1.0. Continuous navigation, width-aware motion and shared hover cadence. */
 (function () {
   'use strict';
   if (window.TDBUSPDrawer) return;
   const style = document.createElement('style');
-  style.dataset.tdbUspStyles = '1.0.0'; style.textContent = __USP_CSS__;
+  style.dataset.tdbUspStyles = '1.1.0'; style.textContent = __USP_CSS__;
   const root = document.documentElement;
   const el = (tag, cls, text) => { const node = document.createElement(tag); node.className = cls || ''; if (text !== undefined) node.textContent = text; return node; };
   const button = (label, cls, action) => { const node = el('button', cls); node.type = 'button'; node.setAttribute('aria-label', label); if (action) node.addEventListener('click', action); return node; };
@@ -20,36 +20,57 @@
   };
   let overlay, panel, frame, heading, count, prev, next, dismiss, records = [], slides = [];
   let index = 0, target = 0, source, lock, closing = false, animations = [], revision = 0, vipTimer = 0, drag;
+  const scrollPositions = new Map();
+  const logical = slot => ((slot % records.length) + records.length) % records.length;
   const duration = width => matchMedia('(min-width:992px)').matches ? Math.round(Math.min(950, Math.max(650, 400 * Math.sqrt(width / 375)))) : 400;
   const stop = () => { revision++; animations.forEach(a => a.cancel()); animations = []; };
-  function position(animate = true, direction = 1) {
-    const record = records[target];
+  function position(direction = 1) {
+    const active = logical(target), record = records[active];
     if (window.TDBTicker) {
-      window.TDBTicker.count(count, target + 1, records.length, direction);
+      window.TDBTicker.count(count, active + 1, records.length, direction);
       window.TDBTicker.update(heading, record.title, target, direction);
-    } else { heading.textContent = record.title; count.textContent = String(target + 1).padStart(2, '0') + ' — ' + String(records.length).padStart(2, '0'); }
-    prev.disabled = target === 0; next.disabled = target === records.length - 1;
+    } else { heading.textContent = record.title; count.textContent = String(active + 1).padStart(2, '0') + ' — ' + String(records.length).padStart(2, '0'); }
+    prev.disabled = next.disabled = records.length < 2;
   }
   function finish() {
     index = target;
-    slides.forEach((slide, i) => { slide.style.transform = 'translate3d(' + ((i - index) * 100) + '%,0,0)'; slide.inert = i !== index; slide.setAttribute('aria-hidden', String(i !== index)); });
+    const current = slides.find(slide => Number(slide.dataset.slot) === index);
+    if (!current) return;
+    slides.forEach(slide => { if (slide !== current) slide.remove(); }); slides = [current];
+    current.style.transform = 'translate3d(0,0,0)'; current.inert = false; current.setAttribute('aria-hidden','false');
     frame.removeAttribute('aria-busy');
   }
   function step(direction) {
-    const destination = Math.max(0, Math.min(records.length - 1, target + direction));
-    if (closing || !overlay || overlay.hidden || destination === target) return;
+    if (closing || !overlay || overlay.hidden || records.length < 2) return;
+    const destination = target + direction;
     // Read actual in-flight positions before cancelling: every rapid tap or reversal starts there.
-    const poses = slides.map(slide => new DOMMatrixReadOnly(getComputedStyle(slide).transform).m41);
+    const poses = slides.map(slide => ({slide, slot:Number(slide.dataset.slot), x:new DOMMatrixReadOnly(getComputedStyle(slide).transform).m41}));
+    const outgoing = slides.find(slide => Number(slide.dataset.slot) === target);
+    if (outgoing) scrollPositions.set(logical(target), outgoing.scrollTop);
     stop(); const token = revision; target = destination;
+    const width = frame.clientWidth;
+    if (!poses.some(p => p.slot === destination)) {
+      const slide = makeSlide(destination), anchor = poses[0];
+      frame.append(slide); slide.scrollTop = scrollPositions.get(logical(destination)) || 0;
+      slides.push(slide); poses.push({slide,slot:destination,x:anchor.x + (destination-anchor.slot)*width});
+    }
     if (frame.contains(document.activeElement)) dismiss.focus({ preventScroll: true });
     frame.setAttribute('aria-busy', 'true'); slides.forEach(slide => { slide.inert = true; slide.setAttribute('aria-hidden', 'true'); });
-    position(true, direction);
-    const width = frame.clientWidth;
-    animations = slides.map((slide, i) => slide.animate([{ transform: 'translate3d(' + poses[i] + 'px,0,0)' }, { transform: 'translate3d(' + ((i - target) * width) + 'px,0,0)' }], { duration: duration(window.innerWidth), easing: 'ease', fill: 'forwards' }));
+    position(direction);
+    animations = poses.map(({slide,slot,x}) => slide.animate([{ transform: 'translate3d(' + x + 'px,0,0)' }, { transform: 'translate3d(' + ((slot - target) * width) + 'px,0,0)' }], { duration: duration(window.innerWidth), easing: 'ease', fill: 'forwards' }));
     Promise.all(animations.map(a => a.finished.catch(() => {}))).then(() => {
       if (token !== revision) return;
       finish(); stop();
     });
+  }
+  function makeSlide(slot) {
+    const record = records[logical(slot)], slide = el('article', 'tdb-usp-slide'), content = el('div', 'tdb-usp-content'), copy = el('div', 'tdb-usp-copy');
+    slide.dataset.slot = String(slot); slide.tabIndex = 0; slide.setAttribute('aria-label', record.title); slide.setAttribute('data-lenis-prevent', '');
+    const image = record.body.querySelector('img')?.cloneNode(true);
+    if (image) { image.removeAttribute('class'); image.sizes = '(max-width:767px) 100vw, 28rem'; image.draggable = false; image.loading = 'eager'; content.append(image); }
+    for (const child of record.body.children) if (child.tagName !== 'IMG') copy.append(child.cloneNode(true));
+    content.append(copy); content.querySelectorAll('[id],[data-w-id]').forEach(n => { n.removeAttribute('id'); n.removeAttribute('data-w-id'); });
+    slide.append(content); return slide;
   }
   function create() {
     overlay = el('div', 'tdb-usp-overlay'); overlay.id = 'tdb-usp-drawer'; overlay.hidden = true;
@@ -57,7 +78,7 @@
     panel = el('div', 'tdb-usp-panel');
     // The same container rules can be inspected at a narrow width on staging.
     if (location.hostname === 'dentalbarns.webflow.io' && new URLSearchParams(location.search).get('usp-preview') === 'mobile') {
-      panel.style.width = 'min(390px,100%)'; panel.style.height = 'min(844px,100dvh)'; panel.style.setProperty('--usp-footer', '5rem');
+      panel.style.width = 'min(390px,100%)'; panel.style.height = 'min(844px,100dvh)'; panel.style.setProperty('--usp-footer', '6rem');
     }
     const header = el('header', 'tdb-usp-header'), brand = el('div', 'tdb-usp-brand');
     const logo = records[0].logo.cloneNode(true); logo.className = 'tdb-usp-logo'; logo.alt = 'The Dental Barns'; logo.loading = 'eager';
@@ -66,16 +87,6 @@
     brand.append(logo, rule, heading);
     dismiss = button('Close practice highlights', 'tdb-usp-dismiss', close); dismiss.append(icon('close')); header.append(brand, dismiss);
     frame = el('div', 'tdb-usp-frame'); frame.setAttribute('role', 'group'); frame.setAttribute('aria-roledescription', 'carousel'); frame.setAttribute('aria-label', 'Why patients choose The Dental Barns');
-    slides = records.map((record, i) => {
-      const slide = el('article', 'tdb-usp-slide'), content = el('div', 'tdb-usp-content'), copy = el('div', 'tdb-usp-copy');
-      slide.tabIndex = 0; slide.setAttribute('aria-label', record.title); slide.setAttribute('data-lenis-prevent', '');
-      const image = record.body.querySelector('img')?.cloneNode(true);
-      if (image) { image.removeAttribute('class'); image.sizes = '(max-width:767px) 100vw, 28rem'; image.draggable = false; content.append(image); }
-      for (const child of record.body.children) if (child.tagName !== 'IMG') copy.append(child.cloneNode(true));
-      // Cloned authored content must not register another Webflow animation or DOM ID.
-      content.append(copy); content.querySelectorAll('[id],[data-w-id]').forEach(n => { n.removeAttribute('id'); n.removeAttribute('data-w-id'); });
-      slide.append(content); frame.append(slide); return slide;
-    });
     const footer = el('footer', 'tdb-usp-navigation'), arrows = el('div', 'tdb-usp-arrows');
     footer.setAttribute('aria-label', 'Practice highlight navigation');
     count = el('div', 'tdb-usp-position'); count.setAttribute('role', 'status'); count.setAttribute('aria-live', 'polite'); count.setAttribute('aria-atomic', 'true');
@@ -97,7 +108,7 @@
     frame.addEventListener('pointermove', e => { if (drag && drag.id === e.pointerId && Math.abs(e.clientY - drag.y) > 20 && Math.abs(e.clientY - drag.y) > Math.abs(e.clientX - drag.x)) drag = null; }, { passive:true });
     frame.addEventListener('pointerup', e => { const d = drag; drag = null; if (!d || d.id !== e.pointerId || window.getSelection()?.toString()) return; const dx = e.clientX - d.x, dy = e.clientY - d.y; if (Math.abs(dx) > 45 && Math.abs(dx) > 1.3 * Math.abs(dy)) step(dx < 0 ? 1 : -1); });
     frame.addEventListener('pointercancel', () => { drag = null; });
-    new ResizeObserver(() => { if (overlay.hidden) return; stop(); finish(); }).observe(frame);
+    new ResizeObserver(() => { if (overlay.hidden) return; stop(); finish(); overlay.style.setProperty('--usp-duration', duration(window.innerWidth) + 'ms'); }).observe(frame);
   }
   function lockPage() {
     const nav = document.querySelector('.navbar10_component');
@@ -122,18 +133,22 @@
   function open(i, trigger) {
     if (closing || overlay && !overlay.hidden) return;
     if (!overlay) create();
-    source = trigger; target = index = i; stop(); finish(); position(false);
-    overlay.hidden = false; slides[i].querySelector('img')?.setAttribute('loading', 'eager');
+    source = trigger; target = index = i; stop();
+    slides = [makeSlide(i)]; frame.replaceChildren(slides[0]); finish(); position();
+    overlay.style.setProperty('--usp-duration', duration(window.innerWidth) + 'ms');
+    overlay.hidden = false; slides[0].scrollTop = scrollPositions.get(i) || 0;
     source.setAttribute('aria-expanded','true'); lockPage(); dismiss.focus({ preventScroll:true });
     requestAnimationFrame(() => requestAnimationFrame(() => { if (!overlay.hidden && !closing) overlay.classList.add('is-open'); }));
   }
   function close() {
     if (!overlay || overlay.hidden || closing) return;
     closing = true; clearTimeout(vipTimer); stop(); finish(); drag = null;
+    if (slides[0]) scrollPositions.set(logical(target), slides[0].scrollTop);
+    const closeDuration = duration(window.innerWidth); overlay.style.setProperty('--usp-duration', closeDuration + 'ms');
     window.TDBVIPDrawer?.reset?.(); lock?.lenis?.stop();
     document.querySelector('.navbar10_menu-button[aria-expanded="true"]')?.click(); document.querySelectorAll('.navbar10_dropdown-toggle[aria-expanded="true"]').forEach(n => n.click());
     overlay.classList.remove('is-open'); source?.setAttribute('aria-expanded','false');
-    setTimeout(() => { overlay.hidden = true; unlockPage(); closing = false; source?.focus({ preventScroll:true }); }, 420);
+    setTimeout(() => { overlay.hidden = true; unlockPage(); closing = false; source?.focus({ preventScroll:true }); }, closeDuration);
   }
   function start() {
     document.querySelectorAll('.banner-feature_item').forEach(item => {
@@ -143,6 +158,7 @@
       const i = records.length, launch = button('Discover ' + title, 'tdb-usp-launch'); launch.append(icon('left'));
       launch.setAttribute('aria-haspopup','dialog'); launch.setAttribute('aria-expanded','false'); launch.setAttribute('aria-controls','tdb-usp-drawer');
       trigger.append(launch); trigger.dataset.tdbUspTrigger = String(i); item.dataset.tdbUspReady = '';
+      item.closest('.banner-featured_component')?.setAttribute('data-tdb-usp-list','');
       modal.removeAttribute('fs-scrolldisable-element'); modal.hidden = true; modal.inert = true;
       records.push({ title, body, logo, launch });
     });
@@ -153,7 +169,7 @@
       const trigger = e.target.closest('[data-tdb-usp-trigger]'); if (!trigger) return;
       e.preventDefault(); e.stopImmediatePropagation(); const i = Number(trigger.dataset.tdbUspTrigger); open(i, records[i].launch);
     }, true);
-    window.TDBUSPDrawer = Object.freeze({ version:'1.0.0', close });
+    window.TDBUSPDrawer = Object.freeze({ version:'1.1.0', close });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once:true }); else start();
 })();
