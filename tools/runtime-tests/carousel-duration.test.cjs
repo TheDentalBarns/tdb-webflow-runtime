@@ -20,7 +20,7 @@ test('Swiper resize timing waits for the active transition and cleans up its obs
   const s=read('src/sliders/sliders.js'),start=s.indexOf('  function parallaxDuration('),end=s.indexOf('  // Only converted CMS',start);
   const events=new Map(),frames=[],styles=new Map(),media={matches:true,addEventListener(t,fn){this.fn=fn},removeEventListener(){this.fn=null}},el={clientWidth:1200};
   let observer;
-  const ctx=vm.createContext({matchMedia:()=>media,requestAnimationFrame:fn=>(frames.push(fn),frames.length),cancelAnimationFrame(){},ResizeObserver:class{constructor(cb){this.cb=cb;observer=this}observe(){}disconnect(){this.disconnected=true}}});
+  const ctx=vm.createContext({window:{addEventListener(){},removeEventListener(){}},matchMedia:()=>media,requestAnimationFrame:fn=>(frames.push(fn),frames.length),cancelAnimationFrame(){},ResizeObserver:class{constructor(cb){this.cb=cb;observer=this}observe(){}disconnect(){this.disconnected=true}}});
   vm.runInContext(s.slice(start,end),ctx);
   const component={style:{setProperty:(k,v)=>styles.set(k,v),removeProperty:k=>styles.delete(k)}},swiper={params:{speed:716},originalParams:{speed:716},animating:false,on:(n,fn)=>events.set(n,fn),off:n=>events.delete(n)};
   ctx.bindParallaxDuration(component,el,swiper,'--tdb-carousel-duration');

@@ -297,7 +297,7 @@
       loop: slideCount > 1,
       loopAdditionalSlides: 1,
       loopPreventsSlide: false,
-      speed: parallaxDuration(swiperEl),
+      speed: parallaxDuration({clientWidth:window.innerWidth}),
       autoplay: false,
       preventInteractionOnTransition: false,
       preloadImages: false,
@@ -329,7 +329,7 @@
     }
 
     bindParallaxInterruptions(swiper);
-    bindParallaxDuration(component, swiperEl, swiper, '--tdb-carousel-duration');
+    bindParallaxDuration(component, swiperEl, swiper, '--tdb-carousel-duration', () => window.innerWidth);
 
     function updateCount() {
       if (countEl) countEl.textContent = `${swiper.realIndex + 1} of ${slideCount}`;
@@ -354,7 +354,7 @@
     return Math.round(Math.min(950, Math.max(650, 400 * Math.sqrt(width / 375))));
   }
 
-  function bindParallaxDuration(component, swiperEl, swiper, property = '--tdb-parallax-duration') {
+  function bindParallaxDuration(component, swiperEl, swiper, property = '--tdb-parallax-duration', measureWidth = () => swiperEl.clientWidth) {
     let frame = 0;
     let pending = null;
     const desktop = matchMedia('(min-width:992px)');
@@ -370,18 +370,20 @@
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        pending = parallaxDuration(swiperEl);
+        pending = parallaxDuration({clientWidth:measureWidth()});
         apply();
       });
     }
     const observer = new ResizeObserver(schedule);
     observer.observe(swiperEl);
     desktop.addEventListener('change', schedule);
+    window.addEventListener('resize', schedule, {passive:true});
     swiper.on('slideChangeTransitionEnd', apply);
     component.style.setProperty(property, swiper.params.speed + 'ms');
     swiper.on('beforeDestroy', () => {
       observer.disconnect();
       desktop.removeEventListener('change', schedule);
+      window.removeEventListener('resize', schedule);
       if (frame) cancelAnimationFrame(frame);
       swiper.off('slideChangeTransitionEnd', apply);
       component.style.removeProperty(property);
