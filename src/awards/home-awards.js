@@ -36,20 +36,48 @@
       }
     }
     place();desktop.addEventListener('change',place);
-    // Let the existing accordion controller own its animations and open state.
-    // Source order breaks ties between awards in the same latest year.
+    // Webflow's late IX setup can reset an accordion opened with a synthetic
+    // click. Own this section's state explicitly, including keyboard and ARIA.
     const questions=Array.from(list.querySelectorAll('.faq3_question'));
     const newest=questions.reduce((best,q)=>{
       const year=Number(q.textContent.match(/\b20\d{2}\b/)?.[0]||0);
       return !best||year>best.year?{q,year}:best;
     },null);
-    if(newest){
-      window.Webflow=window.Webflow||[];
-      window.Webflow.push(()=>requestAnimationFrame(()=>{
-        const answer=newest.q.parentElement.querySelector('.faq3_answer');
-        if(answer&&answer.getBoundingClientRect().height<1)newest.q.click();
-      }));
-    }
+    questions.forEach((question,index)=>{
+      const item=question.parentElement;
+      const answer=item.querySelector('.faq3_answer');
+      if(!answer)return;
+      const id='tdb-home-award-answer-'+index;
+      answer.id=id;answer.setAttribute('role','region');
+      question.id='tdb-home-award-question-'+index;
+      question.setAttribute('role','button');question.tabIndex=0;
+      question.setAttribute('aria-controls',id);
+      answer.setAttribute('aria-labelledby',question.id);
+      function measure(){
+        const height=[...answer.children].reduce((sum,child)=>{
+          const css=getComputedStyle(child);
+          return sum+child.getBoundingClientRect().height+(parseFloat(css.marginTop)||0)+(parseFloat(css.marginBottom)||0);
+        },0);
+        item.style.setProperty('--tdb-award-answer-height',Math.ceil(height)+'px');
+      }
+      function setOpen(open){
+        measure();item.dataset.tdbAwardOpen=String(open);
+        question.setAttribute('aria-expanded',String(open));
+        answer.setAttribute('aria-hidden',String(!open));answer.inert=!open;
+      }
+      function toggle(event){
+        event.preventDefault();event.stopImmediatePropagation();
+        setOpen(item.dataset.tdbAwardOpen!=='true');
+      }
+      setOpen(question===newest?.q);
+      question.addEventListener('click',toggle,true);
+      question.addEventListener('keydown',event=>{
+        if(event.key==='Enter'||event.key===' ')toggle(event);
+      },true);
+      const observer=new ResizeObserver(measure);
+      [...answer.children].forEach(child=>observer.observe(child));
+    });
+    requestAnimationFrame(()=>section.setAttribute('data-tdb-awards-motion',''));
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
