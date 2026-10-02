@@ -118,4 +118,16 @@
   .tdb-banner-parallax.parallax-swiper_component > .swiper > .swiper-wrapper > .swiper-slide.is-showcase[data-tdb-banner-wide],
   .tdb-banner-parallax.parallax-swiper_component > .swiper:not(.swiper-initialized) > .swiper-wrapper > .swiper-slide.is-showcase:first-child {width:var(--tdb-banner-double)}
   .tdb-banner-parallax.parallax-swiper_component > .tdb-parallax-cta-layer {left:0;right:auto;width:var(--tdb-banner-double)}
+  /* Keep the focused image scale throughout expansion; the card alone crops it.
+     Centre the crop without competing with Swiper's parallax transform. */
+  .tdb-banner-parallax.parallax-swiper_component .showcase_image {
+    width:calc(var(--tdb-banner-double) * 1.4);left:50%;right:auto;
+    margin-left:calc(var(--tdb-banner-double) * -.7);margin-right:0;
+  }
+}
+@media (min-width:1920px) {
+  .tdb-banner-parallax.parallax-swiper_component .showcase_image {
+    width:calc(var(--tdb-banner-double) * 1.8);
+    margin-left:calc(var(--tdb-banner-double) * -.9);
+  }
 }
