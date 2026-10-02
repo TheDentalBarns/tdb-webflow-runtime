@@ -2,9 +2,9 @@
  * so drag, CSS easing, interruptions and duplicate loop copies share one clock. */
 (() => {
   if(document.documentElement.dataset.wfPage!=='677cf86df9952f978d94d8a9')return;
-  const selector=':is(.section_gallery14 .parallax-swiper_component:not(.tdb-banner-parallax),#All-treatments .tdb-banner-parallax)';
+  const selector='.section_gallery14 .parallax-swiper_component:not(.tdb-banner-parallax),#All-treatments .tdb-banner-parallax';
   const style=document.createElement('style');
-  style.textContent=`${selector} > .tdb-service-progress{position:absolute;left:0;top:100%;width:100%;height:5px;margin:0;padding:0;border:0;border-radius:0;background:rgba(214,202,180,.5);opacity:1;z-index:30;pointer-events:none;overflow:hidden}${selector} .tdb-service-progress-fill{display:block;width:100%;height:100%;margin:0;padding:0;border:0;border-radius:0;background:#000000;opacity:1;transform-origin:left center;transition:none!important}#All-treatments .tdb-service-progress-fill{background:var(--base-color-brand--orange-1,#f9f2e6)}`;
+  style.textContent=`:is(${selector}) > .tdb-service-progress{position:absolute;left:0;top:100%;width:100%;height:5px;margin:0;padding:0;border:0;border-radius:0;background:rgba(214,202,180,.5);opacity:1;z-index:30;pointer-events:none;overflow:hidden}:is(${selector}) .tdb-service-progress-fill{display:block;width:100%;height:100%;margin:0;padding:0;border:0;border-radius:0;background:#000000;opacity:1;transform-origin:left center;transition:none!important}#All-treatments .tdb-service-progress-fill{background:var(--base-color-brand--orange-1,#f9f2e6)}`;
   document.head.append(style);
   function bind(component){
     const viewport=component.querySelector(':scope > .swiper'),wrapper=viewport?.querySelector(':scope > .swiper-wrapper');
