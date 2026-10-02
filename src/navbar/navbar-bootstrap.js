@@ -10,6 +10,7 @@
     button.dataset.tdbTextClose = '1';
 
     let textAnimations = [];
+    let textCleanup;
 
     const menuIsOpen = () =>
       button.classList.contains('w--open') ||
@@ -17,6 +18,7 @@
       menu.hasAttribute('data-nav-menu-open');
 
     const clearTextAnimations = () => {
+      clearTimeout(textCleanup);
       textAnimations.forEach((animation) => {
         try {
           animation.cancel();
@@ -69,7 +71,7 @@
             },
           ],
           {
-            duration: 420,
+            duration: window.TDBNavMotion?.current.textOut || 420,
             easing: 'cubic-bezier(0, 0, 0.2, 1)',
             fill: 'forwards',
           },
@@ -78,9 +80,9 @@
         textAnimations.push(animation);
       });
 
-      setTimeout(() => {
+      textCleanup = setTimeout(() => {
         clearTextAnimations();
-      }, 470);
+      }, window.TDBNavMotion?.current.cleanup || 470);
     };
 
     button.addEventListener(

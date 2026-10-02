@@ -29,7 +29,7 @@
   backdrop.setAttribute('aria-hidden', 'true');
   document.body.append(backdrop);
   css.textContent += `
-    .tdb-desktop-nav-backdrop{position:fixed;inset:0;z-index:2147483400;background:rgba(0,0,0,.5);opacity:0;visibility:hidden;pointer-events:none;transition:opacity 420ms ease,visibility 0s 420ms}
+    .tdb-desktop-nav-backdrop{position:fixed;inset:0;z-index:2147483400;background:rgba(0,0,0,.5);opacity:0;visibility:hidden;pointer-events:none;transition:opacity var(--tdb-nav-detail-duration,420ms) ease,visibility 0s var(--tdb-nav-detail-duration,420ms)}
     @media(min-width:992px){
       html.tdb-desktop-nav-locked .navbar10_component{z-index:2147483401!important}
       html.tdb-desktop-nav-locked .tdb-desktop-nav-backdrop{visibility:visible;pointer-events:auto;transition-delay:0s}
@@ -85,6 +85,7 @@
     item.open = item.live = false;
   }
   function transition(item, open) {
+    const timing = window.TDBNavMotion.refresh();
     const {panel} = item;
     const container = panel.querySelector(':scope > .navbar10_container');
     if (!container) return;
@@ -114,14 +115,14 @@
     const paddingTop = getComputedStyle(panel).paddingTop;
     const paddingBottom = getComputedStyle(panel).paddingBottom;
     const fullHeight = container.getBoundingClientRect().height + (parseFloat(paddingTop)||0) + (parseFloat(paddingBottom)||0);
-    motion(panel,[{height:height+'px',paddingTop:startPaddingTop,paddingBottom:startPaddingBottom},{height:open ? fullHeight+'px' : '0px',paddingTop:open ? paddingTop : '0px',paddingBottom:open ? paddingBottom : '0px'}],{duration:500,easing:'cubic-bezier(0.165,0.84,0.44,1)'});
-    motion(container,[{transform:translate},{transform:open ? 'translateY(0)' : 'translateY(-100%)'}],{duration:500,easing:'cubic-bezier(0.165,0.84,0.44,1)'});
+    motion(panel,[{height:height+'px',paddingTop:startPaddingTop,paddingBottom:startPaddingBottom},{height:open ? fullHeight+'px' : '0px',paddingTop:open ? paddingTop : '0px',paddingBottom:open ? paddingBottom : '0px'}],{duration:timing.panel,easing:'cubic-bezier(0.165,0.84,0.44,1)'});
+    motion(container,[{transform:translate},{transform:open ? 'translateY(0)' : 'translateY(-100%)'}],{duration:timing.panel,easing:'cubic-bezier(0.165,0.84,0.44,1)'});
     content.forEach((el,i) => motion(el, open ? [previous[i],{opacity:1,transform:'translateY(0)'}] : [
       {...previous[i],offset:0},{opacity:.5,transform:'translateY(-0.2rem)',offset:.2},
       {opacity:.15,transform:'translateY(-0.45rem)',offset:.42},
       {opacity:0,transform:'translateY(-0.75rem)',offset:.68},
       {opacity:0,transform:'translateY(-0.95rem)',offset:1}
-    ],{duration:open ? 520 : 420,delay:open ? 70 : 0,easing:open ? 'cubic-bezier(0.5,0,1,1)' : 'cubic-bezier(0,0,0.2,1)'}));
+    ],{duration:open ? timing.textIn : timing.textOut,delay:open ? timing.delay : 0,easing:open ? 'cubic-bezier(0.5,0,1,1)' : 'cubic-bezier(0,0,0.2,1)'}));
     Promise.all(item.animations.map(animation => animation.finished.catch(() => {}))).then(() => {
       if (generation !== item.generation) return;
       if (open) {cancel(item);panel.setAttribute('data-tdb-desktop-panel','open');}

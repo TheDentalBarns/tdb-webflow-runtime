@@ -1,12 +1,12 @@
 @media screen and (max-width: 767px) {
   .navbar10_logo-link,
   .menu-icon5 {
-    transition: filter 420ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition: filter var(--tdb-nav-detail-duration, 420ms) cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .navbar10_link,
   #nav-button-link {
-    transition: color 420ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition: color var(--tdb-nav-detail-duration, 420ms) cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .navbar_line {
@@ -43,11 +43,11 @@
   }
 
   html:is(.tdb-nav-at-top, .tdb-nav-clear-cycle):has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open)) .navbar10_menu {
-    animation: tdb-menu-clear-to-solid 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    animation: tdb-menu-clear-to-solid var(--tdb-nav-detail-duration, 420ms) cubic-bezier(0.4, 0, 0.2, 1) both;
   }
 
   html.tdb-nav-clear-cycle:not(:has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open))) .navbar10_menu {
-    animation: tdb-menu-solid-to-clear 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    animation: tdb-menu-solid-to-clear var(--tdb-nav-detail-duration, 420ms) cubic-bezier(0.4, 0, 0.2, 1) both;
   }
 
   .navbar10_menu-left,
@@ -60,7 +60,7 @@
 
   .navbar10_menu[data-nav-menu-open] .navbar10_menu-left,
   .navbar10_menu[data-nav-menu-open] .navbar10_menu-right {
-    animation: tdb-mobile-nav-text-motion 520ms cubic-bezier(0.5, 0, 1, 1) 70ms both;
+    animation: tdb-mobile-nav-text-motion var(--tdb-nav-text-in-duration, 520ms) cubic-bezier(0.5, 0, 1, 1) var(--tdb-nav-text-delay, 70ms) both;
   }
 
   .navbar10_component {
@@ -78,9 +78,9 @@
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     transition:
-      background-color 420ms cubic-bezier(0.4, 0, 0.2, 1),
-      -webkit-backdrop-filter 420ms cubic-bezier(0.4, 0, 0.2, 1),
-      backdrop-filter 420ms cubic-bezier(0.4, 0, 0.2, 1);
+      background-color var(--tdb-nav-detail-duration, 420ms) cubic-bezier(0.4, 0, 0.2, 1),
+      -webkit-backdrop-filter var(--tdb-nav-detail-duration, 420ms) cubic-bezier(0.4, 0, 0.2, 1),
+      backdrop-filter var(--tdb-nav-detail-duration, 420ms) cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)) .navbar10_component.is-trans .tdb-nav-bar-glass {
@@ -103,19 +103,19 @@
   }
 
   html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)):has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open)) .tdb-nav-bar-glass {
-    animation: tdb-nav-bar-open 420ms cubic-bezier(0.4, 0, 0.2, 1) both !important;
+    animation: tdb-nav-bar-open var(--tdb-nav-detail-duration, 420ms) cubic-bezier(0.4, 0, 0.2, 1) both !important;
   }
 
   html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)):has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open)) .navbar10_menu {
-    animation: tdb-nav-menu-open 420ms cubic-bezier(0.4, 0, 0.2, 1) both !important;
+    animation: tdb-nav-menu-open var(--tdb-nav-detail-duration, 420ms) cubic-bezier(0.4, 0, 0.2, 1) both !important;
   }
 
   html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)) .navbar10_component.z-hold:not(:has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open))) .tdb-nav-bar-glass {
-    animation: tdb-nav-bar-close 420ms cubic-bezier(0.4, 0, 0.2, 1) both !important;
+    animation: tdb-nav-bar-close var(--tdb-nav-detail-duration, 420ms) cubic-bezier(0.4, 0, 0.2, 1) both !important;
   }
 
   html:not(:is(.tdb-nav-at-top, .tdb-nav-clear-cycle)) .navbar10_component.z-hold:not(:has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open))) .navbar10_menu {
-    animation: tdb-nav-menu-close 420ms cubic-bezier(0.4, 0, 0.2, 1) both !important;
+    animation: tdb-nav-menu-close var(--tdb-nav-detail-duration, 420ms) cubic-bezier(0.4, 0, 0.2, 1) both !important;
   }
 
   @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {

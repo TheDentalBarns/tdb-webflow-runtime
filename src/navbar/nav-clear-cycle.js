@@ -32,7 +32,7 @@
     cleanupTimer = setTimeout(() => {
       clearCycle = false;
       root.classList.remove('tdb-nav-clear-cycle');
-    }, 470);
+    }, window.TDBNavMotion?.current.cleanup || 470);
   }).observe(menuButton, {
     attributes: true,
     attributeFilter: ['class'],

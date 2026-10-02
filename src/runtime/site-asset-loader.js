@@ -621,7 +621,7 @@ startLenisForSession();
     timer = setTimeout(() => {
       clearCycle = false;
       root.classList.remove('tdb-nav-clear-cycle');
-    }, 470);
+    }, window.TDBNavMotion?.current.cleanup || 470);
   }).observe(button, { attributes: true, attributeFilter: ['class'] });
   const reset = () => {
     if (mobile.matches) return;

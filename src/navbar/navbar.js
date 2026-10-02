@@ -237,13 +237,13 @@
             navbar.classList.add("tdb-menu-transitioning");
             setTransform("translateY(0)");
             clearTimeout(menuTransitionTimer);
-            menuTransitionTimer = setTimeout(unlockMenuTransition, 620);
+            menuTransitionTimer = setTimeout(unlockMenuTransition, window.TDBNavMotion.current.lock);
         }
         if (menuButton) menuButton.addEventListener("click", startMenuTransition, true);
         function updateMenuState() {
             menuOpenState = !!(menuButton && menuButton.classList.contains("w--open") || menu && menu.classList.contains("w--open") || overlay && overlay.classList.contains("w--open"));
             clearTimeout(zHoldTimer);
-            if (menuOpenState) navbar.classList.add("z-hold"); else zHoldTimer = setTimeout(() => navbar.classList.remove("z-hold"), 450);
+            if (menuOpenState) navbar.classList.add("z-hold"); else zHoldTimer = setTimeout(() => navbar.classList.remove("z-hold"), window.TDBNavMotion.current.cleanup);
             updateTransparentState();
         }
         const menuObserver = new MutationObserver(updateMenuState);
@@ -268,8 +268,10 @@
         if (!button || !menu || button.dataset.tdbTextClose === "1") return;
         button.dataset.tdbTextClose = "1";
         let textAnimations = [];
+        let textCleanup;
         const menuIsOpen = () => button.classList.contains("w--open") || button.getAttribute("aria-expanded") === "true" || menu.hasAttribute("data-nav-menu-open");
         const clearTextAnimations = () => {
+            clearTimeout(textCleanup);
             textAnimations.forEach(animation => {
                 try {
                     animation.cancel();
@@ -305,13 +307,13 @@
                     transform: "translate3d(0, -0.95rem, 0)",
                     offset: 1
                 } ], {
-                    duration: 420,
+                    duration: window.TDBNavMotion.current.textOut,
                     easing: "cubic-bezier(0, 0, 0.2, 1)",
                     fill: "forwards"
                 });
                 textAnimations.push(animation);
             });
-            setTimeout(clearTextAnimations, 470);
+            textCleanup = setTimeout(clearTextAnimations, window.TDBNavMotion.current.cleanup);
         };
         button.addEventListener("pointerdown", () => {
             if (button.closest(".navbar10_component")?.classList.contains("tdb-menu-transitioning")) {
