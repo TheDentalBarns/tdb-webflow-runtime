@@ -1,0 +1,5 @@
+/* The vertically centred USP copy expands around its centre. Do not treat
+   its moving text as a browser scroll anchor and falsely reveal page chrome. */
+html[data-wf-page="677cf86df9952f978d94d8a9"] .section_layout355 {
+  overflow-anchor: none;
+}
