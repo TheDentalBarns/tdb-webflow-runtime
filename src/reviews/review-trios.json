@@ -1,0 +1,282 @@
+{
+  "default": [
+    {
+      "id": "6ab66665c4913869c0b14dd6",
+      "name": "Louise Bishton",
+      "platform": "Google",
+      "excerpt": "They have managed to turn someone very frightened of the dentist into someone who actually looks forward to going!"
+    },
+    {
+      "id": "6ab66665c4913869c0b14db4",
+      "name": "Susie Boggie",
+      "platform": "Google",
+      "excerpt": "It's so odd for me to visit the dentist and to not be scared. To relax. To trust and actually feel looked after."
+    },
+    {
+      "id": "6ab666440dc4f96095bfa629",
+      "name": "connie greenaway",
+      "platform": "Google",
+      "excerpt": "I am so pleased with my new natural looking smile you can’t even tell I have veneers."
+    }
+  ],
+  "nervous": [
+    {
+      "id": "6ab66665c4913869c0b14db4",
+      "name": "Susie Boggie",
+      "platform": "Google",
+      "excerpt": "It's so odd for me to visit the dentist and to not be scared. To relax. To trust and actually feel looked after."
+    },
+    {
+      "id": "6ab66665c4913869c0b14e08",
+      "name": "Katie Saunders",
+      "platform": "Google",
+      "excerpt": "I have a fear of the dentist and I really did feel at complete ease during every visit with Dr Keely!"
+    },
+    {
+      "id": "6ab66665c4913869c0b14da2",
+      "name": "Nicola Bond",
+      "platform": "Google",
+      "excerpt": "If you are a nervous patient look no further than The Dental Barns in Lichfield."
+    }
+  ],
+  "invisalign": [
+    {
+      "id": "6ab66665c4913869c0b14e08",
+      "name": "Katie Saunders",
+      "platform": "Google",
+      "excerpt": "Dr Keely is so well knowledgeable, professional, has a calming nature and will give you the most incredible results using the most upto date technology with your Invisalign."
+    },
+    {
+      "id": "6ab66665c4913869c0b14da2",
+      "name": "Nicola Bond",
+      "platform": "Google",
+      "excerpt": "The whole team has been wonderful throughout my treatment and Keely explains everything to me throughout health treatments and now through my Invisalign journey."
+    },
+    {
+      "id": "6ab66665c4913869c0b14e0a",
+      "name": "samuel burgess",
+      "platform": "Google",
+      "excerpt": "Can't thank Keely enough for how amazing she was throughout my entire Invisalign process - She really provided so much support through the whole journey and put my mind at ease with any questions/worries I had!"
+    }
+  ],
+  "clear-aligners": [
+    {
+      "id": "6ab66665c4913869c0b14e08",
+      "name": "Katie Saunders",
+      "platform": "Google",
+      "excerpt": "Dr Keely is so well knowledgeable, professional, has a calming nature and will give you the most incredible results using the most upto date technology with your Invisalign."
+    },
+    {
+      "id": "6ab66665c4913869c0b14da2",
+      "name": "Nicola Bond",
+      "platform": "Google",
+      "excerpt": "The whole team has been wonderful throughout my treatment and Keely explains everything to me throughout health treatments and now through my Invisalign journey."
+    },
+    {
+      "id": "6ab66665c4913869c0b14e02",
+      "name": "Aneeqa Adil",
+      "platform": "Google",
+      "excerpt": "I had an excellent experience with Dr. Keely and my Invisalign journey."
+    }
+  ],
+  "bonding": [
+    {
+      "id": "6ab66665c4913869c0b14de4",
+      "name": "Haley Allen",
+      "platform": "Google",
+      "excerpt": "I absolutely love my bonding, and Keely did an amazing job making them look super natural—perfect for my fussy self."
+    },
+    {
+      "id": "6ab66665c4913869c0b14dec",
+      "name": "Mary-Ann Cook",
+      "platform": "Google",
+      "excerpt": "I recently just had cosmetic composite bonding done by Keeley and could not be happier with how they look."
+    },
+    {
+      "id": "6ab66665c4913869c0b14dc4",
+      "name": "Tonie Valencia",
+      "platform": "Google",
+      "excerpt": "Me and my fiance are getting aligners here and composite bonding!"
+    }
+  ],
+  "veneers": [
+    {
+      "id": "6ab66665c4913869c0b14dda",
+      "name": "Marie Pierce",
+      "platform": "Google",
+      "excerpt": "My new veneers are so natural looking and beautiful that I can't stop smiling."
+    },
+    {
+      "id": "6ab66665c4913869c0b14dee",
+      "name": "Susan Bailey",
+      "platform": "Google",
+      "excerpt": "What you have achieved is amazing my veneers feel just like my own teeth."
+    },
+    {
+      "id": "6ab66665c4913869c0b14dc8",
+      "name": "Chantelle Hamilton",
+      "platform": "Google",
+      "excerpt": "She really listened to what I wanted, and my veneers look so natural."
+    }
+  ],
+  "whitening": [
+    {
+      "id": "6ab66665c4913869c0b14e32",
+      "name": "Verified Patient",
+      "platform": "Doctify",
+      "excerpt": "I had a fantastic experience on my Invisalign journey."
+    },
+    {
+      "id": "6ab66665c4913869c0b14e40",
+      "name": "Verified Patient",
+      "platform": "Doctify",
+      "excerpt": "I have had an excellent experience throughout my journey of Invisalign with her."
+    },
+    {
+      "id": "6ab66665c4913869c0b14e16",
+      "name": "Verified Patient",
+      "platform": "Doctify",
+      "excerpt": "Keely and her assistant were so lovely, warming and kind."
+    }
+  ],
+  "hygiene": [
+    {
+      "id": "6ab66665c4913869c0b14dd6",
+      "name": "Louise Bishton",
+      "platform": "Google",
+      "excerpt": "I’ve also had a hygiene session with Chloe, which was also just as fantastic."
+    },
+    {
+      "id": "6ab66665c4913869c0b14e32",
+      "name": "Verified Patient",
+      "platform": "Doctify",
+      "excerpt": "I had a fantastic experience on my Invisalign journey."
+    },
+    {
+      "id": "6ab66665c4913869c0b14e40",
+      "name": "Verified Patient",
+      "platform": "Doctify",
+      "excerpt": "I have had an excellent experience throughout my journey of Invisalign with her."
+    }
+  ],
+  "assessment": [
+    {
+      "id": "6ab66665c4913869c0b14dd6",
+      "name": "Louise Bishton",
+      "platform": "Google",
+      "excerpt": "David, Lauren & Anna talk you through everything and keep checking that you’re OK throughout your treatment."
+    },
+    {
+      "id": "6ab66665c4913869c0b14e08",
+      "name": "Katie Saunders",
+      "platform": "Google",
+      "excerpt": "I have a fear of the dentist and I really did feel at complete ease during every visit with Dr Keely!"
+    },
+    {
+      "id": "6ab66665c4913869c0b14da2",
+      "name": "Nicola Bond",
+      "platform": "Google",
+      "excerpt": "The whole team has been wonderful throughout my treatment and Keely explains everything to me throughout health treatments and now through my Invisalign journey."
+    }
+  ],
+  "restorative": [
+    {
+      "id": "6ab66665c4913869c0b14da2",
+      "name": "Nicola Bond",
+      "platform": "Google",
+      "excerpt": "If you are a nervous patient look no further than The Dental Barns in Lichfield."
+    },
+    {
+      "id": "6ab66665c4913869c0b14de4",
+      "name": "Haley Allen",
+      "platform": "Google",
+      "excerpt": "I absolutely love my bonding, and Keely did an amazing job making them look super natural—perfect for my fussy self."
+    },
+    {
+      "id": "6ab66665c4913869c0b14df4",
+      "name": "Andy Scotton-Peters",
+      "platform": "Google",
+      "excerpt": "I can honestly say that I'm not a big fan of dentists due to prior bad experiences, but I didn't feel a thing!"
+    }
+  ],
+  "smile-design": [
+    {
+      "id": "6ab66665c4913869c0b14dec",
+      "name": "Mary-Ann Cook",
+      "platform": "Google",
+      "excerpt": "I recently just had cosmetic composite bonding done by Keeley and could not be happier with how they look."
+    },
+    {
+      "id": "6ab66665c4913869c0b14de0",
+      "name": "TheHayleyRose",
+      "platform": "Google",
+      "excerpt": "This helped massively when I came in for the fitting as I was not worried or anxious for the needles again."
+    },
+    {
+      "id": "6ab66665c4913869c0b14df6",
+      "name": "Chloe Morris",
+      "platform": "Google",
+      "excerpt": "I am completely over the moon with my new smile, Dr Keely is an absolute perfectionist and took alot of time and precision in each tooth to ensure that they looked natural and resembled my natural teeth but with some enhancements."
+    }
+  ],
+  "cosmetic": [
+    {
+      "id": "6ab666440dc4f96095bfa629",
+      "name": "connie greenaway",
+      "platform": "Google",
+      "excerpt": "I am so pleased with my new natural looking smile you can’t even tell I have veneers."
+    },
+    {
+      "id": "6ab66665c4913869c0b14dfc",
+      "name": "Amie Scott",
+      "platform": "Google",
+      "excerpt": "I am absolutely over the moon with my composite bonding by Dr Keely!"
+    },
+    {
+      "id": "6ab66665c4913869c0b14dda",
+      "name": "Marie Pierce",
+      "platform": "Google",
+      "excerpt": "My new veneers are so natural looking and beautiful that I can't stop smiling."
+    }
+  ],
+  "vip": [
+    {
+      "id": "6ab66665c4913869c0b14dd6",
+      "name": "Louise Bishton",
+      "platform": "Google",
+      "excerpt": "They have managed to turn someone very frightened of the dentist into someone who actually looks forward to going!"
+    },
+    {
+      "id": "6ab66665c4913869c0b14db4",
+      "name": "Susie Boggie",
+      "platform": "Google",
+      "excerpt": "It's so odd for me to visit the dentist and to not be scared. To relax. To trust and actually feel looked after."
+    },
+    {
+      "id": "6ab666440dc4f96095bfa629",
+      "name": "connie greenaway",
+      "platform": "Google",
+      "excerpt": "I am so pleased with my new natural looking smile you can’t even tell I have veneers."
+    }
+  ],
+  "location": [
+    {
+      "id": "6ab666440dc4f96095bfa629",
+      "name": "connie greenaway",
+      "platform": "Google",
+      "excerpt": "The Dental Barns is located in a stunning location and from the moment you arrive you feel completely relaxed."
+    },
+    {
+      "id": "6ab66665c4913869c0b14da2",
+      "name": "Nicola Bond",
+      "platform": "Google",
+      "excerpt": "The surroundings are so peaceful and the while environment is so relaxing."
+    },
+    {
+      "id": "6ab66665c4913869c0b14dec",
+      "name": "Mary-Ann Cook",
+      "platform": "Google",
+      "excerpt": "calming and gorgeous tranquil setting with a relaxing lounge and refreshments"
+    }
+  ]
+}
