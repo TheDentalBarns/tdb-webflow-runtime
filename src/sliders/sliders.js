@@ -612,6 +612,15 @@
       }
     });
 
+    // A short desktop drag can settle on the same expanding card, which emits
+    // a reset transition rather than slideChangeTransitionEnd.
+    if (banner) swiper.on('slideResetTransitionEnd', () => {
+      if (!matchMedia('(min-width:992px)').matches || loopFixing) return;
+      gestureHidden = false;
+      setMoving(false);
+      showActiveAfter(60);
+    });
+
     markInitialised(component, 'parallax');
 
     if (mobileEntry && entryPending) {
