@@ -1,0 +1,6 @@
+/* Phone landscape chrome: preserve open panels and their close controls. */
+html.tdb-phone-landscape #tdb-elfsight-timer-shell,
+html.tdb-phone-landscape #tdb-vip-drawer:not(.is-open):not(.is-closing),
+html.tdb-phone-landscape:not(:has(.navbar10_component .w--open,.navbar10_component [data-nav-menu-open])) :is(.navbar10_component,.navbar-bg_layer) {
+  display: none !important;
+}
