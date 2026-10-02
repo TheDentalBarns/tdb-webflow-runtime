@@ -85,7 +85,7 @@
   }
 
   const footerRuntimePromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3023e45f342b1d7b286005117283e8be783d653f/dist/tdb-footer-runtime.min.js',
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@39a4ddb9fb7292010ced0072ac0afc42b0711a7b/dist/tdb-footer-runtime.min.js',
     'data-tdb-footer-runtime-js',
     () => Boolean(window.TDBFooterRuntime),
   );
