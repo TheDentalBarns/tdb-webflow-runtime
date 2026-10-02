@@ -711,13 +711,15 @@
       }
     });
 
-    // A short desktop drag can settle on the same expanding card, which emits
-    // a reset transition rather than slideChangeTransitionEnd.
-    if (banner) swiper.on('slideResetTransitionEnd', () => {
+    // A drag can cross Swiper's active-index threshold and still snap back to
+    // that same index on release. Native service slides need this recovery too:
+    // their reset completion does not emit slideChangeTransitionEnd.
+    swiper.on('slideResetTransitionEnd', () => {
       if (loopFixing) return;
       gestureHidden = false;
       setMoving(false);
       showActiveAfter(60);
+      completeEntry(60);
     });
 
     markInitialised(component, 'parallax');
