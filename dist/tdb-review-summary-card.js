@@ -6,6 +6,7 @@
   style.dataset.tdbSummaryCardStyle = '';
   style.textContent = `
 .button.is-review[data-tdb-summary-card]{display:inline-grid;grid-template-rows:1fr 1fr;align-items:stretch;gap:0;width:max-content;max-width:100%;height:auto;padding-top:0;padding-bottom:0}
+.tdb-summary-number{display:inline-grid;overflow:hidden;vertical-align:bottom;font-variant-numeric:tabular-nums}.tdb-summary-number>span{grid-area:1/1}.tdb-summary-number .tdb-summary-reserve{visibility:hidden}.tdb-summary-number .tdb-summary-value{transform:translateY(100%)}
 .tdb-summary-rating{display:flex;align-items:center;justify-content:center;gap:.5rem;min-width:0;padding-block:.6rem;box-sizing:border-box}
 .tdb-summary-action{display:flex;align-items:center;justify-content:space-between;gap:1rem;border-top:1px solid var(--base-color-brand--orange-2,#ebe2d2);margin-top:0;padding-block:.6rem;width:100%;text-align:left;box-sizing:border-box}
 .tdb-summary-label{font-size:.75rem;font-weight:400;line-height:1.4;letter-spacing:.1em;text-transform:uppercase;color:#8f887b}
@@ -19,6 +20,30 @@
 @media(max-width:479px){.tdb-summary-rating{gap:.4rem}.tdb-summary-action{gap:.65rem}.tdb-summary-label{font-size:.7rem;letter-spacing:.08em}}
 `;
   document.head.append(style);
+  function revealNumbers(badge,row) {
+    const numbers=[...row.children].filter(node=>/^\d(?:\.\d+)?$|^\(\d+\)$/.test(node.textContent.trim()));
+    const values=numbers.map(node=>{
+      const text=node.textContent;
+      node.classList.add('tdb-summary-number');
+      node.setAttribute('aria-hidden','true');
+      const reserve=document.createElement('span'),value=document.createElement('span');
+      reserve.className='tdb-summary-reserve';value.className='tdb-summary-value';
+      reserve.textContent=value.textContent=text;node.replaceChildren(reserve,value);
+      return value;
+    });
+    const reveal=()=>{
+      values.forEach(value=>{
+        if(!value.animate){value.style.transform='none';return;}
+        const animation=value.animate([{transform:'translateY(100%)'},{transform:'translateY(0)'}],{duration:400,easing:'ease-in-out',fill:'both'});
+        animation.onfinish=()=>{value.style.transform='none';animation.cancel();};
+      });
+    };
+    if(!('IntersectionObserver' in window)){reveal();return;}
+    const observer=new IntersectionObserver(entries=>{
+      if(entries.some(entry=>entry.isIntersecting)){observer.disconnect();reveal();}
+    },{threshold:.25});
+    observer.observe(badge);
+  }
   function enhance(badge) {
     if (!badge.hasAttribute('data-tdb-review-updated') || badge.hasAttribute('data-tdb-summary-card')) return;
     const row = document.createElement('span');
@@ -39,6 +64,7 @@
     action.append(label,arrow);
     badge.append(row,action);
     badge.dataset.tdbSummaryCard = '1';
+    revealNumbers(badge,row);
     // Use the same preferred review and relevance list as the adjacent quote.
     function openFeatured(event) {
       if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;

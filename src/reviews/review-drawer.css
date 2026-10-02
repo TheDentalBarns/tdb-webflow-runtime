@@ -112,3 +112,5 @@ html.tdb-rv-chrome-away:has(.tdb-rv-overlay.is-desktop:not([hidden])) .navbar10_
 .tdb-ri-count-rule{display:block;width:1.8em;height:1px;background:currentColor}
 .tdb-ri.is-compact .tdb-ri-count-current{width:2.4ch}
 .tdb-ri .tdb-ri-loading{height:calc(var(--ri-height) + 5rem)}
+
+.tdb-rv-has-static .tdb-rv-slide .tdb-rv-static-mark{visibility:visible;margin-top:0}
