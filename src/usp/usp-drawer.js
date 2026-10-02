@@ -1,9 +1,9 @@
-/* TDB USP drawer v1.1.0. Continuous navigation, width-aware motion and shared hover cadence. */
+/* TDB USP drawer v1.1.1. Continuous navigation, width-aware motion and shared hover cadence. */
 (function () {
   'use strict';
   if (window.TDBUSPDrawer) return;
   const style = document.createElement('style');
-  style.dataset.tdbUspStyles = '1.1.0'; style.textContent = __USP_CSS__;
+  style.dataset.tdbUspStyles = '1.1.1'; style.textContent = __USP_CSS__;
   const root = document.documentElement;
   const el = (tag, cls, text) => { const node = document.createElement(tag); node.className = cls || ''; if (text !== undefined) node.textContent = text; return node; };
   const button = (label, cls, action) => { const node = el('button', cls); node.type = 'button'; node.setAttribute('aria-label', label); if (action) node.addEventListener('click', action); return node; };
@@ -169,7 +169,7 @@
       const trigger = e.target.closest('[data-tdb-usp-trigger]'); if (!trigger) return;
       e.preventDefault(); e.stopImmediatePropagation(); const i = Number(trigger.dataset.tdbUspTrigger); open(i, records[i].launch);
     }, true);
-    window.TDBUSPDrawer = Object.freeze({ version:'1.1.0', close });
+    window.TDBUSPDrawer = Object.freeze({ version:'1.1.1', close });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once:true }); else start();
 })();
