@@ -5,7 +5,7 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] #All-treatments {
 }
 
 /* Mobile treatments share the gallery/review inset and 2vw card gap.
-   The focused card is 90vw; neighbours keep half that width during a swipe. */
+   Every card stays 90vw, including off-screen neighbours and loop copies. */
 @media (max-width:767px) {
   html[data-wf-page="677cf86df9952f978d94d8a9"] #All-treatments :is(.tdb-banner-parallax,.highlight-swiper_component) {
     --tdb-treatment-width:90vw;
@@ -14,14 +14,9 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] #All-treatments {
   }
   #All-treatments .tdb-banner-parallax > .swiper {width:100%;overflow:visible}
   #All-treatments .tdb-banner-parallax > .swiper > .swiper-wrapper > .swiper-slide.is-showcase {
-    width:calc(var(--tdb-treatment-width) / 2);padding-inline:0;box-sizing:border-box;
+    width:var(--tdb-treatment-width);padding-inline:0;box-sizing:border-box;
   }
-  #All-treatments .tdb-banner-parallax > .swiper > .swiper-wrapper > .swiper-slide.is-showcase[data-tdb-banner-wide],
-  #All-treatments .tdb-banner-parallax > .swiper:not(.swiper-initialized) > .swiper-wrapper > .swiper-slide.is-showcase:first-child {
-    width:var(--tdb-treatment-width);
-  }
-  /* Keep the image and copy at their focused sizes. The narrow card crops them;
-     neither the photograph nor the title reflows as the card changes width. */
+  /* Keep the same image crop and full-card copy width throughout each swipe. */
   #All-treatments .tdb-banner-parallax .showcase_image {
     width:calc(var(--tdb-treatment-width) * 1.4);left:50%;right:auto;
     margin-left:calc(var(--tdb-treatment-width) * -.7);margin-right:0;
@@ -38,4 +33,18 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] #All-treatments {
   }
   #All-treatments .tdb-banner-parallax > .swiper_functions-btm.hide {right:1.25rem;bottom:1.25rem}
   #All-treatments .tdb-banner-parallax > .tdb-parallax-cta-layer {padding:1.25rem}
+}
+
+/* Owner-requested motion override, scoped to the homepage treatment carousel.
+   Titles stay visible; descriptions retain their normal fade cadence. */
+@media (prefers-reduced-motion:reduce) {
+  html[data-wf-page="677cf86df9952f978d94d8a9"] #All-treatments .tdb-banner-parallax [data-fade-slide]:not(.service-card-mobile-title) {
+    transition:opacity 200ms ease-out!important;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] #All-treatments .tdb-banner-parallax [data-fade-slide].is-visible:not(.service-card-mobile-title) {
+    transition:opacity 400ms ease-in!important;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] #All-treatments .tdb-banner-parallax.is-moving [data-fade-slide]:not(.service-card-mobile-title) {
+    transition:opacity 150ms ease-out!important;
+  }
 }

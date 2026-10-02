@@ -4,7 +4,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {JSDOM}=require('jsdom');
 const source=fs.readFileSync(path.resolve(__dirname,'../../src/sliders/sliders.js'),'utf8');
-const helper=source.slice(source.indexOf('  function mobileTreatmentGrid('),source.indexOf('  function bindParallaxDuration('))+source.slice(source.indexOf('  function bindBannerGrid('),source.indexOf('  function initParallaxSwiper('));
+const helper=source.slice(source.indexOf('  function isHomeTreatment('),source.indexOf('  function bindParallaxDuration('))+source.slice(source.indexOf('  function bindBannerGrid('),source.indexOf('  function initParallaxSwiper('));
 const swiperSource=fs.readFileSync(process.env.TDB_SWIPER_TEST_FILE || require.resolve('swiper/swiper-bundle.js'),'utf8');
 function fixture(t,width=1440,treatment=false){
  const dom=new JSDOM('<div class="banner"><div class="swiper"><div class="swiper-wrapper">'+Array.from({length:6},(_,i)=>`<div class="swiper-slide" style="box-sizing:border-box">${i}</div>`).join('')+'</div></div></div>',{runScripts:'outside-only',pretendToBeVisual:true});
@@ -13,7 +13,7 @@ function fixture(t,width=1440,treatment=false){
  if(treatment){w.document.documentElement.dataset.wfPage='677cf86df9952f978d94d8a9';w.document.body.id='All-treatments';w.document.querySelector('.banner').classList.add('tdb-banner-parallax');}
  const baseComputed=w.getComputedStyle.bind(w), p=w.HTMLElement.prototype;
  const mobile=treatment&&width<768,full=mobile?width*.9:840,half=mobile?full/2:405;
- const natural=el=>el.classList.contains('swiper-slide')?(el.hasAttribute('data-tdb-banner-wide')?full:half):mobile?full:1275;
+ const natural=el=>el.classList.contains('swiper-slide')?(mobile||el.hasAttribute('data-tdb-banner-wide')?full:half):mobile?full:1275;
  const size=el=>el._motion ? el._motion.from+(el._motion.to-el._motion.from)*el._motion.progress:natural(el);
  Object.defineProperty(p,'clientWidth',{get(){return size(this);}});Object.defineProperty(p,'offsetWidth',{get(){return size(this);}});
  p.getBoundingClientRect=function(){return {width:size(this),height:700,x:0,y:0,left:0,top:0,right:size(this),bottom:700};};
@@ -69,22 +69,44 @@ test('mobile rapid previous also preserves the logical selection at the loop joi
  assert.equal([...s.slides].some(slide=>slide._motion),false);
 });
 
-for(const width of [320,390,430])test(`mobile treatment cards expand from half width and loop without losing alignment at ${width}px`,t=>{
+for(const width of [320,390,430])test(`mobile treatment cards remain full width and loop without losing alignment at ${width}px`,t=>{
  const {swiper:s,finish}=fixture(t,width,true),full=width*.9;
  assert.equal(s.params.slidesPerView,'auto');assert.equal(s.params.centeredSlides,false);assert.equal(s.params.spaceBetween,width*.02);
  assert.equal(s.slides[s.activeIndex].swiperSlideSize,full);
  for(const direction of [1,-1])for(let i=0;i<14;i++){
   const expected=(s.realIndex+direction+6)%6;direction===1?s.slideNext():s.slidePrev();
   const active=s.slides[s.activeIndex];assert.equal(s.realIndex,expected);assert.equal(active.swiperSlideSize,full);
-  assert.equal(active._motion.to,full);assert.equal(active._motion.opts.duration,400);
+  assert.ok([...s.slides].every(slide=>slide.swiperSlideSize===full));
+  assert.equal([...s.slides].some(slide=>slide._motion),false);assert.equal(s.wrapperEl.style.transitionDuration,'400ms');
   assert.equal(s.translate,-s.slidesGrid[s.activeIndex]);finish();
  }
 });
-test('mobile rapid reversal keeps the rendered treatment width and tablet retains the existing layout',t=>{
+test('mobile rapid reversal retains full treatment widths and tablet retains the existing layout',t=>{
  const {swiper:s}=fixture(t,390,true);s.slideNext();
  for(const slide of s.slides)if(slide._motion)slide._motion.progress=.4;
  const outgoing=s.slides[s.activeIndex];s.slidePrev();assert.equal(s.realIndex,0);
- assert.equal(outgoing._motion.from,245.7);assert.equal(outgoing._motion.to,175.5);
+ assert.equal(outgoing.swiperSlideSize,351);assert.equal([...s.slides].some(slide=>slide._motion),false);
+ assert.equal(s.wrapperEl.style.transitionDuration,'400ms');assert.equal(s.translate,-s.slidesGrid[s.activeIndex]);
  const tablet=fixture(t,820,true);tablet.swiper.slideNext();
  assert.equal(tablet.swiper.params.slidesPerView,1);assert.equal([...tablet.swiper.slides].some(slide=>slide._motion),false);
+});
+
+test('homepage treatment entrance still advances at normal speed with reduced motion enabled',t=>{
+ const {w,el}=fixture(t,390,true);
+ const component=el.parentElement;component.setAttribute('data-tdb-banner-parallax','');
+ w.matchMedia=q=>({matches:q.includes('prefers-reduced-motion')||q.includes('max-width'),addEventListener(){},removeEventListener(){}});
+ w.eval(`
+ const REDUCED_MOTION_QUERY='(prefers-reduced-motion:reduce)',DESKTOP_QUERY='(min-width:768px)',MOBILE_PORTRAIT_QUERY='(max-width:767px) and (orientation:portrait)';
+ const isInitialised=()=>false,getSwiperElement=c=>c.querySelector('.swiper');
+ const isDesktopEntryPage=()=>false,isMobileEntryPage=()=>false;
+ const desktopGridGap=(c,f)=>f,parallaxDuration=()=>400;
+ const bindGridGap=()=>{},bindParallaxDuration=()=>{},markInitialised=()=>{};
+ `+source.slice(source.indexOf('  function initParallaxSwiper('),source.indexOf('  function initByType('))+';window.initParallaxSwiper=initParallaxSwiper;');
+ // Use the real Swiper runtime for entrance movement, not a slideNext mock.
+ el.swiper.destroy();w.initParallaxSwiper(component);
+ assert.equal(el.swiper.realIndex,1);
+ assert.equal(el.swiper.wrapperEl.style.transitionDuration,'400ms');
+ assert.equal(el.swiper.params.followFinger,true);
+ assert.equal(el.swiper.params.parallax.enabled,true);
+ assert.ok([...el.swiper.slides].every(slide=>slide.swiperSlideSize===351));
 });
