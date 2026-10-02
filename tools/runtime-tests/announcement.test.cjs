@@ -6,7 +6,7 @@ const values=fields=>Object.entries(fields).map(([k,v])=>`<div data-banner-field
 function setup({path='/',embedded=true,saved=true,mobile=false,reduced=false,animationDelay=400,fields=fieldValues,failures=0,uiReady=true,invalid=false}={}){
  const dom=new JSDOM('<!doctype html><html><head><style>:root{--tdb-ui-ready:1}</style></head><body>'+(embedded?'<div data-tdb-banner-item>'+values(fields)+'</div>':'')+'<div id="tdb-vip-drawer"><button class="tdb-vip-drawer-handle"></button></div><div id="tdb-elfsight-timer-shell" class="tdb-elfsight-shell"></div></body></html>',{url:'https://dentalbarns.webflow.io'+path,runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window,d=w.document;let clock=Date.parse('2026-09-19T11:00:00Z'),id=0,calls=0;const tasks=new Map();
- w.Date.now=()=>clock;w.performance.now=()=>clock;w.matchMedia=q=>({matches:q.includes('reduced-motion')?reduced:mobile&&q.includes('767')});
+ w.Date.now=()=>clock;w.performance.now=()=>clock;w.matchMedia=q=>({matches:q.includes('reduced-motion')?reduced:q.includes('min-width:992px')?!mobile:mobile&&q.includes('767')});
  w.setTimeout=(fn,ms)=>{const n=++id;tasks.set(n,{fn,at:clock+ms});return n};w.clearTimeout=n=>tasks.delete(n);
  w.requestAnimationFrame=fn=>w.setTimeout(fn,16);
  w.HTMLElement.prototype.animate=function(){const animation={onfinish:null,oncancel:null,cancel(){w.clearTimeout(handle);this.oncancel?.()}};const handle=w.setTimeout(()=>animation.onfinish?.(),animationDelay);return animation;};
@@ -68,6 +68,14 @@ function setup({path='/',embedded=true,saved=true,mobile=false,reduced=false,ani
  for(const [type,x] of [['pointerdown',250],['pointermove',170]]){const e=new a.w.MouseEvent(type,{bubbles:true,clientX:x,clientY:20,button:0});Object.defineProperties(e,{pointerId:{value:7},isPrimary:{value:true}});reducedButton.dispatchEvent(e);}
  assert.equal(reducedRail.style.transform,'translateX(-80px)','reduced motion still follows direct finger movement');
  const up=new a.w.MouseEvent('pointerup',{bubbles:true,clientX:170,clientY:20,button:0});Object.defineProperties(up,{pointerId:{value:7},isPrimary:{value:true}});reducedButton.dispatchEvent(up);assert.equal(reducedButton.dataset.mode,'countdown','reduced-motion swipe settles immediately and correctly');a.close();
+ // Desktop must animate rather than jump with reduced motion enabled.
+ a=setup({reduced:true});a.tick(550);
+ a.tick(8000);
+ assert.equal(a.d.querySelector('.tdb-announcement-track').style.transform,'translateX(-100%)','desktop automatic rotation starts the slide');
+ assert.equal(a.d.querySelector('.tdb-announcement-track').firstElementChild.dataset.message,'signature','desktop retains outgoing slide until animation completes');
+ a.tick(450);assert.equal(a.w.TDBAnnouncement.status().mode,'countdown','desktop motion settles after the animation');
+ a.tick(1100);assert.ok(a.d.querySelector('.tdb-announcement-digit.is-changing'),'desktop countdown animation ignores reduced motion');
+ a.close();
  a=setup({animationDelay:900});a.tick(8540);a.tick(450);assert.equal(a.d.querySelector('.tdb-announcement-track').firstElementChild.dataset.message,'signature','slow animation is not prematurely reordered by a fixed timer');a.tick(450);assert.equal(a.d.querySelector('.tdb-announcement-track').firstElementChild.dataset.message,'smile','settlement follows actual animation finish');a.close();
  a=setup({path:'/services/fast-track'});a.tick(550);assert.equal(a.w.TDBAnnouncement.status().mode,'signature');assert.equal(a.d.querySelector('.tdb-announcement-track').children.length,1);a.tick(20000);assert.equal(a.w.TDBAnnouncement.status().mode,'signature');a.w.dispatchEvent(new a.w.Event('pagehide'));assert.equal(a.w.TDBAnnouncement.status().ticking,false);a.close();
  a=setup({embedded:false,saved:false});assert.equal(a.calls(),0,'no settings read before consent');a.w.dispatchEvent(new a.w.Event('CookieScriptReject'));assert.equal(a.calls(),1);a.w.dispatchEvent(new a.w.Event('CookieScriptAccept'));assert.equal(a.w.TDBAnnouncement.status().mounted,false,'duplicate consent does not paint fallback during read');await a.flush();a.tick(550);assert.equal(a.calls(),1);assert.equal(a.w.TDBAnnouncement.status().mode,'signature');a.close();
