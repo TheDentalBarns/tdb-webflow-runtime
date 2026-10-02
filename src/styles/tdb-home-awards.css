@@ -17,7 +17,8 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] .tdb-home-awards-trio{display:none
   [data-tdb-awards-layout] .tdb-service-awards{margin:0 0 3rem!important}
   [data-tdb-awards-layout] .tdb-awards-heading{display:none}
   [data-tdb-awards-layout] .tdb-awards-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:2rem;min-height:0;padding-bottom:3rem;border-bottom:0;align-items:stretch}
-  [data-tdb-awards-layout] .tdb-award{grid-template-columns:7rem minmax(0,1fr);gap:1.25rem;padding:0;align-items:center}
+  [data-tdb-awards-layout] .tdb-award{position:relative;grid-template-columns:7rem minmax(0,1fr);gap:1.25rem;padding:0;align-items:center}
+  [data-tdb-awards-layout] .tdb-award::before{content:"";position:absolute;left:-.65rem;top:50%;transform:translateY(-50%);width:5px;height:7.775rem;max-height:100%;background:color-mix(in srgb,var(--award-cream,#d6cab4) 75%,#000);pointer-events:none}
   [data-tdb-awards-layout] .tdb-award-logo{height:9rem}
   [data-tdb-awards-layout] .tdb-award-text{max-width:none;padding-left:1.25rem}
   [data-tdb-awards-layout] .tdb-award-title{height:1.4rem;white-space:nowrap;margin-bottom:.4rem}
