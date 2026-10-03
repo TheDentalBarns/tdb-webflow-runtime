@@ -1,44 +1,44 @@
-/* Generated from the source files below; no inline Webflow logic. */
-/* TDB review drawer bridge v1.0.0. Identity lookup only: CMS chooses the quote. */
+/* TDB review drawer bridge v2.0.0. CMS owns content and featured-quote selection. */
 (() => {
   'use strict';
   if (window.TDBReviewDrawerBridge) return;
-  let dataPromise;
-  const clean = text => String(text || '').normalize('NFKC').replace(/\s+/g, ' ').trim();
+  let base, drawerFlight;
   const assertActive = signal => { if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError'); };
-  function getRecords() {
-    if (!dataPromise) dataPromise = (async () => {
-      const node = document.querySelector('[data-tdb-review-drawer-data]');
-      if (!node) throw Error('Review data is unavailable');
-      let text = node.textContent;
-      if (node.dataset.encoding === 'gzip-base64') {
-        const bytes = Uint8Array.from(atob(text.trim()), char => char.charCodeAt(0));
-        text = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
-      }
-      return JSON.parse(text).records || [];
-    })().catch(error => { dataPromise = null; throw error; });
-    return dataPromise;
+  function configure({ baseURL }) { base = new URL(baseURL, location.href); }
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script'); script.src = src; script.async = true;
+      script.onload = resolve;
+      script.onerror = () => { script.remove(); reject(Error('Review drawer failed to load')); };
+      document.head.append(script);
+    });
   }
-  function resolveIdentity(records, root) {
-    const author = clean(root?.querySelector('[data-tdb-review-author]')?.textContent);
-    const excerpt = clean(root?.querySelector('[data-tdb-review-excerpt]')?.textContent);
-    if (!author || !excerpt) return '';
-    const matches = records.filter(record => clean(record.name) === author &&
-      [record.excerpt, ...Object.values(record.excerpts || {})].some(text => clean(text) === excerpt));
-    // Never substitute a different review when the external snapshot is behind CMS.
-    return matches.length === 1 ? matches[0].id : '';
+  async function loadDrawer(signal) {
+    assertActive(signal);
+    if (window.TDBReviewDrawer) {
+      if (window.TDBReviewDrawer.version !== '2.0.0-cms') throw Error('The previous review drawer is still active');
+      return window.TDBReviewDrawer;
+    }
+    if (!base) throw Error('Review drawer module URL is unavailable');
+    if (!drawerFlight) drawerFlight = loadScript(new URL('src/reviews/review-drawer-cms.js', base).href)
+      .then(() => {
+        if (window.TDBReviewDrawer?.version !== '2.0.0-cms') throw Error('CMS drawer API unavailable');
+        return window.TDBReviewDrawer;
+      }).catch(error => { drawerFlight = null; throw error; });
+    const drawer = await drawerFlight; assertActive(signal); return drawer;
   }
+  function resolveIdentity(records, root) { return window.TDBReviewCMS?.resolveIdentity(records, root) || ''; }
   async function open({ trigger, reviewId, signal }) {
     assertActive(signal);
-    const service = window.TDBPowerSnippets;
-    if (!service?.loadDrawer) throw Error('Review service is unavailable');
-    const records = await getRecords();
+    const service = window.TDBReviewCMS;
+    if (!service) throw Error('CMS review service is unavailable');
+    const { records } = await service.load({ signal });
     assertActive(signal);
     const root = trigger.closest('[data-tdb-review-introduction]');
     const preferred = reviewId || resolveIdentity(records, root);
-    const drawer = await service.loadDrawer();
+    const drawer = await loadDrawer(signal);
     assertActive(signal);
-    await drawer.open(trigger, preferred);
+    await drawer.open(trigger, preferred, { signal });
     if (signal?.aborted) {
       if (trigger.getAttribute('aria-expanded') === 'true') drawer.close();
       assertActive(signal);
@@ -47,7 +47,7 @@
   function close(root) {
     if (root?.querySelector('[data-tdb-review-trigger][aria-expanded="true"]')) window.TDBReviewDrawer?.close();
   }
-  window.TDBReviewDrawerBridge = Object.freeze({ version: '1.0.0', open, close, resolveIdentity });
+  window.TDBReviewDrawerBridge = Object.freeze({ version: '2.0.0', configure, open, close, resolveIdentity });
 })();
 
 /* TDB review loader v1.0.0: permission, presence and proximity are separate gates. */
@@ -170,16 +170,18 @@
   window.TDBReviewIntroductionLoader = Object.freeze({ version: '1.0.0', start });
 })();
 
-/* TDB Review Introduction bootstrap v1.0.0. Page uses one immutable external reference. */
+/* TDB Review Introduction bootstrap v2.0.0. Page uses one immutable external reference. */
 (() => {
   'use strict';
   const script = document.currentScript;
   if (!script?.src) return;
   const base = new URL('../', script.src);
+  window.TDBReviewDrawerBridge.configure({ baseURL: base.href });
   function start() {
     if (!document.querySelector('[data-tdb-review-introduction]')) return;
     window.TDBReviewIntroductionLoader.start({
       urls: [
+        new URL('src/reviews/review-cms-source.js', base).href,
         new URL('src/shared/value-tickers-native.js', base).href,
         new URL('src/components/review-introduction.js', base).href
       ],
