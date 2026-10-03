@@ -16,7 +16,7 @@ async function code(signal){
  if(!sharedFlight)sharedFlight=(async()=>{
   await window.TDBModules.load(new URL('tdb-motion.js',base));
   active(signal);
-  await Promise.all(['tdb-ticker.js','tdb-review-cms.js','tdb-drawer.js','tdb-review-introduction.js','tdb-reviews.js','tdb-review-quotes.js'].map(name=>window.TDBModules.load(new URL(name,base))));
+  await Promise.all(['tdb-ticker.js','tdb-review-cms.js','tdb-drawer.js','tdb-review-introduction.js','tdb-reviews.js','tdb-review-quotes.js','tdb-review-cards.js'].map(name=>window.TDBModules.load(new URL(name,base))));
   active(signal);
   await window.TDBModules.load('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b3a0f0f2a1e57b5a67db5f5159c449cff07eebd6/dist/tdb-swiper-8.4.7.min.js',{attribute:'data-swiper-js',ready:()=>typeof window.Swiper==='function'});
  })().catch(error=>{sharedFlight=null;throw error;});
@@ -43,11 +43,11 @@ function sync(){
   if(!root.isConnected&&!state.instance){roots.delete(root);continue;}
   if(!state.near||state.instance||state.pending)continue;
   state.pending=true;const signal=controller.signal;
-  prepare({signal}).then(data=>{active(signal);root.querySelectorAll('[data-tdb-review-count]').forEach(n=>n.setAttribute('data-tdb-review-count',String(data.total)));root.querySelectorAll('[data-tdb-review-rating]').forEach(n=>n.setAttribute('data-tdb-review-rating',data.average.toFixed(2)));state.instance=root.matches('[data-tdb-review-introduction]')?window.TDBReviewIntroduction.mount(root,{prepare,openReviews:open,closeReviews:()=>{feature?.destroy();feature=null;}}):window.TDBReviewQuotes.mount(root,data,{openReviews:open});return prepare({signal});}).catch(()=>{}).finally(()=>state.pending=false);
+  prepare({signal}).then(data=>{active(signal);root.querySelectorAll('[data-tdb-review-count]').forEach(n=>n.setAttribute('data-tdb-review-count',String(data.total)));root.querySelectorAll('[data-tdb-review-rating]').forEach(n=>n.setAttribute('data-tdb-review-rating',data.average.toFixed(2)));state.instance=root.matches('[data-tdb-review-introduction]')?window.TDBReviewIntroduction.mount(root,{prepare,openReviews:open,closeReviews:()=>{feature?.destroy();feature=null;}}):root.matches('[data-tdb-review-cards]')?window.TDBReviewCards.mount(root,data,{openReviews:open}):window.TDBReviewQuotes.mount(root,data,{openReviews:open});return prepare({signal});}).catch(()=>{}).finally(()=>state.pending=false);
  }
 }
 const proximity='IntersectionObserver'in window?new IntersectionObserver(entries=>{entries.forEach(e=>{const state=roots.get(e.target);if(state)state.near=e.isIntersecting;});sync();},{rootMargin:'700px 0px'}):null;
-function discover(){[...document.querySelectorAll('[data-tdb-review-introduction]'),...document.querySelectorAll('.testimonial_slider.w-slider')].filter(root=>root.matches('[data-tdb-review-introduction]')||root.parentElement.querySelector('.testimonial15_rating-wrapper')).forEach(root=>{if(roots.has(root))return;roots.set(root,{near:!proximity,instance:null,pending:false});proximity?.observe(root);for(const event of ['pointerover','focusin'])root.addEventListener(event,()=>{roots.get(root).near=true;sync();},{passive:true});});sync();}
+function discover(){[...document.querySelectorAll('[data-tdb-review-introduction],[data-tdb-review-cards]'),...document.querySelectorAll('.testimonial_slider.w-slider')].filter(root=>root.matches('[data-tdb-review-introduction],[data-tdb-review-cards]')||root.parentElement.querySelector('.testimonial15_rating-wrapper')).forEach(root=>{if(roots.has(root))return;roots.set(root,{near:!proximity,instance:null,pending:false});proximity?.observe(root);for(const event of ['pointerover','focusin'])root.addEventListener(event,()=>{roots.get(root).near=true;sync();},{passive:true});});sync();}
 for(const name of events){window.addEventListener(name,sync);document.addEventListener(name,sync);}
 options.subscribe?.(sync);window.addEventListener('online',sync);window.addEventListener('pageshow',sync);
 window.TDBReviewLoader=Object.freeze({version:'3.0.0',prepare,open,refresh:discover,status:()=>({allowed:allowed(),instances:[...roots.values()].filter(s=>s.instance).length})});

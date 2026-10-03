@@ -12,6 +12,7 @@ function mount(root,data){
  let records=[],swiper=null,preferred='',fadeTimer=0,quoteAnimations=[],destroyed=false;
  const ticker=window.TDBNativeTicker.mount($('[data-tdb-reviews-position]'));
  const context=cms.contextForPath(location.pathname),position=$('[data-tdb-reviews-position]'),filters=$('[data-tdb-reviews-filters]'),toggle=$('[data-tdb-reviews-filter-toggle]'),status=$('[data-tdb-reviews-status]');
+ filters.hidden=filters.hidden||filters.classList.contains('is-hidden');
  $('[data-tdb-reviews-average]').textContent=data.average.toFixed(2);$('[data-tdb-reviews-total]').textContent=data.total+' reviews';
  function choose(){
   const topic=$('[data-tdb-reviews-topic]').value,platform=$('[data-tdb-reviews-platform]').value,sort=$('[data-tdb-reviews-sort]').value;
@@ -43,7 +44,7 @@ function mount(root,data){
   stopFade();swiper?.destroy(true,true);swiper=null;records=choose();track.replaceChildren(...records.map(slide));$('[data-tdb-reviews-length]').textContent=String(records.length).padStart(2,'0');
   status.textContent=records.length?'':'No reviews match these filters.';
   if(!records.length){ticker.update('00',1,false);return;}
-  swiper=new window.Swiper(viewport,{direction:'vertical',wrapperClass:'tdb-reviews_track',slideClass:'tdb-reviews_slide',slidesPerView:1,loop:records.length>1,loopAdditionalSlides:1,loopPreventsSlide:false,preventInteractionOnTransition:false,observer:false,observeParents:false,speed:reduced.matches?0:motion.duration(innerWidth),touchStartPreventDefault:false,touchMoveStopPropagation:true,threshold:10,keyboard:{enabled:false},preloadImages:false,watchOverflow:true,on:{slideChange(){queueMicrotask(update);},slideChangeTransitionStart(){stopFade();},slideChangeTransitionEnd(){reveal();},touchEnd(){if(!this.animating)reveal();}}});
+  swiper=new window.Swiper(viewport,{direction:'vertical',wrapperClass:'tdb-reviews_track',slideClass:'tdb-reviews_slide',slidesPerView:1,initialSlide:Math.max(0,records.findIndex(r=>r.id===preferred)),loop:records.length>1,loopAdditionalSlides:1,loopPreventsSlide:false,preventInteractionOnTransition:false,observer:false,observeParents:false,speed:reduced.matches?0:motion.duration(innerWidth),touchStartPreventDefault:false,touchMoveStopPropagation:true,threshold:10,keyboard:{enabled:false},preloadImages:false,watchOverflow:true,on:{slideChange(){queueMicrotask(update);},slideChangeTransitionStart(){stopFade();},slideChangeTransitionEnd(){reveal();},touchEnd(){if(!this.animating)reveal();}}});
   motion.bindSwiper(swiper);update();reveal();
  }
  function action(node,fn){const handle=e=>{if(e.type==='keydown'&&!['Enter',' '].includes(e.key))return;e.preventDefault();fn();};node.addEventListener('click',handle,{signal});node.addEventListener('keydown',handle,{signal});}
