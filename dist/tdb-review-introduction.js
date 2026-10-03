@@ -44,9 +44,18 @@
     root.addEventListener('tdb:review-error', () => {
       if (status) status.textContent = 'The reviews could not load. Please try again.';
     }, { signal });
+    const dd=window.TDBMotion.ddText(root.querySelectorAll('[data-tdb-dd-text]'));
+    const arrowStates=new Map();
     const reflectDrawer = () => {
-      triggers.forEach(trigger => trigger.querySelector('.review-summary_arrow-icon')?.classList.toggle(
-        'review-summary_arrow-open', trigger.getAttribute('aria-expanded') === 'true' || trigger.getAttribute('aria-busy') === 'true'));
+      const opened=triggers.some(trigger=>trigger.getAttribute('aria-expanded')==='true'||trigger.getAttribute('aria-busy')==='true');
+      root.querySelectorAll('.review-summary_arrow-icon').forEach(arrow=>{
+        const target=opened?360:180,previous=arrowStates.get(arrow);
+        if(previous?.target===target||(!previous&&!opened))return;
+        const from=getComputedStyle(arrow).transform;previous?.animation?.cancel();
+        const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const animation=arrow.animate([{transform:previous?from:'rotate(180deg)'},{transform:`rotate(${target}deg)`}],{duration:reduced?0:300,easing:'ease',fill:'both'});
+        arrowStates.set(arrow,{target,animation});
+      });
     };
     const drawerObserver = new MutationObserver(reflectDrawer);
     triggers.forEach(trigger => drawerObserver.observe(trigger, { attributes: true, attributeFilter: ['aria-expanded', 'aria-busy'] }));
@@ -63,6 +72,7 @@
         if (disposed || trigger.getAttribute('aria-busy') === 'true') return;
         if (status) status.textContent = '';
         trigger.setAttribute('aria-busy', 'true');
+        reflectDrawer();
         const item = root.querySelector('[data-tdb-review-id]');
         try {
           await options.openReviews({ trigger, reviewId: item?.getAttribute('data-tdb-review-id') || '', signal });
@@ -80,6 +90,8 @@
         controller.abort();
         observer?.disconnect();
         drawerObserver.disconnect();
+        dd.destroy();
+        arrowStates.forEach(state=>state.animation?.cancel());
         tickers.forEach(({ ticker }) => ticker.destroy());
         for (const { node, tabindex, disabled } of saved) {
           for (const [key, value] of [['tabindex', tabindex], ['aria-disabled', disabled]]) {
@@ -90,7 +102,6 @@
         options.closeReviews?.(root);
         triggers.forEach(trigger => {
           trigger.setAttribute('aria-expanded', 'false');
-          trigger.querySelector('.review-summary_arrow-icon')?.classList.remove('review-summary_arrow-open');
         });
         if (status) status.textContent = '';
         instances.delete(root);

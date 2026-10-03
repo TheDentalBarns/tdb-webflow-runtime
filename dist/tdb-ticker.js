@@ -8,7 +8,8 @@
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     const originalNodes = [...slot.childNodes];
     let text = slot.textContent.trim(), disposed = false, pending = null;
-    const value = document.createElement('span');
+    const template = document.querySelector('[data-tdb-ticker-template]');
+    const value = template?.querySelector('.review-number_value')?.cloneNode(true) || document.createElement('span');
     value.className = 'review-number_value';
     value.textContent = text;
     slot.replaceChildren(value);
@@ -35,7 +36,7 @@
         value.textContent = next;
         return;
       }
-      const incoming = document.createElement('span');
+      const incoming = template?.querySelector('.review-number_incoming')?.cloneNode(true) || document.createElement('span');
       incoming.className = 'review-number_incoming';
       incoming.textContent = next;
       incoming.setAttribute('aria-hidden', 'true');

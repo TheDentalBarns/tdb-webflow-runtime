@@ -19,12 +19,12 @@ function mount(root,{onOpen,onClose}={}){
  function unlock(){saved.forEach(([node,value])=>node.inert=value);saved=[];if(!scrollLock)return;const html=document.documentElement;html.style.overflow=scrollLock.overflow;html.style.paddingRight=scrollLock.padding;if(scrollLock.resume)scrollLock.lenis?.start();scrollLock=null;}
  async function transition(opening){
   stop();const rev=++revision;const duration=motion.matches?0:window.TDBMotion.duration(innerWidth);
-  const mobile=matchMedia('(max-width:767px)').matches,closed=mobile?'translateY(100%)':'translateX(100%)';
+  const closed='translateX(100%)';
   if(duration&&panel.animate){animations=[panel.animate([{transform:opening?closed:'translate(0)'},{transform:opening?'translate(0)':closed}],{duration,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'})];if(backdrop)animations.push(backdrop.animate([{opacity:opening?0:1},{opacity:opening?1:0}],{duration:Math.min(duration,300),fill:'both'}));await Promise.allSettled(animations.map(a=>a.finished));}
   return rev===revision;
  }
  async function open(source){
-  if(state!=='closed')return;active?.close(true);active=api;trigger=source;state='opening';root.hidden=false;root.classList.remove('is-hidden');root.inert=false;root.setAttribute('aria-hidden','false');trigger?.setAttribute('aria-expanded','true');lock();onOpen?.();closeButton.focus({preventScroll:true});
+  if(state!=='closed')return;active?.close(true);active=api;trigger=source;state='opening';root.hidden=false;root.classList.remove('is-hidden');root.inert=false;root.setAttribute('aria-hidden','false');trigger?.setAttribute('aria-expanded','true');lock();try{onOpen?.();}catch(error){await close(true);throw error;}closeButton.focus({preventScroll:true});
   if(await transition(true)){stop();state='open';}
  }
  async function close(immediate=false){
