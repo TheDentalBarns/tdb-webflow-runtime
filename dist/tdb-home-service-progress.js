@@ -6,9 +6,14 @@
   const style=document.createElement('style');
   style.textContent=`:is(${selector}) > .tdb-service-progress{position:absolute;left:0;top:100%;width:100%;height:5px;margin:0;padding:0;border:0;border-radius:0;background:rgba(214,202,180,.5);opacity:1;z-index:30;pointer-events:none;overflow:hidden}:is(${selector}) .tdb-service-progress-fill{position:absolute;left:0;top:0;display:block;width:100%;height:100%;margin:0;padding:0;border:0;border-radius:0;background:#000000;opacity:1;transform-origin:left center;transition:none!important}#All-treatments .tdb-service-progress-fill{background:var(--base-color-brand--orange-1,#f9f2e6)!important}`;
   document.head.append(style);
+  const bindings=new WeakMap();
   function bind(component){
     const viewport=component.querySelector(':scope > .swiper'),wrapper=viewport?.querySelector(':scope > .swiper-wrapper');
-    if(!wrapper||component.querySelector(':scope > .tdb-service-progress'))return false;
+    if(!wrapper)return false;
+    const previous=bindings.get(component);
+    if(previous?.wrapper===wrapper)return true;
+    previous?.dispose();
+    component.querySelector(':scope > .tdb-service-progress')?.remove();
     const treatment=!!component.closest('#All-treatments');
     const track=document.createElement('div'),fill=document.createElement('span');
     track.className='tdb-service-progress';fill.className='tdb-service-progress-fill';
@@ -37,13 +42,13 @@
       for(const marker of [fill,wrapped])marker.style.width=segment+'px';
       fill.style.transform=`translateX(${travel}px)`;
       wrapped.style.transform=`translateX(${travel-trackWidth}px)`;
-      return getComputedStyle(wrapper).transform;
+      return points.map(p=>p.x.toFixed(3)+':'+p.value).join('|');
     }
     function tick(){frame=0;const pose=paint();stable=pose===last?stable+1:0;last=pose;if(stable<3)frame=requestAnimationFrame(tick);}
     function schedule(){stable=0;if(!frame)frame=requestAnimationFrame(tick);}
     // Observe only the moving track, never the bar we write to.
     const movement=new MutationObserver(schedule);
-    movement.observe(wrapper,{attributes:true,attributeFilter:['style'],childList:true});
+    movement.observe(wrapper,{subtree:true,attributes:true,attributeFilter:['style','class','data-swiper-slide-index'],childList:true});
     function layout(){
       // Preserve fractional geometry: offsetTop/offsetHeight round separately
       // and can leave a one-pixel gap between the image and its track.
@@ -57,14 +62,21 @@
       track.style.width=Math.max(0,right-left)+'px';
       schedule();
     }
-    new ResizeObserver(layout).observe(viewport);
+    const resize=new ResizeObserver(layout);resize.observe(viewport);
     window.addEventListener('resize',layout,{passive:true});
     layout();
-    wrapper.addEventListener('transitionend',schedule);
+    const events=['transitionrun','transitionstart','transitionend','transitioncancel','pointerdown','pointermove','pointerup','pointercancel'];
+    events.forEach(event=>wrapper.addEventListener(event,schedule,{passive:true}));
+    bindings.set(component,{wrapper,dispose(){
+      movement.disconnect();resize.disconnect();cancelAnimationFrame(frame);
+      window.removeEventListener('resize',layout);
+      events.forEach(event=>wrapper.removeEventListener(event,schedule));
+      track.remove();
+    }});
     paint();schedule();return true;
   }
   const observer=new MutationObserver(()=>{document.querySelectorAll(selector).forEach(bind);});
   const treatments=document.querySelector('#All-treatments');
   if(treatments)observer.observe(treatments,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
-  document.querySelectorAll(selector).forEach(component=>{if(!bind(component))observer.observe(component,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});});
+  document.querySelectorAll(selector).forEach(component=>{bind(component);observer.observe(component,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});});
 })();
