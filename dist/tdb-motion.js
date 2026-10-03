@@ -1,4 +1,4 @@
-/* TDB shared motion v1.2.1: gentle DD startup with established carousel timing. */
+/* TDB shared motion v1.2.2: gentle DD startup with established carousel timing. */
 (() => {
 'use strict'; if(window.TDBMotion)return;
 const bound=new WeakSet();
@@ -9,7 +9,7 @@ function bindSwiper(e){if(bound.has(e))return;bound.add(e);const axis=e.isHorizo
 const ddNodes=new Map();let ddFrame=0,ddController=null,ddReduced=null;
 function ddOpacity(progress){const p=Math.max(0,Math.min(1,progress));return p<.5?p:p<=.75?.5:.5-(p-.75)*1.6;}
 function ddSchedule(){if(!ddFrame&&!document.hidden&&ddNodes.size)ddFrame=requestAnimationFrame(ddRender);}
-function ddRender(time){ddFrame=0;let moving=false;for(const [node,state] of ddNodes){if(ddReduced.matches){node.style.opacity=state.original;state.value=Number.parseFloat(getComputedStyle(node).opacity);state.startup=null;continue;}const target=ddOpacity((innerHeight-node.getBoundingClientRect().top)/innerHeight);if(state.startup){const startup=state.startup;startup.start??=time;const progress=Math.min(1,(time-startup.start)/250),eased=1-Math.pow(1-progress,3);state.value=startup.from+(target-startup.from)*eased;if(progress<1)moving=true;else state.startup=null;}else{state.value+=(target-state.value)*.5;if(Math.abs(target-state.value)<.001)state.value=target;else moving=true;}node.style.opacity=String(state.value);}if(moving)ddSchedule();}
+function ddRender(){const time=performance.now();ddFrame=0;let moving=false;for(const [node,state] of ddNodes){if(ddReduced.matches){node.style.opacity=state.original;state.value=Number.parseFloat(getComputedStyle(node).opacity);state.startup=null;continue;}const target=ddOpacity((innerHeight-node.getBoundingClientRect().top)/innerHeight);if(state.startup){const startup=state.startup;startup.start??=time;const progress=Math.min(1,(time-startup.start)/250),eased=1-Math.pow(1-progress,3);state.value=startup.from+(target-startup.from)*eased;if(progress<1)moving=true;else state.startup=null;}else{state.value+=(target-state.value)*.5;if(Math.abs(target-state.value)<.001)state.value=target;else moving=true;}node.style.opacity=String(state.value);}if(moving)ddSchedule();}
 function ddText(nodes){
  if(!ddController){ddController=new AbortController();const {signal}=ddController;ddReduced=matchMedia('(prefers-reduced-motion: reduce)');for(const event of ['scroll','resize'])window.addEventListener(event,ddSchedule,{signal,passive:true});document.addEventListener('visibilitychange',ddSchedule,{signal});ddReduced.addEventListener('change',ddSchedule,{signal});}
  const list=[...nodes];for(const node of list){const state=ddNodes.get(node);if(state){state.clients++;continue;}const original=node.style.opacity,value=Number.parseFloat(getComputedStyle(node).opacity);ddNodes.set(node,{original,value,clients:1,startup:ddReduced.matches?null:{from:value,start:null}});}
@@ -32,5 +32,5 @@ function fadeController(){
  }
  return Object.freeze({to,destroy(){states.forEach((state,node)=>{state.animation?.cancel();node.style.opacity=state.original;});states.clear();}});
 }
-window.TDBMotion=Object.freeze({version:'1.2.1',defaults,duration,bindSwiper,ddText,ddOpacity,reviews,fadeController});
+window.TDBMotion=Object.freeze({version:'1.2.2',defaults,duration,bindSwiper,ddText,ddOpacity,reviews,fadeController});
 })();
