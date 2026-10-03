@@ -62,7 +62,7 @@ function mount(root,data){
   if(swiper)swiper.slideTo(index,0);else createSwiper(index);
   swiper.slides[index].querySelector('[data-tdb-review-scroll]').scrollTop=0;reveal(motion.reviews.openDelay);
  }
- function navigate(direction){if(!swiper||direction<0&&swiper.isBeginning||direction>0&&swiper.isEnd)return;begin();direction<0?swiper.slidePrev():swiper.slideNext();if(!swiper.animating&&phase==='moving')reveal();}
+ function navigate(direction){if(!swiper||direction<0&&swiper.isBeginning||direction>0&&swiper.isEnd)return;swiper.swipeDirection=direction<0?'prev':'next';begin();direction<0?swiper.slidePrev():swiper.slideNext();if(!swiper.animating&&phase==='moving')reveal();}
  function action(node,fn){const handle=e=>{if(e.type==='keydown'&&!['Enter',' '].includes(e.key))return;e.preventDefault();if(node.getAttribute('aria-disabled')!=='true')fn();};node.addEventListener('click',handle,{signal});node.addEventListener('keydown',handle,{signal});}
  action(previous,()=>navigate(-1));action(next,()=>navigate(1));
  root.addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea'))return;if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();navigate(e.key==='ArrowLeft'?-1:1);}},{signal});
