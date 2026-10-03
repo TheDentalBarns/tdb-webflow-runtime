@@ -1,9 +1,13 @@
 # TDB shared runtime
 
+See [Module ownership](module-ownership.md) for the maintained source/build map and
+DD migration contract.
+
 Webflow owns native component structure, layout, responsive styling, controls and CMS content. GitHub owns behaviour. No review records are stored in these modules.
 
 - `tdb-modules.js`: one in-flight request per dependency URL, retry after failure.
-- `tdb-motion.js`: shared durations, fades, ticker timing, the existing DD scroll-opacity effect and Swiper interruption handling.
+- `tdb-motion.js`: shared durations, fades, ticker timing, the existing DD scroll-opacity effect with a shared 250ms startup transition.
+- `tdb-swiper-8.4.7.min.js`: the custom engine plus shared TDB interruption/loop handling, in one download.
 - `tdb-sliders.js`: existing carousel adapters, using the shared motion policy.
 - `tdb-drawer.js`: native drawer opening, closing, focus, scroll locking and cleanup.
 - `tdb-ticker.js`: native Webflow span templates (so their styles survive export), reduced motion and interruption-safe settlement.

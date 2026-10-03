@@ -19,6 +19,8 @@ if (!source.includes('CVE-2026-27212 backport')) {
   failures.push('The security backport marker is missing.');
 }
 
+if (!source.includes('window.TDBSwiper')) failures.push('The shared TDB Swiper behaviour is missing.');
+
 if (size >= 130000) {
   failures.push(`The custom artifact is unexpectedly large: ${size} bytes.`);
 }

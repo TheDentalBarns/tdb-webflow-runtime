@@ -49,6 +49,13 @@ The Webflow site header and footer must include a readable release comment immed
 
 Do not load assets from `main`, a development branch, or an unpinned tag.
 
+## Native and shared module guide
+
+See [Module ownership](docs/module-ownership.md) for the current native review, DD,
+Swiper, drawer and loader responsibilities, source locations, build commands and
+migration boundaries. The release manifests above record earlier deployments;
+read the actual Webflow pins to determine the deployed release.
+
 ## Maintained modules
 
 - Consent integration

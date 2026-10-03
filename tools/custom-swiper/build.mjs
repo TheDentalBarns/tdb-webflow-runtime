@@ -1,4 +1,4 @@
-import { mkdir, stat } from 'node:fs/promises';
+import { mkdir, stat, readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
@@ -21,6 +21,8 @@ await build({
   define: {
     'process.env.NODE_ENV': '"production"',
   },
+  // Ship the shared TDB adapter in the same request as the engine.
+  footer: { js: await readFile(resolve(here, '../../src/sliders/swiper-behaviour.js'), 'utf8') },
   banner: {
     js: '/*! TDB custom Swiper 8.4.7-tdb.2 | CVE-2026-27212 backport | Core + A11y, Autoplay, Keyboard, Navigation, Pagination, Parallax | Swiper MIT License */',
   },
