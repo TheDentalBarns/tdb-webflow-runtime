@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.8.2';
+  const VERSION = '0.8.3';
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
     itemSelector: '.partner_logos',
@@ -28,7 +28,9 @@
 
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const desktop = matchMedia('(min-width: 992px)');
-  const reduceMotion = () => reduced.matches && !desktop.matches;
+  // Homepage marquee motion is owner-enabled at every responsive width.
+  const homeMotion = document.documentElement.dataset.wfPage === '677cf86df9952f978d94d8a9';
+  const reduceMotion = () => !homeMotion && reduced.matches && !desktop.matches;
   const style = document.createElement('style');
   style.textContent = `.logo-slider .partner_logos{cursor:grab;touch-action:pan-y}.logo-slider .partner_logos:focus-visible,.logo-slider .partner_logos[data-tdb-keyboard-focus]{outline:1px solid #a79b86;outline-offset:-3px}@media(hover:hover) and (pointer:fine){.logo-slider .partner_logos:hover .logo_image{opacity:.8}}`;
   document.head.append(style);
