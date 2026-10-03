@@ -19,7 +19,7 @@
     track.className='tdb-service-progress';fill.className='tdb-service-progress-fill';
     const wrapped=fill.cloneNode();
     track.setAttribute('aria-hidden','true');track.append(fill,wrapped);component.append(track);
-    let frame=0,stable=0,last=null;
+    let frame=0,visible=false,disposed=false,lastTravel=null,lastSegment=null;
     function paint(){
       const slides=[...wrapper.children].filter(s=>s.classList.contains('swiper-slide')); 
       const count=new Set(slides.map((s,i)=>s.getAttribute('data-swiper-slide-index')??String(i))).size;
@@ -39,13 +39,38 @@
         ? phase*(trackWidth-segment)/(count-1)
         : trackWidth-segment+(phase-count+1)*segment;
       const travel=Math.round(position*dpr)/dpr;
-      for(const marker of [fill,wrapped])marker.style.width=segment+'px';
-      fill.style.transform=`translateX(${travel}px)`;
-      wrapped.style.transform=`translateX(${travel-trackWidth}px)`;
-      return points.map(p=>p.x.toFixed(3)+':'+p.value).join('|');
+      if(segment!==lastSegment){
+        for(const marker of [fill,wrapped])marker.style.width=segment+'px';
+        lastSegment=segment;
+      }
+      const pose=travel+':'+trackWidth;
+      if(pose!==lastTravel){
+        fill.style.transform=`translateX(${travel}px)`;
+        wrapped.style.transform=`translateX(${travel-trackWidth}px)`;
+        lastTravel=pose;
+      }
     }
-    function tick(){frame=0;const pose=paint();stable=pose===last?stable+1:0;last=pose;if(stable<3)frame=requestAnimationFrame(tick);}
-    function schedule(){stable=0;if(!frame)frame=requestAnimationFrame(tick);}
+    // Keep sampling rendered geometry for the entire visible lifetime. Mobile
+    // touch/compositor movement can start after several unchanged frames.
+    // Reduced motion changes slider timing, never whether its position is read.
+    function tick(){
+      frame=0;
+      if(disposed||document.hidden||!visible)return;
+      paint();
+      frame=requestAnimationFrame(tick);
+    }
+    function schedule(){if(!disposed&&!document.hidden&&visible&&!frame)frame=requestAnimationFrame(tick);}
+    const visibility=new IntersectionObserver(entries=>{
+      visible=entries.some(entry=>entry.isIntersecting);
+      if(visible){layout();paint();schedule();}
+      else{cancelAnimationFrame(frame);frame=0;}
+    },{rootMargin:'100px'});
+    visibility.observe(viewport);
+    function resume(){
+      cancelAnimationFrame(frame);frame=0;
+      if(!document.hidden){layout();paint();schedule();}
+    }
+    document.addEventListener('visibilitychange',resume);
     // Observe only the moving track, never the bar we write to.
     const movement=new MutationObserver(schedule);
     movement.observe(wrapper,{subtree:true,attributes:true,attributeFilter:['style','class','data-swiper-slide-index'],childList:true});
@@ -68,7 +93,8 @@
     const events=['transitionrun','transitionstart','transitionend','transitioncancel','pointerdown','pointermove','pointerup','pointercancel'];
     events.forEach(event=>wrapper.addEventListener(event,schedule,{passive:true}));
     bindings.set(component,{wrapper,dispose(){
-      movement.disconnect();resize.disconnect();cancelAnimationFrame(frame);
+      disposed=true;visibility.disconnect();movement.disconnect();resize.disconnect();cancelAnimationFrame(frame);
+      document.removeEventListener('visibilitychange',resume);
       window.removeEventListener('resize',layout);
       events.forEach(event=>wrapper.removeEventListener(event,schedule));
       track.remove();
