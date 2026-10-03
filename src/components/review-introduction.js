@@ -1,4 +1,4 @@
-/* TDB Review Introduction v1.0.0. No CSS, CMS selection, fetching or consent logic. */
+/* TDB Review Introduction v1.1.0. No CSS, CMS selection, fetching or consent logic. */
 (() => {
   'use strict';
   if (window.TDBReviewIntroduction) return;
@@ -24,7 +24,7 @@
       observer?.disconnect();
     }
     const observer = 'IntersectionObserver' in window ? new IntersectionObserver(entries => {
-      visible = entries.some(entry => entry.isIntersecting);
+      visible = entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= 0.25);
       if (!visible) tickers.forEach(({ ticker }) => ticker.settle());
       play();
     }, { threshold: 0.25 }) : null;
@@ -39,6 +39,17 @@
     // The separate drawer service supplies this callback after its dependencies exist.
     // A gated/missing drawer service leaves the native card explicitly disabled.
     const triggers = [...root.querySelectorAll('[data-tdb-review-trigger]')];
+    const status = root.querySelector('[data-tdb-review-status]');
+    root.addEventListener('tdb:review-error', () => {
+      if (status) status.textContent = 'The reviews could not load. Please try again.';
+    }, { signal });
+    const reflectDrawer = () => {
+      triggers.forEach(trigger => trigger.querySelector('.review-summary_arrow-icon')?.classList.toggle(
+        'review-summary_arrow-open', trigger.getAttribute('aria-expanded') === 'true' || trigger.getAttribute('aria-busy') === 'true'));
+    };
+    const drawerObserver = new MutationObserver(reflectDrawer);
+    triggers.forEach(trigger => drawerObserver.observe(trigger, { attributes: true, attributeFilter: ['aria-expanded', 'aria-busy'] }));
+    reflectDrawer();
     const saved = triggers.map(node => ({ node, tabindex: node.getAttribute('tabindex'), disabled: node.getAttribute('aria-disabled') }));
     for (const trigger of triggers) {
       const available = typeof options.openReviews === 'function';
@@ -49,6 +60,7 @@
         if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) return;
         event.preventDefault();
         if (disposed || trigger.getAttribute('aria-busy') === 'true') return;
+        if (status) status.textContent = '';
         trigger.setAttribute('aria-busy', 'true');
         const item = root.querySelector('[data-tdb-review-id]');
         try {
@@ -66,6 +78,7 @@
         disposed = true;
         controller.abort();
         observer?.disconnect();
+        drawerObserver.disconnect();
         tickers.forEach(({ ticker }) => ticker.destroy());
         for (const { node, tabindex, disabled } of saved) {
           for (const [key, value] of [['tabindex', tabindex], ['aria-disabled', disabled]]) {
@@ -73,12 +86,17 @@
           }
           node.removeAttribute('aria-busy');
         }
-        options.closeReviews?.();
+        options.closeReviews?.(root);
+        triggers.forEach(trigger => {
+          trigger.setAttribute('aria-expanded', 'false');
+          trigger.querySelector('.review-summary_arrow-icon')?.classList.remove('review-summary_arrow-open');
+        });
+        if (status) status.textContent = '';
         instances.delete(root);
       }
     });
     instances.set(root, api);
     return api;
   }
-  window.TDBReviewIntroduction = Object.freeze({ version: '1.0.0', mount });
+  window.TDBReviewIntroduction = Object.freeze({ version: '1.1.0', mount });
 })();
