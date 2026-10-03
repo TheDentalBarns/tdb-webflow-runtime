@@ -21,7 +21,7 @@ function setup(markup = html) {
     observe(node) { this.targets.add(node); }
     unobserve(node) { this.targets.delete(node); }
     disconnect() { this.targets.clear(); }
-    enter(visible = true) { this.callback([...this.targets].map(target => ({ target, isIntersecting: visible }))); }
+    enter(visible = true, ratio = visible ? 1 : 0) { this.callback([...this.targets].map(target => ({ target, isIntersecting: visible, intersectionRatio: ratio }))); }
   };
   w.Element.prototype.animate = function() {
     const animation = { cancelled: false, cancel() { this.cancelled = true; }, finish() { this.onfinish?.(); } };
@@ -36,6 +36,8 @@ test('static seed remains visible until viewport entry; repeated mount is idempo
   assert.equal(api, w.TDBReviewIntroduction.mount(root));
   assert.equal(root.querySelector('[data-tdb-review-rating]').textContent, '4.93');
   assert.equal(animations.length, 0);
+  observers[0].enter(true, 0.1);
+  assert.equal(animations.length, 0, 'proximity or a sliver of visibility must not play');
   observers[0].enter();
   assert.equal(root.querySelector('.review-number_value').textContent, '4.93');
   assert.equal(root.querySelector('.review-number_incoming').textContent, '4.94');
