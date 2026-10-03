@@ -8,7 +8,7 @@ function mount(root,{onOpen,onClose}={}){
  if(!panel||!closeButton)throw Error('Native drawer structure missing');
  const ctrl=new AbortController(),{signal}=ctrl,motion=matchMedia('(prefers-reduced-motion: reduce)');
  let state='closed',trigger,saved=[],scrollLock,animations=[],revision=0;
- root.hidden=true;root.inert=true;
+ root.hidden=true;root.classList.add('is-hidden');root.inert=true;
  const stop=()=>{animations.forEach(a=>a.cancel());animations=[];};
  const focusables=()=>[...panel.querySelectorAll('a[href],button,input,select,textarea,[tabindex="0"]')].filter(n=>!n.disabled&&!n.closest('[hidden],[inert]')&&n.getClientRects().length);
  function lock(){
@@ -24,13 +24,13 @@ function mount(root,{onOpen,onClose}={}){
   return rev===revision;
  }
  async function open(source){
-  if(state!=='closed')return;active?.close(true);active=api;trigger=source;state='opening';root.hidden=false;root.inert=false;root.setAttribute('aria-hidden','false');trigger?.setAttribute('aria-expanded','true');lock();onOpen?.();closeButton.focus({preventScroll:true});
+  if(state!=='closed')return;active?.close(true);active=api;trigger=source;state='opening';root.hidden=false;root.classList.remove('is-hidden');root.inert=false;root.setAttribute('aria-hidden','false');trigger?.setAttribute('aria-expanded','true');lock();onOpen?.();closeButton.focus({preventScroll:true});
   if(await transition(true)){stop();state='open';}
  }
  async function close(immediate=false){
   if(state==='closed')return;state='closing';trigger?.setAttribute('aria-expanded','false');onClose?.();
   if(immediate){revision++;stop();}else if(!await transition(false))return;
-  root.hidden=true;root.inert=true;root.setAttribute('aria-hidden','true');stop();unlock();state='closed';if(active===api)active=null;if(trigger?.isConnected)trigger.focus({preventScroll:true});
+  root.hidden=true;root.classList.add('is-hidden');root.inert=true;root.setAttribute('aria-hidden','true');stop();unlock();state='closed';if(active===api)active=null;if(trigger?.isConnected)trigger.focus({preventScroll:true});
  }
  const activate=e=>{if(e.type==='keydown'&&!['Enter',' '].includes(e.key))return;e.preventDefault();close();};
  closeButton.addEventListener('click',activate,{signal});closeButton.addEventListener('keydown',activate,{signal});backdrop?.addEventListener('click',()=>close(),{signal});

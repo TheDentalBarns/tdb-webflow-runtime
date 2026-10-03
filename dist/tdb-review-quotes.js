@@ -5,7 +5,7 @@ function mount(old,data,{openReviews}){
  if(instances.has(old))return instances.get(old);
  const source=document.querySelector('[data-tdb-quotes-template]');if(!source)throw Error('Native review carousel template unavailable');
  const records=data.featured.map(id=>data.records.find(r=>r.id===id)).filter(Boolean);if(!records.length)return {destroy(){}};
- const root=source.cloneNode(true);root.removeAttribute('data-tdb-quotes-template');root.setAttribute('data-tdb-quotes','');root.hidden=false;
+ const root=source.cloneNode(true);root.removeAttribute('data-tdb-quotes-template');root.setAttribute('data-tdb-quotes','');root.hidden=false;root.classList.remove('is-hidden');
  const viewport=root.querySelector('[data-tdb-quotes-viewport]'),track=root.querySelector('[data-tdb-quotes-track]'),template=root.querySelector('[data-tdb-quotes-card]');
  const motion=window.TDBMotion,reduced=matchMedia('(prefers-reduced-motion: reduce)'),controller=new AbortController(),{signal}=controller;let entryTimer=0,entryPending=records.length>1&&!reduced.matches,swiper,animations=[];
  function stop(){clearTimeout(entryTimer);animations.forEach(a=>a.cancel());animations=[];}
