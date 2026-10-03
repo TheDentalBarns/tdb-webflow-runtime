@@ -8,7 +8,7 @@ colour, spacing, responsive styles and control appearance. GitHub owns behaviour
 
 | Published artifact | Responsibility | Does not own |
 | --- | --- | --- |
-| `tdb-modules.js` | Resolve shared release URLs, cache one request/promise per URL, retry failed downloads. On native review pages, the review-loader pin is the common release for motion and custom Swiper. | Consent decisions, component mounting, viewport playback |
+| `tdb-modules.js` | Resolve shared release URLs, cache one request/promise per URL, retry failed downloads. The review-loader pin, or otherwise the marquee-loader pin, is the common release for motion and custom Swiper. | Consent decisions, component mounting, viewport playback |
 | `tdb-motion.js` | Shared duration policy; DD text opacity; general fades; timing defaults consumed by drawers, tickers and review components. | Swiper engine or interruption implementation, fetching, CMS content, layout |
 | `tdb-swiper-8.4.7.min.js` | Existing custom Swiper engine plus `TDBSwiper.bindSwiper`: interruption continuity, loop handoffs and parallax transform continuity. The adapter ships in the SAME download. | Page discovery, consent, review content, component styles |
 | `tdb-sliders.js` | Existing highlight/parallax carousel setup, controls, entry behaviour and slider focus. This is still a legacy combined component bundle pending component-by-component migration. | DD text implementation or a second Swiper engine |
@@ -40,7 +40,7 @@ with an actual consent dependency may supply `TDBReviewOptions.permission()` and
 shared definitions can remain cached for other permitted components.
 
 Review and existing carousel loaders resolve motion and Swiper to one canonical
-URL on a native-review page. Loading one feature first therefore cannot select an
+URL using the native review loader or the global marquee loader. Loading one feature first therefore cannot select an
 older motion version or download another engine later. General motion/DD can load
 without Swiper. The registry itself neither downloads these assets eagerly nor
 mounts anything. Each component owns its `mount`/`destroy` lifecycle.
@@ -79,6 +79,8 @@ Edit these sources, then run `node tools/build-shared-runtime.mjs`:
 
 | Maintained source | Artifact |
 | --- | --- |
+| `src/partners/loader.js` | `dist/tdb-logo-marquee-loader.js` |
+| `src/partners/marquee.js` | `dist/tdb-logo-marquee.js` |
 | `src/shared/modules.js` | `dist/tdb-modules.js` |
 | `src/shared/motion.js` | `dist/tdb-motion.js` |
 | `src/shared/drawer.js` | `dist/tdb-drawer.js` |
@@ -111,11 +113,11 @@ is now a thin compatibility delegate to `TDBSwiper.bindSwiper`; no Swiper patche
 remain in motion. New component modules call `TDBSwiper.bindSwiper` directly.
 Remove the delegate only after every live caller has migrated.
 
-Deploy the existing registry script and native review-loader script at the same
+Deploy the existing registry, marquee-loader and native review-loader scripts at the same
 immutable commit. The review loader resolves its own component assets relative to
 that commit. The registry aligns older carousel dependency requests to that release
-on native-review pages. Pages without a native review loader retain their existing
-pins. The shared Swiper dependency must include both `window.Swiper` and
+on native-review pages, falling back to the marquee-loader release elsewhere.
+Pages with neither loader retain their existing pins. The shared Swiper dependency must include both `window.Swiper` and
 `window.TDBSwiper`; a conflicting manually inserted Swiper script is an error to
 resolve, not a reason to silently load a second engine.
 
@@ -190,3 +192,42 @@ Roll back the Home loader and registry pins together to
 `b814fda03a9c8a45c08073474d8bac60daa132f7`, and turn Review Content pagination off
 with its old 100-item limit. Do not roll back only the loader: version 3.2.0 does
 not consume paginated content. This is a staging-only deployment.
+
+## Partner marquee cleanup — 3 October
+
+`src/partners/loader.js` builds `dist/tdb-logo-marquee-loader.js` (1.1.0).
+`src/partners/marquee.js` builds `dist/tdb-logo-marquee.js` (0.9.1).
+Both now use the shared build command above.
+
+Webflow's Banner Partners component owns all visual presentation, including the
+`partner_logos` grab cursor, focus-visible outline and the mirrored
+`is-keyboard-focused` combo class. The `logo_image.is-partner-hovered` combo owns
+hover opacity. JavaScript only sets/removes those state classes; the runtime no
+longer creates a stylesheet. Drag-specific `touch-action: pan-y`, transforms and
+`will-change` remain runtime behaviour and are restored on destroy.
+
+The old IX2-targeted heading element was replaced inside the SAME component with
+a plain element bound to the SAME `Banner heading` property
+(`18d8945c-7ffc-85da-4a54-a4d4dfcda416`). Instance values and other props remain
+unchanged. Its classes are retained, native initial opacity is 1, and
+`data-tdb-dd-text` binds it to `TDBMotion.ddText`. The obsolete Home head opacity
+rule was removed. No global IX2 action lists were deleted; other components keep
+their interactions. The new heading has no IX2 target identity.
+
+The loader still requires a CookieScript accept/reject/close decision, component
+presence and 600px proximity. This is an initial-load scheduling gate, not consent
+for tracking; it deliberately latches and does not require withdrawal teardown.
+It requests shared motion through `TDBModules` before the marquee, preserving the
+250ms DD startup used by reviews with one shared dependency request. No Swiper
+engine is needed by the marquee. Its existing 200px activity margin, offscreen/tab
+suspension, drag/coasting, measured loop widths and Home/desktop reduced-motion
+exceptions are unchanged. DD itself follows the shared reduced-motion policy.
+
+Destroying/restarting the marquee also releases/remounts DD and clears temporary
+hover/focus classes, avoiding duplicate DD clients, listeners or logo copies.
+This migration affects the reusable component on staging; production is not
+published by this pass.
+
+Registry 1.2.0 also aligns motion and the compatible Swiper adapter to the marquee
+loader pin on pages without native reviews. This prevents an older carousel
+request from selecting a different shared helper. It does not preload Swiper.
