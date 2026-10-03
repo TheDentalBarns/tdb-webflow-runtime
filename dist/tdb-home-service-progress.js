@@ -23,7 +23,8 @@
       const right=points.findIndex(p=>p.x>=0);let value;
       if(right<=0)value=points[right<0?points.length-1:0].value;
       else{const a=points[right-1],b=points[right],t=-a.x/(b.x-a.x);value=a.value+(b.value-a.value)*t;}
-      fill.style.transform=`scaleX(${Math.max(0,Math.min(1,value))})`;
+      fill.style.width=(100/count)+'%';
+      fill.style.transform=`translateX(${Math.max(0,Math.min(count-1,value*count-1))*100}%)`;
       return getComputedStyle(wrapper).transform;
     }
     function tick(){frame=0;const pose=paint();stable=pose===last?stable+1:0;last=pose;if(stable<3)frame=requestAnimationFrame(tick);}
