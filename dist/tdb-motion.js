@@ -1,4 +1,4 @@
-/* TDB shared motion v1.0.0: established carousel timing and interruption handling. */
+/* TDB shared motion v1.2.0: established carousel timing and interruption handling. */
 (() => {
 'use strict'; if(window.TDBMotion)return;
 const bound=new WeakSet();
@@ -15,5 +15,22 @@ function ddText(nodes){
  const list=[...nodes];for(const node of list){const state=ddNodes.get(node);if(state){state.clients++;continue;}const original=node.style.opacity,value=ddOpacity((innerHeight-node.getBoundingClientRect().top)/innerHeight);ddNodes.set(node,{original,value,clients:1});if(!ddReduced.matches)node.style.opacity=String(value);}
  ddSchedule();let destroyed=false;return{destroy(){if(destroyed)return;destroyed=true;for(const node of list){const state=ddNodes.get(node);if(state&&!--state.clients){node.style.opacity=state.original;ddNodes.delete(node);}}if(!ddNodes.size){cancelAnimationFrame(ddFrame);ddFrame=0;ddController.abort();ddController=null;ddReduced=null;}}};
 }
-window.TDBMotion=Object.freeze({version:'1.1.0',defaults,duration,bindSwiper,ddText,ddOpacity});
+// Review timing preserves the original drawer/card choreography.
+const reviews=Object.freeze({fade:400,openDelay:500,nextDelay:100,previousDelay:140,cardDelay:60,initialDelay:100,easing:'ease'});
+function fadeController(){
+ const states=new Map();
+ function to(node,target,milliseconds=reviews.fade){
+  if(!node)return;const old=states.get(node);
+  if(old?.target===target&&(milliseconds!==0||!old.animation))return;
+  const from=Number.parseFloat(getComputedStyle(node).opacity)||0,original=old?old.original:node.style.opacity;
+  old?.animation?.cancel();node.style.opacity=String(target);
+  const state={target,original,animation:null};states.set(node,state);
+  if(milliseconds>0&&Math.abs(from-target)>.001&&node.animate){
+   const animation=node.animate([{opacity:from},{opacity:target}],{duration:milliseconds,easing:'ease-out'});state.animation=animation;
+   animation.onfinish=()=>{if(states.get(node)===state)state.animation=null;};
+  }
+ }
+ return Object.freeze({to,destroy(){states.forEach((state,node)=>{state.animation?.cancel();node.style.opacity=state.original;});states.clear();}});
+}
+window.TDBMotion=Object.freeze({version:'1.2.0',defaults,duration,bindSwiper,ddText,ddOpacity,reviews,fadeController});
 })();

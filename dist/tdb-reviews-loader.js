@@ -1,4 +1,4 @@
-/* TDB review loader v3.0.0. Permission, proximity, loading and playback are separate. */
+/* TDB review loader v3.1.0. Permission, proximity, preparation and playback are separate. */
 (() => {
 'use strict';if(window.TDBReviewLoader)return;
 const script=document.currentScript,base=new URL('./',script.src),roots=new Map();
@@ -25,14 +25,18 @@ async function code(signal){
 async function prepare({signal=controller.signal}={}){
  await code(signal);active(signal);
  if(!contentFlight)contentFlight=window.TDBReviewCMS.load({signal:controller.signal}).catch(error=>{contentFlight=null;throw error;});
- const data=await contentFlight;active(signal);return data;
+ const data=await contentFlight;active(signal);
+ // Build the hidden native drawer during proximity preparation, before activation.
+ const root=document.querySelector('[data-tdb-reviews]');
+ if(root&&!feature)feature=window.TDBReviews.mount(root,data);
+ return data;
 }
 async function open({trigger,signal=controller.signal,reviewId=''}){
  const data=await prepare({signal});active(signal);
- const root=document.querySelector('[data-tdb-reviews]');if(!root)throw Error('Native review drawer unavailable');
- feature||=window.TDBReviews.mount(root,data);
+ if(!feature)throw Error('Native review drawer unavailable');
  const intro=trigger.closest('[data-tdb-review-introduction]'),id=reviewId||window.TDBReviewCMS.resolveIdentity(data.records,intro);
- await feature.open(trigger,id);if(signal.aborted){feature.destroy();feature=null;}
+ const openingFeature=feature;await openingFeature.open(trigger,id);
+ if(signal.aborted){openingFeature.destroy();if(feature===openingFeature)feature=null;}
 }
 function sync(){
  if(!allowed()){
@@ -50,6 +54,6 @@ const proximity='IntersectionObserver'in window?new IntersectionObserver(entries
 function discover(){[...document.querySelectorAll('[data-tdb-review-introduction],[data-tdb-review-cards]'),...document.querySelectorAll('.testimonial_slider.w-slider')].filter(root=>root.matches('[data-tdb-review-introduction],[data-tdb-review-cards]')||root.parentElement.querySelector('.testimonial15_rating-wrapper')).forEach(root=>{if(roots.has(root))return;roots.set(root,{near:!proximity,instance:null,pending:false});proximity?.observe(root);for(const event of ['pointerover','focusin'])root.addEventListener(event,()=>{roots.get(root).near=true;sync();},{passive:true});});sync();}
 for(const name of events){window.addEventListener(name,sync);document.addEventListener(name,sync);}
 options.subscribe?.(sync);window.addEventListener('online',sync);window.addEventListener('pageshow',sync);
-window.TDBReviewLoader=Object.freeze({version:'3.0.0',prepare,open,refresh:discover,status:()=>({allowed:allowed(),instances:[...roots.values()].filter(s=>s.instance).length})});
+window.TDBReviewLoader=Object.freeze({version:'3.1.0',prepare,open,refresh:discover,status:()=>({allowed:allowed(),prepared:!!feature,instances:[...roots.values()].filter(s=>s.instance).length})});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',discover,{once:true});else discover();
 })();
