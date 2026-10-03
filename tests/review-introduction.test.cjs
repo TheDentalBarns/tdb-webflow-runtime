@@ -79,6 +79,22 @@ test('drawer callback is optional and a withdrawn module removes listeners', asy
   assert.equal(root.querySelectorAll('.review-number_incoming').length, 0);
   dom.window.close();
 });
+test('drawer errors use the native status and cleanup resets the arrow and status', async () => {
+  const { dom, w, root } = setup();
+  root.insertAdjacentHTML('beforeend', '<div data-tdb-review-status role="status"></div>');
+  const card = root.querySelector('[data-tdb-review-summary]');
+  card.insertAdjacentHTML('beforeend', '<span class="review-summary_arrow-icon"></span>');
+  w.eval(ticker); w.eval(component);
+  const api = w.TDBReviewIntroduction.mount(root, { openReviews: async () => { throw Error('Network unavailable'); } });
+  card.click(); await tick();
+  assert.match(root.querySelector('[data-tdb-review-status]').textContent, /could not load/);
+  card.setAttribute('aria-expanded', 'true'); await tick();
+  assert(card.querySelector('.review-summary_arrow-open'));
+  api.destroy();
+  assert.equal(root.querySelector('[data-tdb-review-status]').textContent, '');
+  assert.equal(card.querySelector('.review-summary_arrow-open'), null);
+  dom.window.close();
+});
 test('permission and proximity gate download; later permission withdrawal cleans up', async () => {
   const { dom, w, root, observers } = setup();
   w.eval(loader);
