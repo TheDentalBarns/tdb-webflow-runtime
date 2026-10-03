@@ -32,7 +32,15 @@
     // Observe only the moving track, never the bar we write to.
     const movement=new MutationObserver(schedule);
     movement.observe(wrapper,{attributes:true,attributeFilter:['style'],childList:true});
-    function layout(){track.style.top=(viewport.offsetTop+viewport.offsetHeight)+'px';track.style.left=(treatment?-component.getBoundingClientRect().left:viewport.offsetLeft)+'px';track.style.width=(treatment?document.documentElement.clientWidth:viewport.offsetWidth)+'px';schedule();}
+    function layout(){
+      // Preserve fractional geometry: offsetTop/offsetHeight round separately
+      // and can leave a one-pixel gap between the image and its track.
+      const box=viewport.getBoundingClientRect(),parent=component.getBoundingClientRect();
+      track.style.top=(box.bottom-parent.top-component.clientTop)+'px';
+      track.style.left=(treatment?-parent.left-component.clientLeft:box.left-parent.left-component.clientLeft)+'px';
+      track.style.width=(treatment?document.documentElement.clientWidth:box.width)+'px';
+      schedule();
+    }
     new ResizeObserver(layout).observe(viewport);
     if(treatment)window.addEventListener('resize',layout,{passive:true});
     layout();
