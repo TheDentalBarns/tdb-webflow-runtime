@@ -123,3 +123,70 @@ Publish to the Webflow subdomain for review. Production promotion requires the
 existing sign-off. Roll back both existing script pins together to
 `7e5d62929ff27a4589e83e0f8642b11834cd4cb1` if needed. This cleanup does not connect the
 prepared Review Excerpts, Review Tags or Review Page Contexts CMS collections.
+
+## Review loading cleanup — 3 October, second pass
+
+The Home review loader is now 3.3.0, the CMS reader 1.2.0 and the native drawer
+3.3.0. This pass changes loading only; native classes, quote choreography, DD,
+button states, reserved dimensions and CMS text bindings are preserved.
+
+- A near introduction requests its introduction module and the shared dependencies
+  required by the native drawer. Quote and card adapters wait for their own roots
+  to approach. A page without a drawer or slider does not request Swiper for an
+  introduction alone. Pages without review roots request no feature code.
+- The existing CookieScript decision gate is unchanged: accept, reject or close
+  releases non-tracking review functionality. Category-specific permission remains
+  available through `TDBReviewOptions`; withdrawal destroys mounted instances and
+  aborts their outstanding CMS requests. Cached shared definitions are reusable.
+- Review Content's native collection list uses pagination at 20 items per page.
+  The CMS reader follows Webflow's generated next link on the same-origin
+  `/review-content` route, deduplicates master IDs and concurrent requests, and
+  supports abort and retry. No API key or private CMS token reaches the browser.
+- The drawer is built from the first batch during the 700px preparation window.
+  At seven remaining loaded items (current plus six ahead), it requests the next
+  batch. New slides append after an active movement finishes; the current index,
+  text and scroll position are retained. The final arrow disables only at the
+  actual end. A late/failed request can retry at the edge without resetting the
+  drawer. The aggregate count remains visible; no “showing X” label was added.
+- A CMS-rendered introduction or quote carousel may need a record beyond the first
+  batch. Its identity is resolved from CMS-rendered content, and only enough pages
+  to reach that record are fetched. No names or quotes are hard-coded in runtime.
+- The existing **looping Review Cards** component still needs its complete sequence.
+  It fetches remaining pages only when that component approaches the viewport.
+  That deliberate compatibility boundary avoids making its partial tail wrap as
+  if it were the final review. Converting its looping sequence to incremental
+  append is a separate component task; it does not burden the first section.
+- Home's obsolete `data-tdb-home-review-count` inline style was removed. Its
+  element-specific selector matched no published Home element. Location and
+  other legacy pages retain their dependencies until individually migrated.
+
+### CMS connection still pending
+
+The prepared Review Excerpts, Review Tags and Review Page Contexts collections
+remain unconnected. No new fields, variables or controls were introduced. The
+available element tools expose the collection query but not the CMS text/reference
+bindings required to replace the current master-review quote source. Changing the
+source alone would break the existing bound quote/name/platform, so it was left
+intact. Finish this in Designer as one verified change, not through a GitHub copy
+of CMS content.
+
+Home currently keeps the existing `Snippet rank` selection for its quote and trio,
+and `Full review rank` for the paginated drawer. The prepared excerpt context must
+be connected before claiming that hero, trio and drawer share one editorial order.
+Keep other contexts inactive until their own pages are migrated. New topic
+placements with `Available` off remain off pending editorial review.
+
+### Validation and rollback for this pass
+
+`tests/review-loader.test.cjs` covers permission/presence/proximity ownership,
+component-specific imports, optional Swiper, repeated sync and regrant.
+`tests/review-pagination.test.cjs` covers 108 records, batch deduplication,
+concurrency, shared-client abort, retry and rejection of cross-origin next links.
+Both require `jsdom` available to Node. The browser validation covers desktop and
+mobile, preparation before click, 20/40/60/80/85 records, append stability and
+permission teardown/remount. Existing layout and animations are unchanged.
+
+Roll back the Home loader and registry pins together to
+`b814fda03a9c8a45c08073474d8bac60daa132f7`, and turn Review Content pagination off
+with its old 100-item limit. Do not roll back only the loader: version 3.2.0 does
+not consume paginated content. This is a staging-only deployment.

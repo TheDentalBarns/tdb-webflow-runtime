@@ -1,4 +1,4 @@
-/* TDB CMS review source v1.1.0. No review records or credentials in this file. */
+/* TDB CMS review source v1.2.0. No review records or credentials in this file. */
 (() => {
   'use strict';
   if (window.TDBReviewCMS) return;
@@ -37,8 +37,9 @@
         direct: Boolean(attr('source-url')), topics, excerpts, response: '', showResponse: false
       };
     }).filter(record => record.id && record.name && record.text);
-    // The native source is limited to 100 items. Fail visibly at the boundary until pagination is configured.
-    if (records.length >= 100) throw Error('CMS review pagination needs configuring');
+    const nextLink = feed.querySelector('.w-pagination-next:not([aria-disabled="true"])');
+    const next = nextLink?.getAttribute('href') || '';
+    if (records.length >= 100 && !next && !feed.querySelector('.w-pagination-wrapper')) throw Error('CMS review pagination needs configuring');
     const unique = new Map(records.map(record => [record.id, record]));
     for (const node of doc.querySelectorAll('[data-tdb-review-response-record]')) {
       const link = node.querySelector('[data-tdb-response-review]');
@@ -53,36 +54,81 @@
     if (!Number.isFinite(average) || average < 0 || average > 5 || !Number.isInteger(total) || total < unique.size) {
       throw Error('The CMS review summary needs updating');
     }
-    return { records: [...unique.values()], average, total, featured: [...doc.querySelectorAll('[data-tdb-review-featured]')].map(n=>n.getAttribute('data-tdb-review-featured')).filter(Boolean) };
+    return { records: [...unique.values()], average, total, next, featured: [...doc.querySelectorAll('[data-tdb-review-featured]')].map(n=>n.getAttribute('data-tdb-review-featured')).filter(Boolean) };
   }
-  let cached, cachedAt = 0, flight, sourceDoc;
-  function load({ signal } = {}) {
+  // Shared, abortable page requests. A withdrawn client cannot cancel another client.
+  let cached, cachedAt = 0, sourceDoc;
+  const requests = new Map();
+  function requestPage(url, { signal } = {}) {
     if (signal?.aborted) return Promise.reject(new DOMException('Cancelled', 'AbortError'));
-    if (cached && Date.now() - cachedAt < 60000) return Promise.resolve(cached);
-    if (!flight) {
+    const target = new URL(url, location.href);
+    if (target.origin !== location.origin || target.pathname !== '/review-content') return Promise.reject(Error('Invalid review pagination URL'));
+    const key = target.href;
+    let request = requests.get(key);
+    if (!request) {
       const controller = new AbortController();
-      const request = { controller, clients: 0, done: false };
-      flight = request;
-      request.promise = fetch('/review-content', { credentials: 'same-origin', signal: controller.signal })
+      request = { controller, clients: 0, done: false };
+      requests.set(key, request);
+      request.promise = fetch(key, { credentials: 'same-origin', signal: controller.signal })
         .then(response => { if (!response.ok) throw Error('CMS review request failed'); return response.text(); })
         .then(html => {
           const doc = new DOMParser().parseFromString(html, 'text/html');
-          const data = parse(doc);
-          cached = data; cachedAt = Date.now(); sourceDoc = doc; return data;
-        }).finally(() => { request.done = true; if (flight === request) flight = null; });
+          return { doc, data: parse(doc), url: key };
+        }).finally(() => { request.done = true; if (requests.get(key) === request) requests.delete(key); });
     }
-    const request = flight; request.clients++;
+    request.clients++;
     return new Promise((resolve, reject) => {
       let done = false;
       const finish = (fn, value) => {
         if (done) return; done = true; signal?.removeEventListener('abort', abort);
-        request.clients--; if (!request.done && !request.clients) { if (flight === request) flight = null; request.controller.abort(); }
+        request.clients--; if (!request.done && !request.clients) { if (requests.get(key) === request) requests.delete(key); request.controller.abort(); }
         fn(value);
       };
       const abort = () => finish(reject, new DOMException('Cancelled', 'AbortError'));
       signal?.addEventListener('abort', abort, { once: true });
       request.promise.then(data => finish(resolve, data), error => finish(reject, error));
     });
+  }
+  function session(first) {
+    const records = first.data.records, seen = new Set(records.map(r => r.id));
+    const visited = new Set([first.url]), listeners = new Set();
+    let next = first.data.next;
+    const data = { ...first.data, records,
+      get hasMore() { return !!next; },
+      subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
+      async loadMore({ signal } = {}) {
+        if (!next) return data;
+        const url = new URL(next, first.url).href;
+        const page = await requestPage(url, { signal });
+        if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
+        // Concurrent clients share the request; only one merges/notifies for a page.
+        if (visited.has(url)) return data;
+        const added = page.data.records.filter(r => !seen.has(r.id));
+        if (!added.length) throw Error('Review pagination did not advance');
+        const following = page.data.next ? new URL(page.data.next, url).href : '';
+        if (following && (following === url || visited.has(following))) throw Error('Review pagination repeated a page');
+        visited.add(url); added.forEach(r => { seen.add(r.id); records.push(r); }); next = following;
+        for (const fn of listeners) fn(data);
+        return data;
+      },
+      async ensure(ids, options) { while (next && ids.some(id => !seen.has(id))) await data.loadMore(options); return data; },
+      async ensureIdentity(root, options) {
+        if (!root?.querySelector('[data-tdb-review-author]')) return data;
+        while (next && !resolveIdentity(records, root)) await data.loadMore(options);
+        return data;
+      },
+      async loadAll(options) { while (next) await data.loadMore(options); return data; }
+    };
+    return data;
+  }
+  async function load({ signal } = {}) {
+    if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
+    if (cached && Date.now() - cachedAt < 60000) return cached;
+    const first = await requestPage('/review-content', { signal });
+    if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
+    // Another permitted client may have installed this same session while awaiting.
+    if (!cached || Date.now() - cachedAt >= 60000) { cached = session(first); cachedAt = Date.now(); sourceDoc = first.doc; }
+    return cached;
   }
   let serial = 0;
   function sourceIcon(platform, grayscale) {
@@ -119,7 +165,7 @@
       [record.excerpt, ...Object.values(record.excerpts || {})].some(value => normal(value) === excerpt));
     return matching.length === 1 ? matching[0].id : '';
   }
-  window.TDBReviewCMS = Object.freeze({ version: '1.1.0', load, parse, sourceIcon, contextForPath, resolveIdentity,
+  window.TDBReviewCMS = Object.freeze({ version: '1.2.0', load, parse, sourceIcon, contextForPath, resolveIdentity,
     preview: Object.freeze({ contexts: Object.freeze({}) }),
     get quoteMark() { return (document.querySelector('[data-tdb-review-icon="Quote"] svg') || sourceDoc?.querySelector('[data-tdb-review-icon="Quote"] svg'))?.outerHTML || ''; }
   });
