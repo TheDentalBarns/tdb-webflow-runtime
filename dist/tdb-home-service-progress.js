@@ -23,8 +23,12 @@
       const right=points.findIndex(p=>p.x>=0);let value;
       if(right<=0)value=points[right<0?points.length-1:0].value;
       else{const a=points[right-1],b=points[right],t=-a.x/(b.x-a.x);value=a.value+(b.value-a.value)*t;}
-      fill.style.width=(100/count)+'%';
-      fill.style.transform=`translateX(${Math.max(0,Math.min(count-1,value*count-1))*100}%)`;
+      const dpr=window.devicePixelRatio||1,trackWidth=track.getBoundingClientRect().width;
+      const segment=Math.round(trackWidth*dpr/count)/dpr;
+      const progress=count>1?Math.max(0,Math.min(1,(value*count-1)/(count-1))):0;
+      const travel=Math.round(progress*(trackWidth-segment)*dpr)/dpr;
+      fill.style.width=segment+'px';
+      fill.style.transform=`translateX(${travel}px)`;
       return getComputedStyle(wrapper).transform;
     }
     function tick(){frame=0;const pose=paint();stable=pose===last?stable+1:0;last=pose;if(stable<3)frame=requestAnimationFrame(tick);}
@@ -37,12 +41,16 @@
       // and can leave a one-pixel gap between the image and its track.
       const box=viewport.getBoundingClientRect(),parent=component.getBoundingClientRect();
       track.style.top=(box.bottom-parent.top-component.clientTop)+'px';
-      track.style.left=(treatment?-parent.left-component.clientLeft:box.left-parent.left-component.clientLeft)+'px';
-      track.style.width=(treatment?document.documentElement.clientWidth:box.width)+'px';
+      const dpr=window.devicePixelRatio||1;
+      // Snap inward to physical pixels so neither edge bleeds beyond the image.
+      const left=Math.ceil((treatment?0:box.left)*dpr)/dpr;
+      const right=Math.floor((treatment?document.documentElement.clientWidth:box.right)*dpr)/dpr;
+      track.style.left=(left-parent.left-component.clientLeft)+'px';
+      track.style.width=Math.max(0,right-left)+'px';
       schedule();
     }
     new ResizeObserver(layout).observe(viewport);
-    if(treatment)window.addEventListener('resize',layout,{passive:true});
+    window.addEventListener('resize',layout,{passive:true});
     layout();
     wrapper.addEventListener('transitionend',schedule);
     paint();schedule();return true;
