@@ -1,9 +1,12 @@
-/* TDB shared dependency registry v1.0.0. Definitions do not mount components. */
+/* TDB shared dependency registry v1.0.1. Definitions do not mount components. */
 (() => {
 'use strict'; if(window.TDBModules)return;
 const flights=new Map();
 function load(url,{attribute,ready}={}){
- const src=new URL(url,location.href).href;
+ let src=new URL(url,location.href).href;
+ // Native review pages and their carousels must share one pinned motion module.
+ const reviewLoader=document.querySelector('script[data-tdb-reviews-loader][src]');
+ if(reviewLoader&&/^https:\/\/cdn\.jsdelivr\.net\/gh\/TheDentalBarns\/tdb-webflow-runtime@[^/]+\/dist\/tdb-motion\.js$/.test(src))src=new URL('tdb-motion.js',reviewLoader.src).href;
  if(ready?.())return Promise.resolve();
  if(flights.has(src))return flights.get(src);
  const promise=new Promise((resolve,reject)=>{
@@ -20,5 +23,5 @@ function load(url,{attribute,ready}={}){
  });
  flights.set(src,promise);promise.catch(()=>flights.delete(src));return promise;
 }
-window.TDBModules=Object.freeze({version:'1.0.0',load});
+window.TDBModules=Object.freeze({version:'1.0.1',load});
 })();
