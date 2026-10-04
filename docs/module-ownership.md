@@ -20,7 +20,7 @@ colour, spacing, responsive styles and control appearance. GitHub owns behaviour
 | `tdb-review-introduction.js` | Summary tickers, DD binding, arrow rotation and accessible review triggers for the native introduction. | Loading policy or full drawer content |
 | `tdb-review-quotes.js` | Native quote-carousel setup, quote fades, byline DD binding and interaction state. | Duplicated Swiper/ DD implementation |
 | `tdb-review-cards.js` | Native review-card carousel, pagination and quote choreography. | Duplicated engine, native card artwork or sizing |
-| `tdb-reviews.js` | Review adapter: CMS matching/sorting, draft/committed selection, cached result batches, counts, full-review slider, pagination and quote choreography. | Shared drawer/filter interaction mechanics or styling |
+| `tdb-reviews.js` | Review adapter: CMS matching/sorting, draft/committed selection, cached result batches, counts (including the filter action's shared ticker), full-review slider, pagination and quote choreography. | Shared drawer/filter interaction mechanics or styling |
 | `tdb-review-legacy-loader.js` | Keep earlier review patches available to components awaiting migration. | New native components |
 
 `tdb-logo-marquee.js` and its loader remain separate: the partner marquee does not
@@ -28,6 +28,33 @@ use Swiper. General timing settings are consumed where appropriate; a change to
 one timing does not automatically alter every unrelated animation on the site.
 
 ## Dependencies and lifecycle
+
+The filter's `View X review(s)` action uses the existing `TDBNativeTicker` from
+`tdb-ticker.js`; it adds no dependency or loading gate. Webflow provides static
+words, a clipped number slot, a hidden full-total sizer with a three-digit minimum,
+and a reserved plural `s`. The review adapter supplies the CMS total and matching
+count, hides the plural letter for one result without collapsing its space, and
+updates the button's accessible label and disabled/busy states. First preparation
+settles offscreen; visible filter changes animate in the same direction and at the
+same shared duration as pagination. Closing settles motion; teardown destroys the
+ticker instance. The shared ticker handles rapid updates and reduced motion.
+
+Ratings are native checkbox options: multiple stars form a union (for example,
+4 stars OR 1 star), combined with the existing platform, treatment and experience
+filters. Each rating's availability is checked independently against those other
+categories, so selecting an available rating does not enable empty ones. All
+ratings clears the rating selection; Reset clears every category. Selected ratings
+each contribute to the floating filter badge and persist when the panel closes.
+
+The native cream filter heading and Reset row use 20px backdrop blur and sticky
+positioning inside the scrolling filter panel. The body scrolls beneath them;
+Webflow owns the insets, responsive spacing and indented options. The charcoal
+review-drawer bars remain unchanged. None of these styles is injected by JavaScript.
+The cream panel's top edge has no border. Native option artwork reuses the site's
+stars and clock for sorting, filled/outlined stars for ratings, and greyscale
+Google, Yell, Facebook and Doctify logos for platforms. Treatment and experience
+options retain their labels and ticks only. These decorative icons have no script
+dependency and do not alter the option labels announced to assistive technology.
 
 The loader checks permission and component presence before preparing a feature.
 Proximity (currently 700px for reviews) or intent requests preparation. Visibility

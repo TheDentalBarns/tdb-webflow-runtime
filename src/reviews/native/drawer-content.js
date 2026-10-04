@@ -1,4 +1,4 @@
-/* TDB native reviews v3.9.0. Native Webflow layout; original quote choreography. */
+/* TDB native reviews v3.10.0. Native Webflow layout; original quote choreography. */
 (() => {
 'use strict';if(window.TDBReviews)return;
 const instances=new WeakMap();
@@ -17,23 +17,44 @@ function mount(root,data){
  const totalNode=$('[data-tdb-reviews-length]'),totalTicker=window.TDBNativeTicker.mount(totalNode);let shownTotal=Number(totalNode.textContent)||0;
  const ticker=window.TDBNativeTicker.mount(position),fades=motion.fadeController();let swiper=null,moreFlight=null,pendingAppend=false,destroyed=false,phase='closed',revealTimer=0,shownQuote=null,settledSlide=null,reflectedIndex=-1;
 
- let selection={sort:'recommended',rating:'',platform:'',treatment:[],experience:[]};
+ let selection={sort:'recommended',rating:[],platform:'',treatment:[],experience:[]};
  let filterOpen=false,filterFlight=null,filterReady=!!data.indexReady,filterPrimeTimer=0;
  let indexMode=false,matched=[],queryController=null,queryRevision=0,selectionBusy=false,pendingBatch=null;
  const canLoadMore=()=>indexMode?records.length<matched.length:data.hasMore;
  const filterOptions=filterPanel?[...filterPanel.querySelectorAll('[data-tdb-filter-group]')]:[];
  const filterStatus=filterPanel?.querySelector('[data-tdb-filter-status]'),filterApply=filterPanel?.querySelector('[data-tdb-filter-apply]');
- const canonical=topic=>cms.canonicalTopic(topic),multi=key=>key==='treatment'||key==='experience';
- const chosen=(key,value)=>multi(key)?value?selection[key].includes(canonical(value)):!selection[key].length:selection[key]===value;
+ const filterApplyCount=filterApply?.querySelector('[data-tdb-filter-apply-count]'),filterApplyReserve=filterApply?.querySelector('[data-tdb-filter-count-reserve]'),filterApplyPlural=filterApply?.querySelector('[data-tdb-filter-apply-plural]');
+ const filterApplyTicker=filterApplyCount?window.TDBNativeTicker.mount(filterApplyCount):null;let shownApplyCount=null;
+ const canonical=topic=>cms.canonicalTopic(topic),multi=key=>key==='rating'||key==='treatment'||key==='experience';
+ const normalise=(key,value)=>key==='rating'?value:canonical(value);
+ const chosen=(key,value)=>multi(key)?value?selection[key].includes(normalise(key,value)):!selection[key].length:selection[key]===value;
  function candidate(key,value){
   if(!multi(key))return {...selection,[key]:value};
-  value=canonical(value);const current=selection[key];
+  value=normalise(key,value);const current=selection[key];
   return {...selection,[key]:!value?[]:current.includes(value)?current.filter(item=>item!==value):[...current,value]};
  }
- const copySelection=state=>({...state,treatment:[...state.treatment],experience:[...state.experience]});
+ const copySelection=state=>({...state,rating:[...state.rating],treatment:[...state.treatment],experience:[...state.experience]});
  let appliedSelection=copySelection(selection),draftController=null,draftFlight=null,draftCache=null,draftTimer=0,applyRevision=0;
  const disclosures=filterPanel?[...filterPanel.querySelectorAll('[data-tdb-filter-disclosure]')].map(button=>({key:button.dataset.tdbFilterDisclosure,button,body:button.parentElement.querySelector('.tdb-review-filter_options'),summary:button.querySelector('[data-tdb-filter-selection]'),chevron:button.querySelector('[data-tdb-filter-chevron]')})).filter(entry=>entry.body&&entry.summary):[];
  function updateTotal(count,animate=true){totalTicker.update(String(count).padStart(2,'0'),count<shownTotal?-1:1,animate);shownTotal=count;totalNode.setAttribute('aria-label',count+' reviews');}
+ function updateFilterApply(count){
+  const label=filterReady?'View '+count+' '+(count===1?'review':'reviews'):'View reviews';
+  if(filterApplyTicker){
+   // The native hidden sizer reserves the full CMS total; filtering never narrows it.
+   // Webflow owns its minimum width, tabular numerals, clipping and static words.
+   if(filterApplyReserve)filterApplyReserve.textContent=String(Math.max(Number(data.total)||0,count));
+   if(filterReady){
+    filterApplyTicker.update(String(count),shownApplyCount!==null&&count<shownApplyCount?-1:1,filterOpen&&shownApplyCount!==null);
+    shownApplyCount=count;
+   }
+   filterApplyPlural?.classList.toggle('is-singular',filterReady&&count===1);
+   if(!filterOpen)filterApplyTicker.settle();
+  }else filterApply.textContent=label; // Older native markup remains usable during rollout.
+  filterApply.setAttribute('aria-label',label);
+  filterApply.disabled=selectionBusy||!filterReady||!count;
+  filterApply.setAttribute('aria-disabled',String(filterApply.disabled));
+  filterApply.setAttribute('aria-busy',String(selectionBusy||!filterReady));
+ }
  function cancelDraft(){clearTimeout(draftTimer);draftController?.abort();draftController=null;draftFlight=null;draftCache=null;applyRevision++;selectionBusy=false;}
  function draftKey(){return JSON.stringify(selection);}
  function fetchDraft(){
@@ -51,7 +72,7 @@ function mount(root,data){
   cancelDraft();updateFilterOptions();
   if(filterReady)draftTimer=setTimeout(()=>{fetchDraft().catch(()=>{});},150);
  }
- function hasSelection(){return selection.sort!=='recommended'||!!selection.rating||!!selection.platform||selection.treatment.length>0||selection.experience.length>0;}
+ function hasSelection(){return selection.sort!=='recommended'||selection.rating.length>0||!!selection.platform||selection.treatment.length>0||selection.experience.length>0;}
  $('[data-tdb-reviews-average]').textContent=data.average.toFixed(2);$('[data-tdb-reviews-total]').textContent=data.total+' reviews';const length=()=>indexMode?matched.length:data.hasMore?data.total:records.length;updateTotal(length(),phase!=='closed');
  function slide(record,index){
   if(slideCache.has(record.id))return slideCache.get(record.id);
@@ -127,7 +148,7 @@ function mount(root,data){
 
  // Review adapter: CMS selection and result rendering; shared filters own interaction/motion.
  function matching(state=selection){
-  return (data.indexReady?data.filterIndex:data.records).filter(record=>(!state.rating||(state.rating==='unrated'?!record.rating:record.rating===Number(state.rating)))&&
+  return (data.indexReady?data.filterIndex:data.records).filter(record=>(!state.rating.length||state.rating.some(rating=>rating==='unrated'?!record.rating:record.rating===Number(rating)))&&
    (!state.platform||record.platform===state.platform)&&state.treatment.every(topic=>record.topics.some(value=>canonical(value)===topic))&&
    state.experience.every(topic=>record.topics.some(value=>canonical(value)===topic)));
  }
@@ -150,7 +171,10 @@ function mount(root,data){
   if(!filterPanel)return;
   for(const option of filterOptions){
    const key=option.dataset.tdbFilterGroup,value=option.dataset.tdbFilterValue,selected=chosen(key,value);
-   const unavailable=!filterReady||(key!=='sort'&&!selected&&!matching(candidate(key,value)).length);
+   // Ratings form a union. Availability tests this rating against the other
+   // categories, so an existing selection cannot enable a zero-result rating.
+   const possible=key==='rating'&&value?{...selection,rating:[value]}:candidate(key,value);
+   const unavailable=!filterReady||(key!=='sort'&&!selected&&!matching(possible).length);
    option.disabled=unavailable||selectionBusy;option.tabIndex=option.disabled?-1:0;option.setAttribute('aria-disabled',String(option.disabled));option.setAttribute(multi(key)?'aria-checked':'aria-pressed',String(selected));
    if(multi(key)){option.setAttribute('role','checkbox');option.removeAttribute('aria-pressed');}
    for(const mark of option.querySelectorAll('.tdb-review-filter_mark,.tdb-review-filter_tick'))mark.classList.toggle('is-checked',selected);
@@ -162,12 +186,12 @@ function mount(root,data){
   }
   const count=matching().length;
   // Count selected filters, not matching reviews or the sort order.
-  const selectedCount=Number(!!selection.rating)+Number(!!selection.platform)+selection.treatment.length+selection.experience.length;
+  const selectedCount=selection.rating.length+Number(!!selection.platform)+selection.treatment.length+selection.experience.length;
   filter?.setCount(selectedCount);
   filterStatus.classList.toggle('is-error',!!message);
   if(filterOpen&&filterReady){updateTotal(count);ticker.update(count?'01':'00',-1);position.setAttribute('aria-label','Preview: '+count+' matching reviews');}
   filterStatus.textContent=message||(selectionBusy?'Loading matching reviews…':filterReady?(hasSelection()?count+' matching '+(count===1?'review':'reviews'):'All reviews'):'Preparing review filters…');
-  filterApply.textContent=filterReady?'View '+count+' '+(count===1?'review':'reviews'):'View reviews';filterApply.disabled=selectionBusy||!filterReady||!count;filterApply.setAttribute('aria-disabled',String(filterApply.disabled));
+  updateFilterApply(count);
  }
  function renderSelection(chosen){
   if(!chosen.length)return;
@@ -239,11 +263,11 @@ function mount(root,data){
    onError:()=>updateFilterOptions('Could not load these reviews. Tap View reviews to retry.')
   });
   filterOptions.forEach(option=>action(option,()=>{if(option.disabled||!filterReady)return;selection=candidate(option.dataset.tdbFilterGroup,option.dataset.tdbFilterValue);primeSelection();}));
-  action(filterPanel.querySelector('[data-tdb-filter-reset]'),()=>{if(selectionBusy)return;selection={sort:'recommended',rating:'',platform:'',treatment:[],experience:[]};if(filterReady)primeSelection();else prepareFilters();});
+  action(filterPanel.querySelector('[data-tdb-filter-reset]'),()=>{if(selectionBusy)return;selection={sort:'recommended',rating:[],platform:'',treatment:[],experience:[]};if(filterReady)primeSelection();else prepareFilters();});
   action(filterApply,()=>{if(!filterApply.disabled)filter.requestClose('apply');});
   updateFilterOptions();
  }
- let preferred='';const drawer=window.TDBDrawer.mount(root.closest('[data-tdb-drawer]'),{onOpen(){build(preferred);clearTimeout(filterPrimeTimer);filterPrimeTimer=setTimeout(prepareFilters,250);},onClose(){clearTimeout(filterPrimeTimer);filter?.reset(true);hideQuote();phase='closed';if(mark.closest('[data-tdb-review-scroll]')?.scrollTop>0)fades.to(mark,0,fadeTime());ticker.settle();totalTicker.settle();}});
+ let preferred='';const drawer=window.TDBDrawer.mount(root.closest('[data-tdb-drawer]'),{onOpen(){build(preferred);clearTimeout(filterPrimeTimer);filterPrimeTimer=setTimeout(prepareFilters,250);},onClose(){clearTimeout(filterPrimeTimer);filter?.reset(true);hideQuote();phase='closed';if(mark.closest('[data-tdb-review-scroll]')?.scrollTop>0)fades.to(mark,0,fadeTime());ticker.settle();totalTicker.settle();filterApplyTicker?.settle();}});
  // Native Webflow visibility keeps the closed drawer measurable without showing it.
  if(viewport.clientWidth)createSwiper();
  const resize=new ResizeObserver(()=>{if(swiper&&!swiper.animating){swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);swiper.update();}});resize.observe(viewport);
@@ -253,12 +277,11 @@ function mount(root,data){
   // A named CMS quote opens in its editorial context, never an old filter result.
   if(preferred&&(indexMode||selectionBusy)){
    queryController?.abort();queryRevision++;selectionBusy=false;pendingBatch=null;moreFlight=null;
-   cancelDraft();selection={sort:'recommended',rating:'',platform:'',treatment:[],experience:[]};appliedSelection=copySelection(selection);indexMode=false;matched=[];
+   cancelDraft();selection={sort:'recommended',rating:[],platform:'',treatment:[],experience:[]};appliedSelection=copySelection(selection);indexMode=false;matched=[];
    renderSelection(data.records.slice());
   }
   return drawer.open(trigger);
- },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
+ },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();filterApplyTicker?.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBReviews=Object.freeze({version:'3.9.0',mount});
+window.TDBReviews=Object.freeze({version:'3.10.0',mount});
 })();
-
