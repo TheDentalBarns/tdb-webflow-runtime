@@ -339,3 +339,11 @@ filters normalise selected values too, so aliases cannot create two requirements
 Smile Gallery already uses one Clear Aligners / Invisalign category. This is a
 matching rule, not a claim that every generic aligner review names the Invisalign
 brand. New components must use the same identity when connecting the prepared CMS.
+
+
+Native reviews 3.6.1 adds a native Webflow filter backdrop matching the outer
+drawer's 50% black overlay. It sits below the cream panel and charcoal controls,
+dims the review content, fades with the panel, and tapping it dismisses filters.
+Reduced motion and teardown settle/remove its runtime animation. Publish native
+control markup with its matching release pin; older open tabs need a refresh to
+receive new event handlers. Mobile validation includes real touch tap events.

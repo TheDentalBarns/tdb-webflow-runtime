@@ -1,4 +1,4 @@
-/* TDB native reviews v3.6.0. Native Webflow layout; original quote choreography. */
+/* TDB native reviews v3.6.1. Native Webflow layout; original quote choreography. */
 (() => {
 'use strict';if(window.TDBReviews)return;
 const instances=new WeakMap();
@@ -8,7 +8,7 @@ function mount(root,data){
  const cms=window.TDBReviewCMS,motion=window.TDBMotion,ctrl=new AbortController(),{signal}=ctrl;
  const $=s=>root.querySelector(s),template=$('[data-tdb-review-template]'),track=$('[data-tdb-reviews-track]'),viewport=$('[data-tdb-reviews-slider]'),mark=$('[data-tdb-review-static-mark]'),staticLayer=$('[data-tdb-review-static-layer]');
  if(!template||!track||!viewport||!mark||!staticLayer)throw Error('Native review template missing');
- const filterButton=$('[data-tdb-filter-toggle]'),filterPanel=$('[data-tdb-review-filter-panel]');
+ const filterButton=$('[data-tdb-filter-toggle]'),filterPanel=$('[data-tdb-review-filter-panel]'),filterBackdrop=$('[data-tdb-filter-backdrop]');
  const filter=motion.filterToggle(filterButton,{onChange:setFilterOpen});
  const reduced=matchMedia('(prefers-reduced-motion: reduce)'),context=cms.contextForPath(location.pathname);
  const records=data.records.slice(),slideCache=new Map();let knownCount=records.length;
@@ -16,7 +16,7 @@ function mount(root,data){
  const ticker=window.TDBNativeTicker.mount(position),fades=motion.fadeController();let swiper=null,moreFlight=null,pendingAppend=false,destroyed=false,phase='closed',revealTimer=0,shownQuote=null,settledSlide=null,reflectedIndex=-1;
 
  let selection={sort:'recommended',rating:'',platform:'',treatment:[],experience:[]};
- let filterOpen=false,filterAnimation=null,filterRevision=0,filterFlight=null,filterReady=!!data.indexReady,filterPrimeTimer=0;
+ let filterOpen=false,filterAnimation=null,backdropAnimation=null,filterRevision=0,filterFlight=null,filterReady=!!data.indexReady,filterPrimeTimer=0;
  let indexMode=false,matched=[],queryController=null,queryRevision=0,selectionBusy=false,pendingBatch=null;
  const canLoadMore=()=>indexMode?records.length<matched.length:data.hasMore;
  const filterOptions=filterPanel?[...filterPanel.querySelectorAll('[data-tdb-filter-group]')]:[];
@@ -196,19 +196,22 @@ function mount(root,data){
  function setFilterOpen(open,immediate=false){
   if(!filterPanel)return;filterOpen=open;const revision=++filterRevision;
   const from=filterAnimation?getComputedStyle(filterPanel).transform:open?'translateY(100%)':'translateY(0)';
+  const backdropFrom=backdropAnimation?getComputedStyle(filterBackdrop).opacity:open?0:1;backdropAnimation?.cancel();backdropAnimation=null;
   filterAnimation?.cancel();filterAnimation=null;
   filterButton.setAttribute('aria-expanded',String(open));filterButton.setAttribute('aria-label',open?'Close review filters':'Filter and sort reviews');
   filterPanel.setAttribute('aria-hidden',String(!open));filterPanel.inert=!open;viewport.inert=open;
   if(swiper){swiper.allowTouchMove=!open;reflectedIndex=-1;reflect();}
-  if(open){filterPanel.classList.remove('is-closed');prepareFilters();filterPanel.querySelector('[data-tdb-filter-heading]').focus({preventScroll:true});}
+  if(open){filterBackdrop?.classList.remove('is-closed');filterPanel.classList.remove('is-closed');prepareFilters();filterPanel.querySelector('[data-tdb-filter-heading]').focus({preventScroll:true});}
   else if(filterPanel.contains(document.activeElement))filterButton.focus({preventScroll:true});
-  const finish=()=>{if(revision!==filterRevision)return;if(!open)filterPanel.classList.add('is-closed');filterAnimation?.cancel();filterAnimation=null;};
+  const finish=()=>{if(revision!==filterRevision)return;if(!open){filterPanel.classList.add('is-closed');filterBackdrop?.classList.add('is-closed');}filterAnimation?.cancel();filterAnimation=null;backdropAnimation?.cancel();backdropAnimation=null;};
   const duration=immediate||reduced.matches?0:motion.duration(innerWidth);
   if(!duration){finish();return;}
   const animation=filterPanel.animate([{transform:from},{transform:open?'translateY(0)':'translateY(100%)'}],{duration,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});
+  if(filterBackdrop){backdropAnimation=filterBackdrop.animate([{opacity:backdropFrom},{opacity:open?1:0}],{duration:Math.min(duration,300),fill:'both'});backdropAnimation.finished.catch(()=>{});}
   filterAnimation=animation;animation.finished.then(finish).catch(()=>{});
  }
  if(filterPanel){
+  filterBackdrop?.addEventListener('click',()=>filter.set(false),{signal});
   filterPanel.id='tdb-review-filters-'+Math.random().toString(36).slice(2,9);filterPanel.inert=true;
   filterButton.setAttribute('aria-controls',filterPanel.id);filterButton.setAttribute('aria-expanded','false');filterButton.setAttribute('aria-label','Filter and sort reviews');
   for(const event of ['pointerenter','focus','pointerdown'])filterButton.addEventListener(event,prepareFilters,{signal,passive:true});
@@ -251,8 +254,8 @@ function mount(root,data){
    renderSelection(data.records.slice());
   }
   return drawer.open(trigger);
- },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;disclosures.forEach(entry=>entry.destroy());queryController?.abort();clearTimeout(filterPrimeTimer);filterAnimation?.cancel();filterPanel?.classList.add('is-closed');filterPanel?.setAttribute('aria-hidden','true');if(filterPanel)filterPanel.inert=true;viewport.inert=false;filter.destroy();unsubscribe?.();drawer.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
+ },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;disclosures.forEach(entry=>entry.destroy());queryController?.abort();clearTimeout(filterPrimeTimer);filterAnimation?.cancel();backdropAnimation?.cancel();filterBackdrop?.classList.add('is-closed');filterPanel?.classList.add('is-closed');filterPanel?.setAttribute('aria-hidden','true');if(filterPanel)filterPanel.inert=true;viewport.inert=false;filter.destroy();unsubscribe?.();drawer.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBReviews=Object.freeze({version:'3.6.0',mount});
+window.TDBReviews=Object.freeze({version:'3.6.1',mount});
 })();
 
