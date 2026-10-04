@@ -1,4 +1,4 @@
-/* TDB native reviews v3.11.0. Native Webflow layout; original quote choreography. */
+/* TDB native reviews v3.12.0. Native Webflow layout; original quote choreography. */
 (() => {
 'use strict';if(window.TDBReviews)return;
 const instances=new WeakMap();
@@ -36,6 +36,35 @@ function mount(root,data){
  const copySelection=state=>({...state,rating:[...state.rating],platform:[...state.platform],treatment:[...state.treatment],experience:[...state.experience]});
  let appliedSelection=copySelection(selection),draftController=null,draftFlight=null,draftCache=null,draftTimer=0,applyRevision=0;
  const disclosures=filterPanel?[...filterPanel.querySelectorAll('[data-tdb-filter-disclosure]')].map(button=>({key:button.dataset.tdbFilterDisclosure,button,body:button.parentElement.querySelector('.tdb-review-filter_options'),summary:button.querySelector('[data-tdb-filter-selection]'),chevron:button.querySelector('[data-tdb-filter-chevron]')})).filter(entry=>entry.body&&entry.summary):[];
+ // A width-only Webflow breakpoint also catches portrait phones. This condition
+ // activates native Designer combo styles only for short, touch-screen landscape.
+ // The same Webflow bars stay in one reading flow; no copies or injected CSS.
+ const readingPane=$('[data-tdb-review-reading-pane]'),phoneLandscape=matchMedia('(orientation: landscape) and (max-width: 991px) and (max-height: 500px) and (pointer: coarse)');
+ const landscapeNodes=[readingPane,$('.tdb-review-drawer_header'),$('.tdb-review-drawer_footer'),viewport,track,mainClose,filterPanel,filterPanel?.querySelector('[data-tdb-filter-scroll]'),filterPanel?.querySelector('.tdb-review-filter_heading'),filterPanel?.querySelector('.tdb-review-filter_actions')].filter(Boolean);
+ const filterHome=filterButton?{parent:filterButton.parentNode,next:filterButton.nextSibling}:null,originalTrackHeight=track.style.height;
+ let landscape=false;
+ const readingScroll=()=>landscape?readingPane:swiper?.slides[swiper.activeIndex]?.querySelector('[data-tdb-review-scroll]');
+ function placeFilterClose(){
+  const floating=landscape&&filterOpen;
+  filterButton?.classList.toggle('is-landscape-floating',floating);mainClose.classList.toggle('is-landscape-filter-open',floating);
+  if(!filterHome)return;
+  if(floating){if(filterButton.parentNode!==root)root.append(filterButton);}
+  else if(filterButton.parentNode!==filterHome.parent)filterHome.parent.insertBefore(filterButton,filterHome.next);
+ }
+ function setReadingMode(enabled=!!readingPane&&phoneLandscape.matches){
+  if(enabled===landscape)return;
+  const offset=readingScroll()?.scrollTop||0;landscape=enabled;
+  for(const node of landscapeNodes)node.classList.toggle('is-phone-landscape',landscape);
+  for(const node of [template,...slideCache.values()]){
+   node.classList.toggle('is-phone-landscape',landscape);
+   node.querySelector('[data-tdb-review-scroll]')?.classList.toggle('is-phone-landscape',landscape);
+  }
+  placeFilterClose();
+  if(swiper){swiper.params.autoHeight=landscape;if(!landscape)track.style.height=originalTrackHeight;swiper.update();}
+  if(readingPane)readingPane.scrollTop=0;
+  const scroll=readingScroll();if(scroll)scroll.scrollTop=offset;
+ }
+ phoneLandscape.addEventListener('change',()=>setReadingMode(),{signal});
  function updateTotal(count,animate=true){totalTicker.update(String(count).padStart(2,'0'),count<shownTotal?-1:1,animate);shownTotal=count;totalNode.setAttribute('aria-label',count+' reviews');}
  function updateFilterApply(count){
   const label=filterReady?'View '+count+' '+(count===1?'review':'reviews'):'View reviews';
@@ -106,7 +135,7 @@ function mount(root,data){
  function begin(){
   if(!swiper||destroyed||phase==='closed'||phase==='opening')return;
   hideQuote();phase='moving';
-  const scroll=mark.closest('[data-tdb-review-scroll]');
+  const scroll=landscape?readingPane:mark.closest('[data-tdb-review-scroll]');
   if(scroll?.scrollTop>0){fades.to(mark,0,fadeTime());return;}
   mark.classList.add('is-stationary');staticLayer.append(mark);
  }
@@ -121,6 +150,7 @@ function mount(root,data){
   const active=swiper.slides[swiper.activeIndex];
   if(phase==='settled'&&settledSlide===active&&(revealTimer||shownQuote))return;
   clearTimeout(revealTimer);reflect();
+  if(landscape&&settledSlide!==active)readingPane.scrollTop=0;
   const oldScroll=mark.closest('[data-tdb-review-scroll]'),newScroll=active?.querySelector('[data-tdb-review-scroll]');
   if(oldScroll&&oldScroll!==newScroll&&oldScroll.scrollTop>(newScroll?.scrollTop||0))fades.to(mark,0,0);
   active?.querySelector('[data-tdb-review-quote-frame]')?.append(mark);mark.classList.remove('is-stationary');
@@ -131,7 +161,7 @@ function mount(root,data){
   if(pause)revealTimer=setTimeout(show,pause);else show();
  }
  function createSwiper(index=0){
-  swiper=new window.Swiper(viewport,{init:false,direction:'horizontal',wrapperClass:'tdb-review-drawer_track',slideClass:'tdb-review-drawer_slide',slidesPerView:1,initialSlide:index,loop:false,preventInteractionOnTransition:false,observer:false,speed:reduced.matches?0:motion.duration(innerWidth),touchStartPreventDefault:false,threshold:10,keyboard:{enabled:false},watchOverflow:true,on:{slideChange(){queueMicrotask(reflect);},sliderFirstMove:begin,transitionStart:begin,transitionEnd(){appendRecords();if(phase==='moving')reveal();},touchEnd(){requestAnimationFrame(()=>{if(!destroyed&&phase==='moving'&&!swiper.animating)reveal(motion.reviews.cardDelay);});}}});
+  swiper=new window.Swiper(viewport,{init:false,direction:'horizontal',wrapperClass:'tdb-review-drawer_track',slideClass:'tdb-review-drawer_slide',slidesPerView:1,autoHeight:landscape,initialSlide:index,loop:false,preventInteractionOnTransition:false,observer:false,speed:reduced.matches?0:motion.duration(innerWidth),touchStartPreventDefault:false,threshold:10,keyboard:{enabled:false},watchOverflow:true,on:{slideChange(){queueMicrotask(reflect);},sliderFirstMove:begin,transitionStart:begin,transitionEnd(){appendRecords();if(phase==='moving')reveal();},touchEnd(){requestAnimationFrame(()=>{if(!destroyed&&phase==='moving'&&!swiper.animating)reveal(motion.reviews.cardDelay);});}}});
   window.TDBSwiper.bindSwiper(swiper);swiper.init();
  }
  function build(id){
@@ -139,7 +169,7 @@ function mount(root,data){
   const index=Math.max(0,records.findIndex(r=>r.id===id));
   phase='opening';hideQuote();settledSlide=null;fades.to(mark,1,0);
   if(swiper)swiper.slideTo(index,0);else createSwiper(index);
-  swiper.slides[index].querySelector('[data-tdb-review-scroll]').scrollTop=0;reveal(motion.reviews.openDelay);
+  readingScroll().scrollTop=0;reveal(motion.reviews.openDelay);
  }
  function navigate(direction){if(filterOpen||!swiper||direction<0&&swiper.isBeginning)return;if(direction>0&&swiper.isEnd){if(canLoadMore()){primeMore();const current=swiper.activeIndex;moreFlight?.then(()=>{if(!destroyed&&phase!=='closed'&&swiper.activeIndex===current&&!swiper.isEnd)navigate(1);});}return;}swiper.swipeDirection=direction<0?'prev':'next';begin();direction<0?swiper.slidePrev():swiper.slideNext();if(!swiper.animating&&phase==='moving')reveal();}
  function action(node,fn){const handle=e=>{if(e.type==='keydown'&&!['Enter',' '].includes(e.key))return;e.preventDefault();if(node.getAttribute('aria-disabled')!=='true')fn();};node.addEventListener('click',handle,{signal});node.addEventListener('keydown',handle,{signal});}
@@ -251,6 +281,7 @@ function mount(root,data){
  }
  function reflectFilterState(open){
   if(!open){cancelDraft();updateTotal(length(),phase!=='closed');}filterOpen=open;
+  placeFilterClose();
   if(swiper){swiper.allowTouchMove=!open;reflectedIndex=-1;reflect();}
   if(open)prepareFilters();else updateFilterOptions();
  }
@@ -267,7 +298,8 @@ function mount(root,data){
   action(filterApply,()=>{if(!filterApply.disabled)filter.requestClose('apply');});
   updateFilterOptions();
  }
- let preferred='';const drawer=window.TDBDrawer.mount(root.closest('[data-tdb-drawer]'),{onOpen(){build(preferred);clearTimeout(filterPrimeTimer);filterPrimeTimer=setTimeout(prepareFilters,250);},onClose(){clearTimeout(filterPrimeTimer);filter?.reset(true);hideQuote();phase='closed';if(mark.closest('[data-tdb-review-scroll]')?.scrollTop>0)fades.to(mark,0,fadeTime());ticker.settle();totalTicker.settle();filterApplyTicker?.settle();}});
+ let preferred='';const drawer=window.TDBDrawer.mount(root.closest('[data-tdb-drawer]'),{onOpen(){build(preferred);clearTimeout(filterPrimeTimer);filterPrimeTimer=setTimeout(prepareFilters,250);},onClose(){clearTimeout(filterPrimeTimer);filter?.reset(true);hideQuote();phase='closed';if((landscape?readingPane:mark.closest('[data-tdb-review-scroll]'))?.scrollTop>0)fades.to(mark,0,fadeTime());ticker.settle();totalTicker.settle();filterApplyTicker?.settle();}});
+ setReadingMode();
  // Native Webflow visibility keeps the closed drawer measurable without showing it.
  if(viewport.clientWidth)createSwiper();
  const resize=new ResizeObserver(()=>{if(swiper&&!swiper.animating){swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);swiper.update();}});resize.observe(viewport);
@@ -281,7 +313,7 @@ function mount(root,data){
    renderSelection(data.records.slice());
   }
   return drawer.open(trigger);
- },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();filterApplyTicker?.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
+ },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();setReadingMode(false);filterOpen=false;placeFilterClose();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();filterApplyTicker?.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBReviews=Object.freeze({version:'3.11.0',mount});
+window.TDBReviews=Object.freeze({version:'3.12.0',mount});
 })();

@@ -49,14 +49,41 @@ platform contributes to the floating filter badge and persists on panel close.
 Webflow orders the groups as Treatments, Experience, Platform, Order and Stars.
 
 The native cream filter heading and Reset row use 20px backdrop blur and sticky
-positioning inside the scrolling filter panel. The body scrolls beneath them;
-Webflow owns the insets, responsive spacing and indented options. The charcoal
-review-drawer bars remain unchanged. None of these styles is injected by JavaScript.
+positioning inside the scrolling filter panel, except in phone landscape below.
+The body scrolls beneath them; Webflow owns the insets, responsive spacing and
+indented options. The charcoal review-drawer bar artwork remains unchanged.
+None of these styles is injected by JavaScript.
+The filter's cream/20px-blur background is a separate native
+`tdb-review-filter_surface` sibling of `tdb-review-filter_scroll`. The panel itself
+has no backdrop filter: nesting a whole-panel blur around the sticky bars prevented
+their blur from softening the scrolling option text in Chromium. The separate
+surface preserves the existing cream opacity and panel blur while allowing both
+bars to blur the filter body. This is native structure/CSS only; the shared filter
+controller still animates, focuses and gates the same outer panel.
 The cream panel's top edge has no border. Native option artwork reuses the site's
 stars and clock for sorting, filled/outlined stars for ratings, and greyscale
 Google, Yell, Facebook and Doctify logos for platforms. Treatment and experience
 options retain their labels and ticks only. These decorative icons have no script
 dependency and do not alter the option labels announced to assistive technology.
+
+The native review footer uses three grid columns: pagination, a centred filter
+toggle, then the existing navigation arrows. Review content, header, quote-mark
+layer and footer share a native `data-tdb-review-reading-pane` wrapper. Their
+existing positioning and per-slide scroll remain the default.
+
+For touch phones in landscape (`orientation: landscape`, width <=991px,
+height <=500px, primary pointer coarse), the review adapter enables native
+`is-phone-landscape` combo styles. The reading pane becomes the scroll container;
+the header and footer join normal flow and Swiper's existing auto-height measures
+the active review. The filter occupies the reading pane and its title/Reset rows
+also scroll normally. Only the existing close controls remain over the content,
+with a native dark tint and 20px blur for contrast. While filtering, the same
+filter toggle moves outside the reading flow as the isolated central X; the
+blocked main X is hidden. Closing or rotating restores the original control node.
+No controls, sliders or handlers are duplicated. Rotation preserves reading
+position where the destination scroll range permits, while a new review begins
+at its top. The orientation listener is removed on teardown. This adds no module,
+request, consent condition, CMS rule or injected stylesheet.
 
 Shared Swiper behaviour 1.1.0 changes touch release to
 `cubic-bezier(.22,.61,.36,1)`, avoiding a second gentle acceleration after dragging.
