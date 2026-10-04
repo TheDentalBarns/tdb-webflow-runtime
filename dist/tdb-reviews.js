@@ -1,4 +1,4 @@
-/* TDB native reviews v3.12.0. Native Webflow layout; original quote choreography. */
+/* TDB native reviews v3.12.1. Native Webflow layout; original quote choreography. */
 (() => {
 'use strict';if(window.TDBReviews)return;
 const instances=new WeakMap();
@@ -42,8 +42,22 @@ function mount(root,data){
  const readingPane=$('[data-tdb-review-reading-pane]'),phoneLandscape=matchMedia('(orientation: landscape) and (max-width: 991px) and (max-height: 500px) and (pointer: coarse)');
  const landscapeNodes=[readingPane,$('.tdb-review-drawer_header'),$('.tdb-review-drawer_footer'),viewport,track,mainClose,filterPanel,filterPanel?.querySelector('[data-tdb-filter-scroll]'),filterPanel?.querySelector('.tdb-review-filter_heading'),filterPanel?.querySelector('.tdb-review-filter_actions')].filter(Boolean);
  const filterHome=filterButton?{parent:filterButton.parentNode,next:filterButton.nextSibling}:null,originalTrackHeight=track.style.height;
- let landscape=false;
+ let landscape=false,readingAnchor=null;
+ const readingFooter=$('.tdb-review-drawer_footer');
  const readingScroll=()=>landscape?readingPane:swiper?.slides[swiper.activeIndex]?.querySelector('[data-tdb-review-scroll]');
+ // Capture before Swiper measures the incoming review. When the footer is in
+ // view, keep its distance from the viewport edge as the native height changes.
+ // Elsewhere retain the reading offset, bounded by the new content's extent.
+ function captureReadingAnchor(){
+  if(!landscape||readingAnchor||phase==='closed'||phase==='opening')return;
+  const top=readingPane.scrollTop,bottom=Math.max(0,readingPane.scrollHeight-readingPane.clientHeight-top);
+  readingAnchor={top,bottom,atFoot:bottom<=readingFooter.offsetHeight};
+ }
+ function applyReadingAnchor(){
+  if(!landscape||!readingAnchor)return;
+  const max=Math.max(0,readingPane.scrollHeight-readingPane.clientHeight);
+  readingPane.scrollTop=Math.max(0,Math.min(max,readingAnchor.atFoot?max-readingAnchor.bottom:readingAnchor.top));
+ }
  function placeFilterClose(){
   const floating=landscape&&filterOpen;
   filterButton?.classList.toggle('is-landscape-floating',floating);mainClose.classList.toggle('is-landscape-filter-open',floating);
@@ -53,7 +67,7 @@ function mount(root,data){
  }
  function setReadingMode(enabled=!!readingPane&&phoneLandscape.matches){
   if(enabled===landscape)return;
-  const offset=readingScroll()?.scrollTop||0;landscape=enabled;
+  const offset=readingScroll()?.scrollTop||0;readingAnchor=null;landscape=enabled;
   for(const node of landscapeNodes)node.classList.toggle('is-phone-landscape',landscape);
   for(const node of [template,...slideCache.values()]){
    node.classList.toggle('is-phone-landscape',landscape);
@@ -134,6 +148,7 @@ function mount(root,data){
  function hideQuote(){clearTimeout(revealTimer);revealTimer=0;if(shownQuote)fades.to(shownQuote,0,fadeTime());shownQuote=null;}
  function begin(){
   if(!swiper||destroyed||phase==='closed'||phase==='opening')return;
+  captureReadingAnchor();
   hideQuote();phase='moving';
   const scroll=landscape?readingPane:mark.closest('[data-tdb-review-scroll]');
   if(scroll?.scrollTop>0){fades.to(mark,0,fadeTime());return;}
@@ -147,10 +162,10 @@ function mount(root,data){
  }
  function reveal(delay){
   if(!swiper||destroyed||phase==='closed')return;
+  applyReadingAnchor();readingAnchor=null;
   const active=swiper.slides[swiper.activeIndex];
   if(phase==='settled'&&settledSlide===active&&(revealTimer||shownQuote))return;
   clearTimeout(revealTimer);reflect();
-  if(landscape&&settledSlide!==active)readingPane.scrollTop=0;
   const oldScroll=mark.closest('[data-tdb-review-scroll]'),newScroll=active?.querySelector('[data-tdb-review-scroll]');
   if(oldScroll&&oldScroll!==newScroll&&oldScroll.scrollTop>(newScroll?.scrollTop||0))fades.to(mark,0,0);
   active?.querySelector('[data-tdb-review-quote-frame]')?.append(mark);mark.classList.remove('is-stationary');
@@ -161,10 +176,11 @@ function mount(root,data){
   if(pause)revealTimer=setTimeout(show,pause);else show();
  }
  function createSwiper(index=0){
-  swiper=new window.Swiper(viewport,{init:false,direction:'horizontal',wrapperClass:'tdb-review-drawer_track',slideClass:'tdb-review-drawer_slide',slidesPerView:1,autoHeight:landscape,initialSlide:index,loop:false,preventInteractionOnTransition:false,observer:false,speed:reduced.matches?0:motion.duration(innerWidth),touchStartPreventDefault:false,threshold:10,keyboard:{enabled:false},watchOverflow:true,on:{slideChange(){queueMicrotask(reflect);},sliderFirstMove:begin,transitionStart:begin,transitionEnd(){appendRecords();if(phase==='moving')reveal();},touchEnd(){requestAnimationFrame(()=>{if(!destroyed&&phase==='moving'&&!swiper.animating)reveal(motion.reviews.cardDelay);});}}});
+  swiper=new window.Swiper(viewport,{init:false,direction:'horizontal',wrapperClass:'tdb-review-drawer_track',slideClass:'tdb-review-drawer_slide',slidesPerView:1,autoHeight:landscape,initialSlide:index,loop:false,preventInteractionOnTransition:false,observer:false,speed:reduced.matches?0:motion.duration(innerWidth),touchStartPreventDefault:false,threshold:10,keyboard:{enabled:false},watchOverflow:true,on:{slideChange(){queueMicrotask(reflect);},sliderFirstMove:begin,beforeTransitionStart:captureReadingAnchor,transitionStart(){begin();applyReadingAnchor();},transitionEnd(){appendRecords();if(phase==='moving')reveal();},touchEnd(){requestAnimationFrame(()=>{if(!destroyed&&phase==='moving'&&!swiper.animating)reveal(motion.reviews.cardDelay);});}}});
   window.TDBSwiper.bindSwiper(swiper);swiper.init();
  }
  function build(id){
+  readingAnchor=null;
   appendRecords();
   const index=Math.max(0,records.findIndex(r=>r.id===id));
   phase='opening';hideQuote();settledSlide=null;fades.to(mark,1,0);
@@ -225,12 +241,14 @@ function mount(root,data){
  }
  function renderSelection(chosen){
   if(!chosen.length)return;
+  readingAnchor=null;
   const wasOpen=phase!=='closed';hideQuote();staticLayer.append(mark);mark.classList.add('is-stationary');
   swiper?.destroy(true,true);swiper=null;records.splice(0,records.length,...chosen);knownCount=data.records.length;pendingAppend=false;
   track.replaceChildren(...records.map(slide));
   [...track.children].forEach((node,i)=>{node.setAttribute('aria-label',`Review ${i+1} of ${length()}`);node.querySelector('[data-tdb-review-scroll]').scrollTop=0;node.querySelector('[data-review-render="excerpt"]').style.opacity='0';});
   updateTotal(length(),phase!=='closed');reflectedIndex=-1;settledSlide=null;
   phase=wasOpen?'opening':'closed';createSwiper();swiper.allowTouchMove=!filterOpen;reflect();
+  if(landscape)readingPane.scrollTop=0;
   if(wasOpen)reveal(0);updateFilterOptions();
  }
 
@@ -298,11 +316,11 @@ function mount(root,data){
   action(filterApply,()=>{if(!filterApply.disabled)filter.requestClose('apply');});
   updateFilterOptions();
  }
- let preferred='';const drawer=window.TDBDrawer.mount(root.closest('[data-tdb-drawer]'),{onOpen(){build(preferred);clearTimeout(filterPrimeTimer);filterPrimeTimer=setTimeout(prepareFilters,250);},onClose(){clearTimeout(filterPrimeTimer);filter?.reset(true);hideQuote();phase='closed';if((landscape?readingPane:mark.closest('[data-tdb-review-scroll]'))?.scrollTop>0)fades.to(mark,0,fadeTime());ticker.settle();totalTicker.settle();filterApplyTicker?.settle();}});
+ let preferred='';const drawer=window.TDBDrawer.mount(root.closest('[data-tdb-drawer]'),{onOpen(){build(preferred);clearTimeout(filterPrimeTimer);filterPrimeTimer=setTimeout(prepareFilters,250);},onClose(){readingAnchor=null;clearTimeout(filterPrimeTimer);filter?.reset(true);hideQuote();phase='closed';if((landscape?readingPane:mark.closest('[data-tdb-review-scroll]'))?.scrollTop>0)fades.to(mark,0,fadeTime());ticker.settle();totalTicker.settle();filterApplyTicker?.settle();}});
  setReadingMode();
  // Native Webflow visibility keeps the closed drawer measurable without showing it.
  if(viewport.clientWidth)createSwiper();
- const resize=new ResizeObserver(()=>{if(swiper&&!swiper.animating){swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);swiper.update();}});resize.observe(viewport);
+ const resize=new ResizeObserver(()=>{if(swiper&&!swiper.animating){swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);swiper.update();}applyReadingAnchor();});resize.observe(viewport);
  reduced.addEventListener('change',()=>{if(swiper){swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);if(reduced.matches&&phase!=='closed'){hideQuote();phase='moving';swiper.slideTo(swiper.activeIndex,0);ticker.settle();reveal(0);}}},{signal});
  const api=Object.freeze({async open(trigger,id){
   preferred=id||'';
@@ -315,5 +333,5 @@ function mount(root,data){
   return drawer.open(trigger);
  },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();setReadingMode(false);filterOpen=false;placeFilterClose();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();filterApplyTicker?.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBReviews=Object.freeze({version:'3.12.0',mount});
+window.TDBReviews=Object.freeze({version:'3.12.1',mount});
 })();

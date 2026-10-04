@@ -66,8 +66,9 @@ Google, Yell, Facebook and Doctify logos for platforms. Treatment and experience
 options retain their labels and ticks only. These decorative icons have no script
 dependency and do not alter the option labels announced to assistive technology.
 
-The native review footer uses three grid columns: pagination, a centred filter
-toggle, then the existing navigation arrows. Review content, header, quote-mark
+The native review footer uses three grid columns: pagination, a reserved centre
+column for the filter toggle, then the existing navigation arrows explicitly in
+column three. Floating the same toggle never repositions the arrows. Review content, header, quote-mark
 layer and footer share a native `data-tdb-review-reading-pane` wrapper. Their
 existing positioning and per-slide scroll remain the default.
 
@@ -81,8 +82,19 @@ with a native dark tint and 20px blur for contrast. While filtering, the same
 filter toggle moves outside the reading flow as the isolated central X; the
 blocked main X is hidden. Closing or rotating restores the original control node.
 No controls, sliders or handlers are duplicated. Rotation preserves reading
-position where the destination scroll range permits, while a new review begins
-at its top. The orientation listener is removed on teardown. This adds no module,
+position where the destination scroll range permits. Landscape navigation captures
+the existing footer offset before Swiper measures the incoming review and restores
+it synchronously after that measurement. When the footer is outside view, the
+reading offset is retained and clamped to the new scroll range. This uses the
+existing Swiper events and ResizeObserver, without another animation loop. Fresh
+drawer opens and changed filter result sets still start at the first quote.
+Landscape slides align at the bottom; transient space above a shorter incoming
+review takes the viewport's native charcoal background. Swiper's existing height
+measurement, horizontal timing and easing remain in use. There is no height
+transition on its wrapper that could prematurely end the horizontal transition.
+The filter has no extra bottom spacer: its isolated X shares the Reset button's
+bottom inset, including the device safe area. The orientation listener is removed
+on teardown. This adds no module,
 request, consent condition, CMS rule or injected stylesheet.
 
 Shared Swiper behaviour 1.1.0 changes touch release to
