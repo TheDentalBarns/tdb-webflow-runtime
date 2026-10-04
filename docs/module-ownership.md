@@ -242,3 +242,8 @@ rapid taps, supports keyboard activation and settles immediately for reduced
 motion. Native reviews reset the toggle on close and destroy it with the drawer.
 This is an icon-only staging trial; it does not filter records or open a panel.
 The existing top-right X remains the drawer close control. No extra script is loaded.
+
+Filter refinement: the native SVG uses an opaque-stroke mask and one currentColor
+paint layer so translucent strokes do not brighten at the X intersection. The
+middle line scales horizontally from both ends to zero and expands on reversal;
+its opacity stays unchanged. Runtime mask IDs are unique per mounted control.
