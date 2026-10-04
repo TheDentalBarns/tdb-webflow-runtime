@@ -1,4 +1,4 @@
-/* TDB native reviews v3.3.0. Native Webflow layout; original quote choreography. */
+/* TDB native reviews v3.4.0. Native Webflow layout; original quote choreography. */
 (() => {
 'use strict';if(window.TDBReviews)return;
 const instances=new WeakMap();
@@ -8,6 +8,7 @@ function mount(root,data){
  const cms=window.TDBReviewCMS,motion=window.TDBMotion,ctrl=new AbortController(),{signal}=ctrl;
  const $=s=>root.querySelector(s),template=$('[data-tdb-review-template]'),track=$('[data-tdb-reviews-track]'),viewport=$('[data-tdb-reviews-slider]'),mark=$('[data-tdb-review-static-mark]'),staticLayer=$('[data-tdb-review-static-layer]');
  if(!template||!track||!viewport||!mark||!staticLayer)throw Error('Native review template missing');
+ const filter=motion.filterToggle($('[data-tdb-filter-toggle]'));
  const reduced=matchMedia('(prefers-reduced-motion: reduce)'),context=cms.contextForPath(location.pathname);
  const records=data.records.slice(),position=$('[data-tdb-reviews-position]'),previous=$('[data-tdb-reviews-prev]'),next=$('[data-tdb-reviews-next]');
  const ticker=window.TDBNativeTicker.mount(position),fades=motion.fadeController();let swiper=null,moreFlight=null,pendingAppend=false,destroyed=false,phase='closed',revealTimer=0,shownQuote=null,settledSlide=null,reflectedIndex=-1;
@@ -80,12 +81,12 @@ function mount(root,data){
  function action(node,fn){const handle=e=>{if(e.type==='keydown'&&!['Enter',' '].includes(e.key))return;e.preventDefault();if(node.getAttribute('aria-disabled')!=='true')fn();};node.addEventListener('click',handle,{signal});node.addEventListener('keydown',handle,{signal});}
  action(previous,()=>navigate(-1));action(next,()=>navigate(1));
  root.addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea'))return;if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();navigate(e.key==='ArrowLeft'?-1:1);}},{signal});
- let preferred='';const drawer=window.TDBDrawer.mount(root.closest('[data-tdb-drawer]'),{onOpen(){build(preferred);},onClose(){hideQuote();phase='closed';if(mark.closest('[data-tdb-review-scroll]')?.scrollTop>0)fades.to(mark,0,fadeTime());ticker.settle();}});
+ let preferred='';const drawer=window.TDBDrawer.mount(root.closest('[data-tdb-drawer]'),{onOpen(){build(preferred);},onClose(){filter.reset();hideQuote();phase='closed';if(mark.closest('[data-tdb-review-scroll]')?.scrollTop>0)fades.to(mark,0,fadeTime());ticker.settle();}});
  // Native Webflow visibility keeps the closed drawer measurable without showing it.
  if(viewport.clientWidth)createSwiper();
  const resize=new ResizeObserver(()=>{if(swiper&&!swiper.animating){swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);swiper.update();}});resize.observe(viewport);
  reduced.addEventListener('change',()=>{if(swiper){swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);if(reduced.matches&&phase!=='closed'){hideQuote();phase='moving';swiper.slideTo(swiper.activeIndex,0);ticker.settle();reveal(0);}}},{signal});
- const api=Object.freeze({async open(trigger,id){preferred=id||'';return drawer.open(trigger);},close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;unsubscribe?.();drawer.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();track.replaceChildren();instances.delete(root);}});instances.set(root,api);return api;
+ const api=Object.freeze({async open(trigger,id){preferred=id||'';return drawer.open(trigger);},close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;filter.destroy();unsubscribe?.();drawer.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();track.replaceChildren();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBReviews=Object.freeze({version:'3.3.0',mount});
+window.TDBReviews=Object.freeze({version:'3.4.0',mount});
 })();

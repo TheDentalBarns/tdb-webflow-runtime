@@ -1,4 +1,4 @@
-/* TDB shared motion v1.3.0. Timing, DD text and reusable opacity fades. */
+/* TDB shared motion v1.4.0. Timing, DD text and reusable opacity fades. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -126,11 +126,49 @@
     });
   }
 
+  // Filter-to-X visual toggle. Native SVG lines/styles define the starting artwork.
+  // The consumer decides whether a filter panel exists; this helper owns only the icon.
+  function filterToggle(button) {
+    const lines = button ? ['top', 'middle', 'bottom'].map(part => button.querySelector('[data-tdb-filter-line="' + part + '"]')) : [];
+    if (lines.length !== 3 || lines.some(line => !line)) return { reset() {}, destroy() {} };
+    const controller = new AbortController(), { signal } = controller;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    const view = lines[0].ownerSVGElement.viewBox.baseVal;
+    const cx = view.x + view.width / 2, cy = view.y + view.height / 2, length = Math.min(view.width, view.height) * 0.8;
+    const targets = lines.map((line, index) => {
+      const x1 = +line.getAttribute('x1'), x2 = +line.getAttribute('x2');
+      const y1 = +line.getAttribute('y1'), y2 = +line.getAttribute('y2');
+      return index === 1 ? 'none' : 'translate(' + (cx - (x1 + x2) / 2) + 'px,' + (cy - (y1 + y2) / 2) + 'px) rotate(' + (index === 0 ? 45 : -45) + 'deg) scaleX(' + length / Math.hypot(x2 - x1, y2 - y1) + ')';
+    });
+    let pressed = false, animations = [];
+    function set(value, immediate = false) {
+      const current = lines.map(line => ({ transform: getComputedStyle(line).transform, opacity: getComputedStyle(line).opacity }));
+      animations.forEach(animation => animation.cancel());
+      pressed = value; button.setAttribute('aria-pressed', String(value));
+      animations = lines.map((line, index) => line.animate([current[index], {
+        transform: value ? targets[index] : 'none', opacity: value && index === 1 ? 0 : 1
+      }], { duration: immediate || reduced.matches ? 0 : 300, easing: 'ease-in-out', fill: 'both' }));
+    }
+    const toggle = event => {
+      if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) return;
+      event.preventDefault();
+      if (button.getAttribute('aria-disabled') !== 'true') set(!pressed);
+    };
+    button.setAttribute('aria-pressed', 'false');
+    button.addEventListener('click', toggle, { signal });
+    button.addEventListener('keydown', toggle, { signal });
+    reduced.addEventListener('change', () => set(pressed, true), { signal });
+    return {
+      reset() { if (pressed) set(false); },
+      destroy() { controller.abort(); animations.forEach(animation => animation.cancel()); button.setAttribute('aria-pressed', 'false'); }
+    };
+  }
+
   // Compatibility for older immutable tdb-sliders.js pins during migration.
   // All Swiper behaviour is implemented once, inside the custom Swiper asset.
   function bindSwiper(swiper) {
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.3.0', defaults, duration, ddText, ddOpacity, reviews, fadeController, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.4.0', defaults, duration, ddText, ddOpacity, reviews, fadeController, filterToggle, bindSwiper });
 })();

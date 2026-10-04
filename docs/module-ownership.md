@@ -231,3 +231,14 @@ published by this pass.
 Registry 1.2.0 also aligns motion and the compatible Swiper adapter to the marquee
 loader pin on pages without native reviews. This prevents an older carousel
 request from selecting a different shared helper. It does not preload Swiper.
+
+## Review filter icon trial — 4 October
+
+The native Review Drawer navigation now starts with a filter toggle using the same
+`tdb-review-drawer_nav-button` circle and existing 1rem group gap. Its three SVG
+lines and transform origin live in Webflow. Shared `TDBMotion.filterToggle`
+animates them into an X over 300ms, reverses from the current rendered state on
+rapid taps, supports keyboard activation and settles immediately for reduced
+motion. Native reviews reset the toggle on close and destroy it with the drawer.
+This is an icon-only staging trial; it does not filter records or open a panel.
+The existing top-right X remains the drawer close control. No extra script is loaded.
