@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.8.2-priority-ready-footer';
+  const VERSION = '0.9.15-vimeo-loader';
 
   function loadScript(src, attrName, readyCheck) {
     const existing = document.querySelector(`script[${attrName}]`);
@@ -41,11 +41,7 @@
     () => Boolean(window.CookieScript?.instance),
   );
 
-  const logoMarqueePromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@9ecc45134d68ac301a98b60e8a8e2971894c60ab/dist/tdb-logo-marquee.js',
-    'data-tdb-logo-marquee-js',
-    () => Boolean(window.TDBLogoMarquee),
-  );
+  const logoMarqueePromise = Promise.resolve(null); // Dedicated partners loader owns this.
 
   const attributionPromise = loadScript(
     'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@afee7b723073c1d3965b5a10eb29e225b7ef55c1/dist/tdb-attribution.min.js',
@@ -58,13 +54,8 @@
     'data-scrolldisable-js',
   );
 
-  const vimeoPromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-vimeo-js@v1.0.1/dist/vimeo-controller.min.js',
-    'data-vimeo-controller-js',
-  );
-
   const footerRuntimePromise = loadScript(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@c74e7c23a75b2afc10a39a974bfa7ead49b3f0c3/dist/tdb-footer-runtime.min.js',
+    new URL('tdb-footer-runtime.min.js', TDBImmediateModuleRoot).href,
     'data-tdb-footer-runtime-js',
     () => Boolean(window.TDBFooterRuntime),
   );
@@ -88,7 +79,6 @@
     logoMarqueePromise,
     attributionPromise,
     scrollDisablePromise,
-    vimeoPromise,
     footerRuntimePromise,
   ]);
 

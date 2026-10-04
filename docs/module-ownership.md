@@ -462,3 +462,35 @@ Checks: `node tests/shared-filters.browser.cjs` (Playwright Chromium; optional
 failed/duplicate/stale close requests, reduced motion and cross-pin single loading.
 The staged review adapter is also checked at mobile/desktop widths with touch
 events, persistent selections, outside isolation, icon states and cached loading.
+
+
+## Vimeo boundary — 4 October
+
+Vimeo is independent of Swiper, DD text, drawers and filters. It neither imports
+those modules nor adds video-specific code to them. See
+[vimeo-cleanup-2026-10-04.md](vimeo-cleanup-2026-10-04.md) for the audit, native
+style changes, validation and complete rollback checkpoint.
+
+| Artifact | Responsibility |
+| --- | --- |
+| `tdb-vimeo-loader.js` | Early consent-trigger clicks, remembered play request, presence, 300px preparation, one CSS/controller request and retry. |
+| `tdb-vimeo.js` | Existing hero/ambient/content player state machines, one Vimeo SDK, play/pause, responsive hero selection, viewport suspension and fitting. |
+| `tdb-vimeo.css` | Vimeo state selectors, the existing CSS pulse, poster transitions and structural/compositing compatibility. No new visual design. |
+| Native Webflow video classes | Frame, poster and control appearance, placement, responsive geometry and initial play/pause/loading visibility. |
+
+The small deferred loader is available before consent; otherwise the first press
+could not request consent. Vimeo's actual dependency is **functionality** permission,
+not merely any cookie-banner response. The stylesheet is first-party presentation
+and does not need that permission. The controller is requested after permission
+and proximity/intent; it rechecks permission before initialising. The Vimeo SDK and
+iframes remain permission-gated. Playback rules stay variant-specific.
+
+`tdb-ui.css` no longer contains Vimeo. Its current remaining responsibilities are
+Elfsight visibility, shared scroll/runtime states, deferred Lenis/consent/VIP guards
+and slider-focus states. It remains an early, nonblocking global stylesheet; it is
+not a presence-gated JavaScript module. Shared filter animation remains in
+`tdb-filters.js`, with motion helpers in `tdb-motion.js`.
+
+Build Vimeo with `node tools/build-vimeo.cjs` (Terser 5.39.0); use `--check` for
+source/artifact parity. `python tools/build-ui.py --global-only` rebuilds just the
+current global stylesheet. Do not rebuild unrelated legacy bundles during this pass.
