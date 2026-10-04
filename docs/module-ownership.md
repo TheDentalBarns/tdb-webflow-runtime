@@ -351,6 +351,8 @@ receive new event handlers. Mobile validation includes real touch tap events.
 
 ## Stable review filter panel — 4 October
 
+Historical 3.7.0/3.7.1 behaviour below; 3.8.0 supersedes dismissal and header controls.
+
 Native reviews 3.7.0 uses a tall panel with a fixed top and bottom within the
 review drawer. A small responsive strip of dimmed review content remains above it.
 Webflow owns this geometry: heading and actions do not shrink; the middle groups
@@ -388,3 +390,28 @@ Outside-click handling captures at the enclosing drawer: review strip, header
 and outer shaded backdrop dismiss the filter without also closing the review
 drawer or clicking through. The main close X retains its full-drawer action.
 The filter toggle, ticker, draft/apply and prefetch logic are unchanged.
+
+
+### Persistent review filters — 3.8.0
+
+Webflow owns the selection badge, its positioning on the filter circle, the open
+highlight, and the dimmed main close control. The native header now contains
+Filter reviews, View N reviews and Reset. The cream action footer was removed;
+the charcoal review navigation footer stays. A native visually hidden live status
+becomes visible on fetch failure. No CSS is injected by the runtime.
+
+The badge counts rating, platform, treatments and experiences; sorting does not
+count as a filter. The footer ticker remains the number of matching reviews.
+Choices still preview and prefetch while editing, without rebuilding Swiper.
+Every filter close route (its X, View reviews, Escape, outside tap) now applies
+and preserves choices using the same cached first-20 batch. An unchanged close
+keeps the current review position. Reset alone clears choices. If loading fails,
+the filter stays open with choices intact and a visible retry message.
+
+Window capture consumes outside pointerdown, pointerup and the subsequent click,
+including a click arriving after closure, matching Smile Gallery's protection.
+The main drawer X is inert, dimmed and out of the tab order while filters are open;
+it is restored when they close. The filter X stays highlighted throughout editing.
+Native accordion motion, shared motion/ticker/Swiper, CMS, caching and loading gates
+are unchanged. No additional script or dependency was added. Publish matching
+Webflow structure/styles and the Home runtime pin together.
