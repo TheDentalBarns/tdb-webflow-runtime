@@ -27,6 +27,7 @@ function mount(root){
  const dateText=r=>{const date=new Date(r.date);return Number.isNaN(+date)?'':(r.approx?'Approx. ':'')+new Intl.DateTimeFormat('en-GB',r.approx?{month:'long',year:'numeric',timeZone:'UTC'}:{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(date);};
  function node(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;}
  function decorate(el,r){
+  if(!r.excerpt)el.querySelector('.review-page_quote')?.remove();
   const meta=el.querySelector('[data-tdb-list-meta]');meta.replaceChildren();
   const source=node('a','review-page_source');const url=safeURL(r.url);if(url){source.href=url;source.target='_blank';source.rel='noopener noreferrer';}else source.removeAttribute('href');
   const icon=cms.sourceIcon(r.platform,false);icon.className='review-page_icon';source.append(icon);source.setAttribute('aria-label','Read '+r.name+'’s review on '+r.platform);

@@ -25,3 +25,7 @@ Presets use URL fragments, e.g. `/reviews#treatment=veneers` or `/reviews#platfo
 Native fallback: three desktop columns, two tablet, one mobile, with natural-height cards and real pagination. Enhancement packs cards into the shortest column while preserving DOM order. New batches append without repacking earlier cards at the same width. Resize/font changes remeasure existing content. The first three reviews start across the top.
 
 The cards show source attribution/link, rating, date (including approximate dates), historic-practice labels, and the CMS response where available. No review content or author names are stored in the repository.
+
+A review without an authored featured excerpt retains its full text and metadata; the quote panel is omitted during enhancement. No excerpt is invented.
+
+Staging validation: all 85 records in batches 20/40/60/80/85, unique identities, stable earlier card positions on append, 3/2/1 responsive columns, one-star response, URL preset and history restoration, consumed outside tap, phone landscape filter scrolling, and native page-five fallback. No Swiper or duplicate shared module requests were observed on the archive.
