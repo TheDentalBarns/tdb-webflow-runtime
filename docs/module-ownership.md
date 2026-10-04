@@ -10,7 +10,7 @@ colour, spacing, responsive styles and control appearance. GitHub owns behaviour
 | --- | --- | --- |
 | `tdb-modules.js` | Resolve shared release URLs, cache one request/promise per URL, retry failed downloads. The review-loader pin, or otherwise the marquee-loader pin, is the common release for motion, filters, drawers, tickers and custom Swiper. | Consent decisions, component mounting, viewport playback |
 | `tdb-motion.js` | Shared duration policy; DD text opacity; general fades; timing defaults consumed by drawers, tickers and review components. | Swiper engine or interruption implementation, fetching, CMS content, layout |
-| `tdb-swiper-8.4.7.min.js` | Existing custom Swiper engine plus `TDBSwiper.bindSwiper`: interruption continuity, loop handoffs and parallax transform continuity. The adapter ships in the SAME download. | Page discovery, consent, review content, component styles |
+| `tdb-swiper-8.4.7.min.js` | Existing custom Swiper engine plus `TDBSwiper.bindSwiper`: interruption continuity, loop handoffs, parallax continuity and a decelerating touch-release curve. The adapter ships in the SAME download. | Page discovery, consent, review content, component styles |
 | `tdb-sliders.js` | Existing highlight/parallax carousel setup, controls, entry behaviour and slider focus. This is still a legacy combined component bundle pending component-by-component migration. | DD text implementation or a second Swiper engine |
 | `tdb-drawer.js` | Shared native drawer shell: opening/closing, focus, scroll locking, lifecycle and cleanup. | Review cards, CMS selection, drawer styling |
 | `tdb-filters.js` | Reusable filter panel, backdrop fade, accordion reveal, badge display, focus/control states, protected outside gestures, asynchronous apply-on-close and cleanup. | CMS, filter matching/sorting, result fetching, Swiper, visual CSS |
@@ -39,12 +39,14 @@ settles offscreen; visible filter changes animate in the same direction and at t
 same shared duration as pagination. Closing settles motion; teardown destroys the
 ticker instance. The shared ticker handles rapid updates and reduced motion.
 
-Ratings are native checkbox options: multiple stars form a union (for example,
-4 stars OR 1 star), combined with the existing platform, treatment and experience
-filters. Each rating's availability is checked independently against those other
-categories, so selecting an available rating does not enable empty ones. All
-ratings clears the rating selection; Reset clears every category. Selected ratings
-each contribute to the floating filter badge and persist when the panel closes.
+Ratings and platforms are native checkbox options. Each category forms a union
+(for example, 4 stars OR 1 star, and Google OR Doctify); categories are combined
+with the existing treatment and experience filters. Each rating or platform's
+availability is checked independently against the other categories, so existing
+selections do not enable empty alternatives. All ratings and All platforms clear
+their own selections; Reset clears every category. Each selected rating and
+platform contributes to the floating filter badge and persists on panel close.
+Webflow orders the groups as Treatments, Experience, Platform, Order and Stars.
 
 The native cream filter heading and Reset row use 20px backdrop blur and sticky
 positioning inside the scrolling filter panel. The body scrolls beneath them;
@@ -55,6 +57,15 @@ stars and clock for sorting, filled/outlined stars for ratings, and greyscale
 Google, Yell, Facebook and Doctify logos for platforms. Treatment and experience
 options retain their labels and ticks only. These decorative icons have no script
 dependency and do not alter the option labels announced to assistive technology.
+
+Shared Swiper behaviour 1.1.0 changes touch release to
+`cubic-bezier(.22,.61,.36,1)`, avoiding a second gentle acceleration after dragging.
+The wrapper and parallax elements use that curve for the release transition and
+restore their component easing afterwards. Swiper retains its snap target and the
+component's width-aware duration; free scrolling or multi-card momentum is not
+enabled. Programmatic navigation, cancelled/tap gestures, loop corrections,
+interruption continuity and teardown retain their existing behaviour. This helper
+still ships inside the existing custom Swiper request; no dependency is added.
 
 The loader checks permission and component presence before preparing a feature.
 Proximity (currently 700px for reviews) or intent requests preparation. Visibility

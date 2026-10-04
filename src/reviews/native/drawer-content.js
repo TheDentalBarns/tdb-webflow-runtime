@@ -1,4 +1,4 @@
-/* TDB native reviews v3.10.0. Native Webflow layout; original quote choreography. */
+/* TDB native reviews v3.11.0. Native Webflow layout; original quote choreography. */
 (() => {
 'use strict';if(window.TDBReviews)return;
 const instances=new WeakMap();
@@ -17,7 +17,7 @@ function mount(root,data){
  const totalNode=$('[data-tdb-reviews-length]'),totalTicker=window.TDBNativeTicker.mount(totalNode);let shownTotal=Number(totalNode.textContent)||0;
  const ticker=window.TDBNativeTicker.mount(position),fades=motion.fadeController();let swiper=null,moreFlight=null,pendingAppend=false,destroyed=false,phase='closed',revealTimer=0,shownQuote=null,settledSlide=null,reflectedIndex=-1;
 
- let selection={sort:'recommended',rating:[],platform:'',treatment:[],experience:[]};
+ let selection={sort:'recommended',rating:[],platform:[],treatment:[],experience:[]};
  let filterOpen=false,filterFlight=null,filterReady=!!data.indexReady,filterPrimeTimer=0;
  let indexMode=false,matched=[],queryController=null,queryRevision=0,selectionBusy=false,pendingBatch=null;
  const canLoadMore=()=>indexMode?records.length<matched.length:data.hasMore;
@@ -25,15 +25,15 @@ function mount(root,data){
  const filterStatus=filterPanel?.querySelector('[data-tdb-filter-status]'),filterApply=filterPanel?.querySelector('[data-tdb-filter-apply]');
  const filterApplyCount=filterApply?.querySelector('[data-tdb-filter-apply-count]'),filterApplyReserve=filterApply?.querySelector('[data-tdb-filter-count-reserve]'),filterApplyPlural=filterApply?.querySelector('[data-tdb-filter-apply-plural]');
  const filterApplyTicker=filterApplyCount?window.TDBNativeTicker.mount(filterApplyCount):null;let shownApplyCount=null;
- const canonical=topic=>cms.canonicalTopic(topic),multi=key=>key==='rating'||key==='treatment'||key==='experience';
- const normalise=(key,value)=>key==='rating'?value:canonical(value);
+ const canonical=topic=>cms.canonicalTopic(topic),multi=key=>key==='rating'||key==='platform'||key==='treatment'||key==='experience';
+ const normalise=(key,value)=>key==='rating'||key==='platform'?value:canonical(value);
  const chosen=(key,value)=>multi(key)?value?selection[key].includes(normalise(key,value)):!selection[key].length:selection[key]===value;
  function candidate(key,value){
   if(!multi(key))return {...selection,[key]:value};
   value=normalise(key,value);const current=selection[key];
   return {...selection,[key]:!value?[]:current.includes(value)?current.filter(item=>item!==value):[...current,value]};
  }
- const copySelection=state=>({...state,rating:[...state.rating],treatment:[...state.treatment],experience:[...state.experience]});
+ const copySelection=state=>({...state,rating:[...state.rating],platform:[...state.platform],treatment:[...state.treatment],experience:[...state.experience]});
  let appliedSelection=copySelection(selection),draftController=null,draftFlight=null,draftCache=null,draftTimer=0,applyRevision=0;
  const disclosures=filterPanel?[...filterPanel.querySelectorAll('[data-tdb-filter-disclosure]')].map(button=>({key:button.dataset.tdbFilterDisclosure,button,body:button.parentElement.querySelector('.tdb-review-filter_options'),summary:button.querySelector('[data-tdb-filter-selection]'),chevron:button.querySelector('[data-tdb-filter-chevron]')})).filter(entry=>entry.body&&entry.summary):[];
  function updateTotal(count,animate=true){totalTicker.update(String(count).padStart(2,'0'),count<shownTotal?-1:1,animate);shownTotal=count;totalNode.setAttribute('aria-label',count+' reviews');}
@@ -72,7 +72,7 @@ function mount(root,data){
   cancelDraft();updateFilterOptions();
   if(filterReady)draftTimer=setTimeout(()=>{fetchDraft().catch(()=>{});},150);
  }
- function hasSelection(){return selection.sort!=='recommended'||selection.rating.length>0||!!selection.platform||selection.treatment.length>0||selection.experience.length>0;}
+ function hasSelection(){return selection.sort!=='recommended'||selection.rating.length>0||selection.platform.length>0||selection.treatment.length>0||selection.experience.length>0;}
  $('[data-tdb-reviews-average]').textContent=data.average.toFixed(2);$('[data-tdb-reviews-total]').textContent=data.total+' reviews';const length=()=>indexMode?matched.length:data.hasMore?data.total:records.length;updateTotal(length(),phase!=='closed');
  function slide(record,index){
   if(slideCache.has(record.id))return slideCache.get(record.id);
@@ -149,7 +149,7 @@ function mount(root,data){
  // Review adapter: CMS selection and result rendering; shared filters own interaction/motion.
  function matching(state=selection){
   return (data.indexReady?data.filterIndex:data.records).filter(record=>(!state.rating.length||state.rating.some(rating=>rating==='unrated'?!record.rating:record.rating===Number(rating)))&&
-   (!state.platform||record.platform===state.platform)&&state.treatment.every(topic=>record.topics.some(value=>canonical(value)===topic))&&
+   (!state.platform.length||state.platform.includes(record.platform))&&state.treatment.every(topic=>record.topics.some(value=>canonical(value)===topic))&&
    state.experience.every(topic=>record.topics.some(value=>canonical(value)===topic)));
  }
  function ordered(){
@@ -171,9 +171,9 @@ function mount(root,data){
   if(!filterPanel)return;
   for(const option of filterOptions){
    const key=option.dataset.tdbFilterGroup,value=option.dataset.tdbFilterValue,selected=chosen(key,value);
-   // Ratings form a union. Availability tests this rating against the other
-   // categories, so an existing selection cannot enable a zero-result rating.
-   const possible=key==='rating'&&value?{...selection,rating:[value]}:candidate(key,value);
+   // Ratings and platforms each form a union. Test a single option against
+   // other categories so existing selections cannot enable empty alternatives.
+   const possible=(key==='rating'||key==='platform')&&value?{...selection,[key]:[value]}:candidate(key,value);
    const unavailable=!filterReady||(key!=='sort'&&!selected&&!matching(possible).length);
    option.disabled=unavailable||selectionBusy;option.tabIndex=option.disabled?-1:0;option.setAttribute('aria-disabled',String(option.disabled));option.setAttribute(multi(key)?'aria-checked':'aria-pressed',String(selected));
    if(multi(key)){option.setAttribute('role','checkbox');option.removeAttribute('aria-pressed');}
@@ -186,7 +186,7 @@ function mount(root,data){
   }
   const count=matching().length;
   // Count selected filters, not matching reviews or the sort order.
-  const selectedCount=selection.rating.length+Number(!!selection.platform)+selection.treatment.length+selection.experience.length;
+  const selectedCount=selection.rating.length+selection.platform.length+selection.treatment.length+selection.experience.length;
   filter?.setCount(selectedCount);
   filterStatus.classList.toggle('is-error',!!message);
   if(filterOpen&&filterReady){updateTotal(count);ticker.update(count?'01':'00',-1);position.setAttribute('aria-label','Preview: '+count+' matching reviews');}
@@ -263,7 +263,7 @@ function mount(root,data){
    onError:()=>updateFilterOptions('Could not load these reviews. Tap View reviews to retry.')
   });
   filterOptions.forEach(option=>action(option,()=>{if(option.disabled||!filterReady)return;selection=candidate(option.dataset.tdbFilterGroup,option.dataset.tdbFilterValue);primeSelection();}));
-  action(filterPanel.querySelector('[data-tdb-filter-reset]'),()=>{if(selectionBusy)return;selection={sort:'recommended',rating:[],platform:'',treatment:[],experience:[]};if(filterReady)primeSelection();else prepareFilters();});
+  action(filterPanel.querySelector('[data-tdb-filter-reset]'),()=>{if(selectionBusy)return;selection={sort:'recommended',rating:[],platform:[],treatment:[],experience:[]};if(filterReady)primeSelection();else prepareFilters();});
   action(filterApply,()=>{if(!filterApply.disabled)filter.requestClose('apply');});
   updateFilterOptions();
  }
@@ -277,11 +277,11 @@ function mount(root,data){
   // A named CMS quote opens in its editorial context, never an old filter result.
   if(preferred&&(indexMode||selectionBusy)){
    queryController?.abort();queryRevision++;selectionBusy=false;pendingBatch=null;moreFlight=null;
-   cancelDraft();selection={sort:'recommended',rating:[],platform:'',treatment:[],experience:[]};appliedSelection=copySelection(selection);indexMode=false;matched=[];
+   cancelDraft();selection={sort:'recommended',rating:[],platform:[],treatment:[],experience:[]};appliedSelection=copySelection(selection);indexMode=false;matched=[];
    renderSelection(data.records.slice());
   }
   return drawer.open(trigger);
  },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();filterApplyTicker?.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBReviews=Object.freeze({version:'3.10.0',mount});
+window.TDBReviews=Object.freeze({version:'3.11.0',mount});
 })();

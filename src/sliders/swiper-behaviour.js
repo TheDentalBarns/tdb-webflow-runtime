@@ -1,11 +1,12 @@
-/* TDB Swiper behaviour v1.0.0. Included in the existing custom Swiper artifact. */
+/* TDB Swiper behaviour v1.1.0. Included in the existing custom Swiper artifact. */
 (() => {
   'use strict';
   if (window.TDBSwiper) return;
   const bound = new WeakSet();
 
-  // Components own their options and lifecycle. This shared adapter only keeps
-  // loop handoffs and interrupted transitions continuous, including parallax.
+  // Components own their options, duration and lifecycle. The shared adapter
+  // keeps loop/interrupt handoffs continuous and gives touch release a settling
+  // curve. Swiper still chooses the snapped card; no free-scrolling mode is added.
   function bindSwiper(swiper) {
     if (bound.has(swiper)) return;
     bound.add(swiper);
@@ -15,6 +16,23 @@
       loopFix: swiper.loopFix,
       slidePrev: swiper.slidePrev,
     };
+    const releaseEasing = 'cubic-bezier(.22,.61,.36,1)';
+    const releaseStyles = new Map();
+    let releasePending = false;
+
+    function restoreReleaseEasing() {
+      releaseStyles.forEach((value, el) => { el.style.transitionTimingFunction = value; });
+      releaseStyles.clear();
+    }
+
+    function applyReleaseEasing() {
+      const nodes = [swiper.wrapperEl, ...[...swiper.slides].flatMap(slide =>
+        [...slide.querySelectorAll('[data-swiper-parallax], [data-swiper-parallax-x], [data-swiper-parallax-y]')])];
+      nodes.forEach(el => {
+        if (!releaseStyles.has(el)) releaseStyles.set(el, el.style.transitionTimingFunction || '');
+        el.style.transitionTimingFunction = releaseEasing;
+      });
+    }
 
     function capture() {
       return [...swiper.slides].flatMap((slide, index) => {
@@ -38,10 +56,20 @@
     }
 
     swiper.slideTo = function (index = 0, speed = this.params.speed, callbacks = true, internal, initial) {
-      if (speed > 0 && Number(index) !== this.activeIndex && this.animating && !this.params.preventInteractionOnTransition) {
+      // A loop's zero-duration correction must not consume the pending release.
+      const touchRelease = releasePending && speed > 0;
+      if (speed > 0) releasePending = false;
+      if (this.animating && this.params.preventInteractionOnTransition) {
+        return original.slideTo.call(this, index, speed, callbacks, internal, initial);
+      }
+      if (speed > 0 && (Number(index) !== this.activeIndex || releaseStyles.size) && this.animating && !this.params.preventInteractionOnTransition) {
         freeze(capture());
       }
-      return original.slideTo.call(this, index, speed, callbacks, internal, initial);
+      if (touchRelease) applyReleaseEasing();
+      else restoreReleaseEasing();
+      const result = original.slideTo.call(this, index, speed, callbacks, internal, initial);
+      if (touchRelease && !this.animating) restoreReleaseEasing();
+      return result;
     };
 
     swiper.loopFix = function () {
@@ -78,12 +106,21 @@
       return original.slidePrev.call(this, speed, callbacks, internal);
     };
 
+    swiper.on('touchEnd', () => {
+      releasePending = !!swiper.touchEventsData?.isMoved && swiper.allowTouchMove !== false;
+      // Swiper resolves a touch snap synchronously after emitting touchEnd.
+      // A tap, cancelled gesture or zero-distance release cannot affect a later click.
+      queueMicrotask(() => { releasePending = false; });
+    });
+    swiper.on('transitionEnd', restoreReleaseEasing);
     swiper.on('beforeDestroy', () => {
+      releasePending = false;
+      restoreReleaseEasing();
       swiper.slideTo = original.slideTo;
       swiper.loopFix = original.loopFix;
       swiper.slidePrev = original.slidePrev;
     });
   }
 
-  window.TDBSwiper = Object.freeze({ version: '1.0.0', bindSwiper });
+  window.TDBSwiper = Object.freeze({ version: '1.1.0', bindSwiper });
 })();
