@@ -371,3 +371,20 @@ applied sequence and position. Totals animate down/up using the shared duration.
 Reduced motion settles immediately; teardown releases both ticker instances.
 Native CMS fields, source text, consent/presence/proximity gates and later batches
 are unchanged. Publish the matching native structure and Home script pin together.
+
+
+### Native FAQ/pricing reveal alignment — 3.7.1
+
+Verified against published IX2 FAQ DD Accordion Open/Close (a-50/a-51) and
+Price DD Accordion Open/Close (a-74/a-75). These set natural height immediately,
+then fade content over 300ms linear, move it from -20px over 400ms outQuart,
+and expand a 20px spacer over 300ms outQuart. Close hides the body immediately
+and eases the spacer shut. The review filter now uses those independent timings,
+rather than tweening body height, movement and opacity together. Opacity reaches
+1 as in pricing/Smile Gallery; the native option colours still control emphasis.
+Webflow owns the native group spacer and the centred flex action-button layout.
+
+Outside-click handling captures at the enclosing drawer: review strip, header
+and outer shaded backdrop dismiss the filter without also closing the review
+drawer or clicking through. The main close X retains its full-drawer action.
+The filter toggle, ticker, draft/apply and prefetch logic are unchanged.

@@ -1,4 +1,4 @@
-/* TDB native reviews v3.7.0. Native Webflow layout; original quote choreography. */
+/* TDB native reviews v3.7.1. Native Webflow layout; original quote choreography. */
 (() => {
 'use strict';if(window.TDBReviews)return;
 const instances=new WeakMap();
@@ -232,7 +232,12 @@ function mount(root,data){
   filterAnimation=animation;animation.finished.then(finish).catch(()=>{});
  }
  if(filterPanel){
-  filterBackdrop?.addEventListener('click',()=>filter.set(false),{signal});
+  // Capture before the outer drawer backdrop's close handler: the first outside
+  // click dismisses only this filter and cannot activate the content underneath.
+  root.closest('[data-tdb-drawer]').addEventListener('click',event=>{
+   if(!filterOpen||filterPanel.contains(event.target)||filterButton.contains(event.target)||event.target.closest('[data-tdb-drawer-close]'))return;
+   event.preventDefault();event.stopImmediatePropagation();filter.set(false);
+  },{signal,capture:true});
   filterPanel.id='tdb-review-filters-'+Math.random().toString(36).slice(2,9);filterPanel.inert=true;
   filterButton.setAttribute('aria-controls',filterPanel.id);filterButton.setAttribute('aria-expanded','false');filterButton.setAttribute('aria-label','Filter and sort reviews');
   for(const event of ['pointerenter','focus','pointerdown'])filterButton.addEventListener(event,prepareFilters,{signal,passive:true});
@@ -240,18 +245,26 @@ function mount(root,data){
    const key=button.dataset.tdbFilterDisclosure,body=button.parentElement.querySelector('.tdb-review-filter_options'),summary=button.querySelector('[data-tdb-filter-selection]'),chevron=button.querySelector('[data-tdb-filter-chevron]');
    if(!body||!summary)continue;
    body.id=filterPanel.id+'-'+key;button.setAttribute('aria-controls',body.id);body.inert=true;
-   const entry={key,summary,open:false,animation:null,turn:null,revision:0,set(open,immediate=false){
-    const start=body.getBoundingClientRect().height,revision=++entry.revision;
-    entry.animation?.cancel();entry.turn?.cancel();entry.animation=entry.turn=null;entry.open=open;
-    button.setAttribute('aria-expanded',String(open));body.inert=!open;body.classList.remove('is-collapsed');
-    const end=open?body.scrollHeight:0,duration=immediate||reduced.matches?0:400;
-    const finish=()=>{if(revision!==entry.revision)return;body.classList.toggle('is-collapsed',!open);entry.animation?.cancel();entry.animation=null;};
-    if(chevron)chevron.style.transform='rotate('+ (open?180:0)+'deg)';
-    if(!duration){finish();return;}
-    entry.animation=body.animate([{height:start+'px',opacity:open?0:1,transform:open?'translateY(-20px)':'translateY(0)'},{height:end+'px',opacity:open?1:0,transform:open?'translateY(0)':'translateY(-20px)'}],{duration,easing:'cubic-bezier(.165,.84,.44,1)',fill:'both'});
-    entry.animation.finished.then(finish).catch(()=>{});
-    if(chevron){entry.turn=chevron.animate([{transform:'rotate('+(open?0:180)+'deg)'},{transform:chevron.style.transform}],{duration,easing:'ease'});entry.turn.finished.catch(()=>{});}
-   },destroy(){entry.revision++;entry.animation?.cancel();entry.turn?.cancel();body.classList.add('is-collapsed');body.inert=true;button.setAttribute('aria-expanded','false');if(chevron)chevron.style.removeProperty('transform');}};
+   const group=button.parentElement;
+   const entry={key,summary,open:false,animations:[],set(open,immediate=false){
+    const running=entry.animations.some(animation=>animation.effect?.target===body),fromOpacity=running?getComputedStyle(body).opacity:0,fromTransform=running?getComputedStyle(body).transform:'translateY(-20px)';
+    const fromSpace=getComputedStyle(group).paddingBottom,fromTurn=chevron?getComputedStyle(chevron).transform:'none';
+    entry.animations.forEach(animation=>animation.cancel());entry.animations=[];entry.open=open;
+    button.setAttribute('aria-expanded',String(open));body.setAttribute('aria-hidden',String(!open));body.inert=!open;
+    body.classList.toggle('is-collapsed',!open);group.classList.toggle('is-expanded',open);
+    if(chevron)chevron.style.transform='rotate('+(open?180:0)+'deg)';
+    if(immediate||reduced.matches)return;
+    const run=(node,frames,duration,easing)=>{
+     const animation=node.animate(frames,{duration,easing,fill:'both'});entry.animations.push(animation);
+     animation.finished.then(()=>{animation.cancel();const index=entry.animations.indexOf(animation);if(index!==-1)entry.animations.splice(index,1);}).catch(()=>{});
+    };
+    // Match native FAQ/Price DD: auto-height immediately; independent fade,
+    // outQuart movement and spacer. Do not stretch or tween the option rows.
+    const outQuart='cubic-bezier(.165,.84,.44,1)';
+    run(group,[{paddingBottom:fromSpace},{paddingBottom:open?'20px':'0px'}],300,outQuart);
+    if(open){run(body,[{opacity:fromOpacity},{opacity:1}],300,'linear');run(body,[{transform:fromTransform},{transform:'translateY(0)'}],400,outQuart);}
+    if(chevron)run(chevron,[{transform:fromTurn},{transform:chevron.style.transform}],400,'ease');
+   },destroy(){entry.animations.forEach(animation=>animation.cancel());entry.animations=[];body.classList.add('is-collapsed');group.classList.remove('is-expanded');body.inert=true;body.setAttribute('aria-hidden','true');button.setAttribute('aria-expanded','false');if(chevron)chevron.style.removeProperty('transform');}};
    disclosures.push(entry);action(button,()=>{const open=!entry.open;for(const other of disclosures)if(other!==entry&&other.open)other.set(false);entry.set(open);});
   }
   filterOptions.forEach(option=>action(option,()=>{if(option.disabled||!filterReady)return;selection=candidate(option.dataset.tdbFilterGroup,option.dataset.tdbFilterValue);primeSelection();}));
@@ -277,6 +290,6 @@ function mount(root,data){
   return drawer.open(trigger);
  },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;cancelDraft();disclosures.forEach(entry=>entry.destroy());queryController?.abort();clearTimeout(filterPrimeTimer);filterAnimation?.cancel();backdropAnimation?.cancel();filterBackdrop?.classList.add('is-closed');filterPanel?.classList.add('is-closed');filterPanel?.setAttribute('aria-hidden','true');if(filterPanel)filterPanel.inert=true;viewport.inert=false;filter.destroy();unsubscribe?.();drawer.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBReviews=Object.freeze({version:'3.7.0',mount});
+window.TDBReviews=Object.freeze({version:'3.7.1',mount});
 })();
 
