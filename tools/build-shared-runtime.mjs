@@ -9,6 +9,7 @@ const entries = {
   'src/partners/marquee.js': 'tdb-logo-marquee.js',
   'src/shared/modules.js': 'tdb-modules.js',
   'src/shared/motion.js': 'tdb-motion.js',
+  'src/shared/filters.js': 'tdb-filters.js',
   'src/shared/drawer.js': 'tdb-drawer.js',
   'src/shared/ticker.js': 'tdb-ticker.js',
   'src/reviews/native/loader.js': 'tdb-reviews-loader.js',
@@ -27,3 +28,4 @@ for (const [source, artifact] of Object.entries(entries)) {
   } else await writeFile(output, text);
 }
 console.log(`${process.argv.includes('--check') ? 'Checked' : 'Built'} ${Object.keys(entries).length} shared/native runtime artifacts.`);
+

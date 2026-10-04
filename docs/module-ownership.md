@@ -8,18 +8,19 @@ colour, spacing, responsive styles and control appearance. GitHub owns behaviour
 
 | Published artifact | Responsibility | Does not own |
 | --- | --- | --- |
-| `tdb-modules.js` | Resolve shared release URLs, cache one request/promise per URL, retry failed downloads. The review-loader pin, or otherwise the marquee-loader pin, is the common release for motion and custom Swiper. | Consent decisions, component mounting, viewport playback |
+| `tdb-modules.js` | Resolve shared release URLs, cache one request/promise per URL, retry failed downloads. The review-loader pin, or otherwise the marquee-loader pin, is the common release for motion, filters, drawers, tickers and custom Swiper. | Consent decisions, component mounting, viewport playback |
 | `tdb-motion.js` | Shared duration policy; DD text opacity; general fades; timing defaults consumed by drawers, tickers and review components. | Swiper engine or interruption implementation, fetching, CMS content, layout |
 | `tdb-swiper-8.4.7.min.js` | Existing custom Swiper engine plus `TDBSwiper.bindSwiper`: interruption continuity, loop handoffs and parallax transform continuity. The adapter ships in the SAME download. | Page discovery, consent, review content, component styles |
 | `tdb-sliders.js` | Existing highlight/parallax carousel setup, controls, entry behaviour and slider focus. This is still a legacy combined component bundle pending component-by-component migration. | DD text implementation or a second Swiper engine |
 | `tdb-drawer.js` | Shared native drawer shell: opening/closing, focus, scroll locking, lifecycle and cleanup. | Review cards, CMS selection, drawer styling |
+| `tdb-filters.js` | Reusable filter panel, backdrop fade, accordion reveal, badge display, focus/control states, protected outside gestures, asynchronous apply-on-close and cleanup. | CMS, filter matching/sorting, result fetching, Swiper, visual CSS |
 | `tdb-ticker.js` | Animate values using native Webflow ticker templates; settle interruptions and reduced motion. Reads the shared ticker duration. | Source values, aggregate calculations, text/slot dimensions |
 | `tdb-reviews-loader.js` | Review permission policy, component discovery, proximity/intent preparation, shared dependencies, CMS fetch coordination and teardown. | DD, slider or drawer animation implementation |
 | `tdb-review-cms.js` | Read published CMS markup, existing context matching, aggregates, record identity and source cache. | CMS authoring/schema or review text stored in JavaScript |
 | `tdb-review-introduction.js` | Summary tickers, DD binding, arrow rotation and accessible review triggers for the native introduction. | Loading policy or full drawer content |
 | `tdb-review-quotes.js` | Native quote-carousel setup, quote fades, byline DD binding and interaction state. | Duplicated Swiper/ DD implementation |
 | `tdb-review-cards.js` | Native review-card carousel, pagination and quote choreography. | Duplicated engine, native card artwork or sizing |
-| `tdb-reviews.js` | Populate the native review drawer with CMS records, full-review slider, pagination and quote choreography. | Shared drawer shell mechanics or styling |
+| `tdb-reviews.js` | Review adapter: CMS matching/sorting, draft/committed selection, cached result batches, counts, full-review slider, pagination and quote choreography. | Shared drawer/filter interaction mechanics or styling |
 | `tdb-review-legacy-loader.js` | Keep earlier review patches available to components awaiting migration. | New native components |
 
 `tdb-logo-marquee.js` and its loader remain separate: the partner marquee does not
@@ -83,6 +84,7 @@ Edit these sources, then run `node tools/build-shared-runtime.mjs`:
 | `src/partners/marquee.js` | `dist/tdb-logo-marquee.js` |
 | `src/shared/modules.js` | `dist/tdb-modules.js` |
 | `src/shared/motion.js` | `dist/tdb-motion.js` |
+| `src/shared/filters.js` | `dist/tdb-filters.js` |
 | `src/shared/drawer.js` | `dist/tdb-drawer.js` |
 | `src/shared/ticker.js` | `dist/tdb-ticker.js` |
 | `src/reviews/native/loader.js` | `dist/tdb-reviews-loader.js` |
@@ -415,3 +417,48 @@ it is restored when they close. The filter X stays highlighted throughout editin
 Native accordion motion, shared motion/ticker/Swiper, CMS, caching and loading gates
 are unchanged. No additional script or dependency was added. Publish matching
 Webflow structure/styles and the Home runtime pin together.
+
+
+## Reusable filter controller — 4 October, reviews 3.9.0
+
+`src/shared/filters.js` / `tdb-filters.js` 1.0.0 now owns the filter panel
+interaction previously embedded in the review adapter. No review selectors, CMS
+fields, data fetches, Swiper calls or CSS injection are in the shared controller.
+Existing Webflow markup/classes and motion timings stay unchanged. Accordion
+spacer targets are measured from the native expanded/collapsed state classes.
+
+`TDBFilters.mount(panel, options)` returns the same instance for repeated mounts.
+Pass actual element references: `toggle`, optional `backdrop`, `heading`, `badge`,
+`escapeRoot`, `blockedControls`, `inertTargets`, and disclosure descriptors
+`{ key, button, body, group?, chevron? }`. Default state classes can be overridden
+through `classes`; `labels` supplies accessible open/close text. The consumer
+owns native structure and selection summaries.
+
+Hooks: `onIntent()` prepares the consumer's data; `onChange(open)` pauses/resumes
+the consumer; `beforeClose({reason, signal})` applies its selection. Return false
+or reject to retain the panel/choices; `onError(error)` supplies consumer-specific
+feedback. Concurrent close attempts share one pending commit. Teardown invalidates
+pending completion, aborts the shared signal and restores native state. Consumers
+must also abort their own data requests and reject stale result commits.
+
+API: `setCount(number)` updates the native selection badge; `requestClose(reason)`
+is the user-facing apply/close path; `set(open, immediate)` and `reset(immediate)`
+are programmatic lifecycle operations; `destroy()` removes listeners/animations
+and permits a clean remount. `isOpen` reports state.
+
+Reviews 3.9.0 owns all matching, sorting, aliases, availability, Reset, labels,
+result prefetch/cache, counts and CMS rendering. It supplies these through the
+controller hooks. Main drawer shell, icon morph, number tickers and Swiper stay
+in their existing shared modules. Smile Gallery is not migrated by this release;
+its future adapter can consume this controller without changing review code.
+
+Loader 3.4.0 requests filters only where the native review drawer exists, after
+the existing permission and proximity/intent checks. Registry 1.3.0 canonicalises
+filters/drawer/ticker pins as well as motion/Swiper before promise deduplication.
+No eager filter load, second Swiper bundle or new Webflow controls were added.
+
+Checks: `node tests/shared-filters.browser.cjs` (Playwright Chromium; optional
+`TDB_CHROMIUM` executable) exercises a standalone non-review consumer, remount,
+failed/duplicate/stale close requests, reduced motion and cross-pin single loading.
+The staged review adapter is also checked at mobile/desktop widths with touch
+events, persistent selections, outside isolation, icon states and cached loading.

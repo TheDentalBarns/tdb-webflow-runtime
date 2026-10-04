@@ -1,13 +1,13 @@
-/* TDB shared dependency registry v1.2.0. Definitions do not mount components. */
+/* TDB shared dependency registry v1.3.0. Definitions do not mount components. */
 (() => {
 'use strict'; if(window.TDBModules)return;
 const flights=new Map();
 function load(url,{attribute,ready}={}){
  let src=new URL(url,location.href).href;
- // Native reviews, then the shared marquee loader, own the motion/Swiper pin.
+ // Native reviews, then the shared marquee loader, own shared module pins.
  // Resolve before checking ready/cache so differently pinned callers share one flight.
  const sharedLoader=document.querySelector('script[data-tdb-reviews-loader][src]')||document.querySelector('script[data-tdb-logo-marquee-loader][src]');
- const shared=src.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/TheDentalBarns\/tdb-webflow-runtime@[^/]+\/dist\/(tdb-motion\.js|tdb-swiper-8\.4\.7\.min\.js)$/);
+ const shared=src.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/TheDentalBarns\/tdb-webflow-runtime@[^/]+\/dist\/(tdb-motion\.js|tdb-filters\.js|tdb-drawer\.js|tdb-ticker\.js|tdb-swiper-8\.4\.7\.min\.js)$/);
  if(sharedLoader&&shared){
   src=new URL(shared[1],sharedLoader.src).href;
   if(shared[1]==='tdb-swiper-8.4.7.min.js'&&ready){const engineReady=ready;ready=()=>engineReady()&&Boolean(window.TDBSwiper);}
@@ -28,5 +28,6 @@ function load(url,{attribute,ready}={}){
  });
  flights.set(src,promise);promise.catch(()=>flights.delete(src));return promise;
 }
-window.TDBModules=Object.freeze({version:'1.2.0',load});
+window.TDBModules=Object.freeze({version:'1.3.0',load});
 })();
+
