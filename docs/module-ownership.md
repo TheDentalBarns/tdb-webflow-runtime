@@ -251,7 +251,7 @@ its opacity stays unchanged. Runtime mask IDs are unique per mounted control.
 
 ## Review filter panel pilot — 4 October
 
-Supersedes the icon-only trial above. Native reviews 3.5.0 adds a bottom-up filter
+Supersedes the icon-only trial above. Native reviews 3.5.1 adds a bottom-up filter
 panel inside the existing Review Drawer. CMS reader 1.3.0 supplies its data, and
 motion 1.4.2 adds a change callback/programmatic state to the existing icon helper.
 No additional runtime download or embedded script was added.
@@ -311,3 +311,7 @@ existing drawer close and absence of duplicate requests. Roll back the Home load
 pin to `c6e50fc3d7b898fd05582002a266e3c1abcc93bb` to restore the icon-only runtime;
 the new native panel stays closed under that runtime.
 
+
+Reopening from a named CMS quote clears an old drawer filter so the clicked review
+opens in its original editorial sequence. Keyboard, rapid-selection and reduced-
+motion checks cover the panel in addition to normal pointer activation.

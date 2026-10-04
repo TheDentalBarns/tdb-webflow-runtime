@@ -1,4 +1,4 @@
-/* TDB native reviews v3.5.0. Native Webflow layout; original quote choreography. */
+/* TDB native reviews v3.5.1. Native Webflow layout; original quote choreography. */
 (() => {
 'use strict';if(window.TDBReviews)return;
 const instances=new WeakMap();
@@ -210,8 +210,17 @@ function mount(root,data){
  if(viewport.clientWidth)createSwiper();
  const resize=new ResizeObserver(()=>{if(swiper&&!swiper.animating){swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);swiper.update();}});resize.observe(viewport);
  reduced.addEventListener('change',()=>{if(swiper){swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);if(reduced.matches&&phase!=='closed'){hideQuote();phase='moving';swiper.slideTo(swiper.activeIndex,0);ticker.settle();reveal(0);}}},{signal});
- const api=Object.freeze({async open(trigger,id){preferred=id||'';return drawer.open(trigger);},close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;queryController?.abort();clearTimeout(filterPrimeTimer);filterAnimation?.cancel();filterPanel?.classList.add('is-closed');filterPanel?.setAttribute('aria-hidden','true');if(filterPanel)filterPanel.inert=true;viewport.inert=false;filter.destroy();unsubscribe?.();drawer.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
+ const api=Object.freeze({async open(trigger,id){
+  preferred=id||'';
+  // A named CMS quote opens in its editorial context, never an old filter result.
+  if(preferred&&(indexMode||selectionBusy)){
+   queryController?.abort();queryRevision++;selectionBusy=false;pendingBatch=null;moreFlight=null;
+   selection={sort:'recommended',rating:'',platform:'',treatment:'',experience:''};indexMode=false;matched=[];
+   renderSelection(data.records.slice());
+  }
+  return drawer.open(trigger);
+ },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;queryController?.abort();clearTimeout(filterPrimeTimer);filterAnimation?.cancel();filterPanel?.classList.add('is-closed');filterPanel?.setAttribute('aria-hidden','true');if(filterPanel)filterPanel.inert=true;viewport.inert=false;filter.destroy();unsubscribe?.();drawer.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBReviews=Object.freeze({version:'3.5.0',mount});
+window.TDBReviews=Object.freeze({version:'3.5.1',mount});
 })();
 
