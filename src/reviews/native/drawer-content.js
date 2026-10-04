@@ -1,4 +1,4 @@
-/* TDB native reviews v3.5.1. Native Webflow layout; original quote choreography. */
+/* TDB native reviews v3.6.0. Native Webflow layout; original quote choreography. */
 (() => {
 'use strict';if(window.TDBReviews)return;
 const instances=new WeakMap();
@@ -15,13 +15,21 @@ function mount(root,data){
  const position=$('[data-tdb-reviews-position]'),previous=$('[data-tdb-reviews-prev]'),next=$('[data-tdb-reviews-next]');
  const ticker=window.TDBNativeTicker.mount(position),fades=motion.fadeController();let swiper=null,moreFlight=null,pendingAppend=false,destroyed=false,phase='closed',revealTimer=0,shownQuote=null,settledSlide=null,reflectedIndex=-1;
 
- let selection={sort:'recommended',rating:'',platform:'',treatment:'',experience:''};
+ let selection={sort:'recommended',rating:'',platform:'',treatment:[],experience:[]};
  let filterOpen=false,filterAnimation=null,filterRevision=0,filterFlight=null,filterReady=!!data.indexReady,filterPrimeTimer=0;
  let indexMode=false,matched=[],queryController=null,queryRevision=0,selectionBusy=false,pendingBatch=null;
  const canLoadMore=()=>indexMode?records.length<matched.length:data.hasMore;
  const filterOptions=filterPanel?[...filterPanel.querySelectorAll('[data-tdb-filter-group]')]:[];
  const filterStatus=filterPanel?.querySelector('[data-tdb-filter-status]'),filterApply=filterPanel?.querySelector('[data-tdb-filter-apply]');
- function hasSelection(){return selection.sort!=='recommended'||['rating','platform','treatment','experience'].some(key=>selection[key]);}
+ const canonical=topic=>cms.canonicalTopic(topic),multi=key=>key==='treatment'||key==='experience';
+ const chosen=(key,value)=>multi(key)?value?selection[key].includes(canonical(value)):!selection[key].length:selection[key]===value;
+ function candidate(key,value){
+  if(!multi(key))return {...selection,[key]:value};
+  value=canonical(value);const current=selection[key];
+  return {...selection,[key]:!value?[]:current.includes(value)?current.filter(item=>item!==value):[...current,value]};
+ }
+ const disclosures=[];
+ function hasSelection(){return selection.sort!=='recommended'||!!selection.rating||!!selection.platform||selection.treatment.length>0||selection.experience.length>0;}
  $('[data-tdb-reviews-average]').textContent=data.average.toFixed(2);$('[data-tdb-reviews-total]').textContent=data.total+' reviews';const length=()=>indexMode?matched.length:data.hasMore?data.total:records.length;$('[data-tdb-reviews-length]').textContent=String(length()).padStart(2,'0');
  function slide(record,index){
   if(slideCache.has(record.id))return slideCache.get(record.id);
@@ -98,8 +106,8 @@ function mount(root,data){
  // Native panel and options; runtime only selects CMS records and animates the panel.
  function matching(state=selection){
   return (data.indexReady?data.filterIndex:data.records).filter(record=>(!state.rating||(state.rating==='unrated'?!record.rating:record.rating===Number(state.rating)))&&
-   (!state.platform||record.platform===state.platform)&&(!state.treatment||record.topics.includes(state.treatment))&&
-   (!state.experience||record.topics.includes(state.experience)));
+   (!state.platform||record.platform===state.platform)&&state.treatment.every(topic=>record.topics.some(value=>canonical(value)===topic))&&
+   state.experience.every(topic=>record.topics.some(value=>canonical(value)===topic)));
  }
  function ordered(){
   const list=matching();
@@ -119,10 +127,16 @@ function mount(root,data){
  function updateFilterOptions(message){
   if(!filterPanel)return;
   for(const option of filterOptions){
-   const key=option.dataset.tdbFilterGroup,value=option.dataset.tdbFilterValue,selected=selection[key]===value;
-   const unavailable=!filterReady||(key!=='sort'&&!selected&&!matching({...selection,[key]:value}).length);
-   option.disabled=unavailable;option.tabIndex=unavailable?-1:0;option.setAttribute('aria-disabled',String(unavailable));option.setAttribute('aria-pressed',String(selected));
+   const key=option.dataset.tdbFilterGroup,value=option.dataset.tdbFilterValue,selected=chosen(key,value);
+   const unavailable=!filterReady||(key!=='sort'&&!selected&&!matching(candidate(key,value)).length);
+   option.disabled=unavailable;option.tabIndex=unavailable?-1:0;option.setAttribute('aria-disabled',String(unavailable));option.setAttribute(multi(key)?'aria-checked':'aria-pressed',String(selected));
+   if(multi(key)){option.setAttribute('role','checkbox');option.removeAttribute('aria-pressed');}
+   for(const mark of option.querySelectorAll('.tdb-review-filter_mark,.tdb-review-filter_tick'))mark.classList.toggle('is-checked',selected);
    option.classList.toggle('is-selected',selected);option.classList.toggle('is-unavailable',unavailable);
+  }
+  for(const disclosure of disclosures){
+   const key=disclosure.key,seen=new Set(),labels=filterOptions.filter(option=>option.dataset.tdbFilterGroup===key&&chosen(key,option.dataset.tdbFilterValue)).filter(option=>{const value=canonical(option.dataset.tdbFilterValue);if(seen.has(value))return false;seen.add(value);return true;}).map(option=>option.textContent.trim());
+   disclosure.summary.textContent=labels.length>2?labels.length+' selected':labels.join(' + ');disclosure.summary.title=labels.join(', ');
   }
   const count=matching().length;
   filterStatus.textContent=message||(selectionBusy?'Loading matching reviews…':filterReady?(hasSelection()?count+' matching '+(count===1?'review':'reviews'):'All reviews'):'Preparing review filters…');
@@ -198,11 +212,29 @@ function mount(root,data){
   filterPanel.id='tdb-review-filters-'+Math.random().toString(36).slice(2,9);filterPanel.inert=true;
   filterButton.setAttribute('aria-controls',filterPanel.id);filterButton.setAttribute('aria-expanded','false');filterButton.setAttribute('aria-label','Filter and sort reviews');
   for(const event of ['pointerenter','focus','pointerdown'])filterButton.addEventListener(event,prepareFilters,{signal,passive:true});
-  filterOptions.forEach(option=>action(option,()=>{if(option.disabled||!filterReady)return;selection[option.dataset.tdbFilterGroup]=option.dataset.tdbFilterValue;replaceSelection();}));
-  action(filterPanel.querySelector('[data-tdb-filter-reset]'),()=>{selection={sort:'recommended',rating:'',platform:'',treatment:'',experience:''};if(filterReady)replaceSelection();else prepareFilters();});
+  for(const button of filterPanel.querySelectorAll('[data-tdb-filter-disclosure]')){
+   const key=button.dataset.tdbFilterDisclosure,body=button.parentElement.querySelector('.tdb-review-filter_options'),summary=button.querySelector('[data-tdb-filter-selection]'),chevron=button.querySelector('[data-tdb-filter-chevron]');
+   if(!body||!summary)continue;
+   body.id=filterPanel.id+'-'+key;button.setAttribute('aria-controls',body.id);body.inert=true;
+   const entry={key,summary,open:false,animation:null,turn:null,revision:0,set(open,immediate=false){
+    const start=body.getBoundingClientRect().height,revision=++entry.revision;
+    entry.animation?.cancel();entry.turn?.cancel();entry.animation=entry.turn=null;entry.open=open;
+    button.setAttribute('aria-expanded',String(open));body.inert=!open;body.classList.remove('is-collapsed');
+    const end=open?body.scrollHeight:0,duration=immediate||reduced.matches?0:motion.duration(innerWidth);
+    const finish=()=>{if(revision!==entry.revision)return;body.classList.toggle('is-collapsed',!open);entry.animation?.cancel();entry.animation=null;};
+    if(chevron)chevron.style.transform='rotate('+ (open?180:0)+'deg)';
+    if(!duration){finish();return;}
+    entry.animation=body.animate([{height:start+'px',opacity:open?0:1},{height:end+'px',opacity:open?1:0}],{duration,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});
+    entry.animation.finished.then(finish).catch(()=>{});
+    if(chevron){entry.turn=chevron.animate([{transform:'rotate('+(open?0:180)+'deg)'},{transform:chevron.style.transform}],{duration,easing:'cubic-bezier(.4,0,.2,1)'});entry.turn.finished.catch(()=>{});}
+   },destroy(){entry.revision++;entry.animation?.cancel();entry.turn?.cancel();body.classList.add('is-collapsed');body.inert=true;button.setAttribute('aria-expanded','false');if(chevron)chevron.style.removeProperty('transform');}};
+   disclosures.push(entry);action(button,()=>{const open=!entry.open;for(const other of disclosures)if(other!==entry&&other.open)other.set(false);entry.set(open);});
+  }
+  filterOptions.forEach(option=>action(option,()=>{if(option.disabled||!filterReady)return;selection=candidate(option.dataset.tdbFilterGroup,option.dataset.tdbFilterValue);replaceSelection();}));
+  action(filterPanel.querySelector('[data-tdb-filter-reset]'),()=>{selection={sort:'recommended',rating:'',platform:'',treatment:[],experience:[]};if(filterReady)replaceSelection();else prepareFilters();});
   action(filterApply,()=>{if(!filterApply.disabled)filter.set(false);});
   root.addEventListener('keydown',event=>{if(filterOpen&&event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();filter.set(false);}},{signal,capture:true});
-  reduced.addEventListener('change',()=>{if(filterAnimation)setFilterOpen(filterOpen,true);},{signal});
+  reduced.addEventListener('change',()=>{if(filterAnimation)setFilterOpen(filterOpen,true);for(const entry of disclosures)entry.set(entry.open,true);},{signal});
   updateFilterOptions();
  }
  let preferred='';const drawer=window.TDBDrawer.mount(root.closest('[data-tdb-drawer]'),{onOpen(){build(preferred);clearTimeout(filterPrimeTimer);filterPrimeTimer=setTimeout(prepareFilters,250);},onClose(){clearTimeout(filterPrimeTimer);filter.reset(true);hideQuote();phase='closed';if(mark.closest('[data-tdb-review-scroll]')?.scrollTop>0)fades.to(mark,0,fadeTime());ticker.settle();}});
@@ -215,12 +247,12 @@ function mount(root,data){
   // A named CMS quote opens in its editorial context, never an old filter result.
   if(preferred&&(indexMode||selectionBusy)){
    queryController?.abort();queryRevision++;selectionBusy=false;pendingBatch=null;moreFlight=null;
-   selection={sort:'recommended',rating:'',platform:'',treatment:'',experience:''};indexMode=false;matched=[];
+   selection={sort:'recommended',rating:'',platform:'',treatment:[],experience:[]};indexMode=false;matched=[];
    renderSelection(data.records.slice());
   }
   return drawer.open(trigger);
- },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;queryController?.abort();clearTimeout(filterPrimeTimer);filterAnimation?.cancel();filterPanel?.classList.add('is-closed');filterPanel?.setAttribute('aria-hidden','true');if(filterPanel)filterPanel.inert=true;viewport.inert=false;filter.destroy();unsubscribe?.();drawer.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
+ },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;disclosures.forEach(entry=>entry.destroy());queryController?.abort();clearTimeout(filterPrimeTimer);filterAnimation?.cancel();filterPanel?.classList.add('is-closed');filterPanel?.setAttribute('aria-hidden','true');if(filterPanel)filterPanel.inert=true;viewport.inert=false;filter.destroy();unsubscribe?.();drawer.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBReviews=Object.freeze({version:'3.5.1',mount});
+window.TDBReviews=Object.freeze({version:'3.6.0',mount});
 })();
 

@@ -315,3 +315,27 @@ the new native panel stays closed under that runtime.
 Reopening from a named CMS quote clears an old drawer filter so the clicked review
 opens in its original editorial sequence. Keyboard, rapid-selection and reduced-
 motion checks cover the panel in addition to normal pointer activation.
+
+
+## Review filter glass and combinations — 4 October
+
+Native reviews 3.6.0 and CMS reader 1.3.1 retain the indexed, cached 20-result
+batches. Webflow owns the Smile Gallery cream finish (rgba(235,226,210,.84),
+150% saturation, 20px backdrop blur), accordion structure, tick artwork and all
+control styles. GitHub owns disclosure movement and state. There is no new script.
+
+Treatments and experiences use multi-selection: every selected distinct topic
+must match. Rating and platform remain single-selection; facets combine with AND.
+Selected choices always remain removable; unavailable additions are disabled from
+the complete metadata index. Each All choice clears only its own group. Reset
+clears all groups and restores Recommended. Keyboard activation, aria-checked,
+aria-expanded, reduced motion and teardown cover the new controls.
+
+Clear aligners and Invisalign are aliases of one matching identity, `clear-aligners`.
+The shared CMS reader normalises either existing topic flag and deduplicates both.
+Both page paths use the same context; original CMS fields and quoted wording remain
+intact. An excerpt may fall back to its alias when its own field is empty. Native
+filters normalise selected values too, so aliases cannot create two requirements.
+Smile Gallery already uses one Clear Aligners / Invisalign category. This is a
+matching rule, not a claim that every generic aligner review names the Invisalign
+brand. New components must use the same identity when connecting the prepared CMS.

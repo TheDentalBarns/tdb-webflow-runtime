@@ -1,4 +1,4 @@
-/* TDB CMS review source v1.3.0. No review records or credentials in this file. */
+/* TDB CMS review source v1.3.1. No review records or credentials in this file. */
 (() => {
   'use strict';
   if (window.TDBReviewCMS) return;
@@ -8,6 +8,9 @@
     'natural-results': 'natural', 'comfort': 'comfort', 'clear-explanations': 'assessment',
     'welcoming-team': 'team', 'calm-environment': 'environment', 'location': 'location', 'technology': 'technology'
   };
+  // One matching identity, preserving either CMS field and its authored excerpt.
+  const canonicalTopic=value=>value==='invisalign'?'clear-aligners':value;
+  const canonicalTopics=values=>[...new Set(values.map(canonicalTopic))];
   const platforms = { efe6db2067ed0fd456d38bc2e521b4bd: 'Google', '0d3340cdd96a32712e4c9d730e89df7d': 'Yell', a0c3d879d008891aec3a0bd741c1ea8c: 'Doctify', '17153ef92f97216cb750196d50c29c0d': 'Facebook', '9893e84e222a65c3ea16e8537dcc34e6': 'Direct testimonial', '18e8b0757d8babb418cb99c0b6830ea0': 'Other' };
   const normal = value => String(value || '').normalize('NFKC').replace(/\s+/g, ' ').trim();
   const numeric = value => value === null || String(value).trim() === '' ? NaN : Number(value);
@@ -31,7 +34,7 @@
         rank: rank('editorial-priority'), snippetRank: rank('snippet-rank'),
         nRank: rank('nervous-priority'), iRank: rank('invisalign-priority'), lRank: rank('location-snippet-rank'),
         duplicate: attr('duplicate-group'), url: attr('source-url') || attr('source-profile-url'),
-        direct: Boolean(attr('source-url')), topics, excerpts, response: '', showResponse: false
+        direct: Boolean(attr('source-url')), topics:canonicalTopics(topics), excerpts:{...excerpts,'clear-aligners':excerpts['clear-aligners']||excerpts.invisalign||'',invisalign:excerpts.invisalign||excerpts['clear-aligners']||''}, response: '', showResponse: false
       };
 
   }
@@ -42,7 +45,7 @@
       const rating=Number(attr('star-rating'));
       return {id:attr('slug'),platform:platforms[attr('platform-2')]||attr('platform-2'),
         date:attr('review-date'),rating:rating>=1&&rating<=5?rating:null,rank:Number(attr('editorial-priority'))||999,
-        topics:Object.entries(topicFields).filter(([field])=>shown(node.querySelector('[data-tdb-review-flag="topic-'+field+'"]'))).map(([,topic])=>topic)};
+        topics:canonicalTopics(Object.entries(topicFields).filter(([field])=>shown(node.querySelector('[data-tdb-review-flag="topic-'+field+'"]'))).map(([,topic])=>topic))};
     }).filter(record=>record.id);
     return {records,next:feed?.querySelector('.w-pagination-next:not([aria-disabled="true"])')?.getAttribute('href')||''};
   }
@@ -210,7 +213,7 @@
   }
   function contextForPath(path) {
     if (/nervous/.test(path)) return 'nervous';
-    if (/invisalign/.test(path)) return 'invisalign';
+    if (/invisalign|clear-aligners/.test(path)) return 'clear-aligners';
     if (/location/.test(path)) return 'location';
     for (const [needle, topic] of [['clear-aligners','clear-aligners'],['composite-bonding','bonding'],['veneers','veneers'],['whitening','whitening'],['hygiene','hygiene'],['first-visit','assessment'],['signature-assessment','assessment']]) if (path.includes(needle)) return topic;
     return 'default';
@@ -223,7 +226,7 @@
       [record.excerpt, ...Object.values(record.excerpts || {})].some(value => normal(value) === excerpt));
     return matching.length === 1 ? matching[0].id : '';
   }
-  window.TDBReviewCMS = Object.freeze({ version: '1.3.0', load, parse, sourceIcon, contextForPath, resolveIdentity,
+  window.TDBReviewCMS = Object.freeze({ version: '1.3.1', load, parse, sourceIcon, contextForPath, resolveIdentity, canonicalTopic,
     preview: Object.freeze({ contexts: Object.freeze({}) }),
     get quoteMark() { return (document.querySelector('[data-tdb-review-icon="Quote"] svg') || sourceDoc?.querySelector('[data-tdb-review-icon="Quote"] svg'))?.outerHTML || ''; }
   });
