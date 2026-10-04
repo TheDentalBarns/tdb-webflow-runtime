@@ -1,4 +1,4 @@
-/* TDB native reviews v3.6.1. Native Webflow layout; original quote choreography. */
+/* TDB native reviews v3.7.0. Native Webflow layout; original quote choreography. */
 (() => {
 'use strict';if(window.TDBReviews)return;
 const instances=new WeakMap();
@@ -13,6 +13,7 @@ function mount(root,data){
  const reduced=matchMedia('(prefers-reduced-motion: reduce)'),context=cms.contextForPath(location.pathname);
  const records=data.records.slice(),slideCache=new Map();let knownCount=records.length;
  const position=$('[data-tdb-reviews-position]'),previous=$('[data-tdb-reviews-prev]'),next=$('[data-tdb-reviews-next]');
+ const totalNode=$('[data-tdb-reviews-length]'),totalTicker=window.TDBNativeTicker.mount(totalNode);let shownTotal=Number(totalNode.textContent)||0;
  const ticker=window.TDBNativeTicker.mount(position),fades=motion.fadeController();let swiper=null,moreFlight=null,pendingAppend=false,destroyed=false,phase='closed',revealTimer=0,shownQuote=null,settledSlide=null,reflectedIndex=-1;
 
  let selection={sort:'recommended',rating:'',platform:'',treatment:[],experience:[]};
@@ -28,9 +29,30 @@ function mount(root,data){
   value=canonical(value);const current=selection[key];
   return {...selection,[key]:!value?[]:current.includes(value)?current.filter(item=>item!==value):[...current,value]};
  }
+ const copySelection=state=>({...state,treatment:[...state.treatment],experience:[...state.experience]});
+ let appliedSelection=copySelection(selection),draftController=null,draftFlight=null,draftCache=null,draftTimer=0,applyRevision=0;
  const disclosures=[];
+ function updateTotal(count,animate=true){totalTicker.update(String(count).padStart(2,'0'),count<shownTotal?-1:1,animate);shownTotal=count;totalNode.setAttribute('aria-label',count+' reviews');}
+ function cancelDraft(){clearTimeout(draftTimer);draftController?.abort();draftController=null;draftFlight=null;draftCache=null;applyRevision++;selectionBusy=false;}
+ function discardDraft(){cancelDraft();selection=copySelection(appliedSelection);updateTotal(length(),phase!=='closed');}
+ function draftKey(){return JSON.stringify(selection);}
+ function fetchDraft(){
+  clearTimeout(draftTimer);const key=draftKey();
+  if(draftCache?.key===key)return Promise.resolve(draftCache);
+  if(draftFlight?.key===key)return draftFlight.promise;
+  draftController?.abort();const controller=new AbortController();draftController=controller;
+  const abort=()=>controller.abort();signal.addEventListener('abort',abort,{once:true});
+  const desired=ordered(),flight={key,promise:null};
+  flight.promise=data.fetchRecords(desired.slice(0,20).map(record=>record.id),{signal:controller.signal}).then(batch=>{
+   const result={key,desired,batch};if(!controller.signal.aborted&&draftKey()===key)draftCache=result;return result;
+  }).finally(()=>{signal.removeEventListener('abort',abort);if(draftFlight===flight)draftFlight=null;});draftFlight=flight;return flight.promise;
+ }
+ function primeSelection(){
+  cancelDraft();updateFilterOptions();
+  if(filterReady)draftTimer=setTimeout(()=>{fetchDraft().catch(()=>{});},150);
+ }
  function hasSelection(){return selection.sort!=='recommended'||!!selection.rating||!!selection.platform||selection.treatment.length>0||selection.experience.length>0;}
- $('[data-tdb-reviews-average]').textContent=data.average.toFixed(2);$('[data-tdb-reviews-total]').textContent=data.total+' reviews';const length=()=>indexMode?matched.length:data.hasMore?data.total:records.length;$('[data-tdb-reviews-length]').textContent=String(length()).padStart(2,'0');
+ $('[data-tdb-reviews-average]').textContent=data.average.toFixed(2);$('[data-tdb-reviews-total]').textContent=data.total+' reviews';const length=()=>indexMode?matched.length:data.hasMore?data.total:records.length;updateTotal(length(),phase!=='closed');
  function slide(record,index){
   if(slideCache.has(record.id))return slideCache.get(record.id);
   const node=template.cloneNode(true);node.removeAttribute('data-tdb-review-template');node.dataset.tdbReviewId=record.id;node.setAttribute('aria-label',`Review ${index+1} of ${length()}`);
@@ -48,13 +70,13 @@ function mount(root,data){
   if(indexMode){if(pendingBatch&&!swiper?.animating){const batch=pendingBatch;pendingBatch=null;appendBatch(batch);}pendingAppend=false;knownCount=data.records.length;return;}
   if(destroyed||!pendingAppend||swiper?.animating)return;
   const added=data.records.slice(knownCount);knownCount=data.records.length;records.push(...added);track.append(...added.map((record,i)=>slide(record,records.length-added.length+i)));pendingAppend=false;
-  $('[data-tdb-reviews-length]').textContent=String(length()).padStart(2,'0');
+  updateTotal(length(),phase!=='closed');
   [...track.children].forEach((node,i)=>node.setAttribute('aria-label',`Review ${i+1} of ${length()}`));
   swiper?.update();reflectedIndex=-1;reflect();
  }
  function primeMore(){
   if(indexMode){primeFilteredMore();return;}
-  if(destroyed||moreFlight||filterFlight||hasSelection()||!data.hasMore||!swiper||records.length-swiper.activeIndex>7)return;
+  if(destroyed||filterOpen||moreFlight||filterFlight||hasSelection()||!data.hasMore||!swiper||records.length-swiper.activeIndex>7)return;
   moreFlight=data.loadMore({signal}).catch(error=>{if(!signal.aborted)root.dispatchEvent(new CustomEvent('tdb:review-error',{bubbles:true,detail:{error}}));}).finally(()=>{moreFlight=null;});
  }
  const originalEasing=track.style.transitionTimingFunction;track.style.transitionTimingFunction=motion.reviews.easing;
@@ -69,7 +91,7 @@ function mount(root,data){
  }
  function reflect(){if(!swiper||destroyed||reflectedIndex===swiper.activeIndex)return;const index=swiper.activeIndex;reflectedIndex=index;
   for(const [i,item] of [...swiper.slides].entries()){const inactive=i!==index;if(item.inert!==inactive)item.inert=inactive;if(item.getAttribute('aria-hidden')!==String(inactive))item.setAttribute('aria-hidden',String(inactive));}
-  ticker.update(String(index+1).padStart(2,'0'),swiper.swipeDirection==='prev'?-1:1);position.setAttribute('aria-label',`Review ${index+1} of ${length()}`);
+  ticker.update(String(filterOpen?1:index+1).padStart(2,'0'),swiper.swipeDirection==='prev'?-1:1);position.setAttribute('aria-label',`Review ${index+1} of ${length()}`);
   for(const [node,disabled] of [[previous,filterOpen||index===0],[next,filterOpen||index===records.length-1&&!canLoadMore()]]){node.classList.toggle('is-disabled',disabled);node.setAttribute('aria-disabled',String(disabled));}
   if(phase!=='closed')primeMore();
  }
@@ -129,7 +151,7 @@ function mount(root,data){
   for(const option of filterOptions){
    const key=option.dataset.tdbFilterGroup,value=option.dataset.tdbFilterValue,selected=chosen(key,value);
    const unavailable=!filterReady||(key!=='sort'&&!selected&&!matching(candidate(key,value)).length);
-   option.disabled=unavailable;option.tabIndex=unavailable?-1:0;option.setAttribute('aria-disabled',String(unavailable));option.setAttribute(multi(key)?'aria-checked':'aria-pressed',String(selected));
+   option.disabled=unavailable||selectionBusy;option.tabIndex=option.disabled?-1:0;option.setAttribute('aria-disabled',String(option.disabled));option.setAttribute(multi(key)?'aria-checked':'aria-pressed',String(selected));
    if(multi(key)){option.setAttribute('role','checkbox');option.removeAttribute('aria-pressed');}
    for(const mark of option.querySelectorAll('.tdb-review-filter_mark,.tdb-review-filter_tick'))mark.classList.toggle('is-checked',selected);
    option.classList.toggle('is-selected',selected);option.classList.toggle('is-unavailable',unavailable);
@@ -139,8 +161,9 @@ function mount(root,data){
    disclosure.summary.textContent=labels.length>2?labels.length+' selected':labels.join(' + ');disclosure.summary.title=labels.join(', ');
   }
   const count=matching().length;
+  if(filterOpen&&filterReady){updateTotal(count);ticker.update(count?'01':'00',-1);position.setAttribute('aria-label','Preview: '+count+' matching reviews');}
   filterStatus.textContent=message||(selectionBusy?'Loading matching reviews…':filterReady?(hasSelection()?count+' matching '+(count===1?'review':'reviews'):'All reviews'):'Preparing review filters…');
-  filterApply.textContent=filterReady?'View '+count+' '+(count===1?'review':'reviews'):'View reviews';filterApply.disabled=selectionBusy;filterApply.setAttribute('aria-disabled',String(selectionBusy));
+  filterApply.textContent=filterReady?'View '+count+' '+(count===1?'review':'reviews'):'View reviews';filterApply.disabled=selectionBusy||!filterReady||!count;filterApply.setAttribute('aria-disabled',String(filterApply.disabled));
  }
  function renderSelection(chosen){
   if(!chosen.length)return;
@@ -148,22 +171,20 @@ function mount(root,data){
   swiper?.destroy(true,true);swiper=null;records.splice(0,records.length,...chosen);knownCount=data.records.length;pendingAppend=false;
   track.replaceChildren(...records.map(slide));
   [...track.children].forEach((node,i)=>{node.setAttribute('aria-label',`Review ${i+1} of ${length()}`);node.querySelector('[data-tdb-review-scroll]').scrollTop=0;node.querySelector('[data-review-render="excerpt"]').style.opacity='0';});
-  $('[data-tdb-reviews-length]').textContent=String(length()).padStart(2,'0');reflectedIndex=-1;settledSlide=null;
+  updateTotal(length(),phase!=='closed');reflectedIndex=-1;settledSlide=null;
   phase=wasOpen?'opening':'closed';createSwiper();swiper.allowTouchMove=!filterOpen;reflect();
   if(wasOpen)reveal(0);updateFilterOptions();
  }
 
  async function replaceSelection(){
-  queryController?.abort();queryController=new AbortController();const request=queryController,revision=++queryRevision;
-  const abort=()=>request.abort();signal.addEventListener('abort',abort,{once:true});
-  selectionBusy=true;pendingBatch=null;updateFilterOptions();
-  const desired=ordered();
+  const revision=++applyRevision;selectionBusy=true;updateFilterOptions();
   try{
-   const batch=await data.fetchRecords(desired.slice(0,20).map(record=>record.id),{signal:request.signal});
-   if(destroyed||revision!==queryRevision)return;
-   indexMode=true;matched=desired;selectionBusy=false;moreFlight=null;renderSelection(batch);
-  }catch(error){if(!request.signal.aborted){selectionBusy=false;updateFilterOptions('Could not load these reviews. Choose again or Reset.');filterApply.disabled=true;filterApply.setAttribute('aria-disabled','true');}}
-  finally{signal.removeEventListener('abort',abort);}
+   const {desired,batch}=await fetchDraft();
+   if(destroyed||revision!==applyRevision||!filterOpen)return;
+   queryController?.abort();queryController=new AbortController();queryRevision++;pendingBatch=null;moreFlight=null;
+   indexMode=true;matched=desired;appliedSelection=copySelection(selection);selectionBusy=false;
+   renderSelection(batch);filter.set(false);
+  }catch(error){if(!destroyed&&revision===applyRevision&&filterOpen){selectionBusy=false;updateFilterOptions('Could not load these reviews. Tap View reviews to retry.');}}
  }
  function appendBatch(batch){
   if(destroyed||!indexMode)return;
@@ -172,7 +193,7 @@ function mount(root,data){
   swiper?.update();reflectedIndex=-1;reflect();
  }
  function primeFilteredMore(){
-  if(destroyed||selectionBusy||moreFlight||pendingBatch||!swiper||!canLoadMore()||records.length-swiper.activeIndex>7)return;
+  if(destroyed||filterOpen||selectionBusy||moreFlight||pendingBatch||!swiper||!canLoadMore()||records.length-swiper.activeIndex>7)return;
   const revision=queryRevision,ids=matched.slice(records.length,records.length+20).map(record=>record.id);
   const flight=data.fetchRecords(ids,{signal:queryController?.signal||signal}).then(batch=>{
    if(destroyed||revision!==queryRevision)return;
@@ -194,7 +215,7 @@ function mount(root,data){
   return filterFlight;
  }
  function setFilterOpen(open,immediate=false){
-  if(!filterPanel)return;filterOpen=open;const revision=++filterRevision;
+  if(!filterPanel)return;if(!open)discardDraft();filterOpen=open;const revision=++filterRevision;
   const from=filterAnimation?getComputedStyle(filterPanel).transform:open?'translateY(100%)':'translateY(0)';
   const backdropFrom=backdropAnimation?getComputedStyle(filterBackdrop).opacity:open?0:1;backdropAnimation?.cancel();backdropAnimation=null;
   filterAnimation?.cancel();filterAnimation=null;
@@ -202,7 +223,7 @@ function mount(root,data){
   filterPanel.setAttribute('aria-hidden',String(!open));filterPanel.inert=!open;viewport.inert=open;
   if(swiper){swiper.allowTouchMove=!open;reflectedIndex=-1;reflect();}
   if(open){filterBackdrop?.classList.remove('is-closed');filterPanel.classList.remove('is-closed');prepareFilters();filterPanel.querySelector('[data-tdb-filter-heading]').focus({preventScroll:true});}
-  else if(filterPanel.contains(document.activeElement))filterButton.focus({preventScroll:true});
+  else{updateFilterOptions();if(filterPanel.contains(document.activeElement))filterButton.focus({preventScroll:true});}
   const finish=()=>{if(revision!==filterRevision)return;if(!open){filterPanel.classList.add('is-closed');filterBackdrop?.classList.add('is-closed');}filterAnimation?.cancel();filterAnimation=null;backdropAnimation?.cancel();backdropAnimation=null;};
   const duration=immediate||reduced.matches?0:motion.duration(innerWidth);
   if(!duration){finish();return;}
@@ -223,24 +244,24 @@ function mount(root,data){
     const start=body.getBoundingClientRect().height,revision=++entry.revision;
     entry.animation?.cancel();entry.turn?.cancel();entry.animation=entry.turn=null;entry.open=open;
     button.setAttribute('aria-expanded',String(open));body.inert=!open;body.classList.remove('is-collapsed');
-    const end=open?body.scrollHeight:0,duration=immediate||reduced.matches?0:motion.duration(innerWidth);
+    const end=open?body.scrollHeight:0,duration=immediate||reduced.matches?0:400;
     const finish=()=>{if(revision!==entry.revision)return;body.classList.toggle('is-collapsed',!open);entry.animation?.cancel();entry.animation=null;};
     if(chevron)chevron.style.transform='rotate('+ (open?180:0)+'deg)';
     if(!duration){finish();return;}
-    entry.animation=body.animate([{height:start+'px',opacity:open?0:1},{height:end+'px',opacity:open?1:0}],{duration,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});
+    entry.animation=body.animate([{height:start+'px',opacity:open?0:1,transform:open?'translateY(-20px)':'translateY(0)'},{height:end+'px',opacity:open?1:0,transform:open?'translateY(0)':'translateY(-20px)'}],{duration,easing:'cubic-bezier(.165,.84,.44,1)',fill:'both'});
     entry.animation.finished.then(finish).catch(()=>{});
-    if(chevron){entry.turn=chevron.animate([{transform:'rotate('+(open?0:180)+'deg)'},{transform:chevron.style.transform}],{duration,easing:'cubic-bezier(.4,0,.2,1)'});entry.turn.finished.catch(()=>{});}
+    if(chevron){entry.turn=chevron.animate([{transform:'rotate('+(open?0:180)+'deg)'},{transform:chevron.style.transform}],{duration,easing:'ease'});entry.turn.finished.catch(()=>{});}
    },destroy(){entry.revision++;entry.animation?.cancel();entry.turn?.cancel();body.classList.add('is-collapsed');body.inert=true;button.setAttribute('aria-expanded','false');if(chevron)chevron.style.removeProperty('transform');}};
    disclosures.push(entry);action(button,()=>{const open=!entry.open;for(const other of disclosures)if(other!==entry&&other.open)other.set(false);entry.set(open);});
   }
-  filterOptions.forEach(option=>action(option,()=>{if(option.disabled||!filterReady)return;selection=candidate(option.dataset.tdbFilterGroup,option.dataset.tdbFilterValue);replaceSelection();}));
-  action(filterPanel.querySelector('[data-tdb-filter-reset]'),()=>{selection={sort:'recommended',rating:'',platform:'',treatment:[],experience:[]};if(filterReady)replaceSelection();else prepareFilters();});
-  action(filterApply,()=>{if(!filterApply.disabled)filter.set(false);});
+  filterOptions.forEach(option=>action(option,()=>{if(option.disabled||!filterReady)return;selection=candidate(option.dataset.tdbFilterGroup,option.dataset.tdbFilterValue);primeSelection();}));
+  action(filterPanel.querySelector('[data-tdb-filter-reset]'),()=>{if(selectionBusy)return;selection={sort:'recommended',rating:'',platform:'',treatment:[],experience:[]};if(filterReady)primeSelection();else prepareFilters();});
+  action(filterApply,()=>{if(!filterApply.disabled)replaceSelection();});
   root.addEventListener('keydown',event=>{if(filterOpen&&event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();filter.set(false);}},{signal,capture:true});
   reduced.addEventListener('change',()=>{if(filterAnimation)setFilterOpen(filterOpen,true);for(const entry of disclosures)entry.set(entry.open,true);},{signal});
   updateFilterOptions();
  }
- let preferred='';const drawer=window.TDBDrawer.mount(root.closest('[data-tdb-drawer]'),{onOpen(){build(preferred);clearTimeout(filterPrimeTimer);filterPrimeTimer=setTimeout(prepareFilters,250);},onClose(){clearTimeout(filterPrimeTimer);filter.reset(true);hideQuote();phase='closed';if(mark.closest('[data-tdb-review-scroll]')?.scrollTop>0)fades.to(mark,0,fadeTime());ticker.settle();}});
+ let preferred='';const drawer=window.TDBDrawer.mount(root.closest('[data-tdb-drawer]'),{onOpen(){build(preferred);clearTimeout(filterPrimeTimer);filterPrimeTimer=setTimeout(prepareFilters,250);},onClose(){clearTimeout(filterPrimeTimer);filter.reset(true);hideQuote();phase='closed';if(mark.closest('[data-tdb-review-scroll]')?.scrollTop>0)fades.to(mark,0,fadeTime());ticker.settle();totalTicker.settle();}});
  // Native Webflow visibility keeps the closed drawer measurable without showing it.
  if(viewport.clientWidth)createSwiper();
  const resize=new ResizeObserver(()=>{if(swiper&&!swiper.animating){swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);swiper.update();}});resize.observe(viewport);
@@ -250,12 +271,12 @@ function mount(root,data){
   // A named CMS quote opens in its editorial context, never an old filter result.
   if(preferred&&(indexMode||selectionBusy)){
    queryController?.abort();queryRevision++;selectionBusy=false;pendingBatch=null;moreFlight=null;
-   selection={sort:'recommended',rating:'',platform:'',treatment:[],experience:[]};indexMode=false;matched=[];
+   cancelDraft();selection={sort:'recommended',rating:'',platform:'',treatment:[],experience:[]};appliedSelection=copySelection(selection);indexMode=false;matched=[];
    renderSelection(data.records.slice());
   }
   return drawer.open(trigger);
- },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;disclosures.forEach(entry=>entry.destroy());queryController?.abort();clearTimeout(filterPrimeTimer);filterAnimation?.cancel();backdropAnimation?.cancel();filterBackdrop?.classList.add('is-closed');filterPanel?.classList.add('is-closed');filterPanel?.setAttribute('aria-hidden','true');if(filterPanel)filterPanel.inert=true;viewport.inert=false;filter.destroy();unsubscribe?.();drawer.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
+ },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;cancelDraft();disclosures.forEach(entry=>entry.destroy());queryController?.abort();clearTimeout(filterPrimeTimer);filterAnimation?.cancel();backdropAnimation?.cancel();filterBackdrop?.classList.add('is-closed');filterPanel?.classList.add('is-closed');filterPanel?.setAttribute('aria-hidden','true');if(filterPanel)filterPanel.inert=true;viewport.inert=false;filter.destroy();unsubscribe?.();drawer.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBReviews=Object.freeze({version:'3.6.1',mount});
+window.TDBReviews=Object.freeze({version:'3.7.0',mount});
 })();
 

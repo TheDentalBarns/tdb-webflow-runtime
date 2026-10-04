@@ -347,3 +347,27 @@ dims the review content, fades with the panel, and tapping it dismisses filters.
 Reduced motion and teardown settle/remove its runtime animation. Publish native
 control markup with its matching release pin; older open tabs need a refresh to
 receive new event handlers. Mobile validation includes real touch tap events.
+
+
+## Stable review filter panel — 4 October
+
+Native reviews 3.7.0 uses a tall panel with a fixed top and bottom within the
+review drawer. A small responsive strip of dimmed review content remains above it.
+Webflow owns this geometry: heading and actions do not shrink; the middle groups
+container alone scrolls. Accordion reveals use the Smile Gallery's 400ms easing
+and upward-to-rest entry, independent of width-sensitive carousel duration.
+
+Filter selection is a draft until View reviews is pressed. Tick state, availability
+and counts update immediately. A 150ms scheduling window prefetches missing bodies
+for the first 20 matching records through the existing cache. It never rebuilds
+Swiper or replaces slides during editing. Apply awaits/reuses that batch, commits
+one result sequence, then closes the panel. Reset changes the draft only. Closing
+via X, Escape, backdrop or the outer drawer discards unapplied choices and cancels
+their client requests. Rapid edits and close-during-apply cannot commit stale data.
+
+Both footer numbers use the existing TDBNativeTicker. While filtering they preview
+01–matching-total; applying retains that result count, while cancel restores the
+applied sequence and position. Totals animate down/up using the shared duration.
+Reduced motion settles immediately; teardown releases both ticker instances.
+Native CMS fields, source text, consent/presence/proximity gates and later batches
+are unchanged. Publish the matching native structure and Home script pin together.
