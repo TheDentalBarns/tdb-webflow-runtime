@@ -581,3 +581,10 @@ not a presence-gated JavaScript module. Shared filter animation remains in
 Build Vimeo with `node tools/build-vimeo.cjs` (Terser 5.39.0); use `--check` for
 source/artifact parity. `python tools/build-ui.py --global-only` rebuilds just the
 current global stylesheet. Do not rebuild unrelated legacy bundles during this pass.
+
+
+## Standalone review archive — 4 October
+
+The native `/reviews` page uses `tdb-review-list-loader.js` and `tdb-review-list.js` for measured masonry, batches of 20 and URL filter state. It reuses the CMS parser/cache plus the shared filter, motion and ticker modules; it does not load Swiper. The Webflow CMS renders the first batch, featured excerpts and full review text before enhancement. Webflow also owns the existing blurred quote-card styling, white review bodies, responsive columns/gaps and controls.
+
+`tdb-review-availability.js` reads the same Banner Settings CMS feed used by the nurture pages. See [review-archive.md](review-archive.md) for ownership, gating, pagination, preset links and the deferred excerpt/context ranking boundary. The rollout is isolated to the new page; existing review component pins are unchanged.

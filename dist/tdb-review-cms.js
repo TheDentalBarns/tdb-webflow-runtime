@@ -1,4 +1,4 @@
-/* TDB CMS review source v1.3.1. No review records or credentials in this file. */
+/* TDB CMS review source v1.4.0. No review records or credentials in this file. */
 (() => {
   'use strict';
   if (window.TDBReviewCMS) return;
@@ -85,7 +85,7 @@
   function requestPage(url, { signal } = {}) {
     if (signal?.aborted) return Promise.reject(new DOMException('Cancelled', 'AbortError'));
     const target = new URL(url, location.href);
-    if (target.origin !== location.origin || (target.pathname !== '/review-content' && !/^\/review-topics\/[a-z0-9-]+$/.test(target.pathname))) return Promise.reject(Error('Invalid review pagination URL'));
+    if (target.origin !== location.origin || (target.pathname !== '/review-content' && target.pathname !== '/reviews' && !/^\/review-topics\/[a-z0-9-]+$/.test(target.pathname))) return Promise.reject(Error('Invalid review pagination URL'));
     const key = target.href;
     let request = requests.get(key);
     if (!request) {
@@ -96,7 +96,7 @@
         .then(response => { if (!response.ok) throw Error('CMS review request failed'); return response.text(); })
         .then(html => {
           const doc = new DOMParser().parseFromString(html, 'text/html');
-          return { doc, data: target.pathname === '/review-content' ? parse(doc) : parseDetail(doc), url: key };
+          return { doc, data: ['/review-content','/reviews'].includes(target.pathname) ? parse(doc) : parseDetail(doc), url: key };
         }).finally(() => { request.done = true; if (requests.get(key) === request) requests.delete(key); });
     }
     request.clients++;
@@ -156,6 +156,7 @@
         return ids.map(id=>recordCache.get(id));
       },
       get hasMore() { return !!next; },
+      get nextURL() { return next; },
       subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
       async loadMore({ signal } = {}) {
         if (!next) return data;
@@ -190,6 +191,36 @@
     // Another permitted client may have installed this same session while awaiting.
     if (!cached || Date.now() - cachedAt >= 60000) { cached = session(first); cachedAt = Date.now(); sourceDoc = first.doc; }
     return cached;
+  }
+  // Native archive markup seeds the same parser/cache API; no duplicate first batch.
+  function fromDocument(doc, url = location.href) {
+    const target = new URL(url, location.href);
+    if (target.origin !== location.origin || !['/reviews','/review-content'].includes(target.pathname)) throw Error('Invalid review source');
+    sourceDoc = doc;
+    return session({doc, data:parse(doc), url:target.href});
+  }
+  // One selection policy for review consumers. New excerpt/context ranking can
+  // enter here later without changing the archive's rendering or pagination.
+  function matching(records, state) {
+    return records.filter(record => (!state.rating.length || state.rating.some(rating => rating==='unrated'?!record.rating:record.rating===Number(rating))) &&
+      (!state.platform.length || state.platform.includes(record.platform)) &&
+      state.treatment.every(topic => record.topics.some(value => canonicalTopic(value) === canonicalTopic(topic))) &&
+      state.experience.every(topic => record.topics.some(value => canonicalTopic(value) === canonicalTopic(topic))));
+  }
+  function ordered(records, state) {
+    const list = matching(records,state);
+    const time = record => {const n=Date.parse(record.date);return Number.isFinite(n)?n:null;};
+    return list.sort((a,b) => {
+      if (['highest','lowest'].includes(state.sort)) {
+        if(a.rating===null||b.rating===null)return a.rating===b.rating?0:a.rating===null?1:-1;
+        return state.sort==='highest'?b.rating-a.rating:a.rating-b.rating;
+      }
+      if (['recent','oldest'].includes(state.sort)) {
+        const at=time(a),bt=time(b);if(at===null||bt===null)return at===bt?0:at===null?1:-1;
+        return state.sort==='recent'?bt-at:at-bt;
+      }
+      return 0;
+    });
   }
   let serial = 0;
   function sourceIcon(platform, grayscale) {
@@ -226,9 +257,10 @@
       [record.excerpt, ...Object.values(record.excerpts || {})].some(value => normal(value) === excerpt));
     return matching.length === 1 ? matching[0].id : '';
   }
-  window.TDBReviewCMS = Object.freeze({ version: '1.3.1', load, parse, sourceIcon, contextForPath, resolveIdentity, canonicalTopic,
+  window.TDBReviewCMS = Object.freeze({ version: '1.4.0', load, parse, fromDocument, matching, ordered, sourceIcon, contextForPath, resolveIdentity, canonicalTopic,
     preview: Object.freeze({ contexts: Object.freeze({}) }),
     get quoteMark() { return (document.querySelector('[data-tdb-review-icon="Quote"] svg') || sourceDoc?.querySelector('[data-tdb-review-icon="Quote"] svg'))?.outerHTML || ''; }
   });
 })();
+
 
