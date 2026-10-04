@@ -1,4 +1,4 @@
-/* TDB shared motion v1.4.1. Timing, DD text and reusable opacity fades. */
+/* TDB shared motion v1.4.2. Timing, DD text and reusable opacity fades. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -129,9 +129,9 @@
   // Filter-to-X visual toggle. Native SVG lines/styles define the starting artwork.
   // The consumer decides whether a filter panel exists; this helper owns only the icon.
   let filterMaskSequence = 0;
-  function filterToggle(button) {
+  function filterToggle(button, { onChange } = {}) {
     const lines = button ? ['top', 'middle', 'bottom'].map(part => button.querySelector('[data-tdb-filter-line="' + part + '"]')) : [];
-    if (lines.length !== 3 || lines.some(line => !line)) return { reset() {}, destroy() {} };
+    if (lines.length !== 3 || lines.some(line => !line)) return { set() {}, reset() {}, destroy() {} };
     const controller = new AbortController(), { signal } = controller;
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
     const svg = lines[0].ownerSVGElement, mask = svg.querySelector('[data-tdb-filter-mask]'), paint = svg.querySelector('[data-tdb-filter-paint]');
@@ -154,10 +154,12 @@
         return { transform: index === 1 ? 'scaleX(' + (transform === 'none' ? 1 : new DOMMatrix(transform).a) + ')' : transform };
       });
       animations.forEach(animation => animation.cancel());
+      const changed = pressed !== value;
       pressed = value; button.setAttribute('aria-pressed', String(value));
       animations = lines.map((line, index) => line.animate([current[index], {
         transform: value ? targets[index] : index === 1 ? 'scaleX(1)' : 'none'
       }], { duration: immediate || reduced.matches ? 0 : 300, easing: 'ease-in-out', fill: 'both' }));
+      if (changed) onChange?.(value, immediate);
     }
     const toggle = event => {
       if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) return;
@@ -169,7 +171,8 @@
     button.addEventListener('keydown', toggle, { signal });
     reduced.addEventListener('change', () => set(pressed, true), { signal });
     return {
-      reset() { if (pressed) set(false); },
+      set,
+      reset(immediate = false) { if (pressed) set(false, immediate); },
       destroy() { controller.abort(); animations.forEach(animation => animation.cancel()); button.setAttribute('aria-pressed', 'false'); if (mask && paint) { mask.id = maskId; if (paintMask === null) paint.removeAttribute('mask'); else paint.setAttribute('mask', paintMask); } }
     };
   }
@@ -180,5 +183,6 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.4.1', defaults, duration, ddText, ddOpacity, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.4.2', defaults, duration, ddText, ddOpacity, reviews, fadeController, filterToggle, bindSwiper });
 })();
+

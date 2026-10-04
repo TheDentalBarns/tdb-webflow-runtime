@@ -247,3 +247,67 @@ Filter refinement: the native SVG uses an opaque-stroke mask and one currentColo
 paint layer so translucent strokes do not brighten at the X intersection. The
 middle line scales horizontally from both ends to zero and expands on reversal;
 its opacity stays unchanged. Runtime mask IDs are unique per mounted control.
+
+
+## Review filter panel pilot — 4 October
+
+Supersedes the icon-only trial above. Native reviews 3.5.0 adds a bottom-up filter
+panel inside the existing Review Drawer. CMS reader 1.3.0 supplies its data, and
+motion 1.4.2 adds a change callback/programmatic state to the existing icon helper.
+No additional runtime download or embedded script was added.
+
+### Ownership and native data
+
+- Webflow owns the panel, headings, options, cream (85% opacity), 20px backdrop
+  blur, spacing, scrolling, responsive grid, selected/unavailable appearance and
+  initial closed state. It sits immediately above the existing grey footer.
+- GitHub owns panel movement, keyboard behavior, state, filtering, sorting,
+  batching and cache coordination. The loader's existing permission/presence/
+  proximity policy remains unchanged. The main review drawer still enters from
+  the right; only its filter panel rises from the footer.
+- Review Content now includes a native metadata-only Collection List marked
+  `data-tdb-review-index="v1"`, alongside the first 20 full reviews. It selects
+  approved, non-excluded reviews in the same Full review rank order, at 100 index
+  entries per page. Index pagination is followed independently beyond 100.
+- Each index entry contains slug, rating, platform, date, rank and native topic
+  visibility flags. It contains no review body/excerpts and no author-name copy.
+- The existing Review Topics CMS template now exposes native bound review fields
+  at `/review-topics/{slug}`. These data-only pages have noindex/nofollow. The
+  reader validates approved visibility, exclusion, origin, path and record ID.
+  All 85 current master records were already published and approved; no record
+  approval, text, ranking or field schema was changed by this pilot.
+- The existing Review Responses list remains the response source. Its slug-keyed
+  response map is reused for individual fetches, retaining the one-star response.
+
+### Results and loading
+
+Recommended retains native CMS order. Other choices sort highest/lowest rating
+or newest/oldest date; ties retain native order and unknown ratings/dates go last.
+Filters choose one value per group (rating, platform, treatment, experience),
+combined with AND across groups. Availability counts replace the candidate's own
+facet while preserving the other selections, so changing one facet is possible.
+Selected options and each All option remain removable/selectable when applicable.
+No AI or text inference runs in the browser: topics are existing CMS flags.
+
+The first existing CMS request includes the index. Drawer-open/filter intent
+finishes index pagination if required, never a full-review loadAll. A selection
+uses cached bodies and fetches ONLY missing IDs for its first 20 matching results,
+with up to four concurrent requests. Approaching seven remaining records fetches
+the next 20; append waits until movement settles. Shared request promises prevent
+duplicate requests; completed records remain cached across filter changes. A new
+selection cancels its obsolete requests and stale results cannot overwrite it.
+Failures retain the existing view and allow retry; unavailable options are not
+inferred from an incomplete index. Permission teardown cancels work and cleans up.
+
+The full-list header aggregate is unchanged. The footer pagination follows the
+selected result set. Escape closes the filter panel first; the main X still closes
+the whole review drawer. Reduced motion settles the panel and morph immediately.
+
+Validation: `tests/review-filter-index.test.cjs` covers 108 index entries, cached
+first-20 gap filling, duplicate-request sharing, response preservation, retry,
+abort and rejecting IDs outside the published index. Browser checks cover mobile
+and desktop, one-star/Yell exclusion, date order, first/next 20 batches, Escape,
+existing drawer close and absence of duplicate requests. Roll back the Home loader
+pin to `c6e50fc3d7b898fd05582002a266e3c1abcc93bb` to restore the icon-only runtime;
+the new native panel stays closed under that runtime.
+
