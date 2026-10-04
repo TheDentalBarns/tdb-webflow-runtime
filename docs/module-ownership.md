@@ -48,6 +48,16 @@ their own selections; Reset clears every category. Each selected rating and
 platform contributes to the floating filter badge and persists on panel close.
 Webflow orders the groups as Treatments, Experience, Platform, Order and Stars.
 
+Reset restores every category and Recommended order, and collapses open headings
+through the shared filter controller's existing accordion animation. The shared
+controller exposes `collapseAll`, `hasExpandedDisclosures` and an optional
+`onDisclosureChange` callback; the review adapter owns whether Reset has work to
+do. Reset is disabled, removed from the tab order and given the native Webflow
+`.button.is-review-filter-action.is-disabled` appearance when the defaults are
+already selected and every heading is closed. It is also disabled while applying
+results. An unsuccessful metadata load retains the existing Reset-to-retry action.
+No extra script, observer, animation loop or injected style is added.
+
 The native cream filter heading and Reset row use 20px backdrop blur and sticky
 positioning inside the scrolling filter panel, except in phone landscape below.
 The body scrolls beneath them; Webflow owns the insets, responsive spacing and

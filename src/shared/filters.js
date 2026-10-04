@@ -1,9 +1,9 @@
-/* TDB shared filters v1.0.0. Native Webflow UI; no CMS, query or slider dependencies. */
+/* TDB shared filters v1.0.1. Native Webflow UI; no CMS, query or slider dependencies. */
 (() => {
 'use strict';if(window.TDBFilters)return;
 const instances=new WeakMap();let sequence=0;
 function mount(panel,{toggle,backdrop=null,heading=null,badge=null,escapeRoot=panel,
- blockedControls=[],inertTargets=[],disclosures=[],onIntent,beforeClose,onChange,onError,
+ blockedControls=[],inertTargets=[],disclosures=[],onIntent,beforeClose,onChange,onError,onDisclosureChange,
  labels={open:'Open filters',close:'Close filters'},classes={}}={}){
  if(instances.has(panel))return instances.get(panel);
  if(!panel||!toggle)throw Error('Native filter panel and toggle required');
@@ -78,12 +78,14 @@ function mount(panel,{toggle,backdrop=null,heading=null,badge=null,escapeRoot=pa
   remember(button,['aria-controls','aria-expanded']);remember(body,['id','aria-hidden'],[names.collapsed],true);remember(group,[],[names.expanded]);const originalTurn=chevron?.style.transform;
   body.id||=panel.id+'-'+key;button.setAttribute('aria-controls',body.id);body.inert=true;
   const entry={open:false,animations:[],set(value,immediate=false){
+   const changed=entry.open!==value;
    const running=entry.animations.some(a=>a.effect?.target===body),fromOpacity=running?getComputedStyle(body).opacity:0,fromTransform=running?getComputedStyle(body).transform:'translateY(-20px)';
    const fromSpace=getComputedStyle(group).paddingBottom,fromTurn=chevron?getComputedStyle(chevron).transform:'none';
    entry.animations.forEach(a=>a.cancel());entry.animations=[];entry.open=value;
    button.setAttribute('aria-expanded',String(value));body.setAttribute('aria-hidden',String(!value));body.inert=!value;
    body.classList.toggle(names.collapsed,!value);group.classList.toggle(names.expanded,value);
    if(chevron)chevron.style.transform='rotate('+(value?180:0)+'deg)';
+   if(changed)onDisclosureChange?.();
    if(immediate||reduced.matches)return;
    const run=(node,frames,duration,easing)=>{const a=node.animate(frames,{duration,easing,fill:'both'});entry.animations.push(a);a.finished.then(()=>{a.cancel();const i=entry.animations.indexOf(a);if(i!==-1)entry.animations.splice(i,1);}).catch(()=>{});};
    // Native FAQ/pricing choreography. Spacer target comes from Webflow's state class.
@@ -96,9 +98,12 @@ function mount(panel,{toggle,backdrop=null,heading=null,badge=null,escapeRoot=pa
   button.addEventListener('click',activate,{signal});button.addEventListener('keydown',activate,{signal});
  }
  reduced.addEventListener('change',()=>{if(animation)paint(open,true);entries.forEach(entry=>entry.set(entry.open,true));},{signal});
- const api=Object.freeze({set,requestClose,setCount,get isOpen(){return open;},reset(immediate=true){set(false,immediate);},destroy(){
+ const api=Object.freeze({set,requestClose,setCount,get isOpen(){return open;},
+  get hasExpandedDisclosures(){return entries.some(entry=>entry.open);},
+  collapseAll(immediate=false){if(!destroyed)entries.forEach(entry=>{if(entry.open)entry.set(false,immediate);});},
+  reset(immediate=true){set(false,immediate);},destroy(){
   if(destroyed)return;set(false,true);destroyed=true;revision++;closeFlight=null;controller.abort();animation?.cancel();shadeAnimation?.cancel();entries.forEach(entry=>entry.destroy());icon.destroy();restorers.reverse().forEach(restore=>restore());if(badge)badge.textContent=badgeText;instances.delete(panel);
  }});instances.set(panel,api);return api;
 }
-window.TDBFilters=Object.freeze({version:'1.0.0',mount});
+window.TDBFilters=Object.freeze({version:'1.0.1',mount});
 })();

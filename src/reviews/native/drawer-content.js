@@ -1,4 +1,4 @@
-/* TDB native reviews v3.12.1. Native Webflow layout; original quote choreography. */
+/* TDB native reviews v3.12.2. Native Webflow layout; original quote choreography. */
 (() => {
 'use strict';if(window.TDBReviews)return;
 const instances=new WeakMap();
@@ -18,11 +18,12 @@ function mount(root,data){
  const ticker=window.TDBNativeTicker.mount(position),fades=motion.fadeController();let swiper=null,moreFlight=null,pendingAppend=false,destroyed=false,phase='closed',revealTimer=0,shownQuote=null,settledSlide=null,reflectedIndex=-1;
 
  let selection={sort:'recommended',rating:[],platform:[],treatment:[],experience:[]};
- let filterOpen=false,filterFlight=null,filterReady=!!data.indexReady,filterPrimeTimer=0;
+ let filterOpen=false,filterFlight=null,filterReady=!!data.indexReady,filterPrimeTimer=0,filterLoadFailed=false;
  let indexMode=false,matched=[],queryController=null,queryRevision=0,selectionBusy=false,pendingBatch=null;
  const canLoadMore=()=>indexMode?records.length<matched.length:data.hasMore;
  const filterOptions=filterPanel?[...filterPanel.querySelectorAll('[data-tdb-filter-group]')]:[];
  const filterStatus=filterPanel?.querySelector('[data-tdb-filter-status]'),filterApply=filterPanel?.querySelector('[data-tdb-filter-apply]');
+ const filterReset=filterPanel?.querySelector('[data-tdb-filter-reset]');
  const filterApplyCount=filterApply?.querySelector('[data-tdb-filter-apply-count]'),filterApplyReserve=filterApply?.querySelector('[data-tdb-filter-count-reserve]'),filterApplyPlural=filterApply?.querySelector('[data-tdb-filter-apply-plural]');
  const filterApplyTicker=filterApplyCount?window.TDBNativeTicker.mount(filterApplyCount):null;let shownApplyCount=null;
  const canonical=topic=>cms.canonicalTopic(topic),multi=key=>key==='rating'||key==='platform'||key==='treatment'||key==='experience';
@@ -116,6 +117,14 @@ function mount(root,data){
   if(filterReady)draftTimer=setTimeout(()=>{fetchDraft().catch(()=>{});},150);
  }
  function hasSelection(){return selection.sort!=='recommended'||selection.rating.length>0||selection.platform.length>0||selection.treatment.length>0||selection.experience.length>0;}
+ function updateFilterReset(){
+  if(!filterReset)return;
+  // Reset restores the defaults and folds open headings. A failed metadata load
+  // retains the existing retry action even when there are no selected filters.
+  const disabled=selectionBusy||(!hasSelection()&&!filter?.hasExpandedDisclosures&&!filterLoadFailed);
+  filterReset.disabled=disabled;filterReset.setAttribute('aria-disabled',String(disabled));
+  filterReset.tabIndex=disabled?-1:0;filterReset.classList.toggle('is-disabled',disabled);
+ }
  $('[data-tdb-reviews-average]').textContent=data.average.toFixed(2);$('[data-tdb-reviews-total]').textContent=data.total+' reviews';const length=()=>indexMode?matched.length:data.hasMore?data.total:records.length;updateTotal(length(),phase!=='closed');
  function slide(record,index){
   if(slideCache.has(record.id))return slideCache.get(record.id);
@@ -238,6 +247,7 @@ function mount(root,data){
   if(filterOpen&&filterReady){updateTotal(count);ticker.update(count?'01':'00',-1);position.setAttribute('aria-label','Preview: '+count+' matching reviews');}
   filterStatus.textContent=message||(selectionBusy?'Loading matching reviews…':filterReady?(hasSelection()?count+' matching '+(count===1?'review':'reviews'):'All reviews'):'Preparing review filters…');
   updateFilterApply(count);
+  updateFilterReset();
  }
  function renderSelection(chosen){
   if(!chosen.length)return;
@@ -288,12 +298,12 @@ function mount(root,data){
   if(!filterPanel||destroyed)return;
   if(filterReady){updateFilterOptions();return;}
   if(filterFlight)return filterFlight;
-  updateFilterOptions();filterPanel.setAttribute('aria-busy','true');
+  filterLoadFailed=false;updateFilterOptions();filterPanel.setAttribute('aria-busy','true');
   // Runs on drawer-open/filter intent, not during initial page loading. Shares the
   // existing CMS metadata index; review bodies are fetched only for result batches.
   filterFlight=(async()=>{try{
    await data.loadIndex({signal});if(destroyed)return;filterReady=!!data.indexReady;updateFilterOptions();
-  }catch(error){if(!signal.aborted)updateFilterOptions('Filters could not load. Tap Reset to retry.');}
+  }catch(error){if(!signal.aborted){filterLoadFailed=true;updateFilterOptions('Filters could not load. Tap Reset to retry.');}}
   finally{filterFlight=null;filterPanel?.setAttribute('aria-busy','false');}})();
   return filterFlight;
  }
@@ -308,11 +318,11 @@ function mount(root,data){
    toggle:filterButton,backdrop:filterBackdrop,heading:filterPanel.querySelector('[data-tdb-filter-heading]'),badge:filterBadge,
    escapeRoot:drawerRoot,blockedControls:[mainClose],inertTargets:[viewport],disclosures,
    labels:{open:'Filter and sort reviews',close:'Close review filters'},
-   onIntent:prepareFilters,beforeClose:commitFilterSelection,onChange:reflectFilterState,
+   onIntent:prepareFilters,beforeClose:commitFilterSelection,onChange:reflectFilterState,onDisclosureChange:updateFilterReset,
    onError:()=>updateFilterOptions('Could not load these reviews. Tap View reviews to retry.')
   });
   filterOptions.forEach(option=>action(option,()=>{if(option.disabled||!filterReady)return;selection=candidate(option.dataset.tdbFilterGroup,option.dataset.tdbFilterValue);primeSelection();}));
-  action(filterPanel.querySelector('[data-tdb-filter-reset]'),()=>{if(selectionBusy)return;selection={sort:'recommended',rating:[],platform:[],treatment:[],experience:[]};if(filterReady)primeSelection();else prepareFilters();});
+  action(filterReset,()=>{if(selectionBusy)return;selection={sort:'recommended',rating:[],platform:[],treatment:[],experience:[]};filter.collapseAll();if(filterReady)primeSelection();else prepareFilters();});
   action(filterApply,()=>{if(!filterApply.disabled)filter.requestClose('apply');});
   updateFilterOptions();
  }
@@ -333,5 +343,5 @@ function mount(root,data){
   return drawer.open(trigger);
  },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();setReadingMode(false);filterOpen=false;placeFilterClose();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();staticLayer.append(mark);mark.classList.add('is-stationary');swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();filterApplyTicker?.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBReviews=Object.freeze({version:'3.12.1',mount});
+window.TDBReviews=Object.freeze({version:'3.12.2',mount});
 })();
