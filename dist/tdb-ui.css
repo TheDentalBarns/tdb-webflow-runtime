@@ -188,6 +188,8 @@ html.tdb-slider-focus .elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb {
   pointer-events: none;
   animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate;
 }
+[aria-busy='true'] [data-tdb-pulse],
+[aria-expanded='true'] [data-tdb-pulse],
 [data-tdb-loading='true'] [data-tdb-pulse],
 [data-tdb-pulse='false'] {
   animation: none;
