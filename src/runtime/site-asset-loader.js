@@ -536,7 +536,7 @@ function prepareSliderLoader() {
     loadingPromise = Promise.all([
       tdbEnsureUI(),
       tdbEnsureSliderUI(),
-      window.TDBModules.load('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b3a0f0f2a1e57b5a67db5f5159c449cff07eebd6/dist/tdb-swiper-8.4.7.min.js', { attribute: 'data-swiper-js', ready: () => typeof window.Swiper === 'function' }),
+      window.TDBModules.load('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@db61bf01ab662a514f826a22f3a6918e357fec7a/dist/tdb-swiper-8.4.7.min.js', { attribute: 'data-swiper-js', ready: () => typeof window.Swiper === 'function' && Boolean(window.TDBSwiper) }),
     ]).then(tdbEnsureSliderRuntime).then(script => {
       loaded = true;
       cleanup();

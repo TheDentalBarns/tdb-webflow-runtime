@@ -1,403 +1,645 @@
 (() => {
-  'use strict';
-
-  const VERSION = '0.3.0';
-  const HIGHLIGHT_SELECTOR = '.highlight-swiper_component';
-  const PARALLAX_SELECTOR = '.parallax-swiper_component';
-  const OBSERVED_ATTRIBUTE = 'data-tdb-slider-observed';
-  const INIT_ATTRIBUTE = 'data-tdb-slider-init';
-  const MAX_SWIPER_TRIES = 120;
-  const SWIPER_RETRY_MS = 100;
-  const VIEWPORT_MARGIN = '100px';
-  const DESKTOP_QUERY = '(min-width:768px)';
-  const MOBILE_PORTRAIT_QUERY = '(max-width:767px) and (orientation:portrait)';
-  const REDUCED_MOTION_QUERY = '(prefers-reduced-motion:reduce)';
-
-  function getCurrentPath() {
-    return location.pathname.replace(/\/+$/, '') || '/';
-  }
-
-  function isEntryPage() {
-    const path = getCurrentPath();
-    return path === '/' || path === '/location';
-  }
-
-  function isDesktopEntryPage() {
-    return isEntryPage() && matchMedia(DESKTOP_QUERY).matches;
-  }
-
-  function isMobileEntryPage() {
-    return (
-      isEntryPage() &&
-      matchMedia(MOBILE_PORTRAIT_QUERY).matches &&
-      !matchMedia(REDUCED_MOTION_QUERY).matches
-    );
-  }
-
-  function getSwiperElement(component) {
-    return component?.querySelector?.('.swiper') || null;
-  }
-
-  function isInitialised(component) {
-    const swiperEl = getSwiperElement(component);
-    return (
-      component?.getAttribute?.(INIT_ATTRIBUTE) === 'true' ||
-      Boolean(swiperEl?.swiper)
-    );
-  }
-
-  function markInitialised(component, type) {
-    component.setAttribute(INIT_ATTRIBUTE, 'true');
-    component.dataset.tdbSliderType = type;
-  }
-
-  function placeMobileParallaxControls(component) {
-    if (!isEntryPage() || !matchMedia(MOBILE_PORTRAIT_QUERY).matches) return;
-    const swiperEl = component.querySelector(':scope > .swiper');
-    const controls = component.querySelector(':scope > .swiper_functions-btm.hide');
-    if (swiperEl && controls) swiperEl.appendChild(controls);
-  }
-
-  function configurePageNavigation(root = document) {
-    if (!isEntryPage()) return;
-
-    if (matchMedia(MOBILE_PORTRAIT_QUERY).matches) {
-      document.documentElement.classList.add('tdb-slider-next');
-      root.querySelectorAll?.(PARALLAX_SELECTOR).forEach(placeMobileParallaxControls);
-      if (root instanceof Element && root.matches(PARALLAX_SELECTOR)) {
-        placeMobileParallaxControls(root);
-      }
+    "use strict";
+    const e = document.documentElement;
+    if (e.dataset.tdbSliderFocusReady) return;
+    e.dataset.tdbSliderFocusReady = "1.2.0";
+    const t = 'input,textarea,select,[contenteditable="true"]', n = "[data-tdb-sg-overlay],.tdb-sg-filter-dock";
+    let i = null, r = null, s = 0, a = 0, o = 0, l = 0;
+    const d = () => Math.max(window.scrollY || e.scrollTop || 0, 0);
+    function c() {
+        if (l = 0, !i || i.controller) return;
+        const e = d(), t = e - i.y;
+        i.y = e, r?.horizontal ? i.up = i.down = 0 : t > 0 ? (i.up = 0, i.down += t) : t < 0 && (i.down = 0, 
+        i.up -= t), (i.up > 120 || i.down > 140 || e <= 40 && t < 0) && L();
     }
-
-    if (matchMedia(DESKTOP_QUERY).matches) {
-      document.documentElement.classList.add('tdb-slider-desktop');
+    function u() {
+        l || (l = requestAnimationFrame(c));
     }
-  }
-
-  function initHighlightSwiper(component) {
-    if (!component || isInitialised(component)) return;
-
-    const swiperEl = getSwiperElement(component);
-    const countEl = component.querySelector('.swiper-count');
-    if (!swiperEl || typeof window.Swiper !== 'function') return;
-
-    const swiper = new window.Swiper(swiperEl, {
-      slidesPerView: 3,
-      observer: true,
-      observeParents: true,
-      watchSlidesProgress: true,
-      spaceBetween: window.innerWidth <= 768 ? window.innerWidth * 0.05 : 20,
-      grabCursor: true,
-      slideToClickedSlide: true,
-      rewind: true,
-      speed: 175,
-      preloadImages: false,
-      lazy: {
-        loadOnTransitionStart: false,
-        loadPrevNext: false
-      },
-      keyboard: { enabled: true },
-      navigation: {
-        nextEl: component.querySelector('.swiper-btn-next'),
-        prevEl: component.querySelector('.swiper-btn-prev'),
-        disabledClass: 'is-disabled'
-      },
-      pagination: {
-        el: component.querySelector('.swiper-pagination'),
-        bulletActiveClass: 'is-active',
-        bulletClass: 'swiper-bullet',
-        bulletElement: 'button',
-        clickable: true
-      },
-      breakpoints: {
-        768: { slidesPerView: 1, touchRatio: 1 },
-        0: { slidesPerView: 1, touchRatio: 1.5 }
-      }
+    function p() {
+        window.removeEventListener("scroll", u), l && cancelAnimationFrame(l), l = 0;
+    }
+    const m = e => e?.closest?.(".logo-slider") ? null : e?.closest?.(".highlight-swiper_component,.parallax-swiper_component,.swiper,.w-slider"), f = e => e?.closest?.('[disabled],[aria-disabled="true"],[hidden],[inert]'), h = () => e.classList.contains("tdb-sg-chrome-away") || e.classList.contains("tdb-sg-locked");
+    function b() {
+        s && cancelAnimationFrame(s), s = 0;
+    }
+    function w() {
+        b(), clearTimeout(a), clearTimeout(o), p(), i?.controller?.release(), e.classList.contains("tdb-slider-focus") && e.classList.remove("tdb-slider-focus"), 
+        i?.nav && (i.value ? i.nav.style.setProperty("--tdb-slider-nav-away", i.value, i.priority) : i.nav.style.removeProperty("--tdb-slider-nav-away")), 
+        i = null;
+    }
+    function g() {
+        i && !h() && (document.querySelector('.navbar10_menu-button[aria-expanded="true"]')?.click(), 
+        document.querySelectorAll('.navbar10_dropdown-toggle[aria-expanded="true"]').forEach(e => e.click()));
+    }
+    function v(t) {
+        if (t && !f(t) && !h()) {
+            if (b(), !i) {
+                const e = document.querySelector(".navbar10_component");
+                if (i = {
+                    nav: e,
+                    value: e?.style.getPropertyValue("--tdb-slider-nav-away") || "",
+                    priority: e?.style.getPropertyPriority("--tdb-slider-nav-away") || ""
+                }, e) {
+                    const t = e.getBoundingClientRect().top, n = [ e, ...e.querySelectorAll(".w-nav-overlay,.navbar10_menu[data-nav-menu-open],.navbar10_dropdown-list.w--open") ], i = Math.max(e.offsetHeight, ...n.filter(e => e.getClientRects().length && "hidden" !== getComputedStyle(e).visibility).map(e => e.getBoundingClientRect().bottom - t));
+                    e.style.setProperty("--tdb-slider-nav-away", i + "px");
+                }
+                const t = document.getElementById("tdb-vip-drawer");
+                t?.matches(".is-open,.is-peeking") && window.TDBVIPDrawer?.close?.(), a = setTimeout(g, 430), 
+                o = setTimeout(g, 680);
+            }
+            i.slider = t, i.controller = window.TDBNavScroll || null, p(), i.controller ? i.controller.focus(L, () => Boolean(r?.horizontal)) : (i.y = d(), 
+            i.up = i.down = 0, window.addEventListener("scroll", u, {
+                passive: !0
+            })), e.classList.contains("tdb-slider-focus") || e.classList.add("tdb-slider-focus");
+        }
+    }
+    function y(e) {
+        const t = e?.closest?.(".swiper-btn-prev,.swiper-btn-next,.swiper-bullet,.swiper-pagination-bullet,.w-slider-arrow-left,.w-slider-arrow-right,.w-slider-dot");
+        return t && !f(t) ? m(t) : null;
+    }
+    function E(e) {
+        if (r = null, 0 !== e.button || !1 === e.isPrimary || e.target.closest?.(t + "," + n)) return;
+        const i = m(e.target);
+        i && !f(e.target) && (r = {
+            id: e.pointerId,
+            x: e.clientX,
+            y: e.clientY,
+            slider: i,
+            horizontal: !1
+        }, y(e.target) && v(i));
+    }
+    function x(e) {
+        if (!r || r.id !== e.pointerId) return;
+        const t = Math.abs(e.clientX - r.x), n = Math.abs(e.clientY - r.y);
+        !r.horizontal && n > 10 && n > t ? r = null : !r.horizontal && t > 8 && t > 1.2 * n && (r.horizontal = !0, 
+        v(r.slider));
+    }
+    document.addEventListener("pointerdown", E, {
+        capture: !0,
+        passive: !0
+    }), document.addEventListener("pointermove", x, {
+        capture: !0,
+        passive: !0
     });
-
-    function updateCount() {
-      if (countEl) countEl.textContent = `${swiper.activeIndex + 1} of ${swiper.slides.length}`;
+    const S = e => {
+        r?.id === e.pointerId && (r.horizontal && i && v(r.slider), r = null);
+    };
+    function k(e) {
+        if (e.target.closest?.(n + "," + t)) return;
+        const i = y(e.target);
+        i ? v(i) : !e.target.closest?.('a,button,[role="button"]') && e.target.closest?.(".swiper-slide,.w-slide") && v(m(e.target));
     }
-
-    updateCount();
-    swiper.on('slideChange', updateCount);
-    markInitialised(component, 'highlight');
-  }
-
-  function initParallaxSwiper(component) {
-    if (!component || isInitialised(component)) return;
-
-    placeMobileParallaxControls(component);
-
-    const swiperEl = getSwiperElement(component);
-    if (!swiperEl || typeof window.Swiper !== 'function') return;
-
-    const desktopEntry = isDesktopEntryPage();
-    const mobileEntry = isMobileEntryPage();
-    const entryMotion = desktopEntry || mobileEntry;
-
-    const swiper = new window.Swiper(swiperEl, {
-      slidesPerView: 1,
-      observer: false,
-      observeParents: false,
-      centeredSlides: true,
-      watchSlidesProgress: true,
-      autoplay: entryMotion
-        ? false
-        : {
-            delay: 4500,
-            disableOnInteraction: false
-          },
-      grabCursor: true,
-      loop: true,
-      loopAdditionalSlides: 1,
-      slideToClickedSlide: true,
-      parallax: true,
-      speed: 400,
-      effect: 'slide',
-      keyboard: { enabled: true },
-      spaceBetween: 0,
-      resistanceRatio: 0,
-      touchReleaseOnEdges: true,
-      followFinger: true,
-      navigation: {
-        nextEl: component.querySelector('.swiper-btn-next'),
-        prevEl: component.querySelector('.swiper-btn-prev'),
-        disabledClass: 'is-disabled'
-      },
-      pagination: {
-        el: component.querySelector('.swiper-pagination'),
-        bulletActiveClass: 'is-active',
-        bulletClass: 'swiper-bullet',
-        bulletElement: 'button',
-        clickable: true
-      },
-      breakpoints: {
-        768: { slidesPerView: 1, touchRatio: 1 },
-        0: { slidesPerView: 1, touchRatio: 1.5 }
-      }
-    });
-
-    const FADE_IN_DELAY_NEXT = 100;
-    const FADE_IN_DELAY_PREV = 140;
-    const fadeCache = new WeakMap();
-    const visibleSlides = new Set();
-    let showTimeout = null;
-    let gestureHidden = false;
-    let entryPending = entryMotion;
-
-    function getFadeElements(slide) {
-      if (!slide) return [];
-      if (!fadeCache.has(slide)) {
-        fadeCache.set(slide, Array.from(slide.querySelectorAll('[data-fade-slide]')));
-      }
-      return fadeCache.get(slide);
-    }
-
-    function setVisible(slide, visible) {
-      if (!slide) return;
-      getFadeElements(slide).forEach(node => node.classList.toggle('is-visible', visible));
-      if (visible) visibleSlides.add(slide);
-      else visibleSlides.delete(slide);
-    }
-
-    function hideAllVisible() {
-      Array.from(visibleSlides).forEach(slide => setVisible(slide, false));
-    }
-
-    function cancelShow() {
-      if (!showTimeout) return;
-      clearTimeout(showTimeout);
-      showTimeout = null;
-    }
-
-    function setMoving(moving) {
-      component.classList.toggle('is-moving', moving);
-    }
-
-    function showActiveAfter(delay) {
-      cancelShow();
-      const activeSlide = swiper.slides[swiper.activeIndex];
-      showTimeout = setTimeout(() => setVisible(activeSlide, true), delay);
-    }
-
-    function completeEntry(revealDelay = FADE_IN_DELAY_NEXT) {
-      if (!entryPending) return;
-      entryPending = false;
-      setTimeout(() => component.classList.remove('tdb-entry-pending'), revealDelay);
-    }
-
-    swiper.slides.forEach(slide => setVisible(slide, false));
-    setVisible(swiper.slides[swiper.activeIndex], true);
-    setMoving(false);
-
-    swiper.on('touchStart', () => {
-      gestureHidden = false;
-      cancelShow();
-    });
-
-    swiper.on('sliderMove', () => {
-      if (gestureHidden) return;
-      gestureHidden = true;
-      cancelShow();
-      setMoving(true);
-      hideAllVisible();
-    });
-
-    swiper.on('slideChangeTransitionStart', () => {
-      cancelShow();
-      setMoving(true);
-      hideAllVisible();
-    });
-
-    swiper.on('slideChangeTransitionEnd', () => {
-      gestureHidden = false;
-      const direction = swiper.swipeDirection || 'next';
-      const revealDelay = direction === 'prev' ? FADE_IN_DELAY_PREV : FADE_IN_DELAY_NEXT;
-      showActiveAfter(revealDelay);
-      completeEntry(revealDelay);
-      setTimeout(() => setMoving(false), 0);
-    });
-
-    swiper.on('touchEnd', () => {
-      gestureHidden = false;
-      if (!swiper.animating) {
-        setMoving(false);
-        showActiveAfter(60);
-      }
-    });
-
-    markInitialised(component, 'parallax');
-
-    if (mobileEntry) {
-      swiper.autoplay?.stop();
-      swiper.slideNext();
-      return;
-    }
-
-    if (desktopEntry) {
-      const nextButton = component.querySelector('.swiper-btn-next');
-
-      const finishEntryFallback = () => {
-        if (!entryPending) return;
-        entryPending = false;
-        component.classList.remove('tdb-entry-pending');
-        setMoving(false);
-        showActiveAfter(FADE_IN_DELAY_NEXT);
-      };
-
-      const advanceOnce = () => {
-        if (swiper.destroyed || !entryPending) return;
-
-        swiper.update();
-        if (swiper.params.loop && typeof swiper.loopFix === 'function') swiper.loopFix();
-        swiper.slideNext(swiper.params.speed, true);
-
-        setTimeout(() => {
-          if (!entryPending || swiper.destroyed || swiper.animating) return;
-          nextButton?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-        }, 100);
-
-        setTimeout(finishEntryFallback, swiper.params.speed + FADE_IN_DELAY_NEXT + 300);
-      };
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setTimeout(advanceOnce, 120));
-      });
-    }
-  }
-
-  function initByType(type, component) {
-    if (type === 'highlight') initHighlightSwiper(component);
-    if (type === 'parallax') initParallaxSwiper(component);
-  }
-
-  function waitForSwiperAndInit(type, component, tries = 0) {
-    if (!component || !document.documentElement.contains(component) || isInitialised(component)) return;
-
-    if (typeof window.Swiper === 'function') {
-      initByType(type, component);
-      return;
-    }
-
-    if (tries < MAX_SWIPER_TRIES) {
-      setTimeout(() => waitForSwiperAndInit(type, component, tries + 1), SWIPER_RETRY_MS);
-    }
-  }
-
-  function observeComponent(component, type) {
-    if (!component || isInitialised(component)) return;
-    if (component.getAttribute(OBSERVED_ATTRIBUTE) === 'true') return;
-
-    component.setAttribute(OBSERVED_ATTRIBUTE, 'true');
-
-    if (type === 'parallax' && (isDesktopEntryPage() || isMobileEntryPage())) {
-      component.classList.add('tdb-entry-pending');
-    }
-
-    if (!('IntersectionObserver' in window)) {
-      waitForSwiperAndInit(type, component);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries, currentObserver) => {
-        entries.forEach(entry => {
-          if (!entry.isIntersecting) return;
-          currentObserver.unobserve(entry.target);
-          waitForSwiperAndInit(type, entry.target);
+    function A(r) {
+        if (r.target.closest?.(t + "," + n)) return;
+        if ("Escape" === r.key && i) return void w();
+        if (![ "ArrowLeft", "ArrowRight", "Enter", " " ].includes(r.key)) return;
+        const s = y(r.target);
+        if (s) return void v(s);
+        if ("ArrowLeft" !== r.key && "ArrowRight" !== r.key) return;
+        const a = m(r.target);
+        if (a) return void v(a);
+        if (r.target !== document.body && r.target !== e) return;
+        const o = [ ...document.querySelectorAll(".swiper") ].find(e => {
+            if (!m(e)) return !1;
+            const t = e.getBoundingClientRect();
+            return t.width > 0 && t.height > 0 && t.top < innerHeight && t.bottom > 0 && t.right > 0 && t.left < innerWidth && !f(e);
         });
-      },
-      { rootMargin: VIEWPORT_MARGIN }
-    );
-
-    observer.observe(component);
-  }
-
-  function refresh(root = document) {
-    configurePageNavigation(root);
-
-    if (root instanceof Element) {
-      if (root.matches(HIGHLIGHT_SELECTOR)) observeComponent(root, 'highlight');
-      if (root.matches(PARALLAX_SELECTOR)) observeComponent(root, 'parallax');
+        o && v(o);
     }
-
-    root.querySelectorAll?.(HIGHLIGHT_SELECTOR).forEach(component => observeComponent(component, 'highlight'));
-    root.querySelectorAll?.(PARALLAX_SELECTOR).forEach(component => observeComponent(component, 'parallax'));
-  }
-
-  function onNavigationClick(event) {
-    const button = event.target.closest?.('.swiper-btn-prev,.swiper-btn-next');
-    if (!button || !button.closest(PARALLAX_SELECTOR)) return;
-    const wrapper = button.closest('.swiper-buttons-wrapper');
-    wrapper?.querySelectorAll('.swiper-btn-prev,.swiper-btn-next').forEach(candidate => {
-      candidate.classList.toggle('is-selected', candidate === button);
+    function L() {
+        s || (s = requestAnimationFrame(() => {
+            s = requestAnimationFrame(() => {
+                s = 0, w();
+            });
+        }));
+    }
+    document.addEventListener("pointerup", S, {
+        capture: !0,
+        passive: !0
+    }), document.addEventListener("pointercancel", S, {
+        capture: !0,
+        passive: !0
+    }), document.addEventListener("click", k, {
+        capture: !0,
+        passive: !0
+    }), document.addEventListener("keydown", A, {
+        capture: !0,
+        passive: !0
     });
-  }
-
-  function start() {
-    refresh();
-    document.addEventListener('click', onNavigationClick);
-
-    const mutationObserver = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
-          if (node instanceof Element) refresh(node);
+    const T = e => {
+        i && e.target.closest?.('.navbar10_component,#tdb-vip-drawer,a[href*="#vip"],[data-tdb-vip-open]') && w();
+    };
+    document.addEventListener("focusin", T), document.addEventListener("pointerdown", T, {
+        capture: !0,
+        passive: !0
+    }), window.addEventListener("resize", () => {
+        r = null, w();
+    }, {
+        passive: !0
+    }), window.addEventListener("pagehide", () => {
+        r = null, w();
+    }), new MutationObserver(() => {
+        i && h() && w();
+    }).observe(e, {
+        attributes: !0,
+        attributeFilter: [ "class" ]
+    }), window.TDBSliderFocus = Object.freeze({
+        resume(e) {
+            if (!e || Math.abs(window.scrollY - e.y) > 8) return;
+            const t = (e.click || e.key || e.down)?.target;
+            t?.isConnected && (e.down && E(e.down), e.move && x(e.move), e.end && S(e.end), 
+            e.click && k(e.click), e.key && A(e.key));
+        }
+    });
+})(), (() => {
+    "use strict";
+    const e = ".highlight-swiper_component", t = ".parallax-swiper_component", n = "data-tdb-slider-observed", i = "data-tdb-slider-init", r = "(min-width:768px)", s = "(max-width:767px) and (orientation:portrait)", a = "(prefers-reduced-motion:reduce)", o = "data-tdb-slider-first-view", l = new Map, d = new WeakSet;
+    function c() {
+        const e = location.pathname.replace(/\/+$/, "") || "/";
+        return "/" === e || "/location" === e;
+    }
+    function u() {
+        return c() && matchMedia(r).matches;
+    }
+    function p() {
+        return c() && matchMedia(s).matches && !matchMedia(a).matches;
+    }
+    function m(e) {
+        return e?.querySelector?.(".swiper") || null;
+    }
+    function f(e) {
+        const t = m(e);
+        return "true" === e?.getAttribute?.(i) || Boolean(t?.swiper);
+    }
+    function h(e, t) {
+        e.setAttribute(i, "true"), e.dataset.tdbSliderType = t;
+    }
+    function b(e) {
+        return window.innerWidth < 768 && (e.hasAttribute("data-tdb-smile-slider") || e.querySelector('a[href^="/treatments/"]') || "677cfbe37aba5fbbc2154c24" === document.documentElement.getAttribute("data-wf-page")) ? .02 * window.innerWidth : window.innerWidth <= 768 ? .05 * window.innerWidth : 20;
+    }
+    function w(e, n) {
+        if (!matchMedia("(min-width:992px)").matches) return n;
+        const i = "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage && e.matches(".section_smile-gallery [data-tdb-smile-slider]");
+        if (!e.matches(t) && !i) return n;
+        const r = parseFloat(getComputedStyle(e).columnGap);
+        return Number.isFinite(r) ? r : n;
+    }
+    function g(e, t, n) {
+        const i = () => {
+            const i = w(e, n());
+            t.params.spaceBetween = i, t.originalParams.spaceBetween = i;
+        };
+        t.on("beforeResize breakpoint", i), t.on("beforeDestroy", () => t.off("beforeResize breakpoint", i));
+    }
+    function v(e) {
+        if (!e || f(e)) return;
+        const t = m(e), n = e.querySelector(".swiper-count");
+        if (!t || "function" != typeof window.Swiper) return;
+        const i = t.querySelectorAll(".swiper-wrapper > .swiper-slide:not(.swiper-slide-duplicate)").length, r = new window.Swiper(t, {
+            slidesPerView: 3,
+            observer: !0,
+            observeParents: !0,
+            watchSlidesProgress: !0,
+            spaceBetween: w(e, b(e)),
+            grabCursor: !0,
+            slideToClickedSlide: !0,
+            rewind: !1,
+            loop: i > 1,
+            loopAdditionalSlides: 1,
+            loopPreventsSlide: !1,
+            speed: y({
+                clientWidth: window.innerWidth
+            }),
+            autoplay: !1,
+            preventInteractionOnTransition: !1,
+            preloadImages: !1,
+            lazy: {
+                loadOnTransitionStart: !1,
+                loadPrevNext: !1
+            },
+            keyboard: {
+                enabled: !0
+            },
+            navigation: {
+                nextEl: e.querySelector(".swiper-btn-next"),
+                prevEl: e.querySelector(".swiper-btn-prev"),
+                disabledClass: "is-disabled"
+            },
+            pagination: {
+                el: e.querySelector(".swiper-pagination"),
+                bulletActiveClass: "is-active",
+                bulletClass: "swiper-bullet",
+                bulletElement: "button",
+                clickable: !0
+            },
+            breakpoints: {
+                768: {
+                    slidesPerView: 1,
+                    touchRatio: 1
+                },
+                0: {
+                    slidesPerView: 1,
+                    touchRatio: 1
+                }
+            }
         });
-      });
-    });
-
-    mutationObserver.observe(document.body, { childList: true, subtree: true });
-
-    window.TDBSliders = Object.freeze({
-      version: VERSION,
-      refresh: () => refresh()
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', start, { once: true });
-  } else {
-    start();
-  }
+        function s() {
+            n && (n.textContent = `${r.realIndex + 1} of ${i}`);
+        }
+        e.matches(".section_smile-gallery [data-tdb-smile-slider]") && "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage && g(e, r, () => b(e)), 
+        k(r), S(e, t, r, "--tdb-carousel-duration", () => window.innerWidth), s(), r.on("slideChange", s), 
+        r.params.loop && (!function(e, t) {
+            const n = new WeakMap, i = new Map, r = new MutationObserver(e => {
+                e.forEach(e => {
+                    const t = i.get(e.target);
+                    if (!t) return;
+                    const n = e.target.getAttribute(e.attributeName);
+                    t.forEach(t => {
+                        null === n ? t.removeAttribute(e.attributeName) : t.getAttribute(e.attributeName) !== n && t.setAttribute(e.attributeName, n);
+                    });
+                });
+            });
+            function s() {
+                r.disconnect(), i.clear();
+                const e = new Map;
+                t.slides.forEach(t => {
+                    t.classList.contains("swiper-slide-duplicate") || e.set(t.getAttribute("data-swiper-slide-index"), t);
+                }), t.slides.forEach(t => {
+                    if (!t.classList.contains("swiper-slide-duplicate")) return;
+                    const r = e.get(t.getAttribute("data-swiper-slide-index"));
+                    if (!r) return;
+                    n.set(t, r);
+                    const s = r.querySelectorAll("*");
+                    t.querySelectorAll("*").forEach((e, t) => {
+                        const r = s[t];
+                        r && (n.set(e, r), i.has(r) || i.set(r, []), i.get(r).push(e));
+                    });
+                }), e.forEach(e => r.observe(e, {
+                    subtree: !0,
+                    attributes: !0,
+                    attributeFilter: [ "style", "class", "aria-expanded" ]
+                }));
+            }
+            function a(e) {
+                const i = n.get(e.target);
+                if (!i || !e.target.closest(".swiper-slide-duplicate")) return;
+                if ("click" === e.type && !t.allowClick) return e.preventDefault(), void e.stopImmediatePropagation();
+                const r = new MouseEvent(e.type, {
+                    bubbles: !0,
+                    cancelable: !0,
+                    view: window,
+                    clientX: e.clientX,
+                    clientY: e.clientY,
+                    screenX: e.screenX,
+                    screenY: e.screenY,
+                    button: e.button,
+                    buttons: e.buttons,
+                    detail: e.detail,
+                    ctrlKey: e.ctrlKey,
+                    shiftKey: e.shiftKey,
+                    altKey: e.altKey,
+                    metaKey: e.metaKey,
+                    relatedTarget: n.get(e.relatedTarget) || e.relatedTarget
+                });
+                e.stopImmediatePropagation(), "click" === e.type && e.preventDefault(), i.dispatchEvent(r);
+            }
+            const o = [ "mouseover", "mouseout", "click" ];
+            o.forEach(t => e.addEventListener(t, a, !0)), s(), t.on("breakpoint", s), t.on("beforeDestroy", () => {
+                r.disconnect(), i.clear(), o.forEach(t => e.removeEventListener(t, a, !0)), t.off("breakpoint", s);
+            });
+        }(e, r), r.on("slideChangeTransitionEnd", () => r.loopFix())), h(e, "highlight"), 
+        l.get(e)?.bind(r);
+    }
+    function y(e) {
+        return window.TDBMotion.duration(e.clientWidth);
+    }
+    function E(e) {
+        return "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage && e.matches("#All-treatments .tdb-banner-parallax");
+    }
+    function x(e) {
+        return E(e) && matchMedia("(max-width:767px)").matches ? .02 * window.innerWidth : 0;
+    }
+    function S(e, t, n, i = "--tdb-parallax-duration", r = () => t.clientWidth) {
+        let s = 0, a = null;
+        const o = matchMedia("(min-width:992px)");
+        function l() {
+            if (n.destroyed || null === a || n.animating) return;
+            const t = a;
+            a = null, n.params.speed = t, n.originalParams.speed = t, e.style.setProperty(i, t + "ms");
+        }
+        function d() {
+            s || (s = requestAnimationFrame(() => {
+                s = 0, a = y({
+                    clientWidth: r()
+                }), l();
+            }));
+        }
+        const c = new ResizeObserver(d);
+        c.observe(t), o.addEventListener("change", d), window.addEventListener("resize", d, {
+            passive: !0
+        }), n.on("slideChangeTransitionEnd", l), e.style.setProperty(i, n.params.speed + "ms"), 
+        n.on("beforeDestroy", () => {
+            c.disconnect(), o.removeEventListener("change", d), window.removeEventListener("resize", d), 
+            s && cancelAnimationFrame(s), n.off("slideChangeTransitionEnd", l), e.style.removeProperty(i);
+        });
+    }
+    function k(e) {
+        return window.TDBMotion.bindSwiper(e);
+    }
+    function A(e) {
+        if (!e || f(e)) return;
+        const t = m(e);
+        if (!t || "function" != typeof window.Swiper) return;
+        const n = e.hasAttribute("data-tdb-banner-parallax"), i = n && (E(e) || !matchMedia(a).matches), o = u() || i && matchMedia(r).matches, l = p() || i && matchMedia(s).matches, d = o || l || n, c = window.TDBParallaxControls?.prepare(e, t), b = new window.Swiper(t, {
+            init: !n,
+            slidesPerView: 1,
+            initialSlide: c?.initialIndex || 0,
+            observer: !1,
+            observeParents: !1,
+            centeredSlides: !0,
+            watchSlidesProgress: !0,
+            autoplay: !d && {
+                delay: 4500,
+                disableOnInteraction: !1
+            },
+            grabCursor: !0,
+            loop: !n || t.querySelectorAll(".swiper-slide").length > 1,
+            loopPreventsSlide: !1,
+            preventInteractionOnTransition: !1,
+            loopAdditionalSlides: 1,
+            slideToClickedSlide: !0,
+            parallax: !0,
+            speed: y(t),
+            effect: "slide",
+            keyboard: {
+                enabled: !0
+            },
+            spaceBetween: w(e, x(e)),
+            resistanceRatio: 0,
+            touchReleaseOnEdges: !0,
+            followFinger: !0,
+            navigation: {
+                nextEl: e.querySelector(".swiper-btn-next"),
+                prevEl: e.querySelector(".swiper-btn-prev"),
+                disabledClass: "is-disabled"
+            },
+            pagination: {
+                el: e.querySelector(".swiper-pagination"),
+                bulletActiveClass: "is-active",
+                bulletClass: "swiper-bullet",
+                bulletElement: "button",
+                clickable: !0
+            },
+            breakpoints: {
+                ...n ? {
+                    992: {
+                        slidesPerView: "auto",
+                        centeredSlides: !1,
+                        touchRatio: 1
+                    }
+                } : {},
+                768: {
+                    slidesPerView: 1,
+                    centeredSlides: !0,
+                    touchRatio: 1
+                },
+                0: {
+                    slidesPerView: E(e) ? "auto" : 1,
+                    centeredSlides: !E(e),
+                    touchRatio: 1
+                }
+            }
+        });
+        n && (!function(e, t, n) {
+            const i = matchMedia("(min-width:992px)"), r = n.slideTo;
+            let s = [], a = null;
+            const o = () => {
+                s.forEach(e => e.cancel()), s = [];
+            }, l = (e, t) => e.getAttribute("data-swiper-slide-index") ?? String(t);
+            function d(e) {
+                const n = [ ...t.querySelectorAll(":scope > .swiper-wrapper > .swiper-slide") ], i = n[e];
+                return i ? (a = l(i, e), n.forEach((e, t) => e.toggleAttribute("data-tdb-banner-wide", l(e, t) === a)), 
+                n) : n;
+            }
+            n.on("beforeInit", () => d(n.params.initialSlide || 0)), n.slideTo = function(e = 0, t = this.params.speed, n = !0, c, u) {
+                if (!i.matches) return r.call(this, e, t, n, c, u);
+                const p = Math.max(0, Number(e)), m = this.slides[p];
+                if (!m || this.animating && this.params.preventInteractionOnTransition || !this.enabled && !c && !u) return r.call(this, e, t, n, c, u);
+                if (this.animating && p === this.activeIndex && t > 0) return r.call(this, e, t, n, c, u);
+                if (c && 0 === t && l(m, p) === a) return r.call(this, e, t, n, c, u);
+                const f = [ ...this.slides ], h = f.map(e => e.getBoundingClientRect().width);
+                o(), d(p), this.updateSlides();
+                const b = f.map(e => e.getBoundingClientRect().width);
+                if (this.initialized && t > 0) {
+                    const e = getComputedStyle(this.wrapperEl).transitionTimingFunction.match(/^[a-z-]+\([^)]*\)|^[a-z-]+/)?.[0] || "ease";
+                    s = f.flatMap((n, i) => Math.abs(h[i] - b[i]) < .1 ? [] : [ n.animate([ {
+                        width: h[i] + "px"
+                    }, {
+                        width: b[i] + "px"
+                    } ], {
+                        duration: t,
+                        easing: e,
+                        fill: "both"
+                    }) ]);
+                    const n = s;
+                    Promise.all(n.map(e => e.finished.catch(() => {}))).then(() => {
+                        s === n && o();
+                    });
+                }
+                return r.call(this, e, t, n, c, u);
+            };
+            const c = () => {
+                o(), n.initialized && d(n.activeIndex);
+            };
+            n.on("beforeResize", c), i.addEventListener("change", c), n.on("beforeDestroy", () => {
+                o(), i.removeEventListener("change", c), n.off("beforeResize", c), n.slideTo = r, 
+                t.querySelectorAll("[data-tdb-banner-wide]").forEach(e => e.removeAttribute("data-tdb-banner-wide"));
+            });
+        }(0, t, b), b.init()), k(b), g(e, b, () => x(e)), S(e, t, b), c?.bind(b), window.TDBServicePresentation?.bind(e, b);
+        const v = 100, A = new WeakMap, L = new Set;
+        let T = null, M = !1, P = !1;
+        b.on("beforeLoopFix", () => {
+            P = !0;
+        }), b.on("loopFix", () => {
+            P = !1;
+        });
+        let C = (o || l) && !c?.skipEntry;
+        function q(e, t) {
+            e && (function(e) {
+                return e ? (A.has(e) || A.set(e, Array.from(e.querySelectorAll("[data-fade-slide],[data-tdb-service-copy]"))), 
+                A.get(e)) : [];
+            }(e).forEach(e => e.classList.toggle("is-visible", t)), t ? L.add(e) : L.delete(e));
+        }
+        function I() {
+            b.slides.forEach(e => q(e, !1));
+        }
+        function F() {
+            T && (clearTimeout(T), T = null);
+        }
+        function R(t) {
+            e.classList.toggle("is-moving", t), window.TDBServicePresentation?.setMoving(e, t), c?.setBusy(t);
+        }
+        function B(e) {
+            F(), T = setTimeout(() => {
+                if (T = null, b.destroyed || b.animating || M) return;
+                const e = b.slides[b.activeIndex], t = e?.getAttribute("data-swiper-slide-index");
+                b.slides.forEach(n => q(n, n === e || null !== t && n.getAttribute("data-swiper-slide-index") === t));
+            }, e);
+        }
+        function z(t = 100) {
+            C && (C = !1, setTimeout(() => { e.classList.remove("tdb-entry-pending"); window.TDBServicePresentation?.setEntry(e, false); }, t));
+        }
+        if (e.classList.toggle("tdb-entry-pending", C), window.TDBServicePresentation?.setEntry(e, C), b.slides.forEach(e => q(e, !1)), 
+        q(b.slides[b.activeIndex], !0), R(!1), b.on("touchStart", () => {
+            M = !1, F();
+        }), b.on("sliderMove", () => {
+            M || (M = !0, F(), R(!0), I());
+        }), b.on("slideChangeTransitionStart", () => {
+            P || (F(), R(!0), I());
+        }), b.on("slideChangeTransitionEnd", () => {
+            if (P) return;
+            M = !1;
+            const e = "prev" === (b.swipeDirection || "next") ? 140 : v;
+            B(e), z(e), R(!1);
+        }), b.on("touchEnd", () => {
+            M = !1, b.animating || (R(!1), B(60));
+        }), b.on("slideResetTransitionEnd", () => {
+            P || (M = !1, R(!1), B(60), z(60));
+        }), h(e, "parallax"), l && C) return b.autoplay?.stop(), void b.slideNext();
+        if (o && C) {
+            const t = e.querySelector(".swiper-btn-next"), n = () => {
+                C && (C = !1, e.classList.remove("tdb-entry-pending"), window.TDBServicePresentation?.setEntry(e, false), R(!1), B(v));
+            }, i = () => {
+                !b.destroyed && C && (c?.skipEntry ? n() : (b.update(), b.params.loop && "function" == typeof b.loopFix && b.loopFix(), 
+                b.slideNext(b.params.speed, !0), setTimeout(() => {
+                    !C || b.destroyed || b.animating || t?.dispatchEvent(new MouseEvent("click", {
+                        bubbles: !0,
+                        cancelable: !0
+                    }));
+                }, 100), setTimeout(n, b.params.speed + v + 300)));
+            };
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => setTimeout(i, 120));
+            });
+        }
+    }
+    function L(e, t, n = 0) {
+        t && document.documentElement.contains(t) && !f(t) && ("function" != typeof window.Swiper ? n < 120 && setTimeout(() => L(e, t, n + 1), 100) : function(e, t) {
+            "highlight" === e && v(t), "parallax" === e && A(t);
+        }(e, t));
+    }
+    function T(e, t) {
+        if (!e || f(e)) return;
+        if ("true" === e.getAttribute(n)) return;
+        if (e.setAttribute(n, "true"), "highlight" === t && function(e) {
+            if (d.has(e) || l.has(e)) return;
+            const t = m(e);
+            if (!t) return;
+            const n = [ "pointerdown", "touchstart", "keydown", "click", "focusin" ];
+            let i = null, r = null, s = !1, a = 0, c = 0, u = !1;
+            function p() {
+                a && cancelAnimationFrame(a), c && clearTimeout(c), a = c = 0;
+            }
+            function f(t) {
+                u || (u = !0, p(), r?.disconnect(), n.forEach(t => e.removeEventListener(t, h, !0)), 
+                document.removeEventListener("visibilitychange", w), i?.off("touchStart slideChange", h), 
+                i?.off("beforeDestroy", b), l.delete(e), d.add(e), e.setAttribute(o, t));
+            }
+            function h() {
+                f("skipped-interaction");
+            }
+            function b() {
+                f("skipped-destroyed");
+            }
+            function w() {
+                document.hidden ? p() : y();
+            }
+            function g() {
+                return !(u || !i) && (!document.documentElement.contains(e) || i.destroyed ? (f("skipped-detached"), 
+                !1) : e.contains(document.activeElement) || 0 !== i.realIndex || i.animating ? (f("skipped-interaction"), 
+                !1) : s && !document.hidden);
+            }
+            function v() {
+                if (c = 0, !g()) return;
+                const e = t.getBoundingClientRect();
+                e.width <= 0 || e.height <= 0 || e.bottom <= 0 || e.right <= 0 || e.top >= window.innerHeight || e.left >= window.innerWidth || ("visible" !== getComputedStyle(t).visibility || t.closest('[hidden], [inert], [aria-hidden="true"]') ? f("skipped-hidden") : (i.update(), 
+                g() && (i.slides.length < 2 || i.isLocked || !i.enabled ? f("skipped-unavailable") : (f("advanced"), 
+                i.slideNext(i.params.speed, !0)))));
+            }
+            function y() {
+                a || c || !g() || (a = requestAnimationFrame(() => {
+                    a = requestAnimationFrame(() => {
+                        a = 0, g() && (c = setTimeout(v, 120));
+                    });
+                }));
+            }
+            l.set(e, {
+                cancel: () => f("skipped-detached"),
+                bind(e) {
+                    u || (i = e, i.slides.length < 2 ? f("skipped-unavailable") : (i.on("touchStart slideChange", h), 
+                    i.on("beforeDestroy", b), y()));
+                }
+            }), e.setAttribute(o, "pending"), "IntersectionObserver" in window ? (n.forEach(t => e.addEventListener(t, h, {
+                capture: !0,
+                passive: !0
+            })), document.addEventListener("visibilitychange", w), r = new IntersectionObserver(e => {
+                e.forEach(e => {
+                    s = e.isIntersecting && e.intersectionRatio > 0, s ? y() : p();
+                });
+            }, {
+                rootMargin: "0px",
+                threshold: 0
+            }), r.observe(t)) : f("skipped-unsupported");
+        }(e), "parallax" === t && (u() || p()) && e.classList.add("tdb-entry-pending"), 
+        !("IntersectionObserver" in window)) return void L(t, e);
+        new IntersectionObserver((e, n) => {
+            e.forEach(e => {
+                e.isIntersecting && (n.unobserve(e.target), L(t, e.target));
+            });
+        }, {
+            rootMargin: "100px"
+        }).observe(e);
+    }
+    function M(n = document) {
+        window.TDBBannerParallax?.refresh(n), n instanceof Element && (n.matches(e) && T(n, "highlight"), 
+        n.matches(t) && T(n, "parallax")), n.querySelectorAll?.(e).forEach(e => T(e, "highlight")), 
+        n.querySelectorAll?.(t).forEach(e => T(e, "parallax"));
+    }
+    function P(e) {
+        const n = e.target.closest?.(".swiper-btn-prev,.swiper-btn-next");
+        if (!n || !n.closest(t)) return;
+        const i = n.closest(".swiper-buttons-wrapper");
+        i?.querySelectorAll(".swiper-btn-prev,.swiper-btn-next").forEach(e => {
+            e.classList.toggle("is-selected", e === n);
+        });
+    }
+    let C = !1;
+    function q() {
+        if (C || "loading" === document.readyState || "function" != typeof window.Swiper) return;
+        const e = getComputedStyle(document.documentElement);
+        "1" === e.getPropertyValue("--tdb-ui-ready").trim() && "1" === e.getPropertyValue("--tdb-slider-ui-ready").trim() && (C = !0, 
+        document.removeEventListener("load", I, !0), M(), document.addEventListener("click", P), 
+        new MutationObserver(e => {
+            e.forEach(e => {
+                e.addedNodes.forEach(e => {
+                    e instanceof Element && M(e);
+                });
+            }), e.some(e => e.removedNodes.length) && l.forEach((e, t) => {
+                document.documentElement.contains(t) || e.cancel();
+            });
+        }).observe(document.body, {
+            childList: !0,
+            subtree: !0
+        }), window.TDBSliders = Object.freeze({
+            version: "0.9.0-native-service",
+            refresh: () => M(),
+            activate: e => A(e)
+        }));
+    }
+    function I(e) {
+        e.target.matches?.('script[data-swiper-js],link[data-tdb-ui-css],link[href*="/dist/tdb-ui.css"],link[data-tdb-slider-ui-css],link[href*="/dist/tdb-slider-ui.css"]') && queueMicrotask(q);
+    }
+    document.addEventListener("load", I, !0), document.addEventListener("DOMContentLoaded", q, {
+        once: !0
+    }), q();
 })();
