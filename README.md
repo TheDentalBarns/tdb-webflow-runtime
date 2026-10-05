@@ -28,7 +28,7 @@ The immediate runtime loads CookieScript `3.0.0` from its own immutable reposito
 
 ## Historical staging additions
 
-The Webflow subdomain currently tests the consolidated Home/Location parallax slider cleanup:
+An earlier Webflow subdomain release tested the consolidated Home/Location parallax slider cleanup:
 
 | Asset | Version | Immutable commit | Purpose |
 |---|---:|---|---|
@@ -75,3 +75,10 @@ Rollback is performed by restoring the previous immutable SHA in Webflow and rep
 ## Navigation cleanup — 5 October 2026
 
 See [navigation ownership, build and staging verification](docs/navigation-cleanup-2026-10-05.md). The essential `tdb-navbar.min.js` owns its complete lifecycle; it no longer depends on a footer helper or an inline nav CSS patch block. Static layout and decorative layers remain native Webflow.
+
+## Service parallax cleanup — 5 October 2026
+
+See [service parallax ownership and deployment](docs/service-parallax-cleanup-2026-10-05.md).
+Designer owns the first service slider's styling and CMS list order. Shared parallax
+behaviour lives in `src/sliders/parallax.js`, bundled into the existing immediate
+runtime; the separate homepage progress script and inline service reorder are retired.

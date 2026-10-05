@@ -350,7 +350,7 @@
         if (!e || f(e)) return;
         const t = m(e);
         if (!t || "function" != typeof window.Swiper) return;
-        const n = e.hasAttribute("data-tdb-banner-parallax"), i = n && (E(e) || !matchMedia(a).matches), o = u() || i && matchMedia(r).matches, l = p() || i && matchMedia(s).matches, d = o || l || n, c = window.TDBParallaxControls?.prepare(e, t), b = new window.Swiper(t, {
+        const n = e.hasAttribute("data-tdb-banner-parallax"), i = n && (E(e) || !matchMedia(a).matches), o = u() || i && matchMedia(r).matches, l = p() || i && matchMedia(s).matches, d = o || l || n, c = window.TDBParallax?.prepare(e, t), b = new window.Swiper(t, {
             init: !n,
             slidesPerView: 1,
             initialSlide: c?.initialIndex || 0,
@@ -455,7 +455,7 @@
                 o(), i.removeEventListener("change", c), n.off("beforeResize", c), n.slideTo = r, 
                 t.querySelectorAll("[data-tdb-banner-wide]").forEach(e => e.removeAttribute("data-tdb-banner-wide"));
             });
-        }(0, t, b), b.init()), k(b), g(e, b, () => x(e)), S(e, t, b), c?.bind(b), window.TDBServicePresentation?.bind(e, b);
+        }(0, t, b), b.init()), k(b), g(e, b, () => x(e)), S(e, t, b), c?.bind(b), window.TDBParallax?.bind(e, b);
         const v = 100, A = new WeakMap, L = new Set;
         let T = null, M = !1, P = !1;
         b.on("beforeLoopFix", () => {
@@ -477,7 +477,7 @@
             T && (clearTimeout(T), T = null);
         }
         function R(t) {
-            e.classList.toggle("is-moving", t), window.TDBServicePresentation?.setMoving(e, t), c?.setBusy(t);
+            e.classList.toggle("is-moving", t), window.TDBParallax?.setMoving(e, t), c?.setBusy(t);
         }
         function B(e) {
             F(), T = setTimeout(() => {
@@ -487,9 +487,9 @@
             }, e);
         }
         function z(t = 100) {
-            C && (C = !1, setTimeout(() => { e.classList.remove("tdb-entry-pending"); window.TDBServicePresentation?.setEntry(e, false); }, t));
+            C && (C = !1, setTimeout(() => { e.classList.remove("tdb-entry-pending"); window.TDBParallax?.setEntry(e, false); }, t));
         }
-        if (e.classList.toggle("tdb-entry-pending", C), window.TDBServicePresentation?.setEntry(e, C), b.slides.forEach(e => q(e, !1)), 
+        if (e.classList.toggle("tdb-entry-pending", C), window.TDBParallax?.setEntry(e, C), b.slides.forEach(e => q(e, !1)), 
         q(b.slides[b.activeIndex], !0), R(!1), b.on("touchStart", () => {
             M = !1, F();
         }), b.on("sliderMove", () => {
@@ -508,7 +508,7 @@
         }), h(e, "parallax"), l && C) return b.autoplay?.stop(), void b.slideNext();
         if (o && C) {
             const t = e.querySelector(".swiper-btn-next"), n = () => {
-                C && (C = !1, e.classList.remove("tdb-entry-pending"), window.TDBServicePresentation?.setEntry(e, false), R(!1), B(v));
+                C && (C = !1, e.classList.remove("tdb-entry-pending"), window.TDBParallax?.setEntry(e, false), R(!1), B(v));
             }, i = () => {
                 !b.destroyed && C && (c?.skipEntry ? n() : (b.update(), b.params.loop && "function" == typeof b.loopFix && b.loopFix(), 
                 b.slideNext(b.params.speed, !0), setTimeout(() => {
@@ -601,7 +601,7 @@
         }).observe(e);
     }
     function M(n = document) {
-        window.TDBBannerParallax?.refresh(n), n instanceof Element && (n.matches(e) && T(n, "highlight"), 
+        window.TDBParallax?.refresh(n), n instanceof Element && (n.matches(e) && T(n, "highlight"), 
         n.matches(t) && T(n, "parallax")), n.querySelectorAll?.(e).forEach(e => T(e, "highlight")), 
         n.querySelectorAll?.(t).forEach(e => T(e, "parallax"));
     }
@@ -631,7 +631,7 @@
             childList: !0,
             subtree: !0
         }), window.TDBSliders = Object.freeze({
-            version: "0.9.0-native-service",
+            version: "0.10.0",
             refresh: () => M(),
             activate: e => A(e)
         }));

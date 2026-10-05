@@ -1,11 +1,11 @@
-/* Builds the service presentation without changing unrelated runtime bundles. */
+/* Builds the shared parallax module in the existing immediate entry point. */
 const fs = require('node:fs');
 const path = require('node:path');
 const terser = require(process.env.TDB_TERSER_MODULE || 'terser');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const targets = {
-  'dist/tdb-immediate-runtime-batch.min.js': ['src/sliders/service-presentation.js', 'src/runtime/immediate-runtime-batch.js'],
+  'dist/tdb-immediate-runtime-batch.min.js': ['src/sliders/parallax.js', 'src/runtime/immediate-runtime-batch.js'],
   'dist/tdb-sliders.js': ['src/sliders/sliders.js'],
   'dist/tdb-footer-runtime.min.js': ['src/banner/announcement.js', 'src/vip-drawer/vip-focus.js', 'src/runtime/deferred-ui.js', 'src/runtime/site-asset-loader.js'],
 };
@@ -15,6 +15,5 @@ const targets = {
     if (!result.code) throw new Error('Empty build: ' + output);
     fs.writeFileSync(path.join(root, output), result.code + '\n');
   }
-  fs.copyFileSync(path.join(root,'src/sliders/home-service-progress.js'),path.join(root,'dist/tdb-home-service-progress.js'));
   fs.copyFileSync(path.join(root,'src/styles/tdb-banner-parallax.css'),path.join(root,'dist/tdb-banner-parallax.css'));
-})();
+})().catch(error => { console.error(error); process.exitCode = 1; });
