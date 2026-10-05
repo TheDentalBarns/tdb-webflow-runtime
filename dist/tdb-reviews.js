@@ -132,9 +132,9 @@ function mount(root,data){
  function hasSelection(){return selection.sort!=='recommended'||selection.rating.length>0||selection.platform.length>0||selection.treatment.length>0||selection.experience.length>0;}
  function updateFilterReset(){
   if(!filterReset)return;
-  // Reset restores the defaults and folds open headings. A failed metadata load
-  // retains the existing retry action even when there are no selected filters.
-  const disabled=selectionBusy||(!hasSelection()&&!filter?.hasExpandedDisclosures&&!filterLoadFailed);
+  // Only changed filter values enable Reset; opening headings is not a change.
+  // A failed metadata load retains the existing retry action.
+  const disabled=selectionBusy||(!hasSelection()&&!filterLoadFailed);
   filterReset.disabled=disabled;filterReset.setAttribute('aria-disabled',String(disabled));
   filterReset.tabIndex=disabled?-1:0;filterReset.classList.toggle('is-disabled',disabled);
  }
