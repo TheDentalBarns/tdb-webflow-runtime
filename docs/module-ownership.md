@@ -24,6 +24,13 @@ colour, spacing, responsive styles and control appearance. GitHub owns behaviour
 | `tdb-reviews.js` | Review adapter: CMS matching/sorting, draft/committed selection, cached result batches, counts (including the filter action's shared ticker), full-review slider, pagination and quote choreography. | Shared drawer/filter interaction mechanics or styling |
 | `tdb-review-legacy-loader.js` | Keep earlier review patches available to components awaiting migration. | New native components |
 
+Progress v1.0.1 caches slide membership/index metadata and track width while
+continuing to sample rendered slide geometry throughout every visible frame.
+The Review Drawer filter's portrait content scroll is a native Designer body
+wrapper, with header/footer outside that scrolling body. Existing phone-landscape
+classes restore the full panel flow through native flex sizing. Details and
+rollback are in `docs/service-parallax-cleanup-2026-10-05.md`.
+
 `tdb-logo-marquee.js` and its loader remain separate: the partner marquee does not
 use Swiper. General timing settings are consumed where appropriate; a change to
 one timing does not automatically alter every unrelated animation on the site.

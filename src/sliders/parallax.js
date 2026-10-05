@@ -1,4 +1,4 @@
-/* TDB Parallax v1.0.0.
+/* TDB Parallax v1.0.1.
  * Shared parallax preparation, CMS link state, native presentation and progress.
  * Bundled into the existing immediate runtime: no extra request or stylesheet.
  * Swiper and TDBMotion remain the shared slide/motion engines.
@@ -364,19 +364,30 @@
     if(treatment)[fill,wrapped].forEach(node=>node.classList.add('is-treatment')); 
     track.setAttribute('aria-hidden','true');track.append(fill,wrapped);component.append(track);
     let frame=0,visible=false,disposed=false,lastTravel=null,lastSegment=null;
+    let slides=[],count=0,structureDirty=true,trackWidth=0,dpr=1;
+    function readSlides(){
+      slides=[...wrapper.children].filter(node=>node.classList.contains('swiper-slide')).map((node,i)=>{
+        const index=node.getAttribute('data-swiper-slide-index')??String(i);
+        return {node,index,value:Number(index)};
+      });
+      count=new Set(slides.map(slide=>slide.index)).size;
+      structureDirty=false;
+      track.classList.toggle('is-ready',count>0);
+    }
     function paint(){
-      const slides=[...wrapper.children].filter(s=>s.classList.contains('swiper-slide')); 
-      const count=new Set(slides.map((s,i)=>s.getAttribute('data-swiper-slide-index')??String(i))).size;
+      if(structureDirty)readSlides();
       if(!count)return null;
-      track.classList.add('is-ready');
       const box=viewport.getBoundingClientRect(),leftAligned=treatment&&(innerWidth<768||innerWidth>=992),center=box.left+(leftAligned?0:box.width/2);
-      const points=slides.map((s,i)=>{const r=s.getBoundingClientRect();return{x:r.left+(leftAligned?0:r.width/2)-center,value:Number(s.getAttribute('data-swiper-slide-index')??i)};}).sort((a,b)=>a.x-b.x);
-      const right=points.findIndex(p=>p.x>=0);let value;
-      if(right<=0)value=points[right<0?points.length-1:0].value;
-      else{const a=points[right-1],b=points[right],t=-a.x/(b.x-a.x);// Adjacent rendered loop copies advance through N to 0, never rewind.
-        const step=(b.value-a.value+count)%count;
-        value=a.value+step*t;}
-      const dpr=window.devicePixelRatio||1,trackWidth=track.getBoundingClientRect().width;
+      // Find the two rendered neighbours without allocating/sorting a point
+      // array every frame. Keep reading actual geometry throughout every drag.
+      let leftX=-Infinity,rightX=Infinity,leftValue=0,rightValue=0;
+      for(const slide of slides){
+        const r=slide.node.getBoundingClientRect(),x=r.left+(leftAligned?0:r.width/2)-center;
+        if(x<0&&x>=leftX){leftX=x;leftValue=slide.value;}
+        else if(x>=0&&x<rightX){rightX=x;rightValue=slide.value;}
+      }
+      const value=leftX===-Infinity?rightValue:rightX===Infinity?leftValue
+        :leftValue+(rightValue-leftValue+count)%count*(-leftX/(rightX-leftX));
       const segment=Math.round(trackWidth*dpr/count)/dpr;
       const phase=((value%count)+count)%count;
       // Keep each settled position, with one extra segment-length step at the seam.
@@ -417,19 +428,30 @@
     }
     document.addEventListener('visibilitychange',resume);
     // Observe only the moving track, never the bar we write to.
-    const movement=new MutationObserver(schedule);
+    const movement=new MutationObserver(records=>{
+      for(const record of records){
+        if(record.type==='childList'&&record.target===wrapper||
+          record.target.parentElement===wrapper&&(record.attributeName==='data-swiper-slide-index'||
+            record.attributeName==='class'&&record.target.classList.contains('swiper-slide')!==slides.some(slide=>slide.node===record.target))){
+          structureDirty=true;break;
+        }
+      }
+      schedule();
+    });
     movement.observe(wrapper,{subtree:true,attributes:true,attributeFilter:['style','class','data-swiper-slide-index'],childList:true});
     function layout(){
       // Preserve fractional geometry: offsetTop/offsetHeight round separately
       // and can leave a one-pixel gap between the image and its track.
       const box=viewport.getBoundingClientRect(),parent=component.getBoundingClientRect();
       track.style.top=(box.bottom-parent.top-component.clientTop)+'px';
-      const dpr=window.devicePixelRatio||1;
+      dpr=window.devicePixelRatio||1;
       // Snap inward to physical pixels so neither edge bleeds beyond the image.
       const left=Math.ceil((treatment?0:box.left)*dpr)/dpr;
       const right=Math.floor((treatment?document.documentElement.clientWidth:box.right)*dpr)/dpr;
       track.style.left=(left-parent.left-component.clientLeft)+'px';
       track.style.width=Math.max(0,right-left)+'px';
+      // Track dimensions change with layout, not with the moving slide track.
+      trackWidth=track.getBoundingClientRect().width;
       schedule();
     }
     const resize=new ResizeObserver(layout);resize.observe(viewport);
@@ -461,7 +483,7 @@
     progress.refresh(root);
   }
   window.TDBParallax = Object.freeze({
-    version: '1.0.0', refresh, prepare: controls.prepare,
+    version: '1.0.1', refresh, prepare: controls.prepare,
     bind: presentation.bind, setMoving: presentation.setMoving, setEntry: presentation.setEntry
   });
 })();
