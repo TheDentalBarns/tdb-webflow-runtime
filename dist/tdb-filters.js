@@ -47,7 +47,7 @@ function mount(panel,{toggle,backdrop=null,heading=null,badge=null,escapeRoot=pa
   panel.setAttribute('aria-hidden',String(!open));panel.inert=!open;block(open);
   if(open){panel.classList.remove(names.closed);backdrop?.classList.remove(names.closed);heading?.focus({preventScroll:true});}
   else if(panel.contains(document.activeElement))toggle.focus({preventScroll:true});
-  paint(open,immediate);onChange?.(open);
+  paint(open,immediate);onChange?.(open,immediate);
  }
  async function requestClose(reason='close'){
   if(destroyed||!open)return false;if(closeFlight)return closeFlight.promise;
