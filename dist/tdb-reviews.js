@@ -76,6 +76,7 @@ function mount(root,data){
  // floating control has separate motion: morph back, then fade over its origin.
  const floatingFilterButton=filterButton?.cloneNode(true),floatingFilterBadge=floatingFilterButton?.querySelector('[data-tdb-filter-badge]');
  let floatingFilterIcon=null,filterHandoffRevision=0,filterHandoffAnimation=null;
+ let filterSpinnerReturning=false,filterFeedbackAnimations=[];
  if(floatingFilterButton){
   floatingFilterButton.removeAttribute('id');floatingFilterButton.removeAttribute('data-tdb-filter-toggle');
   floatingFilterButton.classList.add('is-filter-floating');
@@ -88,7 +89,7 @@ function mount(root,data){
  }
  function syncFloatingFilterCount(){
   // Both native and floating controls share the same fetch state and artwork.
-  const loading=filterOpen&&selectionBusy&&!destroyed;
+  const loading=filterOpen&&selectionBusy&&!filterSpinnerReturning&&!destroyed;
   for(const button of [filterButton,floatingFilterButton]){
    if(!button)continue;
    if(loading){button.setAttribute('data-tdb-loading','true');button.setAttribute('aria-busy','true');}
@@ -101,7 +102,33 @@ function mount(root,data){
   }
   floatingFilterButton.setAttribute('aria-label',filterButton.getAttribute('aria-label'));
  }
+ function clearFilterFeedback(){
+  for(const animation of filterFeedbackAnimations)animation.cancel();
+  filterFeedbackAnimations=[];filterSpinnerReturning=false;
+ }
+ async function restoreFilterClose(revision){
+  const valid=()=>!destroyed&&filterOpen&&revision===applyRevision;
+  const buttons=[filterButton,floatingFilterButton].filter(Boolean);
+  // Keep the spinner rotating until it is invisible; never reset its angle on screen.
+  filterFeedbackAnimations=buttons.flatMap(button=>{
+   const indicator=button.querySelector('[data-tdb-loading-indicator]');
+   return indicator?[indicator.animate([{opacity:1},{opacity:0}],{duration:reduced.matches?0:motion.defaults.fadeOut,easing:'ease-out',fill:'both'})]:[];
+  });
+  await Promise.all(filterFeedbackAnimations.map(animation=>animation.finished.catch(()=>{})));
+  if(!valid())return false;
+  const spinnerAnimations=filterFeedbackAnimations;
+  // Install the X's first frame before removing loading, avoiding a one-frame flash.
+  filterFeedbackAnimations=buttons.flatMap(button=>{
+   const content=button.querySelector('[data-tdb-loading-content]');
+   return content?[content.animate([{opacity:0},{opacity:1}],{duration:reduced.matches?0:motion.defaults.fadeIn,easing:'ease-out',fill:'both'})]:[];
+  });
+  filterSpinnerReturning=true;syncFloatingFilterCount();
+  for(const animation of spinnerAnimations)animation.cancel();
+  await Promise.all(filterFeedbackAnimations.map(animation=>animation.finished.catch(()=>{})));
+  return valid();
+ }
  function placeFilterClose(immediate=false){
+  if(immediate)for(const animation of filterFeedbackAnimations)animation.finish();
   const token=++filterHandoffRevision;
   if(!floatingFilterButton||!filterActions)return;
   filterHandoffAnimation?.cancel();
@@ -173,7 +200,7 @@ function mount(root,data){
   filterApply.setAttribute('aria-disabled',String(filterApply.disabled));
   filterApply.setAttribute('aria-busy',String(selectionBusy||!filterReady));
  }
- function cancelDraft(){clearTimeout(draftTimer);draftController?.abort();draftController=null;draftFlight=null;draftCache=null;applyRevision++;selectionBusy=false;}
+ function cancelDraft(){clearFilterFeedback();clearTimeout(draftTimer);draftController?.abort();draftController=null;draftFlight=null;draftCache=null;applyRevision++;selectionBusy=false;}
  function draftKey(){return JSON.stringify(selection);}
  function fetchDraft(){
   clearTimeout(draftTimer);const key=draftKey();
@@ -346,9 +373,11 @@ function mount(root,data){
    const {desired,batch}=await fetchDraft();
    if(destroyed||revision!==applyRevision||!filterOpen)return false;
    queryController?.abort();queryController=new AbortController();queryRevision++;pendingBatch=null;moreFlight=null;
-   indexMode=true;matched=desired;appliedSelection=copySelection(selection);selectionBusy=false;
-   renderSelection(batch);return true;
-  }catch(error){if(!destroyed&&revision===applyRevision&&filterOpen){selectionBusy=false;updateFilterOptions('Could not load these reviews. Tap View reviews to retry.');}return false;}
+   indexMode=true;matched=desired;appliedSelection=copySelection(selection);
+   renderSelection(batch);
+   if(!await restoreFilterClose(revision))return false;
+   selectionBusy=false;clearFilterFeedback();updateFilterOptions();return true;
+  }catch(error){if(!destroyed&&revision===applyRevision&&filterOpen){selectionBusy=false;clearFilterFeedback();updateFilterOptions('Could not load these reviews. Tap View reviews to retry.');}return false;}
  }
  function appendBatch(batch){
   if(destroyed||!indexMode)return;

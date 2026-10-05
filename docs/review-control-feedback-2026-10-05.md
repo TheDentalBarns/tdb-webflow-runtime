@@ -51,3 +51,13 @@ Rollback: return the CSS and Home loader references to their previous releases;
 move the unchanged Arrow instance back into `review-summary_arrow` and remove the
 three new decorative nodes. Do not replace the whole head/footer or roll back any
 independent drawer fixes.
+
+## Filter close loading handoff
+
+Selected reviews finish rendering before the loading spinner fades out. Its rotation
+continues throughout the 120ms shared fade-out so it cannot snap back to its starting
+angle while visible. The stationary X then uses the shared 350ms fade-in; only after
+that completes may the existing drawer reverse, X-to-filter morph and floating-button
+fade proceed. Selection remains locked through this handoff. Cancellation clears
+owned fades and invalidates the pending close; reduced motion skips their duration.
+The selected-count badge is not part of either fade.
