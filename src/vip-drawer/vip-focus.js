@@ -1,4 +1,4 @@
-/* TDB VIP keyboard/focus layer v1.0.1.
+/* TDB VIP keyboard/focus layer v1.1.0.
  * Bundled before site-asset-loader in tdb-footer-runtime.min.js. Reads the
  * existing drawer classes without replacing loading or interaction ownership. */
 (() => {
@@ -11,10 +11,36 @@
   // Programmatic focus from the Elfsight banner can retain :focus-visible
   // after a pointer activation. Suppress only the handle's pointer outline;
   // keyboard input immediately restores the site's existing focus styling.
-  const focusStyle = document.createElement('style');
-  focusStyle.dataset.tdbVipPointerFocus = 'true';
-  focusStyle.textContent = '#tdb-vip-drawer .tdb-vip-drawer-handle[data-tdb-vip-pointer-focus]:focus{outline:none!important}';
-  document.head.appendChild(focusStyle);
+  // Appearance lives in Designer; this layer only projects native state classes.
+  const native = drawer.dataset.tdbVipNative === '1';
+  if (!native) {
+    const focusStyle = document.createElement('style');
+    focusStyle.dataset.tdbVipPointerFocus = 'true';
+    focusStyle.textContent = '#tdb-vip-drawer .tdb-vip-drawer-handle[data-tdb-vip-pointer-focus]:focus{outline:none!important}';
+    document.head.appendChild(focusStyle);
+  }
+  const arrow = drawer.querySelector('.tdb-vip-arrow-content');
+  const pulse = drawer.querySelector('[data-tdb-pulse]');
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  let interacted = false;
+  function syncCheckbox(input) {
+    const icon = input.closest('.w-checkbox')?.querySelector('.tdb-vip-checkbox');
+    icon?.classList.toggle('is-vip-checked', input.checked);
+    icon?.classList.toggle('is-vip-focused', document.activeElement === input);
+  }
+  if (native) {
+    const syncCheckboxes = () => drawer.querySelectorAll('input[type="checkbox"]').forEach(syncCheckbox);
+    syncCheckboxes();
+    // Native form reset and restored pages do not necessarily emit change.
+    drawer.addEventListener('reset', () => queueMicrotask(syncCheckboxes));
+    window.addEventListener('pageshow', syncCheckboxes);
+    ['change', 'focusin', 'focusout'].forEach(type => drawer.addEventListener(type, event => {
+      if (event.target.matches('input[type="checkbox"]')) {
+        if (type === 'focusout') queueMicrotask(() => syncCheckbox(event.target));
+        else syncCheckbox(event.target);
+      }
+    }));
+  }
   const original = new Map(['role', 'aria-modal', 'aria-label', 'tabindex'].map(name => [name, drawer.getAttribute(name)]));
   const background = new Map();
   const selector = 'a[href],area[href],button,input:not([type="hidden"]),select,textarea,iframe,[tabindex],[contenteditable="true"]';
@@ -39,11 +65,15 @@
   }
   document.addEventListener('pointerdown', event => {
     handle.setAttribute('data-tdb-vip-pointer-focus', '');
+    if (native) handle.classList.add('is-vip-pointer-focus');
     rememberTrigger(event);
   }, true);
   document.addEventListener('click', rememberTrigger, true);
   document.addEventListener('keydown', event => {
-    if (!event.metaKey && !event.altKey && !event.ctrlKey) handle.removeAttribute('data-tdb-vip-pointer-focus');
+    if (!event.metaKey && !event.altKey && !event.ctrlKey) {
+      handle.removeAttribute('data-tdb-vip-pointer-focus');
+      handle.classList.remove('is-vip-pointer-focus');
+    }
     if (event.key === 'Enter' || event.key === ' ') rememberTrigger(event);
   }, true);
 
@@ -91,6 +121,14 @@
     const open = drawer.classList.contains('is-open');
     const closing = drawer.classList.contains('is-closing');
     const peek = drawer.classList.contains('is-peeking');
+    if (native) {
+      body.classList.toggle('is-vip-open', open);
+      arrow?.classList.toggle('is-vip-open', open);
+      arrow?.classList.toggle('is-vip-closing', closing);
+      if (open) interacted = true;
+      // The shared UI pulse invites the first open, then stays quiet for this visit.
+      pulse?.setAttribute('data-tdb-pulse', String(peek && !interacted && !reducedMotion.matches));
+    }
     const modal = open || (active && closing);
     if (modal) {
       drawer.removeAttribute('inert');
@@ -140,5 +178,6 @@
     if (active && !nestedConsentOpen() && !drawer.contains(document.activeElement)) focus(preferredFocus());
   });
   new MutationObserver(sync).observe(drawer, { attributes: true, attributeFilter: ['class'] });
+  reducedMotion.addEventListener('change', sync);
   sync();
 })();

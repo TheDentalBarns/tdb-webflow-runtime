@@ -10,6 +10,8 @@ const targets = {
   'dist/tdb-parallax.js': ['src/sliders/parallax-plugin.js'],
   'dist/tdb-gallery.js': ['src/sliders/gallery-plugin.js'],
   'dist/tdb-slider-focus.js': ['src/shared/slider-focus.js'],
+  'dist/tdb-vip-drawer.js': ['src/vip-drawer/vip-drawer.js'],
+  'dist/tdb-vip-drawer-legacy.js': ['src/vip-drawer/vip-drawer-legacy.js'],
   'dist/tdb-footer-runtime.min.js': ['src/banner/announcement.js', 'src/vip-drawer/vip-focus.js', 'src/runtime/deferred-ui.js', 'src/runtime/site-asset-loader.js'],
 };
 (async () => {

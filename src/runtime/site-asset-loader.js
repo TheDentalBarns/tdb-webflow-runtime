@@ -211,6 +211,9 @@ function tdbEnsureSliderUI() {
   return tdbEnsureFeatureCSS('data-tdb-slider-ui-css', TDB_SLIDER_ROOT + 'tdb-slider-ui.css', '--tdb-slider-ui-ready', 'slider UI');
 }
 function tdbEnsureVIPUI() {
+  // Native Webflow CSS is already loaded before page scripts. Older markup
+  // retains its pinned stylesheet, making this release safe during migration.
+  if (document.querySelector('#tdb-vip-drawer[data-tdb-vip-native="1"]')) return Promise.resolve();
   return tdbEnsureFeatureCSS('data-tdb-vip-ui-css', 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@48124a90eddd39bf4ae611d00b9fe80583b98872/dist/tdb-vip.css', '--tdb-vip-ui-ready', 'VIP UI');
 }
 window.TDBFeatureCSS = Object.freeze({ ui: tdbEnsureUI });
@@ -383,8 +386,8 @@ function prepareVIPDrawerLoader() {
 
   const demand = document.documentElement.getAttribute('data-wf-page') === '677cf86df9952f978d94d8a9';
   const triggerSelector = '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
-  const legacyUrl = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@71ff4c4be481a56d7dc11c09a7b0563850f7838b/dist/tdb-vip-drawer-legacy.js';
-  const jsUrl = demand ? 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@71ff4c4be481a56d7dc11c09a7b0563850f7838b/dist/tdb-vip-drawer.js' : legacyUrl;
+  const legacyUrl = new URL('tdb-vip-drawer-legacy.js', TDBFooterModuleRoot).href;
+  const jsUrl = demand ? new URL('tdb-vip-drawer.js', TDBFooterModuleRoot).href : legacyUrl;
   let loadingPromise = null;
   let armed = false;
   let openPending = false;
