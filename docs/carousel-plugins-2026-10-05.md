@@ -15,7 +15,7 @@ same download; it does not replace the engine or change component layouts.
 | Reviews | `src/reviews/native/cards.js`, `quotes.js`, `drawer-content.js` → `tdb-review-cards.js` 1.2.0, `tdb-review-quotes.js` 1.2.0, `tdb-reviews.js` 3.13.0 | Registered `review-cards`, `review-testimonials`, `review-drawer` plugins; preserve their CMS, filter, spinner, badge, reveal, scroll and responsive behaviour |
 | Early preparation | `src/sliders/parallax.js` 1.1.0 inside immediate runtime 0.11.0 | Native state/CTA preparation, treatment-card conversion, current card and progress; retains early execution before lazy Swiper |
 | Shared focus | `src/shared/slider-focus.js` → `tdb-slider-focus.js` 1.2.0 | Existing focus/nav behaviour, extracted unchanged; can serve native Webflow sliders without the engine |
-| Loading | `src/runtime/site-asset-loader.js` / footer 1.6.0; reviews loader 3.5.0; registry 1.4.0 | Component discovery and existing gates, one release and one engine request, per-feature lazy downloads |
+| Loading | `src/runtime/site-asset-loader.js` / footer 1.6.0; reviews loader 3.7.0; registry 1.4.0 | Component discovery and existing gates, one release and one engine request, per-feature lazy downloads |
 | Webflow Designer/CMS | Existing native markup/classes and collections | Styling, layout, responsive variants, control artwork, service order and content |
 
 The early parallax module is intentionally still in the immediate bundle: moving
@@ -31,7 +31,10 @@ or on intent. It loads only the required parallax/gallery plugin plus shared
 dependencies; plugin mounting retains the existing 100px margin. It continues
 discovering later CMS roots and the other plugin kind. Review permission,
 presence, 700px proximity, playback, cached CMS requests and cancellation gates
-remain in the review loader. An introduction without a drawer still needs no Swiper.
+remain in the review loader. Nearby introductions prepare only CMS/ticker data.
+Visible introductions warm drawer code during idle, with intent doing immediate
+preparation. The hidden drawer is mounted only on demand, as in loader 3.6.1.
+An introduction without a drawer still needs no Swiper.
 
 Registry 1.4.0 canonicalises the engine, motion, focus and carousel/review plugins
 to the registry script's immutable commit. Different legacy request pins cannot
@@ -75,6 +78,12 @@ Live staging checks follow publication; physical mobile orientation and touch
 feel remain a device review, not something JSDOM can verify.
 
 ## Deployment and restore
+
+The live review baseline is `db61bf01ab662a514f826a22f3a6918e357fec7a`; it
+contains newer review work than the parallax branch snapshot. The refactor carries
+forward its loader 3.6.1, introduction 1.2.1, shared-filter inside-target handling,
+Reset policy, compact selections, floating X handoff, spinner-to-X fade and
+landscape scroll/resize fixes. These were reconciled before final staging checks.
 
 Restore point: branch HEAD `563f5dccbe0c054ed24d1612db2b0bd01ac8a876`.
 The private restore snapshot includes the complete pre-change site/Home code.
