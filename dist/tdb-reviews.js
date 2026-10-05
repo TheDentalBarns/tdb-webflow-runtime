@@ -39,10 +39,10 @@ function mount(root,data){
  const disclosures=filterPanel?[...filterPanel.querySelectorAll('[data-tdb-filter-disclosure]')].map(button=>({key:button.dataset.tdbFilterDisclosure,button,body:button.parentElement.querySelector('.tdb-review-filter_options'),summary:button.querySelector('[data-tdb-filter-selection]'),chevron:button.querySelector('[data-tdb-filter-chevron]')})).filter(entry=>entry.body&&entry.summary):[];
  // A width-only Webflow breakpoint also catches portrait phones. This condition
  // activates native Designer combo styles only for short, touch-screen landscape.
- // The same Webflow bars stay in one reading flow; no copies or injected CSS.
+ // The same Webflow bars stay in one reading flow; styles remain native.
  const readingPane=$('[data-tdb-review-reading-pane]'),phoneLandscape=matchMedia('(orientation: landscape) and (max-width: 991px) and (max-height: 500px) and (pointer: coarse)');
  const landscapeNodes=[readingPane,$('.tdb-review-drawer_header'),$('.tdb-review-drawer_footer'),viewport,track,mainClose,filterPanel,filterPanel?.querySelector('[data-tdb-filter-scroll]'),filterPanel?.querySelector('.tdb-review-filter_heading'),filterPanel?.querySelector('.tdb-review-filter_actions')].filter(Boolean);
- const filterHome=filterButton?{parent:filterButton.parentNode,next:filterButton.nextSibling}:null,originalTrackHeight=track.style.height;
+ const originalTrackHeight=track.style.height;
  let landscape=false,readingAnchor=null;
  const originalMarkTranslate=mark.style.translate;
  let markScrollTop=0;
@@ -72,35 +72,53 @@ function mount(root,data){
   const max=Math.max(0,readingPane.scrollHeight-readingPane.clientHeight);
   readingPane.scrollTop=Math.max(0,Math.min(max,readingAnchor.atFoot?max-readingAnchor.bottom:readingAnchor.top));
  }
- // Complete the icon morph in place before handing the same control back to
- // its native footer. A revision cancels the handoff on reopen or rotation.
- let filterHandoffRevision=0,filterHandoffAnimation=null;
+ // The footer control remains in its native slot throughout. Only this
+ // floating copy morphs and fades; there is no footer fade-in or DOM handoff.
+ const floatingFilterButton=filterButton?.cloneNode(true);
+ let floatingFilterIcon=null,filterHandoffRevision=0,filterHandoffAnimation=null;
+ if(floatingFilterButton){
+  floatingFilterButton.removeAttribute('id');floatingFilterButton.removeAttribute('data-tdb-filter-toggle');
+  floatingFilterButton.querySelector('[data-tdb-filter-badge]')?.remove();
+  floatingFilterButton.classList.add('is-landscape-floating');
+  floatingFilterIcon=motion.filterToggle(floatingFilterButton);
+  for(const type of ['click','keydown'])floatingFilterButton.addEventListener(type,event=>{
+   if(type==='keydown'&&!['Enter',' '].includes(event.key))return;
+   event.preventDefault();event.stopImmediatePropagation();
+   if(filterOpen)filter?.requestClose('toggle');
+  },{signal,capture:true});
+ }
  function placeFilterClose(immediate=false){
   const token=++filterHandoffRevision;
   filterHandoffAnimation?.cancel();filterHandoffAnimation=null;
-  if(!filterHome)return;
-  const floating=landscape&&filterOpen;
-  const place=value=>{
-   filterButton.classList.toggle('is-landscape-floating',value);
-   mainClose.classList.toggle('is-landscape-filter-open',value);
-   if(value){if(filterButton.parentNode!==root)root.append(filterButton);}
-   else if(filterButton.parentNode!==filterHome.parent)filterHome.parent.insertBefore(filterButton,filterHome.next);
+  if(!floatingFilterButton)return;
+  const floating=landscape&&filterOpen&&!destroyed;
+  const remove=()=>{
+   if(floatingFilterButton.contains(document.activeElement))filterButton.focus({preventScroll:true});
+   floatingFilterButton.remove();mainClose.classList.remove('is-landscape-filter-open');
   };
-  if(floating||immediate||reduced.matches||destroyed||!landscape||filterButton.parentNode!==root){place(floating);return;}
-  const morphs=[...filterButton.querySelectorAll('[data-tdb-filter-line]')].flatMap(line=>line.getAnimations());
-  const fade=async(from,to,duration)=>{
-   const animation=filterButton.animate([{opacity:from},{opacity:to}],{duration,easing:'ease-out',fill:'both'});
-   filterHandoffAnimation=animation;
-   try{await animation.finished;}catch{return false;}
-   return token===filterHandoffRevision;
-  };
+  if(floating){
+   if(floatingFilterButton.parentNode!==root)root.append(floatingFilterButton);
+   floatingFilterButton.inert=false;floatingFilterButton.removeAttribute('aria-hidden');
+   for(const key of ['aria-label','aria-controls','aria-expanded']){const value=filterButton.getAttribute(key);if(value!==null)floatingFilterButton.setAttribute(key,value);}
+   floatingFilterButton.classList.add('is-filter-open');
+   mainClose.classList.add('is-landscape-filter-open');
+   floatingFilterIcon.set(true,immediate);
+   return;
+  }
+  if(floatingFilterButton.parentNode!==root)return;
+  if(floatingFilterButton.contains(document.activeElement))filterButton.focus({preventScroll:true});
+  floatingFilterButton.inert=true;floatingFilterButton.setAttribute('aria-hidden','true');
+  floatingFilterButton.classList.remove('is-filter-open');floatingFilterIcon.set(false,immediate);
+  if(immediate||reduced.matches||destroyed||!landscape){remove();return;}
+  const morphs=[...floatingFilterButton.querySelectorAll('[data-tdb-filter-line]')].flatMap(line=>line.getAnimations());
   (async()=>{
    await Promise.all(morphs.map(animation=>animation.finished.catch(()=>{})));
-   if(token!==filterHandoffRevision||!await fade(1,0,motion.defaults.fadeOut))return;
-   place(false);
-   filterHandoffAnimation.cancel();
-   if(!await fade(0,1,motion.defaults.fadeIn))return;
-   filterHandoffAnimation.cancel();filterHandoffAnimation=null;
+   if(token!==filterHandoffRevision)return;
+   const animation=floatingFilterButton.animate([{opacity:1},{opacity:0}],{duration:motion.defaults.fadeIn,easing:'ease-out',fill:'both'});
+   filterHandoffAnimation=animation;
+   try{await animation.finished;}catch{return;}
+   if(token!==filterHandoffRevision)return;
+   remove();animation.cancel();filterHandoffAnimation=null;
   })();
  }
  function setReadingMode(enabled=!!readingPane&&phoneLandscape.matches){
@@ -350,7 +368,7 @@ function mount(root,data){
  if(filterPanel){
   filter=window.TDBFilters.mount(filterPanel,{
    toggle:filterButton,backdrop:filterBackdrop,heading:filterPanel.querySelector('[data-tdb-filter-heading]'),badge:filterBadge,
-   escapeRoot:drawerRoot,blockedControls:[mainClose],inertTargets:[viewport],disclosures,
+   escapeRoot:drawerRoot,blockedControls:[mainClose],inertTargets:[viewport],insideTargets:[floatingFilterButton].filter(Boolean),disclosures,
    labels:{open:'Filter and sort reviews',close:'Close review filters'},
    onIntent:prepareFilters,beforeClose:commitFilterSelection,onChange:reflectFilterState,onDisclosureChange:updateFilterReset,
    onError:()=>updateFilterOptions('Could not load these reviews. Tap View reviews to retry.')
@@ -386,7 +404,7 @@ function mount(root,data){
    renderSelection(data.records.slice());
   }
   return drawer.open(trigger);
- },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();setReadingMode(false);filterOpen=false;placeFilterClose();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();mark.style.translate=originalMarkTranslate;swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();filterApplyTicker?.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
+ },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();setReadingMode(false);filterOpen=false;placeFilterClose(true);floatingFilterIcon?.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();mark.style.translate=originalMarkTranslate;swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();filterApplyTicker?.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
 }
 window.TDBReviews=Object.freeze({version:'3.12.3',mount});
 })();
