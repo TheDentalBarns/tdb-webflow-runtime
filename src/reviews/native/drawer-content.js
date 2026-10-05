@@ -340,7 +340,18 @@ function mount(root,data){
  setReadingMode();
  // Native Webflow visibility keeps the closed drawer measurable without showing it.
  if(viewport.clientWidth)createSwiper();
- const resize=new ResizeObserver(()=>{if(swiper&&!swiper.animating){swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);swiper.update();}applyReadingAnchor();});resize.observe(viewport);
+ // In landscape, auto-height changes are our own output, not a reason to
+ // rebuild Swiper. Rebuilding on those frames can repaint the outgoing review
+ // and interrupt the scroll clamp as a shorter review reveals the header.
+ let measuredWidth=viewport.clientWidth;
+ const resize=new ResizeObserver(()=>{
+  const width=viewport.clientWidth,widthChanged=Math.abs(width-measuredWidth)>.5;
+  measuredWidth=width;
+  if(swiper&&!swiper.animating&&(!landscape||widthChanged)){
+   swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);swiper.update();
+  }
+  applyReadingAnchor();
+ });resize.observe(viewport);
  reduced.addEventListener('change',()=>{if(swiper){swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);if(reduced.matches&&phase!=='closed'){hideQuote();phase='moving';swiper.slideTo(swiper.activeIndex,0);ticker.settle();reveal(0);}}},{signal});
  const api=Object.freeze({async open(trigger,id){
   preferred=id||'';
