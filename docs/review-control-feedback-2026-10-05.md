@@ -1,16 +1,15 @@
 # Review opening control feedback
 
 The native Review Summary now consumes the shared control effects in `tdb-ui.css`.
-The existing circle outline and rotating arrow remain. A separate cream fill uses
+The existing circle outline and native arrow direction remain; the arrow no longer rotates on opening. A separate cream fill uses
 the same 2.4s alternating opacity pulse as Vimeo. The pulse stops while opening or
 open and resumes when the drawer closes.
 
 An explicit opening request sets `data-tdb-loading` on the card. Shared CSS hides
-only the arrow content and shows the spinner after the existing 120ms delay. The
+only the arrow content and shows the spinner immediately on every activation. The
 same arc artwork and 1s rotation as Vimeo are used; this SVG rotates through CSS
-only while loading. It has no continuously running hidden SVG animation. The loader
-signals readiness before the drawer starts opening, so a cached/ready drawer has
-no spinner flash. Errors/cancellation restore the control, and later activation
+only while loading. It has no continuously running hidden SVG animation. The spinner stays visible until the drawer opening completes, including when the
+drawer is already prepared. There is no artificial wait before opening. Errors/cancellation restore the control, and later activation
 can retry. Repeated clicks while waiting keep one opening request.
 
 The small review loader now also catches activation before the introduction module
@@ -44,7 +43,7 @@ Other site script pins remain independent.
 
 `tests/review-control-feedback.browser.cjs` covers ready, slow, early keyboard tap,
 failure/retry and withdrawal/regrant using real loader/introduction/CSS and delayed
-dependency doubles. It checks no spinner flash when ready, no control movement,
+dependency doubles. It checks immediate spinner feedback when ready, no control movement,
 one opening under repeated activation, and pulse/spinner cleanup. Existing review
 loader preparation tests also pass. Check the native published page separately.
 

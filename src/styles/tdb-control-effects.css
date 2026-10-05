@@ -32,3 +32,8 @@
   opacity: 0;
   visibility: hidden;
 }
+
+/* Review opening gives immediate feedback, including a prepared drawer. */
+[data-tdb-review-trigger][data-tdb-loading='true'] [data-tdb-loading-indicator] {
+  transition: none;
+}

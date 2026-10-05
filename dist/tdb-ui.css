@@ -209,6 +209,11 @@ html.tdb-slider-focus .elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb {
   visibility: hidden;
 }
 
+/* Review opening gives immediate feedback, including a prepared drawer. */
+[data-tdb-review-trigger][data-tdb-loading='true'] [data-tdb-loading-indicator] {
+  transition: none;
+}
+
 :root { --tdb-vimeo-ui-ready: 1; }
 
 .vimeo-player[data-vimeo-update-size='cover'] {

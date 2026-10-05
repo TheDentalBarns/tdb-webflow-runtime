@@ -33,7 +33,7 @@ const markup=`<section data-tdb-review-introduction><div class="review-summary_c
   else if(!['early','withdraw'].includes(scenario))await p.waitForFunction(()=>TDBReviewLoader.status().instances===1);
   if(scenario==='early'){await trigger.focus();await p.keyboard.press('Enter');}else await trigger.click();
   if(scenario==='ready'){
-   await p.waitForFunction(()=>opens===1);assert.equal(await trigger.getAttribute('data-tdb-loading'),null);assert.equal(await spinner.evaluate(n=>getComputedStyle(n).opacity),'0','Ready drawer never flashes spinner');
+   await p.waitForFunction(()=>opens===1);assert.equal(await trigger.getAttribute('data-tdb-loading'),'true');assert.equal(await spinner.evaluate(n=>getComputedStyle(n).opacity),'1','Prepared drawer shows immediate spinner throughout opening');
   }else{
    await p.waitForTimeout(300);
    assert.equal(await trigger.getAttribute('data-tdb-loading'),'true');assert.equal(await spinner.evaluate(n=>getComputedStyle(n).opacity),'1');assert.equal(await spinner.locator('svg').evaluate(n=>getComputedStyle(n).animationName),'tdbControlSpin');assert.equal(await content.evaluate(n=>getComputedStyle(n).visibility),'hidden');assert.equal(await pulse.evaluate(n=>getComputedStyle(n).animationName),'none');
@@ -50,10 +50,13 @@ const markup=`<section data-tdb-review-introduction><div class="review-summary_c
     await p.evaluate(()=>{allowed=true;dispatchEvent(new Event('CookieScriptAccept'))});await trigger.click();
    }else await p.evaluate(()=>{holdDrawer=false;jobs.drawer(false)});
    await p.waitForFunction(()=>opens===1);
-   assert.equal(await trigger.getAttribute('data-tdb-loading'),null,'Loading ends as opening starts');
-   assert.equal(await spinner.evaluate(n=>getComputedStyle(n).visibility),'hidden');
+   assert.equal(await trigger.getAttribute('data-tdb-loading'),'true','Spinner remains throughout drawer opening');
+   assert.equal(await spinner.evaluate(n=>getComputedStyle(n).visibility),'visible');
   }
   await p.waitForTimeout(400);assert.equal(await p.evaluate(()=>opens),1,'Exactly one opening despite repeated activation');
+  assert.equal(await trigger.getAttribute('data-tdb-loading'),null,'Spinner clears after opening completes');
+  assert.equal(await spinner.evaluate(n=>getComputedStyle(n).visibility),'hidden');
+  assert.equal(await p.locator('.review-summary_arrow-icon').evaluate(n=>getComputedStyle(n).transform),'matrix(-1, 0, 0, -1, 0, 0)','Arrow retains its native direction');
   assert.equal(await pulse.getAttribute('data-tdb-pulse'),'false');
   await trigger.evaluate(n=>n.setAttribute('aria-expanded','false'));await p.waitForTimeout(50);assert.equal(await pulse.getAttribute('data-tdb-pulse'),'true');assert.equal(await content.evaluate(n=>getComputedStyle(n).visibility),'visible');assert.deepEqual(errors,[]);
   console.log('PASS',scenario,'shared feedback, fixed geometry and single opening');await ctx.close();

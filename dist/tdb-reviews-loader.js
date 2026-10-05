@@ -1,4 +1,4 @@
-/* TDB review loader v3.6.0. Permission, presence, preparation and playback stay separate. */
+/* TDB review loader v3.6.1. Permission, presence, preparation and playback stay separate. */
 (() => {
 'use strict';if(window.TDBReviewLoader)return;
 const script=document.currentScript,base=new URL('./',script.src),roots=new Map();
@@ -76,7 +76,7 @@ async function earlyOpen(event){
  state.near=true;sync();
  const signal=controller.signal;
  const status=root.querySelector('[data-tdb-review-status]');if(status)status.textContent='';
- try{await open({trigger,signal,onReady:()=>trigger.removeAttribute('data-tdb-loading')});}
+ try{await open({trigger,signal});}
  catch(error){if(status&&!signal.aborted&&error.name!=='AbortError')status.textContent='The reviews could not load. Please try again.';}
  finally{if(controller.signal===signal){trigger.removeAttribute('aria-busy');trigger.removeAttribute('data-tdb-loading');}}
 }
@@ -113,6 +113,6 @@ function discover(){[...document.querySelectorAll('[data-tdb-review-introduction
 for(const name of events){window.addEventListener(name,sync);document.addEventListener(name,sync);}
 options.subscribe?.(sync);window.addEventListener('online',sync);window.addEventListener('pageshow',sync);
 document.addEventListener('click',earlyOpen,true);document.addEventListener('keydown',earlyOpen,true);
-window.TDBReviewLoader=Object.freeze({version:'3.6.0',prepare,open,refresh:discover,status:()=>({allowed:allowed(),prepared:!!feature,instances:[...roots.values()].filter(s=>s.instance).length})});
+window.TDBReviewLoader=Object.freeze({version:'3.6.1',prepare,open,refresh:discover,status:()=>({allowed:allowed(),prepared:!!feature,instances:[...roots.values()].filter(s=>s.instance).length})});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',discover,{once:true});else discover();
 })();
