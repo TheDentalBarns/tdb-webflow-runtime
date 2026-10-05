@@ -89,12 +89,20 @@ source matched 12,864 service/treatment positions across loops, reverse travel,
 variable widths, pixel ratios and DOM order. Stable frames perform no index
 attribute or track-width reads, while slide geometry continues to be sampled.
 
-Designer now names the first carousel `Services` and stores the existing arrows'
-button roles, keyboard tab stops and labels in native markup. The proposed change
-from Block/div controls to literal button elements remains deferred: Webflow
-rejects that tag in place, and automatic approval review rejected the replacement
-step over a temporary duplicate-control risk. The original two arrows and SVGs
-remain, with the existing shared interaction and animation handling.
+Designer now names the first carousel `Services`. Following explicit approval,
+the two arrow Block/div controls are replaced one-for-one by native Custom Element
+buttons with `type="button"` and accessible Previous/Next slide labels. The original
+SVG children and class combinations are retained. Previous button:
+`1c4aa8bd-6c25-4db6-3bdb-3d98362d7f5e`; next button:
+`d744148d-ae9c-826e-0193-8042fa8c75db`. There are exactly two controls. Designer owns
+their padding-zero/appearance reset, dimensions and existing state styles; the
+existing shared runtime continues to own interaction and animation. No new
+JavaScript or release pin is required for this native markup change.
+
+Implementation note: Webflow Block tags cannot become buttons in place, and the
+HTML importer maps `<button>` to Link. Use native `DOM` creation followed by
+`set_tag: button`, verify the tag, transfer the original SVG, remove the empty old
+div, then apply its classes. This preserves native editable markup and artwork.
 
 The Review Drawer definition also gains one native `tdb-review-filter_body`
 wrapper (element `799e55da-a7d6-10f1-2ab7-07858579e6fd`) around its status and filter
