@@ -293,7 +293,7 @@ function mount(root,data){
   }
   for(const disclosure of disclosures){
    const key=disclosure.key,seen=new Set(),labels=filterOptions.filter(option=>option.dataset.tdbFilterGroup===key&&chosen(key,option.dataset.tdbFilterValue)).filter(option=>{const value=canonical(option.dataset.tdbFilterValue);if(seen.has(value))return false;seen.add(value);return true;}).map(option=>option.textContent.trim());
-   disclosure.summary.textContent=labels.length>2?labels.length+' selected':labels.join(' + ');disclosure.summary.title=labels.join(', ');
+   disclosure.summary.textContent=labels.length>1?labels.length+' selected':labels.join(' + ');disclosure.summary.title=labels.join(', ');
   }
   const count=matching().length;
   // Count selected filters, not matching reviews or the sort order.
