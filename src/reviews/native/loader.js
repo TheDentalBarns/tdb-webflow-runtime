@@ -1,4 +1,4 @@
-/* TDB review loader v3.5.0. Permission, presence, preparation and playback stay separate. */
+/* TDB review loader v3.6.0. Permission, presence, preparation and playback stay separate. */
 (() => {
 'use strict';if(window.TDBReviewLoader)return;
 const script=document.currentScript,base=new URL('./',script.src),roots=new Map();
@@ -13,6 +13,13 @@ function allowed(){
 const active=signal=>{if(signal?.aborted||!allowed())throw new DOMException('Cancelled','AbortError');};
 const drawerRoot=()=>document.querySelector('[data-tdb-reviews]');
 const kindOf=root=>root.matches('[data-tdb-review-introduction]')?'introduction':root.matches('[data-tdb-review-cards]')?'cards':'quotes';
+function earlyAvailability(root,available){
+ if(!root.matches('[data-tdb-review-introduction]'))return;
+ root.querySelectorAll('[data-tdb-review-trigger]').forEach(trigger=>{
+  trigger.setAttribute('aria-disabled',String(!available));trigger.setAttribute('tabindex',available?'0':'-1');
+  if(!available){trigger.removeAttribute('aria-busy');trigger.removeAttribute('data-tdb-loading');}
+ });
+}
 async function code(kind,signal,drawer=false){
  active(signal);
  await window.TDBModules.load(new URL('tdb-motion.js',base));active(signal);
@@ -45,7 +52,7 @@ function scheduleWarm(root,state){
  const run=()=>{state.warming=false;if(!state.visible||!root.isConnected||!allowed())return;warmDrawer().catch(()=>{});};
  if('requestIdleCallback'in window)requestIdleCallback(run,{timeout:2000});else setTimeout(run,250);
 }
-async function open({trigger,signal=controller.signal,reviewId=''}){
+async function open({trigger,signal=controller.signal,reviewId='',onReady}){
  const data=await prepare({signal});active(signal);
  if(!feature)throw Error('Native review drawer unavailable');
  const intro=trigger.closest('[data-tdb-review-introduction]');
@@ -53,17 +60,35 @@ async function open({trigger,signal=controller.signal,reviewId=''}){
  await data.ensureIdentity?.(intro,{signal});active(signal);
  const id=reviewId||window.TDBReviewCMS.resolveIdentity(data.records,intro);
  if(id)await data.ensure?.([id],{signal});active(signal);
+ onReady?.();
  const openingFeature=feature;await openingFeature.open(trigger,id);
  if(signal.aborted){openingFeature.destroy();if(feature===openingFeature)feature=null;}
+}
+// A fast click may precede the introduction module/CMS. Preserve that one intent
+// in the small loader, using the same native control states as the mounted card.
+async function earlyOpen(event){
+ if(event.type==='keydown'&&!['Enter',' '].includes(event.key))return;
+ const trigger=event.target.closest?.('[data-tdb-review-trigger]'),root=trigger?.closest('[data-tdb-review-introduction]'),state=roots.get(root);
+ if(!trigger||!state||state.instance||!allowed())return;
+ event.preventDefault();event.stopImmediatePropagation();
+ if(trigger.getAttribute('aria-busy')==='true')return;
+ trigger.setAttribute('aria-busy','true');trigger.setAttribute('data-tdb-loading','true');
+ state.near=true;sync();
+ const signal=controller.signal;
+ const status=root.querySelector('[data-tdb-review-status]');if(status)status.textContent='';
+ try{await open({trigger,signal,onReady:()=>trigger.removeAttribute('data-tdb-loading')});}
+ catch(error){if(status&&!signal.aborted&&error.name!=='AbortError')status.textContent='The reviews could not load. Please try again.';}
+ finally{if(controller.signal===signal){trigger.removeAttribute('aria-busy');trigger.removeAttribute('data-tdb-loading');}}
 }
 function sync(){
  if(!allowed()){
   if(!controller.signal.aborted)controller.abort();controller=new AbortController();contentFlight=null;drawerFlight=null;
   feature?.destroy();feature=null;
-  for(const state of roots.values()){state.instance?.destroy();state.instance=null;state.pending=null;}
+  for(const [root,state] of roots){state.instance?.destroy();state.instance=null;state.pending=null;earlyAvailability(root,false);}
   return;
  }
  for(const [root,state] of roots){
+  earlyAvailability(root,true);
   scheduleWarm(root,state);
   if(!root.isConnected&&!state.instance){proximity?.unobserve(root);visible?.unobserve(root);roots.delete(root);continue;}
   if(!state.near||state.instance||state.pending)continue;
@@ -87,6 +112,7 @@ const visible='IntersectionObserver'in window?new IntersectionObserver(entries=>
 function discover(){[...document.querySelectorAll('[data-tdb-review-introduction],[data-tdb-review-cards]'),...document.querySelectorAll('.testimonial_slider.w-slider')].filter(root=>root.matches('[data-tdb-review-introduction],[data-tdb-review-cards]')||root.parentElement.querySelector('.testimonial15_rating-wrapper')).forEach(root=>{if(roots.has(root))return;const state={near:!proximity,visible:!visible,warming:false,instance:null,pending:null};roots.set(root,state);proximity?.observe(root);visible?.observe(root);for(const event of ['pointerover','focusin','pointerdown'])root.addEventListener(event,event=>{state.near=true;sync();if(event.target.closest?.('[data-tdb-review-trigger]')&&allowed())prepare().catch(()=>{});},{passive:true});});sync();}
 for(const name of events){window.addEventListener(name,sync);document.addEventListener(name,sync);}
 options.subscribe?.(sync);window.addEventListener('online',sync);window.addEventListener('pageshow',sync);
-window.TDBReviewLoader=Object.freeze({version:'3.5.0',prepare,open,refresh:discover,status:()=>({allowed:allowed(),prepared:!!feature,instances:[...roots.values()].filter(s=>s.instance).length})});
+document.addEventListener('click',earlyOpen,true);document.addEventListener('keydown',earlyOpen,true);
+window.TDBReviewLoader=Object.freeze({version:'3.6.0',prepare,open,refresh:discover,status:()=>({allowed:allowed(),prepared:!!feature,instances:[...roots.values()].filter(s=>s.instance).length})});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',discover,{once:true});else discover();
 })();

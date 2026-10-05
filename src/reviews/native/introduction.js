@@ -1,4 +1,4 @@
-/* TDB Review Introduction v1.1.0. No CSS, CMS selection, fetching or consent logic. */
+/* TDB Review Introduction v1.2.0. No CSS, CMS selection, fetching or consent logic. */
 (() => {
   'use strict';
   if (window.TDBReviewIntroduction) return;
@@ -48,6 +48,7 @@
     const arrowStates=new Map();
     const reflectDrawer = () => {
       const opened=triggers.some(trigger=>trigger.getAttribute('aria-expanded')==='true'||trigger.getAttribute('aria-busy')==='true');
+      root.querySelectorAll('[data-tdb-pulse]').forEach(pulse=>pulse.setAttribute('data-tdb-pulse',String(!opened)));
       root.querySelectorAll('.review-summary_arrow-icon').forEach(arrow=>{
         const target=opened?360:180,previous=arrowStates.get(arrow);
         if(previous?.target===target||(!previous&&!opened))return;
@@ -72,13 +73,15 @@
         if (disposed || trigger.getAttribute('aria-busy') === 'true') return;
         if (status) status.textContent = '';
         trigger.setAttribute('aria-busy', 'true');
+        trigger.setAttribute('data-tdb-loading', 'true');
         reflectDrawer();
         const item = root.querySelector('[data-tdb-review-id]');
         try {
-          await options.openReviews({ trigger, reviewId: item?.getAttribute('data-tdb-review-id') || '', signal });
+          await options.openReviews({ trigger, reviewId: item?.getAttribute('data-tdb-review-id') || '', signal,
+            onReady: () => trigger.removeAttribute('data-tdb-loading') });
         } catch (error) {
           if (!disposed) root.dispatchEvent(new CustomEvent('tdb:review-error', { bubbles: true, detail: { error } }));
-        } finally { trigger.removeAttribute('aria-busy'); }
+        } finally { if (!disposed) { trigger.removeAttribute('aria-busy'); trigger.removeAttribute('data-tdb-loading'); } }
       };
       trigger.addEventListener('click', activate, { signal });
       trigger.addEventListener('keydown', activate, { signal });
@@ -98,17 +101,19 @@
             if (value === null) node.removeAttribute(key); else node.setAttribute(key, value);
           }
           node.removeAttribute('aria-busy');
+          node.removeAttribute('data-tdb-loading');
         }
         options.closeReviews?.(root);
         triggers.forEach(trigger => {
           trigger.setAttribute('aria-expanded', 'false');
         });
         if (status) status.textContent = '';
+        root.querySelectorAll('[data-tdb-pulse]').forEach(pulse=>pulse.setAttribute('data-tdb-pulse','true'));
         instances.delete(root);
       }
     });
     instances.set(root, api);
     return api;
   }
-  window.TDBReviewIntroduction = Object.freeze({ version: '1.1.0', mount });
+  window.TDBReviewIntroduction = Object.freeze({ version: '1.2.0', mount });
 })();

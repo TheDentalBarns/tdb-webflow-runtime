@@ -5,6 +5,9 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
+@keyframes tdbControlSpin {
+  to { transform: rotate(360deg); }
+}
 [data-tdb-pulse] {
   pointer-events: none;
   animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate;
@@ -19,6 +22,13 @@
   visibility: visible;
   pointer-events: none;
   transition: opacity 0.12s ease 0.12s, visibility 0s linear 0s;
+}
+[data-tdb-loading='true'] [data-tdb-loading-indicator] svg {
+  animation: tdbControlSpin 1s linear infinite;
+}
+[data-tdb-loading='true'] [data-tdb-loading-content] {
+  opacity: 0;
+  visibility: hidden;
 }
 
 :root { --tdb-vimeo-ui-ready: 1; }
