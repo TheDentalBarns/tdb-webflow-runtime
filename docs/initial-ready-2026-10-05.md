@@ -67,8 +67,21 @@ again, use that newer previous review pin instead.
   warmup, intent mount, concurrent open, cancellation/regrant and download retry.
 - Existing review-loader tests and Vimeo lifecycle/recovery tests pass. Vimeo SDK
   tests use a deterministic stub; these do not prove real streaming quality.
+- `tests/initial-ready-consent.browser.cjs` exercises the actual staged consent
+  controls: Essential only/Accept all, nested navigation, review filter selection,
+  reset/apply and saved-decision reload. Third-party requests are observed but
+  blocked; accepted Vimeo SDK handoff is checked separately from streaming.
 - Mobile/desktop page screenshots checked against the baseline. No production
   publish or field-performance claim is part of this pass.
+
+Published staging assets were checked directly against the immutable commit
+`f5978daae93451ebea6100cc854afdf61b4ea4b7`. Mobile/desktop native fallback and
+enhancement, real accept/reject, saved decisions, review next, filter reset/apply,
+touch swipes, portrait/landscape reading and rotation checks passed. The published
+page requested no standalone Vimeo stylesheet and the page checks had no JavaScript
+errors. The independent drawer release `1c9c65cf690a5bc7553d27071f53564987659f7b`
+subsequently retained this loader unchanged while updating the filter footer; its
+changes are included in this branch. Global UI/navbar/Vimeo pins remain `f5978da`.
 
 Build navbar using `node tools/runtime-build/build.cjs dist/tdb-navbar.min.js
 dist/tdb-navbar-loader.js` after installing that directory's locked dependencies.
