@@ -5,13 +5,15 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const root=path.resolve(__dirname,'..');
 const mode=process.env.TDB_NAV_MODE||'live';
 const out=process.env.TDB_NAV_RESULTS||'/tmp/tdb-nav-check';fs.mkdirSync(out,{recursive:true});
-const cacheDir='/tmp/tdb-nav-http-cache';fs.mkdirSync(cacheDir,{recursive:true});
+const checkpoint=process.env.TDB_NAV_CHECKPOINT_DIR||'/tmp/tdb-nav-audit';
+const nextHead=process.env.TDB_NAV_UPDATED_HEAD||'/tmp/tdb-nav-head-after.html';
+const cacheDir=process.env.TDB_NAV_CACHE_DIR||'/tmp/tdb-nav-http-cache';fs.mkdirSync(cacheDir,{recursive:true});
 const crypto=require('node:crypto');
 const allowed=new Set(['dentalbarns.webflow.io','cdn.prod.website-files.com','cdn.jsdelivr.net','fonts.googleapis.com','fonts.gstatic.com','d3e54v103j8qbb.cloudfront.net']);
 let activeBrowser;
 const cases=process.env.TDB_NAV_CASES?.split(',')||['mobile','desktop','landscape'];
 (async()=>{
- const browser=activeBrowser=await chromium.launch({executablePath:process.env.TDB_CHROMIUM||'/tmp/tdb-review-touch/chromium',proxy:process.env.HTTPS_PROXY?{server:process.env.HTTPS_PROXY}:undefined,args:['--no-sandbox','--disable-dev-shm-usage']});
+ const browser=activeBrowser=await chromium.launch({executablePath:process.env.TDB_CHROMIUM,proxy:process.env.HTTPS_PROXY?{server:process.env.HTTPS_PROXY}:undefined,args:['--no-sandbox','--disable-dev-shm-usage']});
  const results={mode,cases:{}};
  for(const name of cases){
   const viewport=name==='desktop'?{width:1440,height:900}:name==='landscape'?{width:390,height:844}:{width:390,height:844};
@@ -21,12 +23,13 @@ const cases=process.env.TDB_NAV_CASES?.split(',')||['mobile','desktop','landscap
    const req=route.request(),url=new URL(req.url());
    if(process.env.TDB_NAV_ISOLATE&&/CookieScript|tdb-cookie-consent|tdb-footer-runtime|tdb-consent\.js/.test(req.url()))return route.abort();
    if(!allowed.has(url.hostname)||req.method()!=='GET')return route.abort();
+   if(mode==='live')return route.continue(); // Never reuse a captured page or cached response for published verification.
    if(mode!=='live'&&req.isNavigationRequest()&&url.hostname==='dentalbarns.webflow.io'){
     const file=url.pathname==='/location'?'location.html':url.pathname==='/contact'?'contact.html':'home.html';
-    let html=fs.readFileSync('/tmp/tdb-nav-audit/'+file,'utf8');
+    let html=fs.readFileSync(path.join(checkpoint,file),'utf8');
     if(mode==='preview'){
-     const old=fs.readFileSync('/tmp/tdb-nav-audit/global-head.html','utf8').trim();
-     const replacement=fs.readFileSync('/tmp/tdb-nav-head-after.html','utf8');
+     const old=fs.readFileSync(path.join(checkpoint,'global-head.html'),'utf8').trim();
+     const replacement=fs.readFileSync(nextHead,'utf8');
      assert(html.includes(old),'Global head checkpoint must match');html=html.replace(old,replacement);
      html=html.replace('<style data-tdb-navbar-motion-anchor>','<style>'+fs.readFileSync(path.join(root,'tests/fixtures/navbar-native.css'),'utf8')+'</style><style data-tdb-navbar-motion-anchor>');
      const nav=/<div\b[^>]*class="[^"]*navbar10_component[^>]*>/;

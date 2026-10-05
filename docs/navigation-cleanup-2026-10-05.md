@@ -55,10 +55,24 @@ The dark variant was also compared on Contact. Its mobile/open desktop states ma
 
 Additional checks covered rapid taps, Escape, desktop keyboard/outside dismissal, resize teardown, duplicate evaluation, zero unchanged clock writes, scroll-lock release and navigation with both CookieScript and the footer runtime blocked. No page JavaScript errors were reported in the completed Home comparisons or isolated-loader checks.
 
-`tests/navbar.browser.cjs` exercises real browser behaviour; its native-style fixture is for preview only. It is never loaded by the website. Staging publication and final native-CSS verification are recorded with deployment.
+`tests/navbar.browser.cjs` exercises real browser behaviour; its native-style fixture is for preview only. It is never loaded by the website. The published native CSS and component were subsequently verified in the same browser scenarios.
 
 ## Deployment pairing and rollback
 
 Publish the native component changes, head-block removal/cascade anchor, new nav pin and new immediate/footer pin together, to the Webflow subdomain only. No custom domains are part of this release.
 
 For rollback, restore the old nav and immediate pins above, restore the nav-only head CSS from `tests/fixtures/navbar-legacy-head.css` at its former position, and hide the newly native backdrop element in the component before republishing. This avoids the old controller creating an extra active backdrop. The glass class and mobile transparent first-frame defaults can remain because they match the old head CSS. Never restore a whole historical global head/footer over unrelated current edits.
+
+## Staging release record
+
+- Published **2026-10-05 09:56:32 UTC** to `dentalbarns.webflow.io` only; `customDomains` was empty.
+- Deployed code commit: `3cc3aa7eafaff58d4f987d3aa14f3e9870e6582d`.
+- Published nav reports `TDBNavbar.version = 1.2.0`; footer source/artifact is 1.5.1.
+- CDN bytes were checked against the local build before publication for nav, footer and the unchanged immediate artifact.
+- The published HTML contains one native desktop backdrop, the cascade anchor, the new immutable pins and no legacy standalone nav helper loads or former nav head block.
+- Published mobile portrait and rotated landscape snapshots matched the captured staging baseline for layout, colours, blur, transforms, native duration and playback clock. Desktop open, scrolled and closed states matched. The earlier desktop Escape snapshot still contained the tail of the existing background transition; the published check waited for that transition to finish.
+- Published checks passed Escape, rapid taps, desktop Enter/outside dismissal, repeated evaluation, desktop/mobile teardown and scroll-lock release. No page JavaScript errors were reported across the three completed scenarios.
+- Closed desktop and all mobile states have **zero nav-owned non-passive wheel listeners**; open desktop has one, removed after close. Mobile has no mounted desktop state stylesheet.
+- The existing component retained all **17 recorded instances**, both original props and its three original variants.
+
+The GitHub release is on `work/navbar-cleanup-2026-10-05`, with the ongoing review/component cleanup work branch advanced to include the same changes. Production `main` and custom-domain publication are unchanged.
