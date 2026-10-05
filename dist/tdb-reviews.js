@@ -98,14 +98,13 @@ function mount(root,data){
   const remove=()=>{
    if(floatingFilterButton.contains(document.activeElement)||filterActions.contains(document.activeElement))filterButton.focus({preventScroll:true});
    floatingFilterButton.remove();floatingFilterButton.style.transform='';
-   mainClose.classList.remove('is-landscape-filter-open');
   };
   if(floating){
    const entering=floatingFilterButton.parentNode!==root;
    if(entering)root.append(floatingFilterButton);
    floatingFilterButton.inert=false;floatingFilterButton.removeAttribute('aria-hidden');
    for(const key of ['aria-label','aria-controls','aria-expanded']){const value=filterButton.getAttribute(key);if(value!==null)floatingFilterButton.setAttribute(key,value);}
-   floatingFilterButton.classList.add('is-filter-open');mainClose.classList.add('is-landscape-filter-open');
+   floatingFilterButton.classList.add('is-filter-open');
    floatingFilterIcon.set(true,immediate);
    floatingFilterButton.style.transform='';
    return;
