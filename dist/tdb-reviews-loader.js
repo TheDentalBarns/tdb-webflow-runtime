@@ -1,10 +1,10 @@
-/* TDB review loader v3.4.0. Permission, presence, preparation and playback stay separate. */
+/* TDB review loader v3.5.0. Permission, presence, preparation and playback stay separate. */
 (() => {
 'use strict';if(window.TDBReviewLoader)return;
 const script=document.currentScript,base=new URL('./',script.src),roots=new Map();
-const events=['CookieScriptLoaded','CookieScriptCurrentState','CookieScriptAccept','CookieScriptAcceptAll','CookieScriptReject','CookieScriptClose'];
+const events=['CookieScriptLoaded','CookieScriptCurrentState','CookieScriptAccept','CookieScriptAcceptAll','CookieScriptAcceptSelection','CookieScriptReject','CookieScriptClose'];
 const options=window.TDBReviewOptions||{};
-let contentFlight,feature,controller=new AbortController();
+let contentFlight,feature,drawerFlight,controller=new AbortController();
 function allowed(){
  if(options.permission)return Boolean(options.permission());
  try{const state=window.CookieScript?.instance?.currentState?.();if(['accept','reject','close'].includes(String(state?.action).toLowerCase()))return true;
@@ -13,26 +13,37 @@ function allowed(){
 const active=signal=>{if(signal?.aborted||!allowed())throw new DOMException('Cancelled','AbortError');};
 const drawerRoot=()=>document.querySelector('[data-tdb-reviews]');
 const kindOf=root=>root.matches('[data-tdb-review-introduction]')?'introduction':root.matches('[data-tdb-review-cards]')?'cards':'quotes';
-async function code(kind,signal){
+async function code(kind,signal,drawer=false){
  active(signal);
  await window.TDBModules.load(new URL('tdb-motion.js',base));active(signal);
  const names=['tdb-ticker.js','tdb-review-cms.js'];
  if(kind)names.push(`tdb-review-${kind}.js`);
- if(drawerRoot())names.push('tdb-drawer.js','tdb-filters.js','tdb-reviews.js');
+ if(drawer&&drawerRoot())names.push('tdb-drawer.js','tdb-filters.js','tdb-reviews.js');
  await Promise.all(names.map(name=>window.TDBModules.load(new URL(name,base))));active(signal);
- if(drawerRoot()||kind==='quotes'||kind==='cards'){
+ if((drawer&&drawerRoot())||kind==='quotes'||kind==='cards'){
   await window.TDBModules.load(new URL('tdb-swiper-8.4.7.min.js',base),{attribute:'data-swiper-js',ready:()=>typeof window.Swiper==='function'&&Boolean(window.TDBSwiper)});active(signal);
  }
 }
-async function prepare({signal=controller.signal,kind=null}={}){
+async function prepare({signal=controller.signal,kind=null,drawer=kind===null}={}){
  active(signal);
  if(!roots.size&&!drawerRoot())throw Error('No review component on this page');
- await code(kind,signal);active(signal);
+ await code(kind,signal,drawer);active(signal);
  if(!contentFlight){const flight=window.TDBReviewCMS.load({signal:controller.signal});contentFlight=flight;flight.catch(()=>{if(contentFlight===flight)contentFlight=null;});}
  const data=await contentFlight;active(signal);
- // Only the first CMS batch and hidden drawer are prepared near the first section.
- const root=drawerRoot();if(root&&!feature)feature=window.TDBReviews.mount(root,data);
+ // A nearby introduction needs CMS/ticker data, never the hidden drawer.
+ const root=drawerRoot();if(drawer&&root&&!feature)feature=window.TDBReviews.mount(root,data);
  return data;
+}
+function warmDrawer(){
+ if(!allowed()||!drawerRoot())return Promise.resolve();
+ if(!drawerFlight){const flight=code(null,controller.signal,true);drawerFlight=flight;flight.catch(()=>{if(drawerFlight===flight)drawerFlight=null;});}
+ return drawerFlight;
+}
+function scheduleWarm(root,state){
+ if(!state.visible||state.warming||!allowed()||!drawerRoot())return;
+ state.warming=true;
+ const run=()=>{state.warming=false;if(!state.visible||!root.isConnected||!allowed())return;warmDrawer().catch(()=>{});};
+ if('requestIdleCallback'in window)requestIdleCallback(run,{timeout:2000});else setTimeout(run,250);
 }
 async function open({trigger,signal=controller.signal,reviewId=''}){
  const data=await prepare({signal});active(signal);
@@ -47,13 +58,14 @@ async function open({trigger,signal=controller.signal,reviewId=''}){
 }
 function sync(){
  if(!allowed()){
-  if(!controller.signal.aborted)controller.abort();controller=new AbortController();contentFlight=null;
+  if(!controller.signal.aborted)controller.abort();controller=new AbortController();contentFlight=null;drawerFlight=null;
   feature?.destroy();feature=null;
   for(const state of roots.values()){state.instance?.destroy();state.instance=null;state.pending=null;}
   return;
  }
  for(const [root,state] of roots){
-  if(!root.isConnected&&!state.instance){proximity?.unobserve(root);roots.delete(root);continue;}
+  scheduleWarm(root,state);
+  if(!root.isConnected&&!state.instance){proximity?.unobserve(root);visible?.unobserve(root);roots.delete(root);continue;}
   if(!state.near||state.instance||state.pending)continue;
   const signal=controller.signal,token={};state.pending=token;
   (async()=>{
@@ -65,16 +77,16 @@ function sync(){
    active(signal);
    root.querySelectorAll('[data-tdb-review-count]').forEach(n=>n.setAttribute('data-tdb-review-count',String(data.total)));
    root.querySelectorAll('[data-tdb-review-rating]').forEach(n=>n.setAttribute('data-tdb-review-rating',data.average.toFixed(2)));
-   const hooks={prepare:args=>prepare({...args,kind:null}),openReviews:open,closeReviews:()=>{feature?.destroy();feature=null;}};
+   const hooks={prepare:async({signal:localSignal}={})=>{active(signal);active(localSignal);return data;},openReviews:open,closeReviews:()=>{feature?.destroy();feature=null;}};
    state.instance=kind==='introduction'?window.TDBReviewIntroduction.mount(root,hooks):kind==='cards'?window.TDBReviewCards.mount(root,data,hooks):window.TDBReviewQuotes.mount(root,data,hooks);
   })().catch(()=>{}).finally(()=>{if(state.pending===token)state.pending=null;});
  }
 }
 const proximity='IntersectionObserver'in window?new IntersectionObserver(entries=>{entries.forEach(e=>{const state=roots.get(e.target);if(state)state.near=e.isIntersecting;});sync();},{rootMargin:'700px 0px'}):null;
-function discover(){[...document.querySelectorAll('[data-tdb-review-introduction],[data-tdb-review-cards]'),...document.querySelectorAll('.testimonial_slider.w-slider')].filter(root=>root.matches('[data-tdb-review-introduction],[data-tdb-review-cards]')||root.parentElement.querySelector('.testimonial15_rating-wrapper')).forEach(root=>{if(roots.has(root))return;const state={near:!proximity,instance:null,pending:null};roots.set(root,state);proximity?.observe(root);for(const event of ['pointerover','focusin'])root.addEventListener(event,()=>{state.near=true;sync();},{passive:true});});sync();}
+const visible='IntersectionObserver'in window?new IntersectionObserver(entries=>{entries.forEach(e=>{const state=roots.get(e.target);if(state){state.visible=e.isIntersecting;scheduleWarm(e.target,state);}});},{threshold:0}):null;
+function discover(){[...document.querySelectorAll('[data-tdb-review-introduction],[data-tdb-review-cards]'),...document.querySelectorAll('.testimonial_slider.w-slider')].filter(root=>root.matches('[data-tdb-review-introduction],[data-tdb-review-cards]')||root.parentElement.querySelector('.testimonial15_rating-wrapper')).forEach(root=>{if(roots.has(root))return;const state={near:!proximity,visible:!visible,warming:false,instance:null,pending:null};roots.set(root,state);proximity?.observe(root);visible?.observe(root);for(const event of ['pointerover','focusin','pointerdown'])root.addEventListener(event,event=>{state.near=true;sync();if(event.target.closest?.('[data-tdb-review-trigger]')&&allowed())prepare().catch(()=>{});},{passive:true});});sync();}
 for(const name of events){window.addEventListener(name,sync);document.addEventListener(name,sync);}
 options.subscribe?.(sync);window.addEventListener('online',sync);window.addEventListener('pageshow',sync);
-window.TDBReviewLoader=Object.freeze({version:'3.4.0',prepare,open,refresh:discover,status:()=>({allowed:allowed(),prepared:!!feature,instances:[...roots.values()].filter(s=>s.instance).length})});
+window.TDBReviewLoader=Object.freeze({version:'3.5.0',prepare,open,refresh:discover,status:()=>({allowed:allowed(),prepared:!!feature,instances:[...roots.values()].filter(s=>s.instance).length})});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',discover,{once:true});else discover();
 })();
-

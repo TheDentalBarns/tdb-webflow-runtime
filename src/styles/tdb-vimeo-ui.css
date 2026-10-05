@@ -1,3 +1,5 @@
+:root { --tdb-vimeo-ui-ready: 1; }
+
 .vimeo-player[data-vimeo-update-size='cover'] {
     width: 100%;
     min-width: 100%;
@@ -100,11 +102,6 @@
 }
 
 /* Shared pulse */
-@keyframes tdbBtnPulseOpacity {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 .vimeo-controls-layer .vimeo-player__btn-pulse,
 .vimeo-player .vimeo-player__btn-pulse {
   opacity: 0;

@@ -1,3 +1,4 @@
+/* Bundled in the essential navbar. Do not load a second standalone copy. */
 (() => {
   const root = document.documentElement;
   const navbar = document.querySelector('.navbar10_component');
@@ -32,7 +33,7 @@
     cleanupTimer = setTimeout(() => {
       clearCycle = false;
       root.classList.remove('tdb-nav-clear-cycle');
-    }, 470);
+    }, window.TDBNavMotion?.current.cleanup || 470);
   }).observe(menuButton, {
     attributes: true,
     attributeFilter: ['class'],

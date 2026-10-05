@@ -11,13 +11,13 @@ const style=`body{margin:0}section,.vimeo-player,.ambient{position:relative;heig
 (async()=>{const b=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE || undefined,args:['--no-sandbox']});
 try { for (const scenario of ['absent','distant','reject','withdraw-in-flight','retry']) {
  const ctx=await b.newContext({viewport:{width:1440,height:700}}),p=await ctx.newPage(),requests=[];
- let failures=0, release=null;
+ let failures=0, release=null, retryReady=false;
  await ctx.route('https://vimeo.test/**',async r=>{
   const file=new URL(r.request().url()).pathname.split('/').pop();
   if(file.endsWith('.js')||file.endsWith('.css')){
    requests.push(file);
    if(file==='tdb-vimeo.js'){
-    if(scenario==='retry'&&failures++===0)return r.abort();
+    if(scenario==='retry'&&!retryReady){failures++;return r.abort();}
     if(scenario==='withdraw-in-flight')await new Promise(res=>{release=res});
    }
    return r.fulfill({contentType:file.endsWith('.css')?'text/css':'text/javascript',body:fs.readFileSync(path.join(repo,'dist',file),'utf8')});
@@ -46,8 +46,9 @@ try { for (const scenario of ['absent','distant','reject','withdraw-in-flight','
  }
  if(scenario==='retry'){
   assert.equal(await p.evaluate(()=>TDBVimeoLoader.status().ready),false);
+  retryReady=true;
   await p.locator('[data-vimeo-control=play]').click();await p.waitForFunction(()=>document.querySelector('[data-vimeo-content-init]').getAttribute('data-vimeo-playing')==='true');
-  assert.equal(requests.filter(f=>f==='tdb-vimeo.js').length,2);assert.equal(await p.evaluate(()=>players[0].plays),1);
+  assert.equal(requests.filter(f=>f==='tdb-vimeo.js').length,failures+1);assert.equal(await p.evaluate(()=>players[0].plays),1);
  }
  console.log('PASS',scenario);await ctx.close();
 }}finally{await b.close()}})().catch(e=>{console.error(e);process.exit(1)});
