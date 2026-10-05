@@ -2,8 +2,8 @@
 const TDB_MODULE_ROOT = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@61cec90cdba3d42a29d3c31194b692c251e8d421/dist/';
 const TDB_SLIDER_ROOT = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@59a7ba5a8ed95c07d738e067e65795a3daf23c05/dist/';
 const TDBFooterModuleRoot = new URL('./', document.currentScript.src);
-function tdbEnsureSliderRuntime() {
-  return Promise.all([tdbEnsureUI(), window.TDBModules.load(new URL('tdb-motion.js', 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8de4d77a62a7f83e063f2e2a54e8c311e56bc49d/dist/'))]).then(() => window.TDBModules.load(new URL('tdb-sliders.js', TDBFooterModuleRoot), { attribute: 'data-tdb-sliders-js' }));
+function tdbEnsureSliderFocus() {
+  return tdbEnsureUI().then(() => window.TDBModules.load(new URL('tdb-slider-focus.js', TDBFooterModuleRoot), { attribute: 'data-tdb-slider-focus-js', ready: () => Boolean(window.TDBSliderFocus) }));
 }
 
 function prepareTooltipLoader() {
@@ -58,7 +58,7 @@ function prepareSliderFocusLoader() {
     function demand() {
       if (loaded || flight) return;
       if (window.TDBSliderFocus) { loaded = true; cleanup(); seed = null; return; }
-      flight = tdbEnsureSliderRuntime().then(() => {
+      flight = tdbEnsureSliderFocus().then(() => {
         if (!window.TDBSliderFocus) throw new Error('Slider focus module did not initialise');
         loaded = true;
         cleanup();

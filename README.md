@@ -82,3 +82,11 @@ See [service parallax ownership and deployment](docs/service-parallax-cleanup-20
 Designer owns the first service slider's styling and CMS list order. Shared parallax
 behaviour lives in `src/sliders/parallax.js`, bundled into the existing immediate
 runtime; the separate homepage progress script and inline service reorder are retired.
+
+## Shared Swiper and feature plugins — 5 October 2026
+
+See [carousel plugin ownership, loading and rollback](docs/carousel-plugins-2026-10-05.md).
+The existing custom Swiper download now owns the shared carousel interface.
+Parallax, highlight/Smile Gallery carousels, review cards, review testimonials and
+the review drawer are feature plugins. Shared focus is independently lazy-loaded.
+Webflow/CMS styling and the existing feature behaviours remain in their owners.

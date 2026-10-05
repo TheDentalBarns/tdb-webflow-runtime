@@ -1,4 +1,4 @@
-/* TDB Swiper behaviour v1.1.0. Included in the existing custom Swiper artifact. */
+/* TDB Swiper behaviour v1.2.0. One custom engine with shared plugin lifecycle. */
 (() => {
   'use strict';
   if (window.TDBSwiper) return;
@@ -122,5 +122,7 @@
     });
   }
 
-  window.TDBSwiper = Object.freeze({ version: '1.1.0', bindSwiper });
+  /* TDB_SWIPER_PLUGINS */
+  window.TDBSwiper = Object.freeze({ version: '1.2.0', bindSwiper, create, register, mount, observe, refresh, prune, watchDuration,
+    plugins: () => [...plugins.keys()] });
 })();

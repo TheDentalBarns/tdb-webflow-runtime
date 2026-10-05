@@ -1,4 +1,4 @@
-/* TDB shared motion v1.4.2. Timing, DD text and reusable opacity fades. */
+/* TDB shared motion v1.5.0. Timing, DD text and reusable opacity fades. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -98,7 +98,8 @@
 
   // Components select the appropriate choreography. These values preserve the
   // established review fades, including forward/backward and cancelled drags.
-  const reviews = Object.freeze({ fade: 400, openDelay: 500, nextDelay: 100, previousDelay: 140, cardDelay: 60, initialDelay: 100, easing: 'ease' });
+  const carousel = Object.freeze({ nextDelay: 100, previousDelay: 140, settleDelay: 60, entryStart: 120, entryRetry: 100, entryFallback: 300 });
+  const reviews = Object.freeze({ fade: 400, openDelay: 500, nextDelay: carousel.nextDelay, previousDelay: carousel.previousDelay, cardDelay: carousel.settleDelay, initialDelay: 100, easing: 'ease' });
   function fadeController() {
     const states = new Map();
     function to(node, target, milliseconds = reviews.fade) {
@@ -183,6 +184,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.4.2', defaults, duration, ddText, ddOpacity, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.5.0', defaults, carousel, duration, ddText, ddOpacity, reviews, fadeController, filterToggle, bindSwiper });
 })();
-

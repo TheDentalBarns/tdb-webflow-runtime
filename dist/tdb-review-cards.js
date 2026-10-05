@@ -1,4 +1,4 @@
-/* TDB native review cards v1.1.0. CMS records, native layout and one shared Swiper. */
+/* TDB native review cards v1.2.0. CMS records, native layout and one shared Swiper. */
 (() => {
 'use strict';if(window.TDBReviewCards)return;const instances=new WeakMap();
 function mount(root,data,{openReviews}){
@@ -20,7 +20,7 @@ function mount(root,data,{openReviews}){
   const pause=reduced.matches?0:delay??(swiper.swipeDirection==='prev'?motion.reviews.previousDelay:motion.reviews.nextDelay);
   if(pause)revealTimer=setTimeout(show,pause);else show();
  }
- swiper=new window.Swiper(viewport,{init:false,direction:'horizontal',wrapperClass:'tdb-review-cards_track',slideClass:'tdb-review-cards_slide',slidesPerView:'auto',loop:data.records.length>1,loopedSlides:4,loopAdditionalSlides:1,loopPreventsSlide:false,preventInteractionOnTransition:false,speed:reduced.matches?0:motion.duration(innerWidth),watchSlidesProgress:true,keyboard:{enabled:false},on:{slideChange(){queueMicrotask(reflect)},sliderFirstMove:begin,transitionStart:begin,transitionEnd(){if(phase==='moving')reveal();},touchEnd(){requestAnimationFrame(()=>{if(phase==='moving'&&!swiper.animating)reveal(motion.reviews.cardDelay);});}}});window.TDBSwiper.bindSwiper(swiper);swiper.init();reveal(motion.reviews.initialDelay);
+ swiper=window.TDBSwiper.create(viewport,{init:false,direction:'horizontal',wrapperClass:'tdb-review-cards_track',slideClass:'tdb-review-cards_slide',slidesPerView:'auto',loop:data.records.length>1,loopedSlides:4,loopAdditionalSlides:1,loopPreventsSlide:false,preventInteractionOnTransition:false,speed:reduced.matches?0:motion.duration(innerWidth),watchSlidesProgress:true,keyboard:{enabled:false},on:{slideChange(){queueMicrotask(reflect)},sliderFirstMove:begin,transitionStart:begin,transitionEnd(){if(phase==='moving')reveal();},touchEnd(){requestAnimationFrame(()=>{if(phase==='moving'&&!swiper.animating)reveal(motion.reviews.cardDelay);});}}});swiper.init();reveal(motion.reviews.initialDelay);
  $('[data-tdb-cards-total]').textContent=String(data.total).padStart(2,'0');status.textContent='';navigation.classList.remove('is-inactive');
  root.addEventListener('click',activate,{signal});root.addEventListener('keydown',activate,{signal});
  async function activate(e){if(e.type==='keydown'&&!['Enter',' ','ArrowLeft','ArrowRight'].includes(e.key))return;const button=e.target.closest('[data-tdb-cards-open],[data-tdb-cards-prev],[data-tdb-cards-next]');if(e.key==='ArrowLeft'||button?.hasAttribute('data-tdb-cards-prev')){e.preventDefault();swiper.swipeDirection='prev';swiper.slidePrev();return}if(e.key==='ArrowRight'||button?.hasAttribute('data-tdb-cards-next')){e.preventDefault();swiper.swipeDirection='next';swiper.slideNext();return}if(!button||!swiper.allowClick)return;e.preventDefault();button.setAttribute('aria-busy','true');try{await openReviews({trigger:button,reviewId:button.closest('[data-review-id]').dataset.reviewId,signal})}catch(error){if(!signal.aborted)status.textContent='The review could not load. Please try again.'}finally{button.removeAttribute('aria-busy')}}
@@ -28,5 +28,6 @@ function mount(root,data,{openReviews}){
  reduced.addEventListener('change',()=>{hide();phase='moving';swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);if(reduced.matches){swiper.slideTo(swiper.activeIndex,0);ticker.settle()}reveal(0)},{signal});
  const api={destroy(){hide();phase='destroyed';controller.abort();resize.disconnect();fades.destroy();swiper.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();track.replaceChildren();navigation.classList.add('is-inactive');status.textContent='Patient reviews';instances.delete(root)}};instances.set(root,api);return api;
 }
-window.TDBReviewCards=Object.freeze({version:'1.1.0',mount});
+window.TDBReviewCards=Object.freeze({version:'1.2.0',mount});
+window.TDBSwiper?.register('review-cards',window.TDBReviewCards);
 })();

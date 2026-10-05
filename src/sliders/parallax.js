@@ -1,4 +1,4 @@
-/* TDB Parallax v1.0.1.
+/* TDB Parallax v1.1.0.
  * Shared parallax preparation, CMS link state, native presentation and progress.
  * Bundled into the existing immediate runtime: no extra request or stylesheet.
  * Swiper and TDBMotion remain the shared slide/motion engines.
@@ -125,11 +125,12 @@
 
   const controls = (() => {
     const e = new WeakMap, t = window.location.pathname.replace(/\/+$/, "") || "/", n = "/" === t || "/location" === t;
+    const eligible = root => n || root.classList.contains("tdb-service-parallax") || root.hasAttribute("data-tdb-banner-parallax");
     function r(r, i = r.querySelector(":scope > .swiper")) {
-        if (!n && !r.hasAttribute("data-tdb-banner-parallax") || !i) return null;
+        if (!eligible(r) || !i) return null;
         if (e.has(r)) return e.get(r);
         !function(e) {
-            if (!n && !e.hasAttribute("data-tdb-banner-parallax")) return;
+            if (!eligible(e)) return;
             const t = matchMedia("(max-width:767px) and (orientation:portrait)").matches;
             document.documentElement.classList.toggle("tdb-slider-next", t), document.documentElement.classList.toggle("tdb-slider-desktop", matchMedia("(min-width:768px)").matches);
             const r = e.querySelector(":scope > .swiper"), i = e.querySelector(":scope > .swiper_functions-btm.hide");
@@ -139,7 +140,7 @@
             });
         }(r);
         const a = function(r, i) {
-            if (!n && !r.hasAttribute("data-tdb-banner-parallax")) return null;
+            if (!eligible(r)) return null;
             const a = Array.from(i.querySelectorAll(":scope > .swiper-wrapper > .swiper-slide:not(.swiper-slide-duplicate)")), o = a.map(e => {
                 const t = e.querySelector(".service-card-button-wrap a[href]");
                 return t && {
@@ -258,9 +259,9 @@
                 T());
             }
             function V() {
-                y && !x && window.TDBSliderLoader && !f && (x = window.TDBSliderLoader.load().then(() => {
+                y && !x && window.TDBSliderLoader && !f && (x = window.TDBSliderLoader.load(r).then(() => {
                     if (f || !r.isConnected) return;
-                    if (window.TDBSliders?.activate(r), !w) throw new Error("Parallax controls did not bind");
+                    if (window.TDBSwiper?.mount('parallax',r), !w) throw new Error("Parallax controls did not bind");
                     const e = y;
                     y = null, r.querySelectorAll(".swiper-btn-prev,.swiper-btn-next").forEach(t => {
                         t.classList.toggle("is-selected", t.matches("prev" === e ? ".swiper-btn-prev" : ".swiper-btn-next"));
@@ -346,7 +347,8 @@
 
   // Samples rendered geometry so dragging, easing and loop copies share a clock.
   const progress = (() => {
-  const selector='.section_gallery14 .parallax-swiper_component:not(.tdb-banner-parallax),#All-treatments .tdb-banner-parallax';
+  const nativeSelector='.tdb-service-parallax';
+  const homeSelector='.section_gallery14 .parallax-swiper_component:not(.tdb-banner-parallax),#All-treatments .tdb-banner-parallax';
   // Track and marker appearance are native Webflow classes.
   const bindings=new WeakMap();
   function bind(component){
@@ -469,7 +471,7 @@
     paint();schedule();return true;
   }
   function refresh(root = document) {
-    if (document.documentElement.dataset.wfPage !== '677cf86df9952f978d94d8a9') return;
+    const selector=document.documentElement.dataset.wfPage === '677cf86df9952f978d94d8a9' ? nativeSelector+','+homeSelector : nativeSelector;
     if (root instanceof Element && root.matches(selector)) bind(root);
     root.querySelectorAll?.(selector).forEach(bind);
   }
@@ -483,7 +485,7 @@
     progress.refresh(root);
   }
   window.TDBParallax = Object.freeze({
-    version: '1.0.1', refresh, prepare: controls.prepare,
+    version: '1.1.0', refresh, prepare: controls.prepare,
     bind: presentation.bind, setMoving: presentation.setMoving, setEntry: presentation.setEntry
   });
 })();

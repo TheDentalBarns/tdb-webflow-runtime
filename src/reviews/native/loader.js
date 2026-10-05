@@ -1,4 +1,4 @@
-/* TDB review loader v3.4.0. Permission, presence, preparation and playback stay separate. */
+/* TDB review loader v3.5.0. Permission, presence, preparation and playback stay separate. */
 (() => {
 'use strict';if(window.TDBReviewLoader)return;
 const script=document.currentScript,base=new URL('./',script.src),roots=new Map();
@@ -21,7 +21,10 @@ async function code(kind,signal){
  if(drawerRoot())names.push('tdb-drawer.js','tdb-filters.js','tdb-reviews.js');
  await Promise.all(names.map(name=>window.TDBModules.load(new URL(name,base))));active(signal);
  if(drawerRoot()||kind==='quotes'||kind==='cards'){
-  await window.TDBModules.load(new URL('tdb-swiper-8.4.7.min.js',base),{attribute:'data-swiper-js',ready:()=>typeof window.Swiper==='function'&&Boolean(window.TDBSwiper)});active(signal);
+  await window.TDBModules.load(new URL('tdb-swiper-8.4.7.min.js',base),{attribute:'data-swiper-js',ready:()=>typeof window.Swiper==='function'&&typeof window.TDBSwiper?.create==='function'});active(signal);
+ }
+ if(window.TDBSwiper){
+  for(const [name,plugin] of [['review-drawer',window.TDBReviews],['review-cards',window.TDBReviewCards],['review-testimonials',window.TDBReviewQuotes]]){if(plugin)window.TDBSwiper.register(name,plugin);}
  }
 }
 async function prepare({signal=controller.signal,kind=null}={}){
@@ -31,7 +34,7 @@ async function prepare({signal=controller.signal,kind=null}={}){
  if(!contentFlight){const flight=window.TDBReviewCMS.load({signal:controller.signal});contentFlight=flight;flight.catch(()=>{if(contentFlight===flight)contentFlight=null;});}
  const data=await contentFlight;active(signal);
  // Only the first CMS batch and hidden drawer are prepared near the first section.
- const root=drawerRoot();if(root&&!feature)feature=window.TDBReviews.mount(root,data);
+ const root=drawerRoot();if(root&&!feature)feature=window.TDBSwiper.mount('review-drawer',root,data);
  return data;
 }
 async function open({trigger,signal=controller.signal,reviewId=''}){
@@ -66,7 +69,7 @@ function sync(){
    root.querySelectorAll('[data-tdb-review-count]').forEach(n=>n.setAttribute('data-tdb-review-count',String(data.total)));
    root.querySelectorAll('[data-tdb-review-rating]').forEach(n=>n.setAttribute('data-tdb-review-rating',data.average.toFixed(2)));
    const hooks={prepare:args=>prepare({...args,kind:null}),openReviews:open,closeReviews:()=>{feature?.destroy();feature=null;}};
-   state.instance=kind==='introduction'?window.TDBReviewIntroduction.mount(root,hooks):kind==='cards'?window.TDBReviewCards.mount(root,data,hooks):window.TDBReviewQuotes.mount(root,data,hooks);
+   state.instance=kind==='introduction'?window.TDBReviewIntroduction.mount(root,hooks):kind==='cards'?window.TDBSwiper.mount('review-cards',root,data,hooks):window.TDBSwiper.mount('review-testimonials',root,data,hooks);
   })().catch(()=>{}).finally(()=>{if(state.pending===token)state.pending=null;});
  }
 }
@@ -74,7 +77,7 @@ const proximity='IntersectionObserver'in window?new IntersectionObserver(entries
 function discover(){[...document.querySelectorAll('[data-tdb-review-introduction],[data-tdb-review-cards]'),...document.querySelectorAll('.testimonial_slider.w-slider')].filter(root=>root.matches('[data-tdb-review-introduction],[data-tdb-review-cards]')||root.parentElement.querySelector('.testimonial15_rating-wrapper')).forEach(root=>{if(roots.has(root))return;const state={near:!proximity,instance:null,pending:null};roots.set(root,state);proximity?.observe(root);for(const event of ['pointerover','focusin'])root.addEventListener(event,()=>{state.near=true;sync();},{passive:true});});sync();}
 for(const name of events){window.addEventListener(name,sync);document.addEventListener(name,sync);}
 options.subscribe?.(sync);window.addEventListener('online',sync);window.addEventListener('pageshow',sync);
-window.TDBReviewLoader=Object.freeze({version:'3.4.0',prepare,open,refresh:discover,status:()=>({allowed:allowed(),prepared:!!feature,instances:[...roots.values()].filter(s=>s.instance).length})});
+window.TDBReviewLoader=Object.freeze({version:'3.5.0',prepare,open,refresh:discover,status:()=>({allowed:allowed(),prepared:!!feature,instances:[...roots.values()].filter(s=>s.instance).length})});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',discover,{once:true});else discover();
 })();
 

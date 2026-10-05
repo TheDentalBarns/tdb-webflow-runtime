@@ -8,7 +8,7 @@ const start = source.indexOf('  const progress = (() => {');
 const end = source.indexOf('\n  })();',start)+9;
 assert(start>=0 && end>start);
 const code = source.slice(start,end)+'; progress.refresh();';
-function fixture({treatment=false,width=1000,dpr=1}={}) {
+function fixture({treatment=false,width=1000,dpr=1,page='677cf86df9952f978d94d8a9'}={}) {
   const queue=new Map(),observers={},stats={indices:0,track:0,slides:0};let seq=0,offset=0;
   const cls=values=>{const set=new Set(values);return {contains:v=>set.has(v),add:v=>set.add(v),remove:v=>set.delete(v),toggle:(v,on)=>on?set.add(v):set.delete(v)};};
   const node=()=>({style:{},classList:cls([]),setAttribute(){},addEventListener(){},removeEventListener(){},append(){},remove(){}});
@@ -18,7 +18,7 @@ function fixture({treatment=false,width=1000,dpr=1}={}) {
   wrapper.children=[4,0,1,2,3,4,0].map((index,i)=>makeSlide(index,(i-1)*width));
   const viewport=Object.assign(node(),{querySelector:()=>wrapper,getBoundingClientRect:()=>({left:0,right:width,top:0,bottom:500,width,height:500})});
   const component=Object.assign(node(),{clientTop:0,clientLeft:0,closest:()=>treatment?{}:null,querySelector:s=>s.includes('native-progress')?track:s===':scope > .swiper'?viewport:null,getBoundingClientRect:()=>({left:0,top:0})});
-  const document={hidden:false,documentElement:{dataset:{wfPage:'677cf86df9952f978d94d8a9'},clientWidth:width},querySelectorAll:()=>[component],addEventListener:(e,cb)=>observers[e]=cb,removeEventListener(){}};
+  const document={hidden:false,documentElement:{dataset:{wfPage:page},clientWidth:width},querySelectorAll:selector=>{if(page!=='677cf86df9952f978d94d8a9')assert.equal(selector,'.tdb-service-parallax');return [component];},addEventListener:(e,cb)=>observers[e]=cb,removeEventListener(){}};
   const window={devicePixelRatio:dpr,addEventListener:(e,cb)=>observers[e]=cb,removeEventListener(){}};
   const observer=key=>class{constructor(cb){observers[key]=cb;}observe(){}disconnect(){}};
   const context={document,window,innerWidth:width,Element:class{},IntersectionObserver:observer('intersection'),MutationObserver:observer('mutation'),ResizeObserver:observer('size'),requestAnimationFrame:cb=>{queue.set(++seq,cb);return seq;},cancelAnimationFrame:id=>queue.delete(id)};
@@ -47,6 +47,7 @@ function run() {
   f.visible(false);assert.equal(f.queue.size,0);f.visible(true);assert.equal(f.queue.size,1);
   f.document.hidden=true;f.observers.visibilitychange();assert.equal(f.queue.size,0);
   f.document.hidden=false;f.observers.visibilitychange();assert.equal(f.queue.size,1);
+  const reusable=fixture({page:'another-page'});reusable.visible(true);assert.equal(reusable.fill.style.width,'200px');
   console.log('Progress: loop/reverse, idle movement, resize/DPR, structure changes and visibility pass. Stable-frame index and track reads: 0.');
 }
 if(require.main===module)run();

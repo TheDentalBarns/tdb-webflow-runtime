@@ -519,73 +519,84 @@ function prepareVIPDrawerLoader() {
 
 function prepareSliderLoader() {
   const selector = '.highlight-swiper_component, .parallax-swiper_component';
-  const observed = new WeakSet();
-  let loadingPromise = null;
-  let loaded = false;
+  const files = {parallax: 'tdb-parallax.js', gallery: 'tdb-gallery.js'};
+  const flights = new Map(), ready = new Set(), observed = new WeakSet();
   let proximityObserver = null;
-  let discoveryObserver = null;
+  const kindOf = root => root.matches('.parallax-swiper_component') ? 'parallax' : 'gallery';
+  const pluginOf = kind => kind === 'parallax' ? window.TDBParallaxPlugin : window.TDBGallery;
 
-  function cleanup() {
-    proximityObserver?.disconnect();
-    discoveryObserver?.disconnect();
-    document.removeEventListener('pointerdown', onIntent, true);
-    document.removeEventListener('keydown', onIntent, true);
-  }
-  function loadSliders() {
-    if (loadingPromise) return loadingPromise;
-    loadingPromise = Promise.all([
-      tdbEnsureUI(),
-      tdbEnsureSliderUI(),
-      window.TDBModules.load('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@db61bf01ab662a514f826a22f3a6918e357fec7a/dist/tdb-swiper-8.4.7.min.js', { attribute: 'data-swiper-js', ready: () => typeof window.Swiper === 'function' && Boolean(window.TDBSwiper) }),
-    ]).then(tdbEnsureSliderRuntime).then(script => {
-      loaded = true;
-      cleanup();
-      return script;
+  function loadKind(kind) {
+    if (flights.has(kind)) return flights.get(kind);
+    const flight = Promise.all([
+      tdbEnsureUI(), tdbEnsureSliderUI(), tdbEnsureSliderFocus(),
+      window.TDBModules.load(new URL('tdb-motion.js', TDBFooterModuleRoot)),
+      window.TDBModules.load(new URL('tdb-swiper-8.4.7.min.js', TDBFooterModuleRoot), {
+        attribute: 'data-swiper-js', ready: () => typeof window.Swiper === 'function' && typeof window.TDBSwiper?.create === 'function'
+      }),
+    ]).then(() => window.TDBModules.load(new URL(files[kind], TDBFooterModuleRoot), {
+      attribute: 'data-tdb-' + kind + '-js', ready: () => Boolean(pluginOf(kind))
+    })).then(() => {
+      const plugin = pluginOf(kind);
+      if (!plugin) throw Error('Carousel plugin did not initialise: ' + kind);
+      ready.add(kind);
+      plugin.refresh();
+      return plugin;
     }).catch(error => {
-      loadingPromise = null;
-      console.error('TDB Sliders failed to load');
+      flights.delete(kind);
+      console.error('TDB carousel plugin failed to load: ' + kind);
       throw error;
     });
-    return loadingPromise;
+    flights.set(kind, flight);
+    return flight;
   }
-  const loadSafely = () => { loadSliders().catch(() => {}); };
+
+  function loadSliders(root) {
+    window.TDBParallax?.refresh(root || document);
+    if (root instanceof Element) {
+      const component = root.matches(selector) ? root : root.closest(selector);
+      if (component) return loadKind(kindOf(component)).then(plugin => { plugin.refresh(component); return plugin; });
+    }
+    const kinds = new Set([...document.querySelectorAll(selector)].filter(node => !node.closest('.logo-slider')).map(kindOf));
+    return Promise.all([...kinds].map(loadKind));
+  }
+  const loadSafely = root => { loadSliders(root).then(() => proximityObserver?.unobserve(root)).catch(() => {}); };
   function onIntent(event) {
     const target = event.target;
-    if (target instanceof Element && !target.closest('.logo-slider') && target.closest(selector)) loadSafely();
+    if (target instanceof Element && !target.closest('.logo-slider')) {
+      const root = target.closest(selector);
+      if (root) loadSafely(root);
+    }
   }
-  function observeSlider(slider) {
-    if (!(slider instanceof Element) || slider.closest('.logo-slider') || observed.has(slider)) return;
-    observed.add(slider);
-    if (!proximityObserver) loadSafely();
-    else proximityObserver.observe(slider);
+  function observeSlider(root) {
+    if (!(root instanceof Element) || root.closest('.logo-slider') || observed.has(root)) return;
+    observed.add(root);
+    if (ready.has(kindOf(root))) pluginOf(kindOf(root)).refresh(root);
+    else if (proximityObserver) proximityObserver.observe(root);
+    else loadSafely(root);
   }
   function discover(root = document) {
+    window.TDBParallax?.refresh(root);
     if (root instanceof Element && root.matches(selector)) observeSlider(root);
     root.querySelectorAll?.(selector).forEach(observeSlider);
   }
-  if ('IntersectionObserver' in window) {
-    proximityObserver = new IntersectionObserver(entries => {
-      if (entries.some(entry => entry.isIntersecting)) loadSafely();
-    }, { rootMargin: '800px 0px' });
-  }
+  if ('IntersectionObserver' in window) proximityObserver = new IntersectionObserver(entries => {
+    entries.filter(entry => entry.isIntersecting).forEach(entry => loadSafely(entry.target));
+  }, {rootMargin: '800px 0px'});
   document.addEventListener('pointerdown', onIntent, true);
   document.addEventListener('keydown', onIntent, true);
   function start() {
-    if (loaded) return;
     discover();
-    discoveryObserver = new MutationObserver(mutations => mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
-      if (node instanceof Element) discover(node);
-    })));
-    discoveryObserver.observe(document.body, { childList: true, subtree: true });
+    new MutationObserver(mutations => {
+      mutations.forEach(mutation => mutation.addedNodes.forEach(node => { if (node instanceof Element) discover(node); }));
+      if (mutations.some(mutation => mutation.removedNodes.length)) window.TDBSwiper?.prune();
+    }).observe(document.body, {childList: true, subtree: true});
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once: true});
   else start();
-
-  window.TDBSliderLoader = Object.freeze({
-    version: '0.2.4',
-    load: loadSliders,
-    status: () => ({ loaded: Boolean(window.TDBSliders), loading: !loaded && Boolean(loadingPromise), swiperAvailable: typeof window.Swiper === 'function' }),
-  });
+  window.TDBSliderLoader = Object.freeze({version: '1.0.0', load: loadSliders,
+    status: () => ({loaded: ready.size > 0, loading: flights.size > ready.size, plugins: [...ready], swiperAvailable: typeof window.Swiper === 'function'})});
+  // Older embeds can keep their public calls; implementation lives in plugins.
+  window.TDBSliders ||= Object.freeze({version: '1.0.0', refresh: () => loadSliders(), activate: root => window.TDBSwiper?.mount('parallax', root)});
   window.dispatchEvent(new Event('tdb:slider-loader-ready'));
 }
 
@@ -597,7 +608,7 @@ prepareSliderFocusLoader();
 startLenisForSession();
 
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.5.1',
+  version: '1.6.0',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,

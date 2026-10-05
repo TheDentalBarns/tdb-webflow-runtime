@@ -1,14 +1,21 @@
-/* TDB shared dependency registry v1.3.0. Definitions do not mount components. */
+/* TDB shared dependency registry v1.4.0. One explicit carousel release. */
 (() => {
 'use strict'; if(window.TDBModules)return;
 const flights=new Map();
+const carouselRoot=document.currentScript?.src?new URL('./',document.currentScript.src):null;
+const carouselFiles=new Set(['tdb-swiper-8.4.7.min.js','tdb-motion.js','tdb-parallax.js','tdb-gallery.js','tdb-slider-focus.js','tdb-sliders.js','tdb-review-quotes.js','tdb-review-cards.js','tdb-reviews.js']);
 function load(url,{attribute,ready}={}){
  let src=new URL(url,location.href).href;
- // Native reviews, then the shared marquee loader, own shared module pins.
- // Resolve before checking ready/cache so differently pinned callers share one flight.
+ const requested=src.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/TheDentalBarns\/tdb-webflow-runtime@[^/]+\/dist\/([^/]+)$/);
+ // Carousel dependencies use this registry's release. Other shared modules retain
+ // their review/marquee-loader pin. Resolve before ready/cache checks so differently
+ // pinned consumers share one flight whichever component requests the engine first.
  const sharedLoader=document.querySelector('script[data-tdb-reviews-loader][src]')||document.querySelector('script[data-tdb-logo-marquee-loader][src]');
  const shared=src.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/TheDentalBarns\/tdb-webflow-runtime@[^/]+\/dist\/(tdb-motion\.js|tdb-filters\.js|tdb-drawer\.js|tdb-ticker\.js|tdb-swiper-8\.4\.7\.min\.js)$/);
- if(sharedLoader&&shared){
+ if(carouselRoot&&requested&&carouselFiles.has(requested[1])){
+  src=new URL(requested[1],carouselRoot).href;
+  if(requested[1]==='tdb-swiper-8.4.7.min.js'&&ready){const engineReady=ready;ready=()=>engineReady()&&typeof window.TDBSwiper?.create==='function';}
+ }else if(sharedLoader&&shared){
   src=new URL(shared[1],sharedLoader.src).href;
   if(shared[1]==='tdb-swiper-8.4.7.min.js'&&ready){const engineReady=ready;ready=()=>engineReady()&&Boolean(window.TDBSwiper);}
  }
@@ -28,6 +35,5 @@ function load(url,{attribute,ready}={}){
  });
  flights.set(src,promise);promise.catch(()=>flights.delete(src));return promise;
 }
-window.TDBModules=Object.freeze({version:'1.3.0',load});
+window.TDBModules=Object.freeze({version:'1.4.0',load});
 })();
-
