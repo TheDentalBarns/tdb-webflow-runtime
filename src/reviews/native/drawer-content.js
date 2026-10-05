@@ -22,7 +22,7 @@ function mount(root,data){
  let indexMode=false,matched=[],queryController=null,queryRevision=0,selectionBusy=false,pendingBatch=null;
  const canLoadMore=()=>indexMode?records.length<matched.length:data.hasMore;
  const filterOptions=filterPanel?[...filterPanel.querySelectorAll('[data-tdb-filter-group]')]:[];
- const filterStatus=filterPanel?.querySelector('[data-tdb-filter-status]'),filterApply=filterPanel?.querySelector('[data-tdb-filter-apply]');
+ const filterStatus=filterPanel?.querySelector('[data-tdb-filter-status]'),filterApply=$('[data-tdb-filter-apply]'),filterActions=$('.tdb-review-filter_actions');
  const filterReset=filterPanel?.querySelector('[data-tdb-filter-reset]');
  const filterApplyCount=filterApply?.querySelector('[data-tdb-filter-apply-count]'),filterApplyReserve=filterApply?.querySelector('[data-tdb-filter-count-reserve]'),filterApplyPlural=filterApply?.querySelector('[data-tdb-filter-apply-plural]');
  const filterApplyTicker=filterApplyCount?window.TDBNativeTicker.mount(filterApplyCount):null;let shownApplyCount=null;
@@ -41,7 +41,7 @@ function mount(root,data){
  // activates native Designer combo styles only for short, touch-screen landscape.
  // The same Webflow bars stay in one reading flow; styles remain native.
  const readingPane=$('[data-tdb-review-reading-pane]'),phoneLandscape=matchMedia('(orientation: landscape) and (max-width: 991px) and (max-height: 500px) and (pointer: coarse)');
- const landscapeNodes=[readingPane,$('.tdb-review-drawer_header'),$('.tdb-review-drawer_footer'),viewport,track,mainClose,filterPanel,filterPanel?.querySelector('[data-tdb-filter-scroll]'),filterPanel?.querySelector('.tdb-review-filter_heading'),filterPanel?.querySelector('.tdb-review-filter_actions')].filter(Boolean);
+ const landscapeNodes=[readingPane,$('.tdb-review-drawer_header'),$('.tdb-review-drawer_footer'),viewport,track,mainClose,filterPanel,filterPanel?.querySelector('[data-tdb-filter-scroll]'),filterPanel?.querySelector('.tdb-review-filter_heading')].filter(Boolean);
  const originalTrackHeight=track.style.height;
  let landscape=false,readingAnchor=null;
  const originalMarkTranslate=mark.style.translate;
@@ -72,14 +72,14 @@ function mount(root,data){
   const max=Math.max(0,readingPane.scrollHeight-readingPane.clientHeight);
   readingPane.scrollTop=Math.max(0,Math.min(max,readingAnchor.atFoot?max-readingAnchor.bottom:readingAnchor.top));
  }
- // The footer control remains in its native slot throughout. Only this
- // floating copy morphs and fades; there is no footer fade-in or DOM handoff.
+ // The review footer remains in its native slot. The cream action bar and
+ // its floating close stay together at the bottom, independent of list scroll.
  const floatingFilterButton=filterButton?.cloneNode(true);
  let floatingFilterIcon=null,filterHandoffRevision=0,filterHandoffAnimation=null;
  if(floatingFilterButton){
   floatingFilterButton.removeAttribute('id');floatingFilterButton.removeAttribute('data-tdb-filter-toggle');
   floatingFilterButton.querySelector('[data-tdb-filter-badge]')?.remove();
-  floatingFilterButton.classList.add('is-landscape-floating');
+  floatingFilterButton.classList.add('is-filter-floating');
   floatingFilterIcon=motion.filterToggle(floatingFilterButton);
   for(const type of ['click','keydown'])floatingFilterButton.addEventListener(type,event=>{
    if(type==='keydown'&&!['Enter',' '].includes(event.key))return;
@@ -90,14 +90,16 @@ function mount(root,data){
  function placeFilterClose(immediate=false){
   const token=++filterHandoffRevision;
   filterHandoffAnimation?.cancel();filterHandoffAnimation=null;
-  if(!floatingFilterButton)return;
-  const floating=landscape&&filterOpen&&!destroyed;
+  if(!floatingFilterButton||!filterActions)return;
+  const floating=filterOpen&&!destroyed;
   const remove=()=>{
-   if(floatingFilterButton.contains(document.activeElement))filterButton.focus({preventScroll:true});
-   floatingFilterButton.remove();mainClose.classList.remove('is-landscape-filter-open');
+   if(filterActions.contains(document.activeElement))filterButton.focus({preventScroll:true});
+   floatingFilterButton.remove();filterActions.classList.add('is-drawer-footer-closed');readingFooter.classList.remove('is-filter-covered');mainClose.classList.remove('is-landscape-filter-open');
   };
   if(floating){
-   if(floatingFilterButton.parentNode!==root)root.append(floatingFilterButton);
+   filterActions.classList.remove('is-drawer-footer-closed');filterActions.inert=false;
+   readingFooter.classList.add('is-filter-covered');
+   if(floatingFilterButton.parentNode!==filterActions)filterActions.append(floatingFilterButton);
    floatingFilterButton.inert=false;floatingFilterButton.removeAttribute('aria-hidden');
    for(const key of ['aria-label','aria-controls','aria-expanded']){const value=filterButton.getAttribute(key);if(value!==null)floatingFilterButton.setAttribute(key,value);}
    floatingFilterButton.classList.add('is-filter-open');
@@ -105,16 +107,18 @@ function mount(root,data){
    floatingFilterIcon.set(true,immediate);
    return;
   }
-  if(floatingFilterButton.parentNode!==root)return;
-  if(floatingFilterButton.contains(document.activeElement))filterButton.focus({preventScroll:true});
-  floatingFilterButton.inert=true;floatingFilterButton.setAttribute('aria-hidden','true');
+  if(floatingFilterButton.parentNode!==filterActions)return;
+  readingFooter.classList.remove('is-filter-covered');
+  if(filterActions.contains(document.activeElement))filterButton.focus({preventScroll:true});
+  filterActions.inert=true;floatingFilterButton.inert=true;floatingFilterButton.setAttribute('aria-hidden','true');
   floatingFilterButton.classList.remove('is-filter-open');floatingFilterIcon.set(false,immediate);
-  if(immediate||reduced.matches||destroyed||!landscape){remove();return;}
+  if(immediate||reduced.matches||destroyed){remove();return;}
   const morphs=[...floatingFilterButton.querySelectorAll('[data-tdb-filter-line]')].flatMap(line=>line.getAnimations());
   (async()=>{
    await Promise.all(morphs.map(animation=>animation.finished.catch(()=>{})));
    if(token!==filterHandoffRevision)return;
-   const animation=floatingFilterButton.animate([{opacity:1},{opacity:0}],{duration:motion.defaults.fadeIn,easing:'ease-out',fill:'both'});
+   readingFooter.classList.remove('is-filter-covered');
+   const animation=filterActions.animate([{opacity:1},{opacity:0}],{duration:motion.defaults.fadeIn,easing:'ease-out',fill:'both'});
    filterHandoffAnimation=animation;
    try{await animation.finished;}catch{return;}
    if(token!==filterHandoffRevision)return;
@@ -368,7 +372,7 @@ function mount(root,data){
  if(filterPanel){
   filter=window.TDBFilters.mount(filterPanel,{
    toggle:filterButton,backdrop:filterBackdrop,heading:filterPanel.querySelector('[data-tdb-filter-heading]'),badge:filterBadge,
-   escapeRoot:drawerRoot,blockedControls:[mainClose],inertTargets:[viewport],insideTargets:[floatingFilterButton].filter(Boolean),disclosures,
+   escapeRoot:drawerRoot,blockedControls:[mainClose],inertTargets:[viewport,readingFooter],insideTargets:[filterActions].filter(Boolean),disclosures,
    labels:{open:'Filter and sort reviews',close:'Close review filters'},
    onIntent:prepareFilters,beforeClose:commitFilterSelection,onChange:reflectFilterState,onDisclosureChange:updateFilterReset,
    onError:()=>updateFilterOptions('Could not load these reviews. Tap View reviews to retry.')
