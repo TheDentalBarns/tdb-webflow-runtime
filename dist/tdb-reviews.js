@@ -74,11 +74,10 @@ function mount(root,data){
  }
  // The filter footer is native content inside the sliding panel. Only the
  // floating control has separate motion: morph back, then fade over its origin.
- const floatingFilterButton=filterButton?.cloneNode(true);
+ const floatingFilterButton=filterButton?.cloneNode(true),floatingFilterBadge=floatingFilterButton?.querySelector('[data-tdb-filter-badge]');
  let floatingFilterIcon=null,filterHandoffRevision=0,filterHandoffAnimation=null;
  if(floatingFilterButton){
   floatingFilterButton.removeAttribute('id');floatingFilterButton.removeAttribute('data-tdb-filter-toggle');
-  floatingFilterButton.querySelector('[data-tdb-filter-badge]')?.remove();
   floatingFilterButton.classList.add('is-filter-floating');
   floatingFilterIcon=motion.filterToggle(floatingFilterButton);
   for(const type of ['click','keydown'])floatingFilterButton.addEventListener(type,event=>{
@@ -87,12 +86,21 @@ function mount(root,data){
    if(filterOpen)filter?.requestClose('toggle');
   },{signal,capture:true});
  }
+ function syncFloatingFilterCount(){
+  if(!floatingFilterButton)return;
+  if(floatingFilterBadge&&filterBadge){
+   floatingFilterBadge.textContent=filterBadge.textContent;
+   floatingFilterBadge.classList.toggle('is-empty',filterBadge.classList.contains('is-empty'));
+  }
+  floatingFilterButton.setAttribute('aria-label',filterButton.getAttribute('aria-label'));
+ }
  function placeFilterClose(immediate=false){
   const token=++filterHandoffRevision;
   if(!floatingFilterButton||!filterActions)return;
   filterHandoffAnimation?.cancel();
   filterHandoffAnimation=null;
   const floating=filterOpen&&!destroyed,duration=immediate||reduced.matches?0:motion.duration(innerWidth);
+  syncFloatingFilterCount();
   floatingFilterButton.classList.toggle('is-phone-landscape',landscape);
   readingFooter.classList.remove('is-filter-covered');
   const remove=()=>{
@@ -298,7 +306,7 @@ function mount(root,data){
   const count=matching().length;
   // Count selected filters, not matching reviews or the sort order.
   const selectedCount=selection.rating.length+selection.platform.length+selection.treatment.length+selection.experience.length;
-  filter?.setCount(selectedCount);
+  filter?.setCount(selectedCount);syncFloatingFilterCount();
   filterStatus.classList.toggle('is-error',!!message);
   if(filterOpen&&filterReady){updateTotal(count);ticker.update(count?'01':'00',-1);position.setAttribute('aria-label','Preview: '+count+' matching reviews');}
   filterStatus.textContent=message||(selectionBusy?'Loading matching reviews…':filterReady?(hasSelection()?count+' matching '+(count===1?'review':'reviews'):'All reviews'):'Preparing review filters…');
