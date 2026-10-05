@@ -29,7 +29,11 @@
     icon?.classList.toggle('is-vip-focused', document.activeElement === input);
   }
   if (native) {
-    drawer.querySelectorAll('input[type="checkbox"]').forEach(syncCheckbox);
+    const syncCheckboxes = () => drawer.querySelectorAll('input[type="checkbox"]').forEach(syncCheckbox);
+    syncCheckboxes();
+    // Native form reset and restored pages do not necessarily emit change.
+    drawer.addEventListener('reset', () => queueMicrotask(syncCheckboxes));
+    window.addEventListener('pageshow', syncCheckboxes);
     ['change', 'focusin', 'focusout'].forEach(type => drawer.addEventListener(type, event => {
       if (event.target.matches('input[type="checkbox"]')) {
         if (type === 'focusout') queueMicrotask(() => syncCheckbox(event.target));
