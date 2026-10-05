@@ -87,6 +87,13 @@ function mount(root,data){
   },{signal,capture:true});
  }
  function syncFloatingFilterCount(){
+  // Both native and floating controls share the same fetch state and artwork.
+  const loading=filterOpen&&selectionBusy&&!destroyed;
+  for(const button of [filterButton,floatingFilterButton]){
+   if(!button)continue;
+   if(loading){button.setAttribute('data-tdb-loading','true');button.setAttribute('aria-busy','true');}
+   else{button.removeAttribute('data-tdb-loading');button.removeAttribute('aria-busy');}
+  }
   if(!floatingFilterButton)return;
   if(floatingFilterBadge&&filterBadge){
    floatingFilterBadge.textContent=filterBadge.textContent;

@@ -33,7 +33,8 @@
   visibility: hidden;
 }
 
-/* Review opening gives immediate feedback, including a prepared drawer. */
-[data-tdb-review-trigger][data-tdb-loading='true'] [data-tdb-loading-indicator] {
+/* Review opening and filter preparation give immediate control feedback. */
+[data-tdb-review-trigger][data-tdb-loading='true'] [data-tdb-loading-indicator],
+.tdb-review-drawer_nav-button[data-tdb-loading='true'] [data-tdb-loading-indicator] {
   transition: none;
 }
