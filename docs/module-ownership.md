@@ -588,3 +588,12 @@ current global stylesheet. Do not rebuild unrelated legacy bundles during this p
 The native `/reviews` page uses `tdb-review-list-loader.js` and `tdb-review-list.js` for measured masonry, batches of 20 and URL filter state. It reuses the CMS parser/cache plus the shared filter, motion and ticker modules; it does not load Swiper. The Webflow CMS renders the first batch, featured excerpts and full review text before enhancement. Webflow also owns the existing blurred quote-card styling, white review bodies, responsive columns/gaps and controls.
 
 `tdb-review-availability.js` reads the same Banner Settings CMS feed used by the nurture pages. See [review-archive.md](review-archive.md) for ownership, gating, pagination, preset links and the deferred excerpt/context ranking boundary. The rollout is isolated to the new page; existing review component pins are unchanged.
+
+
+## Review drawer touch-start stability — 5 October, reviews 3.12.3
+
+The speech-mark SVG now stays in its native static layer for the full drawer lifecycle. Previously the first horizontal touch move reparented it out of the active card, then settlement moved it back. That changed the SVG/card rendering layers in the same frame as the initial transform and quote fade.
+
+Webflow still owns the speech-mark position, width, artwork, colour and responsive styling. The review adapter applies only the active reading pane's vertical offset on portrait scroll; the landscape reading pane moves the layer naturally. A single passive capture listener is removed on destroy. There is one SVG, no clone, no persistent animation loop and no extra module or stylesheet. Existing shared fade durations, arrow navigation, Swiper throw/settling behaviour, permission/proximity gates and CMS ordering remain as before.
+
+`tests/review-touch.browser.cjs` checks the native staged component with touch input: no SVG relocation during the first/cancelled/full swipe, aligned portrait/landscape reading offsets, arrow handoff, reduced motion and single-instance markup. Set `TDB_CHROMIUM` for the browser executable and optionally `TDB_REVIEW_SOURCE` to preview a local drawer module. Physical Android compositing should still be checked when reviewing the staging fix.
