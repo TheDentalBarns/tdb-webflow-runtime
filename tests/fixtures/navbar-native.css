@@ -1,0 +1,6 @@
+/* Test preview of the native Designer changes; never loaded by the website. */
+.tdb-desktop-nav-backdrop{position:fixed;top:0;right:0;bottom:0;left:0;z-index:2147483400;background-color:rgba(0,0,0,.5);opacity:0;visibility:hidden;pointer-events:none}
+@media(max-width:767px){
+.tdb-nav-bar-glass{position:absolute;top:0;right:0;bottom:0;left:0;z-index:1;pointer-events:none;background-color:transparent;backdrop-filter:none}
+.navbar10_component,.navbar10_component.w-variant-985dc2c9-931e-7935-b0d3-cfb27c742eeb,.navbar10_component.w-variant-62bcef08-fd31-e18b-ef36-118ec78fa87a{background-color:transparent;backdrop-filter:none}
+}

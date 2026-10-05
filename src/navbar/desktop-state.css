@@ -1,0 +1,17 @@
+/* Runtime locking and reveal rules; backdrop appearance is native Webflow. */
+@media(min-width:992px){
+    html.tdb-desktop-nav-locked{overflow:hidden!important;overscroll-behavior:none}
+    html.tdb-desktop-nav-locked .navbar10_component{transform:translateY(0)!important}
+    .navbar10_component .w-dropdown-list[data-tdb-desktop-panel]{display:block!important;opacity:1!important;overflow:hidden;animation:none!important;transition:none!important}
+    .navbar10_component .w-dropdown-list[data-tdb-desktop-panel]>.navbar10_container{max-height:calc(100dvh - var(--tdb-desktop-nav-height,5rem));overflow-y:auto;overscroll-behavior:contain;animation:none!important;transition:none!important}
+    .navbar10_component .w-dropdown-list[data-tdb-desktop-panel]>.navbar10_container:focus{outline:none!important}
+    .navbar10_component .w-dropdown-list[data-tdb-desktop-panel] :is(a,button,[role=button]):focus-visible{outline:1px solid #d6cab4!important;outline-offset:3px}
+    .navbar10_component .w-dropdown-list[data-tdb-desktop-panel] :is(.navbar10_dropdown-content-left,.navbar10_dropdown-content-right){animation:none!important;transition:none!important}
+  }
+
+    .tdb-desktop-nav-backdrop{transition:opacity var(--tdb-nav-detail-duration,420ms) ease,visibility 0s var(--tdb-nav-detail-duration,420ms)}
+    @media(min-width:992px){
+      html.tdb-desktop-nav-locked .navbar10_component{z-index:2147483401!important}
+      html.tdb-desktop-nav-locked .tdb-desktop-nav-backdrop{visibility:visible;pointer-events:auto;transition-delay:0s}
+      .tdb-desktop-nav-backdrop.is-open{opacity:1}
+    }

@@ -597,3 +597,9 @@ The speech-mark SVG now stays in its native static layer for the full drawer lif
 Webflow still owns the speech-mark position, width, artwork, colour and responsive styling. The review adapter applies only the active reading pane's vertical offset on portrait scroll; the landscape reading pane moves the layer naturally. A single passive capture listener is removed on destroy. There is one SVG, no clone, no persistent animation loop and no extra module or stylesheet. Existing shared fade durations, arrow navigation, Swiper throw/settling behaviour, permission/proximity gates and CMS ordering remain as before.
 
 `tests/review-touch.browser.cjs` checks the native staged component with touch input: no SVG relocation during the first/cancelled/full swipe, aligned portrait/landscape reading offsets, arrow handoff, reduced motion and single-instance markup. Set `TDB_CHROMIUM` for the browser executable and optionally `TDB_REVIEW_SOURCE` to preview a local drawer module. Physical Android compositing should still be checked when reviewing the staging fix.
+
+## Essential navigation — 5 October 2026
+
+`tdb-navbar.min.js` v1.2.0 consolidates the deployed nav controller, height-aware clock, mobile clear-cycle helper, desktop lifecycle and animation/state CSS. It is an early deferred, component-presence-only module: navigation never waits for CookieScript, consent or viewport proximity. The desktop enhancer mounts at 992px; the original 767px transparent-mobile behaviour remains unchanged.
+
+Webflow owns `Navbar New`, its existing variants/props/links/imagery, native menu controls, layout, first-frame background and decorative glass/backdrop structure. GitHub owns the custom scroll/animation state, including runtime clipping and scroll locks. The existing 10ms/100ms Home entrance fade remains page-owned and unchanged. No new stylesheet download is added. See [the detailed map and deployment pairing](navigation-cleanup-2026-10-05.md).

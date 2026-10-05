@@ -1,3 +1,5 @@
+> Historical extraction notes. Superseded by [the October 2026 navigation ownership and build](navigation-cleanup-2026-10-05.md). Do not reinstate these standalone loads.
+
 # Mobile navbar CSS extraction
 
 This pass moves the two dedicated mobile navbar interaction/style blocks from Webflow global head custom code into `src/styles/tdb-mobile-navbar.css`.

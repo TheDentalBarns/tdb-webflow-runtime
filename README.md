@@ -11,7 +11,7 @@ Production JavaScript and CSS runtime for The Dental Barns Webflow website.
 - Experimental branches are not production dependencies.
 - Staging changes are published to the Webflow subdomain first and promoted to custom domains only after sign-off.
 
-## Current production manifest
+## Historical production manifest
 
 Production custom domains remain on the last approved production publish. Core pinned assets include:
 
@@ -26,7 +26,7 @@ Production custom domains remain on the last approved production publish. Core p
 
 The immediate runtime loads CookieScript `3.0.0` from its own immutable repository commit.
 
-## Current staging additions
+## Historical staging additions
 
 The Webflow subdomain currently tests the consolidated Home/Location parallax slider cleanup:
 
@@ -71,3 +71,7 @@ read the actual Webflow pins to determine the deployed release.
 ## Rollback
 
 Rollback is performed by restoring the previous immutable SHA in Webflow and republishing. No Git branch movement is required.
+
+## Navigation cleanup — 5 October 2026
+
+See [navigation ownership, build and staging verification](docs/navigation-cleanup-2026-10-05.md). The essential `tdb-navbar.min.js` owns its complete lifecycle; it no longer depends on a footer helper or an inline nav CSS patch block. Static layout and decorative layers remain native Webflow.

@@ -1,3 +1,5 @@
+> Historical extraction notes. Superseded by [the October 2026 navigation ownership and build](navigation-cleanup-2026-10-05.md). Do not reinstate these standalone loads.
+
 # Navbar bootstrap JavaScript extraction
 
 This pass combines the two small navbar bootstrap scripts from the Webflow global head into one external runtime file.

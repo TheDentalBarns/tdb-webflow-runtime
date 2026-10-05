@@ -1,3 +1,5 @@
+> Historical extraction notes. Superseded by [the October 2026 navigation ownership and build](navigation-cleanup-2026-10-05.md). Do not reinstate these standalone loads.
+
 # Navbar clear-cycle JavaScript extraction
 
 This pass moves the final small navbar clear-cycle helper from the Webflow global footer into a dedicated external runtime.

@@ -1,12 +1,15 @@
-name: Build runtime artifacts
+name: Build navigation and footer runtime
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
+      - 'src/navbar/**'
+      - 'src/banner/announcement.js'
+      - 'src/vip-drawer/vip-focus.js'
+      - 'src/runtime/deferred-ui.js'
       - 'src/runtime/site-asset-loader.js'
-      - 'src/runtime/immediate-runtime-batch.js'
+      - 'tools/runtime-build/**'
       - '.github/workflows/build-runtime.yml'
   workflow_dispatch:
 
@@ -16,37 +19,28 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           ref: main
-
-      - name: Set up Node
-        uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '24'
-
-      - name: Build minified runtimes
-        run: |
-          npx --yes terser@5 src/runtime/site-asset-loader.js --compress --mangle --output dist/tdb-footer-runtime.min.js
-          npx --yes terser@5 src/runtime/immediate-runtime-batch.js --compress --mangle --output dist/tdb-immediate-runtime-batch.min.js
-
+      - name: Install pinned compiler
+        run: npm ci --prefix tools/runtime-build --ignore-scripts --no-audit --no-fund
+      - name: Build canonical navigation and footer sources
+        run: node tools/runtime-build/build.cjs
       - name: Validate artifacts
         run: |
-          test -s dist/tdb-footer-runtime.min.js
-          test -s dist/tdb-immediate-runtime-batch.min.js
-
+          node --check dist/tdb-navbar.min.js
+          node --check dist/tdb-footer-runtime.min.js
       - name: Commit generated artifacts
         run: |
-          if [ -z "$(git status --porcelain -- dist/tdb-footer-runtime.min.js dist/tdb-immediate-runtime-batch.min.js)" ]; then
-            echo 'Generated runtime files are already current.'
+          if [ -z "$(git status --porcelain -- dist/tdb-navbar.min.js dist/tdb-footer-runtime.min.js)" ]; then
             exit 0
           fi
-
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add dist/tdb-footer-runtime.min.js dist/tdb-immediate-runtime-batch.min.js
-          git commit -m 'Build runtime artifacts'
+          git add dist/tdb-navbar.min.js dist/tdb-footer-runtime.min.js
+          git commit -m 'Build navigation and footer runtime'
           git push origin HEAD:main
