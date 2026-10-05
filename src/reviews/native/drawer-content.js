@@ -72,10 +72,10 @@ function mount(root,data){
   const max=Math.max(0,readingPane.scrollHeight-readingPane.clientHeight);
   readingPane.scrollTop=Math.max(0,Math.min(max,readingAnchor.atFoot?max-readingAnchor.bottom:readingAnchor.top));
  }
- // The filter control floats in place as soon as it opens. The cream bar
- // slides independently; on close the floating copy morphs back and fades.
+ // The filter footer is native content inside the sliding panel. Only the
+ // floating control has separate motion: morph back, then fade over its origin.
  const floatingFilterButton=filterButton?.cloneNode(true);
- let floatingFilterIcon=null,filterHandoffRevision=0,filterHandoffAnimation=null,filterBarAnimation=null;
+ let floatingFilterIcon=null,filterHandoffRevision=0,filterHandoffAnimation=null;
  if(floatingFilterButton){
   floatingFilterButton.removeAttribute('id');floatingFilterButton.removeAttribute('data-tdb-filter-toggle');
   floatingFilterButton.querySelector('[data-tdb-filter-badge]')?.remove();
@@ -90,47 +90,34 @@ function mount(root,data){
  function placeFilterClose(immediate=false){
   const token=++filterHandoffRevision;
   if(!floatingFilterButton||!filterActions)return;
-  const barFrom=filterBarAnimation?getComputedStyle(filterActions).transform:null;
-  filterHandoffAnimation?.cancel();filterBarAnimation?.cancel();
-  filterHandoffAnimation=filterBarAnimation=null;
+  filterHandoffAnimation?.cancel();
+  filterHandoffAnimation=null;
   const floating=filterOpen&&!destroyed,duration=immediate||reduced.matches?0:motion.duration(innerWidth);
   floatingFilterButton.classList.toggle('is-phone-landscape',landscape);
   readingFooter.classList.remove('is-filter-covered');
   const remove=()=>{
    if(floatingFilterButton.contains(document.activeElement)||filterActions.contains(document.activeElement))filterButton.focus({preventScroll:true});
    floatingFilterButton.remove();floatingFilterButton.style.transform='';
-   filterActions.classList.add('is-drawer-footer-closed');mainClose.classList.remove('is-landscape-filter-open');
-  };
-  const moveBar=value=>{
-   if(!duration){if(!value)filterActions.classList.add('is-drawer-footer-closed');return;}
-   const animation=filterActions.animate([{transform:barFrom||(value?'translateY(100%)':'translateY(0)')},{transform:value?'translateY(0)':'translateY(100%)'}],{duration,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});
-   filterBarAnimation=animation;
-   animation.finished.then(()=>{
-    if(token!==filterHandoffRevision)return;
-    if(!value)filterActions.classList.add('is-drawer-footer-closed');
-    animation.cancel();filterBarAnimation=null;
-   }).catch(()=>{});
+   mainClose.classList.remove('is-landscape-filter-open');
   };
   if(floating){
    const entering=floatingFilterButton.parentNode!==root;
-   filterActions.classList.remove('is-drawer-footer-closed');filterActions.inert=false;
    if(entering)root.append(floatingFilterButton);
    floatingFilterButton.inert=false;floatingFilterButton.removeAttribute('aria-hidden');
    for(const key of ['aria-label','aria-controls','aria-expanded']){const value=filterButton.getAttribute(key);if(value!==null)floatingFilterButton.setAttribute(key,value);}
    floatingFilterButton.classList.add('is-filter-open');mainClose.classList.add('is-landscape-filter-open');
-   floatingFilterIcon.set(true,immediate);moveBar(true);
+   floatingFilterIcon.set(true,immediate);
    floatingFilterButton.style.transform='';
    return;
   }
-  if(floatingFilterButton.parentNode!==root){filterActions.classList.add('is-drawer-footer-closed');return;}
+  if(floatingFilterButton.parentNode!==root)return;
   if(floatingFilterButton.contains(document.activeElement)||filterActions.contains(document.activeElement))filterButton.focus({preventScroll:true});
-  filterActions.inert=true;floatingFilterButton.inert=true;floatingFilterButton.setAttribute('aria-hidden','true');
+  floatingFilterButton.inert=true;floatingFilterButton.setAttribute('aria-hidden','true');
   floatingFilterButton.classList.remove('is-filter-open');floatingFilterIcon.set(false,immediate);
   if(!duration||destroyed){remove();return;}
-  moveBar(false);
   const morphs=[...floatingFilterButton.querySelectorAll('[data-tdb-filter-line]')].flatMap(line=>line.getAnimations());
   (async()=>{
-   await Promise.all([...morphs,filterBarAnimation].filter(Boolean).map(animation=>animation.finished.catch(()=>{})));
+   await Promise.all([...morphs,...filterPanel.getAnimations()].map(animation=>animation.finished.catch(()=>{})));
    if(token!==filterHandoffRevision)return;
    const animation=floatingFilterButton.animate([{opacity:1},{opacity:0}],{duration:motion.defaults.fadeIn,easing:'ease-out',fill:'both'});
    filterHandoffAnimation=animation;
@@ -386,7 +373,7 @@ function mount(root,data){
  if(filterPanel){
   filter=window.TDBFilters.mount(filterPanel,{
    toggle:filterButton,backdrop:filterBackdrop,heading:filterPanel.querySelector('[data-tdb-filter-heading]'),badge:filterBadge,
-   escapeRoot:drawerRoot,blockedControls:[mainClose],inertTargets:[viewport,readingFooter],insideTargets:[filterActions,floatingFilterButton].filter(Boolean),disclosures,
+   escapeRoot:drawerRoot,blockedControls:[mainClose],inertTargets:[viewport,readingFooter],insideTargets:[floatingFilterButton].filter(Boolean),disclosures,
    labels:{open:'Filter and sort reviews',close:'Close review filters'},
    onIntent:prepareFilters,beforeClose:commitFilterSelection,onChange:reflectFilterState,onDisclosureChange:updateFilterReset,
    onError:()=>updateFilterOptions('Could not load these reviews. Tap View reviews to retry.')
