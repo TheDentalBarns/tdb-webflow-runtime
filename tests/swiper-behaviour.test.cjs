@@ -1,6 +1,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),path=require('path');
 const window={},microtasks=[],context={window,queueMicrotask:fn=>microtasks.push(fn),getComputedStyle:n=>({transform:n.paint})};
-vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../src/sliders/swiper-behaviour.js'),'utf8'),context);
+const read = name => fs.readFileSync(path.join(__dirname,'../src/sliders/',name),'utf8');
+vm.runInNewContext(read('swiper-behaviour.js').replace('/* TDB_SWIPER_PLUGINS */',read('swiper-duration.js')+'\n'+read('swiper-plugins.js')),context);
 function fixture(){const events={},log=[];function slide(key,x,paint){const child={paint,style:{}};return{child,getAttribute:()=>key,getBoundingClientRect:()=>({left:x}),querySelectorAll:()=>[child]}}const s={params:{speed:700,loop:true,slidesPerGroup:1,loopPreventsSlide:false},activeIndex:1,animating:true,enabled:true,slides:[slide('0',-100,'matrix-old'),slide('1',0,'matrix-live'),slide('1',100,'matrix-clone')],wrapperEl:{paint:'matrix-wrapper',style:{},offsetWidth:100},isHorizontal:()=>true,on:(e,f)=>events[e]=f,getTranslate:()=>-100,setTranslate:x=>log.push(['translate',x]),slideTo:function(...args){log.push(['slideTo',...args]);return 'slide-result'},loopFix:function(){this.activeIndex=2;return 'loop-result'},slidePrev:function(...args){log.push(['original-prev',...args]);return 'prev-result'}};return{s,events,log}}
 {
  const {s,events,log}=fixture(),original={slideTo:s.slideTo,loopFix:s.loopFix,slidePrev:s.slidePrev};window.TDBSwiper.bindSwiper(s);const wrapper=s.slideTo;window.TDBSwiper.bindSwiper(s);assert.equal(s.slideTo,wrapper);
@@ -24,4 +25,3 @@ function fixture(){const events={},log=[];function slide(key,x,paint){const chil
 console.log('PASS: touch release easing, unchanged snap target/speed, parallax timing, loop corrections, cancellation, programmatic interruption and teardown.');
 vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../dist/tdb-motion.js'),'utf8'),context);assert.equal(window.TDBMotion.defaults.ddStartup,250);const {s}=fixture();window.TDBMotion.bindSwiper(s);assert.notEqual(s.slideTo.name,'slideTo');
 console.log('PASS: interrupted movement capture, loop continuity, previous/disabled branches, idempotent binding, method restoration and legacy delegation.');
-

@@ -1,0 +1,149 @@
+/* CMS banners: measured service-parallax layout, independently scoped. */
+.tdb-banner-parallax.has-static-parallax-cta > .swiper:not(.swiper-initialized) > .swiper-wrapper {
+  transform:translate3d(calc(var(--tdb-parallax-initial-index,0) * -100%),0,0);
+}
+.tdb-banner-parallax.parallax-swiper_component {
+  position:relative;width:100vw;max-width:none;left:50%;margin-left:-50vw;margin-right:0;
+  height:85vh;min-height:25rem;color:#fff;
+}
+.tdb-banner-parallax > .swiper {position:relative;width:100%;height:100%;overflow:hidden;}
+.tdb-banner-parallax > .swiper > .swiper-wrapper {display:flex;width:100%;height:100%;}
+.tdb-banner-parallax .swiper-slide.is-showcase {flex:none;width:100%;height:100%;margin-right:0;opacity:1!important;}
+.tdb-banner-parallax .showcase_card {position:relative;width:100%;height:100%;overflow:hidden;}
+.tdb-banner-parallax .showcase_image {
+  position:absolute;inset:0;width:140%;max-width:none;height:100%;margin-left:-20%;margin-right:-10%;object-fit:cover;
+}
+.tdb-banner-parallax .image-overlay-layer.is-showcase-card {
+  position:absolute;inset:0;z-index:1;width:100%;height:100%;pointer-events:none;
+  background:radial-gradient(circle,transparent,rgba(0,0,0,.6));
+}
+.tdb-banner-parallax .showcase-card_content.text-color-alternate {
+  position:relative;z-index:15;display:flex;flex-flow:column;justify-content:space-between;
+  width:100%;height:100%;padding:2rem;color:#fff;pointer-events:none;
+}
+.tdb-banner-parallax .service-card-mobile-copy {max-width:22rem;margin:0;}
+.tdb-banner-parallax .service-card-mobile-copy p {font-size:1.125rem;line-height:1.5;opacity:.75;margin:0;}
+.tdb-banner-parallax .showcase-content_btm {display:flex;justify-content:space-between;align-items:center;gap:2rem;}
+.tdb-banner-parallax .service-card-mobile-title {max-width:calc(100% - 16rem);margin:0;font-size:1.5rem;font-weight:300;line-height:1.3;letter-spacing:.1rem;text-transform:uppercase;}
+.tdb-banner-parallax .service-card-button-wrap {min-height:2.75rem;}
+.tdb-banner-parallax [data-fade-slide] {opacity:0;transition:opacity 200ms ease-out;}
+.tdb-banner-parallax [data-fade-slide].is-visible {opacity:1;transition:opacity 400ms ease-in;}
+.tdb-banner-parallax.is-moving [data-fade-slide] {opacity:0!important;transition:opacity 150ms ease-out!important;}
+.tdb-banner-parallax.tdb-entry-pending [data-fade-slide] {opacity:0!important;}
+.tdb-banner-parallax > .swiper_functions-btm.hide {
+  position:absolute;inset:auto 0 auto 0;top:50%;transform:translateY(-50%);z-index:30;
+  display:flex!important;width:100%;padding:0 3vw;pointer-events:none;box-sizing:border-box;
+}
+.tdb-banner-parallax > .swiper_functions-btm .swiper-pagination,.tdb-banner-parallax > .swiper_functions-btm .swiper-count {display:none!important;}
+.tdb-banner-parallax > .swiper_functions-btm .swiper-buttons-wrapper {display:flex;align-items:center;justify-content:space-between;width:100%;gap:0;}
+.tdb-banner-parallax > .swiper_functions-btm .slider-arrow {
+  display:flex!important;align-items:center;justify-content:center;flex:0 0 3rem;width:3rem;height:3rem;padding:0;
+  border:1px solid #fff;border-radius:100%;color:#fff;background:rgba(0,0,0,.38);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);pointer-events:auto;
+  transition:background-color 300ms ease,color 300ms ease,border-color 300ms ease;
+}
+.tdb-banner-parallax > .swiper_functions-btm .slider-arrow.is-selected {background:rgba(255,255,255,.2);}
+.tdb-banner-parallax > .swiper_functions-btm .slider-arrow.swiper-button-lock {display:none!important;}
+.tdb-banner-parallax > .swiper_functions-btm .slider-arrow-icon {width:1rem;height:1rem;display:flex;align-items:center;justify-content:center;}
+.tdb-banner-parallax > .tdb-parallax-cta-layer,.tdb-banner-parallax > .tdb-parallax-cta-layer.is-location {
+  position:absolute;inset:0;z-index:20;display:flex;align-items:flex-end;justify-content:flex-end;padding:2rem;pointer-events:none;
+}
+.tdb-banner-parallax [data-tdb-parallax-cta].button.is-secondary {
+  display:flex;align-items:center;gap:.75rem;padding:.55rem 1.2rem;border:1px solid #fff;
+  border-radius:.3125rem;font-size:1rem;font-weight:400;line-height:1.5;letter-spacing:normal;
+  color:#fff;background:rgba(0,0,0,.3);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  opacity:1;visibility:visible;pointer-events:auto;text-transform:none;
+  transition:background-color 300ms ease,color 300ms ease,border-color 300ms ease;
+}
+.tdb-banner-parallax [data-tdb-parallax-cta][hidden] {display:none!important;}
+.tdb-banner-parallax [data-tdb-parallax-cta] .icon-embed-xxsmall {width:1rem;height:1rem;}
+.tdb-banner-parallax [data-tdb-parallax-cta].button.is-secondary.is-touch-held {color:#000;background:#fff;transition-duration:0s;}
+.tdb-banner-parallax :is(.slider-arrow,[data-tdb-parallax-cta]):focus-visible {outline:2px solid currentColor;outline-offset:4px;}
+@media (hover:hover) and (pointer:fine) {
+  .tdb-banner-parallax [data-tdb-parallax-cta].button.is-secondary:not(.is-touch-input):not([aria-disabled="true"]):hover {color:#000;background:#fff;}
+}
+@media (min-width:1920px) {
+  .tdb-banner-parallax .showcase_image {width:180%;margin-left:-40%;}
+}
+@media (max-width:767px) {
+  .tdb-banner-parallax.parallax-swiper_component {height:75vh;min-height:25rem;}
+  .tdb-banner-parallax .showcase-card_content.text-color-alternate {justify-content:flex-start;align-items:flex-start;padding:2rem 2rem 2.5rem;}
+  .tdb-banner-parallax .service-card-mobile-title {order:1;max-width:none;width:100%;}
+  .tdb-banner-parallax .service-card-mobile-copy {order:2;max-width:none;margin-top:.75rem;}
+  .tdb-banner-parallax .showcase-content_btm {display:contents;}
+  .tdb-banner-parallax .service-card-button-wrap {order:3;margin-top:auto;}
+  .tdb-banner-parallax > .swiper_functions-btm.hide {
+    top:auto;left:auto;right:2rem;bottom:2.5rem;width:auto;padding:0;transform:none;
+  }
+  .tdb-banner-parallax > .swiper_functions-btm .swiper-buttons-wrapper {width:auto;gap:.75rem;}
+  .tdb-banner-parallax > .tdb-parallax-cta-layer,.tdb-banner-parallax > .tdb-parallax-cta-layer.is-location {justify-content:flex-start;padding-bottom:2.5rem;}
+  .tdb-banner-parallax [data-tdb-parallax-cta].button.is-secondary {max-width:calc(100% - 7.5rem);}
+}
+@media (prefers-reduced-motion:reduce) {
+  .tdb-banner-parallax [data-fade-slide],.tdb-banner-parallax.is-moving [data-fade-slide] {transition:none!important;}
+}
+
+/* Desktop spacing remains independent of the shared blur effect. */
+@media (min-width:992px) {
+  /* Same gap as the site's three-photo grid; Swiper owns the actual spacing. */
+  .parallax-swiper_component:not(.tdb-service-parallax) {column-gap:2rem}
+  .parallax-swiper_component:not(.tdb-service-parallax) .swiper-slide.is-showcase {
+    opacity:1!important;padding-inline:0;box-sizing:border-box;
+  }
+}
+
+/* Parallax neighbours on every screen: contained blur, sharp card edges. */
+.parallax-swiper_component:not(.tdb-service-parallax) .swiper-slide.is-showcase .showcase_card {
+  overflow:hidden;isolation:isolate;
+}
+.parallax-swiper_component:not(.tdb-service-parallax) .swiper-slide.is-showcase .showcase_card::after {
+  content:"";position:absolute;inset:0;z-index:25;pointer-events:none;
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  transition:backdrop-filter var(--tdb-parallax-duration,400ms) ease,-webkit-backdrop-filter var(--tdb-parallax-duration,400ms) ease;
+}
+.parallax-swiper_component:not(.tdb-service-parallax) .swiper-slide.is-showcase:is(.swiper-slide-active,.swiper-slide-duplicate-active) .showcase_card::after {
+  -webkit-backdrop-filter:blur(0);backdrop-filter:blur(0);
+}
+
+/* Treatment/technology/partner banners: two grid columns in focus, one outside.
+   Native service and Location image parallax components are not converted CMS
+   banners and deliberately retain their existing desktop geometry. */
+@media (min-width:992px) {
+  .tdb-banner-parallax.parallax-swiper_component {
+    --tdb-banner-grid: min(94vw,90rem);
+    --tdb-banner-single: calc((var(--tdb-banner-grid) - 4rem) / 3);
+    --tdb-banner-double: calc(2 * var(--tdb-banner-single) + 2rem);
+    width:var(--tdb-banner-grid)!important;max-width:none!important;
+    left:50%!important;margin-left:calc(var(--tdb-banner-grid) / -2)!important;margin-right:0!important;
+  }
+  .tdb-banner-parallax.parallax-swiper_component > .swiper {width:100%;overflow:visible}
+  .tdb-banner-parallax.parallax-swiper_component > .swiper > .swiper-wrapper > .swiper-slide.is-showcase {width:var(--tdb-banner-single)}
+  .tdb-banner-parallax.parallax-swiper_component > .swiper > .swiper-wrapper > .swiper-slide.is-showcase[data-tdb-banner-wide],
+  .tdb-banner-parallax.parallax-swiper_component > .swiper:not(.swiper-initialized) > .swiper-wrapper > .swiper-slide.is-showcase:first-child {width:var(--tdb-banner-double)}
+  .tdb-banner-parallax.parallax-swiper_component > .tdb-parallax-cta-layer {left:0;right:auto;width:var(--tdb-banner-double)}
+  /* Keep the focused image scale throughout expansion; the card alone crops it.
+     Centre the crop without competing with Swiper's parallax transform. */
+  .tdb-banner-parallax.parallax-swiper_component .showcase_image {
+    width:calc(var(--tdb-banner-double) * 1.4);left:50%;right:auto;
+    margin-left:calc(var(--tdb-banner-double) * -.7);margin-right:0;
+  }
+  /* Titles use one fixed grid column in both card sizes, above the image blur. */
+  .tdb-banner-parallax .showcase-card_content.text-color-alternate {z-index:26}
+  .tdb-banner-parallax .showcase-content_btm {display:contents}
+  .tdb-banner-parallax .service-card-mobile-title[data-fade-slide] {
+    position:absolute;top:2rem;left:2rem;
+    width:calc(var(--tdb-banner-single) - 4rem);max-width:calc(var(--tdb-banner-single) - 4rem);
+    opacity:1!important;transform:none!important;transition:none!important;animation:none!important;
+  }
+  .tdb-banner-parallax .service-card-mobile-copy {
+    position:absolute;left:2rem;bottom:2rem;
+    width:calc(var(--tdb-banner-single) - 4rem);max-width:22rem;
+  }
+  .tdb-banner-parallax .service-card-button-wrap {position:absolute;right:2rem;bottom:2rem}
+}
+@media (min-width:1920px) {
+  .tdb-banner-parallax.parallax-swiper_component .showcase_image {
+    width:calc(var(--tdb-banner-double) * 1.8);
+    margin-left:calc(var(--tdb-banner-double) * -.9);
+  }
+}

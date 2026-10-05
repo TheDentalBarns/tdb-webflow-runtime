@@ -22,7 +22,9 @@ await build({
     'process.env.NODE_ENV': '"production"',
   },
   // Ship the shared TDB adapter in the same request as the engine.
-  footer: { js: await readFile(resolve(here, '../../src/sliders/swiper-behaviour.js'), 'utf8') },
+  footer: { js: (await readFile(resolve(here, '../../src/sliders/swiper-behaviour.js'), 'utf8')).replace('/* TDB_SWIPER_PLUGINS */',
+    (await readFile(resolve(here, '../../src/sliders/swiper-duration.js'), 'utf8')) + '\n' +
+    (await readFile(resolve(here, '../../src/sliders/swiper-plugins.js'), 'utf8'))) },
   banner: {
     js: '/*! TDB custom Swiper 8.4.7-tdb.2 | CVE-2026-27212 backport | Core + A11y, Autoplay, Keyboard, Navigation, Pagination, Parallax | Swiper MIT License */',
   },

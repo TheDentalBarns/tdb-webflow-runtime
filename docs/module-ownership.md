@@ -8,10 +8,14 @@ colour, spacing, responsive styles and control appearance. GitHub owns behaviour
 
 | Published artifact | Responsibility | Does not own |
 | --- | --- | --- |
-| `tdb-modules.js` | Resolve shared release URLs, cache one request/promise per URL, retry failed downloads. The review-loader pin, or otherwise the marquee-loader pin, is the common release for motion, filters, drawers, tickers and custom Swiper. | Consent decisions, component mounting, viewport playback |
-| `tdb-motion.js` | Shared duration policy; DD text opacity; general fades; timing defaults consumed by drawers, tickers and review components. | Swiper engine or interruption implementation, fetching, CMS content, layout |
-| `tdb-swiper-8.4.7.min.js` | Existing custom Swiper engine plus `TDBSwiper.bindSwiper`: interruption continuity, loop handoffs, parallax continuity and a decelerating touch-release curve. The adapter ships in the SAME download. | Page discovery, consent, review content, component styles |
-| `tdb-sliders.js` | Existing highlight/parallax carousel setup, controls, entry behaviour and slider focus. This is still a legacy combined component bundle pending component-by-component migration. | DD text implementation or a second Swiper engine |
+| `tdb-modules.js` | One request/promise per canonical URL, retry after failure. Its own release pins the carousel engine, motion and feature plugins. Filters/drawers/tickers retain the review-loader or marquee-loader release. | Consent decisions, component mounting, viewport playback |
+| `tdb-motion.js` | Shared width-aware duration, carousel reveal/entry timings, DD text opacity, general fades and drawer/ticker timing defaults. | Swiper engine, fetching, CMS content, layout |
+| `tdb-swiper-8.4.7.min.js` | One existing custom Swiper engine, `TDBSwiper.create/register/mount/refresh`, width-duration binding, interruption continuity, loop/parallax handoffs and touch-release easing. The controller ships in the same download. | Page discovery, consent, review content, component styles |
+| `tdb-parallax.js` | Parallax plugin: Swiper configuration, opening sequence, copy choreography, banner auto-width and selected-arrow state. Uses early `TDBParallax` preparation/presentation. | Engine, duration policy, native styling |
+| `tdb-gallery.js` | Highlight/Smile Gallery carousel plugin: first-view advance, loop clone interaction, count, breakpoints and navigation. | Full Smile Gallery page filtering/overlay, engine, native styling |
+| `tdb-slider-focus.js` | Shared slider focus, navigation hiding and pointer/keyboard handoff; also supports native Webflow sliders without loading Swiper. | Carousel setup or engine |
+| `tdb-sliders.js` | Small legacy API facade; the current loader does not download it. | Feature setup, focus, engine |
+| `src/sliders/parallax.js` (inside `tdb-immediate-runtime-batch.min.js`) | Shared parallax preparation, treatment/technology card conversion, stationary CMS CTA state, native service state classes and service/treatment progress. Initialisation stays in the immediate runtime. | CMS ordering, an injected service stylesheet, Swiper engine or shared duration policy |
 | `tdb-drawer.js` | Shared native drawer shell: opening/closing, focus, scroll locking, lifecycle and cleanup. | Review cards, CMS selection, drawer styling |
 | `tdb-filters.js` | Reusable filter panel, backdrop fade, accordion reveal, badge display, focus/control states, protected outside gestures, asynchronous apply-on-close and cleanup. | CMS, filter matching/sorting, result fetching, Swiper, visual CSS |
 | `tdb-ticker.js` | Animate values using native Webflow ticker templates; settle interruptions and reduced motion. Reads the shared ticker duration. | Source values, aggregate calculations, text/slot dimensions |
@@ -22,6 +26,13 @@ colour, spacing, responsive styles and control appearance. GitHub owns behaviour
 | `tdb-review-cards.js` | Native review-card carousel, pagination and quote choreography. | Duplicated engine, native card artwork or sizing |
 | `tdb-reviews.js` | Review adapter: CMS matching/sorting, draft/committed selection, cached result batches, counts (including the filter action's shared ticker), full-review slider, pagination and quote choreography. | Shared drawer/filter interaction mechanics or styling |
 | `tdb-review-legacy-loader.js` | Keep earlier review patches available to components awaiting migration. | New native components |
+
+Progress v1.0.1 caches slide membership/index metadata and track width while
+continuing to sample rendered slide geometry throughout every visible frame.
+The Review Drawer filter's portrait content scroll is a native Designer body
+wrapper, with header/footer outside that scrolling body. Existing phone-landscape
+classes restore the full panel flow through native flex sizing. Details and
+rollback are in `docs/service-parallax-cleanup-2026-10-05.md`.
 
 `tdb-logo-marquee.js` and its loader remain separate: the partner marquee does not
 use Swiper. General timing settings are consumed where appropriate; a change to

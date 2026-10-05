@@ -3,7 +3,7 @@
 'use strict';if(window.TDBFilters)return;
 const instances=new WeakMap();let sequence=0;
 function mount(panel,{toggle,backdrop=null,heading=null,badge=null,escapeRoot=panel,
- blockedControls=[],inertTargets=[],disclosures=[],onIntent,beforeClose,onChange,onError,onDisclosureChange,
+ blockedControls=[],inertTargets=[],insideTargets=[],disclosures=[],onIntent,beforeClose,onChange,onError,onDisclosureChange,
  labels={open:'Open filters',close:'Close filters'},classes={}}={}){
  if(instances.has(panel))return instances.get(panel);
  if(!panel||!toggle)throw Error('Native filter panel and toggle required');
@@ -47,7 +47,7 @@ function mount(panel,{toggle,backdrop=null,heading=null,badge=null,escapeRoot=pa
   panel.setAttribute('aria-hidden',String(!open));panel.inert=!open;block(open);
   if(open){panel.classList.remove(names.closed);backdrop?.classList.remove(names.closed);heading?.focus({preventScroll:true});}
   else if(panel.contains(document.activeElement))toggle.focus({preventScroll:true});
-  paint(open,immediate);onChange?.(open);
+  paint(open,immediate);onChange?.(open,immediate);
  }
  async function requestClose(reason='close'){
   if(destroyed||!open)return false;if(closeFlight)return closeFlight.promise;
@@ -64,7 +64,7 @@ function mount(panel,{toggle,backdrop=null,heading=null,badge=null,escapeRoot=pa
  for(const event of ['pointerenter','focus','pointerdown'])toggle.addEventListener(event,()=>onIntent?.(),{signal,passive:true});
  // Consume the whole outside gesture, including the click arriving after closure.
  let outsidePointer=null,swallowClick=false;
- const outside=target=>!panel.contains(target)&&!toggle.contains(target);
+ const outside=target=>!panel.contains(target)&&!toggle.contains(target)&&!insideTargets.some(node=>node.contains(target));
  window.addEventListener('pointerdown',event=>{outsidePointer=null;swallowClick=false;if((open||animation)&&outside(event.target)){outsidePointer=event.pointerId;swallowClick=true;consume(event);requestClose('outside');}},{signal,capture:true,passive:false});
  window.addEventListener('pointerup',event=>{if(swallowClick&&event.pointerId===outsidePointer)consume(event);},{signal,capture:true,passive:false});
  window.addEventListener('pointercancel',event=>{if(event.pointerId===outsidePointer){outsidePointer=null;swallowClick=false;}},{signal,capture:true});
@@ -107,3 +107,4 @@ function mount(panel,{toggle,backdrop=null,heading=null,badge=null,escapeRoot=pa
 }
 window.TDBFilters=Object.freeze({version:'1.0.1',mount});
 })();
+

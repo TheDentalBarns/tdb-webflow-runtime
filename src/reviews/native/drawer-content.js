@@ -1,4 +1,4 @@
-/* TDB native reviews v3.12.3. Native Webflow layout; original quote choreography. */
+/* TDB native reviews v3.13.0. Native Webflow layout; original quote choreography. */
 (() => {
 'use strict';if(window.TDBReviews)return;
 const instances=new WeakMap();
@@ -22,7 +22,7 @@ function mount(root,data){
  let indexMode=false,matched=[],queryController=null,queryRevision=0,selectionBusy=false,pendingBatch=null;
  const canLoadMore=()=>indexMode?records.length<matched.length:data.hasMore;
  const filterOptions=filterPanel?[...filterPanel.querySelectorAll('[data-tdb-filter-group]')]:[];
- const filterStatus=filterPanel?.querySelector('[data-tdb-filter-status]'),filterApply=filterPanel?.querySelector('[data-tdb-filter-apply]');
+ const filterStatus=filterPanel?.querySelector('[data-tdb-filter-status]'),filterApply=$('[data-tdb-filter-apply]'),filterActions=$('.tdb-review-filter_actions');
  const filterReset=filterPanel?.querySelector('[data-tdb-filter-reset]');
  const filterApplyCount=filterApply?.querySelector('[data-tdb-filter-apply-count]'),filterApplyReserve=filterApply?.querySelector('[data-tdb-filter-count-reserve]'),filterApplyPlural=filterApply?.querySelector('[data-tdb-filter-apply-plural]');
  const filterApplyTicker=filterApplyCount?window.TDBNativeTicker.mount(filterApplyCount):null;let shownApplyCount=null;
@@ -39,10 +39,10 @@ function mount(root,data){
  const disclosures=filterPanel?[...filterPanel.querySelectorAll('[data-tdb-filter-disclosure]')].map(button=>({key:button.dataset.tdbFilterDisclosure,button,body:button.parentElement.querySelector('.tdb-review-filter_options'),summary:button.querySelector('[data-tdb-filter-selection]'),chevron:button.querySelector('[data-tdb-filter-chevron]')})).filter(entry=>entry.body&&entry.summary):[];
  // A width-only Webflow breakpoint also catches portrait phones. This condition
  // activates native Designer combo styles only for short, touch-screen landscape.
- // The same Webflow bars stay in one reading flow; no copies or injected CSS.
+ // The same Webflow bars stay in one reading flow; styles remain native.
  const readingPane=$('[data-tdb-review-reading-pane]'),phoneLandscape=matchMedia('(orientation: landscape) and (max-width: 991px) and (max-height: 500px) and (pointer: coarse)');
- const landscapeNodes=[readingPane,$('.tdb-review-drawer_header'),$('.tdb-review-drawer_footer'),viewport,track,mainClose,filterPanel,filterPanel?.querySelector('[data-tdb-filter-scroll]'),filterPanel?.querySelector('.tdb-review-filter_heading'),filterPanel?.querySelector('.tdb-review-filter_actions')].filter(Boolean);
- const filterHome=filterButton?{parent:filterButton.parentNode,next:filterButton.nextSibling}:null,originalTrackHeight=track.style.height;
+ const landscapeNodes=[readingPane,$('.tdb-review-drawer_header'),$('.tdb-review-drawer_footer'),viewport,track,mainClose,filterPanel,filterPanel?.querySelector('[data-tdb-filter-scroll]'),filterPanel?.querySelector('.tdb-review-filter_heading'),filterActions].filter(Boolean);
+ const originalTrackHeight=track.style.height;
  let landscape=false,readingAnchor=null;
  const originalMarkTranslate=mark.style.translate;
  let markScrollTop=0;
@@ -72,12 +72,100 @@ function mount(root,data){
   const max=Math.max(0,readingPane.scrollHeight-readingPane.clientHeight);
   readingPane.scrollTop=Math.max(0,Math.min(max,readingAnchor.atFoot?max-readingAnchor.bottom:readingAnchor.top));
  }
- function placeFilterClose(){
-  const floating=landscape&&filterOpen;
-  filterButton?.classList.toggle('is-landscape-floating',floating);mainClose.classList.toggle('is-landscape-filter-open',floating);
-  if(!filterHome)return;
-  if(floating){if(filterButton.parentNode!==root)root.append(filterButton);}
-  else if(filterButton.parentNode!==filterHome.parent)filterHome.parent.insertBefore(filterButton,filterHome.next);
+ // The filter footer is native content inside the sliding panel. Only the
+ // floating control has separate motion: morph back, then fade over its origin.
+ const floatingFilterButton=filterButton?.cloneNode(true),floatingFilterBadge=floatingFilterButton?.querySelector('[data-tdb-filter-badge]');
+ let floatingFilterIcon=null,filterHandoffRevision=0,filterHandoffAnimation=null;
+ let filterSpinnerReturning=false,filterFeedbackAnimations=[];
+ if(floatingFilterButton){
+  floatingFilterButton.removeAttribute('id');floatingFilterButton.removeAttribute('data-tdb-filter-toggle');
+  floatingFilterButton.classList.add('is-filter-floating');
+  floatingFilterIcon=motion.filterToggle(floatingFilterButton);
+  for(const type of ['click','keydown'])floatingFilterButton.addEventListener(type,event=>{
+   if(type==='keydown'&&!['Enter',' '].includes(event.key))return;
+   event.preventDefault();event.stopImmediatePropagation();
+   if(filterOpen)filter?.requestClose('toggle');
+  },{signal,capture:true});
+ }
+ function syncFloatingFilterCount(){
+  // Both native and floating controls share the same fetch state and artwork.
+  const loading=filterOpen&&selectionBusy&&!filterSpinnerReturning&&!destroyed;
+  for(const button of [filterButton,floatingFilterButton]){
+   if(!button)continue;
+   if(loading){button.setAttribute('data-tdb-loading','true');button.setAttribute('aria-busy','true');}
+   else{button.removeAttribute('data-tdb-loading');button.removeAttribute('aria-busy');}
+  }
+  if(!floatingFilterButton)return;
+  if(floatingFilterBadge&&filterBadge){
+   floatingFilterBadge.textContent=filterBadge.textContent;
+   floatingFilterBadge.classList.toggle('is-empty',filterBadge.classList.contains('is-empty'));
+  }
+  floatingFilterButton.setAttribute('aria-label',filterButton.getAttribute('aria-label'));
+ }
+ function clearFilterFeedback(){
+  for(const animation of filterFeedbackAnimations)animation.cancel();
+  filterFeedbackAnimations=[];filterSpinnerReturning=false;
+ }
+ async function restoreFilterClose(revision){
+  const valid=()=>!destroyed&&filterOpen&&revision===applyRevision;
+  const buttons=[filterButton,floatingFilterButton].filter(Boolean);
+  // Keep the spinner rotating until it is invisible; never reset its angle on screen.
+  filterFeedbackAnimations=buttons.flatMap(button=>{
+   const indicator=button.querySelector('[data-tdb-loading-indicator]');
+   return indicator?[indicator.animate([{opacity:1},{opacity:0}],{duration:reduced.matches?0:motion.defaults.fadeOut,easing:'ease-out',fill:'both'})]:[];
+  });
+  await Promise.all(filterFeedbackAnimations.map(animation=>animation.finished.catch(()=>{})));
+  if(!valid())return false;
+  const spinnerAnimations=filterFeedbackAnimations;
+  // Install the X's first frame before removing loading, avoiding a one-frame flash.
+  filterFeedbackAnimations=buttons.flatMap(button=>{
+   const content=button.querySelector('[data-tdb-loading-content]');
+   return content?[content.animate([{opacity:0},{opacity:1}],{duration:reduced.matches?0:motion.defaults.fadeIn,easing:'ease-out',fill:'both'})]:[];
+  });
+  filterSpinnerReturning=true;syncFloatingFilterCount();
+  for(const animation of spinnerAnimations)animation.cancel();
+  await Promise.all(filterFeedbackAnimations.map(animation=>animation.finished.catch(()=>{})));
+  return valid();
+ }
+ function placeFilterClose(immediate=false){
+  if(immediate)for(const animation of filterFeedbackAnimations)animation.finish();
+  const token=++filterHandoffRevision;
+  if(!floatingFilterButton||!filterActions)return;
+  filterHandoffAnimation?.cancel();
+  filterHandoffAnimation=null;
+  const floating=filterOpen&&!destroyed,duration=immediate||reduced.matches?0:motion.duration(innerWidth);
+  syncFloatingFilterCount();
+  floatingFilterButton.classList.toggle('is-phone-landscape',landscape);
+  readingFooter.classList.remove('is-filter-covered');
+  const remove=()=>{
+   if(floatingFilterButton.contains(document.activeElement)||filterActions.contains(document.activeElement))filterButton.focus({preventScroll:true});
+   floatingFilterButton.remove();floatingFilterButton.style.transform='';
+  };
+  if(floating){
+   const entering=floatingFilterButton.parentNode!==root;
+   if(entering)root.append(floatingFilterButton);
+   floatingFilterButton.inert=false;floatingFilterButton.removeAttribute('aria-hidden');
+   for(const key of ['aria-label','aria-controls','aria-expanded']){const value=filterButton.getAttribute(key);if(value!==null)floatingFilterButton.setAttribute(key,value);}
+   floatingFilterButton.classList.add('is-filter-open');
+   floatingFilterIcon.set(true,immediate);
+   floatingFilterButton.style.transform='';
+   return;
+  }
+  if(floatingFilterButton.parentNode!==root)return;
+  if(floatingFilterButton.contains(document.activeElement)||filterActions.contains(document.activeElement))filterButton.focus({preventScroll:true});
+  floatingFilterButton.inert=true;floatingFilterButton.setAttribute('aria-hidden','true');
+  floatingFilterButton.classList.remove('is-filter-open');floatingFilterIcon.set(false,immediate);
+  if(!duration||destroyed){remove();return;}
+  const morphs=[...floatingFilterButton.querySelectorAll('[data-tdb-filter-line]')].flatMap(line=>line.getAnimations());
+  (async()=>{
+   await Promise.all([...morphs,...filterPanel.getAnimations()].map(animation=>animation.finished.catch(()=>{})));
+   if(token!==filterHandoffRevision)return;
+   const animation=floatingFilterButton.animate([{opacity:1},{opacity:0}],{duration:motion.defaults.fadeIn,easing:'ease-out',fill:'both'});
+   filterHandoffAnimation=animation;
+   try{await animation.finished;}catch{return;}
+   if(token!==filterHandoffRevision)return;
+   remove();animation.cancel();filterHandoffAnimation=null;
+  })();
  }
  function setReadingMode(enabled=!!readingPane&&phoneLandscape.matches){
   if(enabled===landscape)return;
@@ -87,7 +175,7 @@ function mount(root,data){
    node.classList.toggle('is-phone-landscape',landscape);
    node.querySelector('[data-tdb-review-scroll]')?.classList.toggle('is-phone-landscape',landscape);
   }
-  placeFilterClose();
+  placeFilterClose(true);
   if(swiper){swiper.params.autoHeight=landscape;if(!landscape)track.style.height=originalTrackHeight;swiper.update();}
   if(readingPane)readingPane.scrollTop=0;
   const scroll=readingScroll();if(scroll)scroll.scrollTop=offset;syncMarkScroll();
@@ -112,7 +200,7 @@ function mount(root,data){
   filterApply.setAttribute('aria-disabled',String(filterApply.disabled));
   filterApply.setAttribute('aria-busy',String(selectionBusy||!filterReady));
  }
- function cancelDraft(){clearTimeout(draftTimer);draftController?.abort();draftController=null;draftFlight=null;draftCache=null;applyRevision++;selectionBusy=false;}
+ function cancelDraft(){clearFilterFeedback();clearTimeout(draftTimer);draftController?.abort();draftController=null;draftFlight=null;draftCache=null;applyRevision++;selectionBusy=false;}
  function draftKey(){return JSON.stringify(selection);}
  function fetchDraft(){
   clearTimeout(draftTimer);const key=draftKey();
@@ -132,9 +220,9 @@ function mount(root,data){
  function hasSelection(){return selection.sort!=='recommended'||selection.rating.length>0||selection.platform.length>0||selection.treatment.length>0||selection.experience.length>0;}
  function updateFilterReset(){
   if(!filterReset)return;
-  // Reset restores the defaults and folds open headings. A failed metadata load
-  // retains the existing retry action even when there are no selected filters.
-  const disabled=selectionBusy||(!hasSelection()&&!filter?.hasExpandedDisclosures&&!filterLoadFailed);
+  // Only changed filter values enable Reset; opening headings is not a change.
+  // A failed metadata load retains the existing retry action.
+  const disabled=selectionBusy||(!hasSelection()&&!filterLoadFailed);
   filterReset.disabled=disabled;filterReset.setAttribute('aria-disabled',String(disabled));
   filterReset.tabIndex=disabled?-1:0;filterReset.classList.toggle('is-disabled',disabled);
  }
@@ -195,8 +283,8 @@ function mount(root,data){
   if(pause)revealTimer=setTimeout(show,pause);else show();
  }
  function createSwiper(index=0){
-  swiper=new window.Swiper(viewport,{init:false,direction:'horizontal',wrapperClass:'tdb-review-drawer_track',slideClass:'tdb-review-drawer_slide',slidesPerView:1,autoHeight:landscape,initialSlide:index,loop:false,preventInteractionOnTransition:false,observer:false,speed:reduced.matches?0:motion.duration(innerWidth),touchStartPreventDefault:false,threshold:10,keyboard:{enabled:false},watchOverflow:true,on:{slideChange(){queueMicrotask(reflect);},sliderFirstMove:begin,beforeTransitionStart:captureReadingAnchor,transitionStart(){begin();applyReadingAnchor();},transitionEnd(){appendRecords();if(phase==='moving')reveal();},touchEnd(){requestAnimationFrame(()=>{if(!destroyed&&phase==='moving'&&!swiper.animating)reveal(motion.reviews.cardDelay);});}}});
-  window.TDBSwiper.bindSwiper(swiper);swiper.init();
+  swiper=window.TDBSwiper.create(viewport,{init:false,direction:'horizontal',wrapperClass:'tdb-review-drawer_track',slideClass:'tdb-review-drawer_slide',slidesPerView:1,autoHeight:landscape,initialSlide:index,loop:false,preventInteractionOnTransition:false,observer:false,speed:reduced.matches?0:motion.duration(innerWidth),touchStartPreventDefault:false,threshold:10,keyboard:{enabled:false},watchOverflow:true,on:{slideChange(){queueMicrotask(reflect);},sliderFirstMove:begin,beforeTransitionStart:captureReadingAnchor,transitionStart(){begin();applyReadingAnchor();},transitionEnd(){appendRecords();if(phase==='moving')reveal();},touchEnd(){requestAnimationFrame(()=>{if(!destroyed&&phase==='moving'&&!swiper.animating)reveal(motion.reviews.cardDelay);});}}});
+  swiper.init();
  }
  function build(id){
   readingAnchor=null;
@@ -247,12 +335,12 @@ function mount(root,data){
   }
   for(const disclosure of disclosures){
    const key=disclosure.key,seen=new Set(),labels=filterOptions.filter(option=>option.dataset.tdbFilterGroup===key&&chosen(key,option.dataset.tdbFilterValue)).filter(option=>{const value=canonical(option.dataset.tdbFilterValue);if(seen.has(value))return false;seen.add(value);return true;}).map(option=>option.textContent.trim());
-   disclosure.summary.textContent=labels.length>2?labels.length+' selected':labels.join(' + ');disclosure.summary.title=labels.join(', ');
+   disclosure.summary.textContent=labels.length>1?labels.length+' selected':labels.join(' + ');disclosure.summary.title=labels.join(', ');
   }
   const count=matching().length;
   // Count selected filters, not matching reviews or the sort order.
   const selectedCount=selection.rating.length+selection.platform.length+selection.treatment.length+selection.experience.length;
-  filter?.setCount(selectedCount);
+  filter?.setCount(selectedCount);syncFloatingFilterCount();
   filterStatus.classList.toggle('is-error',!!message);
   if(filterOpen&&filterReady){updateTotal(count);ticker.update(count?'01':'00',-1);position.setAttribute('aria-label','Preview: '+count+' matching reviews');}
   filterStatus.textContent=message||(selectionBusy?'Loading matching reviews…':filterReady?(hasSelection()?count+' matching '+(count===1?'review':'reviews'):'All reviews'):'Preparing review filters…');
@@ -285,9 +373,11 @@ function mount(root,data){
    const {desired,batch}=await fetchDraft();
    if(destroyed||revision!==applyRevision||!filterOpen)return false;
    queryController?.abort();queryController=new AbortController();queryRevision++;pendingBatch=null;moreFlight=null;
-   indexMode=true;matched=desired;appliedSelection=copySelection(selection);selectionBusy=false;
-   renderSelection(batch);return true;
-  }catch(error){if(!destroyed&&revision===applyRevision&&filterOpen){selectionBusy=false;updateFilterOptions('Could not load these reviews. Tap View reviews to retry.');}return false;}
+   indexMode=true;matched=desired;appliedSelection=copySelection(selection);
+   renderSelection(batch);
+   if(!await restoreFilterClose(revision))return false;
+   selectionBusy=false;clearFilterFeedback();updateFilterOptions();return true;
+  }catch(error){if(!destroyed&&revision===applyRevision&&filterOpen){selectionBusy=false;clearFilterFeedback();updateFilterOptions('Could not load these reviews. Tap View reviews to retry.');}return false;}
  }
  function appendBatch(batch){
   if(destroyed||!indexMode)return;
@@ -317,16 +407,16 @@ function mount(root,data){
   finally{filterFlight=null;filterPanel?.setAttribute('aria-busy','false');}})();
   return filterFlight;
  }
- function reflectFilterState(open){
+ function reflectFilterState(open,immediate=false){
   if(!open){cancelDraft();updateTotal(length(),phase!=='closed');}filterOpen=open;
-  placeFilterClose();
+  placeFilterClose(immediate);
   if(swiper){swiper.allowTouchMove=!open;reflectedIndex=-1;reflect();}
   if(open)prepareFilters();else updateFilterOptions();
  }
  if(filterPanel){
   filter=window.TDBFilters.mount(filterPanel,{
    toggle:filterButton,backdrop:filterBackdrop,heading:filterPanel.querySelector('[data-tdb-filter-heading]'),badge:filterBadge,
-   escapeRoot:drawerRoot,blockedControls:[mainClose],inertTargets:[viewport],disclosures,
+   escapeRoot:drawerRoot,blockedControls:[mainClose],inertTargets:[viewport,readingFooter],insideTargets:[floatingFilterButton].filter(Boolean),disclosures,
    labels:{open:'Filter and sort reviews',close:'Close review filters'},
    onIntent:prepareFilters,beforeClose:commitFilterSelection,onChange:reflectFilterState,onDisclosureChange:updateFilterReset,
    onError:()=>updateFilterOptions('Could not load these reviews. Tap View reviews to retry.')
@@ -336,12 +426,23 @@ function mount(root,data){
   action(filterApply,()=>{if(!filterApply.disabled)filter.requestClose('apply');});
   updateFilterOptions();
  }
- let preferred='';const drawer=window.TDBDrawer.mount(root.closest('[data-tdb-drawer]'),{onOpen(){build(preferred);clearTimeout(filterPrimeTimer);filterPrimeTimer=setTimeout(prepareFilters,250);},onClose(){readingAnchor=null;clearTimeout(filterPrimeTimer);filter?.reset(true);hideQuote();phase='closed';if(readingScroll()?.scrollTop>0)fades.to(mark,0,fadeTime());ticker.settle();totalTicker.settle();filterApplyTicker?.settle();}});
+ let preferred='';const drawer=window.TDBDrawer.mount(root.closest('[data-tdb-drawer]'),{onOpen(){build(preferred);clearTimeout(filterPrimeTimer);filterPrimeTimer=setTimeout(prepareFilters,250);},onClose(){readingAnchor=null;clearTimeout(filterPrimeTimer);filter?.reset(true);placeFilterClose(true);hideQuote();phase='closed';if(readingScroll()?.scrollTop>0)fades.to(mark,0,fadeTime());ticker.settle();totalTicker.settle();filterApplyTicker?.settle();}});
  setReadingMode();
  // Native Webflow visibility keeps the closed drawer measurable without showing it.
  if(viewport.clientWidth)createSwiper();
- const resize=new ResizeObserver(()=>{if(swiper&&!swiper.animating){swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);swiper.update();}applyReadingAnchor();});resize.observe(viewport);
- reduced.addEventListener('change',()=>{if(swiper){swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);if(reduced.matches&&phase!=='closed'){hideQuote();phase='moving';swiper.slideTo(swiper.activeIndex,0);ticker.settle();reveal(0);}}},{signal});
+ // In landscape, auto-height changes are our own output, not a reason to
+ // rebuild Swiper. Rebuilding on those frames can repaint the outgoing review
+ // and interrupt the scroll clamp as a shorter review reveals the header.
+ let measuredWidth=viewport.clientWidth;
+ const resize=new ResizeObserver(()=>{
+  const width=viewport.clientWidth,widthChanged=Math.abs(width-measuredWidth)>.5;
+  measuredWidth=width;
+  if(swiper&&!swiper.animating&&(!landscape||widthChanged)){
+   swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);swiper.update();
+  }
+  applyReadingAnchor();
+ });resize.observe(viewport);
+ reduced.addEventListener('change',()=>{if(reduced.matches)placeFilterClose(true);if(swiper){swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);if(reduced.matches&&phase!=='closed'){hideQuote();phase='moving';swiper.slideTo(swiper.activeIndex,0);ticker.settle();reveal(0);}}},{signal});
  const api=Object.freeze({async open(trigger,id){
   preferred=id||'';
   // A named CMS quote opens in its editorial context, never an old filter result.
@@ -351,8 +452,10 @@ function mount(root,data){
    renderSelection(data.records.slice());
   }
   return drawer.open(trigger);
- },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();setReadingMode(false);filterOpen=false;placeFilterClose();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();mark.style.translate=originalMarkTranslate;swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();filterApplyTicker?.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
+ },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();setReadingMode(false);filterOpen=false;placeFilterClose(true);floatingFilterIcon?.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();mark.style.translate=originalMarkTranslate;swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();filterApplyTicker?.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBReviews=Object.freeze({version:'3.12.3',mount});
+window.TDBReviews=Object.freeze({version:'3.13.0',mount});
+window.TDBSwiper?.register('review-drawer',window.TDBReviews);
 })();
+
 

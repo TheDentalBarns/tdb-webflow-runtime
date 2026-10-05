@@ -28,7 +28,7 @@ The immediate runtime loads CookieScript `3.0.0` from its own immutable reposito
 
 ## Historical staging additions
 
-The Webflow subdomain currently tests the consolidated Home/Location parallax slider cleanup:
+An earlier Webflow subdomain release tested the consolidated Home/Location parallax slider cleanup:
 
 | Asset | Version | Immutable commit | Purpose |
 |---|---:|---|---|
@@ -75,3 +75,18 @@ Rollback is performed by restoring the previous immutable SHA in Webflow and rep
 ## Navigation cleanup — 5 October 2026
 
 See [navigation ownership, build and staging verification](docs/navigation-cleanup-2026-10-05.md). The essential `tdb-navbar.min.js` owns its complete lifecycle; it no longer depends on a footer helper or an inline nav CSS patch block. Static layout and decorative layers remain native Webflow.
+
+## Service parallax cleanup — 5 October 2026
+
+See [service parallax ownership and deployment](docs/service-parallax-cleanup-2026-10-05.md).
+Designer owns the first service slider's styling and CMS list order. Shared parallax
+behaviour lives in `src/sliders/parallax.js`, bundled into the existing immediate
+runtime; the separate homepage progress script and inline service reorder are retired.
+
+## Shared Swiper and feature plugins — 5 October 2026
+
+See [carousel plugin ownership, loading and rollback](docs/carousel-plugins-2026-10-05.md).
+The existing custom Swiper download now owns the shared carousel interface.
+Parallax, highlight/Smile Gallery carousels, review cards, review testimonials and
+the review drawer are feature plugins. Shared focus is independently lazy-loaded.
+Webflow/CMS styling and the existing feature behaviours remain in their owners.
