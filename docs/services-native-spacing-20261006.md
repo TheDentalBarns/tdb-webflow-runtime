@@ -75,5 +75,18 @@ updated parallax plugin. No mocked slider or geometry is used.
   pass. Full motion remains enabled when the test device requests reduced motion.
 
 Staging is the only publishing target. Physical device/Safari touch behaviour is
-not certified by these Chromium checks. The live staging verification is recorded
-after the immutable release and native CSS have been published together.
+not certified by these Chromium checks. The published release was verified as follows:
+
+- Staging published at 2026-10-06 13:39:44 UTC using runtime commit
+  `241c6478ed08edf1b54a99a31753849442eb732c`.
+- Published homepage CSS `b81ee181b` contains the native changes. All 21
+  cold/delayed cases passed again against the actual published HTML/CSS,
+  with no synthetic CSS overrides.
+- Live browser at 1363px loaded the new registry and parallax plugin. The
+  rendered gap was 29.828px versus a 29.8398px native/inline margin; focused
+  slide alignment differed by only 0.047px. Arrow navigation updated the
+  Cosmetic Dentistry CTA, focused copy settled at opacity 1, adjacent blur
+  remained 20px and both progress markers were present.
+- All four custom production domains retained their 1 October publish date.
+- Only the registry URL was changed in the freshly read shared head block;
+  surrounding concurrent code and separate module pins were preserved.
