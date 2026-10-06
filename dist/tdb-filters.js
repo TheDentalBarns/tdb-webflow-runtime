@@ -1,7 +1,18 @@
-/* TDB shared filters v1.0.1. Native Webflow UI; no CMS, query or slider dependencies. */
+/* TDB shared filters v1.1.0. Native Webflow UI; no CMS, query or slider dependencies. */
 (() => {
 'use strict';if(window.TDBFilters)return;
 const instances=new WeakMap();let sequence=0;
+// Shared outside-gesture consumption. A closing panel still owns the pointer
+// sequence so its final click cannot activate the page beneath it.
+function dismissOutside({contains,isActive,onDismiss,signal}){
+ let pointer=null,swallow=false;
+ const consume=event=>{event.preventDefault();event.stopImmediatePropagation();};
+ window.addEventListener('pointerdown',event=>{pointer=null;swallow=false;if(isActive()&&!contains(event.target)){pointer=event.pointerId;swallow=true;consume(event);onDismiss();}},{signal,capture:true,passive:false});
+ window.addEventListener('pointerup',event=>{if(swallow&&event.pointerId===pointer)consume(event);},{signal,capture:true,passive:false});
+ window.addEventListener('pointercancel',event=>{if(event.pointerId===pointer){pointer=null;swallow=false;}},{signal,capture:true});
+ const click=event=>{if(swallow||isActive()&&!contains(event.target)){swallow=false;pointer=null;consume(event);onDismiss();}};
+ window.addEventListener('click',click,{signal,capture:true});window.addEventListener('auxclick',click,{signal,capture:true});
+}
 function mount(panel,{toggle,backdrop=null,heading=null,badge=null,escapeRoot=panel,
  blockedControls=[],inertTargets=[],insideTargets=[],disclosures=[],onIntent,beforeClose,onChange,onError,onDisclosureChange,
  labels={open:'Open filters',close:'Close filters'},classes={}}={}){
@@ -63,13 +74,8 @@ function mount(panel,{toggle,backdrop=null,heading=null,badge=null,escapeRoot=pa
  },{signal,capture:true});
  for(const event of ['pointerenter','focus','pointerdown'])toggle.addEventListener(event,()=>onIntent?.(),{signal,passive:true});
  // Consume the whole outside gesture, including the click arriving after closure.
- let outsidePointer=null,swallowClick=false;
  const outside=target=>!panel.contains(target)&&!toggle.contains(target)&&!insideTargets.some(node=>node.contains(target));
- window.addEventListener('pointerdown',event=>{outsidePointer=null;swallowClick=false;if((open||animation)&&outside(event.target)){outsidePointer=event.pointerId;swallowClick=true;consume(event);requestClose('outside');}},{signal,capture:true,passive:false});
- window.addEventListener('pointerup',event=>{if(swallowClick&&event.pointerId===outsidePointer)consume(event);},{signal,capture:true,passive:false});
- window.addEventListener('pointercancel',event=>{if(event.pointerId===outsidePointer){outsidePointer=null;swallowClick=false;}},{signal,capture:true});
- const outsideClick=event=>{if(swallowClick||(open||animation)&&outside(event.target)){swallowClick=false;outsidePointer=null;consume(event);requestClose('outside');}};
- window.addEventListener('click',outsideClick,{signal,capture:true});window.addEventListener('auxclick',outsideClick,{signal,capture:true});
+ dismissOutside({contains:target=>!outside(target),isActive:()=>open||animation,onDismiss:()=>requestClose('outside'),signal});
  escapeRoot.addEventListener('keydown',event=>{if(open&&event.key==='Escape'){consume(event);requestClose('escape');}},{signal,capture:true});
  panel.id||='tdb-filters-'+(++sequence);panel.inert=true;panel.setAttribute('aria-hidden','true');toggle.setAttribute('aria-controls',panel.id);toggle.setAttribute('aria-expanded','false');setCount(0);
  const entries=[];
@@ -105,6 +111,5 @@ function mount(panel,{toggle,backdrop=null,heading=null,badge=null,escapeRoot=pa
   if(destroyed)return;set(false,true);destroyed=true;revision++;closeFlight=null;controller.abort();animation?.cancel();shadeAnimation?.cancel();entries.forEach(entry=>entry.destroy());icon.destroy();restorers.reverse().forEach(restore=>restore());if(badge)badge.textContent=badgeText;instances.delete(panel);
  }});instances.set(panel,api);return api;
 }
-window.TDBFilters=Object.freeze({version:'1.0.1',mount});
+window.TDBFilters=Object.freeze({version:'1.1.0',mount,dismissOutside});
 })();
-

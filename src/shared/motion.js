@@ -1,4 +1,4 @@
-/* TDB shared motion v1.7.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.8.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -100,6 +100,68 @@
         }
       },
     };
+  }
+
+  // Gallery text uses view progress including the element height, and may live
+  // inside a vertically scrolling case. Keep that existing curve distinct from
+  // the viewport-heading curve, with one observer and frame per scrolling root.
+  function ddRegion(nodes, { root = null } = {}) {
+    const list = [...nodes], visible = new Set(), values = new WeakMap();
+    const original = new Map(list.map(node => [node, node.style.opacity]));
+    const events = new AbortController(), target = root || window;
+    let frame = 0, observer = null, destroyed = false;
+    const top = () => root ? root.getBoundingClientRect().top + root.clientTop : 0;
+    function render() {
+      frame = 0;
+      if (destroyed || reduced.matches || document.hidden) return;
+      const height = root ? root.clientHeight : document.documentElement.clientHeight;
+      if (!height) return;
+      const origin = top();
+      let moving = false;
+      for (const node of visible) {
+        if (!node.getClientRects().length) continue;
+        const rect = node.getBoundingClientRect();
+        const progress = Math.min(1, Math.max(0, (height - (rect.top - origin)) / (height + rect.height)));
+        const previous = values.get(node) ?? 0;
+        const value = Math.abs(progress - previous) < .0001 ? progress : previous + .5 * (progress - previous);
+        values.set(node, value);
+        node.style.opacity = String(ddOpacity(value));
+        if (Math.abs(progress - value) >= .0001) moving = true;
+      }
+      if (moving) frame = requestAnimationFrame(render);
+    }
+    function schedule() {
+      if (!destroyed && !reduced.matches && !document.hidden && visible.size && !frame) frame = requestAnimationFrame(render);
+    }
+    function reset() {
+      cancelAnimationFrame(frame); frame = 0; observer?.disconnect(); visible.clear();
+      list.forEach(node => { node.style.opacity = original.get(node); values.delete(node); });
+      if (destroyed || reduced.matches || !window.IntersectionObserver) return;
+      observer = new IntersectionObserver(entries => {
+        const origin = top();
+        for (const {target: node, isIntersecting} of entries) {
+          if (isIntersecting) visible.add(node);
+          else {
+            visible.delete(node);
+            const value = node.getClientRects().length && node.getBoundingClientRect().bottom <= origin ? 1 : 0;
+            values.set(node, value); node.style.opacity = String(ddOpacity(value));
+          }
+        }
+        schedule();
+      }, {root});
+      list.forEach(node => observer.observe(node));
+    }
+    const {signal} = events;
+    target.addEventListener('scroll', schedule, {signal, passive: true});
+    window.addEventListener('resize', schedule, {signal, passive: true});
+    document.addEventListener('visibilitychange', schedule, {signal});
+    reduced.addEventListener('change', reset, {signal});
+    reset();
+    return Object.freeze({destroy() {
+      if (destroyed) return; destroyed = true; events.abort(); observer?.disconnect();
+      cancelAnimationFrame(frame); visible.clear();
+      list.forEach(node => { node.style.opacity = original.get(node); });
+    }});
   }
 
   // Page-break images have one transform owner. Layout/crop stay in Designer.
@@ -335,5 +397,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.7.0', reduced, defaults, carousel, duration, ddText, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.8.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();

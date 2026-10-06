@@ -1264,7 +1264,7 @@
       ],
       "medium",
       {
-        "font-size": "1.25rem",
+        "font-size": "1.125rem",
         "opacity": ".75"
       }
     ],
@@ -1275,7 +1275,7 @@
       ],
       "small",
       {
-        "font-size": "1.125rem"
+        "font-size": "1rem"
       }
     ]
   ],

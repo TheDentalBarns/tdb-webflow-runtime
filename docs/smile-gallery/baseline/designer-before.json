@@ -1,0 +1,2153 @@
+{
+  "id": {
+    "component": "6aa3efd54f3f705caf98c687",
+    "element": "60d3f7b8b0e86c28630fc6d6"
+  },
+  "type": "Body",
+  "children": [
+    {
+      "id": {
+        "component": "6aa3efd54f3f705caf98c687",
+        "element": "d24e5ea8-78da-f5b7-6dab-ac39945b55b0"
+      },
+      "type": "Block",
+      "styleNames": [
+        "page-wrapper"
+      ],
+      "settings": {
+        "tag": "div",
+        "visibility": true,
+        "block": {
+          "tag": "div"
+        }
+      },
+      "children": [
+        {
+          "id": {
+            "component": "6aa3efd54f3f705caf98c687",
+            "element": "9a6407bf-2b63-0b1e-3fe4-a5c79254226f"
+          },
+          "type": "ComponentInstance",
+          "instanceDetails": {
+            "type": "ComponentInstance",
+            "id": "5ffad809-50c0-31dd-2ebc-e3eb71f28b9b",
+            "name": "Global Styles",
+            "props": [],
+            "slots": []
+          }
+        },
+        {
+          "id": {
+            "component": "6aa3efd54f3f705caf98c687",
+            "element": "a44f66fc-8eb1-0bf9-1011-6feff799c643"
+          },
+          "type": "ComponentInstance",
+          "instanceDetails": {
+            "type": "ComponentInstance",
+            "id": "296ad07a-fd6b-797a-7cb3-6c0e6e553e85",
+            "name": "Transparent Nav Styles",
+            "props": [],
+            "slots": []
+          }
+        },
+        {
+          "id": {
+            "component": "6aa3efd54f3f705caf98c687",
+            "element": "00c95077-6727-cadd-dff9-865a43f24f44"
+          },
+          "type": "ComponentInstance",
+          "instanceDetails": {
+            "type": "ComponentInstance",
+            "id": "83119b7e-a73e-66e3-0fce-5279000d146c",
+            "name": "Navbar New",
+            "props": [
+              {
+                "propId": "69dcef18-f12e-1180-d053-509eef0741bd",
+                "value": "985dc2c9-931e-7935-b0d3-cfb27c742eeb",
+                "hasOverride": true,
+                "name": "Variant"
+              },
+              {
+                "propId": "d19c2cc3-bd44-b136-af12-ceb1283e7718",
+                "value": "true",
+                "hasOverride": true,
+                "name": "Transparent nav"
+              }
+            ],
+            "slots": []
+          }
+        },
+        {
+          "id": {
+            "component": "6aa3efd54f3f705caf98c687",
+            "element": "f3a6c255-9ed7-32a9-be96-9b7f1e282565"
+          },
+          "type": "Block",
+          "styleNames": [
+            "main-wrapper"
+          ],
+          "settings": {
+            "tag": "main",
+            "visibility": true,
+            "block": {
+              "tag": "main"
+            }
+          },
+          "children": [
+            {
+              "id": {
+                "component": "6aa3efd54f3f705caf98c687",
+                "element": "349d77ca-0b60-9f71-021e-b2ca721e7234"
+              },
+              "type": "ComponentInstance",
+              "instanceDetails": {
+                "type": "ComponentInstance",
+                "id": "fa868a7b-c486-e249-e66b-e9e68cccbb51",
+                "name": "Smile Gallery – Page Intro",
+                "props": [],
+                "slots": []
+              }
+            },
+            {
+              "id": {
+                "component": "6aa3efd54f3f705caf98c687",
+                "element": "a633c594-0531-1d06-9b3c-b0ac530d97f9"
+              },
+              "type": "HtmlEmbed",
+              "settings": {
+                "visibility": true
+              }
+            },
+            {
+              "id": {
+                "component": "6aa3efd54f3f705caf98c687",
+                "element": "e7c28fbf-7cb1-70d9-74c5-79df83f21edc"
+              },
+              "type": "Section",
+              "styleNames": [
+                "padding-global"
+              ],
+              "attributes": {
+                "aria-label": "About the smile gallery",
+                "data-tdb-resource-intro": ""
+              },
+              "settings": {
+                "tag": "section",
+                "visibility": true
+              },
+              "children": [
+                {
+                  "id": {
+                    "component": "6aa3efd54f3f705caf98c687",
+                    "element": "e7c28fbf-7cb1-70d9-74c5-79df83f21edb"
+                  },
+                  "type": "Block",
+                  "styleNames": [
+                    "container-large"
+                  ],
+                  "settings": {
+                    "tag": "div",
+                    "visibility": true,
+                    "block": {
+                      "tag": "div"
+                    }
+                  },
+                  "children": [
+                    {
+                      "id": {
+                        "component": "6aa3efd54f3f705caf98c687",
+                        "element": "e7c28fbf-7cb1-70d9-74c5-79df83f21eda"
+                      },
+                      "type": "Block",
+                      "styleNames": [
+                        "padding-section-small"
+                      ],
+                      "settings": {
+                        "tag": "div",
+                        "visibility": true,
+                        "block": {
+                          "tag": "div"
+                        }
+                      },
+                      "children": [
+                        {
+                          "id": {
+                            "component": "6aa3efd54f3f705caf98c687",
+                            "element": "e7c28fbf-7cb1-70d9-74c5-79df83f21ed6"
+                          },
+                          "type": "Block",
+                          "styleNames": [
+                            "margin-bottom",
+                            "margin-medium"
+                          ],
+                          "settings": {
+                            "tag": "div",
+                            "visibility": true,
+                            "block": {
+                              "tag": "div"
+                            }
+                          },
+                          "children": [
+                            {
+                              "id": {
+                                "component": "6aa3efd54f3f705caf98c687",
+                                "element": "e7c28fbf-7cb1-70d9-74c5-79df83f21ed3"
+                              },
+                              "type": "Block",
+                              "styleNames": [
+                                "margin-bottom",
+                                "margin-small"
+                              ],
+                              "settings": {
+                                "tag": "div",
+                                "visibility": true,
+                                "block": {
+                                  "tag": "div"
+                                }
+                              },
+                              "children": [
+                                {
+                                  "id": {
+                                    "component": "6aa3efd54f3f705caf98c687",
+                                    "element": "e7c28fbf-7cb1-70d9-74c5-79df83f21ed2"
+                                  },
+                                  "type": "Paragraph",
+                                  "styleNames": [
+                                    "text-style-tagline-restored"
+                                  ],
+                                  "attributes": {
+                                    "data-tdb-resource-kicker": ""
+                                  },
+                                  "settings": {
+                                    "visibility": true
+                                  },
+                                  "children": [
+                                    {
+                                      "id": {
+                                        "component": "6aa3efd54f3f705caf98c687",
+                                        "element": "e7c28fbf-7cb1-70d9-74c5-79df83f21ed1"
+                                      },
+                                      "type": "String",
+                                      "textContent": "Every smile tells a story"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "id": {
+                                "component": "6aa3efd54f3f705caf98c687",
+                                "element": "e7c28fbf-7cb1-70d9-74c5-79df83f21ed5"
+                              },
+                              "type": "Heading",
+                              "styleNames": [
+                                "heading-style-h3"
+                              ],
+                              "settings": {
+                                "tag": "h2",
+                                "visibility": true,
+                                "headingLevel": 2
+                              },
+                              "children": [
+                                {
+                                  "id": {
+                                    "component": "6aa3efd54f3f705caf98c687",
+                                    "element": "e7c28fbf-7cb1-70d9-74c5-79df83f21ed4"
+                                  },
+                                  "type": "String",
+                                  "textContent": "Explore our smile transformations"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": {
+                            "component": "6aa3efd54f3f705caf98c687",
+                            "element": "e7c28fbf-7cb1-70d9-74c5-79df83f21ed9"
+                          },
+                          "type": "Block",
+                          "styleNames": [
+                            "max-width-large"
+                          ],
+                          "settings": {
+                            "tag": "div",
+                            "visibility": true,
+                            "block": {
+                              "tag": "div"
+                            }
+                          },
+                          "children": [
+                            {
+                              "id": {
+                                "component": "6aa3efd54f3f705caf98c687",
+                                "element": "e7c28fbf-7cb1-70d9-74c5-79df83f21ed8"
+                              },
+                              "type": "Paragraph",
+                              "styleNames": [
+                                "text-size-medium"
+                              ],
+                              "settings": {
+                                "visibility": true
+                              },
+                              "children": [
+                                {
+                                  "id": {
+                                    "component": "6aa3efd54f3f705caf98c687",
+                                    "element": "e7c28fbf-7cb1-70d9-74c5-79df83f21ed7"
+                                  },
+                                  "type": "String",
+                                  "textContent": "Discover before-and-after smiles from The Dental Barns. Browse by treatment and clinician, and explore the treatment details, costs and duration behind each transformation."
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": {
+                "component": "6aa3efd54f3f705caf98c687",
+                "element": "afc61068-60b9-c331-3b9d-24bc09aa173f"
+              },
+              "type": "Section",
+              "styleNames": [
+                "tdb-sg"
+              ],
+              "attributes": {
+                "id": "tdb-smile-gallery",
+                "data-tdb-sg": "1",
+                "aria-label": "Smile gallery"
+              },
+              "settings": {
+                "tag": "section",
+                "visibility": true
+              },
+              "children": [
+                {
+                  "id": {
+                    "component": "6aa3efd54f3f705caf98c687",
+                    "element": "256909f0-bef2-8b69-3e70-ece45c846eeb"
+                  },
+                  "type": "Block",
+                  "styleNames": [
+                    "tdb-sg-filter-band"
+                  ],
+                  "settings": {
+                    "tag": "div",
+                    "visibility": true,
+                    "block": {
+                      "tag": "div"
+                    }
+                  },
+                  "children": [
+                    {
+                      "id": {
+                        "component": "6aa3efd54f3f705caf98c687",
+                        "element": "423d2250-fba0-bd80-eca3-c08dfe19faec"
+                      },
+                      "type": "Block",
+                      "styleNames": [
+                        "tdb-sg-filter-spacing",
+                        "padding-vertical",
+                        "padding-large"
+                      ],
+                      "settings": {
+                        "tag": "div",
+                        "visibility": true,
+                        "block": {
+                          "tag": "div"
+                        }
+                      },
+                      "children": [
+                        {
+                          "id": {
+                            "component": "6aa3efd54f3f705caf98c687",
+                            "element": "afc61068-60b9-c331-3b9d-24bc09aa1734"
+                          },
+                          "type": "Block",
+                          "styleNames": [
+                            "tdb-sg-toolbar"
+                          ],
+                          "attributes": {
+                            "hidden": "hidden"
+                          },
+                          "settings": {
+                            "tag": "div",
+                            "visibility": true,
+                            "block": {
+                              "tag": "div"
+                            }
+                          },
+                          "children": [
+                            {
+                              "id": {
+                                "component": "6aa3efd54f3f705caf98c687",
+                                "element": "afc61068-60b9-c331-3b9d-24bc09aa1730"
+                              },
+                              "type": "Block",
+                              "styleNames": [
+                                "tdb-sg-filter-heading"
+                              ],
+                              "settings": {
+                                "tag": "div",
+                                "visibility": true,
+                                "block": {
+                                  "tag": "div"
+                                }
+                              },
+                              "children": [
+                                {
+                                  "id": {
+                                    "component": "6aa3efd54f3f705caf98c687",
+                                    "element": "afc61068-60b9-c331-3b9d-24bc09aa172d"
+                                  },
+                                  "type": "Span",
+                                  "styleNames": [
+                                    "text-style-tagline-restored"
+                                  ],
+                                  "settings": {
+                                    "visibility": true
+                                  },
+                                  "children": [
+                                    {
+                                      "id": {
+                                        "component": "6aa3efd54f3f705caf98c687",
+                                        "element": "afc61068-60b9-c331-3b9d-24bc09aa172c"
+                                      },
+                                      "type": "String",
+                                      "textContent": "Explore by treatment"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": {
+                                    "component": "6aa3efd54f3f705caf98c687",
+                                    "element": "afc61068-60b9-c331-3b9d-24bc09aa172f"
+                                  },
+                                  "type": "Span",
+                                  "styleNames": [
+                                    "tdb-sg-help"
+                                  ],
+                                  "settings": {
+                                    "visibility": true
+                                  },
+                                  "children": [
+                                    {
+                                      "id": {
+                                        "component": "6aa3efd54f3f705caf98c687",
+                                        "element": "afc61068-60b9-c331-3b9d-24bc09aa172e"
+                                      },
+                                      "type": "String",
+                                      "textContent": "Choose more than one to see combined treatments."
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "id": {
+                                "component": "6aa3efd54f3f705caf98c687",
+                                "element": "afc61068-60b9-c331-3b9d-24bc09aa1731"
+                              },
+                              "type": "Block",
+                              "styleNames": [
+                                "tdb-sg-filters"
+                              ],
+                              "attributes": {
+                                "aria-label": "Filter by treatment",
+                                "role": "group"
+                              },
+                              "settings": {
+                                "tag": "div",
+                                "visibility": true,
+                                "block": {
+                                  "tag": "div"
+                                }
+                              }
+                            },
+                            {
+                              "id": {
+                                "component": "6aa3efd54f3f705caf98c687",
+                                "element": "afc61068-60b9-c331-3b9d-24bc09aa1732"
+                              },
+                              "type": "Block",
+                              "styleNames": [
+                                "tdb-sg-clinicians"
+                              ],
+                              "attributes": {
+                                "aria-label": "Filter by clinician",
+                                "role": "group",
+                                "hidden": "hidden"
+                              },
+                              "settings": {
+                                "tag": "div",
+                                "visibility": true,
+                                "block": {
+                                  "tag": "div"
+                                }
+                              }
+                            },
+                            {
+                              "id": {
+                                "component": "6aa3efd54f3f705caf98c687",
+                                "element": "afc61068-60b9-c331-3b9d-24bc09aa1733"
+                              },
+                              "type": "Block",
+                              "styleNames": [
+                                "tdb-sg-status"
+                              ],
+                              "attributes": {
+                                "aria-atomic": "true",
+                                "aria-live": "polite",
+                                "role": "status"
+                              },
+                              "settings": {
+                                "tag": "div",
+                                "visibility": true,
+                                "block": {
+                                  "tag": "div"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": {
+                    "component": "6aa3efd54f3f705caf98c687",
+                    "element": "03011786-b3e6-e7c0-d949-d92582dd0600"
+                  },
+                  "type": "Block",
+                  "styleNames": [
+                    "padding-section-small"
+                  ],
+                  "attributes": {
+                    "data-tdb-sg-gallery-spacing": "1"
+                  },
+                  "settings": {
+                    "tag": "div",
+                    "visibility": true,
+                    "block": {
+                      "tag": "div"
+                    }
+                  },
+                  "children": [
+                    {
+                      "id": {
+                        "component": "6aa3efd54f3f705caf98c687",
+                        "element": "afc61068-60b9-c331-3b9d-24bc09aa173e"
+                      },
+                      "type": "Block",
+                      "styleNames": [
+                        "tdb-sg-container"
+                      ],
+                      "settings": {
+                        "tag": "div",
+                        "visibility": true,
+                        "block": {
+                          "tag": "div"
+                        }
+                      },
+                      "children": [
+                        {
+                          "id": {
+                            "component": "6aa3efd54f3f705caf98c687",
+                            "element": "afc61068-60b9-c331-3b9d-24bc09aa1735"
+                          },
+                          "type": "Block",
+                          "settings": {
+                            "tag": "div",
+                            "visibility": true,
+                            "block": {
+                              "tag": "div"
+                            }
+                          },
+                          "children": [
+                            {
+                              "id": {
+                                "component": "6aa3efd54f3f705caf98c687",
+                                "element": "e49d478a-cbcb-1cf8-45f9-407427786358"
+                              },
+                              "type": "DynamoWrapper",
+                              "attributes": {
+                                "data-tdb-sg-list": "1"
+                              },
+                              "settings": {
+                                "visibility": true
+                              },
+                              "children": [
+                                {
+                                  "id": {
+                                    "component": "6aa3efd54f3f705caf98c687",
+                                    "element": "e49d478a-cbcb-1cf8-45f9-407427786359"
+                                  },
+                                  "type": "DynamoList",
+                                  "settings": {
+                                    "visibility": true
+                                  },
+                                  "children": [
+                                    {
+                                      "id": {
+                                        "component": "6aa3efd54f3f705caf98c687",
+                                        "element": "e49d478a-cbcb-1cf8-45f9-40742778635a"
+                                      },
+                                      "type": "DynamoItem",
+                                      "settings": {
+                                        "visibility": true
+                                      },
+                                      "children": [
+                                        {
+                                          "id": {
+                                            "component": "6aa3efd54f3f705caf98c687",
+                                            "element": "ef21cb20-7533-d828-8155-4b58c9acc87f"
+                                          },
+                                          "type": "DOM",
+                                          "attributes": {
+                                            "data-tdb-sg-case": "1"
+                                          },
+                                          "settings": {
+                                            "tag": "details",
+                                            "visibility": true,
+                                            "dom": {
+                                              "tag": "details"
+                                            }
+                                          },
+                                          "children": [
+                                            {
+                                              "id": {
+                                                "component": "6aa3efd54f3f705caf98c687",
+                                                "element": "822f0ff2-735e-fc7b-4dec-ff3a205cb37a"
+                                              },
+                                              "type": "DOM",
+                                              "attributes": {
+                                                "data-tdb-sg-open": "1"
+                                              },
+                                              "settings": {
+                                                "tag": "summary",
+                                                "visibility": true,
+                                                "dom": {
+                                                  "tag": "summary"
+                                                }
+                                              },
+                                              "children": [
+                                                {
+                                                  "id": {
+                                                    "component": "6aa3efd54f3f705caf98c687",
+                                                    "element": "a600afe1-3d67-1a55-1ea3-34ae19cc62b4"
+                                                  },
+                                                  "type": "Block",
+                                                  "attributes": {
+                                                    "data-tdb-sg-pair": "1"
+                                                  },
+                                                  "settings": {
+                                                    "tag": "div",
+                                                    "visibility": true,
+                                                    "block": {
+                                                      "tag": "div"
+                                                    }
+                                                  },
+                                                  "children": [
+                                                    {
+                                                      "id": {
+                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                        "element": "88de718b-cdc3-fa84-d2a9-74b431175f56"
+                                                      },
+                                                      "type": "Block",
+                                                      "attributes": {
+                                                        "data-tdb-sg-crop": "before"
+                                                      },
+                                                      "settings": {
+                                                        "tag": "div",
+                                                        "visibility": true,
+                                                        "block": {
+                                                          "tag": "div"
+                                                        }
+                                                      },
+                                                      "children": [
+                                                        {
+                                                          "id": {
+                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                            "element": "592ea631-3ab5-5cdb-ac61-3609dbbb6e10"
+                                                          },
+                                                          "type": "Image",
+                                                          "attributes": {
+                                                            "data-tdb-sg-image": "before",
+                                                            "loading": "lazy",
+                                                            "decoding": "async"
+                                                          },
+                                                          "settings": {
+                                                            "visibility": true
+                                                          }
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "id": {
+                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                        "element": "6af852ff-33cd-5a95-8290-111bd997083f"
+                                                      },
+                                                      "type": "Block",
+                                                      "attributes": {
+                                                        "data-tdb-sg-crop": "after"
+                                                      },
+                                                      "settings": {
+                                                        "tag": "div",
+                                                        "visibility": true,
+                                                        "block": {
+                                                          "tag": "div"
+                                                        }
+                                                      },
+                                                      "children": [
+                                                        {
+                                                          "id": {
+                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                            "element": "6af852ff-33cd-5a95-8290-111bd997083e"
+                                                          },
+                                                          "type": "Image",
+                                                          "settings": {
+                                                            "visibility": true
+                                                          }
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "id": {
+                                                    "component": "6aa3efd54f3f705caf98c687",
+                                                    "element": "d6dad2f4-0d92-01e5-4707-e59d545a51d3"
+                                                  },
+                                                  "type": "Block",
+                                                  "styleNames": [
+                                                    "padding-global"
+                                                  ],
+                                                  "settings": {
+                                                    "tag": "div",
+                                                    "visibility": true,
+                                                    "block": {
+                                                      "tag": "div"
+                                                    }
+                                                  },
+                                                  "children": [
+                                                    {
+                                                      "id": {
+                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                        "element": "d6dad2f4-0d92-01e5-4707-e59d545a51cf"
+                                                      },
+                                                      "type": "Block",
+                                                      "styleNames": [
+                                                        "text-style-tagline-restored"
+                                                      ],
+                                                      "attributes": {
+                                                        "data-tdb-sg-treatment-label": ""
+                                                      },
+                                                      "settings": {
+                                                        "tag": "div",
+                                                        "visibility": true,
+                                                        "block": {
+                                                          "tag": "div"
+                                                        }
+                                                      },
+                                                      "children": [
+                                                        {
+                                                          "id": {
+                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                            "element": "d6dad2f4-0d92-01e5-4707-e59d545a51ce"
+                                                          },
+                                                          "type": "String",
+                                                          "textContent": "Smile transformation"
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "id": {
+                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                        "element": "d6dad2f4-0d92-01e5-4707-e59d545a51d2"
+                                                      },
+                                                      "type": "Block",
+                                                      "settings": {
+                                                        "tag": "div",
+                                                        "visibility": true,
+                                                        "block": {
+                                                          "tag": "div"
+                                                        }
+                                                      },
+                                                      "children": [
+                                                        {
+                                                          "id": {
+                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                            "element": "d6dad2f4-0d92-01e5-4707-e59d545a51d0"
+                                                          },
+                                                          "type": "Span",
+                                                          "attributes": {
+                                                            "data-tdb-sg-duration": ""
+                                                          },
+                                                          "settings": {
+                                                            "visibility": true
+                                                          },
+                                                          "children": [
+                                                            {
+                                                              "id": {
+                                                                "component": "6aa3efd54f3f705caf98c687",
+                                                                "element": "ea49d0e0-35ee-4c07-4743-03f307452964"
+                                                              },
+                                                              "type": "String",
+                                                              "textContent": "Duration"
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "id": {
+                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                            "element": "d6dad2f4-0d92-01e5-4707-e59d545a51d1"
+                                                          },
+                                                          "type": "Span",
+                                                          "attributes": {
+                                                            "data-tdb-sg-price": ""
+                                                          },
+                                                          "settings": {
+                                                            "visibility": true
+                                                          },
+                                                          "children": [
+                                                            {
+                                                              "id": {
+                                                                "component": "6aa3efd54f3f705caf98c687",
+                                                                "element": "f7e13052-3deb-d3a8-f3b3-fa71be8c8e91"
+                                                              },
+                                                              "type": "String",
+                                                              "textContent": "Price"
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "id": {
+                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                            "element": "47c6a3b0-f66c-38dc-7816-da21d5334fc8"
+                                                          },
+                                                          "type": "Block",
+                                                          "attributes": {
+                                                            "data-tdb-sg-duration-value": ""
+                                                          },
+                                                          "settings": {
+                                                            "tag": "div",
+                                                            "visibility": true,
+                                                            "block": {
+                                                              "tag": "div"
+                                                            }
+                                                          }
+                                                        },
+                                                        {
+                                                          "id": {
+                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                            "element": "2906988e-0d7c-9be3-bd1e-674459618d15"
+                                                          },
+                                                          "type": "Block",
+                                                          "attributes": {
+                                                            "data-tdb-sg-price-value": ""
+                                                          },
+                                                          "settings": {
+                                                            "tag": "div",
+                                                            "visibility": true,
+                                                            "block": {
+                                                              "tag": "div"
+                                                            }
+                                                          }
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "id": {
+                                                "component": "6aa3efd54f3f705caf98c687",
+                                                "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa254c"
+                                              },
+                                              "type": "Block",
+                                              "attributes": {
+                                                "aria-hidden": "true",
+                                                "data-tdb-sg-dialog": ""
+                                              },
+                                              "settings": {
+                                                "tag": "div",
+                                                "visibility": true,
+                                                "block": {
+                                                  "tag": "div"
+                                                }
+                                              },
+                                              "children": [
+                                                {
+                                                  "id": {
+                                                    "component": "6aa3efd54f3f705caf98c687",
+                                                    "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa252f"
+                                                  },
+                                                  "type": "Block",
+                                                  "attributes": {
+                                                    "data-tdb-sg-close": ""
+                                                  },
+                                                  "settings": {
+                                                    "tag": "div",
+                                                    "visibility": true,
+                                                    "block": {
+                                                      "tag": "div"
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "id": {
+                                                    "component": "6aa3efd54f3f705caf98c687",
+                                                    "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa254b"
+                                                  },
+                                                  "type": "Block",
+                                                  "attributes": {
+                                                    "aria-labelledby": "tdb-sg-title",
+                                                    "aria-modal": "true",
+                                                    "role": "dialog"
+                                                  },
+                                                  "settings": {
+                                                    "tag": "div",
+                                                    "visibility": true,
+                                                    "block": {
+                                                      "tag": "div"
+                                                    }
+                                                  },
+                                                  "children": [
+                                                    {
+                                                      "id": {
+                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                        "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2531"
+                                                      },
+                                                      "type": "Link",
+                                                      "attributes": {
+                                                        "aria-label": "Close case",
+                                                        "data-tdb-sg-close": "",
+                                                        "type": "button",
+                                                        "role": "button",
+                                                        "tabindex": "0"
+                                                      },
+                                                      "settings": {
+                                                        "visibility": true
+                                                      },
+                                                      "children": [
+                                                        {
+                                                          "id": {
+                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                            "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2530"
+                                                          },
+                                                          "type": "String",
+                                                          "textContent": "×"
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "id": {
+                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                        "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa254a"
+                                                      },
+                                                      "type": "Block",
+                                                      "settings": {
+                                                        "tag": "div",
+                                                        "visibility": true,
+                                                        "block": {
+                                                          "tag": "div"
+                                                        }
+                                                      },
+                                                      "children": [
+                                                        {
+                                                          "id": {
+                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                            "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2532"
+                                                          },
+                                                          "type": "Image",
+                                                          "settings": {
+                                                            "visibility": true
+                                                          }
+                                                        },
+                                                        {
+                                                          "id": {
+                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                            "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2549"
+                                                          },
+                                                          "type": "Block",
+                                                          "settings": {
+                                                            "tag": "div",
+                                                            "visibility": true,
+                                                            "block": {
+                                                              "tag": "div"
+                                                            }
+                                                          },
+                                                          "children": [
+                                                            {
+                                                              "id": {
+                                                                "component": "6aa3efd54f3f705caf98c687",
+                                                                "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2537"
+                                                              },
+                                                              "type": "Block",
+                                                              "settings": {
+                                                                "tag": "div",
+                                                                "visibility": true,
+                                                                "block": {
+                                                                  "tag": "div"
+                                                                }
+                                                              },
+                                                              "children": [
+                                                                {
+                                                                  "id": {
+                                                                    "component": "6aa3efd54f3f705caf98c687",
+                                                                    "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2534"
+                                                                  },
+                                                                  "type": "Span",
+                                                                  "attributes": {
+                                                                    "data-tdb-sg-treatments": ""
+                                                                  },
+                                                                  "settings": {
+                                                                    "visibility": true
+                                                                  },
+                                                                  "children": [
+                                                                    {
+                                                                      "id": {
+                                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                                        "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2533"
+                                                                      },
+                                                                      "type": "String",
+                                                                      "textContent": "Smile transformation"
+                                                                    }
+                                                                  ]
+                                                                },
+                                                                {
+                                                                  "id": {
+                                                                    "component": "6aa3efd54f3f705caf98c687",
+                                                                    "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2535"
+                                                                  },
+                                                                  "type": "String",
+                                                                  "textContent": " · "
+                                                                },
+                                                                {
+                                                                  "id": {
+                                                                    "component": "6aa3efd54f3f705caf98c687",
+                                                                    "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2536"
+                                                                  },
+                                                                  "type": "Span",
+                                                                  "attributes": {
+                                                                    "data-tdb-sg-clinician": ""
+                                                                  },
+                                                                  "settings": {
+                                                                    "visibility": true
+                                                                  },
+                                                                  "children": [
+                                                                    {
+                                                                      "id": {
+                                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                                        "element": "4ae9f6e9-ebe7-1e42-306d-9d43d067bc74"
+                                                                      },
+                                                                      "type": "String",
+                                                                      "textContent": "Clinician"
+                                                                    }
+                                                                  ]
+                                                                },
+                                                                {
+                                                                  "id": {
+                                                                    "component": "6aa3efd54f3f705caf98c687",
+                                                                    "element": "a550a155-a371-81f0-58d5-7a8bcde7aa0e"
+                                                                  },
+                                                                  "type": "Block",
+                                                                  "attributes": {
+                                                                    "data-tdb-sg-clinician-value": ""
+                                                                  },
+                                                                  "settings": {
+                                                                    "tag": "div",
+                                                                    "visibility": true,
+                                                                    "block": {
+                                                                      "tag": "div"
+                                                                    }
+                                                                  }
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "id": {
+                                                                "component": "6aa3efd54f3f705caf98c687",
+                                                                "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2538"
+                                                              },
+                                                              "type": "Heading",
+                                                              "attributes": {
+                                                                "id": "tdb-sg-title",
+                                                                "data-tdb-sg-title": ""
+                                                              },
+                                                              "settings": {
+                                                                "tag": "h2",
+                                                                "visibility": true,
+                                                                "headingLevel": 2
+                                                              }
+                                                            },
+                                                            {
+                                                              "id": {
+                                                                "component": "6aa3efd54f3f705caf98c687",
+                                                                "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2539"
+                                                              },
+                                                              "type": "Paragraph",
+                                                              "attributes": {
+                                                                "data-tdb-sg-description": ""
+                                                              },
+                                                              "settings": {
+                                                                "visibility": true
+                                                              }
+                                                            },
+                                                            {
+                                                              "id": {
+                                                                "component": "6aa3efd54f3f705caf98c687",
+                                                                "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2542"
+                                                              },
+                                                              "type": "Block",
+                                                              "settings": {
+                                                                "tag": "div",
+                                                                "visibility": true,
+                                                                "block": {
+                                                                  "tag": "div"
+                                                                }
+                                                              },
+                                                              "children": [
+                                                                {
+                                                                  "id": {
+                                                                    "component": "6aa3efd54f3f705caf98c687",
+                                                                    "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa253d"
+                                                                  },
+                                                                  "type": "Block",
+                                                                  "settings": {
+                                                                    "tag": "div",
+                                                                    "visibility": true,
+                                                                    "block": {
+                                                                      "tag": "div"
+                                                                    }
+                                                                  },
+                                                                  "children": [
+                                                                    {
+                                                                      "id": {
+                                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                                        "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa253b"
+                                                                      },
+                                                                      "type": "Span",
+                                                                      "settings": {
+                                                                        "visibility": true
+                                                                      },
+                                                                      "children": [
+                                                                        {
+                                                                          "id": {
+                                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                                            "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa253a"
+                                                                          },
+                                                                          "type": "String",
+                                                                          "textContent": "Duration"
+                                                                        }
+                                                                      ]
+                                                                    },
+                                                                    {
+                                                                      "id": {
+                                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                                        "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa253c"
+                                                                      },
+                                                                      "type": "Strong",
+                                                                      "attributes": {
+                                                                        "data-tdb-sg-duration": ""
+                                                                      },
+                                                                      "settings": {
+                                                                        "visibility": true
+                                                                      },
+                                                                      "children": [
+                                                                        {
+                                                                          "id": {
+                                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                                            "element": "b6492696-f5b5-e0c1-5938-7db8ccf4ffb1"
+                                                                          },
+                                                                          "type": "String",
+                                                                          "textContent": "Duration"
+                                                                        }
+                                                                      ]
+                                                                    },
+                                                                    {
+                                                                      "id": {
+                                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                                        "element": "f1c70d29-643d-332e-94ff-c376999382a3"
+                                                                      },
+                                                                      "type": "Block",
+                                                                      "attributes": {
+                                                                        "data-tdb-sg-duration-value": ""
+                                                                      },
+                                                                      "settings": {
+                                                                        "tag": "div",
+                                                                        "visibility": true,
+                                                                        "block": {
+                                                                          "tag": "div"
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  ]
+                                                                },
+                                                                {
+                                                                  "id": {
+                                                                    "component": "6aa3efd54f3f705caf98c687",
+                                                                    "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2541"
+                                                                  },
+                                                                  "type": "Block",
+                                                                  "settings": {
+                                                                    "tag": "div",
+                                                                    "visibility": true,
+                                                                    "block": {
+                                                                      "tag": "div"
+                                                                    }
+                                                                  },
+                                                                  "children": [
+                                                                    {
+                                                                      "id": {
+                                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                                        "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa253f"
+                                                                      },
+                                                                      "type": "Span",
+                                                                      "settings": {
+                                                                        "visibility": true
+                                                                      },
+                                                                      "children": [
+                                                                        {
+                                                                          "id": {
+                                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                                            "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa253e"
+                                                                          },
+                                                                          "type": "String",
+                                                                          "textContent": "Investment"
+                                                                        }
+                                                                      ]
+                                                                    },
+                                                                    {
+                                                                      "id": {
+                                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                                        "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2540"
+                                                                      },
+                                                                      "type": "Strong",
+                                                                      "attributes": {
+                                                                        "data-tdb-sg-price": ""
+                                                                      },
+                                                                      "settings": {
+                                                                        "visibility": true
+                                                                      },
+                                                                      "children": [
+                                                                        {
+                                                                          "id": {
+                                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                                            "element": "37a083a3-6e63-43c7-8ab7-1513e50eed2e"
+                                                                          },
+                                                                          "type": "String",
+                                                                          "textContent": "Price"
+                                                                        }
+                                                                      ]
+                                                                    },
+                                                                    {
+                                                                      "id": {
+                                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                                        "element": "4745f3a2-4f5b-deed-9b52-0b21552e7741"
+                                                                      },
+                                                                      "type": "Block",
+                                                                      "attributes": {
+                                                                        "data-tdb-sg-price-value": ""
+                                                                      },
+                                                                      "settings": {
+                                                                        "tag": "div",
+                                                                        "visibility": true,
+                                                                        "block": {
+                                                                          "tag": "div"
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "id": {
+                                                                "component": "6aa3efd54f3f705caf98c687",
+                                                                "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2543"
+                                                              },
+                                                              "type": "Block",
+                                                              "attributes": {
+                                                                "data-tdb-sg-treatment-data": ""
+                                                              },
+                                                              "settings": {
+                                                                "tag": "div",
+                                                                "visibility": true,
+                                                                "block": {
+                                                                  "tag": "div"
+                                                                }
+                                                              },
+                                                              "children": [
+                                                                {
+                                                                  "id": {
+                                                                    "component": "6aa3efd54f3f705caf98c687",
+                                                                    "element": "d13f4c11-0987-c191-fd3d-a38d9aae1ade"
+                                                                  },
+                                                                  "type": "DynamoWrapper",
+                                                                  "settings": {
+                                                                    "visibility": true
+                                                                  },
+                                                                  "children": [
+                                                                    {
+                                                                      "id": {
+                                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                                        "element": "d13f4c11-0987-c191-fd3d-a38d9aae1adf"
+                                                                      },
+                                                                      "type": "DynamoList",
+                                                                      "settings": {
+                                                                        "visibility": true
+                                                                      },
+                                                                      "children": [
+                                                                        {
+                                                                          "id": {
+                                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                                            "element": "d13f4c11-0987-c191-fd3d-a38d9aae1ae0"
+                                                                          },
+                                                                          "type": "DynamoItem",
+                                                                          "settings": {
+                                                                            "visibility": true
+                                                                          },
+                                                                          "children": [
+                                                                            {
+                                                                              "id": {
+                                                                                "component": "6aa3efd54f3f705caf98c687",
+                                                                                "element": "b51ea959-a40d-50e2-c293-8d0583664e93"
+                                                                              },
+                                                                              "type": "Block",
+                                                                              "attributes": {
+                                                                                "data-tdb-sg-treatment-name": ""
+                                                                              },
+                                                                              "settings": {
+                                                                                "tag": "div",
+                                                                                "visibility": true,
+                                                                                "block": {
+                                                                                  "tag": "div"
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          ]
+                                                                        }
+                                                                      ]
+                                                                    },
+                                                                    {
+                                                                      "id": {
+                                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                                        "element": "d13f4c11-0987-c191-fd3d-a38d9aae1ae1"
+                                                                      },
+                                                                      "type": "DynamoEmpty",
+                                                                      "settings": {
+                                                                        "visibility": true
+                                                                      },
+                                                                      "children": [
+                                                                        {
+                                                                          "id": {
+                                                                            "component": "6aa3efd54f3f705caf98c687",
+                                                                            "element": "d13f4c11-0987-c191-fd3d-a38d9aae1ae2"
+                                                                          },
+                                                                          "type": "Block",
+                                                                          "settings": {
+                                                                            "tag": "div",
+                                                                            "visibility": true,
+                                                                            "block": {
+                                                                              "tag": "div"
+                                                                            }
+                                                                          },
+                                                                          "children": [
+                                                                            {
+                                                                              "id": {
+                                                                                "component": "6aa3efd54f3f705caf98c687",
+                                                                                "element": "d13f4c11-0987-c191-fd3d-a38d9aae1ae3"
+                                                                              },
+                                                                              "type": "String",
+                                                                              "textContent": "No items found."
+                                                                            }
+                                                                          ]
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "id": {
+                                                                "component": "6aa3efd54f3f705caf98c687",
+                                                                "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2548"
+                                                              },
+                                                              "type": "Block",
+                                                              "settings": {
+                                                                "tag": "div",
+                                                                "visibility": true,
+                                                                "block": {
+                                                                  "tag": "div"
+                                                                }
+                                                              },
+                                                              "children": [
+                                                                {
+                                                                  "id": {
+                                                                    "component": "6aa3efd54f3f705caf98c687",
+                                                                    "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2545"
+                                                                  },
+                                                                  "type": "Link",
+                                                                  "attributes": {
+                                                                    "aria-label": "Previous smile",
+                                                                    "data-tdb-sg-prev": "",
+                                                                    "type": "button",
+                                                                    "role": "button",
+                                                                    "tabindex": "0"
+                                                                  },
+                                                                  "settings": {
+                                                                    "visibility": true
+                                                                  },
+                                                                  "children": [
+                                                                    {
+                                                                      "id": {
+                                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                                        "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2544"
+                                                                      },
+                                                                      "type": "String",
+                                                                      "textContent": "←"
+                                                                    }
+                                                                  ]
+                                                                },
+                                                                {
+                                                                  "id": {
+                                                                    "component": "6aa3efd54f3f705caf98c687",
+                                                                    "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2547"
+                                                                  },
+                                                                  "type": "Link",
+                                                                  "attributes": {
+                                                                    "aria-label": "Next smile",
+                                                                    "data-tdb-sg-next": "",
+                                                                    "type": "button",
+                                                                    "role": "button",
+                                                                    "tabindex": "0"
+                                                                  },
+                                                                  "settings": {
+                                                                    "visibility": true
+                                                                  },
+                                                                  "children": [
+                                                                    {
+                                                                      "id": {
+                                                                        "component": "6aa3efd54f3f705caf98c687",
+                                                                        "element": "2cf1a99f-ea3a-6eea-e950-ee18f0fa2546"
+                                                                      },
+                                                                      "type": "String",
+                                                                      "textContent": "→"
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "id": {
+                                            "component": "6aa3efd54f3f705caf98c687",
+                                            "element": "4c73266b-6602-fcd2-2f72-e6670077054e"
+                                          },
+                                          "type": "HtmlEmbed",
+                                          "styleNames": [
+                                            "Image Schema"
+                                          ],
+                                          "settings": {
+                                            "visibility": false
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": {
+                                    "component": "6aa3efd54f3f705caf98c687",
+                                    "element": "e49d478a-cbcb-1cf8-45f9-40742778635b"
+                                  },
+                                  "type": "DynamoEmpty",
+                                  "settings": {
+                                    "visibility": true
+                                  },
+                                  "children": [
+                                    {
+                                      "id": {
+                                        "component": "6aa3efd54f3f705caf98c687",
+                                        "element": "e49d478a-cbcb-1cf8-45f9-40742778635c"
+                                      },
+                                      "type": "Block",
+                                      "settings": {
+                                        "tag": "div",
+                                        "visibility": true,
+                                        "block": {
+                                          "tag": "div"
+                                        }
+                                      },
+                                      "children": [
+                                        {
+                                          "id": {
+                                            "component": "6aa3efd54f3f705caf98c687",
+                                            "element": "e49d478a-cbcb-1cf8-45f9-40742778635d"
+                                          },
+                                          "type": "String",
+                                          "textContent": "No items found."
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": {
+                            "component": "6aa3efd54f3f705caf98c687",
+                            "element": "afc61068-60b9-c331-3b9d-24bc09aa173a"
+                          },
+                          "type": "Block",
+                          "styleNames": [
+                            "tdb-sg-empty"
+                          ],
+                          "attributes": {
+                            "hidden": "hidden"
+                          },
+                          "settings": {
+                            "tag": "div",
+                            "visibility": true,
+                            "block": {
+                              "tag": "div"
+                            }
+                          },
+                          "children": [
+                            {
+                              "id": {
+                                "component": "6aa3efd54f3f705caf98c687",
+                                "element": "afc61068-60b9-c331-3b9d-24bc09aa1737"
+                              },
+                              "type": "Paragraph",
+                              "settings": {
+                                "visibility": true
+                              },
+                              "children": [
+                                {
+                                  "id": {
+                                    "component": "6aa3efd54f3f705caf98c687",
+                                    "element": "afc61068-60b9-c331-3b9d-24bc09aa1736"
+                                  },
+                                  "type": "String",
+                                  "textContent": "No smiles match this combination."
+                                }
+                              ]
+                            },
+                            {
+                              "id": {
+                                "component": "6aa3efd54f3f705caf98c687",
+                                "element": "afc61068-60b9-c331-3b9d-24bc09aa1739"
+                              },
+                              "type": "Link",
+                              "styleNames": [
+                                "tdb-sg-reset"
+                              ],
+                              "attributes": {
+                                "type": "button"
+                              },
+                              "settings": {
+                                "visibility": true
+                              },
+                              "children": [
+                                {
+                                  "id": {
+                                    "component": "6aa3efd54f3f705caf98c687",
+                                    "element": "afc61068-60b9-c331-3b9d-24bc09aa1738"
+                                  },
+                                  "type": "String",
+                                  "textContent": "Clear filters"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": {
+                            "component": "6aa3efd54f3f705caf98c687",
+                            "element": "afc61068-60b9-c331-3b9d-24bc09aa173d"
+                          },
+                          "type": "Block",
+                          "styleNames": [
+                            "tdb-sg-more-wrap"
+                          ],
+                          "attributes": {
+                            "hidden": "hidden"
+                          },
+                          "settings": {
+                            "tag": "div",
+                            "visibility": true,
+                            "block": {
+                              "tag": "div"
+                            }
+                          },
+                          "children": [
+                            {
+                              "id": {
+                                "component": "6aa3efd54f3f705caf98c687",
+                                "element": "afc61068-60b9-c331-3b9d-24bc09aa173c"
+                              },
+                              "type": "Link",
+                              "styleNames": [
+                                "tdb-sg-more"
+                              ],
+                              "attributes": {
+                                "type": "button"
+                              },
+                              "settings": {
+                                "visibility": true
+                              },
+                              "children": [
+                                {
+                                  "id": {
+                                    "component": "6aa3efd54f3f705caf98c687",
+                                    "element": "afc61068-60b9-c331-3b9d-24bc09aa173b"
+                                  },
+                                  "type": "String",
+                                  "textContent": "Show more smiles"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": {
+                "component": "6aa3efd54f3f705caf98c687",
+                "element": "0cd0910b-53d8-29ac-6640-ccb03c19c0ba"
+              },
+              "type": "ComponentInstance",
+              "instanceDetails": {
+                "type": "ComponentInstance",
+                "id": "64499256-694b-b6f1-10bb-42e20af086fd",
+                "name": "Big paragraph - Component Dark",
+                "props": [
+                  {
+                    "propId": "d473c3ef-b7a7-ad69-bd1a-e4e96b0da840",
+                    "value": "Your first step is the Signature Assessment ✦ with Dr Keely. It combines Smile Design, a comprehensive examination and clinically appropriate diagnostics in one 90-minute appointment.\n\nWe discuss your itemised treatment plan and costs on the day. A personalised written report follows afterwards. Any treatment is priced separately, with no obligation to proceed.\n\nIf you would prefer to start with a conversation, a standalone Smile Design appointment gives you time to meet Dr Keely and the team, explore your options and decide on your next step.\n\nWe release a limited number of Smile Design appointments from time to time. Booking links are shared exclusively with our VIP Waitlist.",
+                    "hasOverride": true,
+                    "name": "Paragraph"
+                  },
+                  {
+                    "propId": "450c0989-5bc1-1443-f3b5-42e6fe20ae94",
+                    "value": {
+                      "innerText": "Your first step is the Signature Assessment ✦ with Dr Keely. It combines Smile Design, a comprehensive examination and clinically appropriate diagnostics in one 90-minute appointment.\n\nWe discuss your itemised treatment plan and costs on the day. A personalised written report follows afterwards. Any treatment is priced separately, with no obligation to proceed.\n\nIf you would prefer to start with a conversation, a standalone Smile Design appointment gives you time to meet Dr Keely and the team, explore your options and decide on your next step.\n\nWe release a limited number of Smile Design appointments from time to time. Booking links are shared exclusively with our VIP Waitlist."
+                    },
+                    "hasOverride": true,
+                    "name": "Where to start text"
+                  },
+                  {
+                    "propId": "841da169-dd07-c464-cb36-dfd7c63d2f37",
+                    "value": "Not sure which first appointment is right for you?",
+                    "hasOverride": true,
+                    "name": "Title"
+                  },
+                  {
+                    "propId": "9aa455b2-7e77-381f-28a9-4eb73929905b",
+                    "value": true,
+                    "hasOverride": false,
+                    "name": "Plain Paragraph Visible"
+                  },
+                  {
+                    "propId": "a8fb1789-2a68-d3ff-a218-56098dc4bf02",
+                    "value": false,
+                    "hasOverride": true,
+                    "name": "Rich Text Paragraph Visible"
+                  },
+                  {
+                    "propId": "50c0fc38-9ed9-8262-a63a-3fe5d3e34446",
+                    "value": {
+                      "innerText": "Your first step is the Signature Assessment ✦ with Dr Keely. It combines Smile Design, a comprehensive examination and clinically appropriate diagnostics in one 90-minute appointment.\n\nWe discuss your itemised treatment plan and costs on the day. A personalised written report follows afterwards. Any treatment is priced separately, with no obligation to proceed.\n\nIf you would prefer to start with a conversation, a standalone Smile Design appointment gives you time to meet Dr Keely and the team, explore your options and decide on your next step.\n\nWe release a limited number of Smile Design appointments from time to time. Booking links are shared exclusively with our VIP Waitlist."
+                    },
+                    "hasOverride": true,
+                    "name": "5 Step Process Paragraph"
+                  },
+                  {
+                    "propId": "40bcff5b-03e9-db7c-a0e2-99a4c0674d35",
+                    "value": {
+                      "mode": "pageSection",
+                      "to": {
+                        "fullElementId": {
+                          "element": "2977f693-4e1e-3867-a945-4c09f58fd013",
+                          "component": ""
+                        }
+                      }
+                    },
+                    "hasOverride": false,
+                    "name": "Link"
+                  },
+                  {
+                    "propId": "d0df42de-40f6-a0f2-1386-509e4dfc9005",
+                    "value": "Join VIP",
+                    "hasOverride": true,
+                    "name": "Text"
+                  },
+                  {
+                    "propId": "51c1f4d1-0db4-21fd-6cbf-eeb981213999",
+                    "value": true,
+                    "hasOverride": false,
+                    "name": "Visibility"
+                  },
+                  {
+                    "propId": "b036d5bf-cfb9-91d9-9035-a4f782fc4aed",
+                    "value": true,
+                    "hasOverride": false,
+                    "name": "Icon Visibility"
+                  },
+                  {
+                    "propId": "0004ed29-2542-c7c1-9f24-7581618cdb09",
+                    "value": false,
+                    "hasOverride": false,
+                    "name": "Down Arrow Visible"
+                  },
+                  {
+                    "propId": "c445aec3-a2fd-b0eb-8772-6b376db92876",
+                    "value": true,
+                    "hasOverride": true,
+                    "name": "Up Arrow Visible"
+                  },
+                  {
+                    "propId": "1107d78b-bd86-e1cd-c208-1a4be28814ab",
+                    "value": false,
+                    "hasOverride": true,
+                    "name": "Right Arrow Visibility"
+                  }
+                ],
+                "slots": []
+              }
+            },
+            {
+              "id": {
+                "component": "6aa3efd54f3f705caf98c687",
+                "element": "b3508490-0b14-030e-1edc-eb6a35d2115e"
+              },
+              "type": "ComponentInstance",
+              "instanceDetails": {
+                "type": "ComponentInstance",
+                "id": "492cd62a-b903-e2d4-f435-238f82e688a2",
+                "name": "Component 1 - Bg image",
+                "props": [
+                  {
+                    "propId": "a01c0810-efe8-965e-00f5-998f31d28664",
+                    "value": "How to book your first appointment",
+                    "hasOverride": true,
+                    "name": "Headline"
+                  },
+                  {
+                    "propId": "a0bfb63b-80e3-6208-d21a-54f211d55bbd",
+                    "value": "Begin with a Signature Assessment ✦ at The Dental Barns. Your 90-minute appointment combines Smile Design, a comprehensive examination and clinically appropriate diagnostics.\n\nJoin The Dental Barns VIP for private access to the assessment appointments currently available. We will text you a secure booking link.\n\nIf you would prefer to start with a conversation, a standalone Smile Design appointment gives you time to meet Dr Keely and the team, explore your options and decide on your next step.\n\nWe release a limited number of Smile Design appointments from time to time. Booking links are shared exclusively with our VIP Waitlist.",
+                    "hasOverride": true,
+                    "name": "Paragraph"
+                  },
+                  {
+                    "propId": "76e239cb-162a-3cf9-fd5d-e5051cec6bef",
+                    "value": true,
+                    "hasOverride": true,
+                    "name": "Show benefit Left"
+                  },
+                  {
+                    "propId": "395b43c3-4b94-c1da-5fee-dee55db3bc5c",
+                    "value": false,
+                    "hasOverride": true,
+                    "name": "Show Benefit Right"
+                  },
+                  {
+                    "propId": "6c46ad8f-f1ca-f281-431d-04bdc4d5b286",
+                    "value": "68fb5d8d99bcb23f3eb82b1b",
+                    "hasOverride": true,
+                    "name": "benefit_icon - Image"
+                  },
+                  {
+                    "propId": "82cf1f44-9181-6b03-da01-309748e2eefc",
+                    "value": "Join VIP",
+                    "hasOverride": true,
+                    "name": "Benefit #1"
+                  },
+                  {
+                    "propId": "6999c76b-5c55-07ec-1fa0-593d3be185df",
+                    "value": "68fb5d8d99bcb23f3eb82b1b",
+                    "hasOverride": true,
+                    "name": "benefit_icon - Image 2"
+                  },
+                  {
+                    "propId": "ba1901e3-5ec5-2772-d345-454d1f8361dd",
+                    "value": "Choose Your Appointment",
+                    "hasOverride": true,
+                    "name": "Benefit #2"
+                  },
+                  {
+                    "propId": "7b79e39a-b7ea-27f7-c548-0c56d6eef4c1",
+                    "value": "68fb5d8d99bcb23f3eb82b1b",
+                    "hasOverride": true,
+                    "name": "benefit_icon - Image 3"
+                  },
+                  {
+                    "propId": "b039a45b-2162-8244-7d91-4df74a2840eb",
+                    "value": "Book Online",
+                    "hasOverride": true,
+                    "name": "Benefit #3"
+                  },
+                  {
+                    "propId": "d8f33c37-ef62-39d8-1358-a867afe64ab5",
+                    "value": {
+                      "mode": "pageSection",
+                      "to": {
+                        "fullElementId": {
+                          "element": "2977f693-4e1e-3867-a945-4c09f58fd013",
+                          "component": ""
+                        }
+                      }
+                    },
+                    "hasOverride": true,
+                    "name": "Button Link"
+                  },
+                  {
+                    "propId": "9d4de29c-661d-eead-8d4a-64290d453c7f",
+                    "value": "Join VIP",
+                    "hasOverride": true,
+                    "name": "Button text"
+                  },
+                  {
+                    "propId": "27d09fcd-6bbf-4c41-388d-a39ed2eebd2c",
+                    "value": false,
+                    "hasOverride": true,
+                    "name": "Show This video"
+                  },
+                  {
+                    "propId": "456d36b4-28f2-2edc-f5b2-d7a2e1cd51c9",
+                    "value": true,
+                    "hasOverride": true,
+                    "name": "Show image"
+                  },
+                  {
+                    "propId": "764ef818-3189-412f-5118-f0332395d6e1",
+                    "value": "696a68470000e3ad7b5a833c",
+                    "hasOverride": true,
+                    "name": "Bg Image or Thumbnails"
+                  },
+                  {
+                    "propId": "07820306-fc48-630a-1c8e-1c902a811b76",
+                    "value": "1157560145",
+                    "hasOverride": true,
+                    "name": "Vimeo video id"
+                  },
+                  {
+                    "propId": "e624c6a2-4213-37d0-c9d3-5e7decebfd74",
+                    "value": false,
+                    "hasOverride": true,
+                    "name": "Right Arrow Visibility"
+                  },
+                  {
+                    "propId": "aff63ecf-8301-7831-d5a6-331c0f377b17",
+                    "value": false,
+                    "hasOverride": false,
+                    "name": "Down Arrow Visibility"
+                  },
+                  {
+                    "propId": "a290b170-5b75-ef4d-a308-62e17e48406e",
+                    "value": true,
+                    "hasOverride": true,
+                    "name": "Up Arrow Visible"
+                  },
+                  {
+                    "propId": "9e9f57d4-882d-f1c2-f462-d6e0161c393d",
+                    "value": true,
+                    "hasOverride": false,
+                    "name": "Down Arrow Visible"
+                  },
+                  {
+                    "propId": "1a7c42c4-1805-a1f5-ffb1-12922eb0575d",
+                    "value": "d5d4845d-0afc-5edf-50aa-f5adfb9afffb",
+                    "hasOverride": true,
+                    "name": "Variant"
+                  }
+                ],
+                "slots": []
+              }
+            },
+            {
+              "id": {
+                "component": "6aa3efd54f3f705caf98c687",
+                "element": "0e6a66ba-5775-62f4-1f07-73ff1c9bdc28"
+              },
+              "type": "ComponentInstance",
+              "instanceDetails": {
+                "type": "ComponentInstance",
+                "id": "abd36c7c-55aa-ac3f-edd0-cc4a4068eefc",
+                "name": "Banner Partners",
+                "props": [
+                  {
+                    "propId": "20193cd8-0c54-d250-a97e-b24d24064691",
+                    "value": "base",
+                    "hasOverride": false,
+                    "name": "Variant"
+                  },
+                  {
+                    "propId": "18d8945c-7ffc-85da-4a54-a4d4dfcda416",
+                    "value": "Brands we Love",
+                    "hasOverride": true,
+                    "name": "Banner heading"
+                  },
+                  {
+                    "propId": "b5dc028e-d964-fb50-f406-591930697e1e",
+                    "value": false,
+                    "hasOverride": false,
+                    "name": "Heading Visibility"
+                  },
+                  {
+                    "propId": "4c8dfecd-e615-5884-76ec-07a39ee0b0d0",
+                    "value": false,
+                    "hasOverride": false,
+                    "name": "Tool tip Visibility"
+                  },
+                  {
+                    "propId": "616eeef5-a236-9135-b735-ab7d426c3a26",
+                    "value": true,
+                    "hasOverride": true,
+                    "name": "Header Visibility"
+                  },
+                  {
+                    "propId": "af5cb0d3-881b-94d8-eabe-37d3ebd90453",
+                    "value": {
+                      "filters": [
+                        {
+                          "fieldSlug": "category",
+                          "operator": "equals",
+                          "value": "a8209d5ad39fffe8c9db17d0df46105e"
+                        }
+                      ],
+                      "filterMatch": "all"
+                    },
+                    "hasOverride": false,
+                    "name": "Category Filter"
+                  },
+                  {
+                    "propId": "efc9dca3-3dd7-ed15-8c80-958b5a78694b",
+                    "value": [
+                      {
+                        "fieldSlug": "_random",
+                        "direction": "ascending"
+                      }
+                    ],
+                    "hasOverride": false,
+                    "name": "Sort"
+                  }
+                ],
+                "slots": []
+              }
+            },
+            {
+              "id": {
+                "component": "6aa3efd54f3f705caf98c687",
+                "element": "11e3fdeb-5df5-3753-1144-3f3831fd1968"
+              },
+              "type": "ComponentInstance",
+              "instanceDetails": {
+                "type": "ComponentInstance",
+                "id": "492cd62a-b903-e2d4-f435-238f82e688a2",
+                "name": "Component 1 - Bg image",
+                "props": [
+                  {
+                    "propId": "a01c0810-efe8-965e-00f5-998f31d28664",
+                    "value": "Discover Our Countryside Location",
+                    "hasOverride": true,
+                    "name": "Headline"
+                  },
+                  {
+                    "propId": "a0bfb63b-80e3-6208-d21a-54f211d55bbd",
+                    "value": "Located at the prestigious Blackbrook Barns, The Dental Barns is nestled in the countryside between Lichfield and Sutton Coldfield. Surrounded by historic rustic barns, rolling landscapes, and the calming flow of the Black Brook.",
+                    "hasOverride": true,
+                    "name": "Paragraph"
+                  },
+                  {
+                    "propId": "76e239cb-162a-3cf9-fd5d-e5051cec6bef",
+                    "value": true,
+                    "hasOverride": true,
+                    "name": "Show benefit Left"
+                  },
+                  {
+                    "propId": "395b43c3-4b94-c1da-5fee-dee55db3bc5c",
+                    "value": false,
+                    "hasOverride": true,
+                    "name": "Show Benefit Right"
+                  },
+                  {
+                    "propId": "6c46ad8f-f1ca-f281-431d-04bdc4d5b286",
+                    "value": "678aba6948c1f2433e11fcd3",
+                    "hasOverride": false,
+                    "name": "benefit_icon - Image"
+                  },
+                  {
+                    "propId": "82cf1f44-9181-6b03-da01-309748e2eefc",
+                    "value": "TRANQUIL",
+                    "hasOverride": false,
+                    "name": "Benefit #1"
+                  },
+                  {
+                    "propId": "6999c76b-5c55-07ec-1fa0-593d3be185df",
+                    "value": "678aba69e1d35bcd2dc33d3f",
+                    "hasOverride": true,
+                    "name": "benefit_icon - Image 2"
+                  },
+                  {
+                    "propId": "ba1901e3-5ec5-2772-d345-454d1f8361dd",
+                    "value": "CONVENIENT",
+                    "hasOverride": false,
+                    "name": "Benefit #2"
+                  },
+                  {
+                    "propId": "7b79e39a-b7ea-27f7-c548-0c56d6eef4c1",
+                    "value": "678aba694a79d53ad13f1aac",
+                    "hasOverride": false,
+                    "name": "benefit_icon - Image 3"
+                  },
+                  {
+                    "propId": "b039a45b-2162-8244-7d91-4df74a2840eb",
+                    "value": "DISCREET",
+                    "hasOverride": false,
+                    "name": "Benefit #3"
+                  },
+                  {
+                    "propId": "d8f33c37-ef62-39d8-1358-a867afe64ab5",
+                    "value": {
+                      "mode": "page",
+                      "to": {
+                        "pageId": "677cfb8a0f25478449823c5f"
+                      }
+                    },
+                    "hasOverride": true,
+                    "name": "Button Link"
+                  },
+                  {
+                    "propId": "9d4de29c-661d-eead-8d4a-64290d453c7f",
+                    "value": "See location",
+                    "hasOverride": true,
+                    "name": "Button text"
+                  },
+                  {
+                    "propId": "27d09fcd-6bbf-4c41-388d-a39ed2eebd2c",
+                    "value": false,
+                    "hasOverride": true,
+                    "name": "Show This video"
+                  },
+                  {
+                    "propId": "456d36b4-28f2-2edc-f5b2-d7a2e1cd51c9",
+                    "value": true,
+                    "hasOverride": true,
+                    "name": "Show image"
+                  },
+                  {
+                    "propId": "764ef818-3189-412f-5118-f0332395d6e1",
+                    "value": "697398b9b0e75f2c89e2df8b",
+                    "hasOverride": true,
+                    "name": "Bg Image or Thumbnails"
+                  },
+                  {
+                    "propId": "07820306-fc48-630a-1c8e-1c902a811b76",
+                    "value": "1047475282",
+                    "hasOverride": false,
+                    "name": "Vimeo video id"
+                  },
+                  {
+                    "propId": "e624c6a2-4213-37d0-c9d3-5e7decebfd74",
+                    "value": true,
+                    "hasOverride": false,
+                    "name": "Right Arrow Visibility"
+                  },
+                  {
+                    "propId": "aff63ecf-8301-7831-d5a6-331c0f377b17",
+                    "value": false,
+                    "hasOverride": false,
+                    "name": "Down Arrow Visibility"
+                  },
+                  {
+                    "propId": "a290b170-5b75-ef4d-a308-62e17e48406e",
+                    "value": false,
+                    "hasOverride": false,
+                    "name": "Up Arrow Visible"
+                  },
+                  {
+                    "propId": "9e9f57d4-882d-f1c2-f462-d6e0161c393d",
+                    "value": true,
+                    "hasOverride": false,
+                    "name": "Down Arrow Visible"
+                  },
+                  {
+                    "propId": "1a7c42c4-1805-a1f5-ffb1-12922eb0575d",
+                    "value": "d5d4845d-0afc-5edf-50aa-f5adfb9afffb",
+                    "hasOverride": true,
+                    "name": "Variant"
+                  }
+                ],
+                "slots": []
+              }
+            },
+            {
+              "id": {
+                "component": "6aa3efd54f3f705caf98c687",
+                "element": "86fcf3f1-3f08-6216-f353-9ca05a521668"
+              },
+              "type": "ComponentInstance",
+              "instanceDetails": {
+                "type": "ComponentInstance",
+                "id": "6f92ee14-071a-e499-f694-ab66d574d227",
+                "name": "Awards - Component",
+                "props": [
+                  {
+                    "propId": "bbba4fbc-e105-a7a7-4557-ecff8a8ba5cb",
+                    "value": {
+                      "innerText": "This is an awardAnother oneHere we go"
+                    },
+                    "hasOverride": false,
+                    "name": "Awards First Paragraph"
+                  }
+                ],
+                "slots": []
+              }
+            }
+          ]
+        },
+        {
+          "id": {
+            "component": "6aa3efd54f3f705caf98c687",
+            "element": "bc0f1e69-f327-3961-304f-316ca5a00004"
+          },
+          "type": "ComponentInstance",
+          "instanceDetails": {
+            "type": "ComponentInstance",
+            "id": "91d57bb2-8236-c862-18aa-956ad5c7502e",
+            "name": "Footer",
+            "props": [],
+            "slots": []
+          }
+        }
+      ]
+    }
+  ]
+}
