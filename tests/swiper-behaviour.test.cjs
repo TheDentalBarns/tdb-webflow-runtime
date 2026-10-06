@@ -23,5 +23,5 @@ function fixture(){const events={},log=[];function slide(key,x,paint){const chil
  s.touchEventsData.isMoved=true;events.touchEnd();s.slideTo(2,700,true);events.beforeDestroy();assert.equal(s.wrapperEl.style.transitionTimingFunction,'ease');assert.equal(s.slides[1].child.style.transitionTimingFunction,'linear');
 }
 console.log('PASS: touch release easing, unchanged snap target/speed, parallax timing, loop corrections, cancellation, programmatic interruption and teardown.');
-vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../dist/tdb-motion.js'),'utf8'),context);assert.equal(window.TDBMotion.defaults.ddStartup,250);const {s}=fixture();window.TDBMotion.bindSwiper(s);assert.notEqual(s.slideTo.name,'slideTo');
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../dist/tdb-motion.js'),'utf8'),context);assert.equal(window.TDBMotion.defaults.ddStartup,undefined);const {s}=fixture();window.TDBMotion.bindSwiper(s);assert.notEqual(s.slideTo.name,'slideTo');
 console.log('PASS: interrupted movement capture, loop continuity, previous/disabled branches, idempotent binding, method restoration and legacy delegation.');

@@ -13,17 +13,4 @@ test('outside dismissal consumes the entire closing gesture and releases listene
   abort.abort();outside.click();assert.equal(opens,2);assert.equal(active,true);
  }finally{w.close();}
 });
-test('region DD fades use the scroll viewport, settle without idle frames and restore native opacity',()=>{
- const dom=new JSDOM('<section><p style="opacity:.65">Treatment</p></section>',{runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window;
- try{
-  const root=w.document.querySelector('section'),node=root.firstElementChild,frames=new Map();let sequence=0,intersect,disconnected=false;
-  w.requestAnimationFrame=fn=>{frames.set(++sequence,fn);return sequence;};w.cancelAnimationFrame=id=>frames.delete(id);
-  w.IntersectionObserver=class{constructor(callback,options){intersect=callback;assert.equal(options.root,root);}observe(){}disconnect(){disconnected=true;}};
-  Object.defineProperty(root,'clientHeight',{value:600});root.getBoundingClientRect=()=>({top:100});node.getClientRects=()=>[{}];node.getBoundingClientRect=()=>({top:400,bottom:500,height:100});
-  w.eval(source('motion'));const fade=w.TDBMotion.ddRegion([node],{root});intersect([{target:node,isIntersecting:true}]);
-  let runs=0;while(frames.size&&runs++<100){const jobs=[...frames.values()];frames.clear();jobs.forEach(fn=>fn());}
-  assert.ok(runs<100);assert.equal(frames.size,0);assert.ok(Math.abs(Number(node.style.opacity)-w.TDBMotion.ddOpacity(300/700))<.001);
-  node.getBoundingClientRect=()=>({top:0,bottom:90,height:90});intersect([{target:node,isIntersecting:false}]);assert.equal(Number(node.style.opacity),w.TDBMotion.ddOpacity(1));
-  fade.destroy();assert.equal(node.style.opacity,'0.65');assert.ok(disconnected);root.dispatchEvent(new w.Event('scroll'));assert.equal(frames.size,0);
- }finally{w.close();}
-});
+// DD region ownership and nested scrolling are covered in shared-dd-motion.test.cjs.

@@ -144,33 +144,42 @@ older motion version or download another engine later. General motion/DD can loa
 without Swiper. The registry itself neither downloads these assets eagerly nor
 mounts anything. Each component owns its `mount`/`destroy` lifecycle.
 
-## DD text: one default in every migrated component
+## DD text: shared scroll convergence
 
-Call `TDBMotion.ddText(nodes)` after the component is permitted and prepared.
-Every newly registered node transitions from its rendered starting opacity
-(normally Webflow's 100%) into its current page-relative opacity over **250ms**.
-The single value is `TDBMotion.defaults.ddStartup`, defined in
-`src/shared/motion.js`. There is no per-component opt-out or Webflow control.
+Call `TDBMotion.ddText(nodes)` after a component is permitted and prepared.
+The currently rendered opacity is retained indefinitely on startup. User scroll
+consumes the initial correction; there is no 250ms startup tween. Reversing does
+not reintroduce consumed correction. Resize, late browser restoration and layout
+changes rebase at the current appearance. The first offscreen exit aligns the
+ordinary curve for subsequent passes. The controller writes opacity only.
 
-- The timer uses `performance.now()` at the actual first update. A stale animation
-  frame timestamp during busy page startup must not consume the transition.
-- The target is measured every frame from Webflow's layout. Afterwards the existing
-  viewport curve and smoothing apply normally; scroll updates do not replay entry.
-- Offscreen nodes may settle before entering view. No visibility trigger is needed
-  to replay their initial transition.
-- Reduced motion restores the authored opacity. Hidden documents suspend scheduled
-  work. All registered nodes share one listener set and animation-frame scheduler.
-- Repeated clients share a node without restarting its fade. Destroying the last
-  client restores the original inline opacity and removes shared work when empty.
-- Use `[data-tdb-dd-text]` for native component hooks; native review quote bylines
-  also call the same helper. Destroy the returned handle on component teardown.
+- `ddText` retains the existing viewport-heading curve and opacity smoothing.
+- `ddRegion(nodes, {root})` retains element-height progress, progress smoothing
+  and Gallery's nested scrolling roots.
+- Page hooks use `data-tdb-dd-page="native"` for original IX2 view progress and
+  `"viewport"` for legacy review captions and calculator headings. The optional
+  `data-tdb-dd-preset="orange"` keeps the brighter orange keyframes.
+- Each node has one reference-counted owner and each scroll root one scheduler.
+  Hidden documents pause work; idle controllers schedule no animation frames.
+  Destroying the final client restores its original inline opacity.
+- Existing component consent and loading gates remain with their loaders.
+  The small page loader discovers explicit hooks and calculator fade classes.
+- Native page hooks have a readable 50% opacity fallback (orange: 100%) before JS
+  or when downloading fails. The calculator drawer footer stays fully opaque.
 
-**Migration boundary:** existing Webflow IX2 `DD - Text Effect` interactions elsewhere
-still belong to Webflow. They are not silently overridden by this GitHub cleanup.
-For each later component, remove its native opacity interaction before binding the
-same node to this helper. Keep the initial Webflow styling. Do not run IX2 and the
-GitHub helper on the same opacity, or copy DD code into individual components.
-The shared default guarantees the transition for each migrated iteration.
+**IX2 cleanup boundary:** the Webflow API exposes IX3, not IX2 deletion. Audited
+DD-only nodes have `data-tdb-dd-legacy` markers. An early inline bridge removes
+only their published `data-w-id` handles before Webflow starts; native Designer
+node IDs, CMS/prop bindings and other interactions remain intact. All matched
+DD targets were checked for use by other IX2 events/action targets (none).
+The four old DD definitions remain in Designer, with no live matched DD targets
+on the published pages. Delete those definitions in Designer later, then remove
+the bridge and migration-only attributes. The permanent DD hooks remain.
+
+The legacy Power Snippets embed is kept inline to preserve its parser-time
+layout behaviour; its former opacity loop and scroll listeners are removed.
+`src/reviews/legacy/power-snippets.js` is the tracked embed source. Calculator
+view-timeline CSS is replaced by the shared controller.
 
 ## Sources and builds
 
