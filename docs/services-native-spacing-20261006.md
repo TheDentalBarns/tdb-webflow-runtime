@@ -90,3 +90,45 @@ not certified by these Chromium checks. The published release was verified as fo
 - All four custom production domains retained their 1 October publish date.
 - Only the registry URL was changed in the freshly read shared head block;
   surrounding concurrent code and separate module pins were preserved.
+
+## Follow-up: mobile gutter and Designer controls
+
+The user reported a left strip in small-phone simulation. The shared
+`.padding-global` changes from 3% to 5% padding at the small breakpoint, but
+the shared parallax component kept `margin-left: -3vw` until tiny. At
+667x375 this put the Services viewport at x=13.34375px and its right edge at
+680.34375px. The first spacing checks had verified slide alignment relative
+to the carousel viewport, and did not catch that viewport-to-page mismatch.
+
+Native changes saved on 6 October 2026:
+
+- `.parallax-swiper_component.tdb-service-parallax`: small
+  `margin-left: -5vw`, inherited by tiny. Tablet and desktop remain unchanged.
+- `.swiper_functions-btm.tdb-service-controls` and `.tdb-service-cta`:
+  remove base `visibility: hidden`. Their existing native elements and
+  responsive styles now render in Designer and before JavaScript.
+
+The CTA and arrow buttons were already native Webflow elements. The runtime
+adds `is-ready`, binds navigation, and updates the shared CTA from the active
+slide's CMS link; it does not create these native controls. The existing
+readiness hooks are retained, and this follow-up changes no runtime source,
+loader, script pin, consent gate, motion or progress behaviour.
+
+The native style properties were read back across all seven Webflow
+breakpoints. The Designer snapshot endpoint returned an error, so the
+follow-up visual/geometry checks use exported native CSS in Chromium.
+Fifteen cold/delayed and initialized viewports passed:
+320x700, 375x812, 478x850, 479x850, 568x320, 667x375, 767x430, 768x1024,
+844x390, 991x1100, 992x900, 1280x900, 1440x900, 1920x1080 and 2560x1440.
+Below 992px the Services viewport runs exactly from x=0 to the viewport width.
+CTA and arrows are visible without readiness classes. Initializing Swiper
+preserves the edges and native gap, with only the existing subpixel desktop
+rounding. Six next and six previous actions at 320, 667 and 1440 cross both
+loop seams and preserve CTA destinations. Seven breakpoint resizes retain the
+active service and correct edge alignment.
+
+Staging was published at 2026-10-06 13:55:48.845 UTC. Published homepage CSS
+`30dde1c19` contains the fix, and the same checks passed using the actual
+published HTML/CSS without overrides. The live page was reloaded and verified.
+All four production domains retain their 1 October publish timestamps.
+No shared head/footer block or other carousel style was edited.
