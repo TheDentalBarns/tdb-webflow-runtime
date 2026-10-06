@@ -151,7 +151,8 @@ The currently rendered opacity is retained indefinitely on startup. User scroll
 consumes the initial correction; there is no 250ms startup tween. Reversing does
 not reintroduce consumed correction. Resize, late browser restoration and layout
 changes rebase at the current appearance. The first offscreen exit aligns the
-ordinary curve for subsequent passes. The controller writes opacity only.
+ordinary curve for subsequent passes. Captions that cannot exit their viewport
+converge at the reachable scroll limit. The controller writes opacity only.
 
 - `ddText` retains the existing viewport-heading curve and opacity smoothing.
 - `ddRegion(nodes, {root})` retains element-height progress, progress smoothing

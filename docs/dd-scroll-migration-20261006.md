@@ -9,7 +9,9 @@ This release is for Webflow staging only.
 Shared motion v1.10.0 retains the currently painted opacity. Scroll gradually
 consumes the initial difference; its correction envelope only shrinks, including
 when direction reverses. Visible correction speed is bounded near an exit.
-The first offscreen exit aligns the normal curve. Browser restoration, resize
+The first offscreen exit aligns the normal curve. For captions that cannot leave
+the viewport (short Gallery cases and the page footer), convergence uses the
+reachable scroll limit. Browser restoration, resize
 and layout changes retain the current value. No scroll position, transform,
 element dimensions or page layout is written by DD.
 
@@ -60,4 +62,27 @@ disconnection, dynamic targets, calculator roots and exclusion of gated elements
 Existing page-break memory, Gallery dismissal and Swiper behaviour tests pass.
 Build artifacts are generated and checked with `tools/build-shared-runtime.mjs`.
 
-Published-page verification is recorded after staging deployment.
+## Published verification
+
+- Audited all 143 original staging URLs after deployment: all returned HTTP 200.
+  All 1,396 authored native DD instances have migration markers and shared hooks;
+  zero omissions. Total native page hooks including calculator entries: 1,422.
+- The old Power Snippets opacity loop and calculator-entry view timeline are
+  absent from every audited page. Original per-page data and review layout remain.
+- Browser checks on Home, Invisalign, Smile Design and Smile Gallery found the
+  new shared motion release, with zero marked DD elements still carrying an
+  active `data-w-id`. Orange service icons retain their 100% fallback.
+- Invisalign reload at scrollY 4493 retained the calculator tagline at opacity
+  .5. Scrolling later moved it gradually to .438071 at scrollY 4979.
+- The Gallery case drawer retained opacity 1 at opening, moved to .601043 after
+  75px of local scrolling, then reached .414863 at its 110px scroll limit. The
+  normal computed target was .414862835; document scroll remained at 1312.
+- Homepage refresh preserved scrollY 9547 exactly. The visible Bespoke paragraph
+  retained its .5 fallback at startup; DD made no scroll or layout writes.
+- 27 automated checks pass, including existing page-break reload memory and
+  Swiper behaviour. All 31 build mappings pass the source/artifact check.
+
+Final runtime pin: `21627c473877a94868bdd7d1d77d52dbcca9253e`.
+The calculator loader/CSS remains at the initial compatible DD release
+`05f2e14816551bf40c96c8b566e141f340773969`; it delegates fades to the global shared
+controller. No production custom domain was published.
