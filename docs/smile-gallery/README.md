@@ -20,7 +20,7 @@ The full-page viewer keeps its established custom drag choreography in the Galle
 
 - Reusable Gallery migration removed about 32.5 KB of inline presentation/controller code plus the separate Home Gallery loader.
 - Full-page migration removes 33,282 bytes of page-inline style blocks and the 36,236-byte inline controller (plus its small held-control helper).
-- The published full-page controller is a cacheable 28,321-byte external file: 22% less JavaScript than the old inline controller. Local gzip comparison is 9,362 versus 11,902 bytes; these are payload comparisons, not measured network transfer or paint timings.
+- The published full-page controller is a cacheable 28,351-byte external file: 22% less JavaScript than the old inline controller. Local gzip comparison is 9,364 versus 11,902 bytes; these are payload comparisons, not measured network transfer or paint timings.
 - Native templates replace runtime construction of layout, SVG markup and style rules. Dynamic content fills/clones those templates.
 - Scroll-region DD work is scoped to intersecting content and stops scheduling frames once the fade settles; hidden documents do no fade work.
 - Shared scripts retain the registry's in-flight request deduplication. Unrelated feature loaders, consent gates and release pins are retained.
@@ -41,3 +41,9 @@ Run `node tools/build-shared-runtime.mjs`. Install the pinned dependencies in `t
 `designer-layout.json` records full-page base styles and breakpoint changes. `../smile-gallery-native-migration-20261006.json` records reusable component styles and variants. `native-templates.html` and `native-card-strip.html` preserve the intended semantic markup; Webflow stores controls as DOM elements tagged `button`.
 
 Runtime rollback must be coordinated with the native templates. Do not restore a pre-native Gallery script alone. The previous v24 page head/footer and original element snapshot were captured before migration; the Git branch preserves prior releases. Do not reset unrelated site code or other agents' component edits.
+
+## Clock alignment follow-up
+
+The duration slot now has the native `tdb-smile-fact-ticker is-duration` combo: width/flex-basis `7.5em`, with inherited shrinking for narrow cards. Designer used to size its placeholder "10 months" intrinsically, while the hydrated ticker reserved the widest live value ("180 minutes"); centering that larger group shifted the clock left. The slot now has the same Designer-owned width before and after hydration. JavaScript does not offset the icon.
+
+A separate desktop viewer edge case was also corrected: when a neighbouring slide is reused, its saved scroll position is restored before navigation. The regression check fails without the fix and passes with it.

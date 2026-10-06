@@ -883,6 +883,19 @@
       },
       "breakpoint": "main",
       "existing": false
+    },
+    {
+      "name": "is-duration",
+      "parent": [
+        "tdb-smile-fact-ticker"
+      ],
+      "values": {
+        "width": "7.5em",
+        "flex-basis": "7.5em",
+        "grid-template-columns": "minmax(0, 1fr)"
+      },
+      "breakpoint": "main",
+      "existing": false
     }
   ],
   "extra": [
@@ -1427,5 +1440,9 @@
     "tdb-smile-treatment-icon": {
       "filter": "invert(1)"
     }
+  },
+  "durationAlignment": {
+    "element": "9036191c-370e-59a0-eee4-9f4e8e7568e0",
+    "reason": "Designer placeholder 10 months and widest live duration 180 minutes previously produced different intrinsic widths. Fixed native width reserves the same slot before and after hydration, with inherited flex shrinking on narrow cards."
   }
 }

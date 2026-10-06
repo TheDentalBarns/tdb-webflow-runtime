@@ -281,6 +281,8 @@
             const i = cardStride(), a = ye(F) + e * i;
             let r = [ ...T.children ].find(e => e !== F && e.dataset.caseIndex === String(n.index) && Math.abs(ye(e) - a) < 1);
             r || (r = ue(n), T.append(r), r.scrollTop = E.get(n.index) || 0, r.style.transform = "translate3d(" + a + "px,0,0)"), 
+            // Desktop neighbours already exist; restore their saved position too.
+            r.scrollTop = E.get(n.index) || 0;
             [ ...T.children ].forEach(e => {
                 !desktopCards() && e !== F && e !== r && Math.abs(ye(e)) >= i && ie(e);
             });
@@ -754,7 +756,7 @@
         ].map(([file,ready]) => window.TDBModules.load(new URL(file,release).href,{ready})));
         e();
     };
-    window.TDBSmileGallery = Object.freeze({version:'25.0.1',mount});
+    window.TDBSmileGallery = Object.freeze({version:'25.0.2',mount});
     const boot = () => mount().catch(error => console.error('[TDB Smile Gallery]', error));
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',boot,{once:true});
     else boot();

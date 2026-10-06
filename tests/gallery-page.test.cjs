@@ -10,7 +10,7 @@ async function setup(desktop=true){
  const toolbar=w.document.querySelector('[data-tdb-sg-native-toolbar]');w.document.querySelector('[data-toolbar]').replaceWith(toolbar);
  w.matchMedia=query=>({matches:query.includes('min-width')?desktop:false,addEventListener(){},removeEventListener(){}});
  w.IntersectionObserver=class{observe(){}disconnect(){}};w.ResizeObserver=class{observe(){}disconnect(){}};
- w.DOMMatrixReadOnly=class{constructor(){this.m41=this.m42=0;this.a=1;this.b=0;}};
+ w.DOMMatrixReadOnly=class{constructor(value=''){this.m41=Number(/translate(?:3d|X)?\(([-\d.]+)/.exec(value)?.[1]||0);this.m42=0;this.a=1;this.b=0;}};
  w.scrollTo=()=>{};
  w.Element.prototype.getClientRects=function(){return this.closest('[hidden]')?[]:[this.getBoundingClientRect()];};
  w.Element.prototype.getBoundingClientRect=function(){return {x:0,y:0,left:0,top:this.classList.contains('tdb-sg-filter-anchor')?-300:0,right:400,bottom:600,width:400,height:600};};
@@ -43,6 +43,9 @@ test('viewer retains exact image source, desktop bounds, shared counter, Escape 
   assert.equal(overlay.querySelector('.tdb-sg-square').getAttribute('src'),'https://example.test/case-0.webp');assert.ok(overlay.querySelector('.tdb-sg-previous').disabled);
   overlay.querySelector('.tdb-sg-next').click();await pause(10);assert.equal(overlay.querySelector('.is-current h2').textContent,'Case 1');
   assert.equal(overlay.querySelector('[data-tdb-sg-count-label]').textContent,'Smile 2 of 26');
+  overlay.querySelector('.is-current').scrollTop=180;
+  overlay.querySelector('.tdb-sg-next').click();await pause(10);overlay.querySelector('.tdb-sg-previous').click();await pause(10);
+  assert.equal(overlay.querySelector('.is-current').scrollTop,180,'reused desktop neighbours restore the saved case position');
   w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));await pause(620);
   assert.ok(overlay.hidden);assert.ok(!w.document.documentElement.classList.contains('tdb-sg-locked'));assert.equal(w.document.activeElement,summary);assert.ok(!w.document.querySelector('main').inert);
  }finally{dom.window.close();}
