@@ -89,12 +89,24 @@ distinct active quotes are selected. Existing global deduplication is preserved.
 - Real shared-engine keyboard/loop/rapid reversal/ticker and destroy/remount pass.
 - Mobile touch swipe, 0/1/2/3 quote cases, full-motion policy and dependency
   failure fallback are exercised using the built engine and module.
-- Staging verification and the final runtime pin are recorded after publication.
+- Published staging repeats the same eight-size baseline comparison with no
+  measured layout differences. Keyboard navigation, looping, rapid reversals,
+  ticker updates and destroy/remount also pass against the deployed page.
+- All 12 target routes export the native owner structure, CMS feed and new runtime
+  pin, with no retired component loader remaining.
+- Deployed owner runtime: `c7b56a220069caa221751e47712d796067d23a42`.
+- CDN bytes match the built module (SHA-256
+  `0abee42daa5e875afd0f33e4c678f2291443e17c82b28eff11457e00427321e0`).
+- Webflow publish task `929f57e3-ad18-40d2-a5eb-9859f614a65d` completed for
+  `https://dentalbarns.webflow.io/`; no custom domains were published.
 
-Only the owner-quote script pin is changed in site head. Re-read site code before
-writing it to preserve concurrent navbar, Services spacing and page-break work.
-No shared engine/registry, review module or unrelated runtime pin is republished
-from this branch. Publish the Webflow staging subdomain only.
+Only the owner-quote script pin changed in site head. Site code was read again
+immediately before writing, preserving concurrent navbar, Services spacing and
+page-break work. The concurrent registry release
+`241c6478ed08edf1b54a99a31753849442eb732c` is retained; the shared dependencies
+consumed here were verified unchanged. No shared engine/registry, review module
+or unrelated runtime pin was republished from this branch. This final verification
+record is documentation only; the deployed code remains pinned to `c7b56a2`.
 
 ## Restore
 
