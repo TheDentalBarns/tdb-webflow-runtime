@@ -1,11 +1,11 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {JSDOM}=require('jsdom');
 const source=fs.readFileSync(path.join(__dirname,'../src/shared/motion.js'),'utf8');
-function setup({opacity='1',top=500,height=100,root=false,mode='viewport',preset='standard'}={}){
+function setup({opacity='1',top=500,height=100,root=false,rootScrollHeight=3000,mode='viewport',preset='standard'}={}){
  const dom=new JSDOM(`<section><p style="opacity:${opacity}">DD text</p></section>`,{runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window;
  const node=w.document.querySelector('p'),section=w.document.querySelector('section'),frames=new Map();let seq=0,now=100,shown=true;
  w.innerHeight=1000;w.scrollY=0;Object.defineProperty(w.document.documentElement,'scrollHeight',{value:10000});
- Object.defineProperty(section,'clientHeight',{value:600});section.getBoundingClientRect=()=>({top:100});
+ Object.defineProperty(section,'clientHeight',{value:600});Object.defineProperty(section,'scrollHeight',{value:rootScrollHeight});section.getBoundingClientRect=()=>({top:100});
  node.getClientRects=()=>shown?[{}]:[];node.getBoundingClientRect=()=>{const y=top-(root?section.scrollTop:w.scrollY);return{top:y,bottom:y+height,height};};
  w.performance.now=()=>now;w.requestAnimationFrame=fn=>{frames.set(++seq,fn);return seq;};w.cancelAnimationFrame=id=>frames.delete(id);
  w.matchMedia=()=>({matches:true,addEventListener(){}});w.eval(source);
@@ -48,4 +48,8 @@ test('full motion policy remains enabled even when OS requests reduced motion',(
 
 test('a faded first paint never brightens beyond the normal peak during catch-up',()=>{
  const t=setup({opacity:'.5',top:990});try{t.scroll(300);assert(t.value()<=.5);t.scroll(600);assert(t.value()<=.5);t.scroll(1100);assert(Math.abs(t.value()-.1)<.001);}finally{t.close();}
+});
+
+test('a caption in a short scrolling case reaches its curve at the reachable scroll limit',()=>{
+ const t=setup({root:true,rootScrollHeight:700,mode:'region',top:400});try{assert.equal(t.value(),1);t.scroll(50);assert(t.value()<1&&t.value()>.5);t.scroll(100);assert(Math.abs(t.value()-.5)<.001);t.scroll(0);assert(Math.abs(t.value()-(300/700))<.001);}finally{t.close();}
 });

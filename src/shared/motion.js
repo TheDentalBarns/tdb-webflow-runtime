@@ -46,11 +46,11 @@
       if (event.type === 'pointerdown') pointerHeld = true;
     };
     const pointerEnd = () => { pointerHeld = false; inputUntil = performance.now() + 2000; };
-    function retain(state, progress) {
+    function retain(state, progress, low = 0, high = 1, range = 1) {
       state.progress = progress;
       state.ceiling = Math.max(state.value, state.preset === 'orange' ? 1 : .5);
       state.desired = state.value;
-      state.correction = { anchor: progress, offset: state.value - ddOpacity(progress, state.preset), weight: 1 };
+      state.correction = { anchor: progress, low, high, range, offset: state.value - ddOpacity(progress, state.preset), weight: 1 };
     }
     function render() {
       frame = 0;
@@ -65,8 +65,11 @@
         const total = state.mode === 'region' ? height + rect.height : height;
         const range = state.mode === 'native' ? Math.min(height + rect.height, document.documentElement.scrollHeight) : total;
         const progress = ddClamp((height - (rect.top - origin)) / Math.max(1, range));
-        return { state, shown, progress, visible: shown && rect.bottom > origin && rect.top < origin + height,
-          signature: [rect.top - origin + scroll, rect.height, height] };
+        const maximumScroll = Math.max(0, (root ? root.scrollHeight : document.documentElement.scrollHeight) - height);
+        const low = ddClamp((height - (rect.top - origin + scroll)) / Math.max(1, range));
+        const high = ddClamp((height - (rect.top - origin + scroll) + maximumScroll) / Math.max(1, range));
+        return { state, shown, progress, low, high, range, visible: shown && rect.bottom > origin && rect.top < origin + height,
+          signature: [rect.top - origin + scroll, rect.height, height, low, high] };
       });
       let moving = false;
       for (const g of measurements) {
@@ -77,10 +80,10 @@
         if (reduced.matches) {
           state.node.style.opacity = state.original;
           state.value = Number.parseFloat(getComputedStyle(state.node).opacity) || 0;
-          retain(state, g.progress); continue;
+          retain(state, g.progress, g.low, g.high, g.range); continue;
         }
         if (changed || (distance !== 0 && !userScroll)) {
-          retain(state, g.progress);
+          retain(state, g.progress, g.low, g.high, g.range);
         } else if (userScroll) {
           if (!g.visible) {
             state.progress = g.progress; state.correction = null;
@@ -88,9 +91,13 @@
           } else {
             const c = state.correction;
             if (c) {
-              const before = c.anchor > 0 ? g.progress / c.anchor : 1;
-              const after = c.anchor < 1 ? (1 - g.progress) / (1 - c.anchor) : 1;
-              c.weight = ddClamp(Math.max(c.weight - Math.abs(distance) / height * 2, Math.min(c.weight, before, after)));
+              // Use reachable endpoints: short case drawers and the page footer
+              // may never carry a caption completely outside their viewport.
+              const before = c.anchor > c.low ? (g.progress - c.low) / (c.anchor - c.low) : 1;
+              const after = c.anchor < c.high ? (c.high - g.progress) / (c.high - c.anchor) : 1;
+              const available = (g.progress >= c.anchor ? c.high - c.anchor : c.anchor - c.low) * c.range;
+              const travel = Math.max(80, Math.min(height * .5, available));
+              c.weight = ddClamp(Math.max(c.weight - Math.abs(distance) / travel, Math.min(c.weight, before, after)));
             }
             state.progress = state.mode === 'viewport' ? g.progress : state.progress + (g.progress - state.progress) * .5;
             const normal = ddOpacity(state.mode === 'viewport' ? g.progress : state.progress, state.preset);
