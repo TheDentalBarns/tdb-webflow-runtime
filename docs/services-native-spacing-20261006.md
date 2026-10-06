@@ -132,3 +132,37 @@ Staging was published at 2026-10-06 13:55:48.845 UTC. Published homepage CSS
 published HTML/CSS without overrides. The live page was reloaded and verified.
 All four production domains retain their 1 October publish timestamps.
 No shared head/footer block or other carousel style was edited.
+
+## Follow-up: native progress bar in Designer
+
+The progress track was still hidden by its base visibility until JavaScript
+added `is-ready`. The Services track now has the existing `is-ready` combo
+saved natively, so it is visible in Designer and before scripts run.
+The shared base progress class is unchanged, preserving other carousels.
+
+The two native Services markers now have dedicated starting styles:
+
+- `.tdb-service-progress-fill.is-services-initial`: width 20%.
+- `.tdb-service-progress-fill.is-services-wrap`: width 20% and
+  `translateX(-500%)`, placing the second marker one full track to the left.
+
+Twenty percent represents the current five CMS slides. The existing runtime
+still measures the actual slide count and track width, writes pixel widths
+and both marker positions, and handles dragging, resizing and wrap seams.
+The first marker's initial combo is removed by the existing runtime class
+reset; the wrapped marker's native values are overridden by the existing
+inline geometry. These changes require no JavaScript, loader or script-pin edit.
+
+The three native elements and style inheritance were read back from Designer.
+Native, delayed-script and initialized geometry passed at 320, 375, 667
+landscape, 767, 820, 992, 1280, 1440, 1920 and 2560 widths. The five-pixel
+track stays immediately below the viewport, with one visible initial segment
+and the second parked outside it; startup adds no full-width fill flash.
+Six next and six previous moves cross both loop seams, and four breakpoint
+resizes preserve marker sizing and position. The existing progress test also
+passes reverse motion, idle movement, dynamic slide counts, DPR and visibility.
+
+Published to staging only at 2026-10-06 14:13:05.171 UTC. Homepage CSS
+`c1c680f0a` and native classes were verified, then all ten cases passed again
+against the published HTML/CSS without overrides. Production publish dates
+remain 1 October. Concurrent homepage edits were preserved.
