@@ -39,7 +39,7 @@ test('full Gallery retains numeric sorting, 12-case batches, AND filters and cli
 test('viewer retains exact image source, desktop bounds, shared counter, Escape focus and scroll-lock restoration',async()=>{
  const{dom,w}=await setup();try{
   const summary=visible(w)[0].querySelector('[data-tdb-sg-open]');summary.focus();summary.click();await pause(40);
-  const overlay=w.document.querySelector('[data-tdb-sg-native-overlay]');assert.equal(overlay.hidden,false);assert.ok(w.document.documentElement.classList.contains('tdb-sg-locked'));
+  const overlay=w.document.querySelector('[data-tdb-sg-native-overlay]');assert.equal(overlay.hidden,false);assert.ok(!overlay.classList.contains('is-closed'));assert.ok(w.document.documentElement.classList.contains('tdb-sg-locked'));
   assert.equal(overlay.querySelector('.tdb-sg-square').getAttribute('src'),'https://example.test/case-0.webp');assert.ok(overlay.querySelector('.tdb-sg-previous').disabled);
   overlay.querySelector('.tdb-sg-next').click();await pause(10);assert.equal(overlay.querySelector('.is-current h2').textContent,'Case 1');
   assert.equal(overlay.querySelector('[data-tdb-sg-count-label]').textContent,'Smile 2 of 26');

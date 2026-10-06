@@ -20,7 +20,7 @@ The full-page viewer keeps its established custom drag choreography in the Galle
 
 - Reusable Gallery migration removed about 32.5 KB of inline presentation/controller code plus the separate Home Gallery loader.
 - Full-page migration removes 33,282 bytes of page-inline style blocks and the 36,236-byte inline controller (plus its small held-control helper).
-- The published full-page controller is a cacheable 28,277-byte external file: 22% less JavaScript than the old inline controller. Local gzip comparison is 9,357 versus 11,902 bytes; these are payload comparisons, not measured network transfer or paint timings.
+- The published full-page controller is a cacheable 28,321-byte external file: 22% less JavaScript than the old inline controller. Local gzip comparison is 9,362 versus 11,902 bytes; these are payload comparisons, not measured network transfer or paint timings.
 - Native templates replace runtime construction of layout, SVG markup and style rules. Dynamic content fills/clones those templates.
 - Scroll-region DD work is scoped to intersecting content and stops scheduling frames once the fade settles; hidden documents do no fade work.
 - Shared scripts retain the registry's in-flight request deduplication. Unrelated feature loaders, consent gates and release pins are retained.

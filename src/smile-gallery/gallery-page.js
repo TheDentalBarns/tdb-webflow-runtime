@@ -395,6 +395,7 @@
             if (q) return;
             q = document.querySelector('[data-tdb-sg-native-overlay]');
             if (!q) throw Error('Native Smile Gallery viewer missing');
+            q.hidden = true; q.classList.remove('is-closed');
             T = q.querySelector('.tdb-sg-track'); J = q.querySelector('.tdb-sg-topbar');
             z = q.querySelector('.tdb-sg-dismiss'); B = q.querySelector('.tdb-sg-previous'); P = q.querySelector('.tdb-sg-next');
             R = q.querySelector('.tdb-sg-position'); Q = q.querySelector('.tdb-sg-navigation');
@@ -753,7 +754,7 @@
         ].map(([file,ready]) => window.TDBModules.load(new URL(file,release).href,{ready})));
         e();
     };
-    window.TDBSmileGallery = Object.freeze({version:'25.0.0',mount});
+    window.TDBSmileGallery = Object.freeze({version:'25.0.1',mount});
     const boot = () => mount().catch(error => console.error('[TDB Smile Gallery]', error));
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',boot,{once:true});
     else boot();

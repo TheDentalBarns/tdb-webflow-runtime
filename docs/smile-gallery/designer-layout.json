@@ -2517,5 +2517,21 @@
         ]
       }
     }
-  ]
+  ],
+  "interactionStates": [
+    {
+      "selector": ".sg-native-modal-overlay.is-closed",
+      "properties": {
+        "display": "none"
+      }
+    }
+  ],
+  "counterGeometry": {
+    "tdb-sg-count-current": {
+      "width": "2.4ch"
+    },
+    "tdb-sg-count-total": {
+      "min-width": "2.4ch"
+    }
+  }
 }
