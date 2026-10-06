@@ -1,0 +1,743 @@
+[
+  {
+    "page": {
+      "id": "677cf86df9952f978d94d8a9",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "Home",
+      "createdOn": "2021-06-24T03:10:48.542Z",
+      "lastUpdated": "2026-10-06T12:57:03.041Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "The Dental Barns | Luxury Cosmetic Dentist in Lichfield",
+        "description": "Luxury cosmetic dentistry in Lichfield offering Invisalign, composite bonding, veneers, whitening & more. Discover bespoke care in a spa-like environment."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "697a04e3b60db7361a7d7165"
+      },
+      "publishedPath": "/"
+    },
+    "oldId": {
+      "component": "677cf86df9952f978d94d8a9",
+      "element": "38280f4e-9aab-64ef-cee2-cd747c68cf06"
+    },
+    "oldComponent": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+    "state": "complete",
+    "newId": {
+      "component": "677cf86df9952f978d94d8a9",
+      "element": "14db0fca-1207-a54d-8ced-fa88acb51dc0"
+    }
+  },
+  {
+    "page": {
+      "id": "699058c919f4a1adcc157cb3",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "collectionId": "699058c919f4a1adcc157cad",
+      "title": "Area Treatment Pages Template",
+      "slug": "detail_areas",
+      "createdOn": "2026-02-14T11:13:13.222Z",
+      "lastUpdated": "2026-09-19T13:29:36.309Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "{{wf {&quot;path&quot;:&quot;heading&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }} | The Dental Barns",
+        "description": "{{wf {&quot;path&quot;:&quot;meta-description-2&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }}"
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": "{{wf {&quot;path&quot;:&quot;treatment:section-1---bg-image-3&quot;,&quot;type&quot;:&quot;ImageRef&quot;\\} }}",
+        "imageAssetId": null
+      },
+      "publishedPath": "/areas"
+    },
+    "oldId": {
+      "component": "699058c919f4a1adcc157cb3",
+      "element": "281a6df7-1c91-1d68-3142-1f7bee3b4919"
+    },
+    "oldComponent": "412f7cab-2f1a-2360-cc4f-1e515ceb84ab",
+    "state": "complete",
+    "newId": {
+      "component": "699058c919f4a1adcc157cb3",
+      "element": "b745965b-7f58-40b3-a02d-7c1db1f003d5"
+    },
+    "asset": "697394665c79c4750cc6dc00",
+    "alt": "The Dental Barns reception and branded entrance in Blackbrook, Lichfield, near Sutton Coldfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "699058c919f4a1adcc157cb3",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "collectionId": "699058c919f4a1adcc157cad",
+      "title": "Area Treatment Pages Template",
+      "slug": "detail_areas",
+      "createdOn": "2026-02-14T11:13:13.222Z",
+      "lastUpdated": "2026-09-19T13:29:36.309Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "{{wf {&quot;path&quot;:&quot;heading&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }} | The Dental Barns",
+        "description": "{{wf {&quot;path&quot;:&quot;meta-description-2&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }}"
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": "{{wf {&quot;path&quot;:&quot;treatment:section-1---bg-image-3&quot;,&quot;type&quot;:&quot;ImageRef&quot;\\} }}",
+        "imageAssetId": null
+      },
+      "publishedPath": "/areas"
+    },
+    "oldId": {
+      "component": "699058c919f4a1adcc157cb3",
+      "element": "0acdad79-040d-c482-09d3-4b9a9f34a1ee"
+    },
+    "oldComponent": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+    "state": "complete",
+    "newId": {
+      "component": "699058c919f4a1adcc157cb3",
+      "element": "56c951bf-52fc-57ca-9735-4cfd5aefeba2"
+    },
+    "asset": "696a3b985313dc807b430a5d",
+    "alt": "Premium noise-cancelling headphones for patient comfort at The Dental Barns Lichfield, specialists in Invisalign, veneers, and composite bonding serving Sutton Coldfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "694aba9dc39723ae9d2663e4",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "VIP | West End Dentistry",
+      "slug": "vip-west-end",
+      "createdOn": "2025-12-23T15:51:57.506Z",
+      "lastUpdated": "2026-09-19T11:24:52.196Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "VIP | West End Dentistry",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip-west-end"
+    },
+    "oldId": {
+      "component": "694aba9dc39723ae9d2663e4",
+      "element": "af39fcc5-272f-6bdd-4e3c-efc078576365"
+    },
+    "oldComponent": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+    "state": "complete",
+    "newId": {
+      "component": "694aba9dc39723ae9d2663e4",
+      "element": "6df632cb-37c7-bdd1-c80c-39f8ca7be51c"
+    },
+    "asset": "696a3b985313dc807b430a5d",
+    "alt": "Premium noise-cancelling headphones for patient comfort at The Dental Barns Lichfield, specialists in Invisalign, veneers, and composite bonding serving Sutton Coldfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "698b4f9f1af11edfefd60e1b",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "Careers",
+      "slug": "careers",
+      "createdOn": "2026-02-10T15:32:47.118Z",
+      "lastUpdated": "2026-09-15T13:20:15.660Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "Careers & Dental Jobs in Lichfield | The Dental Barns",
+        "description": "Join the award-winning team at The Dental Barns in Lichfield, near Sutton Coldfield. Explore our latest dental career opportunities, from nurses to clinicians, and grow your career with us."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/careers"
+    },
+    "oldId": {
+      "component": "698b4f9f1af11edfefd60e1b",
+      "element": "5e542285-ff30-98a3-c605-9943add77ae6"
+    },
+    "oldComponent": "94fecbbf-db15-26b2-984f-f61f6fcdce04",
+    "state": "complete",
+    "newId": {
+      "component": "698b4f9f1af11edfefd60e1b",
+      "element": "1525cfe7-3f94-e9e5-9277-37cb776875ff"
+    },
+    "asset": "69aaa663efdc39fd91b3695d",
+    "alt": "Reception area at The Dental Barns in Lichfield near Sutton Coldfield, a luxury private dental practice for composite bonding, veneers and Invisalign.",
+    "priority": "high"
+  },
+  {
+    "page": {
+      "id": "698b4f9f1af11edfefd60e1b",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "Careers",
+      "slug": "careers",
+      "createdOn": "2026-02-10T15:32:47.118Z",
+      "lastUpdated": "2026-09-15T13:20:15.660Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "Careers & Dental Jobs in Lichfield | The Dental Barns",
+        "description": "Join the award-winning team at The Dental Barns in Lichfield, near Sutton Coldfield. Explore our latest dental career opportunities, from nurses to clinicians, and grow your career with us."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/careers"
+    },
+    "oldId": {
+      "component": "698b4f9f1af11edfefd60e1b",
+      "element": "bbcd8049-4161-5a9c-176d-0243a1cdb6b0"
+    },
+    "oldComponent": "bf3032bf-5477-2f2e-c55f-5b2a09874bba",
+    "state": "complete",
+    "newId": {
+      "component": "698b4f9f1af11edfefd60e1b",
+      "element": "ae8b3784-3bc2-d703-4733-b046a6a1261c"
+    },
+    "asset": "69739b4c084d3a453d7028fc",
+    "alt": "EMS Airflow Prophylaxis Master used for gentle guided biofilm therapy hygiene treatment at The Dental Barns in Lichfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "694aa587cf17e04109fc3fe1",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "VIP | The Dental Barns Sanctuary",
+      "slug": "vip-sanctuary",
+      "createdOn": "2025-12-23T14:21:59.506Z",
+      "lastUpdated": "2026-09-19T11:24:52.395Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "VIP | The Dental Barns Sanctuary",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip-sanctuary"
+    },
+    "oldId": {
+      "component": "694aa587cf17e04109fc3fe1",
+      "element": "af39fcc5-272f-6bdd-4e3c-efc078576365"
+    },
+    "oldComponent": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+    "state": "complete",
+    "newId": {
+      "component": "694aa587cf17e04109fc3fe1",
+      "element": "ad0e6d26-9f90-bda6-3bc1-4ca917e960f1"
+    },
+    "asset": "696a3b985313dc807b430a5d",
+    "alt": "Premium noise-cancelling headphones for patient comfort at The Dental Barns Lichfield, specialists in Invisalign, veneers, and composite bonding serving Sutton Coldfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "694a7ebb2eb94d65273186e4",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "VIP | Smile Makeovers. Naturally",
+      "slug": "vip-smiles",
+      "createdOn": "2025-12-23T11:36:27.639Z",
+      "lastUpdated": "2026-09-19T11:24:52.577Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "VIP | Smile Makeovers. Naturally",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip-smiles"
+    },
+    "oldId": {
+      "component": "694a7ebb2eb94d65273186e4",
+      "element": "af39fcc5-272f-6bdd-4e3c-efc078576365"
+    },
+    "oldComponent": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+    "state": "complete",
+    "newId": {
+      "component": "694a7ebb2eb94d65273186e4",
+      "element": "b3946e24-4904-1fa3-1db1-cfc215ee35e4"
+    },
+    "asset": "696a3b985313dc807b430a5d",
+    "alt": "Premium noise-cancelling headphones for patient comfort at The Dental Barns Lichfield, specialists in Invisalign, veneers, and composite bonding serving Sutton Coldfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "694a740e9e013223583d1b13",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "VIP | Award Winning Dental Practice",
+      "slug": "vip-awards",
+      "createdOn": "2025-12-23T10:50:54.163Z",
+      "lastUpdated": "2026-09-19T11:24:53.028Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "VIP | Award Winning Dental Practice",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip-awards"
+    },
+    "oldId": {
+      "component": "694a740e9e013223583d1b13",
+      "element": "af39fcc5-272f-6bdd-4e3c-efc078576365"
+    },
+    "oldComponent": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+    "state": "complete",
+    "newId": {
+      "component": "694a740e9e013223583d1b13",
+      "element": "cbb60ec3-5c66-db15-aa20-39b5aff2bb3a"
+    },
+    "asset": "696a3b985313dc807b430a5d",
+    "alt": "Premium noise-cancelling headphones for patient comfort at The Dental Barns Lichfield, specialists in Invisalign, veneers, and composite bonding serving Sutton Coldfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "6925981fbc1302600ed5dc06",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "VIP | Christmas at The Dental Barns",
+      "slug": "vip-christmas",
+      "createdOn": "2025-11-25T11:50:55.635Z",
+      "lastUpdated": "2026-09-19T11:24:53.418Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "VIP | The Dental Barns",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip-christmas"
+    },
+    "oldId": {
+      "component": "6925981fbc1302600ed5dc06",
+      "element": "af39fcc5-272f-6bdd-4e3c-efc078576365"
+    },
+    "oldComponent": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+    "state": "complete",
+    "newId": {
+      "component": "6925981fbc1302600ed5dc06",
+      "element": "bea433f9-5ab4-5d5b-7b8f-99e5fbb78c73"
+    },
+    "asset": "696a3b985313dc807b430a5d",
+    "alt": "Premium noise-cancelling headphones for patient comfort at The Dental Barns Lichfield, specialists in Invisalign, veneers, and composite bonding serving Sutton Coldfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "678960b4f377f07e06aa5447",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "First visit",
+      "slug": "first-visit",
+      "createdOn": "2025-01-16T19:40:36.562Z",
+      "lastUpdated": "2026-10-06T08:25:41.167Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "Your First Visit | Signature Assessment | The Dental Barns",
+        "description": "Explore Smile Design or Signature Assessment at The Dental Barns. Comprehensive examination, diagnostics, same-day plan and costs, with a detailed report afterwards."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "687fb049bb63c9c7847226bc"
+      },
+      "publishedPath": "/first-visit"
+    },
+    "oldId": {
+      "component": "678960b4f377f07e06aa5447",
+      "element": "1412690b-f92a-2747-4704-c9ceeabf20fc"
+    },
+    "oldComponent": "412f7cab-2f1a-2360-cc4f-1e515ceb84ab",
+    "state": "complete",
+    "newId": {
+      "component": "678960b4f377f07e06aa5447",
+      "element": "71c7d9e3-fe61-80b2-8611-713b010754a1"
+    },
+    "asset": "697394665c79c4750cc6dc00",
+    "alt": "The Dental Barns reception and branded entrance in Blackbrook, Lichfield, near Sutton Coldfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "678960b4f377f07e06aa5447",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "First visit",
+      "slug": "first-visit",
+      "createdOn": "2025-01-16T19:40:36.562Z",
+      "lastUpdated": "2026-10-06T08:25:41.167Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "Your First Visit | Signature Assessment | The Dental Barns",
+        "description": "Explore Smile Design or Signature Assessment at The Dental Barns. Comprehensive examination, diagnostics, same-day plan and costs, with a detailed report afterwards."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "687fb049bb63c9c7847226bc"
+      },
+      "publishedPath": "/first-visit"
+    },
+    "oldId": {
+      "component": "678960b4f377f07e06aa5447",
+      "element": "68401ff5-022f-b4b9-95d8-8df0daf99ada"
+    },
+    "oldComponent": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+    "state": "complete",
+    "newId": {
+      "component": "678960b4f377f07e06aa5447",
+      "element": "36cb2661-c617-4b45-2aa6-e8a95861a5fb"
+    },
+    "asset": "696a3b985313dc807b430a5d",
+    "alt": "Premium noise-cancelling headphones for patient comfort at The Dental Barns Lichfield, specialists in Invisalign, veneers, and composite bonding serving Sutton Coldfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "678507292f3f5412bfe2b4fa",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "collectionId": "678507282f3f5412bfe2b4e6",
+      "title": "Treatments Template",
+      "slug": "detail_treatments",
+      "createdOn": "2025-01-13T12:29:29.005Z",
+      "lastUpdated": "2026-09-19T11:20:58.043Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "{{wf {&quot;path&quot;:&quot;section-1---headline-3&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }} | The Dental Barns",
+        "description": "{{wf {&quot;path&quot;:&quot;section-1---paragraph-3&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }}"
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": "{{wf {&quot;path&quot;:&quot;thumbnail&quot;,&quot;type&quot;:&quot;ImageRef&quot;\\} }}",
+        "imageAssetId": null
+      },
+      "publishedPath": "/treatments"
+    },
+    "oldId": {
+      "component": "678507292f3f5412bfe2b4fa",
+      "element": "ccea8aef-735b-b433-0459-f2d19bfa26f5"
+    },
+    "oldComponent": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+    "state": "complete",
+    "newId": {
+      "component": "678507292f3f5412bfe2b4fa",
+      "element": "040235fe-a98f-6de0-572b-7d870679b2e0"
+    },
+    "asset": "696a3b985313dc807b430a5d",
+    "alt": "Premium noise-cancelling headphones for patient comfort at The Dental Barns Lichfield, specialists in Invisalign, veneers, and composite bonding serving Sutton Coldfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "6785071ede094cc233e0c72b",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "collectionId": "6785071ede094cc233e0c717",
+      "title": "Services Template",
+      "slug": "detail_services",
+      "createdOn": "2025-01-13T12:29:18.409Z",
+      "lastUpdated": "2026-10-06T08:25:45.994Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "{{wf {&quot;path&quot;:&quot;name&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }}  Lichfield | The Dental Barns",
+        "description": " {{wf {&quot;path&quot;:&quot;paragraph-intro&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }}"
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": "{{wf {&quot;path&quot;:&quot;image-2&quot;,&quot;type&quot;:&quot;ImageRef&quot;\\} }}",
+        "imageAssetId": null
+      },
+      "publishedPath": "/services"
+    },
+    "oldId": {
+      "component": "6785071ede094cc233e0c72b",
+      "element": "7ec2fc08-984f-4c30-1a79-9332238eb5aa"
+    },
+    "oldComponent": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+    "state": "complete",
+    "newId": {
+      "component": "6785071ede094cc233e0c72b",
+      "element": "ef49a215-4b44-7adf-bfe7-2934df6380b7"
+    },
+    "asset": "696a3b985313dc807b430a5d",
+    "alt": "Premium noise-cancelling headphones for patient comfort at The Dental Barns Lichfield, specialists in Invisalign, veneers, and composite bonding serving Sutton Coldfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "677cfbd543a0695d07285efd",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "Contact",
+      "slug": "contact",
+      "createdOn": "2025-01-07T10:03:01.617Z",
+      "lastUpdated": "2026-09-26T07:55:12.597Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "The Dental Barns | Contact Us",
+        "description": "Contact The Dental Barns in Lichfield — a luxury private dental practice offering bespoke cosmetic and general dentistry. Call, email, or visit our spa-like clinic to book your appointment today."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/contact"
+    },
+    "oldId": {
+      "component": "677cfbd543a0695d07285efd",
+      "element": "f0187209-ca4c-0614-40c4-1648f41be5b4"
+    },
+    "oldComponent": "412f7cab-2f1a-2360-cc4f-1e515ceb84ab",
+    "state": "complete",
+    "newId": {
+      "component": "677cfbd543a0695d07285efd",
+      "element": "79651dc9-5473-5c91-e79f-8c8918d1ccfd"
+    },
+    "asset": "697394665c79c4750cc6dc00",
+    "alt": "The Dental Barns reception and branded entrance in Blackbrook, Lichfield, near Sutton Coldfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "677cfbbb752fa1bb44264481",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "Pricing",
+      "slug": "dental-cost-lichfield",
+      "createdOn": "2025-01-07T10:02:35.771Z",
+      "lastUpdated": "2026-10-06T11:41:48.354Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "Dental Cost | The Dental Barns, Lichfield",
+        "description": "Discover dental pricing at The Dental Barns in Lichfield. View clear fees for Invisalign®, composite bonding, e.max® porcelian veneers, teeth whitening & cosmetic dentistry."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/dental-cost-lichfield"
+    },
+    "oldId": {
+      "component": "677cfbbb752fa1bb44264481",
+      "element": "bbcd8049-4161-5a9c-176d-0243a1cdb6b0"
+    },
+    "oldComponent": "bf3032bf-5477-2f2e-c55f-5b2a09874bba",
+    "state": "complete",
+    "newId": {
+      "component": "677cfbbb752fa1bb44264481",
+      "element": "3140ddc1-a6a5-3eaf-17cb-136b9c2718f3"
+    },
+    "asset": "69739b4c084d3a453d7028fc",
+    "alt": "EMS Airflow Prophylaxis Master used for gentle guided biofilm therapy hygiene treatment at The Dental Barns in Lichfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "677cfb8a0f25478449823c5f",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "Location",
+      "slug": "location",
+      "createdOn": "2025-01-07T10:01:46.909Z",
+      "lastUpdated": "2026-09-26T07:56:07.388Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "The Dental Barns | Our Location in Lichfield",
+        "description": "Visit The Dental Barns at Blackbrook Barns, Lichfield — a luxury private dental practice with free parking, easy access from Sutton Coldfield, Tamworth & surrounding areas."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a200374624f5ca436bd8e"
+      },
+      "publishedPath": "/location"
+    },
+    "oldId": {
+      "component": "677cfb8a0f25478449823c5f",
+      "element": "2882b1ba-b3c4-911a-7857-0743ad3da69c"
+    },
+    "oldComponent": "412f7cab-2f1a-2360-cc4f-1e515ceb84ab",
+    "state": "complete",
+    "newId": {
+      "component": "677cfb8a0f25478449823c5f",
+      "element": "1f5f19e8-8b64-b5c0-f526-702c846a9c07"
+    },
+    "asset": "697394665c79c4750cc6dc00",
+    "alt": "The Dental Barns reception and branded entrance in Blackbrook, Lichfield, near Sutton Coldfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "677cfbe37aba5fbbc2154c24",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "About us",
+      "slug": "about-us",
+      "createdOn": "2025-01-07T10:03:15.965Z",
+      "lastUpdated": "2026-09-15T13:20:15.526Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "The Dental Barns | About Us",
+        "description": "Meet the team behind The Dental Barns in Lichfield — a multi-award-winning private dental practice combining advanced technology, artistry, and a spa-like patient experience."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "687fb049bb63c9c7847226bc"
+      },
+      "publishedPath": "/about-us"
+    },
+    "oldId": {
+      "component": "677cfbe37aba5fbbc2154c24",
+      "element": "0abfb01d-3c34-8979-e418-cd97a6b0b416"
+    },
+    "oldComponent": "bf3032bf-5477-2f2e-c55f-5b2a09874bba",
+    "state": "complete",
+    "newId": {
+      "component": "677cfbe37aba5fbbc2154c24",
+      "element": "c788dbac-5eda-a5d0-f118-fc1575d9199a"
+    },
+    "asset": "69739b4c084d3a453d7028fc",
+    "alt": "EMS Airflow Prophylaxis Master used for gentle guided biofilm therapy hygiene treatment at The Dental Barns in Lichfield.",
+    "priority": "auto"
+  },
+  {
+    "page": {
+      "id": "677cfbe37aba5fbbc2154c24",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "About us",
+      "slug": "about-us",
+      "createdOn": "2025-01-07T10:03:15.965Z",
+      "lastUpdated": "2026-09-15T13:20:15.526Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "The Dental Barns | About Us",
+        "description": "Meet the team behind The Dental Barns in Lichfield — a multi-award-winning private dental practice combining advanced technology, artistry, and a spa-like patient experience."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "687fb049bb63c9c7847226bc"
+      },
+      "publishedPath": "/about-us"
+    },
+    "oldId": {
+      "component": "677cfbe37aba5fbbc2154c24",
+      "element": "23cf42ca-7136-219e-7105-cdb5c0155e0d"
+    },
+    "oldComponent": "d589622d-550a-99bb-0c05-3ccc9d05d4f7",
+    "state": "complete",
+    "newId": {
+      "component": "677cfbe37aba5fbbc2154c24",
+      "element": "bf6f6d17-05be-c202-0002-de5cbd009bc6"
+    },
+    "asset": "688c92b4a1bc5d87cb193c76",
+    "alt": "",
+    "priority": "auto"
+  }
+]

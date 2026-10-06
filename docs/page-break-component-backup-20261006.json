@@ -1,0 +1,298 @@
+{
+  "captured": "2026-10-06",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "components": [
+    {
+      "id": {
+        "component": "412f7cab-2f1a-2360-cc4f-1e515ceb84ab",
+        "element": "412f7cab-2f1a-2360-cc4f-1e515ceb84ab"
+      },
+      "type": "Block",
+      "styleNames": [
+        "Page Break Wrapper"
+      ],
+      "settings": {
+        "tag": "div",
+        "visibility": true,
+        "block": {
+          "tag": "div"
+        }
+      },
+      "children": [
+        {
+          "id": {
+            "component": "412f7cab-2f1a-2360-cc4f-1e515ceb84ab",
+            "element": "412f7cab-2f1a-2360-cc4f-1e515ceb84ac"
+          },
+          "type": "Image",
+          "styleNames": [
+            "Page Break Image"
+          ],
+          "settings": {
+            "visibility": true,
+            "assetId": "697394665c79c4750cc6dc00",
+            "altText": "The Dental Barns reception and branded entrance in Blackbrook, Lichfield, near Sutton Coldfield."
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "component": "d21a8e2b-b27c-c854-a0b0-4e903604333e",
+        "element": "d21a8e2b-b27c-c854-a0b0-4e903604333e"
+      },
+      "type": "Block",
+      "styleNames": [
+        "Page Break Wrapper"
+      ],
+      "settings": {
+        "tag": "div",
+        "visibility": true,
+        "block": {
+          "tag": "div"
+        }
+      },
+      "children": [
+        {
+          "id": {
+            "component": "d21a8e2b-b27c-c854-a0b0-4e903604333e",
+            "element": "d21a8e2b-b27c-c854-a0b0-4e903604333f"
+          },
+          "type": "Image",
+          "styleNames": [
+            "Page Break Image"
+          ],
+          "settings": {
+            "visibility": true,
+            "assetId": "6884b99469e8f4233a25bc34"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "component": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+        "element": "30d55327-1ca1-3a76-9cf2-5722b1366486"
+      },
+      "type": "Block",
+      "styleNames": [
+        "Page Break Wrapper"
+      ],
+      "settings": {
+        "tag": "div",
+        "visibility": true,
+        "block": {
+          "tag": "div"
+        }
+      },
+      "children": [
+        {
+          "id": {
+            "component": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+            "element": "30d55327-1ca1-3a76-9cf2-5722b1366487"
+          },
+          "type": "Image",
+          "styleNames": [
+            "Page Break Image"
+          ],
+          "settings": {
+            "visibility": true,
+            "assetId": "699ec8eaf11f86bd7bb308a5",
+            "altText": "Premium treats for Invisalign, veneers, and composite bonding patients at The Dental Barns in Lichfield, serving Sutton Coldfield."
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "component": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+        "element": "117b0a09-1136-66a8-69c4-d4c3eb34b32b"
+      },
+      "type": "Block",
+      "styleNames": [
+        "Page Break Wrapper"
+      ],
+      "settings": {
+        "tag": "div",
+        "visibility": true,
+        "block": {
+          "tag": "div"
+        }
+      },
+      "children": [
+        {
+          "id": {
+            "component": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+            "element": "117b0a09-1136-66a8-69c4-d4c3eb34b32c"
+          },
+          "type": "Image",
+          "styleNames": [
+            "Page Break Image"
+          ],
+          "settings": {
+            "visibility": true,
+            "assetId": "696a3b985313dc807b430a5d",
+            "altText": "Premium noise-cancelling headphones for patient comfort at The Dental Barns Lichfield, specialists in Invisalign, veneers, and composite bonding serving Sutton Coldfield."
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "component": "bf3032bf-5477-2f2e-c55f-5b2a09874bba",
+        "element": "bf3032bf-5477-2f2e-c55f-5b2a09874bba"
+      },
+      "type": "Block",
+      "styleNames": [
+        "Page Break Wrapper"
+      ],
+      "settings": {
+        "tag": "div",
+        "visibility": true,
+        "block": {
+          "tag": "div"
+        }
+      },
+      "children": [
+        {
+          "id": {
+            "component": "bf3032bf-5477-2f2e-c55f-5b2a09874bba",
+            "element": "bf3032bf-5477-2f2e-c55f-5b2a09874bbb"
+          },
+          "type": "Image",
+          "styleNames": [
+            "Page Break Image"
+          ],
+          "settings": {
+            "visibility": true,
+            "assetId": "69739b4c084d3a453d7028fc",
+            "altText": "EMS Airflow Prophylaxis Master used for gentle guided biofilm therapy hygiene treatment at The Dental Barns in Lichfield."
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "component": "d589622d-550a-99bb-0c05-3ccc9d05d4f7",
+        "element": "d589622d-550a-99bb-0c05-3ccc9d05d4f7"
+      },
+      "type": "Block",
+      "styleNames": [
+        "Page Break Wrapper"
+      ],
+      "settings": {
+        "tag": "div",
+        "visibility": true,
+        "block": {
+          "tag": "div"
+        }
+      },
+      "children": [
+        {
+          "id": {
+            "component": "d589622d-550a-99bb-0c05-3ccc9d05d4f7",
+            "element": "d589622d-550a-99bb-0c05-3ccc9d05d4f8"
+          },
+          "type": "Image",
+          "styleNames": [
+            "Page Break Image"
+          ],
+          "settings": {
+            "visibility": true,
+            "assetId": "688c92b4a1bc5d87cb193c76"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "component": "94fecbbf-db15-26b2-984f-f61f6fcdce04",
+        "element": "94fecbbf-db15-26b2-984f-f61f6fcdce04"
+      },
+      "type": "Block",
+      "styleNames": [
+        "Page Break Wrapper"
+      ],
+      "attributes": {
+        "fetchpriority": "high"
+      },
+      "settings": {
+        "tag": "div",
+        "visibility": true,
+        "block": {
+          "tag": "div"
+        }
+      },
+      "children": [
+        {
+          "id": {
+            "component": "94fecbbf-db15-26b2-984f-f61f6fcdce04",
+            "element": "94fecbbf-db15-26b2-984f-f61f6fcdce05"
+          },
+          "type": "Image",
+          "styleNames": [
+            "page break image static"
+          ],
+          "attributes": {
+            "fetchpriority": "high"
+          },
+          "settings": {
+            "visibility": true,
+            "assetId": "69aaa663efdc39fd91b3695d",
+            "altText": "Reception area at The Dental Barns in Lichfield near Sutton Coldfield, a luxury private dental practice for composite bonding, veneers and Invisalign."
+          }
+        }
+      ]
+    }
+  ],
+  "styles": [
+    {
+      "id": "9b44caf9-5965-8a22-0e7b-7fd6974601cd",
+      "name": "Page Break Wrapper",
+      "isFromLibrary": false,
+      "isComboClass": false,
+      "type": "global",
+      "selector": ".page-break-wrapper",
+      "properties": {
+        "base": {
+          "properties": {
+            "position": "relative",
+            "display": "flex",
+            "overflow": "hidden",
+            "width": "100%",
+            "height": "50vh",
+            "justify-content": "center",
+            "align-items": "center",
+            "border-top-left-radius": "0rem",
+            "border-top-right-radius": "0rem",
+            "border-bottom-left-radius": "0rem",
+            "border-bottom-right-radius": "0rem",
+            "object-fit": "contain"
+          }
+        }
+      }
+    },
+    {
+      "id": "9b44caf9-5965-8a22-0e7b-7fd6974601ce",
+      "name": "Page Break Image",
+      "isFromLibrary": false,
+      "isComboClass": false,
+      "type": "global",
+      "selector": ".page-break-image",
+      "properties": {
+        "base": {
+          "properties": {
+            "width": "100%",
+            "height": "55vh"
+          }
+        }
+      }
+    }
+  ],
+  "newPropIds": {
+    "image": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+    "alt": "102b808b-d977-43f2-7961-56facedb5a27",
+    "priority": "d6578df2-b764-1c58-5358-4a79bdd7d9e3"
+  },
+  "beforeModulePin": "241c6478ed08edf1b54a99a31753849442eb732c"
+}

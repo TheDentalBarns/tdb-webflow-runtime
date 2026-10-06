@@ -1,4 +1,4 @@
-/* TDB parallax carousel plugin v1.0.0. Existing entry, loop and copy choreography. */
+/* TDB parallax carousel plugin v1.0.1. Native Services spacing; existing choreography. */
 (() => {
 'use strict';
 if(window.TDBParallaxPlugin)return;
@@ -14,6 +14,21 @@ function h(e, t) {
         e.setAttribute(i, "true"), e.dataset.tdbSliderType = t;
     }
 function w(e, n) {
+        if (e.classList.contains('tdb-service-parallax')) {
+            const slide = e.querySelector('.tdb-service-slide');
+            if (!slide) return n;
+            // Designer reserves the real slide margin before JS. Swiper must
+            // measure that same margin, including breakpoint changes: its old
+            // inline pixels would otherwise mask the new native CSS value.
+            // Clear/read/restore synchronously, before Swiper updates geometry.
+            const value = slide.style.getPropertyValue('margin-right');
+            const priority = slide.style.getPropertyPriority('margin-right');
+            slide.style.removeProperty('margin-right');
+            let gap;
+            try { gap = parseFloat(getComputedStyle(slide).marginRight); }
+            finally { if (value) slide.style.setProperty('margin-right', value, priority); }
+            return Number.isFinite(gap) ? gap : n;
+        }
         if (!matchMedia("(min-width:992px)").matches) return n;
         const i = "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage && e.matches(".section_smile-gallery [data-tdb-smile-slider]");
         if (!e.matches(t) && !i) return n;
@@ -234,7 +249,7 @@ function P(e) {
             e.classList.toggle("is-selected", e === n);
         });
     }
-const plugin=Object.freeze({version:'1.0.0',selector:t,
+const plugin=Object.freeze({version:'1.0.1',selector:t,
  beforeObserve(root){if(u(root)||p(root))root.classList.add('tdb-entry-pending');},
  mount(root){A(root);return m(root)?.swiper;},
  refresh(root=document){window.TDBParallax?.refresh(root);window.TDBSwiper.refresh('parallax',root);}

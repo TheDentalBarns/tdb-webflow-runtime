@@ -1,0 +1,1556 @@
+[
+  {
+    "page": {
+      "id": "69f1d919d9c604f4e11e9ac2",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "collectionId": "69f1d919d9c604f4e11e9abc",
+      "title": "VIPs Template",
+      "slug": "detail_vip",
+      "createdOn": "2026-04-29T10:10:33.985Z",
+      "lastUpdated": "2026-09-24T10:22:30.533Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {},
+      "openGraph": {
+        "titleCopied": false,
+        "descriptionCopied": false,
+        "imageUrl": null,
+        "imageAssetId": null
+      },
+      "publishedPath": "/vip"
+    },
+    "instance": {
+      "id": {
+        "component": "69f1d919d9c604f4e11e9ac2",
+        "element": "10972cbd-1e05-09fb-6d1e-cd123f17b807"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+        "name": "Flower Stool",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "699058c919f4a1adcc157cb3",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "collectionId": "699058c919f4a1adcc157cad",
+      "title": "Area Treatment Pages Template",
+      "slug": "detail_areas",
+      "createdOn": "2026-02-14T11:13:13.222Z",
+      "lastUpdated": "2026-09-19T13:29:36.309Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "{{wf {&quot;path&quot;:&quot;heading&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }} | The Dental Barns",
+        "description": "{{wf {&quot;path&quot;:&quot;meta-description-2&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }}"
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": "{{wf {&quot;path&quot;:&quot;treatment:section-1---bg-image-3&quot;,&quot;type&quot;:&quot;ImageRef&quot;\\} }}",
+        "imageAssetId": null
+      },
+      "publishedPath": "/areas"
+    },
+    "instance": {
+      "id": {
+        "component": "699058c919f4a1adcc157cb3",
+        "element": "281a6df7-1c91-1d68-3142-1f7bee3b4919"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "412f7cab-2f1a-2360-cc4f-1e515ceb84ab",
+        "name": "Pricing Image",
+        "props": [],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "699058c919f4a1adcc157cb3",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "collectionId": "699058c919f4a1adcc157cad",
+      "title": "Area Treatment Pages Template",
+      "slug": "detail_areas",
+      "createdOn": "2026-02-14T11:13:13.222Z",
+      "lastUpdated": "2026-09-19T13:29:36.309Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "{{wf {&quot;path&quot;:&quot;heading&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }} | The Dental Barns",
+        "description": "{{wf {&quot;path&quot;:&quot;meta-description-2&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }}"
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": "{{wf {&quot;path&quot;:&quot;treatment:section-1---bg-image-3&quot;,&quot;type&quot;:&quot;ImageRef&quot;\\} }}",
+        "imageAssetId": null
+      },
+      "publishedPath": "/areas"
+    },
+    "instance": {
+      "id": {
+        "component": "699058c919f4a1adcc157cb3",
+        "element": "0acdad79-040d-c482-09d3-4b9a9f34a1ee"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+        "name": "Pricing Parallax",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "694aba9dc39723ae9d2663e4",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "VIP | West End Dentistry",
+      "slug": "vip-west-end",
+      "createdOn": "2025-12-23T15:51:57.506Z",
+      "lastUpdated": "2026-09-19T11:24:52.196Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "VIP | West End Dentistry",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip-west-end"
+    },
+    "instance": {
+      "id": {
+        "component": "694aba9dc39723ae9d2663e4",
+        "element": "c871f84f-300c-a7aa-1eb2-f468b580de75"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+        "name": "Flower Stool",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "694aba9dc39723ae9d2663e4",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "VIP | West End Dentistry",
+      "slug": "vip-west-end",
+      "createdOn": "2025-12-23T15:51:57.506Z",
+      "lastUpdated": "2026-09-19T11:24:52.196Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "VIP | West End Dentistry",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip-west-end"
+    },
+    "instance": {
+      "id": {
+        "component": "694aba9dc39723ae9d2663e4",
+        "element": "af39fcc5-272f-6bdd-4e3c-efc078576365"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+        "name": "Pricing Parallax",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "698b4f9f1af11edfefd60e1b",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "Careers",
+      "slug": "careers",
+      "createdOn": "2026-02-10T15:32:47.118Z",
+      "lastUpdated": "2026-09-15T13:20:15.660Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "Careers & Dental Jobs in Lichfield | The Dental Barns",
+        "description": "Join the award-winning team at The Dental Barns in Lichfield, near Sutton Coldfield. Explore our latest dental career opportunities, from nurses to clinicians, and grow your career with us."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/careers"
+    },
+    "instance": {
+      "id": {
+        "component": "698b4f9f1af11edfefd60e1b",
+        "element": "5e542285-ff30-98a3-c605-9943add77ae6"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "94fecbbf-db15-26b2-984f-f61f6fcdce04",
+        "name": "Pricing Static",
+        "props": [],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "698b4f9f1af11edfefd60e1b",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "Careers",
+      "slug": "careers",
+      "createdOn": "2026-02-10T15:32:47.118Z",
+      "lastUpdated": "2026-09-15T13:20:15.660Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "Careers & Dental Jobs in Lichfield | The Dental Barns",
+        "description": "Join the award-winning team at The Dental Barns in Lichfield, near Sutton Coldfield. Explore our latest dental career opportunities, from nurses to clinicians, and grow your career with us."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/careers"
+    },
+    "instance": {
+      "id": {
+        "component": "698b4f9f1af11edfefd60e1b",
+        "element": "bbcd8049-4161-5a9c-176d-0243a1cdb6b0"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "bf3032bf-5477-2f2e-c55f-5b2a09874bba",
+        "name": "Technology",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "694aa587cf17e04109fc3fe1",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "VIP | The Dental Barns Sanctuary",
+      "slug": "vip-sanctuary",
+      "createdOn": "2025-12-23T14:21:59.506Z",
+      "lastUpdated": "2026-09-19T11:24:52.395Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "VIP | The Dental Barns Sanctuary",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip-sanctuary"
+    },
+    "instance": {
+      "id": {
+        "component": "694aa587cf17e04109fc3fe1",
+        "element": "c871f84f-300c-a7aa-1eb2-f468b580de75"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+        "name": "Flower Stool",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "694aa587cf17e04109fc3fe1",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "VIP | The Dental Barns Sanctuary",
+      "slug": "vip-sanctuary",
+      "createdOn": "2025-12-23T14:21:59.506Z",
+      "lastUpdated": "2026-09-19T11:24:52.395Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "VIP | The Dental Barns Sanctuary",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip-sanctuary"
+    },
+    "instance": {
+      "id": {
+        "component": "694aa587cf17e04109fc3fe1",
+        "element": "af39fcc5-272f-6bdd-4e3c-efc078576365"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+        "name": "Pricing Parallax",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "694a7ebb2eb94d65273186e4",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "VIP | Smile Makeovers. Naturally",
+      "slug": "vip-smiles",
+      "createdOn": "2025-12-23T11:36:27.639Z",
+      "lastUpdated": "2026-09-19T11:24:52.577Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "VIP | Smile Makeovers. Naturally",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip-smiles"
+    },
+    "instance": {
+      "id": {
+        "component": "694a7ebb2eb94d65273186e4",
+        "element": "c871f84f-300c-a7aa-1eb2-f468b580de75"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+        "name": "Flower Stool",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "694a7ebb2eb94d65273186e4",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "VIP | Smile Makeovers. Naturally",
+      "slug": "vip-smiles",
+      "createdOn": "2025-12-23T11:36:27.639Z",
+      "lastUpdated": "2026-09-19T11:24:52.577Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "VIP | Smile Makeovers. Naturally",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip-smiles"
+    },
+    "instance": {
+      "id": {
+        "component": "694a7ebb2eb94d65273186e4",
+        "element": "af39fcc5-272f-6bdd-4e3c-efc078576365"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+        "name": "Pricing Parallax",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "694a740e9e013223583d1b13",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "VIP | Award Winning Dental Practice",
+      "slug": "vip-awards",
+      "createdOn": "2025-12-23T10:50:54.163Z",
+      "lastUpdated": "2026-09-19T11:24:53.028Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "VIP | Award Winning Dental Practice",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip-awards"
+    },
+    "instance": {
+      "id": {
+        "component": "694a740e9e013223583d1b13",
+        "element": "c871f84f-300c-a7aa-1eb2-f468b580de75"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+        "name": "Flower Stool",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "694a740e9e013223583d1b13",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "VIP | Award Winning Dental Practice",
+      "slug": "vip-awards",
+      "createdOn": "2025-12-23T10:50:54.163Z",
+      "lastUpdated": "2026-09-19T11:24:53.028Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "VIP | Award Winning Dental Practice",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip-awards"
+    },
+    "instance": {
+      "id": {
+        "component": "694a740e9e013223583d1b13",
+        "element": "af39fcc5-272f-6bdd-4e3c-efc078576365"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+        "name": "Pricing Parallax",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "6925981fbc1302600ed5dc06",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "VIP | Christmas at The Dental Barns",
+      "slug": "vip-christmas",
+      "createdOn": "2025-11-25T11:50:55.635Z",
+      "lastUpdated": "2026-09-19T11:24:53.418Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "VIP | The Dental Barns",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip-christmas"
+    },
+    "instance": {
+      "id": {
+        "component": "6925981fbc1302600ed5dc06",
+        "element": "c871f84f-300c-a7aa-1eb2-f468b580de75"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+        "name": "Flower Stool",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "6925981fbc1302600ed5dc06",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "VIP | Christmas at The Dental Barns",
+      "slug": "vip-christmas",
+      "createdOn": "2025-11-25T11:50:55.635Z",
+      "lastUpdated": "2026-09-19T11:24:53.418Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "VIP | The Dental Barns",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip-christmas"
+    },
+    "instance": {
+      "id": {
+        "component": "6925981fbc1302600ed5dc06",
+        "element": "af39fcc5-272f-6bdd-4e3c-efc078576365"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+        "name": "Pricing Parallax",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "68fa076a6822ea824ea2d991",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "The Dental Barns VIP",
+      "slug": "vip",
+      "createdOn": "2025-10-23T10:46:02.182Z",
+      "lastUpdated": "2026-09-19T11:24:55.311Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "The Dental Barns VIP | Signature Assessment ✦",
+        "description": "Join The Dental Barns VIP for Signature Assessment appointments with Dr Keely in Lichfield, or join the waitlist for limited Smile Design releases."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/vip"
+    },
+    "instance": {
+      "id": {
+        "component": "68fa076a6822ea824ea2d991",
+        "element": "c871f84f-300c-a7aa-1eb2-f468b580de75"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+        "name": "Flower Stool",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          },
+          {
+            "propId": "102b808b-d977-43f2-7961-56facedb5a27",
+            "value": "Premium treats for Invisalign, veneers, and composite bonding patients at The Dental Barns in Lichfield, serving Sutton Coldfield.",
+            "hasOverride": false,
+            "name": "Image description"
+          },
+          {
+            "propId": "d6578df2-b764-1c58-5358-4a79bdd7d9e3",
+            "value": "auto",
+            "hasOverride": false,
+            "name": "Fetch priority"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "678960b4f377f07e06aa5447",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "First visit",
+      "slug": "first-visit",
+      "createdOn": "2025-01-16T19:40:36.562Z",
+      "lastUpdated": "2026-10-06T08:25:41.167Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "Your First Visit | Signature Assessment | The Dental Barns",
+        "description": "Explore Smile Design or Signature Assessment at The Dental Barns. Comprehensive examination, diagnostics, same-day plan and costs, with a detailed report afterwards."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "687fb049bb63c9c7847226bc"
+      },
+      "publishedPath": "/first-visit"
+    },
+    "instance": {
+      "id": {
+        "component": "678960b4f377f07e06aa5447",
+        "element": "5086442a-3c37-2e8a-8ed9-ec73d5a23129"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+        "name": "Flower Stool",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          },
+          {
+            "propId": "102b808b-d977-43f2-7961-56facedb5a27",
+            "value": "Premium treats for Invisalign, veneers, and composite bonding patients at The Dental Barns in Lichfield, serving Sutton Coldfield.",
+            "hasOverride": false,
+            "name": "Image description"
+          },
+          {
+            "propId": "d6578df2-b764-1c58-5358-4a79bdd7d9e3",
+            "value": "auto",
+            "hasOverride": false,
+            "name": "Fetch priority"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "678960b4f377f07e06aa5447",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "First visit",
+      "slug": "first-visit",
+      "createdOn": "2025-01-16T19:40:36.562Z",
+      "lastUpdated": "2026-10-06T08:25:41.167Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "Your First Visit | Signature Assessment | The Dental Barns",
+        "description": "Explore Smile Design or Signature Assessment at The Dental Barns. Comprehensive examination, diagnostics, same-day plan and costs, with a detailed report afterwards."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "687fb049bb63c9c7847226bc"
+      },
+      "publishedPath": "/first-visit"
+    },
+    "instance": {
+      "id": {
+        "component": "678960b4f377f07e06aa5447",
+        "element": "1412690b-f92a-2747-4704-c9ceeabf20fc"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "412f7cab-2f1a-2360-cc4f-1e515ceb84ab",
+        "name": "Pricing Image",
+        "props": [],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "678960b4f377f07e06aa5447",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "First visit",
+      "slug": "first-visit",
+      "createdOn": "2025-01-16T19:40:36.562Z",
+      "lastUpdated": "2026-10-06T08:25:41.167Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "Your First Visit | Signature Assessment | The Dental Barns",
+        "description": "Explore Smile Design or Signature Assessment at The Dental Barns. Comprehensive examination, diagnostics, same-day plan and costs, with a detailed report afterwards."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "687fb049bb63c9c7847226bc"
+      },
+      "publishedPath": "/first-visit"
+    },
+    "instance": {
+      "id": {
+        "component": "678960b4f377f07e06aa5447",
+        "element": "68401ff5-022f-b4b9-95d8-8df0daf99ada"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+        "name": "Pricing Parallax",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "678507292f3f5412bfe2b4fa",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "collectionId": "678507282f3f5412bfe2b4e6",
+      "title": "Treatments Template",
+      "slug": "detail_treatments",
+      "createdOn": "2025-01-13T12:29:29.005Z",
+      "lastUpdated": "2026-09-19T11:20:58.043Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "{{wf {&quot;path&quot;:&quot;section-1---headline-3&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }} | The Dental Barns",
+        "description": "{{wf {&quot;path&quot;:&quot;section-1---paragraph-3&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }}"
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": "{{wf {&quot;path&quot;:&quot;thumbnail&quot;,&quot;type&quot;:&quot;ImageRef&quot;\\} }}",
+        "imageAssetId": null
+      },
+      "publishedPath": "/treatments"
+    },
+    "instance": {
+      "id": {
+        "component": "678507292f3f5412bfe2b4fa",
+        "element": "ccea8aef-735b-b433-0459-f2d19bfa26f5"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+        "name": "Pricing Parallax",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "6785071ede094cc233e0c72b",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "collectionId": "6785071ede094cc233e0c717",
+      "title": "Services Template",
+      "slug": "detail_services",
+      "createdOn": "2025-01-13T12:29:18.409Z",
+      "lastUpdated": "2026-10-06T08:25:45.994Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "{{wf {&quot;path&quot;:&quot;name&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }}  Lichfield | The Dental Barns",
+        "description": " {{wf {&quot;path&quot;:&quot;paragraph-intro&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }}"
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": "{{wf {&quot;path&quot;:&quot;image-2&quot;,&quot;type&quot;:&quot;ImageRef&quot;\\} }}",
+        "imageAssetId": null
+      },
+      "publishedPath": "/services"
+    },
+    "instance": {
+      "id": {
+        "component": "6785071ede094cc233e0c72b",
+        "element": "4def05a1-dbfa-c9e1-27ef-873fad67706d"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+        "name": "Flower Stool",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          },
+          {
+            "propId": "102b808b-d977-43f2-7961-56facedb5a27",
+            "value": "Premium treats for Invisalign, veneers, and composite bonding patients at The Dental Barns in Lichfield, serving Sutton Coldfield.",
+            "hasOverride": false,
+            "name": "Image description"
+          },
+          {
+            "propId": "d6578df2-b764-1c58-5358-4a79bdd7d9e3",
+            "value": "auto",
+            "hasOverride": false,
+            "name": "Fetch priority"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "6785071ede094cc233e0c72b",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "collectionId": "6785071ede094cc233e0c717",
+      "title": "Services Template",
+      "slug": "detail_services",
+      "createdOn": "2025-01-13T12:29:18.409Z",
+      "lastUpdated": "2026-10-06T08:25:45.994Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "{{wf {&quot;path&quot;:&quot;name&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }}  Lichfield | The Dental Barns",
+        "description": " {{wf {&quot;path&quot;:&quot;paragraph-intro&quot;,&quot;type&quot;:&quot;PlainText&quot;\\} }}"
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": "{{wf {&quot;path&quot;:&quot;image-2&quot;,&quot;type&quot;:&quot;ImageRef&quot;\\} }}",
+        "imageAssetId": null
+      },
+      "publishedPath": "/services"
+    },
+    "instance": {
+      "id": {
+        "component": "6785071ede094cc233e0c72b",
+        "element": "7ec2fc08-984f-4c30-1a79-9332238eb5aa"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+        "name": "Pricing Parallax",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "677cfbd543a0695d07285efd",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "Contact",
+      "slug": "contact",
+      "createdOn": "2025-01-07T10:03:01.617Z",
+      "lastUpdated": "2026-09-26T07:55:12.597Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "The Dental Barns | Contact Us",
+        "description": "Contact The Dental Barns in Lichfield — a luxury private dental practice offering bespoke cosmetic and general dentistry. Call, email, or visit our spa-like clinic to book your appointment today."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/contact"
+    },
+    "instance": {
+      "id": {
+        "component": "677cfbd543a0695d07285efd",
+        "element": "633196ec-1851-1a01-7fa9-a0f0a53bc9aa"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+        "name": "Flower Stool",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          },
+          {
+            "propId": "102b808b-d977-43f2-7961-56facedb5a27",
+            "value": "Premium treats for Invisalign, veneers, and composite bonding patients at The Dental Barns in Lichfield, serving Sutton Coldfield.",
+            "hasOverride": false,
+            "name": "Image description"
+          },
+          {
+            "propId": "d6578df2-b764-1c58-5358-4a79bdd7d9e3",
+            "value": "auto",
+            "hasOverride": false,
+            "name": "Fetch priority"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "677cfbd543a0695d07285efd",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "Contact",
+      "slug": "contact",
+      "createdOn": "2025-01-07T10:03:01.617Z",
+      "lastUpdated": "2026-09-26T07:55:12.597Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "The Dental Barns | Contact Us",
+        "description": "Contact The Dental Barns in Lichfield — a luxury private dental practice offering bespoke cosmetic and general dentistry. Call, email, or visit our spa-like clinic to book your appointment today."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/contact"
+    },
+    "instance": {
+      "id": {
+        "component": "677cfbd543a0695d07285efd",
+        "element": "f0187209-ca4c-0614-40c4-1648f41be5b4"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "412f7cab-2f1a-2360-cc4f-1e515ceb84ab",
+        "name": "Pricing Image",
+        "props": [],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "677cfbbb752fa1bb44264481",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "Pricing",
+      "slug": "dental-cost-lichfield",
+      "createdOn": "2025-01-07T10:02:35.771Z",
+      "lastUpdated": "2026-10-06T11:41:48.354Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "Dental Cost | The Dental Barns, Lichfield",
+        "description": "Discover dental pricing at The Dental Barns in Lichfield. View clear fees for Invisalign®, composite bonding, e.max® porcelian veneers, teeth whitening & cosmetic dentistry."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a17e982b6caf3d80eb2d4"
+      },
+      "publishedPath": "/dental-cost-lichfield"
+    },
+    "instance": {
+      "id": {
+        "component": "677cfbbb752fa1bb44264481",
+        "element": "bbcd8049-4161-5a9c-176d-0243a1cdb6b0"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "bf3032bf-5477-2f2e-c55f-5b2a09874bba",
+        "name": "Technology",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "677cfb8a0f25478449823c5f",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "Location",
+      "slug": "location",
+      "createdOn": "2025-01-07T10:01:46.909Z",
+      "lastUpdated": "2026-09-26T07:56:07.388Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "The Dental Barns | Our Location in Lichfield",
+        "description": "Visit The Dental Barns at Blackbrook Barns, Lichfield — a luxury private dental practice with free parking, easy access from Sutton Coldfield, Tamworth & surrounding areas."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a200374624f5ca436bd8e"
+      },
+      "publishedPath": "/location"
+    },
+    "instance": {
+      "id": {
+        "component": "677cfb8a0f25478449823c5f",
+        "element": "97a8ba4e-74a2-50a0-d6ae-62832e93112f"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+        "name": "Flower Stool",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          },
+          {
+            "propId": "102b808b-d977-43f2-7961-56facedb5a27",
+            "value": "Premium treats for Invisalign, veneers, and composite bonding patients at The Dental Barns in Lichfield, serving Sutton Coldfield.",
+            "hasOverride": false,
+            "name": "Image description"
+          },
+          {
+            "propId": "d6578df2-b764-1c58-5358-4a79bdd7d9e3",
+            "value": "auto",
+            "hasOverride": false,
+            "name": "Fetch priority"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "677cfb8a0f25478449823c5f",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "Location",
+      "slug": "location",
+      "createdOn": "2025-01-07T10:01:46.909Z",
+      "lastUpdated": "2026-09-26T07:56:07.388Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "The Dental Barns | Our Location in Lichfield",
+        "description": "Visit The Dental Barns at Blackbrook Barns, Lichfield — a luxury private dental practice with free parking, easy access from Sutton Coldfield, Tamworth & surrounding areas."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "681a200374624f5ca436bd8e"
+      },
+      "publishedPath": "/location"
+    },
+    "instance": {
+      "id": {
+        "component": "677cfb8a0f25478449823c5f",
+        "element": "2882b1ba-b3c4-911a-7857-0743ad3da69c"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "412f7cab-2f1a-2360-cc4f-1e515ceb84ab",
+        "name": "Pricing Image",
+        "props": [],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "677cf86df9952f978d94d8a9",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "Home",
+      "createdOn": "2021-06-24T03:10:48.542Z",
+      "lastUpdated": "2026-10-06T12:57:03.041Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "The Dental Barns | Luxury Cosmetic Dentist in Lichfield",
+        "description": "Luxury cosmetic dentistry in Lichfield offering Invisalign, composite bonding, veneers, whitening & more. Discover bespoke care in a spa-like environment."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "697a04e3b60db7361a7d7165"
+      },
+      "publishedPath": "/"
+    },
+    "instance": {
+      "id": {
+        "component": "677cf86df9952f978d94d8a9",
+        "element": "c871f84f-300c-a7aa-1eb2-f468b580de75"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+        "name": "Flower Stool",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          },
+          {
+            "propId": "102b808b-d977-43f2-7961-56facedb5a27",
+            "value": "Premium treats for Invisalign, veneers, and composite bonding patients at The Dental Barns in Lichfield, serving Sutton Coldfield.",
+            "hasOverride": false,
+            "name": "Image description"
+          },
+          {
+            "propId": "d6578df2-b764-1c58-5358-4a79bdd7d9e3",
+            "value": "auto",
+            "hasOverride": false,
+            "name": "Fetch priority"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "677cf86df9952f978d94d8a9",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "Home",
+      "createdOn": "2021-06-24T03:10:48.542Z",
+      "lastUpdated": "2026-10-06T12:57:03.041Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "The Dental Barns | Luxury Cosmetic Dentist in Lichfield",
+        "description": "Luxury cosmetic dentistry in Lichfield offering Invisalign, composite bonding, veneers, whitening & more. Discover bespoke care in a spa-like environment."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "697a04e3b60db7361a7d7165"
+      },
+      "publishedPath": "/"
+    },
+    "instance": {
+      "id": {
+        "component": "677cf86df9952f978d94d8a9",
+        "element": "38280f4e-9aab-64ef-cee2-cd747c68cf06"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "117b0a09-1136-66a8-69c4-d4c3eb34b32b",
+        "name": "Pricing Parallax",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "677cfbe37aba5fbbc2154c24",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "About us",
+      "slug": "about-us",
+      "createdOn": "2025-01-07T10:03:15.965Z",
+      "lastUpdated": "2026-09-15T13:20:15.526Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "The Dental Barns | About Us",
+        "description": "Meet the team behind The Dental Barns in Lichfield — a multi-award-winning private dental practice combining advanced technology, artistry, and a spa-like patient experience."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "687fb049bb63c9c7847226bc"
+      },
+      "publishedPath": "/about-us"
+    },
+    "instance": {
+      "id": {
+        "component": "677cfbe37aba5fbbc2154c24",
+        "element": "3507f2b7-b54d-8082-580c-c8b00f001ebc"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+        "name": "Page Break Image",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          },
+          {
+            "propId": "102b808b-d977-43f2-7961-56facedb5a27",
+            "value": "Premium treats for Invisalign, veneers, and composite bonding patients at The Dental Barns in Lichfield, serving Sutton Coldfield.",
+            "hasOverride": false,
+            "name": "Image description"
+          },
+          {
+            "propId": "d6578df2-b764-1c58-5358-4a79bdd7d9e3",
+            "value": "auto",
+            "hasOverride": false,
+            "name": "Fetch priority"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "677cfbe37aba5fbbc2154c24",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "About us",
+      "slug": "about-us",
+      "createdOn": "2025-01-07T10:03:15.965Z",
+      "lastUpdated": "2026-09-15T13:20:15.526Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "The Dental Barns | About Us",
+        "description": "Meet the team behind The Dental Barns in Lichfield — a multi-award-winning private dental practice combining advanced technology, artistry, and a spa-like patient experience."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "687fb049bb63c9c7847226bc"
+      },
+      "publishedPath": "/about-us"
+    },
+    "instance": {
+      "id": {
+        "component": "677cfbe37aba5fbbc2154c24",
+        "element": "0abfb01d-3c34-8979-e418-cd97a6b0b416"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "bf3032bf-5477-2f2e-c55f-5b2a09874bba",
+        "name": "Technology",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  },
+  {
+    "page": {
+      "id": "677cfbe37aba5fbbc2154c24",
+      "siteId": "677cf86cf9952f978d94d80c",
+      "title": "About us",
+      "slug": "about-us",
+      "createdOn": "2025-01-07T10:03:15.965Z",
+      "lastUpdated": "2026-09-15T13:20:15.526Z",
+      "archived": false,
+      "draft": false,
+      "shouldPublish": true,
+      "canBranch": true,
+      "isBranch": false,
+      "seo": {
+        "title": "The Dental Barns | About Us",
+        "description": "Meet the team behind The Dental Barns in Lichfield — a multi-award-winning private dental practice combining advanced technology, artistry, and a spa-like patient experience."
+      },
+      "openGraph": {
+        "titleCopied": true,
+        "descriptionCopied": true,
+        "imageUrl": null,
+        "imageAssetId": "687fb049bb63c9c7847226bc"
+      },
+      "publishedPath": "/about-us"
+    },
+    "instance": {
+      "id": {
+        "component": "677cfbe37aba5fbbc2154c24",
+        "element": "23cf42ca-7136-219e-7105-cdb5c0155e0d"
+      },
+      "type": "ComponentInstance",
+      "instanceDetails": {
+        "type": "ComponentInstance",
+        "id": "d589622d-550a-99bb-0c05-3ccc9d05d4f7",
+        "name": "David and Keely",
+        "props": [
+          {
+            "propId": "059721e7-b783-0d46-af3d-2d33ef0c7019",
+            "value": null,
+            "hasOverride": false,
+            "name": "Image"
+          }
+        ],
+        "slots": []
+      }
+    }
+  }
+]
