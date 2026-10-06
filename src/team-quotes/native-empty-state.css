@@ -5,3 +5,8 @@
 .section_standard-testimonial:has([data-tdb-team-cms] [data-tdb-team-viewport] > .w-dyn-empty) {
   display: none;
 }
+
+/* Designer uses opacity:1. This head-only opening state reserves all geometry.
+   Native is-visible/is-static combo styles and shared DD motion reveal it. */
+:where([data-tdb-team-cms]) .tdb-team-quotes_content,
+:where([data-tdb-team-cms]) .tdb-team-quotes_byline { opacity: 0; }
