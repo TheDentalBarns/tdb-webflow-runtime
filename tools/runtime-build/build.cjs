@@ -24,8 +24,8 @@ const targets = ['dist/tdb-navbar.min.js', 'dist/tdb-navbar-loader.js', 'dist/td
         // Preserve the old head block's cascade ahead of page entrance fades.
         const anchor = document.querySelector('[data-tdb-navbar-motion-anchor]');
         if (anchor) anchor.after(style); else document.head.append(style);
-        ${['nav-motion', 'navbar', 'nav-clear-cycle', 'desktop-dropdowns'].map(name => read('src/navbar/' + name + '.js')).join('\n')}
-        window.TDBNavbar = Object.freeze({version:'1.3.0'});
+        ${['nav-motion', 'navbar', 'nav-clear-cycle', 'desktop-dropdowns', 'nav-surfaces'].map(name => read('src/navbar/' + name + '.js')).join('\n')}
+        window.TDBNavbar = Object.freeze({version:'1.4.0'});
         };
         if (window.TDBNavbarLoader) window.TDBNavbarLoader.register(install); else install();
       })();`;
