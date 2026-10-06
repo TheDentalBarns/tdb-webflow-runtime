@@ -1,5 +1,5 @@
-/* TDB Vimeo 1.1.0. Migrated from tdb-vimeo-js v1.0.1.
- * Hero, ambient and content playback retain their separate state machines.
+/* TDB Vimeo 1.2.0. Migrated from tdb-vimeo-js v1.0.1.
+ * Hero, ambient and content share playback cancellation and page suspension.
  * Loaded and initialised by tdb-vimeo-loader.js after functionality consent.
  */
 (() => {
@@ -25,6 +25,12 @@
   let ambientObserver = null;
   let fallbackTicking = false;
   let refreshAllTimer = null;
+  let pageHidden = false;
+  let pendingContentPlayTimer = null;
+
+  const playbackRegistry = new WeakMap();
+  const revealRegistry = new WeakMap();
+  const pageResumeRegistry = new Map();
 
   const coverResizeRegistry = new Map();
   let coverResizeTicking = false;
@@ -70,6 +76,107 @@
       );
     } catch (e) {
       return false;
+    }
+  }
+
+  function getPlayback(playerRoot) {
+    if (!playbackRegistry.has(playerRoot)) {
+      playbackRegistry.set(playerRoot, { generation: 0, wanted: false, pausePromise: null });
+    }
+    return playbackRegistry.get(playerRoot);
+  }
+
+  function pageIsActive() {
+    return !pageHidden && document.visibilityState !== 'hidden';
+  }
+
+  function inPlaybackArea(playerRoot, mode) {
+    const target = mode === 'hero'
+      ? playerRoot._heroShell
+      : playerRoot.closest('.layout355_background-video-wrapper') || playerRoot;
+    if (!target || !isVisible(playerRoot)) return false;
+    const rect = target.getBoundingClientRect();
+    const margin = mode === 'ambient' ? 250 : 0;
+    return rect.bottom > -margin && rect.top < window.innerHeight + margin;
+  }
+
+  function canPlay(playerRoot, mode) {
+    if (!getPlayback(playerRoot).wanted || !playerRoot.isConnected ||
+        !pageIsActive() || !hasFunctionalityConsent()) return false;
+    if (mode === 'content') return true;
+    if (!inPlaybackArea(playerRoot, mode)) return false;
+    if (mode === 'ambient') {
+      return ensureAmbientState(playerRoot).inView &&
+        playerRoot.getAttribute('data-vimeo-autoplay') === 'true';
+    }
+    return !ensureHeroState(playerRoot).pausedByUser;
+  }
+
+  function cancelPlayback(playerRoot) {
+    const playback = getPlayback(playerRoot);
+    playback.generation++;
+    playback.wanted = false;
+  }
+
+  // A resumed play waits for the previous pause acknowledgement. This also
+  // prevents a slow pause from stopping a newer scroll/visibility play request.
+  function pausePlayer(playerRoot) {
+    const playback = getPlayback(playerRoot);
+    if (playback.pausePromise) return playback.pausePromise;
+    const player = playerRoot._vimeoPlayer;
+    if (!player) return Promise.resolve();
+    const promise = Promise.resolve().then(function () {
+      return player.pause();
+    }).catch(function (err) {
+      console.error('Vimeo pause failed:', err);
+    }).finally(function () {
+      if (playback.pausePromise === promise) playback.pausePromise = null;
+    });
+    playback.pausePromise = promise;
+    return promise;
+  }
+
+  function acceptPlaybackEvent(playerRoot, mode) {
+    if (canPlay(playerRoot, mode)) return true;
+    pausePlayer(playerRoot);
+    return false;
+  }
+
+  function acceptPauseEvent(playerRoot) {
+    const playback = getPlayback(playerRoot);
+    if (playback.pausePromise && playback.wanted) return false;
+    cancelPlayback(playerRoot);
+    return true;
+  }
+
+  async function requestPlayback(playerRoot, mode, prepare, update) {
+    const playback = getPlayback(playerRoot);
+    const generation = ++playback.generation;
+    playback.wanted = true;
+    const current = function () { return playback.generation === generation; };
+    try {
+      const player = await (mode === 'content'
+        ? getOrCreateContentPlayer(playerRoot)
+        : getOrCreateBackgroundPlayer(playerRoot, mode));
+      if (!player) return;
+      await playback.pausePromise;
+      if (!current() || !canPlay(playerRoot, mode)) return;
+      if (prepare) await prepare(player);
+      if (!current() || !canPlay(playerRoot, mode)) return;
+      await player.play();
+      // A play already sent to the iframe can resolve after scroll, pause,
+      // consent withdrawal or page suspension. Enforce the latest intent.
+      if (!canPlay(playerRoot, mode)) await pausePlayer(playerRoot);
+    } catch (err) {
+      if (current()) {
+        playback.wanted = false;
+        console.error('Vimeo ' + mode + ' play failed:', err);
+      }
+    } finally {
+      if (current()) {
+        if (!canPlay(playerRoot, mode)) playback.wanted = false;
+        update();
+      }
     }
   }
 
@@ -305,22 +412,15 @@
     if (!shell) return null;
 
     const active = shell._activeHero;
-    if (active && active.isConnected) {
-      const state = ensureHeroState(active);
-
-      if (
-        state.busy ||
-        state.ui === 'playing' ||
-        state.ui === 'awaiting-consent' ||
-        isVisible(active)
-      ) {
-        return active;
-      }
-    }
+    if (active && active.isConnected && isVisible(active)) return active;
 
     const visible = getVisibleHeroPlayer(shell);
     if (visible) {
-      ensureHeroState(visible);
+      const state = ensureHeroState(visible);
+      if (active && active !== visible) {
+        state.pausedByUser = ensureHeroState(active).pausedByUser;
+        pauseHero(active, false);
+      }
       shell._activeHero = visible;
       return visible;
     }
@@ -333,10 +433,11 @@
 
     const shell = playerRoot._heroShell;
     const state = ensureHeroState(playerRoot);
+    setAttrIfChanged(playerRoot, 'data-vimeo-started', state.started ? 'true' : 'false');
+    if (shell._activeHero !== playerRoot) return;
     const prevPulse = shell.getAttribute('data-vimeo-pulse') === 'true';
     const nextPulse = state.ui === 'idle' || state.ui === 'paused';
 
-    setAttrIfChanged(playerRoot, 'data-vimeo-started', state.started ? 'true' : 'false');
     setAttrIfChanged(shell, 'data-vimeo-ui', state.ui);
     setAttrIfChanged(shell, 'data-vimeo-buffering', state.buffering ? 'true' : 'false');
     setAttrIfChanged(shell, 'data-vimeo-pulse', nextPulse ? 'true' : 'false');
@@ -365,55 +466,29 @@
     }, 520);
   }
 
-  function clearHeroReveal(playerRoot) {
-    if (!playerRoot || !playerRoot._heroRevealTimer) return;
-    clearTimeout(playerRoot._heroRevealTimer);
-    playerRoot._heroRevealTimer = null;
-    ensureHeroState(playerRoot).revealQueued = false;
+  function clearBackgroundReveal(playerRoot) {
+    const reveal = revealRegistry.get(playerRoot);
+    if (!reveal) return;
+    clearTimeout(reveal.timer);
+    cancelAnimationFrame(reveal.frame);
+    reveal.state.revealQueued = false;
+    revealRegistry.delete(playerRoot);
   }
 
-  function queueHeroReveal(playerRoot, delay) {
-    if (!playerRoot) return;
-
-    const state = ensureHeroState(playerRoot);
-    if (state.started || state.revealQueued) return;
-
+  function queueBackgroundReveal(playerRoot, mode, delay) {
+    const state = mode === 'hero' ? ensureHeroState(playerRoot) : ensureAmbientState(playerRoot);
+    if (state.started || state.revealQueued || !canPlay(playerRoot, mode)) return;
     state.revealQueued = true;
-
-    playerRoot._heroRevealTimer = setTimeout(function () {
-      requestAnimationFrame(function () {
+    const reveal = { state: state, timer: null, frame: null };
+    revealRegistry.set(playerRoot, reveal);
+    reveal.timer = setTimeout(function () {
+      reveal.frame = requestAnimationFrame(function () {
+        if (revealRegistry.get(playerRoot) !== reveal) return;
+        clearBackgroundReveal(playerRoot);
+        if (!canPlay(playerRoot, mode)) return;
         state.started = true;
-        state.revealQueued = false;
-        playerRoot._heroRevealTimer = null;
-
-        syncHeroShell(playerRoot);
-        queuePlaceholderRemoval(playerRoot);
-      });
-    }, delay || 120);
-  }
-
-  function clearAmbientReveal(playerRoot) {
-    if (!playerRoot || !playerRoot._ambientRevealTimer) return;
-    clearTimeout(playerRoot._ambientRevealTimer);
-    playerRoot._ambientRevealTimer = null;
-    ensureAmbientState(playerRoot).revealQueued = false;
-  }
-
-  function queueAmbientReveal(playerRoot, delay) {
-    if (!playerRoot) return;
-
-    const state = ensureAmbientState(playerRoot);
-    if (state.started || state.revealQueued) return;
-
-    state.revealQueued = true;
-
-    playerRoot._ambientRevealTimer = setTimeout(function () {
-      requestAnimationFrame(function () {
-        state.started = true;
-        state.revealQueued = false;
-        playerRoot._ambientRevealTimer = null;
-
-        syncAmbientRoot(playerRoot);
+        if (mode === 'hero') syncHeroShell(playerRoot);
+        else syncAmbientRoot(playerRoot);
         queuePlaceholderRemoval(playerRoot);
       });
     }, delay || 120);
@@ -451,8 +526,8 @@
   }
 
   async function getOrCreateBackgroundPlayer(playerRoot, mode) {
-    if (playerRoot._vimeoPlayer) return playerRoot._vimeoPlayer;
     if (playerRoot._vimeoPlayerPromise) return playerRoot._vimeoPlayerPromise;
+    if (playerRoot._vimeoPlayer) return playerRoot._vimeoPlayer;
 
     const initPromise = (async function () {
       const videoId = playerRoot.getAttribute('data-vimeo-video-id');
@@ -463,6 +538,7 @@
 
       await loadVimeoPlayerAPI();
       if (!hasFunctionalityConsent()) throw new Error('Vimeo permission changed');
+      if (!canPlay(playerRoot, mode)) return null;
 
       iframe.setAttribute(
         'allow',
@@ -526,7 +602,7 @@
         typeof data.seconds === 'number' &&
         data.seconds >= 0.12
       ) {
-        queueHeroReveal(playerRoot, 80);
+        queueBackgroundReveal(playerRoot, 'hero', 80);
 
         if (typeof player.off === 'function') {
           player.off('timeupdate', onTimeUpdate);
@@ -535,6 +611,7 @@
     }
 
     player.on('bufferstart', function () {
+      if (!canPlay(playerRoot, 'hero')) return;
       const state = ensureHeroState(playerRoot);
 
       if (state.ui === 'playing') {
@@ -554,18 +631,18 @@
     });
 
     player.on('play', function () {
+      if (!acceptPlaybackEvent(playerRoot, 'hero')) return;
       const state = ensureHeroState(playerRoot);
 
       state.ui = 'playing';
       state.buffering = false;
-      state.busy = false;
-      state.pausedByUser = false;
       state.autoPaused = false;
 
       syncHeroShell(playerRoot);
     });
 
     player.on('playing', function () {
+      if (!acceptPlaybackEvent(playerRoot, 'hero')) return;
       const state = ensureHeroState(playerRoot);
 
       if (playerRoot._heroShell) {
@@ -574,10 +651,9 @@
 
       state.ui = 'playing';
       state.buffering = false;
-      state.busy = false;
 
       syncHeroShell(playerRoot);
-      queueHeroReveal(playerRoot, 160);
+      queueBackgroundReveal(playerRoot, 'hero', 160);
 
       if (typeof player.off === 'function') {
         player.off('timeupdate', onTimeUpdate);
@@ -587,9 +663,10 @@
     player.on('timeupdate', onTimeUpdate);
 
     player.on('pause', function () {
+      if (!acceptPauseEvent(playerRoot)) return;
       const state = ensureHeroState(playerRoot);
 
-      clearHeroReveal(playerRoot);
+      clearBackgroundReveal(playerRoot);
 
       state.ui = state.started ? 'paused' : 'idle';
       state.buffering = false;
@@ -599,9 +676,11 @@
     });
 
     player.on('error', function (err) {
+      cancelPlayback(playerRoot);
+      pageResumeRegistry.delete(playerRoot);
       const state = ensureHeroState(playerRoot);
 
-      clearHeroReveal(playerRoot);
+      clearBackgroundReveal(playerRoot);
       console.error('Hero Vimeo error:', err);
 
       state.ui = state.started ? 'paused' : 'idle';
@@ -625,7 +704,7 @@
         typeof data.seconds === 'number' &&
         data.seconds >= 0.12
       ) {
-        queueAmbientReveal(playerRoot, 80);
+        queueBackgroundReveal(playerRoot, 'ambient', 80);
 
         if (typeof player.off === 'function') {
           player.off('timeupdate', onTimeUpdate);
@@ -634,19 +713,19 @@
     }
 
     player.on('play', function () {
+      if (!acceptPlaybackEvent(playerRoot, 'ambient')) return;
       const state = ensureAmbientState(playerRoot);
       state.playing = true;
-      state.busy = false;
       syncAmbientRoot(playerRoot);
     });
 
     player.on('playing', function () {
+      if (!acceptPlaybackEvent(playerRoot, 'ambient')) return;
       const state = ensureAmbientState(playerRoot);
       state.playing = true;
-      state.busy = false;
 
       syncAmbientRoot(playerRoot);
-      queueAmbientReveal(playerRoot, 160);
+      queueBackgroundReveal(playerRoot, 'ambient', 160);
 
       if (typeof player.off === 'function') {
         player.off('timeupdate', onTimeUpdate);
@@ -656,16 +735,19 @@
     player.on('timeupdate', onTimeUpdate);
 
     player.on('pause', function () {
+      if (!acceptPauseEvent(playerRoot)) return;
       const state = ensureAmbientState(playerRoot);
-      clearAmbientReveal(playerRoot);
+      clearBackgroundReveal(playerRoot);
       state.playing = false;
       state.busy = false;
       syncAmbientRoot(playerRoot);
     });
 
     player.on('error', function (err) {
+      cancelPlayback(playerRoot);
+      pageResumeRegistry.delete(playerRoot);
       const state = ensureAmbientState(playerRoot);
-      clearAmbientReveal(playerRoot);
+      clearBackgroundReveal(playerRoot);
       console.error('Ambient Vimeo error:', err);
       state.playing = false;
       state.busy = false;
@@ -675,153 +757,110 @@
 
   async function playHero(playerRoot, opts) {
     if (!playerRoot) return;
-
     const options = opts || {};
     const state = ensureHeroState(playerRoot);
-
-    if (playerRoot._heroShell) {
-      attachHeroToShell(playerRoot, playerRoot._heroShell);
-    }
-
+    if (playerRoot._heroShell) attachHeroToShell(playerRoot, playerRoot._heroShell);
     if (state.busy) return;
-
     if (!hasFunctionalityConsent()) {
       if (options.manual) {
         pendingConsentHero = playerRoot;
         state.ui = 'awaiting-consent';
         state.buffering = false;
-        state.busy = false;
         syncHeroShell(playerRoot);
         openCookieSettingsFromVimeo();
       }
       return;
     }
-
+    if (!pageIsActive()) {
+      if (options.manual) pageResumeRegistry.set(playerRoot, 'hero');
+      return;
+    }
+    if (!inPlaybackArea(playerRoot, 'hero')) return;
     state.ui = 'loading';
     state.buffering = false;
     state.busy = true;
     state.autoPaused = false;
     state.pausedByUser = false;
     syncHeroShell(playerRoot);
-
-    try {
-      const player = await getOrCreateBackgroundPlayer(playerRoot, 'hero');
-      if (!hasFunctionalityConsent()) throw new Error('Vimeo permission changed');
-      await player.play();
-    } catch (err) {
-      console.error('Hero Vimeo play failed:', err);
-
-      state.ui = state.started ? 'paused' : 'idle';
-      state.buffering = false;
+    return requestPlayback(playerRoot, 'hero', null, function () {
       state.busy = false;
+      if (!getPlayback(playerRoot).wanted || state.ui === 'loading') {
+        state.ui = state.started ? 'paused' : 'idle';
+        state.buffering = false;
+      }
       syncHeroShell(playerRoot);
-    }
+    });
   }
 
-  async function pauseHero(playerRoot, pausedByUser) {
+  function pauseHero(playerRoot, pausedByUser) {
     if (!playerRoot) return;
-
     const state = ensureHeroState(playerRoot);
-    const player = playerRoot._vimeoPlayer;
-
-    state.pausedByUser = !!pausedByUser;
+    cancelPlayback(playerRoot);
+    clearBackgroundReveal(playerRoot);
+    if (pausedByUser) {
+      state.pausedByUser = true;
+      pageResumeRegistry.delete(playerRoot);
+      if (pendingConsentHero === playerRoot) pendingConsentHero = null;
+    }
     state.autoPaused = !pausedByUser;
-    state.busy = true;
-
-    if (!player) {
-      state.busy = false;
-      state.ui = state.started ? 'paused' : 'idle';
-      syncHeroShell(playerRoot);
-      return;
-    }
-
-    try {
-      await player.pause();
-    } catch (err) {
-      console.error('Hero Vimeo pause failed:', err);
-      state.busy = false;
-      syncHeroShell(playerRoot);
-    }
+    state.busy = false;
+    state.ui = state.started ? 'paused' : 'idle';
+    state.buffering = false;
+    syncHeroShell(playerRoot);
+    return pausePlayer(playerRoot);
   }
 
-  async function playAmbient(playerRoot) {
+  function playAmbient(playerRoot) {
     if (!playerRoot) return;
-
     const state = ensureAmbientState(playerRoot);
-    if (state.busy) return;
-    if (!hasFunctionalityConsent()) return;
-
+    if (state.busy || !pageIsActive() || !hasFunctionalityConsent() ||
+        !state.inView || !inPlaybackArea(playerRoot, 'ambient')) return;
     state.busy = true;
-
-    try {
-      const player = await getOrCreateBackgroundPlayer(playerRoot, 'ambient');
-      if (!hasFunctionalityConsent()) throw new Error('Vimeo permission changed');
-      await player.play();
-      state.autoPaused = false;
-    } catch (err) {
-      console.error('Ambient Vimeo play failed:', err);
-    } finally {
+    state.autoPaused = false;
+    return requestPlayback(playerRoot, 'ambient', null, function () {
       state.busy = false;
-    }
+    });
   }
 
-  async function pauseAmbient(playerRoot) {
+  function pauseAmbient(playerRoot) {
     if (!playerRoot) return;
-
     const state = ensureAmbientState(playerRoot);
-    const player = playerRoot._vimeoPlayer;
-    if (!player) return;
-
-    try {
-      await player.pause();
-      state.autoPaused = true;
-    } catch (err) {
-      console.error('Ambient Vimeo pause failed:', err);
-    }
+    cancelPlayback(playerRoot);
+    clearBackgroundReveal(playerRoot);
+    state.playing = false;
+    state.busy = false;
+    state.autoPaused = true;
+    syncAmbientRoot(playerRoot);
+    return pausePlayer(playerRoot);
   }
 
   function evaluateHeroShell(shell) {
     if (!shell) return;
-
     const playerRoot = getResolvedHeroPlayer(shell);
     if (!playerRoot) return;
-
     attachHeroToShell(playerRoot, shell);
-
     const state = ensureHeroState(playerRoot);
-    const shouldAutoplay = playerRoot.getAttribute('data-vimeo-autoplay') === 'true';
-    const inView = !!shell._heroInView;
-
-    if (!inView) {
-      if (state.ui === 'playing') {
+    if (!pageIsActive()) return;
+    if (!shell._heroInView || !inPlaybackArea(playerRoot, 'hero')) {
+      if (getPlayback(playerRoot).wanted || state.busy || state.ui === 'playing') {
         pauseHero(playerRoot, false);
       }
       return;
     }
-
-    if (shouldAutoplay && hasFunctionalityConsent() && !state.pausedByUser) {
-      if (state.ui !== 'playing' || state.autoPaused) {
-        playHero(playerRoot, { manual: false });
-      }
+    if (playerRoot.getAttribute('data-vimeo-autoplay') === 'true' &&
+        hasFunctionalityConsent() && !state.pausedByUser) {
+      if (state.ui !== 'playing' || state.autoPaused) playHero(playerRoot, { manual: false });
     }
   }
 
   function evaluateAmbientPlayer(playerRoot) {
-    if (!playerRoot) return;
-
+    if (!playerRoot || !pageIsActive()) return;
     const state = ensureAmbientState(playerRoot);
-    const shouldAutoplay = playerRoot.getAttribute('data-vimeo-autoplay') === 'true';
-
-    if (state.inView) {
-      if (!hasFunctionalityConsent() || !shouldAutoplay) return;
-
-      if (!state.playing || state.autoPaused) {
-        playAmbient(playerRoot);
-      }
-    } else {
-      if (state.playing) {
-        pauseAmbient(playerRoot);
-      }
+    if (state.inView && inPlaybackArea(playerRoot, 'ambient') &&
+        hasFunctionalityConsent() && playerRoot.getAttribute('data-vimeo-autoplay') === 'true') {
+      if (!state.playing || state.autoPaused) playAmbient(playerRoot);
+    } else if (getPlayback(playerRoot).wanted || state.busy || state.playing) {
+      pauseAmbient(playerRoot);
     }
   }
 
@@ -978,78 +1017,62 @@
     evaluateFallback();
   }
 
+  function forEachPlayer(callback) {
+    heroShells.forEach(function (shell) {
+      getHeroCandidates(shell).forEach(function (root) { callback(root, 'hero'); });
+    });
+    ambientRoots.forEach(function (root) { callback(root, 'ambient'); });
+    contentRoots.forEach(function (root) { callback(root, 'content'); });
+  }
+
+  function pauseByMode(root, mode) {
+    if (mode === 'hero') return pauseHero(root, false);
+    if (mode === 'ambient') return pauseAmbient(root);
+    return pauseContent(root, { automatic: true });
+  }
+
+  function handlePageVisibility() {
+    if (!pageIsActive()) {
+      forEachPlayer(function (root, mode) {
+        if (!getPlayback(root).wanted) return;
+        pageResumeRegistry.set(root, mode);
+        pauseByMode(root, mode);
+      });
+      return;
+    }
+    // Refresh geometry before resuming; observers may have been suspended.
+    heroShells.forEach(function (shell) {
+      const root = getResolvedHeroPlayer(shell);
+      shell._heroInView = !!root && inPlaybackArea(root, 'hero');
+    });
+    ambientRoots.forEach(function (root) {
+      ensureAmbientState(root).inView = inPlaybackArea(root, 'ambient');
+    });
+    const pending = Array.from(pageResumeRegistry);
+    pageResumeRegistry.clear();
+    if (!hasFunctionalityConsent()) return;
+    pending.forEach(function (entry) {
+      const root = entry[0], mode = entry[1];
+      if (!root.isConnected) return;
+      if (mode === 'content') playContent(root);
+      else if (mode === 'hero' && !ensureHeroState(root).pausedByUser) playHero(root);
+    });
+    refreshAll();
+  }
+
   function resetHeroAndAmbientWhenNoConsent() {
     pendingConsentHero = null;
     clearPendingContentConsentRequest(true);
-
-    heroShells.forEach(function (shell) {
-      const playerRoot = getResolvedHeroPlayer(shell);
-      if (!playerRoot) return;
-
-      attachHeroToShell(playerRoot, shell);
-
-      const state = ensureHeroState(playerRoot);
-      clearHeroReveal(playerRoot);
-
-      state.ui = state.started ? 'paused' : 'idle';
-      state.buffering = false;
-      state.busy = false;
-      state.pausedByUser = false;
-      state.autoPaused = false;
-
-      syncHeroShell(playerRoot);
-
-      try {
-        const result =
-          playerRoot._vimeoPlayer && typeof playerRoot._vimeoPlayer.pause === 'function'
-            ? playerRoot._vimeoPlayer.pause()
-            : null;
-
-        if (result && typeof result.catch === 'function') {
-          result.catch(function () {});
-        }
-      } catch (e) {}
-    });
-
-    ambientRoots.forEach(function (playerRoot) {
-      const state = ensureAmbientState(playerRoot);
-      clearAmbientReveal(playerRoot);
-
-      state.playing = false;
-      state.busy = false;
-      state.autoPaused = false;
-
-      syncAmbientRoot(playerRoot);
-
-      try {
-        const result =
-          playerRoot._vimeoPlayer && typeof playerRoot._vimeoPlayer.pause === 'function'
-            ? playerRoot._vimeoPlayer.pause()
-            : null;
-
-        if (result && typeof result.catch === 'function') {
-          result.catch(function () {});
-        }
-      } catch (e) {}
-    });
-
-    contentRoots.forEach(function (vimeoElement) {
-      setContentState(vimeoElement, {
-        playing: false,
-        loading: false,
-        awaitingConsent: false
-      });
-
-      try {
-        const result =
-          vimeoElement._vimeoPlayer && typeof vimeoElement._vimeoPlayer.pause === 'function'
-            ? vimeoElement._vimeoPlayer.pause()
-            : null;
-
-        if (result && typeof result.catch === 'function') {
-          result.catch(function () {});
-        }
-      } catch (e) {}
+    pageResumeRegistry.clear();
+    forEachPlayer(function (root, mode) {
+      pauseByMode(root, mode);
+      if (mode === 'hero') {
+        const state = ensureHeroState(root);
+        state.pausedByUser = false;
+        state.autoPaused = false;
+      } else if (mode === 'ambient') {
+        ensureAmbientState(root).autoPaused = false;
+      }
     });
   }
 
@@ -1073,6 +1096,8 @@
   }
 
   function clearPendingContentConsentRequest(resetActivated) {
+    clearTimeout(pendingContentPlayTimer);
+    pendingContentPlayTimer = null;
     if (typeof resetActivated === 'undefined') resetActivated = true;
     if (!pendingConsentContent) return;
 
@@ -1090,8 +1115,8 @@
   }
 
   async function getOrCreateContentPlayer(vimeoElement) {
-    if (vimeoElement._vimeoPlayer) return vimeoElement._vimeoPlayer;
     if (vimeoElement._vimeoPlayerPromise) return vimeoElement._vimeoPlayerPromise;
+    if (vimeoElement._vimeoPlayer) return vimeoElement._vimeoPlayer;
 
     const initPromise = (async function () {
       const videoId = vimeoElement.getAttribute('data-vimeo-video-id');
@@ -1102,6 +1127,7 @@
 
       await loadVimeoPlayerAPI();
       if (!hasFunctionalityConsent()) throw new Error('Vimeo permission changed');
+      if (!canPlay(vimeoElement, 'content')) return null;
 
       iframe.setAttribute(
         'allow',
@@ -1129,6 +1155,7 @@
         });
 
         player.on('bufferstart', function () {
+          if (!canPlay(vimeoElement, 'content')) return;
           setContentState(vimeoElement, {
             loading: true
           });
@@ -1144,6 +1171,7 @@
         });
 
         player.on('play', function () {
+          if (!acceptPlaybackEvent(vimeoElement, 'content')) return;
           setContentState(vimeoElement, {
             activated: true,
             playing: true,
@@ -1159,6 +1187,8 @@
         });
 
         player.on('pause', function () {
+          if (!acceptPauseEvent(vimeoElement)) return;
+          vimeoElement.dataset.vimeoBusy = 'false';
           setContentState(vimeoElement, {
             playing: false,
             loading: false,
@@ -1166,7 +1196,14 @@
           });
         });
 
+        player.on('playing', function () {
+          acceptPlaybackEvent(vimeoElement, 'content');
+        });
+
         player.on('ended', function () {
+          cancelPlayback(vimeoElement);
+          pageResumeRegistry.delete(vimeoElement);
+          vimeoElement.dataset.vimeoBusy = 'false';
           setContentState(vimeoElement, {
             activated: false,
             playing: false,
@@ -1177,6 +1214,9 @@
         });
 
         player.on('error', function (err) {
+          cancelPlayback(vimeoElement);
+          pageResumeRegistry.delete(vimeoElement);
+          vimeoElement.dataset.vimeoBusy = 'false';
           console.error('Content Vimeo player error:', err);
           setContentState(vimeoElement, {
             playing: false,
@@ -1316,72 +1356,49 @@
     });
   }
 
-  async function playContent(vimeoElement) {
+  function playContent(vimeoElement) {
     if (vimeoElement.dataset.vimeoBusy === 'true') return;
-
     if (!hasFunctionalityConsent()) {
       rememberPendingContentConsentRequest(vimeoElement);
       openCookieSettingsFromVimeo();
       return;
     }
-
+    if (!pageIsActive()) {
+      pageResumeRegistry.set(vimeoElement, 'content');
+      return;
+    }
     vimeoElement.dataset.vimeoBusy = 'true';
-
     setContentState(vimeoElement, {
       activated: true,
       awaitingConsent: false,
       loading: true
     });
-
-    try {
-      const player = await getOrCreateContentPlayer(vimeoElement);
-      const shouldBeMuted = vimeoElement.getAttribute('data-vimeo-muted') === 'true';
-
-      if (typeof player.setMuted === 'function') {
-        await player.setMuted(shouldBeMuted);
-      } else {
-        await player.setVolume(shouldBeMuted ? 0 : 1);
-      }
-
-      if (!hasFunctionalityConsent()) throw new Error('Vimeo permission changed');
-      await player.play();
-    } catch (err) {
-      console.error('Content Vimeo play failed:', err);
-      setContentState(vimeoElement, {
-        playing: false,
-        loading: false,
-        awaitingConsent: false
-      });
-    } finally {
+    return requestPlayback(vimeoElement, 'content', async function (player) {
+      const muted = vimeoElement.getAttribute('data-vimeo-muted') === 'true';
+      if (typeof player.setMuted === 'function') await player.setMuted(muted);
+      else await player.setVolume(muted ? 0 : 1);
+    }, function () {
       vimeoElement.dataset.vimeoBusy = 'false';
-    }
+      setContentState(vimeoElement, { loading: false, awaitingConsent: false });
+      if (!getPlayback(vimeoElement).wanted) setContentState(vimeoElement, { playing: false });
+    });
   }
 
-  async function pauseContent(vimeoElement) {
-    if (vimeoElement.dataset.vimeoBusy === 'true') return;
-
-    const player = vimeoElement._vimeoPlayer;
-    if (!player) return;
-
-    vimeoElement.dataset.vimeoBusy = 'true';
-
-    try {
-      await player.pause();
-    } catch (err) {
-      console.error('Content Vimeo pause failed:', err);
-      setContentState(vimeoElement, {
-        loading: false
-      });
-    } finally {
-      vimeoElement.dataset.vimeoBusy = 'false';
+  function pauseContent(vimeoElement, opts) {
+    cancelPlayback(vimeoElement);
+    if (!opts || !opts.automatic) {
+      pageResumeRegistry.delete(vimeoElement);
+      if (pendingConsentContent === vimeoElement) clearPendingContentConsentRequest(true);
     }
+    vimeoElement.dataset.vimeoBusy = 'false';
+    setContentState(vimeoElement, { playing: false, loading: false, awaitingConsent: false });
+    return pausePlayer(vimeoElement);
   }
 
   function tryAutoplayPendingContentConsentRequest() {
     if (!pendingConsentContent) return;
 
     const targetElement = pendingConsentContent;
-    pendingConsentContent = null;
 
     if (!targetElement.isConnected) return;
 
@@ -1391,7 +1408,10 @@
       loading: true
     });
 
-    setTimeout(function () {
+    clearTimeout(pendingContentPlayTimer);
+    pendingContentPlayTimer = setTimeout(function () {
+      pendingContentPlayTimer = null;
+      pendingConsentContent = null;
       playContent(targetElement);
     }, 80);
   }
@@ -1491,6 +1511,15 @@
   }
 
   function start() {
+    document.addEventListener('visibilitychange', handlePageVisibility);
+    window.addEventListener('pagehide', function () {
+      pageHidden = true;
+      handlePageVisibility();
+    });
+    window.addEventListener('pageshow', function () {
+      pageHidden = false;
+      handlePageVisibility();
+    });
     heroShells.forEach(function (shell) {
       bindHeroShellControls(shell);
 
@@ -1571,6 +1600,5 @@
   start();
   return instance;
   }
-  window.TDBVimeo = Object.freeze({version: '1.1.0', init, get initialised() { return !!instance; }});
+  window.TDBVimeo = Object.freeze({version: '1.2.0', init, get initialised() { return !!instance; }});
 })();
-

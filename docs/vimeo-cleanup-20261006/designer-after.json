@@ -1,0 +1,235 @@
+{
+  "element": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"label\":\"Verify cleaned native USP video tree\",\"action\":\"query_elements\",\"result\":[{\"status\":\"success\",\"message\":\"Query results\",\"data\":[{\"total_matches\":1,\"matches\":[{\"id\":{\"component\":\"677cf86df9952f978d94d8a9\",\"element\":\"ce5ea7bd-8bf1-cf3a-9f2b-0f1ca16105e1\"},\"type\":\"Block\",\"styleNames\":[\"layout355_background-video-wrapper\"],\"settings\":{\"tag\":\"div\",\"visibility\":true,\"block\":{\"tag\":\"div\"}},\"children\":[{\"id\":{\"component\":\"677cf86df9952f978d94d8a9\",\"element\":\"ce5ea7bd-8bf1-cf3a-9f2b-0f1ca16105e2\"},\"type\":\"Block\",\"styleNames\":[\"video-overlay-layer\"],\"settings\":{\"tag\":\"div\",\"visibility\":true,\"block\":{\"tag\":\"div\"}}},{\"id\":{\"component\":\"677cf86df9952f978d94d8a9\",\"element\":\"70f2815a-6a14-fac4-1493-0f0aa6244c9f\"},\"type\":\"Block\",\"styleNames\":[\"vimeo-bg\",\"is-ambient\"],\"attributes\":{\"data-vimeo-autoplay\":\"true\",\"data-vimeo-video-id\":\"1047430580\",\"data-vimeo-ambient-init\":\"\"},\"settings\":{\"tag\":\"div\",\"visibility\":true,\"block\":{\"tag\":\"div\"}},\"children\":[{\"id\":{\"component\":\"677cf86df9952f978d94d8a9\",\"element\":\"70f2815a-6a14-fac4-1493-0f0aa6244ca0\"},\"type\":\"Block\",\"styleNames\":[\"vimeo-bg__iframe-wrapper\",\"is-ambient\"],\"settings\":{\"tag\":\"div\",\"visibility\":true,\"block\":{\"tag\":\"div\"}},\"children\":[{\"id\":{\"component\":\"677cf86df9952f978d94d8a9\",\"element\":\"70f2815a-6a14-fac4-1493-0f0aa6244ca2\"},\"type\":\"DOM\",\"styleNames\":[\"vimeo-bg__iframe\",\"is-ambient\"],\"attributes\":{\"src\":\"\",\"frameborder\":\"0\",\"allow\":\"autoplay; encrypted-media\",\"loading\":\"lazy\",\"title\":\"The Dental Barns brand film highlighting our sensory approach to care in Lichfield\"},\"settings\":{\"tag\":\"iframe\",\"visibility\":true,\"dom\":{\"tag\":\"iframe\"}}}]},{\"id\":{\"component\":\"677cf86df9952f978d94d8a9\",\"element\":\"70f2815a-6a14-fac4-1493-0f0aa6244ca3\"},\"type\":\"Image\",\"styleNames\":[\"vimeo-bg__placeholder\",\"is-ambient\"],\"settings\":{\"visibility\":true,\"assetId\":\"6825e0d76a915e93fb37516e\"}}]}]}]}]}]}"
+      }
+    ],
+    "isError": false
+  },
+  "styles": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"label\":\"Verify ambient layout across breakpoints\",\"action\":\"get_styles\",\"result\":[{\"id\":\"99aca250-c18b-dd99-931f-78277ac7fda8\",\"name\":\"is-ambient\",\"isFromLibrary\":false,\"isComboClass\":true,\"type\":\"combo\",\"selector\":\".vimeo-bg.is-ambient\",\"properties\":{\"base\":{\"properties\":{\"left\":\"0px\",\"top\":\"0px\",\"width\":\"100%\",\"height\":\"100%\",\"max-height\":\"none\",\"max-width\":\"none\",\"min-height\":\"0px\",\"min-width\":\"0px\"}},\"breakpoints\":{\"main\":{\"properties\":{\"left\":\"0px\",\"top\":\"0px\",\"width\":\"100%\",\"height\":\"100%\",\"max-height\":\"none\",\"max-width\":\"none\",\"min-height\":\"0px\",\"min-width\":\"0px\"}}}}},{\"id\":\"168e5e4c-fc27-b29c-a6af-6538689dcdad\",\"name\":\"is-ambient\",\"isFromLibrary\":false,\"isComboClass\":true,\"type\":\"combo\",\"selector\":\".vimeo-bg__iframe.is-ambient\",\"properties\":{\"base\":{\"properties\":{\"width\":\"100%\",\"height\":\"100%\"}},\"breakpoints\":{\"main\":{\"properties\":{\"width\":\"100%\",\"height\":\"100%\"}}}}},{\"id\":\"e36991a4-6e19-f9c9-3fc9-a672daa032d3\",\"name\":\"is-ambient\",\"isFromLibrary\":false,\"isComboClass\":true,\"type\":\"combo\",\"selector\":\".vimeo-bg__placeholder.is-ambient\",\"properties\":{\"base\":{\"properties\":{\"height\":\"100%\",\"max-height\":\"none\",\"min-height\":\"0px\",\"min-width\":\"100%\"}},\"breakpoints\":{\"main\":{\"properties\":{\"height\":\"100%\",\"max-height\":\"none\",\"min-height\":\"0px\",\"min-width\":\"100%\"}}}}},{\"id\":\"e8dcd2bc-9873-8dfc-76da-fe9d0dff3599\",\"name\":\"is-ambient\",\"isFromLibrary\":false,\"isComboClass\":true,\"type\":\"combo\",\"selector\":\".vimeo-bg__iframe-wrapper.is-ambient\",\"properties\":{\"base\":{\"properties\":{\"left\":\"0px\",\"top\":\"0px\",\"width\":\"100%\",\"height\":\"100%\",\"max-height\":\"none\",\"max-width\":\"none\",\"min-height\":\"0px\",\"min-width\":\"0px\"}},\"breakpoints\":{\"main\":{\"properties\":{\"left\":\"0px\",\"top\":\"0px\",\"width\":\"100%\",\"height\":\"100%\",\"max-height\":\"none\",\"max-width\":\"none\",\"min-height\":\"0px\",\"min-width\":\"0px\"}}}}}]}"
+      }
+    ],
+    "isError": false
+  },
+  "styleActions": [
+    {
+      "label": "Share native ambient sizing for vimeo-bg",
+      "create_style": {
+        "name": "is-ambient",
+        "parent_style_names": [
+          "vimeo-bg"
+        ],
+        "properties": [
+          {
+            "property_name": "width",
+            "property_value": "100%"
+          },
+          {
+            "property_name": "height",
+            "property_value": "100%"
+          },
+          {
+            "property_name": "min-width",
+            "property_value": "0px"
+          },
+          {
+            "property_name": "min-height",
+            "property_value": "0px"
+          },
+          {
+            "property_name": "max-width",
+            "property_value": "none"
+          },
+          {
+            "property_name": "max-height",
+            "property_value": "none"
+          },
+          {
+            "property_name": "left",
+            "property_value": "0px"
+          },
+          {
+            "property_name": "top",
+            "property_value": "0px"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Share native ambient sizing for vimeo-bg__iframe-wrapper",
+      "create_style": {
+        "name": "is-ambient",
+        "parent_style_names": [
+          "vimeo-bg__iframe-wrapper"
+        ],
+        "properties": [
+          {
+            "property_name": "width",
+            "property_value": "100%"
+          },
+          {
+            "property_name": "height",
+            "property_value": "100%"
+          },
+          {
+            "property_name": "min-width",
+            "property_value": "0px"
+          },
+          {
+            "property_name": "min-height",
+            "property_value": "0px"
+          },
+          {
+            "property_name": "max-width",
+            "property_value": "none"
+          },
+          {
+            "property_name": "max-height",
+            "property_value": "none"
+          },
+          {
+            "property_name": "left",
+            "property_value": "0px"
+          },
+          {
+            "property_name": "top",
+            "property_value": "0px"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Share native ambient sizing for vimeo-bg__iframe",
+      "create_style": {
+        "name": "is-ambient",
+        "parent_style_names": [
+          "vimeo-bg__iframe"
+        ],
+        "properties": [
+          {
+            "property_name": "width",
+            "property_value": "100%"
+          },
+          {
+            "property_name": "height",
+            "property_value": "100%"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Share native ambient sizing for vimeo-bg__placeholder",
+      "create_style": {
+        "name": "is-ambient",
+        "parent_style_names": [
+          "vimeo-bg__placeholder"
+        ],
+        "properties": [
+          {
+            "property_name": "height",
+            "property_value": "100%"
+          },
+          {
+            "property_name": "min-height",
+            "property_value": "0px"
+          },
+          {
+            "property_name": "max-height",
+            "property_value": "none"
+          },
+          {
+            "property_name": "min-width",
+            "property_value": "100%"
+          }
+        ]
+      }
+    }
+  ],
+  "elementActions": [
+    {
+      "label": "Apply vimeo-bg ambient sizing",
+      "set_style": {
+        "id": {
+          "component": "677cf86df9952f978d94d8a9",
+          "element": "70f2815a-6a14-fac4-1493-0f0aa6244c9f"
+        },
+        "style_names": [
+          "vimeo-bg",
+          "is-ambient"
+        ]
+      }
+    },
+    {
+      "label": "Apply vimeo-bg__iframe-wrapper ambient sizing",
+      "set_style": {
+        "id": {
+          "component": "677cf86df9952f978d94d8a9",
+          "element": "70f2815a-6a14-fac4-1493-0f0aa6244ca0"
+        },
+        "style_names": [
+          "vimeo-bg__iframe-wrapper",
+          "is-ambient"
+        ]
+      }
+    },
+    {
+      "label": "Apply vimeo-bg__iframe ambient sizing",
+      "set_style": {
+        "id": {
+          "component": "677cf86df9952f978d94d8a9",
+          "element": "70f2815a-6a14-fac4-1493-0f0aa6244ca2"
+        },
+        "style_names": [
+          "vimeo-bg__iframe",
+          "is-ambient"
+        ]
+      }
+    },
+    {
+      "label": "Apply vimeo-bg__placeholder ambient sizing",
+      "set_style": {
+        "id": {
+          "component": "677cf86df9952f978d94d8a9",
+          "element": "70f2815a-6a14-fac4-1493-0f0aa6244ca3"
+        },
+        "style_names": [
+          "vimeo-bg__placeholder",
+          "is-ambient"
+        ]
+      }
+    },
+    {
+      "label": "Remove stale ambient state/configuration attributes",
+      "remove_attribute": {
+        "id": {
+          "component": "677cf86df9952f978d94d8a9",
+          "element": "70f2815a-6a14-fac4-1493-0f0aa6244c9f"
+        },
+        "attribute_names": [
+          "data-vimeo-activated",
+          "data-vimeo-loaded",
+          "data-vimeo-paused-by-user",
+          "data-vimeo-playing",
+          "data-vimeo-update-size",
+          "data-vimeo-muted"
+        ]
+      }
+    },
+    {
+      "label": "Remove empty obsolete aspect ratio spacer from fixed-height ambient only",
+      "remove_element": {
+        "id": {
+          "component": "677cf86df9952f978d94d8a9",
+          "element": "70f2815a-6a14-fac4-1493-0f0aa6244ca1"
+        }
+      }
+    }
+  ]
+}
+

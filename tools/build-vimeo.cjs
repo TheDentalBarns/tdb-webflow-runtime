@@ -1,4 +1,4 @@
-/* Run after npm install --no-save terser@5.39.0; --check verifies committed assets. */
+/* Run after npm install --no-save terser@5.44.0; --check verifies committed assets. */
 const fs=require('node:fs'),path=require('node:path'),{minify}=require('terser');
 const root=path.resolve(__dirname,'..'),check=process.argv.includes('--check');
 (async()=>{
