@@ -1,4 +1,4 @@
-/* Smile Gallery presentation v4.0.0. Native Designer structure; shared ticker and motion. */
+/* Smile Gallery presentation v4.0.1. Native Designer structure; shared ticker and motion. */
 (() => {
   'use strict';
   if (window.TDBSmileCards) return;
@@ -29,12 +29,12 @@
     const template = presentation.querySelector('[data-tdb-smile-ticker-template]');
     const motion = window.TDBMotion;
     let slides = [], originals = [], swiper = null, showTimer = 0, moving = false;
-    let revealed = false, disposed = false, countTicker = null, factTickers = [], revision = 0;
+    let revealed = false, disposed = false, countTicker = null, totalTicker = null, tickerFailed = false, factTickers = [], revision = 0;
     const listeners = [];
     const desktop = matchMedia('(min-width:992px)');
     const clean = text => text.trim().replace(/\s+/g, ' ');
     const cancelShow = () => { clearTimeout(showTimer); showTimer = 0; };
-    const cancelTickers = () => { countTicker?.settle(); factTickers.forEach(ticker => ticker.settle()); };
+    const cancelTickers = () => { countTicker?.settle(); totalTicker?.settle(); factTickers.forEach(ticker => ticker.settle()); };
     function revealState(slide) {
       const details = slide.querySelector('.tdb-smile-details');
       const expanded = details && Number.parseFloat(details.style.opacity) > 0 && details.style.height !== '0px';
@@ -67,7 +67,10 @@
       if (disposed) return;
       const index = swiper && !swiper.destroyed ? swiper.realIndex : 0;
       const direction = swiper && swiper.activeIndex < swiper.previousIndex ? -1 : 1;
-      totalNode.textContent = String(originals.length).padStart(2, '0');
+      const total = String(originals.length).padStart(2, '0');
+      // Keep Designer's initial value until the shared ticker can animate it.
+      if (totalTicker) totalTicker.update(total);
+      else if (tickerFailed) totalNode.textContent = total;
       label.textContent = 'Smile ' + (index + 1) + ' of ' + originals.length;
       const count = String(index + 1).padStart(2, '0');
       if (countTicker) countTicker.update(count, direction, Boolean(swiper));
@@ -165,7 +168,7 @@
       disposed = true; revision++; unbind(); observer.disconnect(); revealObserver.disconnect();
       root.removeEventListener('mouseover', onPointer); root.removeEventListener('mouseout', onPointer);
       desktop.removeEventListener('change', syncReveal);
-      countTicker?.destroy(); factTickers.forEach(ticker => ticker.destroy());
+      countTicker?.destroy(); totalTicker?.destroy(); factTickers.forEach(ticker => ticker.destroy());
       showText(0); viewports.forEach(node => node.classList.add('is-ready')); roots.delete(root);
     }});
     roots.set(root, api); root.setAttribute('data-tdb-smile-card-design', '4.0');
@@ -185,10 +188,15 @@
     tickerReady().then(() => {
       if (disposed || token !== revision) return;
       countTicker = window.TDBNativeTicker.mount(current, {template,valueClass:'tdb-smile-counter-value',incomingClass:'tdb-smile-counter-value'});
+      totalTicker = window.TDBNativeTicker.mount(totalNode, {template,valueClass:'tdb-smile-counter-value',incomingClass:'tdb-smile-counter-value'});
       factTickers = slots.map((slot, column) => window.TDBNativeTicker.mount(slot, {template,valueClass:'tdb-smile-fact-value',incomingClass:'tdb-smile-fact-value',normalize:text=>column<2?clean(text).toUpperCase():clean(text)}));
       update();
-    }).catch(() => { /* Native values remain usable; movement does not depend on ticker download. */ });
+    }).catch(() => {
+      // Keep the total accurate if the optional ticker cannot be downloaded.
+      if (disposed || token !== revision) return;
+      tickerFailed = true; update();
+    });
     return api;
   }
-  window.TDBSmileCards = Object.freeze({version:'4.0.0',prepare,prune(){roots.forEach((api,root)=>{if(!root.isConnected)api.destroy();});}});
+  window.TDBSmileCards = Object.freeze({version:'4.0.1',prepare,prune(){roots.forEach((api,root)=>{if(!root.isConnected)api.destroy();});}});
 })();

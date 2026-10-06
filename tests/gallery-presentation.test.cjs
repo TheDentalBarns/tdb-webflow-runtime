@@ -43,11 +43,12 @@ function fixture(w) {
   return {root,viewport};
 }
 test('Gallery preserves CMS values through loop copies, rapid navigation, sorting, destroy and remount',async()=>{
-  const {dom,w}=setup();
+  const {dom,w,animations}=setup();
   try {
     w.eval(read('dist/tdb-swiper-8.4.7.min.js'));w.eval(read('dist/tdb-gallery.js'));
     const {root,viewport}=fixture(w),s=w.TDBSwiper.mount('gallery',root);await flush();
     assert.equal(w.TDBSmileCards.prepare(root),w.TDBSmileCards.prepare(root));
+    animations.forEach(animation=>animation.onfinish?.());
     assert.equal(root.querySelector('.tdb-smile-counter-total').textContent,'04');
     assert.equal(root.querySelectorAll('.tdb-smile-fact-sizer').length,12,'sizing includes original CMS values only');
     for(let i=0;i<7;i++)s.slideNext(0);
@@ -60,5 +61,31 @@ test('Gallery preserves CMS values through loop copies, rapid navigation, sortin
     const api=w.TDBSmileCards.prepare(root);s.destroy(true,true);api.destroy();
     const remount=w.TDBSwiper.mount('gallery',root);await flush();assert.equal(remount,viewport.swiper);assert.notEqual(remount,s);
     remount.destroy(true,true);root.remove();w.TDBSmileCards.prune();
+  } finally {dom.window.close();}
+});
+
+test('Gallery total ticks from the native initial value after the shared ticker loads, without restarting on refresh',async()=>{
+  const {dom,w,animations}=setup();
+  try {
+    let ready;
+    w.TDBModules={load:()=>new Promise(resolve=>{ready=resolve;})};
+    w.eval(read('dist/tdb-swiper-8.4.7.min.js'));w.eval(read('dist/tdb-gallery.js'));
+    const {root}=fixture(w),total=root.querySelector('.tdb-smile-counter-total');
+    total.textContent='01';
+    const api=w.TDBSmileCards.prepare(root);
+    assert.equal(total.textContent,'01','preserve the Designer value until the ticker can animate it');
+    ready();await flush();
+    const transitions=animations.filter(animation=>animation.target.parentElement===total);
+    assert.equal(transitions.length,2);
+    assert.deepEqual(transitions.map(animation=>animation.target.textContent),['01','04']);
+    assert.equal(transitions[1].timing.duration,400);
+    api.refresh();
+    assert.equal(animations.filter(animation=>animation.target.parentElement===total).length,2);
+    assert.equal(transitions[1].cancelled,false,'refresh must not cancel the initial total animation');
+    transitions[1].onfinish();
+    assert.equal(total.textContent,'04');
+    assert.equal(total.children.length,1);
+    api.destroy();
+    assert.equal(total.textContent,'04','teardown must retain the resolved total');
   } finally {dom.window.close();}
 });
