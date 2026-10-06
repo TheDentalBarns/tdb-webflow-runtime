@@ -1,4 +1,4 @@
-/* TDB shared motion v1.6.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.7.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -102,6 +102,152 @@
     };
   }
 
+  // Page-break images have one transform owner. Layout/crop stay in Designer.
+  // A visible first frame is retained; only actual scrolling pays down its
+  // initial offset. No animation clock, startup tween or trailing rAF loop.
+  const pageBreakClients = new Map();
+  function pageBreaks(wrappers) {
+    const controller = new AbortController(), { signal } = controller;
+    const states = [], owned = [];
+    let frame = 0, layout = true, suspended = false, disposed = false, released = false;
+    let lastScroll = window.scrollY, inputUntil = 0, pointerHeld = false;
+    const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
+    const yOf = node => {
+      const transform = getComputedStyle(node).transform;
+      return transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m42;
+    };
+    const schedule = () => {
+      if (!frame && !disposed && !suspended && !document.hidden) frame = requestAnimationFrame(render);
+    };
+    const refresh = () => { layout = true; schedule(); };
+    const input = event => {
+      if (event.type === 'keydown' && (!['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key) ||
+          event.target?.closest?.('input,textarea,select,[contenteditable="true"]'))) return;
+      inputUntil = performance.now() + 2000;
+      if (event.type === 'pointerdown') pointerHeld = true;
+    };
+    const pointerEnd = () => { pointerHeld = false; inputUntil = performance.now() + 2000; };
+    function retain(state, progress, target) {
+      state.correction = Math.abs(state.y - target) < 0.001 ? null : {
+        anchor: progress, offset: state.y - target, weight: 1,
+      };
+    }
+    function geometry(state) {
+      const box = state.wrapper.getBoundingClientRect();
+      const image = state.node.getBoundingClientRect();
+      const view = window.innerHeight;
+      // Subtract our translation when measuring crop. Never measure progress
+      // against the moving image (which would feed back into its own progress).
+      const top = image.top - state.y, bottom = image.bottom - state.y;
+      const cropLow = Math.min(0, box.bottom - bottom);
+      const cropHigh = Math.max(0, box.top - top);
+      const low = Math.max(-view * 0.02, cropLow), high = Math.min(view * 0.02, cropHigh);
+      const progress = clamp((view - box.top) / (view + box.height), 0, 1);
+      return { low, high, progress, target: low + (high - low) * progress,
+        visible: box.bottom > 0 && box.top < view && box.height > 0,
+        signature: [box.top + window.scrollY, box.height, image.height, view, low, high],
+      };
+    }
+    function render() {
+      frame = 0;
+      const scroll = window.scrollY, distance = scroll - lastScroll;
+      const userScroll = distance !== 0 && (pointerHeld || performance.now() <= inputUntil);
+      // Read every rect first, then write. Each wrapper is independent.
+      const measurements = states.map(state => [state, geometry(state)]);
+      for (const [state, g] of measurements) {
+        const changed = layout || !state.geometry || g.signature.some((n, i) => Math.abs(n - state.geometry[i]) > 0.5);
+        const previous = state.y;
+        state.geometry = g.signature;
+        state.y = clamp(state.y, g.low, g.high);
+        if (!g.visible) {
+          state.y = g.target;
+          state.correction = null;
+        } else if (changed || (distance !== 0 && !userScroll)) {
+          // Resize/layout movement and browser scroll restoration are not a
+          // user's first scroll pass. Rebase at the currently painted position.
+          retain(state, g.progress, g.target);
+        } else if (userScroll) {
+          const correction = state.correction;
+          if (correction) {
+            // The envelope only shrinks. Reversing through the original anchor
+            // never restores consumed offset or causes a discontinuity.
+            const before = correction.anchor > 0 ? g.progress / correction.anchor : 1;
+            const after = correction.anchor < 1 ? (1 - g.progress) / (1 - correction.anchor) : 1;
+            correction.weight = clamp(Math.min(correction.weight, before, after), 0, 1);
+          }
+          const desired = g.target + (correction ? correction.offset * correction.weight : 0);
+          // Near an exit the available distance can be tiny. Cap visible speed;
+          // any last fraction is aligned on the first fully off-screen frame.
+          const step = Math.abs(distance) * 0.15;
+          state.y = clamp(clamp(desired, previous - step, previous + step), g.low, g.high);
+          if (correction && correction.weight === 0 && Math.abs(state.y - g.target) < 0.001) state.correction = null;
+        }
+        if (reduced.matches) { state.y = clamp(0, g.low, g.high); state.correction = null; }
+        state.progress = g.progress;
+        state.visible = g.visible;
+      }
+      for (const state of states) {
+        const value = `translate3d(0, ${state.y.toFixed(4)}px, 0)`;
+        if (state.node.style.transform !== value) state.node.style.transform = value;
+      }
+      lastScroll = scroll;
+      layout = false;
+    }
+    for (const wrapper of new Set(wrappers)) {
+      const existing = pageBreakClients.get(wrapper);
+      if (existing) { existing.clients++; owned.push(existing); continue; }
+      const node = wrapper.querySelector('[data-tdb-page-break-image]') || wrapper.querySelector('img');
+      if (!node) continue;
+      const state = { wrapper, node, y: yOf(node), original: node.style.transform, correction: null };
+      states.push(state);
+      const owner = { clients: 1, wrapper, release: null, refresh };
+      pageBreakClients.set(wrapper, owner);
+      owned.push(owner);
+    }
+    let resize;
+    if (states.length) {
+      window.addEventListener('scroll', schedule, { passive: true, signal });
+      window.addEventListener('resize', refresh, { passive: true, signal });
+      window.addEventListener('pageshow', () => { suspended = false; lastScroll = window.scrollY; refresh(); }, { signal });
+      window.addEventListener('pagehide', () => { suspended = true; cancelAnimationFrame(frame); frame = 0; }, { signal });
+      for (const event of ['wheel', 'touchstart', 'touchmove', 'pointerdown', 'keydown'])
+        window.addEventListener(event, input, { capture: true, passive: true, signal });
+      for (const event of ['pointerup', 'pointercancel']) window.addEventListener(event, pointerEnd, { passive: true, signal });
+      document.addEventListener('visibilitychange', refresh, { signal });
+      window.addEventListener('load', refresh, { signal });
+      reduced.addEventListener('change', refresh, { signal });
+      if (typeof ResizeObserver !== 'undefined') {
+        resize = new ResizeObserver(refresh);
+        resize.observe(document.documentElement);
+        if (document.body) resize.observe(document.body);
+        for (const state of states) { resize.observe(state.wrapper); resize.observe(state.node); }
+      }
+      for (const state of states) state.node.addEventListener('load', refresh, { signal });
+      document.fonts?.ready.then(() => { if (!disposed) refresh(); });
+      // Apply synchronously: visible images keep their current translation;
+      // off-screen images are positioned before the next paint.
+      render();
+    }
+    function release(state) {
+      const index = states.indexOf(state);
+      if (index !== -1) states.splice(index, 1);
+      state.node.removeEventListener('load', refresh);
+      resize?.unobserve(state.wrapper); resize?.unobserve(state.node);
+      state.node.style.transform = state.original;
+      if (!states.length) { disposed = true; controller.abort(); resize?.disconnect(); cancelAnimationFrame(frame); frame = 0; }
+    }
+    for (const state of states) pageBreakClients.get(state.wrapper).release = () => release(state);
+    return Object.freeze({
+      refresh: () => { if (!released) for (const owner of owned) owner.refresh(); },
+      status: () => states.map(state => ({ progress: state.progress, y: state.y, visible: state.visible, correcting: Boolean(state.correction) })),
+      destroy() {
+        if (released) return;
+        released = true;
+        for (const owner of owned) if (!--owner.clients) { owner.release(); pageBreakClients.delete(owner.wrapper); }
+      },
+    });
+  }
+
   // Components select the appropriate choreography. These values preserve the
   // established review fades, including forward/backward and cancelled drags.
   const carousel = Object.freeze({ nextDelay: 100, previousDelay: 140, settleDelay: 60, entryStart: 120, entryRetry: 100, entryFallback: 300 });
@@ -189,5 +335,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.6.0', reduced, defaults, carousel, duration, ddText, ddOpacity, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.7.0', reduced, defaults, carousel, duration, ddText, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();

@@ -10,6 +10,7 @@ const entries = {
   'src/shared/modules.js': 'tdb-modules.js',
   'src/shared/motion-policy.js': 'tdb-motion-policy.js',
   'src/shared/motion.js': 'tdb-motion.js',
+  'src/page-break/loader.js': 'tdb-page-break-loader.js',
   'src/shared/filters.js': 'tdb-filters.js',
   'src/shared/drawer.js': 'tdb-drawer.js',
   'src/shared/ticker.js': 'tdb-ticker.js',
