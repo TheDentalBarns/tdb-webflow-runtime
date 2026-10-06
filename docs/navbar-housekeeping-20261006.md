@@ -64,7 +64,20 @@ compared the active 1.4.3 runtime with the candidate 1.4.4 runtime and matching
 native styles at 390, 844, 1024, 1440 and 1920px. Closed/open layout, colours,
 blur, opacity and transition values matched exactly. Both scrolled dropdowns,
 cream keyboard focus, rapid switching/reversal and resize teardown passed.
-Staging verification follows deployment of the native styles and pinned bundle.
+Staging publication uses loader pin `8dda1ef4d208309ee6715f4a122a2ee0196aa131`.
+The published 1.4.4 runtime and native Designer export passed the same five-width
+checks, both scrolled dropdowns, keyboard focus, rapid switching and desktop-to-
+mobile teardown. Measured layout, colour, blur, opacity and transition values
+matched the original 1.4.3 staging baseline with no differences. Native focus
+resolved to 2px cream with a 4px offset for toggles, links and image cards.
+
+The consent dialog still blocks page interaction while open; the navbar loader
+does not bypass it. Native fallback verification uses a saved rejection with
+the enhanced bundle blocked, so the consent dialog does not mask the native
+controls being tested. Desktop and mobile fallback open/close passed in that
+configuration. Contact's Transparent Dark variant also passed Services and
+Discover opening/closing at the top and after scrolling, using the published
+1.4.4 runtime. No true Base/solid-nav page is claimed in this browser coverage.
 
 ## Rollback
 
