@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.5.0-a11y.1';
+  const VERSION = '0.6.0-legacy';
   const mobileQuery = matchMedia('(max-width:767px)');
   const desktopQuery = matchMedia('(min-width:768px)');
   const drawer = document.getElementById('tdb-vip-drawer');
@@ -11,6 +11,7 @@
   const label = drawer.querySelector('.tdb-vip-drawer-label');
   const body = drawer.querySelector('.tdb-vip-drawer-body');
   if (!handle || !label || !body) return;
+  const panelMotion = window.TDBVIPMotion(drawer);
 
   drawer.dataset.tdbVipUnifiedInit = 'true';
   drawer.dataset.tdbVipInit = 'true';
@@ -190,13 +191,14 @@
   }
 
   function closeDrawer() {
-    if (state === 2) { blurField(); state = 3; render(); timer = setTimeout(reset, 540); }
+    if (state === 2) { blurField(); state = 3; render(); timer = setTimeout(reset, panelMotion.cleanup); }
     else reset();
   }
 
   function peek() { if (!state && !near) { state = 1; render(); } }
 
   function openDrawer() {
+    if (state !== 2 && state !== 3) panelMotion.prepare();
     clearTimeout(timer); lastY = pageY(); state = 2; drawer.scrollTop = 0;
     if (mobileQuery.matches) {
       openedFromNativeMenu = nativeMenuOpen(); render(); visualTop();
