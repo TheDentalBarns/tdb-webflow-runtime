@@ -1,4 +1,4 @@
-/* TDB Announcement 1.6.9. Shares existing shell/consent/drawer controllers.
+/* TDB Announcement 1.6.10. Shares existing shell/consent/drawer controllers.
  * Uses published CMS text; shares consent, shell motion and drawer routing.
  */
 (() => {
@@ -42,7 +42,6 @@
 const CSS = `
 #tdb-elfsight-timer-shell[hidden]{display:none!important}
 #tdb-elfsight-timer-shell[data-tdb-announcement-pending]{visibility:hidden!important;transform:translate3d(0,-100%,0)!important;opacity:0!important;pointer-events:none!important;transition:none!important}
-html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elfsight-timer-shell,html.tdb-sg-locked #tdb-elfsight-timer-shell{transform:translate3d(0,-100%,0)!important;opacity:1!important;visibility:hidden!important;pointer-events:none!important;transition:transform 420ms cubic-bezier(.4,0,.2,1),visibility 0s 420ms!important}
 .tdb-announcement{width:100%;height:6rem;min-height:6rem;box-sizing:border-box;margin:0;padding-block:0;border:0;border-radius:0;display:flex;align-items:center;justify-content:center;gap:12px;background:var(--base-color-brand--black,#000);color:var(--base-color-brand--orange-1,#f9f2e6);font:inherit;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tdb-announcement:focus-visible{outline:1px solid currentColor;outline-offset:-6px}
 .tdb-announcement{touch-action:pan-y pinch-zoom;user-select:none}
@@ -419,13 +418,13 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
     start();
   }
   window.TDBAnnouncement = Object.freeze({
-    version: '1.6.9',
+    version: '1.6.10',
     mount(target) {
       if (shell) return;
       shell = target; shell.hidden = true; active = decisionExists();
       if (active) start(); else events.forEach(name => window.addEventListener(name, consentReady));
     },
     configure(next) { overrides = { ...overrides, ...next }; config = { ...config, ...next }; labels.clear(); mode = last = ''; render(); },
-    status: () => ({ version: '1.6.9', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
+    status: () => ({ version: '1.6.10', mounted: started, mode, deadline: config.deadline, ticking: Boolean(timer), cms: Boolean(row), settings:dataState, settingsAttempts:dataAttempts, preview, manual, reducedMotion:reduced.matches })
   });
 })();

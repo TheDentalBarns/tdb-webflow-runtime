@@ -1,11 +1,16 @@
-/* TDB shared slider focus v1.2.0. Extracted unchanged from the carousel bundle. */
+/* TDB shared slider focus v1.2.1. Cleanup follows the shared CSS peek clock. */
 (() => {
     "use strict";
     const e = document.documentElement;
     if (e.dataset.tdbSliderFocusReady) return;
-    e.dataset.tdbSliderFocusReady = "1.2.0";
+    e.dataset.tdbSliderFocusReady = "1.2.1";
     const t = 'input,textarea,select,[contenteditable="true"]', n = "[data-tdb-sg-overlay],.tdb-sg-filter-dock";
     let i = null, r = null, s = 0, a = 0, o = 0, l = 0;
+    function peekDuration() {
+        const value = getComputedStyle(e).getPropertyValue('--tdb-peek-duration').trim();
+        const duration = /^\d*\.?\d+(ms|s)$/.test(value) ? parseFloat(value) * (value.endsWith('ms') ? 1 : 1000) : 420;
+        return Number.isFinite(duration) ? duration : 420;
+    }
     const d = () => Math.max(window.scrollY || e.scrollTop || 0, 0);
     function c() {
         if (l = 0, !i || i.controller) return;
@@ -45,8 +50,10 @@
                     e.style.setProperty("--tdb-slider-nav-away", i + "px");
                 }
                 const t = document.getElementById("tdb-vip-drawer");
-                t?.matches(".is-open,.is-peeking") && window.TDBVIPDrawer?.close?.(), a = setTimeout(g, 430), 
-                o = setTimeout(g, 680);
+                t?.matches(".is-open,.is-peeking") && window.TDBVIPDrawer?.close?.();
+                const duration = peekDuration();
+                a = setTimeout(g, duration + 10);
+                o = setTimeout(g, duration + 260);
             }
             i.slider = t, i.controller = window.TDBNavScroll || null, p(), i.controller ? i.controller.focus(L, () => Boolean(r?.horizontal)) : (i.y = d(), 
             i.up = i.down = 0, window.addEventListener("scroll", u, {
