@@ -32,7 +32,7 @@ Thirteen targeted tests cover numeric sorting, AND/clinician filtering, 12-case 
 
 The initial reusable carousel staging pass matched the recorded desktop geometry, including card/media, title, controls and facts. Native ticker text has subpixel width/height differences from the former JavaScript measurement. Home and Services carousels were exercised in the browser.
 
-The complete page's staging browser verification and final release pins are recorded separately after cutover. Responsive styles are native at main/991/767/479 breakpoints. Automated mobile navigation tests do not substitute for touch-device visual review.
+The complete page's staging browser verification and final release pins are recorded in [verification.md](verification.md). Responsive styles are native at main/991/767/479 breakpoints. Automated mobile navigation tests do not substitute for touch-device visual review.
 
 ## Build and rollback
 
