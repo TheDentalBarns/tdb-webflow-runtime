@@ -29,7 +29,7 @@
       {"property_name":"transition-property","property_value":"transform"},
       {"property_name":"transition-duration","property_value":"300ms"},
       {"property_name":"transition-timing-function","property_value":"ease"},
-      {"property_name":"transition-delay","property_value":"var(--tdb-vip-drawer-duration,500ms)"}
+      {"property_name":"transition-delay","property_value":"500ms"}
     ]
   }
 ]

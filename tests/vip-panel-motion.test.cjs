@@ -7,8 +7,8 @@ const read = name => fs.readFileSync(path.join(__dirname, '..', name), 'utf8');
 
 function fixture(file, width = 1440, initialHeight = 1200) {
   const dom = new JSDOM(`<a id="cta" href="#VIP">Join VIP</a>
-    <nav class="navbar10_component"></nav><div id="tdb-vip-drawer">
-    <a class="tdb-vip-drawer-handle"><span class="tdb-vip-drawer-label"></span></a>
+    <nav class="navbar10_component"></nav><div id="tdb-vip-drawer" data-tdb-vip-native="1">
+    <a class="tdb-vip-drawer-handle"><span class="tdb-vip-drawer-label"></span><span class="tdb-vip-arrow-content"></span></a>
     <div class="tdb-vip-drawer-body"><input aria-label="Name"></div></div>`,
     {url:'https://dentalbarns.webflow.io/',runScripts:'outside-only',pretendToBeVisual:true});
   const w = dom.window, timers = new Map();
@@ -98,4 +98,20 @@ test('nav and VIP share the established viewport-height curve and either bundle 
     dom.window.eval(read('dist/tdb-vip-drawer-legacy.js'));
     assert.equal(dom.window.TDBPanelMotion,first);
   } finally {dom.window.close();}
+});
+
+test('native arrow state uses the measured opening delay and clears it for closing',async()=>{
+  const f=fixture('dist/tdb-vip-drawer.js'),{w,drawer}=f;
+  try {
+    w.eval(read('src/vip-drawer/vip-focus.js'));
+    const arrow=drawer.querySelector('.tdb-vip-arrow-content');
+    f.open();await Promise.resolve();
+    assert(arrow.classList.contains('is-vip-open'));
+    assert.equal(arrow.style.transitionDelay,'var(--tdb-vip-drawer-duration,500ms)');
+    assert.equal(drawer.style.getPropertyValue('--tdb-vip-drawer-duration'),'716ms');
+    f.close();await Promise.resolve();
+    assert(arrow.classList.contains('is-vip-closing'));
+    assert.equal(arrow.style.transitionDelay,'0ms');
+    f.finish();await Promise.resolve();assert.equal(arrow.style.transitionDelay,'0ms');
+  } finally {f.destroy();}
 });

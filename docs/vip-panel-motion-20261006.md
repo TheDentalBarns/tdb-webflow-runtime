@@ -28,7 +28,10 @@ style properties are retained.
 - `.tdb-vip-drawer.is-open` and `.is-closing` consume the measured duration and
   shared easing from inline custom properties; background colour stays 500ms.
 - `.tdb-vip-arrow-content.is-vip-open` keeps its 300ms rotation and waits for
-  the measured opening duration. Closing rotation is unchanged.
+  the measured opening duration. Designer retains its 500ms fallback delay.
+  Webflow's published CSS drops variable `transition-delay` values, so the
+  existing `vip-focus.js` state synchronizer sets the measured delay inline
+  while open and zero while closing/idle. Closing rotation is unchanged.
 - Bar peek remains 420ms with `cubic-bezier(.4,0,.2,1)`. Pulse, focus, form,
   consent, scroll, keyboard and treatment preselection behaviour are unchanged.
 
@@ -46,7 +49,7 @@ to its release path. Keep the independent module registry/review pin
 Publish to the Webflow staging subdomain only.
 
 Focused automated checks: `tests/vip-panel-motion.test.cjs`,
-`tests/nav-surfaces.test.cjs`, `tests/full-motion-policy.test.cjs` (10 passing).
+`tests/nav-surfaces.test.cjs`, `tests/full-motion-policy.test.cjs` (11 passing).
 They exercise both built VIP bundles, the nav clock/cache, lower/upper bounds,
 full motion under reduced-motion preference, closing fallback and transitionend,
 keyboard resize, quick reversal and either bundle loading first.
