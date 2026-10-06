@@ -1,0 +1,108 @@
+/* Shared site-bar motion. Components keep their existing visibility triggers.
+ * UI is requested by the head; no motion JavaScript or extra request is needed.
+ * Full-panel opening uses TDBPanelMotion, independently of this peek clock.
+ */
+html {
+  --tdb-peek-duration: 420ms;
+  --tdb-peek-ease: cubic-bezier(.4,0,.2,1);
+}
+
+.tdb-elfsight-shell {
+  --tdb-hide-offset: 6rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  transition:
+    transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)),
+    opacity 260ms var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1));
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+html.tdb-timer-hidden .tdb-elfsight-shell {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(0, calc(-1 * var(--tdb-hide-offset)), 0);
+}
+
+html.tdb-timer-hidden .elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translate3d(0, -6rem, 0) !important;
+  transition:
+    transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)),
+    opacity 260ms var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)) !important;
+  will-change: transform, opacity;
+}
+
+@media (max-width: 767px) {
+  #tdb-elfsight-timer-shell {
+    --tdb-hide-offset: 100%;
+    z-index: 998 !important;
+    transition:
+      transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)),
+      opacity var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)) !important;
+  }
+
+  html.tdb-timer-hidden #tdb-elfsight-timer-shell .elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb {
+    transform: none !important;
+    opacity: 1 !important;
+    transition: none !important;
+  }
+}
+
+/* Carousel focus hides chrome until the existing release trigger fires. */
+.elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb {
+  transition: transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)),opacity 260ms var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)),visibility 0s !important;
+}
+html.tdb-slider-focus .navbar10_component {
+  transform: translateY(calc(-1 * var(--tdb-slider-nav-away,100%))) !important;
+  pointer-events: none !important;
+  transition: transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)) !important;
+}
+html.tdb-slider-focus .navbar-bg_layer {
+  transform: translateY(-100%) !important;
+  pointer-events: none !important;
+  transition: transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)) !important;
+}
+html.tdb-slider-focus #tdb-vip-drawer {
+  transform: translate3d(0,100%,0) !important;
+  pointer-events: none !important;
+  transition: transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)) !important;
+}
+html.tdb-slider-focus .elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb {
+  transform: translate3d(0,-100%,0) !important;
+  opacity: 1 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transition: transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)),visibility 0s var(--tdb-peek-duration,420ms) !important;
+}
+
+/* Cross-component relationships, formerly injected or repeated in Webflow. */
+html.tdb-vip-menu-away .navbar10_component,html.tdb-vip-menu-away .navbar-bg_layer{transform:translateY(-100%)!important;pointer-events:none!important;transition:transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1))!important;will-change:transform!important}
+
+html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elfsight-timer-shell,html.tdb-sg-locked #tdb-elfsight-timer-shell{transform:translate3d(0,-100%,0)!important;opacity:1!important;visibility:hidden!important;pointer-events:none!important;transition:transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)),visibility 0s var(--tdb-peek-duration,420ms)!important}
+
+/* Keep the banner painted until its upward exit finishes. */
+html:has(#tdb-vip-drawer:is(.is-open,.is-closing)) :is(#tdb-elfsight-timer-shell,.elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb,.eapps-countdown-timer-position-bar){
+  visibility:hidden!important;
+  opacity:1!important;
+  pointer-events:none!important;
+  transform:translate3d(0,-100%,0)!important;
+  transition:transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)),visibility 0s linear var(--tdb-peek-duration,420ms)!important;
+}
+
+@media (min-width:992px) {
+  /* Use the navbar's own settled state; do not create a competing scroll threshold. */
+  html[data-wf-page="677cf86df9952f978d94d8a9"]:has(.navbar10_component:is([style*="translateY(0)"],[style*="translateY(0px)"])) #tdb-elfsight-timer-shell {
+    transform:translate3d(0,-100%,0)!important;
+    opacity:1!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+    transition:transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)),visibility 0s var(--tdb-peek-duration,420ms)!important;
+  }
+}

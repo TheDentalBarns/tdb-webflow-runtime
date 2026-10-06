@@ -1,4 +1,4 @@
-/* TDB native reviews v3.13.0. Native Webflow layout; original quote choreography. */
+/* TDB native reviews v3.13.1. Native Webflow layout; original quote choreography. */
 (() => {
 'use strict';if(window.TDBReviews)return;
 const instances=new WeakMap();
@@ -75,6 +75,35 @@ function mount(root,data){
  // The filter footer is native content inside the sliding panel. Only the
  // floating control has separate motion: morph back, then fade over its origin.
  const floatingFilterButton=filterButton?.cloneNode(true),floatingFilterBadge=floatingFilterButton?.querySelector('[data-tdb-filter-badge]');
+ const filterApplyWord=filterApplyPlural?.parentElement;
+ const applyPadding=['padding-left','padding-right'].map(key=>[key,filterApply?.style.getPropertyValue(key)||'',filterApply?.style.getPropertyPriority(key)||'']);
+ const applyWordHidden=filterApplyWord?.hidden;
+ function restoreApplyFit(){
+  if(filterApplyWord)filterApplyWord.hidden=applyWordHidden;
+  for(const [key,value,priority] of applyPadding)if(filterApply){if(value)filterApply.style.setProperty(key,value,priority);else filterApply.style.removeProperty(key);}
+ }
+ function fitFilterApply(){
+  if(destroyed||!filterOpen||!filterApplyWord||!floatingFilterButton?.isConnected||!filterActions)return;
+  // Measure native hit boxes, not icon artwork. Keep the centred X untouched;
+  // first omit only the noun, then spend padding if the short label still needs it.
+  restoreApplyFit();
+  const footer=filterActions.getBoundingClientRect(),close=floatingFilterButton.getBoundingClientRect();
+  const edge=footer.right-parseFloat(getComputedStyle(filterActions).paddingRight);
+  const available=Math.max(0,edge-close.right-12);
+  if(!footer.width||filterApply.getBoundingClientRect().width<=available)return;
+  filterApplyWord.hidden=true;
+  const excess=filterApply.getBoundingClientRect().width-available;
+  if(excess>0){
+   const style=getComputedStyle(filterApply),left=parseFloat(style.paddingLeft),right=parseFloat(style.paddingRight);
+   const padding=Math.max(0,left+right-excess-1),total=left+right;
+   filterApply.style.paddingLeft=(total?padding*left/total:0)+'px';
+   filterApply.style.paddingRight=(total?padding*right/total:0)+'px';
+  }
+ }
+ const applyFitResize=new ResizeObserver(fitFilterApply);
+ for(const node of [filterActions,floatingFilterButton,filterApply?.querySelector('.tdb-review-filter_action-label')])if(node)applyFitResize.observe(node);
+ document.fonts?.ready.then(()=>{if(!destroyed)fitFilterApply();});
+
  let floatingFilterIcon=null,filterHandoffRevision=0,filterHandoffAnimation=null;
  let filterSpinnerReturning=false,filterFeedbackAnimations=[];
  if(floatingFilterButton){
@@ -149,6 +178,7 @@ function mount(root,data){
    floatingFilterButton.classList.add('is-filter-open');
    floatingFilterIcon.set(true,immediate);
    floatingFilterButton.style.transform='';
+   fitFilterApply();
    return;
   }
   if(floatingFilterButton.parentNode!==root)return;
@@ -199,6 +229,7 @@ function mount(root,data){
   filterApply.disabled=selectionBusy||!filterReady||!count;
   filterApply.setAttribute('aria-disabled',String(filterApply.disabled));
   filterApply.setAttribute('aria-busy',String(selectionBusy||!filterReady));
+  fitFilterApply();
  }
  function cancelDraft(){clearFilterFeedback();clearTimeout(draftTimer);draftController?.abort();draftController=null;draftFlight=null;draftCache=null;applyRevision++;selectionBusy=false;}
  function draftKey(){return JSON.stringify(selection);}
@@ -452,9 +483,9 @@ function mount(root,data){
    renderSelection(data.records.slice());
   }
   return drawer.open(trigger);
- },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();setReadingMode(false);filterOpen=false;placeFilterClose(true);floatingFilterIcon?.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();mark.style.translate=originalMarkTranslate;swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();filterApplyTicker?.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
+ },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;applyFitResize.disconnect();restoreApplyFit();cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();setReadingMode(false);filterOpen=false;placeFilterClose(true);floatingFilterIcon?.destroy();ctrl.abort();resize.disconnect();clearTimeout(revealTimer);fades.destroy();mark.style.translate=originalMarkTranslate;swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();filterApplyTicker?.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBReviews=Object.freeze({version:'3.13.0',mount});
+window.TDBReviews=Object.freeze({version:'3.13.1',mount});
 window.TDBSwiper?.register('review-drawer',window.TDBReviews);
 })();
 
