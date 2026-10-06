@@ -9,13 +9,13 @@ function fixture(width = 390, transparent = true) {
     const classes = new Set(names);
     return {classes, classList:{contains:n=>classes.has(n),toggle(n,on){changes++;on?classes.add(n):classes.delete(n);}},setAttribute(){}};
   }
-  const root=element(),nav=element(),glass=element(),menu=element(),button=element(),toggle=element();
+  const root=element(),nav=element(),glass=element(),menu=element(),button=element(),toggle=element(),logo=element(),line=element();
   nav.getAttribute=()=>transparent?'true':null;
-  nav.querySelector=s=>({'.tdb-nav-bar-glass':glass,'.navbar10_menu':menu,'.w-nav-button':button}[s] || (s==='.w-dropdown-toggle.w--open' && toggle.classes.has('w--open') ? toggle : null));
+  nav.querySelector=s=>({'.tdb-nav-bar-glass':glass,'.navbar10_menu':menu,'.w-nav-button':button,'.navbar10_logo-link':logo,'.navbar_line':line}[s] || (s==='.w-dropdown-toggle.w--open' && toggle.classes.has('w--open') ? toggle : null));
   nav.querySelectorAll=()=>[toggle];
   const mobile={matches:width<=767,addEventListener(){}},desktop={matches:width>=992,addEventListener(){}};
   vm.runInNewContext(source,{document:{documentElement:root,querySelector:()=>nav},matchMedia:s=>s.includes('max')?mobile:desktop,MutationObserver:class{constructor(fn){sync=fn}observe(){}}});
-  return {root,nav,glass,menu,button,toggle,mobile,desktop,sync:()=>sync(),changes:()=>changes};
+  return {root,nav,glass,menu,button,toggle,logo,line,mobile,desktop,sync:()=>sync(),changes:()=>changes};
 }
 test('mobile clear, peek, open, close and top clear-cycle preserve surface states',()=>{
   const f=fixture();f.root.classes.add('tdb-nav-at-top');f.sync();
@@ -27,11 +27,13 @@ test('mobile clear, peek, open, close and top clear-cycle preserve surface state
 });
 test('desktop uses mobile frosting and solid opening while tablet retains native appearance',()=>{
   const f=fixture(1440);assert.equal(f.glass.classes.size,0);
+  assert(f.nav.classes.has('is-nav-desktop'));assert(f.logo.classes.has('is-nav-motion'));assert(f.line.classes.has('is-nav-motion'));
   f.nav.classes.add('is-trans');f.sync();assert(f.glass.classes.has('is-nav-frosted'));
   f.toggle.classes.add('w--open');f.sync();assert(f.glass.classes.has('is-nav-solid'));
   f.toggle.classes.clear();f.sync();assert(f.glass.classes.has('is-nav-frosted'));
   f.nav.classes.clear();f.sync();assert.equal(f.glass.classes.size,0);
   f.desktop.matches=false;f.sync();assert.equal(f.glass.classes.size,0);assert.equal(f.menu.classes.size,0);
+  assert(!f.nav.classes.has('is-nav-desktop'));assert(!f.logo.classes.has('is-nav-motion'));assert(f.line.classes.has('is-nav-motion'));
 });
 test('base desktop and mobile preserve distinct defaults and repeated notifications do not write styles',()=>{
   const f=fixture(1440,false);assert(f.glass.classes.has('is-nav-frosted'));

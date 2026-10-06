@@ -1,4 +1,4 @@
-/* TDB navbar v1.1.0: shared scroll release for slider focus. */
+/* Navbar scroll behaviour and shared scroll release for slider focus. */
 (() => {
     const navbar = document.querySelector(".navbar10_component");
     if (!navbar) return;
@@ -34,6 +34,7 @@
     // shared CSS state; no second scroll watcher or animation is needed.
     window.TDBNavScroll = Object.freeze({
         version: '1.1.0',
+        get clearSurface() { return isTransparent && !transparentState; },
         focus(onRelease, isDragging) {
             focusState = { onRelease, isDragging };
             lastScrollTop = Math.max(scrollY || root.scrollTop || 0, 0);

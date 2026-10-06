@@ -1,4 +1,4 @@
-/* TDB gallery carousel plugin v1.0.0. Existing highlight/smile gallery behaviour. */
+/* TDB gallery carousel plugin v1.1.0. Native Smile Gallery; existing highlight behaviour. */
 (() => {
 'use strict';
 if(window.TDBGallery)return;
@@ -14,6 +14,17 @@ function h(e, t) {
         e.setAttribute(i, "true"), e.dataset.tdbSliderType = t;
     }
 function w(e, n) {
+        if (e.classList.contains('tdb-smile-carousel')) {
+            const slide = e.querySelector('.swiper-slide.smile');
+            if (!slide) return n;
+            const value = slide.style.getPropertyValue('margin-right');
+            const priority = slide.style.getPropertyPriority('margin-right');
+            slide.style.removeProperty('margin-right');
+            let gap;
+            try { gap = parseFloat(getComputedStyle(slide).marginRight); }
+            finally { if (value) slide.style.setProperty('margin-right', value, priority); }
+            return Number.isFinite(gap) ? gap : n;
+        }
         if (!matchMedia("(min-width:992px)").matches) return n;
         const i = "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage && e.matches(".section_smile-gallery [data-tdb-smile-slider]");
         if (!e.matches(t) && !i) return n;
@@ -91,8 +102,8 @@ function v(e) {
         function s() {
             n && (n.textContent = `${r.realIndex + 1} of ${i}`);
         }
-        e.matches(".section_smile-gallery [data-tdb-smile-slider]") && "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage && g(e, r, () => b(e)), 
-        k(r), S(e, t, r, "--tdb-carousel-duration", () => window.innerWidth), s(), r.on("slideChange", s), 
+        (e.classList.contains('tdb-smile-carousel') || e.matches(".section_smile-gallery [data-tdb-smile-slider]") && "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage) && g(e, r, () => b(e)),
+        k(r), S(e, t, r, "--tdb-carousel-duration", () => window.innerWidth), s(), r.on("slideChange", s),
         r.params.loop && (!function(e, t) {
             const n = new WeakMap, i = new Map, r = new MutationObserver(e => {
                 e.forEach(e => {
@@ -152,10 +163,11 @@ function v(e) {
             o.forEach(t => e.addEventListener(t, a, !0)), s(), t.on("breakpoint", s), t.on("beforeDestroy", () => {
                 r.disconnect(), i.clear(), o.forEach(t => e.removeEventListener(t, a, !0)), t.off("breakpoint", s);
             });
-        }(e, r), r.on("slideChangeTransitionEnd", () => r.loopFix())), h(e, "highlight"), 
+        }(e, r), r.on("slideChangeTransitionEnd", () => r.loopFix())), h(e, "highlight"),
         l.get(e)?.bind(r);
     }
 const beforeObserve=function(e) {
+            window.TDBSmileCards?.prepare(e);
             if (d.has(e) || l.has(e)) return;
             const t = m(e);
             if (!t) return;
@@ -165,8 +177,8 @@ const beforeObserve=function(e) {
                 a && cancelAnimationFrame(a), c && clearTimeout(c), a = c = 0;
             }
             function f(t) {
-                u || (u = !0, p(), r?.disconnect(), n.forEach(t => e.removeEventListener(t, h, !0)), 
-                document.removeEventListener("visibilitychange", w), i?.off("touchStart slideChange", h), 
+                u || (u = !0, p(), r?.disconnect(), n.forEach(t => e.removeEventListener(t, h, !0)),
+                document.removeEventListener("visibilitychange", w), i?.off("touchStart slideChange", h),
                 i?.off("beforeDestroy", b), l.delete(e), d.add(e), e.setAttribute(o, t));
             }
             function h() {
@@ -179,15 +191,15 @@ const beforeObserve=function(e) {
                 document.hidden ? p() : y();
             }
             function g() {
-                return !(u || !i) && (!document.documentElement.contains(e) || i.destroyed ? (f("skipped-detached"), 
-                !1) : e.contains(document.activeElement) || 0 !== i.realIndex || i.animating ? (f("skipped-interaction"), 
+                return !(u || !i) && (!document.documentElement.contains(e) || i.destroyed ? (f("skipped-detached"),
+                !1) : e.contains(document.activeElement) || 0 !== i.realIndex || i.animating ? (f("skipped-interaction"),
                 !1) : s && !document.hidden);
             }
             function v() {
                 if (c = 0, !g()) return;
                 const e = t.getBoundingClientRect();
-                e.width <= 0 || e.height <= 0 || e.bottom <= 0 || e.right <= 0 || e.top >= window.innerHeight || e.left >= window.innerWidth || ("visible" !== getComputedStyle(t).visibility || t.closest('[hidden], [inert], [aria-hidden="true"]') ? f("skipped-hidden") : (i.update(), 
-                g() && (i.slides.length < 2 || i.isLocked || !i.enabled ? f("skipped-unavailable") : (f("advanced"), 
+                e.width <= 0 || e.height <= 0 || e.bottom <= 0 || e.right <= 0 || e.top >= window.innerHeight || e.left >= window.innerWidth || ("visible" !== getComputedStyle(t).visibility || t.closest('[hidden], [inert], [aria-hidden="true"]') ? f("skipped-hidden") : (i.update(),
+                g() && (i.slides.length < 2 || i.isLocked || !i.enabled ? f("skipped-unavailable") : (f("advanced"),
                 i.slideNext(i.params.speed, !0)))));
             }
             function y() {
@@ -200,7 +212,7 @@ const beforeObserve=function(e) {
             l.set(e, {
                 cancel: () => f("skipped-detached"),
                 bind(e) {
-                    u || (i = e, i.slides.length < 2 ? f("skipped-unavailable") : (i.on("touchStart slideChange", h), 
+                    u || (i = e, i.slides.length < 2 ? f("skipped-unavailable") : (i.on("touchStart slideChange", h),
                     i.on("beforeDestroy", b), y()));
                 }
             }), e.setAttribute(o, "pending"), "IntersectionObserver" in window ? (n.forEach(t => e.addEventListener(t, h, {
@@ -215,9 +227,9 @@ const beforeObserve=function(e) {
                 threshold: 0
             }), r.observe(t)) : f("skipped-unsupported");
         };
-const plugin=Object.freeze({version:'1.0.0',selector:e,beforeObserve,
- mount(root){v(root);return m(root)?.swiper;},
- prune(){l.forEach((state,root)=>{if(!document.documentElement.contains(root))state.cancel();});},
+const plugin=Object.freeze({version:'1.1.0',selector:e,beforeObserve,
+ mount(root){const presentation=window.TDBSmileCards?.prepare(root);v(root);const swiper=m(root)?.swiper;presentation?.bind(swiper);return swiper;},
+ prune(){l.forEach((state,root)=>{if(!document.documentElement.contains(root))state.cancel();});window.TDBSmileCards?.prune();},
  refresh(root=document){window.TDBSwiper.refresh('gallery',root);}
 });
 window.TDBGallery=plugin;

@@ -12,10 +12,14 @@ First visit also transitions its background colour. Existing hover opacity
 variants are retained. Native active and focus-visible states live on these
 classes. Global button classes are unchanged.
 
-The two transparent variants have a pre-existing Current-page link duration
-of 300ms. Webflow's public MCP does not expose Current-state editing. That
-native property still needs removal through Designer; do not mask it with
-another CSS or runtime override. Keep its existing Current-page colour.
+David corrected the two transparent variants' Current-page transitions in
+Designer and published them. The 6 October audit confirms both now use
+100ms for opacity and colour, with the existing Current-page colours retained.
+
+Services/Discover, dropdown links and dropdown image cards now use native
+2px cream keyboard focus outlines with a 4px offset, matching the other
+navbar controls. The separate 1px desktop runtime outline has been removed.
+See `navbar-housekeeping-20261006.md` for enhanced-only native style ownership.
 
 `src/styles/tdb-chrome-motion.css` is the shared source for the active
 navbar/VIP/availability bar relationships, compiled into `tdb-ui.css`.

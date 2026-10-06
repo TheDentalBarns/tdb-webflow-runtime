@@ -27,7 +27,7 @@
   const busy = () => nav.classList.contains('tdb-menu-transitioning') ||
     nav.querySelector('[data-tdb-desktop-panel="opening"],[data-tdb-desktop-panel="closing"]');
   const mobileOpen = () => nav.querySelector('.w-nav-button.w--open');
-  window.TDBNavMotion = Object.freeze({refresh, get current() {return current;}});
+  window.TDBNavMotion = Object.freeze({refresh, surfaceEasing:'cubic-bezier(0.4,0,0.2,1)', get current() {return current;}});
   function prepare(event) {
     if (busy()) return;
     if (nav.contains(event.target) || mobileOpen()) refresh();

@@ -1,0 +1,1431 @@
+{
+  "siteId": "677cf86cf9952f978d94d80c",
+  "componentId": "e0beb16c-1442-9d6b-ea4d-f24bdc4656ae",
+  "homeVariant": "90f60b07-3fe4-8c44-7899-81187e34ddca",
+  "darkVariant": "a6dd2098-844a-775c-39a4-fe1d4e445b09",
+  "nativeStyles": [
+    {
+      "name": "tdb-smile-carousel",
+      "parent": [
+        "highlight-swiper_component"
+      ],
+      "values": {
+        "position": "relative",
+        "container-type": "inline-size"
+      },
+      "breakpoint": "main",
+      "existing": true
+    },
+    {
+      "name": "smile",
+      "parent": [
+        "swiper-slide",
+        "is-3-grid"
+      ],
+      "values": {
+        "container-type": "inline-size",
+        "margin-right": "20px"
+      },
+      "breakpoint": "main",
+      "existing": true
+    },
+    {
+      "name": "smile",
+      "parent": [
+        "swiper-slide",
+        "is-3-grid"
+      ],
+      "values": {
+        "margin-right": "2vw"
+      },
+      "breakpoint": "small",
+      "existing": true
+    },
+    {
+      "name": "smile",
+      "parent": [
+        "swiper-slide",
+        "is-3-grid"
+      ],
+      "values": {
+        "margin-right": "2vw",
+        "width": "100%"
+      },
+      "breakpoint": "tiny",
+      "existing": true
+    },
+    {
+      "name": "smile",
+      "parent": [
+        "layout423_card",
+        "text-color-alternate"
+      ],
+      "values": {
+        "aspect-ratio": "auto",
+        "height": "calc(17rem + 100cqw + var(--tdb-smile-extra-lines, 0) * 1.25rem)",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "padding-left": "0px",
+        "padding-right": "0px",
+        "background-color": "#f9f2e6"
+      },
+      "breakpoint": "main",
+      "existing": true
+    },
+    {
+      "name": "smile",
+      "parent": [
+        "layout423_image-wrapper"
+      ],
+      "values": {
+        "width": "auto",
+        "height": "100cqw",
+        "top": "8rem",
+        "right": "0px",
+        "bottom": "auto",
+        "left": "0px"
+      },
+      "breakpoint": "main",
+      "existing": true
+    },
+    {
+      "name": "smile",
+      "parent": [
+        "layout423_image"
+      ],
+      "values": {
+        "display": "block",
+        "width": "100%",
+        "height": "100%",
+        "aspect-ratio": "1",
+        "object-fit": "cover"
+      },
+      "breakpoint": "main",
+      "existing": true
+    },
+    {
+      "name": "smile",
+      "parent": [
+        "layout423_overlay"
+      ],
+      "values": {
+        "z-index": "1",
+        "width": "100%",
+        "height": "100%",
+        "top": "0px",
+        "right": "0px",
+        "bottom": "0px",
+        "left": "0px"
+      },
+      "breakpoint": "main",
+      "existing": true
+    },
+    {
+      "name": "smile",
+      "parent": [
+        "layout423_card-content"
+      ],
+      "values": {
+        "z-index": "3"
+      },
+      "breakpoint": "main",
+      "existing": true
+    },
+    {
+      "name": "smile",
+      "parent": [
+        "margin-top",
+        "margin-medium"
+      ],
+      "values": {
+        "height": "calc(9rem + var(--tdb-smile-extra-lines, 0) * 1.25rem)",
+        "min-height": "calc(9rem + var(--tdb-smile-extra-lines, 0) * 1.25rem)",
+        "flex-shrink": "0",
+        "padding-top": ".75rem",
+        "padding-bottom": ".75rem",
+        "padding-left": "1.25rem",
+        "padding-right": "1.25rem",
+        "margin-top": "0px",
+        "margin-right": "0px",
+        "margin-bottom": "0px",
+        "margin-left": "0px"
+      },
+      "breakpoint": "main",
+      "existing": true
+    },
+    {
+      "name": "left",
+      "parent": [
+        "margin-top",
+        "margin-medium",
+        "smile"
+      ],
+      "values": {
+        "display": "flex",
+        "flex-direction": "column",
+        "justify-content": "center",
+        "align-items": "stretch",
+        "column-gap": ".8rem",
+        "row-gap": ".8rem",
+        "height": "8rem",
+        "min-height": "8rem",
+        "flex-shrink": "0",
+        "padding-top": ".75rem",
+        "padding-bottom": ".75rem",
+        "padding-left": "1.25rem",
+        "padding-right": "1.25rem",
+        "margin-top": "0px",
+        "margin-right": "0px",
+        "margin-bottom": "0px",
+        "margin-left": "0px"
+      },
+      "breakpoint": "main",
+      "existing": true
+    },
+    {
+      "name": "tdb-smile-heading",
+      "parent": [],
+      "values": {
+        "height": "auto",
+        "min-height": "3em",
+        "width": "100%",
+        "color": "#000",
+        "opacity": "0",
+        "pointer-events": "none",
+        "transition-property": "opacity",
+        "transition-duration": "200ms",
+        "transition-timing-function": "ease-out",
+        "display": "flex",
+        "align-items": "center",
+        "font-size": ".875rem",
+        "letter-spacing": ".0875rem",
+        "text-transform": "uppercase",
+        "line-height": "1.5"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-description",
+      "parent": [
+        "paragraph-smile",
+        "descript"
+      ],
+      "values": {
+        "margin-top": "0px",
+        "color": "#fff",
+        "opacity": "0",
+        "pointer-events": "none",
+        "transition-property": "opacity",
+        "transition-duration": "200ms",
+        "transition-timing-function": "ease-out"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-source",
+      "parent": [],
+      "values": {
+        "display": "none"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-source-value",
+      "parent": [],
+      "values": {
+        "min-width": "0px",
+        "overflow-wrap": "break-word"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-summary",
+      "parent": [],
+      "values": {
+        "width": "100%",
+        "min-width": "0px",
+        "color": "#000",
+        "font-size": "clamp(10px, 2.4cqw, 12px)",
+        "line-height": "1.5"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-treatments",
+      "parent": [],
+      "values": {
+        "margin-top": ".5rem",
+        "margin-right": "0px",
+        "margin-bottom": "0px",
+        "margin-left": "0px",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "padding-left": "0px",
+        "padding-right": "8rem",
+        "min-height": "calc(var(--tdb-smile-treatment-lines, 3) * 1.5em)",
+        "color": "#888",
+        "letter-spacing": ".06em",
+        "text-transform": "uppercase",
+        "opacity": "0",
+        "pointer-events": "none",
+        "transition-property": "opacity",
+        "transition-duration": "200ms",
+        "transition-timing-function": "ease-out"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-treatment",
+      "parent": [
+        "treatment-smile"
+      ],
+      "values": {
+        "display": "flex",
+        "align-items": "center",
+        "column-gap": ".45rem",
+        "row-gap": ".45rem",
+        "min-height": "1.5em",
+        "margin-top": "0px",
+        "margin-right": "0px",
+        "margin-bottom": "0px",
+        "margin-left": "0px",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "padding-left": "0px",
+        "padding-right": "0px"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-treatment-icon",
+      "parent": [],
+      "values": {
+        "width": "1rem",
+        "height": "1rem",
+        "flex-grow": "0",
+        "flex-shrink": "0",
+        "flex-basis": "1rem",
+        "object-fit": "contain",
+        "opacity": ".5"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-treatment-name",
+      "parent": [
+        "paragraph-smile"
+      ],
+      "values": {
+        "margin-top": "0px",
+        "margin-right": "0px",
+        "margin-bottom": "0px",
+        "margin-left": "0px",
+        "opacity": "1",
+        "font-size": "inherit",
+        "line-height": "inherit",
+        "color": "inherit"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-facts",
+      "parent": [],
+      "values": {
+        "display": "grid",
+        "grid-template-columns": "repeat(3, minmax(0, 1fr))",
+        "align-items": "stretch",
+        "min-height": "3em"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "is-source",
+      "parent": [
+        "tdb-smile-facts"
+      ],
+      "values": {
+        "visibility": "hidden"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-fact",
+      "parent": [],
+      "values": {
+        "display": "flex",
+        "align-items": "center",
+        "justify-content": "center",
+        "column-gap": ".35rem",
+        "row-gap": ".35rem",
+        "min-width": "0px",
+        "position": "relative",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "padding-left": ".4rem",
+        "padding-right": ".4rem",
+        "text-align": "center",
+        "letter-spacing": ".04em",
+        "text-transform": "uppercase"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "is-price",
+      "parent": [
+        "tdb-smile-fact"
+      ],
+      "values": {
+        "justify-content": "flex-start",
+        "text-align": "left",
+        "padding-left": "0px"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "is-clinician",
+      "parent": [
+        "tdb-smile-fact"
+      ],
+      "values": {
+        "justify-content": "flex-end",
+        "text-align": "right",
+        "padding-right": "0px",
+        "letter-spacing": "normal",
+        "text-transform": "none"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-fact-divider",
+      "parent": [],
+      "values": {
+        "position": "absolute",
+        "left": "0px",
+        "top": "50%",
+        "transform": "translateY(-50%)",
+        "width": "1px",
+        "height": "1.25em",
+        "background-color": "#d6cab4"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-fact-icon",
+      "parent": [],
+      "values": {
+        "display": "block",
+        "width": "1rem",
+        "height": "1rem",
+        "flex-grow": "0",
+        "flex-shrink": "0",
+        "flex-basis": "1rem",
+        "object-fit": "contain"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "is-clinician",
+      "parent": [
+        "tdb-smile-fact-icon"
+      ],
+      "values": {
+        "transform": "scale(1.3)",
+        "margin-right": ".15rem"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-static-facts",
+      "parent": [
+        "tdb-smile-facts"
+      ],
+      "values": {
+        "position": "absolute",
+        "z-index": "4",
+        "left": "1.25rem",
+        "right": "1.25rem",
+        "bottom": "calc((9rem + var(--tdb-smile-extra-lines, 0) * 1.25rem + var(--tdb-smile-treatment-lines, 3) * 1.5em + .5rem - 3em) / 2)",
+        "height": "3em",
+        "color": "#000",
+        "font-size": "clamp(10px, 2.4cqw, 12px)",
+        "line-height": "1.5",
+        "pointer-events": "none"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-fact-ticker",
+      "parent": [],
+      "values": {
+        "position": "relative",
+        "display": "grid",
+        "grid-template-columns": "minmax(0, max-content)",
+        "grid-template-rows": "auto",
+        "align-items": "center",
+        "min-height": "1.5em",
+        "min-width": "0px",
+        "max-width": "100%",
+        "overflow": "hidden",
+        "flex-shrink": "1",
+        "color": "#888",
+        "opacity": "0"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "is-ready",
+      "parent": [
+        "tdb-smile-fact-ticker"
+      ],
+      "values": {
+        "opacity": "1",
+        "transition-property": "opacity",
+        "transition-duration": "400ms",
+        "transition-timing-function": "ease-in"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-fact-sizer",
+      "parent": [],
+      "values": {
+        "grid-area": "1 / 1 / 2 / 2",
+        "min-width": "0px",
+        "visibility": "hidden",
+        "overflow-wrap": "break-word"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-fact-value",
+      "parent": [],
+      "values": {
+        "position": "absolute",
+        "top": "0px",
+        "right": "0px",
+        "bottom": "0px",
+        "left": "0px",
+        "display": "grid",
+        "align-content": "center",
+        "width": "100%",
+        "height": "100%",
+        "min-width": "0px",
+        "overflow-wrap": "break-word"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-static-kicker",
+      "parent": [],
+      "values": {
+        "position": "absolute",
+        "z-index": "4",
+        "top": "calc((8rem - .8rem - 2.625rem - 1.5em) / 2)",
+        "left": "1.25rem",
+        "right": "6.25rem",
+        "color": "#888",
+        "font-size": "clamp(10px, 2.4cqw, 12px)",
+        "line-height": "1.5",
+        "letter-spacing": ".06em",
+        "text-transform": "uppercase",
+        "pointer-events": "none"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-kicker",
+      "parent": [],
+      "values": {
+        "display": "flex",
+        "justify-content": "space-between",
+        "align-items": "center",
+        "column-gap": ".5rem",
+        "row-gap": ".5rem",
+        "width": "calc(100% - 5rem)",
+        "font-size": "clamp(10px, 2.4cqw, 12px)",
+        "line-height": "1.5",
+        "letter-spacing": ".06em",
+        "text-transform": "uppercase",
+        "visibility": "hidden"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-counter",
+      "parent": [],
+      "values": {
+        "position": "absolute",
+        "z-index": "4",
+        "top": "calc((8rem - .8rem - 2.625rem - 1.5em) / 2)",
+        "right": "1.25rem",
+        "color": "#888",
+        "white-space": "nowrap",
+        "font-size": "clamp(10px, 2.4cqw, 12px)",
+        "line-height": "1.5",
+        "letter-spacing": ".06em",
+        "font-variant-numeric": "tabular-nums",
+        "pointer-events": "none",
+        "display": "inline-flex",
+        "align-items": "center",
+        "column-gap": ".5em",
+        "row-gap": ".5em"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-counter-current",
+      "parent": [],
+      "values": {
+        "position": "relative",
+        "display": "block",
+        "width": "2.4ch",
+        "height": "1.5em",
+        "overflow": "hidden",
+        "text-align": "center",
+        "opacity": "1"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-counter-value",
+      "parent": [],
+      "values": {
+        "position": "absolute",
+        "top": "0px",
+        "right": "0px",
+        "bottom": "0px",
+        "left": "0px",
+        "display": "block",
+        "width": "100%",
+        "height": "100%"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-counter-divider",
+      "parent": [],
+      "values": {
+        "display": "block",
+        "width": "1.8em",
+        "height": "1px",
+        "background-color": "currentColor"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-counter-total",
+      "parent": [],
+      "values": {
+        "min-width": "2.4ch",
+        "text-align": "right"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-counter-label",
+      "parent": [],
+      "values": {
+        "position": "absolute",
+        "width": "1px",
+        "height": "1px",
+        "overflow": "hidden",
+        "clip-path": "inset(50%)"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-image-label",
+      "parent": [],
+      "values": {
+        "position": "absolute",
+        "z-index": "2",
+        "right": ".75rem",
+        "left": "auto",
+        "bottom": ".75rem",
+        "opacity": "0",
+        "color": "#fff",
+        "font-size": ".75rem",
+        "line-height": "1.5",
+        "font-weight": "400",
+        "letter-spacing": ".0875rem",
+        "text-transform": "uppercase",
+        "text-shadow": "none",
+        "pointer-events": "none",
+        "transition-property": "opacity",
+        "transition-duration": "200ms",
+        "transition-timing-function": "ease-out"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "is-before",
+      "parent": [
+        "tdb-smile-image-label"
+      ],
+      "values": {
+        "bottom": "calc(50% + .75rem)"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-controls",
+      "parent": [
+        "swiper_functions-btm"
+      ],
+      "values": {
+        "position": "absolute",
+        "z-index": "4",
+        "right": "1.25rem",
+        "bottom": "calc((9rem + var(--tdb-smile-extra-lines, 0) * 1.25rem - .5rem - 3em) / 2)",
+        "transform": "translateY(50%)",
+        "display": "flex",
+        "justify-content": "flex-end",
+        "align-items": "center",
+        "width": "7rem",
+        "height": "3rem",
+        "margin-top": "0px",
+        "margin-right": "0px",
+        "margin-bottom": "0px",
+        "margin-left": "0px",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "padding-left": "0px",
+        "padding-right": "0px",
+        "font-size": "clamp(10px, 2.4cqw, 12px)",
+        "pointer-events": "none"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-buttons",
+      "parent": [
+        "swiper-buttons-wrapper"
+      ],
+      "values": {
+        "display": "flex",
+        "align-items": "center",
+        "justify-content": "flex-end",
+        "column-gap": ".75rem",
+        "row-gap": ".75rem",
+        "width": "100%",
+        "pointer-events": "auto"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-viewport",
+      "parent": [
+        "swiper"
+      ],
+      "values": {
+        "overflow": "hidden"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "tdb-smile-viewport",
+      "parent": [
+        "swiper"
+      ],
+      "values": {
+        "overflow": "visible"
+      },
+      "breakpoint": "small",
+      "existing": true
+    },
+    {
+      "name": "is-visible",
+      "parent": [
+        "tdb-smile-heading"
+      ],
+      "values": {
+        "opacity": "1",
+        "pointer-events": "auto",
+        "transition-duration": "400ms",
+        "transition-timing-function": "ease-in"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "is-moving",
+      "parent": [
+        "tdb-smile-heading"
+      ],
+      "values": {
+        "opacity": "0",
+        "pointer-events": "none",
+        "transition-duration": "150ms",
+        "transition-timing-function": "ease-out"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "is-visible",
+      "parent": [
+        "tdb-smile-treatments"
+      ],
+      "values": {
+        "opacity": "1",
+        "pointer-events": "auto",
+        "transition-duration": "400ms",
+        "transition-timing-function": "ease-in"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "is-moving",
+      "parent": [
+        "tdb-smile-treatments"
+      ],
+      "values": {
+        "opacity": "0",
+        "pointer-events": "none",
+        "transition-duration": "150ms",
+        "transition-timing-function": "ease-out"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "is-visible",
+      "parent": [
+        "tdb-smile-image-label"
+      ],
+      "values": {
+        "opacity": ".7",
+        "pointer-events": "none",
+        "transition-duration": "400ms",
+        "transition-timing-function": "ease-in"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "is-moving",
+      "parent": [
+        "tdb-smile-image-label"
+      ],
+      "values": {
+        "opacity": "0",
+        "pointer-events": "none",
+        "transition-duration": "150ms",
+        "transition-timing-function": "ease-out"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "is-visible",
+      "parent": [
+        "paragraph-smile",
+        "descript",
+        "tdb-smile-description"
+      ],
+      "values": {
+        "opacity": "1",
+        "pointer-events": "auto",
+        "transition-duration": "400ms",
+        "transition-timing-function": "ease-in"
+      },
+      "breakpoint": "main",
+      "existing": false
+    },
+    {
+      "name": "is-moving",
+      "parent": [
+        "paragraph-smile",
+        "descript",
+        "tdb-smile-description"
+      ],
+      "values": {
+        "opacity": "0",
+        "pointer-events": "none",
+        "transition-duration": "150ms",
+        "transition-timing-function": "ease-out"
+      },
+      "breakpoint": "main",
+      "existing": false
+    }
+  ],
+  "extra": [
+    [
+      "tdb-smile-card",
+      [
+        "layout423_card",
+        "text-color-alternate",
+        "smile"
+      ],
+      {
+        "background-color": "#f9f2e6"
+      }
+    ],
+    [
+      "tdb-smile-header",
+      [
+        "margin-top",
+        "margin-medium",
+        "smile",
+        "left"
+      ],
+      {}
+    ],
+    [
+      "tdb-smile-summary-ready",
+      [
+        "margin-top",
+        "margin-medium",
+        "smile"
+      ],
+      {}
+    ],
+    [
+      "tdb-smile-slide",
+      [
+        "swiper-slide",
+        "is-3-grid",
+        "smile"
+      ],
+      {
+        "transition-property": "opacity",
+        "transition-duration": "300ms",
+        "transition-timing-function": "ease"
+      }
+    ],
+    [
+      "tdb-smile-arrow",
+      [
+        "slider-arrow"
+      ],
+      {
+        "display": "grid",
+        "align-items": "center",
+        "justify-items": "center",
+        "flex-grow": "0",
+        "flex-shrink": "0",
+        "flex-basis": "3rem",
+        "width": "3rem",
+        "height": "3rem",
+        "padding-top": "0px",
+        "padding-right": "0px",
+        "padding-bottom": "0px",
+        "padding-left": "0px",
+        "backdrop-filter": "blur(20px)",
+        "transition-property": "background-color, color, border-color",
+        "transition-duration": "300ms",
+        "transition-timing-function": "ease"
+      }
+    ],
+    [
+      "tdb-smile-arrow-icon",
+      [
+        "slider-arrow-icon"
+      ],
+      {
+        "display": "grid",
+        "align-items": "center",
+        "justify-items": "center"
+      }
+    ]
+  ],
+  "effects": [
+    [
+      "tdb-smile-overlay",
+      [
+        "layout423_overlay",
+        "smile"
+      ],
+      {
+        "transition-property": "opacity",
+        "transition-duration": "300ms",
+        "transition-timing-function": "ease"
+      }
+    ],
+    [
+      "is-suppressed",
+      [
+        "layout423_overlay",
+        "smile",
+        "tdb-smile-overlay"
+      ],
+      {
+        "opacity": "0 !important",
+        "background-color": "transparent !important"
+      }
+    ],
+    [
+      "tdb-smile-details",
+      [
+        "smile-card"
+      ],
+      {
+        "transition-property": "opacity",
+        "transition-duration": "300ms",
+        "transition-timing-function": "ease"
+      }
+    ],
+    [
+      "is-suppressed",
+      [
+        "smile-card",
+        "tdb-smile-details"
+      ],
+      {
+        "opacity": "0 !important"
+      }
+    ],
+    [
+      "is-expanded",
+      [
+        "tdb-smile-image-label",
+        "is-visible"
+      ],
+      {
+        "opacity": "0"
+      }
+    ],
+    [
+      "is-muted",
+      [
+        "swiper-slide",
+        "is-3-grid",
+        "smile",
+        "tdb-smile-slide"
+      ],
+      {
+        "opacity": ".5"
+      }
+    ],
+    [
+      "tdb-smile-clinician-icon",
+      [],
+      {
+        "display": "block",
+        "width": "1rem",
+        "height": "1rem",
+        "flex-grow": "0",
+        "flex-shrink": "0",
+        "flex-basis": "1rem",
+        "object-fit": "contain",
+        "transform": "scale(1.3)",
+        "margin-right": ".15rem",
+        "filter": "invert(0)"
+      }
+    ]
+  ],
+  "home": [
+    [
+      "tdb-home-smile-layout",
+      [
+        "testimonial15_slide-content"
+      ],
+      {
+        "display": "flex",
+        "flex-direction": "column",
+        "align-items": "stretch",
+        "row-gap": "7rem"
+      }
+    ],
+    [
+      "tdb-home-smile-intro",
+      [
+        "testimonial15_content-right"
+      ],
+      {
+        "width": "100%",
+        "max-width": "64rem",
+        "margin-left": "0px",
+        "margin-right": "auto",
+        "margin-bottom": "0px",
+        "text-align": "left"
+      }
+    ],
+    [
+      "tdb-home-smile-link",
+      [
+        "testimonial15_content-right"
+      ],
+      {
+        "display": "flex",
+        "width": "100%",
+        "align-self": "stretch",
+        "align-items": "center",
+        "justify-content": "flex-start",
+        "margin-bottom": "0px"
+      }
+    ],
+    [
+      "tdb-home-smile-wrapper",
+      [
+        "testimonial15_client-image-wrapper"
+      ],
+      {
+        "position": "relative",
+        "top": "auto",
+        "width": "100%",
+        "max-width": "none",
+        "min-width": "0px",
+        "overflow": "visible"
+      }
+    ],
+    [
+      "tdb-home-smile-heading",
+      [
+        "heading-style-h2"
+      ],
+      {
+        "margin-top": "0px",
+        "margin-bottom": "0px",
+        "line-height": "1.2",
+        "font-size": "2.25rem",
+        "letter-spacing": ".1em",
+        "text-transform": "uppercase",
+        "text-align": "left"
+      }
+    ],
+    [
+      "tdb-home-smile-tagline",
+      [
+        "text-style-tagline-restored"
+      ],
+      {
+        "color": "rgba(0,0,0,.55)"
+      }
+    ],
+    [
+      "tdb-home-smile-body",
+      [
+        "text-size-medium"
+      ],
+      {
+        "font-size": "1.3125rem",
+        "line-height": "1.5",
+        "opacity": "1",
+        "text-align": "left"
+      }
+    ]
+  ],
+  "homeBreakpoints": [
+    [
+      "tdb-home-smile-layout",
+      [
+        "testimonial15_slide-content"
+      ],
+      "medium",
+      {
+        "display": "grid",
+        "row-gap": "2.5rem"
+      }
+    ],
+    [
+      "tdb-home-smile-layout",
+      [
+        "testimonial15_slide-content"
+      ],
+      "small",
+      {
+        "row-gap": "3rem"
+      }
+    ],
+    [
+      "tdb-home-smile-layout",
+      [
+        "testimonial15_slide-content"
+      ],
+      "tiny",
+      {
+        "row-gap": "8rem"
+      }
+    ],
+    [
+      "tdb-home-smile-wrapper",
+      [
+        "testimonial15_client-image-wrapper"
+      ],
+      "medium",
+      {
+        "position": "static",
+        "max-width": "50vh",
+        "overflow": "hidden"
+      }
+    ],
+    [
+      "tdb-home-smile-wrapper",
+      [
+        "testimonial15_client-image-wrapper"
+      ],
+      "small",
+      {
+        "overflow": "visible"
+      }
+    ],
+    [
+      "tdb-home-smile-wrapper",
+      [
+        "testimonial15_client-image-wrapper"
+      ],
+      "tiny",
+      {
+        "max-width": "none"
+      }
+    ],
+    [
+      "tdb-home-smile-intro",
+      [
+        "testimonial15_content-right"
+      ],
+      "medium",
+      {
+        "margin-left": "auto"
+      }
+    ],
+    [
+      "tdb-home-smile-link",
+      [
+        "testimonial15_content-right"
+      ],
+      "medium",
+      {
+        "justify-content": "center"
+      }
+    ],
+    [
+      "tdb-home-smile-link",
+      [
+        "testimonial15_content-right"
+      ],
+      "small",
+      {
+        "justify-content": "flex-start"
+      }
+    ],
+    [
+      "tdb-home-smile-heading",
+      [
+        "heading-style-h2"
+      ],
+      "medium",
+      {
+        "font-size": "2.75rem",
+        "letter-spacing": ".1rem"
+      }
+    ],
+    [
+      "tdb-home-smile-heading",
+      [
+        "heading-style-h2"
+      ],
+      "small",
+      {
+        "font-size": "2.25rem"
+      }
+    ],
+    [
+      "tdb-home-smile-body",
+      [
+        "text-size-medium"
+      ],
+      "medium",
+      {
+        "font-size": "1.25rem",
+        "opacity": ".75"
+      }
+    ],
+    [
+      "tdb-home-smile-body",
+      [
+        "text-size-medium"
+      ],
+      "small",
+      {
+        "font-size": "1.125rem"
+      }
+    ]
+  ],
+  "homeVariantMain": {
+    "tdb-smile-carousel": {
+      "width": "calc((100% - 4rem) / 3)",
+      "margin-left": "0px",
+      "margin-right": "auto",
+      "overflow": "visible"
+    },
+    "tdb-smile-slide": {
+      "margin-right": "2rem"
+    },
+    "tdb-smile-viewport": {
+      "overflow": "visible"
+    },
+    "tdb-smile-header": {
+      "padding-left": "4.55cqw",
+      "padding-right": "4.55cqw"
+    },
+    "tdb-smile-summary-ready": {
+      "padding-left": "4.55cqw",
+      "padding-right": "4.55cqw"
+    },
+    "tdb-smile-heading": {
+      "font-size": "clamp(11px,3.2cqw,24px)",
+      "letter-spacing": ".1em"
+    },
+    "tdb-smile-kicker": {
+      "font-size": "clamp(10px,2.4cqw,18px)"
+    },
+    "tdb-smile-static-kicker": {
+      "font-size": "clamp(10px,2.4cqw,18px)",
+      "top": "calc((8rem - .8rem - 3 * clamp(11px,3.2cqw,24px) - 1.5em) / 2)",
+      "left": "4.55cqw",
+      "right": "calc(4.55cqw + 5rem)"
+    },
+    "tdb-smile-counter": {
+      "font-size": "clamp(10px,2.4cqw,18px)",
+      "top": "calc((8rem - .8rem - 3 * clamp(11px,3.2cqw,24px) - 1.5em) / 2)",
+      "right": "4.55cqw"
+    },
+    "tdb-smile-summary": {
+      "font-size": "clamp(10px,2.4cqw,18px)"
+    },
+    "tdb-smile-static-facts": {
+      "font-size": "clamp(10px,2.4cqw,18px)",
+      "left": "4.55cqw",
+      "right": "4.55cqw"
+    },
+    "tdb-smile-controls": {
+      "right": "4.55cqw"
+    },
+    "tdb-smile-image-label": {
+      "font-size": "clamp(10px,2.73cqw,20px)",
+      "letter-spacing": ".1167em"
+    },
+    "tdb-smile-description": {
+      "font-size": "clamp(12px,3.66cqw,24px)"
+    }
+  },
+  "homeVariantMedium": {
+    "tdb-smile-carousel": {
+      "width": "100%",
+      "overflow": "hidden"
+    },
+    "tdb-smile-slide": {
+      "margin-right": "20px"
+    },
+    "tdb-smile-viewport": {
+      "overflow": "hidden"
+    },
+    "tdb-smile-header": {
+      "padding-left": "1.25rem",
+      "padding-right": "1.25rem"
+    },
+    "tdb-smile-summary-ready": {
+      "padding-left": "1.25rem",
+      "padding-right": "1.25rem"
+    },
+    "tdb-smile-heading": {
+      "font-size": ".875rem",
+      "letter-spacing": ".0875rem"
+    },
+    "tdb-smile-kicker": {
+      "font-size": "clamp(10px,2.4cqw,12px)"
+    },
+    "tdb-smile-static-kicker": {
+      "font-size": "clamp(10px,2.4cqw,12px)",
+      "top": "calc((8rem - .8rem - 2.625rem - 1.5em) / 2)",
+      "left": "1.25rem",
+      "right": "6.25rem"
+    },
+    "tdb-smile-counter": {
+      "font-size": "clamp(10px,2.4cqw,12px)",
+      "top": "calc((8rem - .8rem - 2.625rem - 1.5em) / 2)",
+      "right": "1.25rem"
+    },
+    "tdb-smile-summary": {
+      "font-size": "clamp(10px,2.4cqw,12px)"
+    },
+    "tdb-smile-static-facts": {
+      "font-size": "clamp(10px,2.4cqw,12px)",
+      "left": "1.25rem",
+      "right": "1.25rem"
+    },
+    "tdb-smile-controls": {
+      "right": "1.25rem"
+    },
+    "tdb-smile-image-label": {
+      "font-size": ".75rem",
+      "letter-spacing": ".0875rem"
+    },
+    "tdb-smile-description": {
+      "font-size": "1rem"
+    }
+  },
+  "dark": {
+    "tdb-smile-card": {
+      "background-color": "#000"
+    },
+    "tdb-smile-header": {
+      "background-color": "#000"
+    },
+    "tdb-smile-summary-ready": {
+      "background-color": "#000"
+    },
+    "tdb-smile-heading": {
+      "color": "#fff"
+    },
+    "tdb-smile-summary": {
+      "color": "#fff"
+    },
+    "tdb-smile-static-facts": {
+      "color": "#fff"
+    },
+    "tdb-smile-treatments": {
+      "color": "rgba(255,255,255,.6)"
+    },
+    "tdb-smile-fact-ticker": {
+      "color": "rgba(255,255,255,.6)"
+    },
+    "tdb-smile-static-kicker": {
+      "color": "rgba(255,255,255,.6)"
+    },
+    "tdb-smile-counter": {
+      "color": "rgba(255,255,255,.6)"
+    },
+    "tdb-smile-treatment-icon": {
+      "filter": "invert(1)"
+    }
+  }
+}

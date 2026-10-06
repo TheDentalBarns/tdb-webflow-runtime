@@ -5,6 +5,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const entries = {
+  'src/team-quotes/team-quotes.js': 'tdb-team-quotes.js',
   'src/partners/loader.js': 'tdb-logo-marquee-loader.js',
   'src/partners/marquee.js': 'tdb-logo-marquee.js',
   'src/shared/modules.js': 'tdb-modules.js',
@@ -14,6 +15,7 @@ const entries = {
   'src/shared/filters.js': 'tdb-filters.js',
   'src/shared/drawer.js': 'tdb-drawer.js',
   'src/shared/ticker.js': 'tdb-ticker.js',
+  'src/styles/tdb-desktop-carousel-alignment.css': 'tdb-desktop-carousel-alignment.css',
   'src/reviews/native/loader.js': 'tdb-reviews-loader.js',
   'src/reviews/native/cms.js': 'tdb-review-cms.js',
   'src/reviews/native/list-loader.js': 'tdb-review-list-loader.js',
@@ -37,4 +39,9 @@ for (const [source, artifact] of Object.entries(entries)) {
     if (await readFile(output, 'utf8') !== text) throw Error(`${artifact} differs from ${source}; run node tools/build-shared-runtime.mjs`);
   } else await writeFile(output, text);
 }
+const gallery = (await Promise.all(['src/sliders/gallery-presentation.js', 'src/sliders/gallery-plugin.js'].map(source => readFile(resolve(root, source), 'utf8')))).join('\n');
+const galleryOutput = resolve(root, 'dist/tdb-gallery.js');
+if (process.argv.includes('--check')) {
+  if (await readFile(galleryOutput, 'utf8') !== gallery) throw Error('tdb-gallery.js differs from its presentation/plugin sources');
+} else await writeFile(galleryOutput, gallery);
 console.log(`${process.argv.includes('--check') ? 'Checked' : 'Built'} ${Object.keys(entries).length} shared/native runtime artifacts.`);

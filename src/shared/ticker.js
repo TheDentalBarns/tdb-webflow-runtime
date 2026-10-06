@@ -1,16 +1,23 @@
-/* TDB native value tickers v1.0.0. Layout and initial text belong to Webflow. */
+/* TDB native value tickers v1.1.0. Layout and initial text belong to Webflow. */
 (() => {
   'use strict';
   if (window.TDBNativeTicker) return;
   const instances = new WeakMap();
-  function mount(slot) {
+  function mount(slot, options = {}) {
     if (instances.has(slot)) return instances.get(slot);
     const motion = window.TDBMotion.reduced;
     const originalNodes = [...slot.childNodes];
     let text = slot.textContent.trim(), disposed = false, pending = null;
-    const template = document.querySelector('[data-tdb-ticker-template]');
-    const value = template?.querySelector('.review-number_value')?.cloneNode(true) || document.createElement('span');
-    value.className = 'review-number_value';
+    const template = options.template || document.querySelector('[data-tdb-ticker-template]');
+    const valueClass = options.valueClass || 'review-number_value';
+    const incomingClass = options.incomingClass || 'review-number_incoming';
+    const normalize = options.normalize || (value => value);
+    const make = className => {
+      const node = template?.querySelector('.' + className)?.cloneNode(true) || document.createElement('span');
+      node.className = className;
+      return node;
+    };
+    const value = make(valueClass);
     value.textContent = text;
     slot.replaceChildren(value);
 
@@ -28,7 +35,7 @@
     function update(next, direction = 1, animate = true) {
       if (disposed) return;
       next = String(next);
-      if (next === text) return;
+      if (normalize(next) === normalize(text)) return;
       settle();
       const old = text;
       text = next;
@@ -36,8 +43,7 @@
         value.textContent = next;
         return;
       }
-      const incoming = template?.querySelector('.review-number_incoming')?.cloneNode(true) || document.createElement('span');
-      incoming.className = 'review-number_incoming';
+      const incoming = make(incomingClass);
       incoming.textContent = next;
       incoming.setAttribute('aria-hidden', 'true');
       slot.append(incoming);
@@ -75,5 +81,5 @@
     instances.set(slot, api);
     return api;
   }
-  window.TDBNativeTicker = Object.freeze({ version: '1.0.0', mount });
+  window.TDBNativeTicker = Object.freeze({ version: '1.1.0', mount });
 })();

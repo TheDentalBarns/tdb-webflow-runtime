@@ -1,0 +1,20 @@
+/* Desktop card carousels: focus follows the section's left content edge.
+ * Mobile and tablet retain their existing centred presentation. */
+@media (min-width:992px) {
+  /* Smile Gallery alignment and reveal states are native Designer styles. */
+  .tdb-ig-feed > .tdb-ig-viewport {margin-left:0;margin-right:auto}
+  .tdb-ig-feed > .tdb-ig-static-frame {left:0;transform:none}
+  html[data-tdb-instagram-preview] .section_standard-instagram-slider :is([data-tdb-ig-widget],[data-tdb-ig-ready])::before {margin-left:0;margin-right:auto}
+
+  .tdb-ri.is-centred-desktop .tdb-ri-viewport {
+    width:100vw;margin-inline:calc(50% - 50vw);overflow:hidden;overflow:clip;cursor:grab;
+  }
+  .tdb-ri.is-centred-desktop .tdb-ri-viewport:active {cursor:grabbing}
+  .tdb-ri.is-centred-desktop .tdb-ri-cell {opacity:.5;transition:opacity 300ms ease}
+  .tdb-ri.is-centred-desktop .tdb-ri-cell.is-current {opacity:1}
+  .tdb-ri.is-centred-desktop .tdb-ri-navigation {left:0;width:var(--ri-card-width);transform:none}
+  .tdb-ri.is-centred-desktop .tdb-ri-cell:not(.is-current) .tdb-rv-quote-text {opacity:0!important}
+
+  .tdb-first-impressions .tdb-fi-card {left:var(--fi-focus-left,calc((100vw - min(94vw,90rem)) / 2))}
+  .tdb-first-impressions > :is(.tdb-fi-fixed-banner,.tdb-fi-navigation) {left:0;transform:none}
+}

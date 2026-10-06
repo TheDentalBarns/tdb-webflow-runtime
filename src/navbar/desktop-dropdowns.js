@@ -45,9 +45,18 @@
     item.animations.forEach(animation => animation.cancel());
     item.animations = [];
   }
-  // Webflow's .w--open owns the desktop width, inset, padding and cream fill.
+  // Webflow's .w--open owns the desktop width, inset and padding.
   // Keep those exact values until the closing animation has fully disappeared.
-  const appearanceProperties = ['left','right','top','width','min-width','max-width','box-sizing','background-color','padding-left','padding-right','padding-top','padding-bottom'];
+  const appearanceProperties = ['left','right','top','width','min-width','max-width','box-sizing','padding-left','padding-right','padding-top','padding-bottom'];
+  const surfaceStates = ['is-dropdown-clear','is-dropdown-frosted','is-dropdown-solid','is-dropdown-solid-clear'];
+  function setSurface(item, state) {
+    surfaceStates.forEach(name => item.panel.classList.toggle(name, name === state));
+  }
+  function readSurface(panel) {
+    const style = getComputedStyle(panel);
+    return {backgroundColor:style.backgroundColor,backdropFilter:style.backdropFilter,
+      webkitBackdropFilter:style.webkitBackdropFilter || style.backdropFilter};
+  }
   function holdAppearance(item) {
     if (item.appearance) return;
     const style = getComputedStyle(item.panel);
@@ -64,6 +73,8 @@
     cancel(item);
     item.panel.removeAttribute('data-tdb-desktop-panel');
     releaseAppearance(item);
+    setSurface(item, null);
+    item.clearSurface = null;
     item.panel.inert = item.originalInert;
     item.open = item.live = false;
   }
@@ -79,8 +90,21 @@
     const startPaddingBottom = wasLive ? getComputedStyle(panel).paddingBottom : '0px';
     const translate = wasLive ? getComputedStyle(container).transform : 'translateY(-100%)';
     const previous = content.map(el => ({opacity:wasLive ? getComputedStyle(el).opacity : '0',transform:wasLive ? getComputedStyle(el).transform : 'translateY(-0.75rem)'}));
+    // Snapshot before cancellation so a reversed transition starts where it is.
+    let surfaceStart = wasLive ? readSurface(panel) : null;
     cancel(item);
     if (open) holdAppearance(item);
+    if (!wasLive) {
+      // Desktop hover/open also sets is-trans; use the scroll context rather
+      // than mistaking that temporary strip state for a scrolled page.
+      item.clearSurface = window.TDBNavScroll.clearSurface;
+      setSurface(item, item.clearSurface ? 'is-dropdown-clear' : 'is-dropdown-frosted');
+      surfaceStart = readSurface(panel);
+    }
+    setSurface(item, open
+      ? item.clearSurface ? 'is-dropdown-solid-clear' : 'is-dropdown-solid'
+      : item.clearSurface ? 'is-dropdown-clear' : 'is-dropdown-frosted');
+    const surfaceEnd = readSurface(panel);
     const generation = ++item.generation;
     item.open = open;
     item.live = true;
@@ -98,6 +122,9 @@
     const paddingTop = getComputedStyle(panel).paddingTop;
     const paddingBottom = getComputedStyle(panel).paddingBottom;
     const fullHeight = container.getBoundingClientRect().height + (parseFloat(paddingTop)||0) + (parseFloat(paddingBottom)||0);
+    // Endpoints belong to Designer. Match the mobile surface's shared detail
+    // clock/easing; keep its ending state through the complete panel reveal.
+    motion(panel,[surfaceStart,surfaceEnd],{duration:timing.textOut,easing:window.TDBNavMotion.surfaceEasing});
     motion(panel,[{height:height+'px',paddingTop:startPaddingTop,paddingBottom:startPaddingBottom},{height:open ? fullHeight+'px' : '0px',paddingTop:open ? paddingTop : '0px',paddingBottom:open ? paddingBottom : '0px'}],{duration:timing.panel,easing:window.TDBPanelMotion.easing});
     motion(container,[{transform:translate},{transform:open ? 'translateY(0)' : 'translateY(-100%)'}],{duration:timing.panel,easing:window.TDBPanelMotion.easing});
     content.forEach((el,i) => motion(el, open ? [previous[i],{opacity:1,transform:'translateY(0)'}] : [
