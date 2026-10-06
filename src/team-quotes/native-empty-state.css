@@ -1,0 +1,7 @@
+/* Webflow's native CMS empty state determines section presence before scripts.
+   Keep this in site head; scope it to the dedicated owner CMS, never reviews.
+   Services already uses all 60 fields, so no additional visibility switch is
+   required. The collection query remains the only content selection authority. */
+.section_standard-testimonial:has([data-tdb-team-cms] [data-tdb-team-viewport] > .w-dyn-empty) {
+  display: none;
+}
