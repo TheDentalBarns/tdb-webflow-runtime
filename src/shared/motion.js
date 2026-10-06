@@ -1,4 +1,4 @@
-/* TDB shared motion v1.8.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.9.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -171,6 +171,8 @@
   function pageBreaks(wrappers) {
     const controller = new AbortController(), { signal } = controller;
     const states = [], owned = [];
+    const memory = window.TDBPageBreakMemory;
+    const remember = () => memory?.save(states);
     let frame = 0, layout = true, suspended = false, disposed = false, released = false;
     let lastScroll = window.scrollY, inputUntil = 0, pointerHeld = false;
     const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
@@ -222,7 +224,9 @@
         state.geometry = g.signature;
         state.y = clamp(state.y, g.low, g.high);
         if (!g.visible) {
-          state.y = g.target;
+          // The browser may restore scroll after this first render. Keep the
+          // prepaint snapshot until that happens or the user starts scrolling.
+          if (!state.restored || userScroll) state.y = g.target;
           state.correction = null;
         } else if (changed || (distance !== 0 && !userScroll)) {
           // Resize/layout movement and browser scroll restoration are not a
@@ -247,6 +251,7 @@
         if (reduced.matches) { state.y = clamp(0, g.low, g.high); state.correction = null; }
         state.progress = g.progress;
         state.visible = g.visible;
+        if (g.visible || userScroll) state.restored = false;
       }
       for (const state of states) {
         const value = `translate3d(0, ${state.y.toFixed(4)}px, 0)`;
@@ -260,7 +265,9 @@
       if (existing) { existing.clients++; owned.push(existing); continue; }
       const node = wrapper.querySelector('[data-tdb-page-break-image]') || wrapper.querySelector('img');
       if (!node) continue;
-      const state = { wrapper, node, y: yOf(node), original: node.style.transform, correction: null };
+      const snapshot = memory?.take(node);
+      const state = { wrapper, node, y: yOf(node), original: snapshot ? snapshot.original : node.style.transform,
+        restored: Boolean(snapshot), correction: null };
       states.push(state);
       const owner = { clients: 1, wrapper, release: null, refresh };
       pageBreakClients.set(wrapper, owner);
@@ -271,11 +278,11 @@
       window.addEventListener('scroll', schedule, { passive: true, signal });
       window.addEventListener('resize', refresh, { passive: true, signal });
       window.addEventListener('pageshow', () => { suspended = false; lastScroll = window.scrollY; refresh(); }, { signal });
-      window.addEventListener('pagehide', () => { suspended = true; cancelAnimationFrame(frame); frame = 0; }, { signal });
+      window.addEventListener('pagehide', () => { remember(); suspended = true; cancelAnimationFrame(frame); frame = 0; }, { signal });
       for (const event of ['wheel', 'touchstart', 'touchmove', 'pointerdown', 'keydown'])
         window.addEventListener(event, input, { capture: true, passive: true, signal });
       for (const event of ['pointerup', 'pointercancel']) window.addEventListener(event, pointerEnd, { passive: true, signal });
-      document.addEventListener('visibilitychange', refresh, { signal });
+      document.addEventListener('visibilitychange', () => { if (document.hidden) remember(); else refresh(); }, { signal });
       window.addEventListener('load', refresh, { signal });
       reduced.addEventListener('change', refresh, { signal });
       if (typeof ResizeObserver !== 'undefined') {
@@ -397,5 +404,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.8.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.9.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();
