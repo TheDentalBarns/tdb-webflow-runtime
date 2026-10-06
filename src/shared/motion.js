@@ -48,6 +48,7 @@
     const pointerEnd = () => { pointerHeld = false; inputUntil = performance.now() + 2000; };
     function retain(state, progress) {
       state.progress = progress;
+      state.ceiling = Math.max(state.value, state.preset === 'orange' ? 1 : .5);
       state.desired = state.value;
       state.correction = { anchor: progress, offset: state.value - ddOpacity(progress, state.preset), weight: 1 };
     }
@@ -93,12 +94,12 @@
             }
             state.progress = state.mode === 'viewport' ? g.progress : state.progress + (g.progress - state.progress) * .5;
             const normal = ddOpacity(state.mode === 'viewport' ? g.progress : state.progress, state.preset);
-            state.desired = ddClamp(normal + (c ? c.offset * c.weight : 0));
+            state.desired = Math.min(state.ceiling, ddClamp(normal + (c ? c.offset * c.weight : 0)));
           }
         } else if (!changed && Math.abs(state.progress - g.progress) >= .0001 && state.mode !== 'viewport') {
           state.progress += (g.progress - state.progress) * .5;
           if (Math.abs(g.progress - state.progress) < .0001) state.progress = g.progress;
-          state.desired = ddClamp(ddOpacity(state.progress, state.preset) + (state.correction ? state.correction.offset * state.correction.weight : 0));
+          state.desired = Math.min(state.ceiling, ddClamp(ddOpacity(state.progress, state.preset) + (state.correction ? state.correction.offset * state.correction.weight : 0)));
         }
         // Settling is permitted only after a user scroll established a target.
         // It never pays down the startup correction by itself.

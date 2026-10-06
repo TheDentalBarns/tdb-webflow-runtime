@@ -45,3 +45,7 @@ test('a hidden node is retained when it is first displayed',()=>{
 test('full motion policy remains enabled even when OS requests reduced motion',()=>{
  const t=setup();try{assert.equal(t.w.TDBMotion.reduced.matches,false);t.scroll(100);assert(t.value()<1);}finally{t.close();}
 });
+
+test('a faded first paint never brightens beyond the normal peak during catch-up',()=>{
+ const t=setup({opacity:'.5',top:990});try{t.scroll(300);assert(t.value()<=.5);t.scroll(600);assert(t.value()<=.5);t.scroll(1100);assert(Math.abs(t.value()-.1)<.001);}finally{t.close();}
+});
