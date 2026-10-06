@@ -98,8 +98,8 @@
     const paddingTop = getComputedStyle(panel).paddingTop;
     const paddingBottom = getComputedStyle(panel).paddingBottom;
     const fullHeight = container.getBoundingClientRect().height + (parseFloat(paddingTop)||0) + (parseFloat(paddingBottom)||0);
-    motion(panel,[{height:height+'px',paddingTop:startPaddingTop,paddingBottom:startPaddingBottom},{height:open ? fullHeight+'px' : '0px',paddingTop:open ? paddingTop : '0px',paddingBottom:open ? paddingBottom : '0px'}],{duration:timing.panel,easing:'cubic-bezier(0.165,0.84,0.44,1)'});
-    motion(container,[{transform:translate},{transform:open ? 'translateY(0)' : 'translateY(-100%)'}],{duration:timing.panel,easing:'cubic-bezier(0.165,0.84,0.44,1)'});
+    motion(panel,[{height:height+'px',paddingTop:startPaddingTop,paddingBottom:startPaddingBottom},{height:open ? fullHeight+'px' : '0px',paddingTop:open ? paddingTop : '0px',paddingBottom:open ? paddingBottom : '0px'}],{duration:timing.panel,easing:window.TDBPanelMotion.easing});
+    motion(container,[{transform:translate},{transform:open ? 'translateY(0)' : 'translateY(-100%)'}],{duration:timing.panel,easing:window.TDBPanelMotion.easing});
     content.forEach((el,i) => motion(el, open ? [previous[i],{opacity:1,transform:'translateY(0)'}] : [
       {...previous[i],offset:0},{opacity:.5,transform:'translateY(-0.2rem)',offset:.2},
       {opacity:.15,transform:'translateY(-0.45rem)',offset:.42},

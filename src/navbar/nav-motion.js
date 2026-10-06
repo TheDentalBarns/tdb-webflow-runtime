@@ -7,8 +7,7 @@
   function refresh() {
     // Same square-root distance curve as the drawers, using the vertical axis.
     // Apply it on phones too: a taller viewport means a longer menu journey.
-    const height = root.clientHeight || innerHeight || 375;
-    const panel = Math.round(Math.min(950, Math.max(400, 400 * Math.sqrt(height / 375))));
+    const panel = window.TDBPanelMotion.duration();
     const scale = duration => Math.round(duration * panel / 500);
     if (!current || current.panel !== panel) {
       current = Object.freeze({panel, textIn:scale(520), textOut:scale(420), delay:scale(70),

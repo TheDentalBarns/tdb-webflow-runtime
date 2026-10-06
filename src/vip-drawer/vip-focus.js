@@ -11,7 +11,7 @@
   // Programmatic focus from the Elfsight banner can retain :focus-visible
   // after a pointer activation. Suppress only the handle's pointer outline;
   // keyboard input immediately restores the site's existing focus styling.
-  // Appearance lives in Designer; this layer only projects native state classes.
+  // Appearance lives in Designer; this layer projects state and measured timing.
   const native = drawer.dataset.tdbVipNative === '1';
   if (!native) {
     const focusStyle = document.createElement('style');
@@ -125,6 +125,9 @@
       body.classList.toggle('is-vip-open', open);
       arrow?.classList.toggle('is-vip-open', open);
       arrow?.classList.toggle('is-vip-closing', closing);
+      // Webflow drops variable transition-delay values from published CSS.
+      // Keep the measured delay here; native styles still own the rotation.
+      arrow?.style.setProperty('transition-delay', open ? 'var(--tdb-vip-drawer-duration,500ms)' : '0ms');
       if (open) interacted = true;
       // The shared UI pulse invites the first open, then stays quiet for this visit.
       pulse?.setAttribute('data-tdb-pulse', String(peek && !interacted && !reducedMotion.matches));

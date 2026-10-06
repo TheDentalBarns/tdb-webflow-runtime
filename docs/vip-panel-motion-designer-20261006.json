@@ -1,0 +1,35 @@
+[
+  {
+    "style_name": "is-open",
+    "parent_style_names": ["tdb-vip-drawer"],
+    "remove_properties": ["transition"],
+    "properties": [
+      {"property_name":"transition-property","property_value":"transform, background-color"},
+      {"property_name":"transition-duration","property_value":"var(--tdb-vip-drawer-duration,500ms), 500ms"},
+      {"property_name":"transition-timing-function","property_value":"var(--tdb-vip-drawer-ease,cubic-bezier(0.165,0.84,0.44,1)), ease"},
+      {"property_name":"transition-delay","property_value":"0s, 0s"}
+    ]
+  },
+  {
+    "style_name": "is-closing",
+    "parent_style_names": ["tdb-vip-drawer"],
+    "remove_properties": ["transition"],
+    "properties": [
+      {"property_name":"transition-property","property_value":"transform, background-color"},
+      {"property_name":"transition-duration","property_value":"var(--tdb-vip-drawer-duration,500ms), 500ms"},
+      {"property_name":"transition-timing-function","property_value":"var(--tdb-vip-drawer-ease,cubic-bezier(0.165,0.84,0.44,1)), ease"},
+      {"property_name":"transition-delay","property_value":"0s, 0s"}
+    ]
+  },
+  {
+    "style_name": "is-vip-open",
+    "parent_style_names": ["tdb-vip-arrow-content"],
+    "remove_properties": ["transition"],
+    "properties": [
+      {"property_name":"transition-property","property_value":"transform"},
+      {"property_name":"transition-duration","property_value":"300ms"},
+      {"property_name":"transition-timing-function","property_value":"ease"},
+      {"property_name":"transition-delay","property_value":"500ms"}
+    ]
+  }
+]
