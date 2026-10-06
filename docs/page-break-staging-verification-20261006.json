@@ -1,0 +1,103 @@
+{
+  "date": "2026-10-06",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "staging": "https://dentalbarns.webflow.io/",
+  "release": "2a1acbc339e1a203b7ab6da63a560f309256fd9c",
+  "publishTaskId": "457aaaf6-585e-4f9a-9760-af91d234881f",
+  "native": {
+    "component": "Page Break Image",
+    "componentId": "30d55327-1ca1-3a76-9cf2-5722b1366486",
+    "placements": 32,
+    "preservedInPlace": 13,
+    "replaced": 19,
+    "unusedDefinitionsRemoved": 6
+  },
+  "browser": {
+    "viewport": [
+      1363,
+      936
+    ],
+    "flower": [
+      {
+        "phase": "restored reload",
+        "scrollY": 3276,
+        "top": 335.375,
+        "y": 0
+      },
+      {
+        "phase": "idle after reload",
+        "scrollY": 3276,
+        "y": 0
+      },
+      {
+        "phase": "first scroll",
+        "scrollY": 3463,
+        "top": 148.375,
+        "y": 4.3574
+      },
+      {
+        "phase": "first exit",
+        "scrollY": 4212,
+        "top": -600.625,
+        "y": 18.72
+      },
+      {
+        "phase": "return",
+        "scrollY": 3697,
+        "top": -85.625,
+        "y": 8.5233,
+        "normalTarget": 8.523333333333333
+      }
+    ],
+    "headphones": [
+      {
+        "phase": "restored reload",
+        "scrollY": 16829,
+        "top": 300,
+        "y": 0
+      },
+      {
+        "phase": "first scroll",
+        "scrollY": 16969,
+        "top": 160,
+        "y": 3.4125
+      }
+    ],
+    "checkedPages": [
+      "/",
+      "/about-us",
+      "/careers",
+      "/location"
+    ],
+    "imageVariantsVerified": 6,
+    "legacyImageDataWId": null,
+    "careersReceptionFetchPriority": "high",
+    "loaderWarnings": [],
+    "screenshot": "page-break-staging-1791297585732.jpg"
+  },
+  "automated": {
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        834,
+        1112
+      ],
+      [
+        667,
+        375
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "pageBreakFixture": "passed",
+    "sharedDDMotion": "passed",
+    "sharedModules": "passed",
+    "buildAndSyntax": "passed"
+  },
+  "productionDomainsLastPublished": "2026-10-01T10:10:45.669Z"
+}

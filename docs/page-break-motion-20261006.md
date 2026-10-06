@@ -74,4 +74,11 @@ Publish the Webflow staging subdomain only.
   delayed image loading, duplicate ownership, and teardown.
 - Existing DD motion and shared-module identity/gating tests passed.
 - Shared-runtime build output, syntax, and diff checks passed.
-- Published markup and real browser verification follow the staging publish.
+- Staging release `2a1acbc339e1a203b7ab6da63a560f309256fd9c` was published
+  and verified in the browser. Both homepage images held zero translation on
+  a restored mid-page reload, stayed still while idle, and moved with scroll.
+  After the first exit, the flower image returned at 8.5233px against a normal
+  target of 8.523333px. Home, About us, Careers, and Location preserve all six
+  photo variants without legacy interaction IDs. Careers retains high priority.
+  See the adjacent staging verification JSON and screenshot for evidence.
+- All custom production domains retain their 1 October publication timestamp.
