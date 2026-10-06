@@ -1,3 +1,50 @@
+/* Reusable control effects. Designer owns dimensions, artwork and initial states.
+ * Loading indicators may reuse the existing native SVG spinner unchanged.
+ */
+@keyframes tdbBtnPulseOpacity {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes tdbControlSpin {
+  to { transform: rotate(360deg); }
+}
+[data-tdb-pulse] {
+  pointer-events: none;
+  animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate;
+}
+[aria-busy='true'] [data-tdb-pulse],
+[aria-expanded='true'] [data-tdb-pulse],
+[data-tdb-loading='true'] [data-tdb-pulse],
+[data-tdb-pulse='false'] {
+  animation: none;
+  opacity: 0;
+}
+[data-tdb-loading='true'] [data-tdb-loading-indicator] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: none;
+  transition: opacity 0.12s ease 0.12s, visibility 0s linear 0s;
+}
+[data-tdb-loading='true'] [data-tdb-loading-indicator] svg {
+  animation: tdbControlSpin 1s linear infinite;
+}
+/* Full-motion review policy also wins over native or embedded reduced-motion rules. */
+html[data-tdb-motion='full'] [data-tdb-loading='true'] [data-tdb-loading-indicator] svg {
+  animation: tdbControlSpin 1s linear infinite !important;
+}
+[data-tdb-loading='true'] [data-tdb-loading-content] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Review opening and filter preparation give immediate control feedback. */
+[data-tdb-review-trigger][data-tdb-loading='true'] [data-tdb-loading-indicator],
+.tdb-review-drawer_nav-button[data-tdb-loading='true'] [data-tdb-loading-indicator] {
+  transition: none;
+}
+
+:root { --tdb-vimeo-ui-ready: 1; }
+
 .vimeo-player[data-vimeo-update-size='cover'] {
     width: 100%;
     min-width: 100%;
@@ -100,11 +147,6 @@
 }
 
 /* Shared pulse */
-@keyframes tdbBtnPulseOpacity {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 .vimeo-controls-layer .vimeo-player__btn-pulse,
 .vimeo-player .vimeo-player__btn-pulse {
   opacity: 0;
@@ -130,26 +172,7 @@
   will-change: auto;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  [data-vimeo-hero-shell]:not([data-vimeo-pulse]) .vimeo-controls-layer .vimeo-player__btn-pulse,
-[data-vimeo-hero-shell][data-vimeo-pulse='true'] .vimeo-controls-layer .vimeo-player__btn-pulse,
-  .vimeo-player:not([data-vimeo-playing]) .vimeo-player__btn-pulse,
-.vimeo-player[data-vimeo-playing='false'] .vimeo-player__btn-pulse {
-    animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate !important;
-    visibility: visible !important;
-    will-change: opacity !important;
-  }
 
-  [data-vimeo-hero-shell][data-vimeo-pulse='false'] .vimeo-controls-layer .vimeo-player__btn-pulse,
-  .vimeo-player[data-vimeo-playing='true'] .vimeo-player__btn-pulse,
-  .vimeo-player[data-vimeo-awaiting-consent='true'] .vimeo-player__btn-pulse,
-  .vimeo-player[data-vimeo-loading='true'] .vimeo-player__btn-pulse {
-    animation: none !important;
-    opacity: 0 !important;
-    visibility: visible !important;
-    will-change: auto !important;
-  }
-}
 
 /* Hero and ambient runtime transitions */
 [data-vimeo-player-init]:not([data-vimeo-content-init])[data-vimeo-started='true'] .vimeo-bg__placeholder,

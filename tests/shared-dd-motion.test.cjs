@@ -8,10 +8,10 @@ function setup(reduced=false){let id=0,now=0;const frames=new Map(),listeners={}
  const t=setup();t.node.top=1200;const a=t.motion.ddText([t.node]);t.tick(0);t.tick(250);assert.equal(+t.node.style.opacity,0);assert.equal(t.frames.size,0);t.node.top=600;t.listeners.scroll();t.tick(300);assert.equal(+t.node.style.opacity,.2);a.destroy();
 }
 {
- const t=setup(true);const a=t.motion.ddText([t.node]);t.tick(0);assert.equal(t.node.style.opacity,'');assert.equal(t.frames.size,0);a.destroy();
+ const t=setup(true);const a=t.motion.ddText([t.node]);t.tick(0);assert.equal(+t.node.style.opacity,1);t.tick(250);assert.equal(+t.node.style.opacity,.5);assert.equal(t.motion.reduced.matches,false);a.destroy();
 }
 {
- const t=setup();t.node.style.opacity='.8';const a=t.motion.ddText([t.node]);t.tick(0);assert.equal(+t.node.style.opacity,.8);t.tick(125);t.media.matches=true;t.listeners.media();t.tick(140);assert.equal(t.node.style.opacity,'.8');assert.equal(t.frames.size,0);a.destroy();assert.equal(t.node.style.opacity,'.8');
+ const t=setup();t.node.style.opacity='.8';const a=t.motion.ddText([t.node]);t.tick(0);assert.equal(+t.node.style.opacity,.8);t.tick(125);t.media.matches=true;t.tick(140);assert(+t.node.style.opacity<.8);t.tick(250);assert.equal(+t.node.style.opacity,.5);assert.equal(t.frames.size,0);a.destroy();assert.equal(t.node.style.opacity,'.8');
 }
 {const t=setup();const a=t.motion.ddText([t.node]);t.tick(1000,700);assert.equal(+t.node.style.opacity,1);t.tick(1016,1000);assert(+t.node.style.opacity>.9);t.tick(1250,1233);assert.equal(+t.node.style.opacity,.5);a.destroy();}
-console.log('PASS: initial 250ms easing, normal scroll, offscreen settling, shared clients, reduced motion, cleanup.');
+console.log('PASS: initial 250ms easing, normal scroll, offscreen settling, shared clients, full motion under OS preference changes, cleanup.');

@@ -35,7 +35,7 @@
   let manual = false, gesture = null, slideDirection = -1, suppressClickUntil = 0, openedTouch = null;
   let slideAnimation = null;
   const events = ['CookieScriptLoaded', 'CookieScriptAccept', 'CookieScriptAcceptAll', 'CookieScriptReject', 'CookieScriptClose'];
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const reduced = (window.TDBMotionPolicy?.reduced || window.TDBMotion?.reduced || matchMedia('(prefers-reduced-motion: reduce)'));
   // Owner policy: keep desktop banner motion, with the existing reading pauses.
   const desktop = matchMedia('(min-width:992px)');
   const reduceMotion = () => reduced.matches && !desktop.matches;
@@ -74,7 +74,7 @@ html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elf
 .tdb-announcement-unit small{font-size:.5rem;line-height:10px;font-weight:400;opacity:.7}
 @keyframes tdb-announcement-number{from{transform:translateY(-.16em);opacity:.35}to{transform:translateY(0);opacity:1}}
 @media(max-width:640px){.tdb-announcement{gap:8px}.tdb-announcement-panel{grid-template-rows:32px 32px;gap:3px}.tdb-announcement-title{font-size:12px;line-height:16px}.tdb-announcement-lower{font-size:14px;line-height:22px}.tdb-announcement-countdown{gap:5px}.tdb-announcement-value{font-size:13px;line-height:18px;padding:1px 3px}.tdb-announcement-unit small{line-height:8px}}
-@media(max-width:991px) and (prefers-reduced-motion:reduce){.tdb-announcement-digit.is-changing,.tdb-announcement-slot[data-live="true"]::after{animation:none}.tdb-announcement-track{transition:none!important}}
+
 `;
   function ukDate(date, clock) {
     // Webflow publishes date text without its time. Keep an explicit, editable UK clock field.

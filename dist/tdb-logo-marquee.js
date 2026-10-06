@@ -27,7 +27,7 @@
   // rather than creating another one on every animation frame.
   const mobileMediaQuery = window.matchMedia?.(CONFIG.mobileMedia);
 
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const reduced = (window.TDBMotionPolicy?.reduced || window.TDBMotion?.reduced || matchMedia('(prefers-reduced-motion: reduce)'));
   const desktop = matchMedia('(min-width: 992px)');
   // Homepage marquee motion is owner-enabled at every responsive width.
   const homeMotion = document.documentElement.dataset.wfPage === '677cf86df9952f978d94d8a9';

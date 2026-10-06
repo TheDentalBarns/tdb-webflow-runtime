@@ -6,7 +6,7 @@ function mount(root,{onOpen,onClose}={}){
  if(instances.has(root))return instances.get(root);
  const panel=root.querySelector('[data-tdb-drawer-panel]'),backdrop=root.querySelector('[data-tdb-drawer-backdrop]'),closeButton=root.querySelector('[data-tdb-drawer-close]');
  if(!panel||!closeButton)throw Error('Native drawer structure missing');
- const ctrl=new AbortController(),{signal}=ctrl,motion=matchMedia('(prefers-reduced-motion: reduce)');
+ const ctrl=new AbortController(),{signal}=ctrl,motion=window.TDBMotion.reduced;
  let state='closed',trigger,saved=[],scrollLock,animations=[],revision=0,touchPulse=null;
  root.hidden=true;root.classList.add('is-hidden');root.inert=true;
  const stop=()=>{animations.forEach(a=>a.cancel());animations=[];};

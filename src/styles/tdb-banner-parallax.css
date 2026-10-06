@@ -79,9 +79,7 @@
   .tdb-banner-parallax > .tdb-parallax-cta-layer,.tdb-banner-parallax > .tdb-parallax-cta-layer.is-location {justify-content:flex-start;padding-bottom:2.5rem;}
   .tdb-banner-parallax [data-tdb-parallax-cta].button.is-secondary {max-width:calc(100% - 7.5rem);}
 }
-@media (prefers-reduced-motion:reduce) {
-  .tdb-banner-parallax [data-fade-slide],.tdb-banner-parallax.is-moving [data-fade-slide] {transition:none!important;}
-}
+
 
 /* Desktop spacing remains independent of the shared blur effect. */
 @media (min-width:992px) {

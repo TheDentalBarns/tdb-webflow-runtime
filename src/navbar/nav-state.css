@@ -181,12 +181,3 @@ background-color: rgba(249, 242, 230, 0.95);
     from { background-color: #f9f2e6; }
     to { background-color: rgba(249, 242, 230, 0.75); }
   }
-
-  @media (prefers-reduced-motion: reduce) {
-    .navbar10_menu-left,
-    .navbar10_menu-right {
-      opacity: 1 !important;
-      transform: none !important;
-      animation: none !important;
-    }
-  }

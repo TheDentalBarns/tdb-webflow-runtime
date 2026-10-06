@@ -9,7 +9,7 @@ function mount(panel,{toggle,backdrop=null,heading=null,badge=null,escapeRoot=pa
  if(!panel||!toggle)throw Error('Native filter panel and toggle required');
  const motion=window.TDBMotion;if(!motion)throw Error('Shared motion must load before filters');
  const names={closed:'is-closed',active:'is-filter-open',blocked:'is-filter-blocked',empty:'is-empty',collapsed:'is-collapsed',expanded:'is-expanded',...classes};
- const controller=new AbortController(),{signal}=controller,reduced=matchMedia('(prefers-reduced-motion: reduce)');
+ const controller=new AbortController(),{signal}=controller,reduced=window.TDBMotion.reduced;
  let open=false,destroyed=false,animation=null,shadeAnimation=null,revision=0,closeFlight=null,count=0;
  // Capture native state so destroy/remount cannot accumulate IDs, ARIA or classes.
  const restorers=[];
