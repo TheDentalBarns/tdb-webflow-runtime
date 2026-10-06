@@ -7,7 +7,7 @@ function mount(old,data,{openReviews}){
  const records=data.featured.map(id=>data.records.find(r=>r.id===id)).filter(Boolean);if(!records.length)return {destroy(){}};
  const root=source.cloneNode(true);root.removeAttribute('data-tdb-quotes-template');root.setAttribute('data-tdb-quotes','');root.hidden=false;root.classList.remove('is-hidden');
  const viewport=root.querySelector('[data-tdb-quotes-viewport]'),track=root.querySelector('[data-tdb-quotes-track]'),template=root.querySelector('[data-tdb-quotes-card]');
- const motion=window.TDBMotion,reduced=matchMedia('(prefers-reduced-motion: reduce)'),controller=new AbortController(),{signal}=controller;let entryTimer=0,entryPending=records.length>1&&!reduced.matches,swiper,animations=[];
+ const motion=window.TDBMotion,reduced=window.TDBMotion.reduced,controller=new AbortController(),{signal}=controller;let entryTimer=0,entryPending=records.length>1&&!reduced.matches,swiper,animations=[];
  function stop(){clearTimeout(entryTimer);animations.forEach(a=>a.cancel());animations=[];}
  track.replaceChildren(...records.map(record=>{const card=template.cloneNode(true);card.dataset.reviewId=record.id;card.querySelector('[data-tdb-quotes-excerpt]').textContent=record.excerpt;card.querySelector('[data-tdb-quotes-name]').textContent=record.name;card.querySelector('[data-tdb-quotes-source]').replaceChildren(...window.TDBReviewCMS.sourceIcon(record.platform,true).childNodes);const button=card.querySelector('[role="button"]');button.setAttribute('aria-label','Read full review by '+record.name);return card;}));
  window.jQuery?.(old).triggerHandler('mouseenter');old.replaceWith(root);

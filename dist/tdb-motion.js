@@ -1,7 +1,13 @@
-/* TDB shared motion v1.5.0. Timing, DD text and reusable opacity fades. */
+/* TDB shared motion v1.6.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
+
+  // Standalone consumers share the same full-motion default as the early site policy.
+  const reduced = window.TDBMotionPolicy?.reduced || Object.freeze({
+    matches: false, addEventListener() {}, removeEventListener() {},
+    addListener() {}, removeListener() {},
+  });
 
   const defaults = Object.freeze({
     base: 400, desktopMin: 650, desktopMax: 950, referenceWidth: 375,
@@ -59,7 +65,7 @@
     if (!ddController) {
       ddController = new AbortController();
       const { signal } = ddController;
-      ddReduced = matchMedia('(prefers-reduced-motion: reduce)');
+      ddReduced = reduced;
       for (const event of ['scroll', 'resize']) window.addEventListener(event, ddSchedule, { signal, passive: true });
       document.addEventListener('visibilitychange', ddSchedule, { signal });
       ddReduced.addEventListener('change', ddSchedule, { signal });
@@ -134,7 +140,6 @@
     const lines = button ? ['top', 'middle', 'bottom'].map(part => button.querySelector('[data-tdb-filter-line="' + part + '"]')) : [];
     if (lines.length !== 3 || lines.some(line => !line)) return { set() {}, reset() {}, destroy() {} };
     const controller = new AbortController(), { signal } = controller;
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
     const svg = lines[0].ownerSVGElement, mask = svg.querySelector('[data-tdb-filter-mask]'), paint = svg.querySelector('[data-tdb-filter-paint]');
     // Paint currentColor once through the union of opaque strokes, avoiding alpha buildup.
     const maskId = mask?.id, paintMask = paint?.getAttribute('mask');
@@ -184,5 +189,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.5.0', defaults, carousel, duration, ddText, ddOpacity, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.6.0', reduced, defaults, carousel, duration, ddText, ddOpacity, reviews, fadeController, filterToggle, bindSwiper });
 })();

@@ -21,7 +21,7 @@
   }
   const arrow = drawer.querySelector('.tdb-vip-arrow-content');
   const pulse = drawer.querySelector('[data-tdb-pulse]');
-  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const reducedMotion = (window.TDBMotionPolicy?.reduced || window.TDBMotion?.reduced || matchMedia('(prefers-reduced-motion: reduce)'));
   let interacted = false;
   function syncCheckbox(input) {
     const icon = input.closest('.w-checkbox')?.querySelector('.tdb-vip-checkbox');

@@ -1,3 +1,5 @@
+:root { --tdb-vimeo-ui-ready: 1; }
+
 .vimeo-player[data-vimeo-update-size='cover'] {
     width: 100%;
     min-width: 100%;
@@ -100,11 +102,6 @@
 }
 
 /* Shared pulse */
-@keyframes tdbBtnPulseOpacity {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 .vimeo-controls-layer .vimeo-player__btn-pulse,
 .vimeo-player .vimeo-player__btn-pulse {
   opacity: 0;
@@ -130,26 +127,7 @@
   will-change: auto;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  [data-vimeo-hero-shell]:not([data-vimeo-pulse]) .vimeo-controls-layer .vimeo-player__btn-pulse,
-[data-vimeo-hero-shell][data-vimeo-pulse='true'] .vimeo-controls-layer .vimeo-player__btn-pulse,
-  .vimeo-player:not([data-vimeo-playing]) .vimeo-player__btn-pulse,
-.vimeo-player[data-vimeo-playing='false'] .vimeo-player__btn-pulse {
-    animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate !important;
-    visibility: visible !important;
-    will-change: opacity !important;
-  }
 
-  [data-vimeo-hero-shell][data-vimeo-pulse='false'] .vimeo-controls-layer .vimeo-player__btn-pulse,
-  .vimeo-player[data-vimeo-playing='true'] .vimeo-player__btn-pulse,
-  .vimeo-player[data-vimeo-awaiting-consent='true'] .vimeo-player__btn-pulse,
-  .vimeo-player[data-vimeo-loading='true'] .vimeo-player__btn-pulse {
-    animation: none !important;
-    opacity: 0 !important;
-    visibility: visible !important;
-    will-change: auto !important;
-  }
-}
 
 /* Hero and ambient runtime transitions */
 [data-vimeo-player-init]:not([data-vimeo-content-init])[data-vimeo-started='true'] .vimeo-bg__placeholder,

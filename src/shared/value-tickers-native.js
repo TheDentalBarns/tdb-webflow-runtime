@@ -5,7 +5,7 @@
   const instances = new WeakMap();
   function mount(slot) {
     if (instances.has(slot)) return instances.get(slot);
-    const motion = matchMedia('(prefers-reduced-motion: reduce)');
+    const motion = window.TDBMotion.reduced;
     const originalNodes = [...slot.childNodes];
     let text = slot.textContent.trim(), disposed = false, pending = null;
     const value = document.createElement('span');

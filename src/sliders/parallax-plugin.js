@@ -41,7 +41,7 @@ function u(root) {
         return c(root) && matchMedia(r).matches;
     }
 function p(root) {
-        return c(root) && matchMedia(s).matches && !matchMedia(a).matches;
+        return c(root) && matchMedia(s).matches && !window.TDBMotion.reduced.matches;
     }
 function E(e) {
         return "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage && e.matches("#All-treatments .tdb-banner-parallax");
@@ -53,7 +53,7 @@ function A(e) {
         if (!e || f(e)) return;
         const t = m(e);
         if (!t || "function" != typeof window.Swiper) return;
-        const n = e.hasAttribute("data-tdb-banner-parallax"), i = n && (E(e) || !matchMedia(a).matches), o = u(e) || i && matchMedia(r).matches, l = p(e) || i && matchMedia(s).matches, d = o || l || n, c = window.TDBParallax?.prepare(e, t), b = window.TDBSwiper.create(t, {
+        const n = e.hasAttribute("data-tdb-banner-parallax"), i = n && (E(e) || !window.TDBMotion.reduced.matches), o = u(e) || i && matchMedia(r).matches, l = p(e) || i && matchMedia(s).matches, d = o || l || n, c = window.TDBParallax?.prepare(e, t), b = window.TDBSwiper.create(t, {
             init: !n,
             slidesPerView: 1,
             initialSlide: c?.initialIndex || 0,

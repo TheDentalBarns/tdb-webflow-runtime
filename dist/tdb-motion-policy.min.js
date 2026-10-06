@@ -1,0 +1,1 @@
+(()=>{"use strict";if(window.TDBMotionPolicy)return;const e=Object.freeze({matches:!1,addEventListener(){},removeEventListener(){},addListener(){},removeListener(){}});window.TDBMotionPolicy=Object.freeze({version:"1.0.0",mode:"full",reduced:e}),document.documentElement.dataset.tdbMotion="full"})();

@@ -11,7 +11,7 @@ function mount(root,data){
  const filterButton=$('[data-tdb-filter-toggle]'),filterPanel=$('[data-tdb-review-filter-panel]'),filterBackdrop=$('[data-tdb-filter-backdrop]');
  const drawerRoot=root.closest('[data-tdb-drawer]'),mainClose=drawerRoot.querySelector('[data-tdb-drawer-close]'),filterBadge=filterButton?.querySelector('[data-tdb-filter-badge]');
  let filter=null;
- const reduced=matchMedia('(prefers-reduced-motion: reduce)'),context=cms.contextForPath(location.pathname);
+ const reduced=window.TDBMotion.reduced,context=cms.contextForPath(location.pathname);
  const records=data.records.slice(),slideCache=new Map();let knownCount=records.length;
  const position=$('[data-tdb-reviews-position]'),previous=$('[data-tdb-reviews-prev]'),next=$('[data-tdb-reviews-next]');
  const totalNode=$('[data-tdb-reviews-length]'),totalTicker=window.TDBNativeTicker.mount(totalNode);let shownTotal=Number(totalNode.textContent)||0;
