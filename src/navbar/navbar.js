@@ -1,4 +1,4 @@
-/* TDB navbar v1.1.0: shared scroll release for slider focus. */
+/* Navbar scroll behaviour and shared scroll release for slider focus. */
 (() => {
     const navbar = document.querySelector(".navbar10_component");
     if (!navbar) return;

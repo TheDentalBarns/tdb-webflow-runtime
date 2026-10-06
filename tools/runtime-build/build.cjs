@@ -1,4 +1,4 @@
-/* Builds the essential navbar and footer from their canonical sources.
+/* Builds the navbar loader/enhancement and footer from their canonical sources.
  * Existing immediate/Vimeo/review releases are intentionally independent. */
 const fs = require('node:fs');
 const path = require('node:path');
@@ -26,7 +26,7 @@ const targets = ['dist/tdb-navbar.min.js', 'dist/tdb-navbar-loader.js', 'dist/td
         if (anchor) anchor.after(style); else document.head.append(style);
         ${read('src/shared/panel-motion.js')}
         ${['nav-motion', 'navbar', 'nav-clear-cycle', 'desktop-dropdowns', 'nav-surfaces'].map(name => read('src/navbar/' + name + '.js')).join('\n')}
-        window.TDBNavbar = Object.freeze({version:'1.4.3'});
+        window.TDBNavbar = Object.freeze({version:'1.4.4'});
         };
         if (window.TDBNavbarLoader) window.TDBNavbarLoader.register(install); else install();
       })();`;

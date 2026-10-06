@@ -5,16 +5,23 @@
   const glass = nav?.querySelector('.tdb-nav-bar-glass');
   const menu = nav?.querySelector('.navbar10_menu');
   if (!nav || !glass || !menu) return;
+  const logo = nav.querySelector('.navbar10_logo-link');
+  const line = nav.querySelector('.navbar_line');
   const root = document.documentElement;
   const mobile = matchMedia('(max-width:767px)');
   const desktop = matchMedia('(min-width:992px)');
   const button = nav.querySelector('.w-nav-button');
   const transparent = nav.getAttribute('transparent-nav') === 'true';
-  const set = (element, states, selected) => states.forEach(state => {
+  const set = (element, states, selected) => element && states.forEach(state => {
     const enabled = state === selected;
     if (element.classList.contains(state) !== enabled) element.classList.toggle(state, enabled);
   });
   function sync() {
+    // Enhanced-only native styles leave the pre-consent fallback intact.
+    // Tablet keeps its original wrapper/logo; mobile logo motion is unchanged.
+    set(nav, ['is-nav-desktop'], desktop.matches ? 'is-nav-desktop' : null);
+    set(logo, ['is-nav-motion'], desktop.matches ? 'is-nav-motion' : null);
+    set(line, ['is-nav-motion'], 'is-nav-motion');
     const clear = root.classList.contains('tdb-nav-at-top') || root.classList.contains('tdb-nav-clear-cycle');
     const open = button?.classList.contains('w--open');
     const desktopOpen = desktop.matches && !!nav.querySelector('.w-dropdown-toggle.w--open');

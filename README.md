@@ -4,7 +4,7 @@ Production JavaScript and CSS runtime for The Dental Barns Webflow website.
 
 ## Release policy
 
-- `main` contains the current maintained runtime.
+- `main` is the maintained baseline; active staging pins may be newer. Read the actual Webflow asset pins before starting work and preserve concurrent releases.
 - `release/v1.0.0` preserves the first consolidated production runtime.
 - Webflow loads immutable commit-pinned jsDelivr URLs.
 - Every behavioral change receives a new semantic version and a new commit pin.
@@ -40,7 +40,7 @@ See `docs/staging-runtime-cleanup-2026-09-11.md` for rollback instructions and p
 
 ## Webflow loading rule
 
-The Webflow site header and footer must include a readable release comment immediately above each externally hosted asset. Example:
+The Webflow site header and footer must include a readable release comment immediately above each externally hosted asset. Historical syntax example (read the actual site pin before editing):
 
 ```html
 <!-- TDB Navbar v1.0.0 | SHA 0c4f2c8 -->
@@ -74,7 +74,13 @@ Rollback is performed by restoring the previous immutable SHA in Webflow and rep
 
 ## Navigation cleanup — 5 October 2026
 
-See [navigation ownership, build and staging verification](docs/navigation-cleanup-2026-10-05.md). The essential `tdb-navbar.min.js` owns its complete lifecycle; it no longer depends on a footer helper or an inline nav CSS patch block. Static layout and decorative layers remain native Webflow.
+See [current navbar ownership and cleanup](docs/navbar-housekeeping-20261006.md),
+with the [earlier consolidation record](docs/navigation-cleanup-2026-10-05.md).
+The native Webflow menu works before a cookie decision; one pinned
+`tdb-navbar-loader.js` loads the 1.4.4 enhancement after a decision and a safe
+closed-menu handoff. Designer owns visual states and keyboard focus; the
+runtime owns scrolling, motion coordination and lifecycle. Mobile motion and
+tablet/basic fallback styling are retained.
 
 ## Service parallax cleanup — 5 October 2026
 

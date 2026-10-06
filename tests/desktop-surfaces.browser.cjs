@@ -1,7 +1,7 @@
 const {chromium}=require('playwright'), fs=require('fs'), assert=require('assert/strict');
 const sp=require(process.env.TDB_CHROMIUM_PACKAGE||'/tmp/tdb-browser/node_modules/@sparticuz/chromium');
 const live=process.env.TDB_SURFACE_LIVE==='1';
-const css=`.navbar10_dropdown-list.is-dropdown-clear{background-color:transparent;backdrop-filter:none}.navbar10_dropdown-list.is-dropdown-frosted{background-color:var(--_tdb-navbar---menu-glass);backdrop-filter:saturate(150%) blur(20px)}.navbar10_dropdown-list.is-dropdown-solid{background-color:var(--base-color-brand--orange-1);backdrop-filter:saturate(150%) blur(20px)}.navbar10_dropdown-list.is-dropdown-solid-clear{background-color:var(--base-color-brand--orange-1);backdrop-filter:none}`;
+const css=`.navbar10_component.is-nav-desktop{background-color:transparent;backdrop-filter:none}.navbar10_logo-link.is-nav-motion{transition:filter var(--tdb-nav-detail-duration,420ms) cubic-bezier(.4,0,.2,1)}.navbar_line.is-nav-motion{transition:opacity var(--tdb-nav-detail-duration,420ms) cubic-bezier(.4,0,.2,1)}.navbar10_dropdown-list.is-dropdown-clear{background-color:transparent;backdrop-filter:none}.navbar10_dropdown-list.is-dropdown-frosted{background-color:var(--_tdb-navbar---bar-glass);backdrop-filter:saturate(150%) blur(20px)}.navbar10_dropdown-list.is-dropdown-solid{background-color:var(--base-color-brand--orange-1);backdrop-filter:saturate(150%) blur(20px)}.navbar10_dropdown-list.is-dropdown-solid-clear{background-color:var(--base-color-brand--orange-1);backdrop-filter:none}`;
 (async()=>{
  const b=await chromium.launch({executablePath:process.env.TDB_CHROMIUM||'/tmp/chromium',args:sp.args,proxy:process.env.HTTPS_PROXY?{server:process.env.HTTPS_PROXY}:undefined});
  try {
