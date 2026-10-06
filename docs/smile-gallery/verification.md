@@ -1,12 +1,13 @@
 # Smile Gallery staging verification — 6 October 2026
 
-The native Gallery migration is on `https://dentalbarns.webflow.io/` and `https://dentalbarns.webflow.io/smile-gallery`. No custom production domain was published. The final staging publish task was `2ecad294-ded2-4772-8573-556ececce162`.
+The native Gallery migration is on `https://dentalbarns.webflow.io/` and `https://dentalbarns.webflow.io/smile-gallery`. No custom production domain was published. The final staging publish task was `85c8c6ba-d3d4-4c12-9ebc-e5c6ddfa6f0c`.
 
 ## Release pins
 
 | Asset | Commit |
 | --- | --- |
-| Shared dependency registry; motion 1.8.0; filters 1.1.0; shared ticker and Swiper | `4415bdb40d508fc03ff34a4ee9664b01dd6929ec` |
+| Shared dependency registry; motion 1.8.0; filters 1.1.0; shared ticker and Swiper | `4fae51eda544e5b4cc149442119b0fa38a61e37c` |
+| Reusable Gallery presentation 4.0.1 (initial total ticker) | `4fae51eda544e5b4cc149442119b0fa38a61e37c` |
 | Full-page Gallery plugin 25.0.2 | `16edb39cf5d6d5c9361f8d13b7db6e1b46267be8` |
 | Gallery interaction-state CSS | `4415bdb40d508fc03ff34a4ee9664b01dd6929ec` |
 
@@ -50,3 +51,9 @@ The final CDN asset was byte-identical to the committed 28,351-byte minified fil
 The live Designer MCP connection was unavailable; saved native element/style APIs were used successfully. This browser session did not expose mobile viewport emulation, so mobile wrapping is covered by automated tests and responsive native style readback, not a physical-device visual check. Review the clock, fades, dragging and vertical case scrolling on a phone before production publishing.
 
 Payload reductions are recorded in [README.md](README.md). No real-device timing, Lighthouse score or total network transfer improvement is claimed.
+
+## Initial total counter follow-up
+
+The top-right total now retains Designer’s `01` until `TDBNativeTicker` is ready, then uses the same 400ms upward transition as the current-card number. Refreshing during that transition does not restart it. Ticker failure falls back to the accurate CMS total. The total slot’s positioning, size and clipping remain native Designer styles.
+
+The new regression failed against the plain-text replacement and passed after the fix; all four targeted Gallery/shared-module tests passed. Staging showed `01 / 01` before initialization and the ticker-owned `11` afterward, with the counter retaining exactly the same 62.78125×15px rectangle at x366.765625/y116.28125. The CDN Gallery asset matched the committed source. See [native-total-counter.jpg](native-total-counter.jpg).
