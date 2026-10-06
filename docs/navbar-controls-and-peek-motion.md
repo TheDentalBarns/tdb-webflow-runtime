@@ -12,6 +12,10 @@ First visit also transitions its background colour. Existing hover opacity
 variants are retained. Native active and focus-visible states live on these
 classes. Global button classes are unchanged.
 
+The shared Global Styles embed and head focus rules exclude these controls.
+The existing dropdown focus ring (0.125rem blue) and link/button ring (2px
+cream) are now native focus-visible styles, preserving their prior appearance.
+
 The two transparent variants have a pre-existing Current-page link duration
 of 300ms. Webflow's public MCP does not expose Current-state editing. That
 native property still needs removal through Designer; do not mask it with
@@ -38,6 +42,27 @@ UI readiness gates. Navbar's CSS fallback preserves early interaction.
 
 The release also retains the independently deployed review-filter footer fix
 from commit `4312fe15e656cce5be8d8e7b945886a710f417d0` byte-for-byte.
+
+## Staging verification — 6 October 2026
+
+Runtime release `336d76648a3395fad41dd5bec9749b3554f14c34` is deployed to
+the Webflow staging subdomain. No custom production domain was published.
+
+- 17 automated checks pass, including alternate peek durations, cancellation,
+  VIP full-panel timing, desktop/tablet/mobile surface state logic, full-motion
+  policy and shared module loading.
+- On Home and Pricing, normal control transitions are 100ms ease with no delay;
+  First visit retains background, colour and opacity transitions. Desktop
+  hover-in/out and native focus rings were checked in the published browser.
+- Menu keyboard opening, Escape closing, transparent/solid colours and VIP
+  open/close focus restoration work. At a 936px viewport height, VIP retains
+  its 632ms full-panel duration; the navbar exits on the shared 420ms clock.
+- Published tablet/mobile CSS has no additional control timing overrides.
+  Responsive surface logic was tested; physical touch/orientation and actual
+  tablet/mobile viewport interaction were not available in this session.
+- The published Current-page link still computes to 300ms in the two
+  transparent variants. This remains an explicit native Designer follow-up;
+  no runtime workaround or additional override has been added.
 
 Build only the affected outputs:
 
