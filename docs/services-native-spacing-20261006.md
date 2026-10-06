@@ -166,3 +166,43 @@ Published to staging only at 2026-10-06 14:13:05.171 UTC. Homepage CSS
 `c1c680f0a` and native classes were verified, then all ten cases passed again
 against the published HTML/CSS without overrides. Production publish dates
 remain 1 October. Concurrent homepage edits were preserved.
+
+## Follow-up: landscape first paint and iPad Mini order
+
+The visible landscape controls initially used the normal small-breakpoint
+2.5rem bottom inset. The later `is-phone-landscape` class switched both arrows
+and CTA to 2rem. Wider landscape phones also needed their native landscape
+position selected before the external presentation controller loaded.
+
+`src/sliders/services-layout-boot.js` v1.0.0 is copied verbatim into a single
+`data-tdb-services-layout-boot` script at the start of the homepage head.
+It selects existing Designer classes while Services markup is parsed.
+It contains no CSS values, animation, Swiper initialization or network request.
+Its child-list observer ends at DOMContentLoaded; its temporary orientation
+listeners hand over when the existing controller has prepared Services.
+The physical-phone test matches the existing site classifier, including the
+portrait-keyboard safeguard. It does not change the global classifier or
+touch other components. Existing motion, lazy/consent gates and all script
+pins are unchanged. Fresh head content was read immediately before writing
+and read back verbatim, preserving concurrent page work.
+
+The iPad Mini screenshot showed the tablet flex order was reversed.
+Native `.showcase-content_btm.tdb-service-heading-row` now has `order: -1`
+at medium and `order: 0` at small. This puts the title at the top and blurb
+at the bottom on tablets while preserving the existing smaller-mobile order
+and the more-specific phone-landscape variant. Desktop is unchanged.
+
+Chromium first-frame and delayed-runtime checks passed for landscape phones
+568x320, 667x375, 844x390 and 932x430; portrait 375x812; portrait physical phone
+with an open-keyboard-sized 375x300 viewport; iPad Mini 768x1024; tablet
+820x1180; 1024x768; and desktop 1440x900. CTA and both arrow bounds agree
+before preparation, after preparation and after Swiper initialization.
+Tablet headings precede the blurb before scripts and after initialization.
+Six next/six previous moves cross both seams, and four orientation/keyboard
+changes verify handover. Existing progress regression checks pass.
+
+Published staging only at 2026-10-06T14:31:27.221Z.
+Published CSS `299256ca3`, head-script placement and exact source match were
+verified; all ten cases passed again against published HTML/CSS without
+synthetic style overrides. All production domains retain their 1 October
+publish dates. This remains Chromium emulation, not a physical Safari test.
