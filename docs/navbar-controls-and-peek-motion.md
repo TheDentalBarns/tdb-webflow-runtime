@@ -16,10 +16,11 @@ The shared Global Styles embed and head focus rules exclude these controls.
 The existing dropdown focus ring (0.125rem blue) and link/button ring (2px
 cream) are now native focus-visible styles, preserving their prior appearance.
 
-The two transparent variants have a pre-existing Current-page link duration
-of 300ms. Webflow's public MCP does not expose Current-state editing. That
-native property still needs removal through Designer; do not mask it with
-another CSS or runtime override. Keep its existing Current-page colour.
+Current-page links in both Transparent and Transparent Dark also transition
+colour and opacity over 100ms ease with zero delay. David corrected their
+existing 300ms native Current-state rules in Designer and published staging
+on 6 October 2026 at 12:42 BST. Their existing Current-page colours are retained;
+no runtime workaround or additional override layer was added.
 
 `src/styles/tdb-chrome-motion.css` is the shared source for the active
 navbar/VIP/availability bar relationships, compiled into `tdb-ui.css`.
@@ -60,9 +61,12 @@ the Webflow staging subdomain. No custom production domain was published.
 - Published tablet/mobile CSS has no additional control timing overrides.
   Responsive surface logic was tested; physical touch/orientation and actual
   tablet/mobile viewport interaction were not available in this session.
-- The published Current-page link still computes to 300ms in the two
-  transparent variants. This remains an explicit native Designer follow-up;
-  no runtime workaround or additional override has been added.
+- Final Current-state verification: both transparent variant selectors export
+  `transition: opacity 0.1s, color 0.1s`. Pricing on its own published page
+  computes to 100ms ease with zero delay for both properties. The native
+  Current-state follow-up is complete.
+- The final staging publication is `2026-10-06T11:42:16.625Z`. All four custom
+  production domains remain at `2026-10-01T10:10:45.669Z`.
 
 Build only the affected outputs:
 
