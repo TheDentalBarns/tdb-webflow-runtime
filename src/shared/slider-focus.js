@@ -1,9 +1,9 @@
-/* TDB shared slider focus v1.2.1. Cleanup follows the shared CSS peek clock. */
+/* TDB shared slider focus v1.3.0. Cleanup follows the shared CSS peek clock. */
 (() => {
     "use strict";
     const e = document.documentElement;
     if (e.dataset.tdbSliderFocusReady) return;
-    e.dataset.tdbSliderFocusReady = "1.2.1";
+    e.dataset.tdbSliderFocusReady = "1.3.0";
     const t = 'input,textarea,select,[contenteditable="true"]', n = "[data-tdb-sg-overlay],.tdb-sg-filter-dock";
     let i = null, r = null, s = 0, a = 0, o = 0, l = 0;
     function peekDuration() {
@@ -15,7 +15,7 @@
     function c() {
         if (l = 0, !i || i.controller) return;
         const e = d(), t = e - i.y;
-        i.y = e, r?.horizontal ? i.up = i.down = 0 : t > 0 ? (i.up = 0, i.down += t) : t < 0 && (i.down = 0, 
+        i.y = e, r?.horizontal ? i.up = i.down = 0 : t > 0 ? (i.up = 0, i.down += t) : t < 0 && (i.down = 0,
         i.up -= t), (i.up > 120 || i.down > 140 || e <= 40 && t < 0) && L();
     }
     function u() {
@@ -24,17 +24,17 @@
     function p() {
         window.removeEventListener("scroll", u), l && cancelAnimationFrame(l), l = 0;
     }
-    const m = e => e?.closest?.(".logo-slider") ? null : e?.closest?.(".highlight-swiper_component,.parallax-swiper_component,.swiper,.w-slider"), f = e => e?.closest?.('[disabled],[aria-disabled="true"],[hidden],[inert]'), h = () => e.classList.contains("tdb-sg-chrome-away") || e.classList.contains("tdb-sg-locked");
+    const m = e => e?.closest?.(".logo-slider") ? null : e?.closest?.(".highlight-swiper_component,.parallax-swiper_component,.swiper,.w-slider,[data-tdb-review-cards]"), f = e => e?.closest?.('[disabled],[aria-disabled="true"],[hidden],[inert]'), h = () => e.classList.contains("tdb-sg-chrome-away") || e.classList.contains("tdb-sg-locked");
     function b() {
         s && cancelAnimationFrame(s), s = 0;
     }
     function w() {
-        b(), clearTimeout(a), clearTimeout(o), p(), i?.controller?.release(), e.classList.contains("tdb-slider-focus") && e.classList.remove("tdb-slider-focus"), 
-        i?.nav && (i.value ? i.nav.style.setProperty("--tdb-slider-nav-away", i.value, i.priority) : i.nav.style.removeProperty("--tdb-slider-nav-away")), 
+        b(), clearTimeout(a), clearTimeout(o), p(), i?.controller?.release(), e.classList.contains("tdb-slider-focus") && e.classList.remove("tdb-slider-focus"),
+        i?.nav && (i.value ? i.nav.style.setProperty("--tdb-slider-nav-away", i.value, i.priority) : i.nav.style.removeProperty("--tdb-slider-nav-away")),
         i = null;
     }
     function g() {
-        i && !h() && (document.querySelector('.navbar10_menu-button[aria-expanded="true"]')?.click(), 
+        i && !h() && (document.querySelector('.navbar10_menu-button[aria-expanded="true"]')?.click(),
         document.querySelectorAll('.navbar10_dropdown-toggle[aria-expanded="true"]').forEach(e => e.click()));
     }
     function v(t) {
@@ -55,14 +55,14 @@
                 a = setTimeout(g, duration + 10);
                 o = setTimeout(g, duration + 260);
             }
-            i.slider = t, i.controller = window.TDBNavScroll || null, p(), i.controller ? i.controller.focus(L, () => Boolean(r?.horizontal)) : (i.y = d(), 
+            i.slider = t, i.controller = window.TDBNavScroll || null, p(), i.controller ? i.controller.focus(L, () => Boolean(r?.horizontal)) : (i.y = d(),
             i.up = i.down = 0, window.addEventListener("scroll", u, {
                 passive: !0
             })), e.classList.contains("tdb-slider-focus") || e.classList.add("tdb-slider-focus");
         }
     }
     function y(e) {
-        const t = e?.closest?.(".swiper-btn-prev,.swiper-btn-next,.swiper-bullet,.swiper-pagination-bullet,.w-slider-arrow-left,.w-slider-arrow-right,.w-slider-dot");
+        const t = e?.closest?.("[data-tdb-cards-prev],[data-tdb-cards-next],.swiper-btn-prev,.swiper-btn-next,.swiper-bullet,.swiper-pagination-bullet,.w-slider-arrow-left,.w-slider-arrow-right,.w-slider-dot");
         return t && !f(t) ? m(t) : null;
     }
     function E(e) {
@@ -79,7 +79,7 @@
     function x(e) {
         if (!r || r.id !== e.pointerId) return;
         const t = Math.abs(e.clientX - r.x), n = Math.abs(e.clientY - r.y);
-        !r.horizontal && n > 10 && n > t ? r = null : !r.horizontal && t > 8 && t > 1.2 * n && (r.horizontal = !0, 
+        !r.horizontal && n > 10 && n > t ? r = null : !r.horizontal && t > 8 && t > 1.2 * n && (r.horizontal = !0,
         v(r.slider));
     }
     document.addEventListener("pointerdown", E, {
@@ -155,7 +155,7 @@
         resume(e) {
             if (!e || Math.abs(window.scrollY - e.y) > 8) return;
             const t = (e.click || e.key || e.down)?.target;
-            t?.isConnected && (e.down && E(e.down), e.move && x(e.move), e.end && S(e.end), 
+            t?.isConnected && (e.down && E(e.down), e.move && x(e.move), e.end && S(e.end),
             e.click && k(e.click), e.key && A(e.key));
         }
     });

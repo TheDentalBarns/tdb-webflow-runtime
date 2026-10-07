@@ -1,4 +1,4 @@
-/* TDB owner/principal quotes v3.1.0. Native CMS slides and layout; shared Swiper, motion and ticker. */
+/* TDB shared quote carousel v4.0.0. Native layout; shared Swiper, motion, ticker and optional activation. */
 (function () {
   'use strict';
   // Webflow selects, sorts and renders the actual slides. Do not clone or
@@ -10,7 +10,7 @@
   if (typeof module === 'object' && module.exports) {
     module.exports = { readNativeSlides }; return;
   }
-  if (window.TDBTeamQuotes || !['dentalbarns.webflow.io', 'thedentalbarns.com', 'www.thedentalbarns.com', 'thedentalbarns.co.uk', 'www.thedentalbarns.co.uk'].includes(location.hostname)) return;
+  if (window.TDBQuoteCarousel || !['dentalbarns.webflow.io', 'thedentalbarns.com', 'www.thedentalbarns.com', 'thedentalbarns.co.uk', 'www.thedentalbarns.co.uk'].includes(location.hostname)) return;
   const base = new URL('./', document.currentScript.src);
   const prepared = new WeakMap(), mounted = new Map();
   let dependencyFlight, proximity;
@@ -51,12 +51,12 @@
     // Native fallback byline state is visible even if shared motion could not load.
     state.cards[0]?.querySelector('[data-tdb-team-author-line]')?.classList.add('is-static');
     root.dataset.tdbTeamQuoteState = 'fallback';
-    root.querySelector('[data-tdb-team-viewport]').setAttribute('aria-label', 'From our team');
+    // Preserve the authored viewport label for each variant.
   }
 
-  function mount(root) {
+  function mount(root, { onActivate } = {}) {
     if (mounted.has(root)) return mounted.get(root);
-    const state = prepared.get(root);
+    const state = prepared.get(root) || prepare(root);
     if (!state?.cards.length) return;
     const { cards, track } = state;
     track.querySelectorAll('.is-static').forEach(node => node.classList.remove('is-static'));
@@ -67,11 +67,12 @@
     const controller = new AbortController(), { signal } = controller;
     let swiper, dd, revealTimer = 0, entryTimer = 0, entryObserver;
     let entryPending = cards.length > 1, opening = false, direction = 1, gesture = false;
-    let destroyed = false, looping = false;
+    let destroyed = false, looping = false, activating = false;
     const copies = () => window.TDBSwiper.matchingSlides(swiper);
     const authorLines = () => copies().flatMap(card => [...card.querySelectorAll('[data-tdb-team-author-line]')]);
     root.dataset.tdbSliderFirstView = entryPending ? 'pending' : 'drawn';
     root.dataset.tdbTeamQuoteState = 'ready';
+    root.classList.add('is-enhanced');
     const contents = () => [...track.querySelectorAll('[data-tdb-team-content]')];
     const clearReveal = () => { clearTimeout(revealTimer); revealTimer = 0; };
     function cancelEntry() {
@@ -171,6 +172,23 @@
       direction = event.key === 'ArrowLeft' ? -1 : 1;
       direction < 0 ? swiper.slidePrev() : swiper.slideNext();
     }, { signal });
+    // Optional action belongs to the consumer (review drawer, future quote drawer).
+    // Swiper owns drag/click discrimination; only the physical active slide is actionable.
+    async function activate(event) {
+      if (!onActivate || (event.type === 'keydown' && !['Enter', ' '].includes(event.key))) return;
+      const trigger = event.target.closest?.('[data-tdb-quote-action]');
+      if (!trigger || activating || !root.contains(trigger) || !swiper.allowClick || swiper.animating || gesture ||
+          trigger.closest('[data-tdb-team-slide]') !== swiper.slides[swiper.activeIndex]) return;
+      event.preventDefault();
+      if (trigger.getAttribute('aria-busy') === 'true') return;
+      cancelEntry();
+      activating = true; trigger.setAttribute('aria-busy', 'true');
+      try { await onActivate({ trigger, slide: swiper.slides[swiper.activeIndex], signal }); }
+      catch (error) { if (!signal.aborted) root.dispatchEvent(new CustomEvent('tdb:quote-action-error', { bubbles: true, detail: { error } })); }
+      finally { activating = false; trigger.removeAttribute('aria-busy'); }
+    }
+    root.addEventListener('click', activate, { signal });
+    root.addEventListener('keydown', activate, { signal });
     const api = Object.freeze({
       swiper,
       on: (...args) => swiper.on(...args),
@@ -179,7 +197,7 @@
         if (destroyed) return;
         destroyed = true; controller.abort(); clearReveal(); clearTimeout(entryTimer); entryObserver?.disconnect();
         stopSettled(); dd.destroy(); ticker.destroy(); swiper.destroy(true, true);
-        mounted.delete(root); showFallback(root);
+        mounted.delete(root); root.classList.remove('is-enhanced'); showFallback(root); prepared.delete(root);
       },
     });
     mounted.set(root, api);
@@ -228,7 +246,7 @@
       root.addEventListener('focusin', () => enhance(root));
     });
   }
-  window.TDBTeamQuotes = Object.freeze({ version: '3.1.0', refresh: init, mount,
+  window.TDBQuoteCarousel = window.TDBTeamQuotes = Object.freeze({ version: '4.0.0', refresh: init, mount,
     destroy() { proximity?.disconnect(); [...mounted.values()].forEach(instance => instance.destroy()); }
   });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });

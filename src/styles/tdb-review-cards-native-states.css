@@ -1,0 +1,33 @@
+/* Authored in the native Review Cards Designer section. No runtime style injection.
+   Native classes own geometry; selectors supply CMS and carousel states. */
+.tdb-review-cards_root.is-ready .tdb-review-cards_slide:first-child:not(.swiper-slide-active) { opacity: .5; }
+.tdb-review-cards_slide:nth-child(3n + 2) .tdb-review-cards_surface {
+  background-image: url(https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab78d8705bdd4c6b6ff364a_ec-calming-refreshments-kindness.webp);
+}
+.tdb-review-cards_slide:nth-child(3n) .tdb-review-cards_surface {
+  background-image: url(https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab78d8805bdd4c6b6ff36ec_sd-calm-relaxing-informative.webp);
+}
+.tdb-review-cards_arrow[aria-disabled="true"] { opacity: .35; cursor: default; }
+.tdb-review-cards_arrow[data-tdb-loading] { cursor: progress; }
+.tdb-review-cards_slide:not([data-review-subject="Dr Keely - historic practice"]):not([data-review-subject="78902de9c8ddcc3437156f6120e0cc9c"]) [data-cards-render="historic"] { display: none; }
+.tdb-review-cards_slide[data-review-rating="1"] [data-tdb-star]:not([data-tdb-star="0"]),
+.tdb-review-cards_slide[data-review-rating="2"] [data-tdb-star]:not([data-tdb-star="0"]):not([data-tdb-star="1"]),
+.tdb-review-cards_slide[data-review-rating="3"] [data-tdb-star="3"],
+.tdb-review-cards_slide[data-review-rating="3"] [data-tdb-star="4"],
+.tdb-review-cards_slide[data-review-rating="4"] [data-tdb-star="4"] { opacity: .2; }
+.tdb-review-cards_slide[data-review-rating=""] .tdb-review-cards_star-row { display: none; }
+.tdb-review-cards_slide[data-review-rating=""] [data-cards-render="rating"]::after { content: 'Unrated'; }
+.tdb-review-cards_date [data-cards-render="date"] { display: inline-flex; align-items: baseline; column-gap: .25em; }
+.tdb-review-cards_icon > .w-embed { display: contents; }
+.tdb-review-cards_icon [data-cards-platform-icon] { display: none; width: 100%; height: 100%; }
+.tdb-review-cards_slide:is([data-review-platform="Google"],[data-review-platform="efe6db2067ed0fd456d38bc2e521b4bd"]) [data-cards-platform-icon="Google"],
+.tdb-review-cards_slide:is([data-review-platform="Facebook"],[data-review-platform="17153ef92f97216cb750196d50c29c0d"]) [data-cards-platform-icon="Facebook"],
+.tdb-review-cards_slide:is([data-review-platform="Yell"],[data-review-platform="0d3340cdd96a32712e4c9d730e89df7d"]) [data-cards-platform-icon="Yell"],
+.tdb-review-cards_slide:is([data-review-platform="Doctify"],[data-review-platform="a0c3d879d008891aec3a0bd741c1ea8c"]) [data-cards-platform-icon="Doctify"] { display: block; }
+/* As in Smile Gallery, compact content responds to its actual card width. */
+.tdb-review-cards_card { container: tdb-review-card / inline-size; }
+@container tdb-review-card (max-width: 300px) {
+  .tdb-review-cards_byline { column-gap: .5rem; }
+  .tdb-review-cards_name { overflow-wrap: anywhere; }
+  .tdb-review-cards_source { flex-shrink: 0; }
+}
