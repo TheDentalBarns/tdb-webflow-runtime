@@ -14,6 +14,10 @@ function h(e, t) {
         e.setAttribute(i, "true"), e.dataset.tdbSliderType = t;
     }
 function w(e, n) {
+        if (e.hasAttribute('data-tdb-treatment')) {
+            const gap = parseFloat(getComputedStyle(e).columnGap);
+            return Number.isFinite(gap) ? gap : n;
+        }
         if (e.classList.contains('tdb-service-parallax') || e.hasAttribute('data-tdb-treatment')) {
             const slide = e.querySelector('.tdb-service-slide,.tdb-treatment-slide');
             if (!slide) return n;
@@ -68,6 +72,11 @@ function A(e) {
         if (!e || f(e)) return;
         const t = m(e);
         if (!t || "function" != typeof window.Swiper) return;
+        // Native margins reserve the Designer layout before initialisation.
+        // Swiper's auto-width measurement includes CSS margins, then adds
+        // spaceBetween itself. Release the native margin when it takes over.
+        if (e.hasAttribute('data-tdb-treatment'))
+            t.querySelectorAll('.tdb-treatment-slide').forEach(slide => slide.classList.add('is-runtime'));
         const n = e.hasAttribute("data-tdb-banner-parallax"), i = n && (E(e) || !window.TDBMotion.reduced.matches), o = u(e) || i && matchMedia(r).matches, l = p(e) || i && matchMedia(s).matches, d = o || l || n, c = window.TDBParallax?.prepare(e, t), b = window.TDBSwiper.create(t, {
             init: !n,
             slidesPerView: 1,
