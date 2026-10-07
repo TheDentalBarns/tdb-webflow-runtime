@@ -1,11 +1,15 @@
-/* Page-break memory v1.1.0. Inline in the head, before the body is parsed. */
+/* Page-break memory v1.2.0. Inline in the head, before the body is parsed. */
 (() => {
   'use strict';
   if (window.TDBPageBreakMemory) return;
   const selector = '[data-tdb-page-break]', restored = new WeakMap(), claimed = new WeakSet();
   const key = 'tdb:page-break:v1:' + location.pathname + location.search;
   const target = wrapper => wrapper.querySelector('[data-tdb-page-break-image]') || wrapper.querySelector('img');
-  const config = wrapper => ['data-tdb-parallax-from', 'data-tdb-parallax-to'].map(name => wrapper.getAttribute?.(name) || '').join('|');
+  const config = wrapper => {
+    const movement = ['data-tdb-parallax-from', 'data-tdb-parallax-to'].map(name => wrapper.getAttribute?.(name) || '').join('|');
+    const fade = wrapper.getAttribute?.('data-tdb-parallax-fade-start');
+    return fade == null ? movement : movement + '|' + fade + '|' + wrapper.getAttribute('data-tdb-parallax-fade-end');
+  };
   const identity = node => [node.tagName, ...(node.matches('img') ? [node] : node.querySelectorAll('img'))]
     .map(value => typeof value === 'string' ? value : value.getAttribute('src') || '').join('|');
   let saved = null, observer = null;
@@ -25,7 +29,10 @@
       if (!node || restored.has(node) || claimed.has(node) || !item || item.identity !== identity(node) ||
           (item.config || '|') !== config(wrapper) ||
           !Number.isFinite(item.y) || Math.abs(item.y) > innerHeight * (config(wrapper) === '|' ? .025 : 4)) return;
-      restored.set(node, { original: node.style.transform });
+      const targets = [...(wrapper.querySelectorAll?.('[data-tdb-parallax-fade]') || [])];
+      restored.set(node, { original: node.style.transform, originalOpacity: targets.map(target => target.style.opacity) });
+      if (Number.isFinite(item.alpha) && item.alpha >= 0 && item.alpha <= 1)
+        targets.forEach(target => { target.style.opacity = String(item.alpha); });
       node.style.transform = `translate3d(0, ${item.y.toFixed(4)}px, 0)`;
     });
   }
@@ -38,13 +45,13 @@
     document.addEventListener('DOMContentLoaded', () => { restore(); observer.disconnect(); }, { once: true });
   }
   window.TDBPageBreakMemory = Object.freeze({
-    version: '1.1.0',
+    version: '1.2.0',
     take(node) { const value = restored.get(node); restored.delete(node); claimed.add(node); return value; },
     save(states) {
       const owned = new Map(states.map(state => [state.wrapper, state]));
       const items = [...document.querySelectorAll(selector)].map(wrapper => {
         const state = owned.get(wrapper);
-        return state ? { identity: identity(state.node), config: config(wrapper), y: state.y } : null;
+        return state ? { identity: identity(state.node), config: config(wrapper), y: state.y, alpha: state.alpha } : null;
       });
       try {
         sessionStorage.setItem(key, JSON.stringify({ version: 1, time: Date.now(), width: innerWidth, height: innerHeight, items }));
