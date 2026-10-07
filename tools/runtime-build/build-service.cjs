@@ -5,6 +5,7 @@ const terser = require(process.env.TDB_TERSER_MODULE || 'terser');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const targets = {
+  'dist/tdb-announcement.js': ['src/banner/announcement.js'],
   'dist/tdb-motion-policy.min.js': ['src/shared/motion-policy.js'],
   'dist/tdb-immediate-runtime-batch.min.js': ['src/sliders/parallax.js', 'src/runtime/immediate-runtime-batch.js'],
   'dist/tdb-sliders.js': ['src/sliders/sliders.js'],

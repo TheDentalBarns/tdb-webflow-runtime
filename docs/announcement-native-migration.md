@@ -18,8 +18,8 @@ All unrelated deferred footer assets retain the previous 336d766 release root. S
 
 Build:
 - node tools/runtime-build/build.cjs dist/tdb-footer-runtime.min.js
-- node tools/runtime-build/build-service.cjs dist/tdb-immediate-runtime-batch.min.js
-- node tools/build-shared-runtime.mjs (or copy the two announcement entries for an isolated build)
+- node tools/runtime-build/build-service.cjs dist/tdb-immediate-runtime-batch.min.js dist/tdb-announcement.js
+- node tools/build-shared-runtime.mjs (or copy announcement-state.css for an isolated build)
 
 Release: immutable GitHub commit; replace only immediate-runtime-batch URL in site footer, inline the small announcement-state.css block in the site head (includes the initial pending guard; no additional CSS request). Publish Webflow subdomain only.
 Rollback: restore previous immediate-runtime-batch URL at 336d766; detach the new Announcement instance from Footer to avoid the old renderer mounting beside native markup. Retain component definition for repair. Remove the announcement-state block when the instance is detached.
@@ -27,3 +27,5 @@ Rollback: restore previous immediate-runtime-batch URL at 336d766; detach the ne
 Validation: Chromium desktop/mobile tests passed consent rejection, hover pause/resume, eight-second auto rotation, hidden timer suspension, keyboard manual stop, Space activation, real touch swipe and single tap. Published service page confirmed one announcement root, lazy plugin (absent before interaction), one request each for shared Swiper/motion/ticker, and no page exceptions. Cloud-browser settings requests exceeded the existing four-second timeout; neutral fallback/retry worked. Native ticker templates are retained in markup so Webflow does not prune their dynamically used classes.
 
 Follow-up 2.0.1: date slot uses native align-self:start; the live dot is centred on that content box with top:50% and a fixed half-dot offset, independent of lh-unit interpretation. Swiper's slow-drag threshold is capped at 40px / 15% of the viewport and updated on resize. Native link dragging is disabled. The existing click guard also rejects a moved press in CTA padding outside the slider, preventing unintended drawer opening.
+
+Final tidy-up: the served announcement artifact is minified by build-service.cjs; readable source stays in src/banner/announcement.js. Shared copy builds no longer overwrite it. Interaction, online and pageshow startup listeners are removed only after a successful mount; ongoing scroll/resize visibility and plugin lifecycle listeners remain. Failed loads retain interaction retry and online recovery.

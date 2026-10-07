@@ -34,6 +34,7 @@
     updateState();
   }
 
+  const startupEvents = ['scroll','pointerdown','keydown','touchstart'];
   let scheduled = false, mounted = false, attempts = 0;
   function createTimerShell() {
     const shell = document.querySelector('[data-tdb-announcement][data-placement="floating"]');
@@ -45,20 +46,25 @@
     attachTimerState(shell);
     window.TDBAnnouncementLoader.load().then(api => {
       api.mount(shell); mounted = true;
+      startupEvents.forEach(type => removeEventListener(type, scheduleTimerShell));
+      removeEventListener('online', onOnline);
+      removeEventListener('pageshow', onPageShow);
     }).catch(() => {
       scheduled = false;
       console.warn('TDB banner: shared modules unavailable; will retry on interaction.');
     });
   }
   function scheduleTimerShell() {
-    if (scheduled || mounted) return;
+    if (scheduled || mounted || attempts >= 3) return;
     scheduled = true;
     if ('requestIdleCallback' in window) requestIdleCallback(createTimerShell, {timeout:1500});
     else setTimeout(createTimerShell,200);
   }
-  ['scroll','pointerdown','keydown','touchstart'].forEach(type => addEventListener(type,scheduleTimerShell,{passive:true}));
-  addEventListener('online', () => { attempts = 0; scheduleTimerShell(); });
-  addEventListener('pageshow', () => { attachTimerState(document.getElementById(shellId)); if (scrollY) scheduleTimerShell(); });
+  function onOnline() { attempts = 0; scheduleTimerShell(); }
+  function onPageShow() { attachTimerState(document.getElementById(shellId)); if (scrollY) scheduleTimerShell(); }
+  startupEvents.forEach(type => addEventListener(type,scheduleTimerShell,{passive:true}));
+  addEventListener('online', onOnline);
+  addEventListener('pageshow', onPageShow);
 
 })();
 

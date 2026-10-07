@@ -1,11 +1,11 @@
-// Source of truth for the native/shared runtime artifacts. No bundler required:
+// Source of truth for copied native/shared runtime artifacts.
+// Announcement JS is minified by tools/runtime-build/build-service.cjs. No bundler required:
 // these browser IIFEs intentionally stay separate so loaders retain their gates.
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const entries = {
-  'src/banner/announcement.js': 'tdb-announcement.js',
   'src/banner/announcement-state.css': 'tdb-announcement-state.css',
   'src/partners/loader.js': 'tdb-logo-marquee-loader.js',
   'src/partners/marquee.js': 'tdb-logo-marquee.js',
