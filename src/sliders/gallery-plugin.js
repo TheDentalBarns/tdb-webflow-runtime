@@ -104,7 +104,7 @@ function v(e) {
         }
         (e.classList.contains('tdb-smile-carousel') || e.matches(".section_smile-gallery [data-tdb-smile-slider]") && "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage) && g(e, r, () => b(e)),
         k(r), S(e, t, r, "--tdb-carousel-duration", () => window.innerWidth), s(), r.on("slideChange", s),
-        r.params.loop && (!function(e, t) {
+        r.params.loop && (!e.matches('[data-tdb-smile-slider]') && !function(e, t) {
             const n = new WeakMap, i = new Map, r = new MutationObserver(e => {
                 e.forEach(e => {
                     const t = i.get(e.target);

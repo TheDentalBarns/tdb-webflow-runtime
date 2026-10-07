@@ -1,4 +1,4 @@
-/* Smile Gallery presentation v4.0.2. Native Designer structure; shared ticker and motion. */
+/* Smile Gallery presentation v4.1.0. Native Designer structure; shared ticker and motion. */
 (() => {
   'use strict';
   if (window.TDBSmileCards) return;
@@ -35,25 +35,66 @@
     const clean = text => text.trim().replace(/\s+/g, ' ');
     const cancelShow = () => { clearTimeout(showTimer); showTimer = 0; };
     const cancelTickers = () => { countTicker?.settle(); totalTicker?.settle(); factTickers.forEach(ticker => ticker.settle()); };
-    function revealState(slide) {
-      const details = slide.querySelector('.tdb-smile-details');
-      const expanded = details && Number.parseFloat(details.style.opacity) > 0 && details.style.height !== '0px';
-      slide.querySelectorAll('.tdb-smile-image-label').forEach(node => node.classList.toggle('is-expanded', Boolean(expanded)));
+    let openCard = null, pointerKind = 'mouse', gesture = null;
+    const cardOf = node => node?.closest?.('.tdb-smile-card');
+    const activeCard = card => {
+      const slide = card?.closest('.swiper-slide');
+      if (!slide || !root.contains(card)) return false;
       const logical = slide.hasAttribute('data-swiper-slide-index') ? Number(slide.getAttribute('data-swiper-slide-index')) : originals.indexOf(slide);
-      const active = !swiper || logical === swiper.realIndex;
-      const footerHover = Boolean(desktop.matches && active && slide.querySelector('.tdb-smile-summary-ready:hover'));
-      slide.classList.toggle('is-muted', Boolean(swiper && !active));
-      slide.querySelector('.tdb-smile-overlay')?.classList.toggle('is-suppressed', Boolean(desktop.matches && (!active || footerHover)));
-      details?.classList.toggle('is-suppressed', footerHover);
+      return logical === (swiper ? swiper.realIndex : 0);
+    };
+    function syncReveal() {
+      if (openCard && (!openCard.isConnected || !activeCard(openCard))) openCard = null;
+      slides.forEach(slide => {
+        const logical = slide.hasAttribute('data-swiper-slide-index') ? Number(slide.getAttribute('data-swiper-slide-index')) : originals.indexOf(slide);
+        const active = logical === (swiper ? swiper.realIndex : 0);
+        const card = slide.querySelector('.tdb-smile-card');
+        // Apply to the real card and loop copies using logical slide identity.
+        const open = Boolean(openCard && active);
+        card?.setAttribute('aria-expanded', String(open));
+        const details = slide.querySelector('.tdb-smile-details');
+        details?.classList.toggle('is-open', open);
+        details?.setAttribute('aria-hidden', String(!open));
+        slide.querySelector('.tdb-smile-overlay')?.classList.toggle('is-open', open);
+        slide.querySelectorAll('.tdb-smile-image-label').forEach(node => node.classList.toggle('is-expanded', open));
+        slide.classList.toggle('is-muted', Boolean(swiper && !active));
+      });
     }
-    const syncReveal = () => slides.forEach(revealState);
-    const revealObserver = new MutationObserver(records => {
-      new Set(records.map(record => record.target.closest('.swiper-slide'))).forEach(slide => { if (slide) revealState(slide); });
-    });
-    const onPointer = event => { const slide = event.target.closest('.swiper-slide'); if (slide) revealState(slide); };
-    root.addEventListener('mouseover', onPointer);
-    root.addEventListener('mouseout', onPointer);
-    desktop.addEventListener('change', syncReveal);
+    function closeDetails() { openCard = null; syncReveal(); }
+    const onOver = event => {
+      if (event.pointerType && event.pointerType !== 'mouse') return;
+      const card = cardOf(event.target);
+      if (!activeCard(card) || moving) return;
+      openCard = desktop.matches && event.target.closest('.tdb-smile-summary-ready') ? null : card;
+      syncReveal();
+    };
+    const onOut = event => {
+      if (event.pointerType && event.pointerType !== 'mouse') return;
+      const card = cardOf(event.target);
+      if (card && !card.contains(event.relatedTarget)) closeDetails();
+    };
+    const onDown = event => { pointerKind = event.pointerType || 'mouse'; gesture = {x:event.clientX,y:event.clientY,moved:false}; };
+    const onMove = event => { if (gesture && Math.hypot(event.clientX-gesture.x,event.clientY-gesture.y)>8) gesture.moved = true; };
+    const onClick = event => {
+      const card = cardOf(event.target);
+      if (!card || !['', '#'].includes(card.getAttribute('href') || '')) return;
+      event.preventDefault();
+      if (!activeCard(card) || swiper?.allowClick === false || (event.detail !== 0 && gesture?.moved) || moving) return;
+      if (pointerKind !== 'mouse' || event.detail === 0) {
+        openCard = openCard ? null : card; syncReveal();
+      }
+    };
+    const onFocus = event => { const card = cardOf(event.target); if (activeCard(card) && card.matches(':focus-visible')) { openCard = card; syncReveal(); } };
+    const onBlur = event => { if (!cardOf(event.target)?.contains(event.relatedTarget)) closeDetails(); };
+    const onKey = event => {
+      if (event.key === 'Escape') closeDetails();
+      if (event.key === ' ' && activeCard(cardOf(event.target)) && !moving) { event.preventDefault(); openCard = openCard ? null : cardOf(event.target); syncReveal(); }
+    };
+    const outside = event => { if (!root.contains(event.target)) closeDetails(); };
+    const revealEvents = {pointerover:onOver,pointerout:onOut,pointerdown:onDown,pointermove:onMove,pointercancel:closeDetails,click:onClick,focusin:onFocus,focusout:onBlur,keydown:onKey};
+    Object.entries(revealEvents).forEach(([event,handler]) => root.addEventListener(event,handler));
+    document.addEventListener('pointerdown', outside);
+    desktop.addEventListener('change', closeDetails);
     function showText(index, fast = false) {
       slides.forEach((slide, order) => {
         const logical = slide.hasAttribute('data-swiper-slide-index') ? Number(slide.getAttribute('data-swiper-slide-index')) : order;
@@ -96,17 +137,12 @@
       if (motion.reduced.matches) draw(); else showTimer = setTimeout(draw, delay);
     }
     function hide() {
-      cancelShow(); moving = true;
+      cancelShow(); moving = true; closeDetails();
       showText(motion.reduced.matches ? swiper.realIndex : null, !motion.reduced.matches);
     }
     function refresh() {
       slides = [...track.children].filter(node => node.matches('.swiper-slide'));
       originals = slides.filter(node => !node.classList.contains('swiper-slide-duplicate'));
-      revealObserver.disconnect();
-      slides.forEach(slide => {
-        const details = slide.querySelector('.tdb-smile-details');
-        if (details) revealObserver.observe(details, {attributes:true,attributeFilter:['style']});
-      });
       update();
       if (swiper && !moving && !showTimer && !swiper.animating) {
         if (revealed) showText(swiper.realIndex);
@@ -121,7 +157,7 @@
       if (instance === swiper || !instance || instance.destroyed) return;
       unbind(); swiper = instance;
       const on = (event, handler) => { listeners.push([event, handler]); swiper.on(event, handler); };
-      on('slideChange', update);
+      on('slideChange', () => { closeDetails(); update(); });
       on('touchStart', cancelShow);
       on('sliderMove', () => { if (!moving) hide(); });
       on('slideChangeTransitionStart', hide);
@@ -131,7 +167,7 @@
         // Swiper iterates this listener array directly. Removing listeners here
         // would skip the shared adapter's following teardown callback.
         cancelShow(); cancelTickers(); listeners.length = 0;
-        swiper = null; moving = false; showText(0);
+        swiper = null; moving = false; closeDetails(); showText(0);
       });
       refresh(); showText(revealed ? swiper.realIndex : null);
     }
@@ -145,13 +181,15 @@
     observer.observe(root, { attributes: true, attributeFilter: ['data-tdb-slider-first-view'] });
     const api = Object.freeze({bind,refresh,destroy() {
       if (disposed) return;
-      disposed = true; revision++; unbind(); observer.disconnect(); revealObserver.disconnect();
-      root.removeEventListener('mouseover', onPointer); root.removeEventListener('mouseout', onPointer);
-      desktop.removeEventListener('change', syncReveal);
+      disposed = true; revision++; unbind(); observer.disconnect();
+      Object.entries(revealEvents).forEach(([event,handler]) => root.removeEventListener(event,handler));
+      document.removeEventListener('pointerdown', outside);
+      desktop.removeEventListener('change', closeDetails);
+      closeDetails();
       countTicker?.destroy(); totalTicker?.destroy(); factTickers.forEach(ticker => ticker.destroy());
       showText(0); viewports.forEach(node => node.classList.add('is-ready')); roots.delete(root);
     }});
-    roots.set(root, api); root.setAttribute('data-tdb-smile-card-design', '4.0');
+    roots.set(root, api); root.setAttribute('data-tdb-smile-card-design', '4.1');
     refresh();
     const token = revision;
     tickerReady().then(() => {
@@ -167,5 +205,5 @@
     });
     return api;
   }
-  window.TDBSmileCards = Object.freeze({version:'4.0.2',prepare,prune(){roots.forEach((api,root)=>{if(!root.isConnected)api.destroy();});}});
+  window.TDBSmileCards = Object.freeze({version:'4.1.0',prepare,prune(){roots.forEach((api,root)=>{if(!root.isConnected)api.destroy();});}});
 })();
