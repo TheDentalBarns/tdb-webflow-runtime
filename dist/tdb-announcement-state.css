@@ -2,7 +2,7 @@
 #tdb-elfsight-timer-shell[hidden]{display:none!important}
 #tdb-elfsight-timer-shell[data-tdb-announcement-pending]{visibility:hidden!important;transform:translate3d(0,-100%,0)!important;opacity:0!important;pointer-events:none!important;transition:none!important}
 .tdb-announcement:focus-visible{outline:1px solid currentColor;outline-offset:-6px}
-.tdb-announcement-slot[data-live="true"]::before,.tdb-announcement-slot[data-live="true"]::after{content:"";position:absolute;left:-16px;top:calc(.5lh - 3px);width:6px;height:6px;border-radius:50%;background:var(--base-color-brand--orange-1,#f9f2e6);pointer-events:none}
+.tdb-announcement-slot[data-live="true"]::before,.tdb-announcement-slot[data-live="true"]::after{content:"";position:absolute;left:-16px;top:50%;margin-top:-3px;width:6px;height:6px;border-radius:50%;background:var(--base-color-brand--orange-1,#f9f2e6);pointer-events:none}
 .tdb-announcement-slot[data-live="true"]::before{opacity:1}
 .tdb-announcement-slot[data-live="true"]::after{opacity:0;animation:tdb-announcement-live 2.8s ease-out infinite;animation-play-state:paused;transform-origin:center;backface-visibility:hidden}
 .tdb-announcement-slot[data-pulse="true"]::after{animation-play-state:running}

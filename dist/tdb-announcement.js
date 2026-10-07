@@ -1,4 +1,4 @@
-/* TDB Announcement 2.0.0: native Designer markup, shared Swiper/motion/tickers. */
+/* TDB Announcement 2.0.1: native Designer markup, shared Swiper/motion/tickers. */
 (() => {
   'use strict';
   if (window.TDBAnnouncement) return;
@@ -33,7 +33,7 @@
   let signatureState = true, interacting = false, hovered = false, moving = false, suspended = false, lastVisible = false;
   const dwell = 8000;
   let rotationLeft = dwell, rotationEnd = 0;
-  let manual = false, gesture = false, suppressClickUntil = 0, openedTouch = null;
+  let manual = false, gesture = false, suppressClickUntil = 0, openedTouch = null, pressPoint = null;
   const events = ['CookieScriptLoaded', 'CookieScriptAccept', 'CookieScriptAcceptAll', 'CookieScriptReject', 'CookieScriptClose'];
   const reduced = window.TDBMotion.reduced;
   const reduceMotion = () => reduced.matches;
@@ -160,9 +160,15 @@
     else document.querySelector('#tdb-vip-drawer .tdb-vip-drawer-handle')?.click();
   }
   function bindSwiping() {
-    // Swiper owns horizontal gestures. Keep only the drawer's touch-click protection.
-    window.addEventListener('pointerdown', () => { openedTouch = null; suppressClickUntil = 0; }, true);
+    // Swiper owns horizontal gestures. Keep CTA activation protection here.
+    window.addEventListener('pointerdown', event => {
+      openedTouch = null; suppressClickUntil = 0;
+      pressPoint = button.contains(event.target) ? {x:event.clientX,y:event.clientY} : null;
+    }, true);
     window.addEventListener('click', event => {
+      // The CTA also contains padding outside Swiper. A drag there is not a click.
+      if (event.detail > 0 && pressPoint && Math.hypot(event.clientX - pressPoint.x, event.clientY - pressPoint.y) > 10)
+        suppressClickUntil = performance.now() + 600;
       if (performance.now() >= suppressClickUntil) return;
       const sameTouch = openedTouch && event.detail > 0 &&
         Math.abs(event.clientX - openedTouch.x) < 4 && Math.abs(event.clientY - openedTouch.y) < 4;
@@ -237,9 +243,12 @@
     swiper = window.TDBSwiper.create(viewport, {
       wrapperClass:'tdb-announcement-track', slideClass:'tdb-announcement-panel',
       slidesPerView:1, loop:!signatureOnly, speed:reduceMotion() ? 0 : window.TDBMotion.defaults.base,
-      threshold:10, touchAngle:45, touchStartPreventDefault:false,
+      threshold:10, touchAngle:45, touchStartPreventDefault:true,
+      // A deliberate desktop drag should not require crossing half the wide banner.
+      longSwipesRatio:Math.min(.15, 40 / Math.max(1, viewport.clientWidth)),
       allowTouchMove:!signatureOnly, a11y:false, keyboard:false, autoplay:false,
       on: {
+        resize(instance) { instance.params.longSwipesRatio = Math.min(.15, 40 / Math.max(1, instance.width)); },
         beforeTransitionStart() { pauseRotation(); rotationLeft = dwell; moving = true; if (swiper) render(); },
         slideChange(instance) { signatureState = instance.realIndex === 0; },
         transitionEnd() { moving = false; render(); },
@@ -281,9 +290,9 @@
     start();
   }
   const api = Object.freeze({
-    version:'2.0.0',
+    version:'2.0.1',
     configure(next) { overrides = {...overrides,...next}; config = {...config,...next}; labels.clear(); mode = last = ''; render(); },
-    status:() => ({version:'2.0.0',mounted:started,mode,deadline:config.deadline,ticking:Boolean(timer),rotating:Boolean(rotation),cms:Boolean(row),settings:dataState,settingsAttempts:dataAttempts,preview,manual,visible:lastVisible,reducedMotion:reduced.matches,swiper:Boolean(swiper),tickers:digitSlots.length})
+    status:() => ({version:'2.0.1',mounted:started,mode,deadline:config.deadline,ticking:Boolean(timer),rotating:Boolean(rotation),cms:Boolean(row),settings:dataState,settingsAttempts:dataAttempts,preview,manual,visible:lastVisible,reducedMotion:reduced.matches,swiper:Boolean(swiper),tickers:digitSlots.length})
   });
   active = decisionExists();
   if (active) start(); else events.forEach(name => window.addEventListener(name, consentReady));
@@ -291,12 +300,12 @@
   }
   window.TDBSwiper.register('announcement', {mount:createAnnouncement});
   window.TDBAnnouncement = Object.freeze({
-    version:'2.0.0',
+    version:'2.0.1',
     mount(target) {
       if (instances.has(target)) return instances.get(target);
       const instance = window.TDBSwiper.mount('announcement',target); instances.set(target,instance); return instance;
     },
     configure(next) { instances.forEach(instance => instance.configure(next)); },
-    status:() => [...instances.values()].map(instance => instance.status())[0] || {version:'2.0.0',mounted:false}
+    status:() => [...instances.values()].map(instance => instance.status())[0] || {version:'2.0.1',mounted:false}
   });
 })();
