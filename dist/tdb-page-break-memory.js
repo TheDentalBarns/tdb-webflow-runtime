@@ -1,4 +1,4 @@
-/* Page-break memory v1.8.0. Inline in the head, before the body is parsed. */
+/* Page-break memory v1.8.1. Inline in the head, before the body is parsed. */
 (() => {
   'use strict';
   if (window.TDBPageBreakMemory) return;
@@ -15,7 +15,7 @@
       (wrapper.getAttribute?.('data-tdb-parallax-progress') === 'exit'
         ? '|exit:' + wrapper.getAttribute('data-tdb-parallax-exit-start') + ':' + wrapper.getAttribute('data-tdb-parallax-exit-end') : '') +
       (wrapper.hasAttribute?.('data-tdb-parallax-reveal-in')
-        ? '|reveal:' + wrapper.getAttribute('data-tdb-parallax-reveal-in') + ':' + wrapper.getAttribute('data-tdb-parallax-reveal-out') + '|targets:' + ends : '');
+        ? '|reveal:' + wrapper.getAttribute('data-tdb-parallax-reveal-in') + ':' + wrapper.getAttribute('data-tdb-parallax-reveal-out') + ':' + (wrapper.getAttribute('data-tdb-parallax-reveal-out-end') || '0') + '|targets:' + ends : '');
   };
   const property = node => node.getAttribute('data-tdb-parallax-fade-property') === 'black' ? 'backgroundColor' : 'opacity';
   const identity = node => [node.tagName, ...(node.matches('img') ? [node] : node.querySelectorAll('img'))]
@@ -61,7 +61,7 @@
     document.addEventListener('DOMContentLoaded', () => { restore(); observer.disconnect(); }, { once: true });
   }
   window.TDBPageBreakMemory = Object.freeze({
-    version: '1.8.0',
+    version: '1.8.1',
     take(node) { const value = restored.get(node); restored.delete(node); claimed.add(node); return value; },
     save(states) {
       const owned = new Map(states.map(state => [state.wrapper, state]));
