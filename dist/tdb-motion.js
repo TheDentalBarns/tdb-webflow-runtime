@@ -1,4 +1,4 @@
-/* TDB shared motion v1.19.1. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.19.2. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -19,6 +19,41 @@
       : defaults.base;
   }
 
+  // Continue an input-led scroll while momentum events keep arriving. A new
+  // navigation or an ended gesture must not authorise browser restoration.
+  function scrollIntent(target, position, signal) {
+    let inputUntil = -1, movingUntil = -1, held = false, observed = position(), lastMovementUser = false;
+    const active = () => held || performance.now() <= Math.max(inputUntil, movingUntil);
+    const endScroll = () => { inputUntil = movingUntil = -1; held = false; };
+    const reset = () => { endScroll(); observed = position(); lastMovementUser = false; };
+    const input = event => {
+      if (event.type === 'keydown' && (!['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(event.key) ||
+          event.target?.closest?.('input,textarea,select,[contenteditable="true"]'))) return;
+      inputUntil = performance.now() + 2000;
+      if (event.type === 'pointerdown') held = true;
+    };
+    const end = () => { if (held || inputUntil >= 0) inputUntil = performance.now() + 2000; held = false; };
+    for (const name of ['wheel','touchstart','touchmove','pointerdown','keydown'])
+      target.addEventListener(name, input, { signal, passive: true, capture: true });
+    for (const name of ['pointerup','pointercancel','touchend','touchcancel'])
+      window.addEventListener(name, end, { signal, passive: true });
+    target.addEventListener('scroll', () => {
+      const next = position();
+      if (next !== observed) {
+        lastMovementUser = active();
+        if (lastMovementUser) movingUntil = performance.now() + 250;
+      }
+      observed = next;
+    }, { signal, passive: true });
+    target.addEventListener('scrollend', endScroll, { signal, passive: true });
+    window.addEventListener('pagehide', reset, { signal });
+    window.addEventListener('pageshow', reset, { signal });
+    document.addEventListener('visibilitychange', reset, { signal });
+    return { active: () => active() || lastMovementUser && observed === position() };
+  }
+  const coarsePointer = matchMedia('(pointer: coarse)');
+  const touchViewport = () => coarsePointer.matches;
+
   // One opacity owner per node and one scheduler per scroll root. A visible
   // first paint is retained; scroll, rather than elapsed time, consumes the
   // initial difference. Layout changes and browser restoration rebase it.
@@ -37,20 +72,14 @@
     const states = new Set(), events = new AbortController(), { signal } = events;
     const target = root || window, scrollTop = () => root ? root.scrollTop : window.scrollY;
     let frame = 0, layout = true, disposed = false, suspended = false;
-    let lastScroll = scrollTop(), inputUntil = -1, pointerHeld = false;
+    let lastScroll = scrollTop();
+    const intent = scrollIntent(target, scrollTop, signal);
     const schedule = () => {
       if (!frame && !disposed && !suspended && !document.hidden && states.size) frame = requestAnimationFrame(render);
     };
     const refresh = () => { layout = true; schedule(); };
-    const input = event => {
-      if (event.type === 'keydown' && (!['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(event.key) ||
-          event.target?.closest?.('input,textarea,select,[contenteditable="true"]'))) return;
-      inputUntil = performance.now() + 2000;
-      if (event.type === 'pointerdown') pointerHeld = true;
-    };
-    const pointerEnd = () => { pointerHeld = false; inputUntil = performance.now() + 2000; };
     function retain(state, progress, low = 0, high = 1, range = 1) {
-      state.progress = progress;
+      state.progress = state.targetProgress = progress;
       state.ceiling = Math.max(state.value, state.preset === 'orange' ? 1 : .5);
       state.desired = state.value;
       state.correction = { anchor: progress, low, high, range, offset: state.value - ddOpacity(progress, state.preset), weight: 1 };
@@ -58,7 +87,7 @@
     function render() {
       frame = 0;
       const scroll = scrollTop(), distance = scroll - lastScroll;
-      const userScroll = distance !== 0 && (pointerHeld || performance.now() <= inputUntil);
+      const userScroll = distance !== 0 && intent.active();
       const height = root ? root.clientHeight : window.innerHeight;
       if (!height) return;
       const origin = root ? root.getBoundingClientRect().top + root.clientTop : 0;
@@ -72,13 +101,18 @@
         const low = ddClamp((height - (rect.top - origin + scroll)) / Math.max(1, range));
         const high = ddClamp((height - (rect.top - origin + scroll) + maximumScroll) / Math.max(1, range));
         return { state, shown, progress, low, high, range, visible: shown && rect.bottom > origin && rect.top < origin + height,
-          signature: [rect.top - origin + scroll, rect.height, height, low, high] };
+          signature: [rect.top - origin + scroll, rect.height, height, low, high, window.innerWidth] };
       });
       let moving = false;
       for (const g of measurements) {
         const state = g.state;
         if (!g.shown) { state.geometry = null; continue; }
-        const changed = layout || !state.geometry || g.signature.some((v, i) => Math.abs(v - state.geometry[i]) > .5);
+        // Mobile browser chrome changes the visible height without changing
+        // the document layout. Keep scrolling through it; still rebase width,
+        // element geometry, nested-root resizing and explicit refreshes.
+        const mobilePage = !root && touchViewport();
+        const changed = layout || !state.geometry || g.signature.some((v, i) =>
+          !(mobilePage && i >= 2 && i <= 4) && Math.abs(v - state.geometry[i]) > .5);
         state.geometry = g.signature;
         if (reduced.matches) {
           state.node.style.opacity = state.original;
@@ -86,12 +120,13 @@
           retain(state, g.progress, g.low, g.high, g.range); continue;
         }
         if (!g.visible && !state.restored && !state.geometrySeen) {
-          state.progress = g.progress; state.correction = null;
+          state.progress = state.targetProgress = g.progress; state.correction = null;
           state.value = state.desired = ddOpacity(g.progress, state.preset);
           state.ceiling = state.preset === 'orange' ? 1 : .5;
         } else if (changed || (distance !== 0 && !userScroll)) {
           retain(state, g.progress, g.low, g.high, g.range);
         } else if (userScroll) {
+          state.targetProgress = g.progress;
           if (!g.visible) {
             state.progress = g.progress; state.correction = null;
             state.value = state.desired = ddOpacity(g.progress, state.preset);
@@ -110,9 +145,9 @@
             const normal = ddOpacity(state.mode === 'viewport' ? g.progress : state.progress, state.preset);
             state.desired = Math.min(state.ceiling, ddClamp(normal + (c ? c.offset * c.weight : 0)));
           }
-        } else if (!changed && Math.abs(state.progress - g.progress) >= .0001 && state.mode !== 'viewport') {
-          state.progress += (g.progress - state.progress) * .5;
-          if (Math.abs(g.progress - state.progress) < .0001) state.progress = g.progress;
+        } else if (!changed && Math.abs(state.progress - state.targetProgress) >= .0001 && state.mode !== 'viewport') {
+          state.progress += (state.targetProgress - state.progress) * .5;
+          if (Math.abs(state.targetProgress - state.progress) < .0001) state.progress = state.targetProgress;
           state.desired = Math.min(state.ceiling, ddClamp(ddOpacity(state.progress, state.preset) + (state.correction ? state.correction.offset * state.correction.weight : 0)));
         }
         // Settling is permitted only after a user scroll established a target.
@@ -120,7 +155,7 @@
         state.value = state.mode === 'viewport' ? state.value + (state.desired - state.value) * .5 : state.desired;
         if (Math.abs(state.desired - state.value) < .0001) state.value = state.desired;
         else moving = true;
-        if (Math.abs(state.progress - g.progress) >= .0001) moving = true;
+        if (Math.abs(state.progress - state.targetProgress) >= .0001) moving = true;
         const opacity = String(ddClamp(state.value));
         if (state.node.style.opacity !== opacity) state.node.style.opacity = opacity;
       }
@@ -129,18 +164,15 @@
       if (moving) schedule();
     }
     target.addEventListener('scroll', schedule, { signal, passive: true });
-    window.addEventListener('resize', refresh, { signal, passive: true });
+    window.addEventListener('resize', schedule, { signal, passive: true });
     window.addEventListener('load', refresh, { signal });
     window.addEventListener('pagehide', () => { suspended = true; cancelAnimationFrame(frame); frame = 0; }, { signal });
-    window.addEventListener('pageshow', () => { suspended = false; pointerHeld = false; inputUntil = -1; lastScroll = scrollTop(); refresh(); }, { signal });
+    window.addEventListener('pageshow', () => { suspended = false; lastScroll = scrollTop(); refresh(); }, { signal });
     document.addEventListener('visibilitychange', refresh, { signal });
-    for (const name of ['wheel','touchstart','touchmove','pointerdown','keydown'])
-      target.addEventListener(name, input, { signal, passive: true, capture: true });
-    for (const name of ['pointerup','pointercancel']) window.addEventListener(name, pointerEnd, { signal, passive: true });
     reduced.addEventListener('change', refresh, { signal });
     let resize;
     if (typeof ResizeObserver !== 'undefined') {
-      resize = new ResizeObserver(refresh); resize.observe(root || document.documentElement);
+      resize = new ResizeObserver(schedule); resize.observe(root || document.documentElement);
     }
     document.fonts?.ready.then(() => { if (!disposed) refresh(); });
     const api = { root, states, schedule, refresh, resize, destroy() {
@@ -206,7 +238,8 @@
     const memory = window.TDBPageBreakMemory;
     const remember = () => memory?.save(states);
     let frame = 0, layout = true, suspended = false, disposed = false, released = false;
-    let lastScroll = window.scrollY, inputUntil = 0, pointerHeld = false;
+    let lastScroll = window.scrollY;
+    let intent;
     const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
     const yOf = node => {
       const transform = getComputedStyle(node).transform;
@@ -216,13 +249,6 @@
       if (!frame && !disposed && !suspended && !document.hidden) frame = requestAnimationFrame(render);
     };
     const refresh = () => { layout = true; schedule(); };
-    const input = event => {
-      if (event.type === 'keydown' && (!['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key) ||
-          event.target?.closest?.('input,textarea,select,[contenteditable="true"]'))) return;
-      inputUntil = performance.now() + 2000;
-      if (event.type === 'pointerdown') pointerHeld = true;
-    };
-    const pointerEnd = () => { pointerHeld = false; inputUntil = performance.now() + 2000; };
     function retain(state, progress, target, alpha, reveal) {
       state.correction = Math.abs(state.y - target) < 0.001 && Math.abs(state.alpha - alpha) < 0.001 && Math.abs(state.revealAlpha - reveal) < 0.001 ? null : {
         anchor: progress, offset: state.y - target, alpha: state.alpha - alpha, reveal: state.revealAlpha - reveal, weight: 1,
@@ -265,17 +291,19 @@
         reveal: state.reveal ? Math.min(clamp(-box.top / (state.reveal[0] * frameHeight), 0, 1),
           clamp((box.bottom - state.reveal[2] * frameHeight) / (state.reveal[1] * frameHeight), 0, 1)) : 1,
         visible: box.bottom > 0 && box.top < view && box.height > 0,
-        signature: [box.top + window.scrollY, box.height, image.height, view, low, high, frameHeight],
+        signature: [box.top + window.scrollY, box.height, image.height, view, low, high, frameHeight, window.innerWidth],
       };
     }
     function render() {
       frame = 0;
       const scroll = window.scrollY, distance = scroll - lastScroll;
-      const userScroll = distance !== 0 && (pointerHeld || performance.now() <= inputUntil);
+      const userScroll = distance !== 0 && intent.active();
       // Read every rect first, then write. Each wrapper is independent.
       const measurements = states.map(state => [state, geometry(state)]);
       for (const [state, g] of measurements) {
-        const changed = layout || !state.geometry || g.signature.some((n, i) => Math.abs(n - state.geometry[i]) > 0.5);
+        const mobilePage = touchViewport();
+        const changed = layout || !state.geometry || g.signature.some((n, i) =>
+          !(mobilePage && (i >= 3 && i <= 5 || i === 6 && !state.exitFrame)) && Math.abs(n - state.geometry[i]) > 0.5);
         const previous = state.y;
         state.geometry = g.signature;
         state.y = clamp(state.y, g.low, g.high);
@@ -380,18 +408,16 @@
     }
     let resize;
     if (states.length) {
+      intent = scrollIntent(window, () => window.scrollY, signal);
       window.addEventListener('scroll', schedule, { passive: true, signal });
-      window.addEventListener('resize', refresh, { passive: true, signal });
+      window.addEventListener('resize', schedule, { passive: true, signal });
       window.addEventListener('pageshow', () => { suspended = false; lastScroll = window.scrollY; refresh(); }, { signal });
       window.addEventListener('pagehide', () => { remember(); suspended = true; cancelAnimationFrame(frame); frame = 0; }, { signal });
-      for (const event of ['wheel', 'touchstart', 'touchmove', 'pointerdown', 'keydown'])
-        window.addEventListener(event, input, { capture: true, passive: true, signal });
-      for (const event of ['pointerup', 'pointercancel']) window.addEventListener(event, pointerEnd, { passive: true, signal });
       document.addEventListener('visibilitychange', () => { if (document.hidden) remember(); else refresh(); }, { signal });
       window.addEventListener('load', refresh, { signal });
       reduced.addEventListener('change', refresh, { signal });
       if (typeof ResizeObserver !== 'undefined') {
-        resize = new ResizeObserver(refresh);
+        resize = new ResizeObserver(schedule);
         resize.observe(document.documentElement);
         if (document.body) resize.observe(document.body);
         for (const state of states) { resize.observe(state.wrapper); resize.observe(state.node); }
@@ -401,7 +427,7 @@
       // Apply synchronously: visible images keep their current translation;
       // off-screen images are positioned before the next paint.
       render();
-    }
+    } else controller.abort();
     function release(state) {
       const index = states.indexOf(state);
       if (index !== -1) states.splice(index, 1);
@@ -511,5 +537,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.19.1', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.19.2', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();

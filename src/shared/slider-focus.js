@@ -1,9 +1,10 @@
-/* TDB shared slider focus v1.3.0. Cleanup follows the shared CSS peek clock. */
+/* TDB shared slider focus v1.3.1. Cleanup follows the shared CSS peek clock. */
 (() => {
     "use strict";
     const e = document.documentElement;
     if (e.dataset.tdbSliderFocusReady) return;
-    e.dataset.tdbSliderFocusReady = "1.3.0";
+    e.dataset.tdbSliderFocusReady = "1.3.1";
+    let viewportWidth = window.innerWidth;
     const t = 'input,textarea,select,[contenteditable="true"]', n = "[data-tdb-sg-overlay],.tdb-sg-filter-dock";
     let i = null, r = null, s = 0, a = 0, o = 0, l = 0;
     function peekDuration() {
@@ -141,10 +142,15 @@
         capture: !0,
         passive: !0
     }), window.addEventListener("resize", () => {
+        // Toolbar/keyboard height changes do not end carousel interaction.
+        if (window.innerWidth === viewportWidth) return;
+        viewportWidth = window.innerWidth;
         r = null, w();
     }, {
         passive: !0
-    }), window.addEventListener("pagehide", () => {
+    }), window.addEventListener("orientationchange", () => {
+        r = null, w();
+    }, { passive: !0 }), window.addEventListener("pagehide", () => {
         r = null, w();
     }), new MutationObserver(() => {
         i && h() && w();
