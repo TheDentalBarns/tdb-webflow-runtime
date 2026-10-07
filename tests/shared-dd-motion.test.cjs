@@ -1,13 +1,14 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {JSDOM}=require('jsdom');
 const source=fs.readFileSync(path.join(__dirname,'../src/shared/motion.js'),'utf8');
-function setup({opacity='1',top=500,height=100,root=false,rootScrollHeight=3000,mode='viewport',preset='standard'}={}){
+function setup({opacity='1',top=500,height=100,root=false,rootScrollHeight=3000,mode='viewport',preset='standard',restored=false}={}){
  const dom=new JSDOM(`<section><p style="opacity:${opacity}">DD text</p></section>`,{runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window;
  const node=w.document.querySelector('p'),section=w.document.querySelector('section'),frames=new Map();let seq=0,now=100,shown=true;
  w.innerHeight=1000;w.scrollY=0;Object.defineProperty(w.document.documentElement,'scrollHeight',{value:10000});
  Object.defineProperty(section,'clientHeight',{value:600});Object.defineProperty(section,'scrollHeight',{value:rootScrollHeight});section.getBoundingClientRect=()=>({top:100});
  node.getClientRects=()=>shown?[{}]:[];node.getBoundingClientRect=()=>{const y=top-(root?section.scrollTop:w.scrollY);return{top:y,bottom:y+height,height};};
  w.performance.now=()=>now;w.requestAnimationFrame=fn=>{frames.set(++seq,fn);return seq;};w.cancelAnimationFrame=id=>frames.delete(id);
+ w.TDBDDMemory={take:()=>restored,save(){}};
  w.matchMedia=()=>({matches:true,addEventListener(){}});w.eval(source);
  const api=w.TDBMotion.ddText([node],{mode,preset,root:root?section:null});
  function flush(){let n=0;while(frames.size&&n++<150){const jobs=[...frames.values()];frames.clear();jobs.forEach(fn=>fn(now));}assert(n<150,'no runaway animation');}
@@ -34,7 +35,7 @@ test('reversing scroll does not bring back consumed startup opacity',()=>{
  const t=setup();try{t.scroll(100);const forward=t.value();t.scroll(0);assert(t.value()<1);t.scroll(100);assert(t.value()<=forward+.001);}finally{t.close();}
 });
 test('late restoration of an initially offscreen node preserves its fallback',()=>{
- const t=setup({top:2500,opacity:'.5'});try{assert.equal(t.value(),.5);t.scroll(2200,false);assert.equal(t.value(),.5);t.scroll(2250);assert(t.value()<=.5);assert.equal(t.frames.size,0);}finally{t.close();}
+ const t=setup({top:2500,opacity:'.5',restored:true});try{assert.equal(t.value(),.5);t.scroll(2200,false);assert.equal(t.value(),.5);t.scroll(2250);assert(t.value()<=.5);assert.equal(t.frames.size,0);}finally{t.close();}
 });
 test('mounting twice shares ownership and cleanup restores authored opacity',()=>{
  const t=setup({opacity:'.8'});try{const second=t.w.TDBMotion.ddText([t.node]);t.scroll(100);const value=t.value();t.api.destroy();assert.equal(t.value(),value);second.destroy();assert.equal(t.node.style.opacity,'0.8');assert.equal(t.frames.size,0);second.destroy();}finally{t.close();}
@@ -52,4 +53,11 @@ test('a faded first paint never brightens beyond the normal peak during catch-up
 
 test('a caption in a short scrolling case reaches its curve at the reachable scroll limit',()=>{
  const t=setup({root:true,rootScrollHeight:700,mode:'region',top:400});try{assert.equal(t.value(),1);t.scroll(50);assert(t.value()<1&&t.value()>.5);t.scroll(100);assert(Math.abs(t.value()-.5)<.001);t.scroll(0);assert(Math.abs(t.value()-(300/700))<.001);}finally{t.close();}
+});
+
+test('fresh offscreen text aligns immediately without moving the page',()=>{
+ const t=setup({top:2500});try{assert.equal(t.value(),0);assert.equal(t.w.scrollY,0);t.scroll(2200);assert(t.value()>0);assert.equal(t.node.style.transform,'');}finally{t.close();}
+});
+test('an incoming quote resets an invisible DD name to fully opaque without a scroll event',()=>{
+ const t=setup({opacity:'0'});try{assert.equal(t.value(),0);t.api.enter();t.flush();assert.equal(t.value(),1);t.flush();assert.equal(t.value(),1);t.scroll(100);assert(t.value()<1&&t.value()>.5);}finally{t.close();}
 });

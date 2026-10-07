@@ -1,4 +1,4 @@
 /* Readable first paint while shared motion loads, or if it cannot load.
    No animation clock, hiding, transforms or layout changes. */
-[data-tdb-dd-page],.tdbc-dd-fade{opacity:.5}
+[data-tdb-dd-page],.tdbc-dd-fade{opacity:1}
 [data-tdb-dd-preset="orange"]{opacity:1}

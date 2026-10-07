@@ -1,97 +1,39 @@
-/* TDB owner/principal quotes v2.0.0. Native Webflow layout, CMS content, shared Swiper. */
+/* TDB owner/principal quotes v3.0.1. Native CMS slides and layout; shared Swiper, motion and ticker. */
 (function () {
   'use strict';
-  const routes = Object.freeze({
-    home: '/', 'first-visit': '/first-visit', contact: '/contact', location: '/location',
-    cosmetic: '/services/cosmetic-dentist', nervous: '/services/nervous-patient-care',
-    'nervous-patient-care': '/services/nervous-patient-care',
-    restorative: '/services/general-dentistry', hygiene: '/services/hygiene-care',
-    'signature-assessment': '/services/signature-assessment', 'smile-design': '/services/smile-design',
-    local: '/services/dentist-near-me', 'dentist-near-me': '/services/dentist-near-me',
-    'facial-aesthetics': '/services/facial-aesthetics'
-  });
-  const path = value => String(value || '/').trim().toLowerCase().replace(/\/+$/, '') || '/';
-  function assignedPage(record) {
-    if (record.page?.trim()) return path(record.page);
-    const tag = (record.tags || []).find(value => routes[value]);
-    return tag ? routes[tag] : null;
-  }
-  function chooseTeamQuotes(records, pathname) {
-    const seen = new Set();
-    // Preserve the established global duplicate policy, explicit page precedence,
-    // exclusive tag fallback, rank order and maximum of three visible quotations.
-    return records.filter(record => record.active !== false && record.text && record.author)
-      .sort((a, b) => (Number(a.rank) || 999) - (Number(b.rank) || 999) || a.id.localeCompare(b.id))
-      .filter(record => {
-        const key = record.text.toLowerCase().replace(/\s+/g, ' ').trim();
-        if (seen.has(key)) return false;
-        seen.add(key); return true;
-      })
-      .filter(record => assignedPage(record) === path(pathname)).slice(0, 3);
-  }
-  function readFeed(feed) {
-    const records = [];
-    feed?.querySelectorAll('.w-dyn-item').forEach(item => {
-      const author = item.querySelector('[data-tdb-team-author]')?.textContent.trim();
-      const role = item.querySelector('[data-tdb-team-role]')?.textContent.trim() || '';
-      const content = item.querySelector('[data-tdb-team-quote-content]');
-      if (!author || !content || author.includes('{{wf')) return;
-      let record;
-      content.querySelectorAll('h3,blockquote,p').forEach(node => {
-        if (node.tagName === 'P' && node.closest('blockquote')) return;
-        const text = node.textContent.trim();
-        if (node.tagName === 'H3') {
-          record = { id: author + ':' + text, label: text, author, role, text: '', tags: [], page: '', rank: 999, active: true };
-          records.push(record);
-        } else if (record && node.tagName === 'BLOCKQUOTE') record.text = text;
-        else if (record && node.tagName === 'P') {
-          const match = text.match(/^(Tags|Page|Rank|Active):\s*(.*)$/i);
-          if (!match) return;
-          const key = match[1].toLowerCase(), value = match[2].trim();
-          if (key === 'tags') record.tags = value.toLowerCase().split(',').map(tag => tag.trim()).filter(Boolean);
-          if (key === 'page') record.page = value;
-          if (key === 'rank') record.rank = Number(value) || 999;
-          if (key === 'active') record.active = !/^(no|false|off|0)$/i.test(value);
-        }
-      });
-    });
-    return records;
+  // Webflow selects, sorts and renders the actual slides. Do not clone or
+  // rewrite quote content: all CMS cards must participate in native sizing.
+  function readNativeSlides(root) {
+    const track = root.querySelector('[data-tdb-team-track]');
+    return track ? [...track.children].filter(card => card.matches('[data-tdb-team-slide]')) : [];
   }
   if (typeof module === 'object' && module.exports) {
-    module.exports = { chooseTeamQuotes, assignedPage, readFeed, routes }; return;
+    module.exports = { readNativeSlides }; return;
   }
   if (window.TDBTeamQuotes || !['dentalbarns.webflow.io', 'thedentalbarns.com', 'www.thedentalbarns.com', 'thedentalbarns.co.uk', 'www.thedentalbarns.co.uk'].includes(location.hostname)) return;
   const base = new URL('./', document.currentScript.src);
   const prepared = new WeakMap(), mounted = new Map();
   let dependencyFlight, proximity;
   const discovered = new WeakSet();
-  const selector = '[data-tdb-team-quotes]';
+  const selector = '[data-tdb-team-quotes][data-tdb-team-cms]';
 
-  function prepare(root, records) {
+  function prepare(root) {
     if (prepared.has(root)) return prepared.get(root);
     const track = root.querySelector('[data-tdb-team-track]');
-    const template = track?.querySelector('[data-tdb-team-slide]');
-    if (!template) throw Error('Native owner quote template unavailable');
-    const cards = records.map((record, index) => {
-      const card = template.cloneNode(true);
-      card.dataset.quoteId = record.id;
-      card.setAttribute('aria-label', (index + 1) + ' of ' + records.length);
-      card.querySelector('[data-tdb-team-text]').textContent = record.text;
-      card.querySelector('[data-tdb-team-author-line]').textContent = record.author + (record.role ? ', ' + record.role : '');
-      card.querySelector('[data-tdb-team-content]').classList.remove('is-visible', 'is-entry');
+    const cards = readNativeSlides(root);
+    if (!cards.length) return null;
+    cards.forEach((card, index) => {
+      card.setAttribute('aria-label', (index + 1) + ' of ' + cards.length);
       card.inert = index !== 0;
       card.setAttribute('aria-hidden', String(index !== 0));
-      return card;
     });
-    track.replaceChildren(...cards);
-    root.dataset.quoteCount = records.length;
+    root.dataset.quoteCount = cards.length;
     root.querySelector('[data-tdb-team-current]').textContent = '01';
-    root.querySelector('[data-tdb-team-total]').textContent = String(records.length).padStart(2, '0');
+    root.querySelector('[data-tdb-team-total]').textContent = String(cards.length).padStart(2, '0');
     const count = root.querySelector('[data-tdb-team-position]');
-    count.classList.toggle('is-hidden', records.length < 2);
-    count.setAttribute('aria-label', '1 of ' + records.length);
-    root.hidden = false;
-    const state = { records, track, cards };
+    count.classList.toggle('is-hidden', cards.length < 2);
+    count.setAttribute('aria-label', '1 of ' + cards.length);
+    const state = { track, cards };
     prepared.set(root, state);
     return state;
   }
@@ -105,7 +47,7 @@
       card.querySelector('[data-tdb-team-content]').classList.toggle('is-visible', index === 0);
     });
     root.querySelector('[data-tdb-team-current]').textContent = '01';
-    root.querySelector('[data-tdb-team-position]').setAttribute('aria-label', '1 of ' + state.records.length);
+    root.querySelector('[data-tdb-team-position]').setAttribute('aria-label', '1 of ' + state.cards.length);
     // Native fallback byline state is visible even if shared motion could not load.
     state.cards[0]?.querySelector('[data-tdb-team-author-line]')?.classList.add('is-static');
     root.dataset.tdbTeamQuoteState = 'fallback';
@@ -115,16 +57,16 @@
   function mount(root) {
     if (mounted.has(root)) return mounted.get(root);
     const state = prepared.get(root);
-    if (!state?.records.length) return;
-    const { records, track } = state;
+    if (!state?.cards.length) return;
+    const { cards, track } = state;
     track.querySelectorAll('.is-static').forEach(node => node.classList.remove('is-static'));
     const motion = window.TDBMotion;
     const viewport = root.querySelector('[data-tdb-team-viewport]');
     const position = root.querySelector('[data-tdb-team-position]');
     const ticker = window.TDBNativeTicker.mount(root.querySelector('[data-tdb-team-current]'));
     const controller = new AbortController(), { signal } = controller;
-    let swiper, revealTimer = 0, entryTimer = 0, entryObserver;
-    let entryPending = records.length > 1, opening = false, direction = 1, gesture = false;
+    let swiper, dd, revealTimer = 0, entryTimer = 0, entryObserver;
+    let entryPending = cards.length > 1, opening = false, direction = 1, gesture = false;
     let destroyed = false;
     root.dataset.tdbSliderFirstView = entryPending ? 'pending' : 'drawn';
     root.dataset.tdbTeamQuoteState = 'ready';
@@ -142,7 +84,7 @@
     }
     function updateCount() {
       ticker.update(String(swiper.realIndex + 1).padStart(2, '0'), direction);
-      position.setAttribute('aria-label', (swiper.realIndex + 1) + ' of ' + records.length);
+      position.setAttribute('aria-label', (swiper.realIndex + 1) + ' of ' + cards.length);
       accessible();
     }
     function settle(delay = motion.carousel.nextDelay) {
@@ -159,6 +101,7 @@
     }
     function start() {
       conceal();
+      dd?.enter(swiper.slides[swiper.activeIndex].querySelectorAll('[data-tdb-team-author-line]'));
       if (opening) swiper.slides[swiper.activeIndex].querySelector('[data-tdb-team-content]').classList.add('is-entry', 'is-visible');
     }
     function finish() {
@@ -171,7 +114,7 @@
     }
     swiper = window.TDBSwiper.create(viewport, {
       init: false, direction: 'horizontal', wrapperClass: 'tdb-team-quotes_track', slideClass: 'tdb-team-quotes_slide',
-      slidesPerView: 1, spaceBetween: 0, loop: records.length > 1, loopAdditionalSlides: 1,
+      slidesPerView: 1, spaceBetween: 0, loop: cards.length > 1, loopAdditionalSlides: 1,
       width: viewport.getBoundingClientRect().width,
       loopPreventsSlide: false, preventInteractionOnTransition: false, observer: false,
       speed: motion.duration(viewport.clientWidth), threshold: 12, longSwipesMs: 0,
@@ -199,7 +142,8 @@
     // clientWidth rounds fractional fluid-rem layouts to whole CSS pixels. Keep
     // Swiper's geometry equal to the native viewport, including narrow phones.
     swiper.on('beforeResize', () => { swiper.params.width = viewport.getBoundingClientRect().width; });
-    const dd = motion.ddText(track.querySelectorAll('[data-tdb-team-author-line]'));
+    dd = motion.ddText(track.querySelectorAll('[data-tdb-team-author-line]'));
+    dd.enter(swiper.slides[swiper.activeIndex].querySelectorAll('[data-tdb-team-author-line]'));
     if (!entryPending) settle(0);
     if (entryPending) {
       entryObserver = new IntersectionObserver(entries => {
@@ -214,7 +158,7 @@
       entryObserver.observe(viewport);
     }
     viewport.addEventListener('keydown', event => {
-      if (!['ArrowLeft', 'ArrowRight'].includes(event.key) || records.length < 2) return;
+      if (!['ArrowLeft', 'ArrowRight'].includes(event.key) || cards.length < 2) return;
       event.preventDefault(); cancelEntry(); opening = false;
       direction = event.key === 'ArrowLeft' ? -1 : 1;
       direction < 0 ? swiper.slidePrev() : swiper.slideNext();
@@ -259,12 +203,10 @@
     }
   }
   function init() {
-    const feed = document.querySelector('[data-tdb-team-quote-feed]');
-    const records = chooseTeamQuotes(readFeed(feed), location.pathname);
     document.querySelectorAll(selector).forEach(root => {
       const section = root.closest('.section_standard-testimonial');
-      if (!records.length) { if (section) section.hidden = true; return; }
-      prepare(root, records);
+      const state = prepare(root);
+      if (!state) { if (section) section.hidden = true; return; }
       if (discovered.has(root)) { if (!mounted.has(root)) enhance(root); return; }
       discovered.add(root);
       if ('IntersectionObserver' in window) {
@@ -278,7 +220,7 @@
       root.addEventListener('focusin', () => enhance(root));
     });
   }
-  window.TDBTeamQuotes = Object.freeze({ version: '2.0.0', refresh: init, mount, readFeed, chooseTeamQuotes,
+  window.TDBTeamQuotes = Object.freeze({ version: '3.0.1', refresh: init, mount,
     destroy() { proximity?.disconnect(); [...mounted.values()].forEach(instance => instance.destroy()); }
   });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });

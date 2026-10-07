@@ -1,4 +1,4 @@
-/* TDB shared motion v1.10.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.11.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -23,6 +23,9 @@
   // first paint is retained; scroll, rather than elapsed time, consumes the
   // initial difference. Layout changes and browser restoration rebase it.
   const ddNodes = new Map(), ddRoots = new Map();
+  const saveDD = () => window.TDBDDMemory?.save(ddNodes.values());
+  window.addEventListener('pagehide', saveDD);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) saveDD(); });
   const ddClamp = value => Math.max(0, Math.min(1, value));
   function ddOpacity(progress, preset = 'standard') {
     const p = ddClamp(progress);
@@ -82,7 +85,11 @@
           state.value = Number.parseFloat(getComputedStyle(state.node).opacity) || 0;
           retain(state, g.progress, g.low, g.high, g.range); continue;
         }
-        if (changed || (distance !== 0 && !userScroll)) {
+        if (!g.visible && !state.restored && !state.geometrySeen) {
+          state.progress = g.progress; state.correction = null;
+          state.value = state.desired = ddOpacity(g.progress, state.preset);
+          state.ceiling = state.preset === 'orange' ? 1 : .5;
+        } else if (changed || (distance !== 0 && !userScroll)) {
           retain(state, g.progress, g.low, g.high, g.range);
         } else if (userScroll) {
           if (!g.visible) {
@@ -117,6 +124,7 @@
         const opacity = String(ddClamp(state.value));
         if (state.node.style.opacity !== opacity) state.node.style.opacity = opacity;
       }
+      for (const state of states) if (state.geometry) state.geometrySeen = true;
       lastScroll = scroll; layout = false;
       if (moving) schedule();
     }
@@ -135,7 +143,7 @@
       resize = new ResizeObserver(refresh); resize.observe(root || document.documentElement);
     }
     document.fonts?.ready.then(() => { if (!disposed) refresh(); });
-    const api = { states, schedule, refresh, resize, destroy() {
+    const api = { root, states, schedule, refresh, resize, destroy() {
       disposed = true; events.abort(); resize?.disconnect(); cancelAnimationFrame(frame); ddRoots.delete(root);
     }};
     ddRoots.set(root, api); return api;
@@ -145,13 +153,23 @@
     for (const node of list) {
       const existing = ddNodes.get(node);
       if (existing) { existing.clients++; continue; }
+      const restored = window.TDBDDMemory?.take(node) || false;
       const owner = ddRoot(root), value = Number.parseFloat(getComputedStyle(node).opacity);
-      const state = { node, owner, mode, preset, clients: 1, original: node.style.opacity,
+      const state = { node, owner, mode, preset, restored, clients: 1, original: node.style.opacity,
         value: Number.isFinite(value) ? value : 1, desired: Number.isFinite(value) ? value : 1, progress: 0, geometry: null };
       ddNodes.set(node, state); owner.states.add(state); owner.resize?.observe(node); owner.schedule();
     }
     let destroyed = false;
-    return Object.freeze({ refresh() { for (const node of list) ddNodes.get(node)?.owner.refresh(); }, destroy() {
+    return Object.freeze({ enter(nodes = list) {
+      // A slide entrance is an explicit new visual state, not page restoration.
+      for (const node of nodes) {
+        const state = ddNodes.get(node);
+        if (!state || !list.includes(node)) continue;
+        state.value = state.desired = state.ceiling = 1;
+        state.restored = false; state.geometry = null; state.geometrySeen = true;
+        node.style.opacity = '1'; state.owner.refresh();
+      }
+    }, refresh() { for (const node of list) ddNodes.get(node)?.owner.refresh(); }, destroy() {
       if (destroyed) return; destroyed = true;
       for (const node of list) {
         const state = ddNodes.get(node);
@@ -406,5 +424,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.10.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.11.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();

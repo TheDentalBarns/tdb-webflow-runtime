@@ -15,6 +15,7 @@ const entries = {
   'src/shared/motion.js': 'tdb-motion.js',
   'src/shared/dd-loader.js': 'tdb-dd-loader.js',
   'src/shared/dd-bootstrap.js': 'tdb-dd-bootstrap.js',
+  'src/shared/dd-memory.js': 'tdb-dd-memory.js',
   'src/shared/dd-fallback.css': 'tdb-dd-fallback.css',
   'src/page-break/loader.js': 'tdb-page-break-loader.js',
   'src/page-break/memory.js': 'tdb-page-break-memory.js',
