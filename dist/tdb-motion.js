@@ -1,4 +1,4 @@
-/* TDB shared motion v1.17.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.18.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -247,17 +247,19 @@
       const cropLow = Math.min(0, box.bottom - bottom);
       const cropHigh = Math.max(0, box.top - top);
       const pixels = value => value[0] * (value[1] === '%' ? image.height / 100 : value[1] === 'vh' ? view / 100 : 1);
-      const from = clamp(pixels(state.from), cropLow, cropHigh), to = clamp(pixels(state.to), cropLow, cropHigh);
+      const bounded = value => state.allowEdges ? pixels(value) : clamp(pixels(value), cropLow, cropHigh);
+      const from = bounded(state.from), to = bounded(state.to);
       const low = Math.min(from, to), high = Math.max(from, to);
       const progressHeight = state.imageProgress ? image.height : box.height;
       // Optional exit timing uses the native sticky frame's stable height.
       // Example: darken while 1.3 -> 1 frame-heights of the section remain.
       const frameHeight = state.exitFrame ? state.exitFrame.getBoundingClientRect().height : view;
-      const progress = state.exitRange
+      const progress = clamp((view - box.top) / (view + progressHeight), 0, 1);
+      const fadeProgress = state.exitRange
         ? clamp((state.exitRange[0] * frameHeight - box.bottom) / Math.max(1, (state.exitRange[0] - state.exitRange[1]) * frameHeight), 0, 1)
-        : clamp((view - box.top) / (view + progressHeight), 0, 1);
+        : progress;
       return { low, high, progress, target: from + (to - from) * progress,
-        alpha: state.curve ? curveAt(state.curve, progress) : state.fade ? 1 - clamp((progress - state.fade[0]) / (state.fade[1] - state.fade[0]), 0, 1) : 1,
+        alpha: state.curve ? curveAt(state.curve, fadeProgress) : state.fade ? 1 - clamp((fadeProgress - state.fade[0]) / (state.fade[1] - state.fade[0]), 0, 1) : 1,
         visible: box.bottom > 0 && box.top < view && box.height > 0,
         signature: [box.top + window.scrollY, box.height, image.height, view, low, high, frameHeight],
       };
@@ -352,6 +354,7 @@
         Number.isFinite(exitStart) && exitStart > exitEnd && exitEnd >= 0 ? [exitStart, exitEnd] : null;
       const state = { wrapper, node, opacityOnly, y: opacityOnly ? 0 : yOf(node), original: snapshot ? snapshot.original : node.style.transform,
         restored: Boolean(snapshot), correction: null, fade, curve, fadeTargets, fadeEnds, fadeFrom, fadeProperties,
+        allowEdges: wrapper.getAttribute?.('data-tdb-parallax-crop') === 'allow',
         exitRange, exitFrame: exitRange ? wrapper.querySelector('[data-tdb-parallax-frame]') : null,
         imageProgress: wrapper.getAttribute?.('data-tdb-parallax-progress') === 'image',
         alpha: fadeTargets.length && fadeEnds[0] !== fadeFrom[0] ? clamp((initial - fadeEnds[0]) / (fadeFrom[0] - fadeEnds[0]), 0, 1) : 1,
@@ -495,5 +498,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.17.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.18.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();
