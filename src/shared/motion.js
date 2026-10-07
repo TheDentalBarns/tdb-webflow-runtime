@@ -1,4 +1,4 @@
-/* TDB shared motion v1.15.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.16.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -228,6 +228,15 @@
         anchor: progress, offset: state.y - target, alpha: state.alpha - alpha, weight: 1,
       };
     }
+    function curveAt(points, progress) {
+      for (let i = 1; i < points.length; i++) {
+        if (progress <= points[i][0]) {
+          const [x, y] = points[i - 1], [nextX, nextY] = points[i];
+          return y + (nextY - y) * clamp((progress - x) / (nextX - x), 0, 1);
+        }
+      }
+      return points[points.length - 1][1];
+    }
     function geometry(state) {
       const box = state.wrapper.getBoundingClientRect();
       const image = state.opacityOnly ? box : state.node.getBoundingClientRect();
@@ -243,7 +252,7 @@
       const progressHeight = state.imageProgress ? image.height : box.height;
       const progress = clamp((view - box.top) / (view + progressHeight), 0, 1);
       return { low, high, progress, target: from + (to - from) * progress,
-        alpha: state.fade ? 1 - clamp((progress - state.fade[0]) / (state.fade[1] - state.fade[0]), 0, 1) : 1,
+        alpha: state.curve ? curveAt(state.curve, progress) : state.fade ? 1 - clamp((progress - state.fade[0]) / (state.fade[1] - state.fade[0]), 0, 1) : 1,
         visible: box.bottom > 0 && box.top < view && box.height > 0,
         signature: [box.top + window.scrollY, box.height, image.height, view, low, high],
       };
@@ -315,7 +324,11 @@
       const fadeStart = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-fade-start'));
       const fadeEnd = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-fade-end'));
       const fade = fadeStart >= 0 && fadeEnd <= 1 && fadeEnd > fadeStart ? [fadeStart, fadeEnd] : null;
-      const fadeTargets = fade ? [...wrapper.querySelectorAll('[data-tdb-parallax-fade]')] : [];
+      const points = (wrapper.getAttribute?.('data-tdb-parallax-fade-curve') || '').split(',').map(pair => pair.split(':').map(Number));
+      const curve = points.length > 1 && points.every((point, i) => point.length === 2 &&
+        point.every(value => Number.isFinite(value) && value >= 0 && value <= 1) &&
+        (!i || point[0] > points[i - 1][0])) ? points : null;
+      const fadeTargets = fade || curve ? [...wrapper.querySelectorAll('[data-tdb-parallax-fade]')] : [];
       const fadeEnds = fadeTargets.map(target => {
         const value = Number.parseFloat(target.getAttribute('data-tdb-parallax-fade'));
         return Number.isFinite(value) ? clamp(value, 0, 1) : 0;
@@ -329,7 +342,7 @@
       const initial = fadeProperties[0] === 'backgroundColor' ? (painted.startsWith('rgba') ? Number.parseFloat(painted.split(',')[3]) : 1) : Number.parseFloat(painted);
       const snapshot = memory?.take(node);
       const state = { wrapper, node, opacityOnly, y: opacityOnly ? 0 : yOf(node), original: snapshot ? snapshot.original : node.style.transform,
-        restored: Boolean(snapshot), correction: null, fade, fadeTargets, fadeEnds, fadeFrom, fadeProperties,
+        restored: Boolean(snapshot), correction: null, fade, curve, fadeTargets, fadeEnds, fadeFrom, fadeProperties,
         imageProgress: wrapper.getAttribute?.('data-tdb-parallax-progress') === 'image',
         alpha: fadeTargets.length && fadeEnds[0] !== fadeFrom[0] ? clamp((initial - fadeEnds[0]) / (fadeFrom[0] - fadeEnds[0]), 0, 1) : 1,
         originalOpacity: snapshot?.originalOpacity || fadeTargets.map((target, i) => target.style[fadeProperties[i]]),
@@ -472,5 +485,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.15.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.16.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();
