@@ -28,7 +28,7 @@ function environment({ navigation = 'reload', width = 1440, height = 900, data, 
     getComputedStyle: node => ({ transform: node.style.transform || 'none' }),
     DOMMatrixReadOnly: class { constructor(value) { this.m42 = Number(/translate3d\(0,\s*([-.\d]+)px/.exec(value)?.[1] || 0); } },
   });
-  function add(src = 'flower.webp', richText = false, top = 1400) {
+  function add(src = 'flower.webp', richText = false, top = 1400, attrs = {}, imageHeight = 495) {
     const image = { tagName: 'IMG', getAttribute: key => key === 'src' ? src : null };
     const node = new EventTarget();
     Object.assign(node, { tagName: richText ? 'DIV' : 'IMG', style: { transform: '' },
@@ -36,10 +36,10 @@ function environment({ navigation = 'reload', width = 1440, height = 900, data, 
       getAttribute: image.getAttribute, querySelectorAll: () => [image],
       getBoundingClientRect: () => {
         const y = Number(/translate3d\(0,\s*([-.\d]+)px/.exec(node.style.transform)?.[1] || 0);
-        return { top: top - window.scrollY - 22.5 + y, bottom: top - window.scrollY + 472.5 + y, height: 495 };
+        return { top: top - window.scrollY - (imageHeight - 450) / 2 + y, bottom: top - window.scrollY + 450 + (imageHeight - 450) / 2 + y, height: imageHeight };
       },
     });
-    const wrapper = { querySelector: () => node,
+    const wrapper = { getAttribute: name => attrs[name] ?? null, querySelector: () => node,
       getBoundingClientRect: () => ({ top: top - window.scrollY, bottom: top - window.scrollY + 450, height: 450 }) };
     wrappers.push(wrapper); observer?.(); return { node, wrapper };
   }
@@ -116,5 +116,31 @@ test('hidden tab saves image offset and storage failure cannot break shared moti
     assert.doesNotThrow(() => env.document.dispatchEvent(new Event('visibilitychange')));
     if (!blocked) assert.equal(JSON.parse(env.storage.get('tdb:page-break:v1:/test')).items[0].identity, 'DIV|comparison.webp');
     controller.destroy();
+  }
+});
+
+
+test('footer percentage travel is independent of viewport units and remains within crop', () => {
+  const env = environment({navigation: 'navigate'}); env.start();
+  env.add('coffee.webp', false, 1400, {'data-tdb-parallax-from':'-10%', 'data-tdb-parallax-to':'10%'}, 562.5);
+  const controller = env.mount();
+  assert.equal(controller.status()[0].y, -56.25);
+  env.window.dispatchEvent(new Event('wheel')); env.window.scrollY = 2000;
+  env.window.dispatchEvent(new Event('scroll')); env.tick();
+  assert.equal(controller.status()[0].y, 56.25);
+  env.window.dispatchEvent(new Event('pagehide'));
+  const data = JSON.parse(env.storage.get('tdb:page-break:v1:/test'));
+  const reload = environment({data}); reload.start();
+  const {node} = reload.add('coffee.webp', false, 1400, {'data-tdb-parallax-from':'-10%', 'data-tdb-parallax-to':'10%'}, 562.5);
+  assert.match(node.style.transform, /56.2500px/);
+  assert.equal(reload.mount().status()[0].y, 56.25);
+  const changed = environment({data}); changed.start();
+  assert.equal(changed.add('coffee.webp',false,1400,{'data-tdb-parallax-from':'-5%', 'data-tdb-parallax-to':'5%'},562.5).node.style.transform, '');
+});
+
+test('custom endpoints allow reverse movement, clamp excess travel, and reject invalid values', () => {
+  for (const [from,to,expected] of [['10%','-10%',22.5],['bogus','2vh',-18],['0px','18px',0]]) {
+    const env=environment({navigation:'navigate'});env.start();env.add('flower.webp',false,1400,{'data-tdb-parallax-from':from,'data-tdb-parallax-to':to});
+    assert.equal(env.mount().status()[0].y,expected);
   }
 });

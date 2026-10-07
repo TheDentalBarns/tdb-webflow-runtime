@@ -1,4 +1,4 @@
-/* TDB shared motion v1.11.1. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.12.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -236,9 +236,11 @@
       const top = image.top - state.y, bottom = image.bottom - state.y;
       const cropLow = Math.min(0, box.bottom - bottom);
       const cropHigh = Math.max(0, box.top - top);
-      const low = Math.max(-view * 0.02, cropLow), high = Math.min(view * 0.02, cropHigh);
+      const pixels = value => value[0] * (value[1] === '%' ? image.height / 100 : value[1] === 'vh' ? view / 100 : 1);
+      const from = clamp(pixels(state.from), cropLow, cropHigh), to = clamp(pixels(state.to), cropLow, cropHigh);
+      const low = Math.min(from, to), high = Math.max(from, to);
       const progress = clamp((view - box.top) / (view + box.height), 0, 1);
-      return { low, high, progress, target: low + (high - low) * progress,
+      return { low, high, progress, target: from + (to - from) * progress,
         visible: box.bottom > 0 && box.top < view && box.height > 0,
         signature: [box.top + window.scrollY, box.height, image.height, view, low, high],
       };
@@ -296,9 +298,14 @@
       if (existing) { existing.clients++; owned.push(existing); continue; }
       const node = wrapper.querySelector('[data-tdb-page-break-image]') || wrapper.querySelector('img');
       if (!node) continue;
+      const distance = (name, fallback) => {
+        const match = /^(-?(?:\d+(?:\.\d+)?|\.\d+))(vh|%|px)$/.exec(wrapper.getAttribute?.(name)?.trim() || fallback);
+        return match && Number.isFinite(+match[1]) ? [+match[1], match[2]] : distance('', fallback);
+      };
       const snapshot = memory?.take(node);
       const state = { wrapper, node, y: yOf(node), original: snapshot ? snapshot.original : node.style.transform,
-        restored: Boolean(snapshot), correction: null };
+        restored: Boolean(snapshot), correction: null,
+        from: distance('data-tdb-parallax-from', '-2vh'), to: distance('data-tdb-parallax-to', '2vh') };
       states.push(state);
       const owner = { clients: 1, wrapper, release: null, refresh };
       pageBreakClients.set(wrapper, owner);
@@ -435,5 +442,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.11.1', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.12.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();
