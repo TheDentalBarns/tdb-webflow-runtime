@@ -18,9 +18,6 @@ async function setup(count=3){
 }
 test('native review root and authored cards survive hydration, selected review opens through shared action',async()=>{
  const t=await setup();try{assert.equal(t.w.document.querySelector('[data-tdb-review-quotes]'),t.root);assert.equal(t.root.querySelectorAll('[data-tdb-team-slide]:not(.swiper-slide-duplicate)').length,3);
- const first=t.api.swiper.slides[t.api.swiper.activeIndex].querySelector('[data-tdb-team-content]');
- assert(first.classList.contains('is-visible'),'first quote remains visible before the opening timer');
- assert(!first.classList.contains('is-concealed'),'enhancement does not blank the native first frame');
  for(let i=0;i<8;i++){t.api.swiper.slideNext(0);await t.flush();t.click();await t.flush();assert.equal(t.calls.at(-1).reviewId,'review-'+t.api.swiper.realIndex)}
  assert.equal(t.root.querySelector('[data-tdb-team-total]').textContent,'03');
  }finally{t.close()}

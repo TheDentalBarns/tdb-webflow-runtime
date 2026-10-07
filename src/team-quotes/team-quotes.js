@@ -1,4 +1,4 @@
-/* TDB shared quote carousel v4.1.0. Visible native first frame; shared Swiper, motion, ticker and optional activation. */
+/* TDB shared quote carousel v4.0.0. Native layout; shared Swiper, motion, ticker and optional activation. */
 (function () {
   'use strict';
   // Webflow selects, sorts and renders the actual slides. Do not clone or
@@ -45,7 +45,6 @@
       card.inert = index !== 0;
       card.setAttribute('aria-hidden', String(index !== 0));
       card.querySelector('[data-tdb-team-content]').classList.toggle('is-visible', index === 0);
-      card.querySelector('[data-tdb-team-content]').classList.remove('is-concealed');
     });
     root.querySelector('[data-tdb-team-current]').textContent = '01';
     root.querySelector('[data-tdb-team-position]').setAttribute('aria-label', '1 of ' + state.cards.length);
@@ -75,14 +74,6 @@
     root.dataset.tdbTeamQuoteState = 'ready';
     root.classList.add('is-enhanced');
     const contents = () => [...track.querySelectorAll('[data-tdb-team-content]')];
-    function showCurrent(entry = false) {
-      copies().forEach(card => {
-        const node = card.querySelector('[data-tdb-team-content]');
-        node.classList.remove('is-concealed');
-        node.classList.add('is-visible');
-        node.classList.toggle('is-entry', entry);
-      });
-    }
     const clearReveal = () => { clearTimeout(revealTimer); revealTimer = 0; };
     function cancelEntry() {
       clearTimeout(entryTimer); entryTimer = 0; entryObserver?.disconnect();
@@ -106,22 +97,18 @@
       const index = swiper.realIndex;
       revealTimer = setTimeout(() => {
         if (!destroyed && !swiper.animating && !gesture && swiper.realIndex === index)
-          showCurrent();
+          copies().forEach(card => card.querySelector('[data-tdb-team-content]').classList.add('is-visible'));
       }, delay);
     }
     function conceal() {
       clearReveal();
-      contents().forEach(node => {
-        node.classList.remove('is-visible', 'is-entry');
-        node.classList.add('is-concealed');
-      });
+      contents().forEach(node => node.classList.remove('is-visible', 'is-entry'));
     }
     function start() {
       if (looping) return;
-      // The opening first quote stays visible while it slides out.
-      if (!opening) conceal();
+      conceal();
       dd?.enter(authorLines(), { atPosition: true });
-      if (opening) showCurrent(true);
+      if (opening) copies().forEach(card => card.querySelector('[data-tdb-team-content]').classList.add('is-entry', 'is-visible'));
     }
     function finish(reason) {
       if (gesture || looping) return;
@@ -156,8 +143,6 @@
     });
     swiper.init();
     updateCount();
-    conceal();
-    showCurrent();
     window.TDBSwiper.watchDuration(root, viewport, swiper, '--tdb-team-duration', () => viewport.clientWidth);
     swiper.on('resize', () => {
       swiper.params.longSwipesRatio = Math.min(1, 40 / Math.max(1, viewport.clientWidth));
@@ -261,7 +246,7 @@
       root.addEventListener('focusin', () => enhance(root));
     });
   }
-  window.TDBQuoteCarousel = window.TDBTeamQuotes = Object.freeze({ version: '4.1.0', refresh: init, mount,
+  window.TDBQuoteCarousel = window.TDBTeamQuotes = Object.freeze({ version: '4.0.0', refresh: init, mount,
     destroy() { proximity?.disconnect(); [...mounted.values()].forEach(instance => instance.destroy()); }
   });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
