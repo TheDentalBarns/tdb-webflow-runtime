@@ -1,4 +1,4 @@
-const TDBImmediateModuleRoot = new URL("./", document.currentScript.src);
+const TDBImmediateModuleRoot = new URL(document.currentScript.dataset.tdbRuntimeBase || "./", document.currentScript.src);
 
 // Prepare existing native/CMS markup at the same early stage as before.
 window.TDBParallax?.refresh();
