@@ -1,4 +1,4 @@
-/* Page-break memory v1.5.0. Inline in the head, before the body is parsed. */
+/* Page-break memory v1.6.0. Inline in the head, before the body is parsed. */
 (() => {
   'use strict';
   if (window.TDBPageBreakMemory) return;
@@ -11,7 +11,9 @@
     const fade = wrapper.getAttribute?.('data-tdb-parallax-fade-start');
     const ends = [...(wrapper.querySelectorAll?.('[data-tdb-parallax-fade]') || [])].map(node => ['data-tdb-parallax-fade', 'data-tdb-parallax-fade-from', 'data-tdb-parallax-fade-property'].map(name => node.getAttribute(name) || '').join(':')).join(',');
     return (fade == null ? movement : movement + '|' + fade + '|' + wrapper.getAttribute('data-tdb-parallax-fade-end')) + (wrapper.getAttribute?.('data-tdb-parallax-progress') || '') +
-      (opacityOnly(wrapper) ? '|opacity|' + ends : '') + (wrapper.getAttribute?.('data-tdb-parallax-fade-curve') || '');
+      (opacityOnly(wrapper) ? '|opacity|' + ends : '') + (wrapper.getAttribute?.('data-tdb-parallax-fade-curve') || '') +
+      (wrapper.getAttribute?.('data-tdb-parallax-progress') === 'exit'
+        ? '|exit:' + wrapper.getAttribute('data-tdb-parallax-exit-start') + ':' + wrapper.getAttribute('data-tdb-parallax-exit-end') : '');
   };
   const property = node => node.getAttribute('data-tdb-parallax-fade-property') === 'black' ? 'backgroundColor' : 'opacity';
   const identity = node => [node.tagName, ...(node.matches('img') ? [node] : node.querySelectorAll('img'))]
@@ -55,7 +57,7 @@
     document.addEventListener('DOMContentLoaded', () => { restore(); observer.disconnect(); }, { once: true });
   }
   window.TDBPageBreakMemory = Object.freeze({
-    version: '1.5.0',
+    version: '1.6.0',
     take(node) { const value = restored.get(node); restored.delete(node); claimed.add(node); return value; },
     save(states) {
       const owned = new Map(states.map(state => [state.wrapper, state]));

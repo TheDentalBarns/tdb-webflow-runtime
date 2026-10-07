@@ -1,4 +1,4 @@
-/* TDB shared motion v1.16.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.17.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -250,11 +250,16 @@
       const from = clamp(pixels(state.from), cropLow, cropHigh), to = clamp(pixels(state.to), cropLow, cropHigh);
       const low = Math.min(from, to), high = Math.max(from, to);
       const progressHeight = state.imageProgress ? image.height : box.height;
-      const progress = clamp((view - box.top) / (view + progressHeight), 0, 1);
+      // Optional exit timing uses the native sticky frame's stable height.
+      // Example: darken while 1.3 -> 1 frame-heights of the section remain.
+      const frameHeight = state.exitFrame ? state.exitFrame.getBoundingClientRect().height : view;
+      const progress = state.exitRange
+        ? clamp((state.exitRange[0] * frameHeight - box.bottom) / Math.max(1, (state.exitRange[0] - state.exitRange[1]) * frameHeight), 0, 1)
+        : clamp((view - box.top) / (view + progressHeight), 0, 1);
       return { low, high, progress, target: from + (to - from) * progress,
         alpha: state.curve ? curveAt(state.curve, progress) : state.fade ? 1 - clamp((progress - state.fade[0]) / (state.fade[1] - state.fade[0]), 0, 1) : 1,
         visible: box.bottom > 0 && box.top < view && box.height > 0,
-        signature: [box.top + window.scrollY, box.height, image.height, view, low, high],
+        signature: [box.top + window.scrollY, box.height, image.height, view, low, high, frameHeight],
       };
     }
     function render() {
@@ -341,8 +346,13 @@
       const painted = fadeTargets.length ? getComputedStyle(fadeTargets[0])[fadeProperties[0]] : '1';
       const initial = fadeProperties[0] === 'backgroundColor' ? (painted.startsWith('rgba') ? Number.parseFloat(painted.split(',')[3]) : 1) : Number.parseFloat(painted);
       const snapshot = memory?.take(node);
+      const exitStart = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-exit-start'));
+      const exitEnd = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-exit-end'));
+      const exitRange = wrapper.getAttribute?.('data-tdb-parallax-progress') === 'exit' &&
+        Number.isFinite(exitStart) && exitStart > exitEnd && exitEnd >= 0 ? [exitStart, exitEnd] : null;
       const state = { wrapper, node, opacityOnly, y: opacityOnly ? 0 : yOf(node), original: snapshot ? snapshot.original : node.style.transform,
         restored: Boolean(snapshot), correction: null, fade, curve, fadeTargets, fadeEnds, fadeFrom, fadeProperties,
+        exitRange, exitFrame: exitRange ? wrapper.querySelector('[data-tdb-parallax-frame]') : null,
         imageProgress: wrapper.getAttribute?.('data-tdb-parallax-progress') === 'image',
         alpha: fadeTargets.length && fadeEnds[0] !== fadeFrom[0] ? clamp((initial - fadeEnds[0]) / (fadeFrom[0] - fadeEnds[0]), 0, 1) : 1,
         originalOpacity: snapshot?.originalOpacity || fadeTargets.map((target, i) => target.style[fadeProperties[i]]),
@@ -485,5 +495,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.16.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.17.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();
