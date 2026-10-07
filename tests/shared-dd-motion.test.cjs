@@ -61,3 +61,7 @@ test('fresh offscreen text aligns immediately without moving the page',()=>{
 test('an incoming quote resets an invisible DD name to fully opaque without a scroll event',()=>{
  const t=setup({opacity:'0'});try{assert.equal(t.value(),0);t.api.enter();t.flush();assert.equal(t.value(),1);t.flush();assert.equal(t.value(),1);t.scroll(100);assert(t.value()<1&&t.value()>.5);}finally{t.close();}
 });
+
+test('offscreen quote entrance adopts the page-position curve immediately',()=>{
+ const t=setup({opacity:'0',top:800});try{t.api.enter([t.node],{atPosition:true});t.flush();assert.equal(t.value(),.2);t.flush();assert.equal(t.value(),.2);t.scroll(100);assert(Math.abs(t.value()-.3)<.001);}finally{t.close();}
+});

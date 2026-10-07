@@ -1,4 +1,4 @@
-/* TDB owner/principal quotes v3.0.1. Native CMS slides and layout; shared Swiper, motion and ticker. */
+/* TDB owner/principal quotes v3.0.2. Native CMS slides and layout; shared Swiper, motion and ticker. */
 (function () {
   'use strict';
   // Webflow selects, sorts and renders the actual slides. Do not clone or
@@ -101,7 +101,7 @@
     }
     function start() {
       conceal();
-      dd?.enter(swiper.slides[swiper.activeIndex].querySelectorAll('[data-tdb-team-author-line]'));
+      dd?.enter(swiper.slides[swiper.activeIndex].querySelectorAll('[data-tdb-team-author-line]'), { atPosition: true });
       if (opening) swiper.slides[swiper.activeIndex].querySelector('[data-tdb-team-content]').classList.add('is-entry', 'is-visible');
     }
     function finish() {
@@ -143,7 +143,7 @@
     // Swiper's geometry equal to the native viewport, including narrow phones.
     swiper.on('beforeResize', () => { swiper.params.width = viewport.getBoundingClientRect().width; });
     dd = motion.ddText(track.querySelectorAll('[data-tdb-team-author-line]'));
-    dd.enter(swiper.slides[swiper.activeIndex].querySelectorAll('[data-tdb-team-author-line]'));
+    dd.enter(swiper.slides[swiper.activeIndex].querySelectorAll('[data-tdb-team-author-line]'), { atPosition: true });
     if (!entryPending) settle(0);
     if (entryPending) {
       entryObserver = new IntersectionObserver(entries => {
@@ -220,7 +220,7 @@
       root.addEventListener('focusin', () => enhance(root));
     });
   }
-  window.TDBTeamQuotes = Object.freeze({ version: '3.0.1', refresh: init, mount,
+  window.TDBTeamQuotes = Object.freeze({ version: '3.0.2', refresh: init, mount,
     destroy() { proximity?.disconnect(); [...mounted.values()].forEach(instance => instance.destroy()); }
   });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });

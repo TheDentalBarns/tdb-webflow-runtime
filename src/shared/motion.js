@@ -1,4 +1,4 @@
-/* TDB shared motion v1.11.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.11.1. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -160,14 +160,25 @@
       ddNodes.set(node, state); owner.states.add(state); owner.resize?.observe(node); owner.schedule();
     }
     let destroyed = false;
-    return Object.freeze({ enter(nodes = list) {
+    return Object.freeze({ enter(nodes = list, { atPosition = false } = {}) {
       // A slide entrance is an explicit new visual state, not page restoration.
       for (const node of nodes) {
         const state = ddNodes.get(node);
         if (!state || !list.includes(node)) continue;
-        state.value = state.desired = state.ceiling = 1;
+        let value = 1;
+        if (atPosition) {
+          const root = state.owner.root, rect = node.getBoundingClientRect();
+          const height = root ? root.clientHeight : window.innerHeight;
+          const origin = root ? root.getBoundingClientRect().top + root.clientTop : 0;
+          const range = state.mode === 'viewport' ? height : state.mode === 'native'
+            ? Math.min(height + rect.height, document.documentElement.scrollHeight) : height + rect.height;
+          state.progress = ddClamp((height - (rect.top - origin)) / Math.max(1, range));
+          value = ddOpacity(state.progress, state.preset);
+        }
+        state.value = state.desired = value;
+        state.ceiling = Math.max(value, state.preset === 'orange' ? 1 : .5);
         state.restored = false; state.geometry = null; state.geometrySeen = true;
-        node.style.opacity = '1'; state.owner.refresh();
+        node.style.opacity = String(value); state.owner.refresh();
       }
     }, refresh() { for (const node of list) ddNodes.get(node)?.owner.refresh(); }, destroy() {
       if (destroyed) return; destroyed = true;
@@ -424,5 +435,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.11.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.11.1', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();
