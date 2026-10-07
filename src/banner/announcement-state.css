@@ -12,7 +12,7 @@
 .tdb-announcement[data-rotation="manual"] .tdb-announcement-progress,.tdb-announcement[data-rotation="static"] .tdb-announcement-progress{visibility:hidden}
 .tdb-announcement-circle .tdb-announcement-arrow{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.25}
 .tdb-announcement [hidden]{display:none!important}
-@media(max-width:640px){.tdb-announcement{gap:8px}.tdb-announcement-panel{grid-template-rows:32px 32px;gap:3px}.tdb-announcement-title{font-size:12px;line-height:16px}.tdb-announcement-lower{font-size:14px;line-height:22px}.tdb-announcement-countdown{gap:5px}.tdb-announcement-value{font-size:13px;line-height:18px;padding:1px 3px}.tdb-announcement-label{line-height:8px}}
+@media(min-width:479px) and (max-width:640px){.tdb-announcement{gap:8px}.tdb-announcement-panel{grid-template-rows:32px 32px;gap:3px}.tdb-announcement-title{font-size:12px;line-height:16px}.tdb-announcement-lower{font-size:14px;line-height:22px}.tdb-announcement-countdown{gap:5px}.tdb-announcement-value{font-size:13px;line-height:18px;padding:1px 3px}.tdb-announcement-label{line-height:8px}}
 .tdb-announcement-track{transition-timing-function:ease;box-sizing:content-box}
 .tdb-announcement{touch-action:pan-y pinch-zoom;user-select:none}
 .tdb-announcement-circle,.tdb-announcement-spacer{pointer-events:none}

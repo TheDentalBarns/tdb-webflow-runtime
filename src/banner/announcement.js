@@ -169,7 +169,7 @@
       if (!button.contains(event.target) && !sameTouch) return;
       openedTouch = null; event.preventDefault(); event.stopImmediatePropagation();
     }, true);
-    swiper.on('touchStart', () => { gesture = true; pauseRotation(); });
+    swiper.on('touchStart', () => { gesture = true; pauseRotation(); render(); });
     swiper.on('sliderFirstMove', () => { manual = true; pauseRotation(); });
     swiper.on('touchEnd', () => { gesture = false; queueMicrotask(render); });
     ['touchcancel','pointercancel'].forEach(type => button.addEventListener(type, () => { gesture = false; render(); }));
@@ -240,7 +240,7 @@
       threshold:10, touchAngle:45, touchStartPreventDefault:false,
       allowTouchMove:!signatureOnly, a11y:false, keyboard:false, autoplay:false,
       on: {
-        beforeTransitionStart() { pauseRotation(); rotationLeft = dwell; moving = true; },
+        beforeTransitionStart() { pauseRotation(); rotationLeft = dwell; moving = true; if (swiper) render(); },
         slideChange(instance) { signatureState = instance.realIndex === 0; },
         transitionEnd() { moving = false; render(); },
       }
