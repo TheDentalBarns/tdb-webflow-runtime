@@ -1,0 +1,18 @@
+/* Home review heading: reserve its final Sweet Sans line count before font swap.
+ * Source of truth for the inline Home-head style[data-tdb-home-heading-reserve].
+ * 90vw content, 2rem mobile type, .225rem tracking, 1.2 line-height.
+ * Recheck the thresholds if the headline, type scale or content width changes.
+ */
+html[data-wf-page="677cf86df9952f978d94d8a9"] .review-intro_section .heading-style-h3.hero-padding.centre {
+  min-height: 2.4em;
+}
+@media (max-width: 435.25px) {
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .review-intro_section .heading-style-h3.hero-padding.centre {
+    min-height: 3.6em;
+  }
+}
+@media (max-width: 325px) {
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .review-intro_section .heading-style-h3.hero-padding.centre {
+    min-height: 4.8em;
+  }
+}
