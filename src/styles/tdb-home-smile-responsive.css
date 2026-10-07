@@ -1,0 +1,35 @@
+/* Home section layout only; the shared component owns card presentation. */
+@media screen and (min-width: 480px) and (max-width: 991px) and (max-height: 500px) and (orientation: landscape) {
+  .testimonial15_slide-content.tdb-home-smile-layout { display: flex; }
+  .testimonial15_client-image-wrapper.tdb-home-smile-wrapper {
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    position: relative;
+    top: auto;
+    overflow: visible;
+  }
+  .testimonial15_content-right.tdb-home-smile-link { text-align: left; }
+}
+
+/* Narrow portrait tablets: retain the 50vh card and reveal neighbours. */
+@media screen and (min-width: 768px) and (max-width: 800px) and (orientation: portrait) {
+  .section_smile-gallery .padding-section-large {
+    padding-top: 8rem;
+    padding-bottom: 8rem;
+  }
+  .testimonial15_slide-content.tdb-home-smile-layout {
+    row-gap: 8rem;
+  }
+
+  .testimonial15_client-image-wrapper.tdb-home-smile-wrapper {
+    justify-self: start;
+    margin-left: 0;
+    margin-right: auto;
+    overflow: visible;
+  }
+  .tdb-home-smile-wrapper .highlight-swiper_component.tdb-smile-carousel,
+  .tdb-home-smile-wrapper .swiper.tdb-smile-viewport {
+    overflow: visible;
+  }
+}

@@ -1,4 +1,6 @@
-# Smile Gallery native migration — 6 October 2026
+# Smile Gallery ownership and native migration
+
+Current responsive ownership and build instructions are in [responsive-ownership.md](responsive-ownership.md), updated 7 October 2026. The migration measurements below describe the 6 October baseline, not today's full payload or release pins.
 
 The reusable Gallery and full `/smile-gallery` page now separate Designer layout from runtime behaviour. This branch preserves the earlier service, owner quote, navbar and page-break integrations. Production publishing is outside this review.
 
