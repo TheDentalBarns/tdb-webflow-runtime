@@ -7,10 +7,11 @@ Image binding, inherited alt text, eager priority, logo and content remain nativ
 
 Attributes on the wrapper:
 - data-tdb-page-break="service-hero"
+- data-tdb-parallax-progress="image"
 - data-tdb-parallax-from="0vh"
 - data-tdb-parallax-to="2vh"
-- data-tdb-parallax-fade-start="0.6352941176470588"
-- data-tdb-parallax-fade-end="0.8470588235294118"
+- data-tdb-parallax-fade-start="0.6"
+- data-tdb-parallax-fade-end="0.8"
 
 The image has data-tdb-page-break-image and data-tdb-parallax-fade. Its sibling
 gradient also has data-tdb-parallax-fade. Fade is an optional channel in the same
@@ -18,15 +19,17 @@ scheduler; other page breaks/footer retain their movement-only behavior.
 
 Movement spans the whole passage instead of the old 65–100% delay. First visible
 position is retained and user scroll consumes its initial correction. No startup
-tween or perpetual frame loop. Memory 1.2.0 restores both channels on reload.
+tween or perpetual frame loop. Memory 1.2.1 restores both channels on reload.
 
-Old fade progress used the moving 80vh image. Stable wrapper progress uses 70vh.
-Multiplying .6/.8 by 1.8/1.7 preserves the old untransformed scroll positions
-(scroll 8vh to 44vh for a hero starting at document top). The small feedback from
-IX2 measuring its own translated image is intentionally removed.
+Fade progress uses the stationary wrapper top and the image height, selected by
+`data-tdb-parallax-progress="image"`. This preserves 60–80% timing independently
+of native responsive wrapper padding/min-heights. It never reads translated
+image top, avoiding transform feedback. Other wrappers retain their own progress.
 
 Native class tdb-service-parallax-image replaces header138_image, with the same
-80vh height/cover/50% 25% object position, now top -2vh to cover positive travel.
+80vh height/cover/50% 25% object position, now top -2vh to cover positive travel. Phone height remains 66vh at <=479px. A native min-height of calc(100% + 2vh)
+provides sufficient crop if responsive wrapper padding makes 66vh too short;
+that slightly increases the image height (and fade passage) where necessary.
 Native tdb-service-parallax-gradient replaces Service Hero Gradient with the same
 70vh height, stacking and gradient. This prevents old a-65 selector writes to
 both channels without runtime style/class surgery. Original image ID remains.

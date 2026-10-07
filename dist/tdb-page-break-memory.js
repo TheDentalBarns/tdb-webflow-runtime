@@ -1,4 +1,4 @@
-/* Page-break memory v1.2.0. Inline in the head, before the body is parsed. */
+/* Page-break memory v1.2.1. Inline in the head, before the body is parsed. */
 (() => {
   'use strict';
   if (window.TDBPageBreakMemory) return;
@@ -8,7 +8,7 @@
   const config = wrapper => {
     const movement = ['data-tdb-parallax-from', 'data-tdb-parallax-to'].map(name => wrapper.getAttribute?.(name) || '').join('|');
     const fade = wrapper.getAttribute?.('data-tdb-parallax-fade-start');
-    return fade == null ? movement : movement + '|' + fade + '|' + wrapper.getAttribute('data-tdb-parallax-fade-end');
+    return (fade == null ? movement : movement + '|' + fade + '|' + wrapper.getAttribute('data-tdb-parallax-fade-end')) + (wrapper.getAttribute?.('data-tdb-parallax-progress') || '');
   };
   const identity = node => [node.tagName, ...(node.matches('img') ? [node] : node.querySelectorAll('img'))]
     .map(value => typeof value === 'string' ? value : value.getAttribute('src') || '').join('|');
@@ -45,7 +45,7 @@
     document.addEventListener('DOMContentLoaded', () => { restore(); observer.disconnect(); }, { once: true });
   }
   window.TDBPageBreakMemory = Object.freeze({
-    version: '1.2.0',
+    version: '1.2.1',
     take(node) { const value = restored.get(node); restored.delete(node); claimed.add(node); return value; },
     save(states) {
       const owned = new Map(states.map(state => [state.wrapper, state]));
