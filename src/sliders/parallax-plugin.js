@@ -14,8 +14,8 @@ function h(e, t) {
         e.setAttribute(i, "true"), e.dataset.tdbSliderType = t;
     }
 function w(e, n) {
-        if (e.classList.contains('tdb-service-parallax')) {
-            const slide = e.querySelector('.tdb-service-slide');
+        if (e.classList.contains('tdb-service-parallax') || e.hasAttribute('data-tdb-treatment')) {
+            const slide = e.querySelector('.tdb-service-slide,.tdb-treatment-slide');
             if (!slide) return n;
             // Designer reserves the real slide margin before JS. Swiper must
             // measure that same margin, including breakpoint changes: its old
@@ -59,7 +59,7 @@ function p(root) {
         return c(root) && matchMedia(s).matches && !window.TDBMotion.reduced.matches;
     }
 function E(e) {
-        return "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage && e.matches("#All-treatments .tdb-banner-parallax");
+        return window.TDBTreatmentParallax?.matches(e) || "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage && e.matches("#All-treatments .tdb-banner-parallax");
     }
 function x(e) {
         return E(e) && matchMedia("(max-width:767px)").matches ? .02 * window.innerWidth : 0;
@@ -136,7 +136,7 @@ function A(e) {
             }, l = (e, t) => e.getAttribute("data-swiper-slide-index") ?? String(t);
             function d(e) {
                 const n = [ ...t.querySelectorAll(":scope > .swiper-wrapper > .swiper-slide") ], i = n[e];
-                return i ? (a = l(i, e), n.forEach((e, t) => e.toggleAttribute("data-tdb-banner-wide", l(e, t) === a)), 
+                return i ? (a = l(i, e), n.forEach((e, t) => (e.toggleAttribute("data-tdb-banner-wide", l(e, t) === a), e.classList.contains("tdb-treatment-slide") && (e.classList.toggle("is-wide", l(e, t) === a), e.classList.toggle("is-narrow", l(e, t) !== a)))), 
                 n) : n;
             }
             n.on("beforeInit", () => d(n.params.initialSlide || 0)), n.slideTo = function(e = 0, t = this.params.speed, n = !0, c, u) {
@@ -249,7 +249,7 @@ function P(e) {
             e.classList.toggle("is-selected", e === n);
         });
     }
-const plugin=Object.freeze({version:'1.0.1',selector:t,
+const plugin=Object.freeze({version:'1.1.0',selector:t,
  beforeObserve(root){if(u(root)||p(root))root.classList.add('tdb-entry-pending');},
  mount(root){A(root);return m(root)?.swiper;},
  refresh(root=document){window.TDBParallax?.refresh(root);window.TDBSwiper.refresh('parallax',root);}

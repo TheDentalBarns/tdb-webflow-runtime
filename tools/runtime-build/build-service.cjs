@@ -8,7 +8,7 @@ const targets = {
   'dist/tdb-motion-policy.min.js': ['src/shared/motion-policy.js'],
   'dist/tdb-immediate-runtime-batch.min.js': ['src/sliders/parallax.js', 'src/runtime/immediate-runtime-batch.js'],
   'dist/tdb-sliders.js': ['src/sliders/sliders.js'],
-  'dist/tdb-parallax.js': ['src/sliders/parallax-plugin.js'],
+  'dist/tdb-parallax.js': ['src/sliders/treatment-plugin.js', 'src/sliders/parallax-plugin.js'],
   'dist/tdb-gallery.js': ['src/sliders/gallery-plugin.js'],
   'dist/tdb-slider-focus.js': ['src/shared/slider-focus.js'],
   'dist/tdb-vip-drawer.js': ['src/shared/panel-motion.js', 'src/vip-drawer/vip-motion.js', 'src/vip-drawer/vip-drawer.js'],

@@ -12,8 +12,9 @@
   const landscape = matchMedia('(orientation:landscape)');
   const desktop = matchMedia('(min-width:992px)');
   const layoutSelector = '.tdb-service-content,.tdb-service-heading-row,.tdb-service-title,.tdb-service-copy,.tdb-service-link-source,.tdb-service-controls,.tdb-service-buttons,.tdb-service-cta';
-  const owns = root => root?.classList.contains('tdb-service-parallax');
+  const owns = root => root?.classList.contains('tdb-service-parallax') || root?.hasAttribute('data-tdb-treatment');
   function layout(root) {
+    if (root.hasAttribute('data-tdb-treatment')) return;
     const phone = landscape.matches && document.documentElement.classList.contains('tdb-phone-landscape');
     root.querySelectorAll(layoutSelector).forEach(node => node.classList.toggle('is-phone-landscape', phone));
     root.dataset.tdbServiceLayout = phone ? 'phone-landscape' : portrait.matches ? 'portrait' : desktop.matches ? 'desktop' : 'tablet';
@@ -22,7 +23,7 @@
     if (!owns(root)) return;
     roots.add(root);
     layout(root);
-    root.querySelectorAll('.tdb-service-controls,.tdb-service-cta').forEach(node => node.classList.add('is-ready'));
+    root.querySelectorAll('.tdb-service-controls,.tdb-service-cta,.tdb-treatment-controls,.tdb-treatment-cta').forEach(node => node.classList.add('is-ready'));
   }
   function setMoving(root, value) {
     if (owns(root)) root.querySelectorAll('[data-tdb-service-copy]').forEach(node => node.classList.toggle('is-moving', value));
@@ -34,7 +35,7 @@
     if (!owns(root)) return;
     const current = () => {
       const index = swiper.slides[swiper.activeIndex]?.getAttribute('data-swiper-slide-index');
-      swiper.slides.forEach((slide, i) => slide.querySelector('.tdb-service-card')?.classList.toggle('is-current', index === null || index === undefined ? i === swiper.activeIndex : slide.getAttribute('data-swiper-slide-index') === index));
+      swiper.slides.forEach((slide, i) => slide.querySelector('.tdb-service-card,.tdb-treatment-blur')?.classList.toggle('is-current', index === null || index === undefined ? i === swiper.activeIndex : slide.getAttribute('data-swiper-slide-index') === index));
     };
     layout(root);
     current();
@@ -42,7 +43,7 @@
     swiper.on('beforeDestroy', () => {
       roots.delete(root);
       swiper.off('slideChange loopFix resize update', current);
-      root.querySelectorAll('.tdb-service-controls,.tdb-service-cta').forEach(node => node.classList.remove('is-ready'));
+      root.querySelectorAll('.tdb-service-controls,.tdb-service-cta,.tdb-treatment-controls,.tdb-treatment-cta').forEach(node => node.classList.remove('is-ready'));
     });
   }
   function resize() {
@@ -142,22 +143,22 @@
         const a = function(r, i) {
             if (!eligible(r)) return null;
             const a = Array.from(i.querySelectorAll(":scope > .swiper-wrapper > .swiper-slide:not(.swiper-slide-duplicate)")), o = a.map(e => {
-                const t = e.querySelector(".service-card-button-wrap a[href]");
+                const t = e.querySelector(".service-card-button-wrap a[href],.tdb-treatment-source a[href]");
                 return t && {
                     href: t.getAttribute("href"),
                     target: t.getAttribute("target"),
                     rel: t.getAttribute("rel"),
                     label: t.textContent.replace(/\s+/g, " ").trim(),
-                    title: e.querySelector(".service-card-mobile-title")?.textContent.trim() || ""
+                    title: e.querySelector(".service-card-mobile-title,.tdb-treatment-title")?.textContent.trim() || ""
                 };
-            }), s = i.querySelector(".service-card-button-wrap a[href]");
+            }), s = i.querySelector(".service-card-button-wrap a[href],.tdb-treatment-source a[href]");
             if (!s) return null;
             const l = t + ":" + [ ...document.querySelectorAll(".parallax-swiper_component") ].indexOf(r), d = "back_forward" === performance.getEntriesByType?.("navigation")[0]?.type ? history.state?.tdbParallax?.[l] : null, c = d?.href ? Number.isInteger(d.index) && o[d.index]?.href === d.href ? d.index : o.findIndex(e => e?.href === d.href) : -1, u = c >= 0 ? c : 0, p = c >= 0;
             if (u) {
               i.style.setProperty("--tdb-parallax-initial-index", String(u));
               if (r.classList.contains('tdb-service-parallax')) i.querySelector(':scope > .swiper-wrapper')?.classList.add('tdb-parallax-initial-pose');
             }
-            const nativeLayer = r.querySelector(':scope > .tdb-service-cta');
+            const nativeLayer = r.querySelector(':scope > .tdb-service-cta,:scope > .tdb-treatment-cta');
             const nativeButton = nativeLayer?.querySelector('[data-tdb-parallax-cta]');
             const b = nativeButton || s.cloneNode(!0);
             b.removeAttribute("aria-hidden"), b.removeAttribute("tabindex"), b.removeAttribute("data-fade-slide"), 
@@ -347,7 +348,7 @@
 
   // Samples rendered geometry so dragging, easing and loop copies share a clock.
   const progress = (() => {
-  const nativeSelector='.tdb-service-parallax';
+  const nativeSelector='.tdb-service-parallax,[data-tdb-treatment]';
   const homeSelector='.section_gallery14 .parallax-swiper_component:not(.tdb-banner-parallax),#All-treatments .tdb-banner-parallax';
   // Track and marker appearance are native Webflow classes.
   const bindings=new WeakMap();
@@ -357,13 +358,13 @@
     const previous=bindings.get(component);
     if(previous?.wrapper===wrapper)return true;
     previous?.dispose();
-    const nativeTrack=component.querySelector(':scope > .tdb-service-progress[data-tdb-native-progress]');
+    const nativeTrack=component.querySelector(':scope > [data-tdb-native-progress]');
     if(!nativeTrack)component.querySelector(':scope > .tdb-service-progress')?.remove();
     const treatment=!!component.closest('#All-treatments');
     const track=nativeTrack||document.createElement('div'),fill=nativeTrack?.firstElementChild||document.createElement('span');
-    track.className='tdb-service-progress';fill.className='tdb-service-progress-fill';
+    if(!nativeTrack){track.className='tdb-service-progress';fill.className='tdb-service-progress-fill';}
     const wrapped=nativeTrack?.children[1]||fill.cloneNode();
-    if(treatment)[fill,wrapped].forEach(node=>node.classList.add('is-treatment')); 
+    if(treatment&&!component.hasAttribute('data-tdb-treatment'))[fill,wrapped].forEach(node=>node.classList.add('is-treatment')); 
     track.setAttribute('aria-hidden','true');track.append(fill,wrapped);component.append(track);
     let frame=0,visible=false,disposed=false,lastTravel=null,lastSegment=null;
     let slides=[],count=0,structureDirty=true,trackWidth=0,dpr=1;
@@ -444,6 +445,12 @@
     function layout(){
       // Preserve fractional geometry: offsetTop/offsetHeight round separately
       // and can leave a one-pixel gap between the image and its track.
+      if(component.hasAttribute('data-tdb-treatment')) {
+        // Designer owns the focused-card track geometry at every breakpoint.
+        dpr=window.devicePixelRatio||1;
+        trackWidth=track.getBoundingClientRect().width;
+        schedule();return;
+      }
       const box=viewport.getBoundingClientRect(),parent=component.getBoundingClientRect();
       track.style.top=(box.bottom-parent.top-component.clientTop)+'px';
       dpr=window.devicePixelRatio||1;
@@ -485,7 +492,7 @@
     progress.refresh(root);
   }
   window.TDBParallax = Object.freeze({
-    version: '1.1.0', refresh, prepare: controls.prepare,
+    version: '1.2.0', refresh, prepare: controls.prepare,
     bind: presentation.bind, setMoving: presentation.setMoving, setEntry: presentation.setEntry
   });
 })();
