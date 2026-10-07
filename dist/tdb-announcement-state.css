@@ -1,0 +1,19 @@
+/* Runtime states, SVG and the existing 640px breakpoint. Layout lives in Designer. */
+#tdb-elfsight-timer-shell[hidden]{display:none!important}
+#tdb-elfsight-timer-shell[data-tdb-announcement-pending]{visibility:hidden!important;transform:translate3d(0,-100%,0)!important;opacity:0!important;pointer-events:none!important;transition:none!important}
+.tdb-announcement:focus-visible{outline:1px solid currentColor;outline-offset:-6px}
+.tdb-announcement-slot[data-live="true"]::before,.tdb-announcement-slot[data-live="true"]::after{content:"";position:absolute;left:-16px;top:calc(.5lh - 3px);width:6px;height:6px;border-radius:50%;background:var(--base-color-brand--orange-1,#f9f2e6);pointer-events:none}
+.tdb-announcement-slot[data-live="true"]::before{opacity:1}
+.tdb-announcement-slot[data-live="true"]::after{opacity:0;animation:tdb-announcement-live 2.8s ease-out infinite;animation-play-state:paused;transform-origin:center;backface-visibility:hidden}
+.tdb-announcement-slot[data-pulse="true"]::after{animation-play-state:running}
+@keyframes tdb-announcement-live{0%{transform:scale(1);opacity:0}12%{opacity:.6}70%,100%{transform:scale(2.4);opacity:0}}
+.tdb-announcement-circle .tdb-announcement-dial{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1;transform:rotate(-90deg)}
+.tdb-announcement-dial circle:first-child{opacity:.3}
+.tdb-announcement[data-rotation="manual"] .tdb-announcement-progress,.tdb-announcement[data-rotation="static"] .tdb-announcement-progress{visibility:hidden}
+.tdb-announcement-circle .tdb-announcement-arrow{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.25}
+.tdb-announcement [hidden]{display:none!important}
+@media(max-width:640px){.tdb-announcement{gap:8px}.tdb-announcement-panel{grid-template-rows:32px 32px;gap:3px}.tdb-announcement-title{font-size:12px;line-height:16px}.tdb-announcement-lower{font-size:14px;line-height:22px}.tdb-announcement-countdown{gap:5px}.tdb-announcement-value{font-size:13px;line-height:18px;padding:1px 3px}.tdb-announcement-label{line-height:8px}}
+.tdb-announcement-track{transition-timing-function:ease;box-sizing:content-box}
+.tdb-announcement{touch-action:pan-y pinch-zoom;user-select:none}
+.tdb-announcement-circle,.tdb-announcement-spacer{pointer-events:none}
+.tdb-announcement-shell:not([data-tdb-announcement-pending]){visibility:visible}

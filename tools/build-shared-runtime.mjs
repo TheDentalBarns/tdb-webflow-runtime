@@ -5,6 +5,8 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const entries = {
+  'src/banner/announcement.js': 'tdb-announcement.js',
+  'src/banner/announcement-state.css': 'tdb-announcement-state.css',
   'src/partners/loader.js': 'tdb-logo-marquee-loader.js',
   'src/partners/marquee.js': 'tdb-logo-marquee.js',
   'src/shared/modules.js': 'tdb-modules.js',

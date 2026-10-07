@@ -34,25 +34,32 @@
     updateState();
   }
 
+  let scheduled = false, mounted = false, attempts = 0;
   function createTimerShell() {
-    let shell = document.getElementById(shellId);
-    if (!shell) {
-      shell = document.createElement('div');
-      shell.id = shellId;
-      shell.className = 'tdb-elfsight-shell';
-      document.body.appendChild(shell);
-    }
+    const shell = document.querySelector('[data-tdb-announcement][data-placement="floating"]');
+    if (!shell || mounted || attempts >= 3) return;
+    attempts++;
+    // The component remains editable in Footer; body ownership avoids transformed
+    // page wrappers changing fixed positioning and keeps the drawer's inert handling.
+    if (shell.parentElement !== document.body) document.body.append(shell);
     attachTimerState(shell);
-    window.TDBAnnouncement.mount(shell);
+    window.TDBAnnouncementLoader.load().then(api => {
+      api.mount(shell); mounted = true;
+    }).catch(() => {
+      scheduled = false;
+      console.warn('TDB banner: shared modules unavailable; will retry on interaction.');
+    });
   }
-
   function scheduleTimerShell() {
-    if ('requestIdleCallback' in window) requestIdleCallback(createTimerShell, { timeout: 1500 });
-    else setTimeout(createTimerShell, 200);
+    if (scheduled || mounted) return;
+    scheduled = true;
+    if ('requestIdleCallback' in window) requestIdleCallback(createTimerShell, {timeout:1500});
+    else setTimeout(createTimerShell,200);
   }
+  ['scroll','pointerdown','keydown','touchstart'].forEach(type => addEventListener(type,scheduleTimerShell,{passive:true}));
+  addEventListener('online', () => { attempts = 0; scheduleTimerShell(); });
+  addEventListener('pageshow', () => { attachTimerState(document.getElementById(shellId)); if (scrollY) scheduleTimerShell(); });
 
-  ['scroll', 'pointerdown', 'keydown', 'touchstart'].forEach(eventName => addEventListener(eventName, scheduleTimerShell, { once: true, passive: true }));
-  addEventListener('pageshow', () => attachTimerState(document.getElementById(shellId)));
 })();
 
 (() => {

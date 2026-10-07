@@ -33,7 +33,7 @@ const targets = ['dist/tdb-navbar.min.js', 'dist/tdb-navbar-loader.js', 'dist/td
     } else if (output === 'dist/tdb-navbar-loader.js') {
       input = read('src/loaders/navbar-loader.js');
     } else {
-      input = ['src/banner/announcement.js', 'src/vip-drawer/vip-focus.js',
+      input = ['src/banner/loader.js', 'src/vip-drawer/vip-focus.js',
         'src/runtime/deferred-ui.js', 'src/runtime/site-asset-loader.js'].map(read).join('\n');
     }
     const result = await terser.minify(input, {compress:true, mangle:true});

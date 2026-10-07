@@ -1,7 +1,7 @@
 /* Hosted feature modules share the release pin; loading stays in the footer runtime. */
 const TDB_MODULE_ROOT = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@61cec90cdba3d42a29d3c31194b692c251e8d421/dist/';
 const TDB_SLIDER_ROOT = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@59a7ba5a8ed95c07d738e067e65795a3daf23c05/dist/';
-const TDBFooterModuleRoot = new URL('./', document.currentScript.src);
+const TDBFooterModuleRoot = new URL('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@336d76648a3395fad41dd5bec9749b3554f14c34/dist/');
 function tdbEnsureSliderFocus() {
   return tdbEnsureUI().then(() => window.TDBModules.load(new URL('tdb-slider-focus.js', TDBFooterModuleRoot), { attribute: 'data-tdb-slider-focus-js', ready: () => Boolean(window.TDBSliderFocus) }));
 }
