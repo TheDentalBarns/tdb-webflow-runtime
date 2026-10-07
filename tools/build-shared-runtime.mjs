@@ -31,7 +31,7 @@ const entries = {
   'src/reviews/native/list.js': 'tdb-review-list.js',
   'src/reviews/native/availability.js': 'tdb-review-availability.js',
   'src/reviews/native/introduction.js': 'tdb-review-introduction.js',
-  'src/reviews/native/quotes.js': 'tdb-review-quotes.js',
+  'src/reviews/native/quotes.js': 'tdb-review-quote-adapter.js',
   'src/reviews/native/cards.js': 'tdb-review-cards.js',
   'src/reviews/native/drawer-content.js': 'tdb-reviews.js',
   'src/five-senses/loader.js': 'tdb-five-senses-loader.js',
@@ -41,6 +41,11 @@ const entries = {
   'src/calculator/loader.js': 'tdb-calculator-loader.js',
 };
 await mkdir(resolve(root, 'dist'), { recursive: true });
+// Compatibility artifact retained; pages load only the shared canonical filename.
+const quoteSource = await readFile(resolve(root, 'src/team-quotes/team-quotes.js'), 'utf8');
+if (process.argv.includes('--check')) {
+  if (await readFile(resolve(root, 'dist/tdb-quote-carousel.js'), 'utf8') !== quoteSource) throw Error('Shared quote carousel differs from source');
+} else await writeFile(resolve(root, 'dist/tdb-quote-carousel.js'), quoteSource);
 for (const [source, artifact] of Object.entries(entries)) {
   const text = await readFile(resolve(root, source), 'utf8');
   const output = resolve(root, 'dist', artifact);
