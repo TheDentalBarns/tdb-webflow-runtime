@@ -1,4 +1,4 @@
-/* Smile Gallery presentation v4.0.1. Native Designer structure; shared ticker and motion. */
+/* Smile Gallery presentation v4.0.2. Native Designer structure; shared ticker and motion. */
 (() => {
   'use strict';
   if (window.TDBSmileCards) return;
@@ -107,26 +107,6 @@
         const details = slide.querySelector('.tdb-smile-details');
         if (details) revealObserver.observe(details, {attributes:true,attributeFilter:['style']});
       });
-      // These native grid sizers contain only CMS text. The browser calculates
-      // maximum column dimensions; JS never reads or writes presentation geometry.
-      const lines = Math.max(3, ...originals.map(slide => [...slide.querySelectorAll('.tdb-smile-treatment')].filter(node => !node.classList.contains('w-condition-invisible')).length));
-      // Content count is data, while its responsive height expression is authored
-      // in Designer. All currently published records fit the native three rows.
-      for (const [name, value] of [['--tdb-smile-treatment-lines', lines], ['--tdb-smile-extra-lines', lines - 3]])
-        if (root.style.getPropertyValue(name) !== String(value)) root.style.setProperty(name, String(value));
-      viewports.forEach((viewport, column) => {
-        const seed = viewport.querySelector('.tdb-smile-fact-sizer');
-        const texts = [...new Set(originals.map(slide => values(slide)[column]))];
-        const key = texts.join('\n');
-        if (viewport.dataset.sizingValues === key) return;
-        viewport.querySelectorAll('.tdb-smile-fact-sizer').forEach(node => { if (node !== seed) node.remove(); });
-        texts.forEach((text, index) => {
-          const node = index === 0 ? seed : seed.cloneNode(true);
-          node.textContent = text; node.setAttribute('aria-hidden', 'true');
-          if (index) viewport.insertBefore(node, slots[column]);
-        });
-        viewport.dataset.sizingValues = key;
-      });
       update();
       if (swiper && !moving && !showTimer && !swiper.animating) {
         if (revealed) showText(swiper.realIndex);
@@ -173,17 +153,6 @@
     }});
     roots.set(root, api); root.setAttribute('data-tdb-smile-card-design', '4.0');
     refresh();
-    const galleryLink = root.closest('.section_smile-gallery')?.querySelector('[data-tdb-gallery-count-link]');
-    if (galleryLink && !galleryLink.dataset.countPrepared) {
-      galleryLink.dataset.countPrepared = 'true';
-      fetch(galleryLink.getAttribute('href'), {credentials:'same-origin',priority:'low'}).then(response => response.ok ? response.text() : '').then(html => {
-        if (!html || disposed) return;
-        const source = document.createElement('template'); source.innerHTML = html;
-        const count = source.content.querySelectorAll('[data-tdb-sg-list] [data-tdb-sg-case]').length;
-        const countLabel = galleryLink.querySelector('[data-tdb-gallery-count-label]');
-        if (count && countLabel) countLabel.textContent = 'Explore ' + count.toLocaleString('en-GB') + (count === 1 ? ' smile transformation' : ' smile transformations');
-      }).catch(() => {});
-    }
     const token = revision;
     tickerReady().then(() => {
       if (disposed || token !== revision) return;
@@ -198,7 +167,7 @@
     });
     return api;
   }
-  window.TDBSmileCards = Object.freeze({version:'4.0.1',prepare,prune(){roots.forEach((api,root)=>{if(!root.isConnected)api.destroy();});}});
+  window.TDBSmileCards = Object.freeze({version:'4.0.2',prepare,prune(){roots.forEach((api,root)=>{if(!root.isConnected)api.destroy();});}});
 })();
 
 /* TDB gallery carousel plugin v1.1.0. Native Smile Gallery; existing highlight behaviour. */
