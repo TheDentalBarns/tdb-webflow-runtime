@@ -61,4 +61,18 @@ test covering finite edges, 20/40/60/80/85 batches, in-flight append, failure/re
 selected-review handoff, cached batches and destroy/remount. Browser geometry was
 checked at 1440, 1024, 768, 744, 844, 667, 390 and 320px widths.
 
-Staging only. Custom production domains are not part of this release.
+Published to Webflow staging only on 7 October 2026, runtime release
+`28db8e7b795af20c6b08aa403127e2666be7acf0`. Custom production domains were not published.
+
+The published HTML contains 20 real CMS cards in exactly the shared feed's order.
+Staging browser checks passed at all eight sizes above: aligned card/mark/controls,
+no horizontal page overflow, accessible Read more, focused opacity 1 and faded
+neighbour opacity .5. The actual CMS progressed 20 → 40 → 60 → 80 → 85; the one-star
+review is the last item and Next is disabled there. Touch swipe, shared chrome
+focus, and opening the selected card in the existing drawer all passed without
+page errors. The existing drawer touch regression also passed cancelled drags,
+portrait reading scroll, arrow handoff, phone-landscape reading and the shared
+motion policy. Source/CDN review-card bytes matched.
+
+`tests/review-cards-staging.browser.cjs` records the integration checks. Screenshots
+and raw published HTML are temporary QA artifacts, not review data committed here.
