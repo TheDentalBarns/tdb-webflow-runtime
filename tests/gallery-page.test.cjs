@@ -9,7 +9,7 @@ async function setup(desktop=true){
  const w=dom.window,errors=[];w.console.error=(...args)=>errors.push(args);
  const toolbar=w.document.querySelector('[data-tdb-sg-native-toolbar]');w.document.querySelector('[data-toolbar]').replaceWith(toolbar);
  w.matchMedia=query=>({matches:query.includes('min-width')?desktop:false,addEventListener(){},removeEventListener(){}});
- w.IntersectionObserver=class{observe(){}disconnect(){}};w.ResizeObserver=class{observe(){}disconnect(){}};
+ w.IntersectionObserver=class{observe(){}disconnect(){}};w.ResizeObserver=class{observe(){}unobserve(){}disconnect(){}};
  w.DOMMatrixReadOnly=class{constructor(value=''){this.m41=Number(/translate(?:3d|X)?\(([-\d.]+)/.exec(value)?.[1]||0);this.m42=0;this.a=1;this.b=0;}};
  w.scrollTo=()=>{};
  w.Element.prototype.getClientRects=function(){return this.closest('[hidden]')?[]:[this.getBoundingClientRect()];};

@@ -1,14 +1,17 @@
-/* Page-break memory v1.2.1. Inline in the head, before the body is parsed. */
+/* Page-break memory v1.3.0. Inline in the head, before the body is parsed. */
 (() => {
   'use strict';
   if (window.TDBPageBreakMemory) return;
   const selector = '[data-tdb-page-break]', restored = new WeakMap(), claimed = new WeakSet();
   const key = 'tdb:page-break:v1:' + location.pathname + location.search;
-  const target = wrapper => wrapper.querySelector('[data-tdb-page-break-image]') || wrapper.querySelector('img');
+  const opacityOnly = wrapper => wrapper.getAttribute?.('data-tdb-parallax-mode') === 'opacity';
+  const target = wrapper => opacityOnly(wrapper) ? wrapper : wrapper.querySelector('[data-tdb-page-break-image]') || wrapper.querySelector('img');
   const config = wrapper => {
     const movement = ['data-tdb-parallax-from', 'data-tdb-parallax-to'].map(name => wrapper.getAttribute?.(name) || '').join('|');
     const fade = wrapper.getAttribute?.('data-tdb-parallax-fade-start');
-    return (fade == null ? movement : movement + '|' + fade + '|' + wrapper.getAttribute('data-tdb-parallax-fade-end')) + (wrapper.getAttribute?.('data-tdb-parallax-progress') || '');
+    const ends = [...(wrapper.querySelectorAll?.('[data-tdb-parallax-fade]') || [])].map(node => node.getAttribute('data-tdb-parallax-fade') || '').join(',');
+    return (fade == null ? movement : movement + '|' + fade + '|' + wrapper.getAttribute('data-tdb-parallax-fade-end')) + (wrapper.getAttribute?.('data-tdb-parallax-progress') || '') +
+      (opacityOnly(wrapper) ? '|opacity|' + ends : '');
   };
   const identity = node => [node.tagName, ...(node.matches('img') ? [node] : node.querySelectorAll('img'))]
     .map(value => typeof value === 'string' ? value : value.getAttribute('src') || '').join('|');
@@ -32,8 +35,12 @@
       const targets = [...(wrapper.querySelectorAll?.('[data-tdb-parallax-fade]') || [])];
       restored.set(node, { original: node.style.transform, originalOpacity: targets.map(target => target.style.opacity) });
       if (Number.isFinite(item.alpha) && item.alpha >= 0 && item.alpha <= 1)
-        targets.forEach(target => { target.style.opacity = String(item.alpha); });
-      node.style.transform = `translate3d(0, ${item.y.toFixed(4)}px, 0)`;
+        targets.forEach(target => {
+          const parsed = Number.parseFloat(target.getAttribute('data-tdb-parallax-fade'));
+          const end = Number.isFinite(parsed) ? Math.max(0, Math.min(1, parsed)) : 0;
+          target.style.opacity = String(end + (1 - end) * item.alpha);
+        });
+      if (!opacityOnly(wrapper)) node.style.transform = `translate3d(0, ${item.y.toFixed(4)}px, 0)`;
     });
   }
   if (saved) {
@@ -45,7 +52,7 @@
     document.addEventListener('DOMContentLoaded', () => { restore(); observer.disconnect(); }, { once: true });
   }
   window.TDBPageBreakMemory = Object.freeze({
-    version: '1.2.1',
+    version: '1.3.0',
     take(node) { const value = restored.get(node); restored.delete(node); claimed.add(node); return value; },
     save(states) {
       const owned = new Map(states.map(state => [state.wrapper, state]));

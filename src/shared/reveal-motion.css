@@ -1,0 +1,9 @@
+/* Shared fade-and-lift vocabulary; native Designer states consume these values.
+   Inline in site head for first paint. Existing accordion/nav engines unchanged. */
+:root {
+  --tdb-reveal-distance: 20px;
+  --tdb-reveal-fade-in: 300ms;
+  --tdb-reveal-move-in: 400ms;
+  --tdb-reveal-out: 200ms;
+  --tdb-reveal-ease: cubic-bezier(.165,.84,.44,1);
+}

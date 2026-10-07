@@ -1,8 +1,45 @@
-/* TDB Swiper behaviour v1.2.0. One custom engine with shared plugin lifecycle. */
+/* TDB Swiper behaviour v1.3.0. One custom engine with shared plugin lifecycle. */
 (() => {
   'use strict';
   if (window.TDBSwiper) return;
   const bound = new WeakSet();
+
+  // A loop copy and its original represent one logical slide. Presentation
+  // plugins choose what to show; the engine only supplies their shared identity.
+  function matchingSlides(swiper, slide = swiper.slides[swiper.activeIndex]) {
+    if (!slide) return [];
+    const key = slide.getAttribute('data-swiper-slide-index');
+    return key == null ? [slide] : [...swiper.slides].filter(node =>
+      node.getAttribute('data-swiper-slide-index') === key);
+  }
+
+  // Includes snap-back to the same slide and a release with no transition.
+  // Internal zero-duration loop corrections are not user-visible settlements.
+  function onSettled(swiper, callback) {
+    let disposed = false, looping = false, touching = false, queued = false;
+    const beforeLoop = () => { looping = true; };
+    const afterLoop = () => { looping = false; };
+    const touchStart = () => { touching = true; };
+    const settle = reason => {
+      if (disposed || looping || touching || queued) return;
+      queued = true;
+      queueMicrotask(() => {
+        queued = false;
+        if (!disposed && !swiper.destroyed && !looping && !touching && !swiper.animating) callback(reason);
+      });
+    };
+    const touchEnd = () => { touching = false; settle('release'); };
+    const transitionEnd = () => settle('transition');
+    const handlers = { beforeLoopFix: beforeLoop, loopFix: afterLoop, touchStart,
+      touchEnd, transitionEnd, beforeDestroy: destroy };
+    function destroy() {
+      if (disposed) return;
+      disposed = true;
+      Object.entries(handlers).forEach(([event, handler]) => swiper.off(event, handler));
+    }
+    Object.entries(handlers).forEach(([event, handler]) => swiper.on(event, handler));
+    return destroy;
+  }
 
   // Components own their options, duration and lifecycle. The shared adapter
   // keeps loop/interrupt handoffs continuous and gives touch release a settling
@@ -123,6 +160,6 @@
   }
 
   /* TDB_SWIPER_PLUGINS */
-  window.TDBSwiper = Object.freeze({ version: '1.2.0', bindSwiper, create, register, mount, observe, refresh, prune, watchDuration,
+  window.TDBSwiper = Object.freeze({ version: '1.3.0', matchingSlides, onSettled, bindSwiper, create, register, mount, observe, refresh, prune, watchDuration,
     plugins: () => [...plugins.keys()] });
 })();

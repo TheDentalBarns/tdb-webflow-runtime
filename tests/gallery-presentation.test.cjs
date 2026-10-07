@@ -15,6 +15,11 @@ function setup() {
   return {dom,w,animations};
 }
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
+function pointer(w,node,type,extra={}) {
+  const event=new w.MouseEvent(type,{bubbles:true,cancelable:true,clientX:10,clientY:10,...extra});
+  Object.defineProperty(event,'pointerType',{value:extra.pointerType || 'mouse'});
+  node.dispatchEvent(event);
+}
 test('shared ticker supports native Gallery templates without changing review defaults; interruptions settle to the latest value',()=>{
   const {dom,w,animations}=setup();
   try {
@@ -37,7 +42,7 @@ test('shared ticker supports native Gallery templates without changing review de
 function fixture(w) {
   const root=w.document.createElement('div');root.className='highlight-swiper_component tdb-smile-carousel';root.setAttribute('data-tdb-smile-slider','true');
   const keys=['price','duration','clinician'];
-  root.innerHTML='<div class="swiper"><div class="swiper-wrapper">'+Array.from({length:4},(_,i)=>'<div class="swiper-slide smile tdb-smile-slide" style="margin-right:31px"><div class="tdb-smile-overlay"></div><div class="tdb-smile-details"></div><h3 class="tdb-smile-heading" data-fade-slide>Case '+i+'</h3><span class="tdb-smile-image-label" data-fade-slide>Before</span>'+keys.map(k=>'<div data-tdb-smile-source-fact="'+k+'"><span class="tdb-smile-source-value">'+k+' '+i+'</span></div>').join('')+'<div class="tdb-smile-treatments" data-fade-slide><div class="tdb-smile-treatment"></div><div class="tdb-smile-treatment w-condition-invisible"></div></div></div>').join('')+'</div></div><button class="swiper-btn-prev"></button><button class="swiper-btn-next"></button><div data-tdb-smile-presentation><div class="tdb-smile-counter-current"><span class="tdb-smile-counter-value">01</span></div><span class="tdb-smile-counter-total"></span><span class="tdb-smile-counter-label"></span><div class="tdb-smile-static-facts">'+keys.map(()=>'<span class="tdb-smile-fact-ticker"><span class="tdb-smile-fact-sizer"></span><span class="tdb-smile-fact-slot"><span class="tdb-smile-fact-value"></span></span></span>').join('')+'</div><div data-tdb-smile-ticker-template><span class="tdb-smile-counter-value"></span><span class="tdb-smile-fact-value"></span></div></div>';
+  root.innerHTML='<div class="swiper"><div class="swiper-wrapper">'+Array.from({length:4},(_,i)=>'<div class="swiper-slide smile tdb-smile-slide" style="margin-right:31px"><a href="#" class="tdb-smile-card"><div class="tdb-smile-overlay"></div><div class="tdb-smile-details"></div><h3 class="tdb-smile-heading" data-fade-slide>Case '+i+'</h3><span class="tdb-smile-image-label" data-fade-slide>Before</span>'+keys.map(k=>'<div data-tdb-smile-source-fact="'+k+'"><span class="tdb-smile-source-value">'+k+' '+i+'</span></div>').join('')+'<div class="tdb-smile-summary-ready"><div class="tdb-smile-treatments" data-fade-slide><div class="tdb-smile-treatment"></div><div class="tdb-smile-treatment w-condition-invisible"></div></div></div></a></div>').join('')+'</div></div><button class="swiper-btn-prev"></button><button class="swiper-btn-next"></button><div data-tdb-smile-presentation><div class="tdb-smile-counter-current"><span class="tdb-smile-counter-value">01</span></div><span class="tdb-smile-counter-total"></span><span class="tdb-smile-counter-label"></span><div class="tdb-smile-static-facts">'+keys.map(()=>'<span class="tdb-smile-fact-ticker"><span class="tdb-smile-fact-slot"><span class="tdb-smile-fact-value"></span></span></span>').join('')+'</div><div data-tdb-smile-ticker-template><span class="tdb-smile-counter-value"></span><span class="tdb-smile-fact-value"></span></div></div>';
   w.document.querySelector('main').append(root);
   const viewport=root.querySelector('.swiper');Object.defineProperty(viewport,'clientWidth',{value:420});Object.defineProperty(viewport,'clientHeight',{value:680});
   return {root,viewport};
@@ -50,14 +55,15 @@ test('Gallery preserves CMS values through loop copies, rapid navigation, sortin
     assert.equal(w.TDBSmileCards.prepare(root),w.TDBSmileCards.prepare(root));
     animations.forEach(animation=>animation.onfinish?.());
     assert.equal(root.querySelector('.tdb-smile-counter-total').textContent,'04');
-    assert.equal(root.querySelectorAll('.tdb-smile-fact-sizer').length,12,'sizing includes original CMS values only');
+    assert.equal(root.querySelectorAll('.tdb-smile-fact-sizer').length,0,'fixed Designer slots need no runtime sizing nodes');
+    assert.equal(root.style.getPropertyValue('--tdb-smile-extra-lines'),'');
     for(let i=0;i<7;i++)s.slideNext(0);
     await flush();
     assert.equal(root.querySelector('.tdb-smile-counter-label').textContent,'Smile '+(s.realIndex+1)+' of 4');
     assert.equal(root.querySelector('.tdb-smile-static-facts').getAttribute('aria-label'),'Treatment summary: price '+s.realIndex+', duration '+s.realIndex+', clinician '+s.realIndex);
     s.slides.forEach(slide=>assert.equal(slide.classList.contains('is-muted'),Number(slide.getAttribute('data-swiper-slide-index'))!==s.realIndex));
     const track=root.querySelector('.swiper-wrapper');track.append(track.querySelector('.swiper-slide:not(.swiper-slide-duplicate)'));await flush();
-    assert.equal(root.querySelectorAll('.tdb-smile-fact-sizer').length,12);
+    assert.equal(root.querySelectorAll('.tdb-smile-fact-sizer').length,0);
     const api=w.TDBSmileCards.prepare(root);s.destroy(true,true);api.destroy();
     const remount=w.TDBSwiper.mount('gallery',root);await flush();assert.equal(remount,viewport.swiper);assert.notEqual(remount,s);
     remount.destroy(true,true);root.remove();w.TDBSmileCards.prune();
@@ -87,5 +93,33 @@ test('Gallery total ticks from the native initial value after the shared ticker 
     assert.equal(total.children.length,1);
     api.destroy();
     assert.equal(total.textContent,'04','teardown must retain the resolved total');
+  } finally {dom.window.close();}
+});
+
+test('native reveal handles hover, footer, keyboard, tap, swipe, loop copies and teardown without inline styling',async()=>{
+  const {dom,w}=setup();
+  try {
+    w.eval(read('dist/tdb-swiper-8.4.7.min.js'));w.eval(read('dist/tdb-gallery.js'));
+    const {root}=fixture(w),s=w.TDBSwiper.mount('gallery',root);await flush();
+    const card=()=>s.slides[s.activeIndex].querySelector('.tdb-smile-card');
+    const opened=()=>card().getAttribute('aria-expanded')==='true';
+    pointer(w,card(),'pointerover');assert.ok(opened());
+    root.querySelectorAll('.swiper-slide[data-swiper-slide-index="'+s.realIndex+'"] .tdb-smile-details').forEach(n=>assert.ok(n.classList.contains('is-open')));
+    pointer(w,card().querySelector('.tdb-smile-summary-ready'),'pointerover');assert.equal(opened(),false);
+    pointer(w,card(),'pointerover');card().dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert.equal(opened(),false);
+    card().dispatchEvent(new w.KeyboardEvent('keydown',{key:' ',bubbles:true,cancelable:true}));assert.ok(opened());
+    pointer(w,card(),'pointerout');assert.equal(opened(),false);
+    const tap=()=>{pointer(w,card(),'pointerdown',{pointerType:'touch'});pointer(w,card(),'click',{detail:1,pointerType:'touch'});};
+    tap();assert.ok(opened());tap();assert.equal(opened(),false);
+    pointer(w,card(),'pointerdown',{pointerType:'touch'});pointer(w,card(),'pointermove',{pointerType:'touch',clientX:70});
+    pointer(w,card(),'click',{detail:1,pointerType:'touch'});assert.equal(opened(),false,'drag must not become a tap');
+    pointer(w,card(),'pointerover');assert.ok(opened());s.slideNext(0);await flush();assert.equal(opened(),false);
+    const inactive=root.querySelector('.is-muted .tdb-smile-card');pointer(w,inactive,'pointerover');assert.equal(inactive.getAttribute('aria-expanded'),'false');
+    pointer(w,card(),'pointerover');pointer(w,w.document.body,'pointerdown');assert.equal(opened(),false);
+    root.querySelectorAll('.tdb-smile-details,.tdb-smile-overlay').forEach(n=>assert.equal(n.getAttribute('style'),null));
+    const api=w.TDBSmileCards.prepare(root);s.destroy(true,true);api.destroy();
+    const first=root.querySelector('.tdb-smile-card');pointer(w,first,'pointerover');assert.equal(first.getAttribute('aria-expanded'),'false','destroy removes delegated handlers');
+    w.TDBSmileCards.prepare(root);pointer(w,first,'pointerover');assert.equal(first.getAttribute('aria-expanded'),'true');
+    w.TDBSmileCards.prepare(root).destroy();
   } finally {dom.window.close();}
 });

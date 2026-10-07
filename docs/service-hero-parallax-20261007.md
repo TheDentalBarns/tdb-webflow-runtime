@@ -34,19 +34,10 @@ Native tdb-service-parallax-gradient replaces Service Hero Gradient with the sam
 70vh height, stacking and gradient. This prevents old a-65 selector writes to
 both channels without runtime style/class surgery. Original image ID remains.
 
-First Visit now uses the same motion attributes and native image/gradient classes
-inside Header - Component 2 (c51b919f-c81c-f5bc-880a-0457b046b4e8).
-Its image c51b919f-c81c-f5bc-880a-0457b046b4ec retains the Hero image prop binding;
-wrapper ...b4eb has the six settings above, gradient c65ee37b-0d18-783c-921a-bf388dcf8c97
-shares fade ownership. No runtime code, extra script or release-pin change needed.
-First Visit's component content props and Services' existing CMS bindings remain.
-The full header content trees are still separate; motion and native styles are shared.
-
-Before this migration, a crawl of 143 published paths found First Visit was the
-only remaining user of the old a-65 selectors. The other event target was the
-already-migrated Services template. After First Visit's staging migration the
-Services Hero 2 definition is ready for manual Designer deletion. Treatment Hero
-Animation remains a separate future migration.
+Services Hero 2 (a-65) has a second legacy event target
+c51b919f-c81c-f5bc-880a-0457b046b4ec. Its origin has not yet been resolved: do not
+delete the global definition until that target and remaining old selector use
+have been checked. Treatment Hero Animation remains a separate future migration.
 
 Rollback: restore original image and gradient classes, remove wrapper/image/
 gradient controller attributes, and restore the prior runtime and inline memory.

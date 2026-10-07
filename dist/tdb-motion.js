@@ -1,4 +1,4 @@
-/* TDB shared motion v1.13.1. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.14.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -195,7 +195,8 @@
     return ddText(nodes, { root, preset, mode });
   }
 
-  // Page-break images have one transform owner. Layout/crop stay in Designer.
+  // Scroll effects share one owner. Layout/crop/start states stay in Designer.
+  // Opacity-only sections use the same progress, scheduler and reload lifecycle.
   // A visible first frame is retained; only actual scrolling pays down its
   // initial offset. No animation clock, startup tween or trailing rAF loop.
   const pageBreakClients = new Map();
@@ -229,7 +230,7 @@
     }
     function geometry(state) {
       const box = state.wrapper.getBoundingClientRect();
-      const image = state.node.getBoundingClientRect();
+      const image = state.opacityOnly ? box : state.node.getBoundingClientRect();
       const view = window.innerHeight;
       // Subtract our translation when measuring crop. Never measure progress
       // against the moving image (which would feed back into its own progress).
@@ -291,8 +292,11 @@
       }
       for (const state of states) {
         const value = `translate3d(0, ${state.y.toFixed(4)}px, 0)`;
-        if (state.node.style.transform !== value) state.node.style.transform = value;
-        for (const target of state.fadeTargets) target.style.opacity = String(state.alpha);
+        if (!state.opacityOnly && state.node.style.transform !== value) state.node.style.transform = value;
+        state.fadeTargets.forEach((target, i) => {
+          const opacity = String(state.fadeEnds[i] + (1 - state.fadeEnds[i]) * state.alpha);
+          if (target.style.opacity !== opacity) target.style.opacity = opacity;
+        });
       }
       lastScroll = scroll;
       layout = false;
@@ -300,7 +304,8 @@
     for (const wrapper of new Set(wrappers)) {
       const existing = pageBreakClients.get(wrapper);
       if (existing) { existing.clients++; owned.push(existing); continue; }
-      const node = wrapper.querySelector('[data-tdb-page-break-image]') || wrapper.querySelector('img');
+      const opacityOnly = wrapper.getAttribute?.('data-tdb-parallax-mode') === 'opacity';
+      const node = opacityOnly ? wrapper : wrapper.querySelector('[data-tdb-page-break-image]') || wrapper.querySelector('img');
       if (!node) continue;
       const distance = (name, fallback) => {
         const match = /^(-?(?:\d+(?:\.\d+)?|\.\d+))(vh|%|px)$/.exec(wrapper.getAttribute?.(name)?.trim() || fallback);
@@ -310,13 +315,19 @@
       const fadeEnd = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-fade-end'));
       const fade = fadeStart >= 0 && fadeEnd <= 1 && fadeEnd > fadeStart ? [fadeStart, fadeEnd] : null;
       const fadeTargets = fade ? [...wrapper.querySelectorAll('[data-tdb-parallax-fade]')] : [];
+      const fadeEnds = fadeTargets.map(target => {
+        const value = Number.parseFloat(target.getAttribute('data-tdb-parallax-fade'));
+        return Number.isFinite(value) ? clamp(value, 0, 1) : 0;
+      });
+      const initial = fadeTargets.length ? Number.parseFloat(getComputedStyle(fadeTargets[0]).opacity) : 1;
       const snapshot = memory?.take(node);
-      const state = { wrapper, node, y: yOf(node), original: snapshot ? snapshot.original : node.style.transform,
-        restored: Boolean(snapshot), correction: null, fade, fadeTargets,
+      const state = { wrapper, node, opacityOnly, y: opacityOnly ? 0 : yOf(node), original: snapshot ? snapshot.original : node.style.transform,
+        restored: Boolean(snapshot), correction: null, fade, fadeTargets, fadeEnds,
         imageProgress: wrapper.getAttribute?.('data-tdb-parallax-progress') === 'image',
-        alpha: fadeTargets.length ? Number.parseFloat(getComputedStyle(fadeTargets[0]).opacity) || 0 : 1,
+        alpha: fadeTargets.length && fadeEnds[0] < 1 ? clamp((initial - fadeEnds[0]) / (1 - fadeEnds[0]), 0, 1) : 1,
         originalOpacity: snapshot?.originalOpacity || fadeTargets.map(target => target.style.opacity),
-        from: distance('data-tdb-parallax-from', '-2vh'), to: distance('data-tdb-parallax-to', '2vh') };
+        from: opacityOnly ? [0, 'px'] : distance('data-tdb-parallax-from', '-2vh'),
+        to: opacityOnly ? [0, 'px'] : distance('data-tdb-parallax-to', '2vh') };
       states.push(state);
       const owner = { clients: 1, wrapper, release: null, refresh };
       pageBreakClients.set(wrapper, owner);
@@ -351,7 +362,7 @@
       if (index !== -1) states.splice(index, 1);
       state.node.removeEventListener('load', refresh);
       resize?.unobserve(state.wrapper); resize?.unobserve(state.node);
-      state.node.style.transform = state.original;
+      if (!state.opacityOnly) state.node.style.transform = state.original;
       state.fadeTargets.forEach((target, i) => { target.style.opacity = state.originalOpacity[i]; });
       if (!states.length) { disposed = true; controller.abort(); resize?.disconnect(); cancelAnimationFrame(frame); frame = 0; }
     }
@@ -454,5 +465,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.13.1', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.14.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();

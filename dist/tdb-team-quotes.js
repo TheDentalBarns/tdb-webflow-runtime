@@ -1,4 +1,4 @@
-/* TDB owner/principal quotes v3.0.2. Native CMS slides and layout; shared Swiper, motion and ticker. */
+/* TDB owner/principal quotes v3.1.0. Native CMS slides and layout; shared Swiper, motion and ticker. */
 (function () {
   'use strict';
   // Webflow selects, sorts and renders the actual slides. Do not clone or
@@ -67,14 +67,18 @@
     const controller = new AbortController(), { signal } = controller;
     let swiper, dd, revealTimer = 0, entryTimer = 0, entryObserver;
     let entryPending = cards.length > 1, opening = false, direction = 1, gesture = false;
-    let destroyed = false;
+    let destroyed = false, looping = false;
+    const copies = () => window.TDBSwiper.matchingSlides(swiper);
+    const authorLines = () => copies().flatMap(card => [...card.querySelectorAll('[data-tdb-team-author-line]')]);
     root.dataset.tdbSliderFirstView = entryPending ? 'pending' : 'drawn';
     root.dataset.tdbTeamQuoteState = 'ready';
     const contents = () => [...track.querySelectorAll('[data-tdb-team-content]')];
     const clearReveal = () => { clearTimeout(revealTimer); revealTimer = 0; };
     function cancelEntry() {
       clearTimeout(entryTimer); entryTimer = 0; entryObserver?.disconnect();
-      if (entryPending) { entryPending = false; root.dataset.tdbSliderFirstView = 'manual'; }
+      if (entryPending || opening) { entryPending = false; root.dataset.tdbSliderFirstView = 'manual'; }
+      opening = false;
+      contents().forEach(node => node.classList.remove('is-entry'));
     }
     function accessible() {
       swiper.slides.forEach((card, index) => {
@@ -89,10 +93,10 @@
     }
     function settle(delay = motion.carousel.nextDelay) {
       clearReveal();
-      const index = swiper.activeIndex;
+      const index = swiper.realIndex;
       revealTimer = setTimeout(() => {
-        if (!destroyed && !swiper.animating && !gesture && swiper.activeIndex === index)
-          swiper.slides[index].querySelector('[data-tdb-team-content]').classList.add('is-visible');
+        if (!destroyed && !swiper.animating && !gesture && swiper.realIndex === index)
+          copies().forEach(card => card.querySelector('[data-tdb-team-content]').classList.add('is-visible'));
       }, delay);
     }
     function conceal() {
@@ -100,17 +104,20 @@
       contents().forEach(node => node.classList.remove('is-visible', 'is-entry'));
     }
     function start() {
+      if (looping) return;
       conceal();
-      dd?.enter(swiper.slides[swiper.activeIndex].querySelectorAll('[data-tdb-team-author-line]'), { atPosition: true });
-      if (opening) swiper.slides[swiper.activeIndex].querySelector('[data-tdb-team-content]').classList.add('is-entry', 'is-visible');
+      dd?.enter(authorLines(), { atPosition: true });
+      if (opening) copies().forEach(card => card.querySelector('[data-tdb-team-content]').classList.add('is-entry', 'is-visible'));
     }
-    function finish() {
+    function finish(reason) {
+      if (gesture || looping) return;
       accessible();
       if (opening) {
         opening = false;
         contents().forEach(node => node.classList.remove('is-entry'));
         root.dataset.tdbSliderFirstView = 'drawn';
-      } else if (!entryPending) settle(direction < 0 ? motion.carousel.previousDelay : motion.carousel.nextDelay);
+      } else if (!entryPending) settle(reason === 'release' ? motion.carousel.settleDelay :
+        direction < 0 ? motion.carousel.previousDelay : motion.carousel.nextDelay);
     }
     swiper = window.TDBSwiper.create(viewport, {
       init: false, direction: 'horizontal', wrapperClass: 'tdb-team-quotes_track', slideClass: 'tdb-team-quotes_slide',
@@ -124,13 +131,14 @@
     // Callbacks are attached after assignment so synchronous init cannot read an
     // unassigned instance. All movement is performed by the common engine.
     swiper.on('slideChange', updateCount);
+    swiper.on('beforeLoopFix', () => { looping = true; });
+    swiper.on('loopFix', () => { looping = false; accessible(); });
     swiper.on('slideChangeTransitionStart', start);
-    swiper.on('slideChangeTransitionEnd', finish);
+    const stopSettled = window.TDBSwiper.onSettled(swiper, finish);
     swiper.on('touchStart', () => { gesture = true; cancelEntry(); clearReveal(); });
     swiper.on('sliderFirstMove', conceal);
     swiper.on('touchEnd', () => {
       gesture = false; direction = swiper.swipeDirection === 'prev' ? -1 : 1;
-      queueMicrotask(() => { if (!destroyed && !swiper.animating) settle(motion.carousel.settleDelay); });
     });
     swiper.init();
     updateCount();
@@ -143,7 +151,7 @@
     // Swiper's geometry equal to the native viewport, including narrow phones.
     swiper.on('beforeResize', () => { swiper.params.width = viewport.getBoundingClientRect().width; });
     dd = motion.ddText(track.querySelectorAll('[data-tdb-team-author-line]'));
-    dd.enter(swiper.slides[swiper.activeIndex].querySelectorAll('[data-tdb-team-author-line]'), { atPosition: true });
+    dd.enter(authorLines(), { atPosition: true });
     if (!entryPending) settle(0);
     if (entryPending) {
       entryObserver = new IntersectionObserver(entries => {
@@ -170,7 +178,7 @@
       destroy() {
         if (destroyed) return;
         destroyed = true; controller.abort(); clearReveal(); clearTimeout(entryTimer); entryObserver?.disconnect();
-        dd.destroy(); ticker.destroy(); swiper.destroy(true, true);
+        stopSettled(); dd.destroy(); ticker.destroy(); swiper.destroy(true, true);
         mounted.delete(root); showFallback(root);
       },
     });
@@ -220,7 +228,7 @@
       root.addEventListener('focusin', () => enhance(root));
     });
   }
-  window.TDBTeamQuotes = Object.freeze({ version: '3.0.2', refresh: init, mount,
+  window.TDBTeamQuotes = Object.freeze({ version: '3.1.0', refresh: init, mount,
     destroy() { proximity?.disconnect(); [...mounted.values()].forEach(instance => instance.destroy()); }
   });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });

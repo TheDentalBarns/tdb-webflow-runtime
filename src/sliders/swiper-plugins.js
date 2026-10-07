@@ -12,7 +12,7 @@ function create(viewport, options, {bind = true} = {}) {
   }
   const swiper = new window.Swiper(viewport, options);
   if (bind) bindSwiper(swiper);
-  viewport.setAttribute?.('data-tdb-swiper-runtime', '1.2.0');
+  viewport.setAttribute?.('data-tdb-swiper-runtime', '1.3.0');
   return swiper;
 }
 
