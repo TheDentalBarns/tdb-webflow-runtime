@@ -1,0 +1,931 @@
+{
+  "auditedAt": "2026-10-07",
+  "site": "https://dentalbarns.webflow.io/",
+  "pageDefinitions": 53,
+  "renderedRoutes": 143,
+  "directScriptVersions": 22,
+  "activeScriptVersions": 55,
+  "uniquePayloads": 54,
+  "active": [
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@988a3e707867e9fd077fd8bdde1c61b18a1d71b7/dist/tdb-review-list-loader.js",
+      "bytes": 3544,
+      "sha256": "2363b725696ef83214d8ec7ff34c7a71c5bba92d9ced04acf8420d04ebc3b1c3",
+      "activation": "direct script",
+      "directRoutes": [
+        "/reviews"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "2363b725696ef83214d8ec7ff34c7a71c5bba92d9ced04acf8420d04ebc3b1c3",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-review-list-loader.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@1d5919f74f1b595bb0b8ff6694ba30e1094c81fb/dist/tdb-calculator.js",
+      "bytes": 85796,
+      "sha256": "083d4c06c35a69663d03b1b7f512d15ca72fa5419f8e351ad96c7a74b9757084",
+      "activation": "direct script",
+      "directRoutes": [
+        "/dental-cost-calculator"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "083d4c06c35a69663d03b1b7f512d15ca72fa5419f8e351ad96c7a74b9757084",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-calculator.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8fb72cf07dfa6cd48e14522d9ee6a7df78a69391/dist/tdb-five-senses-loader.js",
+      "bytes": 22939,
+      "sha256": "69fb52eafefa3a85a7ff9aa8f6f3b5dca6aca78a6952c2d3ef80c70b1bc2e5bd",
+      "activation": "direct script",
+      "directRoutes": [
+        "/",
+        "/first-visit",
+        "/five-senses-experience",
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/facial-aesthetics",
+        "/services/general-dentistry",
+        "/services/hygiene-care",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "69fb52eafefa3a85a7ff9aa8f6f3b5dca6aca78a6952c2d3ef80c70b1bc2e5bd",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-five-senses-loader.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@16edb39cf5d6d5c9361f8d13b7db6e1b46267be8/dist/tdb-smile-gallery.min.js",
+      "bytes": 28351,
+      "sha256": "41c3b0f5f081a472caf25147ea954a2b0857580e70757c754afbd690c9e94101",
+      "activation": "direct script",
+      "directRoutes": [
+        "/smile-gallery"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "41c3b0f5f081a472caf25147ea954a2b0857580e70757c754afbd690c9e94101",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-smile-gallery.min.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@4104bf5c3df6679e471a408ecd8fe161e1ae19dd/src/awards/home-awards-native.js",
+      "bytes": 1843,
+      "sha256": "019016bf256a721cb21794a2dc5274bb3d9aaeae7c640fa4724cd104dc43d8c0",
+      "activation": "direct script",
+      "directRoutes": [
+        "/"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "019016bf256a721cb21794a2dc5274bb3d9aaeae7c640fa4724cd104dc43d8c0",
+      "cdnMatchesAuditBytes": true,
+      "asset": "home-awards-native.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@28db8e7b795af20c6b08aa403127e2666be7acf0/dist/tdb-reviews-loader.js",
+      "bytes": 9590,
+      "sha256": "9fe8f29d5e8338d7f8405cfb221d9652688c1419651ef2c4c6b8d1bd297fad22",
+      "activation": "direct script",
+      "directRoutes": [
+        "/"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "9fe8f29d5e8338d7f8405cfb221d9652688c1419651ef2c4c6b8d1bd297fad22",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-reviews-loader.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@98af6019f65a47f659e9d39b163be8fe4e5a1f9a/dist/tdb-gallery-count.js",
+      "bytes": 2374,
+      "sha256": "9fb2636e2b7e09d7975feb5202453ee3910a2bbf115843b3eef827f3ae1720c6",
+      "activation": "direct script",
+      "directRoutes": [
+        "/"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "9fb2636e2b7e09d7975feb5202453ee3910a2bbf115843b3eef827f3ae1720c6",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-gallery-count.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@ba1f9cac77c094fcb0f725398d9b3e8556faa7c9/dist/tdb-vimeo-loader.js",
+      "bytes": 4286,
+      "sha256": "c0cc3e40c042413bcd6ee078aa35a4dff09e2847dbc0b579639cbb5e718bee02",
+      "activation": "direct script",
+      "directRoutes": [
+        "*"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "c0cc3e40c042413bcd6ee078aa35a4dff09e2847dbc0b579639cbb5e718bee02",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-vimeo-loader.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@505495841b73e48bfe768aece6bfedb636d13e5e/src/shared/value-tickers.js",
+      "bytes": 2126,
+      "sha256": "b5919267883254bde69971bce5f669e094a6f64863cd84bd318e29eaed444c73",
+      "activation": "direct script",
+      "directRoutes": [
+        "*"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "b5919267883254bde69971bce5f669e094a6f64863cd84bd318e29eaed444c73",
+      "cdnMatchesAuditBytes": true,
+      "asset": "value-tickers.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@831282ea83ed94b826ab3896cd417fbc858e435f/dist/tdb-quote-carousel.js",
+      "bytes": 13311,
+      "sha256": "afdfc28dfd2fcfc578f513fb5c68962b89038923e633a1a3ee1029bd0fac674b",
+      "activation": "direct script",
+      "directRoutes": [
+        "*"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "afdfc28dfd2fcfc578f513fb5c68962b89038923e633a1a3ee1029bd0fac674b",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-quote-carousel.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-modules.js",
+      "bytes": 2973,
+      "sha256": "ae74ec65ab11a7d03c37029a18b70bd778939ae2638548dc3f4a8ab2c8b3a55e",
+      "activation": "direct script",
+      "directRoutes": [
+        "*"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "ae74ec65ab11a7d03c37029a18b70bd778939ae2638548dc3f4a8ab2c8b3a55e",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-modules.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-dd-loader.js",
+      "bytes": 3364,
+      "sha256": "93415c40be6068cd81cdb4346bac8a4c3522f38557942ad4503fbbd05f9f6f71",
+      "activation": "direct script",
+      "directRoutes": [
+        "*"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "93415c40be6068cd81cdb4346bac8a4c3522f38557942ad4503fbbd05f9f6f71",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-dd-loader.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8dda1ef4d208309ee6715f4a122a2ee0196aa131/dist/tdb-navbar-loader.js",
+      "bytes": 3101,
+      "sha256": "d1798e6d8c79c474fa99bbbad196bdc001440f95e89224d73f62570c350a57bd",
+      "activation": "direct script",
+      "directRoutes": [
+        "*"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "d1798e6d8c79c474fa99bbbad196bdc001440f95e89224d73f62570c350a57bd",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-navbar-loader.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@f87c184fa42235f9cdf0c8d46cf8cac679d954fc/dist/tdb-logo-marquee-loader.js",
+      "bytes": 4168,
+      "sha256": "3ab5c39b43c06db6d6e99b125c8893288d111abae28c0641e20f52f00089cc99",
+      "activation": "direct script",
+      "directRoutes": [
+        "*"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "3ab5c39b43c06db6d6e99b125c8893288d111abae28c0641e20f52f00089cc99",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-logo-marquee-loader.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-immediate-runtime-batch.min.js",
+      "bytes": 20707,
+      "sha256": "ea502c85ed239dc685c37a4a4b8fb7e4775bac5294ab2306f8bdc75082124ae3",
+      "activation": "direct script",
+      "directRoutes": [
+        "*"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "ea502c85ed239dc685c37a4a4b8fb7e4775bac5294ab2306f8bdc75082124ae3",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-immediate-runtime-batch.min.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-calculator-loader.js",
+      "bytes": 2906,
+      "sha256": "876500d9ee1482bdbe8f1684f280e522d946091cb0b03f267870759b4945bead",
+      "activation": "direct script",
+      "directRoutes": [
+        "*"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "876500d9ee1482bdbe8f1684f280e522d946091cb0b03f267870759b4945bead",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-calculator-loader.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8fb72cf07dfa6cd48e14522d9ee6a7df78a69391/dist/tdb-home-desktop-instagram.js",
+      "bytes": 21583,
+      "sha256": "3bbfbd8b649023ab2c682a2ea5d5d0f9910798b42cdee76fa2387db7c99711c6",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "3bbfbd8b649023ab2c682a2ea5d5d0f9910798b42cdee76fa2387db7c99711c6",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-home-desktop-instagram.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8fb72cf07dfa6cd48e14522d9ee6a7df78a69391/dist/tdb-instagram-feed.js",
+      "bytes": 79499,
+      "sha256": "5023bbb7d1cb176c83679ef1e7582bd68cd3ecde25c6d8e0d53012617c854c38",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "5023bbb7d1cb176c83679ef1e7582bd68cd3ecde25c6d8e0d53012617c854c38",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-instagram-feed.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3c4bb1e6a50d8b6948e2433c3fde0bbeb781de19/dist/tdb-review-legacy-loader.js",
+      "bytes": 795,
+      "sha256": "0f6c2a7b7f4fd0a8a3fdc29c9f72e354e7019aeec5527043cd9690cbedb7349a",
+      "activation": "direct script",
+      "directRoutes": [
+        "*"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "0f6c2a7b7f4fd0a8a3fdc29c9f72e354e7019aeec5527043cd9690cbedb7349a",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-review-legacy-loader.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@dc3024b113674b1f0ec1038f3c28f58c554b7e09/dist/tdb-usp-drawer.js",
+      "bytes": 26446,
+      "sha256": "89e8acf769241c41ad4ab9d4f1beccb4e0e35e2d760c57d595c0896acfa7d231",
+      "activation": "direct script",
+      "directRoutes": [
+        "*"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "89e8acf769241c41ad4ab9d4f1beccb4e0e35e2d760c57d595c0896acfa7d231",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-usp-drawer.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-page-break-loader.js",
+      "bytes": 1912,
+      "sha256": "16b8b6c2843b777731f7b3a3a1c0a446d60bdce7b1e012f92c48b809fe968f89",
+      "activation": "direct script",
+      "directRoutes": [
+        "*"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "16b8b6c2843b777731f7b3a3a1c0a446d60bdce7b1e012f92c48b809fe968f89",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-page-break-loader.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@cd0ca0b3f525bdf80df853a98ee3306a3a72d541/dist/tdb-footer-runtime.min.js",
+      "bytes": 25128,
+      "sha256": "9a0e9818abdd0f379ebe46935fdf4511f73c51d38d7faddc4d87dc87f4a5a06f",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "9a0e9818abdd0f379ebe46935fdf4511f73c51d38d7faddc4d87dc87f4a5a06f",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-footer-runtime.min.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-review-availability.js",
+      "bytes": 2924,
+      "sha256": "66f5f669c592ebebb9ec173634a731af6de4d159b25d78f6e79ad32f68c24304",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "66f5f669c592ebebb9ec173634a731af6de4d159b25d78f6e79ad32f68c24304",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-review-availability.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@988a3e707867e9fd077fd8bdde1c61b18a1d71b7/dist/tdb-review-cms.js",
+      "bytes": 17775,
+      "sha256": "7b45e5251c2c8bbcbd315e09069fc4598cd6f22be56a737bc156ddd5e461e523",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "7b45e5251c2c8bbcbd315e09069fc4598cd6f22be56a737bc156ddd5e461e523",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-review-cms.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-filters.js",
+      "bytes": 11104,
+      "sha256": "680a91a8212445f0bd3a056f48baa30da15b991743123e3c1afcc4ad9c9fdb18",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "680a91a8212445f0bd3a056f48baa30da15b991743123e3c1afcc4ad9c9fdb18",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-filters.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-motion.js",
+      "bytes": 34630,
+      "sha256": "13386202bfeada5544d377e99151c25637b8c6910617a7515dd650cb9d303268",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "13386202bfeada5544d377e99151c25637b8c6910617a7515dd650cb9d303268",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-motion.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-ticker.js",
+      "bytes": 3342,
+      "sha256": "99f3c87ff4b63c4813b1aaecc3b07eb37da24e7e950d53eb0a0af75dfc3ef71b",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "99f3c87ff4b63c4813b1aaecc3b07eb37da24e7e950d53eb0a0af75dfc3ef71b",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-ticker.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@988a3e707867e9fd077fd8bdde1c61b18a1d71b7/dist/tdb-review-list.js",
+      "bytes": 16430,
+      "sha256": "16f622512d3d824f247fbfcd091c4f34c624af1f891975663aac687deebc27a7",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "16f622512d3d824f247fbfcd091c4f34c624af1f891975663aac687deebc27a7",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-review-list.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-slider-focus.js",
+      "bytes": 7906,
+      "sha256": "2f0b3bb4033c03b66bc559ff9e2325dfc343ea1dc1bcefb0fd9208bed070bca1",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "2f0b3bb4033c03b66bc559ff9e2325dfc343ea1dc1bcefb0fd9208bed070bca1",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-slider-focus.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@28db8e7b795af20c6b08aa403127e2666be7acf0/dist/tdb-review-quote-adapter.js",
+      "bytes": 2058,
+      "sha256": "fb836c6360a74906db8a1a0b4aab2efc40c71176cf05c09e5a8a24623dcdccf6",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "fb836c6360a74906db8a1a0b4aab2efc40c71176cf05c09e5a8a24623dcdccf6",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-review-quote-adapter.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-drawer.js",
+      "bytes": 5585,
+      "sha256": "ab81a364e53535a649fc9afd17d6a9179e92dab9b748041ea1062a55231040a6",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "ab81a364e53535a649fc9afd17d6a9179e92dab9b748041ea1062a55231040a6",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-drawer.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-swiper-8.4.7.min.js",
+      "bytes": 98177,
+      "sha256": "2663d8b2b4dc338d04950c452538c224b1ce122b5cba08153fdb0a82e1892ea0",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "2663d8b2b4dc338d04950c452538c224b1ce122b5cba08153fdb0a82e1892ea0",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-swiper-8.4.7.min.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@28db8e7b795af20c6b08aa403127e2666be7acf0/dist/tdb-review-cms.js",
+      "bytes": 17775,
+      "sha256": "7b45e5251c2c8bbcbd315e09069fc4598cd6f22be56a737bc156ddd5e461e523",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "7b45e5251c2c8bbcbd315e09069fc4598cd6f22be56a737bc156ddd5e461e523",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-review-cms.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-reviews.js",
+      "bytes": 37807,
+      "sha256": "3037ffd906be4b39e01857eab8325abc573e429a5e9ee32733911aa925a6332f",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "3037ffd906be4b39e01857eab8325abc573e429a5e9ee32733911aa925a6332f",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-reviews.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@ba1f9cac77c094fcb0f725398d9b3e8556faa7c9/dist/tdb-vimeo.js",
+      "bytes": 20470,
+      "sha256": "6358951a5252a85be010440b51a1d6ed03499b036ff822bc2b4d267187e37673",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "6358951a5252a85be010440b51a1d6ed03499b036ff822bc2b4d267187e37673",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-vimeo.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-logo-marquee.js",
+      "bytes": 21894,
+      "sha256": "cfbe617900b34f87fefba1476e865b19b85ebff94cfcad874203f6c78de6d3bf",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "cfbe617900b34f87fefba1476e865b19b85ebff94cfcad874203f6c78de6d3bf",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-logo-marquee.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-review-cards.js",
+      "bytes": 9945,
+      "sha256": "298c3858b88f8bf51cc8a2f26c55e868516454bbd3ed64b174712afada9e5e94",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "298c3858b88f8bf51cc8a2f26c55e868516454bbd3ed64b174712afada9e5e94",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-review-cards.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-parallax.js",
+      "bytes": 8642,
+      "sha256": "b4108c852a5cc40b0aed82fdc335377f69a033902c627c88a14a2431db0085c6",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "b4108c852a5cc40b0aed82fdc335377f69a033902c627c88a14a2431db0085c6",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-parallax.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-gallery.js",
+      "bytes": 23765,
+      "sha256": "0614541bcebf717303783146032a61b00d319d957d610afb4a1de682a834a3c4",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "0614541bcebf717303783146032a61b00d319d957d610afb4a1de682a834a3c4",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-gallery.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8dda1ef4d208309ee6715f4a122a2ee0196aa131/dist/tdb-navbar.min.js",
+      "bytes": 23014,
+      "sha256": "0107996138b4876b80b87d219caa82e5de08f73b0eae76bd0ba59c8cc7332de5",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "0107996138b4876b80b87d219caa82e5de08f73b0eae76bd0ba59c8cc7332de5",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-navbar.min.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.3.0/dist/tdb-consent.js",
+      "bytes": 5368,
+      "sha256": "ffac34134d54d4ddead12be9fb66792a2f4584ae61c523f0d931a62d011dfcd1",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "ffac34134d54d4ddead12be9fb66792a2f4584ae61c523f0d931a62d011dfcd1",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-consent.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/CookieScript@798b41dc10895752a232d631cf7e5232c3598673/tdb-cookie-consent.min.js",
+      "bytes": 14892,
+      "sha256": "da56f71b739b0032cc83e2e2a3e6dd20a164b8dc51bbf587b219d241f6cce208",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "da56f71b739b0032cc83e2e2a3e6dd20a164b8dc51bbf587b219d241f6cce208",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-cookie-consent.min.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@afee7b723073c1d3965b5a10eb29e225b7ef55c1/dist/tdb-attribution.min.js",
+      "bytes": 25029,
+      "sha256": "73e19d9560984cb18f99dec19b2280c580784dc923baef27e2be99ee235e4873",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "73e19d9560984cb18f99dec19b2280c580784dc923baef27e2be99ee235e4873",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-attribution.min.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@efdd9b2de97df36e0d5c9389b505b030d58d0fc7/dist/tdb-review-summary-card.js",
+      "bytes": 7303,
+      "sha256": "9ba67c39186a4310ffa8f6897af0e9c0d246743ec13b6accaf67db29a484553e",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "9ba67c39186a4310ffa8f6897af0e9c0d246743ec13b6accaf67db29a484553e",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-review-summary-card.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@cd0ca0b3f525bdf80df853a98ee3306a3a72d541/dist/tdb-announcement.js",
+      "bytes": 11292,
+      "sha256": "6d89416f3a32fe1ff439dc088890f27c8c0e66670619b7b188db7e1d72cbc879",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "6d89416f3a32fe1ff439dc088890f27c8c0e66670619b7b188db7e1d72cbc879",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-announcement.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.1.0/dist/tdb-forms.min.js",
+      "bytes": 3980,
+      "sha256": "c14209c0a816c0cd4828f43854d4994506303863ab2df6f7accfb6cd42f24558",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "c14209c0a816c0cd4828f43854d4994506303863ab2df6f7accfb6cd42f24558",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-forms.min.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@336d76648a3395fad41dd5bec9749b3554f14c34/dist/tdb-vip-drawer.js",
+      "bytes": 10466,
+      "sha256": "6c2666f78a07ee069e5011c382bd43c2bcbb18804a8ceab4f4cb0ef89446f0cb",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "6c2666f78a07ee069e5011c382bd43c2bcbb18804a8ceab4f4cb0ef89446f0cb",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-vip-drawer.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@336d76648a3395fad41dd5bec9749b3554f14c34/dist/tdb-vip-drawer-legacy.js",
+      "bytes": 10248,
+      "sha256": "41332ce3485fa90af5e4a302d14f28f258c9beddd621aeab29c10ba83d421381",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "41332ce3485fa90af5e4a302d14f28f258c9beddd621aeab29c10ba83d421381",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-vip-drawer-legacy.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@61cec90cdba3d42a29d3c31194b692c251e8d421/dist/tdb-tooltips.js",
+      "bytes": 2854,
+      "sha256": "534829c0cfab9d6d74cb9b6ff770faf2a13889147519bbf5c389675fadff34ba",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "534829c0cfab9d6d74cb9b6ff770faf2a13889147519bbf5c389675fadff34ba",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-tooltips.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@28db8e7b795af20c6b08aa403127e2666be7acf0/dist/tdb-review-introduction.js",
+      "bytes": 5825,
+      "sha256": "ce8aebe1fd53135123d76f1210f319b76a30d8e49134b9bd95058029f38e77e1",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "ce8aebe1fd53135123d76f1210f319b76a30d8e49134b9bd95058029f38e77e1",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-review-introduction.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@c847ee9841b79a6749c39eb482d0c91c23f38ec0/dist/tdb-five-senses.js",
+      "bytes": 77902,
+      "sha256": "49edf955ff4df64093af0278cfdef02939b6b089953ae02b1c88650804e99e95",
+      "activation": "conditional/lazy dependency",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "49edf955ff4df64093af0278cfdef02939b6b089953ae02b1c88650804e99e95",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-five-senses.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@18afef0811fbae31773d8b85af1aa48cf958e86a/dist/tdb-first-impressions.js",
+      "bytes": 15938,
+      "sha256": "aeffaca0be39c761c66e95bf2cde92dd66c9973fbdfe28e5c192e1ab923b6bb0",
+      "activation": "direct script",
+      "directRoutes": [
+        "/first-visit"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "aeffaca0be39c761c66e95bf2cde92dd66c9973fbdfe28e5c192e1ab923b6bb0",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-first-impressions.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@4193062da54e356cbc3fe302c4b4b69eb50128ba/src/service-awards/service-awards.js",
+      "bytes": 4194,
+      "sha256": "b818d3455c8d5bf3fb460046afe2e21310fa82d29f1de23766672f643a88f250",
+      "activation": "direct script",
+      "directRoutes": [
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/facial-aesthetics",
+        "/services/general-dentistry",
+        "/services/hygiene-care",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "b818d3455c8d5bf3fb460046afe2e21310fa82d29f1de23766672f643a88f250",
+      "cdnMatchesAuditBytes": true,
+      "asset": "service-awards.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@92dac5d1a4d16fb64caefc32dac113af468c3273/dist/tdb-power-snippets.js",
+      "bytes": 29765,
+      "sha256": "90487f8b23c0c61723bfd53829d397b1c29db792ff81031ea43e7d15b9f26ff0",
+      "activation": "direct script",
+      "directRoutes": [
+        "/first-visit"
+      ],
+      "cdnStatus": 200,
+      "cdnSha256": "90487f8b23c0c61723bfd53829d397b1c29db792ff81031ea43e7d15b9f26ff0",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-power-snippets.js",
+      "scope": "Exact script tag in rendered HTML"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@efdd9b2de97df36e0d5c9389b505b030d58d0fc7/dist/tdb-reviews.js",
+      "bytes": 59719,
+      "sha256": "10584886752f68d9a5e8af8bce140de5b99549f745c2a4b8c6a6440b012bb1ad",
+      "activation": "legacy first-visit drawer; URL also remains in inactive JSON configurations on 20 other routes",
+      "directRoutes": [],
+      "cdnStatus": 200,
+      "cdnSha256": "10584886752f68d9a5e8af8bce140de5b99549f745c2a4b8c6a6440b012bb1ad",
+      "cdnMatchesAuditBytes": true,
+      "asset": "tdb-reviews.js",
+      "scope": "Resolved loader dependency, gated by component presence, consent, viewport, or user interaction"
+    }
+  ],
+  "excludedDiscoveryCandidates": [
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@988a3e707867e9fd077fd8bdde1c61b18a1d71b7/dist/tdb-modules.js",
+      "reason": "Only a registry fallback; the site-wide registry is already present."
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@28db8e7b795af20c6b08aa403127e2666be7acf0/dist/tdb-quote-carousel.js",
+      "reason": "Ready check is satisfied by the identical site-head quote carousel."
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-review-quotes.js",
+      "reason": "Registry allowlist entry; no active consumer requests this legacy quote plugin."
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-sliders.js",
+      "reason": "Registry allowlist entry; no active consumer requests this facade."
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-footer-runtime.min.js",
+      "reason": "Batch data-tdb-runtime-base explicitly selects cd0ca0b, not this release."
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@cd0ca0b3f525bdf80df853a98ee3306a3a72d541/dist/tdb-vip-drawer-legacy.js",
+      "reason": "Footer VIP root explicitly selects 336d766, not its own cd0ca0b folder."
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@cd0ca0b3f525bdf80df853a98ee3306a3a72d541/dist/tdb-tooltips.js",
+      "reason": "Discovery guessed a sibling tooltips URL; the footer explicitly loads valid 61cec90/dist/tdb-tooltips.js."
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@cd0ca0b3f525bdf80df853a98ee3306a3a72d541/dist/tdb-vip-drawer.js",
+      "reason": "Footer VIP root explicitly selects 336d766, not its own cd0ca0b folder."
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-vip-drawer-legacy.js",
+      "reason": "Inactive batch release dependency; active VIP root is 336d766."
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-vip-drawer.js",
+      "reason": "Inactive batch release dependency; active VIP root is 336d766."
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-tooltips.js",
+      "reason": "Discovery guessed a sibling tooltips URL; the footer explicitly loads valid 61cec90/dist/tdb-tooltips.js."
+    }
+  ],
+  "notes": [
+    "55 is the site-wide set of URL/version pairs, not the number loaded on every page. There are 54 unique byte payloads.",
+    "Shared module requests are canonicalised through site registry 310b98a. Registry allowlist entries alone are not active dependencies.",
+    "The preserved footer runtime cd0ca0b selects VIP root 336d766 and tooltips root 61cec90. Inferred sibling URLs were excluded.",
+    "The old reviews URL is configured on 21 routes; the legacy power-snippets script is directly loaded on first-visit. Other remaining JSON configurations do not by themselves execute it.",
+    "Third-party vendor SDK internals and Webflow generated runtime are outside the GitHub source audit."
+  ],
+  "renderedRouteList": [
+    "/",
+    "/401",
+    "/404",
+    "/about-us",
+    "/areas/sutton-coldfield-composite-bonding",
+    "/areas/sutton-coldfield-invisalign",
+    "/areas/sutton-coldfield-veneers",
+    "/areas/tamworth-composite-bonding",
+    "/areas/tamworth-invisalign",
+    "/areas/tamworth-veneers",
+    "/blog",
+    "/careers",
+    "/contact",
+    "/dental-cost-calculator",
+    "/dental-cost-lichfield",
+    "/first-visit",
+    "/five-senses-experience",
+    "/location",
+    "/post/behind-the-dental-barns-patient-care",
+    "/post/belmont-eurus-s6-e-review-dental-chair",
+    "/post/featured-in-dentistry-doctor-station",
+    "/post/featured-in-newsweek-expired-toothpaste",
+    "/post/featured-in-private-dentistry-magazine-the-dental-barns",
+    "/post/featured-in-the-mirror-dental-apprenticeships",
+    "/post/invisalign-vat-price-change-uk-2026",
+    "/post/lasal-dental-cushions-comfort-cleaning",
+    "/post/menopause-teeth-oral-health-blanck",
+    "/post/overcoming-dental-anxiety-reflexology",
+    "/post/the-probe-interview-nsk-david-drew",
+    "/post/veneers-dental-trends-timeless-smiles",
+    "/post/where-calm-meets-confidence",
+    "/privacy-policy",
+    "/review-content",
+    "/review-topics/amie-scott-google-2024-06-06",
+    "/review-topics/andrea-owens-google-2026-02-20",
+    "/review-topics/andy-scotton-peters-google-2024-07-19",
+    "/review-topics/aneeqa-adil-google-2024-01-18",
+    "/review-topics/annette-sutton-google-2024-06-30",
+    "/review-topics/ashleigh-topping-google-2024-09-23",
+    "/review-topics/carole-williams-google-2026-09-04",
+    "/review-topics/caroline-edmunds-google-2026-08-28",
+    "/review-topics/caroline-kingshurst-google-2026-09-18",
+    "/review-topics/chantelle-hamilton-google-2025-12-19",
+    "/review-topics/chloe-morris-google-2024-07-17",
+    "/review-topics/clare-bradley-google-2025-08-30",
+    "/review-topics/connie-greenaway-google-2026-09-18",
+    "/review-topics/danny-peake-google-2025-12-19",
+    "/review-topics/dayle-salmon-google-2024-03-14",
+    "/review-topics/dayles-8-yell-2024-03-14",
+    "/review-topics/dc-google-2025-09-09",
+    "/review-topics/e-google-2026-09-11",
+    "/review-topics/ellisia-moulding-google-2025-12-19",
+    "/review-topics/emily-ogbourn-google-2024-08-09",
+    "/review-topics/haley-allen-google-2024-11-06",
+    "/review-topics/hannah-birkett-google-2025-12-19",
+    "/review-topics/hayley-clamp-google-2026-10-01",
+    "/review-topics/hayley-rose-facebook-2025-03-07",
+    "/review-topics/katie-fergus-google-2025-12-19",
+    "/review-topics/katie-machin-google-2025-12-05",
+    "/review-topics/katie-saunders-google-2024-01-12",
+    "/review-topics/kevin-colebatch-google-2025-09-09",
+    "/review-topics/lana-salih-google-2025-05-25",
+    "/review-topics/laura-prokic-google-2026-07-10",
+    "/review-topics/lewis-reeve-google-2026-09-04",
+    "/review-topics/louise-bishton-google-2025-06-20",
+    "/review-topics/louise-woodley-google-2024-01-18",
+    "/review-topics/lucy-morrison-google-2024-08-15",
+    "/review-topics/maria-mogford-facebook-2025-04-13",
+    "/review-topics/marie-pierce-google-2025-05-18",
+    "/review-topics/mark-smith-google-2024-06-12",
+    "/review-topics/mary-ann-cook-google-2024-08-19",
+    "/review-topics/nick-gibb-google-2026-10-01",
+    "/review-topics/nicola-bond-google-2026-09-18",
+    "/review-topics/petra-dutton-google-2025-04-17",
+    "/review-topics/rebecca-baddeley-google-2026-09-18",
+    "/review-topics/rebecca-newman-google-2026-04-24",
+    "/review-topics/reece-barratt-google-2024-08-24",
+    "/review-topics/samantha-fletcher-google-2025-03-04",
+    "/review-topics/samuel-burgess-google-2024-01-11",
+    "/review-topics/sanj-google-2025-07-06",
+    "/review-topics/sarah-hall-google-2026-02-27",
+    "/review-topics/sarah-scotton-peters-facebook-2024-10-26",
+    "/review-topics/sarah-scotton-peters-google-2025-07-03",
+    "/review-topics/selinaalouise-google-2024-01-20",
+    "/review-topics/sherry-garcha-google-2024-01-13",
+    "/review-topics/sue-hanley-google-2026-09-04",
+    "/review-topics/sue-rathe-google-2026-03-27",
+    "/review-topics/susan-bailey-google-2024-08-18",
+    "/review-topics/susanj-548-yell-2024-03-18",
+    "/review-topics/susie-boggie-google-2026-07-10",
+    "/review-topics/suzanna-rathe-google-2026-09-18",
+    "/review-topics/thehayleyrose-google-2025-03-07",
+    "/review-topics/tom-scaysbrook-google-2024-10-30",
+    "/review-topics/tonie-valencia-google-2025-12-19",
+    "/review-topics/tony-bishton-google-2025-05-14",
+    "/review-topics/verified-patient-doctify-2021-12-07-18",
+    "/review-topics/verified-patient-doctify-2021-12-07-19",
+    "/review-topics/verified-patient-doctify-2021-12-07-20",
+    "/review-topics/verified-patient-doctify-2021-12-07-21",
+    "/review-topics/verified-patient-doctify-2021-12-07-22",
+    "/review-topics/verified-patient-doctify-2021-12-07-23",
+    "/review-topics/verified-patient-doctify-2021-12-08-12",
+    "/review-topics/verified-patient-doctify-2021-12-08-13",
+    "/review-topics/verified-patient-doctify-2021-12-08-14",
+    "/review-topics/verified-patient-doctify-2021-12-08-15",
+    "/review-topics/verified-patient-doctify-2021-12-08-16",
+    "/review-topics/verified-patient-doctify-2021-12-08-17",
+    "/review-topics/verified-patient-doctify-2021-12-09-07",
+    "/review-topics/verified-patient-doctify-2021-12-09-08",
+    "/review-topics/verified-patient-doctify-2021-12-09-09",
+    "/review-topics/verified-patient-doctify-2021-12-09-10",
+    "/review-topics/verified-patient-doctify-2021-12-09-11",
+    "/review-topics/verified-patient-doctify-2021-12-14-06",
+    "/review-topics/verified-patient-doctify-2021-12-15-05",
+    "/review-topics/verified-patient-doctify-2021-12-16-04",
+    "/review-topics/verified-patient-doctify-2021-12-21-03",
+    "/review-topics/verified-patient-doctify-2022-09-08-02",
+    "/review-topics/verified-patient-doctify-2023-01-17-01",
+    "/reviews",
+    "/search",
+    "/services/cosmetic-dentist",
+    "/services/dentist-near-me",
+    "/services/facial-aesthetics",
+    "/services/general-dentistry",
+    "/services/hygiene-care",
+    "/services/nervous-patient-care",
+    "/services/signature-assessment",
+    "/services/smile-design",
+    "/smile-gallery",
+    "/treatments/airflow-hygiene-therapy",
+    "/treatments/clear-aligners",
+    "/treatments/composite-bonding",
+    "/treatments/invisalign",
+    "/treatments/teeth-whitening",
+    "/treatments/veneers",
+    "/vip",
+    "/vip-awards",
+    "/vip-christmas",
+    "/vip-inpractice",
+    "/vip-posh",
+    "/vip-sanctuary",
+    "/vip-smiles",
+    "/vip-west-end"
+  ],
+  "directRoutesKey": "[\"*\"] means every route in renderedRouteList."
+}

@@ -1,0 +1,70 @@
+{
+  "serviceAwardsResize": {
+    "before": "0.25",
+    "after": "0.333",
+    "scrollY": 0,
+    "top": 600,
+    "heightChange": [
+      800,
+      900
+    ]
+  },
+  "legacyReviewData": {
+    "encoding": "gzip-base64",
+    "bytes": 29128
+  },
+  "firstVisitQuoteResize": {
+    "before": "0.25",
+    "after": "0.333",
+    "scrollY": 0,
+    "top": 600,
+    "heightChange": [
+      800,
+      900
+    ]
+  },
+  "attribution": [
+    {
+      "blocked": null,
+      "threw": false,
+      "ready": true
+    },
+    {
+      "blocked": "localStorage",
+      "threw": true,
+      "error": "SecurityError",
+      "ready": false
+    },
+    {
+      "blocked": "sessionStorage",
+      "threw": true,
+      "error": "SecurityError",
+      "ready": false
+    }
+  ],
+  "regression": {
+    "tests": 48,
+    "passed": 48,
+    "failed": 0,
+    "testFixtureCorrection": "Added matchMedia to the existing Swiper VM fixture; modern browsers provide this API. No runtime behavior changed."
+  },
+  "syntax": {
+    "ecmaVersion": 2022,
+    "scriptsOrModulesParsed": 55,
+    "failures": 0,
+    "limit": "Parser check, not a Safari engine run."
+  },
+  "calculatorBrowserObservation": {
+    "url": "https://dentalbarns.webflow.io/dental-cost-calculator",
+    "stylesheet": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8fb72cf07dfa6cd48e14522d9ee6a7df78a69391/dist/tdb-calculator.css",
+    "elementText": "We believe everyone deserves to feel good about their smile",
+    "inlineOpacity": "0",
+    "animationName": "tdbc-dd-text",
+    "animationTimeline": "view()",
+    "browser": "Cloud Chrome; both animation owners observed on the same element."
+  },
+  "limits": [
+    "No real iOS Safari or Android device was available.",
+    "VM probes establish code paths under controlled conditions, not measured frequency on user devices."
+  ]
+}

@@ -31,9 +31,13 @@ registry release `d78269d4192226eafb17754a17aab42105de863b`.
 transition shorthand with native longhands:
 
 - transition-property: `-webkit-backdrop-filter, backdrop-filter`
-- transition-duration: `var(--tdb-parallax-duration, 400ms)`
-- transition-timing-function: `ease`
-- transition-delay: `0s`
+- transition-duration: `var(--tdb-parallax-duration, 400ms), var(--tdb-parallax-duration, 400ms)`
+- transition-timing-function: `ease, ease`
+- transition-delay: `0s, 0s`
+
+Repeat each longhand value for both properties. Webflow's publishing serializer
+did not expand singleton lists correctly: it emitted `undefined` for the second
+property. The repeated lists publish valid prefixed and standard transitions.
 
 Layout, blur amount, clip-path, progress bars and animation curves are unchanged.
 
@@ -46,6 +50,12 @@ while its calculator JavaScript remains pinned to `1d5919f...`.
 
 Keep `data-tdb-runtime-base` at `cd0ca0b3f525bdf80df853a98ee3306a3a72d541/dist/`.
 Keep all other site/page code and pins. Publish the Webflow subdomain only.
+
+Published source: `310b98acf5271a9be342b9cf4283dd53663850a5`.
+Final staging publish task: `e64f28ce-d6e4-415a-aff6-27c8e89eaa7b`.
+Published CSS: `dentalbarns.webflow.677cf86df9952f978d94d8a9.d8e1a5c3f.opt.min.css`.
+The standalone calculator page retains its separate older CSS pin; the follow-up
+Safari audit records this as an outstanding shared-DD migration gap.
 
 ## Validation
 
