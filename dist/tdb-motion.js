@@ -1,4 +1,4 @@
-/* TDB shared motion v1.14.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.15.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -294,8 +294,9 @@
         const value = `translate3d(0, ${state.y.toFixed(4)}px, 0)`;
         if (!state.opacityOnly && state.node.style.transform !== value) state.node.style.transform = value;
         state.fadeTargets.forEach((target, i) => {
-          const opacity = String(state.fadeEnds[i] + (1 - state.fadeEnds[i]) * state.alpha);
-          if (target.style.opacity !== opacity) target.style.opacity = opacity;
+          const alpha = state.fadeEnds[i] + (state.fadeFrom[i] - state.fadeEnds[i]) * state.alpha;
+          const value = state.fadeProperties[i] === 'backgroundColor' ? `rgba(0, 0, 0, ${alpha})` : String(alpha);
+          if (target.style[state.fadeProperties[i]] !== value) target.style[state.fadeProperties[i]] = value;
         });
       }
       lastScroll = scroll;
@@ -319,13 +320,19 @@
         const value = Number.parseFloat(target.getAttribute('data-tdb-parallax-fade'));
         return Number.isFinite(value) ? clamp(value, 0, 1) : 0;
       });
-      const initial = fadeTargets.length ? Number.parseFloat(getComputedStyle(fadeTargets[0]).opacity) : 1;
+      const fadeFrom = fadeTargets.map(target => {
+        const value = Number.parseFloat(target.getAttribute('data-tdb-parallax-fade-from'));
+        return Number.isFinite(value) ? clamp(value, 0, 1) : 1;
+      });
+      const fadeProperties = fadeTargets.map(target => target.getAttribute('data-tdb-parallax-fade-property') === 'black' ? 'backgroundColor' : 'opacity');
+      const painted = fadeTargets.length ? getComputedStyle(fadeTargets[0])[fadeProperties[0]] : '1';
+      const initial = fadeProperties[0] === 'backgroundColor' ? (painted.startsWith('rgba') ? Number.parseFloat(painted.split(',')[3]) : 1) : Number.parseFloat(painted);
       const snapshot = memory?.take(node);
       const state = { wrapper, node, opacityOnly, y: opacityOnly ? 0 : yOf(node), original: snapshot ? snapshot.original : node.style.transform,
-        restored: Boolean(snapshot), correction: null, fade, fadeTargets, fadeEnds,
+        restored: Boolean(snapshot), correction: null, fade, fadeTargets, fadeEnds, fadeFrom, fadeProperties,
         imageProgress: wrapper.getAttribute?.('data-tdb-parallax-progress') === 'image',
-        alpha: fadeTargets.length && fadeEnds[0] < 1 ? clamp((initial - fadeEnds[0]) / (1 - fadeEnds[0]), 0, 1) : 1,
-        originalOpacity: snapshot?.originalOpacity || fadeTargets.map(target => target.style.opacity),
+        alpha: fadeTargets.length && fadeEnds[0] !== fadeFrom[0] ? clamp((initial - fadeEnds[0]) / (fadeFrom[0] - fadeEnds[0]), 0, 1) : 1,
+        originalOpacity: snapshot?.originalOpacity || fadeTargets.map((target, i) => target.style[fadeProperties[i]]),
         from: opacityOnly ? [0, 'px'] : distance('data-tdb-parallax-from', '-2vh'),
         to: opacityOnly ? [0, 'px'] : distance('data-tdb-parallax-to', '2vh') };
       states.push(state);
@@ -363,7 +370,7 @@
       state.node.removeEventListener('load', refresh);
       resize?.unobserve(state.wrapper); resize?.unobserve(state.node);
       if (!state.opacityOnly) state.node.style.transform = state.original;
-      state.fadeTargets.forEach((target, i) => { target.style.opacity = state.originalOpacity[i]; });
+      state.fadeTargets.forEach((target, i) => { target.style[state.fadeProperties[i]] = state.originalOpacity[i]; });
       if (!states.length) { disposed = true; controller.abort(); resize?.disconnect(); cancelAnimationFrame(frame); frame = 0; }
     }
     for (const state of states) pageBreakClients.get(state.wrapper).release = () => release(state);
@@ -465,5 +472,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.14.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.15.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();

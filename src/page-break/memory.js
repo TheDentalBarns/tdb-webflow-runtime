@@ -1,4 +1,4 @@
-/* Page-break memory v1.3.0. Inline in the head, before the body is parsed. */
+/* Page-break memory v1.4.0. Inline in the head, before the body is parsed. */
 (() => {
   'use strict';
   if (window.TDBPageBreakMemory) return;
@@ -9,10 +9,11 @@
   const config = wrapper => {
     const movement = ['data-tdb-parallax-from', 'data-tdb-parallax-to'].map(name => wrapper.getAttribute?.(name) || '').join('|');
     const fade = wrapper.getAttribute?.('data-tdb-parallax-fade-start');
-    const ends = [...(wrapper.querySelectorAll?.('[data-tdb-parallax-fade]') || [])].map(node => node.getAttribute('data-tdb-parallax-fade') || '').join(',');
+    const ends = [...(wrapper.querySelectorAll?.('[data-tdb-parallax-fade]') || [])].map(node => ['data-tdb-parallax-fade', 'data-tdb-parallax-fade-from', 'data-tdb-parallax-fade-property'].map(name => node.getAttribute(name) || '').join(':')).join(',');
     return (fade == null ? movement : movement + '|' + fade + '|' + wrapper.getAttribute('data-tdb-parallax-fade-end')) + (wrapper.getAttribute?.('data-tdb-parallax-progress') || '') +
       (opacityOnly(wrapper) ? '|opacity|' + ends : '');
   };
+  const property = node => node.getAttribute('data-tdb-parallax-fade-property') === 'black' ? 'backgroundColor' : 'opacity';
   const identity = node => [node.tagName, ...(node.matches('img') ? [node] : node.querySelectorAll('img'))]
     .map(value => typeof value === 'string' ? value : value.getAttribute('src') || '').join('|');
   let saved = null, observer = null;
@@ -33,12 +34,14 @@
           (item.config || '|') !== config(wrapper) ||
           !Number.isFinite(item.y) || Math.abs(item.y) > innerHeight * (config(wrapper) === '|' ? .025 : 4)) return;
       const targets = [...(wrapper.querySelectorAll?.('[data-tdb-parallax-fade]') || [])];
-      restored.set(node, { original: node.style.transform, originalOpacity: targets.map(target => target.style.opacity) });
+      restored.set(node, { original: node.style.transform, originalOpacity: targets.map(target => target.style[property(target)]) });
       if (Number.isFinite(item.alpha) && item.alpha >= 0 && item.alpha <= 1)
         targets.forEach(target => {
           const parsed = Number.parseFloat(target.getAttribute('data-tdb-parallax-fade'));
           const end = Number.isFinite(parsed) ? Math.max(0, Math.min(1, parsed)) : 0;
-          target.style.opacity = String(end + (1 - end) * item.alpha);
+          const start = Number.parseFloat(target.getAttribute('data-tdb-parallax-fade-from'));
+          const alpha = end + ((Number.isFinite(start) ? Math.max(0, Math.min(1, start)) : 1) - end) * item.alpha;
+          target.style[property(target)] = property(target) === 'backgroundColor' ? `rgba(0, 0, 0, ${alpha})` : String(alpha);
         });
       if (!opacityOnly(wrapper)) node.style.transform = `translate3d(0, ${item.y.toFixed(4)}px, 0)`;
     });
@@ -52,7 +55,7 @@
     document.addEventListener('DOMContentLoaded', () => { restore(); observer.disconnect(); }, { once: true });
   }
   window.TDBPageBreakMemory = Object.freeze({
-    version: '1.3.0',
+    version: '1.4.0',
     take(node) { const value = restored.get(node); restored.delete(node); claimed.add(node); return value; },
     save(states) {
       const owned = new Map(states.map(state => [state.wrapper, state]));
