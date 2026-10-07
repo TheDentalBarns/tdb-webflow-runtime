@@ -27,9 +27,11 @@
     if (observer) observer.observe(link);
     else visible = true;
     document.addEventListener('visibilitychange', play);
-    const ready = window.TDBModules.load(new URL('tdb-ticker.js', scriptBase), {
+    const ready = window.TDBModules.load(new URL('tdb-motion.js', scriptBase), {
+      ready: () => Boolean(window.TDBMotion)
+    }).then(() => window.TDBModules.load(new URL('tdb-ticker.js', scriptBase), {
       ready: () => Boolean(window.TDBNativeTicker)
-    }).then(() => {
+    })).then(() => {
       ticker = window.TDBNativeTicker.mount(slot, {
         valueClass: 'tdb-gallery-count-value', incomingClass: 'tdb-gallery-count-value'
       });
