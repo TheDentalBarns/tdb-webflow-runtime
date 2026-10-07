@@ -1,4 +1,4 @@
-/* TDB shared motion v1.18.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.19.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -223,9 +223,9 @@
       if (event.type === 'pointerdown') pointerHeld = true;
     };
     const pointerEnd = () => { pointerHeld = false; inputUntil = performance.now() + 2000; };
-    function retain(state, progress, target, alpha) {
-      state.correction = Math.abs(state.y - target) < 0.001 && Math.abs(state.alpha - alpha) < 0.001 ? null : {
-        anchor: progress, offset: state.y - target, alpha: state.alpha - alpha, weight: 1,
+    function retain(state, progress, target, alpha, reveal) {
+      state.correction = Math.abs(state.y - target) < 0.001 && Math.abs(state.alpha - alpha) < 0.001 && Math.abs(state.revealAlpha - reveal) < 0.001 ? null : {
+        anchor: progress, offset: state.y - target, alpha: state.alpha - alpha, reveal: state.revealAlpha - reveal, weight: 1,
       };
     }
     function curveAt(points, progress) {
@@ -260,6 +260,10 @@
         : progress;
       return { low, high, progress, target: from + (to - from) * progress,
         alpha: state.curve ? curveAt(state.curve, fadeProgress) : state.fade ? 1 - clamp((fadeProgress - state.fade[0]) / (state.fade[1] - state.fade[0]), 0, 1) : 1,
+        // Opt-in image reveal: enter after the section reaches the top;
+        // disappear over the final frame fraction, independently of its backdrop.
+        reveal: state.reveal ? Math.min(clamp(-box.top / (state.reveal[0] * frameHeight), 0, 1),
+          clamp(box.bottom / (state.reveal[1] * frameHeight), 0, 1)) : 1,
         visible: box.bottom > 0 && box.top < view && box.height > 0,
         signature: [box.top + window.scrollY, box.height, image.height, view, low, high, frameHeight],
       };
@@ -278,12 +282,12 @@
         if (!g.visible) {
           // The browser may restore scroll after this first render. Keep the
           // prepaint snapshot until that happens or the user starts scrolling.
-          if (!state.restored || userScroll) { state.y = g.target; state.alpha = g.alpha; }
+          if (!state.restored || userScroll) { state.y = g.target; state.alpha = g.alpha; state.revealAlpha = g.reveal; }
           state.correction = null;
         } else if (changed || (distance !== 0 && !userScroll)) {
           // Resize/layout movement and browser scroll restoration are not a
           // user's first scroll pass. Rebase at the currently painted position.
-          retain(state, g.progress, g.target, g.alpha);
+          retain(state, g.progress, g.target, g.alpha, g.reveal);
         } else if (userScroll) {
           const correction = state.correction;
           if (correction) {
@@ -295,13 +299,14 @@
           }
           const desired = g.target + (correction ? correction.offset * correction.weight : 0);
           state.alpha = clamp(g.alpha + (correction ? correction.alpha * correction.weight : 0), 0, 1);
+          state.revealAlpha = clamp(g.reveal + (correction ? correction.reveal * correction.weight : 0), 0, 1);
           // Near an exit the available distance can be tiny. Cap visible speed;
           // any last fraction is aligned on the first fully off-screen frame.
           const step = Math.abs(distance) * 0.15;
           state.y = clamp(clamp(desired, previous - step, previous + step), g.low, g.high);
           if (correction && correction.weight === 0 && Math.abs(state.y - g.target) < 0.001) state.correction = null;
         }
-        if (reduced.matches) { state.y = clamp(0, g.low, g.high); state.correction = null; state.alpha = 1; }
+        if (reduced.matches) { state.y = clamp(0, g.low, g.high); state.correction = null; state.alpha = 1; state.revealAlpha = 1; }
         state.progress = g.progress;
         state.visible = g.visible;
         if (g.visible || userScroll) state.restored = false;
@@ -309,6 +314,7 @@
       for (const state of states) {
         const value = `translate3d(0, ${state.y.toFixed(4)}px, 0)`;
         if (!state.opacityOnly && state.node.style.transform !== value) state.node.style.transform = value;
+        if (state.reveal && state.node.style.opacity !== String(state.revealAlpha)) state.node.style.opacity = String(state.revealAlpha);
         state.fadeTargets.forEach((target, i) => {
           const alpha = state.fadeEnds[i] + (state.fadeFrom[i] - state.fadeEnds[i]) * state.alpha;
           const value = state.fadeProperties[i] === 'backgroundColor' ? `rgba(0, 0, 0, ${alpha})` : String(alpha);
@@ -352,10 +358,15 @@
       const exitEnd = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-exit-end'));
       const exitRange = wrapper.getAttribute?.('data-tdb-parallax-progress') === 'exit' &&
         Number.isFinite(exitStart) && exitStart > exitEnd && exitEnd >= 0 ? [exitStart, exitEnd] : null;
-      const state = { wrapper, node, opacityOnly, y: opacityOnly ? 0 : yOf(node), original: snapshot ? snapshot.original : node.style.transform,
+      const revealIn = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-reveal-in'));
+      const revealOut = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-reveal-out'));
+      const reveal = !opacityOnly && Number.isFinite(revealIn) && revealIn > 0 && Number.isFinite(revealOut) && revealOut > 0 ? [revealIn, revealOut] : null;
+      const state = { wrapper, node, opacityOnly, reveal,
+        revealAlpha: reveal ? clamp(Number.parseFloat(getComputedStyle(node).opacity) || 0, 0, 1) : 1,
+        originalImageOpacity: snapshot ? snapshot.originalImageOpacity : node.style.opacity, y: opacityOnly ? 0 : yOf(node), original: snapshot ? snapshot.original : node.style.transform,
         restored: Boolean(snapshot), correction: null, fade, curve, fadeTargets, fadeEnds, fadeFrom, fadeProperties,
         allowEdges: wrapper.getAttribute?.('data-tdb-parallax-crop') === 'allow',
-        exitRange, exitFrame: exitRange ? wrapper.querySelector('[data-tdb-parallax-frame]') : null,
+        exitRange, exitFrame: exitRange || reveal ? wrapper.querySelector('[data-tdb-parallax-frame]') : null,
         imageProgress: wrapper.getAttribute?.('data-tdb-parallax-progress') === 'image',
         alpha: fadeTargets.length && fadeEnds[0] !== fadeFrom[0] ? clamp((initial - fadeEnds[0]) / (fadeFrom[0] - fadeEnds[0]), 0, 1) : 1,
         originalOpacity: snapshot?.originalOpacity || fadeTargets.map((target, i) => target.style[fadeProperties[i]]),
@@ -396,6 +407,7 @@
       state.node.removeEventListener('load', refresh);
       resize?.unobserve(state.wrapper); resize?.unobserve(state.node);
       if (!state.opacityOnly) state.node.style.transform = state.original;
+      if (state.reveal) state.node.style.opacity = state.originalImageOpacity;
       state.fadeTargets.forEach((target, i) => { target.style[state.fadeProperties[i]] = state.originalOpacity[i]; });
       if (!states.length) { disposed = true; controller.abort(); resize?.disconnect(); cancelAnimationFrame(frame); frame = 0; }
     }
@@ -498,5 +510,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.18.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.19.0', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();

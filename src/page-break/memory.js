@@ -1,4 +1,4 @@
-/* Page-break memory v1.7.0. Inline in the head, before the body is parsed. */
+/* Page-break memory v1.8.0. Inline in the head, before the body is parsed. */
 (() => {
   'use strict';
   if (window.TDBPageBreakMemory) return;
@@ -13,7 +13,9 @@
     return (fade == null ? movement : movement + '|' + fade + '|' + wrapper.getAttribute('data-tdb-parallax-fade-end')) + (wrapper.getAttribute?.('data-tdb-parallax-progress') || '') + (wrapper.getAttribute?.('data-tdb-parallax-crop') || '') +
       (opacityOnly(wrapper) ? '|opacity|' + ends : '') + (wrapper.getAttribute?.('data-tdb-parallax-fade-curve') || '') +
       (wrapper.getAttribute?.('data-tdb-parallax-progress') === 'exit'
-        ? '|exit:' + wrapper.getAttribute('data-tdb-parallax-exit-start') + ':' + wrapper.getAttribute('data-tdb-parallax-exit-end') : '');
+        ? '|exit:' + wrapper.getAttribute('data-tdb-parallax-exit-start') + ':' + wrapper.getAttribute('data-tdb-parallax-exit-end') : '') +
+      (wrapper.hasAttribute?.('data-tdb-parallax-reveal-in')
+        ? '|reveal:' + wrapper.getAttribute('data-tdb-parallax-reveal-in') + ':' + wrapper.getAttribute('data-tdb-parallax-reveal-out') + '|targets:' + ends : '');
   };
   const property = node => node.getAttribute('data-tdb-parallax-fade-property') === 'black' ? 'backgroundColor' : 'opacity';
   const identity = node => [node.tagName, ...(node.matches('img') ? [node] : node.querySelectorAll('img'))]
@@ -36,7 +38,7 @@
           (item.config || '|') !== config(wrapper) ||
           !Number.isFinite(item.y) || Math.abs(item.y) > innerHeight * (config(wrapper) === '|' ? .025 : 4)) return;
       const targets = [...(wrapper.querySelectorAll?.('[data-tdb-parallax-fade]') || [])];
-      restored.set(node, { original: node.style.transform, originalOpacity: targets.map(target => target.style[property(target)]) });
+      restored.set(node, { original: node.style.transform, originalImageOpacity: node.style.opacity, originalOpacity: targets.map(target => target.style[property(target)]) });
       if (Number.isFinite(item.alpha) && item.alpha >= 0 && item.alpha <= 1)
         targets.forEach(target => {
           const parsed = Number.parseFloat(target.getAttribute('data-tdb-parallax-fade'));
@@ -45,6 +47,8 @@
           const alpha = end + ((Number.isFinite(start) ? Math.max(0, Math.min(1, start)) : 1) - end) * item.alpha;
           target.style[property(target)] = property(target) === 'backgroundColor' ? `rgba(0, 0, 0, ${alpha})` : String(alpha);
         });
+      if (wrapper.hasAttribute?.('data-tdb-parallax-reveal-in') && Number.isFinite(item.reveal) && item.reveal >= 0 && item.reveal <= 1)
+        node.style.opacity = String(item.reveal);
       if (!opacityOnly(wrapper)) node.style.transform = `translate3d(0, ${item.y.toFixed(4)}px, 0)`;
     });
   }
@@ -57,13 +61,13 @@
     document.addEventListener('DOMContentLoaded', () => { restore(); observer.disconnect(); }, { once: true });
   }
   window.TDBPageBreakMemory = Object.freeze({
-    version: '1.7.0',
+    version: '1.8.0',
     take(node) { const value = restored.get(node); restored.delete(node); claimed.add(node); return value; },
     save(states) {
       const owned = new Map(states.map(state => [state.wrapper, state]));
       const items = [...document.querySelectorAll(selector)].map(wrapper => {
         const state = owned.get(wrapper);
-        return state ? { identity: identity(state.node), config: config(wrapper), y: state.y, alpha: state.alpha } : null;
+        return state ? { identity: identity(state.node), config: config(wrapper), y: state.y, alpha: state.alpha, ...(state.reveal ? { reveal: state.revealAlpha } : {}) } : null;
       });
       try {
         sessionStorage.setItem(key, JSON.stringify({ version: 1, time: Date.now(), width: innerWidth, height: innerHeight, items }));
