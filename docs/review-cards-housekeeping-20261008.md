@@ -30,3 +30,16 @@ compositor interpolation, idle sleep, zero-speed writes and disposal; parallax
 loop/reverse seams, resize/DPR, structure mutations and visibility; loader
 consent/proximity/remount checks. Preserves concurrent native parallax changes
 from ec2811c0be15ba874b59388a05b5deecca7ab345. Publish staging only.
+
+## Final retirement
+
+Removed the unused `Review Cards – previous` Webflow component (zero instances)
+and its `tdb-review-cards_arrow` style, including the superseded press states.
+Live card arrows use the native shared `tdb-service-arrow` and persistent
+`is-selected` state. Removed the redundant JS historic-label hidden write;
+CMS attributes and the section CSS now own historic-label visibility.
+
+Removed the site-wide `data-tdb-legacy-reviews` script include, so the legacy
+summary-card JS and mobile review-drawer CSS are no longer loaded by it.
+David explicitly accepted older review sections breaking during page-by-page
+staging migration. Historical pinned assets remain in Git history.

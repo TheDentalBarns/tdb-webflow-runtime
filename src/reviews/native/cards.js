@@ -19,7 +19,7 @@ function mount(root,data,{openReviews}){
   const field=k=>slide.querySelector(`[data-cards-render="${k}"]`);
   field('name').textContent=record.name;field('excerpt').textContent=record.excerpts[context]||record.excerpt;field('excerpt').style.opacity='0';field('text').textContent=record.text;
   const date=new Date(record.date);field('date').textContent=Number.isNaN(date.getTime())?'':(record.approx?'Approx. ':'')+date.toLocaleDateString('en-GB',record.approx?{month:'long',year:'numeric'}:{day:'numeric',month:'short',year:'numeric'});
-  field('rating').setAttribute('aria-label',record.rating?record.rating+' out of 5 stars':'Rating not supplied');field('historic').hidden=!record.historic;
+  field('rating').setAttribute('aria-label',record.rating?record.rating+' out of 5 stars':'Rating not supplied');
   field('icon').replaceChildren(...cms.sourceIcon(record.platform,false).childNodes);
   slide.querySelector('[data-tdb-cards-open]').setAttribute('aria-label','Read full review by '+record.name);
   return slide;
