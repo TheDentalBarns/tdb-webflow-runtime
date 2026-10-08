@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   if (window.TDBLogoMarqueeLoader) return;
-  const VERSION = '1.1.2';
+  const VERSION = '1.2.0';
   const selector = '.logo-slider .partner-featured_component';
   const source = new URL('../src/logo-marquee/logo-marquee.js', document.currentScript.src).href;
   // Logo links are controls even before the lazy runtime is ready.
@@ -9,7 +9,7 @@
   function guardLogoNavigation(event) {
     const target = event.target instanceof Element ? event.target : null;
     if (target?.closest('.logo-slider .partner_logos') &&
-        !target.closest('.tooltip2_tooltip-wrapper')) event.preventDefault();
+        !target.closest('.tdb-partner-source')) event.preventDefault();
   }
   document.addEventListener('click', guardLogoNavigation, true);
   document.addEventListener('auxclick', guardLogoNavigation, true);
@@ -48,7 +48,10 @@
     failed = false;
     // The decision gate delays first-party animation; it is not marketing consent.
     // Use the shared registry so the review section and marquee reuse DD motion.
-    flight = window.TDBModules.load('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@f87c184fa42235f9cdf0c8d46cf8cac679d954fc/dist/tdb-motion.js').then(() =>
+    flight = Promise.all([
+      window.TDBModules.load('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@f87c184fa42235f9cdf0c8d46cf8cac679d954fc/dist/tdb-motion.js'),
+      window.TDBModules.load('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@59026fb0b51c67513ffa4938e74340f72dcb11d5/dist/tdb-swiper-8.4.7.min.js', { ready: () => Boolean(window.TDBSwiper) })
+    ]).then(() =>
       window.TDBModules.load(source, { attribute: 'data-tdb-logo-marquee-js', ready: () => Boolean(window.TDBLogoMarquee) })
     ).then(() => {
       loaded = true;
