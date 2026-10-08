@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.13.5';
+  const VERSION = '0.13.6';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -400,6 +400,7 @@
         overlay.style.removeProperty('display');
         card.inert = false;
         releaseActiveLogo();
+        card.querySelectorAll('.tdb-service-arrow.is-selected').forEach(button=>button.classList.remove('is-selected'));
         releaseChrome(card);
       };
       if (immediate) { finishCardTransition(card); park(); }
@@ -751,6 +752,16 @@
     }
 
     if (shell) {
+      const arrows=Array.from(shell.querySelectorAll('.tdb-partner-prev,.tdb-partner-next'));
+      const selectArrow = button => arrows.forEach(candidate=>candidate.classList.toggle('is-selected',candidate===button));
+      // Reuse the persistent native carousel state, including after touch release.
+      arrows.forEach(button=>{
+        button.addEventListener('pointerdown',event=>{
+          if(event.pointerType==='touch'||event.pointerType==='pen') selectArrow(button);
+        },{signal});
+        button.addEventListener('pointercancel',()=>selectArrow(null),{signal});
+        button.addEventListener('click',()=>selectArrow(button),{signal});
+      });
       // Same native visual states as the treatment CTA: mouse-only hover,
       // instant touch feedback, cleared when the user scrolls or changes card.
       const clearVisitFeedback = () => entries.forEach(({visit}) => visit?.classList.remove('is-touch-held','is-hovered'));
@@ -791,7 +802,7 @@
         if(control && (event.key==='Enter'||event.key===' ')) {
           event.preventDefault();
           if(control.matches('.tdb-partner-close')) {closeCard(true);resume();}
-          else advance(control.matches('.tdb-partner-prev')?-1:1);
+          else { selectArrow(control); advance(control.matches('.tdb-partner-prev')?-1:1); }
           return;
         }
         if(event.key==='ArrowLeft'||event.key==='ArrowRight') {event.preventDefault();advance(event.key==='ArrowLeft'?-1:1);}
