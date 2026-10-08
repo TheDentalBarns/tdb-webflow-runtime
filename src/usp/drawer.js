@@ -1,4 +1,4 @@
-/* TDB native USP adapter v2.0.1. Designer owns every surface and control. */
+/* TDB native USP adapter v2.1.0. Designer owns every surface and control. */
 (() => {
   'use strict';
   if (window.TDBUSPDrawer) return;
@@ -25,12 +25,16 @@
     const close = shell.querySelector('[data-tdb-drawer-close]');
     const viewport = root.querySelector('[data-tdb-usp-viewport]'), track = root.querySelector('[data-tdb-usp-track]');
     const template = root.querySelector('[data-tdb-usp-template]'), title = root.querySelector('[data-tdb-usp-title]');
+    const header = root.querySelector('.tdb-usp_header'), footer = root.querySelector('.tdb-usp_footer');
+    const phoneLandscape = matchMedia('(orientation: landscape) and (max-width: 991px) and (max-height: 500px) and (pointer: coarse)');
+    const originalTrackHeight = track.style.height;
     const records = [...section.querySelectorAll('[data-tdb-usp-source]')].map(source => ({
       title: source.querySelector('.usp-logo_top-wrapper .text-style-tagline').textContent.trim(),
       logo: source.querySelector('.usp-logo_top-image'), body: source.querySelector('.modal-content-split')
     }));
     const controller = new AbortController(), {signal} = controller, scroll = new Map();
     let swiper, requested = 0, last = 0, direction = 1, activeSlide, source, chrome = [], vipTimer, restoreTimer;
+    let landscape = false, readingAnchor = null;
     panel.setAttribute('aria-label', 'Practice highlights');
     close.setAttribute('aria-label', 'Close practice highlights');
     const ticker = window.TDBNativeTicker.mount(root.querySelector('[data-tdb-usp-position]'));
@@ -60,7 +64,36 @@
       slide.querySelectorAll('[id],[data-w-id]').forEach(node => { node.removeAttribute('id'); node.removeAttribute('data-w-id'); });
       track.append(slide);
     });
-    function saveScroll() { if (activeSlide) scroll.set(Number(activeSlide.dataset.tdbUspSlide), activeSlide.scrollTop); }
+    const readingScroll = () => landscape ? root : activeSlide;
+    function saveScroll() { if (activeSlide) scroll.set(Number(activeSlide.dataset.tdbUspSlide), readingScroll().scrollTop); }
+    // Match the review drawer: preserve the reading position, or the footer's
+    // distance from the bottom while navigating between different card heights.
+    function captureReadingAnchor() {
+      if (!landscape || readingAnchor || drawer.state !== 'open') return;
+      const top = root.scrollTop, bottom = Math.max(0, root.scrollHeight - root.clientHeight - top);
+      readingAnchor = {top, bottom, atFoot: bottom <= footer.offsetHeight};
+    }
+    function applyReadingAnchor() {
+      if (!landscape || !readingAnchor) return;
+      const max = Math.max(0, root.scrollHeight - root.clientHeight);
+      root.scrollTop = Math.max(0, Math.min(max, readingAnchor.atFoot ? max - readingAnchor.bottom : readingAnchor.top));
+    }
+    function setReadingMode(enabled = phoneLandscape.matches) {
+      if (enabled === landscape) return;
+      const offset = readingScroll()?.scrollTop || 0;
+      readingAnchor = null; landscape = enabled;
+      for (const node of [root, header, footer, viewport, track, close, template, template.querySelector('.tdb-usp_slide-content'), ...track.querySelectorAll('.tdb-usp_slide,.tdb-usp_slide-content')]) {
+        node.classList.toggle('is-phone-landscape', landscape);
+      }
+      if (swiper) {
+        swiper.params.autoHeight = landscape;
+        if (!landscape) track.style.height = originalTrackHeight;
+        swiper.update();
+      }
+      root.scrollTop = 0;
+      if (readingScroll()) readingScroll().scrollTop = offset;
+    }
+    phoneLandscape.addEventListener('change', () => setReadingMode(), {signal});
     function reflect(animate = true) {
       const index = swiper.realIndex;
       ticker.update(String(index + 1).padStart(2, '0'), direction, animate);
@@ -68,7 +101,7 @@
       [...swiper.slides].forEach(slide => {
         const selected = Number(slide.dataset.tdbUspSlide) === index;
         slide.inert = !selected; slide.setAttribute('aria-hidden', String(!selected));
-        if (selected && slide !== activeSlide) slide.scrollTop = scroll.get(index) || 0;
+        if (selected && slide !== activeSlide) slide.scrollTop = landscape ? 0 : scroll.get(index) || 0;
       });
       activeSlide = swiper.slides[swiper.activeIndex]; last = index;
     }
@@ -76,17 +109,21 @@
       if (swiper) return;
       swiper = window.TDBSwiper.create(viewport, {
         wrapperClass: 'tdb-usp_track', slideClass: 'tdb-usp_slide', slidesPerView: 1, spaceBetween: 0,
-        loop: records.length > 1, loopAdditionalSlides: 1, initialSlide: requested,
+        loop: records.length > 1, loopAdditionalSlides: 1, initialSlide: requested, autoHeight: landscape,
         speed: window.TDBMotion.duration(innerWidth), loopPreventsSlide: false,
         preventInteractionOnTransition: false, touchStartPreventDefault: false, threshold: 12,
         touchAngle: 40, grabCursor: true, a11y: {enabled: false}, observer: false,
-        on: { beforeTransitionStart() { saveScroll(); }, touchStart() { saveScroll(); } }
+        on: {
+          beforeTransitionStart() { saveScroll(); captureReadingAnchor(); },
+          touchStart() { saveScroll(); }, sliderFirstMove: captureReadingAnchor,
+          transitionStart: applyReadingAnchor
+        }
       });
       swiper.on('slideChange', () => {
         direction = swiper.swipeDirection === 'prev' ? -1 : swiper.swipeDirection === 'next' ? 1 : direction;
         reflect();
       });
-      window.TDBSwiper.onSettled(swiper, () => reflect(false));
+      window.TDBSwiper.onSettled(swiper, () => { applyReadingAnchor(); readingAnchor = null; reflect(false); });
       window.TDBSwiper.watchDuration(root, viewport, swiper, '--tdb-usp-duration', () => innerWidth);
       reflect(false);
     }
@@ -109,11 +146,13 @@
     }
     const drawer = window.TDBDrawer.mount(shell, {
       onOpen() {
+        readingAnchor = null; setReadingMode();
         createSwiper(); swiper.update(); swiper.slideToLoop(requested, 0, false); reflect(false);
+        if (landscape) root.scrollTop = scroll.get(requested) || 0;
         source?.querySelector('.tdb-usp_launch-icon')?.classList.add('is-open'); hideChrome();
       },
       onClose() {
-        saveScroll(); ticker.settle(); titleTicker.settle(); clearTimeout(vipTimer);
+        saveScroll(); readingAnchor = null; ticker.settle(); titleTicker.settle(); clearTimeout(vipTimer);
         source?.querySelector('.tdb-usp_launch-icon')?.classList.remove('is-open');
         window.TDBVIPDrawer?.reset?.(); window.lenis?.stop();
         document.querySelector('.navbar10_menu-button[aria-expanded="true"]')?.click();
@@ -121,10 +160,21 @@
         restoreTimer = setTimeout(restoreChrome, window.TDBMotion.duration(innerWidth));
       }
     });
+    setReadingMode();
+    // Auto-height is an output of the carousel. Only rebuild for a width change
+    // in landscape; follow height transitions to keep the footer in reach.
+    let measuredWidth = viewport.clientWidth;
+    const resize = new ResizeObserver(() => {
+      const width = viewport.clientWidth, widthChanged = Math.abs(width - measuredWidth) > .5;
+      measuredWidth = width;
+      if (swiper && !swiper.animating && (!landscape || widthChanged)) swiper.update();
+      applyReadingAnchor();
+    });
+    resize.observe(viewport);
     function step(event, delta) {
       if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) return;
       event.preventDefault(); if (!swiper || drawer.state === 'closed' || drawer.state === 'closing') return;
-      saveScroll(); direction = delta;
+      saveScroll(); captureReadingAnchor(); direction = delta;
       if (delta < 0) swiper.slidePrev(); else swiper.slideNext();
     }
     for (const [selector, delta] of [['[data-tdb-usp-prev]', -1], ['[data-tdb-usp-next]', 1]]) {
@@ -134,7 +184,7 @@
     shell.addEventListener('keydown', event => {
       if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') step({...event, type:'click', preventDefault:() => event.preventDefault()}, event.key === 'ArrowLeft' ? -1 : 1);
     }, {signal});
-    const api = { async open(index, trigger) { if (drawer.state !== 'closed') return; requested = index; source = trigger; await drawer.open(trigger); }, close:() => drawer.close(), destroy() { drawer.destroy(); swiper?.destroy(true,true); controller.abort(); restoreChrome(); clearTimeout(vipTimer); ticker.destroy(); titleTicker.destroy(); instances.delete(section); } };
+    const api = { async open(index, trigger) { if (drawer.state !== 'closed') return; requested = index; source = trigger; await drawer.open(trigger); }, close:() => drawer.close(), destroy() { drawer.destroy(); resize.disconnect(); setReadingMode(false); swiper?.destroy(true,true); controller.abort(); restoreChrome(); clearTimeout(vipTimer); ticker.destroy(); titleTicker.destroy(); instances.delete(section); } };
     instances.set(section, api); return api;
   }
   function discover() {
@@ -162,6 +212,6 @@
       }
     });
   }
-  window.TDBUSPDrawer = Object.freeze({version:'2.0.1',close(){ document.querySelectorAll('[data-tdb-usp]').forEach(root => instances.get(root)?.close()); }});
+  window.TDBUSPDrawer = Object.freeze({version:'2.1.0',close(){ document.querySelectorAll('[data-tdb-usp]').forEach(root => instances.get(root)?.close()); }});
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', discover, {once:true}); else discover();
 })();
