@@ -40,3 +40,12 @@ Local candidate checks passed against current staging HTML and assets at
 - No browser errors in these checks; landscape screenshots visually inspected.
 
 Designer style additions are recorded in `landscape-native-styles.json`.
+
+Published to `https://dentalbarns.webflow.io/` only with immutable runtime pin
+`ec30e1200c1a629bde020d0b75dd3d3b48a1ceee`. The CDN file matches the source.
+All four viewport checks above passed again against the published Webflow HTML,
+native CSS and runtime, without temporary CSS or a substituted adapter. Actual
+Chromium touch events were used for landscape scrolling and arrow taps; this
+was browser touch emulation, not a physical-device Safari test. Published
+landscape and portrait screenshots were visually inspected. Syntax and diff
+whitespace checks passed. No production domain was published.
