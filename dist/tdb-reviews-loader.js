@@ -1,4 +1,4 @@
-/* TDB review loader v3.9.0. Permission, presence, preparation and playback stay separate. */
+/* TDB review loader v3.9.1. Permission, presence, preparation and playback stay separate. */
 (() => {
 'use strict';if(window.TDBReviewLoader)return;
 const script=document.currentScript,base=new URL('./',script.src),roots=new Map();
@@ -107,7 +107,7 @@ function sync(){
    root.querySelectorAll('[data-tdb-review-rating]').forEach(n=>n.setAttribute('data-tdb-review-rating',data.average.toFixed(2)));
    const hooks={prepare:async({signal:localSignal}={})=>{active(signal);active(localSignal);return data;},openReviews:open,closeReviews:()=>{feature?.destroy();feature=null;}};
    state.instance=kind==='introduction'?window.TDBReviewIntroduction.mount(root,hooks):kind==='cards'?window.TDBSwiper.mount('review-cards',root,data,hooks):window.TDBSwiper.mount('review-testimonials',root,data,hooks);
-  })().catch(()=>{}).finally(()=>{if(state.pending===token)state.pending=null;});
+  })().catch(error=>{if(!signal.aborted){root.dataset.tdbReviewError=error.message;console.warn('TDB review component:',error.message);}}).finally(()=>{if(state.pending===token)state.pending=null;});
  }
 }
 const proximity='IntersectionObserver'in window?new IntersectionObserver(entries=>{entries.forEach(e=>{const state=roots.get(e.target);if(state)state.near=e.isIntersecting;});sync();},{rootMargin:'700px 0px'}):null;
@@ -116,7 +116,7 @@ function discover(){[...document.querySelectorAll('[data-tdb-review-introduction
 for(const name of events){window.addEventListener(name,sync);document.addEventListener(name,sync);}
 options.subscribe?.(sync);window.addEventListener('online',sync);window.addEventListener('pageshow',sync);
 document.addEventListener('click',earlyOpen,true);document.addEventListener('keydown',earlyOpen,true);
-window.TDBReviewLoader=Object.freeze({version:'3.9.0',prepare,open,refresh:discover,status:()=>({allowed:allowed(),prepared:!!feature,instances:[...roots.values()].filter(s=>s.instance).length})});
+window.TDBReviewLoader=Object.freeze({version:'3.9.1',prepare,open,refresh:discover,status:()=>({allowed:allowed(),prepared:!!feature,instances:[...roots.values()].filter(s=>s.instance).length})});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',discover,{once:true});else discover();
 })();
 
