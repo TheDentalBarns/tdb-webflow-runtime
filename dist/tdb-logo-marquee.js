@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.10.3';
+  const VERSION = '0.11.0';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -143,7 +143,7 @@
       if (!card || card.hidden || card.classList.contains('w-condition-invisible')) return;
       remember(card, ['id', 'class', 'style', 'aria-hidden', 'role', 'aria-label']);
       remember(item, ['aria-expanded', 'aria-controls']);
-      const pointer = card.querySelector('.tooltip2_pointer');
+      const pointer = card.querySelector('.tdb-partner-backdrop');
       if (pointer) remember(pointer, ['style']);
       const id = 'tdb-partner-card-' + (++cardId);
       card.id = id;
@@ -169,6 +169,7 @@
     let selected = null;
     let openItem = null;
     let openCard = null;
+    const cardTransitions = new Map();
     let startY = 0;
     let startX = 0;
     let horizontal = false;
@@ -200,36 +201,72 @@
       const viewLeft = visual?.offsetLeft || 0, viewTop = visual?.offsetTop || 0;
       const viewWidth = visual?.width || document.documentElement.clientWidth;
       const viewHeight = visual?.height || innerHeight;
-      const box = openCard.getBoundingClientRect();
+      const box = { width: openCard.offsetWidth, height: openCard.offsetHeight };
       const above = anchor.top - box.height - gap;
       const below = above < viewTop + edge && anchor.bottom + gap + box.height <= viewTop + viewHeight - edge;
       const left = clamp(anchor.left + anchor.width / 2 - box.width / 2, viewLeft + edge, Math.max(viewLeft + edge, viewLeft + viewWidth - box.width - edge));
       const top = clamp(below ? anchor.bottom + gap : above, viewTop + edge, Math.max(viewTop + edge, viewTop + viewHeight - box.height - edge));
       openCard.style.left = left + 'px';
       openCard.style.top = top + 'px';
-      const pointer = openCard.querySelector('.tooltip2_pointer');
+      const pointer = openCard.querySelector('.tdb-partner-backdrop');
       if (pointer) {
-        pointer.style.left = clamp(anchor.left + anchor.width / 2 - left, 12, box.width - 12) + 'px';
-        pointer.style.right = 'auto';
         const surface = openCard.querySelector('.tooltip2_card-wrapper');
-        // Centre the diamond directly on the card edge, excluding wrapper padding.
-        pointer.style.top = (surface.offsetTop + (below ? 0 : surface.offsetHeight)) + 'px';
-        pointer.style.bottom = 'auto';
-        pointer.style.margin = '0';
-        pointer.style.transform = 'translate(-50%, -50%) rotate(45deg)';
+        const topEdge = surface.offsetTop;
+        const bottomEdge = topEdge + surface.offsetHeight;
+        pointer.style.setProperty('--tdb-tip-x', clamp(anchor.left + anchor.width / 2 - left, 12, box.width - 12) + 'px');
+        pointer.style.setProperty('--tdb-surface-top', topEdge + 'px');
+        pointer.style.setProperty('--tdb-surface-bottom', bottomEdge + 'px');
+        pointer.style.setProperty('--tdb-tip-top', (below ? topEdge - 8 : topEdge) + 'px');
+        pointer.style.setProperty('--tdb-tip-bottom', (below ? bottomEdge : bottomEdge + 8) + 'px');
       }
     }
-    function closeCard(returnFocus = false) {
+    function finishCardTransition(card) {
+      const state = cardTransitions.get(card);
+      if (!state) return;
+      cardTransitions.delete(card);
+      state.animation.cancel();
+      state.done?.();
+    }
+    function animateCard(card, opening, done) {
+      const current = getComputedStyle(card);
+      const from = cardTransitions.has(card)
+        ? { opacity: current.opacity, transform: current.transform }
+        : { opacity: opening ? 0 : 1, transform: opening ? 'translateY(20px)' : 'translateY(0)' };
+      finishCardTransition(card);
+      // Reuse the navbar's shared panel timing and easing; shared motion is the
+      // fallback on pages where the navbar enhancement has not loaded.
+      const duration = window.TDBPanelMotion?.duration() || window.TDBMotion.duration();
+      const easing = window.TDBPanelMotion?.easing || 'cubic-bezier(0.165,0.84,0.44,1)';
+      const animation = card.animate([from, {
+        opacity: opening ? 1 : 0,
+        transform: opening ? 'translateY(0)' : 'translateY(20px)'
+      }], { duration, easing, fill: 'both' });
+      const state = { animation, done };
+      cardTransitions.set(card, state);
+      animation.onfinish = () => {
+        if (cardTransitions.get(card) !== state) return;
+        cardTransitions.delete(card);
+        done?.();
+        animation.cancel();
+      };
+    }
+    function closeCard(returnFocus = false, immediate = false) {
       if (!openCard) return;
       const card = openCard, item = openItem;
       const focused = card.contains(document.activeElement);
       openCard = openItem = null;
-      card.style.removeProperty('display');
       card.setAttribute('aria-hidden', 'true');
-      card.style.removeProperty('left');
-      card.style.removeProperty('top');
-      item.prepend(card);
+      card.inert = true;
       item.setAttribute('aria-expanded', 'false');
+      const park = () => {
+        card.style.removeProperty('display');
+        card.style.removeProperty('left');
+        card.style.removeProperty('top');
+        card.inert = false;
+        item.prepend(card);
+      };
+      if (immediate) { finishCardTransition(card); park(); }
+      else animateCard(card, false, park);
       if (returnFocus && focused) {
         const original = originals[Number(item.dataset.tdbLogoIndex)];
         original?.focus({ preventScroll: true });
@@ -239,15 +276,18 @@
       closeCard();
       const card = cards.get(item);
       if (!card) return;
+      finishCardTransition(card);
       openItem = item; openCard = card;
       primeTooltipImage(item);
       // Portal the native CMS card out of the moving track to avoid clipping.
       document.body.append(card);
+      card.inert = false;
       card.querySelectorAll('a').forEach(link => link.removeAttribute('tabindex'));
       card.style.display = 'block';
       card.setAttribute('aria-hidden', 'false');
       item.setAttribute('aria-expanded', 'true');
       positionCard();
+      animateCard(card, true);
     }
 
     function setTransform(value) {
@@ -490,7 +530,8 @@
     function destroy() {
       if (!instances.has(track)) return;
 
-      closeCard();
+      closeCard(false, true);
+      [...cardTransitions.keys()].forEach(finishCardTransition);
       controller.abort();
       dd.destroy();
       track.querySelectorAll('.is-partner-hovered').forEach(logo => logo.classList.remove('is-partner-hovered'));
