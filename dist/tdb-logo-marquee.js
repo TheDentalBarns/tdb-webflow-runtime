@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.11.0';
+  const VERSION = '0.11.1';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -203,9 +203,9 @@
       const viewHeight = visual?.height || innerHeight;
       const box = { width: openCard.offsetWidth, height: openCard.offsetHeight };
       const above = anchor.top - box.height - gap;
-      const below = above < viewTop + edge && anchor.bottom + gap + box.height <= viewTop + viewHeight - edge;
+      const below = !mobileMediaQuery?.matches && above < viewTop + edge && anchor.bottom + gap + box.height <= viewTop + viewHeight - edge;
       const left = clamp(anchor.left + anchor.width / 2 - box.width / 2, viewLeft + edge, Math.max(viewLeft + edge, viewLeft + viewWidth - box.width - edge));
-      const top = clamp(below ? anchor.bottom + gap : above, viewTop + edge, Math.max(viewTop + edge, viewTop + viewHeight - box.height - edge));
+      const top = mobileMediaQuery?.matches ? above : clamp(below ? anchor.bottom + gap : above, viewTop + edge, Math.max(viewTop + edge, viewTop + viewHeight - box.height - edge));
       openCard.style.left = left + 'px';
       openCard.style.top = top + 'px';
       const pointer = openCard.querySelector('.tdb-partner-backdrop');
@@ -224,31 +224,45 @@
       const state = cardTransitions.get(card);
       if (!state) return;
       cardTransitions.delete(card);
-      state.animation.cancel();
+      state.animations.forEach(animation => animation.cancel());
       state.done?.();
     }
     function animateCard(card, opening, done) {
-      const current = getComputedStyle(card);
-      const from = cardTransitions.has(card)
-        ? { opacity: current.opacity, transform: current.transform }
-        : { opacity: opening ? 0 : 1, transform: opening ? 'translateY(20px)' : 'translateY(0)' };
+      const surface = card.querySelector('.tooltip2_card-wrapper');
+      const glass = card.querySelector('.tdb-partner-backdrop');
+      const activeTransition = cardTransitions.has(card);
+      const cardStyle = getComputedStyle(card);
+      const surfaceStyle = getComputedStyle(surface);
+      const glassStyle = getComputedStyle(glass);
+      const restingGlass = {
+        backgroundColor: glassStyle.backgroundColor,
+        backdropFilter: glassStyle.backdropFilter
+      };
+      // Preserve Designer's full glass values even while an animation is running.
+      const nativeGlass = cardTransitions.get(card)?.nativeGlass || restingGlass;
+      const clearGlass = { backgroundColor: 'rgba(249, 242, 230, 0)', backdropFilter: 'saturate(100%) blur(0px)' };
+      const fromTransform = activeTransition ? cardStyle.transform : opening ? 'translateY(20px)' : 'translateY(0)';
+      const fromOpacity = activeTransition ? surfaceStyle.opacity : opening ? 0 : 1;
+      const fromGlass = activeTransition ? restingGlass : opening ? clearGlass : nativeGlass;
       finishCardTransition(card);
-      // Reuse the navbar's shared panel timing and easing; shared motion is the
-      // fallback on pages where the navbar enhancement has not loaded.
       const duration = window.TDBPanelMotion?.duration() || window.TDBMotion.duration();
       const easing = window.TDBPanelMotion?.easing || 'cubic-bezier(0.165,0.84,0.44,1)';
-      const animation = card.animate([from, {
-        opacity: opening ? 1 : 0,
-        transform: opening ? 'translateY(0)' : 'translateY(20px)'
-      }], { duration, easing, fill: 'both' });
-      const state = { animation, done };
+      const options = { duration, easing, fill: 'both' };
+      // Keep opacity off the glass ancestor: it creates a backdrop root and can
+      // make the blur appear only when the ancestor fade finishes.
+      const animations = [
+        card.animate([{ transform: fromTransform }, { transform: opening ? 'translateY(0)' : 'translateY(20px)' }], options),
+        surface.animate([{ opacity: fromOpacity }, { opacity: opening ? 1 : 0 }], options),
+        glass.animate([fromGlass, opening ? nativeGlass : clearGlass], options)
+      ];
+      const state = { animations, nativeGlass, done };
       cardTransitions.set(card, state);
-      animation.onfinish = () => {
+      Promise.all(animations.map(animation => animation.finished)).then(() => {
         if (cardTransitions.get(card) !== state) return;
         cardTransitions.delete(card);
         done?.();
-        animation.cancel();
-      };
+        animations.forEach(animation => animation.cancel());
+      }).catch(() => {});
     }
     function closeCard(returnFocus = false, immediate = false) {
       if (!openCard) return;
