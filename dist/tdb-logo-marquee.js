@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.10.1';
+  const VERSION = '0.10.2';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -180,6 +180,8 @@
     let active = false;
     let dragging = false;
     let pointerId = null;
+    let pressedItem = null;
+    let touchClickUntil = 0;
     let lastPointerX = 0;
     let suppressNextClick = false;
     let rafId = 0;
@@ -209,10 +211,12 @@
       if (pointer) {
         pointer.style.left = clamp(anchor.left + anchor.width / 2 - left, 12, box.width - 12) + 'px';
         pointer.style.right = 'auto';
-        pointer.style.top = below ? '-.375rem' : 'auto';
-        pointer.style.bottom = below ? 'auto' : '0';
+        const surface = openCard.querySelector('.tooltip2_card-wrapper').getBoundingClientRect();
+        // Centre the diamond directly on the card edge, excluding wrapper padding.
+        pointer.style.top = (below ? surface.top - box.top : surface.bottom - box.top) + 'px';
+        pointer.style.bottom = 'auto';
         pointer.style.margin = '0';
-        pointer.style.transform = 'translateX(-50%) rotate(45deg)';
+        pointer.style.transform = 'translate(-50%, -50%) rotate(45deg)';
       }
     }
     function closeCard(returnFocus = false) {
@@ -380,6 +384,7 @@
       // Catch a moving logo exactly where the finger lands, including mid-settle.
       momentum = 0; coasting = false; targetX = currentX; paused = true; stopAnimation();
       pointerId = event.pointerId;
+      pressedItem = event.target.closest(CONFIG.itemSelector);
       startX = lastPointerX = event.clientX; startY = event.clientY;
       samples = [{x:event.clientX,t:event.timeStamp}];
       horizontal = false; dragging = false;
@@ -406,7 +411,8 @@
     }
     function endPointer(event) {
       if (event.pointerId !== pointerId) return;
-      const id = pointerId, moved = horizontal;
+      const id = pointerId, moved = horizontal, tappedItem = pressedItem;
+      pressedItem = null;
       pointerId = null; dragging = false; horizontal = false;
       try { track.releasePointerCapture(id); } catch (_) {}
       if (moved) {
@@ -420,9 +426,18 @@
         coasting = !paused;
         targetX = currentX;
         if (coasting) startAnimation();
+      } else if (event.type === 'pointerup' && event.pointerType === 'touch' && tappedItem) {
+        // iOS may retarget or omit click after implicit pointer capture.
+        touchClickUntil = performance.now() + 800;
+        suppressNextClick = true;
+        select(tappedItem);
       } else if (event.type !== 'pointerup') resume();
     }
     function onClick(event) {
+      // A touch activation has already been handled on pointerup.
+      if (performance.now() < touchClickUntil) {
+        event.preventDefault(); event.stopImmediatePropagation(); return;
+      }
       // Pointer capture can retarget the release-click to the track itself.
       if (suppressNextClick) {
         suppressNextClick = false;
@@ -434,6 +449,7 @@
       event.preventDefault(); event.stopImmediatePropagation(); select(item);
     }
     function onOutsideClick(event) {
+      if (performance.now() < touchClickUntil) return;
       if (!track.contains(event.target) && !openCard?.contains(event.target)) resume();
     }
     function onPageScroll() {
@@ -458,7 +474,6 @@
     function onTooltipIntent(event) {
       const item = event.target instanceof Element ? event.target.closest(CONFIG.itemSelector) : null;
       if (!item || !track.contains(item)) return;
-      primeTooltipImage(item);
       if (event.type === 'pointerover' && finePointer.matches) item.querySelectorAll(CONFIG.logoSelector).forEach(logo => logo.classList.add('is-partner-hovered'));
     }
 
@@ -544,8 +559,7 @@
     track.addEventListener('pointerover', onTooltipIntent, { signal, passive: true });
     track.addEventListener('pointerout', clearHover, { signal, passive: true });
     finePointer.addEventListener('change', () => track.querySelectorAll('.is-partner-hovered').forEach(logo => logo.classList.remove('is-partner-hovered')), { signal });
-    track.addEventListener('focusin', onTooltipIntent, { signal });
-    track.addEventListener('touchstart', onTooltipIntent, { signal, passive: true });
+    // Tooltip imagery is requested only by explicit activation in showCard().
     document.addEventListener('visibilitychange', onVisibilityChange, { signal });
 
     if ('IntersectionObserver' in window) {
