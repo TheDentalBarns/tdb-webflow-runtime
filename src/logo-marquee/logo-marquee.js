@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.13.6';
+  const VERSION = '0.13.7';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -370,7 +370,7 @@
           // the same short route across the seam as the marquee.
           loopedSlides:entries.length,
           speed:window.TDBMotion.duration(), watchOverflow:true,
-          touchStartPreventDefault:false, preventInteractionOnTransition:false,
+          touchStartPreventDefault:false, preventInteractionOnTransition:false, loopPreventsSlide:false,
           a11y:{enabled:true}, on:{slideChange:syncSlide, beforeTransitionStart:(_swiper,speed)=>{
             if(speed>0) centreAnimation?.effect.updateTiming({duration:speed});
           }}
