@@ -1,4 +1,4 @@
-/* TDB shared motion v1.19.3. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.19.2. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -289,7 +289,7 @@
         // Opt-in image reveal: enter after the section reaches the top;
         // disappear over the final frame fraction, independently of its backdrop.
         reveal: state.reveal ? Math.min(clamp(-box.top / (state.reveal[0] * frameHeight), 0, 1),
-          state.reveal[3] + (1 - state.reveal[3]) * clamp((box.bottom - state.reveal[2] * frameHeight) / (state.reveal[1] * frameHeight), 0, 1)) : 1,
+          clamp((box.bottom - state.reveal[2] * frameHeight) / (state.reveal[1] * frameHeight), 0, 1)) : 1,
         visible: box.bottom > 0 && box.top < view && box.height > 0,
         signature: [box.top + window.scrollY, box.height, image.height, view, low, high, frameHeight, window.innerWidth],
       };
@@ -389,8 +389,7 @@
       const revealIn = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-reveal-in'));
       const revealOut = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-reveal-out'));
       const revealEnd = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-reveal-out-end'));
-      const revealFinal = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-reveal-final'));
-      const reveal = !opacityOnly && Number.isFinite(revealIn) && revealIn > 0 && Number.isFinite(revealOut) && revealOut > 0 ? [revealIn, revealOut, Number.isFinite(revealEnd) && revealEnd >= 0 ? revealEnd : 0, Number.isFinite(revealFinal) ? clamp(revealFinal, 0, 1) : 0] : null;
+      const reveal = !opacityOnly && Number.isFinite(revealIn) && revealIn > 0 && Number.isFinite(revealOut) && revealOut > 0 ? [revealIn, revealOut, Number.isFinite(revealEnd) && revealEnd >= 0 ? revealEnd : 0] : null;
       const state = { wrapper, node, opacityOnly, reveal,
         revealAlpha: reveal ? clamp(Number.parseFloat(getComputedStyle(node).opacity) || 0, 0, 1) : 1,
         originalImageOpacity: snapshot ? snapshot.originalImageOpacity : node.style.opacity, y: opacityOnly ? 0 : yOf(node), original: snapshot ? snapshot.original : node.style.transform,
@@ -538,5 +537,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.19.3', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.19.2', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();

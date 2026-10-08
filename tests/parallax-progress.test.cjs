@@ -13,18 +13,19 @@ function fixture({treatment=false,nativeTreatment=false,width=1000,dpr=1,page='6
   const cls=values=>{const set=new Set(values);return {contains:v=>set.has(v),add:v=>set.add(v),remove:v=>set.delete(v),toggle:(v,on)=>on?set.add(v):set.delete(v)};};
   const node=()=>({style:{},classList:cls([]),setAttribute(){},addEventListener(){},removeEventListener(){},append(){},remove(){}});
   const fill=node(),wrapped=node(),track=Object.assign(node(),{firstElementChild:fill,children:[fill,wrapped],getBoundingClientRect(){stats.track++;return {width:nativeTreatment?width*.65:Number.parseFloat(this.style.width)||0};}});
-  const wrapper=Object.assign(node(),{children:[]});
+  const wrapper=Object.assign(node(),{children:[],getAnimations:()=>[]});
   const makeSlide=(index,x,w=width)=>Object.assign(node(),{index,x,w,parentElement:wrapper,classList:cls(['swiper-slide']),getAttribute(){stats.indices++;return this.index===null?null:String(this.index);},getBoundingClientRect(){stats.slides++;return {left:this.x-offset,width:this.w};}});
   wrapper.children=[4,0,1,2,3,4,0].map((index,i)=>makeSlide(index,(i-1)*width));
   const viewport=Object.assign(node(),{querySelector:()=>wrapper,getBoundingClientRect:()=>({left:0,right:width,top:0,bottom:500,width,height:500})});
-  const component=Object.assign(node(),{clientTop:0,clientLeft:0,hasAttribute:n=>nativeTreatment&&n==='data-tdb-treatment',closest:()=>treatment?{}:null,querySelector:s=>s.includes('native-progress')?track:s===':scope > .swiper'?viewport:null,getBoundingClientRect:()=>({left:0,top:0})});
+  const component=Object.assign(node(),{clientTop:0,clientLeft:0,matches:()=>true,hasAttribute:n=>nativeTreatment&&n==='data-tdb-treatment',closest:()=>treatment?{}:null,querySelector:s=>s.includes('native-progress')?track:s===':scope > .swiper'?viewport:null,getBoundingClientRect:()=>({left:0,top:0})});
   const document={hidden:false,documentElement:{dataset:{wfPage:page},clientWidth:width},querySelectorAll:selector=>{if(page!=='677cf86df9952f978d94d8a9')assert.equal(selector,'.tdb-service-parallax,[data-tdb-treatment]');return [component];},addEventListener:(e,cb)=>observers[e]=cb,removeEventListener(){}};
   const window={devicePixelRatio:dpr,addEventListener:(e,cb)=>observers[e]=cb,removeEventListener(){}};
   const observer=key=>class{constructor(cb){observers[key]=cb;}observe(){}disconnect(){}};
   const context={document,window,innerWidth:width,Element:class{},IntersectionObserver:observer('intersection'),MutationObserver:observer('mutation'),ResizeObserver:observer('size'),requestAnimationFrame:cb=>{queue.set(++seq,cb);return seq;},cancelAnimationFrame:id=>queue.delete(id)};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../src/shared/rendered-progress.js'),'utf8'),context);
   vm.runInNewContext(code,context);
   const step=()=>{const frame=[...queue.values()];queue.clear();frame.forEach(cb=>cb());};
-  return {stats,fill,wrapped,track,wrapper,makeSlide,observers,document,queue,step,offset:v=>offset=v,visible:v=>observers.intersection([{isIntersecting:v}]),resize:(w,p=dpr)=>{width=w;window.devicePixelRatio=p;context.innerWidth=w;document.documentElement.clientWidth=w;observers.size();},result:()=>[fill.style.width,fill.style.transform,wrapped.style.transform]};
+  return {stats,fill,wrapped,track,wrapper,makeSlide,observers,document,queue,step,offset:v=>{offset=v;observers.mutation([{type:'attributes',target:wrapper,attributeName:'style'}]);},visible:v=>observers.intersection([{isIntersecting:v}]),resize:(w,p=dpr)=>{width=w;window.devicePixelRatio=p;context.innerWidth=w;document.documentElement.clientWidth=w;observers.size();},result:()=>[fill.style.width,fill.style.transform,wrapped.style.transform]};
 }
 function run() {
   const f=fixture();f.visible(true);
@@ -36,7 +37,7 @@ function run() {
   const reads={...f.stats};for(let i=0;i<120;i++)f.step();
   assert.equal(f.stats.indices,reads.indices,'stable frames reuse logical indices');
   assert.equal(f.stats.track,reads.track,'stable frames reuse measured track width');
-  assert.equal(f.stats.slides-reads.slides,120*7,'rendered movement is still sampled on every visible frame');
+  assert.equal(f.stats.slides-reads.slides,0,'idle frames do not read slide geometry');
   f.offset(1000);f.step();assert.equal(f.fill.style.transform,'translateX(200px)','movement after idle is not missed');
   f.resize(750,2);f.step();assert.equal(f.fill.style.width,'150px');
   f.wrapper.children=[0,1].map((i)=>f.makeSlide(i,i*750,750));f.offset(750);

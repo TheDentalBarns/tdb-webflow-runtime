@@ -11,7 +11,7 @@ function mount(root,data,{openReviews}){
  const originals=nativeSlides.map(n=>n.cloneNode(true)),template=originals[0],seedById=new Map(nativeSlides.map(n=>[n.dataset.reviewId,n]));
  const controller=new AbortController(),{signal}=controller,motion=window.TDBMotion,reduced=motion.reduced,cms=window.TDBReviewCMS,context=cms.contextForPath(location.pathname),fades=motion.fadeController();
  const ticker=window.TDBNativeTicker.mount($('[data-tdb-cards-current]')),originalEasing=track.style.transitionTimingFunction;
- let entryPending=true,entryTimer=0,entryFrame=0,entryObserver,entryVisible=false,progressFrame=0;
+ let entryPending=true,entryTimer=0,entryFrame=0,entryObserver,entryVisible=false;
  let swiper,phase='initializing',shownQuote,settledSlide,revealTimer=0,rendered=0,loading,pending=[],advanceAfterLoad=false,updating=false;
  function fill(slide,record,index){
   slide.dataset.reviewId=record.id;slide.dataset.reviewRating=record.rating||'';slide.dataset.reviewSubject=record.historic?'Dr Keely - historic practice':'The Dental Barns';slide.dataset.reviewPlatform=record.platform;
@@ -19,11 +19,9 @@ function mount(root,data,{openReviews}){
   const field=k=>slide.querySelector(`[data-cards-render="${k}"]`);
   field('name').textContent=record.name;field('excerpt').textContent=record.excerpts[context]||record.excerpt;field('excerpt').style.opacity='0';field('text').textContent=record.text;
   const date=new Date(record.date);field('date').textContent=Number.isNaN(date.getTime())?'':(record.approx?'Approx. ':'')+date.toLocaleDateString('en-GB',record.approx?{month:'long',year:'numeric'}:{day:'numeric',month:'short',year:'numeric'});
-  field('rating').querySelectorAll('[data-tdb-star]').forEach((star,i)=>star.classList.toggle('is-empty',!record.rating||i>=record.rating));
   field('rating').setAttribute('aria-label',record.rating?record.rating+' out of 5 stars':'Rating not supplied');field('historic').hidden=!record.historic;
   field('icon').replaceChildren(...cms.sourceIcon(record.platform,false).childNodes);
   slide.querySelector('[data-tdb-cards-open]').setAttribute('aria-label','Read full review by '+record.name);
-  slide.querySelectorAll('.tdb-review-cards_surface').forEach(n=>{n.classList.toggle('is-second',index%3===1);n.classList.toggle('is-third',index%3===2);});
   return slide;
  }
  const initial=data.records.slice(0,batchSize).map((record,index)=>fill(seedById.get(record.id)||template.cloneNode(true),record,index));
@@ -96,13 +94,13 @@ function mount(root,data,{openReviews}){
   entryObserver=new IntersectionObserver(entries=>{
    entryVisible=entries.some(entry=>entry.isIntersecting&&entry.intersectionRatio>0);
    if(entryVisible){scheduleEntry();startProgress();}
-   else{clearTimeout(entryTimer);cancelAnimationFrame(entryFrame);entryTimer=entryFrame=0;cancelAnimationFrame(progressFrame);progressFrame=0;}
+   else{clearTimeout(entryTimer);cancelAnimationFrame(entryFrame);entryTimer=entryFrame=0;progressSampler.pause();}
   },{threshold:0});
   // Keep progress visibility separate: the one-shot entry observer disconnects.
   entryObserver.observe(viewport);
   progressObserver.observe(viewport);
   document.addEventListener('visibilitychange',()=>{
-   if(document.hidden){clearTimeout(entryTimer);cancelAnimationFrame(entryFrame);entryTimer=entryFrame=0;cancelAnimationFrame(progressFrame);progressFrame=0;}
+   if(document.hidden){clearTimeout(entryTimer);cancelAnimationFrame(entryFrame);entryTimer=entryFrame=0;progressSampler.pause();}
    else{scheduleEntry();startProgress();}
   },{signal});
  }
@@ -118,12 +116,9 @@ function mount(root,data,{openReviews}){
   const travel=data.total>1?index*(width-segment)/(data.total-1):0,pose=segment+':'+travel;
   if(pose!==lastProgress){marker.style.width=segment+'px';marker.style.transform=`translateX(${travel}px)`;lastProgress=pose;}
  }
- function startProgress(){
-  if(progressFrame||!progressVisible||document.hidden||signal.aborted)return;
-  const tick=()=>{progressFrame=0;if(!progressVisible||document.hidden||signal.aborted)return;paintProgress();progressFrame=requestAnimationFrame(tick);};
-  progressFrame=requestAnimationFrame(tick);
- }
- const progressObserver=new IntersectionObserver(entries=>{progressVisible=entries.some(e=>e.isIntersecting);if(progressVisible)startProgress();else{cancelAnimationFrame(progressFrame);progressFrame=0;}},{rootMargin:'100px'});
+ const progressSampler=window.TDBRenderedProgress.observe({track,paint:paintProgress,enabled:()=>progressVisible&&!signal.aborted});
+ function startProgress(){progressSampler.schedule();}
+ const progressObserver=new IntersectionObserver(entries=>{progressVisible=entries.some(e=>e.isIntersecting);if(progressVisible)startProgress();else{progressSampler.pause();}},{rootMargin:'100px'});
  signal.addEventListener('abort',()=>progressObserver.disconnect(),{once:true});
 
  swiper=window.TDBSwiper.create(viewport,{init:false,direction:'horizontal',wrapperClass:'tdb-review-cards_track',slideClass:'tdb-review-cards_slide',slidesPerView:'auto',slidesOffsetAfter:trailingRoom,initialSlide:0,loop:false,rewind:false,resistanceRatio:0,preventInteractionOnTransition:false,speed:reduced.matches?0:motion.duration(innerWidth),watchSlidesProgress:true,keyboard:{enabled:false},on:{slideChange(){queueMicrotask(()=>{reflect();if(!updating)prefetch();});},sliderFirstMove:begin,transitionStart:begin}});
@@ -149,10 +144,10 @@ function mount(root,data,{openReviews}){
   try{await openReviews({trigger:button,reviewId:button.closest('[data-review-id]').dataset.reviewId,signal});}catch(error){if(!signal.aborted)status.textContent='The review could not load. Please try again.';}finally{button.removeAttribute('aria-busy');}
  }
  root.addEventListener('click',activate,{signal});root.addEventListener('keydown',activate,{signal});window.addEventListener('online',prefetch,{signal});
- const resize=new ResizeObserver(()=>{if(!busy()){updating=true;swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);swiper.update();updating=false;fitBodies();reflect();}});resize.observe(viewport);
+ const resize=new ResizeObserver(()=>{if(!busy()){updating=true;swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);swiper.update();updating=false;fitBodies();reflect();startProgress();}});resize.observe(viewport);
  document.fonts?.ready.then(()=>{if(!signal.aborted)fitBodies();});
  reduced.addEventListener('change',()=>{hide();phase='moving';swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);if(reduced.matches){swiper.slideTo(swiper.activeIndex,0);ticker.settle();}reveal(0);},{signal});
- const api={destroy(){finishEntry(false);cancelAnimationFrame(progressFrame);hide();phase='destroyed';controller.abort();resize.disconnect();stopSettled();fades.destroy();swiper.destroy(true,true);ticker.destroy();track.style.transitionTimingFunction=originalEasing;track.replaceChildren(...originals.map(n=>n.cloneNode(true)));root.classList.remove('is-ready');navigation.classList.add('is-inactive');previous.setAttribute('aria-disabled','true');next.setAttribute('aria-disabled','false');previous.classList.add('is-disabled');next.classList.remove('is-disabled');next.removeAttribute('data-tdb-loading');status.textContent='';instances.delete(root);}};
+ const api={destroy(){finishEntry(false);progressSampler.destroy();hide();phase='destroyed';controller.abort();resize.disconnect();stopSettled();fades.destroy();swiper.destroy(true,true);ticker.destroy();track.style.transitionTimingFunction=originalEasing;track.replaceChildren(...originals.map(n=>n.cloneNode(true)));root.classList.remove('is-ready');navigation.classList.add('is-inactive');previous.setAttribute('aria-disabled','true');next.setAttribute('aria-disabled','false');previous.classList.add('is-disabled');next.classList.remove('is-disabled');next.removeAttribute('data-tdb-loading');status.textContent='';instances.delete(root);}};
  instances.set(root,api);return api;
 }
 window.TDBReviewCards=Object.freeze({version:'2.1.0',mount});window.TDBSwiper?.register('review-cards',window.TDBReviewCards);

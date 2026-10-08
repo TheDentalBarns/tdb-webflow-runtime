@@ -26,9 +26,9 @@ async function code(kind,signal,drawer=false){
  const names=['tdb-ticker.js','tdb-review-cms.js'];
  if(kind)names.push(kind==='quotes'?'tdb-review-quote-adapter.js':`tdb-review-${kind}.js`);
  if(kind==='quotes')names.push('tdb-quote-carousel.js');
- if(kind==='cards')names.push('tdb-slider-focus.js');
+ if(kind==='cards')names.push('tdb-slider-focus.js','tdb-rendered-progress.js');
  if(drawer&&drawerRoot())names.push('tdb-drawer.js','tdb-filters.js','tdb-reviews.js');
- await Promise.all(names.map(name=>window.TDBModules.load(new URL(name,base),name==='tdb-quote-carousel.js'?{ready:()=>!!window.TDBQuoteCarousel}:{})));active(signal);
+ await Promise.all(names.map(name=>window.TDBModules.load(new URL(name,base),name==='tdb-quote-carousel.js'?{ready:()=>!!window.TDBQuoteCarousel}:name==='tdb-rendered-progress.js'?{ready:()=>!!window.TDBRenderedProgress}:{})));active(signal);
  if((drawer&&drawerRoot())||kind==='quotes'||kind==='cards'){
   await window.TDBModules.load(new URL('tdb-swiper-8.4.7.min.js',base),{attribute:'data-swiper-js',ready:()=>typeof window.Swiper==='function'&&typeof window.TDBSwiper?.create==='function'});active(signal);
  }

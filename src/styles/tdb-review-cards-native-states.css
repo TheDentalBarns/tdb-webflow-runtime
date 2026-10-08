@@ -17,8 +17,6 @@
 .tdb-review-cards_slide[data-review-rating="4"] [data-tdb-star="4"] { opacity: .2; }
 .tdb-review-cards_slide[data-review-rating=""] .tdb-review-cards_star-row { display: none; }
 .tdb-review-cards_slide[data-review-rating=""] [data-cards-render="rating"]::after { content: 'Unrated'; }
-.tdb-review-cards_date [data-cards-render="date"] { display: inline-flex; align-items: baseline; column-gap: .25em; }
-.tdb-review-cards_icon > .w-embed { display: contents; }
 .tdb-review-cards_icon [data-cards-platform-icon] { display: none; width: 100%; height: 100%; }
 .tdb-review-cards_slide:is([data-review-platform="Google"],[data-review-platform="efe6db2067ed0fd456d38bc2e521b4bd"]) [data-cards-platform-icon="Google"],
 .tdb-review-cards_slide:is([data-review-platform="Facebook"],[data-review-platform="17153ef92f97216cb750196d50c29c0d"]) [data-cards-platform-icon="Facebook"],
