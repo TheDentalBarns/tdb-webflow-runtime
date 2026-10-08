@@ -616,6 +616,21 @@ function prepareSliderLoader() {
   window.dispatchEvent(new Event('tdb:slider-loader-ready'));
 }
 
+// Footer copy and sizing live in Designer. Keep the existing document-modified
+// date behavior here, sharing the already-loaded runtime rather than an embed.
+function updateNativeFooterDates() {
+  const updated = new Date(document.lastModified);
+  if (!Number.isFinite(updated.getTime())) return;
+  const date = [String(updated.getDate()).padStart(2, '0'),
+    String(updated.getMonth() + 1).padStart(2, '0'), updated.getFullYear()].join('/');
+  document.querySelectorAll('[data-tdb-last-updated]').forEach(node => {
+    if (node.textContent !== date) node.textContent = date;
+  });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', updateNativeFooterDates, {once: true});
+} else updateNativeFooterDates();
+
 prepareFormsLoader();
 prepareVIPDrawerLoader();
 prepareSliderLoader();
@@ -624,7 +639,7 @@ prepareSliderFocusLoader();
 startLenisForSession();
 
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.6.0',
+  version: '1.6.1',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,
