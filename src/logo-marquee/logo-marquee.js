@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.11.1';
+  const VERSION = '0.11.2';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -202,10 +202,11 @@
       const viewWidth = visual?.width || document.documentElement.clientWidth;
       const viewHeight = visual?.height || innerHeight;
       const box = { width: openCard.offsetWidth, height: openCard.offsetHeight };
-      const above = anchor.top - box.height - gap;
-      const below = !mobileMediaQuery?.matches && above < viewTop + edge && anchor.bottom + gap + box.height <= viewTop + viewHeight - edge;
-      const left = clamp(anchor.left + anchor.width / 2 - box.width / 2, viewLeft + edge, Math.max(viewLeft + edge, viewLeft + viewWidth - box.width - edge));
-      const top = mobileMediaQuery?.matches ? above : clamp(below ? anchor.bottom + gap : above, viewTop + edge, Math.max(viewTop + edge, viewTop + viewHeight - box.height - edge));
+      const below = false;
+      // The card stays horizontally centred while the chosen logo moves to it.
+      // Keep its document-relative vertical position, including during scrolling.
+      const left = viewLeft + (viewWidth - box.width) / 2;
+      const top = anchor.top - box.height - gap;
       openCard.style.left = left + 'px';
       openCard.style.top = top + 'px';
       const pointer = openCard.querySelector('.tdb-partner-backdrop');
@@ -213,7 +214,7 @@
         const surface = openCard.querySelector('.tooltip2_card-wrapper');
         const topEdge = surface.offsetTop;
         const bottomEdge = topEdge + surface.offsetHeight;
-        pointer.style.setProperty('--tdb-tip-x', clamp(anchor.left + anchor.width / 2 - left, 12, box.width - 12) + 'px');
+        pointer.style.setProperty('--tdb-tip-x', (box.width / 2) + 'px');
         pointer.style.setProperty('--tdb-surface-top', topEdge + 'px');
         pointer.style.setProperty('--tdb-surface-bottom', bottomEdge + 'px');
         pointer.style.setProperty('--tdb-tip-top', (below ? topEdge - 8 : topEdge) + 'px');
@@ -506,11 +507,23 @@
       if (performance.now() < touchClickUntil) return;
       if (!track.contains(event.target) && !openCard?.contains(event.target)) resume();
     }
+    function cardAndTrackOffscreen() {
+      if (!openCard) return true;
+      const visual = window.visualViewport;
+      const top = visual?.offsetTop || 0;
+      const bottom = top + (visual?.height || innerHeight);
+      const visible = node => {
+        const rect = node.getBoundingClientRect();
+        return rect.bottom > top && rect.top < bottom;
+      };
+      return !visible(openCard) && !visible(viewport);
+    }
     function onPageScroll() {
-      const nextY = window.scrollY;
-      if (Math.abs(nextY-pageY) < 8) return;
-      pageY = nextY;
-      if (!dragging && (paused || momentum)) resume();
+      pageY = window.scrollY;
+      if (!openCard) return;
+      positionCard();
+      // Keep the card readable while either it or its marquee remains on screen.
+      if (!dragging && cardAndTrackOffscreen()) resume();
     }
     function onKey(event) {
       if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -622,7 +635,7 @@
         ([entry]) => {
           active = Boolean(entry?.isIntersecting);
           if (active) startAnimation();
-          else { closeCard(); paused = reduceMotion(); selected = null; momentum = 0; coasting = false; targetX = currentX; stopAnimation(); }
+          else { if (!openCard || cardAndTrackOffscreen()) resume(); stopAnimation(); }
         },
         { rootMargin: `${CONFIG.activeViewportMargin}px 0px` }
       );
