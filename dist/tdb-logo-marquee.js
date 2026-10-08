@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.13.4';
+  const VERSION = '0.13.5';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -366,6 +366,9 @@
         swiper=window.TDBSwiper.create(shell.querySelector('.tdb-partner-swiper'), {
           wrapperClass:'tdb-partner-slides', slideClass:'tooltip2_card-wrapper',
           slidesPerView:1, spaceBetween:24, autoHeight:false, loop:true,
+          // Both sides need every destination so direct logo clicks can take
+          // the same short route across the seam as the marquee.
+          loopedSlides:entries.length,
           speed:window.TDBMotion.duration(), watchOverflow:true,
           touchStartPreventDefault:false, preventInteractionOnTransition:false,
           a11y:{enabled:true}, on:{slideChange:syncSlide, beforeTransitionStart:(_swiper,speed)=>{
@@ -412,7 +415,15 @@
       item.removeAttribute('aria-busy');
       if (signal.aborted || generation!==requestGeneration) return;
       if (openCard) {
-        swiper.slideToLoop(entries.indexOf(entry),window.TDBMotion.duration());
+        // slideToLoop always targets the original, which can sweep through
+        // the whole deck at the seam. Select the nearest rendered copy instead.
+        switching=true; swiper.loopFix(); switching=false;
+        const realIndex=entries.indexOf(entry);
+        const candidates=Array.from(swiper.slides).map((slide,index)=>({slide,index}))
+          .filter(({slide})=>Number(slide.dataset.swiperSlideIndex)===realIndex);
+        const nearest=candidates.reduce((best,candidate)=>
+          Math.abs(candidate.index-swiper.activeIndex)<Math.abs(best.index-swiper.activeIndex)?candidate:best);
+        swiper.slideTo(nearest.index,window.TDBMotion.duration());
         syncSlide(); return;
       }
       finishCardTransition(shell);
