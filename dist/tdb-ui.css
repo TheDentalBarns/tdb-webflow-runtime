@@ -150,12 +150,13 @@ html {
   }
 }
 
-input[type='submit'] {
+/* Native .button.submit-button states live in Designer. */
+input[type='submit']:not(.submit-button) {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-input[type='submit'].submit-enabled {
+input[type='submit']:not(.submit-button).submit-enabled {
   opacity: 1;
   cursor: pointer;
 }
@@ -490,3 +491,4 @@ html[data-tdb-motion='full'] [data-tdb-loading='true'] [data-tdb-loading-indicat
 .video-overlay-layer { opacity:1 !important; visibility:visible !important; transition:none !important; animation:none !important; }
 
 .vimeo-controls-layer { -webkit-user-select:none; -webkit-tap-highlight-color:transparent; }
+
