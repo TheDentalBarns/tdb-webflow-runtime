@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.10.0';
+  const VERSION = '0.10.1';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -130,7 +130,7 @@
       item.dataset.tdbLogoIndex = index;
       item.setAttribute('role', 'button');
       item.setAttribute('tabindex', '0');
-      item.setAttribute('aria-label', (item.querySelector(CONFIG.logoSelector)?.alt || 'Logo ' + (index + 1)) + ': centre and pause; activate again to resume');
+      item.setAttribute('aria-label', (item.querySelector(CONFIG.logoSelector)?.alt || 'Logo ' + (index + 1)) + ': centre and pause');
       item.querySelectorAll('img').forEach(img => img.draggable = false);
     });
     const fragment = document.createDocumentFragment();
@@ -140,7 +140,7 @@
     const cards = new Map();
     track.querySelectorAll(CONFIG.itemSelector).forEach(item => {
       const card = item.querySelector('.tooltip2_tooltip-wrapper');
-      if (!card) return;
+      if (!card || card.hidden || card.classList.contains('w-condition-invisible')) return;
       remember(card, ['id', 'class', 'style', 'aria-hidden', 'role', 'aria-label']);
       remember(item, ['aria-expanded', 'aria-controls']);
       const pointer = card.querySelector('.tooltip2_pointer');
@@ -151,7 +151,7 @@
       card.setAttribute('role', 'region');
       const name = card.querySelector('.text-style-tagline-restored')?.textContent.trim() || 'Partner';
       card.setAttribute('aria-label', name);
-      item.setAttribute('aria-label', name + ': show details or resume marquee');
+      item.setAttribute('aria-label', name + ': centre and show details');
       item.setAttribute('aria-expanded', 'false');
       item.setAttribute('aria-controls', id);
       cards.set(item, card);
@@ -364,9 +364,9 @@
     }
     function select(item) {
       if (!item) return;
-      if (paused && selected === item.dataset.tdbLogoIndex) {
-        resume();
-      } else { centre(item); showCard(item); }
+      centre(item);
+      // Activation always selects; dismissal is outside/Escape/scroll/drag.
+      if (openItem !== item) showCard(item);
     }
     function resume() {
       if (dragging) return;
@@ -536,6 +536,11 @@
       if (event.target === track) endPointer(event);
     }, { signal });
     track.addEventListener('click', onClick, { signal, capture: true });
+    track.addEventListener('auxclick', event => {
+      if (event.target.closest(CONFIG.itemSelector)) {
+        event.preventDefault(); event.stopImmediatePropagation();
+      }
+    }, { signal, capture: true });
     track.addEventListener('pointerover', onTooltipIntent, { signal, passive: true });
     track.addEventListener('pointerout', clearHover, { signal, passive: true });
     finePointer.addEventListener('change', () => track.querySelectorAll('.is-partner-hovered').forEach(logo => logo.classList.remove('is-partner-hovered')), { signal });
