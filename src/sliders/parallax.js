@@ -1,4 +1,4 @@
-/* TDB Parallax v1.1.0.
+/* TDB Parallax v1.2.1.
  * Shared parallax preparation, CMS link state, native presentation and progress.
  * Bundled into the existing immediate runtime: no extra request or stylesheet.
  * Swiper and TDBMotion remain the shared slide/motion engines.
@@ -68,7 +68,7 @@
         return t && "#" !== t && !/^javascript:/i.test(t) ? e : null;
     };
     function r(r) {
-        if (!r.matches(e)) return !1;
+        if (r.hasAttribute('data-tdb-treatment') || r.classList.contains('tdb-service-parallax') || !r.matches(e)) return !1;
         const i = r.querySelector(":scope > .swiper"), a = i?.querySelector(":scope > .swiper-wrapper");
         if (!a || i.swiper) return !1;
         const o = [ ...a.children ].filter(e => e.matches(".swiper-slide:not(.swiper-slide-duplicate)")), s = o.map(e => {
@@ -130,12 +130,16 @@
     function r(r, i = r.querySelector(":scope > .swiper")) {
         if (!eligible(r) || !i) return null;
         if (e.has(r)) return e.get(r);
+        const nativeLayout = r.hasAttribute('data-tdb-treatment') || r.classList.contains('tdb-service-parallax');
         !function(e) {
             if (!eligible(e)) return;
             const t = matchMedia("(max-width:767px) and (orientation:portrait)").matches;
-            document.documentElement.classList.toggle("tdb-slider-next", t), document.documentElement.classList.toggle("tdb-slider-desktop", matchMedia("(min-width:768px)").matches);
+            if (!nativeLayout) {
+                document.documentElement.classList.toggle("tdb-slider-next", t);
+                document.documentElement.classList.toggle("tdb-slider-desktop", matchMedia("(min-width:768px)").matches);
+            }
             const r = e.querySelector(":scope > .swiper"), i = e.querySelector(":scope > .swiper_functions-btm.hide");
-            t && r && i && !e.hasAttribute("data-tdb-banner-parallax") && r.appendChild(i), 
+            !nativeLayout && t && r && i && !e.hasAttribute("data-tdb-banner-parallax") && r.appendChild(i), 
             e.querySelectorAll(".swiper-btn-prev,.swiper-btn-next").forEach(e => {
                 e.tabIndex = 0, e.setAttribute("role", "button"), e.setAttribute("aria-label", e.matches(".swiper-btn-prev") ? "Previous slide" : "Next slide");
             });
@@ -160,24 +164,34 @@
             }
             const nativeLayer = r.querySelector(':scope > .tdb-service-cta,:scope > .tdb-treatment-cta');
             const nativeButton = nativeLayer?.querySelector('[data-tdb-parallax-cta]');
+            // Native components must never generate, replace or relocate their CTA.
+            // A missing authored control is a markup issue, not a runtime layout job.
+            if (nativeLayout && !nativeButton) return null;
             const b = nativeButton || s.cloneNode(!0);
+            if (!nativeButton) {
             b.removeAttribute("aria-hidden"), b.removeAttribute("tabindex"), b.removeAttribute("data-fade-slide"), 
             b.classList.remove("fade", "animate"), b.setAttribute("data-tdb-parallax-cta", ""), 
-            p && d.held && b.classList.add("is-touch-held", "is-touch-input"), [ b, ...b.querySelectorAll("[id]") ].forEach(e => e.removeAttribute("id"));
+            [ b, ...b.querySelectorAll("[id]") ].forEach(e => e.removeAttribute("id"));
+            }
+            p && d.held && b.classList.add("is-touch-held", "is-touch-input");
             const m = nativeLayer || document.createElement("div");
             if (!nativeLayer) m.className = "tdb-parallax-cta-layer";
-             "/location" === window.location.pathname.replace(/\/$/, "") && m.classList.add("is-location"), 
-            m.appendChild(b);
+            if (!nativeLayer) {
+                "/location" === window.location.pathname.replace(/\/$/, "") && m.classList.add("is-location");
+                m.appendChild(b);
+            }
             const h = [];
             a.forEach((e, t) => {
-                e.setAttribute("data-tdb-parallax-cta-index", String(t)), e.querySelectorAll(".showcase-content_btm a.button").forEach(e => {
+                e.setAttribute("data-tdb-parallax-cta-index", String(t));
+                if (!nativeLayout) e.querySelectorAll(".showcase-content_btm a.button").forEach(e => {
                     h.push({
                         node: e,
                         parent: e.parentNode,
                         next: e.nextSibling
                     }), e.remove();
                 });
-            }), r.classList.add("has-static-parallax-cta"), r.appendChild(m);
+            });
+            if (!nativeLayer) { r.classList.add("has-static-parallax-cta"); r.appendChild(m); }
             let w = null, v = !1, f = !1, y = null, x = null, g = !1, A = null, L = !1, E = p && Boolean(d.held), B = !1, S = window.scrollY, D = !1;
             function T() {
                 const e = history.state;
@@ -246,11 +260,12 @@
             }
             function z() {
                 const e = w?.slides[w.activeIndex] || a[u], t = e?.getAttribute("data-tdb-parallax-cta-index"), n = null == t ? null : o[Number(t)];
-                if (r.hasAttribute("data-tdb-banner-parallax") && (b.hidden = !n?.href), !n?.href) return b.removeAttribute("href"), 
+                if (!nativeButton && r.hasAttribute("data-tdb-banner-parallax")) b.hidden = !n?.href;
+                if (!n?.href) return b.removeAttribute("href"), 
                 b.setAttribute("aria-disabled", "true"), void (b.tabIndex = -1);
                 b.setAttribute("href", n.href);
                 for (const e of [ "target", "rel" ]) n[e] ? b.setAttribute(e, n[e]) : b.removeAttribute(e);
-                b.firstElementChild && (b.firstElementChild.textContent = n.label), b.setAttribute("aria-label", n.title ? `${n.label}: ${n.title}` : n.label), 
+                b.firstElementChild && b.firstElementChild.textContent !== n.label && (b.firstElementChild.textContent = n.label), b.setAttribute("aria-label", n.title ? `${n.label}: ${n.title}` : n.label), 
                 v ? b.setAttribute("aria-disabled", "true") : b.removeAttribute("aria-disabled"), 
                 b.tabIndex = v ? -1 : 0;
             }
@@ -287,7 +302,7 @@
                 r.removeEventListener("click", $, !0), r.removeEventListener("keydown", $, !0), 
                 window.removeEventListener("tdb:slider-loader-ready", V), window.removeEventListener("scroll", M), 
                 window.removeEventListener("wheel", I), window.removeEventListener("pagehide", _), 
-                window.removeEventListener("pageshow", q), !nativeLayer && m.remove(), nativeLayer?.classList.remove('is-ready'), r.classList.remove("has-static-parallax-cta"), 
+                window.removeEventListener("pageshow", q), !nativeLayer && (m.remove(), r.classList.remove("has-static-parallax-cta")), nativeLayer?.classList.remove('is-ready'), 
                 i.style.removeProperty("--tdb-parallax-initial-index"), a.forEach(e => e.removeAttribute("data-tdb-parallax-cta-index")), 
                 h.slice().reverse().forEach(({node: e, parent: t, next: n}) => {
                     t.insertBefore(e, n?.parentNode === t ? n : null);
@@ -359,13 +374,17 @@
     if(previous?.wrapper===wrapper)return true;
     previous?.dispose();
     const nativeTrack=component.querySelector(':scope > [data-tdb-native-progress]');
+    const nativeLayout=component.matches(nativeSelector);
+    // Designer owns the track and both wrap markers. Never rebuild native UI.
+    if(nativeLayout&&(!nativeTrack||nativeTrack.children.length<2))return false;
     if(!nativeTrack)component.querySelector(':scope > .tdb-service-progress')?.remove();
     const treatment=!!component.closest('#All-treatments');
     const track=nativeTrack||document.createElement('div'),fill=nativeTrack?.firstElementChild||document.createElement('span');
     if(!nativeTrack){track.className='tdb-service-progress';fill.className='tdb-service-progress-fill';}
     const wrapped=nativeTrack?.children[1]||fill.cloneNode();
     if(treatment&&!component.hasAttribute('data-tdb-treatment'))[fill,wrapped].forEach(node=>node.classList.add('is-treatment')); 
-    track.setAttribute('aria-hidden','true');track.append(fill,wrapped);component.append(track);
+    track.setAttribute('aria-hidden','true');
+    if(!nativeTrack){track.append(fill,wrapped);component.append(track);}
     let frame=0,visible=false,disposed=false,lastTravel=null,lastSegment=null;
     let slides=[],count=0,structureDirty=true,trackWidth=0,dpr=1;
     function readSlides(){
@@ -492,7 +511,8 @@
     progress.refresh(root);
   }
   window.TDBParallax = Object.freeze({
-    version: '1.2.0', refresh, prepare: controls.prepare,
+    version: '1.2.1', refresh, prepare: controls.prepare,
     bind: presentation.bind, setMoving: presentation.setMoving, setEntry: presentation.setEntry
   });
 })();
+
