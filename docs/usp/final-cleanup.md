@@ -39,3 +39,21 @@ removed. Shared drawer, Swiper, motion, ticker and loading behavior are retained
 Earlier HTML/CSS files in this folder are historical migration snapshots, not
 current stylesheets or templates to reimport. Designer is authoritative for the
 current structure and native style definitions.
+
+Published to the Webflow staging subdomain only with immutable runtime
+`7ac3cc08d2c849d7291471016f637450fdd0dfbd`.
+
+Published-asset checks passed in Chromium at 1440×1000, 390×844, 852×393 and
+667×375. The smaller viewports used touch emulation. All five source records
+resolve through their new data hooks; no old USP control/ticker class remains
+in the section, and no published IX2 event target matches the USP root or any
+of its descendants. Native item dimensions and computed layout match the
+pre-cleanup published class at every tested width. The old class is omitted
+from the home page's optimized CSS after removal from the component.
+
+USP/review ticker colour, font family, size, weight, number variant and spacing
+match exactly at each viewport. Touch navigation, loop wraparound, vertical
+landscape scrolling, floating X, footer anchoring, portrait/landscape rotation,
+shared arrow focus feedback and closure all passed. No browser errors were
+reported. Published portrait/landscape screenshots were visually inspected;
+syntax and whitespace checks passed.
