@@ -12,10 +12,13 @@ const motion = readFileSync(join(__dirname, '../src/shared/motion.js'), 'utf8');
 function environment({ navigation = 'reload', width = 1440, height = 900, data, blocked = false } = {}) {
   const window = new EventTarget(), document = new EventTarget(), wrappers = [], frames = new Map();
   let observer, frame = 0;
+  const viewportReads = { width: 0, height: 0 };
   const storage = new Map(data ? [['tdb:page-break:v1:/test', JSON.stringify(data)]] : []);
   Object.assign(window, { scrollY: 0, innerWidth: width, innerHeight: height });
   Object.assign(document, { hidden: false, documentElement: {}, body: {}, querySelectorAll: () => wrappers });
-  const context = vm.createContext({ window, document, innerWidth: width, innerHeight: height,
+  const context = vm.createContext({ window, document,
+    get innerWidth() { viewportReads.width++; return width; },
+    get innerHeight() { viewportReads.height++; return height; },
     location: { pathname: '/test', search: '' }, AbortController, Date, console,
     performance: { now: () => 100, getEntriesByType: () => [{ type: navigation }] },
     sessionStorage: {
@@ -43,7 +46,8 @@ function environment({ navigation = 'reload', width = 1440, height = 900, data, 
       getBoundingClientRect: () => ({ top: top - window.scrollY, bottom: top - window.scrollY + 450, height: 450 }) };
     wrappers.push(wrapper); observer?.(); return { node, wrapper };
   }
-  return { window, document, wrappers, storage, add,
+  return { window, document, wrappers, storage, add, viewportReads,
+    resize(nextWidth, nextHeight) { width = nextWidth; height = nextHeight; },
     start: () => vm.runInContext(memory, context),
     mount() { vm.runInContext(motion, context); return window.TDBMotion.pageBreaks(wrappers); },
     mutate: () => observer?.(),
@@ -88,6 +92,34 @@ for (const [name, options, src] of [
 test('back/forward restores an image independently of document scroll restoration', () => {
   const env = environment({ navigation: 'back_forward', data: snapshot() }); env.start();
   assert.match(env.add().node.style.transform, /11\.1250px/);
+});
+
+for (const navigation of ['reload', 'back_forward']) test(`${navigation} restores parser batches without rereading viewport geometry`, () => {
+  const env = environment({ navigation, data: snapshot([
+    { identity: 'IMG|flower.webp', y: 11.125 },
+    { identity: 'IMG|second.webp', y: -8 },
+  ]) });
+  env.start();
+  const reads = { ...env.viewportReads };
+  assert.equal(reads.height, 1, 'capture height once before parsing body nodes');
+  assert.equal(env.add().node.style.transform, 'translate3d(0, 11.1250px, 0)');
+  env.mutate();
+  assert.equal(env.add('second.webp').node.style.transform, 'translate3d(0, -8.0000px, 0)');
+  env.document.dispatchEvent(new Event('DOMContentLoaded'));
+  assert.deepEqual(env.viewportReads, reads, 'restoring parser-created imagery never reads viewport geometry');
+  env.resize(820, 1180);
+  env.window.TDBPageBreakMemory.save([]);
+  const saved = JSON.parse(env.storage.get('tdb:page-break:v1:/test'));
+  assert.equal(saved.width, 820, 'saving still records the current viewport');
+  assert.equal(saved.height, 1180);
+});
+
+test('fresh navigation does not read restoration geometry or apply saved imagery', () => {
+  const env = environment({ navigation: 'navigate', data: snapshot() });
+  env.start();
+  assert.equal(env.add().node.style.transform, '');
+  env.mutate();
+  assert.deepEqual(env.viewportReads, { width: 0, height: 0 });
 });
 
 test('late browser restoration keeps saved translation, then scroll corrects and pagehide saves it', () => {
