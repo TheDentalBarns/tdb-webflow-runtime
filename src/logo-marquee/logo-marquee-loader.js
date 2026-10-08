@@ -3,7 +3,7 @@
   if (window.TDBLogoMarqueeLoader) return;
   const VERSION = '1.1.1';
   const selector = '.logo-slider .partner-featured_component';
-  const source = new URL('tdb-logo-marquee.js', document.currentScript.src).href;
+  const source = new URL('../src/logo-marquee/logo-marquee.js', document.currentScript.src).href;
   const nearby = new Set();
   const observed = new Set();
   let decision = false;
