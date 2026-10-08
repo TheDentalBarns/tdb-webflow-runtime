@@ -28,6 +28,10 @@ const card=i=>`<div class="tdb-review-cards_slide" data-review-id="review-${i}">
  await page.locator('[data-tdb-cards-prev]').click({force:true});assert.equal(await page.evaluate(()=>s.activeIndex),0);
  await page.locator('[data-tdb-cards-prev]').press('ArrowRight');assert.equal(await page.evaluate(()=>s.activeIndex),1);
  assert(await page.evaluate(()=>document.documentElement.classList.contains('tdb-slider-focus')));
+ await page.waitForTimeout(450);assert(await page.locator('[data-tdb-cards-next]').evaluate(n=>n.classList.contains('is-selected')),'selected arrow persists after press');
+ await page.locator('[data-tdb-cards-prev]').click({force:true});
+ assert(await page.locator('[data-tdb-cards-prev]').evaluate(n=>n.classList.contains('is-selected')),'other arrow takes selection');
+ assert.equal(await page.locator('[data-tdb-cards-next]').evaluate(n=>n.classList.contains('is-selected')),false);
  await page.evaluate(()=>s.slideTo(13,0));assert.equal(await page.evaluate(()=>loads),0);
  await page.evaluate(()=>s.slideTo(14,0));await page.waitForFunction(()=>s.slides.length===40);assert.equal(await page.evaluate(()=>loads),1);
  // A response arriving mid-animation must wait for settlement, preserving position.

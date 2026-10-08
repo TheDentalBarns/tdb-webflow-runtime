@@ -7,8 +7,8 @@
 .tdb-review-cards_slide:nth-child(3n) .tdb-review-cards_surface {
   background-image: url(https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab78d8805bdd4c6b6ff36ec_sd-calm-relaxing-informative.webp);
 }
-.tdb-review-cards_arrow[aria-disabled="true"] { opacity: .35; cursor: default; }
-.tdb-review-cards_arrow[data-tdb-loading] { cursor: progress; }
+.tdb-review-cards_root .tdb-service-arrow[aria-disabled="true"] { opacity: .35; cursor: default; }
+.tdb-review-cards_root .tdb-service-arrow[data-tdb-loading] { cursor: progress; }
 .tdb-review-cards_slide:not([data-review-subject="Dr Keely - historic practice"]):not([data-review-subject="78902de9c8ddcc3437156f6120e0cc9c"]) [data-cards-render="historic"] { display: none; }
 .tdb-review-cards_slide[data-review-rating="1"] [data-tdb-star]:not([data-tdb-star="0"]),
 .tdb-review-cards_slide[data-review-rating="2"] [data-tdb-star]:not([data-tdb-star="0"]):not([data-tdb-star="1"]),
