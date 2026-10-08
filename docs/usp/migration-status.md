@@ -1,29 +1,29 @@
 # USP native drawer migration — 8 October 2026
 
-Runtime source: `src/usp/drawer.js`, artifact `dist/tdb-usp-drawer.js` v2.0.0.
-Native component USP Drawer: b0e9aba4-e002-1e83-1542-b8a3ea2bdecb.
-Nested in Drawer Shell instance cd5381d0-5d0c-07f8-b04f-b9b49009c052 inside Banner USP e8cfdb6d-70d6-91f6-b23a-b312e7cea027.
+Completed after David approved the public repository upload and staging publishing.
 
-Shared TDBDrawer, TDBSwiper, TDBMotion and TDBNativeTicker are loaded through the current module registry. No CSS is injected. No replacement drawer controls are created in JavaScript. Five bound content sources remain native in Banner USP; the adapter clones the native slide template and binds the existing content at runtime.
+- Runtime: src/usp/drawer.js and dist/tdb-usp-drawer.js v2.0.0.
+- Published immutable runtime: e598d69c6385b6dd6df3c89f82a43fbb497a33d8.
+- Webflow site: 677cf86cf9952f978d94d80c; staging only, no production domains.
+- USP Drawer component: b0e9aba4-e002-1e83-1542-b8a3ea2bdecb.
+- Shared Drawer Shell instance: cd5381d0-5d0c-07f8-b04f-b9b49009c052 inside Banner USP.
+- Native launch controls display:flex. Source wrappers use tdb-usp_source only.
+- Portrait banner-feature_item-content width is 100%, removing the legacy 6rem override.
 
-Local Chromium checks passed at desktop, tablet, phone and phone landscape sizes: open/close, direct topic entry, next/previous, wrap, mouse drag, rapid navigation, scroll memory, focus trap, Escape, focus return and overflow restoration. Staging verification is still required. No production publishing authorized.
+Designer owns the strip, launch arrows, drawer surfaces, responsive layout and template.
+The adapter uses shared TDBDrawer, TDBSwiper, TDBMotion and TDBNativeTicker through
+the existing dependency registry; no CSS is injected. Five native content sources
+retain their original component property bindings.
 
-## Deployment blocked
+Published staging checks passed at 1440x1000, 834x1194, 390x844 and 852x393:
+direct entry, next, Escape and closure; one shared drawer script and one Swiper
+engine, no USP page errors. Native first-paint checks confirm hidden drawer/sources
+and the 3+2 portrait layout with full-width triggers. Local checks additionally
+cover wrap, drag, rapid navigation, scroll memory, focus trap, return and unlock.
 
-Automatic approval review rejected pushing the implementation and Designer snapshots to the existing public GitHub repository pending explicit authorization to disclose that payload there. Do not retry this upload via another tool without user approval.
+Retired close/backdrop elements and Finsweet hooks were removed. IX2 list deletion
+has no supported API: inspect other Modal 1 consumers before manually deleting
+unused action lists. USP no longer uses the retired modal targets.
 
-The code is committed locally on cleanup/usp-native-20261008; no remote push succeeded and no staging publish was performed in this task.
-
-Designer compatibility while blocked:
-- New tdb-usp_launch controls have display:none; old runtime still creates its own controls.
-- Five source wrappers retain modal1_component alongside tdb-usp_source so old runtime can still read them.
-- Old close/backdrop nodes and Finsweet hooks were removed; they were already unused by the external drawer.
-- New shared drawer remains hidden by default.
-
-After explicit approval:
-1. Upload this branch and verify its immutable CDN asset.
-2. Set native tdb-usp_launch display:flex.
-3. Remove modal1_component from source wrappers (use global tdb-usp_source).
-4. Re-read current site footer and replace only the USP script URL/comment with the new immutable SHA; preserve concurrent changes.
-5. Publish only Webflow staging, verify actual native CSS, content bindings, responsive layout and behaviour.
-6. IX2 action list deletion has no supported tool. Legacy USP targets are gone; inspect remaining Modal 1 action-list consumers before manual deletion.
+Prior approval block is resolved. Designer snapshots in this directory record the
+pre-migration state; the CSS/HTML files document the native component import.
