@@ -1,4 +1,4 @@
-/* TDB native USP adapter v2.1.0. Designer owns every surface and control. */
+/* TDB native USP adapter v2.1.1. Designer owns every surface and control. */
 (() => {
   'use strict';
   if (window.TDBUSPDrawer) return;
@@ -29,11 +29,11 @@
     const phoneLandscape = matchMedia('(orientation: landscape) and (max-width: 991px) and (max-height: 500px) and (pointer: coarse)');
     const originalTrackHeight = track.style.height;
     const records = [...section.querySelectorAll('[data-tdb-usp-source]')].map(source => ({
-      title: source.querySelector('.usp-logo_top-wrapper .text-style-tagline').textContent.trim(),
-      logo: source.querySelector('.usp-logo_top-image'), body: source.querySelector('.modal-content-split')
+      title: source.querySelector('[data-tdb-usp-source-title]').textContent.trim(),
+      logo: source.querySelector('[data-tdb-usp-source-logo]'), body: source.querySelector('[data-tdb-usp-source-body]')
     }));
     const controller = new AbortController(), {signal} = controller, scroll = new Map();
-    let swiper, requested = 0, last = 0, direction = 1, activeSlide, source, chrome = [], vipTimer, restoreTimer;
+    let swiper, requested = 0, direction = 1, activeSlide, source, chrome = [], vipTimer, restoreTimer;
     let landscape = false, readingAnchor = null;
     panel.setAttribute('aria-label', 'Practice highlights');
     close.setAttribute('aria-label', 'Close practice highlights');
@@ -103,7 +103,7 @@
         slide.inert = !selected; slide.setAttribute('aria-hidden', String(!selected));
         if (selected && slide !== activeSlide) slide.scrollTop = landscape ? 0 : scroll.get(index) || 0;
       });
-      activeSlide = swiper.slides[swiper.activeIndex]; last = index;
+      activeSlide = swiper.slides[swiper.activeIndex];
     }
     function createSwiper() {
       if (swiper) return;
@@ -195,23 +195,23 @@
       triggers.forEach(trigger => { trigger.setAttribute('aria-disabled', 'false'); trigger.setAttribute('role', 'button'); trigger.tabIndex = 0; });
       async function activate(event) {
         if (event.type === 'keydown' && !['Enter',' '].includes(event.key)) return;
-        const item = event.target.closest('.banner-feature_item-content');
+        const item = event.target.closest('[data-tdb-usp-trigger-zone]');
         const trigger = item?.querySelector('[data-tdb-usp-launch]'); if (!trigger) return;
         event.preventDefault(); if (trigger.getAttribute('aria-busy') === 'true') return;
         trigger.setAttribute('aria-busy', 'true');
         trigger.setAttribute('data-tdb-loading', 'true');
         try { await (await prepare()).open(Number(trigger.dataset.tdbUspLaunch), trigger); }
-        catch (_) { trigger.setAttribute('aria-label', 'Unable to load. Try again: ' + item.querySelector('.text-style-tagline-restored').textContent.trim()); }
+        catch (_) { trigger.setAttribute('aria-label', 'Unable to load. Try again: ' + item.querySelector('[data-tdb-usp-label]').textContent.trim()); }
         finally { trigger.removeAttribute('aria-busy'); trigger.removeAttribute('data-tdb-loading'); }
       }
       section.addEventListener('click', activate); section.addEventListener('keydown', activate);
-      for (const name of ['pointerover','focusin','pointerdown']) section.addEventListener(name, event => { if (event.target.closest('.banner-feature_item-content')) prepare().catch(() => {}); }, {passive:true});
+      for (const name of ['pointerover','focusin','pointerdown']) section.addEventListener(name, event => { if (event.target.closest('[data-tdb-usp-trigger-zone]')) prepare().catch(() => {}); }, {passive:true});
       if ('IntersectionObserver' in window) {
         const observer = new IntersectionObserver(entries => { if(entries.some(entry => entry.isIntersecting)){ observer.disconnect(); prepare().catch(() => {}); } }, {rootMargin:'500px'});
         observer.observe(section);
       }
     });
   }
-  window.TDBUSPDrawer = Object.freeze({version:'2.1.0',close(){ document.querySelectorAll('[data-tdb-usp]').forEach(root => instances.get(root)?.close()); }});
+  window.TDBUSPDrawer = Object.freeze({version:'2.1.1',close(){ document.querySelectorAll('[data-tdb-usp]').forEach(root => instances.get(root)?.close()); }});
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', discover, {once:true}); else discover();
 })();
