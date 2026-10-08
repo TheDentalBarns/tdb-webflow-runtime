@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.12.1';
+  const VERSION = '0.13.0';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -143,13 +143,18 @@
     const overlay = stage?.querySelector('.tdb-partner-overlay');
     const spotlight = stage?.querySelector('.tdb-partner-spotlight');
     const slideHost = shell?.querySelector('.tdb-partner-slides');
+    const visitSlot = shell?.querySelector('.tdb-partner-visit-slot');
+    const hiddenLogos = new Map();
+    let centreAnimation = null, centreFrom = 0, measuredCardWidth = 0;
     const entries = [];
     originals.forEach((item, index) => {
       const source = item.querySelector('.tdb-partner-source');
       const slide = source?.querySelector('.tooltip2_card-wrapper');
       if (!slide || source.hidden || source.classList.contains('w-condition-invisible') || !shell) return;
       remember(slide, ['style', 'class', 'role', 'aria-label', 'aria-hidden', 'data-swiper-slide-index']);
-      entries.push({ item, index, source, slide });
+      const visit = slide.querySelector('a[href]');
+      if (visit && visitSlot) { remember(visit, ['style']); visitSlot.append(visit); visit.style.display='none'; }
+      entries.push({ item, index, source, slide, visit });
       slideHost.append(slide);
     });
     // The scrolling duplicates need logos only; all CMS content lives once in Swiper.
@@ -216,8 +221,8 @@
       const below = false;
       // The card stays horizontally centred while the chosen logo moves to it.
       // Keep its document-relative vertical position, including during scrolling.
-      const left = viewLeft + (viewWidth - box.width) / 2;
-      const top = anchor.top - box.height - gap;
+      const left = window.scrollX + viewLeft + (viewWidth - box.width) / 2;
+      const top = window.scrollY + anchor.top - box.height - gap;
       openCard.style.left = left + 'px';
       openCard.style.top = top + 'px';
       const logoCopies = copies.map(item => item.querySelector(CONFIG.logoSelector)).filter(Boolean);
@@ -229,14 +234,16 @@
         const rect=logo.getBoundingClientRect();
         const src=logo.currentSrc || logo.src;
         if (spotlight.getAttribute('src') !== src) spotlight.setAttribute('src',src);
-        spotlight.style.left=rect.left+'px'; spotlight.style.top=rect.top+'px';
+        spotlight.style.left=(rect.left+window.scrollX)+'px'; spotlight.style.top=(rect.top+window.scrollY)+'px';
         spotlight.style.width=rect.width+'px'; spotlight.style.height=rect.height+'px';
       }
-      const pointer = openCard.querySelector('.tdb-partner-backdrop');
+      const pointer = openCard;
       if (pointer) {
         const surface = openCard.querySelector('.tdb-partner-content');
         const topEdge = surface.offsetTop;
         const bottomEdge = topEdge + surface.offsetHeight;
+        pointer.style.setProperty('--tdb-header-end', (topEdge + surface.querySelector('.tdb-partner-header').offsetHeight) + 'px');
+        pointer.style.setProperty('--tdb-footer-start', (topEdge + surface.querySelector('.tdb-partner-footer').offsetTop) + 'px');
         pointer.style.setProperty('--tdb-tip-x', (box.width / 2) + 'px');
         pointer.style.setProperty('--tdb-surface-top', topEdge + 'px');
         pointer.style.setProperty('--tdb-surface-bottom', bottomEdge + 'px');
@@ -254,6 +261,7 @@
     function animateCard(card, opening, done) {
       const surface = card.querySelector('.tdb-partner-content');
       const glass = card.querySelector('.tdb-partner-backdrop');
+      const tint = card.querySelector('.tdb-partner-tint');
       const activeTransition = cardTransitions.has(card);
       const cardStyle = getComputedStyle(card);
       const surfaceStyle = getComputedStyle(surface);
@@ -277,6 +285,7 @@
       const animations = [
         card.animate([{ transform: fromTransform }, { transform: opening ? 'translateY(0)' : 'translateY(20px)' }], options),
         surface.animate([{ opacity: fromOpacity }, { opacity: opening ? 1 : 0 }], options),
+        tint.animate([{opacity:activeTransition ? getComputedStyle(tint).opacity : opening ? 0 : 1},{opacity:opening ? 1 : 0}],options),
         glass.animate([fromGlass, opening ? nativeGlass : clearGlass], options),
         overlay.animate([{opacity:activeTransition ? getComputedStyle(overlay).opacity : opening ? 0 : 1},{opacity:opening ? 1 : 0}],options),
         spotlight.animate([{opacity:activeTransition ? getComputedStyle(spotlight).opacity : opening ? 0 : 1},{opacity:opening ? 1 : 0}],options)
@@ -292,6 +301,7 @@
     }
     function reserveSlideSpace() {
       if (!shell || !entries.length || shell.style.display !== 'block') return;
+      measuredCardWidth = shell.offsetWidth;
       shell.style.setProperty('--tdb-partner-text-height', '0px');
       const imageHeight = Math.max(...entries.map(({slide}) => {
         const image=slide.querySelector(CONFIG.tooltipImageSelector);
@@ -312,7 +322,16 @@
       openItem=entry.item;
       openItem.setAttribute('aria-expanded','true');
       centre(openItem);
-      entries.forEach((entry,index)=>{ entry.slide.inert=index!==swiper.activeIndex; });
+      hiddenLogos.forEach((visibility,logo)=>{logo.style.visibility=visibility;}); hiddenLogos.clear();
+      track.querySelectorAll(CONFIG.itemSelector).forEach(item=>{
+        if(item.dataset.tdbLogoIndex!==openItem.dataset.tdbLogoIndex) return;
+        const logo=item.querySelector(CONFIG.logoSelector);
+        if(logo) {hiddenLogos.set(logo,logo.style.visibility);logo.style.visibility='hidden';}
+      });
+      entries.forEach((entry,index)=>{
+        entry.slide.inert=index!==swiper.activeIndex;
+        if(entry.visit) entry.visit.style.display=index===swiper.activeIndex?'':'none';
+      });
       positionCard();
     }
     function prepareShell() {
@@ -332,7 +351,9 @@
           slidesPerView:1, spaceBetween:24, autoHeight:false, loop:false,
           speed:window.TDBMotion.duration(), watchOverflow:true,
           touchStartPreventDefault:false, preventInteractionOnTransition:false,
-          a11y:{enabled:true}, on:{slideChange:syncSlide}
+          a11y:{enabled:true}, on:{slideChange:syncSlide, beforeTransitionStart:(_swiper,speed)=>{
+            centreAnimation?.effect.updateTiming({duration:speed});
+          }}
         });
         reserveSlideSpace();
         shell.style.removeProperty('display');
@@ -353,6 +374,7 @@
         card.style.removeProperty('display'); card.style.removeProperty('left'); card.style.removeProperty('top');
         overlay.style.removeProperty('display'); spotlight.style.removeProperty('display');
         card.inert = false;
+        hiddenLogos.forEach((visibility,logo)=>{logo.style.visibility=visibility;}); hiddenLogos.clear();
       };
       if (immediate) { finishCardTransition(card); park(); }
       else animateCard(card, false, park);
@@ -468,8 +490,13 @@
             currentX -= getSpeed() * deltaSeconds;
             targetX = currentX;
           } else {
-            const frameSmoothing = 1 - Math.pow(1-.11, deltaSeconds * 60);
-            currentX += (targetX-currentX) * frameSmoothing;
+            if (centreAnimation) {
+              const progress = centreAnimation.effect.getComputedTiming().progress || 0;
+              currentX = centreFrom + (targetX-centreFrom) * progress;
+              if (centreAnimation.playState==='finished') {
+                currentX=targetX; centreAnimation.cancel(); centreAnimation=null;
+              }
+            } else currentX=targetX;
           }
         }
 
@@ -482,7 +509,7 @@
         setTransform(wrapX(currentX, loopWidth));
       }
 
-      if (!rafId && ((!paused && !reduceMotion()) || coasting || Math.abs(targetX-currentX) > .05)) rafId = requestAnimationFrame(frame);
+      if (!rafId && ((!paused && !reduceMotion()) || coasting || centreAnimation || Math.abs(targetX-currentX) > .05)) rafId = requestAnimationFrame(frame);
     }
 
     function centre(item) {
@@ -493,7 +520,17 @@
       const box = item.getBoundingClientRect();
       const view = viewport.getBoundingClientRect();
       targetX = currentX + shortestDelta(view.left + view.width / 2 - box.left - box.width / 2, loopWidth);
+      centreAnimation?.cancel(); centreAnimation=null;
       if (reduceMotion()) { currentX = targetX; setTransform(wrapX(currentX,loopWidth)); }
+      else {
+        centreFrom=currentX;
+        // Native timing reuses Swiper's Designer easing and shared duration.
+        centreAnimation=new Animation(new KeyframeEffect(null,[],{
+          duration:swiper?.params.speed || window.TDBMotion.duration(),
+          easing:slideHost ? getComputedStyle(slideHost).transitionTimingFunction : 'ease', fill:'both'
+        }),document.timeline);
+        centreAnimation.play();
+      }
       startAnimation();
     }
     function select(item) {
@@ -504,6 +541,7 @@
     }
     function resume() {
       if (dragging) return;
+      centreAnimation?.cancel(); centreAnimation=null;
       closeCard();
       paused = reduceMotion(); selected = null; momentum = 0; coasting = false;
       targetX = currentX;
@@ -512,6 +550,7 @@
     function onPointerDown(event) {
       if (!ready || event.button > 0 || event.isPrimary === false || pointerId !== null) return;
       // Catch a moving logo exactly where the finger lands, including mid-settle.
+      centreAnimation?.cancel(); centreAnimation=null;
       momentum = 0; coasting = false; targetX = currentX; paused = true; stopAnimation();
       pointerId = event.pointerId;
       pressedItem = event.target.closest(CONFIG.itemSelector);
@@ -599,7 +638,7 @@
     function onPageScroll() {
       pageY = window.scrollY;
       if (!openCard) return;
-      positionCard();
+      // Absolute positioning scrolls naturally; no position writes on scroll.
       // Keep the card readable while either it or its marquee remains on screen.
       if (!dragging && cardAndTrackOffscreen()) resume();
     }
@@ -638,7 +677,8 @@
       closeCard(false, true);
       [...cardTransitions.keys()].forEach(finishCardTransition);
       swiper?.destroy(true,true);
-      entries.forEach(({source,slide})=>{slide.inert=false;source.append(slide);});
+      centreAnimation?.cancel();
+      entries.forEach(({source,slide,visit})=>{slide.inert=false;if(visit)slide.append(visit);source.append(slide);});
       if (stage && shell) stage.append(overlay,spotlight,shell);
       controller.abort();
       dd.destroy();
@@ -679,7 +719,7 @@
         }
         if(event.key==='ArrowLeft'||event.key==='ArrowRight') {event.preventDefault();advance(event.key==='ArrowLeft'?-1:1);}
       },{signal});
-      window.addEventListener('resize',reserveSlideSpace,{signal,passive:true});
+      window.addEventListener('resize',()=>{if(shell.offsetWidth!==measuredCardWidth)reserveSlideSpace();},{signal,passive:true});
     }
     track.addEventListener('focusin', event => {
       const item = event.target.closest(CONFIG.itemSelector);
@@ -694,7 +734,7 @@
     track.addEventListener('keydown', onKey, { signal });
     document.addEventListener('keydown', event => {
       if (event.key === 'Tab' && openCard && !event.shiftKey && event.target === openItem) {
-        const link = entries[swiper?.activeIndex]?.slide.querySelector('a[href]');
+        const link = entries[swiper?.activeIndex]?.visit;
         if (link) { event.preventDefault(); link.focus({ preventScroll: true }); }
       }
       if (event.key === 'Escape' && openCard) {
