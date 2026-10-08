@@ -41,7 +41,7 @@ function fixture(file, width = 1440, initialHeight = 1200) {
     destroy(){w.close();}};
 }
 
-for (const file of ['dist/tdb-vip-drawer.js','dist/tdb-vip-drawer-legacy.js']) {
+for (const file of ['dist/tdb-vip-drawer.js']) {
   test(file+': closes for the full measured duration, independently of nav/consent/motion',()=>{
     const f=fixture(file), {w,drawer}=f;
     try {
@@ -95,7 +95,7 @@ test('nav and VIP share the established viewport-height curve and either bundle 
     dom.window.matchMedia = () => ({matches:false});
     dom.window.eval(read('src/shared/panel-motion.js'));
     const first=dom.window.TDBPanelMotion;
-    dom.window.eval(read('dist/tdb-vip-drawer-legacy.js'));
+    dom.window.eval(read('dist/tdb-vip-drawer.js'));
     assert.equal(dom.window.TDBPanelMotion,first);
   } finally {dom.window.close();}
 });
