@@ -36,12 +36,17 @@
  -webkit-box-orient: vertical;
  -webkit-line-clamp: 4;
 }
-.tdb-review-cards_text {
+.tdb-review-cards_body-preview {
  display: -webkit-box;
+ overflow: hidden;
+ -webkit-text-size-adjust: 100%;
+ text-size-adjust: 100%;
  -webkit-box-orient: vertical;
  -webkit-line-clamp: var(--tdb-review-body-lines, 6);
- /* Grid stretching must not expose a partial line below the clamp. */
- clip-path: inset(0 0 max(0px, calc(100% - var(--tdb-review-body-lines, 6) * 1lh)) 0);
+}
+.tdb-review-cards_text {
+ /* Initial CMS fallback until the measured inner preview is prepared. */
+ clip-path: inset(0 0 max(0px, calc(100% - var(--tdb-review-body-lines, 6) * 1.7em)) 0);
 }
 /* Same short-viewport landscape condition as Smile Gallery. */
 @media screen and (min-width:480px) and (max-width:991px) and (max-height:500px) and (orientation:landscape) {
