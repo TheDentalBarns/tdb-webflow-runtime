@@ -399,7 +399,8 @@ function prepareVIPDrawerLoader() {
 
   const demand = document.documentElement.getAttribute('data-wf-page') === '677cf86df9952f978d94d8a9';
   const triggerSelector = '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
-  const jsUrl = new URL('tdb-vip-drawer.js', TDBFooterModuleRoot).href;
+  // VIP ships with this footer release; other feature pins stay independent.
+  const jsUrl = new URL('tdb-vip-drawer.js', document.currentScript.src).href;
   let loadingPromise = null;
   let armed = false;
   let openPending = false;
