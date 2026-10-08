@@ -211,9 +211,9 @@
       if (pointer) {
         pointer.style.left = clamp(anchor.left + anchor.width / 2 - left, 12, box.width - 12) + 'px';
         pointer.style.right = 'auto';
-        const surface = openCard.querySelector('.tooltip2_card-wrapper').getBoundingClientRect();
+        const surface = openCard.querySelector('.tooltip2_card-wrapper');
         // Centre the diamond directly on the card edge, excluding wrapper padding.
-        pointer.style.top = (below ? surface.top - box.top : surface.bottom - box.top) + 'px';
+        pointer.style.top = (surface.offsetTop + (below ? 0 : surface.offsetHeight)) + 'px';
         pointer.style.bottom = 'auto';
         pointer.style.margin = '0';
         pointer.style.transform = 'translate(-50%, -50%) rotate(45deg)';
