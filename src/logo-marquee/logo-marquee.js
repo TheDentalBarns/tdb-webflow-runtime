@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.13.1';
+  const VERSION = '0.13.2';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -288,14 +288,14 @@
         tint.animate([{opacity:activeTransition ? getComputedStyle(tint).opacity : opening ? 0 : 1},{opacity:opening ? 1 : 0}],options),
         glass.animate([fromGlass, opening ? nativeGlass : clearGlass], options),
         overlay.animate([{opacity:activeTransition ? getComputedStyle(overlay).opacity : opening ? 0 : 1},{opacity:opening ? 1 : 0}],options),
-        spotlight.animate([{opacity:activeTransition ? getComputedStyle(spotlight).opacity : opening ? 0 : 1},{opacity:opening ? 1 : 0}],options)
+        spotlight.animate([{opacity:activeTransition ? getComputedStyle(spotlight).opacity : opening ? 0 : 1},{opacity:1}],options)
       ];
       const state = { animations, nativeGlass, done };
       cardTransitions.set(card, state);
       Promise.all(animations.map(animation => animation.finished)).then(() => {
         if (cardTransitions.get(card) !== state) return;
         cardTransitions.delete(card);
-        done?.();
+        state.done?.();
         animations.forEach(animation => animation.cancel());
       }).catch(() => {});
     }
@@ -544,10 +544,23 @@
     function resume() {
       if (dragging) return;
       centreAnimation?.cancel(); centreAnimation=null;
-      closeCard();
-      paused = reduceMotion(); selected = null; momentum = 0; coasting = false;
       targetX = currentX;
-      if (!paused) startAnimation();
+      closeCard();
+      const restart = () => {
+        paused = reduceMotion(); selected = null; momentum = 0; coasting = false;
+        targetX = currentX;
+        if (!paused) startAnimation();
+      };
+      const closing = cardTransitions.get(shell);
+      if (closing) {
+        // Keep both logo positions identical until the same-frame handover.
+        paused = true; stopAnimation();
+        if (!closing.resumePending) {
+          closing.resumePending = true;
+          const park = closing.done;
+          closing.done = () => { park?.(); restart(); };
+        }
+      } else restart();
     }
     function onPointerDown(event) {
       if (!ready || event.button > 0 || event.isPrimary === false || pointerId !== null) return;
