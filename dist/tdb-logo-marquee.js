@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.13.2';
+  const VERSION = '0.13.3';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -42,6 +42,20 @@
   let cardId = 0;
   let initObserver = null;
   let mutationObserver = null;
+  const chromeHolds = new Set();
+  function holdChrome(card) {
+    chromeHolds.add(card);
+    // Reuse carousel chrome motion. A true hold predicate prevents scroll
+    // thresholds from releasing focus while someone reads the partner card.
+    window.TDBNavScroll?.focus(() => {}, () => chromeHolds.size > 0);
+    document.documentElement.classList.add('tdb-slider-focus');
+  }
+  function releaseChrome(card) {
+    chromeHolds.delete(card);
+    if (chromeHolds.size) return;
+    window.TDBNavScroll?.release();
+    document.documentElement.classList.remove('tdb-slider-focus');
+  }
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const modulo = (value, divisor) => ((value % divisor) + divisor) % divisor;
@@ -242,8 +256,6 @@
         const surface = openCard.querySelector('.tdb-partner-content');
         const topEdge = surface.offsetTop;
         const bottomEdge = topEdge + surface.offsetHeight;
-        pointer.style.setProperty('--tdb-header-end', (topEdge + surface.querySelector('.tdb-partner-header').offsetHeight) + 'px');
-        pointer.style.setProperty('--tdb-footer-start', (topEdge + surface.querySelector('.tdb-partner-footer').offsetTop) + 'px');
         pointer.style.setProperty('--tdb-tip-x', (box.width / 2) + 'px');
         pointer.style.setProperty('--tdb-surface-top', topEdge + 'px');
         pointer.style.setProperty('--tdb-surface-bottom', bottomEdge + 'px');
@@ -331,7 +343,10 @@
       });
       entries.forEach((entry,index)=>{
         entry.slide.inert=false;
-        if(entry.visit) entry.visit.style.display=index===swiper.realIndex?'':'none';
+        if(entry.visit) {
+          entry.visit.style.display=index===swiper.realIndex?'':'none';
+          if(changed) entry.visit.classList.remove('is-hovered','is-touch-held');
+        }
       });
       Array.from(swiper.slides).forEach((slide,index)=>{slide.inert=index!==swiper.activeIndex;});
       positionCard();
@@ -377,6 +392,7 @@
         overlay.style.removeProperty('display'); spotlight.style.removeProperty('display');
         card.inert = false;
         hiddenLogos.forEach((visibility,logo)=>{logo.style.visibility=visibility;}); hiddenLogos.clear();
+        releaseChrome(card);
       };
       if (immediate) { finishCardTransition(card); park(); }
       else animateCard(card, false, park);
@@ -396,6 +412,7 @@
       }
       finishCardTransition(shell);
       openItem=item; openCard=shell;
+      holdChrome(shell);
       shell.style.display='block'; overlay.style.display='block'; spotlight.style.display='block';
       shell.inert=false; shell.setAttribute('aria-hidden','false');
       switching=true;
@@ -715,6 +732,31 @@
     }
 
     if (shell) {
+      // Same native visual states as the treatment CTA: mouse-only hover,
+      // instant touch feedback, cleared when the user scrolls or changes card.
+      const clearVisitFeedback = () => entries.forEach(({visit}) => visit?.classList.remove('is-touch-held','is-hovered'));
+      entries.forEach(({visit}) => {
+        if (!visit) return;
+        visit.addEventListener('pointerenter', event => {
+          if (event.pointerType === 'mouse') visit.classList.add('is-hovered');
+        }, {signal});
+        visit.addEventListener('pointerleave', () => visit.classList.remove('is-hovered'), {signal});
+        visit.addEventListener('pointerdown', event => {
+          if (event.pointerType !== 'mouse') visit.classList.add('is-touch-held');
+        }, {signal});
+        visit.addEventListener('pointercancel', clearVisitFeedback, {signal});
+      });
+      shell.addEventListener('click', event => {
+        if (!event.target.closest('.tdb-service-discover')) clearVisitFeedback();
+      }, {signal});
+      shell.addEventListener('keydown', clearVisitFeedback, {signal});
+      window.addEventListener('scroll', clearVisitFeedback, {signal,passive:true});
+      window.addEventListener('pageshow', clearVisitFeedback, {signal});
+      // Orientation can reset the generic carousel focus controller. Reassert
+      // this live card's hold once layout settles; never on ordinary scrolling.
+      window.addEventListener('resize', () => requestAnimationFrame(() => {
+        if (!signal.aborted && chromeHolds.has(shell)) holdChrome(shell);
+      }), {signal,passive:true});
       shell.querySelector('.tdb-partner-close').addEventListener('click', event=>{
         event.preventDefault(); closeCard(true); resume();
       }, {signal});
