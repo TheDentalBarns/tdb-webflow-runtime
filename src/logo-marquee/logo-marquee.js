@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.10.2';
+  const VERSION = '0.10.3';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -139,7 +139,7 @@
 
     const cards = new Map();
     track.querySelectorAll(CONFIG.itemSelector).forEach(item => {
-      const card = item.querySelector('.tooltip2_tooltip-wrapper');
+      const card = item.querySelector('.tdb-partner-tooltip');
       if (!card || card.hidden || card.classList.contains('w-condition-invisible')) return;
       remember(card, ['id', 'class', 'style', 'aria-hidden', 'role', 'aria-label']);
       remember(item, ['aria-expanded', 'aria-controls']);
