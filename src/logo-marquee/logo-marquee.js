@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.11.2';
+  const VERSION = '0.12.0';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -137,26 +137,37 @@
     originals.forEach(original => fragment.appendChild(makeClone(original)));
     track.appendChild(fragment);
 
+    const section = track.closest('.section_logo-features');
+    const stage = section?.querySelector('.tdb-partner-stage');
+    const shell = stage?.querySelector('.tdb-partner-tooltip');
+    const overlay = stage?.querySelector('.tdb-partner-overlay');
+    const spotlight = stage?.querySelector('.tdb-partner-spotlight');
+    const slideHost = shell?.querySelector('.tdb-partner-slides');
+    const entries = [];
+    originals.forEach((item, index) => {
+      const source = item.querySelector('.tdb-partner-source');
+      const slide = source?.querySelector('.tooltip2_card-wrapper');
+      if (!slide || source.hidden || source.classList.contains('w-condition-invisible') || !shell) return;
+      remember(slide, ['style', 'class', 'role', 'aria-label', 'aria-hidden', 'data-swiper-slide-index']);
+      entries.push({ item, index, source, slide });
+      slideHost.append(slide);
+    });
+    // The scrolling duplicates need logos only; all CMS content lives once in Swiper.
+    track.querySelectorAll(`[${CLONE_ATTR}] .tdb-partner-source`).forEach(node => node.remove());
     const cards = new Map();
+    const shellId = 'tdb-partner-card-' + (++cardId);
+    if (shell) { remember(shell, ['id', 'style', 'aria-hidden']); shell.id = shellId; }
     track.querySelectorAll(CONFIG.itemSelector).forEach(item => {
-      const card = item.querySelector('.tdb-partner-tooltip');
-      if (!card || card.hidden || card.classList.contains('w-condition-invisible')) return;
-      remember(card, ['id', 'class', 'style', 'aria-hidden', 'role', 'aria-label']);
-      remember(item, ['aria-expanded', 'aria-controls']);
-      const pointer = card.querySelector('.tdb-partner-backdrop');
-      if (pointer) remember(pointer, ['style']);
-      const id = 'tdb-partner-card-' + (++cardId);
-      card.id = id;
-      card.setAttribute('aria-hidden', 'true');
-      card.setAttribute('role', 'region');
-      const name = card.querySelector('.text-style-tagline-restored')?.textContent.trim() || 'Partner';
-      card.setAttribute('aria-label', name);
+      const entry = entries.find(entry => entry.index === Number(item.dataset.tdbLogoIndex));
+      if (!entry) return;
+      const name = entry.slide.querySelector('.text-style-tagline-restored')?.textContent.trim() || 'Partner';
       item.setAttribute('aria-label', name + ': centre and show details');
       item.setAttribute('aria-expanded', 'false');
-      item.setAttribute('aria-controls', id);
-      cards.set(item, card);
+      item.setAttribute('aria-controls', shellId);
+      cards.set(item, entry);
     });
-
+    let swiper = null, prepareFlight = null, requestGeneration = 0;
+    let switching = false;
     const controller = new AbortController();
     const { signal } = controller;
     const dd = window.TDBMotion.ddText(track.closest('.section_logo-features')?.querySelectorAll('.partner-banner-heading[data-tdb-dd-text]') || []);
@@ -209,9 +220,21 @@
       const top = anchor.top - box.height - gap;
       openCard.style.left = left + 'px';
       openCard.style.top = top + 'px';
+      const logoCopies = copies.map(item => item.querySelector(CONFIG.logoSelector)).filter(Boolean);
+      const logo = logoCopies.sort((a,b) => {
+        const ar=a.getBoundingClientRect(), br=b.getBoundingClientRect();
+        return Math.abs(ar.left+ar.width/2-innerWidth/2)-Math.abs(br.left+br.width/2-innerWidth/2);
+      })[0];
+      if (logo && spotlight) {
+        const rect=logo.getBoundingClientRect();
+        const src=logo.currentSrc || logo.src;
+        if (spotlight.getAttribute('src') !== src) spotlight.setAttribute('src',src);
+        spotlight.style.left=rect.left+'px'; spotlight.style.top=rect.top+'px';
+        spotlight.style.width=rect.width+'px'; spotlight.style.height=rect.height+'px';
+      }
       const pointer = openCard.querySelector('.tdb-partner-backdrop');
       if (pointer) {
-        const surface = openCard.querySelector('.tooltip2_card-wrapper');
+        const surface = openCard.querySelector('.tdb-partner-content');
         const topEdge = surface.offsetTop;
         const bottomEdge = topEdge + surface.offsetHeight;
         pointer.style.setProperty('--tdb-tip-x', (box.width / 2) + 'px');
@@ -229,7 +252,7 @@
       state.done?.();
     }
     function animateCard(card, opening, done) {
-      const surface = card.querySelector('.tooltip2_card-wrapper');
+      const surface = card.querySelector('.tdb-partner-content');
       const glass = card.querySelector('.tdb-partner-backdrop');
       const activeTransition = cardTransitions.has(card);
       const cardStyle = getComputedStyle(card);
@@ -254,7 +277,9 @@
       const animations = [
         card.animate([{ transform: fromTransform }, { transform: opening ? 'translateY(0)' : 'translateY(20px)' }], options),
         surface.animate([{ opacity: fromOpacity }, { opacity: opening ? 1 : 0 }], options),
-        glass.animate([fromGlass, opening ? nativeGlass : clearGlass], options)
+        glass.animate([fromGlass, opening ? nativeGlass : clearGlass], options),
+        overlay.animate([{opacity:activeTransition ? getComputedStyle(overlay).opacity : opening ? 0 : 1},{opacity:opening ? 1 : 0}],options),
+        spotlight.animate([{opacity:activeTransition ? getComputedStyle(spotlight).opacity : opening ? 0 : 1},{opacity:opening ? 1 : 0}],options)
       ];
       const state = { animations, nativeGlass, done };
       cardTransitions.set(card, state);
@@ -265,44 +290,94 @@
         animations.forEach(animation => animation.cancel());
       }).catch(() => {});
     }
+    function reserveSlideSpace() {
+      if (!shell || !entries.length || shell.style.display !== 'block') return;
+      shell.style.setProperty('--tdb-partner-text-height', '0px');
+      const imageHeight = Math.max(...entries.map(({slide}) => {
+        const image=slide.querySelector(CONFIG.tooltipImageSelector);
+        const width=slide.querySelector('.tooltip2_image-wrapper').clientWidth;
+        return width * (image?.naturalWidth ? image.naturalHeight/image.naturalWidth : 1);
+      }));
+      const textHeight = Math.max(...entries.map(({slide}) => slide.querySelector('.tdb-partner-copy').scrollHeight));
+      shell.style.setProperty('--tdb-partner-image-height', Math.ceil(imageHeight)+'px');
+      shell.style.setProperty('--tdb-partner-text-height', Math.ceil(textHeight)+'px');
+      swiper?.update();
+      positionCard();
+    }
+    function syncSlide() {
+      if (!openCard || switching || !swiper) return;
+      const entry=entries[swiper.activeIndex];
+      if (!entry) return;
+      track.querySelectorAll('[aria-expanded="true"]').forEach(item=>item.setAttribute('aria-expanded','false'));
+      openItem=entry.item;
+      openItem.setAttribute('aria-expanded','true');
+      centre(openItem);
+      entries.forEach((entry,index)=>{ entry.slide.inert=index!==swiper.activeIndex; });
+      positionCard();
+    }
+    function prepareShell() {
+      if (prepareFlight) return prepareFlight;
+      prepareFlight = (async () => {
+        entries.forEach(({slide}) => primeTooltipImage(slide));
+        await Promise.all(entries.map(async ({slide}) => {
+          const image=slide.querySelector(CONFIG.tooltipImageSelector);
+          if (image?.decode) await image.decode().catch(()=>{});
+        }));
+        if (signal.aborted) return;
+        document.body.append(overlay,spotlight,shell);
+        shell.style.visibility='hidden';
+        shell.style.display='block';
+        swiper=window.TDBSwiper.create(shell.querySelector('.tdb-partner-swiper'), {
+          wrapperClass:'tdb-partner-slides', slideClass:'tooltip2_card-wrapper',
+          slidesPerView:1, spaceBetween:24, autoHeight:false, loop:false,
+          speed:window.TDBMotion.duration(), watchOverflow:true,
+          touchStartPreventDefault:false, preventInteractionOnTransition:false,
+          a11y:{enabled:true}, on:{slideChange:syncSlide}
+        });
+        reserveSlideSpace();
+        shell.style.removeProperty('display');
+        shell.style.removeProperty('visibility');
+      })().catch(error => { prepareFlight=null; throw error; });
+      return prepareFlight;
+    }
     function closeCard(returnFocus = false, immediate = false) {
+      requestGeneration++;
+      originals.forEach(item=>item.removeAttribute('aria-busy'));
       if (!openCard) return;
       const card = openCard, item = openItem;
       const focused = card.contains(document.activeElement);
       openCard = openItem = null;
-      card.setAttribute('aria-hidden', 'true');
-      card.inert = true;
-      item.setAttribute('aria-expanded', 'false');
+      card.setAttribute('aria-hidden', 'true'); card.inert = true;
+      track.querySelectorAll('[aria-expanded="true"]').forEach(item=>item.setAttribute('aria-expanded','false'));
       const park = () => {
-        card.style.removeProperty('display');
-        card.style.removeProperty('left');
-        card.style.removeProperty('top');
+        card.style.removeProperty('display'); card.style.removeProperty('left'); card.style.removeProperty('top');
+        overlay.style.removeProperty('display'); spotlight.style.removeProperty('display');
         card.inert = false;
-        item.prepend(card);
       };
       if (immediate) { finishCardTransition(card); park(); }
       else animateCard(card, false, park);
-      if (returnFocus && focused) {
-        const original = originals[Number(item.dataset.tdbLogoIndex)];
-        original?.focus({ preventScroll: true });
-      }
+      if (returnFocus && focused) originals[Number(item.dataset.tdbLogoIndex)]?.focus({preventScroll:true});
     }
-    function showCard(item) {
-      closeCard();
-      const card = cards.get(item);
-      if (!card) return;
-      finishCardTransition(card);
-      openItem = item; openCard = card;
-      primeTooltipImage(item);
-      // Portal the native CMS card out of the moving track to avoid clipping.
-      document.body.append(card);
-      card.inert = false;
-      card.querySelectorAll('a').forEach(link => link.removeAttribute('tabindex'));
-      card.style.display = 'block';
-      card.setAttribute('aria-hidden', 'false');
-      item.setAttribute('aria-expanded', 'true');
-      positionCard();
-      animateCard(card, true);
+    async function showCard(item) {
+      const entry=cards.get(item);
+      if (!entry) { closeCard(); return; }
+      const generation=++requestGeneration;
+      item.setAttribute('aria-busy','true');
+      try { await prepareShell(); } catch (_) { item.removeAttribute('aria-busy'); return; }
+      item.removeAttribute('aria-busy');
+      if (signal.aborted || generation!==requestGeneration) return;
+      if (openCard) {
+        swiper.slideTo(entries.indexOf(entry),window.TDBMotion.duration());
+        syncSlide(); return;
+      }
+      finishCardTransition(shell);
+      openItem=item; openCard=shell;
+      shell.style.display='block'; overlay.style.display='block'; spotlight.style.display='block';
+      shell.inert=false; shell.setAttribute('aria-hidden','false');
+      switching=true;
+      swiper.update(); swiper.slideTo(entries.indexOf(entry),0);
+      switching=false;
+      reserveSlideSpace(); syncSlide(); positionCard(); animateCard(shell,true);
     }
 
     function setTransform(value) {
@@ -505,7 +580,10 @@
     }
     function onOutsideClick(event) {
       if (performance.now() < touchClickUntil) return;
-      if (!track.contains(event.target) && !openCard?.contains(event.target)) resume();
+      if (!track.contains(event.target) && !openCard?.contains(event.target)) {
+        if (openCard) { event.preventDefault(); event.stopImmediatePropagation(); }
+        resume();
+      }
     }
     function cardAndTrackOffscreen() {
       if (!openCard) return true;
@@ -559,6 +637,9 @@
 
       closeCard(false, true);
       [...cardTransitions.keys()].forEach(finishCardTransition);
+      swiper?.destroy(true,true);
+      entries.forEach(({source,slide})=>{slide.inert=false;source.append(slide);});
+      if (stage && shell) stage.append(overlay,spotlight,shell);
       controller.abort();
       dd.destroy();
       track.querySelectorAll('.is-partner-hovered').forEach(logo => logo.classList.remove('is-partner-hovered'));
@@ -578,6 +659,21 @@
       instances.delete(track);
     }
 
+    if (shell) {
+      shell.querySelector('.tdb-partner-close').addEventListener('click', event=>{
+        event.preventDefault(); closeCard(true); resume();
+      }, {signal});
+      const advance = direction => {
+        if (!swiper || !openCard) return;
+        swiper.slideTo(modulo(swiper.activeIndex+direction,entries.length),window.TDBMotion.duration());
+      };
+      shell.querySelector('.tdb-partner-prev').addEventListener('click', event=>{event.preventDefault();advance(-1);},{signal});
+      shell.querySelector('.tdb-partner-next').addEventListener('click', event=>{event.preventDefault();advance(1);},{signal});
+      shell.addEventListener('keydown', event=>{
+        if(event.key==='ArrowLeft'||event.key==='ArrowRight') {event.preventDefault();advance(event.key==='ArrowLeft'?-1:1);}
+      },{signal});
+      window.addEventListener('resize',reserveSlideSpace,{signal,passive:true});
+    }
     track.addEventListener('focusin', event => {
       const item = event.target.closest(CONFIG.itemSelector);
       if (!item || !item.matches(':focus-visible') || item === openItem) return;
@@ -591,7 +687,7 @@
     track.addEventListener('keydown', onKey, { signal });
     document.addEventListener('keydown', event => {
       if (event.key === 'Tab' && openCard && !event.shiftKey && event.target === openItem) {
-        const link = openCard.querySelector('a[href]');
+        const link = entries[swiper?.activeIndex]?.slide.querySelector('a[href]');
         if (link) { event.preventDefault(); link.focus({ preventScroll: true }); }
       }
       if (event.key === 'Escape' && openCard) {
@@ -601,7 +697,7 @@
     window.addEventListener('resize', positionCard, { signal, passive: true });
     window.visualViewport?.addEventListener('resize', positionCard, { signal, passive: true });
     const cardObserver = new ResizeObserver(positionCard);
-    cards.forEach(card => cardObserver.observe(card));
+    if (shell) cardObserver.observe(shell);
     signal.addEventListener('abort', () => cardObserver.disconnect(), { once: true });
     track.addEventListener('dragstart', event => event.preventDefault(), { signal });
     reduced.addEventListener('change', onReducedChange, { signal });
