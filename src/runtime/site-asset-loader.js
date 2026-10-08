@@ -87,7 +87,7 @@
   document.documentElement.classList.remove('tdb-smile-sorting');
 })();
 
-function loadScript(src, attrName, async = true) {
+function loadScript(src, attrName, async = true, removeOnError = false) {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector(`script[${attrName}]`);
     if (existing) {
@@ -105,9 +105,28 @@ function loadScript(src, attrName, async = true) {
     script.async = async;
     script.setAttribute(attrName, 'true');
     script.onload = () => { script.dataset.tdbLoaded = 'true'; resolve(script); };
-    script.onerror = reject;
+    script.onerror = error => {
+      // Only remove the node created by this call, and only for opted-in loaders.
+      if (removeOnError) script.remove();
+      reject(error);
+    };
     document.head.appendChild(script);
   });
+}
+
+const tdbRecoverableScriptFlights = new Map();
+function loadScriptWithRecovery(src, attrName) {
+  if (tdbRecoverableScriptFlights.has(attrName)) return tdbRecoverableScriptFlights.get(attrName);
+  function attempt(retries) {
+    return loadScript(src, attrName, true, true).catch(error => {
+      if (!retries) throw error;
+      // Retry explicit request errors only. A timeout could replay a script that executes late.
+      return new Promise(resolve => setTimeout(resolve, 250)).then(() => attempt(retries - 1));
+    });
+  }
+  const flight = attempt(1).finally(() => tdbRecoverableScriptFlights.delete(attrName));
+  tdbRecoverableScriptFlights.set(attrName, flight);
+  return flight;
 }
 
 /* Global UI is already requested by the head. This code never adds feature CSS. */
@@ -276,6 +295,7 @@ function prepareFormsLoader() {
   const vipIntent = 'a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
   const observed = new WeakSet();
   let loadingPromise = null;
+  let loaded = false;
   let proximityObserver = null;
   let discoveryObserver = null;
 
@@ -289,19 +309,20 @@ function prepareFormsLoader() {
   }
   function loadForms() {
     if (loadingPromise) return loadingPromise;
-    cleanup();
-    loadingPromise = loadScript('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.1.0/dist/tdb-forms.min.js', 'data-tdb-forms-js')
+    loadingPromise = loadScriptWithRecovery('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.1.0/dist/tdb-forms.min.js', 'data-tdb-forms-js')
+      .then(script => { loaded = true; cleanup(); return script; })
       .catch(error => { loadingPromise = null; console.error('TDB Forms failed to load'); throw error; });
     return loadingPromise;
   }
+  const loadSafely = () => { loadForms().catch(() => {}); };
   function onIntent(event) {
     const target = event.target;
-    if (target instanceof Element && (target.closest(formSelector) || target.closest(vipIntent))) loadForms();
+    if (target instanceof Element && (target.closest(formSelector) || target.closest(vipIntent))) loadSafely();
   }
   function observeForm(form) {
     if (!(form instanceof HTMLFormElement) || observed.has(form) || form.matches(excluded)) return;
     observed.add(form);
-    if (!proximityObserver) loadForms();
+    if (!proximityObserver) loadSafely();
     else proximityObserver.observe(form);
   }
   function discover(root = document) {
@@ -310,7 +331,7 @@ function prepareFormsLoader() {
   }
   if ('IntersectionObserver' in window) {
     proximityObserver = new IntersectionObserver(entries => {
-      if (entries.some(entry => entry.isIntersecting)) loadForms();
+      if (entries.some(entry => entry.isIntersecting)) loadSafely();
     }, { rootMargin: '600px 0px' });
   }
   document.addEventListener('focusin', onIntent, true);
@@ -318,6 +339,7 @@ function prepareFormsLoader() {
   document.addEventListener('keydown', onIntent, true);
   document.addEventListener('submit', onIntent, true);
   function start() {
+    if (loaded) return;
     discover();
     discoveryObserver = new MutationObserver(mutations => mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
       if (node instanceof Element) discover(node);
@@ -406,6 +428,7 @@ function prepareSliderLoader() {
   const selector = '.highlight-swiper_component, .parallax-swiper_component';
   const observed = new WeakSet();
   let loadingPromise = null;
+  let loaded = false;
   let proximityObserver = null;
   let discoveryObserver = null;
 
@@ -417,28 +440,32 @@ function prepareSliderLoader() {
   }
   function loadSliders() {
     if (loadingPromise) return loadingPromise;
-    cleanup();
     loadingPromise = Promise.all([
       tdbEnsureUI(),
-      loadScript('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b3a0f0f2a1e57b5a67db5f5159c449cff07eebd6/dist/tdb-swiper-8.4.7.min.js', 'data-swiper-js'),
-    ]).then(() => loadScript(
+      loadScriptWithRecovery('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b3a0f0f2a1e57b5a67db5f5159c449cff07eebd6/dist/tdb-swiper-8.4.7.min.js', 'data-swiper-js'),
+    ]).then(() => loadScriptWithRecovery(
       'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@31386d986982aa60eb6c9199b6e6b4c03693897b/dist/tdb-sliders.js',
       'data-tdb-sliders-js',
-    )).catch(error => {
+    )).then(script => {
+      loaded = true;
+      cleanup();
+      return script;
+    }).catch(error => {
       loadingPromise = null;
       console.error('TDB Sliders failed to load');
       throw error;
     });
     return loadingPromise;
   }
+  const loadSafely = () => { loadSliders().catch(() => {}); };
   function onIntent(event) {
     const target = event.target;
-    if (target instanceof Element && target.closest(selector)) loadSliders();
+    if (target instanceof Element && target.closest(selector)) loadSafely();
   }
   function observeSlider(slider) {
     if (!(slider instanceof Element) || observed.has(slider)) return;
     observed.add(slider);
-    if (!proximityObserver) loadSliders();
+    if (!proximityObserver) loadSafely();
     else proximityObserver.observe(slider);
   }
   function discover(root = document) {
@@ -447,12 +474,13 @@ function prepareSliderLoader() {
   }
   if ('IntersectionObserver' in window) {
     proximityObserver = new IntersectionObserver(entries => {
-      if (entries.some(entry => entry.isIntersecting)) loadSliders();
+      if (entries.some(entry => entry.isIntersecting)) loadSafely();
     }, { rootMargin: '800px 0px' });
   }
   document.addEventListener('pointerdown', onIntent, true);
   document.addEventListener('keydown', onIntent, true);
   function start() {
+    if (loaded) return;
     discover();
     discoveryObserver = new MutationObserver(mutations => mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
       if (node instanceof Element) discover(node);
@@ -463,9 +491,9 @@ function prepareSliderLoader() {
   else start();
 
   window.TDBSliderLoader = Object.freeze({
-    version: '0.2.0',
+    version: '0.2.1',
     load: loadSliders,
-    status: () => ({ loaded: Boolean(window.TDBSliders), loading: Boolean(loadingPromise), swiperAvailable: typeof window.Swiper === 'function' }),
+    status: () => ({ loaded: Boolean(window.TDBSliders), loading: !loaded && Boolean(loadingPromise), swiperAvailable: typeof window.Swiper === 'function' }),
   });
 }
 
@@ -508,7 +536,7 @@ startLenisForSession();
 })();
 
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.3.0',
+  version: '1.3.1',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,
