@@ -40,3 +40,10 @@ confirmed as resolved.
 Only the immediate bundle pin changes, retaining its existing
 `data-tdb-runtime-base`. Shared registry pins and all other site code remain
 at their current releases. Publish to Webflow staging only.
+
+Follow-up v1.2.2 / immediate v0.11.4: preserve the native CTA's visible label
+and text node. Hidden CMS sources use `Discover Treatment`; the authored
+visible control says `Discover treatment`. CMS still updates href/target/rel
+and the treatment-specific accessibility label. The regression fixture now
+uses this case mismatch and verifies that sentence case and text identity
+survive preparation, engine initialization and slide navigation.
