@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.13.0';
+  const VERSION = '0.13.1';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -316,12 +316,13 @@
     }
     function syncSlide() {
       if (!openCard || switching || !swiper) return;
-      const entry=entries[swiper.activeIndex];
+      const entry=entries[swiper.realIndex];
       if (!entry) return;
       track.querySelectorAll('[aria-expanded="true"]').forEach(item=>item.setAttribute('aria-expanded','false'));
+      const changed=openItem!==entry.item;
       openItem=entry.item;
       openItem.setAttribute('aria-expanded','true');
-      centre(openItem);
+      if(changed || !centreAnimation) centre(openItem);
       hiddenLogos.forEach((visibility,logo)=>{logo.style.visibility=visibility;}); hiddenLogos.clear();
       track.querySelectorAll(CONFIG.itemSelector).forEach(item=>{
         if(item.dataset.tdbLogoIndex!==openItem.dataset.tdbLogoIndex) return;
@@ -329,9 +330,10 @@
         if(logo) {hiddenLogos.set(logo,logo.style.visibility);logo.style.visibility='hidden';}
       });
       entries.forEach((entry,index)=>{
-        entry.slide.inert=index!==swiper.activeIndex;
-        if(entry.visit) entry.visit.style.display=index===swiper.activeIndex?'':'none';
+        entry.slide.inert=false;
+        if(entry.visit) entry.visit.style.display=index===swiper.realIndex?'':'none';
       });
+      Array.from(swiper.slides).forEach((slide,index)=>{slide.inert=index!==swiper.activeIndex;});
       positionCard();
     }
     function prepareShell() {
@@ -348,11 +350,11 @@
         shell.style.display='block';
         swiper=window.TDBSwiper.create(shell.querySelector('.tdb-partner-swiper'), {
           wrapperClass:'tdb-partner-slides', slideClass:'tooltip2_card-wrapper',
-          slidesPerView:1, spaceBetween:24, autoHeight:false, loop:false,
+          slidesPerView:1, spaceBetween:24, autoHeight:false, loop:true,
           speed:window.TDBMotion.duration(), watchOverflow:true,
           touchStartPreventDefault:false, preventInteractionOnTransition:false,
           a11y:{enabled:true}, on:{slideChange:syncSlide, beforeTransitionStart:(_swiper,speed)=>{
-            centreAnimation?.effect.updateTiming({duration:speed});
+            if(speed>0) centreAnimation?.effect.updateTiming({duration:speed});
           }}
         });
         reserveSlideSpace();
@@ -389,7 +391,7 @@
       item.removeAttribute('aria-busy');
       if (signal.aborted || generation!==requestGeneration) return;
       if (openCard) {
-        swiper.slideTo(entries.indexOf(entry),window.TDBMotion.duration());
+        swiper.slideToLoop(entries.indexOf(entry),window.TDBMotion.duration());
         syncSlide(); return;
       }
       finishCardTransition(shell);
@@ -397,7 +399,7 @@
       shell.style.display='block'; overlay.style.display='block'; spotlight.style.display='block';
       shell.inert=false; shell.setAttribute('aria-hidden','false');
       switching=true;
-      swiper.update(); swiper.slideTo(entries.indexOf(entry),0);
+      swiper.update(); swiper.slideToLoop(entries.indexOf(entry),0);
       switching=false;
       reserveSlideSpace(); syncSlide(); positionCard(); animateCard(shell,true);
     }
@@ -705,7 +707,8 @@
       }, {signal});
       const advance = direction => {
         if (!swiper || !openCard) return;
-        swiper.slideTo(modulo(swiper.activeIndex+direction,entries.length),window.TDBMotion.duration());
+        if(direction>0) swiper.slideNext(window.TDBMotion.duration());
+        else swiper.slidePrev(window.TDBMotion.duration());
       };
       shell.querySelector('.tdb-partner-prev').addEventListener('click', event=>{event.preventDefault();advance(-1);},{signal});
       shell.querySelector('.tdb-partner-next').addEventListener('click', event=>{event.preventDefault();advance(1);},{signal});
@@ -734,7 +737,7 @@
     track.addEventListener('keydown', onKey, { signal });
     document.addEventListener('keydown', event => {
       if (event.key === 'Tab' && openCard && !event.shiftKey && event.target === openItem) {
-        const link = entries[swiper?.activeIndex]?.visit;
+        const link = entries[swiper?.realIndex]?.visit;
         if (link) { event.preventDefault(); link.focus({ preventScroll: true }); }
       }
       if (event.key === 'Escape' && openCard) {
