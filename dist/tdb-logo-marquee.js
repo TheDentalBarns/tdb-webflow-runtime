@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.13.3';
+  const VERSION = '0.13.4';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -378,6 +378,11 @@
       })().catch(error => { prepareFlight=null; throw error; });
       return prepareFlight;
     }
+    function releaseActiveLogo() {
+      spotlight?.style.removeProperty('display');
+      hiddenLogos.forEach((visibility,logo)=>{logo.style.visibility=visibility;});
+      hiddenLogos.clear();
+    }
     function closeCard(returnFocus = false, immediate = false) {
       requestGeneration++;
       originals.forEach(item=>item.removeAttribute('aria-busy'));
@@ -389,9 +394,9 @@
       track.querySelectorAll('[aria-expanded="true"]').forEach(item=>item.setAttribute('aria-expanded','false'));
       const park = () => {
         card.style.removeProperty('display'); card.style.removeProperty('left'); card.style.removeProperty('top');
-        overlay.style.removeProperty('display'); spotlight.style.removeProperty('display');
+        overlay.style.removeProperty('display');
         card.inert = false;
-        hiddenLogos.forEach((visibility,logo)=>{logo.style.visibility=visibility;}); hiddenLogos.clear();
+        releaseActiveLogo();
         releaseChrome(card);
       };
       if (immediate) { finishCardTransition(card); park(); }
@@ -600,6 +605,9 @@
         }
         if (Math.abs(dx) <= CONFIG.dragClickThreshold) return;
         closeCard();
+        // Hand the spotlight back before the first drag transform. The card
+        // keeps its closing animation, while every logo moves with the track.
+        releaseActiveLogo();
         horizontal = dragging = true; selected = null;
         try { track.setPointerCapture(pointerId); } catch (_) {}
       }
