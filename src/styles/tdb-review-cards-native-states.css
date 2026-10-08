@@ -48,6 +48,6 @@
 /* Same short-viewport landscape condition as Smile Gallery. */
 @media screen and (min-width:480px) and (max-width:991px) and (max-height:500px) and (orientation:landscape) {
  .tdb-review-cards_slide { width:92vw; }
- .tdb-review-cards_navigation,.tdb-review-cards_fixed-mark { width:90vw; }
+ .tdb-review-cards_navigation,.tdb-review-cards_fixed-mark { width:90vw; left:calc(50% - 45vw); }
  .tdb-review-cards_viewport { padding-left:5vw; }
 }
