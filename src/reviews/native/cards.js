@@ -27,7 +27,7 @@ function mount(root,data,{openReviews}){
   return slide;
  }
  const initial=data.records.slice(0,batchSize).map((record,index)=>fill(seedById.get(record.id)||template.cloneNode(true),record,index));
- track.replaceChildren(...initial);rendered=initial.length;track.style.transitionTimingFunction=motion.reviews.easing;root.classList.add('is-ready');
+ track.replaceChildren(...initial);rendered=initial.length;track.style.transitionTimingFunction=motion.reviews.easing;
  const hasMore=()=>rendered<data.records.length||data.hasMore,busy=()=>swiper?.animating||swiper?.touchEventsData?.isTouched,fadeTime=()=>reduced.matches?0:motion.reviews.fade;
  function hide(){clearTimeout(revealTimer);revealTimer=0;if(shownQuote)fades.to(shownQuote,0,fadeTime());shownQuote=null;}
  function begin(){if(!swiper||updating||phase==='initializing'||phase==='destroyed')return;hide();phase='moving';}
@@ -128,7 +128,9 @@ function mount(root,data,{openReviews}){
 
  swiper=window.TDBSwiper.create(viewport,{init:false,direction:'horizontal',wrapperClass:'tdb-review-cards_track',slideClass:'tdb-review-cards_slide',slidesPerView:'auto',slidesOffsetAfter:trailingRoom,initialSlide:0,loop:false,rewind:false,resistanceRatio:0,preventInteractionOnTransition:false,speed:reduced.matches?0:motion.duration(innerWidth),watchSlidesProgress:true,keyboard:{enabled:false},on:{slideChange(){queueMicrotask(()=>{reflect();if(!updating)prefetch();});},sliderFirstMove:begin,transitionStart:begin}});
  const stopSettled=window.TDBSwiper.onSettled(swiper,reason=>{flush();if(!busy())reveal(reason==='release'?motion.reviews.cardDelay:undefined);prefetch();});
- swiper.init();phase='waiting-entry';setupEntry();fitBodies();$('[data-tdb-cards-total]').textContent=String(data.total).padStart(2,'0');status.textContent='';navigation.classList.remove('is-inactive');reflect();
+ // Apply runtime opacity rules only after Swiper has assigned the active slide.
+ // Its initial geometry reads otherwise start a first-card dim/brighten pulse.
+ swiper.init();root.classList.add('is-ready');phase='waiting-entry';setupEntry();fitBodies();$('[data-tdb-cards-total]').textContent=String(data.total).padStart(2,'0');status.textContent='';navigation.classList.remove('is-inactive');reflect();
  function move(direction){
   finishEntry(false);
   if(direction<0)advanceAfterLoad=false;
