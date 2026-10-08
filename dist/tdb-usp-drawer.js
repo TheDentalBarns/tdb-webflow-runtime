@@ -1,4 +1,4 @@
-/* TDB native USP adapter v2.0.0. Designer owns every surface and control. */
+/* TDB native USP adapter v2.0.1. Designer owns every surface and control. */
 (() => {
   'use strict';
   if (window.TDBUSPDrawer) return;
@@ -149,9 +149,10 @@
         const trigger = item?.querySelector('[data-tdb-usp-launch]'); if (!trigger) return;
         event.preventDefault(); if (trigger.getAttribute('aria-busy') === 'true') return;
         trigger.setAttribute('aria-busy', 'true');
+        trigger.setAttribute('data-tdb-loading', 'true');
         try { await (await prepare()).open(Number(trigger.dataset.tdbUspLaunch), trigger); }
         catch (_) { trigger.setAttribute('aria-label', 'Unable to load. Try again: ' + item.querySelector('.text-style-tagline-restored').textContent.trim()); }
-        finally { trigger.removeAttribute('aria-busy'); }
+        finally { trigger.removeAttribute('aria-busy'); trigger.removeAttribute('data-tdb-loading'); }
       }
       section.addEventListener('click', activate); section.addEventListener('keydown', activate);
       for (const name of ['pointerover','focusin','pointerdown']) section.addEventListener(name, event => { if (event.target.closest('.banner-feature_item-content')) prepare().catch(() => {}); }, {passive:true});
@@ -161,6 +162,6 @@
       }
     });
   }
-  window.TDBUSPDrawer = Object.freeze({version:'2.0.0',close(){ document.querySelectorAll('[data-tdb-usp]').forEach(root => instances.get(root)?.close()); }});
+  window.TDBUSPDrawer = Object.freeze({version:'2.0.1',close(){ document.querySelectorAll('[data-tdb-usp]').forEach(root => instances.get(root)?.close()); }});
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', discover, {once:true}); else discover();
 })();
