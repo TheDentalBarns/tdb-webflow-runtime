@@ -1,0 +1,25 @@
+.tdb-usp_content{position:relative;width:100%;height:100%;overflow:hidden;color:#222;}
+.tdb-usp_header{position:absolute;top:0;right:0;left:0;z-index:2;height:calc(12rem + env(safe-area-inset-top,0px));display:flex;align-items:center;justify-content:center;padding:calc(1rem + env(safe-area-inset-top,0px)) 2.5rem 1rem;background-color:#222222f0;backdrop-filter:saturate(150%) blur(20px);color:#d6cab4;box-sizing:border-box;}
+.tdb-usp_brand{display:grid;grid-template-columns:minmax(0,1fr) 1px minmax(0,1fr);align-items:center;column-gap:2.75rem;width:100%;max-width:36rem;min-width:0;}
+.tdb-usp_logo{display:block;width:10rem;max-width:100%;height:auto;max-height:7rem;object-fit:contain;justify-self:end;}
+.tdb-usp_rule{width:1px;height:6rem;background-color:#d6cab4;opacity:.7;}
+.tdb-usp_title{position:relative;display:block;overflow:hidden;width:100%;height:3em;min-width:0;margin:0;font-size:.875rem;font-weight:400;line-height:1.5;letter-spacing:.1em;text-transform:uppercase;color:#d6cab4;}
+.tdb-usp_title-value{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;width:100%;height:100%;white-space:normal;}
+.tdb-usp_title-incoming{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;width:100%;height:100%;white-space:normal;}
+.tdb-usp_viewport{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;overflow:hidden;touch-action:pan-y pinch-zoom;background-color:#f9f2e6;}
+.tdb-usp_track{position:relative;display:flex;width:100%;height:100%;transition-property:transform;transition-timing-function:ease;box-sizing:content-box;}
+.tdb-usp_slide{position:relative;flex-shrink:0;width:100%;height:100%;overflow-x:hidden;overflow-y:auto;box-sizing:border-box;padding:calc(12rem + env(safe-area-inset-top,0px) + 2.5rem) 2.5rem calc(6rem + env(safe-area-inset-bottom,0px) + 2.5rem);overscroll-behavior:contain;overflow-anchor:none;scrollbar-width:none;background-color:#f9f2e6;}
+.tdb-usp_slide-content{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr));align-items:center;column-gap:2.5rem;row-gap:2.5rem;min-height:100%;}
+.tdb-usp_image{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;}
+.tdb-usp_copy{min-width:0;font-size:1rem;line-height:1.7;color:#222;}
+.tdb-usp_footer{position:absolute;right:0;bottom:0;left:0;z-index:2;display:flex;align-items:center;justify-content:space-between;height:calc(6rem + env(safe-area-inset-bottom,0px));box-sizing:border-box;padding:0 2.5rem env(safe-area-inset-bottom,0px);column-gap:1rem;background-color:#222222f0;backdrop-filter:saturate(150%) blur(20px);color:#f9f2e6;}
+.tdb-usp_position{display:flex;align-items:center;column-gap:.4rem;font-size:.875rem;letter-spacing:.15em;color:#ffffff80;}
+.tdb-usp_number{position:relative;display:block;overflow:hidden;width:2.3ch;height:1.5em;line-height:1.5;}
+.tdb-usp_arrows{display:flex;column-gap:1rem;}
+.tdb-usp_arrow{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:3rem;height:3rem;min-width:44px;min-height:44px;padding:0;border:1px solid #ffffff80;border-radius:50%;color:#ffffff80;background-color:#ffffff1a;cursor:pointer;touch-action:manipulation;transition:background-color 300ms ease,color 300ms ease,border-color 300ms ease;}
+.tdb-usp_arrow:hover{color:#f9f2e6;background-color:#ebe2d240;border-color:#d6cab4;}
+.tdb-usp_arrow:active{color:#f9f2e6;background-color:#ebe2d240;border-color:#d6cab4;}
+.tdb-usp_arrow-icon{display:block;width:1rem;height:1rem;}
+.tdb-usp_templates{display:none;}
+@media screen and (max-width:767px){.tdb-usp_header{padding-left:1.25rem;padding-right:1.25rem;}.tdb-usp_brand{column-gap:1.5rem;}.tdb-usp_logo{width:8.5rem;}.tdb-usp_rule{height:5rem;}.tdb-usp_title{font-size:.8rem;}.tdb-usp_slide{padding-left:1.25rem;padding-right:1.25rem;padding-top:calc(12rem + env(safe-area-inset-top,0px) + 1.5rem);padding-bottom:calc(6rem + env(safe-area-inset-bottom,0px) + 2rem);}.tdb-usp_slide-content{column-gap:1.5rem;row-gap:1.5rem;min-height:0;}.tdb-usp_copy{font-size:.96rem;}.tdb-usp_footer{padding-left:1.25rem;padding-right:1.25rem;}}
+
