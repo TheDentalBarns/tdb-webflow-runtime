@@ -16,9 +16,11 @@ function equalBoxes(before,after,label){for(const s of Object.keys(before))for(c
   const page=await browser.newPage({viewport:{width,height}});
   await page.route('**/*',route=>route.fulfill({status:200,contentType:'text/html',body:html}));
   await page.goto('https://fixture.invalid/');
+  // Designer sentence case differs from the hidden CMS source's title case.
+  await page.evaluate(()=>document.querySelector('[data-tdb-parallax-cta] > div').textContent='Discover treatment');
   const before=await sample(page);
   await page.evaluate(()=>{
-   window.changes=[];window.nativeCTA=document.querySelector('[data-tdb-parallax-cta]');
+   window.changes=[];window.nativeCTA=document.querySelector('[data-tdb-parallax-cta]');window.nativeLabel=window.nativeCTA.firstElementChild.firstChild;
    new MutationObserver(records=>{for(const r of records)if(r.type==='childList')window.changes.push({target:r.target.className,added:r.addedNodes.length,removed:r.removedNodes.length})}).observe(document.querySelector('[data-tdb-treatment]'),{subtree:true,childList:true});
   });
   await page.addScriptTag({content:source});
@@ -26,6 +28,7 @@ function equalBoxes(before,after,label){for(const s of Object.keys(before))for(c
   equalBoxes(before,await sample(page),`${width} preparation`);
   assert.deepEqual(await page.evaluate(()=>window.changes),[],`${width}: preparation moved native DOM`);
   assert(await page.evaluate(()=>document.getElementById('native-cta')===window.nativeCTA));
+  assert(await page.evaluate(()=>window.nativeCTA.firstElementChild.firstChild===window.nativeLabel&&window.nativeCTA.firstElementChild.textContent==='Discover treatment'));
   for(const name of ['tdb-motion.js','tdb-swiper-8.4.7.min.js','tdb-parallax.js'])await page.addScriptTag({path:path.join(process.env.TDB_TEST_ASSET_DIR || path.join(root,'dist'),name)});
   await page.evaluate(()=>TDBSwiper.mount('parallax',document.querySelector('[data-tdb-treatment]')));
   await page.waitForTimeout(1400);
@@ -41,7 +44,8 @@ function equalBoxes(before,after,label){for(const s of Object.keys(before))for(c
   await page.waitForTimeout(20);
   equalBoxes(before,await sample(page),`${width} navigation`);
   assert(await page.evaluate(()=>{const r=document.querySelector('[data-tdb-treatment]'),s=r.querySelector('.swiper').swiper;return r.querySelector('[data-tdb-parallax-cta]').getAttribute('href')===s.slides[s.activeIndex].querySelector('.tdb-treatment-source a').getAttribute('href')}));
-  results.push({width,height,layoutShift:0,ctaPreserved:true,cmsLinkUpdated:true});
+  assert(await page.evaluate(()=>window.nativeCTA.firstElementChild.firstChild===window.nativeLabel&&window.nativeCTA.firstElementChild.textContent==='Discover treatment'));
+  results.push({width,height,layoutShift:0,ctaPreserved:true,cmsLinkUpdated:true,designerLabelPreserved:true});
   await page.close();
  }
  // Missing authored CTA must not trigger fallback cloning.

@@ -1,4 +1,4 @@
-/* TDB Parallax v1.2.1.
+/* TDB Parallax v1.2.2.
  * Shared parallax preparation, CMS link state, native presentation and progress.
  * Bundled into the existing immediate runtime: no extra request or stylesheet.
  * Swiper and TDBMotion remain the shared slide/motion engines.
@@ -265,7 +265,11 @@
                 b.setAttribute("aria-disabled", "true"), void (b.tabIndex = -1);
                 b.setAttribute("href", n.href);
                 for (const e of [ "target", "rel" ]) n[e] ? b.setAttribute(e, n[e]) : b.removeAttribute(e);
-                b.firstElementChild && b.firstElementChild.textContent !== n.label && (b.firstElementChild.textContent = n.label), b.setAttribute("aria-label", n.title ? `${n.label}: ${n.title}` : n.label), 
+                // The visible native label belongs to Designer. CMS source copy
+                // may use different capitalization; it supplies the link only.
+                if (!nativeButton && b.firstElementChild && b.firstElementChild.textContent !== n.label) b.firstElementChild.textContent = n.label;
+                const label = nativeButton ? (b.firstElementChild?.textContent || b.textContent).trim() : n.label;
+                b.setAttribute("aria-label", n.title ? `${label}: ${n.title}` : label), 
                 v ? b.setAttribute("aria-disabled", "true") : b.removeAttribute("aria-disabled"), 
                 b.tabIndex = v ? -1 : 0;
             }
@@ -496,7 +500,7 @@
     progress.refresh(root);
   }
   window.TDBParallax = Object.freeze({
-    version: '1.2.1', refresh, prepare: controls.prepare,
+    version: '1.2.2', refresh, prepare: controls.prepare,
     bind: presentation.bind, setMoving: presentation.setMoving, setEntry: presentation.setEntry
   });
 })();
