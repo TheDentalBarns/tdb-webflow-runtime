@@ -1,7 +1,7 @@
-import { mkdir, stat } from 'node:fs/promises';
+import { mkdir, stat, readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { build } from 'esbuild';
+import { build, transform } from 'esbuild';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const entry = resolve(here, 'src/tdb-swiper-8.4.7.js');
@@ -21,6 +21,10 @@ await build({
   define: {
     'process.env.NODE_ENV': '"production"',
   },
+  // Ship the shared TDB adapter in the same request as the engine.
+  footer: { js: (await transform(await readFile(resolve(here, '../../src/shared/carousel-visibility.js'), 'utf8'), {minify:true,target:'es2017'})).code + '\n' + (await readFile(resolve(here, '../../src/sliders/swiper-behaviour.js'), 'utf8')).replace('/* TDB_SWIPER_PLUGINS */',
+    (await readFile(resolve(here, '../../src/sliders/swiper-duration.js'), 'utf8')) + '\n' +
+    (await readFile(resolve(here, '../../src/sliders/swiper-plugins.js'), 'utf8'))) },
   banner: {
     js: '/*! TDB custom Swiper 8.4.7-tdb.2 | CVE-2026-27212 backport | Core + A11y, Autoplay, Keyboard, Navigation, Pagination, Parallax | Swiper MIT License */',
   },
