@@ -1,0 +1,16 @@
+/* Shared carousel control states. Geometry, blur and transition timing belong
+   to the native Designer class `carousel-arrow`; colour variants stay local. */
+.carousel-arrow:not(:disabled):not([aria-disabled="true"]):not(.is-disabled):is(.is-selected,.is-touch-held,:active) {
+  background-color: rgba(255,255,255,.2);
+  border-color: currentColor;
+}
+@media (hover:hover) and (pointer:fine) {
+  .carousel-arrow:not(:disabled):not([aria-disabled="true"]):not(.is-disabled):hover {
+    background-color: rgba(255,255,255,.2);
+    border-color: currentColor;
+  }
+}
+.carousel-arrow:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+.carousel-arrow:is(:disabled,[aria-disabled="true"],.is-disabled) { opacity: .35; cursor: default; }
+.carousel-arrow[data-tdb-loading] { cursor: progress; }
+.carousel-arrow.swiper-button-lock { display: none !important; }

@@ -2,7 +2,7 @@
 (async()=>{
  try {
   if(!window.TDBInstagramManualData){
-   const response=await fetch('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@2fad009b6d71d82938b09240cd47704a81fbb044/src/instagram/manual-gallery.json');
+   const response=await fetch('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0523117b5dfc0ac2b4e23373d3333f0c72e01b7c/src/instagram/manual-gallery.json');
    if(!response.ok)throw Error('Instagram data unavailable');
    window.TDBInstagramManualData=await response.json();
   }
@@ -385,11 +385,11 @@
     headingControls.append(count.counter, divider, postLink);
     const controls = el('div', 'swiper_functions-btm tdb-ig-controls');
     const buttons = el('div', 'swiper-buttons-wrapper');
-    const previous = el('button', 'slider-arrow swiper-btn-prev is-dark tdb-ig-nav');
+    const previous = el('button', 'carousel-arrow slider-arrow swiper-btn-prev is-dark tdb-ig-nav');
     previous.type = 'button';
     previous.setAttribute('aria-label', 'Previous ' + config.label.toLowerCase() + ' post');
     previous.append(galleryArrow('previous'));
-    const next = el('button', 'slider-arrow swiper-btn-next is-dark tdb-ig-nav');
+    const next = el('button', 'carousel-arrow slider-arrow swiper-btn-next is-dark tdb-ig-nav');
     next.type = 'button';
     next.setAttribute('aria-label', 'Next ' + config.label.toLowerCase() + ' post');
     next.append(galleryArrow('next'));
