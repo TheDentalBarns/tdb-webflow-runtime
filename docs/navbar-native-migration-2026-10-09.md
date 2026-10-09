@@ -80,14 +80,14 @@ verification. Those rules and state changes were checked in source/DOM tests;
 actual small-viewport rendering and touch behaviour still need visual review.
 
 David subsequently reviewed staging and confirmed the menu looked good, with
-one slight mobile seam between the expanded menu and bar. The native overlay
-starts at `top:100%`; the fluid navbar can have a fractional pixel height
-(89.515625px measured in the available desktop browser). CSS v1.0.1 overlaps
-that edge by 1px below 992px, scoped to the opted-in default navbar animation.
-This addresses a likely rasterisation seam without changing menu transforms,
-timings, native controls or desktop layout. The exact phone rendering cannot
-be reproduced with the available browser viewport; a phone recheck remains
-necessary after publishing the fix to staging.
+one slight mobile seam between the expanded menu and bar. CSS v1.0.1 tried a
+1px overlay overlap based on a pixel-rounding hypothesis. David's phone check
+showed a doubled fade at the top and a remaining gap after scrolling, so
+v1.0.2 removes that workaround completely. The original `top:100%` placement
+is restored. Do not treat pixel rounding as an established root cause.
+The top state paints the navbar root; the scrolled state uses a separate glass
+layer. That state-dependent difference needs investigation and real mobile
+geometry evidence before applying another correction.
 
 Run `node tools/build-navbar-native.cjs` with terser installed, then
 `node --test tests/navbar-native.test.cjs` with jsdom installed.
