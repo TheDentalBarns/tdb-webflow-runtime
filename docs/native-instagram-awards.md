@@ -1,114 +1,117 @@
 # Native Instagram / Awards
 
-## Visible CMS migration v2.0.0 — prepared, not deployed (9 October 2026)
+Home now renders its Awards Instagram feed as a visible native Webflow CMS
+Collection List with one card template. Released to the Webflow staging
+subdomain on 9 October 2026; production custom domains were not published.
 
-The v2 controller enhances Webflow-rendered cards in place. It no longer reads
-a second hidden image collection, clones a starter card, replaces the track, or
-writes image sources/alt text. Webflow owns the visible Collection List, its
-single card template, all three CMS image bindings and authored lazy loading.
-The shared Gallery engine can still create its normal transient loop copies.
+## Release
 
-### Remaining Webflow change and approval
+- Controller: `src/instagram/native.js`, built to `dist/tdb-instagram-native.js`.
+- Version: **2.0.1**.
+- Immutable runtime commit: `aa5c0ea47ac02415a00fe9b13b5f6dc2774d79b6`.
+- Review branch: `cleanup/instagram-cms-20261009`.
+- Home footer contains one `data-tdb-instagram-native` script and release comment.
+- Shared Gallery, Swiper, Motion and NativeTicker remain in their existing owners
+  and resolve through the deployed TDBModules registry. No shared module changed.
 
-Automatic approval review blocked unlinking the Home `Awards - Home` instance.
-Its stated concern is losing the shared component linkage. The component and
-the nested `TDB / Instagram Feed` each have exactly one instance. The proposed
-change makes these homepage instances native editable elements while retaining
-their definitions. Future edits to those definitions would no longer update
-this homepage section. User approval for that consequence is still required.
+## Designer and CMS ownership
 
-Why this step is proposed: a new Collection List inside the Instagram component
-accepted a stored source, but filter writes failed with `No source connected`
-and its image had no CMS binding context. Converting the existing, working CMS
-list into a component was explicitly rejected by the connector because it
-contains a live CMS binding. This describes the observed connector limitation,
-not a claim about every Webflow component workflow.
+The homepage Awards and nested Instagram instances were unlinked with David's
+explicit approval. They are now native page elements. Their original component
+definitions remain available; future edits to those definitions do not update
+this homepage section. The connector could not establish a working CMS context
+inside the component, so the migration reused the existing connected page list.
 
-The temporary Collection List was removed and the original Instagram tree was
-verified to match its backup exactly. No staging or production publish was made.
-The deployed Home loader still uses commit
-`06e035283cd51dce25be50acb480b8c963aa59fb` (v1.0.0).
+Edit the card design once in Home's Collection Item. Webflow owns the card,
+images, reflection/glass treatment, icons, fixed information frame, responsive
+layout and empty state. The main image and both reflections bind directly to
+Image; the main image alt text binds to Alt Text. Decorative images have empty
+alt text. All three images have authored lazy loading and async decoding.
 
-After approval:
+The visible list uses the existing **Media Gallery** collection:
 
-1. Unlink the sole Home Awards and nested Instagram instances, preserving their
-   current native elements, styles and content. Keep the component definitions.
-2. Move the existing connected Media Gallery Collection List into the feed as
-   its visible viewport. Keep the Awards/Visible filters, sorting and limit.
-3. Give the wrapper `ig-native_viewport`, `data-ig-viewport` and `data-ig-cms`;
-   the list `ig-native_track` / `data-ig-track`; and the single Collection Item
-   `ig-native_slide` / `data-ig-slide`. Move one existing card design into it.
-4. Bind the main image and both reflections to Image. Bind the main alt text to
-   Alt Text; leave decorative alt text empty. Author `loading="lazy"` on all
-   three images. Keep Date, Link, Media Type, Likes, Comments, Shares and Slug as
-   small hidden metadata nodes inside that same item. Remove its redundant
-   source image, the old starter slides and the separate hidden source wrapper.
-5. Clear stale preview dates/counts/post URLs in the stationary frame. Normalize
-   the native Collection Empty State to the existing empty-message presentation.
-   The controller fills the frame from the first real item before lazy mounting
-   and handles Webflow's empty rendering, where the item list is absent.
-6. Publish the matching native markup and immutable v2 loader pin to the Webflow
-   staging subdomain only, then verify the actual published bindings and visuals.
+- Categories contains **Awards** and Visible is on.
+- Display Order ascending, then Date descending.
+- Dynamic query, up to 100 items, offset zero, pagination off.
+- All 16 previously published Awards records retain their order and values.
 
-### Prepared controller validation
+Small text/link fields remain hidden *inside each visible item* to supply the
+stationary date, metrics, counter and outbound link. They contain no images.
+There is no separate hidden source Collection List, no three static starter
+cards and no runtime card-template cloning or image-source rewriting.
 
-The offline Chromium fixture uses the previously published Home markup, native
-Webflow styles and the deployed shared dependency release
-`d59c1a7414e9d459704a1d843ed1adfcdcaa7af8`. It verifies:
+The shared Swiper engine still makes its normal transient loop copies. The
+controller moves the existing last item ahead of the first solely for the
+established one-entry advance; it restores CMS order on teardown.
 
-- All 16 original card nodes survive; image src/srcset/alt/loading stay unchanged.
-- No offscreen post image requests; one-entry advance reaches the first CMS item.
-- Every card's image, reflection, post link and counter agree across a full loop.
-- Next and keyboard Previous; full motion under an OS reduced-motion setting.
-- Matching frame/viewport geometry at 1440, 991, 767, 390 and 320px.
-- Destroy/remount restores CMS order; single, empty and invalid-metadata states.
+| Native element | Page element ID |
+| --- | --- |
+| Homepage Awards section | `e1f578f4-dfdb-04e8-a989-11674cda4e5a` |
+| Feed | `0c985299-ea2a-3ccb-b4d0-68784fad08ba` |
+| Visible Collection List wrapper | `d1bcb98e-c203-1c99-4a4f-4924c74cdc26` |
+| Collection List | `d1bcb98e-c203-1c99-4a4f-4924c74cdc27` |
+| Single Collection Item template | `d1bcb98e-c203-1c99-4a4f-4924c74cdc28` |
+| Main image | `0c985299-ea2a-3ccb-b4d0-68784fad08c3` |
 
-The fixture exposed an existing duplicate keyboard activation path. v2 captures
-Enter/Space once before Swiper's own button handler, preventing a two-card jump.
-The v2 build is included in `tools/build-shared-runtime.mjs`.
+## Behaviour and fixes
 
-Run `tools/test-instagram-native.mjs` with a saved pre-migration homepage HTML,
-a directory containing the deployed shared JS files, and the downloaded native
-Webflow CSS directory. Set `TDB_CHROMIUM_EXECUTABLE` if using a custom Chromium.
-Images are aborted in the offline fixture; it checks DOM identity and layout,
-not photographic rendering. Actual Designer/published visual checks remain
-pending the approved Webflow migration. No performance saving is claimed yet.
+Shared entrance, loop, swipe, keyboard navigation, value tickers, current-post
+links, video badge and share/clipboard behaviour remain. Gap values still come
+from Designer slide margins. Full motion follows the shared site policy.
 
-## Currently deployed v1.0.0
+The controller reads the first item's details before lazy carousel mounting,
+so there are no hardcoded preview dates, engagement counts or totals. The native
+CMS Empty State uses `ig-native_cms-empty` with the existing empty-message style.
+Blank engagement values remain blank, not fabricated zeroes. These are CMS
+values; this work does not add a live Instagram API integration.
 
-Home uses the `TDB / Instagram Feed` Designer component inside `Awards - Home`.
-The component owns card geometry, adjacent opacity (.5), icons, profile, controls,
-reflection/glass treatment, state classes, responsive styles and the empty state.
-Three preview cards remain visible in Designer. The runtime clones the first
-native card template and fills it from the published CMS source; it contains no
-card HTML, SVG artwork or presentation stylesheet.
+Two issues found during verification were corrected:
 
-The hidden `data-tdb-ig-source="awards"` Collection List on Home reads Media Gallery:
-- Categories contains Awards; Visible is on; item is not draft/archived.
-- Display Order ascending, then Date descending; up to 100 posts.
-- Image, Alt Text, Date, Instagram Link, Source Media Type, Likes, Comments,
-  Shares and Slug are native CMS bindings.
+- Enter/Space activation is captured once before Swiper's own button handler,
+  preventing a two-card jump from duplicate keyboard handling.
+- Webflow's printed calendar dates are parsed as calendar dates. Formatting no
+  longer moves a date to the previous day in a browser ahead of UTC/BST.
 
-The existing 16 public Awards posts retain their order and engagement values.
-Counts are CMS values, not a new live Instagram API integration. Blank shares
-remain unavailable rather than displaying a fabricated zero.
+## Verification
 
-`dist/tdb-instagram-native.js` is loaded on Home. Its shared dependencies resolve
-through the existing TDBModules registry: TDBGallery, TDBSwiper, TDBMotion and
-TDBNativeTicker. It preserves one-entry advance, loop, touch, keyboard, rapid
-navigation, 400ms tickers, stationary details, video badge fades, current-post
-links and the existing share/clipboard fallback. Full motion follows the shared
-site policy. The gap is read from the Designer slide margin at each breakpoint.
+The published staging page was checked in Chromium with the site's actual
+styles, images and shared runtime, using a fresh browsing context:
 
-The other three Instagram feed variants retain their current implementation.
-A later migration can reuse this controller with a matching CMS source key and
-a Designer component variant. Full-width layouts have not been migrated here.
+- One visible CMS list, 16 native card nodes; no hidden source or source images.
+- The 16 image URLs, post URLs, dates and order match the previous CMS source.
+- Zero Instagram post-image requests while initially at the top of Home.
+- Original CMS card nodes survive initialization; image/reflection/link/counter
+  states agree through a complete loop.
+- One-entry advance lands on post 1. Next and keyboard Previous work.
+- Frame and viewport widths/positions agree at 1440, 991, 767, 390 and 320px.
+- Shared full motion remains enabled with the OS reduced-motion preference set.
+- Desktop and mobile screenshots reviewed; no page JavaScript errors observed.
 
-Validation: old/new fixture layout comparison at 1440, 991, 767, 390 and 320px;
-first-entry state, all 16 records, next/previous, interrupted navigation,
-settled count/link/photo agreement and shared motion under OS reduced motion.
-Published markup and styles are checked separately on Webflow staging.
+The offline integration fixture additionally covers empty and single-item lists,
+invalid metadata, teardown/remount, authored image attributes and calendar dates
+under Europe/London time. Build/source parity and JavaScript syntax were checked.
+The fixture uses the prior published HTML and dependency release
+`d59c1a7414e9d459704a1d843ed1adfcdcaa7af8`.
 
-Rollback: restore the prior Awards HtmlEmbed and remove the Home native loader.
-Keep the staged CMS items and native component available for further editing.
-Publish only dentalbarns.webflow.io until production publishing is requested.
+Run `node tools/test-instagram-native.mjs <before.html> <dependency-dir> <css-dir>`
+with Playwright and Chromium available. Set `TDB_CHROMIUM_EXECUTABLE` for a custom
+Chromium executable. The fixture aborts image requests; published screenshots
+and network checks were performed separately.
+
+This is a structural and image-loading cleanup. No new Lighthouse/GTmetrix score
+or overall HTML byte reduction is claimed. Native CMS cards are now rendered in
+the delivered HTML, and the separate eager hidden-image feed has been removed.
+
+## Rollback
+
+Versions 2.0.0 and 2.0.1 share the native markup contract; the former pin is
+`6bc4ea56966b719678ba2ce9dcce7826685bc3de` (without the calendar-date correction).
+
+Returning to v1 requires a coordinated markup rollback, not only a script pin:
+restore the original Awards/Instagram component instances, move the CMS list
+back to its hidden `data-tdb-ig-source="awards"` container, restore the source
+record image binding, then restore v1 commit
+`06e035283cd51dce25be50acb480b8c963aa59fb`. Preserve current CMS items and all
+unrelated runtime pins. Publish staging only until production is requested.
+
+Other Instagram feed variants were not part of this migration.
