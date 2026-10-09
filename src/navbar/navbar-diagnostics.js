@@ -5,11 +5,11 @@
       new URLSearchParams(location.search).get('nav-diagnostics') !== '1' ||
       window.TDBNavDiagnostics) return;
   function init() {
-    const nav = document.querySelector('[data-tdb-navbar-native]');
+    const nav = document.querySelector('[data-tdb-navbar-native],[data-tdb-nav-ix2-comparison]');
     const button = nav?.querySelector('.navbar10_menu-button');
     if (!nav || !button) return;
     const host = document.createElement('aside');
-    host.setAttribute('data-tdb-nav-diagnostics', '1.0.0');
+    host.setAttribute('data-tdb-nav-diagnostics', '1.1.0');
     host.style.cssText = 'position:fixed;inset:auto 8px 8px;z-index:2147483647;max-width:540px;pointer-events:auto;';
     const shadow = host.attachShadow({ mode: 'open' });
     shadow.innerHTML = `<style>
@@ -19,6 +19,8 @@
       pre{font:inherit;white-space:pre-wrap;margin:0 0 8px}
       button{background:#fff;color:#111;border:0;border-radius:3px;padding:8px;font:12px sans-serif;margin-right:8px;cursor:pointer}
     </style><section aria-label="Navbar edge measurements"><strong>Navbar edge measurements</strong><pre>Scroll to the affected area, then open the main menu.</pre><button type="button">Copy measurements</button><button type="button">Hide</button></section>`;
+    const mode = nav.hasAttribute('data-tdb-nav-ix2-comparison') ? 'IX2 comparison' : 'Current native';
+    shadow.querySelector('strong').textContent = `${mode} — navbar edges`;
     const output = shadow.querySelector('pre');
     const [copy, hide] = shadow.querySelectorAll('button');
     document.body.append(host);
@@ -46,7 +48,7 @@
       const overlay = measure(nav.querySelector('.w-nav-overlay'));
       const menu = measure(nav.querySelector('.navbar10_menu'));
       const data = {
-        phase, time: new Date().toISOString(), path: location.pathname,
+        mode, phase, time: new Date().toISOString(), path: location.pathname,
         browser: navigator.userAgent, dpr: devicePixelRatio,
         viewport: { width: innerWidth, height: innerHeight, scrollY,
           visual: window.visualViewport ? { width: visualViewport.width, height: visualViewport.height, offsetTop: visualViewport.offsetTop, scale: visualViewport.scale } : null },
@@ -94,7 +96,7 @@
       clearTimeout(timer); cancelAnimationFrame(frame); observer.disconnect();
       window.removeEventListener('resize', sample); host.remove();
     });
-    window.TDBNavDiagnostics = Object.freeze({ version: '1.0.0', capture, snapshots: () => history.slice() });
+    window.TDBNavDiagnostics = Object.freeze({ version: '1.1.0', capture, snapshots: () => history.slice() });
     sample();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
