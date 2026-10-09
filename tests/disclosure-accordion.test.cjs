@@ -1,0 +1,21 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const { JSDOM } = require('jsdom');
+test('independent accessible accordions tolerate rapid reversals and repeated mounting', () => {
+  const dom = new JSDOM('<div id="a" data-tdb-disclosure-trigger role="button" tabindex="0" aria-expanded="false" aria-controls="ap"></div><div id="ap" data-tdb-disclosure-panel hidden></div><button id="b" data-tdb-disclosure-trigger aria-expanded="false" aria-controls="bp"></button><div id="bp" data-tdb-disclosure-panel hidden></div>', { runScripts: 'outside-only' });
+  const w = dom.window, d = w.document;
+  w.eval(fs.readFileSync('src/shared/disclosure.js', 'utf8'));
+  w.TDBDisclosure.refresh(); w.TDBDisclosure.refresh();
+  const a = d.getElementById('a'), ap = d.getElementById('ap'), b = d.getElementById('b'), bp = d.getElementById('bp');
+  a.dispatchEvent(new w.KeyboardEvent('keydown', {key:'Enter', bubbles:true, cancelable:true}));
+  assert.equal(ap.hidden, false); assert.equal(ap.inert, false);
+  b.click(); assert.equal(bp.hidden, false); assert.equal(ap.hidden, false);
+  for (let n=0; n<20; n++) a.click();
+  assert.equal(a.getAttribute('aria-expanded'), 'true');
+  const held = new w.KeyboardEvent('keydown', {key:' ', repeat:true, cancelable:true});
+  a.dispatchEvent(held); assert.equal(held.defaultPrevented, true); assert.equal(ap.hidden, false);
+  a.dispatchEvent(new w.KeyboardEvent('keydown', {key:' ', cancelable:true}));
+  assert.equal(ap.hidden, true); assert.equal(ap.inert, true); assert.equal(bp.hidden, false);
+  dom.window.close();
+});

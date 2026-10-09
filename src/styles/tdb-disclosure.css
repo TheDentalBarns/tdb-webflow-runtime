@@ -1,6 +1,5 @@
-/* TDB disclosure feedback v1.0.0. Opt in per icon; reusable outside navigation.
- * In a future accordion its own controller sets aria-expanded on the trigger.
- * A component can override --tdb-chevron-duration without another animation.
+/* TDB disclosure feedback v1.1.0. One chevron and reveal vocabulary.
+ * Designer owns geometry and colour; native hidden switches answer space once.
  */
 [data-tdb-chevron] {
   transform: rotate(0deg);
@@ -8,4 +7,18 @@
 }
 [aria-expanded="true"] > [data-tdb-chevron] {
   transform: rotate(var(--tdb-chevron-open-angle, 180deg));
+}
+[data-tdb-disclosure-panel][hidden] { display: none !important; }
+[data-tdb-disclosure-panel]:not([hidden]) > [data-tdb-disclosure-reveal] {
+  animation: tdb-disclosure-fade var(--tdb-reveal-fade-in, 300ms) linear both,
+    tdb-disclosure-lift var(--tdb-reveal-move-in, 400ms) var(--tdb-reveal-ease, cubic-bezier(.165,.84,.44,1)) both;
+}
+[data-tdb-disclosure-trigger]:focus-visible { outline: 1px solid currentColor; outline-offset: 4px; }
+@keyframes tdb-disclosure-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes tdb-disclosure-lift {
+  from { transform: translateY(calc(-1 * var(--tdb-reveal-distance, 20px))); }
+  to { transform: translateY(0); }
 }

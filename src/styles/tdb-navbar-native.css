@@ -1,4 +1,4 @@
-/* Navbar IX2 replacement CSS v1.0.2. Designer retains layout and appearance.
+/* Navbar native foundation CSS v1.1.0. Designer retains layout and appearance.
  * Native Webflow states drive motion before AND after the consent decision.
  */
 [data-tdb-navbar-native] {
@@ -41,8 +41,8 @@
   [data-tdb-navbar-native] .navbar10_dropdown-list.w--open {
     opacity: 1;
     transform: translateY(0);
-    animation: tdb-nav-dropdown-fade 300ms linear both,
-      tdb-nav-dropdown-lift 300ms var(--tdb-nav-out-quad) both;
+    animation: tdb-disclosure-fade 300ms linear both,
+      tdb-disclosure-lift 300ms var(--tdb-nav-out-quad) both;
   }
   [data-tdb-navbar-native] .accordion-spacer:is(.services, .discover) {
     height: 0;
@@ -53,22 +53,22 @@
     transition-delay: 300ms;
   }
 }
+/* The existing scrolled-surface colour animations run only below 768px.
+   Release the hidden blur after each surface becomes opaque. Keep geometry
+   and every native transition intact; JS settles only the filter transition. */
+@media (max-width: 767px) {
+  [data-tdb-navbar-native] :is(.tdb-nav-bar-glass.is-nav-solid, .navbar10_menu.is-menu-solid)[data-tdb-nav-blur-idle] {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
 @media (min-width: 992px) {
   /* This fade is only the existing basic/pre-consent state. The enhanced
      measured-height controller already suppresses animations on its panels. */
   [data-tdb-navbar-native] .navbar10_dropdown-list.w--open {
-    animation: tdb-nav-dropdown-fade 300ms ease both;
+    animation: tdb-disclosure-fade 300ms ease both;
   }
 }
-@keyframes tdb-nav-dropdown-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes tdb-nav-dropdown-lift {
-  from { transform: translateY(-20px); }
-  to { transform: translateY(0); }
-}
-
 /* Sample the original IX2 polynomial curves (maximum interpolation error <0.12%). */
 @supports (transition-timing-function: linear(0, 1)) {
   [data-tdb-navbar-native] {
