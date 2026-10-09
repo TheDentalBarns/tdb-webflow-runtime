@@ -150,7 +150,8 @@ html {
   }
 }
 
-/* Native .button.submit-button states live in Designer. */
+/* Native .button.submit-button states live in Designer. Keep compatibility
+ * only for other submit controls that have not adopted those classes. */
 input[type='submit']:not(.submit-button) {
   opacity: 0.5;
   cursor: not-allowed;
@@ -194,19 +195,20 @@ html.lenis body {
   transition-behavior: allow-discrete;
 }
 
-/* Active cookiescript_* compatibility rules retained pending full-page visual checks.
- * Obsolete third-party container/badge overrides removed. The custom consent
- * component owns #tdb-consent-root and its overlay stacking. */
+/* Preserve the current consent component's legacy-named inner elements.
+ * Match its two classes exactly: a [class*=...] ancestor selector makes any
+ * html class change invalidate styles throughout the document. Keep the same
+ * specificity and declarations; #tdb-consent-root owns the outer motion. */
 [id*='cookiescript'],
 [id*='cookiescript'] *,
-[class*='cookiescript'],
-[class*='cookiescript'] * {
+:is(.cookiescript_pre_header, .cookiescript_header_actions),
+:is(.cookiescript_pre_header, .cookiescript_header_actions) * {
   transition: none !important;
   animation: none !important;
 }
 
 [id*='cookiescript'],
-[class*='cookiescript'] {
+:is(.cookiescript_pre_header, .cookiescript_header_actions) {
   opacity: 1 !important;
   transform: none !important;
 }
@@ -491,4 +493,3 @@ html[data-tdb-motion='full'] [data-tdb-loading='true'] [data-tdb-loading-indicat
 .video-overlay-layer { opacity:1 !important; visibility:visible !important; transition:none !important; animation:none !important; }
 
 .vimeo-controls-layer { -webkit-user-select:none; -webkit-tap-highlight-color:transparent; }
-
