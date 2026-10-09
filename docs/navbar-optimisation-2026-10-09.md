@@ -53,6 +53,22 @@ intent warming; desktop reversals and cleanup; Finsweet legacy fallback; and
 pagehide/pageshow lock lifecycle. These are state/DOM tests, not an Android or
 iOS browser paint/performance measurement. Real staging checks follow release.
 
+Release commit: `221fa9a62782f4670345c2c23cc21d19227bd0b2`.
+Staging-only publication: `8b95a7d6-eeee-4cbd-8091-2645d929b920`.
+All three CDN files were fetched and matched the local build byte-for-byte
+before updating the two footer pins and their comments. A fresh footer read
+was merged and verified; the independent footer-runtime base and site head
+were unchanged by this release.
+
+The live 1363px desktop check confirmed all eleven menu photos initially
+remained lazy, incomplete and without a currentSrc. Opening Services loaded
+only its five photos and selected their existing 500px variants; all six
+Discover photos remained unloaded until that menu was opened. The Finsweet
+script was absent. Services/Discover switching, ArrowDown focus to About Us,
+Escape return to Discover, outside-backdrop dismissal and final scroll-lock
+release all passed on the published page. An open Services screenshot was
+visually inspected. Physical Android/iOS verification remains a device check.
+
 Build sizes (raw / local gzip): loader 7,233 / 2,674 bytes; enhancement
 21,647 / 5,826 bytes. The former loader/enhancement were 3,101 / 1,356 and
 23,014 / 6,214. Finsweet's 9,461 / 3,971 bytes are avoided on the migrated nav
