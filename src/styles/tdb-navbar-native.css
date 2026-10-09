@@ -1,4 +1,4 @@
-/* Navbar IX2 replacement v1.0.0. Designer retains layout and appearance.
+/* Navbar IX2 replacement CSS v1.0.1. Designer retains layout and appearance.
  * Native Webflow states drive motion before AND after the consent decision.
  */
 [data-tdb-navbar-native] {
@@ -34,6 +34,12 @@
 }
 
 @media (max-width: 991px) {
+  /* The native overlay starts at 100% of a fluid, potentially fractional bar
+     height. Overlap its clipping edge by 1px to prevent a rasterisation seam;
+     keep Webflow's menu transform and all opening/closing timings intact. */
+  [data-tdb-navbar-native][data-animation="default"] > .w-nav-overlay {
+    top: calc(100% - 1px);
+  }
   [data-tdb-navbar-native] .navbar10_dropdown-list {
     opacity: 0;
     transform: translateY(-20px);

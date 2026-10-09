@@ -79,6 +79,16 @@ Limit: the available browser cannot resize for direct mobile/tablet visual
 verification. Those rules and state changes were checked in source/DOM tests;
 actual small-viewport rendering and touch behaviour still need visual review.
 
+David subsequently reviewed staging and confirmed the menu looked good, with
+one slight mobile seam between the expanded menu and bar. The native overlay
+starts at `top:100%`; the fluid navbar can have a fractional pixel height
+(89.515625px measured in the available desktop browser). CSS v1.0.1 overlaps
+that edge by 1px below 992px, scoped to the opted-in default navbar animation.
+This addresses a likely rasterisation seam without changing menu transforms,
+timings, native controls or desktop layout. The exact phone rendering cannot
+be reproduced with the available browser viewport; a phone recheck remains
+necessary after publishing the fix to staging.
+
 Run `node tools/build-navbar-native.cjs` with terser installed, then
 `node --test tests/navbar-native.test.cjs` with jsdom installed.
 
