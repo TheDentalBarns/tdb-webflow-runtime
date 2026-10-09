@@ -1,3 +1,4 @@
 /* Shared SVG assets keep the native CTA's existing mouse/touch colour states. */
+.tdb-partner-tooltip .tdb-service-discover .icon-embed-xxsmall{transition-duration:inherit;transition-timing-function:inherit;transition-delay:inherit}
 .tdb-partner-tooltip .tdb-service-discover:is(.is-hovered,.is-touch-held) .tdb-partner-icon{filter:invert(0)}
 .tdb-partner-logo.is-keyboard-focused{outline:1px solid #a79b86;outline-offset:-3px}
