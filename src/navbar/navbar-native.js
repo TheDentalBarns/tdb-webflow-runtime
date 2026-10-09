@@ -1,16 +1,10 @@
-/* TDB navbar native foundation v1.1.0. Inline in HEAD, before Webflow's runtime.
- * Detach only the three audited Navbar New IX2 handles (ten event bindings).
+/* TDB navbar native foundation v1.1.1. Inline in HEAD, before Webflow's runtime.
+ * The former navbar IX2 event bindings have been removed in Designer.
  * Native Webflow controls, the existing consent gate and enhanced navbar remain.
- * Remove this bridge after retiring those event bindings in Designer.
  */
 (() => {
   'use strict';
   if (window.TDBNavbarNative) return;
-  const ids = new Set([
-    '83119b7e-a73e-66e3-0fce-5279000d146c',
-    '83119b7e-a73e-66e3-0fce-5279000d1472',
-    '83119b7e-a73e-66e3-0fce-5279000d149c'
-  ]);
   const bound = new WeakSet();
   const surfaceRoots = new WeakSet();
   const mobile = window.matchMedia?.('(max-width: 767px)');
@@ -46,12 +40,6 @@
           }
         });
       }
-      [nav, ...nav.querySelectorAll('.navbar10_menu-dropdown')].forEach(node => {
-        const id = node.getAttribute('data-w-id');
-        if (!ids.has(id)) return;
-        node.setAttribute('data-tdb-nav-previous-id', id);
-        node.removeAttribute('data-w-id');
-      });
       nav.querySelectorAll('.navbar10_dropdown-toggle,.navbar10_menu-button').forEach(trigger => {
         if (bound.has(trigger)) return;
         bound.add(trigger);
@@ -72,5 +60,5 @@
     scan();
     observer.disconnect();
   }, { once: true });
-  window.TDBNavbarNative = Object.freeze({ version: '1.1.0' });
+  window.TDBNavbarNative = Object.freeze({ version: '1.1.1' });
 })();

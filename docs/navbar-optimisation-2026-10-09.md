@@ -76,12 +76,22 @@ path. The shared primitives increase the immediate loader; the combined
 navigation dependencies decrease. No assertion about measured frame rate is
 made.
 
-## Authoring work still requiring Designer access
+## IX2 authoring cleanup completed
 
-The current MCP interaction tool only manages IX3. The ten dormant navbar IX2
-bindings listed in the audit cannot be deleted with it. Keep the exact
-three-target detachment bridge until the authored bindings have been removed
-and the published result verified. Do not remove shared action lists blindly.
+David removed the ten old navbar IX2 bindings in Designer and published them
+to staging at 15:53 UTC on 9 October. The published IX2 configuration contains
+199 events, none targeting the navbar root or its Services/Discover dropdowns;
+all ten audited event IDs are absent. The three elements also have no authored
+data-w-id attributes in the published HTML.
+
+Native foundation 1.1.1 removes the exact-ID set and detachment loop. It retains
+native state observation, spacer/hamburger state and the mobile blur lifecycle.
+Deployment replaces only the navbar IIFE in a fresh site-head read. The live
+TDBDisclosure 1.2.0 prefix and all CSS are preserved byte-for-byte, because the
+repository's combined build still includes an older shared-disclosure source.
+Do not replace the whole live foundation block with that combined build.
+
+## Responsive image authoring still outstanding
 
 The Image setting reads expose no responsive settings for the two CMS image
 templates. Both attempts to set native `sizes` returned internal errors;
@@ -95,6 +105,6 @@ Automatic approval review rejected a re-upload of the original image because
 it would duplicate an asset without proving variant generation. That action
 was not retried or bypassed. No CMS images or assets were changed.
 
-The available cloud Designer session is signed out. Complete and verify the
-unblocked runtime release before asking for secure sign-in to finish these
-two authoring steps. Existing image originals and all IX2 safeguards remain.
+The 15:53 UTC published HTML still has five Discover images without srcset.
+The other six menu images retain their variants, and the runtime slot correction
+remains active. No CMS originals or bindings were changed by the IX2 cleanup.

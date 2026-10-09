@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { JSDOM } = require('jsdom');
 const root = path.resolve(__dirname, '..');
-const source = fs.readFileSync(path.join(root, 'dist/tdb-navbar-native.js'), 'utf8');
+const source = fs.readFileSync(process.env.TDB_NAV_FOUNDATION_FILE || path.join(root, 'dist/tdb-navbar-native.js'), 'utf8');
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const navId = '83119b7e-a73e-66e3-0fce-5279000d146c';
 const servicesId = '83119b7e-a73e-66e3-0fce-5279000d1472';
@@ -28,15 +28,15 @@ test('built CSS preserves descendant selectors and separate hamburger clocks', (
   dom.window.close();
 });
 
-test('parser-time handoff detaches only audited handles, preserving native nodes and settings', async () => {
+test('parser-time setup preserves authored IDs, native nodes and settings after IX2 retirement', async () => {
   const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', {runScripts:'outside-only'});
   dom.window.eval(source);
   const doc = dom.window.document;
   doc.body.innerHTML = markup;
   const nav = doc.querySelector('.w-nav'), link = doc.querySelector('a');
   await flush();
-  assert.equal(doc.querySelectorAll('[data-tdb-nav-previous-id]').length, 3);
-  assert.deepEqual([...doc.querySelectorAll('[data-w-id]')].map(e=>e.dataset.wId), ['unrelated-inside-nav','outside-nav']);
+  assert.equal(doc.querySelectorAll('[data-tdb-nav-previous-id]').length, 0);
+  assert.deepEqual([...doc.querySelectorAll('[data-w-id]')].map(e=>e.dataset.wId), [navId,servicesId,discoverId,'unrelated-inside-nav','outside-nav']);
   assert.equal(nav, doc.querySelector('.w-nav'));
   assert.equal(link, doc.querySelector('a'));
   assert.equal(link.getAttribute('href'), '/services/smile-design');
