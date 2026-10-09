@@ -1,4 +1,4 @@
-/* TDB native review cards v2.1.3. Designer/CMS markup with shared behaviour. */
+/* TDB native review cards v2.2.0. Designer/CMS markup with shared behaviour. */
 (() => {
 'use strict';
 if(window.TDBReviewCards)return;
@@ -12,12 +12,16 @@ function mount(root,data,{openReviews}){
  const controller=new AbortController(),{signal}=controller,motion=window.TDBMotion,reduced=motion.reduced,cms=window.TDBReviewCMS,context=cms.contextForPath(location.pathname),fades=motion.fadeController();
  const ticker=window.TDBNativeTicker.mount($('[data-tdb-cards-current]')),originalEasing=track.style.transitionTimingFunction;
  let entryPending=true,entryTimer=0,entryFrame=0,entryObserver,entryVisible=false;
- let swiper,phase='initializing',shownQuote,settledSlide,revealTimer=0,rendered=0,loading,pending=[],advanceAfterLoad=false,updating=false;
+ let swiper,phase='initializing',shownQuote,settledSlide,revealTimer=0,rendered=0,loading,pending=[],advanceAfterLoad=false,updating=false,layoutPending=false;
+ const bodyFits=new WeakMap();
  function fill(slide,record,index){
   slide.dataset.reviewId=record.id;slide.dataset.reviewRating=record.rating||'';slide.dataset.reviewSubject=record.historic?'Dr Keely - historic practice':'The Dental Barns';slide.dataset.reviewPlatform=record.platform;
   slide.setAttribute('role','group');slide.setAttribute('aria-roledescription','slide');slide.setAttribute('aria-label',`${index+1} of ${data.total}`);
   const field=k=>slide.querySelector(`[data-cards-render="${k}"]`);
-  field('name').textContent=record.name;field('excerpt').textContent=record.excerpts[context]||record.excerpt;field('excerpt').style.opacity='0';const preview=document.createElement('span');preview.className='tdb-review-cards_body-preview';preview.textContent=record.text;field('text').replaceChildren(preview);
+  const name=field('name'),excerpt=field('excerpt'),quote=record.excerpts[context]||record.excerpt;
+  if(name.textContent!==record.name)name.textContent=record.name;
+  if(excerpt.textContent!==quote)excerpt.textContent=quote;
+  excerpt.style.opacity='0';const preview=document.createElement('span');preview.className='tdb-review-cards_body-preview';preview.textContent=record.text;field('text').replaceChildren(preview);
   const date=field('date');if(date.textContent!==record.displayDate)date.textContent=record.displayDate;
   field('rating').setAttribute('aria-label',record.rating?record.rating+' out of 5 stars':'Rating not supplied');
   // The Designer logo slot is preserved; CSS selects its asset from reviewPlatform.
@@ -35,7 +39,10 @@ function mount(root,data,{openReviews}){
  }
  function reflect(){
   if(!swiper||phase==='destroyed')return;
-  const rect=viewport.getBoundingClientRect();swiper.slides.forEach(slide=>{const r=slide.getBoundingClientRect(),visible=r.right>rect.left+1&&r.left<rect.right-1;slide.inert=!visible;slide.setAttribute('aria-hidden',String(!visible));});
+  const rect=viewport.getBoundingClientRect();
+  // Read the visible positions together before applying accessibility states.
+  const visibility=swiper.slides.map(slide=>{const r=slide.getBoundingClientRect();return {slide,hidden:!(r.right>rect.left+1&&r.left<rect.right-1)};});
+  visibility.forEach(({slide,hidden})=>{if(slide.inert!==hidden)slide.inert=hidden;if(slide.getAttribute('aria-hidden')!==String(hidden))slide.setAttribute('aria-hidden',String(hidden));});
   ticker.update(String(swiper.activeIndex+1).padStart(2,'0'),swiper.swipeDirection==='prev'?-1:1);controls();
  }
  function reveal(delay){
@@ -47,8 +54,8 @@ function mount(root,data,{openReviews}){
  }
  function flush(){
   if(!pending.length||busy()||signal.aborted)return;
-  const added=pending;pending=[];track.append(...added.map((record,index)=>fill(template.cloneNode(true),record,rendered+index)));rendered+=added.length;fitBodies();
-  updating=true;swiper.update();updating=false;reflect();
+  const added=pending;pending=[];const slides=added.map((record,index)=>fill(template.cloneNode(true),record,rendered+index));track.append(...slides);rendered+=added.length;fitBodies(slides);
+  updating=true;swiper.update();updating=false;measureProgress();reflect();
   if(advanceAfterLoad){advanceAfterLoad=false;move(1);}
  }
  function more(){
@@ -65,8 +72,8 @@ function mount(root,data,{openReviews}){
  // Give the final review the same focused left position on wide screens.
  function trailingRoom(){const style=getComputedStyle(viewport),slide=track.firstElementChild;return Math.max(0,viewport.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight)-(slide?.getBoundingClientRect().width||0));}
 
- function fitBodies(){
-  const measurements=[...track.children].map(slide=>{
+ function fitBodies(slides=track.children){
+  const measurements=[...slides].map(slide=>{
    const node=slide.querySelector('[data-cards-render="text"]');
    if(!node)return null;
    const line=parseFloat(getComputedStyle(node).lineHeight);
@@ -77,10 +84,12 @@ function mount(root,data,{openReviews}){
   });
   measurements.forEach(item=>{
    if(!item)return;
-   item.node.style.setProperty('--tdb-review-body-lines',String(Math.max(1,item.lines)));
+   const previous=bodyFits.get(item.node);
+   if(!previous||previous.lines!==item.lines)item.node.style.setProperty('--tdb-review-body-lines',String(Math.max(1,item.lines)));
    // Clamp a normal-flow child: grid blockification defeats the legacy box clamp.
    // Keep the outer grid row fixed, and measure fractional rather than rounded height.
-   if(item.preview)item.preview.style.maxHeight=item.height+'px';
+   if(item.preview&&(!previous||previous.height!==item.height||previous.preview!==item.preview))item.preview.style.maxHeight=item.height+'px';
+   bodyFits.set(item.node,item);
   });
  }
  function finishEntry(advance){
@@ -115,16 +124,23 @@ function mount(root,data,{openReviews}){
   },{signal});
  }
  const progress=$('[data-tdb-cards-progress]'),marker=progress?.firstElementChild;
- let progressVisible=false,lastProgress='';
+ let progressVisible=false,lastProgress='',lastSegment='',progressMetrics;
+ function measureProgress(){
+  if(!marker||!swiper?.slides.length)return;
+  const first=swiper.slides[0],second=swiper.slides[1],a=first.getBoundingClientRect();
+  progressMetrics={step:second?second.getBoundingClientRect().left-a.left:a.width,padding:parseFloat(getComputedStyle(viewport).paddingLeft),width:progress.clientWidth};
+  return progressMetrics;
+ }
  function paintProgress(){
   if(!marker||!swiper?.slides.length)return;
-  const first=swiper.slides[0],second=swiper.slides[1],a=first.getBoundingClientRect(),v=viewport.getBoundingClientRect();
-  const step=second?second.getBoundingClientRect().left-a.left:a.width;
-  const origin=v.left+parseFloat(getComputedStyle(viewport).paddingLeft);
+  const metrics=progressMetrics||measureProgress(),{step,padding,width}=metrics;
+  const a=swiper.slides[0].getBoundingClientRect(),v=viewport.getBoundingClientRect();
+  const origin=v.left+padding;
   const index=Math.max(0,Math.min(data.total-1,(origin-a.left)/Math.max(1,step)));
-  const width=progress.clientWidth,segment=width/Math.max(1,data.total);
+  const segment=width/Math.max(1,data.total);
   const travel=data.total>1?index*(width-segment)/(data.total-1):0,pose=segment+':'+travel;
-  if(pose!==lastProgress){marker.style.width=segment+'px';marker.style.transform=`translateX(${travel}px)`;lastProgress=pose;}
+  if(segment!==lastSegment){marker.style.width=segment+'px';lastSegment=segment;}
+  if(pose!==lastProgress){marker.style.transform=`translateX(${travel}px)`;lastProgress=pose;}
  }
  const progressSampler=window.TDBRenderedProgress.observe({track,paint:paintProgress,enabled:()=>progressVisible&&!signal.aborted});
  function startProgress(){progressSampler.schedule();}
@@ -132,10 +148,10 @@ function mount(root,data,{openReviews}){
  signal.addEventListener('abort',()=>progressObserver.disconnect(),{once:true});
 
  swiper=window.TDBSwiper.create(viewport,{init:false,direction:'horizontal',wrapperClass:'tdb-review-cards_track',slideClass:'tdb-review-cards_slide',slidesPerView:'auto',slidesOffsetAfter:trailingRoom,initialSlide:0,loop:false,rewind:false,resistanceRatio:0,preventInteractionOnTransition:false,speed:reduced.matches?0:motion.duration(innerWidth),watchSlidesProgress:true,keyboard:{enabled:false},on:{slideChange(){queueMicrotask(()=>{reflect();if(!updating)prefetch();});},sliderFirstMove:begin,transitionStart:begin}});
- const stopSettled=window.TDBSwiper.onSettled(swiper,reason=>{flush();if(!busy())reveal(reason==='release'?motion.reviews.cardDelay:undefined);prefetch();});
+ const stopSettled=window.TDBSwiper.onSettled(swiper,reason=>{if(layoutPending&&!busy()&&!updating)refreshLayout();flush();if(!busy())reveal(reason==='release'?motion.reviews.cardDelay:undefined);prefetch();});
  // Apply runtime opacity rules only after Swiper has assigned the active slide.
  // Its initial geometry reads otherwise start a first-card dim/brighten pulse.
- swiper.init();root.classList.add('is-ready');phase='waiting-entry';setupEntry();fitBodies();$('[data-tdb-cards-total]').textContent=String(data.total).padStart(2,'0');status.textContent='';navigation.classList.remove('is-inactive');reflect();
+ swiper.init();root.classList.add('is-ready');phase='waiting-entry';setupEntry();fitBodies();$('[data-tdb-cards-total]').textContent=String(data.total).padStart(2,'0');status.textContent='';navigation.classList.remove('is-inactive');measureProgress();reflect();
  function move(direction){
   finishEntry(false);
   const selected=direction<0?previous:next;
@@ -157,11 +173,15 @@ function mount(root,data,{openReviews}){
   try{await openReviews({trigger:button,reviewId:button.closest('[data-review-id]').dataset.reviewId,signal});}catch(error){if(!signal.aborted)status.textContent='The review could not load. Please try again.';}finally{button.removeAttribute('aria-busy');}
  }
  root.addEventListener('click',activate,{signal});root.addEventListener('keydown',activate,{signal});window.addEventListener('online',prefetch,{signal});
- const resize=new ResizeObserver(()=>{if(!busy()){updating=true;swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);swiper.update();updating=false;fitBodies();reflect();startProgress();}});resize.observe(viewport);
- document.fonts?.ready.then(()=>{if(!signal.aborted)fitBodies();});
+ function refreshLayout(){
+  if(busy()||updating){layoutPending=true;return;}
+  layoutPending=false;updating=true;swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);swiper.update();updating=false;fitBodies();measureProgress();reflect();startProgress();
+ }
+ const resize=new ResizeObserver(()=>{progressMetrics=null;refreshLayout();});resize.observe(viewport);
+ document.fonts?.ready.then(()=>{if(!signal.aborted){fitBodies();measureProgress();startProgress();}});
  reduced.addEventListener('change',()=>{hide();phase='moving';swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);if(reduced.matches){swiper.slideTo(swiper.activeIndex,0);ticker.settle();}reveal(0);},{signal});
  const api={destroy(){finishEntry(false);progressSampler.destroy();hide();phase='destroyed';controller.abort();resize.disconnect();stopSettled();fades.destroy();swiper.destroy(true,true);ticker.destroy();track.style.transitionTimingFunction=originalEasing;track.replaceChildren(...originals.map(n=>n.cloneNode(true)));root.classList.remove('is-ready');navigation.classList.add('is-inactive');previous.setAttribute('aria-disabled','true');next.setAttribute('aria-disabled','false');previous.classList.add('is-disabled');next.classList.remove('is-disabled');previous.classList.remove('is-selected');next.classList.remove('is-selected');next.removeAttribute('data-tdb-loading');status.textContent='';instances.delete(root);}};
  instances.set(root,api);return api;
 }
-window.TDBReviewCards=Object.freeze({version:'2.1.3',mount});window.TDBSwiper?.register('review-cards',window.TDBReviewCards);
+window.TDBReviewCards=Object.freeze({version:'2.2.0',mount});window.TDBSwiper?.register('review-cards',window.TDBReviewCards);
 })();

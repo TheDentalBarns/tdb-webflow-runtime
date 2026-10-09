@@ -1,4 +1,4 @@
-/* TDB CMS review source v1.4.1. No review records or credentials in this file. */
+/* TDB CMS review source v1.5.0. No review records or credentials in this file. */
 (() => {
   'use strict';
   if (window.TDBReviewCMS) return;
@@ -77,15 +77,25 @@
     if (!Number.isFinite(average) || average < 0 || average > 5 || !Number.isInteger(total) || total < unique.size) {
       throw Error('The CMS review summary needs updating');
     }
-    return { records: [...unique.values()], average, total, next, responses, index:parseIndex(doc), featured: [...doc.querySelectorAll('[data-tdb-review-featured]')].map(n=>n.getAttribute('data-tdb-review-featured')).filter(Boolean) };
+    return { records: [...unique.values()], average, total, next, pagesPath:feed.getAttribute('data-tdb-review-pages')||'', responses, index:parseIndex(doc), featured: [...doc.querySelectorAll('[data-tdb-review-featured]')].map(n=>n.getAttribute('data-tdb-review-featured')).filter(Boolean) };
   }
   // Shared, abortable page requests. A withdrawn client cannot cancel another client.
-  let cached, cachedAt = 0, sourceDoc;
+  let cached, cachedAt = 0, sourceIcons = new Map();
+  function readIcons(doc) {
+    const icons=new Map();
+    for(const node of doc.querySelectorAll('[data-tdb-review-icon]')){
+      const svg=node.querySelector('svg');
+      // Import into the live document: cloneNode would retain the fetched
+      // document through ownerDocument, even after its root reference is gone.
+      if(svg)icons.set(node.getAttribute('data-tdb-review-icon'),document.importNode(svg,true));
+    }
+    return icons;
+  }
   const requests = new Map();
   function requestPage(url, { signal } = {}) {
     if (signal?.aborted) return Promise.reject(new DOMException('Cancelled', 'AbortError'));
     const target = new URL(url, location.href);
-    if (target.origin !== location.origin || (target.pathname !== '/review-content' && target.pathname !== '/reviews' && !/^\/review-topics\/[a-z0-9-]+$/.test(target.pathname))) return Promise.reject(Error('Invalid review pagination URL'));
+    if (target.origin !== location.origin || (!['/review-content','/review-pages','/reviews'].includes(target.pathname) && !/^\/review-topics\/[a-z0-9-]+$/.test(target.pathname))) return Promise.reject(Error('Invalid review pagination URL'));
     const key = target.href;
     let request = requests.get(key);
     if (!request) {
@@ -96,7 +106,7 @@
         .then(response => { if (!response.ok) throw Error('CMS review request failed'); return response.text(); })
         .then(html => {
           const doc = new DOMParser().parseFromString(html, 'text/html');
-          return { doc, data: ['/review-content','/reviews'].includes(target.pathname) ? parse(doc) : parseDetail(doc), url: key };
+          return { data: ['/review-content','/review-pages','/reviews'].includes(target.pathname) ? parse(doc) : parseDetail(doc), icons:readIcons(doc), url: key };
         }).finally(() => { request.done = true; if (requests.get(key) === request) requests.delete(key); });
     }
     request.clients++;
@@ -115,7 +125,12 @@
   function session(first) {
     const records = first.data.records, seen = new Set(records.map(r => r.id));
     const visited = new Set([first.url]), listeners = new Set();
-    let next = first.data.next;
+    // The first feed supplies index, responses and artwork. Its native list is
+    // duplicated on the continuation page with the same pagination identity.
+    const pagesURL=new URL(first.data.pagesPath||first.url,first.url);
+    if(pagesURL.origin!==location.origin||!['/review-content','/review-pages','/reviews'].includes(pagesURL.pathname))throw Error('Invalid review page source');
+    let next = first.data.next ? new URL(first.data.next,pagesURL).href : '';
+    const withResponse=record=>{const response=record.response||first.data.responses?.[record.id];if(response){record.response=response;record.showResponse=true;}return record;};
     const recordCache=new Map(records.map(record=>[record.id,record]));
     const index=[...(first.data.index?.records||[])],indexSeen=new Set(index.map(record=>record.id));
     let indexNext=first.data.index?.next||'',indexLoaded=!!index.length&&!indexNext;
@@ -136,7 +151,7 @@
           const following=page.data.index.next?new URL(page.data.index.next,url).href:'';
           if(following&&(following===url||indexVisited.has(following)))throw Error('Review index pagination repeated a page');
           indexVisited.add(url);added.forEach(record=>{indexSeen.add(record.id);index.push(record);});indexNext=following;
-          page.data.records.forEach(record=>recordCache.set(record.id,record));
+          page.data.records.forEach(record=>recordCache.set(record.id,withResponse(record)));
         }
         indexLoaded=true;return index;
       },
@@ -149,8 +164,7 @@
           const id=missing[cursor++],page=await requestPage('/review-topics/'+encodeURIComponent(id),{signal});
           if(signal?.aborted)throw new DOMException('Cancelled','AbortError');
           if(page.data.id!==id)throw Error('Review detail identity mismatch');
-          const record=page.data,response=first.data.responses?.[id];
-          if(response){record.response=response;record.showResponse=true;}recordCache.set(id,record);
+          const record=withResponse(page.data);recordCache.set(id,record);
         }};
         await Promise.all(Array.from({length:Math.min(4,missing.length)},worker));
         return ids.map(id=>recordCache.get(id));
@@ -165,7 +179,7 @@
         if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
         // Concurrent clients share the request; only one merges/notifies for a page.
         if (visited.has(url)) return data;
-        const added = page.data.records.filter(r => !seen.has(r.id));
+        const added = page.data.records.filter(r => !seen.has(r.id)).map(withResponse);
         if (!added.length) throw Error('Review pagination did not advance');
         const following = page.data.next ? new URL(page.data.next, url).href : '';
         if (following && (following === url || visited.has(following))) throw Error('Review pagination repeated a page');
@@ -189,15 +203,15 @@
     const first = await requestPage('/review-content', { signal });
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
     // Another permitted client may have installed this same session while awaiting.
-    if (!cached || Date.now() - cachedAt >= 60000) { cached = session(first); cachedAt = Date.now(); sourceDoc = first.doc; }
+    if (!cached || Date.now() - cachedAt >= 60000) { cached = session(first); cachedAt = Date.now(); sourceIcons = first.icons; }
     return cached;
   }
   // Native archive markup seeds the same parser/cache API; no duplicate first batch.
   function fromDocument(doc, url = location.href) {
     const target = new URL(url, location.href);
     if (target.origin !== location.origin || !['/reviews','/review-content'].includes(target.pathname)) throw Error('Invalid review source');
-    sourceDoc = doc;
-    return session({doc, data:parse(doc), url:target.href});
+    sourceIcons = readIcons(doc);
+    return session({data:parse(doc), url:target.href});
   }
   // One selection policy for review consumers. New excerpt/context ranking can
   // enter here later without changing the archive's rendering or pagination.
@@ -229,7 +243,7 @@
     node.setAttribute('aria-hidden', 'true');
     const find = doc => [...(doc?.querySelectorAll('[data-tdb-review-icon]') || [])]
       .find(item => item.getAttribute('data-tdb-review-icon') === platform)?.querySelector('svg');
-    const original = find(document) || find(sourceDoc);
+    const original = find(document) || sourceIcons.get(platform);
     if (!original) { node.textContent = platform === 'Star' ? '★' : platform; return node; }
     const svg = original.cloneNode(true), prefix = `tdb-cms-svg-${++serial}-`;
     const ids = new Map([...svg.querySelectorAll('[id]')].map(item => [item.id, prefix + item.id]));
@@ -257,9 +271,9 @@
       [record.excerpt, ...Object.values(record.excerpts || {})].some(value => normal(value) === excerpt));
     return matching.length === 1 ? matching[0].id : '';
   }
-  window.TDBReviewCMS = Object.freeze({ version: '1.4.1', load, parse, fromDocument, matching, ordered, sourceIcon, contextForPath, resolveIdentity, canonicalTopic,
+  window.TDBReviewCMS = Object.freeze({ version: '1.5.0', load, parse, fromDocument, matching, ordered, sourceIcon, contextForPath, resolveIdentity, canonicalTopic,
     preview: Object.freeze({ contexts: Object.freeze({}) }),
-    get quoteMark() { return (document.querySelector('[data-tdb-review-icon="Quote"] svg') || sourceDoc?.querySelector('[data-tdb-review-icon="Quote"] svg'))?.outerHTML || ''; }
+    get quoteMark() { return (document.querySelector('[data-tdb-review-icon="Quote"] svg') || sourceIcons.get('Quote'))?.outerHTML || ''; }
   });
 })();
 
