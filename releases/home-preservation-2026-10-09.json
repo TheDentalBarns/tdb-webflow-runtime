@@ -1,0 +1,219 @@
+{
+  "release": "Homepage preservation pass - 2026-10-09",
+  "staging_url": "https://dentalbarns.webflow.io/",
+  "implementation_tip": "fa012f3579220fb80406512b1f20ea2325b7c26e",
+  "baseline_main": "0b833f124029db0a5666d8974bec8b1b2e20bb48",
+  "deployment_rule": "Use the selective URLs and per-file overrides below. Do not repin every asset to branch HEAD. Five Senses candidate a68d127 is not deployed.",
+  "staging_published_utc": "2026-10-09T21:36:35.635Z",
+  "production_domains": [
+    {
+      "url": "thedentalbarns.com",
+      "lastPublished": "2026-10-01T10:10:45.669Z"
+    },
+    {
+      "url": "www.thedentalbarns.com",
+      "lastPublished": "2026-10-01T10:10:45.669Z"
+    },
+    {
+      "url": "www.thedentalbarns.co.uk",
+      "lastPublished": "2026-10-01T10:10:45.669Z"
+    },
+    {
+      "url": "thedentalbarns.co.uk",
+      "lastPublished": "2026-10-01T10:10:45.669Z"
+    }
+  ],
+  "metrics": {
+    "baseline": {
+      "raw_html_bytes": 528755,
+      "inline_style_elements": 42,
+      "inline_style_attributes": 118,
+      "inline_mask_attributes": 103,
+      "direct_external_scripts": 18,
+      "inline_scripts": 31,
+      "sha256": "f14539cb59d6f33cd1f445c66209508e898f75c9fa016d4f67607f4a97cc85d6"
+    },
+    "final": {
+      "raw_html_bytes": 486941,
+      "inline_style_elements": 32,
+      "inline_style_attributes": 5,
+      "inline_mask_attributes": 0,
+      "direct_external_scripts": 17,
+      "inline_scripts": 27,
+      "sha256": "ec78cde8647cc2f4bdd594d5b00257c1cac812c0d93369613e4ea29cfbe7bf70"
+    }
+  },
+  "direct_scripts": [
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@bd1bde66f6624d7c653eb6e29afb3f3c6acfaeb7/dist/tdb-consent-startup.min.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@97349848b1d29f0c509d57551393a6e9a49f1d46/dist/tdb-vimeo-loader.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@6e71c4a5b0630d8991038bb6c830d1dd45798178/dist/tdb-quote-carousel.min.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@a45b5c9b8e9fa7a1fc35ce8e366f4fdbb92263c2/dist/tdb-modules.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-dd-loader.js",
+    "https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=677cf86cf9952f978d94d80c",
+    "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/js/webflow.a2c89476.5ee5a889bcf0d9d3.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@7f4230b6dd376820e4d524b5df49694f8501c84d/dist/tdb-navbar-loader.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@02231a7e1129602063a09e000546dd424add9fc1/dist/tdb-logo-marquee-loader.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@dead3424dcad0607b95fe5b3704ab5247de45869/dist/tdb-immediate-runtime-batch.min.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@c4d3bb07ba210009faef394011c0431d017f7fff/dist/tdb-vip-form.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3217122904abee907bac1af3c23c28320e421219/dist/tdb-usp-drawer.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@1e4820a76b5bae873b7588176b1784abc15a8e0b/dist/tdb-page-break-loader.min.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8fb72cf07dfa6cd48e14522d9ee6a7df78a69391/dist/tdb-five-senses-loader.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3217122904abee907bac1af3c23c28320e421219/dist/tdb-reviews-loader.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@98af6019f65a47f659e9d39b163be8fe4e5a1f9a/dist/tdb-gallery-count.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@11353aaea879a8cbcb881bb3b62adad5050ff6d8/dist/tdb-instagram-native.min.js"
+  ],
+  "direct_stylesheets": [
+    "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.046cf8336.min.css",
+    "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.88600314a.opt.min.css",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@72e85fc8b5f0d4311db1302df3c2b0af4ac2b965/dist/tdb-ui.css?announcement-native=1",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@72e85fc8b5f0d4311db1302df3c2b0af4ac2b965/dist/tdb-ui.css?announcement-native=1"
+  ],
+  "registry": {
+    "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@a45b5c9b8e9fa7a1fc35ce8e366f4fdbb92263c2/dist/tdb-modules.js",
+    "bases": {
+      "data-tdb-carousel-base": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@fe41fd2b8789fdffd710bda8e8d3ae7f487023d4/dist/",
+      "data-tdb-motion-base": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@f56768bfea12b6f616358e57dba661e376036518/dist/",
+      "data-tdb-drawer-base": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3217122904abee907bac1af3c23c28320e421219/dist/",
+      "data-tdb-availability-base": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0ca09e55c6fc3325ad3a964b17b88832c84eed56/dist/"
+    },
+    "overrides": {
+      "tdb-swiper-8.4.7.min.js": "2afb6b982e397d09ee7a626e713e5ce1c33bc7a5",
+      "tdb-gallery.js": "c4d3bb07ba210009faef394011c0431d017f7fff",
+      "tdb-parallax.js": "2afb6b982e397d09ee7a626e713e5ce1c33bc7a5",
+      "tdb-drawer.js": "04fdf78dcd798d427818371532ddfb44b4fff674",
+      "tdb-reviews.js": "71716c87b5a5eed29fada3881f52178d80f44e4e",
+      "tdb-review-cards.js": "6e71c4a5b0630d8991038bb6c830d1dd45798178",
+      "tdb-quote-carousel.js": "6e71c4a5b0630d8991038bb6c830d1dd45798178",
+      "tdb-quote-carousel.min.js": "6e71c4a5b0630d8991038bb6c830d1dd45798178"
+    }
+  },
+  "runtime_base": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@bd1bde66f6624d7c653eb6e29afb3f3c6acfaeb7/dist/",
+  "observed_in_browser_after_smile_activation": {
+    "scripts": [
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@bd1bde66f6624d7c653eb6e29afb3f3c6acfaeb7/dist/tdb-consent-startup.min.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@97349848b1d29f0c509d57551393a6e9a49f1d46/dist/tdb-vimeo-loader.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@6e71c4a5b0630d8991038bb6c830d1dd45798178/dist/tdb-quote-carousel.min.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@a45b5c9b8e9fa7a1fc35ce8e366f4fdbb92263c2/dist/tdb-modules.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-dd-loader.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@f56768bfea12b6f616358e57dba661e376036518/dist/tdb-motion.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@7f4230b6dd376820e4d524b5df49694f8501c84d/dist/tdb-navbar.min.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@dead3424dcad0607b95fe5b3704ab5247de45869/dist/tdb-consent.min.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@6fa2423188ddccf9ef354132d3c1a303245e17a5/dist/tdb-attribution.min.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@bd1bde66f6624d7c653eb6e29afb3f3c6acfaeb7/dist/tdb-footer-runtime.min.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@2afb6b982e397d09ee7a626e713e5ce1c33bc7a5/dist/tdb-swiper-8.4.7.min.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@fe41fd2b8789fdffd710bda8e8d3ae7f487023d4/dist/tdb-ticker.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@fe41fd2b8789fdffd710bda8e8d3ae7f487023d4/dist/tdb-review-cms.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3217122904abee907bac1af3c23c28320e421219/dist/tdb-review-introduction.js",
+      "https://cdn.jsdelivr.net/npm/lenis@1.3.19/dist/lenis.min.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@02231a7e1129602063a09e000546dd424add9fc1/dist/tdb-logo-marquee.min.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@fe41fd2b8789fdffd710bda8e8d3ae7f487023d4/dist/tdb-slider-focus.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@bd1bde66f6624d7c653eb6e29afb3f3c6acfaeb7/dist/tdb-vip-drawer.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@2afb6b982e397d09ee7a626e713e5ce1c33bc7a5/dist/tdb-parallax.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0ca09e55c6fc3325ad3a964b17b88832c84eed56/dist/tdb-availability.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@bd1bde66f6624d7c653eb6e29afb3f3c6acfaeb7/dist/tdb-announcement.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@04fdf78dcd798d427818371532ddfb44b4fff674/dist/tdb-drawer.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@fe41fd2b8789fdffd710bda8e8d3ae7f487023d4/dist/tdb-filters.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@71716c87b5a5eed29fada3881f52178d80f44e4e/dist/tdb-reviews.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@c4d3bb07ba210009faef394011c0431d017f7fff/dist/tdb-gallery.js",
+      "https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=677cf86cf9952f978d94d80c",
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/js/webflow.a2c89476.5ee5a889bcf0d9d3.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@7f4230b6dd376820e4d524b5df49694f8501c84d/dist/tdb-navbar-loader.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@02231a7e1129602063a09e000546dd424add9fc1/dist/tdb-logo-marquee-loader.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@dead3424dcad0607b95fe5b3704ab5247de45869/dist/tdb-immediate-runtime-batch.min.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@c4d3bb07ba210009faef394011c0431d017f7fff/dist/tdb-vip-form.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3217122904abee907bac1af3c23c28320e421219/dist/tdb-usp-drawer.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@1e4820a76b5bae873b7588176b1784abc15a8e0b/dist/tdb-page-break-loader.min.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8fb72cf07dfa6cd48e14522d9ee6a7df78a69391/dist/tdb-five-senses-loader.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3217122904abee907bac1af3c23c28320e421219/dist/tdb-reviews-loader.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@98af6019f65a47f659e9d39b163be8fe4e5a1f9a/dist/tdb-gallery-count.js",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@11353aaea879a8cbcb881bb3b62adad5050ff6d8/dist/tdb-instagram-native.min.js"
+    ],
+    "styles": [
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.046cf8336.min.css",
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.88600314a.opt.min.css",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@72e85fc8b5f0d4311db1302df3c2b0af4ac2b965/dist/tdb-ui.css?announcement-native=1",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@59a7ba5a8ed95c07d738e067e65795a3daf23c05/dist/tdb-slider-ui.css"
+    ]
+  },
+  "inline_owners": {
+    "native_mask_css": {
+      "source": "src/styles/tdb-native-masks.css",
+      "sha256": "3746518fb176e7447cd1c4b4b65058e40b65bc932a7dce6f1f177b6234a463d9"
+    },
+    "page_scripts": "config/webflow-page-compat.json",
+    "page_css": "src/styles/page-compat.css"
+  },
+  "loader_contracts": [
+    {
+      "feature": "Navbar",
+      "transport": "TDBModules.load with independent fallback",
+      "gate": "Existing intent gate and native-menu close handoff",
+      "readiness": "Installer registration or installation; not the public API alone",
+      "timeout_ms": 15000
+    },
+    {
+      "feature": "Carousels and review modules",
+      "transport": "Existing registry consumers with per-file redirects",
+      "gate": "Original proximity, permission, first-view and data gates",
+      "readiness": "Existing Swiper/plugin APIs; single-flight registry"
+    },
+    {
+      "feature": "Global UI / VIP CSS",
+      "transport": "Retained feature-specific CSS loader",
+      "gate": "Original component intent",
+      "readiness": "CSS custom-property sentinel, insertion order, online recovery and VIP fallback retained"
+    },
+    {
+      "feature": "Vimeo",
+      "transport": "Original pinned loader",
+      "gate": "Original consent, proximity, visibility and manual-pause ownership"
+    },
+    {
+      "feature": "Five Senses",
+      "transport": "Original 8fb72cf loader; original c847ee scene/CSS",
+      "gate": "Explicit open or existing query boot",
+      "reason_retained": "Both original and candidate stalled the cloud browser after loading view; full-flow verification inconclusive"
+    },
+    {
+      "feature": "Calculator",
+      "transport": "Original 0ca09e loader in 11 owner footers",
+      "gate": "Original delegated launch, inline mount and CSS readiness; absent on homepage"
+    },
+    {
+      "feature": "Logo, DD, page-break and early runtime",
+      "transport": "Original entry boundaries retained",
+      "gate": "Original first-paint, visibility, priority and restoration dependencies"
+    }
+  ],
+  "retained_by_design": [
+    "Full-motion policy, easing and durations",
+    "Physical-phone classifiers and Services extra viewport guard pending real-device equivalence checks",
+    "Global text-selection policy and distinct focus-ring scopes",
+    "Webflow/jQuery runtime and IX2 configuration",
+    "CMS field names, review ordering rules and paging sizes",
+    "Consent, attribution and form submission pathways"
+  ],
+  "five_senses_candidate": {
+    "commit": "a68d127ba8fad7e034bac7eb140e36282cb68093",
+    "deployed": false,
+    "local_tests_passed": 3
+  },
+  "verification": {
+    "automated_tests": 96,
+    "passed": 96,
+    "published_owner_pages_plus_home": 18,
+    "owner_inventory_published_pages": 62,
+    "owner_inventory_unavailable": [
+      "/style-guide (404)"
+    ],
+    "physical_device_tested": false,
+    "real_form_submissions": 0,
+    "matched_native_mask_computed_styles": 113
+  },
+  "unchanged_test_dependency": {
+    "path": "src/shared/filters.js",
+    "from_commit": "fe41fd2b8789fdffd710bda8e8d3ae7f487023d4",
+    "blob_sha": "0e0fc0adac9cdefb61a34b6a1416610b837c603a",
+    "deployment_change": false
+  }
+}

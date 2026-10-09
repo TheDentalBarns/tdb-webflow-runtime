@@ -13,4 +13,4 @@ test('outside dismissal consumes the entire closing gesture and releases listene
   abort.abort();outside.click();assert.equal(opens,2);assert.equal(active,true);
  }finally{w.close();}
 });
-// DD region ownership and nested scrolling are covered in shared-dd-motion.test.cjs.
+// The fixture is the unchanged filters source from deployed carousel cohort fe41fd2.
