@@ -2,7 +2,7 @@
 (async()=>{
  try {
   if(!window.TDBInstagramManualData){
-   const response=await fetch('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@2fad009b6d71d82938b09240cd47704a81fbb044/src/instagram/manual-gallery.json');
+   const response=await fetch('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0523117b5dfc0ac2b4e23373d3333f0c72e01b7c/src/instagram/manual-gallery.json');
    if(!response.ok)throw Error('Instagram data unavailable');
    window.TDBInstagramManualData=await response.json();
   }
