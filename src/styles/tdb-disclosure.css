@@ -1,0 +1,11 @@
+/* TDB disclosure feedback v1.0.0. Opt in per icon; reusable outside navigation.
+ * In a future accordion its own controller sets aria-expanded on the trigger.
+ * A component can override --tdb-chevron-duration without another animation.
+ */
+[data-tdb-chevron] {
+  transform: rotate(0deg);
+  transition: transform var(--tdb-chevron-duration, 300ms) var(--tdb-chevron-ease, ease);
+}
+[aria-expanded="true"] > [data-tdb-chevron] {
+  transform: rotate(var(--tdb-chevron-open-angle, 180deg));
+}
