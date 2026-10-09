@@ -1,4 +1,4 @@
-/* TDB Parallax v1.2.2.
+/* TDB Parallax v1.3.0.
  * Shared parallax preparation, CMS link state, native presentation and progress.
  * Bundled into the existing immediate runtime: no extra request or stylesheet.
  * Swiper and TDBMotion remain the shared slide/motion engines.
@@ -192,7 +192,9 @@
                 });
             });
             if (!nativeLayer) { r.classList.add("has-static-parallax-cta"); r.appendChild(m); }
-            let w = null, v = !1, f = !1, y = null, x = null, g = !1, A = null, L = !1, E = p && Boolean(d.held), B = !1, S = window.scrollY, D = !1;
+            // Touch/wheel intent records its own scroll origin before D can be
+            // set. An initial scroll read after preparing the DOM is redundant.
+            let w = null, v = !1, f = !1, y = null, x = null, g = !1, A = null, L = !1, E = p && Boolean(d.held), B = !1, S = 0, D = !1;
             function T() {
                 const e = history.state;
                 if (null != e && ("object" != typeof e || Array.isArray(e))) return;
@@ -390,7 +392,7 @@
     track.setAttribute('aria-hidden','true');
     if(!nativeTrack){track.append(fill,wrapped);component.append(track);}
     let visible=false,disposed=false,lastTravel=null,lastSegment=null;
-    let slides=[],count=0,structureDirty=true,trackWidth=0,dpr=1;
+    let slides=[],count=0,structureDirty=true,layoutDirty=true,trackWidth=0,dpr=1;
     function readSlides(){
       slides=[...wrapper.children].filter(node=>node.classList.contains('swiper-slide')).map((node,i)=>{
         const index=node.getAttribute('data-swiper-slide-index')??String(i);
@@ -398,19 +400,26 @@
       });
       count=new Set(slides.map(slide=>slide.index)).size;
       structureDirty=false;
-      track.classList.toggle('is-ready',count>0);
     }
     function paint(){
-      if(structureDirty)readSlides();
-      if(!count)return null;
-      const box=viewport.getBoundingClientRect(),leftAligned=treatment&&(innerWidth<768||innerWidth>=992),center=box.left+(leftAligned?0:box.width/2);
-      // Find the two rendered neighbours without allocating/sorting a point
-      // array every frame. Keep reading actual geometry throughout every drag.
+      const changed=structureDirty;
+      if(changed)readSlides();
+      if(!count){if(changed)track.classList.remove('is-ready');return null;}
+      // Read all geometry before changing track/marker styles. Sizing shares
+      // the rendered-progress frame, so resize/visibility callbacks coalesce.
+      const box=viewport.getBoundingClientRect();
+      const geometry=layoutDirty?measureLayout(box):null;
+      const leftAligned=treatment&&(innerWidth<768||innerWidth>=992),center=box.left+(leftAligned?0:box.width/2);
+      // Slides are laid out in DOM order. Binary-search their rendered centres
+      // (or left edges) to sample the same two neighbours without reading every
+      // offscreen loop copy. This preserves variable-width and interrupted motion.
       let leftX=-Infinity,rightX=Infinity,leftValue=0,rightValue=0;
-      for(const slide of slides){
+      let low=0,high=slides.length;
+      while(low<high){
+        const mid=(low+high)>>>1,slide=slides[mid];
         const r=slide.node.getBoundingClientRect(),x=r.left+(leftAligned?0:r.width/2)-center;
-        if(x<0&&x>=leftX){leftX=x;leftValue=slide.value;}
-        else if(x>=0&&x<rightX){rightX=x;rightValue=slide.value;}
+        if(x<0){leftX=x;leftValue=slide.value;low=mid+1;}
+        else{rightX=x;rightValue=slide.value;high=mid;}
       }
       const value=leftX===-Infinity?rightValue:rightX===Infinity?leftValue
         :leftValue+(rightValue-leftValue+count)%count*(-leftX/(rightX-leftX));
@@ -421,6 +430,12 @@
         ? phase*(trackWidth-segment)/(count-1)
         : trackWidth-segment+(phase-count+1)*segment;
       const travel=Math.round(position*dpr)/dpr;
+      if(geometry){
+        track.style.top=geometry.top+'px';
+        track.style.left=geometry.left+'px';
+        track.style.width=trackWidth+'px';
+      }
+      if(changed)track.classList.add('is-ready');
       if(segment!==lastSegment){
         for(const marker of [fill,wrapped])marker.style.width=segment+'px';
         lastSegment=segment;
@@ -444,35 +459,38 @@
     function schedule(){sampler.schedule();}
     const visibility=new IntersectionObserver(entries=>{
       visible=entries.some(entry=>entry.isIntersecting);
-      if(visible){layout();paint();schedule();}
+      if(visible){layout();}
       else{sampler.pause();}
     },{rootMargin:'100px'});
     visibility.observe(viewport);
     function resume(){
       sampler.pause();
-      if(!document.hidden){layout();paint();schedule();}
+      if(!document.hidden){layout();}
     }
     document.addEventListener('visibilitychange',resume);
     function layout(){
+      layoutDirty=true;
+      schedule();
+    }
+    function measureLayout(box){
+      layoutDirty=false;
+      dpr=window.devicePixelRatio||1;
       // Preserve fractional geometry: offsetTop/offsetHeight round separately
       // and can leave a one-pixel gap between the image and its track.
       if(component.hasAttribute('data-tdb-treatment')) {
         // Designer owns the focused-card track geometry at every breakpoint.
-        dpr=window.devicePixelRatio||1;
         trackWidth=track.getBoundingClientRect().width;
-        schedule();return;
+        return null;
       }
-      const box=viewport.getBoundingClientRect(),parent=component.getBoundingClientRect();
-      track.style.top=(box.bottom-parent.top-component.clientTop)+'px';
-      dpr=window.devicePixelRatio||1;
+      const parent=component.getBoundingClientRect();
+      const top=box.bottom-parent.top-component.clientTop;
       // Snap inward to physical pixels so neither edge bleeds beyond the image.
       const left=Math.ceil((treatment?0:box.left)*dpr)/dpr;
       const right=Math.floor((treatment?document.documentElement.clientWidth:box.right)*dpr)/dpr;
-      track.style.left=(left-parent.left-component.clientLeft)+'px';
-      track.style.width=Math.max(0,right-left)+'px';
-      // Track dimensions change with layout, not with the moving slide track.
-      trackWidth=track.getBoundingClientRect().width;
-      schedule();
+      // These tracks have no border/padding or transform. Their authored width
+      // is the rendered width; do not force layout just to read it back.
+      trackWidth=Math.max(0,right-left);
+      return {top,left:left-parent.left-component.clientLeft};
     }
     const resize=new ResizeObserver(layout);resize.observe(viewport);
     window.addEventListener('resize',layout,{passive:true});
@@ -483,7 +501,9 @@
       window.removeEventListener('resize',layout);
       if(!nativeTrack)track.remove();else track.classList.remove('is-ready');
     }});
-    paint();schedule();return true;
+    // The authored starting marker remains visible until the first near-viewport
+    // frame. Offscreen sliders need no geometry reads at startup.
+    schedule();return true;
   }
   function refresh(root = document) {
     const selector=document.documentElement.dataset.wfPage === '677cf86df9952f978d94d8a9' ? nativeSelector+','+homeSelector : nativeSelector;
@@ -500,7 +520,7 @@
     progress.refresh(root);
   }
   window.TDBParallax = Object.freeze({
-    version: '1.2.2', refresh, prepare: controls.prepare,
+    version: '1.3.0', refresh, prepare: controls.prepare,
     bind: presentation.bind, setMoving: presentation.setMoving, setEntry: presentation.setEntry
   });
 })();

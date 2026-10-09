@@ -1,4 +1,4 @@
-/* TDB parallax carousel plugin v1.0.1. Native Services spacing; existing choreography. */
+/* TDB parallax carousel plugin v1.2.0. Native Services spacing; existing choreography. */
 (() => {
 'use strict';
 if(window.TDBParallaxPlugin)return;
@@ -93,6 +93,9 @@ function A(e) {
             loop: !n || t.querySelectorAll(".swiper-slide").length > 1,
             loopPreventsSlide: !1,
             preventInteractionOnTransition: !1,
+            // Four copies per side cover the desktop wide + narrow layout.
+            // Explicit budget avoids auto-width default cloning every CMS card.
+            ...(e.hasAttribute('data-tdb-treatment') ? {loopedSlides: 1} : {}),
             loopAdditionalSlides: 1,
             slideToClickedSlide: !0,
             parallax: !0,
@@ -121,24 +124,41 @@ function A(e) {
                 ...n ? {
                     992: {
                         slidesPerView: "auto",
+                        ...(e.hasAttribute('data-tdb-treatment') ? {loopedSlides: 3} : {}),
                         centeredSlides: !1,
                         touchRatio: 1
                     }
                 } : {},
                 768: {
                     slidesPerView: 1,
+                    ...(e.hasAttribute('data-tdb-treatment') ? {loopedSlides: 1} : {}),
                     centeredSlides: !0,
                     touchRatio: 1
                 },
                 0: {
                     slidesPerView: E(e) ? "auto" : 1,
+                    ...(e.hasAttribute('data-tdb-treatment') ? {loopedSlides: 1} : {}),
                     centeredSlides: !E(e),
                     touchRatio: 1
                 }
             }
         }, {bind:false});
+        if (e.hasAttribute('data-tdb-treatment')) {
+            // Swiper 8 rebuilds on slidesPerView changes, but desktop/phone both
+            // use auto. Reconcile their different budgets on that direct resize.
+            b.on('breakpoint', () => {
+                if (!b.initialized || !b.params.loop) return;
+                const count = t.querySelectorAll('.swiper-slide:not(.swiper-slide-duplicate)').length;
+                const wanted = Math.min(count, b.params.loopedSlides + b.params.loopAdditionalSlides);
+                if (b.loopedSlides === wanted) return;
+                const index = b.realIndex;
+                b.loopDestroy(); b.loopCreate(); b.updateSlides();
+                b.slideTo(index + b.loopedSlides, 0, false, true);
+            });
+        }
         n && (!function(e, t, n) {
             const i = matchMedia("(min-width:992px)"), r = n.slideTo;
+            const nativeTreatment = t.closest('[data-tdb-treatment]');
             let s = [], a = null;
             const o = () => {
                 s.forEach(e => e.cancel()), s = [];
@@ -154,7 +174,12 @@ function A(e) {
                 if (!m || this.animating && this.params.preventInteractionOnTransition || !this.enabled && !c && !u) return r.call(this, e, t, n, c, u);
                 if (this.animating && p === this.activeIndex && t > 0) return r.call(this, e, t, n, c, u);
                 if (c && 0 === t && l(m, p) === a) return r.call(this, e, t, n, c, u);
-                const f = [ ...this.slides ], h = f.map(e => e.getBoundingClientRect().width);
+                const targetIndex = l(m, p);
+                const moving = new Set(s.map(animation => animation.effect?.target));
+                const f = [ ...this.slides ].filter(slide => !nativeTreatment ||
+                    slide.hasAttribute('data-tdb-banner-wide') ||
+                    slide.getAttribute('data-swiper-slide-index') === targetIndex || moving.has(slide));
+                const h = f.map(e => e.getBoundingClientRect().width);
                 o(), d(p), this.updateSlides();
                 const b = f.map(e => e.getBoundingClientRect().width);
                 if (this.initialized && t > 0) {
@@ -183,6 +208,7 @@ function A(e) {
                 t.querySelectorAll("[data-tdb-banner-wide]").forEach(e => e.removeAttribute("data-tdb-banner-wide"));
             });
         }(0, t, b), b.init()), k(b), g(e, b, () => x(e)), S(e, t, b), c?.bind(b), window.TDBParallax?.bind(e, b);
+        if (e.hasAttribute('data-tdb-treatment')) window.TDBCarouselVisibility.bind(b);
         const v = window.TDBMotion.carousel.nextDelay, A = new WeakMap, L = new Set;
         let T = null, M = !1, P = !1;
         b.on("beforeLoopFix", () => {
@@ -250,20 +276,11 @@ function A(e) {
             });
         }
     }
-function P(e) {
-        const n = e.target.closest?.(".swiper-btn-prev,.swiper-btn-next");
-        if (!n || !n.closest(t)) return;
-        const i = n.closest(".swiper-buttons-wrapper");
-        i?.querySelectorAll(".swiper-btn-prev,.swiper-btn-next").forEach(e => {
-            e.classList.toggle("is-selected", e === n);
-        });
-    }
-const plugin=Object.freeze({version:'1.1.0',selector:t,
+const plugin=Object.freeze({version:'1.2.0',selector:t,
  beforeObserve(root){if(u(root)||p(root))root.classList.add('tdb-entry-pending');},
  mount(root){A(root);return m(root)?.swiper;},
  refresh(root=document){window.TDBParallax?.refresh(root);window.TDBSwiper.refresh('parallax',root);}
 });
 window.TDBParallaxPlugin=plugin;
 window.TDBSwiper.register('parallax',plugin);
-document.addEventListener('click',P);
 })();

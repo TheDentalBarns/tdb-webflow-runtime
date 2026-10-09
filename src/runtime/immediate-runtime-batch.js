@@ -41,14 +41,14 @@ if (document.readyState === 'loading') {
     }
     const t = e("https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.3.0/dist/tdb-consent.js", "data-tdb-consent-js", () => Boolean(window.TDBConsent)).catch(e => {
         throw console.error("TDB Consent failed to load"), e;
-    }), n = e("https://cdn.jsdelivr.net/gh/TheDentalBarns/CookieScript@798b41dc10895752a232d631cf7e5232c3598673/tdb-cookie-consent.min.js", "data-cookie-script-js", () => Boolean(window.CookieScript?.instance)), r = Promise.resolve(null), i = e("https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@6fa2423188ddccf9ef354132d3c1a303245e17a5/dist/tdb-attribution.min.js", "data-tdb-attribution-js", () => Boolean(window.TDBAttribution)), a = e("https://cdn.jsdelivr.net/npm/@finsweet/attributes-scrolldisable@1.6.2/scrolldisable.js", "data-scrolldisable-js");
+    }), n = e("https://cdn.jsdelivr.net/gh/TheDentalBarns/CookieScript@798b41dc10895752a232d631cf7e5232c3598673/tdb-cookie-consent.min.js", "data-cookie-script-js", () => Boolean(window.CookieScript?.instance)), r = Promise.resolve(null), i = e("https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@6fa2423188ddccf9ef354132d3c1a303245e17a5/dist/tdb-attribution.min.js", "data-tdb-attribution-js", () => Boolean(window.TDBAttribution)), a = [...document.querySelectorAll("[fs-scrolldisable-element]")].some(node => node.getAttribute("fs-scrolldisable-element") !== "preserve" && !node.hasAttribute("data-tdb-nav-scroll-lock")) ? e("https://cdn.jsdelivr.net/npm/@finsweet/attributes-scrolldisable@1.6.2/scrolldisable.js", "data-scrolldisable-js") : Promise.resolve(null);
     const o = e(new URL("tdb-footer-runtime.min.js", TDBImmediateModuleRoot).href, "data-tdb-footer-runtime-js", () => Boolean(window.TDBFooterRuntime)), l = Promise.allSettled([ t, n, r, o ]);
     l.then(() => {
         window.__TDB_PRIORITY_READY__ = !0, window.dispatchEvent(new Event("tdb:priority-ready"));
     });
     const d = Promise.allSettled([ t, n, r, i, a, o ]);
     window.TDBImmediateRuntimeBatch = Object.freeze({
-        version: "0.11.4",
+        version: "0.11.7",
         priorityReady: l,
         ready: d,
         status: () => ({
