@@ -17,7 +17,7 @@ function mount(root,data,{openReviews}){
   slide.dataset.reviewId=record.id;slide.dataset.reviewRating=record.rating||'';slide.dataset.reviewSubject=record.historic?'Dr Keely - historic practice':'The Dental Barns';slide.dataset.reviewPlatform=record.platform;
   slide.setAttribute('role','group');slide.setAttribute('aria-roledescription','slide');slide.setAttribute('aria-label',`${index+1} of ${data.total}`);
   const field=k=>slide.querySelector(`[data-cards-render="${k}"]`);
-  field('name').textContent=record.name;field('excerpt').textContent=record.excerpts[context]||record.excerpt;field('excerpt').style.opacity='0';field('text').textContent=record.text;
+  field('name').textContent=record.name;field('excerpt').textContent=record.excerpts[context]||record.excerpt;field('excerpt').style.opacity='0';const preview=document.createElement('span');preview.className='tdb-review-cards_body-preview';preview.textContent=record.text;field('text').replaceChildren(preview);
   const date=field('date');if(date.textContent!==record.displayDate)date.textContent=record.displayDate;
   field('rating').setAttribute('aria-label',record.rating?record.rating+' out of 5 stars':'Rating not supplied');
   // The Designer logo slot is preserved; CSS selects its asset from reviewPlatform.
@@ -69,9 +69,18 @@ function mount(root,data,{openReviews}){
    const node=slide.querySelector('[data-cards-render="text"]');
    if(!node)return null;
    const line=parseFloat(getComputedStyle(node).lineHeight);
-   return {node,lines:Math.max(1,Math.floor((node.clientHeight+.01)/line))};
+   const available=node.getBoundingClientRect().height;
+   if(!Number.isFinite(line)||line<=0)return null;
+   const lines=Math.max(0,Math.floor((available-.5)/line));
+   return {node,preview:node.firstElementChild,lines,height:lines*line};
   });
-  measurements.forEach(item=>{if(item)item.node.style.setProperty('--tdb-review-body-lines',String(item.lines));});
+  measurements.forEach(item=>{
+   if(!item)return;
+   item.node.style.setProperty('--tdb-review-body-lines',String(Math.max(1,item.lines)));
+   // Clamp a normal-flow child: grid blockification defeats the legacy box clamp.
+   // Keep the outer grid row fixed, and measure fractional rather than rounded height.
+   if(item.preview)item.preview.style.maxHeight=item.height+'px';
+  });
  }
  function finishEntry(advance){
   if(!entryPending)return;
