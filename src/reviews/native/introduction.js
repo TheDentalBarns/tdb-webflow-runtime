@@ -1,4 +1,4 @@
-/* TDB Review Introduction v1.2.1. No CSS, CMS selection, fetching or consent logic. */
+/* TDB Review Introduction v1.2.2. No CSS, CMS selection, fetching or consent logic. */
 (() => {
   'use strict';
   if (window.TDBReviewIntroduction) return;
@@ -64,15 +64,11 @@
         event.preventDefault();
         if (disposed || trigger.getAttribute('aria-busy') === 'true') return;
         if (status) status.textContent = '';
-        trigger.setAttribute('aria-busy', 'true');
-        trigger.setAttribute('data-tdb-loading', 'true');
-        reflectDrawer();
         const item = root.querySelector('[data-tdb-review-id]');
-        try {
-          await options.openReviews({ trigger, reviewId: item?.getAttribute('data-tdb-review-id') || '', signal });
-        } catch (error) {
-          if (!disposed) root.dispatchEvent(new CustomEvent('tdb:review-error', { bubbles: true, detail: { error } }));
-        } finally { if (!disposed) { trigger.removeAttribute('aria-busy'); trigger.removeAttribute('data-tdb-loading'); } }
+        await window.TDBModules.withBusy(trigger, () => options.openReviews({ trigger, reviewId: item?.getAttribute('data-tdb-review-id') || '', signal }), {
+          signal, onStart: reflectDrawer,
+          onError(error) { if (!disposed) root.dispatchEvent(new CustomEvent('tdb:review-error', { bubbles: true, detail: { error } })); }
+        });
       };
       trigger.addEventListener('click', activate, { signal });
       trigger.addEventListener('keydown', activate, { signal });
@@ -105,6 +101,6 @@
     instances.set(root, api);
     return api;
   }
-  window.TDBReviewIntroduction = Object.freeze({ version: '1.2.1', mount });
+  window.TDBReviewIntroduction = Object.freeze({ version: '1.2.2', mount });
 })();
 

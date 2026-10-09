@@ -21,7 +21,7 @@ test('backdrop, Escape and repeated close calls cannot restart a closing drawer'
   assert.equal(t.animations.length,count,'second dismiss must not replace the in-flight close animation');
   assert.equal(exit.cancelled,false,'closing panel keeps its current animation and progress');
   assert.equal(t.events.filter(x=>x==='close').length,1);assert.equal(t.api.state,'closing');
-  assert.equal(t.doc.documentElement.style.overflow,'hidden');assert.equal(t.doc.querySelector('main').inert,true);
+  assert.equal(t.w.TDBScrollLock.active,true);assert.equal(t.doc.querySelector('main').inert,true);
   t.finish();await closing;assert.equal(t.api.state,'closed');assert.equal(t.root.hidden,true);assert.equal(t.doc.documentElement.style.overflow,'');assert.equal(t.doc.activeElement,t.trigger);
   const reopening=t.api.open(t.trigger);assert.equal(t.api.state,'opening');t.finish();await reopening;assert.equal(t.api.state,'open');assert.equal(t.events.filter(x=>x==='open').length,2);
  }finally{t.dispose();}
@@ -31,7 +31,7 @@ test('immediate teardown during closing cancels once and restores page access',a
   const opening=t.api.open(t.trigger);t.finish();await opening;const closing=t.api.close();
   await t.api.close(true);await closing;
   assert.equal(t.events.filter(x=>x==='close').length,1,'teardown does not repeat consumer close work');
-  assert.equal(t.events.filter(x=>x==='unlock').length,1);assert.equal(t.api.state,'closed');assert.equal(t.root.inert,true);assert.equal(t.doc.documentElement.style.overflow,'');
+  assert.equal(t.w.TDBScrollLock.active,false);assert.equal(t.events.filter(x=>x==='lock'||x==='unlock').length,0,'drawer leaves the Lenis lifecycle to the site');assert.equal(t.api.state,'closed');assert.equal(t.root.inert,true);assert.equal(t.doc.documentElement.style.overflow,'');
  }finally{t.dispose();}
 });
 
@@ -47,7 +47,7 @@ for(const elapsed of [180,420])test(`closing during opening reverses at ${elapse
   t.backdrop.click();assert.equal(panel.reversals,1);assert.equal(t.api.state,'closing');
   panel.finish();await flush();assert.equal(t.api.state,'closing','wait for the reversed backdrop too');
   backdrop.finish();await Promise.all([opening,closing]);
-  assert.equal(t.api.state,'closed');assert.equal(t.root.hidden,true);assert.equal(t.doc.activeElement,t.trigger);assert.equal(t.events.filter(x=>x==='unlock').length,1);
+  assert.equal(t.api.state,'closed');assert.equal(t.root.hidden,true);assert.equal(t.doc.activeElement,t.trigger);assert.equal(t.w.TDBScrollLock.active,false);assert.equal(t.events.filter(x=>x==='lock'||x==='unlock').length,0,'drawer leaves the Lenis lifecycle to the site');
  }finally{t.dispose()}
 });
 
@@ -57,5 +57,17 @@ test('closing before the first animation frame does not rewind to fully open',as
   const closing=t.api.close();await Promise.all([opening,closing]);
   assert.equal(t.animations.length,2);assert.equal(panel.reversals,0);assert.equal(backdrop.reversals,0);
   assert.equal(panel.playbackRate,-1);assert.equal(panel.currentTime,0);assert.equal(t.api.state,'closed');
+ }finally{t.dispose()}
+});
+
+test('closing the drawer cannot release a menu or consent lock',async()=>{
+ const t=setup();try{
+  const releaseMenu=t.w.TDBScrollLock.acquire({allow:()=>[]});
+  const opening=t.api.open(t.trigger);t.finish();await opening;
+  const closing=t.api.close();t.finish();await closing;
+  assert.equal(t.w.TDBScrollLock.active,true);
+  assert.equal(t.doc.documentElement.classList.contains('tdb-scroll-locked'),true);
+  releaseMenu();assert.equal(t.w.TDBScrollLock.active,false);
+  assert.equal(t.doc.documentElement.classList.contains('tdb-scroll-locked'),false);
  }finally{t.dispose()}
 });

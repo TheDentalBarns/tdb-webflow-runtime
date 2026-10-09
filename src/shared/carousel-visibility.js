@@ -1,15 +1,15 @@
-/* Shared carousel visibility v1.0.0. Reuse Swiper geometry; no layout reads. */
+/* Shared carousel visibility v1.1.0. Reuse Swiper geometry; no layout reads. */
 (() => {
   'use strict';
   if (window.TDBCarouselVisibility) return;
   const bindings = new WeakMap();
-  function bind(swiper) {
+  function bind(swiper, {activeOnly = false} = {}) {
     if (bindings.has(swiper)) return bindings.get(swiper);
     const original = new Map();
     const events = 'init update resize setTranslate slideChange loopFix slidesLengthChange';
     function update() {
       const active = swiper.slides[swiper.activeIndex];
-      const visible = Array.from(swiper.visibleSlides || []);
+      const visible = activeOnly ? (active ? [active] : []) : Array.from(swiper.visibleSlides || []);
       if (!visible.length && active) visible.push(active);
       const chosen = new Map();
       for (const slide of visible) {
@@ -46,5 +46,5 @@
     update();
     return api;
   }
-  window.TDBCarouselVisibility = Object.freeze({version: '1.0.0', bind});
+  window.TDBCarouselVisibility = Object.freeze({version: '1.1.0', bind});
 })();

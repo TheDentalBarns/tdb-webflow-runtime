@@ -1,22 +1,21 @@
-/* TDB shared native drawer v1.0.3. Webflow owns markup and styles. */
+/* TDB shared native drawer v1.1.0. Webflow owns markup and styles. */
 (() => {
 'use strict';if(window.TDBDrawer)return;
 const instances=new WeakMap();let active=null;
-function mount(root,{onOpen,onClose}={}){
+function mount(root,{onOpen,onClose,hideChrome=false}={}){
  if(instances.has(root))return instances.get(root);
  const panel=root.querySelector('[data-tdb-drawer-panel]'),backdrop=root.querySelector('[data-tdb-drawer-backdrop]'),closeButton=root.querySelector('[data-tdb-drawer-close]');
  if(!panel||!closeButton)throw Error('Native drawer structure missing');
  const ctrl=new AbortController(),{signal}=ctrl,motion=window.TDBMotion.reduced;
- let state='closed',trigger,saved=[],scrollLock,animations=[],revision=0,touchPulse=null;
+ let state='closed',trigger,saved=[],releaseScroll,releaseChrome,animations=[],revision=0,touchPulse=null;
  root.hidden=true;root.classList.add('is-hidden');root.inert=true;
  const stop=()=>{animations.forEach(a=>a.cancel());animations=[];};
  const focusables=()=>[...panel.querySelectorAll('a[href],button,input,select,textarea,[tabindex="0"]')].filter(n=>!n.disabled&&!n.closest('[hidden],[inert]')&&n.getClientRects().length);
  function lock(){
-  const html=document.documentElement;scrollLock={x:scrollX,y:scrollY,overflow:html.style.overflow,padding:html.style.paddingRight,lenis:window.lenis,resume:!!window.lenis&&!window.lenis.isStopped};
-  const gap=innerWidth-html.clientWidth;html.style.overflow='hidden';if(gap)html.style.paddingRight=gap+'px';scrollLock.lenis?.stop();
+  releaseScroll=window.TDBScrollLock.acquire({allow:()=>[panel]});
   let child=root;while(child.parentElement){for(const sibling of child.parentElement.children)if(sibling!==child&&!['SCRIPT','STYLE','LINK'].includes(sibling.tagName)){saved.push([sibling,sibling.inert]);sibling.inert=true;}child=child.parentElement;if(child===document.body)break;}
  }
- function unlock(){saved.forEach(([node,value])=>node.inert=value);saved=[];if(!scrollLock)return;const html=document.documentElement;html.style.overflow=scrollLock.overflow;html.style.paddingRight=scrollLock.padding;if(scrollLock.resume)scrollLock.lenis?.start();scrollLock=null;}
+ function unlock(){saved.forEach(([node,value])=>node.inert=value);saved=[];releaseScroll?.();releaseScroll=null;releaseChrome?.();releaseChrome=null;}
  async function transition(opening){
   const rev=++revision;
   if(!opening&&animations.length){
@@ -31,14 +30,14 @@ function mount(root,{onOpen,onClose}={}){
   return rev===revision;
  }
  async function open(source){
-  if(state!=='closed')return;active?.close(true);active=api;trigger=source;state='opening';root.hidden=false;root.classList.remove('is-hidden');root.inert=false;root.setAttribute('aria-hidden','false');trigger?.setAttribute('aria-expanded','true');lock();try{onOpen?.();}catch(error){await close(true);throw error;}closeButton.focus({preventScroll:true});
+  if(state!=='closed')return;active?.close(true);active=api;trigger=source;state='opening';root.hidden=false;root.classList.remove('is-hidden');root.inert=false;root.setAttribute('aria-hidden','false');trigger?.setAttribute('aria-expanded','true');lock();try{onOpen?.();if(hideChrome)releaseChrome=window.TDBSiteChrome.acquire();}catch(error){await close(true);throw error;}closeButton.focus({preventScroll:true});
   if(await transition(true)){stop();state='open';}
  }
  async function close(immediate=false){
   // A second backdrop/Escape dismiss must not restart the exit from fully open.
   // Immediate teardown may still cancel the exit, without repeating onClose.
   if(state==='closed'||(state==='closing'&&!immediate))return;
-  if(state!=='closing'){state='closing';trigger?.setAttribute('aria-expanded','false');onClose?.();}
+  if(state!=='closing'){state='closing';trigger?.setAttribute('aria-expanded','false');onClose?.();if(hideChrome)window.TDBSiteChrome.settleBackground();}
   if(immediate){revision++;stop();}else if(!await transition(false))return;
   touchPulse?.cancel();touchPulse=null;root.hidden=true;root.classList.add('is-hidden');root.inert=true;root.setAttribute('aria-hidden','true');stop();unlock();state='closed';if(active===api)active=null;if(trigger?.isConnected)trigger.focus({preventScroll:true});
  }
@@ -63,5 +62,5 @@ function mount(root,{onOpen,onClose}={}){
  motion.addEventListener('change',()=>{if(state==='opening'){revision++;stop();state='open';}else if(state==='closing')close(true);},{signal});
  const api=Object.freeze({open,close,get state(){return state;},destroy(){close(true);ctrl.abort();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBDrawer=Object.freeze({version:'1.0.3',mount});
+window.TDBDrawer=Object.freeze({version:'1.1.0',mount});
 })();

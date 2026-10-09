@@ -1,4 +1,4 @@
-/* TDB native review cards v2.2.1. Designer/CMS markup with shared behaviour. */
+/* TDB native review cards v2.2.2. Designer/CMS markup with shared behaviour. */
 (() => {
 'use strict';
 if(window.TDBReviewCards)return;
@@ -176,8 +176,8 @@ function mount(root,data,{openReviews}){
    if(index>=0&&index!==swiper.activeIndex){event.preventDefault();move(index-swiper.activeIndex);return;}
   }
   if(!button||!swiper.allowClick||button.getAttribute('aria-busy')==='true')return;
-  event.preventDefault();button.setAttribute('aria-busy','true');
-  try{await openReviews({trigger:button,reviewId:button.closest('[data-review-id]').dataset.reviewId,signal});}catch(error){if(!signal.aborted)status.textContent='The review could not load. Please try again.';}finally{button.removeAttribute('aria-busy');}
+  event.preventDefault();
+  await window.TDBModules.withBusy(button,()=>openReviews({trigger:button,reviewId:button.closest('[data-review-id]').dataset.reviewId,signal}),{signal,loading:false,onError(){status.textContent='The review could not load. Please try again.';}});
  }
  root.addEventListener('click',activate,{signal});root.addEventListener('keydown',activate,{signal});window.addEventListener('online',prefetch,{signal});
  function refreshLayout(){
@@ -190,5 +190,5 @@ function mount(root,data,{openReviews}){
  const api={destroy(){finishEntry(false);progressSampler.destroy();hide();phase='destroyed';controller.abort();resize.disconnect();stopSettled();fades.destroy();swiper.destroy(true,true);ticker.destroy();track.style.transitionTimingFunction=originalEasing;track.replaceChildren(...originals.map(n=>n.cloneNode(true)));root.classList.remove('is-ready');navigation.classList.add('is-inactive');previous.setAttribute('aria-disabled','true');next.setAttribute('aria-disabled','false');previous.classList.add('is-disabled');next.classList.remove('is-disabled');previous.classList.remove('is-selected');next.classList.remove('is-selected');next.removeAttribute('data-tdb-loading');status.textContent='';instances.delete(root);}};
  instances.set(root,api);return api;
 }
-window.TDBReviewCards=Object.freeze({version:'2.2.1',mount});window.TDBSwiper?.register('review-cards',window.TDBReviewCards);
+window.TDBReviewCards=Object.freeze({version:'2.2.2',mount});window.TDBSwiper?.register('review-cards',window.TDBReviewCards);
 })();
