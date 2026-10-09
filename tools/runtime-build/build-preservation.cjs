@@ -10,6 +10,7 @@ const targets = {
   'dist/tdb-parallax.js': ['src/sliders/treatment-plugin.js', 'src/sliders/parallax-plugin.js'],
   'dist/tdb-reviews.js': ['src/reviews/native/drawer-content.js'],
   'dist/tdb-review-cards.js': ['src/reviews/native/cards.js'],
+  'dist/tdb-vip-form.js': ['src/forms/vip-form.js'],
   'dist/tdb-quote-carousel.js': ['src/team-quotes/team-quotes.js'],
   'dist/tdb-quote-carousel.min.js': ['src/team-quotes/team-quotes.js'],
   'dist/tdb-drawer.js': ['src/shared/scroll-lock.js', 'src/shared/site-chrome.js',

@@ -79,3 +79,19 @@ test('parallax captions use unchanged directional delays and settle only after s
     s.destroy(true,true);
   }finally{dom.window.close();}
 });
+
+test('native galleries rely on resize geometry while legacy galleries retain mutation compatibility',()=>{
+ const {dom,w}=setup();try{
+  w.eval(read('dist/tdb-gallery.js'));
+  for(const kind of ['smile','instagram','legacy']){
+   const {root}=carousel(w,'highlight');
+   if(kind==='smile'){root.classList.add('tdb-smile-carousel');root.querySelectorAll('.swiper-slide').forEach(s=>s.classList.add('smile'));}
+   if(kind==='instagram')root.setAttribute('data-tdb-ig-native','');
+   root.style.columnGap='19px';
+   const swiper=w.TDBSwiper.mount('gallery',root);assert.equal(swiper.params.observer,kind==='legacy');assert.equal(swiper.params.observeParents,kind==='legacy');assert.equal(swiper.params.resizeObserver,true);
+   swiper.slideNext(0);assert.equal(swiper.realIndex,1);
+   if(kind==='instagram'){root.style.columnGap='11px';swiper.emit('beforeResize');assert.equal(swiper.params.spaceBetween,11);}
+   swiper.destroy(true,true);assert.equal(root.hasAttribute('data-tdb-slider-init'),false);
+  }
+ }finally{dom.window.close();}
+});

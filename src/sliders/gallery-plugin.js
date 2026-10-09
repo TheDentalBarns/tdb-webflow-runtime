@@ -1,4 +1,4 @@
-/* TDB gallery carousel plugin v1.2.1. Native Smile Gallery; existing highlight behaviour. */
+/* TDB gallery carousel plugin v1.2.2. Native Smile Gallery; existing highlight behaviour. */
 (() => {
 'use strict';
 if(window.TDBGallery)return;
@@ -42,10 +42,15 @@ function v(e) {
         if (!e || f(e)) return;
         const t = m(e), n = e.querySelector(".swiper-count");
         if (!t || "function" != typeof window.Swiper) return;
+        // These native feeds finish authoring their cards before mount. Swiper's
+        // ResizeObserver and our breakpoint hook own geometry; observing every
+        // ancestor/slide mutation also reacts to captions, clones and tickers.
+        // Older interactive galleries retain their mutation compatibility.
+        const native = e.classList.contains('tdb-smile-carousel') || e.hasAttribute('data-tdb-ig-native');
         const i = t.querySelectorAll(".swiper-wrapper > .swiper-slide:not(.swiper-slide-duplicate)").length, r = window.TDBSwiper.create(t, {
             slidesPerView: 3,
-            observer: !0,
-            observeParents: !0,
+            observer: !native,
+            observeParents: !native,
             watchSlidesProgress: !0,
             spaceBetween: w(e, b(e)),
             grabCursor: !0,
@@ -205,7 +210,7 @@ const beforeObserve = function(root) {
         }
     });
 };
-const plugin=Object.freeze({version:'1.2.1',selector:e,beforeObserve,
+const plugin=Object.freeze({version:'1.2.2',selector:e,beforeObserve,
  mount(root){const presentation=window.TDBSmileCards?.prepare(root);v(root);const swiper=m(root)?.swiper;if(swiper && root.matches('[data-tdb-smile-slider],[data-tdb-ig-native]'))window.TDBCarouselVisibility.bind(swiper,{overflowViewport:true});presentation?.bind(swiper);return swiper;},
  prune(){l.forEach((state,root)=>{if(!document.documentElement.contains(root))state.cancel();});window.TDBSmileCards?.prune();},
  refresh(root=document){window.TDBSwiper.refresh('gallery',root);}
