@@ -1,11 +1,12 @@
 /* Authored in the native Review Cards Designer section. No runtime style injection.
    Native classes own geometry; selectors supply CMS and carousel states. */
 .tdb-review-cards_root.is-ready .tdb-review-cards_slide:first-child:not(.swiper-slide-active) { opacity: .5; }
+/* Three soft, irregular colour variations; the base gradient is native in Designer. */
 .tdb-review-cards_slide:nth-child(3n + 2) .tdb-review-cards_surface {
-  background-image: url(https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab78d8705bdd4c6b6ff364a_ec-calming-refreshments-kindness.webp);
+  background-image: radial-gradient(ellipse 69% 112% at 86% 16%, rgba(214,200,178,.20) 0%, rgba(214,200,178,.07) 34%, rgba(214,200,178,0) 81%), radial-gradient(ellipse 87% 93% at 9% 89%, rgba(92,61,29,.28) 0%, rgba(92,61,29,0) 79%), radial-gradient(ellipse 122% 157% at 66% 74%, #8b6a44 0%, #7d5c37 52%, #755632 100%);
 }
 .tdb-review-cards_slide:nth-child(3n) .tdb-review-cards_surface {
-  background-image: url(https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab78d8805bdd4c6b6ff36ec_sd-calm-relaxing-informative.webp);
+  background-image: radial-gradient(ellipse 73% 117% at 27% 25%, rgba(202,186,161,.24) 0%, rgba(202,186,161,.08) 38%, rgba(202,186,161,0) 82%), radial-gradient(ellipse 82% 119% at 98% 84%, rgba(36,22,12,.30) 0%, rgba(36,22,12,0) 80%), radial-gradient(ellipse 114% 143% at 54% 65%, #755632 0%, #5c3d1d 58%, #3e2711 100%);
 }
 .tdb-review-cards_root .tdb-service-arrow[aria-disabled="true"] { opacity: .35; cursor: default; }
 .tdb-review-cards_root .tdb-service-arrow[data-tdb-loading] { cursor: progress; }
@@ -17,11 +18,11 @@
 .tdb-review-cards_slide[data-review-rating="4"] [data-tdb-star="4"] { opacity: .2; }
 .tdb-review-cards_slide[data-review-rating=""] .tdb-review-cards_star-row { display: none; }
 .tdb-review-cards_slide[data-review-rating=""] [data-cards-render="rating"]::after { content: 'Unrated'; }
-.tdb-review-cards_icon [data-cards-platform-icon] { display: none; width: 100%; height: 100%; }
-.tdb-review-cards_slide:is([data-review-platform="Google"],[data-review-platform="efe6db2067ed0fd456d38bc2e521b4bd"]) [data-cards-platform-icon="Google"],
-.tdb-review-cards_slide:is([data-review-platform="Facebook"],[data-review-platform="17153ef92f97216cb750196d50c29c0d"]) [data-cards-platform-icon="Facebook"],
-.tdb-review-cards_slide:is([data-review-platform="Yell"],[data-review-platform="0d3340cdd96a32712e4c9d730e89df7d"]) [data-cards-platform-icon="Yell"],
-.tdb-review-cards_slide:is([data-review-platform="Doctify"],[data-review-platform="a0c3d879d008891aec3a0bd741c1ea8c"]) [data-cards-platform-icon="Doctify"] { display: block; }
+/* One native logo slot; CMS Platform selects one shared SVG before hydration. */
+.tdb-review-cards_slide:is([data-review-platform="Google"],[data-review-platform="efe6db2067ed0fd456d38bc2e521b4bd"]) [data-cards-platform-logo] { background-image: url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b972653444187f404ca8_tdb-review-google.svg"); }
+.tdb-review-cards_slide:is([data-review-platform="Facebook"],[data-review-platform="17153ef92f97216cb750196d50c29c0d"]) [data-cards-platform-logo] { background-image: url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973ba7906fe700055be_tdb-review-facebook.svg"); }
+.tdb-review-cards_slide:is([data-review-platform="Yell"],[data-review-platform="0d3340cdd96a32712e4c9d730e89df7d"]) [data-cards-platform-logo] { background-image: url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973ba7906fe700055e8_tdb-review-yell.svg"); }
+.tdb-review-cards_slide:is([data-review-platform="Doctify"],[data-review-platform="a0c3d879d008891aec3a0bd741c1ea8c"]) [data-cards-platform-logo] { background-image: url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973dd39bbf3927772e6_tdb-review-doctify.svg"); }
 /* As in Smile Gallery, compact content responds to its actual card width. */
 .tdb-review-cards_card { container: tdb-review-card / inline-size; }
 @container tdb-review-card (max-width: 300px) {

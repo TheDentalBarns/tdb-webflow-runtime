@@ -1,8 +1,8 @@
-/* TDB native review cards v2.1.2. Designer/CMS markup with shared behaviour. */
+/* TDB native review cards v2.1.3. Designer/CMS markup with shared behaviour. */
 (() => {
 'use strict';
 if(window.TDBReviewCards)return;
-const instances=new WeakMap(),batchSize=20,prefetchDistance=6;
+const instances=new WeakMap(),batchSize=8,prefetchDistance=4;
 function mount(root,data,{openReviews}){
  if(instances.has(root))return instances.get(root);
  const $=s=>root.querySelector(s),viewport=$('[data-tdb-cards-viewport]'),track=$('[data-tdb-cards-track]'),navigation=$('[data-tdb-cards-navigation]'),status=$('[data-tdb-cards-status]'),previous=$('[data-tdb-cards-prev]'),next=$('[data-tdb-cards-next]');
@@ -54,7 +54,8 @@ function mount(root,data,{openReviews}){
  function more(){
   if(loading||pending.length||!hasMore()||signal.aborted)return loading;
   loading=Promise.resolve().then(async()=>{
-   if(rendered>=data.records.length&&data.hasMore)await data.loadMore({signal});
+   // Keep eight-card visual batches independent of the shared 20-record CMS pages.
+   if(data.records.length-rendered<batchSize&&data.hasMore)await data.loadMore({signal});
    if(signal.aborted)return;
    pending=data.records.slice(rendered,rendered+batchSize);status.textContent='';flush();
   }).catch(()=>{advanceAfterLoad=false;if(!signal.aborted)status.textContent='More reviews could not load. Use Next to try again.';}).finally(()=>{loading=null;if(!signal.aborted)controls();});
@@ -162,5 +163,5 @@ function mount(root,data,{openReviews}){
  const api={destroy(){finishEntry(false);progressSampler.destroy();hide();phase='destroyed';controller.abort();resize.disconnect();stopSettled();fades.destroy();swiper.destroy(true,true);ticker.destroy();track.style.transitionTimingFunction=originalEasing;track.replaceChildren(...originals.map(n=>n.cloneNode(true)));root.classList.remove('is-ready');navigation.classList.add('is-inactive');previous.setAttribute('aria-disabled','true');next.setAttribute('aria-disabled','false');previous.classList.add('is-disabled');next.classList.remove('is-disabled');previous.classList.remove('is-selected');next.classList.remove('is-selected');next.removeAttribute('data-tdb-loading');status.textContent='';instances.delete(root);}};
  instances.set(root,api);return api;
 }
-window.TDBReviewCards=Object.freeze({version:'2.1.2',mount});window.TDBSwiper?.register('review-cards',window.TDBReviewCards);
+window.TDBReviewCards=Object.freeze({version:'2.1.3',mount});window.TDBSwiper?.register('review-cards',window.TDBReviewCards);
 })();
