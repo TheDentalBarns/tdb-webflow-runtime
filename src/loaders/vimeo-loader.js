@@ -1,4 +1,4 @@
-/* TDB Vimeo loader 1.1.0. Early first-party UI and consent handoff.
+/* TDB Vimeo loader 1.1.1. Early first-party UI and consent handoff.
  * No Vimeo SDK/iframe until functionality permission; prepare near the viewport.
  * The controller owns playback. Webflow owns the frame and control design.
  */
@@ -69,19 +69,25 @@
     });
   }
   function styles() {
-    const present = () => getComputedStyle(document.documentElement).getPropertyValue('--tdb-vimeo-ui-ready').trim() === '1';
-    if (present()) return Promise.resolve();
     return cssFlight ||= (async () => {
-      // Shared UI supplies these states before playback. Keep standalone CSS as
-      // a recovery path and for pages that have not adopted the shared release.
       const shared = document.querySelector('link[data-tdb-ui-css]');
-      if (shared && !shared.sheet) await new Promise(resolve => {
+      const declared = shared?.hasAttribute('data-tdb-vimeo-ui');
+      // The head marks readiness after switching the shared sheet to media=all.
+      // Checking this contract never asks the browser to resolve page styles.
+      const ready = () => shared?.dataset.tdbVimeoUiReady === 'true' && !shared.disabled && shared.media === 'all';
+      if (declared && ready()) return;
+      if (shared && shared.dataset.tdbVimeoUiFailed !== 'true' &&
+          (declared ? shared.dataset.tdbVimeoUiReady !== 'true' : !shared.sheet)) await new Promise(resolve => {
         const done = () => { clearTimeout(timer); shared.removeEventListener('load',done); shared.removeEventListener('error',done); resolve(); };
         const timer = setTimeout(done,15000);
         shared.addEventListener('load',done,{once:true});
         shared.addEventListener('error',done,{once:true});
       });
-      if (!present()) await asset('tdb-vimeo.css','link','data-tdb-vimeo-css');
+      if (declared) { if (ready()) return; }
+      // Older heads can still prove readiness through the existing CSS marker.
+      // The resolved promise is retained, so even that read happens only once.
+      else if (getComputedStyle(document.documentElement).getPropertyValue('--tdb-vimeo-ui-ready').trim() === '1') return;
+      await asset('tdb-vimeo.css','link','data-tdb-vimeo-css');
     })().catch(error => { cssFlight=null; throw error; });
   }
   async function prepare() {
@@ -138,7 +144,7 @@
       else if (wantsSettings) showSettings();
     },80);
   }
-  window.TDBVimeoLoader = Object.freeze({version:'1.1.0',prepare,status:()=>({present:roots.length,permitted:permitted(),near,pending:!!pending,loading:!!flight,ready:!!api})});
+  window.TDBVimeoLoader = Object.freeze({version:'1.1.1',prepare,status:()=>({present:roots.length,permitted:permitted(),near,pending:!!pending,loading:!!flight,ready:!!api})});
   document.addEventListener('click',onClick,true);
   document.addEventListener('pointerover',onIntent,true);
   document.addEventListener('focusin',onIntent,true);
