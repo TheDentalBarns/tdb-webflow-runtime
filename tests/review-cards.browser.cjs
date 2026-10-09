@@ -32,6 +32,18 @@ const card=i=>`<div class="tdb-review-cards_slide" data-review-id="review-${i}">
  await page.locator('[data-tdb-cards-prev]').click({force:true});
  assert(await page.locator('[data-tdb-cards-prev]').evaluate(n=>n.classList.contains('is-selected')),'other arrow takes selection');
  assert.equal(await page.locator('[data-tdb-cards-next]').evaluate(n=>n.classList.contains('is-selected')),false);
+ // Desktop neighbour clicks focus without opening the drawer; drag clicks do neither.
+ await page.locator('.tdb-review-cards_slide').nth(1).locator('[data-cards-render="name"]').click();
+ assert.equal(await page.evaluate(()=>s.activeIndex),1,'adjacent card focuses');
+ assert.equal(await page.evaluate(()=>opened),'','focus does not open drawer');
+ await page.evaluate(()=>{s.allowClick=false;s.slides[2].querySelector('[data-cards-render="name"]').click();});
+ assert.equal(await page.evaluate(()=>s.activeIndex),1,'drag-suppressed click does not focus');
+ await page.evaluate(()=>{s.allowClick=true;s.slides[2].querySelector('[data-tdb-cards-open]').click();});
+ assert.equal(await page.evaluate(()=>s.activeIndex),2,'neighbour review button focuses first');
+ assert.equal(await page.evaluate(()=>opened),'');
+ await page.evaluate(()=>s.slides[2].querySelector('[data-tdb-cards-open]').click());
+ assert.equal(await page.evaluate(()=>opened),'review-3','focused review button opens drawer');
+ await page.evaluate(()=>{opened='';});
  await page.evaluate(()=>s.slideTo(3,0));assert.equal(await page.evaluate(()=>loads),0);
  await page.evaluate(()=>s.slideTo(4,0));await page.waitForFunction(()=>s.slides.length===16);assert.equal(await page.evaluate(()=>loads),0,'use cached records before fetching another page');
  // Fetch enough data for a full eight-card batch across a 20-record page boundary.

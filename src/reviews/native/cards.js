@@ -1,4 +1,4 @@
-/* TDB native review cards v2.2.0. Designer/CMS markup with shared behaviour. */
+/* TDB native review cards v2.2.1. Designer/CMS markup with shared behaviour. */
 (() => {
 'use strict';
 if(window.TDBReviewCards)return;
@@ -168,6 +168,13 @@ function mount(root,data,{openReviews}){
   const button=event.target.closest('[data-tdb-cards-open],[data-tdb-cards-prev],[data-tdb-cards-next]');
   if(event.key==='ArrowLeft'||(!event.key?.startsWith('Arrow')&&button?.hasAttribute('data-tdb-cards-prev'))){event.preventDefault();move(-1);return;}
   if(event.key==='ArrowRight'||(!event.key?.startsWith('Arrow')&&button?.hasAttribute('data-tdb-cards-next'))){event.preventDefault();move(1);return;}
+  // Desktop neighbours focus first; the focused card retains its review action.
+  // Swiper suppresses clicks after dragging. Reuse arrow movement and timings.
+  if(event.type==='click'&&innerWidth>=992&&!event.button&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey&&swiper.allowClick){
+   const slide=event.target.closest('.tdb-review-cards_slide');
+   const index=slide?[...swiper.slides].indexOf(slide):-1;
+   if(index>=0&&index!==swiper.activeIndex){event.preventDefault();move(index-swiper.activeIndex);return;}
+  }
   if(!button||!swiper.allowClick||button.getAttribute('aria-busy')==='true')return;
   event.preventDefault();button.setAttribute('aria-busy','true');
   try{await openReviews({trigger:button,reviewId:button.closest('[data-review-id]').dataset.reviewId,signal});}catch(error){if(!signal.aborted)status.textContent='The review could not load. Please try again.';}finally{button.removeAttribute('aria-busy');}
@@ -183,5 +190,5 @@ function mount(root,data,{openReviews}){
  const api={destroy(){finishEntry(false);progressSampler.destroy();hide();phase='destroyed';controller.abort();resize.disconnect();stopSettled();fades.destroy();swiper.destroy(true,true);ticker.destroy();track.style.transitionTimingFunction=originalEasing;track.replaceChildren(...originals.map(n=>n.cloneNode(true)));root.classList.remove('is-ready');navigation.classList.add('is-inactive');previous.setAttribute('aria-disabled','true');next.setAttribute('aria-disabled','false');previous.classList.add('is-disabled');next.classList.remove('is-disabled');previous.classList.remove('is-selected');next.classList.remove('is-selected');next.removeAttribute('data-tdb-loading');status.textContent='';instances.delete(root);}};
  instances.set(root,api);return api;
 }
-window.TDBReviewCards=Object.freeze({version:'2.2.0',mount});window.TDBSwiper?.register('review-cards',window.TDBReviewCards);
+window.TDBReviewCards=Object.freeze({version:'2.2.1',mount});window.TDBSwiper?.register('review-cards',window.TDBReviewCards);
 })();
