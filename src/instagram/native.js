@@ -1,9 +1,12 @@
-/* TDB native Instagram v2.0.1. Webflow renders the visible CMS Collection List;
+/* TDB native Instagram v2.1.0. Webflow renders the visible CMS Collection List;
  * CMS owns posts; shared Gallery, Swiper, Motion and NativeTicker own behaviour. */
 (() => {
   'use strict';
   if (window.TDBInstagramNative) return;
-  const VERSION = '2.0.1';
+  // A late but successful download can resume control after the boot watchdog.
+  if(document.querySelector('style[data-tdb-ig-loading]'))document.documentElement.setAttribute('data-tdb-ig-loading','');
+  const VERSION = '2.1.0';
+  const IMAGE_WINDOW = Object.freeze({desktop:5,mobile:3,desktopQuery:'(min-width:992px)'});
   const BASE = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@41e1f34f7e17682bfd630554d1003170ef13dafd/dist/';
   const instances = new Map(), pending = new WeakSet();
   const numberFormat = new Intl.NumberFormat('en-GB');
@@ -93,6 +96,50 @@
     root.querySelector('.ig-native_video-symbol')?.classList.toggle('is-visible',isVideo);
     root.querySelector('.ig-native_video')?.setAttribute('aria-hidden',String(!isVideo));
   }
+  function restoreImage(image) {
+    // These runtime attributes are copied with Swiper loop slides. Designer's
+    // original CMS binding remains the source of truth on every page render.
+    for(const name of ['srcset','src']){
+      const value=image.getAttribute('data-ig-'+name);
+      if(value!==null){image.setAttribute(name,value);image.removeAttribute('data-ig-'+name);}
+    }
+  }
+  function releaseImages(root) {
+    root.setAttribute('data-ig-loading-fallback','');
+    root.querySelectorAll('.ig-native_photo,.ig-native_reflection-photo').forEach(restoreImage);
+  }
+  function imageWindow(root, posts) {
+    const desktop=matchMedia(IMAGE_WINDOW.desktopQuery), loaded=new Set();
+    let current=0;
+    // Loop cloning can start requests even for display:none lazy images. Park
+    // unfetched sources before Swiper clones them; restore only selected posts.
+    posts.forEach(post=>post.slide.querySelectorAll('.ig-native_photo,.ig-native_reflection-photo').forEach(image=>{
+      for(const name of ['srcset','src'])if(image.hasAttribute(name)){
+        image.setAttribute('data-ig-'+name,image.getAttribute(name));image.removeAttribute(name);
+      }
+    }));
+    function update(index=current) {
+      current=index;
+      const count=desktop.matches?IMAGE_WINDOW.desktop:IMAGE_WINDOW.mobile;
+      // Desktop focuses the left card: current + two visible cards + next/prev
+      // buffers. Mobile shows one card with one neighbour in either direction.
+      for(let offset=-1;offset<count-1;offset++)loaded.add((index+offset+posts.length)%posts.length);
+      // Include Swiper loop copies, using the same CMS URL for photo/reflections.
+      root.querySelectorAll('[data-ig-slide]').forEach(slide=>{
+        if(!loaded.has(Number(slide.dataset.igIndex)))return;
+        slide.setAttribute('data-ig-image-ready','');
+        slide.querySelectorAll('.ig-native_photo,.ig-native_reflection-photo').forEach(image=>{
+          // Selected neighbours should fetch now, even beyond native lazy distance.
+          if(image.loading!=='eager')image.loading='eager';
+          restoreImage(image);
+        });
+      });
+    }
+    const resize=()=>update();
+    desktop.addEventListener('change',resize);
+    update();
+    return {update,destroy(){desktop.removeEventListener('change',resize);}};
+  }
   function prepare(root, posts) {
     const track = root.querySelector('[data-ig-track]');
     if (!track && posts.length) throw Error('Instagram CMS Collection List missing');
@@ -126,6 +173,7 @@
     if (posts===null) return null;
     const prepared=prepare(root,posts);
     if (!prepared) { root.dataset.tdbIgReady=VERSION; return null; }
+    const images=imageWindow(root,posts);
     const viewport=root.querySelector('[data-ig-viewport]');
     const date=root.querySelector('[data-ig-date]');
     const counter=root.querySelector('[data-ig-current]');
@@ -152,6 +200,9 @@
     function sync(){
       if(disposed)return;
       const index=((swiper?.realIndex||0)+prepared.first)%posts.length;
+      // The entrance starts on the last item and advances to post 1. Its image
+      // is already the previous neighbour; do not fetch a second window for it.
+      images.update(!swiper||root.getAttribute('data-tdb-slider-first-view')==='pending'?0:index);
       const direction=swiper&&swiper.activeIndex<swiper.previousIndex?-1:1;
       activePost=posts[index];
       root.querySelector('[data-ig-post-link]').href=activePost.url;
@@ -223,7 +274,8 @@
     const observer=new MutationObserver(reveal);observer.observe(root,{attributes:true,attributeFilter:['data-tdb-slider-first-view']});
     const resize=new ResizeObserver(spacing);resize.observe(viewport);
     function destroy(destroySwiper=true){
-      if(disposed)return;disposed=true;hideVideo();clearTimeout(noticeTimer);observer.disconnect();resize.disconnect();stopSettled();
+      if(disposed)return;disposed=true;hideVideo();clearTimeout(noticeTimer);observer.disconnect();resize.disconnect();stopSettled();images.destroy();
+      releaseImages(root);
       root.removeEventListener('click',share);root.removeEventListener('keydown',key,true);
       Object.entries(handlers).forEach(([name,handler])=>swiper.off(name,handler));
       dateTicker.destroy();countTicker.destroy();metrics.forEach(metric=>metric.roll?.destroy());instances.delete(root);
@@ -247,18 +299,22 @@
     roots.forEach(root=>{
       if(instances.has(root)||pending.has(root)||root.dataset.tdbIgReady)return;
       let posts;
-      try { posts=readPosts(root); } catch(error) { root.dataset.tdbIgError=error.message;return; }
+      try { posts=readPosts(root); } catch(error) { root.dataset.tdbIgError=error.message;releaseImages(root);return; }
       if(posts===null)return;
       fallback(root,posts);
       if(!posts.length){root.dataset.tdbIgReady=VERSION;return;}
       pending.add(root);
-      const start=()=>ready().then(()=>{
-        if(root.isConnected){mount(root,posts);delete root.dataset.tdbIgError;}
-      }).catch(error=>{root.dataset.tdbIgError=error.message;}).finally(()=>pending.delete(root));
+      const start=()=>{
+        const recovery=setTimeout(()=>releaseImages(root),15000);
+        return ready().then(()=>{
+          if(root.isConnected){mount(root,posts);delete root.dataset.tdbIgError;}
+        }).catch(error=>{root.dataset.tdbIgError=error.message;releaseImages(root);})
+          .finally(()=>{clearTimeout(recovery);pending.delete(root);});
+      };
       if('IntersectionObserver'in window){const observer=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){observer.disconnect();start();}},{rootMargin:'400px'});observer.observe(root);}else start();
     });
     instances.forEach((instance,root)=>{if(!root.isConnected)instance.destroy();});
   }
-  window.TDBInstagramNative=Object.freeze({version:VERSION,refresh,mount,readPosts,source:'visible-webflow-cms'});
+  window.TDBInstagramNative=Object.freeze({version:VERSION,refresh,mount,readPosts,imageWindow:IMAGE_WINDOW,source:'visible-webflow-cms'});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>refresh(),{once:true});else refresh();
 })();

@@ -66,7 +66,7 @@ try {
   }
   const settled=()=>page.waitForFunction(()=>{
     const root=document.querySelector('[data-tdb-ig-native]'),swiper=root.querySelector('[data-ig-viewport]').swiper;
-    return root.dataset.tdbIgReady==='2.0.1'&&swiper&&!swiper.animating&&root.getAttribute('data-tdb-slider-first-view')!=='pending';
+    return root.dataset.tdbIgReady==='2.1.0'&&swiper&&!swiper.animating&&root.getAttribute('data-tdb-slider-first-view')!=='pending';
   });
   await fixture(16,6000);
   assert.equal(requestedImages.size,0,'Offscreen native lazy images must not be requested');
@@ -76,7 +76,7 @@ try {
   assert.equal(await page.evaluate(()=>window.TDBMotion.reduced.matches),false,'Shared full-motion policy must override OS reduction');
   const preserved=await page.evaluate(()=>({
     cards:originalCards.every(node=>node.isConnected)&&document.querySelectorAll('[data-ig-slide]:not(.swiper-slide-duplicate)').length===originalCards.length,
-    images:originalImages.every(x=>x.node.isConnected&&x.src===x.node.getAttribute('src')&&x.srcset===x.node.getAttribute('srcset')&&x.alt===x.node.alt&&x.loading===x.node.loading)
+    images:originalImages.every(x=>x.node.isConnected&&x.src===(x.node.getAttribute('src')||x.node.getAttribute('data-ig-src'))&&x.srcset===(x.node.getAttribute('srcset')||x.node.getAttribute('data-ig-srcset'))&&x.alt===x.node.alt&&(x.loading===x.node.loading||x.node.loading==='eager'))
   }));assert.deepEqual(preserved,{cards:true,images:true});
   results.push('16 native CMS cards retained by identity; image bindings unchanged; offscreen images deferred; one-entry advance/full-motion preserved');
   for(let i=0;i<16;i++){

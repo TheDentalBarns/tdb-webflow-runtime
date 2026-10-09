@@ -112,3 +112,33 @@ Published markup and styles are checked separately on Webflow staging.
 Rollback: restore the prior Awards HtmlEmbed and remove the Home native loader.
 Keep the staged CMS items and native component available for further editing.
 Publish only dentalbarns.webflow.io until production publishing is requested.
+
+
+## Responsive photo loading — 9 October 2026
+
+`src/instagram/native.js` owns `IMAGE_WINDOW`: 3 unique photos below 992px,
+5 at 992px and above. Mobile/tablet buffers the active post by one neighbour each side. Desktop
+loads the active left card, the two visible cards to its right, and one
+additional next/previous buffer. The existing 400px proximity
+observer starts the carousel and image window. The initial entry animation
+shares the post-1 window, so it does not fetch an extra batch for its starting
+last slide. Subsequent movement/resize expands the fetched set; downloaded
+photos are retained for reversing and loops. Reflections and Swiper clones
+reuse their post's canonical CMS URL.
+
+Home head includes `src/instagram/loading-head.html`, a small published-only
+fetch guard. It temporarily uses display:none only on unselected lazy photo
+images; native card/frame dimensions and Designer bindings remain unchanged.
+Without an early guard the browser's native lazy threshold can request extra
+photos before deferred carousel code runs. Before Swiper makes its loop copies, the controller also parks unselected src/srcset values in runtime data attributes, preventing clone creation from fetching them. Selected originals and copies restore the same sources. The guard adds no images or network
+requests, and contains no responsive counts or carousel logic. JavaScript-off
+pages retain native images; runtime/dependency failure releases the guard after
+15 seconds. This is a progressive loading window, not a cap on total photos
+retained after browsing. Other IG feed variants are unchanged.
+
+Verification: `tools/test-instagram-loading.mjs` checks current staging markup
+with local code (`--live` checks the published release), exact initial network
+counts, next/previous, responsive resize, all 16 loop positions, photo/reflection
+completion and script-failure/no-JavaScript fallbacks. Options `--failure` and
+`--nojs` exercise the fallback cases. The test uses the existing environment's
+Playwright/Chromium setup. No other component runtime or stylesheet changes.

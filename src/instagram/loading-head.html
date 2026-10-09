@@ -1,0 +1,11 @@
+<!-- IG loading gate: Designer/CMS image sources stay intact; carousel owns the window. -->
+<style data-tdb-ig-loading>
+html[data-tdb-ig-loading] [data-tdb-ig-native]:not([data-ig-loading-fallback]) [data-ig-slide]:not([data-ig-image-ready]) :is(.ig-native_photo,.ig-native_reflection-photo){display:none}
+</style>
+<script data-tdb-ig-loading>
+(()=>{
+  document.documentElement.setAttribute('data-tdb-ig-loading','');
+  // Restore native lazy images if the external carousel cannot start.
+  setTimeout(()=>{if(!window.TDBInstagramNative?.imageWindow)document.documentElement.removeAttribute('data-tdb-ig-loading');},15000);
+})();
+</script>
