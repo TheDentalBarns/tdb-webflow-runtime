@@ -5,6 +5,7 @@ const path = require('node:path');
 const {minify} = require('terser');
 const root = path.resolve(__dirname, '../..');
 const targets = {
+  'dist/tdb-modules.js': ['src/shared/modules.js'],
   'dist/tdb-footer-runtime.min.js': ['src/runtime/initial-position.js', 'src/banner/loader.js',
     'src/vip-drawer/vip-focus.js', 'src/runtime/deferred-ui.js', 'src/runtime/site-asset-loader.js'],
   'dist/tdb-vip-drawer.js': ['src/shared/panel-motion.js', 'src/vip-drawer/vip-drawer.js'],

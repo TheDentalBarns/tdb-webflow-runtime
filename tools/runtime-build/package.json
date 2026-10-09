@@ -2,7 +2,7 @@
   "name": "tdb-runtime-build",
   "private": true,
   "scripts": {
-    "build": "node build.cjs"
+    "build": "node build-preservation.cjs dist/tdb-footer-runtime.min.js dist/tdb-vip-drawer.js dist/tdb-consent-startup.min.js dist/tdb-modules.js"
   },
   "devDependencies": {
     "terser": "5.44.0"
