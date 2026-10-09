@@ -14,14 +14,17 @@ instance-specific audit before reuse.
 | Part | Authored structure and state |
 | --- | --- |
 | Item | Existing wrapper: `faq3_accordion is-disclosure`, `data-tdb-disclosure-item`, zero closed bottom padding |
-| Trigger | Existing `tdb-home-awards-question`; `data-tdb-disclosure-trigger`, `role=button`, `tabindex=0`, `aria-expanded=false`, `aria-controls` |
+| Trigger | Existing `tdb-home-awards-question`; `data-tdb-disclosure-trigger`, `role=button`, `tabindex=0`, `aria-expanded=true` on the first row and `false` on the other six; `aria-controls` |
 | Chevron | Native `tdb-disclosure-chevron is-dark` image; canonical asset `6ac7bbeef3f863de97d242c8`; `data-tdb-chevron`, `aria-hidden=true`, empty alt |
-| Panel | Immediate trigger sibling: `tdb-disclosure-panel`, `data-tdb-disclosure-panel`, `role=region`, `aria-labelledby`, `aria-hidden=true`, `hidden`, `inert` |
+| Panel | Immediate trigger sibling: `tdb-disclosure-panel`, `data-tdb-disclosure-panel`, `role=region`, `aria-labelledby`; first answer has `aria-hidden=false` and no `hidden`/`inert`; other answers have `aria-hidden=true`, `hidden`, `inert` |
 | Reveal | Existing inner content wrapper: `data-tdb-disclosure-reveal` |
 
-All seven answers are authored closed. The native panel class has `display:none`
-before JavaScript, because Webflow omits the custom `hidden` attribute on export.
-Shared CSS reveals the adjacent panel when its trigger becomes expanded.
+The first Awards answer is authored open; the other six are collapsed. This is
+the required section default. The native panel class has `display:none` because
+Webflow omits the custom `hidden` attribute on export. Shared CSS reveals the
+first adjacent panel from its authored `aria-expanded=true`, including before
+JavaScript initializes, and reserves the open 20px gap. The controller preserves
+that authored opening state.
 Copy, typography and the surrounding Awards carousel remain in Designer.
 The native `is-dark` combo sets `filter:none` on this light background. Wellness
 retains the white/inverted presentation of the same shared asset.
@@ -55,8 +58,9 @@ set `--tdb-disclosure-display:grid` (or another required display type) without
 changing the controller. Pricing still needs its own summary-state adapter and
 IX2 removal review; that option alone is not a pricing migration.
 
-For subsequent sections, preserve this local trigger/panel structure, author the
-collapsed CSS state, remove the audited IX2 hooks/classes, and retain content and
+For subsequent sections, preserve this local trigger/panel structure, explicitly
+author the required initial state (first open, remaining rows collapsed for the
+Awards pattern), remove the audited IX2 hooks/classes, and retain content and
 layout classes appropriate to that section. Prefer a native button for a new
 trigger; existing role-button triggers need tabindex and keyboard support.
 Use the same asset and runtime rather than creating another section controller.
@@ -72,6 +76,7 @@ limit. Further head additions must account for this remaining capacity.
 
 Webflow staging publish task: `ef3e947b-39a0-466a-864a-3ddbbdf23041`.
 Chevron contrast follow-up: `ca591b21-febb-4a84-98cc-5b61743fffc0`.
+First-open correction: `e4feb07d-8c15-4115-8145-2c1cfb72c011`.
 Production custom domains were not selected.
 
 ## Verification
@@ -99,7 +104,12 @@ The existing proximity-loaded media above Awards is allowed to settle before
 measuring disclosure movement. Its initial loading can change document height;
 no Awards layout alignment change was required.
 
-With JavaScript disabled at 1440x900 and 390x844, after render-blocking CSS loads,
-all seven panels have `display:none` and zero height. Triggers remain
-`aria-expanded=false` and wrapper bottom padding is zero. This confirms the
-authored collapsed first-paint state independently of the controller.
+The original all-collapsed first-paint check was superseded by David\u2019s correction:
+the first row in the section must start open, with all other rows collapsed.
+This is an authored Designer state; no additional script or runtime change is
+needed. Initial state and first-row close/reopen are rechecked on staging.
+
+Staging verification at 1440x900 and 390x844, with JavaScript both enabled and
+disabled: only the first panel is visible, with its 20px gap; the other six have
+zero height and zero gap. The first row closes and reopens correctly without
+opening any other answer. The existing shared controller/CSS required no change.
