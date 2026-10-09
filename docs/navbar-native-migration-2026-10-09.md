@@ -54,16 +54,30 @@ retains its separate 768px breakpoint and full-motion review policy.
 
 ## Build and rollback
 
-Validation completed before deployment: three automated checks cover selective
+Validation completed before deployment: four automated checks cover built CSS
+selector preservation and independent hamburger clocks, selective
 IX2 isolation, rapid native state changes/closing, and use of the shared observer
 without a navbar. Additional checks against the current Home, First Visit and
 Location HTML preserve all 34 navbar links on each page, retain all unrelated
 IX2 handles and correctly associate both dropdown spacers. JavaScript syntax
 checks pass. The existing desktop Services menu was also inspected in-browser.
 
-Live testing of the replacement remains pending deployment, including mobile
-and tablet visual checks. David approved publication to the existing runtime
-repository on 9 October 2026; deployment is to staging only.
+Deployed to staging on 9 October 2026 using source commit
+`59b37098ca65bcffc20efe2046f2aadda9c18f54`. David approved publication to the
+existing runtime repository; no custom domains were published.
+
+Live desktop checks: Services pointer opening, Discover keyboard opening,
+180-degree CSS chevrons with no IX2 inline transform, ArrowDown focus into the
+menu, Escape closing/focus return, outside-click dismissal, scroll-lock release,
+chevron reset and navigation to First Visit. The new navbar also opens on First
+Visit. Published Home, First Visit and Location each contain one foundation
+script, one foundation stylesheet, one opted-in navbar and two shared chevrons.
+Published CSS rules were checked at 375, 390, 479, 480, 767, 768, 820, 991, 992
+and 1440px, with the existing 992px desktop boundary intact.
+
+Limit: the available browser cannot resize for direct mobile/tablet visual
+verification. Those rules and state changes were checked in source/DOM tests;
+actual small-viewport rendering and touch behaviour still need visual review.
 
 Run `node tools/build-navbar-native.cjs` with terser installed, then
 `node --test tests/navbar-native.test.cjs` with jsdom installed.
