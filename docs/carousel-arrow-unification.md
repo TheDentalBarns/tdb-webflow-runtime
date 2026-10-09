@@ -40,3 +40,26 @@ SHA-384 integrity value are updated together in the First Visit source embed.
 
 The before-state snapshot is `docs/carousel-arrows-native-before.json`.
 Review publication is staging only; production domains are not published.
+
+## Staging validation
+
+Published only to `dentalbarns.webflow.io` (publish task
+`6524e2e5-ff7c-4b0c-844b-87cc25063baa`).
+
+- Inspected Home, Location, Smile Gallery, a service page, About Us and First
+  Visit at 1440px and 390px. This exposed the First Visit legacy controls,
+  which were then migrated and rechecked.
+- Final targeted pass covered 84 control instances across Home, Smile Gallery
+  and First Visit at both widths. Every checked control had the shared class,
+  a 3rem diameter, 1px border, 8px blur and 300ms colour transitions.
+- Services, Smile carousel and native IG next buttons advanced their carousels;
+  all three produced the same translucent hover fill.
+- First Impressions and embedded review next buttons advanced their counters.
+  The legacy full-review drawer opened and its next control worked.
+- The Smile Gallery viewer opened, next navigation worked, and keyboard focus
+  retained a 2px current-colour outline with 4px offset.
+- No page JavaScript errors occurred during the final targeted browser pass.
+- The deployed IG bundles were checked against their previous live release:
+  only the added shared arrow class changed. Existing optimized feed data was
+  retained. JavaScript syntax and whitespace checks passed.
+
