@@ -54,6 +54,24 @@ test('active-only drawers retain their policy and detached or retired slides res
     assert.notEqual(w.TDBCarouselVisibility.bind(s),api,'explicit remount gets a fresh binding');
   } finally {dom.window.close();}
 });
+test('overflow layouts keep neighbouring cards interactive using cached bounds during drag',()=>{
+  const {dom,w,root,swiper:s}=setup();
+  try {
+    let measurements=0;
+    s.el=root;s.isHorizontal=()=>true;s.translate=-800;s.slidesSizesGrid=[350,350,350,350];
+    s.slides.forEach((slide,index)=>slide.swiperSlideOffset=index*400);
+    s.activeIndex=2;root.getBoundingClientRect=()=>{measurements++;return {left:40};};
+    w.innerWidth=900;
+    const api=w.TDBCarouselVisibility.bind(s,{overflowViewport:true});
+    assert.deepEqual(s.slides.map(n=>n.getAttribute('aria-hidden')),['true','true','false','false']);
+    s.translate=-700;s.emit('setTranslate');s.emit('setTranslate');
+    assert.deepEqual(s.slides.map(n=>n.getAttribute('aria-hidden')),['true','false','false','false']);
+    assert.equal(measurements,1,'drag must not remeasure layout');
+    w.innerWidth=430;s.emit('resize');
+    assert.equal(measurements,2);assert.equal(s.slides[3].hasAttribute('inert'),true);
+    api.destroy();
+  } finally {dom.window.close();}
+});
 test('settlement waits for the completed release, ignores loop corrections and cancels safely on destroy',async()=>{
   const {dom,w,swiper:s,events}=setup();
   try {

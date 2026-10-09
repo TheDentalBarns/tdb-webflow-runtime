@@ -1,4 +1,4 @@
-/* TDB gallery carousel plugin v1.1.1. Native Smile Gallery; existing highlight behaviour. */
+/* TDB gallery carousel plugin v1.1.3. Native Smile Gallery; existing highlight behaviour. */
 (() => {
 'use strict';
 if(window.TDBGallery)return;
@@ -234,8 +234,8 @@ const beforeObserve=function(e) {
                 threshold: 0
             }), r.observe(t)) : f("skipped-unsupported");
         };
-const plugin=Object.freeze({version:'1.1.2',selector:e,beforeObserve,
- mount(root){const presentation=window.TDBSmileCards?.prepare(root);v(root);const swiper=m(root)?.swiper;if(swiper && root.hasAttribute('data-tdb-smile-slider'))window.TDBCarouselVisibility.bind(swiper);presentation?.bind(swiper);return swiper;},
+const plugin=Object.freeze({version:'1.1.3',selector:e,beforeObserve,
+ mount(root){const presentation=window.TDBSmileCards?.prepare(root);v(root);const swiper=m(root)?.swiper;if(swiper && root.matches('[data-tdb-smile-slider],[data-tdb-ig-native]'))window.TDBCarouselVisibility.bind(swiper,{overflowViewport:true});presentation?.bind(swiper);return swiper;},
  prune(){l.forEach((state,root)=>{if(!document.documentElement.contains(root))state.cancel();});window.TDBSmileCards?.prune();},
  refresh(root=document){window.TDBSwiper.refresh('gallery',root);}
 });

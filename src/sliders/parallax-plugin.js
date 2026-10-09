@@ -1,4 +1,4 @@
-/* TDB parallax carousel plugin v1.2.0. Native Services spacing; existing choreography. */
+/* TDB parallax carousel plugin v1.2.1. Native Services spacing; existing choreography. */
 (() => {
 'use strict';
 if(window.TDBParallaxPlugin)return;
@@ -208,7 +208,7 @@ function A(e) {
                 t.querySelectorAll("[data-tdb-banner-wide]").forEach(e => e.removeAttribute("data-tdb-banner-wide"));
             });
         }(0, t, b), b.init()), k(b), g(e, b, () => x(e)), S(e, t, b), c?.bind(b), window.TDBParallax?.bind(e, b);
-        if (e.hasAttribute('data-tdb-treatment')) window.TDBCarouselVisibility.bind(b);
+        if (e.hasAttribute('data-tdb-treatment') || e.classList.contains('tdb-service-parallax')) window.TDBCarouselVisibility.bind(b);
         const v = window.TDBMotion.carousel.nextDelay, A = new WeakMap, L = new Set;
         let T = null, M = !1, P = !1;
         b.on("beforeLoopFix", () => {
@@ -276,7 +276,7 @@ function A(e) {
             });
         }
     }
-const plugin=Object.freeze({version:'1.2.0',selector:t,
+const plugin=Object.freeze({version:'1.2.1',selector:t,
  beforeObserve(root){if(u(root)||p(root))root.classList.add('tdb-entry-pending');},
  mount(root){A(root);return m(root)?.swiper;},
  refresh(root=document){window.TDBParallax?.refresh(root);window.TDBSwiper.refresh('parallax',root);}

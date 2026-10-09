@@ -1,13 +1,20 @@
-/* Shared carousel visibility v1.2.0. Reuse Swiper geometry; no layout reads. */
+/* Shared carousel visibility v1.2.1. Cached overflow bounds; Swiper slide geometry. */
 (() => {
   'use strict';
   if (window.TDBCarouselVisibility) return;
   const bindings = new WeakMap();
-  function bind(swiper, {activeOnly = false} = {}) {
+  function bind(swiper, {activeOnly = false, overflowViewport = false} = {}) {
     if (bindings.has(swiper)) return bindings.get(swiper);
     const original = new Map();
     let disposed = false;
     const events = 'init update resize setTranslate slideChange loopFix slidesLengthChange';
+    const measurements = 'init update resize breakpoint observerUpdate';
+    let bounds = null;
+    function measure() {
+      if (!overflowViewport || !swiper.isHorizontal()) return;
+      const left = swiper.el.getBoundingClientRect().left;
+      bounds = {left: -left, right: innerWidth - left};
+    }
     const identity = slide => slide.getAttribute('data-swiper-slide-index') || slide;
     const focusable = 'a[href],button,input,select,textarea,[tabindex],[contenteditable="true"]';
     function restore(slide, state) {
@@ -18,7 +25,13 @@
     function update() {
       if (disposed || swiper.destroyed) return;
       const active = swiper.slides[swiper.activeIndex];
-      const visible = activeOnly ? (active ? [active] : []) : Array.from(swiper.visibleSlides || []);
+      // Native Smile/Instagram intentionally bleed past their one-card viewport.
+      // Keep those visible neighbours clickable. Cached slide offsets and sizes
+      // avoid a layout read on every drag/translate event.
+      const visible = activeOnly ? (active ? [active] : []) : bounds ? [...swiper.slides].filter((slide, index) => {
+        const left = slide.swiperSlideOffset + (swiper.rtlTranslate ? -swiper.translate : swiper.translate);
+        return left < bounds.right - 1 && left + swiper.slidesSizesGrid[index] > bounds.left + 1;
+      }) : Array.from(swiper.visibleSlides || []);
       if (!visible.length && active) visible.push(active);
       const chosen = new Map();
       for (const slide of visible) {
@@ -57,6 +70,7 @@
       // Swiper iterates listeners directly during destruction; do not splice
       // that array and accidentally skip another component's cleanup.
       if (!fromSwiper) {
+        swiper.off(measurements, measure);
         swiper.off(events, update);
         swiper.off('beforeDestroy', beforeDestroy);
       }
@@ -67,10 +81,12 @@
     const beforeDestroy = () => destroy(true);
     const api = Object.freeze({update, destroy});
     bindings.set(swiper, api);
+    measure();
+    swiper.on(measurements, measure);
     swiper.on(events, update);
     swiper.on('beforeDestroy', beforeDestroy);
     update();
     return api;
   }
-  window.TDBCarouselVisibility = Object.freeze({version: '1.2.0', bind});
+  window.TDBCarouselVisibility = Object.freeze({version: '1.2.1', bind});
 })();
