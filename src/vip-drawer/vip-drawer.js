@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.7.1';
   const mobileQuery = matchMedia('(max-width:767px)');
   const desktopQuery = matchMedia('(min-width:768px)');
   const drawer = document.getElementById('tdb-vip-drawer');
@@ -11,6 +11,7 @@
   const label = drawer.querySelector('.tdb-vip-drawer-label');
   const body = drawer.querySelector('.tdb-vip-drawer-body');
   if (!handle || !label || !body) return;
+  const panelMotion = window.TDBPanelMotion.bind(drawer, '--tdb-vip-drawer');
 
   drawer.dataset.tdbVipUnifiedInit = 'true';
   drawer.dataset.tdbVipInit = 'true';
@@ -22,32 +23,20 @@
   const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isAndroid = /Android/i.test(ua);
   const fieldSelector = 'input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]),textarea,select';
-  const norm = value => String(value || '').replace(/Â®|\u00ae/gi, '').replace(/\s+/g, ' ').trim().toLowerCase();
   const isField = node => Boolean(node?.matches?.(fieldSelector));
   const activeField = () => isField(document.activeElement) && drawer.contains(document.activeElement);
   const isVipHash = () => /^#vip/i.test(location.hash || '');
+  const nestedConsentOpen = () => window.CookieScript?.instance?.isOpen?.() ??
+    Boolean(document.querySelector('#tdb-consent-root.is-consent-active'));
   const lenis = method => { try { window.lenis?.[method]?.(); } catch (error) {} };
   const UP_THRESHOLD = 120;
   const DOWN_THRESHOLD = 140;
-
-  const treatments = {
-    'composite-bonding': ['Join the Composite Bonding waitlist', ['Composite Bonding']],
-    'teeth-whitening': ['Join the Teeth Whitening waitlist', ['Enlighten® Teeth Whitening', 'Teeth Whitening', 'Whitening']],
-    'clear-aligners': ['Join the Clear Aligners waitlist', ['Clear Aligners', 'Clear Aligner']],
-    invisalign: ['Join the Invisalign® waitlist', ['Invisalign®', 'Invisalign']],
-    veneers: ['Join the Veneers waitlist', ['e.max® Porcelain Veneers', 'Porcelain Veneers', 'Veneers']],
-  };
-  const treatmentSlug = Object.keys(treatments).find(key => location.pathname.toLowerCase().includes(key));
-  const treatment = treatmentSlug ? { slug: treatmentSlug, label: treatments[treatmentSlug][0], vals: treatments[treatmentSlug][1] } : null;
 
   handle.removeAttribute('href');
   handle.removeAttribute('data-vip-open');
   handle.setAttribute('role', 'button');
   handle.tabIndex = 0;
   handle.setAttribute('aria-expanded', 'false');
-  label.textContent = treatment ? treatment.label : 'Join VIP';
-  handle.setAttribute('aria-label', treatment ? treatment.label : 'Join the VIP waitlist');
-  if (treatment) drawer.dataset.treatment = treatment.slug;
 
   let state = 0;
   let up = 0;
@@ -121,51 +110,8 @@
     html.classList.remove('tdb-vip-menu-away');
   }
 
-  function hideTitle() {
-    drawer.querySelectorAll('.tdb-vip-drawer-body .vip-form_top,.tdb-vip-drawer-body .line-divider').forEach(node => node.classList.add('tdb-vip-hidden-title'));
-    drawer.querySelectorAll('.tdb-vip-drawer-body *').forEach(node => {
-      if (node.matches('input,select,textarea,button')) return;
-      const text = norm(node.textContent);
-      if (text.length < 140 && /join\s+(our\s+|the\s+)?vip\s+waitlist/.test(text)) {
-        node.classList.add('tdb-vip-hidden-title');
-        node.closest('.vip-form_top,.text-style-tagline,.text-color-orange')?.classList.add('tdb-vip-hidden-title');
-      }
-    });
-  }
-
-  function fieldStates() {
-    drawer.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),select,textarea').forEach(field => {
-      const refreshField = () => field.classList.toggle('is-filled', Boolean(String(field.value || '').trim()));
-      refreshField();
-      if (!field.dataset.tdbVipFill) {
-        field.addEventListener('input', refreshField);
-        field.addEventListener('change', refreshField);
-        field.dataset.tdbVipFill = '1';
-      }
-    });
-  }
-
-  function preselect() {
-    if (!treatment) return;
-    const select = drawer.querySelector('#Treatment-Of-Interest,select[name="Treatment-Of-Interest"],select[name="Treatment of Interest"],select[id*="Treatment"],select[name*="Treatment"]');
-    if (!select) return;
-    const values = treatment.vals.map(norm);
-    const option = [...select.options].find(item => {
-      const value = norm(item.value);
-      const text = norm(item.textContent);
-      return values.some(target => value === target || text === target || value.includes(target) || text.includes(target));
-    });
-    if (!option) return;
-    select.value = option.value;
-    select.classList.add('is-filled');
-    select.dispatchEvent(new Event('change', { bubbles: true }));
-  }
-
-  function refresh() {
-    hideTitle();
-    fieldStates();
-    preselect();
-  }
+  // Form wording, defaults and field states have one owner.
+  function refresh() { window.TDBVIPForm?.refresh(); }
 
   function render() {
     drawer.classList.toggle('is-peeking', state === 1);
@@ -204,7 +150,7 @@
       blurField();
       state = 3;
       render();
-      timer = setTimeout(reset, 540);
+      timer = setTimeout(reset, panelMotion.cleanup);
     } else {
       reset();
     }
@@ -218,6 +164,7 @@
 
   function openDrawer() {
     clearTimeout(timer);
+    if (state !== 2 && state !== 3) panelMotion.prepare();
     lastY = pageY();
     state = 2;
     drawer.scrollTop = 0;
@@ -366,7 +313,7 @@
   }, { passive: true, capture: true });
 
   document.addEventListener('click', event => {
-    if (!mobileQuery.matches || state !== 2 || drawer.contains(event.target)) return;
+    if (!mobileQuery.matches || state !== 2 || nestedConsentOpen() || drawer.contains(event.target)) return;
     blurField();
     keyboardGrace(isAndroid ? 1000 : 700);
     event.preventDefault();
@@ -398,11 +345,11 @@
   });
 
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && state === 2) closeDrawer();
+    if (event.key === 'Escape' && state === 2 && !nestedConsentOpen()) closeDrawer();
   });
 
   ['wheel', 'touchmove'].forEach(eventName => document.addEventListener(eventName, event => {
-    if (state === 2 && !drawer.contains(event.target)) event.preventDefault();
+    if (state === 2 && !nestedConsentOpen() && !drawer.contains(event.target)) event.preventDefault();
   }, { passive: false, capture: true }));
 
   addEventListener('hashchange', routeVipHash);
@@ -437,12 +384,25 @@
   desktopQuery.addEventListener ? desktopQuery.addEventListener('change', syncMode) : desktopQuery.addListener?.(syncMode);
 
   refresh();
-  setTimeout(hideTitle, 150);
-  setTimeout(hideTitle, 600);
   syncMode();
+
+  // The homepage loader tracks direction while this runtime downloads. Preserve
+  // that gesture without opening over the native VIP form or above the threshold.
+  function resumeScroll(seed) {
+    if (!seed || state !== 0) return;
+    lastY = routeY = pageY();
+    up = Math.max(0, Number(seed.up) || 0);
+    down = Math.max(0, Number(seed.down) || 0);
+    if (vipSection) {
+      const rect = vipSection.getBoundingClientRect();
+      near = rect.bottom >= -120 && rect.top <= innerHeight + 120;
+    }
+    if (seed.peek && lastY > innerHeight * 0.5 && !near) peek();
+  }
 
   const api = Object.freeze({
     version: VERSION,
+    resumeScroll,
     refresh,
     open: openDrawer,
     close: closeDrawer,
@@ -451,7 +411,7 @@
     status: () => ({
       state,
       mode: mobileQuery.matches ? 'mobile' : 'desktop',
-      treatment: treatment ? treatment.slug : null,
+
     }),
   });
 
