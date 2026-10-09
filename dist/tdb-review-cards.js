@@ -1,4 +1,4 @@
-/* TDB native review cards v2.1.1. Designer/CMS markup with shared behaviour. */
+/* TDB native review cards v2.1.2. Designer/CMS markup with shared behaviour. */
 (() => {
 'use strict';
 if(window.TDBReviewCards)return;
@@ -17,10 +17,10 @@ function mount(root,data,{openReviews}){
   slide.dataset.reviewId=record.id;slide.dataset.reviewRating=record.rating||'';slide.dataset.reviewSubject=record.historic?'Dr Keely - historic practice':'The Dental Barns';slide.dataset.reviewPlatform=record.platform;
   slide.setAttribute('role','group');slide.setAttribute('aria-roledescription','slide');slide.setAttribute('aria-label',`${index+1} of ${data.total}`);
   const field=k=>slide.querySelector(`[data-cards-render="${k}"]`);
-  field('name').textContent=record.name;field('excerpt').textContent=record.excerpts[context]||record.excerpt;field('excerpt').style.opacity='0';const preview=document.createElement('span');preview.className='tdb-review-cards_body-preview';preview.textContent=record.text;field('text').replaceChildren(preview);
-  const date=new Date(record.date);field('date').textContent=Number.isNaN(date.getTime())?'':(record.approx?'Approx. ':'')+date.toLocaleDateString('en-GB',record.approx?{month:'long',year:'numeric'}:{day:'numeric',month:'short',year:'numeric'});
+  field('name').textContent=record.name;field('excerpt').textContent=record.excerpts[context]||record.excerpt;field('excerpt').style.opacity='0';field('text').textContent=record.text;
+  const date=field('date');if(date.textContent!==record.displayDate)date.textContent=record.displayDate;
   field('rating').setAttribute('aria-label',record.rating?record.rating+' out of 5 stars':'Rating not supplied');
-  field('icon').replaceChildren(...cms.sourceIcon(record.platform,false).childNodes);
+  // The Designer logo slot is preserved; CSS selects its asset from reviewPlatform.
   slide.querySelector('[data-tdb-cards-open]').setAttribute('aria-label','Read full review by '+record.name);
   return slide;
  }
@@ -69,18 +69,9 @@ function mount(root,data,{openReviews}){
    const node=slide.querySelector('[data-cards-render="text"]');
    if(!node)return null;
    const line=parseFloat(getComputedStyle(node).lineHeight);
-   const available=node.getBoundingClientRect().height;
-   if(!Number.isFinite(line)||line<=0)return null;
-   const lines=Math.max(0,Math.floor((available-.5)/line));
-   return {node,preview:node.firstElementChild,lines,height:lines*line};
+   return {node,lines:Math.max(1,Math.floor((node.clientHeight+.01)/line))};
   });
-  measurements.forEach(item=>{
-   if(!item)return;
-   item.node.style.setProperty('--tdb-review-body-lines',String(Math.max(1,item.lines)));
-   // Clamp a normal-flow child: grid blockification defeats the legacy box clamp.
-   // Keep the outer grid row fixed, and measure fractional rather than rounded height.
-   if(item.preview)item.preview.style.maxHeight=item.height+'px';
-  });
+  measurements.forEach(item=>{if(item)item.node.style.setProperty('--tdb-review-body-lines',String(item.lines));});
  }
  function finishEntry(advance){
   if(!entryPending)return;
@@ -162,5 +153,5 @@ function mount(root,data,{openReviews}){
  const api={destroy(){finishEntry(false);progressSampler.destroy();hide();phase='destroyed';controller.abort();resize.disconnect();stopSettled();fades.destroy();swiper.destroy(true,true);ticker.destroy();track.style.transitionTimingFunction=originalEasing;track.replaceChildren(...originals.map(n=>n.cloneNode(true)));root.classList.remove('is-ready');navigation.classList.add('is-inactive');previous.setAttribute('aria-disabled','true');next.setAttribute('aria-disabled','false');previous.classList.add('is-disabled');next.classList.remove('is-disabled');previous.classList.remove('is-selected');next.classList.remove('is-selected');next.removeAttribute('data-tdb-loading');status.textContent='';instances.delete(root);}};
  instances.set(root,api);return api;
 }
-window.TDBReviewCards=Object.freeze({version:'2.1.1',mount});window.TDBSwiper?.register('review-cards',window.TDBReviewCards);
+window.TDBReviewCards=Object.freeze({version:'2.1.2',mount});window.TDBSwiper?.register('review-cards',window.TDBReviewCards);
 })();

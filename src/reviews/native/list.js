@@ -1,4 +1,4 @@
-/* TDB review archive v1.0.0. Native CMS cards; shared selection, filters and motion. */
+/* TDB review archive v1.0.1. Native CMS cards; shared selection, filters and motion. */
 (() => {
 'use strict'; if(window.TDBReviewList)return;
 const instances=new WeakMap();
@@ -24,7 +24,7 @@ function mount(root){
  function candidate(key,value){if(key==='sort')return {...selection,sort:value};value=normal(key,value);return {...selection,[key]:!value?[]:selection[key].includes(value)?selection[key].filter(x=>x!==value):[...selection[key],value]};}
  const hasSelection=s=>s.sort!=='recommended'||['rating','platform','treatment','experience'].some(k=>s[k].length);
  const safeURL=value=>{try{const u=new URL(value);return u.protocol==='https:'?u.href:'';}catch{return '';}};
- const dateText=r=>{const date=new Date(r.date);return Number.isNaN(+date)?'':(r.approx?'Approx. ':'')+new Intl.DateTimeFormat('en-GB',r.approx?{month:'long',year:'numeric',timeZone:'UTC'}:{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(date);};
+
  function node(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;}
  function decorate(el,r){
   if(!r.excerpt)el.querySelector('.review-page_quote')?.remove();
@@ -33,7 +33,7 @@ function mount(root){
   const icon=cms.sourceIcon(r.platform,false);icon.className='review-page_icon';source.append(icon);source.setAttribute('aria-label','Read '+r.name+'’s review on '+r.platform);
   const stars=node('span','review-page_stars',r.rating?'★'.repeat(r.rating)+'☆'.repeat(5-r.rating):'');stars.setAttribute('aria-label',r.rating?r.rating+' out of 5 stars':'Unrated');
   meta.append(source,stars);
-  const date=el.querySelector('.review-page_date'),clock=panel.querySelector('[data-tdb-filter-disclosure=sort] svg').cloneNode(true);clock.removeAttribute('class');clock.setAttribute('width','16');clock.setAttribute('height','16');clock.setAttribute('aria-hidden','true');const time=node('time','',dateText(r));if(r.date)time.dateTime=r.date;date.replaceChildren(clock,time);
+  const date=el.querySelector('.review-page_date'),clock=panel.querySelector('[data-tdb-filter-disclosure=sort] svg').cloneNode(true);clock.removeAttribute('class');clock.setAttribute('width','16');clock.setAttribute('height','16');clock.setAttribute('aria-hidden','true');const time=node('time','',r.displayDate);if(r.date)time.dateTime=r.date;date.replaceChildren(clock,time);
   el.querySelectorAll('[data-tdb-list-response],[data-tdb-list-historic]').forEach(n=>n.remove());
   const card=el.querySelector('.review-page_body');
   if(r.historic){const n=node('p','review-page_note','Historic review of Dr Keely at her previous practice.');n.dataset.tdbListHistoric='';card.append(n);}
@@ -96,5 +96,5 @@ function mount(root){
  document.fonts?.ready.then(schedule);layout();updateStatus();updateNext();updateOptions();
  const api={destroy(){if(destroyed)return;destroyed=true;revision++;ctrl.abort();filter.destroy();countTicker.destroy();resize.disconnect();prefetchObserver.disconnect();cancelAnimationFrame(raf);if(resumeLenis)window.lenis?.start();instances.delete(root);},status(){return {shown:shown.length,total:data.total,filtered,matches:matched.length};}};instances.set(root,api);return api;
 }
-window.TDBReviewList=Object.freeze({version:'1.0.0',mount});
+window.TDBReviewList=Object.freeze({version:'1.0.1',mount});
 })();

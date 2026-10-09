@@ -1,9 +1,9 @@
-/* TDB shared dependency registry v1.4.1. One explicit shared-motion and carousel release. */
+/* TDB shared dependency registry v1.4.2. One explicit shared-motion and carousel release. */
 (() => {
 'use strict'; if(window.TDBModules)return;
 const flights=new Map();
 const carouselRoot=document.currentScript?.src?new URL('./',document.currentScript.src):null;
-const carouselFiles=new Set(['tdb-rendered-progress.js','tdb-swiper-8.4.7.min.js','tdb-motion.js','tdb-parallax.js','tdb-gallery.js','tdb-slider-focus.js','tdb-sliders.js','tdb-review-quotes.js','tdb-review-cards.js','tdb-reviews.js','tdb-drawer.js','tdb-filters.js','tdb-ticker.js','tdb-logo-marquee.js','tdb-review-availability.js']);
+const carouselFiles=new Set(['tdb-rendered-progress.js','tdb-swiper-8.4.7.min.js','tdb-motion.js','tdb-parallax.js','tdb-gallery.js','tdb-slider-focus.js','tdb-sliders.js','tdb-review-quotes.js','tdb-review-cards.js','tdb-review-cms.js','tdb-reviews.js','tdb-drawer.js','tdb-filters.js','tdb-ticker.js','tdb-logo-marquee.js','tdb-review-availability.js']);
 function load(url,{attribute,ready}={}){
  let src=new URL(url,location.href).href;
  const requested=src.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/TheDentalBarns\/tdb-webflow-runtime@[^/]+\/dist\/([^/]+)$/);
@@ -35,5 +35,5 @@ function load(url,{attribute,ready}={}){
  });
  flights.set(src,promise);promise.catch(()=>flights.delete(src));return promise;
 }
-window.TDBModules=Object.freeze({version:'1.4.1',load});
+window.TDBModules=Object.freeze({version:'1.4.2',load});
 })();
