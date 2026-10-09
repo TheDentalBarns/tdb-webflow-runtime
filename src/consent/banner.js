@@ -1,8 +1,8 @@
-/* Native TDB consent v4.0.0. Native markup/styles; shared lock; existing cookie/API/events. */
+/* Native TDB consent v4.0.1. Native markup/styles; shared lock; existing cookie/API/events. */
 (() => {
     "use strict";
     if (window.CookieScript?.instance?.__tdbNative) return;
-    const VERSION = "4.0.0", COOKIE_NAME = "CookieScriptConsent", COOKIE_DAYS = 30, ALL_CATEGORIES = [ "performance", "strict", "targeting", "functionality" ], STRICT_ONLY = [ "strict" ], ROOT_ID = "tdb-consent-root", TEXT_CLOSE_MS = 420, CLOSE_TOTAL_MS = 470;
+    const VERSION = "4.0.1", COOKIE_NAME = "CookieScriptConsent", COOKIE_DAYS = 30, ALL_CATEGORIES = [ "performance", "strict", "targeting", "functionality" ], STRICT_ONLY = [ "strict" ], ROOT_ID = "tdb-consent-root", TEXT_CLOSE_MS = 420, CLOSE_TOTAL_MS = 470;
     let hasShown = false, open = false, closing = false, mounted = false, lastFocus = null, openFrame1 = 0, openFrame2 = 0, closeTimer = 0, pendingAfterClose = null, interactionLocked = false, releaseLock = null, refs = null, textAnimations = [];
     function unique(values) {
         return [ ...new Set((values || []).filter(Boolean)) ];
@@ -176,7 +176,6 @@
             surface: surface,
             scroll: scroll
         };
-        root.inert = true;
         if (!mounted) {
             activateWithKeyboard(accept, api.acceptAllAction);
             activateWithKeyboard(reject, api.rejectAllAction);
@@ -205,6 +204,10 @@
         closeTimer = 0;
         pendingAfterClose = null;
         cancelOpenFrames();
+        // The shared lock reads page geometry; acquire before any banner writes.
+        if (!releaseLock) releaseLock = window.TDBScrollLock.acquire({
+            allow: [ scroll ]
+        });
         if (hasShown) resetTextState();
         hasShown = true;
         if (!open) lastFocus = document.activeElement;
@@ -216,9 +219,6 @@
         dialog.style.removeProperty("pointer-events");
         surface.classList.remove("is-consent-surface-open");
         backdrop.classList.remove("is-consent-open");
-        if (!releaseLock) releaseLock = window.TDBScrollLock.acquire({
-            allow: [ scroll ]
-        });
         interactionLocked = true;
         openFrame1 = requestAnimationFrame(() => {
             openFrame1 = 0;
@@ -341,9 +341,10 @@
     window.CookieScript.autoDisable = () => {};
     window.CookieScript.autoDisableStop = () => {};
     function boot() {
-        mount();
+        const found = mount();
         const state = readDecision();
         if (!state.action) show();
+        else if (found && !open) found.root.inert = true;
         dispatch("CookieScriptLoaded");
         dispatch("CookieScriptCurrentState", state);
     }
