@@ -1,0 +1,30 @@
+{
+  "reason": "Back up only code/configuration; patient review records are not part of this change.",
+  "legacyRuntime": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@efdd9b2de97df36e0d5c9389b505b030d58d0fc7/dist/tdb-reviews.js",
+  "legacyIntegrity": "sha384-vuZtGUrFaxUsn8sW12YPr4aZIdBEuyZGNht9UdJO/0RM5cmnFJUh2irhUXpx7fhi",
+  "embeds": [
+    {
+      "element": "fe478113-0dcb-f116-a0aa-ddd4aa5cfadb",
+      "codeBytes": 7602,
+      "arrowStyleRules": [
+        ".tdb-ri .slider-arrow{display:grid;place-items:center;position:static;flex:0 0 3rem;width:3rem;height:3rem;min-width:44px;min-height:44px;margin:0;padding:0;border:1px solid currentColor;border-radius:50%;background:transparent;color:var(--rv-ink);cursor:pointer;transition:background-color 300ms ease,opacity 300ms ease;touch-action:manipulation}",
+        ".tdb-ri .slider-arrow svg{display:block;width:1rem;height:1rem}",
+        ".tdb-ri .slider-arrow:not(:disabled):hover,.tdb-ri .slider-arrow:not(:disabled):active{background:var(--base-color-brand--orange-2,#ebe2d2)}",
+        ".tdb-ri .slider-arrow:disabled{opacity:.3;cursor:default}"
+      ],
+      "note": "Only carousel arrow rules are changed."
+    },
+    {
+      "element": "b306df62-5eef-42c2-0400-3ab992ecc4d1",
+      "codeBytes": 42878,
+      "arrowStyleRules": [],
+      "note": "Review records intentionally excluded. This element is changed only by replacing the drawerScript URL and its SHA-384 integrity value."
+    },
+    {
+      "element": "9c329b77-b74b-5ebd-afc3-5f22543c35f9",
+      "codeBytes": 149,
+      "arrowStyleRules": [],
+      "note": "Only carousel arrow rules are changed."
+    }
+  ]
+}

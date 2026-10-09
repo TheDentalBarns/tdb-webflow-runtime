@@ -15,7 +15,8 @@ remain as behaviour hooks and contextual colour/placement variants.
 
 Common declarations were removed from nine former arrow styles. The review
 filter and partner close buttons retain their original styling separately.
-Existing drawer/viewer minimum sizes are preserved; no touch target was enlarged.
+Drawer/viewer arrows use the same 3rem diameter, without a separate 44px minimum;
+no touch target was enlarged. Filter controls retain their original minimum.
 
 `src/styles/tdb-carousel-arrow-states.css` is the single shared state sheet,
 installed in the site head as `style[data-tdb-carousel-arrow-states]`. It handles
@@ -28,6 +29,14 @@ geometry/transition rules are removed. Smile Gallery's arrow-specific state
 rules are removed from its pinned stylesheet, retaining filter and close states.
 IG bundle changes are based on the actual deployed 6084b74 release so current
 optimized images and feed data are preserved.
+
+The First Visit audit also found two arrows inside the First Impressions embed
+and two generated review-preview arrows, plus the on-demand legacy review drawer.
+Those markup generators now use `carousel-arrow` and their duplicate geometry
+and state CSS is removed. The legacy drawer is published as a separate
+`tdb-legacy-review-drawer.js`, retaining its current behaviour and data;
+the shared native `tdb-reviews.js` module is not replaced. Its immutable pin and
+SHA-384 integrity value are updated together in the First Visit source embed.
 
 The before-state snapshot is `docs/carousel-arrows-native-before.json`.
 Review publication is staging only; production domains are not published.

@@ -1,0 +1,70 @@
+<style>/* First Impressions — CMS portraits with the shared translucent button blur. */
+[data-tdb-first-impressions-feed]{display:none!important}
+.tdb-first-impressions{--fi-paper:var(--base-color-brand--orange-1,#f9f2e6);--fi-ink:var(--base-color-brand--black,#000);--fi-cream:var(--base-color-brand--orange-3,#d6cab4);--fi-card-width:min(30vw,28rem);--fi-card-height:calc(var(--fi-card-width) * 4 / 3);--fi-gap:20px;position:relative;width:100%;overflow:visible;background:transparent;color:var(--fi-ink);isolation:isolate}
+.tdb-first-impressions *{box-sizing:border-box}
+.tdb-fi-viewport{position:relative;width:100vw;margin-inline:calc(50% - 50vw);height:var(--fi-card-height);overflow:hidden;overflow:clip;touch-action:pan-y pinch-zoom;outline-offset:-3px;cursor:grab}
+.tdb-fi-viewport:active{cursor:grabbing}
+.tdb-fi-card{position:absolute;top:0;left:calc((100% - var(--fi-card-width)) / 2);width:var(--fi-card-width);height:var(--fi-card-height);aspect-ratio:3/4;margin:0;overflow:hidden;background:var(--fi-paper);opacity:.5;transition:opacity 300ms ease;contain:layout paint}
+.tdb-fi-card.is-current{opacity:1}
+.tdb-fi-card:nth-child(2){transform:translate3d(calc(var(--fi-card-width) + var(--fi-gap)),0,0)}
+.tdb-fi-card:nth-child(3){transform:translate3d(calc(-1 * (var(--fi-card-width) + var(--fi-gap))),0,0)}
+.tdb-fi-card>img{display:block;width:100%;height:100%;aspect-ratio:3/4;object-fit:contain;user-select:none;-webkit-user-drag:none}
+.tdb-fi-banner{position:absolute;z-index:2;inset:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:.45rem;width:100%;height:6rem;margin:0;padding:.75rem 5%;background:transparent;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#fff;text-align:left}
+.tdb-fi-words{margin:0;text-align:center;font:inherit;font-size:1.125rem;line-height:1.4;font-weight:400;overflow-wrap:normal}
+.tdb-fi-meta{display:flex;align-items:center;justify-content:center;gap:.8rem;min-height:1.25rem;font-size:.8rem;line-height:1.4}
+.tdb-fi-initials{display:inline-flex;align-items:center;gap:.4rem;letter-spacing:.1em;text-transform:uppercase}
+.tdb-fi-verified{display:inline-flex;width:.95rem;height:.95rem;flex:0 0 .95rem;color:inherit}
+.tdb-fi-verified svg{display:block;width:100%;height:100%}
+.tdb-fi-date{display:inline-flex;align-items:center;gap:.35rem;color:inherit;opacity:.8;white-space:nowrap}
+.tdb-fi-date svg{width:.9rem;height:.9rem}
+.tdb-fi-navigation{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:max(3rem,44px);margin-top:1.5rem;padding:0;background:transparent}
+.tdb-fi-count{color:var(--fi-ink);opacity:.25;font:inherit;font-size:.875rem;line-height:1.5;letter-spacing:.15em}
+.tdb-first-impressions .swiper-buttons-wrapper{display:flex;align-items:center;gap:1rem;position:static;margin:0;padding:0}
+.tdb-first-impressions .slider-arrow{appearance:none;display:grid;place-items:center;position:static;flex:0 0 3rem;width:3rem;height:3rem;min-width:44px;min-height:44px;margin:0;padding:0;border:1px solid currentColor;border-radius:50%;background:transparent;color:var(--fi-ink);cursor:pointer;transition:background-color 300ms ease,opacity 300ms ease;touch-action:manipulation}
+.tdb-first-impressions .slider-arrow svg{display:block;width:1rem;height:1rem}
+.tdb-first-impressions .swiper-btn-prev svg{transform:rotate(180deg)}
+.tdb-first-impressions .slider-arrow:not(:disabled):hover,.tdb-first-impressions .slider-arrow:not(:disabled):active{background:var(--base-color-brand--orange-2,#ebe2d2)}
+.tdb-first-impressions .slider-arrow:disabled{opacity:.3;cursor:default}
+.tdb-first-impressions :is(button,[tabindex]):focus-visible{outline:1px solid currentColor;outline-offset:3px}
+@media(max-width:767px){.tdb-first-impressions{--fi-card-width:90vw;--fi-gap:2vw}.tdb-fi-banner{height:6rem}.tdb-fi-words{font-size:1.1rem}}
+/* A staging-only narrow preview exercises the same card geometry, without claiming device emulation. */
+.tdb-first-impressions[data-fi-preview=mobile]{--fi-card-width:351px;--fi-gap:7.8px;max-width:351px;margin-inline:auto}
+.tdb-first-impressions[data-fi-preview=mobile] .tdb-fi-viewport{width:390px;margin-inline:-19.5px}
+
+/* Stationary glass panels over the centre portrait; no extra navigation height. */
+.tdb-fi-fixed-banner,.tdb-fi-navigation{position:absolute;z-index:3;left:50%;width:var(--fi-card-width);transform:translateX(-50%);height:6rem;padding:.75rem calc(var(--fi-card-width) * .05);margin:0;background:transparent;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#fff}
+.tdb-fi-fixed-banner{top:0;right:auto;pointer-events:none}
+.tdb-fi-navigation{bottom:0;min-height:6rem}
+.tdb-fi-card.is-current>.tdb-fi-banner{visibility:hidden}
+.tdb-fi-card .tdb-fi-words,.tdb-fi-card .tdb-fi-meta{visibility:hidden}
+.tdb-fi-fixed-banner .tdb-fi-words{opacity:0;transition:opacity 150ms ease-out}
+.tdb-fi-fixed-banner .tdb-fi-words.is-ready{opacity:1;transition:opacity 400ms ease-in}
+.tdb-fi-ticker{position:relative;display:inline-block;height:1.5em;overflow:hidden;vertical-align:middle;line-height:1.5}
+.tdb-fi-ticker-value{position:absolute;inset:0;display:grid;align-content:center;width:100%;height:100%;white-space:nowrap}
+.tdb-fi-initial-value,.tdb-fi-date-value{opacity:0;color:rgba(255,255,255,.7)}
+.tdb-fi-initial-value.is-ready,.tdb-fi-date-value.is-ready{opacity:1}
+.tdb-fi-date{opacity:1}
+.tdb-fi-date[hidden]{display:none}
+.tdb-fi-count{display:flex;align-items:center;gap:.5em;color:rgba(255,255,255,.7);opacity:1;font-variant-numeric:tabular-nums;letter-spacing:.06em}
+.tdb-fi-count-current{width:2.4ch;text-align:center}
+.tdb-fi-count-rule{width:1.8em;height:1px;background:currentColor}
+.tdb-first-impressions .slider-arrow{color:#fff}
+.tdb-first-impressions .slider-arrow:not(:disabled):hover,.tdb-first-impressions .slider-arrow:not(:disabled):active{background:#ffffff36}
+
+/* Moving mirrored extensions retain the entire original portrait. */
+.tdb-first-impressions{--fi-photo-height:calc(var(--fi-card-width) * 4 / 3);--fi-card-height:calc(var(--fi-photo-height) + 12rem)}
+.tdb-fi-card{aspect-ratio:auto}
+.tdb-fi-card>img{position:absolute;top:6rem;left:0;height:var(--fi-photo-height);width:100%;object-fit:contain}
+.tdb-fi-card>.tdb-fi-banner{display:none}
+.tdb-fi-image-strip{position:absolute;left:0;right:0;height:6rem;overflow:hidden;pointer-events:none}
+.tdb-fi-image-strip.is-top{top:0}
+.tdb-fi-image-strip.is-bottom{bottom:0}
+.tdb-fi-reflection{position:absolute;inset:0 3px;overflow:hidden;clip-path:inset(0)}
+.tdb-fi-reflection-photo{position:absolute;left:-3px;display:block;width:calc(100% + 6px);height:var(--fi-photo-height);max-width:none;object-fit:contain;transform:scaleY(-1);user-select:none;-webkit-user-drag:none}
+.tdb-fi-image-strip.is-top .tdb-fi-reflection-photo{bottom:0}
+.tdb-fi-image-strip.is-bottom .tdb-fi-reflection-photo{top:0}
+.tdb-fi-glass{position:absolute;inset:0 -3px;background:transparent;backdrop-filter:saturate(150%) blur(20px);-webkit-backdrop-filter:saturate(150%) blur(20px)}
+.tdb-fi-fixed-banner,.tdb-fi-navigation{backdrop-filter:none;-webkit-backdrop-filter:none}
+.tdb-fi-initial-value .tdb-fi-ticker-value{text-align:center}
+.tdb-first-impressions .slider-arrow:not(:disabled):is(:hover,:active){background:rgba(128,128,128,.3);border-color:#fff;color:#fff}
+</style><div class="tdb-first-impressions swiper" data-tdb-first-impressions data-fi-source="cms" role="region" aria-label="First visit, first impressions" aria-roledescription="carousel" aria-busy="true"><div class="tdb-fi-viewport" tabindex="0" aria-label="Patient first impressions. Use left and right arrow keys to browse."></div><div class="tdb-fi-navigation"><div class="tdb-fi-count" role="status" aria-live="polite" aria-atomic="true"></div><div class="swiper-buttons-wrapper"><button class="slider-arrow swiper-btn-prev is-dark" type="button" aria-label="Previous first impression" disabled><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M12.6893 7.25L6.96967 1.53033L8.03033 0.469666L15.5607 8L8.03033 15.5303L6.96967 14.4697L12.6893 8.75H0.5V7.25H12.6893Z"/></svg></button><button class="slider-arrow swiper-btn-next is-dark" type="button" aria-label="Next first impression" disabled><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M12.6893 7.25L6.96967 1.53033L8.03033 0.469666L15.5607 8L8.03033 15.5303L6.96967 14.4697L12.6893 8.75H0.5V7.25H12.6893Z"/></svg></button></div></div></div><script defer src="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@18afef0811fbae31773d8b85af1aa48cf958e86a/dist/tdb-first-impressions.js"></script>

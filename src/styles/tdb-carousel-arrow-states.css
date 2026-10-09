@@ -10,7 +10,7 @@
     border-color: currentColor;
   }
 }
-.carousel-arrow:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+.carousel-arrow:not(:disabled):not([aria-disabled="true"]):focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 .carousel-arrow:is(:disabled,[aria-disabled="true"],.is-disabled) { opacity: .35; cursor: default; }
 .carousel-arrow[data-tdb-loading] { cursor: progress; }
 .carousel-arrow.swiper-button-lock { display: none !important; }
