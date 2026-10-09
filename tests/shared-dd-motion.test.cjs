@@ -4,7 +4,8 @@ const source=fs.readFileSync(path.join(__dirname,'../src/shared/motion.js'),'utf
 function setup({opacity='1',top=500,height=100,root=false,rootScrollHeight=3000,mode='viewport',preset='standard',restored=false,coarse=true}={}){
  const dom=new JSDOM(`<section><p style="opacity:${opacity}">DD text</p></section>`,{runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window;
  const node=w.document.querySelector('p'),section=w.document.querySelector('section'),frames=new Map();let seq=0,now=100,shown=true;
- w.innerHeight=1000;w.scrollY=0;Object.defineProperty(w.document.documentElement,'scrollHeight',{value:10000});
+ let scrollReads=0,pageY=0;Object.defineProperty(w,'scrollY',{get(){scrollReads++;return pageY},set(value){pageY=value}});
+ w.innerHeight=1000;Object.defineProperty(w.document.documentElement,'scrollHeight',{value:10000});
  Object.defineProperty(section,'clientHeight',{value:600});Object.defineProperty(section,'scrollHeight',{value:rootScrollHeight});section.getBoundingClientRect=()=>({top:100});
  node.getClientRects=()=>shown?[{}]:[];node.getBoundingClientRect=()=>{const y=top-(root?section.scrollTop:w.scrollY);return{top:y,bottom:y+height,height};};
  w.performance.now=()=>now;w.requestAnimationFrame=fn=>{frames.set(++seq,fn);return seq;};w.cancelAnimationFrame=id=>frames.delete(id);
@@ -14,7 +15,7 @@ function setup({opacity='1',top=500,height=100,root=false,rootScrollHeight=3000,
  function flush(){let n=0;while(frames.size&&n++<150){const jobs=[...frames.values()];frames.clear();jobs.forEach(fn=>fn(now));}assert(n<150,'no runaway animation');}
  function scroll(value,user=true){now+=30;const target=root?section:w;if(user)target.dispatchEvent(new w.WheelEvent('wheel'));if(root)section.scrollTop=value;else w.scrollY=value;target.dispatchEvent(new w.Event('scroll'));flush();}
  function layout(value){top=value;w.dispatchEvent(new w.Event('resize'));flush();}
- flush();return{w,node,section,api,frames,flush,scroll,layout,advance:ms=>{now+=ms},value:()=>+node.style.opacity,setShown:v=>{shown=v},close:()=>{api.destroy();dom.window.close();}};
+ flush();return{w,node,section,api,frames,flush,scroll,layout,scrollReads:()=>scrollReads,resetReads:()=>{scrollReads=0},advance:ms=>{now+=ms},value:()=>+node.style.opacity,setShown:v=>{shown=v},close:()=>{api.destroy();dom.window.close();}};
 }
 test('late JS retains the painted value indefinitely; only user scrolling consumes the offset',()=>{
  const t=setup();try{assert.equal(t.value(),1);assert.equal(t.frames.size,0);t.flush();assert.equal(t.value(),1);t.scroll(100);assert(t.value()<1&&t.value()>.5);const held=t.value();t.flush();assert.equal(t.value(),held);assert.equal(t.frames.size,0);}finally{t.close();}
@@ -88,5 +89,23 @@ test('desktop viewport resizing still retains DD opacity',()=>{
  const t=setup({coarse:false});try{
   t.scroll(100);const held=t.value();t.w.innerHeight=700;
   t.w.dispatchEvent(new t.w.Event('resize'));t.flush();assert.equal(t.value(),held);
+ }finally{t.close();}
+});
+
+
+test('page lifecycle clears intent without synchronous geometry and retains the restored value',()=>{
+ const t=setup({opacity:'.65'});try{
+  t.scroll(100);const held=t.value();
+  for(const type of ['pagehide','pageshow','visibilitychange']){
+   t.resetReads();
+   (type==='visibilitychange'?t.w.document:t.w).dispatchEvent(new t.w.Event(type));
+   assert.equal(t.scrollReads(),0,type+' must not synchronously query scroll geometry');
+   t.flush();assert.equal(t.value(),held,type+' preserves the painted opacity');
+  }
+  t.w.dispatchEvent(new t.w.Event('pagehide'));
+  t.w.scrollY=250;t.resetReads();t.w.dispatchEvent(new t.w.Event('pageshow'));
+  assert.equal(t.scrollReads(),0);t.flush();assert.equal(t.value(),held,'restored scroll is rebased in the next frame');
+  t.scroll(300);assert(t.value()<held,'the next real gesture still advances the fade');
+  assert.equal(t.frames.size,0,'no background animation loop');
  }finally{t.close();}
 });

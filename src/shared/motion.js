@@ -1,4 +1,4 @@
-/* TDB shared motion v1.19.2. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.19.3. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -21,11 +21,13 @@
 
   // Continue an input-led scroll while momentum events keep arriving. A new
   // navigation or an ended gesture must not authorise browser restoration.
-  function scrollIntent(target, position, signal) {
-    let inputUntil = -1, movingUntil = -1, held = false, observed = position(), lastMovementUser = false;
+  function scrollIntent(target, position, signal, initialPosition) {
+    let inputUntil = -1, movingUntil = -1, held = false, observed = initialPosition, lastMovementUser = false;
     const active = () => held || performance.now() <= Math.max(inputUntil, movingUntil);
     const endScroll = () => { inputUntil = movingUntil = -1; held = false; };
-    const reset = () => { endScroll(); observed = position(); lastMovementUser = false; };
+    // Lifecycle resets only invalidate intent. The next scroll event/render
+    // supplies fresh geometry; hiding/restoring a page need not flush layout.
+    const reset = () => { endScroll(); observed = null; lastMovementUser = false; };
     const input = event => {
       if (event.type === 'keydown' && (!['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(event.key) ||
           event.target?.closest?.('input,textarea,select,[contenteditable="true"]'))) return;
@@ -49,7 +51,7 @@
     window.addEventListener('pagehide', reset, { signal });
     window.addEventListener('pageshow', reset, { signal });
     document.addEventListener('visibilitychange', reset, { signal });
-    return { active: () => active() || lastMovementUser && observed === position() };
+    return { active: currentPosition => active() || lastMovementUser && observed === currentPosition };
   }
   const coarsePointer = matchMedia('(pointer: coarse)');
   const touchViewport = () => coarsePointer.matches;
@@ -73,7 +75,7 @@
     const target = root || window, scrollTop = () => root ? root.scrollTop : window.scrollY;
     let frame = 0, layout = true, disposed = false, suspended = false;
     let lastScroll = scrollTop();
-    const intent = scrollIntent(target, scrollTop, signal);
+    const intent = scrollIntent(target, scrollTop, signal, lastScroll);
     const schedule = () => {
       if (!frame && !disposed && !suspended && !document.hidden && states.size) frame = requestAnimationFrame(render);
     };
@@ -86,8 +88,8 @@
     }
     function render() {
       frame = 0;
-      const scroll = scrollTop(), distance = scroll - lastScroll;
-      const userScroll = distance !== 0 && intent.active();
+      const scroll = scrollTop(), distance = lastScroll === null ? 0 : scroll - lastScroll;
+      const userScroll = distance !== 0 && intent.active(scroll);
       const height = root ? root.clientHeight : window.innerHeight;
       if (!height) return;
       const origin = root ? root.getBoundingClientRect().top + root.clientTop : 0;
@@ -167,7 +169,7 @@
     window.addEventListener('resize', schedule, { signal, passive: true });
     window.addEventListener('load', refresh, { signal });
     window.addEventListener('pagehide', () => { suspended = true; cancelAnimationFrame(frame); frame = 0; }, { signal });
-    window.addEventListener('pageshow', () => { suspended = false; lastScroll = scrollTop(); refresh(); }, { signal });
+    window.addEventListener('pageshow', () => { suspended = false; lastScroll = null; refresh(); }, { signal });
     document.addEventListener('visibilitychange', refresh, { signal });
     reduced.addEventListener('change', refresh, { signal });
     let resize;
@@ -263,7 +265,7 @@
       }
       return points[points.length - 1][1];
     }
-    function geometry(state) {
+    function geometry(state, scroll) {
       const box = state.wrapper.getBoundingClientRect();
       const image = state.opacityOnly ? box : state.node.getBoundingClientRect();
       const view = window.innerHeight;
@@ -291,15 +293,15 @@
         reveal: state.reveal ? Math.min(clamp(-box.top / (state.reveal[0] * frameHeight), 0, 1),
           clamp((box.bottom - state.reveal[2] * frameHeight) / (state.reveal[1] * frameHeight), 0, 1)) : 1,
         visible: box.bottom > 0 && box.top < view && box.height > 0,
-        signature: [box.top + window.scrollY, box.height, image.height, view, low, high, frameHeight, window.innerWidth],
+        signature: [box.top + scroll, box.height, image.height, view, low, high, frameHeight, window.innerWidth],
       };
     }
     function render() {
       frame = 0;
-      const scroll = window.scrollY, distance = scroll - lastScroll;
-      const userScroll = distance !== 0 && intent.active();
+      const scroll = window.scrollY, distance = lastScroll === null ? 0 : scroll - lastScroll;
+      const userScroll = distance !== 0 && intent.active(scroll);
       // Read every rect first, then write. Each wrapper is independent.
-      const measurements = states.map(state => [state, geometry(state)]);
+      const measurements = states.map(state => [state, geometry(state, scroll)]);
       for (const [state, g] of measurements) {
         const mobilePage = touchViewport();
         const changed = layout || !state.geometry || g.signature.some((n, i) =>
@@ -408,10 +410,10 @@
     }
     let resize;
     if (states.length) {
-      intent = scrollIntent(window, () => window.scrollY, signal);
+      intent = scrollIntent(window, () => window.scrollY, signal, lastScroll);
       window.addEventListener('scroll', schedule, { passive: true, signal });
       window.addEventListener('resize', schedule, { passive: true, signal });
-      window.addEventListener('pageshow', () => { suspended = false; lastScroll = window.scrollY; refresh(); }, { signal });
+      window.addEventListener('pageshow', () => { suspended = false; lastScroll = null; refresh(); }, { signal });
       window.addEventListener('pagehide', () => { remember(); suspended = true; cancelAnimationFrame(frame); frame = 0; }, { signal });
       document.addEventListener('visibilitychange', () => { if (document.hidden) remember(); else refresh(); }, { signal });
       window.addEventListener('load', refresh, { signal });
@@ -537,5 +539,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.19.2', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.19.3', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();
