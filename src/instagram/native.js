@@ -1,9 +1,9 @@
-/* TDB native Instagram v1.0.0. Webflow owns every visible node and style;
+/* TDB native Instagram v2.0.0. Webflow renders the visible CMS Collection List;
  * CMS owns posts; shared Gallery, Swiper, Motion and NativeTicker own behaviour. */
 (() => {
   'use strict';
   if (window.TDBInstagramNative) return;
-  const VERSION = '1.0.0';
+  const VERSION = '2.0.0';
   const BASE = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@41e1f34f7e17682bfd630554d1003170ef13dafd/dist/';
   const instances = new Map(), pending = new WeakSet();
   const numberFormat = new Intl.NumberFormat('en-GB');
@@ -35,54 +35,73 @@
     return dependencies;
   }
   function readPosts(root) {
-    const source = [...document.querySelectorAll('[data-tdb-ig-source]')]
-      .find(node => node.dataset.tdbIgSource === root.dataset.tdbIgNative);
-    if (!source) return null;
+    const collection = root.querySelector('[data-ig-cms]');
+    if (!collection) return null;
+    const track = collection.querySelector('[data-ig-track]');
+    // Webflow omits the item list when only its native Empty State renders.
+    if (!track) return collection.querySelector('.w-dyn-empty') ? [] : null;
     const seen = new Set();
-    return [...source.querySelectorAll('[data-tdb-ig-record]')].flatMap(record => {
+    return [...track.children].filter(node => node.matches('[data-ig-slide]:not(.swiper-slide-duplicate)')).map(slide => {
+      const record = slide;
       const field = name => record.querySelector('[data-ig-field="'+name+'"]');
       const value = name => field(name)?.textContent.trim() || '';
-      const image = record.querySelector('img');
+      const image = record.querySelector('.ig-native_photo');
       const url = field('url')?.getAttribute('href') || '';
       let parsed;
-      try { parsed = new URL(url, location.href); } catch (_) { return []; }
-      if (!['www.instagram.com','instagram.com'].includes(parsed.hostname) || !/^https?:$/.test(parsed.protocol) || seen.has(url) || !image?.getAttribute('src')) return [];
+      try { parsed = new URL(url, location.href); } catch (_) { throw Error('Instagram CMS item has an invalid post link'); }
+      // Keep the authored list intact if a CMS item is incomplete. Silently
+      // dropping it would make the card order and stationary details disagree.
+      if (!['www.instagram.com','instagram.com'].includes(parsed.hostname) || !/^https?:$/.test(parsed.protocol) || seen.has(url) || !image?.getAttribute('src')) throw Error('Instagram CMS item needs a unique post link and image');
       seen.add(url);
       const metric = name => { const raw=value(name); const n=raw ? Number(raw.replace(/,/g,'')) : NaN; return hasMetric(n) ? n : null; };
-      return [{url, image:image.getAttribute('src'), srcset:image.getAttribute('srcset') || '',
+      return {slide, url, image:image.getAttribute('src'), srcset:image.getAttribute('srcset') || '',
         alt:value('alt') || image.alt || 'The Dental Barns on Instagram', date:value('date'),
         id:value('id') || parsed.pathname, mediaType:value('media-type'),
-        likes:metric('likes'), comments:metric('comments'), shares:metric('shares')}];
+        likes:metric('likes'), comments:metric('comments'), shares:metric('shares')};
     });
+  }
+  function fallback(root, posts) {
+    const text = (selector, value) => {
+      const slot = root.querySelector(selector);
+      const node = slot?.querySelector('.ig-native_tick') || slot;
+      if (node) node.textContent = value;
+    };
+    root.querySelector('.ig-native_empty')?.classList.toggle('is-message-empty',!posts.length);
+    root.querySelector('.ig-native_frame')?.classList.toggle('is-frame-empty',!posts.length);
+    root.querySelector('.ig-native_controls')?.classList.toggle('is-single',posts.length<2);
+    posts.forEach((post,index)=>post.slide.classList.toggle('is-current',index===0));
+    text('[data-ig-total]',pad(posts.length));
+    text('[data-ig-current]',posts.length?'01':'');
+    text('[data-ig-label]',posts.length?'Post 1 of '+posts.length:'');
+    if (!posts.length) return;
+    const post=posts[0], timestamp=Date.parse(post.date);
+    text('[data-ig-date]',Number.isFinite(timestamp)?dateFormat.format(timestamp):'');
+    root.querySelectorAll('[data-ig-post-link],[data-ig-action="likes"],[data-ig-action="comments"]').forEach(link=>link.href=post.url);
+    ['likes','comments','shares'].forEach(key=>text('[data-ig-metric="'+key+'"]',hasMetric(post[key])?numberFormat.format(post[key]):''));
+    const isVideo=/^video(?:\s|$)/i.test(post.mediaType);
+    root.querySelector('.ig-native_video-symbol')?.classList.toggle('is-visible',isVideo);
+    root.querySelector('.ig-native_video')?.setAttribute('aria-hidden',String(!isVideo));
   }
   function prepare(root, posts) {
     const track = root.querySelector('[data-ig-track]');
-    const template = track?.querySelector('[data-ig-slide]');
-    if (!template) throw Error('Instagram Designer card template missing');
-    const first = Math.max(0, posts.length-1);
-    const cards = posts.map((_, step) => {
-      const index = (first+step)%posts.length, post=posts[index], slide=template.cloneNode(true);
+    if (!track && posts.length) throw Error('Instagram CMS Collection List missing');
+    const first = root.hasAttribute('data-tdb-slider-first-view') ? 0 : Math.max(0, posts.length-1);
+    posts.forEach((post, index) => {
+      const slide=post.slide;
       slide.classList.remove('is-current');
       slide.classList.add('swiper-slide');
       slide.dataset.igIndex=String(index);
       slide.setAttribute('role','group'); slide.setAttribute('aria-roledescription','slide');
       slide.setAttribute('aria-label',(index+1)+' of '+posts.length);
-      slide.removeAttribute('id');
-      slide.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
-      slide.querySelectorAll('img').forEach(image => {
-        image.src=post.image;
-        if(post.srcset) image.srcset=post.srcset; else image.removeAttribute('srcset');
-        image.sizes='(max-width: 767px) 90vw, 50vw';
-        image.alt=image.classList.contains('ig-native_photo') ? post.alt : '';
-        image.loading='lazy'; image.decoding='async'; image.draggable=false;
-      });
-      return slide;
     });
-    track.replaceChildren(...cards);
+    // Move the existing last CMS item ahead of the first for the shared
+    // one-entry advance. No card/image construction or CMS source duplication.
+    if (first>0) track.prepend(posts[first].slide);
     root.querySelector('.ig-native_empty')?.classList.toggle('is-message-empty',!posts.length);
     root.querySelector('.ig-native_frame')?.classList.toggle('is-frame-empty',!posts.length);
     root.querySelector('.ig-native_controls')?.classList.toggle('is-single',posts.length<2);
     if (!posts.length) return null;
+    track.setAttribute('role','presentation');
     track.classList.add('swiper-wrapper');
     root.querySelector('[data-ig-viewport]').classList.add('swiper');
     root.querySelector('[data-ig-prev]')?.classList.add('swiper-btn-prev');
@@ -91,8 +110,9 @@
     root.classList.add('highlight-swiper_component');
     return {first,track};
   }
-  function mount(root, posts) {
+  function mount(root, posts=readPosts(root)) {
     if (instances.has(root)) return instances.get(root);
+    if (posts===null) return null;
     const prepared=prepare(root,posts);
     if (!prepared) { root.dataset.tdbIgReady=VERSION; return null; }
     const viewport=root.querySelector('[data-ig-viewport]');
@@ -179,22 +199,34 @@
     function key(event){if((event.key===' '||event.key==='Enter')&&buttons.includes(event.target)){event.preventDefault();event.stopPropagation();event.target.click();}}
     buttons.forEach(button=>{button.setAttribute('role','button');button.tabIndex=0;button.removeAttribute('href');});
     root.querySelectorAll('a[href]').forEach(link=>{link.target='_blank';link.rel='noopener noreferrer';});
-    root.addEventListener('click',share);root.addEventListener('keydown',key);
+    // Capture button activation before Swiper's own a11y handler, otherwise
+    // Enter/Space would both click the link and advance through its key handler.
+    root.addEventListener('click',share);root.addEventListener('keydown',key,true);
     sync();window.TDBGallery.beforeObserve(root);swiper=window.TDBSwiper.mount('gallery',root);
     if(!swiper)throw Error('Shared gallery unavailable');
     const handlers={slideChange:()=>{hideVideo();sync();},transitionStart:hideVideo,
       touchStart:()=>{dragging=true;clearTimeout(timer);timer=0;},sliderMove:hideVideo,
-      touchEnd:()=>{dragging=false;reveal();},slidesLengthChange:sync,resize:spacing,beforeDestroy:()=>destroy(false)};
+      touchEnd:()=>{dragging=false;reveal();},slidesLengthChange:sync,resize:spacing,beforeDestroy:()=>queueMicrotask(()=>destroy(false))};
     Object.entries(handlers).forEach(([name,handler])=>swiper.on(name,handler));
     const stopSettled=window.TDBSwiper.onSettled(swiper,()=>{sync();reveal();});
     const observer=new MutationObserver(reveal);observer.observe(root,{attributes:true,attributeFilter:['data-tdb-slider-first-view']});
     const resize=new ResizeObserver(spacing);resize.observe(viewport);
     function destroy(destroySwiper=true){
       if(disposed)return;disposed=true;hideVideo();clearTimeout(noticeTimer);observer.disconnect();resize.disconnect();stopSettled();
-      root.removeEventListener('click',share);root.removeEventListener('keydown',key);
+      root.removeEventListener('click',share);root.removeEventListener('keydown',key,true);
       Object.entries(handlers).forEach(([name,handler])=>swiper.off(name,handler));
       dateTicker.destroy();countTicker.destroy();metrics.forEach(metric=>metric.roll?.destroy());instances.delete(root);
       if(destroySwiper&&!swiper.destroyed)swiper.destroy(true,true);
+      posts.forEach(post=>{
+        prepared.track.append(post.slide);
+        post.slide.classList.remove('swiper-slide');
+        post.slide.setAttribute('role','listitem');
+        post.slide.removeAttribute('aria-roledescription');post.slide.removeAttribute('aria-label');
+        delete post.slide.dataset.igIndex;
+      });
+      prepared.track.classList.remove('swiper-wrapper');prepared.track.setAttribute('role','list');
+      viewport.classList.remove('swiper');root.classList.remove('highlight-swiper_component');
+      delete root.dataset.tdbIgReady;pending.delete(root);fallback(root,posts);
     }
     const api=Object.freeze({swiper,posts:posts.length,destroy});instances.set(root,api);
     spacing();sync();reveal();root.dataset.tdbIgReady=VERSION;root.removeAttribute('aria-busy');return api;
@@ -203,13 +235,19 @@
     const roots=scope instanceof Element&&scope.matches('[data-tdb-ig-native]')?[scope]:[...scope.querySelectorAll('[data-tdb-ig-native]')];
     roots.forEach(root=>{
       if(instances.has(root)||pending.has(root)||root.dataset.tdbIgReady)return;
-      const posts=readPosts(root);if(posts===null)return;
+      let posts;
+      try { posts=readPosts(root); } catch(error) { root.dataset.tdbIgError=error.message;return; }
+      if(posts===null)return;
+      fallback(root,posts);
+      if(!posts.length){root.dataset.tdbIgReady=VERSION;return;}
       pending.add(root);
-      const start=()=>ready().then(()=>mount(root,posts)).catch(error=>{root.dataset.tdbIgError=error.message;pending.delete(root);});
+      const start=()=>ready().then(()=>{
+        if(root.isConnected){mount(root,posts);delete root.dataset.tdbIgError;}
+      }).catch(error=>{root.dataset.tdbIgError=error.message;}).finally(()=>pending.delete(root));
       if('IntersectionObserver'in window){const observer=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){observer.disconnect();start();}},{rootMargin:'400px'});observer.observe(root);}else start();
     });
     instances.forEach((instance,root)=>{if(!root.isConnected)instance.destroy();});
   }
-  window.TDBInstagramNative=Object.freeze({version:VERSION,refresh,mount,readPosts,source:'webflow-cms'});
+  window.TDBInstagramNative=Object.freeze({version:VERSION,refresh,mount,readPosts,source:'visible-webflow-cms'});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>refresh(),{once:true});else refresh();
 })();
