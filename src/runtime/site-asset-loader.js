@@ -418,7 +418,6 @@ function prepareVIPDrawerLoader() {
   const jsUrl = new URL('tdb-vip-drawer.js', document.currentScript.src).href;
   let loadingPromise = null;
   let armed = false;
-  let openPending = false;
   // Prefer the window scroll offset, including zero, without also asking the
   // root element for layout. Retain the element fallback for older engines.
   const pageY = () => Math.max(window.scrollY ?? document.documentElement.scrollTop ?? 0, 0);
@@ -473,16 +472,24 @@ function prepareVIPDrawerLoader() {
   }
   function fallbackToForm() {
     const section = Array.from(document.querySelectorAll('#VIP')).find(node => !drawer.contains(node));
-    section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (section) {
+      section.scrollIntoView({behavior:'smooth',block:'start'});
+      const field = section.querySelector('input:not([type="hidden"]),button,a[href]');
+      field?.focus({preventScroll:true});
+    } else location.assign('/vip/become-a-patient');
+  }
+  let opening = null;
+  function openFromTrigger(source) {
+    if (opening) return opening;
+    opening = loadDrawer().then(api => {
+      window.dispatchEvent(new CustomEvent('tdb:vip-open-intent',{detail:{source}}));
+      api.open();
+    }).catch(fallbackToForm).finally(() => {opening=null;});
+    return opening;
   }
   function openAfterLoad(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (openPending) return;
-    openPending = true;
-    loadDrawer().then(api => api?.open?.()).catch(() => {
-      if (demand) fallbackToForm();
-    }).finally(() => { openPending = false; });
+    event.preventDefault(); event.stopPropagation();
+    openFromTrigger(findTrigger(event));
   }
   function onIntentClick(event) {
     if (realDrawerReady() || !findTrigger(event)) return;
@@ -542,8 +549,9 @@ function prepareVIPDrawerLoader() {
   else window.addEventListener('tdb:priority-ready', loadSafely, { once: true });
 
   window.TDBVIPDrawerLoader = Object.freeze({
-    version: '1.3.3',
+    version: '1.4.0',
     load: loadDrawer,
+    open: openFromTrigger,
     status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) && !realDrawerReady(), uiReady: tdbUIIsReady(), demand }),
   });
 }

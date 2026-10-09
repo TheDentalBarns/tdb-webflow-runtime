@@ -1,19 +1,28 @@
-/* TDB shared dependency registry v1.4.1. One explicit shared-motion and carousel release. */
+/* TDB shared dependency registry v1.5.1. Independently pinned shared releases. */
 (() => {
 'use strict'; if(window.TDBModules)return;
 const flights=new Map();
-const carouselRoot=document.currentScript?.src?new URL('./',document.currentScript.src):null;
-const carouselFiles=new Set(['tdb-swiper-8.4.7.min.js','tdb-motion.js','tdb-parallax.js','tdb-gallery.js','tdb-slider-focus.js','tdb-sliders.js','tdb-review-quotes.js','tdb-review-cards.js','tdb-reviews.js','tdb-drawer.js','tdb-filters.js','tdb-ticker.js','tdb-logo-marquee.js','tdb-review-availability.js']);
+const registry=document.currentScript;
+const motionRoot=registry?.src?new URL(registry.dataset?.tdbMotionBase||'./',registry.src):null;
+// A motion-only release can retain the existing carousel URLs and cache entries.
+const carouselRoot=registry?.dataset?.tdbCarouselBase?new URL(registry.dataset.tdbCarouselBase,registry.src):motionRoot;
+const drawerRoot=registry?.dataset?.tdbDrawerBase?new URL(registry.dataset.tdbDrawerBase,registry.src):carouselRoot;
+const availabilityRoot=registry?.dataset?.tdbAvailabilityBase?new URL(registry.dataset.tdbAvailabilityBase,registry.src):carouselRoot;
+const availabilityFiles=new Set(['tdb-availability.js','tdb-review-availability.js']);
+const drawerFiles=new Set(['tdb-drawer.js','tdb-reviews.js','tdb-review-introduction.js','tdb-review-cards.js']);
+const carouselFiles=new Set(['tdb-rendered-progress.js','tdb-swiper-8.4.7.min.js','tdb-motion.js','tdb-parallax.js','tdb-gallery.js','tdb-slider-focus.js','tdb-sliders.js','tdb-review-quotes.js','tdb-review-cards.js','tdb-review-cms.js','tdb-reviews.js','tdb-drawer.js','tdb-filters.js','tdb-ticker.js','tdb-logo-marquee.js','tdb-review-availability.js']);
 function load(url,{attribute,ready}={}){
  let src=new URL(url,location.href).href;
  const requested=src.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/TheDentalBarns\/tdb-webflow-runtime@[^/]+\/dist\/([^/]+)$/);
- // Motion consumers and carousel dependencies use this registry's release.
+ // Motion uses this registry's release; other assets can retain a pinned base.
  // Resolve before ready/cache checks so differently
  // pinned consumers share one flight whichever component requests the engine first.
  const sharedLoader=document.querySelector('script[data-tdb-reviews-loader][src]')||document.querySelector('script[data-tdb-logo-marquee-loader][src]');
  const shared=src.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/TheDentalBarns\/tdb-webflow-runtime@[^/]+\/dist\/(tdb-motion\.js|tdb-filters\.js|tdb-drawer\.js|tdb-ticker\.js|tdb-swiper-8\.4\.7\.min\.js)$/);
- if(carouselRoot&&requested&&carouselFiles.has(requested[1])){
-  src=new URL(requested[1],carouselRoot).href;
+ if(availabilityRoot&&requested&&availabilityFiles.has(requested[1])){
+  src=new URL(requested[1],availabilityRoot).href;
+ }else if(carouselRoot&&requested&&(carouselFiles.has(requested[1])||drawerFiles.has(requested[1]))){
+  src=new URL(requested[1],requested[1]==='tdb-motion.js'?motionRoot:drawerFiles.has(requested[1])?drawerRoot:carouselRoot).href;
   if(requested[1]==='tdb-swiper-8.4.7.min.js'&&ready){const engineReady=ready;ready=()=>engineReady()&&typeof window.TDBSwiper?.create==='function';}
  }else if(sharedLoader&&shared){
   src=new URL(shared[1],sharedLoader.src).href;
@@ -35,5 +44,16 @@ function load(url,{attribute,ready}={}){
  });
  flights.set(src,promise);promise.catch(()=>flights.delete(src));return promise;
 }
-window.TDBModules=Object.freeze({version:'1.4.1',load});
+const busy=new WeakMap();
+async function withBusy(trigger,action,{signal,loading=true,onStart,onError}={}){
+ if(signal?.aborted||trigger.getAttribute('aria-busy')==='true')return;
+ const token={};busy.set(trigger,token);
+ trigger.setAttribute('aria-busy','true');if(loading)trigger.setAttribute('data-tdb-loading','true');
+ const clear=()=>{if(busy.get(trigger)!==token)return;busy.delete(trigger);trigger.removeAttribute('aria-busy');if(loading)trigger.removeAttribute('data-tdb-loading');};
+ signal?.addEventListener('abort',clear,{once:true});
+ try{onStart?.();return await action();}
+ catch(error){if(!signal?.aborted&&error.name!=='AbortError'){if(onError)onError(error);else throw error;}}
+ finally{signal?.removeEventListener('abort',clear);clear();}
+}
+window.TDBModules=Object.freeze({version:'1.5.1',load,withBusy});
 })();

@@ -10,6 +10,7 @@ const TDBAnnouncementModuleRoot = new URL('./', document.currentScript.src);
       if (!modules) throw Error('Shared module registry unavailable');
       await modules.load(shared + 'tdb-motion.js', {ready:() => Boolean(window.TDBMotion)});
       await Promise.all([
+        modules.load(new URL('tdb-availability.js',TDBAnnouncementModuleRoot), {ready:() => Boolean(window.TDBAvailability)}),
         modules.load(shared + 'tdb-swiper-8.4.7.min.js', {attribute:'data-swiper-js',ready:() => Boolean(window.TDBSwiper?.create)}),
         modules.load(shared + 'tdb-ticker.js', {ready:() => Boolean(window.TDBNativeTicker)})
       ]);

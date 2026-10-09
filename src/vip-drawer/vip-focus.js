@@ -1,4 +1,4 @@
-/* TDB VIP keyboard/focus layer v1.1.0.
+/* TDB VIP keyboard/focus layer v1.1.1.
  * Bundled before site-asset-loader in tdb-footer-runtime.min.js. Reads the
  * existing drawer classes without replacing loading or interaction ownership. */
 (() => {
@@ -8,7 +8,7 @@
   const handle = drawer?.querySelector('.tdb-vip-drawer-handle');
   if (!drawer || !body || !handle || drawer.dataset.tdbVipFocusBound === 'true') return;
   drawer.dataset.tdbVipFocusBound = 'true';
-  // Programmatic focus from the Elfsight banner can retain :focus-visible
+  // Programmatic focus from the announcement can retain :focus-visible
   // after a pointer activation. Suppress only the handle's pointer outline;
   // keyboard input immediately restores the site's existing focus styling.
   // Appearance lives in Designer; this layer projects state and measured timing.
@@ -69,6 +69,10 @@
     rememberTrigger(event);
   }, true);
   document.addEventListener('click', rememberTrigger, true);
+  window.addEventListener('tdb:vip-open-intent', event => {
+    const source = event.detail?.source;
+    if (source instanceof HTMLElement && !drawer.contains(source)) latestTrigger = source;
+  });
   document.addEventListener('keydown', event => {
     if (!event.metaKey && !event.altKey && !event.ctrlKey) {
       handle.removeAttribute('data-tdb-vip-pointer-focus');
