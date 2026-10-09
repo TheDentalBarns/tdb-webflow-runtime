@@ -1,4 +1,4 @@
-/* TDB native review cards v2.1.0. Designer/CMS markup with shared behaviour. */
+/* TDB native review cards v2.1.1. Designer/CMS markup with shared behaviour. */
 (() => {
 'use strict';
 if(window.TDBReviewCards)return;
@@ -20,7 +20,7 @@ function mount(root,data,{openReviews}){
   field('name').textContent=record.name;field('excerpt').textContent=record.excerpts[context]||record.excerpt;field('excerpt').style.opacity='0';field('text').textContent=record.text;
   const date=new Date(record.date);field('date').textContent=Number.isNaN(date.getTime())?'':(record.approx?'Approx. ':'')+date.toLocaleDateString('en-GB',record.approx?{month:'long',year:'numeric'}:{day:'numeric',month:'short',year:'numeric'});
   field('rating').setAttribute('aria-label',record.rating?record.rating+' out of 5 stars':'Rating not supplied');field('historic').hidden=!record.historic;
-  field('icon').replaceChildren(...cms.sourceIcon(record.platform,false).childNodes);
+  // The Designer logo slot is preserved; CSS selects its asset from reviewPlatform.
   slide.querySelector('[data-tdb-cards-open]').setAttribute('aria-label','Read full review by '+record.name);
   return slide;
  }
@@ -150,5 +150,5 @@ function mount(root,data,{openReviews}){
  const api={destroy(){finishEntry(false);progressSampler.destroy();hide();phase='destroyed';controller.abort();resize.disconnect();stopSettled();fades.destroy();swiper.destroy(true,true);ticker.destroy();track.style.transitionTimingFunction=originalEasing;track.replaceChildren(...originals.map(n=>n.cloneNode(true)));root.classList.remove('is-ready');navigation.classList.add('is-inactive');previous.setAttribute('aria-disabled','true');next.setAttribute('aria-disabled','false');previous.classList.add('is-disabled');next.classList.remove('is-disabled');next.removeAttribute('data-tdb-loading');status.textContent='';instances.delete(root);}};
  instances.set(root,api);return api;
 }
-window.TDBReviewCards=Object.freeze({version:'2.1.0',mount});window.TDBSwiper?.register('review-cards',window.TDBReviewCards);
+window.TDBReviewCards=Object.freeze({version:'2.1.1',mount});window.TDBSwiper?.register('review-cards',window.TDBReviewCards);
 })();
