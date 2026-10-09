@@ -1,11 +1,10 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.3.0';
+  const VERSION = '0.4.0';
   const GA_MEASUREMENT_ID = 'G-GCWCSWR50M';
   const META_PIXEL_ID = '1326762815429148';
   const INTELLIMIZE_SRC = 'https://cdn.intellimize.co/snippet/117204709.js';
-  const ELFSIGHT_SRC = 'https://static.elfsight.com/platform/platform.js';
 
   if (window.__tdbConsentBooted) return;
   window.__tdbConsentBooted = true;
@@ -15,8 +14,7 @@
   const state = {
     analytics: false,
     intellimize: false,
-    meta: false,
-    elfsight: false
+    meta: false
   };
 
   function appendScript(src, marker, options = {}) {
@@ -118,38 +116,10 @@
     loadMetaPixel();
   }
 
-  function loadElfsight() {
-    if (state.elfsight) return;
-
-    appendScript(ELFSIGHT_SRC, 'data-tdb-elfsight-js');
-    state.elfsight = true;
-  }
-
   function hasPerformanceConsent() {
     try {
       const currentState = window.CookieScript?.instance?.currentState?.();
       return Boolean(currentState?.categories?.includes('performance'));
-    } catch (error) {
-      return false;
-    }
-  }
-
-  function hasConsentDecisionCookie() {
-    const consentCookie = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('CookieScriptConsent='));
-
-    if (!consentCookie) return false;
-
-    try {
-      const decodedCookie = decodeURIComponent(consentCookie);
-      return (
-        decodedCookie.includes('"action"') ||
-        decodedCookie.includes('"a":') ||
-        decodedCookie.includes('accept') ||
-        decodedCookie.includes('reject') ||
-        decodedCookie.includes('close')
-      );
     } catch (error) {
       return false;
     }
@@ -171,7 +141,6 @@
   function handleCookieScriptReady() {
     if (pendingShowSettings) showCookieSettings();
     if (hasPerformanceConsent()) loadPerformanceScripts();
-    if (hasConsentDecisionCookie()) loadElfsight();
   }
 
   function bindEvents() {
@@ -194,22 +163,14 @@
       ) {
         loadPerformanceScripts();
       }
-
-      loadElfsight();
     });
 
-    window.addEventListener('CookieScriptAcceptAll', () => {
-      loadPerformanceScripts();
-      loadElfsight();
-    });
+    window.addEventListener('CookieScriptAcceptAll', loadPerformanceScripts);
 
     window.addEventListener(
       'CookieScriptCategory-performance',
       loadPerformanceScripts
     );
-
-    window.addEventListener('CookieScriptReject', loadElfsight);
-    window.addEventListener('CookieScriptClose', loadElfsight);
   }
 
   bindEvents();
@@ -219,7 +180,6 @@
   window.TDBConsent = Object.freeze({
     version: VERSION,
     refresh: handleCookieScriptReady,
-    loadElfsight,
     loadPerformanceScripts,
     status: () => ({ ...state })
   });

@@ -1,4 +1,4 @@
-# Native consent startup v4.0.1
+# Native consent startup v4.0.2
 
 The existing CookieScript-compatible consent interface now controls native Webflow markup. It no longer injects a banner stylesheet or HTML after the immediate runtime has downloaded.
 
@@ -44,3 +44,15 @@ Only the consent startup artifact is rebuilt for this release. Its parser-discov
 `node tests/consent-measurements.browser.cjs` checks the built artifact in Chromium at 1440 px and 390 px. It observes pending DOM mutations at layout reads on first open, reopen and standalone lock acquisition, and verifies updated padding, focus/scroll restoration, nested scrolling, saved choices and overlapping owners. Set `TDB_CHROMIUM` if the browser binary is outside Playwright's default location. The original artifact fails the first-open read-order check; the patched artifact passes. `tests/consent-native.test.cjs` also preserves the cookie/event contract and close timing.
 
 These checks establish ordering and behaviour, not milliseconds saved. A preceding script can still leave pending layout at the first measurement, and focusing the dialog can still trigger layout. A new Lighthouse trace is needed to quantify any improvement.
+
+## Elfsight retirement and saved-choice startup (9 October 2026)
+
+Version 4.0.2 reads the saved choice before mounting banner controls. A saved choice needs only the root lookup/inert state and the original loaded/current-state events; click/key handlers and internal element lookups are deferred until settings are opened. Fresh visits still open immediately, acquiring the shared lock before banner writes. The v1.0.1 measurement fix, 70 ms text delay, 470 ms closing, cookie format and public CookieScript API remain unchanged.
+
+TDBConsent v0.4.0 removes the Elfsight URL, loader, decision-cookie scan, reject/close listeners and retired loadElfsight/status field. Performance consent still gates Google Analytics, Intellimize and Meta exactly as before. Cookie settings retain queued reopening and duplicate-load protection. Native Instagram and announcement modules do not use the retired API.
+
+The immediate runtime v0.11.11 loads the minified consent bridge beside its own immutable script URL. Its independent data-tdb-runtime-base still selects the footer release; do not repin that attribute when updating consent. Run node tools/build-consent.cjs for startup plus bridge, and node tools/build-immediate.cjs for the immediate bundle. The shared rendered-progress/parallax source modules are unchanged.
+
+Five legacy VIP pages also contained a standalone Elfsight review embed with a direct platform.js script. The retired embed records are in elfsight-retirement-embeds.json. Their native replacement/compatibility class names and the announcement's legacy shell ID remain because those names do not download Elfsight. Historical immutable vendor-loader files are no longer referenced by this release.
+
+Tests: tests/consent-native.test.cjs covers unbound saved-choice startup plus the preserved behaviour. tests/consent-bridge.test.cjs covers essential/accepted consent, vendor deduplication, queued settings, absence of Elfsight requests and independent consent/footer asset pins. Asset sizes are measured locally; no LCP improvement is claimed without a new trace.

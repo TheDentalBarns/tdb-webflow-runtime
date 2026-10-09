@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-09",
+  "note": "Standalone legacy review embeds retired with Elfsight. Native replacement runtimes and compatibility selectors remain.",
+  "embeds": [
+    {
+      "pageId": "694aba9dc39723ae9d2663e4",
+      "path": "/vip-west-end",
+      "id": {
+        "component": "694aba9dc39723ae9d2663e4",
+        "element": "0ec689b1-b8ae-82a9-a069-325258a22970"
+      },
+      "code": "<!-- Elfsight All-in-One Reviews | The Dental Barns All in One Review Copy -->\n<script src=\"https://elfsightcdn.com/platform.js\" async></script>\n<div class=\"elfsight-app-3c9686ba-aa4f-4d6b-991b-e98122d58e97\" data-elfsight-app-lazy></div>"
+    },
+    {
+      "pageId": "694aa587cf17e04109fc3fe1",
+      "path": "/vip-sanctuary",
+      "id": {
+        "component": "694aa587cf17e04109fc3fe1",
+        "element": "0ec689b1-b8ae-82a9-a069-325258a22970"
+      },
+      "code": "<!-- Elfsight All-in-One Reviews | The Dental Barns All in One Review Copy -->\n<script src=\"https://elfsightcdn.com/platform.js\" async></script>\n<div class=\"elfsight-app-3c9686ba-aa4f-4d6b-991b-e98122d58e97\" data-elfsight-app-lazy></div>"
+    },
+    {
+      "pageId": "694a7ebb2eb94d65273186e4",
+      "path": "/vip-smiles",
+      "id": {
+        "component": "694a7ebb2eb94d65273186e4",
+        "element": "0ec689b1-b8ae-82a9-a069-325258a22970"
+      },
+      "code": "<!-- Elfsight All-in-One Reviews | The Dental Barns All in One Review Copy -->\n<script src=\"https://elfsightcdn.com/platform.js\" async></script>\n<div class=\"elfsight-app-3c9686ba-aa4f-4d6b-991b-e98122d58e97\" data-elfsight-app-lazy></div>"
+    },
+    {
+      "pageId": "694a740e9e013223583d1b13",
+      "path": "/vip-awards",
+      "id": {
+        "component": "694a740e9e013223583d1b13",
+        "element": "0ec689b1-b8ae-82a9-a069-325258a22970"
+      },
+      "code": "<!-- Elfsight All-in-One Reviews | The Dental Barns All in One Review Copy -->\n<script src=\"https://elfsightcdn.com/platform.js\" async></script>\n<div class=\"elfsight-app-3c9686ba-aa4f-4d6b-991b-e98122d58e97\" data-elfsight-app-lazy></div>"
+    },
+    {
+      "pageId": "6925981fbc1302600ed5dc06",
+      "path": "/vip-christmas",
+      "id": {
+        "component": "6925981fbc1302600ed5dc06",
+        "element": "0ec689b1-b8ae-82a9-a069-325258a22970"
+      },
+      "code": "<!-- Elfsight All-in-One Reviews | The Dental Barns All in One Review Copy -->\n<script src=\"https://elfsightcdn.com/platform.js\" async></script>\n<div class=\"elfsight-app-3c9686ba-aa4f-4d6b-991b-e98122d58e97\" data-elfsight-app-lazy></div>"
+    }
+  ]
+}

@@ -11,9 +11,15 @@ function setup(cookie) {
  w.Element.prototype.getAnimations=()=>[];
  w.Element.prototype.animate=()=>({cancel(){},finished:Promise.resolve()});
  if(cookie)w.document.cookie='CookieScriptConsent='+encodeURIComponent(JSON.stringify(cookie))+'; Path=/';
+ const bindings=[];
+ const add=w.EventTarget.prototype.addEventListener;
+ w.EventTarget.prototype.addEventListener=function(type,...args){
+  if(['cookiescript_accept','cookiescript_reject','tdb-consent-dialog'].includes(this.id)||(this===w.document&&type==='keydown'))bindings.push([this.id||'document',type]);
+  return add.call(this,type,...args);
+ };
  for(const event of ['CookieScriptLoaded','CookieScriptCurrentState','CookieScriptAcceptAll','CookieScriptReject','CookieScriptCategory-performance','CookieScriptCategory-strict','CookieScriptCategory-targeting','CookieScriptCategory-functionality'])w.addEventListener(event,()=>events.push(event));
  w.eval(source);w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
- return {dom,w,events,api:w.CookieScript.instance,root:w.document.getElementById('tdb-consent-root')};
+ return {dom,w,events,bindings,api:w.CookieScript.instance,root:w.document.getElementById('tdb-consent-root')};
 }
 (async()=>{
  let x=setup();await sleep(45);
@@ -32,8 +38,11 @@ function setup(cookie) {
  assert.equal(x.w.document.body.style.paddingRight,'3px');
  const saved=x.api.currentState();x.dom.window.close();
  x=setup(saved);await sleep(45);assert.equal(x.root.getAttribute('aria-hidden'),'true');assert.equal(x.w.TDBScrollLock.active,false);
+ assert.equal(x.root.inert,true);assert.deepEqual(x.bindings,[],'saved choice leaves banner controls unbound');
+ assert.deepEqual(x.events,['CookieScriptLoaded','CookieScriptCurrentState'],'saved choice still announces its state');
  assert.equal(x.root.inert,true);
  const link=x.w.document.getElementById('settings');link.focus();const unlockNav=x.w.TDBScrollLock.acquire();x.api.show();await sleep(45);
+ assert.equal(x.bindings.filter(([id,type])=>id==='cookiescript_accept'&&type==='click').length,1);
  const reject=x.w.document.getElementById('cookiescript_reject');reject.focus();const tab=new x.w.KeyboardEvent('keydown',{key:'Tab',bubbles:true,cancelable:true});reject.dispatchEvent(tab);assert.equal(x.w.document.activeElement.id,'cookiescript_accept');
  x.events.length=0;reject.click();await sleep(490);assert.equal(x.api.currentState().action,'reject');assert.equal(x.w.TDBScrollLock.active,true);unlockNav();assert.equal(x.w.TDBScrollLock.active,false);assert.equal(x.w.document.activeElement,link);
  assert.deepEqual(x.events,['CookieScriptReject','CookieScriptCurrentState','CookieScriptCategory-strict']);

@@ -1,8 +1,8 @@
-/* Native TDB consent v4.0.1. Native markup/styles; shared lock; existing cookie/API/events. */
+/* Native TDB consent v4.0.2. Native markup/styles; shared lock; existing cookie/API/events. */
 (() => {
     "use strict";
     if (window.CookieScript?.instance?.__tdbNative) return;
-    const VERSION = "4.0.1", COOKIE_NAME = "CookieScriptConsent", COOKIE_DAYS = 30, ALL_CATEGORIES = [ "performance", "strict", "targeting", "functionality" ], STRICT_ONLY = [ "strict" ], ROOT_ID = "tdb-consent-root", TEXT_OPEN_DELAY_MS = 70, TEXT_CLOSE_MS = 420, CLOSE_TOTAL_MS = 470;
+    const VERSION = "4.0.2", COOKIE_NAME = "CookieScriptConsent", COOKIE_DAYS = 30, ALL_CATEGORIES = [ "performance", "strict", "targeting", "functionality" ], STRICT_ONLY = [ "strict" ], ROOT_ID = "tdb-consent-root", TEXT_OPEN_DELAY_MS = 70, TEXT_CLOSE_MS = 420, CLOSE_TOTAL_MS = 470;
     let hasShown = false, open = false, closing = false, mounted = false, lastFocus = null, openFrame1 = 0, openFrame2 = 0, textOpenTimer = 0, closeTimer = 0, pendingAfterClose = null, interactionLocked = false, releaseLock = null, refs = null, textAnimations = [];
     function unique(values) {
         return [ ...new Set((values || []).filter(Boolean)) ];
@@ -347,10 +347,13 @@
     window.CookieScript.autoDisable = () => {};
     window.CookieScript.autoDisableStop = () => {};
     function boot() {
-        const found = mount();
         const state = readDecision();
         if (!state.action) show();
-        else if (found && !open) found.root.inert = true;
+        else if (!open) {
+            // Saved choices need state/events now; bind controls only on show().
+            const root = document.getElementById(ROOT_ID);
+            if (root) root.inert = true;
+        }
         dispatch("CookieScriptLoaded");
         dispatch("CookieScriptCurrentState", state);
     }
