@@ -15,6 +15,7 @@ const entries = {
   'src/partners/marquee.js': 'tdb-logo-marquee.js',
   'src/shared/modules.js': 'tdb-modules.js',
   'src/shared/slider-focus.js': 'tdb-slider-focus.js',
+  'src/shared/carousel-arrow-feedback.js': 'tdb-carousel-arrow-feedback.js',
   'src/shared/motion-policy.js': 'tdb-motion-policy.js',
   'src/shared/motion.js': 'tdb-motion.js',
   'src/shared/dd-loader.js': 'tdb-dd-loader.js',

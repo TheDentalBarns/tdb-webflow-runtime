@@ -21,7 +21,11 @@ no touch target was enlarged. Filter controls retain their original minimum.
 `src/styles/tdb-carousel-arrow-states.css` is the single shared state sheet,
 installed in the site head as `style[data-tdb-carousel-arrow-states]`. It handles
 pointer hover, press/selected/held feedback, keyboard focus, disabled/loading
-feedback, and Swiper's locked state. It adds no JavaScript and no network request.
+feedback, and Swiper's locked state. It adds no network request. The shared
+`src/shared/carousel-arrow-feedback.js` is inlined once in the site footer to
+preserve Services' last-activated arrow state across carousel types. It handles
+click and Enter/Space, changes only sibling selection classes, and leaves
+navigation to each existing carousel module.
 Local colours may differ. Do not reintroduce per-carousel blur, size or timings.
 
 The old site-head Instagram geometry/50ms transitions and Location page-head
@@ -43,6 +47,10 @@ Review publication is staging only; production domains are not published.
 
 ## Staging validation
 
+The initial checks below verified circle styling and navigation, but missed
+legacy artwork and the difference between declared and visible transitions.
+The follow-up correction and animation checks are recorded after that history.
+
 Published only to `dentalbarns.webflow.io` (publish task
 `6524e2e5-ff7c-4b0c-844b-87cc25063baa`).
 
@@ -62,4 +70,43 @@ Published only to `dentalbarns.webflow.io` (publish task
 - The deployed IG bundles were checked against their previous live release:
   only the added shared arrow class changed. Existing optimized feed data was
   retained. JavaScript syntax and whitespace checks passed.
+
+## Follow-up: four reported misses, 9 October 2026
+
+- IG's longer `carousel-arrow.ig-native_arrow` default combo overrode its old
+  global hover colour. Added the native combo hover colour and shared selected
+  colour so the fade is visible against the light section. IG now retains the
+  last activated arrow like Services, instead of losing feedback on pointer exit.
+- Treatment's two inline SVG embeds and the USP drawer's two inline SVG trees
+  still contained the old artwork. Replaced them in the reusable definitions
+  with native spans referencing the canonical shared arrow asset.
+- Smile's two black SVG Image elements could not inherit intermediate foreground
+  colours. Replaced them with the same native `carousel-arrow-icon` mask spans.
+  The native style owns 1rem geometry and current-colour fill; the previous
+  direction uses the `is-previous` combo. No extra arrow asset was uploaded.
+- The site-footer feedback module v1.0.1 owns sibling `is-selected` classes only.
+  It ignores disabled/locked/inert controls and keeps different carousels
+  independent. The keyboard listener covers Swiper's div buttons, whose native
+  key handling advances directly without generating a click.
+- Existing circle size, 8px blur, 300ms ease and carousel motion are preserved.
+  Component/CMS bindings, image loading and other runtime asset pins are intact.
+
+Staging publishes: `09ceb385-8197-4988-94f2-b28af36a170c` (artwork and pointer
+feedback), `d4cd65d7-b73e-404b-af84-3b87664ec149` (keyboard coverage).
+
+Browser checks at 1440px and 390px passed for Services, IG, Smile, Treatment and
+USP: next advances, previous returns one slide, selected feedback persists,
+the opposite arrow clears, and each corrected control uses the canonical mask
+with no inline SVG or fixed-colour Image child. Actual intermediate desktop
+frames confirm that IG and Smile glyph colour matches the animated foreground.
+Screenshots of the controls were visually inspected. Both contexts reported
+zero page JavaScript errors, with full motion preserved while the browser
+reported `prefers-reduced-motion: reduce`.
+
+Final v1.0.1 input checks also passed: Enter/Space navigate IG, Smile, Treatment
+and USP with matching selected feedback; selecting another carousel does not
+clear the prior carousel's selection. Real touch input on IG and Smile produces
+intermediate post-release ink colours, with the glyph matching each sampled
+frame before reaching the beige endpoint. Shared source/artifact syntax and
+whitespace checks passed.
 

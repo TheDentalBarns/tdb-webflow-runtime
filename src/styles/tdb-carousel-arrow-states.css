@@ -4,6 +4,9 @@
   background-color: rgba(255,255,255,.2);
   border-color: currentColor;
 }
+.carousel-arrow:is(.ig-native_arrow,.tdb-smile-arrow-prev,.tdb-smile-arrow-next):not(:disabled):not([aria-disabled="true"]):not(.is-disabled):is(.is-selected,.is-touch-held,:active) {
+  color: var(--base-color-brand--orange-3,#d6cab4);
+}
 @media (hover:hover) and (pointer:fine) {
   .carousel-arrow:not(:disabled):not([aria-disabled="true"]):not(.is-disabled):hover {
     background-color: rgba(255,255,255,.2);

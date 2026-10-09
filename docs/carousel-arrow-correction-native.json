@@ -1,0 +1,406 @@
+{
+  "date": "2026-10-09",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "scope": "Treatment, reusable Smile carousel and USP drawer arrow artwork only; contains no CMS content.",
+  "assetId": "6ac8c5037ecf8cf1ab74a93a",
+  "before": [
+    {
+      "id": {
+        "component": "1cc1fff8-4b9a-3eb7-19af-da2473371baf",
+        "element": "1cc1fff8-4b9a-3eb7-19af-da2473371c1d"
+      },
+      "type": "Block",
+      "styleNames": [
+        "carousel-arrow",
+        "tdb-service-arrow",
+        "swiper-btn-prev"
+      ],
+      "settings": {
+        "tag": "div",
+        "visibility": true,
+        "block": {
+          "tag": "div"
+        }
+      },
+      "children": [
+        {
+          "id": {
+            "component": "1cc1fff8-4b9a-3eb7-19af-da2473371baf",
+            "element": "1cc1fff8-4b9a-3eb7-19af-da2473371c1e"
+          },
+          "type": "HtmlEmbed",
+          "styleNames": [
+            "slider-arrow-icon"
+          ],
+          "settings": {
+            "visibility": true
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "component": "1cc1fff8-4b9a-3eb7-19af-da2473371baf",
+        "element": "1cc1fff8-4b9a-3eb7-19af-da2473371c1f"
+      },
+      "type": "Block",
+      "styleNames": [
+        "carousel-arrow",
+        "tdb-service-arrow",
+        "swiper-btn-next"
+      ],
+      "settings": {
+        "tag": "div",
+        "visibility": true,
+        "block": {
+          "tag": "div"
+        }
+      },
+      "children": [
+        {
+          "id": {
+            "component": "1cc1fff8-4b9a-3eb7-19af-da2473371baf",
+            "element": "1cc1fff8-4b9a-3eb7-19af-da2473371c20"
+          },
+          "type": "HtmlEmbed",
+          "styleNames": [
+            "slider-arrow-icon"
+          ],
+          "settings": {
+            "visibility": true
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "component": "e0beb16c-1442-9d6b-ea4d-f24bdc4656ae",
+        "element": "e0beb16c-1442-9d6b-ea4d-f24bdc4656ed"
+      },
+      "type": "Block",
+      "styleNames": [
+        "carousel-arrow",
+        "slider-arrow",
+        "swiper-btn-prev",
+        "is-dark",
+        "tdb-smile-arrow-prev"
+      ],
+      "attributes": {
+        "data-tdb-smile-prev": "true"
+      },
+      "settings": {
+        "tag": "div",
+        "visibility": true,
+        "block": {
+          "tag": "div"
+        }
+      },
+      "children": [
+        {
+          "id": {
+            "component": "e0beb16c-1442-9d6b-ea4d-f24bdc4656ae",
+            "element": "07de9868-53f0-3dfe-446f-26be6d097f17"
+          },
+          "type": "Image",
+          "styleNames": [
+            "slider-arrow-icon",
+            "tdb-smile-arrow-icon",
+            "tdb-smile-shared-arrow-prev"
+          ],
+          "settings": {
+            "visibility": true,
+            "assetId": "6ac8c5037ecf8cf1ab74a93a"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "component": "e0beb16c-1442-9d6b-ea4d-f24bdc4656ae",
+        "element": "e0beb16c-1442-9d6b-ea4d-f24bdc4656ef"
+      },
+      "type": "Block",
+      "styleNames": [
+        "carousel-arrow",
+        "slider-arrow",
+        "swiper-btn-next",
+        "is-dark",
+        "tdb-smile-arrow-next"
+      ],
+      "attributes": {
+        "data-tdb-smile-next": "true"
+      },
+      "settings": {
+        "tag": "div",
+        "visibility": true,
+        "block": {
+          "tag": "div"
+        }
+      },
+      "children": [
+        {
+          "id": {
+            "component": "e0beb16c-1442-9d6b-ea4d-f24bdc4656ae",
+            "element": "fc7b8ad3-f0b4-c183-e9a9-e5f7c8e1b099"
+          },
+          "type": "Image",
+          "styleNames": [
+            "slider-arrow-icon",
+            "tdb-smile-arrow-icon",
+            "tdb-smile-shared-arrow"
+          ],
+          "settings": {
+            "visibility": true,
+            "assetId": "6ac8c5037ecf8cf1ab74a93a"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "component": "b0e9aba4-e002-1e83-1542-b8a3ea2bdecb",
+        "element": "b0e9aba4-e002-1e83-1542-b8a3ea2bdedd"
+      },
+      "type": "Link",
+      "styleNames": [
+        "carousel-arrow",
+        "tdb-review-drawer_nav-button"
+      ],
+      "attributes": {
+        "aria-label": "Previous practice highlight",
+        "type": "button",
+        "data-tdb-usp-prev": ""
+      },
+      "settings": {
+        "visibility": true
+      },
+      "children": [
+        {
+          "id": {
+            "component": "b0e9aba4-e002-1e83-1542-b8a3ea2bdecb",
+            "element": "b0e9aba4-e002-1e83-1542-b8a3ea2bdede"
+          },
+          "type": "DOM",
+          "styleNames": [
+            "tdb-review-drawer_arrow",
+            "is-prev"
+          ],
+          "attributes": {
+            "aria-hidden": "true",
+            "viewBox": "0 0 16 16",
+            "class": "tdb-review-drawer_arrow is-prev"
+          },
+          "settings": {
+            "tag": "svg",
+            "visibility": true,
+            "dom": {
+              "tag": "svg"
+            }
+          },
+          "children": [
+            {
+              "id": {
+                "component": "b0e9aba4-e002-1e83-1542-b8a3ea2bdecb",
+                "element": "b0e9aba4-e002-1e83-1542-b8a3ea2bdedf"
+              },
+              "type": "DOM",
+              "attributes": {
+                "d": "M12.6893 7.25L6.96967 1.53033L8.03033 0.469666L15.5607 8L8.03033 15.5303L6.96967 14.4697L12.6893 8.75H0.5V7.25H12.6893Z",
+                "fill": "currentColor"
+              },
+              "settings": {
+                "tag": "path",
+                "visibility": true,
+                "dom": {
+                  "tag": "path"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": {
+        "component": "b0e9aba4-e002-1e83-1542-b8a3ea2bdecb",
+        "element": "b0e9aba4-e002-1e83-1542-b8a3ea2bdee0"
+      },
+      "type": "Link",
+      "styleNames": [
+        "carousel-arrow",
+        "tdb-review-drawer_nav-button"
+      ],
+      "attributes": {
+        "aria-label": "Next practice highlight",
+        "type": "button",
+        "data-tdb-usp-next": ""
+      },
+      "settings": {
+        "visibility": true
+      },
+      "children": [
+        {
+          "id": {
+            "component": "b0e9aba4-e002-1e83-1542-b8a3ea2bdecb",
+            "element": "b0e9aba4-e002-1e83-1542-b8a3ea2bdee1"
+          },
+          "type": "DOM",
+          "styleNames": [
+            "tdb-review-drawer_arrow"
+          ],
+          "attributes": {
+            "aria-hidden": "true",
+            "viewBox": "0 0 16 16",
+            "class": "tdb-review-drawer_arrow"
+          },
+          "settings": {
+            "tag": "svg",
+            "visibility": true,
+            "dom": {
+              "tag": "svg"
+            }
+          },
+          "children": [
+            {
+              "id": {
+                "component": "b0e9aba4-e002-1e83-1542-b8a3ea2bdecb",
+                "element": "b0e9aba4-e002-1e83-1542-b8a3ea2bdee2"
+              },
+              "type": "DOM",
+              "attributes": {
+                "d": "M12.6893 7.25L6.96967 1.53033L8.03033 0.469666L15.5607 8L8.03033 15.5303L6.96967 14.4697L12.6893 8.75H0.5V7.25H12.6893Z",
+                "fill": "currentColor"
+              },
+              "settings": {
+                "tag": "path",
+                "visibility": true,
+                "dom": {
+                  "tag": "path"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "created": [
+    {
+      "label": "treatment previous",
+      "element": {
+        "id": {
+          "component": "1cc1fff8-4b9a-3eb7-19af-da2473371baf",
+          "element": "60088bca-90d0-425a-5cba-e5d8e8e0ebdb"
+        },
+        "type": "Span",
+        "styleNames": [
+          "carousel-arrow-icon",
+          "is-previous"
+        ],
+        "attributes": {
+          "aria-hidden": "true"
+        },
+        "settings": {
+          "visibility": true
+        }
+      }
+    },
+    {
+      "label": "treatment next",
+      "element": {
+        "id": {
+          "component": "1cc1fff8-4b9a-3eb7-19af-da2473371baf",
+          "element": "4486c88d-807f-e0b2-0583-4e492f0e2b94"
+        },
+        "type": "Span",
+        "styleNames": [
+          "carousel-arrow-icon"
+        ],
+        "attributes": {
+          "aria-hidden": "true"
+        },
+        "settings": {
+          "visibility": true
+        }
+      }
+    },
+    {
+      "label": "smile previous",
+      "element": {
+        "id": {
+          "component": "e0beb16c-1442-9d6b-ea4d-f24bdc4656ae",
+          "element": "58db604f-2d9d-192d-3b22-e739f3cac5a5"
+        },
+        "type": "Span",
+        "styleNames": [
+          "carousel-arrow-icon",
+          "is-previous"
+        ],
+        "attributes": {
+          "aria-hidden": "true"
+        },
+        "settings": {
+          "visibility": true
+        }
+      }
+    },
+    {
+      "label": "smile next",
+      "element": {
+        "id": {
+          "component": "e0beb16c-1442-9d6b-ea4d-f24bdc4656ae",
+          "element": "a53d4cee-97f4-312a-cf6d-14afb3c4de03"
+        },
+        "type": "Span",
+        "styleNames": [
+          "carousel-arrow-icon"
+        ],
+        "attributes": {
+          "aria-hidden": "true"
+        },
+        "settings": {
+          "visibility": true
+        }
+      }
+    },
+    {
+      "label": "USP previous",
+      "element": {
+        "id": {
+          "component": "b0e9aba4-e002-1e83-1542-b8a3ea2bdecb",
+          "element": "cbbfdcb9-1944-8b87-a898-f6b835fb07ac"
+        },
+        "type": "Span",
+        "styleNames": [
+          "carousel-arrow-icon",
+          "is-previous"
+        ],
+        "attributes": {
+          "aria-hidden": "true"
+        },
+        "settings": {
+          "visibility": true
+        }
+      }
+    },
+    {
+      "label": "USP next",
+      "element": {
+        "id": {
+          "component": "b0e9aba4-e002-1e83-1542-b8a3ea2bdecb",
+          "element": "dbf339da-cf94-0443-5c38-914aa71c5439"
+        },
+        "type": "Span",
+        "styleNames": [
+          "carousel-arrow-icon"
+        ],
+        "attributes": {
+          "aria-hidden": "true"
+        },
+        "settings": {
+          "visibility": true
+        }
+      }
+    }
+  ]
+}
