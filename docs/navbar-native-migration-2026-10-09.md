@@ -89,6 +89,30 @@ The top state paints the navbar root; the scrolled state uses a separate glass
 layer. That state-dependent difference needs investigation and real mobile
 geometry evidence before applying another correction.
 
+## Solid mobile surfaces v1.1.0
+
+David identified the remaining edge on Android Chrome as a strip of blurred
+page imagery, and approved testing the retained filter. Both Designer solid
+surface classes keep `saturate(150%) blur(20px)` while the runtime animates
+only their background colour. The top-of-page state explicitly disables blur;
+the scrolled state previously left it active indefinitely behind opaque cream.
+
+The native foundation now observes the existing `tdb-nav-bar-open` and
+`tdb-nav-menu-open` animation completion events. Each solid surface receives
+`data-tdb-nav-blur-idle`, and scoped CSS disables its backdrop filter. The
+native menu-button closed state removes both flags before the next paint,
+including Escape/outside-close paths, and crossing 768px clears them too.
+Only backdrop-filter CSS transitions are finished immediately at these
+switches; the native menu transform, height, colour fade, duration and easing
+remain untouched. No timeout, overlap, geometry adjustment or input handler
+is added. Top-of-page states and desktop/dropdown motion retain their existing
+behaviour. An interrupted opening never retires blur, and late completion
+events after closing are ignored.
+
+This tests a specific retained-filter cause; removal of the Android hairline
+still requires David's visual check. The available browser cannot emulate
+the affected mobile viewport.
+
 Run `node tools/build-navbar-native.cjs` with terser installed, then
 `node --test tests/navbar-native.test.cjs` with jsdom installed.
 

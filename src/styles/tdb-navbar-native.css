@@ -1,4 +1,4 @@
-/* Navbar IX2 replacement CSS v1.0.2. Designer retains layout and appearance.
+/* Navbar native foundation CSS v1.1.0. Designer retains layout and appearance.
  * Native Webflow states drive motion before AND after the consent decision.
  */
 [data-tdb-navbar-native] {
@@ -51,6 +51,15 @@
   [data-tdb-navbar-native] .accordion-spacer[data-tdb-expanded="true"] {
     height: 20px;
     transition-delay: 300ms;
+  }
+}
+/* The existing scrolled-surface colour animations run only below 768px.
+   Release the hidden blur after each surface becomes opaque. Keep geometry
+   and every native transition intact; JS settles only the filter transition. */
+@media (max-width: 767px) {
+  [data-tdb-navbar-native] :is(.tdb-nav-bar-glass.is-nav-solid, .navbar10_menu.is-menu-solid)[data-tdb-nav-blur-idle] {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
 }
 @media (min-width: 992px) {

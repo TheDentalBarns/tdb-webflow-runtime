@@ -83,3 +83,77 @@ test('shared observer works without a navbar and emits only state changes', asyn
   assert.deepEqual(seen,[false,true]);
   dom.window.close();
 });
+
+function solidSurfaceFixture() {
+  const dom=new JSDOM('<!doctype html>'+markup,{runScripts:'outside-only'});
+  const {document:doc}=dom.window, nav=doc.querySelector('.w-nav');
+  const media={matches:true,listeners:[],addEventListener(type,callback){this.listeners.push(callback);}};
+  dom.window.matchMedia=()=>media;
+  nav.insertAdjacentHTML('afterbegin','<div class="tdb-nav-bar-glass is-nav-solid"></div><nav class="navbar10_menu is-menu-solid"><div class="navbar10_menu-left"></div></nav>');
+  const glass=nav.querySelector('.tdb-nav-bar-glass'), menu=nav.querySelector('.navbar10_menu');
+  const finished=[];
+  for (const surface of [glass,menu]) {
+    surface.getAnimations=()=>['backdrop-filter','-webkit-backdrop-filter','transform','height','background-color',undefined].map(transitionProperty=>({
+      transitionProperty, finish(){finished.push({surface,transitionProperty,idle:surface.hasAttribute('data-tdb-nav-blur-idle')});}
+    }));
+  }
+  function end(surface,animationName,pseudoElement='') {
+    const event=new dom.window.Event('animationend',{bubbles:true});
+    Object.assign(event,{animationName,pseudoElement});
+    surface.dispatchEvent(event);
+  }
+  dom.window.eval(source);
+  return {dom,doc,nav,media,glass,menu,finished,end,button:nav.querySelector('.navbar10_menu-button')};
+}
+
+test('solid mobile surfaces retire blur only after their own fade and restore before native ARIA closing cleanup', async () => {
+  const {dom,nav,glass,menu,button,finished,end}=solidSurfaceFixture();
+  const idle='data-tdb-nav-blur-idle';
+  button.classList.add('w--open');button.setAttribute('aria-expanded','true');await flush();
+  assert.equal(nav.querySelectorAll(`[${idle}]`).length,0,'opening remains blurred');
+  end(glass,'tdb-mobile-nav-text-motion');
+  end(menu.querySelector('.navbar10_menu-left'),'tdb-nav-menu-open');
+  assert.equal(nav.querySelectorAll(`[${idle}]`).length,0,'unrelated/child animations cannot retire blur');
+  end(glass,'tdb-nav-bar-open');
+  assert.equal(glass.hasAttribute(idle),true);
+  assert.equal(menu.hasAttribute(idle),false,'each surface follows its own fade');
+  end(menu,'tdb-nav-menu-open');
+  assert.equal(menu.hasAttribute(idle),true);
+  assert.deepEqual(finished.map(x=>x.transitionProperty),['backdrop-filter','-webkit-backdrop-filter','backdrop-filter','-webkit-backdrop-filter']);
+  assert(finished.every(x=>x.idle));
+  end(menu,'tdb-nav-menu-open');
+  assert.equal(finished.length,4,'duplicate completion is idempotent');
+  button.classList.remove('w--open');await flush();
+  assert.equal(button.getAttribute('aria-expanded'),'true','native closing still owns ARIA');
+  assert.equal(nav.querySelectorAll(`[${idle}]`).length,0);
+  assert.equal(finished.length,8);
+  assert(finished.slice(4).every(x=>!x.idle),'restoration finishes only the filter transition');
+  end(glass,'tdb-nav-bar-open');end(menu,'tdb-nav-menu-open');
+  assert.equal(nav.querySelectorAll(`[${idle}]`).length,0,'late completion after close is ignored');
+  assert.equal(glass.getAttribute('style'),null);
+  assert.equal(menu.getAttribute('style'),null,'native transition and transform styles are never overwritten');
+  dom.window.close();
+});
+
+test('blur retirement preserves top-of-page fades, interrupted openings and breakpoint changes', async () => {
+  const {dom,nav,glass,menu,button,media,end}=solidSurfaceFixture();
+  const idle='data-tdb-nav-blur-idle';
+  button.classList.add('w--open');await flush();
+  end(menu,'tdb-menu-clear-to-solid');
+  end(glass,'tdb-nav-bar-open','::before');
+  assert.equal(nav.querySelectorAll(`[${idle}]`).length,0);
+  button.classList.remove('w--open');await flush();
+  assert.equal(nav.querySelectorAll(`[${idle}]`).length,0,'an interrupted opening adds no delayed flag');
+  button.classList.add('w--open');await flush();
+  end(glass,'tdb-nav-bar-open');end(menu,'tdb-nav-menu-open');
+  assert.equal(nav.querySelectorAll(`[${idle}]`).length,2);
+  media.matches=false;media.listeners.forEach(callback=>callback());
+  assert.equal(nav.querySelectorAll(`[${idle}]`).length,0,'crossing the mobile surface boundary restores blur');
+  end(glass,'tdb-nav-bar-open');end(menu,'tdb-nav-menu-open');
+  assert.equal(nav.querySelectorAll(`[${idle}]`).length,0,'desktop/tablet cannot acquire a mobile flag');
+  media.matches=true;media.listeners.forEach(callback=>callback());
+  assert.equal(nav.querySelectorAll(`[${idle}]`).length,0,'return to mobile starts with the normal surface');
+  end(glass,'tdb-nav-bar-open');
+  assert.equal(glass.hasAttribute(idle),true);
+  dom.window.close();
+});
