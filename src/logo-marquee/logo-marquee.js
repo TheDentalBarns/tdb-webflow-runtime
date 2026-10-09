@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.0';
+  const VERSION = '0.14.1';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -90,6 +90,10 @@
   function primeTooltipImage(item) {
     const image = item?.querySelector(CONFIG.tooltipImageSelector);
     if (!image) return;
+    // Webflow exports hidden CMS images with sizes="100vw". Apply the native
+    // slot hint before requesting/decoding, so the first download is suitable.
+    const sizes = image.getAttribute('data-tdb-partner-image-sizes');
+    if (sizes && image.hasAttribute('srcset')) image.setAttribute('sizes', sizes);
     image.loading = 'eager';
     image.setAttribute('loading', 'eager');
     image.setAttribute('decoding', 'async');
@@ -845,23 +849,28 @@
     }, { signal });
     track.addEventListener('focusout', () => track.querySelectorAll('.is-keyboard-focused').forEach(item => item.classList.remove('is-keyboard-focused')), { signal });
     track.addEventListener('keydown', onKey, { signal });
-    document.addEventListener('keydown', event => {
-      if (event.key === 'Tab' && openCard && !event.shiftKey && event.target === openItem) {
-        if (visitButton?.getAttribute('href')) { event.preventDefault(); visitButton.focus({ preventScroll: true }); }
+    // Logo-only variants have no card to position, dismiss or focus.
+    if (shell) {
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Tab' && openCard && !event.shiftKey && event.target === openItem) {
+          if (visitButton?.getAttribute('href')) { event.preventDefault(); visitButton.focus({ preventScroll: true }); }
+        }
+        if (event.key === 'Escape' && openCard) {
+          event.preventDefault(); closeCard(true); resume();
+        }
+      }, { signal });
+      window.addEventListener('resize', positionCard, { signal, passive: true });
+      window.visualViewport?.addEventListener('resize', positionCard, { signal, passive: true });
+      if ('ResizeObserver' in window) {
+        const cardObserver = new ResizeObserver(positionCard);
+        cardObserver.observe(shell);
+        signal.addEventListener('abort', () => cardObserver.disconnect(), { once: true });
       }
-      if (event.key === 'Escape' && openCard) {
-        event.preventDefault(); closeCard(true); resume();
-      }
-    }, { signal });
-    window.addEventListener('resize', positionCard, { signal, passive: true });
-    window.visualViewport?.addEventListener('resize', positionCard, { signal, passive: true });
-    const cardObserver = new ResizeObserver(positionCard);
-    if (shell) cardObserver.observe(shell);
-    signal.addEventListener('abort', () => cardObserver.disconnect(), { once: true });
+      window.addEventListener('scroll', onPageScroll, { signal, passive: true });
+    }
     track.addEventListener('dragstart', event => event.preventDefault(), { signal });
     reduced.addEventListener('change', onReducedChange, { signal });
     document.addEventListener('click', onOutsideClick, { signal, capture:true });
-    window.addEventListener('scroll', onPageScroll, { signal, passive:true });
     track.addEventListener('pointerdown', onPointerDown, { signal });
     track.addEventListener('pointermove', onPointerMove, { signal, passive: false });
     window.addEventListener('pointerup', endPointer, { signal });
@@ -901,12 +910,13 @@
     if ('ResizeObserver' in window) {
       resizeObserver = new ResizeObserver(scheduleMeasure);
       resizeObserver.observe(track);
-      track.querySelectorAll(CONFIG.itemSelector).forEach(item => resizeObserver.observe(item));
+      // Repeated logos mirror their originals; observe each source only once.
+      originals.forEach(item => resizeObserver.observe(item));
     } else {
       window.addEventListener('resize', scheduleMeasure, { signal, passive: true });
     }
 
-    track.querySelectorAll('img').forEach(image => {
+    originals.flatMap(item => Array.from(item.querySelectorAll(CONFIG.logoSelector))).forEach(image => {
       if (image.complete) return;
       image.addEventListener('load', scheduleMeasure, { signal, once: true });
       image.addEventListener('error', scheduleMeasure, { signal, once: true });
