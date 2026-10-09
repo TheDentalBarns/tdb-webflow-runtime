@@ -1,4 +1,4 @@
-/* TDB CMS review source v1.4.0. No review records or credentials in this file. */
+/* TDB CMS review source v1.4.1. No review records or credentials in this file. */
 (() => {
   'use strict';
   if (window.TDBReviewCMS) return;
@@ -28,7 +28,7 @@
       const rating = numeric(attr('star-rating'));
       return {
         id: attr('slug'), name: field('reviewer-display-name'), text: field('full-review'),
-        excerpt: field('featured-excerpt'), platform: platforms[attr('platform-2')] || attr('platform-2'), date: attr('review-date'),
+        excerpt: field('featured-excerpt'), platform: platforms[attr('platform-2')] || attr('platform-2'), date: attr('review-date'), displayDate: field('display-date'),
         rating: Number.isInteger(rating) && rating >= 1 && rating <= 5 ? rating : null,
         approx: Boolean(flag('date-approximate')), historic: ['Dr Keely - historic practice', '78902de9c8ddcc3437156f6120e0cc9c'].includes(attr('review-subject')),
         rank: rank('editorial-priority'), snippetRank: rank('snippet-rank'),
@@ -257,7 +257,7 @@
       [record.excerpt, ...Object.values(record.excerpts || {})].some(value => normal(value) === excerpt));
     return matching.length === 1 ? matching[0].id : '';
   }
-  window.TDBReviewCMS = Object.freeze({ version: '1.4.0', load, parse, fromDocument, matching, ordered, sourceIcon, contextForPath, resolveIdentity, canonicalTopic,
+  window.TDBReviewCMS = Object.freeze({ version: '1.4.1', load, parse, fromDocument, matching, ordered, sourceIcon, contextForPath, resolveIdentity, canonicalTopic,
     preview: Object.freeze({ contexts: Object.freeze({}) }),
     get quoteMark() { return (document.querySelector('[data-tdb-review-icon="Quote"] svg') || sourceDoc?.querySelector('[data-tdb-review-icon="Quote"] svg'))?.outerHTML || ''; }
   });
