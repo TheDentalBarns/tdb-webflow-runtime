@@ -7,10 +7,12 @@ async function setup(count=3){
  viewport.getBoundingClientRect=()=>({width:393,height:300,top:0,left:0,right:393,bottom:300});Object.defineProperty(viewport,'clientWidth',{value:393});
  w.TDBMotion={duration:()=>400,carousel:{entryStart:100,nextDelay:0,previousDelay:0,settleDelay:0},ddText:()=>({enter(){},destroy(){}})};
  w.TDBNativeTicker={mount:n=>({update:v=>n.textContent=v,destroy(){}})};
- w.TDBModules={load:async()=>{}};w.TDBReviewCMS={sourceIcon(){const n=w.document.createElement('span');n.textContent='Google';return n}};
+ w.TDBModules={load:async()=>{}};w.TDBReviewCMS={sourceIcon(){throw Error('Trio must not clone logo artwork')}};
+ const template=w.document.createElement('div');template.innerHTML='<span data-tdb-review-icon="Google"><svg><image href="https://example.com/shared-google.svg"></image></svg></span>';w.document.body.append(template);
  Object.defineProperty(w.document,'currentScript',{value:{src:'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@test/dist/tdb-quote-carousel.js'}});
- w.eval(read('dist/tdb-swiper-8.4.7.min.js'));w.eval(read('dist/tdb-quote-carousel.js'));w.eval(read('dist/tdb-review-quote-adapter.js'));
+ w.eval(read('dist/tdb-swiper-8.4.7.min.js'));w.eval(read('dist/tdb-quote-carousel.js'));w.eval(read('dist/tdb-review-quote-adapter.min.js'));
  const data={featured:Array.from({length:count},(_,i)=>'review-'+i),records:Array.from({length:count},(_,i)=>({id:'review-'+i,excerpt:'Published '+i,name:'Reviewer '+i,platform:'Google'}))};
+ const cached=new Map(data.records.map(record=>[record.id,record]));data.getCached=id=>cached.get(id);data.records=data.records.slice(0,1);
  const hooks={openReviews:async value=>{calls.push(value)}};let api=w.TDBReviewQuotes.mount(root,data,hooks);
  const click=()=>api.swiper.slides[api.swiper.activeIndex].querySelector('[data-tdb-quote-action]').dispatchEvent(new w.MouseEvent('click',{bubbles:true,cancelable:true}));
  const flush=()=>new Promise(r=>setTimeout(r,10));
@@ -20,6 +22,8 @@ test('native review root and authored cards survive hydration, selected review o
  const t=await setup();try{assert.equal(t.w.document.querySelector('[data-tdb-review-quotes]'),t.root);assert.equal(t.root.querySelectorAll('[data-tdb-team-slide]:not(.swiper-slide-duplicate)').length,3);
  for(let i=0;i<8;i++){t.api.swiper.slideNext(0);await t.flush();t.click();await t.flush();assert.equal(t.calls.at(-1).reviewId,'review-'+t.api.swiper.realIndex)}
  assert.equal(t.root.querySelector('[data-tdb-team-total]').textContent,'03');
+ assert.equal(t.data.records.length,1,'targeted records do not advance the shared feed');
+ for(const source of t.root.querySelectorAll('[data-tdb-quotes-source]')){assert.equal(source.children.length,0);assert.equal(source.dataset.reviewPlatform,'Google');assert.match(source.style.backgroundImage,/shared-google\.svg/)}
  }finally{t.close()}
 });
 test('swipes and inactive duplicates cannot open drawer; keyboard opens active review once',async()=>{

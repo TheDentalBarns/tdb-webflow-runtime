@@ -1,23 +1,36 @@
-/* TDB review quote adapter v2.0.0. Native component + shared quote carousel. */
+/* TDB review quote adapter v2.1.0. Native component + shared quote carousel. */
 (() => {
 'use strict'; if(window.TDBReviewQuotes)return;
 const instances=new WeakMap();
+const assets=new Map();
+function platformAsset(platform){
+ if(assets.has(platform))return assets.get(platform);
+ const template=[...document.querySelectorAll('[data-tdb-review-icon]')].find(node=>node.dataset.tdbReviewIcon===platform);
+ const url=template?.querySelector('image')?.getAttribute('href')||'';
+ if(url)assets.set(platform,url);
+ return url;
+}
 function mount(root,data,{openReviews}) {
  if(instances.has(root))return instances.get(root);
  const track=root.querySelector('[data-tdb-team-track]');
- const originals=[...track.children];
- const records=data.featured.map(id=>data.records.find(record=>record.id===id)).filter(Boolean);
+ // Selection order is supplied by the consumer; no fixed names or feed positions.
+ const records=data.featured.map(id=>data.getCached(id)).filter(Boolean);
  if(!records.length)return {destroy(){}};
  // Hydrate the authored cards in place; never replace the component or its layout.
  // Only CMS count changes require adding/removing a card.
- const template=originals[0].cloneNode(true);
+ const template=track.children.length<records.length?track.firstElementChild.cloneNode(true):null;
  while(track.children.length>records.length)track.lastElementChild.remove();
  while(track.children.length<records.length)track.append(template.cloneNode(true));
  records.forEach((record,index)=>{
   const card=track.children[index];card.dataset.reviewId=record.id;
   card.querySelector('[data-tdb-team-text]').textContent=record.excerpt;
   card.querySelector('[data-tdb-quotes-name]').textContent=record.name;
-  card.querySelector('[data-tdb-quotes-source]').replaceChildren(...window.TDBReviewCMS.sourceIcon(record.platform,true).childNodes);
+  const source=card.querySelector('[data-tdb-quotes-source]'),asset=platformAsset(record.platform);
+  source.dataset.reviewPlatform=record.platform;
+  source.style.backgroundImage=asset?`url("${asset}")`:'none';
+  source.style.width=asset?'':'auto';
+  source.textContent=asset?'':record.platform;
+  source.setAttribute('aria-hidden','true');
   const trigger=card.querySelector('[data-tdb-quote-action]');
   trigger.setAttribute('aria-label','Read full review by '+record.name);
   trigger.setAttribute('aria-disabled','false');trigger.setAttribute('tabindex','0');
@@ -33,6 +46,6 @@ function mount(root,data,{openReviews}) {
  }};
  instances.set(root,api);return api;
 }
-window.TDBReviewQuotes=Object.freeze({version:'2.0.0',mount});
+window.TDBReviewQuotes=Object.freeze({version:'2.1.0',mount});
 window.TDBSwiper?.register('review-testimonials',window.TDBReviewQuotes);
 })();

@@ -1,4 +1,4 @@
-/* TDB review loader v3.9.1. Permission, presence, preparation and playback stay separate. */
+/* TDB review loader v3.9.2. Permission, presence, preparation and playback stay separate. */
 (() => {
 'use strict';if(window.TDBReviewLoader)return;
 const script=document.currentScript,base=new URL('./',script.src),roots=new Map();
@@ -24,7 +24,7 @@ async function code(kind,signal,drawer=false){
  active(signal);
  await window.TDBModules.load(new URL('tdb-motion.js',base));active(signal);
  const names=['tdb-ticker.js','tdb-review-cms.js'];
- if(kind)names.push(kind==='quotes'?'tdb-review-quote-adapter.js':`tdb-review-${kind}.js`);
+ if(kind)names.push(kind==='quotes'?'tdb-review-quote-adapter.min.js':`tdb-review-${kind}.js`);
  if(kind==='quotes')names.push('tdb-quote-carousel.js');
  if(kind==='cards')names.push('tdb-slider-focus.js','tdb-rendered-progress.js');
  if(drawer&&drawerRoot())names.push('tdb-drawer.js','tdb-filters.js','tdb-reviews.js');
@@ -100,7 +100,9 @@ function sync(){
   const signal=controller.signal,token={};state.pending=token;
   (async()=>{
    const kind=kindOf(root),data=await prepare({signal,kind});active(signal);
-   if(kind==='quotes')await data.ensure?.(data.featured,{signal});
+   // Resolve the current selection by ID without advancing the shared feed.
+   // The drawer retains its existing editorial order and loading on open.
+   if(kind==='quotes')await data.fetchRecords(data.featured,{signal});
    if(kind==='introduction')await data.ensureIdentity?.(root,{signal});
    active(signal);
    root.querySelectorAll('[data-tdb-review-count]').forEach(n=>n.setAttribute('data-tdb-review-count',String(data.total)));
@@ -116,7 +118,7 @@ function discover(){[...document.querySelectorAll('[data-tdb-review-introduction
 for(const name of events){window.addEventListener(name,sync);document.addEventListener(name,sync);}
 options.subscribe?.(sync);window.addEventListener('online',sync);window.addEventListener('pageshow',sync);
 document.addEventListener('click',earlyOpen,true);document.addEventListener('keydown',earlyOpen,true);
-window.TDBReviewLoader=Object.freeze({version:'3.9.1',prepare,open,refresh:discover,status:()=>({allowed:allowed(),prepared:!!feature,instances:[...roots.values()].filter(s=>s.instance).length})});
+window.TDBReviewLoader=Object.freeze({version:'3.9.2',prepare,open,refresh:discover,status:()=>({allowed:allowed(),prepared:!!feature,instances:[...roots.values()].filter(s=>s.instance).length})});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',discover,{once:true});else discover();
 })();
 
