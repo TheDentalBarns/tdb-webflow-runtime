@@ -1,4 +1,4 @@
-/* TDB shared motion v1.19.3. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.19.4. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -56,6 +56,34 @@
   const coarsePointer = matchMedia('(pointer: coarse)');
   const touchViewport = () => coarsePointer.matches;
 
+  // DD roots and page-break clients measure in one frame, before any of them
+  // mutate styles. Separate rAF callbacks still interleave reads and writes.
+  const motionReads = new Set();
+  let motionFrame = 0;
+  const reportFrameError = error => { setTimeout(() => { throw error; }, 0); };
+  function flushMotionFrame() {
+    motionFrame = 0;
+    const reads = [...motionReads], writes = [];
+    motionReads.clear();
+    for (const read of reads) {
+      try { const write = read(); if (write) writes.push(write); }
+      catch (error) { reportFrameError(error); }
+    }
+    for (const write of writes) {
+      try { write(); } catch (error) { reportFrameError(error); }
+    }
+  }
+  function requestMotionFrame(read) {
+    motionReads.add(read);
+    if (!motionFrame) motionFrame = requestAnimationFrame(flushMotionFrame);
+  }
+  function cancelMotionFrame(read) {
+    motionReads.delete(read);
+    if (!motionReads.size && motionFrame) {
+      cancelAnimationFrame(motionFrame); motionFrame = 0;
+    }
+  }
+
   // One opacity owner per node and one scheduler per scroll root. A visible
   // first paint is retained; scroll, rather than elapsed time, consumes the
   // initial difference. Layout changes and browser restoration rebase it.
@@ -73,11 +101,13 @@
     if (ddRoots.has(root)) return ddRoots.get(root);
     const states = new Set(), events = new AbortController(), { signal } = events;
     const target = root || window, scrollTop = () => root ? root.scrollTop : window.scrollY;
-    let frame = 0, layout = true, disposed = false, suspended = false;
+    let queued = false, layout = true, disposed = false, suspended = false;
     let lastScroll = scrollTop();
     const intent = scrollIntent(target, scrollTop, signal, lastScroll);
     const schedule = () => {
-      if (!frame && !disposed && !suspended && !document.hidden && states.size) frame = requestAnimationFrame(render);
+      if (!queued && !disposed && !suspended && !document.hidden && states.size) {
+        queued = true; requestMotionFrame(measure);
+      }
     };
     const refresh = () => { layout = true; schedule(); };
     function retain(state, progress, low = 0, high = 1, range = 1) {
@@ -86,8 +116,9 @@
       state.desired = state.value;
       state.correction = { anchor: progress, low, high, range, offset: state.value - ddOpacity(progress, state.preset), weight: 1 };
     }
-    function render() {
-      frame = 0;
+    function measure() {
+      queued = false;
+      if (disposed || suspended || document.hidden) return;
       const scroll = scrollTop(), distance = lastScroll === null ? 0 : scroll - lastScroll;
       const userScroll = distance !== 0 && intent.active(scroll);
       const height = root ? root.clientHeight : window.innerHeight;
@@ -105,70 +136,72 @@
         return { state, shown, progress, low, high, range, visible: shown && rect.bottom > origin && rect.top < origin + height,
           signature: [rect.top - origin + scroll, rect.height, height, low, high, window.innerWidth] };
       });
-      let moving = false;
-      for (const g of measurements) {
-        const state = g.state;
-        if (!g.shown) { state.geometry = null; continue; }
-        // Mobile browser chrome changes the visible height without changing
-        // the document layout. Keep scrolling through it; still rebase width,
-        // element geometry, nested-root resizing and explicit refreshes.
-        const mobilePage = !root && touchViewport();
-        const changed = layout || !state.geometry || g.signature.some((v, i) =>
-          !(mobilePage && i >= 2 && i <= 4) && Math.abs(v - state.geometry[i]) > .5);
-        state.geometry = g.signature;
-        if (reduced.matches) {
-          state.node.style.opacity = state.original;
-          state.value = Number.parseFloat(getComputedStyle(state.node).opacity) || 0;
-          retain(state, g.progress, g.low, g.high, g.range); continue;
-        }
-        if (!g.visible && !state.restored && !state.geometrySeen) {
-          state.progress = state.targetProgress = g.progress; state.correction = null;
-          state.value = state.desired = ddOpacity(g.progress, state.preset);
-          state.ceiling = state.preset === 'orange' ? 1 : .5;
-        } else if (changed || (distance !== 0 && !userScroll)) {
-          retain(state, g.progress, g.low, g.high, g.range);
-        } else if (userScroll) {
-          state.targetProgress = g.progress;
-          if (!g.visible) {
-            state.progress = g.progress; state.correction = null;
-            state.value = state.desired = ddOpacity(g.progress, state.preset);
-          } else {
-            const c = state.correction;
-            if (c) {
-              // Use reachable endpoints: short case drawers and the page footer
-              // may never carry a caption completely outside their viewport.
-              const before = c.anchor > c.low ? (g.progress - c.low) / (c.anchor - c.low) : 1;
-              const after = c.anchor < c.high ? (c.high - g.progress) / (c.high - c.anchor) : 1;
-              const available = (g.progress >= c.anchor ? c.high - c.anchor : c.anchor - c.low) * c.range;
-              const travel = Math.max(80, Math.min(height * .5, available));
-              c.weight = ddClamp(Math.max(c.weight - Math.abs(distance) / travel, Math.min(c.weight, before, after)));
-            }
-            state.progress = state.mode === 'viewport' ? g.progress : state.progress + (g.progress - state.progress) * .5;
-            const normal = ddOpacity(state.mode === 'viewport' ? g.progress : state.progress, state.preset);
-            state.desired = Math.min(state.ceiling, ddClamp(normal + (c ? c.offset * c.weight : 0)));
+      return () => {
+        let moving = false;
+        for (const g of measurements) {
+          const state = g.state;
+          if (!g.shown) { state.geometry = null; continue; }
+          // Mobile browser chrome changes the visible height without changing
+          // the document layout. Keep scrolling through it; still rebase width,
+          // element geometry, nested-root resizing and explicit refreshes.
+          const mobilePage = !root && touchViewport();
+          const changed = layout || !state.geometry || g.signature.some((v, i) =>
+            !(mobilePage && i >= 2 && i <= 4) && Math.abs(v - state.geometry[i]) > .5);
+          state.geometry = g.signature;
+          if (reduced.matches) {
+            state.node.style.opacity = state.original;
+            state.value = Number.parseFloat(getComputedStyle(state.node).opacity) || 0;
+            retain(state, g.progress, g.low, g.high, g.range); continue;
           }
-        } else if (!changed && Math.abs(state.progress - state.targetProgress) >= .0001 && state.mode !== 'viewport') {
-          state.progress += (state.targetProgress - state.progress) * .5;
-          if (Math.abs(state.targetProgress - state.progress) < .0001) state.progress = state.targetProgress;
-          state.desired = Math.min(state.ceiling, ddClamp(ddOpacity(state.progress, state.preset) + (state.correction ? state.correction.offset * state.correction.weight : 0)));
+          if (!g.visible && !state.restored && !state.geometrySeen) {
+            state.progress = state.targetProgress = g.progress; state.correction = null;
+            state.value = state.desired = ddOpacity(g.progress, state.preset);
+            state.ceiling = state.preset === 'orange' ? 1 : .5;
+          } else if (changed || (distance !== 0 && !userScroll)) {
+            retain(state, g.progress, g.low, g.high, g.range);
+          } else if (userScroll) {
+            state.targetProgress = g.progress;
+            if (!g.visible) {
+              state.progress = g.progress; state.correction = null;
+              state.value = state.desired = ddOpacity(g.progress, state.preset);
+            } else {
+              const c = state.correction;
+              if (c) {
+                // Use reachable endpoints: short case drawers and the page footer
+                // may never carry a caption completely outside their viewport.
+                const before = c.anchor > c.low ? (g.progress - c.low) / (c.anchor - c.low) : 1;
+                const after = c.anchor < c.high ? (c.high - g.progress) / (c.high - c.anchor) : 1;
+                const available = (g.progress >= c.anchor ? c.high - c.anchor : c.anchor - c.low) * c.range;
+                const travel = Math.max(80, Math.min(height * .5, available));
+                c.weight = ddClamp(Math.max(c.weight - Math.abs(distance) / travel, Math.min(c.weight, before, after)));
+              }
+              state.progress = state.mode === 'viewport' ? g.progress : state.progress + (g.progress - state.progress) * .5;
+              const normal = ddOpacity(state.mode === 'viewport' ? g.progress : state.progress, state.preset);
+              state.desired = Math.min(state.ceiling, ddClamp(normal + (c ? c.offset * c.weight : 0)));
+            }
+          } else if (!changed && Math.abs(state.progress - state.targetProgress) >= .0001 && state.mode !== 'viewport') {
+            state.progress += (state.targetProgress - state.progress) * .5;
+            if (Math.abs(state.targetProgress - state.progress) < .0001) state.progress = state.targetProgress;
+            state.desired = Math.min(state.ceiling, ddClamp(ddOpacity(state.progress, state.preset) + (state.correction ? state.correction.offset * state.correction.weight : 0)));
+          }
+          // Settling is permitted only after a user scroll established a target.
+          // It never pays down the startup correction by itself.
+          state.value = state.mode === 'viewport' ? state.value + (state.desired - state.value) * .5 : state.desired;
+          if (Math.abs(state.desired - state.value) < .0001) state.value = state.desired;
+          else moving = true;
+          if (Math.abs(state.progress - state.targetProgress) >= .0001) moving = true;
+          const opacity = String(ddClamp(state.value));
+          if (state.node.style.opacity !== opacity) state.node.style.opacity = opacity;
         }
-        // Settling is permitted only after a user scroll established a target.
-        // It never pays down the startup correction by itself.
-        state.value = state.mode === 'viewport' ? state.value + (state.desired - state.value) * .5 : state.desired;
-        if (Math.abs(state.desired - state.value) < .0001) state.value = state.desired;
-        else moving = true;
-        if (Math.abs(state.progress - state.targetProgress) >= .0001) moving = true;
-        const opacity = String(ddClamp(state.value));
-        if (state.node.style.opacity !== opacity) state.node.style.opacity = opacity;
-      }
-      for (const state of states) if (state.geometry) state.geometrySeen = true;
-      lastScroll = scroll; layout = false;
-      if (moving) schedule();
+        for (const state of states) if (state.geometry) state.geometrySeen = true;
+        lastScroll = scroll; layout = false;
+        if (moving) schedule();
+      };
     }
     target.addEventListener('scroll', schedule, { signal, passive: true });
     window.addEventListener('resize', schedule, { signal, passive: true });
     window.addEventListener('load', refresh, { signal });
-    window.addEventListener('pagehide', () => { suspended = true; cancelAnimationFrame(frame); frame = 0; }, { signal });
+    window.addEventListener('pagehide', () => { suspended = true; cancelMotionFrame(measure); queued = false; }, { signal });
     window.addEventListener('pageshow', () => { suspended = false; lastScroll = null; refresh(); }, { signal });
     document.addEventListener('visibilitychange', refresh, { signal });
     reduced.addEventListener('change', refresh, { signal });
@@ -178,7 +211,7 @@
     }
     document.fonts?.ready.then(() => { if (!disposed) refresh(); });
     const api = { root, states, schedule, refresh, resize, destroy() {
-      disposed = true; events.abort(); resize?.disconnect(); cancelAnimationFrame(frame); ddRoots.delete(root);
+      disposed = true; events.abort(); resize?.disconnect(); cancelMotionFrame(measure); queued = false; ddRoots.delete(root);
     }};
     ddRoots.set(root, api); return api;
   }
@@ -239,7 +272,7 @@
     const states = [], owned = [];
     const memory = window.TDBPageBreakMemory;
     const remember = () => memory?.save(states);
-    let frame = 0, layout = true, suspended = false, disposed = false, released = false;
+    let queued = false, layout = true, suspended = false, disposed = false, released = false;
     let lastScroll = window.scrollY;
     let intent;
     const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
@@ -248,7 +281,9 @@
       return transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m42;
     };
     const schedule = () => {
-      if (!frame && !disposed && !suspended && !document.hidden) frame = requestAnimationFrame(render);
+      if (!queued && !disposed && !suspended && !document.hidden) {
+        queued = true; requestMotionFrame(measure);
+      }
     };
     const refresh = () => { layout = true; schedule(); };
     function retain(state, progress, target, alpha, reveal) {
@@ -296,63 +331,66 @@
         signature: [box.top + scroll, box.height, image.height, view, low, high, frameHeight, window.innerWidth],
       };
     }
-    function render() {
-      frame = 0;
+    function measure() {
+      queued = false;
+      if (disposed || suspended || document.hidden) return;
       const scroll = window.scrollY, distance = lastScroll === null ? 0 : scroll - lastScroll;
       const userScroll = distance !== 0 && intent.active(scroll);
       // Read every rect first, then write. Each wrapper is independent.
       const measurements = states.map(state => [state, geometry(state, scroll)]);
-      for (const [state, g] of measurements) {
-        const mobilePage = touchViewport();
-        const changed = layout || !state.geometry || g.signature.some((n, i) =>
-          !(mobilePage && (i >= 3 && i <= 5 || i === 6 && !state.exitFrame)) && Math.abs(n - state.geometry[i]) > 0.5);
-        const previous = state.y;
-        state.geometry = g.signature;
-        state.y = clamp(state.y, g.low, g.high);
-        if (!g.visible) {
-          // The browser may restore scroll after this first render. Keep the
-          // prepaint snapshot until that happens or the user starts scrolling.
-          if (!state.restored || userScroll) { state.y = g.target; state.alpha = g.alpha; state.revealAlpha = g.reveal; }
-          state.correction = null;
-        } else if (changed || (distance !== 0 && !userScroll)) {
-          // Resize/layout movement and browser scroll restoration are not a
-          // user's first scroll pass. Rebase at the currently painted position.
-          retain(state, g.progress, g.target, g.alpha, g.reveal);
-        } else if (userScroll) {
-          const correction = state.correction;
-          if (correction) {
-            // The envelope only shrinks. Reversing through the original anchor
-            // never restores consumed offset or causes a discontinuity.
-            const before = correction.anchor > 0 ? g.progress / correction.anchor : 1;
-            const after = correction.anchor < 1 ? (1 - g.progress) / (1 - correction.anchor) : 1;
-            correction.weight = clamp(Math.min(correction.weight, before, after), 0, 1);
+      return () => {
+        for (const [state, g] of measurements) {
+          const mobilePage = touchViewport();
+          const changed = layout || !state.geometry || g.signature.some((n, i) =>
+            !(mobilePage && (i >= 3 && i <= 5 || i === 6 && !state.exitFrame)) && Math.abs(n - state.geometry[i]) > 0.5);
+          const previous = state.y;
+          state.geometry = g.signature;
+          state.y = clamp(state.y, g.low, g.high);
+          if (!g.visible) {
+            // The browser may restore scroll after this first render. Keep the
+            // prepaint snapshot until that happens or the user starts scrolling.
+            if (!state.restored || userScroll) { state.y = g.target; state.alpha = g.alpha; state.revealAlpha = g.reveal; }
+            state.correction = null;
+          } else if (changed || (distance !== 0 && !userScroll)) {
+            // Resize/layout movement and browser scroll restoration are not a
+            // user's first scroll pass. Rebase at the currently painted position.
+            retain(state, g.progress, g.target, g.alpha, g.reveal);
+          } else if (userScroll) {
+            const correction = state.correction;
+            if (correction) {
+              // The envelope only shrinks. Reversing through the original anchor
+              // never restores consumed offset or causes a discontinuity.
+              const before = correction.anchor > 0 ? g.progress / correction.anchor : 1;
+              const after = correction.anchor < 1 ? (1 - g.progress) / (1 - correction.anchor) : 1;
+              correction.weight = clamp(Math.min(correction.weight, before, after), 0, 1);
+            }
+            const desired = g.target + (correction ? correction.offset * correction.weight : 0);
+            state.alpha = clamp(g.alpha + (correction ? correction.alpha * correction.weight : 0), 0, 1);
+            state.revealAlpha = clamp(g.reveal + (correction ? correction.reveal * correction.weight : 0), 0, 1);
+            // Near an exit the available distance can be tiny. Cap visible speed;
+            // any last fraction is aligned on the first fully off-screen frame.
+            const step = Math.abs(distance) * 0.15;
+            state.y = clamp(clamp(desired, previous - step, previous + step), g.low, g.high);
+            if (correction && correction.weight === 0 && Math.abs(state.y - g.target) < 0.001) state.correction = null;
           }
-          const desired = g.target + (correction ? correction.offset * correction.weight : 0);
-          state.alpha = clamp(g.alpha + (correction ? correction.alpha * correction.weight : 0), 0, 1);
-          state.revealAlpha = clamp(g.reveal + (correction ? correction.reveal * correction.weight : 0), 0, 1);
-          // Near an exit the available distance can be tiny. Cap visible speed;
-          // any last fraction is aligned on the first fully off-screen frame.
-          const step = Math.abs(distance) * 0.15;
-          state.y = clamp(clamp(desired, previous - step, previous + step), g.low, g.high);
-          if (correction && correction.weight === 0 && Math.abs(state.y - g.target) < 0.001) state.correction = null;
+          if (reduced.matches) { state.y = clamp(0, g.low, g.high); state.correction = null; state.alpha = 1; state.revealAlpha = 1; }
+          state.progress = g.progress;
+          state.visible = g.visible;
+          if (g.visible || userScroll) state.restored = false;
         }
-        if (reduced.matches) { state.y = clamp(0, g.low, g.high); state.correction = null; state.alpha = 1; state.revealAlpha = 1; }
-        state.progress = g.progress;
-        state.visible = g.visible;
-        if (g.visible || userScroll) state.restored = false;
-      }
-      for (const state of states) {
-        const value = `translate3d(0, ${state.y.toFixed(4)}px, 0)`;
-        if (!state.opacityOnly && state.node.style.transform !== value) state.node.style.transform = value;
-        if (state.reveal && state.node.style.opacity !== String(state.revealAlpha)) state.node.style.opacity = String(state.revealAlpha);
-        state.fadeTargets.forEach((target, i) => {
-          const alpha = state.fadeEnds[i] + (state.fadeFrom[i] - state.fadeEnds[i]) * state.alpha;
-          const value = state.fadeProperties[i] === 'backgroundColor' ? `rgba(0, 0, 0, ${alpha})` : String(alpha);
-          if (target.style[state.fadeProperties[i]] !== value) target.style[state.fadeProperties[i]] = value;
-        });
-      }
-      lastScroll = scroll;
-      layout = false;
+        for (const state of states) {
+          const value = `translate3d(0, ${state.y.toFixed(4)}px, 0)`;
+          if (!state.opacityOnly && state.node.style.transform !== value) state.node.style.transform = value;
+          if (state.reveal && state.node.style.opacity !== String(state.revealAlpha)) state.node.style.opacity = String(state.revealAlpha);
+          state.fadeTargets.forEach((target, i) => {
+            const alpha = state.fadeEnds[i] + (state.fadeFrom[i] - state.fadeEnds[i]) * state.alpha;
+            const value = state.fadeProperties[i] === 'backgroundColor' ? `rgba(0, 0, 0, ${alpha})` : String(alpha);
+            if (target.style[state.fadeProperties[i]] !== value) target.style[state.fadeProperties[i]] = value;
+          });
+        }
+        lastScroll = scroll;
+        layout = false;
+      };
     }
     for (const wrapper of new Set(wrappers)) {
       const existing = pageBreakClients.get(wrapper);
@@ -414,7 +452,7 @@
       window.addEventListener('scroll', schedule, { passive: true, signal });
       window.addEventListener('resize', schedule, { passive: true, signal });
       window.addEventListener('pageshow', () => { suspended = false; lastScroll = null; refresh(); }, { signal });
-      window.addEventListener('pagehide', () => { remember(); suspended = true; cancelAnimationFrame(frame); frame = 0; }, { signal });
+      window.addEventListener('pagehide', () => { remember(); suspended = true; cancelMotionFrame(measure); queued = false; }, { signal });
       document.addEventListener('visibilitychange', () => { if (document.hidden) remember(); else refresh(); }, { signal });
       window.addEventListener('load', refresh, { signal });
       reduced.addEventListener('change', refresh, { signal });
@@ -428,7 +466,7 @@
       document.fonts?.ready.then(() => { if (!disposed) refresh(); });
       // Apply synchronously: visible images keep their current translation;
       // off-screen images are positioned before the next paint.
-      render();
+      measure()?.();
     } else controller.abort();
     function release(state) {
       const index = states.indexOf(state);
@@ -438,7 +476,7 @@
       if (!state.opacityOnly) state.node.style.transform = state.original;
       if (state.reveal) state.node.style.opacity = state.originalImageOpacity;
       state.fadeTargets.forEach((target, i) => { target.style[state.fadeProperties[i]] = state.originalOpacity[i]; });
-      if (!states.length) { disposed = true; controller.abort(); resize?.disconnect(); cancelAnimationFrame(frame); frame = 0; }
+      if (!states.length) { disposed = true; controller.abort(); resize?.disconnect(); cancelMotionFrame(measure); queued = false; }
     }
     for (const state of states) pageBreakClients.get(state.wrapper).release = () => release(state);
     return Object.freeze({
@@ -539,5 +577,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.19.3', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.19.4', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();
