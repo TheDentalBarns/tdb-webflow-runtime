@@ -63,3 +63,19 @@ test('frozen feature APIs retain their methods and release their cached instance
     assert.throws(()=>w.TDBSwiper.register('review-fixture',{mount(){}}),/already registered/);
   } finally {dom.window.close();}
 });
+test('parallax captions use unchanged directional delays and settle only after snap-back',async()=>{
+  const {dom,w}=setup();
+  try {
+    w.TDBParallax={prepare:()=>({skipEntry:true,bind(){},setBusy(){}}),bind(){},setMoving(){},setEntry(){}};
+    w.eval(read('dist/tdb-parallax.js'));
+    const {root}=carousel(w,'parallax'),delays=[],timer=w.setTimeout.bind(w);
+    w.setTimeout=(fn,delay)=>{delays.push(delay);return timer(fn,delay);};
+    const s=w.TDBSwiper.mount('parallax',root),flush=()=>new Promise(resolve=>setImmediate(resolve));
+    s.slideNext(0);await flush();assert.equal(delays.at(-1),w.TDBMotion.carousel.nextDelay);
+    s.swipeDirection='prev';s.slidePrev(0);await flush();assert.equal(delays.at(-1),w.TDBMotion.carousel.previousDelay);
+    delays.length=0;s.emit('touchStart');s.emit('sliderMove');assert(root.classList.contains('is-moving'));
+    s.emit('touchEnd');s.animating=true;await flush();assert.equal(delays.length,0);assert(root.classList.contains('is-moving'));
+    s.animating=false;s.emit('transitionEnd');await flush();assert.equal(delays.at(-1),w.TDBMotion.carousel.settleDelay);assert(!root.classList.contains('is-moving'));
+    s.destroy(true,true);
+  }finally{dom.window.close();}
+});

@@ -1,4 +1,4 @@
-/* TDB parallax carousel plugin v1.2.1. Native Services spacing; existing choreography. */
+/* TDB parallax carousel plugin v1.2.2. Native Services spacing; shared settlement. */
 (() => {
 'use strict';
 if(window.TDBParallaxPlugin)return;
@@ -210,7 +210,7 @@ function A(e) {
         }(0, t, b), b.init()), k(b), g(e, b, () => x(e)), S(e, t, b), c?.bind(b), window.TDBParallax?.bind(e, b);
         if (e.hasAttribute('data-tdb-treatment') || e.classList.contains('tdb-service-parallax')) window.TDBCarouselVisibility.bind(b);
         const v = window.TDBMotion.carousel.nextDelay, A = new WeakMap, L = new Set;
-        let T = null, M = !1, P = !1;
+        let T = null, M = !1, P = !1, settledIndex = b.realIndex;
         b.on("beforeLoopFix", () => {
             P = !0;
         }), b.on("loopFix", () => {
@@ -249,16 +249,12 @@ function A(e) {
             M || (M = !0, F(), R(!0), I());
         }), b.on("slideChangeTransitionStart", () => {
             P || (F(), R(!0), I());
-        }), b.on("slideChangeTransitionEnd", () => {
-            if (P) return;
-            M = !1;
-            const e = "prev" === (b.swipeDirection || "next") ? window.TDBMotion.carousel.previousDelay : v;
-            B(e), z(e), R(!1);
-        }), b.on("touchEnd", () => {
-            M = !1, b.animating || (R(!1), B(window.TDBMotion.carousel.settleDelay));
-        }), b.on("slideResetTransitionEnd", () => {
-            P || (M = !1, R(!1), B(window.TDBMotion.carousel.settleDelay), z(window.TDBMotion.carousel.settleDelay));
-        }), h(e, "parallax"), l && C) return b.autoplay?.stop(), void b.slideNext();
+        }), window.TDBSwiper.onSettled(b, () => {
+            const changed = b.realIndex !== settledIndex;
+            settledIndex = b.realIndex; M = !1;
+            const delay = changed ? (b.swipeDirection === "prev" ? window.TDBMotion.carousel.previousDelay : v) : window.TDBMotion.carousel.settleDelay;
+            B(delay), z(delay), R(!1);
+        }), b.on('beforeDestroy', F), h(e, "parallax"), l && C) return b.autoplay?.stop(), void b.slideNext();
         if (o && C) {
             const t = e.querySelector(".swiper-btn-next"), n = () => {
                 C && (C = !1, e.classList.remove("tdb-entry-pending"), window.TDBParallax?.setEntry(e, false), R(!1), B(v));
@@ -276,7 +272,7 @@ function A(e) {
             });
         }
     }
-const plugin=Object.freeze({version:'1.2.1',selector:t,
+const plugin=Object.freeze({version:'1.2.2',selector:t,
  beforeObserve(root){if(u(root)||p(root))root.classList.add('tdb-entry-pending');},
  mount(root){A(root);return m(root)?.swiper;},
  refresh(root=document){window.TDBParallax?.refresh(root);window.TDBSwiper.refresh('parallax',root);}
