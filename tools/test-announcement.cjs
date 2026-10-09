@@ -49,6 +49,58 @@ test('UK dates account for DST and preview data remains separate',async()=>{
   assert.notEqual(api.snapshot().data,api.snapshot('preview').data);
   assert.equal(api.snapshot().data.deadline,null);e.close();
 });
+test('navigation reuses the original timestamp and refreshes at the original expiry',async()=>{
+  const first=env();first.w.fetch=async()=>({ok:true,text:async()=>feed()});first.run('src/shared/availability.js');
+  const initial=await first.w.TDBAvailability.read(),saved=first.w.sessionStorage.getItem('tdb-availability-v1:active');first.close();
+  const next=env();await next.advance(260000);let calls=0;
+  next.w.sessionStorage.setItem('tdb-availability-v1:active',saved);
+  next.w.fetch=async()=>{calls++;return {ok:true,text:async()=>feed()};};next.run('src/shared/availability.js');
+  const api=next.w.TDBAvailability,result=await api.read();api.subscribe(()=>{});
+  assert.equal(calls,0);assert.equal(result.checkedAt,initial.checkedAt);
+  await next.advance(39999);assert.equal(calls,0);
+  await next.advance(2);assert.equal(calls,1);assert(api.snapshot().checkedAt>initial.checkedAt);next.close();
+});
+test('invalid, expired and cross-channel session records are rejected; storage remains optional',async()=>{
+  const initial=env();initial.w.fetch=async()=>({ok:true,text:async()=>feed()});initial.run('src/shared/availability.js');await initial.w.TDBAvailability.read();
+  const saved=JSON.parse(initial.w.sessionStorage.getItem('tdb-availability-v1:active'));initial.close();
+  for(const changes of [{version:2},{channel:'preview'},{checkedAt:saved.checkedAt+1},{checkedAt:saved.checkedAt-300000},{data:{...saved.data,nextSlot:'garbage'}}]){
+    const e=env();let calls=0;e.w.fetch=async()=>{calls++;return {ok:true,text:async()=>feed()};};
+    e.w.sessionStorage.setItem('tdb-availability-v1:active',JSON.stringify({...saved,...changes}));e.run('src/shared/availability.js');
+    await e.w.TDBAvailability.read();assert.equal(calls,1);e.close();
+  }
+  const e=env();Object.defineProperty(e.w,'sessionStorage',{get(){throw Error('blocked');}});
+  e.w.fetch=async()=>({ok:true,text:async()=>feed()});e.run('src/shared/availability.js');assert.equal((await e.w.TDBAvailability.read()).state,'ready');e.close();
+});
+test('preview is consistently selected and a failed refresh invalidates the navigation cache',async()=>{
+  const e=env('','/?banner-preview');const calls=[];let fail=false;
+  e.w.fetch=async url=>{calls.push(url);if(fail)throw Error('offline');return {ok:true,text:async()=>feed({slug:'preview'})};};e.run('src/shared/availability.js');
+  const api=e.w.TDBAvailability;await api.read();assert.equal(api.channel,'preview');assert.equal(calls[0],'/banner-settings/preview');
+  assert(e.w.sessionStorage.getItem('tdb-availability-v1:preview'));assert.equal(e.w.sessionStorage.getItem('tdb-availability-v1:active'),null);
+  fail=true;await assert.rejects(api.read({force:true}));assert.equal(e.w.sessionStorage.getItem('tdb-availability-v1:preview'),null);e.close();
+});
+test('compact JSON preserves its source timestamp and falls back safely if invalid',async()=>{
+  const html='<script data-tdb-availability-feed="https://availability.example.test/"></script>',e=env(html),urls=[];
+  e.w.fetch=async url=>{urls.push(url);return {ok:true,text:async()=>JSON.stringify({version:1,channel:'active',checkedAt:e.w.Date.now()-60000,fields})};};
+  e.run('src/shared/availability.js');const result=await e.w.TDBAvailability.read();assert.equal(result.checkedAt,e.w.Date.now()-60000);
+  assert.equal(urls[0],'https://availability.example.test/active.json');
+  await e.w.TDBAvailability.read({force:true});assert.match(urls[1],/refresh=1/);e.close();
+  const f=env(html),fallback=[];f.w.fetch=async url=>{fallback.push(url);return {ok:true,text:async()=>url.startsWith('/')?feed():'{"version":2}'};};
+  f.run('src/shared/availability.js');assert.equal((await f.w.TDBAvailability.read()).state,'ready');assert.equal(fallback.length,2);
+  await f.w.TDBAvailability.read({force:true});assert.equal(fallback.length,3);assert.equal(fallback[2],'/banner-settings/active');f.close();
+});
+test('resource header shares banner results and shows updates before its spinner finishes',async()=>{
+  const e=await mount(),w=e.w;
+  w.document.body.insertAdjacentHTML('beforeend','<section id="calculator-next-assessment"><span aria-live="polite"></span><button><svg></svg></button></section>');
+  Object.defineProperty(w.document,'currentScript',{value:{src:'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@test/dist/tdb-availability-header.js'}});
+  let finish,turns;w.Element.prototype.animate=()=>({currentTime:100,effect:{updateTiming(value){turns=value.iterations;}},finished:new Promise(r=>finish=r),cancel(){}});
+  e.run('src/shared/availability-header.js');await flush();
+  const root=w.document.getElementById('calculator-next-assessment'),button=root.querySelector('button'),slot=root.querySelector('[aria-live]');
+  assert.equal(e.fetchCalls,1);assert.match(slot.textContent,/28 Oct.*13:40/);assert.equal(turns,2);
+  assert(button.disabled);assert(!button.hasAttribute('aria-busy'));finish();await flush();assert(!button.disabled);
+  w.fetch=async()=>{e.fetchCalls++;return {ok:true,text:async()=>feed({'next-signature-slot':'October 30, 2026','next-signature-uk-time':'10:15'})};};
+  button.click();await flush();assert.equal(e.fetchCalls,2);assert.match(slot.textContent,/30 Oct.*10:15/);assert(button.disabled);
+  assert.match(w.document.querySelector('.tdb-announcement-slot').textContent,/30 Oct.*10:15/);finish();await flush();assert(!button.disabled);e.close();
+});
 async function mount(route='/') {
   const e=env(read('src/banner/designer/announcement.html'),route),w=e.w;
   e.fetchCalls=0;w.fetch=async()=>{e.fetchCalls++;return {ok:true,text:async()=>feed()};};

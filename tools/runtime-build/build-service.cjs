@@ -5,6 +5,9 @@ const terser = require(process.env.TDB_TERSER_MODULE || 'terser');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const targets = {
+  'dist/tdb-availability-header.js': ['src/shared/availability-header.js'],
+  'dist/tdb-calculator.js': ['src/calculator/core.js','src/calculator/ui.js'],
+  'dist/tdb-calculator-loader.js': ['src/calculator/loader.js'],
   'dist/tdb-availability.js': ['src/shared/availability.js'],
   'dist/tdb-review-availability.js': ['src/reviews/native/availability.js'],
   'dist/tdb-modules.js': ['src/shared/modules.js'],

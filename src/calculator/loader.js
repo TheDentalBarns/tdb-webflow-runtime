@@ -1,8 +1,8 @@
 /* TDB Treatment Calculator loader v1.5.4. URLs are immutable release pins. */
 (function(){
  'use strict';if(window.__tdbCalculatorLoader)return;window.__tdbCalculatorLoader=true;
- const base='https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@1d5919f74f1b595bb0b8ff6694ba30e1094c81fb';
- const styleURL=new URL('tdb-calculator.css',document.currentScript.src).href;
+ const scriptURL=new URL('tdb-calculator.js',document.currentScript.src).href;
+ const styleURL='https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-calculator.css';
  const selector='[data-tdb-calc-open],a[href$="#treatment-calculator"]';
  let loading=null;
  function asset(type,url){return new Promise((resolve,reject)=>{const el=document.createElement(type==='css'?'link':'script');let timer;
@@ -11,7 +11,7 @@
    timer=setTimeout(()=>{el.remove();reject(Error('Calculator load timed out'));},15000);document.head.append(el);
  });}
  function load(){if(window.TDBCalculator)return Promise.resolve(window.TDBCalculator);if(loading)return loading;
-   loading=asset('css',styleURL).then(()=>asset('js',base+'/dist/tdb-calculator.js')).then(()=>window.TDBCalculator).catch(e=>{loading=null;throw e;});return loading;}
+   loading=asset('css',styleURL).then(()=>asset('js',scriptURL)).then(()=>window.TDBCalculator).catch(e=>{loading=null;throw e;});return loading;}
  function start(){
    const mount=document.querySelector('[data-tdb-calculator="inline"]');
    if(mount){if('IntersectionObserver'in window){const observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){observer.disconnect();load().catch(()=>{const p=mount.querySelector('[data-tdb-calc-fallback]');if(p)p.textContent='The calculator could not load. Please refresh, or browse our treatment fees below.';});}},{rootMargin:'500px'});observer.observe(mount);}else load().catch(()=>{});}
