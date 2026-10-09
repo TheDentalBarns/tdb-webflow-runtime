@@ -18,18 +18,33 @@ const targets = {
     'src/vip-drawer/vip-focus.js', 'src/runtime/deferred-ui.js', 'src/runtime/site-asset-loader.js'],
   'dist/tdb-vip-drawer.js': ['src/shared/panel-motion.js', 'src/vip-drawer/vip-drawer.js'],
   'dist/tdb-consent-startup.min.js': ['src/shared/scroll-lock.js', 'src/consent/banner.js'],
+  'dist/tdb-navbar-loader.js': ['src/navbar/navbar-state.js', 'src/shared/scroll-lock.js',
+    'src/navbar/navbar-mobile-lock.js', 'src/navbar/navbar-loader.js'],
+  'dist/tdb-navbar.min.js': ['src/shared/panel-motion.js', 'src/navbar/navbar-enhancement.js'],
 };
 (async () => {
   const requested = process.argv.slice(2);
   if (!requested.length) throw new Error('Specify one or more output paths');
   for (const output of requested) {
     if (!targets[output]) throw new Error('Unknown target: ' + output);
-    const sources = targets[output].map(file => [file, fs.readFileSync(path.join(root, file), 'utf8')]);
+    const sources = targets[output].map(file => {
+      let source = fs.readFileSync(path.join(root, file), 'utf8');
+      if (file === 'src/navbar/navbar-enhancement.js') {
+        for (const [marker, cssFile] of [['__TDB_NAV_STATE_CSS__','tdb-navbar-state.css'],
+          ['__TDB_NAV_DESKTOP_CSS__','tdb-navbar-desktop.css']]) {
+          const css = fs.readFileSync(path.join(root, 'src/styles', cssFile), 'utf8')
+            .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
+          source = source.replace(marker, JSON.stringify(css));
+        }
+      }
+      return [file, source];
+    });
     const input = output.includes('consent-startup') ? Object.fromEntries(sources) : sources.map(([,s])=>s).join('\n');
     if (output === 'dist/tdb-quote-carousel.js') {
       fs.writeFileSync(path.join(root, output), input); continue;
     }
-    const result = await minify(input, {compress:true, mangle:true, format:{comments:false}});
+    const result = await minify(input, {compress:true, mangle:true, format:{comments:false},
+      ...(output.includes('navbar') ? {ecma:2020} : {})});
     if (!result.code) throw new Error('Empty build: ' + output);
     fs.writeFileSync(path.join(root, output), result.code + '\n');
     console.log(output + ': ' + Buffer.byteLength(result.code + '\n') + ' bytes');

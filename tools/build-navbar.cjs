@@ -8,7 +8,7 @@ const css = file => read(file).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, 
 (async () => {
   const shared = ['src/navbar/navbar-state.js','src/shared/scroll-lock.js','src/navbar/navbar-mobile-lock.js'];
   const loader = shared.map(read).join('\n') + '\n' + read('src/navbar/navbar-loader.js');
-  const enhancement = read('src/navbar/navbar-enhancement.js')
+  const enhancement = read('src/shared/panel-motion.js') + '\n' + read('src/navbar/navbar-enhancement.js')
     .replace('__TDB_NAV_STATE_CSS__', JSON.stringify(css('src/styles/tdb-navbar-state.css')))
     .replace('__TDB_NAV_DESKTOP_CSS__', JSON.stringify(css('src/styles/tdb-navbar-desktop.css')));
   for (const [file, source] of [
