@@ -1,4 +1,4 @@
-/* TDB shared motion v1.19.4. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.19.5. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -61,12 +61,28 @@
   const motionReads = new Set();
   let motionFrame = 0;
   const reportFrameError = error => { setTimeout(() => { throw error; }, 0); };
+  // A snapshot lives only for this read phase. Never reuse geometry across
+  // frames: sticky elements, carousel transforms and restored scroll can move.
+  function frameMeasurements() {
+    let scroll, height, width, documentHeight;
+    const rectangles = new Map();
+    return {
+      get scroll() { return scroll ??= window.scrollY; },
+      get height() { return height ??= window.innerHeight; },
+      get width() { return width ??= window.innerWidth; },
+      get documentHeight() { return documentHeight ??= document.documentElement.scrollHeight; },
+      rect(node) {
+        if (!rectangles.has(node)) rectangles.set(node, node.getBoundingClientRect());
+        return rectangles.get(node);
+      },
+    };
+  }
   function flushMotionFrame() {
     motionFrame = 0;
-    const reads = [...motionReads], writes = [];
+    const reads = [...motionReads], writes = [], frame = frameMeasurements();
     motionReads.clear();
     for (const read of reads) {
-      try { const write = read(); if (write) writes.push(write); }
+      try { const write = read(frame); if (write) writes.push(write); }
       catch (error) { reportFrameError(error); }
     }
     for (const write of writes) {
@@ -102,7 +118,9 @@
     const states = new Set(), events = new AbortController(), { signal } = events;
     const target = root || window, scrollTop = () => root ? root.scrollTop : window.scrollY;
     let queued = false, layout = true, disposed = false, suspended = false;
-    let lastScroll = scrollTop();
+    // Registration may follow another component's DOM writes. Establish the
+    // scroll baseline with the first scheduled measurement, not during mount.
+    let lastScroll = null;
     const intent = scrollIntent(target, scrollTop, signal, lastScroll);
     const schedule = () => {
       if (!queued && !disposed && !suspended && !document.hidden && states.size) {
@@ -116,30 +134,37 @@
       state.desired = state.value;
       state.correction = { anchor: progress, low, high, range, offset: state.value - ddOpacity(progress, state.preset), weight: 1 };
     }
-    function measure() {
+    function measure(frame) {
       queued = false;
       if (disposed || suspended || document.hidden) return;
-      const scroll = scrollTop(), distance = lastScroll === null ? 0 : scroll - lastScroll;
+      const scroll = root ? root.scrollTop : frame.scroll, distance = lastScroll === null ? 0 : scroll - lastScroll;
       const userScroll = distance !== 0 && intent.active(scroll);
-      const height = root ? root.clientHeight : window.innerHeight;
+      const height = root ? root.clientHeight : frame.height;
       if (!height) return;
-      const origin = root ? root.getBoundingClientRect().top + root.clientTop : 0;
+      const origin = root ? frame.rect(root).top + root.clientTop : 0;
+      const maximumScroll = Math.max(0, (root ? root.scrollHeight : frame.documentHeight) - height);
+      const width = frame.width;
       const measurements = [...states].map(state => {
-        const node = state.node, rect = node.getBoundingClientRect();
-        const shown = node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden';
+        const node = state.node, rect = frame.rect(node), hasBox = node.getClientRects().length > 0;
+        const style = hasBox || state.pendingInitial ? getComputedStyle(node) : null;
+        const shown = hasBox && style.visibility !== 'hidden';
+        const initialValue = state.pendingInitial ? Number.parseFloat(style.opacity) : null;
         const total = state.mode === 'region' ? height + rect.height : height;
-        const range = state.mode === 'native' ? Math.min(height + rect.height, document.documentElement.scrollHeight) : total;
+        const range = state.mode === 'native' ? Math.min(height + rect.height, frame.documentHeight) : total;
         const progress = ddClamp((height - (rect.top - origin)) / Math.max(1, range));
-        const maximumScroll = Math.max(0, (root ? root.scrollHeight : document.documentElement.scrollHeight) - height);
         const low = ddClamp((height - (rect.top - origin + scroll)) / Math.max(1, range));
         const high = ddClamp((height - (rect.top - origin + scroll) + maximumScroll) / Math.max(1, range));
-        return { state, shown, progress, low, high, range, visible: shown && rect.bottom > origin && rect.top < origin + height,
-          signature: [rect.top - origin + scroll, rect.height, height, low, high, window.innerWidth] };
+        return { state, shown, initialValue, progress, low, high, range, visible: shown && rect.bottom > origin && rect.top < origin + height,
+          signature: [rect.top - origin + scroll, rect.height, height, low, high, width] };
       });
       return () => {
         let moving = false;
         for (const g of measurements) {
           const state = g.state;
+          if (state.pendingInitial) {
+            state.value = state.desired = Number.isFinite(g.initialValue) ? g.initialValue : 1;
+            state.pendingInitial = false;
+          }
           if (!g.shown) { state.geometry = null; continue; }
           // Mobile browser chrome changes the visible height without changing
           // the document layout. Keep scrolling through it; still rebase width,
@@ -221,27 +246,33 @@
       const existing = ddNodes.get(node);
       if (existing) { existing.clients++; continue; }
       const restored = window.TDBDDMemory?.take(node) || false;
-      const owner = ddRoot(root), value = Number.parseFloat(getComputedStyle(node).opacity);
+      const owner = ddRoot(root);
       const state = { node, owner, mode, preset, restored, clients: 1, original: node.style.opacity,
-        value: Number.isFinite(value) ? value : 1, desired: Number.isFinite(value) ? value : 1, progress: 0, geometry: null };
+        value: null, desired: null, pendingInitial: true, progress: 0, geometry: null };
       ddNodes.set(node, state); owner.states.add(state); owner.resize?.observe(node); owner.schedule();
     }
     let destroyed = false;
     return Object.freeze({ enter(nodes = list, { atPosition = false } = {}) {
       // A slide entrance is an explicit new visual state, not page restoration.
+      // Measure the whole batch before resetting any opacity.
+      const frame = frameMeasurements(), entries = [];
       for (const node of nodes) {
         const state = ddNodes.get(node);
         if (!state || !list.includes(node)) continue;
-        let value = 1;
+        let value = 1, progress = state.progress;
         if (atPosition) {
-          const root = state.owner.root, rect = node.getBoundingClientRect();
-          const height = root ? root.clientHeight : window.innerHeight;
-          const origin = root ? root.getBoundingClientRect().top + root.clientTop : 0;
+          const root = state.owner.root, rect = frame.rect(node);
+          const height = root ? root.clientHeight : frame.height;
+          const origin = root ? frame.rect(root).top + root.clientTop : 0;
           const range = state.mode === 'viewport' ? height : state.mode === 'native'
-            ? Math.min(height + rect.height, document.documentElement.scrollHeight) : height + rect.height;
-          state.progress = ddClamp((height - (rect.top - origin)) / Math.max(1, range));
-          value = ddOpacity(state.progress, state.preset);
+            ? Math.min(height + rect.height, frame.documentHeight) : height + rect.height;
+          progress = ddClamp((height - (rect.top - origin)) / Math.max(1, range));
+          value = ddOpacity(progress, state.preset);
         }
+        entries.push({ node, state, value, progress });
+      }
+      for (const { node, state, value, progress } of entries) {
+        state.pendingInitial = false; state.progress = progress;
         state.value = state.desired = value;
         state.ceiling = Math.max(value, state.preset === 'orange' ? 1 : .5);
         state.restored = false; state.geometry = null; state.geometrySeen = true;
@@ -273,7 +304,7 @@
     const memory = window.TDBPageBreakMemory;
     const remember = () => memory?.save(states);
     let queued = false, layout = true, suspended = false, disposed = false, released = false;
-    let lastScroll = window.scrollY;
+    let lastScroll = null;
     let intent;
     const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
     const yOf = node => {
@@ -300,10 +331,10 @@
       }
       return points[points.length - 1][1];
     }
-    function geometry(state, scroll) {
-      const box = state.wrapper.getBoundingClientRect();
-      const image = state.opacityOnly ? box : state.node.getBoundingClientRect();
-      const view = window.innerHeight;
+    function geometry(state, scroll, frame) {
+      const box = frame.rect(state.wrapper);
+      const image = state.opacityOnly ? box : frame.rect(state.node);
+      const view = frame.height;
       // Subtract our translation when measuring crop. Never measure progress
       // against the moving image (which would feed back into its own progress).
       const top = image.top - state.y, bottom = image.bottom - state.y;
@@ -316,7 +347,7 @@
       const progressHeight = state.imageProgress ? image.height : box.height;
       // Optional exit timing uses the native sticky frame's stable height.
       // Example: darken while 1.3 -> 1 frame-heights of the section remain.
-      const frameHeight = state.exitFrame ? state.exitFrame.getBoundingClientRect().height : view;
+      const frameHeight = state.exitFrame ? frame.rect(state.exitFrame).height : view;
       const progress = clamp((view - box.top) / (view + progressHeight), 0, 1);
       const fadeProgress = state.exitRange
         ? clamp((state.exitRange[0] * frameHeight - box.bottom) / Math.max(1, (state.exitRange[0] - state.exitRange[1]) * frameHeight), 0, 1)
@@ -328,16 +359,16 @@
         reveal: state.reveal ? Math.min(clamp(-box.top / (state.reveal[0] * frameHeight), 0, 1),
           clamp((box.bottom - state.reveal[2] * frameHeight) / (state.reveal[1] * frameHeight), 0, 1)) : 1,
         visible: box.bottom > 0 && box.top < view && box.height > 0,
-        signature: [box.top + scroll, box.height, image.height, view, low, high, frameHeight, window.innerWidth],
+        signature: [box.top + scroll, box.height, image.height, view, low, high, frameHeight, frame.width],
       };
     }
-    function measure() {
+    function measure(frame = frameMeasurements()) {
       queued = false;
       if (disposed || suspended || document.hidden) return;
-      const scroll = window.scrollY, distance = lastScroll === null ? 0 : scroll - lastScroll;
+      const scroll = frame.scroll, distance = lastScroll === null ? 0 : scroll - lastScroll;
       const userScroll = distance !== 0 && intent.active(scroll);
       // Read every rect first, then write. Each wrapper is independent.
-      const measurements = states.map(state => [state, geometry(state, scroll)]);
+      const measurements = states.map(state => [state, geometry(state, scroll, frame)]);
       return () => {
         for (const [state, g] of measurements) {
           const mobilePage = touchViewport();
@@ -577,5 +608,5 @@
     if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
     return window.TDBSwiper.bindSwiper(swiper);
   }
-  window.TDBMotion = Object.freeze({ version: '1.19.4', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
+  window.TDBMotion = Object.freeze({ version: '1.19.5', reduced, defaults, carousel, duration, ddText, ddRegion, ddOpacity, pageBreaks, reviews, fadeController, filterToggle, bindSwiper });
 })();
