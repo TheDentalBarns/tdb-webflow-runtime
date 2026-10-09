@@ -1,4 +1,4 @@
-/* TDB shared native drawer v1.0.1. Webflow owns markup and styles. */
+/* TDB shared native drawer v1.0.2. Webflow owns markup and styles. */
 (() => {
 'use strict';if(window.TDBDrawer)return;
 const instances=new WeakMap();let active=null;
@@ -28,7 +28,10 @@ function mount(root,{onOpen,onClose}={}){
   if(await transition(true)){stop();state='open';}
  }
  async function close(immediate=false){
-  if(state==='closed')return;state='closing';trigger?.setAttribute('aria-expanded','false');onClose?.();
+  // A second backdrop/Escape dismiss must not restart the exit from fully open.
+  // Immediate teardown may still cancel the exit, without repeating onClose.
+  if(state==='closed'||(state==='closing'&&!immediate))return;
+  if(state!=='closing'){state='closing';trigger?.setAttribute('aria-expanded','false');onClose?.();}
   if(immediate){revision++;stop();}else if(!await transition(false))return;
   touchPulse?.cancel();touchPulse=null;root.hidden=true;root.classList.add('is-hidden');root.inert=true;root.setAttribute('aria-hidden','true');stop();unlock();state='closed';if(active===api)active=null;if(trigger?.isConnected)trigger.focus({preventScroll:true});
  }
@@ -53,5 +56,5 @@ function mount(root,{onOpen,onClose}={}){
  motion.addEventListener('change',()=>{if(state==='opening'){revision++;stop();state='open';}else if(state==='closing')close(true);},{signal});
  const api=Object.freeze({open,close,get state(){return state;},destroy(){close(true);ctrl.abort();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBDrawer=Object.freeze({version:'1.0.1',mount});
+window.TDBDrawer=Object.freeze({version:'1.0.2',mount});
 })();
