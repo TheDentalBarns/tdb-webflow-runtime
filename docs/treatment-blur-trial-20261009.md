@@ -39,3 +39,12 @@ No frame-rate or paint-time improvement is claimed without a comparative trace.
 The publication guard detected concurrent runtime release d1c4d874. The final
 release carries forward its consent startup fix (CookieScript ea970578) and
 preserves the independently updated footer runtime base bb49798.
+
+## Trial decision — original blur restored
+
+David preferred the original effect and requested its restoration at 16:36 BST
+on 9 October 2026. Restored the native backdrop-filter transition (20px to 0px)
+and removed the two opacity declarations. Published to staging only. Live browser
+verification confirms 739ms blur-radius transitions at the review viewport, opacity
+1 on both layers, 171 carousel descendants, and one CTA. All wrapper, loop,
+accessibility and runtime-cache improvements remain. No runtime pin was changed.
