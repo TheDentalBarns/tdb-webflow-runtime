@@ -1,4 +1,4 @@
-/* Shared VIP form behaviour. Designer owns markup and all visual states.
+/* Shared VIP form behaviour v1.1.1. Designer owns markup and all visual states.
  * Reuses TDBForms for validation/phone handling and Webflow for submission.
  * Original form IDs, field names, option values and attribution are preserved.
  */
@@ -91,8 +91,11 @@
   }
 
   function checkSuccess(wrapper) {
+    // Skip geometry when tracking cannot run or this form already sent its lead.
+    if (tracked.has(wrapper) || typeof window.fbq !== 'function' || !wrapper.querySelector(FORMS)) return;
     const success = wrapper.querySelector('.w-form-done');
-    if (!wrapper.querySelector(FORMS) || !success || getComputedStyle(success).display === 'none' || !success.getClientRects().length || tracked.has(wrapper) || typeof window.fbq !== 'function') return;
+    if (!success || success.hidden || success.style.display === 'none') return;
+    if (getComputedStyle(success).display === 'none' || !success.getClientRects().length) return;
     tracked.add(wrapper);
     window.fbq('trackSingle', '1326762815429148', 'Lead');
   }
@@ -163,7 +166,7 @@
       window.TDBForms?.refresh();
     }
   });
-  window.TDBVIPForm = Object.freeze({version:'1.1.0', refresh:() => {scan(document); fieldStates(); updateDrawerLabel();}});
+  window.TDBVIPForm = Object.freeze({version:'1.1.1', refresh:() => {scan(document); fieldStates(); updateDrawerLabel();}});
   function start() {
     scan(document); fieldStates(); updateDrawerLabel();
     // Existing multiline-copy compatibility; appearance remains in native classes.

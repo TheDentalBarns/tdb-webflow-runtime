@@ -3,6 +3,8 @@ const {JSDOM}=require('jsdom');
 for(const order of ['form-first','drawer-first']) for(const path of ['/', '/treatments/invisalign','/vip/become-a-patient']) test(`${order} ${path}: wording and user selection survive reopen`,()=>{
  const dom=new JSDOM(`<div id="tdb-vip-drawer" data-tdb-vip-native="1"><a class="tdb-vip-drawer-handle"><span class="tdb-vip-drawer-label">Join VIP</span></a><div class="tdb-vip-drawer-body"><div class="vip-form_wrapper"><p data-tdb-vip-intro></p><form id="vip-drawer-form"><input id="name"><select name="Treatment-Of-Interest"><option value="">Choose</option><option>Signature Assessment</option><option>Invisalign</option><option>Smile Design</option></select></form></div></div></div>`,{url:'https://dentalbarns.webflow.io'+path,runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window;w.matchMedia=()=>({matches:false,addEventListener(){}});w.scrollTo=()=>{};w.lenis={start(){},stop(){},resize(){}};
+ const observers=[],Observer=w.MutationObserver;
+ w.MutationObserver=class extends Observer{constructor(callback){super(callback);observers.push(this);}};
  try{
  const load=n=>w.eval(fs.readFileSync('dist/tdb-'+n+'.js','utf8'));
  for(const name of order==='form-first'?['vip-form','vip-drawer']:['vip-drawer','vip-form'])load(name);
@@ -14,5 +16,5 @@ for(const order of ['form-first','drawer-first']) for(const path of ['/', '/trea
  assert.equal(select.value,'Smile Design');assert.equal(label.textContent,expected);
  const field=w.document.getElementById('name');field.value='Test';field.dispatchEvent(new w.Event('input',{bubbles:true}));assert(field.classList.contains('is-filled'));
  field.value='';field.dispatchEvent(new w.Event('input',{bubbles:true}));assert(!field.classList.contains('is-filled'));
- }finally{w.close()}
+ }finally{observers.forEach(observer=>observer.disconnect());w.close()}
 });
