@@ -160,6 +160,6 @@
   }
 
   /* TDB_SWIPER_PLUGINS */
-  window.TDBSwiper = Object.freeze({ version: '1.4.0', matchingSlides, onSettled, firstView, bindSwiper, create, register, mount, observe, refresh, prune, watchDuration,
+  window.TDBSwiper = Object.freeze({ version: '1.5.0', matchingSlides, onSettled, firstView, nativeGap, bindSwiper, create, register, mount, observe, refresh, prune, watchDuration,
     plugins: () => [...plugins.keys()] });
 })();

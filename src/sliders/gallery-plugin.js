@@ -1,4 +1,4 @@
-/* TDB gallery carousel plugin v1.2.0. Native Smile Gallery; existing highlight behaviour. */
+/* TDB gallery carousel plugin v1.2.1. Native Smile Gallery; existing highlight behaviour. */
 (() => {
 'use strict';
 if(window.TDBGallery)return;
@@ -14,28 +14,12 @@ function h(e, t) {
         e.setAttribute(i, "true"), e.dataset.tdbSliderType = t;
     }
 function w(e, n) {
-        // Native IG has static cards and a stationary interactive frame.
-        // Designer's root gap stays readable after Swiper writes slide margins.
-        if (e.hasAttribute('data-tdb-ig-native')) {
-            const gap = parseFloat(getComputedStyle(e).columnGap);
-            return Number.isFinite(gap) ? gap : n;
-        }
-        if (e.classList.contains('tdb-smile-carousel')) {
-            const slide = e.querySelector('.swiper-slide.smile');
-            if (!slide) return n;
-            const value = slide.style.getPropertyValue('margin-right');
-            const priority = slide.style.getPropertyPriority('margin-right');
-            slide.style.removeProperty('margin-right');
-            let gap;
-            try { gap = parseFloat(getComputedStyle(slide).marginRight); }
-            finally { if (value) slide.style.setProperty('margin-right', value, priority); }
-            return Number.isFinite(gap) ? gap : n;
-        }
+        if (e.hasAttribute('data-tdb-ig-native')) return window.TDBSwiper.nativeGap(e, n);
+        if (e.classList.contains('tdb-smile-carousel')) return window.TDBSwiper.nativeGap(e, n, '.swiper-slide.smile');
         if (!matchMedia("(min-width:992px)").matches) return n;
         const i = "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage && e.matches(".section_smile-gallery [data-tdb-smile-slider]");
         if (!e.matches(t) && !i) return n;
-        const r = parseFloat(getComputedStyle(e).columnGap);
-        return Number.isFinite(r) ? r : n;
+        return window.TDBSwiper.nativeGap(e, n);
     }
 function g(e, t, n) {
         const i = () => {
@@ -221,7 +205,7 @@ const beforeObserve = function(root) {
         }
     });
 };
-const plugin=Object.freeze({version:'1.2.0',selector:e,beforeObserve,
+const plugin=Object.freeze({version:'1.2.1',selector:e,beforeObserve,
  mount(root){const presentation=window.TDBSmileCards?.prepare(root);v(root);const swiper=m(root)?.swiper;if(swiper && root.matches('[data-tdb-smile-slider],[data-tdb-ig-native]'))window.TDBCarouselVisibility.bind(swiper,{overflowViewport:true});presentation?.bind(swiper);return swiper;},
  prune(){l.forEach((state,root)=>{if(!document.documentElement.contains(root))state.cancel();});window.TDBSmileCards?.prune();},
  refresh(root=document){window.TDBSwiper.refresh('gallery',root);}

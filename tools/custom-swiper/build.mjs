@@ -24,6 +24,7 @@ await build({
   // Ship the shared TDB adapter in the same request as the engine.
   footer: { js: (await transform(await readFile(resolve(here, '../../src/shared/carousel-visibility.js'), 'utf8'), {minify:true,target:'es2017'})).code + '\n' + (await readFile(resolve(here, '../../src/sliders/swiper-behaviour.js'), 'utf8')).replace('/* TDB_SWIPER_PLUGINS */',
     (await readFile(resolve(here, '../../src/sliders/swiper-entry.js'), 'utf8')) + '\n' +
+    (await readFile(resolve(here, '../../src/sliders/swiper-gap.js'), 'utf8')) + '\n' +
     (await readFile(resolve(here, '../../src/sliders/swiper-duration.js'), 'utf8')) + '\n' +
     (await readFile(resolve(here, '../../src/sliders/swiper-plugins.js'), 'utf8'))) },
   banner: {
