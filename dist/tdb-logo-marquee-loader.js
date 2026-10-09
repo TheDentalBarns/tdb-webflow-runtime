@@ -1,14 +1,14 @@
 (() => {
   'use strict';
   if (window.TDBLogoMarqueeLoader) return;
-  const VERSION = '1.2.0';
+  const VERSION = '1.2.1';
   const selector = '.logo-slider .partner-featured_component';
-  const source = new URL('../src/logo-marquee/logo-marquee.js', document.currentScript.src).href;
+  const source = new URL('./tdb-logo-marquee.min.js', document.currentScript.src).href;
   // Logo links are controls even before the lazy runtime is ready.
   // Explicit links inside a tooltip remain normal links.
   function guardLogoNavigation(event) {
     const target = event.target instanceof Element ? event.target : null;
-    if (target?.closest('.logo-slider .partner_logos') &&
+    if (target?.closest('.logo-slider .tdb-partner-logo') &&
         !target.closest('.tdb-partner-source')) event.preventDefault();
   }
   document.addEventListener('click', guardLogoNavigation, true);

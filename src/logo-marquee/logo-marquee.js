@@ -1,17 +1,16 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.13.7';
+  const VERSION = '0.14.0';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
-    itemSelector: '.partner_logos',
+    itemSelector: '.tdb-partner-logo',
     logoSelector: '.logo_image',
     tooltipImageSelector: '.tooltip2_image',
     speedDesktop: 40,
     speedMobile: 22,
     mobileMedia: '(max-width: 767px)',
-    smoothing: 0.18,
     initViewportMargin: 600,
     activeViewportMargin: 200,
     maxMeasureAttempts: 160,
@@ -27,11 +26,8 @@
   // rather than creating another one on every animation frame.
   const mobileMediaQuery = window.matchMedia?.(CONFIG.mobileMedia);
 
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  const desktop = matchMedia('(min-width: 992px)');
-  // Homepage marquee motion is owner-enabled at every responsive width.
-  const homeMotion = document.documentElement.dataset.wfPage === '677cf86df9952f978d94d8a9';
-  const reduceMotion = () => !homeMotion && reduced.matches && !desktop.matches;
+  const reduced = window.TDBMotionPolicy?.reduced || window.TDBMotion.reduced;
+  const reduceMotion = () => reduced.matches;
   const finePointer = matchMedia('(hover:hover) and (pointer:fine)');
 
   const INIT_ATTR = 'data-tdb-logo-marquee-init';
@@ -100,10 +96,14 @@
   }
 
   function makeClone(original) {
-    const clone = original.cloneNode(true);
+    // Only the native logo is part of the moving repeat. Never construct a
+    // duplicate CMS card, CTA or legacy embed just to discard it afterwards.
+    const clone = original.cloneNode(false);
+    original.querySelectorAll(CONFIG.logoSelector).forEach(logo => clone.append(logo.cloneNode(true)));
     clone.setAttribute(CLONE_ATTR, 'true');
     clone.setAttribute('aria-hidden', 'true');
     clone.removeAttribute('id');
+    clone.removeAttribute('data-w-id');
     clone.setAttribute('tabindex', '-1');
 
     clone.querySelectorAll('[id]').forEach(element => element.removeAttribute('id'));
@@ -157,7 +157,8 @@
     const overlay = stage?.querySelector('.tdb-partner-overlay');
     const spotlight = stage?.querySelector('.tdb-partner-spotlight');
     const slideHost = shell?.querySelector('.tdb-partner-slides');
-    const visitSlot = shell?.querySelector('.tdb-partner-visit-slot');
+    const visitButton = shell?.querySelector('[data-tdb-partner-visit]');
+    if (visitButton) remember(visitButton, ['style', 'class', 'href', 'target', 'rel', 'aria-label']);
     const hiddenLogos = new Map();
     let centreAnimation = null, centreFrom = 0, measuredCardWidth = 0;
     const entries = [];
@@ -166,13 +167,10 @@
       const slide = source?.querySelector('.tooltip2_card-wrapper');
       if (!slide || source.hidden || source.classList.contains('w-condition-invisible') || !shell) return;
       remember(slide, ['style', 'class', 'role', 'aria-label', 'aria-hidden', 'data-swiper-slide-index']);
-      const visit = slide.querySelector('a[href]');
-      if (visit && visitSlot) { remember(visit, ['style']); visitSlot.append(visit); visit.style.display='none'; }
-      entries.push({ item, index, source, slide, visit });
+      const link = source.querySelector('[data-tdb-partner-link]');
+      entries.push({ item, index, source, slide, link });
       slideHost.append(slide);
     });
-    // The scrolling duplicates need logos only; all CMS content lives once in Swiper.
-    track.querySelectorAll(`[${CLONE_ATTR}] .tdb-partner-source`).forEach(node => node.remove());
     const cards = new Map();
     const shellId = 'tdb-partner-card-' + (++cardId);
     if (shell) { remember(shell, ['id', 'style', 'aria-hidden']); shell.id = shellId; }
@@ -195,7 +193,6 @@
     let momentum = 0;
     let coasting = false;
     let samples = [];
-    let pageY = window.scrollY;
     let selected = null;
     let openItem = null;
     let openCard = null;
@@ -221,47 +218,67 @@
     let measureAttempts = 0;
     let activeObserver = null;
     let resizeObserver = null;
+    let renderedX = 0;
+    let cardGeometry = null;
 
-    function positionCard() {
+    function measureCardGeometry() {
       if (!openCard || !openItem) return;
-      const edge = 12, gap = 10;
       const copies = [...track.querySelectorAll(CONFIG.itemSelector)].filter(item => item.dataset.tdbLogoIndex === openItem.dataset.tdbLogoIndex);
-      const anchor = copies.map(item => item.getBoundingClientRect()).sort((a,b) => Math.abs(a.left + a.width/2 - innerWidth/2) - Math.abs(b.left + b.width/2 - innerWidth/2))[0];
       const visual = window.visualViewport;
-      const viewLeft = visual?.offsetLeft || 0, viewTop = visual?.offsetTop || 0;
+      const scrollX = window.scrollX, scrollY = window.scrollY;
+      const viewLeft = visual?.offsetLeft || 0;
       const viewWidth = visual?.width || document.documentElement.clientWidth;
-      const viewHeight = visual?.height || innerHeight;
       const box = { width: openCard.offsetWidth, height: openCard.offsetHeight };
-      const below = false;
-      // The card stays horizontally centred while the chosen logo moves to it.
-      // Keep its document-relative vertical position, including during scrolling.
-      const left = window.scrollX + viewLeft + (viewWidth - box.width) / 2;
-      const top = window.scrollY + anchor.top - box.height - gap;
-      openCard.style.left = left + 'px';
-      openCard.style.top = top + 'px';
-      const logoCopies = copies.map(item => item.querySelector(CONFIG.logoSelector)).filter(Boolean);
-      const logo = logoCopies.sort((a,b) => {
-        const ar=a.getBoundingClientRect(), br=b.getBoundingClientRect();
-        return Math.abs(ar.left+ar.width/2-innerWidth/2)-Math.abs(br.left+br.width/2-innerWidth/2);
-      })[0];
-      if (logo && spotlight) {
-        const rect=logo.getBoundingClientRect();
-        const src=logo.currentSrc || logo.src;
-        if (spotlight.getAttribute('src') !== src) spotlight.setAttribute('src',src);
-        spotlight.style.left=(rect.left+window.scrollX)+'px'; spotlight.style.top=(rect.top+window.scrollY)+'px';
-        spotlight.style.width=rect.width+'px'; spotlight.style.height=rect.height+'px';
+      const surface = openCard.querySelector('.tdb-partner-content');
+      const topEdge = surface.offsetTop;
+      const bottomEdge = topEdge + surface.offsetHeight;
+      // Read once at opening, selection or a layout change. Store document
+      // coordinates without the current track transform, so centring frames
+      // can follow either loop copy with arithmetic and no geometry reads.
+      const rect = node => {
+        const value = node.getBoundingClientRect();
+        return { left: value.left + scrollX - renderedX, top: value.top + scrollY,
+          width: value.width, height: value.height };
+      };
+      cardGeometry = {
+        width: box.width, height: box.height, topEdge, bottomEdge,
+        left: scrollX + viewLeft + (viewWidth - box.width) / 2,
+        centre: scrollX + innerWidth / 2,
+        copies: copies.map(item => {
+          const logo = item.querySelector(CONFIG.logoSelector);
+          return { item: rect(item), logo: logo ? rect(logo) : null, src: logo?.currentSrc || logo?.src };
+        })
+      };
+    }
+    function writePosition(node, property, value) {
+      const cssValue = value + 'px';
+      if (node.style.getPropertyValue(property) !== cssValue) node.style.setProperty(property, cssValue);
+    }
+    function positionCard(refresh = false) {
+      if (!openCard || !openItem) return;
+      if (refresh || !cardGeometry) measureCardGeometry();
+      const geometry = cardGeometry;
+      if (!geometry?.copies.length) return;
+      const nearest = key => geometry.copies.filter(copy => copy[key]).reduce((best, copy) => {
+        const distance = candidate => Math.abs(candidate[key].left + renderedX + candidate[key].width / 2 - geometry.centre);
+        return !best || distance(copy) < distance(best) ? copy : best;
+      }, null);
+      const anchor = nearest('item').item;
+      writePosition(openCard, 'left', geometry.left);
+      writePosition(openCard, 'top', anchor.top - geometry.height - 10);
+      const copy = nearest('logo');
+      if (copy && spotlight) {
+        if (spotlight.getAttribute('src') !== copy.src) spotlight.setAttribute('src', copy.src);
+        writePosition(spotlight, 'left', copy.logo.left + renderedX);
+        writePosition(spotlight, 'top', copy.logo.top);
+        writePosition(spotlight, 'width', copy.logo.width);
+        writePosition(spotlight, 'height', copy.logo.height);
       }
-      const pointer = openCard;
-      if (pointer) {
-        const surface = openCard.querySelector('.tdb-partner-content');
-        const topEdge = surface.offsetTop;
-        const bottomEdge = topEdge + surface.offsetHeight;
-        pointer.style.setProperty('--tdb-tip-x', (box.width / 2) + 'px');
-        pointer.style.setProperty('--tdb-surface-top', topEdge + 'px');
-        pointer.style.setProperty('--tdb-surface-bottom', bottomEdge + 'px');
-        pointer.style.setProperty('--tdb-tip-top', (below ? topEdge - 8 : topEdge) + 'px');
-        pointer.style.setProperty('--tdb-tip-bottom', (below ? bottomEdge : bottomEdge + 8) + 'px');
-      }
+      writePosition(openCard, '--tdb-tip-x', geometry.width / 2);
+      writePosition(openCard, '--tdb-surface-top', geometry.topEdge);
+      writePosition(openCard, '--tdb-surface-bottom', geometry.bottomEdge);
+      writePosition(openCard, '--tdb-tip-top', geometry.topEdge);
+      writePosition(openCard, '--tdb-tip-bottom', geometry.bottomEdge + 8);
     }
     function finishCardTransition(card) {
       const state = cardTransitions.get(card);
@@ -324,7 +341,7 @@
       shell.style.setProperty('--tdb-partner-image-height', Math.ceil(imageHeight)+'px');
       shell.style.setProperty('--tdb-partner-text-height', Math.ceil(textHeight)+'px');
       swiper?.update();
-      positionCard();
+      positionCard(true);
     }
     function syncSlide() {
       if (!openCard || switching || !swiper) return;
@@ -333,6 +350,7 @@
       track.querySelectorAll('[aria-expanded="true"]').forEach(item=>item.setAttribute('aria-expanded','false'));
       const changed=openItem!==entry.item;
       openItem=entry.item;
+      if (changed) cardGeometry = null;
       openItem.setAttribute('aria-expanded','true');
       if(changed || !centreAnimation) centre(openItem);
       hiddenLogos.forEach((visibility,logo)=>{logo.style.visibility=visibility;}); hiddenLogos.clear();
@@ -341,13 +359,19 @@
         const logo=item.querySelector(CONFIG.logoSelector);
         if(logo) {hiddenLogos.set(logo,logo.style.visibility);logo.style.visibility='hidden';}
       });
-      entries.forEach((entry,index)=>{
-        entry.slide.inert=false;
-        if(entry.visit) {
-          entry.visit.style.display=index===swiper.realIndex?'':'none';
-          if(changed) entry.visit.classList.remove('is-hovered','is-touch-held');
+      entries.forEach(entry=>{ entry.slide.inert=false; });
+      if (visitButton) {
+        const href = entry.link?.getAttribute('href');
+        visitButton.style.display = href ? '' : 'none';
+        for (const name of ['href', 'target', 'rel']) {
+          const value = entry.link?.getAttribute(name);
+          if (value === null || value === undefined) visitButton.removeAttribute(name);
+          else visitButton.setAttribute(name, value);
         }
-      });
+        const name = entry.slide.querySelector('.text-style-tagline-restored')?.textContent.trim() || 'partner';
+        visitButton.setAttribute('aria-label', 'Visit ' + name + ' website' + (visitButton.target === '_blank' ? ' (opens in a new tab)' : ''));
+        if (changed) visitButton.classList.remove('is-hovered', 'is-touch-held');
+      }
       Array.from(swiper.slides).forEach((slide,index)=>{slide.inert=index!==swiper.activeIndex;});
       positionCard();
     }
@@ -393,6 +417,7 @@
       const card = openCard, item = openItem;
       const focused = card.contains(document.activeElement);
       openCard = openItem = null;
+      cardGeometry = null;
       card.setAttribute('aria-hidden', 'true'); card.inert = true;
       track.querySelectorAll('[aria-expanded="true"]').forEach(item=>item.setAttribute('aria-expanded','false'));
       const park = () => {
@@ -439,6 +464,8 @@
     }
 
     function setTransform(value) {
+      if (openCard && !cardGeometry) measureCardGeometry();
+      renderedX = value;
       track.style.transform = `translate3d(${value}px, 0, 0)`;
       positionCard();
     }
@@ -483,6 +510,7 @@
         ? shortestDelta(targetX - currentX, loopWidth)
         : targetX - currentX;
 
+      cardGeometry = null;
       loopWidth = nextWidth;
       currentX = wrapX(currentX, loopWidth);
       targetX = currentX + shortestDelta(gap, loopWidth);
@@ -688,7 +716,6 @@
       return !visible(openCard) && !visible(viewport);
     }
     function onPageScroll() {
-      pageY = window.scrollY;
       if (!openCard) return;
       // Absolute positioning scrolls naturally; no position writes on scroll.
       // Keep the card readable while either it or its marquee remains on screen.
@@ -730,7 +757,7 @@
       [...cardTransitions.keys()].forEach(finishCardTransition);
       swiper?.destroy(true,true);
       centreAnimation?.cancel();
-      entries.forEach(({source,slide,visit})=>{slide.inert=false;if(visit)slide.append(visit);source.append(slide);});
+      entries.forEach(({source,slide})=>{slide.inert=false;source.append(slide);});
       if (stage && shell) stage.append(overlay,spotlight,shell);
       controller.abort();
       dd.destroy();
@@ -760,22 +787,20 @@
           if(event.pointerType==='touch'||event.pointerType==='pen') selectArrow(button);
         },{signal});
         button.addEventListener('pointercancel',()=>selectArrow(null),{signal});
-        button.addEventListener('click',()=>selectArrow(button),{signal});
       });
       // Same native visual states as the treatment CTA: mouse-only hover,
       // instant touch feedback, cleared when the user scrolls or changes card.
-      const clearVisitFeedback = () => entries.forEach(({visit}) => visit?.classList.remove('is-touch-held','is-hovered'));
-      entries.forEach(({visit}) => {
-        if (!visit) return;
-        visit.addEventListener('pointerenter', event => {
-          if (event.pointerType === 'mouse') visit.classList.add('is-hovered');
+      const clearVisitFeedback = () => visitButton?.classList.remove('is-touch-held','is-hovered');
+      if (visitButton) {
+        visitButton.addEventListener('pointerenter', event => {
+          if (event.pointerType === 'mouse') visitButton.classList.add('is-hovered');
         }, {signal});
-        visit.addEventListener('pointerleave', () => visit.classList.remove('is-hovered'), {signal});
-        visit.addEventListener('pointerdown', event => {
-          if (event.pointerType !== 'mouse') visit.classList.add('is-touch-held');
+        visitButton.addEventListener('pointerleave', () => visitButton.classList.remove('is-hovered'), {signal});
+        visitButton.addEventListener('pointerdown', event => {
+          if (event.pointerType !== 'mouse') visitButton.classList.add('is-touch-held');
         }, {signal});
-        visit.addEventListener('pointercancel', clearVisitFeedback, {signal});
-      });
+        visitButton.addEventListener('pointercancel', clearVisitFeedback, {signal});
+      }
       shell.addEventListener('click', event => {
         if (!event.target.closest('.tdb-service-discover')) clearVisitFeedback();
       }, {signal});
@@ -822,8 +847,7 @@
     track.addEventListener('keydown', onKey, { signal });
     document.addEventListener('keydown', event => {
       if (event.key === 'Tab' && openCard && !event.shiftKey && event.target === openItem) {
-        const link = entries[swiper?.realIndex]?.visit;
-        if (link) { event.preventDefault(); link.focus({ preventScroll: true }); }
+        if (visitButton?.getAttribute('href')) { event.preventDefault(); visitButton.focus({ preventScroll: true }); }
       }
       if (event.key === 'Escape' && openCard) {
         event.preventDefault(); closeCard(true); resume();
@@ -836,7 +860,6 @@
     signal.addEventListener('abort', () => cardObserver.disconnect(), { once: true });
     track.addEventListener('dragstart', event => event.preventDefault(), { signal });
     reduced.addEventListener('change', onReducedChange, { signal });
-    desktop.addEventListener('change', onReducedChange, { signal });
     document.addEventListener('click', onOutsideClick, { signal, capture:true });
     window.addEventListener('scroll', onPageScroll, { signal, passive:true });
     track.addEventListener('pointerdown', onPointerDown, { signal });
