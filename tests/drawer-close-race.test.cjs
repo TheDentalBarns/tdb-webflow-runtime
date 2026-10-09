@@ -7,7 +7,7 @@ function setup(){
  w.matchMedia=()=>({matches:false});w.TDBMotion={duration:()=>600,reduced:{matches:false,addEventListener(){}}};
  w.lenis={isStopped:false,stop(){this.isStopped=true;events.push('lock')},start(){this.isStopped=false;events.push('unlock')}};
  for(const node of [panel,backdrop])node.animate=(frames,options)=>{
-  let resolve,reject;const animation={node,frames,options,done:false,cancelled:false,finished:new Promise((a,b)=>{resolve=a;reject=b}),finish(){if(!this.done){this.done=true;resolve()}},cancel(){this.cancelled=true;if(!this.done){this.done=true;reject(new w.DOMException('Cancelled','AbortError'))}}};
+  let resolve,reject;const animation={node,frames,options,currentTime:0,playbackRate:1,reversals:0,reverse(){this.playbackRate=-this.playbackRate;this.reversals++;if(this.done){this.done=false;this.finished=new Promise((a,b)=>{resolve=a;reject=b})}},done:false,cancelled:false,finished:new Promise((a,b)=>{resolve=a;reject=b}),finish(){if(!this.done){this.done=true;resolve()}},cancel(){this.cancelled=true;if(!this.done){this.done=true;reject(new w.DOMException('Cancelled','AbortError'))}}};
   animations.push(animation);return animation;
  };
  w.eval(code);const api=w.TDBDrawer.mount(root,{onOpen(){events.push('open')},onClose(){events.push('close')}});
@@ -33,4 +33,29 @@ test('immediate teardown during closing cancels once and restores page access',a
   assert.equal(t.events.filter(x=>x==='close').length,1,'teardown does not repeat consumer close work');
   assert.equal(t.events.filter(x=>x==='unlock').length,1);assert.equal(t.api.state,'closed');assert.equal(t.root.inert,true);assert.equal(t.doc.documentElement.style.overflow,'');
  }finally{t.dispose();}
+});
+
+for(const elapsed of [180,420])test(`closing during opening reverses at ${elapsed}ms without replacing animations`,async()=>{
+ const t=setup();try{
+  const opening=t.api.open(t.trigger),[panel,backdrop]=t.animations;
+  panel.currentTime=elapsed;backdrop.currentTime=Math.min(elapsed,300);
+  if(elapsed>=300)backdrop.finish();
+  const closing=t.api.close();await flush();
+  assert.equal(t.animations.length,2,'reuse the entrance animations, without snapping to a fresh fully-open frame');
+  for(const animation of [panel,backdrop]){assert.equal(animation.cancelled,false);assert.equal(animation.playbackRate,-1);assert.equal(animation.reversals,1)}
+  assert.equal(panel.currentTime,elapsed);assert.equal(backdrop.currentTime,Math.min(elapsed,300));
+  t.backdrop.click();assert.equal(panel.reversals,1);assert.equal(t.api.state,'closing');
+  panel.finish();await flush();assert.equal(t.api.state,'closing','wait for the reversed backdrop too');
+  backdrop.finish();await Promise.all([opening,closing]);
+  assert.equal(t.api.state,'closed');assert.equal(t.root.hidden,true);assert.equal(t.doc.activeElement,t.trigger);assert.equal(t.events.filter(x=>x==='unlock').length,1);
+ }finally{t.dispose()}
+});
+
+test('closing before the first animation frame does not rewind to fully open',async()=>{
+ const t=setup();try{
+  const opening=t.api.open(t.trigger),[panel,backdrop]=t.animations;
+  const closing=t.api.close();await Promise.all([opening,closing]);
+  assert.equal(t.animations.length,2);assert.equal(panel.reversals,0);assert.equal(backdrop.reversals,0);
+  assert.equal(panel.playbackRate,-1);assert.equal(panel.currentTime,0);assert.equal(t.api.state,'closed');
+ }finally{t.dispose()}
 });

@@ -19,3 +19,18 @@ Release is based on carousel dependency tree 9b2210cc0a63213ab39ca8a0b57dbab19f9
 Only `src/shared/drawer.js` and its distribution change runtime behaviour. Update
 the existing `data-tdb-carousel-base` pin via a fresh, narrowly patched site head;
 keep the motion registry URL and all other head content. Publish staging only.
+
+## Opening interrupted by closing
+
+Drawer 1.0.3 also fixes the separate snap when dismissing during entrance. It
+reverses the active panel and backdrop animations at their current timeline
+positions, retaining their easing and progress. No computed-style/layout read
+or new animation is needed. At time zero it finishes at the closed boundary,
+avoiding Web Animations auto-rewind. The revision guard prevents the old open
+continuation from marking the reversed drawer open. Full open/close timings and
+repeated-close protection remain unchanged.
+
+Five focused tests cover repeated close, teardown, partial opening, an already
+finished backdrop during entrance, and closing before the first frame. The
+three new cases failed against 1.0.2 before this correction. Tests use controlled
+animation promises; no browser visual verification is claimed.

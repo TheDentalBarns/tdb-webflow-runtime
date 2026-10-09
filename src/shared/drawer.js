@@ -1,4 +1,4 @@
-/* TDB shared native drawer v1.0.2. Webflow owns markup and styles. */
+/* TDB shared native drawer v1.0.3. Webflow owns markup and styles. */
 (() => {
 'use strict';if(window.TDBDrawer)return;
 const instances=new WeakMap();let active=null;
@@ -18,7 +18,14 @@ function mount(root,{onOpen,onClose}={}){
  }
  function unlock(){saved.forEach(([node,value])=>node.inert=value);saved=[];if(!scrollLock)return;const html=document.documentElement;html.style.overflow=scrollLock.overflow;html.style.paddingRight=scrollLock.padding;if(scrollLock.resume)scrollLock.lenis?.start();scrollLock=null;}
  async function transition(opening){
-  stop();const rev=++revision;const duration=motion.matches?0:window.TDBMotion.duration(innerWidth);
+  const rev=++revision;
+  if(!opening&&animations.length){
+   // Reverse the existing timeline: cancelling would snap to the authored open pose.
+   // At the start boundary, reverse()/play() auto-rewind to the end; finish at zero instead.
+   animations.forEach(a=>{if(a.currentTime==null||a.currentTime===0){a.playbackRate=-1;a.finish();}else a.reverse();});
+   await Promise.allSettled(animations.map(a=>a.finished));return rev===revision;
+  }
+  stop();const duration=motion.matches?0:window.TDBMotion.duration(innerWidth);
   const closed='translateX(100%)';
   if(duration&&panel.animate){animations=[panel.animate([{transform:opening?closed:'translate(0)'},{transform:opening?'translate(0)':closed}],{duration,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'})];if(backdrop)animations.push(backdrop.animate([{opacity:opening?0:1},{opacity:opening?1:0}],{duration:Math.min(duration,300),fill:'both'}));await Promise.allSettled(animations.map(a=>a.finished));}
   return rev===revision;
@@ -56,5 +63,5 @@ function mount(root,{onOpen,onClose}={}){
  motion.addEventListener('change',()=>{if(state==='opening'){revision++;stop();state='open';}else if(state==='closing')close(true);},{signal});
  const api=Object.freeze({open,close,get state(){return state;},destroy(){close(true);ctrl.abort();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBDrawer=Object.freeze({version:'1.0.2',mount});
+window.TDBDrawer=Object.freeze({version:'1.0.3',mount});
 })();
