@@ -16,7 +16,7 @@ const css=(await Promise.all((await readdir(cssDir)).filter(name=>/^webflow-.*\.
 const browser=await chromium.launch({headless:true,executablePath:process.env.TDB_CHROMIUM_EXECUTABLE,args:['--no-sandbox','--disable-dev-shm-usage']});
 const results=[];
 try {
-  const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
+  const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce',timezoneId:'Europe/London'});
   const page=await context.newPage();
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   const requestedImages=new Set();
@@ -66,7 +66,7 @@ try {
   }
   const settled=()=>page.waitForFunction(()=>{
     const root=document.querySelector('[data-tdb-ig-native]'),swiper=root.querySelector('[data-ig-viewport]').swiper;
-    return root.dataset.tdbIgReady==='2.0.0'&&swiper&&!swiper.animating&&root.getAttribute('data-tdb-slider-first-view')!=='pending';
+    return root.dataset.tdbIgReady==='2.0.1'&&swiper&&!swiper.animating&&root.getAttribute('data-tdb-slider-first-view')!=='pending';
   });
   await fixture(16,6000);
   assert.equal(requestedImages.size,0,'Offscreen native lazy images must not be requested');
@@ -83,10 +83,12 @@ try {
     const state=await page.evaluate(()=>{
       const root=document.querySelector('[data-tdb-ig-native]'),swiper=root.querySelector('[data-ig-viewport]').swiper,card=swiper.slides[swiper.activeIndex];
       const logical=Number(card.dataset.igIndex),url=card.querySelector('[data-ig-field="url"]').getAttribute('href');
-      const result={logical,label:root.querySelector('[data-ig-label]').textContent,url,link:root.querySelector('[data-ig-post-link]').getAttribute('href'),photo:card.querySelector('.ig-native_photo').src,reflection:card.querySelector('.ig-native_reflection-photo').src};
+      const result={logical,label:root.querySelector('[data-ig-label]').textContent,date:root.querySelector('[data-ig-date]').getAttribute('aria-label'),url,link:root.querySelector('[data-ig-post-link]').getAttribute('href'),photo:card.querySelector('.ig-native_photo').src,reflection:card.querySelector('.ig-native_reflection-photo').src};
       swiper.slideNext(0);return result;
     });
     assert.equal(state.logical,i);assert.equal(state.label,'Post '+(i+1)+' of 16');assert.equal(state.url,state.link);assert.equal(state.photo,state.reflection);
+    if(i===0)assert.equal(state.date,'10 Jan 2026');
+    if(i===9)assert.equal(state.date,'7 Jun 2025','CMS calendar dates must survive British Summer Time');
   }
   await page.locator('[data-ig-next]').click();await settled();
   assert.equal(await page.locator('[data-ig-label]').textContent(),'Post 2 of 16');

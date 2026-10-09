@@ -1,13 +1,24 @@
-/* TDB native Instagram v2.0.0. Webflow renders the visible CMS Collection List;
+/* TDB native Instagram v2.0.1. Webflow renders the visible CMS Collection List;
  * CMS owns posts; shared Gallery, Swiper, Motion and NativeTicker own behaviour. */
 (() => {
   'use strict';
   if (window.TDBInstagramNative) return;
-  const VERSION = '2.0.0';
+  const VERSION = '2.0.1';
   const BASE = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@41e1f34f7e17682bfd630554d1003170ef13dafd/dist/';
   const instances = new Map(), pending = new WeakSet();
   const numberFormat = new Intl.NumberFormat('en-GB');
   const dateFormat = new Intl.DateTimeFormat('en-GB', {day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
+  const months = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+  function postDate(value) {
+    // Webflow prints a calendar date, not a timestamp. Parsing that as local
+    // midnight and then formatting in UTC would shift dates in eastern zones.
+    const calendar = /^([a-z]+)\s+(\d{1,2}),\s*(\d{4})$/i.exec(value);
+    if (calendar) {
+      const month = months.indexOf(calendar[1].toLowerCase());
+      if (month !== -1) return Date.UTC(Number(calendar[3]),month,Number(calendar[2]));
+    }
+    return Date.parse(value);
+  }
   const hasMetric = value => Number.isSafeInteger(value) && value >= 0;
   const pad = value => String(value).padStart(2, '0');
   let dependencies;
@@ -74,7 +85,7 @@
     text('[data-ig-current]',posts.length?'01':'');
     text('[data-ig-label]',posts.length?'Post 1 of '+posts.length:'');
     if (!posts.length) return;
-    const post=posts[0], timestamp=Date.parse(post.date);
+    const post=posts[0], timestamp=postDate(post.date);
     text('[data-ig-date]',Number.isFinite(timestamp)?dateFormat.format(timestamp):'');
     root.querySelectorAll('[data-ig-post-link],[data-ig-action="likes"],[data-ig-action="comments"]').forEach(link=>link.href=post.url);
     ['likes','comments','shares'].forEach(key=>text('[data-ig-metric="'+key+'"]',hasMetric(post[key])?numberFormat.format(post[key]):''));
@@ -153,7 +164,7 @@
         if(metric.key==='shares')metric.node.dataset.shareUrl=activePost.url;
         else metric.node.href=activePost.url;
       });
-      const timestamp=Date.parse(activePost.date),known=Number.isFinite(timestamp);
+      const timestamp=postDate(activePost.date),known=Number.isFinite(timestamp);
       const text=known?dateFormat.format(timestamp):'';
       dateTicker.update(text,known&&previousDate!==null?(timestamp<previousDate?-1:1):direction,shown);
       date.setAttribute('aria-label',text);
