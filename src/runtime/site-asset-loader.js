@@ -1,3 +1,6 @@
+// Snapshot before this bundle sorts/moves markup or changes visibility classes.
+const TDBFooterInitialScrollY = Math.max(window.scrollY ?? document.documentElement.scrollTop ?? 0, 0);
+
 (() => {
   const root = document.documentElement;
   const shellId = 'tdb-elfsight-timer-shell';
@@ -6,32 +9,31 @@
   const revealViewports = path === '/' || path === '/location' ? 4 : 1;
   let viewportHeight = 0;
 
-  function attachTimerState(shell) {
+  const readPosition = () => ({y: window.scrollY ?? root.scrollTop ?? 0, height: innerHeight || root.clientHeight || 0});
+  function attachTimerState(shell, position) {
     if (!shell || shell._t) return;
     shell._t = 1;
     let frame = 0;
     const navbar = document.querySelector('.navbar10_component');
-    const updateViewportHeight = () => {
-      const h = innerHeight || root.clientHeight || 0;
+    const updateViewportHeight = (h = innerHeight || root.clientHeight || 0) => {
       viewportHeight = viewportHeight ? Math.min(viewportHeight, h) : h;
     };
-    const updateState = () => {
+    const updateState = (scrollTop = window.scrollY ?? root.scrollTop ?? 0) => {
       frame = 0;
-      const scrollTop = scrollY || root.scrollTop || 0;
       const mobileNavbarVisible = mobileQuery.matches && navbar && (
         navbar.classList.contains('z-hold') ||
         (navbar.classList.contains('is-trans') && !(navbar.style.transform || '').includes('-100%'))
       );
       root.classList.toggle('tdb-timer-hidden', scrollTop < viewportHeight * revealViewports || mobileNavbarVisible);
     };
-    const requestUpdate = () => { if (!frame) frame = requestAnimationFrame(updateState); };
-    updateViewportHeight();
+    const requestUpdate = () => { if (!frame) frame = requestAnimationFrame(() => updateState()); };
+    updateViewportHeight(position.height);
     if (navbar) new MutationObserver(requestUpdate).observe(navbar, { attributes: true, attributeFilter: ['class', 'style'] });
     addEventListener('scroll', requestUpdate, { passive: true });
     addEventListener('resize', () => { updateViewportHeight(); requestUpdate(); }, { passive: true });
     addEventListener('orientationchange', () => { updateViewportHeight(); requestUpdate(); }, { passive: true });
     mobileQuery.addEventListener ? mobileQuery.addEventListener('change', requestUpdate) : mobileQuery.addListener(requestUpdate);
-    updateState();
+    updateState(position.y);
   }
 
   const startupEvents = ['scroll','pointerdown','keydown','touchstart'];
@@ -39,11 +41,12 @@
   function createTimerShell() {
     const shell = document.querySelector('[data-tdb-announcement][data-placement="floating"]');
     if (!shell || mounted || attempts >= 3) return;
+    const position = readPosition();
     attempts++;
     // The component remains editable in Footer; body ownership avoids transformed
     // page wrappers changing fixed positioning and keeps the drawer's inert handling.
     if (shell.parentElement !== document.body) document.body.append(shell);
-    attachTimerState(shell);
+    attachTimerState(shell, position);
     window.TDBAnnouncementLoader.load().then(api => {
       api.mount(shell); mounted = true;
       startupEvents.forEach(type => removeEventListener(type, scheduleTimerShell));
@@ -61,7 +64,11 @@
     else setTimeout(createTimerShell,200);
   }
   function onOnline() { attempts = 0; scheduleTimerShell(); }
-  function onPageShow() { attachTimerState(document.getElementById(shellId)); if (scrollY) scheduleTimerShell(); }
+  function onPageShow() {
+    const position = readPosition();
+    attachTimerState(document.getElementById(shellId), position);
+    if (position.y) scheduleTimerShell();
+  }
   startupEvents.forEach(type => addEventListener(type,scheduleTimerShell,{passive:true}));
   addEventListener('online', onOnline);
   addEventListener('pageshow', onPageShow);
@@ -407,7 +414,7 @@ function prepareVIPDrawerLoader() {
   // Prefer the window scroll offset, including zero, without also asking the
   // root element for layout. Retain the element fallback for older engines.
   const pageY = () => Math.max(window.scrollY ?? document.documentElement.scrollTop ?? 0, 0);
-  const scrollSeed = { lastY: pageY(), up: 0, down: 0, peek: false };
+  const scrollSeed = { lastY: TDBFooterInitialScrollY, up: 0, down: 0, peek: false };
   const realDrawerReady = () => Boolean(window.TDBVIPDrawer);
 
   function cleanup() {
@@ -522,12 +529,12 @@ function prepareVIPDrawerLoader() {
 
   arm();
   if (/^#vip/i.test(location.hash || '')) loadSafely();
-  else if (demand) onPageShow();
+  else if (demand) { if (TDBFooterInitialScrollY > 0) loadSafely(); }
   else if (window.__TDB_PRIORITY_READY__) loadSafely();
   else window.addEventListener('tdb:priority-ready', loadSafely, { once: true });
 
   window.TDBVIPDrawerLoader = Object.freeze({
-    version: '1.3.1',
+    version: '1.3.2',
     load: loadDrawer,
     status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) && !realDrawerReady(), uiReady: tdbUIIsReady(), demand }),
   });
@@ -639,7 +646,7 @@ prepareSliderFocusLoader();
 startLenisForSession();
 
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.6.1',
+  version: '1.6.2',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,
