@@ -1,4 +1,4 @@
-/* TDB gallery carousel plugin v1.1.3. Native Smile Gallery; existing highlight behaviour. */
+/* TDB gallery carousel plugin v1.2.0. Native Smile Gallery; existing highlight behaviour. */
 (() => {
 'use strict';
 if(window.TDBGallery)return;
@@ -173,68 +173,55 @@ function v(e) {
         }(e, r), r.on("slideChangeTransitionEnd", () => r.loopFix())), h(e, "highlight"),
         l.get(e)?.bind(r);
     }
-const beforeObserve=function(e) {
-            window.TDBSmileCards?.prepare(e);
-            if (d.has(e) || l.has(e)) return;
-            const t = m(e);
-            if (!t) return;
-            const n = [ "pointerdown", "touchstart", "keydown", "click", "focusin" ];
-            let i = null, r = null, s = !1, a = 0, c = 0, u = !1;
-            function p() {
-                a && cancelAnimationFrame(a), c && clearTimeout(c), a = c = 0;
-            }
-            function f(t) {
-                u || (u = !0, p(), r?.disconnect(), n.forEach(t => e.removeEventListener(t, h, !0)),
-                document.removeEventListener("visibilitychange", w), i?.off("touchStart slideChange", h),
-                i?.off("beforeDestroy", b), l.delete(e), d.add(e), e.setAttribute(o, t));
-            }
-            function h() {
-                f("skipped-interaction");
-            }
-            function b() {
-                f("skipped-destroyed");
-            }
-            function w() {
-                document.hidden ? p() : y();
-            }
-            function g() {
-                return !(u || !i) && (!document.documentElement.contains(e) || i.destroyed ? (f("skipped-detached"),
-                !1) : e.contains(document.activeElement) || 0 !== i.realIndex || i.animating ? (f("skipped-interaction"),
-                !1) : s && !document.hidden);
-            }
-            function v() {
-                if (c = 0, !g()) return;
-                const e = t.getBoundingClientRect();
-                e.width <= 0 || e.height <= 0 || e.bottom <= 0 || e.right <= 0 || e.top >= window.innerHeight || e.left >= window.innerWidth || ("visible" !== getComputedStyle(t).visibility || t.closest('[hidden], [inert], [aria-hidden="true"]') ? f("skipped-hidden") : (i.update(),
-                g() && (i.slides.length < 2 || i.isLocked || !i.enabled ? f("skipped-unavailable") : (f("advanced"),
-                i.slideNext(i.params.speed, !0)))));
-            }
-            function y() {
-                a || c || !g() || (a = requestAnimationFrame(() => {
-                    a = requestAnimationFrame(() => {
-                        a = 0, g() && (c = setTimeout(v, window.TDBMotion.carousel.entryStart));
-                    });
-                }));
-            }
-            l.set(e, {
-                cancel: () => f("skipped-detached"),
-                bind(e) {
-                    u || (i = e, i.slides.length < 2 ? f("skipped-unavailable") : (i.on("touchStart slideChange", h),
-                    i.on("beforeDestroy", b), y()));
-                }
-            }), e.setAttribute(o, "pending"), "IntersectionObserver" in window ? (n.forEach(t => e.addEventListener(t, h, {
-                capture: !0,
-                passive: !0
-            })), document.addEventListener("visibilitychange", w), r = new IntersectionObserver(e => {
-                e.forEach(e => {
-                    s = e.isIntersecting && e.intersectionRatio > 0, s ? y() : p();
-                });
-            }, {
-                rootMargin: "0px",
-                threshold: 0
-            }), r.observe(t)) : f("skipped-unsupported");
-        };
-const plugin=Object.freeze({version:'1.1.3',selector:e,beforeObserve,
+const beforeObserve = function(root) {
+    window.TDBSmileCards?.prepare(root);
+    if (d.has(root) || l.has(root)) return;
+    const viewport = m(root);
+    if (!viewport) return;
+    let swiper = null, entry = null, done = false;
+    function finish(status, fromSwiper = false) {
+        if (done) return;
+        done = true; entry?.destroy();
+        if (!fromSwiper) {
+            swiper?.off('touchStart slideChange', interaction);
+            swiper?.off('beforeDestroy', destroyed);
+        }
+        l.delete(root); d.add(root); root.setAttribute(o, status);
+    }
+    const interaction = () => finish('skipped-interaction');
+    const destroyed = () => finish('skipped-destroyed', true);
+    function ready() {
+        if (!swiper || done) return false;
+        if (swiper.destroyed) { finish('skipped-destroyed'); return false; }
+        if (root.contains(document.activeElement) || swiper.realIndex !== 0 || swiper.animating) { interaction(); return false; }
+        const rect = viewport.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0 || rect.bottom <= 0 || rect.right <= 0 || rect.top >= innerHeight || rect.left >= innerWidth) return false;
+        if (getComputedStyle(viewport).visibility !== 'visible' || viewport.closest('[hidden],[inert],[aria-hidden="true"]')) { finish('skipped-hidden'); return false; }
+        return true;
+    }
+    l.set(root, {
+        cancel: () => finish('skipped-detached'),
+        bind(instance) {
+            if (done) return;
+            swiper = instance;
+            if (swiper.slides.length < 2) return finish('skipped-unavailable');
+            swiper.on('touchStart slideChange', interaction);
+            swiper.on('beforeDestroy', destroyed); entry.arm();
+        }
+    });
+    root.setAttribute(o, 'pending');
+    entry = window.TDBSwiper.firstView(root, {
+        target: viewport, armed: false, ready,
+        cancel: reason => finish('skipped-' + reason),
+        enter() {
+            swiper.update();
+            if (!ready()) return;
+            if (swiper.slides.length < 2 || swiper.isLocked || !swiper.enabled) return finish('skipped-unavailable');
+            finish('advanced'); swiper.slideNext(swiper.params.speed, true);
+        }
+    });
+};
+const plugin=Object.freeze({version:'1.2.0',selector:e,beforeObserve,
  mount(root){const presentation=window.TDBSmileCards?.prepare(root);v(root);const swiper=m(root)?.swiper;if(swiper && root.matches('[data-tdb-smile-slider],[data-tdb-ig-native]'))window.TDBCarouselVisibility.bind(swiper,{overflowViewport:true});presentation?.bind(swiper);return swiper;},
  prune(){l.forEach((state,root)=>{if(!document.documentElement.contains(root))state.cancel();});window.TDBSmileCards?.prune();},
  refresh(root=document){window.TDBSwiper.refresh('gallery',root);}

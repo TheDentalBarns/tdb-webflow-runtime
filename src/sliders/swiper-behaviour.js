@@ -1,4 +1,4 @@
-/* TDB Swiper behaviour v1.3.1. One custom engine with shared plugin lifecycle. */
+/* TDB Swiper behaviour v1.4.0. Shared plugin lifecycle and cancellable first view. */
 (() => {
   'use strict';
   if (window.TDBSwiper) return;
@@ -160,6 +160,6 @@
   }
 
   /* TDB_SWIPER_PLUGINS */
-  window.TDBSwiper = Object.freeze({ version: '1.3.1', matchingSlides, onSettled, bindSwiper, create, register, mount, observe, refresh, prune, watchDuration,
+  window.TDBSwiper = Object.freeze({ version: '1.4.0', matchingSlides, onSettled, firstView, bindSwiper, create, register, mount, observe, refresh, prune, watchDuration,
     plugins: () => [...plugins.keys()] });
 })();

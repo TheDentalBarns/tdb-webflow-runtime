@@ -1,4 +1,4 @@
-/* TDB parallax carousel plugin v1.2.2. Native Services spacing; shared settlement. */
+/* TDB parallax carousel plugin v1.3.0. Native Services spacing; shared settlement. */
 (() => {
 'use strict';
 if(window.TDBParallaxPlugin)return;
@@ -211,6 +211,7 @@ function A(e) {
         if (e.hasAttribute('data-tdb-treatment') || e.classList.contains('tdb-service-parallax')) window.TDBCarouselVisibility.bind(b);
         const v = window.TDBMotion.carousel.nextDelay, A = new WeakMap, L = new Set;
         let T = null, M = !1, P = !1, settledIndex = b.realIndex;
+        let entryControl, entryReveal = 0, entryRetry = 0, entryFallback = 0;
         b.on("beforeLoopFix", () => {
             P = !0;
         }), b.on("loopFix", () => {
@@ -239,10 +240,21 @@ function A(e) {
                 b.slides.forEach(n => q(n, n === e || null !== t && n.getAttribute("data-swiper-slide-index") === t));
             }, e);
         }
-        function z(t = window.TDBMotion.carousel.nextDelay) {
-            C && (C = !1, setTimeout(() => { e.classList.remove("tdb-entry-pending"); window.TDBParallax?.setEntry(e, false); }, t));
+        function clearEntryFollowups() {
+            clearTimeout(entryRetry); clearTimeout(entryFallback); entryRetry = entryFallback = 0;
         }
-        if (e.classList.toggle("tdb-entry-pending", C), window.TDBParallax?.setEntry(e, C), b.slides.forEach(e => q(e, !1)), 
+        function z(t = window.TDBMotion.carousel.nextDelay) {
+            if (!C) return;
+            C = !1; clearEntryFollowups();
+            entryReveal = setTimeout(() => {
+                entryReveal = 0; e.classList.remove("tdb-entry-pending"); window.TDBParallax?.setEntry(e, false);
+            }, t);
+        }
+        b.on('beforeDestroy', () => {
+            entryControl?.destroy(); clearEntryFollowups(); clearTimeout(entryReveal); F();
+            e.classList.remove('tdb-entry-pending'); window.TDBParallax?.setEntry(e, false); R(false);
+        });
+        e.classList.toggle("tdb-entry-pending", C), window.TDBParallax?.setEntry(e, C), b.slides.forEach(e => q(e, !1)), 
         q(b.slides[b.activeIndex], !0), R(!1), b.on("touchStart", () => {
             M = !1, F();
         }), b.on("sliderMove", () => {
@@ -254,25 +266,36 @@ function A(e) {
             settledIndex = b.realIndex; M = !1;
             const delay = changed ? (b.swipeDirection === "prev" ? window.TDBMotion.carousel.previousDelay : v) : window.TDBMotion.carousel.settleDelay;
             B(delay), z(delay), R(!1);
-        }), b.on('beforeDestroy', F), h(e, "parallax"), l && C) return b.autoplay?.stop(), void b.slideNext();
-        if (o && C) {
-            const t = e.querySelector(".swiper-btn-next"), n = () => {
-                C && (C = !1, e.classList.remove("tdb-entry-pending"), window.TDBParallax?.setEntry(e, false), R(!1), B(v));
-            }, i = () => {
-                !b.destroyed && C && (c?.skipEntry ? n() : (b.update(), b.params.loop && "function" == typeof b.loopFix && b.loopFix(), 
-                b.slideNext(b.params.speed, !0), setTimeout(() => {
-                    !C || b.destroyed || b.animating || t?.dispatchEvent(new MouseEvent("click", {
-                        bubbles: !0,
-                        cancelable: !0
-                    }));
-                }, window.TDBMotion.carousel.entryRetry), setTimeout(n, b.params.speed + v + window.TDBMotion.carousel.entryFallback)));
-            };
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => setTimeout(i, window.TDBMotion.carousel.entryStart));
-            });
-        }
+        }), h(e, "parallax");
+        if (!(o || l) || !C) return;
+        const next = e.querySelector('.swiper-btn-next');
+        const finishEntry = () => {
+            if (!C) return;
+            C = false; clearEntryFollowups(); e.classList.remove('tdb-entry-pending');
+            window.TDBParallax?.setEntry(e, false); R(false); B(v);
+        };
+        entryControl = window.TDBSwiper.firstView(e, {
+            target: t, observe: false, frames: l ? 0 : 2,
+            delay: () => l ? 0 : window.TDBMotion.carousel.entryStart, immediate: l,
+            ready() {
+                if (c?.skipEntry) { finishEntry(); return false; }
+                return !b.destroyed && C;
+            },
+            cancel: finishEntry,
+            enter() {
+                if (l) { b.autoplay?.stop(); b.slideNext(); return; }
+                b.update(); if (b.params.loop && typeof b.loopFix === 'function') b.loopFix();
+                b.slideNext(b.params.speed, true);
+                entryRetry = setTimeout(() => {
+                    entryRetry = 0;
+                    if (C && !b.destroyed && !b.animating) next?.dispatchEvent(new MouseEvent('click', {bubbles:true,cancelable:true}));
+                }, window.TDBMotion.carousel.entryRetry);
+                entryFallback = setTimeout(finishEntry, b.params.speed + v + window.TDBMotion.carousel.entryFallback);
+            }
+        });
+        b.on('touchStart slideChange', () => entryControl?.cancel('interaction'));
     }
-const plugin=Object.freeze({version:'1.2.2',selector:t,
+const plugin=Object.freeze({version:'1.3.0',selector:t,
  beforeObserve(root){if(u(root)||p(root))root.classList.add('tdb-entry-pending');},
  mount(root){A(root);return m(root)?.swiper;},
  refresh(root=document){window.TDBParallax?.refresh(root);window.TDBSwiper.refresh('parallax',root);}

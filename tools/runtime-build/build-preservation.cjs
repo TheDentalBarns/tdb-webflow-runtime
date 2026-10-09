@@ -9,6 +9,9 @@ const targets = {
   'dist/tdb-gallery.js': ['src/sliders/gallery-presentation.js', 'src/sliders/gallery-plugin.js'],
   'dist/tdb-parallax.js': ['src/sliders/treatment-plugin.js', 'src/sliders/parallax-plugin.js'],
   'dist/tdb-reviews.js': ['src/reviews/native/drawer-content.js'],
+  'dist/tdb-review-cards.js': ['src/reviews/native/cards.js'],
+  'dist/tdb-quote-carousel.js': ['src/team-quotes/team-quotes.js'],
+  'dist/tdb-quote-carousel.min.js': ['src/team-quotes/team-quotes.js'],
   'dist/tdb-drawer.js': ['src/shared/scroll-lock.js', 'src/shared/site-chrome.js',
     'src/shared/carousel-controls.js', 'src/shared/drawer-reading.js', 'src/shared/drawer.js'],
   'dist/tdb-footer-runtime.min.js': ['src/runtime/initial-position.js', 'src/banner/loader.js',
@@ -23,6 +26,9 @@ const targets = {
     if (!targets[output]) throw new Error('Unknown target: ' + output);
     const sources = targets[output].map(file => [file, fs.readFileSync(path.join(root, file), 'utf8')]);
     const input = output.includes('consent-startup') ? Object.fromEntries(sources) : sources.map(([,s])=>s).join('\n');
+    if (output === 'dist/tdb-quote-carousel.js') {
+      fs.writeFileSync(path.join(root, output), input); continue;
+    }
     const result = await minify(input, {compress:true, mangle:true, format:{comments:false}});
     if (!result.code) throw new Error('Empty build: ' + output);
     fs.writeFileSync(path.join(root, output), result.code + '\n');
