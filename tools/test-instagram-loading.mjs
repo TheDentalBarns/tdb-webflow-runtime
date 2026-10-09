@@ -9,7 +9,7 @@ const output=process.env.TDB_IG_TEST_OUTPUT||'/tmp/tdb-instagram-loading';
 await mkdir(output,{recursive:true});
 const live=process.argv.includes('--live');
 const mode=process.argv.includes('--failure')?'failure':process.argv.includes('--nojs')?'nojs':'normal';
-const script=await readFile(repo+'src/instagram/native.js','utf8');
+const script=await readFile(repo+'dist/tdb-instagram-native.min.js','utf8');
 const gate=await readFile(repo+'src/instagram/loading-head.html','utf8');
 async function run(width){
  const context=await browser.newContext({viewport:{width,height:950},ignoreHTTPSErrors:true,javaScriptEnabled:mode!=='nojs'});
@@ -22,9 +22,10 @@ async function run(width){
   const response=await route.fetch();
   await route.fulfill({response,body:(await response.text()).replace('</head>',gate+'</head>')});
  });
- if(!live||mode==='failure')await page.route('**/tdb-instagram-native.js',route=>mode==='failure'?route.abort():route.fulfill({contentType:'text/javascript',body:script}));
+ if(!live||mode==='failure')await page.route(/\/tdb-instagram-native(?:\.min)?\.js$/,route=>mode==='failure'?route.abort():route.fulfill({contentType:'text/javascript',body:script}));
  await page.goto('https://dentalbarns.webflow.io/?ig-loading-check='+Date.now(),{waitUntil:'domcontentloaded',timeout:60000});
  const root=page.locator('[data-tdb-ig-native="awards"]');
+ if(!live)await root.locator('[data-ig-field="alt"],[data-ig-field="id"]').evaluateAll(nodes=>nodes.forEach(n=>n.remove()));
  const urls=await root.locator('.ig-native_photo').evaluateAll(nodes=>nodes.map(n=>n.src));
  const photoRequests=()=>[...requests].filter(url=>urls.includes(url));
  if(mode==='nojs'){
@@ -33,7 +34,7 @@ async function run(width){
   assert.ok(photoRequests().length>0);
   await context.close();return{width,mode,requests:photoRequests().length,fallbackVisible:true};
  }
- if(mode!=='failure')await page.waitForFunction(()=>window.TDBInstagramNative?.version==='2.1.0',null,{timeout:30000});
+ if(mode!=='failure')await page.waitForFunction(()=>window.TDBInstagramNative?.version==='2.1.1',null,{timeout:30000});
  await page.locator('#cookiescript_reject').click({timeout:30000});
  await page.locator('#tdb-consent-root').waitFor({state:'hidden'});
  assert.equal(photoRequests().length,0,'No IG photos at top of page');
@@ -45,7 +46,7 @@ async function run(width){
   assert.ok(photoRequests().length>0);
   await context.close();return{width,mode,requests:photoRequests().length,fallbackVisible:true};
  }
- const settled=()=>page.waitForFunction(()=>{const r=document.querySelector('[data-tdb-ig-native]'),s=r.querySelector('[data-ig-viewport]').swiper;return r.dataset.tdbIgReady==='2.1.0'&&s&&!s.animating&&r.getAttribute('data-tdb-slider-first-view')!=='pending'},null,{timeout:30000});
+ const settled=()=>page.waitForFunction(()=>{const r=document.querySelector('[data-tdb-ig-native]'),s=r.querySelector('[data-ig-viewport]').swiper;return r.dataset.tdbIgReady==='2.1.1'&&s&&!s.animating&&r.getAttribute('data-tdb-slider-first-view')!=='pending'},null,{timeout:30000});
  await settled();await page.waitForTimeout(1500);
  const initial=photoRequests().length,expected=width>=992?5:3;
  const state=await root.evaluate(r=>({guard:document.documentElement.hasAttribute('data-tdb-ig-loading'),label:r.querySelector('[data-ig-label]').textContent,loaded:[...r.querySelectorAll('[data-ig-slide][data-ig-image-ready]')].map(x=>x.dataset.igIndex),fallback:r.hasAttribute('data-ig-loading-fallback')}));

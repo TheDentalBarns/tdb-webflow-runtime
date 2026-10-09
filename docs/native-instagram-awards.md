@@ -142,3 +142,23 @@ counts, next/previous, responsive resize, all 16 loop positions, photo/reflectio
 completion and script-failure/no-JavaScript fallbacks. Options `--failure` and
 `--nojs` exercise the fallback cases. The test uses the existing environment's
 Playwright/Chromium setup. No other component runtime or stylesheet changes.
+
+
+## Final IG cleanup — 9 October 2026
+
+- Collection List limit is 20: Webflow emits at most 20 real cards into the
+  page HTML. This is independent of the 3/5 unique-photo loading window.
+  The existing 16 records, ordering, CMS fields and visibility are unchanged.
+- Removed the hidden `data-ig-field=alt` and `data-ig-field=id` paragraphs from
+  the native CMS template. Real image alt-text bindings remain intact. Runtime
+  reads only fields it displays; CMS records themselves were not modified.
+- Repeated sync calls return when the active post is unchanged; loop-copy
+  changes still synchronize slide classes. The image window only visits pending
+  slides on navigation/breakpoint/copy changes. Existing ticker reveal timings
+  and shared motion are preserved.
+- `node tools/build-instagram.mjs` builds readable and minified distribution
+  files using the repo's locked Terser 5.44.0 dependency in tools/runtime-build.
+  It also runs from the shared builder. `--check` validates both artifacts.
+  Optional TDB_TERSER_MODULE points to an existing installation.
+- Home footer uses only the minified file. Source remains readable and the
+  existing early loading gate remains unchanged. Staging publication only.

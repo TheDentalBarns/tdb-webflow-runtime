@@ -62,3 +62,4 @@ if (process.argv.includes('--check')) {
   if (await readFile(galleryOutput, 'utf8') !== gallery) throw Error('tdb-gallery.js differs from its presentation/plugin sources');
 } else await writeFile(galleryOutput, gallery);
 console.log(`${process.argv.includes('--check') ? 'Checked' : 'Built'} ${Object.keys(entries).length} shared/native runtime artifacts.`);
+await import('./build-instagram.mjs');

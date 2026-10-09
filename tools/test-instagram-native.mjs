@@ -66,7 +66,7 @@ try {
   }
   const settled=()=>page.waitForFunction(()=>{
     const root=document.querySelector('[data-tdb-ig-native]'),swiper=root.querySelector('[data-ig-viewport]').swiper;
-    return root.dataset.tdbIgReady==='2.1.0'&&swiper&&!swiper.animating&&root.getAttribute('data-tdb-slider-first-view')!=='pending';
+    return root.dataset.tdbIgReady==='2.1.1'&&swiper&&!swiper.animating&&root.getAttribute('data-tdb-slider-first-view')!=='pending';
   });
   await fixture(16,6000);
   assert.equal(requestedImages.size,0,'Offscreen native lazy images must not be requested');
