@@ -14,7 +14,7 @@ const targets = {
   'dist/tdb-slider-focus.js': ['src/shared/slider-focus.js'],
   'dist/tdb-vip-form.js': ['src/forms/vip-form.js'],
   'dist/tdb-vip-drawer.js': ['src/shared/panel-motion.js', 'src/vip-drawer/vip-drawer.js'],
-  'dist/tdb-footer-runtime.min.js': ['src/banner/loader.js', 'src/vip-drawer/vip-focus.js', 'src/runtime/deferred-ui.js', 'src/runtime/site-asset-loader.js'],
+  'dist/tdb-footer-runtime.min.js': ['src/runtime/initial-position.js', 'src/banner/loader.js', 'src/vip-drawer/vip-focus.js', 'src/runtime/deferred-ui.js', 'src/runtime/site-asset-loader.js'],
 };
 (async () => {
   for (const [output, sources] of Object.entries(targets)) {

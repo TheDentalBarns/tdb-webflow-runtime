@@ -1,6 +1,3 @@
-// Snapshot before this bundle sorts/moves markup or changes visibility classes.
-const TDBFooterInitialScrollY = Math.max(window.scrollY ?? document.documentElement.scrollTop ?? 0, 0);
-
 // Both pageshow listeners run in the same dispatch. Reuse that event's snapshot
 // after the announcement changes visibility, instead of forcing a second read.
 // A new event (including a bfcache restore) always measures the current position.
@@ -657,7 +654,7 @@ prepareSliderFocusLoader();
 startLenisForSession();
 
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.6.3',
+  version: '1.6.4',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,
