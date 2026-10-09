@@ -1,0 +1,512 @@
+{
+  "component": {
+    "id": "06d85720-61d9-0314-2b7d-1202f52dd706",
+    "name": "Cookie Consent"
+  },
+  "pages": [
+    {
+      "pageId": "6ac8ee85b0d1cc697f19201c",
+      "title": "Awards component review",
+      "path": "/awards-component-review",
+      "body": {
+        "component": "6ac8ee85b0d1cc697f19201c",
+        "element": "6ac8ee85b0d1cc697f192022"
+      }
+    },
+    {
+      "pageId": "6ac8dd0d4a5ab337ff5e09b9",
+      "title": "Review pages",
+      "path": "/review-pages",
+      "body": {
+        "component": "6ac8dd0d4a5ab337ff5e09b9",
+        "element": "6ac111e37b3cce1614a981e2"
+      }
+    },
+    {
+      "pageId": "6ac53e9a3d8165264b27be64",
+      "title": "Owner Quotes Template",
+      "path": "/owner-quotes",
+      "body": {
+        "component": "6ac53e9a3d8165264b27be64",
+        "element": "6ac53e9a3d8165264b27be70"
+      }
+    },
+    {
+      "pageId": "6ac2a9ad6562ccc6531a8310",
+      "title": "Patient Reviews",
+      "path": "/reviews",
+      "body": {
+        "component": "6ac2a9ad6562ccc6531a8310",
+        "element": "6ac111e37b3cce1614a981e2"
+      }
+    },
+    {
+      "pageId": "6ac153f4b4f8a86d453e2427",
+      "title": "Review Page Contexts Template",
+      "path": "/review-page-contexts",
+      "body": {
+        "component": "6ac153f4b4f8a86d453e2427",
+        "element": "6ac153f4b4f8a86d453e242f"
+      }
+    },
+    {
+      "pageId": "6ac153f39123cdbfc15896d3",
+      "title": "Review Tags Template",
+      "path": "/review-tags",
+      "body": {
+        "component": "6ac153f39123cdbfc15896d3",
+        "element": "6ac153f39123cdbfc15896db"
+      }
+    },
+    {
+      "pageId": "6ac150e5098f2e48768331f2",
+      "title": "Review Excerpts Template",
+      "path": "/review-excerpts",
+      "body": {
+        "component": "6ac150e5098f2e48768331f2",
+        "element": "6ac150e5098f2e48768331fa"
+      }
+    },
+    {
+      "pageId": "6ac111e37b3cce1614a981dc",
+      "title": "Review content",
+      "path": "/review-content",
+      "body": {
+        "component": "6ac111e37b3cce1614a981dc",
+        "element": "6ac111e37b3cce1614a981e2"
+      }
+    },
+    {
+      "pageId": "6ac111977d68e43d4376853a",
+      "title": "Review Responses Template",
+      "path": "/review-responses",
+      "body": {
+        "component": "6ac111977d68e43d4376853a",
+        "element": "6ac111977d68e43d43768542"
+      }
+    },
+    {
+      "pageId": "6ab7b3c409814bb83c99030c",
+      "title": "Media Gallery Template",
+      "path": "/media-library",
+      "body": {
+        "component": "6ab7b3c409814bb83c99030c",
+        "element": "6ab7b3c409814bb83c990314"
+      }
+    },
+    {
+      "pageId": "6ab7b3c3d900577db5a878ff",
+      "title": "Media Categories Template",
+      "path": "/media-categories",
+      "body": {
+        "component": "6ab7b3c3d900577db5a878ff",
+        "element": "6ab7b3c3d900577db5a8790d"
+      }
+    },
+    {
+      "pageId": "6ab78cf13064e85727165c89",
+      "title": "First Impressions Template",
+      "path": "/first-impressions",
+      "body": {
+        "component": "6ab78cf13064e85727165c89",
+        "element": "6ab78cf13064e85727165c91"
+      }
+    },
+    {
+      "pageId": "6ab6638e2159a2087d5413cf",
+      "title": "Review Topics Template",
+      "path": "/review-topics",
+      "body": {
+        "component": "6ab6638e2159a2087d5413cf",
+        "element": "6ab6638e2159a2087d5413d9"
+      }
+    },
+    {
+      "pageId": "6aaf939d6a981e9ff3a1d847",
+      "title": "Dental Cost Calculator",
+      "path": "/dental-cost-calculator",
+      "body": {
+        "component": "6aaf939d6a981e9ff3a1d847",
+        "element": "6aaf939d6a981e9ff3a1d84d"
+      }
+    },
+    {
+      "pageId": "6aae66a5a90480deba7364b7",
+      "title": "Banner Settings Template",
+      "path": "/banner-settings",
+      "body": {
+        "component": "6aae66a5a90480deba7364b7",
+        "element": "6aae66a5a90480deba7364c1"
+      }
+    },
+    {
+      "pageId": "6aaafc00c9c28643c83637b8",
+      "title": "Five Senses Experience",
+      "path": "/five-senses-experience",
+      "body": {
+        "component": "6aaafc00c9c28643c83637b8",
+        "element": "6aaafc00c9c28643c83637be"
+      }
+    },
+    {
+      "pageId": "6aa3efd54f3f705caf98c687",
+      "title": "Smile Gallery",
+      "path": "/smile-gallery",
+      "body": {
+        "component": "6aa3efd54f3f705caf98c687",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "6a74603b7750a1ff7e58246c",
+      "title": "Privacy Notice",
+      "path": "/privacy-policy",
+      "body": {
+        "component": "6a74603b7750a1ff7e58246c",
+        "element": "67837ee84466866251245edf"
+      }
+    },
+    {
+      "pageId": "69f1d919d9c604f4e11e9ac2",
+      "title": "VIPs Template",
+      "path": "/vip",
+      "body": {
+        "component": "69f1d919d9c604f4e11e9ac2",
+        "element": "69f1d91ad9c604f4e11e9acc"
+      }
+    },
+    {
+      "pageId": "69d7d20d5d3f4d26437e3c95",
+      "title": "Awards Template",
+      "path": "/awards",
+      "body": {
+        "component": "69d7d20d5d3f4d26437e3c95",
+        "element": "69d7d20d5d3f4d26437e3c9f"
+      }
+    },
+    {
+      "pageId": "69a07fdcd392dc2c0d929686",
+      "title": "Smile Galleries Template",
+      "path": "/smile-gallery",
+      "body": {
+        "component": "69a07fdcd392dc2c0d929686",
+        "element": "69a07fdcd392dc2c0d92968e"
+      }
+    },
+    {
+      "pageId": "699861b13fc0cea23eb1be57",
+      "title": "Nearby Locations Template",
+      "path": "/nearby-locations",
+      "body": {
+        "component": "699861b13fc0cea23eb1be57",
+        "element": "699861b13fc0cea23eb1be5f"
+      }
+    },
+    {
+      "pageId": "6998339965bee208862eac28",
+      "title": "FAQs Template",
+      "path": "/faqs",
+      "body": {
+        "component": "6998339965bee208862eac28",
+        "element": "6998339965bee208862eac32"
+      }
+    },
+    {
+      "pageId": "69948cc9ceae27ae3114cb3d",
+      "title": "SEO Reviews Template",
+      "path": "/seo-reviews",
+      "body": {
+        "component": "69948cc9ceae27ae3114cb3d",
+        "element": "69948cc9ceae27ae3114cb4e"
+      }
+    },
+    {
+      "pageId": "699058c919f4a1adcc157cb3",
+      "title": "Area Treatment Pages Template",
+      "path": "/areas",
+      "body": {
+        "component": "699058c919f4a1adcc157cb3",
+        "element": "699058c919f4a1adcc157cbb"
+      }
+    },
+    {
+      "pageId": "69904d7c436757eac79915fa",
+      "title": "Areas Template",
+      "path": "/areas-treatments",
+      "body": {
+        "component": "69904d7c436757eac79915fa",
+        "element": "69904d7c436757eac7991604"
+      }
+    },
+    {
+      "pageId": "698b51d6c5969b34c30e8e39",
+      "title": "Careers Template",
+      "path": "/careers",
+      "body": {
+        "component": "698b51d6c5969b34c30e8e39",
+        "element": "698b51d6c5969b34c30e8e48"
+      }
+    },
+    {
+      "pageId": "698b4f9f1af11edfefd60e1b",
+      "title": "Careers",
+      "path": "/careers",
+      "body": {
+        "component": "698b4f9f1af11edfefd60e1b",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "694aba9dc39723ae9d2663e4",
+      "title": "VIP | West End Dentistry",
+      "path": "/vip-west-end",
+      "body": {
+        "component": "694aba9dc39723ae9d2663e4",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "694aa587cf17e04109fc3fe1",
+      "title": "VIP | The Dental Barns Sanctuary",
+      "path": "/vip-sanctuary",
+      "body": {
+        "component": "694aa587cf17e04109fc3fe1",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "694a7ebb2eb94d65273186e4",
+      "title": "VIP | Smile Makeovers. Naturally",
+      "path": "/vip-smiles",
+      "body": {
+        "component": "694a7ebb2eb94d65273186e4",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "694a740e9e013223583d1b13",
+      "title": "VIP | Award Winning Dental Practice",
+      "path": "/vip-awards",
+      "body": {
+        "component": "694a740e9e013223583d1b13",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "6925981fbc1302600ed5dc06",
+      "title": "VIP | Christmas at The Dental Barns",
+      "path": "/vip-christmas",
+      "body": {
+        "component": "6925981fbc1302600ed5dc06",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "69131d390e94b6f8e5bf3fb2",
+      "title": "VIP | POSH",
+      "path": "/vip-posh",
+      "body": {
+        "component": "69131d390e94b6f8e5bf3fb2",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "69131b8312640fe0a805a59a",
+      "title": "VIP | In Practice",
+      "path": "/vip-inpractice",
+      "body": {
+        "component": "69131b8312640fe0a805a59a",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "68fa076a6822ea824ea2d991",
+      "title": "The Dental Barns VIP",
+      "path": "/vip",
+      "body": {
+        "component": "68fa076a6822ea824ea2d991",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "68303bbfbc06a9b772655737",
+      "title": "Blog Categories Template",
+      "path": "/blog-categories",
+      "body": {
+        "component": "68303bbfbc06a9b772655737",
+        "element": "68303bbfbc06a9b772655749"
+      }
+    },
+    {
+      "pageId": "67a35c2e68d6b97bb6aae7b4",
+      "title": "Technologies Template",
+      "path": "/technology",
+      "body": {
+        "component": "67a35c2e68d6b97bb6aae7b4",
+        "element": "67a35c2e68d6b97bb6aae7bb"
+      }
+    },
+    {
+      "pageId": "67a2267c404fe73dfb1d8e40",
+      "title": "Pricings Template",
+      "path": "/pricing",
+      "body": {
+        "component": "67a2267c404fe73dfb1d8e40",
+        "element": "67a2267c404fe73dfb1d8e92"
+      }
+    },
+    {
+      "pageId": "678f86cfdd6b15715a439e0e",
+      "title": "Search Results",
+      "path": "/search",
+      "body": {
+        "component": "678f86cfdd6b15715a439e0e",
+        "element": "678f86cfdd6b15715a439e11"
+      }
+    },
+    {
+      "pageId": "678a9501e48e15ea9e303ac9",
+      "title": "Blackbrook Retailers Template",
+      "path": "/blackbrook-retailers",
+      "body": {
+        "component": "678a9501e48e15ea9e303ac9",
+        "element": "678a9501e48e15ea9e303ad8"
+      }
+    },
+    {
+      "pageId": "678a902a99de45047eca20e3",
+      "title": "Partner logos Template",
+      "path": "/partner-logos",
+      "body": {
+        "component": "678a902a99de45047eca20e3",
+        "element": "678a902a99de45047eca20ea"
+      }
+    },
+    {
+      "pageId": "678960b4f377f07e06aa5447",
+      "title": "First visit",
+      "path": "/first-visit",
+      "body": {
+        "component": "678960b4f377f07e06aa5447",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "678507292f3f5412bfe2b4fa",
+      "title": "Treatments Template",
+      "path": "/treatments",
+      "body": {
+        "component": "678507292f3f5412bfe2b4fa",
+        "element": "678507292f3f5412bfe2b501"
+      }
+    },
+    {
+      "pageId": "678a972937c33cb35f6aee04",
+      "title": "Team members Template",
+      "path": "/team-members",
+      "body": {
+        "component": "678a972937c33cb35f6aee04",
+        "element": "678a972937c33cb35f6aee0b"
+      }
+    },
+    {
+      "pageId": "6785071ede094cc233e0c72b",
+      "title": "Services Template",
+      "path": "/services",
+      "body": {
+        "component": "6785071ede094cc233e0c72b",
+        "element": "6785071ede094cc233e0c732"
+      }
+    },
+    {
+      "pageId": "67837ee84466866251245ed8",
+      "title": "Blog Posts Template",
+      "path": "/post",
+      "body": {
+        "component": "67837ee84466866251245ed8",
+        "element": "67837ee84466866251245edf"
+      }
+    },
+    {
+      "pageId": "677cfbe37aba5fbbc2154c24",
+      "title": "About us",
+      "path": "/about-us",
+      "body": {
+        "component": "677cfbe37aba5fbbc2154c24",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "677cfbd543a0695d07285efd",
+      "title": "Contact",
+      "path": "/contact",
+      "body": {
+        "component": "677cfbd543a0695d07285efd",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "677cfbc91f30d29b1fc5f640",
+      "title": "Blog",
+      "path": "/blog",
+      "body": {
+        "component": "677cfbc91f30d29b1fc5f640",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "677cfbbb752fa1bb44264481",
+      "title": "Pricing",
+      "path": "/dental-cost-lichfield",
+      "body": {
+        "component": "677cfbbb752fa1bb44264481",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "677cfb8a0f25478449823c5f",
+      "title": "Location",
+      "path": "/location",
+      "body": {
+        "component": "677cfb8a0f25478449823c5f",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    },
+    {
+      "pageId": "677cf86df9952f978d94d8d4",
+      "title": "404",
+      "path": "/404",
+      "body": {
+        "component": "677cf86df9952f978d94d8d4",
+        "element": "60d3fe8d16a07670a7e520bf"
+      }
+    },
+    {
+      "pageId": "677cf86df9952f978d94d8d5",
+      "title": "Style Guide",
+      "path": "/style-guide",
+      "body": {
+        "component": "677cf86df9952f978d94d8d5",
+        "element": "60d3f87c40c6831b00bde02f"
+      }
+    },
+    {
+      "pageId": "677cf86df9952f978d94d8d3",
+      "title": "Password",
+      "path": "/401",
+      "body": {
+        "component": "677cf86df9952f978d94d8d3",
+        "element": "60d3fa3a5a19c1169cd58c41"
+      }
+    },
+    {
+      "pageId": "677cf86df9952f978d94d8a9",
+      "title": "Home",
+      "path": "/",
+      "body": {
+        "component": "677cf86df9952f978d94d8a9",
+        "element": "60d3f7b8b0e86c28630fc6d6"
+      }
+    }
+  ]
+}

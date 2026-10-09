@@ -31,21 +31,23 @@ html.lenis body {
   transition-behavior: allow-discrete;
 }
 
-/* Active cookiescript_* compatibility rules retained pending full-page visual checks.
- * Obsolete third-party container/badge overrides removed. The custom consent
- * component owns #tdb-consent-root and its overlay stacking. */
-[id*='cookiescript'],
-[id*='cookiescript'] *,
-[class*='cookiescript'],
-[class*='cookiescript'] * {
-  transition: none !important;
-  animation: none !important;
-}
+/* Native consent: accessibility/browser details unsupported by Designer. */
+.tdb-consent-backdrop,
+.tdb-consent-surface { contain: paint; -webkit-backface-visibility: hidden; }
+.tdb-consent-motion { -webkit-backface-visibility: hidden; }
+.tdb-consent-root.is-consent-active .tdb-consent-backdrop { will-change: opacity; }
+.tdb-consent-root.is-consent-active .tdb-consent-surface { will-change: transform; }
+.tdb-consent-root.is-consent-active .tdb-consent-motion { will-change: opacity, transform; }
+.tdb-consent-dialog:focus,
+.tdb-consent-dialog:focus-visible { outline: 0 !important; }
+@media print { .tdb-consent-root { display: none !important; } }
 
-[id*='cookiescript'],
-[class*='cookiescript'] {
-  opacity: 1 !important;
-  transform: none !important;
+.tdb-consent-dialog { -webkit-tap-highlight-color: transparent; }
+.tdb-consent-scroll { -webkit-overflow-scrolling: touch; }
+.tdb-consent-button.is-consent-reject:focus-visible {
+  background-color: #ebebeb;
+  color: rgba(0,0,0,.25);
+  opacity: 1;
 }
 
 /* Homepage only: no drawer layout before scroll or explicit intent. */
@@ -59,3 +61,4 @@ html[data-wf-page="677cf86df9952f978d94d8a9"] #tdb-vip-drawer:not([data-tdb-vip-
   initial-value: 0;
 }
 html { --tdb-ui-ready: 1; }
+

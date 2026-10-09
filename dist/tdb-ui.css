@@ -12,7 +12,7 @@ html {
   --tdb-peek-ease: cubic-bezier(.4,0,.2,1);
 }
 
-.tdb-elfsight-shell {
+.tdb-elfsight-shell:not(.tdb-announcement-shell) {
   --tdb-hide-offset: 6rem;
   position: fixed;
   top: 0;
@@ -28,10 +28,25 @@ html {
   pointer-events: auto;
 }
 
+/* Native announcement: Designer owns the hidden resting state and geometry.
+ * The existing controller removes pending only after content and UI are ready.
+ * Only the ready state participates in shared bar motion. */
+.tdb-announcement-shell:not([data-tdb-announcement-pending]) {
+  --tdb-hide-offset: 100%;
+  transition:
+    transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)),
+    opacity 260ms var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1));
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
 html.tdb-timer-hidden .tdb-elfsight-shell {
   opacity: 0;
   pointer-events: none;
-  transform: translate3d(0, calc(-1 * var(--tdb-hide-offset)), 0);
+  transform: translate3d(0, calc(-1 * var(--tdb-hide-offset,100%)), 0);
 }
 
 html.tdb-timer-hidden .elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb {
@@ -135,12 +150,14 @@ html {
   }
 }
 
-input[type='submit'] {
+/* Native .button.submit-button states live in Designer. Keep compatibility
+ * only for other submit controls that have not adopted those classes. */
+input[type='submit']:not(.submit-button) {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-input[type='submit'].submit-enabled {
+input[type='submit']:not(.submit-button).submit-enabled {
   opacity: 1;
   cursor: pointer;
 }
@@ -178,21 +195,23 @@ html.lenis body {
   transition-behavior: allow-discrete;
 }
 
-/* Active cookiescript_* compatibility rules retained pending full-page visual checks.
- * Obsolete third-party container/badge overrides removed. The custom consent
- * component owns #tdb-consent-root and its overlay stacking. */
-[id*='cookiescript'],
-[id*='cookiescript'] *,
-[class*='cookiescript'],
-[class*='cookiescript'] * {
-  transition: none !important;
-  animation: none !important;
-}
+/* Native consent: accessibility/browser details unsupported by Designer. */
+.tdb-consent-backdrop,
+.tdb-consent-surface { contain: paint; -webkit-backface-visibility: hidden; }
+.tdb-consent-motion { -webkit-backface-visibility: hidden; }
+.tdb-consent-root.is-consent-active .tdb-consent-backdrop { will-change: opacity; }
+.tdb-consent-root.is-consent-active .tdb-consent-surface { will-change: transform; }
+.tdb-consent-root.is-consent-active .tdb-consent-motion { will-change: opacity, transform; }
+.tdb-consent-dialog:focus,
+.tdb-consent-dialog:focus-visible { outline: 0 !important; }
+@media print { .tdb-consent-root { display: none !important; } }
 
-[id*='cookiescript'],
-[class*='cookiescript'] {
-  opacity: 1 !important;
-  transform: none !important;
+.tdb-consent-dialog { -webkit-tap-highlight-color: transparent; }
+.tdb-consent-scroll { -webkit-overflow-scrolling: touch; }
+.tdb-consent-button.is-consent-reject:focus-visible {
+  background-color: #ebebeb;
+  color: rgba(0,0,0,.25);
+  opacity: 1;
 }
 
 /* Homepage only: no drawer layout before scroll or explicit intent. */

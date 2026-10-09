@@ -21,12 +21,14 @@ html {
   }
 }
 
-input[type='submit'] {
+/* Native .button.submit-button states live in Designer. Keep compatibility
+ * only for other submit controls that have not adopted those classes. */
+input[type='submit']:not(.submit-button) {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-input[type='submit'].submit-enabled {
+input[type='submit']:not(.submit-button).submit-enabled {
   opacity: 1;
   cursor: pointer;
 }
