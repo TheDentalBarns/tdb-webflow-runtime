@@ -37,6 +37,7 @@ const entries = {
   'src/reviews/native/cards.js': 'tdb-review-cards.js',
   'src/reviews/native/drawer-content.js': 'tdb-reviews.js',
   'src/five-senses/loader.js': 'tdb-five-senses-loader.js',
+  'src/instagram/native.js': 'tdb-instagram-native.js',
   'src/instagram/home-desktop-instagram.js': 'tdb-home-desktop-instagram.js',
   'src/instagram/instagram-feed-bundle.js': 'tdb-instagram-feed.js',
   'src/calculator/calculator.css': 'tdb-calculator.css',
@@ -61,3 +62,5 @@ if (process.argv.includes('--check')) {
   if (await readFile(galleryOutput, 'utf8') !== gallery) throw Error('tdb-gallery.js differs from its presentation/plugin sources');
 } else await writeFile(galleryOutput, gallery);
 console.log(`${process.argv.includes('--check') ? 'Checked' : 'Built'} ${Object.keys(entries).length} shared/native runtime artifacts.`);
+
+await import('./build-instagram.mjs');

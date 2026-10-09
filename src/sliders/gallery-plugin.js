@@ -1,4 +1,4 @@
-/* TDB gallery carousel plugin v1.1.0. Native Smile Gallery; existing highlight behaviour. */
+/* TDB gallery carousel plugin v1.1.1. Native Smile Gallery; existing highlight behaviour. */
 (() => {
 'use strict';
 if(window.TDBGallery)return;
@@ -14,6 +14,12 @@ function h(e, t) {
         e.setAttribute(i, "true"), e.dataset.tdbSliderType = t;
     }
 function w(e, n) {
+        // Native IG has static cards and a stationary interactive frame.
+        // Designer's root gap stays readable after Swiper writes slide margins.
+        if (e.hasAttribute('data-tdb-ig-native')) {
+            const gap = parseFloat(getComputedStyle(e).columnGap);
+            return Number.isFinite(gap) ? gap : n;
+        }
         if (e.classList.contains('tdb-smile-carousel')) {
             const slide = e.querySelector('.swiper-slide.smile');
             if (!slide) return n;
@@ -36,7 +42,8 @@ function g(e, t, n) {
             const i = w(e, n());
             t.params.spaceBetween = i, t.originalParams.spaceBetween = i;
         };
-        t.on("beforeResize breakpoint", i), t.on("beforeDestroy", () => t.off("beforeResize breakpoint", i));
+        const events = e.hasAttribute('data-tdb-ig-native') ? "beforeResize" : "beforeResize breakpoint";
+        t.on(events, i), t.on("beforeDestroy", () => t.off(events, i));
     }
 function y(e) {
         return window.TDBMotion.duration(e.clientWidth);
@@ -102,9 +109,9 @@ function v(e) {
         function s() {
             n && (n.textContent = `${r.realIndex + 1} of ${i}`);
         }
-        (e.classList.contains('tdb-smile-carousel') || e.matches(".section_smile-gallery [data-tdb-smile-slider]") && "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage) && g(e, r, () => b(e)),
-        k(r), S(e, t, r, "--tdb-carousel-duration", () => window.innerWidth), s(), r.on("slideChange", s),
-        r.params.loop && (!e.matches('[data-tdb-smile-slider]') && !function(e, t) {
+        (e.hasAttribute('data-tdb-ig-native') || e.classList.contains('tdb-smile-carousel') || e.matches(".section_smile-gallery [data-tdb-smile-slider]") && "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage) && g(e, r, () => b(e)),
+        k(r), S(e, t, r, "--tdb-carousel-duration", () => window.innerWidth), n && (s(), r.on("slideChange", s)),
+        r.params.loop && (!e.matches('[data-tdb-smile-slider],[data-tdb-ig-native]') && !function(e, t) {
             const n = new WeakMap, i = new Map, r = new MutationObserver(e => {
                 e.forEach(e => {
                     const t = i.get(e.target);
@@ -227,7 +234,7 @@ const beforeObserve=function(e) {
                 threshold: 0
             }), r.observe(t)) : f("skipped-unsupported");
         };
-const plugin=Object.freeze({version:'1.1.0',selector:e,beforeObserve,
+const plugin=Object.freeze({version:'1.1.1',selector:e,beforeObserve,
  mount(root){const presentation=window.TDBSmileCards?.prepare(root);v(root);const swiper=m(root)?.swiper;presentation?.bind(swiper);return swiper;},
  prune(){l.forEach((state,root)=>{if(!document.documentElement.contains(root))state.cancel();});window.TDBSmileCards?.prune();},
  refresh(root=document){window.TDBSwiper.refresh('gallery',root);}
