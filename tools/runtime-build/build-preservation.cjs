@@ -11,6 +11,8 @@ const targets = {
   'dist/tdb-reviews.js': ['src/reviews/native/drawer-content.js'],
   'dist/tdb-review-cards.js': ['src/reviews/native/cards.js'],
   'dist/tdb-vip-form.js': ['src/forms/vip-form.js'],
+  'dist/tdb-five-senses-loader.js': ['src/five-senses/loader.js'],
+  'dist/tdb-five-senses.js': ['src/five-senses/scene-renderer.js', 'src/five-senses/five-senses.js'],
   'dist/tdb-quote-carousel.js': ['src/team-quotes/team-quotes.js'],
   'dist/tdb-quote-carousel.min.js': ['src/team-quotes/team-quotes.js'],
   'dist/tdb-drawer.js': ['src/shared/scroll-lock.js', 'src/shared/site-chrome.js',
@@ -30,6 +32,9 @@ const targets = {
     if (!targets[output]) throw new Error('Unknown target: ' + output);
     const sources = targets[output].map(file => {
       let source = fs.readFileSync(path.join(root, file), 'utf8');
+      if (file === 'src/five-senses/five-senses.js') {
+        source = source.replace(/^import \{SceneRenderer\} from '\.\/scene-renderer\.js';\n/, '');
+      }
       if (file === 'src/navbar/navbar-enhancement.js') {
         for (const [marker, cssFile] of [['__TDB_NAV_STATE_CSS__','tdb-navbar-state.css'],
           ['__TDB_NAV_DESKTOP_CSS__','tdb-navbar-desktop.css']]) {
@@ -41,6 +46,10 @@ const targets = {
       return [file, source];
     });
     const input = output.includes('consent-startup') ? Object.fromEntries(sources) : sources.map(([,s])=>s).join('\n');
+    if (output.startsWith('dist/tdb-five-senses')) {
+      fs.writeFileSync(path.join(root, output), input + (output === 'dist/tdb-five-senses.js' ? '\n' : ''));
+      continue;
+    }
     if (output === 'dist/tdb-quote-carousel.js') {
       fs.writeFileSync(path.join(root, output), input); continue;
     }
