@@ -12,6 +12,11 @@ const root = path.resolve(__dirname, '..');
     .map(file => fs.readFileSync(path.join(root, file), 'utf8')).join('\n')
     .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ')
     // A space before :is() can be a descendant combinator. Preserve colons.
-    .replace(/\s*([{};,])\s*/g, '$1').trim();
+    .replace(/\s*([{};,])\s*/g, '$1')
+    // Preserve selector descendant spaces and calc() operators. These lexical
+    // reductions keep the identical sampled easing curves inside the head cap.
+    .replace(/([(:,\s])0\.(\d)/g, '$1.$2')
+    .replace(/:\s+/g, ':').replace(/\s*>\s*/g, '>')
+    .replace(/;}/g, '}').trim();
   fs.writeFileSync(path.join(root, 'dist/tdb-navbar-native.css'), css + '\n');
 })();

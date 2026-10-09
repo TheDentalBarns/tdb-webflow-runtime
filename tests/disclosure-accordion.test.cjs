@@ -19,3 +19,29 @@ test('independent accessible accordions tolerate rapid reversals and repeated mo
   assert.equal(ap.hidden, true); assert.equal(ap.inert, true); assert.equal(bp.hidden, false);
   dom.window.close();
 });
+
+test('copied components pair locally, get unique IDs and return focus before closing', () => {
+  const row = '<div data-tdb-disclosure-item><button id="question" data-tdb-disclosure-trigger aria-controls="answer" aria-expanded="false">Question</button><div id="answer" data-tdb-disclosure-panel hidden><a href="#example">Answer link</a></div></div>';
+  const dom = new JSDOM(row + row, { runScripts: 'outside-only' });
+  const w = dom.window, d = w.document;
+  w.eval(fs.readFileSync('src/shared/disclosure.js', 'utf8'));
+  w.TDBDisclosure.refresh();
+  const [first, second] = d.querySelectorAll('button');
+  const [a, b] = d.querySelectorAll('[data-tdb-disclosure-panel]');
+  assert.notEqual(first.id, second.id);
+  assert.notEqual(a.id, b.id);
+  assert.equal(second.getAttribute('aria-controls'), b.id);
+  assert.equal(b.getAttribute('aria-labelledby'), second.id);
+  second.click();
+  assert.equal(a.hidden, true);
+  assert.equal(b.hidden, false);
+  b.firstElementChild.focus();
+  w.TDBDisclosure.mount(second).set(false);
+  assert.equal(d.activeElement, second);
+  assert.equal(b.getAttribute('aria-hidden'), 'true');
+  w.TDBDisclosure.mount(second).destroy();
+  w.TDBDisclosure.refresh(second);
+  second.click();
+  assert.equal(b.hidden, false);
+  w.close();
+});

@@ -1,4 +1,4 @@
-/* TDB disclosure feedback v1.1.2. One chevron and reveal vocabulary.
+/* TDB disclosure feedback v1.2.0. One chevron and reveal vocabulary.
  * Designer owns geometry and colour; native hidden switches answer space once.
  */
 [data-tdb-chevron] {
@@ -9,7 +9,9 @@
   transform: rotate(var(--tdb-chevron-open-angle, 180deg));
 }
 [data-tdb-disclosure-panel][hidden] { display: none !important; }
-[data-tdb-disclosure-trigger][aria-expanded="true"] + [data-tdb-disclosure-panel] { display: block; }
+[data-tdb-disclosure-trigger][aria-expanded="true"] + [data-tdb-disclosure-panel] {
+  display: var(--tdb-disclosure-display, block);
+}
 [data-tdb-disclosure-panel]:not([hidden]) > [data-tdb-disclosure-reveal] {
   animation: tdb-disclosure-fade var(--tdb-reveal-fade-in, 300ms) linear both,
     tdb-disclosure-lift var(--tdb-reveal-move-in, 400ms) var(--tdb-reveal-ease, cubic-bezier(.165,.84,.44,1)) both;
