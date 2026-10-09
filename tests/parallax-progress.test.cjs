@@ -28,7 +28,7 @@ function fixture({treatment=false,nativeTreatment=false,width=1000,dpr=1,page='6
   return {stats,fill,wrapped,track,wrapper,makeSlide,observers,document,queue,step,offset:v=>{offset=v;observers.mutation([{type:'attributes',target:wrapper,attributeName:'style'}]);},visible:v=>observers.intersection([{isIntersecting:v}]),resize:(w,p=dpr)=>{width=w;window.devicePixelRatio=p;context.innerWidth=w;document.documentElement.clientWidth=w;observers.size();},result:()=>[fill.style.width,fill.style.transform,wrapped.style.transform]};
 }
 function run() {
-  const f=fixture();f.visible(true);
+  const f=fixture();f.visible(true);f.step();
   assert.deepEqual(f.result(),['200px','translateX(0px)','translateX(-1000px)']);
   f.offset(1500);f.step();assert.equal(f.fill.style.transform,'translateX(300px)');
   f.offset(4500);f.step();assert.equal(f.fill.style.transform,'translateX(900px)');
@@ -48,13 +48,13 @@ function run() {
   f.visible(false);assert.equal(f.queue.size,0);f.visible(true);assert.equal(f.queue.size,1);
   f.document.hidden=true;f.observers.visibilitychange();assert.equal(f.queue.size,0);
   f.document.hidden=false;f.observers.visibilitychange();assert.equal(f.queue.size,1);
-  const native=fixture({treatment:true,nativeTreatment:true});native.visible(true);
+  const native=fixture({treatment:true,nativeTreatment:true});native.visible(true);native.step();
   assert.equal(native.track.style.width,undefined,'Designer retains track width');
   assert.equal(native.track.style.left,undefined,'Designer retains track alignment');
   assert.equal(native.track.style.top,undefined,'Designer retains track position');
   assert.equal(native.fill.style.width,'130px','marker uses focused-card width');
   native.offset(4500);native.step();assert.equal(native.fill.style.transform,'translateX(585px)','focused track preserves loop seam');
-  const reusable=fixture({page:'another-page'});reusable.visible(true);assert.equal(reusable.fill.style.width,'200px');
+  const reusable=fixture({page:'another-page'});reusable.visible(true);reusable.step();assert.equal(reusable.fill.style.width,'200px');
   console.log('Progress: loop/reverse, idle movement, resize/DPR, structure changes and visibility pass. Stable-frame index and track reads: 0.');
 }
 if(require.main===module)run();
