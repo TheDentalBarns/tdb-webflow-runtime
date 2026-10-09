@@ -9,7 +9,7 @@ async function setup(count=3){
  w.TDBNativeTicker={mount:n=>({update:v=>n.textContent=v,destroy(){}})};
  w.TDBModules={load:async()=>{}};w.TDBReviewCMS={sourceIcon(){const n=w.document.createElement('span');n.textContent='Google';return n}};
  Object.defineProperty(w.document,'currentScript',{value:{src:'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@test/dist/tdb-quote-carousel.js'}});
- w.eval(read('dist/tdb-swiper-8.4.7.min.js'));w.eval(read('dist/tdb-quote-carousel.js'));w.eval(read('dist/tdb-review-quote-adapter.js'));
+ w.eval(read('dist/tdb-swiper-8.4.7.min.js'));w.eval(read(process.env.TDB_QUOTE_RUNTIME || 'dist/tdb-quote-carousel.js'));w.eval(read('dist/tdb-review-quote-adapter.js'));
  const data={featured:Array.from({length:count},(_,i)=>'review-'+i),records:Array.from({length:count},(_,i)=>({id:'review-'+i,excerpt:'Published '+i,name:'Reviewer '+i,platform:'Google'}))};
  const hooks={openReviews:async value=>{calls.push(value)}};let api=w.TDBReviewQuotes.mount(root,data,hooks);
  const click=()=>api.swiper.slides[api.swiper.activeIndex].querySelector('[data-tdb-quote-action]').dispatchEvent(new w.MouseEvent('click',{bubbles:true,cancelable:true}));

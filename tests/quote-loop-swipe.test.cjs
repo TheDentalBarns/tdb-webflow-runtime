@@ -22,7 +22,7 @@ async function setup() {
   w.eval(read('dist/tdb-swiper-8.4.7.min.js'));
   const script=w.document.createElement('script');script.src='https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@fixture/dist/tdb-team-quotes.js';
   Object.defineProperty(w.document,'currentScript',{value:script});
-  w.eval(read('dist/tdb-team-quotes.js'));w.TDBTeamQuotes.refresh();
+  w.eval(read(process.env.TDB_QUOTE_RUNTIME || 'dist/tdb-team-quotes.js'));w.TDBTeamQuotes.refresh();
   root.dispatchEvent(new w.Event('focusin'));
   for(let i=0;i<8;i++)await Promise.resolve();
   const s=viewport.swiper;assert(s,'owner quotes mounted');
