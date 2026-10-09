@@ -21,7 +21,7 @@ The HTML import converted buttons to links. Both controls were replaced with nat
 
 A parser-discovered script in the site head loads the startup artifact with `defer`, ahead of the other deferred site controllers. It includes the existing shared scroll-lock implementation and the consent controller. The unchanged navbar loader retains its guarded copy as a fallback; both consumers use one global lock with independent owner releases. The banner does not wait for the full motion runtime or the immediate runtime batch.
 
-Designer transitions preserve the 420 ms panel/backdrop motion and 350 ms text entrance after 70 ms. Panel/backdrop use the existing `--tdb-peek-duration` and `--tdb-peek-ease` tokens with the original fallbacks. The five-keyframe text exit remains in the controller; close completion, focus restoration and consent notifications remain at 470 ms. No independent reduced-motion opt-out was introduced during the full-motion review phase.
+Designer transitions preserve the 420 ms panel/backdrop motion and 350 ms text entrance. The controller starts the text 70 ms later because Webflow omits transition-delay when exporting this style. The timer is cancelled on close or a new opening. Panel/backdrop use the existing `--tdb-peek-duration` and `--tdb-peek-ease` tokens with the original fallbacks. The five-keyframe text exit remains in the controller; close completion, focus restoration and consent notifications remain at 470 ms. No independent reduced-motion opt-out was introduced during the full-motion review phase.
 
 The later immediate runtime still loads the existing TDBConsent bridge and other independent modules. Its old CookieScript fetch is replaced by the already available native API. The footer runtime base pin is preserved.
 

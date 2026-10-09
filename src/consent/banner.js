@@ -2,8 +2,8 @@
 (() => {
     "use strict";
     if (window.CookieScript?.instance?.__tdbNative) return;
-    const VERSION = "4.0.0", COOKIE_NAME = "CookieScriptConsent", COOKIE_DAYS = 30, ALL_CATEGORIES = [ "performance", "strict", "targeting", "functionality" ], STRICT_ONLY = [ "strict" ], ROOT_ID = "tdb-consent-root", TEXT_CLOSE_MS = 420, CLOSE_TOTAL_MS = 470;
-    let hasShown = false, open = false, closing = false, mounted = false, lastFocus = null, openFrame1 = 0, openFrame2 = 0, closeTimer = 0, pendingAfterClose = null, interactionLocked = false, releaseLock = null, refs = null, textAnimations = [];
+    const VERSION = "4.0.0", COOKIE_NAME = "CookieScriptConsent", COOKIE_DAYS = 30, ALL_CATEGORIES = [ "performance", "strict", "targeting", "functionality" ], STRICT_ONLY = [ "strict" ], ROOT_ID = "tdb-consent-root", TEXT_OPEN_DELAY_MS = 70, TEXT_CLOSE_MS = 420, CLOSE_TOTAL_MS = 470;
+    let hasShown = false, open = false, closing = false, mounted = false, lastFocus = null, openFrame1 = 0, openFrame2 = 0, textOpenTimer = 0, closeTimer = 0, pendingAfterClose = null, interactionLocked = false, releaseLock = null, refs = null, textAnimations = [];
     function unique(values) {
         return [ ...new Set((values || []).filter(Boolean)) ];
     }
@@ -94,6 +94,8 @@
         });
     }
     function cancelOpenFrames() {
+        clearTimeout(textOpenTimer);
+        textOpenTimer = 0;
         if (openFrame1) cancelAnimationFrame(openFrame1);
         if (openFrame2) cancelAnimationFrame(openFrame2);
         openFrame1 = openFrame2 = 0;
@@ -231,7 +233,11 @@
                 });
                 surface.classList.add("is-consent-surface-open");
                 backdrop.classList.add("is-consent-open");
-                motion.classList.add("is-consent-text-open");
+                // Designer export omits transition-delay; preserve the original pause here.
+                textOpenTimer = setTimeout(() => {
+                    textOpenTimer = 0;
+                    if (open && !closing) motion.classList.add("is-consent-text-open");
+                }, TEXT_OPEN_DELAY_MS);
             });
         });
     }

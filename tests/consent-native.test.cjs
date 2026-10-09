@@ -18,6 +18,7 @@ function setup(cookie) {
 (async()=>{
  let x=setup();await sleep(45);
  assert.equal(x.root.getAttribute('aria-hidden'),'false');assert.equal(x.w.TDBScrollLock.active,true);
+ assert.equal(x.root.querySelector('.tdb-consent-motion').classList.contains('is-consent-text-open'),false);await sleep(80);assert.equal(x.root.querySelector('.tdb-consent-motion').classList.contains('is-consent-text-open'),true);
  assert.equal(x.w.document.querySelectorAll('#tdb-consent-root').length,1);
  assert.deepEqual(Array.from(x.api.currentState().categories),['strict']);
  x.events.length=0;x.w.document.getElementById('cookiescript_accept').click();
