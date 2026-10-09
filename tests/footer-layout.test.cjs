@@ -43,3 +43,32 @@ test('homepage VIP stays demand-loaded and retains scroll direction and preparat
 test('restored homepage scroll prepares VIP immediately',async()=>{
  const v=vip(900);await new Promise(setImmediate);assert.equal(v.loads(),1);assert.equal(v.resumed().lastY,900);
 });
+
+// Exercise both production listeners together: separate component tests cannot
+// catch a visibility write in one listener followed by a read in the other.
+function combined({shellPresent=true,drawerPresent=true}={}) {
+ let y=0,height=800,loads=0;const log=[],events=new Map(),frames=[];
+ const add=(type,fn)=>{if(!events.has(type))events.set(type,new Set());events.get(type).add(fn);};
+ const remove=(type,fn)=>events.get(type)?.delete(fn);
+ const root={getAttribute:()=> '677cf86df9952f978d94d8a9',classList:{toggle(){log.push('write');}},get scrollTop(){throw Error('root fallback read');}};
+ const shell={},drawer={setAttribute(){},getBoundingClientRect(){return {};}};
+ const window={get scrollY(){log.push('scroll');return y;},addEventListener:add,removeEventListener:remove};
+ const document={documentElement:root,currentScript:{src:'https://example.test/dist/tdb-footer-runtime.min.js'},getElementById:id=>id==='tdb-vip-drawer'?(drawerPresent?drawer:null):(shellPresent?shell:null),querySelector:()=>null,addEventListener(){},removeEventListener(){}};
+ const context={window,document,URL,location:{pathname:'/',hash:''},get innerHeight(){log.push('height');return height;},console,Element:class{},matchMedia:()=>({matches:false,addEventListener(){}}),addEventListener:add,removeEventListener:remove,requestAnimationFrame:fn=>frames.push(fn),setTimeout(){},tdbPreloadVIPScript(){loads++;},tdbEnsureUI:()=>new Promise(()=>{}),tdbEnsureVIPUI:()=>Promise.resolve(),tdbUIIsReady:()=>true};
+ const first=source.slice(0,source.indexOf('\n})();')+6),start=source.indexOf('function prepareVIPDrawerLoader() {'),end=source.indexOf('\nfunction prepareSliderLoader()',start);
+ vm.runInNewContext(first+'\n'+source.slice(start,end)+'\nprepareVIPDrawerLoader();',context);
+ return {log,loads:()=>loads,pageshow(nextY,nextHeight,persisted=false){y=nextY;height=nextHeight;log.length=0;const event={type:'pageshow',persisted};events.get('pageshow').forEach(fn=>fn(event));}};
+}
+test('announcement and VIP share one pageshow snapshot before either writes',()=>{
+ const c=combined();c.pageshow(0,800);
+ assert.deepEqual(c.log,['scroll','height','write']);assert.equal(c.loads(),0,'normal load at top remains lazy');
+ c.pageshow(900,700,true);
+ assert.deepEqual(c.log,['scroll','height'],'restoration takes a fresh snapshot, not the previous zero');
+ assert.equal(c.loads(),1,'restored position still triggers VIP preparation');
+});
+test('shared pageshow position works when either native component is absent',()=>{
+ const noShell=combined({shellPresent:false});noShell.pageshow(900,800,true);
+ assert.deepEqual(noShell.log,['scroll','height']);assert.equal(noShell.loads(),1);
+ const noDrawer=combined({drawerPresent:false});noDrawer.pageshow(0,800);
+ assert.deepEqual(noDrawer.log,['scroll','height','write']);assert.equal(noDrawer.loads(),0);
+});

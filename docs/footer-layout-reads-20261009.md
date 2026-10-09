@@ -21,3 +21,21 @@ handoff would risk the approved entrance behaviour.
 visibility thresholds, frame timestamps, demand loading, scroll-direction
 handoff and restored scroll. Syntax/build checks pass. Stage only; restore the
 baseline `data-tdb-runtime-base` in Webflow footer code to roll back.
+
+## Follow-up: shared pageshow snapshot
+
+Footer runtime 1.6.3 / VIP loader 1.3.3, based on the published
+`5d7c18fbb40ec63dd6c674ddd3c8939d096d6dea` release.
+
+The announcement and VIP pageshow listeners now share one scroll/viewport
+snapshot per event. Previously the announcement could change the html visibility
+class before the VIP listener read scrollY again. A WeakMap keyed by the current
+event removes that second read without delaying handlers, caching scroll state
+between events, adding polling or changing either component's triggers.
+
+Six footer tests pass, including both listeners running together, a fresh
+persisted pageshow event after a zero-scroll load, and either native component
+being absent. The combined handler sequence is now scroll read, height read,
+visibility write; VIP consumes the saved values. Animation preparation remains
+unchanged. No claim is made that the first read cannot flush layout pending from
+other page code. Restore the 5d7c18f footer base to roll back this follow-up.

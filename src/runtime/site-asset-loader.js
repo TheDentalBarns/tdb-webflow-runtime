@@ -1,6 +1,18 @@
 // Snapshot before this bundle sorts/moves markup or changes visibility classes.
 const TDBFooterInitialScrollY = Math.max(window.scrollY ?? document.documentElement.scrollTop ?? 0, 0);
 
+// Both pageshow listeners run in the same dispatch. Reuse that event's snapshot
+// after the announcement changes visibility, instead of forcing a second read.
+// A new event (including a bfcache restore) always measures the current position.
+const TDBFooterPageShowPositions = new WeakMap();
+function tdbReadPagePosition(event) {
+  if (event && TDBFooterPageShowPositions.has(event)) return TDBFooterPageShowPositions.get(event);
+  const root = document.documentElement;
+  const position = {y: window.scrollY ?? root.scrollTop ?? 0, height: innerHeight || root.clientHeight || 0};
+  if (event) TDBFooterPageShowPositions.set(event, position);
+  return position;
+}
+
 (() => {
   const root = document.documentElement;
   const shellId = 'tdb-elfsight-timer-shell';
@@ -9,7 +21,6 @@ const TDBFooterInitialScrollY = Math.max(window.scrollY ?? document.documentElem
   const revealViewports = path === '/' || path === '/location' ? 4 : 1;
   let viewportHeight = 0;
 
-  const readPosition = () => ({y: window.scrollY ?? root.scrollTop ?? 0, height: innerHeight || root.clientHeight || 0});
   function attachTimerState(shell, position) {
     if (!shell || shell._t) return;
     shell._t = 1;
@@ -41,7 +52,7 @@ const TDBFooterInitialScrollY = Math.max(window.scrollY ?? document.documentElem
   function createTimerShell() {
     const shell = document.querySelector('[data-tdb-announcement][data-placement="floating"]');
     if (!shell || mounted || attempts >= 3) return;
-    const position = readPosition();
+    const position = tdbReadPagePosition();
     attempts++;
     // The component remains editable in Footer; body ownership avoids transformed
     // page wrappers changing fixed positioning and keeps the drawer's inert handling.
@@ -64,8 +75,8 @@ const TDBFooterInitialScrollY = Math.max(window.scrollY ?? document.documentElem
     else setTimeout(createTimerShell,200);
   }
   function onOnline() { attempts = 0; scheduleTimerShell(); }
-  function onPageShow() {
-    const position = readPosition();
+  function onPageShow(event) {
+    const position = tdbReadPagePosition(event);
     attachTimerState(document.getElementById(shellId), position);
     if (position.y) scheduleTimerShell();
   }
@@ -506,8 +517,8 @@ function prepareVIPDrawerLoader() {
     // First actual movement gives the download a head start before a reversal.
     loadSafely();
   }
-  function onPageShow() {
-    if (pageY() > 0) loadSafely();
+  function onPageShow(event) {
+    if (tdbReadPagePosition(event).y > 0) loadSafely();
   }
   function onHashChange() {
     if (/^#vip/i.test(location.hash || '')) loadSafely();
@@ -534,7 +545,7 @@ function prepareVIPDrawerLoader() {
   else window.addEventListener('tdb:priority-ready', loadSafely, { once: true });
 
   window.TDBVIPDrawerLoader = Object.freeze({
-    version: '1.3.2',
+    version: '1.3.3',
     load: loadDrawer,
     status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) && !realDrawerReady(), uiReady: tdbUIIsReady(), demand }),
   });
@@ -646,7 +657,7 @@ prepareSliderFocusLoader();
 startLenisForSession();
 
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.6.2',
+  version: '1.6.3',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,
