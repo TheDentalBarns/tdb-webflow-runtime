@@ -10,7 +10,7 @@ function setup(width=1363){
  Object.defineProperty(w.HTMLElement.prototype,'offsetWidth',{get(){return parseFloat(w.getComputedStyle(this).width)||900}});
  Object.defineProperty(w.HTMLElement.prototype,'offsetLeft',{get(){let x=0;for(let s=this.previousElementSibling;s;s=s.previousElementSibling)x+=s.offsetWidth+30;return x}});
  const root=w.document.createElement('section');root.className='parallax-swiper_component tdb-treatment-parallax';root.setAttribute('data-tdb-treatment','');root.setAttribute('data-tdb-banner-parallax','native');
- root.innerHTML='<div class="swiper"><div class="swiper-wrapper">'+Array.from({length:6},(_,i)=>`<div class="swiper-slide tdb-treatment-slide"><div class="tdb-treatment-card"><h3 class="tdb-treatment-title">Treatment ${i}</h3><div data-tdb-service-copy>Copy ${i}</div><div class="tdb-treatment-source" style="display:none"><a href="/treatments/${i}"></a></div><div class="tdb-treatment-blur"></div></div></div>`).join('')+'</div></div><div class="tdb-treatment-controls"><button class="swiper-btn-prev"></button><button class="swiper-btn-next"></button></div><div data-tdb-native-progress><span></span><span></span></div><div class="tdb-treatment-cta"><a data-tdb-parallax-cta href="/treatments/0"><span>Discover treatment</span></a></div>';
+ root.innerHTML='<div class="swiper"><div class="swiper-wrapper">'+Array.from({length:6},(_,i)=>`<div class="swiper-slide tdb-treatment-slide"><div class="tdb-treatment-card"><h3 class="tdb-treatment-title">Treatment ${i}</h3><div data-tdb-service-copy>Copy ${i}</div><a class="tdb-treatment-source" style="display:none" href="/treatments/${i}"></a><div class="tdb-treatment-blur"></div></div></div>`).join('')+'</div></div><div class="tdb-treatment-controls"><button class="swiper-btn-prev"></button><button class="swiper-btn-next"></button></div><div data-tdb-native-progress><span></span><span></span></div><div class="tdb-treatment-cta"><a data-tdb-parallax-cta href="/treatments/0"><span>Discover treatment</span></a></div>';
  w.document.querySelector('main').append(root);const viewport=root.querySelector('.swiper');Object.defineProperty(viewport,'clientWidth',{get:()=>width});Object.defineProperty(viewport,'clientHeight',{value:600});
  for(const file of ['dist/tdb-motion.js','dist/tdb-swiper-8.4.7.min.js','src/shared/rendered-progress.js','src/sliders/parallax.js','dist/tdb-parallax.js'])w.eval(read(file));
  const cta=root.querySelector('[data-tdb-parallax-cta]'),label=cta.firstChild;
@@ -46,5 +46,36 @@ test('shared visibility exposes visible loop copies once and restores on teardow
   assert.equal(f.root.querySelectorAll('.swiper-slide[aria-hidden="false"]').length,2);
   assert.equal(same[0].hasAttribute('inert'),true);
   api.destroy();assert.equal(f.root.querySelectorAll('.swiper-slide[aria-hidden]').length,0);
+ }finally{f.dom.window.close()}
+});
+test('cached treatment layers preserve active blur and copy state through loop recreation',()=>{
+ const f=setup();try{
+  const proto=f.w.Element.prototype, query=proto.querySelector, queries=proto.querySelectorAll;
+  let reads=0;
+  proto.querySelector=function(selector){if(selector==='.tdb-treatment-blur')reads++;return query.call(this,selector)};
+  proto.querySelectorAll=function(selector){if(selector==='[data-tdb-service-copy]')reads++;return queries.call(this,selector)};
+  const verify=()=>{
+   for(const slide of f.s.slides) {
+    const blur=query.call(slide,'.tdb-treatment-blur');
+    assert.equal(blur.classList.contains('is-current'),Number(slide.dataset.swiperSlideIndex)===f.s.realIndex);
+   }
+  };
+  for(let i=0;i<10;i++) {
+   f.w.TDBParallax.setMoving(f.root,true);f.w.TDBParallax.setMoving(f.root,false);
+   f.w.TDBParallax.setEntry(f.root,true);f.w.TDBParallax.setEntry(f.root,false);
+   f.s.emit('resize');
+  }
+  assert.equal(reads,0,'existing card layers are not searched again');
+  const changes=new f.w.MutationObserver(()=>{});changes.observe(f.root,{subtree:true,attributes:true,attributeFilter:['class']});
+  f.s.emit('resize');f.s.emit('update');
+  assert.equal(changes.takeRecords().filter(r=>r.target.classList.contains('tdb-treatment-blur')).length,0,'unchanged blur states cause no class writes');
+  for(let i=0;i<14;i++){f.s.slideNext(0);verify()}
+  for(const width of [390,1363,820,1363]) {
+   f.w.TDBParallax.setMoving(f.root,true);f.resize(width);verify();
+   for(const slide of f.s.slides)assert(query.call(slide,'[data-tdb-service-copy]').classList.contains('is-moving'));
+   f.w.TDBParallax.setMoving(f.root,false);
+   for(const slide of f.s.slides)assert(!query.call(slide,'[data-tdb-service-copy]').classList.contains('is-moving'));
+  }
+  changes.disconnect();
  }finally{f.dom.window.close()}
 });
