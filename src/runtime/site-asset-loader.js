@@ -14,6 +14,7 @@ function tdbReadPagePosition(event) {
   const root = document.documentElement;
   const shellId = 'tdb-elfsight-timer-shell';
   const mobileQuery = matchMedia('(max-width:767px)');
+  const desktopQuery = matchMedia('(min-width:992px)');
   const path = location.pathname.replace(/\/+$/, '') || '/';
   const revealViewports = path === '/' || path === '/location' ? 4 : 1;
   let viewportHeight = 0;
@@ -32,7 +33,9 @@ function tdbReadPagePosition(event) {
         navbar.classList.contains('z-hold') ||
         (navbar.classList.contains('is-trans') && !(navbar.style.transform || '').includes('-100%'))
       );
-      root.classList.toggle('tdb-timer-hidden', scrollTop < viewportHeight * revealViewports || mobileNavbarVisible);
+      // Match the existing desktop Home CSS so a hidden banner also pauses.
+      const desktopNavbarVisible = path === '/' && desktopQuery.matches && navbar?.matches('[style*="translateY(0)"],[style*="translateY(0px)"]');
+      root.classList.toggle('tdb-timer-hidden', scrollTop < viewportHeight * revealViewports || mobileNavbarVisible || desktopNavbarVisible);
     };
     const requestUpdate = () => { if (!frame) frame = requestAnimationFrame(() => updateState()); };
     updateViewportHeight(position.height);

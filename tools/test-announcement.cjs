@@ -114,3 +114,15 @@ test('native availability display reuses the banner cache and refreshes both con
   assert.match(w.document.querySelector('[data-tdb-availability-value]').textContent,/30 Oct.*10:15/);
   assert.match(w.document.querySelector('.tdb-announcement-slot').textContent,/30 Oct.*10:15/);e.close();
 });
+test('desktop homepage navbar visibility is reflected in the banner pause state',async()=>{
+  const e=env('<nav class="navbar10_component" style="transform:translateY(0px)"></nav><div id="tdb-elfsight-timer-shell"></div>'),w=e.w;
+  Object.defineProperty(w,'scrollY',{value:5000});w.innerHeight=900;
+  w.matchMedia=query=>({matches:query==='(min-width:992px)',addEventListener(){}});
+  w.requestIdleCallback=()=>0;
+  const source=read('src/runtime/site-asset-loader.js');
+  w.eval(source.slice(0,source.indexOf("\n(() => {\n  const path = window.location.pathname")));
+  w.dispatchEvent(new w.PageTransitionEvent('pageshow'));await flush();
+  assert.equal(w.document.documentElement.classList.contains('tdb-timer-hidden'),true);
+  w.document.querySelector('nav').style.transform='translateY(-100%)';await flush();await e.advance(16);
+  assert.equal(w.document.documentElement.classList.contains('tdb-timer-hidden'),false);e.close();
+});

@@ -43,7 +43,7 @@
   function setText(node, value) { if (node.textContent !== value) node.textContent = value; }
   function isVisible() {
     return !suspended && !document.hidden && !shell.hidden && !shell.hasAttribute('data-tdb-announcement-pending') &&
-      !shell.closest('[inert]') && !root.matches('.tdb-timer-hidden,.tdb-slider-focus,.tdb-sg-chrome-away,.tdb-sg-locked') &&
+      !shell.closest('[inert]') && !root.matches('.tdb-timer-hidden,.tdb-slider-focus,.tdb-sg-chrome-away,.tdb-sg-locked,.tdb-phone-landscape') &&
       !document.querySelector('#tdb-vip-drawer.is-open,#tdb-vip-drawer.is-closing');
   }
   function time(value) {
