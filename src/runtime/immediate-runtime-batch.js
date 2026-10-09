@@ -48,7 +48,7 @@ if (document.readyState === 'loading') {
     });
     const d = Promise.allSettled([ t, n, r, i, a, o ]);
     window.TDBImmediateRuntimeBatch = Object.freeze({
-        version: "0.11.8",
+        version: "0.11.9",
         priorityReady: l,
         ready: d,
         status: () => ({

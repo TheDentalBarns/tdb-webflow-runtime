@@ -1,4 +1,4 @@
-/* TDB Parallax v1.3.0.
+/* TDB Parallax v1.3.1.
  * Shared parallax preparation, CMS link state, native presentation and progress.
  * Bundled into the existing immediate runtime: no extra request or stylesheet.
  * Swiper and TDBMotion remain the shared slide/motion engines.
@@ -8,11 +8,48 @@
   if (window.TDBParallax) return;
   const presentation = (() => {
   const roots = new Set();
+  const treatments = new WeakMap();
   const portrait = matchMedia('(max-width:767px) and (orientation:portrait)');
   const landscape = matchMedia('(orientation:landscape)');
   const desktop = matchMedia('(min-width:992px)');
   const layoutSelector = '.tdb-service-content,.tdb-service-heading-row,.tdb-service-title,.tdb-service-copy,.tdb-service-link-source,.tdb-service-controls,.tdb-service-buttons,.tdb-service-cta';
   const owns = root => root?.classList.contains('tdb-service-parallax') || root?.hasAttribute('data-tdb-treatment');
+  function treatmentState(root, swiper) {
+    let state = treatments.get(root);
+    if (!state) {
+      state = {slides: [], rows: [], layers: new WeakMap(), groups: new Map(), current: new Set()};
+      treatments.set(root, state);
+    }
+    if (swiper) state.swiper = swiper;
+    const slides = Array.from(state.swiper?.slides || root.querySelectorAll('.swiper-slide'));
+    if (slides.length === state.slides.length && slides.every((slide, i) => slide === state.slides[i])) return state;
+    state.slides = slides;
+    state.groups.clear();
+    state.rows = slides.map(slide => {
+      let row = state.layers.get(slide);
+      if (!row) {
+        row = {blur: slide.querySelector('.tdb-treatment-blur'), copies: Array.from(slide.querySelectorAll('[data-tdb-service-copy]'))};
+        state.layers.set(slide, row);
+      }
+      for (const [key, name] of [['moving', 'is-moving'], ['entry', 'is-entry-pending']]) {
+        if (state[key] !== undefined) row.copies.forEach(node => node.classList.toggle(name, state[key]));
+      }
+      const index = slide.getAttribute('data-swiper-slide-index') ?? slide;
+      if (!state.groups.has(index)) state.groups.set(index, []);
+      if (row.blur) state.groups.get(index).push(row.blur);
+      return row;
+    });
+    // Loop recreation can inherit current classes from source slides. Reconcile
+    // those copies too, and release references to detached loop layers.
+    state.current = new Set(state.rows.map(row => row.blur).filter(node => node?.classList.contains('is-current')));
+    return state;
+  }
+  function treatmentFlag(root, key, name, value) {
+    const state = treatmentState(root);
+    if (state[key] === value) return;
+    state[key] = value;
+    state.rows.forEach(row => row.copies.forEach(node => node.classList.toggle(name, value)));
+  }
   function layout(root) {
     if (root.hasAttribute('data-tdb-treatment')) return;
     const phone = landscape.matches && document.documentElement.classList.contains('tdb-phone-landscape');
@@ -26,14 +63,25 @@
     root.querySelectorAll('.tdb-service-controls,.tdb-service-cta,.tdb-treatment-controls,.tdb-treatment-cta').forEach(node => node.classList.add('is-ready'));
   }
   function setMoving(root, value) {
+    if (root.hasAttribute('data-tdb-treatment')) return treatmentFlag(root, 'moving', 'is-moving', value);
     if (owns(root)) root.querySelectorAll('[data-tdb-service-copy]').forEach(node => node.classList.toggle('is-moving', value));
   }
   function setEntry(root, value) {
+    if (root.hasAttribute('data-tdb-treatment')) return treatmentFlag(root, 'entry', 'is-entry-pending', value);
     if (owns(root)) root.querySelectorAll('[data-tdb-service-copy]').forEach(node => node.classList.toggle('is-entry-pending', value));
   }
   function bind(root, swiper) {
     if (!owns(root)) return;
     const current = () => {
+      if (root.hasAttribute('data-tdb-treatment')) {
+        const state = treatmentState(root, swiper), active = swiper.slides[swiper.activeIndex];
+        const index = active?.getAttribute('data-swiper-slide-index') ?? active;
+        const next = new Set(state.groups.get(index) || []);
+        state.current.forEach(node => { if (!next.has(node)) node.classList.remove('is-current'); });
+        next.forEach(node => { if (!state.current.has(node)) node.classList.add('is-current'); });
+        state.current = next;
+        return;
+      }
       const index = swiper.slides[swiper.activeIndex]?.getAttribute('data-swiper-slide-index');
       swiper.slides.forEach((slide, i) => slide.querySelector('.tdb-service-card,.tdb-treatment-blur')?.classList.toggle('is-current', index === null || index === undefined ? i === swiper.activeIndex : slide.getAttribute('data-swiper-slide-index') === index));
     };
@@ -42,6 +90,7 @@
     swiper.on('slideChange loopFix resize update', current);
     swiper.on('beforeDestroy', () => {
       roots.delete(root);
+      treatments.delete(root);
       swiper.off('slideChange loopFix resize update', current);
       root.querySelectorAll('.tdb-service-controls,.tdb-service-cta,.tdb-treatment-controls,.tdb-treatment-cta').forEach(node => node.classList.remove('is-ready'));
     });
@@ -147,7 +196,7 @@
         const a = function(r, i) {
             if (!eligible(r)) return null;
             const a = Array.from(i.querySelectorAll(":scope > .swiper-wrapper > .swiper-slide:not(.swiper-slide-duplicate)")), o = a.map(e => {
-                const t = e.querySelector(".service-card-button-wrap a[href],.tdb-treatment-source a[href]");
+                const t = e.querySelector(".service-card-button-wrap a[href],a.tdb-treatment-source[href]");
                 return t && {
                     href: t.getAttribute("href"),
                     target: t.getAttribute("target"),
@@ -155,7 +204,7 @@
                     label: t.textContent.replace(/\s+/g, " ").trim(),
                     title: e.querySelector(".service-card-mobile-title,.tdb-treatment-title")?.textContent.trim() || ""
                 };
-            }), s = i.querySelector(".service-card-button-wrap a[href],.tdb-treatment-source a[href]");
+            }), s = i.querySelector(".service-card-button-wrap a[href],a.tdb-treatment-source[href]");
             if (!s) return null;
             const l = t + ":" + [ ...document.querySelectorAll(".parallax-swiper_component") ].indexOf(r), d = "back_forward" === performance.getEntriesByType?.("navigation")[0]?.type ? history.state?.tdbParallax?.[l] : null, c = d?.href ? Number.isInteger(d.index) && o[d.index]?.href === d.href ? d.index : o.findIndex(e => e?.href === d.href) : -1, u = c >= 0 ? c : 0, p = c >= 0;
             if (u) {
@@ -520,7 +569,7 @@
     progress.refresh(root);
   }
   window.TDBParallax = Object.freeze({
-    version: '1.3.0', refresh, prepare: controls.prepare,
+    version: '1.3.1', refresh, prepare: controls.prepare,
     bind: presentation.bind, setMoving: presentation.setMoving, setEntry: presentation.setEntry
   });
 })();

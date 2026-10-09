@@ -36,11 +36,21 @@ visibility deduplication and teardown pass. Progress fixtures cover variable
 widths, loops/reverse, resize/DPR, offscreen/hidden pause and idle no-read behavior.
 Existing plugin lifecycle tests pass. The unrelated swiper-behaviour fixture
 has a pre-existing missing matchMedia stub and was not modified in this task.
-Live staging verification follows publication; JSDOM is not a physical touch test.
+Live staging verification passed: 94 initial descendants; 199 hydrated descendants,
+14 desktop slides (8 loop copies), one visible CTA, matching CMS destination,
+busy/settled states, and forward/reverse navigation. JSDOM is not a physical touch test.
 
-Remaining IX2 bindings e-312/e-313 reference a-9/a-10 on treatment card
-`e1ab4f6c-7c16-0d13-bbe6-88c01d005639`; their descendant target classes no longer
-exist. Replacing that wrapper to shed the obsolete bindings was rejected by
-automatic approval review. No wrapper replacement was performed. Remove these
-bindings in Designer when authorized/available; shared action lists still have
-other consumers and must not be globally deleted as part of this cleanup.
+Approved follow-up: on 9 October David explicitly approved replacing the shared
+card wrapper across all four component instances. Replaced old wrapper
+`e1ab4f6c-7c16-0d13-bbe6-88c01d005639` with native Block
+`8bac7015-a7c6-fe72-ce1f-1f0990b4c342`, retaining `tdb-treatment-card` and moving
+all three original child layers unchanged (image, CMS content/source link, blur).
+The element-tree comparison confirmed identical styles and child subtrees.
+Removed the empty old wrapper and published to the Webflow staging subdomain only.
+
+Published cards now have no `data-w-id`; the old IX2 target is absent from the
+rendered treatment carousel. Webflow still serializes orphaned e-312/e-313 event
+records referencing the deleted ID in its global IX2 export. They no longer
+have treatment-card targets to attach to; they were not deleted from the global
+event table. Shared action lists a-9/a-10 retain other consumers and were not
+removed. No runtime patch or custom-code pin change was needed for this follow-up.
