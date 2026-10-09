@@ -1,5 +1,25 @@
 # Android navbar edge investigation
 
+## Closed out after user review
+
+David approved the current native staging navbar. Both supplied Android
+captures show zero fully-open layout gaps and the same join at 83.21875 CSS
+pixels (DPR3). The current mode also retires blur as intended. This does not
+prove the earlier visual seam's root cause, and no further overlap was added.
+
+The temporary comparison bootstrap was removed from a freshly read Home head,
+and the diagnostic loader from a freshly read site footer, preserving unrelated
+changes. Staging-only publication `74768687-51fc-44a8-bbe2-d94126684de2` was
+verified in the published HTML and live DOM: neither temporary script nor the
+panel is loaded, and the native navbar remains opted in. Production domains
+were not published. The assets remain in git for reproducibility; the query
+URLs described below no longer activate them without reinstalling the loaders.
+
+See [the subsequent navbar audit](navbar-audit-2026-10-09.md) for the next
+optimisation opportunities. The following investigation notes are historical.
+
+## Original investigation
+
 David reports that v1.1.0's blur retirement changes the hairline to an edge-to-edge
 line but does not remove it. This disproves retained blur as a sufficient fix.
 The temporary view measures the affected browser instead of adding another
