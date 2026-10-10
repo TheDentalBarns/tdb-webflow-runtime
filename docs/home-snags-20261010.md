@@ -101,6 +101,19 @@ The follow-up regression tests pass Reviews-closing → nested-USP-opening,
 page-layer ownership, native placement/focus restoration, and the barn
 pointer-focus gap plus gesture cancellation (12 tests in the focused batch).
 
+Follow-up `7e1cea4` published to staging at 12:25 BST. CDN files matched the
+local builds byte-for-byte. Home overrides only `tdb-drawer.js` and
+`tdb-usp-drawer.js` to this commit; the prior cohort remains `996e193`.
+After reload, both control wrappers measured 1363px wide, 40.89px side padding,
+and the same vertical midpoint. Reviews closed and USP opened with its root
+under body, a 1363×936 backdrop at opacity 1 and 50% black, and visible `01`.
+Close restored the native component position; reopening Gold Standards showed
+`02` and selected only its barn at opacity 0.5. The original intermittent
+missing dimming did not reproduce before the layer correction either, so this
+is a verified structural correction, not proof of that exact reported cause.
+Custom-domain publication timestamps remained 1 October; production was not
+published. Designer-only oversized arrows still need the user's live bridge.
+
 Rollback: remove Home's `data-tdb-home-snag-pins` inline configuration. Existing
 site pins remain intact, and the shared USP loader defaults to `3217122`.
 Native arrow and barn changes can be reverted independently from the saved
