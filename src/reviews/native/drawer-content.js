@@ -1,8 +1,49 @@
-/* TDB native reviews v3.14.1. Shared selection policy and settlement; native choreography. */
+/* TDB native reviews v3.15.0. Native reading flow; stationary slide-change artwork. */
 (() => {
 'use strict';if(window.TDBReviews)return;
 const instances=new WeakMap();
 const safeURL=value=>{try{const u=new URL(value);return u.protocol==='https:'?u.href:'';}catch{return'';}};
+function readingMarkController(mark,layer,motion,fadeTime,scroll){
+ // One lightweight reading copy stays inside the settled review. The original
+ // is only a transition bridge: no scroll listener and no visible SVG reparent
+ // on first touch. Both copies reference the same shared artwork.
+ const originalOpacity=mark.style.opacity,originalTranslate=mark.style.translate;
+ const copy=mark.cloneNode(true);
+ copy.removeAttribute('data-tdb-review-static-mark');
+ copy.setAttribute('data-tdb-review-reading-mark','');
+ copy.classList.remove('is-stationary');copy.classList.add('is-reading');
+ const fades=motion.fadeController();
+ let moving=false,scrolled=false;
+ fades.to(copy,0,0);layer.append(copy);
+ function park(){fades.to(copy,0,0);layer.append(copy);moving=false;scrolled=false;}
+ function begin(){
+  if(moving)return;
+  moving=true;scrolled=(scroll()?.scrollTop||0)>0;
+  if(scrolled){fades.to(mark,0,0);fades.to(copy,0,fadeTime());return;}
+  // This is a transition snapshot, never a per-scroll position calculation.
+  // It also covers the separate native phone-landscape reading mode.
+  const from=copy.getBoundingClientRect();
+  mark.style.translate=originalTranslate;
+  const to=mark.getBoundingClientRect();
+  mark.style.translate=(from.left-to.left)+'px '+(from.top-to.top)+'px';
+  fades.to(mark,Number(getComputedStyle(copy).opacity),0);
+  fades.to(copy,0,0);
+ }
+ function settle(slide){
+  const slot=slide?.querySelector('.tdb-review-drawer_mark-space');
+  if(!slot)return;
+  const opacity=moving&&scrolled?0:Number(getComputedStyle(mark).opacity);
+  fades.to(copy,0,0);
+  if(copy.parentNode!==slot)slot.append(copy);
+  fades.to(copy,opacity,0);fades.to(mark,0,0);
+  mark.style.translate=originalTranslate;moving=false;scrolled=false;
+ }
+ return {begin,settle,show(){fades.to(copy,1,fadeTime());},
+  open(){park();mark.style.translate=originalTranslate;fades.to(mark,1,0);},
+  close(){fades.to(copy,0,fadeTime());fades.to(mark,0,fadeTime());},
+  park,destroy(){fades.destroy();copy.remove();mark.style.opacity=originalOpacity;mark.style.translate=originalTranslate;}
+ };
+}
 function mount(root,data){
  if(instances.has(root))return instances.get(root);
  const cms=window.TDBReviewCMS,motion=window.TDBMotion,ctrl=new AbortController(),{signal}=ctrl;
@@ -43,27 +84,15 @@ function mount(root,data){
  const readingPane=$('[data-tdb-review-reading-pane]');
  const landscapeNodes=[readingPane,$('.tdb-review-drawer_header'),$('.tdb-review-drawer_footer'),viewport,track,mainClose,filterPanel,filterPanel?.querySelector('[data-tdb-filter-scroll]'),filterPanel?.querySelector('.tdb-review-filter_heading'),filterActions].filter(Boolean);
  let landscape=false;
- const originalMarkTranslate=mark.style.translate;
- let markScrollTop=0;
- // Keep the SVG in its native overlay. Reparenting it out of the moving
- // card on first touch invalidates both rendering layers on mobile.
- // Native styles still own its geometry; only the reading offset is runtime.
- if(mark.parentNode!==staticLayer)staticLayer.append(mark);
- mark.classList.add('is-stationary');
  const readingFooter=$('.tdb-review-drawer_footer');
  const readingScroll=()=>reading.scroll();
- function syncMarkScroll(){
-  markScrollTop=readingScroll()?.scrollTop||0;
-  const translate=landscape||!markScrollTop?originalMarkTranslate:'0px '+(-markScrollTop)+'px';
-  if(mark.style.translate!==translate)mark.style.translate=translate;
- }
- root.addEventListener('scroll',event=>{if(event.target===readingScroll()&&phase!=='closed')syncMarkScroll();},{capture:true,passive:true,signal});
+ const readingMark=readingMarkController(mark,staticLayer,motion,()=>reduced.matches?0:motion.reviews.fade,readingScroll);
  const reading=window.TDBDrawerReading.mount({
   pane:readingPane,footer:readingFooter,viewport,track,swiper:()=>swiper,
   slideScroll:()=>swiper?.slides[swiper.activeIndex]?.querySelector('[data-tdb-review-scroll]'),
   active:()=>phase!=='closed'&&phase!=='opening',
   nodes:()=>[...landscapeNodes,...[template,...slideCache.values()].flatMap(node=>[node,node.querySelector('[data-tdb-review-scroll]')])],
-  onMode(value){landscape=value;placeFilterClose(true);},onRestore:syncMarkScroll
+  onMode(value){landscape=value;placeFilterClose(true);}
  });
  const captureReadingAnchor=reading.capture,applyReadingAnchor=reading.apply;
  // The filter footer is native content inside the sliding panel. Only the
@@ -271,8 +300,8 @@ function mount(root,data){
  function begin(){
   if(!swiper||destroyed||phase==='closed'||phase==='opening')return;
   captureReadingAnchor();
+  readingMark.begin();
   hideQuote();phase='moving';
-  if(readingScroll()?.scrollTop>0)fades.to(mark,0,fadeTime());
  }
  function reflect(){if(!swiper||destroyed||reflectedIndex===swiper.activeIndex)return;const index=swiper.activeIndex;reflectedIndex=index;
   ticker.update(String(filterOpen?1:index+1).padStart(2,'0'),swiper.swipeDirection==='prev'?-1:1);position.setAttribute('aria-label',`Review ${index+1} of ${length()}`);
@@ -285,11 +314,10 @@ function mount(root,data){
   const active=swiper.slides[swiper.activeIndex];
   if(phase==='settled'&&settledSlide===active&&(revealTimer||shownQuote))return;
   clearTimeout(revealTimer);reflect();
-  if(settledSlide!==active&&markScrollTop>(readingScroll()?.scrollTop||0))fades.to(mark,0,0);
-  syncMarkScroll();
+  readingMark.settle(active);
   for(const item of swiper.slides)if(item!==active)item.querySelector('[data-tdb-review-scroll]').scrollTop=0;
   settledSlide=active;phase='settled';
-  const show=()=>{revealTimer=0;if(destroyed||phase!=='settled'||swiper.slides[swiper.activeIndex]!==active)return;shownQuote=active.querySelector('[data-review-render="excerpt"]');fades.to(shownQuote,1,fadeTime());fades.to(mark,1,fadeTime());};
+  const show=()=>{revealTimer=0;if(destroyed||phase!=='settled'||swiper.slides[swiper.activeIndex]!==active)return;shownQuote=active.querySelector('[data-review-render="excerpt"]');fades.to(shownQuote,1,fadeTime());readingMark.show();};
   const pause=reduced.matches?0:delay??(swiper.swipeDirection==='prev'?motion.reviews.previousDelay:motion.reviews.nextDelay);
   if(pause)revealTimer=setTimeout(show,pause);else show();
  }
@@ -307,7 +335,7 @@ function mount(root,data){
   reading.clear();
   appendRecords();
   const index=Math.max(0,records.findIndex(r=>r.id===id));
-  phase='opening';hideQuote();settledSlide=null;fades.to(mark,1,0);
+  phase='opening';hideQuote();settledSlide=null;readingMark.open();
   if(swiper)swiper.slideTo(index,0);else createSwiper(index);
   readingScroll().scrollTop=0;reveal(motion.reviews.openDelay);
  }
@@ -352,7 +380,7 @@ function mount(root,data){
  function renderSelection(chosen){
   if(!chosen.length)return;
   reading.clear();
-  const wasOpen=phase!=='closed';hideQuote();
+  const wasOpen=phase!=='closed';hideQuote();readingMark.park();
   swiper?.destroy(true,true);swiper=null;records.splice(0,records.length,...chosen);knownCount=data.records.length;pendingAppend=false;
   track.replaceChildren(...records.map(slide));
   [...track.children].forEach((node,i)=>{node.setAttribute('aria-label',`Review ${i+1} of ${length()}`);node.querySelector('[data-tdb-review-scroll]').scrollTop=0;node.querySelector('[data-review-render="excerpt"]').style.opacity='0';});
@@ -428,7 +456,7 @@ function mount(root,data){
   action(filterApply,()=>{if(!filterApply.disabled)filter.requestClose('apply');});
   updateFilterOptions();
  }
- let preferred='';const drawer=window.TDBDrawer.mount(root.closest('[data-tdb-drawer]'),{hideChrome:true,onOpen(){build(preferred);clearTimeout(filterPrimeTimer);filterPrimeTimer=setTimeout(prepareFilters,250);},onClose(){reading.clear();clearTimeout(filterPrimeTimer);filter?.reset(true);placeFilterClose(true);hideQuote();phase='closed';if(readingScroll()?.scrollTop>0)fades.to(mark,0,fadeTime());ticker.settle();totalTicker.settle();filterApplyTicker?.settle();}});
+ let preferred='';const drawer=window.TDBDrawer.mount(root.closest('[data-tdb-drawer]'),{hideChrome:true,onOpen(){build(preferred);clearTimeout(filterPrimeTimer);filterPrimeTimer=setTimeout(prepareFilters,250);},onClose(){reading.clear();clearTimeout(filterPrimeTimer);filter?.reset(true);placeFilterClose(true);hideQuote();phase='closed';if(readingScroll()?.scrollTop>0)readingMark.close();ticker.settle();totalTicker.settle();filterApplyTicker?.settle();}});
  setReadingMode();
  // Native Webflow visibility keeps the closed drawer measurable without showing it.
  if(viewport.clientWidth)createSwiper();
@@ -442,9 +470,9 @@ function mount(root,data){
    renderSelection(data.records.slice());
   }
   return drawer.open(trigger);
- },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;applyFitResize.disconnect();restoreApplyFit();cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();reading.destroy();filterOpen=false;placeFilterClose(true);floatingFilterIcon?.destroy();ctrl.abort();clearTimeout(revealTimer);fades.destroy();mark.style.translate=originalMarkTranslate;swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();filterApplyTicker?.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
+ },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;applyFitResize.disconnect();restoreApplyFit();cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();reading.destroy();filterOpen=false;placeFilterClose(true);floatingFilterIcon?.destroy();ctrl.abort();clearTimeout(revealTimer);fades.destroy();readingMark.destroy();swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();filterApplyTicker?.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBReviews=Object.freeze({version:'3.14.1',mount});
+window.TDBReviews=Object.freeze({version:'3.15.0',mount});
 window.TDBSwiper?.register('review-drawer',window.TDBReviews);
 })();
 
