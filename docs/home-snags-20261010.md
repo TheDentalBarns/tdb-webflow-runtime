@@ -139,5 +139,15 @@ navbar/drawer copies. Update that startup pin only; its consent source was
 verified identical to the deployed `bd1bde6`. All three embedded lock builds were
 updated for consistency. The 26 focused tests pass, including Home/root locking,
 unchanged non-Home locking, nested touch/wheel scrolling and close/reopen races.
-Staging verification follows deployment. Rollback this follow-up by restoring
-the consent startup pin to `bd1bde66f6624d7c653eb6e29afb3f3c6acfaeb7`.
+Release `169c84d` published to staging at 12:50 BST. Its CDN startup file matched
+the local build exactly. The published shared-lock retest at scrollY 21341 kept
+the backdrop at viewport top 0 and charcoal opacity 1 before opening VIP, while
+open, and after close; scrollY stayed 21341. Root overflow was hidden while body
+remained visible. Normal scrolling subsequently restored the drawing fade;
+Discover also opened over it with unchanged sketch geometry. Hamburger state,
+lock retention, nested touch scrolling and reversal paths passed the automated
+checks; physical phone visual review remains outstanding. All custom-domain
+publication timestamps remained 1 October.
+
+Rollback this follow-up by restoring the consent startup pin to
+`bd1bde66f6624d7c653eb6e29afb3f3c6acfaeb7`.
