@@ -44,3 +44,34 @@ test('missing token and failed upstream never expose credentials or cache failur
     assert.equal(response.status,503);assert.equal(response.headers.get('Cache-Control'),'no-store');assert.deepEqual(await response.json(),{error:'Availability temporarily unavailable'});
   }
 });
+test('private diagnostics distinguish failures without logging secrets or CMS values',async()=>{
+  const privateValue='must-not-appear-in-logs';
+  const cases=[
+    [{token:''},'missing_token'],
+    ...[401,403,404,429,500].map(status=>[{fetcher:async()=>new Response(token+privateValue,{status})},'cms_http_error',status]),
+    [{fetcher:async()=>{throw Error(token+privateValue);}},'cms_fetch_failed'],
+    [{fetcher:async()=>new Response(token+privateValue)},'cms_invalid_json',200],
+    [{fetcher:async()=>new Response(privateValue.repeat(30000))},'cms_response_too_large',200],
+    [{fetcher:async()=>Response.json({...item(),id:privateValue})},'cms_item_identity',200],
+    [{fetcher:async()=>Response.json({...item(),isDraft:true})},'cms_item_draft_status',200],
+    [{fetcher:async()=>Response.json({...item(),isArchived:true})},'cms_item_archive_status',200],
+    [{fetcher:async()=>Response.json({...item(),lastPublished:null})},'cms_item_not_published',200],
+    [{fetcher:async()=>Response.json(item({slug:privateValue}))},'cms_item_slug',200],
+    [{fetcher:async()=>Response.json(item({'signature-heading':{privateValue}}))},'cms_field_type',200,'signature-heading'],
+    [{fetcher:async()=>Response.json(item({'next-signature-slot':privateValue}))},'cms_date_invalid',200,'next-signature-slot'],
+    [{fetcher:async()=>Response.json(item({'next-signature-uk-time':''}))},'cms_date_incomplete',200,'next-signature-slot']
+  ];
+  for(const [options,code,status,field] of cases){
+    const reports=[];
+    const response=await handle(request('/active.json?refresh=1'),{token,fetcher:()=>assert.fail('Unexpected fetch'),...options,report:detail=>reports.push(detail)});
+    const expected={event:'availability_feed_failure',channel:'active',code};
+    if(status)expected.status=status;if(field)expected.field=field;
+    assert.deepEqual(reports,[expected]);
+    assert.equal(response.status,503);assert.deepEqual(await response.json(),{error:'Availability temporarily unavailable'});
+    assert.ok(!JSON.stringify(reports).includes(token));assert.ok(!JSON.stringify(reports).includes(privateValue));
+  }
+  const reports=[];
+  assert.equal((await handle(request(),{token,fetcher:async()=>Response.json(item()),report:detail=>reports.push(detail)})).status,200);
+  assert.deepEqual(reports,[]);
+  assert.equal((await handle(request(),{report:()=>{throw Error(privateValue);}})).status,503);
+});

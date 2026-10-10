@@ -1,6 +1,7 @@
 # Public availability feed
 
-Prepared for staging; not deployed or enabled in the Webflow runtime yet.
+Deployed as `tdb-public-availability`; CMS access is being verified before
+enabling the feed in the Webflow staging runtime.
 
 This independent Worker reads the **published** Banner Settings items directly
 from Webflow's CMS API and returns only ten allowed fields as JSON. It no longer
@@ -16,7 +17,8 @@ browser reader. This preserves the CMS field instructions and current fixtures.
 
 ## Deploy and enable
 
-1. Configure `WEBFLOW_API_TOKEN` as an encrypted Cloudflare Worker secret, scoped
+1. Configure `WEBFLOW_API_TOKEN` under the Worker's **Runtime variables and
+   secrets > Production** (not Build variables and secrets), scoped
    to this Webflow site with **CMS:read** only. Never put its value in Wrangler
    config, Git, custom page code, or chat. Have the account owner enter it through
    the authenticated secret-entry UI (or `wrangler secret put WEBFLOW_API_TOKEN
@@ -38,6 +40,29 @@ The Worker caches validated JSON for at most 60 seconds. Responses carry the
 original `checkedAt`; neither edge-cache hits nor same-tab navigation extend
 the browser's five-minute freshness window. Manual refresh bypasses the edge
 cache. Errors are not cached, and response bodies contain only generic errors.
+
+## Troubleshooting
+
+Cloudflare Worker logs record an `availability_feed_failure` event for each
+failed feed request. It contains only a fixed failure code, the active/preview
+channel, the upstream HTTP status when available, and an allowlisted field name
+for invalid field data. No token, request headers, raw exception, CMS content or
+upstream response body is logged. The public error response stays generic.
+
+After a successful build/deployment, open `/active.json?refresh=1`, then inspect
+that request under the Worker's **Observability > Logs**:
+
+- `missing_token`: check the runtime production secret and deployed version.
+- `cms_http_error`: inspect `status`; 401/403 indicates rejected credentials or
+  insufficient access, 404 indicates an unavailable published item, and 429 is
+  rate limiting. Check the site-scoped Webflow token has CMS read permission.
+- `cms_fetch_failed`, `cms_body_read_failed` or `cms_timeout`: the upstream
+  request or response transfer failed.
+- `cms_invalid_json`, `cms_item_*`, `cms_field_*` or `cms_date_*`: the received
+  CMS data failed the existing validation; inspect the fixed code/field.
+
+The dashboard build API token authorizes Cloudflare deployment. It is separate
+from the Webflow CMS token used by the running Worker.
 
 Run checks with `node --test services/availability-feed/worker.test.mjs`.
 
