@@ -1,4 +1,4 @@
-/* Smile Gallery presentation v4.1.0. Native Designer structure; shared ticker and motion. */
+/* Smile Gallery presentation v4.1.2. Native Designer structure; shared ticker and motion. */
 (() => {
   'use strict';
   if (window.TDBSmileCards) return;
@@ -13,7 +13,10 @@
     return tickerFlight;
   }
   const valueKeys = ['price', 'duration', 'clinician'];
-  const values = slide => valueKeys.map(key => slide?.querySelector('[data-tdb-smile-source-fact="' + key + '"] .tdb-smile-source-value')?.textContent.trim() || '');
+  const values = slide => valueKeys.map(key => {
+    const fact = slide?.querySelector('[data-tdb-smile-source-fact="' + key + '"]');
+    return (fact?.querySelector('.tdb-smile-source-value') || fact)?.textContent.trim() || '';
+  });
 
   function prepare(root) {
     if (!root.matches('[data-tdb-smile-slider]') || !root.querySelector('[data-tdb-smile-presentation]')) return null;
@@ -31,6 +34,7 @@
     let slides = [], originals = [], swiper = null, showTimer = 0, moving = false;
     let revealed = false, disposed = false, countTicker = null, totalTicker = null, tickerFailed = false, factTickers = [], revision = 0;
     const listeners = [];
+    let stopSettled = null;
     const desktop = matchMedia('(min-width:992px)');
     const clean = text => text.trim().replace(/\s+/g, ' ');
     const cancelShow = () => { clearTimeout(showTimer); showTimer = 0; };
@@ -150,23 +154,29 @@
       }
     }
     function unbind() {
+      stopSettled?.(); stopSettled = null;
       listeners.splice(0).forEach(([event, handler]) => swiper?.off(event, handler));
       cancelShow(); cancelTickers(); swiper = null; moving = false;
     }
     function bind(instance) {
       if (instance === swiper || !instance || instance.destroyed) return;
       unbind(); swiper = instance;
+      let settledIndex = swiper.realIndex;
       const on = (event, handler) => { listeners.push([event, handler]); swiper.on(event, handler); };
       on('slideChange', () => { closeDetails(); update(); });
       on('touchStart', cancelShow);
       on('sliderMove', () => { if (!moving) hide(); });
       on('slideChangeTransitionStart', hide);
-      on('slideChangeTransitionEnd', () => { update(); reveal(swiper.swipeDirection === 'prev' ? motion.carousel.previousDelay : motion.carousel.nextDelay); });
-      on('touchEnd', () => { if (!swiper.animating) reveal(motion.carousel.settleDelay); });
+      stopSettled = window.TDBSwiper.onSettled(swiper, () => {
+        const changed = swiper.realIndex !== settledIndex;
+        settledIndex = swiper.realIndex;
+        update();
+        reveal(changed ? (swiper.swipeDirection === 'prev' ? motion.carousel.previousDelay : motion.carousel.nextDelay) : motion.carousel.settleDelay);
+      });
       on('beforeDestroy', () => {
         // Swiper iterates this listener array directly. Removing listeners here
         // would skip the shared adapter's following teardown callback.
-        cancelShow(); cancelTickers(); listeners.length = 0;
+        cancelShow(); cancelTickers(); listeners.length = 0; stopSettled = null;
         swiper = null; moving = false; closeDetails(); showText(0);
       });
       refresh(); showText(revealed ? swiper.realIndex : null);
@@ -205,5 +215,5 @@
     });
     return api;
   }
-  window.TDBSmileCards = Object.freeze({version:'4.1.0',prepare,prune(){roots.forEach((api,root)=>{if(!root.isConnected)api.destroy();});}});
+  window.TDBSmileCards = Object.freeze({version:'4.1.2',prepare,prune(){roots.forEach((api,root)=>{if(!root.isConnected)api.destroy();});}});
 })();

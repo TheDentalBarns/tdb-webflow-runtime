@@ -56,11 +56,7 @@ for (const [source, artifact] of Object.entries(entries)) {
     if (await readFile(output, 'utf8') !== text) throw Error(`${artifact} differs from ${source}; run node tools/build-shared-runtime.mjs`);
   } else await writeFile(output, text);
 }
-const gallery = (await Promise.all(['src/sliders/gallery-presentation.js', 'src/sliders/gallery-plugin.js'].map(source => readFile(resolve(root, source), 'utf8')))).join('\n');
-const galleryOutput = resolve(root, 'dist/tdb-gallery.js');
-if (process.argv.includes('--check')) {
-  if (await readFile(galleryOutput, 'utf8') !== gallery) throw Error('tdb-gallery.js differs from its presentation/plugin sources');
-} else await writeFile(galleryOutput, gallery);
+await import('./build-gallery.mjs');
 console.log(`${process.argv.includes('--check') ? 'Checked' : 'Built'} ${Object.keys(entries).length} shared/native runtime artifacts.`);
 
 await import('./build-instagram.mjs');
