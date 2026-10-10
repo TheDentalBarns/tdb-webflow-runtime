@@ -5,8 +5,10 @@ on:
     branches:
       - main
     paths:
-      - 'src/runtime/site-asset-loader.js'
-      - 'src/runtime/immediate-runtime-batch.js'
+      - 'src/runtime/**'
+      - 'src/banner/loader.js'
+      - 'src/vip-drawer/vip-focus.js'
+      - 'tools/runtime-build/**'
       - '.github/workflows/build-runtime.yml'
   workflow_dispatch:
 
@@ -28,10 +30,11 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Build minified runtimes
-        run: |
-          npx --yes terser@5 src/runtime/site-asset-loader.js --compress --mangle --output dist/tdb-footer-runtime.min.js
-          npx --yes terser@5 src/runtime/immediate-runtime-batch.js --compress --mangle --output dist/tdb-immediate-runtime-batch.min.js
+      - name: Install pinned build tools
+        run: npm ci --prefix tools/runtime-build --ignore-scripts --no-audit --no-fund
+
+      - name: Build minified runtimes from the shared source manifest
+        run: node tools/runtime-build/build-preservation.cjs dist/tdb-footer-runtime.min.js dist/tdb-immediate-runtime-batch.min.js
 
       - name: Validate artifacts
         run: |

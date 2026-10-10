@@ -5,6 +5,7 @@
     "build": "node build-preservation.cjs dist/tdb-footer-runtime.min.js dist/tdb-vip-drawer.js dist/tdb-consent-startup.min.js dist/tdb-modules.js"
   },
   "devDependencies": {
+    "clean-css": "5.3.3",
     "terser": "5.44.0"
   }
 }

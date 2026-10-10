@@ -6,7 +6,9 @@ on:
       - main
     paths:
       - 'tools/build-ui.py'
-      - 'src/styles/tdb-elfsight-timer.css'
+      - 'src/styles/tdb-chrome-motion.css'
+      - 'src/styles/tdb-control-effects.css'
+      - 'tools/runtime-build/**'
       - 'src/styles/tdb-vimeo-ui.css'
       - 'src/styles/tdb-runtime-ui.css'
       - 'src/styles/tdb-deferred-ui.css'
@@ -34,6 +36,14 @@ jobs:
         with:
           python-version: '3.13'
 
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Install pinned build tools
+        run: npm ci --prefix tools/runtime-build --ignore-scripts --no-audit --no-fund
+
       - name: Build UI artifacts
         run: python tools/build-ui.py
 
@@ -43,7 +53,7 @@ jobs:
           test -s dist/tdb-ui.css
           test -s dist/tdb-vip.css
           test -s dist/tdb-slider-ui.css
-          cmp src/styles/tdb-ui.css dist/tdb-ui.css
+          node tools/runtime-build/verify-ui.cjs
 
       - name: Commit generated artifacts
         run: |

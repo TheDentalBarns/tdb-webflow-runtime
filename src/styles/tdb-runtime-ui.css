@@ -7,30 +7,10 @@ html {
   height: 100vh;
 }
 
-.w-slider-dot {
-  background-color: var(--base-color-brand--orange-2) !important;
-}
-
-.w-slider-dot.w-active {
-  background-color: var(--base-color-brand--orange-3) !important;
-}
-
+/* Keep the first-frame hidden state ready before the slider stylesheet/runtime. */
 [data-fade-slide] {
   opacity: 0;
   pointer-events: none;
-  transition: opacity 200ms ease-out;
-}
-
-[data-fade-slide].is-visible {
-  opacity: 1;
-  pointer-events: auto;
-  transition: opacity 400ms ease-in;
-}
-
-.parallax-swiper_component.is-moving [data-fade-slide] {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transition: opacity 150ms ease-out !important;
 }
 
 /* First-frame slider guard stays global; full slider controls load with the slider runtime. */
@@ -41,12 +21,14 @@ html {
   }
 }
 
-input[type='submit'] {
+/* Native .button.submit-button states live in Designer. Keep compatibility
+ * only for other submit controls that have not adopted those classes. */
+input[type='submit']:not(.submit-button) {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-input[type='submit'].submit-enabled {
+input[type='submit']:not(.submit-button).submit-enabled {
   opacity: 1;
   cursor: pointer;
 }

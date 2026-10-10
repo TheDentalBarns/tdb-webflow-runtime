@@ -1,0 +1,11 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const CleanCSS = require('clean-css');
+const root = path.resolve(__dirname, '../..');
+const css = fs.readFileSync(path.join(root, 'src/styles/tdb-ui.css'), 'utf8');
+const result = new CleanCSS({level: 0, rebase: false}).minify(css);
+assert.deepEqual(result.errors, []);
+assert.deepEqual(result.warnings, []);
+assert.equal(fs.readFileSync(path.join(root, 'dist/tdb-ui.css'), 'utf8'), result.styles + '\n');
+console.log('Global UI artifact matches its readable sources');

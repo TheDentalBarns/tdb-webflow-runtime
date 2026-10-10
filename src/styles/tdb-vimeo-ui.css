@@ -1,5 +1,56 @@
-/* TDB Vimeo deferred interaction styles v0.1.0
- * First-frame layout, placeholders and default play/pause/loading visibility remain inline in Webflow.
+:root { --tdb-vimeo-ui-ready: 1; }
+
+.vimeo-player[data-vimeo-update-size='cover'] {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    height: 100%;
+    min-height: 100%;
+    max-height: 100%;
+  }
+
+.vimeo-controls-layer .vimeo-player__play,
+  .vimeo-controls-layer .vimeo-player__pause {
+    z-index: 60;
+    transition: none !important;
+    animation: none !important;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+.vimeo-controls-layer .vimeo-player__play .vimeo-player__btn,
+  .vimeo-controls-layer .vimeo-player__pause .vimeo-player__btn,
+  .vimeo-controls-layer .vimeo-player__play svg,
+  .vimeo-controls-layer .vimeo-player__pause svg,
+  .vimeo-controls-layer .vimeo-player__loading .vimeo-player__btn,
+  .vimeo-controls-layer .vimeo-player__loading svg {
+    transition: none !important;
+    animation: none !important;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+.video-overlay-layer,
+  .vimeo-bg__placeholder,
+  [data-vimeo-hero-content],
+  [data-vimeo-hero-content] > * { pointer-events: none; }
+
+[data-vimeo-hero-content] a,
+  [data-vimeo-hero-content] button,
+  [data-vimeo-hero-content] [role='button'],
+  [data-vimeo-hero-content] input,
+  [data-vimeo-hero-content] select,
+  [data-vimeo-hero-content] textarea { pointer-events: auto; }
+
+.vimeo-bg__iframe iframe { background: transparent; }
+
+[data-vimeo-player-init]:not([data-vimeo-ambient-init]):not([data-vimeo-content-init]) .vimeo-bg__iframe { position: relative; }
+
+.vimeo-player .vimeo-player__pause .vimeo-player__btn { opacity: 0; }
+
+/* TDB Vimeo state CSS 1.0.0.
+ * Native Webflow classes own frame, poster and control defaults.
+ * This file owns state selectors, pulse and structural control relationships.
  */
 
 /* Hero playback states */
@@ -51,11 +102,6 @@
 }
 
 /* Shared pulse */
-@keyframes tdbBtnPulseOpacity {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 .vimeo-controls-layer .vimeo-player__btn-pulse,
 .vimeo-player .vimeo-player__btn-pulse {
   opacity: 0;
@@ -64,7 +110,9 @@
   animation: none;
 }
 
+[data-vimeo-hero-shell]:not([data-vimeo-pulse]) .vimeo-controls-layer .vimeo-player__btn-pulse,
 [data-vimeo-hero-shell][data-vimeo-pulse='true'] .vimeo-controls-layer .vimeo-player__btn-pulse,
+.vimeo-player:not([data-vimeo-playing]) .vimeo-player__btn-pulse,
 .vimeo-player[data-vimeo-playing='false'] .vimeo-player__btn-pulse {
   animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate;
   will-change: opacity;
@@ -79,24 +127,7 @@
   will-change: auto;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  [data-vimeo-hero-shell][data-vimeo-pulse='true'] .vimeo-controls-layer .vimeo-player__btn-pulse,
-  .vimeo-player[data-vimeo-playing='false'] .vimeo-player__btn-pulse {
-    animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate !important;
-    visibility: visible !important;
-    will-change: opacity !important;
-  }
 
-  [data-vimeo-hero-shell][data-vimeo-pulse='false'] .vimeo-controls-layer .vimeo-player__btn-pulse,
-  .vimeo-player[data-vimeo-playing='true'] .vimeo-player__btn-pulse,
-  .vimeo-player[data-vimeo-awaiting-consent='true'] .vimeo-player__btn-pulse,
-  .vimeo-player[data-vimeo-loading='true'] .vimeo-player__btn-pulse {
-    animation: none !important;
-    opacity: 0 !important;
-    visibility: visible !important;
-    will-change: auto !important;
-  }
-}
 
 /* Hero and ambient runtime transitions */
 [data-vimeo-player-init]:not([data-vimeo-content-init])[data-vimeo-started='true'] .vimeo-bg__placeholder,
@@ -109,6 +140,8 @@
 [data-vimeo-ambient-init][data-placeholder-hidden='true'] .vimeo-bg__placeholder {
   display: none !important;
 }
+
+/* TDB content-video UI v0.1.0 — load with the content-player controller. */
 
 /* Content Vimeo playback states */
 .vimeo-player[data-vimeo-started='true'] .vimeo-player__iframe {
@@ -180,3 +213,11 @@
   opacity: 0;
   visibility: hidden;
 }
+
+
+
+/* Compositing and legacy IX compatibility; design values remain native. */
+.vimeo-player .vimeo-player__btn { backface-visibility:hidden; transform:translateZ(0); }
+.video-overlay-layer { opacity:1 !important; visibility:visible !important; transition:none !important; animation:none !important; }
+
+.vimeo-controls-layer { -webkit-user-select:none; -webkit-tap-highlight-color:transparent; }
