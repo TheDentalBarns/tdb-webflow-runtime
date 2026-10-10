@@ -7,13 +7,6 @@
         t.dataset.tdbNavbarState = "", t.textContent = __TDB_NAV_STATE_CSS__;
         const e = document.querySelector("[data-tdb-navbar-motion-anchor]");
         e ? e.after(t) : document.head.append(t), (() => {
-            if (window.TDBPanelMotion) return;
-            window.TDBPanelMotion = Object.freeze({
-                version: "1.0.0",
-                duration: (t = document.documentElement.clientHeight || innerHeight || 375) => Math.round(Math.min(950, Math.max(400, 400 * Math.sqrt(t / 375)))),
-                easing: "cubic-bezier(0.165,0.84,0.44,1)"
-            });
-        })(), (() => {
             const t = document.querySelector(".navbar10_component");
             if (!t) return;
             const e = document.documentElement;

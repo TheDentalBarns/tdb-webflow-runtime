@@ -1,0 +1,196 @@
+{
+  "version": 1,
+  "delivery": "Inline in each listed page/template footer, before its existing code. Generated from canonical sources; the homepage receives none.",
+  "calculatorLoader": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0ca09e55c6fc3325ad3a964b17b88832c84eed56/dist/tdb-calculator-loader.js",
+  "scripts": [
+    {
+      "feature": "calculator",
+      "attribute": "data-tdb-calculator-launch-icons",
+      "source": "src/page-compat/calculator-launch-icons.js"
+    },
+    {
+      "feature": "process",
+      "attribute": "data-tdb-process-navigation",
+      "source": "src/page-compat/process-navigation.js"
+    },
+    {
+      "feature": "smile-hero",
+      "attribute": "data-tdb-smile-design-hero",
+      "source": "src/page-compat/smile-design-hero.js"
+    },
+    {
+      "feature": "instagram",
+      "attribute": "data-tdb-instagram-staging",
+      "source": "src/page-compat/instagram-legacy-bootstrap.js"
+    }
+  ],
+  "owners": {
+    "677cfbe37aba5fbbc2154c24": {
+      "paths": [
+        "/about-us"
+      ],
+      "features": [
+        "instagram"
+      ]
+    },
+    "699058c919f4a1adcc157cb3": {
+      "paths": [
+        "/areas/sutton-coldfield-composite-bonding",
+        "/areas/sutton-coldfield-invisalign",
+        "/areas/sutton-coldfield-veneers",
+        "/areas/tamworth-composite-bonding",
+        "/areas/tamworth-invisalign",
+        "/areas/tamworth-veneers"
+      ],
+      "features": [
+        "calculator",
+        "process"
+      ]
+    },
+    "677cfbd543a0695d07285efd": {
+      "paths": [
+        "/contact"
+      ],
+      "features": [
+        "instagram"
+      ]
+    },
+    "6aaf939d6a981e9ff3a1d847": {
+      "paths": [
+        "/dental-cost-calculator"
+      ],
+      "features": [
+        "calculator",
+        "instagram"
+      ]
+    },
+    "677cfbbb752fa1bb44264481": {
+      "paths": [
+        "/dental-cost-lichfield"
+      ],
+      "features": [
+        "calculator",
+        "instagram"
+      ]
+    },
+    "678960b4f377f07e06aa5447": {
+      "paths": [
+        "/first-visit"
+      ],
+      "features": [
+        "instagram",
+        "process"
+      ]
+    },
+    "6aaafc00c9c28643c83637b8": {
+      "paths": [
+        "/five-senses-experience"
+      ],
+      "features": [
+        "instagram"
+      ]
+    },
+    "677cfb8a0f25478449823c5f": {
+      "paths": [
+        "/location"
+      ],
+      "features": [
+        "instagram"
+      ]
+    },
+    "6785071ede094cc233e0c72b": {
+      "paths": [
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/facial-aesthetics",
+        "/services/general-dentistry",
+        "/services/hygiene-care",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design"
+      ],
+      "features": [
+        "calculator",
+        "instagram",
+        "process",
+        "smile-hero"
+      ]
+    },
+    "6aa3efd54f3f705caf98c687": {
+      "paths": [
+        "/smile-gallery"
+      ],
+      "features": [
+        "instagram"
+      ]
+    },
+    "678507292f3f5412bfe2b4fa": {
+      "paths": [
+        "/treatments/airflow-hygiene-therapy",
+        "/treatments/clear-aligners",
+        "/treatments/composite-bonding",
+        "/treatments/invisalign",
+        "/treatments/teeth-whitening",
+        "/treatments/veneers"
+      ],
+      "features": [
+        "calculator",
+        "instagram"
+      ]
+    },
+    "68fa076a6822ea824ea2d991": {
+      "paths": [
+        "/vip"
+      ],
+      "features": [
+        "calculator",
+        "instagram"
+      ]
+    },
+    "694a740e9e013223583d1b13": {
+      "paths": [
+        "/vip-awards"
+      ],
+      "features": [
+        "calculator",
+        "instagram"
+      ]
+    },
+    "6925981fbc1302600ed5dc06": {
+      "paths": [
+        "/vip-christmas"
+      ],
+      "features": [
+        "calculator",
+        "instagram"
+      ]
+    },
+    "694aa587cf17e04109fc3fe1": {
+      "paths": [
+        "/vip-sanctuary"
+      ],
+      "features": [
+        "calculator",
+        "instagram"
+      ]
+    },
+    "694a7ebb2eb94d65273186e4": {
+      "paths": [
+        "/vip-smiles"
+      ],
+      "features": [
+        "calculator",
+        "instagram"
+      ]
+    },
+    "694aba9dc39723ae9d2663e4": {
+      "paths": [
+        "/vip-west-end"
+      ],
+      "features": [
+        "calculator",
+        "instagram"
+      ]
+    }
+  }
+}

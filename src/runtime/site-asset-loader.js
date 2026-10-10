@@ -1,62 +1,89 @@
+// Both pageshow listeners run in the same dispatch. Reuse that event's snapshot
+// after the announcement changes visibility, instead of forcing a second read.
+// A new event (including a bfcache restore) always measures the current position.
+const TDBFooterPageShowPositions = new WeakMap();
+function tdbReadPagePosition(event) {
+  if (event && TDBFooterPageShowPositions.has(event)) return TDBFooterPageShowPositions.get(event);
+  const root = document.documentElement;
+  const position = {y: window.scrollY ?? root.scrollTop ?? 0, height: innerHeight || root.clientHeight || 0};
+  if (event) TDBFooterPageShowPositions.set(event, position);
+  return position;
+}
+
 (() => {
   const root = document.documentElement;
   const shellId = 'tdb-elfsight-timer-shell';
-  const appClass = 'elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb';
   const mobileQuery = matchMedia('(max-width:767px)');
+  const desktopQuery = matchMedia('(min-width:992px)');
   const path = location.pathname.replace(/\/+$/, '') || '/';
   const revealViewports = path === '/' || path === '/location' ? 4 : 1;
   let viewportHeight = 0;
 
-  function attachTimerState(shell) {
+  function attachTimerState(shell, position) {
     if (!shell || shell._t) return;
     shell._t = 1;
     let frame = 0;
     const navbar = document.querySelector('.navbar10_component');
-    const updateViewportHeight = () => {
-      const h = innerHeight || root.clientHeight || 0;
+    const updateViewportHeight = (h = innerHeight || root.clientHeight || 0) => {
       viewportHeight = viewportHeight ? Math.min(viewportHeight, h) : h;
     };
-    const updateState = () => {
+    const updateState = (scrollTop = window.scrollY ?? root.scrollTop ?? 0) => {
       frame = 0;
-      const scrollTop = scrollY || root.scrollTop || 0;
       const mobileNavbarVisible = mobileQuery.matches && navbar && (
         navbar.classList.contains('z-hold') ||
         (navbar.classList.contains('is-trans') && !(navbar.style.transform || '').includes('-100%'))
       );
-      root.classList.toggle('tdb-timer-hidden', scrollTop < viewportHeight * revealViewports || mobileNavbarVisible);
+      // Match the existing desktop Home CSS so a hidden banner also pauses.
+      const desktopNavbarVisible = path === '/' && desktopQuery.matches && navbar?.matches('[style*="translateY(0)"],[style*="translateY(0px)"]');
+      root.classList.toggle('tdb-timer-hidden', scrollTop < viewportHeight * revealViewports || mobileNavbarVisible || desktopNavbarVisible);
     };
-    const requestUpdate = () => { if (!frame) frame = requestAnimationFrame(updateState); };
-    updateViewportHeight();
+    const requestUpdate = () => { if (!frame) frame = requestAnimationFrame(() => updateState()); };
+    updateViewportHeight(position.height);
     if (navbar) new MutationObserver(requestUpdate).observe(navbar, { attributes: true, attributeFilter: ['class', 'style'] });
     addEventListener('scroll', requestUpdate, { passive: true });
     addEventListener('resize', () => { updateViewportHeight(); requestUpdate(); }, { passive: true });
     addEventListener('orientationchange', () => { updateViewportHeight(); requestUpdate(); }, { passive: true });
     mobileQuery.addEventListener ? mobileQuery.addEventListener('change', requestUpdate) : mobileQuery.addListener(requestUpdate);
-    requestUpdate();
+    updateState(position.y);
   }
 
+  const startupEvents = ['scroll','pointerdown','keydown','touchstart'];
+  let scheduled = false, mounted = false, attempts = 0;
   function createTimerShell() {
-    let shell = document.getElementById(shellId);
-    if (!shell) {
-      shell = document.createElement('div');
-      shell.id = shellId;
-      shell.className = 'tdb-elfsight-shell';
-      const widget = document.createElement('div');
-      widget.className = appClass;
-      widget.setAttribute('data-elfsight-app', '');
-      shell.appendChild(widget);
-      document.body.appendChild(shell);
-    }
-    attachTimerState(shell);
+    const shell = document.querySelector('[data-tdb-announcement][data-placement="floating"]');
+    if (!shell || mounted || attempts >= 3) return;
+    const position = tdbReadPagePosition();
+    attempts++;
+    // The component remains editable in Footer; body ownership avoids transformed
+    // page wrappers changing fixed positioning and keeps the drawer's inert handling.
+    if (shell.parentElement !== document.body) document.body.append(shell);
+    attachTimerState(shell, position);
+    window.TDBAnnouncementLoader.load().then(api => {
+      api.mount(shell); mounted = true;
+      startupEvents.forEach(type => removeEventListener(type, scheduleTimerShell));
+      removeEventListener('online', onOnline);
+      removeEventListener('pageshow', onPageShow);
+    }).catch(() => {
+      scheduled = false;
+      console.warn('TDB banner: shared modules unavailable; will retry on interaction.');
+    });
   }
-
   function scheduleTimerShell() {
-    if ('requestIdleCallback' in window) requestIdleCallback(createTimerShell, { timeout: 1500 });
-    else setTimeout(createTimerShell, 200);
+    if (scheduled || mounted || attempts >= 3) return;
+    scheduled = true;
+    if ('requestIdleCallback' in window) requestIdleCallback(createTimerShell, {timeout:1500});
+    else setTimeout(createTimerShell,200);
   }
+  function onOnline() { attempts = 0; scheduleTimerShell(); }
+  function onPageShow(event) {
+    const position = tdbReadPagePosition(event);
+    attachTimerState(document.getElementById(shellId), position);
+    if (position.y) scheduleTimerShell();
+  }
+  startupEvents.forEach(type => addEventListener(type,scheduleTimerShell,{passive:true}));
+  addEventListener('online', onOnline);
+  addEventListener('pageshow', onPageShow);
 
-  ['scroll', 'pointerdown', 'keydown', 'touchstart'].forEach(eventName => addEventListener(eventName, scheduleTimerShell, { once: true, passive: true }));
-  addEventListener('pageshow', () => attachTimerState(document.getElementById(shellId)));
 })();
 
 (() => {
@@ -87,7 +114,7 @@
   document.documentElement.classList.remove('tdb-smile-sorting');
 })();
 
-function loadScript(src, attrName, async = true) {
+function loadScript(src, attrName, async = true, removeOnError = false) {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector(`script[${attrName}]`);
     if (existing) {
@@ -105,23 +132,44 @@ function loadScript(src, attrName, async = true) {
     script.async = async;
     script.setAttribute(attrName, 'true');
     script.onload = () => { script.dataset.tdbLoaded = 'true'; resolve(script); };
-    script.onerror = reject;
+    script.onerror = error => {
+      // Only remove the node created by this call, and only for opted-in loaders.
+      if (removeOnError) script.remove();
+      reject(error);
+    };
     document.head.appendChild(script);
   });
 }
 
-/* Global UI is already requested by the head. This code never adds feature CSS. */
-let tdbUIFlight = null;
-const tdbUIIsReady = () => getComputedStyle(document.documentElement)
-  .getPropertyValue('--tdb-ui-ready').trim() === '1';
+const tdbRecoverableScriptFlights = new Map();
+function loadScriptWithRecovery(src, attrName) {
+  if (tdbRecoverableScriptFlights.has(attrName)) return tdbRecoverableScriptFlights.get(attrName);
+  function attempt(retries) {
+    return loadScript(src, attrName, true, true).catch(error => {
+      if (!retries) throw error;
+      // Retry explicit request errors only. A timeout could replay a script that executes late.
+      return new Promise(resolve => setTimeout(resolve, 250)).then(() => attempt(retries - 1));
+    });
+  }
+  const flight = attempt(1).finally(() => tdbRecoverableScriptFlights.delete(attrName));
+  tdbRecoverableScriptFlights.set(attrName, flight);
+  return flight;
+}
 
-function tdbEnsureUI() {
-  if (tdbUIIsReady()) return Promise.resolve();
-  if (tdbUIFlight) return tdbUIFlight;
-  const link = document.querySelector('link[data-tdb-ui-css]') ||
+/* Only shared UI is requested by the head. Feature CSS is requested when its runtime is needed. */
+const tdbStyleFlights = new Map();
+const tdbStyleIsReady = property => getComputedStyle(document.documentElement)
+  .getPropertyValue(property).trim() === '1';
+const tdbUIIsReady = () => tdbStyleIsReady('--tdb-ui-ready');
+
+function tdbEnsureStylesheet(attribute, filename, property, label) {
+  const isReady = () => tdbStyleIsReady(property);
+  if (isReady()) return Promise.resolve();
+  if (tdbStyleFlights.has(attribute)) return tdbStyleFlights.get(attribute);
+  const link = document.querySelector(`link[${attribute}]`) ||
     Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-      .find(node => /\/dist\/tdb-ui\.css(?:[?#]|$)/.test(node.href));
-  if (!link) return Promise.reject(new Error('TDB global UI link is missing'));
+      .find(node => node.href.split(/[?#]/)[0].endsWith('/dist/' + filename));
+  if (!link) return Promise.reject(new Error(`TDB ${label} link is missing`));
 
   function waitFor(link, retries) {
     return new Promise((resolve, reject) => {
@@ -150,27 +198,59 @@ function tdbEnsureUI() {
       function loaded() {
         if (settled) return;
         link.media = 'all';
-        if (!tdbUIIsReady()) return fail(new Error('TDB UI bundle is stale or incomplete'));
+        if (!isReady()) return fail(new Error(`TDB ${label} bundle is stale or incomplete`));
         settled = true;
         cleanup();
         link.dataset.tdbLoaded = 'true';
         delete link.dataset.tdbLoadFailed;
         resolve();
       }
-      function failed() { fail(new Error('TDB global UI request failed')); }
+      function failed() { fail(new Error(`TDB ${label} request failed`)); }
       link.addEventListener('load', loaded);
       link.addEventListener('error', failed);
-      timeout = setTimeout(() => fail(new Error('TDB global UI request timed out')), 15000);
+      timeout = setTimeout(() => fail(new Error(`TDB ${label} request timed out`)), 15000);
       if (link.dataset.tdbLoadFailed === 'true') failed();
       else if (link.sheet) loaded();
     });
   }
-  tdbUIFlight = waitFor(link, 1).finally(() => { tdbUIFlight = null; });
-  return tdbUIFlight;
+  const flight = waitFor(link, 1).finally(() => tdbStyleFlights.delete(attribute));
+  tdbStyleFlights.set(attribute, flight);
+  return flight;
 }
 
+function tdbEnsureUI() {
+  return tdbEnsureStylesheet('data-tdb-ui-css', 'tdb-ui.css', '--tdb-ui-ready', 'global UI');
+}
+function tdbEnsureFeatureCSS(attribute, filename, property, label) {
+  if (tdbStyleIsReady(property)) return Promise.resolve();
+  let link = document.querySelector(`link[${attribute}]`);
+  if (!link) {
+    const shared = document.querySelector('link[data-tdb-ui-css]') ||
+      Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+        .find(node => /\/dist\/tdb-ui\.css(?:[?#]|$)/.test(node.href));
+    if (!shared) return Promise.reject(new Error('TDB global UI link is missing'));
+    link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = new URL(filename, shared.href).href;
+    link.setAttribute(attribute, 'true');
+    // Match the old bundle's cascade: after shared UI, before later page overrides.
+    shared.insertAdjacentElement('afterend', link);
+  }
+  return tdbEnsureStylesheet(attribute, filename, property, label);
+}
+function tdbEnsureSliderUI() {
+  return tdbEnsureFeatureCSS('data-tdb-slider-ui-css', TDB_SLIDER_ROOT + 'tdb-slider-ui.css', '--tdb-slider-ui-ready', 'slider UI');
+}
+function tdbEnsureVIPUI() {
+  // Native Webflow CSS is already loaded before page scripts. Older markup
+  // retains its pinned stylesheet, making this release safe during migration.
+  if (document.querySelector('#tdb-vip-drawer[data-tdb-vip-native="1"]')) return Promise.resolve();
+  return tdbEnsureFeatureCSS('data-tdb-vip-ui-css', 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@48124a90eddd39bf4ae611d00b9fe80583b98872/dist/tdb-vip.css', '--tdb-vip-ui-ready', 'VIP UI');
+}
+window.TDBFeatureCSS = Object.freeze({ ui: tdbEnsureUI });
+
 function tdbPreloadVIPScript(src) {
-  if (tdbUIIsReady() || document.querySelector('link[data-tdb-vip-preload]') ||
+  if ((tdbUIIsReady() && tdbStyleIsReady('--tdb-vip-ui-ready')) || document.querySelector('link[data-tdb-vip-preload]') ||
       document.querySelector('script[data-tdb-vip-drawer-js]')) return;
   const link = document.createElement('link');
   link.rel = 'preload';
@@ -276,6 +356,7 @@ function prepareFormsLoader() {
   const vipIntent = 'a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
   const observed = new WeakSet();
   let loadingPromise = null;
+  let loaded = false;
   let proximityObserver = null;
   let discoveryObserver = null;
 
@@ -289,19 +370,20 @@ function prepareFormsLoader() {
   }
   function loadForms() {
     if (loadingPromise) return loadingPromise;
-    cleanup();
-    loadingPromise = loadScript('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.1.0/dist/tdb-forms.min.js', 'data-tdb-forms-js')
+    loadingPromise = loadScriptWithRecovery('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.1.0/dist/tdb-forms.min.js', 'data-tdb-forms-js')
+      .then(script => { loaded = true; cleanup(); return script; })
       .catch(error => { loadingPromise = null; console.error('TDB Forms failed to load'); throw error; });
     return loadingPromise;
   }
+  const loadSafely = () => { loadForms().catch(() => {}); };
   function onIntent(event) {
     const target = event.target;
-    if (target instanceof Element && (target.closest(formSelector) || target.closest(vipIntent))) loadForms();
+    if (target instanceof Element && (target.closest(formSelector) || target.closest(vipIntent))) loadSafely();
   }
   function observeForm(form) {
     if (!(form instanceof HTMLFormElement) || observed.has(form) || form.matches(excluded)) return;
     observed.add(form);
-    if (!proximityObserver) loadForms();
+    if (!proximityObserver) loadSafely();
     else proximityObserver.observe(form);
   }
   function discover(root = document) {
@@ -310,7 +392,7 @@ function prepareFormsLoader() {
   }
   if ('IntersectionObserver' in window) {
     proximityObserver = new IntersectionObserver(entries => {
-      if (entries.some(entry => entry.isIntersecting)) loadForms();
+      if (entries.some(entry => entry.isIntersecting)) loadSafely();
     }, { rootMargin: '600px 0px' });
   }
   document.addEventListener('focusin', onIntent, true);
@@ -318,6 +400,7 @@ function prepareFormsLoader() {
   document.addEventListener('keydown', onIntent, true);
   document.addEventListener('submit', onIntent, true);
   function start() {
+    if (loaded) return;
     discover();
     discoveryObserver = new MutationObserver(mutations => mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
       if (node instanceof Element) discover(node);
@@ -332,33 +415,54 @@ function prepareVIPDrawerLoader() {
   const drawer = document.getElementById('tdb-vip-drawer');
   if (!drawer) return;
 
+  const demand = document.documentElement.getAttribute('data-wf-page') === '677cf86df9952f978d94d8a9';
   const triggerSelector = '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
-  const jsUrl = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@432ab3ab12553c9bbff97123453272ebde1ad6da/dist/tdb-vip-drawer.js';
+  // VIP ships with this footer release; other feature pins stay independent.
+  const jsUrl = new URL('tdb-vip-drawer.js', document.currentScript.src).href;
   let loadingPromise = null;
   let armed = false;
-
+  // Prefer the window scroll offset, including zero, without also asking the
+  // root element for layout. Retain the element fallback for older engines.
+  const pageY = () => Math.max(window.scrollY ?? document.documentElement.scrollTop ?? 0, 0);
+  const scrollSeed = { lastY: TDBFooterInitialScrollY, up: 0, down: 0, peek: false };
   const realDrawerReady = () => Boolean(window.TDBVIPDrawer);
 
   function cleanup() {
     armed = false;
     document.removeEventListener('click', onIntentClick, true);
     document.removeEventListener('keydown', onIntentKeydown, true);
+    document.removeEventListener('pointerover', onPrepareIntent, true);
+    document.removeEventListener('pointerdown', onPrepareIntent, true);
+    document.removeEventListener('focusin', onPrepareIntent, true);
+    window.removeEventListener('scroll', onPrepareScroll);
+    window.removeEventListener('pageshow', onPageShow);
+    window.removeEventListener('hashchange', onHashChange);
   }
 
   function loadDrawer() {
-    if (realDrawerReady()) return Promise.resolve(window.TDBVIPDrawer);
     if (loadingPromise) return loadingPromise;
-    // Preload in parallel only when the global CSS is still outstanding.
+    if (realDrawerReady()) return Promise.resolve(window.TDBVIPDrawer);
     tdbPreloadVIPScript(jsUrl);
-    loadingPromise = tdbEnsureUI()
-      .then(() => tdbLoadVIPScript(jsUrl))
+    loadingPromise = Promise.all([tdbEnsureUI(), tdbEnsureVIPUI()])
       .then(() => {
+        if (demand) {
+          // Resolve the hidden starting geometry only after actual demand, before
+          // the runtime can enable transitions or replay an immediate open.
+          drawer.setAttribute('data-tdb-vip-prepared', 'true');
+          drawer.getBoundingClientRect();
+        }
+        return tdbLoadVIPScript(jsUrl);
+      })
+      .then(() => {
+        const api = window.TDBVIPDrawer;
+        if (demand) api.resumeScroll?.(scrollSeed);
         cleanup();
-        return window.TDBVIPDrawer;
+        return api;
       })
       .catch(error => {
         document.querySelector('link[data-tdb-vip-preload]')?.remove();
         loadingPromise = null;
+        if (demand && !realDrawerReady()) drawer.removeAttribute('data-tdb-vip-prepared');
         console.error('TDB VIP Drawer failed to load');
         throw error;
       });
@@ -369,10 +473,26 @@ function prepareVIPDrawerLoader() {
     const target = event.target;
     return target instanceof Element ? target.closest(triggerSelector) : null;
   }
+  function fallbackToForm() {
+    const section = Array.from(document.querySelectorAll('#VIP')).find(node => !drawer.contains(node));
+    if (section) {
+      section.scrollIntoView({behavior:'smooth',block:'start'});
+      const field = section.querySelector('input:not([type="hidden"]),button,a[href]');
+      field?.focus({preventScroll:true});
+    } else location.assign('/vip/become-a-patient');
+  }
+  let opening = null;
+  function openFromTrigger(source) {
+    if (opening) return opening;
+    opening = loadDrawer().then(api => {
+      window.dispatchEvent(new CustomEvent('tdb:vip-open-intent',{detail:{source}}));
+      api.open();
+    }).catch(fallbackToForm).finally(() => {opening=null;});
+    return opening;
+  }
   function openAfterLoad(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    loadDrawer().then(api => api?.open?.()).catch(() => {});
+    event.preventDefault(); event.stopPropagation();
+    openFromTrigger(findTrigger(event));
   }
   function onIntentClick(event) {
     if (realDrawerReady() || !findTrigger(event)) return;
@@ -382,133 +502,170 @@ function prepareVIPDrawerLoader() {
     if (realDrawerReady() || (event.key !== 'Enter' && event.key !== ' ') || !findTrigger(event)) return;
     openAfterLoad(event);
   }
+  const loadSafely = () => { loadDrawer().catch(() => {}); };
+  function onPrepareIntent(event) {
+    if (findTrigger(event)) loadSafely();
+  }
+  function onPrepareScroll() {
+    const y = pageY();
+    const delta = y - scrollSeed.lastY;
+    if (!delta) return;
+    if (delta > 0) {
+      scrollSeed.up = 0;
+      scrollSeed.down += delta;
+      if (scrollSeed.down > 140) scrollSeed.peek = false;
+    } else {
+      scrollSeed.down = 0;
+      scrollSeed.up += -delta;
+      if (scrollSeed.up > 120 && y > innerHeight * 0.5) scrollSeed.peek = true;
+    }
+    if (y <= innerHeight * 0.5) scrollSeed.peek = false;
+    scrollSeed.lastY = y;
+    // First actual movement gives the download a head start before a reversal.
+    loadSafely();
+  }
+  function onPageShow(event) {
+    if (tdbReadPagePosition(event).y > 0) loadSafely();
+  }
+  function onHashChange() {
+    if (/^#vip/i.test(location.hash || '')) loadSafely();
+  }
   function arm() {
     if (armed || realDrawerReady()) return;
     armed = true;
     document.addEventListener('click', onIntentClick, true);
     document.addEventListener('keydown', onIntentKeydown, true);
+    if (demand) {
+      document.addEventListener('pointerover', onPrepareIntent, true);
+      document.addEventListener('pointerdown', onPrepareIntent, true);
+      document.addEventListener('focusin', onPrepareIntent, true);
+      window.addEventListener('scroll', onPrepareScroll, { passive: true });
+      window.addEventListener('pageshow', onPageShow, { passive: true });
+      window.addEventListener('hashchange', onHashChange);
+    }
   }
 
-  const loadSafely = () => { loadDrawer().catch(() => {}); };
   arm();
   if (/^#vip/i.test(location.hash || '')) loadSafely();
+  else if (demand) { if (TDBFooterInitialScrollY > 0) loadSafely(); }
   else if (window.__TDB_PRIORITY_READY__) loadSafely();
   else window.addEventListener('tdb:priority-ready', loadSafely, { once: true });
 
   window.TDBVIPDrawerLoader = Object.freeze({
-    version: '1.2.0',
+    version: '1.4.0',
     load: loadDrawer,
-    status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) && !realDrawerReady(), uiReady: tdbUIIsReady() }),
+    open: openFromTrigger,
+    status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) && !realDrawerReady(), uiReady: tdbUIIsReady(), demand }),
   });
 }
 
 function prepareSliderLoader() {
   const selector = '.highlight-swiper_component, .parallax-swiper_component';
-  const observed = new WeakSet();
-  let loadingPromise = null;
+  const files = {parallax: 'tdb-parallax.js', gallery: 'tdb-gallery.js'};
+  const flights = new Map(), ready = new Set(), observed = new WeakSet();
   let proximityObserver = null;
-  let discoveryObserver = null;
+  const kindOf = root => root.matches('.parallax-swiper_component') ? 'parallax' : 'gallery';
+  const pluginOf = kind => kind === 'parallax' ? window.TDBParallaxPlugin : window.TDBGallery;
 
-  function cleanup() {
-    proximityObserver?.disconnect();
-    discoveryObserver?.disconnect();
-    document.removeEventListener('pointerdown', onIntent, true);
-    document.removeEventListener('keydown', onIntent, true);
-  }
-  function loadSliders() {
-    if (loadingPromise) return loadingPromise;
-    cleanup();
-    loadingPromise = Promise.all([
-      tdbEnsureUI(),
-      loadScript('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b3a0f0f2a1e57b5a67db5f5159c449cff07eebd6/dist/tdb-swiper-8.4.7.min.js', 'data-swiper-js'),
-    ]).then(() => loadScript(
-      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@31386d986982aa60eb6c9199b6e6b4c03693897b/dist/tdb-sliders.js',
-      'data-tdb-sliders-js',
-    )).catch(error => {
-      loadingPromise = null;
-      console.error('TDB Sliders failed to load');
+  function loadKind(kind) {
+    if (flights.has(kind)) return flights.get(kind);
+    const flight = Promise.all([
+      tdbEnsureUI(), tdbEnsureSliderUI(), tdbEnsureSliderFocus(),
+      window.TDBModules.load(new URL('tdb-motion.js', TDBFooterModuleRoot)),
+      window.TDBModules.load(new URL('tdb-swiper-8.4.7.min.js', TDBFooterModuleRoot), {
+        attribute: 'data-swiper-js', ready: () => typeof window.Swiper === 'function' && typeof window.TDBSwiper?.create === 'function'
+      }),
+    ]).then(() => window.TDBModules.load(new URL(files[kind], TDBFooterModuleRoot), {
+      attribute: 'data-tdb-' + kind + '-js', ready: () => Boolean(pluginOf(kind))
+    })).then(() => {
+      const plugin = pluginOf(kind);
+      if (!plugin) throw Error('Carousel plugin did not initialise: ' + kind);
+      ready.add(kind);
+      plugin.refresh();
+      return plugin;
+    }).catch(error => {
+      flights.delete(kind);
+      console.error('TDB carousel plugin failed to load: ' + kind);
       throw error;
     });
-    return loadingPromise;
+    flights.set(kind, flight);
+    return flight;
   }
+
+  function loadSliders(root) {
+    window.TDBParallax?.refresh(root || document);
+    if (root instanceof Element) {
+      const component = root.matches(selector) ? root : root.closest(selector);
+      if (component) return loadKind(kindOf(component)).then(plugin => { plugin.refresh(component); return plugin; });
+    }
+    const kinds = new Set([...document.querySelectorAll(selector)].filter(node => !node.closest('.logo-slider')).map(kindOf));
+    return Promise.all([...kinds].map(loadKind));
+  }
+  const loadSafely = root => { loadSliders(root).then(() => proximityObserver?.unobserve(root)).catch(() => {}); };
   function onIntent(event) {
     const target = event.target;
-    if (target instanceof Element && target.closest(selector)) loadSliders();
+    if (target instanceof Element && !target.closest('.logo-slider')) {
+      const root = target.closest(selector);
+      if (root) loadSafely(root);
+    }
   }
-  function observeSlider(slider) {
-    if (!(slider instanceof Element) || observed.has(slider)) return;
-    observed.add(slider);
-    if (!proximityObserver) loadSliders();
-    else proximityObserver.observe(slider);
+  function observeSlider(root) {
+    if (!(root instanceof Element) || root.closest('.logo-slider') || observed.has(root)) return;
+    observed.add(root);
+    if (ready.has(kindOf(root))) pluginOf(kindOf(root)).refresh(root);
+    else if (proximityObserver) proximityObserver.observe(root);
+    else loadSafely(root);
   }
   function discover(root = document) {
+    window.TDBParallax?.refresh(root);
     if (root instanceof Element && root.matches(selector)) observeSlider(root);
     root.querySelectorAll?.(selector).forEach(observeSlider);
   }
-  if ('IntersectionObserver' in window) {
-    proximityObserver = new IntersectionObserver(entries => {
-      if (entries.some(entry => entry.isIntersecting)) loadSliders();
-    }, { rootMargin: '800px 0px' });
-  }
+  if ('IntersectionObserver' in window) proximityObserver = new IntersectionObserver(entries => {
+    entries.filter(entry => entry.isIntersecting).forEach(entry => loadSafely(entry.target));
+  }, {rootMargin: '800px 0px'});
   document.addEventListener('pointerdown', onIntent, true);
   document.addEventListener('keydown', onIntent, true);
   function start() {
     discover();
-    discoveryObserver = new MutationObserver(mutations => mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
-      if (node instanceof Element) discover(node);
-    })));
-    discoveryObserver.observe(document.body, { childList: true, subtree: true });
+    new MutationObserver(mutations => {
+      mutations.forEach(mutation => mutation.addedNodes.forEach(node => { if (node instanceof Element) discover(node); }));
+      if (mutations.some(mutation => mutation.removedNodes.length)) window.TDBSwiper?.prune();
+    }).observe(document.body, {childList: true, subtree: true});
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once: true});
   else start();
+  window.TDBSliderLoader = Object.freeze({version: '1.0.0', load: loadSliders,
+    status: () => ({loaded: ready.size > 0, loading: flights.size > ready.size, plugins: [...ready], swiperAvailable: typeof window.Swiper === 'function'})});
+  // Older embeds can keep their public calls; implementation lives in plugins.
+  window.TDBSliders ||= Object.freeze({version: '1.0.0', refresh: () => loadSliders(), activate: root => window.TDBSwiper?.mount('parallax', root)});
+  window.dispatchEvent(new Event('tdb:slider-loader-ready'));
+}
 
-  window.TDBSliderLoader = Object.freeze({
-    version: '0.2.0',
-    load: loadSliders,
-    status: () => ({ loaded: Boolean(window.TDBSliders), loading: Boolean(loadingPromise), swiperAvailable: typeof window.Swiper === 'function' }),
+// Footer copy and sizing live in Designer. Keep the existing document-modified
+// date behavior here, sharing the already-loaded runtime rather than an embed.
+function updateNativeFooterDates() {
+  const updated = new Date(document.lastModified);
+  if (!Number.isFinite(updated.getTime())) return;
+  const date = [String(updated.getDate()).padStart(2, '0'),
+    String(updated.getMonth() + 1).padStart(2, '0'), updated.getFullYear()].join('/');
+  document.querySelectorAll('[data-tdb-last-updated]').forEach(node => {
+    if (node.textContent !== date) node.textContent = date;
   });
 }
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', updateNativeFooterDates, {once: true});
+} else updateNativeFooterDates();
 
 prepareFormsLoader();
 prepareVIPDrawerLoader();
 prepareSliderLoader();
+prepareTooltipLoader();
+prepareSliderFocusLoader();
 startLenisForSession();
 
-(() => {
-  const root = document.documentElement;
-  const navbar = document.querySelector('.navbar10_component');
-  const button = document.querySelector('.navbar10_menu-button,.w-nav-button');
-  const mobile = matchMedia('(max-width:767px)');
-  if (!navbar || !button || navbar.getAttribute('transparent-nav') !== 'true') return;
-  let clearCycle = false;
-  let timer;
-  const open = () => button.classList.contains('w--open');
-  button.addEventListener('pointerdown', () => {
-    if (navbar.classList.contains('tdb-menu-transitioning') || open()) return;
-    clearTimeout(timer);
-    clearCycle = mobile.matches && root.classList.contains('tdb-nav-at-top');
-    root.classList.toggle('tdb-nav-clear-cycle', clearCycle);
-  }, { capture: true, passive: true });
-  new MutationObserver(() => {
-    clearTimeout(timer);
-    if (open()) return;
-    if (!clearCycle) return root.classList.remove('tdb-nav-clear-cycle');
-    timer = setTimeout(() => {
-      clearCycle = false;
-      root.classList.remove('tdb-nav-clear-cycle');
-    }, 470);
-  }).observe(button, { attributes: true, attributeFilter: ['class'] });
-  const reset = () => {
-    if (mobile.matches) return;
-    clearTimeout(timer);
-    clearCycle = false;
-    root.classList.remove('tdb-nav-clear-cycle');
-  };
-  mobile.addEventListener ? mobile.addEventListener('change', reset) : mobile.addListener(reset);
-})();
-
 window.TDBFooterRuntime = Object.freeze({
-  version: '1.3.0',
+  version: '1.6.5',
   loadedAt: Date.now(),
   vip: () => window.TDBVIPDrawerLoader?.status?.() || null,
   sliders: () => window.TDBSliderLoader?.status?.() || null,

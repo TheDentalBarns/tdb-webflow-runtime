@@ -41,6 +41,17 @@
     });
     let stopWatching = null;
     function f() {
+        if (!s && !c && m() && window.TDBModules?.load) {
+            // Registering the installer is readiness. It may deliberately wait
+            // for an already-open native menu to finish closing before install.
+            c = window.TDBModules.load(new URL('tdb-navbar.min.js', t).href, {
+                attribute: 'data-tdb-navbar-enhancement', timeout: 15000,
+                ready: () => Boolean(d || s)
+            }).then(() => true, () => { c = null; return false; });
+            return c;
+        }
+        // Keep the independent native enhancement fallback if the registry
+        // itself could not load. Early navigation must remain usable.
         return s || c || !m() || (c = new Promise(e => {
             const n = document.createElement("script");
             let o;
@@ -59,7 +70,7 @@
         e.contains(t.target) && f();
     }
     stopWatching = navState.watch(() => !!e.querySelector('.w-nav-button.w--open,.w-dropdown-toggle.w--open,[data-nav-menu-open]'), v), window.TDBNavbarLoader = Object.freeze({
-        version: "1.1.0",
+        version: "1.2.0",
         prepare: f,
         register(e) {
             s || (d = e, v());
