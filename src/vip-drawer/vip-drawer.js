@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.7.1';
+  const VERSION = '0.7.2';
   const mobileQuery = matchMedia('(max-width:767px)');
   const desktopQuery = matchMedia('(min-width:768px)');
   const drawer = document.getElementById('tdb-vip-drawer');
@@ -52,6 +52,7 @@
   let keyboardTimer = 0;
   let lastWidth = innerWidth;
   let lastMode = mobileQuery.matches ? 'mobile' : 'desktop';
+  let releaseScroll = null;
 
   const pageY = () => Math.max(scrollY, html.scrollTop, 0);
 
@@ -136,6 +137,8 @@
     keyboardMoving = false;
     awayLocked = false;
     openedFromNativeMenu = false;
+    releaseScroll?.();
+    releaseScroll = null;
     drawer.style.setProperty('--tdb-vip-visual-top', '0px');
     drawer.classList.remove('is-peeking', 'is-open', 'is-closing');
     handle.setAttribute('aria-expanded', 'false');
@@ -167,6 +170,9 @@
     if (state !== 2 && state !== 3) panelMotion.prepare();
     lastY = pageY();
     state = 2;
+    // The native mobile menu can still own a lock. Register this drawer as an
+    // allowed scroller and keep its own lease until the closing motion settles.
+    releaseScroll ||= window.TDBScrollLock?.acquire({allow: () => [drawer]});
     drawer.scrollTop = 0;
 
     if (mobileQuery.matches) {

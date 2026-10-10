@@ -190,7 +190,7 @@ function A(e) {
                 t.querySelectorAll("[data-tdb-banner-wide]").forEach(e => e.removeAttribute("data-tdb-banner-wide"));
             });
         }(0, t, b), b.init()), k(b), g(e, b, () => x(e)), S(e, t, b), c?.bind(b), window.TDBParallax?.bind(e, b);
-        if (e.hasAttribute('data-tdb-treatment') || e.classList.contains('tdb-service-parallax')) window.TDBCarouselVisibility.bind(b);
+        if (e.hasAttribute('data-tdb-treatment') || e.classList.contains('tdb-service-parallax')) window.TDBCarouselVisibility.bind(b, {overflowViewport: true});
         const v = window.TDBMotion.carousel.nextDelay, A = new WeakMap, L = new Set;
         let T = null, M = !1, P = !1, settledIndex = b.realIndex;
         let entryControl, entryReveal = 0, entryRetry = 0, entryFallback = 0;
