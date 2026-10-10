@@ -3,12 +3,11 @@
 [data-tdb-mask="review-star"]{mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973280ebf1329ec59f0_tdb-review-star.svg")}
 [data-tdb-mask="review-quote"]{mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973bb15c9b9f29a8d18_tdb-review-quote.svg")}
 [data-tdb-mask="review-arrow-12cfed"]{mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7bbeead4cfa9ce9c868fe_tdb-review-arrow-12cfed.svg")}
-[data-tdb-mask="review-clock-9b3ca9"]{mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7bbeead4cfa9ce9c86947_tdb-review-clock-9b3ca9.svg")}
+[data-tdb-mask="review-clock-9b3ca9"],[data-tdb-mask="review-clock-dae6a6"]{mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c58089197784d522c2a2_tdb-review-clock-brand.svg")}
 [data-tdb-mask="review-treatment"]{mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b9738f460df3a15174fe_tdb-review-treatment.svg")}
 [data-tdb-mask="review-chevron-4eaa8e"]{mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7bbeef3f863de97d242c8_tdb-review-chevron-4eaa8e.svg")}
 [data-tdb-mask="review-tick-17e3f2"]{mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7bbee217f11c57334fb11_tdb-review-tick-17e3f2.svg")}
 [data-tdb-mask="review-lotus"]{mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b9746219384b25f0e78d_tdb-review-lotus.svg")}
-[data-tdb-mask="review-clock-dae6a6"]{mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7bbee4d35c5a18ab5c622_tdb-review-clock-dae6a6.svg")}
 [data-tdb-mask="review-star-filled-outline"]{mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b97448c7c21c0af540d6_tdb-review-star-filled-outline.svg")}
 [data-tdb-mask="review-star-outline"]{mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b974467e79cf9c848cd9_tdb-review-star-outline.svg")}
 .tdb-mask-icon{display:block;width:100%;height:100%;background-color:currentColor;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
