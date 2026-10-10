@@ -1,4 +1,4 @@
-/* TDB native reviews v3.15.0. Native reading flow; stationary slide-change artwork. */
+/* TDB native reviews v3.15.1. Keep shared data warm without expanding a closed drawer. */
 (() => {
 'use strict';if(window.TDBReviews)return;
 const instances=new WeakMap();
@@ -281,9 +281,13 @@ function mount(root,data){
   field('response-wrap').hidden=!record.showResponse;field('response').textContent=record.response||'';slideCache.set(record.id,node);return node;
  }
  track.replaceChildren(...records.map(slide));const unsubscribe=data.subscribe?.(()=>{pendingAppend=true;appendRecords();});
- function appendRecords(){
+ function appendRecords(opening=false){
+  // Homepage cards share this data feed. Keep their prefetched records in the
+  // CMS cache while this drawer is closed; preserve its already prepared slides.
+  // Opening drains the pending data before resolving a requested review ID.
+  if(destroyed||phase==='closed'&&!opening||swiper?.animating)return;
   if(indexMode){if(pendingBatch&&!swiper?.animating){const batch=pendingBatch;pendingBatch=null;appendBatch(batch);}pendingAppend=false;knownCount=data.records.length;return;}
-  if(destroyed||!pendingAppend||swiper?.animating)return;
+  if(!pendingAppend)return;
   const added=data.records.slice(knownCount);knownCount=data.records.length;records.push(...added);track.append(...added.map((record,i)=>slide(record,records.length-added.length+i)));pendingAppend=false;
   updateTotal(length(),phase!=='closed');
   [...track.children].forEach((node,i)=>node.setAttribute('aria-label',`Review ${i+1} of ${length()}`));
@@ -333,7 +337,7 @@ function mount(root,data){
  }
  function build(id){
   reading.clear();
-  appendRecords();
+  appendRecords(true);
   const index=Math.max(0,records.findIndex(r=>r.id===id));
   phase='opening';hideQuote();settledSlide=null;readingMark.open();
   if(swiper)swiper.slideTo(index,0);else createSwiper(index);
@@ -420,7 +424,7 @@ function mount(root,data){
   const revision=queryRevision,ids=matched.slice(records.length,records.length+20).map(record=>record.id);
   const flight=data.fetchRecords(ids,{signal:queryController?.signal||signal}).then(batch=>{
    if(destroyed||revision!==queryRevision)return;
-   if(swiper?.animating)pendingBatch=batch;else appendBatch(batch);
+   if(phase==='closed'||swiper?.animating)pendingBatch=batch;else appendBatch(batch);
   }).catch(error=>{if(!signal.aborted&&revision===queryRevision)root.dispatchEvent(new CustomEvent('tdb:review-error',{bubbles:true,detail:{error}}));})
   .finally(()=>{if(moreFlight===flight)moreFlight=null;});moreFlight=flight;
  }
@@ -472,7 +476,7 @@ function mount(root,data){
   return drawer.open(trigger);
  },close(){return drawer.close();},destroy(){if(destroyed)return;destroyed=true;applyFitResize.disconnect();restoreApplyFit();cancelDraft();queryController?.abort();clearTimeout(filterPrimeTimer);filter?.destroy();unsubscribe?.();drawer.destroy();reading.destroy();filterOpen=false;placeFilterClose(true);floatingFilterIcon?.destroy();ctrl.abort();clearTimeout(revealTimer);fades.destroy();readingMark.destroy();swiper?.destroy(true,true);track.style.transitionTimingFunction=originalEasing;ticker.destroy();totalTicker.destroy();filterApplyTicker?.destroy();track.replaceChildren();slideCache.clear();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBReviews=Object.freeze({version:'3.15.0',mount});
+window.TDBReviews=Object.freeze({version:'3.15.1',mount});
 window.TDBSwiper?.register('review-drawer',window.TDBReviews);
 })();
 
