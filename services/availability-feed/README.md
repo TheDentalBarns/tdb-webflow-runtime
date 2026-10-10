@@ -15,6 +15,10 @@ the UTC calendar-date portion of Webflow's stored value; the separate UK clock
 field remains authoritative, with London daylight saving resolved by the existing
 browser reader. This preserves the CMS field instructions and current fixtures.
 
+Outbound requests use `redirect: 'manual'` and reject every non-2xx response.
+Cloudflare's workerd runtime rejects `redirect: 'error'` before sending a request,
+even though Node's fetch accepts it. Redirects must never forward the CMS token.
+
 ## Deploy and enable
 
 1. Configure `WEBFLOW_API_TOKEN` under the Worker's **Runtime variables and

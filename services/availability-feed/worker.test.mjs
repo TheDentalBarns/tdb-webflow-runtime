@@ -23,7 +23,7 @@ test('date projection preserves calendar dates and separate UK clocks across sea
 });
 test('authenticated requests use fixed live endpoint; cache retains time and refresh bypasses it',async()=>{
   let calls=0,time=1000;const entries=new Map(),pending=[];
-  const options={token,now:()=>time,fetcher:async(url,init)=>{calls++;assert.equal(url,'https://api.webflow.com/v2/collections/6aae66a4a90480deba7364b1/items/'+ids.active+'/live');assert.equal(init.headers.Authorization,'Bearer '+token);assert.equal(init.redirect,'error');return Response.json(item());},cache:{match:async key=>entries.get(key.url)?.clone(),put:async(key,response)=>entries.set(key.url,response)},waitUntil:p=>pending.push(p)};
+  const options={token,now:()=>time,fetcher:async(url,init)=>{calls++;assert.equal(url,'https://api.webflow.com/v2/collections/6aae66a4a90480deba7364b1/items/'+ids.active+'/live');assert.equal(init.headers.Authorization,'Bearer '+token);assert.equal(init.redirect,'manual');return Response.json(item());},cache:{match:async key=>entries.get(key.url)?.clone(),put:async(key,response)=>entries.set(key.url,response)},waitUntil:p=>pending.push(p)};
   const first=await handle(request(),options);assert.equal(first.status,200);assert.equal((await first.json()).checkedAt,1000);await Promise.all(pending);
   time=2000;const hit=await handle(request(),options);assert.equal((await hit.json()).checkedAt,1000);assert.equal(calls,1);assert.equal(hit.headers.get('Cache-Control'),'no-store');
   const fresh=await handle(request('/active.json?refresh=1'),options);assert.equal((await fresh.json()).checkedAt,2000);assert.equal(calls,2);
@@ -48,7 +48,7 @@ test('private diagnostics distinguish failures without logging secrets or CMS va
   const privateValue='must-not-appear-in-logs';
   const cases=[
     [{token:''},'missing_token'],
-    ...[401,403,404,429,500].map(status=>[{fetcher:async()=>new Response(token+privateValue,{status})},'cms_http_error',status]),
+    ...[301,302,303,307,308,401,403,404,429,500].map(status=>[{fetcher:async()=>new Response(token+privateValue,{status,headers:{Location:'https://untrusted.example/'}})},'cms_http_error',status]),
     [{fetcher:async()=>{throw Error(token+privateValue);}},'cms_fetch_failed'],
     [{fetcher:async()=>new Response(token+privateValue)},'cms_invalid_json',200],
     [{fetcher:async()=>new Response(privateValue.repeat(30000))},'cms_response_too_large',200],

@@ -53,8 +53,9 @@ export async function handle(request,{fetcher=(...args)=>fetch(...args),cache=gl
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),3000);
   let stage='cms_fetch_failed',status;
   try{
-    // Fixed origin and fixed route: callers cannot choose an upstream or pass credentials.
-    const upstream=await fetcher(SOURCE+COLLECTION+'/items/'+ITEMS[match[1]]+'/live',{headers:{Authorization:'Bearer '+token,Accept:'application/json'},credentials:'omit',cache:'no-store',redirect:'error',signal:controller.signal});
+    // workerd rejects redirect:'error'. Manual mode plus the non-2xx check below
+    // rejects redirects without forwarding the token to another destination.
+    const upstream=await fetcher(SOURCE+COLLECTION+'/items/'+ITEMS[match[1]]+'/live',{headers:{Authorization:'Bearer '+token,Accept:'application/json'},credentials:'omit',cache:'no-store',redirect:'manual',signal:controller.signal});
     status=upstream.status;
     if(!upstream.ok)return unavailable('cms_http_error',status);
     stage='cms_body_read_failed';
