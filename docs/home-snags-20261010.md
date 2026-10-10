@@ -118,3 +118,26 @@ Rollback: remove Home's `data-tdb-home-snag-pins` inline configuration. Existing
 site pins remain intact, and the shared USP loader defaults to `3217122`.
 Native arrow and barn changes can be reverted independently from the saved
 element/style baseline. Production publishing is not part of this task.
+
+## Follow-up: SVG/candle cream exposure on scroll lock
+
+The desktop Services/Discover path preserved sketch colour, opacity and geometry.
+The shared lock used by the hamburger menu and VIP/drawers reproduced a concrete
+failure: at scrollY 21736 the sticky sketch backdrop moved from viewport top 0
+to -1540.109375px when body overflow became hidden. The section stayed in place,
+but its transparent surface exposed the body's cream background. The following
+charcoal section itself retained #222 throughout.
+
+TDBScrollLock 1.0.2 locks only the document root on Home
+(`677cf86df9952f978d94d8a9`), preserving body's native overflow and the backdrop's
+viewport reference. Existing wheel/touch containment, scrollbar compensation,
+nested-panel allowance and independent release tokens stay in place. Other
+pages retain their existing lock policy. No native colour or fade timing changes.
+
+The earliest installer is the consent startup script in site head, before the
+navbar/drawer copies. Update that startup pin only; its consent source was
+verified identical to the deployed `bd1bde6`. All three embedded lock builds were
+updated for consistency. The 26 focused tests pass, including Home/root locking,
+unchanged non-Home locking, nested touch/wheel scrolling and close/reopen races.
+Staging verification follows deployment. Rollback this follow-up by restoring
+the consent startup pin to `bd1bde66f6624d7c653eb6e29afb3f3c6acfaeb7`.

@@ -1,4 +1,4 @@
-/* TDBScrollLock v1.0.1. Shared, independently releasable scroll-lock owners.
+/* TDBScrollLock v1.0.2. Shared, independently releasable scroll-lock owners.
  * No body positioning or scroll reset: keep the document and navbar geometry.
  * Touch/wheel containment allows nested scrollers and prevents edge chaining.
  */
@@ -48,7 +48,14 @@
     if (!style) {
       style = document.createElement('style');
       style.dataset.tdbScrollLock = '';
-      style.textContent = 'html.tdb-scroll-locked,html.tdb-scroll-locked body{overflow:hidden!important;overscroll-behavior:none}html.tdb-scroll-locked body{padding-right:var(--tdb-scroll-lock-padding)!important}';
+      // Home's sketch uses a viewport-sticky backdrop. Hiding overflow on body
+      // creates a second scroll container and moves that backdrop off-screen.
+      // Lock the document root only; existing wheel/touch containment still
+      // protects nested panels. Keep other pages on their current policy until
+      // their separate review, as requested for this Home-only rollout.
+      const home = html.getAttribute('data-wf-page') === '677cf86df9952f978d94d8a9';
+      const scrollRoot = home ? 'html.tdb-scroll-locked' : 'html.tdb-scroll-locked,html.tdb-scroll-locked body';
+      style.textContent = scrollRoot + '{overflow:hidden!important;overscroll-behavior:none}html.tdb-scroll-locked body{padding-right:var(--tdb-scroll-lock-padding)!important}';
       document.head.append(style);
     }
     html.style.setProperty('--tdb-scroll-lock-padding', `${padding + gap}px`);
@@ -78,7 +85,7 @@
       if (owners.delete(token) && !owners.size) unlock();
     };
   }
-  window.TDBScrollLock = Object.freeze({ version: '1.0.1', acquire,
+  window.TDBScrollLock = Object.freeze({ version: '1.0.2', acquire,
     get active() { return owners.size > 0; }
   });
 })();
