@@ -1,4 +1,4 @@
-/* TDB shared native drawer v1.1.0. Webflow owns markup and styles. */
+/* TDB shared native drawer v1.2.0. Webflow owns markup and styles. */
 (() => {
 'use strict';if(window.TDBDrawer)return;
 const instances=new WeakMap();let active=null;
@@ -7,10 +7,18 @@ function mount(root,{onOpen,onClose,hideChrome=false}={}){
  const panel=root.querySelector('[data-tdb-drawer-panel]'),backdrop=root.querySelector('[data-tdb-drawer-backdrop]'),closeButton=root.querySelector('[data-tdb-drawer-close]');
  if(!panel||!closeButton)throw Error('Native drawer structure missing');
  const ctrl=new AbortController(),{signal}=ctrl,motion=window.TDBMotion.reduced;
- let state='closed',trigger,saved=[],releaseScroll,releaseChrome,animations=[],revision=0,touchPulse=null;
+ let state='closed',trigger,saved=[],releaseScroll,releaseChrome,animations=[],revision=0,touchPulse=null,placement;
  root.hidden=true;root.classList.add('is-hidden');root.inert=true;
  const stop=()=>{animations.forEach(a=>a.cancel());animations=[];};
  const focusables=()=>[...panel.querySelectorAll('a[href],button,input,select,textarea,[tabindex="0"]')].filter(n=>!n.disabled&&!n.closest('[hidden],[inert]')&&n.getClientRects().length);
+ function lift(){
+  // A fixed drawer inside Footer still belongs to Footer's stacking context.
+  // Give every active drawer the same page-level layer, then restore its native
+  // component location after closing so discovery and Designer markup stay intact.
+  if(root.parentElement===document.body)return;
+  placement=document.createComment('tdb-drawer-return');root.before(placement);document.body.append(root);
+ }
+ function restore(){if(placement?.parentNode)placement.replaceWith(root);placement=null;}
  function lock(){
   releaseScroll=window.TDBScrollLock.acquire({allow:()=>[panel]});
   let child=root;while(child.parentElement){for(const sibling of child.parentElement.children)if(sibling!==child&&!['SCRIPT','STYLE','LINK'].includes(sibling.tagName)){saved.push([sibling,sibling.inert]);sibling.inert=true;}child=child.parentElement;if(child===document.body)break;}
@@ -30,7 +38,7 @@ function mount(root,{onOpen,onClose,hideChrome=false}={}){
   return rev===revision;
  }
  async function open(source){
-  if(state!=='closed')return;active?.close(true);active=api;trigger=source;state='opening';root.hidden=false;root.classList.remove('is-hidden');root.inert=false;root.setAttribute('aria-hidden','false');trigger?.setAttribute('aria-expanded','true');lock();try{onOpen?.();if(hideChrome)releaseChrome=window.TDBSiteChrome.acquire();}catch(error){await close(true);throw error;}closeButton.focus({preventScroll:true});
+  if(state!=='closed')return;active?.close(true);active=api;trigger=source;state='opening';lift();root.hidden=false;root.classList.remove('is-hidden');root.inert=false;root.setAttribute('aria-hidden','false');trigger?.setAttribute('aria-expanded','true');lock();try{onOpen?.();if(hideChrome)releaseChrome=window.TDBSiteChrome.acquire();}catch(error){await close(true);throw error;}closeButton.focus({preventScroll:true});
   if(await transition(true)){stop();state='open';}
  }
  async function close(immediate=false){
@@ -39,7 +47,7 @@ function mount(root,{onOpen,onClose,hideChrome=false}={}){
   if(state==='closed'||(state==='closing'&&!immediate))return;
   if(state!=='closing'){state='closing';trigger?.setAttribute('aria-expanded','false');onClose?.();if(hideChrome)window.TDBSiteChrome.settleBackground();}
   if(immediate){revision++;stop();}else if(!await transition(false))return;
-  touchPulse?.cancel();touchPulse=null;root.hidden=true;root.classList.add('is-hidden');root.inert=true;root.setAttribute('aria-hidden','true');stop();unlock();state='closed';if(active===api)active=null;if(trigger?.isConnected)trigger.focus({preventScroll:true});
+  touchPulse?.cancel();touchPulse=null;root.hidden=true;root.classList.add('is-hidden');root.inert=true;root.setAttribute('aria-hidden','true');stop();restore();unlock();state='closed';if(active===api)active=null;if(trigger?.isConnected)trigger.focus({preventScroll:true});
  }
  // Match the existing VIP/announcement touch pulse without delaying drawer closure.
  function pulseClose(event){
@@ -62,5 +70,5 @@ function mount(root,{onOpen,onClose,hideChrome=false}={}){
  motion.addEventListener('change',()=>{if(state==='opening'){revision++;stop();state='open';}else if(state==='closing')close(true);},{signal});
  const api=Object.freeze({open,close,get state(){return state;},destroy(){close(true);ctrl.abort();instances.delete(root);}});instances.set(root,api);return api;
 }
-window.TDBDrawer=Object.freeze({version:'1.1.0',mount});
+window.TDBDrawer=Object.freeze({version:'1.2.0',mount});
 })();

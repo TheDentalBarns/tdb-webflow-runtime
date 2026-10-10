@@ -71,3 +71,26 @@ test('closing the drawer cannot release a menu or consent lock',async()=>{
   assert.equal(t.doc.documentElement.classList.contains('tdb-scroll-locked'),false);
  }finally{t.dispose()}
 });
+
+test('Reviews to a nested USP drawer transfers the page layer and restores native placement',async()=>{
+ const t=setup();try{
+  const footer=t.doc.createElement('footer');footer.style.cssText='position:relative;z-index:100;transform:translateZ(0)';
+  footer.innerHTML='<button id="usp-trigger">USP</button><section><div id="usp" data-tdb-drawer><div data-tdb-drawer-backdrop></div><div data-tdb-drawer-panel><button data-tdb-drawer-close>Close USP</button></div></div><span id="after"></span></section>';
+  t.doc.body.append(footer);
+  const usp=footer.querySelector('#usp'),home=usp.parentNode,next=usp.nextSibling,button=footer.querySelector('button');
+  const api=t.w.TDBDrawer.mount(usp);
+  const reviewOpen=t.api.open(t.trigger);t.finish();await reviewOpen;
+  const reviewClose=t.api.close();
+  await api.open(button);await reviewClose;
+  assert.equal(t.api.state,'closed');assert.equal(api.state,'open');
+  assert.equal(usp.parentNode,t.doc.body,'the fixed backdrop escapes Footer clipping and stacking');
+  assert.equal(usp.hidden,false);assert.equal(usp.classList.contains('is-hidden'),false);
+  assert.equal(t.root.hidden,true);assert.equal(footer.inert,true);
+  assert.equal(t.w.TDBScrollLock.active,true,'old close completion cannot unlock the new drawer');
+  await api.close(true);
+  assert.equal(usp.parentNode,home);assert.equal(usp.nextSibling,next);
+  assert.equal(usp.hidden,true);assert.equal(Boolean(footer.inert),false);
+  assert.equal(t.doc.activeElement,button);assert.equal(t.w.TDBScrollLock.active,false);
+  api.destroy();
+ }finally{t.dispose()}
+});

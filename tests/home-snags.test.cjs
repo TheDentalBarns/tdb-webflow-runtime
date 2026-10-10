@@ -101,6 +101,12 @@ test('USP barn selection survives pointer exit and transfers to the next activat
   try {
     w.eval(read('src/usp/drawer.js'));doc.dispatchEvent(new w.Event('DOMContentLoaded'));
     const zones=[...doc.querySelectorAll('[data-tdb-usp-trigger-zone]')];
+    zones[0].querySelector('a').focus();
+    zones[0].dispatchEvent(new w.Event('pointerdown',{bubbles:true}));
+    zones[0].querySelector('a').blur();await flush();
+    assert.equal(zones[0].querySelector('img').classList.contains('is-usp-active'),true,'press retains the dim state when native focus leaves before click');
+    zones[0].dispatchEvent(new w.Event('pointercancel',{bubbles:true}));await flush();
+    assert.equal(zones[0].querySelector('img').classList.contains('is-usp-active'),false,'a cancelled gesture does not select a barn');
     zones[0].querySelector('a').click();await flush();
     zones[0].dispatchEvent(new w.Event('pointerleave'));await flush();
     assert.equal(zones[0].querySelector('img').classList.contains('is-usp-active'),true);

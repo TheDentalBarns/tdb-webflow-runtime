@@ -1,4 +1,4 @@
-/* TDB native USP adapter v2.2.1. Designer owns every surface and control. */
+/* TDB native USP adapter v2.2.2. Designer owns every surface and control. */
 (() => {
   'use strict';
   if (window.TDBUSPDrawer) return;
@@ -137,12 +137,24 @@
       const prepare = () => flight ||= code().then(() => window.TDBSwiper.mount('usp-drawer', section)).catch(error => { flight = null; throw error; });
       const triggers = section.querySelectorAll('[data-tdb-usp-launch]');
       const zones = [...section.querySelectorAll('[data-tdb-usp-trigger-zone]')];
-      let selectedZone = null;
+      let selectedZone = null, pressedZone = null;
       const hovered = new Set();
       const reflectBarns = () => zones.forEach(zone => {
         zone.querySelector('.feature-item_door-image')?.classList.toggle('is-usp-active',
-          zone === selectedZone || hovered.has(zone) || zone.contains(document.activeElement));
+          zone === selectedZone || zone === pressedZone || hovered.has(zone) || zone.contains(document.activeElement));
       });
+      // Native pointer focus can leave the icon before click commits selection.
+      // Hold the pressed state across that gap; cancellation never selects it.
+      section.addEventListener('pointerdown', event => {
+        if (event.isPrimary === false || (event.button != null && event.button !== 0)) return;
+        const zone = event.target.closest('[data-tdb-usp-trigger-zone]');
+        if (zone && zones.includes(zone)) { pressedZone = zone; reflectBarns(); }
+      });
+      document.addEventListener('pointerup', event => {
+        if (pressedZone && !pressedZone.contains(event.target)) { pressedZone = null; reflectBarns(); }
+      });
+      section.addEventListener('pointercancel', () => { pressedZone = null; reflectBarns(); });
+      section.addEventListener('dragstart', () => { pressedZone = null; reflectBarns(); });
       zones.forEach(zone => {
         zone.addEventListener('pointerenter', event => { if (event.pointerType === 'mouse') { hovered.add(zone); reflectBarns(); } });
         zone.addEventListener('pointerleave', () => { hovered.delete(zone); reflectBarns(); });
@@ -156,7 +168,7 @@
         const item = event.target.closest('[data-tdb-usp-trigger-zone]');
         const trigger = item?.querySelector('[data-tdb-usp-launch]'); if (!trigger) return;
         event.preventDefault(); if (trigger.getAttribute('aria-busy') === 'true') return;
-        selectedZone = item; reflectBarns();
+        selectedZone = item; pressedZone = null; reflectBarns();
         await window.TDBModules.withBusy(trigger, async () => (await prepare()).open(Number(trigger.dataset.tdbUspLaunch), trigger), {
           onError() { trigger.setAttribute('aria-label', 'Unable to load. Try again: ' + item.querySelector('[data-tdb-usp-label]').textContent.trim()); }
         });
@@ -169,6 +181,6 @@
       }
     });
   }
-  window.TDBUSPDrawer = Object.freeze({version:'2.2.1',close(){ document.querySelectorAll('[data-tdb-usp]').forEach(root => instances.get(root)?.close()); }});
+  window.TDBUSPDrawer = Object.freeze({version:'2.2.2',close(){ document.querySelectorAll('[data-tdb-usp]').forEach(root => instances.get(root)?.close()); }});
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', discover, {once:true}); else discover();
 })();
