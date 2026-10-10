@@ -190,3 +190,20 @@ destroy and mount, exact 3/5 first-entry network counts, navigation and all
 and absence of the legacy IG clone-mirroring observers/forwarding listeners.
 The release is based on the current shared registry release 46eed029 so
 other shared modules remain byte-for-byte unchanged.
+# Initial DOM metadata consolidation — v2.1.3
+
+Home's native CMS slide owns `data-ig-url`, `data-ig-date`, `data-ig-likes`,
+`data-ig-comments`, `data-ig-shares` and `data-ig-media-type`, each bound to the
+same Media Gallery field as the former hidden record. The reader prefers
+these attributes and retains descendant-field fallback for older markup.
+An explicitly blank attribute stays blank; zero metrics remain valid.
+
+This removes seven hidden elements per post after the unconsumed grouping
+wrapper was removed separately: 112 additional initial elements across the
+current 16 posts. No content, motion, image-window or carousel logic changes.
+`node --test tests/instagram-metadata.test.cjs` compares all 16 published
+records and checks blanks, zero, old markup and invalid/duplicate links.
+
+Staging only. Rollback the native bound attributes/hidden fields together with
+the Home script pin to `11353aaea879a8cbcb881bb3b62adad5050ff6d8` (v2.1.2).
+
