@@ -9,15 +9,15 @@
       "media-type": "video cover"
     },
     "attributes": {
-      "data-ig-comments": "",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/DTWIMz8FX82",
       "data-ig-slide": "",
-      "data-ig-media-type": "video cover",
-      "data-ig-likes": "76",
       "role": "listitem",
-      "data-ig-date": "January 10, 2026"
+      "data-ig-record-url": "https://www.instagram.com/p/DTWIMz8FX82",
+      "data-ig-record-date": "January 10, 2026",
+      "data-ig-record-likes": "76",
+      "data-ig-record-comments": "",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "video cover"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ab7b972686d68a8f74b567f_6ab7b8113ba8342970ce258d_tdb-a-lovely-moment-from-2025-cover-image-dtwimz8fx82.webp",
     "equal": true
@@ -32,15 +32,15 @@
       "media-type": "video cover"
     },
     "attributes": {
-      "data-ig-comments": "8",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/DRvH6ZSkq-8",
       "data-ig-slide": "",
-      "data-ig-media-type": "video cover",
-      "data-ig-likes": "123",
       "role": "listitem",
-      "data-ig-date": "December 1, 2025"
+      "data-ig-record-url": "https://www.instagram.com/p/DRvH6ZSkq-8",
+      "data-ig-record-date": "December 1, 2025",
+      "data-ig-record-likes": "123",
+      "data-ig-record-comments": "8",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "video cover"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ac8c01d2d76d066f01ff7d8_6ac8befbdf43f493b29b5885_tdb-instagram-drvh6zskq-8-w360-optimized.webp",
     "equal": true
@@ -55,15 +55,15 @@
       "media-type": "image"
     },
     "attributes": {
-      "data-ig-comments": "4",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/DRsHhHUjNe7",
       "data-ig-slide": "",
-      "data-ig-media-type": "image",
-      "data-ig-likes": "49",
       "role": "listitem",
-      "data-ig-date": "November 30, 2025"
+      "data-ig-record-url": "https://www.instagram.com/p/DRsHhHUjNe7",
+      "data-ig-record-date": "November 30, 2025",
+      "data-ig-record-likes": "49",
+      "data-ig-record-comments": "4",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "image"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ac8c01e2d76d066f01ff7e9_6ac8befc08c83c08b75c136d_tdb-instagram-drshhhujne7-w1080-optimized.webp",
     "equal": true
@@ -78,15 +78,15 @@
       "media-type": "image"
     },
     "attributes": {
-      "data-ig-comments": "",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/DRpEb9Fjdyj",
       "data-ig-slide": "",
-      "data-ig-media-type": "image",
-      "data-ig-likes": "28",
       "role": "listitem",
-      "data-ig-date": "November 29, 2025"
+      "data-ig-record-url": "https://www.instagram.com/p/DRpEb9Fjdyj",
+      "data-ig-record-date": "November 29, 2025",
+      "data-ig-record-likes": "28",
+      "data-ig-record-comments": "",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "image"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ac8c01e2d76d066f01ff7f4_6ac8befb38d06a48e8483821_tdb-instagram-drpeb9fjdyj-w1080-optimized.webp",
     "equal": true
@@ -101,15 +101,15 @@
       "media-type": "image"
     },
     "attributes": {
-      "data-ig-comments": "16",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/DRm0XIrj51F",
       "data-ig-slide": "",
-      "data-ig-media-type": "image",
-      "data-ig-likes": "82",
       "role": "listitem",
-      "data-ig-date": "November 28, 2025"
+      "data-ig-record-url": "https://www.instagram.com/p/DRm0XIrj51F",
+      "data-ig-record-date": "November 28, 2025",
+      "data-ig-record-likes": "82",
+      "data-ig-record-comments": "16",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "image"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ac8c01e2d76d066f01ff7e6_6ac8befc38d06a48e8483872_tdb-instagram-drm0xirj51f-w1080-optimized.webp",
     "equal": true
@@ -124,15 +124,15 @@
       "media-type": "image"
     },
     "attributes": {
-      "data-ig-comments": "10",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/DRSeBPNj-4C",
       "data-ig-slide": "",
-      "data-ig-media-type": "image",
-      "data-ig-likes": "85",
       "role": "listitem",
-      "data-ig-date": "November 20, 2025"
+      "data-ig-record-url": "https://www.instagram.com/p/DRSeBPNj-4C",
+      "data-ig-record-date": "November 20, 2025",
+      "data-ig-record-likes": "85",
+      "data-ig-record-comments": "10",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "image"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ac8c01f2d76d066f01ff802_6ac8befc0de2c493d6d59a8f_tdb-instagram-drsebpnj-4c-w1080-optimized.webp",
     "equal": true
@@ -147,15 +147,15 @@
       "media-type": "video cover"
     },
     "attributes": {
-      "data-ig-comments": "9",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/DP6rGmPkiZg",
       "data-ig-slide": "",
-      "data-ig-media-type": "video cover",
-      "data-ig-likes": "53",
       "role": "listitem",
-      "data-ig-date": "October 17, 2025"
+      "data-ig-record-url": "https://www.instagram.com/p/DP6rGmPkiZg",
+      "data-ig-record-date": "October 17, 2025",
+      "data-ig-record-likes": "53",
+      "data-ig-record-comments": "9",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "video cover"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ac8c01c2d76d066f01ff7b0_6ac8bef9b1e555173da0fd27_tdb-instagram-dp6rgmpkizg-w360-optimized.webp",
     "equal": true
@@ -170,15 +170,15 @@
       "media-type": "image"
     },
     "attributes": {
-      "data-ig-comments": "8",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/DP1EDvNDwh8",
       "data-ig-slide": "",
-      "data-ig-media-type": "image",
-      "data-ig-likes": "149",
       "role": "listitem",
-      "data-ig-date": "October 15, 2025"
+      "data-ig-record-url": "https://www.instagram.com/p/DP1EDvNDwh8",
+      "data-ig-record-date": "October 15, 2025",
+      "data-ig-record-likes": "149",
+      "data-ig-record-comments": "8",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "image"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ac8c01d2d76d066f01ff7ce_6ac8befad5ff78008b309fc1_tdb-instagram-dp1edvndwh8-w1080-optimized.webp",
     "equal": true
@@ -193,15 +193,15 @@
       "media-type": "video cover"
     },
     "attributes": {
-      "data-ig-comments": "14",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/DPt8CzsCvyo",
       "data-ig-slide": "",
-      "data-ig-media-type": "video cover",
-      "data-ig-likes": "649",
       "role": "listitem",
-      "data-ig-date": "October 12, 2025"
+      "data-ig-record-url": "https://www.instagram.com/p/DPt8CzsCvyo",
+      "data-ig-record-date": "October 12, 2025",
+      "data-ig-record-likes": "649",
+      "data-ig-record-comments": "14",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "video cover"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ac8c01c2d76d066f01ff7b3_6ac8bef8c284f5dd34419e00_tdb-instagram-dpt8czscvyo-w360-optimized.webp",
     "equal": true
@@ -216,15 +216,15 @@
       "media-type": "image"
     },
     "attributes": {
-      "data-ig-comments": "28",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/DKnLZqJoIhy",
       "data-ig-slide": "",
-      "data-ig-media-type": "image",
-      "data-ig-likes": "255",
       "role": "listitem",
-      "data-ig-date": "June 7, 2025"
+      "data-ig-record-url": "https://www.instagram.com/p/DKnLZqJoIhy",
+      "data-ig-record-date": "June 7, 2025",
+      "data-ig-record-likes": "255",
+      "data-ig-record-comments": "28",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "image"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ac8c01e2d76d066f01ff7de_6ac8befbd5ff78008b30a0b2_tdb-instagram-dknlzqjoihy-w1080-optimized.webp",
     "equal": true
@@ -239,15 +239,15 @@
       "media-type": "video cover"
     },
     "attributes": {
-      "data-ig-comments": "12",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/DKkZ_zeo25C",
       "data-ig-slide": "",
-      "data-ig-media-type": "video cover",
-      "data-ig-likes": "146",
       "role": "listitem",
-      "data-ig-date": "June 6, 2025"
+      "data-ig-record-url": "https://www.instagram.com/p/DKkZ_zeo25C",
+      "data-ig-record-date": "June 6, 2025",
+      "data-ig-record-likes": "146",
+      "data-ig-record-comments": "12",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "video cover"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ac8c01c2d76d066f01ff7bd_6ac8bef838d06a48e8483656_tdb-instagram-dkkz_zeo25c-w360-optimized.webp",
     "equal": true
@@ -262,15 +262,15 @@
       "media-type": "image"
     },
     "attributes": {
-      "data-ig-comments": "",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/DI3dBH5tk7p",
       "data-ig-slide": "",
-      "data-ig-media-type": "image",
-      "data-ig-likes": "36",
       "role": "listitem",
-      "data-ig-date": "April 25, 2025"
+      "data-ig-record-url": "https://www.instagram.com/p/DI3dBH5tk7p",
+      "data-ig-record-date": "April 25, 2025",
+      "data-ig-record-likes": "36",
+      "data-ig-record-comments": "",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "image"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ac8c01d2d76d066f01ff7cb_6ac8befa99ed5e7078a32ef1_tdb-instagram-di3dbh5tk7p-w1080-optimized.webp",
     "equal": true
@@ -285,15 +285,15 @@
       "media-type": "carousel cover"
     },
     "attributes": {
-      "data-ig-comments": "1",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/DEX2tLWPMQb",
       "data-ig-slide": "",
-      "data-ig-media-type": "carousel cover",
-      "data-ig-likes": "92",
       "role": "listitem",
-      "data-ig-date": "January 3, 2025"
+      "data-ig-record-url": "https://www.instagram.com/p/DEX2tLWPMQb",
+      "data-ig-record-date": "January 3, 2025",
+      "data-ig-record-likes": "92",
+      "data-ig-record-comments": "1",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "carousel cover"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ac8c01d2d76d066f01ff7d4_6ac8bef8dfdf428da323bf2a_tdb-instagram-dex2tlwpmqb-w1080-optimized.webp",
     "equal": true
@@ -308,15 +308,15 @@
       "media-type": "image"
     },
     "attributes": {
-      "data-ig-comments": "1",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/DBk8IEmPTkj",
       "data-ig-slide": "",
-      "data-ig-media-type": "image",
-      "data-ig-likes": "6",
       "role": "listitem",
-      "data-ig-date": "October 26, 2024"
+      "data-ig-record-url": "https://www.instagram.com/p/DBk8IEmPTkj",
+      "data-ig-record-date": "October 26, 2024",
+      "data-ig-record-likes": "6",
+      "data-ig-record-comments": "1",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "image"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ac8c01b2d76d066f01ff79a_6ac8bee29e186fba496a493b_tdb-instagram-dbk8iemptkj-w1080-optimized.webp",
     "equal": true
@@ -331,15 +331,15 @@
       "media-type": "image"
     },
     "attributes": {
-      "data-ig-comments": "1",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/DBmE7VgMOX5",
       "data-ig-slide": "",
-      "data-ig-media-type": "image",
-      "data-ig-likes": "14",
       "role": "listitem",
-      "data-ig-date": "October 26, 2024"
+      "data-ig-record-url": "https://www.instagram.com/p/DBmE7VgMOX5",
+      "data-ig-record-date": "October 26, 2024",
+      "data-ig-record-likes": "14",
+      "data-ig-record-comments": "1",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "image"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ac8c01c2d76d066f01ff7ad_6ac8bee2a5df481e8d4bef00_tdb-instagram-dbme7vgmox5-w1080-optimized.webp",
     "equal": true
@@ -354,15 +354,15 @@
       "media-type": "carousel cover"
     },
     "attributes": {
-      "data-ig-comments": "9",
-      "data-ig-shares": "",
       "class": "ig-native_slide w-dyn-item",
-      "data-ig-url": "https://www.instagram.com/p/C_8m1oWIr4g",
       "data-ig-slide": "",
-      "data-ig-media-type": "carousel cover",
-      "data-ig-likes": "206",
       "role": "listitem",
-      "data-ig-date": "September 15, 2024"
+      "data-ig-record-url": "https://www.instagram.com/p/C_8m1oWIr4g",
+      "data-ig-record-date": "September 15, 2024",
+      "data-ig-record-likes": "206",
+      "data-ig-record-comments": "9",
+      "data-ig-record-shares": "",
+      "data-ig-record-media-type": "carousel cover"
     },
     "image": "https://cdn.prod.website-files.com/67837ee85ee175873126e461/6ac8c01f2d76d066f01ff80f_6ac8befe9e186fba496a574c_tdb-instagram-c_8m1owir4g-w1080-optimized.webp",
     "equal": true

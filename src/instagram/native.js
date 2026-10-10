@@ -1,11 +1,11 @@
-/* TDB native Instagram v2.1.3. Webflow renders the visible CMS Collection List;
+/* TDB native Instagram v2.1.4. Webflow renders the visible CMS Collection List;
  * CMS owns posts; shared Gallery, Swiper, Motion and NativeTicker own behaviour. */
 (() => {
   'use strict';
   if (window.TDBInstagramNative) return;
   // A late but successful download can resume control after the boot watchdog.
   if(document.querySelector('style[data-tdb-ig-loading]'))document.documentElement.setAttribute('data-tdb-ig-loading','');
-  const VERSION = '2.1.3';
+  const VERSION = '2.1.4';
   const IMAGE_WINDOW = Object.freeze({desktop:5,mobile:3,desktopQuery:'(min-width:992px)'});
   const BASE = document.currentScript?.src ? new URL('./',document.currentScript.src).href : 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@46eed029ec12f0547282d81e9e9e35939c8b703e/dist/';
   const instances = new Map(), pending = new Map();
@@ -61,10 +61,10 @@
       // Native CMS attributes avoid hidden metadata nodes. Keep descendant
       // fields as a fallback while other pages migrate; an empty attribute is
       // an intentional blank, not permission to use stale fallback content.
-      const value = name => (record.getAttribute('data-ig-'+name) ?? field(name)?.textContent ?? '').trim();
+      const value = name => (record.getAttribute('data-ig-record-'+name) ?? field(name)?.textContent ?? '').trim();
       const image = record.querySelector('.ig-native_photo');
       const source = image?.getAttribute('src') || image?.getAttribute('data-ig-src');
-      const url = record.getAttribute('data-ig-url') ?? field('url')?.getAttribute('href') ?? '';
+      const url = record.getAttribute('data-ig-record-url') ?? field('url')?.getAttribute('href') ?? '';
       let parsed;
       try { parsed = new URL(url, location.href); } catch (_) { throw Error('Instagram CMS item has an invalid post link'); }
       // Keep the authored list intact if a CMS item is incomplete. Silently
@@ -102,7 +102,7 @@
     // These runtime attributes are copied with Swiper loop slides. Designer's
     // original CMS binding remains the source of truth on every page render.
     for(const name of ['srcset','src']){
-      const value=image.getAttribute('data-ig-'+name);
+      const value=image.getAttribute('data-ig-record-'+name);
       if(value!==null){image.setAttribute(name,value);image.removeAttribute('data-ig-'+name);}
     }
   }

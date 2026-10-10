@@ -32,27 +32,32 @@ test('all 16 published CMS records parse identically with attributes only', () =
 });
 test('intentional blanks override stale descendant fields; zero remains zero', () => {
   const record=structuredClone(fixtures[0]);
-  record.attributes['data-ig-likes']='0';
-  record.attributes['data-ig-comments']='';
-  record.attributes['data-ig-shares']='';
+  record.attributes['data-ig-record-likes']='0';
+  record.attributes['data-ig-record-comments']='';
+  record.attributes['data-ig-record-shares']='';
   record.old.comments='21'; record.old.shares='9';
   const [post]=readPosts(rootFor([record],'mixed'));
   assert.equal(post.likes,0); assert.equal(post.comments,null); assert.equal(post.shares,null);
 });
 test('missing attributes retain compatibility with existing field markup', () => {
   const record=structuredClone(fixtures[1]);
-  delete record.attributes['data-ig-date'];
-  delete record.attributes['data-ig-likes'];
+  delete record.attributes['data-ig-record-date'];
+  delete record.attributes['data-ig-record-likes'];
   const [post]=readPosts(rootFor([record],'mixed'));
   assert.equal(post.date,record.old.date);
   assert.equal(post.likes,Number(record.old.likes));
 });
 test('empty or invalid primary URLs remain errors instead of stale fallback', () => {
   for (const url of ['', 'https://example.com/post']) {
-    const record=structuredClone(fixtures[0]);record.attributes['data-ig-url']=url;
+    const record=structuredClone(fixtures[0]);record.attributes['data-ig-record-url']=url;
     assert.throws(()=>readPosts(rootFor([record],'mixed')),/CMS item/);
   }
 });
 test('duplicate post URLs are still rejected', () => {
   assert.throws(()=>readPosts(rootFor([fixtures[0],fixtures[0]],'attributes')),/unique post link/);
+});
+
+test('CMS metadata attributes cannot match the stationary display selectors', () => {
+  const displayHooks=['data-ig-date','data-ig-current','data-ig-total','data-ig-label','data-ig-metric','data-ig-post-link'];
+  for (const record of fixtures) for (const hook of displayHooks) assert.equal(hook in record.attributes,false,hook);
 });
