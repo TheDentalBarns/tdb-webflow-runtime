@@ -190,12 +190,14 @@ destroy and mount, exact 3/5 first-entry network counts, navigation and all
 and absence of the legacy IG clone-mirroring observers/forwarding listeners.
 The release is based on the current shared registry release 46eed029 so
 other shared modules remain byte-for-byte unchanged.
-# Initial DOM metadata consolidation — v2.1.4
+# Initial DOM metadata consolidation — v2.1.5
 
 Home's native CMS slide owns `data-ig-record-url`, `data-ig-record-date`, `data-ig-record-likes`,
 `data-ig-record-comments`, `data-ig-record-shares` and `data-ig-record-media-type`, each bound to the
 same Media Gallery field as the former hidden record. The reader prefers
 these attributes and retains descendant-field fallback for older markup.
+Image source parking retains the existing `data-ig-src`/`data-ig-srcset`
+contract, covered by a restoration test.
 An explicitly blank attribute stays blank; zero metrics remain valid.
 The record namespace avoids collisions with stationary display hooks such as
 `data-ig-date`; browser testing rejected the unnamespaced v2.1.3 trial.

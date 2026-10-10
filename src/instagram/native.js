@@ -1,11 +1,11 @@
-/* TDB native Instagram v2.1.4. Webflow renders the visible CMS Collection List;
+/* TDB native Instagram v2.1.5. Webflow renders the visible CMS Collection List;
  * CMS owns posts; shared Gallery, Swiper, Motion and NativeTicker own behaviour. */
 (() => {
   'use strict';
   if (window.TDBInstagramNative) return;
   // A late but successful download can resume control after the boot watchdog.
   if(document.querySelector('style[data-tdb-ig-loading]'))document.documentElement.setAttribute('data-tdb-ig-loading','');
-  const VERSION = '2.1.4';
+  const VERSION = '2.1.5';
   const IMAGE_WINDOW = Object.freeze({desktop:5,mobile:3,desktopQuery:'(min-width:992px)'});
   const BASE = document.currentScript?.src ? new URL('./',document.currentScript.src).href : 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@46eed029ec12f0547282d81e9e9e35939c8b703e/dist/';
   const instances = new Map(), pending = new Map();
@@ -102,7 +102,7 @@
     // These runtime attributes are copied with Swiper loop slides. Designer's
     // original CMS binding remains the source of truth on every page render.
     for(const name of ['srcset','src']){
-      const value=image.getAttribute('data-ig-record-'+name);
+      const value=image.getAttribute('data-ig-'+name);
       if(value!==null){image.setAttribute(name,value);image.removeAttribute('data-ig-'+name);}
     }
   }

@@ -61,3 +61,15 @@ test('CMS metadata attributes cannot match the stationary display selectors', ()
   const displayHooks=['data-ig-date','data-ig-current','data-ig-total','data-ig-label','data-ig-metric','data-ig-post-link'];
   for (const record of fixtures) for (const hook of displayHooks) assert.equal(hook in record.attributes,false,hook);
 });
+
+test('parked photo and srcset restore with their existing runtime attribute names', () => {
+  const a=source.indexOf('  function restoreImage(image) {');
+  const b=source.indexOf('\n  function releaseImages(',a);
+  const restoreImage=new Function(source.slice(a,b)+'; return restoreImage;')();
+  const attrs=new Map([['data-ig-src','https://images.example/photo.webp'],['data-ig-srcset','https://images.example/photo.webp 800w']]);
+  restoreImage({getAttribute:name=>attrs.get(name)??null,setAttribute:(name,value)=>attrs.set(name,value),removeAttribute:name=>attrs.delete(name)});
+  assert.equal(attrs.get('src'),'https://images.example/photo.webp');
+  assert.equal(attrs.get('srcset'),'https://images.example/photo.webp 800w');
+  assert.equal(attrs.has('data-ig-src'),false);
+  assert.equal(attrs.has('data-ig-srcset'),false);
+});
