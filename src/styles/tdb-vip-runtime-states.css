@@ -1,0 +1,5 @@
+
+#tdb-mobile-vip-cta{display:none!important}
+
+@media(max-width:767px){#tdb-vip-drawer.is-open{-webkit-overflow-scrolling:touch}}
+html.tdb-vip-desktop-open{overflow:hidden!important}

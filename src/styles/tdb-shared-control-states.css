@@ -1,0 +1,12 @@
+
+
+:is(a[href],button,[role="button"],summary){-webkit-tap-highlight-color:transparent}
+:is(a[href],button,[role="button"],summary):not(:where(.navbar10_link,.navbar10_dropdown-toggle,.is-navbar-control)):focus:not(:focus-visible){outline:none}
+:is(a[href],button,[role="button"],summary):not(:where(.navbar10_link,.navbar10_dropdown-toggle,.is-navbar-control)):focus-visible{outline:2px solid var(--base-color-brand--orange-3,#d6cab4);outline-offset:4px}
+
+
+/* Native pressed feedback: hold while pressed, release with the pointer. */
+.tdb-vip-drawer-handle:active .tdb-vip-drawer-arrow,
+.tdb-announcement:active .tdb-announcement-circle {
+  box-shadow: inset 0 0 0 2rem color-mix(in srgb, var(--base-color-brand--orange-1, #f9f2e6) 30%, transparent);
+}

@@ -1,0 +1,23 @@
+
+
+
+select:not(.form_select).placeholder{color:rgba(0,0,0,.6)}
+select:not(.form_select):not(.placeholder){color:#000}
+
+
+
+.header44_component .w-richtext > p + p,
+.header111_content-right .w-richtext > p + p,
+.faq3_answer .w-richtext > p + p,
+.pricing_btm-accordion .w-richtext > p + p { margin-top: 1em; }
+
+
+[data-tdb-copy-paragraphs]{white-space:pre-line}
+.w-richtext > p + p{margin-top:1.25em}
+
+
+
+[data-tdb-dd-page],.tdbc-dd-fade{opacity:1}
+[data-tdb-dd-preset="orange"]{opacity:1}
+
+.section_standard-testimonial:has([data-tdb-team-cms] [data-tdb-team-viewport] > .w-dyn-empty){display:none}

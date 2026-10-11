@@ -1,5 +1,5 @@
 /* Lazy native announcement loader. Heavy engines are shared through TDBModules. */
-const TDBAnnouncementModuleRoot = new URL('./', document.currentScript.src);
+const TDBAnnouncementModuleRoot = new URL('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@bd1bde66f6624d7c653eb6e29afb3f3c6acfaeb7/dist/');
 (() => {
   let flight;
   const shared = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d71d7f008fc320948726323eb4eb758b6732a665/dist/';

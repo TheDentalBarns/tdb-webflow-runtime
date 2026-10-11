@@ -8,7 +8,7 @@
     e.querySelectorAll('.navbar10_blog-item-image').forEach(image => {
         image.sizes = '(max-width: 479px) 100vw, (max-width: 991px) 50vw, 22vw';
     });
-    const t = new URL("./", document.currentScript.src), n = [ "CookieScriptLoaded", "CookieScriptCurrentState", "CookieScriptAccept", "CookieScriptAcceptAll", "CookieScriptAcceptSelection", "CookieScriptReject", "CookieScriptClose" ], o = document.documentElement, a = e.getAttribute("data-duration"), r = "true" === e.getAttribute("transparent-nav"), i = [ ...e.querySelectorAll("#nav-button-link,.navbar10_logo-link,.navbar10_link,.menu-icon5"), e ].map(e => [ e, e.classList.contains("is-trans") ]);
+    const t = new URL("https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@7f4230b6dd376820e4d524b5df49694f8501c84d/dist/"), n = [ "CookieScriptLoaded", "CookieScriptCurrentState", "CookieScriptAccept", "CookieScriptAcceptAll", "CookieScriptAcceptSelection", "CookieScriptReject", "CookieScriptClose" ], o = document.documentElement, a = e.getAttribute("data-duration"), r = "true" === e.getAttribute("transparent-nav"), i = [ ...e.querySelectorAll("#nav-button-link,.navbar10_logo-link,.navbar10_link,.menu-icon5"), e ].map(e => [ e, e.classList.contains("is-trans") ]);
     let c = null, d = null, s = !1, u = !1, l = 0;
     function m() {
         try {

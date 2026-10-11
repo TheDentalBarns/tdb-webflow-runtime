@@ -9,6 +9,11 @@ GLOBAL_SOURCES = [
     ROOT / 'src/styles/tdb-runtime-ui.css',
     ROOT / 'src/styles/tdb-deferred-ui.css',
     ROOT / 'src/styles/tdb-control-effects.css',
+    ROOT / 'src/shared/reveal-motion.css',
+    ROOT / 'src/styles/tdb-shared-control-states.css',
+    ROOT / 'src/styles/tdb-carousel-arrow-states.css',
+    ROOT / 'src/styles/tdb-announcement-states.css',
+    ROOT / 'src/styles/tdb-content-formatting.css',
     ROOT / 'src/styles/tdb-vimeo-ui.css',
 ]
 

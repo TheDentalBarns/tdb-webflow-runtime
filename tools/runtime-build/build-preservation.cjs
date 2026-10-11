@@ -12,6 +12,17 @@ const targets = require('./targets.cjs');
     if (!targets[output]) throw new Error('Unknown target: ' + output);
     const sources = targets[output].map(file => {
       let source = fs.readFileSync(path.join(root, file), 'utf8');
+      const embeddedStyles = {
+        '__TDB_NATIVE_FOUNDATION_CSS__': ['src/styles/tdb-native-foundation.css', 'src/styles/tdb-phone-landscape.css'],
+        '__TDB_PARTNER_CONTROLS_CSS__': ['src/styles/tdb-partner-controls.css'],
+        '__TDB_VIP_RUNTIME_CSS__': ['src/styles/tdb-vip-runtime-states.css'],
+      };
+      for (const [marker, files] of Object.entries(embeddedStyles)) {
+        if (!source.includes(marker)) continue;
+        const css = files.map(file => fs.readFileSync(path.join(root, file), 'utf8')).join('\n')
+          .replace(/\/\*[\s\S]*?\*\//g, '').trim();
+        source = source.replace(marker, JSON.stringify(css));
+      }
       if (file === 'src/five-senses/five-senses.js') {
         source = source.replace(/^import \{SceneRenderer\} from '\.\/scene-renderer\.js';\n/, '');
       }

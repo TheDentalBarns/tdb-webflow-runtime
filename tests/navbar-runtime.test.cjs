@@ -35,6 +35,8 @@ function fixture(width = 448, consent = true, registry = true) {
   if (consent) d.cookie = 'CookieScriptConsent=' + encodeURIComponent(JSON.stringify({ action: 'reject' }));
   if (registry) w.eval(read('dist/tdb-modules.js'));
   w.eval(read('dist/tdb-navbar-loader.js'));
+  // The bundle now includes the native foundation; complete its parser lifecycle.
+  d.dispatchEvent(new w.Event('DOMContentLoaded'));
   const nav = d.querySelector('.w-nav'), menu = d.querySelector('.w-nav-menu'), button = d.querySelector('.w-nav-button');
   return { dom, w, d, nav, menu, button, animations,
     enhance() {

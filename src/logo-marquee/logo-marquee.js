@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.2';
+  const VERSION = '0.14.3';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -789,7 +789,15 @@
 
     if (shell) {
       const arrows=Array.from(shell.querySelectorAll('.tdb-partner-prev,.tdb-partner-next'));
-      const selectArrow = button => arrows.forEach(candidate=>candidate.classList.toggle('is-selected',candidate===button));
+      const selectArrow = button => {
+        const feedback = window.TDBCarouselArrowFeedback;
+        if (feedback?.select && feedback?.clear) {
+          if (button) feedback.select(button); else feedback.clear(arrows[0]);
+          return;
+        }
+        // A standalone page may not ship the site's footer bundle.
+        arrows.forEach(candidate=>candidate.classList.toggle('is-selected',candidate===button));
+      };
       // Reuse the persistent native carousel state, including after touch release.
       arrows.forEach(button=>{
         button.addEventListener('pointerdown',event=>{
