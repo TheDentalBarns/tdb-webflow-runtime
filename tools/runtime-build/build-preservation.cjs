@@ -17,6 +17,12 @@ const targets = require('./targets.cjs');
           fs.readFileSync(path.join(root, 'src/reviews/native/drawer-template.html'), 'utf8').trim()
         ));
       }
+      for (const [marker, file] of Object.entries({
+        __TDB_USP_DRAWER_HTML__: 'src/usp/drawer-template.html',
+        __TDB_USP_SOURCES_HTML__: 'src/usp/drawer-sources.html'
+      })) {
+        if (source.includes(marker)) source = source.replace(marker, JSON.stringify(fs.readFileSync(path.join(root, file), 'utf8').trim()));
+      }
       const embeddedStyles = {
         '__TDB_NATIVE_FOUNDATION_CSS__': ['src/styles/tdb-native-foundation.css', 'src/styles/tdb-phone-landscape.css'],
         '__TDB_PARTNER_CONTROLS_CSS__': ['src/styles/tdb-partner-controls.css'],
