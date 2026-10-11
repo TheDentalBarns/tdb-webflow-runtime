@@ -1,4 +1,4 @@
-/* DD reload memory v1.0.0. Parser-time opacity only; no layout or scroll writes. */
+/* DD reload memory v1.0.1. Initialised by the DD loader before mounting; no layout or scroll writes. */
 (() => {
   'use strict';
   if (window.TDBDDMemory) return;
@@ -33,12 +33,14 @@
   }
   function scan() { doc.querySelectorAll(selector).forEach(restore); }
   if (saved) {
-    const observer = new MutationObserver(scan);
-    observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
     scan();
-    document.addEventListener('DOMContentLoaded', () => { scan(); observer.disconnect(); }, { once: true });
+    if (document.readyState === 'loading') {
+      const observer = new MutationObserver(scan);
+      observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+      document.addEventListener('DOMContentLoaded', () => { scan(); observer.disconnect(); }, { once: true });
+    }
   }
-  window.TDBDDMemory = Object.freeze({ version: '1.0.0',
+  window.TDBDDMemory = Object.freeze({ version: '1.0.1',
     take(node) { restore(node); claimed.add(node); return restored.has(node); },
     save(states) {
       const items = Object.create(null);
