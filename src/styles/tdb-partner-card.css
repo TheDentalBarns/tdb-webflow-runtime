@@ -30,7 +30,10 @@
 :where([data-tdb-partner-surface],[data-tdb-partner-surface] *).tdb-service-discover.is-hovered{color:#000;background-color:#fff}
 :where([data-tdb-partner-surface],[data-tdb-partner-surface] *).tdb-partner-tooltip{z-index:20002;color:#222;width:32rem;max-width:90vw;padding-top:12px;padding-bottom:12px;display:none;position:absolute;bottom:auto}
 :where([data-tdb-partner-surface],[data-tdb-partner-surface] *).tdb-partner-backdrop{z-index:0;width:100%;height:100%;-webkit-backdrop-filter:saturate(150%)blur(var(--effects--blur));backdrop-filter:saturate(150%)blur(var(--effects--blur));pointer-events:none;clip-path:polygon(0 var(--tdb-surface-top,12px),calc(var(--tdb-tip-x,50%) - 8px)var(--tdb-surface-top,12px),var(--tdb-tip-x,50%)var(--tdb-tip-top,12px),calc(var(--tdb-tip-x,50%) + 8px)var(--tdb-surface-top,12px),100% var(--tdb-surface-top,12px),100% var(--tdb-surface-bottom,calc(100% - 12px)),calc(var(--tdb-tip-x,50%) + 8px)var(--tdb-surface-bottom,calc(100% - 12px)),var(--tdb-tip-x,50%)var(--tdb-tip-bottom,100%),calc(var(--tdb-tip-x,50%) - 8px)var(--tdb-surface-bottom,calc(100% - 12px)),0 var(--tdb-surface-bottom,calc(100% - 12px)));background-color:#0000;position:absolute;top:0;left:0}
-:where([data-tdb-partner-surface],[data-tdb-partner-surface] *).tdb-partner-overlay{z-index:20000;pointer-events:none;background-color:#0000008c;display:none;position:fixed;inset:0}
+/* Overscan the empty dimming layer while mobile browser chrome expands or
+   collapses during page scrolling. No viewport observer or extra paint loop;
+   the shared open/close opacity animation and click-through stay unchanged. */
+:where([data-tdb-partner-surface],[data-tdb-partner-surface] *).tdb-partner-overlay{z-index:20000;pointer-events:none;background-color:#0000008c;display:none;position:fixed;inset:-128px 0}
 :where([data-tdb-partner-surface],[data-tdb-partner-surface] *).tdb-partner-spotlight{z-index:20001;filter:invert();pointer-events:none;object-fit:contain;display:none;position:absolute}
 :where([data-tdb-partner-surface],[data-tdb-partner-surface] *).tdb-partner-content{z-index:1;padding:0;position:relative}
 :where([data-tdb-partner-surface],[data-tdb-partner-surface] *).tdb-partner-swiper{touch-action:pan-y;width:calc(100% - 3rem);margin-left:1.5rem;margin-right:1.5rem;padding-top:1.5rem;padding-bottom:1.5rem;position:relative;overflow:hidden}
