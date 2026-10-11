@@ -1,5 +1,6 @@
 /* Single source-to-output manifest for local and CI runtime builds. */
 module.exports = {
+  'dist/tdb-viewport-memory.min.js': ['src/shared/viewport-memory.js'],
   'dist/tdb-dd-loader.js': ['src/shared/dd-memory.js', 'src/dd/loader.js'],
   'dist/tdb-motion.js': ['src/shared/motion-policy.js', 'src/shared/dd-memory.js', 'src/shared/page-break-memory.js', 'src/shared/motion.js'],
   'dist/tdb-brevo-consent.min.js': ['src/tracking/brevo-consent.js'],
