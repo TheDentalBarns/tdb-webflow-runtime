@@ -23,6 +23,8 @@ module.exports = {
   'dist/tdb-footer-runtime.min.js': ['src/shared/carousel-arrow-feedback.js', 'src/runtime/initial-position.js', 'src/runtime/home-anchor-settlement.js', 'src/banner/loader.js',
     'src/vip-drawer/vip-focus.js', 'src/runtime/deferred-ui.js', 'src/runtime/site-asset-loader.js'],
   'dist/tdb-vip-drawer.js': ['src/vip-drawer/runtime-style.js', 'src/shared/panel-motion.js', 'src/vip-drawer/vip-drawer.js'],
+  'dist/tdb-partner-card.js': ['src/logo-marquee/lazy-card.js'],
+  'dist/tdb-partner-card.css': ['src/styles/tdb-partner-card.css'],
   'dist/tdb-logo-marquee.min.js': ['src/logo-marquee/partner-controls-style.js', 'src/logo-marquee/logo-marquee.js'],
   'dist/tdb-usp-drawer.js': ['src/usp/drawer.js'],
   'dist/tdb-usp-drawer-template.js': ['src/usp/lazy-template.js'],

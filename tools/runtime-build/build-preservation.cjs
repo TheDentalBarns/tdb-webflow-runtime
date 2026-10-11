@@ -18,6 +18,7 @@ const targets = require('./targets.cjs');
         ));
       }
       for (const [marker, file] of Object.entries({
+        __TDB_PARTNER_CARD_HTML__: 'src/logo-marquee/card-template.html',
         __TDB_USP_DRAWER_HTML__: 'src/usp/drawer-template.html',
         __TDB_USP_SOURCES_HTML__: 'src/usp/drawer-sources.html'
       })) {

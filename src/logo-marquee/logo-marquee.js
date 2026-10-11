@@ -1,7 +1,8 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.5';
+  const VERSION = '0.15.0';
+  const assetBase = new URL('./', document.currentScript.src);
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -157,36 +158,40 @@
 
     const section = track.closest('.section_logo-features');
     const stage = section?.querySelector('.tdb-partner-stage');
-    const shell = stage?.querySelector('.tdb-partner-tooltip');
-    const overlay = stage?.querySelector('.tdb-partner-overlay');
-    const spotlight = stage?.querySelector('.tdb-partner-spotlight');
-    const slideHost = shell?.querySelector('.tdb-partner-slides');
-    const visitButton = shell?.querySelector('[data-tdb-partner-visit]');
-    if (visitButton) remember(visitButton, ['style', 'class', 'href', 'target', 'rel', 'aria-label']);
+    const lazy = stage?.hasAttribute('data-tdb-partner-mount') && !stage.classList.contains('w-condition-invisible');
+    let shell = stage?.querySelector('.tdb-partner-tooltip');
+    let overlay = stage?.querySelector('.tdb-partner-overlay');
+    let spotlight = stage?.querySelector('.tdb-partner-spotlight');
+    let slideHost = shell?.querySelector('.tdb-partner-slides');
+    let visitButton = shell?.querySelector('[data-tdb-partner-visit]');
     const hiddenLogos = new Map();
     let centreAnimation = null, centreFrom = 0, measuredCardWidth = 0;
-    const entries = [];
-    originals.forEach((item, index) => {
-      const source = item.querySelector('.tdb-partner-source');
-      const slide = source?.querySelector('.tooltip2_card-wrapper');
-      if (!slide || source.hidden || source.classList.contains('w-condition-invisible') || !shell) return;
-      remember(slide, ['style', 'class', 'role', 'aria-label', 'aria-hidden', 'data-swiper-slide-index']);
-      const link = source.querySelector('[data-tdb-partner-link]');
-      entries.push({ item, index, source, slide, link });
-      slideHost.append(slide);
-    });
-    const cards = new Map();
+    const entries = [], cards = new Map();
     const shellId = 'tdb-partner-card-' + (++cardId);
-    if (shell) { remember(shell, ['id', 'style', 'aria-hidden']); shell.id = shellId; }
-    track.querySelectorAll(CONFIG.itemSelector).forEach(item => {
-      const entry = entries.find(entry => entry.index === Number(item.dataset.tdbLogoIndex));
-      if (!entry) return;
-      const name = entry.slide.querySelector('.text-style-tagline-restored')?.textContent.trim() || 'Partner';
-      item.setAttribute('aria-label', name + ': centre and show details');
-      item.setAttribute('aria-expanded', 'false');
-      item.setAttribute('aria-controls', shellId);
-      cards.set(item, entry);
-    });
+    let controlsBound = false, pendingItem = null;
+    function collectEntries(sources) {
+      if (visitButton) remember(visitButton, ['style', 'class', 'href', 'target', 'rel', 'aria-label']);
+      originals.forEach((item, index) => {
+        const source = sources ? sources[index] : item.querySelector('.tdb-partner-source');
+        const slide = source?.querySelector('.tooltip2_card-wrapper');
+        if (!slide || source.hidden || source.classList.contains('w-condition-invisible') || !shell) return;
+        remember(slide, ['style', 'class', 'role', 'aria-label', 'aria-hidden', 'data-swiper-slide-index']);
+        const link = source.querySelector('[data-tdb-partner-link]');
+        entries.push({ item, index, source, slide, link });
+        slideHost.append(slide);
+      });
+      if (shell) { remember(shell, ['id', 'style', 'aria-hidden']); shell.id = shellId; }
+      track.querySelectorAll(CONFIG.itemSelector).forEach(item => {
+        const entry = entries.find(entry => entry.index === Number(item.dataset.tdbLogoIndex));
+        if (!entry) return;
+        const name = entry.slide.querySelector('.text-style-tagline-restored')?.textContent.trim() || 'Partner';
+        item.setAttribute('aria-label', name + ': centre and show details');
+        item.setAttribute('aria-expanded', 'false');
+        item.setAttribute('aria-controls', shellId);
+        cards.set(item, entry);
+      });
+    }
+    collectEntries();
     let swiper = null, prepareFlight = null, requestGeneration = 0;
     let switching = false;
     const controller = new AbortController();
@@ -381,9 +386,25 @@
       positionCard();
     }
     function prepareShell() {
-      if (!shell || !entries.length) return Promise.resolve();
+      if (!lazy && (!shell || !entries.length)) return Promise.resolve();
       if (prepareFlight) return prepareFlight;
       prepareFlight = (async () => {
+        if (lazy && !shell) {
+          await Promise.all([
+            window.TDBModules.load(new URL('tdb-partner-card.js', assetBase), {ready: () => Boolean(window.TDBPartnerCard)}),
+            window.TDBModules.load(new URL('tdb-partner-card.css', assetBase), {type:'style'})
+          ]);
+          const prepared = await window.TDBPartnerCard.prepare(stage, originals);
+          if (signal.aborted || !stage.isConnected) return;
+          stage.append(prepared.fragment);
+          shell = stage.querySelector('.tdb-partner-tooltip');
+          overlay = stage.querySelector('.tdb-partner-overlay');
+          spotlight = stage.querySelector('.tdb-partner-spotlight');
+          slideHost = shell.querySelector('.tdb-partner-slides');
+          visitButton = shell.querySelector('[data-tdb-partner-visit]');
+          collectEntries(prepared.sources);
+          bindShell();
+        }
         entries.forEach(({slide}) => primeTooltipImage(slide));
         await Promise.all(entries.map(async ({slide}) => {
           const image=slide.querySelector(CONFIG.tooltipImageSelector);
@@ -412,7 +433,7 @@
       return prepareFlight;
     }
     function warmShell() {
-      if (shell && entries.length) prepareShell().catch(() => {});
+      if (!lazy && shell && entries.length) prepareShell().catch(() => {});
     }
     function releaseActiveLogo() {
       spotlight?.style.removeProperty('display');
@@ -422,7 +443,8 @@
     function closeCard(returnFocus = false, immediate = false) {
       requestGeneration++;
       clearTimeout(wheelSettleTimer);
-      originals.forEach(item=>item.removeAttribute('aria-busy'));
+      pendingItem = null;
+      track.querySelectorAll('[aria-busy]').forEach(item=>item.removeAttribute('aria-busy'));
       if (!openCard) return;
       const card = openCard, item = openItem;
       const focused = card.contains(document.activeElement);
@@ -443,13 +465,22 @@
       if (returnFocus && focused) originals[Number(item.dataset.tdbLogoIndex)]?.focus({preventScroll:true});
     }
     async function showCard(item) {
+      if (!lazy && !cards.has(item)) { closeCard(); return; }
+      const generation=++requestGeneration;
+      pendingItem = item;
+      item.setAttribute('aria-busy','true');
+      try { await prepareShell(); } catch (_) {
+        if (generation === requestGeneration) {
+          pendingItem = null;
+          item.setAttribute('aria-label', 'Unable to load partner details. Activate to try again.');
+        }
+        item.removeAttribute('aria-busy'); return;
+      }
+      if (signal.aborted || generation!==requestGeneration) return;
+      pendingItem = null;
+      track.querySelectorAll('[aria-busy]').forEach(node=>node.removeAttribute('aria-busy'));
       const entry=cards.get(item);
       if (!entry) { closeCard(); return; }
-      const generation=++requestGeneration;
-      item.setAttribute('aria-busy','true');
-      try { await prepareShell(); } catch (_) { item.removeAttribute('aria-busy'); return; }
-      item.removeAttribute('aria-busy');
-      if (signal.aborted || generation!==requestGeneration) return;
       if (openCard) {
         // slideToLoop always targets the original, which can sweep through
         // the whole deck at the seam. Select the nearest rendered copy instead.
@@ -803,7 +834,10 @@
       swiper?.destroy(true,true);
       centreAnimation?.cancel();
       entries.forEach(({source,slide})=>{slide.inert=false;source.append(slide);});
-      if (stage && shell) stage.append(overlay,spotlight,shell);
+      if (stage && shell) {
+        if (lazy) [overlay,spotlight,shell].forEach(node=>node.remove());
+        else stage.append(overlay,spotlight,shell);
+      }
       controller.abort();
       dd.destroy();
       track.querySelectorAll('.is-partner-hovered').forEach(logo => logo.classList.remove('is-partner-hovered'));
@@ -823,7 +857,14 @@
       instances.delete(track);
     }
 
-    if (shell) {
+    function bindShell() {
+      if (!shell || controlsBound) return;
+      controlsBound = true;
+      if ('ResizeObserver' in window) {
+        const cardObserver = new ResizeObserver(positionCard);
+        cardObserver.observe(shell);
+        signal.addEventListener('abort', () => cardObserver.disconnect(), {once:true});
+      }
       const arrows=Array.from(shell.querySelectorAll('.tdb-partner-prev,.tdb-partner-next'));
       const selectArrow = button => {
         const feedback = window.TDBCarouselArrowFeedback;
@@ -887,6 +928,7 @@
       },{signal});
       window.addEventListener('resize',()=>{if(shell.offsetWidth!==measuredCardWidth)reserveSlideSpace();},{signal,passive:true});
     }
+    bindShell();
     track.addEventListener('focusin', event => {
       const item = event.target.closest(CONFIG.itemSelector);
       if (!item || !item.matches(':focus-visible') || item === openItem) return;
@@ -900,22 +942,17 @@
     track.addEventListener('focusout', () => track.querySelectorAll('.is-keyboard-focused').forEach(item => item.classList.remove('is-keyboard-focused')), { signal });
     track.addEventListener('keydown', onKey, { signal });
     // Logo-only variants have no card to position, dismiss or focus.
-    if (shell) {
+    if (shell || lazy) {
       document.addEventListener('keydown', event => {
         if (event.key === 'Tab' && openCard && !event.shiftKey && event.target === openItem) {
           if (visitButton?.getAttribute('href')) { event.preventDefault(); visitButton.focus({ preventScroll: true }); }
         }
-        if (event.key === 'Escape' && openCard) {
+        if (event.key === 'Escape' && (openCard || pendingItem)) {
           event.preventDefault(); closeCard(true); resume();
         }
       }, { signal });
       window.addEventListener('resize', positionCard, { signal, passive: true });
       window.visualViewport?.addEventListener('resize', positionCard, { signal, passive: true });
-      if ('ResizeObserver' in window) {
-        const cardObserver = new ResizeObserver(positionCard);
-        cardObserver.observe(shell);
-        signal.addEventListener('abort', () => cardObserver.disconnect(), { once: true });
-      }
       window.addEventListener('scroll', onPageScroll, { signal, passive: true });
     }
     track.addEventListener('dragstart', event => event.preventDefault(), { signal });
@@ -941,8 +978,8 @@
     track.addEventListener('pointerover', onTooltipIntent, { signal, passive: true });
     track.addEventListener('pointerout', clearHover, { signal, passive: true });
     finePointer.addEventListener('change', () => track.querySelectorAll('.is-partner-hovered').forEach(logo => logo.classList.remove('is-partner-hovered')), { signal });
-    // Prepare and measure the hidden card as its banner approaches the viewport.
-    // The first activation then follows the same layout path as subsequent ones.
+    // Native pages keep their preparation policy. Home's lazy mount performs
+    // no pop-out warm-up: visible marquee motion remains independently gated.
     document.addEventListener('visibilitychange', onVisibilityChange, { signal });
 
     if ('IntersectionObserver' in window) {
