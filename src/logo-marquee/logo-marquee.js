@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.4';
+  const VERSION = '0.14.5';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -216,6 +216,7 @@
     let touchClickUntil = 0;
     let lastPointerX = 0;
     let suppressNextClick = false;
+    let wheelSettleTimer = 0;
     let rafId = 0;
     let lastFrameAt = performance.now();
     let measureTimer = 0;
@@ -420,6 +421,7 @@
     }
     function closeCard(returnFocus = false, immediate = false) {
       requestGeneration++;
+      clearTimeout(wheelSettleTimer);
       originals.forEach(item=>item.removeAttribute('aria-busy'));
       if (!openCard) return;
       const card = openCard, item = openItem;
@@ -634,6 +636,7 @@
     }
     function onPointerDown(event) {
       if (!ready || event.button > 0 || event.isPrimary === false || pointerId !== null) return;
+      clearTimeout(wheelSettleTimer);
       // Catch a moving logo exactly where the finger lands, including mid-settle.
       centreAnimation?.cancel(); centreAnimation=null;
       momentum = 0; coasting = false; targetX = currentX; paused = true; stopAnimation();
@@ -657,10 +660,8 @@
           return;
         }
         if (Math.abs(dx) <= CONFIG.dragClickThreshold) return;
-        closeCard();
-        // Hand the spotlight back before the first drag transform. The card
-        // keeps its closing animation, while every logo moves with the track.
-        releaseActiveLogo();
+        // Keep the shared card and spotlight alive throughout horizontal drag.
+        // On release, the nearest logo selects its corresponding content.
         horizontal = dragging = true; selected = null;
         try { track.setPointerCapture(pointerId); } catch (_) {}
       }
@@ -671,6 +672,30 @@
       currentX += delta; targetX = currentX;
       setTransform(wrapX(currentX,loopWidth));
     }
+    function settleOpenCard() {
+      if (!openCard || !ready) return;
+      const view = viewport.getBoundingClientRect();
+      const middle = view.left + view.width / 2;
+      let nearest = null, distance = Infinity;
+      for (const item of track.querySelectorAll(CONFIG.itemSelector)) {
+        if (!cards.has(item)) continue;
+        const box = item.getBoundingClientRect();
+        const delta = Math.abs(box.left + box.width / 2 - middle);
+        if (delta < distance) { nearest = item; distance = delta; }
+      }
+      if (nearest) select(nearest);
+    }
+    function onHorizontalWheel(event) {
+      if (!openCard || !ready || pointerId !== null || event.ctrlKey || Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+      event.preventDefault();
+      centreAnimation?.cancel(); centreAnimation = null;
+      momentum = 0; coasting = false; paused = true; stopAnimation();
+      const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? viewport.clientWidth : 1;
+      currentX -= event.deltaX * scale; targetX = currentX;
+      setTransform(wrapX(currentX, loopWidth));
+      clearTimeout(wheelSettleTimer);
+      wheelSettleTimer = setTimeout(settleOpenCard, 140);
+    }
     function endPointer(event) {
       if (event.pointerId !== pointerId) return;
       const id = pointerId, moved = horizontal, tappedItem = pressedItem;
@@ -679,6 +704,7 @@
       try { track.releasePointerCapture(id); } catch (_) {}
       if (moved) {
         suppressNextClick = true;
+        if (openCard) { settleOpenCard(); return; }
         const first = samples[0], last = samples[samples.length-1];
         const dt = last.t-first.t;
         momentum = !reduceMotion() && event.type === 'pointerup' && event.timeStamp-last.t < 90 && dt > 0
@@ -895,6 +921,7 @@
     track.addEventListener('dragstart', event => event.preventDefault(), { signal });
     reduced.addEventListener('change', onReducedChange, { signal });
     document.addEventListener('click', onOutsideClick, { signal, capture:true });
+    track.addEventListener('wheel', onHorizontalWheel, { signal, passive: false });
     track.addEventListener('pointerdown', onPointerDown, { signal });
     track.addEventListener('pointermove', onPointerMove, { signal, passive: false });
     window.addEventListener('pointerup', endPointer, { signal });
