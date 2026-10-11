@@ -445,12 +445,6 @@ function prepareVIPDrawerLoader() {
     tdbPreloadVIPScript(jsUrl);
     loadingPromise = Promise.all([tdbEnsureUI(), tdbEnsureVIPUI()])
       .then(() => {
-        if (demand) {
-          // Resolve the hidden starting geometry only after actual demand, before
-          // the runtime can enable transitions or replay an immediate open.
-          drawer.setAttribute('data-tdb-vip-prepared', 'true');
-          drawer.getBoundingClientRect();
-        }
         return tdbLoadVIPScript(jsUrl);
       })
       .then(() => {
@@ -462,7 +456,6 @@ function prepareVIPDrawerLoader() {
       .catch(error => {
         document.querySelector('link[data-tdb-vip-preload]')?.remove();
         loadingPromise = null;
-        if (demand && !realDrawerReady()) drawer.removeAttribute('data-tdb-vip-prepared');
         console.error('TDB VIP Drawer failed to load');
         throw error;
       });
@@ -552,7 +545,7 @@ function prepareVIPDrawerLoader() {
   else window.addEventListener('tdb:priority-ready', loadSafely, { once: true });
 
   window.TDBVIPDrawerLoader = Object.freeze({
-    version: '1.4.0',
+    version: '1.4.1',
     load: loadDrawer,
     open: openFromTrigger,
     status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) && !realDrawerReady(), uiReady: tdbUIIsReady(), demand }),

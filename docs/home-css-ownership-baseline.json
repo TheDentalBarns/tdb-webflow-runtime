@@ -1,0 +1,23 @@
+{
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "677cf86df9952f978d94d8a9",
+  "baselineCommit": "37e5d379de203ec86086ae53a34451e8079066ac",
+  "preservedNavbarEnhancement": "7f4230b6dd376820e4d524b5df49694f8501c84d",
+  "preservedFooterDependencies": "bd1bde66f6624d7c653eb6e29afb3f3c6acfaeb7",
+  "nativeStyleChanges": [
+    {
+      "style": "tdb-team-quotes_content",
+      "property": "opacity",
+      "before": "1",
+      "after": "0"
+    },
+    {
+      "style": "tdb-team-quotes_byline",
+      "property": "opacity",
+      "before": "1",
+      "after": "0"
+    }
+  ],
+  "effectiveHomepageRuntime": "996e193a99b2f2f8a1ef43b80e064802ae0708b1",
+  "effectiveHomepagePartner": "996e193a99b2f2f8a1ef43b80e064802ae0708b1"
+}

@@ -8,31 +8,31 @@
             function o() {
                 cancelAnimationFrame(i), i = 0;
             }
-            function d() {
+            function l() {
                 !i && s() && (i = requestAnimationFrame(c));
             }
             function c() {
                 if (i = 0, !s()) return;
                 const r = e.getAnimations().some(e => "running" === e.playState || e.pending);
-                t(), r && d();
+                t(), r && l();
             }
-            const l = new MutationObserver(e => {
-                n?.(e), d();
+            const d = new MutationObserver(e => {
+                n?.(e), l();
             });
-            l.observe(e, {
+            d.observe(e, {
                 subtree: !0,
                 childList: !0,
                 attributes: !0,
                 attributeFilter: [ "style", "class", "data-swiper-slide-index" ]
             });
             const u = [ "transitionrun", "transitionstart", "transitionend", "transitioncancel" ];
-            return u.forEach(t => e.addEventListener(t, d, {
+            return u.forEach(t => e.addEventListener(t, l, {
                 passive: !0
             })), {
-                schedule: d,
+                schedule: l,
                 pause: o,
                 destroy() {
-                    a = !0, o(), l.disconnect(), u.forEach(t => e.removeEventListener(t, d));
+                    a = !0, o(), d.disconnect(), u.forEach(t => e.removeEventListener(t, l));
                 }
             };
         }
@@ -41,41 +41,97 @@
     "use strict";
     if (window.TDBParallax) return;
     const e = (() => {
-        const e = new Set, t = matchMedia("(max-width:767px) and (orientation:portrait)"), r = matchMedia("(orientation:landscape)"), n = matchMedia("(min-width:992px)"), i = e => e?.classList.contains("tdb-service-parallax") || e?.hasAttribute("data-tdb-treatment");
-        function a(e) {
-            if (e.hasAttribute("data-tdb-treatment")) return;
-            const i = r.matches && document.documentElement.classList.contains("tdb-phone-landscape");
-            e.querySelectorAll(".tdb-service-content,.tdb-service-heading-row,.tdb-service-title,.tdb-service-copy,.tdb-service-link-source,.tdb-service-controls,.tdb-service-buttons,.tdb-service-cta").forEach(e => e.classList.toggle("is-phone-landscape", i)),
-            e.dataset.tdbServiceLayout = i ? "phone-landscape" : t.matches ? "portrait" : n.matches ? "desktop" : "tablet";
+        const e = new Set, t = new WeakMap, r = matchMedia("(max-width:767px) and (orientation:portrait)"), n = matchMedia("(orientation:landscape)"), i = matchMedia("(min-width:992px)"), a = e => e?.classList.contains("tdb-service-parallax") || e?.hasAttribute("data-tdb-treatment");
+        function s(e, r) {
+            let n = t.get(e);
+            n || (n = {
+                slides: [],
+                rows: [],
+                layers: new WeakMap,
+                groups: new Map,
+                current: new Set
+            }, t.set(e, n)), r && (n.swiper = r);
+            const i = Array.from(n.swiper?.slides || e.querySelectorAll(".swiper-slide"));
+            return i.length === n.slides.length && i.every((e, t) => e === n.slides[t]) || (n.slides = i, 
+            n.groups.clear(), n.rows = i.map(e => {
+                let t = n.layers.get(e);
+                t || (t = {
+                    blur: e.querySelector(".tdb-treatment-blur"),
+                    copies: Array.from(e.querySelectorAll("[data-tdb-service-copy]"))
+                }, n.layers.set(e, t));
+                for (const [e, r] of [ [ "moving", "is-moving" ], [ "entry", "is-entry-pending" ] ]) void 0 !== n[e] && t.copies.forEach(t => t.classList.toggle(r, n[e]));
+                const r = e.getAttribute("data-swiper-slide-index") ?? e;
+                return n.groups.has(r) || n.groups.set(r, []), t.blur && n.groups.get(r).push(t.blur), 
+                t;
+            }), n.current = new Set(n.rows.map(e => e.blur).filter(e => e?.classList.contains("is-current")))), 
+            n;
         }
-        function s() {
+        function o(e, t, r, n) {
+            const i = s(e);
+            i[t] !== n && (i[t] = n, i.rows.forEach(e => e.copies.forEach(e => e.classList.toggle(r, n))));
+        }
+        // Home's native phone variants now belong to this deferred controller.
+        const homeLayout = document.documentElement.dataset.wfPage === "677cf86df9952f978d94d8a9";
+        const coarse = matchMedia("(pointer: coarse)");
+        function phoneLandscape() {
+            const shortSide = Math.min(screen.width, screen.height);
+            const type = screen.orientation?.type;
+            const rotated = type ? type.startsWith("landscape") :
+                typeof window.orientation === "number" ? Math.abs(window.orientation) === 90 : n.matches;
+            return coarse.matches && shortSide > 0 && shortSide <= 600 && rotated && n.matches;
+        }
+        function l(e) {
+            if (e.hasAttribute("data-tdb-treatment") && !homeLayout) return;
+            const t = homeLayout ? phoneLandscape() : n.matches && document.documentElement.classList.contains("tdb-phone-landscape");
+            e.querySelectorAll(".tdb-service-content,.tdb-service-heading-row,.tdb-service-title,.tdb-service-copy,.tdb-service-link-source,.tdb-service-controls,.tdb-service-buttons,.tdb-service-cta").forEach(e => e.classList.toggle("is-phone-landscape", t)), 
+            e.dataset.tdbServiceLayout = t ? "phone-landscape" : r.matches ? "portrait" : i.matches ? "desktop" : "tablet";
+        }
+        function c() {
             e.forEach(t => {
-                t.isConnected ? a(t) : e.delete(t);
+                t.isConnected ? l(t) : e.delete(t);
             });
         }
-        return window.addEventListener("resize", s, {
+        function discoverHomeLayout() {
+            if (!homeLayout) return;
+            document.querySelectorAll(".tdb-service-parallax,[data-tdb-treatment]").forEach(root => { e.add(root); l(root); });
+        }
+        // Defer normally runs after parsing. Also support an early explicit load.
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", discoverHomeLayout, {once:true});
+        else discoverHomeLayout();
+        coarse.addEventListener("change", c);
+        return window.addEventListener("resize", c, {
             passive: !0
-        }), window.addEventListener("orientationchange", s), screen.orientation?.addEventListener("change", s),
-        t.addEventListener("change", s), r.addEventListener("change", s), n.addEventListener("change", s),
+        }), window.addEventListener("orientationchange", c), screen.orientation?.addEventListener("change", c), 
+        r.addEventListener("change", c), n.addEventListener("change", c), i.addEventListener("change", c), 
         {
             prepare: function(t) {
-                i(t) && (e.add(t), a(t), t.querySelectorAll(".tdb-service-controls,.tdb-service-cta,.tdb-treatment-controls,.tdb-treatment-cta").forEach(e => e.classList.add("is-ready")));
+                a(t) && (e.add(t), l(t), t.querySelectorAll(".tdb-service-controls,.tdb-service-cta,.tdb-treatment-controls,.tdb-treatment-cta").forEach(e => e.classList.add("is-ready")));
             },
-            bind: function(t, r) {
-                if (!i(t)) return;
-                const n = () => {
-                    const e = r.slides[r.activeIndex]?.getAttribute("data-swiper-slide-index");
-                    r.slides.forEach((t, n) => t.querySelector(".tdb-service-card,.tdb-treatment-blur")?.classList.toggle("is-current", null == e ? n === r.activeIndex : t.getAttribute("data-swiper-slide-index") === e));
+            bind: function(r, n) {
+                if (!a(r)) return;
+                const i = () => {
+                    if (r.hasAttribute("data-tdb-treatment")) {
+                        const e = s(r, n), t = n.slides[n.activeIndex], i = t?.getAttribute("data-swiper-slide-index") ?? t, a = new Set(e.groups.get(i) || []);
+                        return e.current.forEach(e => {
+                            a.has(e) || e.classList.remove("is-current");
+                        }), a.forEach(t => {
+                            e.current.has(t) || t.classList.add("is-current");
+                        }), void (e.current = a);
+                    }
+                    const e = n.slides[n.activeIndex]?.getAttribute("data-swiper-slide-index");
+                    n.slides.forEach((t, r) => t.querySelector(".tdb-service-card,.tdb-treatment-blur")?.classList.toggle("is-current", null == e ? r === n.activeIndex : t.getAttribute("data-swiper-slide-index") === e));
                 };
-                a(t), n(), r.on("slideChange loopFix resize update", n), r.on("beforeDestroy", () => {
-                    e.delete(t), r.off("slideChange loopFix resize update", n), t.querySelectorAll(".tdb-service-controls,.tdb-service-cta,.tdb-treatment-controls,.tdb-treatment-cta").forEach(e => e.classList.remove("is-ready"));
+                l(r), i(), n.on("slideChange loopFix resize update", i), n.on("beforeDestroy", () => {
+                    e.delete(r), t.delete(r), n.off("slideChange loopFix resize update", i), r.querySelectorAll(".tdb-service-controls,.tdb-service-cta,.tdb-treatment-controls,.tdb-treatment-cta").forEach(e => e.classList.remove("is-ready"));
                 });
             },
             setMoving: function(e, t) {
-                i(e) && e.querySelectorAll("[data-tdb-service-copy]").forEach(e => e.classList.toggle("is-moving", t));
+                if (e.hasAttribute("data-tdb-treatment")) return o(e, "moving", "is-moving", t);
+                a(e) && e.querySelectorAll("[data-tdb-service-copy]").forEach(e => e.classList.toggle("is-moving", t));
             },
             setEntry: function(e, t) {
-                i(e) && e.querySelectorAll("[data-tdb-service-copy]").forEach(e => e.classList.toggle("is-entry-pending", t));
+                if (e.hasAttribute("data-tdb-treatment")) return o(e, "entry", "is-entry-pending", t);
+                a(e) && e.querySelectorAll("[data-tdb-service-copy]").forEach(e => e.classList.toggle("is-entry-pending", t));
             }
         };
     })(), t = (() => {
@@ -108,9 +164,9 @@
                 s.setAttribute("data-fade-slide", "true"), n.paragraphs.forEach(e => {
                     s.append(t("p", "text-size-medium opacity-75", e.textContent.trim()));
                 });
-                const d = t("div", "showcase-content_btm"), c = t(n.title.tagName.toLowerCase(), "heading-style-h4 service-card-mobile-title", n.title.textContent.trim());
+                const l = t("div", "showcase-content_btm"), c = t(n.title.tagName.toLowerCase(), "heading-style-h4 service-card-mobile-title", n.title.textContent.trim());
                 c.setAttribute("data-fade-slide", "true");
-                const l = t("div", "service-card-button-wrap");
+                const d = t("div", "service-card-button-wrap");
                 if (n.link) {
                     const e = t("a", "button is-icon is-secondary w-inline-block");
                     for (const t of [ "href", "target", "rel" ]) {
@@ -119,22 +175,22 @@
                     }
                     e.append(t("div", "", n.label));
                     const r = t("div", "icon-embed-xxsmall w-embed");
-                    r.innerHTML = '<svg width="100%" height="100%" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10z"/></svg>',
-                    e.append(r), l.append(e);
+                    r.innerHTML = '<svg width="100%" height="100%" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10z"/></svg>', 
+                    e.append(r), d.append(e);
                 }
-                d.append(c, l), a.append(s, d);
+                l.append(c, d), a.append(s, l);
                 const u = n.image.cloneNode(!0);
-                u.className = "showcase_image", u.removeAttribute("style"), u.removeAttribute("id"),
+                u.className = "showcase_image", u.removeAttribute("style"), u.removeAttribute("id"), 
                 u.setAttribute("data-swiper-parallax-x", "30%"), u.setAttribute("sizes", "140vw");
                 const p = t("div", "image-overlay-layer is-showcase-card");
-                i.append(a, u, p), e.classList.remove("is-3-grid"), e.classList.add("is-showcase"),
+                i.append(a, u, p), e.classList.remove("is-3-grid"), e.classList.add("is-showcase"), 
                 e.replaceChildren(i);
             }), a.classList.remove("is-3-grid");
-            const d = n.querySelector(":scope > .swiper_functions-btm");
-            return d?.classList.add("hide"), d?.querySelectorAll(".is-dark").forEach(e => e.classList.remove("is-dark")),
-            n.classList.remove("highlight-swiper_component"), n.classList.add("parallax-swiper_component", "tdb-banner-parallax", "tdb-entry-pending"),
-            n.setAttribute("data-tdb-banner-parallax", "1.0.0"), n.setAttribute("role", "region"),
-            n.setAttribute("aria-roledescription", "carousel"), n.setAttribute("aria-label", o.some(e => e.link?.getAttribute("href")?.startsWith("/treatments/")) ? "Treatments" : "Discover more"),
+            const l = n.querySelector(":scope > .swiper_functions-btm");
+            return l?.classList.add("hide"), l?.querySelectorAll(".is-dark").forEach(e => e.classList.remove("is-dark")), 
+            n.classList.remove("highlight-swiper_component"), n.classList.add("parallax-swiper_component", "tdb-banner-parallax", "tdb-entry-pending"), 
+            n.setAttribute("data-tdb-banner-parallax", "1.0.0"), n.setAttribute("role", "region"), 
+            n.setAttribute("aria-roledescription", "carousel"), n.setAttribute("aria-label", o.some(e => e.link?.getAttribute("href")?.startsWith("/treatments/")) ? "Treatments" : "Discover more"), 
             !0;
         }
         return {
@@ -154,7 +210,7 @@
                     const t = matchMedia("(max-width:767px) and (orientation:portrait)").matches;
                     s || (document.documentElement.classList.toggle("tdb-slider-next", t), document.documentElement.classList.toggle("tdb-slider-desktop", matchMedia("(min-width:768px)").matches));
                     const r = e.querySelector(":scope > .swiper"), n = e.querySelector(":scope > .swiper_functions-btm.hide");
-                    !s && t && r && n && !e.hasAttribute("data-tdb-banner-parallax") && r.appendChild(n),
+                    !s && t && r && n && !e.hasAttribute("data-tdb-banner-parallax") && r.appendChild(n), 
                     e.querySelectorAll(".swiper-btn-prev,.swiper-btn-next").forEach(e => {
                         e.tabIndex = 0, e.setAttribute("role", "button"), e.setAttribute("aria-label", e.matches(".swiper-btn-prev") ? "Previous slide" : "Next slide");
                     });
@@ -162,7 +218,7 @@
                 const o = function(e, n) {
                     if (!i(e)) return null;
                     const a = Array.from(n.querySelectorAll(":scope > .swiper-wrapper > .swiper-slide:not(.swiper-slide-duplicate)")), o = a.map(e => {
-                        const t = e.querySelector(".service-card-button-wrap a[href],.tdb-treatment-source a[href]");
+                        const t = e.querySelector(".service-card-button-wrap a[href],a.tdb-treatment-source[href]");
                         return t && {
                             href: t.getAttribute("href"),
                             target: t.getAttribute("target"),
@@ -170,30 +226,30 @@
                             label: t.textContent.replace(/\s+/g, " ").trim(),
                             title: e.querySelector(".service-card-mobile-title,.tdb-treatment-title")?.textContent.trim() || ""
                         };
-                    }), d = n.querySelector(".service-card-button-wrap a[href],.tdb-treatment-source a[href]");
-                    if (!d) return null;
-                    const c = r + ":" + [ ...document.querySelectorAll(".parallax-swiper_component") ].indexOf(e), l = "back_forward" === performance.getEntriesByType?.("navigation")[0]?.type ? history.state?.tdbParallax?.[c] : null, u = l?.href ? Number.isInteger(l.index) && o[l.index]?.href === l.href ? l.index : o.findIndex(e => e?.href === l.href) : -1, p = u >= 0 ? u : 0, m = u >= 0;
+                    }), l = n.querySelector(".service-card-button-wrap a[href],a.tdb-treatment-source[href]");
+                    if (!l) return null;
+                    const c = r + ":" + [ ...document.querySelectorAll(".parallax-swiper_component") ].indexOf(e), d = "back_forward" === performance.getEntriesByType?.("navigation")[0]?.type ? history.state?.tdbParallax?.[c] : null, u = d?.href ? Number.isInteger(d.index) && o[d.index]?.href === d.href ? d.index : o.findIndex(e => e?.href === d.href) : -1, p = u >= 0 ? u : 0, m = u >= 0;
                     p && (n.style.setProperty("--tdb-parallax-initial-index", String(p)), e.classList.contains("tdb-service-parallax") && n.querySelector(":scope > .swiper-wrapper")?.classList.add("tdb-parallax-initial-pose"));
                     const b = e.querySelector(":scope > .tdb-service-cta,:scope > .tdb-treatment-cta"), h = b?.querySelector("[data-tdb-parallax-cta]");
                     if (s && !h) return null;
-                    const v = h || d.cloneNode(!0);
-                    h || (v.removeAttribute("aria-hidden"), v.removeAttribute("tabindex"), v.removeAttribute("data-fade-slide"),
-                    v.classList.remove("fade", "animate"), v.setAttribute("data-tdb-parallax-cta", ""),
-                    [ v, ...v.querySelectorAll("[id]") ].forEach(e => e.removeAttribute("id"))), m && l.held && v.classList.add("is-touch-held", "is-touch-input");
-                    const w = b || document.createElement("div");
-                    b || (w.className = "tdb-parallax-cta-layer"), b || ("/location" === window.location.pathname.replace(/\/$/, "") && w.classList.add("is-location"),
-                    w.appendChild(v));
-                    const f = [];
+                    const v = h || l.cloneNode(!0);
+                    h || (v.removeAttribute("aria-hidden"), v.removeAttribute("tabindex"), v.removeAttribute("data-fade-slide"), 
+                    v.classList.remove("fade", "animate"), v.setAttribute("data-tdb-parallax-cta", ""), 
+                    [ v, ...v.querySelectorAll("[id]") ].forEach(e => e.removeAttribute("id"))), m && d.held && v.classList.add("is-touch-held", "is-touch-input");
+                    const f = b || document.createElement("div");
+                    b || (f.className = "tdb-parallax-cta-layer"), b || ("/location" === window.location.pathname.replace(/\/$/, "") && f.classList.add("is-location"), 
+                    f.appendChild(v));
+                    const w = [];
                     a.forEach((e, t) => {
                         e.setAttribute("data-tdb-parallax-cta-index", String(t)), s || e.querySelectorAll(".showcase-content_btm a.button").forEach(e => {
-                            f.push({
+                            w.push({
                                 node: e,
                                 parent: e.parentNode,
                                 next: e.nextSibling
                             }), e.remove();
                         });
-                    }), b || (e.classList.add("has-static-parallax-cta"), e.appendChild(w));
-                    let g = null, y = !1, x = !1, L = null, E = null, A = !1, S = null, B = !1, T = m && Boolean(l.held), C = !1, D = 0, q = !1;
+                    }), b || (e.classList.add("has-static-parallax-cta"), e.appendChild(f));
+                    let g = null, y = !1, x = !1, L = null, E = null, A = !1, S = null, B = !1, q = m && Boolean(d.held), C = !1, T = 0, D = !1;
                     function k() {
                         const e = history.state;
                         if (null != e && ("object" != typeof e || Array.isArray(e))) return;
@@ -212,17 +268,17 @@
                             }, "");
                         } catch (e) {}
                     }
-                    function _() {
+                    function M() {
                         v.classList.contains("is-touch-held") && (v.classList.remove("is-touch-held"), k());
                     }
-                    function M() {
-                        q = !1, S = null, B = !1, C = !1;
+                    function _() {
+                        D = !1, S = null, B = !1, C = !1;
                     }
                     function P() {
-                        k(), M();
+                        k(), _();
                     }
                     function R() {
-                        y || "true" === v.getAttribute("aria-disabled") || (T = !0, v.classList.add("is-touch-input", "is-touch-held"));
+                        y || "true" === v.getAttribute("aria-disabled") || (q = !0, v.classList.add("is-touch-input", "is-touch-held"));
                     }
                     function I(t) {
                         const r = t.touches[0];
@@ -230,52 +286,52 @@
                             x: r.clientX,
                             y: r.clientY,
                             inComponent: e.contains(t.target)
-                        } : null, D = window.scrollY, q = !1, C = !1, S?.inComponent && (A = !0), v.contains(t.target) && R();
+                        } : null, T = window.scrollY, D = !1, C = !1, S?.inComponent && (A = !0), v.contains(t.target) && R();
                     }
-                    function j(e) {
+                    function N(e) {
                         const t = e.touches[0];
                         if (!S || !t) return;
                         const r = Math.abs(t.clientX - S.x), n = Math.abs(t.clientY - S.y);
-                        Math.max(r, n) > 8 && S.inComponent && (C = !0, _()), n > 8 && n > r && (q = !0,
+                        Math.max(r, n) > 8 && S.inComponent && (C = !0, M()), n > 8 && n > r && (D = !0, 
                         z());
                     }
-                    function N(e) {
-                        e.deltaY && (D = window.scrollY, q = !0);
+                    function j(e) {
+                        e.deltaY && (T = window.scrollY, D = !0);
                     }
                     function z() {
-                        !q || Math.abs(window.scrollY - D) < 2 || (q = !1, _());
+                        !D || Math.abs(window.scrollY - T) < 2 || (D = !1, M());
                     }
                     function F(t) {
-                        C = !1, e.contains(t.target) && (A = !0), B = v.contains(t.target) && !y && "true" !== v.getAttribute("aria-disabled"),
-                        "touch" === t.pointerType || "pen" === t.pointerType ? B && R() : (T = !1, v.classList.remove("is-touch-input"),
-                        _());
+                        C = !1, e.contains(t.target) && (A = !0), B = v.contains(t.target) && !y && "true" !== v.getAttribute("aria-disabled"), 
+                        "touch" === t.pointerType || "pen" === t.pointerType ? B && R() : (q = !1, v.classList.remove("is-touch-input"), 
+                        M());
                     }
                     function O() {
                         B = !1;
                     }
                     function Y() {
-                        B && _(), B = !1;
+                        B && M(), B = !1;
                     }
                     function W() {
-                        T = !1, v.classList.remove("is-touch-input"), _();
+                        q = !1, v.classList.remove("is-touch-input"), M();
                     }
                     function $() {
                         const t = g?.slides[g.activeIndex] || a[p], r = t?.getAttribute("data-tdb-parallax-cta-index"), n = null == r ? null : o[Number(r)];
-                        if (!h && e.hasAttribute("data-tdb-banner-parallax") && (v.hidden = !n?.href), !n?.href) return v.removeAttribute("href"),
+                        if (!h && e.hasAttribute("data-tdb-banner-parallax") && (v.hidden = !n?.href), !n?.href) return v.removeAttribute("href"), 
                         v.setAttribute("aria-disabled", "true"), void (v.tabIndex = -1);
                         v.setAttribute("href", n.href);
                         for (const e of [ "target", "rel" ]) n[e] ? v.setAttribute(e, n[e]) : v.removeAttribute(e);
                         !h && v.firstElementChild && v.firstElementChild.textContent !== n.label && (v.firstElementChild.textContent = n.label);
                         const i = h ? (v.firstElementChild?.textContent || v.textContent).trim() : n.label;
-                        v.setAttribute("aria-label", n.title ? `${i}: ${n.title}` : i), y ? v.setAttribute("aria-disabled", "true") : v.removeAttribute("aria-disabled"),
+                        v.setAttribute("aria-label", n.title ? `${i}: ${n.title}` : i), y ? v.setAttribute("aria-disabled", "true") : v.removeAttribute("aria-disabled"), 
                         v.tabIndex = y ? -1 : 0;
                     }
-                    function V(e) {
-                        e.defaultPrevented || y || C || "true" === v.getAttribute("aria-disabled") ? (e.preventDefault(),
-                        _()) : ((T || "touch" === e.pointerType || e.sourceCapabilities?.firesTouchEvents) && R(),
+                    function U(e) {
+                        e.defaultPrevented || y || C || "true" === v.getAttribute("aria-disabled") ? (e.preventDefault(), 
+                        M()) : ((q || "touch" === e.pointerType || e.sourceCapabilities?.firesTouchEvents) && R(), 
                         k());
                     }
-                    function X() {
+                    function V() {
                         L && !E && window.TDBSliderLoader && !x && (E = window.TDBSliderLoader.load(e).then(() => {
                             if (x || !e.isConnected) return;
                             if (window.TDBSwiper?.mount("parallax", e), !g) throw new Error("Parallax controls did not bind");
@@ -289,31 +345,31 @@
                             E = null, e.removeAttribute("aria-busy");
                         }));
                     }
-                    function U(t) {
+                    function X(t) {
                         const r = t.target.closest?.(".swiper-btn-prev,.swiper-btn-next");
-                        r && ("keydown" !== t.type || [ "Enter", " " ].includes(t.key)) && (_(), A = !0,
-                        g || (t.preventDefault(), t.stopPropagation(), A = !0, L = r.matches(".swiper-btn-prev") ? "prev" : "next",
-                        e.setAttribute("aria-busy", "true"), X()));
+                        r && ("keydown" !== t.type || [ "Enter", " " ].includes(t.key)) && (M(), A = !0, 
+                        g || (t.preventDefault(), t.stopPropagation(), A = !0, L = r.matches(".swiper-btn-prev") ? "prev" : "next", 
+                        e.setAttribute("aria-busy", "true"), V()));
                     }
                     function H() {
-                        x = !0, t.delete(e), g?.off("slideChange", K), g?.off("sliderFirstMove", _), v.removeEventListener("click", V),
-                        v.removeEventListener("pointerenter", G), v.removeEventListener("pointerleave", G),
-                        document.removeEventListener("pointerdown", F, !0), document.removeEventListener("pointerup", O, !0),
-                        document.removeEventListener("touchstart", I, !0), document.removeEventListener("touchmove", j, !0),
-                        document.removeEventListener("keydown", W, !0), v.removeEventListener("pointercancel", Y),
-                        e.removeEventListener("click", U, !0), e.removeEventListener("keydown", U, !0),
-                        window.removeEventListener("tdb:slider-loader-ready", X), window.removeEventListener("scroll", z),
-                        window.removeEventListener("wheel", N), window.removeEventListener("pagehide", P),
-                        window.removeEventListener("pageshow", M), !b && (w.remove(), e.classList.remove("has-static-parallax-cta")),
-                        b?.classList.remove("is-ready"), n.style.removeProperty("--tdb-parallax-initial-index"),
-                        a.forEach(e => e.removeAttribute("data-tdb-parallax-cta-index")), f.slice().reverse().forEach(({node: e, parent: t, next: r}) => {
+                        x = !0, t.delete(e), g?.off("slideChange", K), g?.off("sliderFirstMove", M), v.removeEventListener("click", U), 
+                        v.removeEventListener("pointerenter", G), v.removeEventListener("pointerleave", G), 
+                        document.removeEventListener("pointerdown", F, !0), document.removeEventListener("pointerup", O, !0), 
+                        document.removeEventListener("touchstart", I, !0), document.removeEventListener("touchmove", N, !0), 
+                        document.removeEventListener("keydown", W, !0), v.removeEventListener("pointercancel", Y), 
+                        e.removeEventListener("click", X, !0), e.removeEventListener("keydown", X, !0), 
+                        window.removeEventListener("tdb:slider-loader-ready", V), window.removeEventListener("scroll", z), 
+                        window.removeEventListener("wheel", j), window.removeEventListener("pagehide", P), 
+                        window.removeEventListener("pageshow", _), !b && (f.remove(), e.classList.remove("has-static-parallax-cta")), 
+                        b?.classList.remove("is-ready"), n.style.removeProperty("--tdb-parallax-initial-index"), 
+                        a.forEach(e => e.removeAttribute("data-tdb-parallax-cta-index")), w.slice().reverse().forEach(({node: e, parent: t, next: r}) => {
                             t.insertBefore(e, r?.parentNode === t ? r : null);
                         });
                     }
                     function G(e) {
                         h && "mouse" === e.pointerType && v.classList.toggle("is-hovered", "pointerenter" === e.type && "true" !== v.getAttribute("aria-disabled"));
                     }
-                    v.addEventListener("click", V), document.addEventListener("pointerdown", F, {
+                    v.addEventListener("click", U), document.addEventListener("pointerdown", F, {
                         capture: !0,
                         passive: !0
                     }), document.addEventListener("pointerup", O, {
@@ -322,21 +378,21 @@
                     }), document.addEventListener("touchstart", I, {
                         capture: !0,
                         passive: !0
-                    }), document.addEventListener("touchmove", j, {
+                    }), document.addEventListener("touchmove", N, {
                         capture: !0,
                         passive: !0
-                    }), document.addEventListener("keydown", W, !0), v.addEventListener("pointercancel", Y),
-                    e.addEventListener("click", U, !0), e.addEventListener("keydown", U, !0), window.addEventListener("tdb:slider-loader-ready", X),
+                    }), document.addEventListener("keydown", W, !0), v.addEventListener("pointercancel", Y), 
+                    e.addEventListener("click", X, !0), e.addEventListener("keydown", X, !0), window.addEventListener("tdb:slider-loader-ready", V), 
                     window.addEventListener("scroll", z, {
                         passive: !0
-                    }), window.addEventListener("wheel", N, {
+                    }), window.addEventListener("wheel", j, {
                         passive: !0
-                    }), window.addEventListener("pagehide", P), window.addEventListener("pageshow", M),
+                    }), window.addEventListener("pagehide", P), window.addEventListener("pageshow", _), 
                     $(), h && (v.addEventListener("pointerenter", G), v.addEventListener("pointerleave", G));
                     let J = v.getAttribute("href") ? p : -1;
                     function K() {
                         const e = g?.slides[g.activeIndex], t = Number(e?.getAttribute("data-tdb-parallax-cta-index"));
-                        t !== J && _(), J = t, $();
+                        t !== J && M(), J = t, $();
                     }
                     return {
                         initialIndex: p,
@@ -344,8 +400,8 @@
                             return m || A;
                         },
                         bind(e) {
-                            g !== e && (g = e, n.querySelector(":scope > .swiper-wrapper")?.classList.remove("tdb-parallax-initial-pose"),
-                            g.on("slideChange", K), g.on("sliderFirstMove", _), g.on("beforeDestroy", H), $());
+                            g !== e && (g = e, n.querySelector(":scope > .swiper-wrapper")?.classList.remove("tdb-parallax-initial-pose"), 
+                            g.on("slideChange", K), g.on("sliderFirstMove", M), g.on("beforeDestroy", H), $());
                         },
                         setBusy(e) {
                             y = e, $();
@@ -366,16 +422,16 @@
             const s = r.querySelector(":scope > [data-tdb-native-progress]");
             if (r.matches(e) && (!s || s.children.length < 2)) return !1;
             s || r.querySelector(":scope > .tdb-service-progress")?.remove();
-            const o = !!r.closest("#All-treatments"), d = s || document.createElement("div"), c = s?.firstElementChild || document.createElement("span");
-            s || (d.className = "tdb-service-progress", c.className = "tdb-service-progress-fill");
-            const l = s?.children[1] || c.cloneNode();
-            o && !r.hasAttribute("data-tdb-treatment") && [ c, l ].forEach(e => e.classList.add("is-treatment")),
-            d.setAttribute("aria-hidden", "true"), s || (d.append(c, l), r.append(d));
-            let u = !1, p = !1, m = null, b = null, h = [], v = 0, w = !0, f = !0, g = 0, y = 1;
+            const o = !!r.closest("#All-treatments"), l = s || document.createElement("div"), c = s?.firstElementChild || document.createElement("span");
+            s || (l.className = "tdb-service-progress", c.className = "tdb-service-progress-fill");
+            const d = s?.children[1] || c.cloneNode();
+            o && !r.hasAttribute("data-tdb-treatment") && [ c, d ].forEach(e => e.classList.add("is-treatment")), 
+            l.setAttribute("aria-hidden", "true"), s || (l.append(c, d), r.append(l));
+            let u = !1, p = !1, m = null, b = null, h = [], v = 0, f = !0, w = !0, g = 0, y = 1;
             const x = window.TDBRenderedProgress.observe({
                 track: i,
                 paint: function() {
-                    const e = w;
+                    const e = f;
                     if (e && (h = [ ...i.children ].filter(e => e.classList.contains("swiper-slide")).map((e, t) => {
                         const r = e.getAttribute("data-swiper-slide-index") ?? String(t);
                         return {
@@ -383,10 +439,10 @@
                             index: r,
                             value: Number(r)
                         };
-                    }), v = new Set(h.map(e => e.index)).size, w = !1), !v) return e && d.classList.remove("is-ready"),
+                    }), v = new Set(h.map(e => e.index)).size, f = !1), !v) return e && l.classList.remove("is-ready"), 
                     null;
-                    const t = n.getBoundingClientRect(), a = f ? function(e) {
-                        if (f = !1, y = window.devicePixelRatio || 1, r.hasAttribute("data-tdb-treatment")) return g = d.getBoundingClientRect().width,
+                    const t = n.getBoundingClientRect(), a = w ? function(e) {
+                        if (w = !1, y = window.devicePixelRatio || 1, r.hasAttribute("data-tdb-treatment")) return g = l.getBoundingClientRect().width, 
                         null;
                         const t = r.getBoundingClientRect(), n = e.bottom - t.top - r.clientTop, i = Math.ceil((o ? 0 : e.left) * y) / y, a = Math.floor((o ? document.documentElement.clientWidth : e.right) * y) / y;
                         return g = Math.max(0, a - i), {
@@ -394,25 +450,25 @@
                             left: i - t.left - r.clientLeft
                         };
                     }(t) : null, s = o && (innerWidth < 768 || innerWidth >= 992), u = t.left + (s ? 0 : t.width / 2);
-                    let p = -1 / 0, x = 1 / 0, L = 0, E = 0;
-                    for (const e of h) {
-                        const t = e.node.getBoundingClientRect(), r = t.left + (s ? 0 : t.width / 2) - u;
-                        r < 0 && r >= p ? (p = r, L = e.value) : r >= 0 && r < x && (x = r, E = e.value);
+                    let p = -1 / 0, x = 1 / 0, L = 0, E = 0, A = 0, S = h.length;
+                    for (;A < S; ) {
+                        const e = A + S >>> 1, t = h[e], r = t.node.getBoundingClientRect(), n = r.left + (s ? 0 : r.width / 2) - u;
+                        n < 0 ? (p = n, L = t.value, A = e + 1) : (x = n, E = t.value, S = e);
                     }
-                    const A = p === -1 / 0 ? E : x === 1 / 0 ? L : L + (E - L + v) % v * (-p / (x - p)), S = Math.round(g * y / v) / y, B = (A % v + v) % v, T = v <= 1 ? 0 : B <= v - 1 ? B * (g - S) / (v - 1) : g - S + (B - v + 1) * S, C = Math.round(T * y) / y;
-                    if (a && (d.style.top = a.top + "px", d.style.left = a.left + "px", d.style.width = g + "px"),
-                    e && d.classList.add("is-ready"), S !== b) {
-                        for (const e of [ c, l ]) e.style.width = S + "px";
-                        b = S;
+                    const B = p === -1 / 0 ? E : x === 1 / 0 ? L : L + (E - L + v) % v * (-p / (x - p)), q = Math.round(g * y / v) / y, C = (B % v + v) % v, T = v <= 1 ? 0 : C <= v - 1 ? C * (g - q) / (v - 1) : g - q + (C - v + 1) * q, D = Math.round(T * y) / y;
+                    if (a && (l.style.top = a.top + "px", l.style.left = a.left + "px", l.style.width = g + "px"), 
+                    e && l.classList.add("is-ready"), q !== b) {
+                        for (const e of [ c, d ]) e.style.width = q + "px";
+                        b = q;
                     }
-                    const D = C + ":" + g;
-                    D !== m && (c.style.transform = `translateX(${C}px)`, l.style.transform = `translateX(${C - g}px)`,
-                    m = D);
+                    const k = D + ":" + g;
+                    k !== m && (c.style.transform = `translateX(${D}px)`, d.style.transform = `translateX(${D - g}px)`, 
+                    m = k);
                 },
                 enabled: () => u && !p,
                 onMutation: e => {
                     for (const t of e) if ("childList" === t.type && t.target === i || t.target.parentElement === i && ("data-swiper-slide-index" === t.attributeName || "class" === t.attributeName && t.target.classList.contains("swiper-slide") !== h.some(e => e.node === t.target))) {
-                        w = !0;
+                        f = !0;
                         break;
                     }
                 }
@@ -429,7 +485,7 @@
                 x.pause(), document.hidden || S();
             }
             function S() {
-                f = !0, L();
+                w = !0, L();
             }
             E.observe(n), document.addEventListener("visibilitychange", A);
             const B = new ResizeObserver(S);
@@ -438,8 +494,8 @@
             }), S(), t.set(r, {
                 wrapper: i,
                 dispose() {
-                    p = !0, E.disconnect(), B.disconnect(), x.destroy(), document.removeEventListener("visibilitychange", A),
-                    window.removeEventListener("resize", S), s ? d.classList.remove("is-ready") : d.remove();
+                    p = !0, E.disconnect(), B.disconnect(), x.destroy(), document.removeEventListener("visibilitychange", A), 
+                    window.removeEventListener("resize", S), s ? l.classList.remove("is-ready") : l.remove();
                 }
             }), L(), !0;
         }
@@ -451,9 +507,9 @@
         };
     })();
     window.TDBParallax = Object.freeze({
-        version: "1.2.3",
+        version: "1.3.1",
         refresh: function(e = document) {
-            t.refresh(e), e instanceof Element && e.matches(".parallax-swiper_component") && r.prepare(e),
+            t.refresh(e), e instanceof Element && e.matches(".parallax-swiper_component") && r.prepare(e), 
             e.querySelectorAll?.(".parallax-swiper_component").forEach(e => r.prepare(e)), n.refresh(e);
         },
         prepare: r.prepare,
@@ -475,28 +531,28 @@ window.TDBParallax?.refresh(), "loading" === document.readyState && document.add
             const a = n || document.createElement("script");
             let s = !1;
             const o = e => {
-                s || (s = !0, clearTimeout(l), a.removeEventListener("load", d), a.removeEventListener("error", c),
+                s || (s = !0, clearTimeout(d), a.removeEventListener("load", l), a.removeEventListener("error", c), 
                 e ? i(e) : r(a));
-            }, d = () => o(), c = () => o(new Error("TDB script failed: " + e)), l = setTimeout(() => o(new Error("TDB script timed out: " + e)), 2e4);
-            a.addEventListener("load", d, {
+            }, l = () => o(), c = () => o(new Error("TDB script failed: " + e)), d = setTimeout(() => o(new Error("TDB script timed out: " + e)), 2e4);
+            a.addEventListener("load", l, {
                 once: !0
             }), a.addEventListener("error", c, {
                 once: !0
-            }), n || (a.src = e, a.type = "text/javascript", a.charset = "UTF-8", a.async = !0,
+            }), n || (a.src = e, a.type = "text/javascript", a.charset = "UTF-8", a.async = !0, 
             a.setAttribute(t, "true"), document.head.appendChild(a));
         }) : Promise.resolve(n);
     }
-    const t = e("https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@v0.3.0/dist/tdb-consent.js", "data-tdb-consent-js", () => Boolean(window.TDBConsent)).catch(e => {
+    const t = e(new URL("tdb-consent.min.js", "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@dead3424dcad0607b95fe5b3704ab5247de45869/dist/").href, "data-tdb-consent-js", () => Boolean(window.TDBConsent)).catch(e => {
         throw console.error("TDB Consent failed to load"), e;
-    }), r = e("https://cdn.jsdelivr.net/gh/TheDentalBarns/CookieScript@798b41dc10895752a232d631cf7e5232c3598673/tdb-cookie-consent.min.js", "data-cookie-script-js", () => Boolean(window.CookieScript?.instance)), n = Promise.resolve(null), i = e("https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@6fa2423188ddccf9ef354132d3c1a303245e17a5/dist/tdb-attribution.min.js", "data-tdb-attribution-js", () => Boolean(window.TDBAttribution)), a = [...document.querySelectorAll("[fs-scrolldisable-element]")].some(node => node.getAttribute("fs-scrolldisable-element") !== "preserve" && !node.hasAttribute("data-tdb-nav-scroll-lock")) ? e("https://cdn.jsdelivr.net/npm/@finsweet/attributes-scrolldisable@1.6.2/scrolldisable.js", "data-scrolldisable-js") : Promise.resolve(null), s = e(new URL("tdb-footer-runtime.min.js", TDBImmediateModuleRoot).href, "data-tdb-footer-runtime-js", () => Boolean(window.TDBFooterRuntime)), o = Promise.allSettled([ t, r, n, s ]);
+    }), r = Promise.resolve(window.CookieScript?.instance), n = Promise.resolve(null), i = e("https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@6fa2423188ddccf9ef354132d3c1a303245e17a5/dist/tdb-attribution.min.js", "data-tdb-attribution-js", () => Boolean(window.TDBAttribution)), a = [ ...document.querySelectorAll("[fs-scrolldisable-element]") ].some(e => "preserve" !== e.getAttribute("fs-scrolldisable-element") && !e.hasAttribute("data-tdb-nav-scroll-lock")) ? e("https://cdn.jsdelivr.net/npm/@finsweet/attributes-scrolldisable@1.6.2/scrolldisable.js", "data-scrolldisable-js") : Promise.resolve(null), s = e(new URL("tdb-footer-runtime.min.js", TDBImmediateModuleRoot).href, "data-tdb-footer-runtime-js", () => Boolean(window.TDBFooterRuntime)), o = Promise.allSettled([ t, r, n, s ]);
     o.then(() => {
         window.__TDB_PRIORITY_READY__ = !0, window.dispatchEvent(new Event("tdb:priority-ready"));
     });
-    const d = Promise.allSettled([ t, r, n, i, a, s ]);
+    const l = Promise.allSettled([ t, r, n, i, a, s ]);
     window.TDBImmediateRuntimeBatch = Object.freeze({
-        version: "0.11.6",
+        version: "0.11.12",
         priorityReady: o,
-        ready: d,
+        ready: l,
         status: () => ({
             priorityReady: Boolean(window.__TDB_PRIORITY_READY__),
             consent: Boolean(window.TDBConsent),

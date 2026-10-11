@@ -4,7 +4,7 @@
   const script=document.currentScript;
   if(!script||window.TDBFiveSensesEntry)return;
   const root=new URL('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@c847ee9841b79a6749c39eb482d0c91c23f38ec0/');
-  const moduleURL=new URL('tdb-five-senses.js',script.src).href;
+  const moduleURL=new URL('dist/tdb-five-senses.js',root).href;
   const styleURL=new URL('dist/tdb-five-senses.css',root).href;
   const assetBase=JSON.parse(script.dataset.assets||'{}');
   for(const name of ['calm.mp3','clinical.mp3','scent-candle.webp','taste-clinical.webp','surgery-clinical-clean.webp'])if(!assetBase[name])assetBase[name]=new URL(`assets/five-senses/${name}`,root).href;
@@ -28,7 +28,7 @@
 html.tdb-senses-scroll-locked,html.tdb-senses-scroll-locked body{overflow:hidden!important}
 dialog[data-tdb-senses-shell]{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;outline:none;--tdb-senses-gutter:3vw;color:var(--tdb-senses-cream,#f5f1e6)!important}
 dialog[data-tdb-senses-shell]:not(.tdb-senses){background:#222!important}
-dialog[data-tdb-senses-shell]::backdrop{background:#131210;opacity:1;transition:opacity 500ms ease!important}
+dialog[data-tdb-senses-shell]::backdrop{background:transparent!important;opacity:1;transition:opacity 500ms ease!important}
 dialog[data-tdb-senses-shell][data-senses-opening]::backdrop,dialog[data-tdb-senses-shell][data-senses-closing]::backdrop{opacity:0!important}
 dialog[data-tdb-senses-shell][data-senses-handover] .tdb-senses-start{opacity:0;pointer-events:none}
 dialog[data-tdb-senses-shell] .tdb-senses-loading-view{position:absolute;inset:0;z-index:30;display:grid;align-content:center;justify-items:center;gap:1rem;margin:0;background:#222;color:#f5f1e6}
@@ -314,7 +314,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
   });
   window.addEventListener('pagehide',()=>{stopPageAudio();if(active)dispose(active,false);});
   document.addEventListener('visibilitychange',()=>{if(document.hidden){stopPageAudio();active?.calmAudio?.stop();}});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.14.6'});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.14.7'});
   // A direct experience link arrives on Home before any audio is unlocked.
   if(location.pathname==='/'&&query.get('five-senses')==='1'){
     const url=new URL(location.href);url.searchParams.delete('five-senses');history.replaceState(history.state,'',url);

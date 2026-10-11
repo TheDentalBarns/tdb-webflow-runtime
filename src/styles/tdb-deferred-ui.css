@@ -50,10 +50,7 @@ html.lenis body {
   opacity: 1;
 }
 
-/* Homepage only: no drawer layout before scroll or explicit intent. */
-html[data-wf-page="677cf86df9952f978d94d8a9"] #tdb-vip-drawer:not([data-tdb-vip-prepared]) {
-  display: none !important;
-}
+/* The homepage owns its before-paint VIP preparation guard in its critical CSS. */
 /* Readiness is read on html only; it must not invalidate descendants. */
 @property --tdb-ui-ready {
   syntax: "<number>";
