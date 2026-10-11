@@ -1,6 +1,8 @@
 /* Viewport reload memory v2.0.0. Inline before body parsing.
  * Adapters preserve the existing DD and page-break runtime contracts.
  * Save uses their cached document geometry, never a layout measurement.
+ * TODO: Revisit keeping this inline versus removing reload memory entirely.
+ * Profile load-time CPU, DOM scanning, storage work and retained memory first.
  */
 (() => {
   'use strict';
