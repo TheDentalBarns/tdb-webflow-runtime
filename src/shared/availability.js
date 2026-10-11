@@ -1,4 +1,4 @@
-/* TDB shared appointment settings v1.1.0. One request and tab cache per channel. */
+/* TDB shared appointment settings v1.1.1. One request and tab cache per channel. */
 (() => {
   'use strict';
   if (window.TDBAvailability) return;
@@ -28,9 +28,13 @@
   function parse(root, slug) {
     const values = {};
     for (const name of fields) {
-      const nodes = root.querySelectorAll('[data-banner-field="' + name + '"]');
-      if (nodes.length !== 1) throw Error('Incomplete appointment settings');
-      values[name] = nodes[0].textContent.trim();
+      const attribute = 'data-banner-' + name;
+      if (root.hasAttribute(attribute)) values[name] = root.getAttribute(attribute).trim();
+      else {
+        const nodes = root.querySelectorAll('[data-banner-field="' + name + '"]');
+        if (nodes.length !== 1) throw Error('Incomplete appointment settings');
+        values[name] = nodes[0].textContent.trim();
+      }
     }
     return parseValues(values,slug);
   }
@@ -84,7 +88,7 @@
   function seed(root = document, slug = channel) {
     const e = entry(slug);
     if (e.data) return snapshot(e);
-    const row = [...root.querySelectorAll('[data-tdb-banner-item]')].find(n => (n.getAttribute('data-tdb-banner-item') || n.querySelector('[data-banner-field="slug"]')?.textContent.trim()) === slug);
+    const row = [...root.querySelectorAll('[data-tdb-banner-item]')].find(n => (n.getAttribute('data-tdb-banner-item') || n.getAttribute('data-banner-slug') || n.querySelector('[data-banner-field="slug"]')?.textContent.trim()) === slug);
     if (row) { try { e.data=Object.freeze(parse(row,slug));e.checkedAt=Date.now();e.state='ready';persist(e); } catch(_) {} }
     return snapshot(e);
   }
@@ -151,6 +155,6 @@
     const p=Object.fromEntries(format('slot',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(at).map(p=>[p.type,p.value]));
     return {at,day:p.year+'-'+p.month+'-'+p.day,time:p.hour+':'+p.minute};
   }
-  window.TDBAvailability=Object.freeze({version:'1.1.0',channel,read,seed,subscribe,ukDate,assessmentSlot,maxAge,snapshot:(slug=channel)=>snapshot(entry(slug))});
+  window.TDBAvailability=Object.freeze({version:'1.1.1',channel,read,seed,subscribe,ukDate,assessmentSlot,maxAge,snapshot:(slug=channel)=>snapshot(entry(slug))});
   dispatchEvent(new Event('tdb:availability-ready'));
 })();
