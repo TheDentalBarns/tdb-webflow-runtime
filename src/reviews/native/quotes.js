@@ -1,27 +1,52 @@
-/* TDB CMS review quotes v1.2.0. CMS selects records; native template owns layout. */
+/* TDB review quote adapter v2.1.1. Native component + shared quote carousel. */
 (() => {
-'use strict';if(window.TDBReviewQuotes)return;const instances=new WeakMap();
-function mount(old,data,{openReviews}){
- if(instances.has(old))return instances.get(old);
- const source=document.querySelector('[data-tdb-quotes-template]');if(!source)throw Error('Native review carousel template unavailable');
- const records=data.featured.map(id=>data.records.find(r=>r.id===id)).filter(Boolean);if(!records.length)return {destroy(){}};
- const root=source.cloneNode(true);root.removeAttribute('data-tdb-quotes-template');root.setAttribute('data-tdb-quotes','');root.hidden=false;root.classList.remove('is-hidden');
- const viewport=root.querySelector('[data-tdb-quotes-viewport]'),track=root.querySelector('[data-tdb-quotes-track]'),template=root.querySelector('[data-tdb-quotes-card]');
- const motion=window.TDBMotion,reduced=window.TDBMotion.reduced,controller=new AbortController(),{signal}=controller;let entryTimer=0,entryPending=records.length>1&&!reduced.matches,swiper,animations=[];
- function stop(){clearTimeout(entryTimer);animations.forEach(a=>a.cancel());animations=[];}
- track.replaceChildren(...records.map(record=>{const card=template.cloneNode(true);card.dataset.reviewId=record.id;card.querySelector('[data-tdb-quotes-excerpt]').textContent=record.excerpt;card.querySelector('[data-tdb-quotes-name]').textContent=record.name;card.querySelector('[data-tdb-quotes-source]').replaceChildren(...window.TDBReviewCMS.sourceIcon(record.platform,true).childNodes);const button=card.querySelector('[role="button"]');button.setAttribute('aria-label','Read full review by '+record.name);return card;}));
- window.jQuery?.(old).triggerHandler('mouseenter');old.replaceWith(root);
- const ticker=window.TDBNativeTicker.mount(root.querySelector('[data-tdb-quotes-current]'));root.querySelector('[data-tdb-quotes-total]').textContent=String(records.length).padStart(2,'0');
- function reveal(){stop();if(!swiper)return;swiper.slides.forEach((node,i)=>{node.inert=i!==swiper.activeIndex;node.setAttribute('aria-hidden',String(i!==swiper.activeIndex));});if(reduced.matches)return;const content=swiper.slides[swiper.activeIndex]?.querySelector('.tdb-quotes_open');if(content?.animate)animations=[content.animate([{opacity:0},{opacity:1}],{duration:motion.defaults.fadeIn,easing:'ease-out'})];}
- swiper=window.TDBSwiper.create(viewport,{direction:'horizontal',wrapperClass:'tdb-quotes_track',slideClass:'tdb-quotes_slide',slidesPerView:1,loop:records.length>1,loopAdditionalSlides:1,loopPreventsSlide:false,preventInteractionOnTransition:false,observer:false,speed:reduced.matches?0:motion.duration(innerWidth),keyboard:{enabled:false},on:{slideChange(){queueMicrotask(()=>ticker.update(String(swiper.realIndex+1).padStart(2,'0'),swiper.swipeDirection==='prev'?-1:1));},slideChangeTransitionStart:stop,slideChangeTransitionEnd:reveal,touchStart(){entryPending=false;stop();}}});reveal();const dd=motion.ddText(root.querySelectorAll('.tdb-quotes_byline'));
- const io=new IntersectionObserver(entries=>{if(entryPending&&entries.some(e=>e.isIntersecting&&e.intersectionRatio>=.2)){entryTimer=setTimeout(()=>{entryPending=false;swiper.slideNext();},motion.defaults.entryDelay);}else clearTimeout(entryTimer);},{threshold:.2});io.observe(viewport);
- root.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();entryPending=false;e.key==='ArrowLeft'?swiper.slidePrev():swiper.slideNext();}},{signal});
- async function open(e){const target=e.target.closest('[role="button"]');if(!target||!swiper.allowClick||swiper.animating)return;if(e.type==='keydown'&&!['Enter',' '].includes(e.key))return;e.preventDefault();entryPending=false;target.setAttribute('aria-busy','true');try{await openReviews({trigger:target,reviewId:target.closest('[data-review-id]').dataset.reviewId,signal});}catch(error){if(!signal.aborted)root.dispatchEvent(new CustomEvent('tdb:review-error',{bubbles:true,detail:{error}}));}finally{target.removeAttribute('aria-busy');}}
- root.addEventListener('click',open,{signal});root.addEventListener('keydown',open,{signal});
- const resize=new ResizeObserver(()=>{if(!swiper.animating)swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);});resize.observe(viewport);
- reduced.addEventListener('change',()=>{stop();swiper.params.speed=reduced.matches?0:motion.duration(innerWidth);if(reduced.matches){entryPending=false;swiper.slideTo(swiper.activeIndex,0);ticker.settle();}},{signal});
- const api={destroy(){dd.destroy();controller.abort();io.disconnect();resize.disconnect();stop();swiper.destroy(true,true);ticker.destroy();root.replaceWith(old);instances.delete(old);}};instances.set(old,api);return api;
+'use strict'; if(window.TDBReviewQuotes)return;
+const instances=new WeakMap();
+const assets=new Map();
+function platformAsset(platform){
+ if(assets.has(platform))return assets.get(platform);
+ const template=[...document.querySelectorAll('[data-tdb-review-icon]')].find(node=>node.dataset.tdbReviewIcon===platform);
+ const url=template?.querySelector('img')?.getAttribute('src')||template?.querySelector('image')?.getAttribute('href')||'';
+ if(url)assets.set(platform,url);
+ return url;
 }
-window.TDBReviewQuotes=Object.freeze({version:'1.2.0',mount});
+function mount(root,data,{openReviews}) {
+ if(instances.has(root))return instances.get(root);
+ const track=root.querySelector('[data-tdb-team-track]');
+ // Selection order is supplied by the consumer; no fixed names or feed positions.
+ const records=data.featured.map(id=>data.getCached(id)).filter(Boolean);
+ if(!records.length)return {destroy(){}};
+ // Hydrate the authored cards in place; never replace the component or its layout.
+ // Only CMS count changes require adding/removing a card.
+ const template=track.children.length<records.length?track.firstElementChild.cloneNode(true):null;
+ while(track.children.length>records.length)track.lastElementChild.remove();
+ while(track.children.length<records.length)track.append(template.cloneNode(true));
+ records.forEach((record,index)=>{
+  const card=track.children[index];card.dataset.reviewId=record.id;
+  card.querySelector('[data-tdb-team-text]').textContent=record.excerpt;
+  card.querySelector('[data-tdb-quotes-name]').textContent=record.name;
+  const source=card.querySelector('[data-tdb-quotes-source]'),asset=platformAsset(record.platform);
+  source.dataset.reviewPlatform=record.platform;
+  source.style.backgroundImage=asset?`url("${asset}")`:'none';
+  source.style.width=asset?'':'auto';
+  source.textContent=asset?'':record.platform;
+  source.setAttribute('aria-hidden','true');
+  const trigger=card.querySelector('[data-tdb-quote-action]');
+  trigger.setAttribute('aria-label','Read full review by '+record.name);
+  trigger.setAttribute('aria-disabled','false');trigger.setAttribute('tabindex','0');
+ });
+ const carousel=window.TDBQuoteCarousel.mount(root,{onActivate:({trigger,slide,signal})=>
+  openReviews({trigger,reviewId:slide.dataset.reviewId,signal})});
+ const api={swiper:carousel.swiper,destroy(){
+  carousel.destroy();
+  root.querySelectorAll('[data-tdb-quote-action]').forEach(trigger=>{
+   trigger.setAttribute('aria-disabled','true');trigger.setAttribute('tabindex','-1');
+  });
+  instances.delete(root);
+ }};
+ instances.set(root,api);return api;
+}
+window.TDBReviewQuotes=Object.freeze({version:'2.1.1',mount});
 window.TDBSwiper?.register('review-testimonials',window.TDBReviewQuotes);
 })();
+
