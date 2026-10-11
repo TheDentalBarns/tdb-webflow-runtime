@@ -1,5 +1,5 @@
 /* First-open native shell + live Webflow CMS records. No prefetch or warm-up.
- * CMS order is independent of the visible marquee's random order: match logos.
+ * CMS order is independent of the visible marquee's random order: match item IDs.
  */
 (() => {
   'use strict';
@@ -7,6 +7,8 @@
   const html = __TDB_PARTNER_CARD_HTML__;
   const records = new Map();
   function key(item) {
+    const id = item.getAttribute('data-item-id');
+    if (id) return 'item:' + id;
     const src = item.querySelector('.logo_image')?.getAttribute('src');
     return src ? new URL(src, location.href).pathname : '';
   }

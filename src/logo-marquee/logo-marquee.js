@@ -168,6 +168,11 @@
     let centreAnimation = null, centreFrom = 0, measuredCardWidth = 0;
     const entries = [], cards = new Map();
     const shellId = 'tdb-partner-card-' + (++cardId);
+    if (lazy) track.querySelectorAll(CONFIG.itemSelector).forEach(item => {
+      const name = item.querySelector(CONFIG.logoSelector)?.alt || item.getAttribute('data-item-id')?.replace(/-/g, ' ') || 'Partner';
+      item.setAttribute('aria-label', name + ': centre and show details');
+      item.setAttribute('aria-expanded', 'false');
+    });
     let controlsBound = false, pendingItem = null;
     function collectEntries(sources) {
       if (visitButton) remember(visitButton, ['style', 'class', 'href', 'target', 'rel', 'aria-label']);

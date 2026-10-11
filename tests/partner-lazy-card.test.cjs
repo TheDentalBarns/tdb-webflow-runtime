@@ -4,8 +4,8 @@ const fs = require('node:fs');
 const {JSDOM} = require('jsdom');
 const read = path => fs.readFileSync(path, 'utf8');
 const tick = () => new Promise(resolve => setImmediate(resolve));
-const logo = name => `<div class="tdb-partner-logo"><img class="logo_image" src="https://cdn.example.com/${name}.svg" alt="${name}"></div>`;
-const record = name => `<div class="tdb-partner-logo"><img class="logo_image" src="https://cdn.example.com/${name}.svg"><div class="tdb-partner-source"><div class="tooltip2_card-wrapper"><div class="tooltip2_image-wrapper"><img class="tooltip2_image" src="https://cdn.example.com/${name}.webp"></div><div class="tdb-partner-copy"><div class="text-style-tagline-restored">${name}</div><div class="tdb-partner-copy-body">${name} content</div></div></div><a data-tdb-partner-link href="https://${name}.example.com/" target="_blank" rel="noopener"></a></div></div>`;
+const logo = name => `<div class="tdb-partner-logo" data-item-id="${name}"><img class="logo_image" src="https://cdn.example.com/${name}.svg" alt="${name}"></div>`;
+const record = name => `<div class="tdb-partner-logo" data-item-id="${name}"><img class="logo_image" src="https://cdn.example.com/${name}.svg"><div class="tdb-partner-source"><div class="tooltip2_card-wrapper"><div class="tooltip2_image-wrapper"><img class="tooltip2_image" src="https://cdn.example.com/${name}.webp"></div><div class="tdb-partner-copy"><div class="text-style-tagline-restored">${name}</div><div class="tdb-partner-copy-body">${name} content</div></div></div><a data-tdb-partner-link href="https://${name}.example.com/" target="_blank" rel="noopener"></a></div></div>`;
 const feed = `<div data-tdb-partner-records>${record('B')}${record('A')}</div>`;
 function setup({native=false}={}) {
  const stage = native ? read('src/logo-marquee/card-template.html') : '';
