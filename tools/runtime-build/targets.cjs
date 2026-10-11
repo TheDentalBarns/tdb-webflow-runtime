@@ -27,6 +27,7 @@ module.exports = {
   'dist/tdb-usp-drawer.js': ['src/usp/drawer.js'],
   'dist/tdb-usp-drawer-template.js': ['src/usp/lazy-template.js'],
   'dist/tdb-usp-drawer.css': ['src/styles/tdb-usp-drawer.css'],
+  'dist/tdb-drawer.css': ['src/styles/tdb-drawer.css'],
   'dist/tdb-usp-loader.js': ['src/usp/loader.js'],
   'dist/tdb-consent-startup.min.js': ['src/shared/scroll-lock.js', 'src/consent/banner.js'],
   'dist/tdb-navbar-loader.js': ['src/navbar/native-foundation-style.js', 'src/shared/phone-landscape.js', 'src/navbar/native-foundation.js', 'src/navbar/navbar-state.js', 'src/shared/scroll-lock.js',

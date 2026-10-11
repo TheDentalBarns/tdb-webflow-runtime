@@ -1,4 +1,4 @@
-/* TDB review loader v3.11.0. Based on the deployed v3.10.0 release (3217122).
+/* TDB review loader v3.11.1. Based on the deployed v3.10.0 release (3217122).
  * Home experiment: the empty mount point opts into first-open HTML/CSS loading.
  * Visible summaries/cards retain their existing permission and proximity gates.
  */
@@ -15,6 +15,7 @@
         // Shared registry deduplicates both requests and permits retries after failure.
         // Neither request is made by scrolling, focus, hover or pointer-down.
         await Promise.all([
+            window.TDBModules.load(new URL('tdb-drawer.css', lazyBase), {type: 'style'}),
             window.TDBModules.load(new URL('tdb-review-drawer.css', lazyBase), {
                 type: 'style', attribute: 'data-tdb-review-drawer-css'
             }),
@@ -204,7 +205,7 @@
     r.subscribe?.(y), window.addEventListener("online", y), window.addEventListener("pageshow", y), 
     document.addEventListener("click", m, !0), document.addEventListener("keydown", m, !0), 
     window.TDBReviewLoader = Object.freeze({
-        version: "3.11.0",
+        version: "3.11.1",
         prepare: p,
         open: f,
         refresh: C,

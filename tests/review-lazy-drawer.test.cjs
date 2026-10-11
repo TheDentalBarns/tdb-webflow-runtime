@@ -65,7 +65,7 @@ test('concurrent first opens wait for CSS, mount once and retain the requested r
     const second=f.api.prepare();
     await f.pump({css:'hold'});
     assert.equal(f.doc.querySelector('[data-tdb-reviews]'),null,'no unstyled content attached');
-    assert.equal(f.doc.querySelectorAll('link').length,1);
+    assert.equal(f.doc.querySelectorAll('link').length,2);
     assert.equal([...f.doc.scripts].filter(n=>n.src.endsWith('tdb-review-drawer-template.js')).length,1);
     await f.pump();await Promise.all([first,second]);
     assert.equal(f.mounted(),1);assert.equal(f.doc.querySelectorAll('[data-tdb-reviews]').length,1);
@@ -81,7 +81,7 @@ test('failed stylesheet load leaves an empty host and a later request retries su
     await f.pump({css:'error'});await rejected;
     assert.equal(f.doc.querySelector('[data-tdb-reviews]'),null);
     const retry=f.api.prepare();await f.pump();await retry;
-    assert.equal(f.mounted(),1);assert.equal(f.doc.querySelectorAll('link').length,1);
+    assert.equal(f.mounted(),1);assert.equal(f.doc.querySelectorAll('link').length,2);
   }finally{f.close();}
 });
 test('permission revocation during transport prevents late insertion and supports later retry',async()=>{

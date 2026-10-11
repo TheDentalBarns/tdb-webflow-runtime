@@ -72,7 +72,7 @@ test('stylesheet failure keeps the host empty and click retries without duplicat
   assert.match(f.trigger(0).getAttribute('aria-label'),/Try again/);
   f.trigger(0).click();await f.pump();
   assert.equal(f.opens.length,1);assert.equal(f.mounts(),1);
-  assert.equal(f.doc.querySelectorAll('link').length,1);
+  assert.equal(f.doc.querySelectorAll('link').length,2);
  }finally{f.close();}
 });
 test('rapid first requests share transport and the latest requested highlight wins',async()=>{

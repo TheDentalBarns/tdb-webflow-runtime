@@ -140,7 +140,8 @@
         code(),
         lazy ? Promise.all([
           window.TDBModules.load(new URL('tdb-usp-drawer-template.js', base), {ready: () => Boolean(window.TDBUSPDrawerTemplate)}),
-          window.TDBModules.load(new URL('tdb-usp-drawer.css', base), {type: 'style'})
+          window.TDBModules.load(new URL('tdb-usp-drawer.css', base), {type: 'style'}),
+          window.TDBModules.load(new URL('tdb-drawer.css', base), {type: 'style'})
         ]).then(() => {
           if (!section.isConnected) throw Error('Practice highlights section unavailable');
           window.TDBUSPDrawerTemplate.mount(section);
