@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.3';
+  const VERSION = '0.14.4';
   if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
@@ -608,7 +608,7 @@
     function select(item) {
       if (!item) return;
       centre(item);
-      // Activation always selects; dismissal is outside/Escape/scroll/drag.
+      // Activation selects; vertical page scrolling keeps a visible card open.
       if (openItem !== item) showCard(item);
     }
     function resume() {
@@ -649,7 +649,12 @@
       const dx = event.clientX-startX, dy = event.clientY-startY;
       if (!horizontal) {
         if (Math.abs(dy) > CONFIG.dragClickThreshold && Math.abs(dy) > Math.abs(dx)) {
-          pointerId = null; resume(); return;
+          // Give the gesture back to native page scrolling without dismissing
+          // the card or treating a subsequent click as a logo activation.
+          pointerId = null; pressedItem = null; samples = [];
+          suppressNextClick = true;
+          if (!openCard) resume();
+          return;
         }
         if (Math.abs(dx) <= CONFIG.dragClickThreshold) return;
         closeCard();
@@ -688,7 +693,12 @@
         touchClickUntil = performance.now() + 800;
         suppressNextClick = true;
         select(tappedItem);
-      } else if (event.type !== 'pointerup') resume();
+      } else if (event.type !== 'pointerup') {
+        // Browsers can cancel the pointer as soon as native vertical panning
+        // starts, before we receive a directional pointermove.
+        suppressNextClick = true;
+        if (!openCard) resume();
+      }
     }
     function onClick(event) {
       // A touch activation has already been handled on pointerup.
