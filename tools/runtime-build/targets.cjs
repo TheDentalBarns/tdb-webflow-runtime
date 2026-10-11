@@ -1,5 +1,8 @@
 /* Single source-to-output manifest for local and CI runtime builds. */
 module.exports = {
+  'dist/tdb-reviews-loader.js': ['src/reviews/loader.js'],
+  'dist/tdb-review-drawer-template.js': ['src/reviews/native/lazy-template.js'],
+  'dist/tdb-review-drawer.css': ['src/styles/tdb-review-drawer.css'],
   'dist/tdb-viewport-memory.min.js': ['src/shared/viewport-memory.js'],
   'dist/tdb-dd-loader.js': ['src/shared/dd-memory.js', 'src/dd/loader.js'],
   'dist/tdb-motion.js': ['src/shared/motion-policy.js', 'src/shared/dd-memory.js', 'src/shared/page-break-memory.js', 'src/shared/motion.js'],
