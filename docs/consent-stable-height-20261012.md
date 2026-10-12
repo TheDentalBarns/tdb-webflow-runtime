@@ -64,4 +64,26 @@ All unrelated runtime pins and the disabled viewport-memory block stay intact.
   independent scroll-lock owners, rapid reopen, and synchronized clip state.
 - Font glyph advances and ascender/descender/line-gap values match both source
   weights exactly. The head defines each face once and contains no layout CSS.
-- Live staging and throttled mobile checks are recorded after publishing.
+- Startup font-decode tests additionally cover delayed readiness, cancellation
+  before readiness, and failed font decoding without trapping the controls.
+- Live desktop geometry is unchanged: 447.594px wide by 288.094px high at a
+  1363px viewport. Essential-only, accept-all, reopening and scroll-lock cleanup
+  were exercised on staging.
+- Final 4.0.5 release: `b534d6b058f9097c39fae342bd90447e956a85b5`.
+  CDN bytes match the build. Global footer and both Home custom-code blocks
+  are unchanged. The critical font block occurs once.
+- Cold 375x667 Chrome tests, London, 1.6Mbps/768Kbps/150ms:
+  - Normal external fonts: https://gtmetrix.com/reports/dentalbarns.webflow.io/yDM8rhAI/
+    reports CLS **0**. Its screenshot shows the correct two-line Sweet Sans
+    heading and the cream panel at its final height.
+  - Both external Sweet Sans files blocked:
+    https://gtmetrix.com/reports/dentalbarns.webflow.io/eePgWnPa/
+    reports CLS **0**, zero external-font bytes, and the same correct banner.
+- An initial `font-display:optional` experiment also had zero CLS but left the
+  fallback face under throttling. It was superseded by 4.0.5's explicit local
+  decode handoff and `font-display:block`; do not restore the optional version.
+- The unchanged native clip transition passed the non-composited-animation
+  audit in the first staging check. It does not animate layout dimensions.
+- These tests verify this banner issue, not a complete performance recovery:
+  server response variance, initial page layout work and delayed hero delivery
+  remain separate investigations.
