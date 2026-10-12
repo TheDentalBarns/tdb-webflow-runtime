@@ -48,7 +48,7 @@
 
 .vimeo-player .vimeo-player__pause .vimeo-player__btn { opacity: 0; }
 
-/* TDB Vimeo state CSS 1.0.0.
+/* TDB Vimeo state CSS 1.0.1.
  * Native Webflow classes own frame, poster and control defaults.
  * This file owns state selectors, pulse and structural control relationships.
  */
@@ -95,6 +95,22 @@
   visibility: visible;
   pointer-events: none;
   transition: opacity 0.12s ease 0.12s, visibility 0s linear 0s;
+}
+
+/* The native SMIL spinner is parked with begin="indefinite" in Hero - Vimeo.
+ * Rotate its path only while the indicator is shown. Keep the outer SVG free
+ * for the existing Home entrance fade and retain the original 50,50 centre.
+ */
+[data-vimeo-hero-shell] .vimeo-player__loading [data-vimeo-loading-shape] {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: none;
+}
+
+[data-vimeo-hero-shell][data-vimeo-ui='loading'] .vimeo-controls-layer .vimeo-player__loading [data-vimeo-loading-shape],
+[data-vimeo-hero-shell][data-vimeo-ui='awaiting-consent'] .vimeo-controls-layer .vimeo-player__loading [data-vimeo-loading-shape],
+[data-vimeo-hero-shell][data-vimeo-ui='playing'][data-vimeo-buffering='true'] .vimeo-controls-layer .vimeo-player__loading [data-vimeo-loading-shape] {
+  animation: tdbControlSpin 1s linear 0.12s infinite;
 }
 
 [data-vimeo-hero-shell][data-vimeo-ui='playing'][data-vimeo-buffering='true'] .vimeo-controls-layer .vimeo-player__pause .vimeo-player__btn svg {
