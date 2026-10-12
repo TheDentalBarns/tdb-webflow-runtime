@@ -26,12 +26,14 @@ function setup(cookie) {
  assert.equal(x.root.getAttribute('aria-hidden'),'false');assert.equal(x.w.TDBScrollLock.active,true);
  assert.equal(x.api.isOpen(),true,'open state is available to nested dialogs');
  assert.equal(x.root.inert,false);
+ assert.equal(x.root.querySelector('.tdb-consent-scroll').classList.contains('is-consent-content-open'),true,'content reveals with the cream surface, before the delayed text fade');
  assert.equal(x.root.querySelector('.tdb-consent-motion').classList.contains('is-consent-text-open'),false);await sleep(80);assert.equal(x.root.querySelector('.tdb-consent-motion').classList.contains('is-consent-text-open'),true);
  assert.equal(x.w.document.querySelectorAll('#tdb-consent-root').length,1);
  assert.deepEqual(Array.from(x.api.currentState().categories),['strict']);
  x.events.length=0;x.w.document.getElementById('cookiescript_accept').click();
  assert.equal(x.api.currentState().action,'accept');assert.deepEqual(x.events,[]);assert.equal(x.w.TDBScrollLock.active,true);
  assert.equal(x.api.isOpen(),true,'closing banner retains dialog ownership');
+ assert.equal(x.root.querySelector('.tdb-consent-scroll').classList.contains('is-consent-content-open'),false,'content remains clipped to the departing surface');
  x.w.document.getElementById('cookiescript_accept').click();await sleep(490);
  assert.equal(x.root.getAttribute('aria-hidden'),'true');assert.equal(x.w.TDBScrollLock.active,false);
  assert.equal(x.root.inert,true);
@@ -50,6 +52,7 @@ function setup(cookie) {
  x.events.length=0;reject.click();await sleep(490);assert.equal(x.api.currentState().action,'reject');assert.equal(x.w.TDBScrollLock.active,true);unlockNav();assert.equal(x.w.TDBScrollLock.active,false);assert.equal(x.w.document.activeElement,link);
  assert.deepEqual(x.events,['CookieScriptReject','CookieScriptCurrentState','CookieScriptCategory-strict']);
  x.api.show();x.api.hide();x.api.show();await sleep(520);assert.equal(x.root.getAttribute('aria-hidden'),'false');assert.equal(x.w.TDBScrollLock.active,true);
+ assert.equal(x.root.querySelector('.tdb-consent-scroll').classList.contains('is-consent-content-open'),true,'rapid reopening restores the content reveal');
  x.api.hide();await sleep(490);assert.equal(x.w.TDBScrollLock.active,false);x.dom.window.close();
  for(const cookie of [{action:'reject',categories:[]},{a:'accept',c:'performance,targeting'},{action:'acceptall',categories:[]}]){x=setup(cookie);await sleep(40);assert.equal(x.root.getAttribute('aria-hidden'),'true');assert.ok(['accept','reject'].includes(x.api.currentState().action));x.dom.window.close();}
  x=setup({action:'invalid'});await sleep(40);assert.equal(x.root.getAttribute('aria-hidden'),'false');x.dom.window.close();

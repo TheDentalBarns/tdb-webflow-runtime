@@ -1,8 +1,8 @@
-/* Native TDB consent v4.0.3. Native markup/styles; shared lock; existing cookie/API/events. */
+/* Native TDB consent v4.0.4. Native markup/styles; shared lock; existing cookie/API/events. */
 (() => {
     "use strict";
     if (window.CookieScript?.instance?.__tdbNative) return;
-    const VERSION = "4.0.3", COOKIE_NAME = "CookieScriptConsent", COOKIE_DAYS = 30, ALL_CATEGORIES = [ "performance", "strict", "targeting", "functionality" ], STRICT_ONLY = [ "strict" ], ROOT_ID = "tdb-consent-root", TEXT_OPEN_DELAY_MS = 70, TEXT_CLOSE_MS = 420, CLOSE_TOTAL_MS = 470;
+    const VERSION = "4.0.4", COOKIE_NAME = "CookieScriptConsent", COOKIE_DAYS = 30, ALL_CATEGORIES = [ "performance", "strict", "targeting", "functionality" ], STRICT_ONLY = [ "strict" ], ROOT_ID = "tdb-consent-root", TEXT_OPEN_DELAY_MS = 70, TEXT_CLOSE_MS = 420, CLOSE_TOTAL_MS = 470;
     let hasShown = false, open = false, closing = false, mounted = false, lastFocus = null, openFrame1 = 0, openFrame2 = 0, textOpenTimer = 0, closeTimer = 0, pendingAfterClose = null, interactionLocked = false, releaseLock = null, refs = null, textAnimations = [];
     function unique(values) {
         return [ ...new Set((values || []).filter(Boolean)) ];
@@ -220,6 +220,7 @@
         root.inert = false;
         dialog.style.removeProperty("pointer-events");
         surface.classList.remove("is-consent-surface-open");
+        scroll.classList.remove("is-consent-content-open");
         backdrop.classList.remove("is-consent-open");
         interactionLocked = true;
         openFrame1 = requestAnimationFrame(() => {
@@ -232,6 +233,8 @@
                     preventScroll: true
                 });
                 surface.classList.add("is-consent-surface-open");
+                // Reveal text only where the moving cream surface already covers it.
+                scroll.classList.add("is-consent-content-open");
                 backdrop.classList.add("is-consent-open");
                 // Designer export omits transition-delay; preserve the original pause here.
                 textOpenTimer = setTimeout(() => {
@@ -247,6 +250,7 @@
         clearTextAnimations();
         root.classList.remove("is-consent-active");
         refs.surface.classList.remove("is-consent-surface-open");
+        refs.scroll.classList.remove("is-consent-content-open");
         refs.backdrop.classList.remove("is-consent-open");
         motion.classList.remove("is-consent-text-open");
         root.inert = true;
@@ -286,6 +290,7 @@
         animateTextOut();
         refs.dialog.style.pointerEvents = "none";
         surface.classList.remove("is-consent-surface-open");
+        refs.scroll.classList.remove("is-consent-content-open");
         backdrop.classList.remove("is-consent-open");
         closeTimer = setTimeout(finishHide, CLOSE_TOTAL_MS);
     }
