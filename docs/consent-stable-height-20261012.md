@@ -9,19 +9,20 @@ zoom levels, and after text changes.
 
 - `src/consent/critical-fonts.html` defines a private `TDB Consent` family with
   the original Sweet Sans glyphs used by this banner. Both WOFF2 subsets total
-  4,560 bytes; the one-time head fragment is 6,488 bytes. Their advances and
+  4,560 bytes; the one-time head fragment is 6,482 bytes. Their advances and
   line metrics match the source fonts. There are no additional font requests.
 - The four native consent text classes use this family. The browser can lay
   out the correct responsive height before the panel appears, independently
-  of the full site's external fonts. `font-display:optional` prevents a late
-  font substitution even if inline font decoding misses the initial window.
+  of the full site's external fonts. Startup waits for only these two embedded faces to decode before opening;
+  it never waits for `document.fonts.ready` or the external site fonts. A
+  failed decode falls back to the system font without trapping consent.
 - Native `.tdb-consent-scroll` clips its content to the cream surface while
   opening/closing. The clip and surface use the same duration, easing, and
   frame. Desktop's 24px offscreen offset and mobile's flush bottom remain.
-- Startup 4.0.4 toggles `is-consent-content-open` with the surface state.
+- Startup 4.0.5 toggles `is-consent-content-open` with the surface state.
   Text still starts after 70ms, fades over 350ms, and closes over 420ms.
   Consent dispatch/focus/scroll-lock cleanup still completes after 470ms.
-- No fixed height, delayed consent boot, added DOM wrapper, height animation,
+- No fixed height, external-font wait, added DOM wrapper, height animation,
   layout measurement loop, or change to the video's consent gate.
 
 ## Native values

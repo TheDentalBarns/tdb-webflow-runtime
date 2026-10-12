@@ -57,10 +57,10 @@ for weight, name in FONTS.items():
     font.save(output)
     data = output.getvalue()
     encoded = base64.b64encode(data).decode("ascii")
-    # Embedded data is available before body layout. Optional also forbids a
-    # late swap if a browser cannot decode it during its initial font window.
+    # Embedded data is available before body layout. The controller waits only
+    # for these two local faces to decode before making the banner visible.
     rules.append('@font-face{font-family:"TDB Consent";font-style:normal;'
-                 f'font-weight:{weight};font-display:optional;'
+                 f'font-weight:{weight};font-display:block;'
                  f'src:url("data:font/woff2;base64,{encoded}") format("woff2")' + '}')
     manifest.append({"weight": weight, "source": BASE + name,
                      "sourceSha256": hashlib.sha256(source).hexdigest(),
