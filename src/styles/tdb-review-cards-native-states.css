@@ -46,8 +46,11 @@
  -webkit-line-clamp: var(--tdb-review-body-lines, 6);
 }
 .tdb-review-cards_text {
- /* Initial CMS fallback until the measured inner preview is prepared. */
- clip-path: inset(0 0 max(0px, calc(100% - var(--tdb-review-body-lines, 6) * 1.7em)) 0);
+ /* Fill the reserved row from first paint, using the controller's whole-line
+    cutoff: floor((available height - .5px) / line height).
+    Older browsers retain the native overflow clip without a six-line limit. */
+ clip-path: inset(0);
+ clip-path: inset(0 0 calc(100% - max(0px, round(down, calc(100% - .5px), 1lh))) 0);
 }
 /* Same short-viewport landscape condition as Smile Gallery. */
 @media screen and (min-width:480px) and (max-width:991px) and (max-height:500px) and (orientation:landscape) {
