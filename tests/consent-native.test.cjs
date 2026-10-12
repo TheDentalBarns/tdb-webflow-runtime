@@ -58,14 +58,11 @@ function setup(cookie, fontGate) {
  x.api.hide();await sleep(490);assert.equal(x.w.TDBScrollLock.active,false);x.dom.window.close();
  for(const cookie of [{action:'reject',categories:[]},{a:'accept',c:'performance,targeting'},{action:'acceptall',categories:[]}]){x=setup(cookie);await sleep(40);assert.equal(x.root.getAttribute('aria-hidden'),'true');assert.ok(['accept','reject'].includes(x.api.currentState().action));x.dom.window.close();}
  x=setup({action:'invalid'});await sleep(40);assert.equal(x.root.getAttribute('aria-hidden'),'false');x.dom.window.close();
- let decode;const fontGate=new Promise(resolve=>decode=resolve);x=setup(undefined,fontGate);await sleep(45);
- assert.equal(x.root.getAttribute('aria-hidden'),'true','do not paint a banner with provisional font geometry');
- assert.equal(x.w.TDBScrollLock.active,false,'do not lock the page during local font preparation');
- assert.equal(x.fontCalls.length,2);assert.ok(x.fontCalls.every(([font])=>font.includes('TDB Consent')));
- decode([]);await sleep(45);assert.equal(x.root.getAttribute('aria-hidden'),'false');assert.equal(x.w.TDBScrollLock.active,true);x.dom.window.close();
- let cancelDecode;x=setup(undefined,new Promise(resolve=>cancelDecode=resolve));x.api.hide();cancelDecode([]);await sleep(45);
- assert.equal(x.root.getAttribute('aria-hidden'),'true','hide cancels a pending font-ready opening');x.dom.window.close();
- x=setup(undefined,Promise.reject(new Error('embedded font unavailable')));await sleep(45);assert.equal(x.root.getAttribute('aria-hidden'),'false','a failed font cannot trap consent');x.dom.window.close();
+ x=setup(undefined,new Promise(()=>{}));await sleep(45);
+ assert.equal(x.root.getAttribute('aria-hidden'),'false','banner opens even when fonts never become ready');
+ assert.equal(x.w.TDBScrollLock.active,true);
+ assert.equal(x.fontCalls.length,0,'consent does not initiate font loads');
+ x.api.hide();await sleep(490);assert.equal(x.root.getAttribute('aria-hidden'),'true');assert.equal(x.w.TDBScrollLock.active,false);x.dom.window.close();
  assert.equal(source.includes('insertAdjacentHTML'),false);assert.equal(source.includes('offsetHeight'),false);
  console.log('PASS: fresh/saved/legacy choices, cookie categories, event order, 470ms close, double click, focus trap/return, independent lock owners, rapid reopen, no injected markup/reflow restart.');
 })().catch(error=>{console.error(error);process.exitCode=1});

@@ -1,5 +1,10 @@
 # Consent geometry and background coverage
 
+> Superseded later on 12 October by `consent-designer-heights-20261012.md`.
+> David requested removal of the embedded fonts and font-decode gate. The
+> current approach reserves text heights in Designer and uses the site font.
+> This document describes the earlier implementation for historical context.
+
 Staging-only fix for the 26px mobile banner growth in the 12 October traces.
 At 375px the Sweet Sans heading wraps to two lines, while its late-loading
 fallback fits on one. Fixed pixel heights would be wrong at other widths,
