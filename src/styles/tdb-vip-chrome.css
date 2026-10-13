@@ -1,0 +1,5 @@
+/* Cross-component relationships, formerly injected or repeated in Webflow. */
+html.tdb-vip-menu-away .navbar10_component,html.tdb-vip-menu-away .navbar-bg_layer{transform:translateY(-100%)!important;pointer-events:none!important;transition:transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1))!important;will-change:transform!important}
+
+@property --tdb-vip-chrome-ready { syntax: "<number>"; inherits: false; initial-value: 0; }
+html { --tdb-vip-chrome-ready: 1; }

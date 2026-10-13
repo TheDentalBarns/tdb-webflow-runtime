@@ -244,6 +244,9 @@ function tdbEnsureSliderUI() {
 function tdbEnsureAnnouncementUI() {
   return tdbEnsureFeatureCSS('data-tdb-announcement-css', 'tdb-announcement.css', '--tdb-announcement-ui-ready', 'announcement UI');
 }
+function tdbEnsureVIPChrome() {
+  return tdbEnsureFeatureCSS('data-tdb-vip-chrome-css', 'tdb-vip-chrome.css', '--tdb-vip-chrome-ready', 'VIP chrome');
+}
 function tdbEnsureVIPUI() {
   // Native Webflow CSS is already loaded before page scripts. Older markup
   // retains its pinned stylesheet, making this release safe during migration.
@@ -446,7 +449,7 @@ function prepareVIPDrawerLoader() {
     if (loadingPromise) return loadingPromise;
     if (realDrawerReady()) return Promise.resolve(window.TDBVIPDrawer);
     tdbPreloadVIPScript(jsUrl);
-    loadingPromise = Promise.all([tdbEnsureUI(), tdbEnsureVIPUI()])
+    loadingPromise = Promise.all([tdbEnsureUI(), tdbEnsureVIPUI(), tdbEnsureVIPChrome()])
       .then(() => {
         return tdbLoadVIPScript(jsUrl);
       })

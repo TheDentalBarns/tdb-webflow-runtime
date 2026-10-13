@@ -22,8 +22,12 @@ function declarations(css) {
 }
 test('all original UI and slider declarations survive the split', () => {
   const before = declarations(read('tests/fixtures/ui-before-modular.css')+'\n'+read('tests/fixtures/slider-before-modular.css'));
-  const after = declarations(['dist/tdb-ui.css','dist/tdb-vimeo.css','dist/tdb-announcement.css','dist/tdb-slider-ui.css','src/styles/tdb-consent-states.css'].map(read).join('\n'));
-  for (const [key,count] of before) assert.equal(after.get(key), count, key);
+  const after = declarations(['dist/tdb-ui.css','dist/tdb-vip-chrome.css','dist/tdb-vimeo.css','dist/tdb-announcement.css','dist/tdb-slider-ui.css','src/styles/tdb-consent-states.css'].map(read).join('\n'));
+  for (const [key,count] of before) {
+    // User explicitly removed empty-quote masking; all other original declarations survive.
+    if (key.startsWith('.section_standard-testimonial:has(') || key.startsWith('[data-tdb-dd-page],.tdbc-dd-fade|') || key.startsWith('[data-tdb-dd-preset="orange"]|') || key.startsWith('[data-tdb-copy-paragraphs]|')) { assert.equal(after.has(key), false); continue; }
+    assert.equal(after.get(key), count, key);
+  }
   assert(!read('dist/tdb-ui.css').includes('data-vimeo'));
   assert(!read('dist/tdb-ui.css').includes('.tdb-consent'));
 });
@@ -83,4 +87,29 @@ test('announcement waits for both state bundles before requesting its engines',a
   const flight=w.TDBAnnouncementLoader.load();assert.equal(loaded.length,0);
   sharedReady();await tick();assert.equal(loaded.length,0);
   announcementReady();await flight;assert(loaded.some(x=>x.endsWith('tdb-announcement.js')));w.close();
+});
+
+test('slider focus waits for shared and slider CSS before initialising',async()=>{
+  const dom=new JSDOM('',{runScripts:'outside-only'}),w=dom.window,loaded=[];
+  let uiReady,sliderReady;
+  w.tdbEnsureUI=()=>new Promise(r=>uiReady=r);
+  w.tdbEnsureSliderUI=()=>new Promise(r=>sliderReady=r);
+  w.TDBModules={load:async url=>loaded.push(String(url))};
+  w.eval(read('src/runtime/deferred-ui.js'));
+  const flight=w.tdbEnsureSliderFocus();uiReady();await tick();assert.equal(loaded.length,0);
+  sliderReady();await flight;assert(loaded.some(x=>x.endsWith('tdb-slider-focus.js')));w.close();
+});
+test('native VIP markup still waits for coordination CSS',async()=>{
+  const dom=new JSDOM('<!doctype html><html data-wf-page="677cf86df9952f978d94d8a9"><body><div id="tdb-vip-drawer" data-tdb-vip-native="1"></div></body></html>',{runScripts:'outside-only',url:'https://dentalbarns.webflow.io/'}),w=dom.window;
+  // Isolate the public loader without starting unrelated features.
+  let source=read('src/runtime/site-asset-loader.js');
+  source=source.slice(source.indexOf('function prepareVIPDrawerLoader()'),source.indexOf('function prepareSliderLoader()'));
+  let cssReady,loaded=0;
+  w.TDBFooterInitialScrollY=0;w.tdbPreloadVIPScript=()=>{};
+  w.tdbEnsureUI=w.tdbEnsureVIPUI=()=>Promise.resolve();
+  w.tdbEnsureVIPChrome=()=>new Promise(r=>cssReady=r);
+  w.tdbLoadVIPScript=async()=>{loaded++;w.TDBVIPDrawer={resumeScroll(){}};};
+  w.eval(source);w.prepareVIPDrawerLoader();
+  const flight=w.TDBVIPDrawerLoader.load();await tick();assert.equal(loaded,0);
+  cssReady();await flight;assert.equal(loaded,1);w.close();
 });

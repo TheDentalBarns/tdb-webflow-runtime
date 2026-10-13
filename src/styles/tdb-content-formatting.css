@@ -12,12 +12,11 @@ select:not(.form_select):not(.placeholder){color:#000}
 .pricing_btm-accordion .w-richtext > p + p { margin-top: 1em; }
 
 
-[data-tdb-copy-paragraphs]{white-space:pre-line}
+/* Literal line breaks use native .tdb-copy-paragraphs styles. */
 .w-richtext > p + p{margin-top:1.25em}
 
 
 
-[data-tdb-dd-page],.tdbc-dd-fade{opacity:1}
-[data-tdb-dd-preset="orange"]{opacity:1}
+/* DD starts readable in Designer; TDBMotion owns opacity after initialisation. */
 
-.section_standard-testimonial:has([data-tdb-team-cms] [data-tdb-team-viewport] > .w-dyn-empty){display:none}
+/* Empty quote collections stay visible so missing content can be corrected. */

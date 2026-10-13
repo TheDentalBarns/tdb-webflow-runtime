@@ -6,10 +6,11 @@ const path = require('node:path');
 const CleanCSS = require('clean-css');
 const root = path.resolve(__dirname, '../..');
 const bundles = {
+  'tdb-vip-chrome.css': ['tdb-vip-chrome.css'],
   'tdb-ui.css': ['tdb-ui.css'],
   'tdb-vimeo.css': ['tdb-vimeo-ui.css'],
-  'tdb-announcement.css': ['tdb-announcement-states.css'],
-  'tdb-slider-ui.css': ['tdb-slider-ui.css', 'tdb-carousel-arrow-states.css'],
+  'tdb-announcement.css': ['tdb-announcement-chrome.css', 'tdb-announcement-states.css'],
+  'tdb-slider-ui.css': ['tdb-slider-chrome.css', 'tdb-slider-ui.css', 'tdb-carousel-arrow-states.css'],
 };
 for (const [output, sources] of Object.entries(bundles)) {
   const source = sources.map(file => fs.readFileSync(path.join(root, 'src/styles', file), 'utf8')).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');

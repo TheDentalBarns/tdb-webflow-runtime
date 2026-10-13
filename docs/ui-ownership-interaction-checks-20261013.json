@@ -1,0 +1,44 @@
+[
+  {
+    "width": 1440,
+    "vipOpen": {
+      "css": true,
+      "class": "w-mod-js w-mod-ix tdb-timer-hidden  tdb-scroll-locked tdb-vip-desktop-open tdb-vip-menu-away lenis lenis-stopped",
+      "drawer": "tdb-vip-drawer is-ready is-open",
+      "navTransform": "matrix(1, 0, 0, 1, 0, -90)"
+    },
+    "vipClose": {
+      "class": "w-mod-js w-mod-ix tdb-timer-hidden lenis",
+      "drawer": "tdb-vip-drawer is-ready",
+      "navTransition": "transform 0.42s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.521s cubic-bezier(0.4, 0, 0.2, 1)"
+    },
+    "sliderFocus": {
+      "css": true,
+      "focus": true,
+      "nav": "matrix(1, 0, 0, 1, 0, 0)"
+    },
+    "afterScroll": "w-mod-js w-mod-ix tdb-timer-hidden lenis lenis-scrolling lenis-smooth",
+    "errors": []
+  },
+  {
+    "width": 390,
+    "vipOpen": {
+      "css": true,
+      "class": "w-mod-js w-mod-ix tdb-timer-hidden tdb-nav-at-top tdb-scroll-locked tdb-vip-menu-away",
+      "drawer": "tdb-vip-drawer is-ready is-open",
+      "navTransform": "matrix(1, 0, 0, 1, 0, -81.7656)"
+    },
+    "vipClose": {
+      "class": "w-mod-js w-mod-ix tdb-timer-hidden tdb-nav-at-top",
+      "drawer": "tdb-vip-drawer is-ready",
+      "navTransition": "transform 0.42s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.521s cubic-bezier(0.4, 0, 0.2, 1)"
+    },
+    "sliderFocus": {
+      "css": true,
+      "focus": true,
+      "nav": "matrix(1, 0, 0, 1, 0, -82)"
+    },
+    "afterScroll": "w-mod-js w-mod-ix tdb-timer-hidden",
+    "errors": []
+  }
+]

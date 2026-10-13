@@ -2,7 +2,7 @@
 const TDB_MODULE_ROOT = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@61cec90cdba3d42a29d3c31194b692c251e8d421/dist/';
 const TDBFooterModuleRoot = new URL('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@336d76648a3395fad41dd5bec9749b3554f14c34/dist/');
 function tdbEnsureSliderFocus() {
-  return tdbEnsureUI().then(() => window.TDBModules.load(new URL('tdb-slider-focus.js', TDBFooterModuleRoot), { attribute: 'data-tdb-slider-focus-js', ready: () => Boolean(window.TDBSliderFocus) }));
+  return Promise.all([tdbEnsureUI(), tdbEnsureSliderUI()]).then(() => window.TDBModules.load(new URL('tdb-slider-focus.js', TDBFooterModuleRoot), { attribute: 'data-tdb-slider-focus-js', ready: () => Boolean(window.TDBSliderFocus) }));
 }
 
 function prepareTooltipLoader() {
