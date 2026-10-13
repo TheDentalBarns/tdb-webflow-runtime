@@ -1,0 +1,17 @@
+{
+  "url": "https://dentalbarns.webflow.io/",
+  "bytes": 358772,
+  "scripts": [
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@a7d4fe2f1ccfc46404b107a5b65cf78c28853464/dist/tdb-consent-startup.min.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@6e71c4a5b0630d8991038bb6c830d1dd45798178/dist/tdb-quote-carousel.min.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@a7d4fe2f1ccfc46404b107a5b65cf78c28853464/dist/tdb-consent.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@a7d4fe2f1ccfc46404b107a5b65cf78c28853464/dist/tdb-navbar-loader.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@46eb697f02701f308f6728a2e61258518719f257/dist/tdb-immediate-runtime-batch.min.js",
+    "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0b0b5feda26837468f588a8381a213e127c722bb/dist/tdb-brevo-consent.min.js"
+  ],
+  "critical_lock_css": true,
+  "expected_release_scripts": 3,
+  "unconditional_vimeo_scripts": [],
+  "vimeo_iframe_src": [],
+  "new_shared_consent_count": 1
+}

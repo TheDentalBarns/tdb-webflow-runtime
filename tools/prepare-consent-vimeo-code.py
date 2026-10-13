@@ -36,7 +36,7 @@ head = replace_once(r'https://cdn\.jsdelivr\.net/gh/TheDentalBarns/tdb-webflow-r
 head = head.replace('TDB native consent v4.0.6', 'TDB native consent v4.0.7')
 head = replace_once(r'<!-- Vimeo: native Webflow defaults; early consent UI and gated player\. -->\s*<script\b[^>]*\bdata-tdb-vimeo-loader\b[^>]*></script>', '', head)
 gate = '\n<!-- TDB consent v0.5.0 | shared state; Vimeo starts only with functionality permission. -->\n'
-gate += '<script defer data-tdb-consent-js src="' + base + 'tdb-consent.min.js"></script>'
+gate += '<script defer data-tdb-consent-js src="' + base + 'tdb-consent.js"></script>'
 head = replace_once(r'(<script\b[^>]*src="[^"]*/tdb-modules\.js"[^>]*></script>)',
                     lambda m: m[1] + gate, head)
 footer = replace_once(r'https://cdn\.jsdelivr\.net/gh/TheDentalBarns/tdb-webflow-runtime@[^/]+/dist/tdb-navbar-loader\.js',

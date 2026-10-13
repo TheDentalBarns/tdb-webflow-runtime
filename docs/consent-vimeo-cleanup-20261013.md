@@ -1,10 +1,10 @@
 **Consent and Vimeo cleanup — 13 October 2026**
 
-Implementation branch: `work/consent-vimeo-gate-20261013`, based on the current staged UI release `d9aede36fbefe928fd108357fb560b2c16c70453`. Publication status: prepared for staging validation; production has not been published. The final staging result is recorded below after release.
+Implementation branch: `work/consent-vimeo-gate-20261013`, based on the current staged UI release `d9aede36fbefe928fd108357fb560b2c16c70453`. Publication status: published to the Webflow staging subdomain only, using asset commit `a7d4fe2f1ccfc46404b107a5b65cf78c28853464`. Production has not been published. Draft PR: https://github.com/TheDentalBarns/tdb-webflow-runtime/pull/25.
 
 **Scope and loading contract**
 
-Native consent and navigation remain early. The existing shared `tdb-consent.min.js` becomes the single permission boundary for Vimeo. Before a valid functionality choice, it performs a presence check and delegates Play clicks to cookie settings; it does not fetch the Vimeo loader, Vimeo CSS, controller, SDK or iframe, and does not create a Vimeo observer. After permission, the loader observes proximity (300px) and prepares on proximity, focus, pointer intent or remembered Play. Saved permitted choices release automatically. Reject, invalid or absent choices stay blocked. Pending work rechecks permission after every asynchronous stage.
+Native consent and navigation remain early. The existing shared consent script becomes the single permission boundary for Vimeo. Before a valid functionality choice, it performs a presence check and delegates Play clicks to cookie settings; it does not fetch the Vimeo loader, Vimeo CSS, controller, SDK or iframe, and does not create a Vimeo observer. After permission, the loader observes proximity (300px) and prepares on proximity, focus, pointer intent or remembered Play. Saved permitted choices release automatically. Reject, invalid or absent choices stay blocked. Pending work rechecks permission after every asynchronous stage.
 
 Only Vimeo moves to this gate. Quote carousels, other sliders, motion assets, shared registry pins, the immediate runtime and footer runtime retain their existing published URLs and loading policies. The deployed analytics, Meta and Intellimize integration functions/events are retained. The working branch contained an older consent source; it was aligned with the actual `dead3424` consent release so the already-retired Elfsight integration is not reintroduced.
 
@@ -21,12 +21,12 @@ Only Vimeo moves to this gate. Quote carousels, other sliders, motion assets, sh
 
 **Measured sizes**
 
-Bytes below are exact artifact sizes; gzip uses level 9 and Brotli quality 11. They are reproducible with `node tools/measure-consent-vimeo.cjs`, not browser transfer or LCP measurements. The previously suggested 5–10% reduction is not used as a target. Before/after JS assets are minified. Shared consent is measured against the actual `tdb-consent.min.js` at `dead3424`, as referenced by the current immediate runtime, rather than the older v0.3.0 source remaining on the base branch. `tdb-consent.js` is also rebuilt as a compatible filename alias; only the `.min.js` file is requested.
+Bytes below are exact artifact sizes; gzip uses level 9 and Brotli quality 11. They are reproducible with `node tools/measure-consent-vimeo.cjs`, not browser transfer or LCP measurements. The previously suggested 5–10% reduction is not used as a target. Before/after JS assets are minified. Shared consent is measured against the actual `tdb-consent.min.js` at `dead3424`, as referenced by the current immediate runtime, rather than the older v0.3.0 source remaining on the base branch. `tdb-consent.js` and `.min.js` are identical minified build aliases. The new head requests `.js`: CDN verification found jsDelivr adds a 336-byte dynamic wrapper to the `.min.js` URL, whereas `.js` matches the committed bytes exactly.
 
 | Asset | Raw before → after | gzip before → after | Brotli before → after |
 | --- | ---: | ---: | ---: |
 | tdb-consent-startup.min.js | 10788 → 10356 | 3894 → 3783 | 3441 → 3342 |
-| tdb-consent.min.js | 2421 → 5000 | 1075 → 1967 | 891 → 1719 |
+| Shared consent (old .min.js → new .js) | 2421 → 5000 | 1075 → 1967 | 891 → 1719 |
 | tdb-navbar-loader.js | 17955 → 17561 | 5877 → 5769 | 5063 → 4973 |
 | tdb-vimeo-loader.js | 4936 → 2658 | 1997 → 1238 | 1740 → 1055 |
 | tdb-vimeo.js | 20470 → 19699 | 5701 → 5543 | 5052 → 4928 |
@@ -49,7 +49,7 @@ The Vimeo loader is 46.2% smaller raw and 38.0% smaller gzip. Its entire request
 - Deployed performance-tracker policy, one-time tracker loading, no tracker release for functionality alone, and no retired Elfsight reintroduction.
 - Existing modular CSS declarations and unrelated slider/announcement/VIP stylesheet readiness retained.
 
-Tests use JSDOM and controlled network/observer/player fixtures; they do not substitute for physical iOS touch or visual animation review. Live staging results will be appended after publication.
+Tests use JSDOM and controlled network/observer/player fixtures; they do not substitute for physical iOS touch or visual animation review. A live saved-reject baseline confirmed the old eager loader/CSS before this change. After publication, the browser service timed out on reload and remained unresponsive when its recovery documentation was requested. New live interaction and screenshot verification could not be completed in this session; it must not be reported as passed. Fresh/saved choices and interaction coverage above are the automated fixtures, not a post-release visual inspection.
 
 **Release and rollback**
 
@@ -58,3 +58,9 @@ Only global site head/footer code changes. The prepared patch adds fixed CSS to 
 Rollback branch: `checkpoint/before-consent-vimeo-gate-20261013` at `d9aede36fbefe928fd108357fb560b2c16c70453`. Exact original global blocks are in `rollback-consent-vimeo-20261013/site-code.json`; page-code audit snapshots are in `page-code.json`. Restore both original global blocks together and publish only the Webflow subdomain. If subsequent edits have occurred, reverse the narrow patch against the latest blocks instead of overwriting unrelated work. Restoring the old script pins also restores the old injected CSS; do not roll back only the stylesheet.
 
 The patch can be reproduced with `python tools/prepare-consent-vimeo-code.py --input docs/rollback-consent-vimeo-20261013/site-code.json --commit FULL_COMMIT_SHA --output /tmp/site-code-after.json`. The tool prepares JSON only; it does not publish.
+
+**Published-code verification**
+
+The Webflow API readback exactly matched the prepared head/footer patch. Publication response `4ae4843a-845c-4ba0-ab3a-99495a6c5ab1` specified `customDomains: []` and `publishToWebflowSubdomain: true`. A subsequent fetch of https://dentalbarns.webflow.io/ confirmed the three new consent/navigation pins, the existing early scroll-lock CSS, exactly one shared consent script, no unconditional Vimeo script tag and no Vimeo iframe src in the delivered HTML. Existing quote carousel and immediate runtime pins are unchanged.
+
+All six intended CDN JS/CSS assets matched the committed files byte for byte. The actual head uses the `.js` shared-consent alias to avoid jsDelivr’s extra dynamic-minification wrapper. Exact new blocks, CDN checksums and published HTML checks are saved in `consent-vimeo-validation-20261013/`. Full visual motion, real Vimeo playback and physical mobile touch checks remain outstanding because of the browser service limitation.
