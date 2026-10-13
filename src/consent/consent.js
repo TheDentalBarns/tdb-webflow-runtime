@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.6.0';
+  const VERSION = '0.6.1';
   const base = new URL('./', document.currentScript.src);
   const GA_MEASUREMENT_ID = 'G-GCWCSWR50M';
   const META_PIXEL_ID = '1326762815429148';
@@ -129,15 +129,19 @@
     releaseQuotes();
   }
   function videoClick(event) {
-    const control = event.target.closest?.('[data-vimeo-control="play"]');
+    // The denied state must work before Vimeo's controller/CSS is fetched.
+    // Its spinner and circular backplate are siblings of the Play control.
+    const permitted = allows('functionality');
+    const control = event.target.closest?.(permitted ? '[data-vimeo-control="play"]' :
+      '[data-vimeo-control],.vimeo-player__loading,.vimeo-player__bg');
     const root = control?.closest('[data-vimeo-content-init],[data-vimeo-hero-shell]');
-    if (!root || (allows('functionality') && window.TDBVimeo?.initialised)) return;
+    if (!root || (permitted && window.TDBVimeo?.initialised)) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     if (pendingVideo !== root) clearVideo();
     pendingVideo = root;
-    markVideo(root, allows('functionality') ? 'loading' : 'awaiting-consent');
-    if (allows('functionality')) releaseVideo();
+    markVideo(root, permitted ? 'loading' : 'awaiting-consent');
+    if (permitted) releaseVideo();
     else showCookieSettings();
   }
   function prepareGates() {

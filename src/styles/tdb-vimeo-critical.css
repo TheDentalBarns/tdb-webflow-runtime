@@ -1,0 +1,9 @@
+/* Required before consent: decorative hero layers must not cover the controls.
+ * Included in Webflow's existing critical head style, without another request.
+ * Keep links/forms in hero content interactive. Playback state CSS stays gated.
+ */
+[data-vimeo-hero-shell] .video-overlay-layer,
+[data-vimeo-hero-shell] .vimeo-bg__placeholder,
+[data-vimeo-hero-content],
+[data-vimeo-hero-content] > * { pointer-events: none; }
+[data-vimeo-hero-content] :is(a,button,[role='button'],input,select,textarea) { pointer-events: auto; }

@@ -62,6 +62,32 @@ for(const choice of [undefined,reject,{action:'reject',categories:['functionalit
   f.w.dispatchEvent(new f.w.Event('CookieScriptClose'));
   assert.equal(f.d.querySelector('#video').getAttribute('data-vimeo-ui'),'idle');f.close();
 });
+for (const baseMarkup of [hero, content]) for (const target of ['.vimeo-player__loading path', '.vimeo-player__bg span', '[data-vimeo-control="pause"]']) {
+  test('declined consent reopens from '+target+' in '+(baseMarkup===hero?'hero':'content'),async()=>{
+    const extra='<div class="vimeo-player__loading"><svg><path></path></svg></div><div class="vimeo-player__bg"><span></span></div>'+(baseMarkup===hero?'<button data-vimeo-control="pause">Pause</button>':'');
+    const f=fixture({choice:reject,markup:baseMarkup.replace('</section>',extra+'</section>')});await tick();
+    const activate=()=>f.d.querySelector(target).dispatchEvent(new f.w.MouseEvent('click',{bubbles:true,cancelable:true}));
+    activate();assert.deepEqual(f.calls,['settings']);assert.deepEqual(f.assets(),[]);
+    f.choiceChange(reject,'CookieScriptReject');
+    assert.equal(f.d.querySelector('[data-vimeo-control="play"]').getAttribute('aria-busy'),'false');
+    activate();assert.deepEqual(f.calls,['settings','settings']);assert.deepEqual(f.assets(),[]);
+    f.close();
+  });
+}
+test('a spinner consent request resumes the requested video after acceptance',async()=>{
+  const f=fixture({choice:reject,markup:hero.replace('</section>','<div class="vimeo-player__loading"><svg><path></path></svg></div></section>')});
+  f.d.querySelector('.vimeo-player__loading path').dispatchEvent(new f.w.MouseEvent('click',{bubbles:true,cancelable:true}));
+  assert.deepEqual(f.calls,['settings']);assert.deepEqual(f.assets(),[]);
+  f.choiceChange(accept);await tick();f.complete('data-tdb-vimeo-loader');await tick();
+  f.loadedStyle(f.find('data-tdb-vimeo-css'));await tick();f.complete('data-vimeo-controller-js',true);await tick();
+  assert.deepEqual(f.calls,['settings','init','play:video']);f.close();
+});
+test('permitted spinner/backplate/pause clicks are left to the player',async()=>{
+  const f=fixture({choice:accept,markup:content.replace('</section>','<div class="vimeo-player__loading"></div><div class="vimeo-player__bg"></div></section>')});
+  let received=0;f.d.querySelector('#video').addEventListener('click',()=>received++);
+  for(const selector of ['.vimeo-player__loading','.vimeo-player__bg','[data-vimeo-control="pause"]'])f.d.querySelector(selector).click();
+  assert.equal(received,3);assert.deepEqual(f.calls,[]);f.close();
+});
 test('a saved permitted choice releases one loader, then waits for proximity and both styles',async()=>{
   const f=fixture({choice:accept,sharedReady:false});await tick();
   assert.equal(f.assets().length,1);f.complete('data-tdb-vimeo-loader');await tick();
