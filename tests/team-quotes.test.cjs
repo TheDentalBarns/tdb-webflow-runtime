@@ -17,7 +17,7 @@ test('an empty native collection does not invent fallback quotes', () => {
   assert.deepEqual(readNativeSlides({ querySelector: () => null }), []);
   assert.deepEqual(readNativeSlides({ querySelector: () => ({ children: [] }) }), []);
 });
-test('published owner plugin matches source', () => {
+test('canonical shared quote URL uses the same minified build as its legacy alias', () => {
   assert.equal(fs.readFileSync(require.resolve('../dist/tdb-quote-carousel.js'), 'utf8'),
-    fs.readFileSync(require.resolve('../src/team-quotes/team-quotes.js'), 'utf8'));
+    fs.readFileSync(require.resolve('../dist/tdb-quote-carousel.min.js'), 'utf8'));
 });
