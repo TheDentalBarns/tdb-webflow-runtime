@@ -34,3 +34,16 @@ The DOM tests use jsdom 26.1.0 and postcss 8.5.6, supplied through `NODE_PATH`; 
 The Webflow site is `677cf86cf9952f978d94d80c`; home is `677cf86df9952f978d94d8a9`. Pin shared UI, consent startup, Vimeo loader, site footer runtime base, and the home footer runtime-base override to this release commit. Keep all other pins intact. Remove the old `data-tdb-vimeo-ui` attribute from shared UI and mark its load/error status for the loaders.
 
 Publish only to `dentalbarns.webflow.io`, with an empty custom-domain list. Roll back by restoring the exact site head/footer and home head/footer strings saved in `ui-modular-before-20261013.json`, then publishing to the same staging subdomain.
+
+## Published verification
+
+- Asset release: `716f48d913168ce00cfcc2546fb594ebe5182ebe` on `work/ui-modular-20261013`.
+- Webflow publish task: `49785576-9988-4083-ade2-89992f3398f1`; custom domains empty, Webflow subdomain enabled.
+- All seven changed CDN assets matched the local tested files before publishing. Saved site/home code blocks matched their readback.
+- Checked the other 43 publishable, non-draft page/template configurations for conflicting UI or runtime-base overrides; none found.
+- Live homepage: Services menu opened and closed; video click opened consent without loading the player; accepting consent loaded the preserved controller and reached `playing`; VIP drawer opened with its native form and closed with Escape; Services advanced to Signature Assessment; review cards advanced from Susie to Chloe; practice-highlights drawer opened and advanced from Tranquil Location to Gold Standards.
+- Announcement CSS readiness was `1` before its pending marker was removed. Carousel CSS was requested only once and its disabled-arrow states remained applied. No failed stylesheet markers or site runtime errors were observed (browser-extension metadata errors were unrelated).
+- `/privacy-policy` had no video roots and requested no Vimeo stylesheet.
+- Automated mobile/desktop consent ownership passed; live browser checks used the available desktop viewport. This is regression coverage, not an exhaustive check of every page on every device.
+
+![Published staging homepage](ui-modular-staging-1791885193979.jpg)
