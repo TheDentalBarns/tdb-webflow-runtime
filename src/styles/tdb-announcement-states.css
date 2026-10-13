@@ -11,3 +11,6 @@
 .tdb-announcement[data-rotation="manual"] .tdb-announcement-progress,.tdb-announcement[data-rotation="static"] .tdb-announcement-progress{visibility:hidden}
 .tdb-announcement [hidden]{display:none!important}
 @media(min-width:479px) and (max-width:640px){.tdb-announcement{gap:8px}.tdb-announcement-panel{grid-template-rows:32px 32px;gap:3px}.tdb-announcement-title{font-size:12px;line-height:16px}.tdb-announcement-lower{font-size:14px;line-height:22px}.tdb-announcement-countdown{gap:5px}.tdb-announcement-value{font-size:13px;line-height:18px;padding:1px 3px}.tdb-announcement-label{line-height:8px}}
+
+@property --tdb-announcement-ui-ready { syntax: "<number>"; inherits: false; initial-value: 0; }
+html { --tdb-announcement-ui-ready: 1; }

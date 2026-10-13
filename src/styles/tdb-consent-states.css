@@ -1,0 +1,19 @@
+/* Native consent: accessibility/browser details unsupported by Designer. */
+.tdb-consent-backdrop,
+.tdb-consent-surface { contain: paint; -webkit-backface-visibility: hidden; }
+.tdb-consent-motion { -webkit-backface-visibility: hidden; }
+.tdb-consent-root.is-consent-active .tdb-consent-backdrop { will-change: opacity; }
+.tdb-consent-root.is-consent-active .tdb-consent-surface { will-change: transform; }
+.tdb-consent-root.is-consent-active .tdb-consent-motion { will-change: opacity, transform; }
+.tdb-consent-dialog:focus,
+.tdb-consent-dialog:focus-visible { outline: 0 !important; }
+@media print { .tdb-consent-root { display: none !important; } }
+
+.tdb-consent-dialog { -webkit-tap-highlight-color: transparent; }
+.tdb-consent-scroll { -webkit-overflow-scrolling: touch; }
+.tdb-consent-button.is-consent-reject:focus-visible {
+  background-color: #ebebeb;
+  color: rgba(0,0,0,.25);
+  opacity: 1;
+}
+

@@ -239,7 +239,10 @@ function tdbEnsureFeatureCSS(attribute, filename, property, label) {
   return tdbEnsureStylesheet(attribute, filename, property, label);
 }
 function tdbEnsureSliderUI() {
-  return tdbEnsureFeatureCSS('data-tdb-slider-ui-css', TDB_SLIDER_ROOT + 'tdb-slider-ui.css', '--tdb-slider-ui-ready', 'slider UI');
+  return tdbEnsureFeatureCSS('data-tdb-slider-ui-css', 'tdb-slider-ui.css', '--tdb-slider-ui-ready', 'slider UI');
+}
+function tdbEnsureAnnouncementUI() {
+  return tdbEnsureFeatureCSS('data-tdb-announcement-css', 'tdb-announcement.css', '--tdb-announcement-ui-ready', 'announcement UI');
 }
 function tdbEnsureVIPUI() {
   // Native Webflow CSS is already loaded before page scripts. Older markup
@@ -247,7 +250,7 @@ function tdbEnsureVIPUI() {
   if (document.querySelector('#tdb-vip-drawer[data-tdb-vip-native="1"]')) return Promise.resolve();
   return tdbEnsureFeatureCSS('data-tdb-vip-ui-css', 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@48124a90eddd39bf4ae611d00b9fe80583b98872/dist/tdb-vip.css', '--tdb-vip-ui-ready', 'VIP UI');
 }
-window.TDBFeatureCSS = Object.freeze({ ui: tdbEnsureUI });
+window.TDBFeatureCSS = Object.freeze({ ui: tdbEnsureUI, carousel: tdbEnsureSliderUI, announcement: tdbEnsureAnnouncementUI });
 
 function tdbPreloadVIPScript(src) {
   if ((tdbUIIsReady() && tdbStyleIsReady('--tdb-vip-ui-ready')) || document.querySelector('link[data-tdb-vip-preload]') ||
@@ -418,7 +421,7 @@ function prepareVIPDrawerLoader() {
   const demand = document.documentElement.getAttribute('data-wf-page') === '677cf86df9952f978d94d8a9';
   const triggerSelector = '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
   // VIP ships with this footer release; other feature pins stay independent.
-  const jsUrl = new URL('tdb-vip-drawer.js', document.currentScript.src).href;
+  const jsUrl = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@405af73d4d62619c66bb1140ee6f1e6081b0559c/dist/tdb-vip-drawer.js';
   let loadingPromise = null;
   let armed = false;
   // Prefer the window scroll offset, including zero, without also asking the
@@ -445,12 +448,6 @@ function prepareVIPDrawerLoader() {
     tdbPreloadVIPScript(jsUrl);
     loadingPromise = Promise.all([tdbEnsureUI(), tdbEnsureVIPUI()])
       .then(() => {
-        if (demand) {
-          // Resolve the hidden starting geometry only after actual demand, before
-          // the runtime can enable transitions or replay an immediate open.
-          drawer.setAttribute('data-tdb-vip-prepared', 'true');
-          drawer.getBoundingClientRect();
-        }
         return tdbLoadVIPScript(jsUrl);
       })
       .then(() => {
@@ -462,7 +459,6 @@ function prepareVIPDrawerLoader() {
       .catch(error => {
         document.querySelector('link[data-tdb-vip-preload]')?.remove();
         loadingPromise = null;
-        if (demand && !realDrawerReady()) drawer.removeAttribute('data-tdb-vip-prepared');
         console.error('TDB VIP Drawer failed to load');
         throw error;
       });
@@ -552,7 +548,7 @@ function prepareVIPDrawerLoader() {
   else window.addEventListener('tdb:priority-ready', loadSafely, { once: true });
 
   window.TDBVIPDrawerLoader = Object.freeze({
-    version: '1.4.0',
+    version: '1.4.1',
     load: loadDrawer,
     open: openFromTrigger,
     status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) && !realDrawerReady(), uiReady: tdbUIIsReady(), demand }),
@@ -642,6 +638,42 @@ function prepareSliderLoader() {
   window.dispatchEvent(new Event('tdb:slider-loader-ready'));
 }
 
+/* Some native arrows belong to review/Instagram/partner components rather than
+ * the general slider runtime. Prepare their shared states independently. */
+function prepareCarouselStyles() {
+  const seen = new WeakSet();
+  let observer, changes, ready = false;
+  function prepare() {
+    if (ready) return;
+    tdbEnsureSliderUI().then(() => {
+      ready = true; observer?.disconnect(); changes?.disconnect();
+      ['pointerover','focusin','pointerdown','keydown'].forEach(type => document.removeEventListener(type, intent, true));
+    }).catch(() => {});
+  }
+  function intent(event) {
+    if (event.target.closest?.('.carousel-arrow')) prepare();
+  }
+  function scan(root = document) {
+    const arrows = [...(root.matches?.('.carousel-arrow') ? [root] : []), ...root.querySelectorAll('.carousel-arrow')];
+    for (const arrow of arrows) {
+      if (seen.has(arrow)) continue;
+      seen.add(arrow);
+      if (observer) observer.observe(arrow); else prepare();
+    }
+  }
+  if ('IntersectionObserver' in window) observer = new IntersectionObserver(entries => {
+    if (entries.some(entry => entry.isIntersecting)) prepare();
+  }, {rootMargin:'800px 0px'});
+  ['pointerover','focusin','pointerdown','keydown'].forEach(type => document.addEventListener(type, intent, {capture:true, passive:true}));
+  scan();
+  changes = new MutationObserver(records => {
+    for (const record of records) for (const node of record.addedNodes) {
+      if (node instanceof Element) scan(node);
+    }
+  });
+  changes.observe(document.body, {childList:true, subtree:true});
+}
+
 // Footer copy and sizing live in Designer. Keep the existing document-modified
 // date behavior here, sharing the already-loaded runtime rather than an embed.
 function updateNativeFooterDates() {
@@ -660,6 +692,7 @@ if (document.readyState === 'loading') {
 prepareFormsLoader();
 prepareVIPDrawerLoader();
 prepareSliderLoader();
+prepareCarouselStyles();
 prepareTooltipLoader();
 prepareSliderFocusLoader();
 startLenisForSession();

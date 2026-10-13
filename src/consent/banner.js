@@ -1,24 +1,9 @@
-/* Native TDB consent v4.0.5. Native markup/styles; shared lock; existing cookie/API/events. */
+/* Native TDB consent v4.0.6. Designer reserves text space; no font-loading gate. */
 (() => {
     "use strict";
     if (window.CookieScript?.instance?.__tdbNative) return;
-    const VERSION = "4.0.5", COOKIE_NAME = "CookieScriptConsent", COOKIE_DAYS = 30, ALL_CATEGORIES = [ "performance", "strict", "targeting", "functionality" ], STRICT_ONLY = [ "strict" ], ROOT_ID = "tdb-consent-root", TEXT_OPEN_DELAY_MS = 70, TEXT_CLOSE_MS = 420, CLOSE_TOTAL_MS = 470;
+    const VERSION = "4.0.6", COOKIE_NAME = "CookieScriptConsent", COOKIE_DAYS = 30, ALL_CATEGORIES = [ "performance", "strict", "targeting", "functionality" ], STRICT_ONLY = [ "strict" ], ROOT_ID = "tdb-consent-root", TEXT_OPEN_DELAY_MS = 70, TEXT_CLOSE_MS = 420, CLOSE_TOTAL_MS = 470;
     let hasShown = false, open = false, closing = false, mounted = false, lastFocus = null, openFrame1 = 0, openFrame2 = 0, textOpenTimer = 0, closeTimer = 0, pendingAfterClose = null, interactionLocked = false, releaseLock = null, refs = null, textAnimations = [];
-    let fontsReady = false, fontPreparation = null, showRequest = 0;
-    function prepareFonts() {
-        if (fontsReady || !document.fonts?.load) return null;
-        const faces = [ ['300 16px "TDB Consent"', 'WE VALUE YOUR PRIVACY'], ['400 12px "TDB Consent"', 'To respect your privacy'] ];
-        if (faces.every(([font, text]) => document.fonts.check(font, text))) {
-            fontsReady = true;
-            return null;
-        }
-        // These two consent-only faces are data URLs already in the head.
-        // Wait for their decode, never for document.fonts.ready/site fonts.
-        if (!fontPreparation) fontPreparation = Promise.allSettled(faces.map(([font, text]) => document.fonts.load(font, text))).then(() => {
-            fontsReady = true;
-        });
-        return fontPreparation;
-    }
     function unique(values) {
         return [ ...new Set((values || []).filter(Boolean)) ];
     }
@@ -213,13 +198,6 @@
         return refs;
     }
     function show() {
-        const request = ++showRequest, preparing = prepareFonts();
-        if (preparing) {
-            preparing.then(() => {
-                if (request === showRequest) show();
-            });
-            return;
-        }
         const found = mount();
         if (!found) return;
         const {root: root, dialog: dialog, surface: surface, backdrop: backdrop, motion: motion, scroll: scroll} = found;
@@ -294,7 +272,6 @@
         if (typeof afterClose === "function") afterClose();
     }
     function hide(afterClose) {
-        ++showRequest;
         const found = mount();
         if (!found) {
             if (typeof afterClose === "function") afterClose();

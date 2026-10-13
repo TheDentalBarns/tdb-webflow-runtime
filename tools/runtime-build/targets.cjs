@@ -19,7 +19,7 @@ module.exports = {
   'dist/tdb-logo-marquee.min.js': ['src/logo-marquee/partner-controls-style.js', 'src/logo-marquee/logo-marquee.js'],
   'dist/tdb-usp-drawer.js': ['src/usp/drawer.js'],
   'dist/tdb-usp-loader.js': ['src/usp/loader.js'],
-  'dist/tdb-consent-startup.min.js': ['src/shared/scroll-lock.js', 'src/consent/banner.js'],
+  'dist/tdb-consent-startup.min.js': ['src/consent/runtime-style.js', 'src/shared/scroll-lock.js', 'src/consent/banner.js'],
   'dist/tdb-navbar-loader.js': ['src/navbar/native-foundation-style.js', 'src/shared/phone-landscape.js', 'src/navbar/native-foundation.js', 'src/navbar/navbar-state.js', 'src/shared/scroll-lock.js',
     'src/navbar/navbar-mobile-lock.js', 'src/navbar/navbar-loader.js'],
   'dist/tdb-navbar.min.js': ['src/shared/panel-motion.js', 'src/navbar/navbar-enhancement.js'],

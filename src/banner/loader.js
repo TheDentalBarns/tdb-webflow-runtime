@@ -8,6 +8,8 @@ const TDBAnnouncementModuleRoot = new URL('https://cdn.jsdelivr.net/gh/TheDental
     flight = (async () => {
       const modules = window.TDBModules;
       if (!modules) throw Error('Shared module registry unavailable');
+      // Both state sheets must be applied before mount can remove pending.
+      await Promise.all([tdbEnsureUI(), tdbEnsureAnnouncementUI()]);
       await modules.load(shared + 'tdb-motion.js', {ready:() => Boolean(window.TDBMotion)});
       await Promise.all([
         modules.load(new URL('tdb-availability.js',TDBAnnouncementModuleRoot), {ready:() => Boolean(window.TDBAvailability)}),

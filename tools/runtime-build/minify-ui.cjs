@@ -1,14 +1,22 @@
-/* Keep authored CSS readable; minify only the independently pinned UI output.
+/* Keep authored CSS readable; minify the independently loaded UI outputs.
  * Level 0 changes serialization only. CSS declaration/order parity is verified.
  */
 const fs = require('node:fs');
 const path = require('node:path');
 const CleanCSS = require('clean-css');
 const root = path.resolve(__dirname, '../..');
-const source = fs.readFileSync(path.join(root, 'src/styles/tdb-ui.css'), 'utf8');
-const result = new CleanCSS({level: 0, rebase: false}).minify(source);
-if (result.errors.length) throw new Error(result.errors.join('\n'));
-if (result.warnings.length) throw new Error(result.warnings.join('\n'));
-if (!result.styles) throw new Error('Empty global UI build');
-fs.writeFileSync(path.join(root, 'dist/tdb-ui.css'), result.styles + '\n');
-console.log('dist/tdb-ui.css: ' + Buffer.byteLength(result.styles + '\n') + ' bytes');
+const bundles = {
+  'tdb-ui.css': ['tdb-ui.css'],
+  'tdb-vimeo.css': ['tdb-vimeo-ui.css'],
+  'tdb-announcement.css': ['tdb-announcement-states.css'],
+  'tdb-slider-ui.css': ['tdb-slider-ui.css', 'tdb-carousel-arrow-states.css'],
+};
+for (const [output, sources] of Object.entries(bundles)) {
+  const source = sources.map(file => fs.readFileSync(path.join(root, 'src/styles', file), 'utf8')).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
+  const result = new CleanCSS({level: 0, rebase: false}).minify(source);
+  if (result.errors.length) throw new Error(result.errors.join('\n'));
+  if (result.warnings.length) throw new Error(result.warnings.join('\n'));
+  if (!result.styles) throw new Error('Empty UI build: ' + output);
+  fs.writeFileSync(path.join(root, 'dist', output), result.styles + '\n');
+  console.log('dist/' + output + ': ' + Buffer.byteLength(result.styles + '\n') + ' bytes');
+}

@@ -1,72 +1,48 @@
-/* TDB parallax slider UI v1.2.0
- * Included once in the deferred UI build. First-frame visibility protection lives in tdb-runtime-ui.css.
+/* TDB slider UI v1.4.0
+ * Carousel transitions, live-region hiding and shared arrow states.
+ * Feature loaders request this sheet before carousel activation.
+ * First-frame hidden-state guards remain in tdb-runtime-ui.css.
  */
 
-html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide,
-html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide {
-  display: flex !important;
-  position: absolute;
-  z-index: 30;
-  pointer-events: none;
+.w-slider-dot {
+  background-color: var(--base-color-brand--orange-2) !important;
 }
 
-html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide .swiper-pagination,
-html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide .swiper-pagination {
-  display: none !important;
+.w-slider-dot.w-active {
+  background-color: var(--base-color-brand--orange-3) !important;
 }
 
-html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide :is(.swiper-btn-prev, .swiper-btn-next),
-html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide :is(.swiper-btn-prev, .swiper-btn-next) {
-  display: flex !important;
-  color: #fff;
-  border-color: #fff;
-  background: rgba(0, 0, 0, 0.38);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+[data-fade-slide] {
+  transition: opacity 200ms ease-out;
+}
+
+[data-fade-slide].is-visible {
+  opacity: 1;
   pointer-events: auto;
-  transition: background-color 0.25s ease;
+  transition: opacity 400ms ease-in;
 }
 
-html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide :is(.swiper-btn-prev, .swiper-btn-next).is-selected,
-html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide :is(.swiper-btn-prev, .swiper-btn-next).is-selected {
-  background: rgba(255, 255, 255, 0.2);
+.parallax-swiper_component.is-moving [data-fade-slide] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 150ms ease-out !important;
 }
 
-@media (max-width: 767px) and (orientation: portrait) {
-  html.tdb-slider-next .parallax-swiper_component > .swiper {
-    position: relative;
-  }
-
-  html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide {
-    right: 2rem;
-    bottom: 2.5rem;
-    width: auto;
-    padding-top: 0;
-  }
-
-  html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide .swiper-buttons-wrapper {
-    gap: 0.75rem;
-  }
+/* Preserve Swiper's live announcements without rendering them as page text. */
+.parallax-swiper_component .swiper-notification,
+.highlight-swiper_component .swiper-notification {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: -1000;
 }
 
-@media (min-width: 768px) {
-  html.tdb-slider-desktop .parallax-swiper_component {
-    position: relative;
-  }
-
-  html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide {
-    left: 50%;
-    top: 50%;
-    width: 100vw;
-    box-sizing: border-box;
-    padding: 0 3vw;
-    align-items: center;
-    transform: translate(-50%, -50%);
-  }
-
-  html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide .swiper-buttons-wrapper {
-    width: 100%;
-    justify-content: space-between;
-    gap: 0;
-  }
+/* This readiness flag must not invalidate descendants. */
+@property --tdb-slider-ui-ready {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
 }
+html { --tdb-slider-ui-ready: 1; }

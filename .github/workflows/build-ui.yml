@@ -10,6 +10,11 @@ on:
       - 'src/styles/tdb-control-effects.css'
       - 'tools/runtime-build/**'
       - 'src/styles/tdb-vimeo-ui.css'
+      - 'src/styles/tdb-announcement-states.css'
+      - 'src/styles/tdb-carousel-arrow-states.css'
+      - 'src/styles/tdb-content-formatting.css'
+      - 'src/styles/tdb-shared-control-states.css'
+      - 'src/shared/reveal-motion.css'
       - 'src/styles/tdb-runtime-ui.css'
       - 'src/styles/tdb-deferred-ui.css'
       - 'src/styles/tdb-slider-ui.css'
@@ -53,17 +58,19 @@ jobs:
           test -s dist/tdb-ui.css
           test -s dist/tdb-vip.css
           test -s dist/tdb-slider-ui.css
+          test -s dist/tdb-vimeo.css
+          test -s dist/tdb-announcement.css
           node tools/runtime-build/verify-ui.cjs
 
       - name: Commit generated artifacts
         run: |
-          if [ -z "$(git status --porcelain -- src/styles/tdb-ui.css dist/tdb-ui.css dist/tdb-vip.css dist/tdb-slider-ui.css)" ]; then
+          if [ -z "$(git status --porcelain -- src/styles/tdb-ui.css dist/tdb-ui.css dist/tdb-vip.css dist/tdb-slider-ui.css dist/tdb-vimeo.css dist/tdb-announcement.css)" ]; then
             echo 'Generated UI files are already current.'
             exit 0
           fi
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/styles/tdb-ui.css dist/tdb-ui.css dist/tdb-vip.css dist/tdb-slider-ui.css
+          git add src/styles/tdb-ui.css dist/tdb-ui.css dist/tdb-vip.css dist/tdb-slider-ui.css dist/tdb-vimeo.css dist/tdb-announcement.css
           git commit -m 'Build UI artifacts'
           git push origin HEAD:main
