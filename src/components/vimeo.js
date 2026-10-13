@@ -1,14 +1,15 @@
-/* TDB Vimeo 1.2.0. Migrated from tdb-vimeo-js v1.0.1.
+/* TDB Vimeo 1.3.0. Migrated from tdb-vimeo-js v1.0.1.
  * Hero, ambient and content share playback cancellation and page suspension.
  * Loaded and initialised by tdb-vimeo-loader.js after functionality consent.
  */
 (() => {
   'use strict';
   if (window.TDBVimeo) return;
-  let instance = null;
+  let instance = null, initError = null;
   function init() {
+    if (initError) throw initError;
     if (instance) return instance;
-    if (!window.CookieScript?.instance?.currentState()?.categories?.includes('functionality')) return null;
+    if (!window.TDBConsent?.allows('functionality')) return null;
   const heroShells = Array.from(document.querySelectorAll('[data-vimeo-hero-shell]'));
   const ambientRoots = Array.from(document.querySelectorAll('[data-vimeo-ambient-init]'));
   const contentRoots = Array.from(
@@ -18,7 +19,6 @@
   if (!heroShells.length && !ambientRoots.length && !contentRoots.length) return;
 
   let vimeoApiPromise = null;
-  let vimeoConsentPoll = null;
   let pendingConsentHero = null;
   let pendingConsentContent = null;
   let heroObserver = null;
@@ -61,22 +61,7 @@
   }
 
   function hasFunctionalityConsent() {
-    try {
-      const consent =
-        window.CookieScript &&
-        window.CookieScript.instance &&
-        window.CookieScript.instance.currentState
-          ? window.CookieScript.instance.currentState()
-          : null;
-
-      return !!(
-        consent &&
-        Array.isArray(consent.categories) &&
-        consent.categories.includes('functionality')
-      );
-    } catch (e) {
-      return false;
-    }
+    return window.TDBConsent.allows('functionality');
   }
 
   function getPlayback(playerRoot) {
@@ -1483,11 +1468,6 @@
 
   function handleConsentOutcome() {
     if (hasFunctionalityConsent()) {
-      if (vimeoConsentPoll) {
-        clearInterval(vimeoConsentPoll);
-        vimeoConsentPoll = null;
-      }
-
       syncAllVisibleHeroPlayers();
       warmAllContentPlayers();
 
@@ -1533,16 +1513,6 @@
     initHeroObserver();
     initAmbientObserver();
 
-    if (hasFunctionalityConsent()) {
-      warmAllContentPlayers();
-    } else if (contentRoots.length && !vimeoConsentPoll) {
-      vimeoConsentPoll = setInterval(function () {
-        if (hasFunctionalityConsent()) {
-          handleConsentOutcome();
-        }
-      }, 500);
-    }
-
     window.addEventListener(
       'resize',
       function () {
@@ -1559,34 +1529,14 @@
       { passive: true }
     );
 
-    const delayedConsentCheck = function () {
-      setTimeout(handleConsentOutcome, 80);
-    };
-
-    window.addEventListener('CookieScriptLoaded', delayedConsentCheck);
-    window.addEventListener('CookieScriptAcceptAll', delayedConsentCheck);
-    window.addEventListener('CookieScriptAccept', delayedConsentCheck);
-    window.addEventListener('CookieScriptAcceptSelection', delayedConsentCheck);
-    window.addEventListener('CookieScriptCategory-functionality', delayedConsentCheck);
-
-    window.addEventListener('CookieScriptReject', function () {
-      if (!hasFunctionalityConsent()) {
-        clearPendingContentConsentRequest(true);
-        resetHeroAndAmbientWhenNoConsent();
-      }
-    });
-
-    window.addEventListener('CookieScriptClose', function () {
-      if (!hasFunctionalityConsent()) {
-        clearPendingContentConsentRequest(true);
-        resetHeroAndAmbientWhenNoConsent();
-      }
-    });
+    // The central coordinator delivers current state immediately, then changes.
+    // It owns CookieScript compatibility events; no per-player polling/listeners.
+    window.TDBConsent.subscribe(handleConsentOutcome);
 
     scheduleRefreshAll(150);
   }
 
-  instance = Object.freeze({
+  const api = Object.freeze({
     play(root) {
       if (root.matches('[data-vimeo-content-init]')) return playContent(root);
       const shell = root.closest('[data-vimeo-hero-shell]');
@@ -1597,8 +1547,14 @@
       }
     }
   });
-  start();
+  try { start(); }
+  catch (error) {
+    // Do not report readiness or replay partially bound initialisation.
+    initError = error;
+    throw error;
+  }
+  instance = api;
   return instance;
   }
-  window.TDBVimeo = Object.freeze({version: '1.2.0', init, get initialised() { return !!instance; }});
+  window.TDBVimeo = Object.freeze({version: '1.3.0', init, get initialised() { return !!instance; }});
 })();

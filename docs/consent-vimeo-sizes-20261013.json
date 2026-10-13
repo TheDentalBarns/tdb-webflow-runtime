@@ -1,0 +1,113 @@
+[
+  {
+    "file": "dist/tdb-consent-startup.min.js",
+    "ref": "716f48d913168ce00cfcc2546fb594ebe5182ebe",
+    "before": {
+      "bytes": 10788,
+      "gzip": 3894,
+      "brotli": 3441
+    },
+    "after": {
+      "bytes": 10356,
+      "gzip": 3783,
+      "brotli": 3342
+    }
+  },
+  {
+    "file": "dist/tdb-consent.min.js",
+    "ref": "dead3424dcad0607b95fe5b3704ab5247de45869",
+    "before": {
+      "bytes": 2421,
+      "gzip": 1075,
+      "brotli": 891
+    },
+    "after": {
+      "bytes": 5000,
+      "gzip": 1967,
+      "brotli": 1719
+    }
+  },
+  {
+    "file": "dist/tdb-navbar-loader.js",
+    "ref": "b11d96a66dbab91f7237ad66e570933a1a780b65",
+    "before": {
+      "bytes": 17955,
+      "gzip": 5877,
+      "brotli": 5063
+    },
+    "after": {
+      "bytes": 17561,
+      "gzip": 5769,
+      "brotli": 4973
+    }
+  },
+  {
+    "file": "dist/tdb-vimeo-loader.js",
+    "ref": "716f48d913168ce00cfcc2546fb594ebe5182ebe",
+    "before": {
+      "bytes": 4936,
+      "gzip": 1997,
+      "brotli": 1740
+    },
+    "after": {
+      "bytes": 2658,
+      "gzip": 1238,
+      "brotli": 1055
+    }
+  },
+  {
+    "file": "dist/tdb-vimeo.js",
+    "ref": "97349848b1d29f0c509d57551393a6e9a49f1d46",
+    "before": {
+      "bytes": 20470,
+      "gzip": 5701,
+      "brotli": 5052
+    },
+    "after": {
+      "bytes": 19699,
+      "gzip": 5543,
+      "brotli": 4928
+    }
+  },
+  {
+    "file": "dist/tdb-vimeo.css",
+    "ref": "716f48d913168ce00cfcc2546fb594ebe5182ebe",
+    "before": {
+      "bytes": 7448,
+      "gzip": 1131,
+      "brotli": 973
+    },
+    "after": {
+      "bytes": 7448,
+      "gzip": 1131,
+      "brotli": 973
+    }
+  },
+  {
+    "file": "dist/tdb-ui.css",
+    "ref": "d9aede36fbefe928fd108357fb560b2c16c70453",
+    "before": {
+      "bytes": 3264,
+      "gzip": 1235,
+      "brotli": 1051
+    },
+    "after": {
+      "bytes": 3264,
+      "gzip": 1235,
+      "brotli": 1051
+    }
+  },
+  {
+    "file": "dist/tdb-scroll-lock.css (inserted in existing critical style)",
+    "before": {
+      "bytes": 0,
+      "gzip": 0,
+      "brotli": 0
+    },
+    "after": {
+      "bytes": 235,
+      "gzip": 167,
+      "brotli": 125
+    }
+  }
+]

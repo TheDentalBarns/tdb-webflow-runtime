@@ -1,5 +1,7 @@
 /* Single source-to-output manifest for local and CI runtime builds. */
 module.exports = {
+  'dist/tdb-consent.min.js': ['src/consent/consent.js'],
+  'dist/tdb-consent.js': ['src/consent/consent.js'],
   'dist/tdb-immediate-runtime-batch.min.js': ['src/runtime/immediate-runtime-batch.js'],
   'dist/tdb-modules.js': ['src/shared/modules.js'],
   'dist/tdb-gallery.js': ['src/sliders/gallery-presentation.js', 'src/sliders/gallery-plugin.js'],

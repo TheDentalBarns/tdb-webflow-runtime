@@ -4,10 +4,23 @@ const assert = require('node:assert/strict');
 const {JSDOM} = require(process.env.TDB_JSDOM || 'jsdom');
 const source = fs.readFileSync('dist/tdb-consent-startup.min.js', 'utf8');
 const markup = fs.readFileSync('src/consent/banner.html', 'utf8');
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+let advance;
+const sleep = ms => advance(ms);
 function setup(cookie, fontGate) {
  const dom = new JSDOM('<!doctype html><html><body style="padding-right:3px"><a id="settings" href="#">Settings</a>'+markup+'</body></html>', {url:'https://dentalbarns.webflow.io/',runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window, events=[];
+ const timers=new Map();let now=0, timerId=0;
+ w.setTimeout=(fn,delay=0)=>{timers.set(++timerId,{fn,time:now+delay});return timerId;};
+ w.clearTimeout=id=>timers.delete(id);
+ w.requestAnimationFrame=fn=>w.setTimeout(fn,16);w.cancelAnimationFrame=w.clearTimeout;
+ advance=async ms=>{
+  const end=now+ms;
+  for(;;){
+   const next=[...timers].filter(([,t])=>t.time<=end).sort((a,b)=>a[1].time-b[1].time)[0];
+   if(!next)break;now=next[1].time;timers.delete(next[0]);next[1].fn();await Promise.resolve();
+  }
+  now=end;await Promise.resolve();
+ };
  const fontCalls=[];
  if(fontGate)Object.defineProperty(w.document,'fonts',{value:{check:()=>false,load:(font,text)=>{fontCalls.push([font,text]);return fontGate;}}});
  w.Element.prototype.getAnimations=()=>[];

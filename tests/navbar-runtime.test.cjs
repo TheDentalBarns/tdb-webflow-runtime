@@ -10,6 +10,10 @@ const dropdown = id => `<div class="navbar10_menu-dropdown"><button id="${id}" c
 function fixture(width = 448, consent = true, registry = true) {
   const dom = new JSDOM(`<!doctype html><html><head></head><body style="overflow:clip"><main>Page</main><div class="navbar10_component w-nav" transparent-nav="true" data-tdb-navbar-native data-duration="500" fs-scrolldisable-element="smart-nav"><div class="tdb-nav-bar-glass"></div><a class="navbar10_logo-link"></a><div class="navbar_line"></div><button class="w-nav-button navbar10_menu-button" aria-expanded="false">Menu</button><div class="w-nav-overlay"><nav class="w-nav-menu navbar10_menu"><div class="navbar10_menu-left">${dropdown('services')}${dropdown('discover')}</div><div class="navbar10_menu-right">First visit</div></nav></div><div class="tdb-desktop-nav-backdrop"></div></div></body></html>`, { runScripts: 'outside-only', pretendToBeVisual: true, url: 'https://dentalbarns.webflow.io/' });
   const w = dom.window, d = w.document, queries = new Map(), animations = [];
+  // Deployment supplies these fixed rules in the early shared style block.
+  const critical = d.createElement('style');
+  critical.textContent = 'body{overflow:visible}' + read('dist/tdb-scroll-lock.css');
+  d.head.append(critical);
   w.innerWidth = width; w.innerHeight = 874;
   Object.defineProperty(d.documentElement, 'clientWidth', { get: () => w.innerWidth });
   const matches = query => {
@@ -93,8 +97,6 @@ test('Home locks the viewport without turning body into a competing sticky scrol
     try {
       f.d.documentElement.setAttribute('data-wf-page', page);
       f.d.body.style.removeProperty('overflow');
-      const native = f.d.createElement('style');
-      native.textContent = 'body{overflow:visible}'; f.d.head.append(native);
       f.w.scrollY = 1200;
       await f.open();
       assert.equal(f.w.getComputedStyle(f.d.documentElement).overflow, 'hidden');

@@ -6,6 +6,7 @@ const path = require('node:path');
 const CleanCSS = require('clean-css');
 const root = path.resolve(__dirname, '../..');
 const bundles = {
+  'tdb-scroll-lock.css': ['tdb-scroll-lock.css'],
   'tdb-vip-chrome.css': ['tdb-vip-chrome.css'],
   'tdb-ui.css': ['tdb-ui.css'],
   'tdb-vimeo.css': ['tdb-vimeo-ui.css'],
