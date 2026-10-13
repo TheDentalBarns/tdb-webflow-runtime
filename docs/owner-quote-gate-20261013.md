@@ -1,6 +1,6 @@
 **Owner quote loading — 13 October 2026**
 
-Prepared on `work/owner-quote-gate-20261013`, based on the consent/Vimeo work at `31d0ee555c3136f447496cd77e4698333867f433`. Scope: native owner quote carousels. Patient review loading policy, Vimeo permission policy, shared motion/Swiper/ticker and all unrelated modules retain their existing behaviour and releases. Production publication is not part of this change.
+Published to Webflow staging only from asset commit `4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c`, on `work/owner-quote-gate-20261013`, based on the consent/Vimeo work at `31d0ee555c3136f447496cd77e4698333867f433`. Draft PR: https://github.com/TheDentalBarns/tdb-webflow-runtime/pull/26. Scope: native owner quote carousels. Patient review loading policy, Vimeo permission policy, shared motion/Swiper/ticker and all unrelated modules retain their existing behaviour and releases. Production has not been published.
 
 **Loading contract**
 
@@ -30,7 +30,7 @@ Exact bytes; gzip level 9, Brotli quality 11. Reproduce with `node tools/measure
 | Quote engine | 7351 → 8207 | 2833 → 3167 | 2496 → 2803 |
 | Initial consent + eager quote → consent only | 12351 → 6281 | 4800 → 2386 | 4215 → 2100 |
 
-The early shared gate adds 419 gzip bytes but removes the entire eager quote request: a net 2414 gzip bytes from these two initial assets on a fresh undecided visit, before considering dependencies previously triggered by proximity. Once released, the quote engine is 334 gzip bytes larger to support explicit startup, retained input and safe teardown. CSS source increase: zero; two existing state classes are added to each owner CMS template.
+The early shared gate adds 419 gzip bytes but removes the entire eager quote request: a net 2414 gzip bytes from these two initial assets on a fresh undecided visit, before considering dependencies previously triggered by proximity. Once released, the quote engine is 334 gzip bytes larger to support explicit startup, retained input and safe teardown. CSS source increase: zero; two existing state classes are added to each owner CMS template. Webflow's published CSS re-export duplicates the existing `opacity:.5` declaration inside the byline state rule. Effective quote declarations are identical. Across Home's external stylesheets, this changes raw bytes from 250855 to 250866 (+11), gzip from 44786 to 44790 (+4), and Brotli from 36235 to 36166 (-69); these are sums of independently compressed files, not a browser transfer measurement.
 
 **Verification**
 
@@ -44,4 +44,12 @@ The prepared head patch was checked for a single eager quote removal, preserved 
 
 Git rollback branch: `checkpoint/before-owner-quote-gate-20261013` at `31d0ee555c3136f447496cd77e4698333867f433`. Exact old global code and Designer style lists are in `rollback-owner-quotes-20261013/`. Restore the previous global head and the original style lists for the five changed layouts together, then publish only the staging subdomain. Preserve later unrelated edits when applying a rollback; the global footer did not change.
 
-`python tools/prepare-owner-quote-code.py --input docs/rollback-owner-quotes-20261013/site-code.json --commit FULL_COMMIT_SHA --output /tmp/owner-site-code.json` prepares the narrow site-code patch without publishing. Release and published readback evidence will be added after staging verification.
+`python tools/prepare-owner-quote-code.py --input docs/rollback-owner-quotes-20261013/site-code.json --commit FULL_COMMIT_SHA --output /tmp/owner-site-code.json` prepares the narrow site-code patch without publishing.
+
+**Published verification**
+
+The Webflow readback exactly matched the prepared head and unchanged footer. Publication task `55b75dfa-c70c-480b-95d3-21947a565cd2` explicitly used `customDomains: []` and `publishToWebflowSubdomain: true`. Both new CDN assets returned 200 and matched the committed bytes exactly.
+
+Published HTML checks passed for Home, First visit, Contact, Location and `/services/cosmetic-dentist` as a Services-template representative. Each has three native owner quotes with visible content/byline state classes, no eager quote script tag, the new consent/quote release, the exact previous Vimeo loader pin and unchanged unrelated registry pins. The patient-review content classes are unchanged. Home's other external script URLs are all retained. Evidence is in `owner-quotes-validation-20261013/`.
+
+Live visual verification remains outstanding: the Designer snapshot returned `status: false`, and a subsequent browser-session reset timed out after 300 seconds. No live swipe/animation pass or rendered screenshot is claimed. This limitation does not affect the recorded automated, API, CDN and published-HTML results.

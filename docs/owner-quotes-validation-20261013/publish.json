@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"label\":\"Publish owner quote gate to staging only\",\"action\":\"publish_site\",\"result\":{\"customDomains\":[],\"publishToWebflowSubdomain\":true,\"publishTaskId\":\"55b75dfa-c70c-480b-95d3-21947a565cd2\",\"publishScope\":\"site\"}}"
+    }
+  ],
+  "isError": false
+}

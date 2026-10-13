@@ -1,0 +1,37 @@
+{
+  "homeStylesheetSizesBefore": {
+    "raw": 250855,
+    "gzip": 44786,
+    "brotli": 36235
+  },
+  "homeStylesheetSizesAfter": {
+    "raw": 250866,
+    "gzip": 44790,
+    "brotli": 36166
+  },
+  "deltas": {
+    "raw": 11,
+    "gzip": 4,
+    "brotli": -69
+  },
+  "quoteDeclarationsEquivalent": true,
+  "nativeRules": [
+    {
+      "selector": ".tdb-team-quotes_content.is-visible",
+      "css": ".tdb-team-quotes_content.is-visible{opacity:1}",
+      "declarations": [
+        "opacity:1"
+      ],
+      "context": null
+    },
+    {
+      "selector": ".tdb-team-quotes_byline.is-static",
+      "css": ".tdb-team-quotes_byline.is-static{opacity:.5;opacity:.5}",
+      "declarations": [
+        "opacity:.5"
+      ],
+      "context": null
+    }
+  ],
+  "note": "Webflow re-export duplicates opacity:.5 inside the existing is-static rule; effective declarations are identical. No CSS rule or stylesheet was authored by this change."
+}

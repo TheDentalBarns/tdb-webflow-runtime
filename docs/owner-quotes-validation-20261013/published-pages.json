@@ -1,0 +1,106 @@
+[
+  {
+    "url": "https://dentalbarns.webflow.io/",
+    "ownerRoots": 1,
+    "nativeQuoteCounts": [
+      3
+    ],
+    "eagerQuoteTag": false,
+    "sharedConsentRelease": "4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c",
+    "quoteRelease": "4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c",
+    "vimeoRelease": "a7d4fe2f1ccfc46404b107a5b65cf78c28853464",
+    "nativeOwnerVisibility": true,
+    "reviewMarkupPreserved": true,
+    "otherRegistryPinsPreserved": true,
+    "styles": [
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.046cf8336.min.css",
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.1a1892c95.opt.min.css",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d9aede36fbefe928fd108357fb560b2c16c70453/dist/tdb-ui.css?announcement-native=1",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d9aede36fbefe928fd108357fb560b2c16c70453/dist/tdb-ui.css?announcement-native=1"
+    ]
+  },
+  {
+    "url": "https://dentalbarns.webflow.io/first-visit",
+    "ownerRoots": 1,
+    "nativeQuoteCounts": [
+      3
+    ],
+    "eagerQuoteTag": false,
+    "sharedConsentRelease": "4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c",
+    "quoteRelease": "4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c",
+    "vimeoRelease": "a7d4fe2f1ccfc46404b107a5b65cf78c28853464",
+    "nativeOwnerVisibility": true,
+    "reviewMarkupPreserved": true,
+    "otherRegistryPinsPreserved": true,
+    "styles": [
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.046cf8336.min.css",
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.678960b4f377f07e06aa5447.18ec16929.opt.min.css",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d9aede36fbefe928fd108357fb560b2c16c70453/dist/tdb-ui.css?announcement-native=1",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d9aede36fbefe928fd108357fb560b2c16c70453/dist/tdb-ui.css?announcement-native=1",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3c0984362573aa1a0460dcc4fb86be61010890b4/dist/tdb-page-compat.css"
+    ]
+  },
+  {
+    "url": "https://dentalbarns.webflow.io/contact",
+    "ownerRoots": 1,
+    "nativeQuoteCounts": [
+      3
+    ],
+    "eagerQuoteTag": false,
+    "sharedConsentRelease": "4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c",
+    "quoteRelease": "4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c",
+    "vimeoRelease": "a7d4fe2f1ccfc46404b107a5b65cf78c28853464",
+    "nativeOwnerVisibility": true,
+    "reviewMarkupPreserved": true,
+    "otherRegistryPinsPreserved": true,
+    "styles": [
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.046cf8336.min.css",
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cfbd543a0695d07285efd.55c75b886.opt.min.css",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d9aede36fbefe928fd108357fb560b2c16c70453/dist/tdb-ui.css?announcement-native=1",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d9aede36fbefe928fd108357fb560b2c16c70453/dist/tdb-ui.css?announcement-native=1",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3c0984362573aa1a0460dcc4fb86be61010890b4/dist/tdb-page-compat.css"
+    ]
+  },
+  {
+    "url": "https://dentalbarns.webflow.io/location",
+    "ownerRoots": 1,
+    "nativeQuoteCounts": [
+      3
+    ],
+    "eagerQuoteTag": false,
+    "sharedConsentRelease": "4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c",
+    "quoteRelease": "4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c",
+    "vimeoRelease": "a7d4fe2f1ccfc46404b107a5b65cf78c28853464",
+    "nativeOwnerVisibility": true,
+    "reviewMarkupPreserved": true,
+    "otherRegistryPinsPreserved": true,
+    "styles": [
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.046cf8336.min.css",
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cfb8a0f25478449823c5f.c09989267.opt.min.css",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d9aede36fbefe928fd108357fb560b2c16c70453/dist/tdb-ui.css?announcement-native=1",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d9aede36fbefe928fd108357fb560b2c16c70453/dist/tdb-ui.css?announcement-native=1",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3c0984362573aa1a0460dcc4fb86be61010890b4/dist/tdb-page-compat.css"
+    ]
+  },
+  {
+    "url": "https://dentalbarns.webflow.io/services/cosmetic-dentist",
+    "ownerRoots": 1,
+    "nativeQuoteCounts": [
+      3
+    ],
+    "eagerQuoteTag": false,
+    "sharedConsentRelease": "4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c",
+    "quoteRelease": "4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c",
+    "vimeoRelease": "a7d4fe2f1ccfc46404b107a5b65cf78c28853464",
+    "nativeOwnerVisibility": true,
+    "reviewMarkupPreserved": true,
+    "otherRegistryPinsPreserved": true,
+    "styles": [
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.046cf8336.min.css",
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.6785071ede094cc233e0c72b.d9fb87a26.opt.min.css",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d9aede36fbefe928fd108357fb560b2c16c70453/dist/tdb-ui.css?announcement-native=1",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d9aede36fbefe928fd108357fb560b2c16c70453/dist/tdb-ui.css?announcement-native=1",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3c0984362573aa1a0460dcc4fb86be61010890b4/dist/tdb-page-compat.css"
+    ]
+  }
+]
