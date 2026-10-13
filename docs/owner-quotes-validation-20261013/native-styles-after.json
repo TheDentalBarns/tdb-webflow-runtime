@@ -1,0 +1,132 @@
+[
+  {
+    "pageId": "678960b4f377f07e06aa5447",
+    "title": "First visit",
+    "elements": [
+      {
+        "id": {
+          "component": "678960b4f377f07e06aa5447",
+          "element": "64adc5ef-ded6-1885-3405-ae021196bfee"
+        },
+        "styleNames": [
+          "tdb-team-quotes_content",
+          "is-visible"
+        ]
+      },
+      {
+        "id": {
+          "component": "678960b4f377f07e06aa5447",
+          "element": "64adc5ef-ded6-1885-3405-ae021196bfed"
+        },
+        "styleNames": [
+          "tdb-team-quotes_byline",
+          "is-static"
+        ]
+      }
+    ]
+  },
+  {
+    "pageId": "6785071ede094cc233e0c72b",
+    "title": "Services Template",
+    "elements": [
+      {
+        "id": {
+          "component": "6785071ede094cc233e0c72b",
+          "element": "28f673db-c898-d7f7-2004-a96baa76b5a7"
+        },
+        "styleNames": [
+          "tdb-team-quotes_content",
+          "is-visible"
+        ]
+      },
+      {
+        "id": {
+          "component": "6785071ede094cc233e0c72b",
+          "element": "28f673db-c898-d7f7-2004-a96baa76b5a6"
+        },
+        "styleNames": [
+          "tdb-team-quotes_byline",
+          "is-static"
+        ]
+      }
+    ]
+  },
+  {
+    "pageId": "677cfbd543a0695d07285efd",
+    "title": "Contact",
+    "elements": [
+      {
+        "id": {
+          "component": "677cfbd543a0695d07285efd",
+          "element": "44577d30-a1d5-52c0-bea8-6fb3d3c8a194"
+        },
+        "styleNames": [
+          "tdb-team-quotes_content",
+          "is-visible"
+        ]
+      },
+      {
+        "id": {
+          "component": "677cfbd543a0695d07285efd",
+          "element": "44577d30-a1d5-52c0-bea8-6fb3d3c8a193"
+        },
+        "styleNames": [
+          "tdb-team-quotes_byline",
+          "is-static"
+        ]
+      }
+    ]
+  },
+  {
+    "pageId": "677cfb8a0f25478449823c5f",
+    "title": "Location",
+    "elements": [
+      {
+        "id": {
+          "component": "677cfb8a0f25478449823c5f",
+          "element": "f5fde048-74e5-7206-4c7e-ece17e9bc542"
+        },
+        "styleNames": [
+          "tdb-team-quotes_content",
+          "is-visible"
+        ]
+      },
+      {
+        "id": {
+          "component": "677cfb8a0f25478449823c5f",
+          "element": "f5fde048-74e5-7206-4c7e-ece17e9bc541"
+        },
+        "styleNames": [
+          "tdb-team-quotes_byline",
+          "is-static"
+        ]
+      }
+    ]
+  },
+  {
+    "pageId": "677cf86df9952f978d94d8a9",
+    "title": "Home",
+    "elements": [
+      {
+        "id": {
+          "component": "677cf86df9952f978d94d8a9",
+          "element": "b17c212b-4a19-a505-e988-3b1bf5a684d4"
+        },
+        "styleNames": [
+          "tdb-team-quotes_content",
+          "is-visible"
+        ]
+      },
+      {
+        "id": {
+          "component": "677cf86df9952f978d94d8a9",
+          "element": "91a16e6d-b219-6550-b24a-6e1e03f04405"
+        },
+        "styleNames": [
+          "tdb-team-quotes_byline",
+          "is-static"
+        ]
+      }
+    ]
+  }
+]

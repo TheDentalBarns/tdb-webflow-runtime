@@ -1,4 +1,4 @@
-/* TDB shared quote carousel v4.0.1. Native layout and shared cancellable entry. */
+/* TDB shared quote carousel v4.1.0. Explicit owner startup; shared review engine. */
 (function () {
   'use strict';
   // Webflow selects, sorts and renders the actual slides. Do not clone or
@@ -13,8 +13,8 @@
   if (window.TDBQuoteCarousel || !['dentalbarns.webflow.io', 'thedentalbarns.com', 'www.thedentalbarns.com', 'thedentalbarns.co.uk', 'www.thedentalbarns.co.uk'].includes(location.hostname)) return;
   const base = new URL('./', document.currentScript.src);
   const prepared = new WeakMap(), mounted = new Map();
-  let dependencyFlight, proximity;
-  const discovered = new WeakSet();
+  let dependencyFlight, proximity, generation = 0;
+  const observed = new Set(), enhancing = new Map();
   const selector = '[data-tdb-team-quotes][data-tdb-team-cms]';
 
   function prepare(root) {
@@ -54,7 +54,7 @@
     // Preserve the authored viewport label for each variant.
   }
 
-  function mount(root, { onActivate } = {}) {
+  function mount(root, { onActivate, intro = true } = {}) {
     if (mounted.has(root)) return mounted.get(root);
     const state = prepared.get(root) || prepare(root);
     if (!state?.cards.length) return;
@@ -66,7 +66,7 @@
     const ticker = window.TDBNativeTicker.mount(root.querySelector('[data-tdb-team-current]'));
     const controller = new AbortController(), { signal } = controller;
     let swiper, dd, revealTimer = 0, entryControl;
-    let entryPending = cards.length > 1, opening = false, direction = 1, gesture = false;
+    let entryPending = intro && cards.length > 1, opening = false, direction = 1, gesture = false;
     let destroyed = false, looping = false, activating = false;
     const copies = () => window.TDBSwiper.matchingSlides(swiper);
     const authorLines = () => copies().flatMap(card => [...card.querySelectorAll('[data-tdb-team-author-line]')]);
@@ -140,6 +140,13 @@
     });
     swiper.init();
     updateCount();
+    // Designer keeps native owner quotes readable before JS. Preserve the active
+    // quote during preparation, while removing visibility from offscreen copies.
+    if (root.matches(selector)) {
+      const active = new Set(copies());
+      track.querySelectorAll('[data-tdb-team-slide]').forEach(card =>
+        card.querySelector('[data-tdb-team-content]').classList.toggle('is-visible', active.has(card)));
+    }
     window.TDBSwiper.watchDuration(root, viewport, swiper, '--tdb-team-duration', () => viewport.clientWidth);
     swiper.on('resize', () => {
       swiper.params.longSwipesRatio = Math.min(1, 40 / Math.max(1, viewport.clientWidth));
@@ -162,11 +169,17 @@
         cancel() { cancelEntry(); if (!destroyed && !gesture && !swiper.animating) settle(0); }
       });
     }
-    viewport.addEventListener('keydown', event => {
-      if (!['ArrowLeft', 'ArrowRight'].includes(event.key) || cards.length < 2) return;
-      event.preventDefault(); cancelEntry(); opening = false;
-      direction = event.key === 'ArrowLeft' ? -1 : 1;
+    function navigate(key) {
+      if (cards.length < 2 || destroyed) return;
+      cancelEntry(); opening = false;
+      direction = key === 'ArrowLeft' ? -1 : 1;
       direction < 0 ? swiper.slidePrev() : swiper.slideNext();
+    }
+    viewport.addEventListener('keydown', event => {
+      if (!['ArrowLeft', 'ArrowRight'].includes(event.key) || cards.length < 2 ||
+          event.altKey || event.ctrlKey || event.metaKey ||
+          event.target.closest?.('input,textarea,select,[contenteditable]:not([contenteditable="false"])')) return;
+      event.preventDefault(); navigate(event.key);
     }, { signal });
     // Optional action belongs to the consumer (review drawer, future quote drawer).
     // Swiper owns drag/click discrimination; only the physical active slide is actionable.
@@ -187,6 +200,7 @@
     root.addEventListener('keydown', activate, { signal });
     const api = Object.freeze({
       swiper,
+      navigate,
       on: (...args) => swiper.on(...args),
       get destroyed() { return destroyed; },
       destroy() {
@@ -214,37 +228,63 @@
     flight.catch(() => { if (dependencyFlight === flight) dependencyFlight = null; });
     return flight;
   }
-  async function enhance(root) {
-    if (mounted.has(root)) return;
-    try {
-      await dependencies();
-      if (root.isConnected) window.TDBSwiper.mount('owner-quotes', root);
-    } catch (error) {
-      showFallback(root);
-      root.dispatchEvent(new CustomEvent('tdb:team-quotes-error', { bubbles: true, detail: { error } }));
+  function enhance(root, manual = false, keys = []) {
+    const existing = mounted.get(root);
+    if (existing) { keys.forEach(existing.navigate); return Promise.resolve(existing); }
+    const pending = enhancing.get(root);
+    if (pending) {
+      pending.manual ||= manual;
+      pending.keys.push(...keys);
+      return pending.promise;
     }
+    if (!root.isConnected || !prepare(root)) return Promise.resolve(null);
+    proximity?.unobserve(root); observed.delete(root);
+    const request = { manual, keys: [...keys], generation };
+    request.promise = (async () => {
+      try {
+        await dependencies();
+        if (generation !== request.generation || !root.isConnected) return null;
+        const instance = window.TDBSwiper.mount('owner-quotes', root, { intro: !request.manual });
+        request.keys.forEach(instance.navigate);
+        return instance;
+      } catch (error) {
+        if (generation === request.generation && root.isConnected) {
+          showFallback(root);
+          root.dispatchEvent(new CustomEvent('tdb:team-quotes-error', { bubbles: true, detail: { error } }));
+        }
+        return null;
+      } finally { if (enhancing.get(root) === request) enhancing.delete(root); }
+    })();
+    enhancing.set(root, request);
+    return request.promise;
   }
   function init() {
+    if (!window.TDBConsent?.allows()) return;
     document.querySelectorAll(selector).forEach(root => {
       const section = root.closest('.section_standard-testimonial');
       const state = prepare(root);
       if (!state) { if (section) section.hidden = true; return; }
-      if (discovered.has(root)) { if (!mounted.has(root)) enhance(root); return; }
-      discovered.add(root);
+      if (mounted.has(root) || observed.has(root) || enhancing.has(root)) return;
       if ('IntersectionObserver' in window) {
         proximity ||= new IntersectionObserver(entries => {
           for (const entry of entries) if (entry.isIntersecting) {
-            proximity.unobserve(entry.target); enhance(entry.target);
+            enhance(entry.target);
           }
         }, { rootMargin: '800px' });
         proximity.observe(root);
+        observed.add(root);
       } else enhance(root);
-      root.addEventListener('focusin', () => enhance(root));
     });
   }
-  window.TDBQuoteCarousel = window.TDBTeamQuotes = Object.freeze({ version: '4.0.1', refresh: init, mount,
-    destroy() { proximity?.disconnect(); [...mounted.values()].forEach(instance => instance.destroy()); }
+  window.TDBQuoteCarousel = window.TDBTeamQuotes = Object.freeze({ version: '4.1.0', refresh: init, mount,
+    activate: (root, keys = []) => root.matches(selector) ? enhance(root, true, keys) : Promise.resolve(null),
+    isMounted: root => mounted.has(root),
+    destroy() {
+      generation++; proximity?.disconnect(); proximity = null;
+      observed.clear(); enhancing.clear();
+      [...mounted.values()].forEach(instance => instance.destroy());
+    }
   });
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
-  else init();
+  // Loading this engine for patient reviews does not opt owner quotes into work.
+  // TDBConsent explicitly calls refresh() or activate() when their gate opens.
 })();

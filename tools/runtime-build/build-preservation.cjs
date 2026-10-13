@@ -42,9 +42,6 @@ const targets = require('./targets.cjs');
       fs.writeFileSync(path.join(root, output), input + (output === 'dist/tdb-five-senses.js' ? '\n' : ''));
       continue;
     }
-    if (output === 'dist/tdb-quote-carousel.js') {
-      fs.writeFileSync(path.join(root, output), input); continue;
-    }
     const result = await minify(input, {compress:true, mangle:true, format:{comments:false},
       ...(output.includes('navbar') ? {ecma:2020} : {})});
     if (!result.code) throw new Error('Empty build: ' + output);
