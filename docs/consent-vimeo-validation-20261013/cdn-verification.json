@@ -1,0 +1,38 @@
+[
+  {
+    "file": "tdb-consent-startup.min.js",
+    "bytes": 10356,
+    "matches": true,
+    "sha256": "390c5069d26063f14453eff69eb0592668b7f60f2a918dbca6a0c0bad43c1022"
+  },
+  {
+    "file": "tdb-consent.js",
+    "bytes": 5000,
+    "matches": true,
+    "sha256": "32f0f627a43fd1933f05d80e0e400a1cca5af913acebbe6ca7532e0370a0de19"
+  },
+  {
+    "file": "tdb-navbar-loader.js",
+    "bytes": 17561,
+    "matches": true,
+    "sha256": "63a56120b3385306608939262c920531565d4c7cc3bca63cdee63ce2523ea64c"
+  },
+  {
+    "file": "tdb-vimeo-loader.js",
+    "bytes": 2658,
+    "matches": true,
+    "sha256": "d0bb497e6f301a279e1e050ae720917e7e855067b1244fe58cbefc821e9cfb01"
+  },
+  {
+    "file": "tdb-vimeo.js",
+    "bytes": 19699,
+    "matches": true,
+    "sha256": "18d02140c1499800887783206a86b2959e12bce7fa2f2cbcae49e3482d2a8c54"
+  },
+  {
+    "file": "tdb-vimeo.css",
+    "bytes": 7448,
+    "matches": true,
+    "sha256": "aaa1a9f2a5d0529fcc01678b7af08dfaeb343edeb3b3cfa4aa465805bdc16863"
+  }
+]

@@ -1,167 +1,98 @@
-/* TDB Vimeo loader 1.2.0. Early first-party UI and consent handoff.
- * No Vimeo SDK/iframe until functionality permission; prepare near the viewport.
- * The controller owns playback. Webflow owns the frame and control design.
+/* TDB Vimeo loader 2.0.0. Released by the shared functionality-consent gate.
+ * Owns proximity and preparation; the coordinator owns permission and settings.
+ * Webflow owns the static frame. The controller owns playback.
  */
 (() => {
   'use strict';
-  if (window.TDBVimeoLoader) return;
+  if (window.TDBVimeoLoader || !window.TDBConsent?.subscribe) return;
   const base = new URL('./', document.currentScript.src);
-  const controllerBase = new URL('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@97349848b1d29f0c509d57551393a6e9a49f1d46/dist/');
+  const consent = window.TDBConsent;
   const selector = '[data-vimeo-hero-shell],[data-vimeo-ambient-init],[data-vimeo-content-init]';
-  const consentEvents = ['CookieScriptLoaded','CookieScriptAcceptAll','CookieScriptAccept','CookieScriptAcceptSelection','CookieScriptCategory-functionality','CookieScriptReject','CookieScriptClose'];
   const roots = [...document.querySelectorAll(selector)];
-  if (!roots.length) return;
-  let pending = null, near = false, flight = null, cssFlight = null, observer = null;
-  let api = null, wantsSettings = false;
-  const permitted = () => {
-    try { return window.CookieScript?.instance?.currentState()?.categories?.includes('functionality') === true; }
-    catch { return false; }
-  };
-  function mark(root, state) {
+  let pending = null, near = false, flight = null, observer = null, api = null;
+  let armed = false, unsubscribe;
+  const permitted = () => consent.allows('functionality');
+  function mark(root, loading) {
     if (!root) return;
-    const waiting = state === 'awaiting-consent' || state === 'loading';
+    root.querySelector('[data-vimeo-control="play"]')?.setAttribute('aria-busy', String(loading));
     if (root.matches('[data-vimeo-hero-shell]')) {
-      root.setAttribute('data-vimeo-ui',state);
-      root.setAttribute('data-vimeo-pulse',String(!waiting));
+      root.setAttribute('data-vimeo-ui', loading ? 'loading' : 'idle');
+      root.setAttribute('data-vimeo-pulse', String(!loading));
     } else {
-      root.setAttribute('data-vimeo-loading',String(waiting));
-      root.setAttribute('data-vimeo-awaiting-consent',String(state === 'awaiting-consent'));
+      root.setAttribute('data-vimeo-loading', String(loading));
+      root.setAttribute('data-vimeo-awaiting-consent', 'false');
     }
   }
-  function clearPending() {
-    mark(pending,'idle');
-    pending = null;
-    wantsSettings = false;
-  }
-  function showSettings() {
-    wantsSettings = true;
-    if (typeof window.openCookieSettingsPanel === 'function') {
-      window.openCookieSettingsPanel(); wantsSettings = false;
-    } else if (typeof window.CookieScript?.instance?.show === 'function') {
-      window.CookieScript.instance.show(); wantsSettings = false;
-    }
-  }
-  function asset(file, kind, attr) {
-    return new Promise((resolve,reject) => {
-      let node = document.querySelector('['+attr+']');
-      if (node?.dataset.tdbLoaded === 'true' || (kind === 'link' && node?.sheet && !node.disabled)) return resolve(node);
-      if (node?.dataset.tdbFailed === 'true') { node.remove(); node = null; }
-      const owned = !node;
-      node ||= document.createElement(kind);
-      let timer;
-      const finish = (ok) => {
-        clearTimeout(timer);
-        node.removeEventListener('load',loaded);
-        node.removeEventListener('error',failed);
-        node.dataset[ok?'tdbLoaded':'tdbFailed'] = 'true';
-        if (!ok && owned) node.remove();
-        ok ? resolve(node) : reject(new Error('Vimeo '+file+' unavailable'));
-      };
-      const loaded = () => finish(true), failed = () => finish(false);
-      node.addEventListener('load',loaded,{once:true});
-      node.addEventListener('error',failed,{once:true});
-      timer = setTimeout(failed,15000);
-      if (owned) {
-        node.setAttribute(attr,'');
-        if (kind === 'link') { node.rel='stylesheet'; node.href=new URL(file,base).href; }
-        else { node.src=new URL(file,controllerBase).href; node.async=true; }
-        const shared = document.querySelector('link[data-tdb-ui-css]');
-        if (kind === 'link' && shared) shared.insertAdjacentElement('afterend', node);
-        else document.head.appendChild(node);
-      }
-    });
-  }
-  function sharedStyles() {
-    const shared = document.querySelector('link[data-tdb-ui-css]');
-    if (!shared) return Promise.reject(new Error('Shared UI stylesheet is missing'));
-    const ready = () => !shared.disabled && shared.sheet && (!shared.media || shared.media === 'all');
-    if (ready()) return Promise.resolve();
-    if (shared.dataset.tdbLoadFailed === 'true') return Promise.reject(new Error('Shared UI stylesheet failed'));
-    return new Promise((resolve, reject) => {
-      let timer;
-      const clean = () => { clearTimeout(timer); shared.removeEventListener('load', loaded); shared.removeEventListener('error', failed); };
-      const loaded = () => {
-        clean();
-        shared.media = 'all';
-        ready() ? resolve() : reject(new Error('Shared UI stylesheet unavailable'));
-      };
-      const failed = () => { clean(); reject(new Error('Shared UI stylesheet unavailable')); };
-      shared.addEventListener('load', loaded, {once:true});
-      shared.addEventListener('error', failed, {once:true});
-      timer = setTimeout(failed, 15000);
-    });
-  }
-  function styles() {
-    // Request both independently. Keyframes are shared; playback states are video-owned.
-    return cssFlight ||= Promise.all([sharedStyles(), asset('tdb-vimeo.css','link','data-tdb-vimeo-css')])
-      .catch(error => { cssFlight=null; throw error; });
+  function clearPending() { mark(pending, false); pending = null; }
+  function disarm() {
+    armed = false;
+    observer?.disconnect();
+    document.removeEventListener('pointerover', onIntent, true);
+    document.removeEventListener('focusin', onIntent, true);
   }
   async function prepare() {
-    if (!permitted() || (!near && !pending)) return null;
+    if (!permitted() || (!near && !pending) || !roots.length) return null;
     if (api) return api;
     if (flight) return flight;
     flight = (async () => {
-      await styles();
+      const shared = document.querySelector('link[data-tdb-ui-css]');
+      if (!shared || shared.disabled) throw new Error('Shared UI stylesheet unavailable');
+      await Promise.all([
+        window.TDBModules.load(shared.href, {type: 'style', timeout: 15000})
+          .then(() => { shared.media = 'all'; }),
+        window.TDBModules.load(new URL('tdb-vimeo.css', base), {
+          type: 'style', attribute: 'data-tdb-vimeo-css', timeout: 15000
+        })
+      ]);
       if (!permitted()) return null;
-      if (!window.TDBVimeo) await asset('tdb-vimeo.js','script','data-vimeo-controller-js');
-      // Permission can change while a requested asset is in flight.
+      await window.TDBModules.load(new URL('tdb-vimeo.js', base), {
+        attribute: 'data-vimeo-controller-js', ready: () => !!window.TDBVimeo, timeout: 15000
+      });
       if (!permitted()) return null;
-      api = window.TDBVimeo?.init();
+      api = window.TDBVimeo.init();
       if (!api) throw new Error('Vimeo controller did not initialise');
-      observer?.disconnect();
-      document.removeEventListener('click',onClick,true);
-      document.removeEventListener('pointerover',onIntent,true);
-      document.removeEventListener('focusin',onIntent,true);
-      consentEvents.forEach(type => window.removeEventListener(type,onConsent));
+      disarm();
+      unsubscribe?.();
       const target = pending;
       pending = null;
+      target?.querySelector('[data-vimeo-control="play"]')?.setAttribute('aria-busy', 'false');
       if (target?.isConnected) api.play(target);
       return api;
     })().catch(error => {
       clearPending();
       console.warn(error.message);
       return null;
-    }).finally(() => { flight=null; });
+    }).finally(() => { flight = null; });
     return flight;
-  }
-  function onClick(event) {
-    const control = event.target.closest?.('[data-vimeo-control="play"]');
-    const root = control?.closest('[data-vimeo-content-init],[data-vimeo-hero-shell]');
-    if (!root || api) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    if (pending !== root) clearPending();
-    pending = root;
-    styles().catch(() => {});
-    mark(root,permitted()?'loading':'awaiting-consent');
-    if (!permitted()) showSettings();
-    else prepare();
   }
   function onIntent(event) {
     if (!event.target.closest?.(selector)) return;
     near = true;
-    styles().catch(() => {});
     prepare();
   }
-  function onConsent(event) {
-    // Consent libraries update their state before or immediately after the event.
-    setTimeout(() => {
-      if (api) return;
-      if (permitted()) { wantsSettings=false; prepare(); }
-      else if (event.type === 'CookieScriptClose' || event.type === 'CookieScriptReject' || event.type.startsWith('CookieScriptAccept')) clearPending();
-      else if (wantsSettings) showSettings();
-    },80);
+  function arm() {
+    if (!permitted()) { disarm(); clearPending(); return; }
+    if (api || armed || !roots.length) return;
+    armed = true;
+    document.addEventListener('pointerover', onIntent, true);
+    document.addEventListener('focusin', onIntent, true);
+    if ('IntersectionObserver' in window) {
+      observer ||= new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) { near = true; prepare(); }
+      }, {rootMargin: '300px 0px'});
+      roots.forEach(root => observer.observe(root.closest('.layout355_background-video-wrapper') || root));
+    } else near = true;
+    prepare();
   }
-  window.TDBVimeoLoader = Object.freeze({version:'1.2.0',prepare,status:()=>({present:roots.length,permitted:permitted(),near,pending:!!pending,loading:!!flight,ready:!!api})});
-  document.addEventListener('click',onClick,true);
-  document.addEventListener('pointerover',onIntent,true);
-  document.addEventListener('focusin',onIntent,true);
-  consentEvents.forEach(type => window.addEventListener(type,onConsent));
-  if (roots.some(root => root.matches('[data-vimeo-hero-shell]'))) styles().catch(() => {});
-  if ('IntersectionObserver' in window) {
-    observer = new IntersectionObserver(entries => {
-      if (entries.some(entry => entry.isIntersecting)) { near=true; styles().catch(() => {}); prepare(); }
-    },{rootMargin:'300px 0px'});
-    roots.forEach(root => observer.observe(root.closest('.layout355_background-video-wrapper') || root));
-  } else { near=true; styles().catch(() => {}); prepare(); }
+  function play(root) {
+    if (!permitted()) return Promise.resolve(null);
+    if (api) return api.play(root);
+    if (pending !== root) clearPending();
+    pending = root;
+    mark(root, true);
+    return prepare();
+  }
+  window.TDBVimeoLoader = Object.freeze({version: '2.0.0', prepare, play,
+    status: () => ({present: roots.length, permitted: permitted(), near, pending: !!pending, loading: !!flight, ready: !!api})});
+  unsubscribe = consent.subscribe(arm);
 })();

@@ -1,22 +1,112 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.3.0';
+  const VERSION = '0.5.0';
+  const base = new URL('./', document.currentScript.src);
   const GA_MEASUREMENT_ID = 'G-GCWCSWR50M';
   const META_PIXEL_ID = '1326762815429148';
   const INTELLIMIZE_SRC = 'https://cdn.intellimize.co/snippet/117204709.js';
-  const ELFSIGHT_SRC = 'https://static.elfsight.com/platform/platform.js';
 
   if (window.__tdbConsentBooted) return;
   window.__tdbConsentBooted = true;
 
   let pendingShowSettings = false;
+  const subscribers = new Set();
+  let decisionKey = '', videoPresent = false, videoFlight = null, pendingVideo = null;
+  const videoSelector = '[data-vimeo-hero-shell],[data-vimeo-ambient-init],[data-vimeo-content-init]';
+
+  // One permission boundary. A category alone is not a valid saved decision.
+  function currentState() {
+    let value;
+    try { value = window.CookieScript?.instance?.currentState?.(); } catch (_) {}
+    const decided = value?.action === 'accept' || value?.action === 'reject';
+    return { decided, action: decided ? value.action : undefined,
+      categories: value?.action === 'accept' && Array.isArray(value.categories) ? value.categories.slice() : ['strict'] };
+  }
+  function allows(category) {
+    const choice = currentState();
+    return choice.decided && (!category || choice.categories.includes(category));
+  }
+  function subscribe(callback) {
+    subscribers.add(callback);
+    callback(currentState());
+    return () => subscribers.delete(callback);
+  }
+  function markVideo(root, state) {
+    if (!root) return;
+    const waiting = state !== 'idle';
+    root.querySelector('[data-vimeo-control="play"]')?.setAttribute('aria-busy', String(waiting));
+    if (root.matches('[data-vimeo-hero-shell]')) {
+      root.setAttribute('data-vimeo-ui', state);
+      root.setAttribute('data-vimeo-pulse', String(!waiting));
+    } else {
+      root.setAttribute('data-vimeo-loading', String(waiting));
+      root.setAttribute('data-vimeo-awaiting-consent', String(state === 'awaiting-consent'));
+    }
+  }
+  function clearVideo() {
+    markVideo(pendingVideo, 'idle');
+    pendingVideo = null;
+  }
+  function releaseVideo() {
+    if (!videoPresent || !allows('functionality')) return Promise.resolve(null);
+    if (videoFlight) return videoFlight;
+    videoFlight = (async () => {
+      if (!window.TDBModules) throw new Error('Shared dependency registry unavailable');
+      await window.TDBModules.load(new URL('tdb-vimeo-loader.js', base), {
+        attribute: 'data-tdb-vimeo-loader', ready: () => !!window.TDBVimeoLoader, timeout: 15000
+      });
+      if (!allows('functionality')) return null;
+      while (pendingVideo && allows('functionality')) {
+        const target = pendingVideo;
+        pendingVideo = null;
+        if (!target.isConnected) continue;
+        target.querySelector('[data-vimeo-control="play"]')?.setAttribute('aria-busy', 'false');
+        await window.TDBVimeoLoader.play(target);
+      }
+      return window.TDBVimeoLoader;
+    })().catch(error => {
+      clearVideo();
+      console.warn(error.message);
+      return null;
+    }).finally(() => { videoFlight = null; });
+    return videoFlight;
+  }
+  function settle() {
+    const choice = currentState();
+    const key = JSON.stringify([choice.action, choice.categories]);
+    if (key !== decisionKey) {
+      decisionKey = key;
+      for (const callback of subscribers) {
+        try { callback(choice); } catch (error) { console.warn(error.message); }
+      }
+    }
+    if (allows('functionality')) releaseVideo();
+    else clearVideo();
+  }
+  function videoClick(event) {
+    const control = event.target.closest?.('[data-vimeo-control="play"]');
+    const root = control?.closest('[data-vimeo-content-init],[data-vimeo-hero-shell]');
+    if (!root || (allows('functionality') && window.TDBVimeo?.initialised)) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if (pendingVideo !== root) clearVideo();
+    pendingVideo = root;
+    markVideo(root, allows('functionality') ? 'loading' : 'awaiting-consent');
+    if (allows('functionality')) releaseVideo();
+    else showCookieSettings();
+  }
+  function prepareVideoGate() {
+    videoPresent = !!document.querySelector(videoSelector);
+    // No video-specific observers, assets or stylesheet work before permission.
+    if (videoPresent) document.addEventListener('click', videoClick, true);
+    settle();
+  }
 
   const state = {
     analytics: false,
     intellimize: false,
-    meta: false,
-    elfsight: false
+    meta: false
   };
 
   function appendScript(src, marker, options = {}) {
@@ -118,38 +208,10 @@
     loadMetaPixel();
   }
 
-  function loadElfsight() {
-    if (state.elfsight) return;
-
-    appendScript(ELFSIGHT_SRC, 'data-tdb-elfsight-js');
-    state.elfsight = true;
-  }
-
   function hasPerformanceConsent() {
     try {
       const currentState = window.CookieScript?.instance?.currentState?.();
       return Boolean(currentState?.categories?.includes('performance'));
-    } catch (error) {
-      return false;
-    }
-  }
-
-  function hasConsentDecisionCookie() {
-    const consentCookie = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('CookieScriptConsent='));
-
-    if (!consentCookie) return false;
-
-    try {
-      const decodedCookie = decodeURIComponent(consentCookie);
-      return (
-        decodedCookie.includes('"action"') ||
-        decodedCookie.includes('"a":') ||
-        decodedCookie.includes('accept') ||
-        decodedCookie.includes('reject') ||
-        decodedCookie.includes('close')
-      );
     } catch (error) {
       return false;
     }
@@ -171,7 +233,7 @@
   function handleCookieScriptReady() {
     if (pendingShowSettings) showCookieSettings();
     if (hasPerformanceConsent()) loadPerformanceScripts();
-    if (hasConsentDecisionCookie()) loadElfsight();
+    settle();
   }
 
   function bindEvents() {
@@ -195,12 +257,12 @@
         loadPerformanceScripts();
       }
 
-      loadElfsight();
+      settle();
     });
 
     window.addEventListener('CookieScriptAcceptAll', () => {
       loadPerformanceScripts();
-      loadElfsight();
+      settle();
     });
 
     window.addEventListener(
@@ -208,8 +270,10 @@
       loadPerformanceScripts
     );
 
-    window.addEventListener('CookieScriptReject', loadElfsight);
-    window.addEventListener('CookieScriptClose', loadElfsight);
+    window.addEventListener('CookieScriptReject', settle);
+    window.addEventListener('CookieScriptClose', settle);
+    ['CookieScriptCurrentState','CookieScriptAcceptSelection','CookieScriptCategory-functionality']
+      .forEach(type => window.addEventListener(type, settle));
   }
 
   bindEvents();
@@ -219,7 +283,7 @@
   window.TDBConsent = Object.freeze({
     version: VERSION,
     refresh: handleCookieScriptReady,
-    loadElfsight,
+    currentState, allows, subscribe, settle,
     loadPerformanceScripts,
     status: () => ({ ...state })
   });
@@ -227,4 +291,7 @@
   if (window.CookieScript?.instance) {
     handleCookieScriptReady();
   }
+  // Authored after the shared registry; safe for both deferred and async use.
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', prepareVideoGate, {once: true});
+  else prepareVideoGate();
 })();

@@ -1,4 +1,4 @@
-/* TDBScrollLock v1.0.2. Shared, independently releasable scroll-lock owners.
+/* TDBScrollLock v1.0.3. Shared, independently releasable scroll-lock owners.
  * No body positioning or scroll reset: keep the document and navbar geometry.
  * Touch/wheel containment allows nested scrollers and prevents edge chaining.
  */
@@ -7,7 +7,7 @@
   if (window.TDBScrollLock) return;
   const owners = new Map();
   const html = document.documentElement;
-  let previousLenis, touch = null, style;
+  let previousLenis, touch = null;
   function roots() {
     return [...owners.values()].flatMap(options =>
       typeof options.allow === 'function' ? options.allow() : options.allow || []).filter(Boolean);
@@ -41,23 +41,11 @@
     if (!canScroll(event.target, dx, dy)) event.preventDefault();
   }
   function lock() {
-    // Measure the unlocked page before stylesheet insertion or lock writes.
+    // Fixed rules live in the existing early shared critical stylesheet.
+    // Measure the unlocked page before lock writes.
     const gap = Math.max(0, innerWidth - html.clientWidth);
     const padding = parseFloat(getComputedStyle(document.body).paddingRight) || 0;
     previousLenis = document.body.getAttribute('data-lenis-prevent');
-    if (!style) {
-      style = document.createElement('style');
-      style.dataset.tdbScrollLock = '';
-      // Home's sketch uses a viewport-sticky backdrop. Hiding overflow on body
-      // creates a second scroll container and moves that backdrop off-screen.
-      // Lock the document root only; existing wheel/touch containment still
-      // protects nested panels. Keep other pages on their current policy until
-      // their separate review, as requested for this Home-only rollout.
-      const home = html.getAttribute('data-wf-page') === '677cf86df9952f978d94d8a9';
-      const scrollRoot = home ? 'html.tdb-scroll-locked' : 'html.tdb-scroll-locked,html.tdb-scroll-locked body';
-      style.textContent = scrollRoot + '{overflow:hidden!important;overscroll-behavior:none}html.tdb-scroll-locked body{padding-right:var(--tdb-scroll-lock-padding)!important}';
-      document.head.append(style);
-    }
     html.style.setProperty('--tdb-scroll-lock-padding', `${padding + gap}px`);
     document.body.setAttribute('data-lenis-prevent', '');
     html.classList.add('tdb-scroll-locked');
@@ -85,7 +73,7 @@
       if (owners.delete(token) && !owners.size) unlock();
     };
   }
-  window.TDBScrollLock = Object.freeze({ version: '1.0.2', acquire,
+  window.TDBScrollLock = Object.freeze({ version: '1.0.3', acquire,
     get active() { return owners.size > 0; }
   });
 })();

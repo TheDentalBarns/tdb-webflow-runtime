@@ -1,8 +1,8 @@
-/* Native TDB consent v4.0.6. Designer reserves text space; no font-loading gate. */
+/* Native TDB consent v4.0.7. Designer reserves text space; no font-loading gate. */
 (() => {
     "use strict";
     if (window.CookieScript?.instance?.__tdbNative) return;
-    const VERSION = "4.0.6", COOKIE_NAME = "CookieScriptConsent", COOKIE_DAYS = 30, ALL_CATEGORIES = [ "performance", "strict", "targeting", "functionality" ], STRICT_ONLY = [ "strict" ], ROOT_ID = "tdb-consent-root", TEXT_OPEN_DELAY_MS = 70, TEXT_CLOSE_MS = 420, CLOSE_TOTAL_MS = 470;
+    const VERSION = "4.0.7", COOKIE_NAME = "CookieScriptConsent", COOKIE_DAYS = 30, ALL_CATEGORIES = [ "performance", "strict", "targeting", "functionality" ], STRICT_ONLY = [ "strict" ], ROOT_ID = "tdb-consent-root", TEXT_OPEN_DELAY_MS = 70, TEXT_CLOSE_MS = 420, CLOSE_TOTAL_MS = 470;
     let hasShown = false, open = false, closing = false, mounted = false, lastFocus = null, openFrame1 = 0, openFrame2 = 0, textOpenTimer = 0, closeTimer = 0, pendingAfterClose = null, interactionLocked = false, releaseLock = null, refs = null, textAnimations = [];
     function unique(values) {
         return [ ...new Set((values || []).filter(Boolean)) ];
@@ -122,7 +122,7 @@
     }
     function animateTextOut() {
         if (!refs) return;
-        const {root: root, motion: motion} = refs, computed = getComputedStyle(motion), startTransform = computed.transform === "none" ? "translate3d(0,0,0)" : computed.transform, parsedOpacity = Number.parseFloat(computed.opacity), startOpacity = Number.isFinite(parsedOpacity) ? parsedOpacity : 1;
+        const {motion} = refs, computed = getComputedStyle(motion), startTransform = computed.transform === "none" ? "translate3d(0,0,0)" : computed.transform, parsedOpacity = Number.parseFloat(computed.opacity), startOpacity = Number.isFinite(parsedOpacity) ? parsedOpacity : 1;
         motion.classList.remove("is-consent-text-open");
         clearTextAnimations();
         const animation = motion.animate([ {
@@ -153,7 +153,7 @@
         textAnimations.push(animation);
     }
     function isEditable(target) {
-        return target instanceof Element && Boolean(target.closest('input,textarea,select,[contenteditable="true"]'));
+        return target instanceof Element && (target.isContentEditable || Boolean(target.closest('input,textarea,select,[contenteditable="true"],[contenteditable=""]')));
     }
     function blockScrollKeys(event) {
         if (!interactionLocked) return;
@@ -246,16 +246,13 @@
     }
     function finishHide() {
         if (!refs) return;
-        const {root: root, motion: motion} = refs;
-        clearTextAnimations();
+        const {root} = refs;
+        resetTextState();
         root.classList.remove("is-consent-active");
         refs.surface.classList.remove("is-consent-surface-open");
         refs.scroll.classList.remove("is-consent-content-open");
         refs.backdrop.classList.remove("is-consent-open");
-        motion.classList.remove("is-consent-text-open");
         root.inert = true;
-        motion.style.removeProperty("opacity");
-        motion.style.removeProperty("transform");
         root.setAttribute("aria-hidden", "true");
         interactionLocked = false;
         if (releaseLock) {
@@ -270,6 +267,9 @@
             preventScroll: true
         });
         if (typeof afterClose === "function") afterClose();
+        // hide() has no CookieScriptClose event in the compatibility contract.
+        // Still settle a pending video request when settings were simply closed.
+        window.TDBConsent?.settle?.();
     }
     function hide(afterClose) {
         const found = mount();
