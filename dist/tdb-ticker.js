@@ -1,4 +1,4 @@
-/* TDB native value tickers v1.1.0. Layout and initial text belong to Webflow. */
+/* TDB native value tickers v1.2.0. Layout and initial text belong to Webflow. */
 (() => {
   'use strict';
   if (window.TDBNativeTicker) return;
@@ -7,19 +7,24 @@
     if (instances.has(slot)) return instances.get(slot);
     const motion = window.TDBMotion.reduced;
     const originalNodes = [...slot.childNodes];
-    let text = slot.textContent.trim(), disposed = false, pending = null;
-    const template = options.template || document.querySelector('[data-tdb-ticker-template]');
+    let disposed = false, pending = null;
+    const template = options.template;
     const valueClass = options.valueClass || 'review-number_value';
     const incomingClass = options.incomingClass || 'review-number_incoming';
     const normalize = options.normalize || (value => value);
+    const local = className => [...slot.children].find(node => node.classList.contains(className));
+    const authoredValue = local(valueClass);
+    const authoredIncoming = local(incomingClass);
+    let text = (authoredValue || slot).textContent.trim();
     const make = className => {
       const node = template?.querySelector('.' + className)?.cloneNode(true) || document.createElement('span');
       node.className = className;
       return node;
     };
-    const value = make(valueClass);
+    const value = authoredValue || make(valueClass);
     value.textContent = text;
-    slot.replaceChildren(value);
+    if (!authoredValue) slot.replaceChildren(value);
+    if (authoredIncoming) authoredIncoming.setAttribute('aria-hidden', 'true');
 
     function settle() {
       if (!pending) return;
@@ -30,7 +35,7 @@
         animation.cancel();
       });
       value.textContent = text;
-      previous.incoming.remove();
+      if (previous.incoming !== authoredIncoming) previous.incoming.remove();
     }
     function update(next, direction = 1, animate = true) {
       if (disposed) return;
@@ -43,10 +48,10 @@
         value.textContent = next;
         return;
       }
-      const incoming = make(incomingClass);
+      const incoming = authoredIncoming || make(incomingClass);
       incoming.textContent = next;
       incoming.setAttribute('aria-hidden', 'true');
-      slot.append(incoming);
+      if (incoming.parentElement !== slot) slot.append(incoming);
       const sign = direction < 0 ? -1 : 1;
       const timing = { duration: window.TDBMotion?.defaults.ticker || 400, easing: 'ease-in-out', fill: 'both' };
       value.textContent = old;
@@ -73,7 +78,8 @@
         motion.removeEventListener('change', onMotion);
         // Keep the settled number; never rewind to the understated initial value.
         slot.replaceChildren(...originalNodes);
-        if (slot.children.length === 1) slot.firstElementChild.textContent = text;
+        if (authoredValue) authoredValue.textContent = text;
+        else if (slot.children.length === 1) slot.firstElementChild.textContent = text;
         else slot.textContent = text;
         instances.delete(slot);
       }
@@ -81,5 +87,5 @@
     instances.set(slot, api);
     return api;
   }
-  window.TDBNativeTicker = Object.freeze({ version: '1.1.0', mount });
+  window.TDBNativeTicker = Object.freeze({ version: '1.2.0', mount });
 })();
