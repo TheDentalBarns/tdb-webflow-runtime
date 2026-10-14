@@ -21,11 +21,11 @@ test('successful reset uses native defaults and does not resurrect a manual choi
 test('cancelled reset preserves selection and field state',async()=>{
  const x=setup();try{x.load();x.select.value='Smile Design';x.select.dispatchEvent(new x.w.Event('change',{bubbles:true}));x.form.addEventListener('reset',e=>e.preventDefault());x.form.reset();await flush();assert.equal(x.select.value,'Smile Design');assert(x.select.classList.contains('is-filled'));}finally{x.w.close();}
 });
-for(const legacy of ['Fast Track','Signature Assessment ?'])test('normalises '+legacy+' without losing selection',()=>{
- const x=setup('/',markup(`<option selected>${legacy}</option><option>Invisalign</option>`));try{x.load();assert.equal(x.select.value,'Signature Assessment');assert.equal(x.select.selectedOptions[0].textContent,'Signature Assessment ?');assert([...x.select.options].some(o=>o.value==='Smile Design'));}finally{x.w.close();}
+for(const legacy of ['Fast Track','Signature Assessment ✦'])test('normalises '+legacy+' without losing selection',()=>{
+ const x=setup('/',markup(`<option selected>${legacy}</option><option>Invisalign</option>`));try{x.load();assert.equal(x.select.value,'Signature Assessment');assert.equal(x.select.selectedOptions[0].textContent,'Signature Assessment ✦');assert([...x.select.options].some(o=>o.value==='Smile Design'));}finally{x.w.close();}
 });
 test('missing assessment option does not block Smile Design or unsure ordering',()=>{
- const x=setup('/',markup('<option>I'm not sure</option><option selected>Invisalign</option>'));try{x.load();assert.equal(x.select.value,'Invisalign');assert([...x.select.options].some(o=>o.value==='Smile Design'));assert.equal(x.select.lastElementChild.textContent,'I'm not sure');}finally{x.w.close();}
+ const x=setup('/',markup('<option>I’m not sure</option><option selected>Invisalign</option>'));try{x.load();assert.equal(x.select.value,'Invisalign');assert([...x.select.options].some(o=>o.value==='Smile Design'));assert.equal(x.select.lastElementChild.textContent,'I’m not sure');}finally{x.w.close();}
 });
 test('calculator action deliberately updates both forms without later refresh overwriting',()=>{
  const x=setup();try{x.load();x.w.TDBVIPInterest.fromCalculator('Smile Design');x.w.TDBVIPForm.refresh();assert.equal(x.select.value,'Smile Design');}finally{x.w.close();}

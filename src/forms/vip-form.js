@@ -33,10 +33,10 @@
   // This is the existing compatibility mapping, including submitted values.
   function prepareOptions(select) {
     const previous = select.value;
-    const assessmentValue = value => /^(Fast Track|Signature Assessment(?:\s*?)?)$/.test(value);
+    const assessmentValue = value => /^(Fast Track|Signature Assessment(?:\s*✦)?)$/.test(value);
     const assessment = [...select.options].find(o => assessmentValue(o.value));
     if (assessment) {
-      assessment.textContent = 'Signature Assessment ?';
+      assessment.textContent = 'Signature Assessment ✦';
       assessment.value = 'Signature Assessment';
       if (select.options[1] !== assessment) select.insertBefore(assessment, select.options[1] || null);
     }
@@ -52,7 +52,7 @@
     const intro = wrapper?.querySelector('[data-tdb-vip-intro]');
     if (!intro) return;
     if (acquisition) {
-      const copy = 'Your access to exclusive appointment releases and bespoke care at The Dental Barns, including Signature Assessment ? appointments and Smile Design consultations with Dr Keely.';
+      const copy = 'Your access to exclusive appointment releases and bespoke care at The Dental Barns, including Signature Assessment ✦ appointments and Smile Design consultations with Dr Keely.';
       if (intro.textContent !== copy) intro.textContent = copy;
       const title = wrapper.querySelector('.vip-form_top .text-style-tagline');
       if (title && title.textContent !== 'Join our VIP Waitlist') title.textContent = 'Join our VIP Waitlist';
@@ -65,8 +65,8 @@
     const value = select.value;
     const treatments = {'Veneers':'porcelain veneers','Composite Bonding':'composite bonding','Invisalign':'Invisalign','Whitening':'teeth whitening','Cosmetic Dentistry':'cosmetic dentistry','Restorative Dentistry':'restorative dental care'};
     const local = /sutton-coldfield/.test(path) ? ' near Sutton Coldfield' : /tamworth/.test(path) ? ' near Tamworth' : '';
-    const access = 'Join The Dental Barns VIP for private access to a Signature Assessment ? with Dr Keely.';
-    let copy = 'Access Signature Assessment ? and Smile Design appointments at The Dental Barns.';
+    const access = 'Join The Dental Barns VIP for private access to a Signature Assessment ✦ with Dr Keely.';
+    let copy = 'Access Signature Assessment ✦ and Smile Design appointments at The Dental Barns.';
     if (value === 'Smile Design') copy = 'Prefer to start with a conversation? Join the Smile Design Waitlist. Limited appointments are released from time to time, with booking links shared exclusively with our waitlist.';
     else if (treatments[value]) copy = 'Considering ' + treatments[value] + local + '? ' + access;
     else if (value === 'Nervous Patient Care') copy = 'Feeling nervous about dental care? ' + access + ' We will take time to understand your concerns.';
@@ -88,7 +88,7 @@
     render(select);
   }
 
-  const drawerLabel = acquisition ? 'Reserve my place' : /\/services\/smile-design$/.test(path) ? 'Join the Smile Design Waitlist' : /\/services\/(?:fast-track|signature-assessment)$/.test(path) ? 'View Available Appointments' : /\/(?:treatments|areas|pricing)\//.test(path) && /veneers|bonding|invisalign|clear-aligners|whitening/.test(path) ? 'Start with a Signature Assessment ?' : 'Join VIP';
+  const drawerLabel = acquisition ? 'Reserve my place' : /\/services\/smile-design$/.test(path) ? 'Join the Smile Design Waitlist' : /\/services\/(?:fast-track|signature-assessment)$/.test(path) ? 'View Available Appointments' : /\/(?:treatments|areas|pricing)\//.test(path) && /veneers|bonding|invisalign|clear-aligners|whitening/.test(path) ? 'Start with a Signature Assessment ✦' : 'Join VIP';
   function updateDrawerLabel() {
     const drawer = document.getElementById('tdb-vip-drawer');
     const text = drawer?.querySelector('.tdb-vip-drawer-label');
