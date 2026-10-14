@@ -1,4 +1,4 @@
-/* Functional form enhancements are not delayed by animation consent. */
+/* Form readiness starts with the consent-released runtime. */
 function prepareFormsLoader() {
   const formSelector = 'form';
   const excluded = '#vip-drawer-form';
@@ -59,4 +59,3 @@ function prepareFormsLoader() {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
 }
-prepareFormsLoader();

@@ -30,7 +30,7 @@ function fixture({choice, count=2, intersection=true}={}) {
     w.eval(file==='dist/tdb-runtime.js' ? read('src/runtime/logo-marquee-loader.js')+'\n'+read('src/runtime/runtime.js') : read(file));current=null;
   }
   if(choice)d.cookie='CookieScriptConsent='+encodeURIComponent(JSON.stringify({action:choice,categories:choice==='accept'?['strict','performance','functionality']:['strict']}));
-  evaluate('dist/tdb-consent.js');evaluate('src/shared/logo-navigation-guard.js');
+  evaluate('dist/tdb-consent.js');
   async function advance(ms){await tick();const end=now+ms;for(;;){const row=[...timers].filter(([,v])=>v.at<=end).sort((a,b)=>a[1].at-b[1].at)[0];if(!row)break;now=row[1].at;timers.delete(row[0]);row[1].fn();await tick();}now=end;await tick();}
   async function idle(){await tick();const row=idles.entries().next().value;if(!row)return false;idles.delete(row[0]);row[1]({didTimeout:false,timeRemaining:()=>20});await tick();return true;}
   async function drain(){let n=0;while(await idle())assert(++n<50);}
@@ -107,8 +107,9 @@ test('fallback without IntersectionObserver preserves scheduled startup',async()
   }finally{f.close();}
 });
 
-test('early guard blocks logo navigation and preserves explicit tooltip links',()=>{
-  const f=fixture();try{
+test('marquee runtime guards logo navigation and preserves explicit tooltip links',async()=>{
+  const f=fixture({choice:'reject'});try{
+    await f.loadRuntime();
     const item=f.d.querySelector('.tdb-partner-logo');item.insertAdjacentHTML('beforeend','<span class="tdb-partner-source"><span id="source-link">Visit</span></span>');
     for(const type of ['click','auxclick']){
       const event=new f.w.MouseEvent(type,{bubbles:true,cancelable:true});item.querySelector('img').dispatchEvent(event);assert(event.defaultPrevented);

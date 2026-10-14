@@ -14,9 +14,6 @@ function prepareSliderLoader() {
       ...(kind === 'parallax' ? [
         window.TDBModules.load(new URL('tdb-rendered-progress.js', TDBRuntimeModuleRoot), {
           ready: () => Boolean(window.TDBRenderedProgress)
-        }),
-        window.TDBModules.load(new URL('tdb-parallax-progress.js', TDBRuntimeModuleRoot), {
-          ready: () => Boolean(window.TDBParallaxProgress)
         })
       ] : []),
       window.TDBModules.load(new URL('tdb-motion.js', TDBFooterModuleRoot)),
@@ -56,6 +53,25 @@ function prepareSliderLoader() {
       if (root) loadSafely(root);
     }
   }
+  // Hold an arrow action only after runtime is released, while its module arrives.
+  const queuedArrows = new WeakSet();
+  function onArrowIntent(event) {
+    if (window.TDBParallaxPlugin || (event.type === 'keydown' && !['Enter',' '].includes(event.key))) return;
+    if (event.button > 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    const arrow = event.target.closest?.('.swiper-btn-prev,.swiper-btn-next');
+    const root = arrow?.closest('.parallax-swiper_component');
+    if (!root || arrow.matches(':disabled,[aria-disabled="true"],.swiper-button-disabled')) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    if (queuedArrows.has(root)) return;
+    queuedArrows.add(root); root.setAttribute('aria-busy','true');
+    loadKind('parallax').then(plugin => {
+      if (!root.isConnected || !arrow.isConnected) return;
+      plugin.refresh(root); window.TDBSwiper.mount('parallax', root);
+      root.removeAttribute('aria-busy'); arrow.click();
+    }).catch(() => {}).finally(() => { queuedArrows.delete(root); root.removeAttribute('aria-busy'); });
+  }
+  document.addEventListener('click',onArrowIntent,true);
+  document.addEventListener('keydown',onArrowIntent,true);
   function observeSlider(root) {
     if (!(root instanceof Element) || root.closest('.logo-slider') || observed.has(root)) return;
     observed.add(root);

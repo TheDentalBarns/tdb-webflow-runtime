@@ -74,7 +74,7 @@ function prepareVIPDrawerLoader() {
   // Prefer the window scroll offset, including zero, without also asking the
   // root element for layout. Retain the element fallback for older engines.
   const pageY = () => Math.max(window.scrollY ?? document.documentElement.scrollTop ?? 0, 0);
-  const scrollSeed = {...window.TDBEarlyPageState.vipScrollSeed};
+  const scrollSeed = {...window.TDBRuntimePageState.vipScrollSeed};
   const realDrawerReady = () => Boolean(window.TDBVIPDrawer);
 
   function cleanup() {
@@ -190,7 +190,7 @@ function prepareVIPDrawerLoader() {
 
   arm();
   if (/^#vip/i.test(location.hash || '')) loadSafely();
-  else if (demand) { if (window.TDBEarlyPageState.vipScrollSeed.lastY > 0) loadSafely(); }
+  else if (demand) { if (window.TDBRuntimePageState.vipScrollSeed.lastY > 0) loadSafely(); }
   else loadSafely();
 
   window.TDBVIPDrawerLoader = Object.freeze({

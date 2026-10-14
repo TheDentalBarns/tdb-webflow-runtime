@@ -3,7 +3,7 @@ const TDBRuntimeModuleRoot = new URL('./', document.currentScript.src);
 const TDBFeatureStartup = (() => {
   let flight;
   const done=new Set();
-  const steps=[prepareVIPFocus,prepareVIPDrawerLoader,prepareFloatingAnnouncement,
+  const steps=[prepareAttributionLoader,prepareFormsLoader,prepareCarouselArrowFeedback,prepareVIPFocus,prepareVIPDrawerLoader,prepareFloatingAnnouncement,
     prepareSliderLoader,prepareCarouselStyles,prepareTooltipLoader,
     prepareSliderFocusLoader,prepareSmoothScroll,updateNativeFooterDates];
   function start(schedule, active=()=>true) {

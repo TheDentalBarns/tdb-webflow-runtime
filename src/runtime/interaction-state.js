@@ -1,10 +1,10 @@
-/* Capture the original page/gesture state before delayed feature startup. */
+/* Capture interactions only after consent releases runtime, while feature loaders start. */
 (() => {
-  if (window.TDBEarlyPageState) return;
+  if (window.TDBRuntimePageState) return;
   const y = Math.max(window.scrollY ?? document.documentElement.scrollTop ?? 0, 0);
   const state = {initialY:y, hadInteraction:false,
     vipScrollSeed:{lastY:y,up:0,down:0,peek:false}, vipIntent:null};
-  window.TDBEarlyPageState = state;
+  window.TDBRuntimePageState = state;
   const events = new AbortController();
   const options = {capture:true, passive:true, signal:events.signal};
   const remember = () => {state.hadInteraction=true;};

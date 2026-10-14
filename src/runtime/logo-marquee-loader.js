@@ -89,13 +89,27 @@
     }
     return sync();
   }
+  function guard(event) {
+    const target = event.target instanceof Element ? event.target : null;
+    if (target?.closest('.logo-slider .tdb-partner-logo') &&
+        !target.closest('.tdb-partner-source')) event.preventDefault();
+  }
+
+
+
   function start(options) {
     if (disposed) return;
-    if (!started) { schedule = options.schedule; started = true; }
+    if (!started) {
+      document.addEventListener('click', guard, true);
+      document.addEventListener('auxclick', guard, true);
+      schedule = options.schedule; started = true;
+    }
     return document.querySelector(selector) ? schedule(refresh) : Promise.resolve();
   }
   function destroy() {
     disposed = true; lifecycle?.abort(); cleanupDiscovery();
+    document.removeEventListener('click',guard,true);
+    document.removeEventListener('auxclick',guard,true);
     window.TDBLogoMarquee?.destroy();
   }
   window.TDBLogoMarqueeLoader = Object.freeze({version: '2.0.0', start, refresh, destroy,

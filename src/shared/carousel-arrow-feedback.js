@@ -1,8 +1,8 @@
 /* TDB shared carousel arrow feedback v1.1.0.
- * Bundled once in the existing footer runtime. Native controls own styling and
+ * Installed once by the consent-released runtime. Native controls own styling and
  * carousel modules retain navigation. Match Services' last-clicked state.
  */
-(() => {
+function prepareCarouselArrowFeedback() {
   'use strict';
   if (window.TDBCarouselArrowFeedback) return;
   function selectArrow(arrow) {
@@ -29,4 +29,4 @@
   // Swiper's div-based buttons handle Enter/Space without dispatching click.
   // Change presentation only; their existing handler still advances the slide.
   document.addEventListener('keydown', select, true);
-})();
+}

@@ -1,4 +1,4 @@
-/* TDB runtime v1.3.0. Consent hands off once; feature loaders follow in idle turns.
+/* TDB runtime v1.4.0. Consent hands off once; feature loaders follow in idle turns.
  * Component-owned fades retain their existing gates and shared motion owner.
  */
 (() => {
@@ -182,7 +182,7 @@
     mounted.forEach(owner => owner.destroy()); mounted.clear();
   }
   const api = Object.freeze({
-    version: '1.3.0', refresh, enhanceNavbar, schedule: background, count: () => mounted.size, destroy,
+    version: '1.4.0', refresh, enhanceNavbar, schedule: background, count: () => mounted.size, destroy,
     status: () => ({started, pending: !!pending, mounted: mounted.size, retryNeeded, disposed,
       controlsReady, navbarRequested, navbarRetry})
   });

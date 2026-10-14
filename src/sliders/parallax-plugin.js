@@ -1,92 +1,78 @@
-/* TDB parallax carousel plugin v1.3.1. Native Services spacing; shared settlement. */
+/* Preserves 2afb6b9 globally and the 996e193 home overflow-viewport behavior. */
 (() => {
-'use strict';
-if(window.TDBParallaxPlugin)return;
-const e = ".highlight-swiper_component", t = ".parallax-swiper_component", n = "data-tdb-slider-observed", i = "data-tdb-slider-init", r = "(min-width:768px)", s = "(max-width:767px) and (orientation:portrait)", a = "(prefers-reduced-motion:reduce)", o = "data-tdb-slider-first-view", l = new Map, d = new WeakSet;
-function m(e) {
+    "use strict";
+    if (window.TDBParallaxPlugin) return;
+    const e = ".parallax-swiper_component", t = "data-tdb-slider-init", i = "(min-width:768px)", a = "(max-width:767px) and (orientation:portrait)";
+    new Map, new WeakSet;
+    function n(e) {
         return e?.querySelector?.(".swiper") || null;
     }
-function f(e) {
-        const t = m(e);
-        return "true" === e?.getAttribute?.(i) || Boolean(t?.swiper);
+    function r(e) {
+        const i = n(e);
+        return "true" === e?.getAttribute?.(t) || Boolean(i?.swiper);
     }
-function h(e, t) {
-        e.setAttribute(i, "true"), e.dataset.tdbSliderType = t;
+    function s(e, i) {
+        e.setAttribute(t, "true"), e.dataset.tdbSliderType = i;
     }
-function w(e, n) {
-        if (e.hasAttribute('data-tdb-treatment')) return window.TDBSwiper.nativeGap(e, n);
-        if (e.classList.contains('tdb-service-parallax')) return window.TDBSwiper.nativeGap(e, n, '.tdb-service-slide,.tdb-treatment-slide');
-        if (!matchMedia("(min-width:992px)").matches) return n;
-        const i = "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage && e.matches(".section_smile-gallery [data-tdb-smile-slider]");
-        if (!e.matches(t) && !i) return n;
-        return window.TDBSwiper.nativeGap(e, n);
+    function o(t, i) {
+        if (t.hasAttribute("data-tdb-treatment")) return window.TDBSwiper.nativeGap(t, i);
+        if (t.classList.contains("tdb-service-parallax")) return window.TDBSwiper.nativeGap(t, i, ".tdb-service-slide,.tdb-treatment-slide");
+        if (!matchMedia("(min-width:992px)").matches) return i;
+        const a = "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage && t.matches(".section_smile-gallery [data-tdb-smile-slider]");
+        return t.matches(e) || a ? window.TDBSwiper.nativeGap(t, i) : i;
     }
-function g(e, t, n) {
-        const i = () => {
-            const i = w(e, n());
-            t.params.spaceBetween = i, t.originalParams.spaceBetween = i;
-        };
-        t.on("beforeResize breakpoint", i), t.on("beforeDestroy", () => t.off("beforeResize breakpoint", i));
-    }
-function y(e) {
+    function l(e) {
         return window.TDBMotion.duration(e.clientWidth);
     }
-function S(...args){return window.TDBSwiper.watchDuration(...args);}
-function k(swiper){return window.TDBSwiper.bindSwiper(swiper);}
-
-function c(root) {
-        const e = location.pathname.replace(/\/+$/, "") || "/";
-        return root?.classList.contains("tdb-service-parallax") || "/" === e || "/location" === e;
+    function d(e) {
+        const t = location.pathname.replace(/\/+$/, "") || "/";
+        return e?.classList.contains("tdb-service-parallax") || "/" === t || "/location" === t;
     }
-function u(root) {
-        return c(root) && matchMedia(r).matches;
+    function c(e) {
+        return d(e) && matchMedia(i).matches;
     }
-function p(root) {
-        return c(root) && matchMedia(s).matches && !window.TDBMotion.reduced.matches;
+    function u(e) {
+        return d(e) && matchMedia(a).matches && !window.TDBMotion.reduced.matches;
     }
-function E(e) {
+    function p(e) {
         return window.TDBTreatmentParallax?.matches(e) || "677cf86df9952f978d94d8a9" === document.documentElement.dataset.wfPage && e.matches("#All-treatments .tdb-banner-parallax");
     }
-function x(e) {
-        return E(e) && matchMedia("(max-width:767px)").matches ? .02 * window.innerWidth : 0;
+    function w(e) {
+        return p(e) && matchMedia("(max-width:767px)").matches ? .02 * window.innerWidth : 0;
     }
-function A(e) {
-        if (!e || f(e)) return;
-        const t = m(e);
+    function b(e) {
+        if (!e || r(e)) return;
+        const t = n(e);
         if (!t || "function" != typeof window.Swiper) return;
-        // Native margins reserve the Designer layout before initialisation.
-        // Swiper's auto-width measurement includes CSS margins, then adds
-        // spaceBetween itself. Release the native margin when it takes over.
-        if (e.hasAttribute('data-tdb-treatment'))
-            t.querySelectorAll('.tdb-treatment-slide').forEach(slide => slide.classList.add('is-runtime'));
-        const n = e.hasAttribute("data-tdb-banner-parallax"), i = n && (E(e) || !window.TDBMotion.reduced.matches), o = u(e) || i && matchMedia(r).matches, l = p(e) || i && matchMedia(s).matches, d = o || l || n, c = window.TDBParallax?.prepare(e, t), b = window.TDBSwiper.create(t, {
-            init: !n,
+        e.hasAttribute("data-tdb-treatment") && t.querySelectorAll(".tdb-treatment-slide").forEach(e => e.classList.add("is-runtime"));
+        const d = e.hasAttribute("data-tdb-banner-parallax"), b = d && (p(e) || !window.TDBMotion.reduced.matches), m = c(e) || b && matchMedia(i).matches, h = u(e) || b && matchMedia(a).matches, f = m || h || d, g = window.TDBParallax?.prepare(e, t), x = window.TDBSwiper.create(t, {
+            init: !d,
             slidesPerView: 1,
-            initialSlide: c?.initialIndex || 0,
+            initialSlide: g?.initialIndex || 0,
             observer: !1,
             observeParents: !1,
             centeredSlides: !0,
             watchSlidesProgress: !0,
-            autoplay: !d && {
+            autoplay: !f && {
                 delay: 4500,
                 disableOnInteraction: !1
             },
             grabCursor: !0,
-            loop: !n || t.querySelectorAll(".swiper-slide").length > 1,
+            loop: !d || t.querySelectorAll(".swiper-slide").length > 1,
             loopPreventsSlide: !1,
             preventInteractionOnTransition: !1,
-            // Four copies per side cover the desktop wide + narrow layout.
-            // Explicit budget avoids auto-width default cloning every CMS card.
-            ...(e.hasAttribute('data-tdb-treatment') ? {loopedSlides: 1} : {}),
+            ...e.hasAttribute("data-tdb-treatment") ? {
+                loopedSlides: 1
+            } : {},
             loopAdditionalSlides: 1,
             slideToClickedSlide: !0,
             parallax: !0,
-            speed: y(t),
+            speed: l(t),
             effect: "slide",
             keyboard: {
                 enabled: !0
             },
-            spaceBetween: w(e, x(e)),
+            spaceBetween: o(e, w(e)),
             resistanceRatio: 0,
             touchReleaseOnEdges: !0,
             followFinger: !0,
@@ -103,185 +89,186 @@ function A(e) {
                 clickable: !0
             },
             breakpoints: {
-                ...n ? {
+                ...d ? {
                     992: {
                         slidesPerView: "auto",
-                        ...(e.hasAttribute('data-tdb-treatment') ? {loopedSlides: 3} : {}),
+                        ...e.hasAttribute("data-tdb-treatment") ? {
+                            loopedSlides: 3
+                        } : {},
                         centeredSlides: !1,
                         touchRatio: 1
                     }
                 } : {},
                 768: {
                     slidesPerView: 1,
-                    ...(e.hasAttribute('data-tdb-treatment') ? {loopedSlides: 1} : {}),
+                    ...e.hasAttribute("data-tdb-treatment") ? {
+                        loopedSlides: 1
+                    } : {},
                     centeredSlides: !0,
                     touchRatio: 1
                 },
                 0: {
-                    slidesPerView: E(e) ? "auto" : 1,
-                    ...(e.hasAttribute('data-tdb-treatment') ? {loopedSlides: 1} : {}),
-                    centeredSlides: !E(e),
+                    slidesPerView: p(e) ? "auto" : 1,
+                    ...e.hasAttribute("data-tdb-treatment") ? {
+                        loopedSlides: 1
+                    } : {},
+                    centeredSlides: !p(e),
                     touchRatio: 1
                 }
             }
-        }, {bind:false});
-        if (e.hasAttribute('data-tdb-treatment')) {
-            // Swiper 8 rebuilds on slidesPerView changes, but desktop/phone both
-            // use auto. Reconcile their different budgets on that direct resize.
-            b.on('breakpoint', () => {
-                if (!b.initialized || !b.params.loop) return;
-                const count = t.querySelectorAll('.swiper-slide:not(.swiper-slide-duplicate)').length;
-                const wanted = Math.min(count, b.params.loopedSlides + b.params.loopAdditionalSlides);
-                if (b.loopedSlides === wanted) return;
-                const index = b.realIndex;
-                b.loopDestroy(); b.loopCreate(); b.updateSlides();
-                b.slideTo(index + b.loopedSlides, 0, false, true);
-            });
-        }
-        n && (!function(e, t, n) {
-            const i = matchMedia("(min-width:992px)"), r = n.slideTo;
-            const nativeTreatment = t.closest('[data-tdb-treatment]');
-            let s = [], a = null;
-            const o = () => {
+        }, {
+            bind: !1
+        });
+        var S;
+        e.hasAttribute("data-tdb-treatment") && x.on("breakpoint", () => {
+            if (!x.initialized || !x.params.loop) return;
+            const e = t.querySelectorAll(".swiper-slide:not(.swiper-slide-duplicate)").length, i = Math.min(e, x.params.loopedSlides + x.params.loopAdditionalSlides);
+            if (x.loopedSlides === i) return;
+            const a = x.realIndex;
+            x.loopDestroy(), x.loopCreate(), x.updateSlides(), x.slideTo(a + x.loopedSlides, 0, !1, !0);
+        }), d && (function(e, t, i) {
+            const a = matchMedia("(min-width:992px)"), n = i.slideTo, r = t.closest("[data-tdb-treatment]");
+            let s = [], o = null;
+            const l = () => {
                 s.forEach(e => e.cancel()), s = [];
-            }, l = (e, t) => e.getAttribute("data-swiper-slide-index") ?? String(t);
-            function d(e) {
-                const n = [ ...t.querySelectorAll(":scope > .swiper-wrapper > .swiper-slide") ], i = n[e];
-                return i ? (a = l(i, e), n.forEach((e, t) => (e.toggleAttribute("data-tdb-banner-wide", l(e, t) === a), e.classList.contains("tdb-treatment-slide") && (e.classList.toggle("is-wide", l(e, t) === a), e.classList.toggle("is-narrow", l(e, t) !== a)))), 
-                n) : n;
+            }, d = (e, t) => e.getAttribute("data-swiper-slide-index") ?? String(t);
+            function c(e) {
+                const i = [ ...t.querySelectorAll(":scope > .swiper-wrapper > .swiper-slide") ], a = i[e];
+                return a ? (o = d(a, e), i.forEach((e, t) => (e.toggleAttribute("data-tdb-banner-wide", d(e, t) === o), 
+                e.classList.contains("tdb-treatment-slide") && (e.classList.toggle("is-wide", d(e, t) === o), 
+                e.classList.toggle("is-narrow", d(e, t) !== o)))), i) : i;
             }
-            n.on("beforeInit", () => d(n.params.initialSlide || 0)), n.slideTo = function(e = 0, t = this.params.speed, n = !0, c, u) {
-                if (!i.matches) return r.call(this, e, t, n, c, u);
-                const p = Math.max(0, Number(e)), m = this.slides[p];
-                if (!m || this.animating && this.params.preventInteractionOnTransition || !this.enabled && !c && !u) return r.call(this, e, t, n, c, u);
-                if (this.animating && p === this.activeIndex && t > 0) return r.call(this, e, t, n, c, u);
-                if (c && 0 === t && l(m, p) === a) return r.call(this, e, t, n, c, u);
-                const targetIndex = l(m, p);
-                const moving = new Set(s.map(animation => animation.effect?.target));
-                const f = [ ...this.slides ].filter(slide => !nativeTreatment ||
-                    slide.hasAttribute('data-tdb-banner-wide') ||
-                    slide.getAttribute('data-swiper-slide-index') === targetIndex || moving.has(slide));
-                const h = f.map(e => e.getBoundingClientRect().width);
-                o(), d(p), this.updateSlides();
-                const b = f.map(e => e.getBoundingClientRect().width);
+            i.on("beforeInit", () => c(i.params.initialSlide || 0)), i.slideTo = function(e = 0, t = this.params.speed, i = !0, u, p) {
+                if (!a.matches) return n.call(this, e, t, i, u, p);
+                const w = Math.max(0, Number(e)), b = this.slides[w];
+                if (!b || this.animating && this.params.preventInteractionOnTransition || !this.enabled && !u && !p) return n.call(this, e, t, i, u, p);
+                if (this.animating && w === this.activeIndex && t > 0) return n.call(this, e, t, i, u, p);
+                if (u && 0 === t && d(b, w) === o) return n.call(this, e, t, i, u, p);
+                const m = d(b, w), h = new Set(s.map(e => e.effect?.target)), f = [ ...this.slides ].filter(e => !r || e.hasAttribute("data-tdb-banner-wide") || e.getAttribute("data-swiper-slide-index") === m || h.has(e)), g = f.map(e => e.getBoundingClientRect().width);
+                l(), c(w), this.updateSlides();
+                const x = f.map(e => e.getBoundingClientRect().width);
                 if (this.initialized && t > 0) {
                     const e = getComputedStyle(this.wrapperEl).transitionTimingFunction.match(/^[a-z-]+\([^)]*\)|^[a-z-]+/)?.[0] || "ease";
-                    s = f.flatMap((n, i) => Math.abs(h[i] - b[i]) < .1 ? [] : [ n.animate([ {
-                        width: h[i] + "px"
+                    s = f.flatMap((i, a) => Math.abs(g[a] - x[a]) < .1 ? [] : [ i.animate([ {
+                        width: g[a] + "px"
                     }, {
-                        width: b[i] + "px"
+                        width: x[a] + "px"
                     } ], {
                         duration: t,
                         easing: e,
                         fill: "both"
                     }) ]);
-                    const n = s;
-                    Promise.all(n.map(e => e.finished.catch(() => {}))).then(() => {
-                        s === n && o();
+                    const i = s;
+                    Promise.all(i.map(e => e.finished.catch(() => {}))).then(() => {
+                        s === i && l();
                     });
                 }
-                return r.call(this, e, t, n, c, u);
+                return n.call(this, e, t, i, u, p);
             };
-            const c = () => {
-                o(), n.initialized && d(n.activeIndex);
+            const u = () => {
+                l(), i.initialized && c(i.activeIndex);
             };
-            n.on("beforeResize", c), i.addEventListener("change", c), n.on("beforeDestroy", () => {
-                o(), i.removeEventListener("change", c), n.off("beforeResize", c), n.slideTo = r, 
+            i.on("beforeResize", u), a.addEventListener("change", u), i.on("beforeDestroy", () => {
+                l(), a.removeEventListener("change", u), i.off("beforeResize", u), i.slideTo = n, 
                 t.querySelectorAll("[data-tdb-banner-wide]").forEach(e => e.removeAttribute("data-tdb-banner-wide"));
             });
-        }(0, t, b), b.init()), k(b), g(e, b, () => x(e)), S(e, t, b), c?.bind(b), window.TDBParallax?.bind(e, b);
-        if (e.hasAttribute('data-tdb-treatment') || e.classList.contains('tdb-service-parallax')) window.TDBCarouselVisibility.bind(b, {overflowViewport: true});
-        const v = window.TDBMotion.carousel.nextDelay, A = new WeakMap, L = new Set;
-        let T = null, M = !1, P = !1, settledIndex = b.realIndex;
-        let entryControl, entryReveal = 0, entryRetry = 0, entryFallback = 0;
-        b.on("beforeLoopFix", () => {
-            P = !0;
-        }), b.on("loopFix", () => {
-            P = !1;
+        }(0, t, x), x.init()), S = x, window.TDBSwiper.bindSwiper(S), function(e, t, i) {
+            const a = () => {
+                const a = o(e, i());
+                t.params.spaceBetween = a, t.originalParams.spaceBetween = a;
+            };
+            t.on("beforeResize breakpoint", a), t.on("beforeDestroy", () => t.off("beforeResize breakpoint", a));
+        }(e, x, () => w(e)), function(...e) {
+            window.TDBSwiper.watchDuration(...e);
+        }(e, t, x), g?.bind(x), window.TDBParallax?.bind(e, x), (e.hasAttribute("data-tdb-treatment") || e.classList.contains("tdb-service-parallax")) && window.TDBCarouselVisibility.bind(x, {overflowViewport: document.documentElement.dataset.wfPage === "677cf86df9952f978d94d8a9"});
+        const y = window.TDBMotion.carousel.nextDelay, T = new WeakMap, v = new Set;
+        let D, B = null, A = !1, M = !1, E = x.realIndex, P = 0, L = 0, k = 0;
+        x.on("beforeLoopFix", () => {
+            M = !0;
+        }), x.on("loopFix", () => {
+            M = !1;
         });
-        let C = (o || l) && !c?.skipEntry;
-        function q(e, t) {
+        let I = (m || h) && !g?.skipEntry;
+        function C(e, t) {
             e && (function(e) {
-                return e ? (A.has(e) || A.set(e, Array.from(e.querySelectorAll("[data-fade-slide],[data-tdb-service-copy]"))), 
-                A.get(e)) : [];
-            }(e).forEach(e => e.classList.toggle("is-visible", t)), t ? L.add(e) : L.delete(e));
+                return e ? (T.has(e) || T.set(e, Array.from(e.querySelectorAll("[data-fade-slide],[data-tdb-service-copy]"))), 
+                T.get(e)) : [];
+            }(e).forEach(e => e.classList.toggle("is-visible", t)), t ? v.add(e) : v.delete(e));
         }
-        function I() {
-            b.slides.forEach(e => q(e, !1));
+        function R() {
+            x.slides.forEach(e => C(e, !1));
         }
-        function F() {
-            T && (clearTimeout(T), T = null);
+        function q() {
+            B && (clearTimeout(B), B = null);
         }
-        function R(t) {
-            e.classList.toggle("is-moving", t), window.TDBParallax?.setMoving(e, t), c?.setBusy(t);
+        function z(t) {
+            e.classList.toggle("is-moving", t), window.TDBParallax?.setMoving(e, t), g?.setBusy(t);
         }
-        function B(e) {
-            F(), T = setTimeout(() => {
-                if (T = null, b.destroyed || b.animating || M) return;
-                const e = b.slides[b.activeIndex], t = e?.getAttribute("data-swiper-slide-index");
-                b.slides.forEach(n => q(n, n === e || null !== t && n.getAttribute("data-swiper-slide-index") === t));
+        function F(e) {
+            q(), B = setTimeout(() => {
+                if (B = null, x.destroyed || x.animating || A) return;
+                const e = x.slides[x.activeIndex], t = e?.getAttribute("data-swiper-slide-index");
+                x.slides.forEach(i => C(i, i === e || null !== t && i.getAttribute("data-swiper-slide-index") === t));
             }, e);
         }
-        function clearEntryFollowups() {
-            clearTimeout(entryRetry); clearTimeout(entryFallback); entryRetry = entryFallback = 0;
+        function O() {
+            clearTimeout(L), clearTimeout(k), L = k = 0;
         }
-        function z(t = window.TDBMotion.carousel.nextDelay) {
-            if (!C) return;
-            C = !1; clearEntryFollowups();
-            entryReveal = setTimeout(() => {
-                entryReveal = 0; e.classList.remove("tdb-entry-pending"); window.TDBParallax?.setEntry(e, false);
-            }, t);
-        }
-        b.on('beforeDestroy', () => {
-            entryControl?.destroy(); clearEntryFollowups(); clearTimeout(entryReveal); F();
-            e.classList.remove('tdb-entry-pending'); window.TDBParallax?.setEntry(e, false); R(false);
-        });
-        e.classList.toggle("tdb-entry-pending", C), window.TDBParallax?.setEntry(e, C), b.slides.forEach(e => q(e, !1)), 
-        q(b.slides[b.activeIndex], !0), R(!1), b.on("touchStart", () => {
-            M = !1, F();
-        }), b.on("sliderMove", () => {
-            M || (M = !0, F(), R(!0), I());
-        }), b.on("slideChangeTransitionStart", () => {
-            P || (F(), R(!0), I());
-        }), window.TDBSwiper.onSettled(b, () => {
-            const changed = b.realIndex !== settledIndex;
-            settledIndex = b.realIndex; M = !1;
-            const delay = changed ? (b.swipeDirection === "prev" ? window.TDBMotion.carousel.previousDelay : v) : window.TDBMotion.carousel.settleDelay;
-            B(delay), z(delay), R(!1);
-        }), h(e, "parallax");
-        if (!(o || l) || !C) return;
-        const next = e.querySelector('.swiper-btn-next');
-        const finishEntry = () => {
-            if (!C) return;
-            C = false; clearEntryFollowups(); e.classList.remove('tdb-entry-pending');
-            window.TDBParallax?.setEntry(e, false); R(false); B(v);
+        if (x.on("beforeDestroy", () => {
+            D?.destroy(), O(), clearTimeout(P), q(), e.classList.remove("tdb-entry-pending"), 
+            window.TDBParallax?.setEntry(e, !1), z(!1);
+        }), e.classList.toggle("tdb-entry-pending", I), window.TDBParallax?.setEntry(e, I), 
+        x.slides.forEach(e => C(e, !1)), C(x.slides[x.activeIndex], !0), z(!1), x.on("touchStart", () => {
+            A = !1, q();
+        }), x.on("sliderMove", () => {
+            A || (A = !0, q(), z(!0), R());
+        }), x.on("slideChangeTransitionStart", () => {
+            M || (q(), z(!0), R());
+        }), window.TDBSwiper.onSettled(x, () => {
+            const t = x.realIndex !== E;
+            E = x.realIndex, A = !1;
+            const i = t ? "prev" === x.swipeDirection ? window.TDBMotion.carousel.previousDelay : y : window.TDBMotion.carousel.settleDelay;
+            F(i), function(t = window.TDBMotion.carousel.nextDelay) {
+                I && (I = !1, O(), P = setTimeout(() => {
+                    P = 0, e.classList.remove("tdb-entry-pending"), window.TDBParallax?.setEntry(e, !1);
+                }, t));
+            }(i), z(!1);
+        }), s(e, "parallax"), !m && !h || !I) return;
+        const V = e.querySelector(".swiper-btn-next"), W = () => {
+            I && (I = !1, O(), e.classList.remove("tdb-entry-pending"), window.TDBParallax?.setEntry(e, !1), 
+            z(!1), F(y));
         };
-        entryControl = window.TDBSwiper.firstView(e, {
-            target: t, observe: false, frames: l ? 0 : 2,
-            delay: () => l ? 0 : window.TDBMotion.carousel.entryStart, immediate: l,
-            ready() {
-                if (c?.skipEntry) { finishEntry(); return false; }
-                return !b.destroyed && C;
-            },
-            cancel: finishEntry,
+        D = window.TDBSwiper.firstView(e, {
+            target: t,
+            observe: !1,
+            frames: h ? 0 : 2,
+            delay: () => h ? 0 : window.TDBMotion.carousel.entryStart,
+            immediate: h,
+            ready: () => g?.skipEntry ? (W(), !1) : !x.destroyed && I,
+            cancel: W,
             enter() {
-                if (l) { b.autoplay?.stop(); b.slideNext(); return; }
-                b.update(); if (b.params.loop && typeof b.loopFix === 'function') b.loopFix();
-                b.slideNext(b.params.speed, true);
-                entryRetry = setTimeout(() => {
-                    entryRetry = 0;
-                    if (C && !b.destroyed && !b.animating) next?.dispatchEvent(new MouseEvent('click', {bubbles:true,cancelable:true}));
-                }, window.TDBMotion.carousel.entryRetry);
-                entryFallback = setTimeout(finishEntry, b.params.speed + v + window.TDBMotion.carousel.entryFallback);
+                if (h) return x.autoplay?.stop(), void x.slideNext();
+                x.update(), x.params.loop && "function" == typeof x.loopFix && x.loopFix(), x.slideNext(x.params.speed, !0), 
+                L = setTimeout(() => {
+                    L = 0, !I || x.destroyed || x.animating || V?.dispatchEvent(new MouseEvent("click", {
+                        bubbles: !0,
+                        cancelable: !0
+                    }));
+                }, window.TDBMotion.carousel.entryRetry), k = setTimeout(W, x.params.speed + y + window.TDBMotion.carousel.entryFallback);
             }
-        });
-        b.on('touchStart slideChange', () => entryControl?.cancel('interaction'));
+        }), x.on("touchStart slideChange", () => D?.cancel("interaction"));
     }
-const plugin=Object.freeze({version:'1.3.1',selector:t,
- beforeObserve(root){if(u(root)||p(root))root.classList.add('tdb-entry-pending');},
- mount(root){A(root);return m(root)?.swiper;},
- refresh(root=document){window.TDBParallax?.refresh(root);window.TDBSwiper.refresh('parallax',root);}
-});
-window.TDBParallaxPlugin=plugin;
-window.TDBSwiper.register('parallax',plugin);
+    const m = Object.freeze({
+        version: "1.3.1",
+        selector: e,
+        beforeObserve(e) {
+            window.TDBParallax?.refresh(e);
+            (c(e) || u(e)) && e.classList.add("tdb-entry-pending");
+        },
+        mount: e => (b(e), n(e)?.swiper),
+        refresh(e = document) {
+            window.TDBParallax?.refresh(e), window.TDBSwiper.refresh("parallax", e);
+        }
+    });
+    window.TDBParallaxPlugin = m, window.TDBSwiper.register("parallax", m);
 })();

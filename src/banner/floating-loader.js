@@ -74,7 +74,7 @@ function prepareFloatingAnnouncement() {
   addEventListener('online', onOnline);
   addEventListener('pageshow', onPageShow);
   // The releasing consent click / restored scroll may predate this loader.
-  if (window.TDBEarlyPageState?.hadInteraction || window.scrollY > 0) scheduleTimerShell();
+  if (window.TDBRuntimePageState?.hadInteraction || window.scrollY > 0) scheduleTimerShell();
 
 })();
 }
