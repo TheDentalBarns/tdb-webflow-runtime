@@ -50,6 +50,24 @@ early arrow replay, VIP intent/scroll capture, definition-only progress and
 attribution deduplication. DD and marquee unit fixtures isolate their sources;
 the ownership suite exercises the new compiled foundation/runtime together.
 
+Staging release `c6610198cd8248e3b6c5b82c6bfa3b75a17c45db` was published under
+task `96b3cc0d-da1e-4859-92f5-89fff03a1765`. All four CDN assets matched their
+local builds byte for byte before publication. Browser checks confirmed:
+
+- The new foundation/runtime URLs and no immediate/footer bundle requests.
+- Service and treatment Next controls update the active card, CTA destination
+  and rendered progress. Browser Back retains the selected destinations.
+- Navbar Services opens; VIP opens and Escape closes it and releases scroll
+  lock. Form fields render; no live enquiry was submitted.
+- Partner selection loads its existing lazy card and content successfully.
+- Only one rendered-progress script and one homepage attribution script.
+- Composite Bonding uses the same new foundation/runtime and its preserved
+  non-home attribution/VIP versions. No warning/error logs were captured in
+  these browser checks. Font preloads remain absent.
+
+The browser used a saved consent decision. Fresh accept/reject and closing
+animation timing are covered by the automated full-bundle tests above.
+
 Previous early navbar/immediate/footer chain: 59,745 raw bytes. New foundation:
 29,343 raw bytes. Approximately 30.4 KB moves out of the early path, and the two
 old immediate/footer requests disappear. This is a scheduling change, not a
