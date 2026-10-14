@@ -1,5 +1,8 @@
 /* Single source-to-output manifest for runtime builds. */
 module.exports = {
+  "dist/tdb-instagram-deferred.js": [
+    "src/instagram/deferred.js"
+  ],
   "dist/tdb-instagram-native.min.js": [
     "src/instagram/native.js"
   ],
