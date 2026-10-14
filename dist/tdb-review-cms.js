@@ -265,7 +265,7 @@
     const find = doc => [...(doc?.querySelectorAll('[data-tdb-review-icon]') || [])]
       .find(item => item.getAttribute('data-tdb-review-icon') === platform)?.querySelector('svg,img');
     const original = find(document) || sourceIcons.get(platform);
-    if (!original) { node.textContent = platform === 'Star' ? '?' : platform; return node; }
+    if (!original) { node.textContent = platform === 'Star' ? '★' : platform; return node; }
     const svg = original.cloneNode(true), prefix = `tdb-cms-svg-${++serial}-`;
     const ids = new Map([...svg.querySelectorAll('[id]')].map(item => [item.id, prefix + item.id]));
     for (const item of [svg, ...svg.querySelectorAll('*')]) for (const attr of [...item.attributes]) {
