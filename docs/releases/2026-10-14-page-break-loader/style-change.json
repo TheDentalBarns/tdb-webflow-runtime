@@ -1,0 +1,8 @@
+{
+  "selector": ".header5_background-image.sketch_wireframe",
+  "styleId": "5df297bf-6a86-2255-f93f-0a8e91b44165",
+  "breakpoint": "main",
+  "property": "opacity",
+  "before": "0",
+  "after": "1"
+}
