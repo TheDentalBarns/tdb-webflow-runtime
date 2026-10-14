@@ -1,11 +1,13 @@
-name: Build consolidated consent
+name: Build consent and DD runtime
 
 on:
   push:
     branches:
-      - work/consent-refinement-20261014
+      - work/runtime-dd-20261014
     paths:
       - 'src/consent/**'
+      - 'src/runtime/runtime.js'
+      - 'tests/runtime-dd.test.cjs'
       - 'src/shared/modules.js'
       - 'tests/consent*.test.cjs'
       - 'tools/runtime-build/**'
@@ -36,17 +38,18 @@ jobs:
         env:
           TDB_JSDOM: /tmp/tdb-consent-tests/node_modules/jsdom
         run: |
-          node tools/runtime-build/build-preservation.cjs dist/tdb-consent.js
+          node tools/runtime-build/build-preservation.cjs dist/tdb-consent.js dist/tdb-runtime.js
           node tools/runtime-build/verify-ui.cjs
           node --check dist/tdb-consent.js
+          node --check dist/tdb-runtime.js
           node tests/consent-native.test.cjs
-          node --test tests/consent-startup-analytics.test.cjs
+          node --test tests/consent-startup-analytics.test.cjs tests/runtime-dd.test.cjs
           node -e "const fs=require('fs'),assert=require('assert/strict');assert(!fs.readFileSync('dist/tdb-consent.js','utf8').includes('data-tdb-consent-state-css'));assert(fs.readFileSync('dist/tdb-ui.css','utf8').includes('.tdb-consent-root.is-consent-active'))"
       - name: Commit verified artifacts
         run: |
-          git add dist/tdb-consent.js
+          git add dist/tdb-consent.js dist/tdb-runtime.js
           if git diff --cached --quiet; then exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Build consent v0.6.2 with validated permissions and bounded analytics retries'
+          git commit -m 'Build consent v0.7.0 and DD runtime v1.0.0'
           git push origin HEAD:${{ github.ref_name }}

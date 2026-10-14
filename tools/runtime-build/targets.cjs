@@ -1,5 +1,6 @@
 /* Single source-to-output manifest for local and CI runtime builds. */
 module.exports = {
+  'dist/tdb-runtime.js': ['src/runtime/runtime.js'],
   'dist/tdb-consent.min.js': ['src/consent/consent.js'],
   'dist/tdb-consent.js': ['src/shared/scroll-lock.js', 'src/consent/banner.js', 'src/shared/modules.js', 'src/consent/consent.js'],
   'dist/tdb-immediate-runtime-batch.min.js': ['src/runtime/immediate-runtime-batch.js'],

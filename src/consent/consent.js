@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.6.2';
+  const VERSION = '0.7.0';
   const base = new URL('./', document.currentScript.src);
   const GA_MEASUREMENT_ID = 'G-GCWCSWR50M';
   const META_PIXEL_ID = '1326762815429148';
@@ -17,6 +17,25 @@
   const quoteSelector = '[data-tdb-team-quotes][data-tdb-team-cms]';
   let quotePresent = false, quoteFlight = null;
   const pendingQuotes = new Map();
+  let runtimeFlight = null, runtimeReady = false, runtimeAttempts = 0, runtimeRetry = 0;
+  function releaseRuntime() {
+    if (!gatesReady || !allows() || window.CookieScript?.instance?.isOpen?.()) return;
+    if (runtimeReady || runtimeFlight || runtimeRetry || runtimeAttempts >= 2) return;
+    runtimeAttempts++;
+    runtimeFlight = (async () => {
+      if (!window.TDBModules) throw Error('Shared registry unavailable');
+      await window.TDBModules.load(new URL('tdb-runtime.js', base).href, {
+        attribute: 'data-tdb-runtime',
+        ready: () => typeof window.TDBRuntime?.refresh === 'function'
+      });
+      runtimeReady = true;
+    })().catch(error => {
+      console.warn('TDB Runtime handoff failed:', error);
+      if (runtimeAttempts < 2) runtimeRetry = setTimeout(() => {
+        runtimeRetry = 0; releaseRuntime();
+      }, 1000);
+    }).finally(() => { runtimeFlight = null; });
+  }
 
   // One permission boundary. A category alone is not a valid saved decision.
   function currentState() {
@@ -89,6 +108,7 @@
     if (allows('functionality')) releaseVideo();
     else clearVideo();
     if (allows()) releaseQuotes();
+    releaseRuntime();
   }
   // Owner quotes are a local enhancement: either saved choice releases their
   // proximity observer. Explicit interaction can start just that quote sooner.
