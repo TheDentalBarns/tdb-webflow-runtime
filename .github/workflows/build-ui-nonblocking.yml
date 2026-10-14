@@ -1,0 +1,40 @@
+name: Validate nonblocking UI
+on:
+  push:
+    branches: [work/ui-nonblocking-20261014]
+    paths:
+      - 'src/styles/**'
+      - 'tools/build-ui.py'
+      - 'tools/runtime-build/**'
+      - '.github/workflows/build-ui-nonblocking.yml'
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: work/ui-nonblocking-20261014
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - run: npm ci --prefix tools/runtime-build --ignore-scripts --no-audit --no-fund
+      - run: python tools/build-ui.py --global-only
+      - run: node tools/runtime-build/verify-ui.cjs
+      - name: Preserve the existing external stylesheet exactly
+        run: |
+          git show cbfc45755454e9c40161862f6a3823b3782d56d6:dist/tdb-ui.css > /tmp/tdb-ui-before.css
+          cmp /tmp/tdb-ui-before.css dist/tdb-ui.css
+      - name: Commit generated artifacts
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/styles/tdb-ui.css src/styles/tdb-ui-critical.css dist/tdb-ui-critical.css
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Build critical UI styles without changing the external stylesheet'
+          git push origin HEAD:work/ui-nonblocking-20261014

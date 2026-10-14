@@ -9,6 +9,7 @@ const bundles = {
   'tdb-scroll-lock.css': ['tdb-scroll-lock.css'],
   'tdb-vip-chrome.css': ['tdb-vip-chrome.css'],
   'tdb-ui.css': ['tdb-ui.css'],
+  'tdb-ui-critical.css': ['tdb-ui-critical.css'],
   'tdb-control-motion.css': ['tdb-control-motion.css'],
   'tdb-vimeo.css': ['tdb-vimeo-ui.css'],
   'tdb-announcement.css': ['tdb-announcement-chrome.css', 'tdb-announcement-states.css'],

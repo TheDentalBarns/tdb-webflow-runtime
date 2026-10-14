@@ -8,11 +8,21 @@ GLOBAL_SOURCES = [
     ROOT / 'src/styles/tdb-chrome-motion.css',
     ROOT / 'src/styles/tdb-runtime-ui.css',
     ROOT / 'src/styles/tdb-deferred-ui.css',
+    ROOT / 'src/styles/tdb-control-keyframes.css',
     ROOT / 'src/styles/tdb-control-effects.css',
     ROOT / 'src/shared/reveal-motion.css',
     ROOT / 'src/styles/tdb-shared-control-states.css',
     ROOT / 'src/styles/tdb-content-formatting.css',
     ROOT / 'src/styles/tdb-consent-states.css',
+    ROOT / 'src/styles/tdb-controls-base.css',
+    ROOT / 'src/styles/tdb-phone-landscape.css',
+]
+
+# Inline in the Webflow head; preserve global source order and never include readiness.
+CRITICAL_SOURCES = [
+    ROOT / 'src/styles/tdb-runtime-ui.css',
+    ROOT / 'src/styles/tdb-control-keyframes.css',
+    ROOT / 'src/styles/tdb-content-formatting.css',
     ROOT / 'src/styles/tdb-controls-base.css',
     ROOT / 'src/styles/tdb-phone-landscape.css',
 ]
@@ -36,7 +46,9 @@ def write(path: Path, content: str) -> None:
 
 global_bundle = GLOBAL_HEADER + '\n\n'.join(read(source) for source in GLOBAL_SOURCES) + '\n'
 write(ROOT / 'src/styles/tdb-ui.css', global_bundle)
-subprocess.run(['node', str(ROOT / 'tools/runtime-build/minify-ui.cjs'), 'tdb-ui.css', 'tdb-control-motion.css'], check=True)
+critical_bundle = '/* Generated critical UI: inline before the asynchronous global stylesheet. */\n' + '\n\n'.join(read(source) for source in CRITICAL_SOURCES) + '\n'
+write(ROOT / 'src/styles/tdb-ui-critical.css', critical_bundle)
+subprocess.run(['node', str(ROOT / 'tools/runtime-build/minify-ui.cjs'), 'tdb-ui.css', 'tdb-ui-critical.css', 'tdb-control-motion.css'], check=True)
 print(f'Built global UI: {len(global_bundle.encode())} bytes')
 
 # Other legacy bundles remain pinned independently. Rebuild explicitly when

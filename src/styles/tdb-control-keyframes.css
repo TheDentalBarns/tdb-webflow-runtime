@@ -1,0 +1,8 @@
+/* Shared keyframes needed by first-paint Vimeo and control indicators. */
+@keyframes tdbBtnPulseOpacity {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes tdbControlSpin {
+  to { transform: rotate(360deg); }
+}
