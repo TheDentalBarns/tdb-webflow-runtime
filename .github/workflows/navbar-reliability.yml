@@ -1,0 +1,36 @@
+name: Verify navbar reliability
+on:
+  push:
+    branches: [work/navbar-reliability-20261014]
+    paths: ['src/navbar/**', 'tests/navbar-reliability.test.cjs', '.github/workflows/navbar-reliability.yml']
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Install existing build and test dependencies
+        run: |
+          npm ci --prefix tools/runtime-build --ignore-scripts --no-audit --no-fund
+          npm install --prefix /tmp/tdb-nav-tests --ignore-scripts --no-audit --no-fund jsdom@26.1.0
+      - name: Build and test navbar
+        env:
+          NODE_PATH: /tmp/tdb-nav-tests/node_modules
+        run: |
+          node tools/runtime-build/build-preservation.cjs dist/tdb-navbar-loader.js
+          node --check dist/tdb-navbar-loader.js
+          node --test tests/navbar-reliability.test.cjs tests/navbar-handoff.test.cjs
+      - name: Commit verified navbar build
+        run: |
+          git add dist/tdb-navbar-loader.js
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Build verified navbar loader v2.0.1'
+          git push origin HEAD:${{ github.ref_name }}

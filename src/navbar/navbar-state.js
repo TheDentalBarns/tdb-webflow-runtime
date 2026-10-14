@@ -38,5 +38,10 @@
     instances.set(nav, api);
     return api;
   }
-  window.TDBNavbarState = Object.freeze({ version: '1.0.0', forNav });
+  function whenReady(start) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once: true});
+    else start();
+  }
+  window.TDBNavbarState = Object.freeze({ version: '1.1.0', forNav, whenReady });
 })();
+

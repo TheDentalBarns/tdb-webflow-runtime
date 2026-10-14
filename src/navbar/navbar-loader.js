@@ -1,5 +1,5 @@
 /* Essential native navigation. Consent/runtime own eligibility and downloads. */
-(() => {
+window.TDBNavbarState.whenReady(() => {
   'use strict';
   const nav = document.querySelector('.navbar10_component');
   if (!nav || window.TDBNavbarLoader || window.TDBNavbar) return;
@@ -26,18 +26,32 @@
     }
     if (open || !requested || !installer || queued) return;
     queued = true;
-    schedule(() => {
-      queued = false;
+    Promise.resolve().then(() => schedule(() => {
       // A user can open the native menu while an idle callback is waiting.
       if (ready || isOpen()) return;
       setDuration(duration || 500);
       installer();
       ready = true;
+      stopRetrying();
       stopWatching?.();
       html.removeAttribute('data-tdb-nav-basic-open');
       nav.removeAttribute('data-tdb-nav-basic');
       nav.setAttribute('data-tdb-nav-enhanced', '');
-    }).catch(error => console.warn('TDB navbar: retaining native navigation.', error));
+    })).catch(error => {
+      if (!ready) {
+        setDuration(0);
+        nav.addEventListener('pointerdown', retry, {passive: true});
+        nav.addEventListener('focusin', retry);
+        window.addEventListener('online', retry);
+      }
+      console.warn('TDB navbar: retaining native navigation.', error);
+    }).finally(() => { queued = false; });
+  }
+  function retry() { sync(); }
+  function stopRetrying() {
+    nav.removeEventListener('pointerdown', retry);
+    nav.removeEventListener('focusin', retry);
+    window.removeEventListener('online', retry);
   }
   nav.querySelectorAll('.navbar10_blog-item-image').forEach(image => {
     image.sizes = '(max-width: 479px) 100vw, (max-width: 991px) 50vw, 22vw';
@@ -47,11 +61,11 @@
   (window.Webflow ||= []).push(() => { if (!ready) setDuration(0); });
   stopWatching = state.watch(isOpen, sync);
   window.TDBNavbarLoader = Object.freeze({
-    version: '2.0.0',
+    version: '2.0.1',
     prepare: () => window.TDBRuntime?.enhanceNavbar?.() || Promise.resolve(false),
-    register(callback) { if (!ready) installer = callback; },
+    register(callback) { if (!ready) { installer = callback; sync(); } },
     activate(background) {
-      if (ready || requested) return;
+      if (ready) return;
       schedule = background;
       requested = true;
       sync();
@@ -60,4 +74,5 @@
       decided: Boolean(window.TDBConsent?.allows())})
   });
   window.dispatchEvent(new Event('tdb:navbar-ready'));
-})();
+});
+

@@ -1,5 +1,6 @@
 /* Retain scroll locking for remaining native Webflow navigation hooks. */
-(() => {
+window.TDBNavbarState.whenReady(() => {
+  function start() {
   const modules=window.TDBModules;
   if(!modules)return;
   // Native navigation marks its scroll-lock ownership before this check.
@@ -10,4 +11,8 @@
       attribute:'data-scrolldisable-js'
     }).catch(error=>console.warn('TDB legacy scroll lock unavailable.',error));
   }
-})();
+  }
+  if (window.TDBModules) start();
+  else document.querySelector('script[data-tdb-consent-js]')?.addEventListener('load', start, {once:true});
+});
+
