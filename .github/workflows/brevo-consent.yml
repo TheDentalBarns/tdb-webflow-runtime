@@ -1,0 +1,27 @@
+name: Verify Brevo consent runtime
+on:
+  push:
+    branches: [work/brevo-consent-runtime-20261014]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Inspect public Brevo SDK lifecycle
+        run: |
+          curl --fail --silent 'https://cdn.brevo.com/js/sdk-loader.js' -o /tmp/brevo-sdk.js
+          node <<'NODE'
+          const s=require('fs').readFileSync('/tmp/brevo-sdk.js','utf8');
+          console.log('Bytes',s.length);
+          for(const q of ['sib_cuid','visitor_id','consent','destroy','disable','revoke','reset','stop','https://','tracker.js']){
+            let start=0,count=0,i;
+            while(count++<5&&(i=s.indexOf(q,start))>=0){console.log(q, s.slice(Math.max(0,i-180),i+380));start=i+q.length;}
+          }
+          NODE
