@@ -7,6 +7,7 @@
      Fade glass directly so no translucent controls parent blocks its backdrop.
      Playback wrappers still own play/pause/loading visibility. */
   @keyframes tdb-home-chrome-enter {
+    from { opacity: 0; }
     to { opacity: 1; }
   }
   html[data-wf-page="677cf86df9952f978d94d8a9"] .navbar10_component > .is-nav-bar-frame {
@@ -22,25 +23,11 @@
     animation: tdb-home-chrome-enter 200ms ease-out 100ms 1 normal forwards !important;
   }
 
-  /* Designer Home variant owns opacity 0 and the black backdrop.
-     CSS starts the entrance on page load; Vimeo still owns playback hiding. */
+  /* The poster settles at a real opacity:1 after its entrance.
+     Backwards fill covers only the initial delay; playback then uses the
+     existing Designer transition to opacity:0, without a second animation. */
   html[data-wf-page="677cf86df9952f978d94d8a9"] [data-vimeo-hero-shell] [data-vimeo-hero-init]:not([data-vimeo-started="true"]):not([data-placeholder-hidden="true"]) .vimeo-bg__placeholder {
-    animation: tdb-home-chrome-enter 200ms ease-out 100ms 1 normal forwards;
-  }
-  /* Playback replaces the forwards-filled entrance animation. Give that
-     handoff its own start value so the native opacity:0 cannot flash through.
-     Match the original 450ms poster fade; the controller removes it at 520ms. */
-  @keyframes tdb-home-poster-exit {
-    from { opacity: 1; visibility: visible; }
-    to { opacity: 0; visibility: hidden; }
-  }
-  html[data-wf-page="677cf86df9952f978d94d8a9"] [data-vimeo-hero-shell] [data-vimeo-hero-init][data-vimeo-started="true"] .vimeo-bg__placeholder {
-    animation: tdb-home-poster-exit 450ms ease 0ms 1 normal both;
+    opacity: 1;
+    animation: tdb-home-chrome-enter 200ms ease-out 100ms 1 normal backwards;
   }
 </style>
-
-
-
-
-
-
