@@ -20,6 +20,7 @@ module.exports = {
     "src/brevo/consent.js",
     "src/usp/loader.js",
     "src/five-senses/launcher.js",
+    "src/runtime/review-feature-loader.js",
     "src/runtime/page-break-loader.js",
     "src/runtime/features-startup.js",
     "src/runtime/runtime.js"
@@ -51,6 +52,9 @@ module.exports = {
     "src/sliders/parallax-foundation.js",
     "src/sliders/treatment-plugin.js",
     "src/sliders/parallax-plugin.js"
+  ],
+  "dist/tdb-reviews-loader.js": [
+    "src/reviews/native/loader.js"
   ],
   "dist/tdb-reviews.js": [
     "src/reviews/native/drawer-content.js"
