@@ -1,0 +1,34 @@
+name: Verify page-break runtime loader
+on:
+  push:
+    branches: [work/page-break-loader-20261014]
+    paths: ['src/**', 'tools/runtime-build/targets.cjs', 'tests/page-break-loader.test.cjs', '.github/workflows/page-break-loader.yml']
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: |
+          npm ci --prefix tools/runtime-build --ignore-scripts --no-audit --no-fund
+          npm install --prefix /tmp/tdb-usp-tests --ignore-scripts --no-audit --no-fund jsdom@26.1.0
+          curl --fail --silent https://cdn.brevo.com/js/sdk-loader.js -o /tmp/brevo-sdk.js
+      - env:
+          NODE_PATH: /tmp/tdb-usp-tests/node_modules
+          TDB_BREVO_SDK: /tmp/brevo-sdk.js
+        run: |
+          node tools/runtime-build/build-preservation.cjs dist/tdb-runtime.js
+          node --test tests/page-break-loader.test.cjs tests/usp-loader-presence.test.cjs tests/brevo-consent.test.cjs tests/runtime-ownership.test.cjs tests/navbar-handoff.test.cjs
+      - run: |
+          git add dist/tdb-runtime.js
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Build verified deferred page-break loader'
+          git push origin HEAD:${{ github.ref_name }}
