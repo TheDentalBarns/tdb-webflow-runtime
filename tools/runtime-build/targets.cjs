@@ -19,6 +19,7 @@ module.exports = {
     "src/runtime/attribution-loader.js",
     "src/brevo/consent.js",
     "src/usp/loader.js",
+    "src/five-senses/launcher.js",
     "src/runtime/page-break-loader.js",
     "src/runtime/features-startup.js",
     "src/runtime/runtime.js"
