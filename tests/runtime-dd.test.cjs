@@ -33,7 +33,9 @@ function fixture({choice, runtime=false, count=19, idle=true, lcp=true, ready='c
   function evalFile(file,node) {
     current=node||Object.assign(d.createElement('script'),{src:'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@'+'b'.repeat(40)+'/dist/'+file.split('/').pop()});
     if(!current.isConnected)d.head.append(current);
-    try{w.eval(read(file));}finally{current=null;}
+    // Exercise DD's scheduler independently of unrelated feature-loader tasks.
+    // The complete distribution is covered by runtime-ownership.test.cjs.
+    try{w.eval(read(file==='dist/tdb-runtime.js'?'src/runtime/runtime.js':file));}finally{current=null;}
   }
   if(choice)d.cookie='CookieScriptConsent='+encodeURIComponent(JSON.stringify(choice))+'; Path=/';
   if(runtime){

@@ -25,7 +25,9 @@ function fixture({choice, count=2, intersection=true}={}) {
   function evaluate(file,node) {
     current=node||Object.assign(d.createElement('script'),{src:'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@'+'b'.repeat(40)+'/dist/'+file.split('/').pop()});
     if(!current.isConnected)d.head.append(current);
-    w.eval(read(file));current=null;
+    // Keep observer-count assertions scoped to the marquee; the combined
+    // distribution has separate ownership/handoff integration coverage.
+    w.eval(file==='dist/tdb-runtime.js' ? read('src/runtime/logo-marquee-loader.js')+'\n'+read('src/runtime/runtime.js') : read(file));current=null;
   }
   if(choice)d.cookie='CookieScriptConsent='+encodeURIComponent(JSON.stringify({action:choice,categories:choice==='accept'?['strict','performance','functionality']:['strict']}));
   evaluate('dist/tdb-consent.js');evaluate('src/shared/logo-navigation-guard.js');

@@ -1,4 +1,4 @@
-/* TDB runtime v1.2.0. Consent hands off once; DD, controls and marquees follow.
+/* TDB runtime v1.3.0. Consent hands off once; feature loaders follow in idle turns.
  * Component-owned fades retain their existing gates and shared motion owner.
  */
 (() => {
@@ -182,7 +182,7 @@
     mounted.forEach(owner => owner.destroy()); mounted.clear();
   }
   const api = Object.freeze({
-    version: '1.2.0', refresh, enhanceNavbar, count: () => mounted.size, destroy,
+    version: '1.3.0', refresh, enhanceNavbar, schedule: background, count: () => mounted.size, destroy,
     status: () => ({started, pending: !!pending, mounted: mounted.size, retryNeeded, disposed,
       controlsReady, navbarRequested, navbarRetry})
   });
@@ -199,7 +199,13 @@
   function start() {
     refresh(); enhanceNavbar();
     renderReady.then(ready => {
-      if (ready) return window.TDBLogoMarqueeLoader?.start({schedule: background});
+      if (ready) {
+        if (typeof TDBFeatureStartup !== 'undefined')
+          TDBFeatureStartup.start(background, () => !disposed).catch(error => {
+            if (!disposed) console.warn('TDB feature startup unavailable.', error);
+          });
+        return window.TDBLogoMarqueeLoader?.start({schedule: background});
+      }
     }).catch(error => { if (!disposed) console.warn('TDB marquee startup unavailable.', error); });
   }
   if (document.readyState === 'loading')
