@@ -3,11 +3,11 @@ name: Build consolidated consent
 on:
   push:
     branches:
-      - work/consent-bundle-20261014
+      - work/consent-refinement-20261014
     paths:
       - 'src/consent/**'
       - 'src/shared/modules.js'
-      - 'tests/consent-native.test.cjs'
+      - 'tests/consent*.test.cjs'
       - 'tools/runtime-build/**'
       - '.github/workflows/build-consent-ui.yml'
   workflow_dispatch:
@@ -40,6 +40,7 @@ jobs:
           node tools/runtime-build/verify-ui.cjs
           node --check dist/tdb-consent.js
           node tests/consent-native.test.cjs
+          node --test tests/consent-startup-analytics.test.cjs
           node -e "const fs=require('fs'),assert=require('assert/strict');assert(!fs.readFileSync('dist/tdb-consent.js','utf8').includes('data-tdb-consent-state-css'));assert(fs.readFileSync('dist/tdb-ui.css','utf8').includes('.tdb-consent-root.is-consent-active'))"
       - name: Commit verified artifacts
         run: |
@@ -47,5 +48,5 @@ jobs:
           if git diff --cached --quiet; then exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Build consolidated consent with existing banner, modules and gates'
+          git commit -m 'Build consent v0.6.2 with validated permissions and bounded analytics retries'
           git push origin HEAD:${{ github.ref_name }}

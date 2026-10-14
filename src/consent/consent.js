@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.6.1';
+  const VERSION = '0.6.2';
   const base = new URL('./', document.currentScript.src);
   const GA_MEASUREMENT_ID = 'G-GCWCSWR50M';
   const META_PIXEL_ID = '1326762815429148';
@@ -10,7 +10,7 @@
   if (window.__tdbConsentBooted) return;
   window.__tdbConsentBooted = true;
 
-  let pendingShowSettings = false;
+  let pendingShowSettings = false, gatesReady = false;
   const subscribers = new Set();
   let decisionKey = '', videoPresent = false, videoFlight = null, pendingVideo = null;
   const videoSelector = '[data-vimeo-hero-shell],[data-vimeo-ambient-init],[data-vimeo-content-init]';
@@ -76,6 +76,8 @@
     return videoFlight;
   }
   function settle() {
+    if (!gatesReady) return;
+    if (!allows('performance')) cancelPerformanceRetries();
     const choice = currentState();
     const key = JSON.stringify([choice.action, choice.categories]);
     if (key !== decisionKey) {
@@ -145,6 +147,7 @@
     else showCookieSettings();
   }
   function prepareGates() {
+    if (gatesReady) return;
     videoPresent = !!document.querySelector(videoSelector);
     // No video-specific observers, assets or stylesheet work before permission.
     if (videoPresent) document.addEventListener('click', videoClick, true);
@@ -153,7 +156,8 @@
       ['pointerdown', 'focusin', 'keydown'].forEach(type => document.addEventListener(type, quoteIntent, true));
       if (!('PointerEvent' in window)) document.addEventListener('touchstart', quoteIntent, {capture: true, passive: true});
     }
-    settle();
+    gatesReady = true;
+    handleCookieScriptReady();
   }
 
   const state = {
@@ -162,25 +166,74 @@
     meta: false
   };
 
-  function appendScript(src, marker, options = {}) {
-    const existing =
-      document.querySelector(`script[${marker}]`) ||
-      document.querySelector(`script[src="${src}"]`);
+  // Keep the legacy flags as request/boot indicators; scripts exposes load outcomes.
+  const performanceScripts = new Map();
+  const MAX_SCRIPT_ATTEMPTS = 2, SCRIPT_RETRY_DELAY = 1000;
 
-    if (existing) return existing;
+  function cancelPerformanceRetries() {
+    for (const entry of performanceScripts.values()) {
+      clearTimeout(entry.retryTimer);
+      entry.retryTimer = 0;
+    }
+  }
+
+  function requestPerformanceScript(key, src, marker) {
+    if (!gatesReady || !allows('performance')) return;
+    let entry = performanceScripts.get(key);
+    if (!entry) {
+      entry = {status: 'idle', attempts: 0, retryTimer: 0};
+      performanceScripts.set(key, entry);
+    }
+    if (entry.status === 'requested' || entry.status === 'loaded' ||
+        entry.status === 'existing' || entry.retryTimer || entry.attempts >= MAX_SCRIPT_ATTEMPTS) return;
+
+    const existing = document.querySelector(`script[${marker}]`) ||
+      document.querySelector(`script[src="${src}"]`);
+    if (existing) {
+      // Another owner may have finished before our listeners existed. Do not
+      // claim verified readiness, replace its tag, or retry its request.
+      entry.status = existing.dataset.tdbLoaded === 'true' ? 'loaded' : 'existing';
+      state[key] = true;
+      return;
+    }
 
     const script = document.createElement('script');
     script.src = src;
-    script.async = options.async !== false;
-    script.charset = options.charset || 'UTF-8';
+    script.async = true;
+    script.charset = 'UTF-8';
     script.setAttribute(marker, 'true');
+    entry.status = 'requested';
+    entry.attempts++;
+    state[key] = true;
+
+    function cleanup() {
+      script.removeEventListener('load', loaded);
+      script.removeEventListener('error', failed);
+    }
+    function loaded() {
+      cleanup();
+      script.dataset.tdbLoaded = 'true';
+      entry.status = 'loaded';
+    }
+    function failed() {
+      cleanup();
+      script.remove();
+      state[key] = false;
+      entry.status = 'failed';
+      // Retry explicit failures only: a timeout could still execute later.
+      if (entry.attempts < MAX_SCRIPT_ATTEMPTS && allows('performance')) {
+        entry.retryTimer = setTimeout(() => {
+          entry.retryTimer = 0;
+          requestPerformanceScript(key, src, marker);
+        }, SCRIPT_RETRY_DELAY);
+      }
+    }
+    script.addEventListener('load', loaded);
+    script.addEventListener('error', failed);
     document.head.appendChild(script);
-    return script;
   }
 
   function loadGoogleAnalytics() {
-    if (state.analytics) return;
-
     const src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
     const alreadyPresent = Boolean(
       document.querySelector(
@@ -188,9 +241,7 @@
       )
     );
 
-    if (!alreadyPresent) {
-      appendScript(src, 'data-tdb-ga-js');
-    }
+    requestPerformanceScript('analytics', src, 'data-tdb-ga-js');
 
     window.dataLayer = window.dataLayer || [];
 
@@ -205,24 +256,14 @@
       window.gtag('js', new Date());
       window.gtag('config', GA_MEASUREMENT_ID);
     }
-
-    state.analytics = true;
   }
 
   function loadIntellimize() {
-    if (state.intellimize) return;
-
-    appendScript(INTELLIMIZE_SRC, 'data-tdb-intellimize-js');
-    state.intellimize = true;
+    requestPerformanceScript('intellimize', INTELLIMIZE_SRC, 'data-tdb-intellimize-js');
   }
 
   function loadMetaPixel() {
-    if (state.meta) return;
-
     const alreadyBooted = typeof window.fbq === 'function';
-    const existingScript = document.querySelector(
-      'script[src="https://connect.facebook.net/en_US/fbevents.js"]'
-    );
 
     if (!alreadyBooted) {
       const fbq = function () {
@@ -240,34 +281,20 @@
       window._fbq = fbq;
     }
 
-    if (!existingScript) {
-      appendScript(
-        'https://connect.facebook.net/en_US/fbevents.js',
-        'data-tdb-meta-js'
-      );
-    }
+    requestPerformanceScript('meta',
+      'https://connect.facebook.net/en_US/fbevents.js', 'data-tdb-meta-js');
 
     if (!alreadyBooted) {
       window.fbq('init', META_PIXEL_ID);
       window.fbq('track', 'PageView');
     }
-
-    state.meta = true;
   }
 
   function loadPerformanceScripts() {
+    if (!gatesReady || !allows('performance')) return;
     loadGoogleAnalytics();
     loadIntellimize();
     loadMetaPixel();
-  }
-
-  function hasPerformanceConsent() {
-    try {
-      const currentState = window.CookieScript?.instance?.currentState?.();
-      return Boolean(currentState?.categories?.includes('performance'));
-    } catch (error) {
-      return false;
-    }
   }
 
   function showCookieSettings() {
@@ -284,8 +311,9 @@
   }
 
   function handleCookieScriptReady() {
+    if (!gatesReady) return;
     if (pendingShowSettings) showCookieSettings();
-    if (hasPerformanceConsent()) loadPerformanceScripts();
+    loadPerformanceScripts();
     settle();
   }
 
@@ -300,23 +328,8 @@
 
     window.addEventListener('CookieScriptLoaded', handleCookieScriptReady);
 
-    window.addEventListener('CookieScriptAccept', event => {
-      const categories = event?.detail?.categories || [];
-
-      if (
-        categories.includes('performance') ||
-        hasPerformanceConsent()
-      ) {
-        loadPerformanceScripts();
-      }
-
-      settle();
-    });
-
-    window.addEventListener('CookieScriptAcceptAll', () => {
-      loadPerformanceScripts();
-      settle();
-    });
+    window.addEventListener('CookieScriptAccept', handleCookieScriptReady);
+    window.addEventListener('CookieScriptAcceptAll', handleCookieScriptReady);
 
     window.addEventListener(
       'CookieScriptCategory-performance',
@@ -338,13 +351,13 @@
     refresh: handleCookieScriptReady,
     currentState, allows, subscribe, settle,
     loadPerformanceScripts,
-    status: () => ({ ...state })
+    status: () => ({ ...state, scripts: Object.fromEntries(
+      [...performanceScripts].map(([key, {status, attempts}]) => [key, {status, attempts}])
+    ) })
   });
 
-  if (window.CookieScript?.instance) {
-    handleCookieScriptReady();
-  }
-  // Authored after the shared registry; safe for both deferred and async use.
+  // Detect the DOM once before the initial consent refresh. Early CookieScript
+  // events are covered by this refresh; subsequent events use the same handler.
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', prepareGates, {once: true});
   else prepareGates();
 })();
