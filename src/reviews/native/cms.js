@@ -1,4 +1,4 @@
-/* TDB CMS review source v1.5.1. No review records or credentials in this file. */
+/* TDB CMS review source v1.5.2. No review records or credentials in this file. */
 (() => {
   'use strict';
   if (window.TDBReviewCMS) return;
@@ -12,6 +12,14 @@
   const canonicalTopic=value=>value==='invisalign'?'clear-aligners':value;
   const canonicalTopics=values=>[...new Set(values.map(canonicalTopic))];
   const platforms = { efe6db2067ed0fd456d38bc2e521b4bd: 'Google', '0d3340cdd96a32712e4c9d730e89df7d': 'Yell', a0c3d879d008891aec3a0bd741c1ea8c: 'Doctify', '17153ef92f97216cb750196d50c29c0d': 'Facebook', '9893e84e222a65c3ea16e8537dcc34e6': 'Direct testimonial', '18e8b0757d8babb418cb99c0b6830ea0': 'Other' };
+  // Canonical platform artwork shared by dynamically rendered reviews and quotes.
+  const platformIcons = Object.freeze({
+    Google: 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b972653444187f404ca8_tdb-review-google.svg',
+    Facebook: 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973ba7906fe700055be_tdb-review-facebook.svg',
+    Yell: 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973ba7906fe700055e8_tdb-review-yell.svg',
+    Doctify: 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973dd39bbf3927772e6_tdb-review-doctify.svg'
+  });
+  const platformAsset = platform => Object.hasOwn(platformIcons, platform) ? platformIcons[platform] : '';
   const normal = value => String(value || '').normalize('NFKC').replace(/\s+/g, ' ').trim();
   const numeric = value => value === null || String(value).trim() === '' ? NaN : Number(value);
   const shown = node => node && !node.matches('[hidden],.w-condition-invisible,[aria-hidden="true"]') && node.style.display !== 'none';
@@ -241,10 +249,23 @@
     const node = document.createElement('span');
     node.className = 'tdb-review-source-icon' + (grayscale ? ' is-grayscale' : '');
     node.setAttribute('aria-hidden', 'true');
+    const url = platformAsset(platform);
+    if (url) {
+      const image = document.createElement('img');
+      image.setAttribute('loading', 'lazy');
+      image.setAttribute('fetchpriority', 'low');
+      image.setAttribute('width', '100%');
+      image.setAttribute('height', '100%');
+      image.setAttribute('alt', '');
+      image.setAttribute('aria-hidden', 'true');
+      image.src = url;
+      node.append(image);
+      return node;
+    }
     const find = doc => [...(doc?.querySelectorAll('[data-tdb-review-icon]') || [])]
       .find(item => item.getAttribute('data-tdb-review-icon') === platform)?.querySelector('svg,img');
     const original = find(document) || sourceIcons.get(platform);
-    if (!original) { node.textContent = platform === 'Star' ? '★' : platform; return node; }
+    if (!original) { node.textContent = platform === 'Star' ? '?' : platform; return node; }
     const svg = original.cloneNode(true), prefix = `tdb-cms-svg-${++serial}-`;
     const ids = new Map([...svg.querySelectorAll('[id]')].map(item => [item.id, prefix + item.id]));
     for (const item of [svg, ...svg.querySelectorAll('*')]) for (const attr of [...item.attributes]) {
@@ -271,7 +292,7 @@
       [record.excerpt, ...Object.values(record.excerpts || {})].some(value => normal(value) === excerpt));
     return matching.length === 1 ? matching[0].id : '';
   }
-  window.TDBReviewCMS = Object.freeze({ version: '1.5.1', load, parse, fromDocument, matching, ordered, sourceIcon, contextForPath, resolveIdentity, canonicalTopic,
+  window.TDBReviewCMS = Object.freeze({ version: '1.5.2', load, parse, fromDocument, matching, ordered, sourceIcon, platformAsset, contextForPath, resolveIdentity, canonicalTopic,
     preview: Object.freeze({ contexts: Object.freeze({}) }),
     get quoteMark() { return (document.querySelector('[data-tdb-review-icon="Quote"] svg') || sourceIcons.get('Quote'))?.outerHTML || ''; }
   });

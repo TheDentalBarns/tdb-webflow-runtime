@@ -1,15 +1,8 @@
-/* TDB review quote adapter v2.1.1. Native component + shared quote carousel. */
+/* TDB review quote adapter v2.1.2. Native component + shared quote carousel. */
 (() => {
 'use strict'; if(window.TDBReviewQuotes)return;
 const instances=new WeakMap();
-const assets=new Map();
-function platformAsset(platform){
- if(assets.has(platform))return assets.get(platform);
- const template=[...document.querySelectorAll('[data-tdb-review-icon]')].find(node=>node.dataset.tdbReviewIcon===platform);
- const url=template?.querySelector('img')?.getAttribute('src')||template?.querySelector('image')?.getAttribute('href')||'';
- if(url)assets.set(platform,url);
- return url;
-}
+const platformAsset = platform => window.TDBReviewCMS.platformAsset(platform);
 function mount(root,data,{openReviews}) {
  if(instances.has(root))return instances.get(root);
  const track=root.querySelector('[data-tdb-team-track]');
@@ -46,7 +39,7 @@ function mount(root,data,{openReviews}) {
  }};
  instances.set(root,api);return api;
 }
-window.TDBReviewQuotes=Object.freeze({version:'2.1.1',mount});
+window.TDBReviewQuotes=Object.freeze({version:'2.1.2',mount});
 window.TDBSwiper?.register('review-testimonials',window.TDBReviewQuotes);
 })();
 
