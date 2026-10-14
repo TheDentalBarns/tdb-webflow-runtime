@@ -2,22 +2,70 @@
 const TDBRuntimeModuleRoot = new URL('./', document.currentScript.src);
 const TDBFeatureStartup = (() => {
   let flight;
-  const done=new Set();
-  const steps=[prepareBrevoConsent,prepareUSPDrawerLoader,preparePageBreakLoader,prepareFiveSensesLauncher,prepareReviewFeatureLoader,prepareInstagramFeatureLoader,prepareAttributionLoader,prepareFormsLoader,prepareCarouselArrowFeedback,prepareVIPFocus,prepareVIPDrawerLoader,prepareFloatingAnnouncement,
-    prepareSliderLoader,prepareCarouselStyles,prepareTooltipLoader,
-    prepareSliderFocusLoader,prepareSmoothScroll,updateNativeFooterDates];
-  function start(schedule, active=()=>true) {
-    if(flight)return flight;
-    flight=(async()=>{
-      for(const step of steps) {
-        if(!active())return;
-        if(done.has(step))continue;
-        await schedule(()=>{if(active()){step();done.add(step);}});
+  const done = new Set();
+  const steps = [
+    prepareBrevoConsent,
+    prepareUSPDrawerLoader,
+    preparePageBreakLoader,
+    prepareFiveSensesLauncher,
+    prepareReviewFeatureLoader,
+    prepareInstagramFeatureLoader,
+    prepareAttributionLoader,
+    prepareFormsLoader,
+    prepareCarouselArrowFeedback,
+    prepareVIPFocus,
+    prepareVIPDrawerLoader,
+    prepareFloatingAnnouncement,
+    prepareSliderLoader,
+    prepareCarouselStyles,
+    prepareTooltipLoader,
+    prepareSliderFocusLoader,
+    prepareSmoothScroll,
+    updateNativeFooterDates,
+  ];
+  function start(schedule, active = () => true) {
+    if (flight) return flight;
+    let incomplete = false;
+    flight = (async () => {
+      const failures = [];
+      for (const step of steps) {
+        if (!active()) {
+          incomplete = true;
+          return;
+        }
+        if (done.has(step)) continue;
+        await schedule(() => {
+          if (!active()) {
+            incomplete = true;
+            return;
+          }
+          try {
+            step();
+            done.add(step);
+          } catch (error) {
+            incomplete = true;
+            failures.push({ feature: step.name, error });
+            console.warn('[TDB runtime] Feature initialization failed:', step.name, error);
+          }
+        });
       }
-      if(!active())return;
-      window.dispatchEvent(new Event('tdb:features-ready'));
-    })().catch(error=>{flight=null;throw error;});
+      if (!active()) {
+        incomplete = true;
+        return;
+      }
+      // Healthy features can settle captured input even if a sibling failed.
+      // Failed steps remain retryable; completed owners never initialise twice.
+      window.dispatchEvent(new CustomEvent('tdb:features-ready', { detail: { failures } }));
+      return { failures };
+    })()
+      .catch((error) => {
+        incomplete = true;
+        throw error;
+      })
+      .finally(() => {
+        if (incomplete) flight = null;
+      });
     return flight;
   }
-  return Object.freeze({start});
+  return Object.freeze({ start });
 })();
