@@ -72,6 +72,18 @@
         const names=node.getAttribute('data-ig-class')?.split(/\s+/).filter(Boolean)||[];
         node.classList.add(...names);node.removeAttribute('data-ig-class');
       });
+      // Both are inside the native first image window: the last card supplies
+      // the entry advance and the first card is its destination. Decode them
+      // before mounting so reveal can happen in the mount's microtask, before
+      // the shared first-view frames. Visibility:hidden would cancel that entry.
+      const photos=[...root.querySelectorAll('img.ig-native_photo')];
+      await Promise.all([...new Set([photos[0],photos.at(-1)])].filter(Boolean).map(photo=>{
+        const image=new Image();
+        for(const name of ['crossorigin','referrerpolicy','sizes','srcset','src'])
+          if(photo.hasAttribute(name))image.setAttribute(name,photo.getAttribute(name));
+        return decode(image,signal);
+      }));
+      check(holder,signal);
       // Park CMS photos before connecting the fragment. Native imageWindow then
       // releases its existing desktop 5/mobile 3 window, including reflections.
       root.querySelectorAll('.ig-native_photo,.ig-native_reflection-photo').forEach(image=>{
@@ -83,8 +95,6 @@
       const mounted=waitReady(root,signal);
       window.TDBInstagramNative.refresh(root);
       await mounted;check(holder,signal);
-      const first=root.querySelector('[data-ig-index="0"] .ig-native_photo');
-      await decode(first,signal);check(holder,signal);
       holder.setAttribute('data-ig-state','ready');holder.removeAttribute('aria-busy');record.ready=true;
     })().catch(error=>{
       reset(holder,record);window.TDBInstagramNative?.refresh();
