@@ -21,10 +21,10 @@ jobs:
       - env:
           NODE_PATH: /tmp/tdb-gallery-tests/node_modules
         run: |
-          node tools/runtime-build/build-preservation.cjs dist/tdb-gallery.js
+          node tools/runtime-build/build-preservation.cjs dist/tdb-gallery.js dist/tdb-ticker.js
           node --test tests/gallery-explore-count.test.cjs tests/gallery-presentation.test.cjs tests/gallery-shared-behaviour.test.cjs
       - run: |
-          git add dist/tdb-gallery.js
+          git add dist/tdb-gallery.js dist/tdb-ticker.js
           if git diff --cached --quiet; then exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

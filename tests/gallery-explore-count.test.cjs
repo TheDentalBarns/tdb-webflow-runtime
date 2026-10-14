@@ -93,3 +93,19 @@ test('gallery refresh owns the count; legacy prepared links retain their origina
     assert.equal(x.link.hasAttribute('data-count-prepared'),false);
   }finally{x.dom.window.close();}
 });
+
+test('gallery-styled authored value and incoming use distinct elements in the deployed ticker',()=>{
+  const x=setup(3);
+  try{
+    x.slot.innerHTML='<span class="tdb-gallery-count-value">2</span>';
+    x.w.eval(read('dist/tdb-ticker.js'));
+    const api=x.w.TDBNativeTicker.mount(x.slot,{valueClass:'tdb-gallery-count-value',incomingClass:'tdb-gallery-count-value'});
+    api.update('3');
+    assert.equal(x.slot.children.length,2);
+    assert.notEqual(x.animations[0].target,x.animations[1].target);
+    assert.deepEqual(x.animations.map(a=>a.target.textContent),['2','3']);
+    x.animations[1].onfinish();assert.equal(x.slot.children.length,1);
+    assert.equal(x.slot.firstElementChild.getAttribute('aria-hidden'),null);
+    api.destroy();assert.equal(x.slot.textContent,'3');
+  }finally{x.dom.window.close();}
+});

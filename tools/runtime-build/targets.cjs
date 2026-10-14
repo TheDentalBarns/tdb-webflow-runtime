@@ -1,5 +1,8 @@
 /* Single source-to-output manifest for runtime builds. */
 module.exports = {
+  "dist/tdb-ticker.js": [
+    "src/shared/native-ticker.js"
+  ],
   "dist/tdb-runtime.js": [
     "src/shared/script-assets.js",
     "src/runtime/interaction-state.js",
