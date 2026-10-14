@@ -13,7 +13,6 @@ const targets = require('./targets.cjs');
     const sources = targets[output].map(file => {
       let source = fs.readFileSync(path.join(root, file), 'utf8');
       const embeddedStyles = {
-        '__TDB_CONSENT_STATE_CSS__': ['src/styles/tdb-consent-states.css'],
         '__TDB_NATIVE_FOUNDATION_CSS__': ['src/styles/tdb-native-foundation.css', 'src/styles/tdb-phone-landscape.css'],
         '__TDB_PARTNER_CONTROLS_CSS__': ['src/styles/tdb-partner-controls.css'],
         '__TDB_VIP_RUNTIME_CSS__': ['src/styles/tdb-vip-runtime-states.css'],
@@ -52,3 +51,4 @@ const targets = require('./targets.cjs');
     console.log(output + ': ' + Buffer.byteLength(result.code + '\n') + ' bytes');
   }
 })().catch(error => {console.error(error);process.exitCode=1;});
+

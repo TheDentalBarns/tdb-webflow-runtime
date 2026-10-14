@@ -1,8 +1,8 @@
-/* Native TDB consent v4.0.7. Designer reserves text space; no font-loading gate. */
+/* Native TDB consent v4.0.8. Browser helper CSS is delivered by early tdb-ui.css. */
 (() => {
     "use strict";
     if (window.CookieScript?.instance?.__tdbNative) return;
-    const VERSION = "4.0.7", COOKIE_NAME = "CookieScriptConsent", COOKIE_DAYS = 30, ALL_CATEGORIES = [ "performance", "strict", "targeting", "functionality" ], STRICT_ONLY = [ "strict" ], ROOT_ID = "tdb-consent-root", TEXT_OPEN_DELAY_MS = 70, TEXT_CLOSE_MS = 420, CLOSE_TOTAL_MS = 470;
+    const VERSION = "4.0.8", COOKIE_NAME = "CookieScriptConsent", COOKIE_DAYS = 30, ALL_CATEGORIES = [ "performance", "strict", "targeting", "functionality" ], STRICT_ONLY = [ "strict" ], ROOT_ID = "tdb-consent-root", TEXT_OPEN_DELAY_MS = 70, TEXT_CLOSE_MS = 420, CLOSE_TOTAL_MS = 470;
     let hasShown = false, open = false, closing = false, mounted = false, lastFocus = null, openFrame1 = 0, openFrame2 = 0, textOpenTimer = 0, closeTimer = 0, pendingAfterClose = null, interactionLocked = false, releaseLock = null, refs = null, textAnimations = [];
     function unique(values) {
         return [ ...new Set((values || []).filter(Boolean)) ];
@@ -368,3 +368,4 @@
         once: true
     }); else boot();
 })();
+

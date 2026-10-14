@@ -1,4 +1,7 @@
-/* Native consent: accessibility/browser details unsupported by Designer. */
+/* Native consent: bundled into tdb-ui.css before the deferred controller runs.
+ * Designer owns layout and standard backface visibility; retain the prefixed
+ * alias for older WebKit. The global critical base already suppresses tap highlights.
+ */
 .tdb-consent-backdrop,
 .tdb-consent-surface { contain: paint; -webkit-backface-visibility: hidden; }
 .tdb-consent-motion { -webkit-backface-visibility: hidden; }
@@ -9,11 +12,11 @@
 .tdb-consent-dialog:focus-visible { outline: 0 !important; }
 @media print { .tdb-consent-root { display: none !important; } }
 
-.tdb-consent-dialog { -webkit-tap-highlight-color: transparent; }
 .tdb-consent-scroll { -webkit-overflow-scrolling: touch; }
 .tdb-consent-button.is-consent-reject:focus-visible {
   background-color: #ebebeb;
   color: rgba(0,0,0,.25);
   opacity: 1;
 }
+
 
