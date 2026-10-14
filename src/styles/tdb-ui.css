@@ -85,9 +85,7 @@ html.lenis body {
 }
 html { --tdb-ui-ready: 1; }
 
-/* Reusable control effects. Designer owns dimensions, artwork and initial states.
- * Loading indicators may reuse the existing native SVG spinner unchanged.
- */
+/* Shared keyframes needed by first-paint Vimeo and control indicators. */
 @keyframes tdbBtnPulseOpacity {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -95,6 +93,10 @@ html { --tdb-ui-ready: 1; }
 @keyframes tdbControlSpin {
   to { transform: rotate(360deg); }
 }
+
+/* Reusable control effects. Designer owns dimensions, artwork and initial states.
+ * Loading indicators may reuse the existing native SVG spinner unchanged.
+ */
 [data-tdb-pulse] {
   pointer-events: none;
   animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate;
