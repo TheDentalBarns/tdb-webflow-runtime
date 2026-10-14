@@ -17,7 +17,10 @@ test('an empty native collection does not invent fallback quotes', () => {
   assert.deepEqual(readNativeSlides({ querySelector: () => null }), []);
   assert.deepEqual(readNativeSlides({ querySelector: () => ({ children: [] }) }), []);
 });
-test('published owner plugin matches source', () => {
-  assert.equal(fs.readFileSync(require.resolve('../dist/tdb-quote-carousel.js'), 'utf8'),
-    fs.readFileSync(require.resolve('../src/team-quotes/team-quotes.js'), 'utf8'));
+test('minified owner preserves native slide discovery and node identity', () => {
+  const published=require('../dist/tdb-quote-carousel.js');
+  const first={matches:s=>s==='[data-tdb-team-slide]'},decoration={matches:()=>false};
+  const root={querySelector:()=>({children:[first,decoration]})};
+  assert.deepEqual(published.readNativeSlides(root),readNativeSlides(root));
+  assert.equal(published.readNativeSlides(root)[0],first);
 });

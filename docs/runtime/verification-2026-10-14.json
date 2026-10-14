@@ -1,0 +1,38 @@
+{
+  "baseline": "9739d86106bac901252d0e9876468ebb82ad9bd3",
+  "tests": {
+    "total": 313,
+    "passed": 311,
+    "failed": 0,
+    "skipped": [
+      "Brevo SDK fixture (TDB_BREVO_SDK)",
+      "Webflow Tram fixture (TDB_TRAM_SOURCE)"
+    ]
+  },
+  "build": {
+    "manifestTargets": 57,
+    "deterministicCheck": "passed",
+    "readableBundles": "passed",
+    "formattedSourceCheck": "passed",
+    "swiperBuildAndPatchCheck": "passed"
+  },
+  "sourceFormatting": {
+    "normalizedUnchangedExistingFiles": 93
+  },
+  "referenceDelivery": {
+    "cdnArtifacts": 64,
+    "matchedRecordedGitContent": 64,
+    "initialTimeoutsRetriedSuccessfully": 8
+  },
+  "scope": {
+    "customCodePageAndTemplateBlocks": 62,
+    "publishedStaticPages": 28,
+    "sitemapPages": 152
+  },
+  "notPerformed": [
+    "Webflow edits/publish",
+    "Production crawl",
+    "Real Safari/Chrome visual and interaction checks",
+    "FCP/LCP/TBT benchmark"
+  ]
+}

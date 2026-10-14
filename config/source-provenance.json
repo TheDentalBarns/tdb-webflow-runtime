@@ -1,0 +1,194 @@
+{
+  "date": "2026-10-14",
+  "note": "Restored from the exact currently referenced release, before formatting. These are source candidates; site pins are unchanged.",
+  "sources": [
+    {
+      "source": "src/calculator/core.js",
+      "commit": "0ca09e55c6fc3325ad3a964b17b88832c84eed56",
+      "original": "src/calculator/core.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/calculator/ui.js",
+      "commit": "0ca09e55c6fc3325ad3a964b17b88832c84eed56",
+      "original": "src/calculator/ui.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/calculator/loader.js",
+      "commit": "0ca09e55c6fc3325ad3a964b17b88832c84eed56",
+      "original": "src/calculator/loader.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/shared/availability-header.js",
+      "commit": "0ca09e55c6fc3325ad3a964b17b88832c84eed56",
+      "original": "src/shared/availability-header.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/instagram/home-desktop-instagram.js",
+      "commit": "37ca9147f41e4ab45af4e3619147f1de4048f2e6",
+      "original": "src/instagram/home-desktop-instagram.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/instagram/instagram-feed-bundle.js",
+      "commit": "37ca9147f41e4ab45af4e3619147f1de4048f2e6",
+      "original": "src/instagram/instagram-feed-bundle.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/shared/motion-policy.js",
+      "commit": "a69e675d7f997252ed36cc1b64e93afcc505f516",
+      "original": "src/shared/motion-policy.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/shared/motion.js",
+      "commit": "a69e675d7f997252ed36cc1b64e93afcc505f516",
+      "original": "src/shared/motion.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/shared/slider-focus.js",
+      "commit": "fe41fd2b8789fdffd710bda8e8d3ae7f487023d4",
+      "original": "src/shared/slider-focus.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/shared/availability.js",
+      "commit": "d26730ada055c2bfc985241a6d1bbd3029b1eb96",
+      "original": "src/shared/availability.js",
+      "restored": false,
+      "changed": true
+    },
+    {
+      "source": "src/reviews/native/availability.js",
+      "commit": "d26730ada055c2bfc985241a6d1bbd3029b1eb96",
+      "original": "src/reviews/native/availability.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/reviews/native/introduction.js",
+      "commit": "3217122904abee907bac1af3c23c28320e421219",
+      "original": "src/reviews/native/introduction.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/reviews/native/list.js",
+      "commit": "bc6ba197c5a19c01b91ac4f8ee217677ece06d6b",
+      "original": "src/reviews/native/list.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/reviews/native/list-loader.js",
+      "commit": "bc6ba197c5a19c01b91ac4f8ee217677ece06d6b",
+      "original": "src/reviews/native/list-loader.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/reviews/native/cms.js",
+      "commit": "4a188328aadf66ab5ed54994936ed14904b3689b",
+      "original": "src/reviews/native/cms.js",
+      "restored": false,
+      "changed": true
+    },
+    {
+      "source": "src/smile-gallery/gallery-page.js",
+      "commit": "16edb39cf5d6d5c9361f8d13b7db6e1b46267be8",
+      "original": "src/smile-gallery/gallery-page.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/tooltips/tooltips.js",
+      "commit": "61cec90cdba3d42a29d3c31194b692c251e8d421",
+      "original": "src/tooltips/tooltips.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/first-impressions/first-impressions.js",
+      "commit": "18afef0811fbae31773d8b85af1aa48cf958e86a",
+      "original": "src/first-impressions/first-impressions.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/reviews/legacy/first-visit-power-snippets.js",
+      "commit": "77f20b75e9836663d21096e3863e09a18866d550",
+      "original": "src/reviews/legacy/first-visit-power-snippets.js",
+      "restored": true,
+      "changed": true
+    },
+    {
+      "source": "src/logo-marquee/partner-card.js",
+      "commit": "5c59038b7132e8a65cd337a751cbb5b41405dd56",
+      "original": "dist/tdb-partner-card.js",
+      "restored": true,
+      "changed": true,
+      "note": "Recovered shipped artifact; original named source was absent from this tree. Formatting only before safe minification."
+    },
+    {
+      "source": "src/templates/review-drawer.js",
+      "commit": "eb916ade51aae9fabfeb181e3399c674c0345da4",
+      "original": "dist/tdb-review-drawer-template.js",
+      "restored": true,
+      "changed": true,
+      "note": "Recovered shipped artifact; original named source was absent from this tree. Formatting only before safe minification."
+    },
+    {
+      "source": "src/templates/usp-drawer.js",
+      "commit": "eb916ade51aae9fabfeb181e3399c674c0345da4",
+      "original": "dist/tdb-usp-drawer-template.js",
+      "restored": true,
+      "changed": true,
+      "note": "Recovered shipped artifact; original named source was absent from this tree. Formatting only before safe minification."
+    },
+    {
+      "source": "src/reviews/native/quote-adapter.js",
+      "commit": "4a188328aadf66ab5ed54994936ed14904b3689b",
+      "original": "dist/tdb-review-quote-adapter.js",
+      "restored": true,
+      "changed": true,
+      "note": "Recovered shipped artifact; original named source was absent from this tree. Formatting only before safe minification."
+    },
+    {
+      "source": "src/reviews/legacy/drawer.js",
+      "commit": "13376503783df69da106a055f52f7f0c77b8e6fd",
+      "original": "dist/tdb-legacy-review-drawer.js",
+      "restored": true,
+      "changed": true,
+      "note": "Recovered shipped artifact; original named source was absent from this tree. Formatting only before safe minification."
+    },
+    {
+      "source": "src/reviews/native/quotes.js",
+      "commit": "fe41fd2b8789fdffd710bda8e8d3ae7f487023d4",
+      "original": "dist/tdb-review-quotes.js",
+      "restored": true,
+      "changed": true,
+      "note": "Recovered shipped artifact; original named source was absent from this tree. Formatting only before safe minification."
+    },
+    {
+      "source": "src/service-awards/service-awards.js",
+      "commit": "77f20b75e9836663d21096e3863e09a18866d550",
+      "original": "src/service-awards/service-awards.js",
+      "restored": true,
+      "changed": true
+    }
+  ]
+}

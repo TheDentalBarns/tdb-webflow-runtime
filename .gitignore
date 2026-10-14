@@ -1,1 +1,3 @@
 node_modules/
+build/
+tools/custom-swiper/.patched-swiper-utils-path

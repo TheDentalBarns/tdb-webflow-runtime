@@ -7,7 +7,7 @@ async function setup(count=3){
  viewport.getBoundingClientRect=()=>({width:393,height:300,top:0,left:0,right:393,bottom:300});Object.defineProperty(viewport,'clientWidth',{value:393});
  w.TDBMotion={duration:()=>400,carousel:{entryStart:100,nextDelay:0,previousDelay:0,settleDelay:0},ddText:()=>({enter(){},destroy(){}})};
  w.TDBNativeTicker={mount:n=>({update:v=>n.textContent=v,destroy(){}})};
- w.TDBModules={load:async()=>{}};w.TDBReviewCMS={sourceIcon(){throw Error('Trio must not clone logo artwork')}};
+ w.TDBModules={load:async()=>{}};w.TDBReviewCMS={platformAsset:()=>'/shared-google.svg',sourceIcon(){throw Error('Trio must not clone logo artwork')}};
  const template=w.document.createElement('div');template.innerHTML='<span data-tdb-review-icon="Google"><svg><image href="https://example.com/shared-google.svg"></image></svg></span>';w.document.body.append(template);
  Object.defineProperty(w.document,'currentScript',{value:{src:'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@test/dist/tdb-quote-carousel.js'}});
  w.eval(read('dist/tdb-swiper-8.4.7.min.js'));w.eval(read('dist/tdb-quote-carousel.js'));w.eval(read('dist/tdb-review-quote-adapter.min.js'));

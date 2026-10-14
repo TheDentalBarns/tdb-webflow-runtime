@@ -1,55 +1,21 @@
-name: Build runtime artifacts
-
+name: Verify runtime collection
 on:
+  pull_request:
+    paths: ['src/**', 'dist/**', 'tests/**', 'tools/runtime-build/**', 'config/build-artifacts.json', 'package*.json', '.github/workflows/build-runtime.yml']
   push:
-    branches:
-      - main
-    paths:
-      - 'src/runtime/**'
-      - 'src/banner/loader.js'
-      - 'src/vip-drawer/vip-focus.js'
-      - 'tools/runtime-build/**'
-      - '.github/workflows/build-runtime.yml'
+    branches: [main]
   workflow_dispatch:
-
 permissions:
-  contents: write
-
+  contents: read
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-        with:
-          ref: main
-
-      - name: Set up Node
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '24'
-
-      - name: Install pinned build tools
-        run: npm ci --prefix tools/runtime-build --ignore-scripts --no-audit --no-fund
-
-      - name: Build minified runtimes from the shared source manifest
-        run: node tools/runtime-build/build-preservation.cjs dist/tdb-footer-runtime.min.js dist/tdb-immediate-runtime-batch.min.js
-
-      - name: Validate artifacts
-        run: |
-          test -s dist/tdb-footer-runtime.min.js
-          test -s dist/tdb-immediate-runtime-batch.min.js
-
-      - name: Commit generated artifacts
-        run: |
-          if [ -z "$(git status --porcelain -- dist/tdb-footer-runtime.min.js dist/tdb-immediate-runtime-batch.min.js)" ]; then
-            echo 'Generated runtime files are already current.'
-            exit 0
-          fi
-
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add dist/tdb-footer-runtime.min.js dist/tdb-immediate-runtime-batch.min.js
-          git commit -m 'Build runtime artifacts'
-          git push origin HEAD:main
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run format:check
+      - run: npm run verify

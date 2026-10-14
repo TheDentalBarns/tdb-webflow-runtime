@@ -1,0 +1,2112 @@
+{
+  "date": "2026-10-14",
+  "environment": "Webflow staging",
+  "scope": {
+    "pageAndTemplateCodeBlocks": 62,
+    "staticPublishedPages": 28,
+    "sitemapPages": 152,
+    "sitemapErrors": 0,
+    "pinnedArtifacts": 64
+  },
+  "limitations": [
+    "Static source/reference audit, not a network trace for every interaction.",
+    "CMS pagination may expose content beyond sitemap URLs.",
+    "Production domains were not crawled or changed.",
+    "literalDependencies includes registry allowlists as well as actual load calls; consult module-map.md for semantic gates."
+  ],
+  "bases": {
+    "data-tdb-carousel-base": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@fe41fd2b8789fdffd710bda8e8d3ae7f487023d4/dist/",
+    "data-tdb-motion-base": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@a69e675d7f997252ed36cc1b64e93afcc505f516/dist/",
+    "data-tdb-drawer-base": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3217122904abee907bac1af3c23c28320e421219/dist/",
+    "data-tdb-availability-base": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d26730ada055c2bfc985241a6d1bbd3029b1eb96/dist/"
+  },
+  "standardPins": {
+    "tdb-swiper-8.4.7.min.js": "2afb6b982e397d09ee7a626e713e5ce1c33bc7a5",
+    "tdb-gallery.js": "e82b05e374538ef451a88271ad72fc96f2ad22fe",
+    "tdb-parallax.js": "d3f537204e1db498f68365537eb339fd015f1d55",
+    "tdb-drawer.js": "04fdf78dcd798d427818371532ddfb44b4fff674",
+    "tdb-reviews.js": "ad037202ce47e013a57d37d448f6099a1769bd75",
+    "tdb-review-cards.js": "6e71c4a5b0630d8991038bb6c830d1dd45798178",
+    "tdb-quote-carousel.js": "4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c",
+    "tdb-quote-carousel.min.js": "4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c",
+    "tdb-review-cms.js": "4a188328aadf66ab5ed54994936ed14904b3689b",
+    "tdb-review-quote-adapter.js": "4a188328aadf66ab5ed54994936ed14904b3689b",
+    "tdb-review-quote-adapter.min.js": "4a188328aadf66ab5ed54994936ed14904b3689b",
+    "tdb-logo-marquee.min.js": "9e6ca9084bf787beb909ddb00c96627c0f63a5fd",
+    "tdb-vimeo-loader.js": "a7d4fe2f1ccfc46404b107a5b65cf78c28853464",
+    "tdb-ticker.js": "dfece9ea586c93e3084476266cf2c72c76dfb741",
+    "tdb-runtime.js": "e82b05e374538ef451a88271ad72fc96f2ad22fe",
+    "tdb-instagram-native.min.js": "e82b05e374538ef451a88271ad72fc96f2ad22fe",
+    "tdb-navbar.min.js": "cbfc45755454e9c40161862f6a3823b3782d56d6",
+    "tdb-control-motion.css": "cbfc45755454e9c40161862f6a3823b3782d56d6",
+    "tdb-rendered-progress.js": "c6610198cd8248e3b6c5b82c6bfa3b75a17c45db",
+    "tdb-vip-form.js": "2701a5340c1c872d37351645ce84d9b658deb83d",
+    "tdb-usp-drawer.js": "2e007c5243f3f3d15e1dec724b38b52a04fa91ca",
+    "tdb-five-senses-loader.js": "b6a31f35dc24def4608372326b2a107b3ff72d62",
+    "tdb-reviews-loader.js": "839f855ea07ace90e389e16d1d5b806890d98e87"
+  },
+  "homeOverrides": {
+    "tdb-drawer.js": "7e1cea4365e1b6ef686295b054bf8469578c3d83",
+    "tdb-reviews.js": "ed44546aa2463da53cf732072fc3fb4b6cd71689",
+    "tdb-logo-marquee.min.js": "864588fce893de34a5fb48e21e8656c113c8311d",
+    "tdb-runtime.js": "67713400e8159ccdec4b25e0528c818eef675284",
+    "tdb-usp-drawer-template.js": "eb916ade51aae9fabfeb181e3399c674c0345da4",
+    "tdb-usp-drawer.css": "eb916ade51aae9fabfeb181e3399c674c0345da4",
+    "tdb-drawer.css": "eb916ade51aae9fabfeb181e3399c674c0345da4",
+    "tdb-announcement.js": "bd1bde66f6624d7c653eb6e29afb3f3c6acfaeb7",
+    "tdb-partner-card.js": "5c59038b7132e8a65cd337a751cbb5b41405dd56",
+    "tdb-partner-card.css": "5c59038b7132e8a65cd337a751cbb5b41405dd56",
+    "tdb-instagram-deferred.js": "14f6b5d4c913d0205c5f1fd795483f042e8525df",
+    "tdb-instagram-native.css": "14f6b5d4c913d0205c5f1fd795483f042e8525df"
+  },
+  "directScriptReferences": [
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0ca09e55c6fc3325ad3a964b17b88832c84eed56/dist/tdb-availability-header.js",
+      "pages": [
+        "/dental-cost-calculator",
+        "/five-senses-experience",
+        "/smile-gallery"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0ca09e55c6fc3325ad3a964b17b88832c84eed56/dist/tdb-calculator-loader.js",
+      "pages": [
+        "/areas",
+        "/areas/sutton-coldfield-composite-bonding",
+        "/areas/sutton-coldfield-invisalign",
+        "/areas/sutton-coldfield-veneers",
+        "/areas/tamworth-composite-bonding",
+        "/areas/tamworth-invisalign",
+        "/areas/tamworth-veneers",
+        "/dental-cost-calculator",
+        "/dental-cost-lichfield",
+        "/services",
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/facial-aesthetics",
+        "/services/general-dentistry",
+        "/services/hygiene-care",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design",
+        "/treatments",
+        "/treatments/airflow-hygiene-therapy",
+        "/treatments/clear-aligners",
+        "/treatments/composite-bonding",
+        "/treatments/invisalign",
+        "/treatments/teeth-whitening",
+        "/treatments/veneers",
+        "/vip",
+        "/vip-awards",
+        "/vip-christmas",
+        "/vip-sanctuary",
+        "/vip-smiles",
+        "/vip-west-end"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0ca09e55c6fc3325ad3a964b17b88832c84eed56/dist/tdb-calculator.js",
+      "pages": [
+        "/dental-cost-calculator"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@11353aaea879a8cbcb881bb3b62adad5050ff6d8/dist/tdb-instagram-native.min.js",
+      "pages": [
+        "/tdb-payload-test-20261010"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@13376503783df69da106a055f52f7f0c77b8e6fd/dist/tdb-legacy-review-drawer.js",
+      "pages": [
+        "/first-visit"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@16edb39cf5d6d5c9361f8d13b7db6e1b46267be8/dist/tdb-smile-gallery.min.js",
+      "pages": [
+        "/smile-gallery"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@1704f013937b3ebb406a6fed6f2338788fe4ded1/dist/tdb-navbar-loader.js",
+      "pages": [
+        "/",
+        "/about-us",
+        "/areas/sutton-coldfield-composite-bonding",
+        "/areas/sutton-coldfield-invisalign",
+        "/areas/sutton-coldfield-veneers",
+        "/areas/tamworth-composite-bonding",
+        "/areas/tamworth-invisalign",
+        "/areas/tamworth-veneers",
+        "/blog",
+        "/careers",
+        "/contact",
+        "/dental-cost-calculator",
+        "/dental-cost-lichfield",
+        "/first-impressions/ec-calming-refreshments-kindness",
+        "/first-impressions/jh-calm-relaxing-great",
+        "/first-impressions/sd-calm-relaxing-informative",
+        "/first-visit",
+        "/five-senses-experience",
+        "/location",
+        "/media-library/instagram-c_8m1owir4g-image-1",
+        "/media-library/instagram-dbk8iemptkj-image-1",
+        "/media-library/instagram-dbme7vgmox5-image-1",
+        "/media-library/instagram-dex2tlwpmqb-image-1",
+        "/media-library/instagram-di3dbh5tk7p-image-1",
+        "/media-library/instagram-dkkz_zeo25c-image-1",
+        "/media-library/instagram-dknlzqjoihy-image-1",
+        "/media-library/instagram-dp1edvndwh8-image-1",
+        "/media-library/instagram-dp6rgmpkizg-image-1",
+        "/media-library/instagram-dpt8czscvyo-image-1",
+        "/media-library/instagram-drm0xirj51f-image-1",
+        "/media-library/instagram-drpeb9fjdyj-image-1",
+        "/media-library/instagram-drsebpnj-4c-image-1",
+        "/media-library/instagram-drshhhujne7-image-1",
+        "/media-library/instagram-drvh6zskq-8-image-1",
+        "/media-library/instagram-dtwimz8fx82-image-1",
+        "/post/behind-the-dental-barns-patient-care",
+        "/post/belmont-eurus-s6-e-review-dental-chair",
+        "/post/featured-in-dentistry-doctor-station",
+        "/post/featured-in-newsweek-expired-toothpaste",
+        "/post/featured-in-private-dentistry-magazine-the-dental-barns",
+        "/post/featured-in-the-mirror-dental-apprenticeships",
+        "/post/invisalign-vat-price-change-uk-2026",
+        "/post/lasal-dental-cushions-comfort-cleaning",
+        "/post/menopause-teeth-oral-health-blanck",
+        "/post/overcoming-dental-anxiety-reflexology",
+        "/post/the-probe-interview-nsk-david-drew",
+        "/post/veneers-dental-trends-timeless-smiles",
+        "/post/where-calm-meets-confidence",
+        "/privacy-policy",
+        "/review-content",
+        "/review-pages",
+        "/review-responses/existing-practice-response",
+        "/review-topics/amie-scott-google-2024-06-06",
+        "/review-topics/andrea-owens-google-2026-02-20",
+        "/review-topics/andy-scotton-peters-google-2024-07-19",
+        "/review-topics/aneeqa-adil-google-2024-01-18",
+        "/review-topics/annette-sutton-google-2024-06-30",
+        "/review-topics/ashleigh-topping-google-2024-09-23",
+        "/review-topics/carole-williams-google-2026-09-04",
+        "/review-topics/caroline-edmunds-google-2026-08-28",
+        "/review-topics/caroline-kingshurst-google-2026-09-18",
+        "/review-topics/chantelle-hamilton-google-2025-12-19",
+        "/review-topics/chloe-morris-google-2024-07-17",
+        "/review-topics/clare-bradley-google-2025-08-30",
+        "/review-topics/connie-greenaway-google-2026-09-18",
+        "/review-topics/danny-peake-google-2025-12-19",
+        "/review-topics/dayle-salmon-google-2024-03-14",
+        "/review-topics/dayles-8-yell-2024-03-14",
+        "/review-topics/dc-google-2025-09-09",
+        "/review-topics/e-google-2026-09-11",
+        "/review-topics/ellisia-moulding-google-2025-12-19",
+        "/review-topics/emily-ogbourn-google-2024-08-09",
+        "/review-topics/haley-allen-google-2024-11-06",
+        "/review-topics/hannah-birkett-google-2025-12-19",
+        "/review-topics/hayley-clamp-google-2026-10-01",
+        "/review-topics/hayley-rose-facebook-2025-03-07",
+        "/review-topics/katie-fergus-google-2025-12-19",
+        "/review-topics/katie-machin-google-2025-12-05",
+        "/review-topics/katie-saunders-google-2024-01-12",
+        "/review-topics/kevin-colebatch-google-2025-09-09",
+        "/review-topics/lana-salih-google-2025-05-25",
+        "/review-topics/laura-prokic-google-2026-07-10",
+        "/review-topics/lewis-reeve-google-2026-09-04",
+        "/review-topics/louise-bishton-google-2025-06-20",
+        "/review-topics/louise-woodley-google-2024-01-18",
+        "/review-topics/lucy-morrison-google-2024-08-15",
+        "/review-topics/maria-mogford-facebook-2025-04-13",
+        "/review-topics/marie-pierce-google-2025-05-18",
+        "/review-topics/mark-smith-google-2024-06-12",
+        "/review-topics/mary-ann-cook-google-2024-08-19",
+        "/review-topics/nick-gibb-google-2026-10-01",
+        "/review-topics/nicola-bond-google-2026-09-18",
+        "/review-topics/petra-dutton-google-2025-04-17",
+        "/review-topics/rebecca-baddeley-google-2026-09-18",
+        "/review-topics/rebecca-newman-google-2026-04-24",
+        "/review-topics/reece-barratt-google-2024-08-24",
+        "/review-topics/samantha-fletcher-google-2025-03-04",
+        "/review-topics/samuel-burgess-google-2024-01-11",
+        "/review-topics/sanj-google-2025-07-06",
+        "/review-topics/sarah-hall-google-2026-02-27",
+        "/review-topics/sarah-scotton-peters-facebook-2024-10-26",
+        "/review-topics/sarah-scotton-peters-google-2025-07-03",
+        "/review-topics/selinaalouise-google-2024-01-20",
+        "/review-topics/sherry-garcha-google-2024-01-13",
+        "/review-topics/sue-hanley-google-2026-09-04",
+        "/review-topics/sue-rathe-google-2026-03-27",
+        "/review-topics/susan-bailey-google-2024-08-18",
+        "/review-topics/susanj-548-yell-2024-03-18",
+        "/review-topics/susie-boggie-google-2026-07-10",
+        "/review-topics/suzanna-rathe-google-2026-09-18",
+        "/review-topics/thehayleyrose-google-2025-03-07",
+        "/review-topics/tom-scaysbrook-google-2024-10-30",
+        "/review-topics/tonie-valencia-google-2025-12-19",
+        "/review-topics/tony-bishton-google-2025-05-14",
+        "/review-topics/verified-patient-doctify-2021-12-07-18",
+        "/review-topics/verified-patient-doctify-2021-12-07-19",
+        "/review-topics/verified-patient-doctify-2021-12-07-20",
+        "/review-topics/verified-patient-doctify-2021-12-07-21",
+        "/review-topics/verified-patient-doctify-2021-12-07-22",
+        "/review-topics/verified-patient-doctify-2021-12-07-23",
+        "/review-topics/verified-patient-doctify-2021-12-08-12",
+        "/review-topics/verified-patient-doctify-2021-12-08-13",
+        "/review-topics/verified-patient-doctify-2021-12-08-14",
+        "/review-topics/verified-patient-doctify-2021-12-08-15",
+        "/review-topics/verified-patient-doctify-2021-12-08-16",
+        "/review-topics/verified-patient-doctify-2021-12-08-17",
+        "/review-topics/verified-patient-doctify-2021-12-09-07",
+        "/review-topics/verified-patient-doctify-2021-12-09-08",
+        "/review-topics/verified-patient-doctify-2021-12-09-09",
+        "/review-topics/verified-patient-doctify-2021-12-09-10",
+        "/review-topics/verified-patient-doctify-2021-12-09-11",
+        "/review-topics/verified-patient-doctify-2021-12-14-06",
+        "/review-topics/verified-patient-doctify-2021-12-15-05",
+        "/review-topics/verified-patient-doctify-2021-12-16-04",
+        "/review-topics/verified-patient-doctify-2021-12-21-03",
+        "/review-topics/verified-patient-doctify-2022-09-08-02",
+        "/review-topics/verified-patient-doctify-2023-01-17-01",
+        "/reviews",
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/facial-aesthetics",
+        "/services/general-dentistry",
+        "/services/hygiene-care",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design",
+        "/treatments/airflow-hygiene-therapy",
+        "/treatments/clear-aligners",
+        "/treatments/composite-bonding",
+        "/treatments/invisalign",
+        "/treatments/teeth-whitening",
+        "/treatments/veneers",
+        "GLOBAL"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@18afef0811fbae31773d8b85af1aa48cf958e86a/dist/tdb-first-impressions.js",
+      "pages": [
+        "/first-visit"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@240d05d5c038afba48151ae44d48f80ed9ece940/dist/tdb-consent.js",
+      "pages": [
+        "/",
+        "/about-us",
+        "/areas/sutton-coldfield-composite-bonding",
+        "/areas/sutton-coldfield-invisalign",
+        "/areas/sutton-coldfield-veneers",
+        "/areas/tamworth-composite-bonding",
+        "/areas/tamworth-invisalign",
+        "/areas/tamworth-veneers",
+        "/blog",
+        "/careers",
+        "/contact",
+        "/dental-cost-calculator",
+        "/dental-cost-lichfield",
+        "/first-impressions/ec-calming-refreshments-kindness",
+        "/first-impressions/jh-calm-relaxing-great",
+        "/first-impressions/sd-calm-relaxing-informative",
+        "/first-visit",
+        "/five-senses-experience",
+        "/location",
+        "/media-library/instagram-c_8m1owir4g-image-1",
+        "/media-library/instagram-dbk8iemptkj-image-1",
+        "/media-library/instagram-dbme7vgmox5-image-1",
+        "/media-library/instagram-dex2tlwpmqb-image-1",
+        "/media-library/instagram-di3dbh5tk7p-image-1",
+        "/media-library/instagram-dkkz_zeo25c-image-1",
+        "/media-library/instagram-dknlzqjoihy-image-1",
+        "/media-library/instagram-dp1edvndwh8-image-1",
+        "/media-library/instagram-dp6rgmpkizg-image-1",
+        "/media-library/instagram-dpt8czscvyo-image-1",
+        "/media-library/instagram-drm0xirj51f-image-1",
+        "/media-library/instagram-drpeb9fjdyj-image-1",
+        "/media-library/instagram-drsebpnj-4c-image-1",
+        "/media-library/instagram-drshhhujne7-image-1",
+        "/media-library/instagram-drvh6zskq-8-image-1",
+        "/media-library/instagram-dtwimz8fx82-image-1",
+        "/post/behind-the-dental-barns-patient-care",
+        "/post/belmont-eurus-s6-e-review-dental-chair",
+        "/post/featured-in-dentistry-doctor-station",
+        "/post/featured-in-newsweek-expired-toothpaste",
+        "/post/featured-in-private-dentistry-magazine-the-dental-barns",
+        "/post/featured-in-the-mirror-dental-apprenticeships",
+        "/post/invisalign-vat-price-change-uk-2026",
+        "/post/lasal-dental-cushions-comfort-cleaning",
+        "/post/menopause-teeth-oral-health-blanck",
+        "/post/overcoming-dental-anxiety-reflexology",
+        "/post/the-probe-interview-nsk-david-drew",
+        "/post/veneers-dental-trends-timeless-smiles",
+        "/post/where-calm-meets-confidence",
+        "/privacy-policy",
+        "/review-content",
+        "/review-pages",
+        "/review-responses/existing-practice-response",
+        "/review-topics/amie-scott-google-2024-06-06",
+        "/review-topics/andrea-owens-google-2026-02-20",
+        "/review-topics/andy-scotton-peters-google-2024-07-19",
+        "/review-topics/aneeqa-adil-google-2024-01-18",
+        "/review-topics/annette-sutton-google-2024-06-30",
+        "/review-topics/ashleigh-topping-google-2024-09-23",
+        "/review-topics/carole-williams-google-2026-09-04",
+        "/review-topics/caroline-edmunds-google-2026-08-28",
+        "/review-topics/caroline-kingshurst-google-2026-09-18",
+        "/review-topics/chantelle-hamilton-google-2025-12-19",
+        "/review-topics/chloe-morris-google-2024-07-17",
+        "/review-topics/clare-bradley-google-2025-08-30",
+        "/review-topics/connie-greenaway-google-2026-09-18",
+        "/review-topics/danny-peake-google-2025-12-19",
+        "/review-topics/dayle-salmon-google-2024-03-14",
+        "/review-topics/dayles-8-yell-2024-03-14",
+        "/review-topics/dc-google-2025-09-09",
+        "/review-topics/e-google-2026-09-11",
+        "/review-topics/ellisia-moulding-google-2025-12-19",
+        "/review-topics/emily-ogbourn-google-2024-08-09",
+        "/review-topics/haley-allen-google-2024-11-06",
+        "/review-topics/hannah-birkett-google-2025-12-19",
+        "/review-topics/hayley-clamp-google-2026-10-01",
+        "/review-topics/hayley-rose-facebook-2025-03-07",
+        "/review-topics/katie-fergus-google-2025-12-19",
+        "/review-topics/katie-machin-google-2025-12-05",
+        "/review-topics/katie-saunders-google-2024-01-12",
+        "/review-topics/kevin-colebatch-google-2025-09-09",
+        "/review-topics/lana-salih-google-2025-05-25",
+        "/review-topics/laura-prokic-google-2026-07-10",
+        "/review-topics/lewis-reeve-google-2026-09-04",
+        "/review-topics/louise-bishton-google-2025-06-20",
+        "/review-topics/louise-woodley-google-2024-01-18",
+        "/review-topics/lucy-morrison-google-2024-08-15",
+        "/review-topics/maria-mogford-facebook-2025-04-13",
+        "/review-topics/marie-pierce-google-2025-05-18",
+        "/review-topics/mark-smith-google-2024-06-12",
+        "/review-topics/mary-ann-cook-google-2024-08-19",
+        "/review-topics/nick-gibb-google-2026-10-01",
+        "/review-topics/nicola-bond-google-2026-09-18",
+        "/review-topics/petra-dutton-google-2025-04-17",
+        "/review-topics/rebecca-baddeley-google-2026-09-18",
+        "/review-topics/rebecca-newman-google-2026-04-24",
+        "/review-topics/reece-barratt-google-2024-08-24",
+        "/review-topics/samantha-fletcher-google-2025-03-04",
+        "/review-topics/samuel-burgess-google-2024-01-11",
+        "/review-topics/sanj-google-2025-07-06",
+        "/review-topics/sarah-hall-google-2026-02-27",
+        "/review-topics/sarah-scotton-peters-facebook-2024-10-26",
+        "/review-topics/sarah-scotton-peters-google-2025-07-03",
+        "/review-topics/selinaalouise-google-2024-01-20",
+        "/review-topics/sherry-garcha-google-2024-01-13",
+        "/review-topics/sue-hanley-google-2026-09-04",
+        "/review-topics/sue-rathe-google-2026-03-27",
+        "/review-topics/susan-bailey-google-2024-08-18",
+        "/review-topics/susanj-548-yell-2024-03-18",
+        "/review-topics/susie-boggie-google-2026-07-10",
+        "/review-topics/suzanna-rathe-google-2026-09-18",
+        "/review-topics/thehayleyrose-google-2025-03-07",
+        "/review-topics/tom-scaysbrook-google-2024-10-30",
+        "/review-topics/tonie-valencia-google-2025-12-19",
+        "/review-topics/tony-bishton-google-2025-05-14",
+        "/review-topics/verified-patient-doctify-2021-12-07-18",
+        "/review-topics/verified-patient-doctify-2021-12-07-19",
+        "/review-topics/verified-patient-doctify-2021-12-07-20",
+        "/review-topics/verified-patient-doctify-2021-12-07-21",
+        "/review-topics/verified-patient-doctify-2021-12-07-22",
+        "/review-topics/verified-patient-doctify-2021-12-07-23",
+        "/review-topics/verified-patient-doctify-2021-12-08-12",
+        "/review-topics/verified-patient-doctify-2021-12-08-13",
+        "/review-topics/verified-patient-doctify-2021-12-08-14",
+        "/review-topics/verified-patient-doctify-2021-12-08-15",
+        "/review-topics/verified-patient-doctify-2021-12-08-16",
+        "/review-topics/verified-patient-doctify-2021-12-08-17",
+        "/review-topics/verified-patient-doctify-2021-12-09-07",
+        "/review-topics/verified-patient-doctify-2021-12-09-08",
+        "/review-topics/verified-patient-doctify-2021-12-09-09",
+        "/review-topics/verified-patient-doctify-2021-12-09-10",
+        "/review-topics/verified-patient-doctify-2021-12-09-11",
+        "/review-topics/verified-patient-doctify-2021-12-14-06",
+        "/review-topics/verified-patient-doctify-2021-12-15-05",
+        "/review-topics/verified-patient-doctify-2021-12-16-04",
+        "/review-topics/verified-patient-doctify-2021-12-21-03",
+        "/review-topics/verified-patient-doctify-2022-09-08-02",
+        "/review-topics/verified-patient-doctify-2023-01-17-01",
+        "/reviews",
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/facial-aesthetics",
+        "/services/general-dentistry",
+        "/services/hygiene-care",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design",
+        "/treatments/airflow-hygiene-therapy",
+        "/treatments/clear-aligners",
+        "/treatments/composite-bonding",
+        "/treatments/invisalign",
+        "/treatments/teeth-whitening",
+        "/treatments/veneers",
+        "GLOBAL"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3217122904abee907bac1af3c23c28320e421219/dist/tdb-reviews-loader.js",
+      "pages": [
+        "/tdb-payload-test-20261010"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@37ca9147f41e4ab45af4e3619147f1de4048f2e6/dist/tdb-home-desktop-instagram.js",
+      "pages": [
+        "/about-us",
+        "/contact",
+        "/dental-cost-calculator",
+        "/dental-cost-lichfield",
+        "/first-visit",
+        "/five-senses-experience",
+        "/location",
+        "/services",
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/facial-aesthetics",
+        "/services/general-dentistry",
+        "/services/hygiene-care",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design",
+        "/smile-gallery",
+        "/treatments",
+        "/treatments/airflow-hygiene-therapy",
+        "/treatments/clear-aligners",
+        "/treatments/composite-bonding",
+        "/treatments/invisalign",
+        "/treatments/teeth-whitening",
+        "/treatments/veneers",
+        "/vip",
+        "/vip-awards",
+        "/vip-christmas",
+        "/vip-sanctuary",
+        "/vip-smiles",
+        "/vip-west-end"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@37ca9147f41e4ab45af4e3619147f1de4048f2e6/dist/tdb-instagram-feed.js",
+      "pages": [
+        "/about-us",
+        "/contact",
+        "/dental-cost-calculator",
+        "/dental-cost-lichfield",
+        "/first-visit",
+        "/five-senses-experience",
+        "/location",
+        "/services",
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/facial-aesthetics",
+        "/services/general-dentistry",
+        "/services/hygiene-care",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design",
+        "/smile-gallery",
+        "/treatments",
+        "/treatments/airflow-hygiene-therapy",
+        "/treatments/clear-aligners",
+        "/treatments/composite-bonding",
+        "/treatments/invisalign",
+        "/treatments/teeth-whitening",
+        "/treatments/veneers",
+        "/vip",
+        "/vip-awards",
+        "/vip-christmas",
+        "/vip-sanctuary",
+        "/vip-smiles",
+        "/vip-west-end"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@77f20b75e9836663d21096e3863e09a18866d550/dist/tdb-first-visit-power-snippets.js",
+      "pages": [
+        "/first-visit"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@77f20b75e9836663d21096e3863e09a18866d550/src/service-awards/service-awards.js",
+      "pages": [
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/facial-aesthetics",
+        "/services/general-dentistry",
+        "/services/hygiene-care",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8fb72cf07dfa6cd48e14522d9ee6a7df78a69391/dist/tdb-five-senses-loader.js",
+      "pages": [
+        "/first-visit",
+        "/tdb-payload-test-20261010"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@98af6019f65a47f659e9d39b163be8fe4e5a1f9a/dist/tdb-gallery-count.js",
+      "pages": [
+        "/tdb-payload-test-20261010"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@bc6ba197c5a19c01b91ac4f8ee217677ece06d6b/dist/tdb-review-list-loader.js",
+      "pages": [
+        "/reviews"
+      ]
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@efdd9b2de97df36e0d5c9389b505b030d58d0fc7/dist/tdb-reviews.js",
+      "pages": [
+        "/areas/sutton-coldfield-composite-bonding",
+        "/areas/sutton-coldfield-invisalign",
+        "/areas/sutton-coldfield-veneers",
+        "/areas/tamworth-composite-bonding",
+        "/areas/tamworth-invisalign",
+        "/areas/tamworth-veneers",
+        "/location",
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design",
+        "/treatments/airflow-hygiene-therapy",
+        "/treatments/clear-aligners",
+        "/treatments/composite-bonding",
+        "/treatments/invisalign",
+        "/treatments/teeth-whitening",
+        "/treatments/veneers"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "repo": "tdb-webflow-attribution",
+      "file": "dist/tdb-attribution.min.js",
+      "commit": "6fa2423188ddccf9ef354132d3c1a303245e17a5",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@6fa2423188ddccf9ef354132d3c1a303245e17a5/dist/tdb-attribution.min.js",
+      "configuration": [
+        "standard"
+      ],
+      "rawBytes": 10935,
+      "gzipBytes": 3884,
+      "sha256": "a114a80cda65d894f149cf3aae2d395842af374ecc709462f337ff729266d8cf",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-attribution",
+      "file": "dist/tdb-attribution.min.js",
+      "commit": "ed91771d20a0bffa5c79baa3be9b3203bdebac83",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-attribution@ed91771d20a0bffa5c79baa3be9b3203bdebac83/dist/tdb-attribution.min.js",
+      "configuration": [
+        "home"
+      ],
+      "rawBytes": 10885,
+      "gzipBytes": 3893,
+      "sha256": "3ddb1c0bfa44216c13fbcc51447339e7d2deac8f315985b0abdf5bf03443c4c3",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-announcement.js",
+      "commit": "bd1bde66f6624d7c653eb6e29afb3f3c6acfaeb7",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@bd1bde66f6624d7c653eb6e29afb3f3c6acfaeb7/dist/tdb-announcement.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins"
+      ],
+      "rawBytes": 9337,
+      "gzipBytes": 3994,
+      "sha256": "a067b7e358d8a9fc3b8c56b9f2f9c5735dc5906277a99a1d761b5e30bcbc42bb",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-availability-header.js",
+      "commit": "0ca09e55c6fc3325ad3a964b17b88832c84eed56",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0ca09e55c6fc3325ad3a964b17b88832c84eed56/dist/tdb-availability-header.js",
+      "directConsumers": [
+        "/dental-cost-calculator",
+        "/five-senses-experience",
+        "/smile-gallery"
+      ],
+      "configuration": [
+        "root"
+      ],
+      "rawBytes": 2199,
+      "gzipBytes": 1072,
+      "sha256": "07d89ab23aa1264f4312a0527eaaff3f6fd8716f8b48c11c8e27457a037c5c31",
+      "literalDependencies": [
+        "tdb-availability.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-availability.js",
+      "commit": "d26730ada055c2bfc985241a6d1bbd3029b1eb96",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d26730ada055c2bfc985241a6d1bbd3029b1eb96/dist/tdb-availability.js",
+      "directConsumers": [],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 6483,
+      "gzipBytes": 2674,
+      "sha256": "30d81a2986b9ab1d716029207560dd6aa7c119f34e262141605581a7d4371fd9",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-calculator-loader.js",
+      "commit": "0ca09e55c6fc3325ad3a964b17b88832c84eed56",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0ca09e55c6fc3325ad3a964b17b88832c84eed56/dist/tdb-calculator-loader.js",
+      "directConsumers": [
+        "/areas",
+        "/areas/sutton-coldfield-composite-bonding",
+        "/areas/sutton-coldfield-invisalign",
+        "/areas/sutton-coldfield-veneers",
+        "/areas/tamworth-composite-bonding",
+        "/areas/tamworth-invisalign",
+        "/areas/tamworth-veneers",
+        "/dental-cost-calculator",
+        "/dental-cost-lichfield",
+        "/services",
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/facial-aesthetics",
+        "/services/general-dentistry",
+        "/services/hygiene-care",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design",
+        "/treatments",
+        "/treatments/airflow-hygiene-therapy",
+        "/treatments/clear-aligners",
+        "/treatments/composite-bonding",
+        "/treatments/invisalign",
+        "/treatments/teeth-whitening",
+        "/treatments/veneers",
+        "/vip",
+        "/vip-awards",
+        "/vip-christmas",
+        "/vip-sanctuary",
+        "/vip-smiles",
+        "/vip-west-end"
+      ],
+      "configuration": [
+        "root"
+      ],
+      "rawBytes": 2271,
+      "gzipBytes": 1081,
+      "sha256": "b2867b17f935bdc4b2d26c0c441285ef9d8cf28e9281023cb00caf7395f07aac",
+      "literalDependencies": [
+        "tdb-calculator.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-calculator.js",
+      "commit": "0ca09e55c6fc3325ad3a964b17b88832c84eed56",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0ca09e55c6fc3325ad3a964b17b88832c84eed56/dist/tdb-calculator.js",
+      "directConsumers": [
+        "/dental-cost-calculator"
+      ],
+      "configuration": [
+        "root"
+      ],
+      "rawBytes": 67574,
+      "gzipBytes": 22375,
+      "sha256": "af1a912b3bf1308ed6f565a071c7d3edbaee5e2ecb65c81227a95dcb0ffc05c5",
+      "literalDependencies": [
+        "tdb-availability.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-consent.js",
+      "commit": "240d05d5c038afba48151ae44d48f80ed9ece940",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@240d05d5c038afba48151ae44d48f80ed9ece940/dist/tdb-consent.js",
+      "directConsumers": [
+        "/",
+        "/about-us",
+        "/areas/sutton-coldfield-composite-bonding",
+        "/areas/sutton-coldfield-invisalign",
+        "/areas/sutton-coldfield-veneers",
+        "/areas/tamworth-composite-bonding",
+        "/areas/tamworth-invisalign",
+        "/areas/tamworth-veneers",
+        "/blog",
+        "/careers",
+        "/contact",
+        "/dental-cost-calculator",
+        "/dental-cost-lichfield",
+        "/first-impressions/ec-calming-refreshments-kindness",
+        "/first-impressions/jh-calm-relaxing-great",
+        "/first-impressions/sd-calm-relaxing-informative",
+        "/first-visit",
+        "/five-senses-experience",
+        "/location",
+        "/media-library/instagram-c_8m1owir4g-image-1",
+        "/media-library/instagram-dbk8iemptkj-image-1",
+        "/media-library/instagram-dbme7vgmox5-image-1",
+        "/media-library/instagram-dex2tlwpmqb-image-1",
+        "/media-library/instagram-di3dbh5tk7p-image-1",
+        "/media-library/instagram-dkkz_zeo25c-image-1",
+        "/media-library/instagram-dknlzqjoihy-image-1",
+        "/media-library/instagram-dp1edvndwh8-image-1",
+        "/media-library/instagram-dp6rgmpkizg-image-1",
+        "/media-library/instagram-dpt8czscvyo-image-1",
+        "/media-library/instagram-drm0xirj51f-image-1",
+        "/media-library/instagram-drpeb9fjdyj-image-1",
+        "/media-library/instagram-drsebpnj-4c-image-1",
+        "/media-library/instagram-drshhhujne7-image-1",
+        "/media-library/instagram-drvh6zskq-8-image-1",
+        "/media-library/instagram-dtwimz8fx82-image-1",
+        "/post/behind-the-dental-barns-patient-care",
+        "/post/belmont-eurus-s6-e-review-dental-chair",
+        "/post/featured-in-dentistry-doctor-station",
+        "/post/featured-in-newsweek-expired-toothpaste",
+        "/post/featured-in-private-dentistry-magazine-the-dental-barns",
+        "/post/featured-in-the-mirror-dental-apprenticeships",
+        "/post/invisalign-vat-price-change-uk-2026",
+        "/post/lasal-dental-cushions-comfort-cleaning",
+        "/post/menopause-teeth-oral-health-blanck",
+        "/post/overcoming-dental-anxiety-reflexology",
+        "/post/the-probe-interview-nsk-david-drew",
+        "/post/veneers-dental-trends-timeless-smiles",
+        "/post/where-calm-meets-confidence",
+        "/privacy-policy",
+        "/review-content",
+        "/review-pages",
+        "/review-responses/existing-practice-response",
+        "/review-topics/amie-scott-google-2024-06-06",
+        "/review-topics/andrea-owens-google-2026-02-20",
+        "/review-topics/andy-scotton-peters-google-2024-07-19",
+        "/review-topics/aneeqa-adil-google-2024-01-18",
+        "/review-topics/annette-sutton-google-2024-06-30",
+        "/review-topics/ashleigh-topping-google-2024-09-23",
+        "/review-topics/carole-williams-google-2026-09-04",
+        "/review-topics/caroline-edmunds-google-2026-08-28",
+        "/review-topics/caroline-kingshurst-google-2026-09-18",
+        "/review-topics/chantelle-hamilton-google-2025-12-19",
+        "/review-topics/chloe-morris-google-2024-07-17",
+        "/review-topics/clare-bradley-google-2025-08-30",
+        "/review-topics/connie-greenaway-google-2026-09-18",
+        "/review-topics/danny-peake-google-2025-12-19",
+        "/review-topics/dayle-salmon-google-2024-03-14",
+        "/review-topics/dayles-8-yell-2024-03-14",
+        "/review-topics/dc-google-2025-09-09",
+        "/review-topics/e-google-2026-09-11",
+        "/review-topics/ellisia-moulding-google-2025-12-19",
+        "/review-topics/emily-ogbourn-google-2024-08-09",
+        "/review-topics/haley-allen-google-2024-11-06",
+        "/review-topics/hannah-birkett-google-2025-12-19",
+        "/review-topics/hayley-clamp-google-2026-10-01",
+        "/review-topics/hayley-rose-facebook-2025-03-07",
+        "/review-topics/katie-fergus-google-2025-12-19",
+        "/review-topics/katie-machin-google-2025-12-05",
+        "/review-topics/katie-saunders-google-2024-01-12",
+        "/review-topics/kevin-colebatch-google-2025-09-09",
+        "/review-topics/lana-salih-google-2025-05-25",
+        "/review-topics/laura-prokic-google-2026-07-10",
+        "/review-topics/lewis-reeve-google-2026-09-04",
+        "/review-topics/louise-bishton-google-2025-06-20",
+        "/review-topics/louise-woodley-google-2024-01-18",
+        "/review-topics/lucy-morrison-google-2024-08-15",
+        "/review-topics/maria-mogford-facebook-2025-04-13",
+        "/review-topics/marie-pierce-google-2025-05-18",
+        "/review-topics/mark-smith-google-2024-06-12",
+        "/review-topics/mary-ann-cook-google-2024-08-19",
+        "/review-topics/nick-gibb-google-2026-10-01",
+        "/review-topics/nicola-bond-google-2026-09-18",
+        "/review-topics/petra-dutton-google-2025-04-17",
+        "/review-topics/rebecca-baddeley-google-2026-09-18",
+        "/review-topics/rebecca-newman-google-2026-04-24",
+        "/review-topics/reece-barratt-google-2024-08-24",
+        "/review-topics/samantha-fletcher-google-2025-03-04",
+        "/review-topics/samuel-burgess-google-2024-01-11",
+        "/review-topics/sanj-google-2025-07-06",
+        "/review-topics/sarah-hall-google-2026-02-27",
+        "/review-topics/sarah-scotton-peters-facebook-2024-10-26",
+        "/review-topics/sarah-scotton-peters-google-2025-07-03",
+        "/review-topics/selinaalouise-google-2024-01-20",
+        "/review-topics/sherry-garcha-google-2024-01-13",
+        "/review-topics/sue-hanley-google-2026-09-04",
+        "/review-topics/sue-rathe-google-2026-03-27",
+        "/review-topics/susan-bailey-google-2024-08-18",
+        "/review-topics/susanj-548-yell-2024-03-18",
+        "/review-topics/susie-boggie-google-2026-07-10",
+        "/review-topics/suzanna-rathe-google-2026-09-18",
+        "/review-topics/thehayleyrose-google-2025-03-07",
+        "/review-topics/tom-scaysbrook-google-2024-10-30",
+        "/review-topics/tonie-valencia-google-2025-12-19",
+        "/review-topics/tony-bishton-google-2025-05-14",
+        "/review-topics/verified-patient-doctify-2021-12-07-18",
+        "/review-topics/verified-patient-doctify-2021-12-07-19",
+        "/review-topics/verified-patient-doctify-2021-12-07-20",
+        "/review-topics/verified-patient-doctify-2021-12-07-21",
+        "/review-topics/verified-patient-doctify-2021-12-07-22",
+        "/review-topics/verified-patient-doctify-2021-12-07-23",
+        "/review-topics/verified-patient-doctify-2021-12-08-12",
+        "/review-topics/verified-patient-doctify-2021-12-08-13",
+        "/review-topics/verified-patient-doctify-2021-12-08-14",
+        "/review-topics/verified-patient-doctify-2021-12-08-15",
+        "/review-topics/verified-patient-doctify-2021-12-08-16",
+        "/review-topics/verified-patient-doctify-2021-12-08-17",
+        "/review-topics/verified-patient-doctify-2021-12-09-07",
+        "/review-topics/verified-patient-doctify-2021-12-09-08",
+        "/review-topics/verified-patient-doctify-2021-12-09-09",
+        "/review-topics/verified-patient-doctify-2021-12-09-10",
+        "/review-topics/verified-patient-doctify-2021-12-09-11",
+        "/review-topics/verified-patient-doctify-2021-12-14-06",
+        "/review-topics/verified-patient-doctify-2021-12-15-05",
+        "/review-topics/verified-patient-doctify-2021-12-16-04",
+        "/review-topics/verified-patient-doctify-2021-12-21-03",
+        "/review-topics/verified-patient-doctify-2022-09-08-02",
+        "/review-topics/verified-patient-doctify-2023-01-17-01",
+        "/reviews",
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/facial-aesthetics",
+        "/services/general-dentistry",
+        "/services/hygiene-care",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design",
+        "/treatments/airflow-hygiene-therapy",
+        "/treatments/clear-aligners",
+        "/treatments/composite-bonding",
+        "/treatments/invisalign",
+        "/treatments/teeth-whitening",
+        "/treatments/veneers",
+        "GLOBAL"
+      ],
+      "configuration": [
+        "root"
+      ],
+      "rawBytes": 20950,
+      "gzipBytes": 7238,
+      "sha256": "c8c9c043f2483a5a26aa415228c32ca820d6d6a726cde5a5f06cf997d00b11c0",
+      "literalDependencies": [
+        "tdb-availability.js",
+        "tdb-drawer.js",
+        "tdb-filters.js",
+        "tdb-gallery.js",
+        "tdb-logo-marquee.js",
+        "tdb-motion.js",
+        "tdb-parallax.js",
+        "tdb-quote-carousel.js",
+        "tdb-rendered-progress.js",
+        "tdb-review-availability.js",
+        "tdb-review-cards.js",
+        "tdb-review-cms.js",
+        "tdb-review-introduction.js",
+        "tdb-review-quotes.js",
+        "tdb-reviews.js",
+        "tdb-runtime.js",
+        "tdb-slider-focus.js",
+        "tdb-sliders.js",
+        "tdb-swiper-8.4.7.min.js",
+        "tdb-ticker.js",
+        "tdb-vimeo-loader.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-drawer.js",
+      "commit": "04fdf78dcd798d427818371532ddfb44b4fff674",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@04fdf78dcd798d427818371532ddfb44b4fff674/dist/tdb-drawer.js",
+      "directConsumers": [],
+      "configuration": [
+        "standardPins"
+      ],
+      "rawBytes": 10584,
+      "gzipBytes": 4028,
+      "sha256": "1725d1cbfad9030871ed731afe69a26ac489fa153fd27137a02b0ccd2140fab3",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-drawer.js",
+      "commit": "7e1cea4365e1b6ef686295b054bf8469578c3d83",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@7e1cea4365e1b6ef686295b054bf8469578c3d83/dist/tdb-drawer.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins"
+      ],
+      "rawBytes": 11255,
+      "gzipBytes": 4218,
+      "sha256": "841ef50516071de3dd9d77fce57af05df8690562c599723c00c5bdfbb7b2a90a",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-filters.js",
+      "commit": "fe41fd2b8789fdffd710bda8e8d3ae7f487023d4",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@fe41fd2b8789fdffd710bda8e8d3ae7f487023d4/dist/tdb-filters.js",
+      "directConsumers": [],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 11104,
+      "gzipBytes": 3705,
+      "sha256": "680a91a8212445f0bd3a056f48baa30da15b991743123e3c1afcc4ad9c9fdb18",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-first-impressions.js",
+      "commit": "18afef0811fbae31773d8b85af1aa48cf958e86a",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@18afef0811fbae31773d8b85af1aa48cf958e86a/dist/tdb-first-impressions.js",
+      "directConsumers": [
+        "/first-visit"
+      ],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 15938,
+      "gzipBytes": 5320,
+      "sha256": "aeffaca0be39c761c66e95bf2cde92dd66c9973fbdfe28e5c192e1ab923b6bb0",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-first-visit-power-snippets.js",
+      "commit": "77f20b75e9836663d21096e3863e09a18866d550",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@77f20b75e9836663d21096e3863e09a18866d550/dist/tdb-first-visit-power-snippets.js",
+      "directConsumers": [
+        "/first-visit"
+      ],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 28744,
+      "gzipBytes": 9102,
+      "sha256": "6df5eceadbf857d47eb72bd3cf06e1d6eb2e7a868c99e6bd2e3a817211c1956c",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-five-senses-loader.js",
+      "commit": "8fb72cf07dfa6cd48e14522d9ee6a7df78a69391",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8fb72cf07dfa6cd48e14522d9ee6a7df78a69391/dist/tdb-five-senses-loader.js",
+      "directConsumers": [
+        "/first-visit",
+        "/tdb-payload-test-20261010"
+      ],
+      "configuration": [
+        "root"
+      ],
+      "rawBytes": 22939,
+      "gzipBytes": 7153,
+      "sha256": "69fb52eafefa3a85a7ff9aa8f6f3b5dca6aca78a6952c2d3ef80c70b1bc2e5bd",
+      "literalDependencies": [
+        "tdb-five-senses.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-five-senses-loader.js",
+      "commit": "b6a31f35dc24def4608372326b2a107b3ff72d62",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@b6a31f35dc24def4608372326b2a107b3ff72d62/dist/tdb-five-senses-loader.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 24900,
+      "gzipBytes": 7671,
+      "sha256": "f22ce474795dccbab582d1e6f94355bcaad79f416693e6c6276728ec6e08ba45",
+      "literalDependencies": [
+        "tdb-five-senses.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-five-senses.js",
+      "commit": "c847ee9841b79a6749c39eb482d0c91c23f38ec0",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@c847ee9841b79a6749c39eb482d0c91c23f38ec0/dist/tdb-five-senses.js",
+      "directConsumers": [],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 77902,
+      "gzipBytes": 24992,
+      "sha256": "49edf955ff4df64093af0278cfdef02939b6b089953ae02b1c88650804e99e95",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-gallery-count.js",
+      "commit": "98af6019f65a47f659e9d39b163be8fe4e5a1f9a",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@98af6019f65a47f659e9d39b163be8fe4e5a1f9a/dist/tdb-gallery-count.js",
+      "directConsumers": [
+        "/tdb-payload-test-20261010"
+      ],
+      "configuration": [
+        "root"
+      ],
+      "rawBytes": 2374,
+      "gzipBytes": 973,
+      "sha256": "9fb2636e2b7e09d7975feb5202453ee3910a2bbf115843b3eef827f3ae1720c6",
+      "literalDependencies": [
+        "tdb-motion.js",
+        "tdb-ticker.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-gallery.js",
+      "commit": "e82b05e374538ef451a88271ad72fc96f2ad22fe",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e82b05e374538ef451a88271ad72fc96f2ad22fe/dist/tdb-gallery.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 16456,
+      "gzipBytes": 5762,
+      "sha256": "df302c0de0f93cb35db3390a6b2deb359943b4f85bb5cdbd9904c602188d7050",
+      "literalDependencies": [
+        "tdb-ticker.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-home-desktop-instagram.js",
+      "commit": "37ca9147f41e4ab45af4e3619147f1de4048f2e6",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@37ca9147f41e4ab45af4e3619147f1de4048f2e6/dist/tdb-home-desktop-instagram.js",
+      "directConsumers": [
+        "/about-us",
+        "/contact",
+        "/dental-cost-calculator",
+        "/dental-cost-lichfield",
+        "/first-visit",
+        "/five-senses-experience",
+        "/location",
+        "/services",
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/facial-aesthetics",
+        "/services/general-dentistry",
+        "/services/hygiene-care",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design",
+        "/smile-gallery",
+        "/treatments",
+        "/treatments/airflow-hygiene-therapy",
+        "/treatments/clear-aligners",
+        "/treatments/composite-bonding",
+        "/treatments/invisalign",
+        "/treatments/teeth-whitening",
+        "/treatments/veneers",
+        "/vip",
+        "/vip-awards",
+        "/vip-christmas",
+        "/vip-sanctuary",
+        "/vip-smiles",
+        "/vip-west-end"
+      ],
+      "configuration": [
+        "root"
+      ],
+      "rawBytes": 21613,
+      "gzipBytes": 6796,
+      "sha256": "58c19d3ce002614ad550b8fa54cb7379ae0083e547fea69913c00e73f37d0304",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-instagram-deferred.js",
+      "commit": "14f6b5d4c913d0205c5f1fd795483f042e8525df",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@14f6b5d4c913d0205c5f1fd795483f042e8525df/dist/tdb-instagram-deferred.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins"
+      ],
+      "rawBytes": 3687,
+      "gzipBytes": 1533,
+      "sha256": "998da706356cf4c438dcf8b3c912b33d4d0bc2fbd9e575e596ce6b21724f99c7",
+      "literalDependencies": [
+        "tdb-instagram-native.min.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-instagram-feed.js",
+      "commit": "37ca9147f41e4ab45af4e3619147f1de4048f2e6",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@37ca9147f41e4ab45af4e3619147f1de4048f2e6/dist/tdb-instagram-feed.js",
+      "directConsumers": [
+        "/about-us",
+        "/contact",
+        "/dental-cost-calculator",
+        "/dental-cost-lichfield",
+        "/first-visit",
+        "/five-senses-experience",
+        "/location",
+        "/services",
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/facial-aesthetics",
+        "/services/general-dentistry",
+        "/services/hygiene-care",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design",
+        "/smile-gallery",
+        "/treatments",
+        "/treatments/airflow-hygiene-therapy",
+        "/treatments/clear-aligners",
+        "/treatments/composite-bonding",
+        "/treatments/invisalign",
+        "/treatments/teeth-whitening",
+        "/treatments/veneers",
+        "/vip",
+        "/vip-awards",
+        "/vip-christmas",
+        "/vip-sanctuary",
+        "/vip-smiles",
+        "/vip-west-end"
+      ],
+      "configuration": [
+        "root"
+      ],
+      "rawBytes": 76427,
+      "gzipBytes": 15898,
+      "sha256": "1b96b50b6cca6debb365d950737244b02f4155f28be84bdd1e8ffeb4e0e20c86",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-instagram-native.min.js",
+      "commit": "11353aaea879a8cbcb881bb3b62adad5050ff6d8",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@11353aaea879a8cbcb881bb3b62adad5050ff6d8/dist/tdb-instagram-native.min.js",
+      "directConsumers": [
+        "/tdb-payload-test-20261010"
+      ],
+      "configuration": [
+        "root"
+      ],
+      "rawBytes": 12704,
+      "gzipBytes": 4732,
+      "sha256": "8eaf9e5bcc903e3d889615f08d9ed2539e5b504e5779c2a5c3e774037430c026",
+      "literalDependencies": [
+        "tdb-gallery.js",
+        "tdb-modules.js",
+        "tdb-motion.js",
+        "tdb-swiper-8.4.7.min.js",
+        "tdb-ticker.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-instagram-native.min.js",
+      "commit": "e82b05e374538ef451a88271ad72fc96f2ad22fe",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e82b05e374538ef451a88271ad72fc96f2ad22fe/dist/tdb-instagram-native.min.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 13832,
+      "gzipBytes": 5126,
+      "sha256": "51d91beb630c0c1fb9cb5591b6ca3c7640d438f15b66a13144faa4a5b05ea85f",
+      "literalDependencies": [
+        "tdb-gallery.js",
+        "tdb-motion.js",
+        "tdb-swiper-8.4.7.min.js",
+        "tdb-ticker.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-legacy-review-drawer.js",
+      "commit": "13376503783df69da106a055f52f7f0c77b8e6fd",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@13376503783df69da106a055f52f7f0c77b8e6fd/dist/tdb-legacy-review-drawer.js",
+      "directConsumers": [
+        "/first-visit"
+      ],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 59346,
+      "gzipBytes": 16696,
+      "sha256": "71d57fe5eaaf6d8c27221219449e969bc7cad67b30f853ab09320c683a1bcbb0",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-logo-marquee.min.js",
+      "commit": "864588fce893de34a5fb48e21e8656c113c8311d",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@864588fce893de34a5fb48e21e8656c113c8311d/dist/tdb-logo-marquee.min.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins"
+      ],
+      "rawBytes": 25890,
+      "gzipBytes": 8272,
+      "sha256": "01096219edbc025208ba16402315ce7d63bd2b031e0021ee1e881e7a0361cdb4",
+      "literalDependencies": [
+        "tdb-partner-card.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-logo-marquee.min.js",
+      "commit": "9e6ca9084bf787beb909ddb00c96627c0f63a5fd",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@9e6ca9084bf787beb909ddb00c96627c0f63a5fd/dist/tdb-logo-marquee.min.js",
+      "directConsumers": [],
+      "configuration": [
+        "standardPins"
+      ],
+      "rawBytes": 23912,
+      "gzipBytes": 7753,
+      "sha256": "de83589c53c5e8fa2acf31007d49153cfc8b88964ba49d1bdff36f378fe5d996",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-motion.js",
+      "commit": "a69e675d7f997252ed36cc1b64e93afcc505f516",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@a69e675d7f997252ed36cc1b64e93afcc505f516/dist/tdb-motion.js",
+      "directConsumers": [],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 27203,
+      "gzipBytes": 7629,
+      "sha256": "febc8874e73203adbc0983f43b9c0849d7ce4a74e6c9a734dea3be3d9e64ac74",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-navbar-loader.js",
+      "commit": "1704f013937b3ebb406a6fed6f2338788fe4ded1",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@1704f013937b3ebb406a6fed6f2338788fe4ded1/dist/tdb-navbar-loader.js",
+      "directConsumers": [
+        "/",
+        "/about-us",
+        "/areas/sutton-coldfield-composite-bonding",
+        "/areas/sutton-coldfield-invisalign",
+        "/areas/sutton-coldfield-veneers",
+        "/areas/tamworth-composite-bonding",
+        "/areas/tamworth-invisalign",
+        "/areas/tamworth-veneers",
+        "/blog",
+        "/careers",
+        "/contact",
+        "/dental-cost-calculator",
+        "/dental-cost-lichfield",
+        "/first-impressions/ec-calming-refreshments-kindness",
+        "/first-impressions/jh-calm-relaxing-great",
+        "/first-impressions/sd-calm-relaxing-informative",
+        "/first-visit",
+        "/five-senses-experience",
+        "/location",
+        "/media-library/instagram-c_8m1owir4g-image-1",
+        "/media-library/instagram-dbk8iemptkj-image-1",
+        "/media-library/instagram-dbme7vgmox5-image-1",
+        "/media-library/instagram-dex2tlwpmqb-image-1",
+        "/media-library/instagram-di3dbh5tk7p-image-1",
+        "/media-library/instagram-dkkz_zeo25c-image-1",
+        "/media-library/instagram-dknlzqjoihy-image-1",
+        "/media-library/instagram-dp1edvndwh8-image-1",
+        "/media-library/instagram-dp6rgmpkizg-image-1",
+        "/media-library/instagram-dpt8czscvyo-image-1",
+        "/media-library/instagram-drm0xirj51f-image-1",
+        "/media-library/instagram-drpeb9fjdyj-image-1",
+        "/media-library/instagram-drsebpnj-4c-image-1",
+        "/media-library/instagram-drshhhujne7-image-1",
+        "/media-library/instagram-drvh6zskq-8-image-1",
+        "/media-library/instagram-dtwimz8fx82-image-1",
+        "/post/behind-the-dental-barns-patient-care",
+        "/post/belmont-eurus-s6-e-review-dental-chair",
+        "/post/featured-in-dentistry-doctor-station",
+        "/post/featured-in-newsweek-expired-toothpaste",
+        "/post/featured-in-private-dentistry-magazine-the-dental-barns",
+        "/post/featured-in-the-mirror-dental-apprenticeships",
+        "/post/invisalign-vat-price-change-uk-2026",
+        "/post/lasal-dental-cushions-comfort-cleaning",
+        "/post/menopause-teeth-oral-health-blanck",
+        "/post/overcoming-dental-anxiety-reflexology",
+        "/post/the-probe-interview-nsk-david-drew",
+        "/post/veneers-dental-trends-timeless-smiles",
+        "/post/where-calm-meets-confidence",
+        "/privacy-policy",
+        "/review-content",
+        "/review-pages",
+        "/review-responses/existing-practice-response",
+        "/review-topics/amie-scott-google-2024-06-06",
+        "/review-topics/andrea-owens-google-2026-02-20",
+        "/review-topics/andy-scotton-peters-google-2024-07-19",
+        "/review-topics/aneeqa-adil-google-2024-01-18",
+        "/review-topics/annette-sutton-google-2024-06-30",
+        "/review-topics/ashleigh-topping-google-2024-09-23",
+        "/review-topics/carole-williams-google-2026-09-04",
+        "/review-topics/caroline-edmunds-google-2026-08-28",
+        "/review-topics/caroline-kingshurst-google-2026-09-18",
+        "/review-topics/chantelle-hamilton-google-2025-12-19",
+        "/review-topics/chloe-morris-google-2024-07-17",
+        "/review-topics/clare-bradley-google-2025-08-30",
+        "/review-topics/connie-greenaway-google-2026-09-18",
+        "/review-topics/danny-peake-google-2025-12-19",
+        "/review-topics/dayle-salmon-google-2024-03-14",
+        "/review-topics/dayles-8-yell-2024-03-14",
+        "/review-topics/dc-google-2025-09-09",
+        "/review-topics/e-google-2026-09-11",
+        "/review-topics/ellisia-moulding-google-2025-12-19",
+        "/review-topics/emily-ogbourn-google-2024-08-09",
+        "/review-topics/haley-allen-google-2024-11-06",
+        "/review-topics/hannah-birkett-google-2025-12-19",
+        "/review-topics/hayley-clamp-google-2026-10-01",
+        "/review-topics/hayley-rose-facebook-2025-03-07",
+        "/review-topics/katie-fergus-google-2025-12-19",
+        "/review-topics/katie-machin-google-2025-12-05",
+        "/review-topics/katie-saunders-google-2024-01-12",
+        "/review-topics/kevin-colebatch-google-2025-09-09",
+        "/review-topics/lana-salih-google-2025-05-25",
+        "/review-topics/laura-prokic-google-2026-07-10",
+        "/review-topics/lewis-reeve-google-2026-09-04",
+        "/review-topics/louise-bishton-google-2025-06-20",
+        "/review-topics/louise-woodley-google-2024-01-18",
+        "/review-topics/lucy-morrison-google-2024-08-15",
+        "/review-topics/maria-mogford-facebook-2025-04-13",
+        "/review-topics/marie-pierce-google-2025-05-18",
+        "/review-topics/mark-smith-google-2024-06-12",
+        "/review-topics/mary-ann-cook-google-2024-08-19",
+        "/review-topics/nick-gibb-google-2026-10-01",
+        "/review-topics/nicola-bond-google-2026-09-18",
+        "/review-topics/petra-dutton-google-2025-04-17",
+        "/review-topics/rebecca-baddeley-google-2026-09-18",
+        "/review-topics/rebecca-newman-google-2026-04-24",
+        "/review-topics/reece-barratt-google-2024-08-24",
+        "/review-topics/samantha-fletcher-google-2025-03-04",
+        "/review-topics/samuel-burgess-google-2024-01-11",
+        "/review-topics/sanj-google-2025-07-06",
+        "/review-topics/sarah-hall-google-2026-02-27",
+        "/review-topics/sarah-scotton-peters-facebook-2024-10-26",
+        "/review-topics/sarah-scotton-peters-google-2025-07-03",
+        "/review-topics/selinaalouise-google-2024-01-20",
+        "/review-topics/sherry-garcha-google-2024-01-13",
+        "/review-topics/sue-hanley-google-2026-09-04",
+        "/review-topics/sue-rathe-google-2026-03-27",
+        "/review-topics/susan-bailey-google-2024-08-18",
+        "/review-topics/susanj-548-yell-2024-03-18",
+        "/review-topics/susie-boggie-google-2026-07-10",
+        "/review-topics/suzanna-rathe-google-2026-09-18",
+        "/review-topics/thehayleyrose-google-2025-03-07",
+        "/review-topics/tom-scaysbrook-google-2024-10-30",
+        "/review-topics/tonie-valencia-google-2025-12-19",
+        "/review-topics/tony-bishton-google-2025-05-14",
+        "/review-topics/verified-patient-doctify-2021-12-07-18",
+        "/review-topics/verified-patient-doctify-2021-12-07-19",
+        "/review-topics/verified-patient-doctify-2021-12-07-20",
+        "/review-topics/verified-patient-doctify-2021-12-07-21",
+        "/review-topics/verified-patient-doctify-2021-12-07-22",
+        "/review-topics/verified-patient-doctify-2021-12-07-23",
+        "/review-topics/verified-patient-doctify-2021-12-08-12",
+        "/review-topics/verified-patient-doctify-2021-12-08-13",
+        "/review-topics/verified-patient-doctify-2021-12-08-14",
+        "/review-topics/verified-patient-doctify-2021-12-08-15",
+        "/review-topics/verified-patient-doctify-2021-12-08-16",
+        "/review-topics/verified-patient-doctify-2021-12-08-17",
+        "/review-topics/verified-patient-doctify-2021-12-09-07",
+        "/review-topics/verified-patient-doctify-2021-12-09-08",
+        "/review-topics/verified-patient-doctify-2021-12-09-09",
+        "/review-topics/verified-patient-doctify-2021-12-09-10",
+        "/review-topics/verified-patient-doctify-2021-12-09-11",
+        "/review-topics/verified-patient-doctify-2021-12-14-06",
+        "/review-topics/verified-patient-doctify-2021-12-15-05",
+        "/review-topics/verified-patient-doctify-2021-12-16-04",
+        "/review-topics/verified-patient-doctify-2021-12-21-03",
+        "/review-topics/verified-patient-doctify-2022-09-08-02",
+        "/review-topics/verified-patient-doctify-2023-01-17-01",
+        "/reviews",
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/facial-aesthetics",
+        "/services/general-dentistry",
+        "/services/hygiene-care",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design",
+        "/treatments/airflow-hygiene-therapy",
+        "/treatments/clear-aligners",
+        "/treatments/composite-bonding",
+        "/treatments/invisalign",
+        "/treatments/teeth-whitening",
+        "/treatments/veneers",
+        "GLOBAL"
+      ],
+      "configuration": [
+        "root"
+      ],
+      "rawBytes": 7382,
+      "gzipBytes": 2549,
+      "sha256": "b5d35cd288c2f07fef5a7303ddb38b34d8df4399e46d4aae6f345f57e1fbf200",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-navbar.min.js",
+      "commit": "cbfc45755454e9c40161862f6a3823b3782d56d6",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@cbfc45755454e9c40161862f6a3823b3782d56d6/dist/tdb-navbar.min.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 22614,
+      "gzipBytes": 6098,
+      "sha256": "ac24f0655be042495a4b8665ac49ae6cc40a051b38faf3eccbdcc70ad07dff5b",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-parallax.js",
+      "commit": "d3f537204e1db498f68365537eb339fd015f1d55",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d3f537204e1db498f68365537eb339fd015f1d55/dist/tdb-parallax.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 25967,
+      "gzipBytes": 8035,
+      "sha256": "1f0a2c0ec2ded440b60283699b8f6e4052c1b952193ce47cf289d80b7231f052",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-partner-card.js",
+      "commit": "5c59038b7132e8a65cd337a751cbb5b41405dd56",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@5c59038b7132e8a65cd337a751cbb5b41405dd56/dist/tdb-partner-card.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins"
+      ],
+      "rawBytes": 3713,
+      "gzipBytes": 1351,
+      "sha256": "5676eef2dfa5988f8a4a9a6429b65eda2072593a739dc8befda244875080d773",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-quote-carousel.js",
+      "commit": "4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c/dist/tdb-quote-carousel.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 8207,
+      "gzipBytes": 3174,
+      "sha256": "e9eeb9e2ed9a435285bfa2e58e27cc2c5bd559bc85e1b54bd07fdd4380589b2b",
+      "literalDependencies": [
+        "tdb-motion.js",
+        "tdb-swiper-8.4.7.min.js",
+        "tdb-ticker.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-quote-carousel.min.js",
+      "commit": "4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@4be6b841e19891d9dca5d0e8b41c11f2b13b3c2c/dist/tdb-quote-carousel.min.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 8207,
+      "gzipBytes": 3174,
+      "sha256": "e9eeb9e2ed9a435285bfa2e58e27cc2c5bd559bc85e1b54bd07fdd4380589b2b",
+      "literalDependencies": [
+        "tdb-motion.js",
+        "tdb-swiper-8.4.7.min.js",
+        "tdb-ticker.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-rendered-progress.js",
+      "commit": "c6610198cd8248e3b6c5b82c6bfa3b75a17c45db",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@c6610198cd8248e3b6c5b82c6bfa3b75a17c45db/dist/tdb-rendered-progress.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 830,
+      "gzipBytes": 507,
+      "sha256": "502beb1bcd0c9876e2f3f9171b5271382a5870f607c9475d3b496f0ecf7486ef",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-review-availability.js",
+      "commit": "d26730ada055c2bfc985241a6d1bbd3029b1eb96",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@d26730ada055c2bfc985241a6d1bbd3029b1eb96/dist/tdb-review-availability.js",
+      "directConsumers": [],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 1741,
+      "gzipBytes": 900,
+      "sha256": "a93832234af39edac766d2c9878a5d0a88882aa0e63d8b6e59712361805d76b0",
+      "literalDependencies": [
+        "tdb-availability.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-review-cards.js",
+      "commit": "6e71c4a5b0630d8991038bb6c830d1dd45798178",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@6e71c4a5b0630d8991038bb6c830d1dd45798178/dist/tdb-review-cards.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 9695,
+      "gzipBytes": 3902,
+      "sha256": "af8eed5c388c801aae68627c9b1b55a65476c5e9e71d6bf43ba8989d4971d0fc",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-review-cms.js",
+      "commit": "4a188328aadf66ab5ed54994936ed14904b3689b",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@4a188328aadf66ab5ed54994936ed14904b3689b/dist/tdb-review-cms.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 20099,
+      "gzipBytes": 6472,
+      "sha256": "f52e6f83f4a3daf6f3b8d7cab00ff0f9fba0b3de73535b79b0b0cba2114c0110",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-review-drawer-template.js",
+      "commit": "eb916ade51aae9fabfeb181e3399c674c0345da4",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@eb916ade51aae9fabfeb181e3399c674c0345da4/dist/tdb-review-drawer-template.js",
+      "directConsumers": [],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 33364,
+      "gzipBytes": 3615,
+      "sha256": "7b99813e67563c45d594dc92d1573a6813ed83dab05dea7b9fcf00068b1cac36",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-review-introduction.js",
+      "commit": "3217122904abee907bac1af3c23c28320e421219",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3217122904abee907bac1af3c23c28320e421219/dist/tdb-review-introduction.js",
+      "directConsumers": [],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 3450,
+      "gzipBytes": 1461,
+      "sha256": "4ed4a3032f6ea57b4e1375727dd79f2168ba192ada6ca5d72c9070d6bcc69066",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-review-list-loader.js",
+      "commit": "bc6ba197c5a19c01b91ac4f8ee217677ece06d6b",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@bc6ba197c5a19c01b91ac4f8ee217677ece06d6b/dist/tdb-review-list-loader.js",
+      "directConsumers": [
+        "/reviews"
+      ],
+      "configuration": [
+        "root"
+      ],
+      "rawBytes": 3544,
+      "gzipBytes": 1583,
+      "sha256": "2363b725696ef83214d8ec7ff34c7a71c5bba92d9ced04acf8420d04ebc3b1c3",
+      "literalDependencies": [
+        "tdb-filters.js",
+        "tdb-modules.js",
+        "tdb-motion.js",
+        "tdb-review-availability.js",
+        "tdb-review-cms.js",
+        "tdb-review-list.js",
+        "tdb-ticker.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-review-list.js",
+      "commit": "bc6ba197c5a19c01b91ac4f8ee217677ece06d6b",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@bc6ba197c5a19c01b91ac4f8ee217677ece06d6b/dist/tdb-review-list.js",
+      "directConsumers": [],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 16167,
+      "gzipBytes": 5585,
+      "sha256": "6c00d11516b0872ef066b7802e83cf9134f04002209dce4ba9aa882576823e16",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-review-quote-adapter.js",
+      "commit": "4a188328aadf66ab5ed54994936ed14904b3689b",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@4a188328aadf66ab5ed54994936ed14904b3689b/dist/tdb-review-quote-adapter.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 2421,
+      "gzipBytes": 1033,
+      "sha256": "b75ca32b8038d551600e98068d7ac249730ff9ea510752f597ee51fba1f91394",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-review-quote-adapter.min.js",
+      "commit": "4a188328aadf66ab5ed54994936ed14904b3689b",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@4a188328aadf66ab5ed54994936ed14904b3689b/dist/tdb-review-quote-adapter.min.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 1601,
+      "gzipBytes": 745,
+      "sha256": "e3e31beb47bc7ce51baa29fac548756a52b2e80b4ead006e3fe0937fc5532a81",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-review-quotes.js",
+      "commit": "fe41fd2b8789fdffd710bda8e8d3ae7f487023d4",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@fe41fd2b8789fdffd710bda8e8d3ae7f487023d4/dist/tdb-review-quotes.js",
+      "directConsumers": [],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 4900,
+      "gzipBytes": 1945,
+      "sha256": "984b047878a9e262c9ed1520415a77ba7cfe950104f835dccb668c01cee23596",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-reviews-loader.js",
+      "commit": "3217122904abee907bac1af3c23c28320e421219",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@3217122904abee907bac1af3c23c28320e421219/dist/tdb-reviews-loader.js",
+      "directConsumers": [
+        "/tdb-payload-test-20261010"
+      ],
+      "configuration": [
+        "root"
+      ],
+      "rawBytes": 7040,
+      "gzipBytes": 2698,
+      "sha256": "962306a28c105ac9f8c84cb521826967f5836cc09a2233380293ed99738ef75f",
+      "literalDependencies": [
+        "tdb-drawer.js",
+        "tdb-filters.js",
+        "tdb-motion.js",
+        "tdb-quote-carousel.js",
+        "tdb-rendered-progress.js",
+        "tdb-review-cms.js",
+        "tdb-review-quote-adapter.min.js",
+        "tdb-reviews.js",
+        "tdb-slider-focus.js",
+        "tdb-swiper-8.4.7.min.js",
+        "tdb-ticker.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-reviews-loader.js",
+      "commit": "839f855ea07ace90e389e16d1d5b806890d98e87",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@839f855ea07ace90e389e16d1d5b806890d98e87/dist/tdb-reviews-loader.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 9234,
+      "gzipBytes": 3319,
+      "sha256": "a480e87a003b02a9a39d68ffcefddbc5261916594c60468472dbba84e1b3e56f",
+      "literalDependencies": [
+        "tdb-drawer.js",
+        "tdb-filters.js",
+        "tdb-motion.js",
+        "tdb-quote-carousel.js",
+        "tdb-rendered-progress.js",
+        "tdb-review-cards.js",
+        "tdb-review-cms.js",
+        "tdb-review-drawer-template.js",
+        "tdb-review-introduction.js",
+        "tdb-review-quote-adapter.min.js",
+        "tdb-reviews.js",
+        "tdb-slider-focus.js",
+        "tdb-swiper-8.4.7.min.js",
+        "tdb-ticker.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-reviews.js",
+      "commit": "ad037202ce47e013a57d37d448f6099a1769bd75",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@ad037202ce47e013a57d37d448f6099a1769bd75/dist/tdb-reviews.js",
+      "directConsumers": [],
+      "configuration": [
+        "standardPins"
+      ],
+      "rawBytes": 19923,
+      "gzipBytes": 7116,
+      "sha256": "93dac6dba6601f5c83f609b4b312639dc403097c9db081bf530a009fb9733332",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-reviews.js",
+      "commit": "ed44546aa2463da53cf732072fc3fb4b6cd71689",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@ed44546aa2463da53cf732072fc3fb4b6cd71689/dist/tdb-reviews.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins"
+      ],
+      "rawBytes": 19970,
+      "gzipBytes": 7125,
+      "sha256": "14f001d0d1d472e909e2830f7c178f529757473efbd6eeeb442b4217e782bf89",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-reviews.js",
+      "commit": "efdd9b2de97df36e0d5c9389b505b030d58d0fc7",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@efdd9b2de97df36e0d5c9389b505b030d58d0fc7/dist/tdb-reviews.js",
+      "directConsumers": [
+        "/areas/sutton-coldfield-composite-bonding",
+        "/areas/sutton-coldfield-invisalign",
+        "/areas/sutton-coldfield-veneers",
+        "/areas/tamworth-composite-bonding",
+        "/areas/tamworth-invisalign",
+        "/areas/tamworth-veneers",
+        "/location",
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design",
+        "/treatments/airflow-hygiene-therapy",
+        "/treatments/clear-aligners",
+        "/treatments/composite-bonding",
+        "/treatments/invisalign",
+        "/treatments/teeth-whitening",
+        "/treatments/veneers"
+      ],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 59719,
+      "gzipBytes": 16790,
+      "sha256": "10584886752f68d9a5e8af8bce140de5b99549f745c2a4b8c6a6440b012bb1ad",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-runtime.js",
+      "commit": "67713400e8159ccdec4b25e0528c818eef675284",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@67713400e8159ccdec4b25e0528c818eef675284/dist/tdb-runtime.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins"
+      ],
+      "rawBytes": 53925,
+      "gzipBytes": 14871,
+      "sha256": "034a11b70990de38c556ed066275c17430bd3b7e934657cdad9547e354d4bff8",
+      "literalDependencies": [
+        "tdb-announcement.js",
+        "tdb-attribution.min.js",
+        "tdb-availability.js",
+        "tdb-five-senses-loader.js",
+        "tdb-gallery.js",
+        "tdb-instagram-deferred.js",
+        "tdb-instagram-native.min.js",
+        "tdb-logo-marquee.min.js",
+        "tdb-motion.js",
+        "tdb-navbar.min.js",
+        "tdb-parallax.js",
+        "tdb-rendered-progress.js",
+        "tdb-reviews-loader.js",
+        "tdb-slider-focus.js",
+        "tdb-swiper-8.4.7.min.js",
+        "tdb-ticker.js",
+        "tdb-tooltips.js",
+        "tdb-usp-drawer.js",
+        "tdb-vip-drawer.js",
+        "tdb-vip-form.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-runtime.js",
+      "commit": "e82b05e374538ef451a88271ad72fc96f2ad22fe",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e82b05e374538ef451a88271ad72fc96f2ad22fe/dist/tdb-runtime.js",
+      "directConsumers": [],
+      "configuration": [
+        "standardPins"
+      ],
+      "rawBytes": 52841,
+      "gzipBytes": 14665,
+      "sha256": "462f418c491c77a322302634313b8eded9ca9bc19fa0835492d428c5d0f6cfd8",
+      "literalDependencies": [
+        "tdb-announcement.js",
+        "tdb-attribution.min.js",
+        "tdb-availability.js",
+        "tdb-five-senses-loader.js",
+        "tdb-gallery.js",
+        "tdb-instagram-native.min.js",
+        "tdb-logo-marquee.min.js",
+        "tdb-motion.js",
+        "tdb-navbar.min.js",
+        "tdb-parallax.js",
+        "tdb-rendered-progress.js",
+        "tdb-reviews-loader.js",
+        "tdb-slider-focus.js",
+        "tdb-swiper-8.4.7.min.js",
+        "tdb-ticker.js",
+        "tdb-tooltips.js",
+        "tdb-usp-drawer.js",
+        "tdb-vip-drawer.js",
+        "tdb-vip-form.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-slider-focus.js",
+      "commit": "fe41fd2b8789fdffd710bda8e8d3ae7f487023d4",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@fe41fd2b8789fdffd710bda8e8d3ae7f487023d4/dist/tdb-slider-focus.js",
+      "directConsumers": [],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 7906,
+      "gzipBytes": 2540,
+      "sha256": "2f0b3bb4033c03b66bc559ff9e2325dfc343ea1dc1bcefb0fd9208bed070bca1",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-sliders.js",
+      "commit": "fe41fd2b8789fdffd710bda8e8d3ae7f487023d4",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@fe41fd2b8789fdffd710bda8e8d3ae7f487023d4/dist/tdb-sliders.js",
+      "directConsumers": [],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 189,
+      "gzipBytes": 155,
+      "sha256": "6abf8a41b755f656a3312178c6f137deb56c2e3e8a25657a7ed1d3f3d4d96573",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-smile-gallery.min.js",
+      "commit": "16edb39cf5d6d5c9361f8d13b7db6e1b46267be8",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@16edb39cf5d6d5c9361f8d13b7db6e1b46267be8/dist/tdb-smile-gallery.min.js",
+      "directConsumers": [
+        "/smile-gallery"
+      ],
+      "configuration": [
+        "root"
+      ],
+      "rawBytes": 28351,
+      "gzipBytes": 9364,
+      "sha256": "41c3b0f5f081a472caf25147ea954a2b0857580e70757c754afbd690c9e94101",
+      "literalDependencies": [
+        "tdb-filters.js",
+        "tdb-motion.js",
+        "tdb-ticker.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-swiper-8.4.7.min.js",
+      "commit": "2afb6b982e397d09ee7a626e713e5ce1c33bc7a5",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@2afb6b982e397d09ee7a626e713e5ce1c33bc7a5/dist/tdb-swiper-8.4.7.min.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 104057,
+      "gzipBytes": 31084,
+      "sha256": "7d95fec8851aa361e287ee2ca5ac5ecd101692d9344038024d13a755f05dfb97",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-ticker.js",
+      "commit": "dfece9ea586c93e3084476266cf2c72c76dfb741",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@dfece9ea586c93e3084476266cf2c72c76dfb741/dist/tdb-ticker.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 1871,
+      "gzipBytes": 940,
+      "sha256": "15dd47ff5af2f864817cb2c8e18a3b8dc087470a08fe2b9b5343d8bce4a93856",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-tooltips.js",
+      "commit": "61cec90cdba3d42a29d3c31194b692c251e8d421",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@61cec90cdba3d42a29d3c31194b692c251e8d421/dist/tdb-tooltips.js",
+      "directConsumers": [],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 2854,
+      "gzipBytes": 1295,
+      "sha256": "534829c0cfab9d6d74cb9b6ff770faf2a13889147519bbf5c389675fadff34ba",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-usp-drawer-template.js",
+      "commit": "eb916ade51aae9fabfeb181e3399c674c0345da4",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@eb916ade51aae9fabfeb181e3399c674c0345da4/dist/tdb-usp-drawer-template.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins"
+      ],
+      "rawBytes": 14895,
+      "gzipBytes": 3160,
+      "sha256": "9e353375141b5a217834c4e29bc54f0165aee84c1a2ebe3b792b9a8fde94dcac",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-usp-drawer.js",
+      "commit": "2e007c5243f3f3d15e1dec724b38b52a04fa91ca",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@2e007c5243f3f3d15e1dec724b38b52a04fa91ca/dist/tdb-usp-drawer.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 8184,
+      "gzipBytes": 3098,
+      "sha256": "cad84b4317e5a0209564a97dc9c897dc87b1eb92f6f3a4b3f3bf804ef588a7bc",
+      "literalDependencies": [
+        "tdb-drawer.js",
+        "tdb-motion.js",
+        "tdb-swiper-8.4.7.min.js",
+        "tdb-ticker.js",
+        "tdb-usp-drawer-template.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-vimeo-loader.js",
+      "commit": "a7d4fe2f1ccfc46404b107a5b65cf78c28853464",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@a7d4fe2f1ccfc46404b107a5b65cf78c28853464/dist/tdb-vimeo-loader.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 2658,
+      "gzipBytes": 1237,
+      "sha256": "d0bb497e6f301a279e1e050ae720917e7e855067b1244fe58cbefc821e9cfb01",
+      "literalDependencies": [
+        "tdb-vimeo.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-vimeo.js",
+      "commit": "a7d4fe2f1ccfc46404b107a5b65cf78c28853464",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@a7d4fe2f1ccfc46404b107a5b65cf78c28853464/dist/tdb-vimeo.js",
+      "directConsumers": [],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 19699,
+      "gzipBytes": 5546,
+      "sha256": "18d02140c1499800887783206a86b2959e12bce7fa2f2cbcae49e3482d2a8c54",
+      "literalDependencies": [
+        "tdb-vimeo-loader.js"
+      ]
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-vip-drawer.js",
+      "commit": "405af73d4d62619c66bb1140ee6f1e6081b0559c",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@405af73d4d62619c66bb1140ee6f1e6081b0559c/dist/tdb-vip-drawer.js",
+      "directConsumers": [],
+      "configuration": [
+        "transitive-or-embedded"
+      ],
+      "rawBytes": 8812,
+      "gzipBytes": 3211,
+      "sha256": "03a8bf6c4765b67e6694e3f8b1ced6925c40dacb4c2a24930568d517a692afdd",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "dist/tdb-vip-form.js",
+      "commit": "2701a5340c1c872d37351645ce84d9b658deb83d",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@2701a5340c1c872d37351645ce84d9b658deb83d/dist/tdb-vip-form.js",
+      "directConsumers": [],
+      "configuration": [
+        "homePins",
+        "standardPins"
+      ],
+      "rawBytes": 10081,
+      "gzipBytes": 3694,
+      "sha256": "f0b10a79434363dc4e57181a0d6725f243fa00907b0dee3c3deb58301195c6cc",
+      "literalDependencies": []
+    },
+    {
+      "repo": "tdb-webflow-runtime",
+      "file": "src/service-awards/service-awards.js",
+      "commit": "77f20b75e9836663d21096e3863e09a18866d550",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@77f20b75e9836663d21096e3863e09a18866d550/src/service-awards/service-awards.js",
+      "directConsumers": [
+        "/services/cosmetic-dentist",
+        "/services/dentist-near-me",
+        "/services/facial-aesthetics",
+        "/services/general-dentistry",
+        "/services/hygiene-care",
+        "/services/nervous-patient-care",
+        "/services/signature-assessment",
+        "/services/smile-design"
+      ],
+      "configuration": [
+        "embedded-cms-services"
+      ],
+      "rawBytes": 3377,
+      "gzipBytes": 1430,
+      "sha256": "31bd30d1cc1bfffb0f906ce4897a4b49681d040f9a15b6b26f76a9715db5efbc",
+      "literalDependencies": []
+    }
+  ]
+}

@@ -1,66 +1,65 @@
-# TDB Webflow Runtime
+# The Dental Barns Webflow runtime
 
-Production JavaScript and CSS runtime for The Dental Barns Webflow website.
+Readable JavaScript, reproducible production bundles and release records for The Dental Barns Webflow site.
 
-## Release policy
+**14 October 2026: this branch is an audit/release candidate, not a deployed release.** Its base is the current staging work branch, `work/post-fonts-startup-20261014` at `9739d86106bac901252d0e9876468ebb82ad9bd3`. `main` is behind that staging collection. No Webflow code, CDN pins, production pages or startup timing were changed by this audit. Do not point every site script at this branch as a shortcut.
 
-- `main` contains the current maintained runtime.
-- `release/v1.0.0` preserves the first consolidated production runtime.
-- Webflow loads immutable commit-pinned jsDelivr URLs.
-- Every behavioral change receives a new semantic version and a new commit pin.
-- Experimental branches are not production dependencies.
-- Staging changes are published to the Webflow subdomain first and promoted to custom domains only after sign-off.
+Start with the [collection audit](docs/runtime/audit-2026-10-14.md), [module ownership map](docs/runtime/module-map.md), [every referenced artifact](docs/runtime/module-catalog.md), and [release/rollback procedure](docs/runtime/releasing.md). The [previous README](docs/archive/README-before-runtime-audit-20261014.md) preserves historical installation notes; its September pins are not the current staging configuration.
 
-## Current production manifest
+## Source and build ownership
 
-Production custom domains remain on the last approved production publish. Core pinned assets include:
+| Location | Purpose |
+| --- | --- |
+| `src/` | Readable maintained code. Feature folders own behavior; `shared/` owns genuinely reused primitives. |
+| `tools/runtime-build/targets.cjs` | One ordered source manifest for 57 classic-script/ES-module outputs. |
+| `dist/` | Committed, minified browser artifacts. Some historical names end in `.js` rather than `.min.js`; the manifest defines their contents. |
+| `build/readable/` | Optional readable assembled bundles generated locally; ignored by Git. |
+| `config/build-artifacts.json` | Generated source mapping, output hashes and raw/gzip/Brotli estimates. |
+| `config/runtime-inventory-2026-10-14.json` | Captured immutable site pins, Home overrides, direct consumers and conditional dependencies. This is evidence of deployment, not an instruction to deploy. |
+| `config/source-provenance.json` | Original commit and path for recovered active sources/artifacts. |
+| `tests/` | Behavioral regression tests using synthetic fixtures. |
+| `tools/custom-swiper/` | Separate pinned Swiper/esbuild vendor build, security patch and bundled TDB adapter. |
 
-| Asset | Version | Immutable commit | Purpose |
-|---|---:|---|---|
-| `dist/tdb-ui.css` | `1.0.0` | `ec075e95bfb21fecd083fc1d4f48aecc771d9440` | Deferred global UI styles |
-| `dist/tdb-navbar.min.js` | `1.0.0` | `0c4f2c8abd91eaf491ae41abebcc71c6e8cd0370` | Navbar state and mobile text motion |
-| `dist/tdb-immediate-runtime-batch.min.js` | `0.6.4` | `d9ecd7a36438e6eeffb1a21337475520a9007b1b` | Consent-first and immediate runtime loading |
-| `dist/tdb-footer-runtime.min.js` | `1.0.2` | `f5fda2c134733f1b0c745264fb6d0c69fd396ef7` | Deferred forms, sliders, Lenis, Elfsight timer and supporting UI |
-| `dist/tdb-vip-drawer.js` | `0.4.1` | `28fa8d3043e0d0aea8a531e2a98954c35ccaea10` | Mobile VIP drawer |
-| `dist/tdb-vip-drawer-desktop.js` | `0.1.6` | `ec642d0f97f3737c9f0efbad1c63428ebea29f10` | Desktop VIP drawer |
+The runtime repository is the home for site behavior. Attribution currently lives in [`tdb-webflow-attribution`](https://github.com/TheDentalBarns/tdb-webflow-attribution); both active attribution versions are cataloged here. Keep that boundary until its form-field and consent contracts have been checked together. Repository consolidation does not require putting every feature in one download.
 
-The immediate runtime loads CookieScript `3.0.0` from its own immutable repository commit.
+## Build and verify
 
-## Current staging additions
+Use Node 24 and the committed npm lockfile:
 
-The Webflow subdomain currently tests the consolidated Home/Location parallax slider cleanup:
-
-| Asset | Version | Immutable commit | Purpose |
-|---|---:|---|---|
-| `dist/tdb-sliders.js` | `0.3.0` | `31386d986982aa60eb6c9199b6e6b4c03693897b` | Consolidated parallax slider entry and navigation behavior |
-| `dist/tdb-slider-ui.css` | `1.0.0` | `3ccf519affaca89635efa68fb481464e7c56dd58` | Mobile/desktop parallax slider navigation presentation |
-| `dist/tdb-footer-runtime.min.js` | `1.0.3` | `50cbe79a8f2113af75a6686b6911c6c87292aa3f` | Footer runtime pointing at the consolidated slider build |
-
-See `docs/staging-runtime-cleanup-2026-09-11.md` for rollback instructions and preserved behavior.
-
-## Webflow loading rule
-
-The Webflow site header and footer must include a readable release comment immediately above each externally hosted asset. Example:
-
-```html
-<!-- TDB Navbar v1.0.0 | SHA 0c4f2c8 -->
-<script defer src="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0c4f2c8abd91eaf491ae41abebcc71c6e8cd0370/dist/tdb-navbar.min.js"></script>
+```sh
+npm ci --ignore-scripts --no-audit --no-fund
+npm run build
+npm run build:swiper
+npm test
+npm run build:check
+npm run format:check
 ```
 
-Do not load assets from `main`, a development branch, or an unpinned tag.
+For readable assembled files, run `npm run build:readable`. For the captured reference catalog, run `npm run catalog`. Format sources with `npm run format` before rebuilding. To build just one target:
 
-## Maintained modules
+```sh
+node tools/runtime-build/build-preservation.cjs dist/tdb-runtime.js
+```
 
-- Consent integration
-- CookieScript production loader
-- Navbar runtime
-- Forms runtime
-- Slider and custom Swiper runtime
-- Native logo marquee
-- VIP drawer
-- Deferred UI CSS
-- Footer asset orchestration
+A complete build also refreshes the artifact report. Run `npm run build` before committing a partial build. `build:check` is read-only and fails on stale outputs or metadata. Vendor dependencies use their own committed lockfile; the Swiper build applies the existing protected-key patch explicitly after installation.
 
-## Rollback
+Terser 5.44.0 uses three compression passes and identifier mangling. **No unsafe compression or property mangling.** Window exports, DOM attributes, event names, CSS classes and cross-file object properties remain contracts. Five Senses is built as an ES module; other manifest outputs remain classic scripts. Swiper's entire adapter is now minified, with its license and patch banner retained. Compression estimates are local estimates, not measured network transfer or per-page payload.
 
-Rollback is performed by restoring the previous immutable SHA in Webflow and republishing. No Git branch movement is required.
+Two legacy naming traps remain for compatibility:
+
+- `tdb-consent.js` includes banner, scroll lock, registry and policy. `tdb-consent.min.js` is the older policy-only target. They are **not interchangeable**.
+- Standalone files outside the manifest include retired footer/startup assets and diagnostics. They remain available for historical compatibility; they are not automatically part of the candidate release.
+
+## Runtime boundaries
+
+The current footer timing experiment remains unchanged. Consent and basic navigation establish the first owners. A valid consent decision releases the site runtime; rejecting optional categories still allows local functional UI. Each feature then applies its own presence, intent, proximity and consent conditions. Vimeo and tracking retain their respective permission gates.
+
+`TDBModules` owns resolved asset pins and shared network flights. `TDBScrollLock` coordinates lock owners. `TDBMotionPolicy` / `TDBMotion` own the approved motion policy and timings. `TDBSwiper` owns carousel behavior. `TDBReviewCMS` and `TDBAvailability` share data requests and caches.
+
+Webflow Designer owns page structure, CMS bindings and native visual classes. Do not move layout back into runtime code while simplifying JavaScript. Preserve the existing full-motion design-review policy, keyboard/focus behavior, native fallbacks, first-click replay, Webflow form IDs and submission values.
+
+## Changes and release discipline
+
+Edit source, rebuild, test, and review generated diffs. Do not hand-edit minified files. Do not update a working site pin to `main`, a feature branch or a guessed commit. Promote a tested immutable commit, with the exact previous configuration retained for rollback.
+
+The audit fixes Back/restore page-position caching and isolates feature startup failures. It also recovers active historical sources and repairs the build/CI process. A candidate's passing unit tests do not certify Safari layout, mobile gestures or every legacy page. The release procedure lists the remaining browser checks and staged migration sequence.

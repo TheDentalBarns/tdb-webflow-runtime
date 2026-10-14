@@ -1,54 +1,22 @@
-name: Build custom Swiper
-
+name: Verify custom Swiper
 on:
+  pull_request:
+    paths: ['tools/custom-swiper/**', 'src/sliders/swiper-*.js', 'src/shared/carousel-visibility.js', 'dist/tdb-swiper-8.4.7.min.js', '.github/workflows/build-custom-swiper.yml']
   push:
-    branches:
-      - main
-    paths:
-      - 'tools/custom-swiper/**'
-      - '.github/workflows/build-custom-swiper.yml'
+    branches: [main]
+    paths: ['tools/custom-swiper/**', 'src/sliders/swiper-*.js', 'src/shared/carousel-visibility.js', 'dist/tdb-swiper-8.4.7.min.js']
   workflow_dispatch:
-
 permissions:
-  contents: write
-
+  contents: read
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          ref: main
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          package-manager-cache: false
-
-      - name: Install exact build dependencies
-        working-directory: tools/custom-swiper
-        run: npm install --package-lock-only && npm ci
-
-      - name: Build custom Swiper
-        working-directory: tools/custom-swiper
-        run: npm run build
-
-      - name: Check artifact
-        working-directory: tools/custom-swiper
-        run: npm run check
-
-      - name: Commit generated artifact
-        run: |
-          if [ -z "$(git status --porcelain -- dist/tdb-swiper-8.4.7.min.js tools/custom-swiper/package-lock.json)" ]; then
-            echo 'Generated files are already current.'
-            exit 0
-          fi
-
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add dist/tdb-swiper-8.4.7.min.js tools/custom-swiper/package-lock.json
-          git commit -m 'Build patched custom Swiper 8.4.7 artifact'
-          git push origin HEAD:main
+          node-version: '24'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build:swiper
+      - run: git diff --exit-code -- dist/tdb-swiper-8.4.7.min.js tools/custom-swiper/package-lock.json
+      - run: node --test tests/carousel-*.test.cjs tests/swiper-*.test.cjs
