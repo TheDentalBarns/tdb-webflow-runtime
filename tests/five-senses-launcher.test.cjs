@@ -101,3 +101,11 @@ test('missing start aborts partial mount and provides retry; closing remains ava
  assert.ok(e.w.document.querySelector('.tdb-senses-loading-retry'));assert.equal(e.stats().aborts,1);
  e.w.document.querySelector('.tdb-senses-persistent-close').click();await tick();assert.equal(e.stats().releases,1);e.close();
 });
+
+test('captures activation before Webflow cancels empty-hash links',async()=>{
+ const {w,close}=setup('<a href="#" data-tdb-senses-open>Begin</a>');let opens=0;
+ w.document.addEventListener('click',event=>event.preventDefault());
+ w.TDBModules={load(){w.TDBFiveSensesEntry={open(){opens++;}};return Promise.resolve();},withBusy:(_,work)=>work()};
+ w.eval(launcher+';prepareFiveSensesLauncher()');w.document.querySelector('a').click();await tick();
+ assert.equal(opens,1);close();
+});

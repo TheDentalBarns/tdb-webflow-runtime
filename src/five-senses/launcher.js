@@ -44,7 +44,7 @@ function prepareFiveSensesLauncher() {
       }
     }
   }
-  document.addEventListener('click',activate,{signal:lifecycle.signal});
+  document.addEventListener('click',activate,{capture:true,signal:lifecycle.signal});
   document.addEventListener('keydown',activate,{signal:lifecycle.signal});
   window.TDBFiveSensesLauncher=Object.freeze({
     version:'1.0.0',open,refresh,
