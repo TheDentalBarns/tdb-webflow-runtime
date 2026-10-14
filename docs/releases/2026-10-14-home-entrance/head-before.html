@@ -1,0 +1,35 @@
+
+
+
+
+<style>
+  /* Native Home variants own opacity 0; Designer owns the 20px button glass.
+     Fade glass directly so no translucent controls parent blocks its backdrop.
+     Playback wrappers still own play/pause/loading visibility. */
+  @keyframes tdb-home-chrome-enter {
+    to { opacity: 1; }
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] .navbar10_component > .is-nav-bar-frame {
+    animation: tdb-home-chrome-enter 200ms ease-out 100ms 1 normal forwards;
+  }
+  html[data-wf-page="677cf86df9952f978d94d8a9"] [data-vimeo-hero-shell] .vimeo-controls-layer :is(
+    .vimeo-player__btn,
+    .vimeo-player__bg,
+    .vimeo-player__loading-svg
+  ) {
+    /* Explicit entrance survives the shared playback animation reset. */
+    animation: tdb-home-chrome-enter 200ms ease-out 100ms 1 normal forwards !important;
+  }
+
+  /* Designer Home variant owns opacity 0 and the black backdrop.
+     CSS starts the entrance on page load; Vimeo still owns playback hiding. */
+  html[data-wf-page="677cf86df9952f978d94d8a9"] [data-vimeo-hero-shell] [data-vimeo-hero-init]:not([data-vimeo-started="true"]):not([data-placeholder-hidden="true"]) .vimeo-bg__placeholder {
+    animation: tdb-home-chrome-enter 200ms ease-out 100ms 1 normal forwards;
+  }
+</style>
+
+
+
+
+
+
