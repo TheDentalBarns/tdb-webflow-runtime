@@ -2,7 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const {JSDOM}=require('jsdom');
-const launcher=fs.readFileSync('src/five-senses/launcher.js','utf8');
+const launcher="const TDBRuntimeModuleRoot=new URL('https://cdn.example/release/dist/');"+fs.readFileSync('src/five-senses/launcher.js','utf8');
 const controller=fs.readFileSync('src/five-senses/loader.js','utf8');
 const tick=()=>new Promise(r=>setTimeout(r,40));
 function setup(html='<a href="/five-senses-experience" data-tdb-senses-open>Open</a>') {
