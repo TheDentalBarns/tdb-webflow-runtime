@@ -26,6 +26,10 @@ jobs:
           node tools/runtime-build/build-preservation.cjs dist/tdb-navbar-loader.js
           node --check dist/tdb-navbar-loader.js
           node --test tests/navbar-reliability.test.cjs tests/navbar-handoff.test.cjs
+      - name: Audit published scroll-lock consumers
+        env:
+          NODE_PATH: /tmp/tdb-nav-tests/node_modules
+        run: node tools/audit-navbar-consumers.cjs
       - name: Commit verified navbar build
         run: |
           git add dist/tdb-navbar-loader.js
