@@ -43,6 +43,7 @@ module.exports = {
   "dist/tdb-gallery.js": [
     "src/smile-gallery/sort-treatment-gallery.js",
     "src/sliders/gallery-presentation.js",
+    "src/smile-gallery/explore-count.js",
     "src/sliders/gallery-plugin.js"
   ],
   "dist/tdb-parallax.js": [

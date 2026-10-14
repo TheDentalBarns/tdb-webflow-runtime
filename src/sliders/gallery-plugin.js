@@ -2,6 +2,7 @@
 (() => {
     "use strict";
     if (window.TDBGallery) return;
+    const exploreCount = createGalleryExploreCount();
     const e = "data-tdb-slider-init", t = "data-tdb-slider-first-view", i = new Map, n = new WeakSet;
     function r(e) {
         return e?.querySelector?.(".swiper") || null;
@@ -156,7 +157,7 @@
         i.get(e)?.bind(p);
     }
     const u = Object.freeze({
-        version: "1.2.2",
+        version: "1.2.3",
         selector: ".highlight-swiper_component",
         beforeObserve: function(e) {
             if (window.TDBSmileCards?.prepare(e), n.has(e) || i.has(e)) return;
@@ -207,11 +208,13 @@
             }), t?.bind(i), i;
         },
         prune() {
+            exploreCount.prune();
             i.forEach((e, t) => {
                 document.documentElement.contains(t) || e.cancel();
             }), window.TDBSmileCards?.prune();
         },
         refresh(e = document) {
+            exploreCount.refresh();
             window.TDBSwiper.refresh("gallery", e);
         }
     });
