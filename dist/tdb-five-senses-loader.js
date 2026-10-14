@@ -1,4 +1,4 @@
-/* Page-only, demand-loaded TDB Five Senses entry. */
+/* On-demand Five Senses controller. The runtime launcher owns activation. */
 (() => {
   'use strict';
   const script=document.currentScript;
@@ -6,7 +6,20 @@
   const root=new URL('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@c847ee9841b79a6749c39eb482d0c91c23f38ec0/');
   const moduleURL=new URL('dist/tdb-five-senses.js',root).href;
   const styleURL=new URL('dist/tdb-five-senses.css',root).href;
-  const assetBase=JSON.parse(script.dataset.assets||'{}');
+  const assetBase={
+  "surgery-clinical.webp": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aab011cbc2bec114d3af9ba_tdb-five-senses-surgery-clinical.webp",
+  "surgery-objects.webp": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aab011cf85583de4e03b811_tdb-five-senses-surgery-objects.webp",
+  "surgery-warm.webp": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aab011dd5c99f27a57d913b_tdb-five-senses-surgery-warm.webp",
+  "scent-candle.webp": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aabbe39e9ee46466ea1bdf2_scent-candle-v3.webp",
+  "taste-clinical.webp": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aabbe3a7408d33188d5b126_taste-clinical-v3.webp",
+  "clinical.mp3": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aad6258fb0c948220fd3b56_tdb-clinical-ambience-v2.mp3",
+  "calm.mp3": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aad6413fb5f53daf2e9dac6_tdb-piano-birdsong-v1.mp3"
+};
+  try {
+    const overrides=JSON.parse(document.querySelector('[data-tdb-senses-assets]')?.textContent || script.dataset.assets || '{}');
+    if (!overrides || typeof overrides !== 'object' || Array.isArray(overrides)) throw Error('Expected an asset object');
+    for (const [name,url] of Object.entries(overrides)) if (typeof url==='string' && url.trim()) assetBase[name]=url;
+  } catch(error) { console.warn('TDB Five Senses: using default assets.',error); }
   for(const name of ['calm.mp3','clinical.mp3','scent-candle.webp','taste-clinical.webp','surgery-clinical-clean.webp'])if(!assetBase[name])assetBase[name]=new URL(`assets/five-senses/${name}`,root).href;
   const query=new URLSearchParams(location.search);
   // Explicit review URLs provide real narrow iframe viewports, never normal entry UI.
@@ -25,7 +38,6 @@
   const shellStyle=document.createElement('style');
   shellStyle.dataset.tdbSensesShell='';
   shellStyle.textContent=`
-html.tdb-senses-scroll-locked,html.tdb-senses-scroll-locked body{overflow:hidden!important}
 dialog[data-tdb-senses-shell]{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;outline:none;--tdb-senses-gutter:3vw;color:var(--tdb-senses-cream,#f5f1e6)!important}
 dialog[data-tdb-senses-shell]:not(.tdb-senses){background:#222!important}
 dialog[data-tdb-senses-shell]::backdrop{background:transparent!important;opacity:1;transition:opacity 500ms ease!important}
@@ -117,19 +129,19 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     });
     return stylePromise;
   }
-  function lockScroll(){
-    const root=document.documentElement;
+  function lockScroll(dialog){
+    if (!window.TDBScrollLock?.acquire) throw Error('Shared scroll lock unavailable');
+    const release=window.TDBScrollLock.acquire({allow:()=>[
+      dialog,...document.querySelectorAll('dialog.tdbc-dialog[open],dialog.tdbc-vip-overlay[open]')
+    ]});
     const lenis=window.lenis;
     const ownsLenis=!!(lenis&&typeof lenis.stop==='function'&&typeof lenis.start==='function'&&!lenis.isStopped);
     if(ownsLenis)lenis.stop();
-    // A separate lock never saves or restores a menu's transient overflow value.
-    root.classList.add('tdb-senses-scroll-locked');
     let released=false;
     return()=>{
       if(released)return;
-      released=true;
-      root.classList.remove('tdb-senses-scroll-locked');
-      if(ownsLenis&&window.lenis===lenis){lenis.start();lenis.resize?.();}
+      released=true;release();
+      if(ownsLenis&&window.lenis===lenis&&!window.TDBScrollLock.active){lenis.start();lenis.resize?.();}
     };
   }
   // Borrow existing players; never create an iframe, load an SDK or request consent.
@@ -240,6 +252,8 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
   }
   async function run(session){
     if(active!==session||session.closing)return;
+    session.controller.abort();
+    session.controller=new AbortController();
     loading(session);
     session.dialog.dataset.sensesHandover='';
     try{
@@ -254,9 +268,15 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
       const start=session.dialog.querySelector('.tdb-senses-start');
       const reduced=(window.TDBMotionPolicy?.reduced || window.TDBMotion?.reduced || matchMedia('(prefers-reduced-motion: reduce)')).matches;
       const duration=reduced?0:900,easing='cubic-bezier(.4,0,.2,1)';
-      const circle=start.querySelector('.tdb-senses-circle'),icon=circle.querySelector('svg');
-      const ring=anchor.querySelector('.tdb-senses-loading-ring'),progress=ring.querySelector('svg'),arc=progress.querySelector('circle');
-      const label=start.querySelector('.tdb-senses-start-label'),loadingText=anchor.querySelector('p');
+      if (!start) throw Error('Experience start control missing');
+      const circle=start.querySelector('.tdb-senses-circle'),icon=circle?.querySelector('svg');
+      const ring=anchor?.querySelector('.tdb-senses-loading-ring'),progress=ring?.querySelector('svg'),arc=progress?.querySelector('circle');
+      const label=start.querySelector('.tdb-senses-start-label'),loadingText=anchor?.querySelector('p');
+      if (![circle,icon,ring,progress,arc,label,loadingText].every(Boolean)) {
+        cover?.remove();delete session.dialog.dataset.sensesHandover;
+        start.inert=false;start.style.removeProperty('opacity');start.style.removeProperty('z-index');
+        start.focus({preventScroll:true});return;
+      }
       const target=getComputedStyle(circle),background=target.backgroundColor,shadow=target.boxShadow;
       const spin=progress.getAnimations()[0],angle=Number(spin?.currentTime||0)%1300/1300*360;
       // The loading circle itself becomes the real Start button's circle.
@@ -285,6 +305,10 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
       start.style.removeProperty('opacity');start.style.removeProperty('z-index');start.inert=false;start.focus({preventScroll:true});
     }catch(error){
       if(active!==session||session.closing||session.controller.signal.aborted)return;
+      session.controller.abort();
+      session.handover?.forEach(motion=>motion.cancel());session.handover=null;
+      delete session.dialog.dataset.sensesHandover;
+      console.warn('TDB Five Senses: experience unavailable.',error);
       loading(session,true);
     }
   }
@@ -293,7 +317,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     ensureShellStyle();
     stopPageAudio();
     const dialog=document.createElement('dialog');dialog.dataset.tdbSensesShell='';
-    const session={dialog,opener,controller:new AbortController(),restore:lockScroll(),releaseMedia:holdPageMedia()};
+    const session={dialog,opener,controller:new AbortController(),restore:lockScroll(dialog),releaseMedia:holdPageMedia()};
     active=session;document.body.append(dialog);loading(session);
     dialog.addEventListener('cancel',event=>{event.preventDefault();close(session);});
     dialog.addEventListener('close',()=>dispose(session));
@@ -307,17 +331,11 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     ],{duration:500,easing:'ease'});
     dialog.querySelector('button').focus();run(session);
   }
-  document.querySelectorAll('[data-tdb-senses-open]').forEach(button=>{
-    button.setAttribute('role','button');
-    button.addEventListener('click',event=>{event.preventDefault();open(button);});
-    if(button.tagName!=='BUTTON')button.addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();open(button);}});
-  });
-  window.addEventListener('pagehide',()=>{stopPageAudio();if(active)dispose(active,false);});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){stopPageAudio();active?.calmAudio?.stop();}});
-  window.TDBFiveSensesEntry=Object.freeze({version:'0.14.7'});
-  // A direct experience link arrives on Home before any audio is unlocked.
-  if(location.pathname==='/'&&query.get('five-senses')==='1'){
-    const url=new URL(location.href);url.searchParams.delete('five-senses');history.replaceState(history.state,'',url);
-    open(null,true);
+  const lifecycle=new AbortController();
+  function destroy(){
+    lifecycle.abort();stopPageAudio();if(active)dispose(active,false);
   }
+  window.addEventListener('pagehide',()=>{stopPageAudio();if(active)dispose(active,false);},{signal:lifecycle.signal});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){stopPageAudio();active?.calmAudio?.stop();}},{signal:lifecycle.signal});
+  window.TDBFiveSensesEntry=Object.freeze({version:'0.15.0',open,destroy});
 })();
