@@ -11,3 +11,5 @@ Validation: node tests/consent-native.test.cjs (requires jsdom; TDB_JSDOM may se
 
 Historical standalone build targets remain for reproducibility; they are no longer included as separate tags in staging.
 Rollback: restore the head from 2026-10-14-consent-bundle-head-before.html. Footer and production are unchanged.
+
+Built asset: 432c2e1d31c46a4091a60a9c0b5390d2a66b5467/dist/tdb-consent.js (20,004 bytes). Build and contract checks passed in GitHub Actions run 38535179921. The saved staging head is 2026-10-14-consent-bundle-head-after.html.
