@@ -1,13 +1,13 @@
-name: Build consent and shared UI
+name: Build consolidated consent
 
 on:
   push:
     branches:
-      - work/consent-ui-early-20261014
+      - work/consent-bundle-20261014
     paths:
       - 'src/consent/**'
-      - 'src/styles/tdb-consent-states.css'
-      - 'tools/build-ui.py'
+      - 'src/shared/modules.js'
+      - 'tests/consent-native.test.cjs'
       - 'tools/runtime-build/**'
       - '.github/workflows/build-consent-ui.yml'
   workflow_dispatch:
@@ -36,17 +36,16 @@ jobs:
         env:
           TDB_JSDOM: /tmp/tdb-consent-tests/node_modules/jsdom
         run: |
-          python tools/build-ui.py --global-only
-          node tools/runtime-build/build-preservation.cjs dist/tdb-consent-startup.min.js
+          node tools/runtime-build/build-preservation.cjs dist/tdb-consent.js
           node tools/runtime-build/verify-ui.cjs
-          node --check dist/tdb-consent-startup.min.js
+          node --check dist/tdb-consent.js
           node tests/consent-native.test.cjs
-          node -e "const fs=require('fs'),assert=require('assert/strict');assert(!fs.readFileSync('dist/tdb-consent-startup.min.js','utf8').includes('data-tdb-consent-state-css'));assert(fs.readFileSync('dist/tdb-ui.css','utf8').includes('.tdb-consent-root.is-consent-active'))"
+          node -e "const fs=require('fs'),assert=require('assert/strict');assert(!fs.readFileSync('dist/tdb-consent.js','utf8').includes('data-tdb-consent-state-css'));assert(fs.readFileSync('dist/tdb-ui.css','utf8').includes('.tdb-consent-root.is-consent-active'))"
       - name: Commit verified artifacts
         run: |
-          git add src/styles/tdb-ui.css dist/tdb-ui.css dist/tdb-consent-startup.min.js
+          git add dist/tdb-consent.js
           if git diff --cached --quiet; then exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Build consent v4.0.8 and shared UI with consent states'
+          git commit -m 'Build consolidated consent with existing banner, modules and gates'
           git push origin HEAD:${{ github.ref_name }}

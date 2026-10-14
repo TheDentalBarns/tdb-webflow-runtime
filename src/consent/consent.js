@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.6.1';
   const base = new URL('./', document.currentScript.src);
   const GA_MEASUREMENT_ID = 'G-GCWCSWR50M';
   const META_PIXEL_ID = '1326762815429148';
@@ -14,6 +14,9 @@
   const subscribers = new Set();
   let decisionKey = '', videoPresent = false, videoFlight = null, pendingVideo = null;
   const videoSelector = '[data-vimeo-hero-shell],[data-vimeo-ambient-init],[data-vimeo-content-init]';
+  const quoteSelector = '[data-tdb-team-quotes][data-tdb-team-cms]';
+  let quotePresent = false, quoteFlight = null;
+  const pendingQuotes = new Map();
 
   // One permission boundary. A category alone is not a valid saved decision.
   function currentState() {
@@ -83,23 +86,73 @@
     }
     if (allows('functionality')) releaseVideo();
     else clearVideo();
+    if (allows()) releaseQuotes();
+  }
+  // Owner quotes are a local enhancement: either saved choice releases their
+  // proximity observer. Explicit interaction can start just that quote sooner.
+  function releaseQuotes() {
+    if (!quotePresent || (!allows() && !pendingQuotes.size)) return Promise.resolve(null);
+    if (quoteFlight) return quoteFlight;
+    quoteFlight = (async () => {
+      if (!window.TDBModules) throw new Error('Shared dependency registry unavailable');
+      // Reviews use this same canonical URL, so concurrent consumers share one request.
+      await window.TDBModules.load(new URL('tdb-quote-carousel.js', base), {
+        attribute: 'data-tdb-team-quote-runtime', ready: () => !!window.TDBQuoteCarousel
+      });
+      const quotes = window.TDBQuoteCarousel;
+      if (allows()) quotes.refresh();
+      while (pendingQuotes.size) {
+        const [root, keys] = pendingQuotes.entries().next().value;
+        pendingQuotes.delete(root);
+        if (root.isConnected) await quotes.activate(root, keys);
+      }
+      return quotes;
+    })().catch(error => {
+      pendingQuotes.clear();
+      console.warn(error.message);
+      return null;
+    }).finally(() => { quoteFlight = null; });
+    return quoteFlight;
+  }
+  function quoteIntent(event) {
+    const root = event.target.closest?.(quoteSelector);
+    if (!root || window.TDBQuoteCarousel?.isMounted(root)) return;
+    if (event.type === 'keydown' && (event.altKey || event.ctrlKey || event.metaKey ||
+        !['ArrowLeft', 'ArrowRight', 'Enter', ' '].includes(event.key) ||
+        event.target.closest?.('input,textarea,select,[contenteditable]:not([contenteditable="false"])'))) return;
+    const keys = pendingQuotes.get(root) || [];
+    if (event.type === 'keydown' && ['ArrowLeft', 'ArrowRight'].includes(event.key)) {
+      event.preventDefault();
+      keys.push(event.key);
+    }
+    pendingQuotes.set(root, keys);
+    releaseQuotes();
   }
   function videoClick(event) {
-    const control = event.target.closest?.('[data-vimeo-control="play"]');
+    // The denied state must work before Vimeo's controller/CSS is fetched.
+    // Its spinner and circular backplate are siblings of the Play control.
+    const permitted = allows('functionality');
+    const control = event.target.closest?.(permitted ? '[data-vimeo-control="play"]' :
+      '[data-vimeo-control],.vimeo-player__loading,.vimeo-player__bg');
     const root = control?.closest('[data-vimeo-content-init],[data-vimeo-hero-shell]');
-    if (!root || (allows('functionality') && window.TDBVimeo?.initialised)) return;
+    if (!root || (permitted && window.TDBVimeo?.initialised)) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     if (pendingVideo !== root) clearVideo();
     pendingVideo = root;
-    markVideo(root, allows('functionality') ? 'loading' : 'awaiting-consent');
-    if (allows('functionality')) releaseVideo();
+    markVideo(root, permitted ? 'loading' : 'awaiting-consent');
+    if (permitted) releaseVideo();
     else showCookieSettings();
   }
-  function prepareVideoGate() {
+  function prepareGates() {
     videoPresent = !!document.querySelector(videoSelector);
     // No video-specific observers, assets or stylesheet work before permission.
     if (videoPresent) document.addEventListener('click', videoClick, true);
+    quotePresent = !!document.querySelector(quoteSelector);
+    if (quotePresent) {
+      ['pointerdown', 'focusin', 'keydown'].forEach(type => document.addEventListener(type, quoteIntent, true));
+      if (!('PointerEvent' in window)) document.addEventListener('touchstart', quoteIntent, {capture: true, passive: true});
+    }
     settle();
   }
 
@@ -292,6 +345,6 @@
     handleCookieScriptReady();
   }
   // Authored after the shared registry; safe for both deferred and async use.
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', prepareVideoGate, {once: true});
-  else prepareVideoGate();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', prepareGates, {once: true});
+  else prepareGates();
 })();
