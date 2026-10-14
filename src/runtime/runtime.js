@@ -178,6 +178,7 @@
     if (disposed) return;
     disposed = true; lifecycle.abort(); observer?.disconnect();
     window.TDBLogoMarqueeLoader?.destroy();
+    window.TDBUSPDrawerLoader?.destroy();
     for (const cancel of [...cancellations]) cancel();
     mounted.forEach(owner => owner.destroy()); mounted.clear();
   }

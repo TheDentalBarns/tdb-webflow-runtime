@@ -20,6 +20,15 @@
     seed.lastY=y;
   },{passive:true,signal:events.signal});
   function intent(event) {
+    if(event.type==='keydown'&&!['Enter',' '].includes(event.key))return;
+    const uspZone=event.target.closest?.('[data-tdb-usp-trigger-zone]');
+    const uspTrigger=uspZone?.closest('[data-tdb-usp]')&&uspZone.querySelector('[data-tdb-usp-launch]');
+    if(uspTrigger&&!window.TDBUSPDrawerLoader) {
+      event.preventDefault();event.stopImmediatePropagation();
+      prepareUSPDrawerLoader();
+      if(!event.repeat)window.TDBUSPDrawerLoader.open(uspTrigger);
+      return;
+    }
     if(window.TDBVIPDrawerLoader||window.TDBVIPDrawer)return;
     if(event.type==='keydown'&&!['Enter',' '].includes(event.key))return;
     const target=event.target.closest?.('#tdb-vip-drawer .tdb-vip-drawer-handle,a[href*="#vip" i],[href*="#vip" i],[data-vip-open]');

@@ -1,8 +1,9 @@
-/* TDB native USP adapter v2.2.2. Designer owns every surface and control. */
+/* TDB native USP adapter v2.3.1. Native layout; optional first-open snapshot. */
 (() => {
   'use strict';
   if (window.TDBUSPDrawer) return;
   const base = new URL('./', document.currentScript.src), instances = new WeakMap();
+  const preparations = new WeakMap(), requests = new WeakMap();
   let dependencies;
   function code() {
     if (!dependencies) dependencies = (async () => {
@@ -26,7 +27,7 @@
     const viewport = root.querySelector('[data-tdb-usp-viewport]'), track = root.querySelector('[data-tdb-usp-track]');
     const template = root.querySelector('[data-tdb-usp-template]'), title = root.querySelector('[data-tdb-usp-title]');
     const header = root.querySelector('.tdb-usp_header'), footer = root.querySelector('.tdb-usp_footer');
-    const records = [...section.querySelectorAll('[data-tdb-usp-source]')].map(source => ({
+    const records = window.TDBUSPDrawerTemplate?.records(section) || [...section.querySelectorAll('[data-tdb-usp-source]')].map(source => ({
       title: source.querySelector('[data-tdb-usp-source-title]').textContent.trim(),
       logo: source.querySelector('[data-tdb-usp-source-logo]'), body: source.querySelector('[data-tdb-usp-source-body]')
     }));
@@ -133,9 +134,23 @@
   }
   function discover() {
     document.querySelectorAll('[data-tdb-usp]').forEach(section => {
+      if (preparations.has(section)) return;
       let flight;
-      const prepare = () => flight ||= code().then(() => window.TDBSwiper.mount('usp-drawer', section)).catch(error => { flight = null; throw error; });
+      const lazy = section.hasAttribute('data-tdb-usp-lazy');
+      const prepare = () => flight ||= Promise.all([
+        code(),
+        lazy ? Promise.all([
+          window.TDBModules.load(new URL('tdb-usp-drawer-template.js', base), {ready: () => Boolean(window.TDBUSPDrawerTemplate)}),
+          window.TDBModules.load(new URL('tdb-usp-drawer.css', base), {type: 'style'}),
+          window.TDBModules.load(new URL('tdb-drawer.css', base), {type: 'style'})
+        ]).then(() => {
+          if (!section.isConnected) throw Error('Practice highlights section unavailable');
+          window.TDBUSPDrawerTemplate.mount(section);
+        }) : null
+      ]).then(() => window.TDBSwiper.mount('usp-drawer', section)).catch(error => { flight = null; throw error; });
+      preparations.set(section, prepare);
       const triggers = section.querySelectorAll('[data-tdb-usp-launch]');
+      const labels = new Map([...triggers].map(trigger => [trigger, trigger.getAttribute('aria-label')]));
       const zones = [...section.querySelectorAll('[data-tdb-usp-trigger-zone]')];
       let selectedZone = null, pressedZone = null;
       const hovered = new Set();
@@ -165,15 +180,18 @@
       triggers.forEach(trigger => { trigger.setAttribute('aria-disabled', 'false'); trigger.setAttribute('role', 'button'); trigger.tabIndex = 0; });
       async function activate(event) {
         if (event.type === 'keydown' && !['Enter',' '].includes(event.key)) return;
+        if (event.repeat) { event.preventDefault(); return; }
         const item = event.target.closest('[data-tdb-usp-trigger-zone]');
         const trigger = item?.querySelector('[data-tdb-usp-launch]'); if (!trigger) return;
         event.preventDefault(); if (trigger.getAttribute('aria-busy') === 'true') return;
         selectedZone = item; pressedZone = null; reflectBarns();
-        await window.TDBModules.withBusy(trigger, async () => (await prepare()).open(Number(trigger.dataset.tdbUspLaunch), trigger), {
+        if (labels.get(trigger)) trigger.setAttribute('aria-label', labels.get(trigger));
+        await window.TDBModules.withBusy(trigger, () => open(Number(trigger.dataset.tdbUspLaunch), trigger), {
           onError() { trigger.setAttribute('aria-label', 'Unable to load. Try again: ' + item.querySelector('[data-tdb-usp-label]').textContent.trim()); }
         });
       }
       section.addEventListener('click', activate); section.addEventListener('keydown', activate);
+      if (lazy) return; // No proximity, hover, focus or pointer-down warm-up.
       for (const name of ['pointerover','focusin','pointerdown']) section.addEventListener(name, event => { if (event.target.closest('[data-tdb-usp-trigger-zone]')) prepare().catch(() => {}); }, {passive:true});
       if ('IntersectionObserver' in window) {
         const observer = new IntersectionObserver(entries => { if(entries.some(entry => entry.isIntersecting)){ observer.disconnect(); prepare().catch(() => {}); } }, {rootMargin:'500px'});
@@ -181,6 +199,17 @@
       }
     });
   }
-  window.TDBUSPDrawer = Object.freeze({version:'2.2.2',close(){ document.querySelectorAll('[data-tdb-usp]').forEach(root => instances.get(root)?.close()); }});
+  async function open(index = 0, trigger) {
+    const section = trigger?.closest('[data-tdb-usp]') || document.querySelector('[data-tdb-usp]');
+    const prepare = preparations.get(section);
+    if (!prepare) throw Error('Practice highlights section unavailable');
+    const request = {}; requests.set(section, request);
+    const drawer = await prepare();
+    if (requests.get(section) !== request || !section.isConnected) return;
+    const count = section.querySelectorAll('[data-tdb-usp-launch]').length;
+    const selected = Math.max(0, Math.min(count - 1, Number.isInteger(index) ? index : 0));
+    await drawer.open(selected, trigger || section.querySelector(`[data-tdb-usp-launch="${selected}"]`));
+  }
+  window.TDBUSPDrawer = Object.freeze({version:'2.3.1',open,refresh:discover,has:section=>preparations.has(section),close(){ document.querySelectorAll('[data-tdb-usp]').forEach(root => { requests.delete(root); instances.get(root)?.close(); }); }});
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', discover, {once:true}); else discover();
 })();

@@ -18,6 +18,7 @@ module.exports = {
     "src/forms/loader.js",
     "src/runtime/attribution-loader.js",
     "src/brevo/consent.js",
+    "src/usp/loader.js",
     "src/runtime/features-startup.js",
     "src/runtime/runtime.js"
   ],
@@ -97,9 +98,6 @@ module.exports = {
   ],
   "dist/tdb-usp-drawer.js": [
     "src/usp/drawer.js"
-  ],
-  "dist/tdb-usp-loader.js": [
-    "src/usp/loader.js"
   ],
   "dist/tdb-consent-startup.min.js": [
     "src/shared/scroll-lock.js",
