@@ -2,6 +2,7 @@ name: Verify Brevo consent runtime
 on:
   push:
     branches: [work/brevo-consent-runtime-20261014]
+    paths: ['src/brevo/**', 'src/runtime/**', 'tools/runtime-build/targets.cjs', 'tests/brevo-consent.test.cjs', '.github/workflows/brevo-consent.yml']
 permissions:
   contents: write
 jobs:
@@ -14,10 +15,20 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - name: Inspect public Brevo SDK lifecycle
-        run: |
+      - run: |
+          npm ci --prefix tools/runtime-build --ignore-scripts --no-audit --no-fund
+          npm install --prefix /tmp/tdb-brevo-tests --ignore-scripts --no-audit --no-fund jsdom@26.1.0
           curl --fail --silent 'https://cdn.brevo.com/js/sdk-loader.js' -o /tmp/brevo-sdk.js
-          node <<'NODE'
-          const s=require('fs').readFileSync('/tmp/brevo-sdk.js','utf8');
-          console.log(s);
-          NODE
+      - env:
+          NODE_PATH: /tmp/tdb-brevo-tests/node_modules
+          TDB_BREVO_SDK: /tmp/brevo-sdk.js
+        run: |
+          node tools/runtime-build/build-preservation.cjs dist/tdb-runtime.js
+          node --test tests/brevo-consent.test.cjs tests/runtime-ownership.test.cjs tests/navbar-handoff.test.cjs
+      - run: |
+          git add dist/tdb-runtime.js
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Build verified consent-owned Brevo runtime'
+          git push origin HEAD:${{ github.ref_name }}

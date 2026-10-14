@@ -17,6 +17,7 @@ module.exports = {
     "src/shared/carousel-arrow-feedback.js",
     "src/forms/loader.js",
     "src/runtime/attribution-loader.js",
+    "src/brevo/consent.js",
     "src/runtime/features-startup.js",
     "src/runtime/runtime.js"
   ],
