@@ -16,7 +16,7 @@ assert.deepEqual(critical.errors, []);
 assert.deepEqual(critical.warnings, []);
 assert.equal(fs.readFileSync(path.join(root, 'dist/tdb-ui-critical.css'), 'utf8'), critical.styles + '\n');
 assert.ok(!critical.styles.includes('--tdb-ui-ready'), 'Inline CSS must not announce full UI readiness');
-for (const rule of ['[data-fade-slide]', '[data-tdb-nav-basic]', '@keyframes tdbBtnPulseOpacity', 'tdb-phone-landscape']) {
+for (const rule of ['[data-fade-slide]', '[data-tdb-navbar-native]:not([data-tdb-nav-enhanced])', '@keyframes tdbBtnPulseOpacity', 'tdb-phone-landscape']) {
   assert.ok(critical.styles.includes(rule), 'Missing first-paint rule: ' + rule);
 }
 console.log('Critical UI artifact matches its sources; full UI readiness stays external');
