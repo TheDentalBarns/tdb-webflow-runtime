@@ -67,3 +67,10 @@ consent code, UI CSS and font preload removal unchanged. Publish staging only.
 Rollback: restore the custom-code state documented in runtime-ownership.md using
 c6610198cd8248e3b6c5b82c6bfa3b75a17c45db for foundation/runtime and the previous
 parallax/gallery pins. Historical commits preserve the removed files.
+
+
+## Staging verification
+
+Published code commit `d3f537204e1db498f68365537eb339fd015f1d55` to the Webflow staging subdomain only. Publish task: `38912f0c-cfdb-4355-9327-813e4ecf945b`.
+
+Confirmed live navbar, runtime, parallax and gallery assets use the corrected release. No foundation or standalone parallax-progress request remains. Verified navbar open/close, VIP drawer and forms binding, gallery initialization, a queued arrow click during parallax download, treatment navigation and selected-treatment restoration on Back. No console errors or warnings were captured during these checks. No forms were submitted. No LCP improvement is claimed without a new performance measurement.
