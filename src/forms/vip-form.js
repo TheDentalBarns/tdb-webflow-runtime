@@ -1,4 +1,4 @@
-/* Shared VIP form behaviour v1.1.2. Designer owns markup and all visual states.
+/* Shared VIP form behaviour v1.2.0. Designer owns markup and all visual states.
  * Reuses TDBForms for validation/phone handling and Webflow for submission.
  * Original form IDs, field names, option values and attribution are preserved.
  */
@@ -8,7 +8,7 @@
   const SELECT = 'select[name="Treatment-Of-Interest"],select[name="Treatment of Interest"],select[name="Treatment Of Interest"]';
   const FORMS = '#email-form, #vip-drawer-form';
   const SHARE = '[data-tdb-vip-share]';
-  const seen = new WeakSet(), manual = new WeakMap(), tracked = new WeakSet();
+  const seen = new WeakSet(), tracked = new WeakSet();
   const successObservers = new WeakSet();
   const path = location.pathname.toLowerCase().replace(/\/$/, '');
   const acquisition = /^\/vip\/(?:become-a-patient|instagram|x|pinterest|youtube|facebook|google|tiktok)$/.test(path);
@@ -33,16 +33,18 @@
   // This is the existing compatibility mapping, including submitted values.
   function prepareOptions(select) {
     const previous = select.value;
-    const assessment = [...select.options].find(o => /^(Fast Track|Signature Assessment)$/.test(o.value));
-    if (!assessment) return;
-    assessment.textContent = 'Signature Assessment ✦';
-    assessment.value = 'Signature Assessment';
+    const assessmentValue = value => /^(Fast Track|Signature Assessment(?:\s*?)?)$/.test(value);
+    const assessment = [...select.options].find(o => assessmentValue(o.value));
+    if (assessment) {
+      assessment.textContent = 'Signature Assessment ?';
+      assessment.value = 'Signature Assessment';
+      if (select.options[1] !== assessment) select.insertBefore(assessment, select.options[1] || null);
+    }
     let design = [...select.options].find(o => o.value === 'Smile Design');
     if (!design) { design = new Option('Smile Design', 'Smile Design'); select.append(design); }
-    if (select.options[1] !== assessment) select.insertBefore(assessment, select.options[1] || null);
     const unsure = [...select.options].find(o => /not sure|don.t know/i.test(o.textContent));
     if (unsure && select.lastElementChild !== unsure) select.append(unsure);
-    select.value = previous === 'Fast Track' ? 'Signature Assessment' : previous;
+    select.value = assessmentValue(previous) ? 'Signature Assessment' : previous;
   }
 
   function updateIntro(select) {
@@ -50,7 +52,7 @@
     const intro = wrapper?.querySelector('[data-tdb-vip-intro]');
     if (!intro) return;
     if (acquisition) {
-      const copy = 'Your access to exclusive appointment releases and bespoke care at The Dental Barns, including Signature Assessment ✦ appointments and Smile Design consultations with Dr Keely.';
+      const copy = 'Your access to exclusive appointment releases and bespoke care at The Dental Barns, including Signature Assessment ? appointments and Smile Design consultations with Dr Keely.';
       if (intro.textContent !== copy) intro.textContent = copy;
       const title = wrapper.querySelector('.vip-form_top .text-style-tagline');
       if (title && title.textContent !== 'Join our VIP Waitlist') title.textContent = 'Join our VIP Waitlist';
@@ -63,8 +65,8 @@
     const value = select.value;
     const treatments = {'Veneers':'porcelain veneers','Composite Bonding':'composite bonding','Invisalign':'Invisalign','Whitening':'teeth whitening','Cosmetic Dentistry':'cosmetic dentistry','Restorative Dentistry':'restorative dental care'};
     const local = /sutton-coldfield/.test(path) ? ' near Sutton Coldfield' : /tamworth/.test(path) ? ' near Tamworth' : '';
-    const access = 'Join The Dental Barns VIP for private access to a Signature Assessment ✦ with Dr Keely.';
-    let copy = 'Access Signature Assessment ✦ and Smile Design appointments at The Dental Barns.';
+    const access = 'Join The Dental Barns VIP for private access to a Signature Assessment ? with Dr Keely.';
+    let copy = 'Access Signature Assessment ? and Smile Design appointments at The Dental Barns.';
     if (value === 'Smile Design') copy = 'Prefer to start with a conversation? Join the Smile Design Waitlist. Limited appointments are released from time to time, with booking links shared exclusively with our waitlist.';
     else if (treatments[value]) copy = 'Considering ' + treatments[value] + local + '? ' + access;
     else if (value === 'Nervous Patient Care') copy = 'Feeling nervous about dental care? ' + access + ' We will take time to understand your concerns.';
@@ -73,15 +75,20 @@
     if (intro.textContent !== copy) intro.textContent = copy;
   }
 
-  function apply(select) {
-    const value = manual.has(select) ? manual.get(select) : preferred;
-    if ((value || manual.has(select)) && [...select.options].some(o => o.value === value)) select.value = value;
+  function render(select) {
     select.classList.toggle('is-filled', !!select.value);
     select.classList.toggle('placeholder', !select.value);
     updateIntro(select);
   }
 
-  const drawerLabel = acquisition ? 'Reserve my place' : /\/services\/smile-design$/.test(path) ? 'Join the Smile Design Waitlist' : /\/services\/(?:fast-track|signature-assessment)$/.test(path) ? 'View Available Appointments' : /\/(?:treatments|areas|pricing)\//.test(path) && /veneers|bonding|invisalign|clear-aligners|whitening/.test(path) ? 'Start with a Signature Assessment ✦' : 'Join VIP';
+  function initialise(select) {
+    prepareOptions(select);
+    if (!select.value && !window.TDBFormsLoader?.wasEdited(select) && preferred &&
+        [...select.options].some(option => option.value === preferred)) select.value = preferred;
+    render(select);
+  }
+
+  const drawerLabel = acquisition ? 'Reserve my place' : /\/services\/smile-design$/.test(path) ? 'Join the Smile Design Waitlist' : /\/services\/(?:fast-track|signature-assessment)$/.test(path) ? 'View Available Appointments' : /\/(?:treatments|areas|pricing)\//.test(path) && /veneers|bonding|invisalign|clear-aligners|whitening/.test(path) ? 'Start with a Signature Assessment ?' : 'Join VIP';
   function updateDrawerLabel() {
     const drawer = document.getElementById('tdb-vip-drawer');
     const text = drawer?.querySelector('.tdb-vip-drawer-label');
@@ -92,11 +99,13 @@
 
   function checkSuccess(wrapper) {
     // Skip geometry when tracking cannot run or this form already sent its lead.
-    if (tracked.has(wrapper) || typeof window.fbq !== 'function' || !wrapper.querySelector(FORMS)) return;
+    if (tracked.has(wrapper) || !wrapper.querySelector(FORMS)) return;
     const success = wrapper.querySelector('.w-form-done');
     if (!success || success.hidden || success.style.display === 'none') return;
     if (getComputedStyle(success).display === 'none' || !success.getClientRects().length) return;
     tracked.add(wrapper);
+    // Match the existing Meta owner. A lingering fbq global is not consent.
+    if (!window.TDBConsent?.allows('performance') || typeof window.fbq !== 'function') return;
     window.fbq('trackSingle', '1326762815429148', 'Lead');
   }
 
@@ -112,9 +121,19 @@
     if (event.target.closest?.('#vip-drawer-form')) fieldStates();
   });
   document.addEventListener('reset', event => {
-    if (event.target.matches?.(FORMS)) queueMicrotask(() => fieldStates());
+    if (event.target.matches?.(FORMS)) queueMicrotask(() => {
+      if (event.defaultPrevented) return;
+      // Native reset owns values; rendering must not reapply page suggestions.
+      event.target.querySelectorAll(SELECT).forEach(render);
+      fieldStates();
+      window.TDBForms?.refresh(event.target);
+    });
   });
-  window.addEventListener('pageshow', () => fieldStates());
+  window.addEventListener('pageshow', () => {
+    document.querySelectorAll(SELECT).forEach(render);
+    fieldStates();
+    window.TDBForms?.refresh();
+  });
 
   function scan(root) {
     const selector = SELECT + ',' + FORMS;
@@ -122,7 +141,7 @@
     const selects = candidates.filter(node => node.matches(SELECT));
     selects.forEach(select => {
       if (seen.has(select)) return;
-      seen.add(select); prepareOptions(select); apply(select);
+      seen.add(select); initialise(select);
     });
     const forms = candidates.filter(node => node.matches(FORMS));
     forms.forEach(form => {
@@ -146,29 +165,38 @@
   document.addEventListener('change', event => {
     const select = event.target;
     if (!select.matches?.(SELECT)) return;
-    if (event.isTrusted) manual.set(select, select.value);
-    apply(select);
+    render(select);
   }, true);
   document.addEventListener('focusin', event => {
-    if (event.target.matches?.(SELECT)) apply(event.target);
+    if (event.target.matches?.(SELECT)) render(event.target);
   });
   document.addEventListener('click', event => {
     if (!event.target.closest?.(SHARE)) return;
     event.preventDefault(); share();
   });
   document.addEventListener('keydown', event => {
-    if (event.key !== ' ' || !event.target.matches?.(SHARE) || event.target.tagName === 'BUTTON') return;
-    event.preventDefault(); event.target.click();
+    const trigger = event.target.closest?.(SHARE);
+    if (!trigger || event.defaultPrevented || ![' ', 'Enter'].includes(event.key) ||
+        trigger.tagName === 'BUTTON' || (trigger.matches('a[href]') && event.key === 'Enter')) return;
+    event.preventDefault();
+    if (!event.repeat) trigger.click();
   });
 
   window.TDBVIPInterest = Object.freeze({
     fromCalculator(value) {
       preferred = value === 'Smile Design' ? 'Smile Design' : 'Signature Assessment';
-      document.querySelectorAll(SELECT).forEach(apply);
+      document.querySelectorAll(SELECT).forEach(select => {
+        if ([...select.options].some(option => option.value === preferred)) select.value = preferred;
+        render(select);
+      });
       window.TDBForms?.refresh();
     }
   });
-  window.TDBVIPForm = Object.freeze({version:'1.1.2', refresh:() => {scan(document); fieldStates(); updateDrawerLabel();}});
+  window.TDBVIPForm = Object.freeze({version:'1.2.0', refresh:() => {
+    scan(document);
+    document.querySelectorAll(SELECT).forEach(render);
+    fieldStates(); updateDrawerLabel();
+  }});
   function start() {
     scan(document); fieldStates(); updateDrawerLabel();
     // Existing multiline-copy compatibility; appearance remains in native classes.
@@ -190,3 +218,4 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once:true}); else start();
 })();
+

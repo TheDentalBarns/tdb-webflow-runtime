@@ -1,7 +1,8 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.1.0';
+  if (window.TDBForms) return;
+  const VERSION = '0.2.0';
   const VALIDATED_FORM_SELECTOR = 'form[ms-code-submit-form]';
   const BOUND_ATTRIBUTE = 'data-tdb-forms-bound';
   const PLACEHOLDER_SELECT_SELECTOR = [
@@ -118,6 +119,12 @@
       },
       true
     );
+    form.addEventListener('reset', event => queueMicrotask(() => {
+      if (!event.defaultPrevented) {
+        bindPlaceholderSelects(form);
+        updateSubmitState(form);
+      }
+    }));
   }
 
   function refresh(root = document) {
@@ -148,8 +155,9 @@
 
     window.TDBForms = Object.freeze({
       version: VERSION,
-      refresh: () => refresh()
+      refresh
     });
+    window.addEventListener('pageshow', () => refresh());
   }
 
   if (document.readyState === 'loading') {
@@ -158,3 +166,4 @@
     start();
   }
 })();
+

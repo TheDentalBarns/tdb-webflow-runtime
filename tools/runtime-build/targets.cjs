@@ -55,7 +55,11 @@ module.exports = {
     "src/reviews/native/cards.js"
   ],
   "dist/tdb-vip-form.js": [
+    "src/forms/forms.js",
     "src/forms/vip-form.js"
+  ],
+  "dist/tdb-forms.min.js": [
+    "src/forms/forms.js"
   ],
   "dist/tdb-five-senses-loader.js": [
     "src/five-senses/loader.js"
@@ -112,4 +116,5 @@ module.exports = {
     "src/navbar/navbar-enhancement.js"
   ]
 };
+
 
