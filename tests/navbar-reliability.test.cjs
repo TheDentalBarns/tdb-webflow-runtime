@@ -64,11 +64,3 @@ test('late shared lock catches an open menu and retains BFCache handling',async(
   menu.removeAttribute('data-nav-menu-open');await tick();assert.equal(active,0);
  }finally{f.close();}
 });
-test('legacy fallback waits for modules and ignores the claimed native root',()=>{
- for(const legacy of [false,true]){const f=fixture();try{
-  f.nav().setAttribute('fs-scrolldisable-element','smart-nav');
-  if(legacy){const node=f.d.createElement('button');node.setAttribute('fs-scrolldisable-element','toggle');f.d.body.append(node);}
-  let loads=0;f.w.TDBModules={load(){loads++;return Promise.resolve();}};
-  f.d.querySelector('[data-tdb-consent-js]').dispatchEvent(new f.w.Event('load'));assert.equal(loads,Number(legacy));
- }finally{f.close();}}
-});

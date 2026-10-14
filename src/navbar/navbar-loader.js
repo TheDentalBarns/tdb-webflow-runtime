@@ -61,7 +61,7 @@ window.TDBNavbarState.whenReady(() => {
   (window.Webflow ||= []).push(() => { if (!ready) setDuration(0); });
   stopWatching = state.watch(isOpen, sync);
   window.TDBNavbarLoader = Object.freeze({
-    version: '2.0.1',
+    version: '2.0.2',
     prepare: () => window.TDBRuntime?.enhanceNavbar?.() || Promise.resolve(false),
     register(callback) { if (!ready) { installer = callback; sync(); } },
     activate(background) {

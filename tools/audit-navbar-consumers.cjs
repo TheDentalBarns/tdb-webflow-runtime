@@ -2,7 +2,7 @@ const {JSDOM}=require('jsdom');
 const base='https://dentalbarns.webflow.io';
 const paths=["/partner-content","/awards-component-review","/review-pages","/reviews","/review-content","/dental-cost-calculator","/five-senses-experience","/smile-gallery","/privacy-policy","/careers","/vip-west-end","/vip-sanctuary","/vip-smiles","/vip-awards","/vip-christmas","/vip-posh","/vip-inpractice","/vip","/search","/first-visit","/about-us","/contact","/blog","/dental-cost-lichfield","/location","/404","/401","/"];
 (async()=>{
- const home=await (await fetch(base)).text();
+ const home=await (await fetch(base,{signal:AbortSignal.timeout(30000)})).text();
  const d=new JSDOM(home).window.document;
  for(const a of d.querySelectorAll('a[href]')){const u=new URL(a.href,base);if(u.origin===base&&/^\/(services|treatments|areas|post)\//.test(u.pathname))paths.push(u.pathname);}
  const unique=[...new Set(paths)], rows=[];
@@ -15,5 +15,7 @@ const paths=["/partner-content","/awards-component-review","/review-pages","/rev
   })));
  }
  console.log('AUDIT '+JSON.stringify(rows));
- console.log('LEGACY '+JSON.stringify(rows.filter(r=>r.hooks.some(h=>h.hook!=='preserve'&&!h.native))));
+ const legacy=rows.filter(r=>r.hooks.some(h=>h.hook!=='preserve'&&!h.native));
+ console.log('LEGACY '+JSON.stringify(legacy));
+ if(legacy.length||rows.some(r=>r.status!==200))throw Error('Published legacy-consumer audit failed');
 })().catch(e=>{console.error(e);process.exitCode=1;});

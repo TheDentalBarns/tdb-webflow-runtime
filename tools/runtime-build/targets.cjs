@@ -105,11 +105,11 @@ module.exports = {
     "src/navbar/navbar-state.js",
     "src/navbar/native-foundation.js",
     "src/navbar/navbar-mobile-lock.js",
-    "src/navbar/navbar-loader.js",
-    "src/navbar/scroll-lock-fallback.js"
+    "src/navbar/navbar-loader.js"
   ],
   "dist/tdb-navbar.min.js": [
     "src/shared/panel-motion.js",
     "src/navbar/navbar-enhancement.js"
   ]
 };
+
