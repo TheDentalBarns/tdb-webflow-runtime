@@ -61,3 +61,10 @@ test('already discovered adapter handles clicks without a new loader request',as
 test('destroy during loading prevents delayed replay',async()=>{
  const f=fixture();try{f.start();f.hold();f.trigger().click();await tick();f.w.TDBUSPDrawerLoader.destroy();f.release();await tick();await tick();assert.equal(f.opens.length,0);assert(!f.trigger().hasAttribute('aria-busy'))}finally{f.close()}
 });
+
+test('click during runtime idle startup is retained by the shared interaction capture',async()=>{
+ const f=fixture();try{f.w.eval(read('src/runtime/interaction-state.js'));f.trigger().click();await tick();await tick();assert.equal(f.opens.length,1);f.w.dispatchEvent(new f.w.Event('tdb:features-ready'))}finally{f.close()}
+});
+test('hover after discovery does not rescan or reload the adapter',async()=>{
+ const f=fixture();try{f.start();f.trigger().dispatchEvent(new f.w.Event('pointerover',{bubbles:true}));await tick();f.trigger().dispatchEvent(new f.w.Event('pointerover',{bubbles:true}));await tick();assert.deepEqual(f.requests,['tdb-usp-drawer.js'])}finally{f.close()}
+});

@@ -82,7 +82,10 @@ function prepareUSPDrawerLoader() {
   for (const type of ['click', 'keydown'])
     document.addEventListener(type, activate, {capture: true, signal: events.signal});
   for (const type of ['pointerover', 'focusin', 'pointerdown'])
-    document.addEventListener(type, event => { if (target(event)) warm(); }, {passive: true, signal: events.signal});
+    document.addEventListener(type, event => {
+      const trigger = target(event);
+      if (trigger && !window.TDBUSPDrawer?.has?.(trigger.closest(selector))) warm();
+    }, {passive: true, signal: events.signal});
   window.TDBUSPDrawerLoader = Object.freeze({
     version: '2.0.0', load, open, refresh,
     destroy() { disposed = true; events.abort(); proximity?.disconnect(); }
