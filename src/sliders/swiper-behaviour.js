@@ -9,33 +9,54 @@
   function matchingSlides(swiper, slide = swiper.slides[swiper.activeIndex]) {
     if (!slide) return [];
     const key = slide.getAttribute('data-swiper-slide-index');
-    return key == null ? [slide] : [...swiper.slides].filter(node =>
-      node.getAttribute('data-swiper-slide-index') === key);
+    return key == null
+      ? [slide]
+      : [...swiper.slides].filter((node) => node.getAttribute('data-swiper-slide-index') === key);
   }
 
   // Includes snap-back to the same slide and a release with no transition.
   // Internal zero-duration loop corrections are not user-visible settlements.
   function onSettled(swiper, callback) {
-    let disposed = false, looping = false, touching = false, queued = false;
-    const beforeLoop = () => { looping = true; };
-    const afterLoop = () => { looping = false; };
-    const touchStart = () => { touching = true; };
-    const settle = reason => {
+    let disposed = false,
+      looping = false,
+      touching = false,
+      queued = false;
+    const beforeLoop = () => {
+      looping = true;
+    };
+    const afterLoop = () => {
+      looping = false;
+    };
+    const touchStart = () => {
+      touching = true;
+    };
+    const settle = (reason) => {
       if (disposed || looping || touching || queued) return;
       queued = true;
       queueMicrotask(() => {
         queued = false;
-        if (!disposed && !swiper.destroyed && !looping && !touching && !swiper.animating) callback(reason);
+        if (!disposed && !swiper.destroyed && !looping && !touching && !swiper.animating)
+          callback(reason);
       });
     };
-    const touchEnd = () => { touching = false; settle('release'); };
+    const touchEnd = () => {
+      touching = false;
+      settle('release');
+    };
     const transitionEnd = () => settle('transition');
-    const handlers = { beforeLoopFix: beforeLoop, loopFix: afterLoop, touchStart,
-      touchEnd, transitionEnd, beforeDestroy: () => destroy(true) };
+    const handlers = {
+      beforeLoopFix: beforeLoop,
+      loopFix: afterLoop,
+      touchStart,
+      touchEnd,
+      transitionEnd,
+      beforeDestroy: () => destroy(true),
+    };
     function destroy(fromSwiper = false) {
       if (disposed) return;
       disposed = true;
-      if (!fromSwiper) Object.entries(handlers).forEach(([event, handler]) => swiper.off(event, handler));
+      if (!fromSwiper)
+        Object.entries(handlers).forEach(([event, handler]) => swiper.off(event, handler));
     }
     Object.entries(handlers).forEach(([event, handler]) => swiper.on(event, handler));
     return destroy;
@@ -58,14 +79,22 @@
     let releasePending = false;
 
     function restoreReleaseEasing() {
-      releaseStyles.forEach((value, el) => { el.style.transitionTimingFunction = value; });
+      releaseStyles.forEach((value, el) => {
+        el.style.transitionTimingFunction = value;
+      });
       releaseStyles.clear();
     }
 
     function applyReleaseEasing() {
-      const nodes = [swiper.wrapperEl, ...[...swiper.slides].flatMap(slide =>
-        [...slide.querySelectorAll('[data-swiper-parallax], [data-swiper-parallax-x], [data-swiper-parallax-y]')])];
-      nodes.forEach(el => {
+      const nodes = [
+        swiper.wrapperEl,
+        ...[...swiper.slides].flatMap((slide) => [
+          ...slide.querySelectorAll(
+            '[data-swiper-parallax], [data-swiper-parallax-x], [data-swiper-parallax-y]',
+          ),
+        ]),
+      ];
+      nodes.forEach((el) => {
         if (!releaseStyles.has(el)) releaseStyles.set(el, el.style.transitionTimingFunction || '');
         el.style.transitionTimingFunction = releaseEasing;
       });
@@ -75,8 +104,11 @@
       return [...swiper.slides].flatMap((slide, index) => {
         const key = slide.getAttribute('data-swiper-slide-index') ?? String(index);
         const x = slide.getBoundingClientRect()[axis];
-        return [...slide.querySelectorAll('[data-swiper-parallax], [data-swiper-parallax-x], [data-swiper-parallax-y]')]
-          .map((el, slot) => ({ el, key, slot, x, transform: getComputedStyle(el).transform }));
+        return [
+          ...slide.querySelectorAll(
+            '[data-swiper-parallax], [data-swiper-parallax-x], [data-swiper-parallax-y]',
+          ),
+        ].map((el, slot) => ({ el, key, slot, x, transform: getComputedStyle(el).transform }));
       });
     }
 
@@ -92,14 +124,25 @@
       void wrapper.offsetWidth;
     }
 
-    swiper.slideTo = function (index = 0, speed = this.params.speed, callbacks = true, internal, initial) {
+    swiper.slideTo = function (
+      index = 0,
+      speed = this.params.speed,
+      callbacks = true,
+      internal,
+      initial,
+    ) {
       // A loop's zero-duration correction must not consume the pending release.
       const touchRelease = releasePending && speed > 0;
       if (speed > 0) releasePending = false;
       if (this.animating && this.params.preventInteractionOnTransition) {
         return original.slideTo.call(this, index, speed, callbacks, internal, initial);
       }
-      if (speed > 0 && (Number(index) !== this.activeIndex || releaseStyles.size) && this.animating && !this.params.preventInteractionOnTransition) {
+      if (
+        speed > 0 &&
+        (Number(index) !== this.activeIndex || releaseStyles.size) &&
+        this.animating &&
+        !this.params.preventInteractionOnTransition
+      ) {
         freeze(capture());
       }
       if (touchRelease) applyReleaseEasing();
@@ -120,9 +163,14 @@
         if (previous != null && next != null && Math.abs(previous - next) > 0.1) {
           this.setTranslate(this.getTranslate() + previous - next);
         }
-        capture().forEach(item => {
-          const match = items.filter(old => old.key === item.key && old.slot === item.slot)
-            .reduce((nearest, old) => !nearest || Math.abs(old.x - item.x) < Math.abs(nearest.x - item.x) ? old : nearest, null);
+        capture().forEach((item) => {
+          const match = items
+            .filter((old) => old.key === item.key && old.slot === item.slot)
+            .reduce(
+              (nearest, old) =>
+                !nearest || Math.abs(old.x - item.x) < Math.abs(nearest.x - item.x) ? old : nearest,
+              null,
+            );
           if (match) {
             item.el.style.transitionDuration = '0ms';
             item.el.style.transform = match.transform;
@@ -147,7 +195,9 @@
       releasePending = !!swiper.touchEventsData?.isMoved && swiper.allowTouchMove !== false;
       // Swiper resolves a touch snap synchronously after emitting touchEnd.
       // A tap, cancelled gesture or zero-distance release cannot affect a later click.
-      queueMicrotask(() => { releasePending = false; });
+      queueMicrotask(() => {
+        releasePending = false;
+      });
     });
     swiper.on('transitionEnd', restoreReleaseEasing);
     swiper.on('beforeDestroy', () => {
@@ -160,6 +210,20 @@
   }
 
   /* TDB_SWIPER_PLUGINS */
-  window.TDBSwiper = Object.freeze({ version: '1.5.0', matchingSlides, onSettled, firstView, nativeGap, bindSwiper, create, register, mount, observe, refresh, prune, watchDuration,
-    plugins: () => [...plugins.keys()] });
+  window.TDBSwiper = Object.freeze({
+    version: '1.5.0',
+    matchingSlides,
+    onSettled,
+    firstView,
+    nativeGap,
+    bindSwiper,
+    create,
+    register,
+    mount,
+    observe,
+    refresh,
+    prune,
+    watchDuration,
+    plugins: () => [...plugins.keys()],
+  });
 })();

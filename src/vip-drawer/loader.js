@@ -1,7 +1,11 @@
 /* Preserved VIP loading and intent; initialized by runtime. */
 function tdbPreloadVIPScript(src) {
-  if ((tdbUIIsReady() && tdbStyleIsReady('--tdb-vip-ui-ready')) || document.querySelector('link[data-tdb-vip-preload]') ||
-      document.querySelector('script[data-tdb-vip-drawer-js]')) return;
+  if (
+    (tdbUIIsReady() && tdbStyleIsReady('--tdb-vip-ui-ready')) ||
+    document.querySelector('link[data-tdb-vip-preload]') ||
+    document.querySelector('script[data-tdb-vip-drawer-js]')
+  )
+    return;
   const link = document.createElement('link');
   link.rel = 'preload';
   link.as = 'script';
@@ -52,7 +56,9 @@ function tdbLoadVIPScript(src, retries = 1) {
       document.querySelector('link[data-tdb-vip-preload]')?.remove();
       resolve(window.TDBVIPDrawer);
     }
-    function failed() { fail(new Error('TDB VIP request failed')); }
+    function failed() {
+      fail(new Error('TDB VIP request failed'));
+    }
     script.addEventListener('load', loaded);
     script.addEventListener('error', failed);
     timeout = setTimeout(() => fail(new Error('TDB VIP request timed out')), 15000);
@@ -65,16 +71,19 @@ function prepareVIPDrawerLoader() {
   const drawer = document.getElementById('tdb-vip-drawer');
   if (!drawer) return;
 
-  const demand = document.documentElement.getAttribute('data-wf-page') === '677cf86df9952f978d94d8a9';
-  const triggerSelector = '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
+  const demand =
+    document.documentElement.getAttribute('data-wf-page') === '677cf86df9952f978d94d8a9';
+  const triggerSelector =
+    '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
   // VIP ships with this footer release; other feature pins stay independent.
-  const jsUrl = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@405af73d4d62619c66bb1140ee6f1e6081b0559c/dist/tdb-vip-drawer.js';
+  const jsUrl =
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@405af73d4d62619c66bb1140ee6f1e6081b0559c/dist/tdb-vip-drawer.js';
   let loadingPromise = null;
   let armed = false;
   // Prefer the window scroll offset, including zero, without also asking the
   // root element for layout. Retain the element fallback for older engines.
   const pageY = () => Math.max(window.scrollY ?? document.documentElement.scrollTop ?? 0, 0);
-  const scrollSeed = {...window.TDBRuntimePageState.vipScrollSeed};
+  const scrollSeed = { ...window.TDBRuntimePageState.vipScrollSeed };
   const realDrawerReady = () => Boolean(window.TDBVIPDrawer);
 
   function cleanup() {
@@ -103,7 +112,7 @@ function prepareVIPDrawerLoader() {
         cleanup();
         return api;
       })
-      .catch(error => {
+      .catch((error) => {
         document.querySelector('link[data-tdb-vip-preload]')?.remove();
         loadingPromise = null;
         console.error('TDB VIP Drawer failed to load');
@@ -117,24 +126,32 @@ function prepareVIPDrawerLoader() {
     return target instanceof Element ? target.closest(triggerSelector) : null;
   }
   function fallbackToForm() {
-    const section = Array.from(document.querySelectorAll('#VIP')).find(node => !drawer.contains(node));
+    const section = Array.from(document.querySelectorAll('#VIP')).find(
+      (node) => !drawer.contains(node),
+    );
     if (section) {
-      section.scrollIntoView({behavior:'smooth',block:'start'});
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
       const field = section.querySelector('input:not([type="hidden"]),button,a[href]');
-      field?.focus({preventScroll:true});
+      field?.focus({ preventScroll: true });
     } else location.assign('/vip/become-a-patient');
   }
   let opening = null;
   function openFromTrigger(source) {
     if (opening) return opening;
-    opening = loadDrawer().then(api => {
-      window.dispatchEvent(new CustomEvent('tdb:vip-open-intent',{detail:{source}}));
-      api.open();
-    }).catch(fallbackToForm).finally(() => {opening=null;});
+    opening = loadDrawer()
+      .then((api) => {
+        window.dispatchEvent(new CustomEvent('tdb:vip-open-intent', { detail: { source } }));
+        api.open();
+      })
+      .catch(fallbackToForm)
+      .finally(() => {
+        opening = null;
+      });
     return opening;
   }
   function openAfterLoad(event) {
-    event.preventDefault(); event.stopPropagation();
+    event.preventDefault();
+    event.stopPropagation();
     openFromTrigger(findTrigger(event));
   }
   function onIntentClick(event) {
@@ -142,10 +159,13 @@ function prepareVIPDrawerLoader() {
     openAfterLoad(event);
   }
   function onIntentKeydown(event) {
-    if (realDrawerReady() || (event.key !== 'Enter' && event.key !== ' ') || !findTrigger(event)) return;
+    if (realDrawerReady() || (event.key !== 'Enter' && event.key !== ' ') || !findTrigger(event))
+      return;
     openAfterLoad(event);
   }
-  const loadSafely = () => { loadDrawer().catch(() => {}); };
+  const loadSafely = () => {
+    loadDrawer().catch(() => {});
+  };
   function onPrepareIntent(event) {
     if (findTrigger(event)) loadSafely();
   }
@@ -190,13 +210,19 @@ function prepareVIPDrawerLoader() {
 
   arm();
   if (/^#vip/i.test(location.hash || '')) loadSafely();
-  else if (demand) { if (window.TDBRuntimePageState.vipScrollSeed.lastY > 0) loadSafely(); }
-  else loadSafely();
+  else if (demand) {
+    if (window.TDBRuntimePageState.vipScrollSeed.lastY > 0) loadSafely();
+  } else loadSafely();
 
   window.TDBVIPDrawerLoader = Object.freeze({
     version: '1.4.1',
     load: loadDrawer,
     open: openFromTrigger,
-    status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) && !realDrawerReady(), uiReady: tdbUIIsReady(), demand }),
+    status: () => ({
+      loaded: realDrawerReady(),
+      loading: Boolean(loadingPromise) && !realDrawerReady(),
+      uiReady: tdbUIIsReady(),
+      demand,
+    }),
   });
 }

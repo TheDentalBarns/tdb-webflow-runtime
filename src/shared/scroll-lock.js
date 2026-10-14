@@ -7,10 +7,14 @@
   if (window.TDBScrollLock) return;
   const owners = new Map();
   const html = document.documentElement;
-  let previousLenis, touch = null;
+  let previousLenis,
+    touch = null;
   function roots() {
-    return [...owners.values()].flatMap(options =>
-      typeof options.allow === 'function' ? options.allow() : options.allow || []).filter(Boolean);
+    return [...owners.values()]
+      .flatMap((options) =>
+        typeof options.allow === 'function' ? options.allow() : options.allow || [],
+      )
+      .filter(Boolean);
   }
   function canScroll(target, dx, dy) {
     const allowed = roots();
@@ -18,25 +22,34 @@
     const delta = horizontal ? dx : dy;
     if (!delta) return true;
     let node = target instanceof Element ? target : target?.parentElement;
-    for (; node && allowed.some(root => root === node || root.contains(node)); node = node.parentElement) {
+    for (
+      ;
+      node && allowed.some((root) => root === node || root.contains(node));
+      node = node.parentElement
+    ) {
       const css = getComputedStyle(node);
       if (!/(auto|scroll|overlay)/.test(horizontal ? css.overflowX : css.overflowY)) continue;
       const position = horizontal ? node.scrollLeft : node.scrollTop;
-      const extent = horizontal ? node.scrollWidth - node.clientWidth : node.scrollHeight - node.clientHeight;
+      const extent = horizontal
+        ? node.scrollWidth - node.clientWidth
+        : node.scrollHeight - node.clientHeight;
       if (extent > 1 && (delta < 0 ? position > 0 : position < extent - 1)) return true;
     }
     return false;
   }
   function wheel(event) {
-    if (!event.ctrlKey && !canScroll(event.target, event.deltaX, event.deltaY)) event.preventDefault();
+    if (!event.ctrlKey && !canScroll(event.target, event.deltaX, event.deltaY))
+      event.preventDefault();
   }
   function start(event) {
-    touch = event.touches.length === 1 ? [event.touches[0].clientX, event.touches[0].clientY] : null;
+    touch =
+      event.touches.length === 1 ? [event.touches[0].clientX, event.touches[0].clientY] : null;
   }
   function move(event) {
     if (!touch || event.touches.length !== 1) return;
     const point = event.touches[0];
-    const dx = touch[0] - point.clientX, dy = touch[1] - point.clientY;
+    const dx = touch[0] - point.clientX,
+      dy = touch[1] - point.clientY;
     touch = [point.clientX, point.clientY];
     if (!canScroll(event.target, dx, dy)) event.preventDefault();
   }
@@ -73,7 +86,11 @@
       if (owners.delete(token) && !owners.size) unlock();
     };
   }
-  window.TDBScrollLock = Object.freeze({ version: '1.0.3', acquire,
-    get active() { return owners.size > 0; }
+  window.TDBScrollLock = Object.freeze({
+    version: '1.0.3',
+    acquire,
+    get active() {
+      return owners.size > 0;
+    },
   });
 })();

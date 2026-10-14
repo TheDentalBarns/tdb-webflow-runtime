@@ -5,25 +5,43 @@
 (() => {
   'use strict';
   if (window.TDBVIPForm) return;
-  const SELECT = 'select[name="Treatment-Of-Interest"],select[name="Treatment of Interest"],select[name="Treatment Of Interest"]';
+  const SELECT =
+    'select[name="Treatment-Of-Interest"],select[name="Treatment of Interest"],select[name="Treatment Of Interest"]';
   const FORMS = '#email-form, #vip-drawer-form';
   const SHARE = '[data-tdb-vip-share]';
-  const seen = new WeakSet(), tracked = new WeakSet();
+  const seen = new WeakSet(),
+    tracked = new WeakSet();
   const successObservers = new WeakSet();
   const path = location.pathname.toLowerCase().replace(/\/$/, '');
-  const acquisition = /^\/vip\/(?:become-a-patient|instagram|x|pinterest|youtube|facebook|google|tiktok)$/.test(path);
-  const allowed = ['Cosmetic Dentistry','Restorative Dentistry','Signature Assessment','Smile Design','Nervous Patient Care','Invisalign','Composite Bonding','Veneers','Whitening'];
+  const acquisition =
+    /^\/vip\/(?:become-a-patient|instagram|x|pinterest|youtube|facebook|google|tiktok)$/.test(path);
+  const allowed = [
+    'Cosmetic Dentistry',
+    'Restorative Dentistry',
+    'Signature Assessment',
+    'Smile Design',
+    'Nervous Patient Care',
+    'Invisalign',
+    'Composite Bonding',
+    'Veneers',
+    'Whitening',
+  ];
   const requested = new URLSearchParams(location.search).get('interest');
 
   function pageInterest() {
-    if (['/first-visit','/fast-track','/signature-assessment'].includes(path)) return 'Signature Assessment';
+    if (['/first-visit', '/fast-track', '/signature-assessment'].includes(path))
+      return 'Signature Assessment';
     if (!/^\/(services|treatments|areas|pricing)\//.test(path)) return '';
     const routes = [
       [/signature-assessment|fast-track|smile-assessment/, 'Signature Assessment'],
-      [/smile-design/, 'Smile Design'], [/nervous/, 'Nervous Patient Care'],
-      [/invisalign|clear-aligners/, 'Invisalign'], [/composite-bonding/, 'Composite Bonding'],
-      [/veneers/, 'Veneers'], [/whitening/, 'Whitening'],
-      [/general-dentistry|restorative/, 'Restorative Dentistry'], [/cosmetic/, 'Cosmetic Dentistry']
+      [/smile-design/, 'Smile Design'],
+      [/nervous/, 'Nervous Patient Care'],
+      [/invisalign|clear-aligners/, 'Invisalign'],
+      [/composite-bonding/, 'Composite Bonding'],
+      [/veneers/, 'Veneers'],
+      [/whitening/, 'Whitening'],
+      [/general-dentistry|restorative/, 'Restorative Dentistry'],
+      [/cosmetic/, 'Cosmetic Dentistry'],
     ];
     return routes.find(([pattern]) => pattern.test(path))?.[1] || '';
   }
@@ -33,45 +51,73 @@
   // This is the existing compatibility mapping, including submitted values.
   function prepareOptions(select) {
     const previous = select.value;
-    const assessmentValue = value => /^(Fast Track|Signature Assessment(?:\s*✦)?)$/.test(value);
-    const assessment = [...select.options].find(o => assessmentValue(o.value));
+    const assessmentValue = (value) => /^(Fast Track|Signature Assessment(?:\s*✦)?)$/.test(value);
+    const assessment = [...select.options].find((o) => assessmentValue(o.value));
     if (assessment) {
       assessment.textContent = 'Signature Assessment ✦';
       assessment.value = 'Signature Assessment';
-      if (select.options[1] !== assessment) select.insertBefore(assessment, select.options[1] || null);
+      if (select.options[1] !== assessment)
+        select.insertBefore(assessment, select.options[1] || null);
     }
-    let design = [...select.options].find(o => o.value === 'Smile Design');
-    if (!design) { design = new Option('Smile Design', 'Smile Design'); select.append(design); }
-    const unsure = [...select.options].find(o => /not sure|don.t know/i.test(o.textContent));
+    let design = [...select.options].find((o) => o.value === 'Smile Design');
+    if (!design) {
+      design = new Option('Smile Design', 'Smile Design');
+      select.append(design);
+    }
+    const unsure = [...select.options].find((o) => /not sure|don.t know/i.test(o.textContent));
     if (unsure && select.lastElementChild !== unsure) select.append(unsure);
     select.value = assessmentValue(previous) ? 'Signature Assessment' : previous;
   }
 
   function updateIntro(select) {
-    const wrapper = select.closest('.vip-form_wrapper') || select.closest('.tdb-vip-drawer-body') || select.closest('section');
+    const wrapper =
+      select.closest('.vip-form_wrapper') ||
+      select.closest('.tdb-vip-drawer-body') ||
+      select.closest('section');
     const intro = wrapper?.querySelector('[data-tdb-vip-intro]');
     if (!intro) return;
     if (acquisition) {
-      const copy = 'Your access to exclusive appointment releases and bespoke care at The Dental Barns, including Signature Assessment ✦ appointments and Smile Design consultations with Dr Keely.';
+      const copy =
+        'Your access to exclusive appointment releases and bespoke care at The Dental Barns, including Signature Assessment ✦ appointments and Smile Design consultations with Dr Keely.';
       if (intro.textContent !== copy) intro.textContent = copy;
       const title = wrapper.querySelector('.vip-form_top .text-style-tagline');
-      if (title && title.textContent !== 'Join our VIP Waitlist') title.textContent = 'Join our VIP Waitlist';
-      wrapper.querySelectorAll('input[type="submit"]').forEach(button => {
+      if (title && title.textContent !== 'Join our VIP Waitlist')
+        title.textContent = 'Join our VIP Waitlist';
+      wrapper.querySelectorAll('input[type="submit"]').forEach((button) => {
         if (button.value !== 'Reserve my place') button.value = 'Reserve my place';
         if (button.defaultValue !== 'Reserve my place') button.defaultValue = 'Reserve my place';
       });
       return;
     }
     const value = select.value;
-    const treatments = {'Veneers':'porcelain veneers','Composite Bonding':'composite bonding','Invisalign':'Invisalign','Whitening':'teeth whitening','Cosmetic Dentistry':'cosmetic dentistry','Restorative Dentistry':'restorative dental care'};
-    const local = /sutton-coldfield/.test(path) ? ' near Sutton Coldfield' : /tamworth/.test(path) ? ' near Tamworth' : '';
-    const access = 'Join The Dental Barns VIP for private access to a Signature Assessment ✦ with Dr Keely.';
+    const treatments = {
+      Veneers: 'porcelain veneers',
+      'Composite Bonding': 'composite bonding',
+      Invisalign: 'Invisalign',
+      Whitening: 'teeth whitening',
+      'Cosmetic Dentistry': 'cosmetic dentistry',
+      'Restorative Dentistry': 'restorative dental care',
+    };
+    const local = /sutton-coldfield/.test(path)
+      ? ' near Sutton Coldfield'
+      : /tamworth/.test(path)
+        ? ' near Tamworth'
+        : '';
+    const access =
+      'Join The Dental Barns VIP for private access to a Signature Assessment ✦ with Dr Keely.';
     let copy = 'Access Signature Assessment ✦ and Smile Design appointments at The Dental Barns.';
-    if (value === 'Smile Design') copy = 'Prefer to start with a conversation? Join the Smile Design Waitlist. Limited appointments are released from time to time, with booking links shared exclusively with our waitlist.';
+    if (value === 'Smile Design')
+      copy =
+        'Prefer to start with a conversation? Join the Smile Design Waitlist. Limited appointments are released from time to time, with booking links shared exclusively with our waitlist.';
     else if (treatments[value]) copy = 'Considering ' + treatments[value] + local + '? ' + access;
-    else if (value === 'Nervous Patient Care') copy = 'Feeling nervous about dental care? ' + access + ' We will take time to understand your concerns.';
+    else if (value === 'Nervous Patient Care')
+      copy =
+        'Feeling nervous about dental care? ' +
+        access +
+        ' We will take time to understand your concerns.';
     else if (value === 'Signature Assessment') copy = access;
-    else if (/not sure|don.t know/i.test(value)) copy = 'You do not need to know which treatment you need. ' + access;
+    else if (/not sure|don.t know/i.test(value))
+      copy = 'You do not need to know which treatment you need. ' + access;
     if (intro.textContent !== copy) intro.textContent = copy;
   }
 
@@ -83,18 +129,33 @@
 
   function initialise(select) {
     prepareOptions(select);
-    if (!select.value && !window.TDBFormsLoader?.wasEdited(select) && preferred &&
-        [...select.options].some(option => option.value === preferred)) select.value = preferred;
+    if (
+      !select.value &&
+      !window.TDBFormsLoader?.wasEdited(select) &&
+      preferred &&
+      [...select.options].some((option) => option.value === preferred)
+    )
+      select.value = preferred;
     render(select);
   }
 
-  const drawerLabel = acquisition ? 'Reserve my place' : /\/services\/smile-design$/.test(path) ? 'Join the Smile Design Waitlist' : /\/services\/(?:fast-track|signature-assessment)$/.test(path) ? 'View Available Appointments' : /\/(?:treatments|areas|pricing)\//.test(path) && /veneers|bonding|invisalign|clear-aligners|whitening/.test(path) ? 'Start with a Signature Assessment ✦' : 'Join VIP';
+  const drawerLabel = acquisition
+    ? 'Reserve my place'
+    : /\/services\/smile-design$/.test(path)
+      ? 'Join the Smile Design Waitlist'
+      : /\/services\/(?:fast-track|signature-assessment)$/.test(path)
+        ? 'View Available Appointments'
+        : /\/(?:treatments|areas|pricing)\//.test(path) &&
+            /veneers|bonding|invisalign|clear-aligners|whitening/.test(path)
+          ? 'Start with a Signature Assessment ✦'
+          : 'Join VIP';
   function updateDrawerLabel() {
     const drawer = document.getElementById('tdb-vip-drawer');
     const text = drawer?.querySelector('.tdb-vip-drawer-label');
     const handle = drawer?.querySelector('.tdb-vip-drawer-handle');
     if (text && text.textContent !== drawerLabel) text.textContent = drawerLabel;
-    if (handle && handle.getAttribute('aria-label') !== drawerLabel) handle.setAttribute('aria-label', drawerLabel);
+    if (handle && handle.getAttribute('aria-label') !== drawerLabel)
+      handle.setAttribute('aria-label', drawerLabel);
   }
 
   function checkSuccess(wrapper) {
@@ -110,24 +171,29 @@
   }
 
   function fieldStates(root = document) {
-    root.querySelectorAll('#vip-drawer-form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),#vip-drawer-form textarea').forEach(field => {
-      field.classList.toggle('is-filled', Boolean(String(field.value || '').trim()));
-    });
+    root
+      .querySelectorAll(
+        '#vip-drawer-form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),#vip-drawer-form textarea',
+      )
+      .forEach((field) => {
+        field.classList.toggle('is-filled', Boolean(String(field.value || '').trim()));
+      });
   }
-  document.addEventListener('input', event => {
+  document.addEventListener('input', (event) => {
     if (event.target.closest?.('#vip-drawer-form')) fieldStates();
   });
-  document.addEventListener('change', event => {
+  document.addEventListener('change', (event) => {
     if (event.target.closest?.('#vip-drawer-form')) fieldStates();
   });
-  document.addEventListener('reset', event => {
-    if (event.target.matches?.(FORMS)) queueMicrotask(() => {
-      if (event.defaultPrevented) return;
-      // Native reset owns values; rendering must not reapply page suggestions.
-      event.target.querySelectorAll(SELECT).forEach(render);
-      fieldStates();
-      window.TDBForms?.refresh(event.target);
-    });
+  document.addEventListener('reset', (event) => {
+    if (event.target.matches?.(FORMS))
+      queueMicrotask(() => {
+        if (event.defaultPrevented) return;
+        // Native reset owns values; rendering must not reapply page suggestions.
+        event.target.querySelectorAll(SELECT).forEach(render);
+        fieldStates();
+        window.TDBForms?.refresh(event.target);
+      });
   });
   window.addEventListener('pageshow', () => {
     document.querySelectorAll(SELECT).forEach(render);
@@ -137,47 +203,81 @@
 
   function scan(root) {
     const selector = SELECT + ',' + FORMS;
-    const candidates = [...(root.matches?.(selector) ? [root] : []), ...root.querySelectorAll(selector)];
-    const selects = candidates.filter(node => node.matches(SELECT));
-    selects.forEach(select => {
+    const candidates = [
+      ...(root.matches?.(selector) ? [root] : []),
+      ...root.querySelectorAll(selector),
+    ];
+    const selects = candidates.filter((node) => node.matches(SELECT));
+    selects.forEach((select) => {
       if (seen.has(select)) return;
-      seen.add(select); initialise(select);
+      seen.add(select);
+      initialise(select);
     });
-    const forms = candidates.filter(node => node.matches(FORMS));
-    forms.forEach(form => {
-      const wrapper = form.closest('.w-form'), success = wrapper?.querySelector('.w-form-done');
+    const forms = candidates.filter((node) => node.matches(FORMS));
+    forms.forEach((form) => {
+      const wrapper = form.closest('.w-form'),
+        success = wrapper?.querySelector('.w-form-done');
       if (!success || successObservers.has(success)) return;
       successObservers.add(success);
-      new MutationObserver(() => checkSuccess(wrapper)).observe(success, {attributes:true, attributeFilter:['class','style','hidden']});
+      new MutationObserver(() => checkSuccess(wrapper)).observe(success, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'hidden'],
+      });
       checkSuccess(wrapper);
     });
   }
 
   async function share() {
-    const data = {title:'The Dental Barns', text:"I've just joined the VIP Waitlist at The Dental Barns for cosmetic and restorative dental care.", url:'https://www.thedentalbarns.co.uk'};
+    const data = {
+      title: 'The Dental Barns',
+      text: "I've just joined the VIP Waitlist at The Dental Barns for cosmetic and restorative dental care.",
+      url: 'https://www.thedentalbarns.co.uk',
+    };
     if (navigator.share) {
-      try { await navigator.share(data); } catch (error) { if (error.name !== 'AbortError') console.error('Share failed:', error); }
+      try {
+        await navigator.share(data);
+      } catch (error) {
+        if (error.name !== 'AbortError') console.error('Share failed:', error);
+      }
     } else {
-      window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(data.url) + '&quote=' + encodeURIComponent(data.text), '_blank', 'noopener,noreferrer');
+      window.open(
+        'https://www.facebook.com/sharer/sharer.php?u=' +
+          encodeURIComponent(data.url) +
+          '&quote=' +
+          encodeURIComponent(data.text),
+        '_blank',
+        'noopener,noreferrer',
+      );
     }
   }
 
-  document.addEventListener('change', event => {
-    const select = event.target;
-    if (!select.matches?.(SELECT)) return;
-    render(select);
-  }, true);
-  document.addEventListener('focusin', event => {
+  document.addEventListener(
+    'change',
+    (event) => {
+      const select = event.target;
+      if (!select.matches?.(SELECT)) return;
+      render(select);
+    },
+    true,
+  );
+  document.addEventListener('focusin', (event) => {
     if (event.target.matches?.(SELECT)) render(event.target);
   });
-  document.addEventListener('click', event => {
+  document.addEventListener('click', (event) => {
     if (!event.target.closest?.(SHARE)) return;
-    event.preventDefault(); share();
+    event.preventDefault();
+    share();
   });
-  document.addEventListener('keydown', event => {
+  document.addEventListener('keydown', (event) => {
     const trigger = event.target.closest?.(SHARE);
-    if (!trigger || event.defaultPrevented || ![' ', 'Enter'].includes(event.key) ||
-        trigger.tagName === 'BUTTON' || (trigger.matches('a[href]') && event.key === 'Enter')) return;
+    if (
+      !trigger ||
+      event.defaultPrevented ||
+      ![' ', 'Enter'].includes(event.key) ||
+      trigger.tagName === 'BUTTON' ||
+      (trigger.matches('a[href]') && event.key === 'Enter')
+    )
+      return;
     event.preventDefault();
     if (!event.repeat) trigger.click();
   });
@@ -185,37 +285,52 @@
   window.TDBVIPInterest = Object.freeze({
     fromCalculator(value) {
       preferred = value === 'Smile Design' ? 'Smile Design' : 'Signature Assessment';
-      document.querySelectorAll(SELECT).forEach(select => {
-        if ([...select.options].some(option => option.value === preferred)) select.value = preferred;
+      document.querySelectorAll(SELECT).forEach((select) => {
+        if ([...select.options].some((option) => option.value === preferred))
+          select.value = preferred;
         render(select);
       });
       window.TDBForms?.refresh();
-    }
+    },
   });
-  window.TDBVIPForm = Object.freeze({version:'1.2.0', refresh:() => {
-    scan(document);
-    document.querySelectorAll(SELECT).forEach(render);
-    fieldStates(); updateDrawerLabel();
-  }});
+  window.TDBVIPForm = Object.freeze({
+    version: '1.2.0',
+    refresh: () => {
+      scan(document);
+      document.querySelectorAll(SELECT).forEach(render);
+      fieldStates();
+      updateDrawerLabel();
+    },
+  });
   function start() {
-    scan(document); fieldStates(); updateDrawerLabel();
+    scan(document);
+    fieldStates();
+    updateDrawerLabel();
     // Existing multiline-copy compatibility; appearance remains in native classes.
-    document.querySelectorAll('p,div').forEach(el => {
-      if (!el.children.length && /\n\s*\n/.test(el.textContent) && /Signature Assessment|Smile Design/.test(el.textContent)) el.setAttribute('data-tdb-copy-paragraphs','true');
+    document.querySelectorAll('p,div').forEach((el) => {
+      if (
+        !el.children.length &&
+        /\n\s*\n/.test(el.textContent) &&
+        /Signature Assessment|Smile Design/.test(el.textContent)
+      )
+        el.setAttribute('data-tdb-copy-paragraphs', 'true');
     });
-    new MutationObserver(records => {
+    new MutationObserver((records) => {
       let drawerChanged = false;
       for (const record of records) {
         if (record.target.closest?.('#tdb-vip-drawer')) drawerChanged = true;
-        for (const node of record.addedNodes) if (node.nodeType === 1) {
-          scan(node);
-          if (node.id === 'tdb-vip-drawer' || node.querySelector('#tdb-vip-drawer')) drawerChanged = true;
-        }
+        for (const node of record.addedNodes)
+          if (node.nodeType === 1) {
+            scan(node);
+            if (node.id === 'tdb-vip-drawer' || node.querySelector('#tdb-vip-drawer'))
+              drawerChanged = true;
+          }
       }
       if (drawerChanged) updateDrawerLabel();
-    }).observe(document.body, {childList:true, subtree:true});
+    }).observe(document.body, { childList: true, subtree: true });
     window.TDBForms?.refresh();
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once:true}); else start();
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  else start();
 })();
-

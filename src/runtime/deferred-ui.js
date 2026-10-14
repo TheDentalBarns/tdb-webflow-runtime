@@ -1,19 +1,33 @@
 /* Hosted feature modules share the release pin; loading stays in the footer runtime. */
-const TDB_MODULE_ROOT = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@61cec90cdba3d42a29d3c31194b692c251e8d421/dist/';
-const TDBFooterModuleRoot = new URL('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@336d76648a3395fad41dd5bec9749b3554f14c34/dist/');
+const TDB_MODULE_ROOT =
+  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@61cec90cdba3d42a29d3c31194b692c251e8d421/dist/';
+const TDBFooterModuleRoot = new URL(
+  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@336d76648a3395fad41dd5bec9749b3554f14c34/dist/',
+);
 function tdbEnsureSliderFocus() {
-  return Promise.all([tdbEnsureUI(), tdbEnsureSliderUI()]).then(() => window.TDBModules.load(new URL('tdb-slider-focus.js', TDBFooterModuleRoot), { attribute: 'data-tdb-slider-focus-js', ready: () => Boolean(window.TDBSliderFocus) }));
+  return Promise.all([tdbEnsureUI(), tdbEnsureSliderUI()]).then(() =>
+    window.TDBModules.load(new URL('tdb-slider-focus.js', TDBFooterModuleRoot), {
+      attribute: 'data-tdb-slider-focus-js',
+      ready: () => Boolean(window.TDBSliderFocus),
+    }),
+  );
 }
 
 function prepareTooltipLoader() {
   function start() {
     const icons = [...document.querySelectorAll('.tooltip2_element-wrapper')];
     if (!icons.length) return;
-    const parents = [...new Set(icons.map(icon => icon.parentElement))];
-    let flight = null, loaded = false, observer;
+    const parents = [...new Set(icons.map((icon) => icon.parentElement))];
+    let flight = null,
+      loaded = false,
+      observer;
     function cleanup() {
       observer?.disconnect();
-      parents.forEach(parent => ['pointerover', 'focusin', 'pointerdown', 'keydown'].forEach(type => parent.removeEventListener(type, demand, true)));
+      parents.forEach((parent) =>
+        ['pointerover', 'focusin', 'pointerdown', 'keydown'].forEach((type) =>
+          parent.removeEventListener(type, demand, true),
+        ),
+      );
     }
     function demand() {
       if (loaded || flight) return;
@@ -23,47 +37,87 @@ function prepareTooltipLoader() {
           window.TDBTooltips.refresh();
           loaded = true;
           cleanup();
-        }).catch(() => {
+        })
+        .catch(() => {
           flight = null;
           console.error('TDB Tooltips failed to load');
         });
     }
-    parents.forEach(parent => ['pointerover', 'focusin', 'pointerdown', 'keydown'].forEach(type => parent.addEventListener(type, demand, { capture: true, passive: true })));
+    parents.forEach((parent) =>
+      ['pointerover', 'focusin', 'pointerdown', 'keydown'].forEach((type) =>
+        parent.addEventListener(type, demand, { capture: true, passive: true }),
+      ),
+    );
     if ('IntersectionObserver' in window) {
-      observer = new IntersectionObserver(entries => {
-        if (entries.some(entry => entry.isIntersecting)) demand();
-      }, { rootMargin: '600px 0px' });
-      parents.forEach(parent => observer.observe(parent));
+      observer = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) demand();
+        },
+        { rootMargin: '600px 0px' },
+      );
+      parents.forEach((parent) => observer.observe(parent));
     }
     // With no viewport observer, actual pointer/keyboard intent remains available.
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
 }
 
 function prepareSliderFocusLoader() {
   function start() {
     const selector = '.highlight-swiper_component,.parallax-swiper_component,.swiper,.w-slider';
-    const sliders = [...document.querySelectorAll(selector)].filter(slider => !slider.closest('.logo-slider'));
+    const sliders = [...document.querySelectorAll(selector)].filter(
+      (slider) => !slider.closest('.logo-slider'),
+    );
     if (!sliders.length || window.TDBSliderFocus) return;
-    let flight = null, loaded = false, observer, seed = null;
-    const types = ['pointerover', 'focusin', 'pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'click', 'keydown'];
-    const snapshot = event => ({ target: event.target, button: event.button, isPrimary: event.isPrimary,
-      pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY, key: event.key });
+    let flight = null,
+      loaded = false,
+      observer,
+      seed = null;
+    const types = [
+      'pointerover',
+      'focusin',
+      'pointerdown',
+      'pointermove',
+      'pointerup',
+      'pointercancel',
+      'click',
+      'keydown',
+    ];
+    const snapshot = (event) => ({
+      target: event.target,
+      button: event.button,
+      isPrimary: event.isPrimary,
+      pointerId: event.pointerId,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      key: event.key,
+    });
     function cleanup() {
       observer?.disconnect();
-      types.forEach(type => document.removeEventListener(type, onIntent, true));
+      types.forEach((type) => document.removeEventListener(type, onIntent, true));
     }
     function demand() {
       if (loaded || flight) return;
-      if (window.TDBSliderFocus) { loaded = true; cleanup(); seed = null; return; }
-      flight = tdbEnsureSliderFocus().then(() => {
-        if (!window.TDBSliderFocus) throw new Error('Slider focus module did not initialise');
+      if (window.TDBSliderFocus) {
         loaded = true;
         cleanup();
-        window.TDBSliderFocus.resume(seed);
         seed = null;
-      }).catch(() => { flight = null; console.error('TDB Slider Focus failed to load'); });
+        return;
+      }
+      flight = tdbEnsureSliderFocus()
+        .then(() => {
+          if (!window.TDBSliderFocus) throw new Error('Slider focus module did not initialise');
+          loaded = true;
+          cleanup();
+          window.TDBSliderFocus.resume(seed);
+          seed = null;
+        })
+        .catch(() => {
+          flight = null;
+          console.error('TDB Slider Focus failed to load');
+        });
     }
     function onIntent(event) {
       const target = event.target;
@@ -71,7 +125,8 @@ function prepareSliderFocusLoader() {
       if (event.type === 'pointerdown') {
         seed = slider ? { down: snapshot(event), y: window.scrollY } : null;
       } else if (event.type === 'pointermove') {
-        if (seed?.down && !seed.end && seed.down.pointerId === event.pointerId) seed.move = snapshot(event);
+        if (seed?.down && !seed.end && seed.down.pointerId === event.pointerId)
+          seed.move = snapshot(event);
         return;
       } else if (event.type === 'pointerup' || event.type === 'pointercancel') {
         if (seed?.down?.pointerId === event.pointerId) seed.end = snapshot(event);
@@ -85,17 +140,26 @@ function prepareSliderFocusLoader() {
       }
       if (slider) demand();
     }
-    types.forEach(type => document.addEventListener(type, onIntent, { capture: true, passive: true }));
+    types.forEach((type) =>
+      document.addEventListener(type, onIntent, { capture: true, passive: true }),
+    );
     if ('IntersectionObserver' in window) {
-      observer = new IntersectionObserver(entries => {
-        if (entries.some(entry => entry.isIntersecting)) demand();
-      }, { rootMargin: '100px 0px' });
+      observer = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) demand();
+        },
+        { rootMargin: '100px 0px' },
+      );
       // Custom motion sliders already preload through the 800px motion loader.
       // This observer is only for native/standalone sliders needing focus alone.
-      sliders.filter(slider => !slider.closest('.highlight-swiper_component,.parallax-swiper_component'))
-        .forEach(slider => observer.observe(slider));
+      sliders
+        .filter(
+          (slider) => !slider.closest('.highlight-swiper_component,.parallax-swiper_component'),
+        )
+        .forEach((slider) => observer.observe(slider));
     }
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
 }

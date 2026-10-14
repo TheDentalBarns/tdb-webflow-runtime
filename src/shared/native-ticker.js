@@ -7,18 +7,23 @@
     if (instances.has(slot)) return instances.get(slot);
     const motion = window.TDBMotion.reduced;
     const originalNodes = [...slot.childNodes];
-    let disposed = false, pending = null;
+    let disposed = false,
+      pending = null;
     const template = options.template;
     const valueClass = options.valueClass || 'review-number_value';
     const incomingClass = options.incomingClass || 'review-number_incoming';
-    const normalize = options.normalize || (value => value);
-    const local = className => [...slot.children].find(node => node.classList.contains(className));
+    const normalize = options.normalize || ((value) => value);
+    const local = (className) =>
+      [...slot.children].find((node) => node.classList.contains(className));
     const authoredValue = local(valueClass);
     // Gallery slots can use the same class for both values; never animate one node twice.
-    const authoredIncoming = [...slot.children].find(node => node !== authoredValue && node.classList.contains(incomingClass));
+    const authoredIncoming = [...slot.children].find(
+      (node) => node !== authoredValue && node.classList.contains(incomingClass),
+    );
     let text = (authoredValue || slot).textContent.trim();
-    const make = className => {
-      const node = template?.querySelector('.' + className)?.cloneNode(true) || document.createElement('span');
+    const make = (className) => {
+      const node =
+        template?.querySelector('.' + className)?.cloneNode(true) || document.createElement('span');
       node.className = className;
       return node;
     };
@@ -31,7 +36,7 @@
       if (!pending) return;
       const previous = pending;
       pending = null;
-      previous.animations.forEach(animation => {
+      previous.animations.forEach((animation) => {
         animation.onfinish = null;
         animation.cancel();
       });
@@ -54,24 +59,41 @@
       incoming.setAttribute('aria-hidden', 'true');
       if (incoming.parentElement !== slot) slot.append(incoming);
       const sign = direction < 0 ? -1 : 1;
-      const timing = { duration: window.TDBMotion?.defaults.ticker || 400, easing: 'ease-in-out', fill: 'both' };
+      const timing = {
+        duration: window.TDBMotion?.defaults.ticker || 400,
+        easing: 'ease-in-out',
+        fill: 'both',
+      };
       value.textContent = old;
       const transition = { incoming, animations: [] };
       pending = transition;
       try {
-        transition.animations.push(value.animate([
-          { transform: 'translateY(0)' }, { transform: `translateY(${-sign * 100}%)` }
-        ], timing));
-        transition.animations.push(incoming.animate([
-          { transform: `translateY(${sign * 100}%)` }, { transform: 'translateY(0)' }
-        ], timing));
-        transition.animations[1].onfinish = () => { if (pending === transition) settle(); };
-      } catch (_) { settle(); }
+        transition.animations.push(
+          value.animate(
+            [{ transform: 'translateY(0)' }, { transform: `translateY(${-sign * 100}%)` }],
+            timing,
+          ),
+        );
+        transition.animations.push(
+          incoming.animate(
+            [{ transform: `translateY(${sign * 100}%)` }, { transform: 'translateY(0)' }],
+            timing,
+          ),
+        );
+        transition.animations[1].onfinish = () => {
+          if (pending === transition) settle();
+        };
+      } catch (_) {
+        settle();
+      }
     }
-    function onMotion() { if (motion.matches) settle(); }
+    function onMotion() {
+      if (motion.matches) settle();
+    }
     motion.addEventListener('change', onMotion);
     const api = Object.freeze({
-      update, settle,
+      update,
+      settle,
       destroy() {
         if (disposed) return;
         settle();
@@ -83,7 +105,7 @@
         else if (slot.children.length === 1) slot.firstElementChild.textContent = text;
         else slot.textContent = text;
         instances.delete(slot);
-      }
+      },
     });
     instances.set(slot, api);
     return api;

@@ -9,8 +9,11 @@ function nativeGap(root, fallback = 0, slideSelector) {
     const value = slide.style.getPropertyValue('margin-right');
     const priority = slide.style.getPropertyPriority('margin-right');
     slide.style.removeProperty('margin-right');
-    try { gap = parseFloat(getComputedStyle(slide).marginRight); }
-    finally { if (value) slide.style.setProperty('margin-right', value, priority); }
+    try {
+      gap = parseFloat(getComputedStyle(slide).marginRight);
+    } finally {
+      if (value) slide.style.setProperty('margin-right', value, priority);
+    }
   } else {
     gap = parseFloat(getComputedStyle(root).columnGap);
   }

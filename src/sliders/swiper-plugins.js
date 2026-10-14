@@ -4,7 +4,7 @@ const plugins = new Map();
 const pluginInstances = new WeakMap();
 const observedRoots = new WeakMap();
 
-function create(viewport, options, {bind = true} = {}) {
+function create(viewport, options, { bind = true } = {}) {
   const existing = viewport.swiper;
   if (existing && !existing.destroyed) {
     if (bind) bindSwiper(existing);
@@ -33,7 +33,7 @@ function mount(name, root, ...args) {
   if (current && !current.destroyed) return current;
   const mounted = plugin.mount(root, ...args);
   if (!mounted) return mounted;
-  if (!instances) pluginInstances.set(root, instances = new Map());
+  if (!instances) pluginInstances.set(root, (instances = new Map()));
   let instance = mounted;
   const release = () => {
     if (instances.get(name) !== instance) return;
@@ -49,10 +49,16 @@ function mount(name, root, ...args) {
   else if (typeof mounted.destroy === 'function') {
     // Native feature APIs can be frozen. Keep their public methods intact and
     // own cleanup in a facade, without mutating the feature's returned object.
-    instance = Object.freeze({...mounted, destroy(...destroyArgs) {
-      try { return mounted.destroy(...destroyArgs); }
-      finally { release(); }
-    }});
+    instance = Object.freeze({
+      ...mounted,
+      destroy(...destroyArgs) {
+        try {
+          return mounted.destroy(...destroyArgs);
+        } finally {
+          release();
+        }
+      },
+    });
   }
   instances.set(name, instance);
   root.setAttribute?.('data-tdb-carousel-plugin', name);
@@ -64,12 +70,18 @@ function observe(name, root) {
   if (!plugin || !root || observedRoots.has(root) || root.querySelector('.swiper')?.swiper) return;
   root.setAttribute('data-tdb-slider-observed', 'true');
   plugin.beforeObserve?.(root);
-  if (!('IntersectionObserver' in window)) { mount(name, root); return; }
-  const observer = new IntersectionObserver(entries => {
-    if (!entries.some(entry => entry.isIntersecting)) return;
-    observer.disconnect();
-    if (root.isConnected) mount(name, root);
-  }, {rootMargin: '100px'});
+  if (!('IntersectionObserver' in window)) {
+    mount(name, root);
+    return;
+  }
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      observer.disconnect();
+      if (root.isConnected) mount(name, root);
+    },
+    { rootMargin: '100px' },
+  );
   observedRoots.set(root, observer);
   observer.observe(root);
 }
@@ -78,7 +90,9 @@ function refresh(name, root = document) {
   const plugin = plugins.get(name);
   if (!plugin?.selector) return;
   if (root instanceof Element && root.matches(plugin.selector)) observe(name, root);
-  root.querySelectorAll?.(plugin.selector).forEach(node => observe(name, node));
+  root.querySelectorAll?.(plugin.selector).forEach((node) => observe(name, node));
 }
 
-function prune() { plugins.forEach(plugin => plugin.prune?.()); }
+function prune() {
+  plugins.forEach((plugin) => plugin.prune?.());
+}

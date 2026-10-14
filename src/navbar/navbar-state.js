@@ -21,27 +21,40 @@
       }
     }
     const observer = new MutationObserver(sync);
-    observer.observe(nav, { subtree: true, attributes: true,
-      attributeFilter: ['class', 'aria-expanded', 'data-nav-menu-open', 'data-tdb-desktop-dropdown'] });
+    observer.observe(nav, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: [
+        'class',
+        'aria-expanded',
+        'data-nav-menu-open',
+        'data-tdb-desktop-dropdown',
+      ],
+    });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     phone.addEventListener('change', sync);
     desktop.addEventListener('change', sync);
-    const api = Object.freeze({ phone, desktop, refresh: sync,
+    const api = Object.freeze({
+      phone,
+      desktop,
+      refresh: sync,
       watch(read, render) {
         const item = { read, render, ready: false };
         subscriptions.add(item);
         const value = read();
-        item.value = value; item.ready = true; render(value, undefined);
+        item.value = value;
+        item.ready = true;
+        render(value, undefined);
         return () => subscriptions.delete(item);
-      }
+      },
     });
     instances.set(nav, api);
     return api;
   }
   function whenReady(start) {
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once: true});
+    if (document.readyState === 'loading')
+      document.addEventListener('DOMContentLoaded', start, { once: true });
     else start();
   }
   window.TDBNavbarState = Object.freeze({ version: '1.1.0', forNav, whenReady });
 })();
-

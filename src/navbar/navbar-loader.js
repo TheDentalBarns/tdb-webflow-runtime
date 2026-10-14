@@ -7,10 +7,21 @@ window.TDBNavbarState.whenReady(() => {
   const html = document.documentElement;
   const duration = nav.getAttribute('data-duration');
   const transparent = nav.getAttribute('transparent-nav') === 'true';
-  const surfaces = [...nav.querySelectorAll('#nav-button-link,.navbar10_logo-link,.navbar10_link,.menu-icon5'), nav]
-    .map(node => [node, node.classList.contains('is-trans')]);
-  let installer, schedule, stopWatching, requested = false, queued = false, ready = false, open = false;
-  const isOpen = () => Boolean(nav.querySelector('.w-nav-button.w--open,.w-dropdown-toggle.w--open,[data-nav-menu-open]'));
+  const surfaces = [
+    ...nav.querySelectorAll('#nav-button-link,.navbar10_logo-link,.navbar10_link,.menu-icon5'),
+    nav,
+  ].map((node) => [node, node.classList.contains('is-trans')]);
+  let installer,
+    schedule,
+    stopWatching,
+    requested = false,
+    queued = false,
+    ready = false,
+    open = false;
+  const isOpen = () =>
+    Boolean(
+      nav.querySelector('.w-nav-button.w--open,.w-dropdown-toggle.w--open,[data-nav-menu-open]'),
+    );
   function setDuration(value) {
     nav.setAttribute('data-duration', String(value));
     const config = window.jQuery?.data(nav, '.w-nav')?.config;
@@ -22,65 +33,85 @@ window.TDBNavbarState.whenReady(() => {
     if (next !== open) {
       open = next;
       html.toggleAttribute('data-tdb-nav-basic-open', open);
-      if (transparent) surfaces.forEach(([node, original]) => node.classList.toggle('is-trans', open || original));
+      if (transparent)
+        surfaces.forEach(([node, original]) => node.classList.toggle('is-trans', open || original));
     }
     if (open || !requested || !installer || queued) return;
     queued = true;
-    Promise.resolve().then(() => schedule(() => {
-      // A user can open the native menu while an idle callback is waiting.
-      if (ready || isOpen()) return;
-      setDuration(duration || 500);
-      installer();
-      // Basic-mode closes create a Tram controller whose inherited transition
-      // is "none". Reusing it produces an invalid "none, transform ..." list.
-      // Reset only this closed menu so its next use reads the enhanced styles.
-      const menu = nav.querySelector('.w-nav-menu');
-      if (menu && typeof window.tram === 'function') {
-        window.tram(menu).destroy();
-        menu.style.removeProperty('transition');
-      }
-      ready = true;
-      stopRetrying();
-      stopWatching?.();
-      html.removeAttribute('data-tdb-nav-basic-open');
-      nav.removeAttribute('data-tdb-nav-basic');
-      nav.setAttribute('data-tdb-nav-enhanced', '');
-    })).catch(error => {
-      if (!ready) {
-        setDuration(0);
-        nav.addEventListener('pointerdown', retry, {passive: true});
-        nav.addEventListener('focusin', retry);
-        window.addEventListener('online', retry);
-      }
-      console.warn('TDB navbar: retaining native navigation.', error);
-    }).finally(() => { queued = false; });
+    Promise.resolve()
+      .then(() =>
+        schedule(() => {
+          // A user can open the native menu while an idle callback is waiting.
+          if (ready || isOpen()) return;
+          setDuration(duration || 500);
+          installer();
+          // Basic-mode closes create a Tram controller whose inherited transition
+          // is "none". Reusing it produces an invalid "none, transform ..." list.
+          // Reset only this closed menu so its next use reads the enhanced styles.
+          const menu = nav.querySelector('.w-nav-menu');
+          if (menu && typeof window.tram === 'function') {
+            window.tram(menu).destroy();
+            menu.style.removeProperty('transition');
+          }
+          ready = true;
+          stopRetrying();
+          stopWatching?.();
+          html.removeAttribute('data-tdb-nav-basic-open');
+          nav.removeAttribute('data-tdb-nav-basic');
+          nav.setAttribute('data-tdb-nav-enhanced', '');
+        }),
+      )
+      .catch((error) => {
+        if (!ready) {
+          setDuration(0);
+          nav.addEventListener('pointerdown', retry, { passive: true });
+          nav.addEventListener('focusin', retry);
+          window.addEventListener('online', retry);
+        }
+        console.warn('TDB navbar: retaining native navigation.', error);
+      })
+      .finally(() => {
+        queued = false;
+      });
   }
-  function retry() { sync(); }
+  function retry() {
+    sync();
+  }
   function stopRetrying() {
     nav.removeEventListener('pointerdown', retry);
     nav.removeEventListener('focusin', retry);
     window.removeEventListener('online', retry);
   }
-  nav.querySelectorAll('.navbar10_blog-item-image').forEach(image => {
+  nav.querySelectorAll('.navbar10_blog-item-image').forEach((image) => {
     image.sizes = '(max-width: 479px) 100vw, (max-width: 991px) 50vw, 22vw';
   });
   nav.setAttribute('data-tdb-nav-basic', '');
   setDuration(0);
-  (window.Webflow ||= []).push(() => { if (!ready) setDuration(0); });
+  (window.Webflow ||= []).push(() => {
+    if (!ready) setDuration(0);
+  });
   stopWatching = state.watch(isOpen, sync);
   window.TDBNavbarLoader = Object.freeze({
     version: '2.0.3',
     prepare: () => window.TDBRuntime?.enhanceNavbar?.() || Promise.resolve(false),
-    register(callback) { if (!ready) { installer = callback; sync(); } },
+    register(callback) {
+      if (!ready) {
+        installer = callback;
+        sync();
+      }
+    },
     activate(background) {
       if (ready) return;
       schedule = background;
       requested = true;
       sync();
     },
-    status: () => ({ready, registered: Boolean(installer), waitingForClose: requested && !ready,
-      decided: Boolean(window.TDBConsent?.allows())})
+    status: () => ({
+      ready,
+      registered: Boolean(installer),
+      waitingForClose: requested && !ready,
+      decided: Boolean(window.TDBConsent?.allows()),
+    }),
   });
   window.dispatchEvent(new Event('tdb:navbar-ready'));
 });
-

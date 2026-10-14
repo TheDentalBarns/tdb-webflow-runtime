@@ -8,25 +8,28 @@
   const PLACEHOLDER_SELECT_SELECTOR = [
     '#Treatment-Of-Interest',
     'select[name="Treatment-Of-Interest"]',
-    'select[name="Treatment Of Interest"]'
+    'select[name="Treatment Of Interest"]',
   ].join(',');
   const PHONE_SELECTOR = 'input[name="phone" i], input[name^="phone" i]';
 
   function groupHasCheckedField(form, field) {
     if (!field.name) return field.checked;
 
-    return Array.from(form.elements).some(candidate =>
-      candidate !== field &&
-      candidate.type === field.type &&
-      candidate.name === field.name &&
-      candidate.checked
-    ) || field.checked;
+    return (
+      Array.from(form.elements).some(
+        (candidate) =>
+          candidate !== field &&
+          candidate.type === field.type &&
+          candidate.name === field.name &&
+          candidate.checked,
+      ) || field.checked
+    );
   }
 
   function requiredFieldsAreComplete(form) {
     const requiredFields = Array.from(
-      form.querySelectorAll('input[required], select[required], textarea[required]')
-    ).filter(field => !field.disabled);
+      form.querySelectorAll('input[required], select[required], textarea[required]'),
+    ).filter((field) => !field.disabled);
 
     const checkedGroups = new Set();
 
@@ -49,9 +52,7 @@
   function updateSubmitState(form) {
     if (!form.matches(VALIDATED_FORM_SELECTOR)) return;
 
-    const submitButton = form.querySelector(
-      'input[type="submit"], button[type="submit"]'
-    );
+    const submitButton = form.querySelector('input[type="submit"], button[type="submit"]');
 
     if (!submitButton) return;
 
@@ -65,7 +66,7 @@
   }
 
   function bindPlaceholderSelects(form) {
-    form.querySelectorAll(PLACEHOLDER_SELECT_SELECTOR).forEach(select => {
+    form.querySelectorAll(PLACEHOLDER_SELECT_SELECTOR).forEach((select) => {
       updateSelectPlaceholder(select);
 
       if (select.dataset.tdbPlaceholderBound === 'true') return;
@@ -87,7 +88,7 @@
   }
 
   function normalisePhoneFields(form) {
-    form.querySelectorAll(PHONE_SELECTOR).forEach(phoneInput => {
+    form.querySelectorAll(PHONE_SELECTOR).forEach((phoneInput) => {
       phoneInput.value = normaliseUkMobile(phoneInput.value);
     });
   }
@@ -103,7 +104,7 @@
 
     if (form.matches(VALIDATED_FORM_SELECTOR)) {
       form.addEventListener('input', () => updateSubmitState(form));
-      form.addEventListener('change', event => {
+      form.addEventListener('change', (event) => {
         if (event.target?.matches?.(PLACEHOLDER_SELECT_SELECTOR)) {
           updateSelectPlaceholder(event.target);
         }
@@ -117,14 +118,16 @@
         normalisePhoneFields(form);
         updateSubmitState(form);
       },
-      true
+      true,
     );
-    form.addEventListener('reset', event => queueMicrotask(() => {
-      if (!event.defaultPrevented) {
-        bindPlaceholderSelects(form);
-        updateSubmitState(form);
-      }
-    }));
+    form.addEventListener('reset', (event) =>
+      queueMicrotask(() => {
+        if (!event.defaultPrevented) {
+          bindPlaceholderSelects(form);
+          updateSubmitState(form);
+        }
+      }),
+    );
   }
 
   function refresh(root = document) {
@@ -140,9 +143,9 @@
   function start() {
     refresh();
 
-    const observer = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
           if (node instanceof Element) refresh(node);
         });
       });
@@ -150,12 +153,12 @@
 
     observer.observe(document.body, {
       childList: true,
-      subtree: true
+      subtree: true,
     });
 
     window.TDBForms = Object.freeze({
       version: VERSION,
-      refresh
+      refresh,
     });
     window.addEventListener('pageshow', () => refresh());
   }
@@ -166,4 +169,3 @@
     start();
   }
 })();
-

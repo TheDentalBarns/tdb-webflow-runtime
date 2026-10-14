@@ -16,12 +16,12 @@
     activeViewportMargin: 200,
     maxMeasureAttempts: 160,
     measureRetryMs: 50,
-    dragClickThreshold: 6
+    dragClickThreshold: 6,
   };
 
   const CONFIG = {
     ...DEFAULTS,
-    ...(window.TDBLogoMarqueeConfig || {})
+    ...(window.TDBLogoMarqueeConfig || {}),
   };
   // MediaQueryList.matches stays live as the viewport changes. Reuse the list
   // rather than creating another one on every animation frame.
@@ -36,7 +36,7 @@
   const instances = new Map();
   const discoveredTracks = new Set();
   let pendingTracks = new WeakSet();
-  let schedule = work => Promise.resolve().then(work);
+  let schedule = (work) => Promise.resolve().then(work);
   let generation = 0;
   let booted = false;
   let cardId = 0;
@@ -46,7 +46,10 @@
     chromeHolds.add(card);
     // Reuse carousel chrome motion. A true hold predicate prevents scroll
     // thresholds from releasing focus while someone reads the partner card.
-    window.TDBNavScroll?.focus(() => {}, () => chromeHolds.size > 0);
+    window.TDBNavScroll?.focus(
+      () => {},
+      () => chromeHolds.size > 0,
+    );
     document.documentElement.classList.add('tdb-slider-focus');
   }
   function releaseChrome(card) {
@@ -71,19 +74,17 @@
   }
 
   function getSpeed() {
-    return mobileMediaQuery?.matches
-      ? CONFIG.speedMobile
-      : CONFIG.speedDesktop;
+    return mobileMediaQuery?.matches ? CONFIG.speedMobile : CONFIG.speedDesktop;
   }
 
   function prepareVisibleLogos(track) {
-    track.querySelectorAll(CONFIG.logoSelector).forEach(image => {
+    track.querySelectorAll(CONFIG.logoSelector).forEach((image) => {
       image.loading = 'eager';
       image.setAttribute('loading', 'eager');
       image.setAttribute('decoding', 'async');
     });
 
-    track.querySelectorAll(CONFIG.tooltipImageSelector).forEach(image => {
+    track.querySelectorAll(CONFIG.tooltipImageSelector).forEach((image) => {
       image.loading = 'lazy';
       image.setAttribute('loading', 'lazy');
       image.setAttribute('decoding', 'async');
@@ -106,17 +107,19 @@
     // Only the native logo is part of the moving repeat. Never construct a
     // duplicate CMS card, CTA or legacy embed just to discard it afterwards.
     const clone = original.cloneNode(false);
-    original.querySelectorAll(CONFIG.logoSelector).forEach(logo => clone.append(logo.cloneNode(true)));
+    original
+      .querySelectorAll(CONFIG.logoSelector)
+      .forEach((logo) => clone.append(logo.cloneNode(true)));
     clone.setAttribute(CLONE_ATTR, 'true');
     clone.setAttribute('aria-hidden', 'true');
     clone.removeAttribute('id');
     clone.removeAttribute('data-w-id');
     clone.setAttribute('tabindex', '-1');
 
-    clone.querySelectorAll('[id]').forEach(element => element.removeAttribute('id'));
+    clone.querySelectorAll('[id]').forEach((element) => element.removeAttribute('id'));
     clone
       .querySelectorAll('a, button, input, select, textarea, [tabindex]')
-      .forEach(element => element.setAttribute('tabindex', '-1'));
+      .forEach((element) => element.setAttribute('tabindex', '-1'));
 
     return clone;
   }
@@ -127,20 +130,34 @@
     }
 
     const originals = Array.from(
-      track.querySelectorAll(`${CONFIG.itemSelector}:not([${CLONE_ATTR}])`)
+      track.querySelectorAll(`${CONFIG.itemSelector}:not([${CLONE_ATTR}])`),
     );
 
     if (!originals.length) return null;
 
     const restore = [];
     function remember(node, names) {
-      const values = names.map(name => [name, node.getAttribute(name)]);
-      restore.push(() => values.forEach(([name, value]) => value === null ? node.removeAttribute(name) : node.setAttribute(name, value)));
+      const values = names.map((name) => [name, node.getAttribute(name)]);
+      restore.push(() =>
+        values.forEach(([name, value]) =>
+          value === null ? node.removeAttribute(name) : node.setAttribute(name, value),
+        ),
+      );
     }
     remember(track, ['style', INIT_ATTR]);
-    originals.forEach(item => {
-      remember(item, ['role', 'tabindex', 'aria-label', 'data-tdb-logo-index', 'data-tdb-keyboard-focus', 'aria-expanded', 'aria-controls']);
-      item.querySelectorAll('img').forEach(img => remember(img, ['loading', 'decoding', 'draggable']));
+    originals.forEach((item) => {
+      remember(item, [
+        'role',
+        'tabindex',
+        'aria-label',
+        'data-tdb-logo-index',
+        'data-tdb-keyboard-focus',
+        'aria-expanded',
+        'aria-controls',
+      ]);
+      item
+        .querySelectorAll('img')
+        .forEach((img) => remember(img, ['loading', 'decoding', 'draggable']));
     });
     track.setAttribute(INIT_ATTR, VERSION);
     track.style.willChange = 'transform';
@@ -151,47 +168,75 @@
       item.dataset.tdbLogoIndex = index;
       item.setAttribute('role', 'button');
       item.setAttribute('tabindex', '0');
-      item.setAttribute('aria-label', (item.querySelector(CONFIG.logoSelector)?.alt || 'Logo ' + (index + 1)) + ': centre and pause');
-      item.querySelectorAll('img').forEach(img => img.draggable = false);
+      item.setAttribute(
+        'aria-label',
+        (item.querySelector(CONFIG.logoSelector)?.alt || 'Logo ' + (index + 1)) +
+          ': centre and pause',
+      );
+      item.querySelectorAll('img').forEach((img) => (img.draggable = false));
     });
     const fragment = document.createDocumentFragment();
-    originals.forEach(original => fragment.appendChild(makeClone(original)));
+    originals.forEach((original) => fragment.appendChild(makeClone(original)));
     track.appendChild(fragment);
 
     const section = track.closest('.section_logo-features');
     const stage = section?.querySelector('.tdb-partner-stage');
-    const lazy = stage?.hasAttribute('data-tdb-partner-mount') && !stage.classList.contains('w-condition-invisible');
+    const lazy =
+      stage?.hasAttribute('data-tdb-partner-mount') &&
+      !stage.classList.contains('w-condition-invisible');
     let shell = stage?.querySelector('.tdb-partner-tooltip');
     let overlay = stage?.querySelector('.tdb-partner-overlay');
     let spotlight = stage?.querySelector('.tdb-partner-spotlight');
     let slideHost = shell?.querySelector('.tdb-partner-slides');
     let visitButton = shell?.querySelector('[data-tdb-partner-visit]');
     const hiddenLogos = new Map();
-    let centreAnimation = null, centreFrom = 0, measuredCardWidth = 0;
-    const entries = [], cards = new Map();
-    const shellId = 'tdb-partner-card-' + (++cardId);
-    if (lazy) track.querySelectorAll(CONFIG.itemSelector).forEach(item => {
-      const name = item.querySelector(CONFIG.logoSelector)?.alt || item.getAttribute('data-item-id')?.replace(/-/g, ' ') || 'Partner';
-      item.setAttribute('aria-label', name + ': centre and show details');
-      item.setAttribute('aria-expanded', 'false');
-    });
-    let controlsBound = false, pendingItem = null;
+    let centreAnimation = null,
+      centreFrom = 0,
+      measuredCardWidth = 0;
+    const entries = [],
+      cards = new Map();
+    const shellId = 'tdb-partner-card-' + ++cardId;
+    if (lazy)
+      track.querySelectorAll(CONFIG.itemSelector).forEach((item) => {
+        const name =
+          item.querySelector(CONFIG.logoSelector)?.alt ||
+          item.getAttribute('data-item-id')?.replace(/-/g, ' ') ||
+          'Partner';
+        item.setAttribute('aria-label', name + ': centre and show details');
+        item.setAttribute('aria-expanded', 'false');
+      });
+    let controlsBound = false,
+      pendingItem = null;
     function collectEntries(sources) {
-      if (visitButton) remember(visitButton, ['style', 'class', 'href', 'target', 'rel', 'aria-label']);
+      if (visitButton)
+        remember(visitButton, ['style', 'class', 'href', 'target', 'rel', 'aria-label']);
       originals.forEach((item, index) => {
         const source = sources ? sources[index] : item.querySelector('.tdb-partner-source');
         const slide = source?.querySelector('.tooltip2_card-wrapper');
-        if (!slide || source.hidden || source.classList.contains('w-condition-invisible') || !shell) return;
-        remember(slide, ['style', 'class', 'role', 'aria-label', 'aria-hidden', 'data-swiper-slide-index']);
+        if (!slide || source.hidden || source.classList.contains('w-condition-invisible') || !shell)
+          return;
+        remember(slide, [
+          'style',
+          'class',
+          'role',
+          'aria-label',
+          'aria-hidden',
+          'data-swiper-slide-index',
+        ]);
         const link = source.querySelector('[data-tdb-partner-link]');
         entries.push({ item, index, source, slide, link });
         slideHost.append(slide);
       });
-      if (shell) { remember(shell, ['id', 'style', 'aria-hidden']); shell.id = shellId; }
-      track.querySelectorAll(CONFIG.itemSelector).forEach(item => {
-        const entry = entries.find(entry => entry.index === Number(item.dataset.tdbLogoIndex));
+      if (shell) {
+        remember(shell, ['id', 'style', 'aria-hidden']);
+        shell.id = shellId;
+      }
+      track.querySelectorAll(CONFIG.itemSelector).forEach((item) => {
+        const entry = entries.find((entry) => entry.index === Number(item.dataset.tdbLogoIndex));
         if (!entry) return;
-        const name = entry.slide.querySelector('.text-style-tagline-restored')?.textContent.trim() || 'Partner';
+        const name =
+          entry.slide.querySelector('.text-style-tagline-restored')?.textContent.trim() ||
+          'Partner';
         item.setAttribute('aria-label', name + ': centre and show details');
         item.setAttribute('aria-expanded', 'false');
         item.setAttribute('aria-controls', shellId);
@@ -199,11 +244,17 @@
       });
     }
     collectEntries();
-    let swiper = null, prepareFlight = null, requestGeneration = 0;
+    let swiper = null,
+      prepareFlight = null,
+      requestGeneration = 0;
     let switching = false;
     const controller = new AbortController();
     const { signal } = controller;
-    const dd = window.TDBMotion.ddText(track.closest('.section_logo-features')?.querySelectorAll('.partner-banner-heading[data-tdb-dd-text]') || []);
+    const dd = window.TDBMotion.ddText(
+      track
+        .closest('.section_logo-features')
+        ?.querySelectorAll('.partner-banner-heading[data-tdb-dd-text]') || [],
+    );
 
     let paused = reduceMotion();
     let momentum = 0;
@@ -240,9 +291,12 @@
 
     function measureCardGeometry() {
       if (!openCard || !openItem) return;
-      const copies = [...track.querySelectorAll(CONFIG.itemSelector)].filter(item => item.dataset.tdbLogoIndex === openItem.dataset.tdbLogoIndex);
+      const copies = [...track.querySelectorAll(CONFIG.itemSelector)].filter(
+        (item) => item.dataset.tdbLogoIndex === openItem.dataset.tdbLogoIndex,
+      );
       const visual = window.visualViewport;
-      const scrollX = window.scrollX, scrollY = window.scrollY;
+      const scrollX = window.scrollX,
+        scrollY = window.scrollY;
       const viewLeft = visual?.offsetLeft || 0;
       const viewWidth = visual?.width || document.documentElement.clientWidth;
       const box = { width: openCard.offsetWidth, height: openCard.offsetHeight };
@@ -252,34 +306,52 @@
       // Read once at opening, selection or a layout change. Store document
       // coordinates without the current track transform, so centring frames
       // can follow either loop copy with arithmetic and no geometry reads.
-      const rect = node => {
+      const rect = (node) => {
         const value = node.getBoundingClientRect();
-        return { left: value.left + scrollX - renderedX, top: value.top + scrollY,
-          width: value.width, height: value.height };
+        return {
+          left: value.left + scrollX - renderedX,
+          top: value.top + scrollY,
+          width: value.width,
+          height: value.height,
+        };
       };
       cardGeometry = {
-        width: box.width, height: box.height, topEdge, bottomEdge,
+        width: box.width,
+        height: box.height,
+        topEdge,
+        bottomEdge,
         left: scrollX + viewLeft + (viewWidth - box.width) / 2,
         centre: scrollX + innerWidth / 2,
-        copies: copies.map(item => {
+        copies: copies.map((item) => {
           const logo = item.querySelector(CONFIG.logoSelector);
-          return { item: rect(item), logo: logo ? rect(logo) : null, src: logo?.currentSrc || logo?.src };
-        })
+          return {
+            item: rect(item),
+            logo: logo ? rect(logo) : null,
+            src: logo?.currentSrc || logo?.src,
+          };
+        }),
       };
     }
     function writePosition(node, property, value) {
       const cssValue = value + 'px';
-      if (node.style.getPropertyValue(property) !== cssValue) node.style.setProperty(property, cssValue);
+      if (node.style.getPropertyValue(property) !== cssValue)
+        node.style.setProperty(property, cssValue);
     }
     function positionCard(refresh = false) {
       if (!openCard || !openItem) return;
       if (refresh || !cardGeometry) measureCardGeometry();
       const geometry = cardGeometry;
       if (!geometry?.copies.length) return;
-      const nearest = key => geometry.copies.filter(copy => copy[key]).reduce((best, copy) => {
-        const distance = candidate => Math.abs(candidate[key].left + renderedX + candidate[key].width / 2 - geometry.centre);
-        return !best || distance(copy) < distance(best) ? copy : best;
-      }, null);
+      const nearest = (key) =>
+        geometry.copies
+          .filter((copy) => copy[key])
+          .reduce((best, copy) => {
+            const distance = (candidate) =>
+              Math.abs(
+                candidate[key].left + renderedX + candidate[key].width / 2 - geometry.centre,
+              );
+            return !best || distance(copy) < distance(best) ? copy : best;
+          }, null);
       const anchor = nearest('item').item;
       writePosition(openCard, 'left', geometry.left);
       writePosition(openCard, 'top', anchor.top - geometry.height - 10);
@@ -301,7 +373,7 @@
       const state = cardTransitions.get(card);
       if (!state) return;
       cardTransitions.delete(card);
-      state.animations.forEach(animation => animation.cancel());
+      state.animations.forEach((animation) => animation.cancel());
       state.done?.();
     }
     function animateCard(card, opening, done) {
@@ -314,12 +386,19 @@
       const glassStyle = getComputedStyle(glass);
       const restingGlass = {
         backgroundColor: glassStyle.backgroundColor,
-        backdropFilter: glassStyle.backdropFilter
+        backdropFilter: glassStyle.backdropFilter,
       };
       // Preserve Designer's full glass values even while an animation is running.
       const nativeGlass = cardTransitions.get(card)?.nativeGlass || restingGlass;
-      const clearGlass = { backgroundColor: 'rgba(249, 242, 230, 0)', backdropFilter: 'saturate(100%) blur(0px)' };
-      const fromTransform = activeTransition ? cardStyle.transform : opening ? 'translateY(20px)' : 'translateY(0)';
+      const clearGlass = {
+        backgroundColor: 'rgba(249, 242, 230, 0)',
+        backdropFilter: 'saturate(100%) blur(0px)',
+      };
+      const fromTransform = activeTransition
+        ? cardStyle.transform
+        : opening
+          ? 'translateY(20px)'
+          : 'translateY(0)';
       const fromOpacity = activeTransition ? surfaceStyle.opacity : opening ? 0 : 1;
       const fromGlass = activeTransition ? restingGlass : opening ? clearGlass : nativeGlass;
       finishCardTransition(card);
@@ -329,54 +408,94 @@
       // Keep opacity off the glass ancestor: it creates a backdrop root and can
       // make the blur appear only when the ancestor fade finishes.
       const animations = [
-        card.animate([{ transform: fromTransform }, { transform: opening ? 'translateY(0)' : 'translateY(20px)' }], options),
+        card.animate(
+          [
+            { transform: fromTransform },
+            { transform: opening ? 'translateY(0)' : 'translateY(20px)' },
+          ],
+          options,
+        ),
         surface.animate([{ opacity: fromOpacity }, { opacity: opening ? 1 : 0 }], options),
-        tint.animate([{opacity:activeTransition ? getComputedStyle(tint).opacity : opening ? 0 : 1},{opacity:opening ? 1 : 0}],options),
+        tint.animate(
+          [
+            { opacity: activeTransition ? getComputedStyle(tint).opacity : opening ? 0 : 1 },
+            { opacity: opening ? 1 : 0 },
+          ],
+          options,
+        ),
         glass.animate([fromGlass, opening ? nativeGlass : clearGlass], options),
-        overlay.animate([{opacity:activeTransition ? getComputedStyle(overlay).opacity : opening ? 0 : 1},{opacity:opening ? 1 : 0}],options),
-        spotlight.animate([{opacity:activeTransition ? getComputedStyle(spotlight).opacity : opening ? 0 : 1},{opacity:1}],options)
+        overlay.animate(
+          [
+            { opacity: activeTransition ? getComputedStyle(overlay).opacity : opening ? 0 : 1 },
+            { opacity: opening ? 1 : 0 },
+          ],
+          options,
+        ),
+        spotlight.animate(
+          [
+            { opacity: activeTransition ? getComputedStyle(spotlight).opacity : opening ? 0 : 1 },
+            { opacity: 1 },
+          ],
+          options,
+        ),
       ];
       const state = { animations, nativeGlass, done };
       cardTransitions.set(card, state);
-      Promise.all(animations.map(animation => animation.finished)).then(() => {
-        if (cardTransitions.get(card) !== state) return;
-        cardTransitions.delete(card);
-        state.done?.();
-        animations.forEach(animation => animation.cancel());
-      }).catch(() => {});
+      Promise.all(animations.map((animation) => animation.finished))
+        .then(() => {
+          if (cardTransitions.get(card) !== state) return;
+          cardTransitions.delete(card);
+          state.done?.();
+          animations.forEach((animation) => animation.cancel());
+        })
+        .catch(() => {});
     }
     function reserveSlideSpace() {
       if (!shell || !entries.length || shell.style.display !== 'block') return;
       measuredCardWidth = shell.offsetWidth;
       shell.style.setProperty('--tdb-partner-text-height', '0px');
-      const imageHeight = Math.max(...entries.map(({slide}) => {
-        const image=slide.querySelector(CONFIG.tooltipImageSelector);
-        const width=slide.querySelector('.tooltip2_image-wrapper').clientWidth;
-        return width * (image?.naturalWidth ? image.naturalHeight/image.naturalWidth : 1);
-      }));
-      const textHeight = Math.max(...entries.map(({slide}) => slide.querySelector('.tdb-partner-copy').scrollHeight));
-      shell.style.setProperty('--tdb-partner-image-height', Math.ceil(imageHeight)+'px');
-      shell.style.setProperty('--tdb-partner-text-height', Math.ceil(textHeight)+'px');
+      const imageHeight = Math.max(
+        ...entries.map(({ slide }) => {
+          const image = slide.querySelector(CONFIG.tooltipImageSelector);
+          const width = slide.querySelector('.tooltip2_image-wrapper').clientWidth;
+          return width * (image?.naturalWidth ? image.naturalHeight / image.naturalWidth : 1);
+        }),
+      );
+      const textHeight = Math.max(
+        ...entries.map(({ slide }) => slide.querySelector('.tdb-partner-copy').scrollHeight),
+      );
+      shell.style.setProperty('--tdb-partner-image-height', Math.ceil(imageHeight) + 'px');
+      shell.style.setProperty('--tdb-partner-text-height', Math.ceil(textHeight) + 'px');
       swiper?.update();
       positionCard(true);
     }
     function syncSlide() {
       if (!openCard || switching || !swiper) return;
-      const entry=entries[swiper.realIndex];
+      const entry = entries[swiper.realIndex];
       if (!entry) return;
-      track.querySelectorAll('[aria-expanded="true"]').forEach(item=>item.setAttribute('aria-expanded','false'));
-      const changed=openItem!==entry.item;
-      openItem=entry.item;
+      track
+        .querySelectorAll('[aria-expanded="true"]')
+        .forEach((item) => item.setAttribute('aria-expanded', 'false'));
+      const changed = openItem !== entry.item;
+      openItem = entry.item;
       if (changed) cardGeometry = null;
-      openItem.setAttribute('aria-expanded','true');
-      if(changed || !centreAnimation) centre(openItem);
-      hiddenLogos.forEach((visibility,logo)=>{logo.style.visibility=visibility;}); hiddenLogos.clear();
-      track.querySelectorAll(CONFIG.itemSelector).forEach(item=>{
-        if(item.dataset.tdbLogoIndex!==openItem.dataset.tdbLogoIndex) return;
-        const logo=item.querySelector(CONFIG.logoSelector);
-        if(logo) {hiddenLogos.set(logo,logo.style.visibility);logo.style.visibility='hidden';}
+      openItem.setAttribute('aria-expanded', 'true');
+      if (changed || !centreAnimation) centre(openItem);
+      hiddenLogos.forEach((visibility, logo) => {
+        logo.style.visibility = visibility;
       });
-      entries.forEach(entry=>{ entry.slide.inert=false; });
+      hiddenLogos.clear();
+      track.querySelectorAll(CONFIG.itemSelector).forEach((item) => {
+        if (item.dataset.tdbLogoIndex !== openItem.dataset.tdbLogoIndex) return;
+        const logo = item.querySelector(CONFIG.logoSelector);
+        if (logo) {
+          hiddenLogos.set(logo, logo.style.visibility);
+          logo.style.visibility = 'hidden';
+        }
+      });
+      entries.forEach((entry) => {
+        entry.slide.inert = false;
+      });
       if (visitButton) {
         const href = entry.link?.getAttribute('href');
         visitButton.style.display = href ? '' : 'none';
@@ -385,11 +504,21 @@
           if (value === null || value === undefined) visitButton.removeAttribute(name);
           else visitButton.setAttribute(name, value);
         }
-        const name = entry.slide.querySelector('.text-style-tagline-restored')?.textContent.trim() || 'partner';
-        visitButton.setAttribute('aria-label', 'Visit ' + name + ' website' + (visitButton.target === '_blank' ? ' (opens in a new tab)' : ''));
+        const name =
+          entry.slide.querySelector('.text-style-tagline-restored')?.textContent.trim() ||
+          'partner';
+        visitButton.setAttribute(
+          'aria-label',
+          'Visit ' +
+            name +
+            ' website' +
+            (visitButton.target === '_blank' ? ' (opens in a new tab)' : ''),
+        );
         if (changed) visitButton.classList.remove('is-hovered', 'is-touch-held');
       }
-      Array.from(swiper.slides).forEach((slide,index)=>{slide.inert=index!==swiper.activeIndex;});
+      Array.from(swiper.slides).forEach((slide, index) => {
+        slide.inert = index !== swiper.activeIndex;
+      });
       positionCard();
     }
     function prepareShell() {
@@ -398,8 +527,10 @@
       prepareFlight = (async () => {
         if (lazy && !shell) {
           await Promise.all([
-            window.TDBModules.load(new URL('tdb-partner-card.js', assetBase), {ready: () => Boolean(window.TDBPartnerCard)}),
-            window.TDBModules.load(new URL('tdb-partner-card.css', assetBase), {type:'style'})
+            window.TDBModules.load(new URL('tdb-partner-card.js', assetBase), {
+              ready: () => Boolean(window.TDBPartnerCard),
+            }),
+            window.TDBModules.load(new URL('tdb-partner-card.css', assetBase), { type: 'style' }),
           ]);
           const prepared = await window.TDBPartnerCard.prepare(stage, originals);
           if (signal.aborted || !stage.isConnected) return;
@@ -412,31 +543,47 @@
           collectEntries(prepared.sources);
           bindShell();
         }
-        entries.forEach(({slide}) => primeTooltipImage(slide));
-        await Promise.all(entries.map(async ({slide}) => {
-          const image=slide.querySelector(CONFIG.tooltipImageSelector);
-          if (image?.decode) await image.decode().catch(()=>{});
-        }));
+        entries.forEach(({ slide }) => primeTooltipImage(slide));
+        await Promise.all(
+          entries.map(async ({ slide }) => {
+            const image = slide.querySelector(CONFIG.tooltipImageSelector);
+            if (image?.decode) await image.decode().catch(() => {});
+          }),
+        );
         if (signal.aborted) return;
-        document.body.append(overlay,spotlight,shell);
-        shell.style.visibility='hidden';
-        shell.style.display='block';
-        swiper=window.TDBSwiper.create(shell.querySelector('.tdb-partner-swiper'), {
-          wrapperClass:'tdb-partner-slides', slideClass:'tooltip2_card-wrapper',
-          slidesPerView:1, spaceBetween:24, autoHeight:false, loop:true,
+        document.body.append(overlay, spotlight, shell);
+        shell.style.visibility = 'hidden';
+        shell.style.display = 'block';
+        swiper = window.TDBSwiper.create(shell.querySelector('.tdb-partner-swiper'), {
+          wrapperClass: 'tdb-partner-slides',
+          slideClass: 'tooltip2_card-wrapper',
+          slidesPerView: 1,
+          spaceBetween: 24,
+          autoHeight: false,
+          loop: true,
           // Both sides need every destination so direct logo clicks can take
           // the same short route across the seam as the marquee.
-          loopedSlides:entries.length,
-          speed:window.TDBMotion.duration(), watchOverflow:true,
-          touchStartPreventDefault:false, preventInteractionOnTransition:false, loopPreventsSlide:false,
-          a11y:{enabled:true}, on:{slideChange:syncSlide, beforeTransitionStart:(_swiper,speed)=>{
-            if(speed>0) centreAnimation?.effect.updateTiming({duration:speed});
-          }}
+          loopedSlides: entries.length,
+          speed: window.TDBMotion.duration(),
+          watchOverflow: true,
+          touchStartPreventDefault: false,
+          preventInteractionOnTransition: false,
+          loopPreventsSlide: false,
+          a11y: { enabled: true },
+          on: {
+            slideChange: syncSlide,
+            beforeTransitionStart: (_swiper, speed) => {
+              if (speed > 0) centreAnimation?.effect.updateTiming({ duration: speed });
+            },
+          },
         });
         reserveSlideSpace();
         shell.style.removeProperty('display');
         shell.style.removeProperty('visibility');
-      })().catch(error => { prepareFlight=null; throw error; });
+      })().catch((error) => {
+        prepareFlight = null;
+        throw error;
+      });
       return prepareFlight;
     }
     function warmShell() {
@@ -444,71 +591,108 @@
     }
     function releaseActiveLogo() {
       spotlight?.style.removeProperty('display');
-      hiddenLogos.forEach((visibility,logo)=>{logo.style.visibility=visibility;});
+      hiddenLogos.forEach((visibility, logo) => {
+        logo.style.visibility = visibility;
+      });
       hiddenLogos.clear();
     }
     function closeCard(returnFocus = false, immediate = false) {
       requestGeneration++;
       clearTimeout(wheelSettleTimer);
       pendingItem = null;
-      track.querySelectorAll('[aria-busy]').forEach(item=>item.removeAttribute('aria-busy'));
+      track.querySelectorAll('[aria-busy]').forEach((item) => item.removeAttribute('aria-busy'));
       if (!openCard) return;
-      const card = openCard, item = openItem;
+      const card = openCard,
+        item = openItem;
       const focused = card.contains(document.activeElement);
       openCard = openItem = null;
       cardGeometry = null;
-      card.setAttribute('aria-hidden', 'true'); card.inert = true;
-      track.querySelectorAll('[aria-expanded="true"]').forEach(item=>item.setAttribute('aria-expanded','false'));
+      card.setAttribute('aria-hidden', 'true');
+      card.inert = true;
+      track
+        .querySelectorAll('[aria-expanded="true"]')
+        .forEach((item) => item.setAttribute('aria-expanded', 'false'));
       const park = () => {
-        card.style.removeProperty('display'); card.style.removeProperty('left'); card.style.removeProperty('top');
+        card.style.removeProperty('display');
+        card.style.removeProperty('left');
+        card.style.removeProperty('top');
         overlay.style.removeProperty('display');
         card.inert = false;
         releaseActiveLogo();
-        card.querySelectorAll('.tdb-service-arrow.is-selected').forEach(button=>button.classList.remove('is-selected'));
+        card
+          .querySelectorAll('.tdb-service-arrow.is-selected')
+          .forEach((button) => button.classList.remove('is-selected'));
         releaseChrome(card);
       };
-      if (immediate) { finishCardTransition(card); park(); }
-      else animateCard(card, false, park);
-      if (returnFocus && focused) originals[Number(item.dataset.tdbLogoIndex)]?.focus({preventScroll:true});
+      if (immediate) {
+        finishCardTransition(card);
+        park();
+      } else animateCard(card, false, park);
+      if (returnFocus && focused)
+        originals[Number(item.dataset.tdbLogoIndex)]?.focus({ preventScroll: true });
     }
     async function showCard(item) {
-      if (!lazy && !cards.has(item)) { closeCard(); return; }
-      const generation=++requestGeneration;
+      if (!lazy && !cards.has(item)) {
+        closeCard();
+        return;
+      }
+      const generation = ++requestGeneration;
       pendingItem = item;
-      item.setAttribute('aria-busy','true');
-      try { await prepareShell(); } catch (_) {
+      item.setAttribute('aria-busy', 'true');
+      try {
+        await prepareShell();
+      } catch (_) {
         if (generation === requestGeneration) {
           pendingItem = null;
           item.setAttribute('aria-label', 'Unable to load partner details. Activate to try again.');
         }
-        item.removeAttribute('aria-busy'); return;
+        item.removeAttribute('aria-busy');
+        return;
       }
-      if (signal.aborted || generation!==requestGeneration) return;
+      if (signal.aborted || generation !== requestGeneration) return;
       pendingItem = null;
-      track.querySelectorAll('[aria-busy]').forEach(node=>node.removeAttribute('aria-busy'));
-      const entry=cards.get(item);
-      if (!entry) { closeCard(); return; }
+      track.querySelectorAll('[aria-busy]').forEach((node) => node.removeAttribute('aria-busy'));
+      const entry = cards.get(item);
+      if (!entry) {
+        closeCard();
+        return;
+      }
       if (openCard) {
         // slideToLoop always targets the original, which can sweep through
         // the whole deck at the seam. Select the nearest rendered copy instead.
-        switching=true; swiper.loopFix(); switching=false;
-        const realIndex=entries.indexOf(entry);
-        const candidates=Array.from(swiper.slides).map((slide,index)=>({slide,index}))
-          .filter(({slide})=>Number(slide.dataset.swiperSlideIndex)===realIndex);
-        const nearest=candidates.reduce((best,candidate)=>
-          Math.abs(candidate.index-swiper.activeIndex)<Math.abs(best.index-swiper.activeIndex)?candidate:best);
-        swiper.slideTo(nearest.index,window.TDBMotion.duration());
-        syncSlide(); return;
+        switching = true;
+        swiper.loopFix();
+        switching = false;
+        const realIndex = entries.indexOf(entry);
+        const candidates = Array.from(swiper.slides)
+          .map((slide, index) => ({ slide, index }))
+          .filter(({ slide }) => Number(slide.dataset.swiperSlideIndex) === realIndex);
+        const nearest = candidates.reduce((best, candidate) =>
+          Math.abs(candidate.index - swiper.activeIndex) < Math.abs(best.index - swiper.activeIndex)
+            ? candidate
+            : best,
+        );
+        swiper.slideTo(nearest.index, window.TDBMotion.duration());
+        syncSlide();
+        return;
       }
       finishCardTransition(shell);
-      openItem=item; openCard=shell;
+      openItem = item;
+      openCard = shell;
       holdChrome(shell);
-      shell.style.display='block'; overlay.style.display='block'; spotlight.style.display='block';
-      shell.inert=false; shell.setAttribute('aria-hidden','false');
-      switching=true;
-      swiper.update(); swiper.slideToLoop(entries.indexOf(entry),0);
-      switching=false;
-      reserveSlideSpace(); syncSlide(); positionCard(); animateCard(shell,true);
+      shell.style.display = 'block';
+      overlay.style.display = 'block';
+      spotlight.style.display = 'block';
+      shell.inert = false;
+      shell.setAttribute('aria-hidden', 'false');
+      switching = true;
+      swiper.update();
+      swiper.slideToLoop(entries.indexOf(entry), 0);
+      switching = false;
+      reserveSlideSpace();
+      syncSlide();
+      positionCard();
+      animateCard(shell, true);
     }
 
     function setTransform(value) {
@@ -519,9 +703,7 @@
     }
 
     function measureLoopWidth() {
-      const firstOriginal = track.querySelector(
-        `${CONFIG.itemSelector}:not([${CLONE_ATTR}])`
-      );
+      const firstOriginal = track.querySelector(`${CONFIG.itemSelector}:not([${CLONE_ATTR}])`);
       const firstClone = track.querySelector(`${CONFIG.itemSelector}[${CLONE_ATTR}]`);
 
       if (!firstOriginal || !firstClone) return 0;
@@ -554,9 +736,7 @@
         return;
       }
 
-      const gap = loopWidth
-        ? shortestDelta(targetX - currentX, loopWidth)
-        : targetX - currentX;
+      const gap = loopWidth ? shortestDelta(targetX - currentX, loopWidth) : targetX - currentX;
 
       cardGeometry = null;
       loopWidth = nextWidth;
@@ -565,7 +745,8 @@
       measureAttempts = 0;
       ready = true;
       setTransform(wrapX(currentX, loopWidth));
-      if (paused && !dragging && !momentum && selected !== null) centre(originals[Number(selected)]);
+      if (paused && !dragging && !momentum && selected !== null)
+        centre(originals[Number(selected)]);
       startAnimation();
     }
 
@@ -593,10 +774,13 @@
           // Carry the throw into the existing automatic speed, without snapping.
           const cruise = -getSpeed();
           const decay = Math.exp(-4.2 * deltaSeconds);
-          currentX += cruise * deltaSeconds + (momentum-cruise) * (1-decay) / 4.2;
-          momentum = cruise + (momentum-cruise) * decay;
+          currentX += cruise * deltaSeconds + ((momentum - cruise) * (1 - decay)) / 4.2;
+          momentum = cruise + (momentum - cruise) * decay;
           targetX = currentX;
-          if (Math.abs(momentum-cruise) < 2) { coasting = false; momentum = 0; }
+          if (Math.abs(momentum - cruise) < 2) {
+            coasting = false;
+            momentum = 0;
+          }
         } else if (!dragging) {
           if (!paused && !reduceMotion()) {
             currentX -= getSpeed() * deltaSeconds;
@@ -604,11 +788,13 @@
           } else {
             if (centreAnimation) {
               const progress = centreAnimation.effect.getComputedTiming().progress || 0;
-              currentX = centreFrom + (targetX-centreFrom) * progress;
-              if (centreAnimation.playState==='finished') {
-                currentX=targetX; centreAnimation.cancel(); centreAnimation=null;
+              currentX = centreFrom + (targetX - centreFrom) * progress;
+              if (centreAnimation.playState === 'finished') {
+                currentX = targetX;
+                centreAnimation.cancel();
+                centreAnimation = null;
               }
-            } else currentX=targetX;
+            } else currentX = targetX;
           }
         }
 
@@ -621,26 +807,42 @@
         setTransform(wrapX(currentX, loopWidth));
       }
 
-      if (!rafId && ((!paused && !reduceMotion()) || coasting || centreAnimation || Math.abs(targetX-currentX) > .05)) rafId = requestAnimationFrame(frame);
+      if (
+        !rafId &&
+        ((!paused && !reduceMotion()) ||
+          coasting ||
+          centreAnimation ||
+          Math.abs(targetX - currentX) > 0.05)
+      )
+        rafId = requestAnimationFrame(frame);
     }
 
     function centre(item) {
       if (!item || !ready) return;
       paused = true;
-      momentum = 0; coasting = false;
+      momentum = 0;
+      coasting = false;
       selected = item.dataset.tdbLogoIndex;
       const box = item.getBoundingClientRect();
       const view = viewport.getBoundingClientRect();
-      targetX = currentX + shortestDelta(view.left + view.width / 2 - box.left - box.width / 2, loopWidth);
-      centreAnimation?.cancel(); centreAnimation=null;
-      if (reduceMotion()) { currentX = targetX; setTransform(wrapX(currentX,loopWidth)); }
-      else {
-        centreFrom=currentX;
+      targetX =
+        currentX + shortestDelta(view.left + view.width / 2 - box.left - box.width / 2, loopWidth);
+      centreAnimation?.cancel();
+      centreAnimation = null;
+      if (reduceMotion()) {
+        currentX = targetX;
+        setTransform(wrapX(currentX, loopWidth));
+      } else {
+        centreFrom = currentX;
         // Native timing reuses Swiper's Designer easing and shared duration.
-        centreAnimation=new Animation(new KeyframeEffect(null,[],{
-          duration:swiper?.params.speed || window.TDBMotion.duration(),
-          easing:slideHost ? getComputedStyle(slideHost).transitionTimingFunction : 'ease', fill:'both'
-        }),document.timeline);
+        centreAnimation = new Animation(
+          new KeyframeEffect(null, [], {
+            duration: swiper?.params.speed || window.TDBMotion.duration(),
+            easing: slideHost ? getComputedStyle(slideHost).transitionTimingFunction : 'ease',
+            fill: 'both',
+          }),
+          document.timeline,
+        );
         centreAnimation.play();
       }
       startAnimation();
@@ -653,22 +855,30 @@
     }
     function resume() {
       if (dragging) return;
-      centreAnimation?.cancel(); centreAnimation=null;
+      centreAnimation?.cancel();
+      centreAnimation = null;
       targetX = currentX;
       closeCard();
       const restart = () => {
-        paused = reduceMotion(); selected = null; momentum = 0; coasting = false;
+        paused = reduceMotion();
+        selected = null;
+        momentum = 0;
+        coasting = false;
         targetX = currentX;
         if (!paused) startAnimation();
       };
       const closing = cardTransitions.get(shell);
       if (closing) {
         // Keep both logo positions identical until the same-frame handover.
-        paused = true; stopAnimation();
+        paused = true;
+        stopAnimation();
         if (!closing.resumePending) {
           closing.resumePending = true;
           const park = closing.done;
-          closing.done = () => { park?.(); restart(); };
+          closing.done = () => {
+            park?.();
+            restart();
+          };
         }
       } else restart();
     }
@@ -676,23 +886,33 @@
       if (!ready || event.button > 0 || event.isPrimary === false || pointerId !== null) return;
       clearTimeout(wheelSettleTimer);
       // Catch a moving logo exactly where the finger lands, including mid-settle.
-      centreAnimation?.cancel(); centreAnimation=null;
-      momentum = 0; coasting = false; targetX = currentX; paused = true; stopAnimation();
+      centreAnimation?.cancel();
+      centreAnimation = null;
+      momentum = 0;
+      coasting = false;
+      targetX = currentX;
+      paused = true;
+      stopAnimation();
       pointerId = event.pointerId;
       pressedItem = event.target.closest(CONFIG.itemSelector);
-      startX = lastPointerX = event.clientX; startY = event.clientY;
-      samples = [{x:event.clientX,t:event.timeStamp}];
-      horizontal = false; dragging = false;
+      startX = lastPointerX = event.clientX;
+      startY = event.clientY;
+      samples = [{ x: event.clientX, t: event.timeStamp }];
+      horizontal = false;
+      dragging = false;
       suppressNextClick = false;
     }
     function onPointerMove(event) {
       if (event.pointerId !== pointerId) return;
-      const dx = event.clientX-startX, dy = event.clientY-startY;
+      const dx = event.clientX - startX,
+        dy = event.clientY - startY;
       if (!horizontal) {
         if (Math.abs(dy) > CONFIG.dragClickThreshold && Math.abs(dy) > Math.abs(dx)) {
           // Give the gesture back to native page scrolling without dismissing
           // the card or treating a subsequent click as a logo activation.
-          pointerId = null; pressedItem = null; samples = [];
+          pointerId = null;
+          pressedItem = null;
+          samples = [];
           suppressNextClick = true;
           if (!openCard) resume();
           return;
@@ -700,53 +920,87 @@
         if (Math.abs(dx) <= CONFIG.dragClickThreshold) return;
         // Keep the shared card and spotlight alive throughout horizontal drag.
         // On release, the nearest logo selects its corresponding content.
-        horizontal = dragging = true; selected = null;
-        try { track.setPointerCapture(pointerId); } catch (_) {}
+        horizontal = dragging = true;
+        selected = null;
+        try {
+          track.setPointerCapture(pointerId);
+        } catch (_) {}
       }
-      event.preventDefault(); suppressNextClick = true;
-      const delta = event.clientX-lastPointerX; lastPointerX = event.clientX;
-      samples.push({x:event.clientX,t:event.timeStamp});
+      event.preventDefault();
+      suppressNextClick = true;
+      const delta = event.clientX - lastPointerX;
+      lastPointerX = event.clientX;
+      samples.push({ x: event.clientX, t: event.timeStamp });
       while (samples.length > 2 && samples[1].t < event.timeStamp - 100) samples.shift();
-      currentX += delta; targetX = currentX;
-      setTransform(wrapX(currentX,loopWidth));
+      currentX += delta;
+      targetX = currentX;
+      setTransform(wrapX(currentX, loopWidth));
     }
     function settleOpenCard() {
       if (!openCard || !ready) return;
       const view = viewport.getBoundingClientRect();
       const middle = view.left + view.width / 2;
-      let nearest = null, distance = Infinity;
+      let nearest = null,
+        distance = Infinity;
       for (const item of track.querySelectorAll(CONFIG.itemSelector)) {
         if (!cards.has(item)) continue;
         const box = item.getBoundingClientRect();
         const delta = Math.abs(box.left + box.width / 2 - middle);
-        if (delta < distance) { nearest = item; distance = delta; }
+        if (delta < distance) {
+          nearest = item;
+          distance = delta;
+        }
       }
       if (nearest) select(nearest);
     }
     function onHorizontalWheel(event) {
-      if (!openCard || !ready || pointerId !== null || event.ctrlKey || Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+      if (
+        !openCard ||
+        !ready ||
+        pointerId !== null ||
+        event.ctrlKey ||
+        Math.abs(event.deltaX) <= Math.abs(event.deltaY)
+      )
+        return;
       event.preventDefault();
-      centreAnimation?.cancel(); centreAnimation = null;
-      momentum = 0; coasting = false; paused = true; stopAnimation();
+      centreAnimation?.cancel();
+      centreAnimation = null;
+      momentum = 0;
+      coasting = false;
+      paused = true;
+      stopAnimation();
       const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? viewport.clientWidth : 1;
-      currentX -= event.deltaX * scale; targetX = currentX;
+      currentX -= event.deltaX * scale;
+      targetX = currentX;
       setTransform(wrapX(currentX, loopWidth));
       clearTimeout(wheelSettleTimer);
       wheelSettleTimer = setTimeout(settleOpenCard, 140);
     }
     function endPointer(event) {
       if (event.pointerId !== pointerId) return;
-      const id = pointerId, moved = horizontal, tappedItem = pressedItem;
+      const id = pointerId,
+        moved = horizontal,
+        tappedItem = pressedItem;
       pressedItem = null;
-      pointerId = null; dragging = false; horizontal = false;
-      try { track.releasePointerCapture(id); } catch (_) {}
+      pointerId = null;
+      dragging = false;
+      horizontal = false;
+      try {
+        track.releasePointerCapture(id);
+      } catch (_) {}
       if (moved) {
         suppressNextClick = true;
-        if (openCard) { settleOpenCard(); return; }
-        const first = samples[0], last = samples[samples.length-1];
-        const dt = last.t-first.t;
-        momentum = !reduceMotion() && event.type === 'pointerup' && event.timeStamp-last.t < 90 && dt > 0
-          ? clamp((last.x-first.x) / dt * 1000,-2800,2800) : 0;
+        if (openCard) {
+          settleOpenCard();
+          return;
+        }
+        const first = samples[0],
+          last = samples[samples.length - 1];
+        const dt = last.t - first.t;
+        momentum =
+          !reduceMotion() && event.type === 'pointerup' && event.timeStamp - last.t < 90 && dt > 0
+            ? clamp(((last.x - first.x) / dt) * 1000, -2800, 2800)
+            : 0;
         selected = null;
         paused = reduceMotion();
         coasting = !paused;
@@ -767,22 +1021,34 @@
     function onClick(event) {
       // A touch activation has already been handled on pointerup.
       if (performance.now() < touchClickUntil) {
-        event.preventDefault(); event.stopImmediatePropagation(); return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
       }
       // Pointer capture can retarget the release-click to the track itself.
       if (suppressNextClick) {
         suppressNextClick = false;
-        event.preventDefault(); event.stopImmediatePropagation(); return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
       }
       suppressNextClick = false;
       const item = event.target.closest(CONFIG.itemSelector);
-      if (!item) { resume(); return; }
-      event.preventDefault(); event.stopImmediatePropagation(); select(item);
+      if (!item) {
+        resume();
+        return;
+      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      select(item);
     }
     function onOutsideClick(event) {
       if (performance.now() < touchClickUntil) return;
       if (!track.contains(event.target) && !openCard?.contains(event.target)) {
-        if (openCard) { event.preventDefault(); event.stopImmediatePropagation(); }
+        if (openCard) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
         resume();
       }
     }
@@ -791,7 +1057,7 @@
       const visual = window.visualViewport;
       const top = visual?.offsetTop || 0;
       const bottom = top + (visual?.height || innerHeight);
-      const visible = node => {
+      const visible = (node) => {
         const rect = node.getBoundingClientRect();
         return rect.bottom > top && rect.top < bottom;
       };
@@ -808,24 +1074,38 @@
       const item = event.target.closest(CONFIG.itemSelector);
       if (!item) return;
       suppressNextClick = false;
-      event.preventDefault(); event.stopImmediatePropagation(); select(item);
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      select(item);
     }
     function onReducedChange() {
-      momentum = 0; coasting = false; targetX = currentX;
-      if (reduceMotion()) { paused = true; stopAnimation(); }
-      else resume();
+      momentum = 0;
+      coasting = false;
+      targetX = currentX;
+      if (reduceMotion()) {
+        paused = true;
+        stopAnimation();
+      } else resume();
     }
 
     function onTooltipIntent(event) {
-      const item = event.target instanceof Element ? event.target.closest(CONFIG.itemSelector) : null;
+      const item =
+        event.target instanceof Element ? event.target.closest(CONFIG.itemSelector) : null;
       if (!item || !track.contains(item)) return;
       warmShell();
-      if (event.type === 'pointerover' && finePointer.matches) item.querySelectorAll(CONFIG.logoSelector).forEach(logo => logo.classList.add('is-partner-hovered'));
+      if (event.type === 'pointerover' && finePointer.matches)
+        item
+          .querySelectorAll(CONFIG.logoSelector)
+          .forEach((logo) => logo.classList.add('is-partner-hovered'));
     }
 
     function clearHover(event) {
-      const item = event.target instanceof Element ? event.target.closest(CONFIG.itemSelector) : null;
-      if (item && !item.contains(event.relatedTarget)) item.querySelectorAll(CONFIG.logoSelector).forEach(logo => logo.classList.remove('is-partner-hovered'));
+      const item =
+        event.target instanceof Element ? event.target.closest(CONFIG.itemSelector) : null;
+      if (item && !item.contains(event.relatedTarget))
+        item
+          .querySelectorAll(CONFIG.logoSelector)
+          .forEach((logo) => logo.classList.remove('is-partner-hovered'));
     }
 
     function onVisibilityChange() {
@@ -838,28 +1118,35 @@
 
       closeCard(false, true);
       [...cardTransitions.keys()].forEach(finishCardTransition);
-      swiper?.destroy(true,true);
+      swiper?.destroy(true, true);
       centreAnimation?.cancel();
-      entries.forEach(({source,slide})=>{slide.inert=false;source.append(slide);});
+      entries.forEach(({ source, slide }) => {
+        slide.inert = false;
+        source.append(slide);
+      });
       if (stage && shell) {
-        if (lazy) [overlay,spotlight,shell].forEach(node=>node.remove());
-        else stage.append(overlay,spotlight,shell);
+        if (lazy) [overlay, spotlight, shell].forEach((node) => node.remove());
+        else stage.append(overlay, spotlight, shell);
       }
       controller.abort();
       dd.destroy();
-      track.querySelectorAll('.is-partner-hovered').forEach(logo => logo.classList.remove('is-partner-hovered'));
-      track.querySelectorAll('.is-keyboard-focused').forEach(item => item.classList.remove('is-keyboard-focused'));
+      track
+        .querySelectorAll('.is-partner-hovered')
+        .forEach((logo) => logo.classList.remove('is-partner-hovered'));
+      track
+        .querySelectorAll('.is-keyboard-focused')
+        .forEach((item) => item.classList.remove('is-keyboard-focused'));
       stopAnimation();
       clearTimeout(measureTimer);
       activeObserver?.disconnect();
       resizeObserver?.disconnect();
 
-      track.querySelectorAll(`[${CLONE_ATTR}]`).forEach(clone => clone.remove());
+      track.querySelectorAll(`[${CLONE_ATTR}]`).forEach((clone) => clone.remove());
       track.removeAttribute(INIT_ATTR);
       track.style.removeProperty('transform');
       track.style.removeProperty('will-change');
       track.style.removeProperty('touch-action');
-      restore.reverse().forEach(fn => fn());
+      restore.reverse().forEach((fn) => fn());
       discoveredTracks.delete(track);
       instances.delete(track);
     }
@@ -870,101 +1157,192 @@
       if ('ResizeObserver' in window) {
         const cardObserver = new ResizeObserver(positionCard);
         cardObserver.observe(shell);
-        signal.addEventListener('abort', () => cardObserver.disconnect(), {once:true});
+        signal.addEventListener('abort', () => cardObserver.disconnect(), { once: true });
       }
-      const arrows=Array.from(shell.querySelectorAll('.tdb-partner-prev,.tdb-partner-next'));
-      const selectArrow = button => {
+      const arrows = Array.from(shell.querySelectorAll('.tdb-partner-prev,.tdb-partner-next'));
+      const selectArrow = (button) => {
         const feedback = window.TDBCarouselArrowFeedback;
         if (feedback?.select && feedback?.clear) {
-          if (button) feedback.select(button); else feedback.clear(arrows[0]);
+          if (button) feedback.select(button);
+          else feedback.clear(arrows[0]);
           return;
         }
         // A standalone page may not ship the site's footer bundle.
-        arrows.forEach(candidate=>candidate.classList.toggle('is-selected',candidate===button));
+        arrows.forEach((candidate) =>
+          candidate.classList.toggle('is-selected', candidate === button),
+        );
       };
       // Reuse the persistent native carousel state, including after touch release.
-      arrows.forEach(button=>{
-        button.addEventListener('pointerdown',event=>{
-          if(event.pointerType==='touch'||event.pointerType==='pen') selectArrow(button);
-        },{signal});
-        button.addEventListener('pointercancel',()=>selectArrow(null),{signal});
+      arrows.forEach((button) => {
+        button.addEventListener(
+          'pointerdown',
+          (event) => {
+            if (event.pointerType === 'touch' || event.pointerType === 'pen') selectArrow(button);
+          },
+          { signal },
+        );
+        button.addEventListener('pointercancel', () => selectArrow(null), { signal });
       });
       // Same native visual states as the treatment CTA: mouse-only hover,
       // instant touch feedback, cleared when the user scrolls or changes card.
-      const clearVisitFeedback = () => visitButton?.classList.remove('is-touch-held','is-hovered');
+      const clearVisitFeedback = () => visitButton?.classList.remove('is-touch-held', 'is-hovered');
       if (visitButton) {
-        visitButton.addEventListener('pointerenter', event => {
-          if (event.pointerType === 'mouse') visitButton.classList.add('is-hovered');
-        }, {signal});
-        visitButton.addEventListener('pointerleave', () => visitButton.classList.remove('is-hovered'), {signal});
-        visitButton.addEventListener('pointerdown', event => {
-          if (event.pointerType !== 'mouse') visitButton.classList.add('is-touch-held');
-        }, {signal});
-        visitButton.addEventListener('pointercancel', clearVisitFeedback, {signal});
+        visitButton.addEventListener(
+          'pointerenter',
+          (event) => {
+            if (event.pointerType === 'mouse') visitButton.classList.add('is-hovered');
+          },
+          { signal },
+        );
+        visitButton.addEventListener(
+          'pointerleave',
+          () => visitButton.classList.remove('is-hovered'),
+          { signal },
+        );
+        visitButton.addEventListener(
+          'pointerdown',
+          (event) => {
+            if (event.pointerType !== 'mouse') visitButton.classList.add('is-touch-held');
+          },
+          { signal },
+        );
+        visitButton.addEventListener('pointercancel', clearVisitFeedback, { signal });
       }
-      shell.addEventListener('click', event => {
-        if (!event.target.closest('.tdb-service-discover')) clearVisitFeedback();
-      }, {signal});
-      shell.addEventListener('keydown', clearVisitFeedback, {signal});
-      window.addEventListener('scroll', clearVisitFeedback, {signal,passive:true});
-      window.addEventListener('pageshow', clearVisitFeedback, {signal});
+      shell.addEventListener(
+        'click',
+        (event) => {
+          if (!event.target.closest('.tdb-service-discover')) clearVisitFeedback();
+        },
+        { signal },
+      );
+      shell.addEventListener('keydown', clearVisitFeedback, { signal });
+      window.addEventListener('scroll', clearVisitFeedback, { signal, passive: true });
+      window.addEventListener('pageshow', clearVisitFeedback, { signal });
       // Orientation can reset the generic carousel focus controller. Reassert
       // this live card's hold once layout settles; never on ordinary scrolling.
-      window.addEventListener('resize', () => requestAnimationFrame(() => {
-        if (!signal.aborted && chromeHolds.has(shell)) holdChrome(shell);
-      }), {signal,passive:true});
-      shell.querySelector('.tdb-partner-close').addEventListener('click', event=>{
-        event.preventDefault(); closeCard(true); resume();
-      }, {signal});
-      const advance = direction => {
+      window.addEventListener(
+        'resize',
+        () =>
+          requestAnimationFrame(() => {
+            if (!signal.aborted && chromeHolds.has(shell)) holdChrome(shell);
+          }),
+        { signal, passive: true },
+      );
+      shell.querySelector('.tdb-partner-close').addEventListener(
+        'click',
+        (event) => {
+          event.preventDefault();
+          closeCard(true);
+          resume();
+        },
+        { signal },
+      );
+      const advance = (direction) => {
         if (!swiper || !openCard) return;
-        if(direction>0) swiper.slideNext(window.TDBMotion.duration());
+        if (direction > 0) swiper.slideNext(window.TDBMotion.duration());
         else swiper.slidePrev(window.TDBMotion.duration());
       };
-      shell.querySelector('.tdb-partner-prev').addEventListener('click', event=>{event.preventDefault();advance(-1);},{signal});
-      shell.querySelector('.tdb-partner-next').addEventListener('click', event=>{event.preventDefault();advance(1);},{signal});
-      shell.addEventListener('keydown', event=>{
-        const control=event.target.closest('.tdb-partner-prev,.tdb-partner-next,.tdb-partner-close');
-        if(control && (event.key==='Enter'||event.key===' ')) {
+      shell.querySelector('.tdb-partner-prev').addEventListener(
+        'click',
+        (event) => {
           event.preventDefault();
-          if(control.matches('.tdb-partner-close')) {closeCard(true);resume();}
-          else { selectArrow(control); advance(control.matches('.tdb-partner-prev')?-1:1); }
-          return;
-        }
-        if(event.key==='ArrowLeft'||event.key==='ArrowRight') {event.preventDefault();advance(event.key==='ArrowLeft'?-1:1);}
-      },{signal});
-      window.addEventListener('resize',()=>{if(shell.offsetWidth!==measuredCardWidth)reserveSlideSpace();},{signal,passive:true});
+          advance(-1);
+        },
+        { signal },
+      );
+      shell.querySelector('.tdb-partner-next').addEventListener(
+        'click',
+        (event) => {
+          event.preventDefault();
+          advance(1);
+        },
+        { signal },
+      );
+      shell.addEventListener(
+        'keydown',
+        (event) => {
+          const control = event.target.closest(
+            '.tdb-partner-prev,.tdb-partner-next,.tdb-partner-close',
+          );
+          if (control && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault();
+            if (control.matches('.tdb-partner-close')) {
+              closeCard(true);
+              resume();
+            } else {
+              selectArrow(control);
+              advance(control.matches('.tdb-partner-prev') ? -1 : 1);
+            }
+            return;
+          }
+          if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+            event.preventDefault();
+            advance(event.key === 'ArrowLeft' ? -1 : 1);
+          }
+        },
+        { signal },
+      );
+      window.addEventListener(
+        'resize',
+        () => {
+          if (shell.offsetWidth !== measuredCardWidth) reserveSlideSpace();
+        },
+        { signal, passive: true },
+      );
     }
     bindShell();
-    track.addEventListener('focusin', event => {
-      const item = event.target.closest(CONFIG.itemSelector);
-      if (!item || !item.matches(':focus-visible') || item === openItem) return;
-      warmShell();
-      centre(item);
-      selected = null; // Focusing pauses; the first activation selects rather than resumes.
-      track.querySelectorAll(CONFIG.itemSelector).forEach(copy => {
-        copy.classList.toggle('is-keyboard-focused', copy.dataset.tdbLogoIndex === item.dataset.tdbLogoIndex);
-      });
-    }, { signal });
-    track.addEventListener('focusout', () => track.querySelectorAll('.is-keyboard-focused').forEach(item => item.classList.remove('is-keyboard-focused')), { signal });
+    track.addEventListener(
+      'focusin',
+      (event) => {
+        const item = event.target.closest(CONFIG.itemSelector);
+        if (!item || !item.matches(':focus-visible') || item === openItem) return;
+        warmShell();
+        centre(item);
+        selected = null; // Focusing pauses; the first activation selects rather than resumes.
+        track.querySelectorAll(CONFIG.itemSelector).forEach((copy) => {
+          copy.classList.toggle(
+            'is-keyboard-focused',
+            copy.dataset.tdbLogoIndex === item.dataset.tdbLogoIndex,
+          );
+        });
+      },
+      { signal },
+    );
+    track.addEventListener(
+      'focusout',
+      () =>
+        track
+          .querySelectorAll('.is-keyboard-focused')
+          .forEach((item) => item.classList.remove('is-keyboard-focused')),
+      { signal },
+    );
     track.addEventListener('keydown', onKey, { signal });
     // Logo-only variants have no card to position, dismiss or focus.
     if (shell || lazy) {
-      document.addEventListener('keydown', event => {
-        if (event.key === 'Tab' && openCard && !event.shiftKey && event.target === openItem) {
-          if (visitButton?.getAttribute('href')) { event.preventDefault(); visitButton.focus({ preventScroll: true }); }
-        }
-        if (event.key === 'Escape' && (openCard || pendingItem)) {
-          event.preventDefault(); closeCard(true); resume();
-        }
-      }, { signal });
+      document.addEventListener(
+        'keydown',
+        (event) => {
+          if (event.key === 'Tab' && openCard && !event.shiftKey && event.target === openItem) {
+            if (visitButton?.getAttribute('href')) {
+              event.preventDefault();
+              visitButton.focus({ preventScroll: true });
+            }
+          }
+          if (event.key === 'Escape' && (openCard || pendingItem)) {
+            event.preventDefault();
+            closeCard(true);
+            resume();
+          }
+        },
+        { signal },
+      );
       window.addEventListener('resize', positionCard, { signal, passive: true });
       window.visualViewport?.addEventListener('resize', positionCard, { signal, passive: true });
       window.addEventListener('scroll', onPageScroll, { signal, passive: true });
     }
-    track.addEventListener('dragstart', event => event.preventDefault(), { signal });
+    track.addEventListener('dragstart', (event) => event.preventDefault(), { signal });
     reduced.addEventListener('change', onReducedChange, { signal });
-    document.addEventListener('click', onOutsideClick, { signal, capture:true });
+    document.addEventListener('click', onOutsideClick, { signal, capture: true });
     track.addEventListener('wheel', onHorizontalWheel, { signal, passive: false });
     track.addEventListener('pointerdown', onPointerDown, { signal });
     track.addEventListener('pointermove', onPointerMove, { signal, passive: false });
@@ -973,18 +1351,34 @@
     // Touch starts with implicit capture on the logo/image. Moving capture to
     // the track emits a bubbling lostpointercapture from that child. It is a
     // handoff, not a release: keep following the finger until the track loses it.
-    track.addEventListener('lostpointercapture', event => {
-      if (event.target === track) endPointer(event);
-    }, { signal });
+    track.addEventListener(
+      'lostpointercapture',
+      (event) => {
+        if (event.target === track) endPointer(event);
+      },
+      { signal },
+    );
     track.addEventListener('click', onClick, { signal, capture: true });
-    track.addEventListener('auxclick', event => {
-      if (event.target.closest(CONFIG.itemSelector)) {
-        event.preventDefault(); event.stopImmediatePropagation();
-      }
-    }, { signal, capture: true });
+    track.addEventListener(
+      'auxclick',
+      (event) => {
+        if (event.target.closest(CONFIG.itemSelector)) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      },
+      { signal, capture: true },
+    );
     track.addEventListener('pointerover', onTooltipIntent, { signal, passive: true });
     track.addEventListener('pointerout', clearHover, { signal, passive: true });
-    finePointer.addEventListener('change', () => track.querySelectorAll('.is-partner-hovered').forEach(logo => logo.classList.remove('is-partner-hovered')), { signal });
+    finePointer.addEventListener(
+      'change',
+      () =>
+        track
+          .querySelectorAll('.is-partner-hovered')
+          .forEach((logo) => logo.classList.remove('is-partner-hovered')),
+      { signal },
+    );
     // Native pages keep their preparation policy. Home's lazy mount performs
     // no pop-out warm-up: visible marquee motion remains independently gated.
     document.addEventListener('visibilitychange', onVisibilityChange, { signal });
@@ -993,10 +1387,15 @@
       activeObserver = new IntersectionObserver(
         ([entry]) => {
           active = Boolean(entry?.isIntersecting);
-          if (active) { warmShell(); startAnimation(); }
-          else { if (!openCard || cardAndTrackOffscreen()) resume(); stopAnimation(); }
+          if (active) {
+            warmShell();
+            startAnimation();
+          } else {
+            if (!openCard || cardAndTrackOffscreen()) resume();
+            stopAnimation();
+          }
         },
-        { rootMargin: `${CONFIG.activeViewportMargin}px 0px` }
+        { rootMargin: `${CONFIG.activeViewportMargin}px 0px` },
       );
       activeObserver.observe(track);
     } else {
@@ -1008,21 +1407,23 @@
       resizeObserver = new ResizeObserver(scheduleMeasure);
       resizeObserver.observe(track);
       // Repeated logos mirror their originals; observe each source only once.
-      originals.forEach(item => resizeObserver.observe(item));
+      originals.forEach((item) => resizeObserver.observe(item));
     } else {
       window.addEventListener('resize', scheduleMeasure, { signal, passive: true });
     }
 
-    originals.flatMap(item => Array.from(item.querySelectorAll(CONFIG.logoSelector))).forEach(image => {
-      if (image.complete) return;
-      image.addEventListener('load', scheduleMeasure, { signal, once: true });
-      image.addEventListener('error', scheduleMeasure, { signal, once: true });
-    });
+    originals
+      .flatMap((item) => Array.from(item.querySelectorAll(CONFIG.logoSelector)))
+      .forEach((image) => {
+        if (image.complete) return;
+        image.addEventListener('load', scheduleMeasure, { signal, once: true });
+        image.addEventListener('error', scheduleMeasure, { signal, once: true });
+      });
 
     window.addEventListener('load', scheduleMeasure, { signal, once: true });
     window.addEventListener('orientationchange', scheduleMeasure, {
       signal,
-      passive: true
+      passive: true,
     });
 
     if (document.fonts?.ready) {
@@ -1044,8 +1445,8 @@
         selected,
         loopWidth,
         currentX,
-        targetX
-      })
+        targetX,
+      }),
     };
 
     instances.set(track, instance);
@@ -1059,14 +1460,27 @@
     if (pendingTracks.has(track) || instances.has(track)) return;
     const epoch = generation;
     pendingTracks.add(track);
-    Promise.resolve().then(() => schedule(() => {
-      if (!booted || epoch !== generation || !track.isConnected || !track.matches(CONFIG.selector)) return;
-      initTrack(track);
-    })).catch(error => {
-      if (epoch !== generation) return;
-      discoveredTracks.delete(track);
-      console.warn('TDB marquee: unable to initialise track.', error);
-    }).finally(() => { if (epoch === generation) pendingTracks.delete(track); });
+    Promise.resolve()
+      .then(() =>
+        schedule(() => {
+          if (
+            !booted ||
+            epoch !== generation ||
+            !track.isConnected ||
+            !track.matches(CONFIG.selector)
+          )
+            return;
+          initTrack(track);
+        }),
+      )
+      .catch((error) => {
+        if (epoch !== generation) return;
+        discoveredTracks.delete(track);
+        console.warn('TDB marquee: unable to initialise track.', error);
+      })
+      .finally(() => {
+        if (epoch === generation) pendingTracks.delete(track);
+      });
   }
 
   function discoverTrack(track) {
@@ -1089,13 +1503,14 @@
 
   function refresh() {
     if (!booted) return status();
-    for (const track of discoveredTracks) if (!track.isConnected || !track.matches(CONFIG.selector)) {
-      initObserver?.unobserve(track);
-      instances.get(track)?.destroy();
-      discoveredTracks.delete(track);
-    }
+    for (const track of discoveredTracks)
+      if (!track.isConnected || !track.matches(CONFIG.selector)) {
+        initObserver?.unobserve(track);
+        instances.get(track)?.destroy();
+        discoveredTracks.delete(track);
+      }
     discover(document);
-    instances.forEach(instance => instance.refresh());
+    instances.forEach((instance) => instance.refresh());
     return status();
   }
 
@@ -1103,18 +1518,17 @@
     initObserver?.disconnect();
     initObserver = null;
     generation++;
-    Array.from(instances.values()).forEach(instance => instance.destroy());
+    Array.from(instances.values()).forEach((instance) => instance.destroy());
     discoveredTracks.clear();
     pendingTracks = new WeakSet();
     booted = false;
-
   }
 
   function status() {
     return {
       version: VERSION,
       selector: CONFIG.selector,
-      instances: Array.from(instances.values()).map(instance => instance.status())
+      instances: Array.from(instances.values()).map((instance) => instance.status()),
     };
   }
 
@@ -1125,19 +1539,18 @@
 
     if ('IntersectionObserver' in window) {
       initObserver = new IntersectionObserver(
-        entries => {
-          entries.forEach(entry => {
+        (entries) => {
+          entries.forEach((entry) => {
             if (!entry.isIntersecting) return;
             initObserver.unobserve(entry.target);
             queueTrack(entry.target);
           });
         },
-        { rootMargin: `${CONFIG.initViewportMargin}px 0px` }
+        { rootMargin: `${CONFIG.initViewportMargin}px 0px` },
       );
     }
 
     discover(document);
-
   }
 
   window.TDBLogoMarquee = Object.freeze({
@@ -1145,7 +1558,7 @@
     start: boot,
     refresh,
     destroy: destroyAll,
-    status
+    status,
   });
 
   // Explicit runtime handoff: evaluating this file must not mount any tracks.

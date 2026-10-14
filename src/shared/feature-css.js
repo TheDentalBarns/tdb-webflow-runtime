@@ -1,16 +1,18 @@
 /* Only shared UI is requested by the head. Feature CSS is requested when its runtime is needed. */
 const tdbStyleFlights = new Map();
-const tdbStyleIsReady = property => getComputedStyle(document.documentElement)
-  .getPropertyValue(property).trim() === '1';
+const tdbStyleIsReady = (property) =>
+  getComputedStyle(document.documentElement).getPropertyValue(property).trim() === '1';
 const tdbUIIsReady = () => tdbStyleIsReady('--tdb-ui-ready');
 
 function tdbEnsureStylesheet(attribute, filename, property, label) {
   const isReady = () => tdbStyleIsReady(property);
   if (isReady()) return Promise.resolve();
   if (tdbStyleFlights.has(attribute)) return tdbStyleFlights.get(attribute);
-  const link = document.querySelector(`link[${attribute}]`) ||
-    Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-      .find(node => node.href.split(/[?#]/)[0].endsWith('/dist/' + filename));
+  const link =
+    document.querySelector(`link[${attribute}]`) ||
+    Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find((node) =>
+      node.href.split(/[?#]/)[0].endsWith('/dist/' + filename),
+    );
   if (!link) return Promise.reject(new Error(`TDB ${label} link is missing`));
 
   function waitFor(link, retries) {
@@ -30,8 +32,9 @@ function tdbEnsureStylesheet(attribute, filename, property, label) {
         if (!retries || !link.isConnected) return reject(error);
         const replacement = link.cloneNode(false);
         // Keep the original location: appending to head would change cascade order.
-        ['onload', 'onerror', 'data-tdb-loaded', 'data-tdb-load-failed']
-          .forEach(name => replacement.removeAttribute(name));
+        ['onload', 'onerror', 'data-tdb-loaded', 'data-tdb-load-failed'].forEach((name) =>
+          replacement.removeAttribute(name),
+        );
         replacement.media = 'print';
         const next = waitFor(replacement, retries - 1);
         link.replaceWith(replacement);
@@ -47,7 +50,9 @@ function tdbEnsureStylesheet(attribute, filename, property, label) {
         delete link.dataset.tdbLoadFailed;
         resolve();
       }
-      function failed() { fail(new Error(`TDB ${label} request failed`)); }
+      function failed() {
+        fail(new Error(`TDB ${label} request failed`));
+      }
       link.addEventListener('load', loaded);
       link.addEventListener('error', failed);
       timeout = setTimeout(() => fail(new Error(`TDB ${label} request timed out`)), 15000);
@@ -67,9 +72,11 @@ function tdbEnsureFeatureCSS(attribute, filename, property, label) {
   if (tdbStyleIsReady(property)) return Promise.resolve();
   let link = document.querySelector(`link[${attribute}]`);
   if (!link) {
-    const shared = document.querySelector('link[data-tdb-ui-css]') ||
-      Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-        .find(node => /\/dist\/tdb-ui\.css(?:[?#]|$)/.test(node.href));
+    const shared =
+      document.querySelector('link[data-tdb-ui-css]') ||
+      Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find((node) =>
+        /\/dist\/tdb-ui\.css(?:[?#]|$)/.test(node.href),
+      );
     if (!shared) return Promise.reject(new Error('TDB global UI link is missing'));
     link = document.createElement('link');
     link.rel = 'stylesheet';
@@ -81,20 +88,42 @@ function tdbEnsureFeatureCSS(attribute, filename, property, label) {
   return tdbEnsureStylesheet(attribute, filename, property, label);
 }
 function tdbEnsureSliderUI() {
-  return tdbEnsureFeatureCSS('data-tdb-slider-ui-css', 'tdb-slider-ui.css', '--tdb-slider-ui-ready', 'slider UI');
+  return tdbEnsureFeatureCSS(
+    'data-tdb-slider-ui-css',
+    'tdb-slider-ui.css',
+    '--tdb-slider-ui-ready',
+    'slider UI',
+  );
 }
 function tdbEnsureAnnouncementUI() {
-  return tdbEnsureFeatureCSS('data-tdb-announcement-css', 'tdb-announcement.css', '--tdb-announcement-ui-ready', 'announcement UI');
+  return tdbEnsureFeatureCSS(
+    'data-tdb-announcement-css',
+    'tdb-announcement.css',
+    '--tdb-announcement-ui-ready',
+    'announcement UI',
+  );
 }
 function tdbEnsureVIPChrome() {
-  return tdbEnsureFeatureCSS('data-tdb-vip-chrome-css', 'tdb-vip-chrome.css', '--tdb-vip-chrome-ready', 'VIP chrome');
+  return tdbEnsureFeatureCSS(
+    'data-tdb-vip-chrome-css',
+    'tdb-vip-chrome.css',
+    '--tdb-vip-chrome-ready',
+    'VIP chrome',
+  );
 }
 function tdbEnsureVIPUI() {
   // Native Webflow CSS is already loaded before page scripts. Older markup
   // retains its pinned stylesheet, making this release safe during migration.
   if (document.querySelector('#tdb-vip-drawer[data-tdb-vip-native="1"]')) return Promise.resolve();
-  return tdbEnsureFeatureCSS('data-tdb-vip-ui-css', 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@48124a90eddd39bf4ae611d00b9fe80583b98872/dist/tdb-vip.css', '--tdb-vip-ui-ready', 'VIP UI');
+  return tdbEnsureFeatureCSS(
+    'data-tdb-vip-ui-css',
+    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@48124a90eddd39bf4ae611d00b9fe80583b98872/dist/tdb-vip.css',
+    '--tdb-vip-ui-ready',
+    'VIP UI',
+  );
 }
-window.TDBFeatureCSS = Object.freeze({ ui: tdbEnsureUI, carousel: tdbEnsureSliderUI, announcement: tdbEnsureAnnouncementUI });
-
-
+window.TDBFeatureCSS = Object.freeze({
+  ui: tdbEnsureUI,
+  carousel: tdbEnsureSliderUI,
+  announcement: tdbEnsureAnnouncementUI,
+});
