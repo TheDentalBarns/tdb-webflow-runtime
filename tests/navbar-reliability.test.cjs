@@ -64,3 +64,46 @@ test('late shared lock catches an open menu and retains BFCache handling',async(
   menu.removeAttribute('data-nav-menu-open');await tick();assert.equal(active,0);
  }finally{f.close();}
 });
+
+test('closed handoff discards the basic Tram cache and inline transition, once',async()=>{
+ const f=fixture();try{
+  const menu=f.d.querySelector('.w-nav-menu'), button=f.d.querySelector('.w-nav-button');
+  menu.style.transition='none';menu.style.transform='translateX(0px) translateY(0px)';
+  let resets=0;
+  f.w.tram=node=>{assert.equal(node,menu);return {destroy(){resets++;menu.style.transition='none';}}};
+  button.classList.add('w--open');menu.setAttribute('data-nav-menu-open','');
+  f.w.TDBNavbarLoader.register(()=>{});
+  f.w.TDBNavbarLoader.activate(fn=>Promise.resolve().then(fn));
+  await tick();assert.equal(resets,0);
+  button.classList.remove('w--open');await tick();assert.equal(resets,0);
+  menu.removeAttribute('data-nav-menu-open');await tick();
+  assert.equal(resets,1);assert.equal(menu.style.transition,'');
+  assert.match(menu.style.transform,/translateX/);
+  f.w.TDBNavbarLoader.activate(fn=>Promise.resolve().then(fn));await tick();
+  assert.equal(resets,1);
+ }finally{f.close();}
+});
+test('published Tram rereads enhanced transitions after basic-mode use',{skip:!process.env.TDB_TRAM_SOURCE},async()=>{
+ const f=fixture();try{
+  const source=fs.readFileSync(process.env.TDB_TRAM_SOURCE,'utf8');
+  const start=source.indexOf('window.tram=function');
+  const end=source.indexOf('(window.jQuery)',start);
+  assert(start>=0&&end>start,'Published Tram expression located');
+  f.w.jQuery=require('jquery')(f.w);
+  f.w.eval(source.slice(start,end+'(window.jQuery)'.length)+';');
+  f.w.tram.config.keepInherited=true;
+  const menu=f.d.querySelector('.w-nav-menu');
+  const style=f.d.createElement('style');style.textContent='.w-nav-menu {transition:background-color 500ms ease}';f.d.head.append(style);
+  menu.style.transition='none';
+  const basic=f.w.tram(menu);assert.equal(basic.upstream,'none');
+  basic.set({x:0,y:0});
+  f.w.TDBNavbarLoader.register(()=>{});
+  f.w.TDBNavbarLoader.activate(fn=>Promise.resolve().then(fn));await tick();
+  const enhanced=f.w.tram(menu);
+  assert.notEqual(enhanced,basic);assert.notEqual(enhanced.upstream,'none');
+  enhanced.add('transform 600ms ease-out-quart').set({y:-800}).start({y:0});
+  assert.match(menu.style.transition,/transform 600ms/);
+  assert(!menu.style.transition.includes('none'));
+  enhanced.destroy();
+ }finally{f.close();}
+});

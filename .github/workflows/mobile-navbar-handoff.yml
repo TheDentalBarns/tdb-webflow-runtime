@@ -2,6 +2,7 @@ name: Verify mobile navbar handoff
 on:
   push:
     branches: [work/mobile-navbar-handoff-20261014]
+    paths: ['src/navbar/**', 'tests/navbar-*.cjs', '.github/workflows/mobile-navbar-handoff.yml']
 permissions:
   contents: write
 jobs:
@@ -14,20 +15,20 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - name: Inspect published Webflow motion engine
+      - run: |
+          npm ci --prefix tools/runtime-build --ignore-scripts --no-audit --no-fund
+          npm install --prefix /tmp/tdb-nav-tests --ignore-scripts --no-audit --no-fund jsdom@26.1.0 jquery@3.5.1
+          curl --fail --silent 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/js/webflow.achunk.22b66e874d42861f.js' -o /tmp/webflow-tram.js
+      - env:
+          NODE_PATH: /tmp/tdb-nav-tests/node_modules
+          TDB_TRAM_SOURCE: /tmp/webflow-tram.js
         run: |
-          curl --fail --silent 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/js/webflow.a626469f.c9ffb9570cf579d0.js' -o /tmp/webflow.js
-          node <<'NODE'
-          const fs=require('fs');
-          (async()=>{
-            const main=fs.readFileSync('/tmp/webflow.js','utf8');
-            for(const match of main.matchAll(/(\d+):"([a-f\d]{16})"/g)){
-              const url='https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/js/webflow.achunk.'+match[2]+'.js';
-              const s=await fetch(url).then(r=>r.text());
-              for(const q of ['bkwld-tram','keepInherited','data-nav-menu-open']){
-                const i=s.indexOf(q);
-                if(i>=0) console.log('\nCHUNK '+match[1]+' '+q+'\n'+s.slice(Math.max(0,i-3000),i+7000));
-              }
-            }
-          })();
-          NODE
+          node tools/runtime-build/build-preservation.cjs dist/tdb-navbar-loader.js
+          node --test tests/navbar-reliability.test.cjs tests/navbar-handoff.test.cjs
+      - run: |
+          git add dist/tdb-navbar-loader.js
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Build verified mobile navbar handoff'
+          git push origin HEAD:${{ github.ref_name }}

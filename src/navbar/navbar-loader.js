@@ -31,6 +31,14 @@ window.TDBNavbarState.whenReady(() => {
       if (ready || isOpen()) return;
       setDuration(duration || 500);
       installer();
+      // Basic-mode closes create a Tram controller whose inherited transition
+      // is "none". Reusing it produces an invalid "none, transform ..." list.
+      // Reset only this closed menu so its next use reads the enhanced styles.
+      const menu = nav.querySelector('.w-nav-menu');
+      if (menu && typeof window.tram === 'function') {
+        window.tram(menu).destroy();
+        menu.style.removeProperty('transition');
+      }
       ready = true;
       stopRetrying();
       stopWatching?.();
@@ -61,7 +69,7 @@ window.TDBNavbarState.whenReady(() => {
   (window.Webflow ||= []).push(() => { if (!ready) setDuration(0); });
   stopWatching = state.watch(isOpen, sync);
   window.TDBNavbarLoader = Object.freeze({
-    version: '2.0.2',
+    version: '2.0.3',
     prepare: () => window.TDBRuntime?.enhanceNavbar?.() || Promise.resolve(false),
     register(callback) { if (!ready) { installer = callback; sync(); } },
     activate(background) {
