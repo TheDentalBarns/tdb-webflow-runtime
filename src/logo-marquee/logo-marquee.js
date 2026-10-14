@@ -1,8 +1,8 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.14.3';
-  if (window.TDBLogoMarquee) { window.TDBLogoMarquee.start?.(); return; }
+  const VERSION = '0.15.0';
+  if (window.TDBLogoMarquee) return;
   const DEFAULTS = {
     selector: '.logo-slider .partner-featured_component',
     itemSelector: '.tdb-partner-logo',
@@ -33,11 +33,13 @@
   const INIT_ATTR = 'data-tdb-logo-marquee-init';
   const CLONE_ATTR = 'data-tdb-logo-marquee-clone';
   const instances = new Map();
-  let discoveredTracks = new WeakSet();
+  const discoveredTracks = new Set();
+  let pendingTracks = new WeakSet();
+  let schedule = work => Promise.resolve().then(work);
+  let generation = 0;
   let booted = false;
   let cardId = 0;
   let initObserver = null;
-  let mutationObserver = null;
   const chromeHolds = new Set();
   function holdChrome(card) {
     chromeHolds.add(card);
@@ -974,12 +976,26 @@
     return instance;
   }
 
+  function queueTrack(track) {
+    if (pendingTracks.has(track) || instances.has(track)) return;
+    const epoch = generation;
+    pendingTracks.add(track);
+    Promise.resolve().then(() => schedule(() => {
+      if (!booted || epoch !== generation || !track.isConnected || !track.matches(CONFIG.selector)) return;
+      initTrack(track);
+    })).catch(error => {
+      if (epoch !== generation) return;
+      discoveredTracks.delete(track);
+      console.warn('TDB marquee: unable to initialise track.', error);
+    }).finally(() => { if (epoch === generation) pendingTracks.delete(track); });
+  }
+
   function discoverTrack(track) {
     if (!track || discoveredTracks.has(track) || instances.has(track)) return;
     discoveredTracks.add(track);
 
     if (!('IntersectionObserver' in window)) {
-      initTrack(track);
+      queueTrack(track);
       return;
     }
 
@@ -993,6 +1009,12 @@
   }
 
   function refresh() {
+    if (!booted) return status();
+    for (const track of discoveredTracks) if (!track.isConnected || !track.matches(CONFIG.selector)) {
+      initObserver?.unobserve(track);
+      instances.get(track)?.destroy();
+      discoveredTracks.delete(track);
+    }
     discover(document);
     instances.forEach(instance => instance.refresh());
     return status();
@@ -1000,9 +1022,11 @@
 
   function destroyAll() {
     initObserver?.disconnect();
-    mutationObserver?.disconnect();
+    initObserver = null;
+    generation++;
     Array.from(instances.values()).forEach(instance => instance.destroy());
-    discoveredTracks = new WeakSet();
+    discoveredTracks.clear();
+    pendingTracks = new WeakSet();
     booted = false;
 
   }
@@ -1015,8 +1039,9 @@
     };
   }
 
-  function boot() {
+  function boot(options = {}) {
     if (booted) return;
+    if (options.schedule) schedule = options.schedule;
     booted = true;
 
     if ('IntersectionObserver' in window) {
@@ -1025,7 +1050,7 @@
           entries.forEach(entry => {
             if (!entry.isIntersecting) return;
             initObserver.unobserve(entry.target);
-            initTrack(entry.target);
+            queueTrack(entry.target);
           });
         },
         { rootMargin: `${CONFIG.initViewportMargin}px 0px` }
@@ -1034,15 +1059,6 @@
 
     discover(document);
 
-    mutationObserver = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
-          if (node instanceof Element) discover(node);
-        });
-      });
-    });
-
-    mutationObserver.observe(document.body, { childList: true, subtree: true });
   }
 
   window.TDBLogoMarquee = Object.freeze({
@@ -1053,9 +1069,5 @@
     status
   });
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot, { once: true });
-  } else {
-    boot();
-  }
+  // Explicit runtime handoff: evaluating this file must not mount any tracks.
 })();

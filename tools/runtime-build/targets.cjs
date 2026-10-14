@@ -1,6 +1,6 @@
 /* Single source-to-output manifest for local and CI runtime builds. */
 module.exports = {
-  'dist/tdb-runtime.js': ['src/runtime/runtime.js'],
+  'dist/tdb-runtime.js': ['src/runtime/logo-marquee-loader.js', 'src/runtime/runtime.js'],
   'dist/tdb-consent.min.js': ['src/consent/consent.js'],
   'dist/tdb-consent.js': ['src/shared/scroll-lock.js', 'src/consent/banner.js', 'src/shared/modules.js', 'src/consent/consent.js'],
   'dist/tdb-immediate-runtime-batch.min.js': ['src/runtime/immediate-runtime-batch.js'],
@@ -23,7 +23,7 @@ module.exports = {
   'dist/tdb-usp-drawer.js': ['src/usp/drawer.js'],
   'dist/tdb-usp-loader.js': ['src/usp/loader.js'],
   'dist/tdb-consent-startup.min.js': ['src/shared/scroll-lock.js', 'src/consent/banner.js'],
-  'dist/tdb-navbar-loader.js': ['src/shared/phone-landscape.js', 'src/navbar/navbar-state.js', 'src/navbar/native-foundation.js',
+  'dist/tdb-navbar-loader.js': ['src/shared/logo-navigation-guard.js', 'src/shared/phone-landscape.js', 'src/navbar/navbar-state.js', 'src/navbar/native-foundation.js',
     'src/navbar/navbar-mobile-lock.js', 'src/navbar/navbar-loader.js'],
   'dist/tdb-navbar.min.js': ['src/shared/panel-motion.js', 'src/navbar/navbar-enhancement.js'],
 };

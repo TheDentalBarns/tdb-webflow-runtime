@@ -1,4 +1,4 @@
-/* TDB runtime v1.1.0. Consent hands off once; DD and control motion follow.
+/* TDB runtime v1.2.0. Consent hands off once; DD, controls and marquees follow.
  * Component-owned fades retain their existing gates and shared motion owner.
  */
 (() => {
@@ -177,11 +177,12 @@
   function destroy() {
     if (disposed) return;
     disposed = true; lifecycle.abort(); observer?.disconnect();
+    window.TDBLogoMarqueeLoader?.destroy();
     for (const cancel of [...cancellations]) cancel();
     mounted.forEach(owner => owner.destroy()); mounted.clear();
   }
   const api = Object.freeze({
-    version: '1.1.0', refresh, enhanceNavbar, count: () => mounted.size, destroy,
+    version: '1.2.0', refresh, enhanceNavbar, count: () => mounted.size, destroy,
     status: () => ({started, pending: !!pending, mounted: mounted.size, retryNeeded, disposed,
       controlsReady, navbarRequested, navbarRetry})
   });
@@ -195,7 +196,12 @@
       if (navbarRetry && !navbarFlight && !disposed) enhanceNavbar();
     }, {passive: true, signal});
   // The consent handoff occurs after DOM preparation. Keep direct loading safe too.
-  function start() { refresh(); enhanceNavbar(); }
+  function start() {
+    refresh(); enhanceNavbar();
+    renderReady.then(ready => {
+      if (ready) return window.TDBLogoMarqueeLoader?.start({schedule: background});
+    }).catch(error => { if (!disposed) console.warn('TDB marquee startup unavailable.', error); });
+  }
   if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', start, {once: true, signal});
   else start();
