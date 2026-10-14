@@ -13,6 +13,8 @@ GLOBAL_SOURCES = [
     ROOT / 'src/styles/tdb-shared-control-states.css',
     ROOT / 'src/styles/tdb-content-formatting.css',
     ROOT / 'src/styles/tdb-consent-states.css',
+    ROOT / 'src/styles/tdb-controls-base.css',
+    ROOT / 'src/styles/tdb-phone-landscape.css',
 ]
 
 VIP_SOURCES = [
@@ -34,7 +36,7 @@ def write(path: Path, content: str) -> None:
 
 global_bundle = GLOBAL_HEADER + '\n\n'.join(read(source) for source in GLOBAL_SOURCES) + '\n'
 write(ROOT / 'src/styles/tdb-ui.css', global_bundle)
-subprocess.run(['node', str(ROOT / 'tools/runtime-build/minify-ui.cjs')], check=True)
+subprocess.run(['node', str(ROOT / 'tools/runtime-build/minify-ui.cjs'), 'tdb-ui.css', 'tdb-control-motion.css'], check=True)
 print(f'Built global UI: {len(global_bundle.encode())} bytes')
 
 # Other legacy bundles remain pinned independently. Rebuild explicitly when

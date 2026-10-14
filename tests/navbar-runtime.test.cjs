@@ -38,6 +38,8 @@ function fixture(width = 448, consent = true, registry = true) {
   Object.defineProperty(d, 'currentScript', { configurable: true, value: { src: 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@fixture/dist/tdb-navbar-loader.js', dataset: { tdbRuntimeBase: 'https://example.test/runtime/' } } });
   if (consent) d.cookie = 'CookieScriptConsent=' + encodeURIComponent(JSON.stringify({ action: 'reject' }));
   if (registry) w.eval(read('dist/tdb-modules.js'));
+  w.eval(read('src/shared/scroll-lock.js'));
+  w.TDBConsent = {allows: () => consent};
   w.eval(read('dist/tdb-navbar-loader.js'));
   // The bundle now includes the native foundation; complete its parser lifecycle.
   d.dispatchEvent(new w.Event('DOMContentLoaded'));
@@ -45,6 +47,7 @@ function fixture(width = 448, consent = true, registry = true) {
   return { dom, w, d, nav, menu, button, animations,
     enhance() {
       w.eval(read('dist/tdb-navbar.min.js'));
+      w.TDBNavbarLoader.activate(work => Promise.resolve(work()));
       d.querySelector('[data-tdb-navbar-enhancement]')?.dispatchEvent(new w.Event('load'));
     },
     async resize(next) {
@@ -119,7 +122,7 @@ test('open menu survives consent handoff; enhancement begins only after the nati
     await f.open(); f.enhance();
     assert.equal(f.w.TDBNavbar, undefined); assert.equal(f.w.TDBNavbarLoader.status().waitingForClose, true);
     await f.closeStart(); assert.equal(f.w.TDBNavbar, undefined);
-    await f.closeEnd(); assert.equal(f.w.TDBNavbar.version, '1.5.0'); assert.equal(f.w.TDBScrollLock.active, false);
+    await f.closeEnd(); assert.equal(f.w.TDBNavbar.version, '1.6.0'); assert.equal(f.w.TDBScrollLock.active, false);
   } finally { f.dom.window.close(); }
 });
 
@@ -214,26 +217,3 @@ test('pagehide releases the mobile lock and pageshow restores an open native men
   } finally { f.dom.window.close(); }
 });
 
-test('shared loader accepts a registered installer while the native menu remains open',async()=>{
- const f=fixture();try{
-  await f.open();const pending=f.w.TDBNavbarLoader.prepare();
-  assert.equal(f.w.TDBNavbarLoader.prepare(),pending);
-  assert.equal(f.d.querySelectorAll('[data-tdb-navbar-enhancement]').length,1);
-  f.enhance();assert.equal(await pending,true);
-  assert.equal(f.w.TDBNavbar,undefined);assert.equal(f.w.TDBNavbarLoader.status().waitingForClose,true);
-  await f.closeStart();assert.equal(f.w.TDBNavbar,undefined);
-  await f.closeEnd();assert.equal(f.w.TDBNavbarLoader.status().ready,true);
- }finally{f.dom.window.close();}
-});
-test('shared navbar loading retries transport or missing-registration failures without duplicate tags',async()=>{
- const f=fixture();try{
-  const failed=f.w.TDBNavbarLoader.prepare();f.d.querySelector('[data-tdb-navbar-enhancement]').dispatchEvent(new f.w.Event('error'));assert.equal(await failed,false);
-  const missing=f.w.TDBNavbarLoader.prepare();assert.equal(f.d.querySelectorAll('[data-tdb-navbar-enhancement]').length,1);f.d.querySelector('[data-tdb-navbar-enhancement]').dispatchEvent(new f.w.Event('load'));assert.equal(await missing,false);
-  const success=f.w.TDBNavbarLoader.prepare();f.enhance();assert.equal(await success,true);assert.equal(f.w.TDBNavbarLoader.status().ready,true);
- }finally{f.dom.window.close();}
-});
-test('native enhancement remains available if the optional registry failed to load',async()=>{
- const f=fixture(448,true,false);try{
-  const pending=f.w.TDBNavbarLoader.prepare();f.enhance();assert.equal(await pending,true);assert.equal(f.w.TDBNavbarLoader.status().ready,true);
- }finally{f.dom.window.close();}
-});

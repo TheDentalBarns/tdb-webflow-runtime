@@ -3,6 +3,23 @@
     const t = () => {
         if (window.TDBNavbar) return;
         const navState = window.TDBNavbarState.forNav(document.querySelector('.navbar10_component'));
+        // Blur settlement is an animation optimisation, so install it late.
+        const nativeNav = document.querySelector('[data-tdb-navbar-native]');
+        const blurAttribute = 'data-tdb-nav-blur-idle';
+        function clearBlur() {
+            nativeNav?.querySelectorAll('[' + blurAttribute + ']').forEach(node => node.removeAttribute(blurAttribute));
+        }
+        nativeNav?.addEventListener('animationend', event => {
+            if (!navState.phone.matches || event.pseudoElement || !nativeNav.querySelector('.navbar10_menu-button.w--open')) return;
+            const node = event.target;
+            if ((event.animationName === 'tdb-nav-bar-open' && node.matches('.tdb-nav-bar-glass.is-nav-solid')) ||
+                (event.animationName === 'tdb-nav-menu-open' && node.matches('.navbar10_menu.is-menu-solid'))) {
+                node.setAttribute(blurAttribute, '');
+                for (const animation of node.getAnimations?.() || [])
+                    if (['backdrop-filter', '-webkit-backdrop-filter'].includes(animation.transitionProperty)) animation.finish();
+            }
+        });
+        navState.watch(() => navState.phone.matches + ':' + Boolean(nativeNav?.querySelector('.navbar10_menu-button.w--open')), clearBlur);
         const t = document.createElement("style");
         t.dataset.tdbNavbarState = "", t.textContent = __TDB_NAV_STATE_CSS__;
         const e = document.querySelector("[data-tdb-navbar-motion-anchor]");
@@ -428,7 +445,7 @@
                 t.classList.contains('is-trans'), d?.classList.contains('w--open'),
                 !!t.querySelector('.w-dropdown-toggle.w--open')].join('|'), u);
         })(), window.TDBNavbar = Object.freeze({
-            version: "1.5.0"
+            version: "1.6.0"
         });
     };
     window.TDBNavbarLoader ? window.TDBNavbarLoader.register(t) : t();

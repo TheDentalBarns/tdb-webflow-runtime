@@ -1,15 +1,15 @@
-/* TDB runtime v1.0.0. Consent hands off once; DD is the first page enhancement.
+/* TDB runtime v1.1.0. Consent hands off once; DD and control motion follow.
  * Component-owned fades retain their existing gates and shared motion owner.
  */
 (() => {
   'use strict';
   if (window.TDBRuntime) return;
-  if (window.TDBDDFades) { window.TDBRuntime = window.TDBDDFades; return; }
   const base = new URL('./', document.currentScript.src);
   const selector = '[data-tdb-dd-page],.tdbc-dd-fade';
   const mounted = new Map(), cancellations = new Set();
   const lifecycle = new AbortController(), {signal} = lifecycle;
   let pending = null, observer, disposed = false, dirty = false, started = false, retryNeeded = false;
+  let navbarFlight = null, navbarRequested = false, navbarRetry = false, controlsReady = false;
 
   // A bounded initial-render heuristic, not a claim that the final LCP is known.
   // Wait for load + a short quiet period; never hold background work indefinitely.
@@ -72,6 +72,50 @@
       !(node.hasAttribute('data-tdb-dd-legacy') && node.hasAttribute('data-w-id'));
   }
   const renderReady = initialRender();
+  function enhanceNavbar() {
+    if (disposed || navbarRequested) return Promise.resolve(navbarRequested);
+    if (navbarFlight) return navbarFlight;
+    if (!window.TDBConsent?.allows() || window.CookieScript?.instance?.isOpen?.()) return Promise.resolve(false);
+    const loader = window.TDBNavbarLoader;
+    if (!loader && !document.querySelector('[data-tdb-disclosure-trigger],[data-tdb-chevron]')) return Promise.resolve(false);
+    navbarFlight = (async () => {
+      if (!await renderReady || disposed) return false;
+      await background(() => window.TDBModules.load(new URL('tdb-control-motion.css', base).href, {
+        type: 'style', attribute: 'data-tdb-control-motion-css'
+      }));
+      if (disposed) return false;
+      if (loader) {
+        await background(() => window.TDBModules.load(new URL('tdb-navbar.min.js', base).href, {
+          attribute: 'data-tdb-navbar-enhancement', timeout: 15000,
+          ready: () => loader.status().registered || loader.status().ready
+        }));
+        if (disposed) return false;
+        loader.activate(background);
+        navbarRequested = true;
+      }
+      await background(() => {
+        if (controlsReady) return;
+        // Do not replay an entrance for a disclosure already opened natively.
+        document.querySelectorAll('[data-tdb-disclosure-interacted]').forEach(node =>
+          node.removeAttribute('data-tdb-disclosure-interacted'));
+        document.documentElement.setAttribute('data-tdb-control-motion', '');
+        controlsReady = true;
+      });
+      navbarRetry = false;
+      return true;
+    })().catch(error => {
+      if (!disposed) {
+        navbarRetry = true;
+        console.warn('TDB navbar: retaining native navigation.', error);
+      }
+      return false;
+    }).finally(() => {
+      navbarFlight = null;
+      // A fast runtime can arrive before the deferred early navbar loader.
+      if (!loader && window.TDBNavbarLoader && !navbarRequested && !navbarRetry && !disposed) enhanceNavbar();
+    });
+    return navbarFlight;
+  }
   function refresh() {
     if (disposed) return Promise.resolve();
     dirty = true;
@@ -137,18 +181,22 @@
     mounted.forEach(owner => owner.destroy()); mounted.clear();
   }
   const api = Object.freeze({
-    version: '1.0.0', refresh, count: () => mounted.size, destroy,
-    status: () => ({started, pending: !!pending, mounted: mounted.size, retryNeeded, disposed})
+    version: '1.1.0', refresh, enhanceNavbar, count: () => mounted.size, destroy,
+    status: () => ({started, pending: !!pending, mounted: mounted.size, retryNeeded, disposed,
+      controlsReady, navbarRequested, navbarRetry})
   });
   window.TDBRuntime = api;
   window.TDBDDFades = api;
   window.addEventListener('pageshow', refresh, {signal});
+  window.addEventListener('tdb:navbar-ready', enhanceNavbar, {signal});
   for (const event of ['wheel', 'touchstart', 'pointerdown', 'online'])
     window.addEventListener(event, () => {
       if (retryNeeded && !pending && !disposed) refresh();
+      if (navbarRetry && !navbarFlight && !disposed) enhanceNavbar();
     }, {passive: true, signal});
   // The consent handoff occurs after DOM preparation. Keep direct loading safe too.
+  function start() { refresh(); enhanceNavbar(); }
   if (document.readyState === 'loading')
-    document.addEventListener('DOMContentLoaded', refresh, {once: true, signal});
-  else refresh();
+    document.addEventListener('DOMContentLoaded', start, {once: true, signal});
+  else start();
 })();

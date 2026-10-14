@@ -12,7 +12,7 @@
   function sync() {
     const open = !suspended && !state.desktop.matches &&
       (button.classList.contains('w--open') || menu.hasAttribute('data-nav-menu-open'));
-    if (open && !release) release = window.TDBScrollLock.acquire({
+    if (open && !release) release = window.TDBScrollLock?.acquire({
       allow: () => [menu, nav.querySelector('.w-nav-overlay')]
     });
     else if (!open && release) { release(); release = null; }
