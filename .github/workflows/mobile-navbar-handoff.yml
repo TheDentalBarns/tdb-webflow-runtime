@@ -17,4 +17,17 @@ jobs:
       - name: Inspect published Webflow motion engine
         run: |
           curl --fail --silent 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/js/webflow.a626469f.c9ffb9570cf579d0.js' -o /tmp/webflow.js
-          node -e "const s=require('fs').readFileSync('/tmp/webflow.js','utf8'); for (const q of ['bkwld-tram','keepInherited','config.duration','data-nav-menu-open']) {const i=s.indexOf(q); console.log(q+'\\n'+s.slice(Math.max(0,i-1500),i+4500));}"
+          node <<'NODE'
+          const fs=require('fs');
+          (async()=>{
+            const main=fs.readFileSync('/tmp/webflow.js','utf8');
+            for(const match of main.matchAll(/(\d+):"([a-f\d]{16})"/g)){
+              const url='https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/js/webflow.achunk.'+match[2]+'.js';
+              const s=await fetch(url).then(r=>r.text());
+              for(const q of ['bkwld-tram','keepInherited','data-nav-menu-open']){
+                const i=s.indexOf(q);
+                if(i>=0) console.log('\nCHUNK '+match[1]+' '+q+'\n'+s.slice(Math.max(0,i-3000),i+7000));
+              }
+            }
+          })();
+          NODE
