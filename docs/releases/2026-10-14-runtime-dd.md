@@ -13,3 +13,12 @@ No new immediate opacity flag or viewport threshold is added. Readiness checks t
 Validation: existing native consent and scoped analytics suites plus runtime-dd.test.cjs against the compiled artifacts. Covers fresh accept/reject, no premature release on refresh during closing, saved choices, retry/deduplication, opening settings during retry, batch limits, dynamic targets, cleanup/destruction, LCP/fallback scheduling and failure recovery.
 
 Staging only. Rollback: restore the saved before-head (previous consent pin and standalone DD-loader). Historical DD code remains available at its original immutable pin.
+
+## Staging release
+
+- Immutable consent and runtime asset pin: `240d05d5c038afba48151ae44d48f80ed9ece940`.
+- Built sizes (uncompressed): consent 20,950 bytes; runtime 3,427 bytes. Consent increase: 472 bytes.
+- GitHub Actions run: https://github.com/TheDentalBarns/tdb-webflow-runtime/actions/runs/38539180051 — existing native contracts and all 25 scoped analytics/runtime integration checks passed.
+- Published to https://dentalbarns.webflow.io/ only. Webflow publish task: `34056fa4-b651-4dda-a49f-782f7481dbe6`.
+- Browser verified the new consent pin, a single successfully loaded runtime at the same pin, the unchanged motion pin, absence of the standalone DD-loader, and no captured console warnings/errors.
+- Before/after global head snapshots are included alongside this note. Production domains were not published.
