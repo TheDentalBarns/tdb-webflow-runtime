@@ -1,5 +1,8 @@
 /* Single source-to-output manifest for runtime builds. */
 module.exports = {
+  "dist/tdb-instagram-native.min.js": [
+    "src/instagram/native.js"
+  ],
   "dist/tdb-ticker.js": [
     "src/shared/native-ticker.js"
   ],
@@ -24,6 +27,7 @@ module.exports = {
     "src/usp/loader.js",
     "src/five-senses/launcher.js",
     "src/runtime/review-feature-loader.js",
+    "src/runtime/instagram-feature-loader.js",
     "src/runtime/page-break-loader.js",
     "src/runtime/features-startup.js",
     "src/runtime/runtime.js"

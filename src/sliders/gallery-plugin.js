@@ -157,7 +157,7 @@
         i.get(e)?.bind(p);
     }
     const u = Object.freeze({
-        version: "1.2.3",
+        version: "1.2.4",
         selector: ".highlight-swiper_component",
         beforeObserve: function(e) {
             if (window.TDBSmileCards?.prepare(e), n.has(e) || i.has(e)) return;
@@ -206,6 +206,12 @@
             return i && e.matches("[data-tdb-smile-slider],[data-tdb-ig-native]") && window.TDBCarouselVisibility.bind(i, {
                 overflowViewport: !0
             }), t?.bind(i), i;
+        },
+        // Release a failed or destroyed consumer's first-view observer before remount.
+        resetFirstView(e) {
+            i.get(e)?.cancel();
+            n.delete(e);
+            e.removeAttribute(t);
         },
         prune() {
             exploreCount.prune();
