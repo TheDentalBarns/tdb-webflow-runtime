@@ -2,7 +2,7 @@ name: Verify Brevo consent runtime
 on:
   push:
     branches: [work/brevo-consent-runtime-20261014]
-    paths: ['src/brevo/**', 'src/runtime/**', 'tools/runtime-build/targets.cjs', 'tests/brevo-consent.test.cjs', '.github/workflows/brevo-consent.yml']
+    paths: ['src/brevo/**', 'src/runtime/**', 'tools/runtime-build/targets.cjs', 'tests/brevo-consent.test.cjs', 'tests/runtime-ownership.test.cjs', '.github/workflows/brevo-consent.yml']
 permissions:
   contents: write
 jobs:

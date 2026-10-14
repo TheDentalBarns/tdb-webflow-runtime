@@ -70,7 +70,7 @@ test('runtime retains an arrow click while the parallax module downloads',async(
   const root=f.d.getElementById('services'),button=root.querySelector('.swiper-btn-next');let next=0,complete,bound=false;
   f.w.Swiper=function(){};
   const swiper={slides:[...root.querySelectorAll('.swiper-slide')],activeIndex:0,on(){},off(){},slideNext(){next++},slidePrev(){}};
-  f.w.TDBSwiper={create(){},register(){},refresh(){},mount(){f.w.TDBParallax.prepare(root).bind(swiper);if(!bound){bound=true;button.addEventListener("click",()=>swiper.slideNext())}}};
+  f.w.TDBSwiper={create(){},register(){},refresh(){},prune(){},mount(){f.w.TDBParallax.prepare(root).bind(swiper);if(!bound){bound=true;button.addEventListener("click",()=>swiper.slideNext())}}};
   f.w.TDBModules={load:async url=>{if(String(url).endsWith('/tdb-parallax.js'))await new Promise(r=>{complete=r});}};
   button.dispatchEvent(new f.w.MouseEvent('click',{bubbles:true,cancelable:true}));await tick();
   assert.equal(root.getAttribute('aria-busy'),'true');assert.equal(next,0);assert(complete);
