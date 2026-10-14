@@ -37,10 +37,12 @@ Staging only: https://dentalbarns.webflow.io/.
 
 `node --test tests/navbar-runtime.test.cjs tests/navbar-handoff.test.cjs tests/runtime-dd.test.cjs tests/marquee-handoff.test.cjs`
 
-43 tests cover existing navbar/DD behavior plus new/saved accept/reject decisions,
+44 tests cover existing navbar/DD behavior plus new/saved accept/reject decisions,
 banner settlement, proximity, deferred startup and per-track mounts, absent and
 new tracks, detached cleanup, missing registry, retry, destroyed runtime,
 IntersectionObserver fallback, and early click guard exceptions.
+The additional home-variant test verifies that partner-card HTML, JS and CSS
+remain absent after marquee startup.
 
 Browser verification covers staging's Awards and Partners tracks, selection,
 tooltip dismissal and the absence of the old early loader request.
@@ -65,3 +67,22 @@ To roll back, restore:
 ```
 
 Publish only to the Webflow staging subdomain.
+
+## Homepage override discovered during staging verification
+
+The homepage's `data-tdb-home-snag-pins` block overrides the global marquee pin
+with `5c59038b7132e8a65cd337a751cbb5b41405dd56`. This version preserves lazy partner
+card HTML/CSS and horizontal/vertical gesture fixes, whereas the site-wide
+baseline uses the earlier native-card version. Preserve both cohorts:
+
+- Site-wide runtime, early navbar and native-card marquee use
+  `9e6ca9084bf787beb909ddb00c96627c0f63a5fd`.
+- This follow-up commit applies the same registration/scheduling/discovery
+  changes to the existing homepage variant (v0.15.1). Only the homepage's
+  marquee override points at this follow-up commit.
+- Explicitly pin homepage `tdb-partner-card.js` and `tdb-partner-card.css` to
+  `5c59038b7132e8a65cd337a751cbb5b41405dd56` so their current renderer and mobile
+  dimming stylesheet remain unchanged as the marquee URL moves.
+- For rollback, restore the homepage marquee override to that same old commit
+  and remove the two explicit partner-card pins in addition to the global
+  rollback above.

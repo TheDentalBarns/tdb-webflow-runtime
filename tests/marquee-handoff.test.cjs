@@ -114,3 +114,15 @@ test('early guard blocks logo navigation and preserves explicit tooltip links',(
     }
   }finally{f.close();}
 });
+
+test('homepage lazy partner cards remain absent after marquee startup',async()=>{
+  const f=fixture({choice:'reject',intersection:false,count:1});try{
+    f.d.querySelector('.section_logo-features').insertAdjacentHTML('beforeend','<div class="tdb-partner-stage" data-tdb-partner-mount></div>');
+    await f.loadRuntime();await f.completeDependencies();f.completeModule();await f.drain();
+    assert.equal(f.w.TDBLogoMarquee.status().instances.length,1);
+    assert.match(f.d.querySelector('.tdb-partner-logo').getAttribute('aria-label'),/show details/);
+    assert.equal(f.request('tdb-partner-card.js'),undefined);
+    assert.equal(f.d.querySelector('.tdb-partner-tooltip'),null);
+    assert.equal(f.d.querySelector('link[href$="tdb-partner-card.css"]'),null);
+  }finally{f.close();}
+});
