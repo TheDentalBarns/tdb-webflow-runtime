@@ -13,3 +13,5 @@ TDBConsent.status() preserves its three boolean flags as request/boot indicators
 Validation: existing native contract suite plus consent-startup-analytics.test.cjs against the real compiled bundle. Covers denied/malformed decisions, early events, saved choices, duplicate events, success/failure, per-provider retry caps, withdrawal and renewed acceptance, silent decision changes, slow loads and externally owned tags.
 
 Rollback: restore the saved before-head. Deploy staging only.
+
+Built asset: 1f0f736df4452c2a9f90df4e37aae3a814a9eb45/dist/tdb-consent.js, 20,478 bytes (+474 from the consolidation). GitHub Actions run 38536510626 passed the native contract suite and all 10 scoped startup/analytics checks. The after-head snapshot contains the exact staging pin and preserved configuration.
