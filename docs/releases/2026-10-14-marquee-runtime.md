@@ -86,3 +86,10 @@ baseline uses the earlier native-card version. Preserve both cohorts:
 - For rollback, restore the homepage marquee override to that same old commit
   and remove the two explicit partner-card pins in addition to the global
   rollback above.
+
+The homepage release also rebuilds the legacy `tdb-logo-marquee.js` alias from
+the same source as `.min.js`. The CDN served an automatically minified copy of
+the obsolete v0.6.0 alias while resolving the initial follow-up release, despite
+GitHub containing the intended `.min.js`. Keeping both aliases in sync prevents
+that fallback from selecting obsolete behavior. Deployed bytes are verified
+before the homepage pin is updated.

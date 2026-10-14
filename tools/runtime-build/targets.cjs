@@ -20,6 +20,7 @@ module.exports = {
     'src/vip-drawer/vip-focus.js', 'src/runtime/deferred-ui.js', 'src/runtime/site-asset-loader.js'],
   'dist/tdb-vip-drawer.js': ['src/vip-drawer/runtime-style.js', 'src/shared/panel-motion.js', 'src/vip-drawer/vip-drawer.js'],
   'dist/tdb-logo-marquee.min.js': ['src/logo-marquee/partner-controls-style.js', 'src/logo-marquee/logo-marquee.js'],
+  'dist/tdb-logo-marquee.js': ['src/logo-marquee/partner-controls-style.js', 'src/logo-marquee/logo-marquee.js'],
   'dist/tdb-usp-drawer.js': ['src/usp/drawer.js'],
   'dist/tdb-usp-loader.js': ['src/usp/loader.js'],
   'dist/tdb-consent-startup.min.js': ['src/shared/scroll-lock.js', 'src/consent/banner.js'],
