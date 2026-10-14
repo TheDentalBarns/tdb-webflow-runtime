@@ -47,3 +47,14 @@ test('starter waits for permission and 400px proximity before deferred feature r
  e.permit(true);await tick();assert.equal(e.loads.length,0);const observer=e.observers.find(o=>o.config.rootMargin==='400px');
  observer.fn([{target:e.holder,isIntersecting:true}]);await tick();assert.ok(e.loads.some(x=>x.url.endsWith('tdb-instagram-deferred.js')));assert.equal(e.holder.dataset.igState,'ready');e.close();
 });
+test('entry and destination images decode before the native entry sequence mounts',async()=>{
+ const e=setup(),sourceRoot=e.d.querySelector('template').content.firstElementChild;
+ for(const name of ['first','middle','last']){
+  const img=e.d.createElement('img');img.setAttribute('data-ig-class','ig-native_photo');img.src='/'+name+'.webp';sourceRoot.append(img);
+ }
+ let release;const gate=new Promise(r=>release=r),preloads=[];
+ e.w.Image=function(){const img=e.d.createElement('img');Object.defineProperties(img,{complete:{value:true},naturalWidth:{value:1}});img.decode=()=>gate;preloads.push(img);return img;};
+ const flight=e.prepare();await tick();assert.equal(e.mounts(),0);assert.deepEqual(preloads.map(x=>new URL(x.src).pathname),['/first.webp','/last.webp']);
+ release();await flight;assert.equal(e.mounts(),1);assert.equal(e.holder.dataset.igState,'ready');
+ assert.equal(sourceRoot.querySelectorAll('img[src]').length,3);e.close();
+});
