@@ -6,6 +6,12 @@ Readable JavaScript, reproducible production bundles and release records for The
 
 Start with the [collection audit](docs/runtime/audit-2026-10-14.md), [module ownership map](docs/runtime/module-map.md), [every referenced artifact](docs/runtime/module-catalog.md), and [release/rollback procedure](docs/runtime/releasing.md). The [previous README](docs/archive/README-before-runtime-audit-20261014.md) preserves historical installation notes; its September pins are not the current staging configuration.
 
+## Consolidation update — 15 October
+
+The [implemented consolidation](docs/runtime/consolidation-2026-10-15.md) replaces private VIP/calculator/archive loading paths with shared dependency handling, merges the two legacy Instagram renderers and three ticker copies, and combines review CMS/quote-adapter definitions. Existing entry filenames and loading gates remain compatible. Runtime is 1.5.0; the shared registry is 1.7.0. This remains a candidate in PR #27; Webflow has not been updated.
+
+Read the consolidation document for exact deployment groups, timeout/retry semantics, size trade-offs and remaining markup migrations. Latest verification: **325 passing tests, zero failures, two fixture-dependent skips**. Legacy IG old/new rendering and motion match in the simulated comparison. Native mobile browser checks remain part of staging validation.
+
 ## Source and build ownership
 
 | Location | Purpose |
@@ -54,7 +60,7 @@ Two legacy naming traps remain for compatibility:
 
 The current footer timing experiment remains unchanged. Consent and basic navigation establish the first owners. A valid consent decision releases the site runtime; rejecting optional categories still allows local functional UI. Each feature then applies its own presence, intent, proximity and consent conditions. Vimeo and tracking retain their respective permission gates.
 
-`TDBModules` owns resolved asset pins and shared network flights. `TDBScrollLock` coordinates lock owners. `TDBMotionPolicy` / `TDBMotion` own the approved motion policy and timings. `TDBSwiper` owns carousel behavior. `TDBReviewCMS` and `TDBAvailability` share data requests and caches.
+`TDBModules` owns resolved asset pins and shared network flights. Its network recovery retries only an explicit transport failure; a timed-out or missing-export script is never blindly re-executed. `TDBModuleBootstrap` serves standalone entry points only when the registry is absent. `TDBScrollLock` coordinates lock owners. `TDBMotionPolicy` / `TDBMotion` own the approved motion policy and timings. `TDBSwiper` owns carousel behavior. `TDBReviewCMS` and `TDBAvailability` share data requests and caches.
 
 Webflow Designer owns page structure, CMS bindings and native visual classes. Do not move layout back into runtime code while simplifying JavaScript. Preserve the existing full-motion design-review policy, keyboard/focus behavior, native fallbacks, first-click replay, Webflow form IDs and submission values.
 

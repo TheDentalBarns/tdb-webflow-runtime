@@ -1,4 +1,4 @@
-/* TDB reviews v4.0.0. Runtime starts this feature after a cookie decision.
+/* TDB reviews v4.1.0. Runtime starts this feature after a cookie decision.
  * Inline components retain proximity preparation. Drawer assets are demand-only.
  */
 (() => {
@@ -119,10 +119,7 @@
     });
     check(signal);
     const files = ['tdb-ticker.js', 'tdb-review-cms.js'];
-    if (type)
-      files.push(
-        type === 'quotes' ? 'tdb-review-quote-adapter.min.js' : 'tdb-review-' + type + '.js',
-      );
+    if (type && type !== 'quotes') files.push('tdb-review-' + type + '.js');
     if (type === 'quotes') files.push('tdb-quote-carousel.js');
     if (type === 'cards') files.push('tdb-slider-focus.js', 'tdb-rendered-progress.js');
     if (withDrawer && (drawerRoot() || lazyRoot()))
@@ -142,6 +139,14 @@
       ),
     );
     check(signal);
+    // The canonical CMS bundle now carries its small quote adapter. Retain a
+    // demand-only bridge when a page deliberately keeps an older CMS pin.
+    if (type === 'quotes' && typeof window.TDBReviewQuotes?.mount !== 'function') {
+      await window.TDBModules.load(new URL('tdb-review-quote-adapter.min.js', base), {
+        ready: ready['tdb-review-quote-adapter.min.js'],
+      });
+      check(signal);
+    }
     if ((withDrawer && (drawerRoot() || lazyRoot())) || type === 'quotes' || type === 'cards') {
       await window.TDBModules.load(new URL('tdb-swiper-8.4.7.min.js', base), {
         attribute: 'data-swiper-js',
@@ -426,7 +431,7 @@
   for (const type of ['online', 'pageshow'])
     window.addEventListener(type, refresh, { signal: lifecycle.signal });
   window.TDBReviewLoader = Object.freeze({
-    version: '4.0.0',
+    version: '4.1.0',
     prepare,
     open,
     refresh,

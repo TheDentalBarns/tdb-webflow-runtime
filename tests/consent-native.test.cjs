@@ -92,7 +92,7 @@ function setup(cookie, fontGate, extraMarkup = '') {
  const extra='<section data-vimeo-content-init><button data-vimeo-control="play">Play</button></section><section data-tdb-team-quotes data-tdb-team-cms><button>Quote</button></section>';
  x=setup(undefined,undefined,extra);await sleep(45);
  const {TDBModules:modules,TDBConsent:consent}=x.w;
- assert.equal(modules.version,'1.6.0');assert.equal(consent.version,'0.7.0');
+ assert.equal(modules.version,'1.7.0');assert.equal(consent.version,'0.7.0');
  assert.equal(consent.currentState().decided,false);
  assert.equal(x.w.document.querySelectorAll('script').length,1,'fresh visit requests no gated assets');
  const canonical=file=>'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@old/dist/'+file;

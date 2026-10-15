@@ -104,59 +104,12 @@
     });
   }
   // Shared Smile Gallery / Instagram ticker: fixed slots, 400ms, interruptible.
-  function ticker(viewport) {
-    let value = null,
-      animations = [],
-      revision = 0;
-    const item = (text) => {
-      const node = element('span', 'tdb-fi-ticker-value', text);
-      node.setAttribute('aria-hidden', 'true');
-      return node;
-    };
-    const stop = () => {
-      revision++;
-      animations.forEach((a) => a.cancel());
-      animations = [];
-      if (value !== null) viewport.replaceChildren(item(value));
-    };
-    return {
-      update(text, direction = 1, animate = true) {
-        if (value === text) return;
-        const previous = value;
-        stop();
-        value = text;
-        viewport.setAttribute('aria-label', text);
-        const incoming = item(text);
-        if (previous === null || !animate || !viewport.animate) {
-          viewport.replaceChildren(incoming);
-          return;
-        }
-        const outgoing = item(previous),
-          token = revision;
-        viewport.replaceChildren(outgoing, incoming);
-        const timing = { duration: 400, easing: 'ease-in-out', fill: 'both' };
-        animations = [
-          outgoing.animate(
-            [
-              { transform: 'translateY(0)' },
-              { transform: 'translateY(' + -direction * 100 + '%)' },
-            ],
-            timing,
-          ),
-          incoming.animate(
-            [{ transform: 'translateY(' + direction * 100 + '%)' }, { transform: 'translateY(0)' }],
-            timing,
-          ),
-        ];
-        animations[1].onfinish = () => {
-          if (token !== revision) return;
-          viewport.replaceChildren(incoming);
-          animations.forEach((a) => a.cancel());
-          animations = [];
-        };
-      },
-    };
-  }
+  const ticker = (viewport) =>
+    tdbValueTicker(viewport, {
+      valueClass: 'tdb-fi-ticker-value',
+      label: true,
+    });
+
   function mount(root) {
     if (root.dataset.fiMounted) return;
     const viewport = root.querySelector('.tdb-fi-viewport'),

@@ -32,12 +32,13 @@
     },
     "dist/tdb-calculator-loader.js": {
       "sources": [
+        "src/shared/module-bootstrap.js",
         "src/calculator/loader.js"
       ],
-      "sha256": "b2867b17f935bdc4b2d26c0c441285ef9d8cf28e9281023cb00caf7395f07aac",
-      "raw": 2271,
-      "gzip": 1079,
-      "brotli": 904
+      "sha256": "8519593c8ff8cc4a9d89e07e9d5ac821652b24893c421f9a8170ea2be3034ed8",
+      "raw": 3170,
+      "gzip": 1388,
+      "brotli": 1198
     },
     "dist/tdb-calculator.js": {
       "sources": [
@@ -66,10 +67,10 @@
         "src/shared/modules.js",
         "src/consent/consent.js"
       ],
-      "sha256": "f7696656deec3d6014f9c3aa81f2a2c7aa11226aabcf59f07e07e5eed95f61a3",
-      "raw": 20947,
-      "gzip": 7242,
-      "brotli": 6510
+      "sha256": "6a119c7397918ec293da8553a4fab51cbfe755e77611f337da4638a7d3710e24",
+      "raw": 21328,
+      "gzip": 7383,
+      "brotli": 6626
     },
     "dist/tdb-consent.min.js": {
       "sources": [
@@ -104,12 +105,13 @@
     },
     "dist/tdb-first-impressions.js": {
       "sources": [
+        "src/shared/value-ticker.js",
         "src/first-impressions/first-impressions.js"
       ],
-      "sha256": "2e9d1af85268f170b2c55488923dd327e0aef2223fd27441ed0a4b52e34a6ae9",
-      "raw": 10517,
-      "gzip": 4222,
-      "brotli": 3766
+      "sha256": "323869a1bca7f3c809c734c3e84f3b7c8e3da3e99238cf83c9418bc59c544839",
+      "raw": 10683,
+      "gzip": 4314,
+      "brotli": 3841
     },
     "dist/tdb-first-visit-power-snippets.js": {
       "sources": [
@@ -162,12 +164,14 @@
     },
     "dist/tdb-home-desktop-instagram.js": {
       "sources": [
+        "src/shared/value-ticker.js",
+        "src/instagram/legacy-renderer.js",
         "src/instagram/home-desktop-instagram.js"
       ],
-      "sha256": "778f695003d7c59cb8692dd5f2772ae81c657c87bae64b7f91518ee32d814d50",
-      "raw": 12485,
-      "gzip": 5087,
-      "brotli": 4498
+      "sha256": "5ed834bbff649504581a4545837dd6aec4abbd62000bb4e235b445f25680aa29",
+      "raw": 12724,
+      "gzip": 5186,
+      "brotli": 4583
     },
     "dist/tdb-instagram-deferred.js": {
       "sources": [
@@ -180,12 +184,15 @@
     },
     "dist/tdb-instagram-feed.js": {
       "sources": [
+        "src/shared/value-ticker.js",
+        "src/instagram/manual-snapshot.js",
+        "src/instagram/legacy-renderer.js",
         "src/instagram/instagram-feed-bundle.js"
       ],
-      "sha256": "09f3a94f87ac6f8dfdeaf0b1be906453182ae9857c46ba85d7966157fb263094",
-      "raw": 64877,
-      "gzip": 14277,
-      "brotli": 11880
+      "sha256": "37a09d0a9a54127d5c7a32575387eb42bd8f4a344003b38df8fcfaaab7df8b5a",
+      "raw": 65232,
+      "gzip": 14430,
+      "brotli": 12005
     },
     "dist/tdb-instagram-native.min.js": {
       "sources": [
@@ -198,12 +205,13 @@
     },
     "dist/tdb-legacy-review-drawer.js": {
       "sources": [
+        "src/shared/value-ticker.js",
         "src/reviews/legacy/drawer.js"
       ],
-      "sha256": "fe3159d07ea352d5d367908551e9c0297953f616c23975c9d030fef75ef18aba",
-      "raw": 44957,
-      "gzip": 13952,
-      "brotli": 12387
+      "sha256": "8985161ca8612e0fed2706a5f7910e4b02905a98dcd32a7f9dd4b27f1fe18211",
+      "raw": 45118,
+      "gzip": 14042,
+      "brotli": 12471
     },
     "dist/tdb-logo-marquee.js": {
       "sources": [
@@ -229,10 +237,10 @@
       "sources": [
         "src/shared/modules.js"
       ],
-      "sha256": "fd871be32014e4d5d9efe2cd3cd1ea027708dc711ed1bf5e7b48b40466970838",
-      "raw": 4527,
-      "gzip": 1908,
-      "brotli": 1717
+      "sha256": "b5c2cefdd864470d07d797bc3eb6377490b6491818b53827d3655e30fdb961fb",
+      "raw": 4908,
+      "gzip": 2049,
+      "brotli": 1845
     },
     "dist/tdb-motion-policy.js": {
       "sources": [
@@ -345,12 +353,13 @@
     },
     "dist/tdb-review-cms.js": {
       "sources": [
-        "src/reviews/native/cms.js"
+        "src/reviews/native/cms.js",
+        "src/reviews/native/quote-adapter.js"
       ],
-      "sha256": "f083731bdbd0a19590314deb20186427ff230af9a3566156735546ec3263e425",
-      "raw": 12636,
-      "gzip": 4703,
-      "brotli": 4110
+      "sha256": "3a6e71af063d6bfbd04d56261e82b7fa88279ec54c43b42ad532a1da2e23c0fc",
+      "raw": 14236,
+      "gzip": 5200,
+      "brotli": 4561
     },
     "dist/tdb-review-drawer-template.js": {
       "sources": [
@@ -372,12 +381,13 @@
     },
     "dist/tdb-review-list-loader.js": {
       "sources": [
+        "src/shared/module-bootstrap.js",
         "src/reviews/native/list-loader.js"
       ],
-      "sha256": "3acb68b1d11229313589d00688047804eccf1996316b08e9119e41d15902dbf3",
-      "raw": 2597,
-      "gzip": 1219,
-      "brotli": 1017
+      "sha256": "61e769e3359fffc430efa9258990fe9b29815c3c7cbb496fc7360f4fbd668e14",
+      "raw": 3484,
+      "gzip": 1526,
+      "brotli": 1298
     },
     "dist/tdb-review-list.js": {
       "sources": [
@@ -419,10 +429,10 @@
       "sources": [
         "src/reviews/native/loader.js"
       ],
-      "sha256": "a480e87a003b02a9a39d68ffcefddbc5261916594c60468472dbba84e1b3e56f",
-      "raw": 9234,
-      "gzip": 3311,
-      "brotli": 2933
+      "sha256": "3d9236b64e1ad5fbeed2c83dcd5fa22f31dce258101b31d1d043b1ca193d1ec2",
+      "raw": 9392,
+      "gzip": 3326,
+      "brotli": 2945
     },
     "dist/tdb-reviews.js": {
       "sources": [
@@ -460,10 +470,10 @@
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "3e4116f72e62a0d93858c80053a9f850f41ad68fb1e7bb96ac2db096c9a62fae",
-      "raw": 54121,
-      "gzip": 14957,
-      "brotli": 13210
+      "sha256": "dcc0e942b8d5e700cc2ea13b68aff75d4f2b9682b59976870994ce6953e29c76",
+      "raw": 53279,
+      "gzip": 14678,
+      "brotli": 13036
     },
     "dist/tdb-service-awards.js": {
       "sources": [

@@ -16,55 +16,18 @@ function tdbPreloadVIPScript(src) {
   document.head.appendChild(link);
 }
 
-function tdbLoadVIPScript(src, retries = 1) {
-  if (window.TDBVIPDrawer) return Promise.resolve(window.TDBVIPDrawer);
-  return new Promise((resolve, reject) => {
-    let script = document.querySelector('script[data-tdb-vip-drawer-js]');
-    const isNew = !script;
-    let settled = false;
-    let timeout;
-    if (isNew) {
-      script = document.createElement('script');
-      script.src = src;
-      script.async = true;
-      script.charset = 'UTF-8';
-      script.setAttribute('data-tdb-vip-drawer-js', 'true');
-    }
-    function cleanup() {
-      clearTimeout(timeout);
-      script.removeEventListener('load', loaded);
-      script.removeEventListener('error', failed);
-    }
-    function fail(error, allowRetry = true) {
-      if (settled) return;
-      settled = true;
-      cleanup();
-      script.remove();
+function tdbLoadVIPScript(src) {
+  const modules = window.TDBModules;
+  if (!modules) return Promise.reject(Error('Shared module registry unavailable'));
+  return (modules.loadWithRecovery || modules.load)(src, {
+    attribute: 'data-tdb-vip-drawer-js',
+    ready: () => typeof window.TDBVIPDrawer?.open === 'function',
+    timeout: 15000,
+  })
+    .then(() => window.TDBVIPDrawer)
+    .finally(() => {
       document.querySelector('link[data-tdb-vip-preload]')?.remove();
-      if (!allowRetry || !retries) return reject(error);
-      setTimeout(() => tdbLoadVIPScript(src, retries - 1).then(resolve, reject), 250);
-    }
-    function loaded() {
-      if (settled) return;
-      if (!window.TDBVIPDrawer) {
-        // Replaying a partly executed runtime is not a network recovery strategy.
-        return fail(new Error('TDB VIP script loaded without a ready API'), false);
-      }
-      settled = true;
-      cleanup();
-      script.dataset.tdbLoaded = 'true';
-      document.querySelector('link[data-tdb-vip-preload]')?.remove();
-      resolve(window.TDBVIPDrawer);
-    }
-    function failed() {
-      fail(new Error('TDB VIP request failed'));
-    }
-    script.addEventListener('load', loaded);
-    script.addEventListener('error', failed);
-    timeout = setTimeout(() => fail(new Error('TDB VIP request timed out')), 15000);
-    if (isNew) document.head.appendChild(script);
-    else if (script.dataset.tdbLoaded === 'true') loaded();
-  });
+    });
 }
 
 function prepareVIPDrawerLoader() {
@@ -75,9 +38,7 @@ function prepareVIPDrawerLoader() {
     document.documentElement.getAttribute('data-wf-page') === '677cf86df9952f978d94d8a9';
   const triggerSelector =
     '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
-  // VIP ships with this footer release; other feature pins stay independent.
-  const jsUrl =
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@405af73d4d62619c66bb1140ee6f1e6081b0559c/dist/tdb-vip-drawer.js';
+  const jsUrl = window.TDBModules.resolve(new URL('tdb-vip-drawer.js', TDBRuntimeModuleRoot));
   let loadingPromise = null;
   let armed = false;
   // Prefer the window scroll offset, including zero, without also asking the
@@ -215,7 +176,7 @@ function prepareVIPDrawerLoader() {
   } else loadSafely();
 
   window.TDBVIPDrawerLoader = Object.freeze({
-    version: '1.4.1',
+    version: '1.5.0',
     load: loadDrawer,
     open: openFromTrigger,
     status: () => ({

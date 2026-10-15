@@ -59,7 +59,8 @@ test('native VIP markup still waits for coordination CSS',async()=>{
   const dom=new JSDOM('<!doctype html><html data-wf-page="677cf86df9952f978d94d8a9"><body><div id="tdb-vip-drawer" data-tdb-vip-native="1"></div></body></html>',{runScripts:'outside-only',url:'https://dentalbarns.webflow.io/'}),w=dom.window;
   // Isolate the public loader without starting unrelated features.
   const source=read('src/vip-drawer/loader.js');
-  w.eval(source);
+  w.eval("const TDBRuntimeModuleRoot=new URL('https://cdn.example/release/dist/');\n"+source);
+  w.TDBModules={resolve:url=>String(url)};
   w.TDBRuntimePageState={vipScrollSeed:{lastY:0,up:0,down:0,peek:false}};
   let cssReady,loaded=0;
   w.TDBFooterInitialScrollY=0;w.tdbPreloadVIPScript=()=>{};

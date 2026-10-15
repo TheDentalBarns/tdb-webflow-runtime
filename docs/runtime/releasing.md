@@ -2,6 +2,8 @@
 
 This candidate is based on staging's `9739d86106bac901252d0e9876468ebb82ad9bd3`, not the older `main` tree. Review it against that base first. Consolidating it into `main` is a separate reconciliation step; do not silently replace production's older behavior with staging's full collection.
 
+The [15 October consolidation](consolidation-2026-10-15.md#deployment-groups-and-rollback) adds exact release groups. Pair the updated foundation/runtime, preserve or explicitly promote the VIP controller pin, and pair review CMS/loader for the combined data path.
+
 ## Prepare a release
 
 1. Install the root lockfile with Node 24, format changed sources and build all manifest targets plus Swiper. Run the tests and deterministic build check. Confirm no unexplained output changes.

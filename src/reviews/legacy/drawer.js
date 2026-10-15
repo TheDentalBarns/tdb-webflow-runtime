@@ -1019,59 +1019,11 @@
   }
   // Embedded previews share content with the drawer and open the exact selected review.
   // Keep only the visible cards and their neighbours in the DOM.
-  function ticker(viewport) {
-    let value = null,
-      animations = [],
-      revision = 0;
-    const item = (text) => {
-      const node = el('span', 'tdb-ri-ticker-value', text);
-      node.setAttribute('aria-hidden', 'true');
-      return node;
-    };
-    const stop = () => {
-      revision++;
-      animations.forEach((a) => a.cancel());
-      animations = [];
-      if (value !== null) viewport.replaceChildren(item(value));
-    };
-    return {
-      update(text, direction = 1, animate = true) {
-        if (value === text) return;
-        const previous = value;
-        stop();
-        value = text;
-        viewport.setAttribute('aria-label', text);
-        const incoming = item(text);
-        if (previous === null || !animate || !viewport.animate) {
-          viewport.replaceChildren(incoming);
-          return;
-        }
-        const outgoing = item(previous),
-          token = revision;
-        viewport.replaceChildren(outgoing, incoming);
-        const timing = { duration: 400, easing: 'ease-in-out', fill: 'both' };
-        animations = [
-          outgoing.animate(
-            [
-              { transform: 'translateY(0)' },
-              { transform: 'translateY(' + -direction * 100 + '%)' },
-            ],
-            timing,
-          ),
-          incoming.animate(
-            [{ transform: 'translateY(' + direction * 100 + '%)' }, { transform: 'translateY(0)' }],
-            timing,
-          ),
-        ];
-        animations[1].onfinish = () => {
-          if (token !== revision) return;
-          viewport.replaceChildren(incoming);
-          animations.forEach((a) => a.cancel());
-          animations = [];
-        };
-      },
-    };
-  }
+  const ticker = (viewport) =>
+    tdbValueTicker(viewport, {
+      valueClass: 'tdb-ri-ticker-value',
+      label: true,
+    });
 
   function staticReviewMark(offset) {
     const panel = el('div', 'tdb-ri-static-panel is-current');

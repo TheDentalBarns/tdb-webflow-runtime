@@ -190,5 +190,36 @@
       "restored": true,
       "changed": true
     }
-  ]
+  ],
+  "consolidation": {
+    "date": "2026-10-15",
+    "baseline": "4d7f0abd2196e1f40831e432cf530d252366798b",
+    "note": "Original recovery records above are retained. The derived paths below now share maintained implementations; old entry filenames remain build targets.",
+    "derived": [
+      {
+        "source": "src/instagram/manual-snapshot.js",
+        "from": [
+          "src/instagram/instagram-feed-bundle.js"
+        ],
+        "change": "Extracted unchanged snapshot data."
+      },
+      {
+        "source": "src/instagram/legacy-renderer.js",
+        "from": [
+          "src/instagram/instagram-feed-bundle.js",
+          "src/instagram/home-desktop-instagram.js"
+        ],
+        "change": "One renderer, with the existing desktop motion/version option."
+      },
+      {
+        "source": "src/shared/value-ticker.js",
+        "from": [
+          "src/instagram/instagram-feed-bundle.js",
+          "src/first-impressions/first-impressions.js",
+          "src/reviews/legacy/drawer.js"
+        ],
+        "change": "One fixed-slot ticker; 400ms timing, per-consumer labels/classes and motion policy preserved."
+      }
+    ]
+  }
 }

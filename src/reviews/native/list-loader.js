@@ -1,4 +1,4 @@
-/* TDB review archive loader v1.0.0. Presence + proximity + performance gate.
+/* TDB review archive loader v1.1.0. Presence + proximity + performance gate.
  * CMS HTML/pagination remain available immediately. No tracking dependencies.
  * An existing CookieScript decision (accept OR reject/close) releases enhancement;
  * deliberate filter intent also releases this functional module.
@@ -31,28 +31,7 @@
       return false;
     }
   };
-  async function registry() {
-    if (window.TDBModules) return;
-    await new Promise((resolve, reject) => {
-      let n = [...document.scripts].find((s) => /\/tdb-modules\.js(?:[?#]|$)/.test(s.src));
-      if (n) {
-        let tries = 0;
-        const poll = () =>
-          window.TDBModules
-            ? resolve()
-            : ++tries > 100
-              ? reject(Error('Registry unavailable'))
-              : setTimeout(poll, 100);
-        poll();
-      } else {
-        n = document.createElement('script');
-        n.src = new URL('tdb-modules.js', base);
-        n.onload = resolve;
-        n.onerror = reject;
-        document.head.append(n);
-      }
-    });
-  }
+  const registry = () => window.TDBModuleBootstrap.ensure(base);
   async function prepare() {
     if (instance) return instance;
     if (flight) return flight;
@@ -80,16 +59,20 @@
   function sync() {
     if (near && (intent || decided())) prepare().catch(() => {});
   }
-  const io = new IntersectionObserver(
-    (entries) => {
-      if (entries.some((e) => e.isIntersecting)) {
-        near = true;
-        sync();
-      }
-    },
-    { rootMargin: '700px' },
-  );
-  io.observe(root.querySelector('[data-tdb-review-cms]'));
+  const io =
+    'IntersectionObserver' in window
+      ? new IntersectionObserver(
+          (entries) => {
+            if (entries.some((e) => e.isIntersecting)) {
+              near = true;
+              sync();
+            }
+          },
+          { rootMargin: '700px' },
+        )
+      : null;
+  if (io) io.observe(root.querySelector('[data-tdb-review-cms]') || root);
+  else near = true;
   for (const name of [
     'CookieScriptLoaded',
     'CookieScriptCurrentState',
@@ -102,7 +85,7 @@
   const toggle = root.querySelector('[data-tdb-filter-toggle]');
   // A functional user request is not a request for marketing consent.
   for (const name of ['pointerenter', 'focus', 'pointerdown'])
-    toggle.addEventListener(
+    toggle?.addEventListener(
       name,
       () => {
         intent = true;
@@ -111,18 +94,24 @@
       },
       { passive: true },
     );
+  let opening = false;
   const trigger = (event) => {
-    const t = event.target.closest('[data-tdb-filter-toggle]');
+    const t = event.target.closest?.('[data-tdb-filter-toggle]');
     if (!t || instance) return;
     event.preventDefault();
     event.stopImmediatePropagation();
+    if (opening) return;
+    opening = true;
     intent = true;
     near = true;
     prepare()
       .then(() => t.click())
       .catch(() => {
-        root.querySelector('[data-tdb-list-status]').textContent =
-          'Filters could not load. Please try again.';
+        const status = root.querySelector('[data-tdb-list-status]');
+        if (status) status.textContent = 'Filters could not load. Please try again.';
+      })
+      .finally(() => {
+        opening = false;
       });
   };
   document.addEventListener('click', trigger, true);
@@ -137,6 +126,7 @@
       .catch(() => {});
   if (document.readyState === 'complete') idle();
   else addEventListener('load', idle, { once: true });
+  sync();
   window.TDBReviewListLoader = {
     prepare,
     status: () => ({ near, prepared: !!instance, ...instance?.status() }),

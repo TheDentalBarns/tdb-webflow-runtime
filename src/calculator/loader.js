@@ -1,4 +1,4 @@
-/* TDB Treatment Calculator loader v1.5.4. URLs are immutable release pins. */
+/* TDB Treatment Calculator loader v1.6.0. URLs are immutable release pins. */
 (function () {
   'use strict';
   if (window.__tdbCalculatorLoader) return;
@@ -8,39 +8,19 @@
     'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-calculator.css';
   const selector = '[data-tdb-calc-open],a[href$="#treatment-calculator"]';
   let loading = null;
-  function asset(type, url) {
-    return new Promise((resolve, reject) => {
-      const el = document.createElement(type === 'css' ? 'link' : 'script');
-      let timer;
-      if (type === 'css') {
-        el.rel = 'stylesheet';
-        el.href = url;
-      } else {
-        el.src = url;
-        el.async = true;
-      }
-      el.onload = () => {
-        clearTimeout(timer);
-        resolve();
-      };
-      el.onerror = () => {
-        clearTimeout(timer);
-        el.remove();
-        reject(Error('Calculator asset unavailable'));
-      };
-      timer = setTimeout(() => {
-        el.remove();
-        reject(Error('Calculator load timed out'));
-      }, 15000);
-      document.head.append(el);
-    });
-  }
   function load() {
     if (window.TDBCalculator) return Promise.resolve(window.TDBCalculator);
     if (loading) return loading;
-    loading = asset('css', styleURL)
-      .then(() => asset('js', scriptURL))
-      .then(() => window.TDBCalculator)
+    loading = window.TDBModuleBootstrap.ensure(scriptURL)
+      .then(async (modules) => {
+        // Preserve CSS-before-execution: the controller measures its native UI.
+        await modules.load(styleURL, { type: 'style', timeout: 15000 });
+        await modules.load(scriptURL, {
+          ready: () => typeof window.TDBCalculator?.open === 'function',
+          timeout: 15000,
+        });
+        return window.TDBCalculator;
+      })
       .catch((e) => {
         loading = null;
         throw e;
@@ -71,7 +51,7 @@
     document.addEventListener(
       'click',
       (e) => {
-        const link = e.target.closest(selector);
+        const link = e.target.closest?.(selector);
         if (
           !link ||
           window.TDBCalculator ||
@@ -85,6 +65,7 @@
           return;
         e.preventDefault();
         e.stopImmediatePropagation();
+        if (link.getAttribute('aria-busy') === 'true') return;
         link.setAttribute('aria-busy', 'true');
         load()
           .then((api) => api.open(link))
@@ -114,12 +95,12 @@
     document.addEventListener(
       'pointerover',
       (e) => {
-        if (e.target.closest(selector)) warm();
+        if (e.target.closest?.(selector)) warm();
       },
       { passive: true },
     );
     document.addEventListener('focusin', (e) => {
-      if (e.target.closest(selector)) warm();
+      if (e.target.closest?.(selector)) warm();
     });
     // Delegation also supports FAQ links inserted after initial page rendering.
   }

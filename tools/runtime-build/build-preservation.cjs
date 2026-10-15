@@ -6,6 +6,14 @@ const zlib = require('node:zlib');
 const { minify } = require('terser');
 const root = path.resolve(__dirname, '../..');
 const targets = require('./targets.cjs');
+// These compatibility entries share private source helpers, not window globals
+// or an additional dependency request. Their existing window APIs stay public.
+const isolated = new Set([
+  'dist/tdb-home-desktop-instagram.js',
+  'dist/tdb-instagram-feed.js',
+  'dist/tdb-first-impressions.js',
+  'dist/tdb-legacy-review-drawer.js',
+]);
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const hash = (text) => crypto.createHash('sha256').update(text).digest('hex');
 const sizes = (text) => ({
@@ -46,7 +54,10 @@ function source(file) {
 }
 async function build(output, { readable = false } = {}) {
   if (!targets[output]) throw Error('Unknown target: ' + output);
-  const input = targets[output].map(source).join('\n;\n');
+  const assembled = targets[output].map(source).join('\n;\n');
+  const input = isolated.has(output)
+    ? "(() => { 'use strict';\n" + assembled + '\n})();'
+    : assembled;
   if (readable)
     return require('prettier').format(input, {
       parser: 'babel',

@@ -1,4 +1,4 @@
-/* TDB shared dependency registry v1.6.0. Independently pinned shared releases. */
+/* TDB shared dependency registry v1.7.0. Independently pinned shared releases. */
 (() => {
   'use strict';
   if (window.TDBModules) return;
@@ -96,8 +96,11 @@
     }
     return src;
   }
-  // Script/module types load tags with global exports; namespace imports remain
-  // private to their feature. A caller may retry after failure without a new URL.
+  function dependencyError(code, message) {
+    return Object.assign(new Error(message), { code });
+  }
+  // A timeout does not cancel script execution. Keep the original transport until
+  // it settles; only an explicit network error permits another execution attempt.
   function load(url, { attribute, ready, type = 'script', timeout = 20000 } = {}) {
     if (!['script', 'module', 'style'].includes(type))
       return Promise.reject(Error('Unknown dependency type: ' + type));
@@ -119,8 +122,9 @@
       if (ready && previous.complete) {
         // The tag loaded earlier, but this caller's required export is absent.
         // Do not turn a fulfilled transport promise into false readiness.
-        previous.invalidate();
-        return Promise.reject(Error('Dependency loaded without expected export: ' + src));
+        return Promise.reject(
+          dependencyError('TDB_EXPORT', 'Dependency loaded without expected export: ' + src),
+        );
       }
       if (ready) previous.checks.add(ready);
       return previous.promise;
@@ -143,12 +147,13 @@
     let fulfill,
       reject,
       timer,
-      settled = false;
+      settled = false,
+      timedOut = false;
     const promise = new Promise((a, b) => {
       fulfill = a;
       reject = b;
     });
-    const entry = { promise, checks: new Set(ready ? [ready] : []), complete: false, invalidate };
+    const entry = { promise, checks: new Set(ready ? [ready] : []), complete: false };
     flights.set(key, entry);
     function cleanup() {
       clearTimeout(timer);
@@ -165,15 +170,29 @@
       settled = true;
       cleanup();
       invalidate();
-      reject(error instanceof Error ? error : Error('Dependency unavailable: ' + src));
+      reject(dependencyError('TDB_NETWORK', 'Dependency unavailable: ' + src));
     }
     function done() {
       if (settled) return;
       try {
         for (const check of entry.checks)
-          if (!check()) throw Error('Dependency loaded without expected export: ' + src);
+          if (!check())
+            throw dependencyError(
+              'TDB_EXPORT',
+              'Dependency loaded without expected export: ' + src,
+            );
       } catch (error) {
-        fail(error);
+        settled = true;
+        cleanup();
+        entry.checks.clear();
+        // The code already ran. Retain a terminal failure, not a retryable URL.
+        const failure = dependencyError(
+          'TDB_EXPORT',
+          'Dependency loaded without expected export: ' + src,
+        );
+        entry.promise = Promise.reject(failure);
+        entry.promise.catch(() => {});
+        reject(failure);
         return;
       }
       settled = true;
@@ -181,6 +200,7 @@
       entry.checks.clear();
       entry.complete = true;
       node.dataset.tdbLoaded = 'true';
+      if (timedOut) entry.promise = Promise.resolve();
       fulfill();
     }
     // Keep rejected shared flights handled even when an abandoned consumer stops
@@ -193,7 +213,12 @@
     node.addEventListener('load', done, { once: true });
     node.addEventListener('error', fail, { once: true });
     timer = setTimeout(
-      () => fail(Error('Dependency timed out: ' + src)),
+      () => {
+        timedOut = true;
+        // Keep the listeners to adopt a late successful load or release an
+        // explicit late network failure. Callers still receive the timeout now.
+        reject(dependencyError('TDB_TIMEOUT', 'Dependency timed out: ' + src));
+      },
       Number.isFinite(timeout) && timeout > 0 ? timeout : 20000,
     );
     if (fresh) {
@@ -209,6 +234,12 @@
       document.head.append(node);
     }
     return promise;
+  }
+  function loadWithRecovery(url, options = {}) {
+    return load(url, options).catch((error) => {
+      if (error.code !== 'TDB_NETWORK') throw error;
+      return new Promise((resolve) => setTimeout(resolve, 250)).then(() => load(url, options));
+    });
   }
   const busy = new WeakMap();
   async function withBusy(trigger, action, { signal, loading = true, onStart, onError } = {}) {
@@ -237,5 +268,12 @@
       clear();
     }
   }
-  window.TDBModules = Object.freeze({ version: '1.6.0', load, resolve, assetPins, withBusy });
+  window.TDBModules = Object.freeze({
+    version: '1.7.0',
+    load,
+    loadWithRecovery,
+    resolve,
+    assetPins,
+    withBusy,
+  });
 })();

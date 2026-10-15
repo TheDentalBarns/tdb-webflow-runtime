@@ -135,3 +135,17 @@ test('runtime starter teardown during download prevents a late opening',async()=
  e.w.TDBReviewFeatureLoader.destroy();e.w.TDBReviewLoader={open(){opens++;},destroy(){destroys++;}};resolve();await tick();
  assert.equal(opens,0);assert.equal(destroys,1);e.w.TDBReviewLoader=undefined;e.close();
 });
+
+test('combined CMS avoids an adapter request; an older pinned CMS retains its compatibility bridge',async()=>{
+ for(const combined of [true,false]){
+  let e;
+  e=setup('<section data-tdb-review-quotes></section>',{loadGate:async url=>{
+   if((combined && String(url).endsWith('/tdb-review-cms.js')) || String(url).endsWith('/tdb-review-quote-adapter.min.js')) e.w.TDBReviewQuotes={mount(){}};
+  }});
+  try{
+   delete e.w.TDBReviewQuotes;e.run();
+   await e.w.TDBReviewLoader.prepare({kind:'quotes',drawer:false});
+   assert.equal(e.stats().loads.filter(url=>url.endsWith('/tdb-review-quote-adapter.min.js')).length,combined?0:1);
+  }finally{e.close();}
+ }
+});
