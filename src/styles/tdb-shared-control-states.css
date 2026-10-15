@@ -5,6 +5,22 @@
 :is(a[href],button,[role="button"],summary):not(:where(.navbar10_link,.navbar10_dropdown-toggle,.is-navbar-control)):focus-visible{outline:2px solid var(--base-color-brand--orange-3,#d6cab4);outline-offset:4px}
 
 
+/* Shared navbar states. Keep the native selector specificity; Webflow emitted
+ * these identical combo-class states four times per page. Geometry and the
+ * existing transition stay in Designer. Include its keyboard-focus fallback. */
+.button.is-icon.is-secondary.is-navbar-control:is(:hover, :active) {
+  opacity: .6;
+}
+.button.is-icon.is-secondary.is-navbar-control:focus {
+  outline-style: none;
+}
+.button.is-icon.is-secondary.is-navbar-control:is(:focus-visible, [data-wf-focus-visible]) {
+  outline-offset: 4px;
+  outline-width: 2px;
+  outline-style: solid;
+  outline-color: var(--base-color-brand--orange-3, #d6cab4);
+}
+
 /* Native pressed feedback: hold while pressed, release with the pointer. */
 .tdb-vip-drawer-handle:active .tdb-vip-drawer-arrow,
 .tdb-announcement:active .tdb-announcement-circle {
