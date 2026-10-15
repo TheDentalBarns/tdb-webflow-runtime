@@ -16,5 +16,6 @@
 [data-tdb-smile-feed-root] .tdb-smile-card:focus-visible{outline:2px solid currentColor;outline-offset:3px}
 [data-tdb-smile-placeholder]>[data-tdb-smile-feed-root].tdb-smile-carousel{position:absolute;top:0;left:0;opacity:0;pointer-events:none}
 [data-tdb-smile-placeholder][data-smile-state="ready"]>[data-tdb-smile-feed-root]{opacity:1;pointer-events:auto;animation:tdb-disclosure-fade var(--tdb-reveal-fade-in,300ms) linear backwards}
-[data-tdb-smile-placeholder][data-smile-state="ready"]>.tdb-smile-holding-image{visibility:hidden;pointer-events:none}
+/* Keep the stationary holder behind the decoded cards until their fade completes. */
+[data-tdb-smile-placeholder][data-smile-state="ready"]>.tdb-smile-holding-image{visibility:hidden;pointer-events:none;transition:visibility 0s linear var(--tdb-reveal-fade-in,300ms)}
 [data-tdb-smile-placeholder]:not([data-smile-state="ready"])>[data-tdb-smile-feed-root] *{pointer-events:none!important}

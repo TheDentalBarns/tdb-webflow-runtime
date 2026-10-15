@@ -12,6 +12,9 @@ The external Smile module loads its stylesheet and the same-origin
 `/tdb-content/v1/smiles.json` projection, decodes the entry images, then mounts
 the existing TDB gallery/Swiper. It reuses `tdb-disclosure-fade`, the shared
 300 ms reveal fallback and the existing first-view slide advance.
+The holding card stays stationary beneath the gallery while it loads and fades
+in. Its visibility changes only after that same fade duration; an aborted or
+failed load leaves the holding card visible.
 
 Cards contain the combined before/after photo, its landscape crop and the
 travelling top/bottom bars. One shared presentation owns the title, Before/After
