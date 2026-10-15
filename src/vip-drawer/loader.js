@@ -39,6 +39,7 @@ function prepareVIPDrawerLoader() {
     '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
   const jsUrl = window.TDBModules.resolve(new URL('tdb-vip-drawer.js', TDBRuntimeModuleRoot));
   let loadingPromise = null;
+  let contentPromise = null;
   let armed = false;
   // Prefer the window scroll offset, including zero, without also asking the
   // root element for layout. Retain the element fallback for older engines.
@@ -85,6 +86,25 @@ function prepareVIPDrawerLoader() {
     const target = event.target;
     return target instanceof Element ? target.closest(triggerSelector) : null;
   }
+  function prepareContent() {
+    if (!drawer.hasAttribute('data-tdb-vip-lazy')) return Promise.resolve();
+    if (contentPromise) return contentPromise;
+    contentPromise = Promise.all([
+      window.TDBModules.load(new URL('tdb-vip-content.js', TDBRuntimeModuleRoot), {
+        ready: () => !!window.TDBVIPContent,
+      }),
+      window.TDBModules.load(new URL('tdb-vip-content.css', TDBRuntimeModuleRoot), {
+        type: 'style',
+      }),
+      window.TDBFormsLoader.load(),
+    ])
+      .then(() => window.TDBVIPContent.mount(drawer))
+      .catch((error) => {
+        contentPromise = null;
+        throw error;
+      });
+    return contentPromise;
+  }
   function fallbackToForm() {
     const section = Array.from(document.querySelectorAll('#VIP')).find(
       (node) => !drawer.contains(node),
@@ -101,7 +121,7 @@ function prepareVIPDrawerLoader() {
     opening = loadDrawer()
       .then((api) => {
         window.dispatchEvent(new CustomEvent('tdb:vip-open-intent', { detail: { source } }));
-        api.open();
+        return api.open();
       })
       .catch(fallbackToForm)
       .finally(() => {
@@ -178,6 +198,8 @@ function prepareVIPDrawerLoader() {
     version: '1.5.0',
     load: loadDrawer,
     open: openFromTrigger,
+    prepareContent,
+    fallback: fallbackToForm,
     status: () => ({
       loaded: realDrawerReady(),
       loading: Boolean(loadingPromise) && !realDrawerReady(),

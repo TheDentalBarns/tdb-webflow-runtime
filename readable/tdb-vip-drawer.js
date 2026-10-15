@@ -39,7 +39,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.7.3';
+  const VERSION = '0.8.0';
   const mobileQuery = matchMedia('(max-width:767px)');
   const desktopQuery = matchMedia('(min-width:768px)');
   const drawer = document.getElementById('tdb-vip-drawer');
@@ -104,6 +104,8 @@
   let lastWidth = innerWidth;
   let lastMode = mobileQuery.matches ? 'mobile' : 'desktop';
   let releaseScroll = null;
+  let opening = null;
+  let openIntent = 0;
 
   const pageY = () => Math.max(scrollY, html.scrollTop, 0);
 
@@ -190,6 +192,7 @@
   }
 
   function reset() {
+    openIntent++;
     clearTimeout(timer);
     clearTimeout(keyboardTimer);
     state = up = down = 0;
@@ -209,6 +212,7 @@
   }
 
   function closeDrawer() {
+    openIntent++;
     if (state === 2) {
       blurField();
       state = 3;
@@ -226,6 +230,29 @@
   }
 
   function openDrawer() {
+    if (
+      !drawer.hasAttribute('data-tdb-vip-lazy') ||
+      drawer.hasAttribute('data-tdb-vip-content-ready')
+    )
+      return revealDrawer();
+    if (opening) return opening;
+    const intent = ++openIntent;
+    handle.setAttribute('aria-busy', 'true');
+    opening = window.TDBVIPDrawerLoader.prepareContent()
+      .then(() => {
+        if (intent === openIntent) revealDrawer();
+      })
+      .catch(() => {
+        if (intent === openIntent) window.TDBVIPDrawerLoader.fallback();
+      })
+      .finally(() => {
+        opening = null;
+        handle.removeAttribute('aria-busy');
+      });
+    return opening;
+  }
+
+  function revealDrawer() {
     clearTimeout(timer);
     // Native display:none keeps these lazy images out of the initial fetch.
     // Release once, before measuring/opening; preserve artwork during closing.
@@ -475,7 +502,7 @@
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && state === 2 && !nestedConsentOpen()) closeDrawer();
+    if (event.key === 'Escape' && (state === 2 || opening) && !nestedConsentOpen()) closeDrawer();
   });
 
   ['wheel', 'touchmove'].forEach((eventName) =>

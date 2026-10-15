@@ -9,6 +9,7 @@ const bundles = {
   'tdb-review-cards.css': ['tdb-review-cards.css'],
   'tdb-scroll-lock.css': ['tdb-scroll-lock.css'],
   'tdb-vip-chrome.css': ['tdb-vip-chrome.css'],
+  'tdb-vip-content.css': ['tdb-vip-content.css'],
   'tdb-ui.css': ['tdb-ui.css'],
   'tdb-ui-critical.css': ['tdb-ui-critical.css'],
   'tdb-control-motion.css': ['tdb-control-motion.css'],

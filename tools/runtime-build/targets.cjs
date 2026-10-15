@@ -151,6 +151,7 @@ module.exports = {
     'src/shared/panel-motion.js',
     'src/vip-drawer/vip-drawer.js',
   ],
+  'dist/tdb-vip-content.js': ['src/vip-drawer/content.js'],
   'dist/tdb-logo-marquee.min.js': [
     'src/logo-marquee/partner-controls-style.js',
     'src/logo-marquee/logo-marquee.js',

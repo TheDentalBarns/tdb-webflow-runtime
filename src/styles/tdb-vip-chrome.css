@@ -3,3 +3,7 @@ html.tdb-vip-menu-away .navbar10_component,html.tdb-vip-menu-away .navbar-bg_lay
 
 @property --tdb-vip-chrome-ready { syntax: "<number>"; inherits: false; initial-value: 0; }
 html { --tdb-vip-chrome-ready: 1; }
+
+/* The existing circle becomes a loading cue while the hidden form prepares. */
+.tdb-vip-drawer-handle[aria-busy="true"] .tdb-vip-arrow-content{opacity:0}
+.tdb-vip-drawer-handle[aria-busy="true"] .tdb-vip-drawer-arrow::after{content:"";position:absolute;inset:0;border:1px solid currentColor;border-top-color:transparent;border-right-color:transparent;border-radius:50%;animation:TDBControlSpin 1s linear infinite}

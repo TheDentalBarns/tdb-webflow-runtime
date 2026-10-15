@@ -38,8 +38,8 @@
     "dist/tdb-runtime.js",
     "dist/tdb-service-awards.js",
     "dist/tdb-slider-focus.js",
-    "dist/tdb-smile-gallery.min.js",
     "dist/tdb-smile-feed.js",
+    "dist/tdb-smile-gallery.min.js",
     "dist/tdb-start.min.js",
     "dist/tdb-swiper-8.4.7.min.js",
     "dist/tdb-ticker.js",
@@ -48,6 +48,7 @@
     "dist/tdb-usp-drawer.js",
     "dist/tdb-vimeo-loader.js",
     "dist/tdb-vimeo.js",
+    "dist/tdb-vip-content.js",
     "dist/tdb-vip-drawer.js",
     "dist/tdb-vip-form.js"
   ],
@@ -67,7 +68,8 @@
     "dist/tdb-drawer.css",
     "dist/tdb-review-drawer.css",
     "dist/tdb-usp-drawer.css",
-    "dist/tdb-review-cards.css"
+    "dist/tdb-review-cards.css",
+    "dist/tdb-vip-content.css"
   ],
   "assets": [
     "assets/five-senses/surgery-clinical-clean.webp"

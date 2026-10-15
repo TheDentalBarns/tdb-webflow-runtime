@@ -509,10 +509,10 @@
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "e8db1c56c0c6b7604ad3dd234ab46d6139bd125e2d1b0c172e74bac10056eeee",
-      "raw": 57414,
-      "gzip": 15325,
-      "brotli": 13594
+      "sha256": "c4bcfdc51ce3471fd443ea38f96fe86a31c6760f5d5ac72f8ec44b59b1562f7d",
+      "raw": 57841,
+      "gzip": 15392,
+      "brotli": 13659
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -616,16 +616,25 @@
       "gzip": 5415,
       "brotli": 4810
     },
+    "dist/tdb-vip-content.js": {
+      "sources": [
+        "src/vip-drawer/content.js"
+      ],
+      "sha256": "092a7ba03daade96df22df3d57edd7e906fb8eab6f65595c8bac6ae54a12e96e",
+      "raw": 7108,
+      "gzip": 2499,
+      "brotli": 2010
+    },
     "dist/tdb-vip-drawer.js": {
       "sources": [
         "src/vip-drawer/runtime-style.js",
         "src/shared/panel-motion.js",
         "src/vip-drawer/vip-drawer.js"
       ],
-      "sha256": "359d58c98504bee15ddd316c1d8656f49294dc3787690530a7ec7d9260209841",
-      "raw": 8890,
-      "gzip": 3232,
-      "brotli": 2829
+      "sha256": "bd5a01ce242e3ab24e548c8ec778f5270fc4119fa6f88ee4142da9f91877d1b4",
+      "raw": 9271,
+      "gzip": 3371,
+      "brotli": 2939
     },
     "dist/tdb-vip-form.js": {
       "sources": [
