@@ -2241,7 +2241,7 @@ function prepareReviewFeatureLoader() {
   'use strict';
   if (window.TDBReviewFeatureLoader) return;
   const components =
-    '[data-tdb-review-introduction],[data-tdb-review-cards],[data-tdb-review-quotes]';
+    '[data-tdb-review-introduction],[data-tdb-review-cards],[data-tdb-review-quotes],[data-tdb-review-placeholder]';
   const triggers = '[data-tdb-review-trigger],[data-tdb-quote-action],[data-tdb-cards-open]';
   const lifecycle = new AbortController();
   let flight,
@@ -2389,9 +2389,15 @@ function prepareInstagramFeatureLoader() {
     });
     for (const holder of near) if (!holder.isConnected) near.delete(holder);
     if (!near.size || deferredFlight) return;
+    for (const holder of near)
+      if (holder.getAttribute('data-ig-state') !== 'ready')
+        holder.setAttribute('aria-busy', 'true');
     deferredFlight = Promise.resolve()
       .then(() => {
-        if (!allowed()) return;
+        if (!allowed()) {
+          for (const holder of near) holder.removeAttribute('aria-busy');
+          return;
+        }
         return window.TDBModules.load(new URL('tdb-instagram-deferred.js', TDBRuntimeModuleRoot), {
           ready: () => Boolean(window.TDBInstagramDeferred),
           attribute: 'data-tdb-instagram-deferred',
@@ -2408,6 +2414,7 @@ function prepareInstagramFeatureLoader() {
         if (!disposed) console.warn('TDB Instagram: retaining the holding image.', error);
       })
       .finally(() => {
+        for (const holder of near) holder.removeAttribute('aria-busy');
         deferredFlight = null;
       });
     return deferredFlight;
@@ -2496,7 +2503,10 @@ function prepareSmileFeatureLoader() {
         )
       : null;
   function refresh() {
-    if (!allowed()) return;
+    if (!allowed()) {
+      for (const holder of near) holder.removeAttribute('aria-busy');
+      return;
+    }
     document.querySelectorAll('[data-tdb-smile-placeholder]').forEach((holder) => {
       if (seen.has(holder)) return;
       seen.add(holder);
@@ -2505,6 +2515,9 @@ function prepareSmileFeatureLoader() {
     });
     for (const holder of near) if (!holder.isConnected) near.delete(holder);
     if (!near.size || flight) return;
+    for (const holder of near)
+      if (holder.getAttribute('data-smile-state') !== 'ready')
+        holder.setAttribute('aria-busy', 'true');
     flight = window.TDBModules.load(new URL('tdb-smile-feed.js', TDBRuntimeModuleRoot), {
       ready: () => Boolean(window.TDBSmileFeed),
       attribute: 'data-tdb-smile-feed-js',
@@ -2518,6 +2531,7 @@ function prepareSmileFeatureLoader() {
         if (!disposed) console.warn('TDB Smiles: retaining the holding image.');
       })
       .finally(() => {
+        for (const holder of near) holder.removeAttribute('aria-busy');
         flight = null;
       });
     return flight;

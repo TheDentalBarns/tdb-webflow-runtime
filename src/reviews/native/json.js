@@ -179,20 +179,31 @@
     sessions = new Map();
   // Cancellation belongs to each caller. Only the last departing caller aborts
   // shared network work; an aborted request cannot install a cached session.
-  function shared(key, signal, start) {
+  function shared(key, signal, start, timeout = 0) {
     try {
       check(signal);
       let request = requests.get(key);
       if (!request) {
         const controller = new AbortController();
         request = { controller, clients: 0, done: false };
-        const current = request,
-          timer = setTimeout(() => controller.abort(), 12000);
+        const current = request;
+        let timedOut = false;
+        // Bound each network request, not the combined index + first-batch load.
+        const timer = timeout
+          ? setTimeout(() => {
+              timedOut = true;
+              controller.abort();
+            }, timeout)
+          : null;
         requests.set(key, request);
         request.promise = Promise.resolve()
           .then(() => {
             check(controller.signal);
             return start(controller.signal);
+          })
+          .catch((error) => {
+            if (timedOut) throw Error('Published review feed timed out. Please try again.');
+            throw error;
           })
           .finally(() => {
             clearTimeout(timer);
@@ -227,23 +238,28 @@
     }
   }
   function requestJSON(url, signal) {
-    return shared(url.href, signal, async (networkSignal) => {
-      const response = await fetch(url.href, {
-        credentials: 'same-origin',
-        signal: networkSignal,
-        headers: { Accept: 'application/json' },
-      });
-      if (!response.ok || !response.headers.get('Content-Type')?.includes('application/json'))
-        throw Error(
-          response.status === 410
-            ? 'Review session expired. Reload to refresh reviews.'
-            : 'Published review feed unavailable',
-        );
-      const body = await response.text();
-      check(networkSignal);
-      if (body.length > 2097152) invalid();
-      return JSON.parse(body);
-    });
+    return shared(
+      url.href,
+      signal,
+      async (networkSignal) => {
+        const response = await fetch(url.href, {
+          credentials: 'same-origin',
+          signal: networkSignal,
+          headers: { Accept: 'application/json' },
+        });
+        if (!response.ok || !response.headers.get('Content-Type')?.includes('application/json'))
+          throw Error(
+            response.status === 410
+              ? 'Review session expired. Reload to refresh reviews.'
+              : 'Published review feed unavailable',
+          );
+        const body = await response.text();
+        check(networkSignal);
+        if (body.length > 2097152) invalid();
+        return JSON.parse(body);
+      },
+      12000,
+    );
   }
   function session(snapshot, url, { resolveIdentity, order }) {
     const index = order ? order(snapshot.index) : snapshot.index.slice();

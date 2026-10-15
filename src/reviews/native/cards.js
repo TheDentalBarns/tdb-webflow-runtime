@@ -2,6 +2,43 @@
 (() => {
   'use strict';
   if (window.TDBReviewCards) return;
+  async function create(holder, { signal }) {
+    const template = document.createElement('template');
+    template.innerHTML = __TDB_REVIEW_CARDS_TEMPLATE__;
+    const root = template.content.firstElementChild;
+    // Decode the small shared artwork before exposing the populated carousel.
+    await Promise.all(
+      [...new Set([...root.querySelectorAll('img')].map((img) => img.src))].map(
+        (src) =>
+          new Promise((resolve, reject) => {
+            const image = new Image();
+            let timer;
+            const finish = (error) => {
+              clearTimeout(timer);
+              image.onload = image.onerror = null;
+              signal.removeEventListener('abort', abort);
+              error ? reject(error) : resolve();
+            };
+            const abort = () => finish(new DOMException('Cancelled', 'AbortError'));
+            if (signal.aborted) return abort();
+            signal.addEventListener('abort', abort, { once: true });
+            timer = setTimeout(() => finish(Error('Review artwork timed out')), 12000);
+            image.onerror = () => finish(Error('Review artwork unavailable'));
+            image.onload = () =>
+              image.decode
+                ? image.decode().then(
+                    () => finish(),
+                    () => finish(Error('Review artwork unavailable')),
+                  )
+                : finish();
+            image.src = src;
+          }),
+      ),
+    );
+    if (signal.aborted || !holder.isConnected) throw new DOMException('Cancelled', 'AbortError');
+    holder.append(root);
+    return root;
+  }
   const instances = new WeakMap(),
     batchSize = 8,
     prefetchDistance = 4;
@@ -14,6 +51,7 @@
       status = $('[data-tdb-cards-status]'),
       previous = $('[data-tdb-cards-prev]'),
       next = $('[data-tdb-cards-next]');
+    const focusAction = $('[data-tdb-cards-focus-action]');
     const nativeSlides = [...track.children].filter((n) => n.matches('.tdb-review-cards_slide'));
     if (!nativeSlides.length) throw Error('Native CMS review cards are unavailable');
     const originals = nativeSlides.map((n) => n.cloneNode(true)),
@@ -72,7 +110,7 @@
       // The Designer logo slot is preserved; CSS selects its asset from reviewPlatform.
       slide
         .querySelector('[data-tdb-cards-open]')
-        .setAttribute('aria-label', 'Read full review by ' + record.name);
+        ?.setAttribute('aria-label', 'Read full review by ' + record.name);
       return slide;
     }
     const initial = data.records
@@ -87,6 +125,11 @@
       busy = () => swiper?.animating || swiper?.touchEventsData?.isTouched,
       fadeTime = () => (reduced.matches ? 0 : motion.reviews.fade);
     function hide() {
+      if (focusAction) {
+        focusAction.setAttribute('aria-disabled', 'true');
+        focusAction.setAttribute('tabindex', '-1');
+        focusAction.removeAttribute('data-ready');
+      }
       clearTimeout(revealTimer);
       revealTimer = 0;
       if (shownQuote) fades.to(shownQuote, 0, fadeTime());
@@ -142,6 +185,16 @@
         if (phase !== 'settled' || swiper.slides[swiper.activeIndex] !== active) return;
         shownQuote = active?.querySelector('[data-cards-render="excerpt"]');
         fades.to(shownQuote, 1, fadeTime());
+        if (focusAction && active) {
+          focusAction.dataset.reviewId = active.dataset.reviewId;
+          focusAction.setAttribute(
+            'aria-label',
+            'Read full review by ' + active.querySelector('[data-cards-render="name"]').textContent,
+          );
+          focusAction.setAttribute('aria-disabled', 'false');
+          focusAction.setAttribute('tabindex', '0');
+          focusAction.setAttribute('data-ready', 'true');
+        }
       };
       const pause = reduced.matches
         ? 0
@@ -441,7 +494,13 @@
           return;
         }
       }
-      if (!button || !swiper.allowClick || button.getAttribute('aria-busy') === 'true') return;
+      if (
+        !button ||
+        !swiper.allowClick ||
+        button.getAttribute('aria-busy') === 'true' ||
+        button.getAttribute('aria-disabled') === 'true'
+      )
+        return;
       event.preventDefault();
       await window.TDBModules.withBusy(
         button,
@@ -534,6 +593,6 @@
     instances.set(root, api);
     return api;
   }
-  window.TDBReviewCards = Object.freeze({ version: '2.2.3', mount });
+  window.TDBReviewCards = Object.freeze({ version: '2.3.0', create, mount });
   window.TDBSwiper?.register('review-cards', window.TDBReviewCards);
 })();

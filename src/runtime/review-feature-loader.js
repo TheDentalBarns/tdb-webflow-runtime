@@ -3,7 +3,7 @@ function prepareReviewFeatureLoader() {
   'use strict';
   if (window.TDBReviewFeatureLoader) return;
   const components =
-    '[data-tdb-review-introduction],[data-tdb-review-cards],[data-tdb-review-quotes]';
+    '[data-tdb-review-introduction],[data-tdb-review-cards],[data-tdb-review-quotes],[data-tdb-review-placeholder]';
   const triggers = '[data-tdb-review-trigger],[data-tdb-quote-action],[data-tdb-cards-open]';
   const lifecycle = new AbortController();
   let flight,

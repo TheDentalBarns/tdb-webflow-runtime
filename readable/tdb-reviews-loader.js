@@ -9,7 +9,7 @@
   const lazyBase = base;
   const options = window.TDBReviewOptions || {};
   const selector =
-    '[data-tdb-review-introduction],[data-tdb-review-cards],[data-tdb-review-quotes]';
+    '[data-tdb-review-introduction],[data-tdb-review-cards],[data-tdb-review-quotes],[data-tdb-review-placeholder]';
   const triggers = '[data-tdb-review-trigger],[data-tdb-quote-action],[data-tdb-cards-open]';
   const states = new Map(),
     originals = new Map(),
@@ -73,7 +73,7 @@
   function kind(root) {
     return root.matches('[data-tdb-review-introduction]')
       ? 'introduction'
-      : root.matches('[data-tdb-review-cards]')
+      : root.matches('[data-tdb-review-cards],[data-tdb-review-placeholder]')
         ? 'cards'
         : 'quotes';
   }
@@ -103,6 +103,8 @@
     });
     check(signal);
     const files = ['tdb-ticker.js', 'tdb-review-cms.js'];
+    if (type === 'cards')
+      await window.TDBModules.load(new URL('tdb-review-cards.css', base), { type: 'style' });
     if (type && type !== 'quotes') files.push('tdb-review-' + type + '.js');
     if (type === 'quotes') files.push('tdb-quote-carousel.js');
     if (type === 'cards') files.push('tdb-slider-focus.js', 'tdb-rendered-progress.js');
@@ -212,9 +214,20 @@
     state.pending = null;
     state.instance?.destroy();
     state.instance = null;
+    resetHolder(root, state);
     proximity?.unobserve(root);
     states.delete(root);
     restoreTriggers(root);
+  }
+  function resetHolder(root, state) {
+    if (!root.matches('[data-tdb-review-placeholder]')) return;
+    state.content?.remove();
+    state.content = null;
+    root.removeAttribute('aria-busy');
+    root.removeAttribute('data-review-state');
+    const fallback = root.querySelector('.tdb-review-holding-image');
+    fallback?.removeAttribute('aria-hidden');
+    fallback?.removeAttribute('tabindex');
   }
   function reconcile() {
     if (disposed) return;
@@ -232,6 +245,7 @@
           state.pending = null;
           state.instance?.destroy();
           state.instance = null;
+          resetHolder(root, state);
           triggerState(root, false);
         }
       }
@@ -249,6 +263,8 @@
       const signal = session.signal,
         token = {};
       state.pending = token;
+      const isHolder = root.matches('[data-tdb-review-placeholder]');
+      if (isHolder) root.setAttribute('aria-busy', 'true');
       const current = () => {
         check(signal);
         if (!root.isConnected || states.get(root) !== state || state.pending !== token)
@@ -257,6 +273,9 @@
       (async () => {
         const type = kind(root),
           data = await prepare({ signal, kind: type });
+        current();
+        const content = isHolder ? await window.TDBReviewCards.create(root, { signal }) : root;
+        if (isHolder) state.content = content;
         current();
         if (type === 'quotes') await data.fetchRecords(data.featured, { signal });
         if (type === 'introduction') await data.ensureIdentity?.(root, { signal });
@@ -284,15 +303,28 @@
             ? window.TDBReviewIntroduction.mount(root, callbacks)
             : window.TDBSwiper.mount(
                 type === 'cards' ? 'review-cards' : 'review-testimonials',
-                root,
+                content,
                 data,
                 callbacks,
               );
         if (!state.instance) throw Error('Review component did not mount');
+        if (isHolder) {
+          root.setAttribute('data-review-state', 'ready');
+          root.removeAttribute('aria-busy');
+          const fallback = root.querySelector('.tdb-review-holding-image');
+          fallback?.setAttribute('aria-hidden', 'true');
+          fallback?.setAttribute('tabindex', '-1');
+        }
         root.removeAttribute('data-tdb-review-error');
       })()
         .catch((error) => {
+          if (isHolder && state.pending === token) {
+            state.instance?.destroy();
+            state.instance = null;
+            resetHolder(root, state);
+          }
           if (error.name !== 'AbortError' && !signal.aborted && root.isConnected) {
+            if (isHolder) root.setAttribute('data-review-state', 'error');
             root.dataset.tdbReviewError = error.message;
             console.warn('TDB review component:', error.message);
           }
@@ -318,7 +350,10 @@
   function refresh() {
     if (disposed) return;
     for (const root of document.querySelectorAll(selector))
-      if (!states.has(root)) {
+      if (
+        !states.has(root) &&
+        !(root.matches('[data-tdb-review-cards]') && root.closest('[data-tdb-review-placeholder]'))
+      ) {
         const state = { near: !proximity, instance: null, pending: null, enabled: false };
         states.set(root, state);
         proximity?.observe(root);
@@ -326,7 +361,8 @@
     reconcile();
   }
   function intent(event) {
-    const root = event.target.closest?.(selector),
+    const root =
+        event.target.closest?.('[data-tdb-review-placeholder]') || event.target.closest?.(selector),
       state = states.get(root);
     if (state && !state.instance && !state.pending) {
       state.near = true;
@@ -366,7 +402,7 @@
       event.stopImmediatePropagation();
       return;
     }
-    let root = trigger.closest(selector),
+    let root = trigger.closest('[data-tdb-review-placeholder]') || trigger.closest(selector),
       state = states.get(root);
     if (root && !state) {
       refresh();

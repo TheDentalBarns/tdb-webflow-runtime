@@ -15,11 +15,12 @@ GLOBAL_SOURCES = [
     ROOT / 'src/styles/tdb-content-formatting.css',
     ROOT / 'src/styles/tdb-consent-states.css',
     ROOT / 'src/styles/tdb-controls-base.css',
-    ROOT / 'src/styles/tdb-phone-landscape.css',
+    ROOT / 'src/styles/tdb-feed-holders.css',
 ]
 
 # Inline in the Webflow head; preserve global source order and never include readiness.
 CRITICAL_SOURCES = [
+    ROOT / 'src/styles/tdb-viewport-base.css',
     ROOT / 'src/styles/tdb-runtime-ui.css',
     ROOT / 'src/styles/tdb-control-keyframes.css',
     ROOT / 'src/styles/tdb-content-formatting.css',

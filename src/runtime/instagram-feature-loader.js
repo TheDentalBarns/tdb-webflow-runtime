@@ -36,9 +36,15 @@ function prepareInstagramFeatureLoader() {
     });
     for (const holder of near) if (!holder.isConnected) near.delete(holder);
     if (!near.size || deferredFlight) return;
+    for (const holder of near)
+      if (holder.getAttribute('data-ig-state') !== 'ready')
+        holder.setAttribute('aria-busy', 'true');
     deferredFlight = Promise.resolve()
       .then(() => {
-        if (!allowed()) return;
+        if (!allowed()) {
+          for (const holder of near) holder.removeAttribute('aria-busy');
+          return;
+        }
         return window.TDBModules.load(new URL('tdb-instagram-deferred.js', TDBRuntimeModuleRoot), {
           ready: () => Boolean(window.TDBInstagramDeferred),
           attribute: 'data-tdb-instagram-deferred',
@@ -55,6 +61,7 @@ function prepareInstagramFeatureLoader() {
         if (!disposed) console.warn('TDB Instagram: retaining the holding image.', error);
       })
       .finally(() => {
+        for (const holder of near) holder.removeAttribute('aria-busy');
         deferredFlight = null;
       });
     return deferredFlight;

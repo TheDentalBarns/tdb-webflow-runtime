@@ -23,7 +23,10 @@ function declarations(css) {
 test('all original UI and slider declarations survive the split', () => {
   const before = declarations((read('tests/fixtures/ui-before-modular.css')+'\n'+read('tests/fixtures/slider-before-modular.css')).replaceAll('html[data-wf-page="677cf86df9952f978d94d8a9"]:has','html:has'));
   const after = declarations(['dist/tdb-ui.css','dist/tdb-vip-chrome.css','dist/tdb-vimeo.css','dist/tdb-announcement.css','dist/tdb-slider-ui.css'].map(read).join('\n'));
+  const earlyViewport = declarations(read('src/styles/tdb-viewport-base.css'));
+  const critical = declarations(read('dist/tdb-ui-critical.css'));
   for (const [key,count] of before) {
+    if (earlyViewport.has(key)) { assert.equal(after.has(key), false); assert.equal(critical.get(key), count); continue; }
     // User explicitly removed empty-quote masking; all other original declarations survive.
     if (key.startsWith('.section_standard-testimonial:has(') || key.startsWith('[data-tdb-dd-page],.tdbc-dd-fade|') || key.startsWith('[data-tdb-dd-preset="orange"]|') || key.startsWith('[data-tdb-copy-paragraphs]|') || key.startsWith('.tdb-consent-dialog|-webkit-tap-highlight-color|')) { assert.equal(after.has(key), false); continue; }
     assert.equal(after.get(key), count, key);

@@ -27,6 +27,11 @@ const sizes = (text) => ({
 });
 function source(file) {
   let code = read(file);
+  if (file === 'src/reviews/native/cards.js')
+    code = code.replace(
+      '__TDB_REVIEW_CARDS_TEMPLATE__',
+      JSON.stringify(read('src/reviews/native/cards-template.html').trim()),
+    );
   if (file === 'src/smile-gallery/feed.js')
     code = code.replace(
       '__TDB_SMILE_TEMPLATE__',

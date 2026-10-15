@@ -2,6 +2,44 @@
 (() => {
   'use strict';
   if (window.TDBReviewCards) return;
+  async function create(holder, { signal }) {
+    const template = document.createElement('template');
+    template.innerHTML =
+      '<div data-tdb-review-cards="" aria-label="Patient review cards" role="region" class="tdb-review-cards_root"><div aria-label="Patient reviews. Use left and right arrows to change review." data-tdb-cards-viewport="" tabindex="0" class="tdb-review-cards_viewport"><div data-tdb-cards-track="" role="list" class="tdb-review-cards_track"><div role="listitem" class="tdb-review-cards_slide"><article class="tdb-review-cards_card"><div class="tdb-review-cards_quote"><div class="tdb-review-cards_surface"></div><div class="tdb-review-cards_mark"></div><blockquote data-cards-render="excerpt" class="tdb-review-cards_excerpt"></blockquote></div><div class="tdb-review-cards_byline"><div><div data-cards-render="name" class="tdb-review-cards_name"></div><span class="tdb-review-cards_date"><img src="https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c58089197784d522c2a2_tdb-review-clock-brand.svg" loading="lazy" aria-hidden="true" alt="" class="tdb-review-cards_clock"><div data-cards-render="date" class="tdb-review-cards_date-value"></div></span></div><div class="tdb-review-cards_source"><span data-cards-render="icon" aria-hidden="true" data-cards-platform-logo="" class="tdb-review-cards_platform-logo tdb-review-cards_icon-direct"></span><span data-cards-render="rating" class="tdb-review-cards_star-row tdb-review-card-stars-direct"><span aria-hidden="true" data-tdb-mask="review-star" data-tdb-star="0" class="tdb-review-cards_star"></span><span aria-hidden="true" data-tdb-mask="review-star" data-tdb-star="1" class="tdb-review-cards_star"></span><span aria-hidden="true" data-tdb-mask="review-star" data-tdb-star="2" class="tdb-review-cards_star"></span><span aria-hidden="true" data-tdb-mask="review-star" data-tdb-star="3" class="tdb-review-cards_star"></span><span aria-hidden="true" data-tdb-mask="review-star" data-tdb-star="4" class="tdb-review-cards_star"></span></span></div></div><div data-cards-render="text" class="tdb-review-cards_text"></div><div class="tdb-review-cards_actions"><span data-cards-render="historic" class="tdb-review-cards_historic">Dr Keely · previous practice</span></div><div class="tdb-review-cards_card-footer"><div class="tdb-review-cards_surface is-footer"></div></div></article></div></div></div><p data-tdb-cards-status="" role="status" class="tdb-review-cards_status"></p><div data-tdb-cards-navigation="" class="tdb-review-cards_navigation"><div class="tdb-review-cards_position"><span data-tdb-cards-current="" class="tdb-review-cards_current">01</span><span class="tdb-review-cards_rule"></span><span data-tdb-cards-total=""></span></div><div class="tdb-review-cards_arrows"><a aria-disabled="true" aria-label="Previous review" tabindex="0" role="button" data-tdb-cards-prev="" href="#" class="carousel-arrow tdb-service-arrow"><span class="tdb-review-cards_prev-icon"><img src="https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg" loading="lazy" aria-hidden="true" fetchpriority="low" alt="" class="tdb-review-cards_arrow-asset"></span></a><a data-tdb-cards-next="" aria-label="Next review" tabindex="0" role="button" href="#" class="carousel-arrow tdb-service-arrow w-inline-block"><img src="https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg" loading="lazy" aria-hidden="true" fetchpriority="low" alt="" class="tdb-review-cards_arrow-asset"></a></div><div data-tdb-cards-progress="" aria-hidden="true" class="tdb-review-cards_progress"><span class="tdb-review-cards_progress-fill"></span></div></div><div aria-hidden="true" class="tdb-review-cards_fixed-mark"><div class="tdb-review-cards_artwork"><span class="tdb-review-cards_art-line"></span><span class="tdb-review-cards_art-icon"><img src="https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973bb15c9b9f29a8d18_tdb-review-quote.svg" loading="lazy" aria-hidden="true" fetchpriority="low" alt="" class="tdb-review-cards_quote-asset"></span><span class="tdb-review-cards_art-line"></span></div></div><div class="tdb-review-cards_focus-action"><a data-tdb-cards-open="" aria-expanded="false" aria-haspopup="dialog" tabindex="-1" role="button" href="#" class="tdb-review-cards_more" data-tdb-cards-focus-action="" aria-disabled="true">Read more</a></div></div>';
+    const root = template.content.firstElementChild;
+    // Decode the small shared artwork before exposing the populated carousel.
+    await Promise.all(
+      [...new Set([...root.querySelectorAll('img')].map((img) => img.src))].map(
+        (src) =>
+          new Promise((resolve, reject) => {
+            const image = new Image();
+            let timer;
+            const finish = (error) => {
+              clearTimeout(timer);
+              image.onload = image.onerror = null;
+              signal.removeEventListener('abort', abort);
+              error ? reject(error) : resolve();
+            };
+            const abort = () => finish(new DOMException('Cancelled', 'AbortError'));
+            if (signal.aborted) return abort();
+            signal.addEventListener('abort', abort, { once: true });
+            timer = setTimeout(() => finish(Error('Review artwork timed out')), 12000);
+            image.onerror = () => finish(Error('Review artwork unavailable'));
+            image.onload = () =>
+              image.decode
+                ? image.decode().then(
+                    () => finish(),
+                    () => finish(Error('Review artwork unavailable')),
+                  )
+                : finish();
+            image.src = src;
+          }),
+      ),
+    );
+    if (signal.aborted || !holder.isConnected) throw new DOMException('Cancelled', 'AbortError');
+    holder.append(root);
+    return root;
+  }
   const instances = new WeakMap(),
     batchSize = 8,
     prefetchDistance = 4;
@@ -14,6 +52,7 @@
       status = $('[data-tdb-cards-status]'),
       previous = $('[data-tdb-cards-prev]'),
       next = $('[data-tdb-cards-next]');
+    const focusAction = $('[data-tdb-cards-focus-action]');
     const nativeSlides = [...track.children].filter((n) => n.matches('.tdb-review-cards_slide'));
     if (!nativeSlides.length) throw Error('Native CMS review cards are unavailable');
     const originals = nativeSlides.map((n) => n.cloneNode(true)),
@@ -72,7 +111,7 @@
       // The Designer logo slot is preserved; CSS selects its asset from reviewPlatform.
       slide
         .querySelector('[data-tdb-cards-open]')
-        .setAttribute('aria-label', 'Read full review by ' + record.name);
+        ?.setAttribute('aria-label', 'Read full review by ' + record.name);
       return slide;
     }
     const initial = data.records
@@ -87,6 +126,11 @@
       busy = () => swiper?.animating || swiper?.touchEventsData?.isTouched,
       fadeTime = () => (reduced.matches ? 0 : motion.reviews.fade);
     function hide() {
+      if (focusAction) {
+        focusAction.setAttribute('aria-disabled', 'true');
+        focusAction.setAttribute('tabindex', '-1');
+        focusAction.removeAttribute('data-ready');
+      }
       clearTimeout(revealTimer);
       revealTimer = 0;
       if (shownQuote) fades.to(shownQuote, 0, fadeTime());
@@ -142,6 +186,16 @@
         if (phase !== 'settled' || swiper.slides[swiper.activeIndex] !== active) return;
         shownQuote = active?.querySelector('[data-cards-render="excerpt"]');
         fades.to(shownQuote, 1, fadeTime());
+        if (focusAction && active) {
+          focusAction.dataset.reviewId = active.dataset.reviewId;
+          focusAction.setAttribute(
+            'aria-label',
+            'Read full review by ' + active.querySelector('[data-cards-render="name"]').textContent,
+          );
+          focusAction.setAttribute('aria-disabled', 'false');
+          focusAction.setAttribute('tabindex', '0');
+          focusAction.setAttribute('data-ready', 'true');
+        }
       };
       const pause = reduced.matches
         ? 0
@@ -441,7 +495,13 @@
           return;
         }
       }
-      if (!button || !swiper.allowClick || button.getAttribute('aria-busy') === 'true') return;
+      if (
+        !button ||
+        !swiper.allowClick ||
+        button.getAttribute('aria-busy') === 'true' ||
+        button.getAttribute('aria-disabled') === 'true'
+      )
+        return;
       event.preventDefault();
       await window.TDBModules.withBusy(
         button,
@@ -534,6 +594,6 @@
     instances.set(root, api);
     return api;
   }
-  window.TDBReviewCards = Object.freeze({ version: '2.2.3', mount });
+  window.TDBReviewCards = Object.freeze({ version: '2.3.0', create, mount });
   window.TDBSwiper?.register('review-cards', window.TDBReviewCards);
 })();

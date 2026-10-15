@@ -66,7 +66,8 @@
     "dist/tdb-five-senses.css",
     "dist/tdb-drawer.css",
     "dist/tdb-review-drawer.css",
-    "dist/tdb-usp-drawer.css"
+    "dist/tdb-usp-drawer.css",
+    "dist/tdb-review-cards.css"
   ],
   "assets": [
     "assets/five-senses/surgery-clinical-clean.webp"

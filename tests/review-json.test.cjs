@@ -170,6 +170,51 @@ test('initial and batch cancellation are per caller and aborted work cannot pois
     w.close();
   }
 });
+test('each request gets its own deadline; timeout is retryable rather than caller cancellation', async () => {
+  const { w, network } = await setup();
+  const timers = new Map();
+  let timerId = 0,
+    release,
+    signal;
+  w.setTimeout = (callback, ms) => {
+    assert.equal(ms, 12000);
+    timers.set(++timerId, callback);
+    return timerId;
+  };
+  w.clearTimeout = (id) => timers.delete(id);
+  w.fetch = (url, options) =>
+    new Promise((resolve, reject) => {
+      signal = options.signal;
+      signal.addEventListener('abort', () => reject(new w.DOMException('Aborted', 'AbortError')), {
+        once: true,
+      });
+      release = () => resolve(network(url, options));
+    });
+  try {
+    const pending = w.TDBReviewCMS.load();
+    await tick();
+    assert.equal(timers.size, 1, 'only the index request has a deadline');
+    const indexTimer = timerId;
+    release();
+    await tick();
+    assert.equal(timers.has(indexTimer), false);
+    assert.equal(timers.size, 1, 'the first batch has a fresh deadline');
+    const rejected = assert.rejects(
+      pending,
+      (error) => error.name !== 'AbortError' && /timed out/.test(error.message),
+    );
+    [...timers.values()][0]();
+    await rejected;
+    assert.equal(signal.aborted, true);
+    assert.equal(timers.size, 0);
+    w.fetch = network;
+    const data = await w.TDBReviewCMS.load();
+    assert.equal(data.records.length, 20, 'timeout did not poison the session cache');
+  } finally {
+    w.close();
+  }
+});
+
 test('invalid index, stale or mismatched batches, unsafe records and cross-origin sources fail without HTML fallback', async () => {
   for (const mutate of [
     (p) => p.index.push(p.index[0]),
