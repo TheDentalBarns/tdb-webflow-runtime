@@ -6,19 +6,32 @@ const path = require('node:path');
 const CleanCSS = require('clean-css');
 const root = path.resolve(__dirname, '../..');
 const bundles = {
+  'tdb-review-cards.css': ['tdb-review-cards.css'],
   'tdb-scroll-lock.css': ['tdb-scroll-lock.css'],
   'tdb-vip-chrome.css': ['tdb-vip-chrome.css'],
+  'tdb-vip-content.css': ['tdb-vip-content.css'],
   'tdb-ui.css': ['tdb-ui.css'],
   'tdb-ui-critical.css': ['tdb-ui-critical.css'],
   'tdb-control-motion.css': ['tdb-control-motion.css'],
   'tdb-vimeo.css': ['tdb-vimeo-ui.css'],
-  'tdb-announcement.css': ['tdb-announcement-chrome.css', 'tdb-announcement-states.css'],
-  'tdb-slider-ui.css': ['tdb-slider-chrome.css', 'tdb-slider-ui.css', 'tdb-carousel-arrow-states.css'],
+  'tdb-announcement.css': [
+    'tdb-announcement-layout.css',
+    'tdb-announcement-chrome.css',
+    'tdb-announcement-states.css',
+  ],
+  'tdb-slider-ui.css': [
+    'tdb-slider-chrome.css',
+    'tdb-slider-ui.css',
+    'tdb-carousel-arrow-states.css',
+  ],
 };
 for (const [output, sources] of Object.entries(bundles)) {
   if (process.argv.length > 2 && !process.argv.slice(2).includes(output)) continue;
-  const source = sources.map(file => fs.readFileSync(path.join(root, 'src/styles', file), 'utf8')).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
-  const result = new CleanCSS({level: 0, rebase: false}).minify(source);
+  const source = sources
+    .map((file) => fs.readFileSync(path.join(root, 'src/styles', file), 'utf8'))
+    .join('\n')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  const result = new CleanCSS({ level: 0, rebase: false }).minify(source);
   if (result.errors.length) throw new Error(result.errors.join('\n'));
   if (result.warnings.length) throw new Error(result.warnings.join('\n'));
   if (!result.styles) throw new Error('Empty UI build: ' + output);

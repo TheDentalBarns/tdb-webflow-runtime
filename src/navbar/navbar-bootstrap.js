@@ -37,7 +37,8 @@
 
       textElements.forEach((element) => {
         const computed = getComputedStyle(element);
-        const startTransform = computed.transform === 'none' ? 'translate3d(0, 0, 0)' : computed.transform;
+        const startTransform =
+          computed.transform === 'none' ? 'translate3d(0, 0, 0)' : computed.transform;
         const startOpacity = Number.parseFloat(computed.opacity);
 
         const animation = element.animate(
@@ -86,7 +87,8 @@
     button.addEventListener(
       'pointerdown',
       () => {
-        if (button.closest('.navbar10_component')?.classList.contains('tdb-menu-transitioning')) return;
+        if (button.closest('.navbar10_component')?.classList.contains('tdb-menu-transitioning'))
+          return;
 
         if (menuIsOpen()) {
           animateTextOut();
@@ -107,7 +109,8 @@
           return;
         }
 
-        if (button.closest('.navbar10_component')?.classList.contains('tdb-menu-transitioning')) return;
+        if (button.closest('.navbar10_component')?.classList.contains('tdb-menu-transitioning'))
+          return;
 
         if (menuIsOpen()) {
           animateTextOut();

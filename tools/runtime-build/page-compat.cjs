@@ -23,8 +23,13 @@ function render(pageId) {
 
 if (require.main === module) {
   if (process.argv[2]) process.stdout.write(render(process.argv[2]));
-  else process.stdout.write(JSON.stringify(Object.fromEntries(
-    Object.keys(manifest.owners).map(id => [id, render(id)])
-  ), null, 2) + '\n');
+  else
+    process.stdout.write(
+      JSON.stringify(
+        Object.fromEntries(Object.keys(manifest.owners).map((id) => [id, render(id)])),
+        null,
+        2,
+      ) + '\n',
+    );
 }
 module.exports = { render, manifest };

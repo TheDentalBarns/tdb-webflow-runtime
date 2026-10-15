@@ -1,7 +1,11 @@
 /* Preserved VIP loading and intent; initialized by runtime. */
 function tdbPreloadVIPScript(src) {
-  if ((tdbUIIsReady() && tdbStyleIsReady('--tdb-vip-ui-ready')) || document.querySelector('link[data-tdb-vip-preload]') ||
-      document.querySelector('script[data-tdb-vip-drawer-js]')) return;
+  if (
+    (tdbUIIsReady() && tdbStyleIsReady('--tdb-vip-ui-ready')) ||
+    document.querySelector('link[data-tdb-vip-preload]') ||
+    document.querySelector('script[data-tdb-vip-drawer-js]')
+  )
+    return;
   const link = document.createElement('link');
   link.rel = 'preload';
   link.as = 'script';
@@ -12,69 +16,35 @@ function tdbPreloadVIPScript(src) {
   document.head.appendChild(link);
 }
 
-function tdbLoadVIPScript(src, retries = 1) {
-  if (window.TDBVIPDrawer) return Promise.resolve(window.TDBVIPDrawer);
-  return new Promise((resolve, reject) => {
-    let script = document.querySelector('script[data-tdb-vip-drawer-js]');
-    const isNew = !script;
-    let settled = false;
-    let timeout;
-    if (isNew) {
-      script = document.createElement('script');
-      script.src = src;
-      script.async = true;
-      script.charset = 'UTF-8';
-      script.setAttribute('data-tdb-vip-drawer-js', 'true');
-    }
-    function cleanup() {
-      clearTimeout(timeout);
-      script.removeEventListener('load', loaded);
-      script.removeEventListener('error', failed);
-    }
-    function fail(error, allowRetry = true) {
-      if (settled) return;
-      settled = true;
-      cleanup();
-      script.remove();
+function tdbLoadVIPScript(src) {
+  const modules = window.TDBModules;
+  if (!modules) return Promise.reject(Error('Shared module registry unavailable'));
+  return (modules.loadWithRecovery || modules.load)(src, {
+    attribute: 'data-tdb-vip-drawer-js',
+    ready: () => typeof window.TDBVIPDrawer?.open === 'function',
+    timeout: 15000,
+  })
+    .then(() => window.TDBVIPDrawer)
+    .finally(() => {
       document.querySelector('link[data-tdb-vip-preload]')?.remove();
-      if (!allowRetry || !retries) return reject(error);
-      setTimeout(() => tdbLoadVIPScript(src, retries - 1).then(resolve, reject), 250);
-    }
-    function loaded() {
-      if (settled) return;
-      if (!window.TDBVIPDrawer) {
-        // Replaying a partly executed runtime is not a network recovery strategy.
-        return fail(new Error('TDB VIP script loaded without a ready API'), false);
-      }
-      settled = true;
-      cleanup();
-      script.dataset.tdbLoaded = 'true';
-      document.querySelector('link[data-tdb-vip-preload]')?.remove();
-      resolve(window.TDBVIPDrawer);
-    }
-    function failed() { fail(new Error('TDB VIP request failed')); }
-    script.addEventListener('load', loaded);
-    script.addEventListener('error', failed);
-    timeout = setTimeout(() => fail(new Error('TDB VIP request timed out')), 15000);
-    if (isNew) document.head.appendChild(script);
-    else if (script.dataset.tdbLoaded === 'true') loaded();
-  });
+    });
 }
 
 function prepareVIPDrawerLoader() {
   const drawer = document.getElementById('tdb-vip-drawer');
   if (!drawer) return;
 
-  const demand = document.documentElement.getAttribute('data-wf-page') === '677cf86df9952f978d94d8a9';
-  const triggerSelector = '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
-  // VIP ships with this footer release; other feature pins stay independent.
-  const jsUrl = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@405af73d4d62619c66bb1140ee6f1e6081b0559c/dist/tdb-vip-drawer.js';
+  const demand = true;
+  const triggerSelector =
+    '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
+  const jsUrl = window.TDBModules.resolve(new URL('tdb-vip-drawer.js', TDBRuntimeModuleRoot));
   let loadingPromise = null;
+  let contentPromise = null;
   let armed = false;
   // Prefer the window scroll offset, including zero, without also asking the
   // root element for layout. Retain the element fallback for older engines.
   const pageY = () => Math.max(window.scrollY ?? document.documentElement.scrollTop ?? 0, 0);
-  const scrollSeed = {...window.TDBRuntimePageState.vipScrollSeed};
+  const scrollSeed = { ...window.TDBRuntimePageState.vipScrollSeed };
   const realDrawerReady = () => Boolean(window.TDBVIPDrawer);
 
   function cleanup() {
@@ -103,7 +73,7 @@ function prepareVIPDrawerLoader() {
         cleanup();
         return api;
       })
-      .catch(error => {
+      .catch((error) => {
         document.querySelector('link[data-tdb-vip-preload]')?.remove();
         loadingPromise = null;
         console.error('TDB VIP Drawer failed to load');
@@ -116,25 +86,52 @@ function prepareVIPDrawerLoader() {
     const target = event.target;
     return target instanceof Element ? target.closest(triggerSelector) : null;
   }
+  function prepareContent() {
+    if (!drawer.hasAttribute('data-tdb-vip-lazy')) return Promise.resolve();
+    if (contentPromise) return contentPromise;
+    contentPromise = Promise.all([
+      window.TDBModules.load(new URL('tdb-vip-content.js', TDBRuntimeModuleRoot), {
+        ready: () => !!window.TDBVIPContent,
+      }),
+      window.TDBModules.load(new URL('tdb-vip-content.css', TDBRuntimeModuleRoot), {
+        type: 'style',
+      }),
+      window.TDBFormsLoader.load(),
+    ])
+      .then(() => window.TDBVIPContent.mount(drawer))
+      .catch((error) => {
+        contentPromise = null;
+        throw error;
+      });
+    return contentPromise;
+  }
   function fallbackToForm() {
-    const section = Array.from(document.querySelectorAll('#VIP')).find(node => !drawer.contains(node));
+    const section = Array.from(document.querySelectorAll('#VIP')).find(
+      (node) => !drawer.contains(node),
+    );
     if (section) {
-      section.scrollIntoView({behavior:'smooth',block:'start'});
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
       const field = section.querySelector('input:not([type="hidden"]),button,a[href]');
-      field?.focus({preventScroll:true});
+      field?.focus({ preventScroll: true });
     } else location.assign('/vip/become-a-patient');
   }
   let opening = null;
   function openFromTrigger(source) {
     if (opening) return opening;
-    opening = loadDrawer().then(api => {
-      window.dispatchEvent(new CustomEvent('tdb:vip-open-intent',{detail:{source}}));
-      api.open();
-    }).catch(fallbackToForm).finally(() => {opening=null;});
+    opening = loadDrawer()
+      .then((api) => {
+        window.dispatchEvent(new CustomEvent('tdb:vip-open-intent', { detail: { source } }));
+        return api.open();
+      })
+      .catch(fallbackToForm)
+      .finally(() => {
+        opening = null;
+      });
     return opening;
   }
   function openAfterLoad(event) {
-    event.preventDefault(); event.stopPropagation();
+    event.preventDefault();
+    event.stopPropagation();
     openFromTrigger(findTrigger(event));
   }
   function onIntentClick(event) {
@@ -142,10 +139,13 @@ function prepareVIPDrawerLoader() {
     openAfterLoad(event);
   }
   function onIntentKeydown(event) {
-    if (realDrawerReady() || (event.key !== 'Enter' && event.key !== ' ') || !findTrigger(event)) return;
+    if (realDrawerReady() || (event.key !== 'Enter' && event.key !== ' ') || !findTrigger(event))
+      return;
     openAfterLoad(event);
   }
-  const loadSafely = () => { loadDrawer().catch(() => {}); };
+  const loadSafely = () => {
+    loadDrawer().catch(() => {});
+  };
   function onPrepareIntent(event) {
     if (findTrigger(event)) loadSafely();
   }
@@ -190,13 +190,21 @@ function prepareVIPDrawerLoader() {
 
   arm();
   if (/^#vip/i.test(location.hash || '')) loadSafely();
-  else if (demand) { if (window.TDBRuntimePageState.vipScrollSeed.lastY > 0) loadSafely(); }
-  else loadSafely();
+  else if (demand) {
+    if (window.TDBRuntimePageState.vipScrollSeed.lastY > 0) loadSafely();
+  } else loadSafely();
 
   window.TDBVIPDrawerLoader = Object.freeze({
-    version: '1.4.1',
+    version: '1.5.0',
     load: loadDrawer,
     open: openFromTrigger,
-    status: () => ({ loaded: realDrawerReady(), loading: Boolean(loadingPromise) && !realDrawerReady(), uiReady: tdbUIIsReady(), demand }),
+    prepareContent,
+    fallback: fallbackToForm,
+    status: () => ({
+      loaded: realDrawerReady(),
+      loading: Boolean(loadingPromise) && !realDrawerReady(),
+      uiReady: tdbUIIsReady(),
+      demand,
+    }),
   });
 }

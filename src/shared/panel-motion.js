@@ -16,7 +16,12 @@
         node.style.setProperty(prefix + '-ease', 'cubic-bezier(0.165,0.84,0.44,1)');
       }
       prepare();
-      return Object.freeze({prepare, get cleanup() { return milliseconds + 50; }});
+      return Object.freeze({
+        prepare,
+        get cleanup() {
+          return milliseconds + 50;
+        },
+      });
     },
   });
 })();

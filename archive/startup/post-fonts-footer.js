@@ -1,6 +1,6 @@
 /* Startup trial: defer these requests until DOM and fonts settle.
  * The inline tag retains the registry attributes for parsing-time page pins. */
-(function() {
+(function () {
   'use strict';
   var config = document.currentScript;
   var started = false;
@@ -8,16 +8,18 @@
     if (started) return;
     started = true;
     [
-      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@240d05d5c038afba48151ae44d48f80ed9ece940/dist/tdb-consent.js",
-      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@1704f013937b3ebb406a6fed6f2338788fe4ded1/dist/tdb-navbar-loader.js"
-    ].forEach(function(url, index) {
+      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@240d05d5c038afba48151ae44d48f80ed9ece940/dist/tdb-consent.js',
+      'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@1704f013937b3ebb406a6fed6f2338788fe4ded1/dist/tdb-navbar-loader.js',
+    ].forEach(function (url, index) {
       var script = document.createElement('script');
       script.src = url;
       script.async = false;
       if (index === 0) {
-        Array.prototype.forEach.call(config.attributes, function(attribute) {
-          if (attribute.name.indexOf('data-') === 0 &&
-              attribute.name !== 'data-tdb-post-fonts-loader') {
+        Array.prototype.forEach.call(config.attributes, function (attribute) {
+          if (
+            attribute.name.indexOf('data-') === 0 &&
+            attribute.name !== 'data-tdb-post-fonts-loader'
+          ) {
             script.setAttribute(attribute.name, attribute.value);
           }
         });
@@ -28,7 +30,9 @@
     });
   }
   function afterFonts() {
-    function nextTask() { setTimeout(appendScripts, 50); }
+    function nextTask() {
+      setTimeout(appendScripts, 50);
+    }
     if (typeof requestAnimationFrame === 'function') requestAnimationFrame(nextTask);
     else nextTask();
   }
@@ -37,9 +41,8 @@
     (fontsReady || Promise.resolve()).then(afterFonts, afterFonts);
   }
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadRuntime, {once: true});
+    document.addEventListener('DOMContentLoaded', loadRuntime, { once: true });
   } else {
     loadRuntime();
   }
 })();
-

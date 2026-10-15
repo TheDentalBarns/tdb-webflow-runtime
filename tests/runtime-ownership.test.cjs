@@ -46,7 +46,7 @@ for(const choice of ['accept','reject'])test('full bundle: '+choice+' releases f
   await f.advance(1);await f.runtime();assert(f.w.TDBSliderLoader);assert(f.w.TDBRuntimePageState);assert(!f.w.TDBParallax);assert(!f.request('tdb-parallax.js'));
   assert(f.ios.some(o=>o.options.rootMargin==='800px 0px'));assert(f.ios.some(o=>o.options.rootMargin==='600px 0px'));
   assert.equal(f.d.querySelectorAll('script[data-tdb-attribution-js]').length,1);
-  assert.match(f.d.querySelector('script[data-tdb-attribution-js]').src,/ed91771d/);assert.equal(f.errors.length,0);
+  assert.match(f.d.querySelector('script[data-tdb-attribution-js]').src,new RegExp('tdb-webflow-runtime@'+'b'.repeat(40)+'/dist/tdb-attribution.min.js'));assert.equal(f.errors.length,0);
  }finally{f.close()}
 });
 test('parallax owns Back restoration and prepares it before observing',()=>{

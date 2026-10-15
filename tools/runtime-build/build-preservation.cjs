@@ -1,54 +1,164 @@
-/* Reproducible, independent builds for the homepage preservation releases.
- * Only named targets are built; unrelated deployed assets retain their pins. */
+/* Deterministic classic-script/ES-module builds. Never changes Webflow or pins. */
 const fs = require('node:fs');
 const path = require('node:path');
-const {minify} = require('terser');
+const crypto = require('node:crypto');
+const zlib = require('node:zlib');
+const { minify } = require('terser');
 const root = path.resolve(__dirname, '../..');
 const targets = require('./targets.cjs');
-(async () => {
-  const requested = process.argv.slice(2);
-  if (!requested.length) throw new Error('Specify one or more output paths');
-  for (const output of requested) {
-    if (!targets[output]) throw new Error('Unknown target: ' + output);
-    const sources = targets[output].map(file => {
-      let source = fs.readFileSync(path.join(root, file), 'utf8');
-      const embeddedStyles = {
-        '__TDB_NATIVE_FOUNDATION_CSS__': ['src/styles/tdb-native-foundation.css', 'src/styles/tdb-phone-landscape.css'],
-        '__TDB_PARTNER_CONTROLS_CSS__': ['src/styles/tdb-partner-controls.css'],
-        '__TDB_VIP_RUNTIME_CSS__': ['src/styles/tdb-vip-runtime-states.css'],
-      };
-      for (const [marker, files] of Object.entries(embeddedStyles)) {
-        if (!source.includes(marker)) continue;
-        const css = files.map(file => fs.readFileSync(path.join(root, file), 'utf8')).join('\n')
-          .replace(/\/\*[\s\S]*?\*\//g, '').trim();
-        source = source.replace(marker, JSON.stringify(css));
-      }
-      if (file === 'src/five-senses/five-senses.js') {
-        source = source.replace(/^import \{SceneRenderer\} from '\.\/scene-renderer\.js';\n/, '');
-      }
-      if (file === 'src/navbar/navbar-enhancement.js') {
-        for (const [marker, cssFile] of [['__TDB_NAV_STATE_CSS__','tdb-navbar-state.css'],
-          ['__TDB_NAV_DESKTOP_CSS__','tdb-navbar-desktop.css']]) {
-          const css = fs.readFileSync(path.join(root, 'src/styles', cssFile), 'utf8')
-            .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
-          source = source.replace(marker, JSON.stringify(css));
-        }
-      }
-      return [file, source];
-    });
-    const input = output.includes('consent-startup') ? Object.fromEntries(sources) : sources.map(([,s])=>s).join('\n');
-    if (output.startsWith('dist/tdb-five-senses')) {
-      fs.writeFileSync(path.join(root, output), input + (output === 'dist/tdb-five-senses.js' ? '\n' : ''));
-      continue;
-    }
-    if (output === 'dist/tdb-quote-carousel.js') {
-      fs.writeFileSync(path.join(root, output), input); continue;
-    }
-    const result = await minify(input, {compress:true, mangle:true, format:{comments:false},
-      ...(output.includes('navbar') ? {ecma:2020} : {})});
-    if (!result.code) throw new Error('Empty build: ' + output);
-    fs.writeFileSync(path.join(root, output), result.code + '\n');
-    console.log(output + ': ' + Buffer.byteLength(result.code + '\n') + ' bytes');
+// These compatibility entries share private source helpers, not window globals
+// or an additional dependency request. Their existing window APIs stay public.
+const isolated = new Set([
+  'dist/tdb-home-desktop-instagram.js',
+  'dist/tdb-instagram-feed.js',
+  'dist/tdb-first-impressions.js',
+  'dist/tdb-legacy-review-drawer.js',
+]);
+const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
+const hash = (text) => crypto.createHash('sha256').update(text).digest('hex');
+const sizes = (text) => ({
+  raw: Buffer.byteLength(text),
+  gzip: zlib.gzipSync(text, { level: 9 }).length,
+  brotli: zlib.brotliCompressSync(text, {
+    params: {
+      [zlib.constants.BROTLI_PARAM_QUALITY]: 11,
+    },
+  }).length,
+});
+function source(file) {
+  let code = read(file);
+  if (file === 'src/banner/announcement.js')
+    code = code.replace(
+      '__TDB_ANNOUNCEMENT_TEMPLATE__',
+      JSON.stringify(read('src/banner/template.html').trim()),
+    );
+  if (file === 'src/vip-drawer/content.js')
+    code = code.replace(
+      '__TDB_VIP_CONTENT__',
+      JSON.stringify(read('src/vip-drawer/content.html').trim()),
+    );
+  if (file === 'src/reviews/native/cards.js')
+    code = code.replace(
+      '__TDB_REVIEW_CARDS_TEMPLATE__',
+      JSON.stringify(read('src/reviews/native/cards-template.html').trim()),
+    );
+  if (file === 'src/smile-gallery/feed.js')
+    code = code.replace(
+      '__TDB_SMILE_TEMPLATE__',
+      JSON.stringify(read('src/smile-gallery/template.html').trim()),
+    );
+  if (file === 'src/instagram/deferred.js')
+    code = code.replace(
+      '__TDB_IG_TEMPLATE__',
+      JSON.stringify(read('src/instagram/template.html').trim()),
+    );
+  const styles = {
+    __TDB_NATIVE_FOUNDATION_CSS__: ['tdb-native-foundation.css', 'tdb-phone-landscape.css'],
+    __TDB_PARTNER_CONTROLS_CSS__: ['tdb-partner-controls.css'],
+    __TDB_VIP_RUNTIME_CSS__: ['tdb-vip-runtime-states.css'],
+    __TDB_NAV_STATE_CSS__: ['tdb-navbar-state.css'],
+    __TDB_NAV_DESKTOP_CSS__: ['tdb-navbar-desktop.css'],
+  };
+  for (const [marker, files] of Object.entries(styles)) {
+    if (!code.includes(marker)) continue;
+    const css = files
+      .map((name) => read('src/styles/' + name))
+      .join('\n')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .trim();
+    code = code.replaceAll(marker, JSON.stringify(css));
   }
-})().catch(error => {console.error(error);process.exitCode=1;});
-
+  if (file === 'src/five-senses/five-senses.js') {
+    code = code.replace(
+      /^import\s*\{\s*SceneRenderer\s*\}\s*from\s*['"]\.\/scene-renderer\.js['"];?\s*/m,
+      '',
+    );
+  }
+  if (/__TDB_[A-Z_]+__/.test(code)) throw Error('Unresolved build marker: ' + file);
+  return code;
+}
+async function build(output, { readable = false } = {}) {
+  if (!targets[output]) throw Error('Unknown target: ' + output);
+  const assembled = targets[output].map(source).join('\n;\n');
+  const input = isolated.has(output)
+    ? "(() => { 'use strict';\n" + assembled + '\n})();'
+    : assembled;
+  if (readable)
+    return require('prettier').format(input, {
+      parser: 'babel',
+      singleQuote: true,
+      printWidth: 100,
+    });
+  const result = await minify(input, {
+    module: output === 'dist/tdb-five-senses.js',
+    compress: { passes: 3, unsafe: false },
+    // Window exports, DOM attributes and cross-file property names are contracts.
+    mangle: { properties: false },
+    format: { comments: /^!|@license|@preserve/ },
+    ...(output.includes('navbar') ? { ecma: 2020 } : {}),
+  });
+  if (!result.code) throw Error('Empty build: ' + output);
+  return result.code + '\n';
+}
+async function main() {
+  const args = process.argv.slice(2),
+    check = args.includes('--check');
+  const readable = args.includes('--readable'),
+    all = args.includes('--all');
+  const requested = args.filter((arg) => !arg.startsWith('--'));
+  if (args.some((arg) => arg.startsWith('--') && !['--check', '--all', '--readable'].includes(arg)))
+    throw Error('Unknown build option');
+  if (all && requested.length) throw Error('Use --all or named targets');
+  const outputs = all ? Object.keys(targets).sort() : requested;
+  if (!outputs.length) throw Error('Specify --all or one or more output paths');
+  const report = {};
+  for (const output of outputs) {
+    const code = await build(output, { readable });
+    const destination = readable ? 'readable/' + path.basename(output) : output;
+    if (check) {
+      if (!fs.existsSync(path.join(root, destination)) || read(destination) !== code)
+        throw Error(destination + ' is stale; run npm run build');
+    } else {
+      fs.mkdirSync(path.dirname(path.join(root, destination)), { recursive: true });
+      fs.writeFileSync(path.join(root, destination), code);
+    }
+    report[output] = { sources: targets[output], sha256: hash(code), ...sizes(code) };
+    if (!readable) {
+      const prettyPath = 'readable/' + path.basename(output);
+      const pretty = await build(output, { readable: true });
+      if (check) {
+        if (!fs.existsSync(path.join(root, prettyPath)) || read(prettyPath) !== pretty)
+          throw Error(prettyPath + ' is stale; run npm run build');
+      } else {
+        fs.mkdirSync(path.join(root, 'readable'), { recursive: true });
+        fs.writeFileSync(path.join(root, prettyPath), pretty);
+      }
+    }
+    console.log(
+      `${check ? 'Checked' : 'Built'} ${destination}: ${report[output].raw} B (${report[output].gzip} B gzip)`,
+    );
+  }
+  if (all && !readable) {
+    const destination = 'config/build-artifacts.json';
+    const code =
+      JSON.stringify(
+        {
+          tool: 'terser@5.44.0',
+          compression: '3 safe passes; no property mangling',
+          note: 'Local gzip/Brotli estimates, not measured CDN transfer sizes or initial-page totals.',
+          outputs: report,
+        },
+        null,
+        2,
+      ) + '\n';
+    if (check) {
+      if (read(destination) !== code) throw Error(destination + ' is stale');
+    } else fs.writeFileSync(path.join(root, destination), code);
+  }
+}
+if (require.main === module)
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+module.exports = { build, targets };

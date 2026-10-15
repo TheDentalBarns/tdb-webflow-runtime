@@ -1,81 +1,17 @@
-name: Build UI artifacts
-
+# CSS ownership/pins are independent of this JavaScript consolidation.
+# Validate committed artifacts without regenerating or committing CSS on main.
+name: Verify existing UI artifacts
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'tools/build-ui.py'
-      - 'src/styles/tdb-chrome-motion.css'
-      - 'src/styles/tdb-control-effects.css'
-      - 'src/styles/tdb-control-keyframes.css'
-      - 'src/styles/tdb-controls-base.css'
-      - 'src/styles/tdb-phone-landscape.css'
-      - 'src/styles/tdb-consent-states.css'
-      - 'tools/runtime-build/**'
-      - 'src/styles/tdb-vimeo-ui.css'
-      - 'src/styles/tdb-announcement-states.css'
-      - 'src/styles/tdb-carousel-arrow-states.css'
-      - 'src/styles/tdb-content-formatting.css'
-      - 'src/styles/tdb-shared-control-states.css'
-      - 'src/shared/reveal-motion.css'
-      - 'src/styles/tdb-runtime-ui.css'
-      - 'src/styles/tdb-deferred-ui.css'
-      - 'src/styles/tdb-slider-ui.css'
-      - 'src/styles/tdb-vip-drawer-shared.css'
-      - 'src/styles/tdb-vip-drawer-desktop.css'
-      - '.github/workflows/build-ui.yml'
   workflow_dispatch:
-
 permissions:
-  contents: write
-
+  contents: read
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-        with:
-          ref: main
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.13'
-
-      - name: Set up Node
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '24'
-
-      - name: Install pinned build tools
-        run: npm ci --prefix tools/runtime-build --ignore-scripts --no-audit --no-fund
-
-      - name: Build UI artifacts
-        run: python tools/build-ui.py
-
-      - name: Validate generated artifacts
-        run: |
-          test -s src/styles/tdb-ui.css
-          test -s dist/tdb-ui.css
-          test -s dist/tdb-vip.css
-          test -s dist/tdb-slider-ui.css
-          test -s dist/tdb-vimeo.css
-          test -s dist/tdb-announcement.css
-          node tools/runtime-build/verify-ui.cjs
-
-      - name: Commit generated artifacts
-        run: |
-          if [ -z "$(git status --porcelain -- src/styles/tdb-ui.css src/styles/tdb-ui-critical.css dist/tdb-ui-critical.css dist/tdb-ui.css dist/tdb-vip.css dist/tdb-slider-ui.css dist/tdb-vimeo.css dist/tdb-announcement.css)" ]; then
-            echo 'Generated UI files are already current.'
-            exit 0
-          fi
-
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/styles/tdb-ui.css src/styles/tdb-ui-critical.css dist/tdb-ui-critical.css dist/tdb-ui.css dist/tdb-vip.css dist/tdb-slider-ui.css dist/tdb-vimeo.css dist/tdb-announcement.css
-          git commit -m 'Build UI artifacts'
-          git push origin HEAD:main
-
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: node tools/runtime-build/verify-ui.cjs

@@ -27,7 +27,8 @@
         mobileQuery.matches &&
         navbar &&
         (navbar.classList.contains('z-hold') ||
-          (navbar.classList.contains('is-trans') && !(navbar.style.transform || '').includes('-100%')));
+          (navbar.classList.contains('is-trans') &&
+            !(navbar.style.transform || '').includes('-100%')));
 
       root.classList.toggle(
         'tdb-timer-hidden',

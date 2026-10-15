@@ -6,10 +6,10 @@
 (() => {
   'use strict';
   function init() {
-    document.querySelectorAll('[data-tdb-awards-native]').forEach(root => {
+    document.querySelectorAll('[data-tdb-awards-native]').forEach((root) => {
       if (root.dataset.tdbAwardsReady) return;
       root.dataset.tdbAwardsReady = '1.0.0';
-      root.querySelectorAll('.tdb-home-awards-question').forEach(question => {
+      root.querySelectorAll('.tdb-home-awards-question').forEach((question) => {
         const item = question.parentElement;
         const answer = item.querySelector('.tdb-home-awards-answer');
         const icon = question.querySelector('.tdb-home-awards-icon');
@@ -30,12 +30,13 @@
         // Reconcile accessibility to the native first frame without changing it.
         set(answer.classList.contains('is-open'));
         question.addEventListener('click', toggle);
-        question.addEventListener('keydown', event => {
+        question.addEventListener('keydown', (event) => {
           if (!event.repeat && (event.key === 'Enter' || event.key === ' ')) toggle(event);
         });
       });
     });
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
 })();

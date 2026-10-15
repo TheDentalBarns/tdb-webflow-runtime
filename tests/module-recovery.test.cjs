@@ -15,26 +15,25 @@ function setup(pins={}){
  w.eval(source);
  return {w,api:w.TDBModules,doc:w.document,close:()=>w.close(),finish:node=>node.dispatchEvent(new w.Event('load')),fail:node=>node.dispatchEvent(new w.Event('error'))};
 }
-test('concurrent consumers share transport and validate every required export',async()=>{
+test('missing exports reject all waiters without re-executing a partially loaded script',async()=>{
  const f=setup();try{
   const a=f.api.load('/feature.js',{ready:()=>!!f.w.One});
   const b=f.api.load('/feature.js',{ready:()=>!!f.w.Two});
   assert.equal(a,b);assert.equal(f.doc.scripts.length,1);
   f.w.One={};f.finish(f.doc.scripts[0]);
-  await assert.rejects(a,/expected export/);await assert.rejects(b,/expected export/);
-  assert.equal(f.doc.scripts.length,0);
-  const retry=f.api.load('/feature.js',{ready:()=>!!f.w.Two});
-  f.w.Two={};f.finish(f.doc.scripts[0]);await retry;
-  assert.equal(f.doc.scripts.length,1);
+  await assert.rejects(a,{code:'TDB_EXPORT'});await assert.rejects(b,{code:'TDB_EXPORT'});
+  await assert.rejects(f.api.load('/feature.js',{ready:()=>!!f.w.Two}),{code:'TDB_EXPORT'});
+  assert.equal(f.doc.scripts.length,1,'an executed script is retained, never reinserted');
+  f.w.Two={};await f.api.load('/feature.js',{ready:()=>!!f.w.Two});
  }finally{f.close();}
 });
-test('known loaded tags cannot falsely satisfy a missing export; retry replaces only owned tags',async()=>{
+test('a completed tag cannot falsely satisfy a missing export or trigger re-execution',async()=>{
  const f=setup();try{
   const first=f.api.load('/feature.js');f.finish(f.doc.scripts[0]);await first;
-  await assert.rejects(f.api.load('/feature.js',{ready:()=>!!f.w.Feature}),/expected export/);
-  assert.equal(f.doc.scripts.length,0);
-  const retry=f.api.load('/feature.js',{ready:()=>!!f.w.Feature});f.w.Feature={};f.finish(f.doc.scripts[0]);await retry;
-  await f.api.load('/feature.js',{ready:()=>!!f.w.Feature});assert.equal(f.doc.scripts.length,1);
+  await assert.rejects(f.api.load('/feature.js',{ready:()=>!!f.w.Feature}),{code:'TDB_EXPORT'});
+  assert.equal(f.doc.scripts.length,1);
+  f.w.Feature={};await f.api.load('/feature.js',{ready:()=>!!f.w.Feature});
+  assert.equal(f.doc.scripts.length,1);
  }finally{f.close();}
 });
 test('existing in-flight tags are adopted, errors allow retry, and a late old load does not settle the retry',async()=>{
@@ -47,11 +46,32 @@ test('existing in-flight tags are adopted, errors allow retry, and a late old lo
   f.finish(f.doc.scripts[1]);await retry;assert.equal(resolved,true);
  }finally{f.close();}
 });
-test('timeouts clear flights and listeners before a subsequent successful attempt',async()=>{
+test('timeouts retain one execution, then adopt a late successful export',async()=>{
+ const f=setup();try{
+  const first=f.api.load('/slow.js',{timeout:10,ready:()=>!!f.w.Slow});const old=f.doc.scripts[0];
+  await assert.rejects(first,{code:'TDB_TIMEOUT'});assert.equal(old.isConnected,true);
+  await assert.rejects(f.api.load('/slow.js'),{code:'TDB_TIMEOUT'});
+  assert.equal(f.doc.scripts.length,1);
+  f.w.Slow={};f.finish(old);await f.api.load('/slow.js');
+  assert.equal(f.doc.scripts.length,1,'a late load is adopted rather than executed twice');
+ }finally{f.close();}
+});
+test('an explicit late network failure releases a timed-out flight for retry',async()=>{
  const f=setup();try{
   const first=f.api.load('/slow.js',{timeout:10});const old=f.doc.scripts[0];
-  await assert.rejects(first,/timed out/);assert.equal(old.isConnected,false);
-  const retry=f.api.load('/slow.js');f.finish(old);assert.equal(f.doc.scripts.length,1);f.finish(f.doc.scripts[0]);await retry;
+  await assert.rejects(first,{code:'TDB_TIMEOUT'});f.fail(old);
+  const next=f.api.load('/slow.js');const fresh=f.doc.scripts[0];
+  assert.notEqual(old,fresh);f.finish(fresh);await next;
+ }finally{f.close();}
+});
+test('shared recovery retries an explicit network failure once, never a bad export',async()=>{
+ const f=setup();try{
+  const flight=f.api.loadWithRecovery('/retry.js');f.fail(f.doc.scripts[0]);
+  await new Promise(r=>setTimeout(r,270));assert.equal(f.doc.scripts.length,1);
+  f.finish(f.doc.scripts[0]);await flight;
+  const invalid=f.api.loadWithRecovery('/invalid.js',{ready:()=>false});
+  f.finish(f.doc.scripts[1]);await assert.rejects(invalid,{code:'TDB_EXPORT'});
+  assert.equal(f.doc.scripts.length,2);
  }finally{f.close();}
 });
 test('stylesheet loading is single-flight, validates readiness, and reuses a loaded existing sheet',async()=>{
@@ -71,12 +91,12 @@ test('module tags retain their type and conflicting URLs/types reject without du
   assert.equal(f.doc.scripts.length,1);
  }finally{f.close();}
 });
-test('per-file immutable pins preserve every unrelated cohort and ignore mutable pins',()=>{
+test('one release ignores stale per-file and cohort overrides',()=>{
  const sha='a'.repeat(40),f=setup({'tdb-gallery.js':sha,'tdb-ticker.js':'main'});try{
-  assert.equal(f.api.resolve(base+'old/dist/tdb-gallery.js'),base+sha+'/dist/tdb-gallery.js');
-  assert.equal(f.api.resolve(base+'old/dist/tdb-parallax.js'),base+'carousel/dist/tdb-parallax.js');
-  assert.equal(f.api.resolve(base+'old/dist/tdb-motion.js'),base+'motion/dist/tdb-motion.js');
-  assert.equal(f.api.resolve(base+'old/dist/tdb-ticker.js'),base+'carousel/dist/tdb-ticker.js');
+  assert.equal(f.api.resolve(base+'old/dist/tdb-gallery.js'),base+'registry/dist/tdb-gallery.js');
+  assert.equal(f.api.resolve(base+'old/dist/tdb-parallax.js'),base+'registry/dist/tdb-parallax.js');
+  assert.equal(f.api.resolve(base+'old/dist/tdb-motion.js'),base+'registry/dist/tdb-motion.js');
+  assert.equal(f.api.resolve(base+'old/dist/tdb-ticker.js'),base+'registry/dist/tdb-ticker.js');
   assert.equal(f.api.resolve('https://example.com/tdb-gallery.js'),'https://example.com/tdb-gallery.js');
  }finally{f.close();}
 });

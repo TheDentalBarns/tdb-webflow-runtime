@@ -6,7 +6,7 @@
  * Included once in the deferred UI build. Critical hidden-state guard remains inline in Webflow.
  */
 
-html {
+#tdb-vip-drawer {
   --tdb-vip-tab-duration: 420ms;
   --tdb-vip-tab-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --tdb-vip-drawer-duration: 500ms;
@@ -327,13 +327,21 @@ html.tdb-vip-menu-away .navbar-bg_layer {
   }
 }
 
+/* Apply the complete drawer sheet before revealing its geometry. */
+@property --tdb-vip-ui-ready {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+html { --tdb-vip-ui-ready: 1; }
+
 /* TDB desktop VIP drawer v0.2.0
  * Shared presentation lives in tdb-vip-drawer-shared.css.
  * This file contains desktop-only geometry and form layout differences.
  */
 
 @media (min-width: 768px) {
-  html {
+  #tdb-vip-drawer {
     --tdb-vip-desktop-page-gutter: 3%;
     --tdb-vip-desktop-content-max: 52rem;
   }

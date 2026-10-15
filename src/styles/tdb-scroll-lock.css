@@ -1,9 +1,7 @@
 /* Include in the existing data-tdb-critical-base stylesheet, before any lock.
- * Home's viewport-sticky sketch must not acquire a second body scroll container.
- * Other pages retain their existing root-and-body overflow policy.
+ * Lock the viewport without introducing a competing body scroll container.
  */
-html.tdb-scroll-locked,
-html.tdb-scroll-locked:not([data-wf-page="677cf86df9952f978d94d8a9"]) body {
+html.tdb-scroll-locked {
   overflow: hidden !important;
   overscroll-behavior: none;
 }

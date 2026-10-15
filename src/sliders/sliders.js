@@ -40,10 +40,7 @@
 
   function isInitialised(component) {
     const swiperEl = getSwiperElement(component);
-    return (
-      component?.getAttribute?.(INIT_ATTRIBUTE) === 'true' ||
-      Boolean(swiperEl?.swiper)
-    );
+    return component?.getAttribute?.(INIT_ATTRIBUTE) === 'true' || Boolean(swiperEl?.swiper);
   }
 
   function markInitialised(component, type) {
@@ -94,25 +91,25 @@
       preloadImages: false,
       lazy: {
         loadOnTransitionStart: false,
-        loadPrevNext: false
+        loadPrevNext: false,
       },
       keyboard: { enabled: true },
       navigation: {
         nextEl: component.querySelector('.swiper-btn-next'),
         prevEl: component.querySelector('.swiper-btn-prev'),
-        disabledClass: 'is-disabled'
+        disabledClass: 'is-disabled',
       },
       pagination: {
         el: component.querySelector('.swiper-pagination'),
         bulletActiveClass: 'is-active',
         bulletClass: 'swiper-bullet',
         bulletElement: 'button',
-        clickable: true
+        clickable: true,
       },
       breakpoints: {
         768: { slidesPerView: 1, touchRatio: 1 },
-        0: { slidesPerView: 1, touchRatio: 1.5 }
-      }
+        0: { slidesPerView: 1, touchRatio: 1.5 },
+      },
     });
 
     function updateCount() {
@@ -146,7 +143,7 @@
         ? false
         : {
             delay: 4500,
-            disableOnInteraction: false
+            disableOnInteraction: false,
           },
       grabCursor: true,
       loop: true,
@@ -163,19 +160,19 @@
       navigation: {
         nextEl: component.querySelector('.swiper-btn-next'),
         prevEl: component.querySelector('.swiper-btn-prev'),
-        disabledClass: 'is-disabled'
+        disabledClass: 'is-disabled',
       },
       pagination: {
         el: component.querySelector('.swiper-pagination'),
         bulletActiveClass: 'is-active',
         bulletClass: 'swiper-bullet',
         bulletElement: 'button',
-        clickable: true
+        clickable: true,
       },
       breakpoints: {
         768: { slidesPerView: 1, touchRatio: 1 },
-        0: { slidesPerView: 1, touchRatio: 1.5 }
-      }
+        0: { slidesPerView: 1, touchRatio: 1.5 },
+      },
     });
 
     const FADE_IN_DELAY_NEXT = 100;
@@ -196,13 +193,13 @@
 
     function setVisible(slide, visible) {
       if (!slide) return;
-      getFadeElements(slide).forEach(node => node.classList.toggle('is-visible', visible));
+      getFadeElements(slide).forEach((node) => node.classList.toggle('is-visible', visible));
       if (visible) visibleSlides.add(slide);
       else visibleSlides.delete(slide);
     }
 
     function hideAllVisible() {
-      Array.from(visibleSlides).forEach(slide => setVisible(slide, false));
+      Array.from(visibleSlides).forEach((slide) => setVisible(slide, false));
     }
 
     function cancelShow() {
@@ -227,7 +224,7 @@
       setTimeout(() => component.classList.remove('tdb-entry-pending'), revealDelay);
     }
 
-    swiper.slides.forEach(slide => setVisible(slide, false));
+    swiper.slides.forEach((slide) => setVisible(slide, false));
     setVisible(swiper.slides[swiper.activeIndex], true);
     setMoving(false);
 
@@ -313,7 +310,8 @@
   }
 
   function waitForSwiperAndInit(type, component, tries = 0) {
-    if (!component || !document.documentElement.contains(component) || isInitialised(component)) return;
+    if (!component || !document.documentElement.contains(component) || isInitialised(component))
+      return;
 
     if (typeof window.Swiper === 'function') {
       initByType(type, component);
@@ -342,13 +340,13 @@
 
     const observer = new IntersectionObserver(
       (entries, currentObserver) => {
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
           currentObserver.unobserve(entry.target);
           waitForSwiperAndInit(type, entry.target);
         });
       },
-      { rootMargin: VIEWPORT_MARGIN }
+      { rootMargin: VIEWPORT_MARGIN },
     );
 
     observer.observe(component);
@@ -362,15 +360,19 @@
       if (root.matches(PARALLAX_SELECTOR)) observeComponent(root, 'parallax');
     }
 
-    root.querySelectorAll?.(HIGHLIGHT_SELECTOR).forEach(component => observeComponent(component, 'highlight'));
-    root.querySelectorAll?.(PARALLAX_SELECTOR).forEach(component => observeComponent(component, 'parallax'));
+    root
+      .querySelectorAll?.(HIGHLIGHT_SELECTOR)
+      .forEach((component) => observeComponent(component, 'highlight'));
+    root
+      .querySelectorAll?.(PARALLAX_SELECTOR)
+      .forEach((component) => observeComponent(component, 'parallax'));
   }
 
   function onNavigationClick(event) {
     const button = event.target.closest?.('.swiper-btn-prev,.swiper-btn-next');
     if (!button || !button.closest(PARALLAX_SELECTOR)) return;
     const wrapper = button.closest('.swiper-buttons-wrapper');
-    wrapper?.querySelectorAll('.swiper-btn-prev,.swiper-btn-next').forEach(candidate => {
+    wrapper?.querySelectorAll('.swiper-btn-prev,.swiper-btn-next').forEach((candidate) => {
       candidate.classList.toggle('is-selected', candidate === button);
     });
   }
@@ -379,9 +381,9 @@
     refresh();
     document.addEventListener('click', onNavigationClick);
 
-    const mutationObserver = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
+    const mutationObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
           if (node instanceof Element) refresh(node);
         });
       });
@@ -391,7 +393,7 @@
 
     window.TDBSliders = Object.freeze({
       version: VERSION,
-      refresh: () => refresh()
+      refresh: () => refresh(),
     });
   }
 

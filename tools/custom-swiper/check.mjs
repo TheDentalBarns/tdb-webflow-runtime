@@ -20,9 +20,10 @@ if (!source.includes('CVE-2026-27212 backport')) {
 }
 
 if (!source.includes('window.TDBSwiper')) failures.push('The shared TDB Swiper behaviour is missing.');
-if (!source.includes('function register(name, plugin)') || !source.includes('function watchDuration(')) {
+// Private function names are minified. Exercise the public adapter in tests;
+// matching readable implementation text would reject a valid production build.
+if (!source.includes('register:') || !source.includes('watchDuration'))
   failures.push('The shared plugin controller or duration binding is missing.');
-}
 if (source.includes('/* TDB_SWIPER_PLUGINS */')) failures.push('The plugin sources were not bundled.');
 
 if (size >= 130000) {

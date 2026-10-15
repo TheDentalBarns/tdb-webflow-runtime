@@ -1,0 +1,27 @@
+/* Native component variants own opacity 0; Designer owns the 20px button glass.
+     Fade glass directly so no translucent controls parent blocks its backdrop.
+     Playback wrappers still own play/pause/loading visibility. */
+  @keyframes tdb-chrome-enter {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .navbar10_component > .is-nav-bar-frame {
+    /* Keep the page entrance independent of deferred menu enhancement. */
+    animation: tdb-chrome-enter 200ms ease-out 100ms 1 normal forwards !important;
+  }
+  [data-vimeo-hero-shell] .vimeo-controls-layer :is(
+    .vimeo-player__btn,
+    .vimeo-player__bg,
+    .vimeo-player__loading-svg
+  ) {
+    /* Explicit entrance survives the shared playback animation reset. */
+    animation: tdb-chrome-enter 200ms ease-out 100ms 1 normal forwards !important;
+  }
+
+  /* The poster settles at a real opacity:1 after its entrance.
+     Backwards fill covers only the initial delay; playback then uses the
+     existing Designer transition to opacity:0, without a second animation. */
+  [data-vimeo-hero-shell] [data-vimeo-hero-init]:not([data-vimeo-started="true"]):not([data-placeholder-hidden="true"]) .vimeo-bg__placeholder {
+    opacity: 1;
+    animation: tdb-chrome-enter 200ms ease-out 100ms 1 normal backwards;
+  }

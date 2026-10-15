@@ -1,66 +1,76 @@
-# TDB Webflow Runtime
+# The Dental Barns runtime — 2.0
 
-Production JavaScript and CSS runtime for The Dental Barns Webflow website.
+One repository, one immutable release and one Webflow JavaScript entry. Formatted sources, assembled readable files and minified browser builds are committed together.
 
-## Release policy
+## Install
 
-- `main` contains the current maintained runtime.
-- `release/v1.0.0` preserves the first consolidated production runtime.
-- Webflow loads immutable commit-pinned jsDelivr URLs.
-- Every behavioral change receives a new semantic version and a new commit pin.
-- Experimental branches are not production dependencies.
-- Staging changes are published to the Webflow subdomain first and promoted to custom domains only after sign-off.
-
-## Current production manifest
-
-Production custom domains remain on the last approved production publish. Core pinned assets include:
-
-| Asset | Version | Immutable commit | Purpose |
-|---|---:|---|---|
-| `dist/tdb-ui.css` | `1.0.0` | `ec075e95bfb21fecd083fc1d4f48aecc771d9440` | Deferred global UI styles |
-| `dist/tdb-navbar.min.js` | `1.0.0` | `0c4f2c8abd91eaf491ae41abebcc71c6e8cd0370` | Navbar state and mobile text motion |
-| `dist/tdb-immediate-runtime-batch.min.js` | `0.6.4` | `d9ecd7a36438e6eeffb1a21337475520a9007b1b` | Consent-first and immediate runtime loading |
-| `dist/tdb-footer-runtime.min.js` | `1.0.2` | `f5fda2c134733f1b0c745264fb6d0c69fd396ef7` | Deferred forms, sliders, Lenis, Elfsight timer and supporting UI |
-| `dist/tdb-vip-drawer.js` | `0.4.1` | `28fa8d3043e0d0aea8a531e2a98954c35ccaea10` | Mobile VIP drawer |
-| `dist/tdb-vip-drawer-desktop.js` | `0.1.6` | `ec642d0f97f3737c9f0efbad1c63428ebea29f10` | Desktop VIP drawer |
-
-The immediate runtime loads CookieScript `3.0.0` from its own immutable repository commit.
-
-## Current staging additions
-
-The Webflow subdomain currently tests the consolidated Home/Location parallax slider cleanup:
-
-| Asset | Version | Immutable commit | Purpose |
-|---|---:|---|---|
-| `dist/tdb-sliders.js` | `0.3.0` | `31386d986982aa60eb6c9199b6e6b4c03693897b` | Consolidated parallax slider entry and navigation behavior |
-| `dist/tdb-slider-ui.css` | `1.0.0` | `3ccf519affaca89635efa68fb481464e7c56dd58` | Mobile/desktop parallax slider navigation presentation |
-| `dist/tdb-footer-runtime.min.js` | `1.0.3` | `50cbe79a8f2113af75a6686b6911c6c87292aa3f` | Footer runtime pointing at the consolidated slider build |
-
-See `docs/staging-runtime-cleanup-2026-09-11.md` for rollback instructions and preserved behavior.
-
-## Webflow loading rule
-
-The Webflow site header and footer must include a readable release comment immediately above each externally hosted asset. Example:
+Use the same **40-character Git commit** for the head stylesheet and footer entry. Never use `main`, `latest`, per-file pins or page release overrides.
 
 ```html
-<!-- TDB Navbar v1.0.0 | SHA 0c4f2c8 -->
-<script defer src="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0c4f2c8abd91eaf491ae41abebcc71c6e8cd0370/dist/tdb-navbar.min.js"></script>
+<!-- Head: retain existing critical CSS and nonblocking stylesheet handling. -->
+<link rel="stylesheet" data-tdb-ui-css
+  href="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@COMMIT/dist/tdb-ui.css"
+  media="print" onload="this.media='all';this.dataset.tdbLoaded='true'"
+  onerror="this.dataset.tdbLoadFailed='true'">
+<noscript><link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@COMMIT/dist/tdb-ui.css"></noscript>
+
+<!-- Before </body>: the only first-party JS entry. -->
+<script defer data-tdb-start
+  data-tdb-availability-feed="https://tdb-public-availability.david-070.workers.dev/"
+  src="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@COMMIT/dist/tdb-start.min.js"></script>
 ```
 
-Do not load assets from `main`, a development branch, or an unpinned tag.
+Replace `COMMIT` in all three URLs. Do not install the old consent, navbar, runtime, attribution or post-fonts tags alongside this entry. Remove `data-tdb-asset-pins`, cohort bases, review asset configuration and page override scripts. Retain native Webflow markup, CMS data, forms, fonts and required critical styles.
 
-## Maintained modules
+The agreed validation target is staging Home. Other pages with legacy custom code are not certified and may need migration. The new bootstrap has no Home ID or pathname switch.
 
-- Consent integration
-- CookieScript production loader
-- Navbar runtime
-- Forms runtime
-- Slider and custom Swiper runtime
-- Native logo marquee
-- VIP drawer
-- Deferred UI CSS
-- Footer asset orchestration
+## Startup and ownership
 
-## Rollback
+| Stage | Owner | Gate |
+| --- | --- | --- |
+| Release root, motion policy, dependency registry | `tdb-start.min.js` | One deferred footer entry |
+| Scroll lock, consent, essential navbar | `tdb-foundation.js` | DOM → fonts settle → animation frame → 50 ms; rejected fonts and missing APIs have fallbacks |
+| Shared runtime and lightweight launchers | `tdb-runtime.js` | Existing cookie decision and closed banner; idle turns retained |
+| Carousels, reviews, IG, tooltips, forms, VIP | Feature modules | Existing proximity, visibility, consent and intent gates |
+| USP/review drawers and Five Senses | Controllers, templates, CSS | Demand; required CSS/exports ready before use |
+| Attribution | `tdb-attribution.min.js` | Runtime handoff; its own consent/storage policy |
 
-Rollback is performed by restoring the previous immutable SHA in Webflow and republishing. No Git branch movement is required.
+Every first-party dependency resolves to the entry's release directory. The foundation combines the two former startup downloads. The registry shares one flight per resolved URL/type. An explicit network failure may retry once; a timed-out or already-executed script is never blindly injected again.
+
+Attribution 1.5.2 is maintained here, retaining its 61 submitted fields, deferred field insertion and performance-consent policy. The old attribution repository is historical. Lenis 1.3.19 is vendored with its license. Custom Swiper 8.4.7 retains its existing patch and adapter. Webflow/jQuery, Vimeo and consent-permitted analytics/Brevo remain service SDKs; CMS content, artwork and fonts stay in Webflow.
+
+## Files
+
+| Location | Purpose |
+| --- | --- |
+| `src/` | Maintained, formatted feature sources and shared primitives |
+| `dist/` | Minified browser builds; historical `.js` names are also minified |
+| `readable/` | Complete assembled readable counterpart for each canonical JS build |
+| `config/release.json` | Active assets and separately identified compatibility outputs |
+| `config/build-artifacts.json` | Source mapping, hashes and raw/gzip/Brotli estimates |
+| `tools/runtime-build/targets.cjs` | Ordered build composition |
+| `tools/custom-swiper/`, `vendor/lenis/` | Pinned vendor sources and licenses |
+| `tests/` | Behavioral and release-contract checks |
+| `docs/runtime/` | Audit history, ownership and release instructions |
+| `archive/`, `docs/archive/` | Retired installers and workflows; never install these |
+
+Compatibility files remain for reference and rollback; the new startup does not load them. Old `tdb-consent.min.js` is **policy-only**, while `tdb-consent.js` is the old combined foundation. Legacy IG/review renderers stay outside the active sequence. Some recovered historical sources retain short identifiers; their provenance is recorded.
+
+## Build and verify
+
+Use Node 24 and committed lockfiles:
+
+```sh
+npm ci --ignore-scripts --no-audit --no-fund
+npm run format
+npm run build:all
+npm run verify
+npm run format:check
+```
+
+`npm run build` generates minified **and** readable outputs for all manifest targets. `npm run build:swiper` builds both vendor variants. Commit source, outputs and metadata together; never edit generated JS. Terser uses three safe compression passes and identifier mangling, protecting public properties and DOM hooks. Unsafe transforms/property mangling are disabled to preserve behavior.
+
+Tests cover consent, one-release resolution, duplicate prevention, retry/timeout behavior, first-click capture, form values/validation, attribution parity, scroll restoration, motion and feature lifecycles. External Brevo, Webflow Tram and Webflow form-serializer fixtures are opt-in. Simulated DOM checks do not replace physical iPhone Safari/Chrome testing.
+
+See [release and rollback](docs/runtime/releasing.md). This is a baseline for assessing JavaScript; no FCP/TBT improvement is claimed without comparable measurements.

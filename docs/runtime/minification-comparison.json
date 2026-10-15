@@ -1,0 +1,264 @@
+{
+  "baselineCommit": "9739d86106bac901252d0e9876468ebb82ad9bd3",
+  "note": "Comparable artifacts only, includes aliases and demand-loaded features. Not initial-page bytes. Source recovery and runtime fixes are included. gzip is a local level-9 estimate.",
+  "totals": {
+    "beforeRaw": 641442,
+    "afterRaw": 576614,
+    "beforeGzip": 207879,
+    "afterGzip": 194155
+  },
+  "artifacts": [
+    {
+      "file": "dist/tdb-announcement.js",
+      "beforeRaw": 9337,
+      "afterRaw": 9337,
+      "beforeGzip": 3994,
+      "afterGzip": 3994
+    },
+    {
+      "file": "dist/tdb-availability.js",
+      "beforeRaw": 4296,
+      "afterRaw": 6481,
+      "beforeGzip": 1944,
+      "afterGzip": 2672
+    },
+    {
+      "file": "dist/tdb-consent-startup.min.js",
+      "beforeRaw": 9162,
+      "afterRaw": 9159,
+      "beforeGzip": 3417,
+      "afterGzip": 3419
+    },
+    {
+      "file": "dist/tdb-consent.js",
+      "beforeRaw": 20950,
+      "afterRaw": 20947,
+      "beforeGzip": 7238,
+      "afterGzip": 7239
+    },
+    {
+      "file": "dist/tdb-consent.min.js",
+      "beforeRaw": 5000,
+      "afterRaw": 7263,
+      "beforeGzip": 1974,
+      "afterGzip": 2790
+    },
+    {
+      "file": "dist/tdb-drawer.js",
+      "beforeRaw": 11355,
+      "afterRaw": 10953,
+      "beforeGzip": 4270,
+      "afterGzip": 4114
+    },
+    {
+      "file": "dist/tdb-five-senses-loader.js",
+      "beforeRaw": 24900,
+      "afterRaw": 17802,
+      "beforeGzip": 7671,
+      "afterGzip": 5966
+    },
+    {
+      "file": "dist/tdb-five-senses.js",
+      "beforeRaw": 78065,
+      "afterRaw": 56185,
+      "beforeGzip": 25064,
+      "afterGzip": 20147
+    },
+    {
+      "file": "dist/tdb-forms.min.js",
+      "beforeRaw": 2379,
+      "afterRaw": 2378,
+      "beforeGzip": 1085,
+      "afterGzip": 1088
+    },
+    {
+      "file": "dist/tdb-gallery.js",
+      "beforeRaw": 16456,
+      "afterRaw": 16456,
+      "beforeGzip": 5762,
+      "afterGzip": 5762
+    },
+    {
+      "file": "dist/tdb-instagram-deferred.js",
+      "beforeRaw": 3687,
+      "afterRaw": 3687,
+      "beforeGzip": 1533,
+      "afterGzip": 1533
+    },
+    {
+      "file": "dist/tdb-instagram-native.min.js",
+      "beforeRaw": 13832,
+      "afterRaw": 13817,
+      "beforeGzip": 5126,
+      "afterGzip": 5122
+    },
+    {
+      "file": "dist/tdb-logo-marquee.js",
+      "beforeRaw": 25890,
+      "afterRaw": 25877,
+      "beforeGzip": 8272,
+      "afterGzip": 8274
+    },
+    {
+      "file": "dist/tdb-logo-marquee.min.js",
+      "beforeRaw": 25890,
+      "afterRaw": 25877,
+      "beforeGzip": 8272,
+      "afterGzip": 8274
+    },
+    {
+      "file": "dist/tdb-modules.js",
+      "beforeRaw": 4527,
+      "afterRaw": 4527,
+      "beforeGzip": 1912,
+      "afterGzip": 1912
+    },
+    {
+      "file": "dist/tdb-motion.js",
+      "beforeRaw": 37844,
+      "afterRaw": 18313,
+      "beforeGzip": 10412,
+      "afterGzip": 6602
+    },
+    {
+      "file": "dist/tdb-navbar-loader.js",
+      "beforeRaw": 7382,
+      "afterRaw": 7382,
+      "beforeGzip": 2549,
+      "afterGzip": 2549
+    },
+    {
+      "file": "dist/tdb-navbar.min.js",
+      "beforeRaw": 22614,
+      "afterRaw": 22726,
+      "beforeGzip": 6098,
+      "afterGzip": 6109
+    },
+    {
+      "file": "dist/tdb-parallax.js",
+      "beforeRaw": 25967,
+      "afterRaw": 25967,
+      "beforeGzip": 8035,
+      "afterGzip": 8035
+    },
+    {
+      "file": "dist/tdb-quote-carousel.js",
+      "beforeRaw": 12939,
+      "afterRaw": 7351,
+      "beforeGzip": 3992,
+      "afterGzip": 2836
+    },
+    {
+      "file": "dist/tdb-quote-carousel.min.js",
+      "beforeRaw": 7351,
+      "afterRaw": 7351,
+      "beforeGzip": 2836,
+      "afterGzip": 2836
+    },
+    {
+      "file": "dist/tdb-rendered-progress.js",
+      "beforeRaw": 830,
+      "afterRaw": 830,
+      "beforeGzip": 507,
+      "afterGzip": 507
+    },
+    {
+      "file": "dist/tdb-review-cards.js",
+      "beforeRaw": 9695,
+      "afterRaw": 9695,
+      "beforeGzip": 3902,
+      "afterGzip": 3902
+    },
+    {
+      "file": "dist/tdb-review-cms.js",
+      "beforeRaw": 18901,
+      "afterRaw": 12636,
+      "beforeGzip": 6132,
+      "afterGzip": 4711
+    },
+    {
+      "file": "dist/tdb-review-quote-adapter.js",
+      "beforeRaw": 2697,
+      "afterRaw": 1601,
+      "beforeGzip": 1132,
+      "afterGzip": 745
+    },
+    {
+      "file": "dist/tdb-review-quote-adapter.min.js",
+      "beforeRaw": 1785,
+      "afterRaw": 1601,
+      "beforeGzip": 829,
+      "afterGzip": 745
+    },
+    {
+      "file": "dist/tdb-reviews-loader.js",
+      "beforeRaw": 9234,
+      "afterRaw": 9234,
+      "beforeGzip": 3319,
+      "afterGzip": 3319
+    },
+    {
+      "file": "dist/tdb-reviews.js",
+      "beforeRaw": 19190,
+      "afterRaw": 19190,
+      "beforeGzip": 6921,
+      "afterGzip": 6921
+    },
+    {
+      "file": "dist/tdb-runtime.js",
+      "beforeRaw": 53925,
+      "afterRaw": 54121,
+      "beforeGzip": 14871,
+      "afterGzip": 14965
+    },
+    {
+      "file": "dist/tdb-swiper-8.4.7.min.js",
+      "beforeRaw": 104057,
+      "afterRaw": 97094,
+      "beforeGzip": 31084,
+      "afterGzip": 29590
+    },
+    {
+      "file": "dist/tdb-ticker.js",
+      "beforeRaw": 1871,
+      "afterRaw": 1871,
+      "beforeGzip": 940,
+      "afterGzip": 940
+    },
+    {
+      "file": "dist/tdb-usp-drawer.js",
+      "beforeRaw": 8184,
+      "afterRaw": 8184,
+      "beforeGzip": 3098,
+      "afterGzip": 3098
+    },
+    {
+      "file": "dist/tdb-vimeo-loader.js",
+      "beforeRaw": 2658,
+      "afterRaw": 2429,
+      "beforeGzip": 1237,
+      "afterGzip": 1119
+    },
+    {
+      "file": "dist/tdb-vimeo.js",
+      "beforeRaw": 19699,
+      "afterRaw": 19403,
+      "beforeGzip": 5546,
+      "afterGzip": 5418
+    },
+    {
+      "file": "dist/tdb-vip-drawer.js",
+      "beforeRaw": 8812,
+      "afterRaw": 8812,
+      "beforeGzip": 3211,
+      "afterGzip": 3211
+    },
+    {
+      "file": "dist/tdb-vip-form.js",
+      "beforeRaw": 10081,
+      "afterRaw": 10077,
+      "beforeGzip": 3694,
+      "afterGzip": 3691
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-15",
+  "baseline": "4d7f0abd2196e1f40831e432cf530d252366798b",
+  "tests": {
+    "total": 327,
+    "passed": 325,
+    "failed": 0,
+    "skipped": [
+      "Brevo SDK fixture (TDB_BREVO_SDK)",
+      "Webflow Tram fixture (TDB_TRAM_SOURCE)"
+    ]
+  },
+  "legacySources": {
+    "beforeLines": 4979,
+    "afterLines": 4335
+  },
+  "instagramParity": {
+    "baseline": "4d7f0abd2196e1f40831e432cf530d252366798b",
+    "cases": [
+      {
+        "file": "dist/tdb-instagram-feed.js",
+        "width": 390,
+        "comparison": "initial + next + reverse markup and animation keyframes/timing identical",
+        "sha256": "5e0514ad57d733a8854f08652c734b337bcf0fc3c6af9a0653c675738e369ec2"
+      },
+      {
+        "file": "dist/tdb-instagram-feed.js",
+        "width": 1440,
+        "comparison": "initial + next + reverse markup and animation keyframes/timing identical",
+        "sha256": "5e0514ad57d733a8854f08652c734b337bcf0fc3c6af9a0653c675738e369ec2"
+      },
+      {
+        "file": "dist/tdb-home-desktop-instagram.js",
+        "width": 390,
+        "comparison": "initial + next + reverse markup and animation keyframes/timing identical",
+        "sha256": "f79c646d096ef6557f98fac11033cffdbcba96fc84ddcdb305f82a7b81278f95"
+      },
+      {
+        "file": "dist/tdb-home-desktop-instagram.js",
+        "width": 1440,
+        "comparison": "initial + next + reverse markup and animation keyframes/timing identical",
+        "sha256": "dc4d35abfd85632960f11e84cb22444791ed93b78fadc6e738d5bb6a91873619"
+      }
+    ]
+  },
+  "notPerformed": [
+    "Webflow edits/publish",
+    "Real Safari/Chrome visual and interaction checks",
+    "FCP/LCP/TBT benchmark"
+  ],
+  "build": {
+    "manifestTargets": 57,
+    "deterministicCheck": "passed",
+    "formattedSourceCheck": "passed",
+    "readableBundles": "passed",
+    "vendorSwiper": "unchanged"
+  }
+}

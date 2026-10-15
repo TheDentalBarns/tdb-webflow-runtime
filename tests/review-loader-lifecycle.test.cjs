@@ -16,7 +16,7 @@ function setup(html='<section data-tdb-review-introduction><button data-tdb-revi
   w.TDBReviewCMS={load:async()=>{dataLoads++;if(options.dataGate)await options.dataGate;return data;},resolveIdentity:()=>''};
   w.TDBMotion={ddText:()=>({destroy(){}})};
   w.TDBNativeTicker={mount:()=>({update(){},settle(){},destroy(){}})};
-  w.TDBReviewCards={mount(){}};
+  w.TDBReviewCards={mount(){},async create(holder,{signal}){if(options.artworkGate)await options.artworkGate;if(signal.aborted)throw new w.DOMException('Cancelled','AbortError');const root=w.document.createElement('div');root.setAttribute('data-tdb-review-cards','');holder.append(root);return root;}};
   w.TDBReviewQuotes={mount(){}};
   w.TDBQuoteCarousel={mount(){}};
   w.TDBRenderedProgress={observe(){}};
@@ -71,10 +71,10 @@ test('concurrent preparations share CMS data and mount drawer template once',asy
  await Promise.all([e.w.TDBReviewLoader.prepare(),e.w.TDBReviewLoader.prepare()]);
  assert.equal(e.stats().dataLoads,1);assert.equal(e.stats().templateMounts,1);e.close();
 });
-test('explicit asset configuration preserves component and lazy drawer release roots',async()=>{
- const e=setup('<script type="application/json" data-tdb-review-config>{"base":"https://cdn.example/components/","lazyBase":"https://cdn.example/drawer/"}</script><div data-tdb-review-lazy></div>');e.run();
- await e.w.TDBReviewLoader.prepare();assert.ok(e.stats().loads.includes('https://cdn.example/components/tdb-motion.js'));
- assert.ok(e.stats().loads.includes('https://cdn.example/drawer/tdb-review-drawer-template.js'));e.close();
+test('obsolete page overrides cannot split the release',async()=>{
+ const e=setup('<script type="application/json" data-tdb-review-config>{"base":"https://cdn.example/components/","lazyBase":"https://cdn.example/drawer/"}</script><div data-tdb-review-lazy></div>');e.w.TDBRelease={base:'https://cdn.example/dist/'};e.run();
+ await e.w.TDBReviewLoader.prepare();assert.ok(e.stats().loads.includes('https://cdn.example/dist/tdb-motion.js'));
+ assert.ok(e.stats().loads.includes('https://cdn.example/dist/tdb-review-drawer-template.js'));e.close();
 });
 test('refresh does not overwrite mounted component accessibility state',async()=>{
  const e=setup();e.run();const root=e.w.document.querySelector('section');e.near(root);await tick();
@@ -134,4 +134,29 @@ test('runtime starter teardown during download prevents a late opening',async()=
  e.w.TDBModules.load=()=>new Promise(r=>resolve=r);e.w.eval(starter+';prepareReviewFeatureLoader()');e.w.document.querySelector('button').click();
  e.w.TDBReviewFeatureLoader.destroy();e.w.TDBReviewLoader={open(){opens++;},destroy(){destroys++;}};resolve();await tick();
  assert.equal(opens,0);assert.equal(destroys,1);e.w.TDBReviewLoader=undefined;e.close();
+});
+
+test('combined CMS avoids an adapter request; an older pinned CMS retains its compatibility bridge',async()=>{
+ for(const combined of [true,false]){
+  let e;
+  e=setup('<section data-tdb-review-quotes></section>',{loadGate:async url=>{
+   if((combined && String(url).endsWith('/tdb-review-cms.js')) || String(url).endsWith('/tdb-review-quote-adapter.min.js')) e.w.TDBReviewQuotes={mount(){}};
+  }});
+  try{
+   delete e.w.TDBReviewQuotes;e.run();
+   await e.w.TDBReviewLoader.prepare({kind:'quotes',drawer:false});
+   assert.equal(e.stats().loads.filter(url=>url.endsWith('/tdb-review-quote-adapter.min.js')).length,combined?0:1);
+  }finally{e.close();}
+ }
+});
+
+const feedHolder='<div data-tdb-review-placeholder><div class="tdb-review-holding-image">Reviews</div></div>';
+test('external card holder waits for data and artwork, mounts once and restores on revocation',async()=>{
+ let release;const artworkGate=new Promise(r=>release=r);const e=setup(feedHolder,{artworkGate,allowed:false});e.run();const root=e.w.document.querySelector('[data-tdb-review-placeholder]');e.near(root);await tick();assert.equal(e.stats().loads.length,0);e.permit(true);await tick();assert.equal(root.getAttribute('aria-busy'),'true');assert.equal(root.hasAttribute('data-review-state'),false);assert.equal(e.stats().mounts,0);release();await tick();assert.equal(root.getAttribute('data-review-state'),'ready');assert.equal(root.hasAttribute('aria-busy'),false);assert.equal(root.querySelector('.tdb-review-holding-image').getAttribute('aria-hidden'),'true');e.w.TDBReviewLoader.refresh();await tick();assert.equal(e.stats().mounts,1);assert.ok(e.stats().loads.some(url=>url.endsWith('tdb-review-cards.css')));assert.equal(e.stats().loads.some(url=>drawerFiles.test(url)),false);e.permit(false);assert.equal(root.querySelector('[data-tdb-review-cards]'),null);assert.equal(root.hasAttribute('data-review-state'),false);assert.equal(root.querySelector('.tdb-review-holding-image').hasAttribute('aria-hidden'),false);e.close();
+});
+test('failed external card assets stop busy state, retain the holder and retry on intent',async()=>{
+ let fail=true;const e=setup(feedHolder,{loadGate:async()=>{if(fail)throw Error('Offline');}});e.run();const root=e.w.document.querySelector('[data-tdb-review-placeholder]');e.near(root);await tick();assert.equal(root.getAttribute('data-review-state'),'error');assert.equal(root.hasAttribute('aria-busy'),false);assert.equal(root.querySelector('[data-tdb-review-cards]'),null);fail=false;root.dispatchEvent(new e.w.Event('pointerover',{bubbles:true}));await tick();assert.equal(root.getAttribute('data-review-state'),'ready');assert.equal(e.stats().mounts,1);e.close();
+});
+test('revocation during card artwork loading cannot append late content',async()=>{
+ let release;const artworkGate=new Promise(r=>release=r);const e=setup(feedHolder,{artworkGate});e.run();const root=e.w.document.querySelector('[data-tdb-review-placeholder]');e.near(root);await tick();e.permit(false);release();await tick();assert.equal(root.querySelector('[data-tdb-review-cards]'),null);assert.equal(root.hasAttribute('aria-busy'),false);assert.equal(e.stats().mounts,0);e.close();
 });

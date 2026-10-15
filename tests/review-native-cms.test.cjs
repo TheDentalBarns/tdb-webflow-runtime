@@ -11,7 +11,7 @@ const index=i=>`<span data-tdb-review-index-record data-review-slug="r-${i}" dat
 const summary='<div data-tdb-review-aggregate data-review-total="45" data-review-average="4.91"></div>';
 const range=(start,length,fn)=>Array.from({length},(_,i)=>fn(start+i)).join('');
 function feed(page=1,pagesPath='/review-pages'){
- return `<div data-tdb-review-cms="v1"${page===1?` data-tdb-review-pages="${pagesPath}"`:''}>${range((page-1)*20+1,page===3?5:20,record)}${page<3?`<a class="w-pagination-next" href="?reviews_page=${page+1}">Next</a>`:''}</div>${summary}`+(page===1?`<div data-tdb-review-index="v1">${range(1,45,index)}</div><div data-tdb-review-response-record data-review-slug="r-25"><p data-tdb-review-response>Original published response</p></div><span data-tdb-review-icon="Google"><svg viewBox="0 0 24 24"><defs><clipPath id="clip"><path d="M0 0h24v24H0z"/></clipPath></defs><g clip-path="url(#clip)"><path d="M1 1h20v20H1z"/></g></svg></span>`:'');
+ return `<div data-tdb-review-cms="v1"${page===1?` data-tdb-review-pages="${pagesPath}"`:''}>${range((page-1)*20+1,page===3?5:20,record)}${page<3?`<a class="w-pagination-next" href="?reviews_page=${page+1}">Next</a>`:''}</div>${summary}`+(page===1?`<div data-tdb-review-index="v1">${range(1,45,index)}</div><div data-tdb-review-response-record data-review-slug="r-25"><p data-tdb-review-response>Original published response</p></div><span data-tdb-review-icon="Custom"><svg viewBox="0 0 24 24"><defs><clipPath id="clip"><path d="M0 0h24v24H0z"/></clipPath></defs><g clip-path="url(#clip)"><path d="M1 1h20v20H1z"/></g></svg></span>`:'');
 }
 function setup(){const dom=new JSDOM('',{url:'https://fixture.test/',runScripts:'outside-only'});dom.window.eval(source);return dom;}
 function respond(w,requests){w.fetch=async url=>{requests.push(url);const u=new URL(url);return {ok:true,text:async()=>u.pathname.startsWith('/review-topics/')?record(Number(u.pathname.split('-').at(-1))):feed(Number(u.searchParams.get('reviews_page'))||1)};};}
@@ -33,10 +33,11 @@ test('filtered detail requests reuse initial responses and retain shared artwork
  try{
   const d=await w.TDBReviewCMS.load();const [late]=await d.fetchRecords(['r-25']);
   assert.equal(late.response,'Original published response');assert.equal(late.showResponse,true);
-  const a=w.TDBReviewCMS.sourceIcon('Google',false),b=w.TDBReviewCMS.sourceIcon('Google',true);
+  assert(w.TDBReviewCMS.sourceIcon('Google').querySelector('img').src.endsWith('.svg'),'known platforms share hosted artwork');
+  const a=w.TDBReviewCMS.sourceIcon('Custom',false),b=w.TDBReviewCMS.sourceIcon('Custom',true);
   assert.equal(a.firstElementChild.ownerDocument,w.document);assert.notEqual(a.querySelector('clipPath').id,b.querySelector('clipPath').id);
   assert.equal(a.querySelector('g').getAttribute('clip-path'),`url(#${a.querySelector('clipPath').id})`);
-  await d.loadMore();assert(w.TDBReviewCMS.sourceIcon('Google').querySelector('svg'));assert.equal(d.records.find(r=>r.id==='r-25').response,late.response);
+  await d.loadMore();assert(w.TDBReviewCMS.sourceIcon('Custom').querySelector('svg'));assert.equal(d.records.find(r=>r.id==='r-25').response,late.response);
   const before=requests.length;await d.fetchRecords(['r-25']);assert.equal(requests.length,before);
  }finally{dom.window.close();}
 });

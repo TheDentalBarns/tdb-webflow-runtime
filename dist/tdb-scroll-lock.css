@@ -1,1 +1,1 @@
-html.tdb-scroll-locked,html.tdb-scroll-locked:not([data-wf-page="677cf86df9952f978d94d8a9"]) body{overflow:hidden !important;overscroll-behavior:none}html.tdb-scroll-locked body{padding-right:var(--tdb-scroll-lock-padding) !important}
+html.tdb-scroll-locked{overflow:hidden!important;overscroll-behavior:none}html.tdb-scroll-locked body{padding-right:var(--tdb-scroll-lock-padding)!important}

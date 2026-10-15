@@ -1,0 +1,650 @@
+{
+  "tool": "terser@5.44.0",
+  "compression": "3 safe passes; no property mangling",
+  "note": "Local gzip/Brotli estimates, not measured CDN transfer sizes or initial-page totals.",
+  "outputs": {
+    "dist/tdb-announcement.js": {
+      "sources": [
+        "src/banner/announcement.js"
+      ],
+      "sha256": "f35e3d5dec63497a3b29b37b87f97978136e8a7e1e799faacab6bd9ea19fc592",
+      "raw": 11540,
+      "gzip": 4468,
+      "brotli": 3918
+    },
+    "dist/tdb-attribution.min.js": {
+      "sources": [
+        "src/attribution/attribution.js"
+      ],
+      "sha256": "6c51d1ec75b00732b776383f27e2e2dbd138f0307186e32cffae18d53cefb8b3",
+      "raw": 10809,
+      "gzip": 3863,
+      "brotli": 3396
+    },
+    "dist/tdb-availability-header.js": {
+      "sources": [
+        "src/shared/availability-header.js"
+      ],
+      "sha256": "07d89ab23aa1264f4312a0527eaaff3f6fd8716f8b48c11c8e27457a037c5c31",
+      "raw": 2199,
+      "gzip": 1069,
+      "brotli": 915
+    },
+    "dist/tdb-availability.js": {
+      "sources": [
+        "src/shared/availability.js"
+      ],
+      "sha256": "8fce1e50aa5429fb14442bea1d972073b112ca0a8e725c30c184924afd7df993",
+      "raw": 6481,
+      "gzip": 2672,
+      "brotli": 2384
+    },
+    "dist/tdb-calculator-loader.js": {
+      "sources": [
+        "src/shared/module-bootstrap.js",
+        "src/calculator/loader.js"
+      ],
+      "sha256": "cedb4403ec9bdf37ae8cf7afc420d44899016437524f6714f7842651cb337a0f",
+      "raw": 3106,
+      "gzip": 1296,
+      "brotli": 1107
+    },
+    "dist/tdb-calculator.js": {
+      "sources": [
+        "src/calculator/core.js",
+        "src/calculator/ui.js"
+      ],
+      "sha256": "22bc8f3aeca7bddae2d8861e998f9ad55e4b69f482016ede79c8d3086a183a65",
+      "raw": 67634,
+      "gzip": 22468,
+      "brotli": 19491
+    },
+    "dist/tdb-consent-startup.min.js": {
+      "sources": [
+        "src/shared/scroll-lock.js",
+        "src/consent/banner.js"
+      ],
+      "sha256": "a4a52fbde934a47e15da8892e161e30f7aa7ba19763d2939601d9946f50ae9bc",
+      "raw": 9159,
+      "gzip": 3413,
+      "brotli": 3042
+    },
+    "dist/tdb-consent.js": {
+      "sources": [
+        "src/shared/scroll-lock.js",
+        "src/consent/banner.js",
+        "src/shared/modules.js",
+        "src/consent/consent.js"
+      ],
+      "sha256": "b08de5e784418b1060a31f56598d2258726142d97b39d028c747405c4312c2e5",
+      "raw": 19999,
+      "gzip": 7010,
+      "brotli": 6293
+    },
+    "dist/tdb-consent.min.js": {
+      "sources": [
+        "src/consent/consent.js"
+      ],
+      "sha256": "38685a9e74910a108583f1a02b73ec6fbf5f8626a5a2ce936425f847e530626b",
+      "raw": 7263,
+      "gzip": 2783,
+      "brotli": 2464
+    },
+    "dist/tdb-drawer.js": {
+      "sources": [
+        "src/shared/scroll-lock.js",
+        "src/shared/site-chrome.js",
+        "src/shared/carousel-controls.js",
+        "src/shared/drawer-reading.js",
+        "src/shared/drawer.js"
+      ],
+      "sha256": "5d40c1dbcfc6d81ec5920a2a53105f8830d0a211c95e9b101a5a1fd964b56b00",
+      "raw": 10953,
+      "gzip": 4094,
+      "brotli": 3667
+    },
+    "dist/tdb-filters.js": {
+      "sources": [
+        "src/shared/filters.js"
+      ],
+      "sha256": "d8d7c1b88d006f1809184a013e8ba6807c286bf3818a6faf5792b3f115ca7362",
+      "raw": 7088,
+      "gzip": 2862,
+      "brotli": 2560
+    },
+    "dist/tdb-first-impressions.js": {
+      "sources": [
+        "src/shared/value-ticker.js",
+        "src/first-impressions/first-impressions.js"
+      ],
+      "sha256": "323869a1bca7f3c809c734c3e84f3b7c8e3da3e99238cf83c9418bc59c544839",
+      "raw": 10683,
+      "gzip": 4314,
+      "brotli": 3841
+    },
+    "dist/tdb-first-visit-power-snippets.js": {
+      "sources": [
+        "src/reviews/legacy/first-visit-power-snippets.js"
+      ],
+      "sha256": "272d3fe7b803135c23bcafd42a062b6d5219389001297b1e0a1e27b125e3a16d",
+      "raw": 20883,
+      "gzip": 7432,
+      "brotli": 6348
+    },
+    "dist/tdb-five-senses-loader.js": {
+      "sources": [
+        "src/five-senses/loader.js"
+      ],
+      "sha256": "a67a78bd9bd33a7edb189b1941d97f38cb4d3e15425f12ae9f3740b05107bd43",
+      "raw": 17747,
+      "gzip": 5944,
+      "brotli": 5258
+    },
+    "dist/tdb-five-senses.js": {
+      "sources": [
+        "src/five-senses/scene-renderer.js",
+        "src/five-senses/five-senses.js"
+      ],
+      "sha256": "266d0b1f5551d9afbb5259ee0a4a8273981f288d2178ee8276102bfb70ded3c2",
+      "raw": 56185,
+      "gzip": 20342,
+      "brotli": 17805
+    },
+    "dist/tdb-forms.min.js": {
+      "sources": [
+        "src/forms/forms.js"
+      ],
+      "sha256": "e01f0d00633b451f94a5e4de8913973abaf4be2a6b1333e1b7af5d70284f7eb2",
+      "raw": 2378,
+      "gzip": 1082,
+      "brotli": 917
+    },
+    "dist/tdb-foundation.js": {
+      "sources": [
+        "src/shared/scroll-lock.js",
+        "src/consent/banner.js",
+        "src/consent/consent.js",
+        "src/shared/phone-landscape.js",
+        "src/navbar/navbar-state.js",
+        "src/navbar/native-foundation.js",
+        "src/navbar/navbar-mobile-lock.js",
+        "src/navbar/navbar-loader.js"
+      ],
+      "sha256": "0a3c8eeaca8ab29857ba10c055859633ea0bd74027069b8a6e59046215a08daa",
+      "raw": 23802,
+      "gzip": 7761,
+      "brotli": 6955
+    },
+    "dist/tdb-gallery.js": {
+      "sources": [
+        "src/smile-gallery/sort-treatment-gallery.js",
+        "src/sliders/gallery-presentation.js",
+        "src/smile-gallery/explore-count.js",
+        "src/sliders/gallery-plugin.js"
+      ],
+      "sha256": "77d2f0436b519746f7170feb48d6dfd8dd2be88c1f7b786e36757cd8ae13eb84",
+      "raw": 16728,
+      "gzip": 5859,
+      "brotli": 5226
+    },
+    "dist/tdb-home-desktop-instagram.js": {
+      "sources": [
+        "src/shared/value-ticker.js",
+        "src/instagram/legacy-renderer.js",
+        "src/instagram/home-desktop-instagram.js"
+      ],
+      "sha256": "5ed834bbff649504581a4545837dd6aec4abbd62000bb4e235b445f25680aa29",
+      "raw": 12724,
+      "gzip": 5186,
+      "brotli": 4583
+    },
+    "dist/tdb-instagram-deferred.js": {
+      "sources": [
+        "src/instagram/deferred.js"
+      ],
+      "sha256": "4b6849d03c8f41edb68e2567ee34a39f01a6c209570a9844ad651a6fb50d13f7",
+      "raw": 11231,
+      "gzip": 3645,
+      "brotli": 3128
+    },
+    "dist/tdb-instagram-feed.js": {
+      "sources": [
+        "src/shared/value-ticker.js",
+        "src/instagram/manual-snapshot.js",
+        "src/instagram/legacy-renderer.js",
+        "src/instagram/instagram-feed-bundle.js"
+      ],
+      "sha256": "37a09d0a9a54127d5c7a32575387eb42bd8f4a344003b38df8fcfaaab7df8b5a",
+      "raw": 65232,
+      "gzip": 14430,
+      "brotli": 12005
+    },
+    "dist/tdb-instagram-native.min.js": {
+      "sources": [
+        "src/instagram/native.js"
+      ],
+      "sha256": "bff23cde165154c43a6341f667e21a743ac87b25652d793587c450b8039a3861",
+      "raw": 13763,
+      "gzip": 5052,
+      "brotli": 4491
+    },
+    "dist/tdb-legacy-review-drawer.js": {
+      "sources": [
+        "src/shared/value-ticker.js",
+        "src/reviews/legacy/drawer.js"
+      ],
+      "sha256": "8985161ca8612e0fed2706a5f7910e4b02905a98dcd32a7f9dd4b27f1fe18211",
+      "raw": 45118,
+      "gzip": 14042,
+      "brotli": 12471
+    },
+    "dist/tdb-lenis.min.js": {
+      "sources": [
+        "vendor/lenis/lenis.js"
+      ],
+      "sha256": "64390df0f8535953a445b37981a8bc940943f9d9f4daa5f21be8fa1fb71bae5d",
+      "raw": 17741,
+      "gzip": 4992,
+      "brotli": 4487
+    },
+    "dist/tdb-logo-marquee.js": {
+      "sources": [
+        "src/logo-marquee/partner-controls-style.js",
+        "src/logo-marquee/logo-marquee.js"
+      ],
+      "sha256": "355fa48d9398176dd25c6e5f906b8f4af82d0bc49125428d21a4e6925f617296",
+      "raw": 25877,
+      "gzip": 8274,
+      "brotli": 7498
+    },
+    "dist/tdb-logo-marquee.min.js": {
+      "sources": [
+        "src/logo-marquee/partner-controls-style.js",
+        "src/logo-marquee/logo-marquee.js"
+      ],
+      "sha256": "355fa48d9398176dd25c6e5f906b8f4af82d0bc49125428d21a4e6925f617296",
+      "raw": 25877,
+      "gzip": 8274,
+      "brotli": 7498
+    },
+    "dist/tdb-modules.js": {
+      "sources": [
+        "src/shared/modules.js"
+      ],
+      "sha256": "1ab4554a7cdb652ec3e7fb76897b6bde6102a5eb4e1b668111885563f892ca32",
+      "raw": 3579,
+      "gzip": 1662,
+      "brotli": 1487
+    },
+    "dist/tdb-motion-policy.js": {
+      "sources": [
+        "src/shared/motion-policy.js"
+      ],
+      "sha256": "97bc91f8bf6d72b4c8be2c8b476b098f600744970fd32d24ae16865c081192ba",
+      "raw": 301,
+      "gzip": 203,
+      "brotli": 149
+    },
+    "dist/tdb-motion.js": {
+      "sources": [
+        "src/shared/motion.js"
+      ],
+      "sha256": "fcc2f58c7cc14e03385e6bc289a1f55700c4241424ff25b9bc4f646c951f42b9",
+      "raw": 18313,
+      "gzip": 6601,
+      "brotli": 5982
+    },
+    "dist/tdb-navbar-loader.js": {
+      "sources": [
+        "src/shared/phone-landscape.js",
+        "src/navbar/navbar-state.js",
+        "src/navbar/native-foundation.js",
+        "src/navbar/navbar-mobile-lock.js",
+        "src/navbar/navbar-loader.js"
+      ],
+      "sha256": "b5d35cd288c2f07fef5a7303ddb38b34d8df4399e46d4aae6f345f57e1fbf200",
+      "raw": 7382,
+      "gzip": 2533,
+      "brotli": 2248
+    },
+    "dist/tdb-navbar.min.js": {
+      "sources": [
+        "src/shared/panel-motion.js",
+        "src/navbar/navbar-enhancement.js"
+      ],
+      "sha256": "76d6cde360a2580f1f79d8b1936a60a70676e40c701ef7d6a0737edebc30fd03",
+      "raw": 22726,
+      "gzip": 6130,
+      "brotli": 5489
+    },
+    "dist/tdb-parallax.js": {
+      "sources": [
+        "src/sliders/parallax-presentation.js",
+        "src/sliders/parallax-controls.js",
+        "src/sliders/parallax-progress.js",
+        "src/sliders/parallax-foundation.js",
+        "src/sliders/treatment-plugin.js",
+        "src/sliders/parallax-plugin.js"
+      ],
+      "sha256": "e438a210d0a29984ec37d5bab9a6bd2f05a2be0d213945d46c87a128c5faec72",
+      "raw": 25507,
+      "gzip": 7972,
+      "brotli": 7166
+    },
+    "dist/tdb-partner-card.js": {
+      "sources": [
+        "src/logo-marquee/partner-card.js"
+      ],
+      "sha256": "5676eef2dfa5988f8a4a9a6429b65eda2072593a739dc8befda244875080d773",
+      "raw": 3713,
+      "gzip": 1341,
+      "brotli": 1084
+    },
+    "dist/tdb-quote-carousel.js": {
+      "sources": [
+        "src/team-quotes/team-quotes.js"
+      ],
+      "sha256": "1c512fa70e49079c06fed1584e192cefffca319727c6f8c36b0fa2f6070e7613",
+      "raw": 7351,
+      "gzip": 2833,
+      "brotli": 2496
+    },
+    "dist/tdb-quote-carousel.min.js": {
+      "sources": [
+        "src/team-quotes/team-quotes.js"
+      ],
+      "sha256": "1c512fa70e49079c06fed1584e192cefffca319727c6f8c36b0fa2f6070e7613",
+      "raw": 7351,
+      "gzip": 2833,
+      "brotli": 2496
+    },
+    "dist/tdb-rendered-progress.js": {
+      "sources": [
+        "src/shared/rendered-progress.js"
+      ],
+      "sha256": "502beb1bcd0c9876e2f3f9171b5271382a5870f607c9475d3b496f0ecf7486ef",
+      "raw": 830,
+      "gzip": 506,
+      "brotli": 420
+    },
+    "dist/tdb-review-availability.js": {
+      "sources": [
+        "src/reviews/native/availability.js"
+      ],
+      "sha256": "a93832234af39edac766d2c9878a5d0a88882aa0e63d8b6e59712361805d76b0",
+      "raw": 1741,
+      "gzip": 901,
+      "brotli": 774
+    },
+    "dist/tdb-review-cards.js": {
+      "sources": [
+        "src/reviews/native/cards.js"
+      ],
+      "sha256": "d69ed8bc6d64e3e8e659b983e4a7123cd285b237ebc31ff96c3bc9e3645015e6",
+      "raw": 15223,
+      "gzip": 5187,
+      "brotli": 4589
+    },
+    "dist/tdb-review-cms.js": {
+      "sources": [
+        "src/reviews/native/json.js",
+        "src/reviews/native/cms.js",
+        "src/reviews/native/quote-adapter.js"
+      ],
+      "sha256": "e90ee4b42c7d407356781cc219801a8d50f471d080848789415ace48c70bc932",
+      "raw": 21453,
+      "gzip": 7336,
+      "brotli": 6508
+    },
+    "dist/tdb-review-drawer-template.js": {
+      "sources": [
+        "src/templates/review-drawer.js"
+      ],
+      "sha256": "126322fde1f9990b9e7345a83f5e7649058028acee81c38080a921f07ac1660c",
+      "raw": 32317,
+      "gzip": 3529,
+      "brotli": 2946
+    },
+    "dist/tdb-review-introduction.js": {
+      "sources": [
+        "src/reviews/native/introduction.js"
+      ],
+      "sha256": "4ec08a623fddad95f3e2f8efcc3aa5cf00c88c32d2eeb6813132b3b1c6ca5323",
+      "raw": 3362,
+      "gzip": 1410,
+      "brotli": 1232
+    },
+    "dist/tdb-review-list-loader.js": {
+      "sources": [
+        "src/shared/module-bootstrap.js",
+        "src/reviews/native/list-loader.js"
+      ],
+      "sha256": "61e769e3359fffc430efa9258990fe9b29815c3c7cbb496fc7360f4fbd668e14",
+      "raw": 3484,
+      "gzip": 1526,
+      "brotli": 1298
+    },
+    "dist/tdb-review-list.js": {
+      "sources": [
+        "src/reviews/native/list.js"
+      ],
+      "sha256": "c7cd603e607b184080f52da44c83747320c1c51843de272d0d1b022797a0aad3",
+      "raw": 12189,
+      "gzip": 4616,
+      "brotli": 4105
+    },
+    "dist/tdb-review-quote-adapter.js": {
+      "sources": [
+        "src/reviews/native/quote-adapter.js"
+      ],
+      "sha256": "e3e31beb47bc7ce51baa29fac548756a52b2e80b4ead006e3fe0937fc5532a81",
+      "raw": 1601,
+      "gzip": 747,
+      "brotli": 632
+    },
+    "dist/tdb-review-quote-adapter.min.js": {
+      "sources": [
+        "src/reviews/native/quote-adapter.js"
+      ],
+      "sha256": "e3e31beb47bc7ce51baa29fac548756a52b2e80b4ead006e3fe0937fc5532a81",
+      "raw": 1601,
+      "gzip": 747,
+      "brotli": 632
+    },
+    "dist/tdb-review-quotes.js": {
+      "sources": [
+        "src/reviews/native/quotes.js"
+      ],
+      "sha256": "0caf133fbf73d49e2e6bdc0bf93030f6e41b101324e954b3a3febeb928fe7034",
+      "raw": 3841,
+      "gzip": 1701,
+      "brotli": 1456
+    },
+    "dist/tdb-reviews-loader.js": {
+      "sources": [
+        "src/reviews/native/loader.js"
+      ],
+      "sha256": "8b8f013536aca6ac1d8080233f9ea02bfcb00ff7fc17e22e870a1883e22b1c22",
+      "raw": 10141,
+      "gzip": 3354,
+      "brotli": 2968
+    },
+    "dist/tdb-reviews.js": {
+      "sources": [
+        "src/reviews/native/drawer-content.js"
+      ],
+      "sha256": "27229e3fdc68704054cc2464e6d7a15ef40bba05e48f4a7cb5bec659a786a1e2",
+      "raw": 19190,
+      "gzip": 6925,
+      "brotli": 6215
+    },
+    "dist/tdb-runtime.js": {
+      "sources": [
+        "src/runtime/release-root.js",
+        "src/shared/script-assets.js",
+        "src/runtime/interaction-state.js",
+        "src/runtime/logo-marquee-loader.js",
+        "src/runtime/page-position.js",
+        "src/shared/module-bootstrap.js",
+        "src/calculator/loader.js",
+        "src/shared/feature-css.js",
+        "src/banner/loader.js",
+        "src/banner/floating-loader.js",
+        "src/vip-drawer/focus-loader.js",
+        "src/vip-drawer/loader.js",
+        "src/runtime/deferred-ui.js",
+        "src/sliders/loader.js",
+        "src/runtime/smooth-scroll.js",
+        "src/runtime/footer-date.js",
+        "src/shared/carousel-arrow-feedback.js",
+        "src/forms/loader.js",
+        "src/runtime/attribution-loader.js",
+        "src/brevo/consent.js",
+        "src/usp/loader.js",
+        "src/five-senses/launcher.js",
+        "src/runtime/review-feature-loader.js",
+        "src/runtime/instagram-feature-loader.js",
+        "src/runtime/smile-feature-loader.js",
+        "src/runtime/page-break-loader.js",
+        "src/runtime/features-startup.js",
+        "src/runtime/runtime.js"
+      ],
+      "sha256": "c4bcfdc51ce3471fd443ea38f96fe86a31c6760f5d5ac72f8ec44b59b1562f7d",
+      "raw": 57841,
+      "gzip": 15392,
+      "brotli": 13659
+    },
+    "dist/tdb-service-awards.js": {
+      "sources": [
+        "src/service-awards/service-awards.js"
+      ],
+      "sha256": "e21e0e4812e88e6b334424c16ca11ca3b13ab4057df91a17a0d01540662138e5",
+      "raw": 2644,
+      "gzip": 1155,
+      "brotli": 947
+    },
+    "dist/tdb-slider-focus.js": {
+      "sources": [
+        "src/shared/slider-focus.js"
+      ],
+      "sha256": "1c141c985a6ab2184fc31b1872be83a8c7131a32e36b2f69191c3f891061b243",
+      "raw": 5509,
+      "gzip": 2194,
+      "brotli": 1945
+    },
+    "dist/tdb-smile-feed.js": {
+      "sources": [
+        "src/smile-gallery/feed.js"
+      ],
+      "sha256": "5c51383b6e0df6c84dda37fe5560dcad703b3a862c0ee97491213fcd04aa3b13",
+      "raw": 11527,
+      "gzip": 3893,
+      "brotli": 3380
+    },
+    "dist/tdb-smile-gallery.min.js": {
+      "sources": [
+        "src/smile-gallery/gallery-page.js"
+      ],
+      "sha256": "fd6de63b5f9482c790c2b298a5bbf6ad11e69667223180a996b41df8d354829a",
+      "raw": 28098,
+      "gzip": 9239,
+      "brotli": 8298
+    },
+    "dist/tdb-start.min.js": {
+      "sources": [
+        "src/startup/release.js",
+        "src/shared/motion-policy.js",
+        "src/shared/modules.js",
+        "src/startup/start.js"
+      ],
+      "sha256": "41010250e5c1d3efc7d2785ffa325ea044eb00716ec0a7fbff02ad6f873297d3",
+      "raw": 5076,
+      "gzip": 2166,
+      "brotli": 1931
+    },
+    "dist/tdb-ticker.js": {
+      "sources": [
+        "src/shared/native-ticker.js"
+      ],
+      "sha256": "15dd47ff5af2f864817cb2c8e18a3b8dc087470a08fe2b9b5343d8bce4a93856",
+      "raw": 1871,
+      "gzip": 934,
+      "brotli": 795
+    },
+    "dist/tdb-tooltips.js": {
+      "sources": [
+        "src/tooltips/tooltips.js"
+      ],
+      "sha256": "9c73d6f3681888a7338fb6457bafb11bc259c11bd9895b2a311d30f0938b1874",
+      "raw": 2852,
+      "gzip": 1294,
+      "brotli": 1138
+    },
+    "dist/tdb-usp-drawer-template.js": {
+      "sources": [
+        "src/templates/usp-drawer.js"
+      ],
+      "sha256": "9e353375141b5a217834c4e29bc54f0165aee84c1a2ebe3b792b9a8fde94dcac",
+      "raw": 14895,
+      "gzip": 3134,
+      "brotli": 2497
+    },
+    "dist/tdb-usp-drawer.js": {
+      "sources": [
+        "src/usp/drawer.js"
+      ],
+      "sha256": "cad84b4317e5a0209564a97dc9c897dc87b1eb92f6f3a4b3f3bf804ef588a7bc",
+      "raw": 8184,
+      "gzip": 3082,
+      "brotli": 2744
+    },
+    "dist/tdb-vimeo-loader.js": {
+      "sources": [
+        "src/loaders/vimeo-loader.js"
+      ],
+      "sha256": "2707e9d01f436c580b75b9f824f040d38209b720c8367167a3412341656f9e55",
+      "raw": 2429,
+      "gzip": 1118,
+      "brotli": 961
+    },
+    "dist/tdb-vimeo.js": {
+      "sources": [
+        "src/components/vimeo.js"
+      ],
+      "sha256": "7b70f2a315ac7692f82a259f5c03c947f6aed9b2612469448e474b10feb027dc",
+      "raw": 19403,
+      "gzip": 5415,
+      "brotli": 4810
+    },
+    "dist/tdb-vip-content.js": {
+      "sources": [
+        "src/vip-drawer/content.js"
+      ],
+      "sha256": "092a7ba03daade96df22df3d57edd7e906fb8eab6f65595c8bac6ae54a12e96e",
+      "raw": 7108,
+      "gzip": 2499,
+      "brotli": 2010
+    },
+    "dist/tdb-vip-drawer.js": {
+      "sources": [
+        "src/vip-drawer/runtime-style.js",
+        "src/shared/panel-motion.js",
+        "src/vip-drawer/vip-drawer.js"
+      ],
+      "sha256": "bd5a01ce242e3ab24e548c8ec778f5270fc4119fa6f88ee4142da9f91877d1b4",
+      "raw": 9271,
+      "gzip": 3371,
+      "brotli": 2939
+    },
+    "dist/tdb-vip-form.js": {
+      "sources": [
+        "src/forms/forms.js",
+        "src/forms/vip-form.js"
+      ],
+      "sha256": "af62460fe2ad281c8ae2af00fdbceb5c2719637fc5133161aaebe565057425f4",
+      "raw": 10077,
+      "gzip": 3700,
+      "brotli": 3200
+    }
+  }
+}

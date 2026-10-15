@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.7.2';
+  const VERSION = '0.8.0';
   const mobileQuery = matchMedia('(max-width:767px)');
   const desktopQuery = matchMedia('(min-width:768px)');
   const drawer = document.getElementById('tdb-vip-drawer');
@@ -16,19 +16,32 @@
   drawer.dataset.tdbVipUnifiedInit = 'true';
   drawer.dataset.tdbVipInit = 'true';
   drawer.dataset.tdbVipDesktopInit = 'true';
-  [drawer, body].forEach(node => ['', '-touch', '-wheel', '-vertical'].forEach(suffix => node.setAttribute(`data-lenis-prevent${suffix}`, '')));
+  [drawer, body].forEach((node) =>
+    ['', '-touch', '-wheel', '-vertical'].forEach((suffix) =>
+      node.setAttribute(`data-lenis-prevent${suffix}`, ''),
+    ),
+  );
 
   const html = document.documentElement;
   const ua = navigator.userAgent;
-  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isIOS =
+    /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isAndroid = /Android/i.test(ua);
-  const fieldSelector = 'input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]),textarea,select';
-  const isField = node => Boolean(node?.matches?.(fieldSelector));
-  const activeField = () => isField(document.activeElement) && drawer.contains(document.activeElement);
+  const fieldSelector =
+    'input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]),textarea,select';
+  const isField = (node) => Boolean(node?.matches?.(fieldSelector));
+  const activeField = () =>
+    isField(document.activeElement) && drawer.contains(document.activeElement);
   const isVipHash = () => /^#vip/i.test(location.hash || '');
-  const nestedConsentOpen = () => window.CookieScript?.instance?.isOpen?.() ??
+  const nestedConsentOpen = () =>
+    window.CookieScript?.instance?.isOpen?.() ??
     Boolean(document.querySelector('#tdb-consent-root.is-consent-active'));
-  const lenis = method => { try { window.lenis?.[method]?.(); } catch (error) {} };
+  const lenis = (method) => {
+    try {
+      window.lenis?.[method]?.();
+    } catch (error) {}
+  };
   const UP_THRESHOLD = 120;
   const DOWN_THRESHOLD = 140;
 
@@ -53,6 +66,8 @@
   let lastWidth = innerWidth;
   let lastMode = mobileQuery.matches ? 'mobile' : 'desktop';
   let releaseScroll = null;
+  let opening = null;
+  let openIntent = 0;
 
   const pageY = () => Math.max(scrollY, html.scrollTop, 0);
 
@@ -77,19 +92,26 @@
   function keyboardGrace(ms = 700) {
     keyboardMoving = true;
     clearTimeout(keyboardTimer);
-    keyboardTimer = setTimeout(() => { keyboardMoving = false; }, ms);
+    keyboardTimer = setTimeout(() => {
+      keyboardMoving = false;
+    }, ms);
   }
 
   function nativeMenuOpen() {
     const button = document.querySelector('.navbar10_menu-button,.w-nav-button');
     const menu = document.querySelector('.navbar10_menu,.w-nav-menu');
     const overlay = document.querySelector('.w-nav-overlay');
-    if (button && (button.classList.contains('w--open') || button.getAttribute('aria-expanded') === 'true')) return true;
+    if (
+      button &&
+      (button.classList.contains('w--open') || button.getAttribute('aria-expanded') === 'true')
+    )
+      return true;
     if (menu?.classList.contains('w--open')) return true;
     if (overlay) {
       const rect = overlay.getBoundingClientRect();
       const styles = getComputedStyle(overlay);
-      if (styles.display !== 'none' && styles.visibility !== 'hidden' && rect.height > 20) return true;
+      if (styles.display !== 'none' && styles.visibility !== 'hidden' && rect.height > 20)
+        return true;
     }
     return false;
   }
@@ -112,7 +134,9 @@
   }
 
   // Form wording, defaults and field states have one owner.
-  function refresh() { window.TDBVIPForm?.refresh(); }
+  function refresh() {
+    window.TDBVIPForm?.refresh();
+  }
 
   function render() {
     drawer.classList.toggle('is-peeking', state === 1);
@@ -130,6 +154,7 @@
   }
 
   function reset() {
+    openIntent++;
     clearTimeout(timer);
     clearTimeout(keyboardTimer);
     state = up = down = 0;
@@ -149,6 +174,7 @@
   }
 
   function closeDrawer() {
+    openIntent++;
     if (state === 2) {
       blurField();
       state = 3;
@@ -166,38 +192,69 @@
   }
 
   function openDrawer() {
+    if (
+      !drawer.hasAttribute('data-tdb-vip-lazy') ||
+      drawer.hasAttribute('data-tdb-vip-content-ready')
+    )
+      return revealDrawer();
+    if (opening) return opening;
+    const intent = ++openIntent;
+    handle.setAttribute('aria-busy', 'true');
+    opening = window.TDBVIPDrawerLoader.prepareContent()
+      .then(() => {
+        if (intent === openIntent) revealDrawer();
+      })
+      .catch(() => {
+        if (intent === openIntent) window.TDBVIPDrawerLoader.fallback();
+      })
+      .finally(() => {
+        opening = null;
+        handle.removeAttribute('aria-busy');
+      });
+    return opening;
+  }
+
+  function revealDrawer() {
     clearTimeout(timer);
+    // Native display:none keeps these lazy images out of the initial fetch.
+    // Release once, before measuring/opening; preserve artwork during closing.
+    drawer.querySelector('.tdb-vip-barns')?.classList.remove('is-vip-artwork-pending');
     if (state !== 2 && state !== 3) panelMotion.prepare();
     lastY = pageY();
     state = 2;
     // The native mobile menu can still own a lock. Register this drawer as an
     // allowed scroller and keep its own lease until the closing motion settles.
-    releaseScroll ||= window.TDBScrollLock?.acquire({allow: () => [drawer]});
+    releaseScroll ||= window.TDBScrollLock?.acquire({ allow: () => [drawer] });
     drawer.scrollTop = 0;
 
     if (mobileQuery.matches) {
       openedFromNativeMenu = nativeMenuOpen();
       render();
       visualTop();
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        refresh();
-        lenis('start');
-        lenis('resize');
-      }));
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          refresh();
+          lenis('start');
+          lenis('resize');
+        }),
+      );
       return;
     }
 
     render();
     lenis('stop');
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      refresh();
-      drawer.scrollTop = 0;
-    }));
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        refresh();
+        drawer.scrollTop = 0;
+      }),
+    );
   }
 
   function restorePageY(y) {
     try {
-      if (window.lenis && typeof window.lenis.scrollTo === 'function') window.lenis.scrollTo(y, { immediate: true, force: true });
+      if (window.lenis && typeof window.lenis.scrollTo === 'function')
+        window.lenis.scrollTo(y, { immediate: true, force: true });
       else scrollTo(0, y);
     } catch (error) {
       scrollTo(0, y);
@@ -207,7 +264,9 @@
   function routeVipHash() {
     if (!desktopQuery.matches || !isVipHash()) return false;
     const y = routeY;
-    try { history.replaceState(history.state, '', location.pathname + location.search); } catch (error) {}
+    try {
+      history.replaceState(history.state, '', location.pathname + location.search);
+    } catch (error) {}
     restorePageY(y);
     lastY = y;
     openDrawer();
@@ -235,7 +294,10 @@
   }
 
   function desktopScrollCheck() {
-    if (state === 2 || state === 3) { tick = 0; return; }
+    if (state === 2 || state === 3) {
+      tick = 0;
+      return;
+    }
     const y = pageY();
     const delta = y - lastY;
     if (delta > 0) {
@@ -253,119 +315,180 @@
     tick = 0;
   }
 
-  drawer.addEventListener('transitionend', event => {
+  drawer.addEventListener('transitionend', (event) => {
     if (event.target === drawer && event.propertyName === 'transform' && state === 3) reset();
   });
 
-  addEventListener('scroll', () => {
-    if (desktopQuery.matches) {
-      if (!isVipHash() && state !== 2 && state !== 3) routeY = pageY();
-      if (state === 2 || tick) return;
+  addEventListener(
+    'scroll',
+    () => {
+      if (desktopQuery.matches) {
+        if (!isVipHash() && state !== 2 && state !== 3) routeY = pageY();
+        if (state === 2 || tick) return;
+        tick = 1;
+        requestAnimationFrame(desktopScrollCheck);
+        return;
+      }
+
+      if (!mobileQuery.matches) return;
+      if (state === 2) {
+        if (!activeField() && !keyboardMoving) scrollTo(0, lastY);
+        return;
+      }
+      if (tick) return;
       tick = 1;
-      requestAnimationFrame(desktopScrollCheck);
-      return;
-    }
+      requestAnimationFrame(mobileScrollCheck);
+    },
+    { passive: true },
+  );
 
-    if (!mobileQuery.matches) return;
-    if (state === 2) {
-      if (!activeField() && !keyboardMoving) scrollTo(0, lastY);
-      return;
-    }
-    if (tick) return;
-    tick = 1;
-    requestAnimationFrame(mobileScrollCheck);
-  }, { passive: true });
-
-  addEventListener('resize', () => {
-    if (mobileQuery.matches && innerWidth !== lastWidth) {
-      lastWidth = innerWidth;
-      setViewportHeight();
-    }
-    visualTop();
-  }, { passive: true });
+  addEventListener(
+    'resize',
+    () => {
+      if (mobileQuery.matches && innerWidth !== lastWidth) {
+        lastWidth = innerWidth;
+        setViewportHeight();
+      }
+      visualTop();
+    },
+    { passive: true },
+  );
 
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', visualTop, { passive: true });
     window.visualViewport.addEventListener('scroll', visualTop, { passive: true });
   }
 
-  ['mousedown', 'touchstart', 'click'].forEach(eventName => body.addEventListener(eventName, event => event.stopPropagation(), { passive: true }));
-  ['touchmove', 'wheel'].forEach(eventName => body.addEventListener(eventName, event => event.stopPropagation(), { passive: false }));
+  ['mousedown', 'touchstart', 'click'].forEach((eventName) =>
+    body.addEventListener(eventName, (event) => event.stopPropagation(), { passive: true }),
+  );
+  ['touchmove', 'wheel'].forEach((eventName) =>
+    body.addEventListener(eventName, (event) => event.stopPropagation(), { passive: false }),
+  );
 
-  drawer.addEventListener('focusin', event => {
-    if (!mobileQuery.matches || !isField(event.target)) return;
-    visualTop();
-    keyboardGrace(isAndroid ? 1100 : 650);
-    if (state !== 2 || isIOS) return;
-    setTimeout(() => {
+  drawer.addEventListener(
+    'focusin',
+    (event) => {
+      if (!mobileQuery.matches || !isField(event.target)) return;
       visualTop();
-      if (event.target && drawer.contains(event.target)) {
-        const offset = event.target.getBoundingClientRect().top - drawer.getBoundingClientRect().top;
-        drawer.scrollTo({ top: Math.max(0, drawer.scrollTop + offset - 120), behavior: 'smooth' });
-      }
-    }, isAndroid ? 250 : 150);
-  }, true);
+      keyboardGrace(isAndroid ? 1100 : 650);
+      if (state !== 2 || isIOS) return;
+      setTimeout(
+        () => {
+          visualTop();
+          if (event.target && drawer.contains(event.target)) {
+            const offset =
+              event.target.getBoundingClientRect().top - drawer.getBoundingClientRect().top;
+            drawer.scrollTo({
+              top: Math.max(0, drawer.scrollTop + offset - 120),
+              behavior: 'smooth',
+            });
+          }
+        },
+        isAndroid ? 250 : 150,
+      );
+    },
+    true,
+  );
 
-  drawer.addEventListener('focusout', event => {
-    if (mobileQuery.matches && isField(event.target)) keyboardGrace(isAndroid ? 1000 : 700);
-  }, true);
+  drawer.addEventListener(
+    'focusout',
+    (event) => {
+      if (mobileQuery.matches && isField(event.target)) keyboardGrace(isAndroid ? 1000 : 700);
+    },
+    true,
+  );
 
-  document.addEventListener('touchstart', event => {
-    if (!mobileQuery.matches || state !== 2 || !activeField()) return;
-    const keep = event.target.closest?.(`${fieldSelector},input[type="checkbox"],input[type="radio"],label,.w-checkbox,.w-checkbox-input,.w-form-label,button,a,[role="button"]`);
-    if (keep) return;
-    blurField();
-    keyboardGrace(isAndroid ? 1000 : 700);
-  }, { passive: true, capture: true });
+  document.addEventListener(
+    'touchstart',
+    (event) => {
+      if (!mobileQuery.matches || state !== 2 || !activeField()) return;
+      const keep = event.target.closest?.(
+        `${fieldSelector},input[type="checkbox"],input[type="radio"],label,.w-checkbox,.w-checkbox-input,.w-form-label,button,a,[role="button"]`,
+      );
+      if (keep) return;
+      blurField();
+      keyboardGrace(isAndroid ? 1000 : 700);
+    },
+    { passive: true, capture: true },
+  );
 
-  document.addEventListener('click', event => {
-    if (!mobileQuery.matches || state !== 2 || nestedConsentOpen() || drawer.contains(event.target)) return;
-    blurField();
-    keyboardGrace(isAndroid ? 1000 : 700);
-    event.preventDefault();
-    event.stopPropagation();
-    closeDrawer();
-  }, true);
+  document.addEventListener(
+    'click',
+    (event) => {
+      if (
+        !mobileQuery.matches ||
+        state !== 2 ||
+        nestedConsentOpen() ||
+        drawer.contains(event.target)
+      )
+        return;
+      blurField();
+      keyboardGrace(isAndroid ? 1000 : 700);
+      event.preventDefault();
+      event.stopPropagation();
+      closeDrawer();
+    },
+    true,
+  );
 
-  document.addEventListener('click', event => {
-    const link = event.target.closest?.('a[href]');
-    if (!link || drawer.contains(link) || !/#vip/i.test(link.getAttribute('href') || '')) return;
-    event.preventDefault();
-    event.stopPropagation();
-    if (desktopQuery.matches) routeY = pageY();
-    openDrawer();
-  }, true);
+  document.addEventListener(
+    'click',
+    (event) => {
+      const link = event.target.closest?.('a[href]');
+      if (!link || drawer.contains(link) || !/#vip/i.test(link.getAttribute('href') || '')) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (desktopQuery.matches) routeY = pageY();
+      openDrawer();
+    },
+    true,
+  );
 
-  document.addEventListener('click', event => {
-    const target = event.target.closest?.('#tdb-vip-drawer .tdb-vip-drawer-handle');
-    if (!target) return;
-    event.preventDefault();
-    event.stopPropagation();
-    state === 2 ? closeDrawer() : openDrawer();
-  }, true);
+  document.addEventListener(
+    'click',
+    (event) => {
+      const target = event.target.closest?.('#tdb-vip-drawer .tdb-vip-drawer-handle');
+      if (!target) return;
+      event.preventDefault();
+      event.stopPropagation();
+      state === 2 ? closeDrawer() : openDrawer();
+    },
+    true,
+  );
 
-  handle.addEventListener('keydown', event => {
+  handle.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
     state === 2 ? closeDrawer() : openDrawer();
   });
 
-  document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && state === 2 && !nestedConsentOpen()) closeDrawer();
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && (state === 2 || opening) && !nestedConsentOpen()) closeDrawer();
   });
 
-  ['wheel', 'touchmove'].forEach(eventName => document.addEventListener(eventName, event => {
-    if (state === 2 && !nestedConsentOpen() && !drawer.contains(event.target)) event.preventDefault();
-  }, { passive: false, capture: true }));
+  ['wheel', 'touchmove'].forEach((eventName) =>
+    document.addEventListener(
+      eventName,
+      (event) => {
+        if (state === 2 && !nestedConsentOpen() && !drawer.contains(event.target))
+          event.preventDefault();
+      },
+      { passive: false, capture: true },
+    ),
+  );
 
   addEventListener('hashchange', routeVipHash);
 
-  const vipSection = [...document.querySelectorAll('#VIP')].find(node => !drawer.contains(node));
+  const vipSection = [...document.querySelectorAll('#VIP')].find((node) => !drawer.contains(node));
   if (vipSection && 'IntersectionObserver' in window) {
-    new IntersectionObserver(([entry]) => {
-      near = entry.isIntersecting;
-      if (near && state !== 2 && state !== 3 && state !== 0) reset();
-    }, { rootMargin: '120px 0px' }).observe(vipSection);
+    new IntersectionObserver(
+      ([entry]) => {
+        near = entry.isIntersecting;
+        if (near && state !== 2 && state !== 3 && state !== 0) reset();
+      },
+      { rootMargin: '120px 0px' },
+    ).observe(vipSection);
   }
 
   function syncMode() {
@@ -386,8 +509,12 @@
     if (desktopQuery.matches) requestAnimationFrame(routeVipHash);
   }
 
-  mobileQuery.addEventListener ? mobileQuery.addEventListener('change', syncMode) : mobileQuery.addListener?.(syncMode);
-  desktopQuery.addEventListener ? desktopQuery.addEventListener('change', syncMode) : desktopQuery.addListener?.(syncMode);
+  mobileQuery.addEventListener
+    ? mobileQuery.addEventListener('change', syncMode)
+    : mobileQuery.addListener?.(syncMode);
+  desktopQuery.addEventListener
+    ? desktopQuery.addEventListener('change', syncMode)
+    : desktopQuery.addListener?.(syncMode);
 
   refresh();
   syncMode();
@@ -417,7 +544,6 @@
     status: () => ({
       state,
       mode: mobileQuery.matches ? 'mobile' : 'desktop',
-
     }),
   });
 

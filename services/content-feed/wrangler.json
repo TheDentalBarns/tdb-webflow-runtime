@@ -1,0 +1,6 @@
+{
+  "name": "tdb-content-feed",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-15",
+  "kv_namespaces": [{ "binding": "CONTENT_FEEDS", "id": "CONTENT_FEEDS" }]
+}

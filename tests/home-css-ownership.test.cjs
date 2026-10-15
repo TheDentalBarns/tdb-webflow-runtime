@@ -11,9 +11,9 @@ test('bundled native foundation preserves disclosure state, keyboard access and 
   try {
     w.eval(read('dist/tdb-navbar-loader.js'));
     d.dispatchEvent(new w.Event('DOMContentLoaded'));
-    assert.equal(w.TDBDisclosure.version, '1.2.0');
-    assert.equal(w.TDBNavbarNative.version, '1.1.1');
-    assert.equal(d.querySelectorAll('style[data-tdb-native-control-css]').length, 1);
+    assert.equal(w.TDBDisclosure.version, '1.2.1');
+    assert.equal(w.TDBNavbarNative.version, '2.0.0');
+    assert.equal(d.querySelectorAll('style[data-tdb-native-control-css]').length, 0);
     const [button, link] = d.querySelectorAll('[data-tdb-disclosure-trigger]');
     const [closed, open] = d.querySelectorAll('[data-tdb-disclosure-panel]');
     assert.equal(closed.hidden, true);
@@ -41,6 +41,7 @@ test('shared arrow feedback preserves independent pairs and never duplicates nav
   const w = dom.window, d = w.document;
   try {
     w.eval(read('src/shared/carousel-arrow-feedback.js'));
+    w.eval('prepareCarouselArrowFeedback()');
     const get = id => d.getElementById(id), selected = id => get(id).classList.contains('is-selected');
     let moves = 0;
     get('a').addEventListener('click', () => moves++);

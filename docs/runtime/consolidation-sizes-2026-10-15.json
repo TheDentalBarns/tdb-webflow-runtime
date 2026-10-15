@@ -1,0 +1,127 @@
+{
+  "baseline": "4d7f0abd2196e1f40831e432cf530d252366798b",
+  "note": "Local gzip level 9. Collection includes alternative routes and duplicated registry outputs; it is not initial-page transfer.",
+  "outputs": [
+    {
+      "file": "dist/tdb-calculator-loader.js",
+      "before": {
+        "raw": 2271,
+        "gzip": 1081
+      },
+      "after": {
+        "raw": 3170,
+        "gzip": 1393
+      }
+    },
+    {
+      "file": "dist/tdb-consent.js",
+      "before": {
+        "raw": 20947,
+        "gzip": 7239
+      },
+      "after": {
+        "raw": 21328,
+        "gzip": 7377
+      }
+    },
+    {
+      "file": "dist/tdb-first-impressions.js",
+      "before": {
+        "raw": 10517,
+        "gzip": 4207
+      },
+      "after": {
+        "raw": 10683,
+        "gzip": 4303
+      }
+    },
+    {
+      "file": "dist/tdb-home-desktop-instagram.js",
+      "before": {
+        "raw": 12485,
+        "gzip": 5088
+      },
+      "after": {
+        "raw": 12724,
+        "gzip": 5190
+      }
+    },
+    {
+      "file": "dist/tdb-instagram-feed.js",
+      "before": {
+        "raw": 64877,
+        "gzip": 14212
+      },
+      "after": {
+        "raw": 65232,
+        "gzip": 14371
+      }
+    },
+    {
+      "file": "dist/tdb-legacy-review-drawer.js",
+      "before": {
+        "raw": 44957,
+        "gzip": 13908
+      },
+      "after": {
+        "raw": 45118,
+        "gzip": 13999
+      }
+    },
+    {
+      "file": "dist/tdb-modules.js",
+      "before": {
+        "raw": 4527,
+        "gzip": 1912
+      },
+      "after": {
+        "raw": 4908,
+        "gzip": 2051
+      }
+    },
+    {
+      "file": "dist/tdb-review-cms.js",
+      "before": {
+        "raw": 12636,
+        "gzip": 4711
+      },
+      "after": {
+        "raw": 14236,
+        "gzip": 5212
+      }
+    },
+    {
+      "file": "dist/tdb-review-list-loader.js",
+      "before": {
+        "raw": 2597,
+        "gzip": 1223
+      },
+      "after": {
+        "raw": 3484,
+        "gzip": 1530
+      }
+    },
+    {
+      "file": "dist/tdb-reviews-loader.js",
+      "before": {
+        "raw": 9234,
+        "gzip": 3319
+      },
+      "after": {
+        "raw": 9392,
+        "gzip": 3334
+      }
+    },
+    {
+      "file": "dist/tdb-runtime.js",
+      "before": {
+        "raw": 54121,
+        "gzip": 14965
+      },
+      "after": {
+        "raw": 53279,
+        "gzip": 14680
+      }
+    }
+  ]
+}
