@@ -67,6 +67,7 @@ module.exports = {
   'dist/tdb-vimeo.js': ['src/components/vimeo.js'],
   'dist/tdb-vimeo-loader.js': ['src/loaders/vimeo-loader.js'],
   'dist/tdb-instagram-deferred.js': ['src/instagram/deferred.js'],
+  'dist/tdb-smile-feed.js': ['src/smile-gallery/feed.js'],
   'dist/tdb-instagram-native.min.js': ['src/instagram/native.js'],
   'dist/tdb-ticker.js': ['src/shared/native-ticker.js'],
   'dist/tdb-runtime.js': [
@@ -94,6 +95,7 @@ module.exports = {
     'src/five-senses/launcher.js',
     'src/runtime/review-feature-loader.js',
     'src/runtime/instagram-feature-loader.js',
+    'src/runtime/smile-feature-loader.js',
     'src/runtime/page-break-loader.js',
     'src/runtime/features-startup.js',
     'src/runtime/runtime.js',

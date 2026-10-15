@@ -27,6 +27,11 @@ const sizes = (text) => ({
 });
 function source(file) {
   let code = read(file);
+  if (file === 'src/smile-gallery/feed.js')
+    code = code.replace(
+      '__TDB_SMILE_TEMPLATE__',
+      JSON.stringify(read('src/smile-gallery/template.html').trim()),
+    );
   if (file === 'src/instagram/deferred.js')
     code = code.replace(
       '__TDB_IG_TEMPLATE__',

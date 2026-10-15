@@ -55,7 +55,8 @@
         u = [...c.querySelectorAll('.tdb-smile-fact-ticker')],
         p = u.map((e) => e.querySelector('.tdb-smile-fact-slot')),
         b = s.querySelector('[data-tdb-smile-ticker-template]'),
-        w = window.TDBMotion;
+        w = window.TDBMotion,
+        shared = window.TDBSmileFeed?.presentation(r);
       let m = [],
         f = [],
         h = null,
@@ -110,6 +111,7 @@
                 .forEach((e) => e.classList.toggle('is-expanded', n)),
               e.classList.toggle('is-muted', Boolean(h && !t)));
           }));
+        shared?.open(Boolean(M));
       }
       function j() {
         ((M = null), K());
@@ -123,7 +125,12 @@
             const t = P(e.target);
             W(t) &&
               !y &&
-              ((M = B.matches && e.target.closest('.tdb-smile-summary-ready') ? null : t), K());
+              ((M =
+                B.matches &&
+                (e.target.closest('.tdb-smile-summary-ready') || shared?.overSummary(e))
+                  ? null
+                  : t),
+              K());
           },
           pointerout: (e) => {
             if (e.pointerType && 'mouse' !== e.pointerType) return;
@@ -140,6 +147,16 @@
           },
           pointermove: (e) => {
             O && Math.hypot(e.clientX - O.x, e.clientY - O.y) > 8 && (O.moved = !0);
+            if (
+              shared &&
+              B.matches &&
+              (!e.pointerType || e.pointerType === 'mouse') &&
+              !y &&
+              W(P(e.target))
+            ) {
+              M = shared.overSummary(e) ? null : P(e.target);
+              K();
+            }
           },
           pointercancel: j,
           click: (e) => {
@@ -170,6 +187,7 @@
           },
         };
       function V(e, t = !1) {
+        shared?.fade(e !== null, t);
         m.forEach((i, n) => {
           const r = i.hasAttribute('data-swiper-slide-index')
             ? Number(i.getAttribute('data-swiper-slide-index'))
@@ -191,11 +209,13 @@
         const a = h && !h.destroyed ? h.slides[h.activeIndex] : f[e],
           s =
             ((u = a),
-            n.map((e) => {
-              const t = u?.querySelector('[data-tdb-smile-source-fact="' + e + '"]');
-              return (t?.querySelector('.tdb-smile-source-value') || t)?.textContent.trim() || '';
-            }));
+            shared?.facts(e) ||
+              n.map((e) => {
+                const t = u?.querySelector('[data-tdb-smile-source-fact="' + e + '"]');
+                return (t?.querySelector('.tdb-smile-source-value') || t)?.textContent.trim() || '';
+              }));
         var u;
+        shared?.update(e);
         (s.forEach((e, i) => {
           D[i] ? D[i].update(e, t, v) : (p[i].textContent = e);
         }),
@@ -445,10 +465,17 @@ function createGalleryExploreCount() {
   function refresh() {
     prune();
     const source = document.querySelector('[data-tdb-gallery-count-source]');
-    if (!source?.querySelector('.w-dyn-items, .w-dyn-empty')) return;
-    const count = [...source.querySelectorAll('[data-tdb-gallery-count-item]')].filter(
-      (item) => !item.closest('.swiper-slide-duplicate'),
-    ).length;
+    const feedTotal = document
+      .querySelector('[data-tdb-smile-total]')
+      ?.getAttribute('data-tdb-smile-total');
+    const native = source?.querySelector('.w-dyn-items, .w-dyn-empty');
+    if (!native && !/^\d+$/.test(feedTotal || '')) return;
+    const count = native
+      ? [...source.querySelectorAll('[data-tdb-gallery-count-item]')].filter(
+          (item) => !item.closest('.swiper-slide-duplicate'),
+        ).length
+      : Number(feedTotal);
+    if (!Number.isSafeInteger(count)) return;
     const text = format(count),
       noun = count === 1 ? 'smile transformation' : 'smile transformations';
     for (const link of document.querySelectorAll('[data-tdb-gallery-ticker-link]')) {

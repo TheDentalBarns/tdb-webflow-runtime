@@ -3,6 +3,18 @@ const fs = require('node:fs'), path = require('node:path');
 const {JSDOM} = require('jsdom');
 const read = file => fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
 const flush = () => new Promise(resolve => setImmediate(resolve));
+test('external Smile feed supplies the total without a hidden CMS item list',()=>{
+  const x=setup();
+  try{
+    const source=x.w.document.querySelector('[data-tdb-gallery-count-source]');
+    source.removeAttribute('data-tdb-gallery-count-source');source.replaceChildren();
+    source.setAttribute('data-tdb-smile-total','35');
+    x.api.refresh();assert.equal(x.slot.textContent,'35');
+    assert.equal(x.link.getAttribute('aria-label'),'Explore 35 smile transformations');
+    source.setAttribute('data-tdb-smile-total','broken');x.api.refresh();
+    assert.equal(x.slot.textContent,'35');
+  }finally{x.dom.window.close()}
+});
 function setup(count = 34, options = {}) {
   const dom = new JSDOM('<main><div data-tdb-gallery-count-source><div class="w-dyn-items">' +
     '<div data-tdb-gallery-count-item></div>'.repeat(count) +

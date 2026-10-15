@@ -89,10 +89,17 @@ function createGalleryExploreCount() {
   function refresh() {
     prune();
     const source = document.querySelector('[data-tdb-gallery-count-source]');
-    if (!source?.querySelector('.w-dyn-items, .w-dyn-empty')) return;
-    const count = [...source.querySelectorAll('[data-tdb-gallery-count-item]')].filter(
-      (item) => !item.closest('.swiper-slide-duplicate'),
-    ).length;
+    const feedTotal = document
+      .querySelector('[data-tdb-smile-total]')
+      ?.getAttribute('data-tdb-smile-total');
+    const native = source?.querySelector('.w-dyn-items, .w-dyn-empty');
+    if (!native && !/^\d+$/.test(feedTotal || '')) return;
+    const count = native
+      ? [...source.querySelectorAll('[data-tdb-gallery-count-item]')].filter(
+          (item) => !item.closest('.swiper-slide-duplicate'),
+        ).length
+      : Number(feedTotal);
+    if (!Number.isSafeInteger(count)) return;
     const text = format(count),
       noun = count === 1 ? 'smile transformation' : 'smile transformations';
     for (const link of document.querySelectorAll('[data-tdb-gallery-ticker-link]')) {

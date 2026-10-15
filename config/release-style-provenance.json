@@ -8,7 +8,8 @@
     "tdb-partner-card.css": "5c59038b7132e8a65cd337a751cbb5b41405dd56",
     "tdb-five-senses.css": "c847ee9841b79a6749c39eb482d0c91c23f38ec0",
     "tdb-vip.css": "48124a90eddd39bf4ae611d00b9fe80583b98872",
-    "tdb-instagram-native.css": "14f6b5d4c913d0205c5f1fd795483f042e8525df"
+    "tdb-instagram-native.css": "14f6b5d4c913d0205c5f1fd795483f042e8525df",
+    "tdb-smile-feed.css": "Home native Smile Gallery export on 2026-10-15, scoped to the external feed with one shared presentation"
   },
   "patches": {
     "tdb-review-drawer.css": "2026-10-15: mirror the Webflow tdb-review-drawer_star native class mask/background/colour into this lazy CSS snapshot. The drawer is mounted after load, so its class is not emitted in the optimized initial page stylesheet. Preserve its existing size and is-empty opacity."

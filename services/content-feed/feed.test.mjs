@@ -1,6 +1,53 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createFeedService, projectInstagram, COLLECTION, CATEGORY } from './feed.mjs';
+import { createFeedService, projectInstagram, projectSmiles, COLLECTION, CATEGORY, SMILE_COLLECTION } from './feed.mjs';
+
+const smile = (id = 'smile1', fields = {}, extra = {}) => ({
+  id, isArchived: false, lastPublished: '2026-10-15T10:00:00Z', createdOn: '2026-01-01T00:00:00Z',
+  fieldData: { featured: true, header: 'A natural smile', description: 'Published description',
+    'before-and-after-picture': { url: 'https://cdn.prod.website-files.com/67837ee85ee175873126e461/example.webp', alt: 'Before and after' },
+    'treatment-s-carried-out': ['678a8a0fc4638735effb336e', '678a8a3bb9789257faea7f25'],
+    'cosmetic-lead-1': '2adb229d526cbad7bcbf34f3c508943e',
+    price: 'From £1,000', duration: '6 months', 'import-notes': 'PRIVATE', ...fields }, ...extra,
+});
+test('Smile projection preserves native order and labels without exposing source records', () => {
+  const result = projectSmiles([smile('pinned', {'pin-priority':1}), smile('blank'),
+    smile('unfeatured',{featured:false}), smile('draft',{}, {lastPublished:null})]);
+  assert.deepEqual(result.cases.map(x=>x.id), ['blank','pinned']);
+  assert.equal(result.total, 3);
+  assert.deepEqual(result.cases[0].treatments, ['Invisalign®','Enlighten® Whitening']);
+  assert.equal(result.cases[0].clinician, 'Dr Keely Thorne');
+  assert.ok(!JSON.stringify(result).includes('PRIVATE'));
+  assert.ok(!JSON.stringify(result).includes('cosmetic-lead'));
+  assert.equal(projectSmiles([smile('pending',{}, {isDraft:true})]).cases.length,1);
+  assert.throws(()=>projectSmiles([smile('unsafe',{'before-and-after-picture':{url:'https://evil.example/x'}})]));
+  assert.throws(()=>projectSmiles([smile('unknown',{'cosmetic-lead-1':'unknown'})]));
+});
+test('Instagram and Smile requests have independent flights, cache keys and failure backoff', async () => {
+  let time=Date.now(), failSmiles=false;
+  const saved=new Map(), calls=[];
+  const env={WEBFLOW_API_TOKEN:'test-secret',CONTENT_FEEDS:{
+    get:async key=>saved.get(key),put:async(key,value)=>saved.set(key,JSON.parse(value))}};
+  const create=()=>createFeedService({now:()=>time,fetcher:async url=>{
+    calls.push(url);
+    if(url.includes(SMILE_COLLECTION)){if(failSmiles)throw Error('offline');return page([smile()]);}
+    return page([item()]);
+  }});
+  const handle=create();
+  const responses=await Promise.all([handle(request(),env),handle(request('/tdb-content/v1/smiles.json'),env)]);
+  assert.deepEqual(await Promise.all(responses.map(async r=>(await r.json()).feed)),['instagram','smiles']);
+  assert.equal(saved.size,2);
+  await create()(request('/tdb-content/v1/smiles.json'),env);
+  assert.equal(calls.length,2);
+  time+=300001;failSmiles=true;
+  assert.equal((await handle(request('/tdb-content/v1/smiles.json'),env)).headers.get('X-TDB-Feed-State'),'stale');
+  assert.equal((await handle(request(),env)).headers.get('X-TDB-Feed-State'),'fresh');
+  const before=calls.length;
+  await handle(request('/tdb-content/v1/smiles.json'),env);
+  assert.equal(calls.length,before);
+  time+=3600000;
+  assert.equal((await handle(request('/tdb-content/v1/smiles.json'),env)).status,503);
+});
 
 const IMAGE = 'https://cdn.prod.website-files.com/67837ee85ee175873126e461/example.webp';
 const item = (id = 'post1', fields = {}, extra = {}) => ({

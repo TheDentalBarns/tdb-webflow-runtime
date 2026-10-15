@@ -1,0 +1,7 @@
+/* Critical native placeholder only. Full gallery styles load at proximity. */
+.tdb-smile-placeholder{width:calc(33.3333% - 1.33333rem);position:relative;container-type:inline-size}
+.tdb-smile-holding-image{background:#fff;display:flex;align-items:center;justify-content:center;width:100%;height:calc(17rem + 100cqw)}
+.tdb-smile-holding-icon{display:block;width:2.75rem;height:2.75rem;opacity:.35}
+@media screen and (max-width:991px){.tdb-smile-placeholder{width:70vw}}
+@media screen and (max-width:479px){.tdb-smile-placeholder{width:90vw}}
+@media screen and (min-width:480px) and (max-width:991px) and (max-height:500px) and (orientation:landscape){.tdb-smile-placeholder{width:100%}.tdb-smile-holding-image{height:calc(17rem + 25cqw)}}

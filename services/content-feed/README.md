@@ -1,9 +1,10 @@
-# TDB content feed — Instagram staging trial
+# TDB content feed — Instagram and Smile Gallery staging trials
 
 The Instagram trial is active on the Webflow staging homepage as of 15 October
 2026. The published endpoint and desktop/mobile carousel have been verified. This
 first route replaces the homepage's repeated Instagram CMS markup with a small
-published-data projection. Announcements, Smiles, and Reviews are not migrated.
+published-data projection. The Home Smile Gallery now uses the same service with
+an independent projection and cache. Announcements and Reviews are not migrated.
 
 ## Deployment
 
@@ -14,6 +15,7 @@ published-data projection. Announcements, Smiles, and Reviews are not migrated.
 - Environment: `37e6e393-ca1c-44a2-b7f9-367da6ceb270` (`staging`).
 - Mount: `/tdb-content`.
 - Route: `GET /tdb-content/v1/instagram.json` (also supports HEAD).
+- Smile route: `GET /tdb-content/v1/smiles.json` (also supports HEAD).
 - Runtime hostname allowlist: `dentalbarns.webflow.io` only.
 - Framework: Vite 8.3.4, with a thin `src/worker.ts` API handler.
 - Storage: `CONTENT_FEEDS` KV, provisioned per environment by Webflow Cloud.
@@ -23,10 +25,9 @@ published-data projection. Announcements, Smiles, and Reviews are not migrated.
 
 Cloud builds the Worker adapter; the local Vite build checks the app package but
 does not itself prove that the Cloud Worker or its bindings have deployed.
-The active Worker deployment is `6b53c056-165e-4197-82c0-07b0f3160503`.
+The Smile Worker deployment is `ed6e3df7-7f72-4905-a032-baa79ec9fce8`.
 Its `CONTENT_FEEDS` KV binding and secret `WEBFLOW_API_TOKEN` are configured.
-The homepage's three runtime URLs are pinned to
-`81eab268d7f7da33100db4d09d711c74c8ee1113`. The app uses direct CLI
+The homepage's three runtime URLs share one release SHA. The app uses direct CLI
 uploads; GitHub pushes alone do not deploy it. From this directory, redeploy with:
 
 ```text
@@ -56,6 +57,14 @@ order ascending and date descending, and cap at 20 posts. Only post URL, image U
 alt text, calendar date, media type, and public engagement counts are returned.
 Import notes, source captions, source file links, account metadata, and raw CMS
 records are excluded. Empty counts remain unknown; a verified zero remains zero.
+
+The Smile route reads the Smile Galleries live collection, returns featured
+cases in the native priority/creation order, and includes the total published
+case count. Only titles, descriptions, combined images, alt text, prices,
+durations, clinician labels and treatment labels are public. Option/reference
+IDs map to the same labels used by the native component; new clinician choices
+need a corresponding projection mapping. See
+`docs/releases/2026-10-15-smile-feed/README.md` for the Home integration.
 
 Snapshots refresh on the first request after five minutes. This works without a
 scheduled task or webhook. Publish/unpublish/delete changes appear on a subsequent

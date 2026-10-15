@@ -182,10 +182,10 @@
         "src/smile-gallery/explore-count.js",
         "src/sliders/gallery-plugin.js"
       ],
-      "sha256": "7445ce7b2ca0d05a1157167ab4b43d24cc59c0b1527e03cc49e0c3dc40282b1a",
-      "raw": 16316,
-      "gzip": 5714,
-      "brotli": 5113
+      "sha256": "77d2f0436b519746f7170feb48d6dfd8dd2be88c1f7b786e36757cd8ae13eb84",
+      "raw": 16728,
+      "gzip": 5859,
+      "brotli": 5226
     },
     "dist/tdb-home-desktop-instagram.js": {
       "sources": [
@@ -503,14 +503,15 @@
         "src/five-senses/launcher.js",
         "src/runtime/review-feature-loader.js",
         "src/runtime/instagram-feature-loader.js",
+        "src/runtime/smile-feature-loader.js",
         "src/runtime/page-break-loader.js",
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "463e85494aaf6d2fb5b02859e77a50fd831c179b58f69c97b0e5c71abdc1f284",
-      "raw": 55551,
-      "gzip": 15028,
-      "brotli": 13335
+      "sha256": "ed81491108974de1a54191d61963257d71f8a14bc8c0041b1172770cc148b04c",
+      "raw": 56991,
+      "gzip": 15260,
+      "brotli": 13534
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -529,6 +530,15 @@
       "raw": 5509,
       "gzip": 2194,
       "brotli": 1945
+    },
+    "dist/tdb-smile-feed.js": {
+      "sources": [
+        "src/smile-gallery/feed.js"
+      ],
+      "sha256": "5c51383b6e0df6c84dda37fe5560dcad703b3a862c0ee97491213fcd04aa3b13",
+      "raw": 11527,
+      "gzip": 3893,
+      "brotli": 3380
     },
     "dist/tdb-smile-gallery.min.js": {
       "sources": [
