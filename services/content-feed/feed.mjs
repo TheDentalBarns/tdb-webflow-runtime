@@ -1,3 +1,4 @@
+import { projectReviews, REVIEW_COLLECTIONS } from './reviews.mjs';
 /* Public projections of published Webflow CMS data. No CMS credentials or raw
  * records are returned. Route-specific projections can be added for other feeds. */
 export const COLLECTION = '6ab7b3c409814bb83c9902de';
@@ -167,6 +168,21 @@ export function projectSmiles(items) {
 }
 
 const FEEDS = {
+  '/tdb-content/v1/reviews.json': {
+    name: 'reviews',
+    key: 'reviews:published:v1',
+    collections: REVIEW_COLLECTIONS,
+    project: projectReviews,
+    valid: (snapshot) =>
+      Array.isArray(snapshot.records) &&
+      snapshot.records.length <= 1000 &&
+      Array.isArray(snapshot.featured) &&
+      Number.isFinite(snapshot.average) &&
+      snapshot.average >= 0 &&
+      snapshot.average <= 5 &&
+      Number.isSafeInteger(snapshot.total) &&
+      snapshot.total >= 0,
+  },
   '/tdb-content/v1/instagram.json': {
     name: 'instagram',
     key: 'instagram:awards:v1',
@@ -188,6 +204,14 @@ const FEEDS = {
 };
 
 async function readPublished(fetcher, token, feed) {
+  if (feed.collections) {
+    const inputs = await Promise.all(
+      feed.collections.map((collection) =>
+        readPublished(fetcher, token, { collection, project: (items) => items }),
+      ),
+    );
+    return feed.project(...inputs);
+  }
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
   try {

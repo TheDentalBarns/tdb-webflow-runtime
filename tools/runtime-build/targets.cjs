@@ -39,7 +39,11 @@ module.exports = {
   'dist/tdb-motion.js': ['src/shared/motion.js'],
   'dist/tdb-filters.js': ['src/shared/filters.js'],
   'dist/tdb-slider-focus.js': ['src/shared/slider-focus.js'],
-  'dist/tdb-review-cms.js': ['src/reviews/native/cms.js', 'src/reviews/native/quote-adapter.js'],
+  'dist/tdb-review-cms.js': [
+    'src/reviews/native/json.js',
+    'src/reviews/native/cms.js',
+    'src/reviews/native/quote-adapter.js',
+  ],
   'dist/tdb-review-availability.js': ['src/reviews/native/availability.js'],
   'dist/tdb-review-introduction.js': ['src/reviews/native/introduction.js'],
   'dist/tdb-review-quotes.js': ['src/reviews/native/quotes.js'],

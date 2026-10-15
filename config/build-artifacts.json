@@ -387,13 +387,14 @@
     },
     "dist/tdb-review-cms.js": {
       "sources": [
+        "src/reviews/native/json.js",
         "src/reviews/native/cms.js",
         "src/reviews/native/quote-adapter.js"
       ],
-      "sha256": "3a6e71af063d6bfbd04d56261e82b7fa88279ec54c43b42ad532a1da2e23c0fc",
-      "raw": 14236,
-      "gzip": 5200,
-      "brotli": 4561
+      "sha256": "f5ca4819266ab624b3057942b36ffd323700a09111a084e040405c60e30440b4",
+      "raw": 18655,
+      "gzip": 6555,
+      "brotli": 5763
     },
     "dist/tdb-review-drawer-template.js": {
       "sources": [

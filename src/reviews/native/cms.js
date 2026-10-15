@@ -395,6 +395,10 @@
   }
   async function load({ signal } = {}) {
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
+    const feed = document
+      .querySelector('[data-tdb-reviews-feed]')
+      ?.getAttribute('data-tdb-reviews-feed');
+    if (feed) return window.TDBReviewJSON.load(feed, { signal, resolveIdentity });
     if (cached && Date.now() - cachedAt < 60000) return cached;
     const first = await requestPage('/review-content', { signal });
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');

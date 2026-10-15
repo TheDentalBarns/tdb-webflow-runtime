@@ -1,10 +1,12 @@
-# TDB content feed — Instagram and Smile Gallery staging trials
+# TDB content feed — Instagram, Smile Gallery and Reviews staging trials
 
 The Instagram trial is active on the Webflow staging homepage as of 15 October
 2026. The published endpoint and desktop/mobile carousel have been verified. This
 first route replaces the homepage's repeated Instagram CMS markup with a small
 published-data projection. The Home Smile Gallery now uses the same service with
-an independent projection and cache. Announcements and Reviews are not migrated.
+an independent projection and cache. The Home review drawer and inline review
+consumers can opt into the Reviews JSON projection through their existing lazy
+host. Announcements are not migrated.
 
 ## Deployment
 
@@ -16,6 +18,7 @@ an independent projection and cache. Announcements and Reviews are not migrated.
 - Mount: `/tdb-content`.
 - Route: `GET /tdb-content/v1/instagram.json` (also supports HEAD).
 - Smile route: `GET /tdb-content/v1/smiles.json` (also supports HEAD).
+- Reviews route: `GET /tdb-content/v1/reviews.json` (also supports HEAD).
 - Runtime hostname allowlist: `dentalbarns.webflow.io` only.
 - Framework: Vite 8.3.4, with a thin `src/worker.ts` API handler.
 - Storage: `CONTENT_FEEDS` KV, provisioned per environment by Webflow Cloud.
@@ -25,7 +28,7 @@ an independent projection and cache. Announcements and Reviews are not migrated.
 
 Cloud builds the Worker adapter; the local Vite build checks the app package but
 does not itself prove that the Cloud Worker or its bindings have deployed.
-The Smile Worker deployment is `ed6e3df7-7f72-4905-a032-baa79ec9fce8`.
+The current Worker deployment is `ba087cd3-d9d0-42f4-a7e2-c1d7ebabdd66` (IG, Smiles and Reviews).
 Its `CONTENT_FEEDS` KV binding and secret `WEBFLOW_API_TOKEN` are configured.
 The homepage's three runtime URLs share one release SHA. The app uses direct CLI
 uploads; GitHub pushes alone do not deploy it. From this directory, redeploy with:
@@ -50,6 +53,13 @@ posts or feed links. No feed page or sitemap entry is created. The JSON data is
 public, like the displayed posts; noindex is not access control.
 
 ## Content and refresh
+
+The Reviews route reads three live collections (reviews, approved responses and
+the existing aggregate record) into one validated snapshot. It retains the
+published UI fields, topic/excerpt metadata and editorial selection policy.
+Home derives its complete filter index from that JSON and preserves 20-record
+display batches without fetching HTML pagination/detail pages. See
+`docs/releases/2026-10-15-reviews-json/README.md` for scope and rollback.
 
 Read the Media Gallery collection's **live** endpoint, across all pages before
 filtering. Match the existing visible switch and awards category, sort by display

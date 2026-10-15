@@ -12,7 +12,7 @@
     "tdb-smile-feed.css": "Home native Smile Gallery export on 2026-10-15, scoped to the external feed with one shared presentation"
   },
   "patches": {
-    "tdb-instagram-native.css": "2026-10-15: reuse the shared TDB reveal fade and keep the stationary IG holder visible underneath until that same fade duration completes, matching Smiles.",
+    "tdb-instagram-native.css": "2026-10-15: reuse the shared TDB reveal fade and keep the stationary IG holder visible underneath until that same fade duration completes, matching Smiles. White video glyph uses the same SVG with a brightness/invert filter; the single shared focus-card badge retains its existing video-only visibility.",
     "tdb-smile-feed.css": "2026-10-15: reserve the native 3 em facts-row height in the shared summary with CSS padding; keep the treatment gap without restoring hidden per-card facts. Native Smile holding colour uses the existing orange-1 cream token. Delay hiding the stationary holder until the decoded gallery finishes its shared reveal fade.",
     "tdb-review-drawer.css": "2026-10-15: mirror the Webflow tdb-review-drawer_star native class mask/background/colour into this lazy CSS snapshot. The drawer is mounted after load, so its class is not emitted in the optimized initial page stylesheet. Preserve its existing size and is-empty opacity."
   }
