@@ -1,4 +1,4 @@
-/* TDB Announcement 2.1.0: native Designer markup, shared Swiper/motion/tickers. */
+/* TDB Announcement 2.2.0: native or deferred markup, shared Swiper/motion/tickers. */
 (() => {
   'use strict';
   if (window.TDBAnnouncement) return;
@@ -391,6 +391,17 @@
         loadSettings();
         return;
       }
+      // The deferred Home mount stays empty until consent, data and styles are ready.
+      // Other pages retain their native markup. This template shares the existing
+      // announcement request, so externalising it adds no network round trip.
+      if (
+        shell.hasAttribute('data-tdb-announcement-lazy') &&
+        !shell.querySelector('.tdb-announcement')
+      ) {
+        const template = document.createElement('template');
+        template.innerHTML = __TDB_ANNOUNCEMENT_TEMPLATE__;
+        shell.append(template.content.cloneNode(true));
+      }
       started = true;
       events.forEach((name) => window.removeEventListener(name, consentReady));
       button = shell.querySelector('.tdb-announcement');
@@ -523,7 +534,7 @@
       start();
     }
     const api = Object.freeze({
-      version: '2.1.0',
+      version: '2.2.0',
       configure(next) {
         overrides = { ...overrides, ...next };
         config = { ...config, ...next };
@@ -532,7 +543,7 @@
         render();
       },
       status: () => ({
-        version: '2.1.0',
+        version: '2.2.0',
         mounted: started,
         mode,
         deadline: config.deadline,
@@ -556,7 +567,7 @@
   }
   window.TDBSwiper.register('announcement', { mount: createAnnouncement });
   window.TDBAnnouncement = Object.freeze({
-    version: '2.1.0',
+    version: '2.2.0',
     mount(target) {
       if (instances.has(target)) return instances.get(target);
       const instance = window.TDBSwiper.mount('announcement', target);
@@ -568,7 +579,7 @@
     },
     status: () =>
       [...instances.values()].map((instance) => instance.status())[0] || {
-        version: '2.1.0',
+        version: '2.2.0',
         mounted: false,
       },
   });

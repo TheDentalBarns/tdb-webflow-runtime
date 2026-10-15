@@ -27,6 +27,11 @@ const sizes = (text) => ({
 });
 function source(file) {
   let code = read(file);
+  if (file === 'src/banner/announcement.js')
+    code = code.replace(
+      '__TDB_ANNOUNCEMENT_TEMPLATE__',
+      JSON.stringify(read('src/banner/template.html').trim()),
+    );
   if (file === 'src/vip-drawer/content.js')
     code = code.replace(
       '__TDB_VIP_CONTENT__',

@@ -44,7 +44,7 @@ html:has(#tdb-vip-drawer:is(.is-open,.is-closing)) #tdb-elfsight-timer-shell{
 
 @media (min-width:992px) {
   /* Use the navbar's own settled state; do not create a competing scroll threshold. */
-  html[data-wf-page="677cf86df9952f978d94d8a9"]:has(.navbar10_component:is([style*="translateY(0)"],[style*="translateY(0px)"])) #tdb-elfsight-timer-shell {
+  html:has(.navbar10_component:is([style*="translateY(0)"],[style*="translateY(0px)"])) #tdb-elfsight-timer-shell {
     transform:translate3d(0,-100%,0)!important;
     opacity:1!important;
     visibility:hidden!important;

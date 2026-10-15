@@ -7,10 +7,10 @@
       "sources": [
         "src/banner/announcement.js"
       ],
-      "sha256": "a067b7e358d8a9fc3b8c56b9f2f9c5735dc5906277a99a1d761b5e30bcbc42bb",
-      "raw": 9337,
-      "gzip": 4008,
-      "brotli": 3548
+      "sha256": "f35e3d5dec63497a3b29b37b87f97978136e8a7e1e799faacab6bd9ea19fc592",
+      "raw": 11540,
+      "gzip": 4468,
+      "brotli": 3918
     },
     "dist/tdb-attribution.min.js": {
       "sources": [

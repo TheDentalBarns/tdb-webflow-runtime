@@ -1,4 +1,4 @@
-/* TDB Announcement 2.1.0: native Designer markup, shared Swiper/motion/tickers. */
+/* TDB Announcement 2.2.0: native or deferred markup, shared Swiper/motion/tickers. */
 (() => {
   'use strict';
   if (window.TDBAnnouncement) return;
@@ -391,6 +391,18 @@
         loadSettings();
         return;
       }
+      // The deferred Home mount stays empty until consent, data and styles are ready.
+      // Other pages retain their native markup. This template shares the existing
+      // announcement request, so externalising it adds no network round trip.
+      if (
+        shell.hasAttribute('data-tdb-announcement-lazy') &&
+        !shell.querySelector('.tdb-announcement')
+      ) {
+        const template = document.createElement('template');
+        template.innerHTML =
+          '<a draggable="false" tabindex="-1" aria-controls="tdb-vip-drawer" aria-haspopup="dialog" role="button" href="/vip/become-a-patient" class="tdb-announcement padding-global w-button"><span aria-hidden="true" class="tdb-announcement-spacer"></span> <span class="tdb-announcement-viewport"><span class="tdb-announcement-track"> <span data-message="signature" class="tdb-announcement-panel"><span class="tdb-announcement-title">Signature Assessment ✦ Next appointment</span><span class="tdb-announcement-lower tdb-announcement-slot">Enquire about appointments</span></span><span data-message="smile" class="tdb-announcement-panel"><span class="tdb-announcement-title">Smile Design</span><span class="tdb-announcement-lower"><span aria-hidden="true" class="tdb-announcement-countdown"><span class="tdb-announcement-unit"><span class="tdb-announcement-value"><span data-countdown-unit="0" class="tdb-announcement-digit">00</span></span><small class="tdb-announcement-label">Days</small></span><span class="tdb-announcement-unit"><span class="tdb-announcement-value"><span data-countdown-unit="1" class="tdb-announcement-digit">00</span></span><small class="tdb-announcement-label">Hours</small></span><span class="tdb-announcement-unit"><span class="tdb-announcement-value"><span data-countdown-unit="2" class="tdb-announcement-digit">00</span></span><small class="tdb-announcement-label">Minutes</small></span><span class="tdb-announcement-unit"><span class="tdb-announcement-value"><span data-countdown-unit="3" class="tdb-announcement-digit">00</span></span><small class="tdb-announcement-label">Seconds</small></span></span><span data-announcement-action="">Join The Dental Barns VIP</span></span></span></span></span><span aria-hidden="true" class="tdb-announcement-circle"><span class="tdb-announcement-arrow"></span><svg viewBox="0 0 44 44" class="tdb-announcement-dial"><circle r="21.5" cy="22" cx="22"></circle><circle pathLength="1" r="21.5" cy="22" cx="22" class="tdb-announcement-progress"></circle></svg></span></a>';
+        shell.append(template.content.cloneNode(true));
+      }
       started = true;
       events.forEach((name) => window.removeEventListener(name, consentReady));
       button = shell.querySelector('.tdb-announcement');
@@ -523,7 +535,7 @@
       start();
     }
     const api = Object.freeze({
-      version: '2.1.0',
+      version: '2.2.0',
       configure(next) {
         overrides = { ...overrides, ...next };
         config = { ...config, ...next };
@@ -532,7 +544,7 @@
         render();
       },
       status: () => ({
-        version: '2.1.0',
+        version: '2.2.0',
         mounted: started,
         mode,
         deadline: config.deadline,
@@ -556,7 +568,7 @@
   }
   window.TDBSwiper.register('announcement', { mount: createAnnouncement });
   window.TDBAnnouncement = Object.freeze({
-    version: '2.1.0',
+    version: '2.2.0',
     mount(target) {
       if (instances.has(target)) return instances.get(target);
       const instance = window.TDBSwiper.mount('announcement', target);
@@ -568,7 +580,7 @@
     },
     status: () =>
       [...instances.values()].map((instance) => instance.status())[0] || {
-        version: '2.1.0',
+        version: '2.2.0',
         mounted: false,
       },
   });

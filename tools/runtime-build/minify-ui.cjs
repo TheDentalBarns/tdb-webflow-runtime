@@ -14,7 +14,11 @@ const bundles = {
   'tdb-ui-critical.css': ['tdb-ui-critical.css'],
   'tdb-control-motion.css': ['tdb-control-motion.css'],
   'tdb-vimeo.css': ['tdb-vimeo-ui.css'],
-  'tdb-announcement.css': ['tdb-announcement-chrome.css', 'tdb-announcement-states.css'],
+  'tdb-announcement.css': [
+    'tdb-announcement-layout.css',
+    'tdb-announcement-chrome.css',
+    'tdb-announcement-states.css',
+  ],
   'tdb-slider-ui.css': [
     'tdb-slider-chrome.css',
     'tdb-slider-ui.css',
