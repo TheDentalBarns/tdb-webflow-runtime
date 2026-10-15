@@ -1,53 +1,76 @@
-# Reviews JSON staging migration
+# Reviews JSON with requested batches
 
-Home opts into `/tdb-content/v1/reviews.json` through `data-tdb-reviews-feed` on
-its existing empty `data-tdb-review-lazy` host. The drawer already had no inline
-layout or CMS data: the host was 35 bytes. Its template, CSS, controls and Swiper
-remain demand-loaded. No additional inline records or startup script are added.
+Home uses `/tdb-content/v2/reviews.json` through `data-tdb-reviews-feed` on its
+existing empty lazy host. The template, CSS, controls and Swiper remain
+demand-loaded. No review records are added to initial HTML.
 
-The Cloud app reads the live Reviews, Review Responses and SEO Reviews collections.
-Only approved, non-excluded published reviews are projected. Unpublished drafts,
-tagging guidance, capture details, verification notes and other internal fields
-are excluded. The public projection preserves full text, authored display dates,
-ratings, source links, historic/approximate flags, topic excerpts, ranking and
-duplicate grouping, published responses, aggregate figures and featured identities.
-Machine dates become ISO calendar dates; visible date labels are unchanged.
+The Cloud service reads the live Reviews, approved Review Responses and SEO
+Reviews collections into one validated snapshot. Only approved, non-excluded
+published records and the existing public UI fields are included. CMS credentials,
+drafts, tagging guidance and capture/verification notes are not exposed.
 
-All 85 current reviews, their ordering, the 4.94/85 aggregate, three featured
-identities and the published response match the prior HTML feed. The route has
-its own memory/KV snapshot and refresh backoff, like Instagram and Smiles. All
-three source reads must succeed before replacing the previous snapshot.
+## Requests and ordering
 
-The client validates the JSON and derives its filter index locally. It exposes
-the existing CMS session API with 20-record display batches, complete filter
-metadata and cached detail access. Inline review cards still append their own
-eight-card batches. Filters and late review responses no longer require HTML
-continuation/detail requests on the opted-in Home page. Other pages retain the
-legacy HTML adapter; `/reviews` remains the existing public archive.
+The initial v2 request returns a compact index: public identity, topics, available
+excerpt topics, dates, ratings and editorial/context priorities, plus aggregate
+figures and featured identities. It contains no full review, excerpt or response
+text. The browser orders this metadata before requesting its first 20 bodies.
 
-The old data pages remain available for those legacy consumers and rollback.
-This migration creates no new feed page or sitemap entry. The JSON is public
-and sends noindex headers; these are indexing preferences, not authentication.
+A request with `ids=slug-a,slug-b&revision=...` returns only those published
+records, in the requested order, with a maximum of 20 per request. Selection does
+not require fetching preceding feed positions. Filters can request any set of
+IDs. The browser caches fetched bodies and requests only missing IDs; concurrent
+identical requests are shared with independent caller cancellation.
 
-The Instagram video badge already existed once in its stationary focus frame.
-Its existing video-only visibility and entrance timings are retained. The same
-shared black SVG is made white with a CSS brightness/invert filter; no duplicate
-asset, per-card icon or new JavaScript handler is added.
+Home preserves native editorial order. Opted-in nervous-patient, clear-aligner
+and location pages use their CMS context priorities, then relevance and editorial
+priority. Other known treatment contexts prioritise relevant topics/excerpts.
+Each context retains all reviews in its full index; rating/date sorting and
+filters operate over that complete index. The fixture verifies 10, 2, 4 as the
+first nervous-patient selection and a different first selection for aligners.
+The endpoint itself supports any caller-selected order.
 
-The live JSON is 130,052 bytes before compression. Its 85 records and featured
-selection exactly match the validated native-data comparison. Cloud deployment
-`ba087cd3-d9d0-42f4-a7e2-c1d7ebabdd66` serves all three feeds.
+The drawer continues 20-record visual/transfer batches; inline cards keep
+eight-card visual batches. Existing named-introduction identity recovery still
+advances the ordered session when necessary. Explicit filter/detail selections
+use the direct ID API. Other Webflow pages are not automatically opted in:
+their native markup and legacy HTML adapter remain, including the public
+`/reviews` archive.
 
-## Validation and rollback
+## Consistent snapshots
 
-The release includes projection/privacy, complete-snapshot failure, cache
-isolation, filter/batch compatibility, request-sharing/cancellation, invalid
-payload and same-origin URL tests. Browser checks cover opening, next/previous,
-filtering to the one-star review and its response, reset, desktop/mobile layout,
-and the single Instagram video badge. No TBT improvement is claimed.
+V1 and v2 share the existing five-minute refresh and isolated Reviews cache.
+Before handing out an index, the service retains that revision in KV. Batch
+requests use the same revision even if a newer CMS snapshot is published during
+browsing. Revisions expire no later than one hour from their original check;
+an expired session returns 410 and requires a refresh. Invalid IDs/oversized
+requests are rejected; no caller can select an arbitrary CMS collection.
 
-To roll back Home's data adapter, remove `data-tdb-reviews-feed` from the lazy
-host and publish staging. Restore all three runtime pins to
-`e25d477dfb06f3f4fb564afec1a20faa7d27837a` for the complete prior runtime.
-The additional Cloud route can remain unused. The preceding Cloud deployment
-is `ed6e3df7-7f72-4905-a032-baa79ec9fce8`. Production publishing is not included.
+Cloud deployment: `a5a9fe9f-4dce-4d21-9d8f-4e1d5f1b9a21`.
+The original v1 full response stays available for the previous runtime.
+
+## Verification and size
+
+All 85 records, their public fields, the 4.94/85 aggregate and published response
+match the original content. API checks include requested order, 20-record bound,
+revision isolation across refresh/isolate restart, expiry, cancellation,
+malformed data and complete-source refresh failure.
+
+Using consistent local gzip (not a new GTmetrix transfer measurement):
+
+- First v2 index plus 20 bodies: 70,347 raw / 12,731 gzip bytes, two requests.
+- Previous full v1 JSON: 130,052 raw / 23,719 gzip bytes, one request.
+- Full v2 collection including the index: 154,529 raw / 30,386 gzip bytes,
+  six requests. Chunking adds overhead but avoids downloading unneeded bodies.
+- Legacy complete HTML feed: 388,893 raw / 59,416 gzip bytes, five requests.
+
+The Instagram badge remains one white icon on the stationary focus frame,
+with the existing video/photo toggle and entrance timing.
+
+## Rollback
+
+Restore the Home feed attribute to `/tdb-content/v1/reviews.json` and all three
+runtime pins to `31001002a8ef76b14c2c539612195749332ba617`, then publish staging.
+The additive v2 endpoint can remain unused; the preceding service deployment is
+`ba087cd3-d9d0-42f4-a7e2-c1d7ebabdd66`. To return to the legacy HTML data adapter,
+remove the Home feed attribute. Production publishing is not included.

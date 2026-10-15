@@ -5,6 +5,61 @@ export const REVIEW_COLLECTIONS = [
   '6ac111967d68e43d43768534',
   '69948cc9ceae27ae3114cb28',
 ];
+export const REVIEW_BATCH_PATH = '/tdb-content/v2/reviews.json';
+export const reviewRevisionKey = (revision) => `reviews:batch:v2:${revision}`;
+
+// A compact, public selection index. Bodies, quotations and responses only travel
+// in explicitly requested batches. Every batch is pinned to this index revision.
+export function reviewIndex(snapshot) {
+  return {
+    version: 2,
+    feed: 'reviews',
+    checkedAt: snapshot.checkedAt,
+    average: snapshot.average,
+    total: snapshot.total,
+    featured: snapshot.featured,
+    index: snapshot.records.map((record) => {
+      const { id, name, platform, date, rating, rank, snippetRank, nRank, iRank, lRank, topics } =
+        record;
+      return {
+        id,
+        name,
+        platform,
+        date,
+        rating,
+        rank,
+        snippetRank,
+        nRank,
+        iRank,
+        lRank,
+        topics,
+        excerptTopics: Object.keys(record.excerpts).filter((topic) => record.excerpts[topic]),
+      };
+    }),
+  };
+}
+
+export function reviewBatchQuery(url) {
+  if (!url.search) return null;
+  if (
+    [...url.searchParams.keys()].some((key) => !['ids', 'revision'].includes(key)) ||
+    url.searchParams.getAll('ids').length !== 1 ||
+    url.searchParams.getAll('revision').length !== 1
+  )
+    throw Error('invalid_review_query');
+  const ids = url.searchParams.get('ids').split(',');
+  const rawRevision = url.searchParams.get('revision');
+  const revision = Number(rawRevision);
+  if (
+    !/^\d{13}$/.test(rawRevision) ||
+    !Number.isSafeInteger(revision) ||
+    ids.length > 20 ||
+    new Set(ids).size !== ids.length ||
+    ids.some((id) => !/^[a-z0-9-]{1,256}$/.test(id))
+  )
+    throw Error('invalid_review_query');
+  return { ids, revision };
+}
 const SUMMARY_ITEM = '69948ce9f89df128e65600b5';
 const platforms = {
   efe6db2067ed0fd456d38bc2e521b4bd: 'Google',

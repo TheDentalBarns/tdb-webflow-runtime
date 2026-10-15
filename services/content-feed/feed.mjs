@@ -1,4 +1,11 @@
-import { projectReviews, REVIEW_COLLECTIONS } from './reviews.mjs';
+import {
+  projectReviews,
+  REVIEW_COLLECTIONS,
+  REVIEW_BATCH_PATH,
+  reviewRevisionKey,
+  reviewIndex,
+  reviewBatchQuery,
+} from './reviews.mjs';
 /* Public projections of published Webflow CMS data. No CMS credentials or raw
  * records are returned. Route-specific projections can be added for other feeds. */
 export const COLLECTION = '6ab7b3c409814bb83c9902de';
@@ -267,6 +274,8 @@ export function createFeedService({
   const handlers = new Map(
     Object.entries(FEEDS).map(([path, feed]) => [path, createHandler(feed)]),
   );
+  // Both representations share the same CMS refresh and latest snapshot.
+  handlers.set(REVIEW_BATCH_PATH, handlers.get('/tdb-content/v1/reviews.json'));
   return (request, env = {}) => {
     const url = new URL(request.url);
     const handler = url.hostname === 'dentalbarns.webflow.io' && handlers.get(url.pathname);
@@ -277,7 +286,9 @@ export function createFeedService({
   function createHandler(feed) {
     let memory,
       flight,
-      retryAt = 0;
+      retryAt = 0,
+      pinnedRevision = 0,
+      pinFlight;
     const valid = (snapshot) =>
       snapshot?.version === 1 &&
       snapshot.feed === feed.name &&
@@ -327,9 +338,44 @@ export function createFeedService({
           status,
           headers: { ...headers, ...extra },
         });
+      const url = new URL(request.url),
+        batched = url.pathname === REVIEW_BATCH_PATH;
+      let query;
+      try {
+        query = batched ? reviewBatchQuery(url) : null;
+      } catch {
+        return reply({ error: 'Invalid review request' }, 400);
+      }
       if (!env.CONTENT_FEEDS?.get || !env.CONTENT_FEEDS?.put) {
         log('missing_storage');
         return reply({ error: 'Feed temporarily unavailable' }, 503);
+      }
+      if (query) {
+        // Never replace an active browser's index with a newer ordering midway
+        // through pagination. A new browser session obtains the latest revision.
+        let pinned = memory?.checkedAt === query.revision ? memory : null;
+        if (!pinned) {
+          try {
+            pinned = await env.CONTENT_FEEDS.get(reviewRevisionKey(query.revision), 'json');
+          } catch {
+            return reply({ error: 'Feed temporarily unavailable' }, 503);
+          }
+        }
+        if (!valid(pinned) || pinned.checkedAt !== query.revision)
+          return reply({ error: 'Review session expired. Reload to refresh reviews.' }, 410);
+        const byId = new Map(pinned.records.map((record) => [record.id, record]));
+        if (query.ids.some((id) => !byId.has(id)))
+          return reply({ error: 'Review unavailable' }, 404);
+        return reply(
+          {
+            version: 2,
+            feed: 'reviews',
+            checkedAt: pinned.checkedAt,
+            records: query.ids.map((id) => byId.get(id)),
+          },
+          200,
+          { 'Cache-Control': 'public, max-age=30, must-revalidate' },
+        );
       }
       let snapshot = valid(memory) ? memory : null;
       if (!snapshot) {
@@ -345,8 +391,34 @@ export function createFeedService({
       }
       if (!valid(snapshot))
         return reply({ error: 'Feed temporarily unavailable' }, 503, { 'Retry-After': '30' });
+      if (batched && pinnedRevision !== snapshot.checkedAt) {
+        // Store once per revision/isolate before handing out its index. Other
+        // isolates can then serve arbitrary batches without another CMS read.
+        if (!pinFlight || pinFlight.revision !== snapshot.checkedAt) {
+          const current = snapshot;
+          const promise = env.CONTENT_FEEDS.put(
+            reviewRevisionKey(current.checkedAt),
+            JSON.stringify(current),
+            {
+              expirationTtl: Math.max(
+                60,
+                Math.ceil((MAX_AGE_MS - (now() - current.checkedAt)) / 1000),
+              ),
+            },
+          ).then(() => {
+            pinnedRevision = current.checkedAt;
+          });
+          pinFlight = { revision: current.checkedAt, promise };
+        }
+        try {
+          await pinFlight.promise;
+        } catch {
+          pinFlight = null;
+          return reply({ error: 'Feed temporarily unavailable' }, 503);
+        }
+      }
       const stale = now() - snapshot.checkedAt >= FRESH_MS;
-      return reply(snapshot, 200, {
+      return reply(batched ? reviewIndex(snapshot) : snapshot, 200, {
         'Cache-Control': 'public, max-age=30, must-revalidate',
         'X-TDB-Feed-State': stale ? 'stale' : 'fresh',
       });

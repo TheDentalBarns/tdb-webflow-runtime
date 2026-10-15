@@ -469,3 +469,73 @@ test('reviews refresh all three live collections atomically and retain an isolat
   time += 3600000;
   assert.equal((await handle(request('/tdb-content/v1/reviews.json'), env)).status, 503);
 });
+
+test('review ID batches retain their index revision across refreshes and isolates, reject oversized queries and expire', async () => {
+  let time = Date.now(),
+    text = 'Original body',
+    calls = 0;
+  const saved = new Map();
+  const env = {
+    WEBFLOW_API_TOKEN: 'test-secret',
+    CONTENT_FEEDS: {
+      get: async (key) => saved.get(key),
+      put: async (key, value) => saved.set(key, JSON.parse(value)),
+    },
+  };
+  const create = () =>
+    createFeedService({
+      now: () => time,
+      fetcher: async (url) => {
+        calls++;
+        if (url.includes(REVIEW_COLLECTIONS[0]))
+          return page([
+            reviewItem('r1', { 'full-review': text }),
+            reviewItem('r2', { 'editorial-priority': 2 }),
+          ]);
+        if (url.includes(REVIEW_COLLECTIONS[1])) return page([reviewResponse()]);
+        return page([reviewSummary()]);
+      },
+    });
+  const handle = create(),
+    base = '/tdb-content/v2/reviews.json';
+  const first = await (await handle(request(base), env)).json();
+  assert.equal(first.index.length, 2);
+  assert.equal(first.records, undefined);
+  assert(!JSON.stringify(first).includes('Original body'));
+  assert.equal(calls, 3);
+  const path = base + '?ids=r2,r1&revision=' + first.checkedAt;
+  const batch = await (await handle(request(path), env)).json();
+  assert.deepEqual(
+    batch.records.map((r) => r.id),
+    ['r2', 'r1'],
+  );
+  assert.equal(batch.records[0].response, 'Published response');
+  time += 300001;
+  text = 'Revised body';
+  const second = await (await handle(request(base), env)).json();
+  assert.notEqual(second.checkedAt, first.checkedAt);
+  const isolate = create(),
+    before = calls;
+  assert.equal((await (await isolate(request(path), env)).json()).records[1].text, 'Original body');
+  assert.equal(calls, before, 'saved revision needs no CMS read');
+  for (const suffix of [
+    '?ids=r1&revision=nope',
+    '?ids=r1,r1&revision=' + first.checkedAt,
+    '?ids=' +
+      Array.from({ length: 21 }, (_, i) => 'r' + i).join(',') +
+      '&revision=' +
+      first.checkedAt,
+    '?ids=r1&revision=' + first.checkedAt + '&collection=private',
+  ])
+    assert.equal((await isolate(request(base + suffix), env)).status, 400);
+  assert.equal(
+    (await isolate(request(base + '?ids=unknown&revision=' + first.checkedAt), env)).status,
+    404,
+  );
+  assert.equal(calls, before);
+  const head = await isolate(request(path, 'HEAD'), env);
+  assert.equal(head.status, 200);
+  assert.equal(await head.text(), '');
+  time = first.checkedAt + 3600001;
+  assert.equal((await isolate(request(path), env)).status, 410);
+});

@@ -18,7 +18,8 @@ host. Announcements are not migrated.
 - Mount: `/tdb-content`.
 - Route: `GET /tdb-content/v1/instagram.json` (also supports HEAD).
 - Smile route: `GET /tdb-content/v1/smiles.json` (also supports HEAD).
-- Reviews route: `GET /tdb-content/v1/reviews.json` (also supports HEAD).
+- Reviews index/batches: `GET /tdb-content/v2/reviews.json` (also supports HEAD).
+- Legacy full Reviews JSON: `GET /tdb-content/v1/reviews.json`.
 - Runtime hostname allowlist: `dentalbarns.webflow.io` only.
 - Framework: Vite 8.3.4, with a thin `src/worker.ts` API handler.
 - Storage: `CONTENT_FEEDS` KV, provisioned per environment by Webflow Cloud.
@@ -28,7 +29,7 @@ host. Announcements are not migrated.
 
 Cloud builds the Worker adapter; the local Vite build checks the app package but
 does not itself prove that the Cloud Worker or its bindings have deployed.
-The current Worker deployment is `ba087cd3-d9d0-42f4-a7e2-c1d7ebabdd66` (IG, Smiles and Reviews).
+The current Worker deployment is `a5a9fe9f-4dce-4d21-9d8f-4e1d5f1b9a21` (IG, Smiles and Reviews).
 Its `CONTENT_FEEDS` KV binding and secret `WEBFLOW_API_TOKEN` are configured.
 The homepage's three runtime URLs share one release SHA. The app uses direct CLI
 uploads; GitHub pushes alone do not deploy it. From this directory, redeploy with:
@@ -57,8 +58,10 @@ public, like the displayed posts; noindex is not access control.
 The Reviews route reads three live collections (reviews, approved responses and
 the existing aggregate record) into one validated snapshot. It retains the
 published UI fields, topic/excerpt metadata and editorial selection policy.
-Home derives its complete filter index from that JSON and preserves 20-record
-display batches without fetching HTML pagination/detail pages. See
+Home receives a compact index and fetches only its requested IDs, up to 20 per
+request. Context priorities determine the initial order before bodies download.
+Pinned index revisions keep batches consistent across CMS refreshes, with a
+one-hour maximum age. No HTML pagination/detail pages are fetched. See
 `docs/releases/2026-10-15-reviews-json/README.md` for scope and rollback.
 
 Read the Media Gallery collection's **live** endpoint, across all pages before
@@ -87,6 +90,7 @@ concurrently. The handler requests 30-second browser caching, but the deployed
 Webflow proxy currently rewrites that header to `no-cache, private`. Memory/KV
 snapshot caching still works: repeated live requests returned the same checkedAt.
 Query parameters cannot bypass that snapshot cache or select another collection.
+Only Reviews v2 accepts a validated ID list and revision to select cached records.
 
 ## Homepage integration and rollback
 

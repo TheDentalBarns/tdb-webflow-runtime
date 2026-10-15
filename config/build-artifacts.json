@@ -391,10 +391,10 @@
         "src/reviews/native/cms.js",
         "src/reviews/native/quote-adapter.js"
       ],
-      "sha256": "f5ca4819266ab624b3057942b36ffd323700a09111a084e040405c60e30440b4",
-      "raw": 18655,
-      "gzip": 6555,
-      "brotli": 5763
+      "sha256": "dbf86ea0d38253834575b2d4afa03dd118b588c8f4318d09d59fdbcfb2a8c64e",
+      "raw": 21327,
+      "gzip": 7284,
+      "brotli": 6434
     },
     "dist/tdb-review-drawer-template.js": {
       "sources": [

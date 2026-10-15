@@ -398,7 +398,15 @@
     const feed = document
       .querySelector('[data-tdb-reviews-feed]')
       ?.getAttribute('data-tdb-reviews-feed');
-    if (feed) return window.TDBReviewJSON.load(feed, { signal, resolveIdentity });
+    if (feed) {
+      const context = contextForPath(location.pathname);
+      return window.TDBReviewJSON.load(feed, {
+        signal,
+        resolveIdentity,
+        context,
+        order: (index) => orderForContext(index, context),
+      });
+    }
     if (cached && Date.now() - cachedAt < 60000) return cached;
     const first = await requestPage('/review-content', { signal });
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
@@ -521,6 +529,25 @@
       if (path.includes(needle)) return topic;
     return 'default';
   }
+  function orderForContext(records, context = 'default') {
+    const list = records.slice();
+    context = canonicalTopic(context);
+    if (context === 'default') return list;
+    const priority = { nervous: 'nRank', 'clear-aligners': 'iRank', location: 'lRank' }[context];
+    const relevant = (record) =>
+      (record.topics || []).includes(context) ||
+      (
+        record.excerptTopics ||
+        Object.keys(record.excerpts || {}).filter((key) => record.excerpts[key])
+      ).includes(context);
+    return list.sort((a, b) => {
+      const ap = priority ? a[priority] || 999 : 999;
+      const bp = priority ? b[priority] || 999 : 999;
+      return (
+        ap - bp || Number(relevant(b)) - Number(relevant(a)) || (a.rank || 999) - (b.rank || 999)
+      );
+    });
+  }
   function resolveIdentity(records, root) {
     const name = normal(root?.querySelector('[data-tdb-review-author]')?.textContent);
     const excerpt = normal(root?.querySelector('[data-tdb-review-excerpt]')?.textContent);
@@ -544,6 +571,7 @@
     sourceIcon,
     platformAsset,
     contextForPath,
+    orderForContext,
     resolveIdentity,
     canonicalTopic,
     preview: Object.freeze({ contexts: Object.freeze({}) }),

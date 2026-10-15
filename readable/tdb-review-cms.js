@@ -1,9 +1,8 @@
-/* Published JSON adapter. Keep the drawer's 20-record batches and shared API
- * while holding one validated snapshot, without fetching/parsing HTML pages. */
+/* Published JSON index plus requested batches of at most 20 review bodies. */
 (() => {
   'use strict';
   if (window.TDBReviewJSON) return;
-  const route = '/tdb-content/v1/reviews.json';
+  const route = '/tdb-content/v2/reviews.json';
   const platformNames = ['Google', 'Facebook', 'Yell', 'Doctify', 'Direct testimonial', 'Other'];
   const topicNames = [
     'nervous',
@@ -124,22 +123,146 @@
       featured: [...payload.featured],
     };
   }
-  function session(snapshot, resolveIdentity) {
-    const all = snapshot.records,
-      records = all.slice(0, 20);
-    const byId = new Map(all.map((record) => [record.id, record]));
-    const index = all.map(({ id, platform, date, rating, rank, topics }) => ({
-      id,
-      platform,
-      date,
-      rating,
-      rank,
-      topics,
-    }));
+  function manifest(payload) {
+    if (payload?.version !== 2 || !Array.isArray(payload.index) || payload.index.length > 1000)
+      invalid();
+    // Reuse the summary/time validation without downloading any full records.
+    validate({ ...payload, version: 1, records: [], featured: [] });
+    const seen = new Set();
+    const index = payload.index.map((source) => {
+      if (!source || !/^[a-z0-9-]{1,256}$/.test(source.id) || seen.has(source.id)) invalid();
+      seen.add(source.id);
+      const row = {
+        id: source.id,
+        name: text(source.name, 256),
+        platform: text(source.platform, 80),
+        date: text(source.date, 40),
+        rating: source.rating,
+      };
+      if (
+        !row.name ||
+        !platformNames.includes(row.platform) ||
+        (row.date && !Number.isFinite(Date.parse(row.date))) ||
+        (row.rating !== null && (!Number.isInteger(row.rating) || row.rating < 1 || row.rating > 5))
+      )
+        invalid();
+      for (const key of ['rank', 'snippetRank', 'nRank', 'iRank', 'lRank']) {
+        if (!Number.isFinite(source[key]) || source[key] <= 0) invalid();
+        row[key] = source[key];
+      }
+      for (const key of ['topics', 'excerptTopics']) {
+        if (
+          !Array.isArray(source[key]) ||
+          source[key].length > topicNames.length ||
+          source[key].some((topic) => !topicNames.includes(topic))
+        )
+          invalid();
+        row[key] = [...new Set(source[key])];
+      }
+      return row;
+    });
+    if (
+      !Array.isArray(payload.featured) ||
+      payload.featured.length > 3 ||
+      payload.featured.some((id) => !seen.has(id))
+    )
+      invalid();
+    return {
+      index,
+      featured: [...payload.featured],
+      average: payload.average,
+      total: payload.total,
+      checkedAt: payload.checkedAt,
+    };
+  }
+  const requests = new Map(),
+    sessions = new Map();
+  // Cancellation belongs to each caller. Only the last departing caller aborts
+  // shared network work; an aborted request cannot install a cached session.
+  function shared(key, signal, start) {
+    try {
+      check(signal);
+      let request = requests.get(key);
+      if (!request) {
+        const controller = new AbortController();
+        request = { controller, clients: 0, done: false };
+        const current = request,
+          timer = setTimeout(() => controller.abort(), 12000);
+        requests.set(key, request);
+        request.promise = Promise.resolve()
+          .then(() => {
+            check(controller.signal);
+            return start(controller.signal);
+          })
+          .finally(() => {
+            clearTimeout(timer);
+            current.done = true;
+            if (requests.get(key) === current) requests.delete(key);
+          });
+      }
+      const current = request;
+      current.clients++;
+      return new Promise((resolve, reject) => {
+        let done = false;
+        const finish = (fn, value) => {
+          if (done) return;
+          done = true;
+          signal?.removeEventListener('abort', abort);
+          current.clients--;
+          if (!current.done && !current.clients) {
+            if (requests.get(key) === current) requests.delete(key);
+            current.controller.abort();
+          }
+          fn(value);
+        };
+        const abort = () => finish(reject, cancelled());
+        signal?.addEventListener('abort', abort, { once: true });
+        current.promise.then(
+          (value) => finish(resolve, value),
+          (error) => finish(reject, error),
+        );
+      });
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+  function requestJSON(url, signal) {
+    return shared(url.href, signal, async (networkSignal) => {
+      const response = await fetch(url.href, {
+        credentials: 'same-origin',
+        signal: networkSignal,
+        headers: { Accept: 'application/json' },
+      });
+      if (!response.ok || !response.headers.get('Content-Type')?.includes('application/json'))
+        throw Error(
+          response.status === 410
+            ? 'Review session expired. Reload to refresh reviews.'
+            : 'Published review feed unavailable',
+        );
+      const body = await response.text();
+      check(networkSignal);
+      if (body.length > 2097152) invalid();
+      return JSON.parse(body);
+    });
+  }
+  function session(snapshot, url, { resolveIdentity, order }) {
+    const index = order ? order(snapshot.index) : snapshot.index.slice();
+    if (
+      index.length !== snapshot.index.length ||
+      new Set(index.map((row) => row.id)).size !== index.length ||
+      index.some((row) => !snapshot.index.some((original) => original.id === row.id))
+    )
+      invalid();
+    const records = [],
+      byId = new Map(),
+      indexIds = new Set(index.map((row) => row.id));
     const listeners = new Set();
+    let cursor = 0;
     const data = {
-      ...snapshot,
       records,
+      featured: snapshot.featured,
+      average: snapshot.average,
+      total: snapshot.total,
       get filterIndex() {
         return index;
       },
@@ -153,12 +276,41 @@
       },
       async fetchRecords(ids, { signal } = {}) {
         check(signal);
-        if (!Array.isArray(ids) || ids.some((id) => !byId.has(id)))
+        if (!Array.isArray(ids) || ids.some((id) => !indexIds.has(id)))
           throw Error('Review is outside the published index');
+        const missing = [...new Set(ids)].filter((id) => !byId.has(id));
+        for (let offset = 0; offset < missing.length; offset += 20) {
+          check(signal);
+          const batch = missing.slice(offset, offset + 20).filter((id) => !byId.has(id));
+          if (!batch.length) continue;
+          const target = new URL(url);
+          target.searchParams.set('ids', batch.join(','));
+          target.searchParams.set('revision', String(snapshot.checkedAt));
+          const result = await requestJSON(target, signal);
+          check(signal);
+          if (
+            result?.version !== 2 ||
+            result.checkedAt !== snapshot.checkedAt ||
+            !Array.isArray(result.records) ||
+            result.records.length !== batch.length ||
+            result.records.some((record, i) => record.id !== batch[i])
+          )
+            invalid();
+          const clean = validate({
+            ...result,
+            version: 1,
+            average: snapshot.average,
+            total: snapshot.total,
+            featured: [],
+          }).records;
+          check(signal);
+          clean.forEach((record) => byId.set(record.id, record));
+        }
+        check(signal);
         return ids.map((id) => byId.get(id));
       },
       get hasMore() {
-        return records.length < all.length;
+        return cursor < index.length;
       },
       get nextURL() {
         return '';
@@ -169,15 +321,20 @@
       },
       async loadMore({ signal } = {}) {
         check(signal);
-        const start = records.length;
-        await Promise.resolve();
+        const start = cursor,
+          ids = index.slice(start, start + 20).map((row) => row.id);
+        if (!ids.length) return data;
+        const batch = await data.fetchRecords(ids, { signal });
         check(signal);
-        if (records.length !== start || !data.hasMore) return data;
-        records.push(...all.slice(start, start + 20));
+        if (cursor !== start) return data;
+        records.push(...batch);
+        cursor += batch.length;
         for (const listener of listeners) listener(data);
         return data;
       },
       async ensure(ids, options) {
+        if (ids.some((id) => !indexIds.has(id)))
+          throw Error('Review is outside the published index');
         while (data.hasMore && ids.some((id) => !records.some((record) => record.id === id)))
           await data.loadMore(options);
         return data;
@@ -194,64 +351,28 @@
     };
     return data;
   }
-  let cached,
-    cachedAt = 0,
-    flight;
-  function load(source, { signal, resolveIdentity } = {}) {
+  function load(source, { signal, resolveIdentity, order, context = 'default' } = {}) {
     try {
       check(signal);
       const url = new URL(source, location.href);
-      if (url.origin !== location.origin || url.pathname !== route || url.search || url.hash)
+      if (
+        url.origin !== location.origin ||
+        ![route, '/tdb-content/v1/reviews.json'].includes(url.pathname) ||
+        url.search ||
+        url.hash
+      )
         invalid();
-      if (cached && Date.now() - cachedAt < 60000) return Promise.resolve(cached);
-      if (!flight) {
-        const controller = new AbortController();
-        const request = { controller, clients: 0, done: false };
-        const timer = setTimeout(() => controller.abort(), 12000);
-        flight = request;
-        request.promise = fetch(url.href, {
-          credentials: 'same-origin',
-          signal: controller.signal,
-          headers: { Accept: 'application/json' },
-        })
-          .then(async (response) => {
-            if (!response.ok || !response.headers.get('Content-Type')?.includes('application/json'))
-              throw Error('Published review feed unavailable');
-            const body = await response.text();
-            if (body.length > 2097152) invalid();
-            const snapshot = validate(JSON.parse(body));
-            check(controller.signal);
-            cached = session(snapshot, resolveIdentity);
-            cachedAt = Date.now();
-            return cached;
-          })
-          .finally(() => {
-            clearTimeout(timer);
-            request.done = true;
-            if (flight === request) flight = null;
-          });
-      }
-      const request = flight;
-      request.clients++;
-      return new Promise((resolve, reject) => {
-        let done = false;
-        const finish = (fn, value) => {
-          if (done) return;
-          done = true;
-          signal?.removeEventListener('abort', abort);
-          request.clients--;
-          if (!request.done && !request.clients) {
-            if (flight === request) flight = null;
-            request.controller.abort();
-          }
-          fn(value);
-        };
-        const abort = () => finish(reject, cancelled());
-        signal?.addEventListener('abort', abort, { once: true });
-        request.promise.then(
-          (data) => finish(resolve, data),
-          (error) => finish(reject, error),
-        );
+      url.pathname = route;
+      const key = 'session:' + url.href + ':' + context,
+        cached = sessions.get(key);
+      if (cached && Date.now() - cached.at < 60000) return Promise.resolve(cached.data);
+      return shared(key, signal, async (sessionSignal) => {
+        const snapshot = manifest(await requestJSON(url, sessionSignal));
+        const data = session(snapshot, url, { resolveIdentity, order });
+        await data.loadMore({ signal: sessionSignal });
+        check(sessionSignal);
+        sessions.set(key, { data, at: Date.now() });
+        return data;
       });
     } catch (error) {
       return Promise.reject(error);
@@ -660,7 +781,15 @@
     const feed = document
       .querySelector('[data-tdb-reviews-feed]')
       ?.getAttribute('data-tdb-reviews-feed');
-    if (feed) return window.TDBReviewJSON.load(feed, { signal, resolveIdentity });
+    if (feed) {
+      const context = contextForPath(location.pathname);
+      return window.TDBReviewJSON.load(feed, {
+        signal,
+        resolveIdentity,
+        context,
+        order: (index) => orderForContext(index, context),
+      });
+    }
     if (cached && Date.now() - cachedAt < 60000) return cached;
     const first = await requestPage('/review-content', { signal });
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
@@ -783,6 +912,25 @@
       if (path.includes(needle)) return topic;
     return 'default';
   }
+  function orderForContext(records, context = 'default') {
+    const list = records.slice();
+    context = canonicalTopic(context);
+    if (context === 'default') return list;
+    const priority = { nervous: 'nRank', 'clear-aligners': 'iRank', location: 'lRank' }[context];
+    const relevant = (record) =>
+      (record.topics || []).includes(context) ||
+      (
+        record.excerptTopics ||
+        Object.keys(record.excerpts || {}).filter((key) => record.excerpts[key])
+      ).includes(context);
+    return list.sort((a, b) => {
+      const ap = priority ? a[priority] || 999 : 999;
+      const bp = priority ? b[priority] || 999 : 999;
+      return (
+        ap - bp || Number(relevant(b)) - Number(relevant(a)) || (a.rank || 999) - (b.rank || 999)
+      );
+    });
+  }
   function resolveIdentity(records, root) {
     const name = normal(root?.querySelector('[data-tdb-review-author]')?.textContent);
     const excerpt = normal(root?.querySelector('[data-tdb-review-excerpt]')?.textContent);
@@ -806,6 +954,7 @@
     sourceIcon,
     platformAsset,
     contextForPath,
+    orderForContext,
     resolveIdentity,
     canonicalTopic,
     preview: Object.freeze({ contexts: Object.freeze({}) }),
