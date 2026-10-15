@@ -399,10 +399,10 @@
       "sources": [
         "src/templates/review-drawer.js"
       ],
-      "sha256": "6f7dd36089d6813ae20b1c99690bd867e5296b7a5fb89f91deedab2b6f2e5c01",
-      "raw": 33357,
-      "gzip": 3605,
-      "brotli": 2974
+      "sha256": "126322fde1f9990b9e7345a83f5e7649058028acee81c38080a921f07ac1660c",
+      "raw": 32317,
+      "gzip": 3529,
+      "brotli": 2946
     },
     "dist/tdb-review-introduction.js": {
       "sources": [
