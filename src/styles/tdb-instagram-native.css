@@ -3,5 +3,6 @@
 /* Reuse TDB's opacity-only reveal; leave the carousel's entry transform and timing alone.
    Backwards fill releases the animation after entry so the glass keeps its normal backdrop. */
 [data-tdb-ig-placeholder][data-ig-state="ready"]>[data-tdb-ig-native]{opacity:1;pointer-events:auto;animation:tdb-disclosure-fade var(--tdb-reveal-fade-in,300ms) linear backwards}
-[data-tdb-ig-placeholder][data-ig-state="ready"]>.tdb-ig-holding-image{visibility:hidden;pointer-events:none}
+/* Match Smiles: retain the stationary holder until the decoded feed finishes fading in. */
+[data-tdb-ig-placeholder][data-ig-state="ready"]>.tdb-ig-holding-image{visibility:hidden;pointer-events:none;transition:visibility 0s linear var(--tdb-reveal-fade-in,300ms)}
 [data-tdb-ig-placeholder]:not([data-ig-state="ready"])>[data-tdb-ig-native] *{pointer-events:none!important}
