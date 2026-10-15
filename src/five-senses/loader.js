@@ -3,9 +3,7 @@
   'use strict';
   const script = document.currentScript;
   if (!script || window.TDBFiveSensesEntry) return;
-  const root = new URL(
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@c847ee9841b79a6749c39eb482d0c91c23f38ec0/',
-  );
+  const root = new URL('../', script.src || window.TDBRelease?.base || location.href);
   const moduleURL = new URL('dist/tdb-five-senses.js', root).href;
   const styleURL = new URL('dist/tdb-five-senses.css', root).href;
   const assetBase = {

@@ -1,5 +1,23 @@
 /* Single source-to-output manifest for runtime builds. */
 module.exports = {
+  'dist/tdb-start.min.js': [
+    'src/startup/release.js',
+    'src/shared/motion-policy.js',
+    'src/shared/modules.js',
+    'src/startup/start.js',
+  ],
+  'dist/tdb-foundation.js': [
+    'src/shared/scroll-lock.js',
+    'src/consent/banner.js',
+    'src/consent/consent.js',
+    'src/shared/phone-landscape.js',
+    'src/navbar/navbar-state.js',
+    'src/navbar/native-foundation.js',
+    'src/navbar/navbar-mobile-lock.js',
+    'src/navbar/navbar-loader.js',
+  ],
+  'dist/tdb-attribution.min.js': ['src/attribution/attribution.js'],
+  'dist/tdb-lenis.min.js': ['vendor/lenis/lenis.js'],
   'dist/tdb-service-awards.js': ['src/service-awards/service-awards.js'],
   'dist/tdb-announcement.js': ['src/banner/announcement.js'],
   'dist/tdb-availability.js': ['src/shared/availability.js'],
@@ -52,10 +70,13 @@ module.exports = {
   'dist/tdb-instagram-native.min.js': ['src/instagram/native.js'],
   'dist/tdb-ticker.js': ['src/shared/native-ticker.js'],
   'dist/tdb-runtime.js': [
+    'src/runtime/release-root.js',
     'src/shared/script-assets.js',
     'src/runtime/interaction-state.js',
     'src/runtime/logo-marquee-loader.js',
     'src/runtime/page-position.js',
+    'src/shared/module-bootstrap.js',
+    'src/calculator/loader.js',
     'src/shared/feature-css.js',
     'src/banner/loader.js',
     'src/banner/floating-loader.js',

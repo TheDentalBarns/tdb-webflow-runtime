@@ -1,7 +1,7 @@
 name: Verify custom Swiper
 on:
   pull_request:
-    paths: ['tools/custom-swiper/**', 'src/sliders/swiper-*.js', 'src/shared/carousel-visibility.js', 'dist/tdb-swiper-8.4.7.min.js', '.github/workflows/build-custom-swiper.yml']
+    paths: ['tools/custom-swiper/**', 'src/sliders/swiper-*.js', 'src/shared/carousel-visibility.js', 'dist/tdb-swiper-8.4.7.min.js', 'readable/tdb-swiper-8.4.7.min.js', '.github/workflows/build-custom-swiper.yml']
   push:
     branches: [main]
     paths: ['tools/custom-swiper/**', 'src/sliders/swiper-*.js', 'src/shared/carousel-visibility.js', 'dist/tdb-swiper-8.4.7.min.js']
@@ -18,5 +18,5 @@ jobs:
           node-version: '24'
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run build:swiper
-      - run: git diff --exit-code -- dist/tdb-swiper-8.4.7.min.js tools/custom-swiper/package-lock.json
+      - run: git diff --exit-code -- dist/tdb-swiper-8.4.7.min.js readable/tdb-swiper-8.4.7.min.js tools/custom-swiper/package-lock.json
       - run: node --test tests/carousel-*.test.cjs tests/swiper-*.test.cjs

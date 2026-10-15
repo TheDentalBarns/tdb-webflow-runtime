@@ -1,9 +1,6 @@
 /* Hosted feature modules share the release pin; loading stays in the footer runtime. */
-const TDB_MODULE_ROOT =
-  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@61cec90cdba3d42a29d3c31194b692c251e8d421/dist/';
-const TDBFooterModuleRoot = new URL(
-  'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@336d76648a3395fad41dd5bec9749b3554f14c34/dist/',
-);
+const TDB_MODULE_ROOT = TDBRuntimeModuleRoot.href;
+const TDBFooterModuleRoot = new URL(TDBRuntimeModuleRoot.href);
 function tdbEnsureSliderFocus() {
   return Promise.all([tdbEnsureUI(), tdbEnsureSliderUI()]).then(() =>
     window.TDBModules.load(new URL('tdb-slider-focus.js', TDBFooterModuleRoot), {

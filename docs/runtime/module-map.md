@@ -1,5 +1,7 @@
 # Runtime ownership and bundle decisions
 
+> Historical audit snapshot. The current installation and single-release contract are in [the main README](../../README.md) and [release guide](releasing.md).
+
 **15 October update:** [implemented consolidation and release groups](consolidation-2026-10-15.md). The tables below reflect the updated candidate; live Webflow references are unchanged.
 
 ## Current loading model

@@ -153,7 +153,7 @@ test('VIP preload and transport share the registry pin and wait for all CSS owne
     f.w.prepareVIPDrawerLoader();
     const promise = f.w.TDBVIPDrawerLoader.load();
     await tick();
-    const expected = root.replace('b'.repeat(40), pin) + 'tdb-vip-drawer.js';
+    const expected = root + 'tdb-vip-drawer.js';
     assert.equal(f.d.querySelector('link').href, expected);
     assert.equal(f.d.scripts.length, 0);
     release();

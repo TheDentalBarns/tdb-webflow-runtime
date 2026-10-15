@@ -55,10 +55,8 @@ window.TDBParallaxPresentation ||= (() => {
     i[t] !== n &&
       ((i[t] = n), i.rows.forEach((e) => e.copies.forEach((e) => e.classList.toggle(r, n))));
   }
-  const d = '677cf86df9952f978d94d8a9' === document.documentElement.dataset.wfPage,
-    l = matchMedia('(pointer: coarse)');
+  const l = matchMedia('(pointer: coarse)');
   function c(e) {
-    if (e.hasAttribute('data-tdb-treatment') && !d) return;
     const t = n.matches && document.documentElement.classList.contains('tdb-phone-landscape');
     (e
       .querySelectorAll(
@@ -79,10 +77,9 @@ window.TDBParallaxPresentation ||= (() => {
     });
   }
   function p() {
-    d &&
-      document.querySelectorAll('.tdb-service-parallax,[data-tdb-treatment]').forEach((t) => {
-        (e.add(t), c(t));
-      });
+    document.querySelectorAll('.tdb-service-parallax,[data-tdb-treatment]').forEach((t) => {
+      (e.add(t), c(t));
+    });
   }
   return (
     'loading' === document.readyState

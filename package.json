@@ -1,6 +1,6 @@
 {
   "name": "tdb-webflow-runtime",
-  "version": "0.0.0",
+  "version": "2.0.0",
   "private": true,
   "engines": {
     "node": ">=24 <25"
@@ -14,7 +14,8 @@
     "format": "prettier --write 'src/**/*.js' 'tools/runtime-build/*.cjs'",
     "format:check": "prettier --check 'src/**/*.js' 'tools/runtime-build/*.cjs'",
     "verify": "npm run build:check && npm test",
-    "catalog": "node tools/runtime-build/catalog.cjs"
+    "catalog": "node tools/runtime-build/catalog.cjs",
+    "build:all": "npm run build && npm run build:swiper"
   },
   "devDependencies": {
     "clean-css": "5.3.3",

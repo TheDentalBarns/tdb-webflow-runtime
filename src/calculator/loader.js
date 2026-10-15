@@ -4,8 +4,7 @@
   if (window.__tdbCalculatorLoader) return;
   window.__tdbCalculatorLoader = true;
   const scriptURL = new URL('tdb-calculator.js', document.currentScript.src).href;
-  const styleURL =
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@310b98acf5271a9be342b9cf4283dd53663850a5/dist/tdb-calculator.css';
+  const styleURL = new URL('tdb-calculator.css', document.currentScript.src).href;
   const selector = '[data-tdb-calc-open],a[href$="#treatment-calculator"]';
   let loading = null;
   function load() {

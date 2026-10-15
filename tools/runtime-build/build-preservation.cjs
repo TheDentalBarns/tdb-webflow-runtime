@@ -89,7 +89,7 @@ async function main() {
   const report = {};
   for (const output of outputs) {
     const code = await build(output, { readable });
-    const destination = readable ? 'build/readable/' + path.basename(output) : output;
+    const destination = readable ? 'readable/' + path.basename(output) : output;
     if (check) {
       if (!fs.existsSync(path.join(root, destination)) || read(destination) !== code)
         throw Error(destination + ' is stale; run npm run build');
@@ -98,6 +98,17 @@ async function main() {
       fs.writeFileSync(path.join(root, destination), code);
     }
     report[output] = { sources: targets[output], sha256: hash(code), ...sizes(code) };
+    if (!readable) {
+      const prettyPath = 'readable/' + path.basename(output);
+      const pretty = await build(output, { readable: true });
+      if (check) {
+        if (!fs.existsSync(path.join(root, prettyPath)) || read(prettyPath) !== pretty)
+          throw Error(prettyPath + ' is stale; run npm run build');
+      } else {
+        fs.mkdirSync(path.join(root, 'readable'), { recursive: true });
+        fs.writeFileSync(path.join(root, prettyPath), pretty);
+      }
+    }
     console.log(
       `${check ? 'Checked' : 'Built'} ${destination}: ${report[output].raw} B (${report[output].gzip} B gzip)`,
     );

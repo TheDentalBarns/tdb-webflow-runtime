@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-15",
+  "release": "2.0.0",
+  "localTests": {
+    "tests": 346,
+    "pass": 343,
+    "fail": 0,
+    "skipped": 3
+  },
+  "additionalAvailabilityWorkerTests": {
+    "pass": 7,
+    "fail": 0
+  },
+  "deterministicBuild": "pass",
+  "format": "pass",
+  "missingLiteralDependencies": [],
+  "activeReleaseJavaScriptFiles": 45,
+  "generatedJavaScriptFiles": 62,
+  "notes": [
+    "Three optional external fixtures are not supplied: Brevo SDK, Webflow Tram and Webflow forms serializer.",
+    "No physical iPhone run or comparable performance benchmark claimed.",
+    "Staging browser validation is recorded after deployment."
+  ]
+}

@@ -12,7 +12,7 @@ for(const home of [true,false])test('fixed stylesheet locks correct root; owners
  const styles=d.querySelectorAll('style').length;
  const one=w.TDBScrollLock.acquire(),two=w.TDBScrollLock.acquire();
  assert.equal(w.getComputedStyle(d.documentElement).overflow,'hidden');
- assert.equal(w.getComputedStyle(d.body).overflow,home?'':'hidden');
+ assert.equal(w.getComputedStyle(d.body).overflow,'');
  assert.equal(d.documentElement.style.getPropertyValue('--tdb-scroll-lock-padding'),'18px');
  assert.equal(d.querySelectorAll('style').length,styles,'locking inserts no CSS');
  assert.equal(d.body.getAttribute('data-lenis-prevent'),'');

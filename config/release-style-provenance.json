@@ -1,0 +1,13 @@
+{
+  "note": "Styles recovered from actual deployed releases. Scroll-lock/announcement/VIP page-ID scoping was made component-wide for the single-release migration; all other recovered declarations are unchanged.",
+  "sources": {
+    "tdb-calculator.css": "310b98acf5271a9be342b9cf4283dd53663850a5",
+    "tdb-drawer.css": "eb916ade51aae9fabfeb181e3399c674c0345da4",
+    "tdb-usp-drawer.css": "eb916ade51aae9fabfeb181e3399c674c0345da4",
+    "tdb-review-drawer.css": "eb916ade51aae9fabfeb181e3399c674c0345da4",
+    "tdb-partner-card.css": "5c59038b7132e8a65cd337a751cbb5b41405dd56",
+    "tdb-five-senses.css": "c847ee9841b79a6749c39eb482d0c91c23f38ec0",
+    "tdb-vip.css": "48124a90eddd39bf4ae611d00b9fe80583b98872",
+    "tdb-instagram-native.css": "14f6b5d4c913d0205c5f1fd795483f042e8525df"
+  }
+}

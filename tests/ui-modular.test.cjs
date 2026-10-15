@@ -21,7 +21,7 @@ function declarations(css) {
   return out;
 }
 test('all original UI and slider declarations survive the split', () => {
-  const before = declarations(read('tests/fixtures/ui-before-modular.css')+'\n'+read('tests/fixtures/slider-before-modular.css'));
+  const before = declarations((read('tests/fixtures/ui-before-modular.css')+'\n'+read('tests/fixtures/slider-before-modular.css')).replaceAll('html[data-wf-page="677cf86df9952f978d94d8a9"]:has','html:has'));
   const after = declarations(['dist/tdb-ui.css','dist/tdb-vip-chrome.css','dist/tdb-vimeo.css','dist/tdb-announcement.css','dist/tdb-slider-ui.css'].map(read).join('\n'));
   for (const [key,count] of before) {
     // User explicitly removed empty-quote masking; all other original declarations survive.
@@ -39,7 +39,7 @@ test('announcement waits for both state bundles before requesting its engines',a
   w.tdbEnsureUI=()=>new Promise(r=>sharedReady=r);
   w.tdbEnsureAnnouncementUI=()=>new Promise(r=>announcementReady=r);
   w.TDBModules={load:async url=>loaded.push(String(url))};
-  w.eval(read('src/banner/loader.js'));
+  w.eval("const TDBRuntimeModuleRoot=new URL('https://cdn.example/release/dist/');\n"+read('src/banner/loader.js'));
   const flight=w.TDBAnnouncementLoader.load();assert.equal(loaded.length,0);
   sharedReady();await tick();assert.equal(loaded.length,0);
   announcementReady();await flight;assert(loaded.some(x=>x.endsWith('tdb-announcement.js')));w.close();
@@ -51,7 +51,7 @@ test('slider focus waits for shared and slider CSS before initialising',async()=
   w.tdbEnsureUI=()=>new Promise(r=>uiReady=r);
   w.tdbEnsureSliderUI=()=>new Promise(r=>sliderReady=r);
   w.TDBModules={load:async url=>loaded.push(String(url))};
-  w.eval(read('src/runtime/deferred-ui.js'));
+  w.eval("const TDBRuntimeModuleRoot=new URL('https://cdn.example/release/dist/');\n"+read('src/runtime/deferred-ui.js'));
   const flight=w.tdbEnsureSliderFocus();uiReady();await tick();assert.equal(loaded.length,0);
   sliderReady();await flight;assert(loaded.some(x=>x.endsWith('tdb-slider-focus.js')));w.close();
 });

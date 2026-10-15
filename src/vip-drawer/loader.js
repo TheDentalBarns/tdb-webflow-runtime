@@ -34,8 +34,7 @@ function prepareVIPDrawerLoader() {
   const drawer = document.getElementById('tdb-vip-drawer');
   if (!drawer) return;
 
-  const demand =
-    document.documentElement.getAttribute('data-wf-page') === '677cf86df9952f978d94d8a9';
+  const demand = true;
   const triggerSelector =
     '#tdb-vip-drawer .tdb-vip-drawer-handle, a[href*="#vip" i], [href*="#vip" i], [data-vip-open]';
   const jsUrl = window.TDBModules.resolve(new URL('tdb-vip-drawer.js', TDBRuntimeModuleRoot));

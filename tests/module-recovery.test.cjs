@@ -91,12 +91,12 @@ test('module tags retain their type and conflicting URLs/types reject without du
   assert.equal(f.doc.scripts.length,1);
  }finally{f.close();}
 });
-test('per-file immutable pins preserve every unrelated cohort and ignore mutable pins',()=>{
+test('one release ignores stale per-file and cohort overrides',()=>{
  const sha='a'.repeat(40),f=setup({'tdb-gallery.js':sha,'tdb-ticker.js':'main'});try{
-  assert.equal(f.api.resolve(base+'old/dist/tdb-gallery.js'),base+sha+'/dist/tdb-gallery.js');
-  assert.equal(f.api.resolve(base+'old/dist/tdb-parallax.js'),base+'carousel/dist/tdb-parallax.js');
-  assert.equal(f.api.resolve(base+'old/dist/tdb-motion.js'),base+'motion/dist/tdb-motion.js');
-  assert.equal(f.api.resolve(base+'old/dist/tdb-ticker.js'),base+'carousel/dist/tdb-ticker.js');
+  assert.equal(f.api.resolve(base+'old/dist/tdb-gallery.js'),base+'registry/dist/tdb-gallery.js');
+  assert.equal(f.api.resolve(base+'old/dist/tdb-parallax.js'),base+'registry/dist/tdb-parallax.js');
+  assert.equal(f.api.resolve(base+'old/dist/tdb-motion.js'),base+'registry/dist/tdb-motion.js');
+  assert.equal(f.api.resolve(base+'old/dist/tdb-ticker.js'),base+'registry/dist/tdb-ticker.js');
   assert.equal(f.api.resolve('https://example.com/tdb-gallery.js'),'https://example.com/tdb-gallery.js');
  }finally{f.close();}
 });

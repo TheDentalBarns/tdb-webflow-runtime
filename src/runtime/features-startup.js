@@ -1,5 +1,4 @@
 /* Definition-only: consent-released runtime starts each loader in its own turn. */
-const TDBRuntimeModuleRoot = new URL('./', document.currentScript.src);
 const TDBFeatureStartup = (() => {
   let flight;
   const done = new Set();

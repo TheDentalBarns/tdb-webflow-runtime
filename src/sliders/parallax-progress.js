@@ -172,10 +172,8 @@ window.TDBParallaxProgress ||= (() => {
   return {
     refresh: function (t = document) {
       const n =
-        '677cf86df9952f978d94d8a9' === document.documentElement.dataset.wfPage
-          ? e +
-            ',.section_gallery14 .parallax-swiper_component:not(.tdb-banner-parallax),#All-treatments .tdb-banner-parallax'
-          : e;
+        e +
+        ',.section_gallery14 .parallax-swiper_component:not(.tdb-banner-parallax),#All-treatments .tdb-banner-parallax';
       (t instanceof Element && t.matches(n) && r(t), t.querySelectorAll?.(n).forEach(r));
     },
   };

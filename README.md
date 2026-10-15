@@ -1,71 +1,76 @@
-# The Dental Barns Webflow runtime
+# The Dental Barns runtime — 2.0
 
-Readable JavaScript, reproducible production bundles and release records for The Dental Barns Webflow site.
+One repository, one immutable release and one Webflow JavaScript entry. Formatted sources, assembled readable files and minified browser builds are committed together.
 
-**14 October 2026: this branch is an audit/release candidate, not a deployed release.** Its base is the current staging work branch, `work/post-fonts-startup-20261014` at `9739d86106bac901252d0e9876468ebb82ad9bd3`. `main` is behind that staging collection. No Webflow code, CDN pins, production pages or startup timing were changed by this audit. Do not point every site script at this branch as a shortcut.
+## Install
 
-Start with the [collection audit](docs/runtime/audit-2026-10-14.md), [module ownership map](docs/runtime/module-map.md), [every referenced artifact](docs/runtime/module-catalog.md), and [release/rollback procedure](docs/runtime/releasing.md). The [previous README](docs/archive/README-before-runtime-audit-20261014.md) preserves historical installation notes; its September pins are not the current staging configuration.
+Use the same **40-character Git commit** for the head stylesheet and footer entry. Never use `main`, `latest`, per-file pins or page release overrides.
 
-## Consolidation update — 15 October
+```html
+<!-- Head: retain existing critical CSS and nonblocking stylesheet handling. -->
+<link rel="stylesheet" data-tdb-ui-css
+  href="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@COMMIT/dist/tdb-ui.css"
+  media="print" onload="this.media='all';this.dataset.tdbLoaded='true'"
+  onerror="this.dataset.tdbLoadFailed='true'">
+<noscript><link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@COMMIT/dist/tdb-ui.css"></noscript>
 
-The [implemented consolidation](docs/runtime/consolidation-2026-10-15.md) replaces private VIP/calculator/archive loading paths with shared dependency handling, merges the two legacy Instagram renderers and three ticker copies, and combines review CMS/quote-adapter definitions. Existing entry filenames and loading gates remain compatible. Runtime is 1.5.0; the shared registry is 1.7.0. This remains a candidate in PR #27; Webflow has not been updated.
+<!-- Before </body>: the only first-party JS entry. -->
+<script defer data-tdb-start
+  data-tdb-availability-feed="https://tdb-public-availability.david-070.workers.dev/"
+  src="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@COMMIT/dist/tdb-start.min.js"></script>
+```
 
-Read the consolidation document for exact deployment groups, timeout/retry semantics, size trade-offs and remaining markup migrations. Latest verification: **325 passing tests, zero failures, two fixture-dependent skips**. Legacy IG old/new rendering and motion match in the simulated comparison. Native mobile browser checks remain part of staging validation.
+Replace `COMMIT` in all three URLs. Do not install the old consent, navbar, runtime, attribution or post-fonts tags alongside this entry. Remove `data-tdb-asset-pins`, cohort bases, review asset configuration and page override scripts. Retain native Webflow markup, CMS data, forms, fonts and required critical styles.
 
-## Source and build ownership
+The agreed validation target is staging Home. Other pages with legacy custom code are not certified and may need migration. The new bootstrap has no Home ID or pathname switch.
+
+## Startup and ownership
+
+| Stage | Owner | Gate |
+| --- | --- | --- |
+| Release root, motion policy, dependency registry | `tdb-start.min.js` | One deferred footer entry |
+| Scroll lock, consent, essential navbar | `tdb-foundation.js` | DOM → fonts settle → animation frame → 50 ms; rejected fonts and missing APIs have fallbacks |
+| Shared runtime and lightweight launchers | `tdb-runtime.js` | Existing cookie decision and closed banner; idle turns retained |
+| Carousels, reviews, IG, tooltips, forms, VIP | Feature modules | Existing proximity, visibility, consent and intent gates |
+| USP/review drawers and Five Senses | Controllers, templates, CSS | Demand; required CSS/exports ready before use |
+| Attribution | `tdb-attribution.min.js` | Runtime handoff; its own consent/storage policy |
+
+Every first-party dependency resolves to the entry's release directory. The foundation combines the two former startup downloads. The registry shares one flight per resolved URL/type. An explicit network failure may retry once; a timed-out or already-executed script is never blindly injected again.
+
+Attribution 1.5.2 is maintained here, retaining its 61 submitted fields, deferred field insertion and performance-consent policy. The old attribution repository is historical. Lenis 1.3.19 is vendored with its license. Custom Swiper 8.4.7 retains its existing patch and adapter. Webflow/jQuery, Vimeo and consent-permitted analytics/Brevo remain service SDKs; CMS content, artwork and fonts stay in Webflow.
+
+## Files
 
 | Location | Purpose |
 | --- | --- |
-| `src/` | Readable maintained code. Feature folders own behavior; `shared/` owns genuinely reused primitives. |
-| `tools/runtime-build/targets.cjs` | One ordered source manifest for 57 classic-script/ES-module outputs. |
-| `dist/` | Committed, minified browser artifacts. Some historical names end in `.js` rather than `.min.js`; the manifest defines their contents. |
-| `build/readable/` | Optional readable assembled bundles generated locally; ignored by Git. |
-| `config/build-artifacts.json` | Generated source mapping, output hashes and raw/gzip/Brotli estimates. |
-| `config/runtime-inventory-2026-10-14.json` | Captured immutable site pins, Home overrides, direct consumers and conditional dependencies. This is evidence of deployment, not an instruction to deploy. |
-| `config/source-provenance.json` | Original commit and path for recovered active sources/artifacts. |
-| `tests/` | Behavioral regression tests using synthetic fixtures. |
-| `tools/custom-swiper/` | Separate pinned Swiper/esbuild vendor build, security patch and bundled TDB adapter. |
+| `src/` | Maintained, formatted feature sources and shared primitives |
+| `dist/` | Minified browser builds; historical `.js` names are also minified |
+| `readable/` | Complete assembled readable counterpart for each canonical JS build |
+| `config/release.json` | Active assets and separately identified compatibility outputs |
+| `config/build-artifacts.json` | Source mapping, hashes and raw/gzip/Brotli estimates |
+| `tools/runtime-build/targets.cjs` | Ordered build composition |
+| `tools/custom-swiper/`, `vendor/lenis/` | Pinned vendor sources and licenses |
+| `tests/` | Behavioral and release-contract checks |
+| `docs/runtime/` | Audit history, ownership and release instructions |
+| `archive/`, `docs/archive/` | Retired installers and workflows; never install these |
 
-The runtime repository is the home for site behavior. Attribution currently lives in [`tdb-webflow-attribution`](https://github.com/TheDentalBarns/tdb-webflow-attribution); both active attribution versions are cataloged here. Keep that boundary until its form-field and consent contracts have been checked together. Repository consolidation does not require putting every feature in one download.
+Compatibility files remain for reference and rollback; the new startup does not load them. Old `tdb-consent.min.js` is **policy-only**, while `tdb-consent.js` is the old combined foundation. Legacy IG/review renderers stay outside the active sequence. Some recovered historical sources retain short identifiers; their provenance is recorded.
 
 ## Build and verify
 
-Use Node 24 and the committed npm lockfile:
+Use Node 24 and committed lockfiles:
 
 ```sh
 npm ci --ignore-scripts --no-audit --no-fund
-npm run build
-npm run build:swiper
-npm test
-npm run build:check
+npm run format
+npm run build:all
+npm run verify
 npm run format:check
 ```
 
-For readable assembled files, run `npm run build:readable`. For the captured reference catalog, run `npm run catalog`. Format sources with `npm run format` before rebuilding. To build just one target:
+`npm run build` generates minified **and** readable outputs for all manifest targets. `npm run build:swiper` builds both vendor variants. Commit source, outputs and metadata together; never edit generated JS. Terser uses three safe compression passes and identifier mangling, protecting public properties and DOM hooks. Unsafe transforms/property mangling are disabled to preserve behavior.
 
-```sh
-node tools/runtime-build/build-preservation.cjs dist/tdb-runtime.js
-```
+Tests cover consent, one-release resolution, duplicate prevention, retry/timeout behavior, first-click capture, form values/validation, attribution parity, scroll restoration, motion and feature lifecycles. External Brevo, Webflow Tram and Webflow form-serializer fixtures are opt-in. Simulated DOM checks do not replace physical iPhone Safari/Chrome testing.
 
-A complete build also refreshes the artifact report. Run `npm run build` before committing a partial build. `build:check` is read-only and fails on stale outputs or metadata. Vendor dependencies use their own committed lockfile; the Swiper build applies the existing protected-key patch explicitly after installation.
-
-Terser 5.44.0 uses three compression passes and identifier mangling. **No unsafe compression or property mangling.** Window exports, DOM attributes, event names, CSS classes and cross-file object properties remain contracts. Five Senses is built as an ES module; other manifest outputs remain classic scripts. Swiper's entire adapter is now minified, with its license and patch banner retained. Compression estimates are local estimates, not measured network transfer or per-page payload.
-
-Two legacy naming traps remain for compatibility:
-
-- `tdb-consent.js` includes banner, scroll lock, registry and policy. `tdb-consent.min.js` is the older policy-only target. They are **not interchangeable**.
-- Standalone files outside the manifest include retired footer/startup assets and diagnostics. They remain available for historical compatibility; they are not automatically part of the candidate release.
-
-## Runtime boundaries
-
-The current footer timing experiment remains unchanged. Consent and basic navigation establish the first owners. A valid consent decision releases the site runtime; rejecting optional categories still allows local functional UI. Each feature then applies its own presence, intent, proximity and consent conditions. Vimeo and tracking retain their respective permission gates.
-
-`TDBModules` owns resolved asset pins and shared network flights. Its network recovery retries only an explicit transport failure; a timed-out or missing-export script is never blindly re-executed. `TDBModuleBootstrap` serves standalone entry points only when the registry is absent. `TDBScrollLock` coordinates lock owners. `TDBMotionPolicy` / `TDBMotion` own the approved motion policy and timings. `TDBSwiper` owns carousel behavior. `TDBReviewCMS` and `TDBAvailability` share data requests and caches.
-
-Webflow Designer owns page structure, CMS bindings and native visual classes. Do not move layout back into runtime code while simplifying JavaScript. Preserve the existing full-motion design-review policy, keyboard/focus behavior, native fallbacks, first-click replay, Webflow form IDs and submission values.
-
-## Changes and release discipline
-
-Edit source, rebuild, test, and review generated diffs. Do not hand-edit minified files. Do not update a working site pin to `main`, a feature branch or a guessed commit. Promote a tested immutable commit, with the exact previous configuration retained for rollback.
-
-The audit fixes Back/restore page-position caching and isolates feature startup failures. It also recovers active historical sources and repairs the build/CI process. A candidate's passing unit tests do not certify Safari layout, mobile gestures or every legacy page. The release procedure lists the remaining browser checks and staged migration sequence.
+See [release and rollback](docs/runtime/releasing.md). This is a baseline for assessing JavaScript; no FCP/TBT improvement is claimed without comparable measurements.

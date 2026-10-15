@@ -82,7 +82,7 @@ test('Explore treatments stops stale wheel inertia before native navigation with
   const w=dom.window, doc=w.document, order=[];
   doc.documentElement.dataset.wfPage='677cf86df9952f978d94d8a9';
   w.lenis={isScrolling:'smooth',reset(){order.push('reset');this.isScrolling=false;}};
-  w.eval(read('src/runtime/home-anchor-settlement.js'));
+  w.eval(read('src/shared/anchor-settlement.js'));
   doc.addEventListener('click',event=>{order.push('native');assert.equal(event.defaultPrevented,false);});
   try {
     doc.querySelector('span').dispatchEvent(new w.MouseEvent('click',{bubbles:true,cancelable:true}));

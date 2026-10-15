@@ -1,39 +1,27 @@
 # Release and rollback
 
-This candidate is based on staging's `9739d86106bac901252d0e9876468ebb82ad9bd3`, not the older `main` tree. Review it against that base first. Consolidating it into `main` is a separate reconciliation step; do not silently replace production's older behavior with staging's full collection.
+## One version
 
-The [15 October consolidation](consolidation-2026-10-15.md#deployment-groups-and-rollback) adds exact release groups. Pair the updated foundation/runtime, preserve or explicitly promote the VIP controller pin, and pair review CMS/loader for the combined data path.
+`config/release.json` defines the collection. A release commit contains source, minified/readable outputs, CSS/templates and supporting assets. Webflow's head UI stylesheet and footer `tdb-start.min.js` use that one immutable SHA. Children resolve relatively; no separate drawer, review, carousel, Home or attribution versions are configured.
 
-## Prepare a release
+Component version strings describe their API revisions. `TDBRelease.version` describes the collection; `TDBRelease.commit` identifies the exact installed release.
 
-1. Install the root lockfile with Node 24, format changed sources and build all manifest targets plus Swiper. Run the tests and deterministic build check. Confirm no unexplained output changes.
-2. Review `config/build-artifacts.json` and the source-provenance record. Retain third-party licenses and the Swiper patch. The historical `.min.js` consent target is policy-only, not the full consent bundle.
-3. Commit all source, generated output and documentation together on a release branch. Record its immutable commit SHA. Resolve the differences between standard/Home drawers, reviews and runtime explicitly.
-4. Build the proposed Webflow pin/configuration diff from the captured baseline. Keep CSS and template pins together when a feature requires them. Relative URLs, native markup, JSON data, worker feeds and filenames under `/src/` also matter; a complete set of new JS files does not make a single global base URL safe yet.
-5. Preserve the exact current site/page settings before any publish. The inventory is sufficient to audit script references; it is not a complete Webflow rollback export. Do not publish private page/CMS snapshots in this public repository.
+## Prepare and publish staging
 
-## Validate on staging before calling it final
+1. Format, run `npm run build:all`, `npm run verify` and `npm run format:check`. Commit generated outputs and metadata. Retain vendor licenses and the Swiper patch.
+2. Reconcile the release branch with `main`, including unrelated work since divergence. Use an ordinary merge, never replace history.
+3. Save exact current site/page custom code privately. Audit inventories do not constitute a Webflow backup. Never commit full settings, HTML or CMS snapshots here.
+4. Verify declared release assets on jsDelivr. Replace all three install URLs together. Remove old global startup tags and page release overrides; keep configuration that does not select code versions.
+5. Publish **only the Webflow staging subdomain**, with no custom domains selected. This pass validates Home; other staging pages may break and are not a gate.
+6. Check served HTML, requested script versions and actual interactions: fresh/saved consent, essential-only local features, first clicks, navigation, drawers, IG/reviews, form preservation, media cancellation and scroll restoration. Physical iPhone Safari/Chrome remains a separate check.
+7. Record observations and limitations. Do not infer TBT from file size or delayed requests.
 
-The automated suite covers behavior in simulated DOM fixtures. Two tests require explicit external fixtures (`TDB_BREVO_SDK` and `TDB_TRAM_SOURCE`); see their test files for the current fixture switch. A real browser pass is still required for layout, GPU/audio, Webflow/Tram and mobile interaction.
+## Rollback
 
-| Scenario | Required checks |
-| --- | --- |
-| Consent | Fresh, saved accept, saved reject, withdrawal; local features still work on reject; remote media/tracking obey their gates. |
-| Navigation / USP / VIP | iPhone Safari and Chrome first tap, rapid taps, keyboard, opening then cancelling, reload, Back/forward, scroll retained. |
-| Carousels / reviews / IG | Active and non-focus cards, swipe/reverse, focus, pagination/filter, late records, drawer close/reopen and removal/remount. |
-| Forms / calculator | First submission during load, validation, submitter, previously edited values, reset, dynamic insertion, attribution fields. |
-| Five Senses / Vimeo | Permission changes during load, loading cancellation, reopen, pagehide, media cleanup and restored scrolling/focus. |
-| Network recovery | Block a request, retry explicit network error, simulate timeout and missing export; native fallback remains available. |
-| Routes | Home, first visit, reviews, calculator, smile gallery, a service, a treatment and VIP variants using old inline handlers. |
+Restore saved global and affected page head/footer blocks, then publish staging only. Old immutable commits remain available. Later releases using the same entry can roll back by changing all three SHA occurrences together. Revert source changes with ordinary commits, not history deletion.
 
-Measure repeated comparable cold and warm runs. Report request/parse/main-thread timings separately from raw/gzip size. The TBT experiment is paused; the audit supplies no measured FCP/TBT improvement claim.
+## CI and archived code
 
-## Migrate in small cohorts
+Runtime and Swiper workflows are the canonical JavaScript checks and use read-only permissions. Old branch-specific builders are archived in `docs/archive/workflows/` so they cannot generate conflicting bundles or commits. CSS checks remain manually gated while separate CSS/performance work is paused.
 
-First promote the two runtime reliability fixes on their own pin after browser checks. Next promote minification-only/source-restoration cohorts with their existing gates. Then migrate old Instagram/review markup and delete their references per page. Move custom VIP/calculator transport to the shared registry independently. Only after those checks simplify to one tested release manifest with explicit exceptions.
-
-Keep the previous release SHA and configuration attached to each migration. Roll back by restoring the previous immutable pins/settings and republishing the affected staging pages; no source rewrite, history reset or deletion of old commits is needed. Roll back a source change with an ordinary revert commit. Production publish is a separate action after approval of the concrete staging result.
-
-## CI
-
-The runtime and Swiper workflows validate the checked-out commit with read-only repository permissions. They no longer generate commits on `main`. UI validation is manual/read-only while CSS work is paused. Older one-off feature workflows are retained for their named historical work branches; they are not the canonical release pipeline and should be archived when those branches are reconciled.
+The manifest's `compatibilityOnly` outputs are built for traceability, not loaded by the new entry. Other pages retaining direct/inline legacy calls need a later markup migration; do not add their exceptions back into the global resolver.

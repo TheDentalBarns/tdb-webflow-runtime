@@ -71,10 +71,10 @@ test('concurrent preparations share CMS data and mount drawer template once',asy
  await Promise.all([e.w.TDBReviewLoader.prepare(),e.w.TDBReviewLoader.prepare()]);
  assert.equal(e.stats().dataLoads,1);assert.equal(e.stats().templateMounts,1);e.close();
 });
-test('explicit asset configuration preserves component and lazy drawer release roots',async()=>{
- const e=setup('<script type="application/json" data-tdb-review-config>{"base":"https://cdn.example/components/","lazyBase":"https://cdn.example/drawer/"}</script><div data-tdb-review-lazy></div>');e.run();
- await e.w.TDBReviewLoader.prepare();assert.ok(e.stats().loads.includes('https://cdn.example/components/tdb-motion.js'));
- assert.ok(e.stats().loads.includes('https://cdn.example/drawer/tdb-review-drawer-template.js'));e.close();
+test('obsolete page overrides cannot split the release',async()=>{
+ const e=setup('<script type="application/json" data-tdb-review-config>{"base":"https://cdn.example/components/","lazyBase":"https://cdn.example/drawer/"}</script><div data-tdb-review-lazy></div>');e.w.TDBRelease={base:'https://cdn.example/dist/'};e.run();
+ await e.w.TDBReviewLoader.prepare();assert.ok(e.stats().loads.includes('https://cdn.example/dist/tdb-motion.js'));
+ assert.ok(e.stats().loads.includes('https://cdn.example/dist/tdb-review-drawer-template.js'));e.close();
 });
 test('refresh does not overwrite mounted component accessibility state',async()=>{
  const e=setup();e.run();const root=e.w.document.querySelector('section');e.near(root);await tick();

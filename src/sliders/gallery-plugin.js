@@ -22,9 +22,7 @@
     if (e.classList.contains('tdb-smile-carousel'))
       return window.TDBSwiper.nativeGap(e, t, '.swiper-slide.smile');
     if (!matchMedia('(min-width:992px)').matches) return t;
-    const i =
-      '677cf86df9952f978d94d8a9' === document.documentElement.dataset.wfPage &&
-      e.matches('.section_smile-gallery [data-tdb-smile-slider]');
+    const i = e.matches('.section_smile-gallery [data-tdb-smile-slider]');
     return e.matches('.parallax-swiper_component') || i ? window.TDBSwiper.nativeGap(e, t) : t;
   }
   function l(e) {
@@ -107,8 +105,7 @@
     var w;
     ((e.hasAttribute('data-tdb-ig-native') ||
       e.classList.contains('tdb-smile-carousel') ||
-      (e.matches('.section_smile-gallery [data-tdb-smile-slider]') &&
-        '677cf86df9952f978d94d8a9' === document.documentElement.dataset.wfPage)) &&
+      e.matches('.section_smile-gallery [data-tdb-smile-slider]')) &&
       (function (e, t, i) {
         const n = () => {
             const n = o(e, i());

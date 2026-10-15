@@ -5,24 +5,8 @@
   'use strict';
   if (window.TDBReviewLoader) return;
   const script = document.currentScript;
-  const defaults = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@';
-  let config = {};
-  try {
-    config =
-      JSON.parse(document.querySelector('[data-tdb-review-config]')?.textContent || '{}') || {};
-  } catch (error) {
-    console.warn('TDB reviews: using default asset locations.', error);
-  }
-  const base = new URL(
-    config.base ||
-      script?.dataset.tdbReviewBase ||
-      defaults + '93173cc685259f3b84404967f1e6deb6a5d451fc/dist/',
-  );
-  const lazyBase = new URL(
-    config.lazyBase ||
-      script?.dataset.tdbReviewLazyBase ||
-      defaults + 'eb916ade51aae9fabfeb181e3399c674c0345da4/dist/',
-  );
+  const base = new URL(window.TDBRelease?.base || './', script?.src || location.href);
+  const lazyBase = base;
   const options = window.TDBReviewOptions || {};
   const selector =
     '[data-tdb-review-introduction],[data-tdb-review-cards],[data-tdb-review-quotes]';

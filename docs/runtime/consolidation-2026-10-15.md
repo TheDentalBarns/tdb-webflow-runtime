@@ -1,5 +1,7 @@
 # JavaScript consolidation — 15 October 2026
 
+> Historical audit snapshot. The current installation and single-release contract are in [the main README](../../README.md) and [release guide](releasing.md).
+
 This extends the 14 October audit candidate in PR #27. Baseline: `4d7f0abd2196e1f40831e432cf530d252366798b`. JavaScript and generated bundles changed; Webflow settings and published sites are unchanged.
 
 ## Implemented merges

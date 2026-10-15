@@ -1,7 +1,6 @@
 /* Let Webflow's native home section link settle during Lenis wheel inertia. */
 (() => {
   'use strict';
-  if (document.documentElement.dataset.wfPage !== '677cf86df9952f978d94d8a9') return;
   document.addEventListener(
     'click',
     (event) => {

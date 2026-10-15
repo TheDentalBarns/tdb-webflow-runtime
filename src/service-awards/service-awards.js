@@ -10,7 +10,7 @@
     return e;
   }
   // Home uses the practice-wide trio; service pages retain their CMS selections.
-  const homeRecords = [
+  const defaultRecords = [
     {
       image:
         'https://cdn.prod.website-files.com/67837ee85ee175873126e461/69d7d3cc7474d3983cd16ca0_the-dental-barns-private-dentistry-awards-2025-winner-digital-practice.svg',
@@ -38,10 +38,9 @@
   ];
   function init() {
     const feed = document.querySelector('[data-tdb-awards-feed]');
-    const home = document.documentElement.dataset.wfPage === '677cf86df9952f978d94d8a9';
-    if (!feed && !home) return;
-    const records = home
-      ? homeRecords
+    const useDefaults = !feed;
+    const records = useDefaults
+      ? defaultRecords
       : Array.from(feed.querySelectorAll('[data-tdb-award-record]'))
           .map((r) => ({
             image: r.querySelector('img')?.getAttribute('src'),

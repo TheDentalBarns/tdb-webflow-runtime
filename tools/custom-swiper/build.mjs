@@ -1,4 +1,4 @@
-import { mkdir, stat, readFile } from 'node:fs/promises';
+import { mkdir, stat, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build, transform } from 'esbuild';
@@ -35,3 +35,15 @@ await build({
 
 const { size } = await stat(outfile);
 console.log(`Built ${outfile} (${size.toLocaleString()} bytes)`);
+
+// Committed assembled development build; source files remain the editing surface.
+const readable = resolve(here, '../../readable/tdb-swiper-8.4.7.min.js');
+await mkdir(dirname(readable), { recursive: true });
+const pretty = await build({
+  entryPoints: [entry], bundle: true, minify: false, write: false,
+  format: 'iife', platform: 'browser', target: ['es2017'], legalComments: 'inline',
+  define: { 'process.env.NODE_ENV': '"production"' },
+  footer: { js: (await readFile(resolve(here, '../../src/shared/carousel-visibility.js'), 'utf8')) + '\n' + adapter },
+  banner: { js: '/*! TDB custom Swiper 8.4.7-tdb.2 | Swiper MIT License | readable build */' },
+});
+await writeFile(readable, pretty.outputFiles[0].text);

@@ -22,17 +22,14 @@
     if (t.classList.contains('tdb-service-parallax'))
       return window.TDBSwiper.nativeGap(t, i, '.tdb-service-slide,.tdb-treatment-slide');
     if (!matchMedia('(min-width:992px)').matches) return i;
-    const a =
-      '677cf86df9952f978d94d8a9' === document.documentElement.dataset.wfPage &&
-      t.matches('.section_smile-gallery [data-tdb-smile-slider]');
+    const a = t.matches('.section_smile-gallery [data-tdb-smile-slider]');
     return t.matches(e) || a ? window.TDBSwiper.nativeGap(t, i) : i;
   }
   function l(e) {
     return window.TDBMotion.duration(e.clientWidth);
   }
   function d(e) {
-    const t = location.pathname.replace(/\/+$/, '') || '/';
-    return e?.classList.contains('tdb-service-parallax') || '/' === t || '/location' === t;
+    return e?.matches('.tdb-service-parallax,[data-tdb-service-parallax]');
   }
   function c(e) {
     return d(e) && matchMedia(i).matches;
@@ -42,9 +39,7 @@
   }
   function p(e) {
     return (
-      window.TDBTreatmentParallax?.matches(e) ||
-      ('677cf86df9952f978d94d8a9' === document.documentElement.dataset.wfPage &&
-        e.matches('#All-treatments .tdb-banner-parallax'))
+      window.TDBTreatmentParallax?.matches(e) || e.matches('#All-treatments .tdb-banner-parallax')
     );
   }
   function w(e) {
@@ -282,7 +277,7 @@
       window.TDBParallax?.bind(e, x),
       (e.hasAttribute('data-tdb-treatment') || e.classList.contains('tdb-service-parallax')) &&
         window.TDBCarouselVisibility.bind(x, {
-          overflowViewport: document.documentElement.dataset.wfPage === '677cf86df9952f978d94d8a9',
+          overflowViewport: true,
         }));
     const y = window.TDBMotion.carousel.nextDelay,
       T = new WeakMap(),

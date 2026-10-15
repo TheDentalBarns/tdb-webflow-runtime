@@ -115,12 +115,7 @@ function tdbEnsureVIPUI() {
   // Native Webflow CSS is already loaded before page scripts. Older markup
   // retains its pinned stylesheet, making this release safe during migration.
   if (document.querySelector('#tdb-vip-drawer[data-tdb-vip-native="1"]')) return Promise.resolve();
-  return tdbEnsureFeatureCSS(
-    'data-tdb-vip-ui-css',
-    'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@48124a90eddd39bf4ae611d00b9fe80583b98872/dist/tdb-vip.css',
-    '--tdb-vip-ui-ready',
-    'VIP UI',
-  );
+  return tdbEnsureFeatureCSS('data-tdb-vip-ui-css', 'tdb-vip.css', '--tdb-vip-ui-ready', 'VIP UI');
 }
 window.TDBFeatureCSS = Object.freeze({
   ui: tdbEnsureUI,

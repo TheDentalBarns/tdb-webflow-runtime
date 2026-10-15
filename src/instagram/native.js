@@ -7,7 +7,7 @@
   const IMAGE_WINDOW = Object.freeze({ desktop: 5, mobile: 3, desktopQuery: '(min-width:992px)' });
   const BASE = document.currentScript?.src
     ? new URL('./', document.currentScript.src).href
-    : 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@46eed029ec12f0547282d81e9e9e35939c8b703e/dist/';
+    : window.TDBRelease?.base || new URL('./', location.href).href;
   const instances = new Map(),
     pending = new Map();
   const numberFormat = new Intl.NumberFormat('en-GB');

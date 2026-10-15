@@ -94,7 +94,7 @@ test('shared locks release independently and contain wheel/touch at nested scrol
   } finally { f.dom.window.close(); }
 });
 
-test('Home locks the viewport without turning body into a competing sticky scroll container', async () => {
+test('Every page locks the viewport without turning body into a competing sticky scroll container', async () => {
   for (const page of ['677cf86df9952f978d94d8a9', 'another-page']) {
     const f = fixture(448, false);
     try {
@@ -104,7 +104,7 @@ test('Home locks the viewport without turning body into a competing sticky scrol
       await f.open();
       assert.equal(f.w.getComputedStyle(f.d.documentElement).overflow, 'hidden');
       assert.equal(f.w.getComputedStyle(f.d.body).overflow,
-        page === '677cf86df9952f978d94d8a9' ? 'visible' : 'hidden');
+        'visible');
       assert.equal(f.w.scrollY, 1200);
       const wheel = new f.w.WheelEvent('wheel', {bubbles:true,cancelable:true,deltaY:100});
       f.d.querySelector('main').dispatchEvent(wheel); assert.equal(wheel.defaultPrevented, true);

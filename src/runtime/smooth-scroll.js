@@ -31,7 +31,7 @@ function markLenisWarmSession() {
 
 function loadLenisAssets() {
   if (!matchMedia('(min-width:768px) and (hover:hover) and (pointer:fine)').matches) return;
-  loadScript('https://cdn.jsdelivr.net/npm/lenis@1.3.19/dist/lenis.min.js', 'data-lenis-js')
+  loadScript(new URL('tdb-lenis.min.js', TDBRuntimeModuleRoot).href, 'data-lenis-js')
     .then(initLenis)
     .catch(() => console.error('TDB Lenis failed to load'));
 }
@@ -50,7 +50,6 @@ function prepareSmoothScroll() {
   /* Let Webflow's native home section link settle during Lenis wheel inertia. */
   (() => {
     'use strict';
-    if (document.documentElement.dataset.wfPage !== '677cf86df9952f978d94d8a9') return;
     document.addEventListener(
       'click',
       (event) => {
