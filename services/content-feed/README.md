@@ -1,6 +1,7 @@
 # TDB content feed — Instagram staging trial
 
-Prepared service; deployment and live verification are tracked separately. This
+Worker deployment succeeded on 15 October 2026; the CMS credential, staging route
+publication, and homepage acceptance are still pending. This
 first route replaces the homepage's repeated Instagram CMS markup with a small
 published-data projection. Announcements, Smiles, and Reviews are not migrated.
 
@@ -9,6 +10,8 @@ published-data projection. Announcements, Smiles, and Reviews are not migrated.
 - Site: `677cf86cf9952f978d94d80c` (The Dental Barns).
 - App directory: `services/content-feed` in `TheDentalBarns/tdb-webflow-runtime`.
 - Source branch: `audit/runtime-collection-20261014`.
+- App: `d01ac34b-689f-4d51-aeaf-df8093e41629` (TDB Content Feed).
+- Environment: `37e6e393-ca1c-44a2-b7f9-367da6ceb270` (`staging`).
 - Mount: `/tdb-content`.
 - Route: `GET /tdb-content/v1/instagram.json` (also supports HEAD).
 - Runtime hostname allowlist: `dentalbarns.webflow.io` only.
@@ -20,6 +23,20 @@ published-data projection. Announcements, Smiles, and Reviews are not migrated.
 
 Cloud builds the Worker adapter; the local Vite build checks the app package but
 does not itself prove that the Cloud Worker or its bindings have deployed.
+The first actual Worker deployment, `e53e2ab3-001d-4450-9630-c5e9b35c5d0a`,
+succeeded and the environment reports its `CONTENT_FEEDS` KV binding. Its
+`WEBFLOW_API_TOKEN` variable is not yet configured. The app uses direct CLI
+uploads; GitHub pushes alone do not deploy it. From this directory, redeploy with:
+
+```text
+webflow apps deploy --site-id 677cf86cf9952f978d94d80c --app-id d01ac34b-689f-4d51-aeaf-df8093e41629 --environment staging --mount /tdb-content --framework vite --json --no-input --skip-update-check
+```
+
+Set the runtime token as a secret in the Cloud environment, then redeploy to
+activate it. Keep the CLI's user authorization separate from this CMS-only token.
+The CLI creates temporary adapter files during deployment and restores the
+authoring configuration afterward. Its build output and backups are ignored.
+
 Publish only to the Webflow subdomain to activate staging routing. Custom domains
 must retain their existing publication. Verify both deployment and actual JSON
 before enabling the homepage feed attribute.
