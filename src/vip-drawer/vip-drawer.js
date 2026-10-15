@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.7.2';
+  const VERSION = '0.7.3';
   const mobileQuery = matchMedia('(max-width:767px)');
   const desktopQuery = matchMedia('(min-width:768px)');
   const drawer = document.getElementById('tdb-vip-drawer');
@@ -189,6 +189,9 @@
 
   function openDrawer() {
     clearTimeout(timer);
+    // Native display:none keeps these lazy images out of the initial fetch.
+    // Release once, before measuring/opening; preserve artwork during closing.
+    drawer.querySelector('.tdb-vip-barns')?.classList.remove('is-vip-artwork-pending');
     if (state !== 2 && state !== 3) panelMotion.prepare();
     lastY = pageY();
     state = 2;

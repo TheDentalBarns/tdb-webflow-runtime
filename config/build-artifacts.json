@@ -611,10 +611,10 @@
         "src/shared/panel-motion.js",
         "src/vip-drawer/vip-drawer.js"
       ],
-      "sha256": "03a8bf6c4765b67e6694e3f8b1ced6925c40dacb4c2a24930568d517a692afdd",
-      "raw": 8812,
-      "gzip": 3205,
-      "brotli": 2804
+      "sha256": "359d58c98504bee15ddd316c1d8656f49294dc3787690530a7ec7d9260209841",
+      "raw": 8890,
+      "gzip": 3232,
+      "brotli": 2829
     },
     "dist/tdb-vip-form.js": {
       "sources": [

@@ -9,7 +9,9 @@ function fixture(file, width = 1440, initialHeight = 1200) {
   const dom = new JSDOM(`<a id="cta" href="#VIP">Join VIP</a>
     <nav class="navbar10_component"></nav><div id="tdb-vip-drawer" data-tdb-vip-native="1">
     <a class="tdb-vip-drawer-handle"><span class="tdb-vip-drawer-label"></span><span class="tdb-vip-arrow-content"></span></a>
-    <div class="tdb-vip-drawer-body"><input aria-label="Name"></div></div>`,
+    <div class="tdb-vip-drawer-body"><input aria-label="Name">
+    <div class="tdb-vip-barns is-vip-artwork-pending"><img loading="lazy" src="/barn.svg" alt=""></div>
+    </div></div>`,
     {url:'https://dentalbarns.webflow.io/',runScripts:'outside-only',pretendToBeVisual:true});
   const w = dom.window, timers = new Map();
   let height = initialHeight, now = 0, id = 0;
@@ -42,6 +44,26 @@ function fixture(file, width = 1440, initialHeight = 1200) {
 }
 
 for (const file of ['dist/tdb-vip-drawer.js']) {
+  test(file+': releases native lazy artwork only on first open and retains it through closing',()=>{
+    for (const width of [1440,390]) {
+      const f=fixture(file,width), {w,drawer}=f;
+      try {
+        const row=drawer.querySelector('.tdb-vip-barns');
+        assert(row.classList.contains('is-vip-artwork-pending'),'initialization must not release artwork');
+        w.scrollY=800;
+        w.TDBVIPDrawer.resumeScroll({peek:true,up:120});
+        assert.equal(w.TDBVIPDrawer.status().state,1);
+        assert(row.classList.contains('is-vip-artwork-pending'),'peek must not release artwork');
+        f.open();
+        assert(!row.classList.contains('is-vip-artwork-pending'));
+        assert.equal(row.querySelector('img').getAttribute('src'),'/barn.svg');
+        f.close();
+        assert(!row.classList.contains('is-vip-artwork-pending'),'keep artwork throughout closing motion');
+        f.finish();f.open();
+        assert(!row.classList.contains('is-vip-artwork-pending'),'reopening reuses the native artwork');
+      } finally {f.destroy();}
+    }
+  });
   test(file+': closes for the full measured duration, independently of nav/consent/motion',()=>{
     const f=fixture(file), {w,drawer}=f;
     try {
