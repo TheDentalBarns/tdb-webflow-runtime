@@ -12,6 +12,7 @@
     "tdb-smile-feed.css": "Home native Smile Gallery export on 2026-10-15, scoped to the external feed with one shared presentation"
   },
   "patches": {
+    "tdb-smile-feed.css": "2026-10-15: reserve the native 3 em facts-row height in the shared summary with CSS padding; keep the treatment gap without restoring hidden per-card facts. Native Smile holding colour now uses the existing orange-1 cream token.",
     "tdb-review-drawer.css": "2026-10-15: mirror the Webflow tdb-review-drawer_star native class mask/background/colour into this lazy CSS snapshot. The drawer is mounted after load, so its class is not emitted in the optimized initial page stylesheet. Preserve its existing size and is-empty opacity."
   }
 }

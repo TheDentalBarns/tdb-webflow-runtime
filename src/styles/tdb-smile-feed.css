@@ -7,6 +7,8 @@
 [data-tdb-smile-feed-root] .tdb-smile-card::before{top:0;height:8rem}
 [data-tdb-smile-feed-root] .tdb-smile-card::after{bottom:0;height:9rem}
 [data-tdb-smile-feed-root] .tdb-smile-shared-content{position:absolute;inset:0;pointer-events:none}
+/* Preserve the native facts row's space without repeating hidden facts in the DOM. */
+[data-tdb-smile-feed-root] .tdb-smile-shared-content .tdb-smile-summary{padding-top:3em}
 [data-tdb-smile-feed-root] [data-tdb-smile-presentation] *{pointer-events:none!important}
 [data-tdb-smile-feed-root] .tdb-smile-shared-content .tdb-smile-header,
 [data-tdb-smile-feed-root] .tdb-smile-shared-content .tdb-smile-summary-ready{background:transparent}

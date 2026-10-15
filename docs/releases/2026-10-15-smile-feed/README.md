@@ -1,9 +1,12 @@
 # Home Smile Gallery feed
 
 Home now requests the featured Smile Gallery cases at 400 px proximity, after
-the existing consent decision. The initial document contains a native white
+the existing consent decision. The initial document contains a native cream
 holding link with the existing diamond asset, matching the IG holding icon's
 2.75 rem size and 0.35 opacity. Only its responsive geometry is critical CSS.
+The holding colour uses the gallery's `--base-color-brand--orange-1` token.
+The shared summary reserves the native facts row's 3 em of space with CSS
+padding so the price row and treatments retain their original spacing.
 
 The external Smile module loads its stylesheet and the same-origin
 `/tdb-content/v1/smiles.json` projection, decodes the entry images, then mounts
