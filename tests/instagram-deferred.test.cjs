@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),{JSDOM}=require('jsdom');
-const source=fs.readFileSync('src/instagram/deferred.js','utf8');
+const source=fs.readFileSync('src/instagram/deferred.js','utf8').replace('__TDB_IG_TEMPLATE__',JSON.stringify(fs.readFileSync('src/instagram/template.html','utf8').trim()));
 const starter="const TDBRuntimeModuleRoot=new URL('https://cdn.example/dist/');"+fs.readFileSync('src/runtime/instagram-feature-loader.js','utf8');
 const html='<template data-tdb-ig-source="awards"><div data-tdb-ig-native="awards" data-ig-class="ig-native_feed"><div data-ig-class="ig-native_photo" data-cms="untouched"></div></div></template><div data-tdb-ig-placeholder="awards"><a class="tdb-ig-holding-image" href="https://www.instagram.com/thedentalbarns/">Instagram</a></div>';
 const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
@@ -57,4 +57,47 @@ test('entry and destination images decode before the native entry sequence mount
  const flight=e.prepare();await tick();assert.equal(e.mounts(),0);assert.deepEqual(preloads.map(x=>new URL(x.src).pathname),['/first.webp','/last.webp']);
  release();await flight;assert.equal(e.mounts(),1);assert.equal(e.holder.dataset.igState,'ready');
  assert.equal(sourceRoot.querySelectorAll('img[src]').length,3);e.close();
+});
+
+function useFeed(e, options={}){
+ e.d.querySelector('template').remove();e.holder.setAttribute('data-tdb-ig-feed','/tdb-content/v1/instagram.json');
+ const posts=Array.from({length:3},(_,i)=>({url:'https://www.instagram.com/p/post'+i+'/',
+  image:{src:'https://cdn.prod.website-files.com/67837ee85ee175873126e461/post'+i+'.webp',alt:i===0?'<img src=x onerror=alert(1)>':'Photo '+i},
+  date:'2026-01-10',mediaType:'image',likes:i,comments:null,shares:null}));
+ const payload={version:1,feed:'instagram',checkedAt:Date.now(),posts};
+ const requests=[],preloads=[];
+ e.w.fetch=async(url,config)=>{requests.push({url:String(url),config});if(options.gate)await options.gate;
+  return {ok:!options.fail,headers:{get:()=> 'application/json'},text:async()=>JSON.stringify(payload)};};
+ e.w.Image=function(){const img=e.d.createElement('img');Object.defineProperties(img,{complete:{value:true},naturalWidth:{value:1}});
+  img.decode=async()=>{};preloads.push(img);return img;};
+ return {payload,requests,preloads};
+}
+
+test('JSON path has no CMS template or startup requests; fills the existing layout after proximity',async()=>{
+ const e=setup({allowed:false}),f=useFeed(e);await e.prepare();assert.equal(f.requests.length,0);assert.equal(e.loads.length,0);
+ e.permit(true);await e.prepare();assert.equal(f.requests.length,1);assert.equal(e.mounts(),1);
+ const root=e.holder.querySelector('[data-tdb-ig-native]'),slides=[...root.querySelectorAll('[data-ig-slide]')];
+ assert.equal(slides.length,3);assert.equal(slides[0].getAttribute('data-ig-record-likes'),'0');assert.equal(slides[0].getAttribute('data-ig-record-comments'),'');
+ assert.equal(root.querySelectorAll('[data-ig-slide] img[src]').length,0);
+ assert.equal(root.querySelectorAll('[onerror]').length,0);assert.equal(slides[0].querySelector('.ig-native_photo').alt,f.payload.posts[0].image.alt);
+ assert.deepEqual(f.preloads.map(img=>new URL(img.src).pathname.split('/').at(-1)),['post0.webp','post2.webp']);
+ assert.equal(f.requests[0].config.credentials,'omit');e.close();
+});
+test('late JSON cannot mount after permission is revoked',async()=>{
+ let release;const e=setup(),f=useFeed(e,{gate:new Promise(r=>release=r)});const flight=e.prepare();await tick();
+ e.permit(false);assert.equal(f.requests[0].config.signal.aborted,true);release();await flight;
+ assert.equal(e.mounts(),0);assert.equal(e.holder.children.length,1);e.close();
+});
+test('bad feed response, stale data and invalid post links retain the Instagram holding link',async()=>{
+ for(const change of [f=>f.payload.checkedAt-=3600001,f=>f.payload.posts[0].url='javascript:alert(1)',
+  f=>f.payload.posts[1].url=f.payload.posts[0].url,f=>f.payload.posts=[],f=>f.payload.posts[0].image.src='https://other.example/track',
+  f=>f.payload.posts[0].date='2026-02-31',f=>f.payload.posts[0].likes=-1]){
+  const e=setup(),f=useFeed(e);change(f);await e.prepare();assert.equal(e.mounts(),0);assert.equal(e.holder.children.length,1);
+  assert.equal(f.preloads.length,0);assert.equal(e.holder.querySelector('a').href,'https://www.instagram.com/thedentalbarns/');e.close();
+ }
+ const e=setup();useFeed(e,{fail:true});await e.prepare();assert.equal(e.mounts(),0);e.close();
+});
+test('feed endpoint cannot send a request to another origin',async()=>{
+ const e=setup(),f=useFeed(e);e.holder.setAttribute('data-tdb-ig-feed','https://other.example/tdb-content/v1/instagram.json');
+ await e.prepare();assert.equal(f.requests.length,0);assert.equal(e.mounts(),0);e.close();
 });

@@ -27,6 +27,11 @@ const sizes = (text) => ({
 });
 function source(file) {
   let code = read(file);
+  if (file === 'src/instagram/deferred.js')
+    code = code.replace(
+      '__TDB_IG_TEMPLATE__',
+      JSON.stringify(read('src/instagram/template.html').trim()),
+    );
   const styles = {
     __TDB_NATIVE_FOUNDATION_CSS__: ['tdb-native-foundation.css', 'tdb-phone-landscape.css'],
     __TDB_PARTNER_CONTROLS_CSS__: ['tdb-partner-controls.css'],

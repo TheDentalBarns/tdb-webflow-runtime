@@ -1,0 +1,16 @@
+{
+  "name": "tdb-content-feed",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "node --test feed.test.mjs"
+  },
+  "devDependencies": {
+    "vite": "8.3.4"
+  }
+}
