@@ -1,7 +1,7 @@
 # TDB content feed — Instagram staging trial
 
-Worker deployment succeeded on 15 October 2026; the CMS credential, staging route
-publication, and homepage acceptance are still pending. This
+The Instagram trial is active on the Webflow staging homepage as of 15 October
+2026. The published endpoint and desktop/mobile carousel have been verified. This
 first route replaces the homepage's repeated Instagram CMS markup with a small
 published-data projection. Announcements, Smiles, and Reviews are not migrated.
 
@@ -23,9 +23,10 @@ published-data projection. Announcements, Smiles, and Reviews are not migrated.
 
 Cloud builds the Worker adapter; the local Vite build checks the app package but
 does not itself prove that the Cloud Worker or its bindings have deployed.
-The first actual Worker deployment, `e53e2ab3-001d-4450-9630-c5e9b35c5d0a`,
-succeeded and the environment reports its `CONTENT_FEEDS` KV binding. Its
-`WEBFLOW_API_TOKEN` variable is not yet configured. The app uses direct CLI
+The active Worker deployment is `6b53c056-165e-4197-82c0-07b0f3160503`.
+Its `CONTENT_FEEDS` KV binding and secret `WEBFLOW_API_TOKEN` are configured.
+The homepage's three runtime URLs are pinned to
+`81eab268d7f7da33100db4d09d711c74c8ee1113`. The app uses direct CLI
 uploads; GitHub pushes alone do not deploy it. From this directory, redeploy with:
 
 ```text
@@ -41,9 +42,11 @@ Publish only to the Webflow subdomain to activate staging routing. Custom domain
 must retain their existing publication. Verify both deployment and actual JSON
 before enabling the homepage feed attribute.
 
-The service returns JSON only. Unknown routes return 404, and all responses carry
-`X-Robots-Tag: noindex, nofollow, noarchive`. There is no feed page or sitemap entry.
-The data is public, like the displayed posts; noindex is not access control.
+The API returns JSON with `X-Robots-Tag: noindex, nofollow, noarchive`; unknown
+API paths return JSON 404. Webflow's asset layer serves the minimal noindex
+"Not found" build stub at the mount root with HTTP 200. That stub contains no
+posts or feed links. No feed page or sitemap entry is created. The JSON data is
+public, like the displayed posts; noindex is not access control.
 
 ## Content and refresh
 
@@ -61,8 +64,10 @@ results replace prior content. Pagination errors, partial reads, or invalid
 eligible posts retain the last valid snapshot for at most one hour. Failed
 refreshes have a 30-second per-isolate backoff. KV propagation can add delay.
 There is no globally coordinated refresh lock, so separate isolates can rebuild
-concurrently. Browser caching is 30 seconds and query parameters cannot bypass
-the cache or select a different collection.
+concurrently. The handler requests 30-second browser caching, but the deployed
+Webflow proxy currently rewrites that header to `no-cache, private`. Memory/KV
+snapshot caching still works: repeated live requests returned the same checkedAt.
+Query parameters cannot bypass that snapshot cache or select another collection.
 
 ## Homepage integration and rollback
 
@@ -78,11 +83,20 @@ The native controller, CSS, arrows, motion, Swiper, shared gallery, consent poli
 and desktop/mobile image windows remain unchanged. All post values are validated
 and assigned as DOM attributes; CMS text is never inserted as HTML.
 
-Before removing the old homepage template, retain its native Designer definition
-and the saved element-tree backup. Remove it only after JSON data and desktop/mobile
-visual checks pass. Removing markup after load does not reduce initial HTML bytes.
-Rollback: restore the old native template and remove `data-tdb-ig-feed`; the previous
-release remains usable. Do not leave the attribute enabled if the API is unavailable.
+The original homepage/CMS design is retained on the **unpublished** page
+`6ad0c54657f7dc084e96eccd`, "IG feed rollback - 15 Oct 2026". Its URL
+`/ig-feed-rollback-20261015` returns 404. The native Collection List's source,
+filters, sorting and limit were verified after duplication. Webflow cannot
+convert a live CMS-bound Collection List into a reusable component, so this
+draft page is the native rollback source. A separate element-tree backup is saved
+with the release evidence.
+
+The old `template[data-tdb-ig-source]` has been removed from Home after successful
+desktop/mobile checks; it is absent from the raw published HTML. Rollback: copy
+that template from the draft page back beside the Home IG holder in Designer,
+then remove the holder's `data-tdb-ig-feed` attribute and publish staging. The
+loader retains support for this legacy path. The previous complete release is
+`6a7fa4880cd9127f668d3999ec7fd2815c406945` if an asset rollback is also required.
 
 ## Validation
 
@@ -96,9 +110,38 @@ node --test tests/*.test.cjs services/content-feed/feed.test.mjs
 
 From this directory: `npm ci --ignore-scripts`, then `npm run build`.
 
-Live acceptance: 16 current published posts match the prior order/content;
-no IG JSON/module/CSS requests before consent and proximity; one shared Swiper;
-unchanged desktop/mobile motion and controls; no repeated post template in raw
-homepage HTML; API failure retains the real Instagram holding link; production
-domain publication timestamps unchanged. These checks are still required after
-deployment and must not be inferred from the unit tests.
+Verified:
+
+- All 16 published posts match the previous order and image URLs. API output is
+  5,896 bytes before compression; only projected public fields are present.
+- Desktop 1280x720 and mobile 390x844 render the existing layout and full-motion
+  carousel. Next/previous navigation works, with five/three unique photo sources
+  respectively and one shared Swiper script. Mobile was checked after choosing
+  essential-only consent. The final mobile reload works without any old template.
+- Before proximity, browser DOM inspection found no IG JS or CSS. Both fresh
+  GTmetrix waterfalls contained no IG JSON, IG JS/CSS or Swiper requests, and no
+  failed resource requests. The API-failure fallback is covered by unit tests;
+  no artificial live outage was introduced.
+- Raw Home HTML fell from 347,093 to 318,255 bytes. Removing the template saved
+  28,888 bytes (222 inert descendant elements); the feed attribute adds 50 bytes.
+  Local gzip comparison saves 2,538 bytes; GTmetrix HTML transfer saves about 3 KB.
+  Lighthouse active DOM count changes only from 2,047 to 2,046 because the old
+  template's content was already inert.
+- Runtime tests: 360 passed, three existing skips, zero failures. Deterministic
+  build check and actual Cloud Worker deployment passed. Production publication
+  timestamps remain 1 October 2026 at 10:10:45.669 UTC.
+
+Performance is **not improved in these runs**. Same London/Chrome/4G settings:
+
+| Run | TTFB | LCP | TBT | CLS |
+| --- | ---: | ---: | ---: | ---: |
+| [Before](https://gtmetrix.com/reports/dentalbarns.webflow.io/v611U43z/) | 446 ms | 1,158 ms | 280 ms | 0 |
+| [First after](https://gtmetrix.com/reports/dentalbarns.webflow.io/TNHntTQO/) | 2,090 ms | 2,789 ms | 446 ms | 0 |
+| [Repeat after](https://gtmetrix.com/reports/dentalbarns.webflow.io/R2hGpMwO/) | 505 ms | 1,273 ms | 426 ms | 0.00046 |
+
+The first after run was a document cache MISS; the repeat was HIT. The repeat's
+largest task is attributed to the page URL (436 ms), with 863 ms of aggregate
+Style & Layout work. IG code did not load during either initial test. These
+measurements verify the loading architecture and smaller HTML, not a TBT gain
+or a proven cause of the remaining page-level long task. Physical phones and a
+controlled before/after CPU trace remain outside this staging acceptance.
