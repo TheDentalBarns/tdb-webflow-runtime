@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.15.1';
+  const VERSION = '0.15.2';
   const assetBase = new URL('./', document.currentScript.src);
   if (window.TDBLogoMarquee) return;
   const DEFAULTS = {
@@ -596,11 +596,19 @@
       });
       hiddenLogos.clear();
     }
+    function setPendingItem(item = null) {
+      pendingItem = item;
+      // Both copies represent one logo across the looping track's seam.
+      track.querySelectorAll(CONFIG.itemSelector).forEach((node) => {
+        if (item && node.dataset.tdbLogoIndex === item.dataset.tdbLogoIndex)
+          node.setAttribute('aria-busy', 'true');
+        else node.removeAttribute('aria-busy');
+      });
+    }
     function closeCard(returnFocus = false, immediate = false) {
       requestGeneration++;
       clearTimeout(wheelSettleTimer);
-      pendingItem = null;
-      track.querySelectorAll('[aria-busy]').forEach((item) => item.removeAttribute('aria-busy'));
+      setPendingItem();
       if (!openCard) return;
       const card = openCard,
         item = openItem;
@@ -637,21 +645,18 @@
         return;
       }
       const generation = ++requestGeneration;
-      pendingItem = item;
-      item.setAttribute('aria-busy', 'true');
+      setPendingItem(item);
       try {
         await prepareShell();
       } catch (_) {
         if (generation === requestGeneration) {
-          pendingItem = null;
+          setPendingItem();
           item.setAttribute('aria-label', 'Unable to load partner details. Activate to try again.');
         }
-        item.removeAttribute('aria-busy');
         return;
       }
       if (signal.aborted || generation !== requestGeneration) return;
-      pendingItem = null;
-      track.querySelectorAll('[aria-busy]').forEach((node) => node.removeAttribute('aria-busy'));
+      setPendingItem();
       const entry = cards.get(item);
       if (!entry) {
         closeCard();
