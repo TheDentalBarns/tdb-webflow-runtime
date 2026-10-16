@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "note": "Responsive styles are external only on owning non-Home pages. Home Smile cards load tdb-smile-feed.css through their existing proximity loader. Keep native base, variant and cascade-sensitive spacing styles in Designer. Add a matching page-head link when reusing these static layout families on a new page.",
+  "version": 2,
+  "note": "Responsive styles are external only on owning non-Home pages. Home Smile cards load tdb-smile-feed.css through their existing proximity loader. Keep native base, variant and cascade-sensitive spacing styles in Designer. Add a matching page-head link when reusing these static layout families on a new page. Review drawer CSS still loads with the Home drawer; pages containing native drawer markup retain matching responsive styles in their page bundle. Build using node tools/runtime-build/build-page-layouts.cjs.",
   "bundles": [
     {
       "families": [
@@ -19,7 +19,162 @@
     },
     {
       "families": [
+        "contact16_"
+      ],
+      "pages": [
+        {
+          "id": "677cfbd543a0695d07285efd",
+          "title": "Contact",
+          "path": "/contact",
+          "draft": false,
+          "collectionId": null
+        }
+      ],
+      "file": "dist/tdb-layouts-contact.css"
+    },
+    {
+      "families": [
+        "rl-styleguide_"
+      ],
+      "pages": [
+        {
+          "id": "677cf86df9952f978d94d8d5",
+          "title": "Style Guide",
+          "path": "/style-guide",
+          "draft": true,
+          "collectionId": null
+        }
+      ],
+      "file": "dist/tdb-layouts-styleguide.css"
+    },
+    {
+      "families": [],
+      "selectors": [
+        ".tdb-review-drawer_header",
+        ".tdb-review-drawer_scroll",
+        ".tdb-review-drawer_footer",
+        ".tdb-review-drawer_nav-button.is-filter-floating",
+        ".tdb-review-filter_panel",
+        ".tdb-review-filter_heading",
+        ".tdb-review-filter_groups",
+        ".tdb-review-filter_actions",
+        ".tdb-review-filter_actions.is-drawer-footer",
+        ".tdb-review-filter_status.is-error",
+        ".tdb-review-filter_scroll",
+        ".tdb-review-drawer_heading",
+        ".tdb-review-drawer_summary",
+        ".tdb-review-drawer_average",
+        ".tdb-review-drawer_total",
+        ".tdb-review-drawer_stars",
+        ".tdb-review-drawer_stars.is-summary",
+        ".tdb-review-drawer_quote-copy",
+        ".tdb-review-drawer_excerpt",
+        ".tdb-review-drawer_static-mark",
+        ".tdb-review-drawer_static-mark.is-stationary",
+        ".tdb-review-drawer_byline",
+        ".tdb-review-drawer_source"
+      ],
+      "groups": [
+        "reviews"
+      ],
+      "pages": [
+        {
+          "id": "6acbd40633302e716eac0bd2",
+          "title": "Component Library — USP Drawer",
+          "path": "/component-library-usp-drawer",
+          "draft": true,
+          "collectionId": null
+        },
+        {
+          "id": "6acbcb85405d8e0fbc3cca28",
+          "title": "Component Library — Review Drawer",
+          "path": "/component-library-review-drawer",
+          "draft": true,
+          "collectionId": null
+        }
+      ],
+      "file": "dist/tdb-layouts-owned-dc4006a667.css"
+    },
+    {
+      "families": [],
+      "selectors": [
+        ".review-page_grid",
+        ".tdb-review-drawer_header",
+        ".tdb-review-drawer_scroll",
+        ".tdb-review-drawer_footer",
+        ".tdb-review-drawer_nav-button.is-filter-floating",
+        ".tdb-review-filter_panel",
+        ".tdb-review-filter_heading",
+        ".tdb-review-filter_groups",
+        ".tdb-review-filter_actions",
+        ".tdb-review-filter_actions.is-drawer-footer",
+        ".tdb-review-filter_status.is-error",
+        ".tdb-review-filter_scroll",
+        ".review-page_hero",
+        ".review-page_brand",
+        ".review-page_intro",
+        ".review-page_section",
+        ".review-page_availability",
+        ".tdb-review-drawer_heading",
+        ".tdb-review-drawer_summary",
+        ".tdb-review-drawer_average",
+        ".tdb-review-drawer_total",
+        ".tdb-review-drawer_stars",
+        ".tdb-review-drawer_stars.is-summary",
+        ".tdb-review-drawer_quote-copy",
+        ".tdb-review-drawer_excerpt",
+        ".tdb-review-drawer_static-mark",
+        ".tdb-review-drawer_static-mark.is-stationary",
+        ".tdb-review-drawer_byline",
+        ".tdb-review-drawer_source"
+      ],
+      "groups": [
+        "reviewpage",
+        "reviews"
+      ],
+      "pages": [
+        {
+          "id": "6ac2a9ad6562ccc6531a8310",
+          "title": "Patient Reviews",
+          "path": "/reviews",
+          "draft": false,
+          "collectionId": null
+        }
+      ],
+      "file": "dist/tdb-layouts-owned-c3b3c78dfe.css"
+    },
+    {
+      "families": [],
+      "selectors": [
+        ".tdb-sg",
+        ".tdb-sg-filters",
+        ".tdb-sg-intro"
+      ],
+      "groups": [
+        "gallery"
+      ],
+      "pages": [
+        {
+          "id": "6aaf939d6a981e9ff3a1d847",
+          "title": "Dental Cost Calculator",
+          "path": "/dental-cost-calculator",
+          "draft": false,
+          "collectionId": null
+        }
+      ],
+      "file": "dist/tdb-layouts-owned-0d9aeaf07c.css"
+    },
+    {
+      "families": [
         "sg-native-"
+      ],
+      "selectors": [
+        ".tdb-sg",
+        ".tdb-sg-filters",
+        ".tdb-sg-intro"
+      ],
+      "groups": [
+        "gallery"
       ],
       "pages": [
         {
@@ -30,12 +185,69 @@
           "collectionId": null
         }
       ],
-      "file": "dist/tdb-layouts-gallery.css"
+      "file": "dist/tdb-layouts-owned-e786177e92.css"
+    },
+    {
+      "families": [],
+      "selectors": [
+        ".content29_content-wrapper",
+        ".content29_divider",
+        ".content29_content-bottom",
+        ".content29_share-wrapper",
+        ".content29_tag-list-wrapper",
+        ".content29_tag-list",
+        ".content29_author-wrapper"
+      ],
+      "groups": [
+        "article"
+      ],
+      "pages": [
+        {
+          "id": "6a74603b7750a1ff7e58246c",
+          "title": "Privacy Notice",
+          "path": "/privacy-policy",
+          "draft": false,
+          "collectionId": null
+        },
+        {
+          "id": "67837ee84466866251245ed8",
+          "title": "Blog Posts Template",
+          "path": "/post",
+          "draft": false,
+          "collectionId": "67837ee84466866251245eb4"
+        }
+      ],
+      "file": "dist/tdb-layouts-owned-44679104a4.css"
     },
     {
       "families": [
         "contact16_",
         "layout423_"
+      ],
+      "selectors": [
+        ".button.max-width-full.is-pricing21-button",
+        ".layout427_content-bottom",
+        ".layout18_content",
+        ".layout194_content",
+        ".layout194_image",
+        ".pricing_top-accordion",
+        ".pricing_btm-accordion",
+        ".pricing_item-image_wrapper",
+        ".layout1_content",
+        ".layout427_content",
+        ".layout194_image-wrapper.tdb-smile-host",
+        ".layout427_image1",
+        ".layout194_image-wrapper",
+        ".layout194_image-wrapper.smile",
+        ".layout194_content-right",
+        ".pricing_item",
+        ".pricing-list-info_wrapper",
+        ".pricing-info_icon-wrapper",
+        ".pricing-item_image"
+      ],
+      "groups": [
+        "layouts",
+        "pricing"
       ],
       "pages": [
         {
@@ -44,7 +256,108 @@
           "path": "/vip",
           "draft": false,
           "collectionId": "69f1d919d9c604f4e11e9abc"
-        },
+        }
+      ],
+      "file": "dist/tdb-layouts-owned-52a7e581cb.css"
+    },
+    {
+      "families": [
+        "contact16_",
+        "header137_",
+        "layout423_",
+        "layout506_"
+      ],
+      "selectors": [
+        ".button.max-width-full.is-pricing21-button",
+        ".layout427_content-bottom",
+        ".layout18_content",
+        ".layout194_content",
+        ".layout194_image",
+        ".pricing_top-accordion",
+        ".pricing_btm-accordion",
+        ".pricing_item-image_wrapper",
+        ".layout1_content",
+        ".layout427_content",
+        ".layout194_image-wrapper.tdb-smile-host",
+        ".service-process_sticky",
+        ".service-process_item",
+        ".service-process-mobile-container",
+        ".layout427_image1",
+        ".layout194_image-wrapper",
+        ".layout194_image-wrapper.smile",
+        ".layout194_content-right",
+        ".pricing_item",
+        ".pricing-list-info_wrapper",
+        ".pricing-info_icon-wrapper",
+        ".service-process_content",
+        ".pricing-item_image"
+      ],
+      "groups": [
+        "layouts",
+        "process",
+        "pricing"
+      ],
+      "pages": [
+        {
+          "id": "699058c919f4a1adcc157cb3",
+          "title": "Area Treatment Pages Template",
+          "path": "/areas",
+          "draft": false,
+          "collectionId": "699058c919f4a1adcc157cad"
+        }
+      ],
+      "file": "dist/tdb-layouts-owned-4eade9a049.css"
+    },
+    {
+      "families": [
+        "pricing21_"
+      ],
+      "selectors": [
+        ".button.max-width-full.is-pricing21-button",
+        ".pricing_top-accordion",
+        ".pricing_btm-accordion",
+        ".pricing_item-image_wrapper",
+        ".pricing_item",
+        ".pricing-list-info_wrapper",
+        ".pricing-info_icon-wrapper",
+        ".pricing-item_image"
+      ],
+      "groups": [
+        "pricing"
+      ],
+      "pages": [
+        {
+          "id": "698b4f9f1af11edfefd60e1b",
+          "title": "Careers",
+          "path": "/careers",
+          "draft": false,
+          "collectionId": null
+        }
+      ],
+      "file": "dist/tdb-layouts-owned-7eaa82d23a.css"
+    },
+    {
+      "families": [
+        "contact16_",
+        "layout423_"
+      ],
+      "selectors": [
+        ".layout427_content-bottom",
+        ".layout18_content",
+        ".layout194_content",
+        ".layout194_image",
+        ".layout1_content",
+        ".layout427_content",
+        ".layout194_image-wrapper.tdb-smile-host",
+        ".layout427_image1",
+        ".layout194_image-wrapper",
+        ".layout194_image-wrapper.smile",
+        ".layout194_content-right"
+      ],
+      "groups": [
+        "layouts"
+      ],
+      "pages": [
         {
           "id": "694aba9dc39723ae9d2663e4",
           "title": "VIP | West End Dentistry",
@@ -95,45 +408,33 @@
           "collectionId": null
         }
       ],
-      "file": "dist/tdb-layouts-contact-smile-cards.css"
-    },
-    {
-      "families": [
-        "contact16_",
-        "header137_",
-        "layout423_",
-        "layout506_"
-      ],
-      "pages": [
-        {
-          "id": "699058c919f4a1adcc157cb3",
-          "title": "Area Treatment Pages Template",
-          "path": "/areas",
-          "draft": false,
-          "collectionId": "699058c919f4a1adcc157cad"
-        }
-      ],
-      "file": "dist/tdb-layouts-contact-feature-header-smile-cards-treatment.css"
-    },
-    {
-      "families": [
-        "pricing21_"
-      ],
-      "pages": [
-        {
-          "id": "698b4f9f1af11edfefd60e1b",
-          "title": "Careers",
-          "path": "/careers",
-          "draft": false,
-          "collectionId": null
-        }
-      ],
-      "file": "dist/tdb-layouts-pricing.css"
+      "file": "dist/tdb-layouts-owned-bf28eec4e7.css"
     },
     {
       "families": [
         "header138_",
         "layout423_"
+      ],
+      "selectors": [
+        ".layout427_content-bottom",
+        ".layout18_content",
+        ".layout194_content",
+        ".layout194_image",
+        ".layout1_content",
+        ".layout427_content",
+        ".layout194_image-wrapper.tdb-smile-host",
+        ".service-process_sticky",
+        ".service-process_item",
+        ".service-process-mobile-container",
+        ".layout427_image1",
+        ".layout194_image-wrapper",
+        ".layout194_image-wrapper.smile",
+        ".layout194_content-right",
+        ".service-process_content"
+      ],
+      "groups": [
+        "layouts",
+        "process"
       ],
       "pages": [
         {
@@ -151,7 +452,7 @@
           "collectionId": "6785071ede094cc233e0c717"
         }
       ],
-      "file": "dist/tdb-layouts-visit-header-smile-cards.css"
+      "file": "dist/tdb-layouts-owned-9c098bb02e.css"
     },
     {
       "families": [
@@ -159,6 +460,31 @@
         "layout423_",
         "layout506_",
         "pricing21_"
+      ],
+      "selectors": [
+        ".button.max-width-full.is-pricing21-button",
+        ".layout427_content-bottom",
+        ".layout18_content",
+        ".layout194_content",
+        ".layout194_image",
+        ".pricing_top-accordion",
+        ".pricing_btm-accordion",
+        ".pricing_item-image_wrapper",
+        ".layout1_content",
+        ".layout427_content",
+        ".layout194_image-wrapper.tdb-smile-host",
+        ".layout427_image1",
+        ".layout194_image-wrapper",
+        ".layout194_image-wrapper.smile",
+        ".layout194_content-right",
+        ".pricing_item",
+        ".pricing-list-info_wrapper",
+        ".pricing-info_icon-wrapper",
+        ".pricing-item_image"
+      ],
+      "groups": [
+        "layouts",
+        "pricing"
       ],
       "pages": [
         {
@@ -169,12 +495,33 @@
           "collectionId": "678507282f3f5412bfe2b4e6"
         }
       ],
-      "file": "dist/tdb-layouts-feature-header-smile-cards-treatment-pricing.css"
+      "file": "dist/tdb-layouts-owned-0374b764c1.css"
     },
     {
       "families": [
         "layout423_",
         "team18_"
+      ],
+      "selectors": [
+        ".layout427_content-bottom",
+        ".layout18_content",
+        ".layout194_content",
+        ".layout194_image",
+        ".layout1_content",
+        ".about-header_container",
+        ".layout427_content",
+        ".layout194_image-wrapper.tdb-smile-host",
+        ".about-header_overlay",
+        ".layout427_image1",
+        ".layout194_image-wrapper",
+        ".layout194_image-wrapper.smile",
+        ".layout194_content-right",
+        ".section_about-header",
+        ".about-hero-overlay"
+      ],
+      "groups": [
+        "about",
+        "layouts"
       ],
       "pages": [
         {
@@ -185,26 +532,17 @@
           "collectionId": null
         }
       ],
-      "file": "dist/tdb-layouts-smile-cards-team.css"
-    },
-    {
-      "families": [
-        "contact16_"
-      ],
-      "pages": [
-        {
-          "id": "677cfbd543a0695d07285efd",
-          "title": "Contact",
-          "path": "/contact",
-          "draft": false,
-          "collectionId": null
-        }
-      ],
-      "file": "dist/tdb-layouts-contact.css"
+      "file": "dist/tdb-layouts-owned-a9dc67868c.css"
     },
     {
       "families": [
         "blog22_"
+      ],
+      "selectors": [
+        ".section_blog22"
+      ],
+      "groups": [
+        "blog"
       ],
       "pages": [
         {
@@ -215,12 +553,25 @@
           "collectionId": null
         }
       ],
-      "file": "dist/tdb-layouts-blog.css"
+      "file": "dist/tdb-layouts-owned-a43d8295b7.css"
     },
     {
       "families": [
         "header137_",
         "pricing21_"
+      ],
+      "selectors": [
+        ".button.max-width-full.is-pricing21-button",
+        ".pricing_top-accordion",
+        ".pricing_btm-accordion",
+        ".pricing_item-image_wrapper",
+        ".pricing_item",
+        ".pricing-list-info_wrapper",
+        ".pricing-info_icon-wrapper",
+        ".pricing-item_image"
+      ],
+      "groups": [
+        "pricing"
       ],
       "pages": [
         {
@@ -231,22 +582,7 @@
           "collectionId": null
         }
       ],
-      "file": "dist/tdb-layouts-feature-header-pricing.css"
-    },
-    {
-      "families": [
-        "rl-styleguide_"
-      ],
-      "pages": [
-        {
-          "id": "677cf86df9952f978d94d8d5",
-          "title": "Style Guide",
-          "path": "/style-guide",
-          "draft": true,
-          "collectionId": null
-        }
-      ],
-      "file": "dist/tdb-layouts-styleguide.css"
+      "file": "dist/tdb-layouts-owned-69c89b8114.css"
     }
   ]
 }
