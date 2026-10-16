@@ -1,4 +1,4 @@
-/* TDB shared quote carousel v4.0.1. Native layout and shared cancellable entry. */
+/* TDB shared quote carousel v4.0.2. Native layout and shared cancellable entry. */
 (function () {
   'use strict';
   // Webflow selects, sorts and renders the actual slides. Do not clone or
@@ -377,10 +377,29 @@
       root.addEventListener('focusin', () => enhance(root));
     });
   }
+  async function activateQuote(root, keys = []) {
+    await enhance(root);
+    const instance = mounted.get(root);
+    if (!instance || !root.isConnected) return;
+    const viewport = root.querySelector('[data-tdb-team-viewport]');
+    for (const key of keys) {
+      if (key !== 'ArrowLeft' && key !== 'ArrowRight') continue;
+      viewport.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    }
+    return instance;
+  }
   window.TDBQuoteCarousel = window.TDBTeamQuotes = Object.freeze({
-    version: '4.0.1',
+    version: '4.0.2',
     refresh: init,
     mount,
+    isMounted: (root) => mounted.has(root),
+    activate: activateQuote,
     destroy() {
       proximity?.disconnect();
       [...mounted.values()].forEach((instance) => instance.destroy());

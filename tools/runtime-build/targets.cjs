@@ -7,6 +7,7 @@ module.exports = {
     'src/startup/start.js',
   ],
   'dist/tdb-foundation.js': [
+    'src/shared/content-preconnect.js',
     'src/shared/scroll-lock.js',
     'src/consent/banner.js',
     'src/consent/consent.js',

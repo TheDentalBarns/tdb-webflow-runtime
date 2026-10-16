@@ -47,3 +47,19 @@ test('focus before quote introduction cancels automatic entry and reveals the cu
   assert(trigger.classList.contains('is-visible'),'early focus must not strand the quote hidden');
  }finally{t.close();}
 });
+
+test('foundation quote activation contract tracks mount state and replays early arrow keys once',async()=>{
+ const t=await setup();let activated;
+ try{
+  const quotes=t.w.TDBQuoteCarousel;
+  assert.equal(quotes.isMounted(t.root),true);
+  t.api.destroy();
+  assert.equal(quotes.isMounted(t.root),false);
+  activated=await quotes.activate(t.root,['ArrowRight']);await t.flush();
+  assert.equal(quotes.isMounted(t.root),true);
+  assert.equal(activated.swiper.realIndex,1);
+  assert.equal(await quotes.activate(t.root,['ArrowLeft']),activated);await t.flush();
+  assert.equal(activated.swiper.realIndex,0);
+  assert.equal(t.root.querySelectorAll('[data-tdb-team-slide]:not(.swiper-slide-duplicate)').length,3);
+ }finally{activated?.destroy();assert.equal(t.w.TDBQuoteCarousel.isMounted(t.root),false);t.close();}
+});

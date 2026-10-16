@@ -161,6 +161,7 @@
     },
     "dist/tdb-foundation.js": {
       "sources": [
+        "src/shared/content-preconnect.js",
         "src/shared/scroll-lock.js",
         "src/consent/banner.js",
         "src/consent/consent.js",
@@ -170,10 +171,10 @@
         "src/navbar/navbar-mobile-lock.js",
         "src/navbar/navbar-loader.js"
       ],
-      "sha256": "c39c47fa989c399526012d3aa7c310ae19452246cdb76ada12480ea28d64403c",
-      "raw": 25689,
-      "gzip": 8150,
-      "brotli": 7298
+      "sha256": "5eb8592a9037ad0e7320a11da8e352760d9be9dba585e9f0f125ab295c32f493",
+      "raw": 26116,
+      "gzip": 8314,
+      "brotli": 7431
     },
     "dist/tdb-gallery.js": {
       "sources": [
@@ -344,19 +345,19 @@
       "sources": [
         "src/team-quotes/team-quotes.js"
       ],
-      "sha256": "1c512fa70e49079c06fed1584e192cefffca319727c6f8c36b0fa2f6070e7613",
-      "raw": 7351,
-      "gzip": 2833,
-      "brotli": 2496
+      "sha256": "29ba17533dcfa31352c65631880bae75670663e6d067e7950b8ed4785d9c9d79",
+      "raw": 7655,
+      "gzip": 2929,
+      "brotli": 2578
     },
     "dist/tdb-quote-carousel.min.js": {
       "sources": [
         "src/team-quotes/team-quotes.js"
       ],
-      "sha256": "1c512fa70e49079c06fed1584e192cefffca319727c6f8c36b0fa2f6070e7613",
-      "raw": 7351,
-      "gzip": 2833,
-      "brotli": 2496
+      "sha256": "29ba17533dcfa31352c65631880bae75670663e6d067e7950b8ed4785d9c9d79",
+      "raw": 7655,
+      "gzip": 2929,
+      "brotli": 2578
     },
     "dist/tdb-rendered-progress.js": {
       "sources": [
