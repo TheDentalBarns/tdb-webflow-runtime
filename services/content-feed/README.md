@@ -1,5 +1,36 @@
 # TDB content feed — Instagram, Smile Gallery and Reviews staging trials
 
+## Cloudflare delivery — 16 October 2026
+
+Home's three JSON consumers now use the same paths on
+`https://tdb-public-availability.david-070.workers.dev`. The existing availability
+Worker retains its `/active.json` and `/preview.json` handler and CMS credential;
+the new content routes reuse that credential without exposing or copying it.
+Webflow CMS remains the source of published content. The Webflow Cloud app and
+same-origin routes below are retained as a rollback during the staging trial.
+
+`cloudflare-worker.mjs` adds public CORS, 30-second browser caching and 60-second
+Cloudflare Workers Cache caching, with a 30-second stale-while-revalidate window.
+Cache lifetimes are capped so they cannot extend a snapshot beyond one hour.
+Errors are never cached. A valid snapshot older than five minutes is returned
+immediately while `ctx.waitUntil()` refreshes it. A missing or expired snapshot
+still requires a successful CMS read. No scheduled refresh has been configured.
+
+The `CONTENT_FEEDS` KV binding stores separate feed snapshots and immutable
+review revisions. Review index and ID batches retain their existing ordering,
+20-ID limit and one-hour revision validity. Query strings remain part of the
+Cloudflare cache key. CMS text, fields and image URLs are unchanged.
+
+The Cloudflare upload enables Workers Cache and inherits `WEBFLOW_API_TOKEN`.
+It preserves the existing availability module from the deployed Worker. Future
+CLI deployments can use `wrangler.cloudflare.jsonc`; do not deploy the old
+availability-only configuration over the combined Worker. The Webflow CLI
+instructions below describe the rollback deployment, not the current feed path.
+
+Validation: the content service, refresh/caching tests and availability tests;
+the frontend suite; live JSON parity and cache-hit measurements; desktop/mobile
+Smiles, IG and review drawer checks including an arbitrary review priority order.
+
 The Instagram trial is active on the Webflow staging homepage as of 15 October
 2026. The published endpoint and desktop/mobile carousel have been verified. This
 first route replaces the homepage's repeated Instagram CMS markup with a small

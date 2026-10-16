@@ -243,7 +243,8 @@
       signal,
       async (networkSignal) => {
         const response = await fetch(url.href, {
-          credentials: 'same-origin',
+          credentials: 'omit',
+          redirect: 'error',
           signal: networkSignal,
           headers: { Accept: 'application/json' },
         });
@@ -372,7 +373,11 @@
       check(signal);
       const url = new URL(source, location.href);
       if (
-        url.origin !== location.origin ||
+        ![location.origin, 'https://tdb-public-availability.david-070.workers.dev'].includes(
+          url.origin,
+        ) ||
+        url.username ||
+        url.password ||
         ![route, '/tdb-content/v1/reviews.json'].includes(url.pathname) ||
         url.search ||
         url.hash

@@ -270,17 +270,18 @@ export function createFeedService({
   fetcher = (...args) => fetch(...args),
   now = Date.now,
   report = () => {},
+  hostname = 'dentalbarns.webflow.io',
 } = {}) {
   const handlers = new Map(
     Object.entries(FEEDS).map(([path, feed]) => [path, createHandler(feed)]),
   );
   // Both representations share the same CMS refresh and latest snapshot.
   handlers.set(REVIEW_BATCH_PATH, handlers.get('/tdb-content/v1/reviews.json'));
-  return (request, env = {}) => {
+  return (request, env = {}, ctx) => {
     const url = new URL(request.url);
-    const handler = url.hostname === 'dentalbarns.webflow.io' && handlers.get(url.pathname);
+    const handler = url.hostname === hostname && handlers.get(url.pathname);
     return handler
-      ? handler(request, env)
+      ? handler(request, env, ctx)
       : Response.json({ error: 'Not found' }, { status: 404, headers });
   };
   function createHandler(feed) {
@@ -329,14 +330,20 @@ export function createFeedService({
         });
       return flight;
     }
-    return async function handle(request, env = {}) {
+    return async function handle(request, env = {}, ctx) {
       if (!['GET', 'HEAD'].includes(request.method)) {
         return new Response(null, { status: 405, headers: { ...headers, Allow: 'GET, HEAD' } });
       }
       const reply = (body, status = 200, extra = {}) =>
         new Response(request.method === 'HEAD' ? null : JSON.stringify(body), {
           status,
-          headers: { ...headers, ...extra },
+          headers: {
+            ...headers,
+            ...(Number.isSafeInteger(body?.checkedAt)
+              ? { 'X-TDB-Checked-At': String(body.checkedAt) }
+              : {}),
+            ...extra,
+          },
         });
       const url = new URL(request.url),
         batched = url.pathname === REVIEW_BATCH_PATH;
@@ -387,7 +394,12 @@ export function createFeedService({
         }
       }
       if (!snapshot || now() - snapshot.checkedAt >= FRESH_MS) {
-        if (now() >= retryAt) snapshot = (await refresh(env)) || snapshot;
+        if (now() >= retryAt) {
+          // Keep a usable snapshot on screen while the Worker refreshes it.
+          // Cold starts and expired snapshots still require a successful read.
+          if (snapshot && ctx?.waitUntil) ctx.waitUntil(refresh(env));
+          else snapshot = (await refresh(env)) || snapshot;
+        }
       }
       if (!valid(snapshot))
         return reply({ error: 'Feed temporarily unavailable' }, 503, { 'Retry-After': '30' });

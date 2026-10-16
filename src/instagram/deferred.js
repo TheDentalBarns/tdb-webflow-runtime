@@ -11,8 +11,17 @@
   const feedTemplate = __TDB_IG_TEMPLATE__;
   async function feedRoot(endpoint, key, signal) {
     const url = new URL(endpoint, location.href);
-    if (url.origin !== location.origin || url.pathname !== '/tdb-content/v1/instagram.json')
-      throw Error('Instagram feed must use the configured same-origin endpoint');
+    if (
+      ![location.origin, 'https://tdb-public-availability.david-070.workers.dev'].includes(
+        url.origin,
+      ) ||
+      url.pathname !== '/tdb-content/v1/instagram.json' ||
+      url.username ||
+      url.password ||
+      url.search ||
+      url.hash
+    )
+      throw Error('Instagram feed must use the configured endpoint');
     const controller = new AbortController();
     const abort = () => controller.abort();
     signal.addEventListener('abort', abort, { once: true });

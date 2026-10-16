@@ -20,8 +20,17 @@
   }
   async function readFeed(endpoint, signal) {
     const url = new URL(endpoint, location.href);
-    if (url.origin !== location.origin || url.pathname !== '/tdb-content/v1/smiles.json')
-      throw Error('Smile feed must use its configured same-origin endpoint');
+    if (
+      ![location.origin, 'https://tdb-public-availability.david-070.workers.dev'].includes(
+        url.origin,
+      ) ||
+      url.pathname !== '/tdb-content/v1/smiles.json' ||
+      url.username ||
+      url.password ||
+      url.search ||
+      url.hash
+    )
+      throw Error('Smile feed must use its configured endpoint');
     const controller = new AbortController(),
       abort = () => controller.abort();
     signal.addEventListener('abort', abort, { once: true });

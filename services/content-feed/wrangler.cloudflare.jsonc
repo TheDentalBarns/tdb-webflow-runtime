@@ -1,0 +1,12 @@
+{
+  "name": "tdb-public-availability",
+  "main": "cloudflare-worker.mjs",
+  "compatibility_date": "2026-10-09",
+  "workers_dev": true,
+  "preview_urls": false,
+  "cache": { "enabled": true },
+  "kv_namespaces": [
+    { "binding": "CONTENT_FEEDS", "id": "28deadb583154ba5a1954649ea60f270" }
+  ],
+  "observability": { "enabled": true }
+}
