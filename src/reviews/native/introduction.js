@@ -1,4 +1,4 @@
-/* TDB Review Introduction v1.2.3. No CSS, CMS selection, fetching or consent logic. */
+/* TDB Review Introduction v1.2.4. No CSS, CMS selection, fetching or consent logic. */
 (() => {
   'use strict';
   if (window.TDBReviewIntroduction) return;
@@ -43,6 +43,7 @@
         // keeps its value when consent/lifecycle changes remount the component.
         if (!rating && (slot.querySelector('.review-number_value') || slot).textContent.trim() !== text)
           ticker.update(format(window.TDBMotion.reduced?.matches ? target : Math.max(0, target - 1)), 1, false);
+        if (!rating) slot.style.visibility = 'visible';
         return { ticker, text };
       })
       .filter(Boolean);
@@ -183,5 +184,5 @@
     instances.set(root, api);
     return api;
   }
-  window.TDBReviewIntroduction = Object.freeze({ version: '1.2.3', mount });
+  window.TDBReviewIntroduction = Object.freeze({ version: '1.2.4', mount });
 })();
