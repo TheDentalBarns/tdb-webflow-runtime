@@ -71,7 +71,7 @@ async function setup(page = '/', editSnapshot) {
   const snapshot = payload();
   editSnapshot?.(snapshot);
   const
-    saved = new Map([['reviews:published:contexts:v1', snapshot]]);
+    saved = new Map([['reviews:published:statistics:v1', snapshot]]);
   const env = {
     CONTENT_FEEDS: {
       get: async (key) => saved.get(key),
