@@ -1,4 +1,4 @@
-/* Shared keyframes needed by first-paint Vimeo and control indicators. */
+/* External shared keyframes for Vimeo pulses and control indicators. */
 @keyframes tdbBtnPulseOpacity {
   from { opacity: 0; }
   to { opacity: 1; }

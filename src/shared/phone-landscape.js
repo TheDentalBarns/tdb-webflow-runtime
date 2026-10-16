@@ -10,10 +10,14 @@
       : typeof window.orientation === 'number'
         ? Math.abs(window.orientation) === 90
         : landscape.matches;
-    document.documentElement.classList.toggle(
-      'tdb-phone-landscape',
-      touch.matches && shortSide > 0 && shortSide <= 600 && rotated,
-    );
+    const active = touch.matches && shortSide > 0 && shortSide <= 600 && rotated;
+    if (active && !document.querySelector('style[data-tdb-phone-landscape-css]')) {
+      const style = document.createElement('style');
+      style.setAttribute('data-tdb-phone-landscape-css', '');
+      style.textContent = __TDB_PHONE_LANDSCAPE_CSS__;
+      document.head.append(style);
+    }
+    document.documentElement.classList.toggle('tdb-phone-landscape', active);
   }
   update();
   touch.addEventListener('change', update);

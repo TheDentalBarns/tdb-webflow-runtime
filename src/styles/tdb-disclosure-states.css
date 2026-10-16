@@ -1,0 +1,5 @@
+/* External disclosure states; native Home classes own keyboard focus. */
+[data-tdb-disclosure-panel][hidden]{display:none !important}
+[data-tdb-disclosure-trigger][aria-expanded="true"] + [data-tdb-disclosure-panel]{display:var(--tdb-disclosure-display,block)}
+[data-tdb-disclosure-trigger]:not(:where(.tdb-disclosure-trigger,.tdb-home-awards-question)):focus-visible{outline:1px solid currentColor;outline-offset:4px}
+[data-tdb-disclosure-item]:has(>[data-tdb-disclosure-trigger][aria-expanded="true"]){padding-bottom:var(--tdb-disclosure-gap,20px)}

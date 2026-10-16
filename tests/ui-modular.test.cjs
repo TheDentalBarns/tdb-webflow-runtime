@@ -26,6 +26,12 @@ test('all original UI and slider declarations survive the split', () => {
   const earlyViewport = declarations(read('src/styles/tdb-viewport-base.css'));
   const critical = declarations(read('dist/tdb-ui-critical.css'));
   for (const [key,count] of before) {
+    // Home disclosure focus now belongs to its native Designer classes.
+    const sharedFocus = ':not(:where(.navbar10_link,.navbar10_dropdown-toggle,.is-navbar-control)):focus-visible';
+    if (key.includes(sharedFocus)) {
+      assert.equal(after.get(key.replace(sharedFocus, ':not(:where(.navbar10_link,.navbar10_dropdown-toggle,.is-navbar-control,.tdb-disclosure-trigger,.tdb-home-awards-question)):focus-visible')), count, key);
+      continue;
+    }
     // Scroll behaviour now travels with global UI; the unused legacy lock was removed.
     if (earlyViewport.has(key)) { assert.equal(after.get(key), count); assert.equal(critical.has(key), false); continue; }
     if (key.startsWith('.no-scroll|')) { assert.equal(after.has(key), false); assert.equal(critical.has(key), false); continue; }

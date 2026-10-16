@@ -9,3 +9,10 @@ input[type='submit']:not(.submit-button).submit-enabled {
   opacity: 1;
   cursor: pointer;
 }
+
+/* Legacy form states share the already-loaded external UI stylesheet. */
+select:not(.form_select).placeholder {
+  color: rgba(0,0,0,.6);
+}
+
+select:not(.form_select):not(.placeholder){color:#000}

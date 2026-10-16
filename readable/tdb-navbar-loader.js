@@ -10,10 +10,15 @@
       : typeof window.orientation === 'number'
         ? Math.abs(window.orientation) === 90
         : landscape.matches;
-    document.documentElement.classList.toggle(
-      'tdb-phone-landscape',
-      touch.matches && shortSide > 0 && shortSide <= 600 && rotated,
-    );
+    const active = touch.matches && shortSide > 0 && shortSide <= 600 && rotated;
+    if (active && !document.querySelector('style[data-tdb-phone-landscape-css]')) {
+      const style = document.createElement('style');
+      style.setAttribute('data-tdb-phone-landscape-css', '');
+      style.textContent =
+        'html.tdb-phone-landscape #tdb-elfsight-timer-shell,\nhtml.tdb-phone-landscape #tdb-vip-drawer:not(.is-open):not(.is-closing),\nhtml.tdb-phone-landscape:not(:has(.navbar10_component .w--open,.navbar10_component [data-nav-menu-open])) :is(.navbar10_component,.navbar-bg_layer) {\n  display: none !important;\n}';
+      document.head.append(style);
+    }
+    document.documentElement.classList.toggle('tdb-phone-landscape', active);
   }
   update();
   touch.addEventListener('change', update);
@@ -250,6 +255,13 @@ window.TDBNavbarState.whenReady(() => {
   'use strict';
   const nav = document.querySelector('.navbar10_component');
   if (!nav || window.TDBNavbarLoader || window.TDBNavbar) return;
+  // Install the basic-menu lock before any open state can be applied.
+  if (!document.querySelector('style[data-tdb-basic-nav-lock]')) {
+    const lockStyle = document.createElement('style');
+    lockStyle.setAttribute('data-tdb-basic-nav-lock', '');
+    lockStyle.textContent = 'html[data-tdb-nav-basic-open]{overflow:hidden}';
+    document.head.append(lockStyle);
+  }
   const state = window.TDBNavbarState.forNav(nav);
   const html = document.documentElement;
   const duration = nav.getAttribute('data-duration');

@@ -3,6 +3,13 @@ window.TDBNavbarState.whenReady(() => {
   'use strict';
   const nav = document.querySelector('.navbar10_component');
   if (!nav || window.TDBNavbarLoader || window.TDBNavbar) return;
+  // Install the basic-menu lock before any open state can be applied.
+  if (!document.querySelector('style[data-tdb-basic-nav-lock]')) {
+    const lockStyle = document.createElement('style');
+    lockStyle.setAttribute('data-tdb-basic-nav-lock', '');
+    lockStyle.textContent = 'html[data-tdb-nav-basic-open]{overflow:hidden}';
+    document.head.append(lockStyle);
+  }
   const state = window.TDBNavbarState.forNav(nav);
   const html = document.documentElement;
   const duration = nav.getAttribute('data-duration');

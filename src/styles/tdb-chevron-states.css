@@ -1,0 +1,2 @@
+/* Shared disclosure arrow states, loaded with external UI. Motion stays in control-motion CSS. */
+[data-tdb-chevron]{transform:rotate(0deg)}[aria-expanded="true"]>[data-tdb-chevron]{transform:rotate(var(--tdb-chevron-open-angle,180deg))}

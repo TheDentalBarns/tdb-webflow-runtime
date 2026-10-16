@@ -82,7 +82,10 @@ test('missing navbar export can retry and a destroyed runtime never activates a 
 test('essential bundle has no download or cookie watcher',()=>{
  const f=fixture();try{
   assert(!read('dist/tdb-navbar-loader.js').includes('CookieScript'));
-  assert(!read('dist/tdb-navbar-loader.js').includes('createElement("style")'));
+  const lock=f.d.querySelector('style[data-tdb-basic-nav-lock]');
+  assert(lock,'the basic lock must be available before the first menu interaction');
+  assert.equal(lock.textContent,'html[data-tdb-nav-basic-open]{overflow:hidden}');
+  assert.equal(f.d.querySelectorAll('style').length,1,'startup adds only the small menu lock');
   assert.equal(f.css(),null);assert.equal(f.script(),null);
  }finally{f.close();}
 });

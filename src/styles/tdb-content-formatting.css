@@ -1,8 +1,7 @@
 
 
 
-select:not(.form_select).placeholder{color:rgba(0,0,0,.6)}
-select:not(.form_select):not(.placeholder){color:#000}
+/* Exact consecutive-paragraph spacing stays external; generic Designer paragraph margins are not equivalent. */
 
 
 

@@ -2,7 +2,7 @@
 
 :is(a[href],button,[role="button"],summary){-webkit-tap-highlight-color:transparent}
 :is(a[href],button,[role="button"],summary):not(:where(.navbar10_link,.navbar10_dropdown-toggle,.is-navbar-control)):focus:not(:focus-visible){outline:none}
-:is(a[href],button,[role="button"],summary):not(:where(.navbar10_link,.navbar10_dropdown-toggle,.is-navbar-control)):focus-visible{outline:2px solid var(--base-color-brand--orange-3,#d6cab4);outline-offset:4px}
+:is(a[href],button,[role="button"],summary):not(:where(.navbar10_link,.navbar10_dropdown-toggle,.is-navbar-control,.tdb-disclosure-trigger,.tdb-home-awards-question)):focus-visible{outline:2px solid var(--base-color-brand--orange-3,#d6cab4);outline-offset:4px}
 
 
 /* Shared navbar states. Keep the native selector specificity; Webflow emitted

@@ -59,7 +59,9 @@ test('parallax owns Back restoration and prepares it before observing',()=>{
 });
 test('landscape layout works without resurrecting the removed legacy conversion',()=>{
  const f=fixture({landscape:true,legacy:true});try{
-  assert(f.d.documentElement.classList.contains('tdb-phone-landscape'));registerParallax(f);f.w.TDBParallax.refresh();
+  assert(f.d.documentElement.classList.contains('tdb-phone-landscape'));
+  assert(f.d.querySelector('style[data-tdb-phone-landscape-css]'),'landscape visibility CSS is installed with its orientation owner');
+  registerParallax(f);f.w.TDBParallax.refresh();
   assert(f.d.querySelector('.tdb-service-content').classList.contains('is-phone-landscape'));
   assert(f.d.querySelector('#legacy .layout423_card'));assert(!f.d.querySelector('#legacy .showcase_card'));assert(!f.w.TDBLegacyParallax);
  }finally{f.close()}
