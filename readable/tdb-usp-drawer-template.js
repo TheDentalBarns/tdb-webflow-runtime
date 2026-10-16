@@ -29,6 +29,7 @@
         (a.hidden = !0),
         (a.inert = !0),
         i.append(a),
+        window.TDBLazyIconMasks?.refresh(),
         e.set(t, { root: d, records: c }),
         d
       );

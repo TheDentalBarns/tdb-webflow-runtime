@@ -296,6 +296,7 @@
       const root = build(payload);
       record.root = root;
       holder.append(root);
+      window.TDBLazyIconMasks?.refresh();
       const mounted = waitFor(
         root,
         signal,
