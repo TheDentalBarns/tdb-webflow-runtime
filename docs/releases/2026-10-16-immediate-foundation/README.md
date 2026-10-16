@@ -5,6 +5,8 @@ Requested by David: run foundation without the settling gate, remove initial ent
 Base / rollback release: `584765c8615827bc6364a1f629a67f9c32a7a0e9`.
 Branch: `perf/immediate-foundation-20261016`.
 
+Published staging implementation: `288233d67fa73830562fa059d9ce5b5098df25f8` (16 October 2026, 07:55 UTC). See [RESULTS.md](RESULTS.md) and [results.json](results.json) for the three completed GTmetrix tests, validation and comparison limits. Production custom domains were not published.
+
 ## Changes
 
 - The deferred single entry requests foundation immediately when the DOM is ready. It no longer waits for fonts, an animation frame or a 50ms timer.

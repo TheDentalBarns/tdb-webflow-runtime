@@ -1,0 +1,614 @@
+{
+  "deployed_release": "288233d67fa73830562fa059d9ce5b5098df25f8",
+  "rollback_release": "584765c8615827bc6364a1f629a67f9c32a7a0e9",
+  "published_utc": "2026-10-16T07:55:01.847Z",
+  "staging_url": "https://dentalbarns.webflow.io/",
+  "production_published": false,
+  "test_options": {
+    "url": "https://dentalbarns.webflow.io/",
+    "location": "2",
+    "browser": "3",
+    "throttle": "9000/5000/125",
+    "video": true,
+    "report": "lighthouse",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+  },
+  "default_viewport": {
+    "width": 1366,
+    "height": 768
+  },
+  "tests": [
+    {
+      "report_id": "qwkEIu4x",
+      "test_url": "https://dentalbarns.webflow.io/",
+      "report_url": "https://gtmetrix.com/reports/dentalbarns.webflow.io/qwkEIu4x/",
+      "browser": "Chrome",
+      "region": "London, UK",
+      "page_tags": [],
+      "analysis_options": "4G (9/5 Mbps, 125ms), Video, Custom UA",
+      "har_url": "https://gtmetrix.com/reports/dentalbarns.webflow.io/qwkEIu4x/net.har",
+      "lighthouse_json_url": "https://gtmetrix.com/reports/dentalbarns.webflow.io/qwkEIu4x/lighthouse.json",
+      "scores": {
+        "gtmetrix_score": 73,
+        "gtmetrix_grade": "C",
+        "performance_score": 57,
+        "structure_score": 96
+      },
+      "core_web_vitals": {
+        "largest_contentful_paint": {
+          "value_ms": 3249,
+          "rating": "Much longer than recommended"
+        },
+        "total_blocking_time": {
+          "value_ms": 203,
+          "rating": "OK, but consider improvement"
+        },
+        "cumulative_layout_shift": {
+          "value": 0.000460974,
+          "rating": "Good - Nothing to do here"
+        },
+        "speed_index": {
+          "value_ms": 3838,
+          "rating": "Much longer than recommended"
+        },
+        "time_to_interactive": {
+          "value_ms": 3907,
+          "rating": "N/A"
+        }
+      },
+      "timing_metrics": {
+        "fully_loaded_time_ms": 4197,
+        "time_to_first_byte_ms": 2615,
+        "first_contentful_paint_ms": 3249,
+        "first_paint_ms": 3249,
+        "onload_time_ms": 4054
+      },
+      "page_size_bytes": 383281,
+      "page_requests": 31,
+      "resource_summary": {
+        "media": {
+          "label": "Videos",
+          "count": 0,
+          "size_transferred": 0,
+          "size_uncompressed": 0
+        },
+        "stylesheet": {
+          "label": "CSS Stylesheets",
+          "count": 3,
+          "size_transferred": 39213,
+          "size_uncompressed": 194659
+        },
+        "document": {
+          "label": "HTML",
+          "count": 1,
+          "size_transferred": 43671,
+          "size_uncompressed": 196487
+        },
+        "font": {
+          "label": "Fonts",
+          "count": 2,
+          "size_transferred": 34043,
+          "size_uncompressed": 33048
+        },
+        "script": {
+          "label": "JavaScript",
+          "count": 5,
+          "size_transferred": 115519,
+          "size_uncompressed": 481638
+        },
+        "other": {
+          "label": "Other",
+          "count": 1,
+          "size_transferred": 1005,
+          "size_uncompressed": 5430
+        },
+        "image": {
+          "label": "Images",
+          "count": 19,
+          "size_transferred": 149830,
+          "size_uncompressed": 189746
+        }
+      },
+      "top_lighthouse_issues": [
+        {
+          "rank": 1,
+          "title": "Reduce initial server response time",
+          "impact": "Critical",
+          "description": "Keep the server response time for the main document short because all other requests depend on it. Learn more about the Time to First Byte metric.",
+          "display_value": "Root document took 2.3s"
+        },
+        {
+          "rank": 2,
+          "title": "Avoid an excessive DOM size",
+          "impact": "Moderate",
+          "description": "A large DOM will increase memory usage, cause longer style calculations, and produce costly layout reflows. Learn how to avoid an excessive DOM size.",
+          "display_value": "1,263 elements"
+        },
+        {
+          "rank": 3,
+          "title": "Avoid chaining critical requests",
+          "impact": "Moderate",
+          "description": "The Critical Request Chains below show you what resources are loaded with a high priority. Consider reducing the length of chains, reducing the download size of resources, or deferring the download of unnecessary resources to improve page load. Learn how to avoid chaining critical requests.",
+          "display_value": "3 chains found"
+        },
+        {
+          "rank": 4,
+          "title": "Avoid long main-thread tasks",
+          "impact": "Minor",
+          "description": "Lists the longest tasks on the main thread, useful for identifying worst contributors to input delay. Learn how to avoid long main-thread tasks",
+          "display_value": "7 long tasks found"
+        },
+        {
+          "rank": 5,
+          "title": "Reduce unused CSS",
+          "impact": "Minor",
+          "description": "Reduce unused rules from stylesheets and defer CSS not used for above-the-fold content to decrease bytes consumed by network activity. Learn how to reduce unused CSS.",
+          "display_value": "Potential savings of 26.3KB"
+        }
+      ],
+      "started_utc": "2026-10-16T07:56:10.2081Z",
+      "html_cache": "MISS",
+      "runtime_requests": [
+        {
+          "file": "tdb-start.min.js",
+          "start_ms": 2663,
+          "duration_ms": 637.1,
+          "end_ms": 3300.1,
+          "compressed_body_bytes": 2120,
+          "raw_bytes": 4892
+        },
+        {
+          "file": "tdb-foundation.js",
+          "start_ms": 3841,
+          "duration_ms": 191.5,
+          "end_ms": 4032.5,
+          "compressed_body_bytes": 7968,
+          "raw_bytes": 24167
+        }
+      ]
+    },
+    {
+      "report_id": "wSyqLpNH",
+      "test_url": "https://dentalbarns.webflow.io/",
+      "report_url": "https://gtmetrix.com/reports/dentalbarns.webflow.io/wSyqLpNH/",
+      "browser": "Chrome",
+      "region": "London, UK",
+      "page_tags": [],
+      "analysis_options": "4G (9/5 Mbps, 125ms), Video, Custom UA",
+      "har_url": "https://gtmetrix.com/reports/dentalbarns.webflow.io/wSyqLpNH/net.har",
+      "lighthouse_json_url": "https://gtmetrix.com/reports/dentalbarns.webflow.io/wSyqLpNH/lighthouse.json",
+      "scores": {
+        "gtmetrix_score": 89,
+        "gtmetrix_grade": "B",
+        "performance_score": 84,
+        "structure_score": 97
+      },
+      "core_web_vitals": {
+        "largest_contentful_paint": {
+          "value_ms": 1106,
+          "rating": "Good - Nothing to do here"
+        },
+        "total_blocking_time": {
+          "value_ms": 248,
+          "rating": "Longer than recommended"
+        },
+        "cumulative_layout_shift": {
+          "value": 0.000460974,
+          "rating": "Good - Nothing to do here"
+        },
+        "speed_index": {
+          "value_ms": 1846,
+          "rating": "Longer than recommended"
+        },
+        "time_to_interactive": {
+          "value_ms": 1715,
+          "rating": "N/A"
+        }
+      },
+      "timing_metrics": {
+        "fully_loaded_time_ms": 2026,
+        "time_to_first_byte_ms": 439,
+        "first_contentful_paint_ms": 1106,
+        "first_paint_ms": 1106,
+        "onload_time_ms": 1877
+      },
+      "page_size_bytes": 383415,
+      "page_requests": 31,
+      "resource_summary": {
+        "media": {
+          "label": "Videos",
+          "count": 0,
+          "size_transferred": 0,
+          "size_uncompressed": 0
+        },
+        "stylesheet": {
+          "label": "CSS Stylesheets",
+          "count": 3,
+          "size_transferred": 39211,
+          "size_uncompressed": 194659
+        },
+        "document": {
+          "label": "HTML",
+          "count": 1,
+          "size_transferred": 43672,
+          "size_uncompressed": 196487
+        },
+        "font": {
+          "label": "Fonts",
+          "count": 2,
+          "size_transferred": 34040,
+          "size_uncompressed": 33048
+        },
+        "script": {
+          "label": "JavaScript",
+          "count": 5,
+          "size_transferred": 115631,
+          "size_uncompressed": 481638
+        },
+        "other": {
+          "label": "Other",
+          "count": 1,
+          "size_transferred": 1004,
+          "size_uncompressed": 5430
+        },
+        "image": {
+          "label": "Images",
+          "count": 19,
+          "size_transferred": 149857,
+          "size_uncompressed": 189746
+        }
+      },
+      "top_lighthouse_issues": [
+        {
+          "rank": 1,
+          "title": "Avoid an excessive DOM size",
+          "impact": "Moderate",
+          "description": "A large DOM will increase memory usage, cause longer style calculations, and produce costly layout reflows. Learn how to avoid an excessive DOM size.",
+          "display_value": "1,263 elements"
+        },
+        {
+          "rank": 2,
+          "title": "Reduce unused CSS",
+          "impact": "Minor",
+          "description": "Reduce unused rules from stylesheets and defer CSS not used for above-the-fold content to decrease bytes consumed by network activity. Learn how to reduce unused CSS.",
+          "display_value": "Potential savings of 26.3KB"
+        },
+        {
+          "rank": 3,
+          "title": "Avoid long main-thread tasks",
+          "impact": "Minor",
+          "description": "Lists the longest tasks on the main thread, useful for identifying worst contributors to input delay. Learn how to avoid long main-thread tasks",
+          "display_value": "4 long tasks found"
+        },
+        {
+          "rank": 4,
+          "title": "JavaScript execution time",
+          "impact": "Minor",
+          "description": "Consider reducing the time spent parsing, compiling, and executing JS. You may find delivering smaller JS payloads helps with this. Learn how to reduce Javascript execution time.",
+          "display_value": "103ms spent executing JavaScript"
+        },
+        {
+          "rank": 5,
+          "title": "Avoid chaining critical requests",
+          "impact": "Minor",
+          "description": "The Critical Request Chains below show you what resources are loaded with a high priority. Consider reducing the length of chains, reducing the download size of resources, or deferring the download of unnecessary resources to improve page load. Learn how to avoid chaining critical requests.",
+          "display_value": "3 chains found"
+        }
+      ],
+      "started_utc": "2026-10-16T07:56:55.7201Z",
+      "html_cache": "HIT",
+      "runtime_requests": [
+        {
+          "file": "tdb-start.min.js",
+          "start_ms": 486,
+          "duration_ms": 630.1,
+          "end_ms": 1116.1,
+          "compressed_body_bytes": 2120,
+          "raw_bytes": 4892
+        },
+        {
+          "file": "tdb-foundation.js",
+          "start_ms": 1710,
+          "duration_ms": 152.8,
+          "end_ms": 1862.8,
+          "compressed_body_bytes": 7968,
+          "raw_bytes": 24167
+        }
+      ]
+    },
+    {
+      "report_id": "mU0LVQNz",
+      "test_url": "https://dentalbarns.webflow.io/",
+      "report_url": "https://gtmetrix.com/reports/dentalbarns.webflow.io/mU0LVQNz/",
+      "browser": "Chrome",
+      "region": "London, UK",
+      "page_tags": [],
+      "analysis_options": "4G (9/5 Mbps, 125ms), Video, Custom UA",
+      "har_url": "https://gtmetrix.com/reports/dentalbarns.webflow.io/mU0LVQNz/net.har",
+      "lighthouse_json_url": "https://gtmetrix.com/reports/dentalbarns.webflow.io/mU0LVQNz/lighthouse.json",
+      "scores": {
+        "gtmetrix_score": 90,
+        "gtmetrix_grade": "A",
+        "performance_score": 86,
+        "structure_score": 97
+      },
+      "core_web_vitals": {
+        "largest_contentful_paint": {
+          "value_ms": 1085,
+          "rating": "Good - Nothing to do here"
+        },
+        "total_blocking_time": {
+          "value_ms": 215,
+          "rating": "OK, but consider improvement"
+        },
+        "cumulative_layout_shift": {
+          "value": 0.000460974,
+          "rating": "Good - Nothing to do here"
+        },
+        "speed_index": {
+          "value_ms": 1841,
+          "rating": "Longer than recommended"
+        },
+        "time_to_interactive": {
+          "value_ms": 1696,
+          "rating": "N/A"
+        }
+      },
+      "timing_metrics": {
+        "fully_loaded_time_ms": 2019,
+        "time_to_first_byte_ms": 448,
+        "first_contentful_paint_ms": 1085,
+        "first_paint_ms": 1085,
+        "onload_time_ms": 1874
+      },
+      "page_size_bytes": 383354,
+      "page_requests": 31,
+      "resource_summary": {
+        "media": {
+          "label": "Videos",
+          "count": 0,
+          "size_transferred": 0,
+          "size_uncompressed": 0
+        },
+        "stylesheet": {
+          "label": "CSS Stylesheets",
+          "count": 3,
+          "size_transferred": 39169,
+          "size_uncompressed": 194659
+        },
+        "document": {
+          "label": "HTML",
+          "count": 1,
+          "size_transferred": 43657,
+          "size_uncompressed": 196487
+        },
+        "font": {
+          "label": "Fonts",
+          "count": 2,
+          "size_transferred": 34043,
+          "size_uncompressed": 33048
+        },
+        "script": {
+          "label": "JavaScript",
+          "count": 5,
+          "size_transferred": 115643,
+          "size_uncompressed": 481638
+        },
+        "other": {
+          "label": "Other",
+          "count": 1,
+          "size_transferred": 1005,
+          "size_uncompressed": 5430
+        },
+        "image": {
+          "label": "Images",
+          "count": 19,
+          "size_transferred": 149837,
+          "size_uncompressed": 189746
+        }
+      },
+      "top_lighthouse_issues": [
+        {
+          "rank": 1,
+          "title": "Avoid an excessive DOM size",
+          "impact": "Moderate",
+          "description": "A large DOM will increase memory usage, cause longer style calculations, and produce costly layout reflows. Learn how to avoid an excessive DOM size.",
+          "display_value": "1,263 elements"
+        },
+        {
+          "rank": 2,
+          "title": "Reduce unused CSS",
+          "impact": "Minor",
+          "description": "Reduce unused rules from stylesheets and defer CSS not used for above-the-fold content to decrease bytes consumed by network activity. Learn how to reduce unused CSS.",
+          "display_value": "Potential savings of 26.3KB"
+        },
+        {
+          "rank": 3,
+          "title": "Avoid long main-thread tasks",
+          "impact": "Minor",
+          "description": "Lists the longest tasks on the main thread, useful for identifying worst contributors to input delay. Learn how to avoid long main-thread tasks",
+          "display_value": "6 long tasks found"
+        },
+        {
+          "rank": 4,
+          "title": "JavaScript execution time",
+          "impact": "Minor",
+          "description": "Consider reducing the time spent parsing, compiling, and executing JS. You may find delivering smaller JS payloads helps with this. Learn how to reduce Javascript execution time.",
+          "display_value": "158ms spent executing JavaScript"
+        },
+        {
+          "rank": 5,
+          "title": "Avoid chaining critical requests",
+          "impact": "Minor",
+          "description": "The Critical Request Chains below show you what resources are loaded with a high priority. Consider reducing the length of chains, reducing the download size of resources, or deferring the download of unnecessary resources to improve page load. Learn how to avoid chaining critical requests.",
+          "display_value": "3 chains found"
+        }
+      ],
+      "started_utc": "2026-10-16T07:58:00.1427Z",
+      "html_cache": "HIT",
+      "runtime_requests": [
+        {
+          "file": "tdb-start.min.js",
+          "start_ms": 488,
+          "duration_ms": 653,
+          "end_ms": 1141,
+          "compressed_body_bytes": 2120,
+          "raw_bytes": 4892
+        },
+        {
+          "file": "tdb-foundation.js",
+          "start_ms": 1693,
+          "duration_ms": 155.6,
+          "end_ms": 1848.6,
+          "compressed_body_bytes": 7968,
+          "raw_bytes": 24167
+        }
+      ]
+    }
+  ],
+  "baseline": {
+    "report_id": "QBloUtjL",
+    "test_url": "https://dentalbarns.webflow.io/",
+    "report_url": "https://gtmetrix.com/reports/dentalbarns.webflow.io/QBloUtjL/",
+    "browser": "Chrome",
+    "region": "London, UK",
+    "page_tags": [],
+    "analysis_options": "4G (9/5 Mbps, 125ms), Video, Custom UA",
+    "har_url": "https://gtmetrix.com/reports/dentalbarns.webflow.io/QBloUtjL/net.har",
+    "lighthouse_json_url": "https://gtmetrix.com/reports/dentalbarns.webflow.io/QBloUtjL/lighthouse.json",
+    "scores": {
+      "gtmetrix_score": 90,
+      "gtmetrix_grade": "A",
+      "performance_score": 84,
+      "structure_score": 99
+    },
+    "core_web_vitals": {
+      "largest_contentful_paint": {
+        "value_ms": 1072,
+        "rating": "Good - Nothing to do here"
+      },
+      "total_blocking_time": {
+        "value_ms": 260,
+        "rating": "Longer than recommended"
+      },
+      "cumulative_layout_shift": {
+        "value": 0,
+        "rating": "Good - Nothing to do here"
+      },
+      "speed_index": {
+        "value_ms": 1833,
+        "rating": "Longer than recommended"
+      },
+      "time_to_interactive": {
+        "value_ms": 1616,
+        "rating": "N/A"
+      }
+    },
+    "timing_metrics": {
+      "fully_loaded_time_ms": 1825,
+      "time_to_first_byte_ms": 440,
+      "first_contentful_paint_ms": 1072,
+      "first_paint_ms": 1072,
+      "onload_time_ms": 1618
+    },
+    "page_size_bytes": 341984,
+    "page_requests": 28,
+    "resource_summary": {
+      "media": {
+        "label": "Videos",
+        "count": 0,
+        "size_transferred": 0,
+        "size_uncompressed": 0
+      },
+      "stylesheet": {
+        "label": "CSS Stylesheets",
+        "count": 3,
+        "size_transferred": 39166,
+        "size_uncompressed": 194659
+      },
+      "document": {
+        "label": "HTML",
+        "count": 1,
+        "size_transferred": 43910,
+        "size_uncompressed": 197008
+      },
+      "font": {
+        "label": "Fonts",
+        "count": 2,
+        "size_transferred": 34043,
+        "size_uncompressed": 33048
+      },
+      "script": {
+        "label": "JavaScript",
+        "count": 5,
+        "size_transferred": 115507,
+        "size_uncompressed": 481457
+      },
+      "other": {
+        "label": "Other",
+        "count": 1,
+        "size_transferred": 1004,
+        "size_uncompressed": 5430
+      },
+      "image": {
+        "label": "Images",
+        "count": 16,
+        "size_transferred": 108354,
+        "size_uncompressed": 135437
+      }
+    },
+    "top_lighthouse_issues": [
+      {
+        "rank": 1,
+        "title": "Avoid an excessive DOM size",
+        "impact": "Moderate",
+        "description": "A large DOM will increase memory usage, cause longer style calculations, and produce costly layout reflows. Learn how to avoid an excessive DOM size.",
+        "display_value": "1,263 elements"
+      },
+      {
+        "rank": 2,
+        "title": "Avoid long main-thread tasks",
+        "impact": "Minor",
+        "description": "Lists the longest tasks on the main thread, useful for identifying worst contributors to input delay. Learn how to avoid long main-thread tasks",
+        "display_value": "4 long tasks found"
+      },
+      {
+        "rank": 3,
+        "title": "JavaScript execution time",
+        "impact": "Minor",
+        "description": "Consider reducing the time spent parsing, compiling, and executing JS. You may find delivering smaller JS payloads helps with this. Learn how to reduce Javascript execution time.",
+        "display_value": "211ms spent executing JavaScript"
+      },
+      {
+        "rank": 4,
+        "title": "Avoid chaining critical requests",
+        "impact": "Minor",
+        "description": "The Critical Request Chains below show you what resources are loaded with a high priority. Consider reducing the length of chains, reducing the download size of resources, or deferring the download of unnecessary resources to improve page load. Learn how to avoid chaining critical requests.",
+        "display_value": "3 chains found"
+      },
+      {
+        "rank": 5,
+        "title": "Defer offscreen images",
+        "impact": "Minor",
+        "description": "Consider lazy-loading offscreen and hidden images after all critical resources have finished loading to lower time to interactive. Learn how to defer offscreen images.",
+        "display_value": "Potential savings of 2.02KB"
+      }
+    ]
+  },
+  "comparison_caveat": "Earlier baseline fetched the mobile hero (-mb-p-800.webp); new tests fetched desktop hero (-p-1600.webp) and are grouped into a distinct GTmetrix page profile. Viewport equivalence with baseline is not verified. Do not attribute total bytes, requests or CPU differences to this change.",
+  "verification": {
+    "passed": 390,
+    "skipped": 3,
+    "failed": 0,
+    "shared_ui_css_unchanged": true,
+    "webflow_css_urls_unchanged": true,
+    "source_tree_sha": "30eb279ae7027c9494cac9fa7bebe98fba1b39a9",
+    "smoke_checks": [
+      "Settings reopen and focus",
+      "Essential-only choice closes and blanks Vimeo iframe URLs",
+      "Hero play reopens consent after essential-only choice",
+      "Accept-all reopens gated runtime"
+    ],
+    "initial_banner_validation": "Automated unit test; browser smoke test reused an existing consent choice"
+  }
+}
