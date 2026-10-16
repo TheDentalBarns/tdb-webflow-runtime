@@ -25,14 +25,23 @@
         a.rank - b.rank ||
         a.id.localeCompare(b.id),
     );
-    // Cross-posts remain in the CMS and aggregate count. Show each experience once.
-    const seen = new Set();
-    return rows.filter((row) => {
-      const key = row.duplicate || row.id;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    // Keep every platform review. The strongest version stays in its ranked
+    // position; further cross-posts sit just before the lower-rated reviews.
+    const seen = new Set(),
+      primary = [],
+      crossposts = [],
+      lowerRated = [];
+    for (const row of rows) {
+      if (low(row)) {
+        lowerRated.push(row);
+      } else if (row.duplicate && seen.has(row.duplicate)) {
+        crossposts.push(row);
+      } else {
+        primary.push(row);
+      }
+      if (row.duplicate) seen.add(row.duplicate);
+    }
+    return [...primary, ...crossposts, ...lowerRated];
   }
   function decorate(record, row) {
     if (!row?.displayTopic) return record;

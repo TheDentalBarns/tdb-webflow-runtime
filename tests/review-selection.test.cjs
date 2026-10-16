@@ -12,7 +12,7 @@ const row = (i, extra = {}) => ({
   snippetRanks: {},
   ...extra,
 });
-test('all 50 topic matches precede fallback; low ratings stay last; one cross-post; stable shared positions', () => {
+test('all 50 topic matches precede fallback; cross-posts retained before low ratings; stable shared positions', () => {
   const w = new JSDOM('', { runScripts: 'outside-only' }).window;
   try {
     w.eval(source);
@@ -29,7 +29,8 @@ test('all 50 topic matches precede fallback; low ratings stay last; one cross-po
       { id: 'nervous', paths: ['/services/nervous-patient-care'], topics: ['nervous'] },
     ];
     const result = w.TDBReviewSelection.select(rows, contexts, '/services/nervous-patient-care/');
-    assert.equal(result.length, 82);
+    assert.equal(result.length, 83);
+    assert.deepEqual(new Set(Array.from(result, (r) => r.id)), new Set(rows.map((r) => r.id)));
     assert.deepEqual(
       Array.from(result.slice(0, 50), (r) => r.id),
       Array.from({ length: 50 }, (_, i) => 'review-' + (70 - i)),
@@ -41,6 +42,10 @@ test('all 50 topic matches precede fallback; low ratings stay last; one cross-po
     assert.deepEqual(
       Array.from(result.slice(-2), (r) => r.rating),
       [4, 1],
+    );
+    assert.deepEqual(
+      Array.from(result.slice(-3), (r) => r.id),
+      ['review-83', 'review-81', 'review-82'],
     );
     assert.equal(w.TDBReviewSelection.select(rows, contexts, '/unconfigured'), null);
     assert.equal(
