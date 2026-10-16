@@ -38,7 +38,7 @@ function fixture(width = 448, consent = true, registry = true) {
   Object.defineProperty(d, 'currentScript', { configurable: true, value: { src: 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@fixture/dist/tdb-navbar-loader.js', dataset: { tdbRuntimeBase: 'https://example.test/runtime/' } } });
   if (consent) d.cookie = 'CookieScriptConsent=' + encodeURIComponent(JSON.stringify({ action: 'reject' }));
   if (registry) w.eval(read('dist/tdb-modules.js'));
-  w.eval(read('src/shared/scroll-lock.js'));
+  w.eval(read('src/shared/scroll-lock.js').replace('__TDB_SCROLL_LOCK_CSS__',JSON.stringify(read('src/styles/tdb-scroll-lock.css'))));
   w.TDBConsent = {allows: () => consent};
   w.eval(read('dist/tdb-navbar-loader.js'));
   // The bundle now includes the native foundation; complete its parser lifecycle.

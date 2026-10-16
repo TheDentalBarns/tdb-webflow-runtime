@@ -286,6 +286,12 @@
     if (!open) lastFocus = document.activeElement;
     open = true;
     closing = false;
+    if (immediate && !document.querySelector('style[data-tdb-consent-instant-css]')) {
+      const style = document.createElement('style');
+      style.setAttribute('data-tdb-consent-instant-css', '');
+      style.textContent = __TDB_CONSENT_INSTANT_CSS__;
+      document.head.append(style);
+    }
     root.toggleAttribute('data-tdb-consent-instant', immediate === true);
     root.setAttribute('aria-hidden', 'false');
     root.classList.add('is-consent-active');

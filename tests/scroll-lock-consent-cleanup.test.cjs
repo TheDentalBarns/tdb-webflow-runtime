@@ -2,25 +2,28 @@ const test=require('node:test'), assert=require('node:assert/strict'), fs=requir
 const {JSDOM}=require('jsdom');
 const read=p=>fs.readFileSync(p,'utf8'), sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function fixture(home=true){
- const dom=new JSDOM('<html data-wf-page="'+(home?'677cf86df9952f978d94d8a9':'other')+'"><head><style>'+read('src/styles/tdb-scroll-lock.css')+'</style></head><body style="padding-right:3px" data-lenis-prevent="original"><p id="outside">Page</p><div id="panel" style="overflow-y:auto;overflow-x:auto"><span id="inside">Panel</span></div>'+read('src/consent/banner.html')+'</body></html>',{runScripts:'outside-only',pretendToBeVisual:true,url:'https://dentalbarns.webflow.io/'});
+ const dom=new JSDOM('<html data-wf-page="'+(home?'677cf86df9952f978d94d8a9':'other')+'"><head></head><body style="padding-right:3px" data-lenis-prevent="original"><p id="outside">Page</p><div id="panel" style="overflow-y:auto;overflow-x:auto"><span id="inside">Panel</span></div>'+read('src/consent/banner.html')+'</body></html>',{runScripts:'outside-only',pretendToBeVisual:true,url:'https://dentalbarns.webflow.io/'});
  const w=dom.window,d=w.document;w.Element.prototype.getAnimations=()=>[];w.Element.prototype.animate=()=>({cancel(){}});
  Object.defineProperty(d.documentElement,'clientWidth',{value:1000});Object.defineProperty(w,'innerWidth',{value:1015});
  return{dom,w,d,close:()=>w.close()};
 }
 for(const home of [true,false])test('fixed stylesheet locks correct root; owners and Lenis restore ('+home+')',()=>{
- const f=fixture(home),{w,d}=f;w.eval(read('src/shared/scroll-lock.js'));
+ const f=fixture(home),{w,d}=f;w.eval(read('src/shared/scroll-lock.js').replace('__TDB_SCROLL_LOCK_CSS__',JSON.stringify(read('src/styles/tdb-scroll-lock.css'))));
  const styles=d.querySelectorAll('style').length;
  const one=w.TDBScrollLock.acquire(),two=w.TDBScrollLock.acquire();
  assert.equal(w.getComputedStyle(d.documentElement).overflow,'hidden');
  assert.equal(w.getComputedStyle(d.body).overflow,'');
  assert.equal(d.documentElement.style.getPropertyValue('--tdb-scroll-lock-padding'),'18px');
- assert.equal(d.querySelectorAll('style').length,styles,'locking inserts no CSS');
+ assert.equal(d.querySelectorAll('style').length,styles+1,'first lock installs CSS only once for both owners');
+ assert.equal(d.querySelectorAll('style[data-tdb-scroll-lock-css]').length,1);
  assert.equal(d.body.getAttribute('data-lenis-prevent'),'');
  one();one();assert(w.TDBScrollLock.active);two();assert(!w.TDBScrollLock.active);
- assert.equal(d.body.getAttribute('data-lenis-prevent'),'original');assert.equal(d.body.style.paddingRight,'3px');f.close();
+ assert.equal(d.body.getAttribute('data-lenis-prevent'),'original');assert.equal(d.body.style.paddingRight,'3px');
+ assert.equal(d.documentElement.style.getPropertyValue('--tdb-scroll-lock-padding'),'');
+ const again=w.TDBScrollLock.acquire();assert.equal(d.querySelectorAll('style[data-tdb-scroll-lock-css]').length,1);again();f.close();
 });
 test('wheel and mobile touch allow internal scrolling but contain edges and background',()=>{
- const f=fixture(),{w,d}=f;w.eval(read('src/shared/scroll-lock.js'));
+ const f=fixture(),{w,d}=f;w.eval(read('src/shared/scroll-lock.js').replace('__TDB_SCROLL_LOCK_CSS__',JSON.stringify(read('src/styles/tdb-scroll-lock.css'))));
  const panel=d.querySelector('#panel'),inside=d.querySelector('#inside'),outside=d.querySelector('#outside');
  Object.defineProperty(panel,'scrollHeight',{value:500});Object.defineProperty(panel,'clientHeight',{value:100});
  panel.scrollTop=100;const release=w.TDBScrollLock.acquire({allow:()=>[panel]});

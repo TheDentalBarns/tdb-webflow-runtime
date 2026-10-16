@@ -1,0 +1,2 @@
+/* Shared selection and tap behaviour; no layout dependency. */
+*{user-select:none;-webkit-user-select:none;-ms-user-select:none;-webkit-tap-highlight-color:transparent}.selectable{user-select:text!important;-webkit-user-select:text!important;-ms-user-select:text!important}

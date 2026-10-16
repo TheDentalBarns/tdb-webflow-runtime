@@ -39,7 +39,8 @@ test('all original UI and slider declarations survive the split', () => {
     if (key.startsWith('.section_standard-testimonial:has(') || key.startsWith('[data-tdb-dd-page],.tdbc-dd-fade|') || key.startsWith('[data-tdb-dd-preset="orange"]|') || key.startsWith('[data-tdb-copy-paragraphs]|') || key.startsWith('.tdb-consent-dialog|-webkit-tap-highlight-color|')) { assert.equal(after.has(key), false); continue; }
     assert.equal(after.get(key), count, key);
   }
-  assert(!read('dist/tdb-ui.css').includes('data-vimeo'));
+  assert(read('dist/tdb-ui.css').includes('data-vimeo-pulse'), 'feedback remains available before video consent');
+  assert(!read('dist/tdb-ui.css').includes("data-vimeo-ui='playing'"), 'playback states remain in the consent-gated video stylesheet');
   assert(read('dist/tdb-ui.css').includes('.tdb-consent'), 'consent states returned to the shared stylesheet in the later consent release');
 });
 // Vimeo ownership and recovery are exercised in vimeo-consent-gate.test.cjs.

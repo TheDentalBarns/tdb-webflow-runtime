@@ -53,6 +53,8 @@ function source(file) {
       JSON.stringify(read('src/instagram/template.html').trim()),
     );
   const styles = {
+    __TDB_SCROLL_LOCK_CSS__: ['tdb-scroll-lock.css'],
+    __TDB_CONSENT_INSTANT_CSS__: ['tdb-consent-instant.css'],
     __TDB_PHONE_LANDSCAPE_CSS__: ['tdb-phone-landscape.css'],
     __TDB_NATIVE_FOUNDATION_CSS__: ['tdb-native-foundation.css', 'tdb-phone-landscape.css'],
     __TDB_PARTNER_CONTROLS_CSS__: ['tdb-partner-controls.css'],

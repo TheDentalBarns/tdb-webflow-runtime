@@ -1,0 +1,10 @@
+/* Installed by the consent banner before its first immediate opening. */
+[data-tdb-consent-instant] :is(
+  .tdb-consent-backdrop,
+  .tdb-consent-surface,
+  .tdb-consent-scroll,
+  .tdb-consent-motion
+) {
+  transition: none !important;
+  animation: none !important;
+}

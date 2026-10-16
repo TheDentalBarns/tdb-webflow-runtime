@@ -3,7 +3,7 @@ const {JSDOM}=require('jsdom');
 function setup(search=''){
  const dom=new JSDOM('<main><a href="#experience" data-tdb-senses-open>Open experience</a></main>',{url:'https://dentalbarns.webflow.io/'+search,runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window,frames=[],motions=[];let showed=0;
  Object.defineProperty(w.document,'currentScript',{value:{src:'https://example.test/release/dist/tdb-five-senses-loader.js',dataset:{}}});
- w.eval(fs.readFileSync('src/shared/scroll-lock.js','utf8'));
+ w.eval(fs.readFileSync('src/shared/scroll-lock.js','utf8').replace('__TDB_SCROLL_LOCK_CSS__',JSON.stringify(fs.readFileSync('src/styles/tdb-scroll-lock.css','utf8'))));
  w.requestAnimationFrame=fn=>{frames.push(fn);return frames.length;};w.cancelAnimationFrame=()=>{};
  w.HTMLDialogElement.prototype.showModal=function(){assert(w.document.querySelector('style[data-tdb-senses-shell]'),'loading CSS exists before modal paint');this.open=true;showed++;};
  w.HTMLDialogElement.prototype.close=function(){this.open=false;};

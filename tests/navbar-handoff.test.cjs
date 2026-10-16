@@ -85,7 +85,7 @@ test('essential bundle has no download or cookie watcher',()=>{
   const lock=f.d.querySelector('style[data-tdb-basic-nav-lock]');
   assert(lock,'the basic lock must be available before the first menu interaction');
   assert.equal(lock.textContent,'html[data-tdb-nav-basic-open]{overflow:hidden}');
-  assert.equal(f.d.querySelectorAll('style').length,1,'startup adds only the small menu lock');
+  assert.equal(f.d.querySelectorAll('style:not([data-tdb-basic-nav-lock]):not([data-tdb-scroll-lock-css]):not([data-tdb-consent-instant-css])').length,0,'startup styles belong only to active navigation/consent owners');
   assert.equal(f.css(),null);assert.equal(f.script(),null);
  }finally{f.close();}
 });

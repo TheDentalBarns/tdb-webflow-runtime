@@ -1,4 +1,4 @@
-/* TDBScrollLock v1.0.3. Shared, independently releasable scroll-lock owners.
+/* TDBScrollLock v1.0.4. Shared, independently releasable scroll-lock owners.
  * No body positioning or scroll reset: keep the document and navbar geometry.
  * Touch/wheel containment allows nested scrollers and prevents edge chaining.
  */
@@ -54,10 +54,16 @@
     if (!canScroll(event.target, dx, dy)) event.preventDefault();
   }
   function lock() {
-    // Fixed rules live in the existing early shared critical stylesheet.
     // Measure the unlocked page before lock writes.
     const gap = Math.max(0, innerWidth - html.clientWidth);
     const padding = parseFloat(getComputedStyle(document.body).paddingRight) || 0;
+    if (!document.querySelector('style[data-tdb-scroll-lock-css]')) {
+      const style = document.createElement('style');
+      style.setAttribute('data-tdb-scroll-lock-css', '');
+      style.textContent =
+        'html.tdb-scroll-locked {\n  overflow: hidden !important;\n  overscroll-behavior: none;\n}\nhtml.tdb-scroll-locked body {\n  padding-right: var(--tdb-scroll-lock-padding) !important;\n}';
+      document.head.append(style);
+    }
     previousLenis = document.body.getAttribute('data-lenis-prevent');
     html.style.setProperty('--tdb-scroll-lock-padding', `${padding + gap}px`);
     document.body.setAttribute('data-lenis-prevent', '');
@@ -87,7 +93,7 @@
     };
   }
   window.TDBScrollLock = Object.freeze({
-    version: '1.0.3',
+    version: '1.0.4',
     acquire,
     get active() {
       return owners.size > 0;

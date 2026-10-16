@@ -1,4 +1,4 @@
-/* Include in the existing data-tdb-critical-base stylesheet, before any lock.
+/* Installed once by the scroll-lock owner, immediately before its first lock.
  * Lock the viewport without introducing a competing body scroll container.
  */
 html.tdb-scroll-locked {

@@ -32,6 +32,37 @@ select:not(.form_select).placeholder {
 
 select:not(.form_select):not(.placeholder){color:#000}
 
+/* Shared selection and tap behaviour; no layout dependency. */
+*{user-select:none;-webkit-user-select:none;-ms-user-select:none;-webkit-tap-highlight-color:transparent}.selectable{user-select:text!important;-webkit-user-select:text!important;-ms-user-select:text!important}
+
+/* Lightweight video feedback also applies before functionality consent.
+ * Bundled into the existing shared UI stylesheet; no separate request. */
+/* Shared pulse */
+.vimeo-controls-layer .vimeo-player__btn-pulse,
+.vimeo-player .vimeo-player__btn-pulse {
+  opacity: 0;
+  visibility: visible;
+  pointer-events: none;
+  animation: none;
+}
+
+[data-vimeo-hero-shell]:not([data-vimeo-pulse]) .vimeo-controls-layer .vimeo-player__btn-pulse,
+[data-vimeo-hero-shell][data-vimeo-pulse='true'] .vimeo-controls-layer .vimeo-player__btn-pulse,
+.vimeo-player:not([data-vimeo-playing]) .vimeo-player__btn-pulse,
+.vimeo-player[data-vimeo-playing='false'] .vimeo-player__btn-pulse {
+  animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate;
+  will-change: opacity;
+}
+
+[data-vimeo-hero-shell][data-vimeo-pulse='false'] .vimeo-controls-layer .vimeo-player__btn-pulse,
+.vimeo-player[data-vimeo-playing='true'] .vimeo-player__btn-pulse,
+.vimeo-player[data-vimeo-awaiting-consent='true'] .vimeo-player__btn-pulse,
+.vimeo-player[data-vimeo-loading='true'] .vimeo-player__btn-pulse {
+  opacity: 0;
+  animation: none;
+  will-change: auto;
+}
+
 /* TDB global deferred UI styles v0.3.0
  * Keep this file limited to shared site-wide runtime presentation.
  * Feature presentation belongs with its owning runtime.

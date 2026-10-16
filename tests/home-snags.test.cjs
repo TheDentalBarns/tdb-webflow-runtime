@@ -60,7 +60,7 @@ test('VIP permits its mobile scroller under a menu lock and releases only its ow
   w.scrollTo=()=>{};w.lenis={start(){},stop(){},resize(){}};
   Object.defineProperties(drawer,{clientHeight:{value:600},scrollHeight:{value:1200}});
   try {
-    w.eval(read('src/shared/scroll-lock.js'));
+    w.eval(read('src/shared/scroll-lock.js').replace('__TDB_SCROLL_LOCK_CSS__',JSON.stringify(read('src/styles/tdb-scroll-lock.css'))));
     const releaseMenu=w.TDBScrollLock.acquire({allow:()=>[doc.querySelector('.navbar10_menu')]});
     const wheel=target=>{const event=new w.WheelEvent('wheel',{deltaY:40,bubbles:true,cancelable:true});target.dispatchEvent(event);return event.defaultPrevented;};
     assert.equal(wheel(drawer.querySelector('input')),true,'menu alone blocks the separate VIP surface');
