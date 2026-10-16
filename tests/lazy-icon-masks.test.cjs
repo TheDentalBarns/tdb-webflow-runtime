@@ -21,3 +21,27 @@ test('permission and teardown gate queued observer work',()=>{
 test('browsers without IntersectionObserver retain decorative icons',()=>{
  const f=fixture({observer:false});try{assert(f.nodes.every(n=>n.style.maskImage.includes('.svg')))}finally{f.close()}
 });
+
+test('platform artwork stays inert until proximity and preserves colours as images/backgrounds',()=>{
+ const f=fixture();try{
+  const d=f.w.document;
+  for(const platform of ['google','facebook','yell','doctify'])for(const tag of ['div','img']){
+   const node=d.createElement(tag);node.dataset.tdbLazyPlatform=platform;d.body.append(node);f.w.TDBLazyIconMasks.refresh();
+   assert(!node.hasAttribute('src'));assert(!node.style.backgroundImage);assert(f.ios[0].nodes.has(node));
+   f.ios[0].fn([{target:node,isIntersecting:false}]);assert(!node.hasAttribute('src'));assert(!node.style.backgroundImage);
+   f.ios[0].fn([{target:node,isIntersecting:true}]);assert.match(tag==='img'?node.src:node.style.backgroundImage,new RegExp('tdb-review-'+platform+'\\.svg'));assert(!node.style.maskImage);
+  }
+ }finally{f.close()}
+});
+
+test('late icon observer never replaces the platform chosen by CMS hydration',()=>{
+ const f=fixture();try{
+  const d=f.w.document;
+  for(const markup of ['','<img src="/facebook.svg">','Direct testimonial']){
+   const node=d.createElement('span');node.className='tdb-quotes_source';node.innerHTML=markup;d.body.append(node);f.w.TDBLazyIconMasks.refresh();
+   if(!markup){node.dataset.reviewPlatform='Facebook';node.style.backgroundImage='url("/facebook.svg")'}
+   const before=node.outerHTML;f.ios[0].fn([{target:node,isIntersecting:true}]);assert.equal(node.outerHTML,before);
+  }
+  const fallback=d.createElement('span');fallback.className='tdb-quotes_source';d.body.append(fallback);f.w.TDBLazyIconMasks.refresh();f.ios[0].fn([{target:fallback,isIntersecting:true}]);assert.match(fallback.style.backgroundImage,/tdb-review-google.svg/);
+ }finally{f.close()}
+});
