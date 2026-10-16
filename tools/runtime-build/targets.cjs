@@ -98,6 +98,7 @@ module.exports = {
     'src/usp/loader.js',
     'src/five-senses/launcher.js',
     'src/runtime/review-feature-loader.js',
+    'src/runtime/lazy-icon-masks.js',
     'src/runtime/instagram-feature-loader.js',
     'src/runtime/smile-feature-loader.js',
     'src/runtime/page-break-loader.js',

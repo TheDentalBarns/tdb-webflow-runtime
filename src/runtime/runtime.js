@@ -252,6 +252,7 @@
     window.TDBPageBreaks?.destroy();
     window.TDBFiveSensesLauncher?.destroy();
     window.TDBReviewFeatureLoader?.destroy();
+    window.TDBLazyIconMasks?.destroy();
     window.TDBInstagramFeatureLoader?.destroy();
     for (const cancel of [...cancellations]) cancel();
     mounted.forEach((owner) => owner.destroy());

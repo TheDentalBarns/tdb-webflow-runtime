@@ -380,10 +380,10 @@
       "sources": [
         "src/reviews/native/cards.js"
       ],
-      "sha256": "d69ed8bc6d64e3e8e659b983e4a7123cd285b237ebc31ff96c3bc9e3645015e6",
-      "raw": 15223,
-      "gzip": 5187,
-      "brotli": 4589
+      "sha256": "242987fdd4c35fe4e5df844cacd54959757d96dcaebcfa17b7a49a3d725ca960",
+      "raw": 15077,
+      "gzip": 5167,
+      "brotli": 4569
     },
     "dist/tdb-review-cms.js": {
       "sources": [
@@ -503,16 +503,17 @@
         "src/usp/loader.js",
         "src/five-senses/launcher.js",
         "src/runtime/review-feature-loader.js",
+        "src/runtime/lazy-icon-masks.js",
         "src/runtime/instagram-feature-loader.js",
         "src/runtime/smile-feature-loader.js",
         "src/runtime/page-break-loader.js",
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "c4bcfdc51ce3471fd443ea38f96fe86a31c6760f5d5ac72f8ec44b59b1562f7d",
-      "raw": 57841,
-      "gzip": 15392,
-      "brotli": 13659
+      "sha256": "1b6132674b9071b935ca86df4e4e93c7e62f90fc6ef0046fee599d285639b3ca",
+      "raw": 58981,
+      "gzip": 15769,
+      "brotli": 13971
     },
     "dist/tdb-service-awards.js": {
       "sources": [

@@ -3,6 +3,7 @@ const TDBFeatureStartup = (() => {
   let flight;
   const done = new Set();
   const steps = [
+    prepareLazyIconMasks,
     prepareBrevoConsent,
     prepareUSPDrawerLoader,
     preparePageBreakLoader,
