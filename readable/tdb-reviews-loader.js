@@ -23,6 +23,29 @@
     openSequence = 0;
   const drawerRoot = () => document.querySelector('[data-tdb-reviews]');
   const lazyRoot = () => document.querySelector('[data-tdb-review-lazy]');
+  function hydratePower(root, data) {
+    const record = data.power && data.getCached(data.power);
+    if (!record || !root) return;
+    const quote = root.querySelector('[data-tdb-review-excerpt]');
+    const author = root.querySelector('[data-tdb-review-author]');
+    if (!quote || !author) return;
+    quote.textContent = record.displayExcerpt ?? record.excerpt;
+    quote.setAttribute('data-tdb-review-id', record.id);
+    author.textContent = record.name;
+    const platforms = [...root.querySelectorAll('.review-intro_platform')];
+    const platform = platforms[0];
+    platforms.slice(1).forEach((node) => node.remove());
+    if (platform) {
+      platform.replaceChildren(window.TDBReviewCMS.sourceIcon(record.platform));
+      const label = record.historic
+        ? `${record.platform} review of Dr Keely at her previous practice`
+        : `${record.platform} review`;
+      platform.setAttribute('aria-label', label);
+      platform.setAttribute('title', label);
+    }
+    const trigger = quote.closest('[data-tdb-review-trigger]');
+    trigger?.setAttribute('aria-label', 'Read full review by ' + record.name);
+  }
   function allowed() {
     if (disposed) return false;
     try {
@@ -194,7 +217,8 @@
     current();
     if (!drawer) throw Error('Native review drawer unavailable');
     const introduction = trigger?.closest('[data-tdb-review-introduction]');
-    await data.ensureIdentity?.(introduction, { signal });
+    if (data.power) hydratePower(introduction, data);
+    else await data.ensureIdentity?.(introduction, { signal });
     current();
     const id =
       reviewId ||
@@ -278,7 +302,10 @@
         if (isHolder) state.content = content;
         current();
         if (type === 'quotes') await data.fetchRecords(data.featured, { signal });
-        if (type === 'introduction') await data.ensureIdentity?.(root, { signal });
+        if (type === 'introduction') {
+          if (data.power) hydratePower(root, data);
+          else await data.ensureIdentity?.(root, { signal });
+        }
         current();
         root
           .querySelectorAll('[data-tdb-review-count]')

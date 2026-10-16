@@ -381,21 +381,22 @@
       "sources": [
         "src/reviews/native/cards.js"
       ],
-      "sha256": "242987fdd4c35fe4e5df844cacd54959757d96dcaebcfa17b7a49a3d725ca960",
-      "raw": 15077,
-      "gzip": 5167,
-      "brotli": 4569
+      "sha256": "6ce568953c0f3afb12ee20e8b3ee47f866f3e9c8e57119f27788eb207e0cd228",
+      "raw": 15199,
+      "gzip": 5188,
+      "brotli": 4585
     },
     "dist/tdb-review-cms.js": {
       "sources": [
+        "src/reviews/native/selection.js",
         "src/reviews/native/json.js",
         "src/reviews/native/cms.js",
         "src/reviews/native/quote-adapter.js"
       ],
-      "sha256": "e316ce28ea5787d8ffad8405cd5148e9fd764130b69158e6ce0561dfe75eea42",
-      "raw": 21629,
-      "gzip": 7409,
-      "brotli": 6549
+      "sha256": "2187284c36e350c5bea29423fa3b7bd5b6942f979d22c957a3fdd6b146883b27",
+      "raw": 23640,
+      "gzip": 8083,
+      "brotli": 7156
     },
     "dist/tdb-review-drawer-template.js": {
       "sources": [
@@ -438,19 +439,19 @@
       "sources": [
         "src/reviews/native/quote-adapter.js"
       ],
-      "sha256": "e3e31beb47bc7ce51baa29fac548756a52b2e80b4ead006e3fe0937fc5532a81",
-      "raw": 1601,
-      "gzip": 747,
-      "brotli": 632
+      "sha256": "d4050dcbf5d293a261443d33c96b4278b631e42cc213770112f2d29e0c8cdc3c",
+      "raw": 1619,
+      "gzip": 756,
+      "brotli": 645
     },
     "dist/tdb-review-quote-adapter.min.js": {
       "sources": [
         "src/reviews/native/quote-adapter.js"
       ],
-      "sha256": "e3e31beb47bc7ce51baa29fac548756a52b2e80b4ead006e3fe0937fc5532a81",
-      "raw": 1601,
-      "gzip": 747,
-      "brotli": 632
+      "sha256": "d4050dcbf5d293a261443d33c96b4278b631e42cc213770112f2d29e0c8cdc3c",
+      "raw": 1619,
+      "gzip": 756,
+      "brotli": 645
     },
     "dist/tdb-review-quotes.js": {
       "sources": [
@@ -465,19 +466,19 @@
       "sources": [
         "src/reviews/native/loader.js"
       ],
-      "sha256": "8b8f013536aca6ac1d8080233f9ea02bfcb00ff7fc17e22e870a1883e22b1c22",
-      "raw": 10141,
-      "gzip": 3354,
-      "brotli": 2968
+      "sha256": "ed2113cce22862923f2734674dd92ff811258ec2eab4b9b76f7cfffa7a90a51b",
+      "raw": 10898,
+      "gzip": 3635,
+      "brotli": 3198
     },
     "dist/tdb-reviews.js": {
       "sources": [
         "src/reviews/native/drawer-content.js"
       ],
-      "sha256": "27229e3fdc68704054cc2464e6d7a15ef40bba05e48f4a7cb5bec659a786a1e2",
-      "raw": 19190,
-      "gzip": 6925,
-      "brotli": 6215
+      "sha256": "86f59898f00b15acc5c24c9bd8fbb38be7715d1ad3700e0330a48a2ade9a82b8",
+      "raw": 19226,
+      "gzip": 6940,
+      "brotli": 6232
     },
     "dist/tdb-runtime.js": {
       "sources": [
