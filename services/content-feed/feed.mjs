@@ -183,7 +183,7 @@ const FEEDS = {
   },
   '/tdb-content/v1/reviews.json': {
     name: 'reviews',
-    key: 'reviews:published:contexts:v1',
+    key: 'reviews:published:tally:v1',
     collections: REVIEW_COLLECTIONS,
     project: projectReviews,
     valid: (snapshot) =>

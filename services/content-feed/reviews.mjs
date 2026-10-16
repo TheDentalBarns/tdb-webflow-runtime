@@ -187,17 +187,16 @@ export function projectReviews(items, responses, summaries, ...contextInputs) {
     record.showResponse = Boolean(record.response);
   }
   const summary = summaries.find((item) => item.id === SUMMARY_ITEM && live(item))?.fieldData;
-  const average = Number(summary?.ratingvalue),
-    total = Number(summary?.reviewcount);
+  const average = Number(summary?.ratingvalue);
+  // Count the same published, approved records the drawer can actually show.
+  // Cross-posts are separate platform reviews and remain part of this tally.
+  const total = records.length;
   if (
     !summary ||
     !text(summary.ratingvalue, 20) ||
-    !text(summary.reviewcount, 20) ||
     !Number.isFinite(average) ||
     average < 0 ||
-    average > 5 ||
-    !Number.isSafeInteger(total) ||
-    total < 0
+    average > 5
   )
     invalid();
   // Existing native quote list: non-empty excerpt, ascending snippet rank,

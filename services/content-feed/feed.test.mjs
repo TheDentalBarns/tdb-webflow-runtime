@@ -406,7 +406,7 @@ test('review projection preserves content, aliases, responses and editorial orde
   assert.equal(result.records[0].displayDate, 'October 2026');
   assert.deepEqual(result.featured, ['r2']);
   assert.equal(result.average, 4.94);
-  assert.equal(result.total, 85);
+  assert.equal(result.total, 2, 'count published records rather than the stale summary field');
   assert(!JSON.stringify(result).includes('PRIVATE'));
   assert(!JSON.stringify(result).includes('rating-basis'));
   assert.equal(
@@ -422,6 +422,22 @@ test('review projection preserves content, aliases, responses and editorial orde
     ),
   );
   assert.throws(() => projectReviews([reviewItem()], [], []));
+});
+test('review tally follows publication and exclusion, retaining cross-posts without a count field', () => {
+  const summary = reviewSummary();
+  delete summary.fieldData.reviewcount;
+  const original = reviewItem('original', { 'duplicate-group': 'same-experience' });
+  const crosspost = reviewItem('crosspost', { 'duplicate-group': 'same-experience' });
+  const added = reviewItem('new-review');
+  const excluded = reviewItem('excluded', { 'exclude-from-display': true });
+  const unapproved = reviewItem('unapproved', { 'approved-for-display': false });
+  const archived = reviewItem('archived', {}, { isArchived: true });
+  const draft = reviewItem('draft', {}, { lastPublished: null });
+  const tally = (items) => projectReviews(items, [], [summary]).total;
+  assert.equal(tally([original, crosspost, excluded, unapproved, archived, draft]), 2);
+  assert.equal(tally([original, crosspost, added]), 3);
+  assert.equal(tally([original, crosspost, { ...added, isArchived: true }]), 2);
+  assert.equal(tally([]), 0);
 });
 test('reviews refresh every live collection atomically and retain an isolated last-good snapshot', async () => {
   let time = Date.now(),
@@ -456,7 +472,7 @@ test('reviews refresh every live collection atomically and retain an isolated la
   assert.equal(first.records.length, 1);
   assert.equal(calls.length, REVIEW_COLLECTIONS.length);
   assert.equal(saved.size, 1);
-  assert(saved.has('reviews:published:contexts:v1'));
+  assert(saved.has('reviews:published:tally:v1'));
   time += 300001;
   failResponses = true;
   const stale = await handle(request('/tdb-content/v1/reviews.json'), env);
