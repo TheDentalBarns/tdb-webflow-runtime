@@ -1,9 +1,11 @@
 // Project only fields already used by the public review UI. Inputs must come
 // from Webflow's live endpoints, never the staged collection listing.
+import { CONTEXT_COLLECTIONS, addReviewContexts } from './review-contexts.mjs';
 export const REVIEW_COLLECTIONS = [
   '6ab6638e2159a2087d5413c9',
   '6ac111967d68e43d43768534',
   '69948cc9ceae27ae3114cb28',
+  ...CONTEXT_COLLECTIONS,
 ];
 export const REVIEW_BATCH_PATH = '/tdb-content/v2/reviews.json';
 export const reviewRevisionKey = (revision) => `reviews:batch:v2:${revision}`;
@@ -18,6 +20,7 @@ export function reviewIndex(snapshot) {
     average: snapshot.average,
     total: snapshot.total,
     featured: snapshot.featured,
+    ...(snapshot.contexts ? { contexts: snapshot.contexts } : {}),
     index: snapshot.records.map((record) => {
       const { id, name, platform, date, rating, rank, snippetRank, nRank, iRank, lRank, topics } =
         record;
@@ -33,6 +36,9 @@ export function reviewIndex(snapshot) {
         iRank,
         lRank,
         topics,
+        ...(record.snippetRanks
+          ? { snippetRanks: record.snippetRanks, duplicate: record.duplicate }
+          : {}),
         excerptTopics: Object.keys(record.excerpts).filter((topic) => record.excerpts[topic]),
       };
     }),
@@ -111,7 +117,7 @@ const nativeOrder = (field) => (a, b) => {
   return (av == null ? (bv == null ? 0 : -1) : bv == null ? 1 : av - bv) || chronological(a, b);
 };
 
-export function projectReviews(items, responses, summaries) {
+export function projectReviews(items, responses, summaries, ...contextInputs) {
   if (![items, responses, summaries].every(Array.isArray)) invalid();
   const selected = items
     .filter(
@@ -201,5 +207,8 @@ export function projectReviews(items, responses, summaries) {
     .sort(nativeOrder('snippet-rank'))
     .slice(1, 4)
     .map((item) => item.fieldData.slug);
-  return { records, average, total, featured };
+  const contexts = contextInputs.length
+    ? addReviewContexts(records, items, ...contextInputs)
+    : null;
+  return { records, average, total, featured, ...(contexts ? { contexts } : {}) };
 }

@@ -37,14 +37,41 @@ const payload = () => ({
   total: 45,
   featured: ['review-1', 'review-25'],
 });
-async function setup(page = '/') {
+test('CMS context shares power, trio and unlimited ranked index while downloading only 20 bodies at a time', async () => {
+  const { w, calls } = await setup('/services/nervous-patient-care', s => {
+    s.records = Array.from({length:80},(_,i)=>({...record(i+1),
+      rating:i===79 ? 4 : i===78 ? 1 : 5,
+      snippetRanks:i>=20 && i<70 ? {nervous:70-i} : {},
+      excerpts:i>=20 && i<70 ? {nervous:'Exact excerpt '+(i+1)} : {},
+    }));
+    s.total=80;
+    s.contexts=[{id:'nervous',paths:['/services/nervous-patient-care'],topics:['nervous']}];
+  });
+  try {
+    const data=await w.TDBReviewCMS.load();
+    assert.equal(data.records.length,20);
+    assert.equal(data.power,'review-70');
+    assert.deepEqual(Array.from(data.featured),['review-69','review-68','review-67']);
+    assert.equal(data.records[0].displayExcerpt,'Exact excerpt 70');
+    assert.deepEqual(Array.from(data.filterIndex.slice(0,50),r=>r.id),Array.from({length:50},(_,i)=>'review-'+(70-i)));
+    await data.fetchRecords(['review-21','review-5']);
+    assert.equal(data.getCached('review-21').displayExcerpt,'Exact excerpt 21');
+    await data.loadAll();
+    assert.deepEqual(Array.from(data.records,r=>r.id),Array.from(data.filterIndex,r=>r.id));
+    assert.deepEqual(Array.from(data.records.slice(-2),r=>r.rating),[1,4]);
+    for (const url of calls.slice(1)) assert(new URL(url).searchParams.get('ids').split(',').length<=20);
+  } finally {w.close();}
+});
+async function setup(page = '/', editSnapshot) {
   const { createFeedService } = await import('../services/content-feed/feed.mjs');
   const dom = new JSDOM('<div data-tdb-reviews-feed="/tdb-content/v2/reviews.json"></div>', {
     url: 'https://dentalbarns.webflow.io' + page,
     runScripts: 'outside-only',
   });
-  const snapshot = payload(),
-    saved = new Map([['reviews:published:v1', snapshot]]);
+  const snapshot = payload();
+  editSnapshot?.(snapshot);
+  const
+    saved = new Map([['reviews:published:contexts:v1', snapshot]]);
   const env = {
     CONTENT_FEEDS: {
       get: async (key) => saved.get(key),
@@ -59,7 +86,7 @@ async function setup(page = '/') {
     return handle(new Request(url), env);
   };
   dom.window.fetch = network;
-  for (const file of ['json.js', 'cms.js'])
+  for (const file of ['selection.js', 'json.js', 'cms.js'])
     dom.window.eval(fs.readFileSync(path.join(__dirname, '../src/reviews/native', file), 'utf8'));
   return { w: dom.window, calls, network, snapshot };
 }
@@ -218,7 +245,7 @@ test('each request gets its own deadline; timeout is retryable rather than calle
 test('invalid index, stale or mismatched batches, unsafe records and cross-origin sources fail without HTML fallback', async () => {
   for (const mutate of [
     (p) => p.index.push(p.index[0]),
-    (p) => (p.index[0].topics = ['private-notes']),
+    (p) => (p.index[0].topics = ['invalid<script>']),
     (p) => (p.checkedAt = Date.now() - 3600001),
     (p) => (p.featured = ['unknown']),
   ]) {

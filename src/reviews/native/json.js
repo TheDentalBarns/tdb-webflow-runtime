@@ -4,25 +4,57 @@
   if (window.TDBReviewJSON) return;
   const route = '/tdb-content/v2/reviews.json';
   const platformNames = ['Google', 'Facebook', 'Yell', 'Doctify', 'Direct testimonial', 'Other'];
-  const topicNames = [
-    'nervous',
-    'invisalign',
-    'clear-aligners',
-    'bonding',
-    'veneers',
-    'whitening',
-    'hygiene',
-    'natural',
-    'comfort',
-    'assessment',
-    'team',
-    'environment',
-    'location',
-    'technology',
-  ];
   const invalid = () => {
     throw Error('Invalid published review feed');
   };
+  const topic = (value) => typeof value === 'string' && /^[a-z0-9-]{1,100}$/.test(value);
+  function ranks(value) {
+    if (value === undefined) return undefined;
+    if (
+      !value ||
+      typeof value !== 'object' ||
+      Array.isArray(value) ||
+      Object.keys(value).length > 100
+    )
+      invalid();
+    const result = {};
+    for (const [key, number] of Object.entries(value)) {
+      if (!topic(key) || !Number.isFinite(number) || number <= 0) invalid();
+      result[key] = number;
+    }
+    return result;
+  }
+  function contexts(value) {
+    if (value === undefined) return undefined;
+    if (!Array.isArray(value) || value.length > 1000) invalid();
+    const paths = new Set(),
+      ids = new Set();
+    return value.map((item) => {
+      if (
+        !topic(item.id) ||
+        ids.has(item.id) ||
+        !Array.isArray(item.paths) ||
+        item.paths.length > 1000 ||
+        !Array.isArray(item.topics) ||
+        !item.topics.length ||
+        item.topics.length > 100 ||
+        item.topics.some((t) => !topic(t))
+      )
+        invalid();
+      ids.add(item.id);
+      for (const p of item.paths) {
+        if (
+          typeof p !== 'string' ||
+          p.length > 2048 ||
+          !/^\/[a-zA-Z0-9_/-]*$/.test(p) ||
+          paths.has(p)
+        )
+          invalid();
+        paths.add(p);
+      }
+      return { id: item.id, paths: [...item.paths], topics: [...item.topics] };
+    });
+  }
   const cancelled = () => new DOMException('Cancelled', 'AbortError');
   const check = (signal) => {
     if (signal?.aborted) throw cancelled();
@@ -100,8 +132,8 @@
       record.rating = source.rating;
       if (
         !Array.isArray(source.topics) ||
-        source.topics.length > topicNames.length ||
-        source.topics.some((topic) => !topicNames.includes(topic)) ||
+        source.topics.length > 100 ||
+        source.topics.some((value) => !topic(value)) ||
         !source.excerpts ||
         typeof source.excerpts !== 'object' ||
         Array.isArray(source.excerpts)
@@ -110,9 +142,10 @@
       record.topics = [...new Set(source.topics)];
       record.excerpts = {};
       for (const [topic, value] of Object.entries(source.excerpts)) {
-        if (!topicNames.includes(topic)) invalid();
+        if (!/^[a-z0-9-]{1,100}$/.test(topic)) invalid();
         record.excerpts[topic] = text(value, 5000);
       }
+      record.snippetRanks = ranks(source.snippetRanks);
       return record;
     });
     if (payload.featured.some((id) => !seen.has(id))) invalid();
@@ -153,12 +186,14 @@
       for (const key of ['topics', 'excerptTopics']) {
         if (
           !Array.isArray(source[key]) ||
-          source[key].length > topicNames.length ||
-          source[key].some((topic) => !topicNames.includes(topic))
+          source[key].length > 100 ||
+          source[key].some((value) => !topic(value))
         )
           invalid();
         row[key] = [...new Set(source[key])];
       }
+      row.snippetRanks = ranks(source.snippetRanks);
+      row.duplicate = source.duplicate === undefined ? '' : text(source.duplicate, 256);
       return row;
     });
     if (
@@ -173,6 +208,7 @@
       average: payload.average,
       total: payload.total,
       checkedAt: payload.checkedAt,
+      contexts: contexts(payload.contexts),
     };
   }
   const requests = new Map(),
@@ -263,9 +299,11 @@
     );
   }
   function session(snapshot, url, { resolveIdentity, order }) {
-    const index = order ? order(snapshot.index) : snapshot.index.slice();
+    const index = order ? order(snapshot.index, snapshot) : snapshot.index.slice();
+    const editorial = index.some((row) => row.displayTopic);
     if (
-      index.length !== snapshot.index.length ||
+      index.length > snapshot.index.length ||
+      (!editorial && index.length !== snapshot.index.length) ||
       new Set(index.map((row) => row.id)).size !== index.length ||
       index.some((row) => !snapshot.index.some((original) => original.id === row.id))
     )
@@ -277,7 +315,9 @@
     let cursor = 0;
     const data = {
       records,
-      featured: snapshot.featured,
+      featured: editorial ? index.slice(1, 4).map((row) => row.id) : snapshot.featured,
+      power: editorial ? index[0]?.id || '' : '',
+      displayTotal: index.length,
       average: snapshot.average,
       total: snapshot.total,
       get filterIndex() {
@@ -321,7 +361,15 @@
             featured: [],
           }).records;
           check(signal);
-          clean.forEach((record) => byId.set(record.id, record));
+          clean.forEach((record) =>
+            byId.set(
+              record.id,
+              window.TDBReviewSelection?.decorate(
+                record,
+                index.find((row) => row.id === record.id),
+              ) || record,
+            ),
+          );
         }
         check(signal);
         return ids.map((id) => byId.get(id));

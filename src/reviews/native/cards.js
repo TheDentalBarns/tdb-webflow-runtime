@@ -89,11 +89,11 @@
       slide.dataset.reviewPlatform = record.platform;
       slide.setAttribute('role', 'group');
       slide.setAttribute('aria-roledescription', 'slide');
-      slide.setAttribute('aria-label', `${index + 1} of ${data.total}`);
+      slide.setAttribute('aria-label', `${index + 1} of ${data.displayTotal ?? data.total}`);
       const field = (k) => slide.querySelector(`[data-cards-render="${k}"]`);
       const name = field('name'),
         excerpt = field('excerpt'),
-        quote = record.excerpts[context] || record.excerpt;
+        quote = record.displayExcerpt ?? (record.excerpts[context] || record.excerpt);
       if (name.textContent !== record.name) name.textContent = record.name;
       if (excerpt.textContent !== quote) excerpt.textContent = quote;
       excerpt.style.opacity = '0';
@@ -353,9 +353,15 @@
       const a = swiper.slides[0].getBoundingClientRect(),
         v = viewport.getBoundingClientRect();
       const origin = v.left + padding;
-      const index = Math.max(0, Math.min(data.total - 1, (origin - a.left) / Math.max(1, step)));
-      const segment = width / Math.max(1, data.total);
-      const travel = data.total > 1 ? (index * (width - segment)) / (data.total - 1) : 0,
+      const index = Math.max(
+        0,
+        Math.min((data.displayTotal ?? data.total) - 1, (origin - a.left) / Math.max(1, step)),
+      );
+      const segment = width / Math.max(1, data.displayTotal ?? data.total);
+      const travel =
+          (data.displayTotal ?? data.total) > 1
+            ? (index * (width - segment)) / ((data.displayTotal ?? data.total) - 1)
+            : 0,
         pose = segment + ':' + travel;
       if (segment !== lastSegment) {
         marker.style.width = segment + 'px';
@@ -425,7 +431,10 @@
     phase = 'waiting-entry';
     setupEntry();
     fitBodies();
-    $('[data-tdb-cards-total]').textContent = String(data.total).padStart(2, '0');
+    $('[data-tdb-cards-total]').textContent = String(data.displayTotal ?? data.total).padStart(
+      2,
+      '0',
+    );
     status.textContent = '';
     navigation.classList.remove('is-inactive');
     measureProgress();

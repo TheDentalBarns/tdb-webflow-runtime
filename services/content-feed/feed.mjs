@@ -183,7 +183,7 @@ const FEEDS = {
   },
   '/tdb-content/v1/reviews.json': {
     name: 'reviews',
-    key: 'reviews:published:v1',
+    key: 'reviews:published:contexts:v1',
     collections: REVIEW_COLLECTIONS,
     project: projectReviews,
     valid: (snapshot) =>
@@ -231,7 +231,8 @@ async function readPublished(fetcher, token, feed) {
     const items = [],
       ids = new Set();
     let total;
-    for (let offset = 0; offset < 1000; offset += 100) {
+    const limit = feed.collection === '6ac150e4098f2e48768331b9' ? 20000 : 1000;
+    for (let offset = 0; offset < limit; offset += 100) {
       const response = await fetcher(
         `https://api.webflow.com/v2/collections/${feed.collection}/items/live?limit=100&offset=${offset}`,
         {
@@ -250,7 +251,7 @@ async function readPublished(fetcher, token, feed) {
         !Array.isArray(page.items) ||
         !Number.isSafeInteger(page.pagination?.total) ||
         page.pagination.total < 0 ||
-        page.pagination.total > 1000 ||
+        page.pagination.total > limit ||
         page.pagination.offset !== offset ||
         page.items.length > 100
       )

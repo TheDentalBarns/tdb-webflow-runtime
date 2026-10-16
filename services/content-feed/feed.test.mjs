@@ -423,7 +423,7 @@ test('review projection preserves content, aliases, responses and editorial orde
   );
   assert.throws(() => projectReviews([reviewItem()], [], []));
 });
-test('reviews refresh all three live collections atomically and retain an isolated last-good snapshot', async () => {
+test('reviews refresh every live collection atomically and retain an isolated last-good snapshot', async () => {
   let time = Date.now(),
     failResponses = false;
   const calls = [],
@@ -454,9 +454,9 @@ test('reviews refresh all three live collections atomically and retain an isolat
   assert.equal(initial.status, 200);
   const first = await initial.json();
   assert.equal(first.records.length, 1);
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, REVIEW_COLLECTIONS.length);
   assert.equal(saved.size, 1);
-  assert(saved.has('reviews:published:v1'));
+  assert(saved.has('reviews:published:contexts:v1'));
   time += 300001;
   failResponses = true;
   const stale = await handle(request('/tdb-content/v1/reviews.json'), env);
@@ -502,7 +502,7 @@ test('review ID batches retain their index revision across refreshes and isolate
   assert.equal(first.index.length, 2);
   assert.equal(first.records, undefined);
   assert(!JSON.stringify(first).includes('Original body'));
-  assert.equal(calls, 3);
+  assert.equal(calls, REVIEW_COLLECTIONS.length);
   const path = base + '?ids=r2,r1&revision=' + first.checkedAt;
   const batch = await (await handle(request(path), env)).json();
   assert.deepEqual(

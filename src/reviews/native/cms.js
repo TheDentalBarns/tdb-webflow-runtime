@@ -400,11 +400,23 @@
       ?.getAttribute('data-tdb-reviews-feed');
     if (feed) {
       const context = contextForPath(location.pathname);
+      const override =
+        document
+          .querySelector('[data-tdb-review-context]')
+          ?.getAttribute('data-tdb-review-context') || '';
       return window.TDBReviewJSON.load(feed, {
         signal,
         resolveIdentity,
-        context,
-        order: (index) => orderForContext(index, context),
+        context: location.pathname + ':' + override,
+        order: (index, snapshot) =>
+          (snapshot.contexts &&
+            window.TDBReviewSelection?.select(
+              index,
+              snapshot.contexts,
+              location.pathname,
+              override,
+            )) ||
+          orderForContext(index, context),
       });
     }
     if (cached && Date.now() - cachedAt < 60000) return cached;

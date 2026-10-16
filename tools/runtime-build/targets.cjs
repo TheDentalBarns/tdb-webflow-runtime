@@ -41,6 +41,7 @@ module.exports = {
   'dist/tdb-filters.js': ['src/shared/filters.js'],
   'dist/tdb-slider-focus.js': ['src/shared/slider-focus.js'],
   'dist/tdb-review-cms.js': [
+    'src/reviews/native/selection.js',
     'src/reviews/native/json.js',
     'src/reviews/native/cms.js',
     'src/reviews/native/quote-adapter.js',

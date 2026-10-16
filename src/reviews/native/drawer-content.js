@@ -529,7 +529,12 @@
     }
     $('[data-tdb-reviews-average]').textContent = data.average.toFixed(2);
     $('[data-tdb-reviews-total]').textContent = data.total + ' reviews';
-    const length = () => (indexMode ? matched.length : data.hasMore ? data.total : records.length);
+    const length = () =>
+      indexMode
+        ? matched.length
+        : data.hasMore
+          ? (data.displayTotal ?? data.total)
+          : records.length;
     updateTotal(length(), phase !== 'closed');
     function slide(record, index) {
       if (slideCache.has(record.id)) return slideCache.get(record.id);
@@ -540,7 +545,8 @@
       const field = (k) => node.querySelector(`[data-review-render="${k}"]`);
       field('name').textContent = record.name;
       field('text').textContent = record.text;
-      field('excerpt').textContent = record.excerpts[context] || record.excerpt || '';
+      field('excerpt').textContent =
+        record.displayExcerpt ?? (record.excerpts[context] || record.excerpt || '');
       field('excerpt').style.opacity = '0';
       field('date').textContent = record.displayDate;
       field('historic').hidden = !record.historic;
