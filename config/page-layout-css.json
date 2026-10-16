@@ -1,0 +1,252 @@
+{
+  "version": 1,
+  "note": "Responsive styles are external only on owning non-Home pages. Home Smile cards load tdb-smile-feed.css through their existing proximity loader. Keep native base, variant and cascade-sensitive spacing styles in Designer. Add a matching page-head link when reusing these static layout families on a new page.",
+  "bundles": [
+    {
+      "families": [
+        "layout423_"
+      ],
+      "pages": [
+        {
+          "id": "6ad0c54657f7dc084e96eccd",
+          "title": "IG feed rollback - 15 Oct 2026",
+          "path": "/ig-feed-rollback-20261015",
+          "draft": true,
+          "collectionId": null
+        }
+      ],
+      "file": "dist/tdb-layouts-smile-cards.css"
+    },
+    {
+      "families": [
+        "sg-native-"
+      ],
+      "pages": [
+        {
+          "id": "6aa3efd54f3f705caf98c687",
+          "title": "Smile Gallery",
+          "path": "/smile-gallery",
+          "draft": false,
+          "collectionId": null
+        }
+      ],
+      "file": "dist/tdb-layouts-gallery.css"
+    },
+    {
+      "families": [
+        "contact16_",
+        "layout423_"
+      ],
+      "pages": [
+        {
+          "id": "69f1d919d9c604f4e11e9ac2",
+          "title": "VIPs Template",
+          "path": "/vip",
+          "draft": false,
+          "collectionId": "69f1d919d9c604f4e11e9abc"
+        },
+        {
+          "id": "694aba9dc39723ae9d2663e4",
+          "title": "VIP | West End Dentistry",
+          "path": "/vip-west-end",
+          "draft": false,
+          "collectionId": null
+        },
+        {
+          "id": "694aa587cf17e04109fc3fe1",
+          "title": "VIP | The Dental Barns Sanctuary",
+          "path": "/vip-sanctuary",
+          "draft": false,
+          "collectionId": null
+        },
+        {
+          "id": "694a7ebb2eb94d65273186e4",
+          "title": "VIP | Smile Makeovers. Naturally",
+          "path": "/vip-smiles",
+          "draft": false,
+          "collectionId": null
+        },
+        {
+          "id": "694a740e9e013223583d1b13",
+          "title": "VIP | Award Winning Dental Practice",
+          "path": "/vip-awards",
+          "draft": false,
+          "collectionId": null
+        },
+        {
+          "id": "6925981fbc1302600ed5dc06",
+          "title": "VIP | Christmas at The Dental Barns",
+          "path": "/vip-christmas",
+          "draft": false,
+          "collectionId": null
+        },
+        {
+          "id": "68fa076a6822ea824ea2d991",
+          "title": "The Dental Barns VIP",
+          "path": "/vip",
+          "draft": false,
+          "collectionId": null
+        },
+        {
+          "id": "677cfb8a0f25478449823c5f",
+          "title": "Location",
+          "path": "/location",
+          "draft": false,
+          "collectionId": null
+        }
+      ],
+      "file": "dist/tdb-layouts-contact-smile-cards.css"
+    },
+    {
+      "families": [
+        "contact16_",
+        "header137_",
+        "layout423_",
+        "layout506_"
+      ],
+      "pages": [
+        {
+          "id": "699058c919f4a1adcc157cb3",
+          "title": "Area Treatment Pages Template",
+          "path": "/areas",
+          "draft": false,
+          "collectionId": "699058c919f4a1adcc157cad"
+        }
+      ],
+      "file": "dist/tdb-layouts-contact-feature-header-smile-cards-treatment.css"
+    },
+    {
+      "families": [
+        "pricing21_"
+      ],
+      "pages": [
+        {
+          "id": "698b4f9f1af11edfefd60e1b",
+          "title": "Careers",
+          "path": "/careers",
+          "draft": false,
+          "collectionId": null
+        }
+      ],
+      "file": "dist/tdb-layouts-pricing.css"
+    },
+    {
+      "families": [
+        "header138_",
+        "layout423_"
+      ],
+      "pages": [
+        {
+          "id": "678960b4f377f07e06aa5447",
+          "title": "First visit",
+          "path": "/first-visit",
+          "draft": false,
+          "collectionId": null
+        },
+        {
+          "id": "6785071ede094cc233e0c72b",
+          "title": "Services Template",
+          "path": "/services",
+          "draft": false,
+          "collectionId": "6785071ede094cc233e0c717"
+        }
+      ],
+      "file": "dist/tdb-layouts-visit-header-smile-cards.css"
+    },
+    {
+      "families": [
+        "header137_",
+        "layout423_",
+        "layout506_",
+        "pricing21_"
+      ],
+      "pages": [
+        {
+          "id": "678507292f3f5412bfe2b4fa",
+          "title": "Treatments Template",
+          "path": "/treatments",
+          "draft": false,
+          "collectionId": "678507282f3f5412bfe2b4e6"
+        }
+      ],
+      "file": "dist/tdb-layouts-feature-header-smile-cards-treatment-pricing.css"
+    },
+    {
+      "families": [
+        "layout423_",
+        "team18_"
+      ],
+      "pages": [
+        {
+          "id": "677cfbe37aba5fbbc2154c24",
+          "title": "About us",
+          "path": "/about-us",
+          "draft": false,
+          "collectionId": null
+        }
+      ],
+      "file": "dist/tdb-layouts-smile-cards-team.css"
+    },
+    {
+      "families": [
+        "contact16_"
+      ],
+      "pages": [
+        {
+          "id": "677cfbd543a0695d07285efd",
+          "title": "Contact",
+          "path": "/contact",
+          "draft": false,
+          "collectionId": null
+        }
+      ],
+      "file": "dist/tdb-layouts-contact.css"
+    },
+    {
+      "families": [
+        "blog22_"
+      ],
+      "pages": [
+        {
+          "id": "677cfbc91f30d29b1fc5f640",
+          "title": "Blog",
+          "path": "/blog",
+          "draft": false,
+          "collectionId": null
+        }
+      ],
+      "file": "dist/tdb-layouts-blog.css"
+    },
+    {
+      "families": [
+        "header137_",
+        "pricing21_"
+      ],
+      "pages": [
+        {
+          "id": "677cfbbb752fa1bb44264481",
+          "title": "Pricing",
+          "path": "/dental-cost-lichfield",
+          "draft": false,
+          "collectionId": null
+        }
+      ],
+      "file": "dist/tdb-layouts-feature-header-pricing.css"
+    },
+    {
+      "families": [
+        "rl-styleguide_"
+      ],
+      "pages": [
+        {
+          "id": "677cf86df9952f978d94d8d5",
+          "title": "Style Guide",
+          "path": "/style-guide",
+          "draft": true,
+          "collectionId": null
+        }
+      ],
+      "file": "dist/tdb-layouts-styleguide.css"
+    }
+  ]
+}
