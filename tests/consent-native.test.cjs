@@ -48,15 +48,18 @@ function setup(cookie, fontGate, extraMarkup = '') {
  return {dom,w,events,bindings,fontCalls,api:w.CookieScript.instance,root:w.document.getElementById('tdb-consent-root')};
 }
 (async()=>{
- let x=setup();await sleep(45);
+ let x=setup();
+ assert.equal(x.root.hasAttribute('data-tdb-consent-instant'),true,'first visit suppresses opening transitions');
+ assert.equal(x.w.document.activeElement.id,'tdb-consent-dialog','initial dialog takes focus immediately');
  assert.equal(x.root.getAttribute('aria-hidden'),'false');assert.equal(x.w.TDBScrollLock.active,true);
  assert.equal(x.api.isOpen(),true,'open state is available to nested dialogs');
  assert.equal(x.root.inert,false);
- assert.equal(x.root.querySelector('.tdb-consent-scroll').classList.contains('is-consent-content-open'),true,'content reveals with the cream surface, before the delayed text fade');
- assert.equal(x.root.querySelector('.tdb-consent-motion').classList.contains('is-consent-text-open'),false);await sleep(80);assert.equal(x.root.querySelector('.tdb-consent-motion').classList.contains('is-consent-text-open'),true);
+ assert.equal(x.root.querySelector('.tdb-consent-scroll').classList.contains('is-consent-content-open'),true,'initial content is visible without frames or timers');
+ assert.equal(x.root.querySelector('.tdb-consent-motion').classList.contains('is-consent-text-open'),true,'initial text has no entrance delay');
  assert.equal(x.w.document.querySelectorAll('#tdb-consent-root').length,1);
  assert.deepEqual(Array.from(x.api.currentState().categories),['strict']);
  x.events.length=0;x.w.document.getElementById('cookiescript_accept').click();
+ assert.equal(x.root.hasAttribute('data-tdb-consent-instant'),false,'existing close transitions are restored');
  assert.equal(x.api.currentState().action,'accept');assert.deepEqual(x.events,[]);assert.equal(x.w.TDBScrollLock.active,true);
  assert.equal(x.api.isOpen(),true,'closing banner retains dialog ownership');
  assert.equal(x.root.querySelector('.tdb-consent-scroll').classList.contains('is-consent-content-open'),false,'content remains clipped to the departing surface');
@@ -73,6 +76,9 @@ function setup(cookie, fontGate, extraMarkup = '') {
  assert.deepEqual(x.events,['CookieScriptLoaded','CookieScriptCurrentState'],'saved choice still announces its state');
  assert.equal(x.root.inert,true);
  const link=x.w.document.getElementById('settings');link.focus();const unlockNav=x.w.TDBScrollLock.acquire();x.api.show();await sleep(45);
+ assert.equal(x.root.hasAttribute('data-tdb-consent-instant'),false,'settings reopening keeps the existing motion');
+ assert.equal(x.root.querySelector('.tdb-consent-motion').classList.contains('is-consent-text-open'),false);
+ await sleep(80);assert.equal(x.root.querySelector('.tdb-consent-motion').classList.contains('is-consent-text-open'),true);
  assert.equal(x.bindings.filter(([id,type])=>id==='cookiescript_accept'&&type==='click').length,1);
  const reject=x.w.document.getElementById('cookiescript_reject');reject.focus();const tab=new x.w.KeyboardEvent('keydown',{key:'Tab',bubbles:true,cancelable:true});reject.dispatchEvent(tab);assert.equal(x.w.document.activeElement.id,'cookiescript_accept');
  x.events.length=0;reject.click();await sleep(490);assert.equal(x.api.currentState().action,'reject');assert.equal(x.w.TDBScrollLock.active,true);unlockNav();assert.equal(x.w.TDBScrollLock.active,false);assert.equal(x.w.document.activeElement,link);

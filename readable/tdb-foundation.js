@@ -95,11 +95,11 @@
   });
 })();
 
-/* Native TDB consent v4.0.8. Browser helper CSS is delivered by early tdb-ui.css. */
+/* Native TDB consent v4.0.9. Browser helper CSS is delivered by early tdb-ui.css. */
 (() => {
   'use strict';
   if (window.CookieScript?.instance?.__tdbNative) return;
-  const VERSION = '4.0.8',
+  const VERSION = '4.0.9',
     COOKIE_NAME = 'CookieScriptConsent',
     COOKIE_DAYS = 30,
     ALL_CATEGORIES = ['performance', 'strict', 'targeting', 'functionality'],
@@ -357,7 +357,7 @@
     }
     return refs;
   }
-  function show() {
+  function show(immediate = false) {
     const found = mount();
     if (!found) return;
     const {
@@ -383,6 +383,7 @@
     if (!open) lastFocus = document.activeElement;
     open = true;
     closing = false;
+    root.toggleAttribute('data-tdb-consent-instant', immediate === true);
     root.setAttribute('aria-hidden', 'false');
     root.classList.add('is-consent-active');
     root.inert = false;
@@ -391,6 +392,15 @@
     scroll.classList.remove('is-consent-content-open');
     backdrop.classList.remove('is-consent-open');
     interactionLocked = true;
+    if (immediate === true) {
+      // The first visit has no entrance delay or moving surface/text.
+      surface.classList.add('is-consent-surface-open');
+      scroll.classList.add('is-consent-content-open');
+      backdrop.classList.add('is-consent-open');
+      motion.classList.add('is-consent-text-open');
+      dialog.focus({ preventScroll: true });
+      return;
+    }
     openFrame1 = requestAnimationFrame(() => {
       openFrame1 = 0;
       if (!open || closing) return;
@@ -417,6 +427,7 @@
     const { root } = refs;
     resetTextState();
     root.classList.remove('is-consent-active');
+    root.removeAttribute('data-tdb-consent-instant');
     refs.surface.classList.remove('is-consent-surface-open');
     refs.scroll.classList.remove('is-consent-content-open');
     refs.backdrop.classList.remove('is-consent-open');
@@ -456,6 +467,8 @@
       return;
     }
     closing = true;
+    // Restore the existing close transition before changing its visual state.
+    root.removeAttribute('data-tdb-consent-instant');
     animateTextOut();
     refs.dialog.style.pointerEvents = 'none';
     surface.classList.remove('is-consent-surface-open');
@@ -525,7 +538,7 @@
   window.CookieScript.autoDisableStop = () => {};
   function boot() {
     const state = readDecision();
-    if (!state.action) show();
+    if (!state.action) show(true);
     else if (!open) {
       // Saved choices need state/events now; bind controls only on show().
       const root = document.getElementById(ROOT_ID);
