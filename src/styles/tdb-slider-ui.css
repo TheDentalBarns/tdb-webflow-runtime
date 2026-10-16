@@ -1,7 +1,7 @@
 /* TDB slider UI v1.4.0
  * Carousel transitions, live-region hiding and shared arrow states.
  * Feature loaders request this sheet before carousel activation.
- * First-frame hidden-state guards remain in tdb-runtime-ui.css.
+ * The entrance guard is available before the carousel runtime starts.
  */
 
 .w-slider-dot {
@@ -13,7 +13,16 @@
 }
 
 [data-fade-slide] {
+  opacity: 0;
+  pointer-events: none;
   transition: opacity 200ms ease-out;
+}
+
+@media (min-width: 768px), (max-width: 767px) and (orientation: portrait) {
+  .tdb-entry-pending [data-fade-slide] {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
 }
 
 [data-fade-slide].is-visible {

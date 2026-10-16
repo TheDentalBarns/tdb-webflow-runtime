@@ -26,7 +26,9 @@ test('all original UI and slider declarations survive the split', () => {
   const earlyViewport = declarations(read('src/styles/tdb-viewport-base.css'));
   const critical = declarations(read('dist/tdb-ui-critical.css'));
   for (const [key,count] of before) {
-    if (earlyViewport.has(key)) { assert.equal(after.has(key), false); assert.equal(critical.get(key), count); continue; }
+    // Scroll behaviour now travels with global UI; the unused legacy lock was removed.
+    if (earlyViewport.has(key)) { assert.equal(after.get(key), count); assert.equal(critical.has(key), false); continue; }
+    if (key.startsWith('.no-scroll|')) { assert.equal(after.has(key), false); assert.equal(critical.has(key), false); continue; }
     // User explicitly removed empty-quote masking; all other original declarations survive.
     if (key.startsWith('.section_standard-testimonial:has(') || key.startsWith('[data-tdb-dd-page],.tdbc-dd-fade|') || key.startsWith('[data-tdb-dd-preset="orange"]|') || key.startsWith('[data-tdb-copy-paragraphs]|') || key.startsWith('.tdb-consent-dialog|-webkit-tap-highlight-color|')) { assert.equal(after.has(key), false); continue; }
     assert.equal(after.get(key), count, key);

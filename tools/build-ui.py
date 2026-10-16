@@ -5,6 +5,7 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 
 GLOBAL_SOURCES = [
+    ROOT / 'src/styles/tdb-viewport-base.css',
     ROOT / 'src/styles/tdb-chrome-motion.css',
     ROOT / 'src/styles/tdb-runtime-ui.css',
     ROOT / 'src/styles/tdb-deferred-ui.css',
@@ -20,7 +21,6 @@ GLOBAL_SOURCES = [
 
 # Inline in the Webflow head; preserve global source order and never include readiness.
 CRITICAL_SOURCES = [
-    ROOT / 'src/styles/tdb-viewport-base.css',
     ROOT / 'src/styles/tdb-runtime-ui.css',
     ROOT / 'src/styles/tdb-control-keyframes.css',
     ROOT / 'src/styles/tdb-content-formatting.css',

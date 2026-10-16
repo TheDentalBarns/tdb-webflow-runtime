@@ -3,24 +3,14 @@
  * Shared coordination, scrolling, feedback, consent and compatibility. Other feature CSS has independent readiness.
  */
 
+html {
+  scroll-behavior: auto !important;
+}
+
 /* Shared 420ms site-bar clock. Feature-specific states load with their owner. */
 html {
   --tdb-peek-duration: 420ms;
   --tdb-peek-ease: cubic-bezier(.4,0,.2,1);
-}
-
-/* Keep the first-frame hidden state ready before the slider stylesheet/runtime. */
-[data-fade-slide] {
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* First-frame slider guard stays global; full slider controls load with the slider runtime. */
-@media (min-width: 768px), (max-width: 767px) and (orientation: portrait) {
-  .tdb-entry-pending [data-fade-slide] {
-    opacity: 0 !important;
-    pointer-events: none !important;
-  }
 }
 
 /* Native .button.submit-button states live in Designer. Keep compatibility
