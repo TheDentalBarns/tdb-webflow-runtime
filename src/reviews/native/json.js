@@ -383,6 +383,8 @@
         url.hash
       )
         invalid();
+      url.protocol = 'https:';
+      url.host = 'tdb-public-availability.david-070.workers.dev';
       url.pathname = route;
       const key = 'session:' + url.href + ':' + context,
         cached = sessions.get(key);

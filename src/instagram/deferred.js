@@ -22,6 +22,8 @@
       url.hash
     )
       throw Error('Instagram feed must use the configured endpoint');
+    url.protocol = 'https:';
+    url.host = 'tdb-public-availability.david-070.workers.dev';
     const controller = new AbortController();
     const abort = () => controller.abort();
     signal.addEventListener('abort', abort, { once: true });

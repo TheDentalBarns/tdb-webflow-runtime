@@ -32,6 +32,8 @@
       url.hash
     )
       throw Error('Smile feed must use its configured endpoint');
+    url.protocol = 'https:';
+    url.host = 'tdb-public-availability.david-070.workers.dev';
     const controller = new AbortController(),
       abort = () => controller.abort();
     signal.addEventListener('abort', abort, { once: true });
@@ -178,6 +180,7 @@
             image = document.createElement('img'),
             text = document.createElement('span');
           row.className = 'treatment-smile tdb-smile-treatment';
+          image.crossOrigin = 'anonymous';
           image.src = diamond;
           image.alt = '';
           image.className = 'tdb-smile-treatment-icon';

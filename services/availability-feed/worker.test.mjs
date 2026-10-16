@@ -25,8 +25,8 @@ test('authenticated requests use fixed live endpoint; cache retains time and ref
   let calls=0,time=1000;const entries=new Map(),pending=[];
   const options={token,now:()=>time,fetcher:async(url,init)=>{calls++;assert.equal(url,'https://api.webflow.com/v2/collections/6aae66a4a90480deba7364b1/items/'+ids.active+'/live');assert.equal(init.headers.Authorization,'Bearer '+token);assert.equal(init.redirect,'manual');return Response.json(item());},cache:{match:async key=>entries.get(key.url)?.clone(),put:async(key,response)=>entries.set(key.url,response)},waitUntil:p=>pending.push(p)};
   const first=await handle(request(),options);assert.equal(first.status,200);assert.equal((await first.json()).checkedAt,1000);await Promise.all(pending);
-  time=2000;const hit=await handle(request(),options);assert.equal((await hit.json()).checkedAt,1000);assert.equal(calls,1);assert.equal(hit.headers.get('Cache-Control'),'no-store');
-  const fresh=await handle(request('/active.json?refresh=1'),options);assert.equal((await fresh.json()).checkedAt,2000);assert.equal(calls,2);
+  time=2000;const hit=await handle(request(),options);assert.equal((await hit.json()).checkedAt,1000);assert.equal(calls,1);assert.equal(hit.headers.get('Cache-Control'),'public, max-age=30, s-maxage=60');
+  const fresh=await handle(request('/active.json?refresh=1'),options);assert.equal((await fresh.json()).checkedAt,2000);assert.equal(calls,2);assert.equal(fresh.headers.get('Cache-Control'),'no-store');
 });
 test('routes, preview identity and HEAD/OPTIONS behaviour',async()=>{
   let calls=0;

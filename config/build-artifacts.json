@@ -34,10 +34,10 @@
       "sources": [
         "src/shared/availability.js"
       ],
-      "sha256": "8fce1e50aa5429fb14442bea1d972073b112ca0a8e725c30c184924afd7df993",
-      "raw": 6481,
-      "gzip": 2672,
-      "brotli": 2384
+      "sha256": "c5d94442a3e79ef4ee64c824548eaa73acde0852a078c03675ef77023f85b106",
+      "raw": 6508,
+      "gzip": 2684,
+      "brotli": 2392
     },
     "dist/tdb-calculator-loader.js": {
       "sources": [
@@ -202,10 +202,10 @@
       "sources": [
         "src/instagram/deferred.js"
       ],
-      "sha256": "0fcce740658d7d1db5a0bc0957d5f94d5c8d792c83801aab71b788041869a5a7",
-      "raw": 11328,
-      "gzip": 3691,
-      "brotli": 3175
+      "sha256": "217f5f48b0ed7c806ed86c85e62719f124f0d84d45134e60bcc3c60f55e5336e",
+      "raw": 11427,
+      "gzip": 3722,
+      "brotli": 3188
     },
     "dist/tdb-instagram-feed.js": {
       "sources": [
@@ -335,10 +335,10 @@
       "sources": [
         "src/logo-marquee/partner-card.js"
       ],
-      "sha256": "5676eef2dfa5988f8a4a9a6429b65eda2072593a739dc8befda244875080d773",
-      "raw": 3713,
-      "gzip": 1341,
-      "brotli": 1084
+      "sha256": "56bd01f9958302482695e4aabdd1c015f5fc64df028dbf87755faf831be70c72",
+      "raw": 5698,
+      "gzip": 2140,
+      "brotli": 1798
     },
     "dist/tdb-quote-carousel.js": {
       "sources": [
@@ -391,10 +391,10 @@
         "src/reviews/native/cms.js",
         "src/reviews/native/quote-adapter.js"
       ],
-      "sha256": "09f52d576221f63a92850fb38cb86e969fd6a4d3df048704ec9c7c6101d74be8",
-      "raw": 21554,
-      "gzip": 7392,
-      "brotli": 6531
+      "sha256": "e316ce28ea5787d8ffad8405cd5148e9fd764130b69158e6ce0561dfe75eea42",
+      "raw": 21629,
+      "gzip": 7409,
+      "brotli": 6549
     },
     "dist/tdb-review-drawer-template.js": {
       "sources": [
@@ -510,10 +510,10 @@
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "af1eca1a73e6f9467091df0052770b4e2fc30868a6de74a5894b5bca00a6f291",
-      "raw": 60024,
-      "gzip": 16182,
-      "brotli": 14343
+      "sha256": "1f9e1099720a15f8a9125c72967952605bf883e5c60aba7cc70f114e8c4cac80",
+      "raw": 59824,
+      "gzip": 16085,
+      "brotli": 14267
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -537,10 +537,10 @@
       "sources": [
         "src/smile-gallery/feed.js"
       ],
-      "sha256": "84db72528d477de6b4082c8dfaf9a4b065f2eedc23e4292e8f2f6ac5aabc5f56",
-      "raw": 11659,
-      "gzip": 3962,
-      "brotli": 3442
+      "sha256": "73def290f95b6104ecee8b50be811660c41ff47e0927e107dac05db4449e7a21",
+      "raw": 11760,
+      "gzip": 3998,
+      "brotli": 3454
     },
     "dist/tdb-smile-gallery.min.js": {
       "sources": [

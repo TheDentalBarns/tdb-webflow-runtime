@@ -7,15 +7,12 @@ function prepareLazyIconMasks() {
     ig: '6ac8c5438b7e68a92fade1e2_tdb-icon-instagram.svg',
     smile: '6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg',
     review: '6ac7b973bb15c9b9f29a8d18_tdb-review-quote.svg',
-    arrow: '6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg',
     star: '6ac7b973280ebf1329ec59f0_tdb-review-star.svg',
     google: '6ac7b972653444187f404ca8_tdb-review-google.svg',
     facebook: '6ac7b973ba7906fe700055be_tdb-review-facebook.svg',
     yell: '6ac7b973ba7906fe700055e8_tdb-review-yell.svg',
     doctify: '6ac7b973dd39bbf3927772e6_tdb-review-doctify.svg',
   };
-  const arrows =
-    '.carousel-arrow-icon,.icon-embed-xxsmall.tdb-direct-arrow,.tdb-arrow-asset,.tdb-mask-icon.is-arrow,.tdb-announcement-arrow';
   const seen = new WeakSet(),
     pending = new Set();
   let disposed = false;
@@ -40,10 +37,7 @@ function prepareLazyIconMasks() {
       } else node.style.backgroundImage = 'url("' + base + file + '")';
       return;
     }
-    const kind =
-      node.dataset.tdbNativeHolderIcon ||
-      node.dataset.tdbLazyMask ||
-      (node.matches(arrows) ? 'arrow' : 'star');
+    const kind = node.dataset.tdbNativeHolderIcon || node.dataset.tdbLazyMask || 'star';
     const file = assets[{ instagram: 'ig', reviews: 'review' }[kind] || kind];
     if (!file) return;
     node.style.maskImage = 'url("' + base + file + '")';
@@ -68,8 +62,7 @@ function prepareLazyIconMasks() {
     if (!allowed()) return;
     document
       .querySelectorAll(
-        '[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset,' +
-          arrows,
+        '[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
       )
       .forEach((node) => {
         if (seen.has(node)) return;

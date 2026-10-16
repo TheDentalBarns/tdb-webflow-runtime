@@ -51,7 +51,7 @@ async function setup(page = '/') {
       put: async (key, value) => saved.set(key, JSON.parse(value)),
     },
   };
-  const handle = createFeedService({ fetcher: () => assert.fail('fresh snapshot must avoid CMS') }),
+  const handle = createFeedService({ hostname: 'tdb-public-availability.david-070.workers.dev', fetcher: () => assert.fail('fresh snapshot must avoid CMS') }),
     calls = [];
   const network = async (url, options) => {
     calls.push(url);

@@ -1,3 +1,4 @@
+import { PARTNER_COLLECTION, projectPartners } from './partners.mjs';
 import {
   projectReviews,
   REVIEW_COLLECTIONS,
@@ -175,6 +176,11 @@ export function projectSmiles(items) {
 }
 
 const FEEDS = {
+  '/tdb-content/v1/partners.json': {
+    name: 'partners', key: 'partners:published:v1', collection: PARTNER_COLLECTION,
+    project: projectPartners,
+    valid: (snapshot) => Array.isArray(snapshot.partners) && snapshot.partners.length <= 1000,
+  },
   '/tdb-content/v1/reviews.json': {
     name: 'reviews',
     key: 'reviews:published:v1',

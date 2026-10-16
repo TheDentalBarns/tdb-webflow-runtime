@@ -197,13 +197,13 @@
     }
     return snapshot(e);
   }
-  async function request(url) {
+  async function request(url, cache = 'no-store') {
     const controller = new AbortController(),
       timeout = setTimeout(() => controller.abort(), 4000);
     try {
       const response = await fetch(url, {
         credentials: 'omit',
-        cache: 'no-store',
+        cache,
         signal: controller.signal,
       });
       if (!response.ok) throw Error('Appointment settings unavailable');
@@ -218,7 +218,7 @@
         const url = new URL(slug + '.json', feedBase);
         if (url.protocol !== 'https:') throw Error('Invalid settings endpoint');
         if (force) url.searchParams.set('refresh', '1');
-        const payload = JSON.parse(await request(url.href));
+        const payload = JSON.parse(await request(url.href, force ? 'no-store' : 'default'));
         const age = Date.now() - payload.checkedAt;
         if (
           payload.version !== 1 ||

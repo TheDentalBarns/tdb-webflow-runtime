@@ -46,13 +46,8 @@ test('late icon observer never replaces the platform chosen by CMS hydration',()
  }finally{f.close()}
 });
 
-test('native and later-mounted arrows use the shared artwork only on approach',()=>{
- const f=fixture();try{
-  for(const className of ['carousel-arrow-icon is-previous','icon-embed-xxsmall tdb-direct-arrow','tdb-arrow-asset','tdb-mask-icon is-arrow','tdb-announcement-arrow']){
-   const node=f.w.document.createElement('span');node.className=className;f.w.document.body.append(node);f.w.TDBLazyIconMasks.refresh();
-   assert(f.ios[0].nodes.has(node));assert(!node.style.maskImage);
-   f.ios[0].fn([{target:node,isIntersecting:false}]);assert(!node.style.maskImage);
-   f.ios[0].fn([{target:node,isIntersecting:true}]);assert.match(node.style.maskImage,/6ac8c5037ecf8cf1ab74a93a_tdb-arrow\.svg/);assert.equal(node.style.webkitMaskImage,node.style.maskImage);
-  }
- }finally{f.close()}
+test('arrows are stylesheet-owned and excluded from the lazy mask observer',()=>{
+ const f=fixture();try{for(const className of ['carousel-arrow-icon','icon-embed-xxsmall tdb-direct-arrow','tdb-arrow-asset','tdb-mask-icon is-arrow','tdb-announcement-arrow']){
+ const node=f.w.document.createElement('span');node.className=className;f.w.document.body.append(node);f.w.TDBLazyIconMasks.refresh();assert(!f.ios[0].nodes.has(node));assert(!node.style.maskImage);
+ }}finally{f.close()}
 });
