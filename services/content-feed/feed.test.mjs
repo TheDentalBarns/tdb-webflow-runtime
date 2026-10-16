@@ -405,7 +405,7 @@ test('review projection preserves content, aliases, responses and editorial orde
   assert.equal(result.records[0].excerpts['clear-aligners'], 'Aligner excerpt');
   assert.equal(result.records[0].displayDate, 'October 2026');
   assert.deepEqual(result.featured, ['r2']);
-  assert.equal(result.average, 4.94);
+  assert.equal(result.average, 5);
   assert.equal(result.total, 2, 'count published records rather than the stale summary field');
   assert(!JSON.stringify(result).includes('PRIVATE'));
   assert(!JSON.stringify(result).includes('rating-basis'));
@@ -421,7 +421,7 @@ test('review projection preserves content, aliases, responses and editorial orde
       [reviewSummary()],
     ),
   );
-  assert.throws(() => projectReviews([reviewItem()], [], []));
+  assert.equal(projectReviews([reviewItem()], [], []).average, 5);
 });
 test('review tally follows publication and exclusion, retaining cross-posts without a count field', () => {
   const summary = reviewSummary();
@@ -439,6 +439,30 @@ test('review tally follows publication and exclusion, retaining cross-posts with
   assert.equal(tally([original, crosspost, { ...added, isArchived: true }]), 2);
   assert.equal(tally([]), 0);
 });
+test('review average follows published ratings independently of the manual summary and editorial ordering', () => {
+  const items = [
+    reviewItem('five', { 'star-rating': 5, 'duplicate-group': 'crosspost' }),
+    reviewItem('crosspost', { 'star-rating': 5, 'duplicate-group': 'crosspost' }),
+    reviewItem('four', { 'star-rating': 4 }),
+    reviewItem('one', { 'star-rating': 1 }),
+    reviewItem('unknown', { 'star-rating': null }),
+    reviewItem('invalid', { 'star-rating': 7 }),
+    reviewItem('excluded', { 'star-rating': 1, 'exclude-from-display': true }),
+    reviewItem('unapproved', { 'star-rating': 1, 'approved-for-display': false }),
+    reviewItem('archived', { 'star-rating': 1 }, { isArchived: true }),
+    reviewItem('draft', { 'star-rating': 1 }, { lastPublished: null }),
+  ];
+  const result = projectReviews(items, [], [reviewSummary()]);
+  assert.equal(result.total, 6);
+  assert.equal(result.average, 15 / 4, 'include low ratings and cross-posts, exclude unknown ratings');
+  assert.equal(projectReviews([...items].reverse(), [], []).average, result.average);
+  assert.equal(projectReviews([...items, reviewItem('added')], [], []).average, 4);
+  assert.equal(projectReviews([], [], []).average, 0);
+  assert.equal(projectReviews([reviewItem('unknown', { 'star-rating': null })], [], []).average, 0);
+  const full = [...Array.from({ length: 86 }, (_, n) => reviewItem('r' + n)), reviewItem('four', { 'star-rating': 4 }), reviewItem('one', { 'star-rating': 1 })];
+  assert.equal(projectReviews(full, [], []).average.toFixed(2), '4.94');
+});
+
 test('reviews refresh every live collection atomically and retain an isolated last-good snapshot', async () => {
   let time = Date.now(),
     failResponses = false;
@@ -472,7 +496,7 @@ test('reviews refresh every live collection atomically and retain an isolated la
   assert.equal(first.records.length, 1);
   assert.equal(calls.length, REVIEW_COLLECTIONS.length);
   assert.equal(saved.size, 1);
-  assert(saved.has('reviews:published:tally:v1'));
+  assert(saved.has('reviews:published:statistics:v1'));
   time += 300001;
   failResponses = true;
   const stale = await handle(request('/tdb-content/v1/reviews.json'), env);

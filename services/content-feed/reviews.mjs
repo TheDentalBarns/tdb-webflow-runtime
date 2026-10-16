@@ -66,7 +66,6 @@ export function reviewBatchQuery(url) {
     throw Error('invalid_review_query');
   return { ids, revision };
 }
-const SUMMARY_ITEM = '69948ce9f89df128e65600b5';
 const platforms = {
   efe6db2067ed0fd456d38bc2e521b4bd: 'Google',
   '0d3340cdd96a32712e4c9d730e89df7d': 'Yell',
@@ -186,19 +185,14 @@ export function projectReviews(items, responses, summaries, ...contextInputs) {
     record.response = text(item.fieldData.response);
     record.showResponse = Boolean(record.response);
   }
-  const summary = summaries.find((item) => item.id === SUMMARY_ITEM && live(item))?.fieldData;
-  const average = Number(summary?.ratingvalue);
-  // Count the same published, approved records the drawer can actually show.
-  // Cross-posts are separate platform reviews and remain part of this tally.
+  // Both statistics describe the published, approved records in this feed.
+  // Cross-posts remain separate platform reviews. Unknown ratings contribute to
+  // the total, but never count as zero-star reviews in the average.
   const total = records.length;
-  if (
-    !summary ||
-    !text(summary.ratingvalue, 20) ||
-    !Number.isFinite(average) ||
-    average < 0 ||
-    average > 5
-  )
-    invalid();
+  const rated = records.filter((record) => record.rating !== null);
+  const average = rated.length
+    ? rated.reduce((sum, record) => sum + record.rating, 0) / rated.length
+    : 0;
   // Existing native quote list: non-empty excerpt, ascending snippet rank,
   // one-item offset and three featured identities. Keep its editorial policy.
   const featured = selected
