@@ -6,8 +6,7 @@ const source = fs.readFileSync('src/components/hold-audio.js', 'utf8');
 const loader = fs.readFileSync('src/loaders/hold-audio-loader.js', 'utf8');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const words =
-  'HOLD.|BREATHE.|RELAX.|UNWIND.|PEACEFUL.|CALM.|SLOW.|STILL.|SOFT.|REST.|EASE.|SERENE.'.split('|');
+const words = 'HOLD.|BREATHE.|RELAX.|UNWIND.|PEACEFUL.|CALM.|STILL.|REST.|EASE.'.split('|');
 
 function fixture({ empty = false, fail = false, cold = false } = {}) {
   const dom = new JSDOM(
@@ -300,20 +299,20 @@ test('zoom advances linearly for ten seconds, independent of parallax', async ()
   f.cleanup();
 });
 
-test('twelve words continue across three cards, four per hold, then wrap', async () => {
+test('nine words continue across three cards, three per hold, then wrap', async () => {
   const f = fixture();
   const seen = [];
   for (let card = 0; card < 3; card++) {
     await f.down(card);
-    for (let step = 0; step < 4; step++) {
+    for (let step = 0; step < 3; step++) {
       const animation = f.calls.animations.findLast((a) => a.element === f.wordElements[card]);
       seen.push(animation.element.textContent);
-      assert.equal(animation.options.duration, 2500);
+      assert.ok(Math.abs(animation.options.duration - 10000 / 3) < 0.001);
       assert.deepEqual(
         Array.from(animation.frames, (k) => k.opacity),
         [0, 1, 1, 0],
       );
-      f.advance(2500);
+      f.advance(10000 / 3);
       animation.finish();
       await tick();
       assert.equal(animation.cancelled, true, 'restores native hidden state after each word');
@@ -321,7 +320,7 @@ test('twelve words continue across three cards, four per hold, then wrap', async
     const count = f.calls.animations.length;
     f.advance(5000);
     await tick();
-    assert.equal(f.calls.animations.length, count, 'holding longer does not start a fifth word');
+    assert.equal(f.calls.animations.length, count, 'holding longer does not start a fourth word');
     assert.equal(f.w.TDBHoldAudio.status().holding, true, 'audio/zoom hold remains active');
     f.up(card);
   }

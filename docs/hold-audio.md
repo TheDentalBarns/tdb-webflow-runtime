@@ -34,17 +34,24 @@ Home first-visit component variant: absolute inset zero, flex centred, white,
 owns its initial appearance; the controller only changes the text and animates
 opacity with the Web Animations API.
 
+The reception word is first in its frame and uses the native first-child state
+to align at the top with a 3rem inset. The lounge word is between the image and
+button overlay, retaining the centred base state. The chair word is last in its
+frame and uses the native last-child state to align at the bottom with an 8rem
+inset, above the speaker button. These states belong to the Home component
+variant; no new classes, head rules or runtime positioning are required.
+
 The component's `data-tdb-audio-word-sequence` attribute stores the editable
 pipe-separated sequence:
-`HOLD.|BREATHE.|RELAX.|UNWIND.|PEACEFUL.|CALM.|SLOW.|STILL.|SOFT.|REST.|EASE.|SERENE.`
+`HOLD.|BREATHE.|RELAX.|UNWIND.|PEACEFUL.|CALM.|STILL.|REST.|EASE.`
 One shared cursor advances when a word starts, across all three cards. Each
-press shows at most four words over ten seconds, including each word's fade in
+press shows at most three words over ten seconds, including each word's fade in
 and out. A held button never restarts the sequence automatically. A new press
-continues at the next word, wrapping after twelve; early release fades the
+continues at the next word, wrapping after nine; early release fades the
 current word over 400ms. Music continues independently until release, retaining
 its existing playhead. Page reload starts the words at HOLD again.
 
 Validation: `node --test tests/hold-audio.test.cjs`. Staging browser checks cover
 desktop and mobile native styling, actual Web Audio playback state, delayed
 release, keyboard, touch cancellation, shared download, parallax separation,
-the twelve-word sequence, its ten-second cap and early-release opacity fade.
+the nine-word sequence, its ten-second cap and early-release opacity fade.

@@ -31,7 +31,7 @@
       !words.length ||
       active !== session ||
       remaining <= 0 ||
-      session.wordCount === 4
+      session.wordCount === 3
     )
       return;
     wordAnimations.get(element)?.cancel();
@@ -45,7 +45,7 @@
         { opacity: 1, offset: 0.72, easing: 'ease-in-out' },
         { opacity: 0, offset: 1 },
       ],
-      { duration: Math.min(2500, remaining), fill: 'forwards' },
+      { duration: Math.min(10000 / 3, remaining), fill: 'forwards' },
     );
     wordAnimations.set(element, animation);
     animation.finished
@@ -274,7 +274,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.2.0',
+    version: '1.2.1',
     press,
     release,
     destroy,
