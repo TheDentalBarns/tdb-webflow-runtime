@@ -615,7 +615,8 @@ window.TDBParallaxProgress ||= (() => {
                 if (
                   ((w = !1),
                   (y = window.devicePixelRatio || 1),
-                  r.hasAttribute('data-tdb-treatment'))
+                  r.hasAttribute('data-tdb-treatment') ||
+                    r.classList.contains('tdb-service-parallax'))
                 )
                   return ((g = d.getBoundingClientRect().width), null);
                 const t = r.getBoundingClientRect(),
@@ -866,7 +867,7 @@ window.TDBParallaxProgress ||= (() => {
             disabledClass: 'is-disabled',
           },
           pagination: {
-            el: e.querySelector('.swiper-pagination'),
+            el: e.querySelector('.swiper-pagination:not([data-tdb-native-progress])'),
             bulletActiveClass: 'is-active',
             bulletClass: 'swiper-bullet',
             bulletElement: 'button',

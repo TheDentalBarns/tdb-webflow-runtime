@@ -98,7 +98,7 @@
             disabledClass: 'is-disabled',
           },
           pagination: {
-            el: e.querySelector('.swiper-pagination'),
+            el: e.querySelector('.swiper-pagination:not([data-tdb-native-progress])'),
             bulletActiveClass: 'is-active',
             bulletClass: 'swiper-bullet',
             bulletElement: 'button',

@@ -48,6 +48,23 @@ test('one engine mounts each plugin once, keeps its options and can remount afte
     }
   } finally {dom.window.close();}
 });
+
+test('native services progress is not replaced with Swiper pagination bullets', () => {
+  const {dom,w}=setup();
+  try {
+    w.eval(read('dist/tdb-parallax.js'));
+    const {root}=carousel(w,'parallax');
+    root.insertAdjacentHTML('beforeend','<div class="swiper-pagination tdb-service-pagination" data-tdb-native-progress><span id="marker"></span><span id="wrap"></span></div>');
+    const track=root.querySelector('[data-tdb-native-progress]');
+    const marker=track.firstElementChild;
+    const s=w.TDBSwiper.mount('parallax',root);
+    s.slideNext(0);
+    assert.equal(track.children.length,2);
+    assert.equal(track.firstElementChild,marker);
+    assert.equal(s.params.pagination.el,null);
+    s.destroy(true,true);
+  } finally {dom.window.close();}
+});
 test('frozen feature APIs retain their methods and release their cached instance on destroy', () => {
   const {dom,w}=setup();
   try {

@@ -59,7 +59,8 @@ window.TDBParallaxProgress ||= (() => {
                 if (
                   ((w = !1),
                   (y = window.devicePixelRatio || 1),
-                  r.hasAttribute('data-tdb-treatment'))
+                  (r.hasAttribute('data-tdb-treatment') ||
+                    r.classList.contains('tdb-service-parallax')))
                 )
                   return ((g = d.getBoundingClientRect().width), null);
                 const t = r.getBoundingClientRect(),
