@@ -82,7 +82,7 @@ function prepareSliderLoader() {
       if (root) loadSafely(root);
     }
   }
-  // Hold an arrow action only after runtime is released, while its module arrives.
+  // Retain native navigation intent while the nearby carousel module arrives.
   const queuedArrows = new WeakSet();
   function onArrowIntent(event) {
     if (
@@ -92,7 +92,9 @@ function prepareSliderLoader() {
       return;
     if (event.button > 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
       return;
-    const arrow = event.target.closest?.('.swiper-btn-prev,.swiper-btn-next');
+    const arrow = event.target.closest?.(
+      '.swiper-btn-prev,.swiper-btn-next,[data-tdb-treatment-stamp]',
+    );
     const root = arrow?.closest('.parallax-swiper_component');
     if (!root || arrow.matches(':disabled,[aria-disabled="true"],.swiper-button-disabled')) return;
     event.preventDefault();

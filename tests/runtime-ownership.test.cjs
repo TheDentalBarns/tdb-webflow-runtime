@@ -66,13 +66,15 @@ test('landscape layout works without resurrecting the removed legacy conversion'
   assert(f.d.querySelector('#legacy .layout423_card'));assert(!f.d.querySelector('#legacy .showcase_card'));assert(!f.w.TDBLegacyParallax);
  }finally{f.close()}
 });
-test('runtime retains an arrow click while the parallax module downloads',async()=>{
+for(const intent of ['arrow','stamp'])test(`runtime retains a ${intent} click while the parallax module downloads`,async()=>{
  const f=fixture({choice:'reject'});try{
   await f.runtime();f.w.eval('tdbEnsureUI=tdbEnsureSliderUI=tdbEnsureSliderFocus=()=>Promise.resolve()');
-  const root=f.d.getElementById('services'),button=root.querySelector('.swiper-btn-next');let next=0,complete,bound=false;
+  const root=f.d.getElementById('services');
+  if(intent==='stamp')root.insertAdjacentHTML('beforeend','<a data-tdb-treatment-stamp href="/first">First treatment</a>');
+  const button=root.querySelector(intent==='stamp'?'[data-tdb-treatment-stamp]':'.swiper-btn-next');let next=0,complete,bound=false;
   f.w.Swiper=function(){};
   const swiper={slides:[...root.querySelectorAll('.swiper-slide')],activeIndex:0,on(){},off(){},slideNext(){next++},slidePrev(){}};
-  f.w.TDBSwiper={create(){},register(){},refresh(){},prune(){},mount(){f.w.TDBParallax.prepare(root).bind(swiper);if(!bound){bound=true;button.addEventListener("click",()=>swiper.slideNext())}}};
+  f.w.TDBSwiper={create(){},register(){},refresh(){},prune(){},mount(){f.w.TDBParallax.prepare(root).bind(swiper);if(!bound){bound=true;button.addEventListener("click",e=>{e.preventDefault();swiper.slideNext()})}}};
   f.w.TDBModules={load:async url=>{if(String(url).endsWith('/tdb-parallax.js'))await new Promise(r=>{complete=r});}};
   button.dispatchEvent(new f.w.MouseEvent('click',{bubbles:true,cancelable:true}));await tick();
   assert.equal(root.getAttribute('aria-busy'),'true');assert.equal(next,0);assert(complete);

@@ -17,6 +17,8 @@ window.TDBParallaxProgress ||= (() => {
       l = s?.firstElementChild || document.createElement('span');
     s || ((d.className = 'tdb-service-progress'), (l.className = 'tdb-service-progress-fill'));
     const c = s?.children[1] || l.cloneNode();
+    const stamps = window.TDBTreatmentStamps?.prepare(r);
+    let stampWidth = 0;
     (o &&
       !r.hasAttribute('data-tdb-treatment') &&
       [l, c].forEach((e) => e.classList.add('is-treatment')),
@@ -59,10 +61,14 @@ window.TDBParallaxProgress ||= (() => {
                 if (
                   ((w = !1),
                   (y = window.devicePixelRatio || 1),
-                  (r.hasAttribute('data-tdb-treatment') ||
-                    r.classList.contains('tdb-service-parallax')))
+                  r.hasAttribute('data-tdb-treatment') ||
+                    r.classList.contains('tdb-service-parallax'))
                 )
-                  return ((g = d.getBoundingClientRect().width), null);
+                  return (
+                    (g = d.getBoundingClientRect().width),
+                    (stampWidth = stamps?.measure() || 0),
+                    null
+                  );
                 const t = r.getBoundingClientRect(),
                   n = e.bottom - t.top - r.clientTop,
                   i = Math.ceil((o ? 0 : e.left) * y) / y,
@@ -92,10 +98,11 @@ window.TDBParallaxProgress ||= (() => {
           n < 0 ? ((p = n), (L = t.value), (A = e + 1)) : ((x = n), (E = t.value), (S = e));
         }
         const B = p === -1 / 0 ? E : x === 1 / 0 ? L : L + ((E - L + v) % v) * (-p / (x - p)),
-          q = Math.round((g * y) / v) / y,
+          q = stampWidth || Math.round((g * y) / v) / y,
           C = ((B % v) + v) % v,
           D = v <= 1 ? 0 : C <= v - 1 ? (C * (g - q)) / (v - 1) : g - q + (C - v + 1) * q,
           T = Math.round(D * y) / y;
+        stamps?.paint(C, T, g);
         if (
           (a &&
             ((d.style.top = a.top + 'px'),
