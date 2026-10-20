@@ -251,6 +251,7 @@
     window.TDBUSPDrawerLoader?.destroy();
     window.TDBPageBreaks?.destroy();
     window.TDBFiveSensesLauncher?.destroy();
+    window.TDBHoldAudio?.destroy();
     window.TDBReviewFeatureLoader?.destroy();
     window.TDBLazyIconMasks?.destroy();
     window.TDBInstagramFeatureLoader?.destroy();

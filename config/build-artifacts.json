@@ -504,6 +504,7 @@
         "src/brevo/consent.js",
         "src/usp/loader.js",
         "src/five-senses/launcher.js",
+        "src/components/hold-audio.js",
         "src/runtime/review-feature-loader.js",
         "src/runtime/lazy-icon-masks.js",
         "src/runtime/instagram-feature-loader.js",
@@ -512,10 +513,10 @@
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "45fd02af44a84ed84ed80af1159f2861be928a7b95763b86820f250e9133e160",
-      "raw": 60839,
-      "gzip": 16400,
-      "brotli": 14532
+      "sha256": "d1bb51f16858d2c3b8a53e19cb9724c9b66e3d5cb8bd7768d6b4751722f9f94f",
+      "raw": 64739,
+      "gzip": 17679,
+      "brotli": 15663
     },
     "dist/tdb-service-awards.js": {
       "sources": [

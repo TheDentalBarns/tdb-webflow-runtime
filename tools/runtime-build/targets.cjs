@@ -99,6 +99,7 @@ module.exports = {
     'src/brevo/consent.js',
     'src/usp/loader.js',
     'src/five-senses/launcher.js',
+    'src/components/hold-audio.js',
     'src/runtime/review-feature-loader.js',
     'src/runtime/lazy-icon-masks.js',
     'src/runtime/instagram-feature-loader.js',
