@@ -1,4 +1,4 @@
-/* TDB shared motion v1.19.5. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.20.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -515,7 +515,7 @@
     const states = [],
       owned = [];
     const memory = window.TDBPageBreakMemory;
-    const remember = () => memory?.save(states);
+    const remember = () => memory?.save(states.filter((state) => !state.translate));
     let queued = false,
       layout = true,
       suspended = false,
@@ -535,9 +535,30 @@
       }
     };
     const refresh = () => {
+      states.forEach(syncTargets);
       layout = true;
       schedule();
     };
+    // A carousel's images share one vertical position. Its horizontal Swiper
+    // transform remains untouched, including on loop clones and after resize.
+    function syncTargets(state) {
+      if (!state.translate) return;
+      const targets = [...state.wrapper.querySelectorAll(state.targetSelector)];
+      for (const [node, original] of state.originalTranslations) {
+        if (!targets.includes(node)) {
+          node.style.translate = original;
+          state.originalTranslations.delete(node);
+        }
+      }
+      for (const node of targets) {
+        if (!state.originalTranslations.has(node))
+          state.originalTranslations.set(
+            node,
+            node.closest('.swiper-slide-duplicate') ? '' : node.style.translate,
+          );
+      }
+      state.targets = targets;
+    }
     function retain(state, progress, target, alpha, reveal) {
       state.correction =
         Math.abs(state.y - target) < 0.001 &&
@@ -564,14 +585,22 @@
     }
     function geometry(state, scroll, frame) {
       const box = frame.rect(state.wrapper);
-      const image = state.opacityOnly ? box : frame.rect(state.node);
+      const crop = state.cropFrame ? frame.rect(state.cropFrame) : box;
+      const representative = state.translate
+        ? state.targets.find((node) => frame.rect(node).height > 0) || state.node
+        : state.node;
+      const image = state.translate
+        ? frame.rect(representative)
+        : state.opacityOnly
+          ? box
+          : frame.rect(state.node);
       const view = frame.height;
       // Subtract our translation when measuring crop. Never measure progress
       // against the moving image (which would feed back into its own progress).
       const top = image.top - state.y,
         bottom = image.bottom - state.y;
-      const cropLow = Math.min(0, box.bottom - bottom);
-      const cropHigh = Math.max(0, box.top - top);
+      const cropLow = Math.min(0, crop.bottom - bottom);
+      const cropHigh = Math.max(0, crop.top - top);
       const pixels = (value) =>
         value[0] * (value[1] === '%' ? image.height / 100 : value[1] === 'vh' ? view / 100 : 1);
       const bounded = (value) =>
@@ -702,7 +731,11 @@
         }
         for (const state of states) {
           const value = `translate3d(0, ${state.y.toFixed(4)}px, 0)`;
-          if (!state.opacityOnly && state.node.style.transform !== value)
+          if (state.translate) {
+            const translation = `0px ${state.y.toFixed(4)}px`;
+            for (const node of state.targets)
+              if (node.style.translate !== translation) node.style.translate = translation;
+          } else if (!state.opacityOnly && state.node.style.transform !== value)
             state.node.style.transform = value;
           if (state.reveal && state.node.style.opacity !== String(state.revealAlpha))
             state.node.style.opacity = String(state.revealAlpha);
@@ -720,17 +753,23 @@
         layout = false;
       };
     }
-    for (const wrapper of new Set(wrappers)) {
-      const existing = pageBreakClients.get(wrapper);
+    for (const input of new Set(wrappers)) {
+      const options = input.wrapper ? input : null;
+      const wrapper = options ? options.wrapper : input;
+      const existing = pageBreakClients.get(input);
       if (existing) {
         existing.clients++;
         owned.push(existing);
         continue;
       }
-      const opacityOnly = wrapper.getAttribute?.('data-tdb-parallax-mode') === 'opacity';
-      const node = opacityOnly
-        ? wrapper
-        : wrapper.querySelector('[data-tdb-page-break-image]') || wrapper.querySelector('img');
+      const translate = Boolean(options?.selector);
+      const opacityOnly =
+        !translate && wrapper.getAttribute?.('data-tdb-parallax-mode') === 'opacity';
+      const node = translate
+        ? wrapper.querySelector(options.selector)
+        : opacityOnly
+          ? wrapper
+          : wrapper.querySelector('[data-tdb-page-break-image]') || wrapper.querySelector('img');
       if (!node) continue;
       const distance = (name, fallback) => {
         const match = /^(-?(?:\d+(?:\.\d+)?|\.\d+))(vh|%|px)$/.exec(
@@ -738,14 +777,19 @@
         );
         return match && Number.isFinite(+match[1]) ? [+match[1], match[2]] : distance('', fallback);
       };
-      const fadeStart = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-fade-start'));
-      const fadeEnd = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-fade-end'));
+      const fadeStart = translate
+        ? NaN
+        : Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-fade-start'));
+      const fadeEnd = translate
+        ? NaN
+        : Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-fade-end'));
       const fade =
         fadeStart >= 0 && fadeEnd <= 1 && fadeEnd > fadeStart ? [fadeStart, fadeEnd] : null;
       const points = (wrapper.getAttribute?.('data-tdb-parallax-fade-curve') || '')
         .split(',')
         .map((pair) => pair.split(':').map(Number));
       const curve =
+        !translate &&
         points.length > 1 &&
         points.every(
           (point, i) =>
@@ -779,7 +823,7 @@
             ? Number.parseFloat(painted.split(',')[3])
             : 1
           : Number.parseFloat(painted);
-      const snapshot = memory?.take(node);
+      const snapshot = translate ? null : memory?.take(node);
       const exitStart = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-exit-start'));
       const exitEnd = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-exit-end'));
       const exitRange =
@@ -795,6 +839,7 @@
         wrapper.getAttribute?.('data-tdb-parallax-reveal-out-end'),
       );
       const reveal =
+        !translate &&
         !opacityOnly &&
         Number.isFinite(revealIn) &&
         revealIn > 0 &&
@@ -803,15 +848,25 @@
           ? [revealIn, revealOut, Number.isFinite(revealEnd) && revealEnd >= 0 ? revealEnd : 0]
           : null;
       const state = {
+        key: input,
         wrapper,
         node,
+        translate,
+        targetSelector: options?.selector,
+        cropFrame: options?.frame ? wrapper.querySelector(options.frame) : null,
+        targets: [],
+        originalTranslations: new Map(),
         opacityOnly,
         reveal,
         revealAlpha: reveal
           ? clamp(Number.parseFloat(getComputedStyle(node).opacity) || 0, 0, 1)
           : 1,
         originalImageOpacity: snapshot ? snapshot.originalImageOpacity : node.style.opacity,
-        y: opacityOnly ? 0 : yOf(node),
+        y: translate
+          ? Number.parseFloat(getComputedStyle(node).translate?.split(' ')[1]) || 0
+          : opacityOnly
+            ? 0
+            : yOf(node),
         original: snapshot ? snapshot.original : node.style.transform,
         restored: Boolean(snapshot),
         correction: null,
@@ -821,7 +876,8 @@
         fadeEnds,
         fadeFrom,
         fadeProperties,
-        allowEdges: wrapper.getAttribute?.('data-tdb-parallax-crop') === 'allow',
+        allowEdges:
+          options?.allowEdges || wrapper.getAttribute?.('data-tdb-parallax-crop') === 'allow',
         exitRange,
         exitFrame: exitRange || reveal ? wrapper.querySelector('[data-tdb-parallax-frame]') : null,
         imageProgress: wrapper.getAttribute?.('data-tdb-parallax-progress') === 'image',
@@ -835,9 +891,10 @@
         from: opacityOnly ? [0, 'px'] : distance('data-tdb-parallax-from', '-2vh'),
         to: opacityOnly ? [0, 'px'] : distance('data-tdb-parallax-to', '2vh'),
       };
+      syncTargets(state);
       states.push(state);
-      const owner = { clients: 1, wrapper, release: null, refresh };
-      pageBreakClients.set(wrapper, owner);
+      const owner = { clients: 1, wrapper: input, release: null, refresh };
+      pageBreakClients.set(input, owner);
       owned.push(owner);
     }
     let resize;
@@ -897,7 +954,9 @@
       state.node.removeEventListener('load', refresh);
       resize?.unobserve(state.wrapper);
       resize?.unobserve(state.node);
-      if (!state.opacityOnly) state.node.style.transform = state.original;
+      if (state.translate) {
+        for (const [node, original] of state.originalTranslations) node.style.translate = original;
+      } else if (!state.opacityOnly) state.node.style.transform = state.original;
       if (state.reveal) state.node.style.opacity = state.originalImageOpacity;
       state.fadeTargets.forEach((target, i) => {
         target.style[state.fadeProperties[i]] = state.originalOpacity[i];
@@ -910,7 +969,7 @@
         queued = false;
       }
     }
-    for (const state of states) pageBreakClients.get(state.wrapper).release = () => release(state);
+    for (const state of states) pageBreakClients.get(state.key).release = () => release(state);
     return Object.freeze({
       refresh: () => {
         if (!released) for (const owner of owned) owner.refresh();
@@ -1098,7 +1157,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.19.5',
+    version: '1.20.0',
     reduced,
     defaults,
     carousel,

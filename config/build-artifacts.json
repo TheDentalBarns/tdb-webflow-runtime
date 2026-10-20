@@ -290,10 +290,10 @@
       "sources": [
         "src/shared/motion.js"
       ],
-      "sha256": "fcc2f58c7cc14e03385e6bc289a1f55700c4241424ff25b9bc4f646c951f42b9",
-      "raw": 18313,
-      "gzip": 6601,
-      "brotli": 5982
+      "sha256": "f9a46bfc65e889afbe76e7dda31f41bca9e272f64fa3f0ecd110786f48ce6287",
+      "raw": 19365,
+      "gzip": 6944,
+      "brotli": 6295
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -327,10 +327,10 @@
         "src/sliders/treatment-plugin.js",
         "src/sliders/parallax-plugin.js"
       ],
-      "sha256": "5c7865e45f3d0f22cf3d0fe657df74da7a317522deeeaf9761c02afb6aeb39dd",
-      "raw": 25585,
-      "gzip": 7984,
-      "brotli": 7169
+      "sha256": "1351e9bc35db39f95af104a5c72fe86fa8165bf4c045c87c30c54ea7937ec249",
+      "raw": 25649,
+      "gzip": 7997,
+      "brotli": 7181
     },
     "dist/tdb-partner-card.js": {
       "sources": [
@@ -512,10 +512,10 @@
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "1f9e1099720a15f8a9125c72967952605bf883e5c60aba7cc70f114e8c4cac80",
-      "raw": 59824,
-      "gzip": 16085,
-      "brotli": 14267
+      "sha256": "45fd02af44a84ed84ed80af1159f2861be928a7b95763b86820f250e9133e160",
+      "raw": 60839,
+      "gzip": 16400,
+      "brotli": 14532
     },
     "dist/tdb-service-awards.js": {
       "sources": [

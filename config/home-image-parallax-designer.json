@@ -1,0 +1,51 @@
+{
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "677cf86df9952f978d94d8a9",
+  "optIn": {
+    "elementId": "f3a6c255-9ed7-32a9-be96-9b7f1e282565",
+    "attribute": "data-tdb-home-photo-parallax"
+  },
+  "nativeCropScale": "1.06",
+  "variants": [
+    {
+      "component": "3 Grid images",
+      "instanceId": "b6ae2a7a-03f6-fd7d-b751-8eacd6d58c39",
+      "variantId": "d73ebe22-7174-908c-8db7-08979a3d4cdc",
+      "style": "Image 2",
+      "note": "Reuse the existing empty Image 2 class on all three photos; base remains unchanged."
+    },
+    {
+      "component": "Sldier - Treatments",
+      "instanceId": "a140f078-6ccc-2181-76fb-853e7bc838db",
+      "variantId": "e37edb04-1c20-f271-f9f4-f7514a9ac973",
+      "style": "tdb-treatment-image",
+      "transition-property": "transform"
+    },
+    {
+      "component": "Component 1 - Bg image",
+      "instanceId": "83594d66-709e-dbb3-1e6c-3a9213afc199",
+      "variantId": "39349468-08e4-a5fc-a1d3-bb55f3e3452b",
+      "style": "header111_background-image"
+    },
+    {
+      "component": "Hero - Vimeo",
+      "instanceId": "b1a810af-870e-98e2-c9cd-c1f7607452cd",
+      "variantId": "547eae84-c08e-ca19-6518-4be94a8a37b7",
+      "style": "vimeo-bg",
+      "note": "Retain the existing Home variant and opacity choreography."
+    }
+  ],
+  "nativeHomeStyles": [
+    { "selector": ".showcase_image.hide-tablet", "transition-property": "transform" },
+    { "selector": ".showcase_image.show-on-tablet", "transition-property": "transform" },
+    { "selector": ".vimeo-bg.is-ambient" }
+  ],
+  "runtime": {
+    "owner": "TDBMotion.pageBreaks",
+    "translation": "CSS individual translate; horizontal Swiper transform remains independent",
+    "range": "-2vh to 2vh, bounded to available native crop",
+    "grouping": "One motion state per photographic surface, including all carousel loop images",
+    "exclusions": ["Smile slider", "Review sliders", "Instagram slider", "logos and UI icons"],
+    "unchanged": ["existing page breaks", "VIP and footer parallax", "sketch reveal", "slide and hover timings"]
+  }
+}

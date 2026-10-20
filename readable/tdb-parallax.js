@@ -926,6 +926,7 @@ window.TDBParallaxProgress ||= (() => {
           x.loopCreate(),
           x.updateSlides(),
           x.slideTo(a + x.loopedSlides, 0, !1, !0));
+        window.TDBPageBreaks?.refresh();
       }),
       d &&
         ((function (e, t, i) {
@@ -1199,7 +1200,11 @@ window.TDBParallaxProgress ||= (() => {
       window.TDBParallax?.refresh(e);
       (c(e) || u(e)) && e.classList.add('tdb-entry-pending');
     },
-    mount: (e) => (b(e), n(e)?.swiper),
+    mount(e) {
+      b(e);
+      window.TDBPageBreaks?.refresh();
+      return n(e)?.swiper;
+    },
     refresh(e = document) {
       (window.TDBParallax?.refresh(e), window.TDBSwiper.refresh('parallax', e));
     },

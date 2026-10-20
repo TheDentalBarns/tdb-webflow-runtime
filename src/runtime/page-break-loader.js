@@ -6,6 +6,8 @@ function preparePageBreakLoader() {
   const pending = new Set(),
     mounted = new Set(),
     owners = [];
+  const home = document.querySelector('[data-tdb-home-photo-parallax]');
+  const photos = new WeakMap();
   let observer,
     flight,
     disposed = false,
@@ -13,6 +15,7 @@ function preparePageBreakLoader() {
     retryAt = 0;
 
   function eligible(node) {
+    if (node.wrapper) return node.wrapper.isConnected && node.wrapper.querySelector(node.selector);
     return (
       node.isConnected &&
       node.matches(selector) &&
@@ -24,6 +27,41 @@ function preparePageBreakLoader() {
     document.querySelectorAll(selector).forEach((node) => {
       if (!mounted.has(node) && eligible(node)) pending.add(node);
     });
+    // Explicit Home photo surfaces; never select every img (logos, UI and the
+    // Smile, Review and Instagram feeds have their own presentation owners).
+    if (home) {
+      const add = (wrapper, selector, frame, allowEdges = false) => {
+        if (!wrapper) return;
+        let photo = photos.get(wrapper);
+        if (!photo) {
+          photo = { wrapper, selector, frame, allowEdges };
+          photos.set(wrapper, photo);
+        }
+        if (!mounted.has(photo) && eligible(photo)) pending.add(photo);
+      };
+      add(
+        home.querySelector('.section_hero-vimeo'),
+        '.hero-vimeo_background-video-wrapper .vimeo-bg.hero',
+        '.hero-vimeo_background-video-wrapper',
+      );
+      add(home.querySelector('.tdb-service-parallax .swiper'), '.showcase_image');
+      home
+        .querySelectorAll('.section_3-image-layout .aspect-ratio-portrait')
+        .forEach((frame) => add(frame, 'img'));
+      add(
+        home.querySelector('.layout355_component'),
+        '.vimeo-bg.is-ambient',
+        '.layout355_background-video-wrapper',
+      );
+      add(
+        home.querySelector('.section_header111'),
+        '.header111_background-image',
+        '.header111_background-image-wrapper',
+      );
+      add(home.querySelector('[data-tdb-treatment] .swiper'), '.tdb-treatment-image');
+      const candle = home.querySelector('.exceptional_image-candle');
+      add(candle?.parentElement, '.exceptional_image-candle', null, true);
+    }
   }
   function stopRetry() {
     retrying = false;
@@ -35,6 +73,7 @@ function preparePageBreakLoader() {
   }
   function keepStatic() {
     for (const node of pending) {
+      if (node.wrapper) continue;
       if (!(parseFloat(node.getAttribute('data-tdb-parallax-reveal-in')) > 0)) continue;
       const image = node.querySelector('[data-tdb-page-break-image]') || node.querySelector('img');
       if (image) image.style.opacity = '1';
@@ -120,6 +159,6 @@ function preparePageBreakLoader() {
       },
       { rootMargin: '600px 0px' },
     );
-    pending.forEach((node) => observer.observe(node));
+    pending.forEach((node) => observer.observe(node.wrapper || node));
   } else mount();
 }
