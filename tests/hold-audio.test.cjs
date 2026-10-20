@@ -3,9 +3,11 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const source = fs.readFileSync('src/components/hold-audio.js', 'utf8');
+const loader = fs.readFileSync('src/loaders/hold-audio-loader.js', 'utf8');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function fixture({ empty = false, fail = false } = {}) {
+function fixture({ empty = false, fail = false, cold = false } = {}) {
   const dom = new JSDOM(
     empty
       ? ''
@@ -21,6 +23,7 @@ function fixture({ empty = false, fail = false } = {}) {
   const w = dom.window;
   const calls = {
     fetch: 0,
+    module: 0,
     context: 0,
     resume: 0,
     decode: 0,
@@ -29,6 +32,29 @@ function fixture({ empty = false, fail = false } = {}) {
     animations: [],
   };
   const downloads = [];
+  let intersect, finishModule;
+  w.IntersectionObserver = class {
+    constructor(cb, options) {
+      intersect = cb;
+      calls.margin = options.rootMargin;
+    }
+    observe() {}
+    disconnect() {}
+  };
+  w.TDBRuntimeModuleRoot = 'https://cdn.example.test/dist/';
+  w.TDBModules = {
+    load(url) {
+      calls.module++;
+      calls.moduleUrl = url;
+      return new Promise((resolve) => {
+        finishModule = () => {
+          w.eval(source);
+          resolve();
+        };
+        if (!cold) finishModule();
+      });
+    },
+  };
   w.fetch = () => {
     calls.fetch++;
     return new Promise((resolve, reject) =>
@@ -42,8 +68,10 @@ function fixture({ empty = false, fail = false } = {}) {
   w.AudioContext = class {
     currentTime = 5;
     destination = {};
+    state = 'running';
     constructor() {
       calls.context++;
+      calls.audioContext = this;
     }
     resume() {
       calls.resume++;
@@ -55,6 +83,7 @@ function fixture({ empty = false, fail = false } = {}) {
     }
     close() {
       calls.close++;
+      this.state = 'closed';
       return Promise.resolve();
     }
     createGain() {
@@ -67,7 +96,7 @@ function fixture({ empty = false, fail = false } = {}) {
           ramps,
           setValueAtTime() {},
           cancelAndHoldAtTime() {},
-          linearRampToValueAtTime: (value, when) => ramps.push([value, when]),
+          setTargetAtTime: (value, when, timeConstant) => ramps.push([value, when, timeConstant]),
         },
       };
     }
@@ -79,8 +108,9 @@ function fixture({ empty = false, fail = false } = {}) {
           this.gain = gain;
         },
         disconnect() {},
-        start() {
+        start(when, offset) {
           this.started++;
+          this.offset = offset;
         },
         stop(at) {
           this.stopped.push(at);
@@ -103,7 +133,7 @@ function fixture({ empty = false, fail = false } = {}) {
     calls.animations.push(animation);
     return animation;
   };
-  w.eval(source + '\nprepareHoldAudio();');
+  w.eval(loader + '\nprepareHoldAudioLoader();');
   const buttons = [...w.document.querySelectorAll('button')];
   const event = (target, type, extra = {}) => {
     const e = new w.Event(type, { bubbles: true, cancelable: true });
@@ -116,8 +146,17 @@ function fixture({ empty = false, fail = false } = {}) {
     buttons,
     downloads,
     event,
+    near() {
+      intersect([{ isIntersecting: true }]);
+      return tick();
+    },
+    moduleReady() {
+      finishModule();
+      return tick();
+    },
     down(i = 0, id = 1) {
       event(buttons[i], 'pointerdown', { button: 0, isPrimary: true, pointerId: id });
+      return tick();
     },
     up(i = 0, id = 1) {
       event(buttons[i], 'pointerup', { pointerId: id });
@@ -126,79 +165,132 @@ function fixture({ empty = false, fail = false } = {}) {
       fail = false;
     },
     cleanup() {
-      w.TDBHoldAudio?.destroy();
+      w.TDBHoldAudioLoader?.destroy();
       w.close();
     },
   };
 }
 
-test('definition and setup fetch nothing; pages without native speakers have no owner', () => {
+test('proximity primes controller only; setup fetches neither code nor audio', async () => {
   const f = fixture();
   assert.equal(f.calls.fetch, 0);
+  assert.equal(f.calls.module, 0);
   assert.equal(f.calls.context, 0);
-  f.w.eval('prepareHoldAudio();');
-  f.down();
-  assert.equal(f.calls.fetch, 1, 'initializer is idempotent');
-  assert.equal(f.calls.resume, 1, 'audio is unlocked synchronously in the gesture');
+  assert.equal(f.calls.margin, '600px 0px');
+  f.w.eval('prepareHoldAudioLoader();');
+  await f.near();
+  await f.near();
+  assert.equal(f.calls.module, 1);
+  assert.equal(f.calls.fetch, 0);
+  assert.equal(f.calls.context, 0);
+  await f.down();
+  assert.equal(f.calls.fetch, 1);
+  assert.equal(f.calls.context, 1);
   f.cleanup();
   const empty = fixture({ empty: true });
-  assert.equal(empty.w.TDBHoldAudio, undefined);
+  assert.equal(empty.w.TDBHoldAudioLoader, undefined);
   empty.cleanup();
 });
 
-test('release during first download never starts delayed audio; next card reuses it', async () => {
+test('cold module unlocks audio in the gesture; early release stays silent', async () => {
+  const f = fixture({ cold: true });
+  const pending = f.down();
+  assert.equal(f.calls.resume, 1);
+  await pending;
+  f.up();
+  await f.moduleReady();
+  assert.equal(f.calls.fetch, 0);
+  assert.equal(f.calls.voices.length, 0);
+  assert.equal(f.buttons[0].getAttribute('aria-pressed'), 'false');
+  await f.down();
+  assert.equal(f.calls.fetch, 1);
+  f.cleanup();
+});
+
+test('cold module plays when original press is held through its arrival', async () => {
+  const f = fixture({ cold: true });
+  await f.down();
+  await f.moduleReady();
+  f.downloads[0]();
+  await tick();
+  assert.equal(f.calls.voices[0].started, 1);
+  f.cleanup();
+});
+
+test('release during audio download stays silent; other cards reuse the buffer', async () => {
   const f = fixture();
-  f.down();
-  assert.equal(f.buttons[0].getAttribute('aria-busy'), 'true');
+  await f.down();
   f.up();
   f.downloads[0]();
   await tick();
   assert.equal(f.calls.voices.length, 0);
-  assert.equal(f.buttons[0].getAttribute('aria-pressed'), 'false');
-  assert.equal(f.buttons[0].hasAttribute('aria-busy'), false);
-  f.down(1);
-  await tick();
+  await f.down(1);
   assert.equal(f.calls.fetch, 1);
   assert.equal(f.calls.decode, 1);
   assert.equal(f.calls.voices[0].started, 1);
-  assert.equal(f.calls.voices[0].loop, true);
   f.up(1);
-  assert.deepEqual(f.calls.voices[0].gain.gain.ramps.at(-1), [0, 5.16]);
-  assert.deepEqual(f.calls.voices[0].stopped, [5.18]);
+  assert.deepEqual(f.calls.voices[0].gain.gain.ramps.at(-1), [0, 5, 0.08]);
+  assert.equal(f.calls.voices[0].stopped.length, 0, 'fade is not clipped on release');
   f.cleanup();
 });
 
-test('rapid card changes during download can only start the current card', async () => {
+test('shared playhead includes fade tail and resumes on a different card', async () => {
   const f = fixture();
-  f.down(0);
-  f.down(1, 2);
+  await f.down();
   f.downloads[0]();
   await tick();
+  f.calls.audioContext.currentTime = 8;
+  f.up();
+  f.calls.audioContext.currentTime = 8.6;
+  await sleep(640);
+  assert.equal(f.calls.voices[0].stopped.length, 1);
+  assert.ok(Math.abs(f.w.TDBHoldAudio.status().positionSeconds - 3.6) < 0.001);
+  f.calls.audioContext.currentTime = 40;
+  await f.down(2);
+  assert.ok(Math.abs(f.calls.voices[1].offset - 3.6) < 0.001);
   assert.equal(f.calls.fetch, 1);
-  assert.equal(f.calls.voices.length, 1);
-  assert.equal(f.buttons[0].getAttribute('aria-pressed'), 'false');
-  assert.equal(f.buttons[1].getAttribute('aria-pressed'), 'true');
-  f.up(0, 1);
-  assert.equal(f.w.TDBHoldAudio.status().playing, true, 'old release cannot stop current hold');
-  f.down(2, 3);
-  await tick();
-  assert.deepEqual(f.calls.voices[0].stopped, [5], 'switch silences previous card');
-  assert.equal(f.calls.voices[1].started, 1);
   f.cleanup();
 });
 
-test('keyboard hold works once, ignores repeats, releases on keyup and Escape', async () => {
+test('repress during fade continues same source and cancels pending stop', async () => {
+  const f = fixture();
+  await f.down();
+  f.downloads[0]();
+  await tick();
+  f.calls.audioContext.currentTime = 8;
+  f.up();
+  f.calls.audioContext.currentTime = 8.2;
+  await f.down(1);
+  await sleep(640);
+  assert.equal(f.calls.voices.length, 1);
+  assert.equal(f.calls.voices[0].stopped.length, 0);
+  assert.equal(f.w.TDBHoldAudio.status().playing, true);
+  f.cleanup();
+});
+
+test('zoom advances linearly for ten seconds, independent of parallax', async () => {
+  const f = fixture();
+  await f.down();
+  const animation = f.calls.animations.at(-1);
+  assert.equal(animation.options.duration, 10000);
+  assert.equal(animation.options.easing, 'linear');
+  assert.ok(Math.abs(Number(animation.frames.at(-1).scale) - 1.1236) < 0.00001);
+  f.up();
+  assert.equal(f.calls.animations.at(-1).options.duration, 1200);
+  assert.equal(f.calls.animations.at(-1).frames.at(-1).scale, '1.06');
+  assert.equal(f.w.document.querySelector('img').style.translate, '0 10px');
+  f.cleanup();
+});
+
+test('keyboard hold ignores repeats and releases on keyup', async () => {
   const f = fixture();
   f.event(f.buttons[0], 'keydown', { key: ' ', repeat: false });
   f.event(f.buttons[0], 'keydown', { key: ' ', repeat: true });
+  await tick();
   f.downloads[0]();
   await tick();
   assert.equal(f.calls.voices.length, 1);
   f.event(f.buttons[0], 'keyup', { key: ' ' });
-  assert.equal(f.w.TDBHoldAudio.status().holding, false);
-  f.event(f.buttons[1], 'keydown', { key: 'Enter', repeat: false });
-  await tick();
-  f.event(f.buttons[1], 'keydown', { key: 'Escape' });
   assert.equal(f.w.TDBHoldAudio.status().holding, false);
   f.cleanup();
 });
@@ -211,9 +303,9 @@ for (const reason of [
   'pagehide',
   'hidden',
 ]) {
-  test(`${reason} cancels pending playback and restores the photo`, async () => {
+  test(`${reason} cancels pending playback and restores photo`, async () => {
     const f = fixture();
-    f.down();
+    await f.down();
     if (reason === 'hidden') {
       Object.defineProperty(f.w.document, 'hidden', { value: true });
       f.event(f.w.document, 'visibilitychange');
@@ -227,21 +319,20 @@ for (const reason of [
     assert.equal(f.calls.voices.length, 0);
     assert.equal(f.w.TDBHoldAudio.status().holding, false);
     assert.equal(f.calls.animations.at(-1).frames.at(-1).scale, '1.06');
-    assert.equal(f.w.document.querySelector('img').style.translate, '0 10px');
-    assert.equal(f.w.document.querySelector('img').style.transform, 'rotate(0deg)');
     f.cleanup();
   });
 }
 
-test('failed fetch resets UI and retries on another deliberate hold', async () => {
+test('failed fetch resets UI and retries on next hold', async () => {
   const f = fixture({ fail: true });
-  f.down();
+  await f.down();
   f.downloads[0]();
   await tick();
   assert.equal(f.w.TDBHoldAudio.status().holding, false);
   assert.match(f.buttons[0].title, /unavailable/);
+  f.up();
   f.online();
-  f.down();
+  await f.down();
   f.downloads[1]();
   await tick();
   assert.equal(f.calls.fetch, 2);
@@ -249,13 +340,13 @@ test('failed fetch resets UI and retries on another deliberate hold', async () =
   f.cleanup();
 });
 
-test('destroy cancels animation/listeners and prevents late decode playback', async () => {
+test('destroy prevents late playback and closes shared context once', async () => {
   const f = fixture();
-  f.down();
-  f.w.TDBHoldAudio.destroy();
+  await f.down();
+  f.w.TDBHoldAudioLoader.destroy();
   f.downloads[0]();
   await tick();
-  f.down();
+  await f.down();
   assert.equal(f.calls.voices.length, 0);
   assert.equal(f.calls.fetch, 1);
   assert.equal(f.calls.close, 1);

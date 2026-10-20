@@ -10,16 +10,22 @@ Each photo frame has `data-tdb-audio-card` and `data-tdb-audio-src`. Its native
 button has `data-tdb-hold-audio`, `type="button"` and a descriptive accessible
 label. All three currently reference the existing Five Senses calm MP3.
 
-`src/components/hold-audio.js` is assembled into the existing consent-released
-runtime. It fetches and decodes the sound only on the first deliberate press,
+`src/loaders/hold-audio-loader.js` is assembled into the existing consent-released
+runtime. Within 600px of the cards it loads the separate `tdb-hold-audio.js`
+controller. Focus or a press can also load it. A cold press unlocks Web Audio
+synchronously and is replayed only if still held when the controller arrives.
+The controller fetches and decodes the sound only on the first deliberate press,
 then shares that buffer across the cards. Pointer/keyboard release, touch
 cancellation, lost capture, blur and page hiding stop playback. A pending
 download never starts playback after the press has ended. Failed downloads
 can be retried on the next hold.
 
-The image uses an individual scale animation: 6% above its Designer scale over
-2.2 seconds, returning over 0.9 seconds. Existing parallax retains ownership of
-translate/transform. Sound fades in over 180ms and out over 160ms.
+The image uses an individual scale animation: a steady 6% increase over ten
+seconds, then a fixed limit. Release returns it over 1.2 seconds. Existing
+parallax retains ownership of translate/transform. Sound fades out with an
+exponential 600ms tail, and the shared playhead includes that tail. A quick
+re-press reverses the fade on the same source; later presses resume at the saved
+position. No audio is fetched merely by approaching the cards.
 
 Validation: `node --test tests/hold-audio.test.cjs`. Staging browser checks cover
 desktop and mobile native styling, actual Web Audio playback state, delayed

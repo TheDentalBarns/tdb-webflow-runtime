@@ -8,7 +8,7 @@ const TDBFeatureStartup = (() => {
     prepareUSPDrawerLoader,
     preparePageBreakLoader,
     prepareFiveSensesLauncher,
-    prepareHoldAudio,
+    prepareHoldAudioLoader,
     prepareReviewFeatureLoader,
     prepareInstagramFeatureLoader,
     prepareSmileFeatureLoader,

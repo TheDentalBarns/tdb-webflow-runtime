@@ -188,6 +188,15 @@
       "gzip": 5859,
       "brotli": 5226
     },
+    "dist/tdb-hold-audio.js": {
+      "sources": [
+        "src/components/hold-audio.js"
+      ],
+      "sha256": "3b047006e892653d100ff91b7343674724462f3a8432e0c3e0a3cbb92bcba77e",
+      "raw": 3357,
+      "gzip": 1602,
+      "brotli": 1423
+    },
     "dist/tdb-home-desktop-instagram.js": {
       "sources": [
         "src/shared/value-ticker.js",
@@ -504,7 +513,7 @@
         "src/brevo/consent.js",
         "src/usp/loader.js",
         "src/five-senses/launcher.js",
-        "src/components/hold-audio.js",
+        "src/loaders/hold-audio-loader.js",
         "src/runtime/review-feature-loader.js",
         "src/runtime/lazy-icon-masks.js",
         "src/runtime/instagram-feature-loader.js",
@@ -513,10 +522,10 @@
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "d1bb51f16858d2c3b8a53e19cb9724c9b66e3d5cb8bd7768d6b4751722f9f94f",
-      "raw": 64739,
-      "gzip": 17679,
-      "brotli": 15663
+      "sha256": "1ae6aa32de820f647e00a4c557ac83f13384c148d8476fe45823efdd30cb2ffa",
+      "raw": 63391,
+      "gzip": 17058,
+      "brotli": 15091
     },
     "dist/tdb-service-awards.js": {
       "sources": [
