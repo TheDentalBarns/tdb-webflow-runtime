@@ -27,6 +27,24 @@ exponential 600ms tail, and the shared playhead includes that tail. A quick
 re-press reverses the fade on the same source; later presses resume at the saved
 position. No audio is fetched merely by approaching the cards.
 
+Each frame also contains a native `data-tdb-audio-words` text element, with
+`aria-hidden="true"`. The existing `text-size-large` class is scoped to the
+Home first-visit component variant: absolute inset zero, flex centred, white,
+2rem uppercase, 0.12em tracking, opacity zero and pointer events none. Designer
+owns its initial appearance; the controller only changes the text and animates
+opacity with the Web Animations API.
+
+The component's `data-tdb-audio-word-sequence` attribute stores the editable
+pipe-separated sequence:
+`HOLD.|BREATHE.|RELAX.|UNWIND.|PEACEFUL.|CALM.|SLOW.|STILL.|SOFT.|REST.|EASE.|SERENE.`
+One shared cursor advances when a word starts, across all three cards. Each
+press shows at most four words over ten seconds, including each word's fade in
+and out. A held button never restarts the sequence automatically. A new press
+continues at the next word, wrapping after twelve; early release fades the
+current word over 400ms. Music continues independently until release, retaining
+its existing playhead. Page reload starts the words at HOLD again.
+
 Validation: `node --test tests/hold-audio.test.cjs`. Staging browser checks cover
 desktop and mobile native styling, actual Web Audio playback state, delayed
-release, keyboard, touch cancellation, shared download and parallax separation.
+release, keyboard, touch cancellation, shared download, parallax separation,
+the twelve-word sequence, its ten-second cap and early-release opacity fade.

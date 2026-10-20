@@ -192,10 +192,10 @@
       "sources": [
         "src/components/hold-audio.js"
       ],
-      "sha256": "3b047006e892653d100ff91b7343674724462f3a8432e0c3e0a3cbb92bcba77e",
-      "raw": 3357,
-      "gzip": 1602,
-      "brotli": 1423
+      "sha256": "ee0e3ed3b5eb8e3f1b3bdb09adc1c3349d500552f50bfe5b6cb553a7dc72ea93",
+      "raw": 4469,
+      "gzip": 1952,
+      "brotli": 1744
     },
     "dist/tdb-home-desktop-instagram.js": {
       "sources": [

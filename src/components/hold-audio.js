@@ -6,12 +6,80 @@
   const buffers = new Map(),
     positions = new Map(),
     zooms = new Map(),
+    wordAnimations = new Map(),
     voices = new Set();
+  const words = (
+    document
+      .querySelector('[data-tdb-audio-word-sequence]')
+      ?.getAttribute('data-tdb-audio-word-sequence') || ''
+  )
+    .split('|')
+    .map((word) => word.trim())
+    .filter(Boolean);
   let context,
     ownsContext = false,
     active,
     disposed = false,
-    lastUrl;
+    lastUrl,
+    nextWord = 0;
+
+  function showWord(session) {
+    const element = session.word;
+    const remaining = session.wordDeadline - performance.now();
+    if (
+      !element?.animate ||
+      !words.length ||
+      active !== session ||
+      remaining <= 0 ||
+      session.wordCount === 4
+    )
+      return;
+    wordAnimations.get(element)?.cancel();
+    element.textContent = words[nextWord];
+    nextWord = (nextWord + 1) % words.length;
+    session.wordCount++;
+    const animation = element.animate(
+      [
+        { opacity: 0, offset: 0, easing: 'ease-in-out' },
+        { opacity: 1, offset: 0.24 },
+        { opacity: 1, offset: 0.72, easing: 'ease-in-out' },
+        { opacity: 0, offset: 1 },
+      ],
+      { duration: Math.min(2500, remaining), fill: 'forwards' },
+    );
+    wordAnimations.set(element, animation);
+    animation.finished
+      .then(() => {
+        if (wordAnimations.get(element) !== animation) return;
+        animation.cancel();
+        wordAnimations.delete(element);
+        showWord(session);
+      })
+      .catch(() => {});
+  }
+
+  function hideWord(session, immediate) {
+    const element = session.word;
+    const previous = wordAnimations.get(element);
+    if (!previous) return;
+    const opacity = getComputedStyle(element).opacity;
+    previous.cancel();
+    wordAnimations.delete(element);
+    if (immediate || Number(opacity) === 0) return;
+    const animation = element.animate([{ opacity }, { opacity: 0 }], {
+      duration: 400,
+      easing: 'ease-out',
+      fill: 'forwards',
+    });
+    wordAnimations.set(element, animation);
+    animation.finished
+      .then(() => {
+        if (wordAnimations.get(element) !== animation) return;
+        animation.cancel();
+        wordAnimations.delete(element);
+      })
+      .catch(() => {});
+  }
 
   function zoom(image, held) {
     if (!image?.animate) return;
@@ -89,6 +157,7 @@
     session.button.removeAttribute('aria-busy');
     if (session.pointer != null && session.button.hasPointerCapture?.(session.pointer))
       session.button.releasePointerCapture(session.pointer);
+    hideWord(session, immediate);
     zoom(session.image, false);
     stopVoice(session.voice, immediate);
   }
@@ -115,7 +184,14 @@
     const url = card?.getAttribute('data-tdb-audio-src');
     if (!url || button.disabled) return;
     release();
-    const session = { button, image: card.querySelector('img'), ...input };
+    const session = {
+      button,
+      image: card.querySelector('img'),
+      word: card.querySelector('[data-tdb-audio-words]'),
+      wordDeadline: performance.now() + 10000,
+      wordCount: 0,
+      ...input,
+    };
     active = session;
     button.setAttribute('aria-pressed', 'true');
     button.setAttribute('aria-busy', 'true');
@@ -124,6 +200,7 @@
         button.setPointerCapture(session.pointer);
       } catch (_) {}
     }
+    showWord(session);
     zoom(session.image, true);
     // Create and resume in the user gesture, before any network/decode await.
     try {
@@ -188,6 +265,8 @@
     lifecycle.abort();
     zooms.forEach((state) => state.animation?.cancel());
     zooms.clear();
+    wordAnimations.forEach((animation) => animation.cancel());
+    wordAnimations.clear();
     voices.forEach(finishVoice);
     voices.clear();
     buffers.clear();
@@ -195,7 +274,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.1.0',
+    version: '1.2.0',
     press,
     release,
     destroy,

@@ -6,21 +6,28 @@ const source = fs.readFileSync('src/components/hold-audio.js', 'utf8');
 const loader = fs.readFileSync('src/loaders/hold-audio-loader.js', 'utf8');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const words =
+  'HOLD.|BREATHE.|RELAX.|UNWIND.|PEACEFUL.|CALM.|SLOW.|STILL.|SOFT.|REST.|EASE.|SERENE.'.split('|');
 
 function fixture({ empty = false, fail = false, cold = false } = {}) {
   const dom = new JSDOM(
     empty
       ? ''
-      : Array.from(
+      : `<main data-tdb-audio-word-sequence="${words.join('|')}">` +
+        Array.from(
           { length: 3 },
           () =>
             '<div data-tdb-audio-card data-tdb-audio-src="https://cdn.example.test/calm.mp3">' +
             '<img style="scale:1.06;translate:0 10px;transform:rotate(0deg)">' +
+            '<div data-tdb-audio-words style="opacity:0">HOLD.</div>' +
             '<button data-tdb-hold-audio type="button" aria-pressed="false"></button></div>',
-        ).join(''),
+        ).join('') +
+        '</main>',
     { runScripts: 'outside-only', pretendToBeVisual: true },
   );
   const w = dom.window;
+  let now = 0;
+  w.performance.now = () => now;
   const calls = {
     fetch: 0,
     module: 0,
@@ -121,11 +128,18 @@ function fixture({ empty = false, fail = false, cold = false } = {}) {
     }
   };
   w.Element.prototype.animate = function (frames, options) {
+    let finish;
     const animation = {
+      element: this,
       frames,
       options,
       cancelled: false,
-      finished: new Promise(() => {}),
+      finished: new Promise((resolve) => {
+        finish = resolve;
+      }),
+      finish() {
+        finish();
+      },
       cancel() {
         this.cancelled = true;
       },
@@ -144,6 +158,10 @@ function fixture({ empty = false, fail = false, cold = false } = {}) {
     w,
     calls,
     buttons,
+    wordElements: [...w.document.querySelectorAll('[data-tdb-audio-words]')],
+    advance(ms) {
+      now += ms;
+    },
     downloads,
     event,
     near() {
@@ -280,6 +298,95 @@ test('zoom advances linearly for ten seconds, independent of parallax', async ()
   assert.equal(f.calls.animations.at(-1).frames.at(-1).scale, '1.06');
   assert.equal(f.w.document.querySelector('img').style.translate, '0 10px');
   f.cleanup();
+});
+
+test('twelve words continue across three cards, four per hold, then wrap', async () => {
+  const f = fixture();
+  const seen = [];
+  for (let card = 0; card < 3; card++) {
+    await f.down(card);
+    for (let step = 0; step < 4; step++) {
+      const animation = f.calls.animations.findLast((a) => a.element === f.wordElements[card]);
+      seen.push(animation.element.textContent);
+      assert.equal(animation.options.duration, 2500);
+      assert.deepEqual(
+        Array.from(animation.frames, (k) => k.opacity),
+        [0, 1, 1, 0],
+      );
+      f.advance(2500);
+      animation.finish();
+      await tick();
+      assert.equal(animation.cancelled, true, 'restores native hidden state after each word');
+    }
+    const count = f.calls.animations.length;
+    f.advance(5000);
+    await tick();
+    assert.equal(f.calls.animations.length, count, 'holding longer does not start a fifth word');
+    assert.equal(f.w.TDBHoldAudio.status().holding, true, 'audio/zoom hold remains active');
+    f.up(card);
+  }
+  assert.deepEqual(seen, words);
+  await f.down(1);
+  assert.equal(f.wordElements[1].textContent, 'HOLD.');
+  f.cleanup();
+});
+
+test('early release fades visible word and next card continues without stale advances', async () => {
+  const f = fixture();
+  await f.down();
+  const word = f.wordElements[0];
+  const first = f.calls.animations.find((a) => a.element === word);
+  // JSDOM has no animation compositor; model the in-flight computed opacity.
+  word.style.opacity = '.75';
+  f.up();
+  const fade = f.calls.animations.findLast((a) => a.element === word);
+  assert.equal(first.cancelled, true);
+  assert.equal(fade.options.duration, 400);
+  assert.equal(fade.frames[0].opacity, '0.75');
+  assert.equal(fade.frames[1].opacity, 0);
+  await f.down(2);
+  assert.equal(f.wordElements[2].textContent, 'BREATHE.');
+  first.finish();
+  fade.finish();
+  await tick();
+  assert.equal(f.wordElements[2].textContent, 'BREATHE.');
+  assert.equal(fade.cancelled, true);
+  f.cleanup();
+});
+
+test('delayed animation completion cannot extend words beyond the ten-second deadline', async () => {
+  const f = fixture();
+  await f.down();
+  const first = f.calls.animations.find((a) => a.element === f.wordElements[0]);
+  f.advance(9000);
+  first.finish();
+  await tick();
+  const last = f.calls.animations.findLast((a) => a.element === f.wordElements[0]);
+  assert.equal(last.options.duration, 1000);
+  f.advance(1000);
+  const count = f.calls.animations.length;
+  last.finish();
+  await tick();
+  assert.equal(last.cancelled, true);
+  assert.equal(f.calls.animations.length, count);
+  f.cleanup();
+});
+
+test('repress cancels a fading word; destroy clears every animation', async () => {
+  const f = fixture();
+  await f.down();
+  const word = f.wordElements[0];
+  word.style.opacity = '.5';
+  f.up();
+  const fade = f.calls.animations.findLast((a) => a.element === word);
+  await f.down();
+  assert.equal(fade.cancelled, true);
+  assert.equal(word.textContent, 'BREATHE.');
+  fade.finish();
+  await tick();
+  assert.equal(word.textContent, 'BREATHE.');
+  f.cleanup();
+  assert.ok(f.calls.animations.every((a) => a.cancelled));
 });
 
 test('keyboard hold ignores repeats and releases on keyup', async () => {
