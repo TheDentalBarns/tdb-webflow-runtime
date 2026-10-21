@@ -56,7 +56,7 @@
         },
         {
           "property_name": "backdrop-filter",
-          "property_value": "blur(20px)"
+          "property_value": "blur(32px)"
         },
         {
           "property_name": "pointer-events",
@@ -125,11 +125,11 @@
         },
         {
           "property_name": "outline-color",
-          "property_value": "rgba(249,242,230,0.85)"
+          "property_value": "rgba(249,242,230,0.5)"
         },
         {
           "property_name": "outline-offset",
-          "property_value": "-1px"
+          "property_value": "0px"
         },
         {
           "property_name": "outline-style",
@@ -137,7 +137,7 @@
         },
         {
           "property_name": "outline-width",
-          "property_value": "1px"
+          "property_value": "2px"
         },
         {
           "property_name": "pointer-events",

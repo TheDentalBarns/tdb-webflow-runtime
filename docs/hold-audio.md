@@ -36,10 +36,11 @@ Reception places the word at the top, lounge in the middle, chair near the botto
 Designer owns `tdb-hold-image-clip`, `tdb-hold-blur-circle`, `tdb-hold-ripple-edge` and the two word
 position classes. The Home variant allows frame overflow; its new inner image
 clip preserves the original aspect ratio and crops zoom/parallax. The decorative
-20px backdrop-blur circle lives in the native speaker overlay, sharing the
+32px backdrop-blur circle lives in the native speaker overlay, sharing the
 button's centre. Its soft radial mask leaves the centre and outside clear. The
-ring starts just outside the speaker, expands beyond the card while dissolving,
-and has a separate native 1px cream outline following the same fade. The edge
+ring reaches 2.4 times the speaker diameter in 150ms, then expands more gently
+beyond the card while dissolving. Its separate native 2px cream outline begins
+at 50% opacity and follows the same fade to transparent. The edge
 is a sibling so its outline remains outside the mask and the photo backdrop
 is not blocked by an ancestor's opacity. The ripple reverses into the speaker
 on release. Words and controls sit above it. The external

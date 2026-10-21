@@ -49,20 +49,19 @@
       opacity: current.opacity,
     };
     const button = element.parentElement.querySelector('[data-tdb-hold-audio]');
-    // The native overlay centres both the speaker and ripple. Start just outside
-    // the button rim, then let the masked blur ring dissolve as it expands.
+    // Clear the finger quickly, then ease into a slower outward ripple.
     const seed = Math.min(
       1,
       Math.max(
         parseFloat(from.scale) || 0,
-        ((button?.getBoundingClientRect().width || 0) * 1.45) / (parseFloat(current.width) || 1),
+        ((button?.getBoundingClientRect().width || 0) * 2.4) / (parseFloat(current.width) || 1),
       ),
     );
     const frames = held
       ? [
           { ...from, offset: 0 },
-          { scale: String(seed), opacity: 0.95, offset: 0.02 },
-          { scale: String(seed + (1 - seed) * 0.35), opacity: 0.55, offset: 0.36 },
+          { scale: String(seed), opacity: 1, offset: 0.015 },
+          { scale: String(seed + (1 - seed) * 0.45), opacity: 0.55, offset: 0.22 },
           { scale: '1', opacity: 0, offset: 1 },
         ]
       : [
@@ -309,7 +308,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.3.0',
+    version: '1.3.1',
     press,
     release,
     destroy,

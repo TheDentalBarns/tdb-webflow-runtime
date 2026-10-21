@@ -454,7 +454,12 @@ test('blur reverses from current geometry without altering native layout or para
   assert.equal(animation.options.duration, 10000);
   assert.equal(animation.frames.at(-1).scale, '1');
   assert.equal(animation.frames.at(-1).opacity, 0, 'outgoing ripple dissolves at its outer limit');
-  assert.equal(animation.frames[1].opacity, 0.95, 'visible feedback begins at the speaker');
+  assert.equal(animation.frames[1].opacity, 1, 'visible feedback begins at the speaker');
+  assert.equal(
+    animation.frames[1].offset * animation.options.duration,
+    150,
+    'ripple clears the finger promptly',
+  );
   const edge = f.w.document.querySelector('[data-tdb-audio-ripple-edge]');
   const edgeAnimation = f.calls.animations.find((a) => a.element === edge);
   assert.deepEqual(
