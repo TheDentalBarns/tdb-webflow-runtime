@@ -88,6 +88,31 @@ const server = http.createServer((req, res) => {
       );
       await page.evaluate(() => (document.getElementById('vip').style.display = 'none'));
       assert.equal(await page.locator('.tdb-review-widget').getAttribute('aria-hidden'), 'false');
+      await page.waitForTimeout(100);
+      const scrollQueries = await page.evaluate(async () => {
+        const original = document.querySelector;
+        let queries = 0;
+        document.querySelector = function (selector) {
+          if (/review-widget-boundary|review-introduction|hero---headline/.test(selector))
+            queries++;
+          return original.call(this, selector);
+        };
+        try {
+          for (let i = 0; i < 30; i++) {
+            dispatchEvent(new Event('scroll'));
+            await new Promise(requestAnimationFrame);
+          }
+        } finally {
+          document.querySelector = original;
+        }
+        return queries;
+      });
+      console.log(`${width}px: ${scrollQueries} hero queries across 30 scroll frames`);
+      assert.equal(
+        scrollQueries,
+        0,
+        'scroll reuses the existing hero instead of searching the DOM',
+      );
       await page.screenshot({ path: path.join(root, `tests/review-widget-${width}.png`) });
       await page.evaluate(() => scrollTo(0, 700));
       await page.waitForTimeout(500);
@@ -96,6 +121,20 @@ const server = http.createServer((req, res) => {
       await page.evaluate(() => scrollTo(0, 1000));
       await page.waitForTimeout(500);
       assert.equal(assets.length, 2, 'no repeat loading on re-entry');
+      await page.evaluate(() => {
+        const old = document.querySelector('section');
+        const replacement = old.cloneNode(true);
+        replacement.style.height = '1500px';
+        old.replaceWith(replacement);
+        scrollTo(0, 1000);
+        dispatchEvent(new Event('scroll'));
+      });
+      await page.waitForTimeout(500);
+      assert.equal(
+        await page.locator('.tdb-review-widget').getAttribute('aria-hidden'),
+        'true',
+        'replaced hero invalidates the cached boundary',
+      );
       await page.evaluate(() => TDBReviewWidgetLoader.destroy());
       assert.equal(await page.locator('.tdb-review-widget').count(), 0);
       assert.deepEqual(errors, []);
@@ -129,6 +168,35 @@ const server = http.createServer((req, res) => {
     assert.equal(assets.length, 2, 'restored/deep scroll supports legacy review hero');
     console.log('PASS absent hero and legacy/restored-scroll boundary');
     await page.close();
+    const pending = await browser.newPage();
+    let releaseScript, scriptRequested;
+    const waiting = new Promise((resolve) => {
+      scriptRequested = resolve;
+    });
+    const gate = new Promise((resolve) => {
+      releaseScript = resolve;
+    });
+    await pending.route('**/dist/tdb-review-widget.js', async (route) => {
+      scriptRequested();
+      await gate;
+      await route.continue();
+    });
+    await pending.goto(`http://127.0.0.1:${server.address().port}/`);
+    await pending.evaluate(() => {
+      choose();
+      scrollTo(0, 1000);
+    });
+    await waiting;
+    await pending.evaluate(() => scrollTo(0, 0));
+    releaseScript();
+    await pending.waitForSelector('.tdb-review-widget', { state: 'attached' });
+    assert.equal(
+      await pending.locator('.tdb-review-widget').getAttribute('aria-hidden'),
+      'true',
+      'finishing a delayed download does not reveal after returning to the hero',
+    );
+    await pending.close();
+    console.log('PASS return to hero during pending asset download');
   } finally {
     await browser.close();
     server.close();

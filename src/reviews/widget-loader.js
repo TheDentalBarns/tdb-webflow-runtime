@@ -9,6 +9,7 @@ function prepareReviewWidgetLoader() {
     frame = 0,
     flight,
     widget,
+    dirty = true,
     disposed = false,
     retryAt = 0;
   const allowed = () =>
@@ -19,8 +20,8 @@ function prepareReviewWidgetLoader() {
         section.getClientRects().length &&
         section.getBoundingClientRect().bottom <= 0,
     );
-  async function load() {
-    if (!allowed() || !past() || flight || widget || Date.now() < retryAt) return;
+  function load() {
+    if (flight || widget || Date.now() < retryAt || !allowed() || !past()) return;
     flight = Promise.all([
       window.TDBModules.load(new URL('tdb-review-widget.css', TDBRuntimeModuleRoot), {
         type: 'style',
@@ -51,28 +52,38 @@ function prepareReviewWidgetLoader() {
   function update() {
     frame = 0;
     if (disposed) return;
-    // Some CMS and older pages still use the shared Hero Headline review badge.
-    const legacy = document.querySelector('[data-wf--hero---headline--variant] .button.is-review');
-    const next =
-      document.querySelector('[data-tdb-review-widget-boundary]') ||
-      document.querySelector('[data-tdb-review-introduction]') ||
-      legacy?.closest('[data-wf--hero---headline--variant]');
-    if (next !== section) {
-      if (section) observer?.unobserve(section);
-      section = next;
-      if (section) observer?.observe(section);
+    // Scroll only measures the cached boundary. Layout/lifecycle refreshes can
+    // discover a new override; a detached boundary is replaced on the next frame.
+    if (dirty || (section && !section.isConnected)) {
+      dirty = false;
+      const next =
+        document.querySelector('[data-tdb-review-widget-boundary]') ||
+        document.querySelector('[data-tdb-review-introduction]') ||
+        document
+          .querySelector('[data-wf--hero---headline--variant] .button.is-review')
+          ?.closest('[data-wf--hero---headline--variant]');
+      if (next !== section) {
+        if (section) observer?.unobserve(section);
+        section = next;
+        if (section) observer?.observe(section);
+      }
     }
     if (widget) widget.setVisible(past());
     else load();
   }
+  function queue() {
+    if (!disposed && !frame && (section || dirty)) frame = requestAnimationFrame(update);
+  }
   function refresh() {
-    if (!disposed && !frame) frame = requestAnimationFrame(update);
+    dirty = true;
+    queue();
   }
   if ('ResizeObserver' in window) {
     observer = new ResizeObserver(refresh);
     observer.observe(document.body);
   }
-  for (const type of ['scroll', 'resize', 'pageshow', 'tdb:features-ready'])
+  window.addEventListener('scroll', queue, { passive: true, signal });
+  for (const type of ['resize', 'pageshow', 'tdb:features-ready'])
     window.addEventListener(type, refresh, { passive: true, signal });
   window.addEventListener(
     'online',

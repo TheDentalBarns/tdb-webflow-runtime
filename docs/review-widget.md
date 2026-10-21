@@ -20,6 +20,17 @@ and easing, immediately removing it from keyboard/pointer interaction. Scroll,
 resize, layout changes and history restoration remeasure the boundary. A failed
 download can retry after three seconds on scrolling, or immediately on reconnect.
 
+The loader caches the hero element instead of querying the whole page on every
+scroll frame. Resize/layout, lifecycle and explicit refreshes rediscover it;
+detached heroes are replaced on the next scroll frame. A page without a hero
+does not schedule scroll frames until a layout/lifecycle refresh finds one.
+Pending downloads and retry cooldowns do not recheck consent or measure layout
+on each scroll. There are no polling timers or extra dependency requests.
+
+The locked appearance uses 80% black glass, 1.5rem left padding, a 2.25rem gap
+on desktop and a 1.125rem gap below 768px. The unbacked Google logo remains in
+colour; its loading ring follows the artwork's visible outer diameter.
+
 Activation uses the existing review-trigger delegation, busy state, focus return
 and deferred review drawer. Older pages receive an empty drawer mount point if
 needed; no drawer markup, content or assets are duplicated at widget mount.
