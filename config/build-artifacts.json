@@ -192,10 +192,10 @@
       "sources": [
         "src/components/hold-audio.js"
       ],
-      "sha256": "19f243c1834383dff853b0f2763a1a09a21df31fd038f8b1996d871465a30f8b",
-      "raw": 5201,
-      "gzip": 2159,
-      "brotli": 1944
+      "sha256": "6bfad7ba0b793a452e704e79de21870893773e1d7040fe974720d716dca58c28",
+      "raw": 5463,
+      "gzip": 2247,
+      "brotli": 2018
     },
     "dist/tdb-home-desktop-instagram.js": {
       "sources": [
@@ -537,10 +537,10 @@
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "7be07b985083393a89599fc82c294031f66378c7ead62281b90276a8428389be",
-      "raw": 70015,
-      "gzip": 18725,
-      "brotli": 16501
+      "sha256": "e966ff60f67fe9ed801ec2645636a9acd539f7faee9f6e72f0b1f4ed700f6444",
+      "raw": 70102,
+      "gzip": 18742,
+      "brotli": 16522
     },
     "dist/tdb-service-awards.js": {
       "sources": [

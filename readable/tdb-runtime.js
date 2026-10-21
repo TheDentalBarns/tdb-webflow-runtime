@@ -2678,6 +2678,7 @@ function prepareHoldAudioLoader() {
     if (!session) return;
     session.button.setAttribute('aria-pressed', 'false');
     session.button.removeAttribute('aria-busy');
+    session.button.removeAttribute('data-tdb-loading');
     if (session.pointer != null && session.button.hasPointerCapture?.(session.pointer))
       session.button.releasePointerCapture(session.pointer);
   }
@@ -2688,6 +2689,7 @@ function prepareHoldAudioLoader() {
     held = session;
     button.setAttribute('aria-pressed', 'true');
     button.setAttribute('aria-busy', 'true');
+    button.setAttribute('data-tdb-loading', 'true');
     if (session.pointer != null) {
       try {
         button.setPointerCapture(session.pointer);

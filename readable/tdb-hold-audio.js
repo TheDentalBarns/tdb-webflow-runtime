@@ -29,15 +29,23 @@
   function animateEffect(element, frames, options, retain = false) {
     if (!element?.animate) return;
     effects.get(element)?.cancel();
+    // Designer parks inactive decorations. In particular, a transparent,
+    // oversized backdrop blur must not remain paintable over the next card.
+    element.style.visibility = 'visible';
     const animation = element.animate(frames, options);
     effects.set(element, animation);
-    animation.finished
-      .then(() => {
-        if (retain || effects.get(element) !== animation) return;
+    const settled = (keep) => {
+      if (effects.get(element) !== animation) return;
+      element.style.removeProperty('visibility');
+      if (!keep) {
         animation.cancel();
         effects.delete(element);
-      })
-      .catch(() => {});
+      }
+    };
+    animation.finished.then(
+      () => settled(retain),
+      () => settled(false),
+    );
   }
 
   function circle(element, held, immediate = false) {
@@ -131,14 +139,15 @@
       fill: 'forwards',
     });
     state.animation = animation;
-    if (!held)
-      animation.finished
-        .then(() => {
-          if (state.animation !== animation) return;
+    // Every zoom can be cancelled by release/re-press, including a held zoom.
+    animation.finished
+      .then(() => {
+        if (!held && zooms.get(image) === state && state.animation === animation) {
           animation.cancel();
           zooms.delete(image);
-        })
-        .catch(() => {});
+        }
+      })
+      .catch(() => {});
   }
 
   function position(voice) {
@@ -191,6 +200,7 @@
     circle(session.circle, false, immediate);
     session.button.setAttribute('aria-pressed', 'false');
     session.button.removeAttribute('aria-busy');
+    session.button.removeAttribute('data-tdb-loading');
     if (session.pointer != null && session.button.hasPointerCapture?.(session.pointer))
       session.button.releasePointerCapture(session.pointer);
     zoom(session.image, false);
@@ -229,6 +239,7 @@
     active = session;
     button.setAttribute('aria-pressed', 'true');
     button.setAttribute('aria-busy', 'true');
+    button.setAttribute('data-tdb-loading', 'true');
     if (session.pointer != null) {
       try {
         button.setPointerCapture(session.pointer);
@@ -278,6 +289,7 @@
           }
           session.voice = voice;
           button.removeAttribute('aria-busy');
+          button.removeAttribute('data-tdb-loading');
           button.title = 'Hold to listen';
         })
         .catch(() => failed(session));
@@ -299,7 +311,10 @@
     lifecycle.abort();
     zooms.forEach((state) => state.animation?.cancel());
     zooms.clear();
-    effects.forEach((animation) => animation.cancel());
+    effects.forEach((animation, element) => {
+      animation.cancel();
+      element.style.removeProperty('visibility');
+    });
     effects.clear();
     voices.forEach(finishVoice);
     voices.clear();
@@ -308,7 +323,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.3.1',
+    version: '1.3.3',
     press,
     release,
     destroy,

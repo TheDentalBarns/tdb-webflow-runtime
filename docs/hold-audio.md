@@ -20,6 +20,11 @@ cancellation, lost capture, blur and page hiding stop playback. A pending
 download never starts playback after the press has ended. Failed downloads
 can be retried on the next hold.
 
+The shared native loading circle replaces the speaker icon while the controller,
+audio context or sound is pending. The loader sets `data-tdb-loading` immediately
+on press; the controller clears it when playback starts. Every release, failure
+and teardown clears it as well. Early release still prevents late playback.
+
 The image uses an individual scale animation: a steady 6% increase over ten
 seconds, then a fixed limit. Release returns it over 1.2 seconds. Existing
 parallax retains ownership of translate/transform. Sound fades out with an
@@ -31,10 +36,11 @@ The existing native word elements are restored. The nine-word sequence is
 authored in `data-tdb-audio-word-sequence`: HOLD, BREATHE, RELAX, UNWIND,
 PEACEFUL, CALM, STILL, REST, EASE. Three words fade in and out per ten-second hold; the next
 hold continues across any card. Releasing early cancels the remaining cues.
-Reception places the word at the top, lounge in the middle, chair near the bottom.
+All three use the middle card's native `text-size-large` Home variant, centred
+over the image with its existing smaller mobile size.
 
-Designer owns `tdb-hold-image-clip`, `tdb-hold-blur-circle`, `tdb-hold-ripple-edge` and the two word
-position classes. The Home variant allows frame overflow; its new inner image
+Designer owns `tdb-hold-image-clip`, `tdb-hold-blur-circle`, `tdb-hold-ripple-edge` and the centred word
+style. The Home variant allows frame overflow; its inner image
 clip preserves the original aspect ratio and crops zoom/parallax. The decorative
 32px backdrop-blur circle lives in the native speaker overlay, sharing the
 button's centre. Its soft radial mask leaves the centre and outside clear. The
@@ -46,7 +52,12 @@ is not blocked by an ancestor's opacity. The ripple reverses into the speaker
 on release. Words and controls sit above it. The external
 controller animates only scale/opacity with the Web Animations API, reverses from
 the current appearance on early release/re-press, and cancels all effects/timers
-on teardown. No CSS or markup is injected at runtime; no head blocks are added.
+on teardown. Inactive words, blur and outline are natively `visibility:hidden`.
+The controller makes only the current effect visible until it finishes or is
+cancelled, then restores the hidden state. A cancelled predecessor cannot hide a
+new animation. This parks the oversized backdrop-filter surface after use while
+preserving the expanding and returning ripple. No CSS or markup is injected at
+runtime; no head blocks are added.
 
 Validation: `node --test tests/hold-audio.test.cjs`. Staging browser checks cover
 desktop and mobile native styling, actual Web Audio playback state, delayed

@@ -13,6 +13,7 @@ function fixture({
   cold = false,
   visual = false,
   clock = false,
+  code = source,
 } = {}) {
   const dom = new JSDOM(
     empty
@@ -70,7 +71,7 @@ function fixture({
       calls.moduleUrl = url;
       return new Promise((resolve) => {
         finishModule = () => {
-          w.eval(source);
+          w.eval(code);
           resolve();
         };
         if (!cold) finishModule();
@@ -143,14 +144,23 @@ function fixture({
     }
   };
   w.Element.prototype.animate = function (frames, options) {
+    let finish, reject;
     const animation = {
       element: this,
       frames,
       options,
       cancelled: false,
-      finished: new Promise(() => {}),
+      finished: new Promise((resolve, fail) => {
+        finish = resolve;
+        reject = fail;
+      }),
+      finish() {
+        finish();
+      },
       cancel() {
+        if (this.cancelled) return;
         this.cancelled = true;
+        reject(new w.DOMException('Cancelled', 'AbortError'));
       },
     };
     calls.animations.push(animation);
@@ -233,7 +243,9 @@ test('cold module unlocks audio in the gesture; early release stays silent', asy
   const pending = f.down();
   assert.equal(f.calls.resume, 1);
   await pending;
+  assert.equal(f.buttons[0].getAttribute('data-tdb-loading'), 'true');
   f.up();
+  assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
   await f.moduleReady();
   assert.equal(f.calls.fetch, 0);
   assert.equal(f.calls.voices.length, 0);
@@ -247,9 +259,11 @@ test('cold module plays when original press is held through its arrival', async 
   const f = fixture({ cold: true });
   await f.down();
   await f.moduleReady();
+  assert.equal(f.buttons[0].getAttribute('data-tdb-loading'), 'true');
   f.downloads[0]();
   await tick();
   assert.equal(f.calls.voices[0].started, 1);
+  assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
   f.cleanup();
 });
 
@@ -354,6 +368,7 @@ for (const reason of [
     await tick();
     assert.equal(f.calls.voices.length, 0);
     assert.equal(f.w.TDBHoldAudio.status().holding, false);
+    assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
     assert.equal(f.calls.animations.at(-1).frames.at(-1).scale, '1.06');
     f.cleanup();
   });
@@ -366,6 +381,7 @@ test('failed fetch resets UI and retries on next hold', async () => {
   await tick();
   assert.equal(f.w.TDBHoldAudio.status().holding, false);
   assert.match(f.buttons[0].title, /unavailable/);
+  assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
   f.up();
   f.online();
   await f.down();
@@ -485,3 +501,63 @@ test('blur reverses from current geometry without altering native layout or para
   f.cleanup();
   assert.ok(f.calls.animations.every((a) => a.cancelled));
 });
+
+for (const [label, code] of [
+  ['source', source],
+  ['bundle', fs.readFileSync('dist/tdb-hold-audio.js', 'utf8')],
+]) {
+  function effectsFixture() {
+    const f = fixture({ code, visual: true, clock: true });
+    const style = f.w.document.createElement('style');
+    style.textContent =
+      '[data-tdb-audio-circle],[data-tdb-audio-ripple-edge],[data-tdb-audio-words]{visibility:hidden}';
+    f.w.document.head.append(style);
+    const cards = [...f.w.document.querySelectorAll('[data-tdb-audio-card]')];
+    return { ...f, cards, decorations: [...cards[0].querySelectorAll('div')] };
+  }
+
+  test(`${label}: first speaker leaves neighbouring visuals untouched and parks completed effects`, async () => {
+    const f = effectsFixture();
+    const untouched = f.cards.slice(1).map((card) => card.outerHTML);
+    await f.down();
+    assert.ok(f.decorations.every((el) => f.w.getComputedStyle(el).visibility === 'visible'));
+    assert.ok(f.calls.animations.every((a) => f.cards[0].contains(a.element)));
+    f.up();
+    const latest = new Map(f.calls.animations.map((a) => [a.element, a]));
+    latest.forEach((animation) => animation.finish());
+    await tick();
+    assert.ok(f.decorations.every((el) => f.w.getComputedStyle(el).visibility === 'hidden'));
+    assert.ok(f.calls.animations.every((a) => a.cancelled));
+    f.advance(12000);
+    assert.deepEqual(
+      f.cards.slice(1).map((card) => card.outerHTML),
+      untouched,
+    );
+    assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+    f.cleanup();
+  });
+
+  test(`${label}: rapid re-press keeps current effects visible; cancellation and destroy park them`, async () => {
+    const f = effectsFixture();
+    await f.down();
+    f.up();
+    await f.down(0, 2);
+    assert.ok(f.decorations.every((el) => f.w.getComputedStyle(el).visibility === 'visible'));
+    const circle = f.decorations[0];
+    const held = f.calls.animations.filter((a) => a.element === circle).at(-1);
+    held.finish();
+    await tick();
+    assert.equal(f.w.getComputedStyle(circle).visibility, 'hidden');
+    assert.equal(held.cancelled, false, 'hold retains its endpoint for the returning ripple');
+    f.up(0, 2);
+    assert.equal(f.w.getComputedStyle(circle).visibility, 'visible');
+    const returning = f.calls.animations.filter((a) => a.element === circle).at(-1);
+    returning.cancel();
+    await tick();
+    assert.equal(f.w.getComputedStyle(circle).visibility, 'hidden');
+    f.w.TDBHoldAudioLoader.destroy();
+    assert.ok(f.decorations.every((el) => f.w.getComputedStyle(el).visibility === 'hidden'));
+    assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+    f.cleanup();
+  });
+}
