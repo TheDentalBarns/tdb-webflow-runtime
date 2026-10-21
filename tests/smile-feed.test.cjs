@@ -19,7 +19,8 @@ function setup(options={}){
  w.fetch=async(url,config)=>{requests.push({url:String(url),config});if(options.gate)await options.gate;return {ok:!fail,headers:{get:()=> 'application/json'},text:async()=>JSON.stringify(payload)}};
  w.Image=class{set src(value){images.push(value);queueMicrotask(()=>this.onload?.())}decode(){return Promise.resolve()}};
  w.TDBModules={async load(url,config){loads.push({url:String(url),config});if(String(url).endsWith('tdb-smile-feed.js'))w.eval(source);if(fail)throw Error('offline')}};
- w.TDBSliderLoader={async load(root){mounts++;w.TDBSmileFeed.presentation(root).update(0);root.setAttribute('data-tdb-slider-init','true')}};
+ w.TDBSliderLoader={async load(){if(options.sliderGate)await options.sliderGate;}};
+ w.TDBSwiper={prune(){},mount(name,root){assert.equal(name,'gallery');mounts++;w.TDBSmileFeed.presentation(root).update(0);root.setAttribute('data-tdb-slider-init','true')}};
  w.eval(source);
  const holder=d.querySelector('[data-tdb-smile-placeholder]');
  return {w,d,holder,payload,requests,loads,observers,images,mounts:()=>mounts,prepare:()=>w.TDBSmileFeed.prepare(holder),permit(value){allowed=value;subscriptions.forEach(fn=>fn())},fix(){fail=false},close(){w.TDBSmileFeatureLoader?.destroy();w.TDBSmileFeed.destroy();w.close()}};
@@ -49,6 +50,12 @@ test('one shared set of labels/details; seven lean cards; data stays text and on
  presentation.open(false);assert.equal(root.querySelector('.tdb-smile-details').getAttribute('aria-hidden'),'true');
  await x.prepare();assert.equal(x.mounts(),1);
  x.w.TDBSmileFeed.destroy();assert.equal(x.holder.children.length,1);assert.equal(x.holder.dataset.smileState,undefined);x.close();
+});
+test('700px preparation mounts directly after dependencies without a second proximity gate',async()=>{
+ let release;const x=setup({sliderGate:new Promise(r=>release=r)});try{
+  const preparing=x.prepare();await tick();assert.equal(x.mounts(),0);release();await preparing;
+  assert.equal(x.mounts(),1);assert.equal(x.holder.dataset.smileState,'ready');
+ }finally{x.close();}
 });
 test('late feed cannot mount after permission revocation',async()=>{
  let release;const x=setup({gate:new Promise(r=>release=r)});const flight=x.prepare();await tick();

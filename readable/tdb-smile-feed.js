@@ -321,7 +321,16 @@
         signal,
         () => root.getAttribute('data-tdb-slider-init') === 'true',
       );
-      await Promise.all([window.TDBSliderLoader.load(root), mounted]);
+      await Promise.all([
+        window.TDBSliderLoader.load(root).then(() => {
+          check(holder, signal);
+          // The embed already passed its 700px gate. Do not wait for the
+          // generic carousel's separate 100px mount observer and time out.
+          // First-view entrance motion retains its own visibility gate.
+          window.TDBSwiper.mount('gallery', root);
+        }),
+        mounted,
+      ]);
       check(holder, signal);
       holder.setAttribute('data-smile-state', 'ready');
       holder.removeAttribute('aria-busy');

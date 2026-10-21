@@ -564,10 +564,10 @@
       "sources": [
         "src/smile-gallery/feed.js"
       ],
-      "sha256": "2bb2b5ba5950b96be7328d1cbfd40a56b075b7810dfc07bee0f3f632716457ec",
-      "raw": 11897,
-      "gzip": 4058,
-      "brotli": 3511
+      "sha256": "0b6dac8bd41eb18f16a5c9646ddf0203a8760ac773b6aef798f5eac3014064d6",
+      "raw": 11952,
+      "gzip": 4080,
+      "brotli": 3549
     },
     "dist/tdb-smile-gallery.min.js": {
       "sources": [
