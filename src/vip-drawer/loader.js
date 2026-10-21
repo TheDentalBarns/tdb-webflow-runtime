@@ -40,7 +40,42 @@ function prepareVIPDrawerLoader() {
   const jsUrl = window.TDBModules.resolve(new URL('tdb-vip-drawer.js', TDBRuntimeModuleRoot));
   let loadingPromise = null;
   let contentPromise = null;
+  let announcementFlight = null;
   let armed = false;
+  const allowed = () => !window.TDBConsent || window.TDBConsent.allows();
+  const announcements = () => [...document.querySelectorAll('[data-tdb-announcement]')];
+  const announcementReady = () =>
+    !announcements().length ||
+    announcements().some((node) => node.hasAttribute('data-tdb-announcement-ready'));
+  function waitForAnnouncement() {
+    if (!allowed()) return Promise.reject(new DOMException('Cancelled', 'AbortError'));
+    if (announcementReady()) return Promise.resolve();
+    if (announcementFlight) return announcementFlight;
+    announcementFlight = new Promise((resolve, reject) => {
+      const finish = (error) => {
+        clearTimeout(timeout);
+        window.removeEventListener('tdb:announcement-state', check);
+        error ? reject(error) : resolve();
+      };
+      const check = () => {
+        if (!allowed()) finish(new DOMException('Cancelled', 'AbortError'));
+        else if (announcementReady()) finish();
+      };
+      const timeout = setTimeout(() => finish(Error('Announcement is not ready')), 30000);
+      window.addEventListener('tdb:announcement-state', check);
+      // Direct VIP activation can start the announcement, but never bypass it.
+      Promise.resolve()
+        .then(() => window.TDBAnnouncementLoader.load())
+        .then((api) => {
+          announcements().forEach((node) => api.mount(node));
+          check();
+        })
+        .catch(finish);
+    }).finally(() => {
+      announcementFlight = null;
+    });
+    return announcementFlight;
+  }
   // Prefer the window scroll offset, including zero, without also asking the
   // root element for layout. Retain the element fallback for older engines.
   const pageY = () => Math.max(window.scrollY ?? document.documentElement.scrollTop ?? 0, 0);
@@ -57,14 +92,20 @@ function prepareVIPDrawerLoader() {
     window.removeEventListener('scroll', onPrepareScroll);
     window.removeEventListener('pageshow', onPageShow);
     window.removeEventListener('hashchange', onHashChange);
+    window.removeEventListener('tdb:announcement-state', onAnnouncementState);
   }
 
   function loadDrawer() {
     if (loadingPromise) return loadingPromise;
     if (realDrawerReady()) return Promise.resolve(window.TDBVIPDrawer);
-    tdbPreloadVIPScript(jsUrl);
-    loadingPromise = Promise.all([tdbEnsureUI(), tdbEnsureVIPUI(), tdbEnsureVIPChrome()])
+    loadingPromise = waitForAnnouncement()
       .then(() => {
+        if (!allowed()) throw new DOMException('Cancelled', 'AbortError');
+        tdbPreloadVIPScript(jsUrl);
+        return Promise.all([tdbEnsureUI(), tdbEnsureVIPUI(), tdbEnsureVIPChrome()]);
+      })
+      .then(() => {
+        if (!allowed()) throw new DOMException('Cancelled', 'AbortError');
         return tdbLoadVIPScript(jsUrl);
       })
       .then(() => {
@@ -89,16 +130,23 @@ function prepareVIPDrawerLoader() {
   function prepareContent() {
     if (!drawer.hasAttribute('data-tdb-vip-lazy')) return Promise.resolve();
     if (contentPromise) return contentPromise;
-    contentPromise = Promise.all([
-      window.TDBModules.load(new URL('tdb-vip-content.js', TDBRuntimeModuleRoot), {
-        ready: () => !!window.TDBVIPContent,
-      }),
-      window.TDBModules.load(new URL('tdb-vip-content.css', TDBRuntimeModuleRoot), {
-        type: 'style',
-      }),
-      window.TDBFormsLoader.load(),
-    ])
-      .then(() => window.TDBVIPContent.mount(drawer))
+    contentPromise = waitForAnnouncement()
+      .then(() => {
+        if (!allowed()) throw new DOMException('Cancelled', 'AbortError');
+        return Promise.all([
+          window.TDBModules.load(new URL('tdb-vip-content.js', TDBRuntimeModuleRoot), {
+            ready: () => !!window.TDBVIPContent,
+          }),
+          window.TDBModules.load(new URL('tdb-vip-content.css', TDBRuntimeModuleRoot), {
+            type: 'style',
+          }),
+          window.TDBFormsLoader.load(),
+        ]);
+      })
+      .then(() => {
+        if (!allowed()) throw new DOMException('Cancelled', 'AbortError');
+        return window.TDBVIPContent.mount(drawer);
+      })
       .catch((error) => {
         contentPromise = null;
         throw error;
@@ -146,8 +194,15 @@ function prepareVIPDrawerLoader() {
   const loadSafely = () => {
     loadDrawer().catch(() => {});
   };
+  function prepareForBanner() {
+    if (!allowed() || !announcementReady()) return;
+    Promise.all([loadDrawer(), prepareContent()]).catch(() => {});
+  }
+  function onAnnouncementState(event) {
+    if (event.detail?.ready && (event.detail.visible || scrollSeed.peek)) prepareForBanner();
+  }
   function onPrepareIntent(event) {
-    if (findTrigger(event)) loadSafely();
+    if (findTrigger(event)) prepareForBanner();
   }
   function onPrepareScroll() {
     const y = pageY();
@@ -164,11 +219,19 @@ function prepareVIPDrawerLoader() {
     }
     if (y <= innerHeight * 0.5) scrollSeed.peek = false;
     scrollSeed.lastY = y;
-    // First actual movement gives the download a head start before a reversal.
-    loadSafely();
+    // The calling handle is about to appear; arbitrary scrolling is not intent.
+    if (scrollSeed.peek) prepareForBanner();
   }
   function onPageShow(event) {
-    if (tdbReadPagePosition(event).y > 0) loadSafely();
+    if (
+      announcements().some(
+        (node) =>
+          node.hasAttribute('data-tdb-announcement-ready') &&
+          node.getAttribute('aria-hidden') === 'false',
+      ) ||
+      scrollSeed.peek
+    )
+      prepareForBanner();
   }
   function onHashChange() {
     if (/^#vip/i.test(location.hash || '')) loadSafely();
@@ -185,13 +248,14 @@ function prepareVIPDrawerLoader() {
       window.addEventListener('scroll', onPrepareScroll, { passive: true });
       window.addEventListener('pageshow', onPageShow, { passive: true });
       window.addEventListener('hashchange', onHashChange);
+      window.addEventListener('tdb:announcement-state', onAnnouncementState);
     }
   }
 
   arm();
   if (/^#vip/i.test(location.hash || '')) loadSafely();
   else if (demand) {
-    if (window.TDBRuntimePageState.vipScrollSeed.lastY > 0) loadSafely();
+    onPageShow();
   } else loadSafely();
 
   window.TDBVIPDrawerLoader = Object.freeze({

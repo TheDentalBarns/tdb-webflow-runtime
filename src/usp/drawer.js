@@ -364,7 +364,7 @@
       }
       section.addEventListener('click', activate);
       section.addEventListener('keydown', activate);
-      if (lazy) return; // No proximity, hover, focus or pointer-down warm-up.
+      if (window.TDBFeatureLoading || lazy) return; // Shared intent owns preparation.
       for (const name of ['pointerover', 'focusin', 'pointerdown'])
         section.addEventListener(
           name,
@@ -405,6 +405,10 @@
   window.TDBUSPDrawer = Object.freeze({
     version: '2.3.1',
     open,
+    prepare(section) {
+      discover();
+      return preparations.get(section)?.();
+    },
     refresh: discover,
     has: (section) => preparations.has(section),
     close() {

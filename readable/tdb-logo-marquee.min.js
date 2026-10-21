@@ -4,14 +4,14 @@
   const style = document.createElement('style');
   style.setAttribute('data-tdb-partner-controls', '');
   style.textContent =
-    '.tdb-partner-tooltip .tdb-service-discover .icon-embed-xxsmall{transition-duration:inherit;transition-timing-function:inherit;transition-delay:inherit}\n.tdb-partner-tooltip .tdb-service-discover:is(.is-hovered,.is-touch-held) .tdb-partner-icon{filter:invert(0)}\n.tdb-partner-logo.is-keyboard-focused{outline:1px solid #a79b86;outline-offset:-3px}';
+    ".tdb-partner-tooltip .tdb-service-discover .icon-embed-xxsmall{transition-duration:inherit;transition-timing-function:inherit;transition-delay:inherit}\n.tdb-partner-tooltip .tdb-service-discover:is(.is-hovered,.is-touch-held) .tdb-partner-icon{filter:invert(0)}\n.tdb-partner-logo.is-keyboard-focused{outline:1px solid #a79b86;outline-offset:-3px}\n\n.tdb-partner-logo[aria-busy='true']{position:relative}\n.tdb-partner-logo[aria-busy='true']::after{content:'';position:absolute;pointer-events:none;box-sizing:border-box;width:2rem;height:2rem;left:50%;top:50%;margin:-1rem 0 0 -1rem;border:1px solid #fff;border-bottom-color:transparent;border-left-color:transparent;border-radius:50%;animation:tdbControlSpin 1s linear infinite}\n@media(prefers-reduced-motion:reduce){html:not([data-tdb-motion='full']) .tdb-partner-logo[aria-busy='true']::after{animation:none}}";
   document.head.append(style);
 })();
 
 (() => {
   'use strict';
 
-  const VERSION = '0.15.1';
+  const VERSION = '0.15.2';
   const assetBase = new URL('./', document.currentScript.src);
   if (window.TDBLogoMarquee) return;
   const DEFAULTS = {
@@ -597,8 +597,17 @@
       return prepareFlight;
     }
     function warmShell() {
-      if (!lazy && shell && entries.length) prepareShell().catch(() => {});
+      // Shared intent owns speculative preparation; actual activation always works.
+      if (!window.TDBFeatureLoading && !lazy && shell && entries.length)
+        prepareShell().catch(() => {});
     }
+    if (lazy || (shell && entries.length))
+      window.TDBFeatureLoading?.watchIntent({
+        root: track,
+        selector: '.tdb-partner-logo',
+        prepare: prepareShell,
+        signal,
+      });
     function releaseActiveLogo() {
       spotlight?.style.removeProperty('display');
       hiddenLogos.forEach((visibility, logo) => {
@@ -606,11 +615,19 @@
       });
       hiddenLogos.clear();
     }
+    function setPendingItem(item = null) {
+      pendingItem = item;
+      // Both copies represent one logo across the looping track's seam.
+      track.querySelectorAll(CONFIG.itemSelector).forEach((node) => {
+        if (item && node.dataset.tdbLogoIndex === item.dataset.tdbLogoIndex)
+          node.setAttribute('aria-busy', 'true');
+        else node.removeAttribute('aria-busy');
+      });
+    }
     function closeCard(returnFocus = false, immediate = false) {
       requestGeneration++;
       clearTimeout(wheelSettleTimer);
-      pendingItem = null;
-      track.querySelectorAll('[aria-busy]').forEach((item) => item.removeAttribute('aria-busy'));
+      setPendingItem();
       if (!openCard) return;
       const card = openCard,
         item = openItem;
@@ -647,21 +664,18 @@
         return;
       }
       const generation = ++requestGeneration;
-      pendingItem = item;
-      item.setAttribute('aria-busy', 'true');
+      setPendingItem(item);
       try {
         await prepareShell();
       } catch (_) {
         if (generation === requestGeneration) {
-          pendingItem = null;
+          setPendingItem();
           item.setAttribute('aria-label', 'Unable to load partner details. Activate to try again.');
         }
-        item.removeAttribute('aria-busy');
         return;
       }
       if (signal.aborted || generation !== requestGeneration) return;
-      pendingItem = null;
-      track.querySelectorAll('[aria-busy]').forEach((node) => node.removeAttribute('aria-busy'));
+      setPendingItem();
       const entry = cards.get(item);
       if (!entry) {
         closeCard();

@@ -157,14 +157,20 @@
       timer;
     const imageWindow = () => {
       const radius = matchMedia('(min-width:992px)').matches ? 2 : 1,
-        length = payload.cases.length;
+        length = payload.cases.length,
+        viewportWidth = document.documentElement.clientWidth || innerWidth;
       for (const slide of track.children) {
         const index = Number(slide.getAttribute('data-smile-index'));
         const distance = Math.min(
           (index - current + length) % length,
           (current - index + length) % length,
         );
-        if (distance > radius) continue;
+        // Wide layouts can expose more than two neighbours. Cover every visible
+        // card plus one card-width beyond each screen edge, including loop clones.
+        const rect = slide.getBoundingClientRect();
+        const inWindow =
+          rect.width > 0 && rect.right >= -rect.width && rect.left <= viewportWidth + rect.width;
+        if (distance > radius && !inWindow) continue;
         slide.querySelectorAll('img').forEach((image) => {
           if (!image.hasAttribute('src')) image.src = payload.cases[index].image.src;
         });

@@ -1,5 +1,5 @@
 /* TDB reviews v4.1.0. Runtime starts this feature after a cookie decision.
- * Inline components retain proximity preparation. Drawer assets are demand-only.
+ * Inline components share 700px proximity. Drawer content prepares on shared intent.
  */
 (() => {
   'use strict';
@@ -371,7 +371,7 @@
             }
             reconcile();
           },
-          { rootMargin: '700px 0px' },
+          { rootMargin: window.TDBFeatureLoading?.embedMargin || '700px 0px' },
         )
       : null;
   function refresh() {
@@ -471,6 +471,12 @@
     restoreTriggers();
     dataFlight = null;
   }
+  window.TDBFeatureLoading?.watchIntent({
+    selector: triggers,
+    enabled: allowed,
+    signal: lifecycle.signal,
+    prepare: () => prepare({ signal: session.signal }),
+  });
   for (const type of ['pointerover', 'focusin', 'pointerdown'])
     document.addEventListener(type, intent, { passive: true, signal: lifecycle.signal });
   for (const type of ['click', 'keydown'])

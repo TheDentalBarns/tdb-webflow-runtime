@@ -14,7 +14,8 @@ const isolated = new Set([
   'dist/tdb-first-impressions.js',
   'dist/tdb-legacy-review-drawer.js',
 ]);
-const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
+// Embedded strings must be identical on Windows and CI.
+const read = (file) => fs.readFileSync(path.join(root, file), 'utf8').replace(/\r\n/g, '\n');
 const hash = (text) => crypto.createHash('sha256').update(text).digest('hex');
 const sizes = (text) => ({
   raw: Buffer.byteLength(text),

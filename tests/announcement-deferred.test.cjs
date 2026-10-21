@@ -65,6 +65,8 @@ test('announcement stays empty until consent and data are ready, then mounts onc
   const h = setup({ consent: false, load: () => new Promise((r) => { resolve = r; }) });
   try {
     const api = h.mount();
+    const states=[];h.w.addEventListener('tdb:announcement-state',event=>states.push(event.detail));
+    assert.equal(h.shell.hasAttribute('data-tdb-announcement-ready'),false);
     assert.equal(h.shell.childElementCount, 0); assert.equal(h.reads, 0);
     h.w.dispatchEvent(new h.w.Event('CookieScriptReject'));
     assert.equal(h.reads, 1); assert.equal(h.shell.childElementCount, 0);
@@ -74,6 +76,8 @@ test('announcement stays empty until consent and data are ready, then mounts onc
     assert.equal(h.shell.querySelector('.tdb-announcement-template'), null);
     assert.equal(h.shell.querySelector('.tdb-announcement-title').textContent, data.signature);
     assert.equal(h.shell.hasAttribute('data-tdb-announcement-pending'), false);
+    assert.equal(h.shell.hasAttribute('data-tdb-announcement-ready'),true);
+    assert(states.some(state=>state.ready));
     assert.equal(h.mount(), api); assert.equal(h.creates, 1);
     assert.equal(h.options.speed, 420);
   } finally { h.close(); }

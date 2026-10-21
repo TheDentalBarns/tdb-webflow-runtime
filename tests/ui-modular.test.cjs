@@ -26,6 +26,12 @@ test('all original UI and slider declarations survive the split', () => {
   const earlyViewport = declarations(read('src/styles/tdb-viewport-base.css'));
   const critical = declarations(read('dist/tdb-ui-critical.css'));
   for (const [key,count] of before) {
+    // Disabled controls retain the glass surface; only their glyph dims.
+    if (key === '.carousel-arrow:is(:disabled,[aria-disabled=true],.is-disabled)|opacity|.35|false') {
+      assert.equal(after.get(key.replace('|opacity|.35|', '|opacity|1|')), count);
+      assert.equal(after.get(key.replace(')|opacity|', ')>*|opacity|')), count);
+      continue;
+    }
     // Home disclosure focus now belongs to its native Designer classes.
     const sharedFocus = ':not(:where(.navbar10_link,.navbar10_dropdown-toggle,.is-navbar-control)):focus-visible';
     if (key.includes(sharedFocus)) {

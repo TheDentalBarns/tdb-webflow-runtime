@@ -587,8 +587,17 @@
       return prepareFlight;
     }
     function warmShell() {
-      if (!lazy && shell && entries.length) prepareShell().catch(() => {});
+      // Shared intent owns speculative preparation; actual activation always works.
+      if (!window.TDBFeatureLoading && !lazy && shell && entries.length)
+        prepareShell().catch(() => {});
     }
+    if (lazy || (shell && entries.length))
+      window.TDBFeatureLoading?.watchIntent({
+        root: track,
+        selector: '.tdb-partner-logo',
+        prepare: prepareShell,
+        signal,
+      });
     function releaseActiveLogo() {
       spotlight?.style.removeProperty('display');
       hiddenLogos.forEach((visibility, logo) => {

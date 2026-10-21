@@ -11,7 +11,8 @@ function setup(html='<section data-tdb-review-introduction><button data-tdb-revi
   const subscribers=new Set();
   w.console.warn=()=>{};
   w.TDBConsent={allows:()=>permission,subscribe(fn){subscribers.add(fn);fn();return()=>{unsubscribes++;subscribers.delete(fn);};}};
-  w.IntersectionObserver=class{constructor(fn){near=fn;}observe(){}unobserve(){}disconnect(){}};
+  const observers=[];
+  w.IntersectionObserver=class{constructor(fn,settings){near=fn;Object.assign(this,{fn,settings,nodes:new Set()});observers.push(this);}observe(node){this.nodes.add(node);}unobserve(node){this.nodes.delete(node);}disconnect(){this.nodes.clear();}};
   const data={records:[],total:85,average:4.95,featured:[],fetchRecords:async()=>{},ensureIdentity:async()=>{},ensure:async()=>{}};
   w.TDBReviewCMS={load:async()=>{dataLoads++;if(options.dataGate)await options.dataGate;return data;},resolveIdentity:()=>''};
   w.TDBMotion={ddText:()=>({destroy(){}})};
@@ -40,13 +41,42 @@ function setup(html='<section data-tdb-review-introduction><button data-tdb-revi
       finally{trigger.removeAttribute('aria-busy');trigger.removeAttribute('data-tdb-loading');}
     }
   };
-  return {w,dom,run(){w.eval(source);w.document.dispatchEvent(new w.Event('DOMContentLoaded'));},
+  return {w,dom,observers,run(){if(options.sharedIntent)w.eval(fs.readFileSync('src/shared/feature-loading.js','utf8'));w.eval(source);w.document.dispatchEvent(new w.Event('DOMContentLoaded'));},
     permit(v){permission=v;for(const fn of subscribers)fn();},
     near(root){near([{target:root,isIntersecting:true}]);},
     stats:()=>({loads,opens,dataLoads,mounts,destroys,templateMounts,unsubscribes}),
     close(){w.TDBReviewLoader?.destroy();w.TDBReviewFeatureLoader?.destroy();w.close();}};
 }
 const drawerFiles=/tdb-(drawer|filters|reviews|review-drawer)/;
+const entryPoints = [
+ ['count', '<button data-tdb-review-trigger>Read our reviews</button>'],
+ ['power', '<section data-tdb-review-introduction><button data-tdb-review-trigger>Power review</button></section>'],
+ ['trio', '<section data-tdb-review-quotes><button data-tdb-quote-action>Trio review</button></section>'],
+ ['embed', '<section data-tdb-review-cards><button data-tdb-cards-open>Read full review</button></section>'],
+];
+for (const [name, html] of entryPoints) test(name+' can be the first shared drawer preparation source', async()=>{
+ const e=setup(html+'<div data-tdb-review-lazy></div>',{sharedIntent:true});
+ try {
+  e.run(); const trigger=e.w.document.querySelector('button');
+  trigger.dispatchEvent(new e.w.Event('pointerdown',{bubbles:true}));await tick();
+  assert.equal(e.stats().templateMounts,1);assert.equal(e.stats().dataLoads,1);
+  assert.equal(e.stats().opens.length,0);
+  await e.w.TDBReviewLoader.open({trigger,reviewId:'chosen'});
+  assert.equal(e.stats().opens[0].id,'chosen');assert.equal(e.stats().dataLoads,1);
+  assert.equal(e.stats().templateMounts,1);
+ } finally { e.close(); }
+});
+test('dynamically inserted review embed trigger shares the already prepared drawer and data',async()=>{
+ const e=setup('<div data-tdb-review-lazy></div>',{sharedIntent:true});
+ try {
+  e.run();const trigger=e.w.document.createElement('button');trigger.setAttribute('data-tdb-cards-open','');e.w.document.body.append(trigger);await tick();
+  const io=e.observers.find(io=>io.settings.rootMargin==='0px');assert(io.nodes.has(trigger));
+  io.fn([{target:trigger,isIntersecting:true}]);await new Promise(resolve=>setTimeout(resolve,250));
+  assert.equal(e.stats().templateMounts,1);assert.equal(e.stats().dataLoads,1);assert.equal(e.stats().opens.length,0);
+  for(const [,html] of entryPoints){const host=e.w.document.createElement('div');host.innerHTML=html;e.w.document.body.append(host);const button=host.querySelector('button');button.dispatchEvent(new e.w.Event('focusin',{bubbles:true}));await e.w.TDBReviewLoader.open({trigger:button});}
+  assert.equal(e.stats().opens.length,4);assert.equal(e.stats().templateMounts,1);assert.equal(e.stats().dataLoads,1);
+ }finally{e.close();}
+});
 test('shared decision blocks all loading, then proximity prepares inline content without drawer warm-up',async()=>{
   const e=setup(undefined,{allowed:false});e.run();const root=e.w.document.querySelector('section');e.near(root);await tick();
   assert.equal(e.stats().loads.length,0);e.permit(true);await tick();assert.equal(e.stats().mounts,1);

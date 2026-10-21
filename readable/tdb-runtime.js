@@ -1,6 +1,209 @@
 /* Captured while the classic script executes; asynchronous features share it. */
 const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.currentScript.src);
 
+/* One post-consent policy for in-page proximity and additional-panel intent. */
+(() => {
+  'use strict';
+  if (window.TDBFeatureLoading) return;
+  const embedMargin = '700px 0px',
+    settledMs = 200,
+    retryMs = 5000;
+  const watches = new Set(),
+    targets = new Map();
+  let observer,
+    mutations,
+    events,
+    unsubscribe,
+    timer = 0,
+    lastScroll = 0;
+  const allowed = () => Boolean(window.TDBConsent?.allows()) && !document.hidden;
+  const usable = (node) =>
+    node.isConnected &&
+    // Marquee repeats are aria-hidden for accessibility but remain visible and clickable.
+    !node.closest('[hidden],[inert],.w-condition-invisible') &&
+    !node.matches(':disabled,[aria-disabled="true"]') &&
+    getComputedStyle(node).visibility !== 'hidden';
+  function unobserve(watch) {
+    for (const [node, owners] of targets) {
+      owners.delete(watch);
+      if (!owners.size) {
+        observer?.unobserve(node);
+        targets.delete(node);
+      }
+    }
+    watch.visible.clear();
+  }
+  function prepare(watch, node) {
+    if (
+      watch.done ||
+      watch.flight ||
+      !allowed() ||
+      !watch.enabled() ||
+      !usable(node) ||
+      Date.now() < watch.retryAt
+    )
+      return;
+    watch.flight = Promise.resolve()
+      .then(() => {
+        if (!watches.has(watch) || !allowed() || !watch.enabled() || !usable(node)) return false;
+        return Promise.resolve(watch.prepare(node)).then(() => true);
+      })
+      .then((prepared) => {
+        if (prepared && allowed() && watches.has(watch)) {
+          watch.done = true;
+          unobserve(watch);
+        }
+      })
+      .catch(() => {
+        watch.retryAt = Date.now() + retryMs;
+      })
+      .finally(() => {
+        watch.flight = null;
+      });
+  }
+  function settle() {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = 0;
+      if (!allowed()) return;
+      if (performance.now() - lastScroll < settledMs) {
+        settle();
+        return;
+      }
+      for (const watch of watches) {
+        const node = [...watch.visible].find(usable);
+        if (node) prepare(watch, node);
+      }
+    }, settledMs);
+  }
+  function refresh(watch) {
+    if (watch.done || !watches.has(watch)) return;
+    for (const [node, owners] of targets) {
+      if (!node.isConnected) {
+        for (const owner of owners) owner.visible.delete(node);
+        observer?.unobserve(node);
+        targets.delete(node);
+      }
+    }
+    for (const node of watch.root.querySelectorAll(watch.selector)) {
+      let owners = targets.get(node);
+      if (!owners) {
+        owners = new Set();
+        targets.set(node, owners);
+        observer?.observe(node);
+      }
+      owners.add(watch);
+    }
+  }
+  function start() {
+    if (events) return;
+    events = new AbortController();
+    if ('IntersectionObserver' in window)
+      observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries)
+            for (const watch of targets.get(entry.target) || []) {
+              if (entry.isIntersecting) watch.visible.add(entry.target);
+              else watch.visible.delete(entry.target);
+            }
+          settle();
+        },
+        { rootMargin: '0px', threshold: 0 },
+      );
+    const intent = (event) => {
+      if (event.type === 'pointerover' && event.pointerType === 'touch') return;
+      for (const watch of watches) {
+        const node = event.target.closest?.(watch.selector);
+        if (node && watch.root.contains(node)) prepare(watch, node);
+      }
+    };
+    for (const type of ['pointerover', 'focusin', 'pointerdown'])
+      document.addEventListener(type, intent, {
+        passive: true,
+        capture: true,
+        signal: events.signal,
+      });
+    window.addEventListener(
+      'scroll',
+      () => {
+        lastScroll = performance.now();
+        settle();
+      },
+      { passive: true, signal: events.signal },
+    );
+    for (const type of ['pageshow', 'online'])
+      window.addEventListener(
+        type,
+        () => {
+          for (const watch of watches) {
+            watch.retryAt = 0;
+            refresh(watch);
+          }
+          settle();
+        },
+        { signal: events.signal },
+      );
+    document.addEventListener('visibilitychange', settle, { signal: events.signal });
+    mutations = new MutationObserver((records) => {
+      if (
+        records.some((record) =>
+          [...record.addedNodes, ...record.removedNodes].some((node) => node.nodeType === 1),
+        )
+      )
+        for (const watch of watches) refresh(watch);
+    });
+    mutations.observe(document.body, { childList: true, subtree: true });
+    unsubscribe = window.TDBConsent?.subscribe(() => {
+      if (!allowed())
+        for (const watch of watches) {
+          watch.done = false;
+          refresh(watch);
+        }
+      settle();
+    });
+  }
+  function stop() {
+    if (watches.size) return;
+    clearTimeout(timer);
+    observer?.disconnect();
+    mutations?.disconnect();
+    events?.abort();
+    unsubscribe?.();
+    observer = mutations = events = unsubscribe = null;
+    targets.clear();
+  }
+  function watchIntent({ selector, root = document, prepare: work, enabled = () => true, signal }) {
+    const watch = {
+      selector,
+      root,
+      prepare: work,
+      enabled,
+      visible: new Set(),
+      done: false,
+      flight: null,
+      retryAt: 0,
+    };
+    function destroy() {
+      watches.delete(watch);
+      unobserve(watch);
+      stop();
+    }
+    if (!signal?.aborted) {
+      watches.add(watch);
+      start();
+      refresh(watch);
+      signal?.addEventListener('abort', destroy, { once: true });
+    }
+    return Object.freeze({ refresh: () => refresh(watch), destroy });
+  }
+  window.TDBFeatureLoading = Object.freeze({
+    version: '1.0.0',
+    embedMargin,
+    settledMs,
+    watchIntent,
+  });
+})();
+
 /* All first-party feature loaders share the registry shipped with consent. */
 function loadScript(src, attribute, recovery = false) {
   return Promise.resolve()
@@ -1033,7 +1236,42 @@ function prepareVIPDrawerLoader() {
   const jsUrl = window.TDBModules.resolve(new URL('tdb-vip-drawer.js', TDBRuntimeModuleRoot));
   let loadingPromise = null;
   let contentPromise = null;
+  let announcementFlight = null;
   let armed = false;
+  const allowed = () => !window.TDBConsent || window.TDBConsent.allows();
+  const announcements = () => [...document.querySelectorAll('[data-tdb-announcement]')];
+  const announcementReady = () =>
+    !announcements().length ||
+    announcements().some((node) => node.hasAttribute('data-tdb-announcement-ready'));
+  function waitForAnnouncement() {
+    if (!allowed()) return Promise.reject(new DOMException('Cancelled', 'AbortError'));
+    if (announcementReady()) return Promise.resolve();
+    if (announcementFlight) return announcementFlight;
+    announcementFlight = new Promise((resolve, reject) => {
+      const finish = (error) => {
+        clearTimeout(timeout);
+        window.removeEventListener('tdb:announcement-state', check);
+        error ? reject(error) : resolve();
+      };
+      const check = () => {
+        if (!allowed()) finish(new DOMException('Cancelled', 'AbortError'));
+        else if (announcementReady()) finish();
+      };
+      const timeout = setTimeout(() => finish(Error('Announcement is not ready')), 30000);
+      window.addEventListener('tdb:announcement-state', check);
+      // Direct VIP activation can start the announcement, but never bypass it.
+      Promise.resolve()
+        .then(() => window.TDBAnnouncementLoader.load())
+        .then((api) => {
+          announcements().forEach((node) => api.mount(node));
+          check();
+        })
+        .catch(finish);
+    }).finally(() => {
+      announcementFlight = null;
+    });
+    return announcementFlight;
+  }
   // Prefer the window scroll offset, including zero, without also asking the
   // root element for layout. Retain the element fallback for older engines.
   const pageY = () => Math.max(window.scrollY ?? document.documentElement.scrollTop ?? 0, 0);
@@ -1050,14 +1288,20 @@ function prepareVIPDrawerLoader() {
     window.removeEventListener('scroll', onPrepareScroll);
     window.removeEventListener('pageshow', onPageShow);
     window.removeEventListener('hashchange', onHashChange);
+    window.removeEventListener('tdb:announcement-state', onAnnouncementState);
   }
 
   function loadDrawer() {
     if (loadingPromise) return loadingPromise;
     if (realDrawerReady()) return Promise.resolve(window.TDBVIPDrawer);
-    tdbPreloadVIPScript(jsUrl);
-    loadingPromise = Promise.all([tdbEnsureUI(), tdbEnsureVIPUI(), tdbEnsureVIPChrome()])
+    loadingPromise = waitForAnnouncement()
       .then(() => {
+        if (!allowed()) throw new DOMException('Cancelled', 'AbortError');
+        tdbPreloadVIPScript(jsUrl);
+        return Promise.all([tdbEnsureUI(), tdbEnsureVIPUI(), tdbEnsureVIPChrome()]);
+      })
+      .then(() => {
+        if (!allowed()) throw new DOMException('Cancelled', 'AbortError');
         return tdbLoadVIPScript(jsUrl);
       })
       .then(() => {
@@ -1082,16 +1326,23 @@ function prepareVIPDrawerLoader() {
   function prepareContent() {
     if (!drawer.hasAttribute('data-tdb-vip-lazy')) return Promise.resolve();
     if (contentPromise) return contentPromise;
-    contentPromise = Promise.all([
-      window.TDBModules.load(new URL('tdb-vip-content.js', TDBRuntimeModuleRoot), {
-        ready: () => !!window.TDBVIPContent,
-      }),
-      window.TDBModules.load(new URL('tdb-vip-content.css', TDBRuntimeModuleRoot), {
-        type: 'style',
-      }),
-      window.TDBFormsLoader.load(),
-    ])
-      .then(() => window.TDBVIPContent.mount(drawer))
+    contentPromise = waitForAnnouncement()
+      .then(() => {
+        if (!allowed()) throw new DOMException('Cancelled', 'AbortError');
+        return Promise.all([
+          window.TDBModules.load(new URL('tdb-vip-content.js', TDBRuntimeModuleRoot), {
+            ready: () => !!window.TDBVIPContent,
+          }),
+          window.TDBModules.load(new URL('tdb-vip-content.css', TDBRuntimeModuleRoot), {
+            type: 'style',
+          }),
+          window.TDBFormsLoader.load(),
+        ]);
+      })
+      .then(() => {
+        if (!allowed()) throw new DOMException('Cancelled', 'AbortError');
+        return window.TDBVIPContent.mount(drawer);
+      })
       .catch((error) => {
         contentPromise = null;
         throw error;
@@ -1139,8 +1390,15 @@ function prepareVIPDrawerLoader() {
   const loadSafely = () => {
     loadDrawer().catch(() => {});
   };
+  function prepareForBanner() {
+    if (!allowed() || !announcementReady()) return;
+    Promise.all([loadDrawer(), prepareContent()]).catch(() => {});
+  }
+  function onAnnouncementState(event) {
+    if (event.detail?.ready && (event.detail.visible || scrollSeed.peek)) prepareForBanner();
+  }
   function onPrepareIntent(event) {
-    if (findTrigger(event)) loadSafely();
+    if (findTrigger(event)) prepareForBanner();
   }
   function onPrepareScroll() {
     const y = pageY();
@@ -1157,11 +1415,19 @@ function prepareVIPDrawerLoader() {
     }
     if (y <= innerHeight * 0.5) scrollSeed.peek = false;
     scrollSeed.lastY = y;
-    // First actual movement gives the download a head start before a reversal.
-    loadSafely();
+    // The calling handle is about to appear; arbitrary scrolling is not intent.
+    if (scrollSeed.peek) prepareForBanner();
   }
   function onPageShow(event) {
-    if (tdbReadPagePosition(event).y > 0) loadSafely();
+    if (
+      announcements().some(
+        (node) =>
+          node.hasAttribute('data-tdb-announcement-ready') &&
+          node.getAttribute('aria-hidden') === 'false',
+      ) ||
+      scrollSeed.peek
+    )
+      prepareForBanner();
   }
   function onHashChange() {
     if (/^#vip/i.test(location.hash || '')) loadSafely();
@@ -1178,13 +1444,14 @@ function prepareVIPDrawerLoader() {
       window.addEventListener('scroll', onPrepareScroll, { passive: true });
       window.addEventListener('pageshow', onPageShow, { passive: true });
       window.addEventListener('hashchange', onHashChange);
+      window.addEventListener('tdb:announcement-state', onAnnouncementState);
     }
   }
 
   arm();
   if (/^#vip/i.test(location.hash || '')) loadSafely();
   else if (demand) {
-    if (window.TDBRuntimePageState.vipScrollSeed.lastY > 0) loadSafely();
+    onPageShow();
   } else loadSafely();
 
   window.TDBVIPDrawerLoader = Object.freeze({
@@ -2035,7 +2302,7 @@ function prepareUSPDrawerLoader() {
     prefetchFailed = false,
     disposed = false;
   const proximity =
-    'IntersectionObserver' in window
+    !window.TDBFeatureLoading && 'IntersectionObserver' in window
       ? new IntersectionObserver(
           (entries) => {
             for (const entry of entries)
@@ -2062,13 +2329,15 @@ function prepareUSPDrawerLoader() {
         trigger.setAttribute('aria-disabled', 'false');
         trigger.tabIndex = 0;
       });
-      // Home's lazy snapshot still waits for activation, including HTML/CSS.
+      // Older runtimes retain their proximity fallback; shared intent owns warming now.
       if (!section.hasAttribute('data-tdb-usp-lazy')) proximity?.observe(section);
     }
     window.TDBUSPDrawer?.refresh?.();
   }
   function load() {
     if (disposed) return Promise.reject(Error('Practice highlights loader disposed'));
+    if (window.TDBConsent && !window.TDBConsent.allows())
+      return Promise.reject(new DOMException('Cancelled', 'AbortError'));
     if (flight) return flight;
     flight = Promise.resolve()
       .then(() => {
@@ -2076,6 +2345,8 @@ function prepareUSPDrawerLoader() {
         return window.TDBModules.load(url, { ready: () => Boolean(window.TDBUSPDrawer?.refresh) });
       })
       .then(() => {
+        if (disposed || (window.TDBConsent && !window.TDBConsent.allows()))
+          throw new DOMException('Cancelled', 'AbortError');
         window.TDBUSPDrawer.refresh();
         proximity?.disconnect();
         return window.TDBUSPDrawer;
@@ -2142,7 +2413,12 @@ function prepareUSPDrawerLoader() {
   }
   for (const type of ['click', 'keydown'])
     document.addEventListener(type, activate, { capture: true, signal: events.signal });
-  for (const type of ['pointerover', 'focusin', 'pointerdown'])
+  window.TDBFeatureLoading?.watchIntent({
+    selector: '[data-tdb-usp] [data-tdb-usp-trigger-zone]',
+    signal: events.signal,
+    prepare: (zone) => load().then((api) => api.prepare(zone.closest(selector))),
+  });
+  for (const type of window.TDBFeatureLoading ? [] : ['pointerover', 'focusin', 'pointerdown'])
     document.addEventListener(
       type,
       (event) => {
@@ -2638,7 +2914,7 @@ function prepareInstagramFeatureLoader() {
             });
             refresh();
           },
-          { rootMargin: '400px' },
+          { rootMargin: window.TDBFeatureLoading?.embedMargin || '700px 0px' },
         )
       : null;
   const allowed = () => !disposed && Boolean(window.TDBConsent?.allows());
@@ -2761,7 +3037,7 @@ function prepareSmileFeatureLoader() {
               }
             refresh();
           },
-          { rootMargin: '400px' },
+          { rootMargin: window.TDBFeatureLoading?.embedMargin || '700px 0px' },
         )
       : null;
   function refresh() {

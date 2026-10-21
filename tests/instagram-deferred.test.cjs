@@ -42,9 +42,9 @@ test('teardown removes the hydrated copy and restores the unchanged fallback/sou
  const e=setup();await e.prepare();e.w.TDBInstagramDeferred.destroy();assert.equal(e.holder.children.length,1);assert.equal(e.holder.dataset.igState,undefined);
  assert.ok(e.d.querySelector('template').content.querySelector('[data-ig-class]'));e.close();
 });
-test('starter waits for permission and 400px proximity before deferred feature request',async()=>{
+test('starter waits for permission and 700px 0px proximity before deferred feature request',async()=>{
  const e=setup({allowed:false});e.w.eval(starter+';prepareInstagramFeatureLoader()');await tick();assert.equal(e.loads.length,0);
- e.permit(true);await tick();assert.equal(e.loads.length,0);const observer=e.observers.find(o=>o.config.rootMargin==='400px');
+ e.permit(true);await tick();assert.equal(e.loads.length,0);const observer=e.observers.find(o=>o.config.rootMargin==='700px 0px');
  observer.fn([{target:e.holder,isIntersecting:true}]);await tick();assert.ok(e.loads.some(x=>x.url.endsWith('tdb-instagram-deferred.js')));assert.equal(e.holder.dataset.igState,'ready');e.close();
 });
 test('entry and destination images decode before the native entry sequence mounts',async()=>{

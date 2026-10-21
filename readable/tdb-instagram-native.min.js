@@ -642,7 +642,7 @@
               start();
             }
           },
-          { rootMargin: '400px' },
+          { rootMargin: window.TDBFeatureLoading?.embedMargin || '700px 0px' },
         );
         observer.observe(root);
       } else start();

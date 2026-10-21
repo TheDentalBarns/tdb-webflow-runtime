@@ -34,15 +34,15 @@ function setup(options={}){
  w.TDBModules={async load(url){loads.push(String(url));if(options.gate)await options.gate;if(loadFailure)throw Error('offline');}};
  Object.defineProperty(w.navigator,'clipboard',{value:{async writeText(){shares++;if(options.shareGate)await options.shareGate;}}});
  return {w,d,ios,loads,run(){w.eval(source);},start(){w.eval(starter+';prepareInstagramFeatureLoader()');},
-   near(){for(const io of ios)if(io.opts?.rootMargin==='400px')io.fn([...io.nodes].map(target=>({target,isIntersecting:true})));},
+   near(){for(const io of ios)if(io.opts?.rootMargin==='700px 0px')io.fn([...io.nodes].map(target=>({target,isIntersecting:true})));},
    permit(v){permission=v;[...subscribers].forEach(fn=>fn());},fix(){fail=false;loadFailure=false;},
    stats:()=>({mounts,destroys,resets,shares,subscribers:subscribers.size}),
    close(){w.TDBInstagramFeatureLoader?.destroy();w.TDBInstagramNative?.destroy();w.close();}};
 }
-test('shared decision then 400px proximity; native mount cannot bypass consent',async()=>{
+test('shared decision then 700px 0px proximity; native mount cannot bypass consent',async()=>{
  const e=setup({allowed:false});e.run();assert.equal(e.ios.length,0);assert.equal(e.loads.length,0);
  const root=e.d.querySelector('section');assert.equal(e.w.TDBInstagramNative.mount(root),null);
- e.permit(true);assert.equal(e.stats().mounts,0);assert.equal(e.ios[0].opts.rootMargin,'400px');
+ e.permit(true);assert.equal(e.stats().mounts,0);assert.equal(e.ios[0].opts.rootMargin,'700px 0px');
  e.near();await tick();assert.equal(e.stats().mounts,1);assert.equal(root.dataset.tdbIgReady,'2.2.0');
  assert.equal(root.querySelector('[data-ig-label]').textContent,'Post 8 of 8');e.close();
 });

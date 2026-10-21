@@ -3,7 +3,7 @@ const {JSDOM} = require('jsdom');
 const read = p => fs.readFileSync(p, 'utf8');
 const tick = () => new Promise(r => setImmediate(r));
 const markup = (id='one', lazy=true) => `<section id="${id}" data-tdb-usp ${lazy?'data-tdb-usp-lazy':''}><div data-tdb-usp-trigger-zone><span data-tdb-usp-label>Care</span><span class="feature-item_door-image"></span><a href="#" data-tdb-usp-launch="0" aria-label="Open Care"><span>Open</span></a></div></section>`;
-function fixture({present=true,lazy=true,missing=false}={}) {
+function fixture({present=true,lazy=true,missing=false,shared=false}={}) {
   const dom = new JSDOM('<html><head></head><body>'+(present?markup('one',lazy):'')+'</body></html>', {url:'https://dentalbarns.webflow.io/',runScripts:'outside-only',pretendToBeVisual:true});
   const w=dom.window,d=w.document,requests=[],opens=[],ios=[],warnings=[];
   let script=null,fail=false,hold=false,complete;
@@ -11,7 +11,8 @@ function fixture({present=true,lazy=true,missing=false}={}) {
   Object.defineProperty(d,'currentScript',{get:()=>script});
   w.console.warn=(...args)=>warnings.push(args);
   w.IntersectionObserver=class {constructor(fn,options){this.fn=fn;this.options=options;this.nodes=new Set();ios.push(this)}observe(n){this.nodes.add(n)}unobserve(n){this.nodes.delete(n)}disconnect(){this.nodes.clear()}};
-  w.MutationObserver=class {constructor(){throw Error('USP must not observe the whole DOM')}};
+  if(shared){w.TDBConsent={allows:()=>true,subscribe:()=>()=>{}};w.eval(read('src/shared/feature-loading.js'));}
+  else w.MutationObserver=class {constructor(){throw Error('USP must not observe the whole DOM')}};
   script=d.createElement('script');script.src='https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@'+'a'.repeat(40)+'/dist/tdb-modules.js';
   w.eval(read('src/shared/modules.js'));
   const withBusy=w.TDBModules.withBusy;
@@ -35,6 +36,9 @@ function fixture({present=true,lazy=true,missing=false}={}) {
 }
 test('definition is inert; lazy sections request nothing at startup; startup is idempotent',()=>{
  const f=fixture();try{assert(!f.w.TDBUSPDrawerLoader);f.start();const api=f.w.TDBUSPDrawerLoader;f.start();assert.equal(f.w.TDBUSPDrawerLoader,api);assert.deepEqual(f.requests,[]);assert.equal(f.ios[0].nodes.size,0);assert.equal(f.trigger().tabIndex,0)}finally{f.close()}
+});
+test('shared intent prepares the full lazy USP drawer without opening it',async()=>{
+ const f=fixture({shared:true});try{f.start();assert.deepEqual(f.requests,[]);f.trigger().dispatchEvent(new f.w.Event('pointerdown',{bubbles:true}));await tick();await tick();assert(f.requests.includes('tdb-usp-drawer.js'));assert(f.requests.includes('tdb-usp-drawer-template.js'));assert(f.requests.includes('tdb-usp-drawer.css'));assert.equal(f.opens.length,0);f.trigger().click();await tick();assert.equal(f.opens.length,1);assert.equal(f.requests.filter(name=>name==='tdb-usp-drawer-template.js').length,1);}finally{f.w.TDBUSPDrawerLoader.destroy();f.close();}
 });
 test('feature-free pages install no DOM observer and request nothing',()=>{const f=fixture({present:false});try{f.start();assert.deepEqual(f.requests,[]);assert.equal(f.ios[0].nodes.size,0)}finally{f.close()}});
 test('hover fetches only adapter; lazy content stays untouched until click',async()=>{

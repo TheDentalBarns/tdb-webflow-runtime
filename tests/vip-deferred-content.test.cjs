@@ -19,7 +19,7 @@ function setup(lazy = true) {
   w.matchMedia = q=>({matches:q.includes('min-width'),addEventListener(){}});
   w.scrollTo = ()=>{};
   w.HTMLElement.prototype.scrollIntoView = ()=>{};
-  w.TDBConsent = {allows:()=>false};
+  w.TDBConsent = {allows:category=>!category};
   w.TDBRuntimePageState = {vipScrollSeed:{lastY:0,up:0,down:0,peek:false}};
   w.tdbUIIsReady=w.tdbStyleIsReady=()=>true;
   w.tdbEnsureUI=w.tdbEnsureVIPUI=w.tdbEnsureVIPChrome=()=>Promise.resolve();
@@ -47,10 +47,12 @@ function setup(lazy = true) {
   return {w,d,drawer,requests,gates,native,readyCalls:()=>readyCalls,close:()=>w.close()};
 }
 
-test('scroll prepares the shell without fetching hidden form or CSS; open loads once',async()=>{
+test('ordinary scroll does not prepare VIP; explicit shell preparation leaves content for opening',async()=>{
   const x=setup();try{
     assert.deepEqual(x.requests,[]);
     x.w.scrollY=500;x.w.dispatchEvent(new x.w.Event('scroll'));await tick();
+    assert.deepEqual(x.requests,[]);
+    await x.w.TDBVIPDrawerLoader.load();
     assert.deepEqual(x.requests,['tdb-vip-drawer.js']);
     assert.equal(x.drawer.querySelector('form'),null);
     const a=x.w.TDBVIPDrawer.open(),b=x.w.TDBVIPDrawer.open();

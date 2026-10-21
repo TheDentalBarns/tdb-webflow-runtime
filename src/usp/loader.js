@@ -13,7 +13,7 @@ function prepareUSPDrawerLoader() {
     prefetchFailed = false,
     disposed = false;
   const proximity =
-    'IntersectionObserver' in window
+    !window.TDBFeatureLoading && 'IntersectionObserver' in window
       ? new IntersectionObserver(
           (entries) => {
             for (const entry of entries)
@@ -40,13 +40,15 @@ function prepareUSPDrawerLoader() {
         trigger.setAttribute('aria-disabled', 'false');
         trigger.tabIndex = 0;
       });
-      // Home's lazy snapshot still waits for activation, including HTML/CSS.
+      // Older runtimes retain their proximity fallback; shared intent owns warming now.
       if (!section.hasAttribute('data-tdb-usp-lazy')) proximity?.observe(section);
     }
     window.TDBUSPDrawer?.refresh?.();
   }
   function load() {
     if (disposed) return Promise.reject(Error('Practice highlights loader disposed'));
+    if (window.TDBConsent && !window.TDBConsent.allows())
+      return Promise.reject(new DOMException('Cancelled', 'AbortError'));
     if (flight) return flight;
     flight = Promise.resolve()
       .then(() => {
@@ -54,6 +56,8 @@ function prepareUSPDrawerLoader() {
         return window.TDBModules.load(url, { ready: () => Boolean(window.TDBUSPDrawer?.refresh) });
       })
       .then(() => {
+        if (disposed || (window.TDBConsent && !window.TDBConsent.allows()))
+          throw new DOMException('Cancelled', 'AbortError');
         window.TDBUSPDrawer.refresh();
         proximity?.disconnect();
         return window.TDBUSPDrawer;
@@ -120,7 +124,12 @@ function prepareUSPDrawerLoader() {
   }
   for (const type of ['click', 'keydown'])
     document.addEventListener(type, activate, { capture: true, signal: events.signal });
-  for (const type of ['pointerover', 'focusin', 'pointerdown'])
+  window.TDBFeatureLoading?.watchIntent({
+    selector: '[data-tdb-usp] [data-tdb-usp-trigger-zone]',
+    signal: events.signal,
+    prepare: (zone) => load().then((api) => api.prepare(zone.closest(selector))),
+  });
+  for (const type of window.TDBFeatureLoading ? [] : ['pointerover', 'focusin', 'pointerdown'])
     document.addEventListener(
       type,
       (event) => {

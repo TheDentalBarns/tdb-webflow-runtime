@@ -61,7 +61,8 @@
       hovered = false,
       moving = false,
       suspended = false,
-      lastVisible = false;
+      lastVisible = false,
+      announcedState = '';
     const dwell = 8000;
     let rotationLeft = dwell,
       rotationEnd = 0,
@@ -187,6 +188,20 @@
       }
       attribute(button, 'tabindex', visible ? 0 : -1);
       attribute(shell, 'aria-hidden', !visible);
+      // Publish readiness only after data, markup and applied styles have settled.
+      const ready =
+        started && !shell.hidden && !shell.hasAttribute('data-tdb-announcement-pending');
+      const announcementState = ready + ':' + visible;
+      if (announcementState !== announcedState) {
+        announcedState = announcementState;
+        if (ready) shell.setAttribute('data-tdb-announcement-ready', '');
+        else shell.removeAttribute('data-tdb-announcement-ready');
+        window.dispatchEvent(
+          new CustomEvent('tdb:announcement-state', {
+            detail: { shell, ready, visible },
+          }),
+        );
+      }
       const remaining = Math.max(0, Math.ceil((time(config.deadline) - Date.now()) / 1000)) || 0;
       mode = signatureState ? 'signature' : remaining ? 'countdown' : 'rest';
       attribute(button, 'data-mode', mode);

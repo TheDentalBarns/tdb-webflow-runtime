@@ -7,10 +7,10 @@
       "sources": [
         "src/banner/announcement.js"
       ],
-      "sha256": "f35e3d5dec63497a3b29b37b87f97978136e8a7e1e799faacab6bd9ea19fc592",
-      "raw": 11540,
-      "gzip": 4468,
-      "brotli": 3918
+      "sha256": "0cfd83c1ac24220aee8d65a8531ea38d936ddcc3d94a0a87f76192b5fad89128",
+      "raw": 11845,
+      "gzip": 4569,
+      "brotli": 4015
     },
     "dist/tdb-attribution.min.js": {
       "sources": [
@@ -233,10 +233,10 @@
       "sources": [
         "src/instagram/native.js"
       ],
-      "sha256": "bff23cde165154c43a6341f667e21a743ac87b25652d793587c450b8039a3861",
-      "raw": 13763,
-      "gzip": 5052,
-      "brotli": 4491
+      "sha256": "8d7be44c945a38b652645e727dcc18ab9376c756f385eed69af9b614d35addd6",
+      "raw": 13806,
+      "gzip": 5074,
+      "brotli": 4509
     },
     "dist/tdb-legacy-review-drawer.js": {
       "sources": [
@@ -262,20 +262,20 @@
         "src/logo-marquee/partner-controls-style.js",
         "src/logo-marquee/logo-marquee.js"
       ],
-      "sha256": "355fa48d9398176dd25c6e5f906b8f4af82d0bc49125428d21a4e6925f617296",
-      "raw": 25877,
-      "gzip": 8274,
-      "brotli": 7498
+      "sha256": "dbd49a8e532115355588e09d350de69db154ab7670a16146988c2253feff5900",
+      "raw": 26503,
+      "gzip": 8551,
+      "brotli": 7722
     },
     "dist/tdb-logo-marquee.min.js": {
       "sources": [
         "src/logo-marquee/partner-controls-style.js",
         "src/logo-marquee/logo-marquee.js"
       ],
-      "sha256": "355fa48d9398176dd25c6e5f906b8f4af82d0bc49125428d21a4e6925f617296",
-      "raw": 25877,
-      "gzip": 8274,
-      "brotli": 7498
+      "sha256": "dbd49a8e532115355588e09d350de69db154ab7670a16146988c2253feff5900",
+      "raw": 26503,
+      "gzip": 8551,
+      "brotli": 7722
     },
     "dist/tdb-modules.js": {
       "sources": [
@@ -424,10 +424,10 @@
       "sources": [
         "src/reviews/native/introduction.js"
       ],
-      "sha256": "4ec08a623fddad95f3e2f8efcc3aa5cf00c88c32d2eeb6813132b3b1c6ca5323",
-      "raw": 3362,
-      "gzip": 1410,
-      "brotli": 1232
+      "sha256": "eb704ebf37397a246d8615b2081d886ba7985539cc99044161d3128553aa1937",
+      "raw": 3573,
+      "gzip": 1506,
+      "brotli": 1324
     },
     "dist/tdb-review-list-loader.js": {
       "sources": [
@@ -479,10 +479,10 @@
       "sources": [
         "src/reviews/native/loader.js"
       ],
-      "sha256": "ed2113cce22862923f2734674dd92ff811258ec2eab4b9b76f7cfffa7a90a51b",
-      "raw": 10898,
-      "gzip": 3635,
-      "brotli": 3198
+      "sha256": "f0f07004b2e53442bf8c14e30e09abf6f9d9afd5a21de0f6e0ced0187d31044c",
+      "raw": 11048,
+      "gzip": 3680,
+      "brotli": 3248
     },
     "dist/tdb-reviews.js": {
       "sources": [
@@ -496,6 +496,7 @@
     "dist/tdb-runtime.js": {
       "sources": [
         "src/runtime/release-root.js",
+        "src/shared/feature-loading.js",
         "src/shared/script-assets.js",
         "src/runtime/interaction-state.js",
         "src/runtime/logo-marquee-loader.js",
@@ -526,10 +527,10 @@
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "1ae6aa32de820f647e00a4c557ac83f13384c148d8476fe45823efdd30cb2ffa",
-      "raw": 63391,
-      "gzip": 17058,
-      "brotli": 15091
+      "sha256": "4718bbbf0c9b83173eb6541e742fa7523984bf29fb9a5ec21b4b45afeedb185c",
+      "raw": 68015,
+      "gzip": 18275,
+      "brotli": 16118
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -553,10 +554,10 @@
       "sources": [
         "src/smile-gallery/feed.js"
       ],
-      "sha256": "73def290f95b6104ecee8b50be811660c41ff47e0927e107dac05db4449e7a21",
-      "raw": 11760,
-      "gzip": 3998,
-      "brotli": 3454
+      "sha256": "2bb2b5ba5950b96be7328d1cbfd40a56b075b7810dfc07bee0f3f632716457ec",
+      "raw": 11897,
+      "gzip": 4058,
+      "brotli": 3511
     },
     "dist/tdb-smile-gallery.min.js": {
       "sources": [
@@ -610,10 +611,10 @@
       "sources": [
         "src/usp/drawer.js"
       ],
-      "sha256": "cad84b4317e5a0209564a97dc9c897dc87b1eb92f6f3a4b3f3bf804ef588a7bc",
-      "raw": 8184,
-      "gzip": 3082,
-      "brotli": 2744
+      "sha256": "dee2ba08786fc551e4b9a6781bec8a4c5aef01341400d26f510571f92f1a0483",
+      "raw": 8241,
+      "gzip": 3109,
+      "brotli": 2772
     },
     "dist/tdb-vimeo-loader.js": {
       "sources": [

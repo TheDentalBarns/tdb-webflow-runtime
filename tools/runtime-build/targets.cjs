@@ -79,6 +79,7 @@ module.exports = {
   'dist/tdb-ticker.js': ['src/shared/native-ticker.js'],
   'dist/tdb-runtime.js': [
     'src/runtime/release-root.js',
+    'src/shared/feature-loading.js',
     'src/shared/script-assets.js',
     'src/runtime/interaction-state.js',
     'src/runtime/logo-marquee-loader.js',
