@@ -74,3 +74,7 @@ npm run format:check
 Tests cover consent, one-release resolution, duplicate prevention, retry/timeout behavior, first-click capture, form values/validation, attribution parity, scroll restoration, motion and feature lifecycles. External Brevo, Webflow Tram and Webflow form-serializer fixtures are opt-in. Simulated DOM checks do not replace physical iPhone Safari/Chrome testing.
 
 See [release and rollback](docs/runtime/releasing.md). This is a baseline for assessing JavaScript; no FCP/TBT improvement is claimed without comparable measurements.
+
+## Motion refresh cleanup — 21 October 2026
+
+Page-break refresh now invokes each shared batch once, preserving independent batches, reference-counted clients and carousel clone cleanup. DD text keeps its membership Set and reuses the already-computed progress value; section magnet reads the body's computed style once per eligibility check. Animation timing, scroll/restoration state, memory hooks, visibility behaviour and public APIs are unchanged. See the [validation and rollback notes](docs/runtime/motion-refresh-cleanup-2026-10-21.md).

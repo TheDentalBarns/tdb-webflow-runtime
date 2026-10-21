@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const source = fs.readFileSync('src/shared/motion.js', 'utf8');
 
-function setup() {
+function setup(code = source) {
   const dom = new JSDOM(
     '<section><div class="frame"><img class="photo" style="transform:translateX(30%)"><img class="photo" style="transform:translateX(-30%)"></div></section>',
     {
@@ -44,7 +44,7 @@ function setup() {
       );
   };
   wrapper.querySelectorAll('img').forEach(prepare);
-  w.eval(source);
+  w.eval(code);
   const flush = () => {
     const callbacks = [...queue.values()];
     queue.clear();
@@ -108,6 +108,67 @@ test('refresh includes new loop clones and releases detached images without accu
   owner.destroy();
   e.dom.window.close();
 });
+
+for (const [label, code] of [
+  ['source', source],
+  ['bundle', fs.readFileSync('dist/tdb-motion.js', 'utf8')],
+]) {
+  test(`${label}: shared clients refresh every batch once and retain clone cleanup until final release`, () => {
+    const e = setup(code),
+      groups = Array.from({ length: 4 }, (_, index) => {
+        const wrapper = index ? e.wrapper.cloneNode(true) : e.wrapper;
+        if (index) {
+          e.w.document.body.append(wrapper);
+          wrapper.getBoundingClientRect = e.wrapper.getBoundingClientRect;
+          wrapper.querySelector('.frame').getBoundingClientRect = e.frame.getBoundingClientRect;
+          wrapper.querySelectorAll('img').forEach(e.prepare);
+        }
+        return { wrapper, selector: '.photo', frame: '.frame' };
+      }),
+      first = e.w.TDBMotion.pageBreaks(groups.slice(0, 2)),
+      second = e.w.TDBMotion.pageBreaks(groups.slice(2)),
+      shared = e.w.TDBMotion.pageBreaks(groups);
+    const queries = [0, 0, 0, 0];
+    groups.forEach(({ wrapper }, index) => {
+      const query = wrapper.querySelectorAll.bind(wrapper);
+      wrapper.querySelectorAll = (selector) => {
+        if (selector === '.photo') queries[index]++;
+        return query(selector);
+      };
+    });
+    e.scroll(300);
+    const original = e.wrapper.querySelector('img'),
+      clone = original.cloneNode(),
+      cloneTranslation = clone.style.translate;
+    e.prepare(clone);
+    original.replaceWith(clone);
+    shared.refresh();
+    assert.deepEqual(queries, [1, 1, 1, 1], 'each independent batch is refreshed exactly once');
+    e.flush();
+    e.scroll(500);
+    assert.equal(original.style.translate, '', 'detached photo is restored');
+    assert.equal(clone.style.translate, e.wrapper.querySelectorAll('img')[1].style.translate);
+    assert.notEqual(clone.style.translate, '', 'new clone participates in motion');
+
+    first.destroy();
+    second.destroy();
+    assert.notEqual(clone.style.translate, '', 'shared client keeps the batch alive');
+    queries.fill(0);
+    shared.refresh();
+    assert.deepEqual(queries, [1, 1, 1, 1], 'refresh still reaches batches after creator release');
+    e.flush();
+    shared.destroy();
+    shared.destroy();
+    shared.refresh();
+    assert.deepEqual(queries, [1, 1, 1, 1], 'released clients do not refresh');
+    assert.equal(first.status().length + second.status().length, 0);
+    assert.equal(e.queue.size, 0, 'final release cancels scheduled work');
+    for (const { wrapper } of groups)
+      for (const node of wrapper.querySelectorAll('img'))
+        assert.equal(node.style.translate, node === clone ? cloneTranslation : '');
+    e.dom.window.close();
+  });
+}
 
 test('a sticky image uses section progress while respecting its separate crop frame', () => {
   const e = setup();

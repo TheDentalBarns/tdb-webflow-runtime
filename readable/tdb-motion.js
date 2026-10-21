@@ -321,10 +321,7 @@
                 state.mode === 'viewport'
                   ? g.progress
                   : state.progress + (g.progress - state.progress) * 0.5;
-              const normal = ddOpacity(
-                state.mode === 'viewport' ? g.progress : state.progress,
-                state.preset,
-              );
+              const normal = ddOpacity(state.progress, state.preset);
               state.desired = Math.min(
                 state.ceiling,
                 ddClamp(normal + (c ? c.offset * c.weight : 0)),
@@ -414,7 +411,7 @@
     return api;
   }
   function ddText(nodes, { root = null, mode = 'viewport', preset = 'standard' } = {}) {
-    const list = [...new Set(nodes)];
+    const list = new Set(nodes);
     for (const node of list) {
       const existing = ddNodes.get(node);
       if (existing) {
@@ -451,7 +448,7 @@
           entries = [];
         for (const node of nodes) {
           const state = ddNodes.get(node);
-          if (!state || !list.includes(node)) continue;
+          if (!state || !list.has(node)) continue;
           let value = 1,
             progress = state.progress;
           if (atPosition) {
@@ -893,7 +890,7 @@
       };
       syncTargets(state);
       states.push(state);
-      const owner = { clients: 1, wrapper: input, release: null, refresh };
+      const owner = { clients: 1, wrapper: input, release: () => release(state), refresh };
       pageBreakClients.set(input, owner);
       owned.push(owner);
     }
@@ -969,10 +966,10 @@
         queued = false;
       }
     }
-    for (const state of states) pageBreakClients.get(state.key).release = () => release(state);
     return Object.freeze({
       refresh: () => {
-        if (!released) for (const owner of owned) owner.refresh();
+        if (!released)
+          for (const refresh of new Set(owned.map((owner) => owner.refresh))) refresh();
       },
       status: () =>
         states.map((state) => ({
@@ -1226,15 +1223,19 @@
     });
   }
   function blocked() {
-    return (
+    if (
       document.hidden ||
       !desktop.matches ||
       reduced.matches ||
       document.documentElement.matches('.w-editor,.tdb-sg-locked,.tdb-sg-chrome-away') ||
       modalOpen() ||
-      getComputedStyle(document.documentElement).overflowY === 'hidden' ||
-      getComputedStyle(document.body).overflowY === 'hidden' ||
-      getComputedStyle(document.body).position === 'fixed' ||
+      getComputedStyle(document.documentElement).overflowY === 'hidden'
+    )
+      return true;
+    const body = getComputedStyle(document.body);
+    return (
+      body.overflowY === 'hidden' ||
+      body.position === 'fixed' ||
       document.activeElement?.matches?.(editable)
     );
   }

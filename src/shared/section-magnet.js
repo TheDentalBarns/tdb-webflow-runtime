@@ -51,15 +51,19 @@
     });
   }
   function blocked() {
-    return (
+    if (
       document.hidden ||
       !desktop.matches ||
       reduced.matches ||
       document.documentElement.matches('.w-editor,.tdb-sg-locked,.tdb-sg-chrome-away') ||
       modalOpen() ||
-      getComputedStyle(document.documentElement).overflowY === 'hidden' ||
-      getComputedStyle(document.body).overflowY === 'hidden' ||
-      getComputedStyle(document.body).position === 'fixed' ||
+      getComputedStyle(document.documentElement).overflowY === 'hidden'
+    )
+      return true;
+    const body = getComputedStyle(document.body);
+    return (
+      body.overflowY === 'hidden' ||
+      body.position === 'fixed' ||
       document.activeElement?.matches?.(editable)
     );
   }
