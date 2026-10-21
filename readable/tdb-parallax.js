@@ -801,38 +801,16 @@ window.TDBTreatmentStamps ||= (() => {
       const alignedMarker = index > last ? trackWidth - width : markerX;
       align(offset - alignedMarker);
     }
-    function choose(event) {
-      const link = event.target.closest('[data-tdb-treatment-stamp]');
-      if (
-        !link ||
-        !viewport.contains(link) ||
-        event.ctrlKey ||
-        event.metaKey ||
-        event.shiftKey ||
-        event.altKey
-      )
-        return;
+    function selectStamp(link) {
+      if (!link || !viewport.contains(link)) return false;
       bind();
       if (!swiper) {
         window.TDBSwiper?.mount('parallax', root);
         bind();
       }
-      if (!swiper) return; // CMS links remain usable if the enhancement is unavailable.
-      event.preventDefault();
-      const ignored = ignoredClick;
-      ignoredClick = null;
-      // Suppress only the compatibility click from the completed drag. Touch
-      // browsers may omit that click entirely; it must not consume a later tap
-      // or a keyboard activation.
-      if (
-        ignored &&
-        event.detail > 0 &&
-        performance.now() < ignored.until &&
-        (typeof event.pointerId !== 'number' || event.pointerId === ignored.id)
-      )
-        return;
+      if (!swiper) return false; // Keep the native CMS link fallback.
       const index = Number(link.dataset.tdbStampIndex);
-      if (!Number.isInteger(index) || index < 0 || index >= links.length) return;
+      if (!Number.isInteger(index) || index < 0 || index >= links.length) return false;
       resumeAlignment(index);
       if (swiper.params?.loop) swiper.slideToLoop(index);
       else swiper.slideTo(index);
@@ -846,6 +824,33 @@ window.TDBTreatmentStamps ||= (() => {
           trackWidth,
         );
       }
+      return true;
+    }
+    function choose(event) {
+      const link = event.target.closest('[data-tdb-treatment-stamp]');
+      if (
+        !link ||
+        !viewport.contains(link) ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey ||
+        event.altKey
+      )
+        return;
+      const ignored = ignoredClick;
+      ignoredClick = null;
+      // Ignore only the follow-up click for a handled touch or drag, never a
+      // new tap, a keyboard activation, or a permanently missing click.
+      if (
+        ignored &&
+        event.detail > 0 &&
+        performance.now() < ignored.until &&
+        (typeof event.pointerId !== 'number' || event.pointerId === ignored.id)
+      ) {
+        event.preventDefault();
+        return;
+      }
+      if (selectStamp(link)) event.preventDefault();
     }
     function down(event) {
       if (event.button !== 0 || event.isPrimary === false) return;
@@ -856,6 +861,8 @@ window.TDBTreatmentStamps ||= (() => {
       if (mobile.matches || event.pointerType === 'mouse')
         drag = {
           id: event.pointerId,
+          type: event.pointerType,
+          link: event.target.closest?.('[data-tdb-treatment-stamp]'),
           x: event.clientX,
           y: event.clientY,
           left: viewport.scrollLeft,
@@ -891,6 +898,19 @@ window.TDBTreatmentStamps ||= (() => {
       // Touch starts with implicit capture on the image/link. Its release
       // bubbles when the viewport takes capture; the gesture is still active.
       if (event.type === 'lostpointercapture' && event.target !== viewport) return;
+      const id = drag.id;
+      const tap =
+        mobile.matches &&
+        drag.type === 'touch' &&
+        event.type === 'pointerup' &&
+        !suppressClick &&
+        Math.abs(event.clientX - drag.x) <= 8 &&
+        Math.abs(event.clientY - drag.y) <= 8 &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.shiftKey &&
+        !event.altKey &&
+        drag.link;
       ignoredClick =
         suppressClick && event.type === 'pointerup'
           ? { id: drag.id, until: performance.now() + 500 }
@@ -910,6 +930,13 @@ window.TDBTreatmentStamps ||= (() => {
       }
       drag = null;
       suppressClick = false;
+      // A clean touch release is the activation. Mobile browsers may withhold
+      // their later click after scrolling; waiting for it loses the first tap.
+      if (tap && selectStamp(tap)) {
+        event.preventDefault();
+        ignoredClick = { id, until: performance.now() + 500 };
+        window.TDBSliderFocus?.resume({ y: window.scrollY, click: { target: tap } });
+      }
     }
     function wheel() {
       stopMotion();
@@ -950,7 +977,7 @@ window.TDBTreatmentStamps ||= (() => {
     instances.set(root, controller);
     return controller;
   }
-  return { version: '1.1.1', prepare };
+  return { version: '1.1.2', prepare };
 })();
 
 /* Native CMS text row follows rendered image geometry, including loop/width motion.

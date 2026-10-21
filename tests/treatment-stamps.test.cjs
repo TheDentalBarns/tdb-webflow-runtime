@@ -525,3 +525,75 @@ test('stamp opacity keeps one native transition target rather than cancelling fi
     f.dom.window.close();
   }
 });
+
+test('mobile touch release selects once even when scrolling suppresses the browser click', () => {
+  const f = fixture(6, true, false);
+  function pointer(target, type, id, x, y = 100) {
+    const event = new f.w.Event(type, { bubbles: true, cancelable: true });
+    Object.assign(event, {
+      button: 0,
+      isPrimary: true,
+      pointerType: 'touch',
+      pointerId: id,
+      clientX: x,
+      clientY: y,
+    });
+    target.dispatchEvent(event);
+  }
+  try {
+    f.controller.measure();
+    let selections = 0,
+      focuses = 0;
+    const slideTo = f.swiper.slideTo.bind(f.swiper);
+    f.swiper.slideTo = (index) => {
+      selections++;
+      slideTo(index);
+    };
+    f.w.TDBSliderFocus = {
+      resume() {
+        focuses++;
+      },
+    };
+    pointer(f.links[0], 'pointerdown', 1, 250);
+    f.tick(16);
+    pointer(f.links[0], 'pointermove', 1, 150);
+    pointer(f.viewport, 'pointerup', 1, 150);
+    f.tick(16);
+    assert.equal(selections, 0, 'swiping does not activate a stamp');
+    const image = f.w.document.createElement('img');
+    f.links[2].append(image);
+    pointer(image, 'pointerdown', 2, 200);
+    pointer(image, 'pointerup', 2, 200);
+    assert.equal(
+      f.swiper.realIndex,
+      2,
+      'first clean release selects without needing a click event',
+    );
+    assert.equal(selections, 1);
+    assert.equal(focuses, 1, 'touch activation uses the shared banner-away behavior');
+    const compatibilityClick = new f.w.MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      detail: 1,
+    });
+    Object.defineProperty(compatibilityClick, 'pointerId', { value: 2 });
+    image.dispatchEvent(compatibilityClick);
+    assert.equal(selections, 1, 'optional browser click does not activate twice');
+    assert.equal(compatibilityClick.defaultPrevented, true, 'tap does not navigate away');
+    pointer(f.links[0], 'pointerdown', 3, 200);
+    pointer(f.links[0], 'pointercancel', 3, 200);
+    assert.equal(selections, 1, 'cancelled touches never activate');
+    pointer(f.links[0], 'pointerdown', 4, 200);
+    pointer(f.links[0], 'pointermove', 4, 201, 125);
+    pointer(f.links[0], 'pointerup', 4, 201, 125);
+    assert.equal(selections, 1, 'vertical page scrolling never activates');
+    pointer(f.links[0], 'pointerdown', 5, 200);
+    pointer(f.links[0], 'pointerup', 5, 200);
+    assert.equal(selections, 2, 'next tap works immediately after cancelled scrolling');
+    assert.equal(f.swiper.realIndex, 0);
+    f.links[1].click();
+    assert.equal(selections, 3, 'keyboard activation remains available');
+  } finally {
+    f.dom.window.close();
+  }
+});
