@@ -1199,6 +1199,7 @@
   let startY = window.scrollY,
     lastY = window.scrollY;
   const editable = 'input,textarea,select,[contenteditable="true"]';
+  const captureRadius = () => Math.min(240, innerHeight * 0.24);
   function modalOpen() {
     return [...document.querySelectorAll('[aria-modal="true"]')].some((node) => {
       if (node.closest('[hidden],[aria-hidden="true"],[inert]')) return false;
@@ -1273,7 +1274,7 @@
     armed = false;
     const travel = window.scrollY - startY;
     if (Math.abs(travel) < 8) return;
-    const radius = Math.min(120, innerHeight * 0.12);
+    const radius = captureRadius();
     const candidates = roots
       .map(geometry)
       .filter((g) => {
@@ -1360,10 +1361,7 @@
       timer = setTimeout(settle, 180);
     }
     lastY = y;
-    if (
-      lastSnapped &&
-      Math.abs(geometry(lastSnapped).delta) > Math.min(120, innerHeight * 0.12) * 1.6
-    )
+    if (lastSnapped && Math.abs(geometry(lastSnapped).delta) > captureRadius() * 1.6)
       lastSnapped = null;
   }
   for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown'])

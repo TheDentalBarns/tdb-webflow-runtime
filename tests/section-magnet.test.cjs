@@ -104,6 +104,8 @@ test('centres from either direction with the native or Lenis scroll owner', () =
     for (const [from, to] of [
       [800, 950],
       [1200, 1050],
+      [600, 800],
+      [1400, 1200],
     ]) {
       const f = fixture({ lenis });
       try {
@@ -196,7 +198,7 @@ test('restoration without input, distant stopping and moving away are not pulled
         f.scroll(950);
         f.advance(200);
       }
-      if (kind === 'distant') f.gesture(600, 800);
+      if (kind === 'distant') f.gesture(500, 700);
       if (kind === 'away') f.gesture(980, 950);
       f.advance(1000);
       assert.equal(f.writes.length, 0);
