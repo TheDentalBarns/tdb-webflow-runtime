@@ -281,12 +281,60 @@
         "flex-shrink": "0",
         "filter": "brightness(0) invert(1)"
       }
+    },
+    {
+      "label": "tdb-service-buttons main",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-service-buttons",
+      "properties": {
+        "width": "auto",
+        "justify-content": "flex-end",
+        "column-gap": ".75rem"
+      }
+    },
+    {
+      "label": "tdb-smile-fact-value last-child main",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-smile-fact-value",
+      "pseudo": "last-child",
+      "properties": {
+        "transform": "translateY(100%)"
+      }
+    },
+    {
+      "label": "tdb-service-controls small",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-service-controls",
+      "breakpoint": "small",
+      "properties": {
+        "padding-left": "0px",
+        "padding-right": "0px"
+      }
+    },
+    {
+      "label": "tdb-treatment-viewport main",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-treatment-viewport",
+      "properties": {
+        "width": "calc((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem)",
+        "overflow": "visible"
+      }
+    },
+    {
+      "label": "tdb-treatment-viewport medium",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-treatment-viewport",
+      "breakpoint": "medium",
+      "properties": {
+        "width": "100%"
+      }
     }
   ],
   "notes": [
     "Native Designer variants only; no new custom CSS or head scripts.",
     "Main image widths and blurred overhang unchanged.",
     "Home loop remains false; optional loop capability retained.",
-    "Existing GitHub module extends value tickers and smooth return to desktop."
+    "Existing GitHub module extends value tickers and smooth return to desktop.",
+    "Main native Swiper viewport equals focused image width so finite desktop navigation can reach the final CMS treatment; overflow remains visible."
   ]
 }

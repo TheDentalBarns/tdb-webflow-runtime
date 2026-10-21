@@ -205,11 +205,13 @@
               if (u && 0 === t && d(b, w) === o) return n.call(this, e, t, i, u, p);
               const m = d(b, w),
                 h = new Set(s.map((e) => e.effect?.target)),
+                // Finite Swiper items have no loop index attribute. Use the
+                // same index fallback as the native wide/narrow class switch.
                 f = [...this.slides].filter(
-                  (e) =>
+                  (e, index) =>
                     !r ||
                     e.hasAttribute('data-tdb-banner-wide') ||
-                    e.getAttribute('data-swiper-slide-index') === m ||
+                    d(e, index) === m ||
                     h.has(e),
                 ),
                 g = f.map((e) => e.getBoundingClientRect().width);
@@ -428,7 +430,7 @@
       x.on('touchStart slideChange', () => D?.cancel('interaction')));
   }
   const m = Object.freeze({
-    version: '1.3.1',
+    version: '1.3.2',
     selector: e,
     beforeObserve(e) {
       window.TDBParallax?.refresh(e);

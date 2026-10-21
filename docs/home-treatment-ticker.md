@@ -33,6 +33,11 @@ padding; the text viewport clips neighboring content. Price and CTA sit at oppos
 ends of the footer. Desktop CTA vertical padding is .35rem; mobile keeps .75rem.
 Pagination and controls sit 1rem above the 5px progress bar inside the focused
 image. All of this is saved in existing native component variants, not runtime CSS.
+The main Swiper viewport also uses that focus width with visible overflow. Its
+finite end stop can therefore align the last treatment without counting the
+blurred neighbor as part of the viewport. Desktop width motion identifies finite
+slides by their item index when Swiper's loop-only index attribute is absent;
+both the outgoing and incoming image animate continuously.
 
 Home sets `data-tdb-treatment-loop="false"`. A future variant can opt into main
 slide looping and mobile stamp recycling with `data-tdb-treatment-loop="true"`.
