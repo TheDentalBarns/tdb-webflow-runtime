@@ -1191,7 +1191,7 @@
   let timer = 0,
     raf = 0,
     active = null,
-    lastSnapped = null;
+    touch = null;
   let armed = false,
     held = false,
     anchorUntil = 0,
@@ -1199,7 +1199,7 @@
   let startY = window.scrollY,
     lastY = window.scrollY;
   const editable = 'input,textarea,select,[contenteditable="true"]';
-  const captureRadius = () => Math.min(240, innerHeight * 0.24);
+  const captureRadius = 50;
   function modalOpen() {
     return [...document.querySelectorAll('[aria-modal="true"]')].some((node) => {
       if (node.closest('[hidden],[aria-hidden="true"],[inert]')) return false;
@@ -1261,6 +1261,8 @@
   function reset() {
     stop();
     armed = false;
+    held = false;
+    touch = null;
     startY = lastY = window.scrollY;
   }
   function settle() {
@@ -1273,20 +1275,10 @@
     }
     armed = false;
     const travel = window.scrollY - startY;
-    if (Math.abs(travel) < 8) return;
-    const radius = captureRadius();
+    if (Math.abs(travel) < 0.5) return;
     const candidates = roots
       .map(geometry)
-      .filter((g) => {
-        if (g.node === lastSnapped && Math.abs(g.delta) > radius * 1.6) lastSnapped = null;
-        return (
-          g.fits &&
-          g.node !== lastSnapped &&
-          Math.abs(g.delta) > 2 &&
-          Math.abs(g.delta) <= radius &&
-          Math.abs(g.delta + travel) > Math.abs(g.delta)
-        );
-      })
+      .filter((g) => g.fits && Math.abs(g.delta) > 2 && Math.abs(g.delta) <= captureRadius)
       .sort((a, b) => Math.abs(a.delta) - Math.abs(b.delta));
     const chosen = candidates[0];
     if (!chosen) return;
@@ -1296,11 +1288,8 @@
       Math.min(from + chosen.delta, document.documentElement.scrollHeight - innerHeight),
     );
     if (Math.abs(destination - from) < 2) return;
-    lastSnapped = chosen.node;
-    const duration = 560,
+    const duration = 700,
       started = performance.now();
-    const ease = (p) => 1 - (1 + 7 * p) * Math.exp(-7 * p);
-    const scale = ease(1);
     active = { node: chosen.node, lenis: window.lenis || null };
     // Share the slider's existing chrome lifetime. Its own correction must
     // not be mistaken for the visitor scrolling away from the section.
@@ -1309,7 +1298,9 @@
       raf = 0;
       if (!active || blocked()) return reset();
       const p = Math.min(1, (now - started) / duration);
-      const y = from + ((destination - from) * ease(p)) / scale;
+      // Attraction builds as the centre gets closer: a gentle start, then a
+      // quicker final glide. The short capture distance keeps it unobtrusive.
+      const y = from + (destination - from) * Math.pow(p, 2.3);
       // Use the site's existing scroll owner; never race its inertia.
       if (active.lenis) active.lenis.scrollTo(y, { immediate: true, force: true });
       else window.scrollTo({ top: y, behavior: 'instant' });
@@ -1339,14 +1330,35 @@
       return;
     }
     if (event.target?.closest?.(editable)) return reset();
+    if (event.type === 'pointerdown' || event.type === 'touchstart') {
+      reset();
+      held = true;
+      touch =
+        event.type === 'touchstart' && event.touches?.length === 1
+          ? { x: event.touches[0].clientX, y: event.touches[0].clientY, scrollY: window.scrollY }
+          : null;
+      return;
+    }
     const wasActive = !!active;
     stop();
     if (!armed || wasActive) startY = window.scrollY;
     armed = true;
     lastInput = performance.now();
-    if (event.type === 'pointerdown' || event.type === 'touchstart') held = true;
   }
-  function released() {
+  function touchMoved(event) {
+    if (!touch || event.touches?.length !== 1) return;
+    const dx = Math.abs(event.touches[0].clientX - touch.x),
+      dy = Math.abs(event.touches[0].clientY - touch.y);
+    if (dy <= 8 || dy <= dx) return;
+    if (!armed) startY = touch.scrollY;
+    armed = true;
+    lastInput = performance.now();
+  }
+  function released(event) {
+    // Native panning cancels pointer events before the finger is released.
+    // Keep waiting for touchend, rather than pulling against that gesture.
+    if (touch && event.type.startsWith('pointer')) return;
+    touch = null;
     held = false;
     if (armed) {
       clearTimeout(timer);
@@ -1364,11 +1376,10 @@
       timer = setTimeout(settle, 180);
     }
     lastY = y;
-    if (lastSnapped && Math.abs(geometry(lastSnapped).delta) > captureRadius() * 1.6)
-      lastSnapped = null;
   }
   for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown'])
     document.addEventListener(type, input, { signal, capture: true, passive: true });
+  document.addEventListener('touchmove', touchMoved, { signal, capture: true, passive: true });
   for (const type of ['pointerup', 'pointercancel', 'touchend', 'touchcancel'])
     window.addEventListener(type, released, { signal, passive: true });
   window.addEventListener('scroll', scroll, { signal, passive: true });
@@ -1385,8 +1396,8 @@
   document.addEventListener(
     'click',
     (event) => {
+      reset();
       if (event.target.closest?.('a[href*="#"]')) {
-        reset();
         anchorUntil = performance.now() + 2000;
       }
     },
@@ -1397,7 +1408,7 @@
   window.addEventListener('pagehide', reset, { signal });
   reduced.addEventListener('change', reset, { signal });
   window.TDBSectionMagnet = Object.freeze({
-    version: '1.1.0',
+    version: '1.2.0',
     destroy() {
       reset();
       controller.abort();

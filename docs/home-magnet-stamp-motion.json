@@ -1,7 +1,7 @@
 {
   "date": "2026-10-21",
   "scope": "Existing Home services/treatment magnets and treatment stamp interaction",
-  "captureRange": "24% of viewport height, capped at 240px, on approach from either direction. A new user gesture cancels immediately; moving away does not pull back.",
+  "captureRange": "A repeatable 50px gravity field on either side of centre, after real vertical scrolling settles. A 700ms accelerating glide starts gently and gains speed towards centre. Every qualifying stop can attract again. Clicks do not arm it; new input interrupts immediately, and notice bars move away for the correction.",
   "stampLinks": {
     "optIn": "data-tdb-stamp-link-mode=confirm on the native stamp section",
     "behavior": "An inactive or manually displaced stamp first selects and highlights only. Once the active image and strip have settled, a separate activation reveals the dark image overlay and existing arrow; the following activation opens the CMS link. Drag, wheel, main-slide change and Escape disarm. Touch does not rely on a compatibility click; modified clicks retain normal browser behavior.",

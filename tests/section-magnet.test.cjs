@@ -104,16 +104,16 @@ test('centres from either direction with the native or Lenis scroll owner', () =
     for (const [from, to] of [
       [800, 950],
       [1200, 1050],
-      [600, 800],
-      [1400, 1200],
+      [980, 950],
+      [1020, 1050],
     ]) {
       const f = fixture({ lenis });
       try {
         f.gesture(from, to);
-        f.advance(280);
+        f.advance(350);
         assert.ok(Math.abs(f.y() - 1000) < Math.abs(to - 1000));
         assert.notEqual(f.y(), 1000, 'gentle correction takes time');
-        f.advance(280);
+        f.advance(350);
         assert.equal(f.y(), 1000);
       } finally {
         f.dom.window.close();
@@ -127,7 +127,7 @@ test('uses the shared site motion policy and keeps notice bars away during settl
     assert.equal(f.focuses.length, 1);
     assert.equal(f.focuses[0].node, f.root);
     assert.equal(f.focuses[0].hold(), true);
-    f.advance(560);
+    f.advance(700);
     assert.equal(f.y(), 1000);
     assert.equal(f.focuses[0].hold(), false, 'ordinary browsing resumes after the correction');
     assert.equal(f.focuses.length, 2, 'settled position rebases banner release distance');
@@ -138,7 +138,7 @@ test('uses the shared site motion policy and keeps notice bars away during settl
   const reduced = fixture({ reduced: false, policy: true });
   try {
     reduced.gesture(800, 950);
-    reduced.advance(560);
+    reduced.advance(700);
     assert.equal(reduced.writes.length, 0, 'shared reduced motion still disables snapping');
   } finally {
     reduced.dom.window.close();
@@ -148,14 +148,14 @@ test('tall treatment copy centres the unchanged image frame on short screens', (
   const f = fixture({ copyHeight: 500 });
   try {
     f.gesture(800, 950);
-    f.advance(560);
+    f.advance(700);
     assert.equal(f.y(), 1000);
     assert.equal(f.root.getBoundingClientRect().height, 500);
   } finally {
     f.dom.window.close();
   }
 });
-test('new wheel input immediately releases the magnet and a small escape does not snap back', () => {
+test('new wheel input interrupts immediately and every stop inside the field returns', () => {
   const f = fixture();
   try {
     f.gesture(800, 950);
@@ -163,10 +163,16 @@ test('new wheel input immediately releases the magnet and a small escape does no
     f.wheel(20);
     const interrupted = f.y();
     f.scroll(interrupted + 20);
+    assert.equal(f.y(), interrupted + 20, 'new input remains immediate');
+    f.advance(200);
     f.advance(1000);
-    assert.equal(f.y(), interrupted + 20);
+    assert.equal(f.y(), 1000);
+    f.gesture(1000, 1030);
     f.advance(1000);
-    assert.equal(f.y(), interrupted + 20);
+    assert.equal(f.y(), 1000, 'the same section can attract again');
+    f.gesture(1000, 1060);
+    f.advance(1000);
+    assert.equal(f.y(), 1060, 'outside the 50px field remains free');
   } finally {
     f.dom.window.close();
   }
@@ -185,23 +191,22 @@ test('closed consent dialogs do not disable centring; visible dialogs do', () =>
       if (state === 'hidden-ancestor') shell.setAttribute('aria-hidden', 'true');
       if (state === 'invisible') dialog.style.visibility = 'hidden';
       f.gesture(800, 950);
-      f.advance(560);
+      f.advance(700);
       assert.equal(f.y(), state === 'open' ? 950 : 1000);
     } finally {
       f.dom.window.close();
     }
   }
 });
-test('restoration without input, distant stopping and moving away are not pulled', () => {
-  for (const kind of ['restore', 'distant', 'away']) {
+test('restoration without input and stops outside the 50px field are not pulled', () => {
+  for (const kind of ['restore', 'distant']) {
     const f = fixture();
     try {
       if (kind === 'restore') {
         f.scroll(950);
         f.advance(200);
       }
-      if (kind === 'distant') f.gesture(500, 700);
-      if (kind === 'away') f.gesture(980, 950);
+      if (kind === 'distant') f.gesture(800, 949);
       f.advance(1000);
       assert.equal(f.writes.length, 0);
     } finally {
@@ -260,5 +265,46 @@ test('waits for existing Lenis inertia, and disposal cancels pending work', () =
     assert.equal(f.y(), stopped);
   } finally {
     f.dom.window.close();
+  }
+});
+
+test('attraction starts slowly and accelerates toward the centre', () => {
+  const f = fixture();
+  try {
+    f.gesture(800, 950);
+    f.advance(175);
+    const early = f.y() - 950;
+    f.advance(175);
+    const middle = f.y() - 950 - early;
+    f.advance(175);
+    const later = f.y() - 950 - early - middle;
+    assert.ok(early > 0 && early < middle && middle < later);
+    f.advance(175);
+    assert.equal(f.y(), 1000);
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('click-induced scrolling never arms the magnet; actual vertical touch scrolling does', () => {
+  for (const moves of [false, true]) {
+    const f = fixture();
+    const touch = (type, y) => {
+      const e = new f.w.Event(type, { bubbles: true });
+      Object.defineProperty(e, 'touches', { value: [{ clientX: 100, clientY: y }] });
+      f.d.body.dispatchEvent(e);
+    };
+    try {
+      touch('touchstart', 300);
+      if (moves) touch('touchmove', 150);
+      f.scroll(950);
+      f.w.dispatchEvent(new f.w.Event('touchend'));
+      if (!moves) f.d.body.click();
+      f.advance(200);
+      f.advance(700);
+      assert.equal(f.y(), moves ? 1000 : 950);
+    } finally {
+      f.dom.window.close();
+    }
   }
 });
