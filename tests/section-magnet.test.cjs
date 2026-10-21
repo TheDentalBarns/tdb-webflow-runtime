@@ -113,6 +113,27 @@ test('new wheel input immediately releases the magnet and a small escape does no
     f.dom.window.close();
   }
 });
+
+test('closed consent dialogs do not disable centring; visible dialogs do', () => {
+  for (const state of ['hidden-ancestor', 'invisible', 'open']) {
+    const f = fixture();
+    try {
+      const shell = f.d.createElement('div'),
+        dialog = f.d.createElement('div');
+      dialog.setAttribute('aria-modal', 'true');
+      dialog.getClientRects = () => [{}];
+      shell.append(dialog);
+      f.d.body.append(shell);
+      if (state === 'hidden-ancestor') shell.setAttribute('aria-hidden', 'true');
+      if (state === 'invisible') dialog.style.visibility = 'hidden';
+      f.gesture(800, 950);
+      f.advance(560);
+      assert.equal(f.y(), state === 'open' ? 950 : 1000);
+    } finally {
+      f.dom.window.close();
+    }
+  }
+});
 test('restoration without input, distant stopping and moving away are not pulled', () => {
   for (const kind of ['restore', 'distant', 'away']) {
     const f = fixture();

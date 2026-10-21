@@ -1196,12 +1196,24 @@
   let startY = window.scrollY,
     lastY = window.scrollY;
   const editable = 'input,textarea,select,[contenteditable="true"]';
+  function modalOpen() {
+    return [...document.querySelectorAll('[aria-modal="true"]')].some((node) => {
+      if (node.closest('[hidden],[aria-hidden="true"],[inert]')) return false;
+      const style = getComputedStyle(node);
+      return (
+        style.display !== 'none' &&
+        style.visibility !== 'hidden' &&
+        style.visibility !== 'collapse' &&
+        node.getClientRects().length > 0
+      );
+    });
+  }
   function blocked() {
     return (
       document.hidden ||
       reduced.matches ||
       document.documentElement.matches('.w-editor,.tdb-sg-locked,.tdb-sg-chrome-away') ||
-      !!document.querySelector('[aria-modal="true"]:not([hidden]):not([aria-hidden="true"])') ||
+      modalOpen() ||
       getComputedStyle(document.documentElement).overflowY === 'hidden' ||
       getComputedStyle(document.body).overflowY === 'hidden' ||
       getComputedStyle(document.body).position === 'fixed' ||
