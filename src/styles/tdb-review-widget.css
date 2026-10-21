@@ -17,7 +17,7 @@ html { --tdb-review-widget-ready: 1; }
   border: 1px solid rgba(255,255,255,.3);
   border-left: 0;
   border-radius: 0 2rem 2rem 0;
-  background: rgba(0,0,0,.6);
+  background: rgba(0,0,0,.8);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   color: #fff;
@@ -55,7 +55,8 @@ html { --tdb-review-widget-ready: 1; }
   flex: 0 0 2rem;
   object-fit: contain;
 }
-@media (hover:hover) { .tdb-review-widget:hover { background-color: rgba(0,0,0,.7); border-color: rgba(255,255,255,.6); } }
+@media (max-width:767px) { .tdb-review-widget { gap: 1.125rem; } }
+@media (hover:hover) { .tdb-review-widget:hover { background-color: rgba(0,0,0,.85); border-color: rgba(255,255,255,.6); } }
 .tdb-review-widget:focus-visible { outline: 2px solid #d6cab4; outline-offset: 3px; }
 .tdb-review-widget[aria-busy="true"] .tdb-review-widget_google { opacity: .35; }
 .tdb-review-widget[aria-busy="true"]::after {
