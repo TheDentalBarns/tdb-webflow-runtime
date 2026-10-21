@@ -5,6 +5,7 @@ const { JSDOM } = require('jsdom');
 
 function fixture({
   reduced = false,
+  desktop = true,
   policy,
   height = 500,
   mode = 'treatment',
@@ -28,7 +29,9 @@ function fixture({
   Object.defineProperty(w, 'scrollY', { get: () => y });
   Object.defineProperty(d.documentElement, 'scrollHeight', { value: 5000 });
   w.performance.now = () => now;
-  w.matchMedia = () => ({ matches: reduced, addEventListener() {} });
+  const desktopMedia = { matches: desktop, addEventListener() {} };
+  w.matchMedia = (query) =>
+    query.includes('pointer: fine') ? desktopMedia : { matches: reduced, addEventListener() {} };
   if (policy !== undefined) w.TDBMotion = { reduced: { matches: policy, addEventListener() {} } };
   const focuses = [];
   w.TDBSliderFocus = {
@@ -96,7 +99,20 @@ function fixture({
     scroll(to);
     advance(200);
   }
-  return { dom, w, d, root, writes, focuses, advance, wheel, scroll, gesture, y: () => y };
+  return {
+    dom,
+    w,
+    d,
+    root,
+    writes,
+    focuses,
+    advance,
+    wheel,
+    scroll,
+    gesture,
+    desktopMedia,
+    y: () => y,
+  };
 }
 
 test('centres from either direction with the native or Lenis scroll owner', () => {
@@ -312,7 +328,24 @@ test('slow Lenis tail hands over promptly but fast inertia keeps its freedom', (
   }
 });
 
-test('click-induced scrolling never arms the magnet; actual vertical touch scrolling does', () => {
+test('slow inertia entering the capture range is not discarded one frame too early', () => {
+  const f = fixture({ lenis: true });
+  try {
+    f.w.lenis.isScrolling = 'smooth';
+    f.w.lenis.velocity = 1;
+    f.gesture(600, 750);
+    assert.equal(f.focuses.length, 0);
+    f.scroll(780);
+    f.advance(100);
+    assert.equal(f.focuses.length, 1);
+    f.advance(1000);
+    assert.equal(f.y(), 1000);
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('clicks and touch gestures leave scrolling native, even on a hybrid desktop', () => {
   for (const moves of [false, true]) {
     const f = fixture();
     const touch = (type, y) => {
@@ -328,9 +361,29 @@ test('click-induced scrolling never arms the magnet; actual vertical touch scrol
       if (!moves) f.d.body.click();
       f.advance(200);
       f.advance(1000);
-      assert.equal(f.y(), moves ? 1000 : 950);
+      assert.equal(f.y(), 950);
+      assert.equal(f.writes.length, 0);
     } finally {
       f.dom.window.close();
     }
+  }
+});
+
+test('phone/tablet mode never snaps and changing to it interrupts a desktop spring', () => {
+  const f = fixture({ desktop: false });
+  try {
+    f.gesture(800, 950);
+    f.advance(1000);
+    assert.equal(f.writes.length, 0);
+    f.desktopMedia.matches = true;
+    f.gesture(800, 950);
+    f.advance(100);
+    assert.ok(f.writes.length > 0);
+    f.desktopMedia.matches = false;
+    const stopped = f.y();
+    f.advance(1000);
+    assert.equal(f.y(), stopped);
+  } finally {
+    f.dom.window.close();
   }
 });

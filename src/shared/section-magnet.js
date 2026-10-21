@@ -11,13 +11,13 @@
     window.TDBMotion?.reduced ||
     window.TDBMotionPolicy?.reduced ||
     matchMedia('(prefers-reduced-motion: reduce)');
+  const desktop = matchMedia('(min-width: 768px) and (hover: hover) and (pointer: fine)');
   const controller = new AbortController(),
     { signal } = controller;
   let timer = 0,
     raf = 0,
     active = null,
-    centred = null,
-    touch = null;
+    centred = null;
   let armed = false,
     held = false,
     anchorUntil = 0,
@@ -53,6 +53,7 @@
   function blocked() {
     return (
       document.hidden ||
+      !desktop.matches ||
       reduced.matches ||
       document.documentElement.matches('.w-editor,.tdb-sg-locked,.tdb-sg-chrome-away') ||
       modalOpen() ||
@@ -100,7 +101,6 @@
     stop();
     armed = false;
     held = false;
-    touch = null;
     if (clearCentre === true) centred = null;
     startY = lastY = window.scrollY;
   }
@@ -117,9 +117,11 @@
       timer = setTimeout(settle, 80);
       return;
     }
-    armed = false;
     const travel = window.scrollY - startY;
-    if (Math.abs(travel) < 0.5) return;
+    if (Math.abs(travel) < 0.5) {
+      armed = false;
+      return;
+    }
     const candidates = roots.map(geometry);
     const heldCentre = candidates.find((g) => g.node === centred);
     if (!heldCentre?.fits || Math.abs(heldCentre.delta) > releaseRadius()) centred = null;
@@ -130,14 +132,24 @@
       )
       .sort((a, b) => Math.abs(a.delta) - Math.abs(b.delta));
     const target = chosen.find((g) => g.node === centred) || chosen[0];
-    if (!target) return;
+    if (!target) {
+      // The slow tail may still cross into the capture range. Keep observing
+      // it until Lenis finishes, rather than discarding that final approach.
+      if (lenis?.isScrolling) timer = setTimeout(settle, 80);
+      else armed = false;
+      return;
+    }
+    armed = false;
     centred = target.node;
     const from = window.scrollY;
     const destination = Math.max(
       0,
       Math.min(from + target.delta, document.documentElement.scrollHeight - innerHeight),
     );
-    if (Math.abs(destination - from) < 2) return;
+    if (Math.abs(destination - from) < 2) {
+      if (lenis?.isScrolling) lenis.scrollTo(destination, { immediate: true, force: true });
+      return;
+    }
     const duration = Math.min(950, 600 + Math.sqrt(Math.abs(destination - from)) * 18),
       started = performance.now();
     active = { node: target.node, lenis: window.lenis || null };
@@ -166,6 +178,12 @@
     raf = requestAnimationFrame(step);
   }
   function input(event) {
+    // Keep phone/tablet scrolling native, including landscape. A touch on a
+    // hybrid laptop also cancels the desktop spring without arming a return.
+    if (!desktop.matches || event.type === 'touchstart' || event.pointerType === 'touch') {
+      reset(true);
+      return;
+    }
     if (event.type === 'keydown') {
       // Keep keyboard navigation literal and cancel a correction immediately.
       reset(true);
@@ -180,13 +198,9 @@
       return;
     }
     if (event.target?.closest?.(editable)) return reset();
-    if (event.type === 'pointerdown' || event.type === 'touchstart') {
+    if (event.type === 'pointerdown') {
       reset();
       held = true;
-      touch =
-        event.type === 'touchstart' && event.touches?.length === 1
-          ? { x: event.touches[0].clientX, y: event.touches[0].clientY, scrollY: window.scrollY }
-          : null;
       return;
     }
     const wasActive = !!active;
@@ -198,20 +212,7 @@
     lastInput = performance.now();
     timer = setTimeout(settle, 120);
   }
-  function touchMoved(event) {
-    if (!touch || event.touches?.length !== 1) return;
-    const dx = Math.abs(event.touches[0].clientX - touch.x),
-      dy = Math.abs(event.touches[0].clientY - touch.y);
-    if (dy <= 8 || dy <= dx) return;
-    if (!armed) startY = touch.scrollY;
-    armed = true;
-    lastInput = performance.now();
-  }
-  function released(event) {
-    // Native panning cancels pointer events before the finger is released.
-    // Keep waiting for touchend, rather than pulling against that gesture.
-    if (touch && event.type.startsWith('pointer')) return;
-    touch = null;
+  function released() {
     held = false;
     if (armed) {
       clearTimeout(timer);
@@ -237,7 +238,6 @@
   }
   for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown'])
     document.addEventListener(type, input, { signal, capture: true, passive: true });
-  document.addEventListener('touchmove', touchMoved, { signal, capture: true, passive: true });
   for (const type of ['pointerup', 'pointercancel', 'touchend', 'touchcancel'])
     window.addEventListener(type, released, { signal, passive: true });
   window.addEventListener('scroll', scroll, { signal, passive: true });
@@ -266,8 +266,9 @@
   window.addEventListener('resize', resetContext, { signal, passive: true });
   window.addEventListener('pagehide', resetContext, { signal });
   reduced.addEventListener('change', resetContext, { signal });
+  desktop.addEventListener('change', resetContext, { signal });
   window.TDBSectionMagnet = Object.freeze({
-    version: '1.3.0',
+    version: '1.3.1',
     destroy() {
       reset();
       controller.abort();
