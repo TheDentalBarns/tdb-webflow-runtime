@@ -192,10 +192,10 @@
       "sources": [
         "src/components/hold-audio.js"
       ],
-      "sha256": "a6333446775f2236b72479d98033d5b28a5a4e4d8a180ff1d0f5e4fe40cb7ab4",
-      "raw": 4726,
-      "gzip": 1983,
-      "brotli": 1787
+      "sha256": "767f95a4cb273b4814ad2290808e35397806fffbfa5b2e4b87ea17d2ee5b0289",
+      "raw": 5203,
+      "gzip": 2163,
+      "brotli": 1946
     },
     "dist/tdb-home-desktop-instagram.js": {
       "sources": [
@@ -262,20 +262,20 @@
         "src/logo-marquee/partner-controls-style.js",
         "src/logo-marquee/logo-marquee.js"
       ],
-      "sha256": "dbd49a8e532115355588e09d350de69db154ab7670a16146988c2253feff5900",
-      "raw": 26503,
-      "gzip": 8551,
-      "brotli": 7722
+      "sha256": "5fde91a5c80587b3abb46c6f7afff0fda35a69b397a10c2ccb380170429bbbce",
+      "raw": 26530,
+      "gzip": 8561,
+      "brotli": 7736
     },
     "dist/tdb-logo-marquee.min.js": {
       "sources": [
         "src/logo-marquee/partner-controls-style.js",
         "src/logo-marquee/logo-marquee.js"
       ],
-      "sha256": "dbd49a8e532115355588e09d350de69db154ab7670a16146988c2253feff5900",
-      "raw": 26503,
-      "gzip": 8551,
-      "brotli": 7722
+      "sha256": "5fde91a5c80587b3abb46c6f7afff0fda35a69b397a10c2ccb380170429bbbce",
+      "raw": 26530,
+      "gzip": 8561,
+      "brotli": 7736
     },
     "dist/tdb-modules.js": {
       "sources": [

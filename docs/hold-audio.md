@@ -33,11 +33,16 @@ PEACEFUL, CALM, STILL, REST, EASE. Three words fade in and out per ten-second ho
 hold continues across any card. Releasing early cancels the remaining cues.
 Reception places the word at the top, lounge in the middle, chair near the bottom.
 
-Designer owns `tdb-hold-image-clip`, `tdb-hold-blur-circle` and the two word
+Designer owns `tdb-hold-image-clip`, `tdb-hold-blur-circle`, `tdb-hold-ripple-edge` and the two word
 position classes. The Home variant allows frame overflow; its new inner image
 clip preserves the original aspect ratio and crops zoom/parallax. The decorative
-20px backdrop-blur circle is a sibling of that clip, centred on the image, and
-can expand beyond the card. Words and speaker controls sit above it. The external
+20px backdrop-blur circle lives in the native speaker overlay, sharing the
+button's centre. Its soft radial mask leaves the centre and outside clear. The
+ring starts just outside the speaker, expands beyond the card while dissolving,
+and has a separate native 1px cream outline following the same fade. The edge
+is a sibling so its outline remains outside the mask and the photo backdrop
+is not blocked by an ancestor's opacity. The ripple reverses into the speaker
+on release. Words and controls sit above it. The external
 controller animates only scale/opacity with the Web Animations API, reverses from
 the current appearance on early release/re-press, and cancels all effects/timers
 on teardown. No CSS or markup is injected at runtime; no head blocks are added.

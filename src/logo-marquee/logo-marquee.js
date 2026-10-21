@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.15.2';
+  const VERSION = '0.15.3';
   const assetBase = new URL('./', document.currentScript.src);
   if (window.TDBLogoMarquee) return;
   const DEFAULTS = {
@@ -863,6 +863,9 @@
     }
     function select(item) {
       if (!item) return;
+      // Finish the previous close before the new selection takes ownership.
+      // Its completion may restart cruise; it must never run after centre().
+      if (!openCard) finishCardTransition(shell);
       centre(item);
       // Activation selects; vertical page scrolling keeps a visible card open.
       if (openItem !== item) showCard(item);
@@ -898,6 +901,11 @@
     }
     function onPointerDown(event) {
       if (!ready || event.button > 0 || event.isPrimary === false || pointerId !== null) return;
+      // A new gesture supersedes any delayed activation. Restore the real logo
+      // before the track can move, rather than leaving a closing spotlight behind.
+      requestGeneration++;
+      setPendingItem();
+      if (!openCard) finishCardTransition(shell);
       clearTimeout(wheelSettleTimer);
       // Catch a moving logo exactly where the finger lands, including mid-settle.
       centreAnimation?.cancel();

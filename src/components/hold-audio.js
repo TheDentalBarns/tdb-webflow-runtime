@@ -48,17 +48,40 @@
       scale: current.scale === 'none' ? '0' : current.scale,
       opacity: current.opacity,
     };
-    animateEffect(
-      element,
-      [from, { scale: held ? '1' : '0', opacity: held ? '1' : '0' }],
-      {
-        duration:
-          immediate || window.TDBMotionPolicy?.reduced?.matches ? 0 : held ? holdDuration : 1200,
-        easing: held ? 'linear' : 'cubic-bezier(0.165,0.84,0.44,1)',
-        fill: 'forwards',
-      },
-      held,
+    const button = element.parentElement.querySelector('[data-tdb-hold-audio]');
+    // The native overlay centres both the speaker and ripple. Start just outside
+    // the button rim, then let the masked blur ring dissolve as it expands.
+    const seed = Math.min(
+      1,
+      Math.max(
+        parseFloat(from.scale) || 0,
+        ((button?.getBoundingClientRect().width || 0) * 1.45) / (parseFloat(current.width) || 1),
+      ),
     );
+    const frames = held
+      ? [
+          { ...from, offset: 0 },
+          { scale: String(seed), opacity: 0.95, offset: 0.02 },
+          { scale: String(seed + (1 - seed) * 0.35), opacity: 0.55, offset: 0.36 },
+          { scale: '1', opacity: 0, offset: 1 },
+        ]
+      : [
+          { ...from, offset: 0 },
+          { opacity: Math.max(Number(from.opacity), 0.65), offset: 0.2 },
+          { opacity: 0.5, offset: 0.72 },
+          { scale: '0', opacity: 0, offset: 1 },
+        ];
+    const options = {
+      duration:
+        immediate || window.TDBMotionPolicy?.reduced?.matches ? 0 : held ? holdDuration : 1200,
+      easing: held ? 'linear' : 'cubic-bezier(0.4,0,0.2,1)',
+      fill: 'forwards',
+    };
+    animateEffect(element, frames, options, held);
+    // A sibling edge avoids masking away the outline or placing the backdrop
+    // blur inside an opacity ancestor, which would block the photo backdrop.
+    const edge = element.parentElement.querySelector('[data-tdb-audio-ripple-edge]');
+    animateEffect(edge, frames, options, held);
   }
 
   function showWord(session) {
@@ -286,7 +309,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.2.0',
+    version: '1.3.0',
     press,
     release,
     destroy,

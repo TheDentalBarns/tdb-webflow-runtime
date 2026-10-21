@@ -25,6 +25,7 @@ function fixture({
             '<button data-tdb-hold-audio type="button" aria-pressed="false"></button>' +
             (visual
               ? '<div data-tdb-audio-circle style="scale:0;opacity:0"></div>' +
+                '<div data-tdb-audio-ripple-edge style="scale:0;opacity:0"></div>' +
                 '<div data-tdb-audio-words="HOLD.|BREATHE.|RELAX.|UNWIND.|PEACEFUL.|CALM.|STILL.|REST.|EASE." style="opacity:0">HOLD.</div>'
               : '') +
             '</div>',
@@ -452,6 +453,15 @@ test('blur reverses from current geometry without altering native layout or para
   let animation = f.calls.animations.find((a) => a.element === circle);
   assert.equal(animation.options.duration, 10000);
   assert.equal(animation.frames.at(-1).scale, '1');
+  assert.equal(animation.frames.at(-1).opacity, 0, 'outgoing ripple dissolves at its outer limit');
+  assert.equal(animation.frames[1].opacity, 0.95, 'visible feedback begins at the speaker');
+  const edge = f.w.document.querySelector('[data-tdb-audio-ripple-edge]');
+  const edgeAnimation = f.calls.animations.find((a) => a.element === edge);
+  assert.deepEqual(
+    edgeAnimation.frames,
+    animation.frames,
+    'edge follows the blur without a second timer',
+  );
   // JSDOM does not interpolate WAAPI; supply the visible mid-animation value.
   circle.style.scale = '0.6';
   circle.style.opacity = '0.6';
@@ -460,6 +470,7 @@ test('blur reverses from current geometry without altering native layout or para
   assert.equal(animation.frames[0].scale, '0.6');
   assert.equal(animation.frames.at(-1).scale, '0');
   assert.equal(animation.options.duration, 1200);
+  assert.ok(animation.frames[1].opacity > 0, 'returning ripple remains visible while shrinking');
   circle.style.scale = '0.3';
   await f.down();
   animation = f.calls.animations.filter((a) => a.element === circle).at(-1);
