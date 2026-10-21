@@ -9,7 +9,7 @@ function fixture() {
   const dom = new JSDOM(
     `<section data-tdb-treatment-layout>
     <div data-tdb-treatment-postage><div class="swiper"><div class="swiper-wrapper">
-      <article><h3 class="tdb-treatment-title">Treatment B</h3><a data-tdb-treatment-price-source="£4195" data-tdb-treatment-duration-source="6–18 months"></a></article>
+      <article><h3 class="tdb-treatment-title">Treatment B</h3><a data-tdb-treatment-price-source="4195" data-tdb-treatment-duration-source="6–18 months"></a></article>
       <article><h3 class="tdb-treatment-title">Treatment A</h3><a data-tdb-treatment-price-source="£995" data-tdb-treatment-duration-source="Several weeks"></a></article>
       <article><h3 class="tdb-treatment-title">Treatment C</h3><a data-tdb-treatment-price-source="" data-tdb-treatment-duration-source=""></a></article>
     </div></div><div data-tdb-treatment-position><span data-tdb-treatment-current>01</span><span data-tdb-treatment-total>06</span></div></div>
@@ -70,7 +70,7 @@ function fixture() {
 test('treatment values come from each rendered CMS item, including CMS reordering and missing facts', () => {
   const f = fixture();
   try {
-    assert.equal(f.value('price'), 'From £4195');
+    assert.equal(f.value('price'), 'From £4,195');
     assert.equal(f.value('duration'), '6–18 months');
     assert.equal(f.value('title-ticker'), 'Treatment B');
     assert.equal(f.w.document.querySelector('[data-tdb-treatment-total]').textContent, '03');
@@ -100,7 +100,7 @@ test('rapid treatment selection animates only values, retains native nodes/icons
     f.select(2);
     f.select(0);
     f.finish();
-    assert.equal(f.value('price'), 'From £4195');
+    assert.equal(f.value('price'), 'From £4,195');
     assert.equal(f.value('title-ticker'), 'Treatment B');
     assert.equal(f.w.document.querySelector('[data-tdb-treatment-price]').firstElementChild, value);
     assert.deepEqual([...f.w.document.querySelectorAll('img')], icons);
@@ -127,7 +127,7 @@ test('desktop and reduced motion update without ticker animation; disposal unbin
     f.w.TDBMotion.reduced.matches = true;
     f.select(0);
     assert.equal(f.animations.length, 0);
-    assert.equal(f.value('price'), 'From £4195');
+    assert.equal(f.value('price'), 'From £4,195');
     f.controller.dispose();
     assert.equal(f.events.slideChange.size, 0);
     assert.equal(f.events.beforeDestroy.size, 0);

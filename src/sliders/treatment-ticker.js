@@ -39,6 +39,15 @@ window.TDBTreatmentTicker ||= (() => {
       );
       const source = slide?.querySelector('[data-tdb-treatment-price-source]');
       const amount = clean(source?.getAttribute('data-tdb-treatment-price-source'));
+      // Webflow's Low Price field renders a number, without a currency symbol.
+      const formattedAmount = /^\d+(?:,\d{3})*(?:\.\d+)?$/.test(amount)
+        ? new Intl.NumberFormat('en-GB', {
+            style: 'currency',
+            currency: 'GBP',
+            maximumFractionDigits: 2,
+            minimumFractionDigits: 0,
+          }).format(Number(amount.replaceAll(',', '')))
+        : amount;
       const time = clean(
         slide
           ?.querySelector('[data-tdb-treatment-duration-source]')
@@ -47,7 +56,11 @@ window.TDBTreatmentTicker ||= (() => {
       const values = [
         String(index + 1).padStart(2, '0'),
         clean(slide?.querySelector('.tdb-treatment-title')?.textContent),
-        amount ? (/^from\b/i.test(amount) ? amount : 'From ' + amount) : '',
+        formattedAmount
+          ? /^from\b/i.test(formattedAmount)
+            ? formattedAmount
+            : 'From ' + formattedAmount
+          : '',
         time,
       ];
       const direction =
