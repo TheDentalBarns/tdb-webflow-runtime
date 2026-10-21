@@ -85,3 +85,25 @@ test('copy mirrors the shared fade state and loop rebuild restores original node
     f.dom.window.close();
   }
 });
+
+test('unchanged progress samples do not invalidate every detail row again', () => {
+  const f = fixture();
+  try {
+    f.api.paint(f.slides);
+    const observer = new f.w.MutationObserver(() => {});
+    observer.observe(f.d.querySelector('.tdb-treatment-wrapper'), {
+      subtree: true,
+      attributes: true,
+    });
+    f.api.paint(f.slides);
+    f.api.paint(f.slides);
+    assert.equal(
+      observer.takeRecords().length,
+      0,
+      'stationary geometry and state produce no writes',
+    );
+    observer.disconnect();
+  } finally {
+    f.dom.window.close();
+  }
+});

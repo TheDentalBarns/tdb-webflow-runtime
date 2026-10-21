@@ -115,8 +115,9 @@ window.TDBTreatmentStamps ||= (() => {
         returnStarted = performance.now();
       }
       if (returnOffset) {
-        if (motionFrame) cancelAnimationFrame(motionFrame);
-        returnStep(performance.now());
+        // Progress sampling and return easing share a single writer. Updating
+        // the target must not repaint/cancel the same frame a second time.
+        if (!motionFrame) motionFrame = requestAnimationFrame(returnStep);
       } else setScroll(value);
     }
     function coast(now) {
@@ -241,7 +242,7 @@ window.TDBTreatmentStamps ||= (() => {
       }
     }
     function down(event) {
-      if (event.button !== 0) return;
+      if (event.button !== 0 || event.isPrimary === false) return;
       stopMotion();
       automatic = false;
       suppressClick = false;
@@ -263,9 +264,11 @@ window.TDBTreatmentStamps ||= (() => {
         drag = null;
         return;
       }
-      if (Math.abs(delta) > (looped ? 8 : 4)) suppressClick = true;
-      if (suppressClick) {
+      if (!suppressClick && Math.abs(delta) > (looped ? 8 : 4)) {
+        suppressClick = true;
         viewport.setPointerCapture(event.pointerId);
+      }
+      if (suppressClick) {
         const now = performance.now(),
           dt = Math.max(1, now - drag.lastTime);
         const speed = Math.max(-3.5, Math.min(3.5, (drag.lastX - event.clientX) / dt));
@@ -277,6 +280,10 @@ window.TDBTreatmentStamps ||= (() => {
       }
     }
     function up(event) {
+      if (!drag || event.pointerId !== drag.id) return;
+      // Touch starts with implicit capture on the image/link. Its release
+      // bubbles when the viewport takes capture; the gesture is still active.
+      if (event.type === 'lostpointercapture' && event.target !== viewport) return;
       if (
         drag &&
         looped &&
@@ -327,5 +334,5 @@ window.TDBTreatmentStamps ||= (() => {
     instances.set(root, controller);
     return controller;
   }
-  return { version: '1.0.0', prepare };
+  return { version: '1.0.1', prepare };
 })();

@@ -248,3 +248,76 @@ test('mobile touch drag crosses a recycled end continuously and coasts on releas
     f.dom.window.close();
   }
 });
+
+test('touch capture transfer from a stamp image does not end the horizontal drag', () => {
+  const f = fixture(6, true);
+  function pointer(target, type, x, id = 1) {
+    const event = new f.w.Event(type, { bubbles: true, cancelable: true });
+    Object.assign(event, {
+      button: 0,
+      pointerType: 'touch',
+      pointerId: id,
+      clientX: x,
+      clientY: 100,
+    });
+    target.dispatchEvent(event);
+  }
+  try {
+    f.controller.measure();
+    f.controller.paint(0, 0, 800);
+    pointer(f.links[0], 'pointerdown', 250);
+    f.tick(16);
+    pointer(f.links[0], 'pointermove', 230);
+    const first = f.viewport.scrollLeft;
+    // A real touch implicitly captures its image/link. Taking explicit capture
+    // on the viewport releases that child and bubbles this event to the viewport.
+    pointer(f.links[0], 'lostpointercapture', 230);
+    f.tick(16);
+    pointer(f.viewport, 'pointermove', 190);
+    assert.equal(
+      f.viewport.scrollLeft - first,
+      40,
+      'finger movement continues after capture transfer',
+    );
+    pointer(f.viewport, 'pointerup', 190, 2);
+    f.tick(16);
+    pointer(f.viewport, 'pointermove', 170);
+    assert.equal(
+      f.viewport.scrollLeft - first,
+      60,
+      'another pointer cannot cancel the active finger',
+    );
+    pointer(f.viewport, 'lostpointercapture', 170);
+    const lost = f.viewport.scrollLeft;
+    pointer(f.viewport, 'pointermove', 100);
+    assert.equal(f.viewport.scrollLeft, lost, 'losing viewport capture really does end the drag');
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('return alignment shares one animation writer with repeated progress samples', () => {
+  const f = fixture(6, true);
+  try {
+    f.controller.measure();
+    f.controller.paint(0, 0, 800);
+    f.viewport.dispatchEvent(new f.w.Event('wheel'));
+    let left = 1100,
+      writes = 0;
+    Object.defineProperty(f.viewport, 'scrollLeft', {
+      get: () => left,
+      set: (v) => {
+        left = v;
+        writes++;
+      },
+    });
+    f.links[0].click();
+    for (let i = 0; i < 10; i++) f.controller.paint(0, 0, 800);
+    assert.equal(writes, 0, 'progress samples update the target without competing writes');
+    assert.equal(f.frames.size, 1);
+    f.tick(16);
+    assert.equal(writes, 1);
+  } finally {
+    f.dom.window.close();
+  }
+});

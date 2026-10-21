@@ -675,8 +675,9 @@ window.TDBTreatmentStamps ||= (() => {
         returnStarted = performance.now();
       }
       if (returnOffset) {
-        if (motionFrame) cancelAnimationFrame(motionFrame);
-        returnStep(performance.now());
+        // Progress sampling and return easing share a single writer. Updating
+        // the target must not repaint/cancel the same frame a second time.
+        if (!motionFrame) motionFrame = requestAnimationFrame(returnStep);
       } else setScroll(value);
     }
     function coast(now) {
@@ -801,7 +802,7 @@ window.TDBTreatmentStamps ||= (() => {
       }
     }
     function down(event) {
-      if (event.button !== 0) return;
+      if (event.button !== 0 || event.isPrimary === false) return;
       stopMotion();
       automatic = false;
       suppressClick = false;
@@ -823,9 +824,11 @@ window.TDBTreatmentStamps ||= (() => {
         drag = null;
         return;
       }
-      if (Math.abs(delta) > (looped ? 8 : 4)) suppressClick = true;
-      if (suppressClick) {
+      if (!suppressClick && Math.abs(delta) > (looped ? 8 : 4)) {
+        suppressClick = true;
         viewport.setPointerCapture(event.pointerId);
+      }
+      if (suppressClick) {
         const now = performance.now(),
           dt = Math.max(1, now - drag.lastTime);
         const speed = Math.max(-3.5, Math.min(3.5, (drag.lastX - event.clientX) / dt));
@@ -837,6 +840,10 @@ window.TDBTreatmentStamps ||= (() => {
       }
     }
     function up(event) {
+      if (!drag || event.pointerId !== drag.id) return;
+      // Touch starts with implicit capture on the image/link. Its release
+      // bubbles when the viewport takes capture; the gesture is still active.
+      if (event.type === 'lostpointercapture' && event.target !== viewport) return;
       if (
         drag &&
         looped &&
@@ -887,7 +894,7 @@ window.TDBTreatmentStamps ||= (() => {
     instances.set(root, controller);
     return controller;
   }
-  return { version: '1.0.0', prepare };
+  return { version: '1.0.1', prepare };
 })();
 
 /* Native CMS text row follows rendered image geometry, including loop/width motion.
@@ -906,6 +913,7 @@ window.TDBTreatmentDetails ||= (() => {
     const originals = [...track.children];
     let sources = [],
       rows = [],
+      lastTransform = '',
       disposed = false;
     const colors = new Map();
     function rebuild(slides) {
@@ -941,30 +949,40 @@ window.TDBTreatmentDetails ||= (() => {
       const origin = viewport.getBoundingClientRect().left;
       // Batch all layout reads before writes; use rendered (not target) positions.
       const boxes = slides.map((s) => s.node.getBoundingClientRect());
-      const states = slides.map((s) => ({
-        active: s.node.classList.contains('swiper-slide-active'),
-        copy: s.node.querySelector('[data-tdb-service-copy]'),
-      }));
-      track.style.transform = `translate3d(${boxes[0].left - origin}px,0,0)`;
+      const states = slides.map((s, i) => {
+        const active = s.node.classList.contains('swiper-slide-active');
+        const row = rows[i];
+        return {
+          active,
+          copy: s.node.querySelector('[data-tdb-service-copy]'),
+          color: row?.title && row.active !== active ? getComputedStyle(row.title).color : null,
+        };
+      });
+      const transform = `translate3d(${boxes[0].left - origin}px,0,0)`;
+      if (transform !== lastTransform) track.style.transform = lastTransform = transform;
       rows.forEach((row, i) => {
         if (!row) return;
         const box = boxes[i],
           next = boxes[i + 1];
-        row.node.style.width = box.width + 'px';
-        row.node.style.marginRight = (next ? Math.max(0, next.left - box.right) : 0) + 'px';
-        row.node.inert = !states[i].active;
-        row.node.setAttribute('aria-hidden', String(!states[i].active));
+        const width = Math.round(box.width * 1000) / 1000;
+        const gap = Math.round((next ? Math.max(0, next.left - box.right) : 0) * 1000) / 1000;
+        if (row.width !== width) row.node.style.width = (row.width = width) + 'px';
+        if (row.gap !== gap) row.node.style.marginRight = (row.gap = gap) + 'px';
         for (const state of ['is-visible', 'is-moving', 'is-entry-pending'])
           row.copy?.classList.toggle(state, !!states[i].copy?.classList.contains(state));
         if (row.active !== states[i].active) {
           row.active = states[i].active;
+          row.node.inert = !row.active;
+          row.node.setAttribute('aria-hidden', String(!row.active));
           if (row.title) {
-            const start = getComputedStyle(row.title).color;
             colors.get(row.title)?.cancel();
             colors.set(
               row.title,
               row.title.animate(
-                [{ color: start }, { color: row.active ? '#ffffff' : 'rgba(255,255,255,0.5)' }],
+                [
+                  { color: states[i].color },
+                  { color: row.active ? '#ffffff' : 'rgba(255,255,255,0.5)' },
+                ],
                 { duration: window.TDBMotion?.reduced?.matches ? 0 : 200, fill: 'forwards' },
               ),
             );
@@ -1156,6 +1174,17 @@ window.TDBParallaxProgress ||= (() => {
     }
     (E.observe(n), document.addEventListener('visibilitychange', A));
     const B = new ResizeObserver(S);
+    // Font/gutter changes can resize the CMS strip without changing the main
+    // image frame. Keep loop distance current before recycling any stamp copies.
+    if (stamps) {
+      const strip = r
+        .closest('[data-tdb-treatment-layout]')
+        ?.querySelector('[data-tdb-treatment-stamps]');
+      for (const node of strip?.querySelectorAll(
+        '.tdb-treatment-controls,.tdb-treatment-wrapper,.tdb-treatment-card:first-child',
+      ) || [])
+        B.observe(node);
+    }
     return (
       B.observe(n),
       window.addEventListener('resize', S, {

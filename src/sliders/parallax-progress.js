@@ -157,6 +157,17 @@ window.TDBParallaxProgress ||= (() => {
     }
     (E.observe(n), document.addEventListener('visibilitychange', A));
     const B = new ResizeObserver(S);
+    // Font/gutter changes can resize the CMS strip without changing the main
+    // image frame. Keep loop distance current before recycling any stamp copies.
+    if (stamps) {
+      const strip = r
+        .closest('[data-tdb-treatment-layout]')
+        ?.querySelector('[data-tdb-treatment-stamps]');
+      for (const node of strip?.querySelectorAll(
+        '.tdb-treatment-controls,.tdb-treatment-wrapper,.tdb-treatment-card:first-child',
+      ) || [])
+        B.observe(node);
+    }
     return (
       B.observe(n),
       window.addEventListener('resize', S, {
