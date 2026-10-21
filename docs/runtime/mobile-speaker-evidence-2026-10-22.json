@@ -1,0 +1,760 @@
+{
+  "recorded_utc": "2026-10-21T22:33:21.643819+00:00",
+  "candidate_commit": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
+  "baseline_commit": "8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce",
+  "trial_published_utc": "2026-10-21T22:24:50.325Z",
+  "restored_published_utc": "2026-10-21T22:29:18.780Z",
+  "tests": {
+    "total": 541,
+    "passed": 538,
+    "failed": 0,
+    "skipped": [
+      "current Webflow serializer sees attribution before AJAX; failure and retry preserve UI",
+      "public bootstrap accepts delayed init after transport",
+      "published Tram rereads enhanced transitions after basic-mode use"
+    ]
+  },
+  "build_check": "passed",
+  "pre_fix_regressions": {
+    "single_photo_geometry": {
+      "failed": 8,
+      "total": 10
+    },
+    "hidden_release_tails": {
+      "failed": 4,
+      "new_cases": 4
+    },
+    "release_opacity": {
+      "failed": 2,
+      "new_cases": 2
+    }
+  },
+  "baseline": {
+    "status": 200,
+    "bytes": 213938,
+    "elements": 1443,
+    "trioElements": 79,
+    "trioBytes": 12810,
+    "trioHash": "b802da7aaa807fccb5016d028e8f8f64b83bcc6dbe7f18f5eb99799e938b3099",
+    "layers": 0,
+    "release": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce/dist/tdb-start.min.js",
+    "css": [
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.e75a367bf.min.css",
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.afabba93c.opt.min.css",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce/dist/tdb-ui.css",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce/dist/tdb-ui.css"
+    ],
+    "photos": [
+      {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield.webp",
+        "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield.webp 1125w",
+        "alt": "Welcoming reception and boutique entrance at The Dental Barns Lichfield, providing premium cosmetic dentistry, Invisalign, and porcelain veneers for patients in Sutton Coldfield.",
+        "parent": "tdb-hold-image-clip"
+      },
+      {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield.webp",
+        "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield.webp 1125w",
+        "alt": "Natural foliage, soft lighting and cosy furnishings in the patient lounge at The Dental Barns in Lichfield.",
+        "parent": "tdb-hold-image-clip"
+      },
+      {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield.webp",
+        "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield.webp 1125w",
+        "alt": "Premium Sonos headphones for patient comfort on a luxury dental chair at The Dental Barns Lichfield, specialists in Invisalign, composite bonding, and veneers near Sutton Coldfield.",
+        "parent": "tdb-hold-image-clip"
+      }
+    ]
+  },
+  "trial": {
+    "status": 200,
+    "bytes": 213938,
+    "elements": 1443,
+    "trioElements": 79,
+    "trioBytes": 12810,
+    "trioHash": "b802da7aaa807fccb5016d028e8f8f64b83bcc6dbe7f18f5eb99799e938b3099",
+    "layers": 0,
+    "release": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e56f6efb510da0ef966683c60db67fc8cc9f77f1/dist/tdb-start.min.js",
+    "css": [
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.e75a367bf.min.css",
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.2fe20a460.opt.min.css",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e56f6efb510da0ef966683c60db67fc8cc9f77f1/dist/tdb-ui.css",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e56f6efb510da0ef966683c60db67fc8cc9f77f1/dist/tdb-ui.css"
+    ],
+    "photos": [
+      {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield.webp",
+        "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield.webp 1125w",
+        "alt": "Welcoming reception and boutique entrance at The Dental Barns Lichfield, providing premium cosmetic dentistry, Invisalign, and porcelain veneers for patients in Sutton Coldfield.",
+        "parent": "tdb-hold-image-clip"
+      },
+      {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield.webp",
+        "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield.webp 1125w",
+        "alt": "Natural foliage, soft lighting and cosy furnishings in the patient lounge at The Dental Barns in Lichfield.",
+        "parent": "tdb-hold-image-clip"
+      },
+      {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield.webp",
+        "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield.webp 1125w",
+        "alt": "Premium Sonos headphones for patient comfort on a luxury dental chair at The Dental Barns Lichfield, specialists in Invisalign, composite bonding, and veneers near Sutton Coldfield.",
+        "parent": "tdb-hold-image-clip"
+      }
+    ]
+  },
+  "restored": {
+    "status": 200,
+    "bytes": 213938,
+    "elements": 1443,
+    "trioElements": 79,
+    "trioBytes": 12810,
+    "trioHash": "b802da7aaa807fccb5016d028e8f8f64b83bcc6dbe7f18f5eb99799e938b3099",
+    "layers": 0,
+    "release": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce/dist/tdb-start.min.js",
+    "css": [
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.e75a367bf.min.css",
+      "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.afabba93c.opt.min.css",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce/dist/tdb-ui.css",
+      "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce/dist/tdb-ui.css"
+    ],
+    "photos": [
+      {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield.webp",
+        "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield.webp 1125w",
+        "alt": "Welcoming reception and boutique entrance at The Dental Barns Lichfield, providing premium cosmetic dentistry, Invisalign, and porcelain veneers for patients in Sutton Coldfield.",
+        "parent": "tdb-hold-image-clip"
+      },
+      {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield.webp",
+        "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield.webp 1125w",
+        "alt": "Natural foliage, soft lighting and cosy furnishings in the patient lounge at The Dental Barns in Lichfield.",
+        "parent": "tdb-hold-image-clip"
+      },
+      {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield.webp",
+        "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield.webp 1125w",
+        "alt": "Premium Sonos headphones for patient comfort on a luxury dental chair at The Dental Barns Lichfield, specialists in Invisalign, composite bonding, and veneers near Sutton Coldfield.",
+        "parent": "tdb-hold-image-clip"
+      }
+    ]
+  },
+  "snapshot_fields_restored_exactly": true,
+  "trio_html_identical_during_trial": true,
+  "photos_identical_during_trial": true,
+  "css_comparison": [
+    {
+      "file": 0,
+      "before": 31456,
+      "after": 31456,
+      "delta": 0,
+      "token": false,
+      "binding": false
+    },
+    {
+      "file": 1,
+      "before": 164626,
+      "after": 164678,
+      "delta": 52,
+      "token": true,
+      "binding": true
+    }
+  ],
+  "cdn": {
+    "sha": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
+    "results": [
+      {
+        "path": "dist/tdb-calculator-loader.js",
+        "status": 200,
+        "bytes": 3106,
+        "sha256": "cedb4403ec9bdf37ae8cf7afc420d44899016437524f6714f7842651cb337a0f",
+        "expected": "cedb4403ec9bdf37ae8cf7afc420d44899016437524f6714f7842651cb337a0f",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-availability-header.js",
+        "status": 200,
+        "bytes": 2199,
+        "sha256": "07d89ab23aa1264f4312a0527eaaff3f6fd8716f8b48c11c8e27457a037c5c31",
+        "expected": "07d89ab23aa1264f4312a0527eaaff3f6fd8716f8b48c11c8e27457a037c5c31",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-calculator.js",
+        "status": 200,
+        "bytes": 67634,
+        "sha256": "22bc8f3aeca7bddae2d8861e998f9ad55e4b69f482016ede79c8d3086a183a65",
+        "expected": "22bc8f3aeca7bddae2d8861e998f9ad55e4b69f482016ede79c8d3086a183a65",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-availability.js",
+        "status": 200,
+        "bytes": 6508,
+        "sha256": "c5d94442a3e79ef4ee64c824548eaa73acde0852a078c03675ef77023f85b106",
+        "expected": "c5d94442a3e79ef4ee64c824548eaa73acde0852a078c03675ef77023f85b106",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-filters.js",
+        "status": 200,
+        "bytes": 7088,
+        "sha256": "d8d7c1b88d006f1809184a013e8ba6807c286bf3818a6faf5792b3f115ca7362",
+        "expected": "d8d7c1b88d006f1809184a013e8ba6807c286bf3818a6faf5792b3f115ca7362",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-drawer.js",
+        "status": 200,
+        "bytes": 11327,
+        "sha256": "e84f9a3931ae78caa5c5437c76dac6b6addbcef770ea4b6b9b5f2506366e2e49",
+        "expected": "e84f9a3931ae78caa5c5437c76dac6b6addbcef770ea4b6b9b5f2506366e2e49",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-attribution.min.js",
+        "status": 200,
+        "bytes": 10809,
+        "sha256": "6c51d1ec75b00732b776383f27e2e2dbd138f0307186e32cffae18d53cefb8b3",
+        "expected": "6c51d1ec75b00732b776383f27e2e2dbd138f0307186e32cffae18d53cefb8b3",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-announcement.js",
+        "status": 200,
+        "bytes": 11845,
+        "sha256": "0cfd83c1ac24220aee8d65a8531ea38d936ddcc3d94a0a87f76192b5fad89128",
+        "expected": "0cfd83c1ac24220aee8d65a8531ea38d936ddcc3d94a0a87f76192b5fad89128",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-foundation.js",
+        "status": 200,
+        "bytes": 26116,
+        "sha256": "5eb8592a9037ad0e7320a11da8e352760d9be9dba585e9f0f125ab295c32f493",
+        "expected": "5eb8592a9037ad0e7320a11da8e352760d9be9dba585e9f0f125ab295c32f493",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-gallery.js",
+        "status": 200,
+        "bytes": 16728,
+        "sha256": "77d2f0436b519746f7170feb48d6dfd8dd2be88c1f7b786e36757cd8ae13eb84",
+        "expected": "77d2f0436b519746f7170feb48d6dfd8dd2be88c1f7b786e36757cd8ae13eb84",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-five-senses-loader.js",
+        "status": 200,
+        "bytes": 17747,
+        "sha256": "a67a78bd9bd33a7edb189b1941d97f38cb4d3e15425f12ae9f3740b05107bd43",
+        "expected": "a67a78bd9bd33a7edb189b1941d97f38cb4d3e15425f12ae9f3740b05107bd43",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-five-senses.js",
+        "status": 200,
+        "bytes": 56185,
+        "sha256": "266d0b1f5551d9afbb5259ee0a4a8273981f288d2178ee8276102bfb70ded3c2",
+        "expected": "266d0b1f5551d9afbb5259ee0a4a8273981f288d2178ee8276102bfb70ded3c2",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-hold-audio.js",
+        "status": 200,
+        "bytes": 5503,
+        "sha256": "0b1640a8f5d87b6cfb6682a6849fe29ffb00be9e247027f8531f2d648078e80a",
+        "expected": "0b1640a8f5d87b6cfb6682a6849fe29ffb00be9e247027f8531f2d648078e80a",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-logo-marquee.min.js",
+        "status": 200,
+        "bytes": 26530,
+        "sha256": "5fde91a5c80587b3abb46c6f7afff0fda35a69b397a10c2ccb380170429bbbce",
+        "expected": "5fde91a5c80587b3abb46c6f7afff0fda35a69b397a10c2ccb380170429bbbce",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-instagram-deferred.js",
+        "status": 200,
+        "bytes": 11427,
+        "sha256": "217f5f48b0ed7c806ed86c85e62719f124f0d84d45134e60bcc3c60f55e5336e",
+        "expected": "217f5f48b0ed7c806ed86c85e62719f124f0d84d45134e60bcc3c60f55e5336e",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-lenis.min.js",
+        "status": 200,
+        "bytes": 17741,
+        "sha256": "64390df0f8535953a445b37981a8bc940943f9d9f4daa5f21be8fa1fb71bae5d",
+        "expected": "64390df0f8535953a445b37981a8bc940943f9d9f4daa5f21be8fa1fb71bae5d",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-instagram-native.min.js",
+        "status": 200,
+        "bytes": 13806,
+        "sha256": "8d7be44c945a38b652645e727dcc18ab9376c756f385eed69af9b614d35addd6",
+        "expected": "8d7be44c945a38b652645e727dcc18ab9376c756f385eed69af9b614d35addd6",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-motion.js",
+        "status": 200,
+        "bytes": 24676,
+        "sha256": "039089dd7c6970ac31b11a081c7b6907beea31490111e6dd26832e1ef4af2423",
+        "expected": "039089dd7c6970ac31b11a081c7b6907beea31490111e6dd26832e1ef4af2423",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-navbar.min.js",
+        "status": 200,
+        "bytes": 22726,
+        "sha256": "76d6cde360a2580f1f79d8b1936a60a70676e40c701ef7d6a0737edebc30fd03",
+        "expected": "76d6cde360a2580f1f79d8b1936a60a70676e40c701ef7d6a0737edebc30fd03",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-review-availability.js",
+        "status": 200,
+        "bytes": 1741,
+        "sha256": "a93832234af39edac766d2c9878a5d0a88882aa0e63d8b6e59712361805d76b0",
+        "expected": "a93832234af39edac766d2c9878a5d0a88882aa0e63d8b6e59712361805d76b0",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-partner-card.js",
+        "status": 200,
+        "bytes": 5698,
+        "sha256": "56bd01f9958302482695e4aabdd1c015f5fc64df028dbf87755faf831be70c72",
+        "expected": "56bd01f9958302482695e4aabdd1c015f5fc64df028dbf87755faf831be70c72",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-parallax.js",
+        "status": 200,
+        "bytes": 39361,
+        "sha256": "747f96427bb95bd3f48778da21c852ec212f3f46a36a680622f880dda3112142",
+        "expected": "747f96427bb95bd3f48778da21c852ec212f3f46a36a680622f880dda3112142",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-review-cms.js",
+        "status": 200,
+        "bytes": 23715,
+        "sha256": "5171bf70c1b901fdc41aa81092d28cd31e60d95a7678ae7257b6c0de38d674b9",
+        "expected": "5171bf70c1b901fdc41aa81092d28cd31e60d95a7678ae7257b6c0de38d674b9",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-rendered-progress.js",
+        "status": 200,
+        "bytes": 830,
+        "sha256": "502beb1bcd0c9876e2f3f9171b5271382a5870f607c9475d3b496f0ecf7486ef",
+        "expected": "502beb1bcd0c9876e2f3f9171b5271382a5870f607c9475d3b496f0ecf7486ef",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-quote-carousel.js",
+        "status": 200,
+        "bytes": 7655,
+        "sha256": "29ba17533dcfa31352c65631880bae75670663e6d067e7950b8ed4785d9c9d79",
+        "expected": "29ba17533dcfa31352c65631880bae75670663e6d067e7950b8ed4785d9c9d79",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-review-cards.js",
+        "status": 200,
+        "bytes": 15199,
+        "sha256": "6ce568953c0f3afb12ee20e8b3ee47f866f3e9c8e57119f27788eb207e0cd228",
+        "expected": "6ce568953c0f3afb12ee20e8b3ee47f866f3e9c8e57119f27788eb207e0cd228",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-review-drawer-template.js",
+        "status": 200,
+        "bytes": 32352,
+        "sha256": "ea0bbaf935e088342a7af18e0ede13156a668b09e6150d710a1bc3fabb1a90b5",
+        "expected": "ea0bbaf935e088342a7af18e0ede13156a668b09e6150d710a1bc3fabb1a90b5",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-review-introduction.js",
+        "status": 200,
+        "bytes": 3573,
+        "sha256": "eb704ebf37397a246d8615b2081d886ba7985539cc99044161d3128553aa1937",
+        "expected": "eb704ebf37397a246d8615b2081d886ba7985539cc99044161d3128553aa1937",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-reviews-loader.js",
+        "status": 200,
+        "bytes": 11048,
+        "sha256": "f0f07004b2e53442bf8c14e30e09abf6f9d9afd5a21de0f6e0ced0187d31044c",
+        "expected": "f0f07004b2e53442bf8c14e30e09abf6f9d9afd5a21de0f6e0ced0187d31044c",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-review-list.js",
+        "status": 200,
+        "bytes": 12189,
+        "sha256": "c7cd603e607b184080f52da44c83747320c1c51843de272d0d1b022797a0aad3",
+        "expected": "c7cd603e607b184080f52da44c83747320c1c51843de272d0d1b022797a0aad3",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-reviews.js",
+        "status": 200,
+        "bytes": 19226,
+        "sha256": "86f59898f00b15acc5c24c9bd8fbb38be7715d1ad3700e0330a48a2ade9a82b8",
+        "expected": "86f59898f00b15acc5c24c9bd8fbb38be7715d1ad3700e0330a48a2ade9a82b8",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-review-list-loader.js",
+        "status": 200,
+        "bytes": 3484,
+        "sha256": "61e769e3359fffc430efa9258990fe9b29815c3c7cbb496fc7360f4fbd668e14",
+        "expected": "61e769e3359fffc430efa9258990fe9b29815c3c7cbb496fc7360f4fbd668e14",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-runtime.js",
+        "status": 200,
+        "bytes": 67580,
+        "sha256": "0091413a198b48a34e91076ab07b80b92651270aea5f5da78b42c1c4330e418f",
+        "expected": "0091413a198b48a34e91076ab07b80b92651270aea5f5da78b42c1c4330e418f",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-service-awards.js",
+        "status": 200,
+        "bytes": 2644,
+        "sha256": "e21e0e4812e88e6b334424c16ca11ca3b13ab4057df91a17a0d01540662138e5",
+        "expected": "e21e0e4812e88e6b334424c16ca11ca3b13ab4057df91a17a0d01540662138e5",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-start.min.js",
+        "status": 200,
+        "bytes": 7708,
+        "sha256": "59245a69d9c59e1fd55939863f9bc20e2f863f403b43d6ea716e0d39bf36d8dc",
+        "expected": "59245a69d9c59e1fd55939863f9bc20e2f863f403b43d6ea716e0d39bf36d8dc",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-smile-gallery.min.js",
+        "status": 200,
+        "bytes": 28098,
+        "sha256": "fd6de63b5f9482c790c2b298a5bbf6ad11e69667223180a996b41df8d354829a",
+        "expected": "fd6de63b5f9482c790c2b298a5bbf6ad11e69667223180a996b41df8d354829a",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-smile-feed.js",
+        "status": 200,
+        "bytes": 11952,
+        "sha256": "0b6dac8bd41eb18f16a5c9646ddf0203a8760ac773b6aef798f5eac3014064d6",
+        "expected": "0b6dac8bd41eb18f16a5c9646ddf0203a8760ac773b6aef798f5eac3014064d6",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-slider-focus.js",
+        "status": 200,
+        "bytes": 6045,
+        "sha256": "cf2eea924424fd826b553bbfe17d448d6f454fd374da2156d280847ef3306efa",
+        "expected": "cf2eea924424fd826b553bbfe17d448d6f454fd374da2156d280847ef3306efa",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-ticker.js",
+        "status": 200,
+        "bytes": 1871,
+        "sha256": "15dd47ff5af2f864817cb2c8e18a3b8dc087470a08fe2b9b5343d8bce4a93856",
+        "expected": "15dd47ff5af2f864817cb2c8e18a3b8dc087470a08fe2b9b5343d8bce4a93856",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-swiper-8.4.7.min.js",
+        "status": 200,
+        "bytes": 97094,
+        "sha256": "511aba761ef63de47452acc0abb4d6897affdef63ee030c56c448e29f1c0e659",
+        "expected": "511aba761ef63de47452acc0abb4d6897affdef63ee030c56c448e29f1c0e659",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-tooltips.js",
+        "status": 200,
+        "bytes": 2852,
+        "sha256": "9c73d6f3681888a7338fb6457bafb11bc259c11bd9895b2a311d30f0938b1874",
+        "expected": "9c73d6f3681888a7338fb6457bafb11bc259c11bd9895b2a311d30f0938b1874",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-vimeo-loader.js",
+        "status": 200,
+        "bytes": 2429,
+        "sha256": "2707e9d01f436c580b75b9f824f040d38209b720c8367167a3412341656f9e55",
+        "expected": "2707e9d01f436c580b75b9f824f040d38209b720c8367167a3412341656f9e55",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-vimeo.js",
+        "status": 200,
+        "bytes": 19403,
+        "sha256": "7b70f2a315ac7692f82a259f5c03c947f6aed9b2612469448e474b10feb027dc",
+        "expected": "7b70f2a315ac7692f82a259f5c03c947f6aed9b2612469448e474b10feb027dc",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-usp-drawer-template.js",
+        "status": 200,
+        "bytes": 14930,
+        "sha256": "ad7d7eb52adac5b9da160fb4f89dba583554a37f4478d092847dfc6098c116f6",
+        "expected": "ad7d7eb52adac5b9da160fb4f89dba583554a37f4478d092847dfc6098c116f6",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-vip-form.js",
+        "status": 200,
+        "bytes": 10077,
+        "sha256": "af62460fe2ad281c8ae2af00fdbceb5c2719637fc5133161aaebe565057425f4",
+        "expected": "af62460fe2ad281c8ae2af00fdbceb5c2719637fc5133161aaebe565057425f4",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-usp-drawer.js",
+        "status": 200,
+        "bytes": 8241,
+        "sha256": "dee2ba08786fc551e4b9a6781bec8a4c5aef01341400d26f510571f92f1a0483",
+        "expected": "dee2ba08786fc551e4b9a6781bec8a4c5aef01341400d26f510571f92f1a0483",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-control-motion.css",
+        "status": 200,
+        "bytes": 4739,
+        "sha256": "cd2428124713a753a7728b1bf6e1f6c163172cf811b2f8c470e8f830e034d365",
+        "expected": "cd2428124713a753a7728b1bf6e1f6c163172cf811b2f8c470e8f830e034d365",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-vip-drawer.js",
+        "status": 200,
+        "bytes": 9271,
+        "sha256": "bd5a01ce242e3ab24e548c8ec778f5270fc4119fa6f88ee4142da9f91877d1b4",
+        "expected": "bd5a01ce242e3ab24e548c8ec778f5270fc4119fa6f88ee4142da9f91877d1b4",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-vip-content.js",
+        "status": 200,
+        "bytes": 7108,
+        "sha256": "092a7ba03daade96df22df3d57edd7e906fb8eab6f65595c8bac6ae54a12e96e",
+        "expected": "092a7ba03daade96df22df3d57edd7e906fb8eab6f65595c8bac6ae54a12e96e",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-vip-chrome.css",
+        "status": 200,
+        "bytes": 738,
+        "sha256": "5d79562298941d341bb4fbb8f6f5ee231b71b396d537fb0aa3943146fd4fd5b1",
+        "expected": "5d79562298941d341bb4fbb8f6f5ee231b71b396d537fb0aa3943146fd4fd5b1",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-scroll-lock.css",
+        "status": 200,
+        "bytes": 160,
+        "sha256": "119a6e4e4cb742fd4b61cf5516b0c9d9730fb86febaeba1d8d495825b7d6c81c",
+        "expected": "119a6e4e4cb742fd4b61cf5516b0c9d9730fb86febaeba1d8d495825b7d6c81c",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-ui.css",
+        "status": 200,
+        "bytes": 11884,
+        "sha256": "47212b182e2e4c0d2da785934dadb2fd17a4ceebe7062486f1f2fb31206af977",
+        "expected": "47212b182e2e4c0d2da785934dadb2fd17a4ceebe7062486f1f2fb31206af977",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-announcement.css",
+        "status": 200,
+        "bytes": 8133,
+        "sha256": "69dfdfe95f23faad973dd93fed85ef27cce1a718850227f14dca2bb751144525",
+        "expected": "69dfdfe95f23faad973dd93fed85ef27cce1a718850227f14dca2bb751144525",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-slider-ui.css",
+        "status": 200,
+        "bytes": 2678,
+        "sha256": "4e1537f089bb01e526c78258a0ce3b1f47f01830a9fe60c399c0ac7e95a1186f",
+        "expected": "4e1537f089bb01e526c78258a0ce3b1f47f01830a9fe60c399c0ac7e95a1186f",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-vip.css",
+        "status": 200,
+        "bytes": 10681,
+        "sha256": "ee0dab1def67416599cbcc683c2dde80df5826bed9f54154ac1220dd96e343d7",
+        "expected": "ee0dab1def67416599cbcc683c2dde80df5826bed9f54154ac1220dd96e343d7",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-smile-feed.css",
+        "status": 200,
+        "bytes": 21498,
+        "sha256": "9100c06494bb4e71027abf79ecdb1c9dbafda1707e1a998c60fc9f3d0bc4d55a",
+        "expected": "9100c06494bb4e71027abf79ecdb1c9dbafda1707e1a998c60fc9f3d0bc4d55a",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-partner-card.css",
+        "status": 200,
+        "bytes": 13379,
+        "sha256": "9a55989b5d76c7847c1595cb8d37edff4d49a48ce41f08451f5491df8151073b",
+        "expected": "9a55989b5d76c7847c1595cb8d37edff4d49a48ce41f08451f5491df8151073b",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-drawer.css",
+        "status": 200,
+        "bytes": 2365,
+        "sha256": "58e1423c3ff77bdff6a9407e9ee147eea3ee7e8cc465d7d359aab5e3ee9d1848",
+        "expected": "58e1423c3ff77bdff6a9407e9ee147eea3ee7e8cc465d7d359aab5e3ee9d1848",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-five-senses.css",
+        "status": 200,
+        "bytes": 16339,
+        "sha256": "09df7650f1f46442e6cc10382ba5b02ccdbe36bbd3fc105ac7643a0683099f0c",
+        "expected": "09df7650f1f46442e6cc10382ba5b02ccdbe36bbd3fc105ac7643a0683099f0c",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-calculator.css",
+        "status": 200,
+        "bytes": 31734,
+        "sha256": "d033961eb1e0bcd91c6ce6b46d6ca41c0e78bb04bcc907c733738b7e49d42ae0",
+        "expected": "d033961eb1e0bcd91c6ce6b46d6ca41c0e78bb04bcc907c733738b7e49d42ae0",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-review-drawer.css",
+        "status": 200,
+        "bytes": 27269,
+        "sha256": "de5c24159d5127f3ae4939dad4348c2a930189a60c1779e8013480b8e05d77f9",
+        "expected": "de5c24159d5127f3ae4939dad4348c2a930189a60c1779e8013480b8e05d77f9",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-instagram-native.css",
+        "status": 200,
+        "bytes": 11418,
+        "sha256": "e01289e12250f778a9d15f67f4af236d609d62772e59b03cceb7c1893a0d1bf4",
+        "expected": "e01289e12250f778a9d15f67f4af236d609d62772e59b03cceb7c1893a0d1bf4",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-review-cards.css",
+        "status": 200,
+        "bytes": 12618,
+        "sha256": "c8ffee955ebc71d42fff031eff8f4c34754a25cf646902aabd3d7a7e272013a5",
+        "expected": "c8ffee955ebc71d42fff031eff8f4c34754a25cf646902aabd3d7a7e272013a5",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-usp-drawer.css",
+        "status": 200,
+        "bytes": 7740,
+        "sha256": "18519ed7e63d290370111fdabb17b0b668483ba592d07e4927f25919d8858c44",
+        "expected": "18519ed7e63d290370111fdabb17b0b668483ba592d07e4927f25919d8858c44",
+        "match": true
+      },
+      {
+        "path": "dist/tdb-vip-content.css",
+        "status": 200,
+        "bytes": 11524,
+        "sha256": "9b6dc59d08e0dbcf8453fe882d8335ca172861071b1e25f44d56e2de5d6538dd",
+        "expected": "9b6dc59d08e0dbcf8453fe882d8335ca172861071b1e25f44d56e2de5d6538dd",
+        "match": true
+      },
+      {
+        "path": "assets/five-senses/surgery-clinical-clean.webp",
+        "status": 200,
+        "bytes": 74292,
+        "sha256": "2f203455ed0f7e63b1fc947c920fdf63830959ff909e7222069f12575ac69d4a",
+        "expected": "2f203455ed0f7e63b1fc947c920fdf63830959ff909e7222069f12575ac69d4a",
+        "match": true
+      }
+    ]
+  },
+  "native_variables_restored": true,
+  "original_native_variable_count": 45,
+  "production_domains_last_published_utc": [
+    "2026-10-01T10:10:45.669Z",
+    "2026-10-01T10:10:45.669Z",
+    "2026-10-01T10:10:45.669Z",
+    "2026-10-01T10:10:45.669Z"
+  ],
+  "browser": {
+    "environment": "Cloud desktop Chrome,1363x936; no physical Android or Safari",
+    "baseline_after_warm_11s_hold_release": {
+      "rippleOpacity": "0",
+      "rippleVisibility": "visible",
+      "rippleScale": "1",
+      "photoScale": "1.1236"
+    },
+    "candidate_after_warm_11s_hold_release": {
+      "rippleOpacity": "0",
+      "rippleVisibility": "hidden",
+      "rippleScale": "0",
+      "photoScale": "1.1236"
+    },
+    "candidate_after_release_and_scroll_settled": {
+      "photoScale": [
+        "1.06",
+        "1.06",
+        "1.06"
+      ],
+      "translations": [
+        "0px 7.5758px",
+        "0px 7.5759px",
+        "0px 7.5758px"
+      ],
+      "topGaps": [
+        0,
+        0,
+        0
+      ],
+      "bottomGaps": [
+        0,
+        0,
+        0
+      ]
+    },
+    "candidate_mid_return_sample": {
+      "photoScale": [
+        "1.08724",
+        "1.06",
+        "1.06"
+      ],
+      "translations": [
+        "0px 3.2919px",
+        "0px 3.2918px",
+        "0px 3.2919px"
+      ],
+      "allCropsCovered": true,
+      "note": "Keyboard scroll input was sent but both immediate DOM samples had the same position; this is not live proof of simultaneous scroll progress."
+    },
+    "cold_hold_note": "First 11-second pointer hold began before the controller was ready; visual elapsed hold was shorter. The subsequent warm hold is the completed-effect comparison.",
+    "application_errors_observed": 0,
+    "extension_metadata_errors_excluded": true
+  },
+  "screenshots": {
+    "candidate": "/workspace/scratch/tdb-speaker-candidate-20261021.jpg",
+    "restored": "/workspace/scratch/tdb-speaker-restored-20261021.jpg"
+  }
+}

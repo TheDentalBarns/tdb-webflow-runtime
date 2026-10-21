@@ -14,6 +14,7 @@ DOM confirmed zero experiment wrappers, all three direct image parents and
 scale 1.06. All four production domains retained 2026-10-01T10:10:45.669Z.
 
 The candidate below is prepared for review, not a proven physical-device fix.
+Its tested source/bundles are commit `e56f6efb510da0ef966683c60db67fc8cc9f77f1`.
 Check `mobile-speaker-progress.json` for the latest trial/restoration result.
 The overnight follow-up should critically review this candidate and fill a
 concrete remaining evidence gap, not add another speculative layer or repeat
@@ -92,8 +93,47 @@ Real crop positions are still measured on every scheduled scroll pass.
 The speaker controller is smaller; the whole runtime is slightly larger.
 Compared with the failed nested-layer experiment, the DOM is three elements
 smaller. Compared with the restored baseline there are no additional elements.
-The native scale variable adds a small CSS declaration; measure its actual
-published delta during the controlled trial. Do not claim overall code savings.
+The published Home CSS increased by **52 raw bytes**; shared CSS was identical.
+Do not claim overall code savings.
+
+## Completed desktop staging trial
+
+The candidate published temporarily at **2026-10-21T22:24:50.325Z** after all
+66 CDN assets matched their local SHA-256 hashes. Native scale resolved to 1.06
+on all three original images with zero added wrappers. All three resting image
+heights and card heights matched the baseline exactly.
+
+Initial HTML remained **213,938 bytes / 1,443 elements**. The trio remained
+**12,810 bytes / 79 elements including its section root**. Its entire HTML hash
+and all image sources, responsive sources, alternative text and parents were
+identical. The earlier 78-element count excluded the section root.
+
+A warmed eleven-second hold retained photo scale 1.1236 at release, while the
+completed ripple stayed **hidden, scale 0, opacity 0**. Baseline release had
+revealed that ripple at scale 1 and opacity 0 before its forced brightening.
+After release/scroll, every crop remained covered and all photos returned to
+1.06. A mid-return DOM sample showed the first photo at 1.08724, with equivalent
+translations to the neighbours and covered crops. Immediate keyboard-scroll
+samples had not advanced position, so they do **not** prove simultaneous live
+scroll progress. That overlap is validated by the deterministic model, not a
+device trace. No application errors were observed; extension metadata errors
+were excluded.
+
+The first eleven-second click began while the controller was still loading,
+so its actual visual hold was shorter; it is not used as a completed-hold test.
+The warm repetition above is the valid comparison.
+
+Baseline restoration published at **2026-10-21T22:29:18.780Z**. Both global
+code blocks match the saved baseline byte for byte. The native scale is 1.06;
+the trial-created variable was removed, and the original 45 native variables
+match their pre-trial inventory exactly. Published CSS URLs, HTML byte/element
+counts, trio hash, photo metadata and release URL all match the pre-trial
+snapshot. Live desktop DOM confirms the old release, absent token and original
+image parents. All four production timestamps remain unchanged.
+
+See `mobile-speaker-evidence-2026-10-22.json` for the measurements, asset hashes,
+test counts and explicit browser limitations. No experimental release remains
+on staging at this checkpoint.
 
 ## Native trial and rollback
 
@@ -103,7 +143,8 @@ Home component `0a69bd83-503d-d529-c158-2aeb924dac15`, variant
 
 The supported Variables API creates Number variable `tdb-photo-scale` in
 `collection-432e8337-c0cc-5509-bf0b-a4b20ddbe948`, value 1.06. Trial ID:
-`variable-25d50a2f-82fc-4d79-4094-c441ddb863b7`. A `property_value` of
+`variable-25d50a2f-82fc-4d79-4094-c441ddb863b7` (removed after the trial; discover
+or create a fresh variable by name for any final deployment). A `property_value` of
 `var(--tdb-photo-scale)` on the native scale property round-trips as that native
 variable binding. Arbitrary custom style properties are rejected by Webflow;
 do not inject a replacement stylesheet or retry the rejected property route.
@@ -119,6 +160,13 @@ baseline pins and remove only the unused variable created for this trial if
 supported. Never remove an existing user's variable. Publish staging and verify
 live source/DOM and the four production timestamps. Preserve early-hold, spinner
 and centred-text fixes. The removed nested wrappers stay removed.
+
+The overnight follow-up may deploy the critically reviewed candidate once to
+staging for David's morning phone review under his existing staging-publish
+authorization. First re-read current pins, native values and any new feedback.
+If a substantive issue remains, keep the restored baseline and explain it.
+Passing desktop checks is sufficient to prepare a labelled staging candidate;
+it is never evidence that the Android/Safari flashing is resolved.
 
 ## Device acceptance before declaring success
 
