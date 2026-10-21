@@ -130,6 +130,8 @@ test('uses the shared site motion policy and keeps notice bars away during settl
     f.advance(560);
     assert.equal(f.y(), 1000);
     assert.equal(f.focuses[0].hold(), false, 'ordinary browsing resumes after the correction');
+    assert.equal(f.focuses.length, 2, 'settled position rebases banner release distance');
+    assert.equal(f.focuses[1].node, f.root);
   } finally {
     f.dom.window.close();
   }

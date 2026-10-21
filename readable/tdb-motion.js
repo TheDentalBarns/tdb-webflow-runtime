@@ -1316,6 +1316,9 @@
       if (p < 1) raf = requestAnimationFrame(step);
       else {
         active = null;
+        // Scroll observers can batch the final correction into one delivery.
+        // Rebase their browsing distance at the settled position as well.
+        window.TDBSliderFocus?.focus(chosen.node);
         startY = lastY = window.scrollY;
       }
     };
