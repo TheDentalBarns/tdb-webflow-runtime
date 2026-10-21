@@ -19,6 +19,7 @@ window.TDBParallaxProgress ||= (() => {
     const c = s?.children[1] || l.cloneNode();
     const stamps = window.TDBTreatmentStamps?.prepare(r);
     const details = window.TDBTreatmentDetails?.prepare(r);
+    const ticker = window.TDBTreatmentTicker?.prepare(r);
     let stampWidth = 0;
     (o &&
       !r.hasAttribute('data-tdb-treatment') &&
@@ -121,6 +122,7 @@ window.TDBParallaxProgress ||= (() => {
           (m = M));
         stamps?.paint(C, T, g);
         details?.paint(h, t);
+        ticker?.sync();
       },
       enabled: () => u && !p,
       onMutation: (e) => {
@@ -183,6 +185,7 @@ window.TDBParallaxProgress ||= (() => {
             x.destroy(),
             stamps?.dispose(),
             details?.dispose(),
+            ticker?.dispose(),
             document.removeEventListener('visibilitychange', A),
             window.removeEventListener('resize', S),
             s ? d.classList.remove('is-ready') : d.remove());

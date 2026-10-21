@@ -592,12 +592,18 @@ window.TDBTreatmentStamps ||= (() => {
       lastFrame = 0,
       momentumElapsed = 0;
     const animations = new Map();
+    const opacityBefore = new Map(items.map((item) => [item, item.style.opacity]));
+    const transitionBefore = new Map(items.map((item) => [item, item.style.transitionDuration]));
+    const states = new WeakMap();
     const on = (type, listener, options) => viewport.addEventListener(type, listener, options);
     links.forEach((link, index) => {
       link.dataset.tdbStampIndex = String(index);
     });
     function configureLoop() {
-      const enabled = mobile.matches && links.length > 1;
+      const enabled =
+        mobile.matches &&
+        root.getAttribute('data-tdb-treatment-loop') === 'true' &&
+        links.length > 1;
       if (enabled === looped) return;
       stopMotion();
       copies.forEach((node) => {
@@ -638,7 +644,9 @@ window.TDBTreatmentStamps ||= (() => {
       // Wrap before assigning scrollLeft, so the browser never clamps a drag
       // at a physical end or interrupts its momentum at a recycled cycle.
       const next =
-        looped && cycle ? cycle / 2 + ((((value - cycle / 2) % cycle) + cycle) % cycle) : value;
+        looped && cycle
+          ? cycle / 2 + ((((value - cycle / 2) % cycle) + cycle) % cycle)
+          : Math.max(0, Math.min(value, viewport.scrollWidth - viewport.clientWidth));
       viewport.scrollLeft = next;
       if (drag) drag.left += next - value;
     }
@@ -649,7 +657,7 @@ window.TDBTreatmentStamps ||= (() => {
       returnOffset = 0;
     }
     function resumeAlignment() {
-      if (looped && !automatic) {
+      if (mobile.matches && !automatic) {
         stopMotion();
         returnOffset = null;
         returnDuration = window.TDBMotion?.reduced?.matches
@@ -666,6 +674,8 @@ window.TDBTreatmentStamps ||= (() => {
       else returnOffset = 0;
     }
     function align(value) {
+      if (!looped)
+        value = Math.max(0, Math.min(value, viewport.scrollWidth - viewport.clientWidth));
       targetLeft = value;
       if (returnOffset === null) {
         const difference = viewport.scrollLeft - value;
@@ -685,7 +695,9 @@ window.TDBTreatmentStamps ||= (() => {
       const dt = Math.min(32, Math.max(0, now - lastFrame));
       lastFrame = now;
       momentumElapsed += dt;
-      setScroll(viewport.scrollLeft + momentum * dt);
+      const before = viewport.scrollLeft;
+      setScroll(before + momentum * dt);
+      if (!looped && viewport.scrollLeft === before) momentum = 0;
       momentum *= Math.exp(-dt / 150);
       if (Math.abs(momentum) > 0.015 && momentumElapsed < 800)
         motionFrame = requestAnimationFrame(coast);
@@ -693,6 +705,17 @@ window.TDBTreatmentStamps ||= (() => {
     }
     function dim(item, active, heading = false) {
       if (!item) return;
+      if (states.get(item) === active) return;
+      states.set(item, active);
+      if (!heading) {
+        // Designer owns the opacity transition. Keep one stable target instead
+        // of cancelling/replacing a filled animation on every selection.
+        item.style.transitionDuration = window.TDBMotion?.reduced?.matches
+          ? '0s'
+          : transitionBefore.get(item) || '';
+        item.style.opacity = active ? '1' : '0.5';
+        return;
+      }
       const property = heading ? 'color' : 'opacity';
       const current = getComputedStyle(item)[property];
       const target = heading ? (active ? '#ffffff' : 'rgba(255,255,255,0.5)') : active ? 1 : 0.5;
@@ -762,7 +785,7 @@ window.TDBTreatmentStamps ||= (() => {
         upper = Math.min(last, lower + 1);
       const offset = offsets[lower] + (offsets[upper] - offsets[lower]) * (value - lower);
       const alignedMarker = index > last ? trackWidth - width : markerX;
-      viewport.scrollLeft = Math.max(0, offset - alignedMarker);
+      align(offset - alignedMarker);
     }
     function choose(event) {
       const link = event.target.closest('[data-tdb-treatment-stamp]');
@@ -789,7 +812,8 @@ window.TDBTreatmentStamps ||= (() => {
       const index = Number(link.dataset.tdbStampIndex);
       if (!Number.isInteger(index) || index < 0 || index >= links.length) return;
       resumeAlignment();
-      swiper.slideToLoop(index);
+      if (swiper.params?.loop) swiper.slideToLoop(index);
+      else swiper.slideTo(index);
       const progress = root.querySelector('[data-tdb-native-progress]');
       const trackWidth = progress.getBoundingClientRect().width;
       if (swiper.realIndex === index && !swiper.animating) {
@@ -806,7 +830,7 @@ window.TDBTreatmentStamps ||= (() => {
       stopMotion();
       automatic = false;
       suppressClick = false;
-      if (looped || event.pointerType === 'mouse')
+      if (mobile.matches || event.pointerType === 'mouse')
         drag = {
           id: event.pointerId,
           x: event.clientX,
@@ -824,7 +848,7 @@ window.TDBTreatmentStamps ||= (() => {
         drag = null;
         return;
       }
-      if (!suppressClick && Math.abs(delta) > (looped ? 8 : 4)) {
+      if (!suppressClick && Math.abs(delta) > (mobile.matches ? 8 : 4)) {
         suppressClick = true;
         viewport.setPointerCapture(event.pointerId);
       }
@@ -846,7 +870,7 @@ window.TDBTreatmentStamps ||= (() => {
       if (event.type === 'lostpointercapture' && event.target !== viewport) return;
       if (
         drag &&
-        looped &&
+        mobile.matches &&
         suppressClick &&
         event.type === 'pointerup' &&
         performance.now() - drag.lastTime < 100 &&
@@ -872,6 +896,10 @@ window.TDBTreatmentStamps ||= (() => {
       swiper?.off('slideChange', change);
       swiper?.off('beforeDestroy', dispose);
       animations.forEach((animation) => animation.cancel());
+      opacityBefore.forEach((opacity, item) => {
+        item.style.opacity = opacity;
+        item.style.transitionDuration = transitionBefore.get(item);
+      });
       copies.forEach((node) => node.remove());
       links.forEach((link) => {
         delete link.dataset.tdbStampIndex;
@@ -894,7 +922,7 @@ window.TDBTreatmentStamps ||= (() => {
     instances.set(root, controller);
     return controller;
   }
-  return { version: '1.0.1', prepare };
+  return { version: '1.1.0', prepare };
 })();
 
 /* Native CMS text row follows rendered image geometry, including loop/width motion.
@@ -1015,6 +1043,138 @@ window.TDBTreatmentDetails ||= (() => {
   return { prepare };
 })();
 
+/* Native Designer slots; CMS facts come from each rendered treatment item.
+ * No feed request or duplicated price table. Only the value spans animate.
+ */
+window.TDBTreatmentTicker ||= (() => {
+  const instances = new WeakMap();
+  const base = new URL('./', document.currentScript?.src || location.href);
+  function prepare(root) {
+    if (!root.hasAttribute('data-tdb-treatment-postage')) return null;
+    if (instances.has(root)) return instances.get(root);
+    const owner = root.closest('[data-tdb-treatment-layout]') || root;
+    const position = root.querySelector('[data-tdb-treatment-position]');
+    const current = position?.querySelector('[data-tdb-treatment-current]');
+    const total = position?.querySelector('[data-tdb-treatment-total]');
+    const title = owner.querySelector('[data-tdb-treatment-title-ticker]');
+    const price = owner.querySelector('[data-tdb-treatment-price]');
+    const duration = owner.querySelector('[data-tdb-treatment-duration]');
+    const slots = [current, title, price, duration];
+    if (!slots.some(Boolean)) return null;
+    const mobile = matchMedia('(max-width: 767px)');
+    let swiper,
+      mounted = false,
+      disposed = false,
+      previous = null,
+      loading;
+    const tickers = [];
+    const clean = (text) =>
+      String(text || '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    function paint(animate = true) {
+      if (!mounted || !swiper || disposed) return;
+      const slides = [...swiper.slides];
+      const originals = slides.filter(
+        (slide) => !slide.classList.contains('swiper-slide-duplicate'),
+      );
+      const index = Number(swiper.realIndex) || 0;
+      const slide = originals.find(
+        (slide, i) => Number(slide.getAttribute('data-swiper-slide-index') ?? i) === index,
+      );
+      const source = slide?.querySelector('[data-tdb-treatment-price-source]');
+      const amount = clean(source?.getAttribute('data-tdb-treatment-price-source'));
+      const time = clean(
+        slide
+          ?.querySelector('[data-tdb-treatment-duration-source]')
+          ?.getAttribute('data-tdb-treatment-duration-source'),
+      );
+      const values = [
+        String(index + 1).padStart(2, '0'),
+        clean(slide?.querySelector('.tdb-treatment-title')?.textContent),
+        amount ? (/^from\b/i.test(amount) ? amount : 'From ' + amount) : '',
+        time,
+      ];
+      const direction =
+        swiper.params?.loop && swiper.swipeDirection
+          ? swiper.swipeDirection === 'prev'
+            ? -1
+            : 1
+          : previous === null || index >= previous
+            ? 1
+            : -1;
+      tickers.forEach((ticker, i) =>
+        ticker?.update(values[i], direction, animate && mobile.matches && previous !== null),
+      );
+      if (total) total.textContent = String(originals.length).padStart(2, '0');
+      position?.setAttribute('aria-label', `${index + 1} of ${originals.length}`);
+      previous = index;
+    }
+    function mount() {
+      if (mounted || disposed || !window.TDBNativeTicker || !window.TDBMotion) return;
+      slots.forEach((slot, i) => {
+        tickers[i] =
+          slot &&
+          window.TDBNativeTicker.mount(
+            slot,
+            i < 2
+              ? {}
+              : {
+                  valueClass: 'tdb-smile-fact-value',
+                  incomingClass: 'tdb-smile-fact-value',
+                },
+          );
+      });
+      mounted = true;
+      paint(false);
+    }
+    function changed() {
+      paint(true);
+    }
+    function resize() {
+      paint(false);
+    }
+    function sync() {
+      if (disposed) return;
+      const candidate = root.querySelector(':scope > .swiper')?.swiper;
+      if (candidate && candidate !== swiper) {
+        swiper?.off('slideChange', changed);
+        swiper?.off('beforeDestroy', dispose);
+        swiper = candidate;
+        previous = null;
+        swiper.on('slideChange', changed);
+        swiper.on('beforeDestroy', dispose);
+        if (mounted) paint(false);
+      }
+      if (window.TDBNativeTicker) mount();
+      else if (!loading && window.TDBModules) {
+        loading = window.TDBModules.load(new URL('tdb-ticker.js', base), {
+          ready: () => Boolean(window.TDBNativeTicker),
+        })
+          .then(mount)
+          .catch(() => {
+            loading = null;
+          });
+      }
+    }
+    function dispose() {
+      if (disposed) return;
+      disposed = true;
+      swiper?.off('slideChange', changed);
+      swiper?.off('beforeDestroy', dispose);
+      mobile.removeEventListener('change', resize);
+      tickers.forEach((ticker) => ticker?.destroy());
+      instances.delete(root);
+    }
+    mobile.addEventListener('change', resize);
+    const api = { sync, dispose };
+    instances.set(root, api);
+    sync();
+    return api;
+  }
+  return { prepare };
+})();
+
 /* Per-component progress geometry; loaded with the full parallax plugin. */
 window.TDBParallaxProgress ||= (() => {
   const e = '.tdb-service-parallax,[data-tdb-treatment]',
@@ -1036,6 +1196,7 @@ window.TDBParallaxProgress ||= (() => {
     const c = s?.children[1] || l.cloneNode();
     const stamps = window.TDBTreatmentStamps?.prepare(r);
     const details = window.TDBTreatmentDetails?.prepare(r);
+    const ticker = window.TDBTreatmentTicker?.prepare(r);
     let stampWidth = 0;
     (o &&
       !r.hasAttribute('data-tdb-treatment') &&
@@ -1138,6 +1299,7 @@ window.TDBParallaxProgress ||= (() => {
           (m = M));
         stamps?.paint(C, T, g);
         details?.paint(h, t);
+        ticker?.sync();
       },
       enabled: () => u && !p,
       onMutation: (e) => {
@@ -1200,6 +1362,7 @@ window.TDBParallaxProgress ||= (() => {
             x.destroy(),
             stamps?.dispose(),
             details?.dispose(),
+            ticker?.dispose(),
             document.removeEventListener('visibilitychange', A),
             window.removeEventListener('resize', S),
             s ? d.classList.remove('is-ready') : d.remove());
@@ -1324,7 +1487,10 @@ window.TDBParallaxProgress ||= (() => {
             disableOnInteraction: !1,
           },
           grabCursor: !0,
-          loop: !d || t.querySelectorAll('.swiper-slide').length > 1,
+          loop: e.hasAttribute('data-tdb-treatment-postage')
+            ? e.getAttribute('data-tdb-treatment-loop') === 'true' &&
+              t.querySelectorAll('.swiper-slide').length > 1
+            : !d || t.querySelectorAll('.swiper-slide').length > 1,
           loopPreventsSlide: !1,
           preventInteractionOnTransition: !1,
           ...(e.hasAttribute('data-tdb-treatment')

@@ -72,7 +72,10 @@
             disableOnInteraction: !1,
           },
           grabCursor: !0,
-          loop: !d || t.querySelectorAll('.swiper-slide').length > 1,
+          loop: e.hasAttribute('data-tdb-treatment-postage')
+            ? e.getAttribute('data-tdb-treatment-loop') === 'true' &&
+              t.querySelectorAll('.swiper-slide').length > 1
+            : !d || t.querySelectorAll('.swiper-slide').length > 1,
           loopPreventsSlide: !1,
           preventInteractionOnTransition: !1,
           ...(e.hasAttribute('data-tdb-treatment')

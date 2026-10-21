@@ -129,6 +129,7 @@ module.exports = {
     'src/sliders/parallax-controls.js',
     'src/sliders/treatment-stamps.js',
     'src/sliders/treatment-details.js',
+    'src/sliders/treatment-ticker.js',
     'src/sliders/parallax-progress.js',
     'src/sliders/parallax-foundation.js',
     'src/sliders/treatment-plugin.js',

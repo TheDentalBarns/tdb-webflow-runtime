@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 
-function fixture(count = 6, mobileWidth = false) {
+function fixture(count = 6, mobileWidth = false, loop = mobileWidth) {
   const dom = new JSDOM(
     `<section data-tdb-treatment-postage>
     <div class="swiper">${Array.from({ length: count }, (_, i) => `<div data-swiper-slide-index="${i}"><h3 class="tdb-treatment-title">Treatment ${i}</h3></div>`).join('')}</div><div data-tdb-native-progress></div>
@@ -19,6 +19,11 @@ function fixture(count = 6, mobileWidth = false) {
   const w = dom.window,
     root = w.document.querySelector('section');
   const viewport = root.querySelector('.tdb-treatment-controls');
+  root.setAttribute('data-tdb-treatment-loop', String(loop));
+  Object.defineProperty(viewport, 'clientWidth', { get: () => 800 });
+  Object.defineProperty(viewport, 'scrollWidth', {
+    get: () => Math.max(800, viewport.children.length * 220 - 20),
+  });
   const items = [...root.querySelectorAll('.tdb-treatment-card')];
   const links = [...root.querySelectorAll('a')],
     listeners = {};
@@ -57,6 +62,7 @@ function fixture(count = 6, mobileWidth = false) {
     slides: [...root.querySelector('.swiper').children],
     realIndex: 0,
     animating: false,
+    params: { loop },
     on(events, callback) {
       for (const name of events.split(' ')) (listeners[name] ||= []).push(callback);
     },
@@ -66,6 +72,9 @@ function fixture(count = 6, mobileWidth = false) {
     slideToLoop(index) {
       this.realIndex = index;
       listeners.slideChange?.forEach((fn) => fn());
+    },
+    slideTo(index) {
+      this.slideToLoop(index);
     },
   });
   w.eval(fs.readFileSync('src/sliders/treatment-stamps.js', 'utf8'));
@@ -317,6 +326,70 @@ test('return alignment shares one animation writer with repeated progress sample
     assert.equal(f.frames.size, 1);
     f.tick(16);
     assert.equal(writes, 1);
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('finite mobile stamps drag freely to both ends, never overscroll, and ease back to selection', () => {
+  const f = fixture(6, true, false);
+  function pointer(type, x) {
+    const event = new f.w.Event(type, { bubbles: true, cancelable: true });
+    Object.assign(event, {
+      button: 0,
+      pointerType: 'touch',
+      pointerId: 1,
+      clientX: x,
+      clientY: 100,
+    });
+    f.viewport.dispatchEvent(event);
+  }
+  try {
+    f.controller.measure();
+    f.controller.paint(0, 0, 800);
+    assert.equal(f.viewport.children.length, 6, 'no loop copies without explicit opt-in');
+    pointer('pointerdown', 200);
+    f.tick(16);
+    pointer('pointermove', -1000);
+    assert.equal(f.viewport.scrollLeft, 500, 'clamps at the last stamp');
+    f.tick(16);
+    pointer('pointermove', -980);
+    assert.equal(f.viewport.scrollLeft, 480, 'finger can reverse immediately at an end');
+    pointer('pointerup', -980);
+    for (let i = 0; i < 60; i++) f.tick(16);
+    assert.ok(f.viewport.scrollLeft >= 0 && f.viewport.scrollLeft <= 500);
+    f.viewport.dispatchEvent(new f.w.Event('wheel'));
+    f.viewport.scrollLeft = 400;
+    // Consume the click suppressed by the drag, then choose the active stamp.
+    f.links[0].click();
+    f.links[0].click();
+    assert.equal(f.viewport.scrollLeft, 400);
+    f.tick(250);
+    assert.ok(f.viewport.scrollLeft > 0 && f.viewport.scrollLeft < 400);
+    f.tick(250);
+    assert.equal(f.viewport.scrollLeft, 0);
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('stamp opacity keeps one native transition target rather than cancelling filled animations', () => {
+  const f = fixture(6, true, false);
+  try {
+    f.controller.measure();
+    assert.equal(f.items[0].style.opacity, '1');
+    f.swiper.slideTo(1);
+    f.swiper.slideTo(2);
+    f.swiper.slideTo(0);
+    assert.equal(f.items[0].style.opacity, '1');
+    assert.equal(f.items[1].style.opacity, '0.5');
+    assert.equal(f.items[2].style.opacity, '0.5');
+    assert.ok(
+      f.items.every((item) => !item.dataset.finalOpacity),
+      'stamp opacity never uses filled WAAPI animations',
+    );
+    f.controller.dispose();
+    assert.ok(f.items.every((item) => item.style.opacity === ''));
   } finally {
     f.dom.window.close();
   }

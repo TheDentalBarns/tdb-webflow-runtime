@@ -32,12 +32,18 @@ window.TDBTreatmentStamps ||= (() => {
       lastFrame = 0,
       momentumElapsed = 0;
     const animations = new Map();
+    const opacityBefore = new Map(items.map((item) => [item, item.style.opacity]));
+    const transitionBefore = new Map(items.map((item) => [item, item.style.transitionDuration]));
+    const states = new WeakMap();
     const on = (type, listener, options) => viewport.addEventListener(type, listener, options);
     links.forEach((link, index) => {
       link.dataset.tdbStampIndex = String(index);
     });
     function configureLoop() {
-      const enabled = mobile.matches && links.length > 1;
+      const enabled =
+        mobile.matches &&
+        root.getAttribute('data-tdb-treatment-loop') === 'true' &&
+        links.length > 1;
       if (enabled === looped) return;
       stopMotion();
       copies.forEach((node) => {
@@ -78,7 +84,9 @@ window.TDBTreatmentStamps ||= (() => {
       // Wrap before assigning scrollLeft, so the browser never clamps a drag
       // at a physical end or interrupts its momentum at a recycled cycle.
       const next =
-        looped && cycle ? cycle / 2 + ((((value - cycle / 2) % cycle) + cycle) % cycle) : value;
+        looped && cycle
+          ? cycle / 2 + ((((value - cycle / 2) % cycle) + cycle) % cycle)
+          : Math.max(0, Math.min(value, viewport.scrollWidth - viewport.clientWidth));
       viewport.scrollLeft = next;
       if (drag) drag.left += next - value;
     }
@@ -89,7 +97,7 @@ window.TDBTreatmentStamps ||= (() => {
       returnOffset = 0;
     }
     function resumeAlignment() {
-      if (looped && !automatic) {
+      if (mobile.matches && !automatic) {
         stopMotion();
         returnOffset = null;
         returnDuration = window.TDBMotion?.reduced?.matches
@@ -106,6 +114,8 @@ window.TDBTreatmentStamps ||= (() => {
       else returnOffset = 0;
     }
     function align(value) {
+      if (!looped)
+        value = Math.max(0, Math.min(value, viewport.scrollWidth - viewport.clientWidth));
       targetLeft = value;
       if (returnOffset === null) {
         const difference = viewport.scrollLeft - value;
@@ -125,7 +135,9 @@ window.TDBTreatmentStamps ||= (() => {
       const dt = Math.min(32, Math.max(0, now - lastFrame));
       lastFrame = now;
       momentumElapsed += dt;
-      setScroll(viewport.scrollLeft + momentum * dt);
+      const before = viewport.scrollLeft;
+      setScroll(before + momentum * dt);
+      if (!looped && viewport.scrollLeft === before) momentum = 0;
       momentum *= Math.exp(-dt / 150);
       if (Math.abs(momentum) > 0.015 && momentumElapsed < 800)
         motionFrame = requestAnimationFrame(coast);
@@ -133,6 +145,17 @@ window.TDBTreatmentStamps ||= (() => {
     }
     function dim(item, active, heading = false) {
       if (!item) return;
+      if (states.get(item) === active) return;
+      states.set(item, active);
+      if (!heading) {
+        // Designer owns the opacity transition. Keep one stable target instead
+        // of cancelling/replacing a filled animation on every selection.
+        item.style.transitionDuration = window.TDBMotion?.reduced?.matches
+          ? '0s'
+          : transitionBefore.get(item) || '';
+        item.style.opacity = active ? '1' : '0.5';
+        return;
+      }
       const property = heading ? 'color' : 'opacity';
       const current = getComputedStyle(item)[property];
       const target = heading ? (active ? '#ffffff' : 'rgba(255,255,255,0.5)') : active ? 1 : 0.5;
@@ -202,7 +225,7 @@ window.TDBTreatmentStamps ||= (() => {
         upper = Math.min(last, lower + 1);
       const offset = offsets[lower] + (offsets[upper] - offsets[lower]) * (value - lower);
       const alignedMarker = index > last ? trackWidth - width : markerX;
-      viewport.scrollLeft = Math.max(0, offset - alignedMarker);
+      align(offset - alignedMarker);
     }
     function choose(event) {
       const link = event.target.closest('[data-tdb-treatment-stamp]');
@@ -229,7 +252,8 @@ window.TDBTreatmentStamps ||= (() => {
       const index = Number(link.dataset.tdbStampIndex);
       if (!Number.isInteger(index) || index < 0 || index >= links.length) return;
       resumeAlignment();
-      swiper.slideToLoop(index);
+      if (swiper.params?.loop) swiper.slideToLoop(index);
+      else swiper.slideTo(index);
       const progress = root.querySelector('[data-tdb-native-progress]');
       const trackWidth = progress.getBoundingClientRect().width;
       if (swiper.realIndex === index && !swiper.animating) {
@@ -246,7 +270,7 @@ window.TDBTreatmentStamps ||= (() => {
       stopMotion();
       automatic = false;
       suppressClick = false;
-      if (looped || event.pointerType === 'mouse')
+      if (mobile.matches || event.pointerType === 'mouse')
         drag = {
           id: event.pointerId,
           x: event.clientX,
@@ -264,7 +288,7 @@ window.TDBTreatmentStamps ||= (() => {
         drag = null;
         return;
       }
-      if (!suppressClick && Math.abs(delta) > (looped ? 8 : 4)) {
+      if (!suppressClick && Math.abs(delta) > (mobile.matches ? 8 : 4)) {
         suppressClick = true;
         viewport.setPointerCapture(event.pointerId);
       }
@@ -286,7 +310,7 @@ window.TDBTreatmentStamps ||= (() => {
       if (event.type === 'lostpointercapture' && event.target !== viewport) return;
       if (
         drag &&
-        looped &&
+        mobile.matches &&
         suppressClick &&
         event.type === 'pointerup' &&
         performance.now() - drag.lastTime < 100 &&
@@ -312,6 +336,10 @@ window.TDBTreatmentStamps ||= (() => {
       swiper?.off('slideChange', change);
       swiper?.off('beforeDestroy', dispose);
       animations.forEach((animation) => animation.cancel());
+      opacityBefore.forEach((opacity, item) => {
+        item.style.opacity = opacity;
+        item.style.transitionDuration = transitionBefore.get(item);
+      });
       copies.forEach((node) => node.remove());
       links.forEach((link) => {
         delete link.dataset.tdbStampIndex;
@@ -334,5 +362,5 @@ window.TDBTreatmentStamps ||= (() => {
     instances.set(root, controller);
     return controller;
   }
-  return { version: '1.0.1', prepare };
+  return { version: '1.1.0', prepare };
 })();
