@@ -1,0 +1,33 @@
+{
+  "rule": "Show image overhang at desktop/tablet/landscape widths where the focus frame is narrower than normal page content. Clip at tiny, where the frame occupies the usual 90vw content width. Stamps and text retain their own clipping.",
+  "edits": [
+    {
+      "label": "Show tablet image overhang at 70vw",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "tdb-home-treatment-stage",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "overflow",
+            "property_value": "visible"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Clip full-content-width phone image",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "tdb-home-treatment-stage",
+        "breakpoint_id": "tiny",
+        "properties": [
+          {
+            "property_name": "overflow",
+            "property_value": "hidden"
+          }
+        ]
+      }
+    }
+  ]
+}

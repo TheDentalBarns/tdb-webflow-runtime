@@ -27,8 +27,8 @@ function fixture(width) {
   };
 }
 
-test('horizontal mobile stamp drag uses the existing banner-away state; vertical browsing does not', () => {
-  const f = fixture(390);
+for (const width of [390, 1280]) test('horizontal stamp drag hides banners at ' + width + '; vertical browsing does not', () => {
+  const f = fixture(width);
   try {
     f.pointer('pointerdown', 100, 100);
     f.pointer('pointermove', 102, 125);
@@ -43,13 +43,13 @@ test('horizontal mobile stamp drag uses the existing banner-away state; vertical
   }
 });
 
-test('stamp selection hides banners on mobile and leaves desktop focus behavior unchanged', () => {
+test('stamp selection hides banners on mobile and desktop', () => {
   for (const width of [390, 1280]) {
     const f = fixture(width);
     try {
       f.link.addEventListener('click', (e) => e.preventDefault());
       f.link.click();
-      assert.equal(f.focused(), width < 768);
+      assert.equal(f.focused(), true);
     } finally {
       f.dom.window.close();
     }

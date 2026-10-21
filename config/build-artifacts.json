@@ -297,12 +297,13 @@
     },
     "dist/tdb-motion.js": {
       "sources": [
-        "src/shared/motion.js"
+        "src/shared/motion.js",
+        "src/shared/section-magnet.js"
       ],
-      "sha256": "f9a46bfc65e889afbe76e7dda31f41bca9e272f64fa3f0ecd110786f48ce6287",
-      "raw": 19365,
-      "gzip": 6944,
-      "brotli": 6295
+      "sha256": "37c2b7a464da353e2516f5c044340180af8f6c797de04826b15ac7d0e148d3ec",
+      "raw": 23202,
+      "gzip": 8039,
+      "brotli": 7299
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -543,10 +544,10 @@
       "sources": [
         "src/shared/slider-focus.js"
       ],
-      "sha256": "15015bdbc5d1e7ad93c5b217e6037df9aa507518576a485cefcad6f4d26dbb81",
-      "raw": 5653,
-      "gzip": 2231,
-      "brotli": 1985
+      "sha256": "a572411adaa8f5243d0bef5c970d2e9dcc31ef5ad4402b825350907784bda170",
+      "raw": 5630,
+      "gzip": 2222,
+      "brotli": 1970
     },
     "dist/tdb-smile-feed.js": {
       "sources": [

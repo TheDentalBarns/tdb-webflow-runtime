@@ -1,0 +1,977 @@
+{
+  "date": "2026-10-21",
+  "scope": "Home Services magnet, treatment compact layout and Explore treatments anchor",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "677cf86df9952f978d94d8a9",
+  "edits": [
+    {
+      "label": "gallery17_component main",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "gallery17_component",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "display",
+            "property_value": "grid"
+          },
+          {
+            "property_name": "grid-template-columns",
+            "property_value": "minmax(0, 1fr)"
+          },
+          {
+            "property_name": "grid-template-rows",
+            "property_value": "auto auto auto auto auto"
+          },
+          {
+            "property_name": "row-gap",
+            "property_value": "0px"
+          },
+          {
+            "property_name": "column-gap",
+            "property_value": "0px"
+          }
+        ]
+      }
+    },
+    {
+      "label": "gallery17_component medium",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "gallery17_component",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "display",
+            "property_value": "block"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-home-treatment-stage main",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "tdb-home-treatment-stage",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "height",
+            "property_value": "42svh"
+          },
+          {
+            "property_name": "max-height",
+            "property_value": "32rem"
+          },
+          {
+            "property_name": "min-height",
+            "property_value": "14rem"
+          },
+          {
+            "property_name": "grid-row-start",
+            "property_value": "2"
+          },
+          {
+            "property_name": "grid-column-start",
+            "property_value": "1"
+          },
+          {
+            "property_name": "overflow",
+            "property_value": "visible"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-home-treatment-stage medium",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "tdb-home-treatment-stage",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "overflow",
+            "property_value": "hidden"
+          },
+          {
+            "property_name": "column-gap",
+            "property_value": "5vw"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-bottom main",
+      "set_variant_styles": {
+        "variant_id": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+        "style_name": "tdb-treatment-bottom",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "padding-top",
+            "property_value": "2rem"
+          },
+          {
+            "property_name": "grid-row-start",
+            "property_value": "3"
+          },
+          {
+            "property_name": "grid-column-start",
+            "property_value": "1"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-bottom medium",
+      "set_variant_styles": {
+        "variant_id": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+        "style_name": "tdb-treatment-bottom",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "padding-top",
+            "property_value": "5vw"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-image main",
+      "set_variant_styles": {
+        "variant_id": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+        "style_name": "tdb-treatment-image",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "height",
+            "property_value": "min(13.5vw, 14svh)"
+          },
+          {
+            "property_name": "aspect-ratio",
+            "property_value": "auto"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-image medium",
+      "set_variant_styles": {
+        "variant_id": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+        "style_name": "tdb-treatment-image",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "height",
+            "property_value": "auto"
+          },
+          {
+            "property_name": "aspect-ratio",
+            "property_value": "4 / 3"
+          }
+        ]
+      }
+    },
+    {
+      "label": "line-divider main",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "line-divider",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "grid-row-start",
+            "property_value": "4"
+          },
+          {
+            "property_name": "grid-column-start",
+            "property_value": "1"
+          },
+          {
+            "property_name": "margin-top",
+            "property_value": "1.5rem"
+          },
+          {
+            "property_name": "margin-bottom",
+            "property_value": "1.5rem"
+          }
+        ]
+      }
+    },
+    {
+      "label": "line-divider medium",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "line-divider",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "margin-top",
+            "property_value": "2rem"
+          },
+          {
+            "property_name": "margin-bottom",
+            "property_value": "2rem"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-bottom main",
+      "set_variant_styles": {
+        "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+        "style_name": "tdb-treatment-bottom",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "grid-row-start",
+            "property_value": "5"
+          },
+          {
+            "property_name": "grid-column-start",
+            "property_value": "1"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-content main",
+      "set_variant_styles": {
+        "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+        "style_name": "tdb-treatment-content",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "min-height",
+            "property_value": "0px"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-content medium",
+      "set_variant_styles": {
+        "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+        "style_name": "tdb-treatment-content",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "min-height",
+            "property_value": "10rem"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-title main",
+      "set_variant_styles": {
+        "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+        "style_name": "tdb-treatment-title",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "width",
+            "property_value": "calc(((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-title medium",
+      "set_variant_styles": {
+        "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+        "style_name": "tdb-treatment-title",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "width",
+            "property_value": "100%"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-copy main",
+      "set_variant_styles": {
+        "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+        "style_name": "tdb-treatment-copy",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "width",
+            "property_value": "calc((((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem) - 2rem) / 2)"
+          },
+          {
+            "property_name": "max-width",
+            "property_value": "none"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-copy medium",
+      "set_variant_styles": {
+        "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+        "style_name": "tdb-treatment-copy",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "width",
+            "property_value": "100%"
+          },
+          {
+            "property_name": "max-width",
+            "property_value": "28rem"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-cta main",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "tdb-treatment-cta",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "grid-row-start",
+            "property_value": "5"
+          },
+          {
+            "property_name": "grid-column-start",
+            "property_value": "1"
+          },
+          {
+            "property_name": "width",
+            "property_value": "calc((((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem) - 2rem) / 2)"
+          },
+          {
+            "property_name": "margin-left",
+            "property_value": "calc((((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem) + 2rem) / 2)"
+          },
+          {
+            "property_name": "margin-top",
+            "property_value": "0px"
+          },
+          {
+            "property_name": "align-self",
+            "property_value": "end"
+          },
+          {
+            "property_name": "column-gap",
+            "property_value": ".75rem"
+          },
+          {
+            "property_name": "min-width",
+            "property_value": "0px"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-cta medium",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "tdb-treatment-cta",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "width",
+            "property_value": "100%"
+          },
+          {
+            "property_name": "margin-left",
+            "property_value": "0px"
+          },
+          {
+            "property_name": "margin-top",
+            "property_value": "2rem"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-service-discover main",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "tdb-service-discover",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "height",
+            "property_value": "auto"
+          },
+          {
+            "property_name": "min-height",
+            "property_value": "0px"
+          },
+          {
+            "property_name": "max-height",
+            "property_value": "none"
+          },
+          {
+            "property_name": "align-self",
+            "property_value": "center"
+          },
+          {
+            "property_name": "line-height",
+            "property_value": "1.5"
+          },
+          {
+            "property_name": "font-size",
+            "property_value": ".875rem"
+          },
+          {
+            "property_name": "padding-top",
+            "property_value": ".55rem"
+          },
+          {
+            "property_name": "padding-bottom",
+            "property_value": ".55rem"
+          },
+          {
+            "property_name": "padding-left",
+            "property_value": "1rem"
+          },
+          {
+            "property_name": "padding-right",
+            "property_value": "1rem"
+          },
+          {
+            "property_name": "box-sizing",
+            "property_value": "border-box"
+          },
+          {
+            "property_name": "flex-grow",
+            "property_value": "0"
+          },
+          {
+            "property_name": "flex-shrink",
+            "property_value": "0"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-service-discover medium",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "tdb-service-discover",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "font-size",
+            "property_value": "1rem"
+          },
+          {
+            "property_name": "padding-top",
+            "property_value": ".75rem"
+          },
+          {
+            "property_name": "padding-bottom",
+            "property_value": ".75rem"
+          },
+          {
+            "property_name": "padding-left",
+            "property_value": "1.25rem"
+          },
+          {
+            "property_name": "padding-right",
+            "property_value": "1.25rem"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-direct-arrow main",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "tdb-direct-arrow",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "height",
+            "property_value": "1rem"
+          },
+          {
+            "property_name": "max-height",
+            "property_value": "1rem"
+          },
+          {
+            "property_name": "min-height",
+            "property_value": "0px"
+          },
+          {
+            "property_name": "width",
+            "property_value": "1.25rem"
+          },
+          {
+            "property_name": "overflow",
+            "property_value": "hidden"
+          },
+          {
+            "property_name": "display",
+            "property_value": "block"
+          },
+          {
+            "property_name": "line-height",
+            "property_value": "1"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-slide medium",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "tdb-treatment-slide",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "margin-right",
+            "property_value": "5vw"
+          }
+        ]
+      }
+    }
+  ],
+  "readback": [
+    {
+      "label": "gallery17_component main",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+          "style": "gallery17_component",
+          "properties": {
+            "display": "grid",
+            "width": "94vw",
+            "max-width": "90rem",
+            "margin-right": "auto",
+            "margin-left": "auto",
+            "grid-template-rows": "auto auto auto auto auto",
+            "column-gap": "0px",
+            "grid-template-columns": "minmax(0, 1fr)",
+            "row-gap": "0px"
+          }
+        }
+      ]
+    },
+    {
+      "label": "gallery17_component medium",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+          "style": "gallery17_component",
+          "properties": {
+            "display": "block",
+            "width": "70vw",
+            "margin-right": "0px",
+            "margin-left": "0px"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-home-treatment-stage main",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+          "style": "tdb-home-treatment-stage",
+          "properties": {
+            "overflow": "visible",
+            "height": "42svh",
+            "max-height": "32rem",
+            "min-height": "14rem",
+            "grid-column-start": "1",
+            "grid-row-start": "2"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-home-treatment-stage medium",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+          "style": "tdb-home-treatment-stage",
+          "properties": {
+            "overflow": "hidden",
+            "height": "44svh",
+            "max-height": "34rem",
+            "min-height": "20rem",
+            "column-gap": "5vw"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-treatment-bottom main",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+          "style": "tdb-treatment-bottom",
+          "properties": {
+            "display": "block",
+            "width": "calc((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem)",
+            "max-width": "100%",
+            "padding-top": "2rem",
+            "grid-column-start": "1",
+            "grid-row-start": "3"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-treatment-bottom medium",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+          "style": "tdb-treatment-bottom",
+          "properties": {
+            "width": "100%",
+            "padding-top": "5vw"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-treatment-image main",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+          "style": "tdb-treatment-image",
+          "properties": {
+            "position": "relative",
+            "left": "auto",
+            "top": "auto",
+            "display": "block",
+            "width": "100%",
+            "max-width": "100%",
+            "margin-left": "0px",
+            "aspect-ratio": "auto",
+            "object-fit": "cover",
+            "height": "min(13.5vw, 14svh)"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-treatment-image medium",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+          "style": "tdb-treatment-image",
+          "properties": {
+            "left": "auto",
+            "width": "100%",
+            "height": "auto",
+            "margin-left": "0px",
+            "aspect-ratio": "4 / 3"
+          }
+        }
+      ]
+    },
+    {
+      "label": "line-divider main",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+          "style": "line-divider",
+          "properties": {
+            "width": "calc((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem)",
+            "max-width": "100%",
+            "margin-top": "1.5rem",
+            "margin-bottom": "1.5rem",
+            "opacity": "0.3",
+            "grid-column-start": "1",
+            "grid-row-start": "4"
+          }
+        }
+      ]
+    },
+    {
+      "label": "line-divider medium",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+          "style": "line-divider",
+          "properties": {
+            "width": "100%",
+            "margin-top": "2rem",
+            "margin-bottom": "2rem"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-treatment-bottom main",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+          "style": "tdb-treatment-bottom",
+          "properties": {
+            "display": "block",
+            "width": "calc((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem)",
+            "max-width": "100%",
+            "grid-column-start": "1",
+            "grid-row-start": "5"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-treatment-content main",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+          "style": "tdb-treatment-content",
+          "properties": {
+            "height": "auto",
+            "min-height": "0px",
+            "padding-top": "0px",
+            "padding-right": "0px",
+            "padding-bottom": "0px",
+            "padding-left": "0px",
+            "pointer-events": "auto",
+            "color": "inherit"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-treatment-content medium",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+          "style": "tdb-treatment-content",
+          "properties": {
+            "display": "block",
+            "min-height": "10rem",
+            "padding-top": "0px",
+            "padding-right": "0px",
+            "padding-bottom": "0px",
+            "padding-left": "0px"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-treatment-title main",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+          "style": "tdb-treatment-title",
+          "properties": {
+            "position": "relative",
+            "left": "auto",
+            "top": "auto",
+            "max-width": "100%",
+            "color": "inherit",
+            "width": "calc(((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem))"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-treatment-title medium",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+          "style": "tdb-treatment-title",
+          "properties": {
+            "width": "100%"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-treatment-copy main",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+          "style": "tdb-treatment-copy",
+          "properties": {
+            "position": "relative",
+            "left": "auto",
+            "bottom": "auto",
+            "max-width": "none",
+            "margin-top": "1rem",
+            "opacity": "0",
+            "width": "calc((((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem) - 2rem) / 2)"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-treatment-copy medium",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+          "style": "tdb-treatment-copy",
+          "properties": {
+            "width": "100%",
+            "max-width": "28rem"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-treatment-cta main",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+          "style": "tdb-treatment-cta",
+          "properties": {
+            "position": "relative",
+            "left": "auto",
+            "top": "auto",
+            "bottom": "auto",
+            "height": "auto",
+            "max-width": "100%",
+            "min-width": "0px",
+            "margin-top": "0px",
+            "padding-top": "0px",
+            "padding-right": "0px",
+            "padding-bottom": "0px",
+            "padding-left": "0px",
+            "justify-content": "space-between",
+            "align-items": "center",
+            "align-self": "end",
+            "column-gap": ".75rem",
+            "grid-column-start": "1",
+            "grid-row-start": "5",
+            "width": "calc((((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem) - 2rem) / 2)",
+            "margin-left": "calc((((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem) + 2rem) / 2)"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-treatment-cta medium",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+          "style": "tdb-treatment-cta",
+          "properties": {
+            "width": "100%",
+            "margin-top": "2rem",
+            "margin-left": "0px",
+            "padding-top": "0px",
+            "padding-right": "0px",
+            "padding-bottom": "0px",
+            "padding-left": "0px"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-service-discover main",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+          "style": "tdb-service-discover",
+          "properties": {
+            "box-sizing": "border-box",
+            "height": "auto",
+            "max-height": "none",
+            "min-height": "0px",
+            "margin-left": "auto",
+            "padding-top": ".55rem",
+            "padding-right": "1rem",
+            "padding-bottom": ".55rem",
+            "padding-left": "1rem",
+            "align-self": "center",
+            "flex-grow": "0",
+            "flex-shrink": "0",
+            "font-size": ".875rem",
+            "line-height": "1.5"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-service-discover medium",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+          "style": "tdb-service-discover",
+          "properties": {
+            "padding-top": ".75rem",
+            "padding-right": "1.25rem",
+            "padding-bottom": ".75rem",
+            "padding-left": "1.25rem",
+            "font-size": "1rem"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-direct-arrow main",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+          "style": "tdb-direct-arrow",
+          "properties": {
+            "display": "block",
+            "overflow": "hidden",
+            "width": "1.25rem",
+            "height": "1rem",
+            "max-height": "1rem",
+            "min-height": "0px",
+            "line-height": "1"
+          }
+        }
+      ]
+    },
+    {
+      "label": "tdb-treatment-slide medium",
+      "action": "get_variant_styles",
+      "result": [
+        {
+          "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+          "style": "tdb-treatment-slide",
+          "properties": {
+            "margin-right": "5vw"
+          }
+        }
+      ]
+    }
+  ],
+  "anchor": {
+    "instance": "c83f9d27-0890-077d-3257-844184793ad2",
+    "prop": "13e8fa0a-00f9-19aa-17b9-c8b6f35fadfd",
+    "value": "#All-treatments"
+  },
+  "magnet": {
+    "services": "frame",
+    "treatments": "treatment",
+    "settleMs": 180,
+    "durationMs": 560,
+    "maxRadius": "min(120px,12vh)",
+    "reducedMotion": "disabled",
+    "input": "Any new user input interrupts; keyboard/anchor navigation excluded."
+  },
+  "validation": "39 focused slider/motion/scroll-lock checks passed. Staging visual checks recorded separately."
+}

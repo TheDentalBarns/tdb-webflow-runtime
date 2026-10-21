@@ -1,9 +1,9 @@
-/* TDB shared slider focus v1.3.2. Cleanup follows the shared CSS peek clock. */
+/* TDB shared slider focus v1.3.3. Native stamps share focus on every breakpoint. */
 (() => {
   'use strict';
   const e = document.documentElement;
   if (e.dataset.tdbSliderFocusReady) return;
-  e.dataset.tdbSliderFocusReady = '1.3.2';
+  e.dataset.tdbSliderFocusReady = '1.3.3';
   let viewportWidth = window.innerWidth;
   const t = 'input,textarea,select,[contenteditable="true"]',
     n = '[data-tdb-sg-overlay],.tdb-sg-filter-dock';
@@ -42,7 +42,7 @@
   const m = (e) =>
       e?.closest?.('.logo-slider')
         ? null
-        : (window.innerWidth < 768 && e?.closest?.('[data-tdb-treatment-stamps]')) ||
+        : e?.closest?.('[data-tdb-treatment-stamps]') ||
           e?.closest?.(
             '.highlight-swiper_component,.parallax-swiper_component,.swiper,.w-slider,[data-tdb-review-cards]',
           ),
