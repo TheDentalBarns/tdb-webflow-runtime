@@ -9,7 +9,7 @@ html { --tdb-review-widget-ready: 1; }
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: .65rem;
+  gap: 2.25rem;
   width: max-content;
   max-width: calc(100vw - 1rem);
   height: 4rem;
