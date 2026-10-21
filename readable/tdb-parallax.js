@@ -570,6 +570,12 @@ window.TDBTreatmentStamps ||= (() => {
     const links = Array.from(strip?.querySelectorAll('[data-tdb-treatment-stamp]') || []);
     if (!viewport || !links.length) return null;
     const items = links.map((link) => link.closest('.tdb-treatment-card'));
+    const track = items[0].parentElement;
+    const mobile = matchMedia('(max-width: 767px)');
+    let looped = false,
+      cycle = 0,
+      copies = [],
+      allLinks = links;
     let swiper,
       automatic = true,
       offsets = [],
@@ -579,6 +585,48 @@ window.TDBTreatmentStamps ||= (() => {
     let selected = -1;
     const animations = new Map();
     const on = (type, listener, options) => viewport.addEventListener(type, listener, options);
+    links.forEach((link, index) => {
+      link.dataset.tdbStampIndex = String(index);
+    });
+    function configureLoop() {
+      const enabled = mobile.matches && links.length > 1;
+      if (enabled === looped) return;
+      copies.forEach((node) => {
+        animations.get(node)?.cancel();
+        animations.delete(node);
+        node.remove();
+      });
+      copies = [];
+      looped = enabled;
+      if (enabled) {
+        const copy = (item) => {
+          const node = item.cloneNode(true);
+          node.setAttribute('aria-hidden', 'true');
+          node.removeAttribute('id');
+          node.querySelectorAll('[id]').forEach((child) => child.removeAttribute('id'));
+          node.querySelectorAll('a').forEach((link) => (link.tabIndex = -1));
+          return node;
+        };
+        const before = items.map(copy),
+          after = items.map(copy);
+        track.prepend(...before);
+        track.append(...after);
+        copies = [...before, ...after];
+      }
+      allLinks = [...track.querySelectorAll('[data-tdb-treatment-stamp]')];
+      selected = -1;
+      automatic = true;
+      drag = null;
+    }
+    function normalize() {
+      if (!looped || !cycle) return;
+      const before = viewport.scrollLeft;
+      const after = cycle / 2 + ((((before - cycle / 2) % cycle) + cycle) % cycle);
+      if (Math.abs(after - before) < 0.5) return;
+      viewport.scrollLeft = after;
+      // Preserve the pointer's origin when a dragged cycle is recycled.
+      if (drag) drag.left += after - before;
+    }
     function dim(item, active, heading = false) {
       if (!item) return;
       const property = heading ? 'color' : 'opacity';
@@ -596,10 +644,10 @@ window.TDBTreatmentStamps ||= (() => {
     function selection() {
       if (!swiper || selected === swiper.realIndex) return;
       selected = swiper.realIndex;
-      links.forEach((link, index) => {
-        const active = index === selected;
+      allLinks.forEach((link) => {
+        const active = Number(link.dataset.tdbStampIndex) === selected;
         active ? link.setAttribute('aria-current', 'true') : link.removeAttribute('aria-current');
-        dim(items[index], active);
+        dim(link.closest('.tdb-treatment-card'), active);
       });
       Array.from(swiper.slides || []).forEach((slide, index) => {
         const realIndex = Number(slide.getAttribute('data-swiper-slide-index') ?? index);
@@ -619,16 +667,32 @@ window.TDBTreatmentStamps ||= (() => {
       selection();
     }
     function measure() {
+      configureLoop();
       bind();
       const first = items[0].getBoundingClientRect();
       width = first.width;
       offsets = items.map((item) => item.getBoundingClientRect().left - first.left);
+      cycle = looped ? copies[items.length].getBoundingClientRect().left - first.left : 0;
+      selection();
       return width;
     }
     function paint(index, markerX, trackWidth) {
       bind();
       if (!automatic || !offsets.length || drag) return;
       const last = links.length - 1;
+      if (looped && cycle > 0) {
+        const value = ((index % links.length) + links.length) % links.length;
+        const lower = Math.floor(value),
+          fraction = value - lower;
+        const next = lower === last ? cycle : offsets[lower + 1];
+        const offset = offsets[lower] + (next - offsets[lower]) * fraction;
+        // Across the seam continue forward into the next CMS copy. Recycling
+        // a whole cycle is visually identical, including during a native drag.
+        const marker = lower === last ? (trackWidth - width) * (1 - fraction) : markerX;
+        viewport.scrollLeft = cycle + offset - marker;
+        normalize();
+        return;
+      }
       // The loop's duplicated images cross the seam; stamps remain a finite list.
       const value = Math.min(last, Math.max(0, index));
       const lower = Math.floor(value),
@@ -659,8 +723,8 @@ window.TDBTreatmentStamps ||= (() => {
         suppressClick = false;
         return;
       }
-      const index = links.indexOf(link);
-      if (index < 0) return;
+      const index = Number(link.dataset.tdbStampIndex);
+      if (!Number.isInteger(index) || index < 0 || index >= links.length) return;
       automatic = true;
       swiper.slideToLoop(index);
       const progress = root.querySelector('[data-tdb-native-progress]');
@@ -705,6 +769,10 @@ window.TDBTreatmentStamps ||= (() => {
       swiper?.off('slideChange', change);
       swiper?.off('beforeDestroy', dispose);
       animations.forEach((animation) => animation.cancel());
+      copies.forEach((node) => node.remove());
+      links.forEach((link) => {
+        delete link.dataset.tdbStampIndex;
+      });
       instances.delete(root);
     }
     const listeners = [
@@ -716,6 +784,7 @@ window.TDBTreatmentStamps ||= (() => {
       ['lostpointercapture', up],
       ['wheel', wheel],
       ['dragstart', preventDrag],
+      ['scroll', normalize],
     ];
     listeners.forEach(([type, fn]) => on(type, fn));
     const controller = { measure, paint, dispose };

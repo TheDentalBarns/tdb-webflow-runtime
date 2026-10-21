@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 
-function fixture(count = 6) {
+function fixture(count = 6, mobileWidth = false) {
   const dom = new JSDOM(
     `<section data-tdb-treatment-postage>
     <div class="swiper">${Array.from({ length: count }, (_, i) => `<div data-swiper-slide-index="${i}"><h3 class="tdb-treatment-title">Treatment ${i}</h3></div>`).join('')}</div><div data-tdb-native-progress></div>
@@ -22,18 +22,19 @@ function fixture(count = 6) {
   const items = [...root.querySelectorAll('.tdb-treatment-card')];
   const links = [...root.querySelectorAll('a')],
     listeners = {};
+  const media = { matches: mobileWidth };
+  w.matchMedia = () => media;
   w.Element.prototype.animate = function (frames) {
     this.dataset.finalOpacity = frames.at(-1).opacity;
     this.dataset.finalColor = frames.at(-1).color;
     return { cancel() {} };
   };
-  items.forEach(
-    (item, i) =>
-      (item.getBoundingClientRect = () => ({
-        left: 50 + i * 220 - viewport.scrollLeft,
-        width: 200,
-      })),
-  );
+  w.HTMLElement.prototype.getBoundingClientRect = function () {
+    return {
+      left: 50 + [...this.parentElement.children].indexOf(this) * 220 - viewport.scrollLeft,
+      width: 200,
+    };
+  };
   root.querySelector('[data-tdb-native-progress]').getBoundingClientRect = () => ({ width: 800 });
   const swiper = (root.querySelector('.swiper').swiper = {
     slides: [...root.querySelector('.swiper').children],
@@ -42,6 +43,9 @@ function fixture(count = 6) {
     on(events, callback) {
       for (const name of events.split(' ')) (listeners[name] ||= []).push(callback);
     },
+    off(event, callback) {
+      listeners[event] = listeners[event]?.filter((fn) => fn !== callback);
+    },
     slideToLoop(index) {
       this.realIndex = index;
       listeners.slideChange?.forEach((fn) => fn());
@@ -49,7 +53,7 @@ function fixture(count = 6) {
   });
   w.eval(fs.readFileSync('src/sliders/treatment-stamps.js', 'utf8'));
   const controller = w.TDBTreatmentStamps.prepare(root);
-  return { dom, w, root, viewport, items, links, swiper, controller };
+  return { dom, w, root, viewport, items, links, swiper, controller, media };
 }
 test('native stamps align first, intermediate and last positions with the progress marker', () => {
   const f = fixture();
@@ -115,5 +119,67 @@ test('single CMS treatment and loop seam produce finite scroll positions', () =>
     } finally {
       f.dom.window.close();
     }
+  }
+});
+
+test('mobile stamps recycle complete cycles in either direction without selecting another treatment', () => {
+  const f = fixture(6, true);
+  try {
+    f.controller.measure();
+    assert.equal(f.viewport.children.length, 18);
+    assert.equal(f.viewport.querySelectorAll('[aria-hidden="true"]').length, 12);
+    f.controller.paint(0, 0, 800);
+    assert.equal(f.items[0].getBoundingClientRect().left, 50);
+    f.viewport.dispatchEvent(new f.w.Event('wheel'));
+    const cycle = 6 * 220;
+    for (const pos of [20, 2100, 10, 2200]) {
+      f.viewport.scrollLeft = pos;
+      f.viewport.dispatchEvent(new f.w.Event('scroll'));
+      assert.ok(f.viewport.scrollLeft >= cycle / 2);
+      assert.ok(f.viewport.scrollLeft < cycle * 1.5);
+      assert.equal(Math.abs((f.viewport.scrollLeft - pos) % cycle), 0);
+      assert.equal(f.swiper.realIndex, 0);
+    }
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('mobile seam continues into the next set and duplicate stamps select the original CMS destination', () => {
+  const f = fixture(6, true);
+  try {
+    f.controller.measure();
+    f.controller.paint(5.99, 798, 800);
+    const before = f.viewport.scrollLeft;
+    f.controller.paint(0, 0, 800);
+    assert.ok(Math.abs(f.viewport.scrollLeft - before) < 10, 'no visible reset at the seam');
+    const repeated = f.viewport.firstElementChild.querySelector('a');
+    const click = new f.w.MouseEvent('click', { bubbles: true, cancelable: true });
+    repeated.dispatchEvent(click);
+    assert.equal(click.defaultPrevented, true);
+    assert.equal(f.swiper.realIndex, 0);
+    assert.equal(repeated.tabIndex, -1);
+    assert.equal(repeated.getAttribute('href'), '/treatments/0');
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('returning to desktop restores the original finite CMS row; disposal removes mobile copies', () => {
+  const f = fixture(6, true);
+  try {
+    f.controller.measure();
+    f.media.matches = false;
+    f.controller.measure();
+    f.controller.paint(0, 0, 800);
+    assert.deepEqual([...f.viewport.children], f.items);
+    assert.equal(f.viewport.scrollLeft, 0);
+    f.media.matches = true;
+    f.controller.measure();
+    f.controller.dispose();
+    assert.deepEqual([...f.viewport.children], f.items);
+    assert.equal(f.links[0].hasAttribute('data-tdb-stamp-index'), false);
+  } finally {
+    f.dom.window.close();
   }
 });

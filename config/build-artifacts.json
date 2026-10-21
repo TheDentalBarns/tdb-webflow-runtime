@@ -338,10 +338,10 @@
         "src/sliders/treatment-plugin.js",
         "src/sliders/parallax-plugin.js"
       ],
-      "sha256": "e927f5c235f6f2d8e884ec722969985987cf9f814c4ea20cedfb15b415a0b5be",
-      "raw": 31177,
-      "gzip": 9574,
-      "brotli": 8618
+      "sha256": "652eac0c0df4b1c7b81292d3e7aef24c1b33ddf03d32f0beac780c73c6a74bbb",
+      "raw": 32340,
+      "gzip": 9923,
+      "brotli": 8925
     },
     "dist/tdb-partner-card.js": {
       "sources": [
@@ -542,10 +542,10 @@
       "sources": [
         "src/shared/slider-focus.js"
       ],
-      "sha256": "1c141c985a6ab2184fc31b1872be83a8c7131a32e36b2f69191c3f891061b243",
-      "raw": 5509,
-      "gzip": 2194,
-      "brotli": 1945
+      "sha256": "15015bdbc5d1e7ad93c5b217e6037df9aa507518576a485cefcad6f4d26dbb81",
+      "raw": 5653,
+      "gzip": 2231,
+      "brotli": 1985
     },
     "dist/tdb-smile-feed.js": {
       "sources": [

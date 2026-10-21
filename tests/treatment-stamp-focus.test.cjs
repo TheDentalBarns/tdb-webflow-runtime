@@ -1,0 +1,57 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const { JSDOM } = require('jsdom');
+
+function fixture(width) {
+  const dom = new JSDOM(
+    '<div data-tdb-treatment-stamps><a href="/treatment" data-tdb-treatment-stamp>Veneers</a></div>',
+    { runScripts: 'outside-only', pretendToBeVisual: true },
+  );
+  const w = dom.window;
+  w.innerWidth = width;
+  w.TDBNavScroll = { focus() {}, release() {} };
+  w.eval(fs.readFileSync('src/shared/slider-focus.js', 'utf8'));
+  const link = w.document.querySelector('a');
+  function pointer(type, x, y) {
+    const event = new w.Event(type, { bubbles: true });
+    Object.assign(event, { button: 0, isPrimary: true, pointerId: 1, clientX: x, clientY: y });
+    link.dispatchEvent(event);
+  }
+  return {
+    dom,
+    w,
+    link,
+    pointer,
+    focused: () => w.document.documentElement.classList.contains('tdb-slider-focus'),
+  };
+}
+
+test('horizontal mobile stamp drag uses the existing banner-away state; vertical browsing does not', () => {
+  const f = fixture(390);
+  try {
+    f.pointer('pointerdown', 100, 100);
+    f.pointer('pointermove', 102, 125);
+    assert.equal(f.focused(), false);
+    f.pointer('pointerdown', 100, 100);
+    f.pointer('pointermove', 75, 102);
+    assert.equal(f.focused(), true);
+    f.pointer('pointerup', 75, 102);
+    assert.equal(f.focused(), true);
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('stamp selection hides banners on mobile and leaves desktop focus behavior unchanged', () => {
+  for (const width of [390, 1280]) {
+    const f = fixture(width);
+    try {
+      f.link.addEventListener('click', (e) => e.preventDefault());
+      f.link.click();
+      assert.equal(f.focused(), width < 768);
+    } finally {
+      f.dom.window.close();
+    }
+  }
+});

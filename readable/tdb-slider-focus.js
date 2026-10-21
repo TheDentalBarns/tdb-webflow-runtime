@@ -1,9 +1,9 @@
-/* TDB shared slider focus v1.3.1. Cleanup follows the shared CSS peek clock. */
+/* TDB shared slider focus v1.3.2. Cleanup follows the shared CSS peek clock. */
 (() => {
   'use strict';
   const e = document.documentElement;
   if (e.dataset.tdbSliderFocusReady) return;
-  e.dataset.tdbSliderFocusReady = '1.3.1';
+  e.dataset.tdbSliderFocusReady = '1.3.2';
   let viewportWidth = window.innerWidth;
   const t = 'input,textarea,select,[contenteditable="true"]',
     n = '[data-tdb-sg-overlay],.tdb-sg-filter-dock';
@@ -42,7 +42,8 @@
   const m = (e) =>
       e?.closest?.('.logo-slider')
         ? null
-        : e?.closest?.(
+        : (window.innerWidth < 768 && e?.closest?.('[data-tdb-treatment-stamps]')) ||
+          e?.closest?.(
             '.highlight-swiper_component,.parallax-swiper_component,.swiper,.w-slider,[data-tdb-review-cards]',
           ),
     f = (e) => e?.closest?.('[disabled],[aria-disabled="true"],[hidden],[inert]'),
@@ -121,7 +122,7 @@
   }
   function y(e) {
     const t = e?.closest?.(
-      '[data-tdb-cards-prev],[data-tdb-cards-next],.swiper-btn-prev,.swiper-btn-next,.swiper-bullet,.swiper-pagination-bullet,.w-slider-arrow-left,.w-slider-arrow-right,.w-slider-dot',
+      '[data-tdb-cards-prev],[data-tdb-cards-next],[data-tdb-treatment-stamp],.swiper-btn-prev,.swiper-btn-next,.swiper-bullet,.swiper-pagination-bullet,.w-slider-arrow-left,.w-slider-arrow-right,.w-slider-dot',
     );
     return t && !f(t) ? m(t) : null;
   }
@@ -138,7 +139,7 @@
         slider: i,
         horizontal: !1,
       }),
-      y(e.target) && v(i));
+      y(e.target) && !e.target.closest('[data-tdb-treatment-stamp]') && v(i));
   }
   function x(e) {
     if (!r || r.id !== e.pointerId) return;
