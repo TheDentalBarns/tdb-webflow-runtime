@@ -140,7 +140,7 @@ function prepareHoldAudioLoader(deferred) {
   document.addEventListener(
     'visibilitychange',
     () => {
-      if (document.hidden) release();
+      if (document.hidden) release(true);
     },
     options,
   );

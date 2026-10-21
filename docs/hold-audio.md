@@ -37,12 +37,15 @@ controls retain their existing spinner position.
 
 The image uses an individual scale animation: a steady 6% increase over ten
 seconds, then a fixed limit. Release returns it over 1.2 seconds. Existing
-Home parallax moves the native `data-tdb-audio-parallax` wrapper inside the
-existing image clip; only its child photo zooms. The Home variant's native
-1.06 crop scale belongs to this stable wrapper and the photo starts at scale 1,
-preserving the combined 1.06 resting / 1.1236 fully held appearance. Parallax
-therefore measures the resting crop throughout a hold and return, including
-when the controller mounts mid-hold. Sound fades out with an
+Home parallax translates the same existing photo inside its original image clip.
+The nested-layer experiment was rejected by the phone test and removed. In the
+review candidate, the native numeric variable `--tdb-photo-scale` supplies the
+Home `Image 2` scale of 1.06 and describes its centred, full-frame resting crop.
+The motion owner combines this scale with the current card rectangle, avoiding
+animated image measurements. It re-reads the native variable on geometry/viewport
+changes and explicit refresh. Missing/invalid tokens use ordinary measurement.
+The resting/full-held scale remains 1.06/1.1236, including mid-hold mounting.
+Sound fades out with an
 exponential 600ms tail, and the shared playhead includes that tail. A quick
 re-press reverses the fade on the same source; later presses resume at the saved
 position. No audio is fetched merely by approaching the cards.
@@ -54,7 +57,7 @@ hold continues across any card. Releasing early cancels the remaining cues.
 All three use the middle card's native `text-size-large` Home variant, centred
 over the image with its existing smaller mobile size.
 
-Designer owns `tdb-hold-image-clip`, `tdb-hold-photo-motion`, `tdb-hold-blur-circle`, `tdb-hold-ripple-edge` and the centred word
+Designer owns `tdb-hold-image-clip`, `tdb-hold-blur-circle`, `tdb-hold-ripple-edge` and the centred word
 style. The Home variant allows frame overflow; its inner image
 clip preserves the original aspect ratio and crops zoom/parallax. The decorative
 32px backdrop-blur circle lives in the native speaker overlay, sharing the
@@ -63,16 +66,22 @@ ring reaches 2.4 times the speaker diameter in 150ms, then expands more gently
 beyond the card while dissolving. Its separate native 2px cream outline begins
 at 50% opacity and follows the same fade to transparent. The edge
 is a sibling so its outline remains outside the mask and the photo backdrop
-is not blocked by an ancestor's opacity. The ripple reverses into the speaker
-on release. Words and controls sit above it. The external
+is not blocked by an ancestor's opacity. The review candidate keeps the same
+1.2-second returning scale/easing, but fades from the current brightness to zero
+instead of brightening to at least 0.65 first. An already-faded ripple stays
+hidden; completed effects are cancelled rather than retained for a revival.
+This is an intentional visual refinement for review. Words and controls sit
+above it. The external
 controller animates only scale/opacity with the Web Animations API, reverses from
 the current appearance on early release/re-press, and cancels all effects/timers
 on teardown. Inactive words, blur and outline are natively `visibility:hidden`.
 The controller makes only the current effect visible until it finishes or is
 cancelled, then restores the hidden state. A cancelled predecessor cannot hide a
 new animation. This parks the oversized backdrop-filter surface after use while
-preserving the expanding and returning ripple. No CSS or markup is injected at
-runtime; no head blocks are added.
+preserving the expanding and returning ripple. Page hiding/exit cancels all
+remaining visual and audio tails, including tails from a released session; a
+later deliberate hold still resumes the cached audio playhead. No CSS or markup
+is injected at runtime; no head blocks are added.
 
 The attempted `will-change:opacity` backdrop boundary did not resolve the
 reported phone flashing and has been removed. The normal page keeps the full

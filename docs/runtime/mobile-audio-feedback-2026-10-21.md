@@ -218,3 +218,16 @@ asset references to `8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce` before republishi
 staging. Keep the preceding early-hold, loading and dormant-effect fixes.
 Physical Android/Safari testing is still required to determine whether the
 remaining backdrop rendering also contributes to the reported flashing.
+
+## Phone result: separated layers rejected
+
+David's next phone test reported that the nested-layer release was worse, with
+lots of flashing. The three added wrappers were removed and the original photo
+parents/1.06 scale restored. Runtime pins returned to `8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce`
+on staging at 2026-10-21T22:06:21.868Z. Production was not published.
+
+The overnight investigation, tested single-photo refinement, deliberate change
+to the returning ripple's brightness and current deployment/rollback record
+continue in [the review report](mobile-speaker-overnight-2026-10-22.md) and
+`mobile-speaker-progress.json`. Passing the nested-layer model was not proof
+that the phone rendering problem was fixed.

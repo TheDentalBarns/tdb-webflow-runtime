@@ -5,7 +5,7 @@ const { JSDOM } = require('jsdom');
 const read = (path) => fs.readFileSync(path, 'utf8');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
-// Model the native nested layers, including CSS scale's effect on rectangles.
+// Model the original single photo, including CSS scale's effect on rectangles.
 // Drive the real speaker, Home discovery and motion owner together: checking
 // separate scale/translate properties alone misses their geometry feedback.
 async function fixture(bundle = false, mount = true) {
@@ -15,8 +15,8 @@ async function fixture(bundle = false, mount = true) {
         { length: 3 },
         () =>
           '<div class="aspect-ratio-portrait" data-tdb-audio-card data-tdb-audio-src="https://example.test/calm.mp3">' +
-          '<div data-tdb-audio-image-clip><div data-tdb-audio-parallax style="scale:1.06">' +
-          '<img style="scale:1"></div></div><button data-tdb-hold-audio></button></div>',
+          '<div data-tdb-audio-image-clip><img style="--tdb-photo-scale:1.06;scale:1.06">' +
+          '</div><button data-tdb-hold-audio></button></div>',
       ).join('') +
       '</section></body>',
     { runScripts: 'outside-only', pretendToBeVisual: true, url: 'https://dentalbarns.webflow.io/' },
@@ -26,7 +26,7 @@ async function fixture(bundle = false, mount = true) {
     animations = new Map();
   const cards = [...w.document.querySelectorAll('[data-tdb-audio-card]')];
   const photos = cards.map((node) => node.querySelector('img'));
-  const layers = cards.map((node) => node.querySelector('[data-tdb-audio-parallax]'));
+  const reads = { photoRect: 0, scale: 0 };
   const clips = cards.map((node) => node.querySelector('[data-tdb-audio-image-clip]'));
   let now = 0,
     next = 0,
@@ -73,7 +73,15 @@ async function fixture(bundle = false, mount = true) {
   w.getComputedStyle = (node) => {
     const style = nativeStyle(node);
     return new Proxy(style, {
-      get: (target, key) => (key === 'scale' ? String(scale(node)) : Reflect.get(target, key)),
+      get: (target, key) => {
+        if (key === 'scale') return String(scale(node));
+        if (key === 'getPropertyValue')
+          return (name) => {
+            if (name === '--tdb-photo-scale') reads.scale++;
+            return target.getPropertyValue(name);
+          };
+        return Reflect.get(target, key);
+      },
     });
   };
   w.Element.prototype.animate = function (frames, options) {
@@ -108,11 +116,10 @@ async function fixture(bundle = false, mount = true) {
   cards.forEach((card, i) => {
     const top = () => 100 + i * (cardHeight + 25) - w.scrollY;
     card.getBoundingClientRect = clips[i].getBoundingClientRect = () => rect(top(), cardHeight);
-    layers[i].getBoundingClientRect = () =>
-      rect(top() - cardHeight * 0.03 + y(layers[i]), cardHeight * 1.06);
     photos[i].getBoundingClientRect = () => {
-      const height = cardHeight * 1.06 * scale(photos[i]);
-      return rect(top() + (cardHeight - height) / 2 + y(layers[i]) + y(photos[i]) * 1.06, height);
+      reads.photoRect++;
+      const height = cardHeight * scale(photos[i]);
+      return rect(top() + (cardHeight - height) / 2 + y(photos[i]), height);
     };
   });
   w.eval(read(bundle ? 'dist/tdb-motion.js' : 'src/shared/motion.js'));
@@ -137,7 +144,7 @@ async function fixture(bundle = false, mount = true) {
     w,
     cards,
     photos,
-    layers,
+    reads,
     clips,
     queue,
     animations,
@@ -214,10 +221,10 @@ for (const bundle of [false, true]) {
           );
           active.covered();
         }
-        assert.ok(active.layers.some((node) => node.style.translate));
+        assert.ok(active.photos.some((node) => node.style.translate));
         assert.ok(
-          active.photos.every((node) => node.style.translate === ''),
-          'parallax never writes to a zooming photo',
+          active.clips.every((node) => node.style.translate === ''),
+          'no added moving layer',
         );
         assert.equal(active.queue.size, 0);
       } finally {
@@ -238,11 +245,11 @@ for (const bundle of [false, true]) {
       assert.ok(Math.abs(relativeScale() - 1.1236) < 0.00001, 'same full held zoom');
       f.scroll(700);
       f.release();
-      const before = f.layers[0].style.translate;
+      const before = f.photos[0].style.translate;
       await f.advance(1200);
       assert.ok(Math.abs(relativeScale() - 1.06) < 0.00001, 'same completed return');
       assert.equal(f.queue.size, 0, 'no trailing frame loop');
-      assert.equal(f.layers[0].style.translate, before);
+      assert.equal(f.photos[0].style.translate, before);
       f.covered();
       f.scroll(100);
       f.covered();
@@ -264,11 +271,11 @@ for (const bundle of [false, true]) {
       f.release();
       await f.advance(200);
       f.press();
-      const before = f.layers.map((node) => node.style.translate);
+      const before = f.photos.map((node) => node.style.translate);
       await f.refresh();
       await control.refresh();
       assert.deepEqual(
-        f.layers.map((node) => node.style.translate),
+        f.photos.map((node) => node.style.translate),
         before,
       );
       for (const e of [f, control]) e.resize(300, 844, 390);
@@ -283,7 +290,6 @@ for (const bundle of [false, true]) {
       assert.deepEqual(f.scroll(220), control.scroll(220));
       f.covered();
       f.w.TDBPageBreaks.destroy();
-      assert.ok(f.layers.every((node) => node.style.translate === ''));
       assert.ok(f.photos.every((node) => node.style.translate === ''));
       assert.equal(f.queue.size, 0);
     } finally {
@@ -308,6 +314,51 @@ for (const bundle of [false, true]) {
     } finally {
       f.close();
       control.close();
+    }
+  });
+
+  test(`${label}: normal scroll neither reads animated rectangles nor repeatedly resolves crop styles`, async () => {
+    const f = await fixture(bundle);
+    try {
+      const before = { ...f.reads };
+      for (let y = 10; y <= 1000; y += 10) f.scroll(y);
+      assert.equal(f.reads.photoRect, before.photoRect);
+      assert.equal(f.reads.scale, before.scale);
+      f.photos.forEach((image) => {
+        image.style.setProperty('--tdb-photo-scale', '1.08');
+        image.style.scale = '1.08';
+      });
+      f.resize(449.375, 391, 800);
+      assert.equal(
+        f.reads.scale,
+        before.scale + 3,
+        'responsive native values refreshed once per card',
+      );
+      f.covered();
+      const resized = f.reads.scale;
+      f.scroll(900);
+      assert.equal(f.reads.scale, resized);
+      await f.refresh();
+      assert.equal(f.reads.scale, resized + 3, 'explicit refresh picks up Designer edits');
+    } finally {
+      f.close();
+    }
+  });
+
+  test(`${label}: missing or invalid native crop tokens retain ordinary image measurement`, async () => {
+    for (const value of ['', 'invalid', 'Infinity', '106%']) {
+      const f = await fixture(bundle, false);
+      try {
+        f.photos.forEach((image) => image.style.setProperty('--tdb-photo-scale', value));
+        await f.start();
+        const before = f.reads.photoRect;
+        const positions = f.scroll(100);
+        assert.ok(f.reads.photoRect > before, 'fallback reads real photo bounds');
+        assert.ok(positions.every(Number.isFinite));
+        f.covered();
+      } finally {
+        f.close();
+      }
     }
   });
 }

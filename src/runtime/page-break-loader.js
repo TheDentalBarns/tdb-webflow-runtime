@@ -30,11 +30,11 @@ function preparePageBreakLoader() {
     // Explicit Home photo surfaces; never select every img (logos, UI and the
     // Smile, Review and Instagram feeds have their own presentation owners).
     if (home) {
-      const add = (wrapper, selector, frame, allowEdges = false) => {
+      const add = (wrapper, selector, frame, allowEdges = false, restingScale) => {
         if (!wrapper) return;
         let photo = photos.get(wrapper);
         if (!photo) {
-          photo = { wrapper, selector, frame, allowEdges };
+          photo = { wrapper, selector, frame, allowEdges, restingScale };
           photos.set(wrapper, photo);
         }
         if (!mounted.has(photo) && eligible(photo)) pending.add(photo);
@@ -46,12 +46,9 @@ function preparePageBreakLoader() {
       );
       add(home.querySelector('.tdb-service-parallax .swiper'), '.showcase_image');
       home.querySelectorAll('.section_3-image-layout .aspect-ratio-portrait').forEach((frame) =>
-        // The speaker zooms the child photo. Measure/move its native resting
-        // crop layer so that zoom never looks like a layout change on scroll.
-        add(
-          frame,
-          frame.querySelector('[data-tdb-audio-parallax]') ? '[data-tdb-audio-parallax]' : 'img',
-        ),
+        // A native scale token describes the centred, full-frame resting crop.
+        // The same photo can zoom without changing the parallax bounds.
+        add(frame, 'img', null, false, '--tdb-photo-scale'),
       );
       add(
         home.querySelector('.layout355_component'),
@@ -149,7 +146,7 @@ function preparePageBreakLoader() {
     if (event.persisted && retrying) mount();
   }
   window.TDBPageBreaks = Object.freeze({
-    version: '2.0.1',
+    version: '2.0.2',
     refresh,
     destroy,
     status: () => owners.flatMap((owner) => owner.status()),

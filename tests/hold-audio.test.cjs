@@ -470,7 +470,10 @@ for (const reason of [
     assert.equal(f.calls.voices.length, 0);
     assert.equal(f.w.TDBHoldAudio.status().holding, false);
     assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
-    assert.equal(f.calls.animations.at(-1).frames.at(-1).scale, '1.06');
+    if (['pagehide', 'hidden'].includes(reason)) {
+      assert.ok(f.calls.animations.every((a) => a.cancelled));
+      assert.equal(f.w.document.querySelector('img').style.scale, '1.06');
+    } else assert.equal(f.calls.animations.at(-1).frames.at(-1).scale, '1.06');
     f.cleanup();
   });
 }
@@ -592,7 +595,8 @@ test('blur reverses from current geometry without altering native layout or para
   assert.equal(animation.frames[0].scale, '0.6');
   assert.equal(animation.frames.at(-1).scale, '0');
   assert.equal(animation.options.duration, 1200);
-  assert.ok(animation.frames[1].opacity > 0, 'returning ripple remains visible while shrinking');
+  assert.equal(animation.frames[0].opacity, '0.6', 'return starts at its currently visible brightness');
+  assert.equal(animation.frames.at(-1).opacity, 0, 'return fades without a brightness rebound');
   circle.style.scale = '0.3';
   await f.down();
   animation = f.calls.animations.filter((a) => a.element === circle).at(-1);
@@ -616,6 +620,37 @@ for (const [label, code] of [
     const cards = [...f.w.document.querySelectorAll('[data-tdb-audio-card]')];
     return { ...f, cards, decorations: [...cards[0].querySelectorAll('div')] };
   }
+
+  test(`${label}: release only fades the ripple; an already-invisible ring stays parked`, async () => {
+    for (const opacity of [0, 0.05, 0.3, 0.6, 1]) {
+      const f = effectsFixture();
+      try {
+        await f.down();
+        const circle = f.decorations[0];
+        circle.style.scale = '0.8';
+        circle.style.opacity = String(opacity);
+        const count = f.calls.animations.length;
+        f.up();
+        const returning = f.calls.animations.slice(count).filter((a) => a.element === circle);
+        if (opacity === 0) {
+          assert.equal(returning.length, 0, 'no new blur animation after it has faded away');
+          assert.equal(f.w.getComputedStyle(circle).visibility, 'hidden');
+        } else {
+          assert.equal(returning.length, 1);
+          let previous = opacity;
+          for (const frame of returning[0].frames) {
+            if (frame.opacity == null) continue;
+            assert.ok(Number(frame.opacity) <= previous, 'release must not brighten');
+            previous = Number(frame.opacity);
+          }
+          assert.equal(previous, 0);
+          assert.equal(returning[0].options.duration, 1200, 'return timing preserved');
+        }
+      } finally {
+        f.cleanup();
+      }
+    }
+  });
 
   test(`${label}: first speaker leaves neighbouring visuals untouched and parks completed effects`, async () => {
     const f = effectsFixture();
@@ -649,8 +684,13 @@ for (const [label, code] of [
     held.finish();
     await tick();
     assert.equal(f.w.getComputedStyle(circle).visibility, 'hidden');
-    assert.equal(held.cancelled, false, 'hold retains its endpoint for the returning ripple');
+    assert.equal(held.cancelled, true, 'completed invisible effects are discarded');
     f.up(0, 2);
+    assert.equal(f.w.getComputedStyle(circle).visibility, 'hidden', 'finished ripple does not revive');
+    await f.down(0, 3);
+    circle.style.scale = '0.6';
+    circle.style.opacity = '0.5';
+    f.up(0, 3);
     assert.equal(f.w.getComputedStyle(circle).visibility, 'visible');
     const returning = f.calls.animations.filter((a) => a.element === circle).at(-1);
     returning.cancel();
@@ -661,4 +701,34 @@ for (const [label, code] of [
     assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
     f.cleanup();
   });
+
+  for (const event of ['pagehide', 'hidden']) {
+    test(`${label}: ${event} cancels already-returning visuals without creating new animations`, async () => {
+      const f = effectsFixture();
+      try {
+        await f.down();
+        f.downloads[0]();
+        await tick();
+        f.up();
+        assert.ok(f.calls.animations.some((a) => !a.cancelled));
+        const count = f.calls.animations.length;
+        if (event === 'hidden') {
+          Object.defineProperty(f.w.document, 'hidden', { value: true, configurable: true });
+          f.event(f.w.document, 'visibilitychange');
+        } else f.event(f.w, 'pagehide');
+        assert.equal(f.calls.animations.length, count, 'hiding never starts a return animation');
+        assert.ok(f.calls.animations.every((a) => a.cancelled), 'also cancels tails after pointer release');
+        assert.ok(f.decorations.every((el) => f.w.getComputedStyle(el).visibility === 'hidden'));
+        assert.equal(f.calls.voices[0].stopped.length, 1, 'no hidden audio tail');
+        assert.equal(f.w.TDBHoldAudio.status().holding, false);
+        f.advance(12000);
+        assert.equal(f.calls.animations.length, count);
+        Object.defineProperty(f.w.document, 'hidden', { value: false, configurable: true });
+        await f.down(1);
+        assert.equal(f.w.TDBHoldAudio.status().playing, true, 'cached audio still resumes on deliberate hold');
+      } finally {
+        f.cleanup();
+      }
+    });
+  }
 }

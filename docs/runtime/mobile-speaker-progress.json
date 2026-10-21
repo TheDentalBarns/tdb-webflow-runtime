@@ -1,0 +1,19 @@
+{
+  "updated_utc": "2026-10-21T22:22:57.450898+00:00",
+  "status": "active",
+  "phase": "source and full suite complete; native token prepared; publishing candidate artifacts for temporary desktop QA",
+  "worktree": "/tmp/tdb-mobile-audio",
+  "branch": "fix/mobile-audio-feedback-20261021",
+  "baseline_commit": "8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce",
+  "failed_experiment": "cc1a123db61c256f955eb3394cbf284c6348f39e",
+  "staging_rollback_published_utc": "2026-10-21T22:06:21.868Z",
+  "candidate_deployed": false,
+  "test_summary": {
+    "tests": 541,
+    "passed": 538,
+    "failed": 0,
+    "skipped": 3
+  },
+  "production_publish_utc": "2026-10-01T10:10:45.669Z",
+  "next": "Commit tested candidate; verify native scale token via supported Webflow API; temporarily verify candidate on desktop Chrome staging, then restore baseline and record exact state. Physical Android/Safari remains untested."
+}

@@ -36,25 +36,48 @@
     }
   ],
   "nativeHomeStyles": [
-    { "selector": ".showcase_image.hide-tablet", "transition-property": "transform" },
-    { "selector": ".showcase_image.show-on-tablet", "transition-property": "transform" },
-    { "selector": ".vimeo-bg.is-ambient" }
+    {
+      "selector": ".showcase_image.hide-tablet",
+      "transition-property": "transform"
+    },
+    {
+      "selector": ".showcase_image.show-on-tablet",
+      "transition-property": "transform"
+    },
+    {
+      "selector": ".vimeo-bg.is-ambient"
+    }
   ],
   "runtime": {
     "owner": "TDBMotion.pageBreaks",
     "translation": "CSS individual translate; horizontal Swiper transform remains independent",
     "range": "-2vh to 2vh, bounded to available native crop",
     "speakerTrio": {
-      "selector": "[data-tdb-audio-parallax]",
-      "frame": ".aspect-ratio-portrait (unchanged bounds; the inner clip fills it)",
-      "style": "tdb-hold-photo-motion",
+      "selector": "img",
+      "frame": ".aspect-ratio-portrait (unchanged bounds; existing clip fills it)",
+      "style": "Image 2",
       "variantId": "59399012-5ce8-ef3a-0d17-0752d014115e",
-      "layerScale": "1.06",
-      "photoScale": "1",
-      "note": "The stable layer owns parallax and the native resting crop. Only its child photo is zoomed by the speaker."
+      "restingScaleProperty": "--tdb-photo-scale",
+      "nativeProperties": {
+        "scale": "var(--tdb-photo-scale)"
+      },
+      "note": "Review candidate: native resting crop remains 1.06. The existing photo owns both independent scale and translate; geometry uses the static native token and current card rectangle, never the animated photo height. No additional wrapper.",
+      "nativeVariable": {
+        "name": "tdb-photo-scale",
+        "collectionId": "collection-432e8337-c0cc-5509-bf0b-a4b20ddbe948",
+        "trialId": "variable-25d50a2f-82fc-4d79-4094-c441ddb863b7",
+        "type": "Number",
+        "value": 1.06,
+        "cssName": "--tdb-photo-scale"
+      }
     },
     "grouping": "One motion state per photographic surface, including all carousel loop images",
-    "exclusions": ["Smile slider", "Review sliders", "Instagram slider", "logos and UI icons"],
+    "exclusions": [
+      "Smile slider",
+      "Review sliders",
+      "Instagram slider",
+      "logos and UI icons"
+    ],
     "unchanged": [
       "existing page breaks",
       "VIP and footer parallax",

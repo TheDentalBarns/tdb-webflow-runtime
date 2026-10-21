@@ -192,10 +192,10 @@
       "sources": [
         "src/components/hold-audio.js"
       ],
-      "sha256": "cc2f2028c729419555ef9f496245edbc08c51dabdb10d4bb73ca5c30c9484b31",
-      "raw": 5603,
-      "gzip": 2335,
-      "brotli": 2094
+      "sha256": "0b1640a8f5d87b6cfb6682a6849fe29ffb00be9e247027f8531f2d648078e80a",
+      "raw": 5503,
+      "gzip": 2322,
+      "brotli": 2083
     },
     "dist/tdb-home-desktop-instagram.js": {
       "sources": [
@@ -300,10 +300,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "ba3e02cff9d5abb50723c02db9319b9490016d41fc2841b6089f8c90c0e4113d",
-      "raw": 24235,
-      "gzip": 8403,
-      "brotli": 7640
+      "sha256": "039089dd7c6970ac31b11a081c7b6907beea31490111e6dd26832e1ef4af2423",
+      "raw": 24676,
+      "gzip": 8561,
+      "brotli": 7785
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -536,10 +536,10 @@
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "d2993098e0c833c67cfc89a70c0ee84c0dfeb811494c32ba6c23729464827668",
-      "raw": 67608,
-      "gzip": 18119,
-      "brotli": 15977
+      "sha256": "0091413a198b48a34e91076ab07b80b92651270aea5f5da78b42c1c4330e418f",
+      "raw": 67580,
+      "gzip": 18137,
+      "brotli": 15987
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -585,10 +585,10 @@
         "src/loaders/hold-audio-loader.js",
         "src/startup/start.js"
       ],
-      "sha256": "76bb039513ea8bcde58669f2ccb135dc4161ebb3ad3cf94c213d962791ac3efe",
-      "raw": 7706,
-      "gzip": 3053,
-      "brotli": 2726
+      "sha256": "59245a69d9c59e1fd55939863f9bc20e2f863f403b43d6ea716e0d39bf36d8dc",
+      "raw": 7708,
+      "gzip": 3056,
+      "brotli": 2727
     },
     "dist/tdb-ticker.js": {
       "sources": [

@@ -30,7 +30,13 @@
     disposed = false,
     lastUrl;
 
-  function animateEffect(element, frames, options, retain = false) {
+  function parkEffect(element) {
+    effects.get(element)?.cancel();
+    effects.delete(element);
+    element?.style.removeProperty('visibility');
+  }
+
+  function animateEffect(element, frames, options) {
     if (!element?.animate) return;
     effects.get(element)?.cancel();
     // Designer parks inactive decorations. In particular, a transparent,
@@ -38,21 +44,14 @@
     element.style.visibility = 'visible';
     const animation = element.animate(frames, options);
     effects.set(element, animation);
-    const settled = (keep) => {
+    const settled = () => {
       if (effects.get(element) !== animation) return;
-      element.style.removeProperty('visibility');
-      if (!keep) {
-        animation.cancel();
-        effects.delete(element);
-      }
+      parkEffect(element);
     };
-    animation.finished.then(
-      () => settled(retain),
-      () => settled(false),
-    );
+    animation.finished.then(settled, settled);
   }
 
-  function circle(element, held, immediate = false) {
+  function circle(element, held) {
     if (!element) return;
     // Read before cancelling: a quick re-press reverses from the visible size.
     const edge = element.parentElement.querySelector('[data-tdb-audio-ripple-edge]');
@@ -61,15 +60,24 @@
       scale: current.scale === 'none' ? '0' : current.scale,
       opacity: current.opacity,
     };
-    const button = element.parentElement.querySelector('[data-tdb-hold-audio]');
+    // A faded-away ripple must not flare back over a neighbouring card when
+    // the user releases and starts scrolling. Its completed effects are gone.
+    if (!held && Number(from.opacity) === 0) {
+      parkEffect(element);
+      parkEffect(edge);
+      return;
+    }
+    const button = held && element.parentElement.querySelector('[data-tdb-hold-audio]');
     // Clear the finger quickly, then ease into a slower outward ripple.
-    const seed = Math.min(
-      1,
-      Math.max(
-        parseFloat(from.scale) || 0,
-        ((button?.getBoundingClientRect().width || 0) * 2.4) / (parseFloat(current.width) || 1),
-      ),
-    );
+    const seed =
+      held &&
+      Math.min(
+        1,
+        Math.max(
+          parseFloat(from.scale) || 0,
+          ((button?.getBoundingClientRect().width || 0) * 2.4) / (parseFloat(current.width) || 1),
+        ),
+      );
     const frames = held
       ? [
           { ...from, offset: 0 },
@@ -79,20 +87,17 @@
         ]
       : [
           { ...from, offset: 0 },
-          { opacity: Math.max(Number(from.opacity), 0.65), offset: 0.2 },
-          { opacity: 0.5, offset: 0.72 },
           { scale: '0', opacity: 0, offset: 1 },
         ];
     const options = {
-      duration:
-        immediate || window.TDBMotionPolicy?.reduced?.matches ? 0 : held ? holdDuration : 1200,
+      duration: window.TDBMotionPolicy?.reduced?.matches ? 0 : held ? holdDuration : 1200,
       easing: held ? 'linear' : 'cubic-bezier(0.4,0,0.2,1)',
       fill: 'forwards',
     };
-    if (!noBlur) animateEffect(element, frames, options, held);
+    if (!noBlur) animateEffect(element, frames, options);
     // A sibling edge avoids masking away the outline or placing the backdrop
     // blur inside an opacity ancestor, which would block the photo backdrop.
-    animateEffect(edge, frames, options, held);
+    animateEffect(edge, frames, options);
   }
 
   function showWord(session) {
@@ -130,7 +135,7 @@
     }
     const from = current === 'none' ? '1' : current;
     state.animation?.cancel();
-    // Home parallax measures/moves the native parent layer, never this zoom.
+    // Parallax bounds use the native resting crop, independent of this zoom.
     const target = held
       ? state.base
           .split(/\s+/)
@@ -179,9 +184,8 @@
     return gain;
   }
 
-  function stopVoice(voice, immediate = false) {
+  function stopVoice(voice) {
     if (!voice || !voices.has(voice)) return;
-    if (immediate) return finishVoice(voice);
     if (voice.stopping) return;
     voice.stopping = true;
     // A curved 600ms tail reaches near-silence before the source is stopped.
@@ -191,24 +195,34 @@
 
   function release(immediate = false) {
     const session = active;
+    if (immediate) {
+      // Page exit must also cancel a previous release's tail when no hold is
+      // active. Starting zero-duration animations still retains their effects.
+      zooms.forEach((state) => state.animation?.cancel());
+      zooms.clear();
+      effects.forEach((_, element) => parkEffect(element));
+      voices.forEach(finishVoice);
+    }
     if (!session) return;
     active = null;
     session.timers?.forEach(clearTimeout);
-    if (session.word) {
+    if (!immediate && session.word) {
       const opacity = getComputedStyle(session.word).opacity;
       animateEffect(session.word, [{ opacity }, { opacity: 0 }], {
-        duration: immediate ? 0 : 350,
+        duration: 350,
         fill: 'forwards',
       });
     }
-    circle(session.circle, false, immediate);
+    if (!immediate) {
+      circle(session.circle, false);
+      zoom(session.image, false);
+      stopVoice(session.voice);
+    }
     session.button.setAttribute('aria-pressed', 'false');
     session.button.removeAttribute('aria-busy');
     session.button.removeAttribute('data-tdb-loading');
     if (session.pointer != null && session.button.hasPointerCapture?.(session.pointer))
       session.button.releasePointerCapture(session.pointer);
-    zoom(session.image, false);
-    stopVoice(session.voice, immediate);
   }
 
   function bufferFor(url) {
@@ -313,21 +327,12 @@
     release(true);
     disposed = true;
     lifecycle.abort();
-    zooms.forEach((state) => state.animation?.cancel());
-    zooms.clear();
-    effects.forEach((animation, element) => {
-      animation.cancel();
-      element.style.removeProperty('visibility');
-    });
-    effects.clear();
-    voices.forEach(finishVoice);
-    voices.clear();
     buffers.clear();
     if (ownsContext) context?.close().catch(() => {});
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.3.4',
+    version: '1.3.5',
     press,
     release,
     destroy,

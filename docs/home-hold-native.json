@@ -5,7 +5,10 @@
   "photoMotion": {
     "style": "tdb-hold-photo-motion",
     "attribute": "data-tdb-audio-parallax",
-    "properties": { "width": "100%", "height": "100%" },
+    "properties": {
+      "width": "100%",
+      "height": "100%"
+    },
     "homeVariantScale": "1.06",
     "imageHomeVariantScale": "1",
     "layerIds": [
@@ -13,7 +16,8 @@
       "47f9606f-8ce7-9911-77d5-171db7d8c06c",
       "7dd11e34-2dd0-2981-f032-fd4c701792cb"
     ],
-    "note": "Each existing image moves inside one native layer under its existing clip. Parallax measures/moves the layer; the speaker zooms only the child image."
+    "note": "Historical failed experiment. Do not recreate these removed wrappers.",
+    "status": "Reverted after phone test: original image is again directly inside its existing clip."
   },
   "styles": [
     {
@@ -318,5 +322,22 @@
     "previous": "2%",
     "value": "0px",
     "reason": "Navigation already has the shared outer gutter. Remove duplicate desktop CTA inset."
+  },
+  "refinementCandidate": {
+    "status": "Prepared for review; not the permanent staging baseline",
+    "style": "Image 2",
+    "variantId": "59399012-5ce8-ef3a-0d17-0752d014115e",
+    "properties": {
+      "scale": "var(--tdb-photo-scale)"
+    },
+    "contract": "Existing image fills the untransformed card, with centred transform origin. CSS and parallax share the resting crop scale. No new elements.",
+    "nativeVariable": {
+      "name": "tdb-photo-scale",
+      "collectionId": "collection-432e8337-c0cc-5509-bf0b-a4b20ddbe948",
+      "trialId": "variable-25d50a2f-82fc-4d79-4094-c441ddb863b7",
+      "type": "Number",
+      "value": 1.06,
+      "cssName": "--tdb-photo-scale"
+    }
   }
 }

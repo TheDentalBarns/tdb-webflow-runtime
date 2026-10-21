@@ -583,14 +583,42 @@
     function geometry(state, scroll, frame) {
       const box = frame.rect(state.wrapper);
       const crop = state.cropFrame ? frame.rect(state.cropFrame) : box;
-      const representative = state.translate
-        ? state.targets.find((node) => frame.rect(node).height > 0) || state.node
-        : state.node;
-      const image = state.translate
-        ? frame.rect(representative)
-        : state.opacityOnly
-          ? box
-          : frame.rect(state.node);
+      // Opt-in full-frame photos share their native resting scale with CSS.
+      // Cache only the scale, not the position: scroll/resize still use today's
+      // crop. No animated rect reads or new moving wrapper are needed.
+      if (
+        state.restingScale &&
+        (layout ||
+          !state.geometry ||
+          crop.width !== state.cropWidth ||
+          box.height !== state.geometry[1] ||
+          frame.height !== state.geometry[3] ||
+          frame.width !== state.geometry[7])
+      ) {
+        state.cropWidth = crop.width;
+        state.nativeScale = Number(
+          getComputedStyle(state.targets[0] || state.node).getPropertyValue(state.restingScale),
+        );
+      }
+      const restingHeight =
+        state.nativeScale >= 1 && Number.isFinite(state.nativeScale)
+          ? crop.height * state.nativeScale
+          : 0;
+      const representative =
+        !restingHeight && state.translate
+          ? state.targets.find((node) => frame.rect(node).height > 0) || state.node
+          : state.node;
+      const image = restingHeight
+        ? {
+            height: restingHeight,
+            top: crop.top - (restingHeight - crop.height) / 2 + state.y,
+            bottom: crop.bottom + (restingHeight - crop.height) / 2 + state.y,
+          }
+        : state.translate
+          ? frame.rect(representative)
+          : state.opacityOnly
+            ? box
+            : frame.rect(state.node);
       const view = frame.height;
       // Subtract our translation when measuring crop. Never measure progress
       // against the moving image (which would feed back into its own progress).
@@ -850,6 +878,7 @@
         node,
         translate,
         targetSelector: options?.selector,
+        restingScale: options?.restingScale,
         cropFrame: options?.frame ? wrapper.querySelector(options.frame) : null,
         targets: [],
         originalTranslations: new Map(),
@@ -1154,7 +1183,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.20.0',
+    version: '1.20.1',
     reduced,
     defaults,
     carousel,
