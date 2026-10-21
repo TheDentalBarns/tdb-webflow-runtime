@@ -127,6 +127,8 @@ module.exports = {
   'dist/tdb-parallax.js': [
     'src/sliders/parallax-presentation.js',
     'src/sliders/parallax-controls.js',
+    'src/sliders/treatment-stamps.js',
+    'src/sliders/treatment-details.js',
     'src/sliders/parallax-progress.js',
     'src/sliders/parallax-foundation.js',
     'src/sliders/treatment-plugin.js',

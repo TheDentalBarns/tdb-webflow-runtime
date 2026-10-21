@@ -81,7 +81,11 @@
               n
                 .querySelector(':scope > .swiper-wrapper')
                 ?.classList.add('tdb-parallax-initial-pose'));
-          const b = e.querySelector(':scope > .tdb-service-cta,:scope > .tdb-treatment-cta'),
+          const b =
+              e.querySelector(':scope > .tdb-service-cta,:scope > .tdb-treatment-cta') ||
+              e
+                .closest('[data-tdb-treatment-layout]')
+                ?.querySelector(':scope > .tdb-treatment-cta'),
             h = b?.querySelector('[data-tdb-parallax-cta]');
           if (s && !h) return null;
           const v = h || d.cloneNode(!0);

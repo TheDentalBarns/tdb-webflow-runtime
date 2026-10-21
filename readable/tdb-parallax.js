@@ -250,7 +250,11 @@ window.TDBParallaxPresentation ||= (() => {
               n
                 .querySelector(':scope > .swiper-wrapper')
                 ?.classList.add('tdb-parallax-initial-pose'));
-          const b = e.querySelector(':scope > .tdb-service-cta,:scope > .tdb-treatment-cta'),
+          const b =
+              e.querySelector(':scope > .tdb-service-cta,:scope > .tdb-treatment-cta') ||
+              e
+                .closest('[data-tdb-treatment-layout]')
+                ?.querySelector(':scope > .tdb-treatment-cta'),
             h = b?.querySelector('[data-tdb-parallax-cta]');
           if (s && !h) return null;
           const v = h || d.cloneNode(!0);
@@ -554,6 +558,280 @@ window.TDBParallaxPresentation ||= (() => {
   })();
 })();
 
+/* Native CMS stamps: independent scrolling, with selection following image progress. */
+window.TDBTreatmentStamps ||= (() => {
+  const instances = new WeakMap();
+  function prepare(root) {
+    if (!root.hasAttribute('data-tdb-treatment-postage')) return null;
+    if (instances.has(root)) return instances.get(root);
+    const layout = root.closest('[data-tdb-treatment-layout]') || root;
+    const strip = layout.querySelector('[data-tdb-treatment-stamps]');
+    const viewport = strip?.querySelector('.tdb-treatment-controls');
+    const links = Array.from(strip?.querySelectorAll('[data-tdb-treatment-stamp]') || []);
+    if (!viewport || !links.length) return null;
+    const items = links.map((link) => link.closest('.tdb-treatment-card'));
+    let swiper,
+      automatic = true,
+      offsets = [],
+      width = 0,
+      drag = null,
+      suppressClick = false;
+    let selected = -1;
+    const animations = new Map();
+    const on = (type, listener, options) => viewport.addEventListener(type, listener, options);
+    function dim(item, active, heading = false) {
+      if (!item) return;
+      const property = heading ? 'color' : 'opacity';
+      const current = getComputedStyle(item)[property];
+      const target = heading ? (active ? '#ffffff' : 'rgba(255,255,255,0.5)') : active ? 1 : 0.5;
+      animations.get(item)?.cancel();
+      animations.set(
+        item,
+        item.animate([{ [property]: current }, { [property]: target }], {
+          duration: window.TDBMotion?.reduced?.matches ? 0 : 200,
+          fill: 'forwards',
+        }),
+      );
+    }
+    function selection() {
+      if (!swiper || selected === swiper.realIndex) return;
+      selected = swiper.realIndex;
+      links.forEach((link, index) => {
+        const active = index === selected;
+        active ? link.setAttribute('aria-current', 'true') : link.removeAttribute('aria-current');
+        dim(items[index], active);
+      });
+      Array.from(swiper.slides || []).forEach((slide, index) => {
+        const realIndex = Number(slide.getAttribute('data-swiper-slide-index') ?? index);
+        dim(slide.querySelector('.tdb-treatment-title'), realIndex === selected, true);
+      });
+    }
+    function bind() {
+      const candidate = root.querySelector(':scope > .swiper')?.swiper;
+      if (!candidate || candidate === swiper) return;
+      swiper = candidate;
+      swiper.on('slideChange', change);
+      swiper.on('beforeDestroy', dispose);
+      selection();
+    }
+    function change() {
+      automatic = true;
+      selection();
+    }
+    function measure() {
+      bind();
+      const first = items[0].getBoundingClientRect();
+      width = first.width;
+      offsets = items.map((item) => item.getBoundingClientRect().left - first.left);
+      return width;
+    }
+    function paint(index, markerX, trackWidth) {
+      bind();
+      if (!automatic || !offsets.length || drag) return;
+      const last = links.length - 1;
+      // The loop's duplicated images cross the seam; stamps remain a finite list.
+      const value = Math.min(last, Math.max(0, index));
+      const lower = Math.floor(value),
+        upper = Math.min(last, lower + 1);
+      const offset = offsets[lower] + (offsets[upper] - offsets[lower]) * (value - lower);
+      const alignedMarker = index > last ? trackWidth - width : markerX;
+      viewport.scrollLeft = Math.max(0, offset - alignedMarker);
+    }
+    function choose(event) {
+      const link = event.target.closest('[data-tdb-treatment-stamp]');
+      if (
+        !link ||
+        !viewport.contains(link) ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey ||
+        event.altKey
+      )
+        return;
+      bind();
+      if (!swiper) {
+        window.TDBSwiper?.mount('parallax', root);
+        bind();
+      }
+      if (!swiper) return; // CMS links remain usable if the enhancement is unavailable.
+      event.preventDefault();
+      if (suppressClick) {
+        suppressClick = false;
+        return;
+      }
+      const index = links.indexOf(link);
+      if (index < 0) return;
+      automatic = true;
+      swiper.slideToLoop(index);
+      const progress = root.querySelector('[data-tdb-native-progress]');
+      const trackWidth = progress.getBoundingClientRect().width;
+      if (swiper.realIndex === index && !swiper.animating) {
+        measure();
+        paint(
+          index,
+          links.length < 2 ? 0 : (index * (trackWidth - width)) / (links.length - 1),
+          trackWidth,
+        );
+      }
+    }
+    function down(event) {
+      if (event.button !== 0) return;
+      automatic = false;
+      suppressClick = false;
+      if (event.pointerType === 'mouse')
+        drag = { id: event.pointerId, x: event.clientX, left: viewport.scrollLeft };
+    }
+    function move(event) {
+      if (!drag || event.pointerId !== drag.id) return;
+      const delta = event.clientX - drag.x;
+      if (Math.abs(delta) > 4) suppressClick = true;
+      if (suppressClick) {
+        viewport.setPointerCapture(event.pointerId);
+        viewport.scrollLeft = drag.left - delta;
+        event.preventDefault();
+      }
+    }
+    function up() {
+      drag = null;
+    }
+    function wheel() {
+      automatic = false;
+    }
+    function preventDrag(event) {
+      event.preventDefault();
+    }
+    function dispose() {
+      for (const [type, fn] of listeners) viewport.removeEventListener(type, fn);
+      swiper?.off('slideChange', change);
+      swiper?.off('beforeDestroy', dispose);
+      animations.forEach((animation) => animation.cancel());
+      instances.delete(root);
+    }
+    const listeners = [
+      ['click', choose],
+      ['pointerdown', down],
+      ['pointermove', move],
+      ['pointerup', up],
+      ['pointercancel', up],
+      ['lostpointercapture', up],
+      ['wheel', wheel],
+      ['dragstart', preventDrag],
+    ];
+    listeners.forEach(([type, fn]) => on(type, fn));
+    const controller = { measure, paint, dispose };
+    instances.set(root, controller);
+    return controller;
+  }
+  return { version: '1.0.0', prepare };
+})();
+
+/* Native CMS text row follows rendered image geometry, including loop/width motion.
+ * Designer owns the rows, typography, spacing and automatic content height.
+ * This controller only mirrors the existing slider's horizontal motion/state.
+ */
+window.TDBTreatmentDetails ||= (() => {
+  const instances = new WeakMap();
+  function prepare(root) {
+    if (!root.hasAttribute('data-tdb-treatment-postage')) return null;
+    if (instances.has(root)) return instances.get(root);
+    const owner = root.closest('[data-tdb-treatment-layout]');
+    const viewport = owner?.querySelector('[data-tdb-treatment-details] .tdb-treatment-viewport');
+    const track = viewport?.querySelector('.tdb-treatment-wrapper');
+    if (!track) return null;
+    const originals = [...track.children];
+    let sources = [],
+      rows = [],
+      disposed = false;
+    const colors = new Map();
+    function rebuild(slides) {
+      if (slides.length === sources.length && slides.every((s, i) => s.node === sources[i])) return;
+      sources = slides.map((s) => s.node);
+      colors.forEach((a) => a.cancel());
+      colors.clear();
+      const used = new Set();
+      rows = slides.map((slide) => {
+        const original = originals[slide.value];
+        if (!original) return null;
+        const duplicate =
+          slide.node.classList.contains('swiper-slide-duplicate') || used.has(original);
+        const node = duplicate ? original.cloneNode(true) : original;
+        if (!duplicate) used.add(original);
+        if (duplicate) {
+          node.removeAttribute('id');
+          node.querySelectorAll('[id]').forEach((e) => e.removeAttribute('id'));
+        }
+        node.dataset.tdbDetailIndex = String(slide.value);
+        return {
+          node,
+          title: node.querySelector('.tdb-treatment-title'),
+          copy: node.querySelector('[data-tdb-service-copy]'),
+          active: null,
+        };
+      });
+      track.replaceChildren(...rows.filter(Boolean).map((r) => r.node));
+    }
+    function paint(slides) {
+      if (disposed || !slides.length) return;
+      rebuild(slides);
+      const origin = viewport.getBoundingClientRect().left;
+      // Batch all layout reads before writes; use rendered (not target) positions.
+      const boxes = slides.map((s) => s.node.getBoundingClientRect());
+      const states = slides.map((s) => ({
+        active: s.node.classList.contains('swiper-slide-active'),
+        copy: s.node.querySelector('[data-tdb-service-copy]'),
+      }));
+      track.style.transform = `translate3d(${boxes[0].left - origin}px,0,0)`;
+      rows.forEach((row, i) => {
+        if (!row) return;
+        const box = boxes[i],
+          next = boxes[i + 1];
+        row.node.style.width = box.width + 'px';
+        row.node.style.marginRight = (next ? Math.max(0, next.left - box.right) : 0) + 'px';
+        row.node.inert = !states[i].active;
+        row.node.setAttribute('aria-hidden', String(!states[i].active));
+        for (const state of ['is-visible', 'is-moving', 'is-entry-pending'])
+          row.copy?.classList.toggle(state, !!states[i].copy?.classList.contains(state));
+        if (row.active !== states[i].active) {
+          row.active = states[i].active;
+          if (row.title) {
+            const start = getComputedStyle(row.title).color;
+            colors.get(row.title)?.cancel();
+            colors.set(
+              row.title,
+              row.title.animate(
+                [{ color: start }, { color: row.active ? '#ffffff' : 'rgba(255,255,255,0.5)' }],
+                { duration: window.TDBMotion?.reduced?.matches ? 0 : 200, fill: 'forwards' },
+              ),
+            );
+          }
+        }
+      });
+    }
+    function dispose() {
+      if (disposed) return;
+      disposed = true;
+      colors.forEach((a) => a.cancel());
+      track.style.removeProperty('transform');
+      originals.forEach((node) => {
+        node.style.removeProperty('width');
+        node.style.removeProperty('margin-right');
+        node.removeAttribute('data-tdb-detail-index');
+        node.removeAttribute('aria-hidden');
+        node.inert = false;
+        node
+          .querySelectorAll('.is-visible,.is-moving,.is-entry-pending')
+          .forEach((e) => e.classList.remove('is-visible', 'is-moving', 'is-entry-pending'));
+      });
+      track.replaceChildren(...originals);
+      instances.delete(root);
+    }
+    const api = { paint, dispose };
+    instances.set(root, api);
+    return api;
+  }
+  return { prepare };
+})();
+
 /* Per-component progress geometry; loaded with the full parallax plugin. */
 window.TDBParallaxProgress ||= (() => {
   const e = '.tdb-service-parallax,[data-tdb-treatment]',
@@ -573,6 +851,9 @@ window.TDBParallaxProgress ||= (() => {
       l = s?.firstElementChild || document.createElement('span');
     s || ((d.className = 'tdb-service-progress'), (l.className = 'tdb-service-progress-fill'));
     const c = s?.children[1] || l.cloneNode();
+    const stamps = window.TDBTreatmentStamps?.prepare(r);
+    const details = window.TDBTreatmentDetails?.prepare(r);
+    let stampWidth = 0;
     (o &&
       !r.hasAttribute('data-tdb-treatment') &&
       [l, c].forEach((e) => e.classList.add('is-treatment')),
@@ -618,7 +899,11 @@ window.TDBParallaxProgress ||= (() => {
                   r.hasAttribute('data-tdb-treatment') ||
                     r.classList.contains('tdb-service-parallax'))
                 )
-                  return ((g = d.getBoundingClientRect().width), null);
+                  return (
+                    (g = d.getBoundingClientRect().width),
+                    (stampWidth = stamps?.measure() || 0),
+                    null
+                  );
                 const t = r.getBoundingClientRect(),
                   n = e.bottom - t.top - r.clientTop,
                   i = Math.ceil((o ? 0 : e.left) * y) / y,
@@ -648,7 +933,7 @@ window.TDBParallaxProgress ||= (() => {
           n < 0 ? ((p = n), (L = t.value), (A = e + 1)) : ((x = n), (E = t.value), (S = e));
         }
         const B = p === -1 / 0 ? E : x === 1 / 0 ? L : L + ((E - L + v) % v) * (-p / (x - p)),
-          q = Math.round((g * y) / v) / y,
+          q = Math.min(g, stampWidth || Math.round((g * y) / v) / y),
           C = ((B % v) + v) % v,
           D = v <= 1 ? 0 : C <= v - 1 ? (C * (g - q)) / (v - 1) : g - q + (C - v + 1) * q,
           T = Math.round(D * y) / y;
@@ -668,6 +953,8 @@ window.TDBParallaxProgress ||= (() => {
           ((l.style.transform = `translateX(${T}px)`),
           (c.style.transform = `translateX(${T - g}px)`),
           (m = M));
+        stamps?.paint(C, T, g);
+        details?.paint(h, t);
       },
       enabled: () => u && !p,
       onMutation: (e) => {
@@ -717,6 +1004,8 @@ window.TDBParallaxProgress ||= (() => {
             E.disconnect(),
             B.disconnect(),
             x.destroy(),
+            stamps?.dispose(),
+            details?.dispose(),
             document.removeEventListener('visibilitychange', A),
             window.removeEventListener('resize', S),
             s ? d.classList.remove('is-ready') : d.remove());
