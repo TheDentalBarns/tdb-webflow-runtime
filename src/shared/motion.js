@@ -1,4 +1,4 @@
-/* TDB shared motion v1.20.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.21.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -515,6 +515,7 @@
     const remember = () => memory?.save(states.filter((state) => !state.translate));
     let queued = false,
       layout = true,
+      boundsDirty = true,
       suspended = false,
       disposed = false,
       released = false;
@@ -534,6 +535,15 @@
     const refresh = () => {
       states.forEach(syncTargets);
       layout = true;
+      schedule();
+    };
+    // Bounds notifications invalidate the next normal read; they must not add
+    // an idle animation loop or turn a visual zoom into a layout refresh.
+    const invalidateBounds = () => {
+      boundsDirty = true;
+    };
+    const resizeFrame = () => {
+      invalidateBounds();
       schedule();
     };
     // A carousel's images share one vertical position. Its horizontal Swiper
@@ -654,6 +664,36 @@
         ],
       };
     }
+    function settledOutside(state, scroll, frame) {
+      // Opt in only where the owner reports independently animated bounds.
+      // Sticky crops, overflow and image-based progress still need full reads.
+      if (
+        !state.offscreen ||
+        layout ||
+        boundsDirty ||
+        !state.translate ||
+        state.cropFrame ||
+        state.allowEdges ||
+        state.imageProgress ||
+        state.visible ||
+        state.correction ||
+        state.restored ||
+        reduced.matches
+      )
+        return false;
+      const box = frame.rect(state.wrapper),
+        previous = state.geometry,
+        side = box.top > frame.height * 2 ? 0 : box.bottom < -frame.height ? 1 : -1;
+      return (
+        state.progress === side &&
+        previous &&
+        previous[0] === box.top + scroll &&
+        previous[1] === box.height &&
+        previous[3] === frame.height &&
+        previous[7] === frame.width &&
+        !state.targets.some((node) => node.hasAttribute('data-tdb-bounds-changing'))
+      );
+    }
     function measure(frame = frameMeasurements()) {
       queued = false;
       if (disposed || suspended || document.hidden) return;
@@ -661,7 +701,10 @@
         distance = lastScroll === null ? 0 : scroll - lastScroll;
       const userScroll = distance !== 0 && intent.active(scroll);
       // Read every rect first, then write. Each wrapper is independent.
-      const measurements = states.map((state) => [state, geometry(state, scroll, frame)]);
+      const measurements = [];
+      for (const state of states)
+        if (!settledOutside(state, scroll, frame))
+          measurements.push([state, geometry(state, scroll, frame)]);
       return () => {
         for (const [state, g] of measurements) {
           const mobilePage = touchViewport();
@@ -748,6 +791,7 @@
         }
         lastScroll = scroll;
         layout = false;
+        boundsDirty = false;
       };
     }
     for (const input of new Set(wrappers)) {
@@ -849,6 +893,7 @@
         wrapper,
         node,
         translate,
+        offscreen: Boolean(options?.offscreen),
         targetSelector: options?.selector,
         cropFrame: options?.frame ? wrapper.querySelector(options.frame) : null,
         targets: [],
@@ -898,7 +943,8 @@
     if (states.length) {
       intent = scrollIntent(window, () => window.scrollY, signal, lastScroll);
       window.addEventListener('scroll', schedule, { passive: true, signal });
-      window.addEventListener('resize', schedule, { passive: true, signal });
+      window.addEventListener('resize', resizeFrame, { passive: true, signal });
+      window.addEventListener('tdb:boundschange', invalidateBounds, { signal });
       window.addEventListener(
         'pageshow',
         () => {
@@ -929,7 +975,7 @@
       window.addEventListener('load', refresh, { signal });
       reduced.addEventListener('change', refresh, { signal });
       if (typeof ResizeObserver !== 'undefined') {
-        resize = new ResizeObserver(schedule);
+        resize = new ResizeObserver(resizeFrame);
         resize.observe(document.documentElement);
         if (document.body) resize.observe(document.body);
         for (const state of states) {
@@ -1154,7 +1200,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.20.0',
+    version: '1.21.0',
     reduced,
     defaults,
     carousel,

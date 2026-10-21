@@ -27,6 +27,12 @@ exponential 600ms tail, and the shared playhead includes that tail. A quick
 re-press reverses the fade on the same source; later presses resume at the saved
 position. No audio is fetched merely by approaching the cards.
 
+While zoom bounds change, the image carries `data-tdb-bounds-changing` and emits
+`tdb:boundschange` on start/finish/cancel. This keeps the trio's opted-in offscreen
+parallax measurements active during zoom and invalidates the final bounds before
+they can be reused. The notifications add no idle frame loop and do not alter the
+zoom or audio timings. Quick re-presses retain the latest animation's protection.
+
 The existing native word elements are restored. The nine-word sequence is
 authored in `data-tdb-audio-word-sequence`: HOLD, BREATHE, RELAX, UNWIND,
 PEACEFUL, CALM, STILL, REST, EASE. Three words fade in and out per ten-second hold; the next

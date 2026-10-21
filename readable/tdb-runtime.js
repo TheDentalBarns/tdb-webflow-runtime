@@ -3246,7 +3246,15 @@ function preparePageBreakLoader() {
         if (!wrapper) return;
         let photo = photos.get(wrapper);
         if (!photo) {
-          photo = { wrapper, selector, frame, allowEdges };
+          // The trio's zoom reports its changing bounds. Keep the carousels,
+          // sticky backgrounds and overflowing candle on their full read path.
+          photo = {
+            wrapper,
+            selector,
+            frame,
+            allowEdges,
+            offscreen: wrapper.hasAttribute('data-tdb-audio-card'),
+          };
           photos.set(wrapper, photo);
         }
         if (!mounted.has(photo) && eligible(photo)) pending.add(photo);

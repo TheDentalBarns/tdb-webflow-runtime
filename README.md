@@ -78,3 +78,7 @@ See [release and rollback](docs/runtime/releasing.md). This is a baseline for as
 ## Motion refresh cleanup — 21 October 2026
 
 Page-break refresh now invokes each shared batch once, preserving independent batches, reference-counted clients and carousel clone cleanup. DD text keeps its membership Set and reuses the already-computed progress value; section magnet reads the body's computed style once per eligibility check. Animation timing, scroll/restoration state, memory hooks, visibility behaviour and public APIs are unchanged. See the [validation and rollback notes](docs/runtime/motion-refresh-cleanup-2026-10-21.md).
+
+## Offscreen trio and animated bounds — 21 October 2026
+
+The three audio photos can skip detailed measurement only after settling safely offscreen. Their zoom reports changing and final bounds, including cancellation and quick re-presses; refresh and restoration retain full measurement. Other parallax owners remain on their existing path. See the [scope, validation and rollback notes](docs/runtime/offscreen-trio-bounds-2026-10-21.md), including the separate device flashing check.

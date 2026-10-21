@@ -131,14 +131,21 @@
       fill: 'forwards',
     });
     state.animation = animation;
-    if (!held)
-      animation.finished
-        .then(() => {
-          if (state.animation !== animation) return;
-          animation.cancel();
-          zooms.delete(image);
-        })
-        .catch(() => {});
+    image.setAttribute('data-tdb-bounds-changing', '');
+    image.dispatchEvent(new CustomEvent('tdb:boundschange', { bubbles: true }));
+    const settled = () => {
+      // A cancelled predecessor must not release a newer zoom's protection.
+      if (zooms.get(image) !== state || state.animation !== animation) return;
+      image.removeAttribute('data-tdb-bounds-changing');
+      image.dispatchEvent(new CustomEvent('tdb:boundschange', { bubbles: true }));
+    };
+    animation.finished.then(() => {
+      settled();
+      if (!held && zooms.get(image) === state && state.animation === animation) {
+        animation.cancel();
+        zooms.delete(image);
+      }
+    }, settled);
   }
 
   function position(voice) {
@@ -297,7 +304,11 @@
     release(true);
     disposed = true;
     lifecycle.abort();
-    zooms.forEach((state) => state.animation?.cancel());
+    zooms.forEach((state, image) => {
+      state.animation?.cancel();
+      image.removeAttribute('data-tdb-bounds-changing');
+      image.dispatchEvent(new CustomEvent('tdb:boundschange', { bubbles: true }));
+    });
     zooms.clear();
     effects.forEach((animation) => animation.cancel());
     effects.clear();
@@ -308,7 +319,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.3.1',
+    version: '1.3.2',
     press,
     release,
     destroy,

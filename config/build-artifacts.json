@@ -192,10 +192,10 @@
       "sources": [
         "src/components/hold-audio.js"
       ],
-      "sha256": "19f243c1834383dff853b0f2763a1a09a21df31fd038f8b1996d871465a30f8b",
-      "raw": 5201,
-      "gzip": 2159,
-      "brotli": 1944
+      "sha256": "0850e0c1e91bd10c803c8d566a8d6daf59dd4dce464cf06fbf19c98906363f20",
+      "raw": 5596,
+      "gzip": 2275,
+      "brotli": 2044
     },
     "dist/tdb-home-desktop-instagram.js": {
       "sources": [
@@ -300,10 +300,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "ba3e02cff9d5abb50723c02db9319b9490016d41fc2841b6089f8c90c0e4113d",
-      "raw": 24235,
-      "gzip": 8403,
-      "brotli": 7640
+      "sha256": "dcac791aec8c0955baed29ca6cf0096cf5cb3730fe1d005b4d64ff7deaf44bf4",
+      "raw": 24785,
+      "gzip": 8596,
+      "brotli": 7816
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -537,10 +537,10 @@
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "7be07b985083393a89599fc82c294031f66378c7ead62281b90276a8428389be",
-      "raw": 70015,
-      "gzip": 18725,
-      "brotli": 16501
+      "sha256": "6b17071900a15935f6a585138256e2de663e65efc599d1f890bee5671743cae5",
+      "raw": 70063,
+      "gzip": 18739,
+      "brotli": 16514
     },
     "dist/tdb-service-awards.js": {
       "sources": [

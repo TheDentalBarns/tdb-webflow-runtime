@@ -13,6 +13,7 @@ function fixture({
   cold = false,
   visual = false,
   clock = false,
+  code = source,
 } = {}) {
   const dom = new JSDOM(
     empty
@@ -70,7 +71,7 @@ function fixture({
       calls.moduleUrl = url;
       return new Promise((resolve) => {
         finishModule = () => {
-          w.eval(source);
+          w.eval(code);
           resolve();
         };
         if (!cold) finishModule();
@@ -143,14 +144,22 @@ function fixture({
     }
   };
   w.Element.prototype.animate = function (frames, options) {
+    let finish, reject;
     const animation = {
       element: this,
       frames,
       options,
       cancelled: false,
-      finished: new Promise(() => {}),
+      finished: new Promise((resolve, fail) => {
+        finish = resolve;
+        reject = fail;
+      }),
+      finish() {
+        finish();
+      },
       cancel() {
         this.cancelled = true;
+        reject(new Error('Animation cancelled'));
       },
     };
     calls.animations.push(animation);
@@ -485,3 +494,258 @@ test('blur reverses from current geometry without altering native layout or para
   f.cleanup();
   assert.ok(f.calls.animations.every((a) => a.cancelled));
 });
+
+for (const [label, code] of [
+  ['source', source],
+  ['bundle', fs.readFileSync('dist/tdb-hold-audio.js', 'utf8')],
+]) {
+  test(`${label}: zoom protects changing bounds through completion, cancellation and quick re-press`, async () => {
+    const f = fixture({ code, clock: true });
+    const image = f.w.document.querySelector('img');
+    const changes = [];
+    f.w.addEventListener('tdb:boundschange', (event) => {
+      assert.equal(event.target, image);
+      changes.push(image.hasAttribute('data-tdb-bounds-changing'));
+    });
+    await f.down();
+    const held = f.calls.animations.filter((a) => a.element === image).at(-1);
+    assert.equal(image.hasAttribute('data-tdb-bounds-changing'), true);
+    held.finish();
+    await tick();
+    assert.equal(
+      image.hasAttribute('data-tdb-bounds-changing'),
+      false,
+      'held endpoint has stable bounds',
+    );
+    assert.equal(held.cancelled, false, 'completed hold retains the zoomed appearance');
+
+    f.up();
+    const returning = f.calls.animations.filter((a) => a.element === image).at(-1);
+    assert.equal(image.hasAttribute('data-tdb-bounds-changing'), true);
+    await f.down(0, 2);
+    assert.equal(returning.cancelled, true);
+    assert.equal(
+      image.hasAttribute('data-tdb-bounds-changing'),
+      true,
+      'old rejection cannot unprotect the new zoom',
+    );
+    f.up(0, 2);
+    const final = f.calls.animations.filter((a) => a.element === image).at(-1);
+    final.finish();
+    await tick();
+    assert.equal(image.hasAttribute('data-tdb-bounds-changing'), false);
+    assert.equal(final.cancelled, true, 'returning zoom releases its animation effect');
+    assert.deepEqual(changes, [true, false, true, true, true, false]);
+
+    await f.down();
+    const cancelled = f.calls.animations.filter((a) => a.element === image).at(-1);
+    cancelled.cancel();
+    await tick();
+    assert.equal(
+      image.hasAttribute('data-tdb-bounds-changing'),
+      false,
+      'external cancellation invalidates final bounds',
+    );
+    f.up();
+    assert.equal(image.hasAttribute('data-tdb-bounds-changing'), true);
+    f.cleanup();
+    await tick();
+    assert.equal(
+      image.hasAttribute('data-tdb-bounds-changing'),
+      false,
+      'teardown leaves no active marker',
+    );
+    assert.equal(image.style.translate, '0 10px');
+    assert.equal(image.style.transform, 'rotate(0deg)');
+  });
+
+  test(`${label}: release removes completed zoom, word and ripple effects before another scroll`, async () => {
+    const f = fixture({ code, clock: true, visual: true });
+    await f.down();
+    f.up();
+    const latest = new Map(f.calls.animations.map((a) => [a.element, a]));
+    latest.forEach((animation) => animation.finish());
+    await tick();
+    assert.ok(
+      f.calls.animations.every((animation) => animation.cancelled),
+      'no filled release effects are retained',
+    );
+    assert.equal(f.w.document.querySelector('[data-tdb-bounds-changing]'), null);
+    assert.equal(f.buttons[0].getAttribute('aria-pressed'), 'false');
+    f.cleanup();
+  });
+}
+
+function motionAudioFixture({ motionCode, holdCode, offscreen, mobile }) {
+  const f = fixture({ code: holdCode, clock: true });
+  const queue = new Map(),
+    observers = [],
+    reads = { wrapper: 0, image: 0 };
+  let sequence = 0,
+    time = 0;
+  f.w.innerHeight = 900;
+  f.w.innerWidth = mobile ? 390 : 1280;
+  f.w.performance.now = () => time;
+  f.w.matchMedia = () => ({ matches: mobile, addEventListener() {}, removeEventListener() {} });
+  f.w.requestAnimationFrame = (callback) => {
+    queue.set(++sequence, callback);
+    return sequence;
+  };
+  f.w.cancelAnimationFrame = (id) => queue.delete(id);
+  f.w.ResizeObserver = class {
+    constructor(callback) {
+      observers.push(callback);
+    }
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+  const cards = [...f.w.document.querySelectorAll('[data-tdb-audio-card]')];
+  const images = cards.map((card) => card.querySelector('img'));
+  const rect = (top, height) => ({
+    top,
+    bottom: top + height,
+    height,
+    width: 400,
+    left: 0,
+    right: 400,
+  });
+  cards.forEach((card, i) => {
+    const top = () => 500 + i * 2000 - f.w.scrollY;
+    card.getBoundingClientRect = () => {
+      reads.wrapper++;
+      return rect(top(), 600);
+    };
+    images[i].getBoundingClientRect = () => {
+      reads.image++;
+      const height = 600 * Number(images[i].style.scale);
+      const y = parseFloat(images[i].style.translate.split(' ')[1]) || 0;
+      return rect(top() - (height - 600) / 2 + y, height);
+    };
+  });
+  f.w.eval(motionCode);
+  const owner = f.w.TDBMotion.pageBreaks(
+    cards.map((wrapper) => ({ wrapper, selector: 'img', offscreen })),
+  );
+  const flush = () => {
+    const jobs = [...queue.values()];
+    queue.clear();
+    jobs.forEach((job) => job(time));
+  };
+  const capture = () =>
+    JSON.parse(
+      JSON.stringify({
+        status: owner.status(),
+        styles: images.map((image) => image.style.cssText),
+      }),
+    );
+  return Object.assign(f, {
+    images,
+    cards,
+    owner,
+    reads,
+    queue,
+    capture,
+    flush,
+    scroll(y) {
+      time += 16;
+      f.event(f.w, 'wheel');
+      f.w.scrollY = y;
+      f.event(f.w, 'scroll');
+      flush();
+    },
+    refresh() {
+      owner.refresh();
+      flush();
+    },
+    resize() {
+      observers.forEach((callback) => callback([]));
+      flush();
+    },
+    finishZoom(i = 0) {
+      f.calls.animations
+        .filter((a) => a.element === images[i])
+        .at(-1)
+        .finish();
+      return tick();
+    },
+    close() {
+      owner.destroy();
+      f.cleanup();
+    },
+  });
+}
+
+for (const [label, motionCode, holdCode] of [
+  ['source', fs.readFileSync('src/shared/motion.js', 'utf8'), source],
+  [
+    'bundle',
+    fs.readFileSync('dist/tdb-motion.js', 'utf8'),
+    fs.readFileSync('dist/tdb-hold-audio.js', 'utf8'),
+  ],
+]) {
+  for (const mobile of [false, true]) {
+    test(`${label}: offscreen audio zoom matches full measurement (${mobile ? 'coarse' : 'fine'} pointer)`, async () => {
+      const traces = [];
+      for (const offscreen of [false, true]) {
+        const f = motionAudioFixture({ motionCode, holdCode, offscreen, mobile });
+        await tick();
+        f.flush();
+        const trace = [];
+        const scroll = (y) => {
+          f.scroll(y);
+          trace.push(f.capture());
+          assert.equal(f.queue.size, 0);
+        };
+        scroll(700);
+        await f.down();
+        assert.equal(f.queue.size, 0, 'bounds notification only invalidates; no new idle frame');
+        f.images[0].style.scale = '1.08';
+        scroll(4000);
+        f.images[0].style.scale = '1.10';
+        scroll(4200);
+        f.images[0].style.scale = '1.1236';
+        await f.finishZoom();
+        scroll(4400);
+        scroll(4600);
+        scroll(700);
+        f.up();
+        f.images[0].style.scale = '1.09';
+        scroll(4000);
+        scroll(4300);
+        await f.down(0, 2);
+        f.images[0].style.scale = '1.10';
+        scroll(4500);
+        f.up(0, 2);
+        f.images[0].style.scale = '1.06';
+        await f.finishZoom();
+        scroll(4700);
+        scroll(700);
+
+        // A complete zoom can happen between scroll frames. Its final event
+        // must invalidate the old dimensions even though the marker is gone.
+        scroll(4500);
+        await f.down();
+        f.images[0].style.scale = '1.1236';
+        await f.finishZoom();
+        scroll(4700);
+        scroll(700);
+        f.up();
+        f.images[0].style.scale = '1.06';
+        await f.finishZoom();
+        f.refresh();
+        trace.push(f.capture());
+        f.resize();
+        trace.push(f.capture());
+        traces.push(trace);
+        f.close();
+        await tick();
+      }
+      assert.deepEqual(
+        traces[1],
+        traces[0],
+        'visible and offscreen positions and corrections must remain identical',
+      );
+    });
+  }
+}
