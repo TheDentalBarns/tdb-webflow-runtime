@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-21",
+  "motionCommit": "0c1bad0b48ebd891eff9bf3ececf94eb15f2250d",
+  "landscapeFixCommit": "70799981bbbcb26461917faac3d76fc18b9816df",
+  "tests": { "motionAndFocus": 19, "landscapeAndRuntime": 10 },
+  "desktopLive": {
+    "viewport": [1440, 900],
+    "servicesCentredScrollY": 2520,
+    "smallDepartureReturnsTo": 2520,
+    "intentionalBreakawayScrollY": 2952,
+    "reverseApproachReturnsTo": 2520,
+    "noticeVisibilityAfterReturn": "hidden"
+  },
+  "landscapeCause": "Physical phone-landscape mode attached the Services positioning combo to the postage Treatments controls. A desktop viewport resize does not enable that physical-phone classification.",
+  "delivery": {
+    "failedEntryCommit": "70799981bbbcb26461917faac3d76fc18b9816df",
+    "failure": "jsDelivr returned HTTP 503 No healthy backends for entry and foundation files, despite the changed parallax asset returning 200.",
+    "restoredCommit": "0c1bad0b48ebd891eff9bf3ececf94eb15f2250d",
+    "restoredStagingPublishedAt": "2026-10-21T13:20:33.390Z",
+    "recoveryCheck": "Published Home reloaded the restored entry and parallax scripts; clicking Next advanced the active treatment from 2 / 6 to 3 / 6.",
+    "releaseRequirement": "Verify entry, foundation, runtime, motion, parallax and CSS availability before publishing the corrected release."
+  },
+  "scope": "No image height changes, no new head scripts or CSS, production unchanged."
+}
