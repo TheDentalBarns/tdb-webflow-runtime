@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-21",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "677cf86df9952f978d94d8a9",
+  "scope": "Home treatment component variant only",
+  "reason": "Reveal neighboring main images at tablet/landscape widths. Give existing shared vertical parallax a 5% crop reserve above/below each image without altering visible frame height.",
+  "preserved": "Existing card, text-track and section heights, price/CTA spacing and runtime behavior. No auto-height changes. Stamps and details remain clipped to the focus card.",
+  "runtime": "Existing page-break loader and motion module already target these images and use independent CSS translate for vertical scroll, leaving Swiper transform untouched. No JS or head CSS changes needed.",
+  "edits": [
+    {
+      "label": "Allow neighboring tablet/landscape images",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "tdb-treatment-viewport",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "overflow",
+            "property_value": "visible"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Keep phone main image clipped",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "tdb-treatment-viewport",
+        "breakpoint_id": "tiny",
+        "properties": [
+          {
+            "property_name": "overflow",
+            "property_value": "hidden"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Give existing parallax crop room inside unchanged frame",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "tdb-treatment-image",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "height",
+            "property_value": "110%"
+          },
+          {
+            "property_name": "top",
+            "property_value": "-5%"
+          },
+          {
+            "property_name": "bottom",
+            "property_value": "auto"
+          }
+        ]
+      }
+    }
+  ]
+}
