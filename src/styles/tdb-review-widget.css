@@ -5,7 +5,7 @@ html { --tdb-review-widget-ready: 1; }
   position: fixed;
   left: 0;
   bottom: 1rem;
-  z-index: 990;
+  z-index: 2147482999;
   display: flex;
   align-items: center;
   justify-content: space-between;

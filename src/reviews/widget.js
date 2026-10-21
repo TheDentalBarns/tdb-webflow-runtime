@@ -19,8 +19,11 @@
     button.setAttribute('data-tdb-review-trigger', '');
     button.setAttribute('aria-label', 'Read our patient reviews');
     button.setAttribute('aria-haspopup', 'dialog');
-    button.innerHTML = '<span class="tdb-review-widget_copy" aria-hidden="true">' +
-      '<span class="tdb-review-widget_stars">' + '<span></span>'.repeat(5) + '</span>' +
+    button.innerHTML =
+      '<span class="tdb-review-widget_copy" aria-hidden="true">' +
+      '<span class="tdb-review-widget_stars">' +
+      '<span></span>'.repeat(5) +
+      '</span>' +
       '<span class="tdb-review-widget_label">Google reviews</span></span>' +
       '<img class="tdb-review-widget_google" alt="" width="32" height="32" ' +
       'src="https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b972653444187f404ca8_tdb-review-google.svg">';
@@ -38,7 +41,11 @@
         button.setAttribute('aria-hidden', String(!next));
         button.classList.toggle('is-visible', next);
       },
-      destroy() { button.remove(); if (host && !host.childElementCount) host.remove(); instance = null; },
+      destroy() {
+        button.remove();
+        if (host && !host.childElementCount) host.remove();
+        instance = null;
+      },
     });
     return instance;
   }
