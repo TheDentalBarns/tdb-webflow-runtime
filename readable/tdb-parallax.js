@@ -581,12 +581,14 @@ window.TDBTreatmentStamps ||= (() => {
       offsets = [],
       width = 0,
       drag = null,
-      suppressClick = false;
+      suppressClick = false,
+      ignoredClick = null;
     let selected = -1;
     let motionFrame = 0,
       returnOffset = 0,
       returnStarted = 0,
       returnDuration = 500,
+      returnIndex = null,
       targetLeft = 0,
       momentum = 0,
       lastFrame = 0,
@@ -655,11 +657,13 @@ window.TDBTreatmentStamps ||= (() => {
       motionFrame = 0;
       momentum = 0;
       returnOffset = 0;
+      returnIndex = null;
     }
-    function resumeAlignment() {
-      if (mobile.matches && !automatic) {
+    function resumeAlignment(index = swiper?.realIndex) {
+      if (mobile.matches && (!automatic || (returnIndex !== null && returnIndex !== index))) {
         stopMotion();
         returnOffset = null;
+        returnIndex = index;
         returnDuration = window.TDBMotion?.reduced?.matches
           ? 0
           : window.TDBMotion?.duration?.(viewport.clientWidth) || 500;
@@ -767,6 +771,16 @@ window.TDBTreatmentStamps ||= (() => {
       bind();
       if (!automatic || !offsets.length || drag) return;
       const last = links.length - 1;
+      if (returnIndex !== null) {
+        // Manual browsing hands back to one fixed destination. Following the
+        // moving image progress as well would send an already-aligned stamp
+        // away and back while the main slide catches up.
+        const marker = last ? (returnIndex * (trackWidth - width)) / last : 0;
+        align((looped ? cycle : 0) + offsets[returnIndex] - marker);
+        if (!motionFrame && !swiper?.animating && Math.abs(index - returnIndex) < 0.001)
+          returnIndex = null;
+        return;
+      }
       if (looped && cycle > 0) {
         const value = ((index % links.length) + links.length) % links.length;
         const lower = Math.floor(value),
@@ -805,13 +819,21 @@ window.TDBTreatmentStamps ||= (() => {
       }
       if (!swiper) return; // CMS links remain usable if the enhancement is unavailable.
       event.preventDefault();
-      if (suppressClick) {
-        suppressClick = false;
+      const ignored = ignoredClick;
+      ignoredClick = null;
+      // Suppress only the compatibility click from the completed drag. Touch
+      // browsers may omit that click entirely; it must not consume a later tap
+      // or a keyboard activation.
+      if (
+        ignored &&
+        event.detail > 0 &&
+        performance.now() < ignored.until &&
+        (typeof event.pointerId !== 'number' || event.pointerId === ignored.id)
+      )
         return;
-      }
       const index = Number(link.dataset.tdbStampIndex);
       if (!Number.isInteger(index) || index < 0 || index >= links.length) return;
-      resumeAlignment();
+      resumeAlignment(index);
       if (swiper.params?.loop) swiper.slideToLoop(index);
       else swiper.slideTo(index);
       const progress = root.querySelector('[data-tdb-native-progress]');
@@ -830,6 +852,7 @@ window.TDBTreatmentStamps ||= (() => {
       stopMotion();
       automatic = false;
       suppressClick = false;
+      ignoredClick = null;
       if (mobile.matches || event.pointerType === 'mouse')
         drag = {
           id: event.pointerId,
@@ -868,6 +891,10 @@ window.TDBTreatmentStamps ||= (() => {
       // Touch starts with implicit capture on the image/link. Its release
       // bubbles when the viewport takes capture; the gesture is still active.
       if (event.type === 'lostpointercapture' && event.target !== viewport) return;
+      ignoredClick =
+        suppressClick && event.type === 'pointerup'
+          ? { id: drag.id, until: performance.now() + 500 }
+          : null;
       if (
         drag &&
         mobile.matches &&
@@ -882,6 +909,7 @@ window.TDBTreatmentStamps ||= (() => {
         motionFrame = requestAnimationFrame(coast);
       }
       drag = null;
+      suppressClick = false;
     }
     function wheel() {
       stopMotion();
@@ -922,7 +950,7 @@ window.TDBTreatmentStamps ||= (() => {
     instances.set(root, controller);
     return controller;
   }
-  return { version: '1.1.0', prepare };
+  return { version: '1.1.1', prepare };
 })();
 
 /* Native CMS text row follows rendered image geometry, including loop/width motion.

@@ -360,14 +360,145 @@ test('finite mobile stamps drag freely to both ends, never overscroll, and ease 
     assert.ok(f.viewport.scrollLeft >= 0 && f.viewport.scrollLeft <= 500);
     f.viewport.dispatchEvent(new f.w.Event('wheel'));
     f.viewport.scrollLeft = 400;
-    // Consume the click suppressed by the drag, then choose the active stamp.
-    f.links[0].click();
+    // Browsers may omit the drag's compatibility click. One later activation
+    // must be enough; there is no stale suppression flag to consume first.
     f.links[0].click();
     assert.equal(f.viewport.scrollLeft, 400);
     f.tick(250);
     assert.ok(f.viewport.scrollLeft > 0 && f.viewport.scrollLeft < 400);
     f.tick(250);
     assert.equal(f.viewport.scrollLeft, 0);
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('drag click suppression belongs to that gesture, not the next tap or keyboard activation', () => {
+  for (const ending of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+    const f = fixture(6, true, false);
+    function pointer(type, id, x) {
+      const event = new f.w.Event(type, { bubbles: true, cancelable: true });
+      Object.assign(event, {
+        button: 0,
+        isPrimary: true,
+        pointerType: 'touch',
+        pointerId: id,
+        clientX: x,
+        clientY: 100,
+      });
+      f.viewport.dispatchEvent(event);
+    }
+    function click(id, detail = 1) {
+      const event = new f.w.MouseEvent('click', { bubbles: true, cancelable: true, detail });
+      Object.defineProperty(event, 'pointerId', { value: id });
+      f.links[2].dispatchEvent(event);
+    }
+    try {
+      f.controller.measure();
+      pointer('pointerdown', 1, 250);
+      f.tick(16);
+      pointer('pointermove', 1, 150);
+      pointer(ending, 1, 150);
+      if (ending === 'pointerup') {
+        click(1);
+        assert.equal(f.swiper.realIndex, 0, 'the drag itself does not select');
+      }
+      click(2);
+      assert.equal(f.swiper.realIndex, 2, 'a new touch activates on its first click');
+      f.swiper.slideTo(0);
+      pointer('pointerdown', 6, 250);
+      f.tick(16);
+      pointer('pointermove', 6, 150);
+      pointer(ending, 6, 150);
+      click(7);
+      assert.equal(f.swiper.realIndex, 2, 'new touch works even when no drag click was emitted');
+      pointer('pointerdown', 3, 250);
+      f.tick(16);
+      pointer('pointermove', 3, 150);
+      pointer(ending, 3, 150);
+      f.links[0].click();
+      assert.equal(f.swiper.realIndex, 0, 'keyboard activation is never swallowed');
+      pointer('pointerdown', 4, 250);
+      f.tick(16);
+      pointer('pointermove', 4, 150);
+      pointer(ending, 4, 150);
+      f.tick(600);
+      click(4);
+      assert.equal(
+        f.swiper.realIndex,
+        2,
+        'suppression expires when no compatibility click arrives',
+      );
+      pointer('pointerdown', 5, 250);
+      f.tick(16);
+      pointer('pointermove', 5, 150);
+      pointer(ending, 5, 150);
+      pointer('pointerdown', 5, 200);
+      pointer('pointerup', 5, 200);
+      f.links[1].dispatchEvent(
+        new f.w.MouseEvent('click', { bubbles: true, cancelable: true, detail: 1 }),
+      );
+      assert.equal(
+        f.swiper.realIndex,
+        1,
+        'reused pointer IDs and legacy mouse clicks activate on first tap',
+      );
+    } finally {
+      f.dom.window.close();
+    }
+  }
+});
+
+test('selecting an already-aligned stamp stays still while the main image catches up', () => {
+  const f = fixture(6, true, false);
+  try {
+    f.controller.measure();
+    f.swiper.slideTo(5);
+    f.controller.paint(5, 600, 800);
+    f.viewport.dispatchEvent(new f.w.Event('wheel'));
+    f.viewport.scrollLeft = 0;
+    f.swiper.animating = true;
+    f.links[0].click();
+    // The image can move more slowly than the return easing. Its intermediate
+    // positions must not pull the stamp away from its selected destination.
+    for (const index of [5, 4.9, 4.8, 4, 2, 0.1]) {
+      f.controller.paint(index, index * 120, 800);
+      f.tick(100);
+      assert.equal(f.viewport.scrollLeft, 0, 'Veneers remains at the left edge');
+    }
+    f.swiper.animating = false;
+    f.controller.paint(0, 0, 800);
+    assert.equal(f.viewport.scrollLeft, 0);
+    f.swiper.slideTo(1);
+    f.controller.paint(1, 120, 800);
+    assert.equal(f.viewport.scrollLeft, 100, 'normal progress following resumes after handoff');
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('manual stamp return takes a direct path and holds its target until the main slide settles', () => {
+  const f = fixture(6, true, false);
+  try {
+    f.controller.measure();
+    f.swiper.slideTo(5);
+    f.controller.paint(5, 600, 800);
+    f.viewport.dispatchEvent(new f.w.Event('wheel'));
+    f.viewport.scrollLeft = 400;
+    f.swiper.animating = true;
+    f.links[1].click();
+    let previous = 400;
+    for (const index of [5, 4.9, 4.8, 4, 3, 2, 1.5]) {
+      f.controller.paint(index, index * 120, 800);
+      f.tick(100);
+      assert.ok(f.viewport.scrollLeft <= previous, 'never reverses direction');
+      assert.ok(f.viewport.scrollLeft >= 100, 'never overshoots its final position');
+      previous = f.viewport.scrollLeft;
+    }
+    assert.equal(f.viewport.scrollLeft, 100);
+    f.swiper.animating = false;
+    f.controller.paint(1, 120, 800);
+    assert.equal(f.viewport.scrollLeft, 100);
   } finally {
     f.dom.window.close();
   }

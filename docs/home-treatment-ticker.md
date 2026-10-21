@@ -32,6 +32,12 @@ clamps at the last stamp. Independent manual browsing resumes alignment smoothly
 when a stamp or the main slider is selected. Stamp opacity transitions belong to
 Designer rather than cancelled/replaced filled animations.
 
+After manual browsing, selection eases the stamp row directly to its final
+alignment while the main image catches up. It does not combine that return with
+the image's moving progress target, so an already-aligned stamp stays still.
+Drag-click suppression is limited to the completed pointer gesture and expires;
+an omitted compatibility click cannot swallow the next tap or keyboard action.
+
 Validation: CMS reorder/missing values, rapid selection, static icons, reduced
 motion, finite drag boundaries and reversal, eased return, loop opt-in and disposal
 are covered by the treatment tests.
