@@ -12,6 +12,9 @@ window.TDBTreatmentStamps ||= (() => {
     const items = links.map((link) => link.closest('.tdb-treatment-card'));
     const track = items[0].parentElement;
     const mobile = matchMedia('(max-width: 767px)');
+    const confirmLinks = strip.getAttribute('data-tdb-stamp-link-mode') === 'confirm';
+    let armedIndex = null;
+    const labelsBefore = new Map(links.map((link) => [link, link.getAttribute('aria-label')]));
     let looped = false,
       cycle = 0,
       copies = [],
@@ -47,6 +50,7 @@ window.TDBTreatmentStamps ||= (() => {
         root.getAttribute('data-tdb-treatment-loop') === 'true' &&
         links.length > 1;
       if (enabled === looped) return;
+      armLink(null);
       stopMotion();
       copies.forEach((node) => {
         animations.get(node)?.cancel();
@@ -197,6 +201,7 @@ window.TDBTreatmentStamps ||= (() => {
       selection();
     }
     function change() {
+      armLink(null);
       resumeAlignment();
       selection();
     }
@@ -269,6 +274,37 @@ window.TDBTreatmentStamps ||= (() => {
       }
       return true;
     }
+    function armLink(index) {
+      if (!confirmLinks || armedIndex === index) return;
+      armedIndex = index;
+      allLinks.forEach((link) => {
+        const armed = Number(link.dataset.tdbStampIndex) === index;
+        const overlay = link.querySelector('[data-tdb-stamp-link-overlay]');
+        if (overlay) overlay.style.opacity = armed ? '1' : '';
+        link.toggleAttribute('data-tdb-stamp-link-ready', armed);
+        const title =
+          link.querySelector('.tdb-treatment-title')?.textContent.trim() || link.textContent.trim();
+        if (armed) link.setAttribute('aria-label', `Open ${title} treatment`);
+        else {
+          const previous = labelsBefore.get(link);
+          if (previous) link.setAttribute('aria-label', previous);
+          else link.removeAttribute('aria-label');
+        }
+      });
+    }
+    function linkReady(link) {
+      return (
+        confirmLinks && armedIndex !== null && Number(link?.dataset.tdbStampIndex) === armedIndex
+      );
+    }
+    function activateStamp(link) {
+      // The second activation follows the original CMS href/target. Modified
+      // clicks and unenhanced links retain their ordinary browser behavior.
+      if (linkReady(link)) return false;
+      if (!selectStamp(link)) return false;
+      armLink(Number(link.dataset.tdbStampIndex));
+      return true;
+    }
     function choose(event) {
       const link = event.target.closest('[data-tdb-treatment-stamp]');
       if (
@@ -293,7 +329,7 @@ window.TDBTreatmentStamps ||= (() => {
         event.preventDefault();
         return;
       }
-      if (selectStamp(link)) event.preventDefault();
+      if (activateStamp(link)) event.preventDefault();
     }
     function down(event) {
       if (event.button !== 0 || event.isPrimary === false) return;
@@ -319,6 +355,7 @@ window.TDBTreatmentStamps ||= (() => {
         return;
       }
       if (!suppressClick && Math.abs(delta) > 6) {
+        armLink(null);
         suppressClick = true;
         viewport.setPointerCapture(event.pointerId);
       }
@@ -373,20 +410,29 @@ window.TDBTreatmentStamps ||= (() => {
       suppressClick = false;
       // A clean touch release is the activation. Mobile browsers may withhold
       // their later click after scrolling; waiting for it loses the first tap.
-      if (tap && selectStamp(tap)) {
+      const followLink = tap && linkReady(tap);
+      if (tap && (followLink || activateStamp(tap))) {
         event.preventDefault();
+        // As with selection, do not depend on a compatibility click after a
+        // touch scroll. Native click preserves CMS URL, target and link semantics.
+        if (followLink) tap.click();
         ignoredClick = { id, until: performance.now() + 500 };
         window.TDBSliderFocus?.resume({ y: window.scrollY, click: { target: tap } });
       }
     }
     function wheel() {
+      armLink(null);
       stopMotion();
       automatic = false;
     }
     function preventDrag(event) {
       event.preventDefault();
     }
+    function key(event) {
+      if (event.key === 'Escape') armLink(null);
+    }
     function dispose() {
+      armLink(null);
       stopMotion();
       for (const [type, fn] of listeners) viewport.removeEventListener(type, fn);
       swiper?.off('slideChange', change);
@@ -411,6 +457,7 @@ window.TDBTreatmentStamps ||= (() => {
       ['lostpointercapture', up],
       ['wheel', wheel],
       ['dragstart', preventDrag],
+      ['keydown', key],
       ['scroll', normalize],
     ];
     listeners.forEach(([type, fn]) => on(type, fn));
@@ -418,5 +465,5 @@ window.TDBTreatmentStamps ||= (() => {
     instances.set(root, controller);
     return controller;
   }
-  return { version: '1.2.0', prepare };
+  return { version: '1.3.0', prepare };
 })();

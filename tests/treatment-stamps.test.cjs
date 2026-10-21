@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 
-function fixture(count = 6, mobileWidth = false, loop = mobileWidth) {
+function fixture(count = 6, mobileWidth = false, loop = mobileWidth, confirmLinks = false) {
   const dom = new JSDOM(
     `<section data-tdb-treatment-postage>
     <div class="swiper">${Array.from({ length: count }, (_, i) => `<div data-swiper-slide-index="${i}"><h3 class="tdb-treatment-title">Treatment ${i}</h3></div>`).join('')}</div><div data-tdb-native-progress></div>
@@ -19,6 +19,16 @@ function fixture(count = 6, mobileWidth = false, loop = mobileWidth) {
   const w = dom.window,
     root = w.document.querySelector('section');
   const viewport = root.querySelector('.tdb-treatment-controls');
+  if (confirmLinks) {
+    root
+      .querySelector('[data-tdb-treatment-stamps]')
+      .setAttribute('data-tdb-stamp-link-mode', 'confirm');
+    root.querySelectorAll('[data-tdb-treatment-stamp]').forEach((link) => {
+      const overlay = w.document.createElement('span');
+      overlay.setAttribute('data-tdb-stamp-link-overlay', '');
+      link.append(overlay);
+    });
+  }
   root.setAttribute('data-tdb-treatment-loop', String(loop));
   Object.defineProperty(viewport, 'clientWidth', { get: () => 800 });
   Object.defineProperty(viewport, 'scrollWidth', {
@@ -81,6 +91,99 @@ function fixture(count = 6, mobileWidth = false, loop = mobileWidth) {
   const controller = w.TDBTreatmentStamps.prepare(root);
   return { dom, w, root, viewport, items, links, swiper, controller, media, tick, frames };
 }
+
+test('opt-in stamp links preview on the first press and preserve the CMS link on the second', () => {
+  const f = fixture(6, false, false, true);
+  const clicks = [];
+  f.root.addEventListener('click', (e) => {
+    clicks.push(e.defaultPrevented);
+    e.preventDefault();
+  });
+  try {
+    f.controller.measure();
+    f.links[0].click();
+    assert.equal(clicks.at(-1), true, 'initially active stamp still requires a preview press');
+    assert.equal(f.links[0].hasAttribute('data-tdb-stamp-link-ready'), true);
+    assert.equal(f.links[0].querySelector('[data-tdb-stamp-link-overlay]').style.opacity, '1');
+    f.links[0].click();
+    assert.equal(clicks.at(-1), false, 'second press follows the original link');
+    f.links[2].click();
+    assert.equal(clicks.at(-1), true);
+    assert.equal(f.swiper.realIndex, 2);
+    assert.equal(f.links[0].hasAttribute('data-tdb-stamp-link-ready'), false);
+    assert.equal(f.links[2].hasAttribute('data-tdb-stamp-link-ready'), true);
+    f.swiper.slideTo(3);
+    assert.equal(
+      f.links[2].hasAttribute('data-tdb-stamp-link-ready'),
+      false,
+      'main arrow clears link state',
+    );
+    f.links[3].click();
+    f.viewport.dispatchEvent(new f.w.Event('wheel'));
+    assert.equal(f.links[3].hasAttribute('data-tdb-stamp-link-ready'), false);
+    f.links[3].click();
+    assert.equal(clicks.at(-1), true, 'scrolling requires a fresh preview');
+    const modified = new f.w.MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      ctrlKey: true,
+    });
+    f.links[1].dispatchEvent(modified);
+    assert.equal(clicks.at(-1), false, 'modified clicks retain browser behavior');
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('two clean touch releases can preview then follow, without needing compatibility clicks', () => {
+  const f = fixture(6, true, false, true);
+  let navigations = 0;
+  f.root.addEventListener('click', (e) => {
+    if (!e.defaultPrevented) navigations++;
+    e.preventDefault();
+  });
+  const pointer = (name, id, x = 200) => {
+    const e = new f.w.Event(name, { bubbles: true, cancelable: true });
+    Object.assign(e, {
+      button: 0,
+      isPrimary: true,
+      pointerId: id,
+      pointerType: 'touch',
+      clientX: x,
+      clientY: 50,
+    });
+    f.links[2].dispatchEvent(e);
+  };
+  try {
+    f.controller.measure();
+    pointer('pointerdown', 1);
+    pointer('pointerup', 1);
+    assert.equal(navigations, 0);
+    assert.equal(f.swiper.realIndex, 2);
+    pointer('pointerdown', 2);
+    pointer('pointerup', 2);
+    assert.equal(navigations, 1);
+    const compatibility = new f.w.MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      detail: 1,
+    });
+    Object.defineProperty(compatibility, 'pointerId', { value: 2 });
+    f.links[2].dispatchEvent(compatibility);
+    assert.equal(navigations, 1, 'browser compatibility click cannot navigate twice');
+    pointer('pointerdown', 3);
+    f.tick(20);
+    pointer('pointermove', 3, 180);
+    pointer('pointerup', 3, 180);
+    assert.equal(f.links[2].hasAttribute('data-tdb-stamp-link-ready'), false, 'drag disarms');
+    pointer('pointerdown', 4);
+    pointer('pointerup', 4);
+    assert.equal(navigations, 1, 'first tap after dragging only previews');
+    assert.equal(f.links[2].hasAttribute('data-tdb-stamp-link-ready'), true);
+  } finally {
+    f.dom.window.close();
+  }
+});
 
 test('mouse and tablet touch have the same frame-rate-independent coast and immediate re-grab', () => {
   const distances = [];

@@ -2,6 +2,16 @@
   "date": "2026-10-21",
   "scope": "Existing Home services/treatment magnets and treatment stamp interaction",
   "captureRange": "24% of viewport height, capped at 240px, on approach from either direction. A new user gesture cancels immediately; moving away does not pull back.",
+  "stampLinks": {
+    "optIn": "data-tdb-stamp-link-mode=confirm on the native stamp section",
+    "behavior": "First activation selects and reveals a dark image overlay with the existing arrow. Second activation follows the original CMS link. Drag, wheel, main-slide change and Escape disarm. Touch does not rely on a compatibility click; modified clicks retain normal browser behavior.",
+    "nativeElements": {
+      "imageWrapper": "1b740d39-4be7-40f3-7e82-e8317ccd91e3",
+      "overlay": "b22d48b1-10fe-0abd-c21f-4d721f2f1492",
+      "arrow": "ef8e473e-8906-da00-2954-85591deb451f"
+    },
+    "nativeClasses": "Reuses tdb-treatment-image-wrap, tdb-treatment-overlay, icon-embed-xxsmall and tdb-direct-arrow, with native overrides confined to the stamps variant. The original image and CMS link bindings remain intact."
+  },
   "magnet": "Use the existing shared site motion policy; activate shared slider focus to move navbar, availability and VIP bars away. Exclude the correction from the user's scroll-away threshold. On screens where the full treatment assembly is taller than the viewport, centre the unchanged image frame.",
   "stamps": "Marquee-style velocity sampling and exponential coast (4.2/s, capped at 2800px/s), integrated analytically for consistent refresh-rate behavior. Mouse, tablet touch and phone touch share the same direct drag and release. Re-grab cancels momentum immediately. Existing finite bounds, first-tap selection and single-writer return alignment remain.",
   "designer": {
