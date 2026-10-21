@@ -60,7 +60,11 @@ html { --tdb-review-widget-ready: 1; }
 .tdb-review-widget:focus-visible { outline: 2px solid #d6cab4; outline-offset: 3px; }
 .tdb-review-widget[aria-busy="true"] .tdb-review-widget_google { opacity: .35; }
 .tdb-review-widget[aria-busy="true"]::after {
-  content: ''; position: absolute; right: 1.5rem; width: 1.3rem; height: 1.3rem;
+  /* The shared SVG draws a 19.998-unit G inside its 24-unit viewBox.
+     Match its visible outer circle, centred at (12.198, 12.009), not the image box. */
+  content: ''; position: absolute; box-sizing: border-box;
+  right: 1.30025rem; top: calc(50% - .8325rem);
+  width: 1.6665rem; height: 1.6665rem;
   border: 1px solid currentColor; border-right-color: transparent; border-radius: 50%;
   animation: tdb-review-widget-spin 1s linear infinite;
 }
