@@ -1,6 +1,6 @@
 /* Opt-in section centring. Runs inside tdb-motion, never adds page styles.
- * A short, interruptible correction after a user scroll has settled. It is
- * deliberately not scroll locking or mandatory snapping.
+ * Proximity capture with an elastic return and a wider breakaway threshold.
+ * Native gestures stay free; only the released position snaps into place.
  */
 (() => {
   'use strict';
@@ -16,6 +16,7 @@
   let timer = 0,
     raf = 0,
     active = null,
+    centred = null,
     touch = null;
   let armed = false,
     held = false,
@@ -24,7 +25,19 @@
   let startY = window.scrollY,
     lastY = window.scrollY;
   const editable = 'input,textarea,select,[contenteditable="true"]';
-  const captureRadius = 50;
+  const captureRadius = () => Math.min(240, innerHeight * 0.26);
+  const releaseRadius = () => Math.min(360, innerHeight * 0.4);
+  const spring = (p) => {
+    const damping = 0.72,
+      frequency = 7.5,
+      root = Math.sqrt(1 - damping * damping),
+      phase = frequency * root * p;
+    return (
+      1 -
+      Math.exp(-damping * frequency * p) * (Math.cos(phase) + (damping / root) * Math.sin(phase))
+    );
+  };
+  const springEnd = spring(1);
   function modalOpen() {
     return [...document.querySelectorAll('[aria-modal="true"]')].some((node) => {
       if (node.closest('[hidden],[aria-hidden="true"],[inert]')) return false;
@@ -83,49 +96,61 @@
       active.lenis.scrollTo(window.scrollY, { immediate: true, force: true });
     active = null;
   }
-  function reset() {
+  function reset(clearCentre = false) {
     stop();
     armed = false;
     held = false;
     touch = null;
+    if (clearCentre === true) centred = null;
     startY = lastY = window.scrollY;
   }
   function settle() {
     timer = 0;
     if (!armed || held || active || performance.now() < anchorUntil || blocked()) return;
-    // Native scrollend can precede the tail of Lenis' wheel easing.
-    if (window.lenis?.isScrolling || performance.now() - lastInput < 160) {
-      timer = setTimeout(settle, 180);
+    // Let fast inertia finish, but take over the last slow Lenis tail instead
+    // of waiting through another full scroll-end debounce before returning.
+    const lenis = window.lenis;
+    if (
+      performance.now() - lastInput < 120 ||
+      (lenis?.isScrolling && (!Number.isFinite(lenis.velocity) || Math.abs(lenis.velocity) > 1.5))
+    ) {
+      timer = setTimeout(settle, 80);
       return;
     }
     armed = false;
     const travel = window.scrollY - startY;
     if (Math.abs(travel) < 0.5) return;
-    const candidates = roots
-      .map(geometry)
-      .filter((g) => g.fits && Math.abs(g.delta) > 2 && Math.abs(g.delta) <= captureRadius)
+    const candidates = roots.map(geometry);
+    const heldCentre = candidates.find((g) => g.node === centred);
+    if (!heldCentre?.fits || Math.abs(heldCentre.delta) > releaseRadius()) centred = null;
+    const chosen = candidates
+      .filter(
+        (g) =>
+          g.fits && Math.abs(g.delta) <= (g.node === centred ? releaseRadius() : captureRadius()),
+      )
       .sort((a, b) => Math.abs(a.delta) - Math.abs(b.delta));
-    const chosen = candidates[0];
-    if (!chosen) return;
+    const target = chosen.find((g) => g.node === centred) || chosen[0];
+    if (!target) return;
+    centred = target.node;
     const from = window.scrollY;
     const destination = Math.max(
       0,
-      Math.min(from + chosen.delta, document.documentElement.scrollHeight - innerHeight),
+      Math.min(from + target.delta, document.documentElement.scrollHeight - innerHeight),
     );
     if (Math.abs(destination - from) < 2) return;
-    const duration = 700,
+    const duration = Math.min(950, 600 + Math.sqrt(Math.abs(destination - from)) * 18),
       started = performance.now();
-    active = { node: chosen.node, lenis: window.lenis || null };
+    active = { node: target.node, lenis: window.lenis || null };
     // Share the slider's existing chrome lifetime. Its own correction must
     // not be mistaken for the visitor scrolling away from the section.
-    window.TDBSliderFocus?.focus(chosen.node, () => Boolean(active));
+    window.TDBSliderFocus?.focus(target.node, () => Boolean(active));
     const step = (now) => {
       raf = 0;
       if (!active || blocked()) return reset();
       const p = Math.min(1, (now - started) / duration);
-      // Attraction builds as the centre gets closer: a gentle start, then a
-      // quicker final glide. The short capture distance keeps it unobtrusive.
-      const y = from + (destination - from) * Math.pow(p, 2.3);
+      // A damped spring crosses the centre slightly, then settles. Use time,
+      // not frame increments, so the elastic feel is stable at 60/120 Hz.
+      const y = from + (destination - from) * (p === 1 ? 1 : spring(p) / springEnd);
       // Use the site's existing scroll owner; never race its inertia.
       if (active.lenis) active.lenis.scrollTo(y, { immediate: true, force: true });
       else window.scrollTo({ top: y, behavior: 'instant' });
@@ -134,7 +159,7 @@
         active = null;
         // Scroll observers can batch the final correction into one delivery.
         // Rebase their browsing distance at the settled position as well.
-        window.TDBSliderFocus?.focus(chosen.node);
+        window.TDBSliderFocus?.focus(target.node);
         startY = lastY = window.scrollY;
       }
     };
@@ -143,7 +168,7 @@
   function input(event) {
     if (event.type === 'keydown') {
       // Keep keyboard navigation literal and cancel a correction immediately.
-      reset();
+      reset(true);
       anchorUntil = performance.now() + 1000;
       return;
     }
@@ -166,9 +191,12 @@
     }
     const wasActive = !!active;
     stop();
+    if (!centred)
+      centred = roots.map(geometry).find((g) => g.fits && Math.abs(g.delta) <= 3)?.node || null;
     if (!armed || wasActive) startY = window.scrollY;
     armed = true;
     lastInput = performance.now();
+    timer = setTimeout(settle, 120);
   }
   function touchMoved(event) {
     if (!touch || event.touches?.length !== 1) return;
@@ -187,7 +215,7 @@
     held = false;
     if (armed) {
       clearTimeout(timer);
-      timer = setTimeout(settle, 180);
+      timer = setTimeout(settle, 120);
     }
   }
   function scroll() {
@@ -197,9 +225,14 @@
       return;
     }
     if (armed && y !== lastY) {
-      clearTimeout(timer);
-      timer = setTimeout(settle, 180);
+      if (window.lenis?.isScrolling === 'smooth') {
+        if (!timer) timer = setTimeout(settle, 80);
+      } else {
+        clearTimeout(timer);
+        timer = setTimeout(settle, 120);
+      }
     }
+    if (centred && Math.abs(geometry(centred).delta) > releaseRadius()) centred = null;
     lastY = y;
   }
   for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown'])
@@ -213,7 +246,7 @@
     () => {
       if (armed && !active) {
         clearTimeout(timer);
-        timer = setTimeout(settle, 180);
+        timer = setTimeout(settle, 120);
       }
     },
     { signal, passive: true },
@@ -228,12 +261,13 @@
     },
     { signal, capture: true, passive: true },
   );
-  document.addEventListener('visibilitychange', reset, { signal });
-  window.addEventListener('resize', reset, { signal, passive: true });
-  window.addEventListener('pagehide', reset, { signal });
-  reduced.addEventListener('change', reset, { signal });
+  const resetContext = () => reset(true);
+  document.addEventListener('visibilitychange', resetContext, { signal });
+  window.addEventListener('resize', resetContext, { signal, passive: true });
+  window.addEventListener('pagehide', resetContext, { signal });
+  reduced.addEventListener('change', resetContext, { signal });
   window.TDBSectionMagnet = Object.freeze({
-    version: '1.2.0',
+    version: '1.3.0',
     destroy() {
       reset();
       controller.abort();

@@ -1,7 +1,7 @@
 {
   "date": "2026-10-21",
   "scope": "Existing Home services/treatment magnets and treatment stamp interaction",
-  "captureRange": "A repeatable 50px gravity field on either side of centre, after real vertical scrolling settles. A 700ms accelerating glide starts gently and gains speed towards centre. Every qualifying stop can attract again. Clicks do not arm it; new input interrupts immediately, and notice bars move away for the correction.",
+  "captureRange": "Elastic proximity snap: capture within 26% of viewport height (maximum 240px). Once centred, scroll excursions within 40% (maximum 360px) spring back; passing that breakaway distance clears the hold. A time-based damped spring takes 600–950ms with a small overshoot. Slow Lenis inertia hands over promptly, fast scrolling stays free. Clicks do not arm it; new input interrupts immediately, and notice bars move away for the correction.",
   "stampLinks": {
     "optIn": "data-tdb-stamp-link-mode=confirm on the native stamp section",
     "behavior": "An inactive or manually displaced stamp first selects and highlights only. Once the active image and strip have settled, a separate activation reveals the dark image overlay and existing arrow; the following activation opens the CMS link. Drag, wheel, main-slide change and Escape disarm. Touch does not rely on a compatibility click; modified clicks retain normal browser behavior.",
@@ -26,10 +26,18 @@
   "textHeightFollowUp": {
     "reason": "User reported iPad text area resizing. Hidden titles inherited max-width:100% from narrow neighbouring image rows, changing their line counts during selection.",
     "variantId": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
-    "main": { "tdb-treatment-title": { "max-width": "none" }, "tdb-treatment-content": { "min-height": "10rem" } },
+    "main": {
+      "tdb-treatment-title": { "max-width": "none" },
+      "tdb-treatment-content": { "min-height": "10rem" }
+    },
     "before": { "titleMaxWidth": "100%", "contentMinHeight": "0px" },
     "note": "Medium already reserves 10rem. Small retains its existing 0px minimum and natural tallest-row space. Titles and copy remain in normal flow so future longer CMS copy can expand without clipping."
   },
   "preserved": "All image frame heights, spacing, card widths, lower-row clipping, image parallax, CTA and price alignment. Only text space is reserved per the follow-up request. No custom head CSS/JS or new embed.",
-  "reference": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/touch-action"
+  "reference": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/touch-action",
+  "snapReferences": [
+    "https://github.com/darkroomengineering/lenis/blob/main/packages/snap/README.md",
+    "https://lenis.dev/snap",
+    "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/scroll-snap-type"
+  ]
 }
