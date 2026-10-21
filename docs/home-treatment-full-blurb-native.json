@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-21",
+  "supersedes": "Desktop half-width blurb/CTA shared row in home-treatment-compact-native.json",
+  "requirement": "Full focus-card-width text followed by a compact price-left / CTA-right row. Mobile retains its existing layout.",
+  "edits": [
+    {
+      "label": "gallery17_component full width blurb layout",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "gallery17_component",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "display",
+            "property_value": "block"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-copy full width blurb layout",
+      "set_variant_styles": {
+        "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+        "style_name": "tdb-treatment-copy",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "width",
+            "property_value": "100%"
+          },
+          {
+            "property_name": "max-width",
+            "property_value": "none"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-treatment-cta full width blurb layout",
+      "set_variant_styles": {
+        "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+        "style_name": "tdb-treatment-cta",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "width",
+            "property_value": "calc(((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem))"
+          },
+          {
+            "property_name": "margin-left",
+            "property_value": "0px"
+          },
+          {
+            "property_name": "margin-top",
+            "property_value": "1rem"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Keep full-width blurb measurement stable between slides",
+      "set_variant_styles": {
+        "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+        "style_name": "tdb-treatment-copy",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "width",
+            "property_value": "calc((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem)"
+          }
+        ]
+      }
+    }
+  ],
+  "banner": "Horizontal trackpad and shift-wheel now enter shared slider focus, alongside existing pointer drag/click/keyboard."
+}

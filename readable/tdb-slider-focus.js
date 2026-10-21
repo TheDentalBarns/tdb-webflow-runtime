@@ -1,9 +1,9 @@
-/* TDB shared slider focus v1.3.3. Native stamps share focus on every breakpoint. */
+/* TDB shared slider focus v1.3.4. Native stamps share focus on every breakpoint. */
 (() => {
   'use strict';
   const e = document.documentElement;
   if (e.dataset.tdbSliderFocusReady) return;
-  e.dataset.tdbSliderFocusReady = '1.3.3';
+  e.dataset.tdbSliderFocusReady = '1.3.4';
   let viewportWidth = window.innerWidth;
   const t = 'input,textarea,select,[contenteditable="true"]',
     n = '[data-tdb-sg-overlay],.tdb-sg-filter-dock';
@@ -157,6 +157,20 @@
       capture: !0,
       passive: !0,
     }));
+  // Desktop trackpads/native horizontal wheel scrolling do not emit a drag.
+  // Share the existing focus lifetime without intercepting vertical browsing.
+  document.addEventListener(
+    'wheel',
+    (event) => {
+      if (event.ctrlKey || event.metaKey || event.target.closest?.(t + ',' + n)) return;
+      const stamps = event.target.closest?.('[data-tdb-treatment-stamps]');
+      if (!stamps || f(event.target)) return;
+      const horizontal = event.shiftKey ? Math.abs(event.deltaY) : Math.abs(event.deltaX);
+      const vertical = event.shiftKey ? 0 : Math.abs(event.deltaY);
+      if (horizontal > 4 && horizontal > vertical * 1.2) v(stamps);
+    },
+    { capture: true, passive: true },
+  );
   const S = (e) => {
     r?.id === e.pointerId && (r.horizontal && i && v(r.slider), (r = null));
   };

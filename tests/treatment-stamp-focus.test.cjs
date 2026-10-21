@@ -55,3 +55,17 @@ test('stamp selection hides banners on mobile and desktop', () => {
     }
   }
 });
+
+test('desktop horizontal trackpad and shift-wheel hide banners without capturing vertical browsing', () => {
+  for (const options of [{deltaX:90,deltaY:2},{deltaY:90,shiftKey:true}]) {
+    const f=fixture(1440);
+    try {
+      f.link.dispatchEvent(new f.w.WheelEvent('wheel',{bubbles:true,deltaY:90}));
+      assert.equal(f.focused(),false);
+      const event=new f.w.WheelEvent('wheel',{bubbles:true,cancelable:true,...options});
+      f.link.dispatchEvent(event);
+      assert.equal(f.focused(),true);
+      assert.equal(event.defaultPrevented,false);
+    } finally { f.dom.window.close(); }
+  }
+});

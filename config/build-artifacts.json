@@ -544,10 +544,10 @@
       "sources": [
         "src/shared/slider-focus.js"
       ],
-      "sha256": "a572411adaa8f5243d0bef5c970d2e9dcc31ef5ad4402b825350907784bda170",
-      "raw": 5630,
-      "gzip": 2222,
-      "brotli": 1970
+      "sha256": "1c8a6182e4f28e9bdc9ad943e0fce26fc4fc95faa8df09b6fc69ac2d30eee4b6",
+      "raw": 5948,
+      "gzip": 2304,
+      "brotli": 2048
     },
     "dist/tdb-smile-feed.js": {
       "sources": [
