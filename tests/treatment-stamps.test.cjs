@@ -92,7 +92,7 @@ function fixture(count = 6, mobileWidth = false, loop = mobileWidth, confirmLink
   return { dom, w, root, viewport, items, links, swiper, controller, media, tick, frames };
 }
 
-test('opt-in stamp links preview on the first press and preserve the CMS link on the second', () => {
+test('inactive stamps select only; settled active stamps preview then follow the CMS link', () => {
   const f = fixture(6, false, false, true);
   const clicks = [];
   f.root.addEventListener('click', (e) => {
@@ -111,7 +111,17 @@ test('opt-in stamp links preview on the first press and preserve the CMS link on
     assert.equal(clicks.at(-1), true);
     assert.equal(f.swiper.realIndex, 2);
     assert.equal(f.links[0].hasAttribute('data-tdb-stamp-link-ready'), false);
-    assert.equal(f.links[2].hasAttribute('data-tdb-stamp-link-ready'), true);
+    assert.equal(
+      f.links[2].hasAttribute('data-tdb-stamp-link-ready'),
+      false,
+      'selection stays highlighted',
+    );
+    f.links[2].click();
+    assert.equal(
+      f.links[2].hasAttribute('data-tdb-stamp-link-ready'),
+      true,
+      'next press previews the active link',
+    );
     f.swiper.slideTo(3);
     assert.equal(
       f.links[2].hasAttribute('data-tdb-stamp-link-ready'),
@@ -135,7 +145,24 @@ test('opt-in stamp links preview on the first press and preserve the CMS link on
   }
 });
 
-test('two clean touch releases can preview then follow, without needing compatibility clicks', () => {
+test('a moving focus card cannot arm or follow a stamp link', () => {
+  const f = fixture(6, false, false, true);
+  f.root.addEventListener('click', (e) => e.preventDefault());
+  try {
+    f.controller.measure();
+    f.links[2].click();
+    f.swiper.animating = true;
+    f.links[2].click();
+    assert.equal(f.links[2].hasAttribute('data-tdb-stamp-link-ready'), false);
+    f.swiper.animating = false;
+    f.links[2].click();
+    assert.equal(f.links[2].hasAttribute('data-tdb-stamp-link-ready'), true);
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('touch selects, then previews and follows without needing compatibility clicks', () => {
   const f = fixture(6, true, false, true);
   let navigations = 0;
   f.root.addEventListener('click', (e) => {
@@ -160,25 +187,35 @@ test('two clean touch releases can preview then follow, without needing compatib
     pointer('pointerup', 1);
     assert.equal(navigations, 0);
     assert.equal(f.swiper.realIndex, 2);
+    assert.equal(f.links[2].hasAttribute('data-tdb-stamp-link-ready'), false);
+    f.tick(500);
     pointer('pointerdown', 2);
     pointer('pointerup', 2);
+    assert.equal(navigations, 0, 'active stamp previews before following');
+    assert.equal(f.links[2].hasAttribute('data-tdb-stamp-link-ready'), true);
+    pointer('pointerdown', 3);
+    pointer('pointerup', 3);
     assert.equal(navigations, 1);
     const compatibility = new f.w.MouseEvent('click', {
       bubbles: true,
       cancelable: true,
       detail: 1,
     });
-    Object.defineProperty(compatibility, 'pointerId', { value: 2 });
+    Object.defineProperty(compatibility, 'pointerId', { value: 3 });
     f.links[2].dispatchEvent(compatibility);
     assert.equal(navigations, 1, 'browser compatibility click cannot navigate twice');
-    pointer('pointerdown', 3);
-    f.tick(20);
-    pointer('pointermove', 3, 180);
-    pointer('pointerup', 3, 180);
-    assert.equal(f.links[2].hasAttribute('data-tdb-stamp-link-ready'), false, 'drag disarms');
     pointer('pointerdown', 4);
-    pointer('pointerup', 4);
-    assert.equal(navigations, 1, 'first tap after dragging only previews');
+    f.tick(20);
+    pointer('pointermove', 4, 180);
+    pointer('pointerup', 4, 180);
+    assert.equal(f.links[2].hasAttribute('data-tdb-stamp-link-ready'), false, 'drag disarms');
+    pointer('pointerdown', 5);
+    pointer('pointerup', 5);
+    assert.equal(navigations, 1, 'first tap after dragging only returns to selection');
+    assert.equal(f.links[2].hasAttribute('data-tdb-stamp-link-ready'), false);
+    f.tick(500);
+    pointer('pointerdown', 6);
+    pointer('pointerup', 6);
     assert.equal(f.links[2].hasAttribute('data-tdb-stamp-link-ready'), true);
   } finally {
     f.dom.window.close();

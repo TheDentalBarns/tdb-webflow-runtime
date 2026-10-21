@@ -573,7 +573,8 @@ window.TDBTreatmentStamps ||= (() => {
     const track = items[0].parentElement;
     const mobile = matchMedia('(max-width: 767px)');
     const confirmLinks = strip.getAttribute('data-tdb-stamp-link-mode') === 'confirm';
-    let armedIndex = null;
+    let armedIndex = null,
+      pressState = null;
     const labelsBefore = new Map(links.map((link) => [link, link.getAttribute('aria-label')]));
     let looped = false,
       cycle = 0,
@@ -857,13 +858,32 @@ window.TDBTreatmentStamps ||= (() => {
         confirmLinks && armedIndex !== null && Number(link?.dataset.tdbStampIndex) === armedIndex
       );
     }
-    function activateStamp(link) {
-      // The second activation follows the original CMS href/target. Modified
-      // clicks and unenhanced links retain their ordinary browser behavior.
-      if (linkReady(link)) return false;
-      if (!selectStamp(link)) return false;
-      armLink(Number(link.dataset.tdbStampIndex));
-      return true;
+    function liveStamp(link) {
+      return Boolean(
+        swiper &&
+          Number(link?.dataset.tdbStampIndex) === swiper.realIndex &&
+          !swiper.animating &&
+          !motionFrame &&
+          automatic,
+      );
+    }
+    function activateStamp(link, live = liveStamp(link)) {
+      // Selecting or returning a stamp only highlights it. Link preview is a
+      // separate activation once the selected image and strip have settled.
+      if (confirmLinks && live) {
+        automatic = true;
+        if (linkReady(link)) return false;
+        armLink(Number(link.dataset.tdbStampIndex));
+        return true;
+      }
+      armLink(null);
+      if (
+        confirmLinks &&
+        swiper?.animating &&
+        Number(link?.dataset.tdbStampIndex) === swiper.realIndex
+      )
+        return true;
+      return selectStamp(link); // Preserve the unenhanced CMS link fallback.
     }
     function choose(event) {
       const link = event.target.closest('[data-tdb-treatment-stamp]');
@@ -878,6 +898,8 @@ window.TDBTreatmentStamps ||= (() => {
         return;
       const ignored = ignoredClick;
       ignoredClick = null;
+      const live = pressState?.link === link ? pressState.live : liveStamp(link);
+      pressState = null;
       // Ignore only the follow-up click for a handled touch or drag, never a
       // new tap, a keyboard activation, or a permanently missing click.
       if (
@@ -889,10 +911,12 @@ window.TDBTreatmentStamps ||= (() => {
         event.preventDefault();
         return;
       }
-      if (activateStamp(link)) event.preventDefault();
+      if (activateStamp(link, live)) event.preventDefault();
     }
     function down(event) {
       if (event.button !== 0 || event.isPrimary === false) return;
+      const link = event.target.closest?.('[data-tdb-treatment-stamp]');
+      pressState = { link, live: liveStamp(link) };
       stopMotion();
       automatic = false;
       suppressClick = false;
@@ -915,6 +939,7 @@ window.TDBTreatmentStamps ||= (() => {
         return;
       }
       if (!suppressClick && Math.abs(delta) > 6) {
+        pressState = null;
         armLink(null);
         suppressClick = true;
         viewport.setPointerCapture(event.pointerId);
@@ -970,17 +995,20 @@ window.TDBTreatmentStamps ||= (() => {
       suppressClick = false;
       // A clean touch release is the activation. Mobile browsers may withhold
       // their later click after scrolling; waiting for it loses the first tap.
-      const followLink = tap && linkReady(tap);
-      if (tap && (followLink || activateStamp(tap))) {
+      const live = pressState?.link === tap && pressState.live;
+      const followLink = tap && live && linkReady(tap);
+      if (tap && (followLink || activateStamp(tap, live))) {
         event.preventDefault();
         // As with selection, do not depend on a compatibility click after a
         // touch scroll. Native click preserves CMS URL, target and link semantics.
         if (followLink) tap.click();
         ignoredClick = { id, until: performance.now() + 500 };
         window.TDBSliderFocus?.resume({ y: window.scrollY, click: { target: tap } });
+        pressState = null;
       }
     }
     function wheel() {
+      pressState = null;
       armLink(null);
       stopMotion();
       automatic = false;
@@ -1025,7 +1053,7 @@ window.TDBTreatmentStamps ||= (() => {
     instances.set(root, controller);
     return controller;
   }
-  return { version: '1.3.0', prepare };
+  return { version: '1.3.1', prepare };
 })();
 
 /* Native CMS text row follows rendered image geometry, including loop/width motion.

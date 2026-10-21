@@ -4,7 +4,7 @@
   "captureRange": "24% of viewport height, capped at 240px, on approach from either direction. A new user gesture cancels immediately; moving away does not pull back.",
   "stampLinks": {
     "optIn": "data-tdb-stamp-link-mode=confirm on the native stamp section",
-    "behavior": "First activation selects and reveals a dark image overlay with the existing arrow. Second activation follows the original CMS link. Drag, wheel, main-slide change and Escape disarm. Touch does not rely on a compatibility click; modified clicks retain normal browser behavior.",
+    "behavior": "An inactive or manually displaced stamp first selects and highlights only. Once the active image and strip have settled, a separate activation reveals the dark image overlay and existing arrow; the following activation opens the CMS link. Drag, wheel, main-slide change and Escape disarm. Touch does not rely on a compatibility click; modified clicks retain normal browser behavior.",
     "nativeElements": {
       "imageWrapper": "1b740d39-4be7-40f3-7e82-e8317ccd91e3",
       "overlay": "b22d48b1-10fe-0abd-c21f-4d721f2f1492",
