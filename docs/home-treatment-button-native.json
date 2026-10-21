@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-21",
+  "component": "5e5b55f7-9a7f-d930-e0b9-f598c4c91772",
+  "button": "5e5b55f7-9a7f-d930-e0b9-f598c4c91795",
+  "removed": {
+    "id": "5e5b55f7-9a7f-d930-e0b9-f598c4c91798",
+    "type": "HtmlEmbed",
+    "code": "",
+    "classes": [
+      "icon-embed-xxsmall",
+      "tdb-direct-arrow"
+    ],
+    "attributes": {
+      "aria-hidden": "true"
+    }
+  },
+  "replacement": {
+    "id": "7544ba73-52df-2bfe-2eb7-6add0dd7400b",
+    "type": "Block",
+    "classes": [
+      "icon-embed-xxsmall",
+      "tdb-direct-arrow"
+    ],
+    "attributes": {
+      "aria-hidden": "true"
+    }
+  },
+  "reason": "Remove Designer code-embed placeholder sizing while retaining native mask and compact CTA dimensions.",
+  "runtimeChanges": "None. Existing native classes reused."
+}
