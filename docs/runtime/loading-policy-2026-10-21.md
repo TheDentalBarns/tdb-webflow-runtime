@@ -14,6 +14,8 @@ Review entry points include the review count, power review, quote trio and dynam
 
 The Smile Gallery retains its existing minimum neighbour window and also loads every card within the visible horizontal viewport, plus one card-width beyond either edge. This covers wide desktop overhang without downloading every case. Image dimensions and layout are unchanged.
 
-Validation: 498 tests pass, 3 intentional skips; all generated bundles pass `build:check`. Coverage includes all review entry points, dynamically inserted triggers, consent, scrolling settlement, retry/teardown, repeated marquee logos, USP warmup, VIP sequencing and wide Smile Gallery image coverage.
+The Smile embed mounts once its 700px preparation finishes instead of waiting for the generic carousel's second 100px observer. Its first-view entrance animation still waits for visibility. This avoids a preparation timeout when someone pauses between those distances or scrolls past quickly.
+
+Validation: 499 tests pass, 3 intentional skips; all generated bundles pass `build:check`. Coverage includes all review entry points, dynamically inserted triggers, consent, scrolling settlement, retry/teardown, repeated marquee logos, USP warmup, VIP sequencing and wide Smile Gallery image coverage.
 
 Historical release notes describe the earlier gates; this document supersedes their loading timings. Legacy modules retain fallback behavior when used without the shared runtime helper.
