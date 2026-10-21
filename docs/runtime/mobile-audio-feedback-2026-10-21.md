@@ -81,3 +81,49 @@ previous release, repin all first-party assets to `e256a697b1585259b662849bd9270
 and remove the three new native visibility declarations before publishing to
 staging only. The centred text can remain independently. Remove the added
 spinner wrapper and loading-content attribute only if reverting that UI too.
+
+## Follow-up: scrolling during the return animation
+
+David tested the published `407d046930ae1607e77cef01c8be90e4415c30a8`
+release and reported that flashing remains when he releases a speaker and
+scrolls before its animation finishes, then settles after completion. The
+inactive-effect cleanup therefore does not resolve the reported overlap.
+
+The return animates the masked 32px backdrop blur for 1.2 seconds. Live styles
+showed no backdrop-root ancestor between that oversized circle and the document
+root, so it could sample content from neighbouring cards. This is a plausible
+cross-card rendering cause, not a physical-device reproduction or proven root
+cause. The pressed image's concurrent scale also changes its measured parallax
+crop; this is a separate remaining hypothesis, and no shared-motion changes
+are included in this trial.
+
+One native Home variant override is added to `aspect-ratio-portrait`:
+`will-change:opacity`. The card's opacity stays at 1. This establishes a backdrop
+root for its blur without clipping the outline's overflow. It confines the
+blur input to the same card; the blur no longer samples neighbouring content
+outside that card. Zoom, ripple geometry/timings, audio, words, loading feedback
+and parallax code remain unchanged. No JavaScript bytes or scroll handlers are
+added. Offscreen measurement skipping remains disabled.
+
+The root behaviour is described in the CSS Filter Effects Level 2 editor's
+draft, https://drafts.csswg.org/filter-effects-2/#BackdropRoot, and MDN's
+backdrop-filter reference. Browser implementations and phone GPU behaviour
+still require the user's repeat test. The hint can allocate a compositing
+surface per card; no CPU/GPU or memory improvement is claimed.
+
+This is a staging-only native-style trial; all first-party runtime pins remain
+`407d046930ae1607e77cef01c8be90e4415c30a8`. Roll back this trial by removing
+only `will-change` from the Home variant's `aspect-ratio-portrait` style and
+republishing to the Webflow subdomain. Keep `overflow:visible`, the preceding
+cleanup/loading fixes and centred word styles.
+
+## Follow-up: the finger covers the loading feedback
+
+David also reported that the centred spinner is hidden by the finger holding
+the button. The speaker component's Dark glass variant
+(`a5f48416-471f-de6e-d8ae-d0b5eaf4caa9`) now overrides only `tdb-control-loading`:
+`top:calc(-100% - 0.75rem)`, `bottom:auto`, `height:100%`. The existing loading
+circle is raised above the button. Its SVG, rotation, loading lifecycle and
+other controls are unchanged. Remove those three variant properties to revert
+only this positioning change. This native-style change also uses the unchanged
+`407d046930ae1607e77cef01c8be90e4415c30a8` runtime on staging only.

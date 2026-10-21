@@ -24,6 +24,9 @@ The shared native loading circle replaces the speaker icon while the controller,
 audio context or sound is pending. The loader sets `data-tdb-loading` immediately
 on press; the controller clears it when playback starts. Every release, failure
 and teardown clears it as well. Early release still prevents late playback.
+The speaker's Dark glass variant positions the spinner above the button
+(`top:calc(-100% - 0.75rem)`, `bottom:auto`, `height:100%`) so a holding finger
+does not cover it. Other controls retain their existing spinner position.
 
 The image uses an individual scale animation: a steady 6% increase over ten
 seconds, then a fixed limit. Release returns it over 1.2 seconds. Existing
@@ -58,6 +61,13 @@ cancelled, then restores the hidden state. A cancelled predecessor cannot hide a
 new animation. This parks the oversized backdrop-filter surface after use while
 preserving the expanding and returning ripple. No CSS or markup is injected at
 runtime; no head blocks are added.
+
+The Home `aspect-ratio-portrait` variant also uses `will-change:opacity` to
+establish a backdrop root per photo card. This bounds the blur's input to the
+card's own content while retaining visible overflow for the ripple outline.
+It does not animate the card's opacity. This staging trial targets flashing
+while the release animation and scrolling overlap; device confirmation is
+still needed.
 
 Validation: `node --test tests/hold-audio.test.cjs`. Staging browser checks cover
 desktop and mobile native styling, actual Web Audio playback state, delayed
