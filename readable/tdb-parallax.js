@@ -660,7 +660,7 @@ window.TDBTreatmentStamps ||= (() => {
       returnIndex = null;
     }
     function resumeAlignment(index = swiper?.realIndex) {
-      if (mobile.matches && (!automatic || (returnIndex !== null && returnIndex !== index))) {
+      if (!automatic || (returnIndex !== null && returnIndex !== index)) {
         stopMotion();
         returnOffset = null;
         returnIndex = index;
@@ -977,7 +977,7 @@ window.TDBTreatmentStamps ||= (() => {
     instances.set(root, controller);
     return controller;
   }
-  return { version: '1.1.2', prepare };
+  return { version: '1.1.3', prepare };
 })();
 
 /* Native CMS text row follows rendered image geometry, including loop/width motion.
@@ -1170,7 +1170,7 @@ window.TDBTreatmentTicker ||= (() => {
             ? 1
             : -1;
       tickers.forEach((ticker, i) =>
-        ticker?.update(values[i], direction, animate && mobile.matches && previous !== null),
+        ticker?.update(values[i], direction, animate && previous !== null),
       );
       if (total) total.textContent = String(originals.length).padStart(2, '0');
       position?.setAttribute('aria-label', `${index + 1} of ${originals.length}`);

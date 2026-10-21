@@ -120,16 +120,18 @@ test('rapid treatment selection animates only values, retains native nodes/icons
   }
 });
 
-test('desktop and reduced motion update without ticker animation; disposal unbinds the slider', () => {
+test('desktop uses the same ticker; reduced motion stays immediate and disposal unbinds the slider', () => {
   const f = fixture();
   try {
     f.media.matches = false;
     f.select(1);
-    assert.equal(f.animations.length, 0);
-    f.media.matches = true;
+    assert.ok(f.animations.length > 0, 'desktop selection animates the native value slots');
+    f.finish();
+    assert.equal(f.value('price'), 'From £995');
+    const beforeReduced = f.animations.length;
     f.w.TDBMotion.reduced.matches = true;
     f.select(0);
-    assert.equal(f.animations.length, 0);
+    assert.equal(f.animations.length, beforeReduced);
     assert.equal(f.value('price'), 'From £4,195');
     f.controller.dispose();
     assert.equal(f.events.slideChange.size, 0);

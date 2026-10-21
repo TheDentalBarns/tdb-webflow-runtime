@@ -100,7 +100,7 @@ window.TDBTreatmentStamps ||= (() => {
       returnIndex = null;
     }
     function resumeAlignment(index = swiper?.realIndex) {
-      if (mobile.matches && (!automatic || (returnIndex !== null && returnIndex !== index))) {
+      if (!automatic || (returnIndex !== null && returnIndex !== index)) {
         stopMotion();
         returnOffset = null;
         returnIndex = index;
@@ -417,5 +417,5 @@ window.TDBTreatmentStamps ||= (() => {
     instances.set(root, controller);
     return controller;
   }
-  return { version: '1.1.2', prepare };
+  return { version: '1.1.3', prepare };
 })();

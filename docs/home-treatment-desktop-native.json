@@ -1,0 +1,292 @@
+{
+  "date": "2026-10-21",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "677cf86df9952f978d94d8a9",
+  "styles": [
+    {
+      "label": "tdb-treatment-bottom main",
+      "variant_id": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+      "style": "tdb-treatment-bottom",
+      "properties": {
+        "display": "block",
+        "max-width": "100%",
+        "padding-top": "3vw",
+        "width": "calc((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem)"
+      }
+    },
+    {
+      "label": "tdb-treatment-bottom medium",
+      "variant_id": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+      "style": "tdb-treatment-bottom",
+      "properties": {
+        "width": "100%",
+        "padding-top": "5vw"
+      }
+    },
+    {
+      "label": "tdb-treatment-bottom main",
+      "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+      "style": "tdb-treatment-bottom",
+      "properties": {
+        "display": "block",
+        "max-width": "100%",
+        "width": "calc((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem)"
+      }
+    },
+    {
+      "label": "tdb-treatment-bottom medium",
+      "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+      "style": "tdb-treatment-bottom",
+      "properties": {
+        "width": "100%"
+      }
+    },
+    {
+      "label": "tdb-treatment-cta main",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-treatment-cta",
+      "properties": {
+        "position": "relative",
+        "left": "auto",
+        "top": "auto",
+        "bottom": "auto",
+        "width": "calc((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem)",
+        "height": "auto",
+        "max-width": "100%",
+        "margin-top": "2rem",
+        "padding-top": "0px",
+        "padding-right": "0px",
+        "padding-bottom": "0px",
+        "padding-left": "0px",
+        "justify-content": "space-between",
+        "align-items": "center",
+        "column-gap": "1rem"
+      }
+    },
+    {
+      "label": "tdb-treatment-cta medium",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-treatment-cta",
+      "properties": {
+        "width": "100%",
+        "padding-top": "0px",
+        "padding-right": "0px",
+        "padding-bottom": "0px",
+        "padding-left": "0px"
+      }
+    },
+    {
+      "label": "line-divider main",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "line-divider",
+      "properties": {
+        "max-width": "100%",
+        "margin-top": "2rem",
+        "margin-bottom": "2rem",
+        "opacity": "0.3",
+        "width": "calc((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem)"
+      }
+    },
+    {
+      "label": "line-divider medium",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "line-divider",
+      "properties": {
+        "width": "100%"
+      }
+    },
+    {
+      "label": "tdb-treatment-wrapper main",
+      "variant_id": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+      "style": "tdb-treatment-wrapper",
+      "properties": {
+        "width": "max-content",
+        "height": "auto",
+        "min-width": "100%",
+        "padding-right": "0px",
+        "align-items": "flex-start",
+        "column-gap": "1rem"
+      }
+    },
+    {
+      "label": "tdb-treatment-wrapper medium",
+      "variant_id": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+      "style": "tdb-treatment-wrapper",
+      "properties": {
+        "padding-right": "0px",
+        "column-gap": "0.75rem"
+      }
+    },
+    {
+      "label": "tdb-treatment-viewport main",
+      "variant_id": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+      "style": "tdb-treatment-viewport",
+      "properties": {
+        "overflow": "hidden",
+        "height": "auto"
+      }
+    },
+    {
+      "label": "tdb-treatment-cta main",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-treatment-cta",
+      "properties": {
+        "position": "relative",
+        "left": "auto",
+        "top": "auto",
+        "bottom": "auto",
+        "width": "calc((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem)",
+        "height": "auto",
+        "max-width": "100%",
+        "margin-top": "2rem",
+        "padding-top": "0px",
+        "padding-right": "0px",
+        "padding-bottom": "0px",
+        "padding-left": "0px",
+        "justify-content": "space-between",
+        "align-items": "center",
+        "column-gap": "1rem"
+      }
+    },
+    {
+      "label": "tdb-service-discover main",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-service-discover",
+      "properties": {
+        "height": "auto",
+        "min-height": "0px",
+        "margin-left": "auto",
+        "padding-top": ".35rem",
+        "padding-bottom": ".35rem",
+        "align-self": "center",
+        "flex-grow": "0",
+        "flex-shrink": "0"
+      }
+    },
+    {
+      "label": "tdb-service-controls main",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-service-controls",
+      "properties": {
+        "position": "absolute",
+        "left": "0px",
+        "top": "auto",
+        "right": "auto",
+        "padding-right": "1rem",
+        "padding-left": "1rem",
+        "justify-content": "flex-end",
+        "transform": "none",
+        "bottom": "calc(1rem + 5px)",
+        "width": "calc((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem)"
+      }
+    },
+    {
+      "label": "tdb-service-controls medium",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-service-controls",
+      "properties": {
+        "width": "100%"
+      }
+    },
+    {
+      "label": "tdb-team-quotes_position desktop parity",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-team-quotes_position",
+      "properties": {
+        "position": "absolute",
+        "left": "1rem",
+        "top": "auto",
+        "right": "auto",
+        "z-index": "3",
+        "display": "flex",
+        "width": "auto",
+        "height": "3rem",
+        "min-height": "0px",
+        "justify-content": "flex-start",
+        "pointer-events": "none",
+        "color": "#ffffff",
+        "bottom": "calc(1rem + 5px)"
+      }
+    },
+    {
+      "label": "tdb-smile-facts desktop parity",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-smile-facts",
+      "properties": {
+        "display": "grid",
+        "width": "auto",
+        "min-height": "0px",
+        "min-width": "0px",
+        "flex-direction": "column",
+        "flex-grow": "1",
+        "flex-shrink": "1",
+        "color": "#ffffff",
+        "font-size": "0.8125rem",
+        "line-height": "1.5",
+        "font-weight": "300",
+        "column-gap": "0.75rem",
+        "row-gap": "0px",
+        "grid-template-columns": "minmax(0, 1fr)"
+      }
+    },
+    {
+      "label": "tdb-smile-fact desktop parity",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-smile-fact",
+      "properties": {
+        "padding-right": "0px",
+        "padding-left": "0px",
+        "justify-content": "flex-start",
+        "text-align": "left",
+        "letter-spacing": "0em",
+        "text-transform": "none",
+        "column-gap": ".5rem"
+      }
+    },
+    {
+      "label": "tdb-smile-fact-ticker desktop parity",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-smile-fact-ticker",
+      "properties": {
+        "display": "block",
+        "width": "auto",
+        "height": "1.5em",
+        "min-height": "1.5em",
+        "min-width": "0px",
+        "flex-grow": "1",
+        "flex-basis": "auto",
+        "opacity": "1",
+        "color": "#ffffff"
+      }
+    },
+    {
+      "label": "tdb-smile-fact-value desktop parity",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-smile-fact-value",
+      "properties": {
+        "display": "grid",
+        "align-content": "center",
+        "font-weight": "300",
+        "white-space": "nowrap"
+      }
+    },
+    {
+      "label": "tdb-smile-fact-icon desktop parity",
+      "variant_id": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "style": "tdb-smile-fact-icon",
+      "properties": {
+        "width": "1rem",
+        "height": "1rem",
+        "min-width": "1rem",
+        "flex-shrink": "0",
+        "filter": "brightness(0) invert(1)"
+      }
+    }
+  ],
+  "notes": [
+    "Native Designer variants only; no new custom CSS or head scripts.",
+    "Main image widths and blurred overhang unchanged.",
+    "Home loop remains false; optional loop capability retained.",
+    "Existing GitHub module extends value tickers and smooth return to desktop."
+  ]
+}

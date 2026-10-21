@@ -116,6 +116,10 @@ test('manual scroll does not select an image or get pulled back by progress; cli
     assert.equal(f.swiper.realIndex, 5);
     f.links[0].click();
     assert.equal(f.swiper.realIndex, 0);
+    assert.equal(f.viewport.scrollLeft, 100, 'desktop return starts at the manual position');
+    f.tick(250);
+    assert.ok(f.viewport.scrollLeft > 0 && f.viewport.scrollLeft < 100);
+    f.tick(250);
     assert.equal(f.viewport.scrollLeft, 0);
   } finally {
     f.dom.window.close();

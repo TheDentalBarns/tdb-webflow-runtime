@@ -15,7 +15,7 @@ to the relevant site so the values are included in its HTML. The runtime reads t
 selected rendered item, so CMS sorting and new items need no JavaScript price table.
 Missing values remain blank rather than retaining another treatment's facts.
 
-Designer owns the mobile counter and facts slots, fixed price image
+Designer owns the counter and facts slots on all breakpoints, fixed price image
 icons, CTA alignment, five-vw image-to-stamp gap and control offsets above the 5px
 progress bar. Existing native classes are scoped by the Home component variant.
 Only pagination and fact value spans animate through the shared `TDBNativeTicker`
@@ -23,13 +23,21 @@ controller; the icon and CTA stay in place. Home shows only the starting price
 at bottom left, with light text and the CTA at bottom right. The optional duration
 slot has been removed from Home; its CMS field remains reusable. Numeric CMS prices receive GBP
 formatting, including thousands separators. The treatment title retains the
-existing horizontal slide motion and the blurb retains its fade. Desktop retains
-its native title row and CTA.
+existing horizontal slide motion and the blurb retains its fade.
+
+Desktop stamps, divider, text viewport and footer share the native focused-image
+width: `calc((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem)`. Below the desktop
+breakpoint these rows use their container width. Only the image viewport overflows,
+preserving the blurred neighboring image. The finite stamp track has no trailing
+padding; the text viewport clips neighboring content. Price and CTA sit at opposite
+ends of the footer. Desktop CTA vertical padding is .35rem; mobile keeps .75rem.
+Pagination and controls sit 1rem above the 5px progress bar inside the focused
+image. All of this is saved in existing native component variants, not runtime CSS.
 
 Home sets `data-tdb-treatment-loop="false"`. A future variant can opt into main
 slide looping and mobile stamp recycling with `data-tdb-treatment-loop="true"`.
 Without that explicit attribute the postage design is finite, and mobile dragging
-clamps at the last stamp. Independent manual browsing resumes alignment smoothly
+clamps at the last stamp. Desktop and mobile manual browsing resume alignment smoothly
 when a stamp or the main slider is selected. Stamp opacity transitions belong to
 Designer rather than cancelled/replaced filled animations.
 

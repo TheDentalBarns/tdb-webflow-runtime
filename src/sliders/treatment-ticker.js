@@ -70,7 +70,7 @@ window.TDBTreatmentTicker ||= (() => {
             ? 1
             : -1;
       tickers.forEach((ticker, i) =>
-        ticker?.update(values[i], direction, animate && mobile.matches && previous !== null),
+        ticker?.update(values[i], direction, animate && previous !== null),
       );
       if (total) total.textContent = String(originals.length).padStart(2, '0');
       position?.setAttribute('aria-label', `${index + 1} of ${originals.length}`);
