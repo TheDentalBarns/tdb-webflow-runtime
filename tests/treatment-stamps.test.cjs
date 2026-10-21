@@ -81,6 +81,85 @@ function fixture(count = 6, mobileWidth = false, loop = mobileWidth) {
   const controller = w.TDBTreatmentStamps.prepare(root);
   return { dom, w, root, viewport, items, links, swiper, controller, media, tick, frames };
 }
+
+test('mouse and tablet touch have the same frame-rate-independent coast and immediate re-grab', () => {
+  const distances = [];
+  for (const type of ['mouse', 'touch'])
+    for (const step of [8, 16, 32]) {
+      const f = fixture(6, false, false);
+      const pointer = (name, x) => {
+        const e = new f.w.Event(name, { bubbles: true, cancelable: true });
+        Object.assign(e, {
+          button: 0,
+          isPrimary: true,
+          pointerId: 1,
+          pointerType: type,
+          clientX: x,
+          clientY: 50,
+        });
+        f.viewport.dispatchEvent(e);
+      };
+      try {
+        f.controller.measure();
+        pointer('pointerdown', 300);
+        f.tick(20);
+        pointer('pointermove', 290);
+        f.tick(20);
+        pointer('pointermove', 280);
+        pointer('pointerup', 280);
+        const released = f.viewport.scrollLeft;
+        for (let t = 0; t < 320; t += step) f.tick(step);
+        assert.ok(
+          f.viewport.scrollLeft > released + 70,
+          'release glides instead of stopping abruptly',
+        );
+        distances.push(f.viewport.scrollLeft);
+        const caught = f.viewport.scrollLeft;
+        pointer('pointerdown', 200);
+        f.tick(100);
+        assert.equal(
+          f.viewport.scrollLeft,
+          caught,
+          'grabbing stops the coast at its current position',
+        );
+        pointer('pointermove', 190);
+        assert.equal(
+          f.viewport.scrollLeft,
+          caught + 10,
+          'pointer follows one-to-one without jumping',
+        );
+        assert.equal(f.swiper.realIndex, 0, 'browsing never auto-selects');
+      } finally {
+        f.dom.window.close();
+      }
+    }
+  assert.ok(Math.max(...distances) - Math.min(...distances) < 0.001);
+});
+
+test('holding before release kills stale momentum, and reduced motion stops at release', () => {
+  for (const reduced of [false, true]) {
+    const f = fixture(6, false, false);
+    const pointer = (name, x) => {
+      const e = new f.w.Event(name, { bubbles: true, cancelable: true });
+      Object.assign(e, { button: 0, pointerId: 1, pointerType: 'mouse', clientX: x, clientY: 50 });
+      f.viewport.dispatchEvent(e);
+    };
+    try {
+      f.controller.measure();
+      f.w.TDBMotion.reduced.matches = reduced;
+      pointer('pointerdown', 300);
+      f.tick(20);
+      pointer('pointermove', 270);
+      if (!reduced) f.tick(110);
+      pointer('pointerup', 270);
+      f.tick(400);
+      assert.equal(f.viewport.scrollLeft, 30);
+      assert.equal(f.frames.size, 0);
+    } finally {
+      f.dom.window.close();
+    }
+  }
+});
 test('native stamps align first, intermediate and last positions with the progress marker', () => {
   const f = fixture();
   try {
@@ -254,7 +333,7 @@ test('mobile touch drag crosses a recycled end continuously and coasts on releas
     const released = f.viewport.scrollLeft;
     f.tick(16);
     assert.ok(f.viewport.scrollLeft > released, 'release retains velocity');
-    for (let i = 0; i < 60; i++) f.tick(16);
+    for (let i = 0; i < 130; i++) f.tick(16);
     assert.equal(f.frames.size, 0, 'momentum settles');
     assert.equal(f.swiper.realIndex, 0, 'manual browsing does not select a treatment');
   } finally {

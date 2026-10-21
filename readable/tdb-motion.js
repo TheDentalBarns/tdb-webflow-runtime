@@ -1182,7 +1182,10 @@
   if (window.TDBSectionMagnet) return;
   const roots = [...document.querySelectorAll('[data-tdb-magnet]')];
   if (!roots.length) return;
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const reduced =
+    window.TDBMotion?.reduced ||
+    window.TDBMotionPolicy?.reduced ||
+    matchMedia('(prefers-reduced-motion: reduce)');
   const controller = new AbortController(),
     { signal } = controller;
   let timer = 0,
@@ -1230,6 +1233,10 @@
       ) || [])
         bottom = Math.max(bottom, row.getBoundingClientRect().bottom);
     }
+    // Keep the authored heights. On short screens centre the image frame,
+    // rather than disabling the magnet because the copy extends below it.
+    if (node.dataset.tdbMagnet === 'treatment' && bottom - box.top > innerHeight - 32)
+      bottom = box.bottom;
     const height = bottom - box.top;
     const allowed = node.dataset.tdbMagnet === 'frame' ? innerHeight * 1.12 : innerHeight - 32;
     return {
@@ -1294,6 +1301,9 @@
     const ease = (p) => 1 - (1 + 7 * p) * Math.exp(-7 * p);
     const scale = ease(1);
     active = { node: chosen.node, lenis: window.lenis || null };
+    // Share the slider's existing chrome lifetime. Its own correction must
+    // not be mistaken for the visitor scrolling away from the section.
+    window.TDBSliderFocus?.focus(chosen.node, () => Boolean(active));
     const step = (now) => {
       raf = 0;
       if (!active || blocked()) return reset();
@@ -1386,7 +1396,7 @@
   window.addEventListener('pagehide', reset, { signal });
   reduced.addEventListener('change', reset, { signal });
   window.TDBSectionMagnet = Object.freeze({
-    version: '1.0.0',
+    version: '1.1.0',
     destroy() {
       reset();
       controller.abort();

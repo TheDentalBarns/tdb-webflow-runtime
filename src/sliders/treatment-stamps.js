@@ -136,14 +136,17 @@ window.TDBTreatmentStamps ||= (() => {
     }
     function coast(now) {
       motionFrame = 0;
-      const dt = Math.min(32, Math.max(0, now - lastFrame));
+      const dt = Math.min(250, Math.max(0, now - lastFrame));
       lastFrame = now;
       momentumElapsed += dt;
       const before = viewport.scrollLeft;
-      setScroll(before + momentum * dt);
+      // Same exponential coast as the logo marquee, with no cruising speed.
+      // Integrating the decay keeps distance consistent at 60/120 Hz.
+      const decay = Math.exp((-4.2 * dt) / 1000);
+      setScroll(before + (momentum * (1 - decay)) / 0.0042);
       if (!looped && viewport.scrollLeft === before) momentum = 0;
-      momentum *= Math.exp(-dt / 150);
-      if (Math.abs(momentum) > 0.015 && momentumElapsed < 800)
+      momentum *= decay;
+      if (Math.abs(momentum) > 0.002 && momentumElapsed < 2000)
         motionFrame = requestAnimationFrame(coast);
       else momentum = 0;
     }
@@ -298,37 +301,33 @@ window.TDBTreatmentStamps ||= (() => {
       automatic = false;
       suppressClick = false;
       ignoredClick = null;
-      if (mobile.matches || event.pointerType === 'mouse')
-        drag = {
-          id: event.pointerId,
-          type: event.pointerType,
-          link: event.target.closest?.('[data-tdb-treatment-stamp]'),
-          x: event.clientX,
-          y: event.clientY,
-          left: viewport.scrollLeft,
-          lastX: event.clientX,
-          lastTime: performance.now(),
-          velocity: 0,
-        };
+      drag = {
+        id: event.pointerId,
+        type: event.pointerType,
+        link: event.target.closest?.('[data-tdb-treatment-stamp]'),
+        x: event.clientX,
+        y: event.clientY,
+        left: viewport.scrollLeft,
+        samples: [{ x: event.clientX, t: performance.now() }],
+      };
     }
     function move(event) {
       if (!drag || event.pointerId !== drag.id) return;
       const delta = event.clientX - drag.x;
-      if (!suppressClick && Math.abs(event.clientY - drag.y) > Math.max(8, Math.abs(delta))) {
+      if (!suppressClick && Math.abs(event.clientY - drag.y) > Math.max(6, Math.abs(delta))) {
         drag = null;
         return;
       }
-      if (!suppressClick && Math.abs(delta) > (mobile.matches ? 8 : 4)) {
+      if (!suppressClick && Math.abs(delta) > 6) {
         suppressClick = true;
         viewport.setPointerCapture(event.pointerId);
       }
       if (suppressClick) {
-        const now = performance.now(),
-          dt = Math.max(1, now - drag.lastTime);
-        const speed = Math.max(-3.5, Math.min(3.5, (drag.lastX - event.clientX) / dt));
-        drag.velocity = 0.4 * drag.velocity + 0.6 * speed;
-        drag.lastX = event.clientX;
-        drag.lastTime = now;
+        const now = performance.now();
+        // Use the recent gesture, not one noisy pointer event. Keep one
+        // preceding sample to estimate velocity after a sparse move event.
+        drag.samples.push({ x: event.clientX, t: now });
+        while (drag.samples.length > 2 && now - drag.samples[1].t > 100) drag.samples.shift();
         setScroll(drag.left - delta);
         event.preventDefault();
       }
@@ -340,7 +339,6 @@ window.TDBTreatmentStamps ||= (() => {
       if (event.type === 'lostpointercapture' && event.target !== viewport) return;
       const id = drag.id;
       const tap =
-        mobile.matches &&
         drag.type === 'touch' &&
         event.type === 'pointerup' &&
         !suppressClick &&
@@ -356,14 +354,17 @@ window.TDBTreatmentStamps ||= (() => {
           ? { id: drag.id, until: performance.now() + 500 }
           : null;
       if (
-        drag &&
-        mobile.matches &&
         suppressClick &&
         event.type === 'pointerup' &&
-        performance.now() - drag.lastTime < 100 &&
+        performance.now() - drag.samples.at(-1).t < 90 &&
         !window.TDBMotion?.reduced?.matches
       ) {
-        momentum = drag.velocity;
+        const first = drag.samples[0],
+          last = drag.samples.at(-1);
+        momentum = Math.max(
+          -2.8,
+          Math.min(2.8, (first.x - last.x) / Math.max(1, last.t - first.t)),
+        );
         lastFrame = performance.now();
         momentumElapsed = 0;
         motionFrame = requestAnimationFrame(coast);
@@ -417,5 +418,5 @@ window.TDBTreatmentStamps ||= (() => {
     instances.set(root, controller);
     return controller;
   }
-  return { version: '1.1.3', prepare };
+  return { version: '1.2.0', prepare };
 })();

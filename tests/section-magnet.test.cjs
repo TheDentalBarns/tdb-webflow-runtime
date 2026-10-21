@@ -3,7 +3,14 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 
-function fixture({ reduced = false, height = 500, mode = 'treatment', lenis = false } = {}) {
+function fixture({
+  reduced = false,
+  policy,
+  height = 500,
+  mode = 'treatment',
+  lenis = false,
+  copyHeight = 0,
+} = {}) {
   const dom = new JSDOM(
     '<body><section data-tdb-magnet="' + mode + '"></section><a href="#target">Anchor</a></body>',
     { runScripts: 'outside-only', pretendToBeVisual: true },
@@ -22,6 +29,20 @@ function fixture({ reduced = false, height = 500, mode = 'treatment', lenis = fa
   Object.defineProperty(d.documentElement, 'scrollHeight', { value: 5000 });
   w.performance.now = () => now;
   w.matchMedia = () => ({ matches: reduced, addEventListener() {} });
+  if (policy !== undefined) w.TDBMotion = { reduced: { matches: policy, addEventListener() {} } };
+  const focuses = [];
+  w.TDBSliderFocus = {
+    focus(node, hold) {
+      focuses.push({ node, hold });
+    },
+  };
+  if (copyHeight) {
+    root.setAttribute('data-tdb-treatment-layout', '');
+    const copy = d.createElement('div');
+    copy.setAttribute('data-tdb-treatment-details', '');
+    copy.getBoundingClientRect = () => ({ bottom: 1200 + height + copyHeight - y });
+    root.append(copy);
+  }
   w.setTimeout = (fn, delay) => {
     timers.set(++id, { fn, time: now + delay });
     return id;
@@ -75,7 +96,7 @@ function fixture({ reduced = false, height = 500, mode = 'treatment', lenis = fa
     scroll(to);
     advance(200);
   }
-  return { dom, w, d, root, writes, advance, wheel, scroll, gesture, y: () => y };
+  return { dom, w, d, root, writes, focuses, advance, wheel, scroll, gesture, y: () => y };
 }
 
 test('centres from either direction with the native or Lenis scroll owner', () => {
@@ -96,6 +117,39 @@ test('centres from either direction with the native or Lenis scroll owner', () =
         f.dom.window.close();
       }
     }
+});
+test('uses the shared site motion policy and keeps notice bars away during settling', () => {
+  const f = fixture({ reduced: true, policy: false });
+  try {
+    f.gesture(800, 950);
+    assert.equal(f.focuses.length, 1);
+    assert.equal(f.focuses[0].node, f.root);
+    assert.equal(f.focuses[0].hold(), true);
+    f.advance(560);
+    assert.equal(f.y(), 1000);
+    assert.equal(f.focuses[0].hold(), false, 'ordinary browsing resumes after the correction');
+  } finally {
+    f.dom.window.close();
+  }
+  const reduced = fixture({ reduced: false, policy: true });
+  try {
+    reduced.gesture(800, 950);
+    reduced.advance(560);
+    assert.equal(reduced.writes.length, 0, 'shared reduced motion still disables snapping');
+  } finally {
+    reduced.dom.window.close();
+  }
+});
+test('tall treatment copy centres the unchanged image frame on short screens', () => {
+  const f = fixture({ copyHeight: 500 });
+  try {
+    f.gesture(800, 950);
+    f.advance(560);
+    assert.equal(f.y(), 1000);
+    assert.equal(f.root.getBoundingClientRect().height, 500);
+  } finally {
+    f.dom.window.close();
+  }
 });
 test('new wheel input immediately releases the magnet and a small escape does not snap back', () => {
   const f = fixture();

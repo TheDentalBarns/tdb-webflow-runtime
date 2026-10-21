@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-21",
+  "scope": "Existing Home services/treatment magnets and treatment stamp interaction",
+  "magnet": "Use the existing shared site motion policy; activate shared slider focus to move navbar, availability and VIP bars away. Exclude the correction from the user's scroll-away threshold. On screens where the full treatment assembly is taller than the viewport, centre the unchanged image frame.",
+  "stamps": "Marquee-style velocity sampling and exponential coast (4.2/s, capped at 2800px/s), integrated analytically for consistent refresh-rate behavior. Mouse, tablet touch and phone touch share the same direct drag and release. Re-grab cancels momentum immediately. Existing finite bounds, first-tap selection and single-writer return alignment remain.",
+  "designer": {
+    "siteId": "677cf86cf9952f978d94d80c",
+    "pageId": "677cf86df9952f978d94d8a9",
+    "variantId": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+    "style": "tdb-treatment-controls",
+    "main": { "touch-action": "pan-y pinch-zoom" },
+    "small": { "remove": ["touch-action"] },
+    "before": { "main": "unset", "small": "pan-y" }
+  },
+  "textHeightFollowUp": {
+    "reason": "User reported iPad text area resizing. Hidden titles inherited max-width:100% from narrow neighbouring image rows, changing their line counts during selection.",
+    "variantId": "dd06bce4-6d0a-f859-3985-75b4c4d14e42",
+    "main": { "tdb-treatment-title": { "max-width": "none" }, "tdb-treatment-content": { "min-height": "10rem" } },
+    "before": { "titleMaxWidth": "100%", "contentMinHeight": "0px" },
+    "note": "Medium already reserves 10rem. Small retains its existing 0px minimum and natural tallest-row space. Titles and copy remain in normal flow so future longer CMS copy can expand without clipping."
+  },
+  "preserved": "All image frame heights, spacing, card widths, lower-row clipping, image parallax, CTA and price alignment. Only text space is reserved per the follow-up request. No custom head CSS/JS or new embed.",
+  "reference": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/touch-action"
+}

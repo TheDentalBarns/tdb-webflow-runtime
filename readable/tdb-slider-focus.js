@@ -1,9 +1,9 @@
-/* TDB shared slider focus v1.3.4. Native stamps share focus on every breakpoint. */
+/* TDB shared slider focus v1.4.0. Shared gesture and magnetic section focus. */
 (() => {
   'use strict';
   const e = document.documentElement;
   if (e.dataset.tdbSliderFocusReady) return;
-  e.dataset.tdbSliderFocusReady = '1.3.4';
+  e.dataset.tdbSliderFocusReady = '1.4.0';
   let viewportWidth = window.innerWidth;
   const t = 'input,textarea,select,[contenteditable="true"]',
     n = '[data-tdb-sg-overlay],.tdb-sg-filter-dock';
@@ -26,7 +26,7 @@
     const e = d(),
       t = e - i.y;
     ((i.y = e),
-      r?.horizontal
+      r?.horizontal || i.hold?.()
         ? (i.up = i.down = 0)
         : t > 0
           ? ((i.up = 0), (i.down += t))
@@ -72,7 +72,7 @@
         .querySelectorAll('.navbar10_dropdown-toggle[aria-expanded="true"]')
         .forEach((e) => e.click()));
   }
-  function v(t) {
+  function v(t, hold) {
     if (t && !f(t) && !h()) {
       if ((b(), !i)) {
         const e = document.querySelector('.navbar10_component');
@@ -108,10 +108,11 @@
         o = setTimeout(g, duration + 260);
       }
       ((i.slider = t),
+        (i.hold = typeof hold === 'function' ? hold : null),
         (i.controller = window.TDBNavScroll || null),
         p(),
         i.controller
-          ? i.controller.focus(L, () => Boolean(r?.horizontal))
+          ? i.controller.focus(L, () => Boolean(r?.horizontal || i?.hold?.()))
           : ((i.y = d()),
             (i.up = i.down = 0),
             window.addEventListener('scroll', u, {
@@ -273,6 +274,9 @@
       attributeFilter: ['class'],
     }),
     (window.TDBSliderFocus = Object.freeze({
+      focus(target, hold) {
+        if (target?.isConnected) v(target, hold);
+      },
       resume(e) {
         if (!e || Math.abs(window.scrollY - e.y) > 8) return;
         const t = (e.click || e.key || e.down)?.target;
