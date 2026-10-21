@@ -2,6 +2,19 @@
   "date": "2026-10-21",
   "componentId": "0a69bd83-503d-d529-c158-2aeb924dac15",
   "variantId": "59399012-5ce8-ef3a-0d17-0752d014115e",
+  "photoMotion": {
+    "style": "tdb-hold-photo-motion",
+    "attribute": "data-tdb-audio-parallax",
+    "properties": { "width": "100%", "height": "100%" },
+    "homeVariantScale": "1.06",
+    "imageHomeVariantScale": "1",
+    "layerIds": [
+      "506e6700-d872-2285-9140-04f79d1446dc",
+      "47f9606f-8ce7-9911-77d5-171db7d8c06c",
+      "7dd11e34-2dd0-2981-f032-fd4c701792cb"
+    ],
+    "note": "Each existing image moves inside one native layer under its existing clip. Parallax measures/moves the layer; the speaker zooms only the child image."
+  },
   "styles": [
     {
       "name": "tdb-hold-blur-circle",

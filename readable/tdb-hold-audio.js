@@ -130,7 +130,7 @@
     }
     const from = current === 'none' ? '1' : current;
     state.animation?.cancel();
-    // Individual scale leaves the parallax owner's translate/transform untouched.
+    // Home parallax measures/moves the native parent layer, never this zoom.
     const target = held
       ? state.base
           .split(/\s+/)

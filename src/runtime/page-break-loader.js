@@ -45,9 +45,14 @@ function preparePageBreakLoader() {
         '.hero-vimeo_background-video-wrapper',
       );
       add(home.querySelector('.tdb-service-parallax .swiper'), '.showcase_image');
-      home
-        .querySelectorAll('.section_3-image-layout .aspect-ratio-portrait')
-        .forEach((frame) => add(frame, 'img'));
+      home.querySelectorAll('.section_3-image-layout .aspect-ratio-portrait').forEach((frame) =>
+        // The speaker zooms the child photo. Measure/move its native resting
+        // crop layer so that zoom never looks like a layout change on scroll.
+        add(
+          frame,
+          frame.querySelector('[data-tdb-audio-parallax]') ? '[data-tdb-audio-parallax]' : 'img',
+        ),
+      );
       add(
         home.querySelector('.layout355_component'),
         '.vimeo-bg.is-ambient',
@@ -144,7 +149,7 @@ function preparePageBreakLoader() {
     if (event.persisted && retrying) mount();
   }
   window.TDBPageBreaks = Object.freeze({
-    version: '2.0.0',
+    version: '2.0.1',
     refresh,
     destroy,
     status: () => owners.flatMap((owner) => owner.status()),

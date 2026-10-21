@@ -44,8 +44,22 @@
     "owner": "TDBMotion.pageBreaks",
     "translation": "CSS individual translate; horizontal Swiper transform remains independent",
     "range": "-2vh to 2vh, bounded to available native crop",
+    "speakerTrio": {
+      "selector": "[data-tdb-audio-parallax]",
+      "frame": ".aspect-ratio-portrait (unchanged bounds; the inner clip fills it)",
+      "style": "tdb-hold-photo-motion",
+      "variantId": "59399012-5ce8-ef3a-0d17-0752d014115e",
+      "layerScale": "1.06",
+      "photoScale": "1",
+      "note": "The stable layer owns parallax and the native resting crop. Only its child photo is zoomed by the speaker."
+    },
     "grouping": "One motion state per photographic surface, including all carousel loop images",
     "exclusions": ["Smile slider", "Review sliders", "Instagram slider", "logos and UI icons"],
-    "unchanged": ["existing page breaks", "VIP and footer parallax", "sketch reveal", "slide and hover timings"]
+    "unchanged": [
+      "existing page breaks",
+      "VIP and footer parallax",
+      "sketch reveal",
+      "slide and hover timings"
+    ]
   }
 }

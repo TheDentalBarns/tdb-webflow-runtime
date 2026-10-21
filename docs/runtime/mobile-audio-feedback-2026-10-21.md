@@ -168,3 +168,53 @@ pass. Moving the loader increases the early entry by 2,814 raw bytes while
 shrinking runtime by 2,567; the controller adds 140. Across all three files this
 is +387 raw / +421 independently gzipped bytes, with no extra network request
 or continuous scroll/frame work.
+
+## Confirmed zoom/parallax geometry conflict and separated layers
+
+David reported that the no-blur diagnostic improved the behaviour but scrolling
+during the return remained jittery, then approved separating the zoom and
+parallax elements. The code investigation reproduced two defects: animated
+image height can repeatedly trigger the layout-change branch instead of user
+scroll movement, and zoom-time crop limits can permit a translation that the
+resting image cannot cover after an offscreen return. A simulated five-second
+hold followed by the actual 1.2-second release easing stalled 10 of 36 scroll
+updates at 30fps. An offscreen completion model exposed a 2.5px edge until the
+next measurement. These are code/geometry reproductions, not physical-phone
+rendering measurements.
+
+Each existing image now sits in one native `tdb-hold-photo-motion` block, marked
+`data-tdb-audio-parallax`, inside its existing clip. The block is 100% wide/high.
+The Home variant moves the native 1.06 crop scale from `Image 2` to this layer;
+the child image's Home scale is 1. Home discovery targets the stable layer for
+parallax and retains the original card for progress/crop measurements. Legacy
+photo markup without the new layer still selects its image. There are exactly
+three added native blocks; existing image IDs, assets, responsive sources,
+lazy loading, alternative text and the speaker/word hierarchy are preserved.
+
+The unchanged speaker controller animates the child from 1 to 1.06, so the
+combined resting/full-held scale remains 1.06/1.1236. The unchanged motion
+controller reads the layer, which never changes size during a hold or return.
+It therefore keeps ordinary scroll movement and native crop limits throughout.
+There is no new per-frame read, observer, callback, perpetual animation loop or
+cross-module state. Shared motion algorithms, refresh, orientation, pageshow,
+audio/spinner/word/ripple timing and the no-blur diagnostic remain as before.
+Offscreen measurement skipping remains disabled.
+
+The combined source/bundle regression fixtures drive the real speaker, Home
+discovery and motion owners against nested, scaled rectangles. Before changing
+discovery, release-scroll, offscreen-crop and mid-hold-mount checks failed in
+both source and bundle fixtures. Afterward, checks cover 30fps/60fps release,
+neighbouring cards, unchanged full zoom, offscreen completion without a trailing
+frame, refresh, orientation, rapid re-press, pageshow/restoration and cleanup.
+The related speaker, Home parallax, loader and page-position set passes all 54
+checks. Runtime grows by 73 raw / 13 gzip bytes; the motion and speaker bundles
+are byte-identical to the preceding release. Native layer IDs and style values
+are recorded in `docs/home-hold-native.json`.
+
+Deploy the native layer change and new runtime together to staging only. To
+revert, move each image back into its original clip, remove only the three new
+empty layers, restore the Home `Image 2` scale to 1.06 and repin the four global
+asset references to `8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce` before republishing
+staging. Keep the preceding early-hold, loading and dormant-effect fixes.
+Physical Android/Safari testing is still required to determine whether the
+remaining backdrop rendering also contributes to the reported flashing.

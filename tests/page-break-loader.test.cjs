@@ -83,3 +83,13 @@ test('opacity-only wrappers are eligible; incomplete image wrappers can mount on
  e.w.document.querySelector('section').innerHTML='<img>';await api.refresh();assert.equal(e.owners.length,2);
  e.start();assert.equal(e.w.TDBPageBreaks,api);e.dom.window.close();
 });
+
+test('Home speakers select stable layers while older photo markup retains image parallax', async () => {
+ const e=setup('<main data-tdb-home-photo-parallax><section class="section_3-image-layout">'+
+  '<div class="aspect-ratio-portrait"><div data-tdb-audio-image-clip><div data-tdb-audio-parallax><img></div></div></div>'+
+  '<div class="aspect-ratio-portrait"><img></div></section></main>');
+ const api=e.start();await api.refresh();
+ assert.deepEqual(Array.from(e.owners[0].nodes,n=>n.selector),['[data-tdb-audio-parallax]','img']);
+ assert.ok(e.owners[0].nodes.every(n=>!n.frame),'existing card remains the progress/crop frame');
+ api.destroy();e.dom.window.close();
+});

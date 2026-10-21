@@ -37,7 +37,12 @@ controls retain their existing spinner position.
 
 The image uses an individual scale animation: a steady 6% increase over ten
 seconds, then a fixed limit. Release returns it over 1.2 seconds. Existing
-parallax retains ownership of translate/transform. Sound fades out with an
+Home parallax moves the native `data-tdb-audio-parallax` wrapper inside the
+existing image clip; only its child photo zooms. The Home variant's native
+1.06 crop scale belongs to this stable wrapper and the photo starts at scale 1,
+preserving the combined 1.06 resting / 1.1236 fully held appearance. Parallax
+therefore measures the resting crop throughout a hold and return, including
+when the controller mounts mid-hold. Sound fades out with an
 exponential 600ms tail, and the shared playhead includes that tail. A quick
 re-press reverses the fade on the same source; later presses resume at the saved
 position. No audio is fetched merely by approaching the cards.
@@ -49,7 +54,7 @@ hold continues across any card. Releasing early cancels the remaining cues.
 All three use the middle card's native `text-size-large` Home variant, centred
 over the image with its existing smaller mobile size.
 
-Designer owns `tdb-hold-image-clip`, `tdb-hold-blur-circle`, `tdb-hold-ripple-edge` and the centred word
+Designer owns `tdb-hold-image-clip`, `tdb-hold-photo-motion`, `tdb-hold-blur-circle`, `tdb-hold-ripple-edge` and the centred word
 style. The Home variant allows frame overflow; its inner image
 clip preserves the original aspect ratio and crops zoom/parallax. The decorative
 32px backdrop-blur circle lives in the native speaker overlay, sharing the
@@ -75,6 +80,9 @@ effect. On the staging hostname only, `?tdb-speaker-test=no-blur` suppresses
 only the blur animation to isolate it; outline, zoom, words and audio remain.
 The query has no effect on production domains.
 
-Validation: `node --test tests/hold-audio.test.cjs`. Staging browser checks cover
-desktop and mobile native styling, actual Web Audio playback state, delayed
-release, keyboard, touch cancellation, shared download and parallax separation.
+Validation: `node --test tests/hold-audio.test.cjs tests/home-speaker-parallax.test.cjs`.
+Combined motion checks model changing zoom rectangles at 30fps and 60fps,
+offscreen completion, mid-hold mounting, orientation, refresh, pageshow and
+cleanup. Existing speaker checks cover audio, keyboard, cancellation and shared
+downloads. Available staging browser verification is desktop Chrome; physical
+Android/Safari smoothness still requires a device check.
