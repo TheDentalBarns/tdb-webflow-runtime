@@ -4,6 +4,7 @@ module.exports = {
     'src/startup/release.js',
     'src/shared/motion-policy.js',
     'src/shared/modules.js',
+    'src/loaders/hold-audio-loader.js',
     'src/startup/start.js',
   ],
   'dist/tdb-foundation.js': [
@@ -103,7 +104,6 @@ module.exports = {
     'src/brevo/consent.js',
     'src/usp/loader.js',
     'src/five-senses/launcher.js',
-    'src/loaders/hold-audio-loader.js',
     'src/runtime/review-feature-loader.js',
     'src/runtime/lazy-icon-masks.js',
     'src/runtime/instagram-feature-loader.js',

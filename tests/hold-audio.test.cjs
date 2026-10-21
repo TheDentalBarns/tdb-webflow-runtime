@@ -13,6 +13,9 @@ function fixture({
   cold = false,
   visual = false,
   clock = false,
+  deferred = false,
+  suspended = false,
+  url = 'https://dentalbarns.webflow.io/',
   code = source,
 } = {}) {
   const dom = new JSDOM(
@@ -31,7 +34,7 @@ function fixture({
               : '') +
             '</div>',
         ).join(''),
-    { runScripts: 'outside-only', pretendToBeVisual: true },
+    { runScripts: 'outside-only', pretendToBeVisual: true, url },
   );
   const w = dom.window;
   let now = 0,
@@ -55,7 +58,8 @@ function fixture({
     animations: [],
   };
   const downloads = [];
-  let intersect, finishModule;
+  let intersect, finishModule, resumeAudio;
+  const audioReady = new Promise((resolve) => (resumeAudio = resolve));
   w.IntersectionObserver = class {
     constructor(cb, options) {
       intersect = cb;
@@ -98,7 +102,7 @@ function fixture({
     }
     resume() {
       calls.resume++;
-      return Promise.resolve();
+      return suspended ? audioReady : Promise.resolve();
     }
     decodeAudioData() {
       calls.decode++;
@@ -166,7 +170,7 @@ function fixture({
     calls.animations.push(animation);
     return animation;
   };
-  w.eval(loader + '\nprepareHoldAudioLoader();');
+  w.eval(loader + `\nprepareHoldAudioLoader(${deferred});`);
   const buttons = [...w.document.querySelectorAll('button')];
   const event = (target, type, extra = {}) => {
     const e = new w.Event(type, { bubbles: true, cancelable: true });
@@ -178,6 +182,7 @@ function fixture({
     calls,
     buttons,
     downloads,
+    resumeAudio,
     event,
     advance(ms) {
       const until = now + ms;
@@ -266,6 +271,102 @@ test('cold module plays when original press is held through its arrival', async 
   assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
   f.cleanup();
 });
+
+test('a hold captured before runtime permission continues through activation and module loading', async () => {
+  const f = fixture({ deferred: true, cold: true, visual: true });
+  await f.down();
+  assert.equal(f.calls.resume, 1, 'unlock starts in the original gesture');
+  assert.equal(f.calls.module, 0, 'controller stays behind the runtime/consent gate');
+  assert.equal(f.calls.fetch, 0);
+  assert.equal(f.buttons[0].getAttribute('data-tdb-loading'), 'true');
+  f.w.TDBHoldAudioLoader.start();
+  f.w.TDBHoldAudioLoader.start();
+  await tick();
+  assert.equal(f.calls.module, 1);
+  await f.moduleReady();
+  assert.equal(f.calls.fetch, 1);
+  assert.ok(f.calls.animations.length > 0, 'original held input starts visuals');
+  f.downloads[0]();
+  await tick();
+  assert.equal(f.calls.voices[0].started, 1);
+  assert.equal(f.calls.resume, 1, 'handoff reuses the gesture resume promise');
+  assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+  f.cleanup();
+});
+
+for (const ending of ['release', 'destroy']) {
+  test(`a pre-runtime ${ending} cannot later start audio`, async () => {
+    const f = fixture({ deferred: true, cold: true });
+    await f.down();
+    if (ending === 'destroy') f.w.TDBHoldAudioLoader.destroy();
+    else f.up();
+    f.w.TDBHoldAudioLoader.start();
+    await tick();
+    if (ending === 'release') await f.moduleReady();
+    assert.equal(f.calls.fetch, 0);
+    assert.equal(f.calls.voices.length, 0);
+    assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+    f.cleanup();
+  });
+}
+
+test('a pending audio resume does not block controller, visuals or sound download', async () => {
+  const f = fixture({ suspended: true, visual: true });
+  await f.down();
+  assert.equal(f.calls.fetch, 1);
+  assert.ok(f.calls.animations.length > 0);
+  f.downloads[0]();
+  await tick();
+  assert.equal(f.calls.voices.length, 0, 'audio still waits for browser permission');
+  assert.equal(f.buttons[0].getAttribute('data-tdb-loading'), 'true');
+  f.resumeAudio();
+  await tick();
+  assert.equal(f.calls.voices[0].started, 1, 'the same held press continues');
+  assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+  f.cleanup();
+});
+
+test('release while audio resume is pending prevents delayed playback', async () => {
+  const f = fixture({ suspended: true, visual: true });
+  await f.down();
+  f.downloads[0]();
+  f.up();
+  f.resumeAudio();
+  await tick();
+  assert.equal(f.calls.voices.length, 0);
+  assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+  f.cleanup();
+});
+
+for (const host of ['dentalbarns.webflow.io', 'www.thedentalbarns.com']) {
+  test(`blur diagnostic is staging-only: ${host}`, async () => {
+    const f = fixture({ visual: true, url: `https://${host}/?tdb-speaker-test=no-blur` });
+    await f.down();
+    const circle = f.w.document.querySelector('[data-tdb-audio-circle]');
+    const edge = f.w.document.querySelector('[data-tdb-audio-ripple-edge]');
+    assert.equal(
+      f.calls.animations.some((a) => a.element === circle),
+      host !== 'dentalbarns.webflow.io',
+    );
+    assert.ok(
+      f.calls.animations.some((a) => a.element === edge),
+      'outline remains in both modes',
+    );
+    assert.ok(
+      f.calls.animations.some((a) => a.element.tagName === 'IMG'),
+      'zoom remains',
+    );
+    if (host === 'dentalbarns.webflow.io') {
+      edge.style.scale = '0.4';
+      edge.style.opacity = '0.5';
+      f.up();
+      const returning = f.calls.animations.filter((a) => a.element === edge).at(-1);
+      assert.equal(returning.frames[0].scale, '0.4', 'outline returns from its actual size');
+      assert.equal(returning.frames[0].opacity, '0.5');
+    }
+    f.cleanup();
+  });
+}
 
 test('release during audio download stays silent; other cards reuse the buffer', async () => {
   const f = fixture();

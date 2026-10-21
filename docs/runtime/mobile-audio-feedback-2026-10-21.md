@@ -127,3 +127,44 @@ circle is raised above the button. Its SVG, rotation, loading lifecycle and
 other controls are unchanged. Remove those three variant properties to revert
 only this positioning change. This native-style change also uses the unchanged
 `407d046930ae1607e77cef01c8be90e4415c30a8` runtime on staging only.
+
+## Further report: failed boundary trial and missed early hold
+
+David confirmed that the backdrop-boundary trial still flashes badly. Remove
+its `will-change` property; do not treat that trial as a fix. He also reported
+that an initial hold begun while JavaScript is loading does not continue until
+released and pressed again. Inspection found a real ownership gap: listeners
+were installed only as the sixth initializer in the runtime's idle queue, so
+an earlier pointerdown was lost. Additionally, the loader awaited audio resume
+before passing the still-held input to the controller.
+
+Move the existing loader into `tdb-start.min.js`, install its listeners at DOM
+ready and defer network activity behind a gate opened by the consent-released
+runtime. The runtime opens this gate before its idle work; controller proximity
+loading and audio-on-intent remain unchanged. The same held session and original
+audio-resume promise survive the downloads. Audio permission no longer blocks
+visuals or fetching/decoding, while playback itself still waits for permission.
+Release, cancellation, page hiding and teardown invalidate the pending hold.
+This cannot capture input before the initial entry itself has executed, or
+override a browser's audio-activation policy.
+
+Match the speaker spinner to the existing review-control size of 3rem square,
+with the identical shared SVG path, one-second rotation and loading lifecycle.
+The Dark glass variant's overrides are now `top:calc(-3rem - 0.75rem)`,
+`bottom:auto`, `width:3rem`, `height:3rem`, `left:50%`, `right:auto` and
+`translate:-50% 0`. Its visible circle stays above the holding finger.
+
+No further speculative change is made to normal animation geometry/timing.
+The staging-only query `?tdb-speaker-test=no-blur` disables just the blur's
+animation. Its outline, zoom, text and audio remain, allowing the phone test
+to identify whether the backdrop filter is responsible. The parameter is
+ignored on other hostnames. Physical-device flashing is still unresolved.
+
+Tests cover the earliest bundled entry capturing a press before foundation/
+runtime, the consent gate, continuing the same hold through module and audio
+readiness, early release/destroy and pending-resume release. The existing
+effect, audio-playhead and lifecycle checks remain. Bundle inventory checks
+pass. Moving the loader increases the early entry by 2,814 raw bytes while
+shrinking runtime by 2,567; the controller adds 140. Across all three files this
+is +387 raw / +421 independently gzipped bytes, with no extra network request
+or continuous scroll/frame work.

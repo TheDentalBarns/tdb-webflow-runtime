@@ -31,6 +31,9 @@
   }
   function start() {
     document.body.setAttribute('data-wf-scroll-motion', 'none');
+    // Capture a held press before foundation/runtime downloads or idle startup.
+    // Controller/audio fetching still waits for the consent-released runtime.
+    prepareHoldAudioLoader(true);
     load();
   }
   if (document.readyState === 'loading')

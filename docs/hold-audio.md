@@ -10,10 +10,16 @@ Each photo frame has `data-tdb-audio-card` and `data-tdb-audio-src`. Its native
 button has `data-tdb-hold-audio`, `type="button"` and a descriptive accessible
 label. All three currently reference the existing Five Senses calm MP3.
 
-`src/loaders/hold-audio-loader.js` is assembled into the existing consent-released
-runtime. Within 600px of the cards it loads the separate `tdb-hold-audio.js`
-controller. Focus or a press can also load it. A cold press unlocks Web Audio
+`src/loaders/hold-audio-loader.js` is assembled into the small early entry so
+it can record a held press while foundation/runtime are still downloading.
+The consent-released runtime activates its loading gate immediately, before
+the idle feature queue. Until then it makes no controller/audio requests.
+Within 600px of the cards it loads the separate `tdb-hold-audio.js` controller.
+Focus or a press can also request it. A cold press requests Web Audio resume
 synchronously and is replayed only if still held when the controller arrives.
+The original resume promise is shared with the controller; a pending audio
+permission does not block visuals or audio downloading. Playback still respects
+browser permission and never starts after release.
 The controller fetches and decodes the sound only on the first deliberate press,
 then shares that buffer across the cards. Pointer/keyboard release, touch
 cancellation, lost capture, blur and page hiding stop playback. A pending
@@ -24,9 +30,10 @@ The shared native loading circle replaces the speaker icon while the controller,
 audio context or sound is pending. The loader sets `data-tdb-loading` immediately
 on press; the controller clears it when playback starts. Every release, failure
 and teardown clears it as well. Early release still prevents late playback.
-The speaker's Dark glass variant positions the spinner above the button
-(`top:calc(-100% - 0.75rem)`, `bottom:auto`, `height:100%`) so a holding finger
-does not cover it. Other controls retain their existing spinner position.
+The speaker's Dark glass variant positions the spinner above the button so a
+holding finger does not cover it. Its 3rem square matches the existing review
+control indicator; it uses the exact shared SVG arc and rotation. Other
+controls retain their existing spinner position.
 
 The image uses an individual scale animation: a steady 6% increase over ten
 seconds, then a fixed limit. Release returns it over 1.2 seconds. Existing
@@ -62,12 +69,11 @@ new animation. This parks the oversized backdrop-filter surface after use while
 preserving the expanding and returning ripple. No CSS or markup is injected at
 runtime; no head blocks are added.
 
-The Home `aspect-ratio-portrait` variant also uses `will-change:opacity` to
-establish a backdrop root per photo card. This bounds the blur's input to the
-card's own content while retaining visible overflow for the ripple outline.
-It does not animate the card's opacity. This staging trial targets flashing
-while the release animation and scrolling overlap; device confirmation is
-still needed.
+The attempted `will-change:opacity` backdrop boundary did not resolve the
+reported phone flashing and has been removed. The normal page keeps the full
+effect. On the staging hostname only, `?tdb-speaker-test=no-blur` suppresses
+only the blur animation to isolate it; outline, zoom, words and audio remain.
+The query has no effect on production domains.
 
 Validation: `node --test tests/hold-audio.test.cjs`. Staging browser checks cover
 desktop and mobile native styling, actual Web Audio playback state, delayed

@@ -9,6 +9,10 @@
     effects = new Map(),
     voices = new Set();
   const holdDuration = 10000;
+  // Opt-in staging diagnostics leave the normal experience unchanged.
+  const noBlur =
+    location.hostname === 'dentalbarns.webflow.io' &&
+    new URLSearchParams(location.search).get('tdb-speaker-test') === 'no-blur';
   const words = (
     document
       .querySelector('[data-tdb-audio-word-sequence]')
@@ -51,7 +55,8 @@
   function circle(element, held, immediate = false) {
     if (!element) return;
     // Read before cancelling: a quick re-press reverses from the visible size.
-    const current = getComputedStyle(element);
+    const edge = element.parentElement.querySelector('[data-tdb-audio-ripple-edge]');
+    const current = getComputedStyle(noBlur && edge ? edge : element);
     const from = {
       scale: current.scale === 'none' ? '0' : current.scale,
       opacity: current.opacity,
@@ -84,10 +89,9 @@
       easing: held ? 'linear' : 'cubic-bezier(0.4,0,0.2,1)',
       fill: 'forwards',
     };
-    animateEffect(element, frames, options, held);
+    if (!noBlur) animateEffect(element, frames, options, held);
     // A sibling edge avoids masking away the outline or placing the backdrop
     // blur inside an opacity ancestor, which would block the photo backdrop.
-    const edge = element.parentElement.querySelector('[data-tdb-audio-ripple-edge]');
     animateEffect(edge, frames, options, held);
   }
 
@@ -223,7 +227,7 @@
     return buffers.get(url);
   }
 
-  function press(button, input, gestureContext) {
+  function press(button, input, gestureContext, gestureReady) {
     if (disposed || active?.button === button) return;
     const card = button.closest('[data-tdb-audio-card]');
     const url = card?.getAttribute('data-tdb-audio-src');
@@ -254,7 +258,7 @@
         context = gestureContext || new AudioContext();
         ownsContext = !gestureContext;
       }
-      Promise.all([context.resume(), bufferFor(url)])
+      Promise.all([gestureReady || context.resume(), bufferFor(url)])
         .then(([, buffer]) => {
           // A released/cancelled press can finish downloading, but never play later.
           if (disposed || active !== session || !button.isConnected || document.hidden) return;
@@ -323,7 +327,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.3.3',
+    version: '1.3.4',
     press,
     release,
     destroy,

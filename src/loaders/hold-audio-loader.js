@@ -1,5 +1,5 @@
-/* Prime only the controller near the cards. Audio stays behind a deliberate hold. */
-function prepareHoldAudioLoader() {
+/* Capture holds early; runtime permission gates controller/audio requests. */
+function prepareHoldAudioLoader(deferred) {
   'use strict';
   const buttons = [...document.querySelectorAll('[data-tdb-hold-audio]')];
   if (window.TDBHoldAudioLoader || !buttons.length) return;
@@ -9,12 +9,20 @@ function prepareHoldAudioLoader() {
     observer,
     held,
     context,
+    enable,
     disposed = false;
+  const permission = deferred ? new Promise((resolve) => (enable = resolve)) : Promise.resolve();
   function load() {
     if (!flight) {
-      flight = window.TDBModules.load(new URL('tdb-hold-audio.js', TDBRuntimeModuleRoot).href, {
-        ready: () => typeof window.TDBHoldAudio?.press === 'function',
-      })
+      flight = permission
+        .then(() => {
+          if (disposed) return;
+          return window.TDBModules.load(
+            window.TDBRelease?.asset('tdb-hold-audio.js') ||
+              new URL('tdb-hold-audio.js', window.TDBRuntimeModuleRoot).href,
+            { ready: () => typeof window.TDBHoldAudio?.press === 'function' },
+          );
+        })
         .then(() => {
           observer?.disconnect();
         })
@@ -53,16 +61,21 @@ function prepareHoldAudioLoader() {
       // Unlock synchronously even when a cold module download is still pending.
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       context ||= new AudioContext();
-      Promise.all([context.resume(), load()])
+      const resumed = context.resume();
+      const failed = () => {
+        if (held !== session) return;
+        release();
+        button.title = 'Sound unavailable. Hold to try again.';
+      };
+      resumed.catch(failed);
+      // A suspended audio context must not hold up visuals, downloading or the
+      // original held input. The controller waits for audio separately.
+      load()
         .then(() => {
           if (!disposed && held === session && button.isConnected && !document.hidden)
-            window.TDBHoldAudio.press(button, input, context);
+            window.TDBHoldAudio.press(button, input, context, resumed);
         })
-        .catch(() => {
-          if (held !== session) return;
-          release();
-          button.title = 'Sound unavailable. Hold to try again.';
-        });
+        .catch(failed);
     } catch (_) {
       release();
     }
@@ -131,20 +144,31 @@ function prepareHoldAudioLoader() {
     },
     options,
   );
-  if (window.IntersectionObserver) {
-    observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) load().catch(() => {});
-      },
-      { rootMargin: '600px 0px' },
-    );
-    buttons.forEach((button) => observer.observe(button.closest('[data-tdb-audio-card]')));
-  } else load().catch(() => {});
+  function observe() {
+    if (window.IntersectionObserver) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) load().catch(() => {});
+        },
+        { rootMargin: '600px 0px' },
+      );
+      buttons.forEach((button) => observer.observe(button.closest('[data-tdb-audio-card]')));
+    } else load().catch(() => {});
+  }
+  if (!deferred) observe();
   window.TDBHoldAudioLoader = Object.freeze({
+    start() {
+      if (!enable || disposed) return;
+      enable();
+      enable = null;
+      observe();
+    },
     destroy() {
       release(true);
       disposed = true;
       lifecycle.abort();
+      enable?.();
+      enable = null;
       observer?.disconnect();
       window.TDBHoldAudio?.destroy();
       if (context && context.state !== 'closed') context.close().catch(() => {});

@@ -293,6 +293,7 @@
     );
   // The consent handoff occurs after DOM preparation. Keep direct loading safe too.
   function start() {
+    window.TDBHoldAudioLoader?.start();
     refresh();
     enhanceNavbar();
     renderReady
