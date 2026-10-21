@@ -10,6 +10,7 @@ const TDBFeatureStartup = (() => {
     prepareFiveSensesLauncher,
     prepareHoldAudioLoader,
     prepareReviewFeatureLoader,
+    prepareReviewWidgetLoader,
     prepareInstagramFeatureLoader,
     prepareSmileFeatureLoader,
     prepareAttributionLoader,

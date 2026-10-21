@@ -253,6 +253,7 @@
     window.TDBFiveSensesLauncher?.destroy();
     window.TDBHoldAudioLoader?.destroy();
     window.TDBReviewFeatureLoader?.destroy();
+    window.TDBReviewWidgetLoader?.destroy();
     window.TDBLazyIconMasks?.destroy();
     window.TDBInstagramFeatureLoader?.destroy();
     for (const cancel of [...cancellations]) cancel();

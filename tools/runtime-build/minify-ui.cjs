@@ -6,6 +6,7 @@ const path = require('node:path');
 const CleanCSS = require('clean-css');
 const root = path.resolve(__dirname, '../..');
 const bundles = {
+  'tdb-review-widget.css': ['tdb-review-widget.css'],
   'tdb-review-cards.css': ['tdb-review-cards.css'],
   'tdb-scroll-lock.css': ['tdb-scroll-lock.css'],
   'tdb-vip-chrome.css': ['tdb-vip-chrome.css'],
