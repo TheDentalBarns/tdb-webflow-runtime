@@ -2,6 +2,7 @@
   "date": "2026-10-21",
   "scope": "Existing Home services/treatment magnets and treatment stamp interaction",
   "inputScope": "Desktop mouse/trackpad only: min-width 768px, hover hover, pointer fine, matching the site's Lenis eligibility. Phone/tablet scrolling stays native in either orientation. Touch gestures also cancel without arming on hybrid desktops.",
+  "landscapeControls": "Home postage Treatments no longer receives Services' is-phone-landscape class on the controls or button wrapper. Its existing native Designer variant keeps the arrows bottom-right, one rem above the 5px progress bar. Services and older treatment layouts retain their own phone-landscape classes. No dimensions or new CSS are introduced.",
   "captureRange": "Elastic proximity snap: capture within 26% of viewport height (maximum 240px). Once centred, scroll excursions within 40% (maximum 360px) spring back; passing that breakaway distance clears the hold. A time-based damped spring takes 600–950ms with a small overshoot. Slow Lenis inertia hands over promptly, fast scrolling stays free. Clicks do not arm it; new input interrupts immediately, and notice bars move away for the correction.",
   "stampLinks": {
     "optIn": "data-tdb-stamp-link-mode=confirm on the native stamp section",

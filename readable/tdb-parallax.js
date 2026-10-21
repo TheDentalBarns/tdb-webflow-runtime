@@ -58,11 +58,20 @@ window.TDBParallaxPresentation ||= (() => {
   const l = matchMedia('(pointer: coarse)');
   function c(e) {
     const t = n.matches && document.documentElement.classList.contains('tdb-phone-landscape');
+    const nativeTreatmentControls = e.hasAttribute('data-tdb-treatment-postage');
     (e
       .querySelectorAll(
         '.tdb-service-content,.tdb-service-heading-row,.tdb-service-title,.tdb-service-copy,.tdb-service-link-source,.tdb-service-controls,.tdb-service-buttons,.tdb-service-cta',
       )
-      .forEach((e) => e.classList.toggle('is-phone-landscape', t)),
+      .forEach((node) =>
+        node.classList.toggle(
+          'is-phone-landscape',
+          t &&
+            !(
+              nativeTreatmentControls && node.matches('.tdb-service-controls,.tdb-service-buttons')
+            ),
+        ),
+      ),
       (e.dataset.tdbServiceLayout = t
         ? 'phone-landscape'
         : r.matches
