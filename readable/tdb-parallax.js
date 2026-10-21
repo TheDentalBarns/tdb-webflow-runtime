@@ -583,6 +583,14 @@ window.TDBTreatmentStamps ||= (() => {
       drag = null,
       suppressClick = false;
     let selected = -1;
+    let motionFrame = 0,
+      returnOffset = 0,
+      returnStarted = 0,
+      returnDuration = 500,
+      targetLeft = 0,
+      momentum = 0,
+      lastFrame = 0,
+      momentumElapsed = 0;
     const animations = new Map();
     const on = (type, listener, options) => viewport.addEventListener(type, listener, options);
     links.forEach((link, index) => {
@@ -591,6 +599,7 @@ window.TDBTreatmentStamps ||= (() => {
     function configureLoop() {
       const enabled = mobile.matches && links.length > 1;
       if (enabled === looped) return;
+      stopMotion();
       copies.forEach((node) => {
         animations.get(node)?.cancel();
         animations.delete(node);
@@ -623,9 +632,63 @@ window.TDBTreatmentStamps ||= (() => {
       const before = viewport.scrollLeft;
       const after = cycle / 2 + ((((before - cycle / 2) % cycle) + cycle) % cycle);
       if (Math.abs(after - before) < 0.5) return;
-      viewport.scrollLeft = after;
-      // Preserve the pointer's origin when a dragged cycle is recycled.
-      if (drag) drag.left += after - before;
+      setScroll(before);
+    }
+    function setScroll(value) {
+      // Wrap before assigning scrollLeft, so the browser never clamps a drag
+      // at a physical end or interrupts its momentum at a recycled cycle.
+      const next =
+        looped && cycle ? cycle / 2 + ((((value - cycle / 2) % cycle) + cycle) % cycle) : value;
+      viewport.scrollLeft = next;
+      if (drag) drag.left += next - value;
+    }
+    function stopMotion() {
+      if (motionFrame) cancelAnimationFrame(motionFrame);
+      motionFrame = 0;
+      momentum = 0;
+      returnOffset = 0;
+    }
+    function resumeAlignment() {
+      if (looped && !automatic) {
+        stopMotion();
+        returnOffset = null;
+        returnDuration = window.TDBMotion?.reduced?.matches
+          ? 0
+          : window.TDBMotion?.duration?.(viewport.clientWidth) || 500;
+      }
+      automatic = true;
+    }
+    function returnStep(now) {
+      motionFrame = 0;
+      const elapsed = returnDuration ? Math.min(1, (now - returnStarted) / returnDuration) : 1;
+      setScroll(targetLeft + returnOffset * Math.pow(1 - elapsed, 3));
+      if (elapsed < 1) motionFrame = requestAnimationFrame(returnStep);
+      else returnOffset = 0;
+    }
+    function align(value) {
+      targetLeft = value;
+      if (returnOffset === null) {
+        const difference = viewport.scrollLeft - value;
+        returnOffset = cycle
+          ? ((((difference + cycle / 2) % cycle) + cycle) % cycle) - cycle / 2
+          : difference;
+        returnStarted = performance.now();
+      }
+      if (returnOffset) {
+        if (motionFrame) cancelAnimationFrame(motionFrame);
+        returnStep(performance.now());
+      } else setScroll(value);
+    }
+    function coast(now) {
+      motionFrame = 0;
+      const dt = Math.min(32, Math.max(0, now - lastFrame));
+      lastFrame = now;
+      momentumElapsed += dt;
+      setScroll(viewport.scrollLeft + momentum * dt);
+      momentum *= Math.exp(-dt / 150);
+      if (Math.abs(momentum) > 0.015 && momentumElapsed < 800)
+        motionFrame = requestAnimationFrame(coast);
+      else momentum = 0;
     }
     function dim(item, active, heading = false) {
       if (!item) return;
@@ -663,7 +726,7 @@ window.TDBTreatmentStamps ||= (() => {
       selection();
     }
     function change() {
-      automatic = true;
+      resumeAlignment();
       selection();
     }
     function measure() {
@@ -689,8 +752,7 @@ window.TDBTreatmentStamps ||= (() => {
         // Across the seam continue forward into the next CMS copy. Recycling
         // a whole cycle is visually identical, including during a native drag.
         const marker = lower === last ? (trackWidth - width) * (1 - fraction) : markerX;
-        viewport.scrollLeft = cycle + offset - marker;
-        normalize();
+        align(cycle + offset - marker);
         return;
       }
       // The loop's duplicated images cross the seam; stamps remain a finite list.
@@ -725,7 +787,7 @@ window.TDBTreatmentStamps ||= (() => {
       }
       const index = Number(link.dataset.tdbStampIndex);
       if (!Number.isInteger(index) || index < 0 || index >= links.length) return;
-      automatic = true;
+      resumeAlignment();
       swiper.slideToLoop(index);
       const progress = root.querySelector('[data-tdb-native-progress]');
       const trackWidth = progress.getBoundingClientRect().width;
@@ -740,31 +802,65 @@ window.TDBTreatmentStamps ||= (() => {
     }
     function down(event) {
       if (event.button !== 0) return;
+      stopMotion();
       automatic = false;
       suppressClick = false;
-      if (event.pointerType === 'mouse')
-        drag = { id: event.pointerId, x: event.clientX, left: viewport.scrollLeft };
+      if (looped || event.pointerType === 'mouse')
+        drag = {
+          id: event.pointerId,
+          x: event.clientX,
+          y: event.clientY,
+          left: viewport.scrollLeft,
+          lastX: event.clientX,
+          lastTime: performance.now(),
+          velocity: 0,
+        };
     }
     function move(event) {
       if (!drag || event.pointerId !== drag.id) return;
       const delta = event.clientX - drag.x;
-      if (Math.abs(delta) > 4) suppressClick = true;
+      if (!suppressClick && Math.abs(event.clientY - drag.y) > Math.max(8, Math.abs(delta))) {
+        drag = null;
+        return;
+      }
+      if (Math.abs(delta) > (looped ? 8 : 4)) suppressClick = true;
       if (suppressClick) {
         viewport.setPointerCapture(event.pointerId);
-        viewport.scrollLeft = drag.left - delta;
+        const now = performance.now(),
+          dt = Math.max(1, now - drag.lastTime);
+        const speed = Math.max(-3.5, Math.min(3.5, (drag.lastX - event.clientX) / dt));
+        drag.velocity = 0.4 * drag.velocity + 0.6 * speed;
+        drag.lastX = event.clientX;
+        drag.lastTime = now;
+        setScroll(drag.left - delta);
         event.preventDefault();
       }
     }
-    function up() {
+    function up(event) {
+      if (
+        drag &&
+        looped &&
+        suppressClick &&
+        event.type === 'pointerup' &&
+        performance.now() - drag.lastTime < 100 &&
+        !window.TDBMotion?.reduced?.matches
+      ) {
+        momentum = drag.velocity;
+        lastFrame = performance.now();
+        momentumElapsed = 0;
+        motionFrame = requestAnimationFrame(coast);
+      }
       drag = null;
     }
     function wheel() {
+      stopMotion();
       automatic = false;
     }
     function preventDrag(event) {
       event.preventDefault();
     }
     function dispose() {
+      stopMotion();
       for (const [type, fn] of listeners) viewport.removeEventListener(type, fn);
       swiper?.off('slideChange', change);
       swiper?.off('beforeDestroy', dispose);

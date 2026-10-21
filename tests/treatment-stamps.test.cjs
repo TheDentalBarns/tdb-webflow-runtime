@@ -24,6 +24,23 @@ function fixture(count = 6, mobileWidth = false) {
     listeners = {};
   const media = { matches: mobileWidth };
   w.matchMedia = () => media;
+  let clock = 0,
+    frameId = 0;
+  const frames = new Map();
+  w.performance.now = () => clock;
+  w.requestAnimationFrame = (fn) => {
+    frames.set(++frameId, fn);
+    return frameId;
+  };
+  w.cancelAnimationFrame = (id) => frames.delete(id);
+  w.TDBMotion = { duration: () => 500, reduced: { matches: false } };
+  w.HTMLElement.prototype.setPointerCapture = () => {};
+  function tick(ms) {
+    clock += ms;
+    const running = [...frames.values()];
+    frames.clear();
+    running.forEach((fn) => fn(clock));
+  }
   w.Element.prototype.animate = function (frames) {
     this.dataset.finalOpacity = frames.at(-1).opacity;
     this.dataset.finalColor = frames.at(-1).color;
@@ -53,7 +70,7 @@ function fixture(count = 6, mobileWidth = false) {
   });
   w.eval(fs.readFileSync('src/sliders/treatment-stamps.js', 'utf8'));
   const controller = w.TDBTreatmentStamps.prepare(root);
-  return { dom, w, root, viewport, items, links, swiper, controller, media };
+  return { dom, w, root, viewport, items, links, swiper, controller, media, tick, frames };
 }
 test('native stamps align first, intermediate and last positions with the progress marker', () => {
   const f = fixture();
@@ -179,6 +196,54 @@ test('returning to desktop restores the original finite CMS row; disposal remove
     f.controller.dispose();
     assert.deepEqual([...f.viewport.children], f.items);
     assert.equal(f.links[0].hasAttribute('data-tdb-stamp-index'), false);
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('mobile selection eases back from a manually scrolled position instead of snapping', () => {
+  const f = fixture(6, true);
+  try {
+    f.controller.measure();
+    f.controller.paint(0, 0, 800);
+    f.viewport.dispatchEvent(new f.w.Event('wheel'));
+    f.viewport.scrollLeft = 1100;
+    f.links[0].click();
+    assert.equal(f.viewport.scrollLeft, 1100, 'first frame preserves the manual pose');
+    f.tick(250);
+    assert.ok(f.viewport.scrollLeft > 1100 && f.viewport.scrollLeft < 1320);
+    f.tick(250);
+    assert.equal(f.viewport.scrollLeft, 1320);
+    assert.equal(f.frames.size, 0);
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('mobile touch drag crosses a recycled end continuously and coasts on release', () => {
+  const f = fixture(6, true);
+  function pointer(type, x, y = 100) {
+    const event = new f.w.Event(type, { bubbles: true, cancelable: true });
+    Object.assign(event, { button: 0, pointerType: 'touch', pointerId: 1, clientX: x, clientY: y });
+    f.links[0].dispatchEvent(event);
+  }
+  try {
+    f.controller.measure();
+    f.controller.paint(0, 0, 800);
+    pointer('pointerdown', 100);
+    f.tick(16);
+    pointer('pointermove', -1000);
+    const wrapped = f.viewport.scrollLeft;
+    f.tick(16);
+    pointer('pointermove', -1010);
+    assert.equal(f.viewport.scrollLeft - wrapped, 10, 'recycling preserves the pointer origin');
+    pointer('pointerup', -1010);
+    const released = f.viewport.scrollLeft;
+    f.tick(16);
+    assert.ok(f.viewport.scrollLeft > released, 'release retains velocity');
+    for (let i = 0; i < 60; i++) f.tick(16);
+    assert.equal(f.frames.size, 0, 'momentum settles');
+    assert.equal(f.swiper.realIndex, 0, 'manual browsing does not select a treatment');
   } finally {
     f.dom.window.close();
   }
