@@ -11,10 +11,9 @@ window.TDBTreatmentTicker ||= (() => {
     const position = root.querySelector('[data-tdb-treatment-position]');
     const current = position?.querySelector('[data-tdb-treatment-current]');
     const total = position?.querySelector('[data-tdb-treatment-total]');
-    const title = owner.querySelector('[data-tdb-treatment-title-ticker]');
     const price = owner.querySelector('[data-tdb-treatment-price]');
     const duration = owner.querySelector('[data-tdb-treatment-duration]');
-    const slots = [current, title, price, duration];
+    const slots = [current, price, duration];
     if (!slots.some(Boolean)) return null;
     const mobile = matchMedia('(max-width: 767px)');
     let swiper,
@@ -55,7 +54,6 @@ window.TDBTreatmentTicker ||= (() => {
       );
       const values = [
         String(index + 1).padStart(2, '0'),
-        clean(slide?.querySelector('.tdb-treatment-title')?.textContent),
         formattedAmount
           ? /^from\b/i.test(formattedAmount)
             ? formattedAmount
@@ -85,7 +83,7 @@ window.TDBTreatmentTicker ||= (() => {
           slot &&
           window.TDBNativeTicker.mount(
             slot,
-            i < 2
+            i === 0
               ? {}
               : {
                   valueClass: 'tdb-smile-fact-value',

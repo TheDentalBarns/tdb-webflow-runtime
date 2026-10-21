@@ -15,11 +15,15 @@ to the relevant site so the values are included in its HTML. The runtime reads t
 selected rendered item, so CMS sorting and new items need no JavaScript price table.
 Missing values remain blank rather than retaining another treatment's facts.
 
-Designer owns the mobile title, counter and facts slots, fixed price/clock image
+Designer owns the mobile counter and facts slots, fixed price/clock image
 icons, CTA alignment, five-vw image-to-stamp gap and control offsets above the 5px
 progress bar. Existing native classes are scoped by the Home component variant.
-Only the value spans animate through the shared `TDBNativeTicker` controller;
-the icons and CTA stay in place. Desktop retains its native title row and CTA.
+Only pagination and fact value spans animate through the shared `TDBNativeTicker`
+controller; the icons and CTA stay in place. Price and duration sit side by side
+in the native mobile facts row with light text. Numeric CMS prices receive GBP
+formatting, including thousands separators. The treatment title retains the
+existing horizontal slide motion and the blurb retains its fade. Desktop retains
+its native title row and CTA.
 
 Home sets `data-tdb-treatment-loop="false"`. A future variant can opt into main
 slide looping and mobile stamp recycling with `data-tdb-treatment-loop="true"`.

@@ -13,7 +13,6 @@ function fixture() {
       <article><h3 class="tdb-treatment-title">Treatment A</h3><a data-tdb-treatment-price-source="£995" data-tdb-treatment-duration-source="Several weeks"></a></article>
       <article><h3 class="tdb-treatment-title">Treatment C</h3><a data-tdb-treatment-price-source="" data-tdb-treatment-duration-source=""></a></article>
     </div></div><div data-tdb-treatment-position><span data-tdb-treatment-current>01</span><span data-tdb-treatment-total>06</span></div></div>
-    <h3 data-tdb-treatment-title-ticker><span class="review-number_value">Initial</span><span class="review-number_incoming"></span></h3>
     <div data-tdb-treatment-facts><img alt="" src="price.svg">${slot('data-tdb-treatment-price')}<img alt="" src="clock.svg">${slot('data-tdb-treatment-duration')}</div>
   </section>`,
     { runScripts: 'outside-only', url: 'https://example.test/' },
@@ -72,7 +71,6 @@ test('treatment values come from each rendered CMS item, including CMS reorderin
   try {
     assert.equal(f.value('price'), 'From £4,195');
     assert.equal(f.value('duration'), '6–18 months');
-    assert.equal(f.value('title-ticker'), 'Treatment B');
     assert.equal(f.w.document.querySelector('[data-tdb-treatment-total]').textContent, '03');
     f.select(1);
     f.finish();
@@ -95,13 +93,18 @@ test('rapid treatment selection animates only values, retains native nodes/icons
   const f = fixture();
   try {
     const icons = [...f.w.document.querySelectorAll('img')];
+    const headings = [...f.w.document.querySelectorAll('h3')].map((e) => e.outerHTML);
     const value = f.w.document.querySelector('[data-tdb-treatment-price]').firstElementChild;
     f.select(1);
     f.select(2);
     f.select(0);
     f.finish();
     assert.equal(f.value('price'), 'From £4,195');
-    assert.equal(f.value('title-ticker'), 'Treatment B');
+    assert.deepEqual(
+      [...f.w.document.querySelectorAll('h3')].map((e) => e.outerHTML),
+      headings,
+      'CMS titles remain owned by the existing horizontal slider',
+    );
     assert.equal(f.w.document.querySelector('[data-tdb-treatment-price]').firstElementChild, value);
     assert.deepEqual([...f.w.document.querySelectorAll('img')], icons);
     assert.ok(f.animations.every((a) => a.node.tagName === 'SPAN'));
