@@ -27,6 +27,21 @@ exponential 600ms tail, and the shared playhead includes that tail. A quick
 re-press reverses the fade on the same source; later presses resume at the saved
 position. No audio is fetched merely by approaching the cards.
 
+The existing native word elements are restored. The nine-word sequence is
+authored in `data-tdb-audio-word-sequence`: HOLD, BREATHE, RELAX, UNWIND,
+PEACEFUL, CALM, STILL, REST, EASE. Three words fade in and out per ten-second hold; the next
+hold continues across any card. Releasing early cancels the remaining cues.
+Reception places the word at the top, lounge in the middle, chair near the bottom.
+
+Designer owns `tdb-hold-image-clip`, `tdb-hold-blur-circle` and the two word
+position classes. The Home variant allows frame overflow; its new inner image
+clip preserves the original aspect ratio and crops zoom/parallax. The decorative
+20px backdrop-blur circle is a sibling of that clip, centred on the image, and
+can expand beyond the card. Words and speaker controls sit above it. The external
+controller animates only scale/opacity with the Web Animations API, reverses from
+the current appearance on early release/re-press, and cancels all effects/timers
+on teardown. No CSS or markup is injected at runtime; no head blocks are added.
+
 Validation: `node --test tests/hold-audio.test.cjs`. Staging browser checks cover
 desktop and mobile native styling, actual Web Audio playback state, delayed
 release, keyboard, touch cancellation, shared download and parallax separation.

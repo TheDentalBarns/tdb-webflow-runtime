@@ -6,12 +6,85 @@
   const buffers = new Map(),
     positions = new Map(),
     zooms = new Map(),
+    effects = new Map(),
     voices = new Set();
+  const holdDuration = 10000;
+  const words = (
+    document
+      .querySelector('[data-tdb-audio-word-sequence]')
+      ?.getAttribute('data-tdb-audio-word-sequence') ||
+    document.querySelector('[data-tdb-audio-words]')?.getAttribute('data-tdb-audio-words') ||
+    ''
+  )
+    .split('|')
+    .map((word) => word.trim())
+    .filter(Boolean);
+  let nextWord = 0;
   let context,
     ownsContext = false,
     active,
     disposed = false,
     lastUrl;
+
+  function animateEffect(element, frames, options, retain = false) {
+    if (!element?.animate) return;
+    effects.get(element)?.cancel();
+    const animation = element.animate(frames, options);
+    effects.set(element, animation);
+    animation.finished
+      .then(() => {
+        if (retain || effects.get(element) !== animation) return;
+        animation.cancel();
+        effects.delete(element);
+      })
+      .catch(() => {});
+  }
+
+  function circle(element, held, immediate = false) {
+    if (!element) return;
+    // Read before cancelling: a quick re-press reverses from the visible size.
+    const current = getComputedStyle(element);
+    const from = {
+      scale: current.scale === 'none' ? '0' : current.scale,
+      opacity: current.opacity,
+    };
+    animateEffect(
+      element,
+      [from, { scale: held ? '1' : '0', opacity: held ? '1' : '0' }],
+      {
+        duration:
+          immediate || window.TDBMotionPolicy?.reduced?.matches ? 0 : held ? holdDuration : 1200,
+        easing: held ? 'linear' : 'cubic-bezier(0.165,0.84,0.44,1)',
+        fill: 'forwards',
+      },
+      held,
+    );
+  }
+
+  function showWord(session) {
+    if (active !== session || !session.word || !words.length) return;
+    session.word.textContent = words[nextWord];
+    nextWord = (nextWord + 1) % words.length;
+    animateEffect(
+      session.word,
+      [
+        { opacity: 0, offset: 0 },
+        { opacity: 1, offset: 0.2 },
+        { opacity: 1, offset: 0.78 },
+        { opacity: 0, offset: 1 },
+      ],
+      { duration: holdDuration / 3, easing: 'linear', fill: 'forwards' },
+    );
+  }
+
+  function startVisuals(session) {
+    circle(session.circle, true);
+    showWord(session);
+    session.timers = [
+      setTimeout(() => showWord(session), holdDuration / 3),
+      setTimeout(() => showWord(session), (holdDuration * 2) / 3),
+    ];
+  }
 
   function zoom(image, held) {
     if (!image?.animate) return;
@@ -85,6 +158,15 @@
     const session = active;
     if (!session) return;
     active = null;
+    session.timers?.forEach(clearTimeout);
+    if (session.word) {
+      const opacity = getComputedStyle(session.word).opacity;
+      animateEffect(session.word, [{ opacity }, { opacity: 0 }], {
+        duration: immediate ? 0 : 350,
+        fill: 'forwards',
+      });
+    }
+    circle(session.circle, false, immediate);
     session.button.setAttribute('aria-pressed', 'false');
     session.button.removeAttribute('aria-busy');
     if (session.pointer != null && session.button.hasPointerCapture?.(session.pointer))
@@ -115,7 +197,13 @@
     const url = card?.getAttribute('data-tdb-audio-src');
     if (!url || button.disabled) return;
     release();
-    const session = { button, image: card.querySelector('img'), ...input };
+    const session = {
+      button,
+      image: card.querySelector('img'),
+      word: card.querySelector('[data-tdb-audio-words]'),
+      circle: card.querySelector('[data-tdb-audio-circle]'),
+      ...input,
+    };
     active = session;
     button.setAttribute('aria-pressed', 'true');
     button.setAttribute('aria-busy', 'true');
@@ -125,6 +213,7 @@
       } catch (_) {}
     }
     zoom(session.image, true);
+    startVisuals(session);
     // Create and resume in the user gesture, before any network/decode await.
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -188,6 +277,8 @@
     lifecycle.abort();
     zooms.forEach((state) => state.animation?.cancel());
     zooms.clear();
+    effects.forEach((animation) => animation.cancel());
+    effects.clear();
     voices.forEach(finishVoice);
     voices.clear();
     buffers.clear();
@@ -195,7 +286,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.1.0',
+    version: '1.2.0',
     press,
     release,
     destroy,

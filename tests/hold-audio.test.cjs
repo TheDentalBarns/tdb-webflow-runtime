@@ -7,7 +7,13 @@ const loader = fs.readFileSync('src/loaders/hold-audio-loader.js', 'utf8');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function fixture({ empty = false, fail = false, cold = false } = {}) {
+function fixture({
+  empty = false,
+  fail = false,
+  cold = false,
+  visual = false,
+  clock = false,
+} = {}) {
   const dom = new JSDOM(
     empty
       ? ''
@@ -16,11 +22,26 @@ function fixture({ empty = false, fail = false, cold = false } = {}) {
           () =>
             '<div data-tdb-audio-card data-tdb-audio-src="https://cdn.example.test/calm.mp3">' +
             '<img style="scale:1.06;translate:0 10px;transform:rotate(0deg)">' +
-            '<button data-tdb-hold-audio type="button" aria-pressed="false"></button></div>',
+            '<button data-tdb-hold-audio type="button" aria-pressed="false"></button>' +
+            (visual
+              ? '<div data-tdb-audio-circle style="scale:0;opacity:0"></div>' +
+                '<div data-tdb-audio-words="HOLD.|BREATHE.|RELAX.|UNWIND.|PEACEFUL.|CALM.|STILL.|REST.|EASE." style="opacity:0">HOLD.</div>'
+              : '') +
+            '</div>',
         ).join(''),
     { runScripts: 'outside-only', pretendToBeVisual: true },
   );
   const w = dom.window;
+  let now = 0,
+    timerId = 0;
+  const timers = new Map();
+  if (clock) {
+    w.setTimeout = (fn, delay) => {
+      timers.set(++timerId, { fn, at: now + delay });
+      return timerId;
+    };
+    w.clearTimeout = (id) => timers.delete(id);
+  }
   const calls = {
     fetch: 0,
     module: 0,
@@ -122,6 +143,7 @@ function fixture({ empty = false, fail = false, cold = false } = {}) {
   };
   w.Element.prototype.animate = function (frames, options) {
     const animation = {
+      element: this,
       frames,
       options,
       cancelled: false,
@@ -146,6 +168,19 @@ function fixture({ empty = false, fail = false, cold = false } = {}) {
     buttons,
     downloads,
     event,
+    advance(ms) {
+      const until = now + ms;
+      for (;;) {
+        const next = [...timers]
+          .filter(([, t]) => t.at <= until)
+          .sort((a, b) => a[1].at - b[1].at)[0];
+        if (!next) break;
+        now = next[1].at;
+        timers.delete(next[0]);
+        next[1].fn();
+      }
+      now = until;
+    },
     near() {
       intersect([{ isIntersecting: true }]);
       return tick();
@@ -352,4 +387,85 @@ test('destroy prevents late playback and closes shared context once', async () =
   assert.equal(f.calls.close, 1);
   assert.ok(f.calls.animations.every((a) => a.cancelled));
   f.cleanup();
+});
+
+test('nine native words continue across cards, three per ten-second hold', async () => {
+  const f = fixture({ visual: true, clock: true });
+  const words = [...f.w.document.querySelectorAll('[data-tdb-audio-words]')];
+  const seen = [];
+  for (let card = 0; card < 3; card++) {
+    await f.down(card);
+    for (let step = 0; step < 3; step++) {
+      seen.push(words[card].textContent);
+      f.advance(step === 2 ? 3334 : 3333.4);
+    }
+    f.advance(3000);
+    assert.equal(words[card].textContent, seen.at(-1), 'no further words after ten seconds');
+    assert.equal(
+      f.w.TDBHoldAudio.status().holding,
+      true,
+      'music and circle remain held until release',
+    );
+    f.up(card);
+  }
+  assert.deepEqual(seen, [
+    'HOLD.',
+    'BREATHE.',
+    'RELAX.',
+    'UNWIND.',
+    'PEACEFUL.',
+    'CALM.',
+    'STILL.',
+    'REST.',
+    'EASE.',
+  ]);
+  await f.down();
+  assert.equal(words[0].textContent, 'HOLD.');
+  f.cleanup();
+});
+
+test('release cancels unseen words and preserves the audio fade after a long hold', async () => {
+  const f = fixture({ visual: true, clock: true });
+  await f.down();
+  f.downloads[0]();
+  await tick();
+  f.advance(1000);
+  f.up();
+  f.advance(12000);
+  await f.down(1);
+  assert.equal(f.w.document.querySelectorAll('[data-tdb-audio-words]')[1].textContent, 'BREATHE.');
+  f.advance(10000);
+  const voice = f.calls.voices.at(-1);
+  assert.equal(voice.gain.gain.ramps.at(-1)[0], 0.85, 'word deadline does not clip music');
+  f.up(1);
+  assert.equal(voice.stopped.length, 0, 'release starts a fade, not an abrupt stop');
+  assert.equal(voice.gain.gain.ramps.at(-1)[0], 0);
+  f.advance(600);
+  assert.equal(voice.stopped.length, 1);
+  f.cleanup();
+});
+
+test('blur reverses from current geometry without altering native layout or parallax', async () => {
+  const f = fixture({ visual: true, clock: true });
+  const circle = f.w.document.querySelector('[data-tdb-audio-circle]');
+  await f.down();
+  let animation = f.calls.animations.find((a) => a.element === circle);
+  assert.equal(animation.options.duration, 10000);
+  assert.equal(animation.frames.at(-1).scale, '1');
+  // JSDOM does not interpolate WAAPI; supply the visible mid-animation value.
+  circle.style.scale = '0.6';
+  circle.style.opacity = '0.6';
+  f.up();
+  animation = f.calls.animations.filter((a) => a.element === circle).at(-1);
+  assert.equal(animation.frames[0].scale, '0.6');
+  assert.equal(animation.frames.at(-1).scale, '0');
+  assert.equal(animation.options.duration, 1200);
+  circle.style.scale = '0.3';
+  await f.down();
+  animation = f.calls.animations.filter((a) => a.element === circle).at(-1);
+  assert.equal(animation.frames[0].scale, '0.3');
+  assert.equal(f.w.document.querySelector('img').style.translate, '0 10px');
+  assert.equal(f.w.document.querySelectorAll('style').length, 0);
+  f.cleanup();
+  assert.ok(f.calls.animations.every((a) => a.cancelled));
 });
