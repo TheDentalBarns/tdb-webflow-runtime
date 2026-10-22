@@ -97,7 +97,9 @@ artifacts change; the stylesheet and other runtime bundles remain identical.
 
 ## Android follow-up — 22 October 2026, controller 1.4.1
 
-David reports normal iPhone Safari playback is fine. On Android Chrome, the
+David initially reports the iPhone Safari presentation is fine, but subsequently
+clarifies that he has **not confirmed whether its audio starts**. Safari is
+therefore not yet a matched playback control. On Android Chrome, the
 no-backdrop comparison improves the flashing; the subsequent no-blur comparison
 has **no flashing, but still jitters while scrolling after use**. These are
 owner device observations, not traces captured in the desktop test environment.
@@ -138,6 +140,40 @@ consistency and source formatting passed. Only the deferred audio executable
 changes: 7,155 to 7,109 raw bytes; 2,891 to 2,889 local gzip bytes. This tiny
 byte difference is not a measured speed improvement. The early entry, other
 runtime bundles and stylesheets are byte-identical.
+
+## Adjacent-image clarification — 22 October 2026
+
+The affected image is the **next, untouched card**: after holding reception and
+releasing/scrolling, the waiting-room image flashes or jitters; reception itself
+looks comparatively stable. Do not record the defect as limited to the pressed
+photo's own return zoom, or treat Safari as passing until audible playback is
+confirmed there. There is not yet an owner result for the combined no-blur,
+no-zoom comparison.
+
+Source review confirms that `press()` scopes image, word and ripple targets to
+the pressed button's closest audio card. Shared parallax updates each photo
+independently. However, the native Home portrait variant has `overflow:visible`;
+both decorative ripple siblings are 240% wide, outside the inner photo clip,
+and can paint over adjacent cards. This is a concrete cross-card rendering path,
+not proof that it accounts for all residual jitter. The no-blur comparison still
+retains the oversized outline.
+
+Audio readiness also matters to this comparison: normal visuals wait for the
+context's actual running state, successful decoding and `source.start()`.
+Safari that never reaches that point would exercise neither the same playback
+nor the full visual path. A running context/source-start call still does not
+prove sound reached the phone's speaker. On touch devices a completed first tap
+may be needed to unlock audio before a subsequent held press; release must
+continue to cancel the abandoned hold.
+
+Use the existing staging `?tdb-speaker-test=no-visuals` comparison next. It keeps
+audio, loading, release and page parallax, and disables photo zoom, words, both
+ripple decorations and trio button backdrop blur. First confirm piano/birdsong
+is audible, then release and scroll to the untouched waiting-room photo. If the
+fault persists, investigate audio/shared-scroll work before changing decorative
+effects. If it disappears, focus on the rendering interaction and the oversized
+ripple's boundary. No new containment, clipping, audio lifecycle or default
+design change is made on the basis of this clarification.
 
 ## Primary-source references
 
