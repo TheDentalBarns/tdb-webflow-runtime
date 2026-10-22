@@ -35,8 +35,9 @@ bindings. Do not substitute hardcoded labels or prices to chase the count.
 
 ## Second batch
 
-Authored reduction: 107 additional initial HTML elements; expected source count
-1,226. Publishing and browser verification follow the immutable runtime release.
+Verified reduction: 107 additional initial HTML elements, to 1,226. GTmetrix
+reports `b8fbScVX` (desktop) and `LzNxlyNa` (iPhone 15/16 simulation) record 1,226
+and 1,228 elements, respectively, with CLS 0. These are not physical mobile tests.
 
 - Nine loading graphics use the exact original two-arc artwork through native
   pseudo-elements (27 elements removed). The raised speaker variant retains its
@@ -75,3 +76,34 @@ combined legacy selector; its original rule was kept intact alongside the new
 compact rule, and the gate passed. No preservation assertion was removed.
 
 Physical iPhone Safari/Chrome remains a separate visual check.
+
+## Spacing regression correction and pending artwork completion
+
+The owner's phone screenshots exposed gutters around the wellness video,
+location photograph and crafting/wireframe background. Moving horizontal padding
+from the removed wrappers onto these three outer sections also inset their
+in-flow sticky backgrounds. The earlier desktop content-only comparison missed
+this regression. Do not treat that comparison or CLS 0 as visual equivalence.
+
+The correction restores the original unpadded section classes. Their existing
+content containers retain the original maximum width and receive 94% width
+(90% below 768px), with automatic horizontal margins. This preserves the original
+3%/5% content inset while leaving sibling backgrounds full width, without adding
+wrappers or changing parallax code. Check background bounds as well as content
+bounds on future wrapper changes. No further reduction work proceeds until this
+correction is checked.
+
+The previously prepared icon changes are completed in the same staging release:
+one shared SVG sheet replaces eight separate artwork requests, retaining the
+original vector geometry. Three speaker SVG trees use the same sheet (9 elements
+removed), with their original 1.75rem variant dimensions and loading visibility.
+Native award-list items restore the original last-child bottom-margin rule.
+
+The corrected source count is expected to be 1,217 and needs published-source
+verification. The responsive browser fixture was unavailable because the browser
+blocks data URLs; do not claim a mobile browser or physical-device visual pass.
+
+Release build, build consistency and formatting pass. The sequential full suite
+records 539 passes, 3 skips and one failure in the existing timing-sensitive
+feature-loading-policy case. Its complete nine-test file passes in isolation.
+No JavaScript or assertion was changed for this CSS release.

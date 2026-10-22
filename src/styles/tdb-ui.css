@@ -155,6 +155,11 @@ html[data-tdb-motion='full'] [data-tdb-loading='true'] [data-tdb-compact-spinner
   opacity: 0;
   visibility: hidden;
 }
+[data-tdb-compact-speaker][data-tdb-loading='true']::before,
+[data-tdb-loading='true'] [data-tdb-compact-speaker]::before {
+  opacity: 0;
+  visibility: hidden;
+}
 
 /* Review opening and filter preparation give immediate control feedback. */
 [data-tdb-review-trigger][data-tdb-loading='true'] [data-tdb-loading-indicator],
