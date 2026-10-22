@@ -1,5 +1,19 @@
 # Home first-visit speakers
 
+## Current release — controller 1.5.0
+
+Immediate ripple cleanup is now the default, without a query flag. David
+confirmed that comparison E (sharp ring, no words/blur/hold zoom) scrolls
+smoothly on Android after release; the separate words-only comparison was
+also smooth. The ordinary staging page keeps the full held effect, including
+words, both ripple layers, button glass and image zoom. That combined version
+still requires its final physical-device check. No production publish follows
+from the staging result.
+
+The former ripple return and retention branches have been removed. Old
+`stop-ripple` and `retain-ripple` query values are harmless and ignored.
+Other diagnostic flags remain available while the full effect is checked.
+
 Webflow's **Speaker — Hold to listen / Dark glass** component owns the real
 button, speaker artwork and appearance. It reuses `vimeo-player__btn`
 and `vimeo-player__btn-play-svg`, scoped through a component variant. Home's
@@ -76,22 +90,26 @@ while dissolving. Its animated geometry still grows beyond the card, but its
 visible paint now stops at the photo edge. Its separate native 2px cream outline begins
 at 50% opacity and follows the same fade to transparent. The edge
 is a sibling so its outline remains outside the mask and the photo backdrop
-is not blocked by an ancestor's opacity. The review candidate keeps the same
-1.2-second returning scale/easing, but fades from the current brightness to zero
-instead of brightening to at least 0.65 first. An already-faded ripple stays
-hidden; completed effects are cancelled rather than retained for a revival.
-This is an intentional visual refinement for review. Words and controls sit
-above it. The external
-controller animates only scale/opacity with the Web Animations API, reverses from
-the current appearance on early release/re-press, and cancels all effects/timers
-on teardown. Inactive words, blur and outline are natively `visibility:hidden`.
+is not blocked by an ancestor's opacity. On release, both ripple layers now
+cancel and return to native visibility:hidden immediately. There is no
+shrinking return or retained transparent ripple. The full ten-second held
+sequence still fades out naturally if the user keeps holding; completion
+also discards the finished effect. This changes the ring's early-release
+appearance deliberately, following the successful Android comparison.
+Words and controls sit above it. The external controller animates only
+scale/opacity with the Web Animations API and cancels all effects/timers
+on teardown. The next ripple starts from its parked native appearance;
+image zoom still reverses from its current scale. Inactive words, blur and
+outline are natively `visibility:hidden`.
 The controller makes only the current effect visible until it finishes or is
 cancelled, then restores the hidden state. A cancelled predecessor cannot hide a
 new animation. This parks the oversized backdrop-filter surface after use while
-preserving the expanding and returning ripple. Page hiding/exit cancels all
+preserving the expanding held ripple. Page hiding/exit cancels all
 remaining visual and audio tails, including tails from a released session; a
 later deliberate hold still resumes the cached audio playhead. No CSS or markup
 is injected at runtime; no head blocks are added.
+
+## Diagnostic history
 
 The attempted `will-change:opacity` backdrop boundary did not resolve the
 reported phone flashing and has been removed. The normal page keeps the full

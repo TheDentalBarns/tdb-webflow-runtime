@@ -21,8 +21,6 @@
   const noWords = diagnostic.includes('no-words');
   const noRipple = diagnostic.includes('no-ripple');
   const retainZoom = diagnostic.includes('retain-zoom');
-  const stopRipple = diagnostic.includes('stop-ripple');
-  const retainRipple = diagnostic.includes('retain-ripple') && !stopRipple;
   const buttonBackdrops = new Map();
   if (noBackdrop)
     document.querySelectorAll('[data-tdb-hold-audio]').forEach((button) => {
@@ -52,11 +50,10 @@
     element?.style.removeProperty('visibility');
   }
 
-  function animateEffect(element, frames, options, retain = false) {
+  function animateEffect(element, frames, options) {
     if (!element?.animate) return;
     effects.get(element)?.cancel();
-    // Designer normally parks inactive decorations. The diagnostic below can
-    // retain only the transparent ripple to isolate completion cleanup.
+    // Designer parks inactive decorations; only a running effect reveals them.
     element.style.visibility = 'visible';
     const animation = element.animate(frames, options);
     effects.set(element, animation);
@@ -64,80 +61,51 @@
       if (effects.get(element) !== animation) return;
       parkEffect(element);
     };
-    // A staging-only comparison leaves a finished, transparent ripple filled.
-    // Cancellation still parks it; replacement and teardown remain bounded.
-    animation.finished.then(() => {
-      if (!retain) settled();
-    }, settled);
+    animation.finished.then(settled, settled);
   }
 
-  function readCircle(element, held) {
+  function readCircle(element) {
     if (!element || noVisuals) return;
-    // Read before cancelling: a quick re-press reverses from the visible size.
+    // Snapshot the native ring and button before starting the held animation.
     const edge = element.parentElement.querySelector('[data-tdb-audio-ripple-edge]');
-    // This staging comparison leaves no ripple return or filled effect after
-    // release. It needs no computed-style/geometry snapshot for that cleanup.
-    if (!held && stopRipple) return { edge };
     const current = getComputedStyle(noBlur && edge ? edge : element);
     const from = {
       scale: current.scale === 'none' ? '0' : current.scale,
       opacity: current.opacity,
     };
-    const button = held && element.parentElement.querySelector('[data-tdb-hold-audio]');
+    const button = element.parentElement.querySelector('[data-tdb-hold-audio]');
     return {
       edge,
       from,
-      seed:
-        held &&
-        Math.min(
-          1,
-          Math.max(
-            parseFloat(from.scale) || 0,
-            ((button?.getBoundingClientRect().width || 0) * 2.4) / (parseFloat(current.width) || 1),
-          ),
+      seed: Math.min(
+        1,
+        Math.max(
+          parseFloat(from.scale) || 0,
+          ((button?.getBoundingClientRect().width || 0) * 2.4) / (parseFloat(current.width) || 1),
         ),
+      ),
     };
   }
 
-  function circle(element, held, snapshot = readCircle(element, held)) {
+  function circle(element, snapshot = readCircle(element)) {
     if (!snapshot) return;
     const { edge, from, seed } = snapshot;
-    if (!held && stopRipple) {
-      parkEffect(element);
-      parkEffect(edge);
-      return;
-    }
-    // A faded-away ripple must not flare back over a neighbouring card when
-    // the user releases and starts scrolling. Ordinary cleanup discards it;
-    // the retention comparison leaves its transparent end frame untouched.
-    if (!held && Number(from.opacity) === 0) {
-      if (!retainRipple) {
-        parkEffect(element);
-        parkEffect(edge);
-      }
-      return;
-    }
     // Clear the finger quickly, then ease into a slower outward ripple.
-    const frames = held
-      ? [
-          { ...from, offset: 0 },
-          { scale: String(seed), opacity: 1, offset: 0.015 },
-          { scale: String(seed + (1 - seed) * 0.45), opacity: 0.55, offset: 0.22 },
-          { scale: '1', opacity: 0, offset: 1 },
-        ]
-      : [
-          { ...from, offset: 0 },
-          { scale: '0', opacity: 0, offset: 1 },
-        ];
+    const frames = [
+      { ...from, offset: 0 },
+      { scale: String(seed), opacity: 1, offset: 0.015 },
+      { scale: String(seed + (1 - seed) * 0.45), opacity: 0.55, offset: 0.22 },
+      { scale: '1', opacity: 0, offset: 1 },
+    ];
     const options = {
-      duration: window.TDBMotionPolicy?.reduced?.matches ? 0 : held ? holdDuration : 1200,
-      easing: held ? 'linear' : 'cubic-bezier(0.4,0,0.2,1)',
+      duration: window.TDBMotionPolicy?.reduced?.matches ? 0 : holdDuration,
+      easing: 'linear',
       fill: 'forwards',
     };
-    if (!noBlur) animateEffect(element, frames, options, retainRipple);
+    if (!noBlur) animateEffect(element, frames, options);
     // A sibling edge avoids masking away the outline or placing the backdrop
     // blur inside an opacity ancestor, which would block the photo backdrop.
-    animateEffect(edge, frames, options, retainRipple);
+    animateEffect(edge, frames, options);
   }
 
   function showWord(session) {
@@ -158,7 +126,7 @@
 
   function startVisuals(session, ripple) {
     if (noVisuals) return;
-    circle(session.circle, true, ripple);
+    circle(session.circle, ripple);
     if (!session.word) return;
     showWord(session);
     session.timers = [
@@ -260,18 +228,20 @@
     session.timers?.forEach(clearTimeout);
     // A loading-only hold has no visual sequence to return or fade.
     if (!immediate && session.visuals) {
-      // Snapshot before any animation writes, rather than alternating layout
-      // reads and effect changes three times during the release/scroll handoff.
+      // Snapshot word/zoom before any animation writes at the scroll handoff.
       const opacity = session.word && getComputedStyle(session.word).opacity;
-      const ripple = readCircle(session.circle, false);
       const scale = readZoom(session.image);
+      const edge = session.circle?.parentElement?.querySelector('[data-tdb-audio-ripple-edge]');
+      // Android's confirmed sharp-ring comparison settles when release leaves
+      // no ripple animation behind. Park both layers before other fade writes.
+      parkEffect(session.circle);
+      parkEffect(edge);
       if (session.word) {
         animateEffect(session.word, [{ opacity }, { opacity: 0 }], {
           duration: 350,
           fill: 'forwards',
         });
       }
-      circle(session.circle, false, ripple);
       zoom(session.image, false, scale);
     }
     if (!immediate) stopVoice(session.voice);
@@ -414,7 +384,7 @@
           session.voice = voice;
           // Start the full visual timeline only after resume, decode and playback.
           const scale = readZoom(session.image);
-          const ripple = readCircle(session.circle, true);
+          const ripple = readCircle(session.circle);
           button.removeAttribute('aria-busy');
           button.removeAttribute('data-tdb-loading');
           button.removeAttribute('aria-description');
@@ -455,7 +425,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.4.5',
+    version: '1.5.0',
     press,
     release,
     destroy,

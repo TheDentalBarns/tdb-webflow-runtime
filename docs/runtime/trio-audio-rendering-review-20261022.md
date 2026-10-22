@@ -411,6 +411,39 @@ and production isolation. Build consistency, formatting and diff checks pass.
 Only the deferred controller executable changes, 7,271 to 7,364 raw bytes
 (+93); all other executable bundles, early scripts and CSS are unchanged.
 
+## Accepted immediate-stop behavior promoted to the default — 22 October 2026
+
+David's physical Android feedback on E is **"this one works"**. This confirms
+the isolated sharp-ring comparison with immediate release cleanup. Together
+with the earlier smooth words-only result, it justifies adopting that ripple
+lifecycle. It does not distinguish the removed moving return from retained
+invisible state as the precise browser-level cause, and it does not yet
+verify a combined full-blur/full-zoom effect.
+
+Controller 1.5.0 makes immediate cleanup the default for both ripple siblings.
+The outgoing held frames, ten-second duration and natural fade remain. Release
+cancels and hides both siblings before starting the existing word fade/image
+return. Completed held effects are also cancelled normally. Ripple release
+snapshots, return frames and retention branches are deleted; the old
+`stop-ripple` and `retain-ripple` query values no longer change behavior.
+Other diagnostic flags remain for the final combined-effect comparison.
+
+The ordinary staging URL retains words, blur, button glass and the 6% held
+image zoom. Its 350ms word fade, 600ms sound fade and 1,200ms image return
+remain unchanged. Native CSS, DOM, eager loading, audio readiness, shared
+audio caching and the independent parallax owner are unchanged. Only the
+staging domain is published. The next owner check is the ordinary staging
+URL's full held effect followed by immediate scrolling to the next image.
+
+Validation: all 110 focused source/bundle audio and parallax checks pass.
+They cover both-layer immediate cleanup with the full held effect, unchanged
+word/image/audio tails, repeated presses, all-card reuse, completed holds,
+page exit and old diagnostic flags being unable to re-enable ring retention.
+Build consistency, formatting and diff checks pass. The deferred controller
+shrinks from 7,364 to 7,105 raw bytes (-259); every other executable bundle
+and all CSS remain unchanged. Device confirmation applies to E; the full
+ordinary-page combination remains pending.
+
 ## Primary-source references
 
 - WebKit, activation-triggering events and sticky activation:
