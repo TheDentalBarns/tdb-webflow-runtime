@@ -22,13 +22,42 @@ Webflow backup step and approved cleanup. Publish staging only.
 - Move native text nodes directly into 18 static navigation, social and CTA links
   or toggles. No link destinations or text are recreated.
 
-Projected first-batch reduction: 74 initial HTML elements, to 1,333. Published
-counts and browser interaction observations must be checked separately; runtime
-mounts make the browser total different from the source HTML count. This is not
-the completion of the sub-1,000 target.
+Verified first-batch reduction: 74 initial HTML elements, to 1,333. All 98 CMS
+items and 16 lists remain. Service and treatment text geometry matches the desktop
+baseline. Both carousels update their destinations, labels and treatment prices.
+Fresh-visitor GTmetrix reports `qsVF02tI` (desktop) and `dnJxjNd7` (iPhone 15/16
+simulation) record 1,333 and 1,335 elements respectively, with CLS 0. The page uses
+runtime `356884561770f702adbf6cce4516494d70f311a4`. This is not completion of the
+sub-1,000 target.
 
 CMS-bound text wrappers are retained where the connector cannot transfer their
 bindings. Do not substitute hardcoded labels or prices to chase the count.
+
+## Second batch
+
+Authored reduction: 107 additional initial HTML elements; expected source count
+1,226. Publishing and browser verification follow the immutable runtime release.
+
+- Nine loading graphics use the exact original two-arc artwork through native
+  pseudo-elements (27 elements removed). The raised speaker variant retains its
+  separate position. Runtime state styles support both compact and existing
+  indicators, including the full-motion policy.
+- Five USP arrows retain the original loading/rotation owner without an inner
+  icon wrapper (5). Closed and open angles retain the original composition.
+- Seven footer social icons use exact copies of their original vector artwork as
+  native link decorations (21). Visible text and hrefs remain native.
+- Twelve disclosure triggers retain their text directly and use native decorative
+  chevrons (24). State follows aria-expanded and motion still starts after a user
+  toggle. Five Five Senses outer wrappers are removed (5).
+- Seven original award lists retain all list items and emphasis, become their own
+  reveal/typography owner and lose the surrounding rich-text containers (7).
+- Eighteen section padding wrappers move their spacing to existing section
+  owners (18). Responsive breakpoints, treatment variant spacing and the form's
+  additional 2.5rem padding remain explicit native styles.
+
+The benefit artwork is component-property-bound, including nested property
+forwarding. Keep it editable rather than replacing those bindings with static
+CSS URLs. The original model needs reconciliation for that constraint.
 
 ## Validation
 
@@ -39,5 +68,10 @@ full verification and formatting gates before publishing. A timing-sensitive
 feature-loading test failed once under concurrent CPU load, then passed in
 isolation. Six pre-existing formatting discrepancies were normalized; those
 format-only edits do not change their minified runtime outputs.
+
+Second-batch release build and format gates pass. Full verification: 543 tests,
+540 passed, 3 skipped, none failed. The UI preservation gate first rejected a
+combined legacy selector; its original rule was kept intact alongside the new
+compact rule, and the gate passed. No preservation assertion was removed.
 
 Physical iPhone Safari/Chrome remains a separate visual check.

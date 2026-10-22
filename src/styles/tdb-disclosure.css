@@ -2,10 +2,12 @@
  * In a future accordion its own controller sets aria-expanded on the trigger.
  * A component can override --tdb-chevron-duration without another animation.
  */
-[data-tdb-chevron] {
+[data-tdb-chevron],
+[data-tdb-compact-chevron]::after {
   transform: rotate(0deg);
   transition: transform var(--tdb-chevron-duration, 300ms) var(--tdb-chevron-ease, ease);
 }
-[aria-expanded="true"] > [data-tdb-chevron] {
+[aria-expanded="true"] > [data-tdb-chevron],
+[data-tdb-compact-chevron][aria-expanded="true"]::after {
   transform: rotate(var(--tdb-chevron-open-angle, 180deg));
 }

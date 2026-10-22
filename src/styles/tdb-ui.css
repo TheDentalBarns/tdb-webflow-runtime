@@ -114,7 +114,7 @@ html { --tdb-ui-ready: 1; }
 }
 
 /* Reusable control effects. Designer owns dimensions, artwork and initial states.
- * Loading indicators may reuse the existing native SVG spinner unchanged.
+ * Loading indicators reuse the native spinner artwork, including compact pseudo-elements.
  */
 [data-tdb-pulse] {
   pointer-events: none;
@@ -133,11 +133,22 @@ html { --tdb-ui-ready: 1; }
   pointer-events: none;
   transition: opacity 0.12s ease 0.12s, visibility 0s linear 0s;
 }
+[data-tdb-compact-spinner][data-tdb-loading='true']::after,
+[data-tdb-loading='true'] [data-tdb-compact-spinner]::after {
+  opacity: 1;
+  visibility: visible;
+  animation: tdbControlSpin 1s linear infinite;
+  transition: opacity 0.12s ease 0.12s, visibility 0s linear 0s;
+}
 [data-tdb-loading='true'] [data-tdb-loading-indicator] svg {
   animation: tdbControlSpin 1s linear infinite;
 }
 /* Full-motion review policy also wins over native or embedded reduced-motion rules. */
 html[data-tdb-motion='full'] [data-tdb-loading='true'] [data-tdb-loading-indicator] svg {
+  animation: tdbControlSpin 1s linear infinite !important;
+}
+html[data-tdb-motion='full'] [data-tdb-compact-spinner][data-tdb-loading='true']::after,
+html[data-tdb-motion='full'] [data-tdb-loading='true'] [data-tdb-compact-spinner]::after {
   animation: tdbControlSpin 1s linear infinite !important;
 }
 [data-tdb-loading='true'] [data-tdb-loading-content] {
@@ -148,6 +159,9 @@ html[data-tdb-motion='full'] [data-tdb-loading='true'] [data-tdb-loading-indicat
 /* Review opening and filter preparation give immediate control feedback. */
 [data-tdb-review-trigger][data-tdb-loading='true'] [data-tdb-loading-indicator],
 .tdb-review-drawer_nav-button[data-tdb-loading='true'] [data-tdb-loading-indicator] {
+  transition: none;
+}
+[data-tdb-review-trigger][data-tdb-loading='true'] [data-tdb-compact-spinner]::after {
   transition: none;
 }
 
@@ -222,6 +236,8 @@ html[data-tdb-motion='full'] [data-tdb-loading='true'] [data-tdb-loading-indicat
 
 /* Shared disclosure arrow states, loaded with external UI. Motion stays in control-motion CSS. */
 [data-tdb-chevron]{transform:rotate(0deg)}[aria-expanded="true"]>[data-tdb-chevron]{transform:rotate(var(--tdb-chevron-open-angle,180deg))}
+
+[data-tdb-compact-chevron]::after{transform:rotate(0deg)}[data-tdb-compact-chevron][aria-expanded="true"]::after{transform:rotate(var(--tdb-chevron-open-angle,180deg))}
 
 /* External disclosure states; native Home classes own keyboard focus. */
 [data-tdb-disclosure-panel][hidden]{display:none !important}
