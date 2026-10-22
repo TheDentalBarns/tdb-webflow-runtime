@@ -1,5 +1,36 @@
 # Home initial DOM cleanup, 22 October 2026
 
+## Decorative-row consolidation after the accepted audio fix
+
+The next approved staging pass removes ten native children from two existing
+owners: five review-summary star spans and five decorative wellness barn images.
+Starting published source count: 1,186 body descendants; expected source count
+after this pass: 1,176. This is a structural reduction, not a measured cold-visit
+runtime count or a verified speed gain.
+
+- The review summary reuses `tdb-quote-decoration-stars` with a native
+  `tdb-summary-stars` combo: five .8rem stars in a 5rem row, the original .25rem
+  trailing margin and #fbbc04 colour. Its existing accessible numeric rating and
+  review trigger stay intact; the decorative owner is aria-hidden.
+- The existing `margin-bottom margin-small _5-barns` owner keeps its reveal hooks,
+  3rem top padding and 100vh bottom spacing. Its `tdb-barn-row::before` decoration
+  paints the original white barn SVG at 0%, 25%, 50%, 75% and 100%. Desktop, tablet,
+  landscape and portrait sizes remain 4rem, 3rem, clamp(3rem,12vw,4rem) and 3rem;
+  portrait retains .5 opacity on the decoration independently of the row reveal.
+- The original SVG is supplied through `--tdb-barns-artwork` only after the shared
+  consent/proximity loader permits it, using its existing 400px approach margin.
+  Before that, the background is `none`; stars retain the existing transparent
+  mask fallback. No new asset, loader, wrapper or inline head CSS is added.
+- Native tree comparisons verify that only these two rows changed. All CMS
+  bindings, native links, image crop/parallax and hold-audio 1.5.3 remain intact.
+  The accepted page-wide ripple and 500ms release dissolve are not touched.
+
+The eight lazy-artwork tests pass, including independent row proximity,
+consent-before-release, no generated children, and preserved CMS platform artwork.
+After publishing, verify source count, native CSS, viewport geometry and artwork
+reveal on ordinary staging before reporting completion. Physical Android Chrome
+and iPhone Safari verification remains separate from desktop browser inspection.
+
 Baseline: staging HTML contains 1,407 body descendants. The pinned runtime is
 `e56f6efb510da0ef966683c60db67fc8cc9f77f1`; the source pin is on
 `pin/home-before-dom-cleanup-20261022`. The owner explicitly waived the native

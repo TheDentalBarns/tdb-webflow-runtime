@@ -66,3 +66,22 @@ test('footer and speaker artwork wait for their own proximity and never fetch th
   assert.doesNotMatch(speaker.outerHTML+footer.outerHTML,/home-control-artwork/);
  }finally{f.close()}
 });
+
+test('consolidated decorative rows keep artwork deferred and do not create children',()=>{
+ const f=fixture();try{
+  const stars=f.w.document.createElement('div');stars.className='tdb-quote-decoration-stars tdb-summary-stars';
+  const barns=f.w.document.createElement('div');barns.setAttribute('data-tdb-lazy-barns','');
+  f.w.document.body.append(stars,barns);f.w.TDBLazyIconMasks.refresh();
+  assert(f.ios[0].nodes.has(stars));assert(f.ios[0].nodes.has(barns));
+  assert.equal(stars.style.maskImage,'');assert.equal(barns.style.getPropertyValue('--tdb-barns-artwork'),'');
+  f.ios[0].fn([{target:stars,isIntersecting:true}]);
+  assert.match(stars.style.maskImage,/tdb-review-star.svg/);
+  assert.equal(barns.style.getPropertyValue('--tdb-barns-artwork'),'');
+  f.permit(false);f.ios[0].fn([{target:barns,isIntersecting:true}]);
+  assert.equal(barns.style.getPropertyValue('--tdb-barns-artwork'),'');
+  f.permit(true);
+  assert.match(barns.style.getPropertyValue('--tdb-barns-artwork'),/tdb-barn-window-light.min.svg/);
+  assert.equal(stars.childElementCount,0);assert.equal(barns.childElementCount,0);
+  assert.equal(barns.style.maskImage,'');
+ }finally{f.close()}
+});

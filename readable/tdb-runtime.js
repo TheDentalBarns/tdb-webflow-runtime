@@ -2789,6 +2789,13 @@ function prepareLazyIconMasks() {
   const allowed = () => !disposed && Boolean(window.TDBConsent?.allows());
   function reveal(node) {
     if (!node.isConnected) return;
+    if (node.hasAttribute('data-tdb-lazy-barns')) {
+      node.style.setProperty(
+        '--tdb-barns-artwork',
+        'url("' + base + '6ac9119d7e007fc273d48477_tdb-barn-window-light.min.svg' + '")',
+      );
+      return;
+    }
     if (node.hasAttribute('data-tdb-compact-speaker')) {
       node.style.setProperty(
         '--tdb-speaker-artwork',
@@ -2850,7 +2857,7 @@ function prepareLazyIconMasks() {
     if (!allowed()) return;
     document
       .querySelectorAll(
-        '[data-tdb-compact-speaker],.footer1_social-link[class*="tdb-footer-"],[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
+        '[data-tdb-lazy-barns],[data-tdb-compact-speaker],.footer1_social-link[class*="tdb-footer-"],[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
       )
       .forEach((node) => {
         if (seen.has(node)) return;
