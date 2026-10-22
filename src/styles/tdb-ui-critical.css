@@ -6,21 +6,3 @@
 [data-tdb-navbar-native]:not([data-tdb-nav-enhanced]),[data-tdb-navbar-native]:not([data-tdb-nav-enhanced]) *{transition:none!important;animation:none!important}
 
 html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-control-motion]) [data-tdb-disclosure-item]{transition:none!important}
-
-/* Compact disclosures keep their authored open state before optional motion loads. */
-html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition:none!important}
-[data-tdb-compact-chevron][aria-expanded="true"]::after{transform:rotate(var(--tdb-chevron-open-angle,180deg))}
-
-/* Webflow currently emits an empty :where() for new variant pseudo styles.
- * Inherit the existing dark-glass variant's dimensions before first paint.
- * Native pseudo-elements consume these tokens; default speakers keep their fallback.
- */
-[data-tdb-compact-speaker].w-variant-a5f48416-471f-de6e-d8ae-d0b5eaf4caa9{
-  --tdb-speaker-icon-size:1.75rem;
-  --tdb-speaker-loading-size:3rem;
-  --tdb-speaker-loading-top:calc(-3rem - 0.75rem);
-  --tdb-speaker-loading-right:auto;
-  --tdb-speaker-loading-bottom:auto;
-  --tdb-speaker-loading-left:50%;
-  --tdb-speaker-loading-translate:-50% 0;
-}

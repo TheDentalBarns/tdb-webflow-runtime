@@ -51,3 +51,18 @@ test('arrows are stylesheet-owned and excluded from the lazy mask observer',()=>
  const node=f.w.document.createElement('span');node.className=className;f.w.document.body.append(node);f.w.TDBLazyIconMasks.refresh();assert(!f.ios[0].nodes.has(node));assert(!node.style.maskImage);
  }}finally{f.close()}
 });
+
+test('footer and speaker artwork wait for their own proximity and never fetch the combined sheet',()=>{
+ const f=fixture();try{
+  const speaker=f.w.document.createElement('button');speaker.setAttribute('data-tdb-compact-speaker','');
+  const footer=f.w.document.createElement('a');footer.className='footer1_social-link tdb-footer-facebook';
+  f.w.document.body.append(speaker,footer);f.w.TDBLazyIconMasks.refresh();
+  assert.equal(speaker.style.getPropertyValue('--tdb-speaker-artwork'),'');assert.equal(footer.style.getPropertyValue('--tdb-footer-artwork'),'');
+  f.ios[0].fn([{target:speaker,isIntersecting:true}]);
+  assert.match(speaker.style.getPropertyValue('--tdb-speaker-artwork'),/tdb-control-speaker.svg/);
+  assert.equal(footer.style.getPropertyValue('--tdb-footer-artwork'),'');
+  f.ios[0].fn([{target:footer,isIntersecting:true}]);
+  assert.match(footer.style.getPropertyValue('--tdb-footer-artwork'),/tdb-footer-facebook.svg/);
+  assert.doesNotMatch(speaker.outerHTML+footer.outerHTML,/home-control-artwork/);
+ }finally{f.close()}
+});

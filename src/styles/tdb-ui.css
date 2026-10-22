@@ -170,6 +170,27 @@ html[data-tdb-motion='full'] [data-tdb-loading='true'] [data-tdb-compact-spinner
   transition: none;
 }
 
+/* Compact disclosures keep their authored open state before optional motion loads. */
+html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition:none!important}
+[data-tdb-compact-chevron][aria-expanded="true"]::after{transform:rotate(var(--tdb-chevron-open-angle,180deg))}
+
+/* Webflow currently emits an empty :where() for new variant pseudo styles.
+ * Inherit the existing dark-glass variant's dimensions before first paint.
+ * Native pseudo-elements consume these tokens; default speakers keep their fallback.
+ */
+[data-tdb-compact-speaker].w-variant-a5f48416-471f-de6e-d8ae-d0b5eaf4caa9{
+  --tdb-speaker-icon-size:1.75rem;
+  --tdb-speaker-loading-size:3rem;
+  --tdb-speaker-loading-top:calc(-3rem - 0.75rem);
+  --tdb-speaker-loading-right:auto;
+  --tdb-speaker-loading-bottom:auto;
+  --tdb-speaker-loading-left:50%;
+  --tdb-speaker-loading-translate:-50% 0;
+}
+
+/* Fetch loading artwork only when a control actually enters its loading state. */
+[data-tdb-loading="true"] { --tdb-spinner-artwork: url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ad9b3739924db6726de4586_tdb-control-spinner.svg"); }
+
 :root{--tdb-reveal-distance: 20px;--tdb-reveal-fade-in: 300ms;--tdb-reveal-move-in: 400ms;--tdb-reveal-out: 200ms;--tdb-reveal-ease: cubic-bezier(.165,.84,.44,1);}
 
 :is(a[href],button,[role="button"],summary){-webkit-tap-highlight-color:transparent}
@@ -265,24 +286,6 @@ html[data-tdb-motion='full'] [data-tdb-loading='true'] [data-tdb-compact-spinner
 [data-tdb-navbar-native]:not([data-tdb-nav-enhanced]),[data-tdb-navbar-native]:not([data-tdb-nav-enhanced]) *{transition:none!important;animation:none!important}
 
 html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-control-motion]) [data-tdb-disclosure-item]{transition:none!important}
-
-/* Compact disclosures keep their authored open state before optional motion loads. */
-html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition:none!important}
-[data-tdb-compact-chevron][aria-expanded="true"]::after{transform:rotate(var(--tdb-chevron-open-angle,180deg))}
-
-/* Webflow currently emits an empty :where() for new variant pseudo styles.
- * Inherit the existing dark-glass variant's dimensions before first paint.
- * Native pseudo-elements consume these tokens; default speakers keep their fallback.
- */
-[data-tdb-compact-speaker].w-variant-a5f48416-471f-de6e-d8ae-d0b5eaf4caa9{
-  --tdb-speaker-icon-size:1.75rem;
-  --tdb-speaker-loading-size:3rem;
-  --tdb-speaker-loading-top:calc(-3rem - 0.75rem);
-  --tdb-speaker-loading-right:auto;
-  --tdb-speaker-loading-bottom:auto;
-  --tdb-speaker-loading-left:50%;
-  --tdb-speaker-loading-translate:-50% 0;
-}
 
 /* Feed holders share the site's native loading timing. */
 .tdb-ig-placeholder:not([data-tdb-native-placeholder]){width:100%;height:calc(min(94vw,90rem)/2.4 + 10.3333rem);position:relative}.tdb-ig-holding-image:not([data-tdb-native-holder]){background-color:#fff;justify-content:center;align-items:center;width:calc(min(94vw,90rem)/3 - 1.33333rem);height:100%;display:flex}img.tdb-ig-holding-icon{opacity:.35;width:2.75rem;height:2.75rem;display:block}@media screen and (max-width:991px){.tdb-ig-placeholder:not([data-tdb-native-placeholder]){height:calc(1.25*clamp(70vw,70vw + 9999*min(501px - 100vh,100vw - 100vh,100vw - 479px),90vw) + 12rem)}.tdb-ig-holding-image:not([data-tdb-native-holder]){width:clamp(70vw,70vw + 9999*min(501px - 100vh,100vw - 100vh,100vw - 479px),90vw)}}@media screen and (max-width:479px){.tdb-ig-placeholder:not([data-tdb-native-placeholder]){height:calc(112.5vw + 12rem)}.tdb-ig-holding-image:not([data-tdb-native-holder]){width:90vw}}

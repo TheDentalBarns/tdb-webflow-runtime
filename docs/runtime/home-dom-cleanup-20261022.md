@@ -119,3 +119,28 @@ read inherited tokens, supplied for the existing dark-glass variant by the
 critical control CSS. This narrow compatibility exception preserves its original
 icon and raised spinner dimensions before first paint; defaults keep native
 fallback values. No parallax or hold-audio JavaScript is changed.
+
+## Artwork loading correction
+
+The owner confirmed the corrected mobile spacing, then requested consistent icon
+loading and no new inline head CSS. The combined footer/control sheet is removed
+from active native styles. Footer decorations now reuse their individual original
+SVG assets through the existing consent/proximity observer (400px). The speaker
+uses a separate 264-byte SVG through the same observer. The spinner's separate
+SVG is referenced only by the active loading state in external control CSS.
+This prevents an early control from downloading all footer artwork.
+
+The navigation and compact accordion chevrons use a native CSS polygon matching
+the original 16x16 SVG's M3 6 L8 11 L13 6 path, 1.5 stroke, butt ends and miter
+join. Their original box, colour/filter and rotation state remain. This eliminates
+the chevron request while keeping navigation chevrons visible before runtime.
+Drawer-specific artwork remains deferred with its existing drawer feature.
+
+Compact-chevron state and speaker variant size rules move from the critical
+inline source to external control effects. The critical block is restored exactly
+to the pre-cleanup 305-byte contents (530 added bytes removed). The existing
+622-byte base block is retained. No inline style block or head preload is added.
+
+Validation: build consistency, targeted lazy artwork/UI/hold-audio tests and
+format checks; verify published CSS and computed states after staging publication.
+The initial source DOM is expected to remain 1,217; no elements were added.

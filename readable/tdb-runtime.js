@@ -2774,12 +2774,39 @@ function prepareLazyIconMasks() {
     yell: '6ac7b973ba7906fe700055e8_tdb-review-yell.svg',
     doctify: '6ac7b973dd39bbf3927772e6_tdb-review-doctify.svg',
   };
+  const footerAssets = {
+    facebook: '6ad9b3a76d179d46fbd1908a_tdb-footer-facebook.svg',
+    instagram: '6ad9b3a79315a7ef5419673f_tdb-footer-instagram.svg',
+    pinterest: '6ad9b3a73e1ea747bd20046e_tdb-footer-pinterest.svg',
+    linkedin: '6ad9b3a79924db6726de68bc_tdb-footer-linkedin.svg',
+    youtube: '6ad9b3a8542e7bfd46e1482f_tdb-footer-youtube.svg',
+    tiktok: '6ad9b3a872dc432ccf277657_tdb-footer-tiktok.svg',
+    google: '6ad9b3a8b8b29dfc7bad72a9_tdb-footer-google.svg',
+  };
   const seen = new WeakSet(),
     pending = new Set();
   let disposed = false;
   const allowed = () => !disposed && Boolean(window.TDBConsent?.allows());
   function reveal(node) {
     if (!node.isConnected) return;
+    if (node.hasAttribute('data-tdb-compact-speaker')) {
+      node.style.setProperty(
+        '--tdb-speaker-artwork',
+        'url("' + base + '6ad9ca7c57ab5d384c7ffc5c_tdb-control-speaker.svg' + '")',
+      );
+      return;
+    }
+    if (node.matches('.footer1_social-link')) {
+      const platform = Object.keys(footerAssets).find((key) =>
+        node.classList.contains('tdb-footer-' + key),
+      );
+      if (platform)
+        node.style.setProperty(
+          '--tdb-footer-artwork',
+          'url("' + base + footerAssets[platform] + '")',
+        );
+      return;
+    }
     if (node.hasAttribute('data-tdb-lazy-platform') || node.matches('.tdb-quotes_source')) {
       // A hydrated quote owns its CMS platform. Never overwrite it with the
       // authored Google fallback, even if hydration wins the proximity race.
@@ -2823,7 +2850,7 @@ function prepareLazyIconMasks() {
     if (!allowed()) return;
     document
       .querySelectorAll(
-        '[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
+        '[data-tdb-compact-speaker],.footer1_social-link[class*="tdb-footer-"],[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
       )
       .forEach((node) => {
         if (seen.has(node)) return;

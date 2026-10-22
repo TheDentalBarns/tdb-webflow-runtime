@@ -536,10 +536,10 @@
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "0091413a198b48a34e91076ab07b80b92651270aea5f5da78b42c1c4330e418f",
-      "raw": 67580,
-      "gzip": 18137,
-      "brotli": 15987
+      "sha256": "16f503e62d89ccb39bfe5c6d40b5788de849f7880e1c2cfcbf39111d310f88cb",
+      "raw": 68422,
+      "gzip": 18504,
+      "brotli": 16258
     },
     "dist/tdb-service-awards.js": {
       "sources": [
