@@ -220,3 +220,69 @@ reveal targets, trigger mapping, arrow animation and loading feedback. This
 batch is not implemented by the documentation update. Preserve the current
 asset-loading policy and add no inline head CSS. The separate hold-audio
 flashing investigation remains paused until the DOM work is complete.
+
+## Completed twenty-node caption, USP, divider and arrow batch
+
+The owner approved this next batch, and all twenty candidates were implemented
+and published to https://dentalbarns.webflow.io/ on 22 October 2026. This supersedes
+the preceding pending-batch note. Production was not published.
+
+- H02: removed the three trio alignment wrappers and three heading spacers.
+  Existing captions own left alignment; existing headings own their responsive
+  bottom spacing and the former inline line-box descent. Heading roles, text,
+  description reveal attributes and hold-audio subtrees remain unchanged.
+- C07: removed five outer USP item containers. The retained trigger zones reuse
+  the native item class, responsive sizing and hover state. Their original
+  content-sized desktop click areas, buttons and loading children are retained.
+- C05: replaced six decorative divider spans with one shared native pseudo rule,
+  enabled only on the migrated counters. Current/total ticker nodes, labels,
+  live-region attributes and the treatment counter's positioning are retained.
+- C04: removed three inner arrow spans. The existing owners reuse the shared
+  arrow-artwork class and one reverse-direction combination. No copied mask
+  declarations, new artwork URLs or runtime selectors were needed.
+
+Published source comparison:
+
+| Measure | Before | After | Change |
+| --- | ---: | ---: | ---: |
+| Body descendant elements | 1,206 | 1,186 | -20 |
+| HTML bytes | 192,660 | 191,704 | -956 |
+| Native page CSS bytes | 177,384 | 177,409 | +25 |
+| Native page CSS, locally gzipped | 29,051 | 29,053 | +2 |
+| CMS items / lists | 98 / 16 | 98 / 16 | unchanged |
+| Native links | 109 | 109 | unchanged |
+
+Webflow's page CSS omits several selectors made unused by this batch, largely
+offsetting the retained elements' layout rules. This is the measured net CSS
+change, not a prediction. Local gzip sizes are a consistent comparison, not a
+claim about actual CDN transfer encoding. Native CSS fingerprint: 8c66991e9.
+
+Both authored head style blocks, script sources, preloads, native link targets,
+body text, image attribute sets, USP launch attributes, trio description reveal
+attributes and complete hold-audio subtrees match the preceding publication.
+No new CSS asset URL appears. Runtime remains pinned to
+ec95e57030e3b8436c6fef84d8d2dea1ea12e3fb; no JavaScript release was required.
+
+Desktop verification at 1363x936 found identical caption outer boxes, heading
+text positions, paragraph positions, all five USP trigger rectangles, all six
+counter rectangles/current/total positions, and all three arrow rectangles.
+The title box includes the transferred 0.78125px descent padding; the visible
+text and following paragraph positions match. The pseudo dividers retain the
+original 1px height and 1.8em width. Existing responsive USP rules are unchanged;
+the trio heading spacing keeps the previous 1.5rem/1.25rem breakpoints.
+
+Services next/previous navigation preserved the expected service link targets.
+The review-summary trigger opened its drawer, and Escape restored trigger focus.
+The first USP trigger zone opened Tranquil Location; keyboard Enter on the fifth
+opened Personalised Care with the settled 05/05 counter. Close/Escape restored
+focus to the corresponding launch button. The team-quote keyboard control
+advanced its live label and settled ticker to 2 of 3 / 02. Idle spinner masks
+remain transparent, with no residual busy/disabled state after opening.
+Scroll reveals and the trio's visible layout were inspected on staging.
+
+The source is now 221 elements below the measured 1,407-element original pin;
+187 further removals are required to reach 999. This verification used the
+existing accepted-consent desktop session. It does not establish a fresh mobile
+visual pass, a measured cold first visit without saved consent, or speed gains.
+The owner's earlier mobile feedback applies to the preceding batch. No paid
+tests ran. The separate hold-audio flashing investigation remains paused.
