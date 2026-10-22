@@ -1080,6 +1080,105 @@ for (const [label, code] of [
     return { ...f, cards, decorations: [...cards[0].querySelectorAll('div')] };
   }
 
+  test(`${label}: stop-ripple removes the release tail and retained effects without changing the held ring`, async () => {
+    const mode = 'retain-zoom,retain-ripple,no-blur,no-zoom,no-backdrop,no-words';
+    const baseline = effectsFixture({ url: `https://dentalbarns.webflow.io/?tdb-speaker-test=${mode}` });
+    const candidate = effectsFixture({ url: `https://dentalbarns.webflow.io/?tdb-speaker-test=${mode},stop-ripple` });
+    const signature = (f) => f.calls.animations.map((a) => ({
+      frames: JSON.parse(JSON.stringify(a.frames)),
+      options: JSON.parse(JSON.stringify(a.options)),
+    }));
+    try {
+      for (const f of [baseline, candidate]) {
+        await f.play();
+        f.advance(3400);
+        f.decorations[1].style.opacity = '0.4';
+        f.decorations[1].style.scale = '0.65';
+      }
+      assert.deepEqual(signature(candidate), signature(baseline), 'held appearance and timing match D');
+      const neighbours = candidate.cards.slice(1).map((c) => c.outerHTML);
+      const head = candidate.w.document.head.innerHTML;
+      baseline.up();
+      candidate.up();
+      assert.equal(baseline.calls.animations.length, 2, 'D starts its existing shrinking return');
+      assert.equal(candidate.calls.animations.length, 1, 'no return animation is created');
+      assert.ok(candidate.calls.animations.every((a) => a.cancelled), 'nothing remains filled after release');
+      assert.ok(candidate.decorations.every((e) => candidate.w.getComputedStyle(e).visibility === 'hidden'));
+      assert.equal(candidate.buttons[0].getAttribute('aria-pressed'), 'false');
+      assert.equal(candidate.buttons[0].hasAttribute('data-tdb-loading'), false);
+      assert.equal(candidate.calls.voices[0].stopped.length, 0, 'audio keeps its gentle release');
+      candidate.advance(600);
+      assert.equal(candidate.calls.voices[0].stopped.length, 1);
+      assert.equal(candidate.cards[0].querySelector('img').style.translate, '0 10px');
+      assert.deepEqual(candidate.cards.slice(1).map((c) => c.outerHTML), neighbours);
+      assert.equal(candidate.w.document.head.innerHTML, head);
+
+      // Releasing and immediately re-pressing must not let the cancelled
+      // predecessor hide its replacement when the promise rejection runs.
+      await candidate.down();
+      candidate.up();
+      await candidate.down();
+      await tick();
+      assert.equal(candidate.calls.animations.filter((a) => !a.cancelled).length, 1);
+      assert.equal(candidate.w.getComputedStyle(candidate.decorations[1]).visibility, 'visible');
+      candidate.up();
+      await candidate.down(1, 2);
+      candidate.up(1, 2);
+      candidate.advance(12000);
+      await tick();
+      assert.ok(candidate.calls.animations.every((a) => a.cancelled));
+      assert.ok([...candidate.w.document.querySelectorAll('[data-tdb-audio-ripple-edge]')]
+        .every((e) => candidate.w.getComputedStyle(e).visibility === 'hidden'));
+      assert.equal(candidate.calls.fetch, 1);
+      assert.equal(candidate.calls.decode, 1);
+      assert.ok(candidate.calls.voices.every((v) => v.stopped.length === 1));
+    } finally {
+      baseline.cleanup();
+      candidate.cleanup();
+    }
+  });
+
+  test(`${label}: stop-ripple parks a fully faded held ring and preserves word sequencing`, async () => {
+    const f = effectsFixture({ url: 'https://dentalbarns.webflow.io/?tdb-speaker-test=retain-ripple,stop-ripple,no-zoom,no-backdrop' });
+    try {
+      await f.play();
+      const edge = f.decorations[1];
+      const ring = f.calls.animations.find((a) => a.element === edge);
+      f.advance(3333.4);
+      assert.equal(f.decorations[2].textContent, 'BREATHE.');
+      ring.finish();
+      await tick();
+      assert.equal(ring.cancelled, true, 'stop-ripple overrides retention even before release');
+      assert.equal(f.w.getComputedStyle(edge).visibility, 'hidden');
+      assert.equal(f.w.TDBHoldAudio.status().playing, true);
+      f.up();
+      const fade = f.calls.animations.filter((a) => a.element === f.decorations[2]).at(-1);
+      assert.equal(fade.options.duration, 350, 'the existing word fade remains');
+      assert.equal(f.calls.animations.filter((a) => a.element === edge).length, 1);
+      assert.ok(f.calls.animations.filter((a) => f.decorations.slice(0, 2).includes(a.element)).every((a) => a.cancelled));
+      f.event(f.w, 'pagehide');
+      await tick();
+      assert.ok(f.calls.animations.every((a) => a.cancelled));
+    } finally { f.cleanup(); }
+  });
+
+  test(`${label}: stop-ripple does not alter production hold or release`, async () => {
+    const f = effectsFixture({ url: 'https://www.thedentalbarns.com/?tdb-speaker-test=stop-ripple,no-words,no-zoom,no-backdrop,retain-ripple' });
+    try {
+      await f.play();
+      assert.equal(f.calls.animations.length, 4, 'production keeps zoom, both rings and words');
+      f.decorations[0].style.opacity = '0.4';
+      f.decorations[0].style.scale = '0.65';
+      f.up();
+      const rippleReturns = f.calls.animations.filter((a) => a.options.duration === 1200 && f.decorations.slice(0, 2).includes(a.element));
+      assert.equal(rippleReturns.length, 2);
+      assert.ok(rippleReturns.every((a) => a.frames[0].scale === '0.65' && a.frames.at(-1).scale === '0'));
+      rippleReturns.forEach((a) => a.finish());
+      await tick();
+      assert.ok(rippleReturns.every((a) => a.cancelled));
+    } finally { f.cleanup(); }
+  });
+
   for (const mode of ['no-words', 'no-ripple', 'no-words,no-ripple']) {
     test(`${label}: ${mode} isolates overlays through hold, release and another card without changing production`, async () => {
       const baseMode = 'retain-zoom,retain-ripple,no-blur,no-zoom,no-backdrop';

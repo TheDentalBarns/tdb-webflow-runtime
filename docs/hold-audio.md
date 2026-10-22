@@ -160,6 +160,26 @@ The next comparisons append `no-ripple` (words only) or `no-words` (sharp ring
 only) to `retain-zoom,retain-ripple,no-blur,no-zoom,no-backdrop`. Audio preparation,
 release, photo crop/parallax, remaining effect timings and all CSS are unchanged.
 
+David's next Android result is **C words only smooth; D sharp ring janky after
+activation**. D has no large blur, button blur, hold zoom or word animation.
+This isolates a reproducing ring path, but does not prove a particular Chrome
+compositor failure. D deliberately retains the transparent completed ring;
+earlier ordinary-cleanup trials also failed, so retention alone is not a fix
+or an established cause.
+
+Controller 1.4.5 adds staging-only `stop-ripple`. Append it to D for the next
+comparison: the held sharp ring keeps exactly the same frames and timing, but
+release immediately cancels both ripple targets and restores their native
+hidden state. There is no 1.2-second shrinking return, retained filled effect,
+new timer, observer, CSS, markup or asset. This flag overrides `retain-ripple`;
+if the ten-second held ring finishes first, it also parks normally. Release
+skips the unnecessary ripple style/geometry snapshot. Audio's 600ms fade,
+word sequencing/fade when enabled, loading feedback and parallax remain.
+The abrupt disappearance on early release is an intentional diagnostic
+difference, not the final approved visual design. Other comparison URLs and
+the ordinary URL keep their previous behavior. Physical-device outcome is
+pending; automated lifecycle checks cannot establish Android smoothness.
+
 Loading is shared for the controller and audio: after the consent gate, any
 card within 600px requests the single controller; focus/press can request it
 earlier. A first deliberate press fetches/decodes the common MP3 once and the

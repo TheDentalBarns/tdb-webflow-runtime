@@ -375,6 +375,42 @@ bytes (+75; local gzip 2,908 to 2,933, +25). All other executable bundles and
 CSS remain byte-identical. Physical-device results for these two new modes
 are pending.
 
+## Ring-only device result and immediate-stop comparison — 22 October 2026
+
+David reports **C words only is fine; D sharp ring causes post-activation
+scroll jank**. D has no photo hold zoom, large blur, button backdrop blur or
+word animation. Audio and normal parallax remain in both. This is stronger
+evidence for the ring path than the earlier combined overlays comparison;
+it is not a physical-device trace or proof of GPU tile invalidation.
+
+Inspection confirms D deliberately retains the completed transparent ring
+animation and visible style, following the earlier cleanup-isolation trial.
+Normal completion cleanup had also failed earlier. A separate question is
+whether the post-release problem persists when the ring has no moving return
+and no retained effect at all.
+
+Controller 1.4.5 adds `stop-ripple`, appended to D's exact flags. While held,
+its sharp-ring frames and ten-second timing match D. On release it cancels
+both ripple targets immediately and restores native visibility:hidden. No
+1.2-second return is created, and no filled ripple is retained; this overrides
+`retain-ripple`, including full-hold completion. The release path does not
+read ripple styles or geometry. Early disappearance is the sole intentional
+visible difference for this diagnostic, not a final replacement design.
+
+Audio readiness, the 600ms sound fade, words when enabled, native image crop,
+parallax, controls and all CSS remain unchanged. No new head content, layout
+element, observer, animation loop or eager asset is introduced. Other staging
+comparisons and production behavior remain unchanged. The physical Android
+result is pending.
+
+Validation: all 110 focused source/bundle audio and parallax checks pass,
+including matched held-ring frames, immediate release with no remaining
+ripple animation, re-press cancellation races, a second card sharing the
+prepared audio, full-hold completion, word/audio fade preservation, teardown
+and production isolation. Build consistency, formatting and diff checks pass.
+Only the deferred controller executable changes, 7,271 to 7,364 raw bytes
+(+93); all other executable bundles, early scripts and CSS are unchanged.
+
 ## Primary-source references
 
 - WebKit, activation-triggering events and sticky activation:

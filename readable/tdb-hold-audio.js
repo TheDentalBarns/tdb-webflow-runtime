@@ -21,7 +21,8 @@
   const noWords = diagnostic.includes('no-words');
   const noRipple = diagnostic.includes('no-ripple');
   const retainZoom = diagnostic.includes('retain-zoom');
-  const retainRipple = diagnostic.includes('retain-ripple');
+  const stopRipple = diagnostic.includes('stop-ripple');
+  const retainRipple = diagnostic.includes('retain-ripple') && !stopRipple;
   const buttonBackdrops = new Map();
   if (noBackdrop)
     document.querySelectorAll('[data-tdb-hold-audio]').forEach((button) => {
@@ -74,6 +75,9 @@
     if (!element || noVisuals) return;
     // Read before cancelling: a quick re-press reverses from the visible size.
     const edge = element.parentElement.querySelector('[data-tdb-audio-ripple-edge]');
+    // This staging comparison leaves no ripple return or filled effect after
+    // release. It needs no computed-style/geometry snapshot for that cleanup.
+    if (!held && stopRipple) return { edge };
     const current = getComputedStyle(noBlur && edge ? edge : element);
     const from = {
       scale: current.scale === 'none' ? '0' : current.scale,
@@ -98,6 +102,11 @@
   function circle(element, held, snapshot = readCircle(element, held)) {
     if (!snapshot) return;
     const { edge, from, seed } = snapshot;
+    if (!held && stopRipple) {
+      parkEffect(element);
+      parkEffect(edge);
+      return;
+    }
     // A faded-away ripple must not flare back over a neighbouring card when
     // the user releases and starts scrolling. Ordinary cleanup discards it;
     // the retention comparison leaves its transparent end frame untouched.
@@ -446,7 +455,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.4.4',
+    version: '1.4.5',
     press,
     release,
     destroy,
