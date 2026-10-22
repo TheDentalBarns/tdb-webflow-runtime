@@ -1235,6 +1235,85 @@ for (const [label, code] of [
     }
   });
 
+  test(`${label}: page-wide ripple opens only the outer frame, fades for 500ms and restores owned styles`, async () => {
+    const f = effectsFixture({ url: 'https://dentalbarns.webflow.io/?tdb-speaker-test=page-wide-ripple' });
+    try {
+      const d = f.w.document;
+      for (const card of f.cards) {
+        card.style.setProperty('overflow', 'clip', 'important');
+        const image = card.querySelector('img');
+        const clip = d.createElement('div');
+        clip.setAttribute('data-tdb-audio-image-clip', '');
+        clip.style.overflow = 'hidden';
+        image.before(clip);
+        clip.append(image);
+        for (const ring of card.querySelectorAll('[data-tdb-audio-circle],[data-tdb-audio-ripple-edge]'))
+          ring.style.width = '240%';
+      }
+      const head = d.head.innerHTML;
+      const count = d.body.querySelectorAll('*').length;
+      const imageMarkup = f.cards.map(c => c.querySelector('[data-tdb-audio-image-clip]').outerHTML);
+      await f.play();
+      for (const card of f.cards) {
+        assert.equal(card.style.overflow, 'visible');
+        assert.equal(card.querySelector('[data-tdb-audio-circle]').style.width, '200vw');
+        assert.equal(card.querySelector('[data-tdb-audio-ripple-edge]').style.width, '200vw');
+      }
+      assert.deepEqual(f.cards.map(c => c.querySelector('[data-tdb-audio-image-clip]').outerHTML), imageMarkup);
+      assert.equal(d.body.querySelectorAll('*').length, count, 'reuses the existing rings');
+      assert.equal(d.head.innerHTML, head, 'does not inject CSS');
+      const rings = f.decorations.slice(0, 2);
+      for (const ring of rings) { ring.style.scale = '0.4'; ring.style.opacity = '0.5'; }
+      f.up();
+      let tails = f.calls.animations.filter(a => rings.includes(a.element) && !a.cancelled);
+      assert.equal(tails.length, 2);
+      for (const tail of tails) {
+        assert.equal(tail.options.duration, 500);
+        assert.equal(tail.frames[0].scale, tail.frames[1].scale);
+        assert.equal(tail.frames[1].opacity, 0);
+        tail.finish();
+      }
+      await tick();
+      assert.ok(tails.every(a => a.cancelled));
+      assert.ok(rings.every(e => f.w.getComputedStyle(e).visibility === 'hidden'));
+      await f.down();
+      f.up();
+      tails = f.calls.animations.filter(a => rings.includes(a.element) && !a.cancelled);
+      assert.equal(tails.length, 2);
+      f.event(d, 'scroll');
+      assert.ok(tails.every(a => a.cancelled), 'scroll retains the accepted immediate cleanup');
+      f.cards[0].style.color = 'red';
+      f.w.TDBHoldAudio.destroy();
+      assert.equal(f.cards[0].style.color, 'red', 'teardown leaves other owners alone');
+      for (const card of f.cards) {
+        assert.equal(card.style.overflow, 'clip');
+        assert.equal(card.style.getPropertyPriority('overflow'), 'important');
+        assert.equal(card.querySelector('[data-tdb-audio-circle]').style.width, '240%');
+        assert.equal(card.querySelector('[data-tdb-audio-ripple-edge]').style.width, '240%');
+      }
+    } finally { f.cleanup(); }
+  });
+
+  test(`${label}: page-wide overrides stay out of the ordinary page, production and disabled-ring comparisons`, async () => {
+    for (const url of [
+      'https://dentalbarns.webflow.io/',
+      'https://dentalbarns.webflow.io/?tdb-speaker-test=soft-ripple',
+      'https://www.thedentalbarns.com/?tdb-speaker-test=page-wide-ripple',
+      'https://dentalbarns.webflow.io/?tdb-speaker-test=page-wide-ripple,no-ripple',
+      'https://dentalbarns.webflow.io/?tdb-speaker-test=page-wide-ripple,no-visuals',
+    ]) {
+      const f = effectsFixture({ url });
+      try {
+        await f.play();
+        for (const card of f.cards) {
+          assert.equal(card.style.overflow, '');
+          assert.equal(card.querySelector('[data-tdb-audio-circle]').style.width, '');
+          assert.equal(card.querySelector('[data-tdb-audio-ripple-edge]').style.width, '');
+        }
+      } finally { f.cleanup(); }
+    }
+  });
+
   test(`${label}: default ring cleanup matches the accepted stop-ripple mode through rapid reuse`, async () => {
     const mode = 'retain-zoom,retain-ripple,no-blur,no-zoom,no-backdrop,no-words';
     const baseline = effectsFixture({ url: `https://dentalbarns.webflow.io/?tdb-speaker-test=${mode}` });

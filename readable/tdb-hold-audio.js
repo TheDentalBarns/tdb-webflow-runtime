@@ -22,7 +22,27 @@
   const noWords = diagnostic.includes('no-words');
   const noRipple = diagnostic.includes('no-ripple');
   const retainZoom = diagnostic.includes('retain-zoom');
-  const softRipple = diagnostic.includes('soft-ripple');
+  const pageWideRipple = diagnostic.includes('page-wide-ripple');
+  const softRipple = diagnostic.includes('soft-ripple') || pageWideRipple;
+  const rippleStyles = new Map();
+  if (pageWideRipple && !noVisuals && !noRipple)
+    document.querySelectorAll('[data-tdb-audio-card]').forEach((card) => {
+      // Comparison-only overrides: the existing inner clip still crops the
+      // photo. The page's main overflow boundary limits the widened decoration.
+      for (const [element, property, value] of [
+        [card, 'overflow', 'visible'],
+        [card.querySelector('[data-tdb-audio-circle]'), 'width', '200vw'],
+        [card.querySelector('[data-tdb-audio-ripple-edge]'), 'width', '200vw'],
+      ]) {
+        if (!element) continue;
+        rippleStyles.set(element, {
+          property,
+          value: element.style.getPropertyValue(property),
+          priority: element.style.getPropertyPriority(property),
+        });
+        element.style.setProperty(property, value);
+      }
+    });
   const buttonBackdrops = new Map();
   if (noBackdrop)
     document.querySelectorAll('[data-tdb-hold-audio]').forEach((button) => {
@@ -76,7 +96,7 @@
   function releaseRipple(element, from) {
     if (!from) return parkEffect(element);
     animateEffect(element, [from, { scale: from.scale, opacity: 0 }], {
-      duration: 180,
+      duration: pageWideRipple ? 500 : 180,
       easing: 'ease-out',
       fill: 'forwards',
     });
@@ -458,11 +478,16 @@
       button.style.backdropFilter = backdrop;
       button.style.webkitBackdropFilter = webkit;
     });
+    rippleStyles.forEach(({ property, value, priority }, element) => {
+      if (value) element.style.setProperty(property, value, priority);
+      else element.style.removeProperty(property);
+    });
+    rippleStyles.clear();
     if (ownsContext) context?.close().catch(() => {});
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.5.1',
+    version: '1.5.2',
     press,
     release,
     destroy,

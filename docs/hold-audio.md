@@ -1,6 +1,20 @@
 # Home first-visit speakers
 
-## Current release — controller 1.5.1
+## Current release — controller 1.5.2
+
+David reports the 180ms `soft-ripple` comparison is **all very smooth**, but
+the circle still ends abruptly. At his request,
+`?tdb-speaker-test=page-wide-ripple` is a separate trial: the outer photo
+frame allows overflow while the existing inner image clip remains intact.
+Both existing ring siblings use a `200vw` diameter, so the expansion can cross
+the viewport from any of the three speaker centres. The main page's existing
+overflow clip keeps that decoration inside the page width. Release dissolves
+at its current size for 500ms; scroll/new input still parks the tail immediately.
+This larger blur surface needs its own Android check. The ordinary URL and the
+accepted `soft-ripple` comparison are unchanged. No DOM nodes or head CSS are
+added. Temporary inline size/overflow overrides exist only in this staging
+comparison and are restored when its controller is destroyed. If accepted,
+permanent static styling belongs in Designer.
 
 David confirmed that the ordinary 1.5.0 staging page has **no issues at all**
 on his Android test, including the full held blur, outline, words and zoom.
@@ -9,8 +23,9 @@ default while `?tdb-speaker-test=soft-ripple` compares a 180ms opacity-only
 dissolve at each ring's current size. It never shrinks on release. Scroll,
 wheel, a new touch/pointer press, another hold, and page exit clear the tail;
 normal completion also cancels and hides it. No filled ring is retained.
-The comparison needs David's Android check; it is not a verified compositor
-fix. All other timings and held visual layers remain unchanged.
+David has now confirmed this short contained comparison is smooth; this is
+device feedback rather than a compositor trace. All other timings and held
+visual layers remain unchanged.
 
 The loader now prepares its one shared audio context on an earlier page tap
 or key gesture, including the consent decision. This fetches neither the

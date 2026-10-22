@@ -492,6 +492,36 @@ from 7,105 to 7,671 raw bytes (+211 bytes gzip). All CSS and other executable
 bundles are unchanged. The added work is bounded preparation feedback and the
 staging ring comparison, with no eager audio download.
 
+## Page-wide comparison requested — 22 October 2026
+
+David reports the `soft-ripple` build is **all very smooth** but the circle
+still ends abruptly, and asks to let it extend outside the image across the
+page. Controller 1.5.2 adds `?tdb-speaker-test=page-wide-ripple` on staging.
+
+The observed ancestry has a native `overflow:clip` on each audio card,
+an independent inner `overflow:hidden` photo clip, visible overflow through
+the surrounding grid/section, and `overflow:clip` on `main`. The trial changes
+only each card's overflow to visible and the two ring widths to `200vw` using
+reversible inline overrides. The image clip, photo/parallax, words, controls,
+blur and outline remain. The resulting radius can reach either viewport edge
+from any speaker centre. Main retains the page boundary; no portal, resize
+observer, extra DOM, new CSS file or head rule is introduced.
+
+This trial also uses a 500ms stationary release dissolve, instead of the
+contained comparison's 180ms. Scroll, wheel, new touch/pointer input, another
+hold and teardown retain immediate ring cleanup. The ordinary staging URL
+and `soft-ripple` remain unchanged. Audio readiness and its permission hint
+are unchanged. Larger visible backdrop blur may have different Android
+performance; the expanded trial is not yet physically verified. If accepted,
+the static frame/ring styling should be moved into Designer.
+
+Validation: all 136 focused hold/audio and parallax checks pass, including the
+new outer-frame/inner-clip separation, 500ms fixed-size fade, immediate scroll
+cleanup, unchanged comparison/production behavior and exact owned-style
+restoration. Build consistency, formatting and diff checks pass. Only the
+deferred controller executable changes: 7,671 to 8,217 raw bytes (+178 bytes
+gzip). Early scripts, other executable bundles and all CSS are unchanged.
+
 ## Primary-source references
 
 - WebKit, activation-triggering events and sticky activation:
