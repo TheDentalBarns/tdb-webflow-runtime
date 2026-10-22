@@ -1,6 +1,100 @@
 # Home speaker/parallax refinement for review
 
-## Status and decision
+## Overnight completion — current staging state
+
+**Complete for morning phone review; not a proven phone fix.** The critically
+reviewed source/bundles remain `e56f6efb510da0ef966683c60db67fc8cc9f77f1`.
+No additional code changes or tests were justified by this review. The existing
+538 passing / three optional skipped checks and build check are prior-run
+results, not newly rerun overnight. Offscreen measurement skipping remains OFF.
+
+The paired native scale and four candidate asset pins are now live at
+https://dentalbarns.webflow.io/. Final staging publication:
+**2026-10-22T01:55:38.120Z (02:55:38 BST)**. All four production domains still
+show **2026-10-01T10:10:45.669Z**. A fresh pre-pin verification matched all 66
+CDN release assets against local SHA-256 hashes.
+
+### Critical review
+
+- **Layout contract:** freshly inspected live images fill their original clips;
+  their transform origins are centred. Their fractional heights match their
+  card heights (581.6875 / 581.71875 / 581.6875 px in this desktop viewport).
+  This supports using the native 1.06 resting scale for the trio only. No new
+  wrappers or duplicate photos are needed. A future change to image sizing,
+  transform origin or a separately sized crop must revisit this contract.
+- **Cache:** current card rectangles are still read on every scheduled pass.
+  Width/height, viewport changes, explicit refresh, load, pageshow and visible
+  restoration cover the current layout lifecycle. A future same-size variable
+  mode change needs the existing explicit refresh; the present variable has no
+  mode overrides and no runtime writer. No new observer is justified.
+- **Cleanup and asynchronous work:** effect completion checks animation identity
+  before cancelling, so a stale completion cannot park a re-press. Hidden-page
+  cleanup handles tails even with no active session; it clears voice timers and
+  effects. Pending decode is gated by session identity and visibility. Existing
+  tests cover these concrete paths; no uncovered defect was found.
+- **Remaining uncertainty:** the 240% masked 32px backdrop blur can still be a
+  GPU contributor. Both that real blur and the separate 20px button blur remain.
+  There is no physical Android/Safari renderer here, and no CPU/GPU or FPS
+  improvement has been measured. Keep the candidate labelled for phone review.
+
+### Final live verification
+
+- Native Number variable `tdb-photo-scale` = **1.06**, newly created ID
+  `variable-b66704d4-61ed-f5c2-d773-ec29e2ce0da1` in Base collection
+  `collection-432e8337-c0cc-5509-bf0b-a4b20ddbe948`. Home variant `Image 2`
+  accepts `property_value: "var(--tdb-photo-scale)"` and reads back as the native
+  variable binding. All three live images resolve both scale and token to 1.06.
+- Four exact pins at the candidate SHA: head `dist/tdb-foundation.js`, head
+  `dist/tdb-ui.css`, head noscript `dist/tdb-ui.css`, footer
+  `dist/tdb-start.min.js`. No other global-code content changed.
+- Final initial HTML: **213,938 bytes / 1,443 elements**; trio **12,810 bytes /
+  79 elements including root**. Trio HTML hash and all three photo sources,
+  responsive sources, alternative text and original parents match the baseline.
+- Warmed 11-second pointer hold: first image scale **1.1236** immediately after
+  release; all ripples **hidden / opacity 0 / scale 0**. Controls clear pressed
+  and busy flags. This was after a short warm-up click and controller loading;
+  it is not a cold-download duration claim.
+- Two-second warmed hold, release, scroll and reverse: all three crops remained
+  covered and all image scales settled at 1.06. The browser scroll call finished
+  after the return, so this is **not** a new simultaneous-scroll/return trace.
+  That overlap remains covered by the deterministic source/bundle model only.
+- Leaving the page after a two-second hold and returning by browser Back left
+  all three images at 1.06, all nine decorations hidden, and every control
+  unpressed/not busy. This does not establish BFCache versus fresh-load reuse.
+- All three button blurs remain 20px and ripple blurs 32px. All three words have
+  identical centred styling (29.8399px in the 1363x936 desktop viewport).
+  No application errors observed; browser-extension metadata errors excluded.
+- Screenshot for the morning task:
+  `/workspace/scratch/tdb-speaker-morning-candidate-20261022.jpg`.
+
+### Publication sequence and rollback
+
+A sequencing mistake triggered an extra staging-only publication of the native
+1.06 binding before the four pins were changed, at **01:54:30.274Z**. Raw HTML
+confirmed it still served the baseline runtime with the same trio markup and
+candidate native CSS. The old runtime ignores the new token, and its numeric
+scale remained 1.06. This was not an intentional experiment. The next publish
+request was rate-limited once; the complete paired deployment then succeeded
+at **01:55:38.120Z**. A fetch begun during propagation still saw the baseline;
+a later raw fetch and desktop reload both verified the final candidate. Do not
+report this as one total publication. No production domain was published.
+
+For rollback, re-read current freeform blocks, replace only these four candidate
+pins with `8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce`, and return Home variant
+`Image 2` native `scale` to literal `1.06`. Remove only the newly created unused
+variable above if exact inventory restoration is required. Publish only
+`customDomains: []`, `publishToWebflowSubdomain: true`, then verify the baseline
+release, original parents, numeric scale and unchanged production timestamps.
+The pre-deployment private code snapshot is local only at
+`/tmp/tdb-offscreen-study/overnight-code-before.json`; it is not committed.
+Preserve any newer legitimate edits and never restore the rejected wrappers.
+
+The morning task should deliver this candidate and the device acceptance steps
+below, with the removed returning brightness pulse called out as an intentional
+visual refinement. Further speculative code is not warranted without the next
+phone result.
+
+## Earlier foreground status and decision
 
 David's latest physical-phone test rejected the nested-image-layer release
 `cc1a123db61c256f955eb3394cbf284c6348f39e`: more flashing, not an improvement.
