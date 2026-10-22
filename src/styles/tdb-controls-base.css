@@ -5,3 +5,7 @@
 [data-tdb-navbar-native]:not([data-tdb-nav-enhanced]),[data-tdb-navbar-native]:not([data-tdb-nav-enhanced]) *{transition:none!important;animation:none!important}
 
 html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-control-motion]) [data-tdb-disclosure-item]{transition:none!important}
+
+/* Compact disclosures keep their authored open state before optional motion loads. */
+html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition:none!important}
+[data-tdb-compact-chevron][aria-expanded="true"]::after{transform:rotate(var(--tdb-chevron-open-angle,180deg))}
