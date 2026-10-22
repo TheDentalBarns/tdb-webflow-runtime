@@ -38,6 +38,19 @@
         })(n);
         const o = (function (e, n) {
           if (!i(e)) return null;
+          // The visible CMS stamp is the single title source. Match its native
+          // URL rather than depending on collection order or duplicated text.
+          const stampTitles = new Map(
+            Array.from(
+              e
+                .closest('[data-tdb-treatment-layout]')
+                ?.querySelectorAll('[data-tdb-treatment-stamp][href]') || [],
+              (link) => [
+                link.getAttribute('href'),
+                link.querySelector('.tdb-treatment-title')?.textContent.trim() || '',
+              ],
+            ),
+          );
           const a = Array.from(
               n.querySelectorAll(
                 ':scope > .swiper-wrapper > .swiper-slide:not(.swiper-slide-duplicate)',
@@ -45,7 +58,7 @@
             ),
             o = a.map((e) => {
               const t = e.querySelector(
-                '.service-card-button-wrap a[href],a.tdb-treatment-source[href]',
+                '.service-card-button-wrap a[href],a[data-tdb-service-link-source][href],a.tdb-treatment-source[href]',
               );
               return (
                 t && {
@@ -56,11 +69,15 @@
                   title:
                     e
                       .querySelector('.service-card-mobile-title,.tdb-treatment-title')
-                      ?.textContent.trim() || '',
+                      ?.textContent.trim() ||
+                    stampTitles.get(t.getAttribute('href')) ||
+                    '',
                 }
               );
             }),
-            d = n.querySelector('.service-card-button-wrap a[href],a.tdb-treatment-source[href]');
+            d = n.querySelector(
+              '.service-card-button-wrap a[href],a[data-tdb-service-link-source][href],a.tdb-treatment-source[href]',
+            );
           if (!d) return null;
           const l =
               r + ':' + [...document.querySelectorAll('.parallax-swiper_component')].indexOf(e),

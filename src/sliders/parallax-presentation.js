@@ -29,7 +29,9 @@ window.TDBParallaxPresentation ||= (() => {
           t ||
             ((t = {
               blur: e.querySelector('.tdb-treatment-blur'),
-              copies: Array.from(e.querySelectorAll('[data-tdb-service-copy]')),
+              copies: Array.from(
+                e.querySelectorAll('[data-tdb-service-copy],[data-tdb-copy-state]'),
+              ),
             }),
             n.layers.set(e, t));
           for (const [e, r] of [

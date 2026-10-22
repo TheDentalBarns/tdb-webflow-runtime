@@ -55,7 +55,7 @@ window.TDBTreatmentDetails ||= (() => {
         const row = rows[i];
         return {
           active,
-          copy: s.node.querySelector('[data-tdb-service-copy]'),
+          copy: s.node.querySelector('[data-tdb-copy-state],[data-tdb-service-copy]'),
           color: row?.title && row.active !== active ? getComputedStyle(row.title).color : null,
         };
       });

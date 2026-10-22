@@ -209,10 +209,7 @@
                 // same index fallback as the native wide/narrow class switch.
                 f = [...this.slides].filter(
                   (e, index) =>
-                    !r ||
-                    e.hasAttribute('data-tdb-banner-wide') ||
-                    d(e, index) === m ||
-                    h.has(e),
+                    !r || e.hasAttribute('data-tdb-banner-wide') || d(e, index) === m || h.has(e),
                 ),
                 g = f.map((e) => e.getBoundingClientRect().width);
               (l(), c(w), this.updateSlides());
@@ -310,7 +307,11 @@
             ? (T.has(e) ||
                 T.set(
                   e,
-                  Array.from(e.querySelectorAll('[data-fade-slide],[data-tdb-service-copy]')),
+                  Array.from(
+                    e.querySelectorAll(
+                      '[data-fade-slide],[data-tdb-service-copy],[data-tdb-copy-state]',
+                    ),
+                  ),
                 ),
               T.get(e))
             : [];

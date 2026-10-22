@@ -32,17 +32,25 @@
           (!rating && !Number.isInteger(target))
         )
           return null;
-        const format = (value) => rating
-          ? value.toFixed(2)
-          : slot.getAttribute('data-tdb-count-format') === 'plain'
-            ? String(value)
-            : `(${value})`;
+        const format = (value) =>
+          rating
+            ? value.toFixed(2)
+            : slot.getAttribute('data-tdb-count-format') === 'plain'
+              ? String(value)
+              : `(${value})`;
         const text = format(target),
           ticker = window.TDBNativeTicker.mount(slot);
         // The live count supplies both ends of the animation. A settled counter
         // keeps its value when consent/lifecycle changes remount the component.
-        if (!rating && (slot.querySelector('.review-number_value') || slot).textContent.trim() !== text)
-          ticker.update(format(window.TDBMotion.reduced?.matches ? target : Math.max(0, target - 1)), 1, false);
+        if (
+          !rating &&
+          (slot.querySelector('.review-number_value') || slot).textContent.trim() !== text
+        )
+          ticker.update(
+            format(window.TDBMotion.reduced?.matches ? target : Math.max(0, target - 1)),
+            1,
+            false,
+          );
         if (!rating) slot.style.visibility = 'visible';
         return { ticker, text };
       })

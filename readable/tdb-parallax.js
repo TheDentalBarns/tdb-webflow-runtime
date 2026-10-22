@@ -29,7 +29,9 @@ window.TDBParallaxPresentation ||= (() => {
           t ||
             ((t = {
               blur: e.querySelector('.tdb-treatment-blur'),
-              copies: Array.from(e.querySelectorAll('[data-tdb-service-copy]')),
+              copies: Array.from(
+                e.querySelectorAll('[data-tdb-service-copy],[data-tdb-copy-state]'),
+              ),
             }),
             n.layers.set(e, t));
           for (const [e, r] of [
@@ -216,6 +218,19 @@ window.TDBParallaxPresentation ||= (() => {
         })(n);
         const o = (function (e, n) {
           if (!i(e)) return null;
+          // The visible CMS stamp is the single title source. Match its native
+          // URL rather than depending on collection order or duplicated text.
+          const stampTitles = new Map(
+            Array.from(
+              e
+                .closest('[data-tdb-treatment-layout]')
+                ?.querySelectorAll('[data-tdb-treatment-stamp][href]') || [],
+              (link) => [
+                link.getAttribute('href'),
+                link.querySelector('.tdb-treatment-title')?.textContent.trim() || '',
+              ],
+            ),
+          );
           const a = Array.from(
               n.querySelectorAll(
                 ':scope > .swiper-wrapper > .swiper-slide:not(.swiper-slide-duplicate)',
@@ -223,7 +238,7 @@ window.TDBParallaxPresentation ||= (() => {
             ),
             o = a.map((e) => {
               const t = e.querySelector(
-                '.service-card-button-wrap a[href],a.tdb-treatment-source[href]',
+                '.service-card-button-wrap a[href],a[data-tdb-service-link-source][href],a.tdb-treatment-source[href]',
               );
               return (
                 t && {
@@ -234,11 +249,15 @@ window.TDBParallaxPresentation ||= (() => {
                   title:
                     e
                       .querySelector('.service-card-mobile-title,.tdb-treatment-title')
-                      ?.textContent.trim() || '',
+                      ?.textContent.trim() ||
+                    stampTitles.get(t.getAttribute('href')) ||
+                    '',
                 }
               );
             }),
-            d = n.querySelector('.service-card-button-wrap a[href],a.tdb-treatment-source[href]');
+            d = n.querySelector(
+              '.service-card-button-wrap a[href],a[data-tdb-service-link-source][href],a.tdb-treatment-source[href]',
+            );
           if (!d) return null;
           const l =
               r + ':' + [...document.querySelectorAll('.parallax-swiper_component')].indexOf(e),
@@ -1122,7 +1141,7 @@ window.TDBTreatmentDetails ||= (() => {
         const row = rows[i];
         return {
           active,
-          copy: s.node.querySelector('[data-tdb-service-copy]'),
+          copy: s.node.querySelector('[data-tdb-copy-state],[data-tdb-service-copy]'),
           color: row?.title && row.active !== active ? getComputedStyle(row.title).color : null,
         };
       });
@@ -1873,7 +1892,11 @@ window.TDBParallaxProgress ||= (() => {
             ? (T.has(e) ||
                 T.set(
                   e,
-                  Array.from(e.querySelectorAll('[data-fade-slide],[data-tdb-service-copy]')),
+                  Array.from(
+                    e.querySelectorAll(
+                      '[data-fade-slide],[data-tdb-service-copy],[data-tdb-copy-state]',
+                    ),
+                  ),
                 ),
               T.get(e))
             : [];

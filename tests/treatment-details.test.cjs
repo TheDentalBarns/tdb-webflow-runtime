@@ -86,6 +86,30 @@ test('copy mirrors the shared fade state and loop rebuild restores original node
   }
 });
 
+test('deduplicated image cards still drive visible detail copy during movement and entry', () => {
+  const f = fixture();
+  try {
+    for (const slide of f.slides) {
+      const state = slide.node.firstElementChild;
+      state.removeAttribute('data-tdb-service-copy');
+      state.setAttribute('data-tdb-copy-state', '');
+      state.className = 'is-visible is-moving is-entry-pending';
+    }
+    f.api.paint(f.slides);
+    const copy = f.original[0].querySelector('[data-tdb-service-copy]');
+    for (const name of ['is-visible', 'is-moving', 'is-entry-pending']) {
+      assert(copy.classList.contains(name));
+    }
+    f.slides[1].node.firstElementChild.className = 'is-visible';
+    f.api.paint(f.slides);
+    assert(copy.classList.contains('is-visible'));
+    assert(!copy.classList.contains('is-moving'));
+    assert(!copy.classList.contains('is-entry-pending'));
+  } finally {
+    f.dom.window.close();
+  }
+});
+
 test('unchanged progress samples do not invalidate every detail row again', () => {
   const f = fixture();
   try {

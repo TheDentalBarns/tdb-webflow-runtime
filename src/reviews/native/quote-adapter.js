@@ -19,7 +19,8 @@
     records.forEach((record, index) => {
       const card = track.children[index];
       card.dataset.reviewId = record.id;
-      card.querySelector('[data-tdb-team-text]').textContent = record.displayExcerpt ?? record.excerpt;
+      card.querySelector('[data-tdb-team-text]').textContent =
+        record.displayExcerpt ?? record.excerpt;
       card.querySelector('[data-tdb-quotes-name]').textContent = record.name;
       const source = card.querySelector('[data-tdb-quotes-source]'),
         asset = platformAsset(record.platform);

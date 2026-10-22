@@ -66,10 +66,13 @@
       image = root.querySelector('img');
     if (Array.isArray(record.variants) && record.variants.length) {
       image.sizes = '12.1rem';
-      image.srcset = record.variants.map(v => {
-        if (!Number.isSafeInteger(v.width) || v.width < 1 || v.width > 20000) throw Error('Invalid partner image width');
-        return safeURL(v.url,true) + ' ' + v.width + 'w';
-      }).join(', ');
+      image.srcset = record.variants
+        .map((v) => {
+          if (!Number.isSafeInteger(v.width) || v.width < 1 || v.width > 20000)
+            throw Error('Invalid partner image width');
+          return safeURL(v.url, true) + ' ' + v.width + 'w';
+        })
+        .join(', ');
     }
     image.src = safeURL(record.image, true);
     image.alt = record.imageAlt;

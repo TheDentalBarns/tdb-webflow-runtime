@@ -384,11 +384,13 @@
     const viewport = root.querySelector('[data-tdb-team-viewport]');
     for (const key of keys) {
       if (key !== 'ArrowLeft' && key !== 'ArrowRight') continue;
-      viewport.dispatchEvent(new KeyboardEvent('keydown', {
-        key,
-        bubbles: true,
-        cancelable: true,
-      }));
+      viewport.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
     }
     return instance;
   }
