@@ -5,6 +5,10 @@ controller 1.3.6. David reports early holds stuck loading and persistent phone
 flashing after release followed by scrolling. This review does not treat prior
 desktop checks or mocked frame tests as proof of a physical-phone fix.
 
+The sections below preserve the sequence of findings. The latest staging change
+is the native photo-boundary candidate recorded near the end; earlier statements
+about unchanged native CSS describe the earlier diagnostic runtime releases.
+
 ## Findings and actions
 
 | Area | Evidence | Action / conclusion |
@@ -174,6 +178,59 @@ fault persists, investigate audio/shared-scroll work before changing decorative
 effects. If it disappears, focus on the rendering interaction and the oversized
 ripple's boundary. No new containment, clipping, audio lifecycle or default
 design change is made on the basis of this clarification.
+
+## Native photo-boundary candidate — 22 October 2026
+
+David's next response, **"This is all fine"**, follows the audio-only
+`?tdb-speaker-test=no-visuals` comparison. We interpret this as the interaction,
+release and scroll to the adjacent waiting-room photo being smooth in that
+comparison. This narrows the investigation toward the visual path. It does not
+identify one effect conclusively, provide a frame trace, or separately confirm
+audible Safari playback. No owner result is yet recorded for no-blur,no-zoom.
+
+One native Home variant property now changes:
+
+- Style: `aspect-ratio-portrait`.
+- Home variant: `59399012-5ce8-ef3a-0d17-0752d014115e`, main breakpoint.
+- `overflow:visible` → `overflow:clip`; no responsive overrides were present.
+- Both decorative ripple siblings are consequently clipped to their own photo.
+  Their 240% geometry and keyframes remain; the visible ripple now ends at the
+  photo boundary instead of painting into surrounding content or another card.
+
+This is a focused staging candidate, not a confirmed Android compositor fix.
+The ordinary URL retains the 32px ripple blur, 20px button glass, outline,
+words, zoom, parallax and actual audio lifecycle. The caption is outside the
+clipped frame. No extra wrapper, containment layer, will-change, head style,
+preload, audio asset or JavaScript change is introduced. To reverse the native
+trial, set this one Home variant property back to `visible` and publish staging.
+
+Staging publication: `3088c501-a3e8-4dc2-83ee-d3618e7dfb86`, Webflow subdomain
+only, with `customDomains:[]`. Runtime remains pinned to
+`3854317cf1be78533511b131e033d6c9e613e21c` (controller 1.4.1); the repository
+follow-up records documentation only and does not require a CDN repin.
+Home CSS is now `dentalbarns.webflow.677cf86df9952f978d94d8a9.f2e2b0f53.opt.min.css`;
+shared CSS remains `dentalbarns.webflow.shared.e75a367bf.min.css`.
+
+Verification on the ordinary staging URL:
+
+- Native readback and all three live computed styles show `overflow:clip`;
+  the original inner image clip remains `hidden` and both blur values remain.
+- Desktop held input advances the reception word to BREATHE and scales that
+  photo while the other two remain at HOLD and 1.06. Release clears pressed
+  and loading state. All three controls remain inside their photo frames.
+- Screenshot captures the reception outline stopping at both photo edges;
+  the neighbouring photos, buttons and captions remain in their normal layout.
+- Published source still has **1,186 body descendant elements**, and the two
+  existing inline head style blocks are byte-identical to the preceding release.
+  This is a source count, not a measured cold live DOM or speed improvement.
+- The first browser load missed the newly published Home stylesheet; one reload
+  loaded it successfully. The final source request returns CSS HTTP 200 and the
+  new variant rule. No missing-style screenshot is used as proof of the result.
+
+Next owner check: on Android Chrome at the **ordinary staging URL**, hold
+reception until sound starts, release, and scroll to the untouched waiting-room
+image. Confirm audible playback separately on Safari before comparing the two.
+No paid test or production publication was performed.
 
 ## Primary-source references
 

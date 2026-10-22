@@ -62,12 +62,15 @@ All three use the middle card's native `text-size-large` Home variant, centred
 over the image with its existing smaller mobile size.
 
 Designer owns `tdb-hold-image-clip`, `tdb-hold-blur-circle`, `tdb-hold-ripple-edge` and the centred word
-style. The Home variant allows frame overflow; its inner image
-clip preserves the original aspect ratio and crops zoom/parallax. The decorative
+style. The 22 October staging boundary candidate changes only the Home
+`aspect-ratio-portrait` variant from `overflow:visible` to `overflow:clip`.
+This bounds both ripple siblings to their own photo. The inner image
+clip still preserves the original aspect ratio and crops zoom/parallax. The decorative
 32px backdrop-blur circle lives in the native speaker overlay, sharing the
 button's centre. Its soft radial mask leaves the centre and outside clear. The
 ring reaches 2.4 times the speaker diameter in 150ms, then expands more gently
-beyond the card while dissolving. Its separate native 2px cream outline begins
+while dissolving. Its animated geometry still grows beyond the card, but its
+visible paint now stops at the photo edge. Its separate native 2px cream outline begins
 at 50% opacity and follows the same fade to transparent. The edge
 is a sibling so its outline remains outside the mask and the photo backdrop
 is not blocked by an ancestor's opacity. The review candidate keeps the same
@@ -97,7 +100,19 @@ Controller 1.4.1 also accepts comma-separated staging comparisons:
 `?tdb-speaker-test=no-blur,no-zoom` retains the button glass, outline, words,
 audio and parallax, but removes the large blur and photo zoom. This changes
 only zoom relative to `no-blur`, which David reports removes Android Chrome
-flashing but leaves post-release scroll jitter. The ordinary URL is unchanged.
+flashing but leaves post-release scroll jitter. These query flags do not change
+the ordinary URL's full effect; the later native boundary candidate applies to
+every staging mode, including the ordinary URL.
+
+David's subsequent "This is all fine" follows the `no-visuals` comparison and
+is treated as a smooth audio-only interaction/release/adjacent-scroll result.
+It is not a device trace or an explicit separate confirmation of Safari sound.
+The native photo boundary is the next staging trial, retaining full blur,
+outline, zoom, words and audio. Desktop verification confirms all three computed
+overflows are `clip`, neighbouring words/zoom remain idle, and release clears
+pressed/loading state. Physical Android smoothness remains to be checked.
+Runtime stays pinned to `3854317cf1be78533511b131e033d6c9e613e21c`;
+this native-only refinement adds no markup, head CSS, assets or runtime code.
 
 Validation: `node --test tests/hold-audio.test.cjs tests/home-speaker-parallax.test.cjs`.
 Combined motion checks model changing zoom rectangles at 30fps and 60fps,
