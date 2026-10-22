@@ -756,5 +756,347 @@
   "screenshots": {
     "candidate": "/workspace/scratch/tdb-speaker-candidate-20261021.jpg",
     "restored": "/workspace/scratch/tdb-speaker-restored-20261021.jpg"
+  },
+  "overnight_review": {
+    "completed_utc": "2026-10-22T02:00:35.717328+00:00",
+    "recommendation": "Ready on staging for morning physical-phone review; not a proven device fix",
+    "source_commit": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
+    "code_changed": false,
+    "tests_added": 0,
+    "tests_rerun": false,
+    "prior_suite_results_retained": true,
+    "review_findings": [
+      "Live original photos are centred and fill the current card clips; resting-scale synthetic bounds match this existing layout contract.",
+      "Scale cache invalidates on current dimension/viewport changes and explicit lifecycle refresh; card positions remain freshly measured.",
+      "Stale effect completion checks identity; hidden cleanup cancels visual and audio tails without an active session; pending decode remains session-gated.",
+      "No concrete uncovered defect found. No additional observers, loops, markup or speculative GPU workaround introduced."
+    ],
+    "future_contract_limits": [
+      "Changing transform origin, image sizing or separate crop dimensions requires revisiting the trio opt-in.",
+      "Same-size variable-mode changes require existing explicit refresh; current Number variable has no mode overrides or runtime writer."
+    ],
+    "final_published_utc": "2026-10-22T01:55:38.120Z",
+    "publish_task_id": "948d88db-75fd-426b-add3-da1412cfd5a4",
+    "publish_options": {
+      "customDomains": [],
+      "publishToWebflowSubdomain": true
+    },
+    "native_scale": {
+      "variable_name": "tdb-photo-scale",
+      "css_name": "--tdb-photo-scale",
+      "value": 1.06,
+      "variable_id": "variable-b66704d4-61ed-f5c2-d773-ec29e2ce0da1",
+      "collection_id": "collection-432e8337-c0cc-5509-bf0b-a4b20ddbe948",
+      "variant_id": "59399012-5ce8-ef3a-0d17-0752d014115e",
+      "style_name": "Image 2",
+      "property_value": "var(--tdb-photo-scale)",
+      "native_readback": "@var_variable-b66704d4-61ed-f5c2-d773-ec29e2ce0da1"
+    },
+    "pins": [
+      {
+        "location": "head",
+        "path": "dist/tdb-foundation.js",
+        "commit": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
+        "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e56f6efb510da0ef966683c60db67fc8cc9f77f1/dist/tdb-foundation.js"
+      },
+      {
+        "location": "head",
+        "path": "dist/tdb-ui.css",
+        "commit": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
+        "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e56f6efb510da0ef966683c60db67fc8cc9f77f1/dist/tdb-ui.css"
+      },
+      {
+        "location": "head noscript",
+        "path": "dist/tdb-ui.css",
+        "commit": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
+        "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e56f6efb510da0ef966683c60db67fc8cc9f77f1/dist/tdb-ui.css"
+      },
+      {
+        "location": "footer",
+        "path": "dist/tdb-start.min.js",
+        "commit": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
+        "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e56f6efb510da0ef966683c60db67fc8cc9f77f1/dist/tdb-start.min.js"
+      }
+    ],
+    "only_pin_replacements_in_global_code": true,
+    "cdn_pre_pin_reverification": {
+      "assets": 66,
+      "matched": 66,
+      "failed": 0,
+      "sha": "e56f6efb510da0ef966683c60db67fc8cc9f77f1"
+    },
+    "baseline_snapshot": {
+      "status": 200,
+      "bytes": 213938,
+      "elements": 1443,
+      "trioElements": 79,
+      "trioBytes": 12810,
+      "trioHash": "b802da7aaa807fccb5016d028e8f8f64b83bcc6dbe7f18f5eb99799e938b3099",
+      "layers": 0,
+      "release": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce/dist/tdb-start.min.js",
+      "css": [
+        "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.e75a367bf.min.css",
+        "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.afabba93c.opt.min.css",
+        "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce/dist/tdb-ui.css",
+        "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce/dist/tdb-ui.css"
+      ],
+      "photos": [
+        {
+          "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield.webp",
+          "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield.webp 1125w",
+          "alt": "Welcoming reception and boutique entrance at The Dental Barns Lichfield, providing premium cosmetic dentistry, Invisalign, and porcelain veneers for patients in Sutton Coldfield.",
+          "parent": "tdb-hold-image-clip"
+        },
+        {
+          "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield.webp",
+          "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield.webp 1125w",
+          "alt": "Natural foliage, soft lighting and cosy furnishings in the patient lounge at The Dental Barns in Lichfield.",
+          "parent": "tdb-hold-image-clip"
+        },
+        {
+          "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield.webp",
+          "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield.webp 1125w",
+          "alt": "Premium Sonos headphones for patient comfort on a luxury dental chair at The Dental Barns Lichfield, specialists in Invisalign, composite bonding, and veneers near Sutton Coldfield.",
+          "parent": "tdb-hold-image-clip"
+        }
+      ]
+    },
+    "final_snapshot": {
+      "status": 200,
+      "bytes": 213938,
+      "elements": 1443,
+      "trioElements": 79,
+      "trioBytes": 12810,
+      "trioHash": "b802da7aaa807fccb5016d028e8f8f64b83bcc6dbe7f18f5eb99799e938b3099",
+      "layers": 0,
+      "release": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e56f6efb510da0ef966683c60db67fc8cc9f77f1/dist/tdb-start.min.js",
+      "css": [
+        "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.e75a367bf.min.css",
+        "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.2fe20a460.opt.min.css",
+        "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e56f6efb510da0ef966683c60db67fc8cc9f77f1/dist/tdb-ui.css",
+        "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e56f6efb510da0ef966683c60db67fc8cc9f77f1/dist/tdb-ui.css"
+      ],
+      "photos": [
+        {
+          "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield.webp",
+          "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield.webp 1125w",
+          "alt": "Welcoming reception and boutique entrance at The Dental Barns Lichfield, providing premium cosmetic dentistry, Invisalign, and porcelain veneers for patients in Sutton Coldfield.",
+          "parent": "tdb-hold-image-clip"
+        },
+        {
+          "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield.webp",
+          "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield.webp 1125w",
+          "alt": "Natural foliage, soft lighting and cosy furnishings in the patient lounge at The Dental Barns in Lichfield.",
+          "parent": "tdb-hold-image-clip"
+        },
+        {
+          "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield.webp",
+          "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield.webp 1125w",
+          "alt": "Premium Sonos headphones for patient comfort on a luxury dental chair at The Dental Barns Lichfield, specialists in Invisalign, composite bonding, and veneers near Sutton Coldfield.",
+          "parent": "tdb-hold-image-clip"
+        }
+      ]
+    },
+    "publication_sequence_note": {
+      "unintentional_native_only_publish_utc": "2026-10-22T01:54:30.274Z",
+      "native_only_publish_task_id": "b1cb6cc3-57ab-4451-8617-689c7ad1d702",
+      "native_only_snapshot": {
+        "status": 200,
+        "bytes": 213938,
+        "elements": 1443,
+        "trioElements": 79,
+        "trioBytes": 12810,
+        "trioHash": "b802da7aaa807fccb5016d028e8f8f64b83bcc6dbe7f18f5eb99799e938b3099",
+        "layers": 0,
+        "release": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce/dist/tdb-start.min.js",
+        "css": [
+          "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.e75a367bf.min.css",
+          "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.2fe20a460.opt.min.css",
+          "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce/dist/tdb-ui.css",
+          "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce/dist/tdb-ui.css"
+        ],
+        "photos": [
+          {
+            "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield.webp",
+            "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34057247f4501e8b275a_the-dental-barns-lichfield-reception-invisalign-composite-bonding-veneers-sutton-coldfield.webp 1125w",
+            "alt": "Welcoming reception and boutique entrance at The Dental Barns Lichfield, providing premium cosmetic dentistry, Invisalign, and porcelain veneers for patients in Sutton Coldfield.",
+            "parent": "tdb-hold-image-clip"
+          },
+          {
+            "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield.webp",
+            "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a37c9fff5b706a33fe75b_the-dental-barns-lichfield-dentist-invisalign-composite-bonding-veneers-sutton-coldfield.webp 1125w",
+            "alt": "Natural foliage, soft lighting and cosy furnishings in the patient lounge at The Dental Barns in Lichfield.",
+            "parent": "tdb-hold-image-clip"
+          },
+          {
+            "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield.webp",
+            "srcset": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-500.webp 500w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-800.webp 800w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield-p-1080.webp 1080w, https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/696a34a1528eb0846ed00521_cosmetic-dentist-lichfield-treatment-room-invisalign-veneers-bonding-sutton-coldfield.webp 1125w",
+            "alt": "Premium Sonos headphones for patient comfort on a luxury dental chair at The Dental Barns Lichfield, specialists in Invisalign, composite bonding, and veneers near Sutton Coldfield.",
+            "parent": "tdb-hold-image-clip"
+          }
+        ]
+      },
+      "rate_limited_retry_count": 1,
+      "propagation_first_read_saw_baseline": true,
+      "final_raw_fetch_and_browser_agree": true,
+      "note": "Premature staging publish applied native scale binding before pins. Old runtime ignores the new token and numeric scale remained 1.06. Corrected by complete paired staging publish; not an intended experiment."
+    },
+    "browser": {
+      "environment": "Cloud desktop Chrome, 1363x936; no physical Android/Safari",
+      "resting_scales": [
+        "1.06",
+        "1.06",
+        "1.06"
+      ],
+      "resting_tokens": [
+        "1.06",
+        "1.06",
+        "1.06"
+      ],
+      "original_photo_parents": [
+        "tdb-hold-image-clip",
+        "tdb-hold-image-clip",
+        "tdb-hold-image-clip"
+      ],
+      "new_layers": 0,
+      "warmed_11s_release": {
+        "photo_scales": [
+          "1.1236",
+          "1.06",
+          "1.06"
+        ],
+        "ripple_opacity": [
+          "0",
+          "0",
+          "0"
+        ],
+        "ripple_scale": [
+          "0",
+          "0",
+          "0"
+        ],
+        "ripple_visibility": [
+          "hidden",
+          "hidden",
+          "hidden"
+        ],
+        "buttons_pressed": [
+          "false",
+          "false",
+          "false"
+        ],
+        "buttons_busy": [
+          null,
+          null,
+          null
+        ]
+      },
+      "cold_hold_limit": "Short initial click warmed the loaded controller; final 11s check is warmed, not cold. Cold startup behavior retains prior tests; no new cold network timing claimed.",
+      "release_scroll_settled": {
+        "hold_seconds": 2,
+        "scroll_y": 5280,
+        "card_top": [
+          -241.453125,
+          -241.453125,
+          -241.453125
+        ],
+        "photo_scales": [
+          "1.06",
+          "1.06",
+          "1.06"
+        ],
+        "translations": [
+          "0px -4.4488px",
+          "0px -4.4498px",
+          "0px -4.4488px"
+        ],
+        "top_gaps": [
+          0,
+          0,
+          0
+        ],
+        "bottom_gaps": [
+          0,
+          0,
+          0
+        ],
+        "after_reverse_scroll_y": 5172,
+        "after_reverse_scales": [
+          "1.06",
+          "1.06",
+          "1.06"
+        ],
+        "limit": "Native scroll returned after zoom settled; not an overlapping animation trace."
+      },
+      "leave_and_back": {
+        "photo_scales": [
+          "1.06",
+          "1.06",
+          "1.06"
+        ],
+        "decoration_visibility": [
+          "hidden",
+          "hidden",
+          "hidden",
+          "hidden",
+          "hidden",
+          "hidden",
+          "hidden",
+          "hidden",
+          "hidden"
+        ],
+        "buttons_pressed": [
+          "false",
+          "false",
+          "false"
+        ],
+        "buttons_busy": [
+          null,
+          null,
+          null
+        ],
+        "limit": "Does not distinguish BFCache reuse from fresh load; no hidden-tab animation trace claimed."
+      },
+      "retained_button_blur": [
+        "blur(20px)",
+        "blur(20px)",
+        "blur(20px)"
+      ],
+      "retained_ripple_blur": [
+        "blur(32px)",
+        "blur(32px)",
+        "blur(32px)"
+      ],
+      "word_font_size": [
+        "29.8399px",
+        "29.8399px",
+        "29.8399px"
+      ],
+      "word_text_align": [
+        "center",
+        "center",
+        "center"
+      ],
+      "application_errors_observed": 0,
+      "extension_metadata_errors_excluded": true,
+      "cpu_gpu_fps_measured": false,
+      "phone_flashing_reproduced": false,
+      "phone_flashing_fixed_claim": false
+    },
+    "production_domains_last_published_utc": [
+      "2026-10-01T10:10:45.669Z",
+      "2026-10-01T10:10:45.669Z",
+      "2026-10-01T10:10:45.669Z",
+      "2026-10-01T10:10:45.669Z"
+    ],
+    "screenshot": "/workspace/scratch/tdb-speaker-morning-candidate-20261022.jpg",
+    "rollback": {
+      "commit": "8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce",
+      "native_scale": 1.06,
+      "remove_only_unused_new_variable": "variable-b66704d4-61ed-f5c2-d773-ec29e2ce0da1",
+      "private_local_snapshot": "/tmp/tdb-offscreen-study/overnight-code-before.json",
+      "production_publish_allowed": false
+    },
+    "remaining_risk": "240% masked 32px backdrop may still contribute to device GPU flashing; physical phone review required."
   }
 }
