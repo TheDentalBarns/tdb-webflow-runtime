@@ -46,8 +46,19 @@ async function fixture(bundle = false, mount = true) {
   w.cancelAnimationFrame = (id) => queue.delete(id);
   w.setTimeout = () => ++next;
   w.clearTimeout = () => {};
-  w.fetch = () => new Promise(() => {});
-  const audio = { resume: () => Promise.resolve() };
+  w.fetch = async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(4) });
+  const audio = {
+    currentTime: 0,
+    destination: {},
+    resume: () => Promise.resolve(),
+    decodeAudioData: async () => ({ duration: 20 }),
+    createBufferSource: () => ({ connect() {}, disconnect() {}, start() {}, stop() {} }),
+    createGain: () => ({
+      connect() {},
+      disconnect() {},
+      gain: { setValueAtTime() {}, setTargetAtTime() {}, cancelAndHoldAtTime() {} },
+    }),
+  };
   const nativeStyle = w.getComputedStyle.bind(w);
   function eased(x, easing) {
     if (easing === 'linear') return x;
@@ -149,8 +160,9 @@ async function fixture(bundle = false, mount = true) {
     queue,
     animations,
     start,
-    press(index = 0) {
+    async press(index = 0) {
       w.TDBHoldAudio.press(cards[index].querySelector('button'), { pointer: index + 1 }, audio);
+      await tick();
     },
     release() {
       w.TDBHoldAudio.release();
@@ -240,7 +252,7 @@ for (const bundle of [false, true]) {
       const relativeScale = () =>
         f.photos[0].getBoundingClientRect().height / f.clips[0].getBoundingClientRect().height;
       assert.ok(Math.abs(relativeScale() - 1.06) < 0.00001, 'same native resting crop');
-      f.press();
+      await f.press();
       await f.advance(10000);
       assert.ok(Math.abs(relativeScale() - 1.1236) < 0.00001, 'same full held zoom');
       f.scroll(700);
@@ -266,11 +278,11 @@ for (const bundle of [false, true]) {
         e.scroll(50);
         e.scroll(100);
       }
-      f.press();
+      await f.press();
       await f.advance(5000);
       f.release();
       await f.advance(200);
-      f.press();
+      await f.press();
       const before = f.photos.map((node) => node.style.translate);
       await f.refresh();
       await control.refresh();
@@ -302,7 +314,7 @@ for (const bundle of [false, true]) {
     const f = await fixture(bundle, false),
       control = await fixture(bundle, false);
     try {
-      f.press();
+      await f.press();
       await f.advance(5000);
       await f.start();
       await control.start();

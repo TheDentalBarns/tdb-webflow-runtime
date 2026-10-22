@@ -18,8 +18,12 @@ Within 600px of the cards it loads the separate `tdb-hold-audio.js` controller.
 Focus or a press can also request it. A cold press requests Web Audio resume
 synchronously and is replayed only if still held when the controller arrives.
 The original resume promise is shared with the controller; a pending audio
-permission does not block visuals or audio downloading. Playback still respects
-browser permission and never starts after release.
+permission does not block audio downloading. Zoom, ripple and the word sequence
+start together only after the context resumes, the sound is decoded and playback
+starts. While waiting, only the existing loading/pressed feedback is active.
+Waiting consumes none of the ten-second visual sequence or its words. Releasing
+before readiness clears loading without starting return animations or playing
+later; playback still respects browser permission.
 The controller fetches and decodes the sound only on the first deliberate press,
 then shares that buffer across the cards. Pointer/keyboard release, touch
 cancellation, lost capture, blur and page hiding stop playback. A pending
@@ -95,3 +99,23 @@ offscreen completion, mid-hold mounting, orientation, refresh, pageshow and
 cleanup. Existing speaker checks cover audio, keyboard, cancellation and shared
 downloads. Available staging browser verification is desktop Chrome; physical
 Android/Safari smoothness still requires a device check.
+
+## Playback-ready visual start — 22 October 2026
+
+David requested that the trio's animation and words begin only when its sound
+is ready. Controller 1.3.6 moves zoom, ripple and word scheduling to the existing
+successful playback handoff, after context resume and sound download/decode.
+Pending or failed presses do not consume words; a pending release does not
+create a return animation. Existing loading feedback, continuous held-input
+handoff, audio caching/playhead, fade tail and visual durations are preserved.
+This is a focused timing change; the separate mobile flashing investigation
+remains paused. Native markup, styles, preloads and loading policy are unchanged.
+
+The six new source/bundle readiness cases failed against 1.3.5 and pass against
+1.3.6. They cover delayed download/decode, delayed permission, release before
+readiness, the unconsumed word sequence and failure without visual playback.
+The existing motion fixtures now explicitly make audio ready before exercising
+the visual lifecycle. Combined speaker/parallax checks: 54 passes. Release build,
+generated-artifact consistency, the sequential full suite and formatting pass.
+Simulated readiness tests do not establish physical-device audio latency or a
+fix for the separately reported phone flashing.

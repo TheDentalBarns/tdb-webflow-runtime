@@ -15,6 +15,7 @@ function fixture({
   clock = false,
   deferred = false,
   suspended = false,
+  delayedDecode = false,
   url = 'https://dentalbarns.webflow.io/',
   code = source,
 } = {}) {
@@ -56,10 +57,12 @@ function fixture({
     close: 0,
     voices: [],
     animations: [],
+    playbackEvents: [],
   };
   const downloads = [];
-  let intersect, finishModule, resumeAudio;
+  let intersect, finishModule, resumeAudio, decodeAudio;
   const audioReady = new Promise((resolve) => (resumeAudio = resolve));
+  const decoded = new Promise((resolve) => (decodeAudio = () => resolve({ duration: 20 })));
   w.IntersectionObserver = class {
     constructor(cb, options) {
       intersect = cb;
@@ -106,7 +109,7 @@ function fixture({
     }
     decodeAudioData() {
       calls.decode++;
-      return Promise.resolve({ duration: 20 });
+      return delayedDecode ? decoded : Promise.resolve({ duration: 20 });
     }
     close() {
       calls.close++;
@@ -136,6 +139,7 @@ function fixture({
         },
         disconnect() {},
         start(when, offset) {
+          calls.playbackEvents.push('audio');
           this.started++;
           this.offset = offset;
         },
@@ -148,6 +152,7 @@ function fixture({
     }
   };
   w.Element.prototype.animate = function (frames, options) {
+    calls.playbackEvents.push('visual');
     let finish, reject;
     const animation = {
       element: this,
@@ -183,6 +188,7 @@ function fixture({
     buttons,
     downloads,
     resumeAudio,
+    decodeAudio,
     event,
     advance(ms) {
       const until = now + ms;
@@ -208,6 +214,12 @@ function fixture({
     down(i = 0, id = 1) {
       event(buttons[i], 'pointerdown', { button: 0, isPrimary: true, pointerId: id });
       return tick();
+    },
+    async play(i = 0, id = 1) {
+      event(buttons[i], 'pointerdown', { button: 0, isPrimary: true, pointerId: id });
+      await tick();
+      downloads[0]();
+      await tick();
     },
     up(i = 0, id = 1) {
       event(buttons[i], 'pointerup', { pointerId: id });
@@ -285,10 +297,11 @@ test('a hold captured before runtime permission continues through activation and
   assert.equal(f.calls.module, 1);
   await f.moduleReady();
   assert.equal(f.calls.fetch, 1);
-  assert.ok(f.calls.animations.length > 0, 'original held input starts visuals');
+  assert.equal(f.calls.animations.length, 0, 'original held input waits for the sound');
   f.downloads[0]();
   await tick();
   assert.equal(f.calls.voices[0].started, 1);
+  assert.ok(f.calls.animations.length > 0, 'original held input starts visuals with playback');
   assert.equal(f.calls.resume, 1, 'handoff reuses the gesture resume promise');
   assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
   f.cleanup();
@@ -310,18 +323,20 @@ for (const ending of ['release', 'destroy']) {
   });
 }
 
-test('a pending audio resume does not block controller, visuals or sound download', async () => {
+test('a pending audio resume allows downloading but delays all playback visuals', async () => {
   const f = fixture({ suspended: true, visual: true });
   await f.down();
   assert.equal(f.calls.fetch, 1);
-  assert.ok(f.calls.animations.length > 0);
+  assert.equal(f.calls.animations.length, 0);
   f.downloads[0]();
   await tick();
   assert.equal(f.calls.voices.length, 0, 'audio still waits for browser permission');
+  assert.equal(f.calls.animations.length, 0, 'visuals also wait for permission');
   assert.equal(f.buttons[0].getAttribute('data-tdb-loading'), 'true');
   f.resumeAudio();
   await tick();
   assert.equal(f.calls.voices[0].started, 1, 'the same held press continues');
+  assert.ok(f.calls.animations.length > 0);
   assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
   f.cleanup();
 });
@@ -334,6 +349,7 @@ test('release while audio resume is pending prevents delayed playback', async ()
   f.resumeAudio();
   await tick();
   assert.equal(f.calls.voices.length, 0);
+  assert.equal(f.calls.animations.length, 0, 'release creates no animation for a pending hold');
   assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
   f.cleanup();
 });
@@ -341,7 +357,7 @@ test('release while audio resume is pending prevents delayed playback', async ()
 for (const host of ['dentalbarns.webflow.io', 'www.thedentalbarns.com']) {
   test(`blur diagnostic is staging-only: ${host}`, async () => {
     const f = fixture({ visual: true, url: `https://${host}/?tdb-speaker-test=no-blur` });
-    await f.down();
+    await f.play();
     const circle = f.w.document.querySelector('[data-tdb-audio-circle]');
     const edge = f.w.document.querySelector('[data-tdb-audio-ripple-edge]');
     assert.equal(
@@ -421,7 +437,7 @@ test('repress during fade continues same source and cancels pending stop', async
 
 test('zoom advances linearly for ten seconds, independent of parallax', async () => {
   const f = fixture();
-  await f.down();
+  await f.play();
   const animation = f.calls.animations.at(-1);
   assert.equal(animation.options.duration, 10000);
   assert.equal(animation.options.easing, 'linear');
@@ -454,7 +470,7 @@ for (const reason of [
   'pagehide',
   'hidden',
 ]) {
-  test(`${reason} cancels pending playback and restores photo`, async () => {
+  test(`${reason} cancels pending playback without starting a photo animation`, async () => {
     const f = fixture();
     await f.down();
     if (reason === 'hidden') {
@@ -473,7 +489,8 @@ for (const reason of [
     if (['pagehide', 'hidden'].includes(reason)) {
       assert.ok(f.calls.animations.every((a) => a.cancelled));
       assert.equal(f.w.document.querySelector('img').style.scale, '1.06');
-    } else assert.equal(f.calls.animations.at(-1).frames.at(-1).scale, '1.06');
+    }
+    assert.equal(f.calls.animations.length, 0, 'pending holds have no return animation');
     f.cleanup();
   });
 }
@@ -515,7 +532,7 @@ test('nine native words continue across cards, three per ten-second hold', async
   const words = [...f.w.document.querySelectorAll('[data-tdb-audio-words]')];
   const seen = [];
   for (let card = 0; card < 3; card++) {
-    await f.down(card);
+    await f.play(card);
     for (let step = 0; step < 3; step++) {
       seen.push(words[card].textContent);
       f.advance(step === 2 ? 3334 : 3333.4);
@@ -540,20 +557,20 @@ test('nine native words continue across cards, three per ten-second hold', async
     'REST.',
     'EASE.',
   ]);
-  await f.down();
+  await f.play();
   assert.equal(words[0].textContent, 'HOLD.');
   f.cleanup();
 });
 
 test('release cancels unseen words and preserves the audio fade after a long hold', async () => {
   const f = fixture({ visual: true, clock: true });
-  await f.down();
+  await f.play();
   f.downloads[0]();
   await tick();
   f.advance(1000);
   f.up();
   f.advance(12000);
-  await f.down(1);
+  await f.play(1);
   assert.equal(f.w.document.querySelectorAll('[data-tdb-audio-words]')[1].textContent, 'BREATHE.');
   f.advance(10000);
   const voice = f.calls.voices.at(-1);
@@ -569,7 +586,7 @@ test('release cancels unseen words and preserves the audio fade after a long hol
 test('blur reverses from current geometry without altering native layout or parallax', async () => {
   const f = fixture({ visual: true, clock: true });
   const circle = f.w.document.querySelector('[data-tdb-audio-circle]');
-  await f.down();
+  await f.play();
   let animation = f.calls.animations.find((a) => a.element === circle);
   assert.equal(animation.options.duration, 10000);
   assert.equal(animation.frames.at(-1).scale, '1');
@@ -595,10 +612,14 @@ test('blur reverses from current geometry without altering native layout or para
   assert.equal(animation.frames[0].scale, '0.6');
   assert.equal(animation.frames.at(-1).scale, '0');
   assert.equal(animation.options.duration, 1200);
-  assert.equal(animation.frames[0].opacity, '0.6', 'return starts at its currently visible brightness');
+  assert.equal(
+    animation.frames[0].opacity,
+    '0.6',
+    'return starts at its currently visible brightness',
+  );
   assert.equal(animation.frames.at(-1).opacity, 0, 'return fades without a brightness rebound');
   circle.style.scale = '0.3';
-  await f.down();
+  await f.play();
   animation = f.calls.animations.filter((a) => a.element === circle).at(-1);
   assert.equal(animation.frames[0].scale, '0.3');
   assert.equal(f.w.document.querySelector('img').style.translate, '0 10px');
@@ -611,6 +632,72 @@ for (const [label, code] of [
   ['source', source],
   ['bundle', fs.readFileSync('dist/tdb-hold-audio.js', 'utf8')],
 ]) {
+  test(`${label}: download and decode delay visuals and preserve the full word sequence`, async () => {
+    const f = fixture({ code, visual: true, clock: true, delayedDecode: true });
+    try {
+      await f.down();
+      f.advance(12000);
+      assert.equal(f.calls.animations.length, 0, 'slow download starts no zoom, ripple or words');
+      f.downloads[0]();
+      await tick();
+      assert.equal(f.calls.decode, 1);
+      assert.equal(f.calls.voices.length, 0);
+      assert.equal(f.calls.animations.length, 0, 'downloaded bytes still require decoding');
+      assert.equal(f.buttons[0].getAttribute('data-tdb-loading'), 'true');
+      f.advance(12000);
+      f.decodeAudio();
+      await tick();
+      assert.equal(f.calls.voices[0].started, 1);
+      assert.equal(f.calls.playbackEvents[0], 'audio', 'playback precedes the visual sequence');
+      assert.equal(f.calls.animations.length, 4, 'zoom, blur, edge and first word start together');
+      const word = f.w.document.querySelector('[data-tdb-audio-words]');
+      assert.equal(word.textContent, 'HOLD.', 'waiting consumes no words');
+      f.advance(3333.4);
+      assert.equal(word.textContent, 'BREATHE.');
+      assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+    } finally {
+      f.cleanup();
+    }
+  });
+
+  test(`${label}: releasing before permission keeps visuals dormant and the next word unconsumed`, async () => {
+    const f = fixture({ code, visual: true, clock: true, suspended: true });
+    try {
+      await f.down();
+      f.downloads[0]();
+      await tick();
+      f.up();
+      assert.equal(f.calls.animations.length, 0, 'no release effects for a loading-only press');
+      f.resumeAudio();
+      await tick();
+      f.advance(12000);
+      assert.equal(f.calls.voices.length, 0, 'late readiness cannot play a released hold');
+      assert.equal(f.calls.animations.length, 0);
+      await f.down(1);
+      assert.equal(f.calls.voices[0].started, 1);
+      assert.equal(f.w.document.querySelectorAll('[data-tdb-audio-words]')[1].textContent, 'HOLD.');
+      assert.ok(f.calls.animations.every((a) => f.buttons[1].parentElement.contains(a.element)));
+    } finally {
+      f.cleanup();
+    }
+  });
+
+  test(`${label}: failed audio starts no visuals and leaves loading feedback clear`, async () => {
+    const f = fixture({ code, visual: true, fail: true });
+    try {
+      await f.down();
+      f.downloads[0]();
+      await tick();
+      assert.equal(f.calls.animations.length, 0);
+      assert.equal(f.calls.voices.length, 0);
+      assert.equal(f.buttons[0].getAttribute('aria-pressed'), 'false');
+      assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+      assert.match(f.buttons[0].title, /unavailable/);
+    } finally {
+      f.cleanup();
+    }
+  });
+
   function effectsFixture() {
     const f = fixture({ code, visual: true, clock: true });
     const style = f.w.document.createElement('style');
@@ -625,7 +712,7 @@ for (const [label, code] of [
     for (const opacity of [0, 0.05, 0.3, 0.6, 1]) {
       const f = effectsFixture();
       try {
-        await f.down();
+        await f.play();
         const circle = f.decorations[0];
         circle.style.scale = '0.8';
         circle.style.opacity = String(opacity);
@@ -655,7 +742,7 @@ for (const [label, code] of [
   test(`${label}: first speaker leaves neighbouring visuals untouched and parks completed effects`, async () => {
     const f = effectsFixture();
     const untouched = f.cards.slice(1).map((card) => card.outerHTML);
-    await f.down();
+    await f.play();
     assert.ok(f.decorations.every((el) => f.w.getComputedStyle(el).visibility === 'visible'));
     assert.ok(f.calls.animations.every((a) => f.cards[0].contains(a.element)));
     f.up();
@@ -675,9 +762,9 @@ for (const [label, code] of [
 
   test(`${label}: rapid re-press keeps current effects visible; cancellation and destroy park them`, async () => {
     const f = effectsFixture();
-    await f.down();
+    await f.play();
     f.up();
-    await f.down(0, 2);
+    await f.play(0, 2);
     assert.ok(f.decorations.every((el) => f.w.getComputedStyle(el).visibility === 'visible'));
     const circle = f.decorations[0];
     const held = f.calls.animations.filter((a) => a.element === circle).at(-1);
@@ -686,8 +773,12 @@ for (const [label, code] of [
     assert.equal(f.w.getComputedStyle(circle).visibility, 'hidden');
     assert.equal(held.cancelled, true, 'completed invisible effects are discarded');
     f.up(0, 2);
-    assert.equal(f.w.getComputedStyle(circle).visibility, 'hidden', 'finished ripple does not revive');
-    await f.down(0, 3);
+    assert.equal(
+      f.w.getComputedStyle(circle).visibility,
+      'hidden',
+      'finished ripple does not revive',
+    );
+    await f.play(0, 3);
     circle.style.scale = '0.6';
     circle.style.opacity = '0.5';
     f.up(0, 3);
@@ -706,7 +797,7 @@ for (const [label, code] of [
     test(`${label}: ${event} cancels already-returning visuals without creating new animations`, async () => {
       const f = effectsFixture();
       try {
-        await f.down();
+        await f.play();
         f.downloads[0]();
         await tick();
         f.up();
@@ -717,15 +808,22 @@ for (const [label, code] of [
           f.event(f.w.document, 'visibilitychange');
         } else f.event(f.w, 'pagehide');
         assert.equal(f.calls.animations.length, count, 'hiding never starts a return animation');
-        assert.ok(f.calls.animations.every((a) => a.cancelled), 'also cancels tails after pointer release');
+        assert.ok(
+          f.calls.animations.every((a) => a.cancelled),
+          'also cancels tails after pointer release',
+        );
         assert.ok(f.decorations.every((el) => f.w.getComputedStyle(el).visibility === 'hidden'));
         assert.equal(f.calls.voices[0].stopped.length, 1, 'no hidden audio tail');
         assert.equal(f.w.TDBHoldAudio.status().holding, false);
         f.advance(12000);
         assert.equal(f.calls.animations.length, count);
         Object.defineProperty(f.w.document, 'hidden', { value: false, configurable: true });
-        await f.down(1);
-        assert.equal(f.w.TDBHoldAudio.status().playing, true, 'cached audio still resumes on deliberate hold');
+        await f.play(1);
+        assert.equal(
+          f.w.TDBHoldAudio.status().playing,
+          true,
+          'cached audio still resumes on deliberate hold',
+        );
       } finally {
         f.cleanup();
       }

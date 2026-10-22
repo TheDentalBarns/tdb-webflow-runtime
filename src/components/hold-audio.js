@@ -206,14 +206,15 @@
     if (!session) return;
     active = null;
     session.timers?.forEach(clearTimeout);
-    if (!immediate && session.word) {
-      const opacity = getComputedStyle(session.word).opacity;
-      animateEffect(session.word, [{ opacity }, { opacity: 0 }], {
-        duration: 350,
-        fill: 'forwards',
-      });
-    }
-    if (!immediate) {
+    // A loading-only hold has no visual sequence to return or fade.
+    if (!immediate && session.voice) {
+      if (session.word) {
+        const opacity = getComputedStyle(session.word).opacity;
+        animateEffect(session.word, [{ opacity }, { opacity: 0 }], {
+          duration: 350,
+          fill: 'forwards',
+        });
+      }
       circle(session.circle, false);
       zoom(session.image, false);
       stopVoice(session.voice);
@@ -263,8 +264,6 @@
         button.setPointerCapture(session.pointer);
       } catch (_) {}
     }
-    zoom(session.image, true);
-    startVisuals(session);
     // Create and resume in the user gesture, before any network/decode await.
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -306,6 +305,9 @@
             source.start(0, offset);
           }
           session.voice = voice;
+          // Start the full visual timeline only after resume, decode and playback.
+          zoom(session.image, true);
+          startVisuals(session);
           button.removeAttribute('aria-busy');
           button.removeAttribute('data-tdb-loading');
           button.title = 'Hold to listen';
@@ -332,7 +334,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.3.5',
+    version: '1.3.6',
     press,
     release,
     destroy,
