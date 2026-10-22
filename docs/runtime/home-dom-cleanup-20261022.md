@@ -99,11 +99,23 @@ original vector geometry. Three speaker SVG trees use the same sheet (9 elements
 removed), with their original 1.75rem variant dimensions and loading visibility.
 Native award-list items restore the original last-child bottom-margin rule.
 
-The corrected source count is expected to be 1,217 and needs published-source
-verification. The responsive browser fixture was unavailable because the browser
+The published source count is 1,217, with all 98 CMS items and 16 lists retained.
+Desktop verification finds each affected background at x=0 with width=1363px
+in a 1363px viewport. All three section heights match the prior build, and content
+widths differ only by 0.03125px from percentage rounding. The award list matches
+its original 156.5625px height, and all seven social links/text remain unchanged.
+The responsive browser fixture was unavailable because the browser
 blocks data URLs; do not claim a mobile browser or physical-device visual pass.
 
 Release build, build consistency and formatting pass. The sequential full suite
 records 539 passes, 3 skips and one failure in the existing timing-sensitive
 feature-loading-policy case. Its complete nine-test file passes in isolation.
 No JavaScript or assertion was changed for this CSS release.
+
+Published verification also exposed Webflow's invalid `:after:where()` and
+`:before:where()` output for newly added component-variant pseudo rules. Their
+dimensions did not apply. Those overrides are removed. Native pseudo styles now
+read inherited tokens, supplied for the existing dark-glass variant by the
+critical control CSS. This narrow compatibility exception preserves its original
+icon and raised spinner dimensions before first paint; defaults keep native
+fallback values. No parallax or hold-audio JavaScript is changed.
