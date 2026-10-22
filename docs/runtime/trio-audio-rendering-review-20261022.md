@@ -522,6 +522,31 @@ restoration. Build consistency, formatting and diff checks pass. Only the
 deferred controller executable changes: 7,671 to 8,217 raw bytes (+178 bytes
 gzip). Early scripts, other executable bundles and all CSS are unchanged.
 
+## Plain staging rollout correction — 22 October 2026
+
+David reports that mobile still looks contained and snaps off. The published
+1.5.2 source confirms the wider ring and 500ms fade were restricted to the
+explicit `page-wide-ripple` query; the ordinary staging URL still selected the
+contained immediate-release baseline. No mobile-only clipping rule appears in
+the published ring/card selectors. This establishes a rollout gap, not which
+URL or cached page was open on the phone.
+
+Controller 1.5.3 selects page-wide behaviour on plain staging as well as the
+explicit page-wide comparison. Other explicit diagnostic URLs keep their
+existing behaviour, and production hostnames remain unchanged. The trial still
+uses the existing outer frame/rings, preserves the inner image crop, holds size
+while fading for 500ms and parks immediately on new scroll/input. No new head
+CSS, wrappers, asset requests or audio/readiness changes are introduced.
+
+Source and bundle checks now exercise both entry URLs using touch input,
+including the outer-frame override, unchanged photo clip, release duration,
+scroll cancellation and exact style restoration. Existing immediate-release
+baseline checks run against production or explicit diagnostic URLs.
+
+Validation: 138 focused speaker/parallax checks pass, along with build
+consistency, formatting and diff checks. Only the deferred controller bundle
+changes; all CSS and early scripts remain byte-identical to 1.5.2.
+
 ## Primary-source references
 
 - WebKit, activation-triggering events and sticky activation:

@@ -11,10 +11,12 @@
     voices = new Set();
   const holdDuration = 10000;
   // Combine staging comparisons without re-enabling an already-isolated effect.
-  const diagnostic =
-    location.hostname === 'dentalbarns.webflow.io'
-      ? (new URLSearchParams(location.search).get('tdb-speaker-test') || '').split(',')
-      : [];
+  const staging = location.hostname === 'dentalbarns.webflow.io';
+  const diagnostic = staging
+    ? (new URLSearchParams(location.search).get('tdb-speaker-test') || '')
+        .split(',')
+        .filter(Boolean)
+    : [];
   const noVisuals = diagnostic.includes('no-visuals');
   const noBackdrop = diagnostic.includes('no-backdrop') || noVisuals;
   const noBlur = diagnostic.includes('no-blur') || noBackdrop;
@@ -22,7 +24,9 @@
   const noWords = diagnostic.includes('no-words');
   const noRipple = diagnostic.includes('no-ripple');
   const retainZoom = diagnostic.includes('retain-zoom');
-  const pageWideRipple = diagnostic.includes('page-wide-ripple');
+  // The normal staging page must show the requested trial on a plain reload.
+  // Explicit comparison URLs still retain their original isolated behaviour.
+  const pageWideRipple = staging && (!diagnostic.length || diagnostic.includes('page-wide-ripple'));
   const softRipple = diagnostic.includes('soft-ripple') || pageWideRipple;
   const rippleStyles = new Map();
   if (pageWideRipple && !noVisuals && !noRipple)
@@ -487,7 +491,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.5.2',
+    version: '1.5.3',
     press,
     release,
     destroy,

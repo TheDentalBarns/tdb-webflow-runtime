@@ -1,6 +1,15 @@
 # Home first-visit speakers
 
-## Current release — controller 1.5.2
+## Current release — controller 1.5.3
+
+The page-wide trial is now the default on the ordinary staging URL, including
+touch input. Version 1.5.2 gated it behind the comparison query, so a normal
+mobile reload still showed the contained, immediate-release baseline. The
+published source confirmed that rollout gap; it does not prove which URL was
+open on David's phone. Explicit diagnostic URLs keep their previous comparison
+behaviour, and production hostnames keep the contained immediate-release mode.
+Both plain staging and the explicit page-wide URL are checked for the same
+outer overflow, preserved inner photo crop, 500ms fade and scroll cleanup.
 
 David reports the 180ms `soft-ripple` comparison is **all very smooth**, but
 the circle still ends abruptly. At his request,
@@ -10,16 +19,16 @@ Both existing ring siblings use a `200vw` diameter, so the expansion can cross
 the viewport from any of the three speaker centres. The main page's existing
 overflow clip keeps that decoration inside the page width. Release dissolves
 at its current size for 500ms; scroll/new input still parks the tail immediately.
-This larger blur surface needs its own Android check. The ordinary URL and the
-accepted `soft-ripple` comparison are unchanged. No DOM nodes or head CSS are
-added. Temporary inline size/overflow overrides exist only in this staging
-comparison and are restored when its controller is destroyed. If accepted,
+This larger blur surface needs its own Android check. The ordinary staging URL
+now uses this trial; the accepted `soft-ripple` comparison is unchanged. No DOM
+nodes or head CSS are added. Temporary inline size/overflow overrides exist only
+on staging and are restored when its controller is destroyed. If accepted,
 permanent static styling belongs in Designer.
 
 David confirmed that the ordinary 1.5.0 staging page has **no issues at all**
 on his Android test, including the full held blur, outline, words and zoom.
 He finds its immediate release less attractive. Immediate cleanup remains the
-default while `?tdb-speaker-test=soft-ripple` compares a 180ms opacity-only
+production baseline while `?tdb-speaker-test=soft-ripple` compares a 180ms opacity-only
 dissolve at each ring's current size. It never shrinks on release. Scroll,
 wheel, a new touch/pointer press, another hold, and page exit clear the tail;
 normal completion also cancels and hides it. No filled ring is retained.

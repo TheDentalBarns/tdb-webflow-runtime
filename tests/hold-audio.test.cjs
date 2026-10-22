@@ -945,7 +945,7 @@ for (const [label, code] of [
     }));
     let baseline;
     for (const url of [
-      'https://dentalbarns.webflow.io/',
+      'https://www.thedentalbarns.com/',
       'https://dentalbarns.webflow.io/?tdb-speaker-test=retain-zoom',
       'https://www.thedentalbarns.com/?tdb-speaker-test=retain-zoom',
     ]) {
@@ -1161,7 +1161,7 @@ for (const [label, code] of [
   });
 
   function effectsFixture(options = {}) {
-    const f = fixture({ code, visual: true, clock: true, ...options });
+    const f = fixture({ code, visual: true, clock: true, url: 'https://www.thedentalbarns.com/', ...options });
     const style = f.w.document.createElement('style');
     style.textContent =
       '[data-tdb-audio-circle],[data-tdb-audio-ripple-edge],[data-tdb-audio-words]{visibility:hidden}';
@@ -1235,8 +1235,9 @@ for (const [label, code] of [
     }
   });
 
-  test(`${label}: page-wide ripple opens only the outer frame, fades for 500ms and restores owned styles`, async () => {
-    const f = effectsFixture({ url: 'https://dentalbarns.webflow.io/?tdb-speaker-test=page-wide-ripple' });
+  for (const url of ['https://dentalbarns.webflow.io/', 'https://dentalbarns.webflow.io/?tdb-speaker-test=page-wide-ripple'])
+  test(`${label}: ${url} opens only the outer frame, fades for 500ms and restores owned styles`, async () => {
+    const f = effectsFixture({ url });
     try {
       const d = f.w.document;
       for (const card of f.cards) {
@@ -1253,7 +1254,9 @@ for (const [label, code] of [
       const head = d.head.innerHTML;
       const count = d.body.querySelectorAll('*').length;
       const imageMarkup = f.cards.map(c => c.querySelector('[data-tdb-audio-image-clip]').outerHTML);
-      await f.play();
+      await f.down(0, 1, 'touch');
+      f.downloads[0]();
+      await tick();
       for (const card of f.cards) {
         assert.equal(card.style.overflow, 'visible');
         assert.equal(card.querySelector('[data-tdb-audio-circle]').style.width, '200vw');
@@ -1294,9 +1297,9 @@ for (const [label, code] of [
     } finally { f.cleanup(); }
   });
 
-  test(`${label}: page-wide overrides stay out of the ordinary page, production and disabled-ring comparisons`, async () => {
+  test(`${label}: page-wide overrides stay out of production and explicit contained or disabled-ring comparisons`, async () => {
     for (const url of [
-      'https://dentalbarns.webflow.io/',
+      'https://www.thedentalbarns.com/',
       'https://dentalbarns.webflow.io/?tdb-speaker-test=soft-ripple',
       'https://www.thedentalbarns.com/?tdb-speaker-test=page-wide-ripple',
       'https://dentalbarns.webflow.io/?tdb-speaker-test=page-wide-ripple,no-ripple',
