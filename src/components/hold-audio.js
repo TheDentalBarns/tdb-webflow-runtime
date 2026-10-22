@@ -10,9 +10,18 @@
     voices = new Set();
   const holdDuration = 10000;
   // Opt-in staging diagnostics leave the normal experience unchanged.
-  const noBlur =
-    location.hostname === 'dentalbarns.webflow.io' &&
-    new URLSearchParams(location.search).get('tdb-speaker-test') === 'no-blur';
+  const diagnostic =
+    location.hostname === 'dentalbarns.webflow.io'
+      ? new URLSearchParams(location.search).get('tdb-speaker-test')
+      : '';
+  const noBlur = ['no-blur', 'no-backdrop', 'no-visuals'].includes(diagnostic);
+  const noZoom = ['no-zoom', 'no-visuals'].includes(diagnostic);
+  const buttonBackdrops = new Map();
+  if (['no-backdrop', 'no-visuals'].includes(diagnostic))
+    document.querySelectorAll('[data-tdb-hold-audio]').forEach((button) => {
+      buttonBackdrops.set(button, [button.style.backdropFilter, button.style.webkitBackdropFilter]);
+      button.style.backdropFilter = button.style.webkitBackdropFilter = 'none';
+    });
   const words = (
     document
       .querySelector('[data-tdb-audio-word-sequence]')
@@ -51,8 +60,8 @@
     animation.finished.then(settled, settled);
   }
 
-  function circle(element, held) {
-    if (!element) return;
+  function readCircle(element, held) {
+    if (!element || diagnostic === 'no-visuals') return;
     // Read before cancelling: a quick re-press reverses from the visible size.
     const edge = element.parentElement.querySelector('[data-tdb-audio-ripple-edge]');
     const current = getComputedStyle(noBlur && edge ? edge : element);
@@ -60,6 +69,25 @@
       scale: current.scale === 'none' ? '0' : current.scale,
       opacity: current.opacity,
     };
+    const button = held && element.parentElement.querySelector('[data-tdb-hold-audio]');
+    return {
+      edge,
+      from,
+      seed:
+        held &&
+        Math.min(
+          1,
+          Math.max(
+            parseFloat(from.scale) || 0,
+            ((button?.getBoundingClientRect().width || 0) * 2.4) / (parseFloat(current.width) || 1),
+          ),
+        ),
+    };
+  }
+
+  function circle(element, held, snapshot = readCircle(element, held)) {
+    if (!snapshot) return;
+    const { edge, from, seed } = snapshot;
     // A faded-away ripple must not flare back over a neighbouring card when
     // the user releases and starts scrolling. Its completed effects are gone.
     if (!held && Number(from.opacity) === 0) {
@@ -67,17 +95,7 @@
       parkEffect(edge);
       return;
     }
-    const button = held && element.parentElement.querySelector('[data-tdb-hold-audio]');
     // Clear the finger quickly, then ease into a slower outward ripple.
-    const seed =
-      held &&
-      Math.min(
-        1,
-        Math.max(
-          parseFloat(from.scale) || 0,
-          ((button?.getBoundingClientRect().width || 0) * 2.4) / (parseFloat(current.width) || 1),
-        ),
-      );
     const frames = held
       ? [
           { ...from, offset: 0 },
@@ -116,8 +134,9 @@
     );
   }
 
-  function startVisuals(session) {
-    circle(session.circle, true);
+  function startVisuals(session, ripple) {
+    if (diagnostic === 'no-visuals') return;
+    circle(session.circle, true, ripple);
     showWord(session);
     session.timers = [
       setTimeout(() => showWord(session), holdDuration / 3),
@@ -125,10 +144,13 @@
     ];
   }
 
-  function zoom(image, held) {
-    if (!image?.animate) return;
+  function readZoom(image) {
+    return !noZoom && image?.animate ? getComputedStyle(image).scale : null;
+  }
+
+  function zoom(image, held, current = readZoom(image)) {
+    if (noZoom || !image?.animate) return;
     let state = zooms.get(image);
-    const current = getComputedStyle(image).scale;
     if (!state) {
       state = { base: current === 'none' ? '1' : current };
       zooms.set(image, state);
@@ -164,12 +186,15 @@
   }
 
   function finishVoice(voice) {
+    if (!voices.delete(voice)) return;
     clearTimeout(voice.timer);
     positions.set(voice.url, position(voice));
-    voice.source.stop();
+    // A failed start or closed device must not interrupt the rest of cleanup.
+    try {
+      voice.source.stop();
+    } catch (_) {}
     voice.source.disconnect();
     voice.gain.disconnect();
-    voices.delete(voice);
   }
 
   function holdGain(voice) {
@@ -205,20 +230,25 @@
     }
     if (!session) return;
     active = null;
+    session.cancelReady?.();
     session.timers?.forEach(clearTimeout);
     // A loading-only hold has no visual sequence to return or fade.
-    if (!immediate && session.voice) {
+    if (!immediate && session.visuals) {
+      // Snapshot before any animation writes, rather than alternating layout
+      // reads and effect changes three times during the release/scroll handoff.
+      const opacity = session.word && getComputedStyle(session.word).opacity;
+      const ripple = readCircle(session.circle, false);
+      const scale = readZoom(session.image);
       if (session.word) {
-        const opacity = getComputedStyle(session.word).opacity;
         animateEffect(session.word, [{ opacity }, { opacity: 0 }], {
           duration: 350,
           fill: 'forwards',
         });
       }
-      circle(session.circle, false);
-      zoom(session.image, false);
-      stopVoice(session.voice);
+      circle(session.circle, false, ripple);
+      zoom(session.image, false, scale);
     }
+    if (!immediate) stopVoice(session.voice);
     session.button.setAttribute('aria-pressed', 'false');
     session.button.removeAttribute('aria-busy');
     session.button.removeAttribute('data-tdb-loading');
@@ -228,18 +258,64 @@
 
   function bufferFor(url) {
     if (!buffers.has(url)) {
-      const flight = fetch(url, { signal: lifecycle.signal, credentials: 'omit' })
+      const request = new AbortController();
+      const abort = () => request.abort();
+      lifecycle.signal.addEventListener('abort', abort, { once: true });
+      let timeout;
+      const download = fetch(url, { signal: request.signal, credentials: 'omit' })
         .then((response) => {
           if (!response.ok) throw Error('Sound download failed');
           return response.arrayBuffer();
         })
         .then((bytes) => context.decodeAudioData(bytes));
+      // decodeAudioData itself cannot be aborted. Race it too, discard the
+      // expired flight, and allow a later hold to retry a genuinely fresh fetch.
+      const flight = Promise.race([
+        download,
+        new Promise((_, reject) => {
+          timeout = setTimeout(() => {
+            request.abort();
+            reject(Error('Sound preparation timed out'));
+          }, 30000);
+        }),
+      ]).finally(() => {
+        clearTimeout(timeout);
+        lifecycle.signal.removeEventListener('abort', abort);
+      });
       buffers.set(url, flight);
       flight.catch(() => {
         if (buffers.get(url) === flight) buffers.delete(url);
       });
     }
     return buffers.get(url);
+  }
+
+  function running(session, resumed) {
+    return new Promise((resolve, reject) => {
+      const cleanup = () => {
+        context.removeEventListener?.('statechange', check);
+        session.cancelReady = null;
+      };
+      const check = () => {
+        if (context.state === 'running') {
+          cleanup();
+          resolve();
+        } else if (context.state === 'closed') {
+          cleanup();
+          reject(Error('Sound device closed'));
+        }
+      };
+      session.cancelReady = () => {
+        cleanup();
+        reject(Error('Hold cancelled'));
+      };
+      context.addEventListener?.('statechange', check);
+      Promise.resolve(resumed).then(check, (error) => {
+        cleanup();
+        reject(error);
+      });
+      check();
+    });
   }
 
   function press(button, input, gestureContext, gestureReady) {
@@ -270,10 +346,15 @@
       if (!context) {
         context = gestureContext || new AudioContext();
         ownsContext = !gestureContext;
+        context.addEventListener?.('statechange', onAudioStateChange);
       }
-      Promise.all([gestureReady || context.resume(), bufferFor(url)])
-        .then(([, buffer]) => {
+      return Promise.all([running(session, gestureReady || context.resume()), bufferFor(url)])
+        .then(async ([, buffer]) => {
           // A released/cancelled press can finish downloading, but never play later.
+          if (disposed || active !== session || !button.isConnected || document.hidden) return;
+          // Permission may have succeeded before a slow download, then the
+          // device was interrupted. Check again immediately before playback.
+          if (context.state !== 'running') await running(session, context.resume());
           if (disposed || active !== session || !button.isConnected || document.hidden) return;
           lastUrl = url;
           // A quick re-press continues the existing fading source without a jump.
@@ -306,16 +387,25 @@
           }
           session.voice = voice;
           // Start the full visual timeline only after resume, decode and playback.
-          zoom(session.image, true);
-          startVisuals(session);
+          const scale = readZoom(session.image);
+          const ripple = readCircle(session.circle, true);
           button.removeAttribute('aria-busy');
           button.removeAttribute('data-tdb-loading');
+          button.removeAttribute('aria-description');
           button.title = 'Hold to listen';
+          zoom(session.image, true, scale);
+          startVisuals(session, ripple);
+          session.visuals = diagnostic !== 'no-visuals';
         })
         .catch(() => failed(session));
     } catch (_) {
       failed(session);
     }
+  }
+
+  function onAudioStateChange() {
+    // Interruptions cannot leave words/zoom running over a silent device.
+    if (active?.voice && context.state !== 'running') release(true);
   }
 
   function failed(session) {
@@ -330,11 +420,16 @@
     disposed = true;
     lifecycle.abort();
     buffers.clear();
+    context?.removeEventListener?.('statechange', onAudioStateChange);
+    buttonBackdrops.forEach(([backdrop, webkit], button) => {
+      button.style.backdropFilter = backdrop;
+      button.style.webkitBackdropFilter = webkit;
+    });
     if (ownsContext) context?.close().catch(() => {});
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.3.6',
+    version: '1.4.0',
     press,
     release,
     destroy,

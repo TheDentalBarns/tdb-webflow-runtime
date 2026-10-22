@@ -192,10 +192,10 @@
       "sources": [
         "src/components/hold-audio.js"
       ],
-      "sha256": "1c2b7d476f0dd7afc425d0943e96ad606489ef851c08fdf25da8cc0dc32d2575",
-      "raw": 5510,
-      "gzip": 2322,
-      "brotli": 2089
+      "sha256": "e4ab34e256186e060e7b78cf3cdb5bc6229932e606da46df06f173d96e7b459e",
+      "raw": 7155,
+      "gzip": 2872,
+      "brotli": 2582
     },
     "dist/tdb-home-desktop-instagram.js": {
       "sources": [
@@ -585,10 +585,10 @@
         "src/loaders/hold-audio-loader.js",
         "src/startup/start.js"
       ],
-      "sha256": "59245a69d9c59e1fd55939863f9bc20e2f863f403b43d6ea716e0d39bf36d8dc",
-      "raw": 7708,
-      "gzip": 3056,
-      "brotli": 2727
+      "sha256": "2a0f56cf10ab67669523eb99e0256ea9646714a37e0d8476b3e82ba9d799709c",
+      "raw": 8082,
+      "gzip": 3178,
+      "brotli": 2819
     },
     "dist/tdb-ticker.js": {
       "sources": [

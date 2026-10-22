@@ -48,6 +48,7 @@ async function fixture(bundle = false, mount = true) {
   w.clearTimeout = () => {};
   w.fetch = async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(4) });
   const audio = {
+    state: 'running',
     currentTime: 0,
     destination: {},
     resume: () => Promise.resolve(),

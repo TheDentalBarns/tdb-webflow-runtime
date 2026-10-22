@@ -1,7 +1,7 @@
 # Home first-visit speakers
 
 Webflow's **Speaker — Hold to listen / Dark glass** component owns the real
-button, inline speaker vector and appearance. It reuses `vimeo-player__btn`
+button, speaker artwork and appearance. It reuses `vimeo-player__btn`
 and `vimeo-player__btn-play-svg`, scoped through a component variant. Home's
 existing overlay supplies the position and bottom inset. No head CSS or
 runtime stylesheet is required.
@@ -119,3 +119,40 @@ the visual lifecycle. Combined speaker/parallax checks: 54 passes. Release build
 generated-artifact consistency, the sequential full suite and formatting pass.
 Simulated readiness tests do not establish physical-device audio latency or a
 fix for the separately reported phone flashing.
+
+## Loading recovery and rendering review — 22 October 2026
+
+David reported that an early hold still remained on the spinner and reopened
+the mobile flashing investigation. Controller 1.4.0 and its entry loader now:
+
+- Retry a suspended, already-created AudioContext on a native activation
+  (`pointerup`, `touchend`, `mousedown`, or `keydown`). They never start an
+  abandoned hold. A fresh touchscreen's first finger-down is not necessarily
+  an activation; the platform may require completing a tap before holding.
+- Require the actual `running` state, observe state changes, and recheck that
+  state after a slow download. A resolved resume promise alone is insufficient.
+- End a stalled hold after 30 seconds. Download/decode has its own bounded
+  flight; an expired flight is evicted so a later press can retry. A timeout
+  clears busy/pressed feedback and supplies a retry description. It is not
+  permission to play on release. No automatic replay occurs after interruption.
+- Stop active visual/audio effects if the audio device becomes interrupted or
+  suspended. Cancellation removes readiness listeners. Failed source startup
+  cannot throw out of cleanup and strand the loading indicator.
+- Read the current zoom/ripple/word styles before beginning animation writes.
+  This removes repeated read/write alternation during start and release while
+  keeping the same scale, opacity, durations, outline, words and normal blur.
+
+The controller's `press()` now returns its readiness/settlement promise. The
+early loader keeps its deadline until that settles. Both artifacts must ship
+from the same release, as enforced by the four shared Webflow release pins.
+
+Staging-only diagnostics add `no-backdrop` (large ripple and button blur both
+off), `no-zoom` (hold zoom off, parallax retained), and `no-visuals` (audio and
+loading control retained; decorative hold effects and both backdrops off).
+The existing `no-blur` disables only the large ripple blur. There are no extra
+asset requests for these modes, and production hostnames ignore them. The
+normal staging URL keeps all effects. Diagnostic inline button styles are
+restored on teardown; no head CSS or native markup is changed.
+
+See [the detailed review](runtime/trio-audio-rendering-review-20261022.md) for
+resource measurements, evidence limits and the next rendering decision.

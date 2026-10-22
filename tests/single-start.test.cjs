@@ -151,3 +151,41 @@ test('entry captures the original held press while foundation and runtime are pe
     f.close();
   }
 });
+
+test('built entry retries audio unlock on touch release and bounds a blocked runtime wait', async () => {
+  const f = fixture({ speaker: true });
+  let resumes = 0;
+  f.w.AudioContext = class {
+    state = 'suspended';
+    resume() {
+      resumes++;
+      return new Promise(() => {});
+    }
+    close() {
+      return Promise.resolve();
+    }
+  };
+  try {
+    f.d.dispatchEvent(new f.w.Event('DOMContentLoaded'));
+    const button = f.d.querySelector('button');
+    const event = (type) => {
+      const e = new f.w.Event(type, { bubbles: true });
+      Object.assign(e, { button: 0, isPrimary: true, pointerId: 1, pointerType: 'touch' });
+      button.dispatchEvent(e);
+    };
+    event('pointerdown');
+    await tick();
+    assert.equal(resumes, 1);
+    const deadline = f.timers.find((timer) => timer.ms === 30000);
+    assert.ok(deadline);
+    deadline.fn();
+    assert.equal(button.hasAttribute('data-tdb-loading'), false);
+    assert.equal(button.getAttribute('aria-pressed'), 'false');
+    event('pointerup');
+    assert.equal(resumes, 2, 'the release is a valid unlock opportunity even after a timeout');
+    assert.equal(f.d.scripts.length, 1, 'unlock makes no extra module or audio request');
+  } finally {
+    f.w.TDBHoldAudioLoader?.destroy();
+    f.close();
+  }
+});

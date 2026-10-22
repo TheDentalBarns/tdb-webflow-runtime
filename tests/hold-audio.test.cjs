@@ -15,6 +15,9 @@ function fixture({
   clock = false,
   deferred = false,
   suspended = false,
+  resumeNeedsGesture = false,
+  resumeResolvesSuspended = false,
+  startFails = false,
   delayedDecode = false,
   url = 'https://dentalbarns.webflow.io/',
   code = source,
@@ -61,7 +64,14 @@ function fixture({
   };
   const downloads = [];
   let intersect, finishModule, resumeAudio, decodeAudio;
-  const audioReady = new Promise((resolve) => (resumeAudio = resolve));
+  const audioReady = new Promise(
+    (resolve) =>
+      (resumeAudio = () => {
+        calls.audioContext.state = 'running';
+        calls.audioContext.dispatchEvent(new w.Event('statechange'));
+        resolve();
+      }),
+  );
   const decoded = new Promise((resolve) => (decodeAudio = () => resolve({ duration: 20 })));
   w.IntersectionObserver = class {
     constructor(cb, options) {
@@ -95,16 +105,21 @@ function fixture({
       ),
     );
   };
-  w.AudioContext = class {
+  w.AudioContext = class extends w.EventTarget {
     currentTime = 5;
     destination = {};
-    state = 'running';
+    state = suspended || resumeNeedsGesture || resumeResolvesSuspended ? 'suspended' : 'running';
     constructor() {
+      super();
       calls.context++;
       calls.audioContext = this;
     }
     resume() {
       calls.resume++;
+      if (resumeNeedsGesture) {
+        if (calls.resume > 1) resumeAudio();
+        return audioReady;
+      }
       return suspended ? audioReady : Promise.resolve();
     }
     decodeAudioData() {
@@ -139,11 +154,13 @@ function fixture({
         },
         disconnect() {},
         start(when, offset) {
+          if (startFails) throw Error('Device failed during start');
           calls.playbackEvents.push('audio');
           this.started++;
           this.offset = offset;
         },
         stop(at) {
+          if (startFails) throw new w.DOMException('Source was never started', 'InvalidStateError');
           this.stopped.push(at);
         },
       };
@@ -352,6 +369,72 @@ test('release while audio resume is pending prevents delayed playback', async ()
   assert.equal(f.calls.animations.length, 0, 'release creates no animation for a pending hold');
   assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
   f.cleanup();
+});
+
+test('a native activation retries the suspended context and continues the same held input', async () => {
+  const f = fixture({ cold: true, visual: true, resumeNeedsGesture: true });
+  try {
+    await f.down();
+    await f.moduleReady();
+    f.downloads[0]();
+    await tick();
+    assert.equal(f.calls.animations.length, 0);
+    f.event(f.w, 'mousedown');
+    await tick();
+    assert.equal(f.calls.resume, 2);
+    assert.equal(f.calls.voices[0].started, 1);
+    assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test('touch release unlocks silently; the next hold uses the prepared sound', async () => {
+  const f = fixture({ visual: true, resumeNeedsGesture: true });
+  try {
+    await f.down();
+    f.downloads[0]();
+    await tick();
+    f.up();
+    await tick();
+    assert.equal(f.calls.voices.length, 0, 'unlock does not turn release into playback');
+    assert.equal(f.calls.animations.length, 0);
+    await f.down();
+    assert.equal(f.calls.voices[0].started, 1);
+    assert.equal(f.calls.fetch, 1);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test('a stalled pre-runtime hold stops loading and cannot play after a late module arrival', async () => {
+  const f = fixture({ cold: true, deferred: true, clock: true, visual: true });
+  try {
+    await f.down();
+    f.advance(30000);
+    assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+    assert.equal(f.buttons[0].getAttribute('aria-pressed'), 'false');
+    assert.match(f.buttons[0].getAttribute('aria-description'), /try again/);
+    f.w.TDBHoldAudioLoader.start();
+    await tick();
+    await f.moduleReady();
+    assert.equal(f.calls.fetch, 0);
+    assert.equal(f.calls.animations.length, 0);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test('successful playback clears its loading deadline instead of stopping a long hold', async () => {
+  const f = fixture({ clock: true });
+  try {
+    await f.play();
+    f.advance(31000);
+    assert.equal(f.w.TDBHoldAudio.status().playing, true);
+    assert.equal(f.buttons[0].getAttribute('aria-pressed'), 'true');
+  } finally {
+    f.cleanup();
+  }
 });
 
 for (const host of ['dentalbarns.webflow.io', 'www.thedentalbarns.com']) {
@@ -632,6 +715,148 @@ for (const [label, code] of [
   ['source', source],
   ['bundle', fs.readFileSync('dist/tdb-hold-audio.js', 'utf8')],
 ]) {
+  test(`${label}: interruption after permission but before download completion still delays visuals`, async () => {
+    const f = fixture({ code, visual: true });
+    try {
+      await f.down();
+      f.calls.audioContext.state = 'interrupted';
+      f.calls.audioContext.dispatchEvent(new f.w.Event('statechange'));
+      f.downloads[0]();
+      await tick();
+      assert.equal(f.calls.voices.length, 0);
+      assert.equal(f.calls.animations.length, 0);
+      f.resumeAudio();
+      await tick();
+      assert.equal(f.calls.voices[0].started, 1);
+      assert.ok(f.calls.animations.length > 0);
+    } finally {
+      f.cleanup();
+    }
+  });
+
+  test(`${label}: device interruption stops current effects and requires a deliberate new hold`, async () => {
+    const f = fixture({ code, visual: true });
+    try {
+      await f.play();
+      f.calls.audioContext.state = 'interrupted';
+      f.calls.audioContext.dispatchEvent(new f.w.Event('statechange'));
+      assert.equal(f.w.TDBHoldAudio.status().holding, false);
+      assert.ok(f.calls.animations.every((a) => a.cancelled));
+      assert.equal(f.calls.voices[0].stopped.length, 1);
+      f.resumeAudio();
+      await tick();
+      assert.equal(f.calls.voices.length, 1);
+      f.up();
+      await f.down();
+      assert.equal(f.calls.voices[1].started, 1);
+    } finally {
+      f.cleanup();
+    }
+  });
+
+  test(`${label}: start and release snapshot effect geometry before animation writes`, async () => {
+    const f = fixture({ code, visual: true });
+    const events = [];
+    const computed = f.w.getComputedStyle.bind(f.w);
+    const animate = f.w.Element.prototype.animate;
+    f.w.getComputedStyle = (node) => {
+      events.push('read');
+      return computed(node);
+    };
+    f.w.Element.prototype.animate = function (...args) {
+      events.push('write');
+      return animate.apply(this, args);
+    };
+    function check() {
+      assert.ok(events.includes('read'));
+      assert.ok(events.includes('write'));
+      assert.equal(events.slice(events.indexOf('write')).includes('read'), false);
+    }
+    try {
+      await f.play();
+      check();
+      events.length = 0;
+      f.up();
+      check();
+    } finally {
+      f.cleanup();
+    }
+  });
+
+  for (const mode of ['no-backdrop', 'no-zoom', 'no-visuals']) {
+    test(`${label}: ${mode} isolates only its specified effects and never affects production`, async () => {
+      for (const host of ['dentalbarns.webflow.io', 'www.thedentalbarns.com']) {
+        const f = fixture({ code, visual: true, url: `https://${host}/?tdb-speaker-test=${mode}` });
+        try {
+          await f.play();
+          const staging = host === 'dentalbarns.webflow.io';
+          const targets = f.calls.animations.map((a) => a.element);
+          const has = (selector) => targets.includes(f.w.document.querySelector(selector));
+          assert.equal(has('img'), !staging || mode === 'no-backdrop');
+          assert.equal(has('[data-tdb-audio-circle]'), !staging || mode === 'no-zoom');
+          assert.equal(has('[data-tdb-audio-ripple-edge]'), !staging || mode !== 'no-visuals');
+          assert.equal(has('[data-tdb-audio-words]'), !staging || mode !== 'no-visuals');
+          assert.equal(f.buttons[0].style.backdropFilter === 'none', staging && mode !== 'no-zoom');
+          assert.equal(f.calls.voices[0].started, 1);
+          f.up();
+          assert.equal(f.buttons[0].getAttribute('aria-pressed'), 'false');
+        } finally {
+          f.cleanup();
+        }
+      }
+    });
+  }
+
+  test(`${label}: resolved resume is not treated as running while the device is suspended`, async () => {
+    const f = fixture({ code, resumeResolvesSuspended: true, visual: true });
+    try {
+      await f.down();
+      f.downloads[0]();
+      await tick();
+      assert.equal(f.calls.voices.length, 0);
+      assert.equal(f.calls.animations.length, 0);
+      f.resumeAudio();
+      await tick();
+      assert.equal(f.calls.voices[0].started, 1);
+      assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+    } finally {
+      f.cleanup();
+    }
+  });
+
+  test(`${label}: a timed-out download is evicted and the next hold can start a fresh request`, async () => {
+    const f = fixture({ code, clock: true, visual: true });
+    try {
+      await f.down();
+      f.advance(30000);
+      await tick();
+      assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+      assert.equal(f.w.TDBHoldAudio.status().cachedTracks, 0);
+      await f.down();
+      assert.equal(f.calls.fetch, 2);
+      f.downloads[0]();
+      await tick();
+      assert.equal(f.calls.voices.length, 0, 'expired flight cannot start the new hold');
+      f.downloads[1]();
+      await tick();
+      assert.equal(f.calls.voices[0].started, 1);
+    } finally {
+      f.cleanup();
+    }
+  });
+
+  test(`${label}: a device failure during source start still clears every loading state`, async () => {
+    const f = fixture({ code, startFails: true, visual: true });
+    try {
+      await f.play();
+      assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+      assert.equal(f.buttons[0].getAttribute('aria-pressed'), 'false');
+      assert.equal(f.calls.animations.length, 0);
+    } finally {
+      f.cleanup();
+    }
+  });
+
   test(`${label}: download and decode delay visuals and preserve the full word sequence`, async () => {
     const f = fixture({ code, visual: true, clock: true, delayedDecode: true });
     try {

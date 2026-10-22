@@ -38,6 +38,7 @@ function prepareHoldAudioLoader(deferred) {
     held = null;
     window.TDBHoldAudio?.release(immediate);
     if (!session) return;
+    clearTimeout(session.timeout);
     session.button.setAttribute('aria-pressed', 'false');
     session.button.removeAttribute('aria-busy');
     session.button.removeAttribute('data-tdb-loading');
@@ -52,6 +53,14 @@ function prepareHoldAudioLoader(deferred) {
     button.setAttribute('aria-pressed', 'true');
     button.setAttribute('aria-busy', 'true');
     button.setAttribute('data-tdb-loading', 'true');
+    const failed = () => {
+      if (held !== session) return;
+      release();
+      button.title = 'Sound unavailable. Tap once, then hold to try again.';
+      button.setAttribute('aria-description', button.title);
+    };
+    // Bound consent/module/device waits as well as the controller's audio wait.
+    session.timeout = setTimeout(failed, 30000);
     if (session.pointer != null) {
       try {
         button.setPointerCapture(session.pointer);
@@ -62,22 +71,18 @@ function prepareHoldAudioLoader(deferred) {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       context ||= new AudioContext();
       const resumed = context.resume();
-      const failed = () => {
-        if (held !== session) return;
-        release();
-        button.title = 'Sound unavailable. Hold to try again.';
-      };
       resumed.catch(failed);
       // Hand off the original held input while permission is pending so the
       // controller can download audio; playback and visuals wait for readiness.
       load()
-        .then(() => {
+        .then(async () => {
           if (!disposed && held === session && button.isConnected && !document.hidden)
-            window.TDBHoldAudio.press(button, input, context, resumed);
+            await window.TDBHoldAudio.press(button, input, context, resumed);
+          if (held === session) clearTimeout(session.timeout);
         })
         .catch(failed);
     } catch (_) {
-      release();
+      failed();
     }
   }
   for (const button of buttons) {
@@ -85,7 +90,7 @@ function prepareHoldAudioLoader(deferred) {
       'pointerdown',
       (event) => {
         if (event.button === 0 && event.isPrimary !== false)
-          press(button, { pointer: event.pointerId });
+          press(button, { pointer: event.pointerId, pointerType: event.pointerType });
       },
       options,
     );
@@ -127,6 +132,15 @@ function prepareHoldAudioLoader(deferred) {
       button.addEventListener(type, (event) => event.preventDefault(), options);
     button.addEventListener('focus', () => load().catch(() => {}), options);
   }
+  function unlock() {
+    // Touch pointerdown is not an activation-triggering event. Retry within a
+    // real tap/key gesture, even if an earlier resume promise is still pending.
+    // This only unlocks an existing context; it never starts a released sound.
+    if (!context || context.state === 'running' || context.state === 'closed') return;
+    context.resume().catch(() => {});
+  }
+  for (const type of ['pointerup', 'touchend', 'mousedown', 'keydown'])
+    window.addEventListener(type, unlock, { ...options, passive: true });
   for (const type of ['pointerup', 'pointercancel'])
     window.addEventListener(
       type,
