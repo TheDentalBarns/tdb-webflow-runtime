@@ -1,5 +1,50 @@
 # Home initial DOM cleanup, 22 October 2026
 
+## Selective wrapper pass after decorative rows
+
+Published to staging only: 14 of the 20 reviewed wrapper candidates are removed.
+Published HTML now contains 1,162 body descendants, down from 1,176. This is a
+source count, not a measured cold first-visit DOM count or a verified speed gain.
+
+- Four wellness title/copy wrappers are removed while retaining the original
+  headings, paragraphs, reveal owners, barn decoration and disclosure controls.
+- Smile Gallery loses four wrappers. Its existing responsive padding container
+  also owns the flex stack; the original native CTA, ticker and reserved media
+  space remain. The existing tablet portrait spacing embed is preserved.
+- The review-introduction tagline grouping and the duplicate reading-width
+  wrapper in the closing practice introduction are removed.
+- The location benefit spacing moves to its existing flex parent. All nested
+  component property forwarding for the benefit images and labels stays intact.
+- The closing footer link owns its padding, removing two containers. The footer
+  logo owns its block layout, centering and stacking order, removing one more.
+
+Six candidates remain: three button alignment groups, the review-summary
+alignment container and two marquee heading wrappers. Their existing layout roles
+did not justify compensating styles in this selective pass.
+
+Native tree verification matches the intended moves, style assignments and 14
+empty-wrapper deletions exactly. Published comparisons retain all 98 CMS items,
+16 CMS lists, 109 native links, 93 images, text, audio-card markup, scripts and
+inline head CSS. Only native structure and native styles change. JavaScript and
+the accepted hold-audio behavior remain on runtime
+`3ac8b13c5365d7db4ebd64a8b1728ab748e66dcd`; no runtime repin is needed.
+
+Raw HTML decreases from 190,219 to 189,625 bytes (-594). Native page CSS changes
+from 178,511 to 178,755 bytes (+244); shared CSS is unchanged. Combined raw HTML
+and CSS decrease by 350 bytes; local gzip size is effectively unchanged. These
+figures are payload bookkeeping, not evidence of a measurable loading gain.
+
+Desktop comparisons preserve the checked text, benefit, section, CTA and footer
+bounds. The first visual check caught the footer image losing the block layout
+previously supplied by its flex parent; explicitly restoring `display:block`
+returns its original centering and dimensions. The wellness Sight disclosure
+opens successfully. Responsive native rules were inspected; physical Android
+Chrome and iPhone Safari checks remain separate from desktop verification.
+
+Final staging publish task: `1d0b0d7d-4cc6-41ee-bb35-1c50886beb90`.
+Native page stylesheet fingerprint: `873a919d9`. No paid tests or production
+publishing were performed.
+
 ## Decorative-row consolidation after the accepted audio fix
 
 The next approved staging pass removes ten native children from two existing
@@ -210,14 +255,14 @@ not an unconditional permanent saving.
 
 Published source comparison against the preceding ec95 staging build:
 
-| Measure | Before | After | Change |
-| --- | ---: | ---: | ---: |
-| Body descendant elements | 1,217 | 1,206 | -11 |
-| HTML bytes | 193,159 | 192,660 | -499 |
-| Native page CSS bytes | 176,341 | 177,384 | +1,043 |
-| Native page CSS, locally gzipped | 28,938 | 29,051 | +113 |
-| CMS items / lists | 98 / 16 | 98 / 16 | unchanged |
-| Native links | 109 | 109 | unchanged |
+| Measure                          |  Before |   After |    Change |
+| -------------------------------- | ------: | ------: | --------: |
+| Body descendant elements         |   1,217 |   1,206 |       -11 |
+| HTML bytes                       | 193,159 | 192,660 |      -499 |
+| Native page CSS bytes            | 176,341 | 177,384 |    +1,043 |
+| Native page CSS, locally gzipped |  28,938 |  29,051 |      +113 |
+| CMS items / lists                | 98 / 16 | 98 / 16 | unchanged |
+| Native links                     |     109 |     109 | unchanged |
 
 Webflow already grouped identical icon declarations in its compiled CSS, so
 consolidating their authoring source does not yield the initially anticipated
@@ -281,14 +326,14 @@ the preceding pending-batch note. Production was not published.
 
 Published source comparison:
 
-| Measure | Before | After | Change |
-| --- | ---: | ---: | ---: |
-| Body descendant elements | 1,206 | 1,186 | -20 |
-| HTML bytes | 192,660 | 191,704 | -956 |
-| Native page CSS bytes | 177,384 | 177,409 | +25 |
-| Native page CSS, locally gzipped | 29,051 | 29,053 | +2 |
-| CMS items / lists | 98 / 16 | 98 / 16 | unchanged |
-| Native links | 109 | 109 | unchanged |
+| Measure                          |  Before |   After |    Change |
+| -------------------------------- | ------: | ------: | --------: |
+| Body descendant elements         |   1,206 |   1,186 |       -20 |
+| HTML bytes                       | 192,660 | 191,704 |      -956 |
+| Native page CSS bytes            | 177,384 | 177,409 |       +25 |
+| Native page CSS, locally gzipped |  29,051 |  29,053 |        +2 |
+| CMS items / lists                | 98 / 16 | 98 / 16 | unchanged |
+| Native links                     |     109 |     109 | unchanged |
 
 Webflow's page CSS omits several selectors made unused by this batch, largely
 offsetting the retained elements' layout rules. This is the measured net CSS
