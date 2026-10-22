@@ -24,9 +24,10 @@ function fixture(count = 6, mobileWidth = false, loop = mobileWidth, confirmLink
       .querySelector('[data-tdb-treatment-stamps]')
       .setAttribute('data-tdb-stamp-link-mode', 'confirm');
     root.querySelectorAll('[data-tdb-treatment-stamp]').forEach((link) => {
-      const overlay = w.document.createElement('span');
-      overlay.setAttribute('data-tdb-stamp-link-overlay', '');
-      link.append(overlay);
+      const imageWrap = w.document.createElement('div');
+      imageWrap.className = 'tdb-treatment-image-wrap tdb-stamp-confirmation';
+      imageWrap.append(w.document.createElement('img'));
+      link.prepend(imageWrap);
     });
   }
   root.setAttribute('data-tdb-treatment-loop', String(loop));
@@ -104,13 +105,15 @@ test('inactive stamps select only; settled active stamps preview then follow the
     f.links[0].click();
     assert.equal(clicks.at(-1), true, 'initially active stamp still requires a preview press');
     assert.equal(f.links[0].hasAttribute('data-tdb-stamp-link-ready'), true);
-    assert.equal(f.links[0].querySelector('[data-tdb-stamp-link-overlay]').style.opacity, '1');
+    assert.equal(f.links[0].getAttribute('aria-label'), 'Open Treatment 0 treatment');
+    assert.equal(f.links[0].getAttribute('href'), '/treatments/0');
     f.links[0].click();
     assert.equal(clicks.at(-1), false, 'second press follows the original link');
     f.links[2].click();
     assert.equal(clicks.at(-1), true);
     assert.equal(f.swiper.realIndex, 2);
     assert.equal(f.links[0].hasAttribute('data-tdb-stamp-link-ready'), false);
+    assert.equal(f.links[0].hasAttribute('aria-label'), false);
     assert.equal(
       f.links[2].hasAttribute('data-tdb-stamp-link-ready'),
       false,

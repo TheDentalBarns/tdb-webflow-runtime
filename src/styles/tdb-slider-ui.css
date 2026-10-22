@@ -1,4 +1,4 @@
-/* TDB slider UI v1.4.0
+/* TDB slider UI v1.4.1
  * Carousel transitions, live-region hiding and shared arrow states.
  * Feature loaders request this sheet before carousel activation.
  * The entrance guard is available before the carousel runtime starts.
@@ -35,6 +35,21 @@
   opacity: 0 !important;
   pointer-events: none !important;
   transition: opacity 150ms ease-out !important;
+}
+
+/* Designer owns the stamp decorations. Reuse the existing link state and
+ * shared arrow only after stamps initialise; no head artwork or extra loader.
+ * Keeping artwork available while disarming preserves the 200ms fade-out.
+ */
+[data-tdb-stamp-index] > .tdb-stamp-confirmation {
+  --tdb-stamp-confirm-arrow: url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg");
+}
+[data-tdb-stamp-link-ready] {
+  --tdb-stamp-confirm-opacity: 1;
+}
+/* Shared components still using the original overlay read the same state. */
+[data-tdb-stamp-link-ready] [data-tdb-stamp-link-overlay] {
+  opacity: 1;
 }
 
 /* Preserve Swiper's live announcements without rendering them as page text. */

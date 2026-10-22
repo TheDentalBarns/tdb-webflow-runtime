@@ -280,8 +280,6 @@ window.TDBTreatmentStamps ||= (() => {
       armedIndex = index;
       allLinks.forEach((link) => {
         const armed = Number(link.dataset.tdbStampIndex) === index;
-        const overlay = link.querySelector('[data-tdb-stamp-link-overlay]');
-        if (overlay) overlay.style.opacity = armed ? '1' : '';
         link.toggleAttribute('data-tdb-stamp-link-ready', armed);
         const title =
           link.querySelector('.tdb-treatment-title')?.textContent.trim() || link.textContent.trim();
@@ -493,5 +491,5 @@ window.TDBTreatmentStamps ||= (() => {
     instances.set(root, controller);
     return controller;
   }
-  return { version: '1.3.1', prepare };
+  return { version: '1.3.2', prepare };
 })();
