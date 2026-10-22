@@ -1,13 +1,13 @@
 {
-  "updated_utc": "2026-10-22T01:50:55.613392+00:00",
-  "status": "active",
-  "phase": "overnight critical review; no code or staging changes yet",
+  "updated_utc": "2026-10-22T02:00:35.717328+00:00",
+  "status": "complete",
+  "phase": "critical review complete; candidate live on staging for morning phone review",
   "worktree": "/tmp/tdb-mobile-audio",
   "branch": "fix/mobile-audio-feedback-20261021",
   "baseline_commit": "8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce",
   "failed_experiment": "cc1a123db61c256f955eb3394cbf284c6348f39e",
   "staging_rollback_published_utc": "2026-10-21T22:06:21.868Z",
-  "candidate_deployed": false,
+  "candidate_deployed": true,
   "test_summary": {
     "tests": 541,
     "passed": 538,
@@ -15,13 +15,52 @@
     "skipped": 3
   },
   "production_publish_utc": "2026-10-01T10:10:45.669Z",
-  "next": "Critically review the concrete candidate and any new user feedback. If it remains suitable, the existing staging-publish authorization permits one final staging review deployment after fresh pin/native-state checks; never claim a physical-device fix. If a substantive risk remains, preserve baseline and report it. Avoid repeating completed tests or unverified speculative GPU changes.",
+  "next": "Morning task: report deployed e56f6ef candidate, intentional removal of bright returning pulse, evidence and limits; request device acceptance sequence in report. No further speculative changes before phone feedback.",
   "candidate_commit": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
   "trial_published_utc": "2026-10-21T22:24:50.325Z",
   "staging_restored_published_utc": "2026-10-21T22:29:18.780Z",
-  "staging_release": "8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce",
+  "staging_release": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
   "trial_variable_removed": true,
   "restoration_verified": true,
   "evidence": "docs/runtime/mobile-speaker-evidence-2026-10-22.json",
-  "owner": "overnight-speaker-review-20261022"
+  "owner": "overnight-speaker-review-20261022",
+  "final_source_commit": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
+  "final_staging_published_utc": "2026-10-22T01:55:38.120Z",
+  "final_publish_task_id": "948d88db-75fd-426b-add3-da1412cfd5a4",
+  "final_native_variable_id": "variable-b66704d4-61ed-f5c2-d773-ec29e2ce0da1",
+  "source_changed_overnight": false,
+  "new_tests": 0,
+  "tests_rerun_overnight": false,
+  "cdn_reverified_assets": 66,
+  "phone_fix_verified": false,
+  "production_unchanged": true,
+  "final_pins": [
+    {
+      "location": "head",
+      "path": "dist/tdb-foundation.js",
+      "commit": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e56f6efb510da0ef966683c60db67fc8cc9f77f1/dist/tdb-foundation.js"
+    },
+    {
+      "location": "head",
+      "path": "dist/tdb-ui.css",
+      "commit": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e56f6efb510da0ef966683c60db67fc8cc9f77f1/dist/tdb-ui.css"
+    },
+    {
+      "location": "head noscript",
+      "path": "dist/tdb-ui.css",
+      "commit": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e56f6efb510da0ef966683c60db67fc8cc9f77f1/dist/tdb-ui.css"
+    },
+    {
+      "location": "footer",
+      "path": "dist/tdb-start.min.js",
+      "commit": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@e56f6efb510da0ef966683c60db67fc8cc9f77f1/dist/tdb-start.min.js"
+    }
+  ],
+  "recommendation": "Ready for morning phone review; not a proven device fix",
+  "publication_sequence_note": "Extra native-only staging publish at 01:54:30.274Z corrected by final paired publish at 01:55:38.120Z; see report/evidence.",
+  "rollback_commit": "8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce"
 }
