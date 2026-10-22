@@ -337,6 +337,44 @@ untouched neighbours and all-card teardown. Build consistency and formatting
 pass. The deferred controller grows 7,140 to 7,196 raw bytes (+56; estimated
 gzip +27); other executable artifacts, early startup and CSS are unchanged.
 
+## Overlay isolation after the matched device comparison — 22 October 2026
+
+Owner feedback after 1.4.3: retaining image/ripple completion still flashes;
+removing the large blur still fails; removing hold zoom as well still fails.
+Two current-build controls were then compared on Android Chrome:
+
+- A (`no-visuals`): **good**. Audio and normal parallax remain, hold animations
+  and speaker-button backdrop blur are disabled.
+- B (`retain-zoom,retain-ripple,no-blur,no-zoom,no-backdrop`): **bad/janky**.
+  Only the words and sharp ring remain as hold effects; no hold zoom or blur.
+
+The words/ring path reproduces the issue without the proposed zoom/blur
+collisions. This is an owner-observed isolation result, not a device trace or
+proof that audio, scrolling or other shared work can never interact with it.
+
+Controller 1.4.4 adds `no-words` and `no-ripple` as independent staging flags.
+Append `no-ripple` to B for words only; append `no-words` for ring only. The
+disabled effect has no animations, visibility writes or release work. Word
+timers are omitted when words are disabled. Ring-only retains B's completion
+behavior. There are no CSS/DOM changes, new dependencies or startup requests.
+The ordinary URL and production behavior remain unchanged. These are
+comparisons for the owner, not a reported fix for Android Chrome.
+
+The attached geometry diagnosis was also checked against 3854317 and 98cb8ff:
+both register the trio with `--tdb-photo-scale`; the live value on every photo
+is 1.06. Parallax therefore uses the resting crop rather than the animated
+image rectangle. All 12 existing source/bundle geometry regressions pass;
+they do not test the physical browser compositor. No global offsetHeight
+normalization or carousel-observer change is justified by that diagnosis.
+
+Validation: all 104 focused source/bundle audio and geometry checks pass,
+including isolated targets through hold, release, a second card and teardown,
+shared audio reuse and production isolation. Build consistency, formatting and
+diff checks pass. Only the deferred executable changes: 7,196 to 7,271 raw
+bytes (+75; local gzip 2,908 to 2,933, +25). All other executable bundles and
+CSS remain byte-identical. Physical-device results for these two new modes
+are pending.
+
 ## Primary-source references
 
 - WebKit, activation-triggering events and sticky activation:

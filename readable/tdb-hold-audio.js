@@ -18,6 +18,8 @@
   const noBackdrop = diagnostic.includes('no-backdrop') || noVisuals;
   const noBlur = diagnostic.includes('no-blur') || noBackdrop;
   const noZoom = diagnostic.includes('no-zoom') || noVisuals;
+  const noWords = diagnostic.includes('no-words');
+  const noRipple = diagnostic.includes('no-ripple');
   const retainZoom = diagnostic.includes('retain-zoom');
   const retainRipple = diagnostic.includes('retain-ripple');
   const buttonBackdrops = new Map();
@@ -148,6 +150,7 @@
   function startVisuals(session, ripple) {
     if (noVisuals) return;
     circle(session.circle, true, ripple);
+    if (!session.word) return;
     showWord(session);
     session.timers = [
       setTimeout(() => showWord(session), holdDuration / 3),
@@ -341,8 +344,8 @@
     const session = {
       button,
       image: card.querySelector('img'),
-      word: card.querySelector('[data-tdb-audio-words]'),
-      circle: card.querySelector('[data-tdb-audio-circle]'),
+      word: noWords ? null : card.querySelector('[data-tdb-audio-words]'),
+      circle: noRipple ? null : card.querySelector('[data-tdb-audio-circle]'),
       ...input,
     };
     active = session;
@@ -443,7 +446,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.4.3',
+    version: '1.4.4',
     press,
     release,
     destroy,

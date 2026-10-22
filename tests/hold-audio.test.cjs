@@ -1080,6 +1080,76 @@ for (const [label, code] of [
     return { ...f, cards, decorations: [...cards[0].querySelectorAll('div')] };
   }
 
+  for (const mode of ['no-words', 'no-ripple', 'no-words,no-ripple']) {
+    test(`${label}: ${mode} isolates overlays through hold, release and another card without changing production`, async () => {
+      const baseMode = 'retain-zoom,retain-ripple,no-blur,no-zoom,no-backdrop';
+      const signature = (f) => f.calls.animations.map((a) => ({
+        target: a.element.tagName === 'IMG' ? 'image' : a.element.getAttributeNames().find((n) => n.startsWith('data-tdb-')),
+        frames: JSON.parse(JSON.stringify(a.frames)),
+        options: JSON.parse(JSON.stringify(a.options)),
+      }));
+      for (const host of ['dentalbarns.webflow.io', 'www.thedentalbarns.com']) {
+        const baseline = effectsFixture({ url: `https://${host}/?tdb-speaker-test=${baseMode}` });
+        const candidate = effectsFixture({ url: `https://${host}/?tdb-speaker-test=${baseMode},${mode}` });
+        const noWords = host === 'dentalbarns.webflow.io' && mode.includes('no-words');
+        const noRipple = host === 'dentalbarns.webflow.io' && mode.includes('no-ripple');
+        const wanted = (a) => !(noWords && a.target === 'data-tdb-audio-words') &&
+          !(noRipple && ['data-tdb-audio-circle', 'data-tdb-audio-ripple-edge'].includes(a.target));
+        try {
+          for (const f of [baseline, candidate]) {
+            await f.near();
+            const head = f.w.document.head.innerHTML;
+            const neighbours = f.cards.slice(1).map((c) => c.outerHTML);
+            await f.play();
+            f.advance(3400);
+            // Model the live WAAPI return snapshot, which jsdom cannot render.
+            for (const element of f.decorations.slice(0, 2)) {
+              element.style.opacity = '0.4';
+              element.style.scale = '0.65';
+            }
+            f.up();
+            f.advance(600);
+            assert.equal(f.calls.voices[0].stopped.length, 1);
+            assert.equal(f.buttons[0].getAttribute('aria-pressed'), 'false');
+            assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+            assert.equal(f.cards[0].querySelector('img').style.translate, '0 10px');
+            assert.equal(f.buttons[0].style.backdropFilter || '', host === 'dentalbarns.webflow.io' ? 'none' : '');
+            assert.deepEqual(f.cards.slice(1).map((c) => c.outerHTML), neighbours);
+            assert.equal(f.w.document.head.innerHTML, head);
+          }
+          assert.deepEqual(signature(candidate), signature(baseline).filter(wanted));
+          assert.equal(candidate.decorations[2].textContent, noWords ? 'HOLD.' : 'BREATHE.');
+          if (noWords) assert.equal(candidate.w.getComputedStyle(candidate.decorations[2]).visibility, 'hidden');
+          if (noRipple) assert.ok(candidate.decorations.slice(0, 2).every((e) => candidate.w.getComputedStyle(e).visibility === 'hidden'));
+
+          // A second card shares the prepared sound and still excludes the same
+          // targets. No disabled word timer may reveal a decoration later.
+          for (const f of [baseline, candidate]) {
+            await f.down(1, 2);
+            f.advance(3400);
+            f.up(1, 2);
+            f.advance(12000);
+            assert.equal(f.calls.fetch, 1);
+            assert.equal(f.calls.decode, 1);
+            assert.equal(f.calls.voices.length, 2);
+            assert.ok(f.calls.voices.every((voice) => voice.started === 1 && voice.stopped.length === 1));
+            f.event(f.w, 'pagehide');
+            await tick();
+            assert.ok(f.calls.animations.every((a) => a.cancelled));
+            assert.ok([...f.w.document.querySelectorAll('[data-tdb-audio-words],[data-tdb-audio-circle],[data-tdb-audio-ripple-edge]')]
+              .every((e) => f.w.getComputedStyle(e).visibility === 'hidden'));
+          }
+          assert.deepEqual(signature(candidate), signature(baseline).filter(wanted));
+          if (noWords) assert.ok([...candidate.w.document.querySelectorAll('[data-tdb-audio-words]')]
+            .every((e) => e.textContent === 'HOLD.'));
+        } finally {
+          baseline.cleanup();
+          candidate.cleanup();
+        }
+      }
+    });
+  }
+
   test(`${label}: retain-ripple changes completion cleanup without altering visible frames or audio`, async () => {
     const signature = (f) => f.calls.animations.map((a) => ({
       target: a.element.tagName === 'IMG' ? 'image' : a.element.getAttributeNames().find((n) => n.startsWith('data-tdb-')),

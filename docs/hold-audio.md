@@ -146,6 +146,20 @@ image, two ripple layers); no new CSS, markup, observer or frame loop is added.
 The ordinary URL and the original retain-zoom link keep their existing behavior.
 This diagnostic isolates ripple cleanup, not the cost of the moving return.
 
+Controller 1.4.4 adds independent staging flags `no-words` and `no-ripple`.
+The former skips word changes, word timers and the release fade; the latter
+skips both ripple layers and their release animations. Disabled decorations
+stay natively hidden. Both flags leave the ordinary URL and production alone.
+
+David's matched current-build result is **A audio-only good; B words plus
+sharp ring bad/janky**. B already disables large ripple blur, button blur and
+hold zoom, while retaining the finished sharp ring. This narrows the remaining
+reproduction to the overlay path or its interaction with the page; it does not
+identify either overlay or a browser compositor mechanism as the root cause.
+The next comparisons append `no-ripple` (words only) or `no-words` (sharp ring
+only) to `retain-zoom,retain-ripple,no-blur,no-zoom,no-backdrop`. Audio preparation,
+release, photo crop/parallax, remaining effect timings and all CSS are unchanged.
+
 Loading is shared for the controller and audio: after the consent gate, any
 card within 600px requests the single controller; focus/press can request it
 earlier. A first deliberate press fetches/decodes the common MP3 once and the
