@@ -1,5 +1,67 @@
 # Home initial DOM cleanup, 22 October 2026
 
+## Service shading and treatment confirmation, 23 October 2026
+
+Published to staging only after the owner approved the proposed 17-element pass.
+Published HTML body descendants decrease from 1,162 to 1,145. These are source
+counts, not measured cold first-visit runtime counts or verified speed gains.
+There are 146 more source elements to remove to reach 999.
+
+- Five empty service shading divs are removed from the CMS card template. The
+  existing `.showcase_card.tdb-service-card::before` paints the same radial
+  gradient at z-index 10. Its existing `::after` blur and current-slide state
+  remain intact. Browser comparisons retain the original card dimensions and
+  gradient; the current card stays sharp and adjacent cards retain 20px blur.
+- Six treatment stamp overlays and their six arrow children are removed from
+  the dedicated home stamp collection. Its existing image container gains
+  `tdb-stamp-confirmation`, with native `::before` shading and `::after` artwork.
+  The original 55% black shading, centred 1.5rem white arrow and 200ms opacity
+  fades are preserved. The fallback mask is transparent before readiness.
+- Treatment stamps 1.3.2 retain the existing select/preview/follow state machine,
+  CMS hrefs, accessibility labels and keyboard handling. Two redundant lines
+  querying the removed overlay and writing its inline opacity are removed.
+  The existing `data-tdb-stamp-link-ready` state drives CSS instead.
+- Deferred slider UI 1.4.1 supplies the existing shared arrow asset once
+  `data-tdb-stamp-index` is present, and retains it through disarming so the
+  arrow fades out with the shading. One state rule also supports shared
+  components that still use the original overlay markup. There is no new
+  loader or head stylesheet; inline head CSS and global UI CSS are unchanged.
+- The accepted hold-audio module, image parallax and main treatment blur are
+  unchanged. All four release pins now use
+  `33b104b2f659ce7ed65e515b95b474643a73aba7`; eight relevant CDN assets were
+  verified against the built files before publishing.
+
+Native page and stamp trees match the intended deletions and single combo-class
+assignment exactly. Published-source comparison matches the same planned edits,
+allowing the stylesheet URL/integrity, release pins and existing random CMS
+ordering. The generated stylesheet's integrity hash is verified. All 98 CMS
+items, 16 CMS lists, 109 native links, 93 images and text are preserved.
+
+| Payload             |  Before |   After | Raw delta |
+| ------------------- | ------: | ------: | --------: |
+| HTML                | 189,625 | 188,043 |  -1,582 B |
+| Native page CSS     | 178,755 | 179,694 |    +939 B |
+| Deferred slider CSS |   2,678 |   2,985 |    +307 B |
+| Parallax JavaScript |  39,748 |  39,667 |     -81 B |
+
+Shared native CSS remains 31,456 bytes. Combined changed payloads are 417 raw
+bytes smaller and 149 bytes larger using local gzip. These are bookkeeping
+figures; actual CDN encoding and cache behaviour were not benchmarked.
+
+All 42 targeted interaction/CSS checks, generated-JavaScript build parity,
+syntax, formatting and diff checks pass. Browser checks verify transparent
+initial masks, matching stamp dimensions and arrow centring, click/keyboard
+preview, Escape dismissal with retained artwork for fading, focus preservation,
+native navigation to Composite Bonding and return navigation. Physical Android
+Chrome and iPhone Safari checking of this new pass remains separate. The owner
+confirmed the preceding 14-wrapper pass looked okay on mobile before approving
+this pass.
+
+Service-only staging publish: `15422b9c-39e4-4ac5-ba7b-dbaddc644231`.
+Completed staging publish: `2fc4536b-657b-4e62-bb68-6bbaa167ec18`.
+Native page stylesheet fingerprint: `e16afd5bc`. No production publishing or
+paid tests were performed.
+
 ## Selective wrapper pass after decorative rows
 
 Published to staging only: 14 of the 20 reviewed wrapper candidates are removed.
