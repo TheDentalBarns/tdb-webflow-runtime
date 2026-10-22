@@ -144,3 +144,79 @@ to the pre-cleanup 305-byte contents (530 added bytes removed). The existing
 Validation: build consistency, targeted lazy artwork/UI/hold-audio tests and
 format checks; verify published CSS and computed states after staging publication.
 The initial source DOM is expected to remain 1,217; no elements were added.
+
+## Transparent masks and navigation/footer wrapper batch
+
+Published to the Webflow staging subdomain only on 22 October 2026. Runtime
+remains pinned to ec95e57030e3b8436c6fef84d8d2dea1ea12e3fb; this batch changes
+native Webflow markup and styles, with no JavaScript release or inline head edit.
+
+Unloaded footer, speaker and spinner masks now use a transparent gradient instead
+of `none`. Their reserved dimensions remain unchanged. The footer's common mask
+properties live on `footer1_social-link::before`; each icon combination only
+enables its pseudo-element. Consent/proximity release and active-loading spinner
+artwork remain owned by the existing runtime and external control CSS.
+
+Removed six navigation column/list wrappers and five footer tagline/menu
+wrappers. CMS wrappers, lists, items, native links and bindings remain intact.
+The retained CMS envelopes use one shared fit-content class. The Discover
+content column owns its link grid; its existing heading-to-link spacing is
+preserved. The footer's retained introductory text owns its original width,
+bottom spacing, responsive ordering and reveal attributes.
+
+The eleven proposed navigation image-wrapper removals are withheld. Inspection
+confirmed they provide the 16:9 clipping window for an image scaled to 1.03,
+including its hover transition to 1. Removing them would require replacement
+clipping mechanics or change the visible crop/zoom. They are functional wrappers,
+not an unconditional permanent saving.
+
+Published source comparison against the preceding ec95 staging build:
+
+| Measure | Before | After | Change |
+| --- | ---: | ---: | ---: |
+| Body descendant elements | 1,217 | 1,206 | -11 |
+| HTML bytes | 193,159 | 192,660 | -499 |
+| Native page CSS bytes | 176,341 | 177,384 | +1,043 |
+| Native page CSS, locally gzipped | 28,938 | 29,051 | +113 |
+| CMS items / lists | 98 / 16 | 98 / 16 | unchanged |
+| Native links | 109 | 109 | unchanged |
+
+Webflow already grouped identical icon declarations in its compiled CSS, so
+consolidating their authoring source does not yield the initially anticipated
+large CSS saving. Net growth above includes the transparent fallbacks and the
+layout rules needed by the retained elements. Redundant grid declarations were
+removed before final publication. Both authored inline head CSS blocks are
+byte-for-byte unchanged. No asset preload was added.
+
+All native link destinations and body text match; all 98 image attribute sets
+match as a multiset (the existing random-order partner CMS list republished in a
+different order). Source count is 201 below the measured 1,407-element original
+pin. Reaching fewer than 1,000 still requires 207 further removals.
+
+Desktop verification at 1363x936: Services link, image and column geometry match
+exactly; Discover link/card geometry matches within floating-point rounding;
+footer CMS geometry and the following left-column content position match exactly.
+The plain Discover/Blog headings now have content-sized boxes without a visible
+text or position change. Pointer opening, menu switching and keyboard Escape/
+Enter were exercised. Existing scroll-driven footer text reveals remain active.
+At the top of the final page, all seven footer masks and all three speaker masks
+compute to transparent gradients with no artwork URL; on approaching the footer,
+the seven individual SVGs appear in the same 1.2rem boxes. Spinner fallback is
+also transparent. Final native CSS fingerprint: b242264bf.
+
+The owner subsequently reported that mobile seems okay and approved updating
+this audit in GitHub. This records an owner-reported mobile visual check, not an
+automated mobile measurement.
+
+This is a source-count and desktop rendering verification in an accepted-consent
+session, not a measured cold first visit without saved consent or proof of speed
+gains. No paid test or production publish ran.
+
+Next proposed batch: six trio caption/heading wrappers (H02), five duplicated
+USP item containers (C07), six static position dividers (C05), and three inner
+arrow wrappers (C04). These twenty candidates remain in the published source;
+their projected count is 1,206 to 1,186, conditional on preserving layout,
+reveal targets, trigger mapping, arrow animation and loading feedback. This
+batch is not implemented by the documentation update. Preserve the current
+asset-loading policy and add no inline head CSS. The separate hold-audio
+flashing investigation remains paused until the DOM work is complete.
