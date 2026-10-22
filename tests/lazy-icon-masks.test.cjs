@@ -76,6 +76,7 @@ test('consolidated decorative rows keep artwork deferred and do not create child
   assert.equal(stars.style.maskImage,'');assert.equal(barns.style.getPropertyValue('--tdb-barns-artwork'),'');
   f.ios[0].fn([{target:stars,isIntersecting:true}]);
   assert.match(stars.style.maskImage,/tdb-review-star.svg/);
+  assert.equal((stars.style.maskImage.match(/url\(/g)||[]).length,5);
   assert.equal(barns.style.getPropertyValue('--tdb-barns-artwork'),'');
   f.permit(false);f.ios[0].fn([{target:barns,isIntersecting:true}]);
   assert.equal(barns.style.getPropertyValue('--tdb-barns-artwork'),'');

@@ -2835,7 +2835,10 @@ function prepareLazyIconMasks() {
     const kind = node.dataset.tdbNativeHolderIcon || node.dataset.tdbLazyMask || 'star';
     const file = assets[{ instagram: 'ig', reviews: 'review' }[kind] || kind];
     if (!file) return;
-    node.style.maskImage = 'url("' + base + file + '")';
+    const artwork = 'url("' + base + file + '")';
+    node.style.maskImage = node.classList.contains('tdb-summary-stars')
+      ? Array(5).fill(artwork).join(',')
+      : artwork;
     node.style.webkitMaskImage = node.style.maskImage;
   }
   const observer =

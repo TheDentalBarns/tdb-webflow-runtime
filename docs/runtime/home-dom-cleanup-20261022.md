@@ -4,7 +4,7 @@
 
 The next approved staging pass removes ten native children from two existing
 owners: five review-summary star spans and five decorative wellness barn images.
-Starting published source count: 1,186 body descendants; expected source count
+Starting published source count: 1,186 body descendants; published source count
 after this pass: 1,176. This is a structural reduction, not a measured cold-visit
 runtime count or a verified speed gain.
 
@@ -12,6 +12,8 @@ runtime count or a verified speed gain.
   `tdb-summary-stars` combo: five .8rem stars in a 5rem row, the original .25rem
   trailing margin and #fbbc04 colour. Its existing accessible numeric rating and
   review trigger stay intact; the decorative owner is aria-hidden.
+  Five explicit mask layers keep the original spacing; `space` repetition at
+  this width would fit six stars and was rejected during the visual check.
 - The existing `margin-bottom margin-small _5-barns` owner keeps its reveal hooks,
   3rem top padding and 100vh bottom spacing. Its `tdb-barn-row::before` decoration
   paints the original white barn SVG at 0%, 25%, 50%, 75% and 100%. Desktop, tablet,
@@ -27,9 +29,14 @@ runtime count or a verified speed gain.
 
 The eight lazy-artwork tests pass, including independent row proximity,
 consent-before-release, no generated children, and preserved CMS platform artwork.
-After publishing, verify source count, native CSS, viewport geometry and artwork
-reveal on ordinary staging before reporting completion. Physical Android Chrome
-and iPhone Safari verification remains separate from desktop browser inspection.
+Published-source verification confirms 1,176 elements, 98 CMS items, 16 CMS lists
+and 109 unchanged native links. HTML is 190,219 bytes, down 1,485 bytes. Inline
+head CSS, CMS item content (allowing the existing random partner order) and audio
+cards are unchanged. The barn row's desktop bounds
+match the preceding release, and its five SVGs appear only after approaching the
+section. Physical Android Chrome and iPhone Safari verification remains separate
+from desktop browser inspection. Recheck the explicit five-star correction on
+ordinary staging after deploying the follow-up runtime pin.
 
 Baseline: staging HTML contains 1,407 body descendants. The pinned runtime is
 `e56f6efb510da0ef966683c60db67fc8cc9f77f1`; the source pin is on
