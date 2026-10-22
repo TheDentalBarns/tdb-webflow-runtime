@@ -847,6 +847,113 @@ for (const [label, code] of [
     }
   });
 
+  test(`${label}: retain-zoom changes only settled image cleanup and only on staging`, async () => {
+    const signature = (f) => f.calls.animations.map((a) => ({
+      target: a.element.tagName === 'IMG' ? 'image' : a.element.getAttributeNames().find((n) => n.startsWith('data-tdb-')),
+      frames: JSON.parse(JSON.stringify(a.frames)),
+      options: JSON.parse(JSON.stringify(a.options)),
+    }));
+    let baseline;
+    for (const url of [
+      'https://dentalbarns.webflow.io/',
+      'https://dentalbarns.webflow.io/?tdb-speaker-test=retain-zoom',
+      'https://www.thedentalbarns.com/?tdb-speaker-test=retain-zoom',
+    ]) {
+      const f = fixture({ code, visual: true, clock: true, url });
+      try {
+        const cards = [...f.w.document.querySelectorAll('[data-tdb-audio-card]')];
+        const untouched = cards.slice(1).map((card) => card.outerHTML);
+        await f.play();
+        f.advance(3400);
+        cards[0].querySelector('img').style.scale = '1.1';
+        cards[0].querySelector('[data-tdb-audio-circle]').style.opacity = '0.4';
+        f.up();
+        const latest = new Map(f.calls.animations.map((a) => [a.element, a]));
+        latest.forEach((a) => a.finish());
+        await tick();
+        f.advance(12000);
+        const retained = f.calls.animations.filter((a) => !a.cancelled);
+        const enabled = url.includes('webflow.io/?');
+        assert.equal(retained.length, enabled ? 1 : 0);
+        if (enabled) {
+          assert.equal(retained[0].element, cards[0].querySelector('img'));
+          assert.equal(retained[0].frames.at(-1).scale, '1.06');
+          assert.equal(retained[0].options.duration, 1200);
+        }
+        baseline ||= signature(f);
+        assert.deepEqual(signature(f), baseline, 'all visible keyframes and timings are identical');
+        assert.deepEqual(cards.slice(1).map((card) => card.outerHTML), untouched);
+        assert.equal(f.calls.voices[0].stopped.length, 1, 'audio fade still completes');
+        assert.equal(f.calls.fetch, 1);
+        assert.equal(f.calls.decode, 1);
+        assert.equal(f.buttons[0].getAttribute('aria-pressed'), 'false');
+        assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+        assert.equal(f.w.document.head.children.length, 0, 'no CSS or head additions');
+      } finally {
+        f.cleanup();
+      }
+    }
+  });
+
+  test(`${label}: retain-zoom replaces completed and interrupted returns without compounding the base crop`, async () => {
+    const f = fixture({ code, clock: true,
+      url: 'https://dentalbarns.webflow.io/?tdb-speaker-test=retain-zoom' });
+    try {
+      await f.play();
+      const image = f.w.document.querySelector('img');
+      for (const complete of [true, false, true]) {
+        f.up();
+        const previous = f.calls.animations.at(-1);
+        assert.equal(previous.frames.at(-1).scale, '1.06');
+        if (complete) {
+          previous.finish();
+          await tick();
+          assert.equal(previous.cancelled, false);
+        }
+        image.style.scale = complete ? '1.06' : '1.08';
+        await f.down();
+        const current = f.calls.animations.at(-1);
+        assert.equal(previous.cancelled, true);
+        assert.equal(current.frames[0].scale, image.style.scale);
+        assert.ok(Math.abs(Number(current.frames.at(-1).scale) - 1.1236) < 1e-12);
+        assert.equal(f.calls.animations.filter((a) => !a.cancelled).length, 1);
+        assert.equal(image.style.translate, '0 10px');
+        assert.equal(image.style.transform, 'rotate(0deg)');
+      }
+    } finally {
+      f.cleanup();
+    }
+  });
+
+  for (const ending of ['pagehide', 'hidden', 'destroy']) {
+    test(`${label}: ${ending} clears retained zooms from every previously used card`, async () => {
+      const f = fixture({ code, visual: true, clock: true,
+        url: 'https://dentalbarns.webflow.io/?tdb-speaker-test=retain-zoom' });
+      try {
+        for (let i = 0; i < f.buttons.length; i++) {
+          await f.play(i);
+          f.up(i);
+          new Map(f.calls.animations.map((a) => [a.element, a])).forEach((a) => a.finish());
+          await tick();
+          assert.equal(f.calls.animations.filter((a) => !a.cancelled).length, i + 1);
+        }
+        const count = f.calls.animations.length;
+        if (ending === 'hidden') {
+          Object.defineProperty(f.w.document, 'hidden', { value: true, configurable: true });
+          f.event(f.w.document, 'visibilitychange');
+        } else if (ending === 'destroy') f.w.TDBHoldAudioLoader.destroy();
+        else f.event(f.w, 'pagehide');
+        await tick();
+        assert.ok(f.calls.animations.every((a) => a.cancelled));
+        assert.equal(f.calls.voices[0].stopped.length, 1);
+        f.advance(12000);
+        assert.equal(f.calls.animations.length, count, 'cleanup creates no replacement animations');
+      } finally {
+        f.cleanup();
+      }
+    });
+  }
+
   test(`${label}: resolved resume is not treated as running while the device is suspended`, async () => {
     const f = fixture({ code, resumeResolvesSuspended: true, visual: true });
     try {

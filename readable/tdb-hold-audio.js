@@ -18,6 +18,7 @@
   const noBackdrop = diagnostic.includes('no-backdrop') || noVisuals;
   const noBlur = diagnostic.includes('no-blur') || noBackdrop;
   const noZoom = diagnostic.includes('no-zoom') || noVisuals;
+  const retainZoom = diagnostic.includes('retain-zoom');
   const buttonBackdrops = new Map();
   if (noBackdrop)
     document.querySelectorAll('[data-tdb-hold-audio]').forEach((button) => {
@@ -175,7 +176,10 @@
     // Every zoom can be cancelled by release/re-press, including a held zoom.
     animation.finished
       .then(() => {
-        if (!held && zooms.get(image) === state && state.animation === animation) {
+        // Staging comparison: retain only the settled image effect, with one
+        // record per used image. Re-press replaces it; page exit clears it.
+        // This tests completion cleanup without asserting GPU-layer ownership.
+        if (!held && !retainZoom && zooms.get(image) === state && state.animation === animation) {
           animation.cancel();
           zooms.delete(image);
         }
@@ -431,7 +435,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.4.1',
+    version: '1.4.2',
     press,
     release,
     destroy,

@@ -116,9 +116,21 @@ overflows are `clip`, neighbouring words/zoom remain idle, and release clears
 pressed/loading state. Physical Android smoothness remains to be checked.
 David subsequently reports that the native clipping candidate **still flashes
 on scroll**. It is not a successful fix; the photo-boundary rule remains on
-staging while the interaction is investigated. Runtime stays pinned to
+staging while the interaction is investigated. That native-only refinement kept runtime pinned to
 `3854317cf1be78533511b131e033d6c9e613e21c`;
 this native-only refinement adds no markup, head CSS, assets or runtime code.
+
+Controller 1.4.2 adds an isolated staging comparison at
+`?tdb-speaker-test=retain-zoom`. Only the completed image return is retained,
+at the same native resting scale of 1.06. Hold/release keyframes, blur, words,
+audio and parallax are unchanged. Re-press replaces the previous image effect;
+page hiding, exit and teardown clear all effects, including retained returns.
+There is at most one retained effect per used image (three on Home); untouched
+cards receive none. The diagnostic deliberately retains it while scrolling
+away, to avoid moving the suspected cleanup into that same scroll gesture.
+It adds no observer, frame loop, CSS, markup or eager asset. Normal staging and
+production keep the existing completion cleanup. This is a device comparison,
+not evidence that Chrome kept a GPU texture or that flashing is fixed.
 
 Loading is shared for the controller and audio: after the consent gate, any
 card within 600px requests the single controller; focus/press can request it

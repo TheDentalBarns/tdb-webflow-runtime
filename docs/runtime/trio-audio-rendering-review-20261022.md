@@ -5,9 +5,10 @@ controller 1.3.6. David reports early holds stuck loading and persistent phone
 flashing after release followed by scrolling. This review does not treat prior
 desktop checks or mocked frame tests as proof of a physical-phone fix.
 
-The sections below preserve the sequence of findings. The latest staging change
-is the native photo-boundary candidate recorded near the end; earlier statements
-about unchanged native CSS describe the earlier diagnostic runtime releases.
+The sections below preserve the sequence of findings. The latest diagnostic is
+the retained image-return comparison recorded near the end. Earlier native
+photo-boundary and typography changes remain; the boundary trial did not fix
+the reported Android flashing.
 
 ## Findings and actions
 
@@ -257,6 +258,37 @@ Runtime pin remains `3854317cf1be78533511b131e033d6c9e613e21c`.
 Live desktop computed sizes for all three word overlays are 16.7849px with a
 14.9199px fluid root (1.125rem). Native source and desktop checks verify the
 typography; this is not an Android flashing fix. No new head CSS or elements.
+
+## Isolated completed-image return comparison — 22 October 2026
+
+Following review of the proposed compositor brief, the owner approved trying
+only retained image-zoom completion. Controller 1.4.2 adds the staging query
+`?tdb-speaker-test=retain-zoom`. It skips cancellation/deletion of a completed
+image return; resting scale remains 1.06 and all animation frames and timings
+are unchanged. It makes no transform-property migration, containment change,
+visibility-cleanup change, permanent will-change hint, or new CSS/DOM addition.
+
+The retained record is bounded to one per used image. A new hold replaces it;
+page hiding, page exit and teardown cancel it. It remains during scrolling so
+the experiment does not merely move the suspected cleanup into the scroll.
+Untouched cards receive no image animation. Words, both ripple layers and audio
+still clean up normally; the ordinary URL and production ignore this behavior.
+
+The brief's proposed carousel-observer loop does not describe this trio: these
+cards are a grid outside the observed service/review tracks, and the progress
+helper calls getAnimations() without the descendant option. Release already
+batches its style reads. GPU demotion/re-rasterization remains an unmeasured
+hypothesis, not an established root cause. The test preserves the existing
+individual scale and native crop to avoid compounding scale with transform.
+
+Owner comparison: at the retain-zoom URL on Android Chrome, hold reception
+until sound starts, release, then scroll to waiting room, including after the
+1.2-second return completes. Compare the same action with the ordinary URL.
+Validation: 88 focused source/bundle audio and parallax checks pass, along with
+generated-artifact consistency and formatting. Only the deferred controller
+changes: 7,109 to 7,140 raw bytes (+31; local gzip estimate +12). The early
+entry, other executable bundles and all CSS remain byte-identical.
+Physical-device outcome is pending; desktop verification cannot resolve it.
 
 ## Primary-source references
 
