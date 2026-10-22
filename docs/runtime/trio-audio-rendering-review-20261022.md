@@ -6,7 +6,7 @@ flashing after release followed by scrolling. This review does not treat prior
 desktop checks or mocked frame tests as proof of a physical-phone fix.
 
 The sections below preserve the sequence of findings. The latest diagnostic is
-the retained image-return comparison recorded near the end. Earlier native
+the retained image-and-ripple comparison recorded near the end. Earlier native
 photo-boundary and typography changes remain; the boundary trial did not fix
 the reported Android flashing.
 
@@ -290,6 +290,53 @@ changes: 7,109 to 7,140 raw bytes (+31; local gzip estimate +12). The early
 entry, other executable bundles and all CSS remain byte-identical.
 Physical-device outcome is pending; desktop verification cannot resolve it.
 
+## Retained ripple completion comparison — 22 October 2026
+
+Owner result for retain-zoom: the animation is smoother on Android Chrome,
+but immediate release/scroll still produces odd movement or flashing. Waiting
+before scrolling avoids it. This supports investigating the release interval;
+it does not establish whether animation overlap or final cleanup is responsible.
+
+Release still has a 350ms word fade, 600ms audio tail and 1,200ms ripple return.
+The image return is also 1,200ms but its settled effect is retained in that
+comparison. Controller 1.4.3 adds `retain-ripple`, combined with `retain-zoom`
+for the next owner test. Only ripple completion cleanup changes: both ripple
+animations keep their zero-opacity final frame instead of canceling and
+restoring native visibility:hidden. Release after an already-faded held ripple
+also leaves those end frames untouched. A new hold replaces them; page hiding,
+page exit and teardown clear all retained effects. Words and audio still clean
+up at their existing times. There is no new CSS, markup, animation loop or
+observer; no will-change or transform migration is introduced.
+
+The bound is one image and two ripple effects per used card, nine across Home.
+This is a diagnostic retention tradeoff, not a confirmed GPU-memory strategy.
+The original retain-zoom URL remains available unchanged for a matched
+comparison; the ordinary URL and production retain their previous behavior.
+If immediate-scroll problems persist in the new mode, the moving release
+effects remain a separate suspect from their final cancellation.
+
+Source cross-check against the owner's follow-up brief: `tdb-motion.js` is
+byte-identical between 3854317 and 8ea6f92. The trio registers selector-based
+photo targets with `--tdb-photo-scale`; that motion branch writes individual
+`style.translate`. Hold audio animates individual `scale`, not `transform`, and
+has no commitStyles call. Its release snapshots precede animation changes.
+Parallax measures the stable wrapper and native crop token, batches geometry
+reads before writes, and has no MutationObserver in this owner. Its shared
+scroll, resize, image/font load and refresh paths remain possible concurrent
+work, but no release-triggered observer loop or property overwrite was found.
+
+Pointer capture release is present, with guards after held state is cleared.
+The Pointer Events specification also requires implicit release after pointerup
+or pointercancel; native scrolling is governed by touch-action. The proposed
+one/two-frame capture hitch and forced compositor teardown are unmeasured
+device hypotheses, not conclusions established by this code review.
+
+Validation: 98 focused audio/parallax tests pass, including matched keyframes,
+full-hold and early-release retention, re-press replacement, production isolation,
+untouched neighbours and all-card teardown. Build consistency and formatting
+pass. The deferred controller grows 7,140 to 7,196 raw bytes (+56; estimated
+gzip +27); other executable artifacts, early startup and CSS are unchanged.
+
 ## Primary-source references
 
 - WebKit, activation-triggering events and sticky activation:
@@ -298,6 +345,8 @@ Physical-device outcome is pending; desktop verification cannot resolve it.
   https://developer.chrome.com/blog/autoplay/
 - Chromium AudioContext implementation (resume, interruption and source startup):
   https://chromium.googlesource.com/chromium/src/+/HEAD/third_party/blink/renderer/modules/webaudio/audio_context.cc
+- W3C Pointer Events, capture release and native scrolling:
+  https://www.w3.org/TR/pointerevents3/
 
 Browser policy references explain plausible blocked paths; they do not identify
 which path occurred in David's particular phone session without its state trace.

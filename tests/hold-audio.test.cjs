@@ -1070,14 +1070,114 @@ for (const [label, code] of [
     }
   });
 
-  function effectsFixture() {
-    const f = fixture({ code, visual: true, clock: true });
+  function effectsFixture(options = {}) {
+    const f = fixture({ code, visual: true, clock: true, ...options });
     const style = f.w.document.createElement('style');
     style.textContent =
       '[data-tdb-audio-circle],[data-tdb-audio-ripple-edge],[data-tdb-audio-words]{visibility:hidden}';
     f.w.document.head.append(style);
     const cards = [...f.w.document.querySelectorAll('[data-tdb-audio-card]')];
     return { ...f, cards, decorations: [...cards[0].querySelectorAll('div')] };
+  }
+
+  test(`${label}: retain-ripple changes completion cleanup without altering visible frames or audio`, async () => {
+    const signature = (f) => f.calls.animations.map((a) => ({
+      target: a.element.tagName === 'IMG' ? 'image' : a.element.getAttributeNames().find((n) => n.startsWith('data-tdb-')),
+      frames: JSON.parse(JSON.stringify(a.frames)),
+      options: JSON.parse(JSON.stringify(a.options)),
+    }));
+    let baseline;
+    for (const host of ['dentalbarns.webflow.io', 'www.thedentalbarns.com']) {
+      for (const mode of ['retain-zoom', 'retain-zoom,retain-ripple']) {
+        const f = effectsFixture({ url: `https://${host}/?tdb-speaker-test=${mode}` });
+        try {
+          const untouched = f.cards.slice(1).map((c) => c.outerHTML);
+          const head = f.w.document.head.innerHTML;
+          await f.play();
+          f.advance(3400);
+          for (const element of f.decorations.slice(0, 2)) {
+            element.style.opacity = '0.4';
+            element.style.scale = '0.65';
+          }
+          f.up();
+          new Map(f.calls.animations.map((a) => [a.element, a])).forEach((a) => a.finish());
+          await tick();
+          baseline ||= signature(f);
+          assert.deepEqual(signature(f), baseline);
+          const staging = host === 'dentalbarns.webflow.io';
+          const retainedRipple = staging && mode.includes('retain-ripple');
+          const retained = f.calls.animations.filter((a) => !a.cancelled);
+          assert.equal(retained.length, staging ? retainedRipple ? 3 : 1 : 0);
+          for (const a of retained.filter((a) => a.element.tagName !== 'IMG')) {
+            assert.equal(a.frames.at(-1).opacity, 0, 'retained decorations finish invisible');
+            assert.equal(a.frames.at(-1).scale, '0');
+            assert.equal(a.options.duration, 1200);
+          }
+          assert.equal(f.w.getComputedStyle(f.decorations[0]).visibility, retainedRipple ? 'visible' : 'hidden');
+          assert.equal(f.w.getComputedStyle(f.decorations[2]).visibility, 'hidden', 'word cleanup is unchanged');
+          f.advance(12000);
+          assert.equal(f.calls.voices[0].stopped.length, 1);
+          assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+          assert.equal(f.buttons[0].getAttribute('aria-pressed'), 'false');
+          assert.deepEqual(f.cards.slice(1).map((c) => c.outerHTML), untouched);
+          assert.equal(f.w.document.head.innerHTML, head);
+        } finally { f.cleanup(); }
+      }
+    }
+  });
+
+  test(`${label}: a fully faded retained ripple stays invisible through release and is replaced on re-press`, async () => {
+    const f = effectsFixture({ url: 'https://dentalbarns.webflow.io/?tdb-speaker-test=retain-zoom,retain-ripple' });
+    try {
+      await f.play();
+      const rings = f.calls.animations.filter((a) => f.decorations.slice(0, 2).includes(a.element));
+      rings.forEach((a) => a.finish());
+      await tick();
+      assert.ok(rings.every((a) => !a.cancelled && a.frames.at(-1).opacity === 0));
+      f.up();
+      await tick();
+      assert.ok(rings.every((a) => !a.cancelled), 'release must not tear down an already invisible ring');
+      assert.equal(f.calls.animations.filter((a) => f.decorations.slice(0, 2).includes(a.element)).length, 2);
+      await f.down();
+      assert.ok(rings.every((a) => a.cancelled));
+      assert.ok(f.decorations.every((e) => f.w.getComputedStyle(e).visibility === 'visible'));
+      for (const element of f.decorations.slice(0, 2)) element.style.opacity = '0.4';
+      f.up();
+      const returns = f.calls.animations.filter((a) => !a.cancelled && f.decorations.slice(0, 2).includes(a.element));
+      await f.down();
+      assert.ok(returns.every((a) => a.cancelled), 'quick re-press replaces both returning effects');
+      assert.equal(f.calls.animations.filter((a) => !a.cancelled).length, 4, 'one live effect per target');
+      assert.ok(f.decorations.every((e) => f.w.getComputedStyle(e).visibility === 'visible'));
+    } finally { f.cleanup(); }
+  });
+
+  for (const ending of ['pagehide', 'hidden', 'destroy']) {
+    test(`${label}: ${ending} clears retained image and ripple effects across all three cards`, async () => {
+      const f = effectsFixture({ url: 'https://dentalbarns.webflow.io/?tdb-speaker-test=retain-zoom,retain-ripple' });
+      try {
+        for (let i = 0; i < f.buttons.length; i++) {
+          await f.play(i);
+          f.cards[i].querySelector('[data-tdb-audio-circle]').style.opacity = '0.4';
+          f.up(i);
+          new Map(f.calls.animations.map((a) => [a.element, a])).forEach((a) => a.finish());
+          await tick();
+          assert.equal(f.calls.animations.filter((a) => !a.cancelled).length, (i + 1) * 3);
+        }
+        const count = f.calls.animations.length;
+        if (ending === 'hidden') {
+          Object.defineProperty(f.w.document, 'hidden', { value: true, configurable: true });
+          f.event(f.w.document, 'visibilitychange');
+        } else if (ending === 'destroy') f.w.TDBHoldAudioLoader.destroy();
+        else f.event(f.w, 'pagehide');
+        await tick();
+        assert.ok(f.calls.animations.every((a) => a.cancelled));
+        assert.ok([...f.w.document.querySelectorAll('[data-tdb-audio-circle],[data-tdb-audio-ripple-edge]')]
+          .every((e) => f.w.getComputedStyle(e).visibility === 'hidden'));
+        assert.equal(f.calls.voices[0].stopped.length, 1);
+        f.advance(12000);
+        assert.equal(f.calls.animations.length, count);
+      } finally { f.cleanup(); }
+    });
   }
 
   test(`${label}: release only fades the ripple; an already-invisible ring stays parked`, async () => {

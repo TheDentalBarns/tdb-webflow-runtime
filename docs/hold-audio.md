@@ -132,6 +132,20 @@ It adds no observer, frame loop, CSS, markup or eager asset. Normal staging and
 production keep the existing completion cleanup. This is a device comparison,
 not evidence that Chrome kept a GPU texture or that flashing is fixed.
 
+David reports that the retain-zoom comparison makes Chrome's animation
+smoother, but immediate post-release scrolling still misbehaves; pausing first
+lets scrolling settle. This is an improvement, not a completed fix or proof of
+GPU demotion. Controller 1.4.3 adds the separate staging comparison
+`?tdb-speaker-test=retain-zoom,retain-ripple`: keep that zoom behavior and also
+retain the two completed, zero-opacity ripple effects. This skips their final
+cancel/visibility cleanup, including release after the ten-second ripple has
+already faded. All frames, scale, blur, timings, word cleanup and audio fade
+remain identical. Re-press replaces the previous effects; page hiding, exit
+and teardown clear them. At most three effects per used card remain (one
+image, two ripple layers); no new CSS, markup, observer or frame loop is added.
+The ordinary URL and the original retain-zoom link keep their existing behavior.
+This diagnostic isolates ripple cleanup, not the cost of the moving return.
+
 Loading is shared for the controller and audio: after the consent gate, any
 card within 600px requests the single controller; focus/press can request it
 earlier. A first deliberate press fetches/decodes the common MP3 once and the

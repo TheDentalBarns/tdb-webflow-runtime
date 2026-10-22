@@ -19,6 +19,7 @@
   const noBlur = diagnostic.includes('no-blur') || noBackdrop;
   const noZoom = diagnostic.includes('no-zoom') || noVisuals;
   const retainZoom = diagnostic.includes('retain-zoom');
+  const retainRipple = diagnostic.includes('retain-ripple');
   const buttonBackdrops = new Map();
   if (noBackdrop)
     document.querySelectorAll('[data-tdb-hold-audio]').forEach((button) => {
@@ -48,11 +49,11 @@
     element?.style.removeProperty('visibility');
   }
 
-  function animateEffect(element, frames, options) {
+  function animateEffect(element, frames, options, retain = false) {
     if (!element?.animate) return;
     effects.get(element)?.cancel();
-    // Designer parks inactive decorations. In particular, a transparent,
-    // oversized backdrop blur must not remain paintable over the next card.
+    // Designer normally parks inactive decorations. The diagnostic below can
+    // retain only the transparent ripple to isolate completion cleanup.
     element.style.visibility = 'visible';
     const animation = element.animate(frames, options);
     effects.set(element, animation);
@@ -60,7 +61,11 @@
       if (effects.get(element) !== animation) return;
       parkEffect(element);
     };
-    animation.finished.then(settled, settled);
+    // A staging-only comparison leaves a finished, transparent ripple filled.
+    // Cancellation still parks it; replacement and teardown remain bounded.
+    animation.finished.then(() => {
+      if (!retain) settled();
+    }, settled);
   }
 
   function readCircle(element, held) {
@@ -92,10 +97,13 @@
     if (!snapshot) return;
     const { edge, from, seed } = snapshot;
     // A faded-away ripple must not flare back over a neighbouring card when
-    // the user releases and starts scrolling. Its completed effects are gone.
+    // the user releases and starts scrolling. Ordinary cleanup discards it;
+    // the retention comparison leaves its transparent end frame untouched.
     if (!held && Number(from.opacity) === 0) {
-      parkEffect(element);
-      parkEffect(edge);
+      if (!retainRipple) {
+        parkEffect(element);
+        parkEffect(edge);
+      }
       return;
     }
     // Clear the finger quickly, then ease into a slower outward ripple.
@@ -115,10 +123,10 @@
       easing: held ? 'linear' : 'cubic-bezier(0.4,0,0.2,1)',
       fill: 'forwards',
     };
-    if (!noBlur) animateEffect(element, frames, options);
+    if (!noBlur) animateEffect(element, frames, options, retainRipple);
     // A sibling edge avoids masking away the outline or placing the backdrop
     // blur inside an opacity ancestor, which would block the photo backdrop.
-    animateEffect(edge, frames, options);
+    animateEffect(edge, frames, options, retainRipple);
   }
 
   function showWord(session) {
@@ -435,7 +443,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.4.2',
+    version: '1.4.3',
     press,
     release,
     destroy,
