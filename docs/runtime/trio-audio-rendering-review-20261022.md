@@ -50,6 +50,7 @@ are opt-in staging settings; the ordinary URL retains the existing effect.
 | --- | --- | --- | --- | --- |
 | No query | On | On | On | On |
 | `?tdb-speaker-test=no-blur` | Off | On | On | On |
+| `?tdb-speaker-test=no-blur,no-zoom` | Off | On | Off | On |
 | `?tdb-speaker-test=no-backdrop` | Off | Off | On | On |
 | `?tdb-speaker-test=no-zoom` | On | On | Off | On |
 | `?tdb-speaker-test=no-visuals` | Off | Off | Off | Off |
@@ -93,6 +94,50 @@ The deferred audio controller changes from 5,510 to 7,155 raw bytes (+1,645),
 2,335 to 2,891 local gzip bytes (+556). These are local byte measurements,
 not measured network transfer or speed improvements. Only these two executable
 artifacts change; the stylesheet and other runtime bundles remain identical.
+
+## Android follow-up — 22 October 2026, controller 1.4.1
+
+David reports normal iPhone Safari playback is fine. On Android Chrome, the
+no-backdrop comparison improves the flashing; the subsequent no-blur comparison
+has **no flashing, but still jitters while scrolling after use**. These are
+owner device observations, not traces captured in the desktop test environment.
+Do not combine the remaining jitter and the earlier flashing into a single
+proven root cause, or assume other heavy effects must have the same behaviour.
+
+The remaining source-level distinction is the photo's **1,200ms return scale
+animation overlapping scroll-driven translation on that same photo**. Other
+features can be visually heavy without this exact interaction. Parallax uses
+stable resting geometry, and its scroll tests pass; that does not measure
+Android compositor timing or frame pacing. Completed effects are cancelled,
+word timers cleared, and the controller adds no continuous frame loop.
+
+The controller also never explicitly suspends its AudioContext after the final
+600ms source fade. That is an idle-resource cleanup candidate, not evidence of
+an expensive continuously running JavaScript loop or a confirmed cause of the
+scroll symptom. Actual device cost has not been measured. Its global activation retry would
+also need scoping if deliberate idle suspension were added, so ordinary touches
+do not wake an idle context. Do not silently change this during a zoom test.
+
+Controller 1.4.1 allows comma-separated staging diagnostic flags. The next
+comparison is `?tdb-speaker-test=no-blur,no-zoom`: compared with the owner's
+no-flashing `no-blur` result, **only held/releasing photo zoom is removed**.
+Button glass, ripple outline, words, audio, the 600ms fade, parallax and loading
+remain. Normal URL and production behaviour remain identical. No native CSS,
+head CSS, markup, assets, loading policy or audio lifecycle changes are included.
+
+Differential source/bundle tests compare complete start and release keyframes
+with no-blur, assert that only image animations disappear, preserve the audio
+fade and word progression, and confirm production ignores combined flags.
+If Android jitter disappears, this isolates the zoom/scroll combination for a
+targeted refinement. If it persists, use the existing no-visuals comparison and
+device profiling to distinguish audio/input work from the remaining visuals.
+This diagnostic release is not a claimed performance fix.
+
+Validation: **78 focused audio/parallax checks passed**, generated-artifact
+consistency and source formatting passed. Only the deferred audio executable
+changes: 7,155 to 7,109 raw bytes; 2,891 to 2,889 local gzip bytes. This tiny
+byte difference is not a measured speed improvement. The early entry, other
+runtime bundles and stylesheets are byte-identical.
 
 ## Primary-source references
 

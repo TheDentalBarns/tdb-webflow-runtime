@@ -807,6 +807,46 @@ for (const [label, code] of [
     });
   }
 
+  test(`${label}: combined no-blur,no-zoom removes only zoom from the no-blur comparison`, async () => {
+    for (const host of ['dentalbarns.webflow.io', 'www.thedentalbarns.com']) {
+      const baseline = fixture({ code, visual: true, clock: true,
+        url: `https://${host}/?tdb-speaker-test=no-blur` });
+      const candidate = fixture({ code, visual: true, clock: true,
+        url: `https://${host}/?tdb-speaker-test=no-blur,no-zoom` });
+      const signature = (f) => f.calls.animations.map((a) => ({
+        target: a.element.tagName === 'IMG' ? 'image' : a.element.getAttributeNames().find((n) => n.startsWith('data-tdb-')),
+        frames: JSON.parse(JSON.stringify(a.frames)),
+        options: JSON.parse(JSON.stringify(a.options)),
+      }));
+      try {
+        for (const f of [baseline, candidate]) {
+          f.buttons[0].style.backdropFilter = 'blur(20px)';
+          await f.play();
+          f.advance(3400);
+          const edge = f.w.document.querySelector('[data-tdb-audio-ripple-edge]');
+          edge.style.scale = '0.5';
+          edge.style.opacity = '0.4';
+          f.up();
+          f.advance(600);
+          assert.equal(f.calls.voices[0].stopped.length, 1, 'audio fade still completes');
+          assert.equal(f.calls.fetch, 1);
+          assert.equal(f.calls.decode, 1);
+          assert.equal(f.buttons[0].style.backdropFilter, 'blur(20px)');
+          assert.equal(f.w.document.querySelector('img').style.translate, '0 10px');
+          assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+          assert.equal(f.w.document.querySelector('[data-tdb-audio-words]').textContent, 'BREATHE.');
+          assert.equal(f.w.document.head.children.length, 0, 'no head additions');
+        }
+        assert.deepEqual(signature(candidate), host === 'dentalbarns.webflow.io'
+          ? signature(baseline).filter((a) => a.target !== 'image')
+          : signature(baseline));
+      } finally {
+        baseline.cleanup();
+        candidate.cleanup();
+      }
+    }
+  });
+
   test(`${label}: resolved resume is not treated as running while the device is suspended`, async () => {
     const f = fixture({ code, resumeResolvesSuspended: true, visual: true });
     try {

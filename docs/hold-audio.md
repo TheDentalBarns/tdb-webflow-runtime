@@ -93,6 +93,12 @@ effect. On the staging hostname only, `?tdb-speaker-test=no-blur` suppresses
 only the blur animation to isolate it; outline, zoom, words and audio remain.
 The query has no effect on production domains.
 
+Controller 1.4.1 also accepts comma-separated staging comparisons:
+`?tdb-speaker-test=no-blur,no-zoom` retains the button glass, outline, words,
+audio and parallax, but removes the large blur and photo zoom. This changes
+only zoom relative to `no-blur`, which David reports removes Android Chrome
+flashing but leaves post-release scroll jitter. The ordinary URL is unchanged.
+
 Validation: `node --test tests/hold-audio.test.cjs tests/home-speaker-parallax.test.cjs`.
 Combined motion checks model changing zoom rectangles at 30fps and 60fps,
 offscreen completion, mid-hold mounting, orientation, refresh, pageshow and

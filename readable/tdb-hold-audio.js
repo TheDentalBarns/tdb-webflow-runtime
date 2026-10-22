@@ -9,15 +9,17 @@
     effects = new Map(),
     voices = new Set();
   const holdDuration = 10000;
-  // Opt-in staging diagnostics leave the normal experience unchanged.
+  // Combine staging comparisons without re-enabling an already-isolated effect.
   const diagnostic =
     location.hostname === 'dentalbarns.webflow.io'
-      ? new URLSearchParams(location.search).get('tdb-speaker-test')
-      : '';
-  const noBlur = ['no-blur', 'no-backdrop', 'no-visuals'].includes(diagnostic);
-  const noZoom = ['no-zoom', 'no-visuals'].includes(diagnostic);
+      ? (new URLSearchParams(location.search).get('tdb-speaker-test') || '').split(',')
+      : [];
+  const noVisuals = diagnostic.includes('no-visuals');
+  const noBackdrop = diagnostic.includes('no-backdrop') || noVisuals;
+  const noBlur = diagnostic.includes('no-blur') || noBackdrop;
+  const noZoom = diagnostic.includes('no-zoom') || noVisuals;
   const buttonBackdrops = new Map();
-  if (['no-backdrop', 'no-visuals'].includes(diagnostic))
+  if (noBackdrop)
     document.querySelectorAll('[data-tdb-hold-audio]').forEach((button) => {
       buttonBackdrops.set(button, [button.style.backdropFilter, button.style.webkitBackdropFilter]);
       button.style.backdropFilter = button.style.webkitBackdropFilter = 'none';
@@ -61,7 +63,7 @@
   }
 
   function readCircle(element, held) {
-    if (!element || diagnostic === 'no-visuals') return;
+    if (!element || noVisuals) return;
     // Read before cancelling: a quick re-press reverses from the visible size.
     const edge = element.parentElement.querySelector('[data-tdb-audio-ripple-edge]');
     const current = getComputedStyle(noBlur && edge ? edge : element);
@@ -135,7 +137,7 @@
   }
 
   function startVisuals(session, ripple) {
-    if (diagnostic === 'no-visuals') return;
+    if (noVisuals) return;
     circle(session.circle, true, ripple);
     showWord(session);
     session.timers = [
@@ -395,7 +397,7 @@
           button.title = 'Hold to listen';
           zoom(session.image, true, scale);
           startVisuals(session, ripple);
-          session.visuals = diagnostic !== 'no-visuals';
+          session.visuals = !noVisuals;
         })
         .catch(() => failed(session));
     } catch (_) {
@@ -429,7 +431,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.4.0',
+    version: '1.4.1',
     press,
     release,
     destroy,
