@@ -1,7 +1,7 @@
 {
-  "updated_utc": "2026-10-21T22:33:21.643819+00:00",
-  "status": "ready_for_overnight_review",
-  "phase": "candidate implemented, full suite and temporary desktop staging trial passed; baseline restored",
+  "updated_utc": "2026-10-22T01:50:55.613392+00:00",
+  "status": "active",
+  "phase": "overnight critical review; no code or staging changes yet",
   "worktree": "/tmp/tdb-mobile-audio",
   "branch": "fix/mobile-audio-feedback-20261021",
   "baseline_commit": "8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce",
@@ -22,5 +22,6 @@
   "staging_release": "8f2a1e48f1dfa6c8d8d6290cb151dc79513dc7ce",
   "trial_variable_removed": true,
   "restoration_verified": true,
-  "evidence": "docs/runtime/mobile-speaker-evidence-2026-10-22.json"
+  "evidence": "docs/runtime/mobile-speaker-evidence-2026-10-22.json",
+  "owner": "overnight-speaker-review-20261022"
 }
