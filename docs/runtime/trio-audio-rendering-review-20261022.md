@@ -444,6 +444,54 @@ shrinks from 7,364 to 7,105 raw bytes (-259); every other executable bundle
 and all CSS remain unchanged. Device confirmation applies to E; the full
 ordinary-page combination remains pending.
 
+## Confirmed full effect, softer comparison and first-touch preparation — 22 October 2026
+
+David confirms the ordinary 1.5.0 full effect has **no issues at all**, but the
+immediate ring disappearance looks worse. This supersedes the pending combined
+device check above. He also reports an early press can stay at the spinner.
+
+Controller 1.5.1 preserves the confirmed default and introduces the staging-only
+`soft-ripple` comparison. Release holds each ring at its current scale while
+opacity fades to zero over 180ms. Completion discards both effects. Capturing
+scroll/wheel/touch-start/pointer-down listeners clear only released ring tails,
+with no geometry reads, animation loop, observer or changes to active held
+rings. Another hold and teardown also clear tails. This is a bounded aesthetic
+trial, not a claim that opacity, blur or GPU layers are universally safe.
+Physical Android verification of the trial remains pending.
+
+The early loader previously ignored earlier page gestures when no audio context
+existed. A first mobile touch-down is not itself an activation-triggering event;
+a suspended context can therefore wait for touch-up while the interface keeps
+spinning. The loader now prepares its single shared context on an earlier tap
+or key gesture, without requesting the controller/audio or starting a source.
+When a first touch has no prior activation and remains suspended for 250ms,
+it replaces loading feedback with **Tap once, then hold**, using the existing
+word element and the button's accessible description. Completion of the tap
+unlocks silently; a subsequent hold can proceed. Hint cleanup restores the
+original text/styles before actual word animation. The original press still
+continues automatically through module/download/decode waits when permitted.
+
+Tests model both a successful earlier consent/page tap and a first touch whose
+resume cannot resolve until touch-up. They cover no eager requests, no playback
+on release, reuse of the prepared track, permission arriving during a hold,
+and correct hint/word restoration. The mocked policy reproduces a genuine
+blocked path; it does not prove this was the only cause in David's phone session.
+The existing shared MP3 responds HTTP 200 and is 3,171,100 bytes; it still needs
+full download/decode before playback. A desktop cold hold on 1.5.0 did progress
+to the word sequence, so the stuck spinner was not reproduced there.
+
+No native CSS, external CSS, head CSS, DOM nodes, parallax code or other module
+behavior changes. The loader changes are part of the early entry; the new
+comparison code is in the deferred hold controller. This is a staging-only
+release, with the ordinary URL retaining the confirmed instant-cleanup finish.
+
+Validation: 138 focused controller, loader, early-entry and parallax tests pass,
+along with build consistency, formatting and diff checks. The early entry grows
+from 8,082 to 9,493 raw bytes (+398 bytes gzip); the deferred controller grows
+from 7,105 to 7,671 raw bytes (+211 bytes gzip). All CSS and other executable
+bundles are unchanged. The added work is bounded preparation feedback and the
+staging ring comparison, with no eager audio download.
+
 ## Primary-source references
 
 - WebKit, activation-triggering events and sticky activation:

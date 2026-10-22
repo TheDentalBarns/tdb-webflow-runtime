@@ -7,6 +7,7 @@
     positions = new Map(),
     zooms = new Map(),
     effects = new Map(),
+    rippleTails = new Set(),
     voices = new Set();
   const holdDuration = 10000;
   // Combine staging comparisons without re-enabling an already-isolated effect.
@@ -21,6 +22,7 @@
   const noWords = diagnostic.includes('no-words');
   const noRipple = diagnostic.includes('no-ripple');
   const retainZoom = diagnostic.includes('retain-zoom');
+  const softRipple = diagnostic.includes('soft-ripple');
   const buttonBackdrops = new Map();
   if (noBackdrop)
     document.querySelectorAll('[data-tdb-hold-audio]').forEach((button) => {
@@ -47,11 +49,43 @@
   function parkEffect(element) {
     effects.get(element)?.cancel();
     effects.delete(element);
+    rippleTails.delete(element);
     element?.style.removeProperty('visibility');
+  }
+
+  // Candidate only: keep the held size and dissolve briefly while stationary.
+  // A new scroll/input parks the tail before it can accompany adjacent photos.
+  function clearRippleTails() {
+    rippleTails.forEach(parkEffect);
+  }
+  if (softRipple)
+    for (const type of ['scroll', 'wheel', 'touchstart', 'pointerdown'])
+      window.addEventListener(type, clearRippleTails, {
+        passive: true,
+        capture: true,
+        signal: lifecycle.signal,
+      });
+
+  function readRippleTail(element) {
+    if (!softRipple || !effects.has(element) || window.TDBMotionPolicy?.reduced?.matches) return;
+    const { scale, opacity } = getComputedStyle(element);
+    if (!(parseFloat(scale) > 0) || !(Number(opacity) > 0)) return;
+    return { scale, opacity };
+  }
+
+  function releaseRipple(element, from) {
+    if (!from) return parkEffect(element);
+    animateEffect(element, [from, { scale: from.scale, opacity: 0 }], {
+      duration: 180,
+      easing: 'ease-out',
+      fill: 'forwards',
+    });
+    rippleTails.add(element);
   }
 
   function animateEffect(element, frames, options) {
     if (!element?.animate) return;
+    rippleTails.delete(element);
     effects.get(element)?.cancel();
     // Designer parks inactive decorations; only a running effect reveals them.
     element.style.visibility = 'visible';
@@ -232,10 +266,12 @@
       const opacity = session.word && getComputedStyle(session.word).opacity;
       const scale = readZoom(session.image);
       const edge = session.circle?.parentElement?.querySelector('[data-tdb-audio-ripple-edge]');
-      // Android's confirmed sharp-ring comparison settles when release leaves
-      // no ripple animation behind. Park both layers before other fade writes.
-      parkEffect(session.circle);
-      parkEffect(edge);
+      const circleTail = readRippleTail(session.circle);
+      const edgeTail = readRippleTail(edge);
+      // Default: the confirmed immediate cleanup. The staging candidate alone
+      // permits a short stationary dissolve, cancelled by the next scroll/input.
+      releaseRipple(session.circle, circleTail);
+      releaseRipple(edge, edgeTail);
       if (session.word) {
         animateEffect(session.word, [{ opacity }, { opacity: 0 }], {
           duration: 350,
@@ -320,6 +356,7 @@
     const url = card?.getAttribute('data-tdb-audio-src');
     if (!url || button.disabled) return;
     release();
+    clearRippleTails();
     const session = {
       button,
       image: card.querySelector('img'),
@@ -425,7 +462,7 @@
   }
 
   window.TDBHoldAudio = Object.freeze({
-    version: '1.5.0',
+    version: '1.5.1',
     press,
     release,
     destroy,

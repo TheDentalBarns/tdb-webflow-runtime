@@ -17,6 +17,7 @@ function fixture({
   suspended = false,
   resumeNeedsGesture = false,
   resumeResolvesSuspended = false,
+  firstTouchBlocked = false,
   startFails = false,
   delayedDecode = false,
   url = 'https://dentalbarns.webflow.io/',
@@ -41,6 +42,9 @@ function fixture({
     { runScripts: 'outside-only', pretendToBeVisual: true, url },
   );
   const w = dom.window;
+  const activation = { hasBeenActive: false };
+  if (firstTouchBlocked)
+    Object.defineProperty(w.navigator, 'userActivation', { value: activation });
   let now = 0,
     timerId = 0;
   const timers = new Map();
@@ -108,7 +112,7 @@ function fixture({
   w.AudioContext = class extends w.EventTarget {
     currentTime = 5;
     destination = {};
-    state = suspended || resumeNeedsGesture || resumeResolvesSuspended ? 'suspended' : 'running';
+    state = suspended || resumeNeedsGesture || resumeResolvesSuspended || firstTouchBlocked ? 'suspended' : 'running';
     constructor() {
       super();
       calls.context++;
@@ -116,6 +120,10 @@ function fixture({
     }
     resume() {
       calls.resume++;
+      if (firstTouchBlocked) {
+        if (activation.hasBeenActive) resumeAudio();
+        return audioReady;
+      }
       if (resumeNeedsGesture) {
         if (calls.resume > 1) resumeAudio();
         return audioReady;
@@ -195,6 +203,8 @@ function fixture({
   w.eval(loader + `\nprepareHoldAudioLoader(${deferred});`);
   const buttons = [...w.document.querySelectorAll('button')];
   const event = (target, type, extra = {}) => {
+    if (['pointerup', 'touchend', 'mousedown', 'keydown'].includes(type))
+      activation.hasBeenActive = true;
     const e = new w.Event(type, { bubbles: true, cancelable: true });
     Object.assign(e, extra);
     target.dispatchEvent(e);
@@ -228,8 +238,8 @@ function fixture({
       finishModule();
       return tick();
     },
-    down(i = 0, id = 1) {
-      event(buttons[i], 'pointerdown', { button: 0, isPrimary: true, pointerId: id });
+    down(i = 0, id = 1, pointerType = 'mouse') {
+      event(buttons[i], 'pointerdown', { button: 0, isPrimary: true, pointerId: id, pointerType });
       return tick();
     },
     async play(i = 0, id = 1) {
@@ -704,6 +714,97 @@ for (const [label, code] of [
   ['source', source],
   ['bundle', fs.readFileSync('dist/tdb-hold-audio.js', 'utf8')],
 ]) {
+  test(`${label}: an earlier page tap prepares sound permission without fetching a module or track`, async () => {
+    const f = fixture({ code, firstTouchBlocked: true, visual: true, clock: true, deferred: true });
+    try {
+      assert.equal(f.calls.context, 0, 'no device at page load');
+      f.event(f.w.document.body, 'pointerup', { pointerType: 'touch', pointerId: 9 });
+      await tick();
+      assert.equal(f.calls.context, 1);
+      assert.equal(f.calls.audioContext.state, 'running');
+      assert.equal(f.calls.module, 0);
+      assert.equal(f.calls.fetch, 0);
+      assert.equal(f.calls.voices.length, 0);
+      f.w.TDBHoldAudioLoader.start();
+      await f.down(0, 1, 'touch');
+      f.advance(250);
+      assert.equal(f.buttons[0].getAttribute('data-tdb-loading'), 'true', 'download keeps loading feedback');
+      f.downloads[0]();
+      await tick();
+      assert.equal(f.calls.voices[0].started, 1);
+      assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+      assert.ok(f.calls.animations.length > 0, 'first held touch continues when the sound arrives');
+    } finally { f.cleanup(); }
+  });
+
+  test(`${label}: a blocked first touch shows a tap hint, unlocks silently on release and starts on the next hold`, async () => {
+    const f = fixture({ code, firstTouchBlocked: true, visual: true, clock: true });
+    try {
+      const word = f.w.document.querySelector('[data-tdb-audio-words]');
+      const head = f.w.document.head.innerHTML;
+      await f.down(0, 1, 'touch');
+      f.downloads[0]();
+      await tick();
+      assert.equal(f.calls.voices.length, 0);
+      f.advance(250);
+      assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+      assert.equal(f.buttons[0].getAttribute('aria-description'), 'Tap once, then hold');
+      assert.equal(word.textContent, 'Tap once, then hold');
+      assert.equal(word.style.opacity, '1');
+      assert.equal(f.calls.animations.length, 0, 'feedback does not consume a word or start the effect');
+      f.up();
+      await tick();
+      assert.equal(f.calls.audioContext.state, 'running');
+      assert.equal(f.calls.voices.length, 0, 'release never turns into unexpected playback');
+      assert.equal(word.textContent, 'HOLD.');
+      assert.equal(word.style.opacity, '0');
+      assert.equal(word.style.visibility, '');
+      assert.equal(f.buttons[0].hasAttribute('aria-description'), false);
+      await f.down(0, 1, 'touch');
+      assert.equal(f.calls.voices[0].started, 1);
+      assert.equal(f.calls.fetch, 1);
+      assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+      assert.equal(word.textContent, 'HOLD.');
+      assert.equal(f.w.document.head.innerHTML, head, 'no CSS or markup is added');
+    } finally { f.cleanup(); }
+  });
+
+  test(`${label}: permission granted during the original hold clears the hint before the sequence starts`, async () => {
+    const f = fixture({ code, firstTouchBlocked: true, visual: true, clock: true });
+    try {
+      await f.down(0, 1, 'touch');
+      f.advance(250);
+      f.downloads[0]();
+      await tick();
+      f.event(f.w, 'mousedown');
+      await tick();
+      const word = f.w.document.querySelector('[data-tdb-audio-words]');
+      assert.equal(f.calls.voices[0].started, 1);
+      assert.equal(word.textContent, 'HOLD.');
+      assert.equal(word.style.opacity, '0', 'the hint cannot override the word animation');
+      assert.equal(word.style.visibility, 'visible');
+      assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+      assert.equal(f.buttons[0].hasAttribute('aria-description'), false);
+      f.advance(3334);
+      assert.equal(word.textContent, 'BREATHE.');
+    } finally { f.cleanup(); }
+  });
+
+  test(`${label}: a download failure during the permission hint keeps the error and restores the word`, async () => {
+    const f = fixture({ code, firstTouchBlocked: true, visual: true, clock: true, fail: true });
+    try {
+      await f.down(0, 1, 'touch');
+      f.advance(250);
+      f.downloads[0]();
+      await tick();
+      assert.equal(f.buttons[0].hasAttribute('data-tdb-loading'), false);
+      assert.match(f.buttons[0].title, /unavailable/);
+      assert.equal(f.buttons[0].hasAttribute('aria-description'), false);
+      assert.equal(f.w.document.querySelector('[data-tdb-audio-words]').textContent, 'HOLD.');
+      assert.equal(f.calls.animations.length, 0);
+    } finally { f.cleanup(); }
+  });
+
   test(`${label}: interruption after permission but before download completion still delays visuals`, async () => {
     const f = fixture({ code, visual: true });
     try {
@@ -1068,6 +1169,71 @@ for (const [label, code] of [
     const cards = [...f.w.document.querySelectorAll('[data-tdb-audio-card]')];
     return { ...f, cards, decorations: [...cards[0].querySelectorAll('div')] };
   }
+
+  test(`${label}: the soft-ripple candidate dissolves at a fixed size then discards both layers`, async () => {
+    const f = effectsFixture({ url: 'https://dentalbarns.webflow.io/?tdb-speaker-test=soft-ripple' });
+    try {
+      await f.play();
+      const rings = f.decorations.slice(0, 2);
+      for (const ring of rings) { ring.style.scale = '0.45'; ring.style.opacity = '0.6'; }
+      const head = f.w.document.head.innerHTML;
+      const neighbours = f.cards.slice(1).map(c => c.outerHTML);
+      f.up();
+      const fades = f.calls.animations.filter(a => rings.includes(a.element) && !a.cancelled);
+      assert.equal(fades.length, 2);
+      for (const fade of fades) {
+        assert.equal(fade.options.duration, 180);
+        assert.equal(fade.frames[0].scale, '0.45');
+        assert.equal(fade.frames[1].scale, '0.45', 'release never resizes the ring');
+        assert.equal(fade.frames[0].opacity, '0.6');
+        assert.equal(fade.frames[1].opacity, 0);
+        fade.finish();
+      }
+      await tick();
+      assert.ok(fades.every(a => a.cancelled));
+      assert.ok(rings.every(e => f.w.getComputedStyle(e).visibility === 'hidden'));
+      assert.deepEqual(f.cards.slice(1).map(c => c.outerHTML), neighbours);
+      assert.equal(f.w.document.head.innerHTML, head);
+      assert.equal(f.calls.animations.filter(a => a.element === f.decorations[2]).at(-1).options.duration, 350);
+      assert.equal(f.calls.animations.filter(a => a.element.tagName === 'IMG').at(-1).options.duration, 1200);
+    } finally { f.cleanup(); }
+  });
+
+  for (const input of ['scroll', 'wheel', 'touchstart', 'pointerdown', 'pagehide'])
+    test(`${label}: ${input} immediately clears a soft ripple tail without waiting for completion`, async () => {
+      const f = effectsFixture({ url: 'https://dentalbarns.webflow.io/?tdb-speaker-test=soft-ripple' });
+      try {
+        await f.play();
+        const rings = f.decorations.slice(0, 2);
+        for (const ring of rings) { ring.style.scale = '0.5'; ring.style.opacity = '0.4'; }
+        f.up();
+        const fades = f.calls.animations.filter(a => rings.includes(a.element) && !a.cancelled);
+        assert.equal(fades.length, 2);
+        f.event(f.w.document, input);
+        assert.ok(fades.every(a => a.cancelled));
+        assert.ok(rings.every(e => f.w.getComputedStyle(e).visibility === 'hidden'));
+        await f.down();
+        await tick();
+        assert.equal(f.w.getComputedStyle(rings[0]).visibility, 'visible', 'old cancellation cannot hide a new hold');
+        assert.equal(f.calls.fetch, 1);
+      } finally { f.cleanup(); }
+    });
+
+  test(`${label}: soft-ripple does not apply on production or revive already faded rings`, async () => {
+    for (const url of ['https://www.thedentalbarns.com/?tdb-speaker-test=soft-ripple', 'https://dentalbarns.webflow.io/?tdb-speaker-test=soft-ripple']) {
+      const f = effectsFixture({ url });
+      try {
+        await f.play();
+        const rings = f.decorations.slice(0, 2);
+        if (url.includes('www.')) {
+          for (const ring of rings) { ring.style.scale = '0.5'; ring.style.opacity = '0.4'; }
+        }
+        f.up();
+        assert.equal(f.calls.animations.filter(a => rings.includes(a.element)).length, 2);
+        assert.ok(f.calls.animations.filter(a => rings.includes(a.element)).every(a => a.cancelled));
+      } finally { f.cleanup(); }
+    }
+  });
 
   test(`${label}: default ring cleanup matches the accepted stop-ripple mode through rapid reuse`, async () => {
     const mode = 'retain-zoom,retain-ripple,no-blur,no-zoom,no-backdrop,no-words';

@@ -12,6 +12,70 @@ function prepareHoldAudioLoader(deferred) {
     enable,
     disposed = false;
   const permission = deferred ? new Promise((resolve) => (enable = resolve)) : Promise.resolve();
+  function audioContext() {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    return (context ||= new AudioContext());
+  }
+  function clearHint(session) {
+    const hint = session.hint;
+    if (!hint) return;
+    if (hint.element) {
+      hint.element.textContent = hint.text;
+      for (const property of ['opacity', 'visibility']) {
+        if (hint[property]) hint.element.style.setProperty(property, hint[property]);
+        else hint.element.style.removeProperty(property);
+      }
+    }
+    session.hint = null;
+    if (session.button.getAttribute('aria-description') === hint.message)
+      session.button.removeAttribute('aria-description');
+    if (session.button.title === hint.message) session.button.title = 'Hold to listen';
+  }
+  function stopPreparing(session) {
+    clearTimeout(session.hintTimer);
+    context?.removeEventListener?.('statechange', session.deviceChanged);
+    clearHint(session);
+  }
+  function watchDevice(session) {
+    session.deviceChanged = () => {
+      if (held !== session || context.state !== 'running' || !session.hint) return;
+      clearHint(session);
+      session.button.setAttribute('aria-busy', 'true');
+      session.button.setAttribute('data-tdb-loading', 'true');
+    };
+    context.addEventListener?.('statechange', session.deviceChanged);
+    session.hintTimer = setTimeout(() => {
+      // A first touch-down may not grant playback until touch-up. This is not
+      // a download: don't leave an impossible-to-complete hold spinning.
+      if (
+        held !== session ||
+        context.state !== 'suspended' ||
+        !['touch', 'pen'].includes(session.pointerType) ||
+        navigator.userActivation?.hasBeenActive
+      )
+        return;
+      const message = 'Tap once, then hold';
+      const element = session.button
+        .closest('[data-tdb-audio-card]')
+        ?.querySelector('[data-tdb-audio-words]');
+      session.hint = {
+        message,
+        element,
+        text: element?.textContent,
+        opacity: element?.style.opacity,
+        visibility: element?.style.visibility,
+      };
+      if (element) {
+        element.textContent = message;
+        element.style.visibility = 'visible';
+        element.style.opacity = '1';
+      }
+      session.button.removeAttribute('aria-busy');
+      session.button.removeAttribute('data-tdb-loading');
+      session.button.title = message;
+      session.button.setAttribute('aria-description', message);
+    }, 250);
+  }
   function load() {
     if (!flight) {
       flight = permission
@@ -38,6 +102,7 @@ function prepareHoldAudioLoader(deferred) {
     held = null;
     window.TDBHoldAudio?.release(immediate);
     if (!session) return;
+    stopPreparing(session);
     clearTimeout(session.timeout);
     session.button.setAttribute('aria-pressed', 'false');
     session.button.removeAttribute('aria-busy');
@@ -68,17 +133,19 @@ function prepareHoldAudioLoader(deferred) {
     }
     try {
       // Unlock synchronously even when a cold module download is still pending.
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      context ||= new AudioContext();
-      const resumed = context.resume();
-      resumed.catch(failed);
+      const resumed = audioContext().resume();
+      watchDevice(session);
+      resumed.then(session.deviceChanged, failed);
       // Hand off the original held input while permission is pending so the
       // controller can download audio; playback and visuals wait for readiness.
       load()
         .then(async () => {
           if (!disposed && held === session && button.isConnected && !document.hidden)
             await window.TDBHoldAudio.press(button, input, context, resumed);
-          if (held === session) clearTimeout(session.timeout);
+          if (held === session) {
+            clearTimeout(session.timeout);
+            stopPreparing(session);
+          }
         })
         .catch(failed);
     } catch (_) {
@@ -133,14 +200,18 @@ function prepareHoldAudioLoader(deferred) {
     button.addEventListener('focus', () => load().catch(() => {}), options);
   }
   function unlock() {
-    // Touch pointerdown is not an activation-triggering event. Retry within a
-    // real tap/key gesture, even if an earlier resume promise is still pending.
-    // This only unlocks an existing context; it never starts a released sound.
-    if (!context || context.state === 'running' || context.state === 'closed') return;
-    context.resume().catch(() => {});
+    // Prepare the shared device on an earlier tap (including consent), rather
+    // than discarding that activation because no speaker has been held yet.
+    // No module, sound request or source is started by this preparation.
+    if (disposed || navigator.userActivation?.hasBeenActive === false) return;
+    try {
+      audioContext();
+      if (context.state !== 'running' && context.state !== 'closed')
+        context.resume().catch(() => {});
+    } catch (_) {}
   }
   for (const type of ['pointerup', 'touchend', 'mousedown', 'keydown'])
-    window.addEventListener(type, unlock, { ...options, passive: true });
+    window.addEventListener(type, unlock, { ...options, capture: true, passive: true });
   for (const type of ['pointerup', 'pointercancel'])
     window.addEventListener(
       type,

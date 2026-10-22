@@ -1,14 +1,30 @@
 # Home first-visit speakers
 
-## Current release — controller 1.5.0
+## Current release — controller 1.5.1
 
-Immediate ripple cleanup is now the default, without a query flag. David
-confirmed that comparison E (sharp ring, no words/blur/hold zoom) scrolls
-smoothly on Android after release; the separate words-only comparison was
-also smooth. The ordinary staging page keeps the full held effect, including
-words, both ripple layers, button glass and image zoom. That combined version
-still requires its final physical-device check. No production publish follows
-from the staging result.
+David confirmed that the ordinary 1.5.0 staging page has **no issues at all**
+on his Android test, including the full held blur, outline, words and zoom.
+He finds its immediate release less attractive. Immediate cleanup remains the
+default while `?tdb-speaker-test=soft-ripple` compares a 180ms opacity-only
+dissolve at each ring's current size. It never shrinks on release. Scroll,
+wheel, a new touch/pointer press, another hold, and page exit clear the tail;
+normal completion also cancels and hides it. No filled ring is retained.
+The comparison needs David's Android check; it is not a verified compositor
+fix. All other timings and held visual layers remain unchanged.
+
+The loader now prepares its one shared audio context on an earlier page tap
+or key gesture, including the consent decision. This fetches neither the
+controller nor sound, creates no source, and plays nothing. Previously those
+gestures were ignored until a speaker press created the context. A fresh
+touch-down without earlier activation may still require touch-up under browser
+policy. If it remains suspended without prior activation, after 250ms the
+spinner becomes **Tap once, then hold** in the existing word element, with a
+matching accessible description. This is permission feedback, not the word
+sequence. Release restores the original word and unlocks silently; the next
+hold uses the prepared device and any cached sound. An earlier successful tap
+lets the original held press wait for download/decode and start normally.
+No audio is permitted to start after release. Head CSS, native CSS, markup and
+initial audio-request timing are unchanged. Only staging is published.
 
 The former ripple return and retention branches have been removed. Old
 `stop-ripple` and `retain-ripple` query values are harmless and ignored.
@@ -45,7 +61,8 @@ download never starts playback after the press has ended. Failed downloads
 can be retried on the next hold.
 
 The shared native loading circle replaces the speaker icon while the controller,
-audio context or sound is pending. The loader sets `data-tdb-loading` immediately
+audio device or sound is pending; the blocked-first-touch case instead shows
+the explicit permission hint described above. The loader sets `data-tdb-loading` immediately
 on press; the controller clears it when playback starts. Every release, failure
 and teardown clears it as well. Early release still prevents late playback.
 The speaker's Dark glass variant positions the spinner above the button so a
