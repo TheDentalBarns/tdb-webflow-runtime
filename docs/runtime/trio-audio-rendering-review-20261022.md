@@ -232,6 +232,32 @@ reception until sound starts, release, and scroll to the untouched waiting-room
 image. Confirm audible playback separately on Safari before comparing the two.
 No paid test or production publication was performed.
 
+## Clipping result and smaller words — 22 October 2026
+
+David reports **"still all flash on scroll"** with the clipped-photo candidate.
+The boundary change did not resolve the physical-device defect. It must not be
+reported as a verified fix. His follow-up asks for current JS/CSS links and
+whether all three cards share preparation. Source inspection confirms that
+controller and audio loading are shared; photographs and icon visibility still
+prepare per element. The hold controller does not fetch words on scroll.
+Parallax reads wrapper geometry and writes photo `translate`, while held/release
+WAAPI changes that same photo's `scale`. Words are an absolute opacity overlay.
+Image/font completion and layout changes can refresh geometry. These are
+plausible overlapping paths, not a measured root cause or evidence that one
+card starts the next card's hold animation.
+
+Separately, David requests the mobile word styling at every breakpoint.
+The native `text-size-large` Home variant's main `font-size` changes from
+`2rem` to `1.125rem`, the existing mobile size. Readback preserves its other
+properties and all seven breakpoint reads show no additional variant override.
+Staging-only publish: `de888df4-aa3f-4c10-8e2a-8d0b79532021`.
+Current Home stylesheet:
+`dentalbarns.webflow.677cf86df9952f978d94d8a9.379ae5493.opt.min.css`.
+Runtime pin remains `3854317cf1be78533511b131e033d6c9e613e21c`.
+Live desktop computed sizes for all three word overlays are 16.7849px with a
+14.9199px fluid root (1.125rem). Native source and desktop checks verify the
+typography; this is not an Android flashing fix. No new head CSS or elements.
+
 ## Primary-source references
 
 - WebKit, activation-triggering events and sticky activation:

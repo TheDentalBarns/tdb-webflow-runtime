@@ -59,7 +59,10 @@ authored in `data-tdb-audio-word-sequence`: HOLD, BREATHE, RELAX, UNWIND,
 PEACEFUL, CALM, STILL, REST, EASE. Three words fade in and out per ten-second hold; the next
 hold continues across any card. Releasing early cancels the remaining cues.
 All three use the middle card's native `text-size-large` Home variant, centred
-over the image with its existing smaller mobile size.
+over the image. Following David's 22 October request, its main font size is
+`1.125rem` at every breakpoint, matching the existing mobile rule instead of
+the former desktop `2rem`. This changes one native variant declaration; the
+absolute overlay, weight, line height, tracking and word timings are retained.
 
 Designer owns `tdb-hold-image-clip`, `tdb-hold-blur-circle`, `tdb-hold-ripple-edge` and the centred word
 style. The 22 October staging boundary candidate changes only the Home
@@ -111,8 +114,22 @@ The native photo boundary is the next staging trial, retaining full blur,
 outline, zoom, words and audio. Desktop verification confirms all three computed
 overflows are `clip`, neighbouring words/zoom remain idle, and release clears
 pressed/loading state. Physical Android smoothness remains to be checked.
-Runtime stays pinned to `3854317cf1be78533511b131e033d6c9e613e21c`;
+David subsequently reports that the native clipping candidate **still flashes
+on scroll**. It is not a successful fix; the photo-boundary rule remains on
+staging while the interaction is investigated. Runtime stays pinned to
+`3854317cf1be78533511b131e033d6c9e613e21c`;
 this native-only refinement adds no markup, head CSS, assets or runtime code.
+
+Loading is shared for the controller and audio: after the consent gate, any
+card within 600px requests the single controller; focus/press can request it
+earlier. A first deliberate press fetches/decodes the common MP3 once and the
+same buffer is reused by every card. Native words, ripple elements and layout
+CSS are already in the page. Each photo remains `loading="lazy"` under browser
+control. Speaker artwork is released per button within 400px after consent,
+using the same SVG URL; the common spinner artwork is requested on loading.
+There is no per-card fetch for words or a new audio download on every scroll.
+Image/font loading, resize and explicit refresh can update shared parallax
+geometry; this source-level observation is not proof of the Android fault.
 
 Validation: `node --test tests/hold-audio.test.cjs tests/home-speaker-parallax.test.cjs`.
 Combined motion checks model changing zoom rectangles at 30fps and 60fps,
