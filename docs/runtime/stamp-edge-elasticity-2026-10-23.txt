@@ -1,0 +1,29 @@
+Treatment stamp edge elasticity - 23 October 2026
+
+Finite stamp strips previously clamped at each end and cancelled coast momentum.
+They now resist pulls beyond the ends and return with a critically damped spring.
+The native scroll position stays bounded; only the inner CMS track translates.
+Outward resistance increases with stretch, capped below 80px (or 20% of the
+viewport). Reversing follows the finger immediately instead of accumulating an
+invisible over-drag. Throws hand their velocity at impact into a small spring.
+
+Existing free-coast decay, selection, CMS links, confirmation behaviour and
+opt-in continuous looping are retained. Re-grabbing holds the current pose;
+selection smoothly releases the stretch while aligning to the chosen stamp.
+Reduced motion clears stretch on release. Cancellation, vertical gestures and
+disposal release edge motion. Authored inline translate is restored at rest.
+The original scroll geometry is measured without the temporary translation.
+No new CSS, DOM nodes, dependencies, requests or persistent idle frame loop.
+
+Validation
+- 30 focused stamp tests passed, including both edges, cancellation, re-grab,
+  selection, reduced motion, resizing and restoration of authored styles.
+- Pointer sampling and 8/16/32ms frame intervals produce the same edge motion.
+- Full suite: 680 tests, 677 passed, zero failures, three existing skips.
+- Deterministic runtime build verification and git diff check passed.
+- Parallax bundle: 41,460 to 42,631 bytes; local Brotli quality 11:
+  11,541 to 11,936 bytes (+395 bytes). Other runtime outputs unchanged.
+- Available test runtime Node 22.17.0; repository declares Node 24.
+
+Evidence: release-evidence/treatment-performance-audit-20261023/elasticity-*
+Controlled gesture tests do not replace physical Android feel verification.
