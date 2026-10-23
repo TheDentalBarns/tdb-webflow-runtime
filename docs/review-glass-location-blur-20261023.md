@@ -7,10 +7,14 @@ so consent changes and later mounts do not lose or duplicate the bar. The
 existing rendered-position sampler still drives marker width and travel.
 
 Designer owns the 5px track, orange-3 cream, translucent background and 20px
-backdrop blur. The card footer and navigation are now `calc(6rem + 5px)`;
-matching card padding and Read more placement are native too. Their previous
-external geometry declarations were removed. The external stylesheet retains
-only the lazy parked-state visibility and existing carousel presentation.
+backdrop blur. Two new Designer
+variables under Review embed own Footer base height (6rem) and Progress height
+(5px). Card footer/navigation height, card padding and Read more placement all
+consume their sum; navigation padding also includes the progress height. The
+native progress class references Progress height directly. The lazy-card
+stylesheet consumes these variables because Webflow omits classes without
+authored instances from published CSS. No duplicate sizing values live in the
+runtime. Edit the two values in Designer's Variables panel, under Review embed.
 
 The Home scroll image variant of Component 1 - Bg image has one native 20px
 backdrop-blur layer. The title is its scroll reference. Native data attributes
