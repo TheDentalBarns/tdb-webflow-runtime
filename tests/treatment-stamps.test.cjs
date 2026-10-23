@@ -7,18 +7,19 @@ function fixture(count = 6, mobileWidth = false, loop = mobileWidth, confirmLink
   const dom = new JSDOM(
     `<section data-tdb-treatment-postage>
     <div class="swiper">${Array.from({ length: count }, (_, i) => `<div data-swiper-slide-index="${i}"><h3 class="tdb-treatment-title">Treatment ${i}</h3></div>`).join('')}</div><div data-tdb-native-progress></div>
-    <div data-tdb-treatment-stamps><div class="tdb-treatment-controls">
+    <div data-tdb-treatment-stamps><div class="tdb-treatment-controls"><div class="tdb-treatment-wrapper">
     ${Array.from(
       { length: count },
       (_, i) => `<div class="tdb-treatment-card"><a
     data-tdb-treatment-stamp href="/treatments/${i}">Treatment ${i}</a></div>`,
     ).join('')}
-    </div></div></section>`,
+    </div></div></div></section>`,
     { runScripts: 'outside-only', url: 'https://example.test' },
   );
   const w = dom.window,
     root = w.document.querySelector('section');
   const viewport = root.querySelector('.tdb-treatment-controls');
+  const track = viewport.firstElementChild;
   if (confirmLinks) {
     root
       .querySelector('[data-tdb-treatment-stamps]')
@@ -33,7 +34,8 @@ function fixture(count = 6, mobileWidth = false, loop = mobileWidth, confirmLink
   root.setAttribute('data-tdb-treatment-loop', String(loop));
   Object.defineProperty(viewport, 'clientWidth', { get: () => 800 });
   Object.defineProperty(viewport, 'scrollWidth', {
-    get: () => Math.max(800, viewport.children.length * 220 - 20),
+    get: () => Math.max(800, track.children.length * 220 - 20),
+    configurable: true,
   });
   const items = [...root.querySelectorAll('.tdb-treatment-card')];
   const links = [...root.querySelectorAll('a')],
@@ -91,7 +93,7 @@ function fixture(count = 6, mobileWidth = false, loop = mobileWidth, confirmLink
   });
   w.eval(fs.readFileSync('src/sliders/treatment-stamps.js', 'utf8'));
   const controller = w.TDBTreatmentStamps.prepare(root);
-  return { dom, w, root, viewport, items, links, swiper, controller, media, tick, frames };
+  return { dom, w, root, viewport, track, items, links, swiper, controller, media, tick, frames };
 }
 
 test('inactive stamps select only; settled active stamps preview then follow the CMS link', () => {
@@ -146,6 +148,208 @@ test('inactive stamps select only; settled active stamps preview then follow the
     assert.equal(clicks.at(-1), false, 'modified clicks retain browser behavior');
   } finally {
     f.dom.window.close();
+  }
+});
+
+function edgePointer(f, type, x, y = 100) {
+  const event = new f.w.Event(type, { bubbles: true, cancelable: true });
+  Object.assign(event, {
+    button: 0,
+    isPrimary: true,
+    pointerId: 1,
+    pointerType: 'touch',
+    clientX: x,
+    clientY: y,
+  });
+  f.viewport.dispatchEvent(event);
+}
+
+test('both finite edges resist pulls and settle without selecting, oscillating or retaining a frame', () => {
+  for (const end of [0, 500]) {
+    for (const ending of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+      const f = fixture(6, true, false);
+      try {
+        f.controller.measure();
+        f.viewport.scrollLeft = end;
+        const direction = end ? -1 : 1;
+        edgePointer(f, 'pointerdown', 300);
+        f.tick(16);
+        edgePointer(f, 'pointermove', 300 + direction * 200);
+        const offset = parseFloat(f.track.style.translate);
+        assert.ok(offset * direction > 0 && Math.abs(offset) < 80);
+        assert.equal(f.viewport.style.translate, '', 'only the inner track moves');
+        assert.equal(f.viewport.scrollLeft, end);
+        edgePointer(f, ending, 300 + direction * 200);
+        let previous = Math.abs(offset);
+        for (let i = 0; i < 60; i++) {
+          f.tick(16);
+          const next = parseFloat(f.track.style.translate) || 0;
+          assert.ok(next * direction >= 0 && Math.abs(next) <= previous);
+          assert.equal(f.viewport.scrollLeft, end);
+          assert.ok(f.frames.size <= 1, 'one animation writer');
+          previous = Math.abs(next);
+        }
+        assert.equal(f.track.style.translate, '');
+        assert.equal(f.frames.size, 0);
+        assert.equal(f.swiper.realIndex, 0);
+      } finally {
+        f.dom.window.close();
+      }
+    }
+  }
+});
+
+test('edge resistance is independent of pointer sampling and reverses without a dead zone', () => {
+  const offsets = [];
+  for (const steps of [1, 10, 40]) {
+    const f = fixture(6, true, false);
+    try {
+      f.controller.measure();
+      edgePointer(f, 'pointerdown', 300);
+      for (let i = 1; i <= steps; i++) edgePointer(f, 'pointermove', 300 + (i * 400) / steps);
+      const offset = parseFloat(f.track.style.translate);
+      offsets.push(offset);
+      edgePointer(f, 'pointermove', 680);
+      assert.ok(Math.abs(parseFloat(f.track.style.translate) - offset + 20) < 0.001);
+      edgePointer(f, 'pointermove', 600);
+      assert.equal(f.track.style.translate, '');
+      assert.ok(Math.abs(f.viewport.scrollLeft - (100 - offset)) < 0.001);
+    } finally {
+      f.dom.window.close();
+    }
+  }
+  assert.ok(Math.max(...offsets) - Math.min(...offsets) < 0.001);
+});
+
+test('a throw enters the same small edge spring at different refresh rates', () => {
+  const offsets = [];
+  for (const interval of [8, 16, 32]) {
+    const f = fixture(6, true, false);
+    try {
+      f.controller.measure();
+      f.viewport.scrollLeft = 420;
+      edgePointer(f, 'pointerdown', 300);
+      f.tick(20);
+      edgePointer(f, 'pointermove', 290);
+      f.tick(20);
+      edgePointer(f, 'pointermove', 280);
+      edgePointer(f, 'pointerup', 280);
+      for (let elapsed = 0; elapsed < 256; elapsed += interval) f.tick(interval);
+      assert.equal(f.viewport.scrollLeft, 500);
+      const offset = parseFloat(f.track.style.translate);
+      assert.ok(offset < 0 && offset > -30);
+      offsets.push(offset);
+      f.tick(1000);
+      assert.equal(f.track.style.translate, '');
+      assert.equal(f.frames.size, 0);
+    } finally {
+      f.dom.window.close();
+    }
+  }
+  assert.ok(Math.max(...offsets) - Math.min(...offsets) < 0.001);
+});
+
+test('re-grabbing a returning edge holds its pose and vertical scrolling releases it', () => {
+  const f = fixture(6, true, false);
+  try {
+    f.controller.measure();
+    edgePointer(f, 'pointerdown', 300);
+    edgePointer(f, 'pointermove', 500);
+    edgePointer(f, 'pointerup', 500);
+    f.tick(64);
+    const offset = parseFloat(f.track.style.translate);
+    edgePointer(f, 'pointerdown', 300);
+    f.tick(64);
+    assert.equal(parseFloat(f.track.style.translate), offset);
+    edgePointer(f, 'pointermove', 290);
+    assert.ok(Math.abs(parseFloat(f.track.style.translate) - offset + 10) < 0.001);
+    edgePointer(f, 'pointerup', 290);
+    edgePointer(f, 'pointerdown', 300);
+    edgePointer(f, 'pointermove', 301, 130);
+    f.tick(1000);
+    assert.equal(f.track.style.translate, '');
+    assert.equal(f.frames.size, 0);
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('resizing while stretched measures the resting track and keeps the correct scroll limit', () => {
+  const f = fixture(6, true, false);
+  try {
+    let measuredWithOffset = false;
+    Object.defineProperty(f.viewport, 'scrollWidth', {
+      get() {
+        const edge = parseFloat(f.track.style.translate) || 0;
+        measuredWithOffset ||= Boolean(edge);
+        return 1300 + Math.max(0, edge);
+      },
+    });
+    f.controller.measure();
+    edgePointer(f, 'pointerdown', 300);
+    edgePointer(f, 'pointermove', 500);
+    const edge = f.track.style.translate;
+    f.controller.measure();
+    assert.equal(f.track.style.translate, edge, 'measurement preserves the visible pose');
+    assert.equal(measuredWithOffset, false);
+    edgePointer(f, 'pointermove', -500);
+    assert.equal(f.viewport.scrollLeft, 500, 'transformed overflow did not enlarge the limit');
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('selection, reduced motion, non-overflowing strips and disposal clear edge motion correctly', () => {
+  const f = fixture(6, true, false);
+  try {
+    f.controller.dispose();
+    f.track.style.setProperty('translate', '0px 0px', 'important');
+    f.controller = f.w.TDBTreatmentStamps.prepare(f.root);
+    f.controller.measure();
+    edgePointer(f, 'pointerdown', 300);
+    edgePointer(f, 'pointermove', 500);
+    edgePointer(f, 'pointerup', 500);
+    const edge = parseFloat(f.track.style.translate);
+    f.links[2].click();
+    f.tick(250);
+    assert.ok(
+      parseFloat(f.track.style.translate) > 0 && parseFloat(f.track.style.translate) < edge,
+    );
+    assert.ok(f.viewport.scrollLeft > 0 && f.viewport.scrollLeft < 200);
+    f.tick(250);
+    assert.equal(f.viewport.scrollLeft, 200);
+    assert.equal(f.track.style.translate, '0px 0px');
+    assert.equal(f.track.style.getPropertyPriority('translate'), 'important');
+    f.viewport.scrollLeft = 0;
+    f.w.TDBMotion.reduced.matches = true;
+    edgePointer(f, 'pointerdown', 300);
+    edgePointer(f, 'pointermove', 500);
+    edgePointer(f, 'pointerup', 500);
+    assert.equal(f.track.style.translate, '0px 0px');
+    assert.equal(f.frames.size, 0);
+    f.w.TDBMotion.reduced.matches = false;
+    edgePointer(f, 'pointerdown', 300);
+    edgePointer(f, 'pointermove', 500);
+    edgePointer(f, 'pointerup', 500);
+    f.controller.dispose();
+    assert.equal(f.track.style.translate, '0px 0px');
+    assert.equal(f.track.style.getPropertyPriority('translate'), 'important');
+    assert.equal(f.frames.size, 0);
+  } finally {
+    f.dom.window.close();
+  }
+  const single = fixture(1, true, false);
+  try {
+    single.controller.measure();
+    edgePointer(single, 'pointerdown', 300);
+    edgePointer(single, 'pointermove', 500);
+    edgePointer(single, 'pointerup', 500);
+    single.tick(1000);
+    assert.equal(single.viewport.scrollLeft, 0);
+    assert.equal(single.track.style.translate, '');
+    assert.equal(single.frames.size, 0);
+  } finally {
+    single.dom.window.close();
   }
 });
 
@@ -455,7 +659,7 @@ test('mobile stamps recycle complete cycles in either direction without selectin
   const f = fixture(6, true);
   try {
     f.controller.measure();
-    assert.equal(f.viewport.children.length, 18);
+    assert.equal(f.track.children.length, 18);
     assert.equal(f.viewport.querySelectorAll('[aria-hidden="true"]').length, 12);
     f.controller.paint(0, 0, 800);
     assert.equal(f.items[0].getBoundingClientRect().left, 50);
@@ -501,12 +705,12 @@ test('returning to desktop restores the original finite CMS row; disposal remove
     f.media.matches = false;
     f.controller.measure();
     f.controller.paint(0, 0, 800);
-    assert.deepEqual([...f.viewport.children], f.items);
+    assert.deepEqual([...f.track.children], f.items);
     assert.equal(f.viewport.scrollLeft, 0);
     f.media.matches = true;
     f.controller.measure();
     f.controller.dispose();
-    assert.deepEqual([...f.viewport.children], f.items);
+    assert.deepEqual([...f.track.children], f.items);
     assert.equal(f.links[0].hasAttribute('data-tdb-stamp-index'), false);
   } finally {
     f.dom.window.close();
@@ -634,7 +838,7 @@ test('return alignment shares one animation writer with repeated progress sample
   }
 });
 
-test('finite mobile stamps drag freely to both ends, never overscroll, and ease back to selection', () => {
+test('finite mobile stamps resist at the ends and ease back to selection', () => {
   const f = fixture(6, true, false);
   function pointer(type, x) {
     const event = new f.w.Event(type, { bubbles: true, cancelable: true });
@@ -650,14 +854,20 @@ test('finite mobile stamps drag freely to both ends, never overscroll, and ease 
   try {
     f.controller.measure();
     f.controller.paint(0, 0, 800);
-    assert.equal(f.viewport.children.length, 6, 'no loop copies without explicit opt-in');
+    assert.equal(f.track.children.length, 6, 'no loop copies without explicit opt-in');
     pointer('pointerdown', 200);
     f.tick(16);
     pointer('pointermove', -1000);
     assert.equal(f.viewport.scrollLeft, 500, 'clamps at the last stamp');
+    const edge = parseFloat(f.track.style.translate);
+    assert.ok(edge < 0 && edge > -80, 'the inner track yields with bounded resistance');
     f.tick(16);
     pointer('pointermove', -980);
-    assert.equal(f.viewport.scrollLeft, 480, 'finger can reverse immediately at an end');
+    assert.equal(f.viewport.scrollLeft, 500);
+    assert.ok(
+      Math.abs(parseFloat(f.track.style.translate) - edge - 20) < 0.001,
+      'reversing releases the stretch immediately, with no invisible dead zone',
+    );
     pointer('pointerup', -980);
     for (let i = 0; i < 60; i++) f.tick(16);
     assert.ok(f.viewport.scrollLeft >= 0 && f.viewport.scrollLeft <= 500);

@@ -626,6 +626,8 @@ window.TDBTreatmentStamps ||= (() => {
     if (!viewport || !links.length) return null;
     const items = links.map((link) => link.closest('.tdb-treatment-card'));
     const track = items[0].parentElement;
+    const translateBefore = track.style.getPropertyValue('translate');
+    const translatePriority = track.style.getPropertyPriority('translate');
     const sliderViewport = root.querySelector(':scope > .swiper');
     const mobile = matchMedia('(max-width: 767px)');
     const confirmLinks = strip.getAttribute('data-tdb-stamp-link-mode') === 'confirm';
@@ -648,6 +650,7 @@ window.TDBTreatmentStamps ||= (() => {
       disposed = false;
     let motionFrame = 0,
       returnOffset = 0,
+      returnEdge = 0,
       returnStarted = 0,
       returnDuration = 500,
       returnIndex = null,
@@ -656,6 +659,11 @@ window.TDBTreatmentStamps ||= (() => {
       coastPosition = 0,
       lastFrame = 0,
       momentumElapsed = 0;
+    let edgeOffset = 0,
+      edgeLimit = 80,
+      edgeStart = 0,
+      edgeVelocity = 0,
+      edgeStarted = 0;
     const animations = new Map();
     const opacityBefore = new Map(items.map((item) => [item, item.style.opacity]));
     const transitionBefore = new Map(items.map((item) => [item, item.style.transitionDuration]));
@@ -715,25 +723,93 @@ window.TDBTreatmentStamps ||= (() => {
           ? cycle / 2 + ((((value - cycle / 2) % cycle) + cycle) % cycle)
           : Math.max(0, Math.min(value, scrollLimit()));
       if (viewport.scrollLeft !== next) viewport.scrollLeft = next;
-      if (drag) drag.left += next - value;
+      if (drag && looped) drag.left += next - value;
     }
     function scrollLimit() {
-      return (maxScroll ??= Math.max(0, viewport.scrollWidth - viewport.clientWidth));
+      if (maxScroll === null) {
+        // Translated overflow must not become a new scroll boundary on resize
+        // or re-grab. Geometry is read once, with the track at its resting pose.
+        const edge = edgeOffset;
+        setEdge(0);
+        const width = viewport.clientWidth;
+        maxScroll = Math.max(0, viewport.scrollWidth - width);
+        edgeLimit = Math.min(80, width * 0.2);
+        setEdge(edge);
+      }
+      return maxScroll;
     }
     function invalidate() {
       maxScroll = null;
     }
-    function stopMotion() {
+    function setEdge(value) {
+      if (edgeOffset === value) return;
+      edgeOffset = value;
+      if (value) track.style.setProperty('translate', `${value}px 0`);
+      else if (translateBefore)
+        track.style.setProperty('translate', translateBefore, translatePriority);
+      else track.style.removeProperty('translate');
+    }
+    function pull(value) {
+      const limit = scrollLimit();
+      const bounded = Math.max(0, Math.min(value, limit));
+      if (!limit || !edgeLimit || track === viewport) {
+        setScroll(bounded);
+        setEdge(0);
+        drag.left += bounded - value;
+        return;
+      }
+      const excess = bounded - value;
+      const previous = excess * edgeOffset > 0 ? Math.abs(edgeOffset) : 0;
+      const extra = Math.abs(excess) - previous;
+      // Outward pulls get progressively firmer; reversing follows the finger
+      // immediately, without having to repay a long invisible over-drag.
+      const offset =
+        extra <= 0
+          ? Math.abs(excess)
+          : edgeLimit -
+            (edgeLimit - previous) /
+              (1 + (extra * 0.5 * (edgeLimit - previous)) / (edgeLimit * edgeLimit));
+      setScroll(bounded);
+      setEdge(Math.sign(excess) * offset);
+      drag.left += bounded - edgeOffset - value;
+    }
+    function edgeStep(now) {
+      motionFrame = 0;
+      const t = Math.max(0, now - edgeStarted) / 1000;
+      // Analytic, critically damped return: same feel at different frame rates,
+      // no oscillation and no permanent animation loop once it has settled.
+      const offset = (edgeStart + (edgeVelocity + 14 * edgeStart) * t) * Math.exp(-14 * t);
+      if (window.TDBMotion?.reduced?.matches || (t >= 0.1 && Math.abs(offset) < 0.1) || t >= 1) {
+        setEdge(0);
+      } else {
+        setEdge(offset);
+        motionFrame = requestAnimationFrame(edgeStep);
+      }
+    }
+    function settleEdge(velocity = 0, started = performance.now()) {
+      if (motionFrame) cancelAnimationFrame(motionFrame);
+      motionFrame = 0;
+      momentum = 0;
+      edgeStart = edgeOffset;
+      edgeVelocity = velocity;
+      edgeStarted = started;
+      if (window.TDBMotion?.reduced?.matches) setEdge(0);
+      else if (edgeStart || velocity) edgeStep(performance.now());
+    }
+    function stopMotion(resetEdge = true) {
       if (motionFrame) cancelAnimationFrame(motionFrame);
       motionFrame = 0;
       momentum = 0;
       returnOffset = 0;
+      returnEdge = 0;
       returnIndex = null;
+      if (resetEdge) setEdge(0);
     }
     function resumeAlignment(index = swiper?.realIndex) {
       if (!automatic || (returnIndex !== null && returnIndex !== index)) {
-        stopMotion();
+        stopMotion(false);
         returnOffset = null;
+        returnEdge = edgeOffset;
         returnIndex = index;
         returnDuration = window.TDBMotion?.reduced?.matches
           ? 0
@@ -745,8 +821,9 @@ window.TDBTreatmentStamps ||= (() => {
       motionFrame = 0;
       const elapsed = returnDuration ? Math.min(1, (now - returnStarted) / returnDuration) : 1;
       setScroll(targetLeft + returnOffset * Math.pow(1 - elapsed, 3));
+      setEdge(returnEdge * Math.pow(1 - elapsed, 3));
       if (elapsed < 1) motionFrame = requestAnimationFrame(returnStep);
-      else returnOffset = 0;
+      else returnOffset = returnEdge = 0;
     }
     function align(value) {
       if (!looped) value = Math.max(0, Math.min(value, scrollLimit()));
@@ -758,7 +835,7 @@ window.TDBTreatmentStamps ||= (() => {
           : difference;
         returnStarted = performance.now();
       }
-      if (returnOffset) {
+      if (returnOffset || returnEdge) {
         // Progress sampling and return easing share a single writer. Updating
         // the target must not repaint/cancel the same frame a second time.
         if (!motionFrame) motionFrame = requestAnimationFrame(returnStep);
@@ -773,9 +850,20 @@ window.TDBTreatmentStamps ||= (() => {
       // Retain the fractional position like its transform-driven track: reading
       // rounded scrollLeft back each frame can prematurely kill a mobile throw.
       const decay = Math.exp((-4.2 * dt) / 1000);
+      const previous = coastPosition;
       coastPosition += (momentum * (1 - decay)) / 0.0042;
       setScroll(coastPosition);
-      if (!looped && (coastPosition <= 0 || coastPosition >= scrollLimit())) momentum = 0;
+      if (!looped && (coastPosition <= 0 || coastPosition >= scrollLimit())) {
+        const boundary = coastPosition <= 0 ? 0 : scrollLimit();
+        // Hand the velocity at impact into a small edge spring. Solve the
+        // impact time so a delayed frame cannot create a larger bounce.
+        const impactDecay = Math.max(0.0001, 1 - ((boundary - previous) * 0.0042) / momentum);
+        const impactMs = Math.max(0, Math.min(dt, -Math.log(impactDecay) / 0.0042));
+        if (scrollLimit() && track !== viewport)
+          settleEdge(-momentum * impactDecay * 350, now - dt + impactMs);
+        else momentum = 0;
+        return;
+      }
       momentum *= decay;
       if (Math.abs(momentum) > 0.002 && momentumElapsed < 2000)
         motionFrame = requestAnimationFrame(coast);
@@ -988,7 +1076,7 @@ window.TDBTreatmentStamps ||= (() => {
       invalidate();
       const link = event.target.closest?.('[data-tdb-treatment-stamp]');
       pressState = { link, live: liveStamp(link) };
-      stopMotion();
+      stopMotion(false);
       automatic = false;
       suppressClick = false;
       ignoredClick = null;
@@ -998,7 +1086,7 @@ window.TDBTreatmentStamps ||= (() => {
         link: event.target.closest?.('[data-tdb-treatment-stamp]'),
         x: event.clientX,
         y: event.clientY,
-        left: viewport.scrollLeft,
+        left: viewport.scrollLeft - edgeOffset,
         samples: [{ x: event.clientX, t: event.timeStamp }],
       };
     }
@@ -1007,6 +1095,7 @@ window.TDBTreatmentStamps ||= (() => {
       const delta = event.clientX - drag.x;
       if (!suppressClick && Math.abs(event.clientY - drag.y) > Math.max(6, Math.abs(delta))) {
         drag = null;
+        settleEdge();
         return;
       }
       if (!suppressClick && Math.abs(delta) > 6) {
@@ -1023,7 +1112,8 @@ window.TDBTreatmentStamps ||= (() => {
         // preceding sample to estimate velocity after a sparse move event.
         drag.samples.push({ x: event.clientX, t: now });
         while (drag.samples.length > 2 && now - drag.samples[1].t > 100) drag.samples.shift();
-        setScroll(drag.left - delta);
+        if (looped) setScroll(drag.left - delta);
+        else pull(drag.left - delta);
         event.preventDefault();
       }
     }
@@ -1048,7 +1138,8 @@ window.TDBTreatmentStamps ||= (() => {
         suppressClick && event.type === 'pointerup'
           ? { id: drag.id, until: performance.now() + 500 }
           : null;
-      if (
+      if (edgeOffset) settleEdge();
+      else if (
         suppressClick &&
         event.type === 'pointerup' &&
         event.timeStamp - drag.samples.at(-1).t < 90 &&
@@ -1132,7 +1223,7 @@ window.TDBTreatmentStamps ||= (() => {
     instances.set(root, controller);
     return controller;
   }
-  return { version: '1.3.2', prepare };
+  return { version: '1.4.0', prepare };
 })();
 
 /* Native CMS text row follows rendered image geometry, including loop/width motion.
