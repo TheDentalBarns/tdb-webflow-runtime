@@ -1,0 +1,78 @@
+Stamp drag frame batching: isolated A/B results, 23 October 2026
+
+Status: tested candidate; NOT published to Webflow staging.
+Baseline: d4f0f789d94e57c294d7ef25c9e2926089c58a8f, stamp controller 1.4.1.
+User has confirmed this baseline fixes stamp dragging on iOS Safari.
+Candidate: stamp controller 1.4.2, same input arbitration and motion constants.
+
+Change
+Every accepted input still updates the velocity samples, logical scroll target,
+edge resistance and loop origin. Native scroll and edge-style writes are queued
+and committed once per requestAnimationFrame. Release, cancellation, measurement,
+re-grab, wheel and disposal flush pending work before proceeding. The rendered
+edge position is tracked separately so returning to the same pose in one frame
+does not require a style write. No persistent idle frame loop or new dependency.
+
+Method
+12 sequential trials: current/candidate x 1 or 4 inputs per frame x 3 repeats,
+with order reversed on the middle repeat. Chrome 155 on Windows, DPR 1.5,
+420px iframe viewport, six actual stamp images decoded before each run.
+Each trial: 120 frames of a repeatable drag, then 40 frames of release/coast.
+Instrumented scroll property access, edge writes, event-dispatch time and module
+animation callbacks. Browser rAF timestamps recorded frame pacing. No artificial
+CPU load or throttling. The original module is served from its immutable Git SHA.
+No production page was modified for the benchmark.
+
+Medians across three trials
+Input              Current          Candidate
+1/frame JS time    12.70 ms          10.50 ms
+1/frame writes    160               160
+1/frame rAF p95    16.90 ms          16.90 ms
+4/frame JS time    14.00 ms          12.10 ms
+4/frame writes    519               160
+4/frame rAF p95    16.80 ms          16.90 ms
+
+The burst case removes 359/519 scroll writes (69.2%, including the unchanged
+40-frame coast). Scroll reads likewise decrease from 521 to 162. Both variants
+read the scroll bounds twice per gesture, rather than measuring every event.
+One-input-per-frame workloads have the same number of writes. The candidate
+moves work out of the synchronous input handler into the display callback.
+
+Interpretation and limits
+The write reduction is deterministic. Total JS timing is low and noisy: the
+three burst trials range from 11.5-17.5ms for current and 10.6-14.4ms for candidate.
+Those ranges overlap; the modest median difference is not proof of a general
+CPU speedup. Both versions stay around 16.7ms median callback spacing. Across
+all trials the current version has 2 gaps over 25ms and the candidate has 3;
+there is no demonstrated frame-rate improvement. No long tasks were observed.
+
+Synthetic events exercise actual rendering and module code but do not emulate
+native iOS arbitration. This isolated fixture excludes the rest of the homepage,
+so it cannot diagnose page-wide style/layout contention or overlapping effects.
+rAF gaps are callback pacing, not confirmed presentation FPS. GPU utilisation,
+raster cost and compositor layers were not measured. Safari device verification
+is still required for this candidate. Recommend a controlled staging trial;
+do not describe it as a proven fix for the reported Safari FPS drop.
+
+Validation
+688 tests: 685 passed, zero failed, three existing skips. Includes 38 stamp tests
+covering burst writes, before-frame release, reversals, finite/loop parity,
+momentum, native cancellation, vertical scrolling, pinch, confirmation links,
+focus, resize, re-grab and cleanup. Source and built lifecycle checks passed.
+Deterministic build/check and git diff whitespace check passed.
+Parallax bundle 44,022 -> 44,368 bytes; local Brotli quality 11:
+12,294 -> 12,437 bytes (+143 bytes).
+
+Reproduction
+From the repository root: node tools/benchmarks/stamp-frame-batch/server.cjs
+Open http://127.0.0.1:8768/ and press Run A/B benchmark. The server only binds to
+loopback and only serves named fixture/source routes. Leave it unobscured and
+avoid concurrent builds or tests during measurement. Raw results are visible in
+the report panel. Source is measured; the built output is separately tested.
+
+Evidence outside the repository:
+release-evidence/treatment-performance-audit-20261023/stamp-frame-batch-browser.json
+release-evidence/treatment-performance-audit-20261023/frame-batch-full-tests.txt
+release-evidence/treatment-performance-audit-20261023/stamp-frame-batch-comparison.png
+
+Separate tooltip/filter optimisation remains stashed and unpublished.

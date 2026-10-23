@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #222;
+      color: #fff;
+      font: 12px system-ui;
+    }
+    section {
+      padding: 28px 12px;
+    }
+    .swiper {
+      display: none;
+    }
+    .tdb-treatment-controls {
+      overflow-x: auto;
+      overflow-y: hidden;
+      touch-action: pan-y pinch-zoom;
+      scrollbar-width: none;
+    }
+    .tdb-treatment-wrapper {
+      display: flex;
+      gap: 14px;
+      width: max-content;
+    }
+    .tdb-treatment-card {
+      width: 32vw;
+      max-width: 14rem;
+      flex-shrink: 0;
+      opacity: 0.5;
+      transition: opacity 200ms ease;
+    }
+    .tdb-treatment-source {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+    }
+    .tdb-treatment-image-wrap {
+      position: relative;
+      overflow: hidden;
+      touch-action: pan-y pinch-zoom;
+      aspect-ratio: 16/7;
+    }
+    .tdb-treatment-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      user-select: none;
+    }
+    .tdb-treatment-title {
+      font-size: 10px;
+      font-weight: 400;
+      line-height: 1.3;
+      margin: 8px 0 0;
+    }
+    .label {
+      padding: 12px;
+      color: #dbcdb5;
+    }
+  </style>
+  <div class="label" id="label">Warming images</div>
+  <section data-tdb-treatment data-tdb-treatment-postage data-tdb-treatment-loop="false">
+    <div class="swiper"></div>
+    <div data-tdb-native-progress></div>
+    <div data-tdb-treatment-stamps>
+      <div class="tdb-treatment-controls"><div class="tdb-treatment-wrapper"></div></div>
+    </div>
+  </section>
+  <script>
+    (async () => {
+      const params = new URLSearchParams(location.search),
+        variant = params.get('variant'),
+        perFrame = +params.get('perFrame'),
+        round = +params.get('round');
+      if (!['baseline', 'candidate'].includes(variant) || ![1, 4].includes(perFrame))
+        throw Error('Invalid trial');
+      const assets = [
+        [
+          'Veneers',
+          '681e0b077a2c36db646ca611_Opalesenz_Durchlicht_1920x1220px~-~media--7e50ec73--query%402x.727fc6df.avif',
+        ],
+        [
+          'Composite Bonding',
+          '68714118e955e71cb5ada18b_the-dental-barns-blackbrook-lichfield-composite-bonding.webp',
+        ],
+        [
+          'Clear Aligners',
+          '68d263a8afd187f45f4877ed_the-dental-barns-blackbrook-lichfield-clear-aligners.webp',
+        ],
+        [
+          'Invisalign',
+          '686e3b4536c79ebb53ddfa3a_the-dental-barns-blackbrook-lichfield-invisalign-platinum-provider.webp',
+        ],
+        [
+          'Teeth Whitening',
+          '686e3b9dce86110b4c272a59_the-dental-barns-blackbrook-lichfield-teeth-whitening-enlighten-whitening.webp',
+        ],
+        ['Airflow Hygiene', '686e3e647afd519c3326ff4d_the-dental-barns-blackbrook-hygiene.webp'],
+      ];
+      const root = document.querySelector('section'),
+        viewport = document.querySelector('.tdb-treatment-controls'),
+        track = viewport.firstElementChild;
+      for (const [label, file] of assets) {
+        const item = document.createElement('div');
+        item.className = 'tdb-treatment-card';
+        item.innerHTML = `<a class="tdb-treatment-source" data-tdb-treatment-stamp href="#"><div class="tdb-treatment-image-wrap"><img class="tdb-treatment-image" alt="${label}" src="https://cdn.prod.website-files.com/67837ee85ee175873126e461/${file}"></div><h3 class="tdb-treatment-title">${label}</h3></a>`;
+        track.append(item);
+      }
+      root.addEventListener('click', (e) => e.preventDefault());
+      await Promise.all([...track.querySelectorAll('img')].map((img) => img.decode()));
+      const nativeRAF = window.requestAnimationFrame.bind(window),
+        nativeCancel = window.cancelAnimationFrame.bind(window);
+      const nextFrame = () => new Promise((resolve) => nativeRAF(resolve));
+      const costs = [],
+        callbackCosts = [],
+        frameGaps = [],
+        longTasks = [];
+      let active = false,
+        scrollReads = 0,
+        scrollWrites = 0,
+        edgeWrites = 0,
+        geometryReads = 0,
+        callbackCount = 0,
+        visibilityChanges = 0;
+      document.addEventListener('visibilitychange', () => {
+        if (active) visibilityChanges++;
+      });
+      function nativeDescriptor(name) {
+        let p = viewport;
+        while (p) {
+          const d = Object.getOwnPropertyDescriptor(p, name);
+          if (d) return d;
+          p = Object.getPrototypeOf(p);
+        }
+        throw Error('No descriptor ' + name);
+      }
+      for (const name of ['scrollLeft', 'clientWidth', 'scrollWidth']) {
+        const d = nativeDescriptor(name);
+        Object.defineProperty(viewport, name, {
+          get() {
+            if (active) {
+              if (name === 'scrollLeft') scrollReads++;
+              else geometryReads++;
+            }
+            return d.get.call(this);
+          },
+          ...(d.set
+            ? {
+                set(value) {
+                  if (active) scrollWrites++;
+                  return d.set.call(this, value);
+                },
+              }
+            : {}),
+        });
+      }
+      const setProperty = track.style.setProperty.bind(track.style),
+        removeProperty = track.style.removeProperty.bind(track.style);
+      track.style.setProperty = (name, ...args) => {
+        if (active && name === 'translate') edgeWrites++;
+        return setProperty(name, ...args);
+      };
+      track.style.removeProperty = (name) => {
+        if (active && name === 'translate') edgeWrites++;
+        return removeProperty(name);
+      };
+      window.requestAnimationFrame = (callback) =>
+        nativeRAF((time) => {
+          const before = performance.now();
+          try {
+            return callback(time);
+          } finally {
+            if (active) {
+              callbackCosts.push(performance.now() - before);
+              callbackCount++;
+            }
+          }
+        });
+      window.cancelAnimationFrame = nativeCancel;
+      window.TDBMotion = { duration: () => 500, reduced: { matches: false } };
+      const swiper = {
+        realIndex: 0,
+        animating: false,
+        slides: [],
+        params: { loop: false },
+        on() {},
+        off() {},
+        slideTo(i) {
+          this.realIndex = i;
+        },
+      };
+      root.querySelector('.swiper').swiper = swiper;
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = '/' + variant + '.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.body.append(script);
+      });
+      const controller = TDBTreatmentStamps.prepare(root);
+      controller.measure();
+      const max = viewport.scrollWidth - viewport.clientWidth;
+      viewport.scrollLeft = max / 2;
+      for (let i = 0; i < 8; i++) await nextFrame();
+      const target = track.querySelector('img'),
+        startX = viewport.getBoundingClientRect().left + viewport.clientWidth / 2,
+        y = target.getBoundingClientRect().top + 20;
+      const amplitude = Math.min(viewport.clientWidth * 0.38, max * 0.42);
+      function touch(type, x) {
+        const point = { identifier: 0, target, clientX: x, clientY: y };
+        const event = new Event(type, { bubbles: true, cancelable: true });
+        Object.defineProperties(event, {
+          changedTouches: { value: [point] },
+          touches: { value: type === 'touchend' ? [] : [point] },
+        });
+        const before = performance.now();
+        target.dispatchEvent(event);
+        if (active) costs.push(performance.now() - before);
+      }
+      let observer;
+      if (PerformanceObserver.supportedEntryTypes.includes('longtask')) {
+        observer = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries())
+            if (active) longTasks.push({ start: entry.startTime, duration: entry.duration });
+        });
+        observer.observe({ type: 'longtask' });
+      }
+      document.querySelector('#label').textContent =
+        `${variant} · ${perFrame} event(s)/frame · run ${round + 1}`;
+      const startVisibility = document.visibilityState;
+      active = true;
+      const began = performance.now();
+      touch('touchstart', startX);
+      let previous = await nextFrame(),
+        lastX = startX;
+      for (let i = 0; i < 120; i++) {
+        for (let j = 1; j <= perFrame; j++) {
+          lastX = startX - Math.sin(((i + j / perFrame) / 120) * Math.PI * 4) * amplitude;
+          touch('touchmove', lastX);
+        }
+        const now = await nextFrame();
+        frameGaps.push(now - previous);
+        previous = now;
+      }
+      touch('touchend', lastX);
+      for (let i = 0; i < 40; i++) {
+        const now = await nextFrame();
+        frameGaps.push(now - previous);
+        previous = now;
+      }
+      active = false;
+      const elapsed = performance.now() - began;
+      observer?.disconnect();
+      const pct = (a, p) =>
+        a.slice().sort((a, b) => a - b)[Math.min(a.length - 1, Math.floor(a.length * p))] || 0;
+      const sum = (a) => a.reduce((a, b) => a + b, 0);
+      const result = {
+        variant,
+        perFrame,
+        round,
+        controllerVersion: TDBTreatmentStamps.version,
+        elapsedMs: elapsed,
+        events: costs.length,
+        scrollReads,
+        scrollWrites,
+        edgeWrites,
+        geometryReads,
+        callbackCount,
+        handlerMs: sum(costs),
+        callbackMs: sum(callbackCosts),
+        jsMs: sum(costs) + sum(callbackCosts),
+        handlerP95Ms: pct(costs, 0.95),
+        frameP50Ms: pct(frameGaps, 0.5),
+        frameP95Ms: pct(frameGaps, 0.95),
+        frameMaxMs: Math.max(...frameGaps),
+        gapsOver25ms: frameGaps.filter((x) => x > 25).length,
+        gapsOver50ms: frameGaps.filter((x) => x > 50).length,
+        longTasks,
+        startVisibility,
+        visibilityChanges,
+        scrollPosition: viewport.scrollLeft,
+        images: assets.length,
+      };
+      controller.dispose();
+      parent.postMessage({ type: 'stamp-result', result }, location.origin);
+    })().catch((error) =>
+      parent.postMessage({ type: 'stamp-result', error: error.message }, location.origin),
+    );
+  </script>
+</html>
