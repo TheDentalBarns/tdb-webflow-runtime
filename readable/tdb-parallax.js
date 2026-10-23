@@ -665,6 +665,10 @@ window.TDBTreatmentStamps ||= (() => {
       edgeStart = 0,
       edgeVelocity = 0,
       edgeStarted = 0;
+    let dragFrame = 0,
+      pendingScroll = null,
+      edgeDirty = false,
+      renderedEdge = 0;
     const animations = new Map();
     const opacityBefore = new Map(items.map((item) => [item, item.style.opacity]));
     const transitionBefore = new Map(items.map((item) => [item, item.style.transitionDuration]));
@@ -716,18 +720,42 @@ window.TDBTreatmentStamps ||= (() => {
       if (Math.abs(after - before) < 0.5) return;
       setScroll(before);
     }
-    function setScroll(value) {
+    function writeScroll(value) {
+      if (viewport.scrollLeft !== value) viewport.scrollLeft = value;
+    }
+    function flushDrag() {
+      if (dragFrame) cancelAnimationFrame(dragFrame);
+      dragFrame = 0;
+      const value = pendingScroll;
+      pendingScroll = null;
+      if (value !== null) writeScroll(value);
+      if (edgeDirty) {
+        edgeDirty = false;
+        writeEdge(edgeOffset);
+      }
+    }
+    function scheduleDrag() {
+      if (!dragFrame) dragFrame = requestAnimationFrame(flushDrag);
+    }
+    function setScroll(value, deferred = false) {
       // Wrap before assigning scrollLeft, so the browser never clamps a drag
       // at a physical end or interrupts its momentum at a recycled cycle.
       const next =
         looped && cycle
           ? cycle / 2 + ((((value - cycle / 2) % cycle) + cycle) % cycle)
           : Math.max(0, Math.min(value, scrollLimit()));
-      if (viewport.scrollLeft !== next) viewport.scrollLeft = next;
+      if (deferred) {
+        pendingScroll = next;
+        scheduleDrag();
+      } else {
+        pendingScroll = null;
+        writeScroll(next);
+      }
       if (drag && looped) drag.left += next - value;
     }
     function scrollLimit() {
       if (maxScroll === null) {
+        flushDrag();
         // Translated overflow must not become a new scroll boundary on resize
         // or re-grab. Geometry is read once, with the track at its resting pose.
         const edge = edgeOffset;
@@ -742,20 +770,33 @@ window.TDBTreatmentStamps ||= (() => {
     function invalidate() {
       maxScroll = null;
     }
-    function setEdge(value) {
-      if (edgeOffset === value) return;
-      edgeOffset = value;
+    function writeEdge(value) {
+      if (renderedEdge === value) return;
+      renderedEdge = value;
       if (value) track.style.setProperty('translate', `${value}px 0`);
       else if (translateBefore)
         track.style.setProperty('translate', translateBefore, translatePriority);
       else track.style.removeProperty('translate');
     }
+    function setEdge(value, deferred = false) {
+      const changed = edgeOffset !== value;
+      edgeOffset = value;
+      if (deferred) {
+        if (changed) {
+          edgeDirty = true;
+          scheduleDrag();
+        }
+      } else {
+        edgeDirty = false;
+        writeEdge(value);
+      }
+    }
     function pull(value) {
       const limit = scrollLimit();
       const bounded = Math.max(0, Math.min(value, limit));
       if (!limit || !edgeLimit || track === viewport) {
-        setScroll(bounded);
-        setEdge(0);
+        setScroll(bounded, true);
+        setEdge(0, true);
         drag.left += bounded - value;
         return;
       }
@@ -770,8 +811,8 @@ window.TDBTreatmentStamps ||= (() => {
           : edgeLimit -
             (edgeLimit - previous) /
               (1 + (extra * 0.5 * (edgeLimit - previous)) / (edgeLimit * edgeLimit));
-      setScroll(bounded);
-      setEdge(Math.sign(excess) * offset);
+      setScroll(bounded, true);
+      setEdge(Math.sign(excess) * offset, true);
       drag.left += bounded - edgeOffset - value;
     }
     function edgeStep(now) {
@@ -788,6 +829,7 @@ window.TDBTreatmentStamps ||= (() => {
       }
     }
     function settleEdge(velocity = 0, started = performance.now()) {
+      flushDrag();
       if (motionFrame) cancelAnimationFrame(motionFrame);
       motionFrame = 0;
       momentum = 0;
@@ -798,6 +840,7 @@ window.TDBTreatmentStamps ||= (() => {
       else if (edgeStart || velocity) edgeStep(performance.now());
     }
     function stopMotion(resetEdge = true) {
+      flushDrag();
       if (motionFrame) cancelAnimationFrame(motionFrame);
       motionFrame = 0;
       momentum = 0;
@@ -925,6 +968,7 @@ window.TDBTreatmentStamps ||= (() => {
     }
     function measure() {
       if (disposed) return 0;
+      flushDrag();
       configureLoop();
       invalidate();
       scrollLimit();
@@ -1124,7 +1168,9 @@ window.TDBTreatmentStamps ||= (() => {
         // preceding sample to estimate velocity after a sparse move event.
         drag.samples.push({ x: event.clientX, t: now });
         while (drag.samples.length > 2 && now - drag.samples[1].t > 100) drag.samples.shift();
-        if (looped) setScroll(drag.left - delta);
+        // Keep every input sample and resistance calculation, but commit only
+        // the latest visual pose in the next display frame.
+        if (looped) setScroll(drag.left - delta, true);
         else pull(drag.left - delta);
         event.preventDefault();
       }
@@ -1135,6 +1181,7 @@ window.TDBTreatmentStamps ||= (() => {
       // Touch starts with implicit capture on the image/link. Its release
       // bubbles when the viewport takes capture; the gesture is still active.
       if (event.type === 'lostpointercapture' && event.target !== viewport) return;
+      flushDrag();
       // Touch identifiers and PointerEvent pointer IDs are different namespaces.
       const id = drag.touch ? null : drag.id;
       const tap =
@@ -1298,7 +1345,7 @@ window.TDBTreatmentStamps ||= (() => {
     instances.set(root, controller);
     return controller;
   }
-  return { version: '1.4.1', prepare };
+  return { version: '1.4.2', prepare };
 })();
 
 /* Native CMS text row follows rendered image geometry, including loop/width motion.

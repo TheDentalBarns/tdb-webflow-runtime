@@ -3,7 +3,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 
-function fixture(count = 6, mobileWidth = false, loop = mobileWidth, confirmLinks = false) {
+function fixture(
+  count = 6,
+  mobileWidth = false,
+  loop = mobileWidth,
+  confirmLinks = false,
+  options = {},
+) {
   const dom = new JSDOM(
     `<section data-tdb-treatment-postage>
     <div class="swiper">${Array.from({ length: count }, (_, i) => `<div data-swiper-slide-index="${i}"><h3 class="tdb-treatment-title">Treatment ${i}</h3></div>`).join('')}</div><div data-tdb-native-progress></div>
@@ -60,6 +66,16 @@ function fixture(count = 6, mobileWidth = false, loop = mobileWidth, confirmLink
     frames.clear();
     running.forEach((fn) => fn(clock));
   }
+  // Behaviour checks observe the rendered frame following each movement.
+  // Burst/lifecycle checks opt out to exercise multiple events before a frame.
+  if (options.autoFrame !== false) {
+    const dispatch = w.EventTarget.prototype.dispatchEvent;
+    w.EventTarget.prototype.dispatchEvent = function (event) {
+      const result = dispatch.call(this, event);
+      if (event.type === 'pointermove' || event.type === 'touchmove') tick(0);
+      return result;
+    };
+  }
   w.Element.prototype.animate = function (frames) {
     this.dataset.finalOpacity = frames.at(-1).opacity;
     this.dataset.finalColor = frames.at(-1).color;
@@ -91,9 +107,25 @@ function fixture(count = 6, mobileWidth = false, loop = mobileWidth, confirmLink
       this.slideToLoop(index);
     },
   });
-  w.eval(fs.readFileSync('src/sliders/treatment-stamps.js', 'utf8'));
+  w.eval(fs.readFileSync(options.source || 'src/sliders/treatment-stamps.js', 'utf8'));
   const controller = w.TDBTreatmentStamps.prepare(root);
-  return { dom, w, root, viewport, track, items, links, swiper, controller, media, tick, frames };
+  return {
+    dom,
+    w,
+    root,
+    viewport,
+    track,
+    items,
+    links,
+    swiper,
+    controller,
+    media,
+    tick,
+    frames,
+    elapse: (ms) => {
+      clock += ms;
+    },
+  };
 }
 
 test('inactive stamps select only; settled active stamps preview then follow the CMS link', () => {
@@ -180,6 +212,108 @@ function finger(f, type, x, y = 100, options = {}) {
   target.dispatchEvent(event);
   return event;
 }
+
+test('a burst of finger samples commits one visual update and retains the final release position', () => {
+  const f = fixture(6, true, false, false, { autoFrame: false });
+  try {
+    f.controller.measure();
+    let position = 100,
+      reads = 0,
+      writes = 0;
+    Object.defineProperty(f.viewport, 'scrollLeft', {
+      get() {
+        reads++;
+        return position;
+      },
+      set(v) {
+        writes++;
+        position = v;
+      },
+    });
+    finger(f, 'touchstart', 300);
+    reads = writes = 0;
+    for (let i = 1; i <= 80; i++) {
+      f.elapse(0.2);
+      finger(f, 'touchmove', 300 - i);
+    }
+    assert.equal(reads, 0, 'no native scroll read in the high-frequency input path');
+    assert.equal(writes, 0, 'visual changes wait for the display frame');
+    assert.equal(f.frames.size, 1);
+    f.tick(0);
+    assert.equal(reads, 1);
+    assert.equal(writes, 1);
+    assert.equal(position, 180);
+    f.elapse(2);
+    finger(f, 'touchmove', 210);
+    finger(f, 'touchend', 210);
+    assert.equal(position, 190, 'release flushes the final queued position');
+    assert.equal(f.frames.size, 1, 'only the coast frame remains');
+    f.tick(16);
+    assert.ok(position > 190, 'all input timestamps still inform momentum');
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('batched resistance and loop recycling match rendering every sample, including reversals', () => {
+  for (const loop of [false, true]) {
+    const live = fixture(6, true, loop);
+    const batched = fixture(6, true, loop, false, { autoFrame: false });
+    try {
+      for (const f of [live, batched]) {
+        f.controller.measure();
+        f.viewport.scrollLeft = loop ? 1400 : 0;
+        finger(f, 'touchstart', 300);
+        for (const x of [350, 900, 850, 700, 280, -700, -650, -400, 200, 350]) {
+          f.elapse(2);
+          finger(f, 'touchmove', x);
+        }
+      }
+      batched.tick(0);
+      assert.equal(batched.viewport.scrollLeft, live.viewport.scrollLeft);
+      assert.equal(batched.track.style.translate, live.track.style.translate);
+      for (const f of [live, batched]) finger(f, 'touchend', 350);
+      for (let i = 0; i < 140; i++) {
+        live.tick(16);
+        batched.tick(16);
+        assert.equal(batched.viewport.scrollLeft, live.viewport.scrollLeft);
+        assert.equal(batched.track.style.translate, live.track.style.translate);
+      }
+      assert.equal(batched.frames.size, 0);
+    } finally {
+      live.dom.window.close();
+      batched.dom.window.close();
+    }
+  }
+});
+
+test('re-grab, measuring, cancellation, wheel and disposal leave no stale drag-frame write', () => {
+  for (const finish of ['regrab', 'measure', 'cancel', 'wheel', 'dispose']) {
+    const f = fixture(6, true, false, false, { autoFrame: false });
+    try {
+      f.controller.measure();
+      finger(f, 'touchstart', 300);
+      finger(f, 'touchmove', 250);
+      if (finish === 'regrab') {
+        finger(f, 'touchend', 250);
+        finger(f, 'touchstart', 200);
+        finger(f, 'touchmove', 190);
+        finger(f, 'touchend', 190);
+      } else if (finish === 'measure') {
+        f.controller.measure();
+        finger(f, 'touchcancel', 250);
+      } else if (finish === 'cancel') finger(f, 'touchcancel', 250);
+      else if (finish === 'wheel') f.viewport.dispatchEvent(new f.w.Event('wheel'));
+      else f.controller.dispose();
+      assert.equal(f.viewport.scrollLeft, finish === 'regrab' ? 60 : 50);
+      assert.equal(f.frames.size, 0);
+      f.tick(32);
+      assert.equal(f.viewport.scrollLeft, finish === 'regrab' ? 60 : 50);
+    } finally {
+      f.dom.window.close();
+    }
+  }
+});
 
 test('native finger stream continues past pointer cancellation and cancels horizontal browser scrolling early', () => {
   const f = fixture(6, true, false);

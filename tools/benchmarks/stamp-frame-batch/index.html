@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width" />
+  <title>Stamp drag A/B benchmark</title>
+  <style>
+    body {
+      font: 15px/1.5 system-ui;
+      margin: 30px;
+      background: #f9f2e6;
+      color: #222;
+    }
+    h1 {
+      font-size: 27px;
+      margin-bottom: 8px;
+    }
+    p {
+      max-width: 900px;
+    }
+    button {
+      padding: 12px 20px;
+      background: #222;
+      color: white;
+      border: 0;
+      border-radius: 6px;
+      font: inherit;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.5;
+    }
+    table {
+      border-collapse: collapse;
+      margin: 20px 0;
+      width: 100%;
+      font-variant-numeric: tabular-nums;
+    }
+    th,
+    td {
+      text-align: right;
+      padding: 8px;
+      border-bottom: 1px solid #c9bda9;
+    }
+    th:first-child,
+    td:first-child {
+      text-align: left;
+    }
+    iframe {
+      width: 420px;
+      height: 245px;
+      border: 1px solid #c9bda9;
+      border-radius: 8px;
+      background: #222;
+    }
+    pre {
+      font-size: 11px;
+      max-height: 300px;
+      overflow: auto;
+    }
+    #status {
+      font-weight: 600;
+    }
+    small {
+      color: #62584c;
+    }
+  </style>
+  <h1>Stamp drag: current vs frame-batched</h1>
+  <p>
+    Isolated desktop Chromium rendering test at a 420px viewport. Actual stamp images are warmed
+    before measurement. Synthetic touch sequences exercise the production controller; this does not
+    emulate iOS gesture arbitration or measure GPU utilisation.
+  </p>
+  <button id="run">Run A/B benchmark</button>
+  <p id="status">Ready — staging remains unchanged</p>
+  <iframe id="fixture" title="Isolated stamp strip"></iframe>
+  <table>
+    <thead>
+      <tr>
+        <th>Variant / input</th>
+        <th>Trials</th>
+        <th>JS total ms</th>
+        <th>Handler p95 ms</th>
+        <th>Scroll writes</th>
+        <th>Edge writes</th>
+        <th>rAF gap p95 ms</th>
+        <th>Gaps &gt;25ms</th>
+      </tr>
+    </thead>
+    <tbody id="summary"></tbody>
+  </table>
+  <small
+    >JS total includes synchronous dispatch plus controller animation callbacks. Frame gaps measure
+    callback pacing, not confirmed displayed FPS. Timing includes identical instrumentation
+    overhead. No CPU/GPU throttling is applied.</small
+  >
+  <details>
+    <summary>Raw results and environment</summary>
+    <pre id="report"></pre>
+  </details>
+  <script>
+    const runButton = document.querySelector('#run'),
+      status = document.querySelector('#status'),
+      frame = document.querySelector('#fixture');
+    const results = [];
+    const percentile = (a, p) =>
+      a.slice().sort((a, b) => a - b)[Math.min(a.length - 1, Math.floor(a.length * p))] || 0;
+    function update() {
+      const groups = [];
+      for (const mode of [1, 4])
+        for (const variant of ['baseline', 'candidate']) {
+          const rs = results.filter((r) => r.perFrame === mode && r.variant === variant);
+          if (!rs.length) continue;
+          const median = (key) =>
+            percentile(
+              rs.map((r) => r[key]),
+              0.5,
+            );
+          groups.push({
+            variant,
+            perFrame: mode,
+            trials: rs.length,
+            jsMs: median('jsMs'),
+            handlerP95Ms: median('handlerP95Ms'),
+            scrollWrites: median('scrollWrites'),
+            edgeWrites: median('edgeWrites'),
+            frameP95Ms: median('frameP95Ms'),
+            gapsOver25ms: median('gapsOver25ms'),
+          });
+        }
+      document.querySelector('#summary').innerHTML = groups
+        .map(
+          (g) =>
+            `<tr><td>${g.variant === 'baseline' ? 'Current' : 'Batched'} · ${g.perFrame} event${g.perFrame === 1 ? '' : 's'}/frame</td><td>${g.trials}</td><td>${g.jsMs.toFixed(2)}</td><td>${g.handlerP95Ms.toFixed(3)}</td><td>${g.scrollWrites}</td><td>${g.edgeWrites}</td><td>${g.frameP95Ms.toFixed(2)}</td><td>${g.gapsOver25ms}</td></tr>`,
+        )
+        .join('');
+      document.querySelector('#report').textContent = JSON.stringify(
+        {
+          environment: {
+            userAgent: navigator.userAgent,
+            dpr: devicePixelRatio,
+            visibility: document.visibilityState,
+            fixtureWidth: 420,
+            baseline: 'd4f0f789d94e57c294d7ef25c9e2926089c58a8f',
+            input: 'synthetic TouchEvent-shaped events',
+            framesPerDrag: 120,
+            framesAfterRelease: 40,
+          },
+          groups,
+          results,
+        },
+        null,
+        2,
+      );
+    }
+    function trial(variant, perFrame, round) {
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          window.removeEventListener('message', listener);
+          reject(Error('Trial timed out'));
+        }, 20000);
+        function listener(e) {
+          if (
+            e.source !== frame.contentWindow ||
+            e.origin !== location.origin ||
+            e.data?.type !== 'stamp-result'
+          )
+            return;
+          clearTimeout(timeout);
+          window.removeEventListener('message', listener);
+          e.data.error ? reject(Error(e.data.error)) : resolve(e.data.result);
+        }
+        window.addEventListener('message', listener);
+        frame.src = `/fixture.html?variant=${variant}&perFrame=${perFrame}&round=${round}`;
+      });
+    }
+    runButton.onclick = async () => {
+      runButton.disabled = true;
+      results.length = 0;
+      update();
+      let done = 0;
+      try {
+        for (let round = 0; round < 3; round++)
+          for (const perFrame of [1, 4])
+            for (const variant of round % 2
+              ? ['candidate', 'baseline']
+              : ['baseline', 'candidate']) {
+              status.textContent = `Running ${++done}/12: ${variant}, ${perFrame} input event(s) per frame`;
+              results.push(await trial(variant, perFrame, round));
+              update();
+            }
+        status.textContent = 'Complete — 12 trials. Staging remains unchanged.';
+      } catch (e) {
+        status.textContent = 'Stopped: ' + e.message;
+      } finally {
+        runButton.disabled = false;
+      }
+    };
+  </script>
+</html>
