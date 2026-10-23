@@ -153,13 +153,22 @@
       description = root.querySelector('.tdb-smile-description');
     const treatments = root.querySelector('.tdb-smile-treatments'),
       frame = root.querySelector('[data-tdb-smile-presentation]');
+    const desktop = matchMedia('(min-width:992px)'),
+      slideImages = new WeakMap();
     let current = -1,
       timer;
     const imageWindow = () => {
-      const radius = matchMedia('(min-width:992px)').matches ? 2 : 1,
+      const radius = desktop.matches ? 2 : 1,
         length = payload.cases.length,
         viewportWidth = document.documentElement.clientWidth || innerWidth;
       for (const slide of track.children) {
+        let images = slideImages.get(slide);
+        if (!images) slideImages.set(slide, (images = [...slide.querySelectorAll('img')]));
+        const pending = images.filter((image) => !image.hasAttribute('src'));
+        // This is an image-loading window, not a visibility controller. Loaded
+        // photos need no further geometry reads. New loop copies are discovered
+        // by identity, and clearing a source still permits it to be restored.
+        if (!pending.length) continue;
         const index = Number(slide.getAttribute('data-smile-index'));
         const distance = Math.min(
           (index - current + length) % length,
@@ -167,12 +176,14 @@
         );
         // Wide layouts can expose more than two neighbours. Cover every visible
         // card plus one card-width beyond each screen edge, including loop clones.
-        const rect = slide.getBoundingClientRect();
-        const inWindow =
-          rect.width > 0 && rect.right >= -rect.width && rect.left <= viewportWidth + rect.width;
-        if (distance > radius && !inWindow) continue;
-        slide.querySelectorAll('img').forEach((image) => {
-          if (!image.hasAttribute('src')) image.src = payload.cases[index].image.src;
+        if (distance > radius) {
+          const rect = slide.getBoundingClientRect();
+          const inWindow =
+            rect.width > 0 && rect.right >= -rect.width && rect.left <= viewportWidth + rect.width;
+          if (!inWindow) continue;
+        }
+        pending.forEach((image) => {
+          image.src = payload.cases[index].image.src;
         });
       }
     };

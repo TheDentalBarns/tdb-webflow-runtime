@@ -550,7 +550,8 @@ function createGalleryExploreCount() {
   const e = 'data-tdb-slider-init',
     t = 'data-tdb-slider-first-view',
     i = new Map(),
-    n = new WeakSet();
+    n = new WeakSet(),
+    mounted = new Map();
   function r(e) {
     return e?.querySelector?.('.swiper') || null;
   }
@@ -643,6 +644,8 @@ function createGalleryExploreCount() {
           bind: !1,
         },
       );
+    mounted.set(e, p);
+    p.on('beforeDestroy', () => mounted.delete(e));
     function b() {
       n && (n.textContent = `${p.realIndex + 1} of ${u}`);
     }
@@ -833,6 +836,11 @@ function createGalleryExploreCount() {
       e.removeAttribute(t);
     },
     prune() {
+      for (const [root, swiper] of mounted) {
+        if (root.isConnected) continue;
+        if (!swiper.destroyed) swiper.destroy(true, true);
+        mounted.delete(root);
+      }
       exploreCount.prune();
       (i.forEach((e, t) => {
         document.documentElement.contains(t) || e.cancel();
