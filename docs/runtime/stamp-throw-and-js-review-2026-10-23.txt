@@ -1,0 +1,85 @@
+Stamp throw and wider JavaScript review — 23 October 2026
+
+Implemented
+1. Treatment stamps retain the marquee's velocity cap (2800 px/s), recent
+   100 ms sample window, 90 ms stale-release cutoff and exponential decay 4.2/s.
+   Input timestamps now determine velocity/staleness, as in the marquee;
+   callback delivery delays no longer suppress a fresh mobile flick.
+   A floating-point coast position preserves subpixel travel instead of feeding
+   rounded scrollLeft back into the next frame. Finite edges still stop motion;
+   the stamps do not acquire the marquee's automatic cruising behavior.
+   Reduced motion, grabbing during a throw, vertical scrolling, loop recycling,
+   selection/preview/link confirmation and main-slider alignment are preserved.
+2. Shared gallery pruning now destroys a detached Swiper, matching parallax
+   ownership. Applies to Smile Gallery, native Instagram and legacy galleries.
+   Existing module-specific teardown and the existing DOM removal hook remain.
+3. Smile image preparation caches image nodes per physical slide and checks
+   missing sources before measuring layout. Nearby images need no rectangle;
+   already assigned images need no rectangle at all. New loop copies, cleared
+   sources and wide visible-neighbor loading still work. No image policy change.
+
+Reproduction and validation
+The four added regression tests failed against the previous release:
+- A release queued for 120 ms lost its throw despite a fresh input timestamp.
+- An integer-scroll fixture stopped at 129 px instead of the expected 137 px
+  with 8 ms frames, cutting off the deceleration tail.
+- Detaching a gallery did not destroy the underlying Swiper.
+- 100 updates across seven loaded Smile slides performed 700 rectangle reads.
+All four now pass, alongside existing interaction and lifecycle coverage.
+The 52-test targeted run passed before the full regression suite.
+Full suite: 674 tests, 671 passed, zero failures, three existing skips.
+Deterministic build verification passed. Available test runtime: Node 22.17.0
+(repository declares Node 24). Three changed bundles add 152 bytes combined at
+local Brotli quality 11; no additional script request or style change.
+Evidence files: release-evidence/treatment-performance-audit-20261023/
+followup-before-tests.txt, followup-targeted.txt, followup-full-tests.txt.
+These are controlled DOM/engine tests, not Android FPS or INP measurements.
+
+Wider source review (runtime behavior, not just bundle size)
+- Startup/module registry: shared single-flight dependency transport and staged
+  feature startup already present; no additional eager bundle introduced.
+- Feature preparation: shared observers by trigger kind, batched added-node
+  discovery, abort/retry/consent behavior already present.
+- Motion/DD/parallax: shared frame reads then writes, per-frame rectangle cache,
+  per-scroll-root scheduling and hidden-page suspension already present.
+- Rendered progress: one scheduled frame per sampler; ongoing sampling tracks
+  actual CSS motion. Different components retain separate active gates.
+- Treatment: stamp hot-path/lifecycle fixes from the previous pass retained.
+- Gallery/Smile/Instagram: the two confirmed fixes above; Instagram image
+  windows already skip unchanged selections and mark hydrated physical slides.
+- Marquee/partner cards: floating-point motion, offscreen/hidden suspension,
+  debounced measurement and abort-owned listeners/observers already present.
+- Native ticker: unchanged values short-circuit; animations and listeners are
+  released on destroy. No replacement timing or animation added.
+- Review cards: cached progress metrics and unchanged-paint checks already
+  present; layout defers during carousel movement and cleans up on destroy.
+- Owner/review quotes: explicit reveal/ticker teardown already present.
+- Review archive list: resize work already coalesces into one animation frame;
+  masonry still needs natural card-height measurements.
+- Shared drawers, review drawer, USP and filters: explicit lifecycle/abort
+  ownership and existing motion controllers retained.
+- VIP drawer/navbar: scroll/resize work is scheduled rather than a permanent
+  idle animation loop; state transitions and input timing retained.
+- Hold audio: abortable loads, disconnected audio nodes and explicit teardown.
+- Vimeo: separate playback/warmup visibility rules; no merger with content
+  observers because activation and consent semantics differ.
+- Forms: added-node discovery rather than a full-document scan per mutation.
+- Generic tooltips: positioning is active only during hover/focus, but still
+  measures and reassigns the same styles each active frame (candidate below).
+- Legacy first-impressions/old review/Instagram compatibility: retain separate
+  migration scope; removing their old observers requires verifying consumers.
+
+Remaining candidates, ranked
+1. Generic tooltip placement: skip unchanged placement writes while retaining
+   tracking of a moving anchor. Small, testable follow-up; no global scheduler
+   rewrite justified solely by the number of observers.
+2. Broad DOM discovery across independent loaders: profile callback count and
+   scan time during gallery/drawer mount before consolidating further. Several
+   owners already scope scans to added nodes; consolidation has integration risk.
+3. Review filter Apply fitting: reads after restoring/writing label/padding in
+   its ResizeObserver. Limited to an open filter panel; profile narrow mobile
+   layout before replacing the fit algorithm and risking the close-button layout.
+
+No claim that all JavaScript waste is eliminated. The implemented work addresses
+reproduced redundant work and lifecycle faults. More substantial changes need
+real-device traces showing the cost, especially for media and compositing.

@@ -49,6 +49,33 @@ test('one engine mounts each plugin once, keeps its options and can remount afte
   } finally {dom.window.close();}
 });
 
+test('shared gallery prune destroys detached Smile, Instagram and legacy sliders and allows remount', () => {
+  const { dom, w } = setup();
+  try {
+    w.eval(read('dist/tdb-gallery.js'));
+    for (const kind of ['smile', 'instagram', 'legacy']) {
+      const { root, viewport } = carousel(w, 'highlight');
+      if (kind === 'smile') root.classList.add('tdb-smile-carousel');
+      if (kind === 'instagram') root.setAttribute('data-tdb-ig-native', '');
+      const first = w.TDBSwiper.mount('gallery', root);
+      let released = 0;
+      first.on('beforeDestroy', () => released++);
+      root.remove();
+      w.TDBSwiper.prune();
+      assert.equal(first.destroyed, true, kind + ' must release its Swiper');
+      assert.equal(released, 1);
+      assert.equal(viewport.swiper, null);
+      assert.equal(root.hasAttribute('data-tdb-slider-init'), false);
+      w.document.querySelector('main').append(root);
+      const second = w.TDBSwiper.mount('gallery', root);
+      assert.notEqual(second, first);
+      second.slideNext(0);
+      assert.equal(second.realIndex, 1);
+      second.destroy(true, true);
+    }
+  } finally { dom.window.close(); }
+});
+
 test('native services progress is not replaced with Swiper pagination bullets', () => {
   const {dom,w}=setup();
   try {

@@ -38,6 +38,7 @@ window.TDBTreatmentStamps ||= (() => {
       returnIndex = null,
       targetLeft = 0,
       momentum = 0,
+      coastPosition = 0,
       lastFrame = 0,
       momentumElapsed = 0;
     const animations = new Map();
@@ -153,12 +154,13 @@ window.TDBTreatmentStamps ||= (() => {
       const dt = Math.min(250, Math.max(0, now - lastFrame));
       lastFrame = now;
       momentumElapsed += dt;
-      const before = viewport.scrollLeft;
       // Same exponential coast as the logo marquee, with no cruising speed.
-      // Integrating the decay keeps distance consistent at 60/120 Hz.
+      // Retain the fractional position like its transform-driven track: reading
+      // rounded scrollLeft back each frame can prematurely kill a mobile throw.
       const decay = Math.exp((-4.2 * dt) / 1000);
-      setScroll(before + (momentum * (1 - decay)) / 0.0042);
-      if (!looped && viewport.scrollLeft === before) momentum = 0;
+      coastPosition += (momentum * (1 - decay)) / 0.0042;
+      setScroll(coastPosition);
+      if (!looped && (coastPosition <= 0 || coastPosition >= scrollLimit())) momentum = 0;
       momentum *= decay;
       if (Math.abs(momentum) > 0.002 && momentumElapsed < 2000)
         motionFrame = requestAnimationFrame(coast);
@@ -382,7 +384,7 @@ window.TDBTreatmentStamps ||= (() => {
         x: event.clientX,
         y: event.clientY,
         left: viewport.scrollLeft,
-        samples: [{ x: event.clientX, t: performance.now() }],
+        samples: [{ x: event.clientX, t: event.timeStamp }],
       };
     }
     function move(event) {
@@ -399,7 +401,9 @@ window.TDBTreatmentStamps ||= (() => {
         viewport.setPointerCapture(event.pointerId);
       }
       if (suppressClick) {
-        const now = performance.now();
+        // Use input timestamps, as the marquee does. Main-thread delays must
+        // not turn a fresh finger release into a stale, motionless gesture.
+        const now = event.timeStamp;
         // Use the recent gesture, not one noisy pointer event. Keep one
         // preceding sample to estimate velocity after a sparse move event.
         drag.samples.push({ x: event.clientX, t: now });
@@ -432,18 +436,17 @@ window.TDBTreatmentStamps ||= (() => {
       if (
         suppressClick &&
         event.type === 'pointerup' &&
-        performance.now() - drag.samples.at(-1).t < 90 &&
+        event.timeStamp - drag.samples.at(-1).t < 90 &&
         !window.TDBMotion?.reduced?.matches
       ) {
         const first = drag.samples[0],
-          last = drag.samples.at(-1);
-        momentum = Math.max(
-          -2.8,
-          Math.min(2.8, (first.x - last.x) / Math.max(1, last.t - first.t)),
-        );
+          last = drag.samples.at(-1),
+          elapsed = last.t - first.t;
+        momentum = elapsed > 0 ? Math.max(-2.8, Math.min(2.8, (first.x - last.x) / elapsed)) : 0;
+        coastPosition = viewport.scrollLeft;
         lastFrame = performance.now();
         momentumElapsed = 0;
-        motionFrame = requestAnimationFrame(coast);
+        if (momentum) motionFrame = requestAnimationFrame(coast);
       }
       drag = null;
       suppressClick = false;

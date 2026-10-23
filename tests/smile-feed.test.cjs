@@ -79,6 +79,27 @@ test('wide Smile layouts load visible cards and one extra card beyond the screen
    assert.equal(cards[6].querySelector('img[src]'),null,'distant cards remain deferred');
  }finally{x.close();}
 });
+test('loaded Smile photos need no repeated geometry reads, while fresh loop copies still load',async()=>{
+ const x=setup();try{
+   await x.prepare();
+   const root=x.holder.querySelector('[data-tdb-smile-feed-root]'),track=root.querySelector('.swiper-wrapper');
+   let reads=0;
+   for(const slide of track.children)slide.getBoundingClientRect=()=>{reads++;return {left:0,right:300,width:300};};
+   const p=x.w.TDBSmileFeed.presentation(root);
+   p.update(0);
+   assert.equal(root.querySelectorAll('.tdb-smile-card img[src]').length,14);
+   reads=0;
+   for(let i=0;i<100;i++)p.update(i%7);
+   assert.equal(reads,0,'already assigned images do not need layout measurement');
+   const copy=track.children[4].cloneNode(true);
+   copy.querySelectorAll('img').forEach(image=>image.removeAttribute('src'));
+   copy.getBoundingClientRect=()=>({left:0,right:300,width:300});
+   track.append(copy);
+   p.update(0);
+   assert.equal(copy.querySelectorAll('img[src]').length,2,'new visible copies are still populated');
+ }finally{x.close();}
+});
+
 test('failed load retains the holding link and can retry',async()=>{
  const x=setup({fail:true});await x.prepare();assert.equal(x.holder.dataset.smileState,'error');
  assert.equal(x.holder.querySelector('a').getAttribute('href'),'/smile-gallery');assert.equal(x.mounts(),0);

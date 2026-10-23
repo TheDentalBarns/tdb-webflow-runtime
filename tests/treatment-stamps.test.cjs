@@ -44,6 +44,7 @@ function fixture(count = 6, mobileWidth = false, loop = mobileWidth, confirmLink
     frameId = 0;
   const frames = new Map();
   w.performance.now = () => clock;
+  Object.defineProperty(w.Event.prototype, 'timeStamp', { get: () => clock, configurable: true });
   w.requestAnimationFrame = (fn) => {
     frames.set(++frameId, fn);
     return frameId;
@@ -277,6 +278,82 @@ test('mouse and tablet touch have the same frame-rate-independent coast and imme
       }
     }
   assert.ok(Math.max(...distances) - Math.min(...distances) < 0.001);
+});
+
+test('queued mobile release uses gesture timestamps rather than handler delivery time', () => {
+  const f = fixture(6, true, false);
+  const pointer = (type, x, timeStamp) => {
+    const event = new f.w.Event(type, { bubbles: true, cancelable: true });
+    Object.assign(event, {
+      button: 0,
+      pointerId: 1,
+      pointerType: 'touch',
+      clientX: x,
+      clientY: 50,
+    });
+    Object.defineProperty(event, 'timeStamp', { value: timeStamp });
+    f.viewport.dispatchEvent(event);
+  };
+  try {
+    f.controller.measure();
+    pointer('pointerdown', 300, 0);
+    f.tick(20);
+    pointer('pointermove', 290, 20);
+    f.tick(20);
+    pointer('pointermove', 280, 40);
+    f.tick(120);
+    pointer('pointerup', 280, 45);
+    const released = f.viewport.scrollLeft;
+    f.tick(160);
+    f.tick(160);
+    assert.ok(
+      f.viewport.scrollLeft > released + 70,
+      'a queued release must retain the real finger velocity',
+    );
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('integer scroll positions retain the marquee decay tail at different refresh rates', () => {
+  for (const step of [8, 20, 40]) {
+    const f = fixture(6, true, false);
+    let position = 0;
+    Object.defineProperty(f.viewport, 'scrollLeft', {
+      get: () => position,
+      set: (value) => {
+        position = Math.round(value);
+      },
+    });
+    const pointer = (type, x) => {
+      const event = new f.w.Event(type, { bubbles: true, cancelable: true });
+      Object.assign(event, {
+        button: 0,
+        pointerId: 1,
+        pointerType: 'touch',
+        clientX: x,
+        clientY: 50,
+      });
+      f.viewport.dispatchEvent(event);
+    };
+    try {
+      f.controller.measure();
+      pointer('pointerdown', 300);
+      f.tick(20);
+      pointer('pointermove', 290);
+      f.tick(20);
+      pointer('pointermove', 280);
+      pointer('pointerup', 280);
+      for (let t = 0; t < 1000; t += step) f.tick(step);
+      const expected = Math.round(20 + (0.5 * (1 - Math.exp(-4.2))) / 0.0042);
+      assert.ok(
+        Math.abs(position - expected) <= 1,
+        `${step}ms frames preserve fractional travel: ${position} vs ${expected}`,
+      );
+    } finally {
+      f.dom.window.close();
+    }
+  }
 });
 
 test('holding before release kills stale momentum, and reduced motion stops at release', () => {
