@@ -341,10 +341,10 @@
         "src/sliders/treatment-plugin.js",
         "src/sliders/parallax-plugin.js"
       ],
-      "sha256": "94643f2a62b9c93f33f1c0e51978e853827b5b4c29b13fd374708496c75c0e96",
-      "raw": 42631,
-      "gzip": 13248,
-      "brotli": 11936
+      "sha256": "6305660169ed190ddd7595a97c5b28074a3ab14eb01d124174f10f3020ef1da7",
+      "raw": 44022,
+      "gzip": 13643,
+      "brotli": 12294
     },
     "dist/tdb-partner-card.js": {
       "sources": [

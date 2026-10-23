@@ -643,6 +643,7 @@ window.TDBTreatmentStamps ||= (() => {
       offsets = [],
       width = 0,
       drag = null,
+      touchId = null,
       suppressClick = false,
       ignoredClick = null;
     let selected = -1;
@@ -1064,7 +1065,9 @@ window.TDBTreatmentStamps ||= (() => {
         ignored &&
         event.detail > 0 &&
         performance.now() < ignored.until &&
-        (typeof event.pointerId !== 'number' || event.pointerId === ignored.id)
+        (ignored.id === null ||
+          typeof event.pointerId !== 'number' ||
+          event.pointerId === ignored.id)
       ) {
         event.preventDefault();
         return;
@@ -1072,6 +1075,7 @@ window.TDBTreatmentStamps ||= (() => {
       if (activateStamp(link, live)) event.preventDefault();
     }
     function down(event) {
+      if (touchId !== null && !event.nativeTouch) return;
       if (event.button !== 0 || event.isPrimary === false) return;
       invalidate();
       const link = event.target.closest?.('[data-tdb-treatment-stamp]');
@@ -1083,6 +1087,7 @@ window.TDBTreatmentStamps ||= (() => {
       drag = {
         id: event.pointerId,
         type: event.pointerType,
+        touch: event.nativeTouch === true,
         link: event.target.closest?.('[data-tdb-treatment-stamp]'),
         x: event.clientX,
         y: event.clientY,
@@ -1091,7 +1096,8 @@ window.TDBTreatmentStamps ||= (() => {
       };
     }
     function move(event) {
-      if (!drag || event.pointerId !== drag.id) return;
+      if (!drag || event.pointerId !== drag.id || drag.touch !== (event.nativeTouch === true))
+        return;
       const delta = event.clientX - drag.x;
       if (!suppressClick && Math.abs(event.clientY - drag.y) > Math.max(6, Math.abs(delta))) {
         drag = null;
@@ -1102,7 +1108,13 @@ window.TDBTreatmentStamps ||= (() => {
         pressState = null;
         armLink(null);
         suppressClick = true;
-        viewport.setPointerCapture(event.pointerId);
+        if (drag.touch) {
+          window.TDBSliderFocus?.focus(strip, () => Boolean(drag?.touch && suppressClick));
+        } else {
+          try {
+            viewport.setPointerCapture(event.pointerId);
+          } catch (_) {}
+        }
       }
       if (suppressClick) {
         // Use input timestamps, as the marquee does. Main-thread delays must
@@ -1118,11 +1130,13 @@ window.TDBTreatmentStamps ||= (() => {
       }
     }
     function up(event) {
-      if (!drag || event.pointerId !== drag.id) return;
+      if (!drag || event.pointerId !== drag.id || drag.touch !== (event.nativeTouch === true))
+        return;
       // Touch starts with implicit capture on the image/link. Its release
       // bubbles when the viewport takes capture; the gesture is still active.
       if (event.type === 'lostpointercapture' && event.target !== viewport) return;
-      const id = drag.id;
+      // Touch identifiers and PointerEvent pointer IDs are different namespaces.
+      const id = drag.touch ? null : drag.id;
       const tap =
         drag.type === 'touch' &&
         event.type === 'pointerup' &&
@@ -1135,9 +1149,7 @@ window.TDBTreatmentStamps ||= (() => {
         !event.altKey &&
         drag.link;
       ignoredClick =
-        suppressClick && event.type === 'pointerup'
-          ? { id: drag.id, until: performance.now() + 500 }
-          : null;
+        suppressClick && event.type === 'pointerup' ? { id, until: performance.now() + 500 } : null;
       if (edgeOffset) settleEdge();
       else if (
         suppressClick &&
@@ -1170,10 +1182,68 @@ window.TDBTreatmentStamps ||= (() => {
         pressState = null;
       }
     }
+    function touchPoint(event, point, type) {
+      return {
+        type,
+        nativeTouch: true,
+        target: point.target || event.target,
+        button: 0,
+        pointerType: 'touch',
+        pointerId: point.identifier,
+        clientX: point.clientX,
+        clientY: point.clientY,
+        timeStamp: event.timeStamp,
+        ctrlKey: event.ctrlKey,
+        metaKey: event.metaKey,
+        shiftKey: event.shiftKey,
+        altKey: event.altKey,
+        preventDefault: () => event.preventDefault(),
+      };
+    }
+    function cancelTouch(event) {
+      if (drag?.touch) up(touchPoint(event, { identifier: touchId }, 'pointercancel'));
+      touchId = null;
+      pressState = null;
+    }
+    function touchStart(event) {
+      if (event.touches.length !== 1) return cancelTouch(event);
+      const point = event.touches[0];
+      // Browsers commonly emit pointerdown before touchstart. Adopt that press
+      // without losing its selected-link state or interrupting its resting pose.
+      if (drag?.type === 'touch') {
+        drag.touch = true;
+        drag.id = point.identifier;
+      } else down(touchPoint(event, point, 'pointerdown'));
+      touchId = point.identifier;
+    }
+    function touchMove(event) {
+      if (touchId === null) return;
+      if (event.touches.length !== 1) return cancelTouch(event);
+      const point = Array.from(event.changedTouches).find((touch) => touch.identifier === touchId);
+      if (!point || !drag?.touch) return;
+      const horizontal =
+        suppressClick || Math.abs(point.clientX - drag.x) > Math.abs(point.clientY - drag.y);
+      // Own horizontal motion from the first touchmove, before Safari commits
+      // to native scrolling and cancels its pointer stream. Vertical gestures
+      // and multiple fingers remain available to the browser.
+      if (horizontal) {
+        if (!event.cancelable) return cancelTouch(event);
+        event.preventDefault();
+      }
+      move(touchPoint(event, point, 'pointermove'));
+    }
+    function touchEnd(event) {
+      if (event.touches.length) return cancelTouch(event);
+      const point = Array.from(event.changedTouches).find((touch) => touch.identifier === touchId);
+      if (!point) return;
+      up(touchPoint(event, point, event.type === 'touchend' ? 'pointerup' : 'pointercancel'));
+      touchId = null;
+    }
     function wheel() {
       pressState = null;
       armLink(null);
       stopMotion();
+      drag = touchId = pressState = null;
       automatic = false;
     }
     function preventDrag(event) {
@@ -1190,6 +1260,7 @@ window.TDBTreatmentStamps ||= (() => {
       disposed = true;
       armLink(null);
       stopMotion();
+      drag = touchId = pressState = null;
       for (const [type, fn] of listeners) viewport.removeEventListener(type, fn);
       if (!fromSwiper) {
         swiper?.off('slideChange', change);
@@ -1213,17 +1284,21 @@ window.TDBTreatmentStamps ||= (() => {
       ['pointerup', up],
       ['pointercancel', up],
       ['lostpointercapture', up],
+      ['touchstart', touchStart, { passive: true }],
+      ['touchmove', touchMove, { passive: false }],
+      ['touchend', touchEnd, { passive: false }],
+      ['touchcancel', touchEnd, { passive: true }],
       ['wheel', wheel],
       ['dragstart', preventDrag],
       ['keydown', key],
       ['scroll', normalize],
     ];
-    listeners.forEach(([type, fn]) => on(type, fn));
+    listeners.forEach(([type, fn, options]) => on(type, fn, options));
     const controller = { measure, paint, invalidate, dispose };
     instances.set(root, controller);
     return controller;
   }
-  return { version: '1.4.0', prepare };
+  return { version: '1.4.1', prepare };
 })();
 
 /* Native CMS text row follows rendered image geometry, including loop/width motion.

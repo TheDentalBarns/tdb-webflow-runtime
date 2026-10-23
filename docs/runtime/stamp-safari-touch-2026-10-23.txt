@@ -1,0 +1,32 @@
+Treatment stamp finger input correction - 23 October 2026
+
+iPad/iPhone Safari users reported stamp drags stopping after a few pixels.
+Main image swipes, arrow controls and stamp activation remained functional.
+Applying touch-action to the clipped stamp photo wrapper was insufficient.
+
+The stamp controller now adopts the native TouchEvent sequence when present,
+using the same drag, coast, edge resistance and selection functions. It cancels
+horizontal scrolling on the first horizontal touchmove with a local non-passive
+listener. Finger input no longer depends on transferring pointer capture or on
+the pointer stream continuing; parallel pointer events cannot write twice.
+Mouse/pen and pointer-only environments retain the pointer path.
+
+Vertical intent, multiple fingers and already committed native scrolling are
+released to the browser. Touch end/cancel settles the existing motion. Shared
+slider focus is explicitly held during native dragging. Touch and pointer IDs
+are treated as distinct namespaces when suppressing a compatibility click.
+Selected-stamp confirmation and CMS navigation remain unchanged. All four new
+listeners are local to the strip and removed on disposal. No user-agent sniff,
+new requests, dependency, permanent frame loop or changed motion constants.
+
+Validation: 685 tests, 682 passed, zero failures, three existing skips.
+Includes 35 focused stamp tests and source/built treatment lifecycle checks.
+New cases cover a 5px move followed by pointer cancellation, continued native
+movement, parallel input streams, capture avoidance, release momentum, focus,
+vertical scroll, second fingers, native cancellation, confirmation/link clicks,
+uncancellable browser scroll and disposal. Deterministic build/check passed.
+Available Node runtime: 22.17.0; repository declares Node 24.
+
+Physical iOS Safari confirmation is still required. Automated event tests and
+Chromium staging checks do not validate iOS's native gesture arbitration.
+Separate tested tooltip/filter optimisations are stashed and not in this release.
