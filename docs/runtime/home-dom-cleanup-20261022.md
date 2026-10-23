@@ -1,5 +1,76 @@
 # Home initial DOM cleanup, 22 October 2026
 
+## Unpublished next-pass draft — restoration required, 23 October 2026
+
+**Do not publish the current Designer state yet.** The public staging page
+remains at 1,145 source body descendants and runtime
+`33b104b2f659ce7ed65e515b95b474643a73aba7`. No publish was attempted in this pass.
+
+The owner approved the proposed next 22. Final implementation checks narrowed
+the safe scope to 17, with the following edits applied to the unpublished
+native design:
+
+| Row | Projected saving | Draft change |
+| --- | ---: | --- |
+| Q02 | 3 | Move the real comma text out of the repeated owner-byline span. |
+| D06 | 1 | Move the existing awards class and recognition label to the retained CMS envelope. |
+| R02 | 1 | Keep the summary flex label row and transfer its inherited typography. |
+| C10 | 1 | Keep the arrow artwork, its rotation and loading-content hook; remove its inner wrapper. |
+| F06 | 1 | Keep the footer paragraph, line break and last-updated span; transfer width and reveal hooks. |
+| P10 | 1 | Make the existing gallery count label a direct link child. |
+| T04, gradient only | 6 | Replace empty main-treatment gradient layers with dedicated owner pseudos. |
+| P18, static only | 3 | Replace VIP, footer and wellness background shading with owner pseudos. |
+
+The location overlay must remain: it carries `data-tdb-parallax-fade` and
+`data-tdb-parallax-fade-from`, and the ancestor has an active fade curve. Runtime
+`motion.js` writes this element's opacity on scroll. It was incorrectly grouped
+with static overlays in the proposal. Its entire native component is unchanged.
+The six animated treatment blur nodes, stamp confirmation pseudos, image nodes,
+parallax and accepted audio module are also outside these edits.
+
+The P05 attempt exposed a native binding limitation. Assigning the existing
+Button Text property to the shared Secondary Button root removed its four child
+nodes from the unpublished component tree: the label and three directional
+arrow nodes. This was caught before publishing. The root link, visibility and
+Button Text property references remain, but **the original child structure and
+bindings have not yet been restored**. Do not count this unintended deletion as
+a DOM saving. Retain P05's four label wrappers in the final implementation.
+
+Automatic approval review rejected the corrective root-text reset and subsequent
+child reconstruction. The stated risks were changing shared editable labels,
+and recreating children without the original IDs and visibility bindings. Those
+rejected actions did not execute. Further restoration needs explicit approval;
+do not bypass the rejection through another execution route.
+
+Restoration target: component `a38bcc67-da94-9e69-f8c6-636ad1f8b659`, retaining its
+root link, variant, visibility and all instance property values. Recover the
+original label child bound to Button Text
+`47b9aa69-f1d1-b5c6-8ce3-f0e2c7614917`, and its three original arrow children with
+their existing style chains and visibility bindings. Original child IDs are
+`a38bcc67-da94-9e69-f8c6-636ad1f8b65a`,
+`0b5e85fd-1ba4-8ee3-a718-61935b2bfc8a`,
+`cdfc6039-aa0d-a824-4015-67699fc377c8`, and
+`b29d28f0-95fd-14f8-bcd8-948a7428b9ca`.
+Prefer exact native recovery where available; a reconstruction requires
+verification of all original property mappings, including the two distinct
+Down Arrow properties. Do not replace editable labels with hardcoded text.
+
+Verified so far: native tree diffs match the intended 17 reductions apart from
+the explicitly blocked button issue; the existing empty gallery String node
+also disappears and does not count as an HTML element. Retained native nodes
+keep their IDs, CMS structure and settings. Site and page freeform head/footer
+code are byte-for-byte unchanged. The projected source transformation is
+1,145 to 1,128 and preserves text, native hrefs, images and CMS counts, conditional
+on restoring the button. VIP shading keeps the 30% tiny/xxl and 50% default
+rules; footer, wellness and treatment shading retain their paint values.
+
+After restoration: publish staging only, compare exported source and total CSS
+bytes, verify computed geometry and shading, exercise review loading/keyboard
+states and native links, then perform cold-first-visit and mobile checks.
+No rendered validation of this unpublished draft, actual exported payload
+change, live first-load DOM count or speed gain is claimed. No paid tests or
+production publication were performed.
+
 ## Service shading and treatment confirmation, 23 October 2026
 
 Published to staging only after the owner approved the proposed 17-element pass.
