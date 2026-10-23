@@ -70,8 +70,8 @@ test('dynamically inserted review embed trigger shares the already prepared draw
  const e=setup('<div data-tdb-review-lazy></div>',{sharedIntent:true});
  try {
   e.run();const trigger=e.w.document.createElement('button');trigger.setAttribute('data-tdb-cards-open','');e.w.document.body.append(trigger);await tick();
-  const io=e.observers.find(io=>io.settings.rootMargin==='0px');assert(io.nodes.has(trigger));
-  io.fn([{target:trigger,isIntersecting:true}]);await new Promise(resolve=>setTimeout(resolve,250));
+  const io=e.observers.find(io=>io.settings.rootMargin==='700px 0px');assert(io.nodes.has(trigger));
+  io.fn([{target:trigger,isIntersecting:true}]);await tick();
   assert.equal(e.stats().templateMounts,1);assert.equal(e.stats().dataLoads,1);assert.equal(e.stats().opens.length,0);
   for(const [,html] of entryPoints){const host=e.w.document.createElement('div');host.innerHTML=html;e.w.document.body.append(host);const button=host.querySelector('button');button.dispatchEvent(new e.w.Event('focusin',{bubbles:true}));await e.w.TDBReviewLoader.open({trigger:button});}
   assert.equal(e.stats().opens.length,4);assert.equal(e.stats().templateMounts,1);assert.equal(e.stats().dataLoads,1);

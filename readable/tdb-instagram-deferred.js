@@ -204,9 +204,30 @@
       const original = template?.content.querySelector('[data-tdb-ig-native]');
       if (!endpoint && !original) throw Error('Instagram CMS template missing');
       const [root] = await Promise.all([
-        endpoint
+        (endpoint
           ? feedRoot(endpoint, key, signal)
-          : Promise.resolve(document.importNode(original, true)),
+          : Promise.resolve(document.importNode(original, true))
+        ).then(async (root) => {
+          check(holder, signal);
+          [root, ...root.querySelectorAll('[data-ig-class]')].forEach((node) => {
+            const names = node.getAttribute('data-ig-class')?.split(/\s+/).filter(Boolean) || [];
+            node.classList.add(...names);
+            node.removeAttribute('data-ig-class');
+          });
+          // Decode just the entry and destination while code/CSS prepare.
+          const photos = [...root.querySelectorAll('img.ig-native_photo')];
+          await Promise.all(
+            [...new Set([photos[0], photos.at(-1)])].filter(Boolean).map((photo) => {
+              const image = new Image();
+              for (const name of ['crossorigin', 'referrerpolicy', 'sizes', 'srcset', 'src']) {
+                const value = photo.getAttribute(name) || photo.getAttribute('data-ig-' + name);
+                if (value) image.setAttribute(name, value);
+              }
+              return decode(image, signal);
+            }),
+          );
+          return root;
+        }),
         window.TDBModules.load(new URL('tdb-instagram-native.css', base), {
           type: 'style',
           attribute: 'data-tdb-instagram-css',
@@ -214,32 +235,14 @@
         window.TDBModules.load(new URL('tdb-instagram-native.min.js', base), {
           ready: () => Boolean(window.TDBInstagramNative),
           attribute: 'data-tdb-instagram-feature',
+        }).then(() => {
+          check(holder, signal);
+          return window.TDBInstagramNative.prepare?.();
         }),
       ]);
       check(holder, signal);
       // The opt-in feed needs no initial CMS template. Legacy pages keep theirs.
       record.root = root;
-      [root, ...root.querySelectorAll('[data-ig-class]')].forEach((node) => {
-        const names = node.getAttribute('data-ig-class')?.split(/\s+/).filter(Boolean) || [];
-        node.classList.add(...names);
-        node.removeAttribute('data-ig-class');
-      });
-      // Both are inside the native first image window: the last card supplies
-      // the entry advance and the first card is its destination. Decode them
-      // before mounting so reveal can happen in the mount's microtask, before
-      // the shared first-view frames. Visibility:hidden would cancel that entry.
-      const photos = [...root.querySelectorAll('img.ig-native_photo')];
-      await Promise.all(
-        [...new Set([photos[0], photos.at(-1)])].filter(Boolean).map((photo) => {
-          const image = new Image();
-          for (const name of ['crossorigin', 'referrerpolicy', 'sizes', 'srcset', 'src']) {
-            const value = photo.getAttribute(name) || photo.getAttribute('data-ig-' + name);
-            if (value) image.setAttribute(name, value);
-          }
-          return decode(image, signal);
-        }),
-      );
-      check(holder, signal);
       // Park CMS photos before connecting the fragment. Native imageWindow then
       // releases its existing desktop 5/mobile 3 window, including reflections.
       root.querySelectorAll('.ig-native_photo,.ig-native_reflection-photo').forEach((image) => {
@@ -251,7 +254,7 @@
       });
       holder.append(root);
       const mounted = waitReady(root, signal);
-      window.TDBInstagramNative.refresh(root);
+      window.TDBInstagramNative.refresh(root, { prepared: true });
       await mounted;
       check(holder, signal);
       holder.setAttribute('data-ig-state', 'ready');
@@ -277,7 +280,7 @@
     records.forEach((record, holder) => reset(holder, record));
   });
   window.TDBInstagramDeferred = Object.freeze({
-    version: '1.1.0',
+    version: '1.2.0',
     prepare,
     destroy() {
       if (disposed) return;

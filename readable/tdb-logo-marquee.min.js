@@ -603,6 +603,7 @@
     }
     if (lazy || (shell && entries.length))
       window.TDBFeatureLoading?.watchIntent({
+        kind: 'popover',
         root: track,
         selector: '.tdb-partner-logo',
         prepare: prepareShell,

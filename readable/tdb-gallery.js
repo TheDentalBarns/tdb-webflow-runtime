@@ -38,7 +38,7 @@
   let i;
   const n = ['price', 'duration', 'clinician'];
   window.TDBSmileCards = Object.freeze({
-    version: '4.1.3',
+    version: '4.1.4',
     prepare: function (r) {
       if (
         !r.matches('[data-tdb-smile-slider]') ||
@@ -69,6 +69,7 @@
         E = !1,
         D = [],
         C = 0;
+      let revealPending = true;
       const A = [];
       let k = null;
       const B = matchMedia('(min-width:992px)'),
@@ -191,6 +192,7 @@
           },
         };
       function V(e, t = !1) {
+        revealPending = e === null;
         shared?.fade(e !== null, t);
         m.forEach((i, n) => {
           const r = i.hasAttribute('data-swiper-slide-index')
@@ -295,6 +297,9 @@
             i('slideChangeTransitionStart', G),
             (k = window.TDBSwiper.onSettled(h, () => {
               const e = h.realIndex !== t;
+              // A tap also settles Swiper. Keep visible labels steady unless
+              // the carousel moved or a previous reveal was interrupted.
+              if (!e && !y && !revealPending) return;
               ((t = h.realIndex),
                 X(),
                 Y(

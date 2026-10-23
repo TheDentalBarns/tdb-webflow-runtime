@@ -44,7 +44,8 @@ for(const choice of ['accept','reject'])test('full bundle: '+choice+' releases f
   assert.equal(f.d.querySelectorAll('script[data-tdb-attribution-js]').length,0);
   f.w.CookieScript.instance[choice==='accept'?'acceptAllAction':'rejectAllAction']();await f.advance(469);assert(!f.request('tdb-runtime.js'));
   await f.advance(1);await f.runtime();assert(f.w.TDBSliderLoader);assert(f.w.TDBRuntimePageState);assert(!f.w.TDBParallax);assert(!f.request('tdb-parallax.js'));
-  assert(f.ios.some(o=>o.options.rootMargin==='800px 0px'));assert(f.ios.some(o=>o.options.rootMargin==='600px 0px'));
+  assert.equal(f.w.TDBFeatureLoading.embedMargin,'1200px 0px');
+  assert(f.ios.some(o=>o.options.rootMargin===f.w.TDBFeatureLoading.embedMargin));assert(f.ios.some(o=>o.options.rootMargin==='600px 0px'));
   assert.equal(f.d.querySelectorAll('script[data-tdb-attribution-js]').length,1);
   assert.match(f.d.querySelector('script[data-tdb-attribution-js]').src,new RegExp('tdb-webflow-runtime@'+'b'.repeat(40)+'/dist/tdb-attribution.min.js'));assert.equal(f.errors.length,0);
  }finally{f.close()}
@@ -95,6 +96,21 @@ test('parallax carries its progress without an extra progress-module request',()
 });
 test('existing attribution remains the only version after runtime release',async()=>{
  const f=fixture({choice:'reject',attribution:true});try{await f.runtime();assert.equal(f.d.querySelectorAll('script[data-tdb-attribution-js]').length,1);assert.equal(f.d.querySelector('script[data-tdb-attribution-js]').getAttribute('src'),'/attribution.js')}finally{f.close()}
+});
+
+test('shared carousel preparation coalesces dependencies before feed markup exists',async()=>{
+ const f=fixture({choice:'reject'});try{
+  await f.runtime();f.w.eval('tdbEnsureUI=tdbEnsureSliderUI=tdbEnsureSliderFocus=()=>Promise.resolve()');
+  const requests=[];let refreshes=0,mounts=0;
+  f.w.TDBModules={load:async url=>{requests.push(String(url));}};
+  f.w.TDBGallery={refresh(){refreshes++;}};
+  f.w.TDBSwiper={mount(){mounts++;}};
+  const one=f.w.TDBSliderLoader.prepare('gallery'),two=f.w.TDBSliderLoader.prepare('gallery');
+  assert.equal(one,two);await tick();await f.drain();await one;
+  assert.equal(requests.filter(url=>url.endsWith('/tdb-gallery.js')).length,1);
+  assert.equal(refreshes,1);assert.equal(mounts,0);
+  await assert.rejects(f.w.TDBSliderLoader.prepare('constructor'),/Unknown carousel kind/);
+ }finally{f.close()}
 });
 test('gallery bundle sorts treatment priorities before plugin registration',()=>{
  const dom=new JSDOM('<html><body><div class="gallery17_component"><div class="highlight-swiper_component"><div class="swiper-wrapper"><div id="later"><span class="cb-priority">2</span></div><div id="earlier"><span class="cb-priority">1</span></div></div></div></div></body></html>',{url:'https://dentalbarns.webflow.io/treatments/composite-bonding',runScripts:'outside-only'});

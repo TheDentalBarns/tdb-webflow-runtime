@@ -5,13 +5,14 @@ const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.c
 (() => {
   'use strict';
   if (window.TDBFeatureLoading) return;
-  const embedMargin = '700px 0px',
+  const embedMargin = '1200px 0px',
+    panelMargin = '700px 0px',
     settledMs = 200,
     retryMs = 5000;
   const watches = new Set(),
     targets = new Map();
-  let observer,
-    mutations,
+  const observers = new Map();
+  let mutations,
     events,
     unsubscribe,
     timer = 0,
@@ -23,13 +24,16 @@ const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.c
     !node.closest('[hidden],[inert],.w-condition-invisible') &&
     !node.matches(':disabled,[aria-disabled="true"]') &&
     getComputedStyle(node).visibility !== 'hidden';
+  function detach(watch, node, owners) {
+    owners.delete(watch);
+    watch.visible.delete(node);
+    if (![...owners].some((owner) => owner.kind === watch.kind))
+      observers.get(watch.kind)?.unobserve(node);
+    if (!owners.size) targets.delete(node);
+  }
   function unobserve(watch) {
     for (const [node, owners] of targets) {
-      owners.delete(watch);
-      if (!owners.size) {
-        observer?.unobserve(node);
-        targets.delete(node);
-      }
+      if (owners.has(watch)) detach(watch, node, owners);
     }
     watch.visible.clear();
   }
@@ -64,7 +68,11 @@ const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.c
   function settle() {
     clearTimeout(timer);
     timer = 0;
-    if (!allowed() || ![...watches].some((watch) => !watch.done && watch.visible.size)) return;
+    if (
+      !allowed() ||
+      ![...watches].some((watch) => watch.kind === 'popover' && !watch.done && watch.visible.size)
+    )
+      return;
     timer = setTimeout(() => {
       timer = 0;
       if (!allowed()) return;
@@ -73,22 +81,26 @@ const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.c
         return;
       }
       for (const watch of watches) {
+        if (watch.kind !== 'popover') continue;
         const node = [...watch.visible].find(usable);
         if (node) prepare(watch, node);
       }
     }, settledMs);
+  }
+  function prepareNearby() {
+    if (!allowed()) return;
+    for (const watch of watches) {
+      if (watch.kind !== 'panel' || watch.done || watch.flight) continue;
+      const node = [...watch.visible].find(usable);
+      if (node) prepare(watch, node);
+    }
   }
   function refresh(watch) {
     if (watch.done || !watches.has(watch)) return;
     const matches = new Set(watch.root.querySelectorAll(watch.selector));
     for (const [node, owners] of targets) {
       if (owners.has(watch) && !matches.has(node)) {
-        owners.delete(watch);
-        watch.visible.delete(node);
-      }
-      if (!owners.size) {
-        observer?.unobserve(node);
-        targets.delete(node);
+        detach(watch, node, owners);
       }
     }
     for (const node of matches) observe(watch, node);
@@ -98,9 +110,33 @@ const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.c
     if (!owners) {
       owners = new Set();
       targets.set(node, owners);
-      observer?.observe(node);
     }
+    const peers = [...owners].filter((owner) => owner.kind === watch.kind);
+    const needsObserver = !peers.length;
+    if (peers.some((owner) => owner.visible.has(node))) watch.visible.add(node);
     owners.add(watch);
+    if (needsObserver) observerFor(watch.kind)?.observe(node);
+  }
+  function observerFor(kind) {
+    if (!('IntersectionObserver' in window)) return null;
+    if (!observers.has(kind))
+      observers.set(
+        kind,
+        new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries)
+              for (const watch of targets.get(entry.target) || []) {
+                if (watch.kind !== kind) continue;
+                if (entry.isIntersecting) watch.visible.add(entry.target);
+                else watch.visible.delete(entry.target);
+              }
+            if (kind === 'panel') prepareNearby();
+            else settle();
+          },
+          { rootMargin: kind === 'panel' ? panelMargin : '0px', threshold: 0 },
+        ),
+      );
+    return observers.get(kind);
   }
   function discover(records) {
     const added = new Set();
@@ -129,12 +165,7 @@ const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.c
             owners.has(watch) &&
             (!node.isConnected || !watch.root.contains(node) || !node.matches(watch.selector))
           ) {
-            owners.delete(watch);
-            watch.visible.delete(node);
-            if (!owners.size) {
-              observer?.unobserve(node);
-              targets.delete(node);
-            }
+            detach(watch, node, owners);
           }
         }
       }
@@ -151,18 +182,6 @@ const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.c
   function start() {
     if (events) return;
     events = new AbortController();
-    if ('IntersectionObserver' in window)
-      observer = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries)
-            for (const watch of targets.get(entry.target) || []) {
-              if (entry.isIntersecting) watch.visible.add(entry.target);
-              else watch.visible.delete(entry.target);
-            }
-          settle();
-        },
-        { rootMargin: '0px', threshold: 0 },
-      );
     const intent = (event) => {
       if (event.type === 'pointerover' && event.pointerType === 'touch') return;
       for (const watch of watches) {
@@ -193,11 +212,19 @@ const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.c
             watch.retryAt = 0;
             refresh(watch);
           }
+          prepareNearby();
           settle();
         },
         { signal: events.signal },
       );
-    document.addEventListener('visibilitychange', settle, { signal: events.signal });
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        prepareNearby();
+        settle();
+      },
+      { signal: events.signal },
+    );
     mutations = new MutationObserver(discover);
     mutations.observe(document.body, { childList: true, subtree: true });
     unsubscribe = window.TDBConsent?.subscribe(() => {
@@ -206,21 +233,32 @@ const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.c
           watch.done = false;
           refresh(watch);
         }
+      prepareNearby();
       settle();
     });
   }
   function stop() {
     if (watches.size) return;
     clearTimeout(timer);
-    observer?.disconnect();
+    for (const observer of observers.values()) observer.disconnect();
+    observers.clear();
     mutations?.disconnect();
     events?.abort();
     unsubscribe?.();
-    observer = mutations = events = unsubscribe = null;
+    mutations = events = unsubscribe = null;
     targets.clear();
   }
-  function watchIntent({ selector, root = document, prepare: work, enabled = () => true, signal }) {
+  function watchIntent({
+    selector,
+    root = document,
+    prepare: work,
+    enabled = () => true,
+    signal,
+    kind = 'panel',
+  }) {
+    if (!['panel', 'popover'].includes(kind)) throw Error('Unknown preparation kind: ' + kind);
     const watch = {
+      kind,
       selector,
       root,
       prepare: work,
@@ -239,13 +277,23 @@ const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.c
       watches.add(watch);
       start();
       refresh(watch);
+      prepareNearby();
+      settle();
       signal?.addEventListener('abort', destroy, { once: true });
     }
-    return Object.freeze({ refresh: () => refresh(watch), destroy });
+    return Object.freeze({
+      refresh: () => {
+        refresh(watch);
+        prepareNearby();
+        settle();
+      },
+      destroy,
+    });
   }
   window.TDBFeatureLoading = Object.freeze({
-    version: '1.1.0',
+    version: '1.2.0',
     embedMargin,
+    panelMargin,
     settledMs,
     watchIntent,
   });
@@ -1395,6 +1443,7 @@ function prepareVIPDrawerLoader() {
   let contentPromise = null;
   let announcementFlight = null;
   let armed = false;
+  let preparationWatch;
   const allowed = () => !window.TDBConsent || window.TDBConsent.allows();
   const announcements = () => [...document.querySelectorAll('[data-tdb-announcement]')];
   const announcementReady = () =>
@@ -1437,6 +1486,7 @@ function prepareVIPDrawerLoader() {
 
   function cleanup() {
     armed = false;
+    preparationWatch?.destroy();
     document.removeEventListener('click', onIntentClick, true);
     document.removeEventListener('keydown', onIntentKeydown, true);
     document.removeEventListener('pointerover', onPrepareIntent, true);
@@ -1552,6 +1602,7 @@ function prepareVIPDrawerLoader() {
     Promise.all([loadDrawer(), prepareContent()]).catch(() => {});
   }
   function onAnnouncementState(event) {
+    preparationWatch?.refresh();
     if (event.detail?.ready && (event.detail.visible || scrollSeed.peek)) prepareForBanner();
   }
   function onPrepareIntent(event) {
@@ -1595,9 +1646,17 @@ function prepareVIPDrawerLoader() {
     document.addEventListener('click', onIntentClick, true);
     document.addEventListener('keydown', onIntentKeydown, true);
     if (demand) {
-      document.addEventListener('pointerover', onPrepareIntent, true);
-      document.addEventListener('pointerdown', onPrepareIntent, true);
-      document.addEventListener('focusin', onPrepareIntent, true);
+      if (window.TDBFeatureLoading) {
+        preparationWatch = window.TDBFeatureLoading.watchIntent({
+          selector: triggerSelector,
+          enabled: announcementReady,
+          prepare: () => Promise.all([loadDrawer(), prepareContent()]),
+        });
+      } else {
+        document.addEventListener('pointerover', onPrepareIntent, true);
+        document.addEventListener('pointerdown', onPrepareIntent, true);
+        document.addEventListener('focusin', onPrepareIntent, true);
+      }
       window.addEventListener('scroll', onPrepareScroll, { passive: true });
       window.addEventListener('pageshow', onPageShow, { passive: true });
       window.addEventListener('hashchange', onHashChange);
@@ -1612,7 +1671,7 @@ function prepareVIPDrawerLoader() {
   } else loadSafely();
 
   window.TDBVIPDrawerLoader = Object.freeze({
-    version: '1.5.0',
+    version: '1.6.0',
     load: loadDrawer,
     open: openFromTrigger,
     prepareContent,
@@ -1789,7 +1848,7 @@ function prepareSliderFocusLoader() {
   else start();
 }
 
-/* Existing 800px dependency loader; runtime owns release and scheduling. */
+/* Shared in-page dependency preparation; runtime owns release and scheduling. */
 function prepareSliderLoader() {
   const selector = '.highlight-swiper_component, .parallax-swiper_component';
   const files = { parallax: 'tdb-parallax.js', gallery: 'tdb-gallery.js' };
@@ -1926,7 +1985,7 @@ function prepareSliderLoader() {
           .filter((entry) => entry.isIntersecting)
           .forEach((entry) => loadSafely(entry.target));
       },
-      { rootMargin: '800px 0px' },
+      { rootMargin: window.TDBFeatureLoading?.embedMargin || '1200px 0px' },
     );
   document.addEventListener('pointerdown', onIntent, true);
   document.addEventListener('keydown', onIntent, true);
@@ -1945,7 +2004,10 @@ function prepareSliderLoader() {
     document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
   window.TDBSliderLoader = Object.freeze({
-    version: '1.0.0',
+    version: '1.1.0',
+    // Fetch dependencies without mounting or starting an offscreen carousel.
+    prepare: (kind) =>
+      Object.hasOwn(files, kind) ? loadKind(kind) : Promise.reject(Error('Unknown carousel kind')),
     load: loadSliders,
     status: () => ({
       loaded: ready.size > 0,
@@ -2001,7 +2063,7 @@ function prepareCarouselStyles() {
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) prepare();
       },
-      { rootMargin: '800px 0px' },
+      { rootMargin: window.TDBFeatureLoading?.embedMargin || '1200px 0px' },
     );
   ['pointerover', 'focusin', 'pointerdown', 'keydown'].forEach((type) =>
     document.addEventListener(type, intent, { capture: true, passive: true }),
@@ -2956,7 +3018,7 @@ function prepareInstagramFeatureLoader() {
             });
             refresh();
           },
-          { rootMargin: window.TDBFeatureLoading?.embedMargin || '700px 0px' },
+          { rootMargin: window.TDBFeatureLoading?.embedMargin || '1200px 0px' },
         )
       : null;
   const allowed = () => !disposed && Boolean(window.TDBConsent?.allows());
@@ -3079,7 +3141,7 @@ function prepareSmileFeatureLoader() {
               }
             refresh();
           },
-          { rootMargin: window.TDBFeatureLoading?.embedMargin || '700px 0px' },
+          { rootMargin: window.TDBFeatureLoading?.embedMargin || '1200px 0px' },
         )
       : null;
   function refresh() {

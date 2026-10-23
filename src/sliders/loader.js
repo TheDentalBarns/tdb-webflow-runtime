@@ -1,4 +1,4 @@
-/* Existing 800px dependency loader; runtime owns release and scheduling. */
+/* Shared in-page dependency preparation; runtime owns release and scheduling. */
 function prepareSliderLoader() {
   const selector = '.highlight-swiper_component, .parallax-swiper_component';
   const files = { parallax: 'tdb-parallax.js', gallery: 'tdb-gallery.js' };
@@ -135,7 +135,7 @@ function prepareSliderLoader() {
           .filter((entry) => entry.isIntersecting)
           .forEach((entry) => loadSafely(entry.target));
       },
-      { rootMargin: '800px 0px' },
+      { rootMargin: window.TDBFeatureLoading?.embedMargin || '1200px 0px' },
     );
   document.addEventListener('pointerdown', onIntent, true);
   document.addEventListener('keydown', onIntent, true);
@@ -154,7 +154,10 @@ function prepareSliderLoader() {
     document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
   window.TDBSliderLoader = Object.freeze({
-    version: '1.0.0',
+    version: '1.1.0',
+    // Fetch dependencies without mounting or starting an offscreen carousel.
+    prepare: (kind) =>
+      Object.hasOwn(files, kind) ? loadKind(kind) : Promise.reject(Error('Unknown carousel kind')),
     load: loadSliders,
     status: () => ({
       loaded: ready.size > 0,
@@ -210,7 +213,7 @@ function prepareCarouselStyles() {
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) prepare();
       },
-      { rootMargin: '800px 0px' },
+      { rootMargin: window.TDBFeatureLoading?.embedMargin || '1200px 0px' },
     );
   ['pointerover', 'focusin', 'pointerdown', 'keydown'].forEach((type) =>
     document.addEventListener(type, intent, { capture: true, passive: true }),

@@ -42,6 +42,7 @@ function prepareVIPDrawerLoader() {
   let contentPromise = null;
   let announcementFlight = null;
   let armed = false;
+  let preparationWatch;
   const allowed = () => !window.TDBConsent || window.TDBConsent.allows();
   const announcements = () => [...document.querySelectorAll('[data-tdb-announcement]')];
   const announcementReady = () =>
@@ -84,6 +85,7 @@ function prepareVIPDrawerLoader() {
 
   function cleanup() {
     armed = false;
+    preparationWatch?.destroy();
     document.removeEventListener('click', onIntentClick, true);
     document.removeEventListener('keydown', onIntentKeydown, true);
     document.removeEventListener('pointerover', onPrepareIntent, true);
@@ -199,6 +201,7 @@ function prepareVIPDrawerLoader() {
     Promise.all([loadDrawer(), prepareContent()]).catch(() => {});
   }
   function onAnnouncementState(event) {
+    preparationWatch?.refresh();
     if (event.detail?.ready && (event.detail.visible || scrollSeed.peek)) prepareForBanner();
   }
   function onPrepareIntent(event) {
@@ -242,9 +245,17 @@ function prepareVIPDrawerLoader() {
     document.addEventListener('click', onIntentClick, true);
     document.addEventListener('keydown', onIntentKeydown, true);
     if (demand) {
-      document.addEventListener('pointerover', onPrepareIntent, true);
-      document.addEventListener('pointerdown', onPrepareIntent, true);
-      document.addEventListener('focusin', onPrepareIntent, true);
+      if (window.TDBFeatureLoading) {
+        preparationWatch = window.TDBFeatureLoading.watchIntent({
+          selector: triggerSelector,
+          enabled: announcementReady,
+          prepare: () => Promise.all([loadDrawer(), prepareContent()]),
+        });
+      } else {
+        document.addEventListener('pointerover', onPrepareIntent, true);
+        document.addEventListener('pointerdown', onPrepareIntent, true);
+        document.addEventListener('focusin', onPrepareIntent, true);
+      }
       window.addEventListener('scroll', onPrepareScroll, { passive: true });
       window.addEventListener('pageshow', onPageShow, { passive: true });
       window.addEventListener('hashchange', onHashChange);
@@ -259,7 +270,7 @@ function prepareVIPDrawerLoader() {
   } else loadSafely();
 
   window.TDBVIPDrawerLoader = Object.freeze({
-    version: '1.5.0',
+    version: '1.6.0',
     load: loadDrawer,
     open: openFromTrigger,
     prepareContent,

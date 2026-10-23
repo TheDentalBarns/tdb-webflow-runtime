@@ -25,11 +25,11 @@ function setup(options={}){
  const holder=d.querySelector('[data-tdb-smile-placeholder]');
  return {w,d,holder,payload,requests,loads,observers,images,mounts:()=>mounts,prepare:()=>w.TDBSmileFeed.prepare(holder),permit(value){allowed=value;subscriptions.forEach(fn=>fn())},fix(){fail=false},close(){w.TDBSmileFeatureLoader?.destroy();w.TDBSmileFeed.destroy();w.close()}};
 }
-test('Smile feed waits for consent and 700px 0px proximity before fetching any cases or CSS',async()=>{
+test('Smile feed waits for consent and 1200px 0px proximity before fetching any cases or CSS',async()=>{
  const x=setup({allowed:false});x.w.eval(loader+';prepareSmileFeatureLoader()');await tick();
  assert.equal(x.requests.length,0);assert.equal(x.loads.length,0);
  x.permit(true);await tick();assert.equal(x.requests.length,0);
- const observer=x.observers.find(o=>o.config.rootMargin==='700px 0px');assert.ok(observer);
+ const observer=x.observers.find(o=>o.config.rootMargin==='1200px 0px');assert.ok(observer);
  observer.fn([{target:x.holder,isIntersecting:true}]);await tick();await tick();
  assert.equal(x.mounts(),1);assert.equal(x.requests.length,1);assert.equal(x.holder.dataset.smileState,'ready');x.close();
 });
@@ -51,7 +51,7 @@ test('one shared set of labels/details; seven lean cards; data stays text and on
  await x.prepare();assert.equal(x.mounts(),1);
  x.w.TDBSmileFeed.destroy();assert.equal(x.holder.children.length,1);assert.equal(x.holder.dataset.smileState,undefined);x.close();
 });
-test('700px preparation mounts directly after dependencies without a second proximity gate',async()=>{
+test('Shared feed preparation mounts directly after dependencies without a second proximity gate',async()=>{
  let release;const x=setup({sliderGate:new Promise(r=>release=r)});try{
   const preparing=x.prepare();await tick();assert.equal(x.mounts(),0);release();await preparing;
   assert.equal(x.mounts(),1);assert.equal(x.holder.dataset.smileState,'ready');
@@ -90,4 +90,19 @@ test('unsafe, duplicated, stale and empty data never reaches the DOM',async()=>{
  }
  const x=setup();x.holder.setAttribute('data-tdb-smile-feed','https://other.example/tdb-content/v1/smiles.json');
  await x.prepare();assert.equal(x.requests.length,0);x.close();
+});
+
+test('Smile prepares carousel code during the feed request and decodes entry photos during CSS loading',async()=>{
+ let releaseFeed,releaseStyle;
+ const x=setup({gate:new Promise(r=>releaseFeed=r)}),styles=new Promise(r=>releaseStyle=r),kinds=[];
+ const load=x.w.TDBModules.load;
+ x.w.TDBModules.load=async(url,options)=>{await load(url,options);if(options?.type==='style')await styles;};
+ x.w.TDBSliderLoader.prepare=async(kind)=>{kinds.push(kind);};
+ try {
+  const flight=x.prepare();await tick();assert.deepEqual(kinds,['gallery']);
+  assert.equal(x.requests.length,1);assert.equal(x.images.length,0);assert.equal(x.mounts(),0);
+  releaseFeed();await tick();assert.equal(x.images.length,2);assert.equal(x.mounts(),0);
+  assert.equal(x.holder.children.length,1);
+  releaseStyle();await flight;assert.equal(x.mounts(),1);assert.equal(x.holder.dataset.smileState,'ready');
+ }finally{x.close();}
 });

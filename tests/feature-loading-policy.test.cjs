@@ -21,12 +21,12 @@ function fixture(html = '<button id="trigger">Open</button>', consent = true) {
   return { w, d, observers, permit(value) { consent = value; subscribers.forEach((fn) => fn()); }, close() { w.close(); } };
 }
 
-test('shared panel intent waits for consent and visible settled scrolling, then prepares once', async () => {
+test('shared popover intent waits for consent and visible settled scrolling, then prepares once', async () => {
   const f = fixture(undefined, false); let calls = 0;
-  const watch = f.w.TDBFeatureLoading.watchIntent({ selector: 'button', prepare: () => { calls++; } });
+  const watch = f.w.TDBFeatureLoading.watchIntent({ kind: 'popover', selector: 'button', prepare: () => { calls++; } });
   try {
     const button = f.d.querySelector('button'), io = f.observers[0];
-    assert.equal(f.w.TDBFeatureLoading.embedMargin, '700px 0px');
+    assert.equal(f.w.TDBFeatureLoading.embedMargin, '1200px 0px');
     assert.equal(io.options.rootMargin, '0px');
     io.fire(button); button.dispatchEvent(new f.w.Event('pointerdown', { bubbles: true }));
     await wait(230); assert.equal(calls, 0);
@@ -38,10 +38,10 @@ test('shared panel intent waits for consent and visible settled scrolling, then 
   } finally { watch.destroy(); f.close(); }
 });
 
-test('passing through, hidden triggers and disposed watches never warm a panel', async () => {
+test('passing through, hidden triggers and disposed watches never warm a popover', async () => {
   const f = fixture(); let calls = 0;
   const controller = new f.w.AbortController();
-  const watch = f.w.TDBFeatureLoading.watchIntent({ selector: 'button', signal: controller.signal, prepare: () => { calls++; } });
+  const watch = f.w.TDBFeatureLoading.watchIntent({ kind: 'popover', selector: 'button', signal: controller.signal, prepare: () => { calls++; } });
   try {
     const button = f.d.querySelector('button'), io = f.observers[0];
     io.fire(button); io.fire(button, false); await wait(230); assert.equal(calls, 0);
@@ -79,10 +79,54 @@ test('newly mounted triggers are observed and a failed warmup does not loop', as
 
 test('visible aria-hidden marquee repeats can prepare the same tooltip', async () => {
   const f = fixture('<div aria-hidden="true"><button>Repeated logo</button></div>'); let calls = 0;
-  const watch = f.w.TDBFeatureLoading.watchIntent({ selector: 'button', prepare: () => { calls++; } });
+  const watch = f.w.TDBFeatureLoading.watchIntent({ kind: 'popover', selector: 'button', prepare: () => { calls++; } });
   try {
     f.observers[0].fire(f.d.querySelector('button')); await wait(230); assert.equal(calls, 1);
   } finally { watch.destroy(); f.close(); }
+});
+
+test('panels prepare 700px ahead after consent without waiting for scrolling to stop or opening', async () => {
+  const f = fixture(undefined, false); let calls = 0, clicks = 0;
+  const watch = f.w.TDBFeatureLoading.watchIntent({selector:'button',prepare(){calls++;}});
+  try {
+    const button = f.d.querySelector('button'), io = f.observers[0];
+    button.addEventListener('click', () => clicks++);
+    assert.equal(io.options.rootMargin, '700px 0px');
+    assert.equal(f.w.TDBFeatureLoading.panelMargin, io.options.rootMargin);
+    io.fire(button); await tick(); assert.equal(calls, 0);
+    f.w.dispatchEvent(new f.w.Event('scroll')); f.permit(true); await tick();
+    assert.equal(calls, 1); assert.equal(clicks, 0);
+    assert.equal(io.nodes.size, 0);
+    io.fire(button); f.w.dispatchEvent(new f.w.Event('scroll')); await tick();
+    assert.equal(calls, 1);
+  } finally { watch.destroy(); f.close(); }
+});
+
+test('a shared target has independent panel and popover proximity and cleanup', async () => {
+  const f = fixture(); let panels = 0, popovers = 0;
+  const panel = f.w.TDBFeatureLoading.watchIntent({selector:'button',prepare(){panels++;}});
+  const popover = f.w.TDBFeatureLoading.watchIntent({kind:'popover',selector:'button',prepare(){popovers++;}});
+  try {
+    const button=f.d.querySelector('button');
+    const near=f.observers.find(io=>io.options.rootMargin==='700px 0px');
+    const visible=f.observers.find(io=>io.options.rootMargin==='0px');
+    near.fire(button); await tick();
+    assert.equal(panels,1); assert.equal(popovers,0); assert(visible.nodes.has(button));
+    panel.destroy(); assert(visible.nodes.has(button));
+    visible.fire(button); await wait(230); assert.equal(popovers,1);
+  } finally { panel.destroy(); popover.destroy(); f.close(); }
+});
+
+test('a later watch of a nearby target shares its current proximity state', async () => {
+  const f=fixture(); let release, later=0;
+  const first=f.w.TDBFeatureLoading.watchIntent({selector:'button',prepare:()=>new Promise(r=>release=r)});
+  let second;
+  try {
+    f.observers[0].fire(f.d.querySelector('button')); await tick();
+    second=f.w.TDBFeatureLoading.watchIntent({selector:'button',prepare(){later++;}});
+    await tick(); assert.equal(f.observers.length,1); assert.equal(later,1);
+    release(); await tick();
+  } finally { first.destroy(); second?.destroy(); f.close(); }
 });
 
 test('unrelated mutations avoid document rescans; moved and inserted descendants stay correct', async () => {
@@ -183,5 +227,17 @@ test('direct VIP activation awaits announcement readiness and opens once', async
     await tick(); assert.equal(f.requests.length, 0); assert.equal(f.stats().announcementLoads, 1);
     f.ready(false); await opening;
     assert.equal(f.stats().opens, 1);
+  } finally { f.close(); }
+});
+
+test('a nearby VIP trigger prepares under the same panel policy after announcement readiness', async () => {
+  const f=vipFixture();
+  try {
+    const near=f.observers.find(io=>io.options.rootMargin==='700px 0px');
+    near.fire(f.d.querySelector('a')); await tick(); assert.equal(f.requests.length,0);
+    f.ready(false); await tick(); await tick();
+    assert(f.requests.includes('tdb-vip-drawer.js')); assert(f.requests.includes('tdb-vip-content.js'));
+    assert.equal(f.stats().mounts,1); assert.equal(f.stats().opens,0);
+    assert.equal(near.nodes.size,0);
   } finally { f.close(); }
 });

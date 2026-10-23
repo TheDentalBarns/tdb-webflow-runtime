@@ -184,10 +184,10 @@
         "src/smile-gallery/explore-count.js",
         "src/sliders/gallery-plugin.js"
       ],
-      "sha256": "0dcc73ceb3fee5c6b3975b9ad0a4bc285626d7259691b11fa6629fd8c25285b6",
-      "raw": 16749,
-      "gzip": 5876,
-      "brotli": 5253
+      "sha256": "ed587b4f89609015a564fae249db02b632bfa0cf3d3d18e226cecbefb17680d6",
+      "raw": 16778,
+      "gzip": 5891,
+      "brotli": 5262
     },
     "dist/tdb-hold-audio.js": {
       "sources": [
@@ -213,10 +213,10 @@
       "sources": [
         "src/instagram/deferred.js"
       ],
-      "sha256": "217f5f48b0ed7c806ed86c85e62719f124f0d84d45134e60bcc3c60f55e5336e",
-      "raw": 11427,
-      "gzip": 3722,
-      "brotli": 3188
+      "sha256": "afc96ee1f12ee92f08b1ee7e5eccd088613bcd6b37bfb1483bc0cca5be6c885d",
+      "raw": 11526,
+      "gzip": 3750,
+      "brotli": 3224
     },
     "dist/tdb-instagram-feed.js": {
       "sources": [
@@ -234,10 +234,10 @@
       "sources": [
         "src/instagram/native.js"
       ],
-      "sha256": "8d7be44c945a38b652645e727dcc18ab9376c756f385eed69af9b614d35addd6",
-      "raw": 13806,
-      "gzip": 5074,
-      "brotli": 4509
+      "sha256": "039235ae09aa1ec069614f1b81e7eb147010622833f2b5e1e82fe004254a39b4",
+      "raw": 13923,
+      "gzip": 5124,
+      "brotli": 4561
     },
     "dist/tdb-legacy-review-drawer.js": {
       "sources": [
@@ -263,20 +263,20 @@
         "src/logo-marquee/partner-controls-style.js",
         "src/logo-marquee/logo-marquee.js"
       ],
-      "sha256": "5fde91a5c80587b3abb46c6f7afff0fda35a69b397a10c2ccb380170429bbbce",
-      "raw": 26530,
-      "gzip": 8561,
-      "brotli": 7736
+      "sha256": "86c46e1e46c8d5386f60d4cb562c1d2646e8563e022dbe40a174deca7612c7a1",
+      "raw": 26545,
+      "gzip": 8570,
+      "brotli": 7744
     },
     "dist/tdb-logo-marquee.min.js": {
       "sources": [
         "src/logo-marquee/partner-controls-style.js",
         "src/logo-marquee/logo-marquee.js"
       ],
-      "sha256": "5fde91a5c80587b3abb46c6f7afff0fda35a69b397a10c2ccb380170429bbbce",
-      "raw": 26530,
-      "gzip": 8561,
-      "brotli": 7736
+      "sha256": "86c46e1e46c8d5386f60d4cb562c1d2646e8563e022dbe40a174deca7612c7a1",
+      "raw": 26545,
+      "gzip": 8570,
+      "brotli": 7744
     },
     "dist/tdb-modules.js": {
       "sources": [
@@ -435,10 +435,10 @@
         "src/shared/module-bootstrap.js",
         "src/reviews/native/list-loader.js"
       ],
-      "sha256": "61e769e3359fffc430efa9258990fe9b29815c3c7cbb496fc7360f4fbd668e14",
-      "raw": 3484,
-      "gzip": 1526,
-      "brotli": 1298
+      "sha256": "88ff8cbe119a6e4ae1897b85374c0e3991973edec7eb77e5111bfffd5b0ecf1c",
+      "raw": 3528,
+      "gzip": 1550,
+      "brotli": 1317
     },
     "dist/tdb-review-list.js": {
       "sources": [
@@ -489,10 +489,10 @@
       "sources": [
         "src/reviews/native/loader.js"
       ],
-      "sha256": "5f5f4a92ae802d15bc350a49e0cfa51572966b1f96c55d37ce33891ae654b1b7",
-      "raw": 11139,
-      "gzip": 3726,
-      "brotli": 3289
+      "sha256": "93d92d822341a834c5f3f59a688ff25848546eafd949fc4820caec0d0e9a0f38",
+      "raw": 11140,
+      "gzip": 3727,
+      "brotli": 3284
     },
     "dist/tdb-reviews.js": {
       "sources": [
@@ -538,10 +538,10 @@
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "85d5c6325bff7f20a116acea8f830e5ef1e7787d315856ec4da62b99ccccc242",
-      "raw": 69385,
-      "gzip": 18798,
-      "brotli": 16502
+      "sha256": "b2e0680eaa56ffef24a800b94a8c8b990a094285196045b869e2cf0891aae01d",
+      "raw": 70277,
+      "gzip": 19068,
+      "brotli": 16777
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -565,10 +565,10 @@
       "sources": [
         "src/smile-gallery/feed.js"
       ],
-      "sha256": "0b6dac8bd41eb18f16a5c9646ddf0203a8760ac773b6aef798f5eac3014064d6",
-      "raw": 11952,
-      "gzip": 4080,
-      "brotli": 3549
+      "sha256": "05c754cdf8dc4f05a93ec603ef22dc0fe0cd81d09c890efef4c37b9a0aebf617",
+      "raw": 12028,
+      "gzip": 4105,
+      "brotli": 3548
     },
     "dist/tdb-smile-gallery.min.js": {
       "sources": [
