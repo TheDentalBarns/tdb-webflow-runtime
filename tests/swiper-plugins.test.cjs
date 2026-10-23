@@ -112,3 +112,98 @@ test('native galleries rely on resize geometry while legacy galleries retain mut
   }
  }finally{dom.window.close();}
 });
+
+test('prune disconnects a component removed before its first viewport entry and permits re-observation', () => {
+  const { dom, w } = setup(),
+    observers = [];
+  try {
+    w.IntersectionObserver = class {
+      constructor(callback) {
+        this.callback = callback;
+        observers.push(this);
+      }
+      observe() {}
+      disconnect() {
+        this.disconnected = true;
+      }
+    };
+    w.TDBSwiper.register('pending-fixture', {
+      mount() {
+        return { destroy() {} };
+      },
+    });
+    const root = w.document.createElement('section');
+    w.document.body.append(root);
+    w.TDBSwiper.observe('pending-fixture', root);
+    assert.equal(observers.length, 1);
+    root.remove();
+    w.TDBSwiper.prune();
+    assert.equal(observers[0].disconnected, true);
+    assert.equal(root.hasAttribute('data-tdb-slider-observed'), false);
+    w.document.body.append(root);
+    w.TDBSwiper.observe('pending-fixture', root);
+    assert.equal(observers.length, 2);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test('real treatment Swiper restores all controllers over repeated destroy/remount and removal', () => {
+  const { dom, w } = setup();
+  try {
+    w.IntersectionObserver = class {
+      observe() {}
+      disconnect() {}
+    };
+    w.Element.prototype.animate = () => ({ cancel() {}, finished: new Promise(() => {}) });
+    w.eval(read('dist/tdb-rendered-progress.js'));
+    w.eval(read('dist/tdb-ticker.js'));
+    w.eval(read('dist/tdb-parallax.js'));
+    const { root, viewport } = carousel(w, 'parallax');
+    const layout = root.parentElement;
+    layout.setAttribute('data-tdb-treatment-layout', '');
+    root.setAttribute('data-tdb-treatment', '');
+    root.setAttribute('data-tdb-treatment-postage', '');
+    root.setAttribute('data-tdb-banner-parallax', 'native');
+    root.setAttribute('data-tdb-treatment-loop', 'false');
+    root.querySelectorAll('.swiper-slide').forEach((slide, i) => {
+      slide.classList.add('tdb-treatment-slide');
+      slide.innerHTML = `<a class="tdb-treatment-source" href="/treatment-${i}" data-tdb-treatment-price-source="${100 + i}"></a>`;
+    });
+    root.insertAdjacentHTML(
+      'beforeend',
+      '<div data-tdb-native-progress><span></span><span></span></div>',
+    );
+    layout.insertAdjacentHTML(
+      'beforeend',
+      `<div data-tdb-treatment-stamps><div class="tdb-treatment-controls"><div class="tdb-treatment-wrapper">${[0, 1, 2].map((i) => `<div class="tdb-treatment-card"><a data-tdb-treatment-stamp href="/treatment-${i}"><h3 class="tdb-treatment-title">T${i}</h3></a></div>`).join('')}</div></div></div><div class="tdb-treatment-cta"><a data-tdb-parallax-cta>Discover</a></div><span data-tdb-treatment-price><span class="tdb-smile-fact-value"></span><span class="tdb-smile-fact-value"></span></span>`,
+    );
+    // Let tickers use their no-animation fallback so this lifecycle assertion is synchronous.
+    layout.querySelectorAll('[data-tdb-treatment-price] span').forEach((node) => {
+      node.animate = undefined;
+    });
+    for (let cycle = 0; cycle < 3; cycle++) {
+      const swiper = w.TDBSwiper.mount('parallax', root);
+      swiper.slideTo(2, 0);
+      assert.equal(
+        layout.querySelector('[data-tdb-treatment-price]').firstElementChild.textContent,
+        'From £102',
+      );
+      assert.equal(
+        layout.querySelector('[data-tdb-parallax-cta]').getAttribute('href'),
+        '/treatment-2',
+      );
+      let tail = 0;
+      swiper.on('beforeDestroy', () => tail++);
+      if (cycle === 2) {
+        layout.remove();
+        w.TDBSwiper.prune();
+      } else swiper.destroy(true, true);
+      assert.equal(tail, 1, 'all destruction callbacks run even when controllers share an event');
+      assert.equal(viewport.swiper, null);
+      assert.equal(root.hasAttribute('data-tdb-slider-init'), false);
+    }
+  } finally {
+    dom.window.close();
+  }
+});

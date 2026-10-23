@@ -15,6 +15,7 @@ window.TDBTreatmentTicker ||= (() => {
     const duration = owner.querySelector('[data-tdb-treatment-duration]');
     const slots = [current, price, duration];
     if (!slots.some(Boolean)) return null;
+    const sliderViewport = root.querySelector(':scope > .swiper');
     const mobile = matchMedia('(max-width: 767px)');
     let swiper,
       mounted = false,
@@ -102,14 +103,14 @@ window.TDBTreatmentTicker ||= (() => {
     }
     function sync() {
       if (disposed) return;
-      const candidate = root.querySelector(':scope > .swiper')?.swiper;
-      if (candidate && candidate !== swiper) {
+      const candidate = sliderViewport?.swiper;
+      if (candidate && !candidate.destroyed && candidate !== swiper) {
         swiper?.off('slideChange', changed);
-        swiper?.off('beforeDestroy', dispose);
+        swiper?.off('beforeDestroy', beforeDestroy);
         swiper = candidate;
         previous = null;
         swiper.on('slideChange', changed);
-        swiper.on('beforeDestroy', dispose);
+        swiper.on('beforeDestroy', beforeDestroy);
         if (mounted) paint(false);
       }
       if (window.TDBNativeTicker) mount();
@@ -123,11 +124,16 @@ window.TDBTreatmentTicker ||= (() => {
           });
       }
     }
-    function dispose() {
+    function beforeDestroy() {
+      dispose(true);
+    }
+    function dispose(fromSwiper = false) {
       if (disposed) return;
       disposed = true;
-      swiper?.off('slideChange', changed);
-      swiper?.off('beforeDestroy', dispose);
+      if (!fromSwiper) {
+        swiper?.off('slideChange', changed);
+        swiper?.off('beforeDestroy', beforeDestroy);
+      }
       mobile.removeEventListener('change', resize);
       tickers.forEach((ticker) => ticker?.destroy());
       instances.delete(root);

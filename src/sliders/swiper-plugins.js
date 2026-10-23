@@ -2,7 +2,7 @@
 // This file is inserted inside TDBSwiper's closure by the custom-engine build.
 const plugins = new Map();
 const pluginInstances = new WeakMap();
-const observedRoots = new WeakMap();
+const observedRoots = new Map();
 
 function create(viewport, options, { bind = true } = {}) {
   const existing = viewport.swiper;
@@ -94,5 +94,12 @@ function refresh(name, root = document) {
 }
 
 function prune() {
+  // A prepared component may be removed before its first viewport entry.
+  for (const [root, observer] of observedRoots) {
+    if (root.isConnected) continue;
+    observer.disconnect();
+    observedRoots.delete(root);
+    root.removeAttribute?.('data-tdb-slider-observed');
+  }
   plugins.forEach((plugin) => plugin.prune?.());
 }
