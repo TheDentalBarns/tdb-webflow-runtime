@@ -26,6 +26,33 @@ test('native review root and authored cards survive hydration, selected review o
  for(const source of t.root.querySelectorAll('[data-tdb-quotes-source]')){assert.equal(source.children.length,0);assert.equal(source.dataset.reviewPlatform,'Google');assert.match(source.style.backgroundImage,/shared-google\.svg/)}
  }finally{t.close()}
 });
+
+test('first quote is visible synchronously while automatic entry is still pending', async () => {
+ const t = await setup();
+ try {
+  const content = t.api.swiper.slides[t.api.swiper.activeIndex].querySelector('[data-tdb-team-content]');
+  assert.equal(t.api.swiper.realIndex, 0);
+  assert.equal(t.root.dataset.tdbSliderFirstView, 'pending');
+  assert(content.classList.contains('is-visible'));
+  assert(!content.classList.contains('is-concealed'));
+  t.api.destroy();
+  assert(!t.root.querySelector('[data-tdb-team-content]').classList.contains('is-concealed'));
+ } finally { t.close(); }
+});
+
+test('manual transitions still conceal and then reveal the newly selected quote', async () => {
+ const t = await setup();
+ try {
+  t.viewport.dispatchEvent(new t.w.KeyboardEvent('keydown', {key:'ArrowRight', bubbles:true}));
+  const content = t.api.swiper.slides[t.api.swiper.activeIndex].querySelector('[data-tdb-team-content]');
+  assert(content.classList.contains('is-concealed'));
+  t.api.swiper.animating = false;
+  t.api.swiper.emit('transitionEnd');
+  await t.flush();
+  assert(content.classList.contains('is-visible'));
+  assert(!content.classList.contains('is-concealed'));
+ } finally { t.close(); }
+});
 test('swipes and inactive duplicates cannot open drawer; keyboard opens active review once',async()=>{
  const t=await setup();try{t.api.swiper.allowClick=false;t.click();await t.flush();assert.equal(t.calls.length,0);t.api.swiper.allowClick=true;
  const inactive=[...t.api.swiper.slides].find((_,i)=>i!==t.api.swiper.activeIndex);inactive.querySelector('[data-tdb-quote-action]').click();await t.flush();assert.equal(t.calls.length,0);

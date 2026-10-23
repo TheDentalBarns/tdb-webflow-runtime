@@ -1,4 +1,4 @@
-/* TDB shared quote carousel v4.0.2. Native layout and shared cancellable entry. */
+/* TDB shared quote carousel v4.0.3. Visible first paint and shared cancellable entry. */
 (function () {
   'use strict';
   // Webflow selects, sorts and renders the actual slides. Do not clone or
@@ -57,6 +57,7 @@
       card.inert = index !== 0;
       card.setAttribute('aria-hidden', String(index !== 0));
       card.querySelector('[data-tdb-team-content]').classList.toggle('is-visible', index === 0);
+      card.querySelector('[data-tdb-team-content]').classList.remove('is-concealed');
     });
     root.querySelector('[data-tdb-team-current]').textContent = '01';
     root
@@ -124,23 +125,29 @@
       const index = swiper.realIndex;
       revealTimer = setTimeout(() => {
         if (!destroyed && !swiper.animating && !gesture && swiper.realIndex === index)
-          copies().forEach((card) =>
-            card.querySelector('[data-tdb-team-content]').classList.add('is-visible'),
-          );
+          reveal(copies());
       }, delay);
     }
     function conceal() {
       clearReveal();
-      contents().forEach((node) => node.classList.remove('is-visible', 'is-entry'));
+      contents().forEach((node) => {
+        node.classList.remove('is-visible', 'is-entry');
+        node.classList.add('is-concealed');
+      });
+    }
+    function reveal(cards, entry = false) {
+      cards.forEach((card) => {
+        const node = card.querySelector('[data-tdb-team-content]');
+        node.classList.remove('is-concealed');
+        node.classList.add('is-visible');
+        if (entry) node.classList.add('is-entry');
+      });
     }
     function start() {
       if (looping) return;
       conceal();
       dd?.enter(authorLines(), { atPosition: true });
-      if (opening)
-        copies().forEach((card) =>
-          card.querySelector('[data-tdb-team-content]').classList.add('is-entry', 'is-visible'),
-        );
+      if (opening) reveal(copies(), true);
     }
     function finish(reason) {
       if (gesture || looping) return;
@@ -203,6 +210,9 @@
     });
     swiper.init();
     updateCount();
+    // Swiper's loop setup can fire transition callbacks during initialization.
+    // Restore the authored visible first slide synchronously, before firstView.
+    reveal(copies(), true);
     window.TDBSwiper.watchDuration(
       root,
       viewport,
@@ -395,7 +405,7 @@
     return instance;
   }
   window.TDBQuoteCarousel = window.TDBTeamQuotes = Object.freeze({
-    version: '4.0.2',
+    version: '4.0.3',
     refresh: init,
     mount,
     isMounted: (root) => mounted.has(root),
