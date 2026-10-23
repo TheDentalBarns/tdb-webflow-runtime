@@ -151,7 +151,7 @@ test('inactive stamps select only; settled active stamps preview then follow the
   }
 });
 
-function edgePointer(f, type, x, y = 100) {
+function edgePointer(f, type, x, y = 100, target = f.viewport) {
   const event = new f.w.Event(type, { bubbles: true, cancelable: true });
   Object.assign(event, {
     button: 0,
@@ -161,8 +161,181 @@ function edgePointer(f, type, x, y = 100) {
     clientX: x,
     clientY: y,
   });
-  f.viewport.dispatchEvent(event);
+  target.dispatchEvent(event);
 }
+
+function finger(f, type, x, y = 100, options = {}) {
+  const target = options.target || f.links[0];
+  const point = { identifier: options.id ?? 0, clientX: x, clientY: y, target };
+  const event = new f.w.Event(type, { bubbles: true, cancelable: options.cancelable ?? true });
+  Object.assign(event, {
+    changedTouches: [point],
+    touches:
+      type === 'touchend' || type === 'touchcancel'
+        ? []
+        : options.multi
+          ? [point, { identifier: 7 }]
+          : [point],
+  });
+  target.dispatchEvent(event);
+  return event;
+}
+
+test('native finger stream continues past pointer cancellation and cancels horizontal browser scrolling early', () => {
+  const f = fixture(6, true, false);
+  try {
+    f.controller.measure();
+    let captures = 0;
+    let holdsFocus;
+    f.w.TDBSliderFocus = {
+      focus: (target, hold) => {
+        holdsFocus = hold;
+      },
+    };
+    f.viewport.setPointerCapture = () => captures++;
+    edgePointer(f, 'pointerdown', 300);
+    finger(f, 'touchstart', 300);
+    f.tick(16);
+    assert.equal(
+      finger(f, 'touchmove', 295).defaultPrevented,
+      true,
+      'first small horizontal move owns scrolling',
+    );
+    edgePointer(f, 'pointercancel', 295);
+    edgePointer(f, 'lostpointercapture', 295);
+    f.tick(16);
+    finger(f, 'touchmove', 270);
+    assert.equal(
+      f.viewport.scrollLeft,
+      30,
+      'pointer cancellation does not terminate the touch sequence',
+    );
+    edgePointer(f, 'pointermove', 220);
+    assert.equal(f.viewport.scrollLeft, 30, 'parallel pointer stream cannot double-write motion');
+    f.tick(16);
+    finger(f, 'touchmove', 250);
+    assert.equal(f.viewport.scrollLeft, 50);
+    assert.equal(captures, 0, 'touch drag never transfers pointer capture');
+    assert.equal(holdsFocus(), true, 'shared slider focus stays held during the native drag');
+    finger(f, 'touchend', 250);
+    assert.equal(holdsFocus(), false, 'release also releases the shared focus hold');
+    f.tick(16);
+    assert.ok(f.viewport.scrollLeft > 50, 'release retains the existing throw');
+    const compatibility = new f.w.MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      detail: 1,
+    });
+    Object.defineProperty(compatibility, 'pointerId', { value: 123 });
+    f.links[2].dispatchEvent(compatibility);
+    assert.equal(compatibility.defaultPrevented, true);
+    assert.equal(f.swiper.realIndex, 0, 'drag click cannot select');
+    f.links[2].click();
+    assert.equal(f.swiper.realIndex, 2, 'keyboard activation is never suppressed');
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('native vertical gestures leave page scrolling available and never select a stamp', () => {
+  const f = fixture(6, true, false);
+  try {
+    f.controller.measure();
+    finger(f, 'touchstart', 300);
+    assert.equal(finger(f, 'touchmove', 299, 125).defaultPrevented, false);
+    assert.equal(
+      finger(f, 'touchmove', 200, 130).defaultPrevented,
+      false,
+      'vertical ownership is not stolen back',
+    );
+    finger(f, 'touchend', 200, 130);
+    assert.equal(f.viewport.scrollLeft, 0);
+    assert.equal(f.swiper.realIndex, 0);
+    assert.equal(f.frames.size, 0);
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('a second finger or native cancellation releases the edge without throw or activation', () => {
+  for (const ending of ['touchstart', 'touchmove', 'touchcancel']) {
+    const f = fixture(6, true, false);
+    try {
+      f.controller.measure();
+      finger(f, 'touchstart', 300);
+      f.tick(16);
+      finger(f, 'touchmove', 400);
+      assert.ok(parseFloat(f.track.style.translate) > 0);
+      const event = finger(f, ending, 400, 100, { multi: true });
+      assert.equal(event.defaultPrevented, false, 'pinch/cancel is not prevented');
+      for (let i = 0; i < 65; i++) f.tick(16);
+      finger(f, 'touchmove', 200);
+      finger(f, 'touchend', 200);
+      assert.equal(f.track.style.translate, '');
+      assert.equal(f.viewport.scrollLeft, 0);
+      assert.equal(f.frames.size, 0);
+      assert.equal(f.swiper.realIndex, 0);
+      finger(f, 'touchstart', 200, 100, { target: f.links[2] });
+      finger(f, 'touchend', 200, 100, { target: f.links[2] });
+      assert.equal(f.swiper.realIndex, 2, 'next independent tap still works');
+    } finally {
+      f.dom.window.close();
+    }
+  }
+});
+
+test('native touch taps preserve selected-stamp confirmation and suppress only the compatibility click', () => {
+  const f = fixture(6, true, false, true);
+  try {
+    f.controller.measure();
+    let followed = 0;
+    f.root.addEventListener('click', (e) => {
+      if (!e.defaultPrevented) followed++;
+      e.preventDefault();
+    });
+    for (let i = 0; i < 2; i++) {
+      edgePointer(f, 'pointerdown', 200, 100, f.links[0]);
+      finger(f, 'touchstart', 200);
+      finger(f, 'touchend', 200);
+      edgePointer(f, 'pointerup', 200);
+      if (i === 0) assert.equal(f.links[0].hasAttribute('data-tdb-stamp-link-ready'), true);
+      const compatibility = new f.w.MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        detail: 1,
+      });
+      Object.defineProperty(compatibility, 'pointerId', { value: 123 });
+      f.links[0].dispatchEvent(compatibility);
+      assert.equal(compatibility.defaultPrevented, true);
+    }
+    assert.equal(followed, 1, 'two taps preview then follow the original CMS link exactly once');
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('uncancellable native scrolling and disposal never leave a second touch writer running', () => {
+  const f = fixture(6, true, false);
+  try {
+    f.controller.measure();
+    finger(f, 'touchstart', 300);
+    finger(f, 'touchmove', 200, 100, { cancelable: false });
+    finger(f, 'touchend', 200);
+    assert.equal(f.viewport.scrollLeft, 0, 'do not fight an already committed browser gesture');
+    assert.equal(f.frames.size, 0);
+    finger(f, 'touchstart', 300);
+    finger(f, 'touchmove', 250);
+    assert.equal(f.viewport.scrollLeft, 50);
+    f.controller.dispose();
+    const event = finger(f, 'touchmove', 200);
+    finger(f, 'touchend', 200);
+    assert.equal(event.defaultPrevented, false, 'non-passive listener is removed on disposal');
+    assert.equal(f.viewport.scrollLeft, 50);
+    assert.equal(f.frames.size, 0);
+  } finally {
+    f.dom.window.close();
+  }
+});
 
 test('both finite edges resist pulls and settle without selecting, oscillating or retaining a frame', () => {
   for (const end of [0, 500]) {
