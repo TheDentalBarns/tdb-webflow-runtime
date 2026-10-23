@@ -47,6 +47,28 @@ function fixture(w) {
   const viewport=root.querySelector('.swiper');Object.defineProperty(viewport,'clientWidth',{value:420});Object.defineProperty(viewport,'clientHeight',{value:680});
   return {root,viewport};
 }
+test('unchanged shared-gallery hover does not repaint every slide; summary and exit still close it', async()=>{
+  const {dom,w}=setup();
+  try {
+    w.TDBSmileFeed={presentation:()=>({facts:()=>['price','duration','clinician'],update(){},fade(){},open(){},overSummary:e=>e.clientY>500})};
+    w.eval(read('dist/tdb-swiper-8.4.7.min.js'));
+    w.eval(read('dist/tdb-gallery.js'));
+    const {root}=fixture(w), api=w.TDBSmileCards.prepare(root);
+    await flush();
+    const card=root.querySelector('.tdb-smile-card');
+    pointer(w,card,'pointerover');
+    const observer=new w.MutationObserver(()=>{});
+    observer.observe(root,{subtree:true,attributes:true});
+    for(let i=0;i<100;i++) pointer(w,card,'pointermove');
+    assert.equal(observer.takeRecords().length,0,'same-owner mouse movement performs no DOM writes');
+    pointer(w,card,'pointermove',{clientY:600});
+    assert.equal(card.getAttribute('aria-expanded'),'false');
+    pointer(w,card,'pointermove'); assert.equal(card.getAttribute('aria-expanded'),'true');
+    pointer(w,card,'pointerout'); assert.equal(card.getAttribute('aria-expanded'),'false');
+    observer.disconnect(); api.destroy();
+  } finally {dom.window.close();}
+});
+
 test('Gallery settlement keeps directional delays and waits for snap-back to finish',async()=>{
   const {dom,w}=setup();
   try {

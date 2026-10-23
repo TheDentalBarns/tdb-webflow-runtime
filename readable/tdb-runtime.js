@@ -63,6 +63,8 @@ const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.c
   }
   function settle() {
     clearTimeout(timer);
+    timer = 0;
+    if (!allowed() || ![...watches].some((watch) => !watch.done && watch.visible.size)) return;
     timer = setTimeout(() => {
       timer = 0;
       if (!allowed()) return;
@@ -78,21 +80,72 @@ const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.c
   }
   function refresh(watch) {
     if (watch.done || !watches.has(watch)) return;
+    const matches = new Set(watch.root.querySelectorAll(watch.selector));
     for (const [node, owners] of targets) {
-      if (!node.isConnected) {
-        for (const owner of owners) owner.visible.delete(node);
+      if (owners.has(watch) && !matches.has(node)) {
+        owners.delete(watch);
+        watch.visible.delete(node);
+      }
+      if (!owners.size) {
         observer?.unobserve(node);
         targets.delete(node);
       }
     }
-    for (const node of watch.root.querySelectorAll(watch.selector)) {
-      let owners = targets.get(node);
-      if (!owners) {
-        owners = new Set();
-        targets.set(node, owners);
-        observer?.observe(node);
+    for (const node of matches) observe(watch, node);
+  }
+  function observe(watch, node) {
+    let owners = targets.get(node);
+    if (!owners) {
+      owners = new Set();
+      targets.set(node, owners);
+      observer?.observe(node);
+    }
+    owners.add(watch);
+  }
+  function discover(records) {
+    const added = new Set();
+    let removed = false;
+    for (const record of records) {
+      for (const node of record.addedNodes) if (node.nodeType === 1) added.add(node);
+      if ([...record.removedNodes].some((node) => node.nodeType === 1)) removed = true;
+    }
+    if (!added.size && !removed) return;
+    // Nested additions in the same delivery need only one subtree scan.
+    const roots = [...added].filter(
+      (node) =>
+        node.isConnected && ![...added].some((parent) => parent !== node && parent.contains(node)),
+    );
+    for (const watch of watches) {
+      if (watch.done) continue;
+      // Structural/sibling selectors can change matches outside the inserted
+      // subtree. Keep the complete query for those public-API cases.
+      if (/[:+~]/.test(watch.selector)) {
+        refresh(watch);
+        continue;
       }
-      owners.add(watch);
+      if (removed) {
+        for (const [node, owners] of targets) {
+          if (
+            owners.has(watch) &&
+            (!node.isConnected || !watch.root.contains(node) || !node.matches(watch.selector))
+          ) {
+            owners.delete(watch);
+            watch.visible.delete(node);
+            if (!owners.size) {
+              observer?.unobserve(node);
+              targets.delete(node);
+            }
+          }
+        }
+      }
+      for (const node of roots) {
+        if (node === watch.root || node.contains(watch.root)) {
+          refresh(watch);
+        } else if (watch.root.contains(node)) {
+          if (node.matches(watch.selector)) observe(watch, node);
+          for (const match of node.querySelectorAll(watch.selector)) observe(watch, match);
+        }
+      }
     }
   }
   function start() {
@@ -113,6 +166,7 @@ const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.c
     const intent = (event) => {
       if (event.type === 'pointerover' && event.pointerType === 'touch') return;
       for (const watch of watches) {
+        if (watch.done) continue;
         const node = event.target.closest?.(watch.selector);
         if (node && watch.root.contains(node)) prepare(watch, node);
       }
@@ -144,14 +198,7 @@ const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.c
         { signal: events.signal },
       );
     document.addEventListener('visibilitychange', settle, { signal: events.signal });
-    mutations = new MutationObserver((records) => {
-      if (
-        records.some((record) =>
-          [...record.addedNodes, ...record.removedNodes].some((node) => node.nodeType === 1),
-        )
-      )
-        for (const watch of watches) refresh(watch);
-    });
+    mutations = new MutationObserver(discover);
     mutations.observe(document.body, { childList: true, subtree: true });
     unsubscribe = window.TDBConsent?.subscribe(() => {
       if (!allowed())
@@ -197,7 +244,7 @@ const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.c
     return Object.freeze({ refresh: () => refresh(watch), destroy });
   }
   window.TDBFeatureLoading = Object.freeze({
-    version: '1.0.0',
+    version: '1.1.0',
     embedMargin,
     settledMs,
     watchIntent,

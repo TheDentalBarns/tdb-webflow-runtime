@@ -39,7 +39,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.8.0';
+  const VERSION = '0.8.1';
   const mobileQuery = matchMedia('(max-width:767px)');
   const desktopQuery = matchMedia('(min-width:768px)');
   const drawer = document.getElementById('tdb-vip-drawer');
@@ -106,6 +106,18 @@
   let releaseScroll = null;
   let opening = null;
   let openIntent = 0;
+  // Only a live drawer needs cancelable document input. Retain its nested
+  // consent exception, and release the guard with the shared scroll lease.
+  function guardScroll(event) {
+    if (state === 2 && !nestedConsentOpen() && !drawer.contains(event.target))
+      event.preventDefault();
+  }
+  function guardInput(active) {
+    for (const type of ['wheel', 'touchmove']) {
+      if (active) document.addEventListener(type, guardScroll, { passive: false, capture: true });
+      else document.removeEventListener(type, guardScroll, true);
+    }
+  }
 
   const pageY = () => Math.max(scrollY, html.scrollTop, 0);
 
@@ -202,6 +214,7 @@
     openedFromNativeMenu = false;
     releaseScroll?.();
     releaseScroll = null;
+    guardInput(false);
     drawer.style.setProperty('--tdb-vip-visual-top', '0px');
     drawer.classList.remove('is-peeking', 'is-open', 'is-closing');
     handle.setAttribute('aria-expanded', 'false');
@@ -263,6 +276,7 @@
     // The native mobile menu can still own a lock. Register this drawer as an
     // allowed scroller and keep its own lease until the closing motion settles.
     releaseScroll ||= window.TDBScrollLock?.acquire({ allow: () => [drawer] });
+    guardInput(true);
     drawer.scrollTop = 0;
 
     if (mobileQuery.matches) {
@@ -401,7 +415,7 @@
     body.addEventListener(eventName, (event) => event.stopPropagation(), { passive: true }),
   );
   ['touchmove', 'wheel'].forEach((eventName) =>
-    body.addEventListener(eventName, (event) => event.stopPropagation(), { passive: false }),
+    body.addEventListener(eventName, (event) => event.stopPropagation(), { passive: true }),
   );
 
   drawer.addEventListener(
@@ -504,17 +518,6 @@
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && (state === 2 || opening) && !nestedConsentOpen()) closeDrawer();
   });
-
-  ['wheel', 'touchmove'].forEach((eventName) =>
-    document.addEventListener(
-      eventName,
-      (event) => {
-        if (state === 2 && !nestedConsentOpen() && !drawer.contains(event.target))
-          event.preventDefault();
-      },
-      { passive: false, capture: true },
-    ),
-  );
 
   addEventListener('hashchange', routeVipHash);
 

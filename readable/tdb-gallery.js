@@ -38,7 +38,7 @@
   let i;
   const n = ['price', 'duration', 'clinician'];
   window.TDBSmileCards = Object.freeze({
-    version: '4.1.2',
+    version: '4.1.3',
     prepare: function (r) {
       if (
         !r.matches('[data-tdb-smile-slider]') ||
@@ -116,6 +116,11 @@
       function j() {
         ((M = null), K());
       }
+      function hover(owner) {
+        if (owner === M) return;
+        M = owner;
+        K();
+      }
       const z = (e) => {
           r.contains(e.target) || j();
         },
@@ -125,12 +130,12 @@
             const t = P(e.target);
             W(t) &&
               !y &&
-              ((M =
+              hover(
                 B.matches &&
-                (e.target.closest('.tdb-smile-summary-ready') || shared?.overSummary(e))
+                  (e.target.closest('.tdb-smile-summary-ready') || shared?.overSummary(e))
                   ? null
-                  : t),
-              K());
+                  : t,
+              );
           },
           pointerout: (e) => {
             if (e.pointerType && 'mouse' !== e.pointerType) return;
@@ -154,8 +159,7 @@
               !y &&
               W(P(e.target))
             ) {
-              M = shared.overSummary(e) ? null : P(e.target);
-              K();
+              hover(shared.overSummary(e) ? null : P(e.target));
             }
           },
           pointercancel: j,

@@ -184,10 +184,10 @@
         "src/smile-gallery/explore-count.js",
         "src/sliders/gallery-plugin.js"
       ],
-      "sha256": "77d2f0436b519746f7170feb48d6dfd8dd2be88c1f7b786e36757cd8ae13eb84",
-      "raw": 16728,
-      "gzip": 5859,
-      "brotli": 5226
+      "sha256": "0dcc73ceb3fee5c6b3975b9ad0a4bc285626d7259691b11fa6629fd8c25285b6",
+      "raw": 16749,
+      "gzip": 5876,
+      "brotli": 5253
     },
     "dist/tdb-hold-audio.js": {
       "sources": [
@@ -341,10 +341,10 @@
         "src/sliders/treatment-plugin.js",
         "src/sliders/parallax-plugin.js"
       ],
-      "sha256": "c10cd390f2be4f4599ca75c4ed8b49c0d166c8fee382867d8f48156a4fdba2f1",
-      "raw": 39667,
-      "gzip": 12170,
-      "brotli": 10966
+      "sha256": "6364fa244a61a0ef6c907059086fd6b4bceb416af1bc6d0473d8af1c9157e89a",
+      "raw": 40039,
+      "gzip": 12312,
+      "brotli": 11127
     },
     "dist/tdb-partner-card.js": {
       "sources": [
@@ -538,10 +538,10 @@
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "5787578cddbce2ae5bada838306454174c40901c47ed17dd27b1816ee6cb34b5",
-      "raw": 68696,
-      "gzip": 18594,
-      "brotli": 16324
+      "sha256": "85d5c6325bff7f20a116acea8f830e5ef1e7787d315856ec4da62b99ccccc242",
+      "raw": 69385,
+      "gzip": 18798,
+      "brotli": 16502
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -661,10 +661,10 @@
         "src/shared/panel-motion.js",
         "src/vip-drawer/vip-drawer.js"
       ],
-      "sha256": "bd5a01ce242e3ab24e548c8ec778f5270fc4119fa6f88ee4142da9f91877d1b4",
-      "raw": 9271,
-      "gzip": 3371,
-      "brotli": 2939
+      "sha256": "3f2f391cb30dfc6408ffec64a933f139610aba662aeb9f3bb1119f6e7b5c2c24",
+      "raw": 9358,
+      "gzip": 3411,
+      "brotli": 2990
     },
     "dist/tdb-vip-form.js": {
       "sources": [

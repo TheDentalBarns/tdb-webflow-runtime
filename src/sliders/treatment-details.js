@@ -18,6 +18,7 @@ window.TDBTreatmentDetails ||= (() => {
       disposed = false;
     const colors = new Map();
     function rebuild(slides) {
+      if (disposed) return;
       if (slides.length === sources.length && slides.every((s, i) => s.node === sources[i])) return;
       sources = slides.map((s) => s.node);
       colors.forEach((a) => a.cancel());
@@ -39,26 +40,34 @@ window.TDBTreatmentDetails ||= (() => {
           node,
           title: node.querySelector('.tdb-treatment-title'),
           copy: node.querySelector('[data-tdb-service-copy]'),
+          sourceCopy: slide.node.querySelector('[data-tdb-copy-state],[data-tdb-service-copy]'),
           active: null,
         };
       });
       track.replaceChildren(...rows.filter(Boolean).map((r) => r.node));
     }
-    function paint(slides) {
-      if (disposed || !slides.length) return;
+    function measure(slides, rect = (node) => node.getBoundingClientRect()) {
+      if (disposed || !slides.length) return null;
       rebuild(slides);
-      const origin = viewport.getBoundingClientRect().left;
+      const origin = rect(viewport).left;
       // Batch all layout reads before writes; use rendered (not target) positions.
-      const boxes = slides.map((s) => s.node.getBoundingClientRect());
+      const boxes = slides.map((s) => rect(s.node));
       const states = slides.map((s, i) => {
         const active = s.node.classList.contains('swiper-slide-active');
         const row = rows[i];
+        if (row && (!row.sourceCopy || !s.node.contains(row.sourceCopy)))
+          row.sourceCopy = s.node.querySelector('[data-tdb-copy-state],[data-tdb-service-copy]');
         return {
           active,
-          copy: s.node.querySelector('[data-tdb-copy-state],[data-tdb-service-copy]'),
+          copy: row?.sourceCopy,
           color: row?.title && row.active !== active ? getComputedStyle(row.title).color : null,
         };
       });
+      return { origin, boxes, states };
+    }
+    function paint(slides, snapshot) {
+      if (disposed || !slides.length) return;
+      const { origin, boxes, states } = snapshot || measure(slides);
       const transform = `translate3d(${boxes[0].left - origin}px,0,0)`;
       if (transform !== lastTransform) track.style.transform = lastTransform = transform;
       rows.forEach((row, i) => {
@@ -109,7 +118,7 @@ window.TDBTreatmentDetails ||= (() => {
       track.replaceChildren(...originals);
       instances.delete(root);
     }
-    const api = { paint, dispose };
+    const api = { sync: rebuild, measure, paint, dispose };
     instances.set(root, api);
     return api;
   }

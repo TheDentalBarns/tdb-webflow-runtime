@@ -131,3 +131,42 @@ test('unchanged progress samples do not invalidate every detail row again', () =
     f.dom.window.close();
   }
 });
+
+test('progress and detail rows share one rendered measurement per slide before style writes', () => {
+  const f=fixture();
+  try {
+    const {w,d,root,slides}=f;
+    const viewport=d.createElement('div'), track=d.createElement('div'), progress=d.createElement('div');
+    viewport.className='swiper'; track.className='swiper-wrapper'; viewport.append(track);
+    progress.setAttribute('data-tdb-native-progress',''); progress.innerHTML='<span></span><span></span>';
+    root.append(viewport,progress);
+    for(const slide of slides) {slide.node.classList.add('swiper-slide');slide.node.dataset.swiperSlideIndex=String(slide.value);track.append(slide.node);}
+    let paint;
+    w.TDBRenderedProgress={observe(options){paint=options.paint;return {schedule(){},pause(){},destroy(){}};}};
+    w.IntersectionObserver=class {observe(){}disconnect(){}};
+    w.ResizeObserver=class {observe(){}disconnect(){}};
+    viewport.getBoundingClientRect=()=>({left:30,width:500,bottom:600});
+    progress.getBoundingClientRect=()=>({width:500});
+    w.eval(fs.readFileSync('src/sliders/parallax-progress.js','utf8'));
+    w.TDBParallaxProgress.refresh(); paint();
+    const observer=new w.MutationObserver(()=>{});
+    observer.observe(root.closest('[data-tdb-treatment-layout]'),{subtree:true,attributes:true});
+    let readsAfterWrites=0;
+    const counts=new Map();
+    const nodes=[viewport,d.querySelector('.tdb-treatment-viewport'),...slides.map(s=>s.node)];
+    for(const node of nodes) {
+      const rect=node.getBoundingClientRect.bind(node);
+      node.getBoundingClientRect=()=>{
+        if(observer.takeRecords().length) readsAfterWrites++;
+        counts.set(node,(counts.get(node)||0)+1);
+        const box=rect();return {...box,left:box.left-15,right:box.right-15};
+      };
+    }
+    paint();
+    assert.equal(readsAfterWrites,0);
+    for(const node of nodes) assert.equal(counts.get(node),1,'geometry is sampled only once');
+    assert.match(progress.firstElementChild.style.transform,/translateX/);
+    assert.equal(d.querySelector('.tdb-treatment-wrapper').style.transform,'translate3d(-250px,0,0)');
+    observer.disconnect();
+  } finally {f.dom.window.close();}
+});
