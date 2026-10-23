@@ -59,6 +59,35 @@ function setup(code = source) {
   return { w, dom, wrapper, frame, prepare, flush, scroll, queue };
 }
 
+test('heading-driven glass fade starts at 50vh, finishes at 20vh and reverses on scroll', () => {
+  const e = setup();
+  e.wrapper.setAttribute('data-tdb-parallax-mode', 'opacity');
+  const heading = e.w.document.createElement('h2');
+  heading.setAttribute('data-tdb-scroll-blur-trigger', '');
+  heading.getBoundingClientRect = () => ({ top: 600 - e.w.scrollY, height: 100 });
+  const glass = e.w.document.createElement('div');
+  glass.setAttribute('data-tdb-scroll-blur', '');
+  glass.setAttribute('data-tdb-blur-start', '0.5');
+  glass.setAttribute('data-tdb-blur-end', '0.2');
+  e.wrapper.append(heading, glass);
+  const owner = e.w.TDBMotion.pageBreaks([e.wrapper]);
+  e.scroll(200);
+  assert.equal(glass.style.opacity, '0');
+  e.scroll(335);
+  assert.equal(Number(glass.style.opacity), 0.5);
+  e.scroll(470);
+  assert.equal(glass.style.opacity, '1');
+  e.scroll(200);
+  assert.equal(glass.style.opacity, '0');
+  e.w.innerHeight = 1200;
+  owner.refresh(); e.flush();
+  assert.ok(Math.abs(Number(glass.style.opacity) - 150 / 360) < 0.0001);
+  assert.equal(e.queue.size, 0, 'scroll effect does not run a perpetual clock');
+  owner.destroy();
+  assert.equal(glass.style.opacity, '', 'destroy restores the Designer opacity');
+  e.dom.window.close();
+});
+
 test('vertical motion preserves horizontal transforms, stays within the crop and leaves controls alone', () => {
   const e = setup(),
     photos = [...e.wrapper.querySelectorAll('img')];

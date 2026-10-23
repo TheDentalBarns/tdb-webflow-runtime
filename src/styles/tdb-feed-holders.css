@@ -31,3 +31,6 @@ img:is(.tdb-ig-holding-icon,.tdb-smile-holding-icon,.tdb-review-holding-icon){op
 
 /* Designer shows native mask assets; the published runtime releases them at proximity. */
 [data-tdb-native-holder-icon]{-webkit-mask-image:linear-gradient(transparent,transparent);mask-image:linear-gradient(transparent,transparent)}
+
+/* Park the native progress bar until the existing lazy carousel borrows it. */
+[data-tdb-review-placeholder]>.tdb-review-embed-progress{visibility:hidden}

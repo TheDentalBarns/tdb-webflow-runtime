@@ -329,8 +329,15 @@
         { signal },
       );
     }
-    const progress = $('[data-tdb-cards-progress]'),
+    // The authored bar stays in Designer's holder between lazy mounts. Borrow
+    // the real nodes for the active footer; the shared sampler still owns travel.
+    const progressHost = root.closest('[data-tdb-review-placeholder]'),
+      nativeProgress = progressHost?.querySelector(':scope > .tdb-review-embed-progress'),
+      fallbackProgress = $('[data-tdb-cards-progress]');
+    if (nativeProgress) fallbackProgress.replaceWith(nativeProgress);
+    const progress = nativeProgress || fallbackProgress,
       marker = progress?.firstElementChild;
+    const originalMarkerStyle = marker?.getAttribute('style');
     let progressVisible = false,
       lastProgress = '',
       lastSegment = '',
@@ -577,6 +584,12 @@
       destroy() {
         finishEntry(false);
         progressSampler.destroy();
+        if (nativeProgress) {
+          nativeProgress.replaceWith(fallbackProgress);
+          progressHost.append(nativeProgress);
+          if (originalMarkerStyle === null) marker.removeAttribute('style');
+          else marker.setAttribute('style', originalMarkerStyle);
+        }
         hide();
         phase = 'destroyed';
         controller.abort();

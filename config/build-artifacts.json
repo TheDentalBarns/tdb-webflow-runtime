@@ -301,10 +301,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "039089dd7c6970ac31b11a081c7b6907beea31490111e6dd26832e1ef4af2423",
-      "raw": 24676,
-      "gzip": 8561,
-      "brotli": 7785
+      "sha256": "86dabaca64e5769a6c085206be2cd1417175ba49f36384f72eeff50b69113d09",
+      "raw": 25371,
+      "gzip": 8758,
+      "brotli": 7974
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -395,10 +395,10 @@
       "sources": [
         "src/reviews/native/cards.js"
       ],
-      "sha256": "6ce568953c0f3afb12ee20e8b3ee47f866f3e9c8e57119f27788eb207e0cd228",
-      "raw": 15199,
-      "gzip": 5188,
-      "brotli": 4585
+      "sha256": "6ff311af3890e4c20b384475820f81c889d78d2adce71eec06c9fe0fef5f05e2",
+      "raw": 15478,
+      "gzip": 5297,
+      "brotli": 4688
     },
     "dist/tdb-review-cms.js": {
       "sources": [

@@ -8,6 +8,8 @@ const card=i=>`<article class="tdb-review-cards_slide" data-review-id="r-${i}"><
 test('appends measure only new bodies; a resize during movement is applied on settle',async()=>{
  const dom=new JSDOM(`<section data-tdb-review-cards><div data-tdb-cards-viewport style="padding-left:0px;padding-right:0px"><div data-tdb-cards-track>${Array.from({length:8},(_,i)=>card(i+1)).join('')}</div></div><p data-tdb-cards-status></p><nav data-tdb-cards-navigation><span data-tdb-cards-current></span><span data-tdb-cards-total></span><a data-tdb-cards-prev></a><a data-tdb-cards-next></a><span data-tdb-cards-progress><span></span></span></nav></section>`,{url:'https://fixture.test/',runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window,root=w.document.querySelector('section'),track=root.querySelector('[data-tdb-cards-track]'),viewport=root.querySelector('[data-tdb-cards-viewport]');
+ const holder=w.document.createElement('div');holder.setAttribute('data-tdb-review-placeholder','');root.before(holder);holder.append(root);
+ const nativeBar=w.document.createElement('div');nativeBar.className='tdb-review-embed-progress';nativeBar.setAttribute('data-tdb-cards-progress','');nativeBar.innerHTML='<span></span>';holder.append(nativeBar);
  const measurements=new Map(),resizes=[];let bodyHeight=125,swiper,settled,opened;
  class Observer{constructor(fn){this.fn=fn;}observe(){}disconnect(){this.disconnected=true;}}
  w.IntersectionObserver=Observer;w.ResizeObserver=class extends Observer{constructor(fn){super(fn);resizes.push(this);}};
@@ -27,6 +29,8 @@ test('appends measure only new bodies; a resize during movement is applied on se
  w.eval(source);
  const records=Array.from({length:32},(_,i)=>({id:`r-${i+1}`,name:`Reviewer ${i+1}`,excerpt:`Excerpt ${i+1}`,text:`Body ${i+1}`,displayDate:'17 July 2024',rating:5,platform:'Google',excerpts:{}}));
  const api=w.TDBReviewCards.mount(root,{records,total:32,hasMore:false},{openReviews:async args=>{opened=args.reviewId;}});
+ assert.equal(root.querySelector('[data-tdb-cards-progress]'),nativeBar,'borrows the authored Designer bar');
+ assert.equal(holder.querySelectorAll('[data-tdb-cards-progress]').length,1,'no duplicate progress bar');
  const initial=[...root.querySelectorAll('[data-cards-render="text"]')],next=root.querySelector('[data-tdb-cards-next]');
  const drain=()=>new Promise(resolve=>setImmediate(resolve));
  try{
@@ -37,5 +41,6 @@ test('appends measure only new bodies; a resize during movement is applied on se
   swiper.animating=true;bodyHeight=145;resizes[0].fn();assert(initial.every(n=>measurements.get(n)===1));
   swiper.animating=false;settled('programmatic');assert(initial.every(n=>measurements.get(n)===2));assert([...root.querySelectorAll('.tdb-review-cards_body-preview')].every(n=>n.style.maxHeight==='140px'));
   api.destroy();assert.equal(track.children.length,8);assert.equal(root.querySelectorAll('.tdb-review-cards_body-preview').length,0);assert(resizes[0].disconnected);
+  assert.equal(nativeBar.parentElement,holder,'native bar survives lazy content disposal');assert.equal(nativeBar.firstElementChild.getAttribute('style'),null);
  }finally{dom.window.close();}
 });
