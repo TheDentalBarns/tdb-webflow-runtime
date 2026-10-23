@@ -10,6 +10,7 @@ const content = '<section id="video" class="vimeo-player" data-vimeo-player-init
 const hero = '<section id="video" data-vimeo-hero-shell><button data-vimeo-control="play">Play</button></section>';
 const accept = {action:'accept',categories:['strict','functionality']};
 const reject = {action:'reject',categories:['strict']};
+const compactHero = '<section id="video" data-vimeo-hero-shell><button type="button" data-vimeo-controls-layer data-tdb-hero-toggle data-vimeo-control="play" aria-label="Play background video"><span aria-hidden="true"></span></button><div data-vimeo-player-init data-vimeo-hero-init data-vimeo-video-id="123" data-vimeo-autoplay="false"><iframe class="vimeo-bg__iframe"></iframe></div></section>';
 function fixture({choice, markup=content, sharedReady=true, native=false}={}) {
   const dom = new JSDOM('<!doctype html><html><head><link data-tdb-ui-css rel="stylesheet" media="all" href="https://cdn.test/dist/tdb-ui.css"></head><body>'+markup+(native?read('src/consent/banner.html'):'')+'</body></html>',{url:'https://dentalbarns.webflow.io/',runScripts:'outside-only',pretendToBeVisual:true});
   const w=dom.window, d=w.document, observers=[], calls=[], warnings=[];
@@ -156,4 +157,34 @@ test('the deployed analytics policy is retained and retired Elfsight is never re
   for(const marker of ['data-tdb-ga-js','data-tdb-intellimize-js','data-tdb-meta-js'])assert.equal(f.d.querySelectorAll('['+marker+']').length,1);
   f.w.dispatchEvent(new f.w.Event('CookieScriptLoaded'));f.w.dispatchEvent(new f.w.Event('CookieScriptAcceptAll'));
   assert.equal(f.d.querySelectorAll('[data-tdb-ga-js]').length,1);assert.equal(f.find('data-tdb-elfsight-js'),null);f.close();
+});
+
+test('compact hero toggles play/pause, reflects buffering and retains consent withdrawal',async()=>{
+ const f=fixture({choice:accept,markup:compactHero});
+ try {
+  await tick();f.complete('data-tdb-vimeo-loader');await tick();f.near();f.loadedStyle(f.find('data-tdb-vimeo-css'));await tick();
+  const players=[];
+  class Player {
+   constructor(){this.events={};this.plays=0;this.pauses=0;players.push(this)}
+   ready(){return Promise.resolve()} on(n,fn){this.events[n]=fn} off(){}
+   setMuted(){return Promise.resolve()} play(){this.plays++;this.events.play?.();return Promise.resolve()}
+   pause(){this.pauses++;this.events.pause?.();return Promise.resolve()}
+  }
+  f.w.Vimeo={Player};f.complete('data-vimeo-controller-js');await tick();
+  const button=f.d.querySelector('[data-tdb-hero-toggle]'),shell=f.d.querySelector('#video');
+  button.click();await tick();await tick();
+  assert.equal(players[0].plays,1);assert.equal(shell.dataset.vimeoUi,'playing');assert.equal(button.getAttribute('aria-label'),'Pause background video');
+  players[0].events.bufferstart();assert.equal(button.getAttribute('aria-busy'),'true');
+  players[0].events.bufferend();assert.equal(button.getAttribute('aria-busy'),'false');
+  button.click();await tick();assert(players[0].pauses>0);assert.equal(button.getAttribute('aria-label'),'Play background video');assert.equal(shell.dataset.vimeoPulse,'true');
+  button.click();await tick();await tick();assert.equal(players[0].plays,2);
+  f.choiceChange(reject,'CookieScriptReject');await tick();assert.equal(button.getAttribute('aria-label'),'Play background video');
+  button.click();await tick();assert.equal(players[0].plays,2);assert(f.calls.includes('settings'));
+  assert.equal(button.childElementCount,1);
+ }finally{f.close()}
+});
+
+test('compact hero requests consent before fetching Vimeo and resets cancelled feedback',async()=>{
+ const f=fixture({choice:reject,markup:compactHero});
+ try{await tick();const button=f.d.querySelector('[data-tdb-hero-toggle]');button.click();assert.deepEqual(f.assets(),[]);assert.equal(button.getAttribute('aria-busy'),'true');assert.equal(f.d.querySelector('#video').dataset.vimeoUi,'awaiting-consent');f.w.dispatchEvent(new f.w.Event('CookieScriptClose'));assert.equal(button.getAttribute('aria-busy'),'false');assert.equal(f.d.querySelector('#video').dataset.vimeoUi,'idle')}finally{f.close()}
 });

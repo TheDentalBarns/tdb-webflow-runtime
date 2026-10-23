@@ -311,6 +311,12 @@
 
     function restartPulse(shell) {
       const layer = getControlsLayer(shell);
+      if (layer?.hasAttribute('data-tdb-hero-toggle')) {
+        layer.style.setProperty('--tdb-hero-pulse', 'none');
+        void layer.offsetWidth;
+        layer.style.removeProperty('--tdb-hero-pulse');
+        return;
+      }
       const pulse = layer ? layer.querySelector('.vimeo-player__btn-pulse') : null;
       if (!pulse) return;
 
@@ -442,6 +448,19 @@
       setAttrIfChanged(shell, 'data-vimeo-ui', state.ui);
       setAttrIfChanged(shell, 'data-vimeo-buffering', state.buffering ? 'true' : 'false');
       setAttrIfChanged(shell, 'data-vimeo-pulse', nextPulse ? 'true' : 'false');
+      const toggle = shell.querySelector('[data-tdb-hero-toggle]');
+      if (toggle) {
+        setAttrIfChanged(
+          toggle,
+          'aria-label',
+          state.ui === 'playing' ? 'Pause background video' : 'Play background video',
+        );
+        setAttrIfChanged(
+          toggle,
+          'aria-busy',
+          state.ui === 'loading' || state.ui === 'awaiting-consent' || state.buffering,
+        );
+      }
 
       if (nextPulse && !prevPulse) {
         restartPulse(shell);
@@ -882,7 +901,10 @@
       const controlsLayer = getControlsLayer(shell);
       if (!controlsLayer) return;
 
-      const playBtn = controlsLayer.querySelector('[data-vimeo-control="play"]');
+      const compact = controlsLayer.hasAttribute('data-tdb-hero-toggle');
+      const playBtn = compact
+        ? controlsLayer
+        : controlsLayer.querySelector('[data-vimeo-control="play"]');
       const pauseBtn = controlsLayer.querySelector('[data-vimeo-control="pause"]');
 
       if (playBtn) {
@@ -893,7 +915,9 @@
           if (!activePlayer) return;
 
           attachHeroToShell(activePlayer, shell);
-          playHero(activePlayer, { manual: true });
+          if (compact && ensureHeroState(activePlayer).ui === 'playing')
+            pauseHero(activePlayer, true);
+          else playHero(activePlayer, { manual: true });
         });
       }
 

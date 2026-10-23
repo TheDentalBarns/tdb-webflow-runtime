@@ -640,10 +640,10 @@
       "sources": [
         "src/components/vimeo.js"
       ],
-      "sha256": "7b70f2a315ac7692f82a259f5c03c947f6aed9b2612469448e474b10feb027dc",
-      "raw": 19403,
-      "gzip": 5415,
-      "brotli": 4810
+      "sha256": "efb86ffacb20632455aa0fcfbb0615ba874c13cb276a9996bb5cee652238dc14",
+      "raw": 19857,
+      "gzip": 5569,
+      "brotli": 4947
     },
     "dist/tdb-vip-content.js": {
       "sources": [
