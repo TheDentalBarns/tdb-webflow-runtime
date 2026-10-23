@@ -647,19 +647,10 @@
             1,
           )
         : progress;
-      const blurBox = state.scrollBlur ? frame.rect(state.scrollBlur.trigger) : null;
       return {
         low,
         high,
         progress,
-        blur: blurBox
-          ? clamp(
-              (state.scrollBlur.start * view - (blurBox.top + blurBox.height / 2)) /
-                Math.max(1, (state.scrollBlur.start - state.scrollBlur.end) * view),
-              0,
-              1,
-            )
-          : 0,
         target: from + (to - from) * progress,
         alpha: state.curve
           ? curveAt(state.curve, fadeProgress)
@@ -760,21 +751,10 @@
             state.revealAlpha = 1;
           }
           state.progress = g.progress;
-          // Release the image filter when its section leaves the viewport.
-          state.blurAlpha = reduced.matches || !g.visible ? 0 : g.blur;
           state.visible = g.visible;
           if (g.visible || userScroll) state.restored = false;
         }
         for (const state of states) {
-          if (state.scrollBlur) {
-            // Filter only the authored photo, never the backdrop behind a
-            // sticky layer. The maximum blur remains a Designer variable.
-            const filter = state.blurAlpha > 0
-              ? `blur(calc(var(--effects--blur) * ${state.blurAlpha.toFixed(4)}))`
-              : state.scrollBlur.original;
-            if (state.scrollBlur.node.style.filter !== filter)
-              state.scrollBlur.node.style.filter = filter;
-          }
           const value = `translate3d(0, ${state.y.toFixed(4)}px, 0)`;
           if (state.translate) {
             const translation = `0px ${state.y.toFixed(4)}px`;
@@ -892,12 +872,6 @@
         revealOut > 0
           ? [revealIn, revealOut, Number.isFinite(revealEnd) && revealEnd >= 0 ? revealEnd : 0]
           : null;
-      const blurNode = !translate && wrapper.closest('[data-tdb-home-photo-parallax]')
-        ? wrapper.querySelector('img[data-tdb-scroll-blur="photo"]')
-        : null,
-        blurTrigger = blurNode && wrapper.querySelector('[data-tdb-scroll-blur-trigger]');
-      const blurStart = Number.parseFloat(blurNode?.getAttribute('data-tdb-blur-start')),
-        blurEnd = Number.parseFloat(blurNode?.getAttribute('data-tdb-blur-end'));
       const state = {
         key: input,
         wrapper,
@@ -909,16 +883,6 @@
         targets: [],
         originalTranslations: new Map(),
         opacityOnly,
-        scrollBlur:
-          blurTrigger && blurStart > blurEnd && blurStart <= 1 && blurEnd >= 0
-            ? {
-                node: blurNode,
-                trigger: blurTrigger,
-                start: blurStart,
-                end: blurEnd,
-                original: blurNode.style.filter,
-              }
-            : null,
         reveal,
         revealAlpha: reveal
           ? clamp(Number.parseFloat(getComputedStyle(node).opacity) || 0, 0, 1)
@@ -1020,7 +984,6 @@
         for (const [node, original] of state.originalTranslations) node.style.translate = original;
       } else if (!state.opacityOnly) state.node.style.transform = state.original;
       if (state.reveal) state.node.style.opacity = state.originalImageOpacity;
-      if (state.scrollBlur) state.scrollBlur.node.style.filter = state.scrollBlur.original;
       state.fadeTargets.forEach((target, i) => {
         target.style[state.fadeProperties[i]] = state.originalOpacity[i];
       });
