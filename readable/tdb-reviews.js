@@ -1,3 +1,39 @@
+/* Keep the shared quotation artwork in the native reading flow between slides. */
+(() => {
+  'use strict';
+  window.TDBReviewQuoteMark = Object.freeze({
+    mount(mark, overlay) {
+      const originalParent = mark.parentNode;
+      const originalTranslate = mark.style.translate;
+      const originalReading = mark.classList.contains('is-reading');
+      const originalStationary = mark.classList.contains('is-stationary');
+      function park(offset = 0) {
+        if (mark.parentNode !== overlay) overlay.append(mark);
+        mark.classList.remove('is-reading');
+        mark.classList.add('is-stationary');
+        mark.style.translate = offset ? `0px ${-offset}px` : originalTranslate;
+      }
+      return {
+        park,
+        attach(slide) {
+          const slot = slide?.querySelector('.tdb-review-drawer_mark-space');
+          if (!slot) return;
+          if (mark.parentNode !== slot) slot.append(mark);
+          mark.classList.remove('is-stationary');
+          mark.classList.add('is-reading');
+          mark.style.translate = originalTranslate;
+        },
+        destroy() {
+          originalParent.append(mark);
+          mark.classList.toggle('is-reading', originalReading);
+          mark.classList.toggle('is-stationary', originalStationary);
+          mark.style.translate = originalTranslate;
+        },
+      };
+    },
+  });
+})();
+
 /* TDB native reviews v3.14.1. Shared selection policy and settlement; native choreography. */
 (() => {
   'use strict';
@@ -153,25 +189,24 @@
       filterActions,
     ].filter(Boolean);
     let landscape = false;
-    const originalMarkTranslate = mark.style.translate;
+    const quoteMark = window.TDBReviewQuoteMark.mount(mark, staticLayer);
     let markScrollTop = 0;
-    // Keep the SVG in its native overlay. Reparenting it out of the moving
-    // card on first touch invalidates both rendering layers on mobile.
-    // Native styles still own its geometry; only the reading offset is runtime.
-    if (mark.parentNode !== staticLayer) staticLayer.append(mark);
-    mark.classList.add('is-stationary');
     const readingFooter = $('.tdb-review-drawer_footer');
     const readingScroll = () => reading.scroll();
-    function syncMarkScroll() {
+    function parkMark() {
       markScrollTop = readingScroll()?.scrollTop || 0;
-      const translate =
-        landscape || !markScrollTop ? originalMarkTranslate : '0px ' + -markScrollTop + 'px';
-      if (mark.style.translate !== translate) mark.style.translate = translate;
+      quoteMark.park(landscape ? 0 : markScrollTop);
     }
+    function syncMarkPlacement() {
+      if (phase === 'settled') quoteMark.attach(swiper?.slides[swiper.activeIndex]);
+      else parkMark();
+    }
+    // Ordinary vertical reading uses the browser's own scroll layer. Only an
+    // in-flight horizontal transition needs the stationary overlay offset.
     root.addEventListener(
       'scroll',
       (event) => {
-        if (event.target === readingScroll() && phase !== 'closed') syncMarkScroll();
+        if (event.target === readingScroll() && phase === 'moving') parkMark();
       },
       { capture: true, passive: true, signal },
     );
@@ -195,7 +230,7 @@
         landscape = value;
         placeFilterClose(true);
       },
-      onRestore: syncMarkScroll,
+      onRestore: syncMarkPlacement,
     });
     const captureReadingAnchor = reading.capture,
       applyReadingAnchor = reading.apply;
@@ -646,6 +681,7 @@
       if (!swiper || destroyed || phase === 'closed' || phase === 'opening') return;
       captureReadingAnchor();
       hideQuote();
+      parkMark();
       phase = 'moving';
       if (readingScroll()?.scrollTop > 0) fades.to(mark, 0, fadeTime());
     }
@@ -677,11 +713,11 @@
       reflect();
       if (settledSlide !== active && markScrollTop > (readingScroll()?.scrollTop || 0))
         fades.to(mark, 0, 0);
-      syncMarkScroll();
       for (const item of swiper.slides)
         if (item !== active) item.querySelector('[data-tdb-review-scroll]').scrollTop = 0;
       settledSlide = active;
       phase = 'settled';
+      quoteMark.attach(active);
       const show = () => {
         revealTimer = 0;
         if (destroyed || phase !== 'settled' || swiper.slides[swiper.activeIndex] !== active)
@@ -751,6 +787,7 @@
       );
       phase = 'opening';
       hideQuote();
+      parkMark();
       settledSlide = null;
       fades.to(mark, 1, 0);
       if (swiper) swiper.slideTo(index, 0);
@@ -881,6 +918,7 @@
       reading.clear();
       const wasOpen = phase !== 'closed';
       hideQuote();
+      parkMark();
       swiper?.destroy(true, true);
       swiper = null;
       records.splice(0, records.length, ...chosen);
@@ -1161,7 +1199,7 @@
         ctrl.abort();
         clearTimeout(revealTimer);
         fades.destroy();
-        mark.style.translate = originalMarkTranslate;
+        quoteMark.destroy();
         swiper?.destroy(true, true);
         track.style.transitionTimingFunction = originalEasing;
         ticker.destroy();

@@ -358,19 +358,19 @@
       "sources": [
         "src/team-quotes/team-quotes.js"
       ],
-      "sha256": "29ba17533dcfa31352c65631880bae75670663e6d067e7950b8ed4785d9c9d79",
-      "raw": 7655,
-      "gzip": 2929,
-      "brotli": 2578
+      "sha256": "632349c7414a5d0428ede731103627362338f2bce936f93b7275f8b0061ec9b4",
+      "raw": 7789,
+      "gzip": 2976,
+      "brotli": 2623
     },
     "dist/tdb-quote-carousel.min.js": {
       "sources": [
         "src/team-quotes/team-quotes.js"
       ],
-      "sha256": "29ba17533dcfa31352c65631880bae75670663e6d067e7950b8ed4785d9c9d79",
-      "raw": 7655,
-      "gzip": 2929,
-      "brotli": 2578
+      "sha256": "632349c7414a5d0428ede731103627362338f2bce936f93b7275f8b0061ec9b4",
+      "raw": 7789,
+      "gzip": 2976,
+      "brotli": 2623
     },
     "dist/tdb-rendered-progress.js": {
       "sources": [
@@ -495,12 +495,13 @@
     },
     "dist/tdb-reviews.js": {
       "sources": [
+        "src/reviews/native/quote-mark.js",
         "src/reviews/native/drawer-content.js"
       ],
-      "sha256": "86f59898f00b15acc5c24c9bd8fbb38be7715d1ad3700e0330a48a2ade9a82b8",
-      "raw": 19226,
-      "gzip": 6940,
-      "brotli": 6232
+      "sha256": "9cee6db08cae814356c55d33819f09669482ca66e0568e802ae81a0a11cc9bc2",
+      "raw": 19860,
+      "gzip": 7086,
+      "brotli": 6375
     },
     "dist/tdb-runtime.js": {
       "sources": [

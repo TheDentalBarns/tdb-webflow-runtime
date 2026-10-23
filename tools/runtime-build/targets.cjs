@@ -139,7 +139,10 @@ module.exports = {
     'src/sliders/parallax-plugin.js',
   ],
   'dist/tdb-reviews-loader.js': ['src/reviews/native/loader.js'],
-  'dist/tdb-reviews.js': ['src/reviews/native/drawer-content.js'],
+  'dist/tdb-reviews.js': [
+    'src/reviews/native/quote-mark.js',
+    'src/reviews/native/drawer-content.js',
+  ],
   'dist/tdb-review-cards.js': ['src/reviews/native/cards.js'],
   'dist/tdb-vip-form.js': ['src/forms/forms.js', 'src/forms/vip-form.js'],
   'dist/tdb-forms.min.js': ['src/forms/forms.js'],
