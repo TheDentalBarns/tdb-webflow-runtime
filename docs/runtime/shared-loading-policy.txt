@@ -1,0 +1,52 @@
+Shared feature preparation policy — 23 October 2026
+
+Preparation and activation are separate responsibilities.
+
+In-page content
+- TDBFeatureLoading.embedMargin is 1200px 0px. Instagram (legacy native and
+  deferred JSON), Smile feed, native review content, review archive enhancement,
+  and the shared gallery/parallax dependency and arrow-style loaders consume it.
+- Standalone loaders use the same value as a fallback if the runtime policy is
+  absent. The review archive retains its existing explicit-filter-intent gate.
+- Deferred Instagram and Smile prepare code, CSS and entry-image decoding in
+  parallel. Only the existing two entry images are predecoded. Their native
+  image windows still govern subsequent image requests.
+- Once a deferred feed passes preparation, it mounts without another proximity
+  wait. Actual first-view entrance and active/visible animation gates remain.
+
+Additional panels
+- watchIntent defaults to kind: panel. USP, review and VIP drawers prepare when
+  an eligible trigger is within 700px, or on pointer/focus intent. Scrolling
+  need not stop. Preparation never calls open().
+- VIP still requires announcement readiness; its existing calling-banner
+  preparation and direct activation paths remain.
+- The partner-logo popover explicitly uses kind: popover. It retains visible
+  proximity and the existing 200ms scroll-settle delay, or immediate intent.
+- Watches share one observer per kind, delegated intent listeners, mutation
+  discovery and retry policy. Completed watches stop observing; cancellation,
+  consent withdrawal and dynamic trigger discovery remain supported.
+
+Separate activation rules
+Video/audio playback, generic tooltip code, lazy decorative icons, form code,
+scroll effects and the actual carousel first-view/animation observers retain
+their own existing rules. They are not interchangeable with content fetching.
+No global eager loading, effect-duration changes or CSS changes are introduced.
+
+Smile information reveal correction
+Swiper reports settlement on a stationary tap as well as a swipe. The shared
+Smile presentation now avoids restarting visible text on a stationary tap.
+Native and JSON galleries both retain directional and snap-back fade delays.
+An interrupted pending reveal is rearmed so text cannot remain hidden.
+
+Validation
+Regression tests exercise shared preparation, consent and teardown, independent
+observer ownership, dynamic triggers, concurrent entry-image/asset preparation,
+no second proximity wait, and tap versus real movement/pending-reveal behaviour.
+Tests use controlled DOM and dependency fixtures; their durations are not
+measurements of user-device performance.
+
+Trade-off
+Earlier proximity means nearby features may download even if someone turns
+around before reaching them. This bounded preparation window trades a small
+amount of speculative work for less visible waiting; it does not fetch every
+page feature immediately. Confirm perceived readiness on real mobile hardware.

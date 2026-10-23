@@ -2,13 +2,14 @@
 (() => {
   'use strict';
   if (window.TDBFeatureLoading) return;
-  const embedMargin = '700px 0px',
+  const embedMargin = '1200px 0px',
+    panelMargin = '700px 0px',
     settledMs = 200,
     retryMs = 5000;
   const watches = new Set(),
     targets = new Map();
-  let observer,
-    mutations,
+  const observers = new Map();
+  let mutations,
     events,
     unsubscribe,
     timer = 0,
@@ -20,13 +21,16 @@
     !node.closest('[hidden],[inert],.w-condition-invisible') &&
     !node.matches(':disabled,[aria-disabled="true"]') &&
     getComputedStyle(node).visibility !== 'hidden';
+  function detach(watch, node, owners) {
+    owners.delete(watch);
+    watch.visible.delete(node);
+    if (![...owners].some((owner) => owner.kind === watch.kind))
+      observers.get(watch.kind)?.unobserve(node);
+    if (!owners.size) targets.delete(node);
+  }
   function unobserve(watch) {
     for (const [node, owners] of targets) {
-      owners.delete(watch);
-      if (!owners.size) {
-        observer?.unobserve(node);
-        targets.delete(node);
-      }
+      if (owners.has(watch)) detach(watch, node, owners);
     }
     watch.visible.clear();
   }
@@ -61,7 +65,11 @@
   function settle() {
     clearTimeout(timer);
     timer = 0;
-    if (!allowed() || ![...watches].some((watch) => !watch.done && watch.visible.size)) return;
+    if (
+      !allowed() ||
+      ![...watches].some((watch) => watch.kind === 'popover' && !watch.done && watch.visible.size)
+    )
+      return;
     timer = setTimeout(() => {
       timer = 0;
       if (!allowed()) return;
@@ -70,22 +78,26 @@
         return;
       }
       for (const watch of watches) {
+        if (watch.kind !== 'popover') continue;
         const node = [...watch.visible].find(usable);
         if (node) prepare(watch, node);
       }
     }, settledMs);
+  }
+  function prepareNearby() {
+    if (!allowed()) return;
+    for (const watch of watches) {
+      if (watch.kind !== 'panel' || watch.done || watch.flight) continue;
+      const node = [...watch.visible].find(usable);
+      if (node) prepare(watch, node);
+    }
   }
   function refresh(watch) {
     if (watch.done || !watches.has(watch)) return;
     const matches = new Set(watch.root.querySelectorAll(watch.selector));
     for (const [node, owners] of targets) {
       if (owners.has(watch) && !matches.has(node)) {
-        owners.delete(watch);
-        watch.visible.delete(node);
-      }
-      if (!owners.size) {
-        observer?.unobserve(node);
-        targets.delete(node);
+        detach(watch, node, owners);
       }
     }
     for (const node of matches) observe(watch, node);
@@ -95,9 +107,33 @@
     if (!owners) {
       owners = new Set();
       targets.set(node, owners);
-      observer?.observe(node);
     }
+    const peers = [...owners].filter((owner) => owner.kind === watch.kind);
+    const needsObserver = !peers.length;
+    if (peers.some((owner) => owner.visible.has(node))) watch.visible.add(node);
     owners.add(watch);
+    if (needsObserver) observerFor(watch.kind)?.observe(node);
+  }
+  function observerFor(kind) {
+    if (!('IntersectionObserver' in window)) return null;
+    if (!observers.has(kind))
+      observers.set(
+        kind,
+        new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries)
+              for (const watch of targets.get(entry.target) || []) {
+                if (watch.kind !== kind) continue;
+                if (entry.isIntersecting) watch.visible.add(entry.target);
+                else watch.visible.delete(entry.target);
+              }
+            if (kind === 'panel') prepareNearby();
+            else settle();
+          },
+          { rootMargin: kind === 'panel' ? panelMargin : '0px', threshold: 0 },
+        ),
+      );
+    return observers.get(kind);
   }
   function discover(records) {
     const added = new Set();
@@ -126,12 +162,7 @@
             owners.has(watch) &&
             (!node.isConnected || !watch.root.contains(node) || !node.matches(watch.selector))
           ) {
-            owners.delete(watch);
-            watch.visible.delete(node);
-            if (!owners.size) {
-              observer?.unobserve(node);
-              targets.delete(node);
-            }
+            detach(watch, node, owners);
           }
         }
       }
@@ -148,18 +179,6 @@
   function start() {
     if (events) return;
     events = new AbortController();
-    if ('IntersectionObserver' in window)
-      observer = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries)
-            for (const watch of targets.get(entry.target) || []) {
-              if (entry.isIntersecting) watch.visible.add(entry.target);
-              else watch.visible.delete(entry.target);
-            }
-          settle();
-        },
-        { rootMargin: '0px', threshold: 0 },
-      );
     const intent = (event) => {
       if (event.type === 'pointerover' && event.pointerType === 'touch') return;
       for (const watch of watches) {
@@ -190,11 +209,19 @@
             watch.retryAt = 0;
             refresh(watch);
           }
+          prepareNearby();
           settle();
         },
         { signal: events.signal },
       );
-    document.addEventListener('visibilitychange', settle, { signal: events.signal });
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        prepareNearby();
+        settle();
+      },
+      { signal: events.signal },
+    );
     mutations = new MutationObserver(discover);
     mutations.observe(document.body, { childList: true, subtree: true });
     unsubscribe = window.TDBConsent?.subscribe(() => {
@@ -203,21 +230,32 @@
           watch.done = false;
           refresh(watch);
         }
+      prepareNearby();
       settle();
     });
   }
   function stop() {
     if (watches.size) return;
     clearTimeout(timer);
-    observer?.disconnect();
+    for (const observer of observers.values()) observer.disconnect();
+    observers.clear();
     mutations?.disconnect();
     events?.abort();
     unsubscribe?.();
-    observer = mutations = events = unsubscribe = null;
+    mutations = events = unsubscribe = null;
     targets.clear();
   }
-  function watchIntent({ selector, root = document, prepare: work, enabled = () => true, signal }) {
+  function watchIntent({
+    selector,
+    root = document,
+    prepare: work,
+    enabled = () => true,
+    signal,
+    kind = 'panel',
+  }) {
+    if (!['panel', 'popover'].includes(kind)) throw Error('Unknown preparation kind: ' + kind);
     const watch = {
+      kind,
       selector,
       root,
       prepare: work,
@@ -236,13 +274,23 @@
       watches.add(watch);
       start();
       refresh(watch);
+      prepareNearby();
+      settle();
       signal?.addEventListener('abort', destroy, { once: true });
     }
-    return Object.freeze({ refresh: () => refresh(watch), destroy });
+    return Object.freeze({
+      refresh: () => {
+        refresh(watch);
+        prepareNearby();
+        settle();
+      },
+      destroy,
+    });
   }
   window.TDBFeatureLoading = Object.freeze({
-    version: '1.1.0',
+    version: '1.2.0',
     embedMargin,
+    panelMargin,
     settledMs,
     watchIntent,
   });

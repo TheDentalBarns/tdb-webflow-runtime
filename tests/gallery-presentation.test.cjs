@@ -91,6 +91,39 @@ test('Gallery settlement keeps directional delays and waits for snap-back to fin
     let cleanup=0;s.on('beforeDestroy',()=>cleanup++);s.emit('beforeDestroy');assert.equal(cleanup,1);api.destroy();
   } finally {dom.window.close();}
 });
+for (const shared of [false,true]) test((shared?'feed':'native')+' tap opens details without restarting visible labels; interrupted swipes still reveal',async()=>{
+  const {dom,w}=setup();
+  try {
+    const fades=[];
+    if(shared)w.TDBSmileFeed={presentation:()=>({facts:()=>['price','duration','clinician'],update(){},fade(visible,moving){fades.push([visible,moving]);},open(){}})};
+    w.eval(read('dist/tdb-swiper-8.4.7.min.js'));w.eval(read('dist/tdb-gallery.js'));
+    const {root}=fixture(w),events=new Map(),timers=new Map();let serial=0;
+    const s={slides:[...root.querySelectorAll('.swiper-slide')],activeIndex:0,realIndex:0,previousIndex:0,animating:false,
+      on(name,fn){if(!events.has(name))events.set(name,[]);events.get(name).push(fn);},
+      off(name,fn){const list=events.get(name)||[],index=list.indexOf(fn);if(index>=0)list.splice(index,1);},
+      emit(name){(events.get(name)||[]).forEach(fn=>fn());}};
+    w.setTimeout=(fn)=>{timers.set(++serial,fn);return serial;};w.clearTimeout=id=>timers.delete(id);
+    const finish=()=>{const work=[...timers.values()];timers.clear();work.forEach(fn=>fn());};
+    const api=w.TDBSmileCards.prepare(root);api.bind(s);await flush();finish();
+    s.emit('touchEnd');await flush();finish();
+    const treatment=root.querySelector('.tdb-smile-treatments'),card=root.querySelector('.tdb-smile-card');
+    assert(treatment.classList.contains('is-visible'));fades.length=0;
+    for(const expanded of ['true','false']){
+      s.emit('touchStart');pointer(w,card,'pointerdown',{pointerType:'touch'});
+      s.emit('touchEnd');pointer(w,card,'click',{pointerType:'touch',detail:1});await flush();
+      assert.equal(card.getAttribute('aria-expanded'),expanded);
+      assert(treatment.classList.contains('is-visible'));assert(!treatment.classList.contains('is-moving'));
+      assert.equal(timers.size,0);assert.equal(fades.length,0);
+    }
+    s.emit('touchStart');s.emit('sliderMove');assert(!treatment.classList.contains('is-visible'));
+    s.emit('touchEnd');await flush();assert(timers.size>0);
+    // A tap can interrupt a scheduled reveal: it must be rearmed, not stranded.
+    s.emit('touchStart');assert.equal(timers.size,0);s.emit('touchEnd');await flush();finish();
+    assert(treatment.classList.contains('is-visible'));assert(!treatment.classList.contains('is-moving'));
+    api.destroy();
+  } finally {dom.window.close();}
+});
+
 test('Gallery preserves CMS values through loop copies, rapid navigation, sorting, destroy and remount',async()=>{
   const {dom,w,animations}=setup();
   try {

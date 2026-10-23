@@ -42,9 +42,9 @@ test('teardown removes the hydrated copy and restores the unchanged fallback/sou
  const e=setup();await e.prepare();e.w.TDBInstagramDeferred.destroy();assert.equal(e.holder.children.length,1);assert.equal(e.holder.dataset.igState,undefined);
  assert.ok(e.d.querySelector('template').content.querySelector('[data-ig-class]'));e.close();
 });
-test('starter waits for permission and 700px 0px proximity before deferred feature request',async()=>{
+test('starter waits for permission and 1200px 0px proximity before deferred feature request',async()=>{
  const e=setup({allowed:false});e.w.eval(starter+';prepareInstagramFeatureLoader()');await tick();assert.equal(e.loads.length,0);
- e.permit(true);await tick();assert.equal(e.loads.length,0);const observer=e.observers.find(o=>o.config.rootMargin==='700px 0px');
+ e.permit(true);await tick();assert.equal(e.loads.length,0);const observer=e.observers.find(o=>o.config.rootMargin==='1200px 0px');
  observer.fn([{target:e.holder,isIntersecting:true}]);await tick();assert.ok(e.loads.some(x=>x.url.endsWith('tdb-instagram-deferred.js')));assert.equal(e.holder.dataset.igState,'ready');e.close();
 });
 test('entry and destination images decode before the native entry sequence mounts',async()=>{
@@ -100,4 +100,30 @@ test('bad feed response, stale data and invalid post links retain the Instagram 
 test('feed endpoint cannot send a request to another origin',async()=>{
  const e=setup(),f=useFeed(e);e.holder.setAttribute('data-tdb-ig-feed','https://other.example/tdb-content/v1/instagram.json');
  await e.prepare();assert.equal(f.requests.length,0);assert.equal(e.mounts(),0);e.close();
+});
+
+test('entry photos decode while code and styles are pending; reveal still waits for all',async()=>{
+ let releaseAssets;const e=setup({gate:new Promise(r=>releaseAssets=r)}),f=useFeed(e);
+ let dependencies=0,preparedOption;
+ e.w.TDBInstagramNative.prepare=async()=>{dependencies++;};
+ const refresh=e.w.TDBInstagramNative.refresh;
+ e.w.TDBInstagramNative.refresh=(root,options)=>{preparedOption=options;refresh(root);};
+ try {
+  const flight=e.prepare();await tick();
+  assert.equal(f.preloads.length,2);assert.equal(dependencies,0);assert.equal(e.mounts(),0);
+  assert.equal(e.holder.children.length,1);
+  releaseAssets();await flight;
+  assert.equal(dependencies,1);assert.equal(e.mounts(),1);assert.equal(preparedOption.prepared,true);
+ }finally{e.close();}
+});
+
+test('carousel dependencies prepare while entry images are still decoding',async()=>{
+ const e=setup();useFeed(e);let release,dependencies=0;
+ const gate=new Promise(r=>release=r);
+ e.w.Image=function(){const img=e.d.createElement('img');Object.defineProperties(img,{complete:{value:true},naturalWidth:{value:1}});img.decode=()=>gate;return img;};
+ e.w.TDBInstagramNative.prepare=async()=>{dependencies++;};
+ try {
+  const flight=e.prepare();await tick();assert.equal(dependencies,1);assert.equal(e.mounts(),0);
+  release();await flight;assert.equal(e.mounts(),1);
+ }finally{e.close();}
 });

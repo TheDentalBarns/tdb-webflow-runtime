@@ -19,7 +19,7 @@ function prepareSmileFeatureLoader() {
               }
             refresh();
           },
-          { rootMargin: window.TDBFeatureLoading?.embedMargin || '700px 0px' },
+          { rootMargin: window.TDBFeatureLoading?.embedMargin || '1200px 0px' },
         )
       : null;
   function refresh() {

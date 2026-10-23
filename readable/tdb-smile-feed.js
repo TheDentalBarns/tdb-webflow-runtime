@@ -296,22 +296,29 @@
     holder.setAttribute('aria-busy', 'true');
     record.flight = (async () => {
       const [payload] = await Promise.all([
-        readFeed(holder.getAttribute('data-tdb-smile-feed'), signal),
+        readFeed(holder.getAttribute('data-tdb-smile-feed'), signal).then(async (payload) => {
+          check(holder, signal);
+          // Match the other deferred feed: only entry images, parallel with assets.
+          await Promise.all(
+            payload.cases.slice(0, 2).map((item) => decode(item.image.src, signal)),
+          );
+          return payload;
+        }),
         window.TDBModules.load(new URL('tdb-smile-feed.css', base), {
           type: 'style',
           attribute: 'data-tdb-smile-feed-css',
         }),
+        waitFor(
+          holder,
+          signal,
+          () => Boolean(window.TDBSliderLoader),
+          'tdb:slider-loader-ready',
+        ).then(() => {
+          check(holder, signal);
+          return window.TDBSliderLoader.prepare?.('gallery');
+        }),
       ]);
       check(holder, signal);
-      // Native gallery entry advances from the first to the second card.
-      await Promise.all(payload.cases.slice(0, 2).map((item) => decode(item.image.src, signal)));
-      check(holder, signal);
-      await waitFor(
-        holder,
-        signal,
-        () => Boolean(window.TDBSliderLoader),
-        'tdb:slider-loader-ready',
-      );
       const root = build(payload);
       record.root = root;
       holder.append(root);
@@ -324,7 +331,7 @@
       await Promise.all([
         window.TDBSliderLoader.load(root).then(() => {
           check(holder, signal);
-          // The embed already passed its 700px gate. Do not wait for the
+          // The embed already passed its shared preparation gate. Do not wait for the
           // generic carousel's separate 100px mount observer and time out.
           // First-view entrance motion retains its own visibility gate.
           window.TDBSwiper.mount('gallery', root);
@@ -356,7 +363,7 @@
     if (!allowed()) records.forEach((record, holder) => reset(holder, record));
   });
   window.TDBSmileFeed = Object.freeze({
-    version: '1.0.0',
+    version: '1.1.0',
     prepare,
     presentation: (root) => presentations.get(root),
     destroy() {

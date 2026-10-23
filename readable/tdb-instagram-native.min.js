@@ -578,14 +578,18 @@
       throw error;
     }
   }
-  function refresh(scope = document) {
+  function refresh(scope = document, { prepared = false } = {}) {
     if (!allowed()) return;
     const roots = [
       ...(scope instanceof Element && scope.matches('[data-tdb-ig-native]') ? [scope] : []),
       ...scope.querySelectorAll('[data-tdb-ig-native]'),
     ];
     roots.forEach((root) => {
-      if (instances.has(root) || pending.has(root) || root.dataset.tdbIgReady) return;
+      if (instances.has(root) || root.dataset.tdbIgReady) return;
+      if (pending.has(root)) {
+        if (prepared) pending.get(root).start();
+        return;
+      }
       let posts;
       try {
         posts = readPosts(root);
@@ -616,6 +620,7 @@
       const start = () => {
         if (cancelled || started || !allowed()) return;
         started = true;
+        observer?.disconnect();
         recovery = setTimeout(() => {
           if (!cancelled) releaseImages(root);
         }, 15000);
@@ -634,7 +639,10 @@
           })
           .finally(() => state.cancel());
       };
-      if ('IntersectionObserver' in window) {
+      state.start = start;
+      // A deferred feed already passed the shared preparation boundary.
+      // Mount it now; the carousel's first-view gate still owns entrance motion.
+      if (!prepared && 'IntersectionObserver' in window) {
         observer = new IntersectionObserver(
           (entries) => {
             if (entries.some((entry) => entry.isIntersecting)) {
@@ -642,7 +650,7 @@
               start();
             }
           },
-          { rootMargin: window.TDBFeatureLoading?.embedMargin || '700px 0px' },
+          { rootMargin: window.TDBFeatureLoading?.embedMargin || '1200px 0px' },
         );
         observer.observe(root);
       } else start();
@@ -665,6 +673,7 @@
     version: VERSION,
     refresh,
     mount,
+    prepare: ready,
     readPosts,
     imageWindow: IMAGE_WINDOW,
     source: 'visible-webflow-cms',

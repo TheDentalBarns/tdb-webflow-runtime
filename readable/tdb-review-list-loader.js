@@ -126,7 +126,7 @@
               sync();
             }
           },
-          { rootMargin: '700px' },
+          { rootMargin: window.TDBFeatureLoading?.embedMargin || '1200px 0px' },
         )
       : null;
   if (io) io.observe(root.querySelector('[data-tdb-review-cms]') || root);
