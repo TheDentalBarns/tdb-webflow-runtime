@@ -14,6 +14,15 @@ function fixture(file, width = 1440, initialHeight = 1200) {
     </div></div>`,
     {url:'https://dentalbarns.webflow.io/',runScripts:'outside-only',pretendToBeVisual:true});
   const w = dom.window, timers = new Map();
+  const guards=new Map();
+  const add=w.document.addEventListener.bind(w.document), remove=w.document.removeEventListener.bind(w.document);
+  w.document.addEventListener=(type,fn,options)=>{
+    if(['wheel','touchmove'].includes(type) && options?.passive===false) {
+      if(!guards.has(type)) guards.set(type,new Set()); guards.get(type).add(fn);
+    }
+    return add(type,fn,options);
+  };
+  w.document.removeEventListener=(type,fn,options)=>{guards.get(type)?.delete(fn);return remove(type,fn,options);};
   let height = initialHeight, now = 0, id = 0;
   Object.defineProperties(w, {innerWidth:{value:width},innerHeight:{get:()=>height}});
   Object.defineProperty(w.document.documentElement,'clientHeight',{get:()=>height});
@@ -36,7 +45,7 @@ function fixture(file, width = 1440, initialHeight = 1200) {
     }
     now=end;
   }
-  return {w,drawer,tick,resize(value){height=value;w.dispatchEvent(new w.Event('resize'));},
+  return {w,drawer,tick,guardCount:()=>[...guards.values()].reduce((n,set)=>n+set.size,0),resize(value){height=value;w.dispatchEvent(new w.Event('resize'));},
     open(){w.document.getElementById('cta').click();},
     close(){w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape'}));},
     finish(){const e=new w.Event('transitionend');Object.defineProperty(e,'propertyName',{value:'transform'});drawer.dispatchEvent(e);},
@@ -44,6 +53,23 @@ function fixture(file, width = 1440, initialHeight = 1200) {
 }
 
 for (const file of ['dist/tdb-vip-drawer.js']) {
+  test('VIP document scroll guards exist only for an open/closing cycle',()=>{
+    for(const width of [390,1440]) {
+      const f=fixture(file,width);
+      try {
+        assert.equal(f.guardCount(),0);
+        f.open(); assert.equal(f.guardCount(),2);
+        f.open(); assert.equal(f.guardCount(),2,'repeated opening never duplicates guards');
+        const event=new f.w.Event('wheel',{bubbles:true,cancelable:true});
+        f.w.document.body.dispatchEvent(event); assert(event.defaultPrevented);
+        f.close(); assert.equal(f.guardCount(),2,'keep ownership throughout closing');
+        f.finish(); assert.equal(f.guardCount(),0);
+        const closed=new f.w.Event('touchmove',{bubbles:true,cancelable:true});
+        f.w.document.body.dispatchEvent(closed); assert(!closed.defaultPrevented);
+        f.open(); f.close(); f.finish(); assert.equal(f.guardCount(),0);
+      } finally {f.destroy();}
+    }
+  });
   test(file+': releases native lazy artwork only on first open and retains it through closing',()=>{
     for (const width of [1440,390]) {
       const f=fixture(file,width), {w,drawer}=f;

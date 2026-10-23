@@ -1102,6 +1102,7 @@ window.TDBTreatmentDetails ||= (() => {
       disposed = false;
     const colors = new Map();
     function rebuild(slides) {
+      if (disposed) return;
       if (slides.length === sources.length && slides.every((s, i) => s.node === sources[i])) return;
       sources = slides.map((s) => s.node);
       colors.forEach((a) => a.cancel());
@@ -1123,26 +1124,34 @@ window.TDBTreatmentDetails ||= (() => {
           node,
           title: node.querySelector('.tdb-treatment-title'),
           copy: node.querySelector('[data-tdb-service-copy]'),
+          sourceCopy: slide.node.querySelector('[data-tdb-copy-state],[data-tdb-service-copy]'),
           active: null,
         };
       });
       track.replaceChildren(...rows.filter(Boolean).map((r) => r.node));
     }
-    function paint(slides) {
-      if (disposed || !slides.length) return;
+    function measure(slides, rect = (node) => node.getBoundingClientRect()) {
+      if (disposed || !slides.length) return null;
       rebuild(slides);
-      const origin = viewport.getBoundingClientRect().left;
+      const origin = rect(viewport).left;
       // Batch all layout reads before writes; use rendered (not target) positions.
-      const boxes = slides.map((s) => s.node.getBoundingClientRect());
+      const boxes = slides.map((s) => rect(s.node));
       const states = slides.map((s, i) => {
         const active = s.node.classList.contains('swiper-slide-active');
         const row = rows[i];
+        if (row && (!row.sourceCopy || !s.node.contains(row.sourceCopy)))
+          row.sourceCopy = s.node.querySelector('[data-tdb-copy-state],[data-tdb-service-copy]');
         return {
           active,
-          copy: s.node.querySelector('[data-tdb-copy-state],[data-tdb-service-copy]'),
+          copy: row?.sourceCopy,
           color: row?.title && row.active !== active ? getComputedStyle(row.title).color : null,
         };
       });
+      return { origin, boxes, states };
+    }
+    function paint(slides, snapshot) {
+      if (disposed || !slides.length) return;
+      const { origin, boxes, states } = snapshot || measure(slides);
       const transform = `translate3d(${boxes[0].left - origin}px,0,0)`;
       if (transform !== lastTransform) track.style.transform = lastTransform = transform;
       rows.forEach((row, i) => {
@@ -1193,7 +1202,7 @@ window.TDBTreatmentDetails ||= (() => {
       track.replaceChildren(...originals);
       instances.delete(root);
     }
-    const api = { paint, dispose };
+    const api = { sync: rebuild, measure, paint, dispose };
     instances.set(root, api);
     return api;
   }
@@ -1402,7 +1411,16 @@ window.TDBParallaxProgress ||= (() => {
           !v)
         )
           return (e && d.classList.remove('is-ready'), null);
-        const t = n.getBoundingClientRect(),
+        // Reconcile structural changes before sampling rendered geometry. The
+        // progress and details controllers then share each rectangle once.
+        details?.sync(h);
+        const boxes = details ? new Map() : null;
+        const rect = (node) => {
+          if (!boxes) return node.getBoundingClientRect();
+          if (!boxes.has(node)) boxes.set(node, node.getBoundingClientRect());
+          return boxes.get(node);
+        };
+        const t = rect(n),
           a = w
             ? (function (e) {
                 if (
@@ -1440,7 +1458,7 @@ window.TDBParallaxProgress ||= (() => {
         for (; A < S; ) {
           const e = (A + S) >>> 1,
             t = h[e],
-            r = t.node.getBoundingClientRect(),
+            r = rect(t.node),
             n = r.left + (s ? 0 : r.width / 2) - u;
           n < 0 ? ((p = n), (L = t.value), (A = e + 1)) : ((x = n), (E = t.value), (S = e));
         }
@@ -1449,6 +1467,10 @@ window.TDBParallaxProgress ||= (() => {
           C = ((B % v) + v) % v,
           D = v <= 1 ? 0 : C <= v - 1 ? (C * (g - q)) / (v - 1) : g - q + (C - v + 1) * q,
           T = Math.round(D * y) / y;
+        const detailFrame = details?.measure(h, rect);
+        // Stamp alignment reads its scroll bounds; do it before progress/detail
+        // style writes. Detail painting consumes the already measured snapshot.
+        stamps?.paint(C, T, g);
         if (
           (a &&
             ((d.style.top = a.top + 'px'),
@@ -1465,8 +1487,7 @@ window.TDBParallaxProgress ||= (() => {
           ((l.style.transform = `translateX(${T}px)`),
           (c.style.transform = `translateX(${T - g}px)`),
           (m = M));
-        stamps?.paint(C, T, g);
-        details?.paint(h, t);
+        details?.paint(h, detailFrame);
         ticker?.sync();
       },
       enabled: () => u && !p,

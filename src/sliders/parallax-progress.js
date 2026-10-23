@@ -57,7 +57,16 @@ window.TDBParallaxProgress ||= (() => {
           !v)
         )
           return (e && d.classList.remove('is-ready'), null);
-        const t = n.getBoundingClientRect(),
+        // Reconcile structural changes before sampling rendered geometry. The
+        // progress and details controllers then share each rectangle once.
+        details?.sync(h);
+        const boxes = details ? new Map() : null;
+        const rect = (node) => {
+          if (!boxes) return node.getBoundingClientRect();
+          if (!boxes.has(node)) boxes.set(node, node.getBoundingClientRect());
+          return boxes.get(node);
+        };
+        const t = rect(n),
           a = w
             ? (function (e) {
                 if (
@@ -95,7 +104,7 @@ window.TDBParallaxProgress ||= (() => {
         for (; A < S; ) {
           const e = (A + S) >>> 1,
             t = h[e],
-            r = t.node.getBoundingClientRect(),
+            r = rect(t.node),
             n = r.left + (s ? 0 : r.width / 2) - u;
           n < 0 ? ((p = n), (L = t.value), (A = e + 1)) : ((x = n), (E = t.value), (S = e));
         }
@@ -104,6 +113,10 @@ window.TDBParallaxProgress ||= (() => {
           C = ((B % v) + v) % v,
           D = v <= 1 ? 0 : C <= v - 1 ? (C * (g - q)) / (v - 1) : g - q + (C - v + 1) * q,
           T = Math.round(D * y) / y;
+        const detailFrame = details?.measure(h, rect);
+        // Stamp alignment reads its scroll bounds; do it before progress/detail
+        // style writes. Detail painting consumes the already measured snapshot.
+        stamps?.paint(C, T, g);
         if (
           (a &&
             ((d.style.top = a.top + 'px'),
@@ -120,8 +133,7 @@ window.TDBParallaxProgress ||= (() => {
           ((l.style.transform = `translateX(${T}px)`),
           (c.style.transform = `translateX(${T - g}px)`),
           (m = M));
-        stamps?.paint(C, T, g);
-        details?.paint(h, t);
+        details?.paint(h, detailFrame);
         ticker?.sync();
       },
       enabled: () => u && !p,
