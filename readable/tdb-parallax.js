@@ -2,6 +2,7 @@
 window.TDBParallaxPresentation ||= (() => {
   const e = new Set(),
     t = new WeakMap(),
+    layouts = new WeakMap(),
     r = matchMedia('(max-width:767px) and (orientation:portrait)'),
     n = matchMedia('(orientation:landscape)'),
     i = matchMedia('(min-width:992px)'),
@@ -58,8 +59,18 @@ window.TDBParallaxPresentation ||= (() => {
       ((i[t] = n), i.rows.forEach((e) => e.copies.forEach((e) => e.classList.toggle(r, n))));
   }
   const l = matchMedia('(pointer: coarse)');
-  function c(e) {
+  let layoutFrame = 0;
+  function c(e, force = false) {
     const t = n.matches && document.documentElement.classList.contains('tdb-phone-landscape');
+    const layout = t
+      ? 'phone-landscape'
+      : r.matches
+        ? 'portrait'
+        : i.matches
+          ? 'desktop'
+          : 'tablet';
+    if (!force && layouts.get(e) === layout) return;
+    layouts.set(e, layout);
     const nativeTreatmentControls = e.hasAttribute('data-tdb-treatment-postage');
     (e
       .querySelectorAll(
@@ -74,18 +85,16 @@ window.TDBParallaxPresentation ||= (() => {
             ),
         ),
       ),
-      (e.dataset.tdbServiceLayout = t
-        ? 'phone-landscape'
-        : r.matches
-          ? 'portrait'
-          : i.matches
-            ? 'desktop'
-            : 'tablet'));
+      e.dataset.tdbServiceLayout !== layout && (e.dataset.tdbServiceLayout = layout));
   }
   function u() {
+    layoutFrame = 0;
     e.forEach((t) => {
       t.isConnected ? c(t) : e.delete(t);
     });
+  }
+  function scheduleLayout() {
+    if (!layoutFrame) layoutFrame = requestAnimationFrame(u);
   }
   function p() {
     document.querySelectorAll('.tdb-service-parallax,[data-tdb-treatment]').forEach((t) => {
@@ -98,20 +107,32 @@ window.TDBParallaxPresentation ||= (() => {
           once: !0,
         })
       : p(),
-    l.addEventListener('change', u),
-    window.addEventListener('resize', u, {
+    l.addEventListener('change', scheduleLayout),
+    window.addEventListener('resize', scheduleLayout, {
       passive: !0,
     }),
-    window.addEventListener('orientationchange', u),
-    screen.orientation?.addEventListener('change', u),
-    r.addEventListener('change', u),
-    n.addEventListener('change', u),
-    i.addEventListener('change', u),
+    window.addEventListener('orientationchange', scheduleLayout),
+    screen.orientation?.addEventListener('change', scheduleLayout),
+    r.addEventListener('change', scheduleLayout),
+    n.addEventListener('change', scheduleLayout),
+    i.addEventListener('change', scheduleLayout),
     {
+      prune() {
+        for (const root of e)
+          if (!root.isConnected) {
+            e.delete(root);
+            t.delete(root);
+            layouts.delete(root);
+          }
+        if (!e.size && layoutFrame) {
+          cancelAnimationFrame(layoutFrame);
+          layoutFrame = 0;
+        }
+      },
       prepare: function (t) {
         a(t) &&
           (e.add(t),
-          c(t),
+          c(t, true),
           t
             .querySelectorAll(
               '.tdb-service-controls,.tdb-service-cta,.tdb-treatment-controls,.tdb-treatment-cta',
@@ -146,12 +167,13 @@ window.TDBParallaxPresentation ||= (() => {
               ),
           );
         };
-        (c(r),
+        (c(r, true),
           i(),
           n.on('slideChange loopFix resize update', i),
           n.on('beforeDestroy', () => {
             (e.delete(r),
               t.delete(r),
+              layouts.delete(r),
               n.off('slideChange loopFix resize update', i),
               r
                 .querySelectorAll(
@@ -182,7 +204,7 @@ window.TDBParallaxPresentation ||= (() => {
 (() => {
   const e = window.TDBParallaxPresentation;
   window.TDBParallaxControls ||= (() => {
-    const t = new WeakMap(),
+    const t = new Map(),
       r = window.location.pathname.replace(/\/+$/, '') || '/',
       n = '/' === r || '/location' === r,
       i = (e) =>
@@ -190,6 +212,9 @@ window.TDBParallaxPresentation ||= (() => {
         e.classList.contains('tdb-service-parallax') ||
         e.hasAttribute('data-tdb-banner-parallax');
     return {
+      prune() {
+        for (const [root, controller] of t) if (!root.isConnected) controller.dispose();
+      },
       prepare: function (n, a = n.querySelector(':scope > .swiper')) {
         if (!i(n) || !a) return null;
         if (t.has(n)) return t.get(n);
@@ -482,6 +507,7 @@ window.TDBParallaxPresentation ||= (() => {
                 V()));
           }
           function H() {
+            if (x) return;
             ((x = !0),
               t.delete(e),
               g?.off('slideChange', K),
@@ -560,6 +586,7 @@ window.TDBParallaxPresentation ||= (() => {
             (t !== J && k(), (J = t), $());
           }
           return {
+            dispose: H,
             initialIndex: p,
             get skipEntry() {
               return m || A;
@@ -599,6 +626,7 @@ window.TDBTreatmentStamps ||= (() => {
     if (!viewport || !links.length) return null;
     const items = links.map((link) => link.closest('.tdb-treatment-card'));
     const track = items[0].parentElement;
+    const sliderViewport = root.querySelector(':scope > .swiper');
     const mobile = matchMedia('(max-width: 767px)');
     const confirmLinks = strip.getAttribute('data-tdb-stamp-link-mode') === 'confirm';
     let armedIndex = null,
@@ -616,6 +644,8 @@ window.TDBTreatmentStamps ||= (() => {
       suppressClick = false,
       ignoredClick = null;
     let selected = -1;
+    let maxScroll = null,
+      disposed = false;
     let motionFrame = 0,
       returnOffset = 0,
       returnStarted = 0,
@@ -648,6 +678,7 @@ window.TDBTreatmentStamps ||= (() => {
       });
       copies = [];
       looped = enabled;
+      maxScroll = null;
       if (enabled) {
         const copy = (item) => {
           const node = item.cloneNode(true);
@@ -681,9 +712,15 @@ window.TDBTreatmentStamps ||= (() => {
       const next =
         looped && cycle
           ? cycle / 2 + ((((value - cycle / 2) % cycle) + cycle) % cycle)
-          : Math.max(0, Math.min(value, viewport.scrollWidth - viewport.clientWidth));
-      viewport.scrollLeft = next;
+          : Math.max(0, Math.min(value, scrollLimit()));
+      if (viewport.scrollLeft !== next) viewport.scrollLeft = next;
       if (drag) drag.left += next - value;
+    }
+    function scrollLimit() {
+      return (maxScroll ??= Math.max(0, viewport.scrollWidth - viewport.clientWidth));
+    }
+    function invalidate() {
+      maxScroll = null;
     }
     function stopMotion() {
       if (motionFrame) cancelAnimationFrame(motionFrame);
@@ -711,8 +748,7 @@ window.TDBTreatmentStamps ||= (() => {
       else returnOffset = 0;
     }
     function align(value) {
-      if (!looped)
-        value = Math.max(0, Math.min(value, viewport.scrollWidth - viewport.clientWidth));
+      if (!looped) value = Math.max(0, Math.min(value, scrollLimit()));
       targetLeft = value;
       if (returnOffset === null) {
         const difference = viewport.scrollLeft - value;
@@ -782,11 +818,13 @@ window.TDBTreatmentStamps ||= (() => {
       });
     }
     function bind() {
-      const candidate = root.querySelector(':scope > .swiper')?.swiper;
-      if (!candidate || candidate === swiper) return;
+      const candidate = sliderViewport?.swiper;
+      if (disposed || !candidate || candidate.destroyed || candidate === swiper) return;
+      swiper?.off('slideChange', change);
+      swiper?.off('beforeDestroy', beforeDestroy);
       swiper = candidate;
       swiper.on('slideChange', change);
-      swiper.on('beforeDestroy', dispose);
+      swiper.on('beforeDestroy', beforeDestroy);
       selection();
     }
     function change() {
@@ -795,7 +833,10 @@ window.TDBTreatmentStamps ||= (() => {
       selection();
     }
     function measure() {
+      if (disposed) return 0;
       configureLoop();
+      invalidate();
+      scrollLimit();
       bind();
       const first = items[0].getBoundingClientRect();
       width = first.width;
@@ -805,6 +846,7 @@ window.TDBTreatmentStamps ||= (() => {
       return width;
     }
     function paint(index, markerX, trackWidth) {
+      if (disposed) return;
       bind();
       if (!automatic || !offsets.length || drag) return;
       const last = links.length - 1;
@@ -941,6 +983,7 @@ window.TDBTreatmentStamps ||= (() => {
     }
     function down(event) {
       if (event.button !== 0 || event.isPrimary === false) return;
+      invalidate();
       const link = event.target.closest?.('[data-tdb-treatment-stamp]');
       pressState = { link, live: liveStamp(link) };
       stopMotion();
@@ -1045,12 +1088,19 @@ window.TDBTreatmentStamps ||= (() => {
     function key(event) {
       if (event.key === 'Escape') armLink(null);
     }
-    function dispose() {
+    function beforeDestroy() {
+      dispose(true);
+    }
+    function dispose(fromSwiper = false) {
+      if (disposed) return;
+      disposed = true;
       armLink(null);
       stopMotion();
       for (const [type, fn] of listeners) viewport.removeEventListener(type, fn);
-      swiper?.off('slideChange', change);
-      swiper?.off('beforeDestroy', dispose);
+      if (!fromSwiper) {
+        swiper?.off('slideChange', change);
+        swiper?.off('beforeDestroy', beforeDestroy);
+      }
       animations.forEach((animation) => animation.cancel());
       opacityBefore.forEach((opacity, item) => {
         item.style.opacity = opacity;
@@ -1075,7 +1125,7 @@ window.TDBTreatmentStamps ||= (() => {
       ['scroll', normalize],
     ];
     listeners.forEach(([type, fn]) => on(type, fn));
-    const controller = { measure, paint, dispose };
+    const controller = { measure, paint, invalidate, dispose };
     instances.set(root, controller);
     return controller;
   }
@@ -1226,6 +1276,7 @@ window.TDBTreatmentTicker ||= (() => {
     const duration = owner.querySelector('[data-tdb-treatment-duration]');
     const slots = [current, price, duration];
     if (!slots.some(Boolean)) return null;
+    const sliderViewport = root.querySelector(':scope > .swiper');
     const mobile = matchMedia('(max-width: 767px)');
     let swiper,
       mounted = false,
@@ -1313,14 +1364,14 @@ window.TDBTreatmentTicker ||= (() => {
     }
     function sync() {
       if (disposed) return;
-      const candidate = root.querySelector(':scope > .swiper')?.swiper;
-      if (candidate && candidate !== swiper) {
+      const candidate = sliderViewport?.swiper;
+      if (candidate && !candidate.destroyed && candidate !== swiper) {
         swiper?.off('slideChange', changed);
-        swiper?.off('beforeDestroy', dispose);
+        swiper?.off('beforeDestroy', beforeDestroy);
         swiper = candidate;
         previous = null;
         swiper.on('slideChange', changed);
-        swiper.on('beforeDestroy', dispose);
+        swiper.on('beforeDestroy', beforeDestroy);
         if (mounted) paint(false);
       }
       if (window.TDBNativeTicker) mount();
@@ -1334,11 +1385,16 @@ window.TDBTreatmentTicker ||= (() => {
           });
       }
     }
-    function dispose() {
+    function beforeDestroy() {
+      dispose(true);
+    }
+    function dispose(fromSwiper = false) {
       if (disposed) return;
       disposed = true;
-      swiper?.off('slideChange', changed);
-      swiper?.off('beforeDestroy', dispose);
+      if (!fromSwiper) {
+        swiper?.off('slideChange', changed);
+        swiper?.off('beforeDestroy', beforeDestroy);
+      }
       mobile.removeEventListener('change', resize);
       tickers.forEach((ticker) => ticker?.destroy());
       instances.delete(root);
@@ -1355,13 +1411,19 @@ window.TDBTreatmentTicker ||= (() => {
 /* Per-component progress geometry; loaded with the full parallax plugin. */
 window.TDBParallaxProgress ||= (() => {
   const e = '.tdb-service-parallax,[data-tdb-treatment]',
-    t = new WeakMap();
+    selector =
+      e +
+      ',.section_gallery14 .parallax-swiper_component:not(.tdb-banner-parallax),#All-treatments .tdb-banner-parallax',
+    t = new Map();
   function r(r) {
     const n = r.querySelector(':scope > .swiper'),
       i = n?.querySelector(':scope > .swiper-wrapper');
     if (!i) return !1;
     const a = t.get(r);
-    if (a?.wrapper === i) return !0;
+    if (a?.wrapper === i && (!a.swiper || a.swiper === n.swiper)) {
+      a.bind(n.swiper);
+      return !0;
+    }
     a?.dispose();
     const s = r.querySelector(':scope > [data-tdb-native-progress]');
     if (r.matches(e) && (!s || s.children.length < 2)) return !1;
@@ -1389,7 +1451,8 @@ window.TDBParallaxProgress ||= (() => {
       f = !0,
       w = !0,
       g = 0,
-      y = 1;
+      y = 1,
+      swiper = null;
     const x = window.TDBRenderedProgress.observe({
       track: i,
       paint: function () {
@@ -1511,6 +1574,7 @@ window.TDBParallaxProgress ||= (() => {
     }
     const E = new IntersectionObserver(
       (e) => {
+        if (p) return;
         ((u = e.some((e) => e.isIntersecting)), u ? S() : x.pause());
       },
       {
@@ -1521,6 +1585,8 @@ window.TDBParallaxProgress ||= (() => {
       (x.pause(), document.hidden || S());
     }
     function S() {
+      if (p) return;
+      stamps?.invalidate?.();
       ((w = !0), L());
     }
     (E.observe(n), document.addEventListener('visibilitychange', A));
@@ -1536,6 +1602,32 @@ window.TDBParallaxProgress ||= (() => {
       ) || [])
         B.observe(node);
     }
+    function beforeDestroy() {
+      dispose(true);
+    }
+    function bind(candidate) {
+      if (p || !candidate || candidate.destroyed || candidate === swiper) return;
+      swiper = candidate;
+      swiper.on('beforeDestroy', beforeDestroy);
+      ticker?.sync();
+      S();
+    }
+    function dispose(fromSwiper = false) {
+      if (p) return;
+      p = true;
+      if (!fromSwiper) swiper?.off('beforeDestroy', beforeDestroy);
+      E.disconnect();
+      B.disconnect();
+      x.destroy();
+      stamps?.dispose(fromSwiper);
+      details?.dispose();
+      ticker?.dispose(fromSwiper);
+      document.removeEventListener('visibilitychange', A);
+      window.removeEventListener('resize', S);
+      if (s) d.classList.remove('is-ready');
+      else d.remove();
+      t.delete(r);
+    }
     return (
       B.observe(n),
       window.addEventListener('resize', S, {
@@ -1544,29 +1636,29 @@ window.TDBParallaxProgress ||= (() => {
       S(),
       t.set(r, {
         wrapper: i,
-        dispose() {
-          ((p = !0),
-            E.disconnect(),
-            B.disconnect(),
-            x.destroy(),
-            stamps?.dispose(),
-            details?.dispose(),
-            ticker?.dispose(),
-            document.removeEventListener('visibilitychange', A),
-            window.removeEventListener('resize', S),
-            s ? d.classList.remove('is-ready') : d.remove());
+        get swiper() {
+          return swiper;
         },
+        bind,
+        dispose,
       }),
+      bind(n.swiper),
       L(),
       !0
     );
   }
   return {
+    bind(root, swiper) {
+      if (!root.matches(selector) || !window.TDBRenderedProgress) return;
+      if (t.get(root)?.swiper && t.get(root).swiper !== swiper) t.get(root).dispose();
+      if (r(root)) t.get(root).bind(swiper);
+    },
+    prune() {
+      for (const [root, controller] of t) if (!root.isConnected) controller.dispose();
+    },
     refresh: function (t = document) {
-      const n =
-        e +
-        ',.section_gallery14 .parallax-swiper_component:not(.tdb-banner-parallax),#All-treatments .tdb-banner-parallax';
-      (t instanceof Element && t.matches(n) && r(t), t.querySelectorAll?.(n).forEach(r));
+      (t instanceof Element && t.matches(selector) && r(t),
+        t.querySelectorAll?.(selector).forEach(r));
     },
   };
 })();
@@ -1610,7 +1702,7 @@ window.TDBParallaxProgress ||= (() => {
     t = 'data-tdb-slider-init',
     i = '(min-width:768px)',
     a = '(max-width:767px) and (orientation:portrait)';
-  (new Map(), new WeakSet());
+  const mounted = new Map();
   function n(e) {
     return e?.querySelector?.('.swiper') || null;
   }
@@ -1753,6 +1845,8 @@ window.TDBParallaxProgress ||= (() => {
         },
       );
     var S;
+    mounted.set(e, x);
+    x.on('beforeDestroy', () => mounted.delete(e));
     (e.hasAttribute('data-tdb-treatment') &&
       x.on('breakpoint', () => {
         if (!x.initialized || !x.params.loop) return;
@@ -1881,6 +1975,7 @@ window.TDBParallaxProgress ||= (() => {
         window.TDBSwiper.watchDuration(...e);
       })(e, t, x),
       g?.bind(x),
+      window.TDBParallaxProgress?.bind(e, x),
       window.TDBParallax?.bind(e, x),
       (e.hasAttribute('data-tdb-treatment') || e.classList.contains('tdb-service-parallax')) &&
         window.TDBCarouselVisibility.bind(x, {
@@ -2048,6 +2143,16 @@ window.TDBParallaxProgress ||= (() => {
     },
     refresh(e = document) {
       (window.TDBParallax?.refresh(e), window.TDBSwiper.refresh('parallax', e));
+    },
+    prune() {
+      for (const [root, swiper] of mounted) {
+        if (root.isConnected) continue;
+        if (!swiper.destroyed) swiper.destroy(true, true);
+        mounted.delete(root);
+      }
+      window.TDBParallaxProgress?.prune();
+      window.TDBParallaxControls?.prune();
+      window.TDBParallaxPresentation?.prune();
     },
   });
   ((window.TDBParallaxPlugin = m), window.TDBSwiper.register('parallax', m));

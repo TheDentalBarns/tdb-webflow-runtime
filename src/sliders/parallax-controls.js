@@ -2,7 +2,7 @@
 (() => {
   const e = window.TDBParallaxPresentation;
   window.TDBParallaxControls ||= (() => {
-    const t = new WeakMap(),
+    const t = new Map(),
       r = window.location.pathname.replace(/\/+$/, '') || '/',
       n = '/' === r || '/location' === r,
       i = (e) =>
@@ -10,6 +10,9 @@
         e.classList.contains('tdb-service-parallax') ||
         e.hasAttribute('data-tdb-banner-parallax');
     return {
+      prune() {
+        for (const [root, controller] of t) if (!root.isConnected) controller.dispose();
+      },
       prepare: function (n, a = n.querySelector(':scope > .swiper')) {
         if (!i(n) || !a) return null;
         if (t.has(n)) return t.get(n);
@@ -302,6 +305,7 @@
                 V()));
           }
           function H() {
+            if (x) return;
             ((x = !0),
               t.delete(e),
               g?.off('slideChange', K),
@@ -380,6 +384,7 @@
             (t !== J && k(), (J = t), $());
           }
           return {
+            dispose: H,
             initialIndex: p,
             get skipEntry() {
               return m || A;

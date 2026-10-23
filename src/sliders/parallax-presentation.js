@@ -2,6 +2,7 @@
 window.TDBParallaxPresentation ||= (() => {
   const e = new Set(),
     t = new WeakMap(),
+    layouts = new WeakMap(),
     r = matchMedia('(max-width:767px) and (orientation:portrait)'),
     n = matchMedia('(orientation:landscape)'),
     i = matchMedia('(min-width:992px)'),
@@ -58,8 +59,18 @@ window.TDBParallaxPresentation ||= (() => {
       ((i[t] = n), i.rows.forEach((e) => e.copies.forEach((e) => e.classList.toggle(r, n))));
   }
   const l = matchMedia('(pointer: coarse)');
-  function c(e) {
+  let layoutFrame = 0;
+  function c(e, force = false) {
     const t = n.matches && document.documentElement.classList.contains('tdb-phone-landscape');
+    const layout = t
+      ? 'phone-landscape'
+      : r.matches
+        ? 'portrait'
+        : i.matches
+          ? 'desktop'
+          : 'tablet';
+    if (!force && layouts.get(e) === layout) return;
+    layouts.set(e, layout);
     const nativeTreatmentControls = e.hasAttribute('data-tdb-treatment-postage');
     (e
       .querySelectorAll(
@@ -74,18 +85,16 @@ window.TDBParallaxPresentation ||= (() => {
             ),
         ),
       ),
-      (e.dataset.tdbServiceLayout = t
-        ? 'phone-landscape'
-        : r.matches
-          ? 'portrait'
-          : i.matches
-            ? 'desktop'
-            : 'tablet'));
+      e.dataset.tdbServiceLayout !== layout && (e.dataset.tdbServiceLayout = layout));
   }
   function u() {
+    layoutFrame = 0;
     e.forEach((t) => {
       t.isConnected ? c(t) : e.delete(t);
     });
+  }
+  function scheduleLayout() {
+    if (!layoutFrame) layoutFrame = requestAnimationFrame(u);
   }
   function p() {
     document.querySelectorAll('.tdb-service-parallax,[data-tdb-treatment]').forEach((t) => {
@@ -98,20 +107,32 @@ window.TDBParallaxPresentation ||= (() => {
           once: !0,
         })
       : p(),
-    l.addEventListener('change', u),
-    window.addEventListener('resize', u, {
+    l.addEventListener('change', scheduleLayout),
+    window.addEventListener('resize', scheduleLayout, {
       passive: !0,
     }),
-    window.addEventListener('orientationchange', u),
-    screen.orientation?.addEventListener('change', u),
-    r.addEventListener('change', u),
-    n.addEventListener('change', u),
-    i.addEventListener('change', u),
+    window.addEventListener('orientationchange', scheduleLayout),
+    screen.orientation?.addEventListener('change', scheduleLayout),
+    r.addEventListener('change', scheduleLayout),
+    n.addEventListener('change', scheduleLayout),
+    i.addEventListener('change', scheduleLayout),
     {
+      prune() {
+        for (const root of e)
+          if (!root.isConnected) {
+            e.delete(root);
+            t.delete(root);
+            layouts.delete(root);
+          }
+        if (!e.size && layoutFrame) {
+          cancelAnimationFrame(layoutFrame);
+          layoutFrame = 0;
+        }
+      },
       prepare: function (t) {
         a(t) &&
           (e.add(t),
-          c(t),
+          c(t, true),
           t
             .querySelectorAll(
               '.tdb-service-controls,.tdb-service-cta,.tdb-treatment-controls,.tdb-treatment-cta',
@@ -146,12 +167,13 @@ window.TDBParallaxPresentation ||= (() => {
               ),
           );
         };
-        (c(r),
+        (c(r, true),
           i(),
           n.on('slideChange loopFix resize update', i),
           n.on('beforeDestroy', () => {
             (e.delete(r),
               t.delete(r),
+              layouts.delete(r),
               n.off('slideChange loopFix resize update', i),
               r
                 .querySelectorAll(

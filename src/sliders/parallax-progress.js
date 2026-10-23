@@ -1,13 +1,19 @@
 /* Per-component progress geometry; loaded with the full parallax plugin. */
 window.TDBParallaxProgress ||= (() => {
   const e = '.tdb-service-parallax,[data-tdb-treatment]',
-    t = new WeakMap();
+    selector =
+      e +
+      ',.section_gallery14 .parallax-swiper_component:not(.tdb-banner-parallax),#All-treatments .tdb-banner-parallax',
+    t = new Map();
   function r(r) {
     const n = r.querySelector(':scope > .swiper'),
       i = n?.querySelector(':scope > .swiper-wrapper');
     if (!i) return !1;
     const a = t.get(r);
-    if (a?.wrapper === i) return !0;
+    if (a?.wrapper === i && (!a.swiper || a.swiper === n.swiper)) {
+      a.bind(n.swiper);
+      return !0;
+    }
     a?.dispose();
     const s = r.querySelector(':scope > [data-tdb-native-progress]');
     if (r.matches(e) && (!s || s.children.length < 2)) return !1;
@@ -35,7 +41,8 @@ window.TDBParallaxProgress ||= (() => {
       f = !0,
       w = !0,
       g = 0,
-      y = 1;
+      y = 1,
+      swiper = null;
     const x = window.TDBRenderedProgress.observe({
       track: i,
       paint: function () {
@@ -157,6 +164,7 @@ window.TDBParallaxProgress ||= (() => {
     }
     const E = new IntersectionObserver(
       (e) => {
+        if (p) return;
         ((u = e.some((e) => e.isIntersecting)), u ? S() : x.pause());
       },
       {
@@ -167,6 +175,8 @@ window.TDBParallaxProgress ||= (() => {
       (x.pause(), document.hidden || S());
     }
     function S() {
+      if (p) return;
+      stamps?.invalidate?.();
       ((w = !0), L());
     }
     (E.observe(n), document.addEventListener('visibilitychange', A));
@@ -182,6 +192,32 @@ window.TDBParallaxProgress ||= (() => {
       ) || [])
         B.observe(node);
     }
+    function beforeDestroy() {
+      dispose(true);
+    }
+    function bind(candidate) {
+      if (p || !candidate || candidate.destroyed || candidate === swiper) return;
+      swiper = candidate;
+      swiper.on('beforeDestroy', beforeDestroy);
+      ticker?.sync();
+      S();
+    }
+    function dispose(fromSwiper = false) {
+      if (p) return;
+      p = true;
+      if (!fromSwiper) swiper?.off('beforeDestroy', beforeDestroy);
+      E.disconnect();
+      B.disconnect();
+      x.destroy();
+      stamps?.dispose(fromSwiper);
+      details?.dispose();
+      ticker?.dispose(fromSwiper);
+      document.removeEventListener('visibilitychange', A);
+      window.removeEventListener('resize', S);
+      if (s) d.classList.remove('is-ready');
+      else d.remove();
+      t.delete(r);
+    }
     return (
       B.observe(n),
       window.addEventListener('resize', S, {
@@ -190,29 +226,29 @@ window.TDBParallaxProgress ||= (() => {
       S(),
       t.set(r, {
         wrapper: i,
-        dispose() {
-          ((p = !0),
-            E.disconnect(),
-            B.disconnect(),
-            x.destroy(),
-            stamps?.dispose(),
-            details?.dispose(),
-            ticker?.dispose(),
-            document.removeEventListener('visibilitychange', A),
-            window.removeEventListener('resize', S),
-            s ? d.classList.remove('is-ready') : d.remove());
+        get swiper() {
+          return swiper;
         },
+        bind,
+        dispose,
       }),
+      bind(n.swiper),
       L(),
       !0
     );
   }
   return {
+    bind(root, swiper) {
+      if (!root.matches(selector) || !window.TDBRenderedProgress) return;
+      if (t.get(root)?.swiper && t.get(root).swiper !== swiper) t.get(root).dispose();
+      if (r(root)) t.get(root).bind(swiper);
+    },
+    prune() {
+      for (const [root, controller] of t) if (!root.isConnected) controller.dispose();
+    },
     refresh: function (t = document) {
-      const n =
-        e +
-        ',.section_gallery14 .parallax-swiper_component:not(.tdb-banner-parallax),#All-treatments .tdb-banner-parallax';
-      (t instanceof Element && t.matches(n) && r(t), t.querySelectorAll?.(n).forEach(r));
+      (t instanceof Element && t.matches(selector) && r(t),
+        t.querySelectorAll?.(selector).forEach(r));
     },
   };
 })();

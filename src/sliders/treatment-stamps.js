@@ -11,6 +11,7 @@ window.TDBTreatmentStamps ||= (() => {
     if (!viewport || !links.length) return null;
     const items = links.map((link) => link.closest('.tdb-treatment-card'));
     const track = items[0].parentElement;
+    const sliderViewport = root.querySelector(':scope > .swiper');
     const mobile = matchMedia('(max-width: 767px)');
     const confirmLinks = strip.getAttribute('data-tdb-stamp-link-mode') === 'confirm';
     let armedIndex = null,
@@ -28,6 +29,8 @@ window.TDBTreatmentStamps ||= (() => {
       suppressClick = false,
       ignoredClick = null;
     let selected = -1;
+    let maxScroll = null,
+      disposed = false;
     let motionFrame = 0,
       returnOffset = 0,
       returnStarted = 0,
@@ -60,6 +63,7 @@ window.TDBTreatmentStamps ||= (() => {
       });
       copies = [];
       looped = enabled;
+      maxScroll = null;
       if (enabled) {
         const copy = (item) => {
           const node = item.cloneNode(true);
@@ -93,9 +97,15 @@ window.TDBTreatmentStamps ||= (() => {
       const next =
         looped && cycle
           ? cycle / 2 + ((((value - cycle / 2) % cycle) + cycle) % cycle)
-          : Math.max(0, Math.min(value, viewport.scrollWidth - viewport.clientWidth));
-      viewport.scrollLeft = next;
+          : Math.max(0, Math.min(value, scrollLimit()));
+      if (viewport.scrollLeft !== next) viewport.scrollLeft = next;
       if (drag) drag.left += next - value;
+    }
+    function scrollLimit() {
+      return (maxScroll ??= Math.max(0, viewport.scrollWidth - viewport.clientWidth));
+    }
+    function invalidate() {
+      maxScroll = null;
     }
     function stopMotion() {
       if (motionFrame) cancelAnimationFrame(motionFrame);
@@ -123,8 +133,7 @@ window.TDBTreatmentStamps ||= (() => {
       else returnOffset = 0;
     }
     function align(value) {
-      if (!looped)
-        value = Math.max(0, Math.min(value, viewport.scrollWidth - viewport.clientWidth));
+      if (!looped) value = Math.max(0, Math.min(value, scrollLimit()));
       targetLeft = value;
       if (returnOffset === null) {
         const difference = viewport.scrollLeft - value;
@@ -194,11 +203,13 @@ window.TDBTreatmentStamps ||= (() => {
       });
     }
     function bind() {
-      const candidate = root.querySelector(':scope > .swiper')?.swiper;
-      if (!candidate || candidate === swiper) return;
+      const candidate = sliderViewport?.swiper;
+      if (disposed || !candidate || candidate.destroyed || candidate === swiper) return;
+      swiper?.off('slideChange', change);
+      swiper?.off('beforeDestroy', beforeDestroy);
       swiper = candidate;
       swiper.on('slideChange', change);
-      swiper.on('beforeDestroy', dispose);
+      swiper.on('beforeDestroy', beforeDestroy);
       selection();
     }
     function change() {
@@ -207,7 +218,10 @@ window.TDBTreatmentStamps ||= (() => {
       selection();
     }
     function measure() {
+      if (disposed) return 0;
       configureLoop();
+      invalidate();
+      scrollLimit();
       bind();
       const first = items[0].getBoundingClientRect();
       width = first.width;
@@ -217,6 +231,7 @@ window.TDBTreatmentStamps ||= (() => {
       return width;
     }
     function paint(index, markerX, trackWidth) {
+      if (disposed) return;
       bind();
       if (!automatic || !offsets.length || drag) return;
       const last = links.length - 1;
@@ -353,6 +368,7 @@ window.TDBTreatmentStamps ||= (() => {
     }
     function down(event) {
       if (event.button !== 0 || event.isPrimary === false) return;
+      invalidate();
       const link = event.target.closest?.('[data-tdb-treatment-stamp]');
       pressState = { link, live: liveStamp(link) };
       stopMotion();
@@ -457,12 +473,19 @@ window.TDBTreatmentStamps ||= (() => {
     function key(event) {
       if (event.key === 'Escape') armLink(null);
     }
-    function dispose() {
+    function beforeDestroy() {
+      dispose(true);
+    }
+    function dispose(fromSwiper = false) {
+      if (disposed) return;
+      disposed = true;
       armLink(null);
       stopMotion();
       for (const [type, fn] of listeners) viewport.removeEventListener(type, fn);
-      swiper?.off('slideChange', change);
-      swiper?.off('beforeDestroy', dispose);
+      if (!fromSwiper) {
+        swiper?.off('slideChange', change);
+        swiper?.off('beforeDestroy', beforeDestroy);
+      }
       animations.forEach((animation) => animation.cancel());
       opacityBefore.forEach((opacity, item) => {
         item.style.opacity = opacity;
@@ -487,7 +510,7 @@ window.TDBTreatmentStamps ||= (() => {
       ['scroll', normalize],
     ];
     listeners.forEach(([type, fn]) => on(type, fn));
-    const controller = { measure, paint, dispose };
+    const controller = { measure, paint, invalidate, dispose };
     instances.set(root, controller);
     return controller;
   }

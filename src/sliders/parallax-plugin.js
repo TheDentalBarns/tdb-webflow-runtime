@@ -6,7 +6,7 @@
     t = 'data-tdb-slider-init',
     i = '(min-width:768px)',
     a = '(max-width:767px) and (orientation:portrait)';
-  (new Map(), new WeakSet());
+  const mounted = new Map();
   function n(e) {
     return e?.querySelector?.('.swiper') || null;
   }
@@ -149,6 +149,8 @@
         },
       );
     var S;
+    mounted.set(e, x);
+    x.on('beforeDestroy', () => mounted.delete(e));
     (e.hasAttribute('data-tdb-treatment') &&
       x.on('breakpoint', () => {
         if (!x.initialized || !x.params.loop) return;
@@ -277,6 +279,7 @@
         window.TDBSwiper.watchDuration(...e);
       })(e, t, x),
       g?.bind(x),
+      window.TDBParallaxProgress?.bind(e, x),
       window.TDBParallax?.bind(e, x),
       (e.hasAttribute('data-tdb-treatment') || e.classList.contains('tdb-service-parallax')) &&
         window.TDBCarouselVisibility.bind(x, {
@@ -444,6 +447,16 @@
     },
     refresh(e = document) {
       (window.TDBParallax?.refresh(e), window.TDBSwiper.refresh('parallax', e));
+    },
+    prune() {
+      for (const [root, swiper] of mounted) {
+        if (root.isConnected) continue;
+        if (!swiper.destroyed) swiper.destroy(true, true);
+        mounted.delete(root);
+      }
+      window.TDBParallaxProgress?.prune();
+      window.TDBParallaxControls?.prune();
+      window.TDBParallaxPresentation?.prune();
     },
   });
   ((window.TDBParallaxPlugin = m), window.TDBSwiper.register('parallax', m));

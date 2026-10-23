@@ -1,0 +1,34 @@
+Treatment slider runtime improvements — 2026-10-23
+
+Scope
+Cache stamp-strip scroll limits until geometry changes and reuse the native
+slider element reference. Avoid assigning an unchanged scrollLeft.
+Coalesce responsive presentation events into one animation frame and skip
+rescanning or rewriting controls when the effective layout is unchanged.
+Keep explicit prepare/bind calls authoritative for newly inserted native nodes.
+Own progress, stamp, details and ticker cleanup with the Swiper instance.
+Prune detached instances and pre-mount observers using the existing loader hook.
+
+The native DOM, Designer CSS, width transitions, blur, animation durations,
+touch thresholds, navigation and finite/loop behavior are unchanged.
+
+Verification
+670 tests: 667 passed, 0 failed, 3 existing skips (Node 22.17.0).
+The repository declares Node 24; this machine's working executable was Node 22.
+Deterministic runtime build check and custom Swiper artifact check passed.
+Real Swiper tests cover three destroy/remount/removal cycles, price/CTA updates,
+and removal before the component's first viewport entry.
+Source and shipped-bundle tests cover cache invalidation and teardown.
+120 warm progress frames: no repeated scroll-bound reads or slider lookups.
+Stationary repaint: no duplicate scroll assignment. Resized clamp verified.
+100 unchanged-layout resize events: one queued frame, zero selector scans or
+attribute writes. Explicit prepare still updates newly added native controls.
+
+Tradeoff
+The two shared bundles grow by approximately 0.4 KB at local Brotli quality 11.
+This is an operation-count and lifecycle improvement, not a measured FPS or
+INP claim. No Android hardware benchmark was performed.
+
+Release
+Stacked on perf/shared-loading-policy-20261023 (ebac783251eb0ebc2304db0ab99d24561b5b7d6b).
+Staging-only runtime pin; keep production custom domains unpublished.
