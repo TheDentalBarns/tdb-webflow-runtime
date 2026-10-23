@@ -1,4 +1,6 @@
 /* Compact hero preserves the existing full-frame hit area and glass owner. */
+@keyframes tdbHeroControlEnter{from{opacity:0}to{opacity:1}}
+[data-vimeo-hero-shell] .tdb-hero-toggle-art{animation:tdbHeroControlEnter 200ms ease-out 100ms backwards}
 [data-vimeo-hero-shell]:not([data-vimeo-pulse]) .tdb-hero-toggle::before,
 [data-vimeo-hero-shell][data-vimeo-pulse='true'] .tdb-hero-toggle::before{animation:var(--tdb-hero-pulse,tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate)}
 [data-vimeo-hero-shell]:is([data-vimeo-ui='loading'],[data-vimeo-ui='awaiting-consent']) .tdb-hero-toggle-art::before{opacity:0}
