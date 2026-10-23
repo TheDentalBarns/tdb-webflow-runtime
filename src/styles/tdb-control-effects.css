@@ -75,3 +75,23 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
 
 /* Fetch loading artwork only when a control actually enters its loading state. */
 [data-tdb-loading="true"] { --tdb-spinner-artwork: url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ad9b3739924db6726de4586_tdb-control-spinner.svg"); }
+
+/* Compact pulses keep the control itself interactive and fully visible.
+ * Existing descendants on other pages keep the legacy pulse contract above. */
+[data-tdb-compact-pulse][data-tdb-pulse] {
+  animation: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+[data-tdb-compact-pulse]::before {
+  animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate;
+}
+[data-tdb-compact-pulse]:is([data-tdb-pulse='false'],[aria-busy='true'],[aria-expanded='true'],[data-tdb-loading='true'])::before,
+:is([aria-busy='true'],[aria-expanded='true'],[data-tdb-loading='true']) [data-tdb-compact-pulse]::before {
+  animation: none;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-tdb-motion='full']) [data-tdb-compact-pulse]::before { animation:none;opacity:0; }
+}
+

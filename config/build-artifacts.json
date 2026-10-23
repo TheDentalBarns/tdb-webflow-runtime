@@ -488,10 +488,10 @@
       "sources": [
         "src/reviews/native/loader.js"
       ],
-      "sha256": "f0f07004b2e53442bf8c14e30e09abf6f9d9afd5a21de0f6e0ced0187d31044c",
-      "raw": 11048,
-      "gzip": 3680,
-      "brotli": 3248
+      "sha256": "5f5f4a92ae802d15bc350a49e0cfa51572966b1f96c55d37ce33891ae654b1b7",
+      "raw": 11139,
+      "gzip": 3726,
+      "brotli": 3289
     },
     "dist/tdb-reviews.js": {
       "sources": [

@@ -41,7 +41,7 @@ function setup(html='<section data-tdb-review-introduction><button data-tdb-revi
       finally{trigger.removeAttribute('aria-busy');trigger.removeAttribute('data-tdb-loading');}
     }
   };
-  return {w,dom,observers,run(){if(options.sharedIntent)w.eval(fs.readFileSync('src/shared/feature-loading.js','utf8'));w.eval(source);w.document.dispatchEvent(new w.Event('DOMContentLoaded'));},
+  return {w,dom,data,observers,run(){if(options.sharedIntent)w.eval(fs.readFileSync('src/shared/feature-loading.js','utf8'));w.eval(source);w.document.dispatchEvent(new w.Event('DOMContentLoaded'));},
     permit(v){permission=v;for(const fn of subscribers)fn();},
     near(root){near([{target:root,isIntersecting:true}]);},
     stats:()=>({loads,opens,dataLoads,mounts,destroys,templateMounts,unsubscribes}),
@@ -190,3 +190,18 @@ test('failed external card assets stop busy state, retain the holder and retry o
 test('revocation during card artwork loading cannot append late content',async()=>{
  let release;const artworkGate=new Promise(r=>release=r);const e=setup(feedHolder,{artworkGate});e.run();const root=e.w.document.querySelector('[data-tdb-review-placeholder]');e.near(root);await tick();e.permit(false);release();await tick();assert.equal(root.querySelector('[data-tdb-review-cards]'),null);assert.equal(root.hasAttribute('aria-busy'),false);assert.equal(e.stats().mounts,0);e.close();
 });
+
+test('power review reuses the native platform owner without nesting another icon wrapper', async () => {
+ const e=setup('<section data-tdb-review-introduction><button data-tdb-review-trigger><blockquote data-tdb-review-excerpt></blockquote><span data-tdb-review-author></span><span class="review-intro_platform" data-tdb-lazy-platform="google" style="background-image:url(/google.svg)"></span></button></section>');
+ try {
+  e.data.power='power';e.data.getCached=()=>({id:'power',platform:'Facebook',name:'Example',excerpt:'Review',historic:false});
+  e.w.TDBReviewCMS.sourceIcon=()=>{const wrap=e.w.document.createElement('span');const image=e.w.document.createElement('img');image.src='/facebook.svg';image.alt='';wrap.append(image);return wrap};
+  e.run();e.near(e.w.document.querySelector('section'));await tick();
+  const owner=e.w.document.querySelector('.review-intro_platform');
+  assert.equal(owner.childElementCount,1);assert.equal(owner.firstElementChild.tagName,'IMG');
+  assert.match(owner.firstElementChild.src,/facebook/);assert.equal(owner.style.backgroundImage,'none');
+  assert.equal(owner.dataset.reviewPlatform,'Facebook');assert.equal(owner.getAttribute('aria-label'),'Facebook review');
+  assert.equal(e.w.document.querySelector('[data-tdb-review-author]').textContent,'Example');
+ } finally {e.close()}
+});
+

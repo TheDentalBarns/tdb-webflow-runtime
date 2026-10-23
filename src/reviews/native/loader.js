@@ -36,7 +36,10 @@
     const platform = platforms[0];
     platforms.slice(1).forEach((node) => node.remove());
     if (platform) {
-      platform.replaceChildren(window.TDBReviewCMS.sourceIcon(record.platform));
+      const icon = window.TDBReviewCMS.sourceIcon(record.platform);
+      platform.replaceChildren(...icon.childNodes);
+      platform.dataset.reviewPlatform = record.platform;
+      platform.style.backgroundImage = 'none';
       const label = record.historic
         ? `${record.platform} review of Dr Keely at her previous practice`
         : `${record.platform} review`;
