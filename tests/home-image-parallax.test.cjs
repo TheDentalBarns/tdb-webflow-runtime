@@ -59,34 +59,79 @@ function setup(code = source) {
   return { w, dom, wrapper, frame, prepare, flush, scroll, queue };
 }
 
-test('heading-driven glass fade starts at 50vh, finishes at 20vh and reverses on scroll', () => {
+test('heading-driven photo blur starts at 50vh, finishes at 20vh and reverses on scroll', () => {
   const e = setup();
+  e.w.document.body.setAttribute('data-tdb-home-photo-parallax', '');
   e.wrapper.setAttribute('data-tdb-parallax-mode', 'opacity');
   const heading = e.w.document.createElement('h2');
   heading.setAttribute('data-tdb-scroll-blur-trigger', '');
   heading.getBoundingClientRect = () => ({ top: 600 - e.w.scrollY, height: 100 });
-  const glass = e.w.document.createElement('div');
-  glass.setAttribute('data-tdb-scroll-blur', '');
+  const glass = e.wrapper.querySelector('img');
+  glass.setAttribute('data-tdb-scroll-blur', 'photo');
   glass.setAttribute('data-tdb-blur-start', '0.5');
   glass.setAttribute('data-tdb-blur-end', '0.2');
-  e.wrapper.append(heading, glass);
+  e.wrapper.append(heading);
   const owner = e.w.TDBMotion.pageBreaks([e.wrapper]);
   e.scroll(200);
-  assert.equal(glass.style.opacity, '0');
+  assert.equal(glass.style.filter, '');
   e.scroll(335);
-  assert.equal(Number(glass.style.opacity), 0.5);
+  assert.equal(glass.style.filter, 'blur(calc(var(--effects--blur) * 0.5000))');
   e.scroll(470);
-  assert.equal(glass.style.opacity, '1');
+  assert.equal(glass.style.filter, 'blur(calc(var(--effects--blur) * 1.0000))');
   e.scroll(200);
-  assert.equal(glass.style.opacity, '0');
+  assert.equal(glass.style.filter, '');
   e.w.innerHeight = 1200;
   owner.refresh(); e.flush();
-  assert.ok(Math.abs(Number(glass.style.opacity) - 150 / 360) < 0.0001);
+  assert.equal(glass.style.filter, 'blur(calc(var(--effects--blur) * 0.4167))');
+  assert.equal(glass.style.opacity, '', 'photo opacity and parallax retain their existing owners');
   assert.equal(e.queue.size, 0, 'scroll effect does not run a perpetual clock');
   owner.destroy();
-  assert.equal(glass.style.opacity, '', 'destroy restores the Designer opacity');
+  assert.equal(glass.style.filter, '', 'destroy restores the Designer filter');
   e.dom.window.close();
 });
+
+for (const [label, code] of [
+  ['source', source],
+  ['bundle', fs.readFileSync('dist/tdb-motion.js', 'utf8')],
+]) {
+  test(`${label}: location photo blur stops offscreen, returns on reverse and cannot filter treatment cards`, () => {
+    const e = setup(code);
+    e.w.document.body.setAttribute('data-tdb-home-photo-parallax', '');
+    e.wrapper.setAttribute('data-tdb-parallax-mode', 'opacity');
+    const photo = e.wrapper.querySelector('img');
+    photo.setAttribute('data-tdb-scroll-blur', 'photo');
+    photo.setAttribute('data-tdb-blur-start', '.5');
+    photo.setAttribute('data-tdb-blur-end', '.2');
+    photo.style.filter = 'brightness(1)';
+    const heading = e.w.document.createElement('h2');
+    heading.setAttribute('data-tdb-scroll-blur-trigger', '');
+    heading.getBoundingClientRect = () => ({ top: 600 - e.w.scrollY, height: 100 });
+    e.wrapper.append(heading);
+    const treatment = e.w.document.createElement('section');
+    treatment.innerHTML = '<img class="tdb-treatment-image">';
+    e.wrapper.after(treatment);
+    const owner = e.w.TDBMotion.pageBreaks([e.wrapper]);
+    e.scroll(500);
+    assert.equal(photo.style.filter, 'blur(calc(var(--effects--blur) * 1.0000))');
+    e.scroll(1900);
+    assert.equal(photo.style.filter, 'brightness(1)', 'no blur surface remains after section exit');
+    e.scroll(335);
+    assert.equal(photo.style.filter, 'blur(calc(var(--effects--blur) * 0.5000))');
+    assert.equal(e.wrapper.style.filter, '');
+    assert.equal(e.frame.style.filter, '');
+    assert.equal(treatment.querySelector('img').style.filter, '');
+    assert.equal(e.w.document.querySelectorAll('[style*="backdrop-filter"]').length, 0);
+    assert.equal(e.queue.size, 0);
+    owner.destroy();
+    assert.equal(photo.style.filter, 'brightness(1)');
+    e.w.document.body.removeAttribute('data-tdb-home-photo-parallax');
+    const otherPage = e.w.TDBMotion.pageBreaks([e.wrapper]);
+    e.scroll(500);
+    assert.equal(photo.style.filter, 'brightness(1)', 'shared BG component is unchanged outside Home');
+    otherPage.destroy();
+    e.dom.window.close();
+  });
+}
 
 test('vertical motion preserves horizontal transforms, stays within the crop and leaves controls alone', () => {
   const e = setup(),

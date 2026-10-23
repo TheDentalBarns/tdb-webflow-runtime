@@ -16,14 +16,19 @@ stylesheet consumes these variables because Webflow omits classes without
 authored instances from published CSS. No duplicate sizing values live in the
 runtime. Edit the two values in Designer's Variables panel, under Review embed.
 
-The Home scroll image variant of Component 1 - Bg image has one native 20px
-backdrop-blur layer. The title is its scroll reference. Native data attributes
-set the range: its centre at 50vh starts the fade, reaching 20vh finishes it.
-The existing page-break scheduler reads that heading and writes only the
-overlay opacity; the photo's parallax and darkening keep their existing owners.
-Scrolling back reverses it, and teardown restores native opacity. No additional
-scroll listener, perpetual animation loop, interaction engine or request is added.
+The Home location photo in Component 1 - Bg image receives a direct image
+filter. The previous full-viewport sticky backdrop layer was removed after it
+continued overlapping the following treatment section. The existing image is
+the only filtered node: no extra image, backdrop surface or request is added.
+The maximum radius uses Designer's Effects/Blur variable (20px). Native data
+attributes set the range: title centre at 50vh starts the blur, reaching 20vh
+finishes it. The existing page-break scheduler writes only the image filter;
+its parallax and darkening keep their existing owners. Leaving the section
+removes the blur filter entirely; scrolling back restores the correct progress.
+Teardown restores the original filter. Shared BG instances outside Home remain
+unchanged. No additional scroll listener or perpetual animation loop is added.
 
 Focused validation covers review bar identity/restoration, no duplicates,
-heading threshold/midpoint/end, reverse scrolling, resize and teardown, alongside
+heading threshold/midpoint/end, offscreen release, reverse scrolling, Home-only
+scope, unaffected treatment images, resize and teardown, alongside
 the existing image parallax and review loading lifecycle tests.

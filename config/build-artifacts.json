@@ -301,10 +301,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "86dabaca64e5769a6c085206be2cd1417175ba49f36384f72eeff50b69113d09",
-      "raw": 25371,
-      "gzip": 8758,
-      "brotli": 7974
+      "sha256": "be3521495afbb5145fc7d1bebbfa80593c89e5405db2882d6f7dfb239293a36f",
+      "raw": 25515,
+      "gzip": 8824,
+      "brotli": 8051
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [

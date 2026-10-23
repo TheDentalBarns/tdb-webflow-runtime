@@ -760,15 +760,20 @@
             state.revealAlpha = 1;
           }
           state.progress = g.progress;
-          state.blurAlpha = reduced.matches ? 0 : g.blur;
+          // Release the image filter when its section leaves the viewport.
+          state.blurAlpha = reduced.matches || !g.visible ? 0 : g.blur;
           state.visible = g.visible;
           if (g.visible || userScroll) state.restored = false;
         }
         for (const state of states) {
           if (state.scrollBlur) {
-            const opacity = String(state.blurAlpha);
-            if (state.scrollBlur.node.style.opacity !== opacity)
-              state.scrollBlur.node.style.opacity = opacity;
+            // Filter only the authored photo, never the backdrop behind a
+            // sticky layer. The maximum blur remains a Designer variable.
+            const filter = state.blurAlpha > 0
+              ? `blur(calc(var(--effects--blur) * ${state.blurAlpha.toFixed(4)}))`
+              : state.scrollBlur.original;
+            if (state.scrollBlur.node.style.filter !== filter)
+              state.scrollBlur.node.style.filter = filter;
           }
           const value = `translate3d(0, ${state.y.toFixed(4)}px, 0)`;
           if (state.translate) {
@@ -887,7 +892,9 @@
         revealOut > 0
           ? [revealIn, revealOut, Number.isFinite(revealEnd) && revealEnd >= 0 ? revealEnd : 0]
           : null;
-      const blurNode = translate ? null : wrapper.querySelector('[data-tdb-scroll-blur]'),
+      const blurNode = !translate && wrapper.closest('[data-tdb-home-photo-parallax]')
+        ? wrapper.querySelector('img[data-tdb-scroll-blur="photo"]')
+        : null,
         blurTrigger = blurNode && wrapper.querySelector('[data-tdb-scroll-blur-trigger]');
       const blurStart = Number.parseFloat(blurNode?.getAttribute('data-tdb-blur-start')),
         blurEnd = Number.parseFloat(blurNode?.getAttribute('data-tdb-blur-end'));
@@ -909,7 +916,7 @@
                 trigger: blurTrigger,
                 start: blurStart,
                 end: blurEnd,
-                original: blurNode.style.opacity,
+                original: blurNode.style.filter,
               }
             : null,
         reveal,
@@ -1013,7 +1020,7 @@
         for (const [node, original] of state.originalTranslations) node.style.translate = original;
       } else if (!state.opacityOnly) state.node.style.transform = state.original;
       if (state.reveal) state.node.style.opacity = state.originalImageOpacity;
-      if (state.scrollBlur) state.scrollBlur.node.style.opacity = state.scrollBlur.original;
+      if (state.scrollBlur) state.scrollBlur.node.style.filter = state.scrollBlur.original;
       state.fadeTargets.forEach((target, i) => {
         target.style[state.fadeProperties[i]] = state.originalOpacity[i];
       });
