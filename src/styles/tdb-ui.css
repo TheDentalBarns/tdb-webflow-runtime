@@ -346,11 +346,11 @@ img:is(.tdb-ig-holding-icon,.tdb-smile-holding-icon,.tdb-review-holding-icon){op
 /* Match the original loading wrapper: quick delayed reveal, slower exit that
  * remains visible over the returning play/pause glyph. Keep this outside the
  * consent-gated Vimeo bundle so cancelling consent receives the same fade. */
-[data-vimeo-hero-shell] .tdb-hero-toggle-art::after{transition:opacity .45s ease}
+[data-vimeo-hero-shell] .tdb-hero-toggle-art::after{transition:opacity .45s ease;animation:tdbControlSpin 1s linear .12s infinite;animation-play-state:var(--tdb-hero-spin,paused)}
 [data-vimeo-hero-shell]:not([data-vimeo-pulse]) .tdb-hero-toggle::before,
 [data-vimeo-hero-shell][data-vimeo-pulse='true'] .tdb-hero-toggle::before{animation:var(--tdb-hero-pulse,tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate)}
 [data-vimeo-hero-shell]:is([data-vimeo-ui='loading'],[data-vimeo-ui='awaiting-consent']) .tdb-hero-toggle-art::before{opacity:0}
-[data-vimeo-hero-shell]:is([data-vimeo-ui='loading'],[data-vimeo-ui='awaiting-consent']) .tdb-hero-toggle-art::after{opacity:1;transition:opacity .12s ease .12s;animation:tdbControlSpin 1s linear .12s infinite}
+[data-vimeo-hero-shell]:is([data-vimeo-ui='loading'],[data-vimeo-ui='awaiting-consent']) .tdb-hero-toggle-art::after{opacity:1;transition:opacity .12s ease .12s;animation-play-state:running}
 .tdb-hero-toggle:focus-visible{outline:0}
 .tdb-hero-toggle:focus-visible .tdb-hero-toggle-art{outline:2px solid currentColor;outline-offset:4px}
 @media(prefers-reduced-motion:reduce){html:not([data-tdb-motion='full']) .tdb-hero-toggle::before{animation:none!important;opacity:0}}

@@ -11,6 +11,7 @@ module.exports = {
     'src/shared/content-preconnect.js',
     'src/shared/scroll-lock.js',
     'src/consent/banner.js',
+    'src/shared/hero-control-motion.js',
     'src/consent/consent.js',
     'src/shared/phone-landscape.js',
     'src/navbar/navbar-state.js',

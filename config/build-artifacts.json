@@ -164,6 +164,7 @@
         "src/shared/content-preconnect.js",
         "src/shared/scroll-lock.js",
         "src/consent/banner.js",
+        "src/shared/hero-control-motion.js",
         "src/consent/consent.js",
         "src/shared/phone-landscape.js",
         "src/navbar/navbar-state.js",
@@ -171,10 +172,10 @@
         "src/navbar/navbar-mobile-lock.js",
         "src/navbar/navbar-loader.js"
       ],
-      "sha256": "5eb8592a9037ad0e7320a11da8e352760d9be9dba585e9f0f125ab295c32f493",
-      "raw": 26116,
-      "gzip": 8314,
-      "brotli": 7431
+      "sha256": "a9df01aec0799f4ce7a894da1e2ec2b431b9821c52bc586f9055049369993330",
+      "raw": 26609,
+      "gzip": 8433,
+      "brotli": 7541
     },
     "dist/tdb-gallery.js": {
       "sources": [

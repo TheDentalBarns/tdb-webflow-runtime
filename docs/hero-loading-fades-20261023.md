@@ -23,3 +23,18 @@ and buffering). The old and new opacity traces match, with both glyph and
 spinner visible during the exit. The 20 Vimeo/consent tests pass. Both changed
 CSS artifacts match their readable sources. No DOM or native geometry changes;
 the restored mobile `100svh` and pulse/ring border-box alignment are retained.
+
+## Keep rotation through fade-out
+
+The loading animation now remains defined while idle and uses a paused play
+state. Loading and buffering resume that same animation. A small foundation
+handler keeps it running during the ring's opacity transition and releases
+the override on transition end or cancellation. This preserves its rotation
+through the 450 ms exit, then pauses it once invisible. The handler is available
+before video consent and adds no elements, timers, or mutation observers.
+
+Validation: all six browser scenarios passed: loading to play, loading to pause,
+buffering, rapid re-entry, cancellation before the reveal delay, and cancelled
+consent without the Vimeo stylesheet. Measured transforms keep changing during
+the visible fade and remain stable once opacity reaches zero. The 21 focused
+Vimeo/consent tests and full artifact preservation check pass.
