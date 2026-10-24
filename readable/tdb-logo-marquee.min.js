@@ -4,13 +4,15 @@
   const style = document.createElement('style');
   style.setAttribute('data-tdb-partner-controls', '');
   style.textContent =
-    ".tdb-partner-tooltip .tdb-service-discover .icon-embed-xxsmall{transition-duration:inherit;transition-timing-function:inherit;transition-delay:inherit}\n.tdb-partner-tooltip .tdb-service-discover:is(.is-hovered,.is-touch-held) .tdb-partner-icon{filter:invert(0)}\n.tdb-partner-logo.is-keyboard-focused{outline:1px solid #a79b86;outline-offset:-3px}\n\n.tdb-partner-logo[aria-busy='true']{position:relative}\n.tdb-partner-logo[aria-busy='true']::after{content:'';position:absolute;pointer-events:none;box-sizing:border-box;width:2rem;height:2rem;left:50%;top:50%;margin:-1rem 0 0 -1rem;border:1px solid #fff;border-bottom-color:transparent;border-left-color:transparent;border-radius:50%;animation:tdbControlSpin 1s linear infinite}\n@media(prefers-reduced-motion:reduce){html:not([data-tdb-motion='full']) .tdb-partner-logo[aria-busy='true']::after{animation:none}}";
+    ".tdb-partner-tooltip .tdb-service-discover .icon-embed-xxsmall{transition-duration:inherit;transition-timing-function:inherit;transition-delay:inherit}\n.tdb-partner-tooltip .tdb-service-discover:is(.is-hovered,.is-touch-held) .tdb-partner-icon{filter:invert(0)}\n.tdb-partner-logo.is-keyboard-focused{outline:1px solid #a79b86;outline-offset:-3px}\n\n.tdb-partner-logo[aria-busy='true']{position:relative}\n.tdb-partner-logo[aria-busy='true']::after{content:'';position:absolute;pointer-events:none;box-sizing:border-box;width:2rem;height:2rem;left:50%;top:50%;margin:-1rem 0 0 -1rem;border:1px solid #fff;border-bottom-color:transparent;border-left-color:transparent;border-radius:50%;animation:tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite}\n@media(prefers-reduced-motion:reduce){html:not([data-tdb-motion='full']) .tdb-partner-logo[aria-busy='true']::after{animation:none}}";
   document.head.append(style);
 })();
 
 (() => {
   'use strict';
 
+  const pace = window.TDBMotionProfile?.pace || 1;
+  const coastRate = window.TDBMotionProfile?.physics.coast || 4.2;
   const VERSION = '0.15.3';
   const assetBase = new URL('./', document.currentScript.src);
   if (window.TDBLogoMarquee) return;
@@ -19,8 +21,8 @@
     itemSelector: '.tdb-partner-logo',
     logoSelector: '.logo_image',
     tooltipImageSelector: '.tooltip2_image',
-    speedDesktop: 40,
-    speedMobile: 22,
+    speedDesktop: window.TDBMotionProfile?.physics.marqueeDesktop || 40,
+    speedMobile: window.TDBMotionProfile?.physics.marqueeMobile || 22,
     mobileMedia: '(max-width: 767px)',
     initViewportMargin: 600,
     activeViewportMargin: 200,
@@ -791,15 +793,15 @@
 
       if (!active || document.visibilityState === 'hidden') return;
 
-      const deltaSeconds = clamp((now - lastFrameAt) / 1000, 0, 0.25);
+      const deltaSeconds = clamp((now - lastFrameAt) / 1000, 0, 0.25) / pace;
       lastFrameAt = now;
 
       if (ready) {
         if (coasting && !dragging) {
           // Carry the throw into the existing automatic speed, without snapping.
           const cruise = -getSpeed();
-          const decay = Math.exp(-4.2 * deltaSeconds);
-          currentX += cruise * deltaSeconds + ((momentum - cruise) * (1 - decay)) / 4.2;
+          const decay = Math.exp(-coastRate * deltaSeconds);
+          currentX += cruise * deltaSeconds + ((momentum - cruise) * (1 - decay)) / coastRate;
           momentum = cruise + (momentum - cruise) * decay;
           targetX = currentX;
           if (Math.abs(momentum - cruise) < 2) {

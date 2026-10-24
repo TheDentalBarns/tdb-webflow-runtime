@@ -3,8 +3,8 @@ import { SceneRenderer } from './scene-renderer.js';
  * One registered scene, real old/new photographic circular masking.
  * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
  */
-const DURATION = 1200;
-const OFF_DURATION = 800;
+const DURATION = globalThis.TDBMotionProfile?.time(1200) ?? 1200;
+const OFF_DURATION = globalThis.TDBMotionProfile?.time(800) ?? 800;
 const SENSES = ['sight', 'sound', 'smell', 'touch', 'taste'];
 const LABELS = ['Sight', 'Sound', 'Smell', 'Touch', 'Taste'];
 const DETAILS = {
@@ -420,7 +420,11 @@ export async function mountExperience({
       }
       requested[sense] = on;
       activate(sense, controls[SENSES.indexOf(sense)], false, true);
-      if (remaining.length) allTimer = setTimeout(step, reduced.matches ? 0 : 540);
+      if (remaining.length)
+        allTimer = setTimeout(
+          step,
+          reduced.matches ? 0 : (window.TDBMotionProfile?.time(540) ?? 540),
+        );
     };
     step();
   }
@@ -583,8 +587,8 @@ export async function mountExperience({
       opacity = Number(getComputedStyle(detail).opacity);
     detailAnimation?.cancel();
     detailAnimation = detail.animate([{ opacity }, { opacity: 0 }], {
-      duration: 180,
-      easing: 'ease-in-out',
+      duration: window.TDBMotionProfile?.time(180) ?? 180,
+      easing: window.TDBMotionProfile?.easing('fade', 'ease-in-out') || 'ease-in-out',
       fill: 'forwards',
     });
     try {
@@ -607,7 +611,7 @@ export async function mountExperience({
       detailAnimation = detail.animate([{ opacity: from }, { opacity: to }], {
         duration,
         delay,
-        easing: 'ease-in-out',
+        easing: window.TDBMotionProfile?.easing('fade', 'ease-in-out') || 'ease-in-out',
         fill: 'both',
       });
       try {

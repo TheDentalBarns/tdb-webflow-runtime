@@ -2,15 +2,15 @@
 html.tdb-slider-focus .navbar10_component {
   transform: translateY(calc(-1 * var(--tdb-slider-nav-away,100%))) !important;
   pointer-events: none !important;
-  transition: transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)) !important;
+  transition: transform var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-peek-ease,var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))) !important;
 }
 html.tdb-slider-focus .navbar-bg_layer {
   transform: translateY(-100%) !important;
   pointer-events: none !important;
-  transition: transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)) !important;
+  transition: transform var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-peek-ease,var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))) !important;
 }
 html.tdb-slider-focus #tdb-vip-drawer {
   transform: translate3d(0,100%,0) !important;
   pointer-events: none !important;
-  transition: transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)) !important;
+  transition: transform var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-peek-ease,var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))) !important;
 }

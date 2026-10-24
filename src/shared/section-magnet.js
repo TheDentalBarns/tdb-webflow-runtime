@@ -154,7 +154,10 @@
       if (lenis?.isScrolling) lenis.scrollTo(destination, { immediate: true, force: true });
       return;
     }
-    const duration = Math.min(950, 600 + Math.sqrt(Math.abs(destination - from)) * 18),
+    const duration =
+        window.TDBMotionProfile?.time(
+          Math.min(950, 600 + Math.sqrt(Math.abs(destination - from)) * 18),
+        ) ?? Math.min(950, 600 + Math.sqrt(Math.abs(destination - from)) * 18),
       started = performance.now();
     active = { node: target.node, lenis: window.lenis || null };
     // Share the slider's existing chrome lifetime. Its own correction must

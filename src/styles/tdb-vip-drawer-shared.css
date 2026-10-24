@@ -3,10 +3,10 @@
  */
 
 html {
-  --tdb-vip-tab-duration: 420ms;
-  --tdb-vip-tab-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --tdb-vip-drawer-duration: 500ms;
-  --tdb-vip-drawer-ease: ease;
+  --tdb-vip-tab-duration: calc(420ms * var(--tdb-motion-pace,1));
+  --tdb-vip-tab-ease: var(--tdb-motion-ease-panel,cubic-bezier(0.4, 0, 0.2, 1));
+  --tdb-vip-drawer-duration: calc(500ms * var(--tdb-motion-pace,1));
+  --tdb-vip-drawer-ease: var(--tdb-motion-ease-panel,ease);
   --tdb-vip-handle-height: 6rem;
 }
 
@@ -33,7 +33,7 @@ html.tdb-vip-menu-away .navbar10_component,
 html.tdb-vip-menu-away .navbar-bg_layer {
   transform: translateY(-100%) !important;
   pointer-events: none !important;
-  transition: transform 420ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: transform calc(420ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-panel,cubic-bezier(0.4, 0, 0.2, 1)) !important;
   will-change: transform !important;
 }
 
@@ -126,12 +126,12 @@ html.tdb-vip-menu-away .navbar-bg_layer {
 
 #tdb-vip-drawer.is-open .tdb-vip-drawer-arrow {
   transform: rotate(90deg);
-  transition: transform 300ms var(--tdb-vip-drawer-ease) var(--tdb-vip-drawer-duration);
+  transition: transform calc(300ms * var(--tdb-motion-pace,1)) var(--tdb-vip-drawer-ease) var(--tdb-vip-drawer-duration);
 }
 
 #tdb-vip-drawer.is-closing .tdb-vip-drawer-arrow {
   transform: rotate(-90deg);
-  transition: transform 300ms var(--tdb-vip-drawer-ease) 0s;
+  transition: transform calc(300ms * var(--tdb-motion-pace,1)) var(--tdb-vip-drawer-ease) 0s;
 }
 
 #tdb-vip-drawer .tdb-vip-drawer-body {

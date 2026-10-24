@@ -5,6 +5,13 @@
   const owners = new Set();
   let animations = [];
   function timing() {
+    const profile = window.TDBMotionProfile;
+    if (profile)
+      return {
+        duration: window.TDBMotion.reduced.matches ? 0 : profile.time(420),
+        easing: profile.easing('panel', 'cubic-bezier(.4,0,.2,1)'),
+        fill: 'both',
+      };
     const css = getComputedStyle(document.documentElement);
     const clock = css.getPropertyValue('--tdb-peek-duration').trim();
     const duration = /^\d*\.?\d+(ms|s)$/.test(clock)

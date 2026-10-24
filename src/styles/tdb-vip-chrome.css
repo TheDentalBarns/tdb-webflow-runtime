@@ -1,9 +1,9 @@
 /* Cross-component relationships, formerly injected or repeated in Webflow. */
-html.tdb-vip-menu-away .navbar10_component,html.tdb-vip-menu-away .navbar-bg_layer{transform:translateY(-100%)!important;pointer-events:none!important;transition:transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1))!important;will-change:transform!important}
+html.tdb-vip-menu-away .navbar10_component,html.tdb-vip-menu-away .navbar-bg_layer{transform:translateY(-100%)!important;pointer-events:none!important;transition:transform var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-peek-ease,var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1)))!important;will-change:transform!important}
 
 @property --tdb-vip-chrome-ready { syntax: "<number>"; inherits: false; initial-value: 0; }
 html { --tdb-vip-chrome-ready: 1; }
 
 /* The existing circle becomes a loading cue while the hidden form prepares. */
 .tdb-vip-drawer-handle[aria-busy="true"] .tdb-vip-arrow-content{opacity:0}
-.tdb-vip-drawer-handle[aria-busy="true"] .tdb-vip-drawer-arrow::after{content:"";position:absolute;inset:0;border:1px solid currentColor;border-top-color:transparent;border-right-color:transparent;border-radius:50%;animation:tdbControlSpin 1s linear infinite}
+.tdb-vip-drawer-handle[aria-busy="true"] .tdb-vip-drawer-arrow::after{content:"";position:absolute;inset:0;border:1px solid currentColor;border-top-color:transparent;border-right-color:transparent;border-radius:50%;animation:tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite}

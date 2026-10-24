@@ -40,7 +40,7 @@
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     pointer-events: auto;
-    transition: background-color 0.25s ease;
+    transition: background-color calc(0.25s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-travel,ease);
   }
 
   html.tdb-slider-next .parallax-swiper_component > .swiper > .swiper_functions-btm.hide .swiper-btn-prev.is-selected,
@@ -92,7 +92,7 @@
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     pointer-events: auto;
-    transition: background-color 0.25s ease;
+    transition: background-color calc(0.25s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-travel,ease);
   }
 
   html.tdb-slider-desktop .parallax-swiper_component > .swiper_functions-btm.hide .swiper-btn-prev.is-selected,

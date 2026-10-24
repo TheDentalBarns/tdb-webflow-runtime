@@ -28,6 +28,11 @@ const sizes = (text) => ({
 });
 function source(file) {
   let code = read(file);
+  if (file === 'src/shared/motion-profile.js')
+    code = code.replace(
+      '__TDB_MOTION_PROFILE__',
+      JSON.stringify(require('./motion-profile.cjs').readProfile()),
+    );
   if (file === 'src/banner/announcement.js')
     code = code.replace(
       '__TDB_ANNOUNCEMENT_TEMPLATE__',

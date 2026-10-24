@@ -450,8 +450,16 @@
       setAttrIfChanged(shell, 'data-vimeo-pulse', nextPulse ? 'true' : 'false');
       const toggle = shell.querySelector('[data-tdb-hero-toggle]');
       if (toggle) {
-        setAttrIfChanged(toggle, 'aria-label', state.ui === 'playing' ? 'Pause background video' : 'Play background video');
-        setAttrIfChanged(toggle, 'aria-busy', state.ui === 'loading' || state.ui === 'awaiting-consent' || state.buffering);
+        setAttrIfChanged(
+          toggle,
+          'aria-label',
+          state.ui === 'playing' ? 'Pause background video' : 'Play background video',
+        );
+        setAttrIfChanged(
+          toggle,
+          'aria-busy',
+          state.ui === 'loading' || state.ui === 'awaiting-consent' || state.buffering,
+        );
       }
 
       if (nextPulse && !prevPulse) {
@@ -894,7 +902,9 @@
       if (!controlsLayer) return;
 
       const compact = controlsLayer.hasAttribute('data-tdb-hero-toggle');
-      const playBtn = compact ? controlsLayer : controlsLayer.querySelector('[data-vimeo-control="play"]');
+      const playBtn = compact
+        ? controlsLayer
+        : controlsLayer.querySelector('[data-vimeo-control="play"]');
       const pauseBtn = controlsLayer.querySelector('[data-vimeo-control="pause"]');
 
       if (playBtn) {
@@ -905,7 +915,8 @@
           if (!activePlayer) return;
 
           attachHeroToShell(activePlayer, shell);
-          if (compact && ensureHeroState(activePlayer).ui === 'playing') pauseHero(activePlayer, true);
+          if (compact && ensureHeroState(activePlayer).ui === 'playing')
+            pauseHero(activePlayer, true);
           else playHero(activePlayer, { manual: true });
         });
       }

@@ -10,6 +10,7 @@
     button.dataset.tdbTextClose = '1';
 
     let textAnimations = [];
+    const textDuration = window.TDBMotionProfile?.time(420) ?? 420;
 
     const menuIsOpen = () =>
       button.classList.contains('w--open') ||
@@ -70,8 +71,10 @@
             },
           ],
           {
-            duration: 420,
-            easing: 'cubic-bezier(0, 0, 0.2, 1)',
+            duration: textDuration,
+            easing:
+              window.TDBMotionProfile?.easing('fade', 'cubic-bezier(0, 0, 0.2, 1)') ||
+              'cubic-bezier(0, 0, 0.2, 1)',
             fill: 'forwards',
           },
         );
@@ -81,7 +84,7 @@
 
       setTimeout(() => {
         clearTextAnimations();
-      }, 470);
+      }, textDuration + 50);
     };
 
     button.addEventListener(

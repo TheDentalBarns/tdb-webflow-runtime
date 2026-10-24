@@ -78,7 +78,9 @@
         }
         ((window.TDBNavMotion = Object.freeze({
           refresh: a,
-          surfaceEasing: 'cubic-bezier(0.4,0,0.2,1)',
+          surfaceEasing:
+            window.TDBMotionProfile?.easing('panel', 'cubic-bezier(0.4,0,0.2,1)') ||
+            'cubic-bezier(0.4,0,0.2,1)',
           get current() {
             return n;
           },
@@ -393,7 +395,9 @@
                       ],
                       {
                         duration: window.TDBNavMotion.current.textOut,
-                        easing: 'cubic-bezier(0, 0, 0.2, 1)',
+                        easing:
+                          window.TDBMotionProfile?.easing('fade', 'cubic-bezier(0, 0, 0.2, 1)') ||
+                          'cubic-bezier(0, 0, 0.2, 1)',
                         fill: 'forwards',
                       },
                     );
@@ -704,7 +708,11 @@
                       {
                         duration: n ? a.textIn : a.textOut,
                         delay: n ? a.delay : 0,
-                        easing: n ? 'cubic-bezier(0.5,0,1,1)' : 'cubic-bezier(0,0,0.2,1)',
+                        easing:
+                          window.TDBMotionProfile?.easing(
+                            'fade',
+                            n ? 'cubic-bezier(0.5,0,1,1)' : 'cubic-bezier(0,0,0.2,1)',
+                          ) || (n ? 'cubic-bezier(0.5,0,1,1)' : 'cubic-bezier(0,0,0.2,1)'),
                       },
                     ),
                   ),

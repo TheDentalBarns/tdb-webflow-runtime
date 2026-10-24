@@ -55,8 +55,9 @@
     slot.textContent = 'Checking live availability';
     slot.dataset.live = 'false';
     const icon = button.querySelector('svg');
+    const spinDuration = window.TDBMotionProfile?.time(700) ?? 700;
     const spin = icon?.animate?.([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], {
-      duration: 700,
+      duration: spinDuration,
       easing: 'linear',
       iterations: Infinity,
     });
@@ -82,7 +83,7 @@
       try {
         if (spin) {
           spin.effect.updateTiming({
-            iterations: Math.max(2, Math.ceil((spin.currentTime || 0) / 700)),
+            iterations: Math.max(2, Math.ceil((spin.currentTime || 0) / spinDuration)),
           });
           await spin.finished;
         }

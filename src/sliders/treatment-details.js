@@ -93,7 +93,12 @@ window.TDBTreatmentDetails ||= (() => {
                   { color: states[i].color },
                   { color: row.active ? '#ffffff' : 'rgba(255,255,255,0.5)' },
                 ],
-                { duration: window.TDBMotion?.reduced?.matches ? 0 : 200, fill: 'forwards' },
+                {
+                  duration: window.TDBMotion?.reduced?.matches
+                    ? 0
+                    : (window.TDBMotionProfile?.time(200) ?? 200),
+                  fill: 'forwards',
+                },
               ),
             );
           }

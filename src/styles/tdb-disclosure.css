@@ -5,7 +5,7 @@
 [data-tdb-chevron],
 [data-tdb-compact-chevron]::after {
   transform: rotate(0deg);
-  transition: transform var(--tdb-chevron-duration, 300ms) var(--tdb-chevron-ease, ease);
+  transition: transform var(--tdb-chevron-duration, calc(300ms * var(--tdb-motion-pace,1))) var(--tdb-chevron-ease, var(--tdb-motion-ease-control,ease));
 }
 [aria-expanded="true"] > [data-tdb-chevron],
 [data-tdb-compact-chevron][aria-expanded="true"]::after {

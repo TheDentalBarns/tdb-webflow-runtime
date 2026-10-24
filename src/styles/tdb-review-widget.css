@@ -28,8 +28,8 @@ html { --tdb-review-widget-ready: 1; }
   transform: translate3d(-101%,0,0);
   visibility: hidden;
   pointer-events: none;
-  transition: transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)),
-    visibility 0s var(--tdb-peek-duration,420ms), background-color 180ms ease, border-color 180ms ease;
+  transition: transform var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-peek-ease,var(--tdb-motion-ease-control,cubic-bezier(.4,0,.2,1))),
+    visibility 0s var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1))), background-color calc(180ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease), border-color calc(180ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease);
 }
 .tdb-review-widget.is-visible {
   transform: translate3d(0,0,0);
@@ -64,6 +64,6 @@ html { --tdb-review-widget-ready: 1; }
   right: 1.30025rem; top: calc(50% - .8325rem);
   width: 1.6665rem; height: 1.6665rem;
   border: 1px solid currentColor; border-right-color: transparent; border-radius: 50%;
-  animation: tdb-review-widget-spin 1s linear infinite;
+  animation: tdb-review-widget-spin calc(1s * var(--tdb-motion-pace,1)) linear infinite;
 }
 @keyframes tdb-review-widget-spin { to { transform: rotate(360deg); } }

@@ -3,7 +3,7 @@
  */
 [data-tdb-pulse] {
   pointer-events: none;
-  animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate;
+  animation: tdbBtnPulseOpacity calc(2.4s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in-out) infinite alternate;
 }
 [aria-busy='true'] [data-tdb-pulse],
 [aria-expanded='true'] [data-tdb-pulse],
@@ -16,25 +16,25 @@
   opacity: 1;
   visibility: visible;
   pointer-events: none;
-  transition: opacity 0.12s ease 0.12s, visibility 0s linear 0s;
+  transition: opacity calc(0.12s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease) calc(0.12s * var(--tdb-motion-pace,1)), visibility 0s linear 0s;
 }
 [data-tdb-compact-spinner][data-tdb-loading='true']::after,
 [data-tdb-loading='true'] [data-tdb-compact-spinner]::after {
   opacity: 1;
   visibility: visible;
-  animation: tdbControlSpin 1s linear infinite;
-  transition: opacity 0.12s ease 0.12s, visibility 0s linear 0s;
+  animation: tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite;
+  transition: opacity calc(0.12s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease) calc(0.12s * var(--tdb-motion-pace,1)), visibility 0s linear 0s;
 }
 [data-tdb-loading='true'] [data-tdb-loading-indicator] svg {
-  animation: tdbControlSpin 1s linear infinite;
+  animation: tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite;
 }
 /* Full-motion review policy also wins over native or embedded reduced-motion rules. */
 html[data-tdb-motion='full'] [data-tdb-loading='true'] [data-tdb-loading-indicator] svg {
-  animation: tdbControlSpin 1s linear infinite !important;
+  animation: tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite !important;
 }
 html[data-tdb-motion='full'] [data-tdb-compact-spinner][data-tdb-loading='true']::after,
 html[data-tdb-motion='full'] [data-tdb-loading='true'] [data-tdb-compact-spinner]::after {
-  animation: tdbControlSpin 1s linear infinite !important;
+  animation: tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite !important;
 }
 [data-tdb-loading='true'] [data-tdb-loading-content] {
   opacity: 0;
@@ -84,7 +84,7 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
   pointer-events: auto;
 }
 [data-tdb-compact-pulse]::before {
-  animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate;
+  animation: tdbBtnPulseOpacity calc(2.4s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in-out) infinite alternate;
 }
 [data-tdb-compact-pulse]:is([data-tdb-pulse='false'],[aria-busy='true'],[aria-expanded='true'],[data-tdb-loading='true'])::before,
 :is([aria-busy='true'],[aria-expanded='true'],[data-tdb-loading='true']) [data-tdb-compact-pulse]::before {

@@ -3,14 +3,27 @@
  * Shared coordination, scrolling, feedback, consent and compatibility. Other feature CSS has independent readiness.
  */
 
+/* Generated from config/motion.json. Change pace/character there. */
+html {
+  --tdb-motion-pace: 1;
+
+}
+
 html {
   scroll-behavior: auto !important;
 }
 
+/* Native Webflow motion bindings, audited 24 October 2026.
+ * Only timing/easing are projected; Designer retains layout and state ownership.
+ * Regenerate with tools/runtime-build/native-motion.cjs when native motion changes.
+ */
+:where(.w-popover[data-w-popover-backdrop-animated],.w-modal[data-w-popover-backdrop-animated])::backdrop{animation-duration:0s;animation-delay:0s;animation-timing-function:var(--tdb-motion-ease-panel,ease)}.w-webflow-badge,.w-webflow-badge>img{transition-duration:0s;transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease)}.w-slider-dot{transition-duration:calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease)}.w-lightbox-control{transition-duration:calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease)}.w-lightbox-spinner{animation-duration:calc(.8s * var(--tdb-motion-pace,1));animation-delay:0s;animation-timing-function:linear}
+.max-width-xsmall.service-card-mobile-copy.tdb-service-copy{transition-duration:calc(.2s * var(--tdb-motion-pace,1));transition-timing-function:var(--tdb-motion-ease-control,ease-out)}.max-width-xsmall.service-card-mobile-copy.tdb-service-copy.is-visible{transition-duration:calc(.4s * var(--tdb-motion-pace,1));transition-timing-function:var(--tdb-motion-ease-control,ease-in)}.max-width-xsmall.service-card-mobile-copy.tdb-service-copy.is-moving{transition-duration:calc(.15s * var(--tdb-motion-pace,1));transition-timing-function:var(--tdb-motion-ease-control,ease-out)}.form_checkbox-icon{transition-duration:calc(.2s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease)}.button{transition-duration:calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease)}.button.is-review-filter-action{transition-duration:calc(.15s * var(--tdb-motion-pace,1))}.button.is-icon.is-secondary.is-navbar-control{transition-duration:calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1));transition-delay:0s,0s,0s;transition-timing-function:var(--tdb-motion-ease-panel,ease),var(--tdb-motion-ease-panel,ease),var(--tdb-motion-ease-panel,ease)}.button.submit-button{transition-duration:calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1));transition-delay:0s,0s,0s;transition-timing-function:var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease)}.navbar10_component{transition-duration:calc(.3s * var(--tdb-motion-pace,1)),calc(.3s * var(--tdb-motion-pace,1)),calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s,0s,0s;transition-timing-function:var(--tdb-motion-ease-panel,ease),var(--tdb-motion-ease-panel,ease),var(--tdb-motion-ease-panel,ease)}.navbar10_component:where(.w-variant-985dc2c9-931e-7935-b0d3-cfb27c742eeb),.navbar10_component:where(.w-variant-62bcef08-fd31-e18b-ef36-118ec78fa87a),.navbar10_component:where(.w-variant-2ace7854-d44e-2456-5067-8f7cb03bc8a1){transition-duration:calc(.2s * var(--tdb-motion-pace,1)),calc(.2s * var(--tdb-motion-pace,1)),calc(.2s * var(--tdb-motion-pace,1))}.navbar10_logo-link{transition-duration:calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-panel,ease)}.navbar10_logo-link.is-nav-motion{transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1));transition-duration:var(--tdb-nav-detail-duration,calc(.42s * var(--tdb-motion-pace,1)))}.navbar10_link{transition-duration:calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-motion-ease-panel,ease),var(--tdb-motion-ease-panel,ease)}.navbar10_link.w--current:where(.w-variant-985dc2c9-931e-7935-b0d3-cfb27c742eeb),.navbar10_link.w--current:where(.w-variant-62bcef08-fd31-e18b-ef36-118ec78fa87a),.navbar10_link.w--current:where(.w-variant-2ace7854-d44e-2456-5067-8f7cb03bc8a1){transition-duration:calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-motion-ease-panel,ease),var(--tdb-motion-ease-panel,ease)}.navbar10_dropdown-toggle{transition-duration:calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-motion-ease-panel,ease),var(--tdb-motion-ease-panel,ease)}.navbar10_dropdown-link{transition-duration:calc(.1s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-panel,ease)}.navbar10_blog-item-image{transition-duration:calc(.5s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-panel,ease)}.navbar10_menu-right{transition-duration:calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-panel,ease)}.navbar_line{transition-duration:calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-panel,ease)}.navbar_line.is-nav-motion{transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1));transition-duration:var(--tdb-nav-detail-duration,calc(.42s * var(--tdb-motion-pace,1)))}.swiper-slide.is-3-grid.smile.tdb-smile-slide{transition-duration:calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease)}.showcase_card.tdb-service-card:after{transition-duration:var(--tdb-parallax-duration,calc(.4s * var(--tdb-motion-pace,1)));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease)}.feature-item_door-image{transition-duration:calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease)}.vimeo-player__btn{transition-duration:calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:linear}.vimeo-bg__placeholder{transition-duration:calc(.45s * var(--tdb-motion-pace,1)),0s;transition-delay:0s,calc(.45s * var(--tdb-motion-pace,1));transition-timing-function:var(--tdb-motion-ease-fade,ease),linear}.tdb-vip-drawer{transition-duration:0s;transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-panel,ease)}.tdb-vip-drawer.is-ready{transition-duration:var(--tdb-peek-duration,calc(.42s * var(--tdb-motion-pace,1)));transition-delay:0s;transition-timing-function:var(--tdb-peek-ease,var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1)))}.tdb-vip-drawer.is-peeking{transition-duration:var(--tdb-peek-duration,calc(.42s * var(--tdb-motion-pace,1))),calc(.5s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-peek-ease,var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))),var(--tdb-motion-ease-panel,ease)}.tdb-vip-drawer.is-open{transition-duration:var(--tdb-vip-drawer-duration,calc(.5s * var(--tdb-motion-pace,1))),calc(.5s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-vip-drawer-ease,var(--tdb-motion-ease-panel,cubic-bezier(.165,.84,.44,1))),var(--tdb-motion-ease-panel,ease)}.tdb-vip-drawer.is-closing{transition-duration:var(--tdb-vip-drawer-duration,calc(.5s * var(--tdb-motion-pace,1))),calc(.5s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-vip-drawer-ease,var(--tdb-motion-ease-panel,cubic-bezier(.165,.84,.44,1))),var(--tdb-motion-ease-panel,ease)}.tdb-vip-drawer-handle{transition-duration:0s;transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-panel,ease)}.review-summary_arrow{transition-duration:calc(.3s * var(--tdb-motion-pace,1)),calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease)}.review-summary_arrow-icon{transition-duration:0s;transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease)}.tdb-nav-bar-glass{transition-duration:var(--tdb-nav-detail-duration,calc(.42s * var(--tdb-motion-pace,1)));transition-timing-function:var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))}.tdb-service-arrow.tdb-partner-close{transition-duration:calc(.3s * var(--tdb-motion-pace,1)),calc(.3s * var(--tdb-motion-pace,1)),calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s,0s,0s;transition-timing-function:var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease)}.tdb-service-discover{transition-duration:calc(.3s * var(--tdb-motion-pace,1)),calc(.3s * var(--tdb-motion-pace,1)),calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s,0s,0s;transition-timing-function:var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease)}.tdb-service-discover.is-touch-held{transition-duration:0s}.tdb-vip-arrow-content{transition-duration:calc(.42s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))}.tdb-vip-arrow-content.is-vip-open{transition-duration:calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-panel,ease)}.tdb-vip-arrow-content.is-vip-closing{transition-duration:calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-panel,ease)}.tdb-team-quotes_track{transition-timing-function:var(--tdb-motion-ease-travel,ease)}.tdb-team-quotes_content{transition-duration:calc(.4s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease-out)}.tdb-team-quotes_content.is-entry{transition-duration:0s}.tdb-smile-fact-ticker.is-ready{transition-duration:calc(.4s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease-in)}.tdb-treatment-card:where(.w-variant-ccee4851-2369-7f80-45b0-8eae023f92ca){transition-duration:calc(.2s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease)}.tdb-treatment-image-wrap.tdb-stamp-confirmation:before{transition-duration:calc(.2s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease)}.tdb-treatment-image-wrap.tdb-stamp-confirmation:after{transition-duration:calc(.2s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease)}.tdb-treatment-copy{transition-duration:calc(.2s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease-out)}.tdb-treatment-copy.is-visible{transition-duration:calc(.4s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease-in)}.tdb-treatment-copy.is-visible.is-moving{transition-duration:calc(.15s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease-out)}.tdb-treatment-blur{transition-duration:var(--tdb-parallax-duration,calc(.4s * var(--tdb-motion-pace,1))),var(--tdb-parallax-duration,calc(.4s * var(--tdb-motion-pace,1)));transition-delay:0s,0s;transition-timing-function:var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease)}.tdb-usp_launch{transition-duration:calc(.3s * var(--tdb-motion-pace,1)),calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease)}.tdb-usp_launch-icon{transition-duration:calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease)}.carousel-arrow{transition-duration:calc(.3s * var(--tdb-motion-pace,1)),calc(.3s * var(--tdb-motion-pace,1)),calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s,0s,0s;transition-timing-function:var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease)}.tdb-consent-backdrop{transition-duration:var(--tdb-peek-duration,calc(.42s * var(--tdb-motion-pace,1)));transition-timing-function:var(--tdb-peek-ease,var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1)))}.tdb-consent-surface{transition-duration:var(--tdb-peek-duration,calc(.42s * var(--tdb-motion-pace,1)));transition-timing-function:var(--tdb-peek-ease,var(--tdb-motion-ease-control,cubic-bezier(.4,0,.2,1)))}.tdb-consent-scroll{transition-duration:var(--tdb-peek-duration,calc(.42s * var(--tdb-motion-pace,1)));transition-delay:0s;transition-timing-function:var(--tdb-peek-ease,var(--tdb-motion-ease-control,cubic-bezier(.4,0,.2,1)))}.tdb-consent-motion{transition-duration:calc(.35s * var(--tdb-motion-pace,1)),calc(.35s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-motion-ease-control,cubic-bezier(.5,0,1,1)),var(--tdb-motion-ease-control,cubic-bezier(.5,0,1,1))}.tdb-consent-button{transition-duration:calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1));transition-delay:0s,0s,0s;transition-timing-function:var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease)}@media screen and (max-width:991px){.navbar10_menu{transition-duration:calc(.5s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-panel,ease)}}@media screen and (max-width:767px){.navbar10_component{transition-duration:calc(.4s * var(--tdb-motion-pace,1)),calc(.3s * var(--tdb-motion-pace,1)),calc(.3s * var(--tdb-motion-pace,1))}.navbar10_menu{transition-duration:calc(.5s * var(--tdb-motion-pace,1)),var(--tdb-nav-detail-duration,calc(.42s * var(--tdb-motion-pace,1))),var(--tdb-nav-detail-duration,calc(.42s * var(--tdb-motion-pace,1)));transition-delay:0s,0s,0s;transition-timing-function:var(--tdb-motion-ease-panel,ease),var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1)),var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))}}
+
 /* Shared 420ms site-bar clock. Feature-specific states load with their owner. */
 html {
-  --tdb-peek-duration: 420ms;
-  --tdb-peek-ease: cubic-bezier(.4,0,.2,1);
+  --tdb-peek-duration: calc(420ms * var(--tdb-motion-pace,1));
+  --tdb-peek-ease: var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1));
 }
 
 /* Native .button.submit-button states live in Designer. Keep compatibility
@@ -50,7 +63,7 @@ select:not(.form_select):not(.placeholder){color:#000}
 [data-vimeo-hero-shell][data-vimeo-pulse='true'] .vimeo-controls-layer .vimeo-player__btn-pulse,
 .vimeo-player:not([data-vimeo-playing]) .vimeo-player__btn-pulse,
 .vimeo-player[data-vimeo-playing='false'] .vimeo-player__btn-pulse {
-  animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate;
+  animation: tdbBtnPulseOpacity calc(2.4s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in-out) infinite alternate;
   will-change: opacity;
 }
 
@@ -118,7 +131,7 @@ html { --tdb-ui-ready: 1; }
  */
 [data-tdb-pulse] {
   pointer-events: none;
-  animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate;
+  animation: tdbBtnPulseOpacity calc(2.4s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in-out) infinite alternate;
 }
 [aria-busy='true'] [data-tdb-pulse],
 [aria-expanded='true'] [data-tdb-pulse],
@@ -131,25 +144,25 @@ html { --tdb-ui-ready: 1; }
   opacity: 1;
   visibility: visible;
   pointer-events: none;
-  transition: opacity 0.12s ease 0.12s, visibility 0s linear 0s;
+  transition: opacity calc(0.12s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease) calc(0.12s * var(--tdb-motion-pace,1)), visibility 0s linear 0s;
 }
 [data-tdb-compact-spinner][data-tdb-loading='true']::after,
 [data-tdb-loading='true'] [data-tdb-compact-spinner]::after {
   opacity: 1;
   visibility: visible;
-  animation: tdbControlSpin 1s linear infinite;
-  transition: opacity 0.12s ease 0.12s, visibility 0s linear 0s;
+  animation: tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite;
+  transition: opacity calc(0.12s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease) calc(0.12s * var(--tdb-motion-pace,1)), visibility 0s linear 0s;
 }
 [data-tdb-loading='true'] [data-tdb-loading-indicator] svg {
-  animation: tdbControlSpin 1s linear infinite;
+  animation: tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite;
 }
 /* Full-motion review policy also wins over native or embedded reduced-motion rules. */
 html[data-tdb-motion='full'] [data-tdb-loading='true'] [data-tdb-loading-indicator] svg {
-  animation: tdbControlSpin 1s linear infinite !important;
+  animation: tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite !important;
 }
 html[data-tdb-motion='full'] [data-tdb-compact-spinner][data-tdb-loading='true']::after,
 html[data-tdb-motion='full'] [data-tdb-loading='true'] [data-tdb-compact-spinner]::after {
-  animation: tdbControlSpin 1s linear infinite !important;
+  animation: tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite !important;
 }
 [data-tdb-loading='true'] [data-tdb-loading-content] {
   opacity: 0;
@@ -191,7 +204,26 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
 /* Fetch loading artwork only when a control actually enters its loading state. */
 [data-tdb-loading="true"] { --tdb-spinner-artwork: url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ad9b3739924db6726de4586_tdb-control-spinner.svg"); }
 
-:root{--tdb-reveal-distance: 20px;--tdb-reveal-fade-in: 300ms;--tdb-reveal-move-in: 400ms;--tdb-reveal-out: 200ms;--tdb-reveal-ease: cubic-bezier(.165,.84,.44,1);}
+/* Compact pulses keep the control itself interactive and fully visible.
+ * Existing descendants on other pages keep the legacy pulse contract above. */
+[data-tdb-compact-pulse][data-tdb-pulse] {
+  animation: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+[data-tdb-compact-pulse]::before {
+  animation: tdbBtnPulseOpacity calc(2.4s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in-out) infinite alternate;
+}
+[data-tdb-compact-pulse]:is([data-tdb-pulse='false'],[aria-busy='true'],[aria-expanded='true'],[data-tdb-loading='true'])::before,
+:is([aria-busy='true'],[aria-expanded='true'],[data-tdb-loading='true']) [data-tdb-compact-pulse]::before {
+  animation: none;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-tdb-motion='full']) [data-tdb-compact-pulse]::before { animation:none;opacity:0; }
+}
+
+:root{--tdb-reveal-distance: 20px;--tdb-reveal-fade-in: calc(300ms * var(--tdb-motion-pace,1));--tdb-reveal-move-in: calc(400ms * var(--tdb-motion-pace,1));--tdb-reveal-out: calc(200ms * var(--tdb-motion-pace,1));--tdb-reveal-ease: var(--tdb-motion-ease-control,cubic-bezier(.165,.84,.44,1));}
 
 :is(a[href],button,[role="button"],summary){-webkit-tap-highlight-color:transparent}
 :is(a[href],button,[role="button"],summary):not(:where(.navbar10_link,.navbar10_dropdown-toggle,.is-navbar-control)):focus:not(:focus-visible){outline:none}
@@ -314,47 +346,26 @@ img:is(.tdb-ig-holding-icon,.tdb-smile-holding-icon,.tdb-review-holding-icon){op
 :is(.tdb-ig-holding-image,.tdb-smile-holding-image,.tdb-review-holding-image):not([data-tdb-native-holder])::before{content:'';position:absolute;pointer-events:none;width:2.75rem;height:2.75rem;left:50%;top:50%;margin:-1.375rem 0 0 -1.375rem;background:currentColor;-webkit-mask:var(--tdb-holder-icon) center/contain no-repeat;mask:var(--tdb-holder-icon) center/contain no-repeat}
 /* The shared loading ring stays external and inherits the Designer holder colour. */
 :is(.tdb-ig-holding-image,.tdb-smile-holding-image,.tdb-review-holding-image)::after{content:'';position:absolute;pointer-events:none;box-sizing:border-box;width:3.68rem;height:3.68rem;left:50%;top:50%;margin:-1.84rem 0 0 -1.84rem;border:1px solid currentColor;border-bottom-color:transparent;border-left-color:transparent;border-radius:50%;opacity:0;visibility:hidden}
-[aria-busy='true']>:is(.tdb-ig-holding-image,.tdb-smile-holding-image,.tdb-review-holding-image)::after{opacity:1;visibility:visible;animation:tdbControlSpin 1s linear infinite}
+[aria-busy='true']>:is(.tdb-ig-holding-image,.tdb-smile-holding-image,.tdb-review-holding-image)::after{opacity:1;visibility:visible;animation:tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite}
 @media(prefers-reduced-motion:reduce){html:not([data-tdb-motion='full']) [aria-busy='true']>:is(.tdb-ig-holding-image,.tdb-smile-holding-image,.tdb-review-holding-image)::after{animation:none}}
 
 /* Designer shows native mask assets; the published runtime releases them at proximity. */
 [data-tdb-native-holder-icon]{-webkit-mask-image:linear-gradient(transparent,transparent);mask-image:linear-gradient(transparent,transparent)}
 
-/* Compact pulses keep the control itself interactive and fully visible.
- * Existing descendants on other pages keep the legacy pulse contract above. */
-[data-tdb-compact-pulse][data-tdb-pulse] {
-  animation: none;
-  opacity: 1;
-  pointer-events: auto;
-}
-[data-tdb-compact-pulse]::before {
-  animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate;
-}
-[data-tdb-compact-pulse]:is([data-tdb-pulse='false'],[aria-busy='true'],[aria-expanded='true'],[data-tdb-loading='true'])::before,
-:is([aria-busy='true'],[aria-expanded='true'],[data-tdb-loading='true']) [data-tdb-compact-pulse]::before {
-  animation: none;
-  opacity: 0;
-}
-@media (prefers-reduced-motion: reduce) {
-  html:not([data-tdb-motion='full']) [data-tdb-compact-pulse]::before { animation:none;opacity:0; }
-}
-
+/* Park the native progress bar until the existing lazy carousel borrows it. */
+[data-tdb-review-placeholder]>.tdb-review-embed-progress{visibility:hidden}
 
 /* Compact hero preserves the existing full-frame hit area and glass owner. */
 @keyframes tdbHeroControlEnter{from{opacity:0}to{opacity:1}}
-[data-vimeo-hero-shell] .tdb-hero-toggle-art{animation:tdbHeroControlEnter 200ms ease-out 100ms backwards}
+[data-vimeo-hero-shell] .tdb-hero-toggle-art{animation:tdbHeroControlEnter calc(200ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-out) calc(100ms * var(--tdb-motion-pace,1)) backwards}
 /* Match the original loading wrapper: quick delayed reveal, slower exit that
  * remains visible over the returning play/pause glyph. Keep this outside the
  * consent-gated Vimeo bundle so cancelling consent receives the same fade. */
-[data-vimeo-hero-shell] .tdb-hero-toggle-art::after{transition:opacity .45s ease;animation:tdbControlSpin 1s linear .12s infinite;animation-play-state:var(--tdb-hero-spin,paused)}
+[data-vimeo-hero-shell] .tdb-hero-toggle-art::after{transition:opacity calc(.45s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease);animation:tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear calc(.12s * var(--tdb-motion-pace,1)) infinite;animation-play-state:var(--tdb-hero-spin,paused)}
 [data-vimeo-hero-shell]:not([data-vimeo-pulse]) .tdb-hero-toggle::before,
-[data-vimeo-hero-shell][data-vimeo-pulse='true'] .tdb-hero-toggle::before{animation:var(--tdb-hero-pulse,tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate)}
+[data-vimeo-hero-shell][data-vimeo-pulse='true'] .tdb-hero-toggle::before{animation:var(--tdb-hero-pulse,tdbBtnPulseOpacity calc(2.4s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in-out) infinite alternate)}
 [data-vimeo-hero-shell]:is([data-vimeo-ui='loading'],[data-vimeo-ui='awaiting-consent']) .tdb-hero-toggle-art::before{opacity:0}
-[data-vimeo-hero-shell]:is([data-vimeo-ui='loading'],[data-vimeo-ui='awaiting-consent']) .tdb-hero-toggle-art::after{opacity:1;transition:opacity .12s ease .12s;animation-play-state:running}
+[data-vimeo-hero-shell]:is([data-vimeo-ui='loading'],[data-vimeo-ui='awaiting-consent']) .tdb-hero-toggle-art::after{opacity:1;transition:opacity calc(.12s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease) calc(.12s * var(--tdb-motion-pace,1));animation-play-state:running}
 .tdb-hero-toggle:focus-visible{outline:0}
 .tdb-hero-toggle:focus-visible .tdb-hero-toggle-art{outline:2px solid currentColor;outline-offset:4px}
 @media(prefers-reduced-motion:reduce){html:not([data-tdb-motion='full']) .tdb-hero-toggle::before{animation:none!important;opacity:0}}
-
-
-/* Park the native progress bar until the existing lazy carousel borrows it. */
-[data-tdb-review-placeholder]>.tdb-review-embed-progress{visibility:hidden}

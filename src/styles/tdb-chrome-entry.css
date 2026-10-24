@@ -7,7 +7,7 @@
   }
   .navbar10_component > .is-nav-bar-frame {
     /* Keep the page entrance independent of deferred menu enhancement. */
-    animation: tdb-chrome-enter 200ms ease-out 100ms 1 normal forwards !important;
+    animation: tdb-chrome-enter calc(200ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-panel,ease-out) calc(100ms * var(--tdb-motion-pace,1)) 1 normal forwards !important;
   }
   [data-vimeo-hero-shell] .vimeo-controls-layer :is(
     .vimeo-player__btn,
@@ -15,7 +15,7 @@
     .vimeo-player__loading-svg
   ) {
     /* Explicit entrance survives the shared playback animation reset. */
-    animation: tdb-chrome-enter 200ms ease-out 100ms 1 normal forwards !important;
+    animation: tdb-chrome-enter calc(200ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease-out) calc(100ms * var(--tdb-motion-pace,1)) 1 normal forwards !important;
   }
 
   /* The poster settles at a real opacity:1 after its entrance.
@@ -23,5 +23,5 @@
      existing Designer transition to opacity:0, without a second animation. */
   [data-vimeo-hero-shell] [data-vimeo-hero-init]:not([data-vimeo-started="true"]):not([data-placeholder-hidden="true"]) .vimeo-bg__placeholder {
     opacity: 1;
-    animation: tdb-chrome-enter 200ms ease-out 100ms 1 normal backwards;
+    animation: tdb-chrome-enter calc(200ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease-out) calc(100ms * var(--tdb-motion-pace,1)) 1 normal backwards;
   }

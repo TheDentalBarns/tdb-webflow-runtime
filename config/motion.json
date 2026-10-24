@@ -1,0 +1,27 @@
+{
+  "pace": 1,
+  "character": "current",
+  "distance": {
+    "base": 400,
+    "reference": 375,
+    "desktopBreakpoint": 992,
+    "desktopMin": 650,
+    "maximum": 950
+  },
+  "physics": {
+    "coast": 4.2,
+    "edgeSpring": 14,
+    "marqueeDesktop": 40,
+    "marqueeMobile": 22
+  },
+  "characters": {
+    "current": {},
+    "soft": {
+      "travel": "cubic-bezier(.45,0,.25,1)",
+      "panel": "cubic-bezier(.4,0,.2,1)",
+      "release": "cubic-bezier(.25,.55,.3,1)",
+      "fade": "ease-in-out",
+      "control": "cubic-bezier(.4,0,.2,1)"
+    }
+  }
+}

@@ -5,7 +5,9 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 
 GLOBAL_SOURCES = [
+    ROOT / 'src/styles/tdb-motion-profile.css',
     ROOT / 'src/styles/tdb-viewport-base.css',
+    ROOT / 'src/styles/tdb-native-motion.css',
     ROOT / 'src/styles/tdb-chrome-motion.css',
     ROOT / 'src/styles/tdb-runtime-ui.css',
     ROOT / 'src/styles/tdb-selection.css',
@@ -22,6 +24,7 @@ GLOBAL_SOURCES = [
     ROOT / 'src/styles/tdb-navbar-control-states.css',
     ROOT / 'src/styles/tdb-controls-base.css',
     ROOT / 'src/styles/tdb-feed-holders.css',
+    ROOT / 'src/styles/tdb-hero-compact.css',
 ]
 
 # Inline in the Webflow head; preserve global source order and never include readiness.
@@ -46,6 +49,7 @@ def write(path: Path, content: str) -> None:
     path.write_text(content, encoding='utf-8')
 
 
+subprocess.run(['node', str(ROOT / 'tools/runtime-build/motion-profile.cjs')], check=True)
 global_bundle = GLOBAL_HEADER + '\n\n'.join(read(source) for source in GLOBAL_SOURCES) + '\n'
 write(ROOT / 'src/styles/tdb-ui.css', global_bundle)
 critical_bundle = '/* Generated critical UI: inline before the asynchronous global stylesheet. */\n' + '\n\n'.join(read(source) for source in CRITICAL_SOURCES) + '\n'

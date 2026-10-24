@@ -60,8 +60,8 @@
       if (incoming.parentElement !== slot) slot.append(incoming);
       const sign = direction < 0 ? -1 : 1;
       const timing = {
-        duration: window.TDBMotion?.defaults.ticker || 400,
-        easing: 'ease-in-out',
+        duration: window.TDBMotion?.defaults.ticker || (window.TDBMotionProfile?.time(400) ?? 400),
+        easing: window.TDBMotionProfile?.easing('control', 'ease-in-out') || 'ease-in-out',
         fill: 'both',
       };
       value.textContent = old;
