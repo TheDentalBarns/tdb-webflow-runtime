@@ -1,4 +1,4 @@
-/* TDB shared motion v1.20.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.20.1. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -238,7 +238,9 @@
       const measurements = [...states].map((state) => {
         const node = state.node,
           rect = frame.rect(node),
-          hasBox = node.getClientRects().length > 0;
+          // Non-empty bounds already prove a CSS box exists. Only empty bounds
+          // need a fragment query to distinguish zero-area boxes from no box.
+          hasBox = rect.width > 0 || rect.height > 0 || node.getClientRects().length > 0;
         const style = hasBox || state.pendingInitial ? getComputedStyle(node) : null;
         const shown = hasBox && style.visibility !== 'hidden';
         const initialValue = state.pendingInitial ? Number.parseFloat(style.opacity) : null;

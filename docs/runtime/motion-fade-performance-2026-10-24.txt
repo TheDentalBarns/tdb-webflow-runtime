@@ -1,0 +1,53 @@
+Shared motion fade measurements — 24 October 2026
+
+Problem and change
+Each text fade read getBoundingClientRect, then getClientRects to check whether
+the element had a CSS box. Positive width or height in the first result already
+establishes that. Reuse that result; retain the fragment query when both are zero.
+This preserves zero-area boxes versus display:none/detached elements.
+
+The change applies to every shared DD text/region owner, including page and
+drawer fades. Positions and computed visibility are still measured every frame.
+There is no cross-frame geometry cache, observer, extra request, timing change,
+CSS change, Designer change or altered parallax curve. It reduces a duplicate
+query rather than deferring offscreen state updates.
+
+Browser A/B
+tools/benchmarks/motion-fade-work/server.cjs serves source at baseline commit
+0ee86b04516f1327d0fa4e8041200a31ed63650f and the current candidate source.
+Run with Node 24; open http://127.0.0.1:8772/ and click Run comparison.
+
+Real sticky DOM fixture: 16 parallax surfaces, 49 DD text targets, 180 scripted
+scroll steps plus settling. Tested at 390px and 1280px widths on the same desktop
+Chromium host. Synthetic input/lifecycle events are not physical-device tests.
+The fixture uses generated artwork and excludes other site modules/media.
+
+At both widths, before -> after:
+- Scroll callbacks: 179 -> 179; last scroll delivery falls in settling.
+- Scroll rectangle reads: 15,573 -> 15,573.
+- Scroll fragment queries: 8,771 -> 0.
+- Settling fragment queries: 539 -> 0.
+- Total removed fragment queries: 9,310.
+- Scroll style mutations: 1,217 -> 1,217; settling: 39 -> 39.
+- All 210 sampled opacity/position snapshots were exactly equal.
+- Idle, lifecycle suspension and disposal produced zero callbacks.
+- No duplicate rectangle reads or read-after-style-mutation ordering observed.
+
+Instrumented mean scroll callback time varied: 390px 0.750 -> 0.906ms;
+1280px 0.675 -> 0.592ms. These mixed results do not establish a wall-time or FPS
+improvement. The benefit is a deterministic reduction in redundant browser API
+calls/fragment-list creation, with matching output and negligible payload cost.
+No GPU gain is claimed. The MutationObserver counts style mutations, not paints.
+
+Validation and size
+Six regression cases (source and generated bundle) cover normal/offscreen boxes,
+zero-width/height/area fallbacks, absent boxes, visibility changes, programmatic
+scroll restoration, resize, explicit entry, suspension and disposal.
+The new work-count assertions failed on baseline and pass after the change.
+Full verify: 721 tests, 718 passed, 3 existing skips, zero failures.
+Build parity and direct Prettier check passed.
+tdb-motion.js: +23 raw bytes, +3 gzip bytes, +5 Brotli bytes (quality 11).
+
+Deferred
+Aggressive offscreen caching remains unproven and risks sticky/slide/restoration
+correctness. Fresh geometry and visibility checks deliberately remain.
