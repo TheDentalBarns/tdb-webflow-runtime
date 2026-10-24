@@ -4,7 +4,9 @@ Vertical Services image motion previously woke the horizontal progress sampler e
 
 The shared rendered-progress sampler accepts an optional mutation predicate. Services ignores only style mutations on its showcase images; the structural callback still receives every record. Track/slide layout, classes, identity, insertion, transitions, resize and lifecycle handling remain active. Other consumers retain their existing behaviour.
 
-The reproducible Swiper patch compares the live inline transform before writing its no-scale parallax transform. It retains every loop image and restores externally frozen/corrected matrices. Opacity and scale branches, image geometry, vertical synchronization, timing, blur and interruption handling are unchanged.
+The reproducible Swiper patch compares the live inline transform before writing its no-scale parallax transform during direct dragging. Timed arrow/release transitions retain the previous unconditional writes. It retains every loop image and restores externally frozen/corrected matrices. Opacity and scale branches, image geometry, vertical synchronization, timing, blur and interruption handling are unchanged.
+
+The first staging trial reported a pale trailing-edge flash on iPad portrait during arrow navigation between ordinary slides; finger swipes were clean. Exempting timed transitions from the write guard is a conservative comparison, not a confirmed Safari fix. The horizontal-progress mutation reduction remains active. No spacing or CSS changes were made; physical iPad confirmation is pending.
 
 ## Evidence
 

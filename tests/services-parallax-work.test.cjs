@@ -162,6 +162,17 @@ test('built Swiper skips identical parallax writes and restores externally froze
     for (let n = 0; n < 120; n++) swiper.emit('setTranslate');
     await Promise.resolve();
     assert.equal(writes, 0);
+    swiper.setTransition(400);
+    for (let n = 0; n < 120; n++) swiper.emit('setTranslate');
+    assert.equal(
+      writes,
+      240,
+      'timed arrow/release transitions retain the established image writes',
+    );
+    swiper.setTransition(0);
+    writes = 0;
+    for (let n = 0; n < 120; n++) swiper.emit('setTranslate');
+    assert.equal(writes, 0, 'direct dragging returns to skipping unchanged values');
     images[1].style.transform = 'matrix(1,0,0,1,13,0)';
     swiper.emit('setTranslate');
     await Promise.resolve();
