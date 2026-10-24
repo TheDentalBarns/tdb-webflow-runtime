@@ -263,20 +263,20 @@
         "src/logo-marquee/partner-controls-style.js",
         "src/logo-marquee/logo-marquee.js"
       ],
-      "sha256": "91ce1127ae6abc5cca47749a272347a751090663d62302a01262b6a042b6cc2e",
-      "raw": 26805,
-      "gzip": 8643,
-      "brotli": 7819
+      "sha256": "ef8e1f6024ab22fef6ff9dc7e10fd60ef3a5dcd73b061b4e4da71c039f0f6cab",
+      "raw": 26871,
+      "gzip": 8676,
+      "brotli": 7840
     },
     "dist/tdb-logo-marquee.min.js": {
       "sources": [
         "src/logo-marquee/partner-controls-style.js",
         "src/logo-marquee/logo-marquee.js"
       ],
-      "sha256": "91ce1127ae6abc5cca47749a272347a751090663d62302a01262b6a042b6cc2e",
-      "raw": 26805,
-      "gzip": 8643,
-      "brotli": 7819
+      "sha256": "ef8e1f6024ab22fef6ff9dc7e10fd60ef3a5dcd73b061b4e4da71c039f0f6cab",
+      "raw": 26871,
+      "gzip": 8676,
+      "brotli": 7840
     },
     "dist/tdb-modules.js": {
       "sources": [
