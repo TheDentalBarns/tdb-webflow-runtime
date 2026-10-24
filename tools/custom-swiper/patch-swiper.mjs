@@ -68,3 +68,28 @@ await writeFile(target, patched, 'utf8');
 await writeFile(resolve('.patched-swiper-utils-path'), `${target}\n`, 'utf8');
 
 console.log(`Applied CVE-2026-27212 backport to ${target}`);
+
+// Preserve all loop images and external freeze/correction transforms. Comparing
+// the live inline value avoids redundant clamped writes without a stale cache.
+// Keep the established writes during timed arrow/release transitions. The iPad
+// staging trial reported an edge flash on arrows, while direct drags were clean.
+const parallaxTarget = resolve(target, '../../modules/parallax/parallax.js');
+const parallaxOriginal = await readFile(parallaxTarget, 'utf8');
+const repeatedTransform = '$el.transform(`translate3d(${x}, ${y}, 0px)`);';
+const initialGuard = [
+  'const transform = `translate3d(${x}, ${y}, 0px)`;',
+  '      if ($el[0].style.transform !== transform) $el.transform(transform);',
+].join('\n');
+const guardedTransform = [
+  'const transform = `translate3d(${x}, ${y}, 0px)`;',
+  '      if ($el[0].style.transform !== transform || parseFloat($el[0].style.transitionDuration) > 0) $el.transform(transform);',
+].join('\n');
+let parallaxPatched = parallaxOriginal.replace(initialGuard, repeatedTransform);
+if (!parallaxPatched.includes(guardedTransform)) {
+  if (parallaxPatched.split(repeatedTransform).length !== 2) {
+    throw new Error(`Unexpected Swiper Parallax transform in ${parallaxTarget}.`);
+  }
+  parallaxPatched = parallaxPatched.replace(repeatedTransform, guardedTransform);
+}
+await writeFile(parallaxTarget, parallaxPatched, 'utf8');
+console.log(`Applied unchanged parallax transform guard to ${parallaxTarget}`);
