@@ -1,14 +1,15 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),{JSDOM}=require('jsdom');
 const read=path=>fs.readFileSync(__dirname+'/../'+path,'utf8');
 function setup(html=''){
- const dom=new JSDOM(html,{url:'https://dentalbarns.webflow.io/',runScripts:'outside-only'}),w=dom.window;
+ const dom=new JSDOM(html,{url:'https://dentalbarns.webflow.io/',runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window;
  const query=new w.EventTarget();query.matches=false;w.matchMedia=()=>query;
  const observers=[];w.ResizeObserver=class{constructor(fn){this.fn=fn;observers.push(this)}observe(){}disconnect(){this.disconnected=true}};
+ const frames=new Map();let frameId=0;w.requestAnimationFrame=fn=>(frames.set(++frameId,fn),frameId);w.cancelAnimationFrame=id=>frames.delete(id);
  w.TDBMotion={duration:width=>Math.round(width/2),reduced:{matches:false,addEventListener(){}}};
  w.eval(read('dist/tdb-swiper-8.4.7.min.js'));
  w.TDBSwiper={onSettled(swiper,fn){swiper.on('settled',fn);return()=>swiper.off('settled',fn)}};
  w.eval(read('dist/tdb-modules.js'));w.eval(read('dist/tdb-drawer.js'));
- return {w,doc:w.document,query,observers,close:()=>w.close()};
+ return {w,doc:w.document,query,observers,flush(){const list=[...frames.values()];frames.clear();list.forEach(fn=>fn())},close:()=>w.close()};
 }
 function swiper(slides=[]){
  const listeners=new Map();return {slides,activeIndex:0,visibleSlides:[],params:{},originalParams:{},animating:false,updates:0,
@@ -40,12 +41,12 @@ test('landscape preserves reading/footer positions and ignores its own height ch
   assert.equal(reader.scroll(),pane);assert.equal(pane.scrollTop,170);assert.equal(s.params.autoHeight,true);
   pane.scrollTop=730;reader.capture();metrics.height=900;reader.apply();assert.equal(pane.scrollTop,430,'retain the footer distance from the bottom');
   reader.clear();pane.scrollTop=180;reader.capture();metrics.height=1100;reader.apply();assert.equal(pane.scrollTop,180,'retain the reading offset when footer is not in view');
-  const updates=s.updates;t.observers[0].fn();assert.equal(s.updates,updates,'height output must not trigger another Swiper update');
-  metrics.width=650;t.observers[0].fn();assert.equal(s.updates,updates+1);
+  const updates=s.updates;s.emit('resize');t.flush();assert.equal(s.updates,updates,'height output must not trigger another Swiper update');
+  metrics.width=650;s.emit('resize');t.flush();assert.equal(s.updates,updates+1);
   s.animating=true;const speed=s.params.speed;t.w.innerWidth=1400;t.w.dispatchEvent(new t.w.Event('resize'));assert.equal(s.params.speed,speed,'never retime an in-flight transition');
   s.animating=false;s.emit('settled');assert.equal(s.params.speed,700);
   t.query.matches=false;t.query.dispatchEvent(new t.w.Event('change'));assert.equal(slide.scrollTop,180);assert.equal(s.params.autoHeight,false);
-  reader.destroy();assert(t.observers[0].disconnected);assert.deepEqual(modes,[true,false]);
+  reader.destroy();s.emit('resize');t.flush();assert.equal(t.observers.length,0);assert.deepEqual(modes,[true,false]);
  }finally{t.close()}
 });
 test('shared scroll lock allows inner scrolling but blocks page and edge chaining',()=>{

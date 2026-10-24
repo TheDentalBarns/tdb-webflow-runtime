@@ -1,4 +1,4 @@
-/* Shared drawer reading v1.0.0. Native styles own portrait/landscape layout. */
+/* Shared drawer reading v1.1.0. Native styles own portrait/landscape layout. */
 (() => {
   'use strict';
   if (window.TDBDrawerReading) return;
@@ -27,6 +27,9 @@
       anchor = null,
       width = viewport.clientWidth,
       bound = null,
+      frame = 0,
+      pending = false,
+      destroyed = false,
       stopSettled;
     const scroll = () => (landscape ? pane : slideScroll());
     function capture() {
@@ -42,18 +45,29 @@
     }
     function duration() {
       const swiper = currentSwiper();
-      if (!swiper || swiper.destroyed || swiper.animating) return;
+      if (destroyed || !swiper || swiper.destroyed || busy(swiper)) return;
       const value = window.TDBMotion.reduced.matches ? 0 : window.TDBMotion.duration(innerWidth);
       swiper.params.speed = value;
       swiper.originalParams.speed = value;
-      if (durationProperty) durationRoot.style.setProperty(durationProperty, value + 'ms');
+      if (
+        durationProperty &&
+        durationRoot.style.getPropertyValue(durationProperty) !== value + 'ms'
+      )
+        durationRoot.style.setProperty(durationProperty, value + 'ms');
     }
     function bind() {
       const swiper = currentSwiper();
       if (swiper === bound) return;
       stopSettled?.();
+      bound?.off('resize', requestResize);
       bound = swiper;
-      stopSettled = swiper ? window.TDBSwiper.onSettled(swiper, duration) : null;
+      bound?.on('resize', requestResize);
+      stopSettled = swiper
+        ? window.TDBSwiper.onSettled(swiper, () => {
+            duration();
+            if (pending) requestResize();
+          })
+        : null;
       duration();
     }
     function setMode(enabled = landscapeQuery.matches) {
@@ -64,9 +78,9 @@
       for (const node of nodes()) node?.classList.toggle('is-phone-landscape', landscape);
       onMode(landscape);
       const swiper = currentSwiper();
-      if (swiper) {
+      if (!landscape) track.style.height = originalHeight;
+      if (swiper && !destroyed) {
         swiper.params.autoHeight = landscape;
-        if (!landscape) track.style.height = originalHeight;
         swiper.update();
       }
       pane.scrollTop = 0;
@@ -74,18 +88,41 @@
       onRestore();
       duration();
     }
+    const busy = (swiper) => swiper.animating || swiper.touchEventsData?.isTouched;
     function resize() {
+      frame = 0;
+      const swiper = currentSwiper();
+      if (destroyed || !swiper || swiper.destroyed || document.hidden || busy(swiper)) return;
+      pending = false;
       const nextWidth = viewport.clientWidth,
         changed = Math.abs(nextWidth - width) > 0.5;
+      if (!nextWidth) return;
       width = nextWidth;
-      const swiper = currentSwiper();
       duration();
       // Auto-height is output, not a reason to restart the moving slide.
-      if (swiper && !swiper.animating && (!landscape || changed)) swiper.update();
+      if (!landscape || changed) {
+        const index = swiper.activeIndex;
+        swiper.update();
+        if (swiper.activeIndex !== index) swiper.slideTo(index, 0, false);
+      }
       apply();
     }
-    const observer = new ResizeObserver(resize);
-    observer.observe(viewport);
+    function requestResize() {
+      if (destroyed) return;
+      pending = true;
+      const swiper = currentSwiper();
+      if (!frame && swiper && !swiper.destroyed && !document.hidden && !busy(swiper))
+        frame = requestAnimationFrame(resize);
+    }
+    // Both native drawers use Swiper's existing observer. Their adapters disable
+    // its default full update so a resize has one owner and waits for settlement.
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        if (pending) requestResize();
+      },
+      { signal },
+    );
     landscapeQuery.addEventListener('change', () => setMode(), { signal });
     window.addEventListener('resize', duration, { passive: true, signal });
     return Object.freeze({
@@ -101,13 +138,17 @@
         return landscape;
       },
       destroy() {
-        observer.disconnect();
+        if (destroyed) return;
+        destroyed = true;
+        cancelAnimationFrame(frame);
+        frame = 0;
         controller.abort();
         stopSettled?.();
+        bound?.off('resize', requestResize);
         setMode(false);
         if (durationProperty) durationRoot.style.removeProperty(durationProperty);
       },
     });
   }
-  window.TDBDrawerReading = Object.freeze({ version: '1.0.0', mount });
+  window.TDBDrawerReading = Object.freeze({ version: '1.1.0', mount });
 })();

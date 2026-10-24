@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Native progress rendering audit</title>
+  <style>
+    body {
+      font: 16px/1.5 system-ui;
+      background: #f9f2e6;
+      color: #222;
+      margin: 30px;
+    }
+    button {
+      font: inherit;
+      padding: 12px 20px;
+    }
+    iframe {
+      display: block;
+      width: 420px;
+      height: 350px;
+      border: 1px solid #aaa;
+      margin: 20px 0;
+    }
+    pre {
+      white-space: pre-wrap;
+    }
+  </style>
+  <h1>Treatment progress: before and after</h1>
+  <p>
+    Actual progress, sampler and detail controllers in a small native-style fixture. Measures
+    callback work and layout reads, not GPU utilisation or physical mobile FPS. No network assets or
+    analytics.
+  </p>
+  <button id="run">Run comparison</button>
+  <p id="status">Ready</p>
+  <iframe id="fixture" title="Treatment fixture"></iframe>
+  <pre id="results"></pre>
+  <script>
+    const frame = document.querySelector('iframe'),
+      button = document.querySelector('button'),
+      status = document.querySelector('#status'),
+      output = document.querySelector('#results');
+    let results = [],
+      phase = 0;
+    button.onclick = () => {
+      button.disabled = true;
+      results = [];
+      phase = 0;
+      output.textContent = '';
+      status.textContent = 'Running baseline';
+      frame.src = '/fixture.html?version=baseline';
+    };
+    addEventListener('message', (e) => {
+      if (
+        e.source !== frame.contentWindow ||
+        e.origin !== location.origin ||
+        e.data.type !== 'result'
+      )
+        return;
+      results.push(e.data.result);
+      output.textContent = JSON.stringify(results, null, 2);
+      if (!phase++) {
+        status.textContent = 'Running candidate';
+        frame.src = '/fixture.html?version=candidate';
+      } else {
+        status.textContent = 'Complete';
+        button.disabled = false;
+      }
+    });
+  </script>
+</html>
