@@ -6,9 +6,28 @@ const read = (file) => fs.readFileSync(file, 'utf8');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function fixture(html = '<button id="trigger">Open</button>', consent = true) {
+function fixture(html = '<button id="trigger">Open</button>', consent = true, controlledClock = false) {
   const dom = new JSDOM(html, { url: 'https://dentalbarns.webflow.io/', runScripts: 'outside-only', pretendToBeVisual: true });
   const w = dom.window, d = w.document, observers = [], subscribers = new Set();
+  let now = 0, timerId = 0;
+  const timers = new Map();
+  if (controlledClock) {
+    w.performance.now = () => now;
+    w.setTimeout = (fn, delay = 0) => { timers.set(++timerId, {fn, at:now+delay}); return timerId; };
+    w.clearTimeout = id => timers.delete(id);
+  }
+  async function advance(ms) {
+    assert(controlledClock);
+    const end = now + ms;
+    for (;;) {
+      const next = [...timers].filter(([,timer]) => timer.at <= end).sort((a,b) => a[1].at-b[1].at)[0];
+      if (!next) break;
+      now = next[1].at; timers.delete(next[0]); next[1].fn();
+      await tick();
+    }
+    now = end;
+    await tick();
+  }
   w.TDBConsent = { allows: () => consent, subscribe(fn) { subscribers.add(fn); fn(); return () => subscribers.delete(fn); } };
   w.IntersectionObserver = class {
     constructor(fn, options) { Object.assign(this, { fn, options, nodes: new Set() }); observers.push(this); }
@@ -18,23 +37,24 @@ function fixture(html = '<button id="trigger">Open</button>', consent = true) {
     fire(node, isIntersecting = true) { this.fn([{ target: node, isIntersecting }]); }
   };
   w.eval(read('src/shared/feature-loading.js'));
-  return { w, d, observers, permit(value) { consent = value; subscribers.forEach((fn) => fn()); }, close() { w.close(); } };
+  return { w, d, observers, advance, permit(value) { consent = value; subscribers.forEach((fn) => fn()); }, close() { w.close(); } };
 }
 
 test('shared popover intent waits for consent and visible settled scrolling, then prepares once', async () => {
-  const f = fixture(undefined, false); let calls = 0;
+  const f = fixture(undefined, false, true); let calls = 0;
   const watch = f.w.TDBFeatureLoading.watchIntent({ kind: 'popover', selector: 'button', prepare: () => { calls++; } });
   try {
     const button = f.d.querySelector('button'), io = f.observers[0];
     assert.equal(f.w.TDBFeatureLoading.embedMargin, '1200px 0px');
     assert.equal(io.options.rootMargin, '0px');
     io.fire(button); button.dispatchEvent(new f.w.Event('pointerdown', { bubbles: true }));
-    await wait(230); assert.equal(calls, 0);
+    await f.advance(230); assert.equal(calls, 0);
     f.permit(true);
-    for (let i = 0; i < 3; i++) { f.w.dispatchEvent(new f.w.Event('scroll')); await wait(90); assert.equal(calls, 0); }
-    await wait(230); assert.equal(calls, 1);
+    for (let i = 0; i < 3; i++) { f.w.dispatchEvent(new f.w.Event('scroll')); await f.advance(90); assert.equal(calls, 0); }
+    await f.advance(109); assert.equal(calls, 0, 'do not prepare before 200ms after the last scroll');
+    await f.advance(1); assert.equal(calls, 1);
     button.dispatchEvent(new f.w.Event('focusin', { bubbles: true }));
-    io.fire(button); await wait(230); assert.equal(calls, 1);
+    io.fire(button); await f.advance(230); assert.equal(calls, 1);
   } finally { watch.destroy(); f.close(); }
 });
 
