@@ -395,10 +395,10 @@
       "sources": [
         "src/reviews/native/cards.js"
       ],
-      "sha256": "7ed6d324f73b66fb70cc3762342154c38336edb26de99127c74ca1bd44f28881",
-      "raw": 15577,
-      "gzip": 5345,
-      "brotli": 4731
+      "sha256": "ec4e9fa432c6eb04564dfae32f31e75154a9b8c4a2594ae77c35e537fade0f0b",
+      "raw": 15657,
+      "gzip": 5375,
+      "brotli": 4757
     },
     "dist/tdb-review-cms.js": {
       "sources": [

@@ -343,10 +343,20 @@ test('review cards have one resize observer and one coalesced, movement-safe lay
     settled('release');
     assert.equal(layouts, 1);
     assert.equal(s.width, 640);
+    s.slideTo(6, 0);
+    root.querySelectorAll('article').forEach((slide) => {
+      slide.style.width = '40px';
+    });
+    width = 500;
+    observers[0].fn([{ target: viewport, contentRect: { width, height: 500 } }]);
+    frame();
+    frame();
+    assert.equal(s.activeIndex, 6, 'a much shorter new track must not select its last review');
+    const settledLayouts = layouts;
     s.emit('resize');
     api.destroy();
     frame();
-    assert.equal(layouts, 1, 'queued refresh is cancelled on destroy');
+    assert.equal(layouts, settledLayouts, 'queued refresh is cancelled on destroy');
     assert(observers[0].disconnected);
   } finally {
     dom.window.close();

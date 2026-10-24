@@ -20,7 +20,9 @@ loading windows, consent, motion timing, snap destinations, reveals and links.
 - Review cards reuse Swiper's resize observer and disable its competing default
   resize update. The review adapter coalesces resize requests, waits for motion
   to settle before updating geometry, and cancels queued work on destruction.
-  Font readiness uses the same update path.
+  Font readiness uses the same update path. The selected review is explicitly
+  retained when a large width change makes the old track offset look like a
+  boundary in the new geometry.
 
 ## Controlled before/after results
 
@@ -36,7 +38,9 @@ percentages or hardware FPS:
 | Review viewport ResizeObservers | 2 | 1 |
 
 Review resize bursts produce one layout refresh. Resizing during a gesture does
-not reposition the track until settlement. Existing tests retain append-only
+not reposition the track until settlement. A browser-discovered landscape-to-
+desktop selection jump has a failing-before/passing-after engine regression.
+Existing tests retain append-only
 body measurements, focus transfer, source restoration, consent/retry, image
 loading, reveal delays, reduced motion and parallax interruption behavior.
 

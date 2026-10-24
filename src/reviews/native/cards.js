@@ -555,7 +555,11 @@
       layoutPending = false;
       updating = true;
       swiper.params.speed = reduced.matches ? 0 : motion.duration(innerWidth);
+      const activeIndex = swiper.activeIndex;
       swiper.update();
+      // With auto-width cards, an old translate can look like the new end of
+      // the track after a large resize. Keep the reader's selected review.
+      if (swiper.activeIndex !== activeIndex) swiper.slideTo(activeIndex, 0, false);
       updating = false;
       fitBodies();
       measureProgress();
