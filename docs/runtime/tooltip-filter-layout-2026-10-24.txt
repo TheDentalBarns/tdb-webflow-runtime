@@ -1,0 +1,25 @@
+Tooltip and review-filter layout work — 24 October 2026
+
+Tooltip positioning still follows moving anchors while hovered or focused, but
+only writes placement and correction styles when those values change. Reopening
+re-establishes styles that a native hide animation may have cleared.
+
+The review filter footer retains its existing fitting rules. ResizeObserver
+deliveries with unchanged resulting geometry skip restoring/refitting the noun
+and button padding. Explicit opening, content and font updates still refit;
+restoration clears the cached geometry.
+
+Validation: 692 tests, 689 passed, 3 existing skips; deterministic build check
+passed. New regression tests exercise stable frames, changed positions, keyboard
+focus, reopening, narrower/wider layouts, content changes and restoration.
+Chromium fixtures passed all checks at 320, 390 and 1280 CSS pixels, including
+real ResizeObserver delivery, button/close separation and tooltip edge flips.
+The isolated fit fixture uses the actual private routine with representative
+geometry; the full review drawer is checked separately on staging.
+
+No CSS, CMS, animation timing or native markup changes. Local Brotli-Q11 sizes
+increase by 68 bytes for reviews and 38 bytes for tooltips. These are reductions
+in unnecessary work, not a measured FPS/INP or CPU improvement claim.
+
+Release base: 1d9a243387c0fd2a7a609e169a477a2b1dfa626a (countdown width fix).
+Scope: staging only. The original saved work remains in its git stash.

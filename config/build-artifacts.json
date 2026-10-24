@@ -499,10 +499,10 @@
         "src/reviews/native/quote-mark.js",
         "src/reviews/native/drawer-content.js"
       ],
-      "sha256": "9cee6db08cae814356c55d33819f09669482ca66e0568e802ae81a0a11cc9bc2",
-      "raw": 19860,
-      "gzip": 7086,
-      "brotli": 6375
+      "sha256": "d972d50aef9686481d440e124088c5be2671bced23cbfd6afc970fb7abf6851e",
+      "raw": 20062,
+      "gzip": 7158,
+      "brotli": 6443
     },
     "dist/tdb-runtime.js": {
       "sources": [
@@ -605,10 +605,10 @@
       "sources": [
         "src/tooltips/tooltips.js"
       ],
-      "sha256": "9c73d6f3681888a7338fb6457bafb11bc259c11bd9895b2a311d30f0938b1874",
-      "raw": 2852,
-      "gzip": 1294,
-      "brotli": 1138
+      "sha256": "2bbb6d1f91ad9e7d00aeeb3955a293a133093e7c33e8edba8a62888b1b920e18",
+      "raw": 2900,
+      "gzip": 1327,
+      "brotli": 1176
     },
     "dist/tdb-usp-drawer-template.js": {
       "sources": [

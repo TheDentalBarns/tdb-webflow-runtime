@@ -87,7 +87,9 @@
       ((n = m), (e = g), (n = window.getComputedStyle(n)), (e = C[e].margin.indexOf(1)));
       const h = [n.marginTop, n.marginRight, n.marginBottom, n.marginLeft][e];
       let t = !1,
-        frame = 0;
+        frame = 0,
+        placement = null,
+        correction = null;
       function p() {
         frame = 0;
         if (t && s.isConnected) {
@@ -109,24 +111,34 @@
                 top: 0 < e.top - n.height,
               }),
             l = i[g] || !i[u] ? g : u;
-          ((r = l),
-            (o = a),
-            (e = t),
-            (n = y[r]),
-            (d.style[n] = '100%'),
-            (d.style[r] = 'auto'),
-            (d.style[w(n)] = c + 'px'),
-            (d.style[w(r)] = '0'),
-            (d.style.transform = o.translate + '(' + e + 'px)'),
-            (m.style.transform = o.translate + '(' + -e + 'px) rotate(45deg)'),
-            (m.style.margin = C[r].margin.map((t) => (1 === t ? h : t)).join(' ')),
-            (m.style.inset = C[r].inset.join(' ')));
+          // Keep sampling while an anchor can move, but only write a changed
+          // placement. Stable hover/focus must not dirty layout every frame.
+          if (placement !== l) {
+            placement = l;
+            const opposite = y[l];
+            d.style[opposite] = '100%';
+            d.style[l] = 'auto';
+            d.style[w(opposite)] = c + 'px';
+            d.style[w(l)] = '0';
+            m.style.margin = C[l].margin.map((value) => (value === 1 ? h : value)).join(' ');
+            m.style.inset = C[l].inset.join(' ');
+          }
+          if (correction !== t) {
+            correction = t;
+            d.style.transform = a.translate + '(' + t + 'px)';
+            m.style.transform = a.translate + '(' + -t + 'px) rotate(45deg)';
+          }
         }
       }
       const parent = s.parentElement;
       function activate() {
         t = true;
-        if (!frame) p();
+        if (!frame) {
+          // Reopening can follow a native hide animation that reset inline
+          // styles. Re-establish ownership once, then skip stable frames.
+          placement = correction = null;
+          p();
+        }
       }
       function settle() {
         t = parent.matches(':hover') || parent.contains(document.activeElement);
@@ -134,7 +146,7 @@
           cancelAnimationFrame(frame);
           frame = 0;
         }
-        if (t && !frame) p();
+        if (t && !frame) activate();
       }
       parent.addEventListener('mouseenter', activate);
       parent.addEventListener('mouseleave', settle);
@@ -158,7 +170,7 @@
       ),
     ).observe(document.body, { childList: true, subtree: true });
   }
-  window.TDBTooltips = Object.freeze({ version: '1.0.0', refresh: () => o() });
+  window.TDBTooltips = Object.freeze({ version: '1.0.1', refresh: () => o() });
   if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
