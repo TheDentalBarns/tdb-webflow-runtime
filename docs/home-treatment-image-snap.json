@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-24",
+  "scope": "Home desktop treatment image landing",
+  "behavior": "The treatment magnet aligns the top of the main image to its native Designer scroll-margin-top. It no longer centres the image plus text/CTA assembly or changes target when that assembly exceeds the viewport. The section heading scrolls above the viewport. Services retains frame centring. Touch scrolling remains native.",
+  "designer": {
+    "siteId": "677cf86cf9952f978d94d80c",
+    "pageId": "677cf86df9952f978d94d8a9",
+    "variantId": "ca428119-19d7-4c03-4033-ca8a89a684de",
+    "style": "tdb-home-treatment-stage",
+    "main": {
+      "scroll-margin-top": "2rem",
+      "height": "max(42svh, calc(100svh - 34rem))",
+      "max-height": "none",
+      "min-height": "14rem"
+    },
+    "beforeThisChange": { "scroll-margin-top": "unset" },
+    "note": "Only scroll-margin-top is new in this follow-up. The viewport-based height was already authored in Designer. Existing medium, small and tiny height overrides are preserved."
+  },
+  "runtime": "Reads the authored frame geometry and computed scroll margin. Writes only the existing scroll position/focus state; no height, padding, margin or layout styles are injected. Copy rows are no longer measured by this magnet.",
+  "motion": "Uses the existing shared pace and damped spring, interruption, breakaway and reduced-motion policy. A frame taller than the available viewport below the inset stays ordinary scrolling."
+}

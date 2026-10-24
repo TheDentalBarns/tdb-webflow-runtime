@@ -1210,7 +1210,7 @@
   });
 })();
 
-/* Opt-in section centring. Runs inside tdb-motion, never adds page styles.
+/* Opt-in section snapping. Runs inside tdb-motion, never adds page styles.
  * Proximity capture with an elastic return and a wider breakaway threshold.
  * Native gestures stay free; only the released position snaps into place.
  */
@@ -1281,26 +1281,24 @@
   }
   function geometry(node) {
     const box = node.getBoundingClientRect();
-    let bottom = box.bottom;
-    if (node.dataset.tdbMagnet === 'treatment') {
-      const owner = node.closest('[data-tdb-treatment-layout]');
-      for (const row of owner?.querySelectorAll(
-        '[data-tdb-treatment-details],.tdb-treatment-cta',
-      ) || [])
-        bottom = Math.max(bottom, row.getBoundingClientRect().bottom);
-    }
-    // Keep the authored heights. On short screens centre the image frame,
-    // rather than disabling the magnet because the copy extends below it.
-    if (node.dataset.tdbMagnet === 'treatment' && bottom - box.top > innerHeight - 32)
-      bottom = box.bottom;
-    const height = bottom - box.top;
-    const allowed = node.dataset.tdbMagnet === 'frame' ? innerHeight * 1.12 : innerHeight - 32;
+    const treatment = node.dataset.tdbMagnet === 'treatment';
+    // Designer's scroll margin is the breathing room above the treatment image.
+    // Copy length must not move that landing point or resize the authored frame.
+    const inset = treatment
+      ? Math.max(0, parseFloat(getComputedStyle(node).scrollMarginTop) || 0)
+      : 0;
+    const height = box.bottom - box.top;
+    const allowed = treatment
+      ? innerHeight - inset
+      : node.dataset.tdbMagnet === 'frame'
+        ? innerHeight * 1.12
+        : innerHeight - 32;
     return {
       node,
       top: box.top,
-      bottom,
+      bottom: box.bottom,
       height,
-      delta: (box.top + bottom - innerHeight) / 2,
+      delta: treatment ? box.top - inset : (box.top + box.bottom - innerHeight) / 2,
       fits: box.width > 0 && height > 0 && height <= allowed,
     };
   }
@@ -1487,7 +1485,7 @@
   reduced.addEventListener('change', resetContext, { signal });
   desktop.addEventListener('change', resetContext, { signal });
   window.TDBSectionMagnet = Object.freeze({
-    version: '1.3.1',
+    version: '1.4.0',
     destroy() {
       reset();
       controller.abort();
