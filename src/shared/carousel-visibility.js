@@ -11,6 +11,7 @@
     const measurements = 'init update resize breakpoint observerUpdate';
     let bounds = null;
     function measure() {
+      for (const state of original.values()) state.painted = undefined;
       if (!overflowViewport || !swiper.isHorizontal()) return;
       const left = swiper.el.getBoundingClientRect().left;
       bounds = { left: -left, right: innerWidth - left };
@@ -22,7 +23,7 @@
       else slide.setAttribute('aria-hidden', state.hidden);
       slide.toggleAttribute('inert', state.inert);
     }
-    function update() {
+    function update(force = true) {
       if (disposed || swiper.destroyed) return;
       const active = swiper.slides[swiper.activeIndex];
       // Native Smile/Instagram intentionally bleed past their one-card viewport.
@@ -62,9 +63,16 @@
             inert: slide.hasAttribute('inert'),
           });
         const hidden = !exposed.has(slide);
-        if (slide.getAttribute('aria-hidden') !== String(hidden))
-          slide.setAttribute('aria-hidden', String(hidden));
-        if (slide.hasAttribute('inert') !== hidden) slide.toggleAttribute('inert', hidden);
+        const state = original.get(slide);
+        // We own these two attributes until teardown. Movement often keeps the
+        // same exposed cards; only inspect/write them when that state changes.
+        // Layout events and explicit updates recheck the live DOM.
+        if (force || state.painted !== hidden) {
+          if (slide.getAttribute('aria-hidden') !== String(hidden))
+            slide.setAttribute('aria-hidden', String(hidden));
+          if (slide.hasAttribute('inert') !== hidden) slide.toggleAttribute('inert', hidden);
+          state.painted = hidden;
+        }
       }
       // Loop correction may exchange physical copies of the same card. Keep
       // keyboard focus on its equivalent control without scrolling the page.
@@ -90,7 +98,7 @@
       // that array and accidentally skip another component's cleanup.
       if (!fromSwiper) {
         swiper.off(measurements, measure);
-        swiper.off(events, update);
+        swiper.off(events, paint);
         swiper.off('beforeDestroy', beforeDestroy);
       }
       for (const [slide, state] of original) restore(slide, state);
@@ -98,11 +106,12 @@
       bindings.delete(swiper);
     }
     const beforeDestroy = () => destroy(true);
+    const paint = () => update(false);
     const api = Object.freeze({ update, destroy });
     bindings.set(swiper, api);
     measure();
     swiper.on(measurements, measure);
-    swiper.on(events, update);
+    swiper.on(events, paint);
     swiper.on('beforeDestroy', beforeDestroy);
     update();
     return api;

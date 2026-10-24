@@ -52,6 +52,7 @@
       let M = null,
         N = 'mouse',
         O = null;
+      let lastExpansion;
       const P = (e) => e?.closest?.('.tdb-smile-card'),
         W = (e) => {
           const t = e?.closest('.swiper-slide');
@@ -63,25 +64,36 @@
           );
         };
       function K() {
-        (!M || (M.isConnected && W(M)) || (M = null),
-          m.forEach((e) => {
-            const t =
-                (e.hasAttribute('data-swiper-slide-index')
-                  ? Number(e.getAttribute('data-swiper-slide-index'))
-                  : f.indexOf(e)) === (h ? h.realIndex : 0),
-              i = e.querySelector('.tdb-smile-card'),
-              n = Boolean(M && t);
-            i?.setAttribute('aria-expanded', String(n));
-            const r = e.querySelector('.tdb-smile-details');
-            (r?.classList.toggle('is-open', n),
-              r?.setAttribute('aria-hidden', String(!n)),
-              e.querySelector('.tdb-smile-overlay')?.classList.toggle('is-open', n),
-              e
-                .querySelectorAll('.tdb-smile-image-label')
-                .forEach((e) => e.classList.toggle('is-expanded', n)),
-              e.classList.toggle('is-muted', Boolean(h && !t)));
-          }));
-        shared?.open(Boolean(M));
+        if (M && (!M.isConnected || !W(M))) M = null;
+        const index = h ? h.realIndex : 0,
+          open = Boolean(M),
+          mounted = Boolean(h);
+        if (
+          lastExpansion?.slides === m &&
+          lastExpansion.index === index &&
+          lastExpansion.open === open &&
+          lastExpansion.mounted === mounted
+        )
+          return;
+        lastExpansion = { slides: m, index, open, mounted };
+        m.forEach((e) => {
+          const t =
+              (e.hasAttribute('data-swiper-slide-index')
+                ? Number(e.getAttribute('data-swiper-slide-index'))
+                : f.indexOf(e)) === (h ? h.realIndex : 0),
+            i = e.querySelector('.tdb-smile-card'),
+            n = Boolean(M && t);
+          i?.setAttribute('aria-expanded', String(n));
+          const r = e.querySelector('.tdb-smile-details');
+          (r?.classList.toggle('is-open', n),
+            r?.setAttribute('aria-hidden', String(!n)),
+            e.querySelector('.tdb-smile-overlay')?.classList.toggle('is-open', n),
+            e
+              .querySelectorAll('.tdb-smile-image-label')
+              .forEach((e) => e.classList.toggle('is-expanded', n)),
+            e.classList.toggle('is-muted', Boolean(h && !t)));
+        });
+        shared?.open(open);
       }
       function j() {
         ((M = null), K());

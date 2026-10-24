@@ -184,10 +184,10 @@
         "src/smile-gallery/explore-count.js",
         "src/sliders/gallery-plugin.js"
       ],
-      "sha256": "2a826a6d86684e5b972bff12ed2e425a6580c2520130c739123abe2c212165a4",
-      "raw": 16915,
-      "gzip": 5937,
-      "brotli": 5309
+      "sha256": "41694171cac9823d311b12a228e835d377f1bc9c553e153edf25e0537e777ad1",
+      "raw": 17056,
+      "gzip": 5996,
+      "brotli": 5345
     },
     "dist/tdb-hold-audio.js": {
       "sources": [
@@ -395,10 +395,10 @@
       "sources": [
         "src/reviews/native/cards.js"
       ],
-      "sha256": "6ff311af3890e4c20b384475820f81c889d78d2adce71eec06c9fe0fef5f05e2",
-      "raw": 15478,
-      "gzip": 5297,
-      "brotli": 4688
+      "sha256": "ec4e9fa432c6eb04564dfae32f31e75154a9b8c4a2594ae77c35e537fade0f0b",
+      "raw": 15657,
+      "gzip": 5375,
+      "brotli": 4757
     },
     "dist/tdb-review-cms.js": {
       "sources": [

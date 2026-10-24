@@ -104,13 +104,23 @@
 
     function capture() {
       return [...swiper.slides].flatMap((slide, index) => {
-        const key = slide.getAttribute('data-swiper-slide-index') ?? String(index);
-        const x = slide.getBoundingClientRect()[axis];
-        return [
+        const targets = [
           ...slide.querySelectorAll(
             '[data-swiper-parallax], [data-swiper-parallax-x], [data-swiper-parallax-y]',
           ),
-        ].map((el, slot) => ({ el, key, slot, x, transform: getComputedStyle(el).transform }));
+        ];
+        // Ordinary galleries need the moving track frozen, but have no inner
+        // parallax transforms to preserve. Do not measure every empty card.
+        if (!targets.length) return [];
+        const key = slide.getAttribute('data-swiper-slide-index') ?? String(index);
+        const x = slide.getBoundingClientRect()[axis];
+        return targets.map((el, slot) => ({
+          el,
+          key,
+          slot,
+          x,
+          transform: getComputedStyle(el).transform,
+        }));
       });
     }
 
