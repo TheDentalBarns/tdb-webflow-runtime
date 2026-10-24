@@ -202,7 +202,10 @@
     // floating control has separate motion: morph back, then fade over its origin.
     const floatingFilterButton = filterButton?.cloneNode(true),
       floatingFilterBadge = floatingFilterButton?.querySelector('[data-tdb-filter-badge]');
-    const filterApplyWord = filterApplyPlural?.parentElement;
+    const filterApplyWord = filterApplyPlural?.parentElement,
+      filterApplyLabel =
+        filterApply?.querySelector('.tdb-review-filter_action-label') || filterApply;
+    let applyFitState = null;
     const applyPadding = ['padding-left', 'padding-right'].map((key) => [
       key,
       filterApply?.style.getPropertyValue(key) || '',
@@ -210,6 +213,7 @@
     ]);
     const applyWordHidden = filterApplyWord?.hidden;
     function restoreApplyFit() {
+      applyFitState = null;
       if (filterApplyWord) filterApplyWord.hidden = applyWordHidden;
       for (const [key, value, priority] of applyPadding)
         if (filterApply) {
@@ -217,7 +221,7 @@
           else filterApply.style.removeProperty(key);
         }
     }
-    function fitFilterApply() {
+    function fitFilterApply(force = true) {
       if (
         destroyed ||
         !filterOpen ||
@@ -226,27 +230,37 @@
         !filterActions
       )
         return;
-      // Measure native hit boxes, not icon artwork. Keep the centred X untouched;
-      // first omit only the noun, then spend padding if the short label still needs it.
-      restoreApplyFit();
       const footer = filterActions.getBoundingClientRect(),
         close = floatingFilterButton.getBoundingClientRect();
       const edge = footer.right - parseFloat(getComputedStyle(filterActions).paddingRight);
       const available = Math.max(0, edge - close.right - 12);
-      if (!footer.width || filterApply.getBoundingClientRect().width <= available) return;
-      filterApplyWord.hidden = true;
-      const excess = filterApply.getBoundingClientRect().width - available;
-      if (excess > 0) {
-        const style = getComputedStyle(filterApply),
-          left = parseFloat(style.paddingLeft),
-          right = parseFloat(style.paddingRight);
-        const padding = Math.max(0, left + right - excess - 1),
-          total = left + right;
-        filterApply.style.paddingLeft = (total ? (padding * left) / total : 0) + 'px';
-        filterApply.style.paddingRight = (total ? (padding * right) / total : 0) + 'px';
+      const state = () => {
+        const label = filterApplyLabel.getBoundingClientRect();
+        return [footer.width, available, label.width, label.height].join(',');
+      };
+      // Our own noun/padding change triggers another resize delivery. If its
+      // resulting geometry is unchanged, do not restore/re-fit it in a loop.
+      // Explicit content/font/opening updates always reconsider the full label.
+      if (!force && state() === applyFitState) return;
+      // Measure native hit boxes, not icon artwork. Keep the centred X untouched;
+      // first omit only the noun, then spend padding if the short label still needs it.
+      restoreApplyFit();
+      if (footer.width && filterApply.getBoundingClientRect().width > available) {
+        filterApplyWord.hidden = true;
+        const excess = filterApply.getBoundingClientRect().width - available;
+        if (excess > 0) {
+          const style = getComputedStyle(filterApply),
+            left = parseFloat(style.paddingLeft),
+            right = parseFloat(style.paddingRight);
+          const padding = Math.max(0, left + right - excess - 1),
+            total = left + right;
+          filterApply.style.paddingLeft = (total ? (padding * left) / total : 0) + 'px';
+          filterApply.style.paddingRight = (total ? (padding * right) / total : 0) + 'px';
+        }
       }
+      applyFitState = state();
     }
-    const applyFitResize = new ResizeObserver(fitFilterApply);
+    const applyFitResize = new ResizeObserver(() => fitFilterApply(false));
     for (const node of [
       filterActions,
       floatingFilterButton,
