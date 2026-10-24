@@ -1,0 +1,88 @@
+<!doctype html><meta charset="utf-8" /><title>Motion fade A/B</title>
+<style>
+  body {
+    font: 16px/1.5 system-ui;
+    margin: 24px;
+    background: #f9f2e6;
+    color: #222;
+  }
+  iframe {
+    height: 720px;
+    display: block;
+    border: 1px solid #aaa;
+  }
+  pre {
+    white-space: pre-wrap;
+  }
+  button {
+    font: inherit;
+    padding: 12px;
+  }
+</style>
+<h1>Shared motion: fade measurement comparison</h1>
+<p>
+  Real layout and current motion source against release 0ee86b0. Sixteen parallax surfaces and 49
+  fade targets. Instrumented desktop Chromium, not physical-phone or GPU measurements.
+</p>
+<button id="run">Run comparison</button>
+<p id="status">Ready</p>
+<pre id="summary"></pre>
+<details>
+  <summary>Full traces</summary>
+  <pre id="results"></pre>
+</details>
+<iframe title="Motion fixture"></iframe>
+<script>
+  const frame = document.querySelector('iframe'),
+    button = document.querySelector('button'),
+    status = document.querySelector('#status'),
+    output = document.querySelector('#results'),
+    summary = document.querySelector('#summary');
+  const cases = [
+    { width: 390, version: 'baseline' },
+    { width: 390, version: 'candidate' },
+    { width: 1280, version: 'baseline' },
+    { width: 1280, version: 'candidate' },
+  ];
+  let results = [],
+    index = 0;
+  function next() {
+    const c = cases[index];
+    frame.style.width = c.width + 'px';
+    status.textContent = `Running ${c.width}px / ${c.version}`;
+    frame.src = `/fixture.html?dd=49&version=${c.version}`;
+  }
+  button.onclick = () => {
+    button.disabled = true;
+    results = [];
+    index = 0;
+    output.textContent = summary.textContent = '';
+    next();
+  };
+  addEventListener('message', (e) => {
+    if (
+      e.origin !== location.origin ||
+      e.source !== frame.contentWindow ||
+      e.data.type !== 'result'
+    )
+      return;
+    results.push(e.data.result);
+    output.textContent = JSON.stringify(results, null, 2);
+    if (++index < cases.length) next();
+    else {
+      summary.textContent = JSON.stringify(
+        [0, 2].map((i) => ({
+          width: results[i].width,
+          sameOpacityAndPositionTrace:
+            JSON.stringify(results[i].trace) === JSON.stringify(results[i + 1].trace),
+          baseline: results[i].metrics,
+          candidate: results[i + 1].metrics,
+        })),
+        null,
+        2,
+      );
+      status.textContent = 'Complete';
+      button.disabled = false;
+    }
+  });
+</script>
