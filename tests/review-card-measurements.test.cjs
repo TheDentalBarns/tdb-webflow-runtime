@@ -38,9 +38,9 @@ test('appends measure only new bodies; a resize during movement is applied on se
   for(let i=0;i<4;i++){next.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true,cancelable:true}));await drain();}
   assert.equal(track.children.length,16);assert(initial.every(n=>measurements.get(n)===1));assert.equal([...measurements.values()].reduce((a,b)=>a+b,0),16);
   const active=track.children[4];active.querySelector('[data-tdb-cards-open]').dispatchEvent(new w.KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));await drain();assert.equal(opened,'r-5');
-  swiper.animating=true;bodyHeight=145;resizes[0].fn();assert(initial.every(n=>measurements.get(n)===1));
+  swiper.animating=true;bodyHeight=145;swiper.params.on.resize();assert(initial.every(n=>measurements.get(n)===1));
   swiper.animating=false;settled('programmatic');assert(initial.every(n=>measurements.get(n)===2));assert([...root.querySelectorAll('.tdb-review-cards_body-preview')].every(n=>n.style.maxHeight==='140px'));
-  api.destroy();assert.equal(track.children.length,8);assert.equal(root.querySelectorAll('.tdb-review-cards_body-preview').length,0);assert(resizes[0].disconnected);
+  api.destroy();assert.equal(track.children.length,8);assert.equal(root.querySelectorAll('.tdb-review-cards_body-preview').length,0);assert.equal(resizes.length,0,'the card adapter reuses the engine resize observer');
   assert.equal(nativeBar.parentElement,holder,'native bar survives lazy content disposal');assert.equal(nativeBar.firstElementChild.getAttribute('style'),null);
  }finally{dom.window.close();}
 });

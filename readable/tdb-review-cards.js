@@ -79,7 +79,8 @@
       pending = [],
       advanceAfterLoad = false,
       updating = false,
-      layoutPending = false;
+      layoutPending = false,
+      layoutFrame = 0;
     const bodyFits = new WeakMap();
     function fill(slide, record, index) {
       slide.dataset.reviewId = record.id;
@@ -414,8 +415,13 @@
       preventInteractionOnTransition: false,
       speed: reduced.matches ? 0 : motion.duration(innerWidth),
       watchSlidesProgress: true,
+      // Use Swiper's existing resize observer, with our movement-safe update
+      // below as the sole layout owner. Its default resize handler would also
+      // resize/reposition the track before our deferred refresh could run.
+      updateOnWindowResize: false,
       keyboard: { enabled: false },
       on: {
+        resize: requestLayout,
         slideChange() {
           queueMicrotask(() => {
             reflect();
@@ -540,10 +546,13 @@
     root.addEventListener('keydown', activate, { signal });
     window.addEventListener('online', prefetch, { signal });
     function refreshLayout() {
+      if (signal.aborted) return;
       if (busy() || updating) {
         layoutPending = true;
         return;
       }
+      cancelAnimationFrame(layoutFrame);
+      layoutFrame = 0;
       layoutPending = false;
       updating = true;
       swiper.params.speed = reduced.matches ? 0 : motion.duration(innerWidth);
@@ -554,17 +563,18 @@
       reflect();
       startProgress();
     }
-    const resize = new ResizeObserver(() => {
+    function requestLayout() {
+      if (signal.aborted) return;
       progressMetrics = null;
-      refreshLayout();
-    });
-    resize.observe(viewport);
+      layoutPending = true;
+      if (!layoutFrame && !busy() && !updating)
+        layoutFrame = requestAnimationFrame(() => {
+          layoutFrame = 0;
+          refreshLayout();
+        });
+    }
     document.fonts?.ready.then(() => {
-      if (!signal.aborted) {
-        fitBodies();
-        measureProgress();
-        startProgress();
-      }
+      requestLayout();
     });
     reduced.addEventListener(
       'change',
@@ -593,7 +603,7 @@
         hide();
         phase = 'destroyed';
         controller.abort();
-        resize.disconnect();
+        cancelAnimationFrame(layoutFrame);
         stopSettled();
         fades.destroy();
         swiper.destroy(true, true);
