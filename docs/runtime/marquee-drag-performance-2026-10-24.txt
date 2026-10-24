@@ -1,0 +1,16 @@
+Marquee drag batching — 24 October 2026
+
+Both logo marquees use the same controller. Pointer movement now updates its existing position and velocity samples immediately, then uses the existing requestAnimationFrame clock to render the latest position once. It does not add a second animation controller or alter the throw, easing, speed, direction threshold, touch-action, pointer capture or card appearance.
+
+Release flushes an unrendered position before selecting a card or starting the throw. Selection also flushes before reading logo geometry. Already-rendered positions are not rewritten on release. The normal render clears pending input, including during a layout refresh; destroy uses the existing frame cancellation and restores native styles.
+
+Validation
+- Ten focused interaction tests pass, including seven new regression cases: event bursts, sampled throw velocity, release on either side of a frame, reduced motion, card geometry, Safari child capture handoff/cancellation, vertical scrolling and destroy.
+- Full verification: 725 pass, 3 pre-existing skips, zero failures.
+- Reproducible comparison: node tools/benchmarks/marquee-drag-work/audit.cjs.
+- Baseline eb302ee251544c3d9cd22b9be42dc7b5978c18b2 and candidate have identical rendered position and release-velocity traces in all eight synthetic input scenarios.
+- At four pointer events per frame: 477 transform writes become 120 over 120 frames; release between frames adds one final write in both versions. At one event per frame, the write count is unchanged.
+- This measures redundant JavaScript style writes. It is not a physical-device FPS or GPU result. Chromium viewport checks cannot replace Safari/Android device testing.
+
+Scope
+Only the shared marquee module and its two equivalent distribution filenames change. No CSS, DOM structure, layout, nav timing, thumbnail assets or motion-profile values change.

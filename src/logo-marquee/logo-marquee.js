@@ -3,7 +3,7 @@
 
   const pace = window.TDBMotionProfile?.pace || 1;
   const coastRate = window.TDBMotionProfile?.physics.coast || 4.2;
-  const VERSION = '0.15.3';
+  const VERSION = '0.15.4';
   const assetBase = new URL('./', document.currentScript.src);
   if (window.TDBLogoMarquee) return;
   const DEFAULTS = {
@@ -283,6 +283,7 @@
     let suppressNextClick = false;
     let wheelSettleTimer = 0;
     let rafId = 0;
+    let dragPending = false;
     let lastFrameAt = performance.now();
     let measureTimer = 0;
     let measureAttempts = 0;
@@ -714,6 +715,7 @@
 
     function setTransform(value) {
       if (openCard && !cardGeometry) measureCardGeometry();
+      dragPending = false;
       renderedX = value;
       track.style.transform = `translate3d(${value}px, 0, 0)`;
       positionCard();
@@ -738,6 +740,12 @@
       if (!rafId) return;
       cancelAnimationFrame(rafId);
       rafId = 0;
+    }
+
+    function flushDrag() {
+      if (!dragPending) return;
+      stopAnimation();
+      setTransform(wrapX(currentX, loopWidth));
     }
 
     function applyMeasurement() {
@@ -836,6 +844,8 @@
 
     function centre(item) {
       if (!item || !ready) return;
+      // Selection reads rendered logo positions, including a release between frames.
+      flushDrag();
       paused = true;
       momentum = 0;
       coasting = false;
@@ -959,10 +969,14 @@
       while (samples.length > 2 && samples[1].t < event.timeStamp - 100) samples.shift();
       currentX += delta;
       targetX = currentX;
-      setTransform(wrapX(currentX, loopWidth));
+      // Preserve every input sample for the throw; render only the latest position
+      // on the existing motion clock, even if several moves arrive in one frame.
+      dragPending = true;
+      startAnimation();
     }
     function settleOpenCard() {
       if (!openCard || !ready) return;
+      flushDrag();
       const view = viewport.getBoundingClientRect();
       const middle = view.left + view.width / 2;
       let nearest = null,
@@ -1010,6 +1024,7 @@
       pointerId = null;
       dragging = false;
       horizontal = false;
+      if (moved) flushDrag();
       try {
         track.releasePointerCapture(id);
       } catch (_) {}

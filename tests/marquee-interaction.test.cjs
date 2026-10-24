@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
-async function fixture({ delayed = false } = {}) {
+async function fixture({ delayed = false, reduced = false, source } = {}) {
   const dom = new JSDOM(
     `<!doctype html><body>
     <section class="section_logo-features"><div class="logo-slider">
@@ -36,6 +36,7 @@ async function fixture({ delayed = false } = {}) {
   w.cancelAnimationFrame = (id) => frames.delete(id);
   w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
   w.TDBMotion = { reduced: w.matchMedia(), duration: () => 500, ddText: () => ({ destroy() {} }) };
+  w.TDBMotion.reduced.matches = reduced;
   w.TDBNavScroll = { focus() {}, release() {} };
   w.TDBFeatureLoading = { watchIntent() {} };
   w.KeyframeEffect = class {
@@ -124,7 +125,7 @@ async function fixture({ delayed = false } = {}) {
   Object.defineProperty(d, 'currentScript', {
     value: { src: 'https://example.test/tdb-logo-marquee.js' },
   });
-  w.eval(fs.readFileSync('src/logo-marquee/logo-marquee.js', 'utf8'));
+  w.eval(source || fs.readFileSync('src/logo-marquee/logo-marquee.js', 'utf8'));
   w.TDBLogoMarquee.start();
   await tick();
   const track = d.querySelector('.partner-featured_component'),
@@ -132,14 +133,39 @@ async function fixture({ delayed = false } = {}) {
   const shell = d.querySelector('.tdb-partner-tooltip'),
     spotlight = d.querySelector('.tdb-partner-spotlight');
   const status = () => w.TDBLogoMarquee.status().instances[0];
-  function pointer(type, x = 100, target = track) {
-    const e = new w.MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: 400 });
+  let writes = 0;
+  const transform = Object.getOwnPropertyDescriptor(w.CSSStyleDeclaration.prototype, 'transform');
+  Object.defineProperty(track.style, 'transform', {
+    get() {
+      return transform.get.call(this);
+    },
+    set(value) {
+      writes++;
+      transform.set.call(this, value);
+    },
+  });
+  function pointer(type, x = 100, target = track, options = {}) {
+    const e = new w.MouseEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      clientX: x,
+      clientY: options.y ?? 400,
+    });
     Object.defineProperties(e, {
       pointerId: { value: 1 },
-      pointerType: { value: 'mouse' },
+      pointerType: { value: options.pointerType || 'mouse' },
       isPrimary: { value: true },
+      ...(options.time === undefined ? {} : { timeStamp: { value: options.time } }),
     });
     target.dispatchEvent(e);
+    return e;
+  }
+  function frame(now = w.performance.now() + 16) {
+    const pending = [...frames.entries()];
+    for (const [id, callback] of pending) {
+      if (!frames.delete(id)) continue;
+      callback(now);
+    }
   }
   return {
     w,
@@ -151,6 +177,8 @@ async function fixture({ delayed = false } = {}) {
     animations,
     status,
     pointer,
+    frame,
+    writes: () => writes,
     decode: () => decode?.(),
     click: (node) =>
       node.dispatchEvent(new w.MouseEvent('click', { bubbles: true, cancelable: true })),
@@ -178,6 +206,155 @@ test('close then immediate drag restores the moving logo before the track moves'
     await tick();
     assert.equal(f.shell.style.display, '');
     assert.equal(f.status().selected, null);
+  } finally {
+    f.close();
+  }
+});
+
+test('drag bursts render once per frame and retain the latest position without idle writes', async () => {
+  const f = await fixture();
+  try {
+    f.frame();
+    f.frame();
+    f.pointer('pointerdown', 100, f.logos[0]);
+    const before = f.status().currentX,
+      writes = f.writes();
+    for (const x of [120, 150, 140, 190]) f.pointer('pointermove', x);
+    assert.equal(f.writes(), writes, 'input events defer visual writes');
+    assert.equal(f.status().currentX, before + 90, 'all deltas, including reversals, retained');
+    f.frame();
+    assert.equal(f.writes(), writes + 1);
+    const rendered = f.track.style.transform;
+    f.frame();
+    assert.equal(f.writes(), writes + 1, 'stationary finger needs no further frame');
+    assert.equal(f.track.style.transform, rendered);
+  } finally {
+    f.close();
+  }
+});
+
+test('release between frames flushes once and preserves the sampled throw velocity', async () => {
+  const f = await fixture();
+  try {
+    f.frame();
+    f.frame();
+    f.pointer('pointerdown', 100, f.logos[0], { time: 0 });
+    const writes = f.writes();
+    for (const [x, time] of [
+      [110, 10],
+      [140, 30],
+      [180, 70],
+    ])
+      f.pointer('pointermove', x, f.track, { time });
+    f.pointer('pointerup', 180, f.track, { time: 80 });
+    assert.equal(f.writes(), writes + 1);
+    assert.equal(f.status().momentum, (80 / 70) * 1000);
+    assert.equal(f.status().coasting, true);
+    f.frame();
+    assert.equal(f.writes(), writes + 2, 'one coast callback, no stale drag callback');
+  } finally {
+    f.close();
+  }
+});
+
+test('release after rendering does not repeat a drag write, including reduced motion', async () => {
+  const f = await fixture({ reduced: true });
+  try {
+    f.frame();
+    f.frame();
+    f.pointer('pointerdown', 100, f.logos[0]);
+    f.pointer('pointermove', 180);
+    f.frame();
+    const writes = f.writes();
+    f.pointer('pointerup', 180);
+    f.frame();
+    assert.equal(f.writes(), writes);
+    assert.equal(f.status().momentum, 0);
+    assert.equal(f.status().coasting, false);
+  } finally {
+    f.close();
+  }
+});
+
+test('card release measures the last rendered drag position before selecting the nearest logo', async () => {
+  const f = await fixture();
+  try {
+    f.frame();
+    f.frame();
+    f.click(f.logos[0]);
+    await tick();
+    f.pointer('pointerdown', 100, f.logos[0]);
+    const oldTransform = f.track.style.transform;
+    f.pointer('pointermove', 190);
+    const reads = [];
+    const rect = f.w.Element.prototype.getBoundingClientRect;
+    f.w.Element.prototype.getBoundingClientRect = function () {
+      reads.push(f.track.style.transform);
+      return rect.call(this);
+    };
+    f.pointer('pointerup', 190);
+    assert.ok(reads.length > 0);
+    assert.ok(
+      reads.every((value) => value !== oldTransform),
+      'selection never reads stale geometry',
+    );
+    assert.equal(f.shell.getAttribute('aria-hidden'), 'false');
+    assert.equal(f.status().paused, true);
+  } finally {
+    f.close();
+  }
+});
+
+test('Safari child capture handoff keeps dragging, while track cancellation flushes without a throw', async () => {
+  const f = await fixture();
+  try {
+    f.frame();
+    f.frame();
+    f.pointer('pointerdown', 100, f.logos[0], { pointerType: 'touch' });
+    f.pointer('pointermove', 140);
+    f.pointer('lostpointercapture', 140, f.logos[0]);
+    assert.equal(f.status().dragging, true);
+    f.pointer('pointermove', 180);
+    const position = f.status().currentX,
+      writes = f.writes();
+    f.pointer('pointercancel', 180);
+    assert.equal(f.writes(), writes + 1);
+    assert.equal(f.status().currentX, position);
+    assert.equal(f.status().dragging, false);
+    assert.equal(f.status().momentum, 0);
+  } finally {
+    f.close();
+  }
+});
+
+test('vertical gestures remain native and never queue horizontal drag writes', async () => {
+  const f = await fixture();
+  try {
+    f.frame();
+    f.frame();
+    f.pointer('pointerdown', 100, f.logos[0], { pointerType: 'touch' });
+    const writes = f.writes();
+    const event = f.pointer('pointermove', 103, f.track, { y: 440, pointerType: 'touch' });
+    assert.equal(event.defaultPrevented, false);
+    assert.equal(f.status().dragging, false);
+    assert.equal(f.writes(), writes);
+  } finally {
+    f.close();
+  }
+});
+
+test('destroy cancels an unrendered drag and restores the native track', async () => {
+  const f = await fixture();
+  try {
+    f.frame();
+    f.frame();
+    f.pointer('pointerdown', 100, f.logos[0]);
+    f.pointer('pointermove', 180);
+    f.w.TDBLogoMarquee.destroy();
+    const writes = f.writes();
+    f.frame();
+    assert.equal(f.writes(), writes);
+    assert.equal(f.track.style.transform, '');
   } finally {
     f.close();
   }
