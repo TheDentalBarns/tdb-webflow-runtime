@@ -367,7 +367,7 @@
           ? [
               indicator.animate([{ opacity: 1 }, { opacity: 0 }], {
                 duration: reduced.matches ? 0 : motion.defaults.fadeOut,
-                easing: 'ease-out',
+                easing: window.TDBMotionProfile?.easing('fade', 'ease-out') || 'ease-out',
                 fill: 'both',
               }),
             ]
@@ -385,7 +385,7 @@
           ? [
               content.animate([{ opacity: 0 }, { opacity: 1 }], {
                 duration: reduced.matches ? 0 : motion.defaults.fadeIn,
-                easing: 'ease-out',
+                easing: window.TDBMotionProfile?.easing('fade', 'ease-out') || 'ease-out',
                 fill: 'both',
               }),
             ]
@@ -460,7 +460,7 @@
         if (token !== filterHandoffRevision) return;
         const animation = floatingFilterButton.animate([{ opacity: 1 }, { opacity: 0 }], {
           duration: motion.defaults.fadeIn,
-          easing: 'ease-out',
+          easing: window.TDBMotionProfile?.easing('fade', 'ease-out') || 'ease-out',
           fill: 'both',
         });
         filterHandoffAnimation = animation;

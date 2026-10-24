@@ -40,7 +40,11 @@
         const outgoing = item(previous),
           token = revision;
         viewport.replaceChildren(outgoing, incoming);
-        const timing = { duration: 400, easing: 'ease-in-out', fill: 'both' };
+        const timing = {
+          duration: window.TDBMotionProfile?.time(400) ?? 400,
+          easing: window.TDBMotionProfile?.easing('control', 'ease-in-out') || 'ease-in-out',
+          fill: 'both',
+        };
         try {
           animations.push(
             outgoing.animate(

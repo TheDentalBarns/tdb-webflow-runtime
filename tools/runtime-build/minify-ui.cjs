@@ -6,6 +6,13 @@ const path = require('node:path');
 const CleanCSS = require('clean-css');
 const root = path.resolve(__dirname, '../..');
 const bundles = {
+  'tdb-drawer.css': ['tdb-drawer.css'],
+  'tdb-usp-drawer.css': ['tdb-usp-drawer.css'],
+  'tdb-review-drawer.css': ['tdb-review-drawer.css'],
+  'tdb-partner-card.css': ['tdb-partner-card.css'],
+  'tdb-five-senses.css': ['tdb-five-senses.css'],
+  'tdb-instagram-native.css': ['tdb-instagram-native.css'],
+  'tdb-smile-feed.css': ['tdb-smile-feed.css'],
   'tdb-review-widget.css': ['tdb-review-widget.css'],
   'tdb-review-cards.css': ['tdb-review-cards.css'],
   'tdb-scroll-lock.css': ['tdb-scroll-lock.css'],
@@ -27,7 +34,8 @@ const bundles = {
   ],
 };
 for (const [output, sources] of Object.entries(bundles)) {
-  if (process.argv.length > 2 && !process.argv.slice(2).includes(output)) continue;
+  const requested = process.argv.slice(2).filter((arg) => !arg.startsWith('--'));
+  if (requested.length && !requested.includes(output)) continue;
   const source = sources
     .map((file) => fs.readFileSync(path.join(root, 'src/styles', file), 'utf8'))
     .join('\n')
@@ -36,6 +44,12 @@ for (const [output, sources] of Object.entries(bundles)) {
   if (result.errors.length) throw new Error(result.errors.join('\n'));
   if (result.warnings.length) throw new Error(result.warnings.join('\n'));
   if (!result.styles) throw new Error('Empty UI build: ' + output);
-  fs.writeFileSync(path.join(root, 'dist', output), result.styles + '\n');
+  if (process.argv.includes('--check')) {
+    if (
+      fs.readFileSync(path.join(root, 'dist', output), 'utf8').replace(/\r\n/g, '\n') !==
+      result.styles + '\n'
+    )
+      throw Error(output + ' is stale; run npm run build');
+  } else fs.writeFileSync(path.join(root, 'dist', output), result.styles + '\n');
   console.log('dist/' + output + ': ' + Buffer.byteLength(result.styles + '\n') + ' bytes');
 }

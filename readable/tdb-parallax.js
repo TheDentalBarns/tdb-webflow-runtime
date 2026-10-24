@@ -616,6 +616,9 @@ window.TDBParallaxPresentation ||= (() => {
 /* Native CMS stamps: independent scrolling, with selection following image progress. */
 window.TDBTreatmentStamps ||= (() => {
   const instances = new WeakMap();
+  const pace = window.TDBMotionProfile?.pace || 1;
+  const coastRate = window.TDBMotionProfile?.physics.coast || 4.2;
+  const edgeSpring = window.TDBMotionProfile?.physics.edgeSpring || 14;
   function prepare(root) {
     if (!root.hasAttribute('data-tdb-treatment-postage')) return null;
     if (instances.has(root)) return instances.get(root);
@@ -817,10 +820,11 @@ window.TDBTreatmentStamps ||= (() => {
     }
     function edgeStep(now) {
       motionFrame = 0;
-      const t = Math.max(0, now - edgeStarted) / 1000;
+      const t = Math.max(0, now - edgeStarted) / (1000 * pace);
       // Analytic, critically damped return: same feel at different frame rates,
       // no oscillation and no permanent animation loop once it has settled.
-      const offset = (edgeStart + (edgeVelocity + 14 * edgeStart) * t) * Math.exp(-14 * t);
+      const offset =
+        (edgeStart + (edgeVelocity + edgeSpring * edgeStart) * t) * Math.exp(-edgeSpring * t);
       if (window.TDBMotion?.reduced?.matches || (t >= 0.1 && Math.abs(offset) < 0.1) || t >= 1) {
         setEdge(0);
       } else {
@@ -887,24 +891,28 @@ window.TDBTreatmentStamps ||= (() => {
     }
     function coast(now) {
       motionFrame = 0;
-      const dt = Math.min(250, Math.max(0, now - lastFrame));
+      const wallDelta = Math.min(250, Math.max(0, now - lastFrame));
+      const dt = wallDelta / pace;
       lastFrame = now;
       momentumElapsed += dt;
       // Same exponential coast as the logo marquee, with no cruising speed.
       // Retain the fractional position like its transform-driven track: reading
       // rounded scrollLeft back each frame can prematurely kill a mobile throw.
-      const decay = Math.exp((-4.2 * dt) / 1000);
+      const decay = Math.exp((-coastRate * dt) / 1000);
       const previous = coastPosition;
-      coastPosition += (momentum * (1 - decay)) / 0.0042;
+      coastPosition += (momentum * (1 - decay)) / (coastRate / 1000);
       setScroll(coastPosition);
       if (!looped && (coastPosition <= 0 || coastPosition >= scrollLimit())) {
         const boundary = coastPosition <= 0 ? 0 : scrollLimit();
         // Hand the velocity at impact into a small edge spring. Solve the
         // impact time so a delayed frame cannot create a larger bounce.
-        const impactDecay = Math.max(0.0001, 1 - ((boundary - previous) * 0.0042) / momentum);
-        const impactMs = Math.max(0, Math.min(dt, -Math.log(impactDecay) / 0.0042));
+        const impactDecay = Math.max(
+          0.0001,
+          1 - ((boundary - previous) * (coastRate / 1000)) / momentum,
+        );
+        const impactMs = Math.max(0, Math.min(dt, -Math.log(impactDecay) / (coastRate / 1000)));
         if (scrollLimit() && track !== viewport)
-          settleEdge(-momentum * impactDecay * 350, now - dt + impactMs);
+          settleEdge(-momentum * impactDecay * 350, now - wallDelta + impactMs * pace);
         else momentum = 0;
         return;
       }
@@ -933,7 +941,9 @@ window.TDBTreatmentStamps ||= (() => {
       animations.set(
         item,
         item.animate([{ [property]: current }, { [property]: target }], {
-          duration: window.TDBMotion?.reduced?.matches ? 0 : 200,
+          duration: window.TDBMotion?.reduced?.matches
+            ? 0
+            : (window.TDBMotionProfile?.time(200) ?? 200),
           fill: 'forwards',
         }),
       );
@@ -1443,7 +1453,12 @@ window.TDBTreatmentDetails ||= (() => {
                   { color: states[i].color },
                   { color: row.active ? '#ffffff' : 'rgba(255,255,255,0.5)' },
                 ],
-                { duration: window.TDBMotion?.reduced?.matches ? 0 : 200, fill: 'forwards' },
+                {
+                  duration: window.TDBMotion?.reduced?.matches
+                    ? 0
+                    : (window.TDBMotionProfile?.time(200) ?? 200),
+                  fill: 'forwards',
+                },
               ),
             );
           }

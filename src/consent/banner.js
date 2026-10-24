@@ -8,9 +8,9 @@
     ALL_CATEGORIES = ['performance', 'strict', 'targeting', 'functionality'],
     STRICT_ONLY = ['strict'],
     ROOT_ID = 'tdb-consent-root',
-    TEXT_OPEN_DELAY_MS = 70,
-    TEXT_CLOSE_MS = 420,
-    CLOSE_TOTAL_MS = 470;
+    TEXT_OPEN_DELAY_MS = window.TDBMotionProfile?.time(70) ?? 70,
+    TEXT_CLOSE_MS = window.TDBMotionProfile?.time(420) ?? 420,
+    CLOSE_TOTAL_MS = TEXT_CLOSE_MS + 50;
   let hasShown = false,
     open = false,
     closing = false,
@@ -191,7 +191,9 @@
       ],
       {
         duration: TEXT_CLOSE_MS,
-        easing: 'cubic-bezier(0,0,.2,1)',
+        easing:
+          window.TDBMotionProfile?.easing('fade', 'cubic-bezier(0,0,.2,1)') ||
+          'cubic-bezier(0,0,.2,1)',
         fill: 'forwards',
       },
     );

@@ -3,6 +3,7 @@ module.exports = {
   'dist/tdb-start.min.js': [
     'src/startup/release.js',
     'src/shared/motion-policy.js',
+    'src/shared/motion-profile.js',
     'src/shared/modules.js',
     'src/loaders/hold-audio-loader.js',
     'src/startup/start.js',

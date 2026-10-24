@@ -5,7 +5,7 @@ const path = require('node:path');
 const {JSDOM} = require('jsdom');
 const read = name => fs.readFileSync(path.join(__dirname, '..', name), 'utf8');
 
-function fixture(file, width = 1440, initialHeight = 1200) {
+function fixture(file, width = 1440, initialHeight = 1200, pace) {
   const dom = new JSDOM(`<a id="cta" href="#VIP">Join VIP</a>
     <nav class="navbar10_component"></nav><div id="tdb-vip-drawer" data-tdb-vip-native="1">
     <a class="tdb-vip-drawer-handle"><span class="tdb-vip-drawer-label"></span><span class="tdb-vip-arrow-content"></span></a>
@@ -34,6 +34,10 @@ function fixture(file, width = 1440, initialHeight = 1200) {
   w.cancelAnimationFrame = w.clearTimeout;
   w.scrollTo = () => {};
   w.lenis = {start(){},stop(){},resize(){}};
+  if(pace) {
+    const config={...JSON.parse(read('config/motion.json')),pace};
+    w.eval(read('src/shared/motion-profile.js').replace('__TDB_MOTION_PROFILE__',JSON.stringify(config)));
+  }
   w.eval(read(file));
   const drawer = w.document.getElementById('tdb-vip-drawer');
   function tick(ms) {
@@ -53,6 +57,21 @@ function fixture(file, width = 1440, initialHeight = 1200) {
 }
 
 for (const file of ['dist/tdb-vip-drawer.js']) {
+  test('slower shared profile keeps VIP close guards until the full responsive motion settles',()=>{
+    for(const width of [390,1440]) {
+      const f=fixture(file,width,844,1.5);
+      try {
+        f.open();
+        assert.equal(f.drawer.style.getPropertyValue('--tdb-vip-drawer-duration'),'900ms');
+        f.tick(1000);f.close();f.tick(949);
+        assert.equal(f.w.TDBVIPDrawer.status().state,3);
+        assert.equal(f.guardCount(),2);
+        f.tick(1);
+        assert.equal(f.w.TDBVIPDrawer.status().state,0);
+        assert.equal(f.guardCount(),0);
+      }finally{f.destroy();}
+    }
+  });
   test('VIP document scroll guards exist only for an open/closing cycle',()=>{
     for(const width of [390,1440]) {
       const f=fixture(file,width);

@@ -1,5 +1,5 @@
 /* Shared 420ms site-bar clock. Feature-specific states load with their owner. */
 html {
-  --tdb-peek-duration: 420ms;
-  --tdb-peek-ease: cubic-bezier(.4,0,.2,1);
+  --tdb-peek-duration: calc(420ms * var(--tdb-motion-pace,1));
+  --tdb-peek-ease: var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1));
 }

@@ -13,7 +13,7 @@
 [data-vimeo-hero-shell][data-vimeo-pulse='true'] .vimeo-controls-layer .vimeo-player__btn-pulse,
 .vimeo-player:not([data-vimeo-playing]) .vimeo-player__btn-pulse,
 .vimeo-player[data-vimeo-playing='false'] .vimeo-player__btn-pulse {
-  animation: tdbBtnPulseOpacity 2.4s ease-in-out infinite alternate;
+  animation: tdbBtnPulseOpacity calc(2.4s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in-out) infinite alternate;
   will-change: opacity;
 }
 

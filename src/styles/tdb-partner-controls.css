@@ -5,5 +5,5 @@
 .tdb-partner-logo.is-keyboard-focused{outline:1px solid #a79b86;outline-offset:-3px}
 /* The small loading ring overlays the logo without changing its layout. */
 .tdb-partner-logo[aria-busy='true']{position:relative}
-.tdb-partner-logo[aria-busy='true']::after{content:'';position:absolute;pointer-events:none;box-sizing:border-box;width:2rem;height:2rem;left:50%;top:50%;margin:-1rem 0 0 -1rem;border:1px solid #fff;border-bottom-color:transparent;border-left-color:transparent;border-radius:50%;animation:tdbControlSpin 1s linear infinite}
+.tdb-partner-logo[aria-busy='true']::after{content:'';position:absolute;pointer-events:none;box-sizing:border-box;width:2rem;height:2rem;left:50%;top:50%;margin:-1rem 0 0 -1rem;border:1px solid #fff;border-bottom-color:transparent;border-left-color:transparent;border-radius:50%;animation:tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite}
 @media(prefers-reduced-motion:reduce){html:not([data-tdb-motion='full']) .tdb-partner-logo[aria-busy='true']::after{animation:none}}

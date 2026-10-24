@@ -194,12 +194,18 @@
       }
       animation = panel.animate(
         [{ transform: from }, { transform: value ? 'translateY(0)' : 'translateY(100%)' }],
-        { duration, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'both' },
+        {
+          duration,
+          easing:
+            window.TDBMotionProfile?.easing('panel', 'cubic-bezier(.4,0,.2,1)') ||
+            'cubic-bezier(.4,0,.2,1)',
+          fill: 'both',
+        },
       );
       animation.finished.then(finish).catch(() => {});
       if (backdrop) {
         shadeAnimation = backdrop.animate([{ opacity: shadeFrom }, { opacity: value ? 1 : 0 }], {
-          duration: Math.min(duration, 300),
+          duration: Math.min(duration, window.TDBMotionProfile?.time(300) ?? 300),
           fill: 'both',
         });
         shadeAnimation.finished.catch(() => {});

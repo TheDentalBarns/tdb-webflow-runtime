@@ -8,9 +8,10 @@ function fixture({
   desktop = true,
   policy,
   height = 500,
-  mode = 'treatment',
+  mode = 'frame',
   lenis = false,
   copyHeight = 0,
+  inset = 32,
 } = {}) {
   const dom = new JSDOM(
     '<body><section data-tdb-magnet="' + mode + '"></section><a href="#target">Anchor</a></body>',
@@ -19,6 +20,7 @@ function fixture({
   const w = dom.window,
     d = w.document,
     root = d.querySelector('section');
+  root.style.scrollMarginTop = inset + 'px';
   let y = 800,
     now = 0,
     id = 0;
@@ -162,13 +164,33 @@ test('uses the shared site motion policy and keeps notice bars away during settl
     reduced.dom.window.close();
   }
 });
-test('tall treatment copy centres the unchanged image frame on short screens', () => {
-  const f = fixture({ copyHeight: 500 });
+test('treatment image lands at the Designer scroll margin regardless of copy length', () => {
+  for (const copyHeight of [0, 200, 900])
+    for (const inset of [0, 32, 48])
+      for (const lenis of [false, true]) {
+        const f = fixture({ mode: 'treatment', copyHeight, inset, lenis });
+        try {
+          const originalStyle = f.root.getAttribute('style');
+          f.gesture(950, 1100);
+          f.advance(1000);
+          assert.equal(f.root.getBoundingClientRect().top, inset);
+          assert.equal(f.root.getBoundingClientRect().height, 500);
+          assert.equal(f.root.getAttribute('style'), originalStyle, 'snap never writes layout');
+          f.gesture(1400, 1250);
+          f.advance(1000);
+          assert.equal(f.root.getBoundingClientRect().top, inset, 'same landing from below');
+        } finally {
+          f.dom.window.close();
+        }
+      }
+});
+
+test('treatment frame must fit below its authored top inset', () => {
+  const f = fixture({ mode: 'treatment', height: 880, inset: 32 });
   try {
-    f.gesture(800, 950);
+    f.gesture(950, 1100);
     f.advance(1000);
-    assert.equal(f.y(), 1000);
-    assert.equal(f.root.getBoundingClientRect().height, 500);
+    assert.equal(f.writes.length, 0);
   } finally {
     f.dom.window.close();
   }

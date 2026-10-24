@@ -6,8 +6,8 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "build": "node tools/runtime-build/build-preservation.cjs --all",
-    "build:check": "node tools/runtime-build/build-preservation.cjs --all --check",
+    "build": "node tools/runtime-build/build-motion-styles.cjs && node tools/runtime-build/build-preservation.cjs --all",
+    "build:check": "node tools/runtime-build/build-motion-styles.cjs --check && node tools/runtime-build/build-preservation.cjs --all --check",
     "build:readable": "node tools/runtime-build/build-preservation.cjs --all --readable",
     "build:swiper": "npm ci --prefix tools/custom-swiper --ignore-scripts --no-audit --no-fund && npm run build --prefix tools/custom-swiper && npm run check --prefix tools/custom-swiper",
     "test": "node --test tests/*.test.cjs services/content-feed/feed.test.mjs",

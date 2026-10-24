@@ -2,6 +2,8 @@
 
 One repository, one immutable release and one Webflow JavaScript entry. Formatted sources, assembled readable files and minified browser builds are committed together.
 
+Motion pace and character are configured together in `config/motion.json`. See the [shared motion profile](docs/runtime/motion-profile.md) for responsive scaling, scope and seasonal tuning. The consolidated baseline keeps `pace: 1` and `character: "current"`.
+
 ## Install
 
 Use the same **40-character Git commit** for the head stylesheet and footer entry. Never use `main`, `latest`, per-file pins or page release overrides.
@@ -21,7 +23,7 @@ Use the same **40-character Git commit** for the head stylesheet and footer entr
   src="https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@COMMIT/dist/tdb-start.min.js"></script>
 ```
 
-Replace `COMMIT` in all three URLs. Do not install the old consent, navbar, runtime, attribution or post-fonts tags alongside this entry. Remove `data-tdb-asset-pins`, cohort bases, review asset configuration and page override scripts. Retain native Webflow markup, CMS data, forms, fonts and required critical styles.
+Replace `COMMIT` in all three example URLs and the existing foundation preload (four live references). Do not install the old consent, navbar, runtime, attribution or post-fonts tags alongside this entry. Remove `data-tdb-asset-pins`, cohort bases, review asset configuration and page override scripts. Retain native Webflow markup, CMS data, forms, fonts and required critical styles.
 
 The agreed validation target is staging Home. Other pages with legacy custom code are not certified and may need migration. The new bootstrap has no Home ID or pathname switch.
 

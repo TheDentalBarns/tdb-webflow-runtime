@@ -4,7 +4,7 @@
 .tdb-announcement:focus-visible{outline:1px solid currentColor;outline-offset:-6px}
 .tdb-announcement-slot[data-live="true"]::before,.tdb-announcement-slot[data-live="true"]::after{content:"";position:absolute;left:-16px;top:50%;margin-top:-3px;width:6px;height:6px;border-radius:50%;background:var(--base-color-brand--orange-1,#f9f2e6);pointer-events:none}
 .tdb-announcement-slot[data-live="true"]::before{opacity:1}
-.tdb-announcement-slot[data-live="true"]::after{opacity:0;animation:tdb-announcement-live 2.8s ease-out infinite;animation-play-state:paused;transform-origin:center;backface-visibility:hidden}
+.tdb-announcement-slot[data-live="true"]::after{opacity:0;animation:tdb-announcement-live calc(2.8s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-panel,ease-out) infinite;animation-play-state:paused;transform-origin:center;backface-visibility:hidden}
 .tdb-announcement-slot[data-pulse="true"]::after{animation-play-state:running}
 @keyframes tdb-announcement-live{0%{transform:scale(1);opacity:0}12%{opacity:.6}70%,100%{transform:scale(2.4);opacity:0}}
 .tdb-announcement-dial circle:first-child{opacity:.3}

@@ -10,6 +10,8 @@
     rippleTails = new Set(),
     voices = new Set();
   const holdDuration = 10000;
+  const motionTime = (value) => window.TDBMotionProfile?.time(value) ?? value;
+  const motionEase = (role, curve) => window.TDBMotionProfile?.easing(role, curve) || curve;
   // Combine staging comparisons without re-enabling an already-isolated effect.
   const staging = location.hostname === 'dentalbarns.webflow.io';
   const diagnostic = staging
@@ -100,8 +102,8 @@
   function releaseRipple(element, from) {
     if (!from) return parkEffect(element);
     animateEffect(element, [from, { scale: from.scale, opacity: 0 }], {
-      duration: pageWideRipple ? 500 : 180,
-      easing: 'ease-out',
+      duration: motionTime(pageWideRipple ? 500 : 180),
+      easing: motionEase('fade', 'ease-out'),
       fill: 'forwards',
     });
     rippleTails.add(element);
@@ -214,8 +216,12 @@
           .join(' ')
       : state.base;
     const animation = image.animate([{ scale: from }, { scale: target }], {
-      duration: window.TDBMotionPolicy?.reduced?.matches ? 0 : held ? 10000 : 1200,
-      easing: held ? 'linear' : 'cubic-bezier(0.165,0.84,0.44,1)',
+      duration: window.TDBMotionPolicy?.reduced?.matches
+        ? 0
+        : held
+          ? holdDuration
+          : motionTime(1200),
+      easing: held ? 'linear' : motionEase('release', 'cubic-bezier(0.165,0.84,0.44,1)'),
       fill: 'forwards',
     });
     state.animation = animation;
@@ -298,7 +304,7 @@
       releaseRipple(edge, edgeTail);
       if (session.word) {
         animateEffect(session.word, [{ opacity }, { opacity: 0 }], {
-          duration: 350,
+          duration: motionTime(350),
           fill: 'forwards',
         });
       }

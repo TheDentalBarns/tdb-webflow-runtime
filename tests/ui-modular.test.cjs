@@ -8,6 +8,10 @@ const {JSDOM} = require('jsdom');
 const CleanCSS = require('clean-css');
 const read = path => fs.readFileSync(path, 'utf8');
 function declarations(css) {
+  // At the current profile, the linked values must equal the original cascade.
+  // Inspect real computed values for non-default profiles in the browser fixture.
+  css = css.replace(/calc\(([-.\d]+(?:ms|s))\s*\*\s*var\(--tdb-motion-pace,\s*1\)\)/g, '$1');
+  css = css.replace(/var\(--tdb-motion-ease-[a-z]+,\s*((?:cubic-bezier|linear)\([^)]*\)|ease(?:-in-out|-in|-out)?)\)/g, '$1');
   const clean = new CleanCSS({level:0,rebase:false}).minify(css.replace(/\/\*[\s\S]*?\*\//g,''));
   assert.deepEqual(clean.errors, []);
   const out = new Map();

@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-24",
+  "scope": "Native Designer sizing of Home treatment image, stamps, details and Discover treatment",
+  "supersedes": "The estimated image-height subtraction in home-treatment-image-snap.json. The existing image-top snap and its 2rem scroll margin remain unchanged.",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "677cf86df9952f978d94d8a9",
+  "componentId": "5e5b55f7-9a7f-d930-e0b9-f598c4c91772",
+  "structure": {
+    "outerElement": "d3345bd6-0716-b88d-9497-7f2eafb47b19",
+    "outerClass": "gallery17_component",
+    "children": "Original heading, followed by the original marked layout owner.",
+    "retainedOwnerElement": "5e5b55f7-9a7f-d930-e0b9-f598c4c91774",
+    "retainedOwnerAttribute": "data-tdb-treatment-layout",
+    "retainedOwnerClass": "tdb-treatment-viewport-layout",
+    "retainedDirectChildren": "Original image stage, stamp component, divider, detail component, CTA. Their element IDs, CMS bindings and runtime ownership are retained."
+  },
+  "nativeStyles": {
+    "tdb-treatment-viewport-layout": {
+      "display": "flex",
+      "flex-direction": "column",
+      "align-items": "stretch",
+      "height": "100svh",
+      "min-height": "min-content",
+      "padding-top": "2rem",
+      "padding-bottom": "2rem"
+    },
+    "tdb-home-treatment-stage": {
+      "variantId": "ca428119-19d7-4c03-4033-ca8a89a684de",
+      "main": {
+        "height": "0px",
+        "max-height": "none",
+        "min-height": "clamp(14rem, calc(((min(94vw, 90rem) - 4rem) / 3 * 2 + 2rem) / 3.2), 24rem)",
+        "flex-grow": "1",
+        "flex-shrink": "1",
+        "flex-basis": "0px"
+      },
+      "medium": { "height": "0px", "max-height": "none", "min-height": "20rem" },
+      "small": { "height": "0px", "max-height": "none", "min-height": "17rem" },
+      "note": "Medium/small minimums are retained from the previous layout. The flex allocation supplies the actual image height from first layout."
+    },
+    "fixedRows": "Stamp/detail tdb-treatment-bottom variants, divider and CTA have flex-shrink:0. CTA align-self:auto preserves left alignment at its existing focused-card width.",
+    "desktopStampImage": {
+      "variantId": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+      "style": "tdb-treatment-image",
+      "height": "clamp(6rem, 8vw, 9.5rem)",
+      "note": "Replaces min(13.5vw,14svh) so short windows no longer squeeze stamps. Existing medium-and-below height:auto and aspect-ratio:4/3 remain."
+    }
+  },
+  "overflow": "When image minimum plus fixed rows and padding exceeds the viewport, min-height:min-content expands the group in normal flow. The CTA remains reachable and the following section stays below it.",
+  "verification": {
+    "viewportFit": ["1920x1080", "1366x768", "1280x720", "2560x1080", "768x1024", "390x844"],
+    "naturalOverflow": ["1920x600", "844x390"],
+    "activation": "At 1280x720 the native pre-init image height and post-init height were both 258.354px; group height remained 720px. All six treatment selections retained those dimensions and the CTA position. Phone slide change retained its 844px group and 369.240px image.",
+    "ownership": "One marked owner; original five direct child IDs verified. Existing arrow selection and CTA links work.",
+    "runtime": "No JavaScript changes, injected sizing CSS, post-load height writes or external CSS changes.",
+    "limits": "Chromium responsive verification; physical Safari review is separate. Dimension checks do not constitute a whole-page CLS score."
+  }
+}

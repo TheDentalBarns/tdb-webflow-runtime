@@ -91,13 +91,19 @@
               { transform: opening ? closed : 'translate(0)' },
               { transform: opening ? 'translate(0)' : closed },
             ],
-            { duration, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'both' },
+            {
+              duration,
+              easing:
+                window.TDBMotionProfile?.easing('panel', 'cubic-bezier(.4,0,.2,1)') ||
+                'cubic-bezier(.4,0,.2,1)',
+              fill: 'both',
+            },
           ),
         ];
         if (backdrop)
           animations.push(
             backdrop.animate([{ opacity: opening ? 0 : 1 }, { opacity: opening ? 1 : 0 }], {
-              duration: Math.min(duration, 300),
+              duration: Math.min(duration, window.TDBMotionProfile?.time(300) ?? 300),
               fill: 'both',
             }),
           );
@@ -178,7 +184,10 @@
           },
           { boxShadow: 'inset 0 0 0 2rem transparent', offset: 1 },
         ],
-        { duration: 600, easing: 'ease-in-out' },
+        {
+          duration: window.TDBMotionProfile?.time(600) ?? 600,
+          easing: window.TDBMotionProfile?.easing('control', 'ease-in-out') || 'ease-in-out',
+        },
       );
       touchPulse = animation;
       animation.finished

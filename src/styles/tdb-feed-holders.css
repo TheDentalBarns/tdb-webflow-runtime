@@ -26,7 +26,7 @@ img:is(.tdb-ig-holding-icon,.tdb-smile-holding-icon,.tdb-review-holding-icon){op
 :is(.tdb-ig-holding-image,.tdb-smile-holding-image,.tdb-review-holding-image):not([data-tdb-native-holder])::before{content:'';position:absolute;pointer-events:none;width:2.75rem;height:2.75rem;left:50%;top:50%;margin:-1.375rem 0 0 -1.375rem;background:currentColor;-webkit-mask:var(--tdb-holder-icon) center/contain no-repeat;mask:var(--tdb-holder-icon) center/contain no-repeat}
 /* The shared loading ring stays external and inherits the Designer holder colour. */
 :is(.tdb-ig-holding-image,.tdb-smile-holding-image,.tdb-review-holding-image)::after{content:'';position:absolute;pointer-events:none;box-sizing:border-box;width:3.68rem;height:3.68rem;left:50%;top:50%;margin:-1.84rem 0 0 -1.84rem;border:1px solid currentColor;border-bottom-color:transparent;border-left-color:transparent;border-radius:50%;opacity:0;visibility:hidden}
-[aria-busy='true']>:is(.tdb-ig-holding-image,.tdb-smile-holding-image,.tdb-review-holding-image)::after{opacity:1;visibility:visible;animation:tdbControlSpin 1s linear infinite}
+[aria-busy='true']>:is(.tdb-ig-holding-image,.tdb-smile-holding-image,.tdb-review-holding-image)::after{opacity:1;visibility:visible;animation:tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite}
 @media(prefers-reduced-motion:reduce){html:not([data-tdb-motion='full']) [aria-busy='true']>:is(.tdb-ig-holding-image,.tdb-smile-holding-image,.tdb-review-holding-image)::after{animation:none}}
 
 /* Designer shows native mask assets; the published runtime releases them at proximity. */

@@ -66,7 +66,7 @@
         animations = [
           content.animate([{ opacity: 0 }, { opacity: 1 }], {
             duration: motion.defaults.fadeIn,
-            easing: 'ease-out',
+            easing: window.TDBMotionProfile?.easing('fade', 'ease-out') || 'ease-out',
           }),
         ];
     }
