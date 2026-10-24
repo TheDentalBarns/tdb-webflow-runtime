@@ -4,7 +4,13 @@
   window.TDBRenderedProgress ||
     (window.TDBRenderedProgress = Object.freeze({
       version: '1.0.1',
-      observe: function ({ track: e, paint: t, enabled: r = () => !0, onMutation: n }) {
+      observe: function ({
+        track: e,
+        paint: t,
+        enabled: r = () => !0,
+        onMutation: n,
+        relevantMutation,
+      }) {
         let i = 0,
           a = !1;
         const s = () => !a && !document.hidden && r();
@@ -20,7 +26,8 @@
           (t(), r && d());
         }
         const c = new MutationObserver((e) => {
-          (n?.(e), d());
+          n?.(e);
+          if (!relevantMutation || e.some(relevantMutation)) d();
         });
         c.observe(e, {
           subtree: !0,

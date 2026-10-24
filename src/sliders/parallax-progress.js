@@ -45,6 +45,15 @@ window.TDBParallaxProgress ||= (() => {
       swiper = null;
     const x = window.TDBRenderedProgress.observe({
       track: i,
+      // Services image parallax changes pixels inside fixed slide boxes. It does
+      // not move horizontal progress; keep observing the track and slide layout.
+      relevantMutation: (record) =>
+        !(
+          r.classList.contains('tdb-service-parallax') &&
+          record.type === 'attributes' &&
+          record.attributeName === 'style' &&
+          record.target.matches('img.showcase_image')
+        ),
       paint: function () {
         const e = f;
         if (
