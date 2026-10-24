@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Treatment fixture</title>
+  <style>
+    body {
+      margin: 0;
+      background: #222;
+      color: #f9f2e6;
+      font: 14px system-ui;
+    }
+    section {
+      position: relative;
+    }
+    .swiper,
+    .tdb-treatment-viewport {
+      overflow: hidden;
+    }
+    .swiper-wrapper,
+    .tdb-treatment-wrapper {
+      display: flex;
+    }
+    .swiper-slide {
+      flex: 0 0 360px;
+      height: 220px;
+      overflow: hidden;
+      position: relative;
+      margin-right: 20px;
+    }
+    .showcase_image {
+      display: block;
+      width: 100%;
+      height: 250px;
+      background: linear-gradient(135deg, #c9bba3, #685d4c);
+      object-fit: cover;
+    }
+    .copy-state {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+    }
+    [data-tdb-native-progress] {
+      height: 5px;
+      position: relative;
+      overflow: hidden;
+      background: #777;
+    }
+    [data-tdb-native-progress] > span {
+      display: block;
+      position: absolute;
+      height: 100%;
+      background: #e9decb;
+    }
+    .tdb-treatment-wrapper > article {
+      flex-shrink: 0;
+    }
+    .tdb-treatment-title {
+      font: 16px system-ui;
+      margin: 12px 0;
+    }
+  </style>
+  <div data-tdb-treatment-layout>
+    <section data-tdb-treatment data-tdb-treatment-postage>
+      <div class="swiper"><div class="swiper-wrapper"></div></div>
+      <div data-tdb-native-progress><span></span><span></span></div>
+    </section>
+    <div data-tdb-treatment-details>
+      <div class="tdb-treatment-viewport"><div class="tdb-treatment-wrapper"></div></div>
+    </div>
+  </div>
+  <script src="/sampler.js"></script>
+  <script src="/details.js"></script>
+  <script>
+    const version = new URL(location.href).searchParams.get('version'),
+      root = document.querySelector('section'),
+      track = root.querySelector('.swiper-wrapper'),
+      details = document.querySelector('.tdb-treatment-wrapper');
+    for (let n = 0; n < 6; n++) {
+      const slide = document.createElement('article');
+      slide.className = 'swiper-slide' + (n === 0 ? ' swiper-slide-active' : '');
+      slide.dataset.swiperSlideIndex = n;
+      slide.innerHTML =
+        '<img class="showcase_image" alt=""><span class="copy-state is-visible" data-tdb-copy-state>Slide ' +
+        (n + 1) +
+        '</span>';
+      track.append(slide);
+      const row = document.createElement('article');
+      row.innerHTML =
+        '<h2 class="tdb-treatment-title">Treatment ' +
+        (n + 1) +
+        '</h2><p data-tdb-service-copy>Native text stays aligned.</p>';
+      details.append(row);
+    }
+    let paints = 0,
+      rects = 0,
+      callbackMs = 0;
+    for (const node of document.querySelectorAll('*')) {
+      const read = node.getBoundingClientRect.bind(node);
+      node.getBoundingClientRect = () => {
+        rects++;
+        return read();
+      };
+    }
+    const originalObserve = TDBRenderedProgress.observe;
+    window.TDBRenderedProgress = {
+      observe(options) {
+        const paint = options.paint;
+        return originalObserve({
+          ...options,
+          paint() {
+            const start = performance.now();
+            paints++;
+            try {
+              return paint();
+            } finally {
+              callbackMs += performance.now() - start;
+            }
+          },
+        });
+      },
+    };
+    const script = document.createElement('script');
+    script.src = '/' + version + '.js';
+    script.onload = run;
+    document.head.append(script);
+    const next = () => new Promise((resolve) => requestAnimationFrame(resolve));
+    const settle = async () => {
+      for (let n = 0; n < 8; n++) await next();
+    };
+    async function workload(name, write, count = 120) {
+      paints = rects = callbackMs = 0;
+      const start = performance.now();
+      for (let n = 0; n < count; n++) {
+        write(n);
+        await next();
+      }
+      await next();
+      return {
+        name,
+        frames: count,
+        paints,
+        rectangleReads: rects,
+        callbackMs: +callbackMs.toFixed(3),
+        elapsedMs: Math.round(performance.now() - start),
+        progress: root.querySelector('[data-tdb-native-progress]>span').style.transform,
+        details: details.style.transform,
+      };
+    }
+    async function run() {
+      TDBParallaxProgress.refresh();
+      await settle();
+      const images = [...root.querySelectorAll('img')];
+      const scroll = await workload('vertical image movement', (n) =>
+        images.forEach((image) => (image.style.translate = '0px ' + n / 10 + 'px')),
+      );
+      await settle();
+      const drag = await workload(
+        'horizontal track movement',
+        (n) => (track.style.transform = 'translateX(' + -n * 2 + 'px)'),
+      );
+      parent.postMessage({ type: 'result', result: { version, scroll, drag } }, location.origin);
+    }
+  </script>
+</html>

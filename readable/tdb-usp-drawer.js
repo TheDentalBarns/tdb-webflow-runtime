@@ -156,6 +156,7 @@
         grabCursor: true,
         a11y: { enabled: false },
         observer: false,
+        updateOnWindowResize: false,
         on: {
           beforeTransitionStart() {
             saveScroll();

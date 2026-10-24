@@ -725,6 +725,7 @@
         loop: false,
         preventInteractionOnTransition: false,
         observer: false,
+        updateOnWindowResize: false,
         speed: reduced.matches ? 0 : motion.duration(innerWidth),
         touchStartPreventDefault: false,
         threshold: 10,
