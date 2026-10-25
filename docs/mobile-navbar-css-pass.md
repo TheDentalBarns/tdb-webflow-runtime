@@ -1,5 +1,7 @@
 # Mobile navbar CSS extraction
 
+**Historical rollout note — superseded.** The former `src/styles/tdb-mobile-navbar.css` is no longer a build input or served stylesheet and was removed on 25 October 2026. Current navbar geometry and initial appearance belong to Designer; essential control feedback uses the foundation/shared UI; enhanced menu state and choreography use `src/styles/tdb-navbar-state.css` and `tdb-navbar-desktop.css`, composed into the deferred navbar controller. See the [architecture standard](https://chatgpt.com/space/page_c22eaec26d7c819197df9524f243acbd) and [current review](runtime/home-structure-review-20261025.md). The following extraction steps describe the old release and must not be reapplied.
+
 This pass moves the two dedicated mobile navbar interaction/style blocks from Webflow global head custom code into `src/styles/tdb-mobile-navbar.css`.
 
 ## Kept inline

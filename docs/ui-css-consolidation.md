@@ -1,5 +1,9 @@
 # UI CSS consolidation
 
+**Historical rollout note — superseded.** For current Home ownership, read the [architecture standard](https://chatgpt.com/space/page_c22eaec26d7c819197df9524f243acbd) and [25 October review](runtime/home-structure-review-20261025.md). The current UI composition is `GLOBAL_SOURCES` in `tools/build-ui.py`. Navbar enhancement styles are composed into the deferred navbar controller from `tdb-navbar-state.css` and `tdb-navbar-desktop.css`; shared early control states remain in `tdb-navbar-control-states.css`. The obsolete `tdb-mobile-navbar.css` source was removed on 25 October. Do not apply the blocking-navbar rollout below to the current release.
+
+The remainder records the earlier migration for historical reference.
+
 This pass combines four previously tested stylesheets into one file:
 
 - `tdb-elfsight-timer.css`

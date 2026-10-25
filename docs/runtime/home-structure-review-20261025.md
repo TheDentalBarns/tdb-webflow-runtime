@@ -92,3 +92,24 @@ Verification: a parsed transformation of the before stylesheet using only the ex
 Four-perspective decision: the LCP benefit is a small reduction in blocking native bytes; in-page controllers and readiness gates are untouched; polish retains geometry, typography, motion and image preparation; maintenance loses redundant overrides without adding a replacement abstraction. Preserve the actual native/deferred consumer boundary. Treat the remaining candidate families as unverified until traced; do not turn the 12,078-byte original candidate figure into a promised saving.
 
 Rollback uses the exact `rollbackActions` in [home-smile-variant-cleanup-20261025.json](home-smile-variant-cleanup-20261025.json), followed by staging publication and native-provenance refresh. Reverting a runtime SHA alone does not restore these Designer properties. Refer to the architecture standard before the next change.
+
+## Navigation and button follow-up — 25 October 2026
+
+Retain the native variants. A fresh 48-URL scan found Navbar New's Transparent variant on 27 pages, Transparent Dark on four (Privacy Policy, Contact, Blog and Pricing), and Home — fade entrance on Home. The secondary White button appears on 20 scanned pages; the primary Stretch button appears on 26. Secondary Stretch was absent from this public sample, which does not establish absence from drafts or all CMS pages. Counts identify positive consumers and are not a complete site inventory.
+
+The basic navbar loader and later enhancement both toggle `is-trans` on the navbar, logo, links, button and menu icon. Therefore colour/inversion resets support the actual early and enhanced menu states. Small-screen stacking, width constraints and border resets differ from inherited native properties. They are not redundant merely because the compiled selectors look similar. Generated grouped rules also share declarations with Home's active variant; adding per-variant byte totals double-counts those groups.
+
+The primary Stretch export repeats `width:100%;min-width:100%` at medium and tiny. This remains a narrow candidate, not an adopted deletion: the variant connector identifies styles by terminal name, and `is-icon` belongs to several different combo chains. Its lookup returned an unrelated empty override; exact selector and style-ID lookups were rejected. No ambiguous mutation, class rename or substitute CSS was attempted. Resolve the exact authored combo before editing it. Retain the explicit Home navbar visibility state and the existing native/deferred handoff.
+
+The concrete maintenance cleanup removes two unused sources: `src/styles/tdb-chrome-entry.css` (1,555 bytes) and `src/styles/tdb-mobile-navbar.css` (6,330 bytes), **7,885 source bytes total**. Neither is referenced by current build inputs, release assets, runtime code or any of the 48 scanned HTML documents. The former still described obsolete opacity-zero entrance behaviour; the latter duplicated an earlier version of mobile navbar states. Historical rollout notes now clearly point to the current owners and warn against reapplying their old loading instructions. Git history and dated release snapshots retain the prior sources; no new archive copy is needed.
+
+| Current navigation responsibility | Owner retained |
+| --- | --- |
+| Native layout, contrast, reserved geometry and baseline menu structure | Designer/component variants |
+| Essential controls before enhancement; native-to-enhanced handoff | Foundation navbar loader and shared early control-state CSS |
+| Enhanced desktop/mobile choreography, scroll-dependent colours and glass states | Deferred navbar controller; `tdb-navbar-state.css` and `tdb-navbar-desktop.css` composed at build time |
+| Shared timing tokens and narrow native timing projection | Existing shared motion profile/UI sources |
+
+**Delivery change: zero bytes in every phase.** Home remains 184,860 HTML bytes / 1,129 elements, native CSS 216,327 bytes, UI 15,037, startup/foundation 37,432 and post-decision runtime 70,373. All generated `dist` files retain their hashes; build parity, release coverage and whitespace checks pass after the deletions. No Designer change, runtime repin or staging publication is necessary. No new browser/device or performance run is claimed for this source-only cleanup.
+
+Four-perspective decision: LCP gains no transferred-byte reduction; interaction/usability and polish retain exactly the existing assets; maintenance benefits from removing misleading alternative sources and obsolete rollout guidance. Keep searching for meaningful initial-delivery overlap, but do not turn each retained component family into a promise of savings. Rollback is an ordinary revert of this repository-only change; the installed runtime remains `8b0455e26fd8f4b621600ae7eefee3f1e2713142`.
