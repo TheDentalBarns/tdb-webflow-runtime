@@ -1,9 +1,9 @@
 {
   "capturedOn": "2026-10-25",
   "page": "https://dentalbarns.webflow.io/",
-  "runtimeRelease": "782454b4d242e7341af7df78e06a749329e33758",
+  "runtimeRelease": "124569c49f6579d842f399bd54ffbb069b1cd033",
   "generator": "tools/runtime-build/native-motion.cjs",
-  "note": "Ordered public stylesheet inputs for the committed timing-only projection. Raw exports remain outside git. Update these URLs and content hashes after auditing a newly published native export; the generator verifies each input before writing. Ordinary motion-profile changes reuse the committed projection. Designer timing references were linked on 2026-10-25; runtimeRelease records the entry installed when the native export was captured. Six Home padding duplicates were replaced with the existing global utility; motion declarations and the timing projection remain unchanged. Seven redundant Home Smile variant responsive overrides were removed on 2026-10-25; retained main/medium values preserve inheritance. Home and Dark variants and all motion declarations remain. The final variant pass removes only the inherited Hero Padding colour in Review Introduction / Dark; its base heading colour remains. The timing projection is unchanged. DOM reconciliation restores three original content-only padding-global boundaries and removes their bespoke inset combinations; no motion declaration changes.",
+  "note": "Ordered public stylesheet inputs for the committed timing-only projection. Raw exports remain outside git. Update these URLs and content hashes after auditing a newly published native export; the generator verifies each input before writing. Ordinary motion-profile changes reuse the committed projection. Designer timing references were linked on 2026-10-25; runtimeRelease records the entry installed when the native export was captured. Six Home padding duplicates were replaced with the existing global utility; motion declarations and the timing projection remain unchanged. Seven redundant Home Smile variant responsive overrides were removed on 2026-10-25; retained main/medium values preserve inheritance. Home and Dark variants and all motion declarations remain. The final variant pass removes only the inherited Hero Padding colour in Review Introduction / Dark; its base heading colour remains. The timing projection is unchanged. DOM reconciliation restores three original content-only padding-global boundaries and removes their bespoke inset combinations; no motion declaration changes. Control/motion pass: service/treatment copy, blur and stamp transitions now belong to the prepared slider stylesheet. Hero play SVG encoding is compacted without changing paths, timing or requests.",
   "inputs": [
     {
       "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.d6e8c62c0.min.css",
@@ -11,9 +11,9 @@
       "sha256": "2fc9d38e169006ad97da986202dac0f0d28f0dcd21fc2b94d128f6e60159e29b"
     },
     {
-      "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.b464f4dea.opt.min.css",
-      "bytes": 184005,
-      "sha256": "d7f09d49a5114ef6277642b8dd6cd0595244907207328ac1fe52bff82d85807d"
+      "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.6d573b205.opt.min.css",
+      "bytes": 182531,
+      "sha256": "fbdafcb9176b45d29e2a640bc10fac94aeb99c1e78624f03e033626669b79602"
     }
   ]
 }
