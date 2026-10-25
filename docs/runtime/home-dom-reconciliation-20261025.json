@@ -1,0 +1,444 @@
+{
+  "date": "2026-10-25",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "677cf86df9952f978d94d8a9",
+  "runtime": "782454b4d242e7341af7df78e06a749329e33758",
+  "scope": "Staging only. Restore three original content/background boundaries using existing padding-global; remove only their redundant inset combinations.",
+  "before": {
+    "html": 184860,
+    "bodyElements": 1093,
+    "nativeCss": 216155,
+    "uiCss": 15037,
+    "startupFoundation": 37432
+  },
+  "owners": [
+    {
+      "id": {
+        "component": "677cf86df9952f978d94d8a9",
+        "element": "ce5ea7bd-8bf1-cf3a-9f2b-0f1ca16105c4"
+      },
+      "style_names": [
+        "layout355_layout",
+        "tdb-flat-container",
+        "tdb-content-inset-6105c4"
+      ]
+    },
+    {
+      "id": {
+        "component": "677cf86df9952f978d94d8a9",
+        "element": "94493afe-30c7-9440-a2bd-977434185485"
+      },
+      "style_names": [
+        "header5_content",
+        "sketch_content",
+        "tdb-flat-container",
+        "tdb-content-inset-185485"
+      ]
+    },
+    {
+      "id": {
+        "component": "492cd62a-b903-e2d4-f435-238f82e688a2",
+        "element": "492cd62a-b903-e2d4-f435-238f82e688a5"
+      },
+      "style_names": [
+        "header111_component",
+        "tdb-flat-container",
+        "tdb-content-inset-e688a5"
+      ],
+      "scope_component_id": "492cd62a-b903-e2d4-f435-238f82e688a2"
+    }
+  ],
+  "styles": [
+    {
+      "id": "025a8710-1c08-eb92-4768-48e54b1d987c",
+      "name": "tdb-content-inset-185485",
+      "isFromLibrary": false,
+      "isComboClass": true,
+      "type": "combo",
+      "selector": ".header5_content.sketch_content.tdb-flat-container.tdb-content-inset-185485",
+      "properties": {
+        "base": {
+          "properties": {
+            "width": "94%",
+            "margin-right": "auto",
+            "margin-left": "auto"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "width": "94%",
+              "margin-right": "auto",
+              "margin-left": "auto"
+            }
+          },
+          "small": {
+            "properties": {
+              "width": "90%"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "8df3b2a5-6872-9322-e71c-f6f456f2863c",
+      "name": "tdb-content-inset-e688a5",
+      "isFromLibrary": false,
+      "isComboClass": true,
+      "type": "combo",
+      "selector": ".header111_component.tdb-flat-container.tdb-content-inset-e688a5",
+      "properties": {
+        "base": {
+          "properties": {
+            "width": "94%",
+            "margin-right": "auto",
+            "margin-left": "auto"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "width": "94%",
+              "margin-right": "auto",
+              "margin-left": "auto"
+            }
+          },
+          "small": {
+            "properties": {
+              "width": "90%"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "77eb5731-330b-8d98-43e2-b710288ae444",
+      "name": "tdb-content-inset-6105c4",
+      "isFromLibrary": false,
+      "isComboClass": true,
+      "type": "combo",
+      "selector": ".layout355_layout.tdb-flat-container.tdb-content-inset-6105c4",
+      "properties": {
+        "base": {
+          "properties": {
+            "width": "94%",
+            "margin-right": "auto",
+            "margin-left": "auto"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "width": "94%",
+              "margin-right": "auto",
+              "margin-left": "auto"
+            }
+          },
+          "small": {
+            "properties": {
+              "width": "90%"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "rollback": "Recreate the three recorded combo styles at their recorded parent paths and main/small properties; move each content owner before its new padding-global parent; restore its original style_names; remove the now-empty new wrappers. Republish staging only. Runtime pins do not change.",
+  "newWrappers": [
+    {
+      "component": "677cf86df9952f978d94d8a9",
+      "element": "e0177263-2a92-df7e-3679-6a839d84a147"
+    },
+    {
+      "component": "677cf86df9952f978d94d8a9",
+      "element": "0ae6a227-2f93-b9e7-a3ed-98b20b172696"
+    },
+    {
+      "component": "492cd62a-b903-e2d4-f435-238f82e688a2",
+      "element": "567d3010-6a4d-32ce-3022-fe66380b6937"
+    }
+  ],
+  "treeVerification": [
+    {
+      "label": "Verify Home boundary restoration",
+      "restoredBoundaries": [
+        {
+          "id": {
+            "component": "677cf86df9952f978d94d8a9",
+            "element": "e0177263-2a92-df7e-3679-6a839d84a147"
+          },
+          "styles": [
+            "padding-global"
+          ],
+          "children": [
+            {
+              "component": "677cf86df9952f978d94d8a9",
+              "element": "ce5ea7bd-8bf1-cf3a-9f2b-0f1ca16105c4"
+            }
+          ]
+        },
+        {
+          "id": {
+            "component": "677cf86df9952f978d94d8a9",
+            "element": "0ae6a227-2f93-b9e7-a3ed-98b20b172696"
+          },
+          "styles": [
+            "padding-global"
+          ],
+          "children": [
+            {
+              "component": "677cf86df9952f978d94d8a9",
+              "element": "94493afe-30c7-9440-a2bd-977434185485"
+            }
+          ]
+        }
+      ],
+      "treeEqualsOriginalAfterUndoingOnlyPlannedChange": true
+    },
+    {
+      "label": "Verify shared location boundary restoration",
+      "restoredBoundaries": [
+        {
+          "id": {
+            "component": "492cd62a-b903-e2d4-f435-238f82e688a2",
+            "element": "567d3010-6a4d-32ce-3022-fe66380b6937"
+          },
+          "styles": [
+            "padding-global"
+          ],
+          "children": [
+            {
+              "component": "492cd62a-b903-e2d4-f435-238f82e688a2",
+              "element": "492cd62a-b903-e2d4-f435-238f82e688a5"
+            }
+          ]
+        }
+      ],
+      "treeEqualsOriginalAfterUndoingOnlyPlannedChange": true
+    }
+  ],
+  "publishTaskId": "537519b9-960e-41f2-a04e-6b76407f1bb0",
+  "publishedVerification": {
+    "before": {
+      "bodyElements": 1093,
+      "totalElements": 1129,
+      "cmsItems": 98,
+      "cmsLists": 16
+    },
+    "after": {
+      "bodyElements": 1096,
+      "totalElements": 1132,
+      "cmsItems": 98,
+      "cmsLists": 16
+    },
+    "boundaries": [
+      {
+        "selector": ".header111_component",
+        "parentClass": "padding-global",
+        "childCount": 1
+      },
+      {
+        "selector": ".layout355_layout",
+        "parentClass": "padding-global",
+        "childCount": 1
+      },
+      {
+        "selector": ".header5_content.sketch_content",
+        "parentClass": "padding-global",
+        "childCount": 1
+      }
+    ],
+    "controlsUnchanged": [
+      {
+        "selector": "[data-vimeo-controls-layer]",
+        "same": true
+      },
+      {
+        "selector": "[data-tdb-native-holder]",
+        "same": true
+      },
+      {
+        "selector": "[data-tdb-hold-audio]",
+        "same": true
+      },
+      {
+        "selector": "[data-tdb-usp-launch]",
+        "same": true
+      }
+    ],
+    "nativeCssExactlyExpectedDeletion": true,
+    "removedNativeRules": [
+      ".header111_component.tdb-flat-container.tdb-content-inset-e688a5{width:94%;margin-left:auto;margin-right:auto}",
+      ".layout355_layout.tdb-flat-container.tdb-content-inset-6105c4{width:94%;margin-left:auto;margin-right:auto}",
+      ".header5_content.sketch_content.tdb-flat-container.tdb-content-inset-185485{width:94%;margin-left:auto;margin-right:auto}",
+      ".header111_component.tdb-flat-container.tdb-content-inset-e688a5{width:90%}",
+      ".layout355_layout.tdb-flat-container.tdb-content-inset-6105c4{width:90%}",
+      ".header5_content.sketch_content.tdb-flat-container.tdb-content-inset-185485{width:90%}"
+    ],
+    "removedRawBytes": 571,
+    "htmlDelta": 27,
+    "htmlGzipDelta": -20,
+    "nativeGzipDelta": -102,
+    "sharedCssIdentical": true,
+    "linksUnchanged": true,
+    "imagesUnchanged": true,
+    "inlineStylesUnchanged": true,
+    "scriptsUnchanged": true
+  },
+  "baselineComparison": {
+    "baseline": "Pre-DOM-cleanup snapshot, 22 Oct 2026, runtime e56f6efb510da0ef966683c60db67fc8cc9f77f1",
+    "rows": [
+      {
+        "layer": "Home HTML",
+        "before": {
+          "raw": 213938,
+          "gzip": 36775
+        },
+        "after": {
+          "raw": 184887,
+          "gzip": 32178
+        },
+        "rawDelta": -29051,
+        "gzipDelta": -4597
+      },
+      {
+        "layer": "Native shared CSS",
+        "before": {
+          "raw": 31456,
+          "gzip": 8324
+        },
+        "after": {
+          "raw": 31579,
+          "gzip": 8358
+        },
+        "rawDelta": 123,
+        "gzipDelta": 34
+      },
+      {
+        "layer": "Native page CSS",
+        "before": {
+          "raw": 164678,
+          "gzip": 27399
+        },
+        "after": {
+          "raw": 184005,
+          "gzip": 30065
+        },
+        "rawDelta": 19327,
+        "gzipDelta": 2666
+      },
+      {
+        "layer": "Initial UI CSS",
+        "before": {
+          "raw": 11884,
+          "gzip": 2945
+        },
+        "after": {
+          "raw": 15037,
+          "gzip": 3301
+        },
+        "rawDelta": 3153,
+        "gzipDelta": 356
+      },
+      {
+        "layer": "tdb-start.min.js",
+        "before": {
+          "raw": 7708,
+          "gzip": 3056
+        },
+        "after": {
+          "raw": 10673,
+          "gzip": 4044
+        },
+        "rawDelta": 2965,
+        "gzipDelta": 988
+      },
+      {
+        "layer": "tdb-foundation.js",
+        "before": {
+          "raw": 26116,
+          "gzip": 8314
+        },
+        "after": {
+          "raw": 26759,
+          "gzip": 8473
+        },
+        "rawDelta": 643,
+        "gzipDelta": 159
+      }
+    ],
+    "totals": {
+      "beforeRaw": 455780,
+      "afterRaw": 452940,
+      "beforeGzip": 86813,
+      "afterGzip": 86419
+    },
+    "postDecision": {
+      "before": {
+        "raw": 67580,
+        "gzip": 18137
+      },
+      "after": {
+        "raw": 70373,
+        "gzip": 19084
+      }
+    },
+    "hero": {
+      "before": {
+        "elements": 16,
+        "serializedBytes": 2440
+      },
+      "after": {
+        "elements": 2,
+        "serializedBytes": 333
+      },
+      "newNativeRules": [
+        {
+          "selector": ".vimeo-player__btn.tdb-hero-toggle-art",
+          "raw": 83
+        },
+        {
+          "selector": ".vimeo-player__btn.tdb-hero-toggle-art:before",
+          "raw": 2010
+        },
+        {
+          "selector": ".vimeo-player__btn.tdb-hero-toggle-art:after",
+          "raw": 294
+        },
+        {
+          "selector": ".vimeo-controls-layer.tdb-hero-toggle",
+          "raw": 327
+        },
+        {
+          "selector": ".vimeo-controls-layer.tdb-hero-toggle:before",
+          "raw": 237
+        },
+        {
+          "selector": ".vimeo-controls-layer.tdb-hero-toggle,.vimeo-player__bg.home,.vimeo-player__bg.home",
+          "raw": 98
+        }
+      ]
+    },
+    "caveat": "Dated snapshot comparison includes all intervening changes, not an attribution to wrapper cleanup. Gzip is Node level 9 per file, not CDN transfers or a performance measurement. Hero rule subtotals include shared selector coalescing; do not treat them as an exact deletion forecast."
+  },
+  "nativeInputs": [
+    {
+      "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.d6e8c62c0.min.css",
+      "bytes": 31579,
+      "sha256": "2fc9d38e169006ad97da986202dac0f0d28f0dcd21fc2b94d128f6e60159e29b"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.b464f4dea.opt.min.css",
+      "bytes": 184005,
+      "sha256": "d7f09d49a5114ef6277642b8dd6cd0595244907207328ac1fe52bff82d85807d"
+    }
+  ],
+  "verification": {
+    "nativeTree": "Exact after reversing only the three planned boundary changes",
+    "html": "Exact document DOM after undoing the three boundaries and normalizing native CSS link and existing randomized partner order",
+    "nativeCss": "Exact deletion of six recorded rules; shared CSS unchanged",
+    "desktop": "1363 x 936; section and background heights unchanged; backgrounds x=0,width=1363; content width +0.03125px from percentage rounding; Sight opens and closes",
+    "responsive": "Same authored 3%/5% global padding and existing maximum widths; no physical mobile rendering or fling acceptance claim",
+    "runtime": "All served assets and timing projection unchanged; build parity and release inventory pass"
+  }
+}
