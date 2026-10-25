@@ -310,13 +310,18 @@
           else await data.ensureIdentity?.(root, { signal });
         }
         current();
-        root
-          .querySelectorAll('[data-tdb-review-count]')
-          .forEach((node) => node.setAttribute('data-tdb-review-count', String(data.total)));
-        root
-          .querySelectorAll('[data-tdb-review-rating]')
-          .forEach((node) => node.setAttribute('data-tdb-review-rating', data.average.toFixed(2)));
+        if (type !== 'introduction') {
+          root
+            .querySelectorAll('[data-tdb-review-count]')
+            .forEach((node) => node.setAttribute('data-tdb-review-count', String(data.total)));
+          root
+            .querySelectorAll('[data-tdb-review-rating]')
+            .forEach((node) =>
+              node.setAttribute('data-tdb-review-rating', data.average.toFixed(2)),
+            );
+        }
         const callbacks = {
+          summary: data,
           prepare: async ({ signal: consumerSignal } = {}) => {
             check(signal);
             check(consumerSignal);

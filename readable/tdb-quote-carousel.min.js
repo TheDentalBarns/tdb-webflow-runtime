@@ -26,7 +26,9 @@
   const prepared = new WeakMap(),
     mounted = new Map();
   let dependencyFlight, proximity;
-  const discovered = new WeakSet();
+  const discovered = new WeakSet(),
+    eligible = new WeakSet(),
+    enhancing = new WeakMap();
   const selector = '[data-tdb-team-quotes][data-tdb-team-cms]';
 
   function prepare(root) {
@@ -346,17 +348,25 @@
     });
     return flight;
   }
-  async function enhance(root) {
+  function enhance(root) {
+    eligible.add(root);
     if (mounted.has(root)) return;
-    try {
-      await dependencies();
-      if (root.isConnected) window.TDBSwiper.mount('owner-quotes', root);
-    } catch (error) {
-      showFallback(root);
-      root.dispatchEvent(
-        new CustomEvent('tdb:team-quotes-error', { bubbles: true, detail: { error } }),
-      );
-    }
+    if (enhancing.has(root)) return enhancing.get(root);
+    const flight = (async () => {
+      try {
+        await dependencies();
+        if (root.isConnected) window.TDBSwiper.mount('owner-quotes', root);
+      } catch (error) {
+        showFallback(root);
+        root.dispatchEvent(
+          new CustomEvent('tdb:team-quotes-error', { bubbles: true, detail: { error } }),
+        );
+      } finally {
+        enhancing.delete(root);
+      }
+    })();
+    enhancing.set(root, flight);
+    return flight;
   }
   function init() {
     document.querySelectorAll(selector).forEach((root) => {
@@ -367,7 +377,7 @@
         return;
       }
       if (discovered.has(root)) {
-        if (!mounted.has(root)) enhance(root);
+        if (eligible.has(root) && !mounted.has(root)) enhance(root);
         return;
       }
       discovered.add(root);

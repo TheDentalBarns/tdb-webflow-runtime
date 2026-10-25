@@ -34,6 +34,7 @@
     "dist/tdb-review-introduction.js",
     "dist/tdb-review-list-loader.js",
     "dist/tdb-review-list.js",
+    "dist/tdb-review-widget.js",
     "dist/tdb-reviews-loader.js",
     "dist/tdb-reviews.js",
     "dist/tdb-runtime.js",
@@ -70,7 +71,9 @@
     "dist/tdb-review-drawer.css",
     "dist/tdb-usp-drawer.css",
     "dist/tdb-review-cards.css",
-    "dist/tdb-vip-content.css"
+    "dist/tdb-review-widget.css",
+    "dist/tdb-vip-content.css",
+    "dist/tdb-vimeo.css"
   ],
   "assets": [
     "assets/five-senses/surgery-clinical-clean.webp"
@@ -94,5 +97,15 @@
     "dist/tdb-modules.js",
     "dist/tdb-forms.min.js"
   ],
+  "compatibilityFallbacks": {
+    "dist/tdb-modules.js": {
+      "sources": ["src/shared/module-bootstrap.js"],
+      "reason": "Direct legacy entries can bootstrap the registry when the current startup has not installed it."
+    },
+    "dist/tdb-review-quote-adapter.min.js": {
+      "sources": ["src/reviews/native/loader.js"],
+      "reason": "A deliberately retained older CMS bundle may need the quote adapter; the current CMS bundle already includes it."
+    }
+  },
   "external": "Webflow, jQuery, Vimeo, consent-permitted analytics and Brevo are service SDKs; images/fonts/CMS remain in Webflow."
 }

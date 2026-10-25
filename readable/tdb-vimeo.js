@@ -481,9 +481,18 @@
         clearTimeout(playerRoot._placeholderHideTimer);
       }
 
+      // The native poster fade uses the same profile. Keep its existing 70ms
+      // settling allowance, rather than cutting a slower fade off at 520ms.
+      const fade = window.TDBMotionProfile?.time(450) ?? 450;
       playerRoot._placeholderHideTimer = setTimeout(function () {
-        setAttrIfChanged(playerRoot, 'data-placeholder-hidden', 'true');
-      }, 520);
+        playerRoot._placeholderHideTimer = null;
+        if (
+          playerRoot.isConnected &&
+          (playerRoot.getAttribute('data-vimeo-started') === 'true' ||
+            playerRoot.getAttribute('data-ambient-started') === 'true')
+        )
+          setAttrIfChanged(playerRoot, 'data-placeholder-hidden', 'true');
+      }, fade + 70);
     }
 
     function clearBackgroundReveal(playerRoot) {

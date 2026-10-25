@@ -6,23 +6,51 @@
     const template = document.createElement('template');
     template.innerHTML = __TDB_REVIEW_CARDS_TEMPLATE__;
     const root = template.content.firstElementChild;
-    // Decode the small shared artwork before exposing the populated carousel.
+    // Preserve the decoded artwork on the normal path. Optional clock/arrow
+    // failures have a bounded, local fallback so they cannot suppress reviews.
     await Promise.all(
       [...new Set([...root.querySelectorAll('img')].map((img) => img.src))].map(
         (src) =>
           new Promise((resolve, reject) => {
             const image = new Image();
-            let timer;
+            let timer,
+              done = false;
             const finish = (error) => {
+              if (done) return;
+              done = true;
               clearTimeout(timer);
               image.onload = image.onerror = null;
               signal.removeEventListener('abort', abort);
-              error ? reject(error) : resolve();
+              if (error?.name === 'AbortError') return reject(error);
+              if (error) {
+                const artwork = [...root.querySelectorAll('img')].filter(
+                  (node) => node.src === src,
+                );
+                if (
+                  artwork.some(
+                    (node) =>
+                      !node.matches('img.tdb-review-cards_clock,img.tdb-review-cards_arrow-asset'),
+                  )
+                )
+                  return reject(error);
+                artwork.forEach((node) => {
+                  const control = node.closest('[data-tdb-cards-prev],[data-tdb-cards-next]');
+                  if (control) {
+                    const label = document.createElement('span');
+                    label.setAttribute('aria-hidden', 'true');
+                    label.textContent = control.hasAttribute('data-tdb-cards-prev')
+                      ? 'Prev'
+                      : 'Next';
+                    control.replaceChildren(label);
+                  } else node.style.visibility = 'hidden';
+                });
+              }
+              resolve();
             };
             const abort = () => finish(new DOMException('Cancelled', 'AbortError'));
             if (signal.aborted) return abort();
             signal.addEventListener('abort', abort, { once: true });
-            timer = setTimeout(() => finish(Error('Review artwork timed out')), 12000);
+            timer = setTimeout(() => finish(Error('Review artwork timed out')), 1500);
             image.onerror = () => finish(Error('Review artwork unavailable'));
             image.onload = () =>
               image.decode

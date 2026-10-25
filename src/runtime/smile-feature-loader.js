@@ -71,10 +71,12 @@ function prepareSmileFeatureLoader() {
   window.TDBSmileFeatureLoader = Object.freeze({
     refresh,
     destroy() {
+      if (disposed) return;
       disposed = true;
       observer?.disconnect();
       unsubscribe?.();
       lifecycle.abort();
+      for (const holder of near) holder.removeAttribute('aria-busy');
       near.clear();
       window.TDBSmileFeed?.destroy();
     },

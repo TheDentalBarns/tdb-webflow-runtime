@@ -7,7 +7,8 @@
 img.tdb-smile-holding-icon{display:block;width:2.75rem;height:2.75rem;opacity:.35}
 @media screen and (max-width:991px){.tdb-smile-placeholder:not([data-tdb-native-placeholder]){width:70vw}}
 @media screen and (max-width:479px){.tdb-smile-placeholder:not([data-tdb-native-placeholder]){width:90vw}}
-@media screen and (min-width:480px) and (max-width:991px) and (max-height:500px) and (orientation:landscape){.tdb-smile-placeholder{width:100%}.tdb-smile-holding-image{height:calc(17rem + 25cqw)}}
+/* Home's native holder geometry lives in its existing responsive embed. */
+@media screen and (min-width:480px) and (max-width:991px) and (max-height:500px) and (orientation:landscape){.tdb-smile-placeholder:where(:not([data-tdb-native-placeholder])){width:100%}.tdb-smile-holding-image:where(:not([data-tdb-native-holder])){height:calc(17rem + 25cqw)}}
 
 [data-tdb-review-placeholder]:not([data-tdb-native-placeholder]){width:100%;height:calc(min(94vw,90rem)/2.25 + 10.2222rem);position:relative}
 .tdb-review-holding-image:not([data-tdb-native-holder]){background:var(--base-color-brand--white,#fff);width:calc(min(94vw,90rem)/3 - 1.33333rem);height:100%;display:flex;align-items:center;justify-content:center}

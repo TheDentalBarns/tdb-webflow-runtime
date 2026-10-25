@@ -3,9 +3,44 @@
   'use strict';
   if (window.TDBReviewIntroduction) return;
   const instances = new WeakMap();
+  function hydrateSummary(root, summary) {
+    if (!summary) return;
+    const { total, average } = summary;
+    if (
+      !Number.isInteger(total) ||
+      total < 0 ||
+      !Number.isFinite(average) ||
+      average < 0 ||
+      average > 5
+    )
+      return;
+    const rating = average.toFixed(2),
+      reviews = total === 1 ? 'review' : 'reviews';
+    root.querySelectorAll('[data-tdb-review-count]').forEach((node) => {
+      node.setAttribute('data-tdb-review-count', String(total));
+      node.setAttribute(
+        'aria-label',
+        node.getAttribute('data-tdb-count-format') === 'plain'
+          ? String(total)
+          : `${total} ${reviews}`,
+      );
+    });
+    root.querySelectorAll('[data-tdb-review-rating]').forEach((node) => {
+      node.setAttribute('data-tdb-review-rating', rating);
+      node.setAttribute('aria-label', `Rating ${rating} out of 5`);
+    });
+    root.querySelectorAll('[data-tdb-review-summary]').forEach((node) => {
+      node.setAttribute(
+        'aria-label',
+        `Read ${total} patient ${reviews}. Combined rating ${rating} out of 5.`,
+      );
+    });
+  }
   function mount(root, options = {}) {
     if (instances.has(root)) return instances.get(root);
     if (!window.TDBNativeTicker) throw Error('Native ticker is unavailable');
+    // One validated payload supplies the ticker targets and accessible names.
+    hydrateSummary(root, options.summary);
     const controller = new AbortController();
     const { signal } = controller;
     let disposed = false,

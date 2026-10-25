@@ -3193,10 +3193,12 @@ function prepareSmileFeatureLoader() {
   window.TDBSmileFeatureLoader = Object.freeze({
     refresh,
     destroy() {
+      if (disposed) return;
       disposed = true;
       observer?.disconnect();
       unsubscribe?.();
       lifecycle.abort();
+      for (const holder of near) holder.removeAttribute('aria-busy');
       near.clear();
       window.TDBSmileFeed?.destroy();
     },
@@ -3703,6 +3705,7 @@ const TDBFeatureStartup = (() => {
     window.TDBReviewWidgetLoader?.destroy();
     window.TDBLazyIconMasks?.destroy();
     window.TDBInstagramFeatureLoader?.destroy();
+    window.TDBSmileFeatureLoader?.destroy();
     for (const cancel of [...cancellations]) cancel();
     mounted.forEach((owner) => owner.destroy());
     mounted.clear();

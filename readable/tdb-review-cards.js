@@ -7,23 +7,51 @@
     template.innerHTML =
       '<div data-tdb-review-cards="" aria-label="Patient review cards" role="region" class="tdb-review-cards_root"><div aria-label="Patient reviews. Use left and right arrows to change review." data-tdb-cards-viewport="" tabindex="0" class="tdb-review-cards_viewport"><div data-tdb-cards-track="" role="list" class="tdb-review-cards_track"><div role="listitem" class="tdb-review-cards_slide"><article class="tdb-review-cards_card"><div class="tdb-review-cards_quote"><div class="tdb-review-cards_surface"></div><div class="tdb-review-cards_mark"></div><blockquote data-cards-render="excerpt" class="tdb-review-cards_excerpt"></blockquote></div><div class="tdb-review-cards_byline"><div><div data-cards-render="name" class="tdb-review-cards_name"></div><span class="tdb-review-cards_date"><img src="https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c58089197784d522c2a2_tdb-review-clock-brand.svg" loading="lazy" aria-hidden="true" alt="" class="tdb-review-cards_clock"><div data-cards-render="date" class="tdb-review-cards_date-value"></div></span></div><div class="tdb-review-cards_source"><span data-cards-render="icon" aria-hidden="true" data-cards-platform-logo="" class="tdb-review-cards_platform-logo tdb-review-cards_icon-direct"></span><span data-cards-render="rating" class="tdb-review-cards_star-row tdb-review-card-stars-direct"><span aria-hidden="true" data-tdb-mask="review-star" data-tdb-star="0" class="tdb-review-cards_star"></span><span aria-hidden="true" data-tdb-mask="review-star" data-tdb-star="1" class="tdb-review-cards_star"></span><span aria-hidden="true" data-tdb-mask="review-star" data-tdb-star="2" class="tdb-review-cards_star"></span><span aria-hidden="true" data-tdb-mask="review-star" data-tdb-star="3" class="tdb-review-cards_star"></span><span aria-hidden="true" data-tdb-mask="review-star" data-tdb-star="4" class="tdb-review-cards_star"></span></span></div></div><div data-cards-render="text" class="tdb-review-cards_text"></div><div class="tdb-review-cards_actions"><span data-cards-render="historic" class="tdb-review-cards_historic">Dr Keely · previous practice</span></div><div class="tdb-review-cards_card-footer"><div class="tdb-review-cards_surface is-footer"></div></div></article></div></div></div><p data-tdb-cards-status="" role="status" class="tdb-review-cards_status"></p><div data-tdb-cards-navigation="" class="tdb-review-cards_navigation"><div class="tdb-review-cards_position"><span data-tdb-cards-current="" class="tdb-review-cards_current">01</span><span class="tdb-review-cards_rule"></span><span data-tdb-cards-total=""></span></div><div class="tdb-review-cards_arrows"><a aria-disabled="true" aria-label="Previous review" tabindex="0" role="button" data-tdb-cards-prev="" href="#" class="carousel-arrow tdb-service-arrow"><span class="tdb-review-cards_prev-icon"><img src="https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg" loading="lazy" aria-hidden="true" fetchpriority="low" alt="" class="tdb-review-cards_arrow-asset"></span></a><a data-tdb-cards-next="" aria-label="Next review" tabindex="0" role="button" href="#" class="carousel-arrow tdb-service-arrow w-inline-block"><img src="https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg" loading="lazy" aria-hidden="true" fetchpriority="low" alt="" class="tdb-review-cards_arrow-asset"></a></div><div data-tdb-cards-progress="" aria-hidden="true" class="tdb-review-cards_progress"><span class="tdb-review-cards_progress-fill"></span></div></div><div aria-hidden="true" class="tdb-review-cards_fixed-mark"><div class="tdb-review-cards_artwork"><span class="tdb-review-cards_art-line"></span><span class="tdb-review-cards_art-icon"><span class="tdb-review-cards_quote-asset" aria-hidden="true"></span></span><span class="tdb-review-cards_art-line"></span></div></div><div class="tdb-review-cards_focus-action"><a data-tdb-cards-open="" aria-expanded="false" aria-haspopup="dialog" tabindex="-1" role="button" href="#" class="tdb-review-cards_more" data-tdb-cards-focus-action="" aria-disabled="true">Read more</a></div></div>';
     const root = template.content.firstElementChild;
-    // Decode the small shared artwork before exposing the populated carousel.
+    // Preserve the decoded artwork on the normal path. Optional clock/arrow
+    // failures have a bounded, local fallback so they cannot suppress reviews.
     await Promise.all(
       [...new Set([...root.querySelectorAll('img')].map((img) => img.src))].map(
         (src) =>
           new Promise((resolve, reject) => {
             const image = new Image();
-            let timer;
+            let timer,
+              done = false;
             const finish = (error) => {
+              if (done) return;
+              done = true;
               clearTimeout(timer);
               image.onload = image.onerror = null;
               signal.removeEventListener('abort', abort);
-              error ? reject(error) : resolve();
+              if (error?.name === 'AbortError') return reject(error);
+              if (error) {
+                const artwork = [...root.querySelectorAll('img')].filter(
+                  (node) => node.src === src,
+                );
+                if (
+                  artwork.some(
+                    (node) =>
+                      !node.matches('img.tdb-review-cards_clock,img.tdb-review-cards_arrow-asset'),
+                  )
+                )
+                  return reject(error);
+                artwork.forEach((node) => {
+                  const control = node.closest('[data-tdb-cards-prev],[data-tdb-cards-next]');
+                  if (control) {
+                    const label = document.createElement('span');
+                    label.setAttribute('aria-hidden', 'true');
+                    label.textContent = control.hasAttribute('data-tdb-cards-prev')
+                      ? 'Prev'
+                      : 'Next';
+                    control.replaceChildren(label);
+                  } else node.style.visibility = 'hidden';
+                });
+              }
+              resolve();
             };
             const abort = () => finish(new DOMException('Cancelled', 'AbortError'));
             if (signal.aborted) return abort();
             signal.addEventListener('abort', abort, { once: true });
-            timer = setTimeout(() => finish(Error('Review artwork timed out')), 12000);
+            timer = setTimeout(() => finish(Error('Review artwork timed out')), 1500);
             image.onerror = () => finish(Error('Review artwork unavailable'));
             image.onload = () =>
               image.decode

@@ -24,4 +24,10 @@ Restore saved global and affected page head/footer blocks, then publish staging 
 
 Runtime and Swiper workflows are the canonical JavaScript checks and use read-only permissions. Old branch-specific builders are archived in `docs/archive/workflows/` so they cannot generate conflicting bundles or commits. CSS checks remain manually gated while separate CSS/performance work is paused.
 
-The manifest's `compatibilityOnly` outputs are built for traceability, not loaded by the new entry. Other pages retaining direct/inline legacy calls need a later markup migration; do not add their exceptions back into the global resolver.
+The manifest's `compatibilityOnly` outputs are built for traceability and are outside the normal current-entry path. `compatibilityFallbacks` records the specific active sources and reasons for guarded older-entry fallbacks; it does not enable loading or change runtime resolution. Other pages retaining direct/inline legacy calls need a later markup migration; do not add their exceptions back into the global resolver.
+
+## Inventory and early CSS checks
+
+`npm test` checks release coverage in both directions: every JavaScript build target must be classified, and literal release-relative JS/CSS filenames in active sources must be declared. This catches a built module or deferred stylesheet omitted from the release list. Keep computed dependency choices in explicit filename tables/readiness maps so the check can see each destination; arbitrary computed URLs, remote SDKs and Webflow assets are not a static reachability proof. Existing asset-existence and generated-parity checks remain separate. Run `node tools/runtime-build/release-inventory.cjs` for the focused inventory check.
+
+`node tools/runtime-build/verify-ui.cjs` checks UI source/output parity and the current inline contract: native navbar motion stays disabled until enhancement, chevrons/disclosures stay still until control motion is ready, and inline CSS never claims full UI readiness. The same guard contract runs in `npm test`. Feature fades, animation definitions and phone-landscape styling are not required in the inline stylesheet merely because older releases placed them there.
