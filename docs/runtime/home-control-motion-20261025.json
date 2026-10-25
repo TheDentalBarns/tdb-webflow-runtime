@@ -1,0 +1,1910 @@
+{
+  "date": "2026-10-25",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "677cf86df9952f978d94d8a9",
+  "reference": "https://chatgpt.com/space/page_c22eaec26d7c819197df9524f243acbd",
+  "beforeStyles": [
+    {
+      "id": "b55e02b0-4570-9157-d3e5-89a8b1a69383",
+      "name": "tdb-service-copy",
+      "isFromLibrary": false,
+      "isComboClass": true,
+      "type": "combo",
+      "selector": ".max-width-xsmall.service-card-mobile-copy.tdb-service-copy",
+      "properties": {
+        "base": {
+          "properties": {
+            "position": "absolute",
+            "left": "2rem",
+            "top": "auto",
+            "right": "auto",
+            "bottom": "2rem",
+            "width": "22rem",
+            "max-width": "calc(100% - 20rem)",
+            "margin-top": "0",
+            "margin-right": "0",
+            "margin-bottom": "0",
+            "margin-left": "0",
+            "opacity": "0",
+            "pointer-events": "none",
+            "transition-property": "opacity",
+            "transition-duration": "calc(200ms * var(--tdb-motion-pace,1))",
+            "transition-timing-function": "var(--tdb-motion-ease-control,ease-out)"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "position": "absolute",
+              "left": "2rem",
+              "top": "auto",
+              "right": "auto",
+              "bottom": "2rem",
+              "width": "22rem",
+              "max-width": "calc(100% - 20rem)",
+              "margin-top": "0",
+              "margin-right": "0",
+              "margin-bottom": "0",
+              "margin-left": "0",
+              "opacity": "0",
+              "pointer-events": "none",
+              "transition-property": "opacity",
+              "transition-duration": "calc(200ms * var(--tdb-motion-pace,1))",
+              "transition-timing-function": "var(--tdb-motion-ease-control,ease-out)"
+            }
+          },
+          "medium": {
+            "properties": {
+              "position": "static",
+              "left": "auto",
+              "bottom": "auto",
+              "width": "100%",
+              "max-width": "22rem"
+            }
+          },
+          "tiny": {
+            "properties": {
+              "max-width": "none",
+              "margin-top": ".75rem"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "4871d079-d06c-4241-22c2-a7c71cabacf6",
+      "name": "is-visible",
+      "isFromLibrary": false,
+      "isComboClass": true,
+      "type": "combo",
+      "selector": ".max-width-xsmall.service-card-mobile-copy.tdb-service-copy.is-visible",
+      "properties": {
+        "base": {
+          "properties": {
+            "opacity": "1",
+            "pointer-events": "auto",
+            "transition-duration": "calc(400ms * var(--tdb-motion-pace,1))",
+            "transition-timing-function": "var(--tdb-motion-ease-control,ease-in)"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "opacity": "1",
+              "pointer-events": "auto",
+              "transition-duration": "calc(400ms * var(--tdb-motion-pace,1))",
+              "transition-timing-function": "var(--tdb-motion-ease-control,ease-in)"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "0434754a-b780-9a3a-a5f8-6cb42662e35a",
+      "name": "is-moving",
+      "isFromLibrary": false,
+      "isComboClass": true,
+      "type": "combo",
+      "selector": ".max-width-xsmall.service-card-mobile-copy.tdb-service-copy.is-moving",
+      "properties": {
+        "base": {
+          "properties": {
+            "opacity": "0",
+            "pointer-events": "none",
+            "transition-duration": "calc(150ms * var(--tdb-motion-pace,1))",
+            "transition-timing-function": "var(--tdb-motion-ease-control,ease-out)"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "opacity": "0",
+              "pointer-events": "none",
+              "transition-duration": "calc(150ms * var(--tdb-motion-pace,1))",
+              "transition-timing-function": "var(--tdb-motion-ease-control,ease-out)"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "9252e53e-3941-ff42-abf9-c3fea8232d01",
+      "name": "tdb-treatment-copy",
+      "isFromLibrary": false,
+      "isComboClass": false,
+      "type": "global",
+      "selector": ".tdb-treatment-copy",
+      "properties": {
+        "base": {
+          "properties": {
+            "position": "absolute",
+            "left": "2rem",
+            "bottom": "2rem",
+            "width": "calc((calc((min(94vw, 90rem) - 4rem) / 3)) - 4rem)",
+            "max-width": "22rem",
+            "margin-top": "0px",
+            "opacity": "0",
+            "transition": "opacity calc(200ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-out)"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "position": "absolute",
+              "left": "2rem",
+              "bottom": "2rem",
+              "width": "calc((calc((min(94vw, 90rem) - 4rem) / 3)) - 4rem)",
+              "max-width": "22rem",
+              "margin-top": "0px",
+              "opacity": "0",
+              "transition": "opacity calc(200ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-out)"
+            }
+          },
+          "medium": {
+            "properties": {
+              "position": "relative",
+              "left": "auto",
+              "top": "auto",
+              "bottom": "auto",
+              "width": "100%",
+              "max-width": "none",
+              "margin-top": "0.75rem"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "879e76d0-6d16-7dda-da96-27fb4abb67f3",
+      "name": "is-visible",
+      "isFromLibrary": false,
+      "isComboClass": true,
+      "type": "combo",
+      "selector": ".tdb-treatment-copy.is-visible",
+      "properties": {
+        "base": {
+          "properties": {
+            "opacity": "1",
+            "transition": "opacity calc(400ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in)"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "opacity": "1",
+              "transition": "opacity calc(400ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in)"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "32394cf9-5d7c-e426-d69f-5f891eaab4a1",
+      "name": "is-moving",
+      "isFromLibrary": false,
+      "isComboClass": true,
+      "type": "combo",
+      "selector": ".tdb-treatment-copy.is-visible.is-moving",
+      "properties": {
+        "base": {
+          "properties": {
+            "opacity": "0",
+            "transition": "opacity calc(150ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-out)"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "opacity": "0",
+              "transition": "opacity calc(150ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-out)"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "aa667564-e9b9-8c3b-448f-b5823c004e30",
+      "name": "tdb-treatment-blur",
+      "isFromLibrary": false,
+      "isComboClass": false,
+      "type": "global",
+      "selector": ".tdb-treatment-blur",
+      "properties": {
+        "base": {
+          "properties": {
+            "position": "absolute",
+            "left": "0px",
+            "top": "0px",
+            "right": "0px",
+            "bottom": "0px",
+            "z-index": "25",
+            "backdrop-filter": {
+              "id": "variable-59d745ff-b25f-4323-af48-d97393181e99"
+            },
+            "pointer-events": "none",
+            "transition-property": "-webkit-backdrop-filter, backdrop-filter",
+            "transition-delay": "0s, 0s",
+            "clip-path": "none",
+            "transition-duration": "var(--tdb-parallax-duration, calc(400ms * var(--tdb-motion-pace,1))), var(--tdb-parallax-duration, calc(400ms * var(--tdb-motion-pace,1)))",
+            "transition-timing-function": "var(--tdb-motion-ease-control,ease), var(--tdb-motion-ease-control,ease)"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "position": "absolute",
+              "left": "0px",
+              "top": "0px",
+              "right": "0px",
+              "bottom": "0px",
+              "z-index": "25",
+              "backdrop-filter": {
+                "id": "variable-59d745ff-b25f-4323-af48-d97393181e99"
+              },
+              "pointer-events": "none",
+              "transition-property": "-webkit-backdrop-filter, backdrop-filter",
+              "transition-delay": "0s, 0s",
+              "clip-path": "none",
+              "transition-duration": "var(--tdb-parallax-duration, calc(400ms * var(--tdb-motion-pace,1))), var(--tdb-parallax-duration, calc(400ms * var(--tdb-motion-pace,1)))",
+              "transition-timing-function": "var(--tdb-motion-ease-control,ease), var(--tdb-motion-ease-control,ease)"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "pseudoBefore": [
+    {
+      "selector": ".showcase_card.tdb-service-card:after",
+      "properties": {
+        "z-index": "25",
+        "-webkit-backdrop-filter": "blur(var(--effects--blur))",
+        "backdrop-filter": "blur(var(--effects--blur))",
+        "pointer-events": "none",
+        "transition": "backdrop-filter var(--tdb-parallax-duration,.4s)ease",
+        "clip-path": "none",
+        "content": "\"\"",
+        "position": "absolute",
+        "inset": "0"
+      }
+    },
+    {
+      "selector": ".vimeo-player__btn.tdb-hero-toggle-art:before",
+      "properties": {
+        "pointer-events": "none",
+        "content": "\"\"",
+        "background-color": "currentColor",
+        "width": "40%",
+        "height": "40%",
+        "display": "block",
+        "-webkit-mask-image": "url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M6.38178%206.13982C6.40762%205.94017%206.48425%205.74878%206.60555%205.58089C6.72686%205.413%206.88949%205.27326%207.08049%205.17279C7.2715%205.07232%207.48559%205.01391%207.70574%205.00219C7.92587%204.99048%208.14597%205.02579%208.3485%205.10532C9.37235%205.50436%2011.6669%206.45272%2014.5784%207.98469C17.4908%209.51754%2019.5395%2010.8562%2020.4294%2011.4635C21.1891%2011.9829%2021.191%2013.013%2020.4304%2013.5342C19.5491%2014.1381%2017.5256%2015.4591%2014.5784%2017.0113C11.6283%2018.5635%209.36078%2019.5005%208.34657%2019.8942C7.47311%2020.2343%206.49554%2019.7183%206.38178%2018.8597C6.24873%2017.856%206%2015.5769%206%2012.4989C6%209.42262%206.24777%207.14443%206.38178%206.13982Z%22%2F%3E%3C%2Fsvg%3E)",
+        "mask-image": "url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M6.38178%206.13982C6.40762%205.94017%206.48425%205.74878%206.60555%205.58089C6.72686%205.413%206.88949%205.27326%207.08049%205.17279C7.2715%205.07232%207.48559%205.01391%207.70574%205.00219C7.92587%204.99048%208.14597%205.02579%208.3485%205.10532C9.37235%205.50436%2011.6669%206.45272%2014.5784%207.98469C17.4908%209.51754%2019.5395%2010.8562%2020.4294%2011.4635C21.1891%2011.9829%2021.191%2013.013%2020.4304%2013.5342C19.5491%2014.1381%2017.5256%2015.4591%2014.5784%2017.0113C11.6283%2018.5635%209.36078%2019.5005%208.34657%2019.8942C7.47311%2020.2343%206.49554%2019.7183%206.38178%2018.8597C6.24873%2017.856%206%2015.5769%206%2012.4989C6%209.42262%206.24777%207.14443%206.38178%206.13982Z%22%2F%3E%3C%2Fsvg%3E)",
+        "-webkit-mask-position": "50%",
+        "mask-position": "50%",
+        "-webkit-mask-size": "contain",
+        "mask-size": "contain",
+        "-webkit-mask-repeat": "no-repeat",
+        "mask-repeat": "no-repeat"
+      }
+    },
+    {
+      "selector": ".tdb-treatment-image-wrap.tdb-stamp-confirmation:before",
+      "properties": {
+        "z-index": "1",
+        "pointer-events": "none",
+        "content": "\"\"",
+        "opacity": "var(--tdb-stamp-confirm-opacity,0)",
+        "background-color": "#0000008c",
+        "transition": "opacity .2s",
+        "position": "absolute",
+        "inset": "0"
+      }
+    },
+    {
+      "selector": ".tdb-treatment-image-wrap.tdb-stamp-confirmation:after",
+      "properties": {
+        "z-index": "2",
+        "pointer-events": "none",
+        "content": "\"\"",
+        "width": "1.5rem",
+        "height": "1.5rem",
+        "opacity": "var(--tdb-stamp-confirm-opacity,0)",
+        "-webkit-mask-image": "var(--tdb-stamp-confirm-arrow,linear-gradient(transparent,transparent))",
+        "mask-image": "var(--tdb-stamp-confirm-arrow,linear-gradient(transparent,transparent))",
+        "background-color": "#fff",
+        "margin": "auto",
+        "transition": "opacity .2s",
+        "position": "absolute",
+        "inset": "0",
+        "-webkit-mask-position": "50%",
+        "mask-position": "50%",
+        "-webkit-mask-size": "contain",
+        "mask-size": "contain",
+        "-webkit-mask-repeat": "no-repeat",
+        "mask-repeat": "no-repeat"
+      }
+    }
+  ],
+  "actions": [
+    {
+      "label": "Move carousel motion .max-width-xsmall.service-card-mobile-copy.tdb-service-copy",
+      "update_style": {
+        "style_name": "tdb-service-copy",
+        "parent_style_names": [
+          "max-width-xsmall",
+          "service-card-mobile-copy"
+        ],
+        "breakpoint_id": "main",
+        "remove_properties": [
+          "transition-property",
+          "transition-duration",
+          "transition-timing-function"
+        ]
+      }
+    },
+    {
+      "label": "Move carousel motion .max-width-xsmall.service-card-mobile-copy.tdb-service-copy.is-visible",
+      "update_style": {
+        "style_name": "is-visible",
+        "parent_style_names": [
+          "max-width-xsmall",
+          "service-card-mobile-copy",
+          "tdb-service-copy"
+        ],
+        "breakpoint_id": "main",
+        "remove_properties": [
+          "transition-duration",
+          "transition-timing-function"
+        ]
+      }
+    },
+    {
+      "label": "Move carousel motion .max-width-xsmall.service-card-mobile-copy.tdb-service-copy.is-moving",
+      "update_style": {
+        "style_name": "is-moving",
+        "parent_style_names": [
+          "max-width-xsmall",
+          "service-card-mobile-copy",
+          "tdb-service-copy"
+        ],
+        "breakpoint_id": "main",
+        "remove_properties": [
+          "transition-duration",
+          "transition-timing-function"
+        ]
+      }
+    },
+    {
+      "label": "Move carousel motion .tdb-treatment-copy",
+      "update_style": {
+        "style_name": "tdb-treatment-copy",
+        "parent_style_names": [],
+        "breakpoint_id": "main",
+        "remove_properties": [
+          "transition"
+        ]
+      }
+    },
+    {
+      "label": "Move carousel motion .tdb-treatment-copy.is-visible",
+      "update_style": {
+        "style_name": "is-visible",
+        "parent_style_names": [
+          "tdb-treatment-copy"
+        ],
+        "breakpoint_id": "main",
+        "remove_properties": [
+          "transition"
+        ]
+      }
+    },
+    {
+      "label": "Move carousel motion .tdb-treatment-copy.is-visible.is-moving",
+      "update_style": {
+        "style_name": "is-moving",
+        "parent_style_names": [
+          "tdb-treatment-copy",
+          "is-visible"
+        ],
+        "breakpoint_id": "main",
+        "remove_properties": [
+          "transition"
+        ]
+      }
+    },
+    {
+      "label": "Move carousel motion .tdb-treatment-blur",
+      "update_style": {
+        "style_name": "tdb-treatment-blur",
+        "parent_style_names": [],
+        "breakpoint_id": "main",
+        "remove_properties": [
+          "transition-property",
+          "transition-delay",
+          "transition-duration",
+          "transition-timing-function"
+        ]
+      }
+    },
+    {
+      "label": "Move tdb-service-card after transition",
+      "update_style": {
+        "style_name": "tdb-service-card",
+        "parent_style_names": [
+          "showcase_card"
+        ],
+        "pseudo": "after",
+        "breakpoint_id": "main",
+        "remove_properties": [
+          "transition"
+        ]
+      }
+    },
+    {
+      "label": "Move tdb-stamp-confirmation before transition",
+      "update_style": {
+        "style_name": "tdb-stamp-confirmation",
+        "parent_style_names": [
+          "tdb-treatment-image-wrap"
+        ],
+        "pseudo": "before",
+        "breakpoint_id": "main",
+        "remove_properties": [
+          "transition"
+        ]
+      }
+    },
+    {
+      "label": "Move tdb-stamp-confirmation after transition",
+      "update_style": {
+        "style_name": "tdb-stamp-confirmation",
+        "parent_style_names": [
+          "tdb-treatment-image-wrap"
+        ],
+        "pseudo": "after",
+        "breakpoint_id": "main",
+        "remove_properties": [
+          "transition"
+        ]
+      }
+    },
+    {
+      "label": "Remove expanded service transition properties",
+      "update_style": {
+        "style_name": "tdb-service-card",
+        "parent_style_names": [
+          "showcase_card"
+        ],
+        "pseudo": "after",
+        "breakpoint_id": "main",
+        "remove_properties": [
+          "transition-property",
+          "transition-duration",
+          "transition-timing-function",
+          "transition-delay"
+        ]
+      }
+    },
+    {
+      "label": "Compact identical hero SVG without a new request",
+      "update_style": {
+        "style_name": "tdb-hero-toggle-art",
+        "parent_style_names": [
+          "vimeo-player__btn"
+        ],
+        "pseudo": "before",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.38178 6.13982C6.40762 5.94017 6.48425 5.74878 6.60555 5.58089C6.72686 5.413 6.88949 5.27326 7.08049 5.17279C7.2715 5.07232 7.48559 5.01391 7.70574 5.00219C7.92587 4.99048 8.14597 5.02579 8.3485 5.10532C9.37235 5.50436 11.6669 6.45272 14.5784 7.98469C17.4908 9.51754 19.5395 10.8562 20.4294 11.4635C21.1891 11.9829 21.191 13.013 20.4304 13.5342C19.5491 14.1381 17.5256 15.4591 14.5784 17.0113C11.6283 18.5635 9.36078 19.5005 8.34657 19.8942C7.47311 20.2343 6.49554 19.7183 6.38178 18.8597C6.24873 17.856 6 15.5769 6 12.4989C6 9.42262 6.24777 7.14443 6.38178 6.13982Z'/%3E%3C/svg%3E\")"
+          }
+        ]
+      }
+    }
+  ],
+  "rollbackActions": [
+    {
+      "label": "Restore native motion .max-width-xsmall.service-card-mobile-copy.tdb-service-copy",
+      "update_style": {
+        "style_name": "tdb-service-copy",
+        "parent_style_names": [
+          "max-width-xsmall",
+          "service-card-mobile-copy"
+        ],
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "transition-property",
+            "property_value": "opacity"
+          },
+          {
+            "property_name": "transition-duration",
+            "property_value": "calc(200ms * var(--tdb-motion-pace,1))"
+          },
+          {
+            "property_name": "transition-timing-function",
+            "property_value": "var(--tdb-motion-ease-control,ease-out)"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore native motion .max-width-xsmall.service-card-mobile-copy.tdb-service-copy.is-visible",
+      "update_style": {
+        "style_name": "is-visible",
+        "parent_style_names": [
+          "max-width-xsmall",
+          "service-card-mobile-copy",
+          "tdb-service-copy"
+        ],
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "transition-duration",
+            "property_value": "calc(400ms * var(--tdb-motion-pace,1))"
+          },
+          {
+            "property_name": "transition-timing-function",
+            "property_value": "var(--tdb-motion-ease-control,ease-in)"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore native motion .max-width-xsmall.service-card-mobile-copy.tdb-service-copy.is-moving",
+      "update_style": {
+        "style_name": "is-moving",
+        "parent_style_names": [
+          "max-width-xsmall",
+          "service-card-mobile-copy",
+          "tdb-service-copy"
+        ],
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "transition-duration",
+            "property_value": "calc(150ms * var(--tdb-motion-pace,1))"
+          },
+          {
+            "property_name": "transition-timing-function",
+            "property_value": "var(--tdb-motion-ease-control,ease-out)"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore native motion .tdb-treatment-copy",
+      "update_style": {
+        "style_name": "tdb-treatment-copy",
+        "parent_style_names": [],
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "transition",
+            "property_value": "opacity calc(200ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-out)"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore native motion .tdb-treatment-copy.is-visible",
+      "update_style": {
+        "style_name": "is-visible",
+        "parent_style_names": [
+          "tdb-treatment-copy"
+        ],
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "transition",
+            "property_value": "opacity calc(400ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in)"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore native motion .tdb-treatment-copy.is-visible.is-moving",
+      "update_style": {
+        "style_name": "is-moving",
+        "parent_style_names": [
+          "tdb-treatment-copy",
+          "is-visible"
+        ],
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "transition",
+            "property_value": "opacity calc(150ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-out)"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore native motion .tdb-treatment-blur",
+      "update_style": {
+        "style_name": "tdb-treatment-blur",
+        "parent_style_names": [],
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "transition-property",
+            "property_value": "-webkit-backdrop-filter, backdrop-filter"
+          },
+          {
+            "property_name": "transition-delay",
+            "property_value": "0s, 0s"
+          },
+          {
+            "property_name": "transition-duration",
+            "property_value": "var(--tdb-parallax-duration, calc(400ms * var(--tdb-motion-pace,1))), var(--tdb-parallax-duration, calc(400ms * var(--tdb-motion-pace,1)))"
+          },
+          {
+            "property_name": "transition-timing-function",
+            "property_value": "var(--tdb-motion-ease-control,ease), var(--tdb-motion-ease-control,ease)"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-service-card after transition",
+      "update_style": {
+        "style_name": "tdb-service-card",
+        "parent_style_names": [
+          "showcase_card"
+        ],
+        "pseudo": "after",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "transition",
+            "property_value": "backdrop-filter var(--tdb-parallax-duration,.4s)ease"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-stamp-confirmation before transition",
+      "update_style": {
+        "style_name": "tdb-stamp-confirmation",
+        "parent_style_names": [
+          "tdb-treatment-image-wrap"
+        ],
+        "pseudo": "before",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "transition",
+            "property_value": "opacity .2s"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-stamp-confirmation after transition",
+      "update_style": {
+        "style_name": "tdb-stamp-confirmation",
+        "parent_style_names": [
+          "tdb-treatment-image-wrap"
+        ],
+        "pseudo": "after",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "transition",
+            "property_value": "opacity .2s"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore hero SVG encoding",
+      "update_style": {
+        "style_name": "tdb-hero-toggle-art",
+        "parent_style_names": [
+          "vimeo-player__btn"
+        ],
+        "pseudo": "before",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M6.38178%206.13982C6.40762%205.94017%206.48425%205.74878%206.60555%205.58089C6.72686%205.413%206.88949%205.27326%207.08049%205.17279C7.2715%205.07232%207.48559%205.01391%207.70574%205.00219C7.92587%204.99048%208.14597%205.02579%208.3485%205.10532C9.37235%205.50436%2011.6669%206.45272%2014.5784%207.98469C17.4908%209.51754%2019.5395%2010.8562%2020.4294%2011.4635C21.1891%2011.9829%2021.191%2013.013%2020.4304%2013.5342C19.5491%2014.1381%2017.5256%2015.4591%2014.5784%2017.0113C11.6283%2018.5635%209.36078%2019.5005%208.34657%2019.8942C7.47311%2020.2343%206.49554%2019.7183%206.38178%2018.8597C6.24873%2017.856%206%2015.5769%206%2012.4989C6%209.42262%206.24777%207.14443%206.38178%206.13982Z%22%2F%3E%3C%2Fsvg%3E)"
+          }
+        ]
+      }
+    }
+  ],
+  "variantActions": [
+    {
+      "label": "Transfer stamp transition",
+      "set_variant_styles": {
+        "style_name": "tdb-treatment-card",
+        "variant_id": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+        "breakpoint_id": "main",
+        "remove_properties": [
+          "transition"
+        ]
+      }
+    }
+  ],
+  "variantRollbackActions": [
+    {
+      "label": "Restore stamp transition",
+      "set_variant_styles": {
+        "style_name": "tdb-treatment-card",
+        "variant_id": "ccee4851-2369-7f80-45b0-8eae023f92ca",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "transition",
+            "property_value": "opacity 200ms ease"
+          }
+        ]
+      }
+    }
+  ],
+  "heroDecision": "Preserve identical SVG paths, semantic control and loading/fade bridge; compact URL encoding. Native custom-property deduplication was rejected by Designer validation (Invalid style property). Do not shift artwork into shared UI or introduce a new request merely to remove prefixed serialization.",
+  "release": "8d3c3cf79502a7ca3bc27547c81eefc12610f97a",
+  "compatibleHandoffRelease": "124569c49f6579d842f399bd54ffbb069b1cd033",
+  "stagingPublishTaskId": "f828f9f9-5348-4e92-aece-6d72340ac122",
+  "beforeManifest": {
+    "htmlBytes": 184887,
+    "styles": [
+      {
+        "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.d6e8c62c0.min.css",
+        "bytes": 31579,
+        "sha256": "2fc9d38e169006ad97da986202dac0f0d28f0dcd21fc2b94d128f6e60159e29b"
+      },
+      {
+        "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.b464f4dea.opt.min.css",
+        "bytes": 184005,
+        "sha256": "d7f09d49a5114ef6277642b8dd6cd0595244907207328ac1fe52bff82d85807d"
+      }
+    ]
+  },
+  "afterManifest": {
+    "htmlBytes": 184887,
+    "styles": [
+      {
+        "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.d6e8c62c0.min.css",
+        "bytes": 31579,
+        "sha256": "2fc9d38e169006ad97da986202dac0f0d28f0dcd21fc2b94d128f6e60159e29b"
+      },
+      {
+        "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.6d573b205.opt.min.css",
+        "bytes": 182531,
+        "sha256": "fbdafcb9176b45d29e2a640bc10fac94aeb99c1e78624f03e033626669b79602"
+      }
+    ],
+    "pins": [
+      "8d3c3cf79502a7ca3bc27547c81eefc12610f97a"
+    ]
+  },
+  "sizes": {
+    "rows": [
+      {
+        "label": "Native shared CSS",
+        "before": 31579,
+        "after": 31579,
+        "delta": 0,
+        "beforeGzip": 8358,
+        "afterGzip": 8358,
+        "gzipDelta": 0
+      },
+      {
+        "label": "Native page CSS",
+        "before": 184005,
+        "after": 182531,
+        "delta": -1474,
+        "beforeGzip": 30065,
+        "afterGzip": 29925,
+        "gzipDelta": -140
+      },
+      {
+        "label": "Shared UI CSS",
+        "before": 15037,
+        "after": 14224,
+        "delta": -813,
+        "beforeGzip": 3301,
+        "afterGzip": 3184,
+        "gzipDelta": -117
+      },
+      {
+        "label": "Deferred slider CSS",
+        "before": 3356,
+        "after": 4497,
+        "delta": 1141,
+        "beforeGzip": 999,
+        "afterGzip": 1182,
+        "gzipDelta": 183
+      },
+      {
+        "label": "Foundation",
+        "before": 26759,
+        "after": 26759,
+        "delta": 0,
+        "beforeGzip": 8473,
+        "afterGzip": 8473,
+        "gzipDelta": 0
+      },
+      {
+        "label": "Startup",
+        "before": 10673,
+        "after": 10673,
+        "delta": 0,
+        "beforeGzip": 4044,
+        "afterGzip": 4044,
+        "gzipDelta": 0
+      },
+      {
+        "label": "Deferred Vimeo CSS",
+        "before": 7799,
+        "after": 7799,
+        "delta": 0,
+        "beforeGzip": 1361,
+        "afterGzip": 1361,
+        "gzipDelta": 0
+      }
+    ],
+    "html": {
+      "before": 184887,
+      "after": 184887,
+      "identicalAfterReleaseNormalization": false,
+      "normalizedDOMEqual": true,
+      "excludedPublicationNoise": [
+        "publication timestamp",
+        "release pins",
+        "CSS URL fingerprint and integrity",
+        "CMS partner list ordering"
+      ]
+    }
+  },
+  "nativeSemanticDiff": [
+    {
+      "key": "|.max-width-xsmall.service-card-mobile-copy.tdb-service-copy",
+      "before": [
+        [
+          "opacity",
+          "0",
+          false
+        ],
+        [
+          "pointer-events",
+          "none",
+          false
+        ],
+        [
+          "width",
+          "22rem",
+          false
+        ],
+        [
+          "max-width",
+          "calc(100% - 20rem)",
+          false
+        ],
+        [
+          "transition-property",
+          "opacity",
+          false
+        ],
+        [
+          "transition-duration",
+          "calc(.2s*var(--tdb-motion-pace,1))",
+          false
+        ],
+        [
+          "transition-timing-function",
+          "var(--tdb-motion-ease-control,ease-out)",
+          false
+        ],
+        [
+          "margin",
+          "0",
+          false
+        ],
+        [
+          "position",
+          "absolute",
+          false
+        ],
+        [
+          "inset",
+          "auto auto 2rem 2rem",
+          false
+        ]
+      ],
+      "after": [
+        [
+          "opacity",
+          "0",
+          false
+        ],
+        [
+          "pointer-events",
+          "none",
+          false
+        ],
+        [
+          "width",
+          "22rem",
+          false
+        ],
+        [
+          "max-width",
+          "calc(100% - 20rem)",
+          false
+        ],
+        [
+          "margin",
+          "0",
+          false
+        ],
+        [
+          "position",
+          "absolute",
+          false
+        ],
+        [
+          "inset",
+          "auto auto 2rem 2rem",
+          false
+        ]
+      ]
+    },
+    {
+      "key": "|.max-width-xsmall.service-card-mobile-copy.tdb-service-copy.is-visible",
+      "before": [
+        [
+          "opacity",
+          "1",
+          false
+        ],
+        [
+          "pointer-events",
+          "auto",
+          false
+        ],
+        [
+          "transition-duration",
+          "calc(.4s*var(--tdb-motion-pace,1))",
+          false
+        ],
+        [
+          "transition-timing-function",
+          "var(--tdb-motion-ease-control,ease-in)",
+          false
+        ]
+      ],
+      "after": [
+        [
+          "opacity",
+          "1",
+          false
+        ],
+        [
+          "pointer-events",
+          "auto",
+          false
+        ]
+      ]
+    },
+    {
+      "key": "|.max-width-xsmall.service-card-mobile-copy.tdb-service-copy.is-moving",
+      "before": [
+        [
+          "opacity",
+          "0",
+          false
+        ],
+        [
+          "pointer-events",
+          "none",
+          false
+        ],
+        [
+          "transition-duration",
+          "calc(.15s*var(--tdb-motion-pace,1))",
+          false
+        ],
+        [
+          "transition-timing-function",
+          "var(--tdb-motion-ease-control,ease-out)",
+          false
+        ]
+      ],
+      "after": [
+        [
+          "opacity",
+          "0",
+          false
+        ],
+        [
+          "pointer-events",
+          "none",
+          false
+        ]
+      ]
+    },
+    {
+      "key": "|.showcase_card.tdb-service-card:after",
+      "before": [
+        [
+          "z-index",
+          "25",
+          false
+        ],
+        [
+          "-webkit-backdrop-filter",
+          "blur(var(--effects--blur))",
+          false
+        ],
+        [
+          "backdrop-filter",
+          "blur(var(--effects--blur))",
+          false
+        ],
+        [
+          "pointer-events",
+          "none",
+          false
+        ],
+        [
+          "transition",
+          "backdrop-filter var(--tdb-parallax-duration,.4s)ease",
+          false
+        ],
+        [
+          "clip-path",
+          "none",
+          false
+        ],
+        [
+          "content",
+          "\"\"",
+          false
+        ],
+        [
+          "position",
+          "absolute",
+          false
+        ],
+        [
+          "inset",
+          "0",
+          false
+        ]
+      ],
+      "after": [
+        [
+          "z-index",
+          "25",
+          false
+        ],
+        [
+          "-webkit-backdrop-filter",
+          "blur(var(--effects--blur))",
+          false
+        ],
+        [
+          "backdrop-filter",
+          "blur(var(--effects--blur))",
+          false
+        ],
+        [
+          "pointer-events",
+          "none",
+          false
+        ],
+        [
+          "clip-path",
+          "none",
+          false
+        ],
+        [
+          "content",
+          "\"\"",
+          false
+        ],
+        [
+          "position",
+          "absolute",
+          false
+        ],
+        [
+          "inset",
+          "0",
+          false
+        ]
+      ]
+    },
+    {
+      "key": "|.vimeo-player__btn.tdb-hero-toggle-art:before",
+      "before": [
+        [
+          "pointer-events",
+          "none",
+          false
+        ],
+        [
+          "content",
+          "\"\"",
+          false
+        ],
+        [
+          "background-color",
+          "currentColor",
+          false
+        ],
+        [
+          "width",
+          "40%",
+          false
+        ],
+        [
+          "height",
+          "40%",
+          false
+        ],
+        [
+          "display",
+          "block",
+          false
+        ],
+        [
+          "-webkit-mask-image",
+          "url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M6.38178%206.13982C6.40762%205.94017%206.48425%205.74878%206.60555%205.58089C6.72686%205.413%206.88949%205.27326%207.08049%205.17279C7.2715%205.07232%207.48559%205.01391%207.70574%205.00219C7.92587%204.99048%208.14597%205.02579%208.3485%205.10532C9.37235%205.50436%2011.6669%206.45272%2014.5784%207.98469C17.4908%209.51754%2019.5395%2010.8562%2020.4294%2011.4635C21.1891%2011.9829%2021.191%2013.013%2020.4304%2013.5342C19.5491%2014.1381%2017.5256%2015.4591%2014.5784%2017.0113C11.6283%2018.5635%209.36078%2019.5005%208.34657%2019.8942C7.47311%2020.2343%206.49554%2019.7183%206.38178%2018.8597C6.24873%2017.856%206%2015.5769%206%2012.4989C6%209.42262%206.24777%207.14443%206.38178%206.13982Z%22%2F%3E%3C%2Fsvg%3E)",
+          false
+        ],
+        [
+          "mask-image",
+          "url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M6.38178%206.13982C6.40762%205.94017%206.48425%205.74878%206.60555%205.58089C6.72686%205.413%206.88949%205.27326%207.08049%205.17279C7.2715%205.07232%207.48559%205.01391%207.70574%205.00219C7.92587%204.99048%208.14597%205.02579%208.3485%205.10532C9.37235%205.50436%2011.6669%206.45272%2014.5784%207.98469C17.4908%209.51754%2019.5395%2010.8562%2020.4294%2011.4635C21.1891%2011.9829%2021.191%2013.013%2020.4304%2013.5342C19.5491%2014.1381%2017.5256%2015.4591%2014.5784%2017.0113C11.6283%2018.5635%209.36078%2019.5005%208.34657%2019.8942C7.47311%2020.2343%206.49554%2019.7183%206.38178%2018.8597C6.24873%2017.856%206%2015.5769%206%2012.4989C6%209.42262%206.24777%207.14443%206.38178%206.13982Z%22%2F%3E%3C%2Fsvg%3E)",
+          false
+        ],
+        [
+          "-webkit-mask-position",
+          "50%",
+          false
+        ],
+        [
+          "mask-position",
+          "50%",
+          false
+        ],
+        [
+          "-webkit-mask-size",
+          "contain",
+          false
+        ],
+        [
+          "mask-size",
+          "contain",
+          false
+        ],
+        [
+          "-webkit-mask-repeat",
+          "no-repeat",
+          false
+        ],
+        [
+          "mask-repeat",
+          "no-repeat",
+          false
+        ]
+      ],
+      "after": [
+        [
+          "pointer-events",
+          "none",
+          false
+        ],
+        [
+          "content",
+          "\"\"",
+          false
+        ],
+        [
+          "background-color",
+          "currentColor",
+          false
+        ],
+        [
+          "width",
+          "40%",
+          false
+        ],
+        [
+          "height",
+          "40%",
+          false
+        ],
+        [
+          "display",
+          "block",
+          false
+        ],
+        [
+          "-webkit-mask-image",
+          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.38178 6.13982C6.40762 5.94017 6.48425 5.74878 6.60555 5.58089C6.72686 5.413 6.88949 5.27326 7.08049 5.17279C7.2715 5.07232 7.48559 5.01391 7.70574 5.00219C7.92587 4.99048 8.14597 5.02579 8.3485 5.10532C9.37235 5.50436 11.6669 6.45272 14.5784 7.98469C17.4908 9.51754 19.5395 10.8562 20.4294 11.4635C21.1891 11.9829 21.191 13.013 20.4304 13.5342C19.5491 14.1381 17.5256 15.4591 14.5784 17.0113C11.6283 18.5635 9.36078 19.5005 8.34657 19.8942C7.47311 20.2343 6.49554 19.7183 6.38178 18.8597C6.24873 17.856 6 15.5769 6 12.4989C6 9.42262 6.24777 7.14443 6.38178 6.13982Z'/%3E%3C/svg%3E\")",
+          false
+        ],
+        [
+          "mask-image",
+          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.38178 6.13982C6.40762 5.94017 6.48425 5.74878 6.60555 5.58089C6.72686 5.413 6.88949 5.27326 7.08049 5.17279C7.2715 5.07232 7.48559 5.01391 7.70574 5.00219C7.92587 4.99048 8.14597 5.02579 8.3485 5.10532C9.37235 5.50436 11.6669 6.45272 14.5784 7.98469C17.4908 9.51754 19.5395 10.8562 20.4294 11.4635C21.1891 11.9829 21.191 13.013 20.4304 13.5342C19.5491 14.1381 17.5256 15.4591 14.5784 17.0113C11.6283 18.5635 9.36078 19.5005 8.34657 19.8942C7.47311 20.2343 6.49554 19.7183 6.38178 18.8597C6.24873 17.856 6 15.5769 6 12.4989C6 9.42262 6.24777 7.14443 6.38178 6.13982Z'/%3E%3C/svg%3E\")",
+          false
+        ],
+        [
+          "-webkit-mask-position",
+          "50%",
+          false
+        ],
+        [
+          "mask-position",
+          "50%",
+          false
+        ],
+        [
+          "-webkit-mask-size",
+          "contain",
+          false
+        ],
+        [
+          "mask-size",
+          "contain",
+          false
+        ],
+        [
+          "-webkit-mask-repeat",
+          "no-repeat",
+          false
+        ],
+        [
+          "mask-repeat",
+          "no-repeat",
+          false
+        ]
+      ]
+    },
+    {
+      "key": "|.tdb-treatment-card:where(.w-variant-ccee4851-2369-7f80-45b0-8eae023f92ca)",
+      "before": [
+        [
+          "opacity",
+          ".5",
+          false
+        ],
+        [
+          "flex-shrink",
+          "0",
+          false
+        ],
+        [
+          "width",
+          "18vw",
+          false
+        ],
+        [
+          "min-width",
+          "10rem",
+          false
+        ],
+        [
+          "max-width",
+          "16rem",
+          false
+        ],
+        [
+          "height",
+          "auto",
+          false
+        ],
+        [
+          "transition",
+          "opacity .2s",
+          false
+        ],
+        [
+          "overflow",
+          "visible",
+          false
+        ]
+      ],
+      "after": [
+        [
+          "opacity",
+          ".5",
+          false
+        ],
+        [
+          "flex-shrink",
+          "0",
+          false
+        ],
+        [
+          "width",
+          "18vw",
+          false
+        ],
+        [
+          "min-width",
+          "10rem",
+          false
+        ],
+        [
+          "max-width",
+          "16rem",
+          false
+        ],
+        [
+          "height",
+          "auto",
+          false
+        ],
+        [
+          "overflow",
+          "visible",
+          false
+        ]
+      ]
+    },
+    {
+      "key": "|.tdb-treatment-image-wrap.tdb-stamp-confirmation:before",
+      "before": [
+        [
+          "z-index",
+          "1",
+          false
+        ],
+        [
+          "pointer-events",
+          "none",
+          false
+        ],
+        [
+          "content",
+          "\"\"",
+          false
+        ],
+        [
+          "opacity",
+          "var(--tdb-stamp-confirm-opacity,0)",
+          false
+        ],
+        [
+          "background-color",
+          "#0000008c",
+          false
+        ],
+        [
+          "transition",
+          "opacity .2s",
+          false
+        ],
+        [
+          "position",
+          "absolute",
+          false
+        ],
+        [
+          "inset",
+          "0",
+          false
+        ]
+      ],
+      "after": [
+        [
+          "z-index",
+          "1",
+          false
+        ],
+        [
+          "opacity",
+          "var(--tdb-stamp-confirm-opacity,0)",
+          false
+        ],
+        [
+          "pointer-events",
+          "none",
+          false
+        ],
+        [
+          "content",
+          "\"\"",
+          false
+        ],
+        [
+          "background-color",
+          "#0000008c",
+          false
+        ],
+        [
+          "position",
+          "absolute",
+          false
+        ],
+        [
+          "inset",
+          "0",
+          false
+        ]
+      ]
+    },
+    {
+      "key": "|.tdb-treatment-image-wrap.tdb-stamp-confirmation:after",
+      "before": [
+        [
+          "z-index",
+          "2",
+          false
+        ],
+        [
+          "pointer-events",
+          "none",
+          false
+        ],
+        [
+          "content",
+          "\"\"",
+          false
+        ],
+        [
+          "width",
+          "1.5rem",
+          false
+        ],
+        [
+          "height",
+          "1.5rem",
+          false
+        ],
+        [
+          "opacity",
+          "var(--tdb-stamp-confirm-opacity,0)",
+          false
+        ],
+        [
+          "-webkit-mask-image",
+          "var(--tdb-stamp-confirm-arrow,linear-gradient(transparent,transparent))",
+          false
+        ],
+        [
+          "mask-image",
+          "var(--tdb-stamp-confirm-arrow,linear-gradient(transparent,transparent))",
+          false
+        ],
+        [
+          "background-color",
+          "#fff",
+          false
+        ],
+        [
+          "margin",
+          "auto",
+          false
+        ],
+        [
+          "transition",
+          "opacity .2s",
+          false
+        ],
+        [
+          "position",
+          "absolute",
+          false
+        ],
+        [
+          "inset",
+          "0",
+          false
+        ],
+        [
+          "-webkit-mask-position",
+          "50%",
+          false
+        ],
+        [
+          "mask-position",
+          "50%",
+          false
+        ],
+        [
+          "-webkit-mask-size",
+          "contain",
+          false
+        ],
+        [
+          "mask-size",
+          "contain",
+          false
+        ],
+        [
+          "-webkit-mask-repeat",
+          "no-repeat",
+          false
+        ],
+        [
+          "mask-repeat",
+          "no-repeat",
+          false
+        ]
+      ],
+      "after": [
+        [
+          "z-index",
+          "2",
+          false
+        ],
+        [
+          "width",
+          "1.5rem",
+          false
+        ],
+        [
+          "height",
+          "1.5rem",
+          false
+        ],
+        [
+          "opacity",
+          "var(--tdb-stamp-confirm-opacity,0)",
+          false
+        ],
+        [
+          "pointer-events",
+          "none",
+          false
+        ],
+        [
+          "content",
+          "\"\"",
+          false
+        ],
+        [
+          "-webkit-mask-image",
+          "var(--tdb-stamp-confirm-arrow,linear-gradient(transparent,transparent))",
+          false
+        ],
+        [
+          "mask-image",
+          "var(--tdb-stamp-confirm-arrow,linear-gradient(transparent,transparent))",
+          false
+        ],
+        [
+          "background-color",
+          "#fff",
+          false
+        ],
+        [
+          "margin",
+          "auto",
+          false
+        ],
+        [
+          "position",
+          "absolute",
+          false
+        ],
+        [
+          "inset",
+          "0",
+          false
+        ],
+        [
+          "-webkit-mask-position",
+          "50%",
+          false
+        ],
+        [
+          "mask-position",
+          "50%",
+          false
+        ],
+        [
+          "-webkit-mask-size",
+          "contain",
+          false
+        ],
+        [
+          "mask-size",
+          "contain",
+          false
+        ],
+        [
+          "-webkit-mask-repeat",
+          "no-repeat",
+          false
+        ],
+        [
+          "mask-repeat",
+          "no-repeat",
+          false
+        ]
+      ]
+    },
+    {
+      "key": "|.tdb-treatment-copy",
+      "before": [
+        [
+          "opacity",
+          "0",
+          false
+        ],
+        [
+          "width",
+          "calc(min(94vw,90rem)/3 - 5.33333rem)",
+          false
+        ],
+        [
+          "max-width",
+          "22rem",
+          false
+        ],
+        [
+          "transition",
+          "opacity calc(.2s*var(--tdb-motion-pace,1))var(--tdb-motion-ease-control,ease-out)",
+          false
+        ],
+        [
+          "margin-top",
+          "0",
+          false
+        ],
+        [
+          "position",
+          "absolute",
+          false
+        ],
+        [
+          "bottom",
+          "2rem",
+          false
+        ],
+        [
+          "left",
+          "2rem",
+          false
+        ]
+      ],
+      "after": [
+        [
+          "opacity",
+          "0",
+          false
+        ],
+        [
+          "width",
+          "calc(min(94vw,90rem)/3 - 5.33333rem)",
+          false
+        ],
+        [
+          "max-width",
+          "22rem",
+          false
+        ],
+        [
+          "margin-top",
+          "0",
+          false
+        ],
+        [
+          "position",
+          "absolute",
+          false
+        ],
+        [
+          "bottom",
+          "2rem",
+          false
+        ],
+        [
+          "left",
+          "2rem",
+          false
+        ]
+      ]
+    },
+    {
+      "key": "|.tdb-treatment-copy.is-visible",
+      "before": [
+        [
+          "opacity",
+          "1",
+          false
+        ],
+        [
+          "transition",
+          "opacity calc(.4s*var(--tdb-motion-pace,1))var(--tdb-motion-ease-control,ease-in)",
+          false
+        ]
+      ],
+      "after": [
+        [
+          "opacity",
+          "1",
+          false
+        ]
+      ]
+    },
+    {
+      "key": "|.tdb-treatment-copy.is-visible.is-moving",
+      "before": [
+        [
+          "opacity",
+          "0",
+          false
+        ],
+        [
+          "transition",
+          "opacity calc(.15s*var(--tdb-motion-pace,1))var(--tdb-motion-ease-control,ease-out)",
+          false
+        ]
+      ],
+      "after": [
+        [
+          "opacity",
+          "0",
+          false
+        ]
+      ]
+    },
+    {
+      "key": "|.tdb-treatment-blur",
+      "before": [
+        [
+          "z-index",
+          "25",
+          false
+        ],
+        [
+          "-webkit-backdrop-filter",
+          "blur(var(--effects--blur))",
+          false
+        ],
+        [
+          "backdrop-filter",
+          "blur(var(--effects--blur))",
+          false
+        ],
+        [
+          "pointer-events",
+          "none",
+          false
+        ],
+        [
+          "transition-property",
+          "-webkit-backdrop-filter,backdrop-filter",
+          false
+        ],
+        [
+          "transition-timing-function",
+          "var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease)",
+          false
+        ],
+        [
+          "clip-path",
+          "none",
+          false
+        ],
+        [
+          "transition-delay",
+          "0s,0s",
+          false
+        ],
+        [
+          "transition-duration",
+          "var(--tdb-parallax-duration,calc(.4s*var(--tdb-motion-pace,1))),var(--tdb-parallax-duration,calc(.4s*var(--tdb-motion-pace,1)))",
+          false
+        ],
+        [
+          "position",
+          "absolute",
+          false
+        ],
+        [
+          "inset",
+          "0",
+          false
+        ]
+      ],
+      "after": [
+        [
+          "z-index",
+          "25",
+          false
+        ],
+        [
+          "-webkit-backdrop-filter",
+          "blur(var(--effects--blur))",
+          false
+        ],
+        [
+          "backdrop-filter",
+          "blur(var(--effects--blur))",
+          false
+        ],
+        [
+          "pointer-events",
+          "none",
+          false
+        ],
+        [
+          "clip-path",
+          "none",
+          false
+        ],
+        [
+          "position",
+          "absolute",
+          false
+        ],
+        [
+          "inset",
+          "0",
+          false
+        ]
+      ]
+    }
+  ],
+  "verification": {
+    "fullTests": {
+      "pass": 768,
+      "skip": 3,
+      "fail": 0
+    },
+    "finalProjectionAndOwnershipTests": {
+      "pass": 22,
+      "fail": 0
+    },
+    "buildParity": true,
+    "nativeDiff": "11 transition owners and exact hero SVG encoding only; all geometry/state declarations retained",
+    "sourceDOM": {
+      "all": 1132,
+      "body": 1096,
+      "cmsItems": 98,
+      "cmsLists": 16,
+      "images": 93,
+      "links": 109
+    },
+    "desktop": {
+      "serviceFirstArrow": "advances to Signature Assessment",
+      "serviceCopy": "opacity .4s ease-in visible; .2s ease-out hidden",
+      "serviceBlur": "0px active / 20px inactive; controller duration .739s observed",
+      "treatmentStamp": "selects Composite Bonding; card and confirmation opacity transitions .2s",
+      "treatmentCopy": "opacity .4s ease-in visible; .2s ease-out hidden",
+      "treatmentBlur": "0px active / 20px inactive; controller duration .65s observed",
+      "hero": "awaiting-consent spinner running, no Vimeo scripts; rejection returns idle, opacity0, paused spinner",
+      "heightsUnchanged": [
+        982.796875,
+        465.046875
+      ],
+      "scrollLockReleased": true,
+      "TDBConsoleWarnings": []
+    },
+    "limitations": [
+      "Physical phone/touch fling not verified",
+      "No fresh performance timing claim",
+      "No new full Vimeo playback/fade trace; unchanged controller and hero timing code plus existing regression coverage"
+    ]
+  }
+}
