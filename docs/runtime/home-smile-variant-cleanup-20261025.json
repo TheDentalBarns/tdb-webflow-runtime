@@ -1,0 +1,236 @@
+{
+  "capturedOn": "2026-10-25",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "677cf86df9952f978d94d8a9",
+  "componentId": "e0beb16c-1442-9d6b-ea4d-f24bdc4656ae",
+  "componentName": "Slider - Smile Gallery",
+  "variantId": "90f60b07-3fe4-8c44-7899-81187e34ddca",
+  "variantName": "Home",
+  "runtimeRelease": "8b0455e26fd8f4b621600ae7eefee3f1e2713142",
+  "retainedConsumers": {
+    "homeVariant": "IG feed rollback - 15 Oct 2026 (draft), page 6ad0c54657f7dc084e96eccd, instance 9f8bf1a5-ed81-7707-cc8b-26c71f4876da",
+    "darkVariant": "At least eleven published treatment/area pages; do not delete either complete variant."
+  },
+  "reason": "Only repeated values already inherited at the same specificity are removed. Carousel medium inherits main overflow and margins; small inherits medium width and main overflow. Viewport medium and small inherit main visible overflow. Native base styles do not introduce conflicting values at these breakpoints.",
+  "before": [
+    {
+      "label": "tdb-smile-carousel main",
+      "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca",
+      "style": "tdb-smile-carousel",
+      "properties": {
+        "overflow": "visible",
+        "margin-right": "auto",
+        "margin-left": "0px",
+        "width": "calc((100% - 4rem) / 3)"
+      }
+    },
+    {
+      "label": "tdb-smile-carousel medium",
+      "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca",
+      "style": "tdb-smile-carousel",
+      "properties": {
+        "overflow": "visible",
+        "width": "70vw",
+        "margin-right": "auto",
+        "margin-left": "0px"
+      }
+    },
+    {
+      "label": "tdb-smile-carousel small",
+      "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca",
+      "style": "tdb-smile-carousel",
+      "properties": {
+        "overflow": "visible",
+        "width": "70vw"
+      }
+    },
+    {
+      "label": "tdb-smile-carousel tiny",
+      "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca",
+      "style": "tdb-smile-carousel",
+      "properties": {
+        "width": "90vw",
+        "max-width": "90vw"
+      }
+    },
+    {
+      "label": "tdb-smile-viewport main",
+      "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca",
+      "style": "tdb-smile-viewport",
+      "properties": {
+        "overflow": "visible"
+      }
+    },
+    {
+      "label": "tdb-smile-viewport medium",
+      "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca",
+      "style": "tdb-smile-viewport",
+      "properties": {
+        "overflow": "visible"
+      }
+    },
+    {
+      "label": "tdb-smile-viewport small",
+      "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca",
+      "style": "tdb-smile-viewport",
+      "properties": {
+        "overflow": "visible"
+      }
+    },
+    {
+      "label": "tdb-smile-viewport tiny",
+      "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca",
+      "style": "tdb-smile-viewport",
+      "properties": {}
+    }
+  ],
+  "applyActions": [
+    {
+      "label": "Remove inherited repeats: tdb-smile-carousel medium",
+      "set_variant_styles": {
+        "style_name": "tdb-smile-carousel",
+        "breakpoint_id": "medium",
+        "remove_properties": [
+          "overflow",
+          "margin-left",
+          "margin-right"
+        ],
+        "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca"
+      }
+    },
+    {
+      "label": "Remove inherited repeats: tdb-smile-carousel small",
+      "set_variant_styles": {
+        "style_name": "tdb-smile-carousel",
+        "breakpoint_id": "small",
+        "remove_properties": [
+          "overflow",
+          "width"
+        ],
+        "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca"
+      }
+    },
+    {
+      "label": "Remove inherited repeats: tdb-smile-viewport medium",
+      "set_variant_styles": {
+        "style_name": "tdb-smile-viewport",
+        "breakpoint_id": "medium",
+        "remove_properties": [
+          "overflow"
+        ],
+        "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca"
+      }
+    },
+    {
+      "label": "Remove inherited repeats: tdb-smile-viewport small",
+      "set_variant_styles": {
+        "style_name": "tdb-smile-viewport",
+        "breakpoint_id": "small",
+        "remove_properties": [
+          "overflow"
+        ],
+        "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca"
+      }
+    }
+  ],
+  "rollbackActions": [
+    {
+      "label": "Restore tdb-smile-carousel medium",
+      "set_variant_styles": {
+        "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca",
+        "style_name": "tdb-smile-carousel",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "overflow",
+            "property_value": "visible"
+          },
+          {
+            "property_name": "margin-left",
+            "property_value": "0px"
+          },
+          {
+            "property_name": "margin-right",
+            "property_value": "auto"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-smile-carousel small",
+      "set_variant_styles": {
+        "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca",
+        "style_name": "tdb-smile-carousel",
+        "breakpoint_id": "small",
+        "properties": [
+          {
+            "property_name": "overflow",
+            "property_value": "visible"
+          },
+          {
+            "property_name": "width",
+            "property_value": "70vw"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-smile-viewport medium",
+      "set_variant_styles": {
+        "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca",
+        "style_name": "tdb-smile-viewport",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "overflow",
+            "property_value": "visible"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-smile-viewport small",
+      "set_variant_styles": {
+        "variant_id": "90f60b07-3fe4-8c44-7899-81187e34ddca",
+        "style_name": "tdb-smile-viewport",
+        "breakpoint_id": "small",
+        "properties": [
+          {
+            "property_name": "overflow",
+            "property_value": "visible"
+          }
+        ]
+      }
+    }
+  ],
+  "published": {
+    "publishTaskId": "53713a12-f108-4aea-a753-83bcb05fc588",
+    "target": "https://dentalbarns.webflow.io/",
+    "nativeCssBefore": 216796,
+    "nativeCssAfter": 216327,
+    "pageCssRawReduction": 469,
+    "pageCssNodeGzipLevel9Reduction": 53,
+    "htmlBytes": 184860,
+    "elementCount": 1129,
+    "inputs": [
+      {
+        "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.d6e8c62c0.min.css",
+        "bytes": 31579,
+        "sha256": "2fc9d38e169006ad97da986202dac0f0d28f0dcd21fc2b94d128f6e60159e29b"
+      },
+      {
+        "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.cb76f9905.opt.min.css",
+        "bytes": 184748,
+        "sha256": "e437f7c0018630c094ea0dde8248b19ccb19161ba8e2f5300d91195d219edb5e"
+      }
+    ]
+  },
+  "verification": [
+    "Published page CSS is exactly the expected seven declaration deletions and duplicate-selector consolidation.",
+    "Shared native CSS and committed timing projection are byte-identical.",
+    "HTML identical after normalizing publish comment, page CSS URL/integrity and randomized partner order.",
+    "Build parity passes; all runtime assets unchanged.",
+    "Desktop Home Smile loads existing deferred styles and advances 2 to 3 of 11.",
+    "Physical mobile and rollback draft rendering not tested; no new speed claim."
+  ]
+}

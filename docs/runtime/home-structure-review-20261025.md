@@ -68,3 +68,27 @@ Rollback: repin all four site references to `34520173d263a2497ed3481a4b4eec3b3e5
 Staging verification: release `8b0455e26fd8f4b621600ae7eefee3f1e2713142`, publish task `d2670a0f-fab4-40fe-96bc-6670390fc936`. All four published pins match. All four changed CSS files plus startup/foundation match their immutable CDN files exactly. Home HTML remains 184,860 bytes; 1,129 total parsed elements (1,093 body descendants), 98 CMS items and 16 lists. Native stylesheet hashes, every authored inline style, link destinations and image attributes match the preceding release.
 
 Desktop browser checks: Sight opens to the settled 180-degree chevron and closes to zero; review filters open and the keyboard-focused View reviews action retains its 2px outline / 3px offset; closing restores review-trigger focus. VIP first opening mounts its form, loads the new deferred stylesheet and retains white fine print/consent labels. The Sonos partner pop-out opens with the new stylesheet and retains zero top/side margins and its original bottom spacing. No form was submitted. Physical mobile devices and forced network failures were not tested; no new performance run or speed claim is made.
+
+## Native Smile variant follow-up — 25 October 2026
+
+The two largest candidate groups belong to the retained **Slider - Smile Gallery** component (`e0beb16c-1442-9d6b-ea4d-f24bdc4656ae`): Home (`90f60b07-3fe4-8c44-7899-81187e34ddca`, originally 4,155 serialized rule bytes) and Dark (`a6dd2098-844a-775c-39a4-fe1d4e445b09`, 1,097 bytes). These figures include rules in Home's native export; they are not a safe deletion budget.
+
+The external Home Smile template and its live mounted section use neither variant. However, the **IG feed rollback - 15 Oct 2026** draft retains a native Home-variant instance. Dark appears on eleven scanned published treatment/area pages: Clear Aligners, Composite Bonding, Invisalign, Teeth Whitening and Veneers, plus the Sutton Coldfield and Tamworth Composite Bonding, Invisalign and Veneers pages. Other published pages retain the native base gallery. The public scan covered 48 URLs, comprising published static pages and relevant Home-linked treatment/service/area/VIP pages; it was not an exhaustive scan of every CMS item. Authored references and all four relevant variant breakpoints were checked separately.
+
+**Decision:** retain both variants, their geometry and their consumers. Do not delete a variant because it is absent from Home's initial HTML, remove a rollback draft to improve a byte count, or clone the component merely to alter Webflow's CSS emission. The authored main variant has larger typography and spacing; many medium overrides are necessary resets even where Home's optimized export omits their main counterpart.
+
+Removed only seven inherited repeats in the Home variant:
+
+| Native style | Breakpoint | Removed repeats | Retained source |
+| --- | --- | --- | --- |
+| `tdb-smile-carousel` | Medium | `overflow:visible`, `margin-left:0px`, `margin-right:auto` | Same values in main variant; medium `width:70vw` remains |
+| `tdb-smile-carousel` | Small | `overflow:visible`, `width:70vw` | Main overflow and medium width |
+| `tdb-smile-viewport` | Medium and small | `overflow:visible` at each breakpoint | Main variant already supplies visible overflow; small native base also agrees |
+
+Published to staging only, task `53713a12-f108-4aea-a753-83bcb05fc588`. Native page CSS falls **185,217 → 184,748 raw bytes** (−469); combined native CSS falls **216,796 → 216,327**. Node level-9 gzip for the page stylesheet falls **30,224 → 30,171 bytes** (−53). HTML remains **184,860 bytes / 1,129 elements**, shared native CSS **31,579**, UI **15,037**, startup/foundation **37,432**, and post-decision runtime **70,373**. No deferred asset changed. Runtime and all four site pins remain `8b0455e26fd8f4b621600ae7eefee3f1e2713142`; no runtime repin is needed for this native-only change.
+
+Verification: a parsed transformation of the before stylesheet using only the expected deletions and the resulting duplicate-selector consolidation exactly equals the published after stylesheet. Shared native CSS is byte-identical. Initial HTML is identical after normalizing the publish comment, updated page-CSS URL/integrity and existing randomized partner order; all 98 CMS items and 16 lists remain. Native timing projection is byte-identical and build parity passes. On desktop, the Home gallery loaded its existing deferred stylesheet, rendered its current/nearby images and advanced from Smile 2 to Smile 3 of 11. Farther slides retain lazy image sources. This is not a physical-mobile or rollback-draft visual acceptance check, and no new timing run was performed.
+
+Four-perspective decision: the LCP benefit is a small reduction in blocking native bytes; in-page controllers and readiness gates are untouched; polish retains geometry, typography, motion and image preparation; maintenance loses redundant overrides without adding a replacement abstraction. Preserve the actual native/deferred consumer boundary. Treat the remaining candidate families as unverified until traced; do not turn the 12,078-byte original candidate figure into a promised saving.
+
+Rollback uses the exact `rollbackActions` in [home-smile-variant-cleanup-20261025.json](home-smile-variant-cleanup-20261025.json), followed by staging publication and native-provenance refresh. Reverting a runtime SHA alone does not restore these Designer properties. Refer to the architecture standard before the next change.
