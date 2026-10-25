@@ -1,0 +1,210 @@
+{
+  "date": "2026-10-25",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "677cf86df9952f978d94d8a9",
+  "component": "Review Introduction",
+  "componentId": "1e6d2fa0-eb51-af7e-5dc2-307ef04c9501",
+  "variant": "Dark",
+  "variantId": "a520a091-48ff-33d4-59e1-92dfef73f651",
+  "reason": "The heading-style-h3 variant supplies the same colour variable. Its Hero Padding combo has no base colour or responsive colour override, and neither native nor external inspected styles introduces an intervening colour. Keep the base heading colour; remove only the repeated combo colour.",
+  "beforeProperties": {
+    "color": {
+      "id": "relume-variable-color-primary-2"
+    }
+  },
+  "actions": [
+    {
+      "label": "Remove inherited review-heading combo colour",
+      "set_variant_styles": {
+        "style_name": "Hero Padding",
+        "variant_id": "a520a091-48ff-33d4-59e1-92dfef73f651",
+        "breakpoint_id": "main",
+        "remove_properties": [
+          "color"
+        ]
+      }
+    }
+  ],
+  "rollbackActions": [
+    {
+      "label": "Restore review-heading combo colour variable",
+      "set_variant_styles": {
+        "style_name": "Hero Padding",
+        "variant_id": "a520a091-48ff-33d4-59e1-92dfef73f651",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "color",
+            "variable_as_value": "relume-variable-color-primary-2"
+          }
+        ]
+      }
+    }
+  ],
+  "rollbackNote": "Restore this Designer property, publish staging only, then refresh native-motion provenance. Reverting or repinning a runtime release alone does not restore the Designer property.",
+  "consumerScan": {
+    "scope": "48 published static and Home-linked treatment/service/area/VIP URLs; not exhaustive drafts or CMS",
+    "variants": {
+      "w-variant-a520a091-48ff-33d4-59e1-92dfef73f651": {
+        "observedPages": [],
+        "observedRootAttributes": {},
+        "decision": "retain; no sample match is not proof of no consumers"
+      },
+      "w-variant-622faefd-5ac5-f659-2bf8-93d10806b91b": {
+        "observedPages": [
+          "https://dentalbarns.webflow.io/vip"
+        ],
+        "observedRootAttributes": {
+          "data-wf--banner-partners--variant=dark---awards": 1
+        },
+        "decision": "retain verified native consumers"
+      },
+      "w-variant-d10ce921-8b64-e18a-11cb-73155a0b6315": {
+        "observedPages": [],
+        "observedRootAttributes": {},
+        "decision": "retain; no sample match is not proof of no consumers"
+      },
+      "w-variant-71eba27e-6a16-d5ca-aad0-ec08acb1dd0f": {
+        "observedPages": [],
+        "observedRootAttributes": {},
+        "decision": "retain; no sample match is not proof of no consumers"
+      },
+      "w-variant-600b62fe-5ae4-3f25-bf13-8b95630c6248": {
+        "observedPages": [
+          "https://dentalbarns.webflow.io/areas/sutton-coldfield-composite-bonding",
+          "https://dentalbarns.webflow.io/areas/sutton-coldfield-invisalign",
+          "https://dentalbarns.webflow.io/areas/sutton-coldfield-veneers",
+          "https://dentalbarns.webflow.io/areas/tamworth-composite-bonding",
+          "https://dentalbarns.webflow.io/areas/tamworth-invisalign",
+          "https://dentalbarns.webflow.io/areas/tamworth-veneers",
+          "https://dentalbarns.webflow.io/treatments/airflow-hygiene-therapy",
+          "https://dentalbarns.webflow.io/treatments/clear-aligners",
+          "https://dentalbarns.webflow.io/treatments/composite-bonding",
+          "https://dentalbarns.webflow.io/treatments/invisalign",
+          "https://dentalbarns.webflow.io/treatments/teeth-whitening",
+          "https://dentalbarns.webflow.io/treatments/veneers"
+        ],
+        "observedRootAttributes": {},
+        "decision": "retain verified native consumers"
+      },
+      "w-variant-39c01d68-a16c-b05d-468c-31956306d411": {
+        "observedPages": [
+          "https://dentalbarns.webflow.io/location"
+        ],
+        "observedRootAttributes": {},
+        "decision": "retain verified native consumers"
+      },
+      "w-variant-f0f4be33-9f14-89f5-9f17-67b30898556f": {
+        "observedPages": [],
+        "observedRootAttributes": {},
+        "decision": "retain; no sample match is not proof of no consumers"
+      },
+      "w-variant-88d83620-ea4f-ce72-f9c8-ffbbf7ae8783": {
+        "observedPages": [],
+        "observedRootAttributes": {},
+        "decision": "retain; no sample match is not proof of no consumers"
+      },
+      "w-variant-def157e1-2faf-62e3-ef2e-72dee1b9d7c9": {
+        "observedPages": [
+          "https://dentalbarns.webflow.io/dental-cost-lichfield"
+        ],
+        "observedRootAttributes": {
+          "data-wf--treatment-hero--variant=light": 1
+        },
+        "decision": "retain verified native consumers"
+      },
+      "w-variant-a3682485-50d7-4efc-6485-7220e9c18314": {
+        "observedPages": [
+          "https://dentalbarns.webflow.io/first-visit"
+        ],
+        "observedRootAttributes": {
+          "data-wf--5-senses-experience-entry--variant=dark": 1
+        },
+        "decision": "retain verified native consumers"
+      },
+      "w-variant-2081edcf-b1fe-cc41-d72b-268bf6a31b29": {
+        "observedPages": [],
+        "observedRootAttributes": {},
+        "decision": "retain; no sample match is not proof of no consumers"
+      },
+      "w-variant-e37edb04-1c20-f271-f9f4-f7514a9ac973": {
+        "observedPages": [],
+        "observedRootAttributes": {},
+        "decision": "retain; no sample match is not proof of no consumers"
+      },
+      "w-variant-e2cf5ba7-de84-406c-a34d-80b59166b596": {
+        "observedPages": [],
+        "observedRootAttributes": {},
+        "decision": "retain; no sample match is not proof of no consumers"
+      },
+      "w-variant-2b0582b9-2b94-95df-77d6-379ed299486f": {
+        "observedPages": [],
+        "observedRootAttributes": {},
+        "decision": "retain; no sample match is not proof of no consumers"
+      },
+      "w-variant-5fbb4efd-97d0-4070-a8bc-ded10f8670e1": {
+        "observedPages": [],
+        "observedRootAttributes": {},
+        "decision": "retain; no sample match is not proof of no consumers"
+      },
+      "w-variant-8fdc4379-6821-c2d9-c9c7-0ef91e7e5a8c": {
+        "observedPages": [],
+        "observedRootAttributes": {},
+        "decision": "retain; no sample match is not proof of no consumers"
+      },
+      "w-variant-229ad46b-7655-52f0-4637-62fe40c1c1ed": {
+        "observedPages": [
+          "https://dentalbarns.webflow.io/first-visit"
+        ],
+        "observedRootAttributes": {
+          "data-wf--first-visit-reviews--variant=light-cream": 1
+        },
+        "decision": "retain verified native consumers"
+      },
+      "w-variant-adc9adf8-362f-80e5-834f-53783576ffff": {
+        "observedPages": [
+          "https://dentalbarns.webflow.io/areas/sutton-coldfield-composite-bonding",
+          "https://dentalbarns.webflow.io/areas/sutton-coldfield-invisalign",
+          "https://dentalbarns.webflow.io/areas/sutton-coldfield-veneers",
+          "https://dentalbarns.webflow.io/areas/tamworth-composite-bonding",
+          "https://dentalbarns.webflow.io/areas/tamworth-invisalign",
+          "https://dentalbarns.webflow.io/areas/tamworth-veneers",
+          "https://dentalbarns.webflow.io/treatments/clear-aligners",
+          "https://dentalbarns.webflow.io/treatments/composite-bonding",
+          "https://dentalbarns.webflow.io/treatments/invisalign",
+          "https://dentalbarns.webflow.io/treatments/teeth-whitening",
+          "https://dentalbarns.webflow.io/treatments/veneers"
+        ],
+        "observedRootAttributes": {
+          "data-wf--feature-3-component--variant=dark": 11
+        },
+        "decision": "retain verified native consumers"
+      },
+      "w-variant-d73ebe22-7174-908c-8db7-08979a3d4cdc": {
+        "observedPages": [],
+        "observedRootAttributes": {},
+        "decision": "retain; no sample match is not proof of no consumers"
+      }
+    }
+  },
+  "published": {
+    "taskId": "c2b828ca-0bf0-4873-a954-1ec81a93edca",
+    "pageCssBeforeBytes": 184748,
+    "pageCssAfterBytes": 184576,
+    "pageCssGzipBeforeBytes": 30171,
+    "pageCssGzipAfterBytes": 30167,
+    "expectedSelectorRemovalExactlyMatches": true,
+    "nativeInputs": [
+      {
+        "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.d6e8c62c0.min.css",
+        "bytes": 31579,
+        "sha256": "2fc9d38e169006ad97da986202dac0f0d28f0dcd21fc2b94d128f6e60159e29b"
+      },
+      {
+        "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.d61b19270.opt.min.css",
+        "bytes": 184576,
+        "sha256": "bf98d176ea8445efa7d2e6eabd09fcc2b7dec5fe9385b3fc35546a6732247770"
+      }
+    ]
+  }
+}

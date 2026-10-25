@@ -213,6 +213,49 @@ function finger(f, type, x, y = 100, options = {}) {
   return event;
 }
 
+test('native stamp dragging shares page locking and releases it before coasting or disposal', () => {
+  const f = fixture(6, true, false);
+  try {
+    f.w.eval(
+      fs
+        .readFileSync('src/shared/scroll-lock.js', 'utf8')
+        .replace(
+          '__TDB_SCROLL_LOCK_CSS__',
+          JSON.stringify(fs.readFileSync('src/styles/tdb-scroll-lock.css', 'utf8')),
+        ),
+    );
+    f.w.eval(fs.readFileSync('dist/tdb-swiper-8.4.7.min.js', 'utf8'));
+    f.controller.measure();
+    finger(f, 'touchstart', 300);
+    finger(f, 'touchmove', 299, 130);
+    assert.equal(f.w.TDBScrollLock.active, false);
+    finger(f, 'touchend', 299, 130);
+    finger(f, 'touchstart', 300);
+    f.tick(16);
+    finger(f, 'touchmove', 250);
+    assert.equal(f.w.TDBScrollLock.active, true);
+    edgePointer(f, 'pointercancel', 250);
+    assert.equal(
+      f.w.TDBScrollLock.active,
+      true,
+      'native touch continues after its duplicate pointer stream is cancelled',
+    );
+    finger(f, 'touchend', 250);
+    assert.equal(
+      f.w.TDBScrollLock.active,
+      false,
+      'horizontal coast must not prevent the next vertical gesture',
+    );
+    finger(f, 'touchstart', 250);
+    finger(f, 'touchmove', 200);
+    assert.equal(f.w.TDBScrollLock.active, true);
+    f.controller.dispose();
+    assert.equal(f.w.TDBScrollLock.active, false);
+  } finally {
+    f.dom.window.close();
+  }
+});
+
 test('a burst of finger samples commits one visual update and retains the final release position', () => {
   const f = fixture(6, true, false, false, { autoFrame: false });
   try {

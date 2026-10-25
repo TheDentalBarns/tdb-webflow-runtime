@@ -3,7 +3,7 @@
   "page": "https://dentalbarns.webflow.io/",
   "runtimeRelease": "8b0455e26fd8f4b621600ae7eefee3f1e2713142",
   "generator": "tools/runtime-build/native-motion.cjs",
-  "note": "Ordered public stylesheet inputs for the committed timing-only projection. Raw exports remain outside git. Update these URLs and content hashes after auditing a newly published native export; the generator verifies each input before writing. Ordinary motion-profile changes reuse the committed projection. Designer timing references were linked on 2026-10-25; runtimeRelease records the entry installed when the native export was captured. Six Home padding duplicates were replaced with the existing global utility; motion declarations and the timing projection remain unchanged. Seven redundant Home Smile variant responsive overrides were removed on 2026-10-25; retained main/medium values preserve inheritance. Home and Dark variants and all motion declarations remain. The timing projection is unchanged.",
+  "note": "Ordered public stylesheet inputs for the committed timing-only projection. Raw exports remain outside git. Update these URLs and content hashes after auditing a newly published native export; the generator verifies each input before writing. Ordinary motion-profile changes reuse the committed projection. Designer timing references were linked on 2026-10-25; runtimeRelease records the entry installed when the native export was captured. Six Home padding duplicates were replaced with the existing global utility; motion declarations and the timing projection remain unchanged. Seven redundant Home Smile variant responsive overrides were removed on 2026-10-25; retained main/medium values preserve inheritance. Home and Dark variants and all motion declarations remain. The final variant pass removes only the inherited Hero Padding colour in Review Introduction / Dark; its base heading colour remains. The timing projection is unchanged.",
   "inputs": [
     {
       "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.d6e8c62c0.min.css",
@@ -11,9 +11,9 @@
       "sha256": "2fc9d38e169006ad97da986202dac0f0d28f0dcd21fc2b94d128f6e60159e29b"
     },
     {
-      "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.cb76f9905.opt.min.css",
-      "bytes": 184748,
-      "sha256": "e437f7c0018630c094ea0dde8248b19ccb19161ba8e2f5300d91195d219edb5e"
+      "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.d61b19270.opt.min.css",
+      "bytes": 184576,
+      "sha256": "bf98d176ea8445efa7d2e6eabd09fcc2b7dec5fe9385b3fc35546a6732247770"
     }
   ]
 }

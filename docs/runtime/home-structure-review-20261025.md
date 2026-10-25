@@ -22,7 +22,7 @@ Adopt only the verified CSS deletions below. They reduce duplication without mov
 
 ## Native CSS findings
 
-The published native CSS remains 216,796 raw bytes: 31,579 shared plus 185,217 page CSS. In the page stylesheet, 213 rules containing Webflow variant selectors account for 37,087 bytes of serialized rules. Of these, 80 rules / 12,078 bytes mention only variant classes absent from the initial Home HTML. Counts exclude media wrappers and are not additional to the stylesheet total.
+At the start of this continuation, published native CSS was 216,796 raw bytes: 31,579 shared plus 185,217 page CSS. In that page stylesheet, 213 rules containing Webflow variant selectors accounted for 37,087 bytes of serialized rules. Of these, 80 rules / 12,078 bytes mentioned only variant classes absent from the initial Home HTML. Counts exclude media wrappers and are not additional to the stylesheet total. Subsequent measured reductions are recorded below.
 
 The largest such groups are two Smile-related variants (4,155 and 1,097 bytes); the remainder spans buttons, navigation, headings, banners and other component variants. These are **dependency-tracing candidates**, not a verified unused-code total. Deferred markup, alternate states and native consumers on other pages must be checked before changing authoring boundaries. No export purge or new stylesheet pipeline was introduced.
 
@@ -113,3 +113,66 @@ The concrete maintenance cleanup removes two unused sources: `src/styles/tdb-chr
 **Delivery change: zero bytes in every phase.** Home remains 184,860 HTML bytes / 1,129 elements, native CSS 216,327 bytes, UI 15,037, startup/foundation 37,432 and post-decision runtime 70,373. All generated `dist` files retain their hashes; build parity, release coverage and whitespace checks pass after the deletions. No Designer change, runtime repin or staging publication is necessary. No new browser/device or performance run is claimed for this source-only cleanup.
 
 Four-perspective decision: LCP gains no transferred-byte reduction; interaction/usability and polish retain exactly the existing assets; maintenance benefits from removing misleading alternative sources and obsolete rollout guidance. Keep searching for meaningful initial-delivery overlap, but do not turn each retained component family into a promise of savings. Rollback is an ordinary revert of this repository-only change; the installed runtime remains `8b0455e26fd8f4b621600ae7eefee3f1e2713142`.
+
+## Variant review closeout and gesture correction — 25 October 2026
+
+The bounded variant review is complete. The final pass checked banner/logo, heading, review and image variants against authored base/responsive styles, external module/secondary-page CSS and a fresh 48-URL published consumer scan. This is a positive-consumer inventory, not a complete inventory of every draft or CMS item. Exact IDs and observed URLs are retained in [the final variant record](home-final-variant-cleanup-20261025.json).
+
+| Family | Evidence and retained responsibility |
+| --- | --- |
+| Banner Partners / Dark — Awards | Published on VIP. Retain its contrast and responsive logo sizing. |
+| Banner Partners / Base — Awards | Published on 12 scanned treatment/area pages. Retain the native instances and layout. |
+| Other banner variants | Dark, Black, Black — Awards and Transparent — Awards were absent from the public sample. Their draft/CMS ownership remains unresolved; no variant was deleted. |
+| Logo height resets | The main base logo is 8rem and the medium base becomes 10rem. A variant's repeated medium 6.25rem height is therefore a necessary reset. Keep it, as well as small/tiny sizing and active Home partner/award variants. |
+| Heading colours | Location uses `39c01d68`; First Visit uses the dark five-senses entry `a3682485`. Other sampled-absent heading variants remain. Remove only the proven Review Introduction / Dark combo repeat described below. |
+| Treatment Hero / Light | Used on Pricing. Its geometry must also be evaluated against deferred `secondary-layouts.css`; native absence is not an ownership proof. Keep it. |
+| First Visit reviews / Light Cream | Used on First Visit. Keep background, spacing and image presentation. |
+| Feature 3 / Dark | Used on 11 scanned treatment/area pages. Keep it. |
+| Treatment-image and image-2 scaling | Five sampled-absent image variants retain scale/crop and transform-related declarations. Their complete consumer/controller relationship was not established. Preserve them as unresolved compatibility work, without moving motion into global UI. |
+| Review Introduction / Dark section width | Its small-screen 100% width resets the base section's 90%. Keep width, full-width background and padding. |
+
+Removed **one authored property**: `color` from **Hero Padding**, main breakpoint, in **Review Introduction / Dark** (`a520a091-48ff-33d4-59e1-92dfef73f651`). The base `heading-style-h3` variant retains the identical linked colour variable. The combo's base style and its medium/small/tiny overrides introduce no competing colour. Neither the inspected native colour rules nor external styles supply an intervening colour. The export drops this variant selector from two identical grouped rules; other variants stay in both groups.
+
+Staging publish `c2b828ca-0bf0-4873-a954-1ec81a93edca` reduces native page CSS **184,748 → 184,576 bytes**, combined native CSS **216,327 → 216,155**: **−172 raw / −4 Node level-9 gzip**. The after stylesheet equals the before stylesheet with exactly those two selectors removed. Shared CSS and the native timing projection are byte-identical. HTML remains **184,860 bytes / 1,129 elements**, including 98 CMS items and 16 lists. Normalized HTML is identical after excluding publish comments, page-CSS URL/integrity and existing randomized partner order. The fresh HTML gzip difference is publication noise and is not credited as a saving. The Dark variant was absent from the public sample, so its own visual acceptance was not established by viewing base Home.
+
+### Reported vertical-inertia/horizontal-drag glitch
+
+The user's trigger is a vertical page throw followed by a horizontal slider drag while the page is still moving. Source inspection found that slider focus manages chrome visibility, while Swiper prevents current touch input. Neither previously acquired the existing page scroll lock or cancelled an already running Lenis trajectory when a horizontal gesture was accepted. This is a confirmed missing handoff; physical-device reproduction of the user's exact lag remains outside the cloud browser check.
+
+The shared Swiper adapter now acquires the existing `TDBScrollLock` only on a confirmed horizontal `sliderFirstMove`. It cancels an active Lenis trajectory at the **current** scroll position once, then relies on the existing native root lock and event containment. It does not change Lenis' stopped/started ownership or write scroll position on each move. The native treatment-stamp strip uses the same helper after its own horizontal threshold. A tap, vertical gesture, arrow click or programmatic slide does not acquire this lock.
+
+Release happens at gesture end/cancellation, blur, page departure, a second finger, disabling or destruction. A touch gesture is not released by cancellation of its duplicate PointerEvent stream. The carousel does not acquire another page lock inside an existing drawer lock; if a drawer opens during a drag, releasing the carousel's own token leaves the drawer locked. Horizontal coast and slide settling continue after finger release without preventing the next vertical gesture. Existing slide targets, durations, easing, focus/chrome lifetime and 20px blur are retained. No Designer motion, UI CSS, head logic or new request was added.
+
+| Gesture-fix asset | Before raw | After raw | Raw change | Local gzip change |
+| --- | ---: | ---: | ---: | ---: |
+| Deferred shared Swiper engine/adapter | 97,544 | 98,466 | +922 | +329 |
+| Deferred parallax/treatment controller | 44,717 | 44,817 | +100 | +44 |
+| **Total** | **142,261** | **143,283** | **+1,022** | **+373** |
+
+Regression tests exercise the real bundled Swiper event path, including a coasting Lenis stub, touch and mouse axis selection, cancellation, pinch, teardown and overlapping drawer ownership. The corrected touch fixture fails six lock assertions against the prior engine and passes with the fix. Native stamp tests also cover a touch stream continuing after pointer cancellation and release before coast/disposal. Full verification passes **768 tests, three existing skips, zero failures**. These checks establish gesture ownership and cleanup, not iOS compositor timing or a measured frame-rate improvement.
+
+### Consolidated ownership and cost
+
+| Responsibility | Owner and current boundary |
+| --- | --- |
+| Static layout, image crops, reserved cards and native appearance | Designer, including required responsive resets. Preserve useful clipping/background/content/CMS/accessibility boundaries. |
+| Essential early feedback and handoff | Small startup/foundation loaders and early control states. Preserve the existing consent, first-input replay and readiness contracts. Audio/Safari remains paused. |
+| Complex motion, mounted card internals and gesture implementation | Feature modules and the existing deferred carousel adapter. Remaining native compatibility rules are explicitly retained until their complete consumers can be migrated. |
+| Shared logic and presentation | Genuine reusable tokens/primitives, composed into existing bundles. The carousel uses the existing scroll-lock service; no extra global gesture framework or CSS bundle. |
+| Initial, nearby and opened delivery | Keep phase boundaries visible. Preparation is separate from activation; this pass changes no proximity distances or media/consent gates. |
+
+Comparison scope: **the ownership-cleanup baseline `8915e4a2` through this closeout**, including the reported gesture fix. It is not a comparison with the archived October performance screenshot or a complete network budget.
+
+| Tracked initial layer | Baseline raw | Current raw | Raw change | Local gzip change |
+| --- | ---: | ---: | ---: | ---: |
+| Home HTML | 184,915 | 184,860 | −55 | −10 |
+| Native Webflow CSS, combined | 218,048 | 216,155 | −1,893 | −210 |
+| Shared UI CSS | 19,005 | 15,037 | −3,968 | −629 |
+| TDB startup + foundation JS | 37,432 | 37,432 | 0 | 0 |
+| **Tracked initial subtotal** | **459,400** | **453,484** | **−5,916** | **−849** |
+
+Post-decision runtime stays **70,373 raw bytes**. Across affected deferred assets, earlier cleanup saved 1,257 raw / 11 gzip bytes; the gesture fix adds 1,022 raw / 373 gzip, leaving a net **−235 raw / +362 gzip**. All affected delivered layers combined therefore change **−6,151 raw / −487 local gzip**. Separately, the removed obsolete sources save 7,885 repository bytes and **zero delivered bytes**. Gzip totals use recorded Node level-9 file comparisons, exclude publish/cache-key noise and do not represent CDN transfer measurements. No performance run or speed claim is made.
+
+Chair decision: accept the verified deletions and the small deferred gesture correction. Initial delivery is smaller; the interaction repair has an explicit deferred cost. Retain the remaining native variants and necessary structure. Close this candidate sweep rather than repeatedly auditing every sampled-absent variant. Any further HTML/DOM work must compare a complete simpler relationship—layout, crop, motion target, CMS, accessibility and delivery—not pursue a node-count target. Consult the architecture standard before that work.
+
+Rollback: restore all four runtime pins to `8b0455e26fd8f4b621600ae7eefee3f1e2713142` for the gesture change, and publish staging only. The native colour cleanup has an independent exact variable-linked rollback in the JSON record; a runtime repin does not restore Designer properties.

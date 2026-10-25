@@ -33,7 +33,8 @@ window.TDBTreatmentStamps ||= (() => {
       drag = null,
       touchId = null,
       suppressClick = false,
-      ignoredClick = null;
+      ignoredClick = null,
+      releasePage = null;
     let selected = -1;
     let maxScroll = null,
       disposed = false;
@@ -62,6 +63,10 @@ window.TDBTreatmentStamps ||= (() => {
     const transitionBefore = new Map(items.map((item) => [item, item.style.transitionDuration]));
     const states = new WeakMap();
     const on = (type, listener, options) => viewport.addEventListener(type, listener, options);
+    function releasePageScroll() {
+      releasePage?.();
+      releasePage = null;
+    }
     links.forEach((link, index) => {
       link.dataset.tdbStampIndex = String(index);
     });
@@ -516,6 +521,7 @@ window.TDBTreatmentStamps ||= (() => {
     function down(event) {
       if (touchId !== null && !event.nativeTouch) return;
       if (event.button !== 0 || event.isPrimary === false) return;
+      releasePageScroll();
       invalidate();
       const link = event.target.closest?.('[data-tdb-treatment-stamp]');
       pressState = { link, live: liveStamp(link) };
@@ -547,6 +553,7 @@ window.TDBTreatmentStamps ||= (() => {
         pressState = null;
         armLink(null);
         suppressClick = true;
+        releasePage = window.TDBSwiper?.holdPageScroll?.(event);
         if (drag.touch) {
           window.TDBSliderFocus?.focus(strip, () => Boolean(drag?.touch && suppressClick));
         } else {
@@ -576,6 +583,7 @@ window.TDBTreatmentStamps ||= (() => {
       // Touch starts with implicit capture on the image/link. Its release
       // bubbles when the viewport takes capture; the gesture is still active.
       if (event.type === 'lostpointercapture' && event.target !== viewport) return;
+      releasePageScroll();
       flushDrag();
       // Touch identifiers and PointerEvent pointer IDs are different namespaces.
       const id = drag.touch ? null : drag.id;
@@ -682,6 +690,7 @@ window.TDBTreatmentStamps ||= (() => {
       touchId = null;
     }
     function wheel() {
+      releasePageScroll();
       pressState = null;
       armLink(null);
       stopMotion();
@@ -700,6 +709,7 @@ window.TDBTreatmentStamps ||= (() => {
     function dispose(fromSwiper = false) {
       if (disposed) return;
       disposed = true;
+      releasePageScroll();
       armLink(null);
       stopMotion();
       drag = touchId = pressState = null;
