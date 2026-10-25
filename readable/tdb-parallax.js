@@ -931,7 +931,7 @@ window.TDBTreatmentStamps ||= (() => {
       if (states.get(item) === active) return;
       states.set(item, active);
       if (!heading) {
-        // Designer owns the opacity transition. Keep one stable target instead
+        // Prepared slider CSS owns the opacity transition. Keep one stable target instead
         // of cancelling/replacing a filled animation on every selection.
         item.style.transitionDuration = window.TDBMotion?.reduced?.matches
           ? '0s'

@@ -1,4 +1,4 @@
-/* TDB slider UI v1.4.1
+/* TDB slider UI v1.4.2
  * Carousel transitions, live-region hiding and shared arrow states.
  * Feature loaders request this sheet before carousel activation.
  * The entrance guard is available before the carousel runtime starts.
@@ -35,6 +35,40 @@
   opacity: 0 !important;
   pointer-events: none !important;
   transition: opacity calc(150ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-travel,ease-out) !important;
+}
+
+/* Native content keeps its layout and initial visibility. The prepared carousel
+ * sheet owns the entire transition, including each copy phase. These hooks are
+ * shared by Services and Treatments; their native fallback remains usable if
+ * preparation fails. The loader awaits this sheet before either controller.
+ */
+.tdb-service-copy,
+.tdb-treatment-copy {
+  transition: opacity calc(200ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-out);
+}
+.tdb-service-copy.is-visible,
+.tdb-treatment-copy.is-visible {
+  transition: opacity calc(400ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in);
+}
+.tdb-service-copy.is-moving,
+.tdb-treatment-copy.is-visible.is-moving {
+  transition: opacity calc(150ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-out);
+}
+
+/* Use the controller's already-scaled duration, or scale the fallback once.
+ * Preserve both filter property names for the treatment blur owner.
+ */
+.showcase_card.tdb-service-card::after {
+  transition: backdrop-filter var(--tdb-parallax-duration,calc(400ms * var(--tdb-motion-pace,1))) var(--tdb-motion-ease-control,ease);
+}
+.tdb-treatment-blur {
+  transition: -webkit-backdrop-filter var(--tdb-parallax-duration,calc(400ms * var(--tdb-motion-pace,1))) var(--tdb-motion-ease-control,ease),
+    backdrop-filter var(--tdb-parallax-duration,calc(400ms * var(--tdb-motion-pace,1))) var(--tdb-motion-ease-control,ease);
+}
+.tdb-treatment-card:where(.w-variant-ccee4851-2369-7f80-45b0-8eae023f92ca),
+.tdb-stamp-confirmation::before,
+.tdb-stamp-confirmation::after {
+  transition: opacity calc(200ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease);
 }
 
 /* Designer owns the stamp decorations. Reuse the existing link state and
