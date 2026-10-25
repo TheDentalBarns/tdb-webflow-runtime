@@ -57,7 +57,6 @@ html[data-tdb-motion='full'] [data-tdb-loading='true'] [data-tdb-compact-spinner
 
 /* Compact disclosures keep their authored open state before optional motion loads. */
 html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition:none!important}
-[data-tdb-compact-chevron][aria-expanded="true"]::after{transform:rotate(var(--tdb-chevron-open-angle,180deg))}
 
 /* Webflow currently emits an empty :where() for new variant pseudo styles.
  * Inherit the existing dark-glass variant's dimensions before first paint.
