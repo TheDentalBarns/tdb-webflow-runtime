@@ -213,10 +213,10 @@
       "sources": [
         "src/instagram/deferred.js"
       ],
-      "sha256": "afc96ee1f12ee92f08b1ee7e5eccd088613bcd6b37bfb1483bc0cca5be6c885d",
-      "raw": 11526,
-      "gzip": 3750,
-      "brotli": 3224
+      "sha256": "6884a45e5d33f611bdd129e180460ed1cb534ef50b9da3f2a3f4c35c5991c6b2",
+      "raw": 11535,
+      "gzip": 3761,
+      "brotli": 3237
     },
     "dist/tdb-instagram-feed.js": {
       "sources": [
@@ -395,10 +395,10 @@
       "sources": [
         "src/reviews/native/cards.js"
       ],
-      "sha256": "9c0dd838b55199af7077c0a76aad393610c73d24baf4aef28c95ee32123036f2",
-      "raw": 16155,
-      "gzip": 5488,
-      "brotli": 4880
+      "sha256": "a7393c642840ce2d615a50975a029596f4fab56607ce0817af0f4a674571041f",
+      "raw": 16150,
+      "gzip": 5495,
+      "brotli": 4881
     },
     "dist/tdb-review-cms.js": {
       "sources": [
@@ -416,10 +416,10 @@
       "sources": [
         "src/templates/review-drawer.js"
       ],
-      "sha256": "ea0bbaf935e088342a7af18e0ede13156a668b09e6150d710a1bc3fabb1a90b5",
-      "raw": 32352,
-      "gzip": 3553,
-      "brotli": 2969
+      "sha256": "8bccc1802860cf9b48d25fa131dc761732c13368fff2a5219fa56e1acf6b3697",
+      "raw": 32341,
+      "gzip": 3560,
+      "brotli": 2972
     },
     "dist/tdb-review-introduction.js": {
       "sources": [
@@ -565,10 +565,10 @@
       "sources": [
         "src/smile-gallery/feed.js"
       ],
-      "sha256": "fa921078a6130c70a6c2d3f2f0e158b1d032f56e80eec0ee78b3e604412c9d64",
-      "raw": 12137,
-      "gzip": 4146,
-      "brotli": 3592
+      "sha256": "4b2702c7baa1519f5c445354a92f0b281e02ea81fe4bb8d19995b0a4ca3ae2f2",
+      "raw": 12153,
+      "gzip": 4163,
+      "brotli": 3609
     },
     "dist/tdb-smile-gallery.min.js": {
       "sources": [
@@ -615,10 +615,10 @@
       "sources": [
         "src/templates/usp-drawer.js"
       ],
-      "sha256": "ad7d7eb52adac5b9da160fb4f89dba583554a37f4478d092847dfc6098c116f6",
-      "raw": 14930,
-      "gzip": 3156,
-      "brotli": 2520
+      "sha256": "4ca480ca99db5432007fd2daa1bea69359a6d2ea0c155a05359c89009d9b1c09",
+      "raw": 14919,
+      "gzip": 3162,
+      "brotli": 2524
     },
     "dist/tdb-usp-drawer.js": {
       "sources": [

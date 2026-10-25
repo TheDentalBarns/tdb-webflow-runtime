@@ -1,0 +1,5 @@
+/* Shared number and separator geometry, composed into existing deferred feature CSS.
+ * Local modules retain positioning, typography, value styling and motion.
+ * Keep this out of initial UI: no extra request or loading dependency is needed. */
+.tdb-pagination-number{width:2.4ch;height:1.5em;display:block;position:relative;overflow:hidden}
+.tdb-pagination-rule{background-color:currentColor;width:1.8em;height:1px;display:block}

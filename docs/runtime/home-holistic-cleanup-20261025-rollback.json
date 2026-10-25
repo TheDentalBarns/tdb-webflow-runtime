@@ -1,0 +1,277 @@
+{
+  "beforeRelease": "8915e4a23f12be724e6f1c2a99d3c4ef13ee1f3a",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "677cf86df9952f978d94d8a9",
+  "note": "Restore these six style definitions with their recorded breakpoint properties, then restore the original assignments. Existing global padding-global is unchanged. The newly created empty utility combos only inherit that global class; they contain no CSS declarations. Repin site head/footer to beforeRelease and publish only the Webflow subdomain to roll back external artifacts.",
+  "styles": [
+    {
+      "id": "dff6c57d-8918-22a2-a063-5322671f1602",
+      "name": "tdb-section-inset-77f3db",
+      "isFromLibrary": false,
+      "isComboClass": true,
+      "type": "combo",
+      "selector": ".section_logo-features.tdb-section-inset-77f3db",
+      "properties": {
+        "base": {
+          "properties": {
+            "padding-right": "3%",
+            "padding-left": "3%"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "padding-right": "3%",
+              "padding-left": "3%"
+            }
+          },
+          "small": {
+            "properties": {
+              "padding-right": "5%",
+              "padding-left": "5%"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "8da42445-fc54-ce6e-1a4e-56beac07c291",
+      "name": "tdb-section-inset-4dac15",
+      "isFromLibrary": false,
+      "isComboClass": true,
+      "type": "combo",
+      "selector": ".section_3-image-layout.tdb-section-inset-4dac15",
+      "properties": {
+        "base": {
+          "properties": {
+            "padding-right": "3%",
+            "padding-left": "3%"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "padding-right": "3%",
+              "padding-left": "3%"
+            }
+          },
+          "small": {
+            "properties": {
+              "padding-right": "5%",
+              "padding-left": "5%"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "c1fa4c9f-173f-87f7-4554-1061d8442ca4",
+      "name": "tdb-section-inset-bd704f",
+      "isFromLibrary": false,
+      "isComboClass": true,
+      "type": "combo",
+      "selector": ".section_standard-testimonial.tdb-section-inset-bd704f",
+      "properties": {
+        "base": {
+          "properties": {
+            "padding-right": "3%",
+            "padding-left": "3%"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "padding-right": "3%",
+              "padding-left": "3%"
+            }
+          },
+          "small": {
+            "properties": {
+              "padding-right": "5%",
+              "padding-left": "5%"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "91f2e16c-9a7b-7b00-8291-89a8417fdbd5",
+      "name": "tdb-section-inset-400cf6",
+      "isFromLibrary": false,
+      "isComboClass": true,
+      "type": "combo",
+      "selector": ".section_google-reviews.tdb-section-inset-400cf6",
+      "properties": {
+        "base": {
+          "properties": {
+            "padding-right": "3%",
+            "padding-left": "3%"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "padding-right": "3%",
+              "padding-left": "3%"
+            }
+          },
+          "small": {
+            "properties": {
+              "padding-right": "5%",
+              "padding-left": "5%"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "3e44e802-0b58-d6ef-9757-6b774578818e",
+      "name": "tdb-section-inset-da4e5a",
+      "isFromLibrary": false,
+      "isComboClass": true,
+      "type": "combo",
+      "selector": ".tdb-home-awards-section.tdb-section-inset-da4e5a",
+      "properties": {
+        "base": {
+          "properties": {
+            "padding-right": "3%",
+            "padding-left": "3%"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "padding-right": "3%",
+              "padding-left": "3%"
+            }
+          },
+          "small": {
+            "properties": {
+              "padding-right": "5%",
+              "padding-left": "5%"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "2301ebe7-9f45-ab07-d8ce-642a526dd387",
+      "name": "tdb-section-inset-dc36af",
+      "isFromLibrary": false,
+      "isComboClass": true,
+      "type": "combo",
+      "selector": ".section_logo-features.tdb-section-inset-dc36af",
+      "properties": {
+        "base": {
+          "properties": {
+            "padding-right": "3%",
+            "padding-left": "3%"
+          }
+        },
+        "breakpoints": {
+          "main": {
+            "properties": {
+              "padding-right": "3%",
+              "padding-left": "3%"
+            }
+          },
+          "small": {
+            "properties": {
+              "padding-right": "5%",
+              "padding-left": "5%"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "elements": [
+    {
+      "component": "677cf86df9952f978d94d8a9",
+      "element": "e7ca6bb8-c301-238a-f23d-22a604bd704f",
+      "before": [
+        "section_standard-testimonial",
+        "tdb-section-inset-bd704f"
+      ],
+      "after": [
+        "section_standard-testimonial",
+        "padding-global"
+      ]
+    },
+    {
+      "component": "677cf86df9952f978d94d8a9",
+      "element": "98656d8e-d7ff-a61e-bef3-d893c0400cf6",
+      "before": [
+        "section_google-reviews",
+        "tdb-section-inset-400cf6"
+      ],
+      "after": [
+        "section_google-reviews",
+        "padding-global"
+      ]
+    },
+    {
+      "component": "677cf86df9952f978d94d8a9",
+      "element": "e1f578f4-dfdb-04e8-a989-11674cda4e5a",
+      "before": [
+        "tdb-home-awards-section",
+        "tdb-section-inset-da4e5a"
+      ],
+      "after": [
+        "tdb-home-awards-section",
+        "padding-global"
+      ]
+    },
+    {
+      "component": "f41b41b9-ed5c-b334-05f8-7ca5e7dc36af",
+      "element": "f41b41b9-ed5c-b334-05f8-7ca5e7dc36af",
+      "before": [
+        "section_logo-features",
+        "tdb-section-inset-dc36af"
+      ],
+      "after": [
+        "section_logo-features",
+        "padding-global"
+      ]
+    },
+    {
+      "component": "0a69bd83-503d-d529-c158-2aeb924dac15",
+      "element": "0a69bd83-503d-d529-c158-2aeb924dac15",
+      "before": [
+        "section_3-image-layout",
+        "tdb-section-inset-4dac15"
+      ],
+      "after": [
+        "section_3-image-layout",
+        "padding-global"
+      ]
+    },
+    {
+      "component": "7970b7c2-f041-964c-3da5-86b5c377f3db",
+      "element": "7970b7c2-f041-964c-3da5-86b5c377f3db",
+      "before": [
+        "section_logo-features",
+        "tdb-section-inset-77f3db"
+      ],
+      "after": [
+        "section_logo-features",
+        "padding-global"
+      ]
+    }
+  ],
+  "outerAnchorUnchanged": "5e5b55f7-9a7f-d930-e0b9-f598c4c91772",
+  "renamedInnerIds": [
+    {
+      "component": "3870688f-6faf-3a58-bb13-7870997819e5",
+      "element": "3870688f-6faf-3a58-bb13-7870997819e5",
+      "before": "All-treatments",
+      "after": "treatment-stamps"
+    },
+    {
+      "component": "ea1d8dcd-9447-09ff-7336-7571a932f7b6",
+      "element": "ea1d8dcd-9447-09ff-7336-7571a932f7b6",
+      "before": "All-treatments",
+      "after": "treatment-details"
+    }
+  ]
+}
