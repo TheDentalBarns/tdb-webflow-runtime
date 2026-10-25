@@ -1,0 +1,2186 @@
+{
+  "schema": 1,
+  "date": "2026-10-25",
+  "scope": "Read-only staging Home audit; no source/Designer/deployment changes",
+  "runtime": "782454b4d242e7341af7df78e06a749329e33758",
+  "baselineRuntime": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
+  "baselineHTML": {
+    "raw": 213938,
+    "gzip": 36775,
+    "br": 28245,
+    "sha256": "f8b5916f67e881dad6f836039b197f4a891271e5ac82fce7cecbcaf723a84bce"
+  },
+  "currentHTML": {
+    "raw": 184887,
+    "gzip": 32178,
+    "br": 25040,
+    "sha256": "8f2bd8e15175ac359c3067aee96b5a197f31c610a545fc7e20bd333295f06371"
+  },
+  "compressionMethod": "Local gzip level 9 and Brotli quality 11 stored for controlled comparison. Observed CDN encoding/body sizes are separate fields. Each asset counted once per budget.",
+  "trackedInitial": [
+    {
+      "label": "Home HTML",
+      "beforeRaw": 213938,
+      "afterRaw": 184887,
+      "beforeGzip": 36775,
+      "afterGzip": 32178
+    },
+    {
+      "label": "Native CSS, shared + page",
+      "beforeRaw": 196134,
+      "afterRaw": 215584,
+      "beforeGzip": 35723,
+      "afterGzip": 38423
+    },
+    {
+      "label": "Shared UI CSS",
+      "beforeRaw": 11884,
+      "afterRaw": 15037,
+      "beforeGzip": 2945,
+      "afterGzip": 3301
+    },
+    {
+      "label": "TDB startup + foundation JS",
+      "beforeRaw": 33824,
+      "afterRaw": 37432,
+      "beforeGzip": 11370,
+      "afterGzip": 12517
+    },
+    {
+      "label": "**Tracked initial subtotal**",
+      "beforeRaw": 455780,
+      "afterRaw": 452940,
+      "beforeGzip": 86813,
+      "afterGzip": 86419
+    }
+  ],
+  "timeline": [
+    {
+      "label": "Pre-DOM baseline",
+      "runtime": "e56f6efb510da0ef966683c60db67fc8cc9f77f1",
+      "htmlRaw": 213938,
+      "htmlGzip": 36775,
+      "bodyElements": 1407,
+      "nativeRaw": 196134,
+      "nativeGzip": 35723,
+      "uiRaw": 11884,
+      "uiGzip": 2945,
+      "earlyRaw": 33824,
+      "earlyGzip": 11370
+    },
+    {
+      "label": "CMS/copy/image batch",
+      "runtime": "356884561770f702adbf6cce4516494d70f311a4",
+      "htmlRaw": 205285,
+      "htmlGzip": 36397,
+      "bodyElements": 1333,
+      "nativeRaw": 196618,
+      "nativeGzip": 35777,
+      "uiRaw": 11884,
+      "uiGzip": 2945,
+      "earlyRaw": 33824,
+      "earlyGzip": 11370
+    },
+    {
+      "label": "Spinners/icons/disclosures/padding batch",
+      "runtime": "55f61fd52c7179e9bc7c96e456827e3fd0ac1f50",
+      "htmlRaw": 193546,
+      "htmlGzip": 33776,
+      "bodyElements": 1226,
+      "nativeRaw": 209685,
+      "nativeGzip": 37202,
+      "uiRaw": 12844,
+      "uiGzip": 3026,
+      "earlyRaw": 33824,
+      "earlyGzip": 11370
+    },
+    {
+      "label": "Spacing and compact-speaker correction",
+      "runtime": "6b62d9e93c20e63db580af1897891196581bc2b9",
+      "htmlRaw": 193697,
+      "htmlGzip": 33751,
+      "bodyElements": 1217,
+      "nativeRaw": 211371,
+      "nativeGzip": 37316,
+      "uiRaw": 13316,
+      "uiGzip": 3140,
+      "earlyRaw": 33824,
+      "earlyGzip": 11370
+    },
+    {
+      "label": "Independent artwork correction",
+      "runtime": "ec95e57030e3b8436c6fef84d8d2dea1ea12e3fb",
+      "htmlRaw": 193159,
+      "htmlGzip": 33594,
+      "bodyElements": 1217,
+      "nativeRaw": 207797,
+      "nativeGzip": 37257,
+      "uiRaw": 13480,
+      "uiGzip": 3195,
+      "earlyRaw": 33824,
+      "earlyGzip": 11370
+    },
+    {
+      "label": "Navigation/footer publication",
+      "runtime": "ec95e57030e3b8436c6fef84d8d2dea1ea12e3fb",
+      "htmlRaw": 192660,
+      "htmlGzip": 33561,
+      "bodyElements": 1206,
+      "nativeRaw": 208840,
+      "nativeGzip": 37366,
+      "uiRaw": 13480,
+      "uiGzip": 3195,
+      "earlyRaw": 33824,
+      "earlyGzip": 11370
+    },
+    {
+      "label": "Captions/USP/dividers/arrows",
+      "runtime": "ec95e57030e3b8436c6fef84d8d2dea1ea12e3fb",
+      "htmlRaw": 191704,
+      "htmlGzip": 33431,
+      "bodyElements": 1186,
+      "nativeRaw": 208865,
+      "nativeGzip": 37372,
+      "uiRaw": 13480,
+      "uiGzip": 3195,
+      "earlyRaw": 33824,
+      "earlyGzip": 11370
+    },
+    {
+      "label": "After decorative rows, wrappers and stamp shading",
+      "runtime": "33b104b2f659ce7ed65e515b95b474643a73aba7",
+      "htmlRaw": 188043,
+      "htmlGzip": 33225,
+      "bodyElements": 1145,
+      "nativeRaw": 211150,
+      "nativeGzip": 37751,
+      "uiRaw": 13480,
+      "uiGzip": 3195,
+      "earlyRaw": 35609,
+      "earlyGzip": 11881
+    },
+    {
+      "label": "Later 17-element consolidation",
+      "runtime": "33b104b2f659ce7ed65e515b95b474643a73aba7",
+      "htmlRaw": 187695,
+      "htmlGzip": 33187,
+      "bodyElements": 1128,
+      "nativeRaw": 211854,
+      "nativeGzip": 37847,
+      "uiRaw": 13480,
+      "uiGzip": 3195,
+      "earlyRaw": 35609,
+      "earlyGzip": 11881
+    },
+    {
+      "label": "Current, after subsequent work and three restorations",
+      "runtime": "782454b4d242e7341af7df78e06a749329e33758",
+      "htmlRaw": 184887,
+      "htmlGzip": 32178,
+      "bodyElements": 1096,
+      "nativeRaw": 215584,
+      "nativeGzip": 38423,
+      "uiRaw": 15037,
+      "uiGzip": 3301,
+      "earlyRaw": 37432,
+      "earlyGzip": 12517
+    }
+  ],
+  "regions": [
+    {
+      "label": "Consent shell",
+      "beforeNodes": 13,
+      "afterNodes": 13,
+      "beforeSerializedHTML": 1198,
+      "afterSerializedHTML": 1198,
+      "deltaNodes": 0,
+      "deltaSerializedHTML": 0
+    },
+    {
+      "label": "Navbar background",
+      "beforeNodes": 1,
+      "afterNodes": 1,
+      "beforeSerializedHTML": 35,
+      "afterSerializedHTML": 35,
+      "deltaNodes": 0,
+      "deltaSerializedHTML": 0
+    },
+    {
+      "label": "Global style embed",
+      "beforeNodes": 2,
+      "afterNodes": 2,
+      "beforeSerializedHTML": 2780,
+      "afterSerializedHTML": 2780,
+      "deltaNodes": 0,
+      "deltaSerializedHTML": 0
+    },
+    {
+      "label": "Navigation",
+      "beforeNodes": 159,
+      "afterNodes": 140,
+      "beforeSerializedHTML": 16101,
+      "afterSerializedHTML": 15908,
+      "deltaNodes": -19,
+      "deltaSerializedHTML": -193
+    },
+    {
+      "label": "Hero",
+      "beforeNodes": 34,
+      "afterNodes": 20,
+      "beforeSerializedHTML": 8006,
+      "afterSerializedHTML": 5871,
+      "deltaNodes": -14,
+      "deltaSerializedHTML": -2135
+    },
+    {
+      "label": "Opening awards marquee",
+      "beforeNodes": 29,
+      "afterNodes": 28,
+      "beforeSerializedHTML": 6126,
+      "afterSerializedHTML": 6107,
+      "deltaNodes": -1,
+      "deltaSerializedHTML": -19
+    },
+    {
+      "label": "Review introduction",
+      "beforeNodes": 54,
+      "afterNodes": 39,
+      "beforeSerializedHTML": 4797,
+      "afterSerializedHTML": 3654,
+      "deltaNodes": -15,
+      "deltaSerializedHTML": -1143
+    },
+    {
+      "label": "Services",
+      "beforeNodes": 86,
+      "afterNodes": 57,
+      "beforeSerializedHTML": 16017,
+      "afterSerializedHTML": 10370,
+      "deltaNodes": -29,
+      "deltaSerializedHTML": -5647
+    },
+    {
+      "label": "First page break",
+      "beforeNodes": 2,
+      "afterNodes": 2,
+      "beforeSerializedHTML": 866,
+      "afterSerializedHTML": 838,
+      "deltaNodes": 0,
+      "deltaSerializedHTML": -28
+    },
+    {
+      "label": "Team quotes",
+      "beforeNodes": 37,
+      "afterNodes": 30,
+      "beforeSerializedHTML": 3267,
+      "afterSerializedHTML": 3082,
+      "deltaNodes": -7,
+      "deltaSerializedHTML": -185
+    },
+    {
+      "label": "Three visit/audio cards",
+      "beforeNodes": 79,
+      "afterNodes": 51,
+      "beforeSerializedHTML": 12810,
+      "afterSerializedHTML": 10187,
+      "deltaNodes": -28,
+      "deltaSerializedHTML": -2623
+    },
+    {
+      "label": "Smile",
+      "beforeNodes": 24,
+      "afterNodes": 16,
+      "beforeSerializedHTML": 2461,
+      "afterSerializedHTML": 2184,
+      "deltaNodes": -8,
+      "deltaSerializedHTML": -277
+    },
+    {
+      "label": "Wellness",
+      "beforeNodes": 70,
+      "afterNodes": 45,
+      "beforeSerializedHTML": 10513,
+      "afterSerializedHTML": 8186,
+      "deltaNodes": -25,
+      "deltaSerializedHTML": -2327
+    },
+    {
+      "label": "Patient quotes",
+      "beforeNodes": 34,
+      "afterNodes": 30,
+      "beforeSerializedHTML": 3736,
+      "afterSerializedHTML": 3624,
+      "deltaNodes": -4,
+      "deltaSerializedHTML": -112
+    },
+    {
+      "label": "Location",
+      "beforeNodes": 25,
+      "afterNodes": 24,
+      "beforeSerializedHTML": 3756,
+      "afterSerializedHTML": 3705,
+      "deltaNodes": -1,
+      "deltaSerializedHTML": -51
+    },
+    {
+      "label": "Treatments, including stamps/details",
+      "beforeNodes": 183,
+      "afterNodes": 127,
+      "beforeSerializedHTML": 27564,
+      "afterSerializedHTML": 22928,
+      "deltaNodes": -56,
+      "deltaSerializedHTML": -4636
+    },
+    {
+      "label": "Review cards holder",
+      "beforeNodes": 11,
+      "afterNodes": 10,
+      "beforeSerializedHTML": 872,
+      "afterSerializedHTML": 942,
+      "deltaNodes": -1,
+      "deltaSerializedHTML": 70
+    },
+    {
+      "label": "Second page break",
+      "beforeNodes": 2,
+      "afterNodes": 2,
+      "beforeSerializedHTML": 2072,
+      "afterSerializedHTML": 2044,
+      "deltaNodes": 0,
+      "deltaSerializedHTML": -28
+    },
+    {
+      "label": "Awards + Instagram",
+      "beforeNodes": 130,
+      "afterNodes": 106,
+      "beforeSerializedHTML": 11566,
+      "afterSerializedHTML": 10788,
+      "deltaNodes": -24,
+      "deltaSerializedHTML": -778
+    },
+    {
+      "label": "Partner marquee",
+      "beforeNodes": 48,
+      "afterNodes": 47,
+      "beforeSerializedHTML": 7730,
+      "afterSerializedHTML": 7711,
+      "deltaNodes": -1,
+      "deltaSerializedHTML": -19
+    },
+    {
+      "label": "Sketch/closing introduction",
+      "beforeNodes": 28,
+      "afterNodes": 28,
+      "beforeSerializedHTML": 3727,
+      "afterSerializedHTML": 3699,
+      "deltaNodes": 0,
+      "deltaSerializedHTML": -28
+    },
+    {
+      "label": "Practice text",
+      "beforeNodes": 11,
+      "afterNodes": 9,
+      "beforeSerializedHTML": 1472,
+      "afterSerializedHTML": 1379,
+      "deltaNodes": -2,
+      "deltaSerializedHTML": -93
+    },
+    {
+      "label": "Footer, USP, VIP and form",
+      "beforeNodes": 336,
+      "afterNodes": 260,
+      "beforeSerializedHTML": 35653,
+      "afterSerializedHTML": 26870,
+      "deltaNodes": -76,
+      "deltaSerializedHTML": -8783
+    }
+  ],
+  "nativeGrowth": {
+    "pseudoRules": 10917,
+    "otherBeforeTiming": 2264,
+    "timingLinkage": 8733,
+    "laterCleanup": -2464,
+    "total": 19450
+  },
+  "nativeDiagnostics": {
+    "repeatedDeclarations": {
+      "bytes": 1109,
+      "count": 52
+    },
+    "repeatedWholeRules": {
+      "bytes": 2915,
+      "count": 13
+    },
+    "repeatedSelectors": {
+      "bytes": 1976,
+      "count": 39
+    },
+    "note": "Overlapping diagnostic counts; not additive or a safe removal forecast."
+  },
+  "moduleNativeMotion": [
+    {
+      "selector": ".swiper-slide.is-3-grid.smile.tdb-smile-slide",
+      "decls": [
+        "transition-property:opacity",
+        "transition-duration:calc(.3s*var(--tdb-motion-pace,1))",
+        "transition-timing-function:var(--tdb-motion-ease-control,ease)"
+      ],
+      "bytes": 146
+    },
+    {
+      "selector": ".showcase_card.tdb-service-card:after",
+      "decls": [
+        "transition:backdrop-filter var(--tdb-parallax-duration,.4s)ease"
+      ],
+      "bytes": 64
+    },
+    {
+      "selector": ".showcase_image.show-on-tablet,.showcase_image.hide-tablet,.showcase_image.tdb-responsive-image,.showcase_image.tdb-responsive-image",
+      "decls": [
+        "transition-property:transform"
+      ],
+      "bytes": 30
+    },
+    {
+      "selector": ".tdb-service-arrow.tdb-partner-close",
+      "decls": [
+        "transition-property:background-color,color,border-color",
+        "transition-timing-function:var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease)",
+        "transition-duration:calc(.3s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1))"
+      ],
+      "bytes": 316
+    },
+    {
+      "selector": ".tdb-vip-arrow-content",
+      "decls": [
+        "transition:transform calc(.42s*var(--tdb-motion-pace,1))var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))"
+      ],
+      "bytes": 109
+    },
+    {
+      "selector": ".tdb-vip-arrow-content.is-vip-open",
+      "decls": [
+        "transition:transform calc(.3s*var(--tdb-motion-pace,1))var(--tdb-motion-ease-panel,ease)"
+      ],
+      "bytes": 89
+    },
+    {
+      "selector": ".tdb-vip-arrow-content.is-vip-closing",
+      "decls": [
+        "transition:transform calc(.3s*var(--tdb-motion-pace,1))var(--tdb-motion-ease-panel,ease)"
+      ],
+      "bytes": 89
+    },
+    {
+      "selector": ".tdb-smile-fact-ticker.is-ready",
+      "decls": [
+        "transition-property:opacity",
+        "transition-duration:calc(.4s*var(--tdb-motion-pace,1))",
+        "transition-timing-function:var(--tdb-motion-ease-control,ease-in)"
+      ],
+      "bytes": 149
+    },
+    {
+      "selector": ".tdb-treatment-card:where(.w-variant-ccee4851-2369-7f80-45b0-8eae023f92ca)",
+      "decls": [
+        "transition:opacity .2s"
+      ],
+      "bytes": 23
+    },
+    {
+      "selector": ".tdb-treatment-image-wrap.tdb-stamp-confirmation:before",
+      "decls": [
+        "transition:opacity .2s"
+      ],
+      "bytes": 23
+    },
+    {
+      "selector": ".tdb-treatment-image-wrap.tdb-stamp-confirmation:after",
+      "decls": [
+        "transition:opacity .2s"
+      ],
+      "bytes": 23
+    },
+    {
+      "selector": ".tdb-treatment-image:where(.w-variant-e37edb04-1c20-f271-f9f4-f7514a9ac973),.tdb-treatment-image:where(.w-variant-e2cf5ba7-de84-406c-a34d-80b59166b596),.tdb-treatment-image:where(.w-variant-2b0582b9-2b94-95df-77d6-379ed299486f),.tdb-treatment-image:where(.w-variant-5fbb4efd-97d0-4070-a8bc-ded10f8670e1)",
+      "decls": [
+        "transition-property:transform"
+      ],
+      "bytes": 30
+    },
+    {
+      "selector": ".tdb-treatment-image:where(.w-variant-ca428119-19d7-4c03-4033-ca8a89a684de)",
+      "decls": [
+        "transition-property:transform"
+      ],
+      "bytes": 30
+    },
+    {
+      "selector": ".tdb-treatment-copy",
+      "decls": [
+        "transition:opacity calc(.2s*var(--tdb-motion-pace,1))var(--tdb-motion-ease-control,ease-out)"
+      ],
+      "bytes": 93
+    },
+    {
+      "selector": ".tdb-treatment-copy.is-visible",
+      "decls": [
+        "transition:opacity calc(.4s*var(--tdb-motion-pace,1))var(--tdb-motion-ease-control,ease-in)"
+      ],
+      "bytes": 92
+    },
+    {
+      "selector": ".tdb-treatment-copy.is-visible.is-moving",
+      "decls": [
+        "transition:opacity calc(.15s*var(--tdb-motion-pace,1))var(--tdb-motion-ease-control,ease-out)"
+      ],
+      "bytes": 94
+    },
+    {
+      "selector": ".tdb-treatment-blur",
+      "decls": [
+        "transition-property:-webkit-backdrop-filter,backdrop-filter",
+        "transition-timing-function:var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease)",
+        "transition-delay:0s,0s",
+        "transition-duration:var(--tdb-parallax-duration,calc(.4s*var(--tdb-motion-pace,1))),var(--tdb-parallax-duration,calc(.4s*var(--tdb-motion-pace,1)))"
+      ],
+      "bytes": 330
+    }
+  ],
+  "integrity": {
+    "baseline": {
+      "cmsItems": 98,
+      "cmsLists": 16,
+      "images": 115,
+      "nativeLinks": 115,
+      "formInputs": [
+        {
+          "tag": "INPUT",
+          "id": "Name",
+          "name": "Name",
+          "type": "text"
+        },
+        {
+          "tag": "INPUT",
+          "id": "Last-Name",
+          "name": "Last-Name",
+          "type": "text"
+        },
+        {
+          "tag": "INPUT",
+          "id": "phone",
+          "name": "phone",
+          "type": "tel"
+        },
+        {
+          "tag": "INPUT",
+          "id": "Email",
+          "name": "Email",
+          "type": "email"
+        },
+        {
+          "tag": "SELECT",
+          "id": "Treatment-Of-Interest",
+          "name": "Treatment-Of-Interest",
+          "type": "select-one"
+        },
+        {
+          "tag": "INPUT",
+          "id": "Marketing",
+          "name": "Marketing",
+          "type": "checkbox"
+        },
+        {
+          "tag": "INPUT",
+          "id": "Checkbox",
+          "name": "Checkbox",
+          "type": "checkbox"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "name": "",
+          "type": "submit"
+        }
+      ],
+      "duplicateIds": [
+        [
+          "All-treatments",
+          [
+            "section_gallery-location tdb-treatment-section",
+            "tdb-treatment-bottom w-variant-ccee4851-2369-7f80-45b0-8eae023f92ca",
+            "tdb-treatment-bottom w-variant-dd06bce4-6d0a-f859-3985-75b4c4d14e42"
+          ]
+        ],
+        [
+          "w-node-_5e5b55f7-9a7f-d930-e0b9-f598c4c9177f-c4c91772",
+          [
+            "tdb-treatment-image-wrap",
+            "tdb-treatment-image-wrap",
+            "tdb-treatment-image-wrap",
+            "tdb-treatment-image-wrap",
+            "tdb-treatment-image-wrap",
+            "tdb-treatment-image-wrap"
+          ]
+        ]
+      ],
+      "nativeInteractionHooks": 0
+    },
+    "current": {
+      "cmsItems": 98,
+      "cmsLists": 16,
+      "images": 93,
+      "nativeLinks": 109,
+      "formInputs": [
+        {
+          "tag": "INPUT",
+          "id": "Name",
+          "name": "Name",
+          "type": "text"
+        },
+        {
+          "tag": "INPUT",
+          "id": "Last-Name",
+          "name": "Last-Name",
+          "type": "text"
+        },
+        {
+          "tag": "INPUT",
+          "id": "phone",
+          "name": "phone",
+          "type": "tel"
+        },
+        {
+          "tag": "INPUT",
+          "id": "Email",
+          "name": "Email",
+          "type": "email"
+        },
+        {
+          "tag": "SELECT",
+          "id": "Treatment-Of-Interest",
+          "name": "Treatment-Of-Interest",
+          "type": "select-one"
+        },
+        {
+          "tag": "INPUT",
+          "id": "Marketing",
+          "name": "Marketing",
+          "type": "checkbox"
+        },
+        {
+          "tag": "INPUT",
+          "id": "Checkbox",
+          "name": "Checkbox",
+          "type": "checkbox"
+        },
+        {
+          "tag": "INPUT",
+          "id": "",
+          "name": "",
+          "type": "submit"
+        }
+      ],
+      "duplicateIds": [
+        [
+          "w-node-_5e5b55f7-9a7f-d930-e0b9-f598c4c9177f-c4c91772",
+          [
+            "tdb-treatment-image-wrap tdb-main-treatment-shade",
+            "tdb-treatment-image-wrap tdb-main-treatment-shade",
+            "tdb-treatment-image-wrap tdb-main-treatment-shade",
+            "tdb-treatment-image-wrap tdb-main-treatment-shade",
+            "tdb-treatment-image-wrap tdb-main-treatment-shade",
+            "tdb-treatment-image-wrap tdb-main-treatment-shade"
+          ]
+        ]
+      ],
+      "nativeInteractionHooks": 0
+    }
+  },
+  "uiFragments": [
+    {
+      "file": "src/styles/tdb-motion-profile.css",
+      "source": 104,
+      "minified": 25
+    },
+    {
+      "file": "src/styles/tdb-viewport-base.css",
+      "source": 45,
+      "minified": 36
+    },
+    {
+      "file": "src/styles/tdb-native-motion.css",
+      "source": 2728,
+      "minified": 2469
+    },
+    {
+      "file": "src/styles/tdb-chrome-motion.css",
+      "source": 227,
+      "minified": 133
+    },
+    {
+      "file": "src/styles/tdb-runtime-ui.css",
+      "source": 525,
+      "minified": 260
+    },
+    {
+      "file": "src/styles/tdb-selection.css",
+      "source": 275,
+      "minified": 210
+    },
+    {
+      "file": "src/styles/tdb-video-feedback.css",
+      "source": 1192,
+      "minified": 956
+    },
+    {
+      "file": "src/styles/tdb-deferred-ui.css",
+      "source": 896,
+      "minified": 552
+    },
+    {
+      "file": "src/styles/tdb-control-keyframes.css",
+      "source": 217,
+      "minified": 114
+    },
+    {
+      "file": "src/styles/tdb-control-effects.css",
+      "source": 4415,
+      "minified": 3221
+    },
+    {
+      "file": "src/shared/reveal-motion.css",
+      "source": 294,
+      "minified": 287
+    },
+    {
+      "file": "src/styles/tdb-shared-control-states.css",
+      "source": 1431,
+      "minified": 1050
+    },
+    {
+      "file": "src/styles/tdb-content-formatting.css",
+      "source": 578,
+      "minified": 194
+    },
+    {
+      "file": "src/styles/tdb-consent-states.css",
+      "source": 1013,
+      "minified": 687
+    },
+    {
+      "file": "src/styles/tdb-chevron-states.css",
+      "source": 409,
+      "minified": 297
+    },
+    {
+      "file": "src/styles/tdb-disclosure-states.css",
+      "source": 552,
+      "minified": 467
+    },
+    {
+      "file": "src/styles/tdb-navbar-control-states.css",
+      "source": 990,
+      "minified": 902
+    },
+    {
+      "file": "src/styles/tdb-controls-base.css",
+      "source": 369,
+      "minified": 305
+    },
+    {
+      "file": "src/styles/tdb-feed-holders.css",
+      "source": 1656,
+      "minified": 1159
+    },
+    {
+      "file": "src/styles/tdb-hero-compact.css",
+      "source": 1884,
+      "minified": 1547
+    }
+  ],
+  "laterBudget": [
+    {
+      "family": "Post-decision orchestration",
+      "files": [
+        "tdb-runtime.js"
+      ],
+      "beforeRaw": 67580,
+      "afterRaw": 70373,
+      "beforeGzip": 18137,
+      "afterGzip": 19084,
+      "delta": 2793,
+      "deltaGzip": 947,
+      "wire": 19692
+    },
+    {
+      "family": "Shared motion and carousels",
+      "files": [
+        "tdb-motion.js",
+        "tdb-swiper-8.4.7.min.js",
+        "tdb-slider-focus.js",
+        "tdb-slider-ui.css",
+        "tdb-rendered-progress.js",
+        "tdb-ticker.js"
+      ],
+      "beforeRaw": 133194,
+      "afterRaw": 135577,
+      "beforeGzip": 42816,
+      "afterGzip": 43600,
+      "delta": 2383,
+      "deltaGzip": 784,
+      "wire": 40455
+    },
+    {
+      "family": "Native navigation and controls",
+      "files": [
+        "tdb-navbar.min.js",
+        "tdb-control-motion.css"
+      ],
+      "beforeRaw": 27465,
+      "afterRaw": 29759,
+      "beforeGzip": 7584,
+      "afterGzip": 7781,
+      "delta": 2294,
+      "deltaGzip": 197,
+      "wire": 7977
+    },
+    {
+      "family": "Services and treatments",
+      "files": [
+        "tdb-parallax.js"
+      ],
+      "beforeRaw": 39361,
+      "afterRaw": 44817,
+      "beforeGzip": 12108,
+      "afterGzip": 13961,
+      "delta": 5456,
+      "deltaGzip": 1853,
+      "wire": 14474
+    },
+    {
+      "family": "Smile",
+      "files": [
+        "tdb-smile-feed.js",
+        "tdb-smile-feed.css",
+        "tdb-gallery.js"
+      ],
+      "beforeRaw": 50178,
+      "afterRaw": 51503,
+      "beforeGzip": 13559,
+      "afterGzip": 13659,
+      "delta": 1325,
+      "deltaGzip": 100,
+      "wire": 13941
+    },
+    {
+      "family": "Instagram",
+      "files": [
+        "tdb-instagram-deferred.js",
+        "tdb-instagram-native.min.js",
+        "tdb-instagram-native.css"
+      ],
+      "beforeRaw": 36651,
+      "afterRaw": 36980,
+      "beforeGzip": 11601,
+      "afterGzip": 11572,
+      "delta": 329,
+      "deltaGzip": -29,
+      "wire": 11709
+    },
+    {
+      "family": "Quotes and reviews inline",
+      "files": [
+        "tdb-quote-carousel.js",
+        "tdb-reviews-loader.js",
+        "tdb-review-cms.js",
+        "tdb-review-introduction.js",
+        "tdb-review-cards.js",
+        "tdb-review-cards.css",
+        "tdb-review-widget.js",
+        "tdb-review-widget.css"
+      ],
+      "beforeRaw": 77414,
+      "afterRaw": 80578,
+      "beforeGzip": 26252,
+      "afterGzip": 27073,
+      "delta": 3164,
+      "deltaGzip": 821,
+      "wire": 27224
+    },
+    {
+      "family": "Shared drawer prerequisites",
+      "files": [
+        "tdb-drawer.js",
+        "tdb-drawer.css",
+        "tdb-filters.js"
+      ],
+      "beforeRaw": 20780,
+      "afterRaw": 21835,
+      "beforeGzip": 7973,
+      "afterGzip": 8223,
+      "delta": 1055,
+      "deltaGzip": 250,
+      "wire": 8206
+    },
+    {
+      "family": "Review drawer",
+      "files": [
+        "tdb-review-drawer-template.js",
+        "tdb-review-drawer.css",
+        "tdb-reviews.js"
+      ],
+      "beforeRaw": 78847,
+      "afterRaw": 79591,
+      "beforeGzip": 15090,
+      "afterGzip": 15322,
+      "delta": 744,
+      "deltaGzip": 232,
+      "wire": 15794
+    },
+    {
+      "family": "USP drawer",
+      "files": [
+        "tdb-usp-drawer-template.js",
+        "tdb-usp-drawer.css",
+        "tdb-usp-drawer.js"
+      ],
+      "beforeRaw": 30911,
+      "afterRaw": 30928,
+      "beforeGzip": 8023,
+      "afterGzip": 8035,
+      "delta": 17,
+      "deltaGzip": 12,
+      "wire": 7975
+    },
+    {
+      "family": "VIP and forms",
+      "files": [
+        "tdb-vip-chrome.css",
+        "tdb-vip-content.js",
+        "tdb-vip-content.css",
+        "tdb-vip-drawer.js",
+        "tdb-vip-form.js"
+      ],
+      "beforeRaw": 38718,
+      "afterRaw": 38064,
+      "beforeGzip": 12335,
+      "afterGzip": 12318,
+      "delta": -654,
+      "deltaGzip": -17,
+      "wire": 12136
+    },
+    {
+      "family": "Marquees and partner popovers",
+      "files": [
+        "tdb-logo-marquee.min.js",
+        "tdb-partner-card.js",
+        "tdb-partner-card.css"
+      ],
+      "beforeRaw": 45607,
+      "afterRaw": 45680,
+      "beforeGzip": 12987,
+      "afterGzip": 12821,
+      "delta": 73,
+      "deltaGzip": -166,
+      "wire": 13046
+    },
+    {
+      "family": "Announcement and availability",
+      "files": [
+        "tdb-announcement.js",
+        "tdb-announcement.css",
+        "tdb-availability.js"
+      ],
+      "beforeRaw": 26486,
+      "afterRaw": 27135,
+      "beforeGzip": 9216,
+      "afterGzip": 9279,
+      "delta": 649,
+      "deltaGzip": 63,
+      "wire": 9306
+    },
+    {
+      "family": "Hold audio (paused investigation)",
+      "files": [
+        "tdb-hold-audio.js"
+      ],
+      "beforeRaw": 5503,
+      "afterRaw": 8373,
+      "beforeGzip": 2322,
+      "afterGzip": 3317,
+      "delta": 2870,
+      "deltaGzip": 995,
+      "wire": 3328
+    },
+    {
+      "family": "Vimeo (functionality consent)",
+      "files": [
+        "tdb-vimeo-loader.js",
+        "tdb-vimeo.js",
+        "tdb-vimeo.css"
+      ],
+      "beforeRaw": 28376,
+      "afterRaw": 30283,
+      "beforeGzip": 7535,
+      "afterGzip": 8109,
+      "delta": 1907,
+      "deltaGzip": 574,
+      "wire": 8165
+    },
+    {
+      "family": "Smooth scroll (fine pointer desktop)",
+      "files": [
+        "tdb-lenis.min.js"
+      ],
+      "beforeRaw": 17741,
+      "afterRaw": 17741,
+      "beforeGzip": 4992,
+      "afterGzip": 4992,
+      "delta": 0,
+      "deltaGzip": 0,
+      "wire": 5127
+    },
+    {
+      "family": "Attribution",
+      "files": [
+        "tdb-attribution.min.js"
+      ],
+      "beforeRaw": 10809,
+      "afterRaw": 10809,
+      "beforeGzip": 3863,
+      "afterGzip": 3863,
+      "delta": 0,
+      "deltaGzip": 0,
+      "wire": 3858
+    }
+  ],
+  "laterAssets": [
+    {
+      "name": "tdb-announcement.css",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-announcement.css",
+      "before": {
+        "raw": 8133,
+        "gzip": 1963,
+        "br": 1683,
+        "sha256": "69dfdfe95f23faad973dd93fed85ef27cce1a718850227f14dca2bb751144525"
+      },
+      "after": {
+        "raw": 8782,
+        "gzip": 2026,
+        "br": 1732,
+        "sha256": "1f67be25da9bd296d4a567f9feab2a909af1cbcaeb569b28a58043f44a5e634b"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 1999,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-announcement.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-announcement.js",
+      "before": {
+        "raw": 11845,
+        "gzip": 4569,
+        "br": 4015,
+        "sha256": "0cfd83c1ac24220aee8d65a8531ea38d936ddcc3d94a0a87f76192b5fad89128"
+      },
+      "after": {
+        "raw": 11845,
+        "gzip": 4569,
+        "br": 4015,
+        "sha256": "0cfd83c1ac24220aee8d65a8531ea38d936ddcc3d94a0a87f76192b5fad89128"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 4615,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-attribution.min.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-attribution.min.js",
+      "before": {
+        "raw": 10809,
+        "gzip": 3863,
+        "br": 3396,
+        "sha256": "6c51d1ec75b00732b776383f27e2e2dbd138f0307186e32cffae18d53cefb8b3"
+      },
+      "after": {
+        "raw": 10809,
+        "gzip": 3863,
+        "br": 3396,
+        "sha256": "6c51d1ec75b00732b776383f27e2e2dbd138f0307186e32cffae18d53cefb8b3"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 3858,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-availability.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-availability.js",
+      "before": {
+        "raw": 6508,
+        "gzip": 2684,
+        "br": 2392,
+        "sha256": "c5d94442a3e79ef4ee64c824548eaa73acde0852a078c03675ef77023f85b106"
+      },
+      "after": {
+        "raw": 6508,
+        "gzip": 2684,
+        "br": 2392,
+        "sha256": "c5d94442a3e79ef4ee64c824548eaa73acde0852a078c03675ef77023f85b106"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 2692,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-control-motion.css",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-control-motion.css",
+      "before": {
+        "raw": 4739,
+        "gzip": 1454,
+        "br": 1155,
+        "sha256": "cd2428124713a753a7728b1bf6e1f6c163172cf811b2f8c470e8f830e034d365"
+      },
+      "after": {
+        "raw": 5918,
+        "gzip": 1536,
+        "br": 1237,
+        "sha256": "549fc816c9f039c1c43c7983ddb2cdcb5cee6e293a4ebf63415bd205d0afb180"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 1563,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-drawer.css",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-drawer.css",
+      "before": {
+        "raw": 2365,
+        "gzip": 892,
+        "br": 728,
+        "sha256": "58e1423c3ff77bdff6a9407e9ee147eea3ee7e8cc465d7d359aab5e3ee9d1848"
+      },
+      "after": {
+        "raw": 2498,
+        "gzip": 884,
+        "br": 718,
+        "sha256": "3ed7c6ca74482be7a021e4ac3c1327c2a8b71c40ddfcf4926c0f06b3fe4dff4b"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 828,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-drawer.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-drawer.js",
+      "before": {
+        "raw": 11327,
+        "gzip": 4219,
+        "br": 3764,
+        "sha256": "e84f9a3931ae78caa5c5437c76dac6b6addbcef770ea4b6b9b5f2506366e2e49"
+      },
+      "after": {
+        "raw": 12145,
+        "gzip": 4443,
+        "br": 3977,
+        "sha256": "115d5148e1bdaa1859318974b224e1c9afb87e2ba544c83805c96a8a2a7d291d"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 4485,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-filters.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-filters.js",
+      "before": {
+        "raw": 7088,
+        "gzip": 2862,
+        "br": 2560,
+        "sha256": "d8d7c1b88d006f1809184a013e8ba6807c286bf3818a6faf5792b3f115ca7362"
+      },
+      "after": {
+        "raw": 7192,
+        "gzip": 2896,
+        "br": 2592,
+        "sha256": "9eac8a00bbe39648928f2992ff118695cb7095a3a34ac5d5780506fa173b67bb"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 2893,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-gallery.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-gallery.js",
+      "before": {
+        "raw": 16728,
+        "gzip": 5859,
+        "br": 5226,
+        "sha256": "77d2f0436b519746f7170feb48d6dfd8dd2be88c1f7b786e36757cd8ae13eb84"
+      },
+      "after": {
+        "raw": 17056,
+        "gzip": 5996,
+        "br": 5345,
+        "sha256": "41694171cac9823d311b12a228e835d377f1bc9c553e153edf25e0537e777ad1"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 6122,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-hold-audio.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-hold-audio.js",
+      "before": {
+        "raw": 5503,
+        "gzip": 2322,
+        "br": 2083,
+        "sha256": "0b1640a8f5d87b6cfb6682a6849fe29ffb00be9e247027f8531f2d648078e80a"
+      },
+      "after": {
+        "raw": 8373,
+        "gzip": 3317,
+        "br": 2989,
+        "sha256": "e48cabeb9020c85d41bba0848aa89d9df5e7ef0e57ca919d193e3822cebefeb1"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 3328,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-instagram-deferred.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-instagram-deferred.js",
+      "before": {
+        "raw": 11427,
+        "gzip": 3722,
+        "br": 3188,
+        "sha256": "217f5f48b0ed7c806ed86c85e62719f124f0d84d45134e60bcc3c60f55e5336e"
+      },
+      "after": {
+        "raw": 11535,
+        "gzip": 3761,
+        "br": 3237,
+        "sha256": "6884a45e5d33f611bdd129e180460ed1cb534ef50b9da3f2a3f4c35c5991c6b2"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 3750,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-instagram-native.css",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-instagram-native.css",
+      "before": {
+        "raw": 11418,
+        "gzip": 2805,
+        "br": 2399,
+        "sha256": "e01289e12250f778a9d15f67f4af236d609d62772e59b03cceb7c1893a0d1bf4"
+      },
+      "after": {
+        "raw": 11522,
+        "gzip": 2687,
+        "br": 2297,
+        "sha256": "6843ac8d610327a6f9417618cd7af9a7465903e40a446ead3e0804a99c403a90"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 2732,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-instagram-native.min.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-instagram-native.min.js",
+      "before": {
+        "raw": 13806,
+        "gzip": 5074,
+        "br": 4509,
+        "sha256": "8d7be44c945a38b652645e727dcc18ab9376c756f385eed69af9b614d35addd6"
+      },
+      "after": {
+        "raw": 13923,
+        "gzip": 5124,
+        "br": 4561,
+        "sha256": "039235ae09aa1ec069614f1b81e7eb147010622833f2b5e1e82fe004254a39b4"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 5227,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-lenis.min.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-lenis.min.js",
+      "before": {
+        "raw": 17741,
+        "gzip": 4992,
+        "br": 4487,
+        "sha256": "64390df0f8535953a445b37981a8bc940943f9d9f4daa5f21be8fa1fb71bae5d"
+      },
+      "after": {
+        "raw": 17741,
+        "gzip": 4992,
+        "br": 4487,
+        "sha256": "64390df0f8535953a445b37981a8bc940943f9d9f4daa5f21be8fa1fb71bae5d"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 5127,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-logo-marquee.min.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-logo-marquee.min.js",
+      "before": {
+        "raw": 26530,
+        "gzip": 8561,
+        "br": 7736,
+        "sha256": "5fde91a5c80587b3abb46c6f7afff0fda35a69b397a10c2ccb380170429bbbce"
+      },
+      "after": {
+        "raw": 26871,
+        "gzip": 8676,
+        "br": 7840,
+        "sha256": "ef8e1f6024ab22fef6ff9dc7e10fd60ef3a5dcd73b061b4e4da71c039f0f6cab"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 8929,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-motion.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-motion.js",
+      "before": {
+        "raw": 24676,
+        "gzip": 8561,
+        "br": 7785,
+        "sha256": "039089dd7c6970ac31b11a081c7b6907beea31490111e6dd26832e1ef4af2423"
+      },
+      "after": {
+        "raw": 24811,
+        "gzip": 8622,
+        "br": 7835,
+        "sha256": "2941b216a92130f0fabc8383ad00ce83e24e2c4f18c25ea6ac118a77ec9ad18b"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 8869,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-navbar.min.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-navbar.min.js",
+      "before": {
+        "raw": 22726,
+        "gzip": 6130,
+        "br": 5489,
+        "sha256": "76d6cde360a2580f1f79d8b1936a60a70676e40c701ef7d6a0737edebc30fd03"
+      },
+      "after": {
+        "raw": 23841,
+        "gzip": 6245,
+        "br": 5586,
+        "sha256": "a9371c7a02476ac65d5e24133ddfbca81e9af268550c12ffc80692bad562b848"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 6414,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-parallax.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-parallax.js",
+      "before": {
+        "raw": 39361,
+        "gzip": 12108,
+        "br": 10912,
+        "sha256": "747f96427bb95bd3f48778da21c852ec212f3f46a36a680622f880dda3112142"
+      },
+      "after": {
+        "raw": 44817,
+        "gzip": 13961,
+        "br": 12605,
+        "sha256": "0f0aa2e45b4130d55ff043ecbba66c16828ce15b7d8ca3e8d93c981c03712181"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 14474,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-partner-card.css",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-partner-card.css",
+      "before": {
+        "raw": 13379,
+        "gzip": 2286,
+        "br": 1951,
+        "sha256": "9a55989b5d76c7847c1595cb8d37edff4d49a48ce41f08451f5491df8151073b"
+      },
+      "after": {
+        "raw": 13111,
+        "gzip": 2005,
+        "br": 1729,
+        "sha256": "51f490d093f2b5c60da513b7c01ee0802998d055bee1498dbb50c627328f2ae3"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 2044,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-partner-card.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-partner-card.js",
+      "before": {
+        "raw": 5698,
+        "gzip": 2140,
+        "br": 1798,
+        "sha256": "56bd01f9958302482695e4aabdd1c015f5fc64df028dbf87755faf831be70c72"
+      },
+      "after": {
+        "raw": 5698,
+        "gzip": 2140,
+        "br": 1798,
+        "sha256": "56bd01f9958302482695e4aabdd1c015f5fc64df028dbf87755faf831be70c72"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 2073,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-quote-carousel.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-quote-carousel.js",
+      "before": {
+        "raw": 7655,
+        "gzip": 2929,
+        "br": 2578,
+        "sha256": "29ba17533dcfa31352c65631880bae75670663e6d067e7950b8ed4785d9c9d79"
+      },
+      "after": {
+        "raw": 7928,
+        "gzip": 3018,
+        "br": 2663,
+        "sha256": "2d4b9e860382252e88b838dfed4387899b23cdabec469b2baa72c5de7e1da99b"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 3031,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-rendered-progress.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-rendered-progress.js",
+      "before": {
+        "raw": 830,
+        "gzip": 506,
+        "br": 420,
+        "sha256": "502beb1bcd0c9876e2f3f9171b5271382a5870f607c9475d3b496f0ecf7486ef"
+      },
+      "after": {
+        "raw": 864,
+        "gzip": 522,
+        "br": 434,
+        "sha256": "99c3728adf8d591a4a5bcce372233e1de8e63b01e77567437924a4307d262288"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 458,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-review-cards.css",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-review-cards.css",
+      "before": {
+        "raw": 12618,
+        "gzip": 3172,
+        "br": 2753,
+        "sha256": "c8ffee955ebc71d42fff031eff8f4c34754a25cf646902aabd3d7a7e272013a5"
+      },
+      "after": {
+        "raw": 13477,
+        "gzip": 3345,
+        "br": 2885,
+        "sha256": "e4591468bace49f606f7dd5205a1730ab1fa93d59cf23b1b8a5193b2bfda9b0c"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 3406,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-review-cards.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-review-cards.js",
+      "before": {
+        "raw": 15199,
+        "gzip": 5188,
+        "br": 4585,
+        "sha256": "6ce568953c0f3afb12ee20e8b3ee47f866f3e9c8e57119f27788eb207e0cd228"
+      },
+      "after": {
+        "raw": 16150,
+        "gzip": 5495,
+        "br": 4881,
+        "sha256": "a7393c642840ce2d615a50975a029596f4fab56607ce0817af0f4a674571041f"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 5565,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-review-cms.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-review-cms.js",
+      "before": {
+        "raw": 23715,
+        "gzip": 8110,
+        "br": 7175,
+        "sha256": "5171bf70c1b901fdc41aa81092d28cd31e60d95a7678ae7257b6c0de38d674b9"
+      },
+      "after": {
+        "raw": 23715,
+        "gzip": 8110,
+        "br": 7175,
+        "sha256": "5171bf70c1b901fdc41aa81092d28cd31e60d95a7678ae7257b6c0de38d674b9"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 8203,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-review-drawer-template.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-review-drawer-template.js",
+      "before": {
+        "raw": 32352,
+        "gzip": 3553,
+        "br": 2969,
+        "sha256": "ea0bbaf935e088342a7af18e0ede13156a668b09e6150d710a1bc3fabb1a90b5"
+      },
+      "after": {
+        "raw": 32341,
+        "gzip": 3560,
+        "br": 2972,
+        "sha256": "8bccc1802860cf9b48d25fa131dc761732c13368fff2a5219fa56e1acf6b3697"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 3647,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-review-drawer.css",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-review-drawer.css",
+      "before": {
+        "raw": 27269,
+        "gzip": 4597,
+        "br": 3998,
+        "sha256": "de5c24159d5127f3ae4939dad4348c2a930189a60c1779e8013480b8e05d77f9"
+      },
+      "after": {
+        "raw": 27008,
+        "gzip": 4574,
+        "br": 3990,
+        "sha256": "d6cca48fabad8f3ed917fac3a1b31451b52bc8435148739f5c6d8aa1bb383109"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 4802,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-review-introduction.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-review-introduction.js",
+      "before": {
+        "raw": 3573,
+        "gzip": 1506,
+        "br": 1324,
+        "sha256": "eb704ebf37397a246d8615b2081d886ba7985539cc99044161d3128553aa1937"
+      },
+      "after": {
+        "raw": 4272,
+        "gzip": 1659,
+        "br": 1451,
+        "sha256": "50a2c76598399a1254aff481d3f5c2b7e2d8aedea13ccbc929395d9d90728567"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 1636,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-review-widget.css",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-review-widget.css",
+      "before": {
+        "raw": 2358,
+        "gzip": 1027,
+        "br": 847,
+        "sha256": "896eda7545f47316c053755a6bcf2af2f3c90fa12a9835ed7be543f08e527bc8"
+      },
+      "after": {
+        "raw": 2616,
+        "gzip": 1067,
+        "br": 881,
+        "sha256": "4d1db859c76aa6502fc516d3aa96de11d37d47f57bb3f4ff43eaa4062de83d7a"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 1023,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-review-widget.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-review-widget.js",
+      "before": {
+        "raw": 1248,
+        "gzip": 640,
+        "br": 484,
+        "sha256": "29197d0f0216f1c65e5369d62bcfe63a7945525707f33cc9c285b918f4ecbf7d"
+      },
+      "after": {
+        "raw": 1248,
+        "gzip": 640,
+        "br": 484,
+        "sha256": "29197d0f0216f1c65e5369d62bcfe63a7945525707f33cc9c285b918f4ecbf7d"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 582,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-reviews-loader.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-reviews-loader.js",
+      "before": {
+        "raw": 11048,
+        "gzip": 3680,
+        "br": 3248,
+        "sha256": "f0f07004b2e53442bf8c14e30e09abf6f9d9afd5a21de0f6e0ced0187d31044c"
+      },
+      "after": {
+        "raw": 11172,
+        "gzip": 3739,
+        "br": 3296,
+        "sha256": "666b0c925a3e20fcbac8fcc382b50686ebebf68cc361a72ab8ed36c44be9e40c"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 3778,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-reviews.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-reviews.js",
+      "before": {
+        "raw": 19226,
+        "gzip": 6940,
+        "br": 6232,
+        "sha256": "86f59898f00b15acc5c24c9bd8fbb38be7715d1ad3700e0330a48a2ade9a82b8"
+      },
+      "after": {
+        "raw": 20242,
+        "gzip": 7188,
+        "br": 6470,
+        "sha256": "bb91b5981d4e737a7d999b39f48df065d4fd7f813417858bb110c5571a24868b"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 7345,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-runtime.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-runtime.js",
+      "before": {
+        "raw": 67580,
+        "gzip": 18137,
+        "br": 15987,
+        "sha256": "0091413a198b48a34e91076ab07b80b92651270aea5f5da78b42c1c4330e418f"
+      },
+      "after": {
+        "raw": 70373,
+        "gzip": 19084,
+        "br": 16794,
+        "sha256": "01628897d6c0667c2b781ded6d2a2fb95a9ab2cc9f8945f14b81b7893c499722"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 19692,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-slider-focus.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-slider-focus.js",
+      "before": {
+        "raw": 6045,
+        "gzip": 2348,
+        "br": 2086,
+        "sha256": "cf2eea924424fd826b553bbfe17d448d6f454fd374da2156d280847ef3306efa"
+      },
+      "after": {
+        "raw": 6113,
+        "gzip": 2371,
+        "br": 2107,
+        "sha256": "eb12baa585b048ac396087874a1da28be026c8d66d4d90af48bf1bac693e82cb"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 2387,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-slider-ui.css",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-slider-ui.css",
+      "before": {
+        "raw": 2678,
+        "gzip": 831,
+        "br": 699,
+        "sha256": "4e1537f089bb01e526c78258a0ce3b1f47f01830a9fe60c399c0ac7e95a1186f"
+      },
+      "after": {
+        "raw": 3356,
+        "gzip": 999,
+        "br": 844,
+        "sha256": "bacbe4995a6781051d40feceb90fde930531717a4c83dcecf33ae3121b25ee7e"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 964,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-smile-feed.css",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-smile-feed.css",
+      "before": {
+        "raw": 21498,
+        "gzip": 3620,
+        "br": 3128,
+        "sha256": "9100c06494bb4e71027abf79ecdb1c9dbafda1707e1a998c60fc9f3d0bc4d55a"
+      },
+      "after": {
+        "raw": 22294,
+        "gzip": 3500,
+        "br": 3052,
+        "sha256": "93e984b59102158420a132d51e7379189f0173d322092f2fa42f053400b07b82"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 3670,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-smile-feed.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-smile-feed.js",
+      "before": {
+        "raw": 11952,
+        "gzip": 4080,
+        "br": 3549,
+        "sha256": "0b6dac8bd41eb18f16a5c9646ddf0203a8760ac773b6aef798f5eac3014064d6"
+      },
+      "after": {
+        "raw": 12153,
+        "gzip": 4163,
+        "br": 3609,
+        "sha256": "4b2702c7baa1519f5c445354a92f0b281e02ea81fe4bb8d19995b0a4ca3ae2f2"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 4149,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-swiper-8.4.7.min.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-swiper-8.4.7.min.js",
+      "before": {
+        "raw": 97094,
+        "gzip": 29636,
+        "br": 26401,
+        "sha256": "511aba761ef63de47452acc0abb4d6897affdef63ee030c56c448e29f1c0e659"
+      },
+      "after": {
+        "raw": 98466,
+        "gzip": 30121,
+        "br": 26846,
+        "sha256": "1de51ef4b35c64e0982b8f9c81fc8be37d2ce7e683f7f99e9442d0f4371045d8"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 26846,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-ticker.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-ticker.js",
+      "before": {
+        "raw": 1871,
+        "gzip": 934,
+        "br": 795,
+        "sha256": "15dd47ff5af2f864817cb2c8e18a3b8dc087470a08fe2b9b5343d8bce4a93856"
+      },
+      "after": {
+        "raw": 1967,
+        "gzip": 965,
+        "br": 825,
+        "sha256": "b25808b80aa34978a35e08f8f1a9fd290450afecdce5339ec7b0f4740f1f714a"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 931,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-usp-drawer-template.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-usp-drawer-template.js",
+      "before": {
+        "raw": 14930,
+        "gzip": 3156,
+        "br": 2520,
+        "sha256": "ad7d7eb52adac5b9da160fb4f89dba583554a37f4478d092847dfc6098c116f6"
+      },
+      "after": {
+        "raw": 14919,
+        "gzip": 3162,
+        "br": 2524,
+        "sha256": "4ca480ca99db5432007fd2daa1bea69359a6d2ea0c155a05359c89009d9b1c09"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 3075,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-usp-drawer.css",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-usp-drawer.css",
+      "before": {
+        "raw": 7740,
+        "gzip": 1758,
+        "br": 1496,
+        "sha256": "18519ed7e63d290370111fdabb17b0b668483ba592d07e4927f25919d8858c44"
+      },
+      "after": {
+        "raw": 7744,
+        "gzip": 1751,
+        "br": 1488,
+        "sha256": "c86e366f23c7c9f5812db161167cb85efdad9fc017a0390a55e5ac4e3187f14a"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 1746,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-usp-drawer.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-usp-drawer.js",
+      "before": {
+        "raw": 8241,
+        "gzip": 3109,
+        "br": 2772,
+        "sha256": "dee2ba08786fc551e4b9a6781bec8a4c5aef01341400d26f510571f92f1a0483"
+      },
+      "after": {
+        "raw": 8265,
+        "gzip": 3122,
+        "br": 2782,
+        "sha256": "d839142499099d3f98682c71d03c7757cf39fcfe2c84e80d9f432f457f9e6001"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 3154,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-vimeo-loader.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-vimeo-loader.js",
+      "before": {
+        "raw": 2429,
+        "gzip": 1118,
+        "br": 961,
+        "sha256": "2707e9d01f436c580b75b9f824f040d38209b720c8367167a3412341656f9e55"
+      },
+      "after": {
+        "raw": 2429,
+        "gzip": 1118,
+        "br": 961,
+        "sha256": "2707e9d01f436c580b75b9f824f040d38209b720c8367167a3412341656f9e55"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 1085,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-vimeo.css",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-vimeo.css",
+      "before": {
+        "raw": 6544,
+        "gzip": 1002,
+        "br": 863,
+        "sha256": "261986cad7563a5cdb24062aaed0fdce735d4e8d284e337eebf4c6e2e52dbe99"
+      },
+      "after": {
+        "raw": 7799,
+        "gzip": 1361,
+        "br": 1163,
+        "sha256": "019f5781dac0953700b75ff1504dbc8d3e8015247af4c060efc2f69130228729"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 1394,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-vimeo.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-vimeo.js",
+      "before": {
+        "raw": 19403,
+        "gzip": 5415,
+        "br": 4810,
+        "sha256": "7b70f2a315ac7692f82a259f5c03c947f6aed9b2612469448e474b10feb027dc"
+      },
+      "after": {
+        "raw": 20055,
+        "gzip": 5630,
+        "br": 4981,
+        "sha256": "a494ad7718e2869dac913007af88adc144013441e77838fda25d70635f894d15"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 5686,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-vip-chrome.css",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-vip-chrome.css",
+      "before": {
+        "raw": 738,
+        "gzip": 408,
+        "br": 327,
+        "sha256": "5d79562298941d341bb4fbb8f6f5ee231b71b396d537fb0aa3943146fd4fd5b1"
+      },
+      "after": {
+        "raw": 833,
+        "gzip": 437,
+        "br": 357,
+        "sha256": "9dc133aa1ff006729895949e99c8a6df38c641f87d969410ba295e83eb02cba8"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 385,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-vip-content.css",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-vip-content.css",
+      "before": {
+        "raw": 11524,
+        "gzip": 2357,
+        "br": 1997,
+        "sha256": "9b6dc59d08e0dbcf8453fe882d8335ca172861071b1e25f44d56e2de5d6538dd"
+      },
+      "after": {
+        "raw": 10620,
+        "gzip": 2238,
+        "br": 1872,
+        "sha256": "78a5b1a7dfd26c49f2cb455c067e7e97d5486fbd7a3d86754781226e7ab5cdcc"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 2211,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-vip-content.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-vip-content.js",
+      "before": {
+        "raw": 7108,
+        "gzip": 2499,
+        "br": 2010,
+        "sha256": "092a7ba03daade96df22df3d57edd7e906fb8eab6f65595c8bac6ae54a12e96e"
+      },
+      "after": {
+        "raw": 7108,
+        "gzip": 2499,
+        "br": 2010,
+        "sha256": "092a7ba03daade96df22df3d57edd7e906fb8eab6f65595c8bac6ae54a12e96e"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 2401,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-vip-drawer.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-vip-drawer.js",
+      "before": {
+        "raw": 9271,
+        "gzip": 3371,
+        "br": 2939,
+        "sha256": "bd5a01ce242e3ab24e548c8ec778f5270fc4119fa6f88ee4142da9f91877d1b4"
+      },
+      "after": {
+        "raw": 9426,
+        "gzip": 3444,
+        "br": 3022,
+        "sha256": "b7abf679bc7cac3a51ec77e816b36c33b08bfb68c93bdd404543f78613087452"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 3441,
+      "cdnMatchesBuild": true
+    },
+    {
+      "name": "tdb-vip-form.js",
+      "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-vip-form.js",
+      "before": {
+        "raw": 10077,
+        "gzip": 3700,
+        "br": 3200,
+        "sha256": "af62460fe2ad281c8ae2af00fdbceb5c2719637fc5133161aaebe565057425f4"
+      },
+      "after": {
+        "raw": 10077,
+        "gzip": 3700,
+        "br": 3200,
+        "sha256": "af62460fe2ad281c8ae2af00fdbceb5c2719637fc5133161aaebe565057425f4"
+      },
+      "observedEncoding": "br",
+      "observedEncodedBodyBytes": 3698,
+      "cdnMatchesBuild": true
+    }
+  ],
+  "initialAssets": [
+    {
+      "name": "HTML",
+      "assets": [
+        {
+          "url": "https://dentalbarns.webflow.io/",
+          "encoding": "gzip",
+          "raw": 184887,
+          "encodedBodyBytes": 37636,
+          "sha256": "8f2bd8e15175ac359c3067aee96b5a197f31c610a545fc7e20bd333295f06371"
+        }
+      ]
+    },
+    {
+      "name": "Native shared CSS",
+      "assets": [
+        {
+          "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.d6e8c62c0.min.css",
+          "encoding": "br",
+          "raw": 31579,
+          "encodedBodyBytes": 8468,
+          "sha256": "2fc9d38e169006ad97da986202dac0f0d28f0dcd21fc2b94d128f6e60159e29b"
+        }
+      ]
+    },
+    {
+      "name": "Native page CSS",
+      "assets": [
+        {
+          "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.b464f4dea.opt.min.css",
+          "encoding": "br",
+          "raw": 184005,
+          "encodedBodyBytes": 30500,
+          "sha256": "d7f09d49a5114ef6277642b8dd6cd0595244907207328ac1fe52bff82d85807d"
+        }
+      ]
+    },
+    {
+      "name": "UI CSS",
+      "assets": [
+        {
+          "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-ui.css",
+          "encoding": "br",
+          "raw": 15037,
+          "encodedBodyBytes": 2939,
+          "sha256": "7cd68abad897d2b2707df728bce8e0543539c9c76934ed8fdaa3fdd31ce9aada"
+        }
+      ]
+    },
+    {
+      "name": "Startup + foundation",
+      "assets": [
+        {
+          "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-start.min.js",
+          "encoding": "br",
+          "raw": 10673,
+          "encodedBodyBytes": 4135,
+          "sha256": "b49622da952e747c87818fc24b442b944692f23bde39a14078e7a595848b0fc8"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@782454b4d242e7341af7df78e06a749329e33758/dist/tdb-foundation.js",
+          "encoding": "br",
+          "raw": 26759,
+          "encodedBodyBytes": 7595,
+          "sha256": "78319081841cdeb13f1b04aef0106614f0e366162eb8ece9bf7501855bd31a4e"
+        }
+      ]
+    },
+    {
+      "name": "jQuery",
+      "assets": [
+        {
+          "url": "https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=677cf86cf9952f978d94d80c",
+          "encoding": "br",
+          "raw": 89476,
+          "encodedBodyBytes": 30691,
+          "sha256": "f7f6a5894f1d19ddad6fa392b2ece2c5e578cbf7da4ea805b6885eb6985b6e3d"
+        }
+      ]
+    },
+    {
+      "name": "Webflow JS, two files",
+      "assets": [
+        {
+          "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/js/webflow.schunk.36b8fb49256177c8.js",
+          "encoding": "br",
+          "raw": 41429,
+          "encodedBodyBytes": 13676,
+          "sha256": "8b7d0de9f3df9103d70ed000c17b348240623ac4e4053d56fa0d5cfd8d74d79d"
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/js/webflow.66a4bdc9.5021659d711a4831.js",
+          "encoding": "br",
+          "raw": 321674,
+          "encodedBodyBytes": 58829,
+          "sha256": "6926c18b2f5a10d09c3db49bd5dfd24dff43f338d9ffaa029425ffb25543c694"
+        }
+      ]
+    },
+    {
+      "name": "Fonts, two files",
+      "assets": [
+        {
+          "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6acf6e4606b1bbe4a811fef4_subset-SweetSansPro-Light.woff2",
+          "encoding": "identity",
+          "raw": 16572,
+          "encodedBodyBytes": 16572,
+          "sha256": "6f69670bb743e1499362fb6a96514195578e9ae5926e380a0cb68fbb7b3c0b8f"
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6acf6e6d02aa05799b9e9ff7_subset-SweetSansPro-Regular.woff2",
+          "encoding": "identity",
+          "raw": 16476,
+          "encodedBodyBytes": 16476,
+          "sha256": "ef2401c7c5e69e3dd2cdc7476a2eb887841852ea884760f831cd8024f643ab98"
+        }
+      ]
+    },
+    {
+      "name": "Preloaded logo",
+      "assets": [
+        {
+          "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6acf67dcf7d349005ac6277f_the-dental-barns-logo-white.svg",
+          "encoding": "br",
+          "raw": 3808,
+          "encodedBodyBytes": 1638,
+          "sha256": "c855efe918373472bde15cb84118bce39d4e74b23dea4082e38a623425cb2477"
+        }
+      ]
+    }
+  ],
+  "jsonLDCounterfactual": {
+    "before": 23636,
+    "after": 17763,
+    "rawDelta": -5873,
+    "wholeHTMLGzipDelta": -392
+  },
+  "browser": {
+    "viewport": {
+      "width": 1363,
+      "height": 936
+    },
+    "savedDecision": "essential only",
+    "holderHeightsBeforeAndAfterReady": {
+      "smile": 660.8125,
+      "reviews": 721.9375,
+      "instagram": 688
+    },
+    "holderDescendantsAfterReady": {
+      "smile": 169,
+      "reviews": 237,
+      "instagram": 269
+    },
+    "sourceAllElements": 1132,
+    "returnTopAllElements": 1175,
+    "expandedJourneyAllElements": 2898,
+    "preparedReviewDrawerDescendants": 811,
+    "checks": [
+      "Normal Home navigation",
+      "Native Sight disclosure opens",
+      "Smile CSS/controller ready and fixed holder height",
+      "Instagram CSS/controller ready and fixed holder height",
+      "Review cards ready and fixed holder height",
+      "USP first controller-request click opens Practice highlights",
+      "Settled-page review trigger opens Patient reviews",
+      "Review close restores trigger focus and releases root overflow lock"
+    ],
+    "limits": [
+      "No paid run or new LCP/INP trace",
+      "No fresh undecided browser profile",
+      "No network-failure injection",
+      "No mobile viewport or physical touch/device test",
+      "Audio investigation paused"
+    ],
+    "tooltipConsumersAfterMount": 0
+  }
+}

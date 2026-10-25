@@ -1,5 +1,7 @@
 # Home structure and CSS continuation — 25 October 2026
 
+Current whole-page assessment: [complete Home audit](home-full-audit-20261025.md). That report supersedes any implication that this bounded cleanup/variant review completed the full DOM-versus-delivery assessment. This file remains the historical implementation and rollback record.
+
 Later reconciliation: [Home DOM reconciliation](home-dom-reconciliation-20261025.md) compares the exact pre-cleanup snapshot and restores three content-only padding boundaries. It supersedes the earlier retain-all-structure decision below for those three boundaries only. Current HTML is 184,887 bytes and native CSS 215,584 bytes; runtime remains `782454b4`.
 
 Governing reference: [TDB Home architecture and engineering standard](https://chatgpt.com/space/page_c22eaec26d7c819197df9524f243acbd). This continues the integrated cleanup after runtime `34520173d263a2497ed3481a4b4eec3b3e59f757`; it is not a new DOM-count exercise. Publish only to `dentalbarns.webflow.io`.

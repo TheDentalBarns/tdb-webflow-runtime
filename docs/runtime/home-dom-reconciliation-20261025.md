@@ -1,5 +1,7 @@
 # Home DOM reconciliation — 25 October 2026
 
+Scope clarification: this record completes the three-boundary correction, not the full Home audit. The subsequent [complete DOM, CSS and JavaScript audit](home-full-audit-20261025.md) reconciles every major change group, initial and later delivery, actual compression, retained dependencies and next decisions.
+
 Governing reference: [TDB Home architecture and engineering standard](https://chatgpt.com/space/page_c22eaec26d7c819197df9524f243acbd). This compares the exact 22 October pre-cleanup snapshot (`e56f6efb510da0ef966683c60db67fc8cc9f77f1`) with current Home, then corrects one complete relationship. It supersedes the earlier decision to retain all three compensating content-inset classes. Publication is to the Webflow subdomain only.
 
 ## Governing engineering principle
