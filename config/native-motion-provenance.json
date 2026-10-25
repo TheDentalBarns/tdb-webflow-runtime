@@ -1,7 +1,7 @@
 {
   "capturedOn": "2026-10-25",
   "page": "https://dentalbarns.webflow.io/",
-  "runtimeRelease": "8b0455e26fd8f4b621600ae7eefee3f1e2713142",
+  "runtimeRelease": "782454b4d242e7341af7df78e06a749329e33758",
   "generator": "tools/runtime-build/native-motion.cjs",
   "note": "Ordered public stylesheet inputs for the committed timing-only projection. Raw exports remain outside git. Update these URLs and content hashes after auditing a newly published native export; the generator verifies each input before writing. Ordinary motion-profile changes reuse the committed projection. Designer timing references were linked on 2026-10-25; runtimeRelease records the entry installed when the native export was captured. Six Home padding duplicates were replaced with the existing global utility; motion declarations and the timing projection remain unchanged. Seven redundant Home Smile variant responsive overrides were removed on 2026-10-25; retained main/medium values preserve inheritance. Home and Dark variants and all motion declarations remain. The final variant pass removes only the inherited Hero Padding colour in Review Introduction / Dark; its base heading colour remains. The timing projection is unchanged.",
   "inputs": [

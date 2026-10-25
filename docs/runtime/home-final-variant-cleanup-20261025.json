@@ -206,5 +206,83 @@
         "sha256": "bf98d176ea8445efa7d2e6eabd09fcc2b7dec5fe9385b3fc35546a6732247770"
       }
     ]
+  },
+  "gestureRelease": {
+    "release": "782454b4d242e7341af7df78e06a749329e33758",
+    "publishTaskId": "48a2fb69-d1b8-45b0-9e29-f3e65b8d9616",
+    "sizeChanges": [
+      {
+        "file": "dist/tdb-parallax.js",
+        "before": 44717,
+        "after": 44817,
+        "rawDelta": 100,
+        "gzipBefore": 13917,
+        "gzipAfter": 13961
+      },
+      {
+        "file": "dist/tdb-swiper-8.4.7.min.js",
+        "before": 97544,
+        "after": 98466,
+        "rawDelta": 922,
+        "gzipBefore": 29792,
+        "gzipAfter": 30121
+      }
+    ],
+    "cdnVerification": [
+      {
+        "file": "tdb-swiper-8.4.7.min.js",
+        "bytes": 98466,
+        "matches": true,
+        "sha256": "1de51ef4b35c64e0982b8f9c81fc8be37d2ce7e683f7f99e9442d0f4371045d8"
+      },
+      {
+        "file": "tdb-parallax.js",
+        "bytes": 44817,
+        "matches": true,
+        "sha256": "0f0aa2e45b4130d55ff043ecbba66c16828ce15b7d8ca3e8d93c981c03712181"
+      },
+      {
+        "file": "tdb-start.min.js",
+        "bytes": 10673,
+        "matches": true,
+        "sha256": "b49622da952e747c87818fc24b442b944692f23bde39a14078e7a595848b0fc8"
+      },
+      {
+        "file": "tdb-foundation.js",
+        "bytes": 26759,
+        "matches": true,
+        "sha256": "78319081841cdeb13f1b04aef0106614f0e366162eb8ece9bf7501855bd31a4e"
+      },
+      {
+        "file": "tdb-ui.css",
+        "bytes": 15037,
+        "matches": true,
+        "sha256": "7cd68abad897d2b2707df728bce8e0543539c9c76934ed8fdaa3fdd31ce9aada"
+      }
+    ],
+    "publishedVerification": {
+      "release": "782454b4d242e7341af7df78e06a749329e33758",
+      "htmlBytes": 184860,
+      "elements": 1129,
+      "pins": 4,
+      "nativeInputs": [
+        {
+          "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.d6e8c62c0.min.css",
+          "bytes": 31579,
+          "sha256": "2fc9d38e169006ad97da986202dac0f0d28f0dcd21fc2b94d128f6e60159e29b"
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.d61b19270.opt.min.css",
+          "bytes": 184576,
+          "sha256": "bf98d176ea8445efa7d2e6eabd09fcc2b7dec5fe9385b3fc35546a6732247770"
+        }
+      ]
+    },
+    "tests": {
+      "passed": 768,
+      "skipped": 3,
+      "failed": 0
+    },
+    "physicalPhoneFlingVerified": false
   }
 }
