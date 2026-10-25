@@ -60,6 +60,11 @@ Chair decision: adopt these deletions, retain useful DOM boundaries, and priorit
 
 ## Verification and rollback
 
-The assembled before/after CSS rule sequence is identical after ignoring the removed exact repeats and invalid selectorless rules. Build parity, UI preservation, release inventory and whitespace checks pass. All served JavaScript remains byte-identical. Release/browser results are recorded below after publication.
+The assembled before/after CSS rule sequence is identical after ignoring the removed exact repeats and invalid selectorless rules. Build parity, UI preservation, release inventory and whitespace checks pass. All served JavaScript remains byte-identical. The first full run exposed an existing marquee test's strict floating-point equality at approximately 1e-14; that unchanged JavaScript test passed in isolation. The full rerun passed 757 tests, with three existing skips and zero failures. No test or JavaScript was altered to obtain that result.
 
 Rollback: repin all four site references to `34520173d263a2497ed3481a4b4eec3b3e59f757` and publish staging only. Restore the four edited source fragments and their generated CSS through an ordinary repository revert. No functional native or DOM change requires restoration; the source-normalization trial preserved the same authored value and compiled stylesheets.
+
+
+Staging verification: release `8b0455e26fd8f4b621600ae7eefee3f1e2713142`, publish task `d2670a0f-fab4-40fe-96bc-6670390fc936`. All four published pins match. All four changed CSS files plus startup/foundation match their immutable CDN files exactly. Home HTML remains 184,860 bytes; 1,129 total parsed elements (1,093 body descendants), 98 CMS items and 16 lists. Native stylesheet hashes, every authored inline style, link destinations and image attributes match the preceding release.
+
+Desktop browser checks: Sight opens to the settled 180-degree chevron and closes to zero; review filters open and the keyboard-focused View reviews action retains its 2px outline / 3px offset; closing restores review-trigger focus. VIP first opening mounts its form, loads the new deferred stylesheet and retains white fine print/consent labels. The Sonos partner pop-out opens with the new stylesheet and retains zero top/side margins and its original bottom spacing. No form was submitted. Physical mobile devices and forced network failures were not tested; no new performance run or speed claim is made.
