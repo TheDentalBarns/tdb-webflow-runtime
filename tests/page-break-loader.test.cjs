@@ -94,3 +94,21 @@ test('Home speakers use existing images and opt into the native resting scale', 
  assert.ok(e.owners[0].nodes.every(n=>!n.frame),'existing card remains the progress/crop frame');
  api.destroy();e.dom.window.close();
 });
+
+test('shared gallery scroll motion mounts on Home and Location without owning unrelated images', async () => {
+ const gallery='<div class="tdb-service-parallax"><div class="swiper"><img class="showcase_image"></div></div>';
+ for(const markup of [gallery,'<main data-tdb-home-photo-parallax>'+gallery+'</main>']) {
+  const e=setup(markup+'<div class="swiper"><img class="showcase_image"></div><img>');
+  const api=e.start();
+  assert.equal(e.calls.length,0,'keeps the existing proximity gate');
+  assert.equal(e.observers[0].nodes.length,1);
+  e.observers[0].near();await api.refresh();await api.refresh();
+  assert.equal(e.owners.length,1,'refresh must not double-own the gallery');
+  const [photo]=e.owners[0].nodes;
+  assert.equal(e.owners[0].nodes.length,1);
+  assert.equal(photo.wrapper,e.w.document.querySelector('.tdb-service-parallax .swiper'));
+  assert.equal(photo.selector,'.showcase_image');
+  assert.equal(photo.allowEdges,false,'native crop remains bounded');
+  api.destroy();assert.equal(e.owners[0].destroyed,true);e.dom.window.close();
+ }
+});

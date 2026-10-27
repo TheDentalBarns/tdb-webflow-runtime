@@ -189,7 +189,7 @@ test('a sticky image uses section progress while respecting its separate crop fr
   e.dom.window.close();
 });
 
-test('Home discovery includes its photo surfaces but excludes all three feeds and other pages', async () => {
+test('shared gallery discovery includes Home and other pages but excludes all three feeds', async () => {
   const markup =
     '<div class="tdb-service-parallax"><div class="swiper"><img class="showcase_image"></div></div><div class="section_smile-gallery"><img></div><div data-tdb-review-cards><img></div><div class="tdb-home-awards-ig"><img></div>';
   for (const home of [true, false]) {
@@ -216,11 +216,9 @@ test('Home discovery includes its photo surfaces but excludes all three feeds an
         '\npreparePageBreakLoader();',
     );
     await w.TDBPageBreaks.refresh();
-    assert.equal(groups.length, home ? 1 : 0);
-    if (home) {
-      assert.equal(groups[0].length, 1);
-      assert.equal(groups[0][0].selector, '.showcase_image');
-    }
+    assert.equal(groups.length, 1);
+    assert.equal(groups[0].length, 1);
+    assert.equal(groups[0][0].selector, '.showcase_image');
     w.TDBPageBreaks.destroy();
     dom.window.close();
   }

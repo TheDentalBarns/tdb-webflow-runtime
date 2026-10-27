@@ -3235,24 +3235,28 @@ function preparePageBreakLoader() {
     document.querySelectorAll(selector).forEach((node) => {
       if (!mounted.has(node) && eligible(node)) pending.add(node);
     });
-    // Explicit Home photo surfaces; never select every img (logos, UI and the
-    // Smile, Review and Instagram feeds have their own presentation owners).
+    const add = (wrapper, selector, frame, allowEdges = false, restingScale) => {
+      if (!wrapper) return;
+      let photo = photos.get(wrapper);
+      if (!photo) {
+        photo = { wrapper, selector, frame, allowEdges, restingScale };
+        photos.set(wrapper, photo);
+      }
+      if (!mounted.has(photo) && eligible(photo)) pending.add(photo);
+    };
+    // Shared gallery photos use the same scroll owner on every page. Swiper
+    // retains its horizontal transform; page motion owns only translation Y.
+    document
+      .querySelectorAll('.tdb-service-parallax .swiper')
+      .forEach((wrapper) => add(wrapper, '.showcase_image'));
+    // Other explicit Home photo surfaces retain their existing opt-in.
+    // Logos, UI and the Smile, Review and Instagram feeds have separate owners.
     if (home) {
-      const add = (wrapper, selector, frame, allowEdges = false, restingScale) => {
-        if (!wrapper) return;
-        let photo = photos.get(wrapper);
-        if (!photo) {
-          photo = { wrapper, selector, frame, allowEdges, restingScale };
-          photos.set(wrapper, photo);
-        }
-        if (!mounted.has(photo) && eligible(photo)) pending.add(photo);
-      };
       add(
         home.querySelector('.section_hero-vimeo'),
         '.hero-vimeo_background-video-wrapper .vimeo-bg.hero',
         '.hero-vimeo_background-video-wrapper',
       );
-      add(home.querySelector('.tdb-service-parallax .swiper'), '.showcase_image');
       home.querySelectorAll('.section_3-image-layout .aspect-ratio-portrait').forEach((frame) =>
         // A native scale token describes the centred, full-frame resting crop.
         // The same photo can zoom without changing the parallax bounds.
