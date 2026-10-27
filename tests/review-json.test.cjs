@@ -113,6 +113,48 @@ test('explicit introduction topic uses ranked topic excerpts while retaining the
     assert.equal(data.filterIndex.length, 45);
   } finally { w.close(); }
 });
+test('native lead and its cross-post share one contextual order, first batch and cache identity', async () => {
+  const { w, calls } = await setup('/location', s => {
+    s.records[3].snippetRanks = { location: 2 };
+    s.records[3].excerpts.location = 'Native Google lead';
+    s.records[3].duplicate = 'same-patient';
+    s.records[8].snippetRanks = { location: 1 };
+    s.records[8].excerpts.location = 'Facebook cross-post';
+    s.records[8].platform = 'Facebook';
+    s.records[8].duplicate = 'same-patient';
+    s.contexts = [{ id: 'home', paths: ['/'], topics: ['general'] }];
+  });
+  try {
+    const root = w.document.createElement('section');
+    root.setAttribute('data-tdb-review-introduction', '');
+    root.setAttribute('data-tdb-review-topic', 'location');
+    root.innerHTML = '<blockquote data-tdb-review-excerpt data-tdb-review-id="review-4">Native Google lead</blockquote>';
+    w.document.body.append(root);
+    const data = await w.TDBReviewCMS.load();
+    assert.equal(data.power, 'review-4');
+    assert.equal(data.filterIndex[0].id, 'review-4');
+    assert.equal(data.filterIndex.at(-2).id, 'review-9');
+    assert.equal(data.getCached(data.power).displayExcerpt, 'Native Google lead');
+    assert.equal(data.records.length, 20);
+    assert.equal(new URL(calls[1]).searchParams.get('ids').split(',')[0], 'review-4');
+    await data.ensure(['review-4']);
+    assert.equal(calls.length, 2, 'opening the lead must not download the whole queue');
+    assert.equal(data.total, 45);
+    assert.equal(data.average, 4.91);
+    assert.equal(data.filterIndex.length, 45);
+    assert.equal(await w.TDBReviewCMS.load(), data);
+    const state = { sort: 'recommended', rating: [], platform: [], treatment: [], experience: [] };
+    assert.equal(w.TDBReviewCMS.ordered(data.filterIndex, state)[0].id, 'review-4');
+    assert.equal(w.TDBReviewCMS.ordered(data.filterIndex, { ...state, platform: ['Facebook'] })[0].id, 'review-9');
+    assert.equal(w.TDBReviewCMS.ordered(data.filterIndex, { ...state, sort: 'lowest' })[0].id, 'review-25');
+    root.firstElementChild.setAttribute('data-tdb-review-id', 'review-9');
+    const changed = await w.TDBReviewCMS.load();
+    assert.notEqual(changed, data);
+    assert.equal(changed.power, 'review-9');
+    assert.equal(changed.filterIndex.at(-2).id, 'review-4');
+  } finally { w.close(); }
+});
+
 test('JSON downloads only 20 bodies, arbitrary selected IDs preserve caller order and cached bodies are reused', async () => {
   const { w, calls } = await setup();
   try {

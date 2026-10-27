@@ -3,7 +3,7 @@
   'use strict';
   if (window.TDBReviewSelection) return;
   const path = (value) => value.replace(/\/+$/, '') || '/';
-  function select(index, contexts, pathname, override = '') {
+  function select(index, contexts, pathname, override = '', lead = '') {
     const context = override
       ? contexts.find((item) => item.id === override)
       : contexts.find((item) => item.paths.includes(path(pathname)));
@@ -16,6 +16,7 @@
     const low = (row) => row.rating !== null && row.rating < 5;
     rows.sort(
       (a, b) =>
+        Number(b.id === lead) - Number(a.id === lead) ||
         Number(low(a)) - Number(low(b)) ||
         Number(matched(b)) - Number(matched(a)) ||
         (matched(a) && matched(b)
@@ -25,14 +26,16 @@
         a.rank - b.rank ||
         a.id.localeCompare(b.id),
     );
-    // Keep every platform review. The strongest version stays in its ranked
-    // position; further cross-posts sit just before the lower-rated reviews.
+    // The native CMS lead owns position one and its duplicate group's primary
+    // slot. Other cross-posts sit just before the lower-rated reviews.
     const seen = new Set(),
       primary = [],
       crossposts = [],
       lowerRated = [];
     for (const row of rows) {
-      if (low(row)) {
+      if (row.id === lead) {
+        primary.push(row);
+      } else if (low(row)) {
         lowerRated.push(row);
       } else if (row.duplicate && seen.has(row.duplicate)) {
         crossposts.push(row);

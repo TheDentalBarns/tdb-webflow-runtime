@@ -12,6 +12,26 @@ const row = (i, extra = {}) => ({
   snippetRanks: {},
   ...extra,
 });
+test('native lead owns first position and duplicate priority without losing any reviews', () => {
+  const w = new JSDOM('', { runScripts: 'outside-only' }).window;
+  try {
+    w.eval(source);
+    const rows = [
+      row(1, { duplicate: 'same-patient', snippetRanks: { location: 1 } }),
+      row(2, { duplicate: 'same-patient', snippetRanks: { location: 2 } }),
+      row(3, { snippetRanks: { location: 3 } }),
+      row(4),
+      row(5, { rating: 4 }),
+    ];
+    const contexts = [{ id: 'location', paths: ['/location'], topics: ['location'] }];
+    const select = (lead) => Array.from(
+      w.TDBReviewSelection.select(rows, contexts, '/location', '', lead), r => r.id,
+    );
+    assert.deepEqual(select('review-2'), ['review-2', 'review-3', 'review-4', 'review-1', 'review-5']);
+    assert.deepEqual(select('unpublished'), select(''));
+    assert.deepEqual(rows.map(r => r.id), ['review-1', 'review-2', 'review-3', 'review-4', 'review-5']);
+  } finally { w.close(); }
+});
 test('all 50 topic matches precede fallback; cross-posts retained before low ratings; stable shared positions', () => {
   const w = new JSDOM('', { runScripts: 'outside-only' }).window;
   try {

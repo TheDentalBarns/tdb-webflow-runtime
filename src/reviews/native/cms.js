@@ -404,17 +404,19 @@
         document
           .querySelector('[data-tdb-review-context]')
           ?.getAttribute('data-tdb-review-context') || '';
-      const topic = canonicalTopic(
-        document
-          .querySelector(
-            '[data-tdb-review-introduction][data-tdb-review-topic]:not([data-tdb-review-topic=""])',
-          )
-          ?.getAttribute('data-tdb-review-topic') || '',
-      );
+      const introduction =
+        document.querySelector(
+          '[data-tdb-review-introduction][data-tdb-review-topic]:not([data-tdb-review-topic=""])',
+        ) || document.querySelector('[data-tdb-review-introduction]');
+      const topic = canonicalTopic(introduction?.getAttribute('data-tdb-review-topic') || '');
+      const lead =
+        introduction
+          ?.querySelector('[data-tdb-review-excerpt][data-tdb-review-id]')
+          ?.getAttribute('data-tdb-review-id') || '';
       return window.TDBReviewJSON.load(feed, {
         signal,
         resolveIdentity,
-        context: location.pathname + ':' + override + ':' + topic,
+        context: location.pathname + ':' + override + ':' + topic + ':' + lead,
         order: (index, snapshot) =>
           (topic &&
             window.TDBReviewSelection?.select(
@@ -422,6 +424,7 @@
               [{ id: topic, paths: [], topics: [topic] }],
               location.pathname,
               topic,
+              lead,
             )) ||
           (snapshot.contexts &&
             window.TDBReviewSelection?.select(
@@ -429,6 +432,7 @@
               snapshot.contexts,
               location.pathname,
               override,
+              lead,
             )) ||
           orderForContext(index, context),
       });
