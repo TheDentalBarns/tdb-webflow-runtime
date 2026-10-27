@@ -425,10 +425,10 @@
       "sources": [
         "src/reviews/native/introduction.js"
       ],
-      "sha256": "50a2c76598399a1254aff481d3f5c2b7e2d8aedea13ccbc929395d9d90728567",
-      "raw": 4272,
-      "gzip": 1659,
-      "brotli": 1451
+      "sha256": "57773b2111d46fdf57b25234fcbd6b57b77590cb5c11bb8d3dc637a85d02680e",
+      "raw": 4305,
+      "gzip": 1686,
+      "brotli": 1481
     },
     "dist/tdb-review-list-loader.js": {
       "sources": [
@@ -489,10 +489,10 @@
       "sources": [
         "src/reviews/native/loader.js"
       ],
-      "sha256": "50040b01146102d690db777ad5b2865238e3af5102f83cbae4b31ee6beb8fe1d",
-      "raw": 11318,
-      "gzip": 3782,
-      "brotli": 3329
+      "sha256": "578b8f1790df2f41a4c4a0e51e29285bb8ed90656997e5875db97a0227a457ad",
+      "raw": 11381,
+      "gzip": 3788,
+      "brotli": 3331
     },
     "dist/tdb-reviews.js": {
       "sources": [

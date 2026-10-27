@@ -24,18 +24,23 @@
   const drawerRoot = () => document.querySelector('[data-tdb-reviews]');
   const lazyRoot = () => document.querySelector('[data-tdb-review-lazy]');
   function hydratePower(root, data) {
-    const record = data.power && data.getCached(data.power);
-    if (!record || !root) return;
-    const topic = root.getAttribute('data-tdb-review-topic');
-    // A configured topic must never reveal the shared native general excerpt.
-    // Keep its existing reserved space if the CMS has no matching quotation.
-    if (topic && !record.excerpts?.[topic]) return;
+    if (!root) return;
     const quote = root.querySelector('[data-tdb-review-excerpt]');
     const author = root.querySelector('[data-tdb-review-author]');
     if (!quote || !author) return;
-    quote.textContent = topic ? record.excerpts[topic] : (record.displayExcerpt ?? record.excerpt);
-    quote.setAttribute('data-tdb-review-id', record.id);
-    author.textContent = record.name;
+    // A native CMS identity makes Designer/published HTML authoritative. The
+    // contextual feed may rank a secondary cross-post first; never substitute it.
+    const nativeId = quote.getAttribute('data-tdb-review-id');
+    const record = (nativeId || data.power) && data.getCached(nativeId || data.power);
+    if (!record) return;
+    const topic = root.getAttribute('data-tdb-review-topic');
+    if (!nativeId) {
+      // Compatibility for introductions that have not migrated to native excerpts.
+      if (topic && !record.excerpts?.[topic]) return;
+      quote.textContent = topic ? record.excerpts[topic] : (record.displayExcerpt ?? record.excerpt);
+      quote.setAttribute('data-tdb-review-id', record.id);
+      author.textContent = record.name;
+    }
     const platforms = [...root.querySelectorAll('.review-intro_platform')];
     const platform = platforms[0];
     platforms.slice(1).forEach((node) => node.remove());

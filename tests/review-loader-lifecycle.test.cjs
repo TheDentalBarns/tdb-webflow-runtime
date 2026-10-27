@@ -48,6 +48,30 @@ function setup(html='<section data-tdb-review-introduction><button data-tdb-revi
     close(){w.TDBReviewLoader?.destroy();w.TDBReviewFeatureLoader?.destroy();w.close();}};
 }
 const drawerFiles=/tdb-(drawer|filters|reviews|review-drawer)/;
+for (const cached of [true, false]) test('native excerpt survives contextual cross-post selection and opens its own review: '+cached,async()=>{
+ const e=setup('<section data-tdb-review-introduction data-tdb-review-topic="location"><button data-tdb-review-trigger><blockquote data-tdb-review-excerpt data-tdb-review-id="native-lead">Native Location excerpt</blockquote><span data-tdb-review-author>Native author</span></button></section><div data-tdb-review-lazy></div>');
+ const root=e.w.document.querySelector('section'),quote=root.querySelector('blockquote'),author=root.querySelector('span');
+ e.data.power='secondary-cross-post';
+ e.data.getCached=id=>id==='native-lead'?(cached?{id,name:'Native author',excerpts:{location:'Newer feed text'}}:null):{id,name:'Other author',excerpts:{location:'Secondary excerpt'}};
+ try {
+  e.run();e.near(root);await tick();
+  assert.equal(quote.textContent,'Native Location excerpt');
+  assert.equal(author.textContent,'Native author');
+  await e.w.TDBReviewLoader.open({trigger:root.querySelector('button')});
+  assert.equal(e.stats().opens[0].id,'native-lead');
+  assert.equal(quote.textContent,'Native Location excerpt');
+ }finally{e.close();}
+});
+test('native excerpt stays readable when deferred dependencies fail',async()=>{
+ const e=setup('<section data-tdb-review-introduction data-tdb-review-topic="location"><button data-tdb-review-trigger><blockquote data-tdb-review-excerpt data-tdb-review-id="native-lead">Native Location excerpt</blockquote><span data-tdb-review-author>Native author</span></button></section>',{loadGate:async()=>{throw Error('offline');}});
+ try{
+  const root=e.w.document.querySelector('section'),quote=root.querySelector('blockquote');
+  e.run();e.near(root);await tick();
+  assert.equal(quote.textContent,'Native Location excerpt');
+  assert.equal(e.w.getComputedStyle(quote).visibility,'visible');
+  assert.equal(e.stats().mounts,0);
+ }finally{e.close();}
+});
 for (const matching of [true, false]) test('topic introduction reveals only a matching CMS excerpt: '+matching, async()=>{
  const e=setup('<section data-tdb-review-introduction data-tdb-review-topic="location"><div class="review-intro_quote-host" data-tdb-review-trigger><blockquote data-tdb-review-excerpt>General fallback</blockquote><span data-tdb-review-author>Original author</span></div></section>');
  const root=e.w.document.querySelector('section'),before=root.querySelectorAll('*').length;

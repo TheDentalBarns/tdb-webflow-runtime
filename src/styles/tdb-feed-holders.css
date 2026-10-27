@@ -14,8 +14,3 @@
 
 /* Park the native progress bar until the existing lazy carousel borrows it. */
 [data-tdb-review-placeholder]>.tdb-review-embed-progress{visibility:hidden}
-
-/* Topic-specific introductions reuse the native quote elements. Before the
- * consent/proximity-gated data arrives, reserve their geometry without showing
- * the component's general CMS fallback. Home's empty topic is unaffected. */
-[data-tdb-review-introduction][data-tdb-review-topic]:not([data-tdb-review-topic=""]):not([data-tdb-review-topic-ready]) .review-intro_quote-host{visibility:hidden}

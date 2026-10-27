@@ -18,3 +18,15 @@ test('live total seeds 87 to 88, preserves formatting and never rewinds on remou
 test('zero counts never become negative and reduced motion shows the actual total immediately',()=>{
  for(const options of [{count:0},{count:88,reduced:true}]){const e=setup(options);try{const mounted=e.w.TDBReviewIntroduction.mount(e.root);assert.equal(e.value(),`(${options.count})`);e.show();assert.equal(e.animations.length,0);mounted.destroy();}finally{e.close();}}
 });
+
+test('current native total remains a readable fallback and still progresses once after enhancement',()=>{
+ const e=setup({count:90});try{
+  e.root.querySelector('.review-number_value').textContent='(90)';
+  assert.equal(e.value(),'(90)');
+  let mounted=e.w.TDBReviewIntroduction.mount(e.root);
+  assert.equal(e.value(),'(89)');e.show();mounted.destroy();
+  assert.equal(e.value(),'(90)');
+  mounted=e.w.TDBReviewIntroduction.mount(e.root);
+  assert.equal(e.value(),'(90)');mounted.destroy();
+ }finally{e.close();}
+});

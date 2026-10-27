@@ -3,6 +3,7 @@
   'use strict';
   if (window.TDBReviewIntroduction) return;
   const instances = new WeakMap();
+  const primedCounts = new WeakSet();
   function hydrateSummary(root, summary) {
     if (!summary) return;
     const { total, average } = summary;
@@ -79,14 +80,18 @@
         // keeps its value when consent/lifecycle changes remount the component.
         if (
           !rating &&
-          (slot.querySelector('.review-number_value') || slot).textContent.trim() !== text
+          (!primedCounts.has(slot) ||
+            (slot.querySelector('.review-number_value') || slot).textContent.trim() !== text)
         )
           ticker.update(
             format(window.TDBMotion.reduced?.matches ? target : Math.max(0, target - 1)),
             1,
             false,
           );
-        if (!rating) slot.style.visibility = 'visible';
+        if (!rating) {
+          primedCounts.add(slot);
+          slot.style.visibility = 'visible';
+        }
         return { ticker, text };
       })
       .filter(Boolean);
