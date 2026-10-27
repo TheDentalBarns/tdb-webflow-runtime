@@ -8,7 +8,7 @@ Home Services and Location have source-specific assembly components, **Parallax 
 
 Webflow collection properties support query settings, not a per-instance collection source. A native slot adds a wrapper. The source-specific assemblies preserve the existing Home tree while keeping card and control maintenance shared. This constraint was disclosed before implementation.
 
-The card exposes Blurb, Title, Image, Image description and an optional service destination. Home retains its Services bindings and curated selection. Location binds the same card to Practice Gallery fields; Use service link is false, with native omission of hidden markup to be verified in the published HTML. Location uses a curated five-record selection in this order: Thoughtful comforts; A calmer kind of care; Room to unwind; A warm welcome; Look up and relax. Its photographs are unlinked.
+The card exposes Blurb, Title, Image, Image description and an optional service destination. Home retains its Services bindings and curated selection. Location binds the same card to Practice Gallery fields; Use service link is false. Published HTML confirms zero anchors inside Location slides, five image elements and one native First Visit action. Location uses a curated five-record selection in this order: Thoughtful comforts; A calmer kind of care; Room to unwind; A warm welcome; Look up and relax. Its photographs are unlinked.
 
 The native actions retain their direct text plus existing arrow element: Discover service on Home and First Visit on Location. A label property on the mixed-content link would replace the arrow, while a separate text wrapper would add Home markup. The two native labels therefore share `tdb-service-discover` styling and the same external interaction lifecycle. The native First Visit URL is `/first-visit` and works without JavaScript. Do not replace it with a placeholder or per-image hidden link.
 
@@ -16,19 +16,44 @@ The native actions retain their direct text plus existing arrow element: Discove
 
 `src/sliders/parallax-controls.js` recognises `data-tdb-parallax-link-mode="fixed"` on the gallery assembly. It reads the existing native action as the destination for each slide, then uses the unchanged CTA lifecycle: first arrow replay, movement suppression, hover/touch state, history restoration, disposal and remounting. Restored slide index takes precedence when every slide shares one destination. No gallery-specific motion engine, stylesheet, network fetch or generated CTA is added.
 
-The existing slider loader, consent/preparation gates, CSS-before-mount requirement, shared Swiper adapter, rendered progress, focus and scroll locking remain authoritative. TDBMotionProfile/TDBMotion still own timing, easing, pace and the existing 20px blur. The code change is in the existing deferred parallax bundle; initial startup/foundation and shared CSS are unchanged.
+The existing slider loader, consent/preparation gates, CSS-before-mount requirement, shared Swiper adapter, rendered progress, focus and scroll locking remain authoritative. TDBMotionProfile/TDBMotion still own timing, easing, pace and the existing 20px blur. Initial startup/foundation and shared CSS are unchanged.
+
+Vertical page-scroll parallax also belongs to the shared gallery. `src/runtime/page-break-loader.js` discovers `.tdb-service-parallax .swiper` on every page, outside the Home-only photo opt-in. It passes the existing `.showcase_image` elements to `TDBMotion.pageBreaks`, retaining its proximity gate, bounded native crop, visible-frame preservation, scroll-driven movement and teardown. The same owner applies vertical CSS `translate` to originals and loop clones while Swiper retains horizontal `transform`. No separate Location scroll engine, timing constant or Designer attribute is needed. Other Home-only photo surfaces retain their opt-in; unrelated feeds remain excluded.
 
 ## Assessment and validation
 
 This change follows the [canonical engineering standard](https://chatgpt.com/space/page_c22eaec26d7c819197df9524f243acbd) and the site's home-engineering-standard, shared-artwork-and-html-budget and full-motion-design-review rules.
 
-- Startup/LCP: one image per card and removal of repeated native links reduce Location markup; no new early script or stylesheet is requested. Published combined sizes and Home element parity must be checked before certification. This is not a measured speed claim.
+- Startup/LCP: one image per card and removal of repeated native links reduce Location markup; startup/foundation and shared CSS are unchanged. Published combined sizes and Home element parity are recorded below. This is not a measured speed claim.
 - Interaction: gallery navigation and its fixed native action use the existing shared lifecycle; tests cover destination stability, busy-click suppression, disposal/remount and precise browser-Back restoration.
-- Visual/readiness: the same native geometry, copy presentation, arrows, progress and motion are reused. Native CMS content is visible before enhancement; desktop/mobile and initial fallback checks are release gates.
+- Visual/readiness: the same native geometry, copy presentation, arrows, progress and motion are reused. Initial HTML contains CMS content and the First Visit URL before enhancement. Browser checks cover desktop, 390px portrait and an 844×390 short viewport.
 - Maintenance: edit photographs, titles, blurbs and descriptions in Practice Gallery; edit order in its curated list. Shared card/control changes apply to both assemblies. No live CMS data is copied into JavaScript.
 
-Build parity passed. The full suite passed 783 tests with three existing skips and zero failures on the final run. An earlier run hit an unrelated marquee strict floating-point comparison (89.30406400000001 versus 89.304064); its focused rerun and the complete rerun passed without changing marquee code. Browser, native HTML and combined payload evidence will be appended after staging verification. Physical-device compositor checks and new performance benchmarks are not claimed.
+Build parity passed. The final full suite passed 784 tests with three existing skips and zero failures (787 total). Coverage includes fixed-link restoration, shared gallery discovery outside Home, unique ownership across refresh and crop-safe image movement. The old Home-only discovery assertion was updated for the intended shared contract. An earlier run hit an unrelated marquee strict floating-point comparison (89.30406400000001 versus 89.304064); its focused rerun and the complete rerun passed without changing marquee code.
+
+Published initial elements: Home remains 1,132, including 49 descendants inside the gallery. Location falls from 1,606 to 1,555; gallery descendants fall from 95 to 44. Home retains all five service images, links, titles and blurbs. Its normalized gallery differences are image attribute ordering and removal of a redundant static CTA aria-label; visible native text supplies the same accessible name before enhancement. No Home wrapper was added.
+
+| Affected delivery versus review-counter release | Raw bytes | Controlled gzip bytes |
+| --- | ---: | ---: |
+| Home HTML | +2 | +4 |
+| Location HTML | −15,092 | −965 |
+| Home native CSS | 0 | 0 |
+| Location native CSS | +1,105 | +121 |
+| Existing deferred parallax JS | +149 | +65 |
+| Existing deferred runtime JS | +24 | +2 |
+| Startup, foundation and shared UI CSS | 0 | 0 |
+| Combined affected Location delivery | **−13,814** | **−777** |
+
+Native Location CSS growth is the compiler export of reused CTA/progress definitions and repeated declarations; no new style definition was authored. Home native CSS is byte-identical. HTML totals include publication-dependent bytes; compression is consistent local gzip, not observed network transfer. The five checked CDN assets match committed build bytes. The combined table excludes photographic transfer and unrelated resources.
+
+At 1280×720, both galleries measure 1203.21×756px; at 390×844 both measure 390×886.20px. Location's title, copy, image, native action and arrows render correctly at portrait width; short viewport controls fit without horizontal page overflow. Next and Previous work. First Visit from Room to unwind opens `/first-visit`; browser Back restores slide 3/5. Home's Discover service continues to follow its active service. Vertical page-scroll checks show image translation changing from about −4.64px to +3.62px with horizontal transforms preserved. No TDB warnings/errors were captured in the checked Location tab. The standard Swiper loop still creates its normal runtime clones; five native image nodes does not imply five runtime nodes.
+
+Native fallback was verified from published HTML, not a separate JavaScript-disabled browser run. The 844×390 check uses a desktop pointer and is not physical-phone landscape certification. Physical-device compositor checks, touch-fling acceptance and new performance benchmarks remain unverified. Desktop/mobile screenshots, raw HTML, CSS diffs, size calculations, CDN copies and browser scroll observations are saved in `location-gallery-evidence` outside the repository.
+
+## Editorial maintenance
+
+Edit **CMS → Practice Gallery**: Name supplies the slide title, Blurb supplies its short description, Main image supplies the single photograph at every breakpoint, and Alt text describes that photograph. Update the existing record to retain its curated placement. To add or reorder a photograph, edit the Practice Gallery assembly's curated Collection List selection. Keep Use service link false; change the assembly's First Visit destination property only if its common destination changes. The five supplied titles/blurbs are drafts for David to refine. Do not create separate hidden mobile images or per-slide First Visit links.
 
 ## Release and rollback
 
-Staging only. The previous runtime installation is `d1f962b2a3849ac7c073d9a4997df29d7806afee`; restore its four immutable install references and publish only the Webflow subdomain to roll back runtime behaviour. Native baseline trees, exact install code and source image references are saved outside this repository in `location-gallery-evidence`. The original Location gallery must be restored together with an old runtime if removing the fixed-action contract. Keep the Practice Gallery CMS content available during rollback. Do not delete unrelated components or CMS records.
+Staging only. Current runtime installation is `6623aa6f837afabee6a609dcbf0ba20c44f815c9`, following gallery component/fixed-action commit `2256a14ae686f936b66bafd109e374963acaf0bf`. The previous runtime installation is `d1f962b2a3849ac7c073d9a4997df29d7806afee`; restore its four immutable install references and publish only the Webflow subdomain to roll back runtime behaviour. Native baseline trees, exact install code and source image references are saved outside this repository in `location-gallery-evidence`. The original Location gallery must be restored together with an old runtime if removing the fixed-action contract. Keep the Practice Gallery CMS content available during rollback. Do not delete unrelated components or CMS records.
