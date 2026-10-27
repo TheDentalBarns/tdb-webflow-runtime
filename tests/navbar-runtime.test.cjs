@@ -62,6 +62,31 @@ function fixture(width = 448, consent = true, registry = true) {
   };
 }
 
+for (const width of [448, 834, 1363]) test(`transparent navbar keeps the mobile hero hold at ${width}px`, async () => {
+  const f = fixture(width);
+  const frames = new Map(); let frameId = 0;
+  f.w.requestAnimationFrame = fn => { frames.set(++frameId, fn); return frameId; };
+  f.w.cancelAnimationFrame = id => frames.delete(id);
+  const drain = () => { for (let turn = 0; frames.size && turn < 10; turn++) { const batch = [...frames.values()]; frames.clear(); batch.forEach(fn => fn()); } };
+  const scroll = y => { f.w.scrollY = y; f.w.dispatchEvent(new f.w.Event('scroll')); drain(); };
+  try {
+    f.enhance(); await flush(); drain();
+    assert.equal(f.nav.style.position, 'absolute');
+    scroll(600); scroll(400);
+    assert.equal(f.nav.style.position, 'absolute', 'upward movement within 75vh must not reveal a fixed navbar');
+    scroll(1100); scroll(900);
+    assert.equal(f.nav.style.position, 'fixed', 'upward movement beyond 75vh reveals the shared sticky navbar');
+    assert.equal(f.nav.style.transform, 'translateY(0)');
+    scroll(1200);
+    assert.equal(f.nav.style.transform, 'translateY(-100%)');
+    scroll(400);
+    assert.equal(f.nav.style.position, 'absolute', 'hidden sticky bar returns to the original hero placement');
+    scroll(0);
+    assert.equal(f.nav.style.position, 'absolute');
+    assert.equal(f.nav.style.transform, 'translateY(0)');
+  } finally { f.dom.window.close(); }
+});
+
 test('basic navigation locks before consent, retains lock through closing, and preserves document state', async () => {
   const f = fixture(448, false);
   try {
@@ -122,7 +147,7 @@ test('open menu survives consent handoff; enhancement begins only after the nati
     await f.open(); f.enhance();
     assert.equal(f.w.TDBNavbar, undefined); assert.equal(f.w.TDBNavbarLoader.status().waitingForClose, true);
     await f.closeStart(); assert.equal(f.w.TDBNavbar, undefined);
-    await f.closeEnd(); assert.equal(f.w.TDBNavbar.version, '1.6.0'); assert.equal(f.w.TDBScrollLock.active, false);
+    await f.closeEnd(); assert.equal(f.w.TDBNavbar.version, '1.7.0'); assert.equal(f.w.TDBScrollLock.active, false);
   } finally { f.dom.window.close(); }
 });
 

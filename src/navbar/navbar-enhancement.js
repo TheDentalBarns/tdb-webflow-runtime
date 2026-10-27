@@ -135,7 +135,9 @@
           k = 0,
           _ = [],
           L = i <= 4;
-        const S = () => n && a.matches;
+        // Transparent variants share the mobile hero hold at every breakpoint.
+        // Keep the authored bar in the page until the existing 75vh reveal gate.
+        const S = () => n;
         function E() {
           _ = [
             ...document.querySelectorAll(
@@ -244,7 +246,7 @@
         }
         if (
           ((window.TDBNavScroll = Object.freeze({
-            version: '1.1.0',
+            version: '1.2.0',
             get clearSurface() {
               return n && !u;
             },
@@ -859,7 +861,7 @@
         );
       })(),
       (window.TDBNavbar = Object.freeze({
-        version: '1.6.0',
+        version: '1.7.0',
       })));
   };
   window.TDBNavbarLoader ? window.TDBNavbarLoader.register(t) : t();

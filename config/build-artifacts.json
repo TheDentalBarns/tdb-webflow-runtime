@@ -324,9 +324,9 @@
         "src/shared/panel-motion.js",
         "src/navbar/navbar-enhancement.js"
       ],
-      "sha256": "a9371c7a02476ac65d5e24133ddfbca81e9af268550c12ffc80692bad562b848",
-      "raw": 23841,
-      "gzip": 6245,
+      "sha256": "7360e8faad5c344891171c8fcb2c61931d8d0b54e367c202546b4a1bb963334d",
+      "raw": 23830,
+      "gzip": 6246,
       "brotli": 5586
     },
     "dist/tdb-parallax.js": {
