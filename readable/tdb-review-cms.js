@@ -914,11 +914,25 @@
         document
           .querySelector('[data-tdb-review-context]')
           ?.getAttribute('data-tdb-review-context') || '';
+      const topic = canonicalTopic(
+        document
+          .querySelector(
+            '[data-tdb-review-introduction][data-tdb-review-topic]:not([data-tdb-review-topic=""])',
+          )
+          ?.getAttribute('data-tdb-review-topic') || '',
+      );
       return window.TDBReviewJSON.load(feed, {
         signal,
         resolveIdentity,
-        context: location.pathname + ':' + override,
+        context: location.pathname + ':' + override + ':' + topic,
         order: (index, snapshot) =>
+          (topic &&
+            window.TDBReviewSelection?.select(
+              index,
+              [{ id: topic, paths: [], topics: [topic] }],
+              location.pathname,
+              topic,
+            )) ||
           (snapshot.contexts &&
             window.TDBReviewSelection?.select(
               index,

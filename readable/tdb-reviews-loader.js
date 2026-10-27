@@ -26,10 +26,14 @@
   function hydratePower(root, data) {
     const record = data.power && data.getCached(data.power);
     if (!record || !root) return;
+    const topic = root.getAttribute('data-tdb-review-topic');
+    // A configured topic must never reveal the shared native general excerpt.
+    // Keep its existing reserved space if the CMS has no matching quotation.
+    if (topic && !record.excerpts?.[topic]) return;
     const quote = root.querySelector('[data-tdb-review-excerpt]');
     const author = root.querySelector('[data-tdb-review-author]');
     if (!quote || !author) return;
-    quote.textContent = record.displayExcerpt ?? record.excerpt;
+    quote.textContent = topic ? record.excerpts[topic] : (record.displayExcerpt ?? record.excerpt);
     quote.setAttribute('data-tdb-review-id', record.id);
     author.textContent = record.name;
     const platforms = [...root.querySelectorAll('.review-intro_platform')];
@@ -48,6 +52,7 @@
     }
     const trigger = quote.closest('[data-tdb-review-trigger]');
     trigger?.setAttribute('aria-label', 'Read full review by ' + record.name);
+    if (topic) root.setAttribute('data-tdb-review-topic-ready', '');
   }
   function allowed() {
     if (disposed) return false;

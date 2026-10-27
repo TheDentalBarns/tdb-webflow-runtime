@@ -48,6 +48,18 @@ function setup(html='<section data-tdb-review-introduction><button data-tdb-revi
     close(){w.TDBReviewLoader?.destroy();w.TDBReviewFeatureLoader?.destroy();w.close();}};
 }
 const drawerFiles=/tdb-(drawer|filters|reviews|review-drawer)/;
+for (const matching of [true, false]) test('topic introduction reveals only a matching CMS excerpt: '+matching, async()=>{
+ const e=setup('<section data-tdb-review-introduction data-tdb-review-topic="location"><div class="review-intro_quote-host" data-tdb-review-trigger><blockquote data-tdb-review-excerpt>General fallback</blockquote><span data-tdb-review-author>Original author</span></div></section>');
+ const root=e.w.document.querySelector('section'),before=root.querySelectorAll('*').length;
+ e.data.power='chosen';e.data.getCached=()=>({id:'chosen',name:'Location author',excerpt:'Unrelated general excerpt',displayExcerpt:'Unrelated general excerpt',excerpts:matching?{location:'Exact location quotation'}:{}});
+ try {
+  e.run();e.near(root);await tick();
+  assert.equal(root.hasAttribute('data-tdb-review-topic-ready'),matching);
+  assert.equal(root.querySelector('[data-tdb-review-excerpt]').textContent,matching?'Exact location quotation':'General fallback');
+  assert.equal(root.querySelector('[data-tdb-review-excerpt]').getAttribute('data-tdb-review-id'),matching?'chosen':null);
+  assert.equal(root.querySelectorAll('*').length,before,'existing elements are reused');
+ } finally {e.close();}
+});
 const entryPoints = [
  ['count', '<button data-tdb-review-trigger>Read our reviews</button>'],
  ['power', '<section data-tdb-review-introduction><button data-tdb-review-trigger>Power review</button></section>'],

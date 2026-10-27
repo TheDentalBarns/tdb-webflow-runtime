@@ -334,6 +334,11 @@ html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-contro
 /* Park the native progress bar until the existing lazy carousel borrows it. */
 [data-tdb-review-placeholder]>.tdb-review-embed-progress{visibility:hidden}
 
+/* Topic-specific introductions reuse the native quote elements. Before the
+ * consent/proximity-gated data arrives, reserve their geometry without showing
+ * the component's general CMS fallback. Home's empty topic is unaffected. */
+[data-tdb-review-introduction][data-tdb-review-topic]:not([data-tdb-review-topic=""]):not([data-tdb-review-topic-ready]) .review-intro_quote-host{visibility:hidden}
+
 /* Compact hero preserves the existing full-frame hit area and glass owner. */
 @keyframes tdbHeroControlEnter{from{opacity:0}to{opacity:1}}
 [data-vimeo-hero-shell] .tdb-hero-toggle-art{animation:tdbHeroControlEnter calc(200ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-out) calc(100ms * var(--tdb-motion-pace,1)) backwards}

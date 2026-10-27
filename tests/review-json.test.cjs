@@ -90,6 +90,29 @@ async function setup(page = '/', editSnapshot) {
     dom.window.eval(fs.readFileSync(path.join(__dirname, '../src/reviews/native', file), 'utf8'));
   return { w: dom.window, calls, network, snapshot };
 }
+
+test('explicit introduction topic uses ranked topic excerpts while retaining the complete review total', async () => {
+  const { w } = await setup('/location', s => {
+    s.records[3].snippetRanks = { location: 2 };
+    s.records[3].excerpts.location = 'Second location quotation';
+    s.records[8].snippetRanks = { location: 1 };
+    s.records[8].excerpts.location = 'First location quotation';
+    s.contexts = [{ id: 'home', paths: ['/'], topics: ['general'] }];
+  });
+  try {
+    const root = w.document.createElement('section');
+    root.setAttribute('data-tdb-review-introduction', '');
+    root.setAttribute('data-tdb-review-topic', 'location');
+    w.document.body.append(root);
+    const data = await w.TDBReviewCMS.load();
+    assert.equal(data.power, 'review-9');
+    assert.equal(data.getCached(data.power).displayExcerpt, 'First location quotation');
+    assert.equal(data.filterIndex[1].id, 'review-4');
+    assert.equal(data.total, 45);
+    assert.equal(data.average, 4.91);
+    assert.equal(data.filterIndex.length, 45);
+  } finally { w.close(); }
+});
 test('JSON downloads only 20 bodies, arbitrary selected IDs preserve caller order and cached bodies are reused', async () => {
   const { w, calls } = await setup();
   try {
