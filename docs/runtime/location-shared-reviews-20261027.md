@@ -16,7 +16,11 @@ Designer and published HTML now contain the correct quote before JavaScript. The
 
 The user chose native fallback snapshots plus live enhancement, with an editorial reminder instead of a publishing automation. No new workflow or custom CSS was added to the head. Review Introduction properties are now **Average rating** (`4.94`) and **Review count** (`(90)`). Review Summary defaults, target attributes, inline/incoming text and accessible names were aligned. Native count styles are visible in Designer and before enhancement.
 
-The shared introduction module hydrates full-index totals from the validated live feed. A WeakSet remembers primed count elements: first enhancement starts at n−1 and advances to n (currently 89 → 90), even with current native defaults. Remounting does not rewind settled counts. Reduced motion shows the real total immediately. The average remains the real value, not average minus 0.01. Existing shared ticker timing/motion services remain authoritative.
+The shared introduction module hydrates full-index totals from the validated live feed. Designer values are manually maintained component defaults, **not CMS aggregate bindings**. Without JavaScript, visitors see the latest saved/published snapshot, currently 4.94/90. The native quote is CMS-bound independently of these aggregate values.
+
+An observation-only guard in the existing external startup bundle remembers whether the native summary has been exposed before deferred preparation. Only a positively tracked, unseen summary still below the viewport may stage its count at n−1 and average at n−0.01 (currently 89 and 4.93). Once at least half of the summary is visible in the foreground, the introduction holds for `TDBMotion.reviews.summaryHold` (600 ms at pace 1), then both values use the existing shared 400 ms ticker. Both timings use the central motion profile exactly once. Leaving view or hiding the tab cancels the hold; returning starts a fresh full hold. Accessible labels always report actual totals.
+
+Already exposed, currently visible, restored/scrolled-at-startup, untracked or observer-unsupported summaries show the actual live totals directly. Claiming the animation opportunity is one-time; remounting never restages. Failure, destruction or reduced-motion policy settlement restores actual values. No script can reconstruct exposure before its own execution; the guard begins at startup/DOM readiness, before consent and deferred review work, and uses the conservative fallback for uncertain tracked states. It has no network work, text mutation or animation. No new native Home elements or inline/head patch was added.
 
 **Whenever reviews are added, changed, approved, excluded or removed:**
 
@@ -24,13 +28,21 @@ The shared introduction module hydrates full-index totals from the validated liv
 2. Check the published feed's full-index `total` and `average`; do not count only Location snippets.
 3. Refresh shared Review Introduction defaults, not page-instance overrides. In Review Summary also align standalone defaults, both count target attributes, count/summary accessible labels, plain inline number, incoming ticker text, and rating target/label. These are native fallback snapshots; live JS does not write into Designer.
 4. Keep native Review selection and drawer Review topic aligned. Preserve Available on, Lead excerpt on, Rank ascending and limit 1. Home uses Static context Home; Location uses Ranking topic Location.
-5. Publish staging, refresh Home and Location, check quote/name/totals, observe n−1 → n and open/close the matching full review. Verify the native lead opens at **01 of the full total** from both quote and summary; Next must continue the contextual order, with the other platform cross-post retained later. Publish production only when authorized.
+5. Publish staging, refresh Home and Location, check quote/name/totals. On a fresh top-of-page load, verify unseen preparation and the in-view hold followed by 89 → 90 and 4.93 → 4.94; reload with the summary visible to verify no drop/replay. Open/close the matching full review. Verify the native lead opens at **01 of the full total** from both quote and summary; Next must continue the contextual order, with the other platform cross-post retained later. Publish production only when authorized.
 
 Fallback defaults can go stale until that editorial step; this was explained and accepted. Existing platform logos, stars and decorative artwork still use the shared lazy artwork service, so Designer does not fully display them. Published artwork was checked. No new workaround or Home elements were introduced for those assets.
 
 ## Release and verification
 
-### Drawer ordering correction — current release
+### Visible summary progression — current release
+
+Runtime `d1f962b2a3849ac7c073d9a4997df29d7806afee`, staging publish `b348060b-7404-421e-a4ef-dbeccff411ea`. Five CDN files matched the tested build. Existing release pins advanced; the native component, CMS selection, CSS, summary snapshots and earlier drawer-order correction remain unchanged. The previously static average now shares the intentional progression. The startup visibility guard is needed to remember exposure while consent/data/module loading is delayed; it disconnects each summary after exposure or handoff.
+
+Build/build:check passed. Full suite: **784 tests, 781 passed, 3 skipped, zero failures**. Counter tests cover native fallback, both staged values, readiness plus 600 ms hold, visibility loss/background return, previously seen/current/queued exposure, restored and unsupported states, explicit live target hydration, one-time remounts, failures, destruction, zero totals and motion-policy changes. Published Location desktop and Home 390px mobile both showed 4.93/89 while holding, then 4.94/90. Reloading Location with the summary visible preserved actual values before and after deferred introduction loaded. Home summary still opens Louise at 01 of 90. No mobile overflow or captured runtime warnings/errors. Screenshots and `summary-motion-*` logs/HTML/cost evidence are in the task evidence directory.
+
+Four perspectives: the small early observation cost protects already-seen native content; in-page preparation remains behind existing consent/proximity/data gates; the deliberate hold makes both shared tickers visible; one native snapshot, one early visibility owner and one deferred presentation owner keep maintenance explicit. New cost (raw / locally recompressed gzip): startup 10,673/4,048 → 11,559/4,341 (**+886/+293**); deferred motion 24,811/8,629 → 24,830/8,642 (**+19/+13**); deferred introduction 4,305/1,691 → 4,668/1,781 (**+363/+90**). Total JS delta **+1,268/+396** across existing requests. All CSS and native introduction markup are unchanged. Home/Location raw HTML remains 185,046/203,076 bytes; gzip is 32,427/37,276 after new pins/publication. Elements remain 1,132/1,606, introduction 39 each. Byte measurements are not speed benchmarks. Rollback this progression release by restoring the four pins to `04f43ff85413ccdb89701423fac37cafc310ec49` and publishing staging; no native rollback is needed.
+
+### Drawer ordering correction
 
 Runtime `04f43ff85413ccdb89701423fac37cafc310ec49`, staging publish `d7c5286a-61d8-478c-a7b5-dcad279c8b0d`. Only existing runtime pins advanced; no new head code, native elements, CSS, CMS filters, ranks or editorial flags were added or changed. Four public CDN files matched the tested build byte-for-byte.
 
@@ -52,7 +64,7 @@ Build and build:check passed. Full suite: 781 tests, 778 passes, 3 skips, zero f
 
 Evidence: task `review-alignment-evidence`, including `native-migration-before.json`, native HTML and extracted introductions, `native-html-verification.json`, `native-delivery-costs.json`, build/test logs, CDN copies and desktop/mobile screenshots. Synced `sources/` was not changed.
 
-## Four perspectives and delivery cost
+## Preceding native correction: four perspectives and delivery cost
 
 - Startup: correct native content and visible totals; no new Home nodes, requests, observers or early controller. Early UI CSS no longer hides the quote.
 - In-page: native editorial choice survives enhancement; shared drawer opens that review. Consent, full-index totals, focus, scroll and motion remain shared.
