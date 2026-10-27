@@ -256,33 +256,44 @@ window.TDBParallaxPresentation ||= (() => {
               ],
             ),
           );
+          // A gallery has one native destination and no per-image links. Reuse
+          // the same CTA lifecycle without synthesising hidden link sources.
+          const fixedLink =
+            e.getAttribute('data-tdb-parallax-link-mode') === 'fixed'
+              ? e.querySelector(':scope > .tdb-service-cta [data-tdb-parallax-cta][href]')
+              : null;
           const a = Array.from(
               n.querySelectorAll(
                 ':scope > .swiper-wrapper > .swiper-slide:not(.swiper-slide-duplicate)',
               ),
             ),
             o = a.map((e) => {
-              const t = e.querySelector(
-                '.service-card-button-wrap a[href],a[data-tdb-service-link-source][href],a.tdb-treatment-source[href]',
-              );
+              const t =
+                fixedLink ||
+                e.querySelector(
+                  '.service-card-button-wrap a[href],a[data-tdb-service-link-source][href],a.tdb-treatment-source[href]',
+                );
               return (
                 t && {
                   href: t.getAttribute('href'),
                   target: t.getAttribute('target'),
                   rel: t.getAttribute('rel'),
                   label: t.textContent.replace(/\s+/g, ' ').trim(),
-                  title:
-                    e
-                      .querySelector('.service-card-mobile-title,.tdb-treatment-title')
-                      ?.textContent.trim() ||
-                    stampTitles.get(t.getAttribute('href')) ||
-                    '',
+                  title: fixedLink
+                    ? ''
+                    : e
+                        .querySelector('.service-card-mobile-title,.tdb-treatment-title')
+                        ?.textContent.trim() ||
+                      stampTitles.get(t.getAttribute('href')) ||
+                      '',
                 }
               );
             }),
-            d = n.querySelector(
-              '.service-card-button-wrap a[href],a[data-tdb-service-link-source][href],a.tdb-treatment-source[href]',
-            );
+            d =
+              fixedLink ||
+              n.querySelector(
+                '.service-card-button-wrap a[href],a[data-tdb-service-link-source][href],a.tdb-treatment-source[href]',
+              );
           if (!d) return null;
           const l =
               r + ':' + [...document.querySelectorAll('.parallax-swiper_component')].indexOf(e),
