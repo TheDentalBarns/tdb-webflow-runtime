@@ -10,7 +10,7 @@ The new native **Review selection** Filters property (`fde33906-53c3-58f8-3f64-e
 
 Home retains Louise Bishton (`louise-bishton-google-2025-06-20`). Location natively renders “The location is lovely with a lovely view of fields and streams”, attributed to the CMS name TheHayleyRose (`thehayleyrose-google-2025-03-07`). Its Google excerpt is the available lead at rank 2. The rank-1 Facebook cross-post has Lead excerpt off; editorial flags were preserved.
 
-Designer and published HTML now contain the correct quote before JavaScript. The shared loader preserves an explicit native review ID and its quote/author, even when the contextual feed chooses another cross-post or has not cached that review. The existing drawer ensures the matching master record. Unmigrated consumers retain their hydration path. The Location hidden-until-ready rule was removed from external feed-holder/UI CSS. This replaces the earlier `c676910d` workaround, which was not accepted as finished behavior.
+Designer and published HTML now contain the correct quote before JavaScript. The shared loader preserves the explicit native review ID and its quote/author. Shared selection also uses that ID as the contextual lead before duplicate grouping, so the native lead opens at position 1. The existing drawer ensures the matching master record. Unmigrated consumers retain their hydration path. The Location hidden-until-ready rule was removed from external feed-holder/UI CSS. This replaces the earlier `c676910d` workaround, which was not accepted as finished behavior.
 
 ## Rating, progression and editorial checklist
 
@@ -24,11 +24,27 @@ The shared introduction module hydrates full-index totals from the validated liv
 2. Check the published feed's full-index `total` and `average`; do not count only Location snippets.
 3. Refresh shared Review Introduction defaults, not page-instance overrides. In Review Summary also align standalone defaults, both count target attributes, count/summary accessible labels, plain inline number, incoming ticker text, and rating target/label. These are native fallback snapshots; live JS does not write into Designer.
 4. Keep native Review selection and drawer Review topic aligned. Preserve Available on, Lead excerpt on, Rank ascending and limit 1. Home uses Static context Home; Location uses Ranking topic Location.
-5. Publish staging, refresh Home and Location, check quote/name/totals, observe n−1 → n and open/close the matching full review. Publish production only when authorized.
+5. Publish staging, refresh Home and Location, check quote/name/totals, observe n−1 → n and open/close the matching full review. Verify the native lead opens at **01 of the full total** from both quote and summary; Next must continue the contextual order, with the other platform cross-post retained later. Publish production only when authorized.
 
 Fallback defaults can go stale until that editorial step; this was explained and accepted. Existing platform logos, stars and decorative artwork still use the shared lazy artwork service, so Designer does not fully display them. Published artwork was checked. No new workaround or Home elements were introduced for those assets.
 
 ## Release and verification
+
+### Drawer ordering correction — current release
+
+Runtime `04f43ff85413ccdb89701423fac37cafc310ec49`, staging publish `d7c5286a-61d8-478c-a7b5-dcad279c8b0d`. Only existing runtime pins advanced; no new head code, native elements, CSS, CMS filters, ranks or editorial flags were added or changed. Four public CDN files matched the tested build byte-for-byte.
+
+The user identified a missed acceptance case: the initial correction opened the right Google review but at **87 of 90**. Shared selection ranked the Facebook cross-post first and demoted Google as a duplicate. The earlier browser checks verified identity, not its drawer position. The native master ID is now passed from `cms.js` to `selection.js` before ordering and duplicate grouping, and included in the session cache key. It is the authoritative lead, rather than a separate hardcoded JS identity. An unknown ID leaves normal ranking intact. Pages without a configured context retain their existing selection path. Explicit visitor filters and sort choices remain authoritative when applied.
+
+Fresh published-feed comparison: Location Google 87 → 1; Facebook 1 → 87; Natasja, Andy and Chantelle remain positions 2–4; all 90 reviews retained. Home's Louise and the following three identities are unchanged. The lead is now in the first 20-body batch, so opening it no longer walks through the queue to fetch review 87. Existing consent, proximity/readiness, activation, cancellation, motion and focus/scroll services remain unchanged. This is a correction within the external shared review-data module, not compensation for incorrect Designer content.
+
+Build and build:check passed. New tests first reproduced the failure, then verified lead/duplicate priority, full-index preservation, first-batch loading, cache identity, explicit filters/sorts and unknown-ID fallback. Full suite rerun: **783 tests, 780 passed, 3 skipped, zero failures**. The initial full run had one unrelated strict floating-point comparison failure in `marquee-interaction.test.cjs` (89.30521999999999 versus 89.30522); that file and the complete suite passed unchanged on rerun.
+
+Published browser checks: Location desktop and 390px mobile open TheHayleyRose / Google at 01 of 90; desktop summary entry also opens 01, and Next opens Natasja at 02. Home opens Louise at 01. Close restores quote focus and releases scroll locking. Mobile has no horizontal overflow; captured warning/error log is empty. Native introductions are byte-identical to the preceding release. Home remains 1,132 elements, Location 1,606, each introduction 39. Evidence: `drawer-order-verification.json`, `drawer-order-html-verification.json`, test/build logs and `location-drawer-order-{desktop,mobile}.png` in task `review-alignment-evidence`.
+
+Four perspectives: startup/layout/native content are unchanged; in-page ordering now agrees with the native lead and first-batch loading; visual motion and counter presentation are unchanged; maintenance uses the existing native ID and one shared ordering function. Combined delivery changes: initial HTML raw bytes remain Home 185,046 and Location 203,076; locally recompressed gzip is 32,432 / 37,252 (previously 32,429 / 37,260, reflecting serialization/pin changes). All CSS and startup JS bytes are unchanged. Only deferred `tdb-review-cms.js` changes: 23,971 → 24,210 raw, 8,184 → 8,235 locally recompressed gzip (**+239 / +51**). No extra request is introduced. These are byte measurements, not a performance benchmark. To roll back this ordering correction only, restore all four runtime pins to `c86188317e3e3c77d6982f4ce6c3e9ebe390ba5e` and publish staging; retain the native bindings and filters.
+
+### Preceding native correction
 
 Runtime `c86188317e3e3c77d6982f4ce6c3e9ebe390ba5e`, branch `fix/transparent-navbar-hero-hold-20261027`. Existing head/footer pins advanced; five public CDN files matched the tested build byte-for-byte. Staging publish `2ff253f4-839e-4914-b30b-2607aebcfe6d`. No production custom domain was published.
 
