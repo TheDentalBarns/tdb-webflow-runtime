@@ -1,50 +1,65 @@
-# Location shared review introduction — 27 October 2026
+# Home and Location native reviews — 27 October 2026
 
 Reference: [TDB architecture and engineering standard](https://chatgpt.com/space/page_c22eaec26d7c819197df9524f243acbd).
 
-## Implementation and ownership
+## Accepted implementation
 
-Home and Location now use the same **Review Introduction** component (`1e6d2fa0-eb51-af7e-5dc2-307ef04c9501`). Location instance `aabf5f7f-f427-954d-cde2-ac736b94f04c` replaces its old Hero – Headline instance at the start of gallery17_component (`47ad5e0a-f800-8f9f-e93a-24406fb4540d`). It uses the existing Dark variant, title “Beautiful Inside and Out”, tagline “No Waiting Rooms. Just Living Rooms.” and new **Review topic** property `location`. The property defaults to empty, preserving Home's selection. The existing component root receives the bound `data-tdb-review-topic` attribute; no elements or slots were added to the shared definition or Home.
+Home and Location share Review Introduction (`1e6d2fa0-eb51-af7e-5dc2-307ef04c9501`); Location uses Dark. Its existing collection now reads **Review Excerpts**. Existing elements were rebound in Designer: quote → Excerpt; author → Review / Reviewer display name; platform visibility → Review / Platform; quote identity → Review / Slug. No Home elements were added. Published counts remain Home 1,132, Location 1,606, introduction 39 including its root.
 
-Designer owns structure, reserved geometry, typography and static light/dark appearance. The Dark variant platform filter is now `grayscale(100%)`, preserving the Facebook artwork instead of flattening it to a solid circle. All generated styling remains external. No custom CSS embed was introduced.
+The new native **Review selection** Filters property (`fde33906-53c3-58f8-3f64-e017ddca2f27`) controls the initial quote. Both instances require Available on and Lead excerpt on, Rank ascending, limit 1, skip 0. Home defaults to Static context = Home. Location overrides that filter with Ranking topic = Location. The separate Review topic string remains `location` for contextual drawer ordering; it is not the native filter.
 
-External `src/reviews/native/cms.js` owns explicit topic selection through the existing canonical selection service, ranked by `snippetRanks` and using topic excerpts. Cache context includes the topic. `src/reviews/native/loader.js` hydrates the existing quote, attribution and platform nodes only from a matching excerpt, then marks the root `data-tdb-review-topic-ready`. The full index, total and average are retained; the drawer still contains all reviews, with contextual entries first. The published feed currently selects Hayley Rose's Location excerpt first. No CMS review records or hardcoded testimonial copies were added.
+Home retains Louise Bishton (`louise-bishton-google-2025-06-20`). Location natively renders “The location is lovely with a lovely view of fields and streams”, attributed to the CMS name TheHayleyRose (`thehayleyrose-google-2025-03-07`). Its Google excerpt is the available lead at rank 2. The rank-1 Facebook cross-post has Lead excerpt off; editorial flags were preserved.
 
-A single empty Location-only lazy host uses the existing review feed URL and loader. The existing consent decision and proximity gates remain authoritative. Before data is ready, or if there is no matching excerpt, the quote area retains its geometry but stays hidden; it cannot display Home's unrelated native fallback. Home's empty topic keeps its existing first-paint fallback. This is a page-level topic context; multiple independent conflicting topics on one page are not part of this change.
+Designer and published HTML now contain the correct quote before JavaScript. The shared loader preserves an explicit native review ID and its quote/author, even when the contextual feed chooses another cross-post or has not cached that review. The existing drawer ensures the matching master record. Unmigrated consumers retain their hydration path. The Location hidden-until-ready rule was removed from external feed-holder/UI CSS. This replaces the earlier `c676910d` workaround, which was not accepted as finished behavior.
 
-The readiness safeguard belongs to `src/styles/tdb-feed-holders.css`, composed into external early `tdb-ui.css`. Its early consumer is the native introduction present before deferred data loads. It adds no observer, motion, timing source or request. Existing review drawer, focus restoration, scroll locking, consent and shared motion services remain in use.
+## Rating, progression and editorial checklist
 
-Runtime release: `c676910d85db2c3acb9ba9d6832e6c1b76a3e0a2`. Existing site head/footer CDN pins were advanced from `a0f146664e1e1d0d47187b71fd6e606fee3b97ed`; startup and foundation payloads are unchanged. Five pinned assets returned HTTP 200 and matched local bytes. Final staging publish: `3054a437-8cdc-41a9-8370-00149de81ceb`. No production domain was published.
+The user chose native fallback snapshots plus live enhancement, with an editorial reminder instead of a publishing automation. No new workflow or custom CSS was added to the head. Review Introduction properties are now **Average rating** (`4.94`) and **Review count** (`(90)`). Review Summary defaults, target attributes, inline/incoming text and accessible names were aligned. Native count styles are visible in Designer and before enhancement.
 
-## Four-perspective assessment and delivery cost
+The shared introduction module hydrates full-index totals from the validated live feed. A WeakSet remembers primed count elements: first enhancement starts at n−1 and advances to n (currently 89 → 90), even with current native defaults. Remounting does not rewind settled counts. Reduced motion shows the real total immediately. The average remains the real value, not average minus 0.01. Existing shared ticker timing/motion services remain authoritative.
 
-- Startup: Home remains 1,132 elements and its review introduction remains 39 elements. Introduction markup is identical after removing the new empty topic attribute. Location drops from 1,695 to 1,606 elements, including the new lazy host. Native Home fallback remains; Location reserves its quote area until a matching excerpt is ready.
-- In-page use: the quote opens the matching full review in the shared drawer. Closing restores focus to its trigger, clears expanded state and releases scroll locking. Summary totals remain the complete 90-review index, with observed average 4.94.
-- Visual polish: desktop, phone and tablet previews show the shared dark card, heading, quote and legible platform attribution without horizontal overflow. Existing central motion and reveal behaviour are reused.
-- Maintenance: one component definition, native variant and topic property replace the old Location introduction and inline snippet bulk. Shared external modules own selection/readiness. No page-specific runtime fork or Home DOM expansion was introduced.
+**Whenever reviews are added, changed, approved, excluded or removed:**
 
-Measured byte costs (raw / gzip; these are payload measurements, not fresh speed or LCP claims):
+1. Maintain master reviews and Review Excerpts, including Available and Lead excerpt. A quote-only change may not change totals.
+2. Check the published feed's full-index `total` and `average`; do not count only Location snippets.
+3. Refresh shared Review Introduction defaults, not page-instance overrides. In Review Summary also align standalone defaults, both count target attributes, count/summary accessible labels, plain inline number, incoming ticker text, and rating target/label. These are native fallback snapshots; live JS does not write into Designer.
+4. Keep native Review selection and drawer Review topic aligned. Preserve Available on, Lead excerpt on, Rank ascending and limit 1. Home uses Static context Home; Location uses Ranking topic Location.
+5. Publish staging, refresh Home and Location, check quote/name/totals, observe n−1 → n and open/close the matching full review. Publish production only when authorized.
 
-| Payload | Before | After | Change |
-| --- | --- | --- | --- |
-| Home native page CSS | 183,562 / 30,097 | 184,200 / 30,227 | +638 / +130 |
-| Location native page CSS | 175,897 / 29,071 | 183,632 / 30,072 | +7,735 / +1,001 |
-| Shared early UI CSS | 14,224 / 3,184 | 14,388 / 3,226 | +164 / +42 |
-| Deferred review CMS JS | 23,715 / 8,110 | 23,971 / 8,167 | +256 / +57 |
-| Deferred review loader JS | 11,172 / 3,739 | 11,318 / 3,782 | +146 / +43 |
+Fallback defaults can go stale until that editorial step; this was explained and accepted. Existing platform logos, stars and decorative artwork still use the shared lazy artwork service, so Designer does not fully display them. Published artwork was checked. No new workaround or Home elements were introduced for those assets.
 
-First migration publication HTML captures: Home 184,887 → 184,964 raw bytes (32,179 → 32,239 gzip); Location 286,356 → 202,991 raw bytes (76,113 → 37,148 gzip). Publication can reorder existing CMS partner entries, so whole-document compression differences are not an isolated runtime effect. The final icon correction changes CSS only. Shared native CSS is unchanged. Location adopts the existing deferred review pipeline; the initial HTML reduction does not imply that its deferred resources are free. Two changed deferred scripts add 402 raw / 100 gzip bytes together. No new custom request category or controller was introduced.
+## Release and verification
 
-Webflow changed existing hero image `sizes` serialization on publication; after excluding those attributes, both Home and Location hero markup is unchanged, with unchanged element counts. No authored hero change forms part of this migration.
+Runtime `c86188317e3e3c77d6982f4ce6c3e9ebe390ba5e`, branch `fix/transparent-navbar-hero-hold-20261027`. Existing head/footer pins advanced; five public CDN files matched the tested build byte-for-byte. Staging publish `2ff253f4-839e-4914-b30b-2607aebcfe6d`. No production custom domain was published.
 
-## Acceptance and limitations
+Build and build:check passed. Full suite: 781 tests, 778 passes, 3 skips, zero failures. New tests cover preserving native content against conflicting selection, missing cached detail and deferred-load failure; opening its own master review; and one-time progression with current defaults. Native HTML confirms both identities and unchanged DOM counts. Desktop and 390px mobile checks confirm the correct quote, 90 total, no horizontal overflow, matching Google full-review drawer and close/focus restoration with scroll lock released. Captured error/warning log was empty. Physical-device or new performance benchmarking is not claimed.
 
-Full runtime suite: 777 tests, 774 passed, 3 skipped, 0 failed. Build checks passed. New tests cover ranked topic selection while retaining the complete index, revealing only matching excerpts, and hydrating existing quote nodes. Browser previews cover 1280px desktop, 390×844 phone and 834×1112 tablet. Desktop and phone drawer opening/closing were verified; no final captured browser errors or warnings. Physical-device acceptance and a fresh performance benchmark are not claimed.
+Evidence: task `review-alignment-evidence`, including `native-migration-before.json`, native HTML and extracted introductions, `native-html-verification.json`, `native-delivery-costs.json`, build/test logs, CDN copies and desktop/mobile screenshots. Synced `sources/` was not changed.
 
-Raw Designer baseline, before/final HTML and CSS, feed, comparison results, logs and final desktop/mobile screenshots are retained in the task's `review-alignment-evidence` directory. The synced `sources/` directory was not modified.
+## Four perspectives and delivery cost
 
-One uninstantiated rollback copy remains: **Archive — Review Introduction before Location alignment 2026-10-27** (`98dde563-7e90-07e7-74ab-c03ea2200a75`). Its instance count is zero and it adds no page DOM, but Webflow emits its duplicated variant selectors (approximately 619 raw bytes, included in the totals above). Automatic approval review rejected its deletion as an irreversible site mutation without specific authorization. Cleanup is pending explicit permission; do not describe this copy as removed.
+- Startup: correct native content and visible totals; no new Home nodes, requests, observers or early controller. Early UI CSS no longer hides the quote.
+- In-page: native editorial choice survives enhancement; shared drawer opens that review. Consent, full-index totals, focus, scroll and motion remain shared.
+- Visual: native Dark layout and reserved geometry remain; no data-dependent blank quote interval. Count progression and reduced-motion behavior remain.
+- Maintenance: one native component and per-instance Filters property, one external runtime. Designer UI supplies bindings/filter props unsupported by the connector. Aggregate defaults are an explicit editorial snapshot.
 
-## Rollback
+Measured raw / locally recompressed gzip bytes (not network-transfer or speed claims):
 
-Restore the saved Location Hero – Headline component (`cb30dcb1-276f-19a9-f09a-634f34472f56`) and its recorded properties at the start of gallery17_component, replacing only the new Location review instance. Remove the Location-only lazy host `da5450a8-7ecf-a5f6-f9f6-380988c2369c`. Original instance properties/tree are in `baseline-designer.json`. Restore head/footer runtime pins to `a0f146664e1e1d0d47187b71fd6e606fee3b97ed` using `site-code-before.json`, then publish staging only. The empty-default Review topic property can remain without affecting Home. If reverting the Dark variant artwork rule, the former filter was `brightness(0%) invert(100%)`. Do not change Home's instance or add replacement nodes there.
+| Payload | Before correction | After correction |
+| --- | --- | --- |
+| Home HTML | 184,964 / 32,420 | 185,046 / 32,429 |
+| Location HTML | 202,991 / 37,313 | 203,076 / 37,260 |
+| Home page CSS | 184,200 / 30,431 | 184,202 / 30,432 |
+| Location page CSS | 183,632 / 30,241 | 183,634 / 30,240 |
+| Shared native CSS | 31,579 / 8,370 | unchanged |
+| Early UI CSS | 14,388 / 3,237 | 14,224 / 3,194 |
+| Deferred introduction JS | 4,272 / 1,663 | 4,305 / 1,691 |
+| Deferred loader JS | 11,318 / 3,787 | 11,381 / 3,793 |
+
+Deferred scripts together add 96 raw / 34 gzip bytes; early UI loses 164 raw / 43 gzip. Foundation/startup, contextual CMS JS and existing Location compatibility/layout CSS are unchanged. Publication can vary HTML serialization; this is not an isolated speed claim.
+
+## Rollback and retained cleanup
+
+Revert this correction as a coordinated native/runtime change: restore the Review Topics source, original query and quote/name/platform bindings from `native-migration-before.json`; disconnect/remove only the new Filters property and native master-ID binding as needed; restore saved summary defaults/styles; restore runtime pins to `c676910d85db2c3acb9ba9d6832e6c1b76a3e0a2`; publish staging. Do not revert only the native source while leaving the readiness safeguard removed. The older full Location alignment rollback is retained in this document's previous Git version and `baseline-designer.json`.
+
+The unused backup **Archive — Review Introduction before Location alignment 2026-10-27** (`98dde563-7e90-07e7-74ab-c03ea2200a75`) remains. Earlier automatic approval review rejected deletion without specific authorization. It adds no page DOM but emits variant CSS. It was not deleted during this correction.
