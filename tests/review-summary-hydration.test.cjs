@@ -67,7 +67,7 @@ function setup({ summary = { total: 90, average: 4.97 }, reduced = false, dataGa
     },
     show() {
       observers
-        .find((observer) => observer.options.threshold === 0.25)
+        .find((observer) => observer.options.threshold === 0.5)
         .callback([{ isIntersecting: true, intersectionRatio: 1 }]);
     },
     close() {

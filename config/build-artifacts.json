@@ -301,10 +301,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "2941b216a92130f0fabc8383ad00ce83e24e2c4f18c25ea6ac118a77ec9ad18b",
-      "raw": 24811,
-      "gzip": 8622,
-      "brotli": 7835
+      "sha256": "2d5ce7e2205b645fcd38406b50c800718a0cabad9b1046e85da7e366bae47fd5",
+      "raw": 24830,
+      "gzip": 8635,
+      "brotli": 7846
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -425,10 +425,10 @@
       "sources": [
         "src/reviews/native/introduction.js"
       ],
-      "sha256": "57773b2111d46fdf57b25234fcbd6b57b77590cb5c11bb8d3dc637a85d02680e",
-      "raw": 4305,
-      "gzip": 1686,
-      "brotli": 1481
+      "sha256": "af7d0a301ea84f730818bbb79d828467ba3dcf28d62b5ed7916a03a902a483f9",
+      "raw": 4668,
+      "gzip": 1777,
+      "brotli": 1561
     },
     "dist/tdb-review-list-loader.js": {
       "sources": [
@@ -586,12 +586,13 @@
         "src/shared/motion-profile.js",
         "src/shared/modules.js",
         "src/loaders/hold-audio-loader.js",
+        "src/reviews/native/summary-visibility.js",
         "src/startup/start.js"
       ],
-      "sha256": "b49622da952e747c87818fc24b442b944692f23bde39a14078e7a595848b0fc8",
-      "raw": 10673,
-      "gzip": 4044,
-      "brotli": 3611
+      "sha256": "a12aabd70e591058f936c81320daaabb54324b2c95c8d00aa7b057fa2c6025a1",
+      "raw": 11559,
+      "gzip": 4337,
+      "brotli": 3871
     },
     "dist/tdb-ticker.js": {
       "sources": [

@@ -6,6 +6,7 @@ module.exports = {
     'src/shared/motion-profile.js',
     'src/shared/modules.js',
     'src/loaders/hold-audio-loader.js',
+    'src/reviews/native/summary-visibility.js',
     'src/startup/start.js',
   ],
   'dist/tdb-foundation.js': [

@@ -1038,6 +1038,7 @@
   });
   const reviews = Object.freeze({
     fade: time(400),
+    summaryHold: time(600),
     openDelay: time(500),
     nextDelay: carousel.nextDelay,
     previousDelay: carousel.previousDelay,

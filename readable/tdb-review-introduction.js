@@ -1,9 +1,8 @@
-/* TDB Review Introduction v1.2.4. No CSS, CMS selection, fetching or consent logic. */
+/* TDB Review Introduction v1.3.0. No CSS, CMS selection, fetching or consent logic. */
 (() => {
   'use strict';
   if (window.TDBReviewIntroduction) return;
   const instances = new WeakMap();
-  const primedCounts = new WeakSet();
   function hydrateSummary(root, summary) {
     if (!summary) return;
     const { total, average } = summary;
@@ -44,17 +43,23 @@
     hydrateSummary(root, options.summary);
     const controller = new AbortController();
     const { signal } = controller;
+    const card = root.querySelector('[data-tdb-review-summary]');
+    const unseen = window.TDBReviewSummaryVisibility?.claim(card) === true;
+    const prime = unseen && !window.TDBMotion.reduced.matches;
     let disposed = false,
-      played = false,
+      played = !prime,
       visible = false,
-      ready = false;
+      ready = !options.prepare,
+      hold = null;
     options
       .prepare?.({ signal })
       .then(() => {
         ready = true;
         play();
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!disposed) finish(false);
+      });
     const slots = [...root.querySelectorAll('[data-tdb-review-rating],[data-tdb-review-count]')];
     const tickers = slots
       .map((slot) => {
@@ -76,58 +81,63 @@
               : `(${value})`;
         const text = format(target),
           ticker = window.TDBNativeTicker.mount(slot);
-        // The live count supplies both ends of the animation. A settled counter
-        // keeps its value when consent/lifecycle changes remount the component.
-        if (
-          !rating &&
-          (!primedCounts.has(slot) ||
-            (slot.querySelector('.review-number_value') || slot).textContent.trim() !== text)
-        )
-          ticker.update(
-            format(window.TDBMotion.reduced?.matches ? target : Math.max(0, target - 1)),
-            1,
-            false,
-          );
-        if (!rating) {
-          primedCounts.add(slot);
-          slot.style.visibility = 'visible';
-        }
+        // Only unseen native totals may be staged. Accessible names always
+        // retain the real totals, and a late mount shows the real value directly.
+        ticker.update(format(prime ? Math.max(0, target - (rating ? 0.01 : 1)) : target), 1, false);
+        slot.style.visibility = 'visible';
         return { ticker, text };
       })
       .filter(Boolean);
-    function play() {
-      if (disposed || played || !visible || document.hidden || (options.prepare && !ready)) return;
+    function cancelHold() {
+      clearTimeout(hold);
+      hold = null;
+    }
+    function finish(animate = true) {
+      cancelHold();
       played = true;
-      tickers.forEach(({ ticker, text }) => ticker.update(text));
+      tickers.forEach(({ ticker, text }) => ticker.update(text, 1, animate));
       observer?.disconnect();
+    }
+    function play() {
+      if (disposed || played || !visible || document.hidden || !ready || hold !== null) return;
+      if (window.TDBMotion.reduced.matches) return finish(false);
+      hold = setTimeout(() => {
+        hold = null;
+        if (!disposed && visible && !document.hidden && ready) finish();
+      }, window.TDBMotion.reviews.summaryHold);
     }
     const observer =
       'IntersectionObserver' in window
         ? new IntersectionObserver(
             (entries) => {
               visible = entries.some(
-                (entry) => entry.isIntersecting && entry.intersectionRatio >= 0.25,
+                (entry) => entry.isIntersecting && entry.intersectionRatio >= 0.5,
               );
-              if (!visible) tickers.forEach(({ ticker }) => ticker.settle());
+              if (!visible) {
+                cancelHold();
+                tickers.forEach(({ ticker }) => ticker.settle());
+              }
               play();
             },
-            { threshold: 0.25 },
+            { threshold: 0.5 },
           )
         : null;
-    const card = root.querySelector('[data-tdb-review-summary]');
-    if (observer) observer.observe(card || root);
-    else {
-      visible = true;
-      play();
-    }
+    if (observer && prime) observer.observe(card || root);
+    else finish(false);
     document.addEventListener(
       'visibilitychange',
       () => {
-        if (document.hidden) tickers.forEach(({ ticker }) => ticker.settle());
-        else play();
+        if (document.hidden) {
+          cancelHold();
+          tickers.forEach(({ ticker }) => ticker.settle());
+        } else play();
       },
       { signal },
     );
+    const onMotion = () => {
+      if (window.TDBMotion.reduced.matches) finish(false);
+    };
+    window.TDBMotion.reduced.addEventListener('change', onMotion);
 
     // The separate drawer service supplies this callback after its dependencies exist.
     // A gated/missing drawer service leaves the native card explicitly disabled.
@@ -202,7 +212,9 @@
       destroy() {
         if (disposed) return;
         disposed = true;
+        finish(false);
         controller.abort();
+        window.TDBMotion.reduced.removeEventListener('change', onMotion);
         observer?.disconnect();
         drawerObserver.disconnect();
         dd.destroy();
@@ -232,5 +244,5 @@
     instances.set(root, api);
     return api;
   }
-  window.TDBReviewIntroduction = Object.freeze({ version: '1.2.4', mount });
+  window.TDBReviewIntroduction = Object.freeze({ version: '1.3.0', mount });
 })();
