@@ -39,6 +39,18 @@ test('shared ticker supports native Gallery templates without changing review de
     assert.equal(gallery.textContent,'From £7,945');assert.equal(review.textContent,'02');
   } finally {dom.window.close();}
 });
+test('rapid ticker rolls from authored zero using central timing without changing other ticker consumers',()=>{
+ const {dom,w,animations}=setup();try{
+  const host=w.document.querySelector('main');host.innerHTML='<span data-rapid>00</span><span data-normal>00</span>';
+  const slot=host.querySelector('[data-rapid]'),rapid=w.TDBNativeTicker.mount(slot,{durationKey:'tickerRapid'}),normal=w.TDBNativeTicker.mount(host.querySelector('[data-normal]'));
+  rapid.update('38',-1,true);normal.update('01',-1,true);
+  assert.equal(animations[0].target.textContent,'00');assert.equal(animations[1].target.textContent,'38');
+  assert.equal(animations[0].timing.duration,100);assert.equal(animations[2].timing.duration,400);
+  animations[1].onfinish();rapid.update('37',-1,true);
+  assert.equal(animations[4].target.textContent,'38');assert.equal(animations[5].target.textContent,'37');
+  assert.equal(animations[4].timing.duration,100);rapid.destroy();normal.destroy();
+ }finally{dom.window.close()}
+});
 function fixture(w) {
   const root=w.document.createElement('div');root.className='highlight-swiper_component tdb-smile-carousel';root.setAttribute('data-tdb-smile-slider','true');
   const keys=['price','duration','clinician'];

@@ -61,7 +61,7 @@
     const timeNumber = (n) => String(n).padStart(2, '0');
     const distanceNumber = (n) => (n / 10).toFixed(1).padStart(4, '0');
     const distance = Math.round(miles * 10);
-    message(owner, note, timeNumber(minutes), distanceNumber(distance));
+    message(owner, note);
     owner.output.setAttribute(
       'aria-label',
       `Around ${timeText(minutes)} by car, ${mileText(miles)} from ${origin}. ${note}`,
@@ -73,8 +73,13 @@
       !window.TDBMotion ||
       window.TDBMotion.reduced.matches ||
       !visible(owner.output)
-    )
+    ) {
+      owner.time.textContent = timeNumber(minutes);
+      owner.detail.textContent = distanceNumber(distance);
       return;
+    }
+    const rollDuration = window.TDBMotion.defaults.tickerRapid;
+    const cadence = rollDuration * 1.2;
     const values = [
       {
         slot: owner.time,
@@ -93,8 +98,10 @@
       const ticker = window.TDBNativeTicker.mount(value.slot, {
         valueClass: 'tdb-journey-ticker-value',
         incomingClass: 'tdb-journey-ticker-incoming',
+        durationKey: 'tickerRapid',
       });
-      ticker.update(value.format(value.current), -1, false);
+      // Preserve the authored zero until the first roll brings in the lead value.
+      ticker.update(value.format(value.current), -1, true);
       owner.tickers.push(ticker);
     }
     owner.finish = (animate) => {
@@ -117,10 +124,10 @@
         owner.tickers[i].update(value.format(value.current), -1, true);
         remaining ||= value.current > value.final;
       });
-      if (remaining) owner.hold = setTimeout(step, window.TDBMotion.defaults.ticker * 1.25);
-      else owner.hold = setTimeout(() => owner.finish?.(false), window.TDBMotion.defaults.ticker);
+      if (remaining) owner.hold = setTimeout(step, cadence);
+      else owner.hold = setTimeout(() => owner.finish?.(false), rollDuration);
     };
-    owner.hold = setTimeout(step, window.TDBMotion.defaults.ticker);
+    owner.hold = setTimeout(step, cadence);
   }
   function sdk(root) {
     if (!permitted()) return Promise.reject(Error('permission'));
@@ -209,6 +216,9 @@
       controller,
       map: null,
       marker: null,
+      info: null,
+      pinClick: null,
+      placeFlight: null,
       lines: [],
       pending: '',
       request: 0,
@@ -258,6 +268,101 @@
     owner.lines = [];
     owner.last = '';
   }
+  function businessLink(id = '') {
+    const url = new URL('https://www.google.com/maps/search/');
+    url.search = new URLSearchParams({ api: '1', query: destinationAddress });
+    if (id) url.searchParams.set('query_place_id', id);
+    return url.href;
+  }
+  async function business(owner) {
+    if (owner.placeFlight) return owner.placeFlight;
+    const epoch = owner.generation;
+    const valid = () => permitted() && epoch === owner.generation && owner.root.isConnected;
+    owner.placeFlight = (async () => {
+      const { Place } = await window.google.maps.importLibrary('places');
+      if (!valid()) throw Error('cancelled');
+      let id = owner.root.dataset.tdbMapsPlaceId;
+      if (!id) {
+        // Resolve once only when native configuration is missing; the published
+        // component stores the verified ID so normal visits use one details call.
+        const result = await Place.searchByText({
+          textQuery: destinationAddress,
+          fields: ['id', 'displayName', 'location'],
+          locationBias: destination,
+          maxResultCount: 1,
+        });
+        const candidate = result.places?.[0];
+        if (
+          !valid() ||
+          !/dental barns/i.test(candidate?.displayName || '') ||
+          !Number.isFinite(candidate.location?.lat()) ||
+          !Number.isFinite(candidate.location?.lng()) ||
+          Math.abs(candidate.location?.lat() - destination.lat) > 0.02 ||
+          Math.abs(candidate.location?.lng() - destination.lng) > 0.02
+        )
+          throw Error('business-unavailable');
+        id = candidate.id;
+      }
+      if (!id || !valid()) throw Error('business-unavailable');
+      const place = new Place({ id });
+      await place.fetchFields({ fields: ['displayName', 'rating', 'userRatingCount'] });
+      if (!valid()) throw Error('cancelled');
+      return place;
+    })().catch((error) => {
+      if (epoch === owner.generation) owner.placeFlight = null;
+      throw error;
+    });
+    return owner.placeFlight;
+  }
+  async function openBusiness(owner, InfoWindow) {
+    if (!permitted() || !owner.map) return;
+    const epoch = owner.generation;
+    const card = document.createElement('div');
+    card.className = 'tdb-journey-place';
+    const title = document.createElement('strong');
+    title.textContent = 'The Dental Barns';
+    const stars = document.createElement('span');
+    stars.className = 'tdb-journey-place-stars';
+    stars.setAttribute('aria-hidden', 'true');
+    stars.hidden = true;
+    const rating = document.createElement('p');
+    rating.textContent = 'Loading Google reviews…';
+    rating.setAttribute('role', 'status');
+    const link = document.createElement('a');
+    link.textContent = 'View on Google Maps';
+    link.href = businessLink(owner.root.dataset.tdbMapsPlaceId);
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.setAttribute('aria-label', 'View The Dental Barns on Google Maps (opens in a new tab)');
+    card.append(title, stars, rating, link);
+    owner.info?.close();
+    const info = new InfoWindow({
+      content: card,
+      ariaLabel: 'The Dental Barns · Google reviews',
+      maxWidth: 280,
+    });
+    owner.info = info;
+    info.open({ map: owner.map, anchor: owner.marker, shouldFocus: true });
+    try {
+      const place = await business(owner);
+      if (!permitted() || epoch !== owner.generation || owner.info !== info) return;
+      title.textContent = place.displayName || 'The Dental Barns';
+      link.href = businessLink(place.id);
+      if (
+        Number.isFinite(place.rating) &&
+        place.rating >= 0 &&
+        place.rating <= 5 &&
+        Number.isSafeInteger(place.userRatingCount)
+      ) {
+        stars.style.setProperty('--tdb-rating-fill', (place.rating / 5) * 100 + '%');
+        stars.hidden = false;
+        rating.textContent = `${place.rating.toFixed(1)} / 5 · ${place.userRatingCount.toLocaleString('en-GB')} Google reviews`;
+      } else rating.textContent = 'See the latest reviews on Google Maps.';
+    } catch (_) {
+      if (owner.info === info && epoch === owner.generation)
+        rating.textContent = 'Reviews are unavailable here. View them on Google Maps.';
+    }
+  }
   async function map(owner) {
     if (owner.map) return owner.map;
     if (owner.loading) return owner.loading;
@@ -267,24 +372,21 @@
     owner.loading = (async () => {
       await sdk(owner.root);
       if (!permitted() || !owner.root.isConnected || epoch !== owner.generation) return null;
-      const [{ Map, MapTypeControlStyle }, { AdvancedMarkerElement, PinElement }] =
-        await Promise.all([
-          window.google.maps.importLibrary('maps'),
-          window.google.maps.importLibrary('marker'),
-        ]);
+      const [{ Map, InfoWindow }, { AdvancedMarkerElement, PinElement }] = await Promise.all([
+        window.google.maps.importLibrary('maps'),
+        window.google.maps.importLibrary('marker'),
+      ]);
       if (!permitted() || !owner.root.isConnected || epoch !== owner.generation) return null;
       owner.canvas.replaceChildren();
       owner.map = new Map(owner.canvas, {
         center: destination,
-        zoom: 12,
+        zoom: 17,
+        mapTypeId: 'satellite',
+        tilt: 0,
         mapId: owner.root.dataset.tdbMapId,
         colorScheme: 'LIGHT',
         gestureHandling: 'cooperative',
-        mapTypeControl: true,
-        mapTypeControlOptions: {
-          mapTypeIds: ['roadmap', 'terrain'],
-          style: MapTypeControlStyle?.DROPDOWN_MENU,
-        },
+        mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: true,
         zoomControl: true,
@@ -301,9 +403,11 @@
       owner.marker = new AdvancedMarkerElement({
         map: owner.map,
         position: destination,
-        title: 'The Dental Barns — free parking',
+        title: 'The Dental Barns — view Google rating and reviews',
+        gmpClickable: true,
         content: pin,
       });
+      owner.pinClick = owner.marker.addListener('click', () => openBusiness(owner, InfoWindow));
       owner.root.dataset.journeyMap = 'ready';
       const loaded = () => {
         if (epoch !== owner.generation) return;
@@ -389,6 +493,8 @@
       });
       const bounds = new LatLngBounds();
       route.path.forEach((point) => bounds.extend(point));
+      owner.info?.close();
+      instance.setMapTypeId('roadmap');
       instance.fitBounds(bounds, 48);
       const minutes = Math.max(1, Math.round(route.durationMillis / 60000));
       const miles = Math.round((route.distanceMeters / 1609.344) * 10) / 10;
@@ -423,6 +529,9 @@
     owner.tiles = null;
     busy(owner.canvas, false);
     busy(owner.button, false);
+    owner.info?.close();
+    owner.pinClick?.remove();
+    owner.info = owner.pinClick = owner.placeFlight = null;
     if (owner.marker) owner.marker.map = null;
     if (owner.map) window.google?.maps?.event?.clearInstanceListeners(owner.map);
     owner.marker = owner.map = null;
@@ -468,7 +577,7 @@
     }
   }
   window.TDBJourney = Object.freeze({
-    version: '1.2.0',
+    version: '1.3.0',
     refresh,
     submit,
     owns: (root) => owners.has(root),

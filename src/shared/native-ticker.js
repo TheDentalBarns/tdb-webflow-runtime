@@ -1,4 +1,4 @@
-/* TDB native value tickers v1.2.1. Layout and initial text belong to Webflow. */
+/* TDB native value tickers v1.3.0. Layout and initial text belong to Webflow. */
 (() => {
   'use strict';
   if (window.TDBNativeTicker) return;
@@ -60,7 +60,10 @@
       if (incoming.parentElement !== slot) slot.append(incoming);
       const sign = direction < 0 ? -1 : 1;
       const timing = {
-        duration: window.TDBMotion?.defaults.ticker || (window.TDBMotionProfile?.time(400) ?? 400),
+        duration:
+          window.TDBMotion?.defaults[options.durationKey || 'ticker'] ||
+          window.TDBMotion?.defaults.ticker ||
+          (window.TDBMotionProfile?.time(400) ?? 400),
         easing: window.TDBMotionProfile?.easing('control', 'ease-in-out') || 'ease-in-out',
         fill: 'both',
       };
@@ -110,5 +113,5 @@
     instances.set(slot, api);
     return api;
   }
-  window.TDBNativeTicker = Object.freeze({ version: '1.2.1', mount });
+  window.TDBNativeTicker = Object.freeze({ version: '1.3.0', mount });
 })();
