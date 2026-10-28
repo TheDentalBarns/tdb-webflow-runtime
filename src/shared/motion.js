@@ -303,6 +303,11 @@
             state.value = state.desired = ddOpacity(g.progress, state.preset);
             state.ceiling = ddCeiling(state.preset);
           } else if (changed || (distance !== 0 && !userScroll)) {
+            // Keyboard focus, anchors and restoration can bring an offscreen
+            // player into view without wheel/touch intent. Reveal that arrival;
+            // retain the painted opacity only when it was already in view.
+            if (state.preset === 'vimeo' && state.geometrySeen && !state.visible && g.visible)
+              state.value = ddOpacity(g.progress, state.preset);
             retain(state, g.progress, g.low, g.high, g.range);
           } else if (userScroll) {
             state.targetProgress = g.progress;
@@ -364,6 +369,7 @@
           if (Math.abs(state.progress - state.targetProgress) >= 0.0001) moving = true;
           const opacity = String(ddClamp(state.value));
           if (state.node.style.opacity !== opacity) state.node.style.opacity = opacity;
+          state.visible = g.visible;
         }
         for (const state of states) if (state.geometry) state.geometrySeen = true;
         lastScroll = scroll;

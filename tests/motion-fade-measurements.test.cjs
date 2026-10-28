@@ -120,6 +120,34 @@ for (const bundle of [false, true]) {
     }
   });
 
+  test(`${label}: Vimeo keyboard/anchor arrival reveals offscreen players without fading an already visible player`, () => {
+    const e = fixture(bundle, 1, { mode: 'native', preset: 'vimeo' });
+    try {
+      const box = e.boxes[0];
+      box.top = 1200;
+      box.height = 720;
+      e.flush();
+      assert.equal(box.node.style.opacity, '0');
+      e.scroll(1100, false);
+      e.settle();
+      assert.equal(box.node.style.opacity, '1', 'focus or anchor arrival must reveal the player');
+      e.scroll(1700, false);
+      e.settle();
+      assert.equal(box.node.style.opacity, '1', 'retain a player already painted in view');
+      e.scroll(0);
+      e.settle();
+      assert.equal(box.node.style.opacity, '0');
+      e.w.innerHeight = 844;
+      box.height = 390;
+      e.scroll(1100, false);
+      e.settle();
+      assert.equal(box.node.style.opacity, '1', 'restoration into mobile geometry also reveals');
+      assert.equal(e.queue.size, 0);
+    } finally {
+      e.close();
+    }
+  });
+
   test(`${label}: Vimeo late mount, restoration, resize and reduced motion preserve readable fallback`, () => {
     const e = fixture(bundle, 1, { mode: 'native', preset: 'vimeo' });
     try {
