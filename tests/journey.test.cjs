@@ -6,7 +6,7 @@ const source = fs.readFileSync('src/journey/journey.js', 'utf8');
 const tick = () => new Promise(resolve => setImmediate(resolve));
 function deferred() { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; }
 function fixture({ allowed = true, routeFlight, rich = false } = {}) {
-  const resultMarkup = rich ? '<span data-tdb-journey-time>Your journey</span><span data-tdb-journey-detail>By car</span><span data-tdb-journey-note>Native result placeholder</span>' : 'Native result placeholder';
+  const resultMarkup = rich ? '<span data-tdb-journey-time><span data-tdb-journey-time-value>00</span><span data-tdb-journey-time-unit>min</span></span><span data-tdb-journey-detail><span data-tdb-journey-distance-value>00.0</span><span data-tdb-journey-distance-unit>miles</span></span><span data-tdb-journey-note>Native result placeholder</span>' : 'Native result placeholder';
   const dom = new JSDOM(`<div data-tdb-journey data-tdb-maps-key="test" data-tdb-map-id="map"><form><input name="origin"><button>Find</button></form><p data-tdb-journey-status>${resultMarkup}</p><a class="tdb-journey-directions" href="https://www.google.com/maps/dir/?api=1">Directions</a><div data-tdb-journey-map><p>Native map placeholder</p></div></div>`, { runScripts: 'outside-only', url: 'https://example.test/location', pretendToBeVisual: true });
   const w = dom.window, root = w.document.querySelector('[data-tdb-journey]');
   let notify, permission = allowed, prompt = 0;
@@ -101,20 +101,27 @@ test('map and route feedback use shared spinner hooks, stop on completion and of
   f.close();
 });
 
-test('native time and distance use the shared downward ticker; accessible values stay accurate', async () => {
-  const f=fixture({rich:true}), updates=[], slots=[]; let finish;
+test('native numbers roll through every intermediate value while units stay fixed and accessible values stay accurate', async () => {
+  const f=fixture({rich:true}), updates=[], slots=[], timers=new Map(); let timerId=0;
   const output=f.root.querySelector('[data-tdb-journey-status]');
   output.getBoundingClientRect=()=>({top:100,bottom:200});
   f.w.TDBMotion={reduced:{matches:false},defaults:{ticker:400}};
-  f.w.TDBNativeTicker={mount(slot){slots.push(slot);return {update(value,direction,animate){updates.push({value,direction,animate});slot.textContent=value;},destroy(){}};}};
-  f.w.setTimeout=(fn,ms)=>{assert.equal(ms,400);finish=fn;return 1;};
+  f.w.TDBNativeTicker={mount(slot){const index=slots.length;slots.push(slot);return {update(value,direction,animate){updates.push({index,value,direction,animate});slot.textContent=value;},destroy(){}};}};
+  f.w.setTimeout=(fn,ms)=>{assert([400,500].includes(ms));timers.set(++timerId,fn);return timerId;};
+  f.w.clearTimeout=id=>timers.delete(id);
+  const next=()=>{const [id,fn]=timers.entries().next().value;timers.delete(id);fn();};
   await f.w.TDBJourney.submit(f.root,'Tamworth');
-  assert.equal(slots.length,2); assert.deepEqual(updates.map(x=>x.value),['15 minutes','8.3 miles']);
+  assert.equal(slots.length,2); assert.deepEqual(updates.map(x=>x.value),['15','08.3']);
   assert.match(output.getAttribute('aria-label'),/13 minutes.*7.5 miles/);
-  finish(); assert.deepEqual(updates.slice(2).map(x=>[x.value,x.direction,x.animate]),[['13 minutes',-1,true],['7.5 miles',-1,true]]);
+  next(); assert.deepEqual(updates.slice(2).map(x=>[x.value,x.direction,x.animate]),[['14',-1,true],['08.2',-1,true]]);
+  assert.equal(output.querySelector('[data-tdb-journey-time-unit]').textContent,'min');
+  assert.equal(output.querySelector('[data-tdb-journey-distance-unit]').textContent,'miles');
+  while(timers.size)next();
+  assert.deepEqual(updates.filter(x=>x.index===1&&x.animate).map(x=>x.value),['08.2','08.1','08.0','07.9','07.8','07.7','07.6','07.5']);
+  assert.equal(slots[0].textContent,'13'); assert.equal(slots[1].textContent,'07.5');
   assert.equal(output.children.length,3);
   f.root.querySelector('input').dispatchEvent(new f.w.Event('input',{bubbles:true}));
-  assert.equal(output.getAttribute('aria-label'),null); assert.equal(output.children.length,3);
+  assert.equal(output.getAttribute('aria-label'),null); assert.equal(output.children.length,3); assert.equal(slots[0].textContent,'00');
   assert.equal(output.querySelector('[data-tdb-journey-note]').textContent,'Native result placeholder'); f.close();
 });
 
@@ -122,6 +129,18 @@ test('reduced motion shows actual time and distance without staging or ticker wo
   const f=fixture({rich:true}); f.w.TDBMotion={reduced:{matches:true}};
   f.w.TDBNativeTicker={mount(){throw Error('must not animate');}};
   await f.w.TDBJourney.submit(f.root,'Tamworth');
-  assert.equal(f.root.querySelector('[data-tdb-journey-time]').textContent,'13 minutes');
-  assert.equal(f.root.querySelector('[data-tdb-journey-detail]').textContent,'7.5 miles'); f.close();
+  assert.equal(f.root.querySelector('[data-tdb-journey-time-value]').textContent,'13');
+  assert.equal(f.root.querySelector('[data-tdb-journey-distance-value]').textContent,'07.5'); f.close();
+});
+
+test('editing during a roll cancels the sequence and preserves the native metric structure', async () => {
+  const f=fixture({rich:true}),timers=new Map();let id=0,destroyed=0;
+  const output=f.root.querySelector('[data-tdb-journey-status]');output.getBoundingClientRect=()=>({top:100,bottom:200});
+  f.w.TDBMotion={reduced:{matches:false},defaults:{ticker:400}};
+  f.w.TDBNativeTicker={mount(slot){return {update(value){slot.textContent=value},destroy(){destroyed++}}}};
+  f.w.setTimeout=fn=>{timers.set(++id,fn);return id};f.w.clearTimeout=id=>timers.delete(id);
+  await f.w.TDBJourney.submit(f.root,'Tamworth');assert.equal(timers.size,1);
+  f.root.querySelector('input').dispatchEvent(new f.w.Event('input',{bubbles:true}));
+  assert.equal(timers.size,0);assert.equal(destroyed,2);assert.equal(output.querySelector('[data-tdb-journey-time-value]').textContent,'00');
+  assert.equal(output.querySelector('[data-tdb-journey-distance-unit]').textContent,'miles');f.close();
 });

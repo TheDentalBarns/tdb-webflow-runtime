@@ -36,7 +36,7 @@
     owner.tickers.forEach((ticker) => ticker.destroy());
     owner.tickers = [];
   }
-  function message(owner, note, title = 'Your journey', detail = 'By car') {
+  function message(owner, note, title = '00', detail = '00.0') {
     clearTickers(owner);
     owner.output.removeAttribute('aria-label');
     if (owner.time && owner.detail && owner.note) {
@@ -58,7 +58,10 @@
       );
       return;
     }
-    message(owner, note, timeText(minutes), mileText(miles));
+    const timeNumber = (n) => String(n).padStart(2, '0');
+    const distanceNumber = (n) => (n / 10).toFixed(1).padStart(4, '0');
+    const distance = Math.round(miles * 10);
+    message(owner, note, timeNumber(minutes), distanceNumber(distance));
     owner.output.setAttribute(
       'aria-label',
       `Around ${timeText(minutes)} by car, ${mileText(miles)} from ${origin}. ${note}`,
@@ -75,13 +78,15 @@
     const values = [
       {
         slot: owner.time,
-        final: timeText(minutes),
-        start: timeText(Math.max(minutes + 1, Math.ceil(minutes * 1.1))),
+        final: minutes,
+        current: minutes + Math.min(8, Math.max(1, Math.ceil(minutes * 0.1))),
+        format: timeNumber,
       },
       {
         slot: owner.detail,
-        final: mileText(miles),
-        start: mileText(Math.ceil(miles * 1.1 * 10) / 10),
+        final: distance,
+        current: distance + Math.min(8, Math.max(1, Math.ceil(distance * 0.1))),
+        format: distanceNumber,
       },
     ];
     for (const value of values) {
@@ -89,18 +94,33 @@
         valueClass: 'tdb-journey-ticker-value',
         incomingClass: 'tdb-journey-ticker-incoming',
       });
-      ticker.update(value.start, -1, false);
+      ticker.update(value.format(value.current), -1, false);
       owner.tickers.push(ticker);
     }
     owner.finish = (animate) => {
       clearTimeout(owner.hold);
-      owner.tickers.forEach((ticker, i) => ticker.update(values[i].final, -1, animate));
+      owner.tickers.forEach((ticker, i) =>
+        ticker.update(values[i].format(values[i].final), -1, animate),
+      );
       owner.finish = null;
     };
-    owner.hold = setTimeout(
-      () => owner.finish?.(visible(owner.output)),
-      window.TDBMotion.defaults.ticker,
-    );
+    // The announcement ticker owns each roll. This scheduler only supplies the
+    // successive numbers; cap the lead at eight steps for unusually long routes.
+    const step = () => {
+      if (!visible(owner.output) || window.TDBMotion.reduced.matches) {
+        owner.finish?.(false);
+        return;
+      }
+      let remaining = false;
+      values.forEach((value, i) => {
+        if (value.current > value.final) value.current--;
+        owner.tickers[i].update(value.format(value.current), -1, true);
+        remaining ||= value.current > value.final;
+      });
+      if (remaining) owner.hold = setTimeout(step, window.TDBMotion.defaults.ticker * 1.25);
+      else owner.hold = setTimeout(() => owner.finish?.(false), window.TDBMotion.defaults.ticker);
+    };
+    owner.hold = setTimeout(step, window.TDBMotion.defaults.ticker);
   }
   function sdk(root) {
     if (!permitted()) return Promise.reject(Error('permission'));
@@ -161,10 +181,10 @@
     const form = root.querySelector('form');
     const canvas = root.querySelector('[data-tdb-journey-map]');
     const output = root.querySelector('[data-tdb-journey-status]');
-    const link = root.querySelector('.tdb-journey-directions');
+    const link = root.querySelector('[data-tdb-journey-directions],.tdb-journey-directions');
     if (!form || !canvas || !output || !link) return null;
-    const time = output.querySelector('[data-tdb-journey-time]');
-    const detail = output.querySelector('[data-tdb-journey-detail]');
+    const time = output.querySelector('[data-tdb-journey-time-value]');
+    const detail = output.querySelector('[data-tdb-journey-distance-value]');
     const note = output.querySelector('[data-tdb-journey-note]');
     const initial = note?.textContent || output.textContent;
     const placeholder = [...canvas.childNodes];
@@ -448,7 +468,7 @@
     }
   }
   window.TDBJourney = Object.freeze({
-    version: '1.1.0',
+    version: '1.2.0',
     refresh,
     submit,
     owns: (root) => owners.has(root),

@@ -243,10 +243,10 @@
       "sources": [
         "src/journey/journey.js"
       ],
-      "sha256": "0c0b79ce0e32486f0a279a6b9c4c463807b577ae0a75509edfcb37cabe4d13e7",
-      "raw": 9416,
-      "gzip": 3893,
-      "brotli": 3364
+      "sha256": "cc43866f67bb3af2c806d50dca28f14b24cefd60b48a974432ae646fd6a0d0e4",
+      "raw": 9927,
+      "gzip": 4044,
+      "brotli": 3496
     },
     "dist/tdb-legacy-review-drawer.js": {
       "sources": [
@@ -548,10 +548,10 @@
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "0ee045718215d30abd3625dd39296a3cdc178b8df2ae897ef7d992fd9f06c7de",
-      "raw": 72698,
-      "gzip": 19668,
-      "brotli": 17267
+      "sha256": "6f0053634e92ec3970d35c4f3da44ebbc512514cc9ff0a73eb962583fc0bcf0d",
+      "raw": 73049,
+      "gzip": 19816,
+      "brotli": 17369
     },
     "dist/tdb-service-awards.js": {
       "sources": [

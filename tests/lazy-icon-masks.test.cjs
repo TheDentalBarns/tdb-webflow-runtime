@@ -104,3 +104,13 @@ test('contact masks wait for proximity and reuse the exact footer social artwork
   }
  }finally{f.close()}
 });
+
+test('journey clock, distance and universal globe masks remain deferred and add no child DOM',()=>{
+ const f=fixture();try{for(const kind of ['clock','distance','globe']){
+  const node=f.w.document.createElement('span');node.dataset.tdbJourneyIcon=kind;f.w.document.body.append(node);f.w.TDBLazyIconMasks.refresh();
+  assert.equal(node.style.getPropertyValue('--tdb-journey-icon'),'');
+  f.ios[0].fn([{target:node,isIntersecting:true}]);
+  assert.match(node.style.getPropertyValue('--tdb-journey-icon'),new RegExp('tdb-(review-clock-brand|journey-distance|globe)\\.svg'));
+  assert.equal(node.childElementCount,0);
+ }}finally{f.close()}
+});
