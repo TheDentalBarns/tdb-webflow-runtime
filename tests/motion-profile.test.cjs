@@ -26,6 +26,7 @@ test('baseline and slower profiles preserve width/height curves and scale caps o
       assert.equal(f.w.TDBMotion.defaults.fadeIn,Math.round(350*pace));
       assert.equal(f.w.TDBMotion.defaults.tickerRapid,Math.round(160*pace));
       assert.equal(f.w.TDBMotion.defaults.tickerFlow,Math.round(1400*pace));
+      assert.equal(f.w.TDBMotion.defaults.mapTravel,Math.round(2000*pace));
       assert.equal(f.w.TDBMotion.reviews.fade,Math.round(400*pace));
       assert.equal(f.w.TDBMotion.carousel.previousDelay,Math.round(140*pace));
       for(const height of [320,375,768,844,1200,2400]) {

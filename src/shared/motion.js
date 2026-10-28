@@ -1,4 +1,4 @@
-/* TDB shared motion v1.22.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.23.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -28,6 +28,7 @@
     ticker: time(400),
     tickerRapid: time(160),
     tickerFlow: time(1400),
+    mapTravel: time(2000),
   });
   function duration(width = innerWidth) {
     if (profile) return profile.horizontal(width);
@@ -1206,7 +1207,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.22.0',
+    version: '1.23.0',
     profile,
     time,
     easing,

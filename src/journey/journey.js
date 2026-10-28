@@ -369,6 +369,7 @@
         zoom: 17,
         mapTypeId: 'satellite',
         tilt: 0,
+        isFractionalZoomEnabled: true,
         mapId: owner.root.dataset.tdbMapId,
         colorScheme: 'LIGHT',
         gestureHandling: 'cooperative',
@@ -425,10 +426,61 @@
       instance.fitBounds(bounds, 48);
     };
     owner.info?.close();
-    if (!motion?.fadeController || motion.reduced.matches || !visible(owner.canvas)) {
+    const projection = instance.getProjection?.();
+    const center = instance.getCenter?.();
+    const zoom = instance.getZoom();
+    const width = owner.canvas.clientWidth - 96;
+    const height = owner.canvas.clientHeight - 96;
+    if (
+      !motion?.fadeController ||
+      motion.reduced.matches ||
+      !visible(owner.canvas) ||
+      !projection ||
+      !center ||
+      !Number.isFinite(zoom) ||
+      width <= 0 ||
+      height <= 0 ||
+      !window.KeyframeEffect ||
+      !window.Animation ||
+      !instance.moveCamera
+    ) {
       direct();
       return;
     }
+    const southwest = projection.fromLatLngToPoint(bounds.getSouthWest());
+    const northeast = projection.fromLatLngToPoint(bounds.getNorthEast());
+    const start = projection.fromLatLngToPoint(center);
+    if (!southwest || !northeast || !start) {
+      direct();
+      return;
+    }
+    // Google world coordinates span 256 pixels at zoom zero. Fit the complete
+    // route once, then travel to that camera; a final fitBounds can snap.
+    const spanX = (northeast.x - southwest.x + 256) % 256;
+    const spanY = Math.abs(southwest.y - northeast.y);
+    const targetX = southwest.x + spanX / 2;
+    const targetY = (southwest.y + northeast.y) / 2;
+    const deltaX = ((targetX - start.x + 384) % 256) - 128;
+    const targetZoom = Math.max(
+      1,
+      Math.min(
+        17,
+        Math.log2(width / Math.max(spanX, 0.000001)),
+        Math.log2(height / Math.max(spanY, 0.000001)),
+      ),
+    );
+    const move = (progress) =>
+      instance.moveCamera({
+        center: projection.fromPointToLatLng(
+          new window.google.maps.Point(
+            start.x + deltaX * progress,
+            start.y + (targetY - start.y) * progress,
+          ),
+        ),
+        zoom: zoom + (targetZoom - zoom) * progress,
+        tilt: 0,
+        heading: 0,
+      });
     const fade = motion.fadeController();
     let cancelled = false,
       completeWait;
@@ -462,16 +514,40 @@
         action?.();
       });
     try {
-      // Google owns camera interpolation; the shared profile owns our sequencing.
-      // A short pull-back retains the sense of place before the wider road view.
-      if (instance.getMapTypeId() === 'satellite' && instance.getZoom() > 14) {
-        await wait(motion.defaults.base * 2, () => instance.setZoom(instance.getZoom() - 2));
-        if (settled()) return;
-      }
+      // Use the native animation timeline for the central travel easing without
+      // adding a visual element or a second tween library. The frame loop is
+      // bounded and is released on completion, user input or consent teardown.
+      await new Promise((resolve) => {
+        const effect = new KeyframeEffect(null, [], {
+          duration: motion.defaults.mapTravel,
+          easing: motion.easing('travel', 'cubic-bezier(.3,0,.2,1)'),
+          fill: 'both',
+        });
+        const animation = new Animation(effect, document.timeline);
+        let frame;
+        const done = () => {
+          cancelAnimationFrame(frame);
+          animation.cancel();
+          if (completeWait === done) completeWait = null;
+          resolve();
+        };
+        const step = () => {
+          if (settled()) return done();
+          const progress = effect.getComputedTiming().progress ?? 0;
+          move(progress);
+          if (progress >= 1) return done();
+          frame = requestAnimationFrame(step);
+        };
+        completeWait = done;
+        animation.play();
+        frame = requestAnimationFrame(step);
+      });
+      if (settled()) return;
       fade.to(owner.canvas, 0.7, motion.defaults.fadeOut);
       await wait(motion.defaults.fadeOut);
       if (settled()) return;
-      await wait(motion.defaults.base * 2, direct);
+      // Only the map style changes here: centre and zoom are already final.
+      await wait(motion.defaults.base * 2, () => instance.setMapTypeId('roadmap'));
       if (settled()) return;
       fade.to(owner.canvas, 1, motion.defaults.fadeIn);
       await wait(motion.defaults.fadeIn);
@@ -625,7 +701,7 @@
     }
   }
   window.TDBJourney = Object.freeze({
-    version: '1.5.0',
+    version: '1.6.0',
     refresh,
     submit,
     owns: (root) => owners.has(root),

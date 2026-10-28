@@ -150,30 +150,62 @@ test('editing during continuous travel cancels both shared tickers and preserves
 });
 
 function cameraFixture(){
- const f=fixture(),timers=new Map(),fades=[];let id=0,destroyed=0;
+ const f=fixture(),timers=new Map(),frames=new Map(),fades=[],cameras=[],animations=[];let id=0,destroyed=0,progress=0;
  const canvas=f.root.querySelector('[data-tdb-journey-map]');canvas.getBoundingClientRect=()=>({top:100,bottom:500});
- f.w.TDBMotion={reduced:{matches:false},defaults:{base:400,fadeOut:120,fadeIn:350},fadeController(){return {to(node,value,duration){fades.push([value,duration])},destroy(){destroyed++}}}};
+ Object.defineProperties(canvas,{clientWidth:{value:640},clientHeight:{value:500}});
+ const projection={fromLatLngToPoint(p){return {x:(p.lng+180)/360*256,y:(90-p.lat)/180*256}},fromPointToLatLng(p){return {lat:90-p.y/256*180,lng:p.x/256*360-180}}};
+ f.w.google.maps.Point=class{constructor(x,y){this.x=x;this.y=y}};
+ const original=f.w.google.maps.importLibrary;
+ f.w.google.maps.importLibrary=async kind=>{
+   const lib=await original(kind);
+   if(kind==='core')lib.LatLngBounds=class{extend(){}getSouthWest(){return {lat:52.6,lng:-1.8}}getNorthEast(){return {lat:52.64,lng:-1.5}}};
+   if(kind==='maps')lib.Map=class extends lib.Map{
+     getProjection(){return projection}getCenter(){return this.center||this.options.center}
+     moveCamera(camera){this.center=camera.center;this.zoom=camera.zoom;cameras.push(camera)}
+   };
+   return lib;
+ };
+ f.w.KeyframeEffect=class{constructor(target,frames,options){assert.equal(target,null);this.options=options}getComputedTiming(){return {progress}}};
+ f.w.Animation=class{constructor(effect){this.effect=effect;animations.push(this)}play(){}cancel(){this.cancelled=true}};
+ f.w.requestAnimationFrame=fn=>{frames.set(++id,fn);return id};f.w.cancelAnimationFrame=id=>frames.delete(id);
+ f.w.TDBMotion={reduced:{matches:false},defaults:{base:400,fadeOut:120,fadeIn:350,mapTravel:2000},easing:(_,fallback)=>fallback,fadeController(){return {to(node,value,duration){fades.push([value,duration])},destroy(){destroyed++}}}};
  f.w.setTimeout=(fn,ms)=>{timers.set(++id,{fn,ms});return id};f.w.clearTimeout=id=>timers.delete(id);
- return Object.assign(f,{canvas,timers,fades,destroyed:()=>destroyed,async next(){const [id,{fn}]=timers.entries().next().value;timers.delete(id);fn();await tick();}});
+ return Object.assign(f,{canvas,timers,frames,fades,cameras,animations,projection,destroyed:()=>destroyed,async frame(p){progress=p;const [id,fn]=frames.entries().next().value;frames.delete(id);fn();await tick()},async next(){const [id,{fn}]=timers.entries().next().value;timers.delete(id);fn();await tick();}});
 }
-test('route reveal pulls back the satellite view then softly reveals roads using shared motion timing',async()=>{
+test('camera centres and zooms throughout travel, fits the whole route and switches style without a final fit snap',async()=>{
  const f=cameraFixture();const pending=f.w.TDBJourney.submit(f.root,'Tamworth');await tick();
- assert.equal(f.maps[0].zoom,15);assert.equal(f.maps[0].type,undefined);
- assert.equal([...f.timers.values()][0].ms,800);await f.next();
+ assert.equal(f.maps[0].type,undefined);assert.equal(f.animations[0].effect.options.duration,2000);
+ await f.frame(.25);await f.frame(.65);await f.frame(1);
+ assert.equal(f.cameras.length,3);assert(f.cameras[0].center.lng>f.maps[0].options.center.lng);
+ assert(f.cameras[1].center.lng>f.cameras[0].center.lng);assert(f.cameras[1].zoom<f.cameras[0].zoom);
+ const last=f.cameras.at(-1);assert(Math.abs(last.center.lng-(-1.65))<1e-8);assert(Math.abs(last.center.lat-52.62)<1e-8);
+ assert((.3/360*256)*2**last.zoom<=544.000001);assert((.04/180*256)*2**last.zoom<=404.000001);
+ assert.equal(f.maps[0].fitted,undefined);assert.equal(f.frames.size,0);assert(f.animations[0].cancelled);
  assert.deepEqual(f.fades,[[0.7,120]]);await f.next();
- assert.equal(f.maps[0].type,'roadmap');assert.equal(f.maps[0].fitted,true);await f.next();
+ assert.equal(f.maps[0].type,'roadmap');assert.equal(f.maps[0].fitted,undefined);assert.equal(f.cameras.length,3);await f.next();
  assert.deepEqual(f.fades,[[0.7,120],[1,350]]);await f.next();await pending;
  assert.match(f.output(),/13 minutes/);assert.equal(f.timers.size,0);assert(f.destroyed()>0);f.close();
 });
 test('new input cancels an in-flight camera reveal and never shows a stale route result',async()=>{
  const f=cameraFixture();const pending=f.w.TDBJourney.submit(f.root,'Tamworth');await tick();
  f.root.querySelector('input').dispatchEvent(new f.w.Event('input',{bubbles:true}));await pending;
- assert.equal(f.timers.size,0);assert.equal(f.maps[0].type,undefined);assert.equal(f.output(),'Native result placeholder');f.close();
+ assert.equal(f.frames.size,0);assert(f.animations[0].cancelled);assert.equal(f.timers.size,0);assert.equal(f.maps[0].type,undefined);assert.equal(f.output(),'Native result placeholder');f.close();
 });
 test('map interaction takes control from the reveal without discarding the calculated result',async()=>{
  const f=cameraFixture();const pending=f.w.TDBJourney.submit(f.root,'Tamworth');await tick();
  f.canvas.dispatchEvent(new f.w.Event('pointerdown'));await pending;
- assert.equal(f.timers.size,0);assert.equal(f.maps[0].type,undefined);assert.match(f.output(),/13 minutes/);f.close();
+ assert.equal(f.frames.size,0);assert.equal(f.timers.size,0);assert.equal(f.maps[0].type,undefined);assert.match(f.output(),/13 minutes/);f.close();
+});
+
+test('reduced motion enabled during camera travel settles the route and releases the animation',async()=>{
+ const f=cameraFixture();const pending=f.w.TDBJourney.submit(f.root,'Tamworth');await tick();await f.frame(.25);
+ f.w.TDBMotion.reduced.matches=true;await f.frame(.3);await pending;
+ assert.equal(f.frames.size,0);assert(f.animations[0].cancelled);assert.equal(f.maps[0].type,'roadmap');assert.equal(f.maps[0].fitted,true);assert.match(f.output(),/13 minutes/);f.close();
+});
+
+test('unavailable projection falls back to a correct static route rather than rejecting the result',async()=>{
+ const f=cameraFixture();await tick();f.maps[0].getProjection=()=>undefined;
+ await f.w.TDBJourney.submit(f.root,'Tamworth');assert.equal(f.animations.length,0);assert.equal(f.maps[0].fitted,true);assert.match(f.output(),/13 minutes/);f.close();
 });
 test('shared reduced motion bypasses the staged camera and missing native business identity keeps the useful link',async()=>{
  const f=cameraFixture();f.w.TDBMotion.reduced.matches=true;await f.w.TDBJourney.submit(f.root,'Tamworth');
