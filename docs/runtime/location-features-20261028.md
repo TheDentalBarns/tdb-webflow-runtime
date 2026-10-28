@@ -11,7 +11,7 @@ The Location benefits and aerial video are now a native `Location — Setting an
 - The Location film title is now “Location and free parking at The Dental Barns”. Its saved poster and the original uploaded film's poster are both 720 × 720; no sharper existing source was found. A higher-resolution original is still needed for a real quality improvement; no upscale was substituted.
 - Content poster, iframe and button fade durations consume `--tdb-motion-pace` once. Native layout and artwork are not recreated by runtime code. Home receives no new element.
 
-The shared play and pause artwork are Webflow assets `6ae0c5c81332cf18d9261ca0` and `6ae0c5c877076aee400c6838`; spinner remains `6ad9b3739924db6726de4586`. The shared Vimeo definition has 18 instances. Its existing IX2 entrance remains outside this scoped cleanup; this change does not claim the entire page is free of legacy interactions.
+The shared play and pause artwork are Webflow assets `6ae0c5c81332cf18d9261ca0` and `6ae0c5c877076aee400c6838`; spinner remains `6ad9b3739924db6726de4586`. The shared Vimeo definition has 18 native instances. Its continuous IX2 scroll-opacity binding has now moved to shared motion, as recorded below. Other page interactions remain outside this migration.
 
 ## Location mobile hero correction
 
@@ -27,9 +27,9 @@ Private before/after native trees, global install code, browser evidence and log
 
 Startup cost adds no controller or head script. Native mask CSS/assets and early loading-state selectors have a delivery cost; removed image/SVG nodes are not by themselves a performance claim. Browser measurements and final combined HTML/CSS/JS costs are recorded below after staging publication. No new TBT or physical Android benchmark is claimed.
 
-## Staging verification, 28 October 2026
+## Initial masks and geometry verification, 28 October 2026
 
-Staging uses runtime [`fc3501fadb6751bf4f37a74ae78e822602a936f1`](https://github.com/TheDentalBarns/tdb-webflow-runtime/commit/fc3501fadb6751bf4f37a74ae78e822602a936f1). All four install pins agree; the startup entrypoint, foundation and four changed built assets match their local bytes on jsDelivr. Publication targeted the Webflow subdomain with no custom domains.
+The initial cleanup used runtime [`fc3501fadb6751bf4f37a74ae78e822602a936f1`](https://github.com/TheDentalBarns/tdb-webflow-runtime/commit/fc3501fadb6751bf4f37a74ae78e822602a936f1). All four install pins agreed; the startup entrypoint, foundation and four changed built assets matched their local bytes on jsDelivr. Publication targeted the Webflow subdomain with no custom domains. The subsequent shared-motion release below supersedes these pins.
 
 - Build parity and custom Swiper build pass. Full suite: 786 passed, three skipped, zero failures. An initial strict floating-point marquee assertion failed by about 1e-14; the focused marquee rerun and full rerun passed. Direct Prettier checking leaves the existing unrelated warning in `src/reviews/native/loader.js`; changed source files pass. The npm format command's single-quote glob handling also fails under this Windows shell, so it is not reported as clean.
 - Location's initial HTML has 1,530 elements, down from 1,543. The changed section goes from 51 to 38, and its player from 20 to 12. Home remains at 1,133. No new Home element or head patch was introduced.
@@ -50,4 +50,44 @@ Controlled byte measurements compare the saved previous staging HTML/CSS and run
 | Vimeo CSS | +282 B | +57 B |
 | Vimeo JS | +246 B | +96 B |
 
-The affected Location HTML/CSS/JS total is +3,141 raw bytes / -172 controlled gzip bytes before artwork transfer. SVG masks replace three PNG requests and inline control SVGs; shared cache state determines their transfer cost. The new play/pause assets total 1,160 raw bytes. Foundation/startup are unchanged. Existing IX2 entrance and the 720px poster remain explicit follow-up limitations, not hidden runtime fixes.
+The affected Location HTML/CSS/JS total is +3,141 raw bytes / -172 controlled gzip bytes before artwork transfer. SVG masks replace three PNG requests and inline control SVGs; shared cache state determines their transfer cost. The new play/pause assets total 1,160 raw bytes. Foundation/startup are unchanged. At that release the continuous IX2 scroll-opacity binding and 720px poster remained follow-up limitations. The former is resolved below; the poster still needs a sharper original.
+
+## Shared scroll-opacity migration, 28 October 2026
+
+Current staging runtime is [`86b1da68c04b6d3dbbfc0737f61cb9657a839029`](https://github.com/TheDentalBarns/tdb-webflow-runtime/commit/86b1da68c04b6d3dbbfc0737f61cb9657a839029). All four global install pins match, and the published startup, foundation, runtime, motion and UI assets match local bytes. The Webflow staging subdomain alone was published; production remains untouched.
+
+### Ownership and native boundary
+
+The native shared `Vimeo Video Player` root (`efa1f211-9b34-f83b-c813-e469f00dad3c`) now has `data-tdb-dd-page="native"` and `data-tdb-dd-preset="vimeo"`. Its legacy event `e-600` is removed in Designer. This opts into the existing `TDBMotion.ddText` scheduler and runtime registration; no extra controller, listener, DOM node, native style, custom CSS or head logic was added. Native opacity remains one, preserving Designer/no-JS fallback.
+
+The new shared preset preserves the old continuous curve: opacity 0 at 0% progress, 1 at 30% and 75%, 0.8 at 95%, then hold. Native progress is `(viewport height - element top) / min(viewport height + element height, document height)`, clamped to zero–one. Existing progress smoothing matches the old smoothing-50 setting. Scroll geometry is not scaled by the timed motion pace. Poster translation remains independently owned by `TDBMotion.pageBreaks`, with the existing native overscan; iframe and controls stay still. No-JS, reduced-motion, deferred-loading and already-visible restoration paths keep readable native content.
+
+The browser keyboard check caught an offscreen player retaining opacity zero after focus scrolled it into view. The shared Vimeo preset now reveals an offscreen-to-visible arrival caused by focus, an anchor, restoration or layout change, while retaining painted opacity for an already-visible player. This is an explicit shared-motion correction, not a Designer compensation patch. Other fade presets are unchanged.
+
+Designer saved the removal, but the connector's first publication retained the previous IX2 bundle. Publishing through the native Designer with staging selected and production unselected regenerated the correct bundle. Direct published-bundle verification proves `e-600` is absent. The inert native `data-w-id` attribute remains in HTML; its presence alone is not an active interaction. The five separate Services events `e-601`–`e-605` and their existing `a-79` action list are unchanged. Do not delete that shared action list or describe the entire Location page as IX2-free.
+
+### Consumers and acceptance
+
+- The 18 native instances comprise five players in `5StepProcess` across First Visit, Services and Area templates (15), one in `VisitingUs–Services`, one in Location's setting/access section and one direct Area-template player. Static checks cover Home, Contact, Location, First Visit, all eight Services pages and all six Area pages: 18 pages and 90 rendered shared players. Every player has the new hooks and retains its video ID, node count, crop and poster-parallax eligibility.
+- All audited page DOM counts are unchanged by this migration: Home 1,133, Location 1,530 and First Visit 2,019. Location's section remains 38 nodes and its player 12. Home and Contact have no content-player instance.
+- Build parity passes. Full suite: 793 passed, three skipped, zero failures. Source/bundle regressions cover the curve in both directions, keyboard/anchor arrival, visible restoration, mobile geometry, reduced motion, lifecycle cleanup and single runtime registration. Changed source/tests pass formatting; the previously recorded unrelated formatter warning is not claimed resolved.
+- On staging at 1280×720, scroll entry/reverse motion and poster-only translation work; poster translation changed from -4.0831px to -0.3773px while iframe/control translation stayed `none`. The square player is 564.52px with the existing overscan. Keyboard play/pause transfers focus between controls. Reload at scroll 4,142 keeps the visible player at opacity one before and after deferred settling. First Visit's second player went from offscreen opacity zero to visible opacity one on keyboard focus after the correction.
+- This step changes no mobile native geometry. Automated mobile-geometry checks pass, and the prior 390×844/844×390 visual checks above remain evidence for the unchanged geometry. This session's browser viewport override did not apply, so a new mobile visual check is not claimed. Physical Android Chrome verification and a sharper 720px poster source remain outstanding.
+
+### Combined delivery cost and engineering assessment
+
+The following controlled deltas compare the saved staging output and runtime `fc3501f` before this migration with the final release. Gzip uses one local implementation; publication metadata can affect HTML compression. These are delivery accounting, not measured TBT or speed improvements.
+
+| Affected delivery | Raw change | Controlled gzip change |
+| --- | ---: | ---: |
+| Home HTML | -308 B | -71 B |
+| Location HTML | -54 B | -12 B |
+| Native CSS on Home and Location | 0 B | 0 B |
+| Webflow IX2 bundle | -616 B | -46 B |
+| Existing deferred shared motion bundle | +160 B | +57 B |
+
+Affected Location delivery totals -510 raw bytes / -1 controlled gzip byte; Home totals -764 raw bytes / -60 controlled gzip bytes. There are no new asset requests or early-code bytes. The maintainability gain is one motion owner with explicit native hooks; the Designer experience retains editable structure and visible fallbacks; performance preserves deferred loading and the shared scheduler without claiming a benchmark gain; accessibility preserves consent, first-input feedback, reduced-motion behavior and keyboard visibility/focus.
+
+### Migration rollback
+
+To revert only this migration, restore all four install pins to `fc3501fadb6751bf4f37a74ae78e822602a936f1`, remove the two DD attributes from the shared root, and restore its native While scrolling in view binding to the existing `Vimeo Video Scroll` (`a-79`) with smoothing 50 and the original breakpoint/progress settings. Publish through Designer to staging only and verify the regenerated event mapping. Preserve the newer masks, buttons, frame, poster variant and hero correction; the older structural archive predates those changes and is not the rollback for this migration. Before/after native trees, interaction data, HTML/CSS/JS inventories, screenshots, test logs and cost verification are saved outside the repository under `vimeo-entrance-evidence`.
