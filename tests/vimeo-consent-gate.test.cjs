@@ -140,6 +140,27 @@ test('controller init failure never reports readiness or rebinds partially start
   assert.throws(()=>f.w.TDBVimeo.init(),/synthetic init failure/);assert.equal(f.w.TDBVimeo.initialised,false);
   assert.throws(()=>f.w.TDBVimeo.init(),/synthetic init failure/);assert.equal(attempts,1);f.close();
 });
+
+test('content controls retain keyboard focus across playback without stealing it from outside',async()=>{
+ const f=fixture({choice:accept});
+ try {
+  await tick();f.complete('data-tdb-vimeo-loader');await tick();f.near();f.loadedStyle(f.find('data-tdb-vimeo-css'));await tick();
+  const players=[];
+  class Player {
+   constructor(){this.events={};players.push(this);}
+   ready(){return Promise.resolve();}on(n,fn){this.events[n]=fn;}off(){}
+   setMuted(){return Promise.resolve();}play(){this.events.play?.();return Promise.resolve();}
+   pause(){this.events.pause?.();return Promise.resolve();}
+  }
+  f.w.Vimeo={Player};f.complete('data-vimeo-controller-js');await tick();
+  const play=f.d.querySelector('[data-vimeo-control="play"]'),pause=f.d.querySelector('[data-vimeo-control="pause"]');
+  play.focus();play.click();await tick();await tick();assert.equal(f.d.activeElement,pause);
+  pause.click();await tick();assert.equal(f.d.activeElement,play);
+  const outside=f.d.createElement('button');f.d.body.append(outside);outside.focus();
+  play.click();await tick();await tick();assert.equal(f.d.activeElement,outside);
+  f.choiceChange(reject,'CookieScriptReject');await tick();assert.equal(f.d.activeElement,outside);
+ } finally {f.close();}
+});
 test('withdrawal while the SDK is in flight prevents iframe navigation and player creation',async()=>{
   const f=fixture({choice:accept});await tick();f.complete('data-tdb-vimeo-loader');await tick();f.near();f.loadedStyle(f.find('data-tdb-vimeo-css'));await tick();
   f.complete('data-vimeo-controller-js');await tick();

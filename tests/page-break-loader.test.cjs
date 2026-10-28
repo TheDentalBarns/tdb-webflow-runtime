@@ -34,6 +34,20 @@ test('definition is inert; nearby content mounts as one batch using runtime asse
  assert.equal(e.owners.length,1);assert.equal(e.owners[0].nodes.length,2);
  assert.equal(e.observers[0].disconnected,true);e.dom.window.close();
 });
+
+test('content poster opt-in leaves iframe, controls and unrelated videos outside scroll motion', async () => {
+ const player='<div data-vimeo-content-init><img class="vimeo-player__placeholder"><iframe></iframe><button>Play</button></div>';
+ const e=setup('<section data-tdb-video-poster-parallax>'+player+'</section>'+player);
+ const api=e.start();assert.equal(e.calls.length,0);
+ e.observers[0].near();await api.refresh();await api.refresh();
+ assert.equal(e.owners.length,1);assert.equal(e.owners[0].nodes.length,1);
+ const photo=e.owners[0].nodes[0];
+ assert.equal(photo.wrapper,e.w.document.querySelector('section [data-vimeo-content-init]'));
+ assert.equal(photo.wrapper.querySelectorAll(photo.selector).length,1);
+ assert.equal(photo.wrapper.querySelector(photo.selector).tagName,'IMG');
+ assert.equal(photo.allowEdges,false);
+ api.destroy();assert.equal(e.owners[0].destroyed,true);e.dom.window.close();
+});
 test('feature-free pages do not rescan on user interaction, explicit refresh discovers additions',async()=>{
  const e=setup('');const api=e.start();let queries=0;
  const query=e.w.document.querySelectorAll.bind(e.w.document);

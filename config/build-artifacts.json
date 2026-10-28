@@ -538,10 +538,10 @@
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "ba07b5df06cf02e796b823a74e9e1ca3ece04a8c9a263ed83b4c78fe5ec6dc6b",
-      "raw": 70397,
-      "gzip": 19086,
-      "brotli": 16791
+      "sha256": "1ecc46ce3c0a5511f6efce057515e0faa6fbfd0c2302ed589c76794cfd59ffc6",
+      "raw": 70531,
+      "gzip": 19123,
+      "brotli": 16844
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -643,10 +643,10 @@
       "sources": [
         "src/components/vimeo.js"
       ],
-      "sha256": "a494ad7718e2869dac913007af88adc144013441e77838fda25d70635f894d15",
-      "raw": 20055,
-      "gzip": 5630,
-      "brotli": 4981
+      "sha256": "af444ad8218192bee7c195d883d20020da5ada81240a4185939978d3b5131760",
+      "raw": 20301,
+      "gzip": 5723,
+      "brotli": 5059
     },
     "dist/tdb-vip-content.js": {
       "sources": [

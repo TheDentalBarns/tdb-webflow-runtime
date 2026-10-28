@@ -25,3 +25,15 @@
   animation: none;
   will-change: auto;
 }
+[data-vimeo-content-init]:is([data-vimeo-awaiting-consent='true'],[data-vimeo-loading='true']) :is(.tdb-content-play-art,.tdb-content-pause-art)::before {
+  opacity: 0;
+}
+[data-vimeo-content-init]:is([data-vimeo-awaiting-consent='true'],[data-vimeo-loading='true']) .tdb-content-spinner {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: none;
+  transition: opacity calc(.12s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease) calc(.12s * var(--tdb-motion-pace,1)), visibility 0s linear 0s;
+}
+[data-vimeo-content-init]:is([data-vimeo-awaiting-consent='true'],[data-vimeo-loading='true']) .tdb-content-spinner::before {
+  animation: tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite;
+}

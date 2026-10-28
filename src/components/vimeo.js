@@ -46,6 +46,10 @@
     }
 
     function setContentState(vimeoElement, state) {
+      const focused = document.activeElement;
+      const focusedControl = vimeoElement.contains(focused)
+        ? focused?.getAttribute('data-vimeo-control')
+        : null;
       Object.keys(state).forEach(function (key) {
         setAttrIfChanged(
           vimeoElement,
@@ -53,6 +57,16 @@
           state[key],
         );
       });
+      // Keep keyboard focus on the visible native control when playback swaps
+      // play/pause. Never move focus into a video from elsewhere on the page.
+      if (typeof state.playing === 'boolean' && focusedControl) {
+        const next = state.playing ? 'pause' : 'play';
+        if (next !== focusedControl) {
+          vimeoElement.querySelector(`button[data-vimeo-control="${next}"]`)?.focus({
+            preventScroll: true,
+          });
+        }
+      }
     }
 
     function isVisible(el) {

@@ -41,6 +41,11 @@ function preparePageBreakLoader() {
     document
       .querySelectorAll('.tdb-service-parallax .swiper')
       .forEach((wrapper) => add(wrapper, '.showcase_image'));
+    // Content players opt in through their section. Only the native oversized
+    // poster moves; the iframe and interactive controls retain their positions.
+    document
+      .querySelectorAll('[data-tdb-video-poster-parallax] [data-vimeo-content-init]')
+      .forEach((wrapper) => add(wrapper, '.vimeo-player__placeholder'));
     // Other explicit Home photo surfaces retain their existing opt-in.
     // Logos, UI and the Smile, Review and Instagram feeds have separate owners.
     if (home) {
