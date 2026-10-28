@@ -179,6 +179,8 @@ test('camera centres and zooms throughout travel, fits the whole route and switc
  assert.equal(f.cameras.length,3);assert(f.cameras[0].center.lng>f.maps[0].options.center.lng);
  assert(f.cameras[1].center.lng>f.cameras[0].center.lng);assert(f.cameras[1].zoom<f.cameras[0].zoom);
  const last=f.cameras.at(-1);assert(Math.abs(last.center.lng-(-1.65))<1e-8);assert(Math.abs(last.center.lat-52.62)<1e-8);
+ const offset=c=>Math.abs(f.projection.fromLatLngToPoint(c.center).x-f.projection.fromLatLngToPoint(f.maps[0].options.center).x)*2**c.zoom;
+ const endOffset=offset(last);assert(Math.abs(offset(f.cameras[0])/endOffset-.25)<1e-8);assert(Math.abs(offset(f.cameras[1])/endOffset-.65)<1e-8);
  assert((.3/360*256)*2**last.zoom<=544.000001);assert((.04/180*256)*2**last.zoom<=404.000001);
  assert.equal(f.maps[0].fitted,undefined);assert.equal(f.frames.size,0);assert(f.animations[0].cancelled);
  assert.deepEqual(f.fades,[[0.7,120]]);await f.next();

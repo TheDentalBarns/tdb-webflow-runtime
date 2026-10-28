@@ -469,18 +469,20 @@
         Math.log2(height / Math.max(spanY, 0.000001)),
       ),
     );
-    const move = (progress) =>
+    const move = (progress) => {
+      const currentZoom = zoom + (targetZoom - zoom) * progress;
+      // Keep the starting place moving steadily across the screen as we pull
+      // back, instead of panning miles away while the camera is still close.
+      const pan = progress * Math.min(1, 2 ** (targetZoom - currentZoom));
       instance.moveCamera({
         center: projection.fromPointToLatLng(
-          new window.google.maps.Point(
-            start.x + deltaX * progress,
-            start.y + (targetY - start.y) * progress,
-          ),
+          new window.google.maps.Point(start.x + deltaX * pan, start.y + (targetY - start.y) * pan),
         ),
-        zoom: zoom + (targetZoom - zoom) * progress,
+        zoom: currentZoom,
         tilt: 0,
         heading: 0,
       });
+    };
     const fade = motion.fadeController();
     let cancelled = false,
       completeWait;
