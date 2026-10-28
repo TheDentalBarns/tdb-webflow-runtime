@@ -22,12 +22,31 @@ function prepareLazyIconMasks() {
     tiktok: '6ad9b3a872dc432ccf277657_tdb-footer-tiktok.svg',
     google: '6ad9b3a8b8b29dfc7bad72a9_tdb-footer-google.svg',
   };
+  const contactAssets = {
+    email: '6ae1d46d1c1a9f383cd4de00_tdb-contact-email.svg',
+    phone: '6ae1d46d041a7dac0cb8a184_tdb-contact-phone.svg',
+    mobile: '6ae1d47136d7abfabc27512a_tdb-contact-mobile.svg',
+    address: '6ae1d471041a7dac0cb8a2eb_tdb-contact-address.svg',
+    instagram: footerAssets.instagram,
+    facebook: footerAssets.facebook,
+  };
   const seen = new WeakSet(),
     pending = new Set();
   let disposed = false;
   const allowed = () => !disposed && Boolean(window.TDBConsent?.allows());
   function reveal(node) {
     if (!node.isConnected) return;
+    if (node.matches('.tdb-contact-item')) {
+      const kind = Object.keys(contactAssets).find((key) =>
+        node.classList.contains('tdb-contact-' + key),
+      );
+      if (kind)
+        node.style.setProperty(
+          '--tdb-contact-artwork',
+          'url("' + base + contactAssets[kind] + '")',
+        );
+      return;
+    }
     if (node.hasAttribute('data-tdb-lazy-barns')) {
       node.style.setProperty(
         '--tdb-barns-artwork',
@@ -99,7 +118,7 @@ function prepareLazyIconMasks() {
     if (!allowed()) return;
     document
       .querySelectorAll(
-        '[data-tdb-lazy-barns],[data-tdb-compact-speaker],.footer1_social-link[class*="tdb-footer-"],[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
+        '[data-tdb-lazy-barns],[data-tdb-compact-speaker],.tdb-contact-item,.footer1_social-link[class*="tdb-footer-"],[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
       )
       .forEach((node) => {
         if (seen.has(node)) return;

@@ -16,6 +16,92 @@
     const r = node.getBoundingClientRect();
     return r.bottom > -400 && r.top < window.innerHeight + 400;
   };
+  const visible = (node) => {
+    const r = node.getBoundingClientRect();
+    return !document.hidden && r.bottom > 0 && r.top < innerHeight;
+  };
+  function busy(node, active) {
+    if (!node) return;
+    if (active) {
+      node.dataset.tdbLoading = 'true';
+      node.setAttribute('aria-busy', 'true');
+    } else {
+      delete node.dataset.tdbLoading;
+      node.removeAttribute('aria-busy');
+    }
+  }
+  function clearTickers(owner) {
+    clearTimeout(owner.hold);
+    owner.finish = null;
+    owner.tickers.forEach((ticker) => ticker.destroy());
+    owner.tickers = [];
+  }
+  function message(owner, note, title = 'Your journey', detail = 'By car') {
+    clearTickers(owner);
+    owner.output.removeAttribute('aria-label');
+    if (owner.time && owner.detail && owner.note) {
+      owner.time.removeAttribute('aria-hidden');
+      owner.detail.removeAttribute('aria-hidden');
+      owner.time.textContent = title;
+      owner.detail.textContent = detail;
+      owner.note.textContent = note;
+    } else owner.output.textContent = note;
+  }
+  function showResult(owner, minutes, miles, origin) {
+    const timeText = (n) => `${n} ${n === 1 ? 'minute' : 'minutes'}`;
+    const mileText = (n) => `${n.toLocaleString('en-GB', { maximumFractionDigits: 1 })} miles`;
+    const note = 'Estimated driving time, without live traffic.';
+    if (!owner.time || !owner.detail || !owner.note) {
+      message(
+        owner,
+        `Around ${timeText(minutes)} by car · ${mileText(miles)} from ${origin}. ${note}`,
+      );
+      return;
+    }
+    message(owner, note, timeText(minutes), mileText(miles));
+    owner.output.setAttribute(
+      'aria-label',
+      `Around ${timeText(minutes)} by car, ${mileText(miles)} from ${origin}. ${note}`,
+    );
+    owner.time.setAttribute('aria-hidden', 'true');
+    owner.detail.setAttribute('aria-hidden', 'true');
+    if (
+      !window.TDBNativeTicker ||
+      !window.TDBMotion ||
+      window.TDBMotion.reduced.matches ||
+      !visible(owner.output)
+    )
+      return;
+    const values = [
+      {
+        slot: owner.time,
+        final: timeText(minutes),
+        start: timeText(Math.max(minutes + 1, Math.ceil(minutes * 1.1))),
+      },
+      {
+        slot: owner.detail,
+        final: mileText(miles),
+        start: mileText(Math.ceil(miles * 1.1 * 10) / 10),
+      },
+    ];
+    for (const value of values) {
+      const ticker = window.TDBNativeTicker.mount(value.slot, {
+        valueClass: 'tdb-journey-ticker-value',
+        incomingClass: 'tdb-journey-ticker-incoming',
+      });
+      ticker.update(value.start, -1, false);
+      owner.tickers.push(ticker);
+    }
+    owner.finish = (animate) => {
+      clearTimeout(owner.hold);
+      owner.tickers.forEach((ticker, i) => ticker.update(values[i].final, -1, animate));
+      owner.finish = null;
+    };
+    owner.hold = setTimeout(
+      () => owner.finish?.(visible(owner.output)),
+      window.TDBMotion.defaults.ticker,
+    );
+  }
   function sdk(root) {
     if (!permitted()) return Promise.reject(Error('permission'));
     if (authFailed) return Promise.reject(Error('map-unavailable'));
@@ -41,8 +127,7 @@
         reject(Error('map-unavailable'));
         for (const owner of owners.values()) {
           suspend(owner);
-          owner.output.textContent =
-            'The map is unavailable. Please open directions in Google Maps.';
+          message(owner, 'The map is unavailable. Please open directions in Google Maps.');
         }
         previous?.();
       };
@@ -78,7 +163,10 @@
     const output = root.querySelector('[data-tdb-journey-status]');
     const link = root.querySelector('.tdb-journey-directions');
     if (!form || !canvas || !output || !link) return null;
-    const initial = output.textContent;
+    const time = output.querySelector('[data-tdb-journey-time]');
+    const detail = output.querySelector('[data-tdb-journey-detail]');
+    const note = output.querySelector('[data-tdb-journey-note]');
+    const initial = note?.textContent || output.textContent;
     const placeholder = [...canvas.childNodes];
     const controller = new AbortController();
     const owner = {
@@ -88,6 +176,15 @@
       output,
       link,
       initial,
+      time,
+      detail,
+      note,
+      tickers: [],
+      hold: null,
+      finish: null,
+      button: form.querySelector('button[type="submit"],button'),
+      tiles: null,
+      tileWait: null,
       placeholder,
       controller,
       map: null,
@@ -118,9 +215,18 @@
         owner.pending = '';
         owner.running = '';
         clearRoute(owner);
-        output.textContent = initial;
+        message(owner, initial);
+        delete root.dataset.journeyState;
         link.href = directions('');
         form.removeAttribute('aria-busy');
+        busy(owner.button, false);
+      },
+      { signal: controller.signal },
+    );
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        if (document.hidden) owner.finish?.(false);
       },
       { signal: controller.signal },
     );
@@ -136,13 +242,16 @@
     if (owner.map) return owner.map;
     if (owner.loading) return owner.loading;
     const epoch = owner.generation;
+    busy(owner.canvas, true);
+    owner.root.dataset.journeyMap = 'loading';
     owner.loading = (async () => {
       await sdk(owner.root);
       if (!permitted() || !owner.root.isConnected || epoch !== owner.generation) return null;
-      const [{ Map }, { AdvancedMarkerElement, PinElement }] = await Promise.all([
-        window.google.maps.importLibrary('maps'),
-        window.google.maps.importLibrary('marker'),
-      ]);
+      const [{ Map, MapTypeControlStyle }, { AdvancedMarkerElement, PinElement }] =
+        await Promise.all([
+          window.google.maps.importLibrary('maps'),
+          window.google.maps.importLibrary('marker'),
+        ]);
       if (!permitted() || !owner.root.isConnected || epoch !== owner.generation) return null;
       owner.canvas.replaceChildren();
       owner.map = new Map(owner.canvas, {
@@ -151,7 +260,11 @@
         mapId: owner.root.dataset.tdbMapId,
         colorScheme: 'LIGHT',
         gestureHandling: 'cooperative',
-        mapTypeControl: false,
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+          mapTypeIds: ['roadmap', 'terrain'],
+          style: MapTypeControlStyle?.DROPDOWN_MENU,
+        },
         streetViewControl: false,
         fullscreenControl: true,
         zoomControl: true,
@@ -172,12 +285,22 @@
         content: pin,
       });
       owner.root.dataset.journeyMap = 'ready';
+      const loaded = () => {
+        if (epoch !== owner.generation) return;
+        clearTimeout(owner.tileWait);
+        busy(owner.canvas, false);
+      };
+      owner.tiles = window.google.maps.event?.addListenerOnce?.(owner.map, 'tilesloaded', loaded);
+      if (owner.tiles) owner.tileWait = setTimeout(loaded, 20000);
+      else loaded();
       return owner.map;
     })()
       .catch(() => {
-        if (permitted() && owner.generation === epoch)
-          owner.output.textContent =
-            'The map could not load. You can still open directions in Google Maps.';
+        if (permitted() && owner.generation === epoch) {
+          busy(owner.canvas, false);
+          delete owner.root.dataset.journeyMap;
+          message(owner, 'The map could not load. You can still open directions in Google Maps.');
+        }
         throw Error('map-unavailable');
       })
       .finally(() => {
@@ -190,7 +313,7 @@
     if (!owner) return;
     const origin = String(rawOrigin).trim().replace(/\s+/g, ' ').slice(0, 120);
     if (origin.length < 2) {
-      owner.output.textContent = 'Please enter your postcode or town.';
+      message(owner, 'Please enter your postcode or town.');
       owner.form.elements.namedItem('origin')?.focus();
       return;
     }
@@ -199,8 +322,10 @@
     owner.pending = origin;
     owner.link.href = directions(origin);
     if (!permitted()) {
-      owner.output.textContent =
-        'Enable functional cookies to see your journey here, or open directions in Google Maps.';
+      message(
+        owner,
+        'Enable functional cookies to see your journey here, or open directions in Google Maps.',
+      );
       window.openCookieSettingsPanel?.();
       return;
     }
@@ -209,7 +334,9 @@
     owner.running = origin;
     clearRoute(owner);
     owner.form.setAttribute('aria-busy', 'true');
-    owner.output.textContent = 'Finding your way to The Dental Barns…';
+    busy(owner.button, true);
+    message(owner, 'Finding your way to The Dental Barns…');
+    root.dataset.journeyState = 'loading';
     const valid = () => permitted() && root.isConnected && owner.request === id;
     try {
       const instance = await map(owner);
@@ -244,24 +371,25 @@
       route.path.forEach((point) => bounds.extend(point));
       instance.fitBounds(bounds, 48);
       const minutes = Math.max(1, Math.round(route.durationMillis / 60000));
-      const miles = (route.distanceMeters / 1609.344).toLocaleString('en-GB', {
-        maximumFractionDigits: 1,
-      });
-      owner.output.textContent = `Around ${minutes} ${minutes === 1 ? 'minute' : 'minutes'} by car · ${miles} miles from ${origin}. An estimate without live traffic; check Google Maps before you travel.`;
+      const miles = Math.round((route.distanceMeters / 1609.344) * 10) / 10;
+      showResult(owner, minutes, miles, origin);
       owner.last = origin;
       owner.lastAt = Date.now();
       root.dataset.journeyState = 'result';
     } catch (error) {
       if (!valid()) return;
-      owner.output.textContent =
+      message(
+        owner,
         error.message === 'ambiguous'
           ? 'Please enter a more specific postcode or town, or open directions in Google Maps.'
-          : 'We could not calculate that journey. Try a full UK postcode or open directions in Google Maps.';
+          : 'We could not calculate that journey. Try a full UK postcode or open directions in Google Maps.',
+      );
       root.dataset.journeyState = 'error';
     } finally {
       if (owner.request === id) {
         owner.running = '';
         owner.form.removeAttribute('aria-busy');
+        busy(owner.button, false);
       }
     }
   }
@@ -270,12 +398,17 @@
     owner.generation++;
     owner.running = '';
     clearRoute(owner);
+    clearTimeout(owner.tileWait);
+    owner.tiles?.remove();
+    owner.tiles = null;
+    busy(owner.canvas, false);
+    busy(owner.button, false);
     if (owner.marker) owner.marker.map = null;
     if (owner.map) window.google?.maps?.event?.clearInstanceListeners(owner.map);
     owner.marker = owner.map = null;
     owner.canvas.replaceChildren(...owner.placeholder);
     owner.form.removeAttribute('aria-busy');
-    owner.output.textContent = owner.initial;
+    message(owner, owner.initial);
     owner.link.href = directions('');
     delete owner.root.dataset.journeyMap;
     delete owner.root.dataset.journeyState;
@@ -315,7 +448,7 @@
     }
   }
   window.TDBJourney = Object.freeze({
-    version: '1.0.0',
+    version: '1.1.0',
     refresh,
     submit,
     owns: (root) => owners.has(root),

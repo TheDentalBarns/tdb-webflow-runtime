@@ -2892,12 +2892,31 @@ function prepareLazyIconMasks() {
     tiktok: '6ad9b3a872dc432ccf277657_tdb-footer-tiktok.svg',
     google: '6ad9b3a8b8b29dfc7bad72a9_tdb-footer-google.svg',
   };
+  const contactAssets = {
+    email: '6ae1d46d1c1a9f383cd4de00_tdb-contact-email.svg',
+    phone: '6ae1d46d041a7dac0cb8a184_tdb-contact-phone.svg',
+    mobile: '6ae1d47136d7abfabc27512a_tdb-contact-mobile.svg',
+    address: '6ae1d471041a7dac0cb8a2eb_tdb-contact-address.svg',
+    instagram: footerAssets.instagram,
+    facebook: footerAssets.facebook,
+  };
   const seen = new WeakSet(),
     pending = new Set();
   let disposed = false;
   const allowed = () => !disposed && Boolean(window.TDBConsent?.allows());
   function reveal(node) {
     if (!node.isConnected) return;
+    if (node.matches('.tdb-contact-item')) {
+      const kind = Object.keys(contactAssets).find((key) =>
+        node.classList.contains('tdb-contact-' + key),
+      );
+      if (kind)
+        node.style.setProperty(
+          '--tdb-contact-artwork',
+          'url("' + base + contactAssets[kind] + '")',
+        );
+      return;
+    }
     if (node.hasAttribute('data-tdb-lazy-barns')) {
       node.style.setProperty(
         '--tdb-barns-artwork',
@@ -2969,7 +2988,7 @@ function prepareLazyIconMasks() {
     if (!allowed()) return;
     document
       .querySelectorAll(
-        '[data-tdb-lazy-barns],[data-tdb-compact-speaker],.footer1_social-link[class*="tdb-footer-"],[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
+        '[data-tdb-lazy-barns],[data-tdb-compact-speaker],.tdb-contact-item,.footer1_social-link[class*="tdb-footer-"],[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
       )
       .forEach((node) => {
         if (seen.has(node)) return;
@@ -3401,17 +3420,28 @@ function prepareJourneyLoader() {
   function prepare() {
     if (disposed) return Promise.resolve();
     if (flight) return flight;
-    flight = Promise.all([
-      tdbEnsureFeatureCSS(
-        'data-tdb-journey-css',
-        'tdb-journey.css',
-        '--tdb-journey-ready',
-        'journey',
-      ),
-      window.TDBModules.load(new URL('tdb-journey.js', TDBRuntimeModuleRoot), {
-        ready: () => Boolean(window.TDBJourney),
-      }),
-    ])
+    flight = tdbEnsureFeatureCSS(
+      'data-tdb-journey-css',
+      'tdb-journey.css',
+      '--tdb-journey-ready',
+      'journey',
+    )
+      .then(() =>
+        Promise.all([
+          window.TDBModules.load(new URL('tdb-journey.js', TDBRuntimeModuleRoot), {
+            ready: () => Boolean(window.TDBJourney),
+          }),
+          // Optional animation uses the existing registry/motion/ticker, never a second engine.
+          Promise.all([
+            window.TDBModules.load(new URL('tdb-motion.js', TDBRuntimeModuleRoot), {
+              ready: () => Boolean(window.TDBMotion),
+            }),
+            window.TDBModules.load(new URL('tdb-ticker.js', TDBRuntimeModuleRoot), {
+              ready: () => Boolean(window.TDBNativeTicker),
+            }),
+          ]).catch(() => {}),
+        ]),
+      )
       .then(() => {
         if (!disposed) window.TDBJourney.refresh();
       })
@@ -3437,7 +3467,9 @@ function prepareJourneyLoader() {
           if (!disposed && root.isConnected) window.TDBJourney.submit(root, value);
         })
         .catch(() => {
-          const status = root.querySelector('[data-tdb-journey-status]');
+          const status =
+            root.querySelector('[data-tdb-journey-note]') ||
+            root.querySelector('[data-tdb-journey-status]');
           if (status)
             status.textContent =
               'The journey planner could not load. Please try again or open directions in Google Maps.';

@@ -8,17 +8,28 @@ function prepareJourneyLoader() {
   function prepare() {
     if (disposed) return Promise.resolve();
     if (flight) return flight;
-    flight = Promise.all([
-      tdbEnsureFeatureCSS(
-        'data-tdb-journey-css',
-        'tdb-journey.css',
-        '--tdb-journey-ready',
-        'journey',
-      ),
-      window.TDBModules.load(new URL('tdb-journey.js', TDBRuntimeModuleRoot), {
-        ready: () => Boolean(window.TDBJourney),
-      }),
-    ])
+    flight = tdbEnsureFeatureCSS(
+      'data-tdb-journey-css',
+      'tdb-journey.css',
+      '--tdb-journey-ready',
+      'journey',
+    )
+      .then(() =>
+        Promise.all([
+          window.TDBModules.load(new URL('tdb-journey.js', TDBRuntimeModuleRoot), {
+            ready: () => Boolean(window.TDBJourney),
+          }),
+          // Optional animation uses the existing registry/motion/ticker, never a second engine.
+          Promise.all([
+            window.TDBModules.load(new URL('tdb-motion.js', TDBRuntimeModuleRoot), {
+              ready: () => Boolean(window.TDBMotion),
+            }),
+            window.TDBModules.load(new URL('tdb-ticker.js', TDBRuntimeModuleRoot), {
+              ready: () => Boolean(window.TDBNativeTicker),
+            }),
+          ]).catch(() => {}),
+        ]),
+      )
       .then(() => {
         if (!disposed) window.TDBJourney.refresh();
       })
@@ -44,7 +55,9 @@ function prepareJourneyLoader() {
           if (!disposed && root.isConnected) window.TDBJourney.submit(root, value);
         })
         .catch(() => {
-          const status = root.querySelector('[data-tdb-journey-status]');
+          const status =
+            root.querySelector('[data-tdb-journey-note]') ||
+            root.querySelector('[data-tdb-journey-status]');
           if (status)
             status.textContent =
               'The journey planner could not load. Please try again or open directions in Google Maps.';

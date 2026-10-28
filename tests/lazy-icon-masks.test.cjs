@@ -86,3 +86,21 @@ test('consolidated decorative rows keep artwork deferred and do not create child
   assert.equal(barns.style.maskImage,'');
  }finally{f.close()}
 });
+
+test('contact masks wait for proximity and reuse the exact footer social artwork',()=>{
+ const f=fixture();try{
+  for(const kind of ['email','phone','mobile','address','instagram','facebook']){
+   const contact=f.w.document.createElement('a');contact.className='tdb-contact-item tdb-contact-'+kind;
+   f.w.document.body.append(contact);f.w.TDBLazyIconMasks.refresh();
+   assert.equal(contact.style.getPropertyValue('--tdb-contact-artwork'),'');
+   f.ios[0].fn([{target:contact,isIntersecting:true}]);
+   assert.match(contact.style.getPropertyValue('--tdb-contact-artwork'),new RegExp('tdb-(contact|footer)-'+kind+'\\.svg'));
+   assert.equal(contact.childElementCount,0);
+   if(['instagram','facebook'].includes(kind)){
+    const footer=f.w.document.createElement('a');footer.className='footer1_social-link tdb-footer-'+kind;
+    f.w.document.body.append(footer);f.w.TDBLazyIconMasks.refresh();f.ios[0].fn([{target:footer,isIntersecting:true}]);
+    assert.equal(contact.style.getPropertyValue('--tdb-contact-artwork'),footer.style.getPropertyValue('--tdb-footer-artwork'));
+   }
+  }
+ }finally{f.close()}
+});
