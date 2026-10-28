@@ -23,8 +23,8 @@ function fixture({ allowed = true, routeFlight, placeFlight, rich = false, optio
     if (kind === 'routes') return { Route: { computeRoutes(request) { calls.push(request); return routeFlight ? routeFlight.promise : Promise.resolve(result()); } } };
   } } };
   if(options){
-    root.insertAdjacentHTML('beforeend','<div data-tdb-journey-options><select data-tdb-journey-departure disabled><option value="now">Now</option><option value="later">Later</option></select><input type="datetime-local" data-tdb-journey-when disabled><input type="checkbox" data-tdb-journey-avoid disabled><button data-tdb-journey-update disabled>Update</button><button data-tdb-journey-arrive disabled><span data-tdb-journey-arrive-label>Arrive with confidence</span></button></div>');
-    root.dataset.tdbJourneyParking='52.6295774,-1.801891';
+    root.insertAdjacentHTML('beforeend','<div data-tdb-journey-options><select data-tdb-journey-departure disabled><option value="now">Now</option><option value="later">Later</option><option value="appointment">I have an appointment</option></select><input type="datetime-local" data-tdb-journey-when disabled><input type="checkbox" data-tdb-journey-avoid disabled><button data-tdb-journey-update disabled>Update</button><button data-tdb-journey-arrive disabled><span data-tdb-journey-arrive-label>Arrive with confidence</span></button></div>');
+    root.dataset.tdbJourneyParking='52.6295774,-1.801891';root.dataset.tdbJourneyWalkLabel='Under 1 min';
     root.setAttribute('data-tdb-journey-path-1','52.6296,-1.8019 52.63,-1.8018 52.6300414,-1.8014216');
     root.setAttribute('data-tdb-journey-path-2','52.6296,-1.8019 52.6299,-1.8018 52.6300414,-1.8014216');
     const original=w.google.maps.importLibrary;
@@ -297,7 +297,7 @@ test('both mobile arrival actions centre the reserved map and retain one route r
  f.w.TDBMotion={reduced:{matches:true}};
  const button=f.root.querySelector('[data-tdb-journey-arrive]');
  button.click();await tick();await tick();assert.deepEqual(scrolls,[3328]);
- assert.match(f.markers[2].content.textContent,/^≈ [1-9]\d* min$/);assert.match(f.markers[2].title,/Walk/);
+ assert.equal(f.markers[2].content.textContent,'Under 1 min');assert.match(f.markers[2].title,/Walk/);
  button.click();await tick();await tick();assert.deepEqual(scrolls,[3328,3328]);assert.equal(f.calls.length,1);f.close();
 });
 
@@ -331,9 +331,46 @@ test('UK clock displays GMT/BST without an added hour and stops its minute wake-
  f.close();assert.equal(clock.timers.size,0);
 });
 
-test('arrival paths have contrasting outlines and indicative walking time without a walking API request',async()=>{
+test('arrival paths have contrasting outlines and owner-confirmed walking time without a walking API request',async()=>{
  const f=fixture({options:true});await tick();f.root.style.setProperty('--base-color-neutral--neutral-darker','#222');f.root.style.setProperty('--base-color-brand--orange-1','#f9f2e6');
  f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();
  assert.equal(f.lines.length,4);assert.deepEqual(f.lines.map(l=>[l.strokeColor,l.strokeWeight,l.zIndex]),[['#222',8,1],['#f9f2e6',4,2],['#222',8,1],['#f9f2e6',4,2]]);
- assert.match(f.markers[2].title,/about [1-9] minutes?/);assert.match(f.markers[2].content.textContent,/^≈ [1-9] min$/);assert.equal(f.calls.length,0);f.close();assert(f.lines.every(l=>l.map===null));
+ assert.match(f.markers[2].title,/Under 1 min/);assert.equal(f.markers[2].content.textContent,'Under 1 min');assert.equal(f.calls.length,0);f.close();assert(f.lines.every(l=>l.map===null));
+});
+
+test('appointment mode preserves separate entered times and checks traffic at the estimated departure',async()=>{
+ const f=fixture({options:true}),select=f.root.querySelector('select'),when=f.root.querySelector('[data-tdb-journey-when]');
+ select.value='later';select.dispatchEvent(new f.w.Event('change',{bubbles:true}));when.value='2027-07-15T09:00';
+ select.value='appointment';select.dispatchEvent(new f.w.Event('change',{bubbles:true}));assert.equal(when.value,'');assert.equal(when.getAttribute('aria-label'),'Appointment date and time (UK time)');when.value='2027-07-15T10:00';
+ await f.w.TDBJourney.submit(f.root,'Tamworth');assert.equal(f.calls.length,2);assert.equal(f.calls[0].departureTime.toISOString(),'2027-07-15T08:45:00.000Z');assert.equal(f.calls[1].departureTime.toISOString(),'2027-07-15T08:32:00.000Z');assert.equal(f.calls[1].arrivalTime,undefined);
+ assert.match(f.output(),/Leave by 09:32 · Arrive 09:45/);assert.match(f.output(),/15 min before your 10:00 appointment/);
+ await f.w.TDBJourney.submit(f.root,'Tamworth');assert.equal(f.calls.length,2);
+ select.value='later';select.dispatchEvent(new f.w.Event('change',{bubbles:true}));assert.equal(when.value,'2027-07-15T09:00');
+ select.value='appointment';select.dispatchEvent(new f.w.Event('change',{bubbles:true}));assert.equal(when.value,'2027-07-15T10:00');f.close();
+});
+
+test('appointment planning is bounded, conservative and handles crossing midnight',async()=>{
+ const f=fixture({options:true}),original=f.w.google.maps.importLibrary;let n=0;
+ f.w.google.maps.importLibrary=async kind=>{const lib=await original(kind);if(kind==='routes')lib.Route.computeRoutes=req=>{f.calls.push(req);const value=f.result();value.routes[0].durationMillis=(++n===1?40:45)*60000;return Promise.resolve(value)};return lib};
+ await f.w.TDBJourney.submit(f.root,'Tamworth',{appointment:true,when:'2027-01-15T00:10',avoid:true});
+ assert.equal(f.calls.length,2);assert.equal(f.calls[1].routeModifiers.avoidHighways,true);assert.match(f.output(),/Leave by 23:10 on 14 Jan · Arrive 23:55 on 14 Jan/);assert.match(f.output(),/00:10 appointment · 15 Jan/);f.close();
+});
+
+test('appointment planning rejects impossible clock times and warns when the early-arrival buffer cannot be met',async()=>{
+ const clock={now:'2026-10-28T15:45:00Z',id:0,timers:new Map()},f=fixture({options:true,clock});
+ await f.w.TDBJourney.submit(f.root,'Tamworth',{appointment:true,when:'2026-10-28T15:55'});assert.equal(f.calls.length,0);
+ await f.w.TDBJourney.submit(f.root,'Tamworth',{appointment:true,when:'2027-03-28T01:30'});assert.equal(f.calls.length,0);
+ await f.w.TDBJourney.submit(f.root,'Tamworth',{appointment:true,when:'2026-10-28T16:05'});assert.equal(f.calls.length,2);assert.match(f.output(),/Leave now · the 15-minute buffer may not be possible/);f.close();
+});
+
+test('changing origin during the first appointment request suppresses refinement and stale output',async()=>{
+ const flight=deferred(),f=fixture({options:true,routeFlight:flight});const pending=f.w.TDBJourney.submit(f.root,'Tamworth',{appointment:true,when:'2027-07-15T10:00'});await tick();
+ f.root.querySelector('input').dispatchEvent(new f.w.Event('input',{bubbles:true}));flight.resolve(f.result());await pending;assert.equal(f.calls.length,1);assert.equal(f.lines.length,0);assert.equal(f.output(),'Native result placeholder');f.close();
+});
+
+test('Update journey recentres even when the route is cached and restores it from arrival view',async()=>{
+ const f=fixture({options:true});await f.w.TDBJourney.submit(f.root,'Tamworth');f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();
+ Object.defineProperty(f.w.document.documentElement,'scrollHeight',{value:10000});const canvas=f.root.querySelector('[data-tdb-journey-map]');canvas.getBoundingClientRect=()=>({top:-500,bottom:0,height:500});f.w.scrollY=4000;
+ const scrolls=[];f.w.lenis={scrollTo(top){scrolls.push(top)}};f.w.TDBMotion={reduced:{matches:true}};
+ await f.w.TDBJourney.submit(f.root,'Tamworth',{later:false,avoid:false,center:true});assert.equal(scrolls.length,1);assert.equal(f.calls.length,1);assert.equal(f.maps[0].type,'roadmap');assert.equal(f.markers[1].map,null);f.close();
 });

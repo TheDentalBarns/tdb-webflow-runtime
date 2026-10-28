@@ -50,6 +50,7 @@
   }
   const choices = (root) => ({
     later: root.querySelector('[data-tdb-journey-departure]')?.value === 'later',
+    appointment: root.querySelector('[data-tdb-journey-departure]')?.value === 'appointment',
     when: root.querySelector('[data-tdb-journey-when]')?.value || '',
     avoid: Boolean(root.querySelector('[data-tdb-journey-avoid]')?.checked),
   });
@@ -84,14 +85,42 @@
       owner.note.textContent = note;
     } else owner.output.textContent = note;
   }
-  function showResult(owner, minutes, miles, origin, options, fallback) {
+  function appointmentNote(plan, fallback) {
+    const day = (date) =>
+      new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Europe/London',
+        day: 'numeric',
+        month: 'short',
+      }).format(date);
+    const stamp = (date) =>
+      ukTime(date).slice(11) +
+      (ukTime(date).slice(0, 10) === ukTime(plan.appointment).slice(0, 10)
+        ? ''
+        : ' on ' + day(date));
+    const timing =
+      plan.leaveBy.getTime() <= Date.now()
+        ? 'Leave now · the 15-minute buffer may not be possible.'
+        : 'Leave by ' + stamp(plan.leaveBy) + ' · Arrive ' + stamp(plan.arriveBy);
+    return (
+      timing +
+      '\n15 min before your ' +
+      ukTime(plan.appointment).slice(11) +
+      ' appointment · ' +
+      day(plan.appointment) +
+      '.\nUK time · ' +
+      (fallback ? 'traffic unavailable.' : 'estimated traffic.')
+    );
+  }
+  function showResult(owner, minutes, miles, origin, options, fallback, plan) {
     const timeText = (n) => `${n} ${n === 1 ? 'minute' : 'minutes'}`;
     const mileText = (n) => `${n.toLocaleString('en-GB', { maximumFractionDigits: 1 })} miles`;
-    const note = fallback
-      ? 'Traffic estimate unavailable; approximate drive time shown.'
-      : options.later
-        ? 'Estimated traffic for ' + options.when.replace('T', ' · ') + ' UK time.'
-        : 'Estimated drive time with current traffic.';
+    const note = plan
+      ? appointmentNote(plan, fallback)
+      : fallback
+        ? 'Traffic estimate unavailable; approximate drive time shown.'
+        : options.later
+          ? 'Estimated traffic for ' + options.when.replace('T', ' · ') + ' UK time.'
+          : 'Estimated drive time with current traffic.';
     if (!owner.time || !owner.detail || !owner.note) {
       message(
         owner,
@@ -270,25 +299,41 @@
     }
     const syncDeparture = () => {
       if (!owner.when) return;
-      const later = owner.departure?.value === 'later';
-      if (later === owner.laterMode) return;
-      if (owner.laterMode) owner.laterValue = owner.when.value;
+      const mode = owner.departure?.value || 'now';
+      const later = mode !== 'now';
+      if (mode === owner.departureMode) return;
+      owner.savedTimes ||= {};
+      if (owner.laterMode) owner.savedTimes[owner.departureMode] = owner.when.value;
+      owner.departureMode = mode;
       owner.laterMode = later;
       owner.when.disabled = !later;
       owner.when.required = later;
       owner.when.type = later ? 'datetime-local' : 'text';
       owner.when.setAttribute(
         'aria-label',
-        later ? 'Departure date and time (UK time)' : 'Current UK time',
+        mode === 'appointment'
+          ? 'Appointment date and time (UK time)'
+          : later
+            ? 'Departure date and time (UK time)'
+            : 'Current UK time',
       );
       if (later) {
         owner.when.min = ukTime(new Date(Math.ceil((Date.now() + 60000) / 300000) * 300000));
         owner.when.value =
-          owner.laterValue || ukTime(new Date(Math.ceil((Date.now() + 3600000) / 300000) * 300000));
+          owner.savedTimes[mode] ||
+          (mode === 'appointment'
+            ? ''
+            : ukTime(new Date(Math.ceil((Date.now() + 3600000) / 300000) * 300000)));
       } else {
         owner.when.removeAttribute('min');
       }
       syncClock(owner);
+      const help = root.querySelector('[data-tdb-journey-time-help]');
+      if (help)
+        help.textContent =
+          mode === 'appointment'
+            ? 'Enter your appointment date and time. We plan for arrival 15 minutes early, in UK time.'
+            : 'UK local time: GMT in winter, BST in summer.';
       owner.when.setCustomValidity('');
     };
     syncDeparture();
@@ -297,7 +342,10 @@
       'submit',
       (event) => {
         event.preventDefault();
-        submit(root, form.elements.namedItem('origin')?.value || '');
+        submit(root, form.elements.namedItem('origin')?.value || '', {
+          ...choices(root),
+          center: event.submitter === owner.update,
+        });
       },
       { signal: controller.signal },
     );
@@ -689,25 +737,8 @@
       if (label) label.textContent = 'Arrive with confidence';
     }
   }
-  function walkingMinutes(points) {
-    const rad = Math.PI / 180;
-    let metres = 0;
-    for (let i = 1; i < points.length; i++) {
-      const a = points[i - 1],
-        b = points[i];
-      const lat1 = a[0] * rad,
-        lat2 = b[0] * rad;
-      const h =
-        Math.sin((lat2 - lat1) / 2) ** 2 +
-        Math.cos(lat1) * Math.cos(lat2) * Math.sin(((b[1] - a[1]) * rad) / 2) ** 2;
-      metres += 12742000 * Math.asin(Math.min(1, Math.sqrt(h)));
-    }
-    // Indicative time along the owner-approved schematic path, assuming a
-    // gentle 60 metres/minute. This is not a Google walking-route estimate.
-    return Math.max(1, Math.ceil(metres / 60));
-  }
-  async function centerMap(owner, valid) {
-    if (innerWidth >= 768) return;
+  async function centerMap(owner, valid, allSizes = false) {
+    if (!allSizes && innerWidth >= 768) return;
     const box = owner.canvas.getBoundingClientRect();
     const viewport = window.visualViewport;
     const height = viewport?.height || innerHeight;
@@ -721,7 +752,10 @@
     );
     if (Math.abs(end - start) < 2) return;
     const motion = window.TDBMotion;
-    const move = (top) => window.scrollTo({ top, behavior: 'instant' });
+    const move = (top) =>
+      window.lenis
+        ? window.lenis.scrollTo(top, { immediate: true, force: true })
+        : window.scrollTo({ top, behavior: 'instant' });
     if (!motion?.profile || motion.reduced.matches || !window.KeyframeEffect || !window.Animation) {
       if (valid()) move(end);
       return;
@@ -855,15 +889,12 @@
           );
         const end = path.at(-1),
           previous = path.at(-2);
-        const minutes = walkingMinutes([data.parking, ...path]);
+        const walkLabel = owner.root.dataset.tdbJourneyWalkLabel || 'Short walk';
         mark(
           [(end[0] + previous[0]) / 2, (end[1] + previous[1]) / 2],
-          (index ? 'Walk through the courtyard' : 'Walk around the north side') +
-            ': about ' +
-            minutes +
-            (minutes === 1 ? ' minute' : ' minutes'),
+          (index ? 'Walk through the courtyard' : 'Walk around the north side') + ': ' + walkLabel,
           'approach',
-          '≈ ' + minutes + ' min',
+          walkLabel,
         );
       });
       owner.arrivalView = true;
@@ -889,20 +920,37 @@
       return;
     }
     const options = capturedChoices || choices(root);
-    const when = options.later ? departure(options.when) : null;
-    if (options.later && (!when || when.getTime() <= Date.now())) {
-      message(owner, 'Choose a future UK departure time. Avoid the clock-change hour.');
-      owner.when?.setCustomValidity('Choose an unambiguous future UK departure time.');
+    const timed = options.later || options.appointment;
+    const when = timed ? departure(options.when) : null;
+    if (timed && (!when || when.getTime() <= Date.now() + (options.appointment ? 900000 : 0))) {
+      const warning = options.appointment
+        ? 'Choose an appointment more than 15 minutes ahead in UK time. Avoid the clock-change hour.'
+        : 'Choose a future UK departure time. Avoid the clock-change hour.';
+      message(owner, warning);
+      owner.when?.setCustomValidity(warning);
       owner.when?.reportValidity();
       owner.when?.focus();
       return;
     }
     const key = JSON.stringify([
       origin.toLowerCase(),
-      options.later ? options.when : 'now',
+      options.appointment ? 'appointment:' + options.when : options.later ? options.when : 'now',
       options.avoid,
     ]);
-    if (owner.last === key && Date.now() - owner.lastAt < 60000) return;
+    if (owner.last === key && Date.now() - owner.lastAt < 60000) {
+      if (options.center && owner.routeBounds) {
+        owner.pageScroll?.cancel();
+        owner.camera?.cancel();
+        const epoch = ++owner.request;
+        const valid = () => permitted() && root.isConnected && owner.request === epoch;
+        await centerMap(owner, valid, true);
+        if (!valid()) return;
+        clearArrival(owner);
+        owner.lines.forEach((line) => line.setMap(owner.map));
+        await presentRoute(owner, owner.map, owner.routeBounds, valid);
+      }
+      return;
+    }
     if (owner.running === key) return;
     owner.pending = { origin, options };
     owner.link.href = directions(origin);
@@ -926,23 +974,51 @@
     try {
       const instance = await map(owner);
       if (!instance || !valid()) return;
+      if (options.center) await centerMap(owner, valid, true);
+      if (!valid()) return;
       const { Route } = await window.google.maps.importLibrary('routes');
       if (!valid()) return;
-      const result = await Route.computeRoutes({
+      const arriveBy = options.appointment ? new Date(when.getTime() - 900000) : null;
+      const request = {
         origin: origin + ', UK',
         destination: destinationAddress,
         travelMode: 'DRIVING',
         routingPreference: 'TRAFFIC_AWARE',
-        ...(when ? { departureTime: when } : {}),
+        ...(when ? { departureTime: arriveBy || when } : {}),
         routeModifiers: { avoidHighways: Boolean(options.avoid) },
         language: 'en-GB',
         region: 'uk',
         fields: ['path', 'durationMillis', 'distanceMeters'],
-      });
+      };
+      const checkedRoute = (result) => {
+        const route = result.routes?.[0];
+        if (
+          !route?.path?.length ||
+          !Number.isFinite(route.durationMillis) ||
+          route.durationMillis <= 0
+        )
+          throw Error('no-route');
+        if (result.geocodingResults?.origin?.partialMatch) throw Error('ambiguous');
+        return route;
+      };
+      let result = await Route.computeRoutes(request);
       if (!valid()) return;
-      const route = result.routes?.[0];
-      if (!route?.path?.length || !Number.isFinite(route.durationMillis)) throw Error('no-route');
-      if (result.geocodingResults?.origin?.partialMatch) throw Error('ambiguous');
+      let route = checkedRoute(result),
+        plan;
+      if (arriveBy) {
+        // Driving has no arrive-by API. One bounded refinement checks traffic
+        // at the estimated departure; never start an unbounded request loop.
+        const seed = Math.floor((arriveBy.getTime() - route.durationMillis) / 60000) * 60000;
+        result = await Route.computeRoutes({
+          ...request,
+          departureTime: new Date(Math.max(Date.now() + 60000, seed)),
+        });
+        if (!valid()) return;
+        route = checkedRoute(result);
+        let leaveBy = Math.floor((arriveBy.getTime() - route.durationMillis) / 60000) * 60000;
+        if (seed > Date.now()) leaveBy = Math.min(seed, leaveBy);
+        plan = { appointment: when, arriveBy, leaveBy: new Date(leaveBy) };
+      }
       const { LatLngBounds } = await window.google.maps.importLibrary('core');
       if (!valid()) return;
       owner.lines = route.createPolylines();
@@ -961,7 +1037,7 @@
       if (!valid()) return;
       const minutes = Math.max(1, Math.round(route.durationMillis / 60000));
       const miles = Math.round((route.distanceMeters / 1609.344) * 10) / 10;
-      showResult(owner, minutes, miles, origin, options, result.fallbackInfo);
+      showResult(owner, minutes, miles, origin, options, result.fallbackInfo, plan);
       owner.last = key;
       owner.lastAt = Date.now();
       root.dataset.journeyState = 'result';
@@ -1053,7 +1129,7 @@
     }
   }
   window.TDBJourney = Object.freeze({
-    version: '1.7.2',
+    version: '1.8.0',
     refresh,
     submit,
     owns: (root) => owners.has(root),

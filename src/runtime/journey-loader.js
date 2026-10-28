@@ -52,6 +52,8 @@ function prepareJourneyLoader() {
       const value = event.target.elements.namedItem('origin')?.value || '';
       const options = {
         later: root.querySelector('[data-tdb-journey-departure]')?.value === 'later',
+        appointment: root.querySelector('[data-tdb-journey-departure]')?.value === 'appointment',
+        center: event.submitter?.hasAttribute('data-tdb-journey-update') || false,
         when: root.querySelector('[data-tdb-journey-when]')?.value || '',
         avoid: Boolean(root.querySelector('[data-tdb-journey-avoid]')?.checked),
       };
