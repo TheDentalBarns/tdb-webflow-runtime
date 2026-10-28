@@ -239,6 +239,15 @@
       "gzip": 5124,
       "brotli": 4561
     },
+    "dist/tdb-journey.js": {
+      "sources": [
+        "src/journey/journey.js"
+      ],
+      "sha256": "c93033f8b84b65b213bc7393d7de43cc2e783e4302436fec99fedab2c1d64316",
+      "raw": 6716,
+      "gzip": 2975,
+      "brotli": 2564
+    },
     "dist/tdb-legacy-review-drawer.js": {
       "sources": [
         "src/shared/value-ticker.js",
@@ -535,13 +544,14 @@
         "src/runtime/instagram-feature-loader.js",
         "src/runtime/smile-feature-loader.js",
         "src/runtime/page-break-loader.js",
+        "src/runtime/journey-loader.js",
         "src/runtime/features-startup.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "9ea00f536e9e9d87a429deeab70a07a11d7f0a22f79c2627cff55242358b15a5",
-      "raw": 70647,
-      "gzip": 19171,
-      "brotli": 16862
+      "sha256": "80155fbd51cda1dbd7a03f73ade635eec3666b36e92e84bdd12c76bf9c158ab5",
+      "raw": 71916,
+      "gzip": 19453,
+      "brotli": 17102
     },
     "dist/tdb-service-awards.js": {
       "sources": [

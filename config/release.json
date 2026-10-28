@@ -17,6 +17,7 @@
     "dist/tdb-foundation.js",
     "dist/tdb-gallery.js",
     "dist/tdb-hold-audio.js",
+    "dist/tdb-journey.js",
     "dist/tdb-instagram-deferred.js",
     "dist/tdb-instagram-native.min.js",
     "dist/tdb-lenis.min.js",
@@ -56,6 +57,7 @@
   ],
   "styles": [
     "dist/tdb-ui.css",
+    "dist/tdb-journey.css",
     "dist/tdb-control-motion.css",
     "dist/tdb-scroll-lock.css",
     "dist/tdb-announcement.css",

@@ -7,6 +7,7 @@ const TDBFeatureStartup = (() => {
     prepareBrevoConsent,
     prepareUSPDrawerLoader,
     preparePageBreakLoader,
+    prepareJourneyLoader,
     prepareFiveSensesLauncher,
     prepareReviewFeatureLoader,
     prepareReviewWidgetLoader,

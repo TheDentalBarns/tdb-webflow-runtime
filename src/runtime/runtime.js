@@ -250,6 +250,7 @@
     window.TDBLogoMarqueeLoader?.destroy();
     window.TDBUSPDrawerLoader?.destroy();
     window.TDBPageBreaks?.destroy();
+    window.TDBJourneyLoader?.destroy();
     window.TDBFiveSensesLauncher?.destroy();
     window.TDBHoldAudioLoader?.destroy();
     window.TDBReviewFeatureLoader?.destroy();
