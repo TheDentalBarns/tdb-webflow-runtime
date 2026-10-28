@@ -34,6 +34,8 @@ function prepareLazyIconMasks() {
     clock: '6ac8c58089197784d522c2a2_tdb-review-clock-brand.svg',
     distance: '6ae1ea46056eef9c12179a64_tdb-journey-distance.svg',
     globe: '6ac9040240c896d539d1903d_tdb-globe.svg',
+    parking: '6ac8f79471bd2b763b1aad60_tdb-location-parking.svg',
+    barn: '6ac9119d7e007fc273d48477_tdb-barn-window-light.min.svg',
   };
   const seen = new WeakSet(),
     pending = new Set();

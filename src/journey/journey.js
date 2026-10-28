@@ -20,6 +20,35 @@
     const r = node.getBoundingClientRect();
     return !document.hidden && r.bottom > 0 && r.top < innerHeight;
   };
+  const ukFormat = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Europe/London',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  });
+  const ukTime = (date) => ukFormat.format(date).replace(' ', 'T');
+  function departure(value) {
+    // Resolve UK wall time independently of the visitor's device timezone.
+    // Reject the missing/repeated hour at the clock change rather than guess.
+    if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return null;
+    const utc = Date.parse(value + ':00Z');
+    if (!Number.isFinite(utc)) return null;
+    const matches = [utc, utc - 3600000].filter((ms) => ukTime(new Date(ms)) === value);
+    return matches.length === 1 ? new Date(matches[0]) : null;
+  }
+  const choices = (root) => ({
+    later: root.querySelector('[data-tdb-journey-departure]')?.value === 'later',
+    when: root.querySelector('[data-tdb-journey-when]')?.value || '',
+    avoid: Boolean(root.querySelector('[data-tdb-journey-avoid]')?.checked),
+  });
+  function requestBusy(owner, value) {
+    busy(owner.button, value);
+    busy(owner.update, value);
+    if (owner.arrive) owner.arrive.disabled = value || !owner.map;
+  }
   function busy(node, active) {
     if (!node) return;
     if (active) {
@@ -46,10 +75,14 @@
       owner.note.textContent = note;
     } else owner.output.textContent = note;
   }
-  function showResult(owner, minutes, miles, origin) {
+  function showResult(owner, minutes, miles, origin, options, fallback) {
     const timeText = (n) => `${n} ${n === 1 ? 'minute' : 'minutes'}`;
     const mileText = (n) => `${n.toLocaleString('en-GB', { maximumFractionDigits: 1 })} miles`;
-    const note = 'Estimated driving time, without live traffic.';
+    const note = fallback
+      ? 'Traffic estimate unavailable; approximate drive time shown.'
+      : options.later
+        ? 'Estimated traffic for ' + options.when.replace('T', ' · ') + ' UK time.'
+        : 'Estimated drive time with current traffic.';
     if (!owner.time || !owner.detail || !owner.note) {
       message(
         owner,
@@ -186,6 +219,14 @@
       time,
       detail,
       note,
+      update: root.querySelector('[data-tdb-journey-update]'),
+      arrive: root.querySelector('[data-tdb-journey-arrive]'),
+      departure: root.querySelector('[data-tdb-journey-departure]'),
+      when: root.querySelector('[data-tdb-journey-when]'),
+      arrivalMarkers: [],
+      arrivalLines: [],
+      arrivalView: false,
+      routeBounds: null,
       tickers: [],
       finish: null,
       button: form.querySelector('button[type="submit"],button'),
@@ -210,6 +251,25 @@
       seen: false,
     };
     owners.set(root, owner);
+    for (const selector of [
+      '[data-tdb-journey-departure]',
+      '[data-tdb-journey-avoid]',
+      '[data-tdb-journey-update]',
+    ]) {
+      const control = root.querySelector(selector);
+      if (control) control.disabled = false;
+    }
+    const syncDeparture = () => {
+      if (!owner.when) return;
+      owner.when.disabled = owner.departure?.value !== 'later';
+      owner.when.required = !owner.when.disabled;
+      owner.when.min = ukTime(new Date(Math.ceil((Date.now() + 60000) / 300000) * 300000));
+      if (!owner.when.value)
+        owner.when.value = ukTime(new Date(Math.ceil((Date.now() + 3600000) / 300000) * 300000));
+      owner.when.setCustomValidity('');
+    };
+    syncDeparture();
+    owner.arrive?.addEventListener('click', () => arrival(owner), { signal: controller.signal });
     form.addEventListener(
       'submit',
       (event) => {
@@ -218,9 +278,10 @@
       },
       { signal: controller.signal },
     );
-    form.addEventListener(
+    root.addEventListener(
       'input',
       () => {
+        syncDeparture();
         owner.request++;
         owner.pending = '';
         owner.running = '';
@@ -229,7 +290,7 @@
         delete root.dataset.journeyState;
         link.href = directions('');
         form.removeAttribute('aria-busy');
-        busy(owner.button, false);
+        requestBusy(owner, false);
       },
       { signal: controller.signal },
     );
@@ -253,8 +314,10 @@
   }
   function clearRoute(owner) {
     owner.camera?.cancel();
+    clearArrival(owner);
     owner.lines.forEach((line) => line.setMap(null));
     owner.lines = [];
+    owner.routeBounds = null;
     owner.last = '';
   }
   function businessLink(id = '') {
@@ -395,6 +458,8 @@
         content: pin,
       });
       owner.pinClick = owner.marker.addListener('click', () => openBusiness(owner, InfoWindow));
+      owner.mapTypes = { AdvancedMarkerElement };
+      if (owner.arrive) owner.arrive.disabled = Boolean(owner.running);
       owner.root.dataset.journeyMap = 'ready';
       const loaded = () => {
         if (epoch !== owner.generation) return;
@@ -419,18 +484,26 @@
       });
     return owner.loading;
   }
-  async function presentRoute(owner, instance, bounds, valid) {
+  async function presentRoute(
+    owner,
+    instance,
+    bounds,
+    valid,
+    type = 'roadmap',
+    maxZoom = 17,
+    padding = 48,
+  ) {
     const motion = window.TDBMotion;
     const direct = () => {
-      instance.setMapTypeId('roadmap');
-      instance.fitBounds(bounds, 48);
+      instance.setMapTypeId(type);
+      instance.fitBounds(bounds, padding);
     };
     owner.info?.close();
     const projection = instance.getProjection?.();
     const center = instance.getCenter?.();
     const zoom = instance.getZoom();
-    const width = owner.canvas.clientWidth - 96;
-    const height = owner.canvas.clientHeight - 96;
+    const width = owner.canvas.clientWidth - padding * 2;
+    const height = owner.canvas.clientHeight - padding * 2;
     if (
       !motion?.fadeController ||
       motion.reduced.matches ||
@@ -464,7 +537,7 @@
     const targetZoom = Math.max(
       1,
       Math.min(
-        17,
+        maxZoom,
         Math.log2(width / Math.max(spanX, 0.000001)),
         Math.log2(height / Math.max(spanY, 0.000001)),
       ),
@@ -473,7 +546,10 @@
       const currentZoom = zoom + (targetZoom - zoom) * progress;
       // Keep the starting place moving steadily across the screen as we pull
       // back, instead of panning miles away while the camera is still close.
-      const pan = progress * Math.min(1, 2 ** (targetZoom - currentZoom));
+      const pan =
+        targetZoom <= zoom
+          ? progress * Math.min(1, 2 ** (targetZoom - currentZoom))
+          : 1 - (1 - progress) * Math.min(1, 2 ** (zoom - currentZoom));
       instance.moveCamera({
         center: projection.fromPointToLatLng(
           new window.google.maps.Point(start.x + deltaX * pan, start.y + (targetY - start.y) * pan),
@@ -549,7 +625,7 @@
       await wait(motion.defaults.fadeOut);
       if (settled()) return;
       // Only the map style changes here: centre and zoom are already final.
-      await wait(motion.defaults.base * 2, () => instance.setMapTypeId('roadmap'));
+      await wait(motion.defaults.base * 2, () => instance.setMapTypeId(type));
       if (settled()) return;
       fade.to(owner.canvas, 1, motion.defaults.fadeIn);
       await wait(motion.defaults.fadeIn);
@@ -559,7 +635,129 @@
       if (owner.camera === camera) owner.camera = null;
     }
   }
-  async function submit(root, rawOrigin) {
+  function clearArrival(owner) {
+    owner.arrivalMarkers.forEach((marker) => {
+      marker.map = null;
+    });
+    owner.arrivalLines.forEach((line) => line.setMap(null));
+    owner.arrivalMarkers = [];
+    owner.arrivalLines = [];
+    owner.arrivalView = false;
+    if (owner.arrive) {
+      owner.arrive.setAttribute('aria-pressed', 'false');
+      const label = owner.arrive.querySelector('[data-tdb-journey-arrive-label]');
+      if (label) label.textContent = 'Arrive with confidence';
+    }
+  }
+  async function arrival(owner) {
+    if (!permitted() || !owner.map || owner.running) return;
+    owner.camera?.cancel();
+    const epoch = ++owner.request;
+    const valid = () => permitted() && owner.root.isConnected && owner.request === epoch;
+    const wasArrival = owner.arrivalView;
+    clearArrival(owner);
+    owner.lines.forEach((line) => line.setMap(wasArrival ? owner.map : null));
+    if (wasArrival && owner.routeBounds) {
+      await presentRoute(owner, owner.map, owner.routeBounds, valid);
+      return;
+    }
+    if (wasArrival) {
+      owner.map.setMapTypeId('satellite');
+      owner.map.moveCamera?.({ center: destination, zoom: 17, tilt: 0, heading: 0 });
+      return;
+    }
+    try {
+      const parse = (value) =>
+        (value || '')
+          .trim()
+          .split(/\s+/)
+          .map((pair) => pair.split(',').map(Number));
+      const data = {
+        parking: parse(owner.root.dataset.tdbJourneyParking)[0],
+        paths: [1, 2].map((n) => parse(owner.root.getAttribute('data-tdb-journey-path-' + n))),
+      };
+      const point = (p) =>
+        Array.isArray(p) &&
+        p.length === 2 &&
+        p.every(Number.isFinite) &&
+        Math.abs(p[0] - destination.lat) < 0.005 &&
+        Math.abs(p[1] - destination.lng) < 0.005;
+      if (
+        !data ||
+        !point(data.parking) ||
+        !Array.isArray(data.paths) ||
+        data.paths.length !== 2 ||
+        !data.paths.every(
+          (path) =>
+            Array.isArray(path) && path.length >= 2 && path.length <= 20 && path.every(point),
+        )
+      )
+        return;
+      const [{ Polyline }, { LatLngBounds }] = await Promise.all([
+        window.google.maps.importLibrary('maps'),
+        window.google.maps.importLibrary('core'),
+      ]);
+      if (!valid()) return;
+      const ll = ([lat, lng]) => ({ lat, lng });
+      const bounds = new LatLngBounds();
+      bounds.extend(destination);
+      bounds.extend(ll(data.parking));
+      const mark = (position, label, kind) => {
+        const content = document.createElement('span');
+        content.className = 'tdb-journey-arrival-pin';
+        content.dataset.kind = kind;
+        content.textContent = label;
+        owner.arrivalMarkers.push(
+          new owner.mapTypes.AdvancedMarkerElement({
+            map: owner.map,
+            position: ll(position),
+            title: label,
+            content,
+          }),
+        );
+      };
+      mark(data.parking, 'Free parking', 'parking');
+      data.paths.forEach((path, index) => {
+        path.forEach((p) => bounds.extend(ll(p)));
+        owner.arrivalLines.push(
+          new Polyline({
+            map: owner.map,
+            path: path.map(ll),
+            clickable: false,
+            strokeColor: colour(owner.root, '--base-color-brand--orange-1'),
+            strokeOpacity: 0.95,
+            strokeWeight: 4,
+            zIndex: 2,
+            ...(index
+              ? {
+                  strokeOpacity: 0,
+                  icons: [
+                    {
+                      icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 2 },
+                      offset: '0',
+                      repeat: '10px',
+                    },
+                  ],
+                }
+              : {}),
+          }),
+        );
+        mark(path[Math.floor(path.length / 2)], String(index + 1), 'approach');
+      });
+      owner.arrivalView = true;
+      owner.arrive?.setAttribute('aria-pressed', 'true');
+      const label = owner.arrive?.querySelector('[data-tdb-journey-arrive-label]');
+      if (label)
+        label.textContent = owner.routeBounds ? 'Back to my journey' : 'Back to surroundings';
+      await presentRoute(owner, owner.map, bounds, valid, 'satellite', 19, 64);
+    } catch (_) {
+      if (valid()) {
+        clearArrival(owner);
+        owner.lines.forEach((line) => line.setMap(owner.map));
+      }
+    }
+  }
+  async function submit(root, rawOrigin, capturedChoices) {
     const owner = mount(root);
     if (!owner) return;
     const origin = String(rawOrigin).trim().replace(/\s+/g, ' ').slice(0, 120);
@@ -568,9 +766,23 @@
       owner.form.elements.namedItem('origin')?.focus();
       return;
     }
-    if (owner.last === origin && Date.now() - owner.lastAt < 60000) return;
-    if (owner.running === origin) return;
-    owner.pending = origin;
+    const options = capturedChoices || choices(root);
+    const when = options.later ? departure(options.when) : null;
+    if (options.later && (!when || when.getTime() <= Date.now())) {
+      message(owner, 'Choose a future UK departure time. Avoid the clock-change hour.');
+      owner.when?.setCustomValidity('Choose an unambiguous future UK departure time.');
+      owner.when?.reportValidity();
+      owner.when?.focus();
+      return;
+    }
+    const key = JSON.stringify([
+      origin.toLowerCase(),
+      options.later ? options.when : 'now',
+      options.avoid,
+    ]);
+    if (owner.last === key && Date.now() - owner.lastAt < 60000) return;
+    if (owner.running === key) return;
+    owner.pending = { origin, options };
     owner.link.href = directions(origin);
     if (!permitted()) {
       message(
@@ -582,10 +794,10 @@
     }
     owner.pending = '';
     const id = ++owner.request;
-    owner.running = origin;
+    owner.running = key;
     clearRoute(owner);
     owner.form.setAttribute('aria-busy', 'true');
-    busy(owner.button, true);
+    requestBusy(owner, true);
     message(owner, 'Finding your way to The Dental Barns…');
     root.dataset.journeyState = 'loading';
     const valid = () => permitted() && root.isConnected && owner.request === id;
@@ -598,7 +810,9 @@
         origin: origin + ', UK',
         destination: destinationAddress,
         travelMode: 'DRIVING',
-        routingPreference: 'TRAFFIC_UNAWARE',
+        routingPreference: 'TRAFFIC_AWARE',
+        ...(when ? { departureTime: when } : {}),
+        routeModifiers: { avoidHighways: Boolean(options.avoid) },
         language: 'en-GB',
         region: 'uk',
         fields: ['path', 'durationMillis', 'distanceMeters'],
@@ -620,12 +834,13 @@
       });
       const bounds = new LatLngBounds();
       route.path.forEach((point) => bounds.extend(point));
+      owner.routeBounds = bounds;
       await presentRoute(owner, instance, bounds, valid);
       if (!valid()) return;
       const minutes = Math.max(1, Math.round(route.durationMillis / 60000));
       const miles = Math.round((route.distanceMeters / 1609.344) * 10) / 10;
-      showResult(owner, minutes, miles, origin);
-      owner.last = origin;
+      showResult(owner, minutes, miles, origin, options, result.fallbackInfo);
+      owner.last = key;
       owner.lastAt = Date.now();
       root.dataset.journeyState = 'result';
     } catch (error) {
@@ -641,7 +856,7 @@
       if (owner.request === id) {
         owner.running = '';
         owner.form.removeAttribute('aria-busy');
-        busy(owner.button, false);
+        requestBusy(owner, false);
       }
     }
   }
@@ -661,6 +876,7 @@
     if (owner.marker) owner.marker.map = null;
     if (owner.map) window.google?.maps?.event?.clearInstanceListeners(owner.map);
     owner.marker = owner.map = null;
+    if (owner.arrive) owner.arrive.disabled = true;
     owner.canvas.replaceChildren(...owner.placeholder);
     owner.form.removeAttribute('aria-busy');
     message(owner, owner.initial);
@@ -698,12 +914,12 @@
         if (owner.map || owner.loading) suspend(owner);
         continue;
       }
-      if (owner.pending) submit(root, owner.pending);
+      if (owner.pending) submit(root, owner.pending.origin, owner.pending.options);
       else if (owner.seen || nearby(root)) map(owner).catch(() => {});
     }
   }
   window.TDBJourney = Object.freeze({
-    version: '1.6.0',
+    version: '1.7.0',
     refresh,
     submit,
     owns: (root) => owners.has(root),

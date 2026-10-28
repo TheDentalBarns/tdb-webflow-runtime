@@ -8,6 +8,10 @@
 .tdb-journey-ticker-incoming { position: absolute; inset: 0; display: block; }
 [data-journey-map="loading"] .tdb-journey-placeholder { visibility: hidden; }
 [data-journey-map="ready"] .tdb-journey-map { display: block; }
+.tdb-journey-options :is(input,select,button):focus-visible { outline: 2px solid var(--base-color-neutral--neutral-darker); outline-offset: 4px; }
+.tdb-journey-options :disabled { opacity: .5; cursor: not-allowed; }
+.tdb-journey-arrival-pin { display: flex; align-items: center; gap: .4rem; padding: .5rem .7rem; border: 1px solid var(--base-color-brand--orange-1); border-radius: 2rem; background: var(--base-color-neutral--neutral-darker); color: var(--base-color-brand--orange-1); font: .75rem/1.2 var(--font-family--primary); white-space: nowrap; }
+.tdb-journey-arrival-pin[data-kind="parking"]::before { content: ''; width: 1.1rem; height: 1.4rem; background: currentColor; mask: url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8f79471bd2b763b1aad60_tdb-location-parking.svg') center/contain no-repeat; }
 /* Only the Google-owned pin overlay is themed; native page geometry stays in Designer. */
 .tdb-journey-map .gm-style-iw-c:has(.tdb-journey-place) { padding: 0 !important; border: 1px solid rgba(255,255,255,.3); border-radius: 1rem; background: rgba(0,0,0,.8); -webkit-backdrop-filter: blur(var(--effects--blur,20px)); backdrop-filter: blur(var(--effects--blur,20px)); }
 .tdb-journey-map .gm-style-iw-t:has(.tdb-journey-place) .gm-style-iw-tc::after { background: rgba(0,0,0,.8); }

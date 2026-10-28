@@ -50,9 +50,19 @@ function prepareJourneyLoader() {
       if (!root || window.TDBJourney?.owns(root)) return;
       event.preventDefault();
       const value = event.target.elements.namedItem('origin')?.value || '';
+      const options = {
+        later: root.querySelector('[data-tdb-journey-departure]')?.value === 'later',
+        when: root.querySelector('[data-tdb-journey-when]')?.value || '',
+        avoid: Boolean(root.querySelector('[data-tdb-journey-avoid]')?.checked),
+      };
       prepare()
         .then(() => {
-          if (!disposed && root.isConnected) window.TDBJourney.submit(root, value);
+          if (
+            !disposed &&
+            root.isConnected &&
+            event.target.elements.namedItem('origin')?.value === value
+          )
+            window.TDBJourney.submit(root, value, options);
         })
         .catch(() => {
           const status =

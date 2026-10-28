@@ -5,7 +5,7 @@ const { JSDOM } = require('jsdom');
 const source = fs.readFileSync('src/journey/journey.js', 'utf8');
 const tick = () => new Promise(resolve => setImmediate(resolve));
 function deferred() { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; }
-function fixture({ allowed = true, routeFlight, placeFlight, rich = false } = {}) {
+function fixture({ allowed = true, routeFlight, placeFlight, rich = false, options = false } = {}) {
   const resultMarkup = rich ? '<span data-tdb-journey-time><span data-tdb-journey-time-value>00</span><span data-tdb-journey-time-unit>min</span></span><span data-tdb-journey-detail><span data-tdb-journey-distance-value>00.0</span><span data-tdb-journey-distance-unit>miles</span></span><span data-tdb-journey-note>Native result placeholder</span>' : 'Native result placeholder';
   const dom = new JSDOM(`<div data-tdb-journey data-tdb-maps-key="test" data-tdb-map-id="map"><form><input name="origin"><button>Find</button></form><p data-tdb-journey-status>${resultMarkup}</p><a class="tdb-journey-directions" href="https://www.google.com/maps/dir/?api=1">Directions</a><div data-tdb-journey-map><p>Native map placeholder</p></div></div>`, { runScripts: 'outside-only', url: 'https://example.test/location', pretendToBeVisual: true });
   const w = dom.window, root = w.document.querySelector('[data-tdb-journey]');
@@ -22,18 +22,30 @@ function fixture({ allowed = true, routeFlight, placeFlight, rich = false } = {}
     if (kind === 'core') return { LatLngBounds: class { extend() {} } };
     if (kind === 'routes') return { Route: { computeRoutes(request) { calls.push(request); return routeFlight ? routeFlight.promise : Promise.resolve(result()); } } };
   } } };
+  if(options){
+    root.insertAdjacentHTML('beforeend','<div data-tdb-journey-options><select data-tdb-journey-departure disabled><option value="now">Now</option><option value="later">Later</option></select><input type="datetime-local" data-tdb-journey-when disabled><input type="checkbox" data-tdb-journey-avoid disabled><button data-tdb-journey-update disabled>Update</button><button data-tdb-journey-arrive disabled><span data-tdb-journey-arrive-label>Arrive with confidence</span></button></div>');
+    root.dataset.tdbJourneyParking='52.6295774,-1.801891';
+    root.setAttribute('data-tdb-journey-path-1','52.6296,-1.8019 52.63,-1.8018 52.6300414,-1.8014216');
+    root.setAttribute('data-tdb-journey-path-2','52.6296,-1.8019 52.6299,-1.8018 52.6300414,-1.8014216');
+    const original=w.google.maps.importLibrary;
+    w.google.maps.importLibrary=async kind=>{
+      const lib=await original(kind);
+      if(kind==='maps')lib.Polyline=class{constructor(options){Object.assign(this,options);lines.push(this)}setMap(map){this.map=map}};
+      return lib;
+    };
+  }
   w.eval(source);
   return { w, root, calls, maps, lines, markers, infos, placesCalls, result, output: () => root.querySelector('[data-tdb-journey-status]').textContent,
     permission(value) { permission = value; notify(); }, prompt: () => prompt,
     close() { w.TDBJourney.destroy(); dom.window.close(); } };
 }
-test('route appears in the embedded map; minimal fields, no live traffic, repeated searches deduplicate', async () => {
+test('route appears in the embedded map; minimal fields, traffic-aware estimates, repeated searches deduplicate', async () => {
   const f = fixture();
   await f.w.TDBJourney.submit(f.root, 'Sutton Coldfield');
   assert.match(f.output(), /Around 13 minutes by car/);
-  assert.match(f.output(), /without live traffic/);
+  assert.match(f.output(), /with current traffic/);
   assert.equal(f.calls.length, 1);
-  assert.equal(f.calls[0].routingPreference, 'TRAFFIC_UNAWARE');
+  assert.equal(f.calls[0].routingPreference, 'TRAFFIC_AWARE');
   assert.deepEqual([...f.calls[0].fields], ['path', 'durationMillis', 'distanceMeters']);
   assert.equal(f.lines[0].map, f.maps[0]);
   assert.equal(f.maps[0].type,'roadmap');
@@ -214,4 +226,49 @@ test('shared reduced motion bypasses the staged camera and missing native busine
  assert.equal(f.maps[0].zoom,undefined);assert.equal(f.maps[0].type,'roadmap');assert.equal(f.timers.size,0);assert.deepEqual(f.fades,[]);
  delete f.root.dataset.tdbMapsPlaceId;await f.markers[0].click();assert.equal(f.placesCalls.length,0);
  assert.match(f.infos[0].options.content.textContent,/Rating unavailable/);f.close();
+});
+
+test('leaving later resolves UK summer/winter time and request keys include road preferences',async()=>{
+ const f=fixture({options:true});
+ const later={later:true,when:'2027-07-15T10:00',avoid:true};
+ await f.w.TDBJourney.submit(f.root,'Tamworth',later);
+ assert.equal(f.calls[0].departureTime.toISOString(),'2027-07-15T09:00:00.000Z');
+ assert.equal(f.calls[0].routeModifiers.avoidHighways,true);assert.match(f.output(),/2027-07-15.*10:00 UK time/);
+ await f.w.TDBJourney.submit(f.root,'Tamworth',later);assert.equal(f.calls.length,1);
+ await f.w.TDBJourney.submit(f.root,'Tamworth',{...later,when:'2027-12-15T10:00',avoid:false});
+ assert.equal(f.calls[1].departureTime.toISOString(),'2027-12-15T10:00:00.000Z');assert.equal(f.calls[1].routeModifiers.avoidHighways,false);
+ await f.w.TDBJourney.submit(f.root,'Tamworth',{later:false,when:'',avoid:false});assert.equal(f.calls[2].departureTime,undefined);f.close();
+});
+test('past, nonexistent and ambiguous UK departure times make no route request',async()=>{
+ const f=fixture({options:true});
+ for(const when of ['2020-01-01T10:00','2027-03-28T01:30','2027-10-31T01:30','2027-02-30T11:00','']){
+  await f.w.TDBJourney.submit(f.root,'Tamworth',{later:true,when,avoid:false});
+  assert.equal(f.calls.length,0);assert.match(f.output(),/future UK departure time/);
+ }f.close();
+});
+test('native controls reserve the date slot and editing preferences invalidates an in-flight result',async()=>{
+ const flight=deferred(),f=fixture({options:true,routeFlight:flight});
+ const when=f.root.querySelector('[data-tdb-journey-when]'),select=f.root.querySelector('select');
+ assert.equal(select.disabled,false);assert.equal(when.disabled,true);assert(when.value);
+ const pending=f.w.TDBJourney.submit(f.root,'Tamworth');await tick();
+ select.value='later';select.dispatchEvent(new f.w.Event('input',{bubbles:true}));
+ assert.equal(when.disabled,false);assert.equal(when.required,true);
+ flight.resolve(f.result());await pending;assert.equal(f.lines.length,0);assert.equal(f.output(),'Native result placeholder');f.close();
+});
+test('consent replay preserves the chosen departure and road preference',async()=>{
+ const f=fixture({allowed:false,options:true});
+ await f.w.TDBJourney.submit(f.root,'Tamworth',{later:true,when:'2027-07-15T10:00',avoid:true});
+ f.permission(true);await tick();await tick();
+ assert.equal(f.calls.length,1);assert.equal(f.calls[0].routeModifiers.avoidHighways,true);assert.equal(f.calls[0].departureTime.toISOString(),'2027-07-15T09:00:00.000Z');f.close();
+});
+test('arrival reuses one map, restores the existing route without another API call and tears down overlays',async()=>{
+ const f=fixture({options:true});await f.w.TDBJourney.submit(f.root,'Tamworth');
+ const button=f.root.querySelector('[data-tdb-journey-arrive]');assert.equal(button.disabled,false);
+ button.click();await tick();await tick();
+ assert.equal(button.getAttribute('aria-pressed'),'true');assert.equal(f.maps.length,1);assert.equal(f.calls.length,1);assert.equal(f.maps[0].type,'satellite');
+ assert.equal(f.markers.length,4);assert.equal(f.lines.length,3);assert.equal(f.lines[0].map,null);assert.match(button.textContent,/Back to my journey/);
+ button.click();await tick();await tick();
+ assert.equal(button.getAttribute('aria-pressed'),'false');assert.equal(f.maps[0].type,'roadmap');assert.equal(f.lines[0].map,f.maps[0]);assert.equal(f.calls.length,1);
+ assert.equal(f.markers[1].map,null);assert.equal(f.lines[1].map,null);
+ button.click();await tick();f.permission(false);assert.equal(button.disabled,true);assert.equal(f.markers.at(-1).map,null);f.close();
 });
