@@ -114,6 +114,21 @@ test('mount batches, dynamic discovery, removal cleanup and destroy preserve own
   const before=f.mounts.length;f.d.body.append(p);await f.w.TDBRuntime.refresh();await tick();
   assert.equal(f.mounts.length,before);f.close();
 });
+test('shared Vimeo hooks use the native scroll owner once without adding elements',async()=>{
+  const f=fixture({runtime:true,count:0});
+  const player=f.d.createElement('div');
+  player.id='vimeo';player.setAttribute('data-tdb-dd-page','native');player.setAttribute('data-tdb-dd-preset','vimeo');
+  f.d.body.append(player);
+  const count=f.d.querySelectorAll('*').length;
+  await f.advance(150);while(await f.runIdle()){}
+  const refresh=f.w.TDBRuntime.refresh();while(await f.runIdle()){}await refresh;
+  const mounts=f.mounts.filter(m=>m.id==='vimeo');
+  assert.equal(mounts.length,1);
+  assert.equal(mounts[0].options.mode,'native');assert.equal(mounts[0].options.preset,'vimeo');
+  assert.equal(f.d.querySelectorAll('*').length,count);
+  f.close();assert.equal(f.destroyed.filter(id=>id==='vimeo').length,1);
+});
+
 test('destroy before initial-render readiness cancels all scheduled work',async()=>{
   const f=fixture({runtime:true,ready:'interactive'});
   f.w.TDBRuntime.destroy();await f.advance(2000);

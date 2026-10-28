@@ -181,9 +181,13 @@
     if (document.hidden) saveDD();
   });
   const ddClamp = (value) => Math.max(0, Math.min(1, value));
+  const ddCeiling = (preset) => (preset === 'orange' || preset === 'vimeo' ? 1 : 0.5);
   function ddOpacity(progress, preset = 'standard') {
     const p = ddClamp(progress);
     if (preset === 'orange') return p < 0.5 ? 0.3 + p * 1.4 : p <= 0.75 ? 1 : 1 - (p - 0.75) * 2;
+    // Native Vimeo Video Scroll: 0/0, 30/1, 75/1, 95/0.8, then hold.
+    // This is scroll progress, so the shared clock does not scale its geometry.
+    if (preset === 'vimeo') return p < 0.3 ? p / 0.3 : p <= 0.75 ? 1 : Math.max(0.8, 1.75 - p);
     return p < 0.5 ? p : p <= 0.75 ? 0.5 : 0.5 - (p - 0.75) * 1.6;
   }
   function ddRoot(root) {
@@ -213,7 +217,7 @@
     };
     function retain(state, progress, low = 0, high = 1, range = 1) {
       state.progress = state.targetProgress = progress;
-      state.ceiling = Math.max(state.value, state.preset === 'orange' ? 1 : 0.5);
+      state.ceiling = Math.max(state.value, ddCeiling(state.preset));
       state.desired = state.value;
       state.correction = {
         anchor: progress,
@@ -297,7 +301,7 @@
             state.progress = state.targetProgress = g.progress;
             state.correction = null;
             state.value = state.desired = ddOpacity(g.progress, state.preset);
-            state.ceiling = state.preset === 'orange' ? 1 : 0.5;
+            state.ceiling = ddCeiling(state.preset);
           } else if (changed || (distance !== 0 && !userScroll)) {
             retain(state, g.progress, g.low, g.high, g.range);
           } else if (userScroll) {
@@ -477,7 +481,7 @@
           state.pendingInitial = false;
           state.progress = progress;
           state.value = state.desired = value;
-          state.ceiling = Math.max(value, state.preset === 'orange' ? 1 : 0.5);
+          state.ceiling = Math.max(value, ddCeiling(state.preset));
           state.restored = false;
           state.geometry = null;
           state.geometrySeen = true;

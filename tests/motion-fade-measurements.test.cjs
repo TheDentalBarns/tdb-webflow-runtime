@@ -3,14 +3,16 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 
-function fixture(bundle = false, count = 49) {
+function fixture(bundle = false, count = 49, options = {}) {
   const dom = new JSDOM('<main></main>', { runScripts: 'outside-only', pretendToBeVisual: true });
   const w = dom.window,
     queue = new Map(),
     boxes = [],
     reads = { rect: 0, fragments: 0, styles: 0 };
   let next = 0;
-  w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
+  const reduced = { matches: false, addEventListener() {}, removeEventListener() {} };
+  w.matchMedia = () => reduced;
+  w.TDBMotionPolicy = { reduced };
   w.requestAnimationFrame = (fn) => {
     queue.set(++next, fn);
     return next;
@@ -43,7 +45,10 @@ function fixture(bundle = false, count = 49) {
     };
   }
   w.eval(fs.readFileSync(bundle ? 'dist/tdb-motion.js' : 'src/shared/motion.js', 'utf8'));
-  const owner = w.TDBMotion.ddText(boxes.map((b) => b.node));
+  const owner = w.TDBMotion.ddText(
+    boxes.map((b) => b.node),
+    options,
+  );
   const flush = () => {
     const batch = [...queue.values()];
     queue.clear();
@@ -60,11 +65,88 @@ function fixture(bundle = false, count = 49) {
     for (let i = 0; i < 50 && queue.size; i++) flush();
     assert.equal(queue.size, 0);
   };
-  return { w, boxes, reads, queue, owner, flush, scroll, settle, close: () => dom.window.close() };
+  return {
+    w,
+    boxes,
+    reads,
+    queue,
+    owner,
+    reduced,
+    flush,
+    scroll,
+    settle,
+    close: () => dom.window.close(),
+  };
 }
 
 for (const bundle of [false, true]) {
   const label = bundle ? 'bundle' : 'source';
+  test(`${label}: Vimeo scroll fade matches native keyframes in both directions without moving the poster`, () => {
+    const e = fixture(bundle, 1, { mode: 'native', preset: 'vimeo' });
+    try {
+      const box = e.boxes[0];
+      box.top = 1200;
+      box.height = 720;
+      box.node.style.opacity = '1';
+      const poster = e.w.document.createElement('img');
+      poster.style.transform = 'translateY(8px)';
+      box.node.append(poster);
+      e.flush();
+      assert.equal(box.node.style.opacity, '0', 'stage only while offscreen');
+      const points = [
+        [0, 0],
+        [0.15, 0.5],
+        [0.3, 1],
+        [0.75, 1],
+        [0.85, 0.9],
+        [0.95, 0.8],
+        [1, 0.8],
+      ];
+      for (const [progress, opacity] of [...points, ...points.slice().reverse()]) {
+        e.scroll(box.top - 720 + progress * (720 + box.height));
+        e.settle();
+        assert.ok(
+          Math.abs(Number(box.node.style.opacity) - opacity) < 0.0004,
+          `${progress}: ${box.node.style.opacity}`,
+        );
+        assert.equal(poster.style.transform, 'translateY(8px)');
+        assert.equal(box.node.style.transform, '');
+      }
+      e.owner.destroy();
+      assert.equal(box.node.style.opacity, '0.8', 'restore the original inline fallback');
+      assert.equal(e.queue.size, 0);
+    } finally {
+      e.close();
+    }
+  });
+
+  test(`${label}: Vimeo late mount, restoration, resize and reduced motion preserve readable fallback`, () => {
+    const e = fixture(bundle, 1, { mode: 'native', preset: 'vimeo' });
+    try {
+      const box = e.boxes[0];
+      box.height = 720;
+      box.node.style.opacity = '1';
+      e.flush();
+      assert.equal(box.node.style.opacity, '1', 'already visible content must not blink on mount');
+      e.scroll(100, false);
+      e.settle();
+      assert.equal(box.node.style.opacity, '1');
+      box.height = 640;
+      e.w.dispatchEvent(new e.w.Event('resize'));
+      e.flush();
+      assert.equal(box.node.style.opacity, '1');
+      e.reduced.matches = true;
+      e.owner.refresh();
+      e.flush();
+      assert.equal(box.node.style.opacity, '0.8', 'reduced motion returns native styling');
+      e.w.dispatchEvent(new e.w.Event('pagehide'));
+      e.scroll(120);
+      assert.equal(e.queue.size, 0);
+      e.owner.destroy();
+    } finally {
+      e.close();
+    }
+  });
   test(`${label}: non-empty bounds avoid a second geometry query for visible and offscreen fades`, () => {
     const e = fixture(bundle);
     try {
