@@ -243,10 +243,10 @@
       "sources": [
         "src/journey/journey.js"
       ],
-      "sha256": "6e31d4bbc65bdf38303e0d4c394a821c679b114dc1bdbe8c7229b96bcb8188ba",
-      "raw": 12681,
-      "gzip": 4947,
-      "brotli": 4323
+      "sha256": "0f87dfae715b6bd32d8244beb40b7dbce2cd1b081d6fd75745b41666f8f064de",
+      "raw": 13367,
+      "gzip": 5180,
+      "brotli": 4526
     },
     "dist/tdb-legacy-review-drawer.js": {
       "sources": [
@@ -310,10 +310,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "f62d80b51a8078c1476e5205c948fe4b82a557833997973b187d13591faf7d3a",
+      "sha256": "9d53f08973e8ac3d8262a425c2705f5c40093e25bb2b8aa223e66df34ce7a935",
       "raw": 25009,
-      "gzip": 8699,
-      "brotli": 7908
+      "gzip": 8702,
+      "brotli": 7915
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [

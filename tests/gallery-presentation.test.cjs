@@ -45,10 +45,10 @@ test('rapid ticker rolls from authored zero using central timing without changin
   const slot=host.querySelector('[data-rapid]'),rapid=w.TDBNativeTicker.mount(slot,{durationKey:'tickerRapid'}),normal=w.TDBNativeTicker.mount(host.querySelector('[data-normal]'));
   rapid.update('38',-1,true);normal.update('01',-1,true);
   assert.equal(animations[0].target.textContent,'00');assert.equal(animations[1].target.textContent,'38');
-  assert.equal(animations[0].timing.duration,100);assert.equal(animations[2].timing.duration,400);
+  assert.equal(animations[0].timing.duration,160);assert.equal(animations[2].timing.duration,400);
   animations[1].onfinish();rapid.update('37',-1,true);
   assert.equal(animations[4].target.textContent,'38');assert.equal(animations[5].target.textContent,'37');
-  assert.equal(animations[4].timing.duration,100);rapid.destroy();normal.destroy();
+  assert.equal(animations[4].timing.duration,160);rapid.destroy();normal.destroy();
  }finally{dom.window.close()}
 });
 function fixture(w) {

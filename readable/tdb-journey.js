@@ -219,6 +219,7 @@
       info: null,
       pinClick: null,
       placeFlight: null,
+      camera: null,
       lines: [],
       pending: '',
       request: 0,
@@ -256,14 +257,23 @@
     document.addEventListener(
       'visibilitychange',
       () => {
-        if (document.hidden) owner.finish?.(false);
+        if (document.hidden) {
+          owner.finish?.(false);
+          owner.camera?.cancel(true);
+        }
       },
       { signal: controller.signal },
     );
+    for (const name of ['pointerdown', 'keydown', 'wheel'])
+      canvas.addEventListener(name, () => owner.camera?.cancel(), {
+        signal: controller.signal,
+        passive: true,
+      });
     observer?.observe(root);
     return owner;
   }
   function clearRoute(owner) {
+    owner.camera?.cancel();
     owner.lines.forEach((line) => line.setMap(null));
     owner.lines = [];
     owner.last = '';
@@ -281,28 +291,8 @@
     owner.placeFlight = (async () => {
       const { Place } = await window.google.maps.importLibrary('places');
       if (!valid()) throw Error('cancelled');
-      let id = owner.root.dataset.tdbMapsPlaceId;
-      if (!id) {
-        // Resolve once only when native configuration is missing; the published
-        // component stores the verified ID so normal visits use one details call.
-        const result = await Place.searchByText({
-          textQuery: destinationAddress,
-          fields: ['id', 'displayName', 'location'],
-          locationBias: destination,
-          maxResultCount: 1,
-        });
-        const candidate = result.places?.[0];
-        if (
-          !valid() ||
-          !/dental barns/i.test(candidate?.displayName || '') ||
-          !Number.isFinite(candidate.location?.lat()) ||
-          !Number.isFinite(candidate.location?.lng()) ||
-          Math.abs(candidate.location?.lat() - destination.lat) > 0.02 ||
-          Math.abs(candidate.location?.lng() - destination.lng) > 0.02
-        )
-          throw Error('business-unavailable');
-        id = candidate.id;
-      }
+      // The shared native component owns the verified business identity.
+      const id = owner.root.dataset.tdbMapsPlaceId;
       if (!id || !valid()) throw Error('business-unavailable');
       const place = new Place({ id });
       await place.fetchFields({ fields: ['displayName', 'rating', 'userRatingCount'] });
@@ -432,6 +422,69 @@
       });
     return owner.loading;
   }
+  async function presentRoute(owner, instance, bounds, valid) {
+    const motion = window.TDBMotion;
+    const direct = () => {
+      instance.setMapTypeId('roadmap');
+      instance.fitBounds(bounds, 48);
+    };
+    owner.info?.close();
+    if (!motion?.fadeController || motion.reduced.matches || !visible(owner.canvas)) {
+      direct();
+      return;
+    }
+    const fade = motion.fadeController();
+    let cancelled = false,
+      completeWait;
+    const camera = {
+      cancel(settle = false) {
+        cancelled = true;
+        completeWait?.();
+        fade.destroy();
+        if (settle && valid()) direct();
+      },
+    };
+    owner.camera = camera;
+    const active = () => !cancelled && valid() && !motion.reduced.matches && visible(owner.canvas);
+    const settled = () => {
+      if (active()) return false;
+      if (!cancelled && valid()) direct();
+      return true;
+    };
+    const wait = (duration, action) =>
+      new Promise((resolve) => {
+        let listener;
+        const done = () => {
+          clearTimeout(timer);
+          listener?.remove();
+          if (completeWait === done) completeWait = null;
+          resolve();
+        };
+        const timer = setTimeout(done, duration);
+        completeWait = done;
+        if (action) listener = window.google.maps.event?.addListenerOnce?.(instance, 'idle', done);
+        action?.();
+      });
+    try {
+      // Google owns camera interpolation; the shared profile owns our sequencing.
+      // A short pull-back retains the sense of place before the wider road view.
+      if (instance.getMapTypeId() === 'satellite' && instance.getZoom() > 14) {
+        await wait(motion.defaults.base * 2, () => instance.setZoom(instance.getZoom() - 2));
+        if (settled()) return;
+      }
+      fade.to(owner.canvas, 0.7, motion.defaults.fadeOut);
+      await wait(motion.defaults.fadeOut);
+      if (settled()) return;
+      await wait(motion.defaults.base * 2, direct);
+      if (settled()) return;
+      fade.to(owner.canvas, 1, motion.defaults.fadeIn);
+      await wait(motion.defaults.fadeIn);
+    } finally {
+      completeWait?.();
+      fade.destroy();
+      if (owner.camera === camera) owner.camera = null;
+    }
+  }
   async function submit(root, rawOrigin) {
     const owner = mount(root);
     if (!owner) return;
@@ -493,9 +546,8 @@
       });
       const bounds = new LatLngBounds();
       route.path.forEach((point) => bounds.extend(point));
-      owner.info?.close();
-      instance.setMapTypeId('roadmap');
-      instance.fitBounds(bounds, 48);
+      await presentRoute(owner, instance, bounds, valid);
+      if (!valid()) return;
       const minutes = Math.max(1, Math.round(route.durationMillis / 60000));
       const miles = Math.round((route.distanceMeters / 1609.344) * 10) / 10;
       showResult(owner, minutes, miles, origin);
@@ -577,7 +629,7 @@
     }
   }
   window.TDBJourney = Object.freeze({
-    version: '1.3.0',
+    version: '1.4.0',
     refresh,
     submit,
     owns: (root) => owners.has(root),
