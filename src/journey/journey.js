@@ -818,8 +818,10 @@
               : {}),
           }),
         );
+        const end = path.at(-1),
+          previous = path.at(-2);
         mark(
-          path[Math.floor(path.length / 2)],
+          [(end[0] + previous[0]) / 2, (end[1] + previous[1]) / 2],
           index ? 'Walk through the courtyard' : 'Walk around the north side',
           'approach',
         );
