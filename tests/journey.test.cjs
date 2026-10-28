@@ -74,3 +74,15 @@ test('SDK requests do not start without functional consent', async () => {
   await f.w.TDBJourney.submit(f.root, 'Tamworth'); assert.equal(requests, 0);
   f.permission(true); await tick(); assert.equal(requests, 1); assert.match(f.output(), /could not calculate/); f.close();
 });
+test('script transport finishing before Google initialization does not fail the first visit', async () => {
+  const f = fixture({ allowed: false });
+  const google = f.w.google; delete f.w.google;
+  let requests = 0;
+  f.w.TDBModules = { load() { requests++; return Promise.resolve(); } };
+  f.permission(true); await tick();
+  assert.equal(requests, 1); assert.equal(f.maps.length, 0);
+  const pending = f.w.TDBJourney.submit(f.root, 'Tamworth');
+  f.w.google = google; f.w.TDBJourneyGoogleReady(); await pending;
+  assert.equal(requests, 1); assert.equal(f.maps.length, 1); assert.match(f.output(), /Around 13 minutes/);
+  f.close();
+});

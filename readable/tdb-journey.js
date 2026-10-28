@@ -7,6 +7,7 @@
   const owners = new Map();
   const lifecycle = new AbortController();
   let sdkFlight,
+    authFailed = false,
     disposed = false,
     unsubscribe;
   const permitted = () => !disposed && Boolean(window.TDBConsent?.allows('functionality'));
@@ -17,6 +18,7 @@
   };
   function sdk(root) {
     if (!permitted()) return Promise.reject(Error('permission'));
+    if (authFailed) return Promise.reject(Error('map-unavailable'));
     if (window.google?.maps?.importLibrary) return Promise.resolve();
     if (sdkFlight) return sdkFlight;
     const key = root.dataset.tdbMapsKey;
@@ -30,14 +32,33 @@
       region: 'GB',
       callback: 'TDBJourneyGoogleReady',
     });
-    window.TDBJourneyGoogleReady = () => {};
-    sdkFlight = window.TDBModules.load(url, {
-      attribute: 'data-tdb-google-maps',
-      ready: () => Boolean(window.google?.maps?.importLibrary),
-    }).catch(() => {
-      sdkFlight = null;
-      throw Error('map-unavailable');
+    let timeout;
+    const initialized = new Promise((resolve, reject) => {
+      window.TDBJourneyGoogleReady = resolve;
+      const previous = window.gm_authFailure;
+      window.gm_authFailure = () => {
+        authFailed = true;
+        reject(Error('map-unavailable'));
+        for (const owner of owners.values()) {
+          suspend(owner);
+          owner.output.textContent =
+            'The map is unavailable. Please open directions in Google Maps.';
+        }
+        previous?.();
+      };
+      timeout = setTimeout(() => reject(Error('map-timeout')), 20000);
     });
+    // With loading=async, script load precedes Google's initialization callback.
+    // Transport readiness and API readiness are deliberately separate.
+    sdkFlight = Promise.all([
+      window.TDBModules.load(url, { attribute: 'data-tdb-google-maps' }),
+      initialized,
+    ])
+      .catch(() => {
+        sdkFlight = null;
+        throw Error('map-unavailable');
+      })
+      .finally(() => clearTimeout(timeout));
     return sdkFlight;
   }
   function directions(origin) {

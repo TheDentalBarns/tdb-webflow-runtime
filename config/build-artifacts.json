@@ -243,10 +243,10 @@
       "sources": [
         "src/journey/journey.js"
       ],
-      "sha256": "c93033f8b84b65b213bc7393d7de43cc2e783e4302436fec99fedab2c1d64316",
-      "raw": 6716,
-      "gzip": 2975,
-      "brotli": 2564
+      "sha256": "5c79853fc466dc4c8fa85022f722b963bb44103b0d9c3b2ad33ac5337ffe4e4a",
+      "raw": 7057,
+      "gzip": 3074,
+      "brotli": 2656
     },
     "dist/tdb-legacy-review-drawer.js": {
       "sources": [
