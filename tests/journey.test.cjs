@@ -107,7 +107,7 @@ test('map starts with local satellite imagery, has no map-type dropdown and reta
 test('clicking the accessible pin loads only Google business rating fields and reuses the response', async()=>{
  const f=fixture();await tick();assert.equal(f.placesCalls.length,0);assert.equal(f.markers[0].gmpClickable,true);
  await f.markers[0].click();assert.equal(f.placesCalls.length,1);assert.deepEqual([...f.placesCalls[0].fields],['displayName','rating','userRatingCount']);
- assert.match(f.infos[0].options.content.textContent,/The Dental Barns.*4.8 \/ 5 · 64 Google reviews/);
+ assert.equal(f.infos[0].options.content.textContent,'(64)Google reviews');assert.match(f.infos[0].options.content.querySelector('[role=status]').getAttribute('aria-label'),/4.8 out of 5 from 64 Google reviews/);assert.equal(f.infos[0].options.content.querySelector('a img').getAttribute('alt'),'');assert.doesNotMatch(f.infos[0].options.content.textContent,/View on Google Maps|The Dental Barns/);
  assert.match(f.infos[0].options.content.querySelector('a').href,/query_place_id=verified-business/);
  await f.markers[0].click();assert.equal(f.placesCalls.length,1);assert.equal(f.infos[0].closed,true);
  f.close();
@@ -119,29 +119,16 @@ test('consent withdrawal closes the pin and suppresses a late Google rating resp
  assert.equal(f.infos[0].closed,true);assert.doesNotMatch(f.infos[0].options.content.textContent,/60 Google reviews/);f.close();
 });
 
-test('native numbers roll through every intermediate value while units stay fixed and accessible values stay accurate', async () => {
-  const f=fixture({rich:true}), updates=[], slots=[], timers=new Map(); let timerId=0;
-  const output=f.root.querySelector('[data-tdb-journey-status]');
-  output.getBoundingClientRect=()=>({top:100,bottom:200});
-  f.w.TDBMotion={reduced:{matches:false},defaults:{ticker:400,tickerRapid:160}};
-  f.w.TDBNativeTicker={mount(slot,options){const index=slots.length;assert.equal(options.durationKey,'tickerRapid');assert.equal(slot.textContent,index?'00.0':'00');slots.push(slot);return {update(value,direction,animate){updates.push({index,value,direction,animate});slot.textContent=value;},destroy(){}};}};
-  f.w.setTimeout=(fn,ms)=>{assert([160,192].includes(ms));timers.set(++timerId,fn);return timerId;};
-  f.w.clearTimeout=id=>timers.delete(id);
-  const next=()=>{const [id,fn]=timers.entries().next().value;timers.delete(id);fn();};
-  await f.w.TDBJourney.submit(f.root,'Tamworth');
-  assert.equal(slots.length,2); assert.deepEqual(updates.map(x=>x.value),['15','08.3']);
-  assert(updates.every(x=>x.animate),'both zero placeholders must roll into the lead value');
-  assert.match(output.getAttribute('aria-label'),/13 minutes.*7.5 miles/);
-  next(); assert.deepEqual(updates.slice(2).map(x=>[x.value,x.direction,x.animate]),[['14',-1,true],['08.2',-1,true]]);
-  assert.equal(output.querySelector('[data-tdb-journey-time-unit]').textContent,'min');
-  assert.equal(output.querySelector('[data-tdb-journey-distance-unit]').textContent,'miles');
-  while(timers.size)next();
-  assert.deepEqual(updates.filter(x=>x.index===1&&x.animate).map(x=>x.value),['08.3','08.2','08.1','08.0','07.9','07.8','07.7','07.6','07.5']);
-  assert.equal(slots[0].textContent,'13'); assert.equal(slots[1].textContent,'07.5');
-  assert.equal(output.children.length,3);
-  f.root.querySelector('input').dispatchEvent(new f.w.Event('input',{bubbles:true}));
-  assert.equal(output.getAttribute('aria-label'),null); assert.equal(output.children.length,3); assert.equal(slots[0].textContent,'00');
-  assert.equal(output.querySelector('[data-tdb-journey-note]').textContent,'Native result placeholder'); f.close();
+test('journey supplies one continuous descending sequence from authored zero with fixed units and accurate accessible results', async () => {
+ const f=fixture({rich:true}),sequences=[],slots=[];
+ const output=f.root.querySelector('[data-tdb-journey-status]');output.getBoundingClientRect=()=>({top:100,bottom:200});
+ f.w.TDBMotion={reduced:{matches:false}};
+ f.w.TDBNativeTicker={mount(slot){const index=slots.length;assert.equal(slot.textContent,index?'00.0':'00');slots.push(slot);return {sequence(values,direction){sequences.push({values:[...values],direction});slot.textContent=values.at(-1)},settle(){},destroy(){}}}};
+ await f.w.TDBJourney.submit(f.root,'Tamworth');
+ assert.deepEqual(sequences,[{values:['15','14','13'],direction:-1},{values:['08.3','08.2','08.1','08.0','07.9','07.8','07.7','07.6','07.5'],direction:-1}]);
+ assert.match(output.getAttribute('aria-label'),/13 minutes.*7.5 miles/);
+ assert.equal(output.querySelector('[data-tdb-journey-time-unit]').textContent,'min');assert.equal(output.querySelector('[data-tdb-journey-distance-unit]').textContent,'miles');
+ assert.equal(output.children.length,3);f.close();
 });
 
 test('reduced motion shows actual time and distance without staging or ticker work', async () => {
@@ -152,16 +139,14 @@ test('reduced motion shows actual time and distance without staging or ticker wo
   assert.equal(f.root.querySelector('[data-tdb-journey-distance-value]').textContent,'07.5'); f.close();
 });
 
-test('editing during a roll cancels the sequence and preserves the native metric structure', async () => {
-  const f=fixture({rich:true}),timers=new Map();let id=0,destroyed=0;
-  const output=f.root.querySelector('[data-tdb-journey-status]');output.getBoundingClientRect=()=>({top:100,bottom:200});
-  f.w.TDBMotion={reduced:{matches:false},defaults:{ticker:400,tickerRapid:160}};
-  f.w.TDBNativeTicker={mount(slot){return {update(value){slot.textContent=value},destroy(){destroyed++}}}};
-  f.w.setTimeout=fn=>{timers.set(++id,fn);return id};f.w.clearTimeout=id=>timers.delete(id);
-  await f.w.TDBJourney.submit(f.root,'Tamworth');assert.equal(timers.size,1);
-  f.root.querySelector('input').dispatchEvent(new f.w.Event('input',{bubbles:true}));
-  assert.equal(timers.size,0);assert.equal(destroyed,2);assert.equal(output.querySelector('[data-tdb-journey-time-value]').textContent,'00');
-  assert.equal(output.querySelector('[data-tdb-journey-distance-unit]').textContent,'miles');f.close();
+test('editing during continuous travel cancels both shared tickers and preserves native metric structure', async()=>{
+ const f=fixture({rich:true});let destroyed=0;
+ const output=f.root.querySelector('[data-tdb-journey-status]');output.getBoundingClientRect=()=>({top:100,bottom:200});
+ f.w.TDBMotion={reduced:{matches:false}};
+ f.w.TDBNativeTicker={mount(){return {sequence(){},settle(){},destroy(){destroyed++}}}};
+ await f.w.TDBJourney.submit(f.root,'Tamworth');
+ f.root.querySelector('input').dispatchEvent(new f.w.Event('input',{bubbles:true}));
+ assert.equal(destroyed,2);assert.equal(output.querySelector('[data-tdb-journey-time-value]').textContent,'00');assert.equal(output.querySelector('[data-tdb-journey-distance-unit]').textContent,'miles');f.close();
 });
 
 function cameraFixture(){
@@ -194,5 +179,5 @@ test('shared reduced motion bypasses the staged camera and missing native busine
  const f=cameraFixture();f.w.TDBMotion.reduced.matches=true;await f.w.TDBJourney.submit(f.root,'Tamworth');
  assert.equal(f.maps[0].zoom,undefined);assert.equal(f.maps[0].type,'roadmap');assert.equal(f.timers.size,0);assert.deepEqual(f.fades,[]);
  delete f.root.dataset.tdbMapsPlaceId;await f.markers[0].click();assert.equal(f.placesCalls.length,0);
- assert.match(f.infos[0].options.content.textContent,/Reviews are unavailable/);f.close();
+ assert.match(f.infos[0].options.content.textContent,/Rating unavailable/);f.close();
 });

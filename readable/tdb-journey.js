@@ -31,7 +31,6 @@
     }
   }
   function clearTickers(owner) {
-    clearTimeout(owner.hold);
     owner.finish = null;
     owner.tickers.forEach((ticker) => ticker.destroy());
     owner.tickers = [];
@@ -78,8 +77,6 @@
       owner.detail.textContent = distanceNumber(distance);
       return;
     }
-    const rollDuration = window.TDBMotion.defaults.tickerRapid;
-    const cadence = rollDuration * 1.2;
     const values = [
       {
         slot: owner.time,
@@ -98,36 +95,19 @@
       const ticker = window.TDBNativeTicker.mount(value.slot, {
         valueClass: 'tdb-journey-ticker-value',
         incomingClass: 'tdb-journey-ticker-incoming',
-        durationKey: 'tickerRapid',
       });
-      // Preserve the authored zero until the first roll brings in the lead value.
-      ticker.update(value.format(value.current), -1, true);
+      ticker.sequence(
+        Array.from({ length: value.current - value.final + 1 }, (_, index) =>
+          value.format(value.current - index),
+        ),
+        -1,
+      );
       owner.tickers.push(ticker);
     }
-    owner.finish = (animate) => {
-      clearTimeout(owner.hold);
-      owner.tickers.forEach((ticker, i) =>
-        ticker.update(values[i].format(values[i].final), -1, animate),
-      );
+    owner.finish = () => {
+      owner.tickers.forEach((ticker) => ticker.settle());
       owner.finish = null;
     };
-    // The announcement ticker owns each roll. This scheduler only supplies the
-    // successive numbers; cap the lead at eight steps for unusually long routes.
-    const step = () => {
-      if (!visible(owner.output) || window.TDBMotion.reduced.matches) {
-        owner.finish?.(false);
-        return;
-      }
-      let remaining = false;
-      values.forEach((value, i) => {
-        if (value.current > value.final) value.current--;
-        owner.tickers[i].update(value.format(value.current), -1, true);
-        remaining ||= value.current > value.final;
-      });
-      if (remaining) owner.hold = setTimeout(step, cadence);
-      else owner.hold = setTimeout(() => owner.finish?.(false), rollDuration);
-    };
-    owner.hold = setTimeout(step, cadence);
   }
   function sdk(root) {
     if (!permitted()) return Promise.reject(Error('permission'));
@@ -207,7 +187,6 @@
       detail,
       note,
       tickers: [],
-      hold: null,
       finish: null,
       button: form.querySelector('button[type="submit"],button'),
       tiles: null,
@@ -309,34 +288,42 @@
     const epoch = owner.generation;
     const card = document.createElement('div');
     card.className = 'tdb-journey-place';
-    const title = document.createElement('strong');
-    title.textContent = 'The Dental Barns';
     const stars = document.createElement('span');
     stars.className = 'tdb-journey-place-stars';
     stars.setAttribute('aria-hidden', 'true');
     stars.hidden = true;
     const rating = document.createElement('p');
-    rating.textContent = 'Loading Google reviews…';
+    rating.className = 'tdb-journey-place-rating';
     rating.setAttribute('role', 'status');
+    rating.setAttribute('aria-label', 'Loading Google review rating');
+    const count = document.createElement('span');
+    count.className = 'tdb-journey-place-count';
+    count.textContent = '…';
+    rating.append(stars, count);
     const link = document.createElement('a');
-    link.textContent = 'View on Google Maps';
+    link.textContent = 'Google reviews';
+    const google = document.createElement('img');
+    google.src =
+      'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b972653444187f404ca8_tdb-review-google.svg';
+    google.alt = '';
+    google.width = google.height = 24;
+    link.append(google);
     link.href = businessLink(owner.root.dataset.tdbMapsPlaceId);
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    link.setAttribute('aria-label', 'View The Dental Barns on Google Maps (opens in a new tab)');
-    card.append(title, stars, rating, link);
+    link.setAttribute('aria-label', 'Read The Dental Barns Google reviews (opens in a new tab)');
+    card.append(rating, link);
     owner.info?.close();
     const info = new InfoWindow({
       content: card,
       ariaLabel: 'The Dental Barns · Google reviews',
-      maxWidth: 280,
+      maxWidth: 260,
     });
     owner.info = info;
     info.open({ map: owner.map, anchor: owner.marker, shouldFocus: true });
     try {
       const place = await business(owner);
       if (!permitted() || epoch !== owner.generation || owner.info !== info) return;
-      title.textContent = place.displayName || 'The Dental Barns';
       link.href = businessLink(place.id);
       if (
         Number.isFinite(place.rating) &&
@@ -346,11 +333,20 @@
       ) {
         stars.style.setProperty('--tdb-rating-fill', (place.rating / 5) * 100 + '%');
         stars.hidden = false;
-        rating.textContent = `${place.rating.toFixed(1)} / 5 · ${place.userRatingCount.toLocaleString('en-GB')} Google reviews`;
-      } else rating.textContent = 'See the latest reviews on Google Maps.';
+        count.textContent = `(${place.userRatingCount.toLocaleString('en-GB')})`;
+        rating.setAttribute(
+          'aria-label',
+          `Rated ${place.rating.toFixed(1)} out of 5 from ${place.userRatingCount.toLocaleString('en-GB')} Google reviews`,
+        );
+      } else {
+        count.textContent = 'Rating unavailable';
+        rating.setAttribute('aria-label', 'Google review rating unavailable');
+      }
     } catch (_) {
-      if (owner.info === info && epoch === owner.generation)
-        rating.textContent = 'Reviews are unavailable here. View them on Google Maps.';
+      if (owner.info === info && epoch === owner.generation) {
+        count.textContent = 'Rating unavailable';
+        rating.setAttribute('aria-label', 'Google review rating unavailable');
+      }
     }
   }
   async function map(owner) {
@@ -629,7 +625,7 @@
     }
   }
   window.TDBJourney = Object.freeze({
-    version: '1.4.0',
+    version: '1.5.0',
     refresh,
     submit,
     owns: (root) => owners.has(root),

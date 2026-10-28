@@ -212,3 +212,30 @@ test('native reveal handles hover, footer, keyboard, tap, swipe, loop copies and
     w.TDBSmileCards.prepare(root).destroy();
   } finally {dom.window.close();}
 });
+
+test('shared continuous ticker travels through the full strip without per-value easing and settles cleanly',()=>{
+ const {dom,w,animations}=setup();try{
+  const slot=w.document.createElement('span');slot.textContent='00';w.document.body.append(slot);
+  const ticker=w.TDBNativeTicker.mount(slot);ticker.sequence(['38','37','36','35'],-1);
+  assert.equal(animations.length,2);assert.equal(animations[1].timing.duration,1400);
+  assert.equal(animations[1].timing.easing,'cubic-bezier(.3,0,.2,1)');
+  assert.deepEqual([...animations[1].target.children].map(n=>n.textContent),['35','36','37','38','00']);
+  assert.deepEqual([...animations[1].frames].map(f=>f.transform),['translateY(-400%)','translateY(0%)']);
+  assert.equal(slot.firstElementChild.textContent,'00');animations[1].onfinish();
+  assert.equal(slot.textContent,'35');assert.equal(slot.children.length,1);
+  ticker.sequence(['40','39','38']);ticker.update('42',1,false);
+  assert.equal(slot.textContent,'42');assert.equal(slot.children.length,1);assert(animations[3].cancelled);
+  ticker.destroy();assert.equal(slot.textContent,'42');
+ }finally{dom.window.close()}
+});
+test('continuous ticker responds to shared motion changes and bounds temporary strips',()=>{
+ const {dom,w,animations}=setup();try{
+  let change;const reduced={matches:false,addEventListener(_name,fn){change=fn},removeEventListener(){}};
+  w.TDBMotion={...w.TDBMotion,reduced};const slot=w.document.createElement('span');slot.textContent='00';w.document.body.append(slot);
+  const ticker=w.TDBNativeTicker.mount(slot);ticker.sequence(['08.3','08.2','08.1']);reduced.matches=true;change();
+  assert.equal(slot.textContent,'08.1');assert.equal(slot.children.length,1);
+  ticker.sequence(['10','09']);assert.equal(animations.length,2);assert.equal(slot.textContent,'09');
+  reduced.matches=false;ticker.sequence(Array.from({length:40},(_,i)=>String(40-i)));
+  assert.equal(animations.length,2);assert.equal(slot.textContent,'1');ticker.destroy();
+ }finally{dom.window.close()}
+});

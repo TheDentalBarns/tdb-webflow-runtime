@@ -243,10 +243,10 @@
       "sources": [
         "src/journey/journey.js"
       ],
-      "sha256": "0f87dfae715b6bd32d8244beb40b7dbce2cd1b081d6fd75745b41666f8f064de",
-      "raw": 13367,
-      "gzip": 5180,
-      "brotli": 4526
+      "sha256": "ddc22657ebaeaaee31526b2f42f0fa2e84199eab2c2cec8923e14a61cc31db56",
+      "raw": 13353,
+      "gzip": 5178,
+      "brotli": 4509
     },
     "dist/tdb-legacy-review-drawer.js": {
       "sources": [
@@ -310,10 +310,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "9d53f08973e8ac3d8262a425c2705f5c40093e25bb2b8aa223e66df34ce7a935",
-      "raw": 25009,
-      "gzip": 8702,
-      "brotli": 7915
+      "sha256": "84c2e4c280bca8297e9402a751360a7d92fed03a04481b8707462c5df4638de9",
+      "raw": 25028,
+      "gzip": 8707,
+      "brotli": 7916
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -608,10 +608,10 @@
       "sources": [
         "src/shared/native-ticker.js"
       ],
-      "sha256": "a313d2a1942bc12303efea6917516ee03511bbe9d0aadad1b3fd70bd7eb32ac9",
-      "raw": 2020,
-      "gzip": 979,
-      "brotli": 845
+      "sha256": "216153891df9d0b8093aed7ea55cf8ee8c8736f372876681adbf32e56f98fd15",
+      "raw": 2958,
+      "gzip": 1239,
+      "brotli": 1079
     },
     "dist/tdb-tooltips.js": {
       "sources": [
