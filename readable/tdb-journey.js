@@ -30,6 +30,15 @@
     hourCycle: 'h23',
   });
   const ukTime = (date) => ukFormat.format(date).replace(' ', 'T');
+  function syncClock(owner) {
+    clearTimeout(owner.clockTimer);
+    if (!owner.when || owner.laterMode) return;
+    owner.when.value = ukTime(new Date()).slice(11);
+    // One minute-boundary wake-up only while the existing observer sees this
+    // control nearby. No second observer or frame loop for a local clock.
+    if (permitted() && owner.clockNear && !document.hidden && owner.root.isConnected)
+      owner.clockTimer = setTimeout(() => syncClock(owner), 60000 - (Date.now() % 60000));
+  }
   function departure(value) {
     // Resolve UK wall time independently of the visitor's device timezone.
     // Reject the missing/repeated hour at the clock change rather than guess.
@@ -268,18 +277,18 @@
       owner.when.disabled = !later;
       owner.when.required = later;
       owner.when.type = later ? 'datetime-local' : 'text';
+      owner.when.setAttribute(
+        'aria-label',
+        later ? 'Departure date and time (UK time)' : 'Current UK time',
+      );
       if (later) {
         owner.when.min = ukTime(new Date(Math.ceil((Date.now() + 60000) / 300000) * 300000));
         owner.when.value =
           owner.laterValue || ukTime(new Date(Math.ceil((Date.now() + 3600000) / 300000) * 300000));
       } else {
-        const zone =
-          new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', timeZoneName: 'short' })
-            .formatToParts(new Date())
-            .find((part) => part.type === 'timeZoneName')?.value || 'UK';
-        owner.when.value = 'Current UK time (' + zone + ')';
         owner.when.removeAttribute('min');
       }
+      syncClock(owner);
       owner.when.setCustomValidity('');
     };
     syncDeparture();
@@ -295,6 +304,14 @@
     const edited = (event) => {
       if (event.target === owner.departure) syncDeparture();
       else if (event.target === owner.when) owner.when.setCustomValidity('');
+      // Preferences are a draft until Update journey is submitted. Keep the
+      // last requested route, figures and arrival view while they are edited.
+      if (
+        event.target.matches(
+          '[data-tdb-journey-departure],[data-tdb-journey-when],[data-tdb-journey-avoid]',
+        )
+      )
+        return;
       owner.request++;
       owner.pending = '';
       owner.running = '';
@@ -311,10 +328,11 @@
       'visibilitychange',
       () => {
         if (document.hidden) {
+          clearTimeout(owner.clockTimer);
           owner.finish?.(false);
           owner.pageScroll?.cancel();
           owner.camera?.cancel(true);
-        }
+        } else syncClock(owner);
       },
       { signal: controller.signal },
     );
@@ -324,6 +342,13 @@
         passive: true,
       });
     observer?.observe(root);
+    if (owner.when) {
+      if (observer) observer.observe(owner.when);
+      else {
+        owner.clockNear = true;
+        syncClock(owner);
+      }
+    }
     return owner;
   }
   function clearRoute(owner) {
@@ -664,6 +689,23 @@
       if (label) label.textContent = 'Arrive with confidence';
     }
   }
+  function walkingMinutes(points) {
+    const rad = Math.PI / 180;
+    let metres = 0;
+    for (let i = 1; i < points.length; i++) {
+      const a = points[i - 1],
+        b = points[i];
+      const lat1 = a[0] * rad,
+        lat2 = b[0] * rad;
+      const h =
+        Math.sin((lat2 - lat1) / 2) ** 2 +
+        Math.cos(lat1) * Math.cos(lat2) * Math.sin(((b[1] - a[1]) * rad) / 2) ** 2;
+      metres += 12742000 * Math.asin(Math.min(1, Math.sqrt(h)));
+    }
+    // Indicative time along the owner-approved schematic path, assuming a
+    // gentle 60 metres/minute. This is not a Google walking-route estimate.
+    return Math.max(1, Math.ceil(metres / 60));
+  }
   async function centerMap(owner, valid) {
     if (innerWidth >= 768) return;
     const box = owner.canvas.getBoundingClientRect();
@@ -777,12 +819,11 @@
       const bounds = new LatLngBounds();
       bounds.extend(destination);
       bounds.extend(ll(data.parking));
-      const mark = (position, label, kind) => {
+      const mark = (position, label, kind, display = label) => {
         const content = document.createElement('span');
         content.className = 'tdb-journey-arrival-pin';
         content.dataset.kind = kind;
-        if (kind === 'parking') content.textContent = label;
-        else content.setAttribute('aria-hidden', 'true');
+        content.textContent = display;
         owner.arrivalMarkers.push(
           new owner.mapTypes.AdvancedMarkerElement({
             map: owner.map,
@@ -795,35 +836,34 @@
       mark(data.parking, 'Free parking', 'parking');
       data.paths.forEach((path, index) => {
         path.forEach((p) => bounds.extend(ll(p)));
-        owner.arrivalLines.push(
-          new Polyline({
-            map: owner.map,
-            path: path.map(ll),
-            clickable: false,
-            strokeColor: colour(owner.root, '--base-color-brand--orange-1'),
-            strokeOpacity: 0.95,
-            strokeWeight: 4,
-            zIndex: 2,
-            ...(index
-              ? {
-                  strokeOpacity: 0,
-                  icons: [
-                    {
-                      icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 2 },
-                      offset: '0',
-                      repeat: '10px',
-                    },
-                  ],
-                }
-              : {}),
-          }),
-        );
+        // Two provider-owned strokes make one clear cream path with a charcoal
+        // outline on both light roofs and dark trees. No page elements are added.
+        for (const [token, weight, zIndex] of [
+          ['--base-color-neutral--neutral-darker', 8, 1],
+          ['--base-color-brand--orange-1', 4, 2],
+        ])
+          owner.arrivalLines.push(
+            new Polyline({
+              map: owner.map,
+              path: path.map(ll),
+              clickable: false,
+              strokeColor: colour(owner.root, token),
+              strokeOpacity: 1,
+              strokeWeight: weight,
+              zIndex,
+            }),
+          );
         const end = path.at(-1),
           previous = path.at(-2);
+        const minutes = walkingMinutes([data.parking, ...path]);
         mark(
           [(end[0] + previous[0]) / 2, (end[1] + previous[1]) / 2],
-          index ? 'Walk through the courtyard' : 'Walk around the north side',
+          (index ? 'Walk through the courtyard' : 'Walk around the north side') +
+            ': about ' +
+            minutes +
+            (minutes === 1 ? ' minute' : ' minutes'),
           'approach',
+          '≈ ' + minutes + ' min',
         );
       });
       owner.arrivalView = true;
@@ -943,6 +983,7 @@
     }
   }
   function suspend(owner) {
+    clearTimeout(owner.clockTimer);
     owner.request++;
     owner.generation++;
     owner.running = '';
@@ -971,6 +1012,14 @@
       ? new IntersectionObserver(
           (entries) => {
             for (const entry of entries) {
+              if (entry.target.matches('[data-tdb-journey-when]')) {
+                const owner = owners.get(entry.target.closest('[data-tdb-journey]'));
+                if (owner) {
+                  owner.clockNear = entry.isIntersecting;
+                  syncClock(owner);
+                }
+                continue;
+              }
               const owner = owners.get(entry.target);
               if (owner && entry.isIntersecting) {
                 owner.seen = true;
@@ -989,19 +1038,22 @@
         suspend(owner);
         owner.controller.abort();
         observer?.unobserve(root);
+        if (owner.when) observer?.unobserve(owner.when);
         owners.delete(root);
         continue;
       }
       if (!permitted()) {
+        clearTimeout(owner.clockTimer);
         if (owner.map || owner.loading) suspend(owner);
         continue;
       }
+      syncClock(owner);
       if (owner.pending) submit(root, owner.pending.origin, owner.pending.options);
       else if (owner.seen || nearby(root)) map(owner).catch(() => {});
     }
   }
   window.TDBJourney = Object.freeze({
-    version: '1.7.1',
+    version: '1.7.2',
     refresh,
     submit,
     owns: (root) => owners.has(root),
