@@ -46,6 +46,20 @@ function preparePageBreakLoader() {
     document
       .querySelectorAll('[data-tdb-video-poster-parallax] [data-vimeo-content-init]')
       .forEach((wrapper) => add(wrapper, '.vimeo-player__placeholder'));
+    // The native shared variant reserves the same crop for a photo or ambient
+    // video. Its variant selection is the opt-in on every page; the existing
+    // section overlay keeps its separate opacity owner and the copy stays still.
+    document
+      .querySelectorAll(
+        '.section_header111[data-wf--component-1---bg-image--variant="scroll-media"]',
+      )
+      .forEach((wrapper) =>
+        add(
+          wrapper,
+          '.header111_background-image,.vimeo-bg[data-vimeo-ambient-init]',
+          '.header111_background-image-wrapper',
+        ),
+      );
     // Other explicit Home photo surfaces retain their existing opt-in.
     // Logos, UI and the Smile, Review and Instagram feeds have separate owners.
     if (home) {
@@ -63,11 +77,6 @@ function preparePageBreakLoader() {
         home.querySelector('.layout355_component'),
         '.vimeo-bg.is-ambient',
         '.layout355_background-video-wrapper',
-      );
-      add(
-        home.querySelector('.section_header111'),
-        '.header111_background-image',
-        '.header111_background-image-wrapper',
       );
       add(home.querySelector('[data-tdb-treatment] .swiper'), '.tdb-treatment-image');
       const candle = home.querySelector('.exceptional_image-candle');
