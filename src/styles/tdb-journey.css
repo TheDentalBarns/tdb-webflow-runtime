@@ -10,7 +10,11 @@
 [data-journey-map="ready"] .tdb-journey-map { display: block; }
 .tdb-journey-options :is(input,select,button):focus-visible { outline: 2px solid var(--base-color-neutral--neutral-darker); outline-offset: 4px; }
 .tdb-journey-options :disabled { opacity: .5; cursor: not-allowed; }
-.tdb-journey-arrival-pin { display: flex; align-items: center; gap: .4rem; padding: .5rem .7rem; border: 1px solid var(--base-color-brand--orange-1); border-radius: 2rem; background: var(--base-color-neutral--neutral-darker); color: var(--base-color-brand--orange-1); font: .75rem/1.2 var(--font-family--primary); white-space: nowrap; }
+[data-tdb-journey-update] { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; }
+[data-tdb-journey-update]::before { content: ''; order: 1; display: inline-block; width: 1.25rem; height: 1.25rem; flex-shrink: 0; background: currentColor; opacity: .5; mask: var(--tdb-journey-icon, linear-gradient(transparent, transparent)) center/contain no-repeat; }
+.tdb-journey-arrival-pin { display: flex; align-items: center; gap: .4rem; padding: .5rem .7rem; border: 1px solid rgba(255,255,255,.3); border-radius: 2rem; background: rgba(0,0,0,.8); color: var(--base-color-neutral--white,#fff); -webkit-backdrop-filter: blur(var(--effects--blur,20px)); backdrop-filter: blur(var(--effects--blur,20px)); font: .75rem/1.2 var(--font-family--primary); white-space: nowrap; }
+.tdb-journey-arrival-pin[data-kind="approach"] { padding: .45rem; }
+.tdb-journey-arrival-pin[data-kind="approach"]::before { content: ''; width: 1.15rem; height: 1.15rem; background: currentColor; mask: url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ae2124223c07a12ee6449f5_tdb-walking.svg') center/contain no-repeat; }
 .tdb-journey-arrival-pin[data-kind="parking"]::before { content: ''; width: 1.1rem; height: 1.4rem; background: currentColor; mask: url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8f79471bd2b763b1aad60_tdb-location-parking.svg') center/contain no-repeat; }
 /* Only the Google-owned pin overlay is themed; native page geometry stays in Designer. */
 .tdb-journey-map .gm-style-iw-c:has(.tdb-journey-place) { padding: 0 !important; border: 1px solid rgba(255,255,255,.3); border-radius: 1rem; background: rgba(0,0,0,.8); -webkit-backdrop-filter: blur(var(--effects--blur,20px)); backdrop-filter: blur(var(--effects--blur,20px)); }

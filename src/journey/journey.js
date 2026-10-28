@@ -261,11 +261,25 @@
     }
     const syncDeparture = () => {
       if (!owner.when) return;
-      owner.when.disabled = owner.departure?.value !== 'later';
-      owner.when.required = !owner.when.disabled;
-      owner.when.min = ukTime(new Date(Math.ceil((Date.now() + 60000) / 300000) * 300000));
-      if (!owner.when.value)
-        owner.when.value = ukTime(new Date(Math.ceil((Date.now() + 3600000) / 300000) * 300000));
+      const later = owner.departure?.value === 'later';
+      if (later === owner.laterMode) return;
+      if (owner.laterMode) owner.laterValue = owner.when.value;
+      owner.laterMode = later;
+      owner.when.disabled = !later;
+      owner.when.required = later;
+      owner.when.type = later ? 'datetime-local' : 'text';
+      if (later) {
+        owner.when.min = ukTime(new Date(Math.ceil((Date.now() + 60000) / 300000) * 300000));
+        owner.when.value =
+          owner.laterValue || ukTime(new Date(Math.ceil((Date.now() + 3600000) / 300000) * 300000));
+      } else {
+        const zone =
+          new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', timeZoneName: 'short' })
+            .formatToParts(new Date())
+            .find((part) => part.type === 'timeZoneName')?.value || 'UK';
+        owner.when.value = 'Current UK time (' + zone + ')';
+        owner.when.removeAttribute('min');
+      }
       owner.when.setCustomValidity('');
     };
     syncDeparture();
@@ -278,27 +292,27 @@
       },
       { signal: controller.signal },
     );
-    root.addEventListener(
-      'input',
-      () => {
-        syncDeparture();
-        owner.request++;
-        owner.pending = '';
-        owner.running = '';
-        clearRoute(owner);
-        message(owner, initial);
-        delete root.dataset.journeyState;
-        link.href = directions('');
-        form.removeAttribute('aria-busy');
-        requestBusy(owner, false);
-      },
-      { signal: controller.signal },
-    );
+    const edited = (event) => {
+      if (event.target === owner.departure) syncDeparture();
+      else if (event.target === owner.when) owner.when.setCustomValidity('');
+      owner.request++;
+      owner.pending = '';
+      owner.running = '';
+      clearRoute(owner);
+      message(owner, initial);
+      delete root.dataset.journeyState;
+      link.href = directions('');
+      form.removeAttribute('aria-busy');
+      requestBusy(owner, false);
+    };
+    root.addEventListener('input', edited, { signal: controller.signal });
+    root.addEventListener('change', edited, { signal: controller.signal });
     document.addEventListener(
       'visibilitychange',
       () => {
         if (document.hidden) {
           owner.finish?.(false);
+          owner.pageScroll?.cancel();
           owner.camera?.cancel(true);
         }
       },
@@ -313,6 +327,7 @@
     return owner;
   }
   function clearRoute(owner) {
+    owner.pageScroll?.cancel();
     owner.camera?.cancel();
     clearArrival(owner);
     owner.lines.forEach((line) => line.setMap(null));
@@ -649,11 +664,71 @@
       if (label) label.textContent = 'Arrive with confidence';
     }
   }
+  async function centerMap(owner, valid) {
+    if (innerWidth >= 768) return;
+    const box = owner.canvas.getBoundingClientRect();
+    const viewport = window.visualViewport;
+    const height = viewport?.height || innerHeight;
+    const start = window.scrollY;
+    const end = Math.max(
+      0,
+      Math.min(
+        document.documentElement.scrollHeight - height,
+        start + box.top + box.height / 2 - height / 2 - (viewport?.offsetTop || 0),
+      ),
+    );
+    if (Math.abs(end - start) < 2) return;
+    const motion = window.TDBMotion;
+    const move = (top) => window.scrollTo({ top, behavior: 'instant' });
+    if (!motion?.profile || motion.reduced.matches || !window.KeyframeEffect || !window.Animation) {
+      if (valid()) move(end);
+      return;
+    }
+    // A bounded, user-cancellable page scroll uses the same central travel
+    // profile as the rest of the site. The map camera starts once it is in view.
+    await new Promise((resolve) => {
+      const controller = new AbortController();
+      const effect = new KeyframeEffect(null, [], {
+        duration: motion.profile.vertical(Math.abs(end - start)),
+        easing: motion.easing('travel', 'cubic-bezier(.3,0,.2,1)'),
+        fill: 'both',
+      });
+      const animation = new Animation(effect, document.timeline);
+      let frame;
+      const scroll = { cancel: () => done() };
+      const done = () => {
+        cancelAnimationFrame(frame);
+        animation.cancel();
+        controller.abort();
+        if (owner.pageScroll === scroll) owner.pageScroll = null;
+        resolve();
+      };
+      const step = () => {
+        if (!valid() || document.hidden) return done();
+        const progress = motion.reduced.matches ? 1 : (effect.getComputedTiming().progress ?? 0);
+        move(start + (end - start) * progress);
+        if (progress >= 1) return done();
+        frame = requestAnimationFrame(step);
+      };
+      owner.pageScroll = scroll;
+      for (const name of ['pointerdown', 'wheel', 'keydown'])
+        window.addEventListener(name, done, {
+          signal: controller.signal,
+          passive: true,
+          once: true,
+        });
+      animation.play();
+      frame = requestAnimationFrame(step);
+    });
+  }
   async function arrival(owner) {
     if (!permitted() || !owner.map || owner.running) return;
+    owner.pageScroll?.cancel();
     owner.camera?.cancel();
     const epoch = ++owner.request;
     const valid = () => permitted() && owner.root.isConnected && owner.request === epoch;
+    await centerMap(owner, valid);
+    if (!valid()) return;
     const wasArrival = owner.arrivalView;
     clearArrival(owner);
     owner.lines.forEach((line) => line.setMap(wasArrival ? owner.map : null));
@@ -706,7 +781,8 @@
         const content = document.createElement('span');
         content.className = 'tdb-journey-arrival-pin';
         content.dataset.kind = kind;
-        content.textContent = label;
+        if (kind === 'parking') content.textContent = label;
+        else content.setAttribute('aria-hidden', 'true');
         owner.arrivalMarkers.push(
           new owner.mapTypes.AdvancedMarkerElement({
             map: owner.map,
@@ -742,7 +818,11 @@
               : {}),
           }),
         );
-        mark(path[Math.floor(path.length / 2)], String(index + 1), 'approach');
+        mark(
+          path[Math.floor(path.length / 2)],
+          index ? 'Walk through the courtyard' : 'Walk around the north side',
+          'approach',
+        );
       });
       owner.arrivalView = true;
       owner.arrive?.setAttribute('aria-pressed', 'true');
@@ -919,7 +999,7 @@
     }
   }
   window.TDBJourney = Object.freeze({
-    version: '1.7.0',
+    version: '1.7.1',
     refresh,
     submit,
     owns: (root) => owners.has(root),

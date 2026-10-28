@@ -272,3 +272,40 @@ test('arrival reuses one map, restores the existing route without another API ca
  assert.equal(f.markers[1].map,null);assert.equal(f.lines[1].map,null);
  button.click();await tick();f.permission(false);assert.equal(button.disabled,true);assert.equal(f.markers.at(-1).map,null);f.close();
 });
+
+test('now shows the UK time convention; editing an incomplete later time never resets it',()=>{
+ const f=fixture({options:true}),select=f.root.querySelector('select'),when=f.root.querySelector('[data-tdb-journey-when]');
+ assert.equal(when.type,'text');assert.match(when.value,/Current UK time \((GMT|BST)\)/);
+ select.value='later';select.dispatchEvent(new f.w.Event('change',{bubbles:true}));
+ assert.equal(when.type,'datetime-local');assert.equal(when.disabled,false);
+ when.value='';when.dispatchEvent(new f.w.Event('input',{bubbles:true}));assert.equal(when.value,'');
+ when.value='2027-07-15T11:35';when.dispatchEvent(new f.w.Event('input',{bubbles:true}));assert.equal(when.value,'2027-07-15T11:35');
+ select.value='now';select.dispatchEvent(new f.w.Event('change',{bubbles:true}));assert.equal(when.disabled,true);assert.match(when.value,/Current UK time/);
+ select.value='later';select.dispatchEvent(new f.w.Event('change',{bubbles:true}));assert.equal(when.value,'2027-07-15T11:35');f.close();
+});
+
+test('both mobile arrival actions centre the reserved map and retain one route request',async()=>{
+ const f=fixture({options:true});await f.w.TDBJourney.submit(f.root,'Tamworth');
+ Object.defineProperty(f.w,'innerWidth',{value:390});Object.defineProperty(f.w,'innerHeight',{value:844});
+ Object.defineProperty(f.w.document.documentElement,'scrollHeight',{value:10000});
+ const canvas=f.root.querySelector('[data-tdb-journey-map]'),scrolls=[];
+ canvas.getBoundingClientRect=()=>({top:-500,bottom:0,height:500});f.w.scrollY=4000;f.w.scrollTo=x=>scrolls.push(x.top);
+ f.w.TDBMotion={reduced:{matches:true}};
+ const button=f.root.querySelector('[data-tdb-journey-arrive]');
+ button.click();await tick();await tick();assert.deepEqual(scrolls,[3328]);
+ assert.equal(f.markers[2].content.textContent,'');assert.match(f.markers[2].title,/Walk/);
+ button.click();await tick();await tick();assert.deepEqual(scrolls,[3328,3328]);assert.equal(f.calls.length,1);f.close();
+});
+
+test('mobile centring uses the shared travel profile and releases its frame on consent withdrawal',async()=>{
+ const f=fixture({options:true});await tick();Object.defineProperty(f.w,'innerWidth',{value:390});
+ Object.defineProperty(f.w.document.documentElement,'scrollHeight',{value:10000});
+ const canvas=f.root.querySelector('[data-tdb-journey-map]');canvas.getBoundingClientRect=()=>({top:1000,bottom:1500,height:500});
+ const frames=new Map();let seq=0,cancelled=false,options;
+ f.w.requestAnimationFrame=fn=>{frames.set(++seq,fn);return seq};f.w.cancelAnimationFrame=id=>frames.delete(id);
+ f.w.KeyframeEffect=class{constructor(_,__,o){options=o}getComputedTiming(){return {progress:.5}}};
+ f.w.Animation=class{play(){}cancel(){cancelled=true}};f.w.scrollTo=()=>{};
+ f.w.TDBMotion={profile:{vertical:()=>777},easing:()=> 'ease-in-out',reduced:{matches:false}};
+ f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();assert.equal(options.duration,777);assert.equal(options.easing,'ease-in-out');assert.equal(frames.size,1);
+ f.permission(false);await tick();assert.equal(frames.size,0);assert(cancelled);assert.equal(f.markers.length,1);f.close();
+});
