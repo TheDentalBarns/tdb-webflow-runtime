@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "note": "Responsive styles are external only on owning non-Home pages. Home Smile cards load tdb-smile-feed.css through their existing proximity loader. Keep native base, variant and cascade-sensitive spacing styles in Designer. Add a matching page-head link when reusing these static layout families on a new page. Review drawer CSS still loads with the Home drawer; pages containing native drawer markup retain matching responsive styles in their page bundle. Build using node tools/runtime-build/build-page-layouts.cjs.",
+  "note": "Responsive styles are external only on owning non-Home pages. Home Smile cards load tdb-smile-feed.css through their existing proximity loader. Keep native base, variant and cascade-sensitive spacing styles in Designer. Add a matching page-head link when reusing these static layout families on a new page. Review drawer CSS still loads with the Home drawer; pages containing native drawer markup retain matching responsive styles in their page bundle. Build using node tools/runtime-build/build-page-layouts.cjs. Contact16 responsive grid rules migrated back to native Designer styles on 29 October 2026. Its generated compatibility bundle is now empty; Contact no longer includes that link.",
   "bundles": [
     {
       "families": [
