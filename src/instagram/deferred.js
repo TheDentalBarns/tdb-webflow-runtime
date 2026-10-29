@@ -15,7 +15,9 @@
       ![location.origin, 'https://tdb-public-availability.david-070.workers.dev'].includes(
         url.origin,
       ) ||
-      url.pathname !== '/tdb-content/v1/instagram.json' ||
+      !['/tdb-content/v1/instagram.json', '/tdb-content/v1/instagram-practice.json'].includes(
+        url.pathname,
+      ) ||
       url.username ||
       url.password ||
       url.search ||
@@ -63,6 +65,21 @@
     template.innerHTML = feedTemplate;
     const root = template.content.firstElementChild;
     root.setAttribute('data-tdb-ig-native', key);
+    // Both CMS feeds use the same layout; only the content and accessible name vary.
+    const practice = url.pathname === '/tdb-content/v1/instagram-practice.json';
+    root.setAttribute(
+      'aria-label',
+      practice ? 'Behind the Barns Instagram gallery' : 'Awards Instagram gallery',
+    );
+    root
+      .querySelector('[data-ig-prev]')
+      .setAttribute(
+        'aria-label',
+        practice ? 'Previous behind-the-scenes post' : 'Previous awards post',
+      );
+    root
+      .querySelector('[data-ig-next]')
+      .setAttribute('aria-label', practice ? 'Next behind-the-scenes post' : 'Next awards post');
     const track = root.querySelector('[data-ig-track]');
     const card = track.querySelector('[data-ig-slide]');
     card.remove();

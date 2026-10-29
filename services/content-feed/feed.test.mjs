@@ -7,6 +7,7 @@ import {
   projectSmiles,
   COLLECTION,
   CATEGORY,
+  PRACTICE_CATEGORY,
   SMILE_COLLECTION,
 } from './feed.mjs';
 
@@ -134,6 +135,27 @@ const page = (items, total = items.length, offset = 0) =>
   Response.json({ items, pagination: { total, offset, limit: 100 } });
 const request = (path = '/tdb-content/v1/instagram.json', method = 'GET') =>
   new Request('https://dentalbarns.webflow.io' + path, { method });
+test('Practice feed projects the latest eligible posts and never shares the Awards cache', async () => {
+  const practice = Array.from({ length: 22 }, (_, i) => item('practice' + i, {
+    categories: [PRACTICE_CATEGORY], 'display-order': 0,
+    date: `2026-09-${String(i + 1).padStart(2, '0')}T00:00:00.000Z`,
+  }));
+  const rows = [item('award'), ...practice,
+    item('hidden', { categories: [PRACTICE_CATEGORY], visible: false }),
+    item('draft', { categories: [PRACTICE_CATEGORY] }, { lastPublished: null })];
+  const saved = new Map();
+  const env = { WEBFLOW_API_TOKEN: 'test', CONTENT_FEEDS: {
+    get: async key => saved.get(key), put: async (key, value) => saved.set(key, JSON.parse(value)),
+  } };
+  const handle = createFeedService({ fetcher: async () => page(rows) });
+  const awards = await (await handle(request(), env)).json();
+  const behind = await (await handle(request('/tdb-content/v1/instagram-practice.json'), env)).json();
+  assert.deepEqual(awards.posts.map(p => p.url), ['https://www.instagram.com/p/award/']);
+  assert.equal(behind.posts.length, 20);
+  assert.equal(behind.posts[0].url, 'https://www.instagram.com/p/practice21/');
+  assert.equal(behind.posts.at(-1).url, 'https://www.instagram.com/p/practice2/');
+  assert.deepEqual([...saved.keys()].sort(), ['instagram:awards:v1', 'instagram:practice:v1']);
+});
 function harness() {
   let time = Date.parse('2026-10-15T12:00:00Z'),
     saved = null,

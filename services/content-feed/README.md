@@ -1,5 +1,26 @@
 # TDB content feed — Instagram, Smile Gallery and Reviews staging trials
 
+## Location / Behind the Barns — 29 October 2026
+
+`GET /tdb-content/v1/instagram-practice.json` uses the same Media Gallery
+projection as Awards with the existing **The Practice** category
+(`6ab7b41d76a5f592a5b6dd3f`). It has its own `instagram:practice:v1` cache;
+Awards keeps its existing endpoint and cache. Both include only published,
+visible, non-archived posts, ordered by display order then newest date, capped
+at 20. The twenty most recent existing Practice posts were enabled with the
+owner's approval. Future edits belong in CMS: keep the category and Visible
+switch set, then publish the item. This is published CMS content, not a live
+Instagram ingestion or engagement-sync service.
+
+The native **Deferred Instagram Feed** component is shared by Home Awards and
+Location's **Behind the Barns** section. Its three-node reserved holder has
+instance properties for the approved JSON endpoint and feed key. Home gains no
+wrapper or element. Location uses the existing Smile Gallery heading classes
+and shared secondary button with the canonical Instagram mask. The deferred
+renderer, consent/proximity loading, carousel, motion and CSS are shared.
+Location's legacy Elfsight bootstrap and old section instance are removed;
+Contact retains its legacy instance pending its own migration.
+
 ## Cloudflare delivery — 16 October 2026
 
 Home's three JSON consumers now use the same paths on

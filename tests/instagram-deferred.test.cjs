@@ -102,6 +102,19 @@ test('feed endpoint cannot send a request to another origin',async()=>{
  await e.prepare();assert.equal(f.requests.length,0);assert.equal(e.mounts(),0);e.close();
 });
 
+test('Practice feed uses the shared renderer with its own accessible labels; other paths stay blocked',async()=>{
+ const e=setup(),f=useFeed(e);
+ e.holder.setAttribute('data-tdb-ig-placeholder','the-practice');
+ e.holder.setAttribute('data-tdb-ig-feed','/tdb-content/v1/instagram-practice.json');
+ await e.prepare();
+ const root=e.holder.querySelector('[data-tdb-ig-native="the-practice"]');
+ assert.equal(f.requests.length,1);assert.equal(root.getAttribute('aria-label'),'Behind the Barns Instagram gallery');
+ assert.equal(root.querySelector('[data-ig-next]').getAttribute('aria-label'),'Next behind-the-scenes post');
+ assert.equal(root.querySelectorAll('[data-ig-slide]').length,3);e.close();
+ const bad=setup(),bf=useFeed(bad);bad.holder.setAttribute('data-tdb-ig-feed','/tdb-content/v1/arbitrary.json');
+ await bad.prepare();assert.equal(bf.requests.length,0);assert.equal(bad.mounts(),0);bad.close();
+});
+
 test('entry photos decode while code and styles are pending; reveal still waits for all',async()=>{
  let releaseAssets;const e=setup({gate:new Promise(r=>releaseAssets=r)}),f=useFeed(e);
  let dependencies=0,preparedOption;

@@ -213,10 +213,10 @@
       "sources": [
         "src/instagram/deferred.js"
       ],
-      "sha256": "6884a45e5d33f611bdd129e180460ed1cb534ef50b9da3f2a3f4c35c5991c6b2",
-      "raw": 11535,
-      "gzip": 3761,
-      "brotli": 3237
+      "sha256": "840f345652e503622727165dd295bcf203a577d947ab5b9f3ab698b7d76e823a",
+      "raw": 11978,
+      "gzip": 3848,
+      "brotli": 3312
     },
     "dist/tdb-instagram-feed.js": {
       "sources": [

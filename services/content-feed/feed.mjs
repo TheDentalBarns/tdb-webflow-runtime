@@ -11,6 +11,7 @@ import {
  * records are returned. Route-specific projections can be added for other feeds. */
 export const COLLECTION = '6ab7b3c409814bb83c9902de';
 export const CATEGORY = '6ab7b743e5d9f17124ef7ab3';
+export const PRACTICE_CATEGORY = '6ab7b41d76a5f592a5b6dd3f';
 export const SMILE_COLLECTION = '69a07fdcd392dc2c0d92967f';
 const FRESH_MS = 300000;
 const MAX_AGE_MS = 3600000;
@@ -71,7 +72,7 @@ function date(value) {
   return raw.slice(0, 10);
 }
 
-export function projectInstagram(items) {
+export function projectInstagram(items, category = CATEGORY) {
   if (!Array.isArray(items)) fail();
   const selected = items.filter((item) => {
     const f = item?.fieldData;
@@ -82,7 +83,7 @@ export function projectInstagram(items) {
       item.isArchived === false &&
       f?.visible === true &&
       Array.isArray(f.categories) &&
-      f.categories.includes(CATEGORY)
+      f.categories.includes(category)
     );
   });
   selected.sort((a, b) => {
@@ -201,6 +202,13 @@ const FEEDS = {
     key: 'instagram:awards:v1',
     collection: COLLECTION,
     project: (items) => ({ posts: projectInstagram(items) }),
+    valid: (snapshot) => Array.isArray(snapshot.posts) && snapshot.posts.length <= 20,
+  },
+  '/tdb-content/v1/instagram-practice.json': {
+    name: 'instagram',
+    key: 'instagram:practice:v1',
+    collection: COLLECTION,
+    project: (items) => ({ posts: projectInstagram(items, PRACTICE_CATEGORY) }),
     valid: (snapshot) => Array.isArray(snapshot.posts) && snapshot.posts.length <= 20,
   },
   '/tdb-content/v1/smiles.json': {
