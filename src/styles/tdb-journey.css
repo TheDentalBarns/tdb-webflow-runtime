@@ -13,7 +13,6 @@
 .tdb-journey-options [data-tdb-journey-when]:disabled { opacity: 1; cursor: default; }
 .tdb-journey-checkbox:checked::after { content: ''; display: block; width: .85rem; height: .85rem; background: currentColor; mask: url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7bbee217f11c57334fb11_tdb-review-tick-17e3f2.svg') center/contain no-repeat; }
 @media (forced-colors: active) { .tdb-journey-checkbox { appearance: auto; } .tdb-journey-checkbox::after { display: none; } }
-[data-tdb-journey-update] { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; }
 [data-tdb-journey-update]::before { content: ''; order: 1; display: inline-block; width: 1.25rem; height: 1.25rem; flex-shrink: 0; background: currentColor; opacity: .5; mask: var(--tdb-journey-icon, linear-gradient(transparent, transparent)) center/contain no-repeat; }
 .tdb-journey-arrival-pin { display: flex; align-items: center; gap: .4rem; padding: .5rem .7rem; border: 1px solid rgba(255,255,255,.3); border-radius: 2rem; background: rgba(0,0,0,.8); color: var(--base-color-neutral--white,#fff); -webkit-backdrop-filter: blur(var(--effects--blur,20px)); backdrop-filter: blur(var(--effects--blur,20px)); font: .75rem/1.2 var(--font-family--primary); white-space: nowrap; }
 .tdb-journey-arrival-pin[data-kind="approach"] { padding: .45rem .6rem; }
