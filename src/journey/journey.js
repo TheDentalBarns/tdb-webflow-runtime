@@ -517,6 +517,7 @@
       owner.canvas.replaceChildren();
       owner.map = new Map(owner.canvas, {
         center: destination,
+        backgroundColor: getComputedStyle(owner.canvas).backgroundColor,
         zoom: 17,
         mapTypeId: 'satellite',
         tilt: 0,
@@ -1129,7 +1130,7 @@
     }
   }
   window.TDBJourney = Object.freeze({
-    version: '1.8.0',
+    version: '1.8.1',
     refresh,
     submit,
     owns: (root) => owners.has(root),

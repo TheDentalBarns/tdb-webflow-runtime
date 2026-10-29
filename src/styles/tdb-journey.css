@@ -11,7 +11,6 @@
 .tdb-journey-options :is(input,select,button):focus-visible { outline: 2px solid var(--base-color-brand--orange-3); outline-offset: 4px; }
 .tdb-journey-options :disabled { opacity: .5; cursor: not-allowed; }
 .tdb-journey-options [data-tdb-journey-when]:disabled { opacity: 1; cursor: default; }
-.tdb-journey-options .button { border-color: currentColor; }
 .tdb-journey-checkbox:checked::after { content: ''; display: block; width: .85rem; height: .85rem; background: currentColor; mask: url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7bbee217f11c57334fb11_tdb-review-tick-17e3f2.svg') center/contain no-repeat; }
 @media (forced-colors: active) { .tdb-journey-checkbox { appearance: auto; } .tdb-journey-checkbox::after { display: none; } }
 [data-tdb-journey-update] { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; }
