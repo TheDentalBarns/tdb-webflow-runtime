@@ -16,7 +16,7 @@ test('mount preserves authored open and closed states without enabling animation
     assert.equal(trigger.getAttribute('aria-expanded'),String(open));
     assert.equal(panel.hidden,!open);
     assert.equal(panel.inert,!open);
-    for(const node of [item,panel,chevron])assert.equal(node.classList.contains('is-open'),open);
+    for(const node of [item,trigger,panel,chevron])assert.equal(node.classList.contains('is-open'),open);
     assert.equal(item.hasAttribute('data-tdb-disclosure-interacted'),false);
     w.TDBDisclosure.refresh();
     assert.equal(item.hasAttribute('data-tdb-disclosure-interacted'),false);
@@ -31,11 +31,11 @@ test('click and keyboard toggles enable animation and keep native state and acce
   assert.equal(panel.hidden,true);
   assert.equal(w.document.activeElement,trigger);
   assert.equal(trigger.getAttribute('aria-expanded'),'false');
-  for(const node of [item,panel,chevron])assert.equal(node.classList.contains('is-open'),false);
+  for(const node of [item,trigger,panel,chevron])assert.equal(node.classList.contains('is-open'),false);
   trigger.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));
   assert.equal(panel.hidden,false);
   assert.equal(panel.getAttribute('aria-hidden'),'false');
-  for(const node of [item,panel,chevron])assert.equal(node.classList.contains('is-open'),true);
+  for(const node of [item,trigger,panel,chevron])assert.equal(node.classList.contains('is-open'),true);
   dom.window.close();
 });
 test('programmatic setup and disabled controls cannot enable startup motion',()=>{

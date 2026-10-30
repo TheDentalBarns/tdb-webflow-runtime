@@ -27,6 +27,7 @@
         (r.inert = !e),
         r.setAttribute('aria-hidden', String(!e)),
         t.setAttribute('aria-expanded', String(e)),
+        t.classList.toggle('is-open', e),
         r.classList.toggle('is-open', e),
         t.closest('[data-tdb-disclosure-item]')?.classList.toggle('is-open', e),
         t.querySelector('[data-tdb-chevron]')?.classList.toggle('is-open', e));
@@ -61,7 +62,7 @@
       e.querySelectorAll('[data-tdb-disclosure-trigger]').forEach(a));
   }
   ((window.TDBDisclosure = Object.freeze({
-    version: '1.2.1',
+    version: '1.2.2',
     observe: function (e, t, n = () => 'true' === e.getAttribute('aria-expanded')) {
       let a;
       function r() {
