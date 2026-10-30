@@ -861,10 +861,11 @@
       bounds.extend(destination);
       bounds.extend(ll(data.parking));
       let closeExpandedPin;
-      const mark = (position, label, kind, display = label) => {
+      const mark = (position, label, kind, display = label, expandLeft = false) => {
         const content = document.createElement('span');
         content.className = 'tdb-journey-arrival-pin';
         content.dataset.kind = kind;
+        if (expandLeft) content.dataset.expand = 'left';
         content.textContent = display;
         content.setAttribute('aria-label', label);
         content.setAttribute('aria-expanded', 'false');
@@ -874,7 +875,7 @@
           title: label,
           content,
           gmpClickable: true,
-          anchorLeft: '-1.125rem',
+          anchorLeft: expandLeft ? 'calc(-100% + 1.125rem)' : '-1.125rem',
           anchorTop: '-50%',
         });
         marker.setAttribute?.('aria-expanded', 'false');
@@ -939,6 +940,7 @@
           index ? 'Walk along the brook side · <1 min' : 'Walk through the courtyard · <1 min',
           'approach',
           '',
+          index === 1,
         );
       });
       for (const { kind, position } of data.amenities) {

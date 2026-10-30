@@ -347,7 +347,8 @@ test('authored walking points and amenities retain exact coordinates and clean u
  assert.equal(pins.length,5);
  assert.deepEqual(pins.map(m=>[m.position.lat,m.position.lng]),Object.values(points));
  assert.deepEqual(pins.map(m=>m.content.dataset.kind),['approach','approach','coffee','flowers','wellness']);
- assert(pins.every(m=>m.content.textContent==='' && m.anchorLeft==='-1.125rem' && m.anchorTop==='-50%'));
+ assert(pins.every((m,i)=>m.content.textContent==='' && m.anchorLeft===(i===1?'calc(-100% + 1.125rem)':'-1.125rem') && m.anchorTop==='-50%'));
+ assert.equal(pins[1].content.dataset.expand,'left');
  assert.equal(f.calls.length,0);f.permission(false);assert(pins.every(m=>m.map===null));f.close();
 });
 
