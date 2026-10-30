@@ -357,6 +357,19 @@ test('invalid optional amenity coordinates do not suppress the valid arrival rou
  assert.equal(f.markers.length,4);assert.equal(f.lines.length,4);f.close();
 });
 
+test('arrival circles toggle accessible labels, keep one label open and close with Escape',async()=>{
+ const f=fixture({options:true});f.root.setAttribute('data-tdb-journey-coffee','52.6298631,-1.8021164');
+ await tick();f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();
+ const walk=f.markers.find(m=>m.content?.dataset?.kind==='approach').content;
+ const coffee=f.markers.find(m=>m.content?.dataset?.kind==='coffee').content;
+ assert.equal(coffee.tagName,'BUTTON');assert.equal(coffee.type,'button');assert.equal(coffee.getAttribute('aria-label'),'Coffee');
+ coffee.click();assert.equal(coffee.getAttribute('aria-expanded'),'true');assert.equal(coffee.textContent,'Coffee');
+ walk.click();assert.equal(coffee.getAttribute('aria-expanded'),'false');assert.equal(coffee.textContent,'');assert.equal(walk.getAttribute('aria-expanded'),'true');
+ walk.click();assert.equal(walk.textContent,'');
+ coffee.click();coffee.dispatchEvent(new f.w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert.equal(coffee.getAttribute('aria-expanded'),'false');
+ assert.equal(f.calls.length,0);f.close();
+});
+
 test('appointment mode preserves separate entered times and checks traffic at the estimated departure',async()=>{
  const f=fixture({options:true}),select=f.root.querySelector('select'),when=f.root.querySelector('[data-tdb-journey-when]');
  select.value='later';select.dispatchEvent(new f.w.Event('change',{bubbles:true}));when.value='2027-07-15T09:00';

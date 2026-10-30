@@ -726,6 +726,7 @@
   }
   function clearArrival(owner) {
     owner.arrivalMarkers.forEach((marker) => {
+      marker.content?.getAnimations?.().forEach((animation) => animation.cancel());
       marker.map = null;
     });
     owner.arrivalLines.forEach((line) => line.setMap(null));
@@ -859,11 +860,47 @@
       const bounds = new LatLngBounds();
       bounds.extend(destination);
       bounds.extend(ll(data.parking));
+      let closeExpandedPin;
       const mark = (position, label, kind, display = label) => {
-        const content = document.createElement('span');
+        const interactive = kind !== 'parking';
+        const content = document.createElement(interactive ? 'button' : 'span');
         content.className = 'tdb-journey-arrival-pin';
         content.dataset.kind = kind;
         content.textContent = display;
+        if (interactive) {
+          content.type = 'button';
+          content.setAttribute('aria-label', label);
+          content.setAttribute('aria-expanded', 'false');
+          const setExpanded = (expanded) => {
+            const from = content.getBoundingClientRect().width;
+            content.getAnimations?.().forEach((animation) => animation.cancel());
+            content.setAttribute('aria-expanded', String(expanded));
+            content.textContent = expanded ? label : '';
+            const to = content.getBoundingClientRect().width;
+            const motion = window.TDBMotion;
+            if (motion && !motion.reduced.matches && !document.hidden && content.animate)
+              content.animate([{ width: from + 'px' }, { width: to + 'px' }], {
+                duration: motion.time(300),
+                easing: motion.easing('travel', 'ease'),
+              });
+          };
+          content.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const expand = content.getAttribute('aria-expanded') !== 'true';
+            closeExpandedPin?.();
+            closeExpandedPin = null;
+            if (expand) {
+              setExpanded(true);
+              closeExpandedPin = () => setExpanded(false);
+            }
+          });
+          content.addEventListener('keydown', (event) => {
+            if (event.key !== 'Escape') return;
+            event.stopPropagation();
+            closeExpandedPin?.();
+            closeExpandedPin = null;
+          });
+        }
         owner.arrivalMarkers.push(
           new owner.mapTypes.AdvancedMarkerElement({
             map: owner.map,

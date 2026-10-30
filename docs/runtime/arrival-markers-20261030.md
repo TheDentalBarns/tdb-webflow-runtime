@@ -14,3 +14,5 @@ Configured points:
 Coffee and flowers reuse new shared Webflow SVG Assets; wellness reuses the canonical review lotus. Their masks inherit the same white as the existing walking artwork. All five markers use the same 2.25rem dark circular surface, centred on the authored position. Parking keeps its existing labelled marker.
 
 Validation: 36 journey tests pass, including authored coordinate placement, absent/invalid optional points, route restoration and consent cleanup. Journey JS and CSS builds pass freshness checks. Release is based on staging runtime abb0778bb430934704e84db20e6f3a8bae7a50a5 and changes only the journey assets. Publish to staging only.
+
+Follow-up: the five circles are native buttons that toggle their accessible text labels into the existing pill surface. One label remains open at a time; repeat activation or Escape collapses it. Width animation uses shared motion timing/easing and skips reduced motion or hidden documents. Teardown cancels marker animations. Parking remains permanently labelled. All 37 journey tests pass, including label toggling, mutual exclusion and Escape.
