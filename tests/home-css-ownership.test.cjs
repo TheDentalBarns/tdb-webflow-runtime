@@ -11,7 +11,7 @@ test('bundled native foundation preserves disclosure state, keyboard access and 
   try {
     w.eval(read('dist/tdb-navbar-loader.js'));
     d.dispatchEvent(new w.Event('DOMContentLoaded'));
-    assert.equal(w.TDBDisclosure.version, '1.2.1');
+    assert.equal(w.TDBDisclosure.version, '1.2.2');
     assert.equal(w.TDBNavbarNative.version, '2.0.0');
     assert.equal(d.querySelectorAll('style[data-tdb-native-control-css]').length, 0);
     const [button, link] = d.querySelectorAll('[data-tdb-disclosure-trigger]');
@@ -21,11 +21,13 @@ test('bundled native foundation preserves disclosure state, keyboard access and 
     assert.equal(open.hidden, false, 'authored expanded award stays expanded');
     button.click();
     assert.equal(closed.hidden, false);
+    assert.equal(button.classList.contains('is-open'), true);
     assert.equal(button.getAttribute('aria-controls'), closed.id);
     closed.querySelector('input').focus();
     w.TDBDisclosure.mount(button).set(false);
     assert.equal(d.activeElement, button);
     assert.equal(closed.getAttribute('aria-hidden'), 'true');
+    assert.equal(button.classList.contains('is-open'), false);
     link.dispatchEvent(new w.KeyboardEvent('keydown', {key:' ', bubbles:true, cancelable:true}));
     assert.equal(open.hidden, true);
     link.dispatchEvent(new w.KeyboardEvent('keydown', {key:'Enter', bubbles:true, cancelable:true}));

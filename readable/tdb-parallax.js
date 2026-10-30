@@ -1529,7 +1529,8 @@ window.TDBTreatmentTicker ||= (() => {
     const total = position?.querySelector('[data-tdb-treatment-total]');
     const price = owner.querySelector('[data-tdb-treatment-price]');
     const duration = owner.querySelector('[data-tdb-treatment-duration]');
-    const slots = [current, price, duration];
+    const partnerLocation = owner.querySelector('[data-tdb-treatment-location]');
+    const slots = [current, price, duration, partnerLocation];
     if (!slots.some(Boolean)) return null;
     const sliderViewport = root.querySelector(':scope > .swiper');
     const mobile = matchMedia('(max-width: 767px)');
@@ -1577,6 +1578,11 @@ window.TDBTreatmentTicker ||= (() => {
             : 'From ' + formattedAmount
           : '',
         time,
+        clean(
+          slide
+            ?.querySelector('[data-tdb-treatment-location-source]')
+            ?.getAttribute('data-tdb-treatment-location-source'),
+        ),
       ];
       const direction =
         swiper.params?.loop && swiper.swipeDirection

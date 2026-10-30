@@ -3,17 +3,18 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 
-function fixture() {
+function fixture(withLocation = false) {
   const slot = (attr, value = '') =>
     `<span ${attr}><span class="tdb-smile-fact-value">${value}</span><span class="tdb-smile-fact-value" aria-hidden="true"></span></span>`;
   const dom = new JSDOM(
     `<section data-tdb-treatment-layout>
     <div data-tdb-treatment-postage><div class="swiper"><div class="swiper-wrapper">
-      <article><h3 class="tdb-treatment-title">Treatment B</h3><a data-tdb-treatment-price-source="4195" data-tdb-treatment-duration-source="6–18 months"></a></article>
-      <article><h3 class="tdb-treatment-title">Treatment A</h3><a data-tdb-treatment-price-source="£995" data-tdb-treatment-duration-source="Several weeks"></a></article>
+      <article><h3 class="tdb-treatment-title">Treatment B</h3><a data-tdb-treatment-price-source="4195" data-tdb-treatment-duration-source="6–18 months" data-tdb-treatment-location-source="Unit 4"></a></article>
+      <article><h3 class="tdb-treatment-title">Treatment A</h3><a data-tdb-treatment-price-source="£995" data-tdb-treatment-duration-source="Several weeks" data-tdb-treatment-location-source="The Cottage"></a></article>
       <article><h3 class="tdb-treatment-title">Treatment C</h3><a data-tdb-treatment-price-source="" data-tdb-treatment-duration-source=""></a></article>
     </div></div><div data-tdb-treatment-position><span data-tdb-treatment-current>01</span><span data-tdb-treatment-total>06</span></div></div>
     <div data-tdb-treatment-facts><img alt="" src="price.svg">${slot('data-tdb-treatment-price')}<img alt="" src="clock.svg">${slot('data-tdb-treatment-duration')}</div>
+    ${withLocation ? `<div data-tdb-partner-facts><span data-tdb-journey-icon="barn"></span>${slot('data-tdb-treatment-location', 'Unit 4')}</div>` : ''}
   </section>`,
     { runScripts: 'outside-only', url: 'https://example.test/' },
   );
@@ -86,6 +87,38 @@ test('treatment values come from each rendered CMS item, including CMS reorderin
     assert.equal(f.value('duration'), '');
   } finally {
     f.dom.window.close();
+  }
+});
+
+test('optional partner location follows CMS slide order without stale labels or additional treatment slots', () => {
+  const f = fixture(true);
+  try {
+    const icon = f.w.document.querySelector('[data-tdb-journey-icon]');
+    const label = f.w.document.querySelector('[data-tdb-treatment-location]').firstElementChild;
+    assert.equal(f.value('location'), 'Unit 4');
+    f.select(1);
+    f.finish();
+    assert.equal(f.value('location'), 'The Cottage');
+    f.select(2);
+    f.finish();
+    assert.equal(f.value('location'), '', 'missing location cannot retain the previous partner unit');
+    f.select(0);
+    f.select(1);
+    f.select(0);
+    f.finish();
+    assert.equal(f.value('location'), 'Unit 4');
+    assert.equal(f.w.document.querySelector('[data-tdb-treatment-location]').firstElementChild, label);
+    assert.equal(f.w.document.querySelector('[data-tdb-journey-icon]'), icon);
+    assert.equal(f.value('price'), 'From £4,195');
+  } finally {
+    f.dom.window.close();
+  }
+  const home = fixture();
+  try {
+    assert.equal(home.w.document.querySelector('[data-tdb-treatment-location]'), null);
+    assert.equal(home.value('price'), 'From £4,195');
+  } finally {
+    home.dom.window.close();
   }
 });
 
