@@ -829,7 +829,8 @@
         .join('') + 'Z'
     );
   }
-  function arrivalGlass(owner, path, OverlayView) {
+  let arrivalOutlineId = 0;
+  function arrivalGlass(owner, paths, OverlayView) {
     class Ribbon extends OverlayView {
       onAdd() {
         this.element = document.createElement('div');
@@ -838,15 +839,32 @@
         this.glass = document.createElement('div');
         this.glass.className = 'tdb-journey-route-glass';
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const ns = 'http://www.w3.org/2000/svg';
+        const defs = document.createElementNS(ns, 'defs');
+        const filter = document.createElementNS(ns, 'filter');
+        filter.id = 'tdb-route-outline-' + ++arrivalOutlineId;
+        const erode = document.createElementNS(ns, 'feMorphology');
+        erode.setAttribute('in', 'SourceAlpha');
+        erode.setAttribute('operator', 'erode');
+        erode.setAttribute('radius', '1');
+        erode.setAttribute('result', 'interior');
+        const border = document.createElementNS(ns, 'feComposite');
+        border.setAttribute('in', 'SourceGraphic');
+        border.setAttribute('in2', 'interior');
+        border.setAttribute('operator', 'out');
+        filter.append(erode, border);
+        defs.append(filter);
         this.outline = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        svg.append(this.outline);
+        this.outline.setAttribute('filter', `url(#${filter.id})`);
+        svg.append(defs, this.outline);
         this.element.append(this.glass, svg);
         this.getPanes().overlayLayer.append(this.element);
       }
       draw() {
-        const points = path.map(([lat, lng]) =>
-          this.getProjection().fromLatLngToDivPixel({ lat, lng }),
+        const projected = paths.map((path) =>
+          path.map(([lat, lng]) => this.getProjection().fromLatLngToDivPixel({ lat, lng })),
         );
+        const points = projected.flat();
         if (points.some((p) => !p || !Number.isFinite(p.x) || !Number.isFinite(p.y))) return;
         const x = Math.min(...points.map((p) => p.x)) - 20,
           y = Math.min(...points.map((p) => p.y)) - 20;
@@ -858,10 +876,16 @@
           width: width + 'px',
           height: height + 'px',
         });
-        const d = arrivalRibbon(
-          points.map((p) => ({ x: p.x - x, y: p.y - y })),
-          4,
-        );
+        // Same-winding subpaths form one nonzero-fill union. Derive the border
+        // from that union's alpha, so intersecting routes have no internal seam.
+        const d = projected
+          .map((path) =>
+            arrivalRibbon(
+              path.map((p) => ({ x: p.x - x, y: p.y - y })),
+              4,
+            ),
+          )
+          .join('');
         this.glass.style.clipPath = `path("${d}")`;
         this.outline.setAttribute('d', d);
       }
@@ -986,11 +1010,12 @@
         owner.arrivalMarkers.push(marker);
       };
       mark(data.parking, 'Free parking', 'parking', '');
+      const glassRoutes =
+        OverlayView && window.CSS?.supports?.('clip-path', 'path("M0 0L1 0L1 1Z")');
+      if (glassRoutes) owner.arrivalLines.push(arrivalGlass(owner, data.paths, OverlayView));
       data.paths.forEach((path, index) => {
         path.forEach((p) => bounds.extend(ll(p)));
-        if (OverlayView && window.CSS?.supports?.('clip-path', 'path("M0 0L1 0L1 1Z")')) {
-          owner.arrivalLines.push(arrivalGlass(owner, path, OverlayView));
-        } else
+        if (!glassRoutes)
           for (const [token, weight, zIndex] of [
             ['--base-color-neutral--neutral-darker', 8, 1],
             ['--base-color-brand--orange-1', 4, 2],

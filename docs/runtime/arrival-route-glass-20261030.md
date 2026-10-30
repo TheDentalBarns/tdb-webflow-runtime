@@ -1,5 +1,7 @@
 # Glass arrival routes
 
+Latest refinement: both projected ribbons now share one overlay and one nonzero-fill clipping path. The single dark glass layer does not darken twice at intersections. A one-pixel SVG alpha erosion/composite outlines only the union's perimeter, eliminating internal crossing borders. The radius is 1 CSS px. This supersedes the initial separate 2px stroked ribbons described below. Projection redraw and lifecycle tests now assert one combined overlay containing both route subpaths.
+
 The owner's existing route coordinates are projected through Google's OverlayView into two narrow ribbons. Each ribbon uses a CSS-clipped dark translucent layer with the shared 20px backdrop blur. A dynamic SVG path outlines that same geometry with a solid 2px cream stroke. It has no filled cream underlay, so the actual satellite image remains visible through the blurred centre.
 
 The overall route width is 10px (8px ribbon plus 2px centred outline). Square caps and mitered turns preserve the architectural route. Duplicate points are skipped and extreme miter lengths are bounded. Draw work is bounded by the existing maximum of 20 coordinates per route; no timer, observer, canvas, extra map or image request is introduced. Dynamic SVG geometry is required because these outlines follow projected map coordinates, rather than reusable static icon artwork.

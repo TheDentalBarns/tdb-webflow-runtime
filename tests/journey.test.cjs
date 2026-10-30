@@ -374,10 +374,12 @@ test('glass route overlays redraw from map projection and clean up on consent wi
   return lib;
  };
  await tick();f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();
- assert.equal(overlays.length,2);assert.equal(pane.querySelectorAll('.tdb-journey-route-glass').length,2);
+ assert.equal(overlays.length,1);assert.equal(pane.querySelectorAll('.tdb-journey-route-glass').length,1);
+ assert.equal(pane.querySelector('feMorphology').getAttribute('radius'),'1');
  assert.equal(f.lines.length,0);assert.equal(f.calls.length,0);
  const first=overlays[0],before=first.outline.getAttribute('d');
  assert.match(before,/^M/);assert.match(before,/Z$/);assert(!/NaN|Infinity/.test(before));
+ assert.equal((before.match(/M/g)||[]).length,2,'Both routes share one union fill and outline');
  assert.equal(first.glass.style.clipPath,`path("${before}")`);
  scale*=2;first.draw();assert.notEqual(first.outline.getAttribute('d'),before);
  f.permission(false);assert.equal(pane.children.length,0);assert(overlays.every(o=>o.map===null));f.close();
