@@ -297,7 +297,7 @@ test('both mobile arrival actions centre the reserved map and retain one route r
  f.w.TDBMotion={reduced:{matches:true}};
  const button=f.root.querySelector('[data-tdb-journey-arrive]');
  button.click();await tick();await tick();assert.deepEqual(scrolls,[3328]);
- assert.equal(f.markers[2].content.textContent,'Under 1 min');assert.match(f.markers[2].title,/Walk/);
+ assert.equal(f.markers[2].content.textContent,'');assert.match(f.markers[2].title,/Walk/);
  button.click();await tick();await tick();assert.deepEqual(scrolls,[3328,3328]);assert.equal(f.calls.length,1);f.close();
 });
 
@@ -331,11 +331,30 @@ test('UK clock displays GMT/BST without an added hour and stops its minute wake-
  f.close();assert.equal(clock.timers.size,0);
 });
 
-test('arrival paths have contrasting outlines and owner-confirmed walking time without a walking API request',async()=>{
+test('arrival paths have contrasting outlines and icon-only walking circles without a walking API request',async()=>{
  const f=fixture({options:true});await tick();f.root.style.setProperty('--base-color-neutral--neutral-darker','#222');f.root.style.setProperty('--base-color-brand--orange-1','#f9f2e6');
  f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();
  assert.equal(f.lines.length,4);assert.deepEqual(f.lines.map(l=>[l.strokeColor,l.strokeWeight,l.zIndex]),[['#222',8,1],['#f9f2e6',4,2],['#222',8,1],['#f9f2e6',4,2]]);
- assert.match(f.markers[2].title,/Under 1 min/);assert.equal(f.markers[2].content.textContent,'Under 1 min');assert.equal(f.calls.length,0);f.close();assert(f.lines.every(l=>l.map===null));
+ assert.match(f.markers[2].title,/Walk/);assert.equal(f.markers[2].content.textContent,'');assert.equal(f.calls.length,0);f.close();assert(f.lines.every(l=>l.map===null));
+});
+
+test('authored walking points and amenities retain exact coordinates and clean up on consent withdrawal',async()=>{
+ const f=fixture({options:true});
+ const points={'walk-1':[52.62996317817975,-1.8016156826400305],'walk-2':[52.6300611,-1.8016387],coffee:[52.6298631,-1.8021164],flowers:[52.6301278,-1.8019245],wellness:[52.6300663,-1.8011802]};
+ for(const [name,p] of Object.entries(points))f.root.setAttribute('data-tdb-journey-'+name,p.join(','));
+ await tick();f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();
+ const pins=f.markers.filter(m=>m.content?.dataset?.kind && m.content.dataset.kind!=='parking');
+ assert.equal(pins.length,5);
+ assert.deepEqual(pins.map(m=>[m.position.lat,m.position.lng]),Object.values(points));
+ assert.deepEqual(pins.map(m=>m.content.dataset.kind),['approach','approach','coffee','flowers','wellness']);
+ assert(pins.every(m=>m.content.textContent==='' && m.anchorLeft==='-50%' && m.anchorTop==='-50%'));
+ assert.equal(f.calls.length,0);f.permission(false);assert(pins.every(m=>m.map===null));f.close();
+});
+
+test('invalid optional amenity coordinates do not suppress the valid arrival routes',async()=>{
+ const f=fixture({options:true});f.root.setAttribute('data-tdb-journey-coffee','NaN,-1.8');f.root.setAttribute('data-tdb-journey-flowers','0,0');
+ await tick();f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();
+ assert.equal(f.markers.length,4);assert.equal(f.lines.length,4);f.close();
 });
 
 test('appointment mode preserves separate entered times and checks traffic at the estimated departure',async()=>{

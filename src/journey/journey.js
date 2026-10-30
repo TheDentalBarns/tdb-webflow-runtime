@@ -827,6 +827,11 @@
       const data = {
         parking: parse(owner.root.dataset.tdbJourneyParking)[0],
         paths: [1, 2].map((n) => parse(owner.root.getAttribute('data-tdb-journey-path-' + n))),
+        walks: [1, 2].map((n) => parse(owner.root.getAttribute('data-tdb-journey-walk-' + n))[0]),
+        amenities: ['coffee', 'flowers', 'wellness'].map((kind) => ({
+          kind,
+          position: parse(owner.root.getAttribute('data-tdb-journey-' + kind))[0],
+        })),
       };
       const point = (p) =>
         Array.isArray(p) &&
@@ -865,6 +870,8 @@
             position: ll(position),
             title: label,
             content,
+            anchorLeft: '-50%',
+            anchorTop: kind === 'parking' ? '-100%' : '-50%',
           }),
         );
       };
@@ -890,14 +897,20 @@
           );
         const end = path.at(-1),
           previous = path.at(-2);
-        const walkLabel = owner.root.dataset.tdbJourneyWalkLabel || 'Short walk';
         mark(
-          [(end[0] + previous[0]) / 2, (end[1] + previous[1]) / 2],
-          (index ? 'Walk through the courtyard' : 'Walk around the north side') + ': ' + walkLabel,
+          point(data.walks[index])
+            ? data.walks[index]
+            : [(end[0] + previous[0]) / 2, (end[1] + previous[1]) / 2],
+          index ? 'Walk around the north side' : 'Walk through the courtyard',
           'approach',
-          walkLabel,
+          '',
         );
       });
+      for (const { kind, position } of data.amenities) {
+        if (!point(position)) continue;
+        bounds.extend(ll(position));
+        mark(position, kind[0].toUpperCase() + kind.slice(1), kind, '');
+      }
       owner.arrivalView = true;
       owner.arrive?.setAttribute('aria-pressed', 'true');
       const label = owner.arrive?.querySelector('[data-tdb-journey-arrive-label]');
