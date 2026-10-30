@@ -862,17 +862,27 @@
       bounds.extend(ll(data.parking));
       let closeExpandedPin;
       const mark = (position, label, kind, display = label) => {
-        const content = document.createElement('button');
+        const content = document.createElement('span');
         content.className = 'tdb-journey-arrival-pin';
         content.dataset.kind = kind;
         content.textContent = display;
-        content.type = 'button';
         content.setAttribute('aria-label', label);
         content.setAttribute('aria-expanded', 'false');
+        const marker = new owner.mapTypes.AdvancedMarkerElement({
+          map: owner.map,
+          position: ll(position),
+          title: label,
+          content,
+          gmpClickable: true,
+          anchorLeft: '-50%',
+          anchorTop: '-50%',
+        });
+        marker.setAttribute?.('aria-expanded', 'false');
         const setExpanded = (expanded) => {
           const from = content.getBoundingClientRect().width;
           content.getAnimations?.().forEach((animation) => animation.cancel());
           content.setAttribute('aria-expanded', String(expanded));
+          marker.setAttribute?.('aria-expanded', String(expanded));
           content.textContent = expanded ? label : '';
           const to = content.getBoundingClientRect().width;
           const motion = window.TDBMotion;
@@ -882,8 +892,7 @@
               easing: motion.easing('travel', 'ease'),
             });
         };
-        content.addEventListener('click', (event) => {
-          event.stopPropagation();
+        marker.addListener('click', () => {
           const expand = content.getAttribute('aria-expanded') !== 'true';
           closeExpandedPin?.();
           closeExpandedPin = null;
@@ -892,22 +901,13 @@
             closeExpandedPin = () => setExpanded(false);
           }
         });
-        content.addEventListener('keydown', (event) => {
+        marker.addEventListener?.('keydown', (event) => {
           if (event.key !== 'Escape') return;
           event.stopPropagation();
           closeExpandedPin?.();
           closeExpandedPin = null;
         });
-        owner.arrivalMarkers.push(
-          new owner.mapTypes.AdvancedMarkerElement({
-            map: owner.map,
-            position: ll(position),
-            title: label,
-            content,
-            anchorLeft: '-50%',
-            anchorTop: '-50%',
-          }),
-        );
+        owner.arrivalMarkers.push(marker);
       };
       mark(data.parking, 'Free parking', 'parking', '');
       data.paths.forEach((path, index) => {

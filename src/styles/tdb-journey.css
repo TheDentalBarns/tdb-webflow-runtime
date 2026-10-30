@@ -21,6 +21,7 @@
 .tdb-journey-arrival-pin[aria-expanded]::after { order: -1; flex-shrink: 0; }
 .tdb-journey-arrival-pin[aria-expanded]::before { flex-shrink: 0; }
 .tdb-journey-arrival-pin:focus-visible { outline: 2px solid var(--base-color-brand--orange-3); outline-offset: 3px; }
+gmp-advanced-marker:focus-visible .tdb-journey-arrival-pin { outline: 2px solid var(--base-color-brand--orange-3); outline-offset: 3px; }
 .tdb-journey-arrival-pin:is([data-kind="coffee"],[data-kind="flowers"],[data-kind="wellness"])::after { content: ''; width: 1.2rem; height: 1.2rem; background: currentColor; mask: var(--tdb-arrival-icon) center/contain no-repeat; }
 .tdb-journey-arrival-pin[data-kind="coffee"] { --tdb-arrival-icon: url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ae45f25138b78beb8b78f1e_tdb-map-coffee.svg'); }
 .tdb-journey-arrival-pin[data-kind="flowers"] { --tdb-arrival-icon: url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ae45f2668ebba0bcd427fa3_tdb-map-flowers.svg'); }

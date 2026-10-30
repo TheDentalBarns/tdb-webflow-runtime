@@ -17,7 +17,7 @@ function fixture({ allowed = true, routeFlight, placeFlight, rich = false, optio
   w.openCookieSettingsPanel = () => { prompt++; };
   w.google = { maps: { event: { clearInstanceListeners() {} }, async importLibrary(kind) {
     if (kind === 'maps') return { InfoWindow: class {constructor(options){this.options=options;infos.push(this)}open(options){this.openOptions=options}close(){this.closed=true}}, Map: class { constructor(node,options) { this.options=options; maps.push(this); node.textContent = 'Google map'; } fitBounds() {this.fitted=true} getMapTypeId(){return this.type||this.options.mapTypeId} getZoom(){return this.zoom??this.options.zoom} setZoom(zoom){this.zoom=zoom} setMapTypeId(type){this.type=type} } };
-    if (kind === 'marker') return { PinElement: class {}, AdvancedMarkerElement: class { constructor(opts) { Object.assign(this, opts);markers.push(this); } addListener(event,fn){assert.equal(event,'click');this.click=fn;return {remove(){}}} } };
+    if (kind === 'marker') return { PinElement: class {}, AdvancedMarkerElement: class extends w.EventTarget { constructor(opts) { super(); Object.assign(this, opts);markers.push(this); } addListener(event,fn){assert.equal(event,'click');this.click=fn;return {remove(){}}} } };
     if (kind === 'places') return { Place: class {constructor({id}){this.id=id}async fetchFields(options){placesCalls.push(options);Object.assign(this,placeFlight?await placeFlight.promise:{displayName:'The Dental Barns',rating:4.8,userRatingCount:64})}} };
     if (kind === 'core') return { LatLngBounds: class { extend() {} } };
     if (kind === 'routes') return { Route: { computeRoutes(request) { calls.push(request); return routeFlight ? routeFlight.promise : Promise.resolve(result()); } } };
@@ -360,15 +360,15 @@ test('invalid optional amenity coordinates do not suppress the valid arrival rou
 test('arrival circles toggle accessible labels, keep one label open and close with Escape',async()=>{
  const f=fixture({options:true});f.root.setAttribute('data-tdb-journey-coffee','52.6298631,-1.8021164');
  await tick();f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();
- const walk=f.markers.find(m=>m.content?.dataset?.kind==='approach').content;
- const coffee=f.markers.find(m=>m.content?.dataset?.kind==='coffee').content;
- assert.equal(coffee.tagName,'BUTTON');assert.equal(coffee.type,'button');assert.equal(coffee.getAttribute('aria-label'),'LB’s Coffee Shop');
- const parking=f.markers.find(m=>m.content?.dataset?.kind==='parking').content;
- assert.equal(parking.textContent,'');parking.click();assert.equal(parking.textContent,'Free parking');
- coffee.click();assert.equal(parking.textContent,'');assert.equal(coffee.getAttribute('aria-expanded'),'true');assert.equal(coffee.textContent,'LB’s Coffee Shop');
- walk.click();assert.equal(coffee.getAttribute('aria-expanded'),'false');assert.equal(coffee.textContent,'');assert.equal(walk.getAttribute('aria-expanded'),'true');
- walk.click();assert.equal(walk.textContent,'');
- coffee.click();coffee.dispatchEvent(new f.w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert.equal(coffee.getAttribute('aria-expanded'),'false');
+ const walkMarker=f.markers.find(m=>m.content?.dataset?.kind==='approach'),walk=walkMarker.content;
+ const coffeeMarker=f.markers.find(m=>m.content?.dataset?.kind==='coffee'),coffee=coffeeMarker.content;
+ assert.equal(coffee.tagName,'SPAN');assert.equal(coffeeMarker.gmpClickable,true);assert.equal(coffee.getAttribute('aria-label'),'LB’s Coffee Shop');
+ const parkingMarker=f.markers.find(m=>m.content?.dataset?.kind==='parking'),parking=parkingMarker.content;
+ assert.equal(parking.textContent,'');parkingMarker.click();assert.equal(parking.textContent,'Free parking');
+ coffeeMarker.click();assert.equal(parking.textContent,'');assert.equal(coffee.getAttribute('aria-expanded'),'true');assert.equal(coffee.textContent,'LB’s Coffee Shop');
+ walkMarker.click();assert.equal(coffee.getAttribute('aria-expanded'),'false');assert.equal(coffee.textContent,'');assert.equal(walk.getAttribute('aria-expanded'),'true');
+ walkMarker.click();assert.equal(walk.textContent,'');
+ coffeeMarker.click();coffeeMarker.dispatchEvent(new f.w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert.equal(coffee.getAttribute('aria-expanded'),'false');
  assert.equal(f.calls.length,0);f.close();
 });
 
