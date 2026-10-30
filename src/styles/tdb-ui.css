@@ -314,6 +314,11 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
   opacity: 1;
 }
 
+
+/* Existing map canvas opens shared preferences before functional consent. */
+[data-tdb-journey-map][role='button']{cursor:pointer}
+[data-tdb-journey-map][role='button']:focus-visible{outline:2px solid currentColor;outline-offset:-4px}
+
 /* Shared disclosure arrow states, loaded with external UI. Motion stays in control-motion CSS. */
 [data-tdb-chevron]{transform:rotate(0deg)}[aria-expanded="true"]>[data-tdb-chevron]{transform:rotate(var(--tdb-chevron-open-angle,180deg))}
 

@@ -223,3 +223,13 @@ For a selective rollback, restore the removed quote/Pinterest elements from thei
 
 Separate open follow-ups remain the API-imported image responsive/cache issue, Home's repeated generated grid ID, and the previously recorded brand pop-out placement on short viewports. No unrelated change was made to address them here.
 
+## Map consent entry and mobile review correction — 30 October 2026
+
+The empty map now reuses the existing CookieScript-compatible consent panel on click, Enter or Space. The handler belongs to `src/consent/consent.js` in the early shared foundation, because a visitor with no decision may not have downloaded the journey controller. It adds no element or request. The existing canvas temporarily receives button semantics; functional consent restores its original region semantics, and withdrawal restores the consent entry. External Google Maps links remain ordinary links. Google SDK, route and Places permission gates are unchanged. Focus/pointer feedback lives in the existing external consent-state stylesheet; no page head logic or Designer embed was added.
+
+The preceding review clipping correction made the mobile card too small. The native shared Review Summary now uses the available mobile width, capped at 25rem, rather than shrinking to its content. Its platform icons and stars are larger again; bounded fluid sizing allows 320px screens to retain the fixed, nonshrinking numeric slots. This changes the same native owner used on Home and Location, with no new elements, CSS class or JS layout patch. Desktop remains unchanged.
+
+Local acceptance: deterministic build checks pass; the full suite reports 850 passed, 3 skipped and zero failures. Six new consent-entry checks cover undecided/essential visitors, keyboard input, acceptance, withdrawal, no extra DOM/Google request, and delayed banner readiness. Existing route/consent/Vimeo tests also pass. Foundation increases by 923 raw / 313 gzip bytes, with a small addition to the already requested UI stylesheet; journey and other deferred bundles are unchanged. The pre-existing `dist/tdb-journey.css` working file was preserved byte-for-byte.
+
+Rollback: revert this runtime commit and the saved native four-selector mobile changes, then restore the previous immutable release pin and publish staging only. Consent behavior uses no new persistent state. The previous native/mobile CSS exports and pre-release site code remain in the local `location-final-audit` evidence directory.
+

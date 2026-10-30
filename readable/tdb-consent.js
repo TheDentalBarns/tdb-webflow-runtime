@@ -777,7 +777,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.7.0';
+  const VERSION = '0.7.1';
   const base = new URL('./', document.currentScript.src);
   const GA_MEASUREMENT_ID = 'G-GCWCSWR50M';
   const META_PIXEL_ID = '1326762815429148';
@@ -799,6 +799,39 @@
   let quotePresent = false,
     quoteFlight = null;
   const pendingQuotes = new Map();
+  // The map's native reserved space is also its consent entry point. This
+  // belongs in foundation: the journey module may not have been released yet.
+  const mapGates = new Map();
+  const mapGateAttributes = ['role', 'tabindex', 'aria-label', 'aria-haspopup'];
+  function syncMapGates() {
+    const blocked = !allows('functionality');
+    for (const [canvas, original] of mapGates) {
+      if (blocked) {
+        canvas.setAttribute('role', 'button');
+        canvas.setAttribute('tabindex', '0');
+        canvas.setAttribute('aria-label', 'Open cookie preferences to enable the interactive map');
+        canvas.setAttribute('aria-haspopup', 'dialog');
+      } else if (canvas.getAttribute('aria-haspopup') === 'dialog') {
+        for (const [name, value] of original)
+          if (value === null) canvas.removeAttribute(name);
+          else canvas.setAttribute(name, value);
+      }
+    }
+  }
+  function mapConsentIntent(event) {
+    if (allows('functionality')) return;
+    const canvas = event.target.closest?.('[data-tdb-journey-map]');
+    if (!mapGates.has(canvas)) return;
+    if (
+      event.type === 'keydown' &&
+      (event.target !== canvas || event.repeat || !['Enter', ' '].includes(event.key))
+    )
+      return;
+    if (event.target.closest?.('a,button,input,select,textarea')) return;
+    event.preventDefault();
+    canvas.focus({ preventScroll: true });
+    showCookieSettings();
+  }
   let runtimeFlight = null,
     runtimeReady = false,
     runtimeAttempts = 0,
@@ -901,6 +934,7 @@
   }
   function settle() {
     if (!gatesReady) return;
+    syncMapGates();
     if (!allows('performance')) cancelPerformanceRetries();
     const choice = currentState();
     const key = JSON.stringify([choice.action, choice.categories]);
@@ -993,6 +1027,16 @@
   }
   function prepareGates() {
     if (gatesReady) return;
+    document.querySelectorAll('[data-tdb-journey-map]').forEach((canvas) => {
+      mapGates.set(
+        canvas,
+        mapGateAttributes.map((name) => [name, canvas.getAttribute(name)]),
+      );
+    });
+    if (mapGates.size) {
+      document.addEventListener('click', mapConsentIntent);
+      document.addEventListener('keydown', mapConsentIntent);
+    }
     videoPresent = !!document.querySelector(videoSelector);
     // No video-specific observers, assets or stylesheet work before permission.
     if (videoPresent) document.addEventListener('click', videoClick, true);

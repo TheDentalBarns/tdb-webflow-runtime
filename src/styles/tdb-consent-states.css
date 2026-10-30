@@ -20,3 +20,7 @@
 }
 
 
+/* Existing map canvas opens shared preferences before functional consent. */
+[data-tdb-journey-map][role='button']{cursor:pointer}
+[data-tdb-journey-map][role='button']:focus-visible{outline:2px solid currentColor;outline-offset:-4px}
+
