@@ -69,7 +69,61 @@ Desktop staging and keyboard Enter/Space/focus checks passed on Location; shared
 
 Rollback requires restoring the saved FAQ native tree and its former IX2-target classes together with the earlier disclosure controller pin if reverting behavior. Do not remove the shared controller merely to reverse a native layout.
 
-## Startup/parity/Lighthouse audit — findings, not implemented fixes
+## Startup and shared footer cleanup — shipped
+
+Runtime e22e39f4f7bb75d76fa0e46a5fade9ba7ef77563 is pinned in all four global references. CDN bytes match the build. Native staging publish: 6b447e37-48e6-4bf6-ba7e-9dce139688de; custom domains were not published.
+
+Location now uses the same native footer definition as Home, 4c8e5b24-0116-2a8d-4190-53cdd4860ef5, renamed **Footer — shared**. Location instance a541b16b-eed4-45d3-da2c-635209053127 replaces the former footer instance. The old definition remains for unmigrated pages. This shares the lazy USP, social artwork, VIP handle/drawer and appointment banner structures, not just their runtime controllers. VIP drawer authored descendants fall from 62 to 11; the announcement has zero authored descendants instead of 36. Home remains at 1,133 initial elements. Location falls from 1,273 to 1,022 across the complete export. This is initial markup reduction, not removal of the deferred content or its eventual cost.
+
+Both pages already use Navbar New (83119b7e-a73e-66e3-0fce-5279000d146c); Home keeps Home fade entrance and Location keeps Transparent. The empty Location Transparent Nav Styles instance is removed. Location's page head and footer custom code are now empty. The two CSS links, obsolete initial parallax controls CSS, old navbar opacity/selection code and 10ms nav reveal patch are removed. Config ownership entries are also removed for Location, while other page consumers retain their files. Native controls and the shared slider/nav modules already own these behaviors. The native Instagram module separately loads its own stylesheet.
+
+Before removing layout compatibility, the three still-matching layout18_content responsive rules were transferred into native Webflow styles: medium column gap 3rem, row flow and auto min-height; small row gap 3rem and one column; tiny column/row gaps 8rem. This preserves the shared Location — Setting and access/Contact layout in Designer without a new runtime correction.
+
+Native feature and Vimeo pseudo artwork now opt into the existing shared mask observer via data-tdb-native-pseudo-icon. The native URLs remain useful in Designer; early shared UI CSS parks the published masks with a transparent fallback. src/runtime/lazy-icon-masks.js assigns the canonical artwork URL within the existing 400px proximity/consent gate. No additional elements, observer family or asset request type were added. The existing Instagram holder attribute is applied to Behind the Barns' CTA icon. Shared Vimeo consumers inherit this behavior. The generic arrow remains an early shared asset because Home and navigation use it; the hero's embedded play SVG makes no separate network request.
+
+### Four perspectives and combined delivery
+
+Startup: native content/space remain, unused Location CSS and old authored drawer content are gone. In-page: current shared components own controls and preserve interaction feedback. Readiness: the existing proximity, consent, availability and first-input paths still prepare content; deferred bytes have not been claimed as eliminated. Maintenance: one native footer and the existing shared artwork owner replace parallel Location structures and page patches. Other unmigrated pages retain their legacy dependencies.
+
+Controlled measurements include HTML, native Webflow CSS, early UI, foundation and starter, plus the two legacy stylesheets where actually linked. Gzip is recompressed for comparison and is not a claim about CDN transfer. Unchanged Webflow/jQuery scripts, fonts and image payloads are excluded from this affected subtotal.
+
+| Scope | Before raw / gzip bytes | After raw / gzip bytes | Delta |
+| --- | --- | --- | --- |
+| Location affected initial subtotal | 488,894 / 95,222 | 418,327 / 81,106 | −70,567 / −14,116 |
+| Home affected initial subtotal | 469,351 / 88,567 | 469,811 / 88,636 | +460 / +69 |
+| Shared deferred runtime | 73,669 / 20,091 | 74,270 / 20,302 | +601 / +211 |
+
+Combined affected initial plus changed deferred delivery: Location −69,966 raw / −13,905 controlled gzip bytes; Home +1,061 / +280. Existing lazy VIP/announcement/USP modules may now be requested on Location at their normal gates; those feature costs remain. Full-page speed, memory and CPU gains have not been benchmarked. The screenshot's document transfer change and the recompressed HTML figures are different measurements.
+
+### Verification
+
+- Full suite: 844 passed, three existing skips, zero failures. Build parity passed before publishing; CDN checks matched all four relevant local artifacts.
+- Native medium/small/tiny layout readback and actual 393px Designer checked. No new Home elements; Home HTML length remains 186,174 bytes.
+- Fresh staging exports show the same footer, VIP lazy flag, announcement lazy flag and navbar controller version on both pages.
+- Static resolution of the published IX2 event targets finds zero matching event targets on either page. The sitewide Webflow bundle still includes 189 event definitions for other pages. One inert data-w-id remains on the shared Vimeo component; it has no matching event. This is not a claim that Webflow's IX2 code is absent from downloads.
+- Separate fresh top-level tabs with saved essential-only consent and no interaction recorded 37 observed resource URLs on Location and 40 on Home. This inventory is not an incognito HAR, timings benchmark or exact identical-duration measurement. Location did not load far-below-fold business photos, brand logos or feature/video masks. The review panel can prepare sooner because its trigger is nearer the fold; both pages use the same 700px panel and 1200px inline readiness policy.
+- Scrolling through the feature section correctly loaded all six pseudo masks. Desktop screenshot confirms the arched feature icons and video play artwork. Shared nav appeared on scroll-return, VIP handle prepared, and VIP drawer opened with the shared deferred form and closed without submission. No warning/error was captured in the checked tab. Native mobile was checked; a new physical Android runtime certification is not claimed.
+- Evidence remains outside the repository in location-faq-evidence: startup-native-backup.json, startup-cost.json, after-parity-ix2.json, startup-location-fresh-observed.json, startup-home-observed.json, startup-icons-ready.png and test/build logs. The earlier reused-tab resource capture contained accumulated resources and is not used as a startup baseline.
+
+### User HAR review
+
+The user-provided 30 October HAR covers approximately 107 seconds, not startup alone. It contains 321 recorded entries and 7,403,935 transfer bytes over the whole session. The first wave is 16 entries / 272,751 transfer bytes, followed by no new requests until about 33.8 seconds. Native CSS, shared UI and some assets were cached, so 273kB is not a cold-cache budget. The native document load event is about 307ms in this recording, not an LCP or general speed score. Removed compatibility stylesheets and below-fold play/pause/feature masks are absent from startup.
+
+No TDB asset returned an HTTP error. Google Maps tiles include one 503, 33 successful responses and 69 status-zero entries without a recorded HTTP response, concentrated around the camera transition. Cancellation during camera changes is plausible, but this HAR does not establish why every entry ended or prove that the failed tile retried. No exact successful retry of that failed URL is recorded. Review unnecessary camera/tile churn without discarding the user-approved visual transition. Google tile transfer totals about 2.51MB; Maps code is a further approximately 0.40MB, all later in the session.
+
+Five Practice Gallery WebPs transfer 1,466,993 bytes (about 181–359kB each); they use original CMS images and 23.5-hour cache headers. Responsive sizing/compression is the next concrete image opportunity. Some later Instagram photos are JPEGs. Header caching is Webflow-owned; no page-JS cache workaround was introduced.
+
+At approximately 75.3 seconds, Google tagging (~204kB), Meta code/config (~155kB), Intellimize (~90kB) and Brevo load. These are not initial-load requests. The timing is consistent with consent being released, but the HAR contains no banner-click evidence, so timing alone does not certify the consent state. Review whether Intellimize/experimentation is actively used before retaining its cost; do not remove marketing or measurement code without checking owners and consumers. Maps also requests Google UI fonts later; this is not a replacement of the site's Sweet Sans typography.
+
+Repeated icon URL entries use memory/disk cache or 304 revalidation, not repeated full payloads. In particular the arrow transfers zero bytes on both recorded uses; subsequent barn/clock/spinner uses are cache hits. No duplicate play asset download appears in the recording. The HAR is retained locally, not committed or uploaded; the report excludes credentials, request bodies and query strings.
+
+### Rollback
+
+Restore Location's saved native footer instance/old definition and its page code from startup-native-backup.json together if reverting. Restore the four runtime pins to db135075b0a7e3af87a8c0bddf0f7e6c3609e54e, Location's ownership config entries and pseudo-icon attribute/style changes as a coordinated release; do not restore parked CSS without its loader or remove native artwork hooks independently. The native responsive grid declarations can stay as a correction. The former footer definition remains available to other pages. Preserve unrelated edits and user-approved content. Production publication remains separate.
+
+## Earlier startup/parity/Lighthouse audit — historical findings
+
+The startup/footer findings below describe the pre-cleanup snapshot and are superseded by the shipped section above. The separate Lighthouse, map-consent and brand findings remain outstanding unless explicitly stated otherwise.
 
 The pages are not yet identical in their deferred footer/chrome wiring:
 
