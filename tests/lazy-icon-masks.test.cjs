@@ -15,6 +15,22 @@ test('native masks have no URL before proximity; only approaching icons get one'
     f.ios[0].fn(f.nodes.slice(1).map(target=>({target,isIntersecting:true})));assert.match(f.nodes[1].style.maskImage,/tdb-exceptional-diamond.svg/);assert.equal(f.nodes[2].style.maskImage,f.nodes[3].style.maskImage);assert.doesNotMatch(f.nodes[2].style.maskImage,/brand/);assert.match(f.nodes[4].style.maskImage,/tdb-review-star.svg/);
   }finally{f.close()}
 });
+
+test('native pseudo artwork waits for consent and proximity without changing geometry or adding DOM',()=>{
+ const f=fixture({allowed:false});try{
+  const kinds=['tranquil','parking','discreet','play','pause','spinner'];
+  const nodes=kinds.map(kind=>{const n=f.w.document.createElement('div');n.dataset.tdbNativePseudoIcon=kind;n.className='native-art';f.w.document.body.append(n);return n});
+  f.w.TDBLazyIconMasks.refresh();assert(nodes.every(n=>!f.ios[0].nodes.has(n)));
+  f.permit(true);assert(nodes.every(n=>f.ios[0].nodes.has(n)));
+  assert(nodes.every(n=>!n.style.getPropertyValue('--tdb-pseudo-artwork')));
+  f.ios[0].fn([{target:nodes[0],isIntersecting:true}]);assert.match(nodes[0].style.getPropertyValue('--tdb-pseudo-artwork'),/tdb-location-tranquil\.svg/);
+  assert(nodes.slice(1).every(n=>!n.style.getPropertyValue('--tdb-pseudo-artwork')));
+  f.permit(false);f.ios[0].fn(nodes.slice(1).map(target=>({target,isIntersecting:true})));
+  assert(nodes.slice(1).every(n=>!n.style.getPropertyValue('--tdb-pseudo-artwork')));
+  f.permit(true);for(let i=0;i<nodes.length;i++){assert.match(nodes[i].style.getPropertyValue('--tdb-pseudo-artwork'),new RegExp('tdb-(location|control)-'+kinds[i]+'\\.svg'));assert.equal(nodes[i].childElementCount,0);assert.equal(nodes[i].className,'native-art');assert.equal(nodes[i].style.maskImage,'')}
+  const unknown=f.w.document.createElement('div');unknown.dataset.tdbNativePseudoIcon='constructor';f.w.document.body.append(unknown);f.w.TDBLazyIconMasks.refresh();f.ios[0].fn([{target:unknown,isIntersecting:true}]);assert.equal(unknown.style.getPropertyValue('--tdb-pseudo-artwork'),'');
+ }finally{f.close()}
+});
 test('permission and teardown gate queued observer work',()=>{
  const f=fixture({allowed:false});try{assert.equal(f.ios[0].nodes.size,0);f.permit(true);assert.equal(f.ios[0].nodes.size,5);f.permit(false);f.ios[0].fn([{target:f.nodes[0],isIntersecting:true}]);assert(!f.nodes[0].style.maskImage);f.permit(true);assert.match(f.nodes[0].style.maskImage,/instagram/);f.w.TDBLazyIconMasks.destroy();f.ios[0].fn([{target:f.nodes[1],isIntersecting:true}]);assert(!f.nodes[1].style.maskImage)}finally{f.close()}
 });

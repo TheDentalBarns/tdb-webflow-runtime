@@ -2907,12 +2907,26 @@ function prepareLazyIconMasks() {
     parking: '6ac8f79471bd2b763b1aad60_tdb-location-parking.svg',
     barn: '6838407c2087a6de2a8b1068_the-dental-barns-blackbrook-lichfield-barn-door-icon-dark.svg.svg',
   };
+  const pseudoAssets = {
+    tranquil: '6ac8f79434fb7c6214d2e0af_tdb-location-tranquil.svg',
+    parking: journeyAssets.parking,
+    discreet: '6ac8f795d857a42b8d46b51f_tdb-location-discreet.svg',
+    play: '6ae0c5c81332cf18d9261ca0_232b700aafbc0337a2adaf88a7f72074_tdb-control-play.svg',
+    pause: '6ae0c5c877076aee400c6838_7b1d9ef44a4b54195aca3dfd22e245f5_tdb-control-pause.svg',
+    spinner: '6ad9b3739924db6726de4586_tdb-control-spinner.svg',
+  };
   const seen = new WeakSet(),
     pending = new Set();
   let disposed = false;
   const allowed = () => !disposed && Boolean(window.TDBConsent?.allows());
   function reveal(node) {
     if (!node.isConnected) return;
+    if (node.hasAttribute('data-tdb-native-pseudo-icon')) {
+      const kind = node.dataset.tdbNativePseudoIcon;
+      const file = Object.hasOwn(pseudoAssets, kind) && pseudoAssets[kind];
+      if (file) node.style.setProperty('--tdb-pseudo-artwork', 'url("' + base + file + '")');
+      return;
+    }
     if (node.hasAttribute('data-tdb-journey-icon')) {
       const file = journeyAssets[node.dataset.tdbJourneyIcon];
       if (file) node.style.setProperty('--tdb-journey-icon', 'url("' + base + file + '")');
@@ -3000,7 +3014,7 @@ function prepareLazyIconMasks() {
     if (!allowed()) return;
     document
       .querySelectorAll(
-        '[data-tdb-lazy-barns],[data-tdb-compact-speaker],[data-tdb-journey-icon],.tdb-contact-item,.footer1_social-link[class*="tdb-footer-"],[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
+        '[data-tdb-lazy-barns],[data-tdb-compact-speaker],[data-tdb-journey-icon],[data-tdb-native-pseudo-icon],.tdb-contact-item,.footer1_social-link[class*="tdb-footer-"],[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
       )
       .forEach((node) => {
         if (seen.has(node)) return;

@@ -12,5 +12,9 @@
 /* Designer shows native mask assets; the published runtime releases them at proximity. */
 [data-tdb-native-holder-icon]{-webkit-mask-image:linear-gradient(transparent,transparent);mask-image:linear-gradient(transparent,transparent)}
 
+/* Native pseudo artwork stays visible in Designer. On published pages the same
+ * proximity loader releases its URL without adding an icon element. */
+:is(.tdb-location-icon,.vimeo-player__btn,.vimeo-player__loading)[data-tdb-native-pseudo-icon]::before{-webkit-mask-image:var(--tdb-pseudo-artwork,linear-gradient(transparent,transparent));mask-image:var(--tdb-pseudo-artwork,linear-gradient(transparent,transparent))}
+
 /* Park the native progress bar until the existing lazy carousel borrows it. */
 [data-tdb-review-placeholder]>.tdb-review-embed-progress{visibility:hidden}

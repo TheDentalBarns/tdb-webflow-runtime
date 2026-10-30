@@ -399,13 +399,6 @@
           "path": "/vip",
           "draft": false,
           "collectionId": null
-        },
-        {
-          "id": "677cfb8a0f25478449823c5f",
-          "title": "Location",
-          "path": "/location",
-          "draft": false,
-          "collectionId": null
         }
       ],
       "file": "dist/tdb-layouts-owned-bf28eec4e7.css"
