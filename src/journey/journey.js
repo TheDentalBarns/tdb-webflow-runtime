@@ -935,7 +935,7 @@
           point(data.walks[index])
             ? data.walks[index]
             : [(end[0] + previous[0]) / 2, (end[1] + previous[1]) / 2],
-          index ? 'Walk around the north side' : 'Walk through the courtyard',
+          index ? 'Walk along the brook side · <1 min' : 'Walk through the courtyard · <1 min',
           'approach',
           '',
         );

@@ -1,5 +1,7 @@
 # Arrival map markers
 
+Latest owner adjustment: parking is centred exactly on the first route coordinate, 52.6296211,-1.8019128. Expanded walking labels read “Walk through the courtyard · <1 min” and “Walk along the brook side · <1 min”; collapsed markers remain icon-only circles.
+
 The shared Contact us component retains the owner's two route lines. Walking markers now use `data-tdb-journey-walk-1` and `data-tdb-journey-walk-2` (latitude,longitude), with the historical final-segment midpoint as a fallback for instances without these optional values. They are centred circles without duration text. The obsolete walk-label attribute is removed.
 
 The optional `data-tdb-journey-coffee`, `data-tdb-journey-flowers` and `data-tdb-journey-wellness` attributes place three circular icons. All optional points pass the existing local coordinate validation. Amenity points extend the arrival camera bounds; markers use the existing overlay lifecycle and disappear on toggle, new route or consent withdrawal. No extra API request or Designer element is added. Accessible marker titles retain their meaning.
