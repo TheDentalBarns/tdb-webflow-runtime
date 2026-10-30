@@ -874,7 +874,7 @@
           title: label,
           content,
           gmpClickable: true,
-          anchorLeft: '-50%',
+          anchorLeft: '-1.125rem',
           anchorTop: '-50%',
         });
         marker.setAttribute?.('aria-expanded', 'false');
