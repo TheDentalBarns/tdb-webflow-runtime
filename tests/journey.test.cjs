@@ -358,6 +358,31 @@ test('invalid optional amenity coordinates do not suppress the valid arrival rou
  assert.equal(f.markers.length,4);assert.equal(f.lines.length,4);f.close();
 });
 
+test('glass route overlays redraw from map projection and clean up on consent withdrawal',async()=>{
+ const f=fixture({options:true}), overlays=[];
+ f.w.CSS={supports:()=>true};
+ const pane=f.w.document.createElement('div');f.w.document.body.append(pane);
+ const original=f.w.google.maps.importLibrary;let scale=10000;
+ f.w.google.maps.importLibrary=async kind=>{
+  const lib=await original(kind);
+  if(kind==='maps')lib.OverlayView=class{
+   constructor(){overlays.push(this)}
+   getPanes(){return {overlayLayer:pane}}
+   getProjection(){return {fromLatLngToDivPixel:({lat,lng})=>({x:lng*scale,y:-lat*scale})}}
+   setMap(map){this.map=map;if(map){this.onAdd();this.draw()}else this.onRemove()}
+  };
+  return lib;
+ };
+ await tick();f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();
+ assert.equal(overlays.length,2);assert.equal(pane.querySelectorAll('.tdb-journey-route-glass').length,2);
+ assert.equal(f.lines.length,0);assert.equal(f.calls.length,0);
+ const first=overlays[0],before=first.outline.getAttribute('d');
+ assert.match(before,/^M/);assert.match(before,/Z$/);assert(!/NaN|Infinity/.test(before));
+ assert.equal(first.glass.style.clipPath,`path("${before}")`);
+ scale*=2;first.draw();assert.notEqual(first.outline.getAttribute('d'),before);
+ f.permission(false);assert.equal(pane.children.length,0);assert(overlays.every(o=>o.map===null));f.close();
+});
+
 test('arrival circles toggle accessible labels, keep one label open and close with Escape',async()=>{
  const f=fixture({options:true});f.root.setAttribute('data-tdb-journey-coffee','52.6298631,-1.8021164');
  await tick();f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();

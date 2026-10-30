@@ -799,6 +799,80 @@
       frame = requestAnimationFrame(step);
     });
   }
+  // Build a narrow, square-ended ribbon around the owner's projected route.
+  // Mitered corners retain the architectural turns; clamp near-reversals.
+  function arrivalRibbon(points, radius) {
+    const p = points.filter(
+      (v, i) => !i || Math.hypot(v.x - points[i - 1].x, v.y - points[i - 1].y) > 0.01,
+    );
+    if (p.length < 2) return '';
+    const directions = p.slice(1).map((v, i) => {
+      const length = Math.hypot(v.x - p[i].x, v.y - p[i].y);
+      return { x: (v.x - p[i].x) / length, y: (v.y - p[i].y) / length };
+    });
+    const sides = [1, -1].map((side) =>
+      p.map((v, i) => {
+        const a = directions[Math.max(0, i - 1)],
+          b = directions[Math.min(i, directions.length - 1)];
+        const divisor = Math.max(0.25, 1 + a.x * b.x + a.y * b.y);
+        const cap = i === 0 ? -radius : i === p.length - 1 ? radius : 0;
+        return {
+          x: v.x - (side * radius * (a.y + b.y)) / divisor + b.x * cap,
+          y: v.y + (side * radius * (a.x + b.x)) / divisor + b.y * cap,
+        };
+      }),
+    );
+    return (
+      sides[0]
+        .concat(sides[1].reverse())
+        .map((v, i) => `${i ? 'L' : 'M'}${v.x.toFixed(2)} ${v.y.toFixed(2)}`)
+        .join('') + 'Z'
+    );
+  }
+  function arrivalGlass(owner, path, OverlayView) {
+    class Ribbon extends OverlayView {
+      onAdd() {
+        this.element = document.createElement('div');
+        this.element.className = 'tdb-journey-route-ribbon';
+        this.element.setAttribute('aria-hidden', 'true');
+        this.glass = document.createElement('div');
+        this.glass.className = 'tdb-journey-route-glass';
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        this.outline = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        svg.append(this.outline);
+        this.element.append(this.glass, svg);
+        this.getPanes().overlayLayer.append(this.element);
+      }
+      draw() {
+        const points = path.map(([lat, lng]) =>
+          this.getProjection().fromLatLngToDivPixel({ lat, lng }),
+        );
+        if (points.some((p) => !p || !Number.isFinite(p.x) || !Number.isFinite(p.y))) return;
+        const x = Math.min(...points.map((p) => p.x)) - 20,
+          y = Math.min(...points.map((p) => p.y)) - 20;
+        const width = Math.max(...points.map((p) => p.x)) - x + 20,
+          height = Math.max(...points.map((p) => p.y)) - y + 20;
+        Object.assign(this.element.style, {
+          left: x + 'px',
+          top: y + 'px',
+          width: width + 'px',
+          height: height + 'px',
+        });
+        const d = arrivalRibbon(
+          points.map((p) => ({ x: p.x - x, y: p.y - y })),
+          4,
+        );
+        this.glass.style.clipPath = `path("${d}")`;
+        this.outline.setAttribute('d', d);
+      }
+      onRemove() {
+        this.element?.remove();
+      }
+    }
+    const ribbon = new Ribbon();
+    ribbon.setMap(owner.map);
+    return ribbon;
+  }
   async function arrival(owner) {
     if (!permitted() || !owner.map || owner.running) return;
     owner.pageScroll?.cancel();
@@ -851,7 +925,7 @@
         )
       )
         return;
-      const [{ Polyline }, { LatLngBounds }] = await Promise.all([
+      const [{ Polyline, OverlayView }, { LatLngBounds }] = await Promise.all([
         window.google.maps.importLibrary('maps'),
         window.google.maps.importLibrary('core'),
       ]);
@@ -914,23 +988,24 @@
       mark(data.parking, 'Free parking', 'parking', '');
       data.paths.forEach((path, index) => {
         path.forEach((p) => bounds.extend(ll(p)));
-        // Two provider-owned strokes make one clear cream path with a charcoal
-        // outline on both light roofs and dark trees. No page elements are added.
-        for (const [token, weight, zIndex] of [
-          ['--base-color-neutral--neutral-darker', 8, 1],
-          ['--base-color-brand--orange-1', 4, 2],
-        ])
-          owner.arrivalLines.push(
-            new Polyline({
-              map: owner.map,
-              path: path.map(ll),
-              clickable: false,
-              strokeColor: colour(owner.root, token),
-              strokeOpacity: 1,
-              strokeWeight: weight,
-              zIndex,
-            }),
-          );
+        if (OverlayView && window.CSS?.supports?.('clip-path', 'path("M0 0L1 0L1 1Z")')) {
+          owner.arrivalLines.push(arrivalGlass(owner, path, OverlayView));
+        } else
+          for (const [token, weight, zIndex] of [
+            ['--base-color-neutral--neutral-darker', 8, 1],
+            ['--base-color-brand--orange-1', 4, 2],
+          ])
+            owner.arrivalLines.push(
+              new Polyline({
+                map: owner.map,
+                path: path.map(ll),
+                clickable: false,
+                strokeColor: colour(owner.root, token),
+                strokeOpacity: 1,
+                strokeWeight: weight,
+                zIndex,
+              }),
+            );
         const end = path.at(-1),
           previous = path.at(-2);
         mark(
