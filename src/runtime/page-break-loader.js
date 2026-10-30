@@ -41,6 +41,9 @@ function preparePageBreakLoader() {
     document
       .querySelectorAll('.tdb-service-parallax .swiper')
       .forEach((wrapper) => add(wrapper, '.showcase_image'));
+    document
+      .querySelectorAll('[data-tdb-treatment][data-tdb-banner-parallax="native"] > .swiper')
+      .forEach((wrapper) => add(wrapper, '.tdb-treatment-image'));
     // Content players opt in through their section. Only the native oversized
     // poster moves; the iframe and interactive controls retain their positions.
     document
@@ -78,7 +81,6 @@ function preparePageBreakLoader() {
         '.vimeo-bg.is-ambient',
         '.layout355_background-video-wrapper',
       );
-      add(home.querySelector('[data-tdb-treatment] .swiper'), '.tdb-treatment-image');
       const candle = home.querySelector('.exceptional_image-candle');
       add(candle?.parentElement, '.exceptional_image-candle', null, true);
     }

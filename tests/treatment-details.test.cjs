@@ -15,7 +15,7 @@ function fixture() {
   const w = dom.window,
     d = w.document;
   w.Element.prototype.animate = function (frames) {
-    this.dataset.color = frames.at(-1).color;
+    this.dataset.opacity = frames.at(-1).opacity;
     return { cancel() {} };
   };
   d.querySelector('.tdb-treatment-viewport').getBoundingClientRect = () => ({ left: 30 });
@@ -57,7 +57,8 @@ test('text mirrors rendered widths and translation without changing native conte
     assert.equal(track.children[1].getAttribute('aria-hidden'), 'false');
     assert.equal(track.children[0].getAttribute('aria-hidden'), 'true');
     assert.equal(track.children[0].id, '');
-    assert.equal(track.children[1].querySelector('h3').dataset.color, '#ffffff');
+    assert.equal(track.children[1].querySelector('h3').dataset.opacity, '1');
+    assert.equal(track.children[0].querySelector('h3').dataset.opacity, '0.5');
     assert.equal(track.children[1].querySelector('a').getAttribute('href'), '/treatments/0');
   } finally {
     f.dom.window.close();
@@ -169,4 +170,27 @@ test('progress and detail rows share one rendered measurement per slide before s
     assert.equal(d.querySelector('.tdb-treatment-wrapper').style.transform,'translate3d(-250px,0,0)');
     observer.disconnect();
   } finally {f.dom.window.close();}
+});
+
+test('heading emphasis preserves native light and dark colours', () => {
+  for (const colour of ['rgb(0, 0, 0)', 'rgb(255, 255, 255)']) {
+    const f = fixture();
+    try {
+      const headings = f.original.map((row) => row.querySelector('h3'));
+      headings.forEach((heading) => {
+        heading.style.color = colour;
+      });
+      f.api.paint(f.slides);
+      f.slides[1].node.classList.remove('swiper-slide-active');
+      f.slides[2].node.classList.add('swiper-slide-active');
+      f.api.paint(f.slides);
+      assert.equal(headings[0].dataset.opacity, '0.5');
+      assert.equal(headings[1].dataset.opacity, '1');
+      headings.forEach((heading) => assert.equal(heading.style.color, colour));
+      f.api.dispose();
+      headings.forEach((heading) => assert.equal(heading.style.color, colour));
+    } finally {
+      f.dom.window.close();
+    }
+  }
 });

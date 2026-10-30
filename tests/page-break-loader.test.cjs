@@ -151,3 +151,27 @@ test('shared gallery scroll motion mounts on Home and Location without owning un
   api.destroy();assert.equal(e.owners[0].destroyed,true);e.dom.window.close();
  }
 });
+
+test('shared treatments and business carousels get one bounded photo-motion owner on every page', async () => {
+  const gallery =
+    '<div data-tdb-treatment data-tdb-banner-parallax="native"><div class="swiper"><img class="tdb-treatment-image"></div></div>';
+  for (const markup of [gallery, '<main data-tdb-home-photo-parallax>' + gallery + '</main>']) {
+    const e = setup(
+      markup + '<div data-tdb-treatment-stamps><img class="tdb-treatment-image"></div>',
+    );
+    const api = e.start();
+    assert.equal(e.calls.length, 0);
+    e.observers[0].near();
+    await api.refresh();
+    await api.refresh();
+    assert.equal(e.owners.length, 1);
+    assert.equal(e.owners[0].nodes.length, 1);
+    const photo = e.owners[0].nodes[0];
+    assert.equal(photo.wrapper, e.w.document.querySelector('[data-tdb-treatment] > .swiper'));
+    assert.equal(photo.selector, '.tdb-treatment-image');
+    assert.equal(photo.allowEdges, false);
+    api.destroy();
+    assert.equal(e.owners[0].destroyed, true);
+    e.dom.window.close();
+  }
+});

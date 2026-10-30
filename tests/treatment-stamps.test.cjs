@@ -140,7 +140,7 @@ test('inactive stamps select only; settled active stamps preview then follow the
     f.links[0].click();
     assert.equal(clicks.at(-1), true, 'initially active stamp still requires a preview press');
     assert.equal(f.links[0].hasAttribute('data-tdb-stamp-link-ready'), true);
-    assert.equal(f.links[0].getAttribute('aria-label'), 'Open Treatment 0 treatment');
+    assert.equal(f.links[0].getAttribute('aria-label'), 'Open Treatment 0');
     assert.equal(f.links[0].getAttribute('href'), '/treatments/0');
     f.links[0].click();
     assert.equal(clicks.at(-1), false, 'second press follows the original link');
@@ -946,10 +946,8 @@ test('native stamps align first, intermediate and last positions with the progre
       assert.equal(f.links[i].getAttribute('aria-current'), 'true');
       assert.equal(f.links.filter((l) => l.hasAttribute('aria-current')).length, 1);
       assert.deepEqual(
-        f.swiper.slides.map((s) => s.querySelector('h3').dataset.finalColor),
-        Array.from({ length: 6 }, (_, index) =>
-          index === i ? '#ffffff' : 'rgba(255,255,255,0.5)',
-        ),
+        f.swiper.slides.map((s) => s.querySelector('h3').dataset.finalOpacity),
+        Array.from({ length: 6 }, (_, index) => (index === i ? '1' : '0.5')),
       );
     }
   } finally {

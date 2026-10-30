@@ -324,9 +324,10 @@ window.TDBTreatmentStamps ||= (() => {
         item.style.opacity = active ? '1' : '0.5';
         return;
       }
-      const property = heading ? 'color' : 'opacity';
+      // Native variants own colour; state motion only changes emphasis.
+      const property = 'opacity';
       const current = getComputedStyle(item)[property];
-      const target = heading ? (active ? '#ffffff' : 'rgba(255,255,255,0.5)') : active ? 1 : 0.5;
+      const target = active ? 1 : 0.5;
       animations.get(item)?.cancel();
       animations.set(
         item,
@@ -448,7 +449,7 @@ window.TDBTreatmentStamps ||= (() => {
         link.toggleAttribute('data-tdb-stamp-link-ready', armed);
         const title =
           link.querySelector('.tdb-treatment-title')?.textContent.trim() || link.textContent.trim();
-        if (armed) link.setAttribute('aria-label', `Open ${title} treatment`);
+        if (armed) link.setAttribute('aria-label', `Open ${title}`);
         else {
           const previous = labelsBefore.get(link);
           if (previous) link.setAttribute('aria-label', previous);

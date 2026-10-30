@@ -16,13 +16,13 @@ window.TDBTreatmentDetails ||= (() => {
       rows = [],
       lastTransform = '',
       disposed = false;
-    const colors = new Map();
+    const emphasis = new Map();
     function rebuild(slides) {
       if (disposed) return;
       if (slides.length === sources.length && slides.every((s, i) => s.node === sources[i])) return;
       sources = slides.map((s) => s.node);
-      colors.forEach((a) => a.cancel());
-      colors.clear();
+      emphasis.forEach((a) => a.cancel());
+      emphasis.clear();
       const used = new Set();
       rows = slides.map((slide) => {
         const original = originals[slide.value];
@@ -60,7 +60,7 @@ window.TDBTreatmentDetails ||= (() => {
         return {
           active,
           copy: row?.sourceCopy,
-          color: row?.title && row.active !== active ? getComputedStyle(row.title).color : null,
+          opacity: row?.title && row.active !== active ? getComputedStyle(row.title).opacity : null,
         };
       });
       return { origin, boxes, states };
@@ -85,13 +85,15 @@ window.TDBTreatmentDetails ||= (() => {
           row.node.inert = !row.active;
           row.node.setAttribute('aria-hidden', String(!row.active));
           if (row.title) {
-            colors.get(row.title)?.cancel();
-            colors.set(
+            emphasis.get(row.title)?.cancel();
+            emphasis.set(
               row.title,
               row.title.animate(
                 [
-                  { color: states[i].color },
-                  { color: row.active ? '#ffffff' : 'rgba(255,255,255,0.5)' },
+                  { opacity: states[i].opacity },
+                  // Designer owns the light/dark colour. Motion only dims the
+                  // inactive heading, so both component variants stay legible.
+                  { opacity: row.active ? 1 : 0.5 },
                 ],
                 {
                   duration: window.TDBMotion?.reduced?.matches
@@ -108,7 +110,7 @@ window.TDBTreatmentDetails ||= (() => {
     function dispose() {
       if (disposed) return;
       disposed = true;
-      colors.forEach((a) => a.cancel());
+      emphasis.forEach((a) => a.cancel());
       track.style.removeProperty('transform');
       originals.forEach((node) => {
         node.style.removeProperty('width');
