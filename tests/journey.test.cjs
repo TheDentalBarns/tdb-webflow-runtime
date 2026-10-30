@@ -362,8 +362,10 @@ test('arrival circles toggle accessible labels, keep one label open and close wi
  await tick();f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();
  const walk=f.markers.find(m=>m.content?.dataset?.kind==='approach').content;
  const coffee=f.markers.find(m=>m.content?.dataset?.kind==='coffee').content;
- assert.equal(coffee.tagName,'BUTTON');assert.equal(coffee.type,'button');assert.equal(coffee.getAttribute('aria-label'),'Coffee');
- coffee.click();assert.equal(coffee.getAttribute('aria-expanded'),'true');assert.equal(coffee.textContent,'Coffee');
+ assert.equal(coffee.tagName,'BUTTON');assert.equal(coffee.type,'button');assert.equal(coffee.getAttribute('aria-label'),'LB’s Coffee Shop');
+ const parking=f.markers.find(m=>m.content?.dataset?.kind==='parking').content;
+ assert.equal(parking.textContent,'');parking.click();assert.equal(parking.textContent,'Free parking');
+ coffee.click();assert.equal(parking.textContent,'');assert.equal(coffee.getAttribute('aria-expanded'),'true');assert.equal(coffee.textContent,'LB’s Coffee Shop');
  walk.click();assert.equal(coffee.getAttribute('aria-expanded'),'false');assert.equal(coffee.textContent,'');assert.equal(walk.getAttribute('aria-expanded'),'true');
  walk.click();assert.equal(walk.textContent,'');
  coffee.click();coffee.dispatchEvent(new f.w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert.equal(coffee.getAttribute('aria-expanded'),'false');

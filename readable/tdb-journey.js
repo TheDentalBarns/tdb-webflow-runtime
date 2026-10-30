@@ -862,45 +862,42 @@
       bounds.extend(ll(data.parking));
       let closeExpandedPin;
       const mark = (position, label, kind, display = label) => {
-        const interactive = kind !== 'parking';
-        const content = document.createElement(interactive ? 'button' : 'span');
+        const content = document.createElement('button');
         content.className = 'tdb-journey-arrival-pin';
         content.dataset.kind = kind;
         content.textContent = display;
-        if (interactive) {
-          content.type = 'button';
-          content.setAttribute('aria-label', label);
-          content.setAttribute('aria-expanded', 'false');
-          const setExpanded = (expanded) => {
-            const from = content.getBoundingClientRect().width;
-            content.getAnimations?.().forEach((animation) => animation.cancel());
-            content.setAttribute('aria-expanded', String(expanded));
-            content.textContent = expanded ? label : '';
-            const to = content.getBoundingClientRect().width;
-            const motion = window.TDBMotion;
-            if (motion && !motion.reduced.matches && !document.hidden && content.animate)
-              content.animate([{ width: from + 'px' }, { width: to + 'px' }], {
-                duration: motion.time(300),
-                easing: motion.easing('travel', 'ease'),
-              });
-          };
-          content.addEventListener('click', (event) => {
-            event.stopPropagation();
-            const expand = content.getAttribute('aria-expanded') !== 'true';
-            closeExpandedPin?.();
-            closeExpandedPin = null;
-            if (expand) {
-              setExpanded(true);
-              closeExpandedPin = () => setExpanded(false);
-            }
-          });
-          content.addEventListener('keydown', (event) => {
-            if (event.key !== 'Escape') return;
-            event.stopPropagation();
-            closeExpandedPin?.();
-            closeExpandedPin = null;
-          });
-        }
+        content.type = 'button';
+        content.setAttribute('aria-label', label);
+        content.setAttribute('aria-expanded', 'false');
+        const setExpanded = (expanded) => {
+          const from = content.getBoundingClientRect().width;
+          content.getAnimations?.().forEach((animation) => animation.cancel());
+          content.setAttribute('aria-expanded', String(expanded));
+          content.textContent = expanded ? label : '';
+          const to = content.getBoundingClientRect().width;
+          const motion = window.TDBMotion;
+          if (motion && !motion.reduced.matches && !document.hidden && content.animate)
+            content.animate([{ width: from + 'px' }, { width: to + 'px' }], {
+              duration: motion.time(300),
+              easing: motion.easing('travel', 'ease'),
+            });
+        };
+        content.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const expand = content.getAttribute('aria-expanded') !== 'true';
+          closeExpandedPin?.();
+          closeExpandedPin = null;
+          if (expand) {
+            setExpanded(true);
+            closeExpandedPin = () => setExpanded(false);
+          }
+        });
+        content.addEventListener('keydown', (event) => {
+          if (event.key !== 'Escape') return;
+          event.stopPropagation();
+          closeExpandedPin?.();
+          closeExpandedPin = null;
+        });
         owner.arrivalMarkers.push(
           new owner.mapTypes.AdvancedMarkerElement({
             map: owner.map,
@@ -908,11 +905,11 @@
             title: label,
             content,
             anchorLeft: '-50%',
-            anchorTop: kind === 'parking' ? '-100%' : '-50%',
+            anchorTop: '-50%',
           }),
         );
       };
-      mark(data.parking, 'Free parking', 'parking');
+      mark(data.parking, 'Free parking', 'parking', '');
       data.paths.forEach((path, index) => {
         path.forEach((p) => bounds.extend(ll(p)));
         // Two provider-owned strokes make one clear cream path with a charcoal
@@ -946,7 +943,12 @@
       for (const { kind, position } of data.amenities) {
         if (!point(position)) continue;
         bounds.extend(ll(position));
-        mark(position, kind[0].toUpperCase() + kind.slice(1), kind, '');
+        mark(
+          position,
+          { coffee: 'LB’s Coffee Shop', flowers: 'Florist', wellness: 'Yoga' }[kind],
+          kind,
+          '',
+        );
       }
       owner.arrivalView = true;
       owner.arrive?.setAttribute('aria-pressed', 'true');
