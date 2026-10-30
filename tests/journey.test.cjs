@@ -17,7 +17,7 @@ function fixture({ allowed = true, routeFlight, placeFlight, rich = false, optio
   w.openCookieSettingsPanel = () => { prompt++; };
   w.google = { maps: { event: { clearInstanceListeners() {} }, async importLibrary(kind) {
     if (kind === 'maps') return { InfoWindow: class {constructor(options){this.options=options;infos.push(this)}open(options){this.openOptions=options}close(){this.closed=true}}, Map: class { constructor(node,options) { this.options=options; maps.push(this); node.textContent = 'Google map'; } fitBounds() {this.fitted=true} getMapTypeId(){return this.type||this.options.mapTypeId} getZoom(){return this.zoom??this.options.zoom} setZoom(zoom){this.zoom=zoom} setMapTypeId(type){this.type=type} } };
-    if (kind === 'marker') return { PinElement: class {}, AdvancedMarkerElement: class { constructor(opts) { Object.assign(this, opts);markers.push(this); } addListener(event,fn){assert.equal(event,'click');this.click=fn;return {remove(){}}} } };
+    if (kind === 'marker') return { PinElement: class {}, AdvancedMarkerElement: class extends w.EventTarget { constructor(opts) { super(); Object.assign(this, opts);markers.push(this); } addListener(event,fn){assert.equal(event,'click');this.click=fn;return {remove(){}}} } };
     if (kind === 'places') return { Place: class {constructor({id}){this.id=id}async fetchFields(options){placesCalls.push(options);Object.assign(this,placeFlight?await placeFlight.promise:{displayName:'The Dental Barns',rating:4.8,userRatingCount:64})}} };
     if (kind === 'core') return { LatLngBounds: class { extend() {} } };
     if (kind === 'routes') return { Route: { computeRoutes(request) { calls.push(request); return routeFlight ? routeFlight.promise : Promise.resolve(result()); } } };
@@ -297,7 +297,7 @@ test('both mobile arrival actions centre the reserved map and retain one route r
  f.w.TDBMotion={reduced:{matches:true}};
  const button=f.root.querySelector('[data-tdb-journey-arrive]');
  button.click();await tick();await tick();assert.deepEqual(scrolls,[3328]);
- assert.equal(f.markers[2].content.textContent,'Under 1 min');assert.match(f.markers[2].title,/Walk/);
+ assert.equal(f.markers[2].content.textContent,'');assert.match(f.markers[2].title,/Walk/);
  button.click();await tick();await tick();assert.deepEqual(scrolls,[3328,3328]);assert.equal(f.calls.length,1);f.close();
 });
 
@@ -331,11 +331,73 @@ test('UK clock displays GMT/BST without an added hour and stops its minute wake-
  f.close();assert.equal(clock.timers.size,0);
 });
 
-test('arrival paths have contrasting outlines and owner-confirmed walking time without a walking API request',async()=>{
+test('arrival paths have contrasting outlines and icon-only walking circles without a walking API request',async()=>{
  const f=fixture({options:true});await tick();f.root.style.setProperty('--base-color-neutral--neutral-darker','#222');f.root.style.setProperty('--base-color-brand--orange-1','#f9f2e6');
  f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();
  assert.equal(f.lines.length,4);assert.deepEqual(f.lines.map(l=>[l.strokeColor,l.strokeWeight,l.zIndex]),[['#222',8,1],['#f9f2e6',4,2],['#222',8,1],['#f9f2e6',4,2]]);
- assert.match(f.markers[2].title,/Under 1 min/);assert.equal(f.markers[2].content.textContent,'Under 1 min');assert.equal(f.calls.length,0);f.close();assert(f.lines.every(l=>l.map===null));
+ assert.match(f.markers[2].title,/Walk/);assert.equal(f.markers[2].content.textContent,'');assert.equal(f.calls.length,0);f.close();assert(f.lines.every(l=>l.map===null));
+});
+
+test('authored walking points and amenities retain exact coordinates and clean up on consent withdrawal',async()=>{
+ const f=fixture({options:true});
+ const points={'walk-1':[52.62996317817975,-1.8016156826400305],'walk-2':[52.6300611,-1.8016387],coffee:[52.6298631,-1.8021164],flowers:[52.6301278,-1.8019245],wellness:[52.6300663,-1.8011802]};
+ for(const [name,p] of Object.entries(points))f.root.setAttribute('data-tdb-journey-'+name,p.join(','));
+ await tick();f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();
+ const pins=f.markers.filter(m=>m.content?.dataset?.kind && m.content.dataset.kind!=='parking');
+ assert.equal(pins.length,5);
+ assert.deepEqual(pins.map(m=>[m.position.lat,m.position.lng]),Object.values(points));
+ assert.deepEqual(pins.map(m=>m.content.dataset.kind),['approach','approach','coffee','flowers','wellness']);
+ assert(pins.every((m,i)=>m.content.textContent==='' && m.anchorLeft===(i===1?'calc(-100% + 1.125rem)':'-1.125rem') && m.anchorTop==='-50%'));
+ assert.equal(pins[1].content.dataset.expand,'left');
+ assert.equal(f.calls.length,0);f.permission(false);assert(pins.every(m=>m.map===null));f.close();
+});
+
+test('invalid optional amenity coordinates do not suppress the valid arrival routes',async()=>{
+ const f=fixture({options:true});f.root.setAttribute('data-tdb-journey-coffee','NaN,-1.8');f.root.setAttribute('data-tdb-journey-flowers','0,0');
+ await tick();f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();
+ assert.equal(f.markers.length,4);assert.equal(f.lines.length,4);f.close();
+});
+
+test('glass route overlays redraw from map projection and clean up on consent withdrawal',async()=>{
+ const f=fixture({options:true}), overlays=[];
+ f.w.CSS={supports:()=>true};
+ const pane=f.w.document.createElement('div');f.w.document.body.append(pane);
+ const original=f.w.google.maps.importLibrary;let scale=10000;
+ f.w.google.maps.importLibrary=async kind=>{
+  const lib=await original(kind);
+  if(kind==='maps')lib.OverlayView=class{
+   constructor(){overlays.push(this)}
+   getPanes(){return {overlayLayer:pane}}
+   getProjection(){return {fromLatLngToDivPixel:({lat,lng})=>({x:lng*scale,y:-lat*scale})}}
+   setMap(map){this.map=map;if(map){this.onAdd();this.draw()}else this.onRemove()}
+  };
+  return lib;
+ };
+ await tick();f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();
+ assert.equal(overlays.length,1);assert.equal(pane.querySelectorAll('.tdb-journey-route-glass').length,1);
+ assert.equal(pane.querySelector('feMorphology').getAttribute('radius'),'1');
+ assert.equal(f.lines.length,0);assert.equal(f.calls.length,0);
+ const first=overlays[0],before=first.outline.getAttribute('d');
+ assert.match(before,/^M/);assert.match(before,/Z$/);assert(!/NaN|Infinity/.test(before));
+ assert.equal((before.match(/M/g)||[]).length,2,'Both routes share one union fill and outline');
+ assert.equal(first.glass.style.clipPath,`path("${before}")`);
+ scale*=2;first.draw();assert.notEqual(first.outline.getAttribute('d'),before);
+ f.permission(false);assert.equal(pane.children.length,0);assert(overlays.every(o=>o.map===null));f.close();
+});
+
+test('arrival circles toggle accessible labels, keep one label open and close with Escape',async()=>{
+ const f=fixture({options:true});f.root.setAttribute('data-tdb-journey-coffee','52.6298631,-1.8021164');
+ await tick();f.root.querySelector('[data-tdb-journey-arrive]').click();await tick();await tick();
+ const walkMarker=f.markers.find(m=>m.content?.dataset?.kind==='approach'),walk=walkMarker.content;
+ const coffeeMarker=f.markers.find(m=>m.content?.dataset?.kind==='coffee'),coffee=coffeeMarker.content;
+ assert.equal(coffee.tagName,'SPAN');assert.equal(coffeeMarker.gmpClickable,true);assert.equal(coffee.getAttribute('aria-label'),'LB’s Coffee Shop');
+ const parkingMarker=f.markers.find(m=>m.content?.dataset?.kind==='parking'),parking=parkingMarker.content;
+ assert.equal(parking.textContent,'');parkingMarker.click();assert.equal(parking.textContent,'Free parking');
+ coffeeMarker.click();assert.equal(parking.textContent,'');assert.equal(coffee.getAttribute('aria-expanded'),'true');assert.equal(coffee.textContent,'LB’s Coffee Shop');
+ walkMarker.click();assert.equal(coffee.getAttribute('aria-expanded'),'false');assert.equal(coffee.textContent,'');assert.equal(walk.getAttribute('aria-expanded'),'true');
+ walkMarker.click();assert.equal(walk.textContent,'');
+ coffeeMarker.click();coffeeMarker.dispatchEvent(new f.w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert.equal(coffee.getAttribute('aria-expanded'),'false');
+ assert.equal(f.calls.length,0);f.close();
 });
 
 test('appointment mode preserves separate entered times and checks traffic at the estimated departure',async()=>{

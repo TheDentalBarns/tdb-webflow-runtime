@@ -726,6 +726,7 @@
   }
   function clearArrival(owner) {
     owner.arrivalMarkers.forEach((marker) => {
+      marker.content?.getAnimations?.().forEach((animation) => animation.cancel());
       marker.map = null;
     });
     owner.arrivalLines.forEach((line) => line.setMap(null));
@@ -798,6 +799,104 @@
       frame = requestAnimationFrame(step);
     });
   }
+  // Build a narrow, square-ended ribbon around the owner's projected route.
+  // Mitered corners retain the architectural turns; clamp near-reversals.
+  function arrivalRibbon(points, radius) {
+    const p = points.filter(
+      (v, i) => !i || Math.hypot(v.x - points[i - 1].x, v.y - points[i - 1].y) > 0.01,
+    );
+    if (p.length < 2) return '';
+    const directions = p.slice(1).map((v, i) => {
+      const length = Math.hypot(v.x - p[i].x, v.y - p[i].y);
+      return { x: (v.x - p[i].x) / length, y: (v.y - p[i].y) / length };
+    });
+    const sides = [1, -1].map((side) =>
+      p.map((v, i) => {
+        const a = directions[Math.max(0, i - 1)],
+          b = directions[Math.min(i, directions.length - 1)];
+        const divisor = Math.max(0.25, 1 + a.x * b.x + a.y * b.y);
+        const cap = i === 0 ? -radius : i === p.length - 1 ? radius : 0;
+        return {
+          x: v.x - (side * radius * (a.y + b.y)) / divisor + b.x * cap,
+          y: v.y + (side * radius * (a.x + b.x)) / divisor + b.y * cap,
+        };
+      }),
+    );
+    return (
+      sides[0]
+        .concat(sides[1].reverse())
+        .map((v, i) => `${i ? 'L' : 'M'}${v.x.toFixed(2)} ${v.y.toFixed(2)}`)
+        .join('') + 'Z'
+    );
+  }
+  let arrivalOutlineId = 0;
+  function arrivalGlass(owner, paths, OverlayView) {
+    class Ribbon extends OverlayView {
+      onAdd() {
+        this.element = document.createElement('div');
+        this.element.className = 'tdb-journey-route-ribbon';
+        this.element.setAttribute('aria-hidden', 'true');
+        this.glass = document.createElement('div');
+        this.glass.className = 'tdb-journey-route-glass';
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const ns = 'http://www.w3.org/2000/svg';
+        const defs = document.createElementNS(ns, 'defs');
+        const filter = document.createElementNS(ns, 'filter');
+        filter.id = 'tdb-route-outline-' + ++arrivalOutlineId;
+        const erode = document.createElementNS(ns, 'feMorphology');
+        erode.setAttribute('in', 'SourceAlpha');
+        erode.setAttribute('operator', 'erode');
+        erode.setAttribute('radius', '1');
+        erode.setAttribute('result', 'interior');
+        const border = document.createElementNS(ns, 'feComposite');
+        border.setAttribute('in', 'SourceGraphic');
+        border.setAttribute('in2', 'interior');
+        border.setAttribute('operator', 'out');
+        filter.append(erode, border);
+        defs.append(filter);
+        this.outline = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        this.outline.setAttribute('filter', `url(#${filter.id})`);
+        svg.append(defs, this.outline);
+        this.element.append(this.glass, svg);
+        this.getPanes().overlayLayer.append(this.element);
+      }
+      draw() {
+        const projected = paths.map((path) =>
+          path.map(([lat, lng]) => this.getProjection().fromLatLngToDivPixel({ lat, lng })),
+        );
+        const points = projected.flat();
+        if (points.some((p) => !p || !Number.isFinite(p.x) || !Number.isFinite(p.y))) return;
+        const x = Math.min(...points.map((p) => p.x)) - 20,
+          y = Math.min(...points.map((p) => p.y)) - 20;
+        const width = Math.max(...points.map((p) => p.x)) - x + 20,
+          height = Math.max(...points.map((p) => p.y)) - y + 20;
+        Object.assign(this.element.style, {
+          left: x + 'px',
+          top: y + 'px',
+          width: width + 'px',
+          height: height + 'px',
+        });
+        // Same-winding subpaths form one nonzero-fill union. Derive the border
+        // from that union's alpha, so intersecting routes have no internal seam.
+        const d = projected
+          .map((path) =>
+            arrivalRibbon(
+              path.map((p) => ({ x: p.x - x, y: p.y - y })),
+              4,
+            ),
+          )
+          .join('');
+        this.glass.style.clipPath = `path("${d}")`;
+        this.outline.setAttribute('d', d);
+      }
+      onRemove() {
+        this.element?.remove();
+      }
+    }
+    const ribbon = new Ribbon();
+    ribbon.setMap(owner.map);
+    return ribbon;
+  }
   async function arrival(owner) {
     if (!permitted() || !owner.map || owner.running) return;
     owner.pageScroll?.cancel();
@@ -827,6 +926,11 @@
       const data = {
         parking: parse(owner.root.dataset.tdbJourneyParking)[0],
         paths: [1, 2].map((n) => parse(owner.root.getAttribute('data-tdb-journey-path-' + n))),
+        walks: [1, 2].map((n) => parse(owner.root.getAttribute('data-tdb-journey-walk-' + n))[0]),
+        amenities: ['coffee', 'flowers', 'wellness'].map((kind) => ({
+          kind,
+          position: parse(owner.root.getAttribute('data-tdb-journey-' + kind))[0],
+        })),
       };
       const point = (p) =>
         Array.isArray(p) &&
@@ -845,7 +949,7 @@
         )
       )
         return;
-      const [{ Polyline }, { LatLngBounds }] = await Promise.all([
+      const [{ Polyline, OverlayView }, { LatLngBounds }] = await Promise.all([
         window.google.maps.importLibrary('maps'),
         window.google.maps.importLibrary('core'),
       ]);
@@ -854,50 +958,101 @@
       const bounds = new LatLngBounds();
       bounds.extend(destination);
       bounds.extend(ll(data.parking));
-      const mark = (position, label, kind, display = label) => {
+      let closeExpandedPin;
+      const mark = (position, label, kind, display = label, expandLeft = false) => {
         const content = document.createElement('span');
         content.className = 'tdb-journey-arrival-pin';
         content.dataset.kind = kind;
+        if (expandLeft) content.dataset.expand = 'left';
         content.textContent = display;
-        owner.arrivalMarkers.push(
-          new owner.mapTypes.AdvancedMarkerElement({
-            map: owner.map,
-            position: ll(position),
-            title: label,
-            content,
-          }),
-        );
+        content.setAttribute('aria-label', label);
+        content.setAttribute('aria-expanded', 'false');
+        const marker = new owner.mapTypes.AdvancedMarkerElement({
+          map: owner.map,
+          position: ll(position),
+          title: label,
+          content,
+          gmpClickable: true,
+          anchorLeft: expandLeft ? 'calc(-100% + 1.125rem)' : '-1.125rem',
+          anchorTop: '-50%',
+        });
+        marker.setAttribute?.('aria-expanded', 'false');
+        const setExpanded = (expanded) => {
+          const from = content.getBoundingClientRect().width;
+          content.getAnimations?.().forEach((animation) => animation.cancel());
+          content.setAttribute('aria-expanded', String(expanded));
+          marker.setAttribute?.('aria-expanded', String(expanded));
+          marker.zIndex = expanded ? 1000 : 1;
+          content.textContent = expanded ? label : '';
+          const to = content.getBoundingClientRect().width;
+          const motion = window.TDBMotion;
+          if (motion && !motion.reduced.matches && !document.hidden && content.animate)
+            content.animate([{ width: from + 'px' }, { width: to + 'px' }], {
+              duration: motion.time(300),
+              easing: motion.easing('travel', 'ease'),
+            });
+        };
+        marker.addListener('click', () => {
+          const expand = content.getAttribute('aria-expanded') !== 'true';
+          closeExpandedPin?.();
+          closeExpandedPin = null;
+          if (expand) {
+            setExpanded(true);
+            closeExpandedPin = () => setExpanded(false);
+          }
+        });
+        marker.addEventListener?.('keydown', (event) => {
+          if (event.key !== 'Escape') return;
+          event.stopPropagation();
+          closeExpandedPin?.();
+          closeExpandedPin = null;
+        });
+        owner.arrivalMarkers.push(marker);
       };
-      mark(data.parking, 'Free parking', 'parking');
+      mark(data.parking, 'Free parking', 'parking', '');
+      const glassRoutes =
+        OverlayView && window.CSS?.supports?.('clip-path', 'path("M0 0L1 0L1 1Z")');
+      if (glassRoutes) owner.arrivalLines.push(arrivalGlass(owner, data.paths, OverlayView));
       data.paths.forEach((path, index) => {
         path.forEach((p) => bounds.extend(ll(p)));
-        // Two provider-owned strokes make one clear cream path with a charcoal
-        // outline on both light roofs and dark trees. No page elements are added.
-        for (const [token, weight, zIndex] of [
-          ['--base-color-neutral--neutral-darker', 8, 1],
-          ['--base-color-brand--orange-1', 4, 2],
-        ])
-          owner.arrivalLines.push(
-            new Polyline({
-              map: owner.map,
-              path: path.map(ll),
-              clickable: false,
-              strokeColor: colour(owner.root, token),
-              strokeOpacity: 1,
-              strokeWeight: weight,
-              zIndex,
-            }),
-          );
+        if (!glassRoutes)
+          for (const [token, weight, zIndex] of [
+            ['--base-color-neutral--neutral-darker', 8, 1],
+            ['--base-color-brand--orange-1', 4, 2],
+          ])
+            owner.arrivalLines.push(
+              new Polyline({
+                map: owner.map,
+                path: path.map(ll),
+                clickable: false,
+                strokeColor: colour(owner.root, token),
+                strokeOpacity: 1,
+                strokeWeight: weight,
+                zIndex,
+              }),
+            );
         const end = path.at(-1),
           previous = path.at(-2);
-        const walkLabel = owner.root.dataset.tdbJourneyWalkLabel || 'Short walk';
         mark(
-          [(end[0] + previous[0]) / 2, (end[1] + previous[1]) / 2],
-          (index ? 'Walk through the courtyard' : 'Walk around the north side') + ': ' + walkLabel,
+          point(data.walks[index])
+            ? data.walks[index]
+            : [(end[0] + previous[0]) / 2, (end[1] + previous[1]) / 2],
+          index ? 'Walk along the brook side · <1 min' : 'Walk through the courtyard · <1 min',
           'approach',
-          walkLabel,
+          '',
+          index === 1,
         );
       });
+      for (const { kind, position } of data.amenities) {
+        if (!point(position)) continue;
+        bounds.extend(ll(position));
+        mark(
+          position,
+          { coffee: 'LB’s Coffee Shop', flowers: 'Florist', wellness: 'Yoga' }[kind],
+          kind,
+          '',
+        );
+      }
       owner.arrivalView = true;
       owner.arrive?.setAttribute('aria-pressed', 'true');
       const label = owner.arrive?.querySelector('[data-tdb-journey-arrive-label]');
