@@ -883,6 +883,7 @@
           content.getAnimations?.().forEach((animation) => animation.cancel());
           content.setAttribute('aria-expanded', String(expanded));
           marker.setAttribute?.('aria-expanded', String(expanded));
+          marker.zIndex = expanded ? 1000 : 1;
           content.textContent = expanded ? label : '';
           const to = content.getBoundingClientRect().width;
           const motion = window.TDBMotion;
