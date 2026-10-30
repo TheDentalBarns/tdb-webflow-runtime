@@ -149,3 +149,77 @@ The map remains gated by functional consent and near-view readiness. Recommendat
 
 The remaining brand category Designer discrepancy and short-screen pop-out placement issue remain documented in location-blackbrook-brands-20261030.md. This ticker release does not resolve them.
 
+## Native CSS and structural audit — 30 October 2026, final pass
+
+This was an identification and verification pass. No native styles or elements were deleted, no runtime was changed, and nothing was published. The native inventory contains 2,735 styles; Designer's cleanup preview identifies 510 grouped selectors. The preview was cancelled. Its full selector chains and native IDs are saved locally in `location-final-audit/native-unused-styles.json`.
+
+### Deletion shortlist
+
+The first bounded batch contains the following 22 legacy selectors. Each appears in Designer's unused list and its base class has no textual reference in the 261 inspected runtime source/configuration/build/service files. These are removal candidates, not a blanket certificate covering external scripts, every historical custom-code embed or retained rollback components. Check those consumers and retain a native backup before deletion; then validate shared consumers on staging.
+
+| Family | Exact selectors |
+| --- | --- |
+| Old testimonial artwork | `.testimonial1_logo-wrapper`, `.testimonial1_logo`, `.testimonial1_client-image-wrapper`, `.testimonial1_client-image` |
+| Old FAQ combinations | `.faq3_question.is-first`, `.faq3_question.is-white`, `.faq3_question.is-white.is-first` |
+| Old contact/map structure | `.contact16_item`, `.contact16_item-icon-wrapper`, `.contact16_item-text-wrapper`, `.contact16_map` |
+| Replaced image wrappers | `.layout18_image-wrapper`, `.layout18_image` |
+| Old gallery 17 | `.gallery17_lightbox-link`, `.gallery17_image-wrapper`, `.gallery17_image`, `.gallery17_slide-nav` |
+| Old gallery 14 | `.gallery14_mask`, `.gallery14_image`, `.gallery14_slide-nav` |
+| Old inline Vimeo artwork | `.vimeo-bg__btn-play-svg`, `.vimeo-bg__btn-pause-svg` |
+
+None of those 22 exact selectors appears in either current exported Location stylesheet. Their removal would clean the Designer library; it is not a demonstrated reduction in Location's shipped CSS or startup requests.
+
+Do not run Delete All. A conservative source scan flags 147 entries whose final state class occurs in JavaScript, and 121 with an exact full-selector reference in the source tree; those groups overlap. Confirmed live examples include navbar `is-nav-desktop`, `is-nav-motion`, `is-menu-frosted`, VIP checkbox `is-vip-checked`/`is-vip-focused`, treatment `is-runtime`, and consent `is-consent-content-open`. These are applied after load and can legitimately look unused to Designer. The scan is a protection list, not proof that every flagged combination is still needed. Existing legacy footer/marquee definitions also have other page consumers and must not be removed as part of Location alone.
+
+### Structural findings
+
+Fresh staging HTML confirms 1,022 elements, one main landmark, no duplicate IDs, no nested anchor/button elements and no image missing an alt attribute. These checks do not certify alt-text quality or full accessibility. Existing runtime-only source links are intentionally empty data carriers and must not be deleted on that basis.
+
+Two native cleanup items remain. Location retains a hidden seven-element `section_header46 hide` welcome quote (element `ca677289-5ddd-5abb-c65e-83e284591779`) alongside the Owner Quotes component. It also ships two H1 elements: the visible Location hero and the hidden generic Home heading inside Review Introduction. The latter should be excluded from Location's published markup through the shared component's native visibility contract while preserving Home's heading. No compensating JS is appropriate for either issue.
+
+The shared footer still authors Pinterest as `href="#"`; this is distinct from the intentionally scripted cookie-settings and share controls. Confirm its intended destination or remove the unused link at the shared owner. A separate Home-only check found a repeated Webflow-generated grid ID in the shared showcase; that was recorded as a follow-up, not changed in this Location audit.
+
+### Designer visual checks
+
+Actual Designer was inspected at desktop and 393px mobile, rather than relying on the connector's image renderer, which had omitted fonts/masks. Mobile hero sizing, Contact stacking, journey placeholder and equal-height footer actions, partner caption containment, first-open FAQ, and footer legal content were inspected. The native mobile body measured 393px client width and 393px scroll width. Contact's previous horizontal grid overflow and oversized journey action were not reproduced. This is a targeted visual pass, not a fresh end-to-end interaction test on physical Android.
+
+The mobile Review Introduction summary visibly clips the rating/count. Native CSS gives the score/count fixed `ch` widths with `min-width:0` and `overflow:hidden` inside a flex row. This needs a measured native layout correction at the shared Mini Review Widget owner, followed by Home/Location and no-JS verification. It has not been repaired or hidden by runtime code in this audit.
+
+Correction to the earlier brand finding: a fresh Designer session eventually displayed the lifestyle logos (Sonos, Cano Water and Samsung visible in the mobile screenshot). Therefore an empty current preview is not a reproducible blocker in this pass. The historical category-label discrepancy is not proven repaired; no category data was changed. The previously reported short-viewport pop-out positioning issue was not retested.
+
+### Remaining verification and evidence
+
+The two authored preconnect origins remain the site asset CDN and Webflow's CloudFront script origin. The removed compatibility stylesheets remain absent from Location. The user's latest desktop Lighthouse screenshot reports 100 in all four categories, zero CLS and zero TBT; this audit does not claim a new Lighthouse run. The API-imported gallery image responsive-size/cache opportunity remains open as documented above.
+
+Local evidence: `location-final-audit/audit-results.json`, `current-verification.json`, `location-current.html`, both current native CSS files, `mobile-journey-designer.png` and `mobile-partner-brands-designer.png`. Read-only audit scripts preserve the exact shortlist and source references. No behavior tests were rerun because no implementation changed. Proposed next work is the two native structural removals, the shared review-summary width correction, then the bounded style cleanup after its remaining consumer checks.
+
+## Native cleanup — shipped to staging, 30 October 2026
+
+The user authorised the preceding cleanup list. Staging publish task: `a8e491d2-cfbc-4302-9ed3-4cff0bb6031f`; custom domains were explicitly empty. The runtime pin remains `e22e39f4f7bb75d76fa0e46a5fade9ba7ef77563`. No runtime file, page custom code, loading gate or consent policy was changed. The pre-existing local modification to `dist/tdb-journey.css` was left untouched.
+
+### Native owners and changes
+
+- Removed all 22 selectors in the shortlist above. Before removal, all 127 retained component definition trees were read, including uninstantiated archives; none contained an exact candidate selector. The earlier native unused inventory and 261-file runtime scan also had no consumers. The native style count is now **2,713**, down from 2,735. Live dynamic state selectors were retained. No bulk Delete All was used.
+- Removed Location's seven-element hidden welcome quote, `ca677289-5ddd-5abb-c65e-83e284591779`; Owner Quotes remains the content owner.
+- Review Introduction (`1e6d2fa0-eb51-af7e-5dc2-307ef04c9501`) now exposes **Include page heading**, boolean prop `7dcaefe2-5935-bd2c-bce1-c058954917da`, default true. The existing hidden H1 (`...9509`) binds visibility to that property. Location's instance explicitly sets false and publishes no extra H1. Home inherits true and keeps its existing H1. No node was added and no runtime suppression was introduced.
+- Removed the unconfigured Pinterest `href="#"` from **Footer — shared**, element `4c8e5b24-0116-2a8d-4190-53cdd4860f81`. This removes one published element from both Home and Location. The older footer used by other pages is retained.
+- Corrected the native **Review Summary** owner (`50534c54-e1ae-0ff8-0bc0-38fd7b938d5a`), nested in Review Introduction. The earlier audit called this Mini Review Widget because that is the exposed property group's label; Review Summary is the actual definition. Score and count slots cannot flex-shrink. Their base widths are 4ch / 4.5ch. At the tiny breakpoint, count is 4ch, row text is .875rem and its column gap is .25rem. Existing vendor masks use 1rem width/height/minimums, and the star mask uses a proportional 3.5rem strip with no additional trailing margin. This removes the inherited 1.2rem vendor minimum and doubled star spacing that otherwise overflowed the narrow row. Existing ticker nodes, masks, timing, reduced-motion logic and lazy activation are unchanged.
+
+### Acceptance and delivery
+
+Fresh staging source confirms **Location 1,013 elements** (previously 1,022) and **Home 1,132** (previously 1,133). Each has one main landmark and one H1. Location has no duplicate IDs, hidden duplicate quote, Pinterest stub, nested interactive controls or images without alt attributes. The existing Home showcase generated grid ID remains a separate recorded follow-up; it was not changed by this cleanup.
+
+Actual Designer was checked at desktop and mobile while correcting the numeric slots. Published Location was checked at 320px and 393px; Home at 393px, with the browser viewport restored afterwards. At 393px both page bodies fit the viewport without horizontal overflow. Static published HTML carries 4.94 and (90); the shared runtime progresses to the same values and keeps the incoming values outside the clipping slot. Opening Location's summary still opens the patient review drawer at **Review 1 of 90**. The current mobile screenshot is `location-final-audit/location-review-cleaned-mobile.png`. This is targeted native and browser verification, not a new Lighthouse run or physical Android certification.
+
+The affected HTML plus two native CSS files change by **−560 raw / −41 controlled gzip bytes on Location** and **+253 raw / +115 controlled gzip bytes on Home** against the preserved pre-cleanup exports. The 22 unused selectors were already absent from Location's export, so this is primarily Designer housekeeping and a layout/semantics correction, not a claimed speed gain. Initial shared UI/foundation/starter and all deferred JS/CSS remain unchanged. The head keeps its two authored preconnect origins; no layouts-owned/page-compat stylesheet is reintroduced. Its noscript UI fallback is retained.
+
+Across the four perspectives: authoring improves through a smaller native library and an explicit H1 switch; native/no-JS layout remains usable with readable values; runtime behavior and first-use/consent gates remain unchanged; maintenance uses existing shared owners with no new wrapper, class family or motion implementation.
+
+### Evidence and rollback
+
+Local evidence includes `native-cleanup-before.json` (component/quote/footer trees), `styles-before-cleanup.json` (native base property inventory), `cleanup-consumer-check.json` (all 127 definition checks), `style-removals-receipt.json`, `cleanup-verification.json`, and both pages' cleaned HTML/CSS exports. The earlier Location and Home CSS exports preserve the previous responsive review rules. These snapshots supplement Webflow's native site backups; the base property inventory alone is not a complete breakpoint/variant backup.
+
+For a selective rollback, restore the removed quote/Pinterest elements from their captured owner trees, set Include page heading true on Location or unbind it to restore the previous heading behavior, and restore the five affected native selectors from the prior export. Score/count were 3.4ch / 3.2ch with the default flex-shrink; tiny row gap was .4rem, with no new font-size or mask-size overrides. Restoring the 22 unused styles is only necessary if a future retained source is deliberately reintroduced. Review a pre-cleanup Webflow backup for full breakpoint/variant recovery rather than reconstructing unsupported properties from the base-only inventory. Publish any rollback to staging first.
+
+Separate open follow-ups remain the API-imported image responsive/cache issue, Home's repeated generated grid ID, and the previously recorded brand pop-out placement on short viewports. No unrelated change was made to address them here.
+
