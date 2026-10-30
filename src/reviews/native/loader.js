@@ -37,7 +37,9 @@
     if (!nativeId) {
       // Compatibility for introductions that have not migrated to native excerpts.
       if (topic && !record.excerpts?.[topic]) return;
-      quote.textContent = topic ? record.excerpts[topic] : (record.displayExcerpt ?? record.excerpt);
+      quote.textContent = topic
+        ? record.excerpts[topic]
+        : (record.displayExcerpt ?? record.excerpt);
       quote.setAttribute('data-tdb-review-id', record.id);
       author.textContent = record.name;
     }
