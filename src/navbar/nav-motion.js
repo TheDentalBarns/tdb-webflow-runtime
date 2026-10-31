@@ -3,11 +3,12 @@
   const nav = document.querySelector('.navbar10_component');
   if (!nav) return;
   const root = document.documentElement;
+  const panelMotion = window.TDBPanelMotion.forFamily?.('navigation') || window.TDBPanelMotion;
   let current;
   function refresh() {
     // Same square-root distance curve as the drawers, using the vertical axis.
     // Apply it on phones too: a taller viewport means a longer menu journey.
-    const panel = window.TDBPanelMotion.duration();
+    const panel = panelMotion.duration();
     const scale = (duration) => Math.round((duration * panel) / 500);
     if (!current || current.panel !== panel) {
       current = Object.freeze({

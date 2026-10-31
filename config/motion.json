@@ -1,6 +1,11 @@
 {
   "pace": 1.25,
   "character": "soft",
+  "families": {
+    "navigation": { "pace": 1, "character": "current" },
+    "accordion": { "pace": 1, "character": "current" },
+    "fade": { "pace": 1, "character": "current" }
+  },
   "distance": {
     "base": 400,
     "reference": 375,

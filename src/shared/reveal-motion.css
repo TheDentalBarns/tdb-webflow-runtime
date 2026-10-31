@@ -1,1 +1,1 @@
-:root{--tdb-reveal-distance: 20px;--tdb-reveal-fade-in: calc(300ms * var(--tdb-motion-pace,1));--tdb-reveal-move-in: calc(400ms * var(--tdb-motion-pace,1));--tdb-reveal-out: calc(200ms * var(--tdb-motion-pace,1));--tdb-reveal-ease: var(--tdb-motion-ease-control,cubic-bezier(.165,.84,.44,1));}
+:root{--tdb-reveal-distance: 20px;--tdb-reveal-fade-in: calc(300ms * var(--tdb-fade-pace,1));--tdb-reveal-move-in: calc(400ms * var(--tdb-fade-pace,1));--tdb-reveal-out: calc(200ms * var(--tdb-fade-pace,1));--tdb-reveal-ease: var(--tdb-motion-ease-fade,cubic-bezier(.165,.84,.44,1));}

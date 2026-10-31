@@ -497,7 +497,8 @@
 
       // The native poster fade uses the same profile. Keep its existing 70ms
       // settling allowance, rather than cutting a slower fade off at 520ms.
-      const fade = window.TDBMotionProfile?.time(450) ?? 450;
+      const fade =
+        (window.TDBMotionProfile?.forFamily?.('fade') || window.TDBMotionProfile)?.time(450) ?? 450;
       playerRoot._placeholderHideTimer = setTimeout(function () {
         playerRoot._placeholderHideTimer = null;
         if (

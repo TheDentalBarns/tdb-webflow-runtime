@@ -102,10 +102,25 @@
     };
     // A selected palette owns arrow travel as well as touch release. With the
     // current palette, leave the component's native/inline curve untouched.
-    const travelStyle = swiper.wrapperEl?.style;
-    const originalTravelEasing = travelStyle?.transitionTimingFunction || '';
+    const travelStyles = new Map();
     const travelEasing = window.TDBMotionProfile?.easing('travel', '');
-    if (travelEasing && travelStyle) travelStyle.transitionTimingFunction = travelEasing;
+    if (travelEasing) {
+      // Track and compensating parallax transforms must share the same clock
+      // and curve; different curves briefly move the image the wrong way.
+      const nodes = [
+        swiper.wrapperEl,
+        ...[...swiper.slides].flatMap((slide) => [
+          ...slide.querySelectorAll(
+            '[data-swiper-parallax], [data-swiper-parallax-x], [data-swiper-parallax-y]',
+          ),
+        ]),
+      ];
+      for (const node of nodes)
+        if (node?.style) {
+          travelStyles.set(node, node.style.transitionTimingFunction || '');
+          node.style.transitionTimingFunction = travelEasing;
+        }
+    }
     const releaseEasing =
       window.TDBMotionProfile?.easing('release', 'cubic-bezier(.22,.61,.36,1)') ||
       'cubic-bezier(.22,.61,.36,1)';
@@ -260,7 +275,10 @@
       releaseGesture();
       releasePending = false;
       restoreReleaseEasing();
-      if (travelEasing && travelStyle) travelStyle.transitionTimingFunction = originalTravelEasing;
+      travelStyles.forEach((value, node) => {
+        node.style.transitionTimingFunction = value;
+      });
+      travelStyles.clear();
       swiper.slideTo = original.slideTo;
       swiper.loopFix = original.loopFix;
       swiper.slidePrev = original.slidePrev;

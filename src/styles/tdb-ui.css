@@ -9,8 +9,48 @@ html {
   --tdb-motion-ease-travel: cubic-bezier(.45,0,.25,1);
   --tdb-motion-ease-panel: cubic-bezier(.4,0,.2,1);
   --tdb-motion-ease-release: cubic-bezier(.25,.55,.3,1);
-  --tdb-motion-ease-fade: ease-in-out;
   --tdb-motion-ease-control: cubic-bezier(.4,0,.2,1);
+  --tdb-navigation-pace: 1;
+  --tdb-accordion-pace: 1;
+  --tdb-fade-pace: 1;
+  --tdb-navigation-ease-travel: initial;
+  --tdb-navigation-ease-panel: initial;
+  --tdb-navigation-ease-release: initial;
+  --tdb-navigation-ease-fade: initial;
+  --tdb-navigation-ease-control: initial;
+  --tdb-accordion-ease-travel: initial;
+  --tdb-accordion-ease-panel: initial;
+  --tdb-accordion-ease-release: initial;
+  --tdb-accordion-ease-fade: initial;
+  --tdb-accordion-ease-control: initial;
+  --tdb-fade-ease-travel: initial;
+  --tdb-fade-ease-panel: initial;
+  --tdb-fade-ease-release: initial;
+  --tdb-fade-ease-fade: initial;
+  --tdb-fade-ease-control: initial;
+  --tdb-motion-ease-fade: initial;
+}
+
+:where(.navbar10_component,.navbar-bg_layer) {
+  --tdb-motion-pace: var(--tdb-navigation-pace);
+  --tdb-motion-ease-travel: initial;
+  --tdb-motion-ease-panel: initial;
+  --tdb-motion-ease-release: initial;
+  --tdb-motion-ease-fade: initial;
+  --tdb-motion-ease-control: initial;
+}
+
+:where([data-tdb-disclosure-item]) {
+  --tdb-motion-pace: var(--tdb-accordion-pace);
+  --tdb-motion-ease-travel: initial;
+  --tdb-motion-ease-panel: initial;
+  --tdb-motion-ease-release: initial;
+  --tdb-motion-ease-fade: initial;
+  --tdb-motion-ease-control: initial;
+  --tdb-reveal-fade-in: calc(300ms * var(--tdb-accordion-pace));
+  --tdb-reveal-move-in: calc(400ms * var(--tdb-accordion-pace));
+  --tdb-reveal-out: calc(200ms * var(--tdb-accordion-pace));
+  --tdb-reveal-ease: var(--tdb-motion-ease-control,cubic-bezier(.165,.84,.44,1));
 }
 
 html {
@@ -21,12 +61,12 @@ html {
  * Only timing/easing needing a profile link or cascade guard are projected.
  * Designer retains layout and state ownership. Regenerate after native timing changes.
  */
-.w-slider-dot{transition-duration:calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease)}.w-lightbox-control{transition-duration:calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease)}.w-lightbox-spinner{animation-duration:calc(.8s * var(--tdb-motion-pace,1));animation-delay:0s;animation-timing-function:linear}.navbar10_component{transition-duration:calc(.3s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1))}.navbar10_component:where(.w-variant-985dc2c9-931e-7935-b0d3-cfb27c742eeb),.navbar10_component:where(.w-variant-62bcef08-fd31-e18b-ef36-118ec78fa87a),.navbar10_component:where(.w-variant-2ace7854-d44e-2456-5067-8f7cb03bc8a1){transition-duration:calc(.2s * var(--tdb-motion-pace,1)),calc(.2s * var(--tdb-motion-pace,1)),calc(.2s * var(--tdb-motion-pace,1))}.navbar10_link.w--current:where(.w-variant-985dc2c9-931e-7935-b0d3-cfb27c742eeb),.navbar10_link.w--current:where(.w-variant-62bcef08-fd31-e18b-ef36-118ec78fa87a),.navbar10_link.w--current:where(.w-variant-2ace7854-d44e-2456-5067-8f7cb03bc8a1){transition-duration:calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-motion-ease-panel,ease),var(--tdb-motion-ease-panel,ease)}@media screen and (max-width:767px){.navbar10_component{transition-duration:calc(.4s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1))}}.navbar10_component{transition-duration:calc(.3s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1))}.navbar10_component:where(.w-variant-985dc2c9-931e-7935-b0d3-cfb27c742eeb),.navbar10_component:where(.w-variant-62bcef08-fd31-e18b-ef36-118ec78fa87a),.navbar10_component:where(.w-variant-2ace7854-d44e-2456-5067-8f7cb03bc8a1){transition-duration:calc(.2s * var(--tdb-motion-pace,1)),calc(.2s * var(--tdb-motion-pace,1)),calc(.2s * var(--tdb-motion-pace,1))}.navbar10_link.w--current:where(.w-variant-985dc2c9-931e-7935-b0d3-cfb27c742eeb),.navbar10_link.w--current:where(.w-variant-62bcef08-fd31-e18b-ef36-118ec78fa87a),.navbar10_link.w--current:where(.w-variant-2ace7854-d44e-2456-5067-8f7cb03bc8a1){transition-duration:calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-motion-ease-panel,ease),var(--tdb-motion-ease-panel,ease)}.vimeo-player__iframe{transition-timing-function:var(--tdb-motion-ease-control,ease)}.vimeo-player__dark{transition-duration:calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:linear}.vimeo-player__loading{transition-duration:calc(.45s * var(--tdb-motion-pace,1)),0s;transition-delay:0s,calc(.45s * var(--tdb-motion-pace,1));transition-timing-function:var(--tdb-motion-ease-fade,ease),linear}@media screen and (max-width:767px){.navbar10_component{transition-duration:calc(.4s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1))}}
+.w-slider-dot{transition-duration:calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-motion-ease-control,ease),var(--tdb-motion-ease-control,ease)}.w-lightbox-control{transition-duration:calc(.3s * var(--tdb-motion-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease)}.w-lightbox-spinner{animation-duration:calc(.8s * var(--tdb-motion-pace,1));animation-delay:0s;animation-timing-function:linear}.navbar10_component{transition-duration:calc(.3s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1))}.navbar10_component:where(.w-variant-985dc2c9-931e-7935-b0d3-cfb27c742eeb),.navbar10_component:where(.w-variant-62bcef08-fd31-e18b-ef36-118ec78fa87a),.navbar10_component:where(.w-variant-2ace7854-d44e-2456-5067-8f7cb03bc8a1){transition-duration:calc(.2s * var(--tdb-motion-pace,1)),calc(.2s * var(--tdb-motion-pace,1)),calc(.2s * var(--tdb-motion-pace,1))}.navbar10_link.w--current:where(.w-variant-985dc2c9-931e-7935-b0d3-cfb27c742eeb),.navbar10_link.w--current:where(.w-variant-62bcef08-fd31-e18b-ef36-118ec78fa87a),.navbar10_link.w--current:where(.w-variant-2ace7854-d44e-2456-5067-8f7cb03bc8a1){transition-duration:calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-motion-ease-panel,ease),var(--tdb-motion-ease-panel,ease)}.swiper-slide.is-3-grid.smile.tdb-smile-slide{transition-duration:calc(.3s*var(--tdb-fade-pace,1))}.feature-item_door-image{transition-duration:calc(.3s*var(--tdb-fade-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease)}.vimeo-player__btn{transition-duration:calc(.3s*var(--tdb-fade-pace,1))}.vimeo-bg__placeholder{transition-duration:calc(.45s*var(--tdb-fade-pace,1)),0s;transition-delay:0s,calc(.45s*var(--tdb-fade-pace,1))}.tdb-team-quotes_content{transition-duration:calc(.4s*var(--tdb-fade-pace,1))}.tdb-smile-fact-ticker.is-ready{transition-duration:calc(.4s*var(--tdb-fade-pace,1))}.tdb-consent-backdrop{transition-duration:var(--tdb-peek-duration,calc(.42s*var(--tdb-fade-pace,1)))}@media screen and (max-width:767px){.navbar10_component{transition-duration:calc(.4s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1))}}.navbar10_component{transition-duration:calc(.3s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1))}.navbar10_component:where(.w-variant-985dc2c9-931e-7935-b0d3-cfb27c742eeb),.navbar10_component:where(.w-variant-62bcef08-fd31-e18b-ef36-118ec78fa87a),.navbar10_component:where(.w-variant-2ace7854-d44e-2456-5067-8f7cb03bc8a1){transition-duration:calc(.2s * var(--tdb-motion-pace,1)),calc(.2s * var(--tdb-motion-pace,1)),calc(.2s * var(--tdb-motion-pace,1))}.navbar10_link.w--current:where(.w-variant-985dc2c9-931e-7935-b0d3-cfb27c742eeb),.navbar10_link.w--current:where(.w-variant-62bcef08-fd31-e18b-ef36-118ec78fa87a),.navbar10_link.w--current:where(.w-variant-2ace7854-d44e-2456-5067-8f7cb03bc8a1){transition-duration:calc(.1s * var(--tdb-motion-pace,1)),calc(.1s * var(--tdb-motion-pace,1));transition-delay:0s,0s;transition-timing-function:var(--tdb-motion-ease-panel,ease),var(--tdb-motion-ease-panel,ease)}.swiper-slide.is-3-grid.smile.tdb-smile-slide{transition-duration:calc(.3s*var(--tdb-fade-pace,1))}.feature-item_door-image{transition-duration:calc(.3s*var(--tdb-fade-pace,1));transition-delay:0s;transition-timing-function:var(--tdb-motion-ease-control,ease)}.vimeo-player__iframe{transition-timing-function:var(--tdb-motion-ease-fade,ease);transition-duration:calc(.2s*var(--tdb-fade-pace,1))}.vimeo-player__placeholder{transition-duration:calc(.3s*var(--tdb-fade-pace,1))}.vimeo-player__dark{transition-duration:calc(.3s * var(--tdb-fade-pace,1));transition-delay:0s;transition-timing-function:linear}.vimeo-player__btn{transition-duration:calc(.3s*var(--tdb-fade-pace,1))}.vimeo-player__loading{transition-duration:calc(.45s * var(--tdb-fade-pace,1)),0s;transition-delay:0s,calc(.45s * var(--tdb-fade-pace,1));transition-timing-function:var(--tdb-motion-ease-fade,ease),linear}.vimeo-bg__placeholder{transition-duration:calc(.45s*var(--tdb-fade-pace,1)),0s;transition-delay:0s,calc(.45s*var(--tdb-fade-pace,1))}.tdb-team-quotes_content{transition-duration:calc(.4s*var(--tdb-fade-pace,1))}.tdb-smile-fact-ticker.is-ready{transition-duration:calc(.4s*var(--tdb-fade-pace,1))}.tdb-consent-backdrop{transition-duration:var(--tdb-peek-duration,calc(.42s*var(--tdb-fade-pace,1)))}@media screen and (max-width:767px){.navbar10_component{transition-duration:calc(.4s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1)),calc(.3s*var(--tdb-motion-pace,1))}}
 
 /* Shared 420ms site-bar clock. Feature-specific states load with their owner. */
 html {
-  --tdb-peek-duration: calc(420ms * var(--tdb-motion-pace,1));
-  --tdb-peek-ease: var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1));
+  --tdb-peek-duration: calc(420ms * var(--tdb-navigation-pace,1));
+  --tdb-peek-ease: var(--tdb-navigation-ease-panel,cubic-bezier(.4,0,.2,1));
 }
 
 /* Native .button.submit-button states live in Designer. Keep compatibility
@@ -85,7 +125,7 @@ select:not(.form_select):not(.placeholder){color:#000}
   opacity: 1;
   visibility: visible;
   pointer-events: none;
-  transition: opacity calc(.12s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease) calc(.12s * var(--tdb-motion-pace,1)), visibility 0s linear 0s;
+  transition: opacity calc(.12s * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease) calc(.12s * var(--tdb-fade-pace,1)),visibility 0s linear 0s;
 }
 [data-vimeo-content-init]:is([data-vimeo-awaiting-consent='true'],[data-vimeo-loading='true']) .tdb-content-spinner::before {
   animation: tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite;
@@ -159,7 +199,7 @@ html { --tdb-ui-ready: 1; }
   opacity: 1;
   visibility: visible;
   pointer-events: none;
-  transition: opacity calc(0.12s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease) calc(0.12s * var(--tdb-motion-pace,1)), visibility 0s linear 0s;
+  transition: opacity calc(0.12s * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease) calc(0.12s * var(--tdb-fade-pace,1)),visibility 0s linear 0s;
 }
 [data-tdb-compact-spinner][data-tdb-loading='true']::after,
 [data-tdb-loading='true'] [data-tdb-compact-spinner]::after {
@@ -237,7 +277,7 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
   html:not([data-tdb-motion='full']) [data-tdb-compact-pulse]::before { animation:none;opacity:0; }
 }
 
-:root{--tdb-reveal-distance: 20px;--tdb-reveal-fade-in: calc(300ms * var(--tdb-motion-pace,1));--tdb-reveal-move-in: calc(400ms * var(--tdb-motion-pace,1));--tdb-reveal-out: calc(200ms * var(--tdb-motion-pace,1));--tdb-reveal-ease: var(--tdb-motion-ease-control,cubic-bezier(.165,.84,.44,1));}
+:root{--tdb-reveal-distance: 20px;--tdb-reveal-fade-in: calc(300ms * var(--tdb-fade-pace,1));--tdb-reveal-move-in: calc(400ms * var(--tdb-fade-pace,1));--tdb-reveal-out: calc(200ms * var(--tdb-fade-pace,1));--tdb-reveal-ease: var(--tdb-motion-ease-fade,cubic-bezier(.165,.84,.44,1));}
 
 :is(a[href],button,[role="button"],summary){-webkit-tap-highlight-color:transparent}
 :is(a[href],button,[role="button"],summary):not(:where(.navbar10_link,.navbar10_dropdown-toggle,.is-navbar-control)):focus:not(:focus-visible){outline:none}
@@ -377,11 +417,11 @@ html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-contro
 /* Match the original loading wrapper: quick delayed reveal, slower exit that
  * remains visible over the returning play/pause glyph. Keep this outside the
  * consent-gated Vimeo bundle so cancelling consent receives the same fade. */
-[data-vimeo-hero-shell] .tdb-hero-toggle-art::after{transition:opacity calc(.45s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease);animation:tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear calc(.12s * var(--tdb-motion-pace,1)) infinite;animation-play-state:var(--tdb-hero-spin,paused)}
+[data-vimeo-hero-shell] .tdb-hero-toggle-art::after{transition:opacity calc(.45s * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease);animation:tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear calc(.12s * var(--tdb-motion-pace,1)) infinite;animation-play-state:var(--tdb-hero-spin,paused)}
 [data-vimeo-hero-shell]:not([data-vimeo-pulse]) .tdb-hero-toggle::before,
 [data-vimeo-hero-shell][data-vimeo-pulse='true'] .tdb-hero-toggle::before{animation:var(--tdb-hero-pulse,tdbBtnPulseOpacity calc(2.4s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in-out) infinite alternate)}
 [data-vimeo-hero-shell]:is([data-vimeo-ui='loading'],[data-vimeo-ui='awaiting-consent']) .tdb-hero-toggle-art::before{opacity:0}
-[data-vimeo-hero-shell]:is([data-vimeo-ui='loading'],[data-vimeo-ui='awaiting-consent']) .tdb-hero-toggle-art::after{opacity:1;transition:opacity calc(.12s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease) calc(.12s * var(--tdb-motion-pace,1));animation-play-state:running}
+[data-vimeo-hero-shell]:is([data-vimeo-ui='loading'],[data-vimeo-ui='awaiting-consent']) .tdb-hero-toggle-art::after{opacity:1;transition:opacity calc(.12s * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease) calc(.12s * var(--tdb-fade-pace,1));animation-play-state:running}
 .tdb-hero-toggle:focus-visible{outline:0}
 .tdb-hero-toggle:focus-visible .tdb-hero-toggle-art{outline:2px solid currentColor;outline-offset:4px}
 @media(prefers-reduced-motion:reduce){html:not([data-tdb-motion='full']) .tdb-hero-toggle::before{animation:none!important;opacity:0}}

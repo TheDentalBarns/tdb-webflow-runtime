@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 
-function setup(pace) {
+function setup(pace, fadePace) {
   const dom = new JSDOM(
     `<section data-vimeo-hero-shell><div data-vimeo-controls-layer><button data-vimeo-control="pause">Pause</button></div>
     <div data-vimeo-player-init data-vimeo-hero-init data-vimeo-video-id="123" data-vimeo-autoplay="false"><iframe></iframe><img class="vimeo-bg__placeholder" alt=""></div>
@@ -72,6 +72,9 @@ function setup(pace) {
   if (pace !== undefined) {
     const config = JSON.parse(fs.readFileSync('config/motion.json', 'utf8'));
     config.pace = pace;
+    config.families = fadePace === undefined ? undefined : {
+      fade: { pace: fadePace, character: 'current' },
+    };
     w.eval(
       fs
         .readFileSync('src/shared/motion-profile.js', 'utf8')
@@ -105,15 +108,15 @@ function setup(pace) {
   };
 }
 
-for (const pace of [undefined, 1, 1.25, 0.8])
-  test(`poster removal waits for the profile fade plus the existing settle allowance at pace ${pace ?? 'fallback'}`, async () => {
-    const f = setup(pace);
+for (const [pace, fadePace] of [[undefined], [1], [1.25], [0.8], [1.25, 1], [1.25, 1.5]])
+  test(`poster removal waits for the fade clock plus the existing settle allowance at pace ${pace ?? 'fallback'}, fade ${fadePace ?? 'inherited'}`, async () => {
+    const f = setup(pace, fadePace);
     try {
       await f.api.play(f.root);
       f.players[0].events.playing();
       f.advance(161);
       assert.equal(f.root.dataset.vimeoStarted, 'true');
-      const wait = Math.round(450 * (pace ?? 1)) + 70;
+      const wait = Math.round(450 * (fadePace ?? pace ?? 1)) + 70;
       f.advance(wait - 1);
       assert.equal(f.root.dataset.placeholderHidden, 'false');
       f.advance(1);

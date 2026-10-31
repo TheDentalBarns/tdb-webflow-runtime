@@ -4,11 +4,11 @@
 /* Match the original loading wrapper: quick delayed reveal, slower exit that
  * remains visible over the returning play/pause glyph. Keep this outside the
  * consent-gated Vimeo bundle so cancelling consent receives the same fade. */
-[data-vimeo-hero-shell] .tdb-hero-toggle-art::after{transition:opacity calc(.45s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease);animation:tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear calc(.12s * var(--tdb-motion-pace,1)) infinite;animation-play-state:var(--tdb-hero-spin,paused)}
+[data-vimeo-hero-shell] .tdb-hero-toggle-art::after{transition:opacity calc(.45s * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease);animation:tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear calc(.12s * var(--tdb-motion-pace,1)) infinite;animation-play-state:var(--tdb-hero-spin,paused)}
 [data-vimeo-hero-shell]:not([data-vimeo-pulse]) .tdb-hero-toggle::before,
 [data-vimeo-hero-shell][data-vimeo-pulse='true'] .tdb-hero-toggle::before{animation:var(--tdb-hero-pulse,tdbBtnPulseOpacity calc(2.4s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in-out) infinite alternate)}
 [data-vimeo-hero-shell]:is([data-vimeo-ui='loading'],[data-vimeo-ui='awaiting-consent']) .tdb-hero-toggle-art::before{opacity:0}
-[data-vimeo-hero-shell]:is([data-vimeo-ui='loading'],[data-vimeo-ui='awaiting-consent']) .tdb-hero-toggle-art::after{opacity:1;transition:opacity calc(.12s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease) calc(.12s * var(--tdb-motion-pace,1));animation-play-state:running}
+[data-vimeo-hero-shell]:is([data-vimeo-ui='loading'],[data-vimeo-ui='awaiting-consent']) .tdb-hero-toggle-art::after{opacity:1;transition:opacity calc(.12s * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease) calc(.12s * var(--tdb-fade-pace,1));animation-play-state:running}
 .tdb-hero-toggle:focus-visible{outline:0}
 .tdb-hero-toggle:focus-visible .tdb-hero-toggle-art{outline:2px solid currentColor;outline-offset:4px}
 @media(prefers-reduced-motion:reduce){html:not([data-tdb-motion='full']) .tdb-hero-toggle::before{animation:none!important;opacity:0}}

@@ -25,14 +25,14 @@ test('inactive native baselines, discrete state resets and already linked famili
   const css =
     '.badge{transition:unset}.drawer{transition:none}.control.held{transition-duration:0s}' +
     '.quote.entry{transition-duration:0s}.nav.detail{transition-delay:0s}' +
-    '.linked{transition:opacity calc(.3s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease-out)}' +
-    '@media(max-width:767px){.linked{transition-duration:calc(.4s * var(--tdb-motion-pace,1))}}';
+    '.linked{transition:opacity calc(.3s * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease-out)}' +
+    '@media(max-width:767px){.linked{transition-duration:calc(.4s * var(--tdb-fade-pace,1))}}';
   assert.equal(project(css).trim(), '');
   const scoped = declarations(
     project('.control{transition:opacity .3s}.control.held{transition-duration:0s}'),
   );
   assert(
-    scoped.some((row) => row.selector === '.control' && row.value.includes('--tdb-motion-pace')),
+    scoped.some((row) => row.selector === '.control' && row.value.includes('--tdb-fade-pace')),
   );
   assert(
     !scoped.some((row) => row.selector === '.control.held'),
@@ -58,7 +58,7 @@ test('mixed native families retain equal-specificity breakpoint and :where reset
     rows.some(
       (row) =>
         row.selector === '.card:where(.variant)' &&
-        row.value === 'calc(.5s * var(--tdb-motion-pace,1))',
+        row.value === 'calc(.5s * var(--tdb-fade-pace,1))',
     ),
   );
   assert(!rows.some((row) => row.selector === '.card:hover'));
@@ -99,11 +99,11 @@ test('changed shorthands preserve list positions, linear curves, prefixes and im
   );
   assert.equal(
     rows.find((row) => row.property === 'transition-duration').value,
-    'var(--tdb-panel-duration,calc(.4s * var(--tdb-motion-pace,1))),0s',
+    'var(--tdb-panel-duration,calc(.4s * var(--tdb-fade-pace,1))),0s',
   );
   assert.equal(
     rows.find((row) => row.property === 'transition-delay').value,
-    '0s,calc(.4s * var(--tdb-motion-pace,1))',
+    '0s,calc(.4s * var(--tdb-fade-pace,1))',
   );
   assert.equal(rows.find((row) => row.property === 'animation-timing-function').value, 'linear');
   assert(output.includes('@supports'));
@@ -137,7 +137,7 @@ test('regeneration refuses mismatched audited inputs before replacing the commit
     );
     const valid = spawnSync(process.execPath, [tool, input], { cwd, encoding: 'utf8' });
     assert.equal(valid.status, 0, valid.stderr);
-    assert(fs.readFileSync(output, 'utf8').includes('--tdb-motion-pace'));
+    assert(fs.readFileSync(output, 'utf8').includes('--tdb-fade-pace'));
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

@@ -5,11 +5,11 @@ const { JSDOM } = require('jsdom');
 const { css, readProfile } = require('../tools/runtime-build/motion-profile.cjs');
 const { linkValue } = require('../tools/runtime-build/motion-css.cjs');
 const read = file => fs.readFileSync(file, 'utf8');
-function fixture(pace = 1, character = 'current', width = 390, height = 844) {
+function fixture(pace = 1, character = 'current', width = 390, height = 844, families) {
   const dom = new JSDOM('<div id="panel"></div>', {runScripts:'outside-only'}), w = dom.window;
   Object.defineProperties(w, {innerWidth:{value:width},innerHeight:{value:height}});
   w.matchMedia = query => ({matches: query.includes('min-width:992px') && width >= 992,addEventListener(){}});
-  const config = {...readProfile(),pace,character};
+  const config = {...readProfile(),pace,character,families};
   const source = read('src/shared/motion-profile.js').replace('__TDB_MOTION_PROFILE__', JSON.stringify(config));
   w.eval(source);
   w.eval(read('src/shared/motion.js'));
@@ -101,4 +101,27 @@ test('profile generation is tied to the existing startup entry and generated CSS
   assert.equal(read('src/styles/tdb-motion-profile.css').replace(/\r\n/g,'\n'),css());
   assert(!read('src/shared/motion-profile.js').includes('getComputedStyle('));
   assert(!read('src/shared/motion-profile.js').includes('requestAnimationFrame('));
+});
+
+test('content, navigation, accordion and fade clocks can change independently',()=>{
+  const families={navigation:{pace:1,character:'current'},accordion:{pace:1,character:'current'},fade:{pace:1,character:'current'}};
+  for(const pace of [1.25,2]){
+    const f=fixture(pace,'soft',440,956,families);
+    try{
+      const profile=f.w.TDBMotionProfile;
+      assert.equal(f.w.TDBMotion.duration(),Math.round(400*pace));
+      assert.equal(f.w.TDBPanelMotion.duration(),Math.round(639*pace),'drawers keep the content pace');
+      assert.equal(f.w.TDBPanelMotion.forFamily('navigation').duration(),639);
+      assert.equal(profile.forFamily('accordion').time(300),300);
+      assert.equal(f.w.TDBMotion.defaults.fadeOut,120);
+      assert.equal(f.w.TDBMotion.defaults.fadeIn,350);
+      assert.equal(f.w.TDBMotion.reviews.fade,400);
+      assert.equal(profile.easing('fade','ease-out'),'ease-out');
+      assert.equal(profile.forFamily('navigation').easing('panel','ease-in'),'ease-in');
+      assert(Object.isFrozen(profile.families));assert(Object.isFrozen(profile.forFamily('accordion')));
+      assert.equal(f.w.document.documentElement.style.getPropertyValue('--tdb-fade-pace'),'1');
+      assert.equal(f.w.document.documentElement.style.getPropertyValue('--tdb-navigation-pace'),'1');
+      assert(css(f.config).includes(':where([data-tdb-disclosure-item])'));
+    }finally{f.close();}
+  }
 });

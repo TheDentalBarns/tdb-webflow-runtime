@@ -5,7 +5,7 @@
   const owners = new Set();
   let animations = [];
   function timing() {
-    const profile = window.TDBMotionProfile;
+    const profile = window.TDBMotionProfile?.forFamily?.('navigation') || window.TDBMotionProfile;
     if (profile)
       return {
         duration: window.TDBMotion.reduced.matches ? 0 : profile.time(420),

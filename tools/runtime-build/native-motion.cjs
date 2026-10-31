@@ -6,7 +6,7 @@
 const fs = require('node:fs');
 const crypto = require('node:crypto');
 const postcss = require('postcss');
-const { linkValue, roleFor } = require('./motion-css.cjs');
+const { linkValue, roleFor, fadeTransition } = require('./motion-css.cjs');
 function split(value, comma = false) {
   const parts = [];
   let depth = 0,
@@ -83,8 +83,13 @@ function project(source) {
   });
   const records = [],
     projected = new Set();
+  const fadeKeys = new Set();
+  tree.walkRules((rule) => {
+    if (fadeTransition(rule)) selectorKeys(rule).forEach((key) => fadeKeys.add(key));
+  });
   tree.walkRules((rule) => {
     const keys = selectorKeys(rule);
+    const opacity = fadeTransition(rule) || keys.some((key) => fadeKeys.has(key));
     for (const decl of [...rule.nodes]) {
       if (decl.type !== 'decl') {
         decl.remove();
@@ -106,10 +111,18 @@ function project(source) {
         continue;
       }
       const inactive = /^(?:none|unset)$/.test(decl.value.trim());
+      const fade =
+        name === 'transition'
+          ? fadeTransition(rule, decl.value)
+          : opacity && name.startsWith('transition');
+      const link = (value) =>
+        fade
+          ? linkValue(value, 'fade').replaceAll('--tdb-motion-pace', '--tdb-fade-pace')
+          : linkValue(value, role);
       const fields = Object.entries(values).map(([prop, value]) => ({
         prop: decl.prop.startsWith('-webkit-') ? '-webkit-' + prop : prop,
-        value: inactive ? value : linkValue(value, role),
-        changed: !inactive && linkValue(value, role) !== value,
+        value: inactive ? value : link(value),
+        changed: !inactive && link(value) !== value,
       }));
       const changed = fields.some((field) => field.changed);
       records.push({ decl, keys, fields, changed });

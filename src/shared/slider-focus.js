@@ -14,7 +14,8 @@
     o = 0,
     l = 0;
   function peekDuration() {
-    if (window.TDBMotionProfile) return window.TDBMotionProfile.time(420);
+    const profile = window.TDBMotionProfile?.forFamily?.('navigation') || window.TDBMotionProfile;
+    if (profile) return profile.time(420);
     const value = getComputedStyle(e).getPropertyValue('--tdb-peek-duration').trim();
     const duration = /^\d*\.?\d+(ms|s)$/.test(value)
       ? parseFloat(value) * (value.endsWith('ms') ? 1 : 1000)

@@ -15,16 +15,19 @@
     });
 
   const profile = window.TDBMotionProfile;
+  const fadeProfile = profile?.forFamily?.('fade') || profile;
   const time = (value) => profile?.time(value) ?? value;
-  const easing = (role, value) => profile?.easing(role, value) || value;
+  const fadeTime = (value) => fadeProfile?.time(value) ?? value;
+  const easing = (role, value) =>
+    (role === 'fade' ? fadeProfile : profile)?.easing(role, value) || value;
   const defaults = Object.freeze({
     base: time(400),
     desktopMin: time(650),
     desktopMax: time(950),
     referenceWidth: 375,
-    fadeOut: time(120),
-    fadeIn: time(350),
-    entryDelay: time(100),
+    fadeOut: fadeTime(120),
+    fadeIn: fadeTime(350),
+    entryDelay: fadeTime(100),
     ticker: time(400),
     tickerRapid: time(160),
     tickerFlow: time(1400),
@@ -1050,7 +1053,7 @@
     entryFallback: time(300),
   });
   const reviews = Object.freeze({
-    fade: time(400),
+    fade: fadeTime(400),
     summaryHold: time(600),
     openDelay: time(500),
     nextDelay: carousel.nextDelay,

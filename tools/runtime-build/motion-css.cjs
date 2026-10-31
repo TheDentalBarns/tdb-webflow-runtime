@@ -30,7 +30,7 @@ function linkValue(value, role = 'control') {
           inner = text.slice(tokens.lastIndex, end - 1);
         if (
           m[1] === 'url' ||
-          (m[1] === 'calc' && inner.includes('--tdb-motion-pace')) ||
+          (m[1] === 'calc' && /--tdb-(?:motion|fade|navigation|accordion)-pace/.test(inner)) ||
           (m[1] === 'var' && inner.startsWith('--tdb-motion-'))
         )
           result += entire;
@@ -70,4 +70,21 @@ function linkCSS(source) {
   });
   return css.toString();
 }
-module.exports = { linkCSS, linkValue, roleFor, motionProperty };
+function fadeTransition(rule, value) {
+  if (/navbar|tdb-nav|menu-icon|disclosure-item/.test(rule.selector)) return false;
+  if (value !== undefined)
+    return require('postcss')
+      .list.comma(value)
+      .every((v) => /^(opacity|visibility)\b/.test(v.trim()));
+  const properties = rule.nodes.find((d) => d.type === 'decl' && d.prop === 'transition-property');
+  if (properties)
+    return properties.value.split(',').every((v) => /^(opacity|visibility)$/.test(v.trim()));
+  const shorthand = rule.nodes.find((d) => d.type === 'decl' && d.prop === 'transition');
+  return (
+    !!shorthand &&
+    require('postcss')
+      .list.comma(shorthand.value)
+      .every((v) => /^(opacity|visibility)\b/.test(v.trim()))
+  );
+}
+module.exports = { linkCSS, linkValue, roleFor, motionProperty, fadeTransition };

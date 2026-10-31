@@ -15,7 +15,7 @@
 [data-fade-slide] {
   opacity: 0;
   pointer-events: none;
-  transition: opacity calc(200ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease-out);
+  transition: opacity calc(200ms * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease-out);
 }
 
 @media (min-width: 768px), (max-width: 767px) and (orientation: portrait) {
@@ -28,13 +28,13 @@
 [data-fade-slide].is-visible {
   opacity: 1;
   pointer-events: auto;
-  transition: opacity calc(400ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease-in);
+  transition: opacity calc(400ms * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease-in);
 }
 
 .parallax-swiper_component.is-moving [data-fade-slide] {
   opacity: 0 !important;
   pointer-events: none !important;
-  transition: opacity calc(150ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-travel,ease-out) !important;
+  transition: opacity calc(150ms * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease-out) !important;
 }
 
 /* Native content keeps its layout and initial visibility. The prepared carousel

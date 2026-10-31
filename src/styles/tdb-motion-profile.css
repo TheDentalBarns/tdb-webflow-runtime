@@ -4,6 +4,46 @@ html {
   --tdb-motion-ease-travel: cubic-bezier(.45,0,.25,1);
   --tdb-motion-ease-panel: cubic-bezier(.4,0,.2,1);
   --tdb-motion-ease-release: cubic-bezier(.25,.55,.3,1);
-  --tdb-motion-ease-fade: ease-in-out;
   --tdb-motion-ease-control: cubic-bezier(.4,0,.2,1);
+  --tdb-navigation-pace: 1;
+  --tdb-accordion-pace: 1;
+  --tdb-fade-pace: 1;
+  --tdb-navigation-ease-travel: initial;
+  --tdb-navigation-ease-panel: initial;
+  --tdb-navigation-ease-release: initial;
+  --tdb-navigation-ease-fade: initial;
+  --tdb-navigation-ease-control: initial;
+  --tdb-accordion-ease-travel: initial;
+  --tdb-accordion-ease-panel: initial;
+  --tdb-accordion-ease-release: initial;
+  --tdb-accordion-ease-fade: initial;
+  --tdb-accordion-ease-control: initial;
+  --tdb-fade-ease-travel: initial;
+  --tdb-fade-ease-panel: initial;
+  --tdb-fade-ease-release: initial;
+  --tdb-fade-ease-fade: initial;
+  --tdb-fade-ease-control: initial;
+  --tdb-motion-ease-fade: initial;
+}
+
+:where(.navbar10_component,.navbar-bg_layer) {
+  --tdb-motion-pace: var(--tdb-navigation-pace);
+  --tdb-motion-ease-travel: initial;
+  --tdb-motion-ease-panel: initial;
+  --tdb-motion-ease-release: initial;
+  --tdb-motion-ease-fade: initial;
+  --tdb-motion-ease-control: initial;
+}
+
+:where([data-tdb-disclosure-item]) {
+  --tdb-motion-pace: var(--tdb-accordion-pace);
+  --tdb-motion-ease-travel: initial;
+  --tdb-motion-ease-panel: initial;
+  --tdb-motion-ease-release: initial;
+  --tdb-motion-ease-fade: initial;
+  --tdb-motion-ease-control: initial;
+  --tdb-reveal-fade-in: calc(300ms * var(--tdb-accordion-pace));
+  --tdb-reveal-move-in: calc(400ms * var(--tdb-accordion-pace));
+  --tdb-reveal-out: calc(200ms * var(--tdb-accordion-pace));
+  --tdb-reveal-ease: var(--tdb-motion-ease-control,cubic-bezier(.165,.84,.44,1));
 }

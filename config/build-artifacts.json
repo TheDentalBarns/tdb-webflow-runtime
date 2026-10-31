@@ -98,19 +98,19 @@
         "src/shared/drawer-reading.js",
         "src/shared/drawer.js"
       ],
-      "sha256": "115d5148e1bdaa1859318974b224e1c9afb87e2ba544c83805c96a8a2a7d291d",
-      "raw": 12145,
-      "gzip": 4443,
-      "brotli": 3977
+      "sha256": "5e9ce815012c0b5589c8bc37c4f0093a4e67442a3f365d0c60dcf5eef4d8935d",
+      "raw": 12245,
+      "gzip": 4474,
+      "brotli": 3999
     },
     "dist/tdb-filters.js": {
       "sources": [
         "src/shared/filters.js"
       ],
-      "sha256": "9eac8a00bbe39648928f2992ff118695cb7095a3a34ac5d5780506fa173b67bb",
-      "raw": 7192,
-      "gzip": 2896,
-      "brotli": 2592
+      "sha256": "7acbd6e6634aa18871147104c92fbccead5979b2031e891316a96ded78a9a645",
+      "raw": 7240,
+      "gzip": 2915,
+      "brotli": 2608
     },
     "dist/tdb-first-impressions.js": {
       "sources": [
@@ -310,10 +310,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "d25d6337f1337dab40b0e9b308c5b6ad7c86b454983c36c0d75288ed255bb1a6",
-      "raw": 25045,
-      "gzip": 8721,
-      "brotli": 7926
+      "sha256": "0436da3ed0e1378d782209c5b2b90803148a11f825768e1bc7b07a287bf2dab6",
+      "raw": 25107,
+      "gzip": 8748,
+      "brotli": 7960
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -333,10 +333,10 @@
         "src/shared/panel-motion.js",
         "src/navbar/navbar-enhancement.js"
       ],
-      "sha256": "7360e8faad5c344891171c8fcb2c61931d8d0b54e367c202546b4a1bb963334d",
-      "raw": 23830,
-      "gzip": 6246,
-      "brotli": 5586
+      "sha256": "4876fa1e0149bbeba67af95855f9f96b52ea0553413c36b4e63c977482b27a0c",
+      "raw": 23994,
+      "gzip": 6357,
+      "brotli": 5694
     },
     "dist/tdb-parallax.js": {
       "sources": [
@@ -480,10 +480,10 @@
       "sources": [
         "src/reviews/native/quotes.js"
       ],
-      "sha256": "2576ef9f3a438e11c82d9c69c8c705bf3261325abda71844585e964380dffdc2",
-      "raw": 3893,
-      "gzip": 1721,
-      "brotli": 1469
+      "sha256": "a52c26908b9a44db340005eaee7c60ef8825ebf55c98941e1923982bbe1810d5",
+      "raw": 3941,
+      "gzip": 1736,
+      "brotli": 1484
     },
     "dist/tdb-review-widget.js": {
       "sources": [
@@ -508,10 +508,10 @@
         "src/reviews/native/quote-mark.js",
         "src/reviews/native/drawer-content.js"
       ],
-      "sha256": "bb91b5981d4e737a7d999b39f48df065d4fd7f813417858bb110c5571a24868b",
-      "raw": 20242,
-      "gzip": 7188,
-      "brotli": 6470
+      "sha256": "4d6f364dcae663e8e0e93209f998cad6c934493232bf7f2d020fc972157c534f",
+      "raw": 20386,
+      "gzip": 7210,
+      "brotli": 6485
     },
     "dist/tdb-runtime.js": {
       "sources": [
@@ -566,10 +566,10 @@
       "sources": [
         "src/shared/slider-focus.js"
       ],
-      "sha256": "eb12baa585b048ac396087874a1da28be026c8d66d4d90af48bf1bac693e82cb",
-      "raw": 6113,
-      "gzip": 2371,
-      "brotli": 2107
+      "sha256": "ffdc2e1b082881a62a9d730715a7da944023303909fb06bdf0f84cb1f2c46db5",
+      "raw": 6153,
+      "gzip": 2390,
+      "brotli": 2118
     },
     "dist/tdb-smile-feed.js": {
       "sources": [
@@ -599,10 +599,10 @@
         "src/reviews/native/summary-visibility.js",
         "src/startup/start.js"
       ],
-      "sha256": "05b01224b9810743bc1d804e9dd21159cd8de710ddf23d104d0e2cf5fd155bca",
-      "raw": 11559,
-      "gzip": 4340,
-      "brotli": 3873
+      "sha256": "19fbbc1a6b6e7c69b834b2a0244924a6131fef1ff479da632f24593c65b697a4",
+      "raw": 12280,
+      "gzip": 4569,
+      "brotli": 4069
     },
     "dist/tdb-ticker.js": {
       "sources": [
@@ -653,10 +653,10 @@
       "sources": [
         "src/components/vimeo.js"
       ],
-      "sha256": "af444ad8218192bee7c195d883d20020da5ada81240a4185939978d3b5131760",
-      "raw": 20301,
-      "gzip": 5723,
-      "brotli": 5059
+      "sha256": "56567a857cda7189547e3b38c6013e1b38267ec1454ea61825ca99224eeb0561",
+      "raw": 20349,
+      "gzip": 5742,
+      "brotli": 5082
     },
     "dist/tdb-vip-content.js": {
       "sources": [
@@ -673,10 +673,10 @@
         "src/shared/panel-motion.js",
         "src/vip-drawer/vip-drawer.js"
       ],
-      "sha256": "b7abf679bc7cac3a51ec77e816b36c33b08bfb68c93bdd404543f78613087452",
-      "raw": 9426,
-      "gzip": 3444,
-      "brotli": 3022
+      "sha256": "cbe402f8685c8628f07e2d55d92249c092d8b3c8557780a152d8491f1b45989e",
+      "raw": 9565,
+      "gzip": 3510,
+      "brotli": 3081
     },
     "dist/tdb-vip-form.js": {
       "sources": [

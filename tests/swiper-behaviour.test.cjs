@@ -40,12 +40,13 @@ function fixture(){const events={},log=[];function slide(key,x,paint){const chil
  window.TDBMotionProfile={easing:(role,fallback)=>curves[role]||fallback};
  window.TDBSwiper.bindSwiper(s);
  assert.equal(s.wrapperEl.style.transitionTimingFunction,curves.travel,'selected palette controls arrow travel');
+ assert.equal(s.slides[1].child.style.transitionTimingFunction,curves.travel,'compensating parallax movement uses the same curve');
  events.touchEnd();s.slideTo(2,500,true);
  assert.equal(s.wrapperEl.style.transitionTimingFunction,curves.release,'gesture release retains its separate role');
  assert.equal(s.slides[1].child.style.transitionTimingFunction,curves.release);
  events.transitionEnd();
  assert.equal(s.wrapperEl.style.transitionTimingFunction,curves.travel,'settling restores the selected travel curve');
- assert.equal(s.slides[1].child.style.transitionTimingFunction,'linear');
+ assert.equal(s.slides[1].child.style.transitionTimingFunction,curves.travel);
  events.touchEnd();s.slideTo(3,500,true);s.slideTo(4,500,true);
  assert.equal(s.wrapperEl.style.transitionTimingFunction,curves.travel,'arrow interruption returns to selected travel');
  assert.deepEqual(log.at(-1),['slideTo',4,500,true,undefined,undefined],'adapter preserves target and configured duration');

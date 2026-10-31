@@ -31,7 +31,7 @@ html.tdb-timer-hidden .tdb-elfsight-shell {
 
 }
 
-html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elfsight-timer-shell,html.tdb-sg-locked #tdb-elfsight-timer-shell{transform:translate3d(0,-100%,0)!important;opacity:1!important;visibility:hidden!important;pointer-events:none!important;transition:transform var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-peek-ease,var(--tdb-motion-ease-control,cubic-bezier(.4,0,.2,1))),visibility 0s var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1)))!important}
+html.tdb-slider-focus #tdb-elfsight-timer-shell,html.tdb-sg-chrome-away #tdb-elfsight-timer-shell,html.tdb-sg-locked #tdb-elfsight-timer-shell{transform:translate3d(0,-100%,0)!important;opacity:1!important;visibility:hidden!important;pointer-events:none!important;transition:transform var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-peek-ease,var(--tdb-motion-ease-control,cubic-bezier(.4,0,.2,1))),visibility 0s var(--tdb-peek-duration,calc(420ms * var(--tdb-fade-pace,1)))!important}
 
 /* Keep the banner painted until its upward exit finishes. */
 html:has(#tdb-vip-drawer:is(.is-open,.is-closing)) #tdb-elfsight-timer-shell{
@@ -39,7 +39,7 @@ html:has(#tdb-vip-drawer:is(.is-open,.is-closing)) #tdb-elfsight-timer-shell{
   opacity:1!important;
   pointer-events:none!important;
   transform:translate3d(0,-100%,0)!important;
-  transition:transform var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-peek-ease,var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))),visibility 0s linear var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1)))!important;
+  transition:transform var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-peek-ease,var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))),visibility 0s linear var(--tdb-peek-duration,calc(420ms * var(--tdb-fade-pace,1)))!important;
 }
 
 @media (min-width:992px) {

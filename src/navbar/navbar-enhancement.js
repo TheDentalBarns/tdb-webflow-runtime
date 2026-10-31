@@ -1,5 +1,7 @@
 (() => {
   if (window.TDBNavbar || !document.querySelector('.navbar10_component')) return;
+  const navProfile = window.TDBMotionProfile?.forFamily?.('navigation') || window.TDBMotionProfile;
+  const panelMotion = window.TDBPanelMotion.forFamily?.('navigation') || window.TDBPanelMotion;
   const t = () => {
     if (window.TDBNavbar) return;
     const navState = window.TDBNavbarState.forNav(document.querySelector('.navbar10_component'));
@@ -48,7 +50,7 @@
         const e = document.documentElement;
         let n;
         function a() {
-          const a = window.TDBPanelMotion.duration(),
+          const a = panelMotion.duration(),
             o = (t) => Math.round((t * a) / 500);
           (n && n.panel === a) ||
             ((n = Object.freeze({
@@ -79,8 +81,7 @@
         ((window.TDBNavMotion = Object.freeze({
           refresh: a,
           surfaceEasing:
-            window.TDBMotionProfile?.easing('panel', 'cubic-bezier(0.4,0,0.2,1)') ||
-            'cubic-bezier(0.4,0,0.2,1)',
+            navProfile?.easing('panel', 'cubic-bezier(0.4,0,0.2,1)') || 'cubic-bezier(0.4,0,0.2,1)',
           get current() {
             return n;
           },
@@ -398,7 +399,7 @@
                       {
                         duration: window.TDBNavMotion.current.textOut,
                         easing:
-                          window.TDBMotionProfile?.easing('fade', 'cubic-bezier(0, 0, 0.2, 1)') ||
+                          navProfile?.easing('fade', 'cubic-bezier(0, 0, 0.2, 1)') ||
                           'cubic-bezier(0, 0, 0.2, 1)',
                         fill: 'forwards',
                       },
@@ -652,7 +653,7 @@
                     ],
                     {
                       duration: a.panel,
-                      easing: window.TDBPanelMotion.easing,
+                      easing: panelMotion.easing,
                     },
                   ),
                   _(
@@ -667,7 +668,7 @@
                     ],
                     {
                       duration: a.panel,
-                      easing: window.TDBPanelMotion.easing,
+                      easing: panelMotion.easing,
                     },
                   ),
                   i.forEach((t, e) =>
@@ -711,7 +712,7 @@
                         duration: n ? a.textIn : a.textOut,
                         delay: n ? a.delay : 0,
                         easing:
-                          window.TDBMotionProfile?.easing(
+                          navProfile?.easing(
                             'fade',
                             n ? 'cubic-bezier(0.5,0,1,1)' : 'cubic-bezier(0,0,0.2,1)',
                           ) || (n ? 'cubic-bezier(0.5,0,1,1)' : 'cubic-bezier(0,0,0.2,1)'),

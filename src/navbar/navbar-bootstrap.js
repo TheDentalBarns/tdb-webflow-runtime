@@ -1,4 +1,5 @@
 (() => {
+  const navProfile = window.TDBMotionProfile?.forFamily?.('navigation') || window.TDBMotionProfile;
   const initMobileNavTextClose = () => {
     const button = document.querySelector('.navbar10_menu-button, .w-nav-button');
     const menu = document.querySelector('.navbar10_menu');
@@ -10,7 +11,7 @@
     button.dataset.tdbTextClose = '1';
 
     let textAnimations = [];
-    const textDuration = window.TDBMotionProfile?.time(420) ?? 420;
+    const textDuration = navProfile?.time(420) ?? 420;
 
     const menuIsOpen = () =>
       button.classList.contains('w--open') ||
@@ -73,7 +74,7 @@
           {
             duration: textDuration,
             easing:
-              window.TDBMotionProfile?.easing('fade', 'cubic-bezier(0, 0, 0.2, 1)') ||
+              navProfile?.easing('fade', 'cubic-bezier(0, 0, 0.2, 1)') ||
               'cubic-bezier(0, 0, 0.2, 1)',
             fill: 'forwards',
           },

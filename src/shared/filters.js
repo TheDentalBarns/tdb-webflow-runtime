@@ -205,7 +205,11 @@
       animation.finished.then(finish).catch(() => {});
       if (backdrop) {
         shadeAnimation = backdrop.animate([{ opacity: shadeFrom }, { opacity: value ? 1 : 0 }], {
-          duration: Math.min(duration, window.TDBMotionProfile?.time(300) ?? 300),
+          duration: Math.min(
+            duration,
+            (window.TDBMotionProfile?.forFamily?.('fade') || window.TDBMotionProfile)?.time(300) ??
+              300,
+          ),
           fill: 'both',
         });
         shadeAnimation.finished.catch(() => {});

@@ -103,7 +103,12 @@
         if (backdrop)
           animations.push(
             backdrop.animate([{ opacity: opening ? 0 : 1 }, { opacity: opening ? 1 : 0 }], {
-              duration: Math.min(duration, window.TDBMotionProfile?.time(300) ?? 300),
+              duration: Math.min(
+                duration,
+                (window.TDBMotionProfile?.forFamily?.('fade') || window.TDBMotionProfile)?.time(
+                  300,
+                ) ?? 300,
+              ),
               fill: 'both',
             }),
           );
