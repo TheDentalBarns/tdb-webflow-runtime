@@ -25,7 +25,7 @@ function setup(options={}){
  w.TDBSwiper={create(){},mount(type,root){
    mounts++;const handlers=new Map(),track=root.querySelector('[data-ig-track]');
    const instance={realIndex:0,activeIndex:0,previousIndex:0,slides:[...track.children],destroyed:false,
-     on(k,f){handlers.set(k,f);},off(k){handlers.delete(k);},
+     on(k,f){handlers.set(k,f);},off(k){handlers.delete(k);},emit(k){handlers.get(k)?.();},
      destroy(){if(this.destroyed)return;destroys++;this.destroyed=true;handlers.get('beforeDestroy')?.();}};
    root.querySelector('[data-ig-viewport]').swiper=instance;
    if(fail==='throw'){track.append(track.firstElementChild.cloneNode(true));throw Error('mount failed');}
@@ -102,6 +102,35 @@ for(const [mobile,count] of [[false,5],[true,3]])test('image window preserves '+
  const e=setup({mobile});e.run();e.near();await tick();assert.equal(e.d.querySelectorAll('[data-ig-image-ready]').length,count);
  e.w.TDBInstagramNative.destroy();assert.equal(e.d.querySelectorAll('img[loading="lazy"]').length,16);assert.equal(e.d.querySelectorAll('img[src]').length,16);e.close();
 });
+test('rapid navigation retains rendered cards and loop destinations while retiring cached offscreen paint',async()=>{
+ const e=setup({mobile:true});e.run();e.near();await tick();
+ try{
+  const root=e.d.querySelector('section'),s=root.querySelector('[data-ig-viewport]').swiper;
+  const slide=i=>root.querySelector('[data-ig-index="'+i+'"]');
+  let origin=-378;
+  root.getBoundingClientRect=()=>({left:0,right:440,width:440});
+  s.slidesSizesGrid=s.slides.map(()=>400);
+  s.slides.forEach((node,i)=>{node.swiperSlideOffset=i*400;node.getBoundingClientRect=()=>({left:origin+i*400});});
+  root.setAttribute('data-tdb-slider-first-view','advanced');
+  const go=i=>{s.realIndex=(i+1)%8;s.emit('slideChange');};
+  go(5);
+  for(const i of [0,1,4,5,6])assert.equal(slide(i).hasAttribute('data-ig-paint-hidden'),false,'outgoing and destination '+i);
+  origin=-2378;s.emit('setTranslate');await tick();await tick();
+  assert.equal(slide(0).hasAttribute('data-ig-paint-hidden'),true);
+  assert.equal(slide(0).hasAttribute('data-ig-image-ready'),true);
+  assert.equal(slide(0).querySelector('img').getAttribute('src'),'/photo0.webp','retiring paint preserves image cache');
+  for(let i=0;i<24;i++){origin=-((i%8+1)%8)*400+22;go(i%8);}
+  assert.equal(root.querySelectorAll('[data-ig-image-ready]').length,8);
+  assert.equal(root.querySelectorAll('[data-ig-paint-hidden]').length,4,'visited cards do not accumulate paint');
+  const clone=slide(7).cloneNode(true);root.querySelector('[data-ig-track]').append(clone);s.slides.push(clone);s.emit('slidesLengthChange');
+  assert.equal(clone.hasAttribute('data-ig-paint-hidden'),false,'loop destination available before next frame');
+  clone.remove();s.slides.pop();s.emit('slidesLengthChange');
+  s.emit('setTranslate');
+  e.w.TDBInstagramNative.destroy();
+  await tick();await tick();assert.equal(root.querySelectorAll('[data-ig-paint-hidden]').length,0,'queued frame cannot revive paint after teardown');
+ }finally{e.close();}
+});
+
 test('starter is definition-only and waits for permission and native presence',async()=>{
  const e=setup({html:'',allowed:false});e.w.eval(starter);assert.equal(e.w.TDBInstagramFeatureLoader,undefined);
  e.w.eval('prepareInstagramFeatureLoader()');e.permit(true);await tick();assert.equal(e.loads.length,0);e.close();

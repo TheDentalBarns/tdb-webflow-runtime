@@ -234,10 +234,10 @@
       "sources": [
         "src/instagram/native.js"
       ],
-      "sha256": "039235ae09aa1ec069614f1b81e7eb147010622833f2b5e1e82fe004254a39b4",
-      "raw": 13923,
-      "gzip": 5124,
-      "brotli": 4561
+      "sha256": "c2d19e349a9ad9e1926b5d2a9d3682331990730ffad09042ff8572879ca1a82a",
+      "raw": 15012,
+      "gzip": 5514,
+      "brotli": 4898
     },
     "dist/tdb-journey.js": {
       "sources": [

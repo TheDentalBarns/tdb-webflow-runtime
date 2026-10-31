@@ -7,9 +7,9 @@
 [data-tdb-ig-placeholder][data-ig-state="ready"]>.tdb-ig-holding-image{visibility:hidden;pointer-events:none;transition:visibility 0s linear var(--tdb-reveal-fade-in,calc(300ms * var(--tdb-motion-pace,1)))}
 [data-tdb-ig-placeholder]:not([data-ig-state="ready"])>[data-tdb-ig-native] *{pointer-events:none!important}
 
-/* Reuse the native image window for initial painting. Unprepared offscreen
-   cards keep their geometry with glass effects disabled. Ready cards
-   retain the existing blur, opacity transitions and carousel entrance.
+/* Keep offscreen painting bounded after navigation as well as at startup.
+   The native paint window protects buffered rendered cards and destinations;
+   loaded images remain cached. Visible blur, motion and geometry are unchanged.
    Native/no-JS and explicit loading fallback remain visible. */
-.ig-native_feed[data-tdb-ig-ready]:not([data-ig-loading-fallback]) .ig-native_slide:not([data-ig-image-ready]){visibility:hidden}
-.ig-native_feed[data-tdb-ig-ready]:not([data-ig-loading-fallback]) .ig-native_slide:not([data-ig-image-ready]) .ig-native_glass{-webkit-backdrop-filter:none;backdrop-filter:none}
+.ig-native_feed[data-tdb-ig-ready]:not([data-ig-loading-fallback]) .ig-native_slide:is(:not([data-ig-image-ready]),[data-ig-paint-hidden]){visibility:hidden}
+.ig-native_feed[data-tdb-ig-ready]:not([data-ig-loading-fallback]) .ig-native_slide:is(:not([data-ig-image-ready]),[data-ig-paint-hidden]) .ig-native_glass{-webkit-backdrop-filter:none;backdrop-filter:none}

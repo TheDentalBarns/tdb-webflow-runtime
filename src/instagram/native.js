@@ -175,9 +175,50 @@
   }
   function imageWindow(root, posts) {
     const desktop = matchMedia(IMAGE_WINDOW.desktopQuery),
-      loaded = new Set();
+      loaded = new Set(),
+      selected = new Set();
     let current = 0,
-      previousCount = 0;
+      previousCount = 0,
+      owner = null,
+      frame = 0,
+      disposed = false;
+    // Loaded images stay cached. Painting follows a separate, bounded window:
+    // two batched geometry reads locate the rendered track; cached Swiper
+    // offsets locate its cards. Keep one feed width of buffer on either side
+    // plus selected destinations/copies. Target indices or asynchronous
+    // intersections alone can miss cards during rapid loop interruptions.
+    function paint() {
+      if (disposed) return;
+      const slides = [...root.querySelectorAll('[data-ig-slide]')];
+      const first = owner?.slides[0];
+      const bounds = first && root.getBoundingClientRect();
+      const origin = first && first.getBoundingClientRect().left - first.swiperSlideOffset;
+      const geometry = bounds?.width > 0 && Number.isFinite(origin);
+      for (const [index, slide] of slides.entries()) {
+        const left = origin + slide.swiperSlideOffset;
+        const near =
+          geometry &&
+          left < bounds.right + bounds.width &&
+          left + owner.slidesSizesGrid[index] > bounds.left - bounds.width;
+        const hidden = !near && !selected.has(Number(slide.dataset.igIndex));
+        if (slide.hasAttribute('data-ig-paint-hidden') !== hidden)
+          slide.toggleAttribute('data-ig-paint-hidden', hidden);
+      }
+    }
+    function schedule() {
+      if (frame || disposed || document.hidden) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        if (disposed || document.hidden) return;
+        paint();
+        const moving = owner?.wrapperEl?.getAnimations
+          ? owner.wrapperEl
+              .getAnimations()
+              .some((animation) => animation.playState === 'running' || animation.pending)
+          : owner?.animating;
+        if (moving) schedule();
+      });
+    }
     root.removeAttribute('data-ig-loading-fallback');
     const loading = new Map();
     posts.forEach((post) => post.slide.removeAttribute('data-ig-image-ready'));
@@ -202,8 +243,12 @@
       previousCount = count;
       // Desktop focuses the left card: current + two visible cards + next/prev
       // buffers. Mobile shows one card with one neighbour in either direction.
-      for (let offset = -1; offset < count - 1; offset++)
-        loaded.add((index + offset + posts.length) % posts.length);
+      selected.clear();
+      for (let offset = -1; offset < count - 1; offset++) {
+        const selectedIndex = (index + offset + posts.length) % posts.length;
+        selected.add(selectedIndex);
+        loaded.add(selectedIndex);
+      }
       // Include Swiper loop copies, using the same CMS URL for photo/reflections.
       root.querySelectorAll('[data-ig-slide]:not([data-ig-image-ready])').forEach((slide) => {
         if (!loaded.has(Number(slide.dataset.igIndex))) return;
@@ -214,13 +259,26 @@
           restoreImage(image);
         });
       });
+      paint();
     }
     const resize = () => update();
     desktop.addEventListener('change', resize);
     update();
     return {
       update,
+      schedule,
+      follow(swiper) {
+        owner = swiper;
+        document.addEventListener('visibilitychange', schedule);
+        schedule();
+      },
       destroy() {
+        disposed = true;
+        cancelAnimationFrame(frame);
+        document.removeEventListener('visibilitychange', schedule);
+        root
+          .querySelectorAll('[data-ig-paint-hidden]')
+          .forEach((slide) => slide.removeAttribute('data-ig-paint-hidden'));
         desktop.removeEventListener('change', resize);
         loading.forEach((value, image) => {
           if (value === null) image.removeAttribute('loading');
@@ -540,12 +598,19 @@
       window.TDBGallery.beforeObserve(root);
       swiper = window.TDBSwiper.mount('gallery', root);
       if (!swiper) throw Error('Shared gallery unavailable');
+      images.follow(swiper);
       handlers = {
         slideChange: () => {
           hideVideo();
           sync();
         },
-        transitionStart: hideVideo,
+        transitionStart: () => {
+          hideVideo();
+          images.schedule();
+        },
+        setTranslate: images.schedule,
+        resize: images.schedule,
+        loopFix: images.schedule,
         touchStart: () => {
           dragging = true;
           clearTimeout(timer);
