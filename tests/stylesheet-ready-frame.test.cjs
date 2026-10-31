@@ -30,3 +30,20 @@ test('a genuinely stale stylesheet still retries once then rejects after its bou
     assert.equal(replacement.dataset.tdbLoadFailed,'true');assert.equal(f.frames.size,0);
   } finally {f.close();}
 });
+test('module-registry styles also await one readiness frame without duplicating the link or flight', async () => {
+  const f=fixture();try {
+    f.w.eval(fs.readFileSync('src/shared/modules.js','utf8'));
+    const options={type:'style',ready:()=>f.w.getComputedStyle().getPropertyValue()==='1'};
+    const url=f.link().href,original=f.link(),first=f.w.TDBModules.load(url,options),second=f.w.TDBModules.load(url,options);
+    assert.equal(first,second);original.dispatchEvent(new f.w.Event('load'));assert.equal(f.frames.size,1);
+    f.setReady();f.frame();await first;assert.equal(f.link(),original);assert.equal(original.dataset.tdbLoaded,'true');assert.equal(f.frames.size,0);
+  } finally {f.close();}
+});
+test('module-registry style readiness remains a terminal export failure after one unsuccessful frame', async () => {
+  const f=fixture();try {
+    f.w.eval(fs.readFileSync('src/shared/modules.js','utf8'));
+    const options={type:'style',ready:()=>false},url=f.link().href,flight=f.w.TDBModules.load(url,options);
+    const rejected=assert.rejects(flight,error=>error.code==='TDB_EXPORT');f.link().dispatchEvent(new f.w.Event('load'));f.frame();await rejected;
+    await assert.rejects(f.w.TDBModules.load(url,options),error=>error.code==='TDB_EXPORT');assert.equal(f.w.document.querySelectorAll('link').length,1);assert.equal(f.frames.size,0);
+  } finally {f.close();}
+});

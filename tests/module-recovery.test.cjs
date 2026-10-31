@@ -5,7 +5,7 @@ const {JSDOM}=require(process.env.TDB_JSDOM||'jsdom');
 const source=fs.readFileSync('dist/tdb-modules.js','utf8');
 const base='https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@';
 function setup(pins={}){
- const dom=new JSDOM('<!doctype html><head></head><body><button>Open</button></body>',{url:'https://dentalbarns.webflow.io/',runScripts:'outside-only'});
+ const dom=new JSDOM('<!doctype html><head></head><body><button>Open</button></body>',{url:'https://dentalbarns.webflow.io/',runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window, registry=w.document.createElement('script');
  registry.src=base+'registry/dist/tdb-modules.js';
  registry.dataset.tdbCarouselBase=base+'carousel/dist/';

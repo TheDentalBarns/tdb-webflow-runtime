@@ -644,6 +644,8 @@
     let fulfill,
       reject,
       timer,
+      readyFrame = null,
+      recheckedStyle = false,
       settled = false,
       timedOut = false;
     const promise = new Promise((a, b) => {
@@ -654,6 +656,7 @@
     flights.set(key, entry);
     function cleanup() {
       clearTimeout(timer);
+      if (readyFrame !== null) cancelAnimationFrame(readyFrame);
       node.removeEventListener('load', done);
       node.removeEventListener('error', fail);
     }
@@ -670,7 +673,7 @@
       reject(dependencyError('TDB_NETWORK', 'Dependency unavailable: ' + src));
     }
     function done() {
-      if (settled) return;
+      if (settled || readyFrame !== null) return;
       try {
         for (const check of entry.checks)
           if (!check())
@@ -679,6 +682,16 @@
               'Dependency loaded without expected export: ' + src,
             );
       } catch (error) {
+        // Match the feature CSS gate: WebKit may expose a loaded stylesheet's
+        // computed readiness flag only after the next style application frame.
+        if (style && !recheckedStyle) {
+          recheckedStyle = true;
+          readyFrame = requestAnimationFrame(() => {
+            readyFrame = null;
+            done();
+          });
+          return;
+        }
         settled = true;
         cleanup();
         entry.checks.clear();

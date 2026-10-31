@@ -76,10 +76,10 @@
         "src/shared/modules.js",
         "src/consent/consent.js"
       ],
-      "sha256": "00b308802e6f424990cf9e14d3074abc6310b71d5fbf3b086f98954184bc61ee",
-      "raw": 22212,
-      "gzip": 7604,
-      "brotli": 6801
+      "sha256": "b234ff86094a803667c5414e93a40a9e4d5c52fb386e87acca843c6aee5ba5bc",
+      "raw": 22337,
+      "gzip": 7650,
+      "brotli": 6852
     },
     "dist/tdb-consent.min.js": {
       "sources": [
@@ -291,10 +291,10 @@
       "sources": [
         "src/shared/modules.js"
       ],
-      "sha256": "1ab4554a7cdb652ec3e7fb76897b6bde6102a5eb4e1b668111885563f892ca32",
-      "raw": 3579,
-      "gzip": 1662,
-      "brotli": 1487
+      "sha256": "f0fed0361a9c3cd6fa2ba45bfb3e7f4c3719ccdb2701c1931bb96b8d69df99bf",
+      "raw": 3704,
+      "gzip": 1729,
+      "brotli": 1551
     },
     "dist/tdb-motion-policy.js": {
       "sources": [
@@ -599,10 +599,10 @@
         "src/reviews/native/summary-visibility.js",
         "src/startup/start.js"
       ],
-      "sha256": "19fbbc1a6b6e7c69b834b2a0244924a6131fef1ff479da632f24593c65b697a4",
-      "raw": 12280,
-      "gzip": 4569,
-      "brotli": 4069
+      "sha256": "73058d6185fa0c3b379835311af810589a26dbb40b0a7c1c959cd0b802eb9620",
+      "raw": 12405,
+      "gzip": 4635,
+      "brotli": 4139
     },
     "dist/tdb-ticker.js": {
       "sources": [
