@@ -6,3 +6,10 @@
 /* Match Smiles: retain the stationary holder until the decoded feed finishes fading in. */
 [data-tdb-ig-placeholder][data-ig-state="ready"]>.tdb-ig-holding-image{visibility:hidden;pointer-events:none;transition:visibility 0s linear var(--tdb-reveal-fade-in,calc(300ms * var(--tdb-motion-pace,1)))}
 [data-tdb-ig-placeholder]:not([data-ig-state="ready"])>[data-tdb-ig-native] *{pointer-events:none!important}
+
+/* Reuse the native image window for initial painting. Unprepared offscreen
+   cards keep their geometry with glass effects disabled. Ready cards
+   retain the existing blur, opacity transitions and carousel entrance.
+   Native/no-JS and explicit loading fallback remain visible. */
+.ig-native_feed[data-tdb-ig-ready]:not([data-ig-loading-fallback]) .ig-native_slide:not([data-ig-image-ready]){visibility:hidden}
+.ig-native_feed[data-tdb-ig-ready]:not([data-ig-loading-fallback]) .ig-native_slide:not([data-ig-image-ready]) .ig-native_glass{-webkit-backdrop-filter:none;backdrop-filter:none}
