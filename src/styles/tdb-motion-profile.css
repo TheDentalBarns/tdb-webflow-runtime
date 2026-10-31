@@ -1,5 +1,9 @@
 /* Generated from config/motion.json. Change pace/character there. */
 html {
-  --tdb-motion-pace: 1;
-
+  --tdb-motion-pace: 1.25;
+  --tdb-motion-ease-travel: cubic-bezier(.45,0,.25,1);
+  --tdb-motion-ease-panel: cubic-bezier(.4,0,.2,1);
+  --tdb-motion-ease-release: cubic-bezier(.25,.55,.3,1);
+  --tdb-motion-ease-fade: ease-in-out;
+  --tdb-motion-ease-control: cubic-bezier(.4,0,.2,1);
 }

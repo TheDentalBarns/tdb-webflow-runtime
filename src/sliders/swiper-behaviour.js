@@ -100,6 +100,12 @@
       loopFix: swiper.loopFix,
       slidePrev: swiper.slidePrev,
     };
+    // A selected palette owns arrow travel as well as touch release. With the
+    // current palette, leave the component's native/inline curve untouched.
+    const travelStyle = swiper.wrapperEl?.style;
+    const originalTravelEasing = travelStyle?.transitionTimingFunction || '';
+    const travelEasing = window.TDBMotionProfile?.easing('travel', '');
+    if (travelEasing && travelStyle) travelStyle.transitionTimingFunction = travelEasing;
     const releaseEasing =
       window.TDBMotionProfile?.easing('release', 'cubic-bezier(.22,.61,.36,1)') ||
       'cubic-bezier(.22,.61,.36,1)';
@@ -254,6 +260,7 @@
       releaseGesture();
       releasePending = false;
       restoreReleaseEasing();
+      if (travelEasing && travelStyle) travelStyle.transitionTimingFunction = originalTravelEasing;
       swiper.slideTo = original.slideTo;
       swiper.loopFix = original.loopFix;
       swiper.slidePrev = original.slidePrev;

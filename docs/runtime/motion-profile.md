@@ -3,9 +3,9 @@
 Edit `config/motion.json`, rebuild, and deploy the JS and CSS from the same commit. Two settings provide the normal tuning surface:
 
 - `pace`: duration multiplier. `1` preserves the current timings; `1.25` makes linked motion take 25% longer; `1.5` makes it take 50% longer. Supported range: 0.5–2.
-- `character`: named easing palette. `current` preserves each existing curve. `soft` is an unselected candidate for visual review, not an approved seasonal design.
+- `character`: named easing palette. `current` preserves each original curve. `soft` supplies gentler travel, panel, release, fade and control curves.
 
-The initial consolidated release uses `pace: 1` and `character: "current"`. This changes ownership, not the intended feel. Future seasonal palettes can be added under `characters` and selected by name. Use role curves for travel, panels, release, fades and controls; keep linear spinners and progress linear.
+The initial consolidated release used `pace: 1` and `character: "current"`. The staging trial requested on 31 October 2026 selects `pace: 1.25` and `character: "soft"`: linked transitions take 25% longer, with smoother starts and settling. This is a staging design trial, not a production rollout. Future palettes can be added under `characters` and selected by name. Use role curves for travel, panels, release, fades and controls; keep linear spinners and progress linear.
 
 ## Responsive timing and scope
 

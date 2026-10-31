@@ -22,6 +22,38 @@ function fixture(){const events={},log=[];function slide(key,x,paint){const chil
  s.touchEventsData.isMoved=false;events.touchEnd();s.slideTo(2,700,true);assert.equal(s.wrapperEl.style.transitionTimingFunction,'ease','taps do not use touch release easing');
  s.touchEventsData.isMoved=true;events.touchEnd();s.slideTo(2,700,true);events.beforeDestroy();assert.equal(s.wrapperEl.style.transitionTimingFunction,'ease');assert.equal(s.slides[1].child.style.transitionTimingFunction,'linear');
 }
-console.log('PASS: touch release easing, unchanged snap target/speed, parallax timing, loop corrections, cancellation, programmatic interruption and teardown.');
+{
+ const {s,events}=fixture();
+ s.wrapperEl.style.transitionTimingFunction='ease-in';
+ window.TDBMotionProfile={easing:(_,fallback)=>fallback};
+ window.TDBSwiper.bindSwiper(s);
+ assert.equal(s.wrapperEl.style.transitionTimingFunction,'ease-in','current profile retains component travel');
+ events.beforeDestroy();
+ assert.equal(s.wrapperEl.style.transitionTimingFunction,'ease-in');
+ delete window.TDBMotionProfile;
+}
+{
+ const {s,events,log}=fixture(),curves=require('../config/motion.json').characters.soft;
+ s.wrapperEl.style.transitionTimingFunction='ease-in';
+ s.slides[1].child.style.transitionTimingFunction='linear';
+ s.touchEventsData={isMoved:true};
+ window.TDBMotionProfile={easing:(role,fallback)=>curves[role]||fallback};
+ window.TDBSwiper.bindSwiper(s);
+ assert.equal(s.wrapperEl.style.transitionTimingFunction,curves.travel,'selected palette controls arrow travel');
+ events.touchEnd();s.slideTo(2,500,true);
+ assert.equal(s.wrapperEl.style.transitionTimingFunction,curves.release,'gesture release retains its separate role');
+ assert.equal(s.slides[1].child.style.transitionTimingFunction,curves.release);
+ events.transitionEnd();
+ assert.equal(s.wrapperEl.style.transitionTimingFunction,curves.travel,'settling restores the selected travel curve');
+ assert.equal(s.slides[1].child.style.transitionTimingFunction,'linear');
+ events.touchEnd();s.slideTo(3,500,true);s.slideTo(4,500,true);
+ assert.equal(s.wrapperEl.style.transitionTimingFunction,curves.travel,'arrow interruption returns to selected travel');
+ assert.deepEqual(log.at(-1),['slideTo',4,500,true,undefined,undefined],'adapter preserves target and configured duration');
+ events.touchEnd();s.slideTo(2,500,true);events.beforeDestroy();
+ assert.equal(s.wrapperEl.style.transitionTimingFunction,'ease-in','teardown restores the original component curve');
+ assert.equal(s.slides[1].child.style.transitionTimingFunction,'linear');
+ delete window.TDBMotionProfile;
+}
+console.log('PASS: central travel/release palettes, unchanged snap target/speed, parallax timing, loop corrections, cancellation, programmatic interruption and teardown.');
 vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../dist/tdb-motion.js'),'utf8'),context);assert.equal(window.TDBMotion.defaults.ddStartup,undefined);const {s}=fixture();window.TDBMotion.bindSwiper(s);assert.notEqual(s.slideTo.name,'slideTo');
 console.log('PASS: interrupted movement capture, loop continuity, previous/disabled branches, idempotent binding, method restoration and legacy delegation.');

@@ -1,6 +1,6 @@
 {
-  "pace": 1,
-  "character": "current",
+  "pace": 1.25,
+  "character": "soft",
   "distance": {
     "base": 400,
     "reference": 375,

@@ -599,10 +599,10 @@
         "src/reviews/native/summary-visibility.js",
         "src/startup/start.js"
       ],
-      "sha256": "a12aabd70e591058f936c81320daaabb54324b2c95c8d00aa7b057fa2c6025a1",
+      "sha256": "05b01224b9810743bc1d804e9dd21159cd8de710ddf23d104d0e2cf5fd155bca",
       "raw": 11559,
-      "gzip": 4337,
-      "brotli": 3871
+      "gzip": 4340,
+      "brotli": 3873
     },
     "dist/tdb-ticker.js": {
       "sources": [
