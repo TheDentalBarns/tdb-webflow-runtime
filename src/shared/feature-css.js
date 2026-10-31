@@ -19,8 +19,10 @@ function tdbEnsureStylesheet(attribute, filename, property, label) {
     return new Promise((resolve, reject) => {
       let settled = false;
       let timeout;
+      let readyFrame = null;
       function cleanup() {
         clearTimeout(timeout);
+        if (readyFrame !== null) cancelAnimationFrame(readyFrame);
         link.removeEventListener('load', loaded);
         link.removeEventListener('error', failed);
       }
@@ -41,9 +43,23 @@ function tdbEnsureStylesheet(attribute, filename, property, label) {
         next.then(resolve, reject);
       }
       function loaded() {
-        if (settled) return;
+        if (settled || readyFrame !== null) return;
         link.media = 'all';
-        if (!isReady()) return fail(new Error(`TDB ${label} bundle is stale or incomplete`));
+        if (!isReady()) {
+          // WebKit can dispatch load before the newly enabled sheet's registered
+          // custom-property flag is reflected in computed style. Recheck once
+          // after style application before treating valid CSS as a stale bundle.
+          readyFrame = requestAnimationFrame(() => {
+            readyFrame = null;
+            if (isReady()) complete();
+            else fail(new Error(`TDB ${label} bundle is stale or incomplete`));
+          });
+          return;
+        }
+        complete();
+      }
+      function complete() {
+        if (settled) return;
         settled = true;
         cleanup();
         link.dataset.tdbLoaded = 'true';

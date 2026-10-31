@@ -44,15 +44,15 @@
  */
 .tdb-service-copy,
 .tdb-treatment-copy {
-  transition: opacity calc(200ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-out);
+  transition: opacity calc(200ms * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease-out);
 }
 .tdb-service-copy.is-visible,
 .tdb-treatment-copy.is-visible {
-  transition: opacity calc(400ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in);
+  transition: opacity calc(400ms * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease-in);
 }
 .tdb-service-copy.is-moving,
 .tdb-treatment-copy.is-visible.is-moving {
-  transition: opacity calc(150ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-out);
+  transition: opacity calc(150ms * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease-out);
 }
 
 /* Use the controller's already-scaled duration, or scale the fallback once.
@@ -68,7 +68,7 @@
 .tdb-treatment-card:where(.w-variant-ccee4851-2369-7f80-45b0-8eae023f92ca),
 .tdb-stamp-confirmation::before,
 .tdb-stamp-confirmation::after {
-  transition: opacity calc(200ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease);
+  transition: opacity calc(200ms * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease);
 }
 
 /* Designer owns the stamp decorations. Reuse the existing link state and

@@ -14,18 +14,23 @@ The earlier trial applied the soft travel curve to the Swiper wrapper while its 
 
 The Instagram paint-window guard, visible 20 px blur, reflections, looping, snap destinations and drag geometry remain intact. Direct input, media playback, network retries and autoplay holds retain their established clocks.
 
+## Cold stylesheet readiness
+
+A direct-to-gallery cold-load check in WebKit also exposed a readiness race: the stylesheet `load` event could precede its registered CSS readiness flag becoming visible to computed style. The valid slider sheet was marked failed, leaving Smiles on its holding image even though the readiness flag subsequently became `1`. The shared CSS loader now rechecks once on the next animation frame before applying its existing single retry and stale-bundle rejection. Already-ready sheets remain synchronous; this adds no recurring work or animation delay. Tests cover shared preparation, duplicate load events, successful delayed style application, and bounded failure for genuinely stale CSS.
+
 ## Validation
 
-- Node 24 runtime build, pinned custom Swiper build/check, and complete verification: 854 passed, no failures, 3 skipped. Changed source JavaScript passes formatting. Generated outputs match the source.
+- Node 24 runtime build, pinned custom Swiper build/check, and complete verification: 856 passed, no failures, 3 skipped. Changed source JavaScript passes formatting. Generated outputs match the source.
 - Home and Location passed at widths 440 and 768 in WebKit and 1440 in Chromium. All 12 Home and 7 Location disclosures were tapped, checked for visible content and original 300/400 ms animation, then closed with the keyboard. Navigation opens and closes at the original 639 ms responsive duration for the tested 956 px height; the content panel model retains 799 ms.
 - Both Services/Treatments sections on both pages share matching wrapper/image curves and durations. Frame samples during an arrow advance show no backward step; subsequent next/previous moves preserve the curves. Responsive duration follows each component's measured width.
 - Each phone-sized page received 80 rapid Instagram next/previous pointerdown/click pairs. Both settled, all visible cards retained the original 20 px blur, and the paint window stayed bounded at 12 glass panels. No main-window JavaScript errors were recorded.
 - Fade assertions preserve the original feed/card curves and 300 ms duration. Location's native video overlay retains its original linear curve; loading opacity/visibility settle at 450 ms. Unit coverage also verifies video poster cleanup when the fade clock differs from content.
+- Direct-to-gallery WebKit smoke checks exercise cold Smile preparation, Smile and review arrows, review drawer opening/closing, and parallax after desktop/phone resizing. Content travel remains 500 ms on the phone; the independent drawer backdrop fade is 300 ms.
 
 Physical iPhone Safari and the user's preferred feel remain the acceptance checks. Browser automation cannot reproduce the device's GPU/memory limits.
 
 ## Release procedure
 
-Parent: `d77c487a2e049a9340a39e8d9d59a62905fe52aa`. Staging rollback: `c403998c1a4f1de2a6ec43430bcc7bfbcc7d7fd6`.
+Trial base: `d77c487a2e049a9340a39e8d9d59a62905fe52aa`. Staging rollback: `c403998c1a4f1de2a6ec43430bcc7bfbcc7d7fd6`.
 
 Build and verify the runtime and custom Swiper from this source. Check immutable CDN assets against the generated inventory, then replace all four site-code references together. Publish only to `dentalbarns.webflow.io`, with an empty custom-domain list. Physical iPhone Safari remains the acceptance check for rendering stability and the user's preferred feel.

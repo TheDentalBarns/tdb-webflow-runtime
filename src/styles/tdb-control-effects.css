@@ -23,7 +23,7 @@
   opacity: 1;
   visibility: visible;
   animation: tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite;
-  transition: opacity calc(0.12s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease) calc(0.12s * var(--tdb-motion-pace,1)), visibility 0s linear 0s;
+  transition: opacity calc(0.12s * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease) calc(0.12s * var(--tdb-fade-pace,1)),visibility 0s linear 0s;
 }
 [data-tdb-loading='true'] [data-tdb-loading-indicator] svg {
   animation: tdbControlSpin calc(1s * var(--tdb-motion-pace,1)) linear infinite;

@@ -97,7 +97,7 @@
   opacity: 1;
   visibility: visible;
   pointer-events: none;
-  transition: opacity calc(0.12s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease) calc(0.12s * var(--tdb-motion-pace,1)), visibility 0s linear 0s;
+  transition: opacity calc(0.12s * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease) calc(0.12s * var(--tdb-fade-pace,1)),visibility 0s linear 0s;
 }
 
 /* The native SMIL spinner is parked with begin="indefinite" in Hero - Vimeo.
@@ -196,7 +196,7 @@
 
 .vimeo-player .vimeo-player__play svg,
 .vimeo-player .vimeo-player__pause svg {
-  transition: opacity calc(0.15s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease);
+  transition: opacity calc(0.15s * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease);
 }
 
 .vimeo-player[data-vimeo-awaiting-consent='true'] .vimeo-player__play svg,
@@ -210,7 +210,7 @@
 .vimeo-player[data-vimeo-loading='true'] .vimeo-player__loading {
   opacity: 1;
   visibility: visible;
-  transition: opacity calc(0.12s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,ease) calc(0.12s * var(--tdb-motion-pace,1)), visibility 0s linear 0s;
+  transition: opacity calc(0.12s * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease) calc(0.12s * var(--tdb-fade-pace,1)),visibility 0s linear 0s;
 }
 
 .vimeo-player[data-vimeo-playing='true'][data-vimeo-loaded='true'] .vimeo-player__loading {
