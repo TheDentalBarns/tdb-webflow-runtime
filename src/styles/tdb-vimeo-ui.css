@@ -139,6 +139,14 @@
 /* TDB content-video UI v0.1.0 — load with the content-player controller. */
 
 /* Content Vimeo playback states */
+/* Native opacity-only fades retain their linear baseline under the current
+ * profile. Spinners and discrete visibility switches keep their own curves. */
+.vimeo-player__dark,
+.vimeo-player__placeholder,
+.vimeo-player__btn {
+  transition-timing-function: var(--tdb-motion-ease-fade,linear);
+}
+
 .vimeo-player[data-vimeo-started='true'] .vimeo-player__iframe {
   opacity: 1;
   visibility: visible;

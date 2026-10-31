@@ -1,19 +1,27 @@
 {
-  "capturedOn": "2026-10-25",
-  "page": "https://dentalbarns.webflow.io/",
-  "runtimeRelease": "124569c49f6579d842f399bd54ffbb069b1cd033",
+  "capturedOn": "2026-10-31",
+  "pages": [
+    "https://dentalbarns.webflow.io/",
+    "https://dentalbarns.webflow.io/location"
+  ],
+  "runtimeRelease": "496645db7a195b7abab1e5525ef2d9c39fc16ffc",
   "generator": "tools/runtime-build/native-motion.cjs",
-  "note": "Ordered public stylesheet inputs for the committed timing-only projection. Raw exports remain outside git. Update these URLs and content hashes after auditing a newly published native export; the generator verifies each input before writing. Ordinary motion-profile changes reuse the committed projection. Designer timing references were linked on 2026-10-25; runtimeRelease records the entry installed when the native export was captured. Six Home padding duplicates were replaced with the existing global utility; motion declarations and the timing projection remain unchanged. Seven redundant Home Smile variant responsive overrides were removed on 2026-10-25; retained main/medium values preserve inheritance. Home and Dark variants and all motion declarations remain. The final variant pass removes only the inherited Hero Padding colour in Review Introduction / Dark; its base heading colour remains. The timing projection is unchanged. DOM reconciliation restores three original content-only padding-global boundaries and removes their bespoke inset combinations; no motion declaration changes. Control/motion pass: service/treatment copy, blur and stamp transitions now belong to the prepared slider stylesheet. Hero play SVG encoding is compacted without changing paths, timing or requests.",
+  "note": "Ordered unique public stylesheet inputs from Home and Location for the committed timing-only projection. Raw exports remain outside git. Update URLs and content hashes after auditing newly published native exports; the generator verifies each input before writing. Ordinary profile changes reuse the projection. Both page bundles share the same navbar timing declarations. Location also supplies the content-video overlay and loading-exit transitions missing from the previous Home-only inventory. Native layout and state ownership is unchanged. Pure opacity fades with a linear baseline are explicitly linked to the fade palette in their owning runtime stylesheets; spinner and visibility curves remain linear.",
   "inputs": [
     {
-      "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.d6e8c62c0.min.css",
-      "bytes": 31579,
-      "sha256": "2fc9d38e169006ad97da986202dac0f0d28f0dcd21fc2b94d128f6e60159e29b"
+      "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.83c8c71a2.min.css",
+      "bytes": 31605,
+      "sha256": "0bee063782393dddcb6cf014553ccb070ec03ab42de5d888541298622533b714"
     },
     {
-      "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.6d573b205.opt.min.css",
-      "bytes": 182531,
-      "sha256": "fbdafcb9176b45d29e2a640bc10fac94aeb99c1e78624f03e033626669b79602"
+      "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.f6e7d2f54.opt.min.css",
+      "bytes": 198448,
+      "sha256": "4d6f1b770b4dcf4aa9c7da412536870ea184307f638bcb3fd8bfd3e44e6af4d6"
+    },
+    {
+      "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cfb8a0f25478449823c5f.c946d78a4.opt.min.css",
+      "bytes": 199152,
+      "sha256": "353a72323815ee5efaa37a3c844b4a150fbff9735c93c229575c050873247adc"
     }
   ]
 }

@@ -41,7 +41,7 @@
   [data-tdb-navbar-native] .navbar10_dropdown-list.w--open {
     opacity: 1;
     transform: translateY(0);
-    animation: tdb-nav-dropdown-fade calc(300ms * var(--tdb-motion-pace,1)) linear both,
+    animation: tdb-nav-dropdown-fade calc(300ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-fade,linear) both,
       tdb-nav-dropdown-lift calc(300ms * var(--tdb-motion-pace,1)) var(--tdb-nav-out-quad) both;
   }
   [data-tdb-navbar-native] .accordion-spacer:is(.services, .discover) {
