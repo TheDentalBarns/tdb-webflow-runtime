@@ -25,6 +25,7 @@ GLOBAL_SOURCES = [
     ROOT / 'src/styles/tdb-controls-base.css',
     ROOT / 'src/styles/tdb-feed-holders.css',
     ROOT / 'src/styles/tdb-hero-compact.css',
+    ROOT / 'src/styles/tdb-home-paint-window.css',
 ]
 
 # Inline in the Webflow head; preserve global source order and never include readiness.

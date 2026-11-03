@@ -17,6 +17,8 @@
     started = false,
     retryNeeded = false;
   let navbarFlight = null,
+    homePaintWindow = null,
+    homeScrollTest = null,
     navbarRequested = false,
     navbarRetry = false,
     controlsReady = false;
@@ -247,6 +249,8 @@
     disposed = true;
     lifecycle.abort();
     observer?.disconnect();
+    homePaintWindow?.destroy();
+    homeScrollTest?.destroy();
     window.TDBLogoMarqueeLoader?.destroy();
     window.TDBUSPDrawerLoader?.destroy();
     window.TDBPageBreaks?.destroy();
@@ -295,6 +299,8 @@
     );
   // The consent handoff occurs after DOM preparation. Keep direct loading safe too.
   function start() {
+    if (typeof createHomePaintWindow === 'function') homePaintWindow = createHomePaintWindow();
+    if (typeof createHomeScrollTest === 'function') homeScrollTest = createHomeScrollTest();
     window.TDBHoldAudioLoader?.start();
     refresh();
     enhanceNavbar();

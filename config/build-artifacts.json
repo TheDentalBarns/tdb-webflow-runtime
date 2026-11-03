@@ -546,12 +546,14 @@
         "src/runtime/page-break-loader.js",
         "src/runtime/journey-loader.js",
         "src/runtime/features-startup.js",
+        "src/runtime/home-paint-window.js",
+        "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "56cdf86be3c5306fac46d102a12c9a50a5ae9e712210174506d698a862e813f6",
-      "raw": 74375,
-      "gzip": 20270,
-      "brotli": 17752
+      "sha256": "ffb48f3d0a124874bd2ef5067178dd18335a8bf405f988a8944fc3c9bb753a22",
+      "raw": 78724,
+      "gzip": 21684,
+      "brotli": 18944
     },
     "dist/tdb-service-awards.js": {
       "sources": [

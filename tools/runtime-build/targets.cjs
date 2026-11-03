@@ -115,6 +115,8 @@ module.exports = {
     'src/runtime/page-break-loader.js',
     'src/runtime/journey-loader.js',
     'src/runtime/features-startup.js',
+    'src/runtime/home-paint-window.js',
+    'src/runtime/home-scroll-test.js',
     'src/runtime/runtime.js',
   ],
   'dist/tdb-rendered-progress.js': ['src/shared/rendered-progress.js'],

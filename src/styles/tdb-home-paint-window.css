@@ -1,0 +1,45 @@
+/* Home's distant carousel filters rest without changing layout or motion.
+ * Existing horizontal IG culling still owns each individual card.
+ */
+@media (max-width: 991px) {
+  [data-tdb-home-paint-idle] .tdb-service-card::after,
+  [data-tdb-home-paint-idle] .tdb-treatment-blur,
+  [data-tdb-home-paint-idle] .ig-native_glass {
+    visibility: hidden !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    transition: none !important;
+  }
+  [data-tdb-home-paint-resuming] .tdb-service-card::after,
+  [data-tdb-home-paint-resuming] .tdb-treatment-blur,
+  [data-tdb-home-paint-resuming] .ig-native_glass {
+    transition: none !important;
+  }
+}
+
+/* Only the explicit staging test URL creates this readout. */
+.tdb-scroll-test {
+  position: fixed;
+  z-index: 2147483647;
+  right: 8px;
+  bottom: 112px;
+  max-width: 270px;
+  padding: 10px;
+  color: #222;
+  background: #f9f2e6;
+  border: 1px solid #d6cab4;
+  font: 12px/1.4 system-ui, sans-serif;
+  white-space: pre-line;
+  pointer-events: none;
+}
+.tdb-scroll-test button {
+  display: block;
+  min-height: 36px;
+  margin-top: 4px;
+  padding: 4px 8px;
+  border: 1px solid #d6cab4;
+  color: #222;
+  background: #ebe2d2;
+  font: inherit;
+  pointer-events: auto;
+}
