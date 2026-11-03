@@ -432,6 +432,7 @@ function loadScriptWithRecovery(src, attribute) {
         if (disposed) return;
         if (!window.TDBModules) throw Error('Shared registry unavailable');
         return Promise.all([
+          typeof tdbEnsureSliderFocus === 'function' ? tdbEnsureSliderFocus() : null,
           window.TDBModules.load(new URL('tdb-motion.js', base).href, {
             ready: () =>
               typeof window.TDBMotion?.ddText === 'function' &&
@@ -3461,6 +3462,52 @@ function prepareJourneyLoader() {
   const lifecycle = new AbortController();
   let flight,
     disposed = false;
+  let focusedRoot = null,
+    focusRequest = 0;
+  function leaveJourney() {
+    focusRequest++;
+    if (focusedRoot) window.TDBSliderFocus?.release?.(focusedRoot);
+    focusedRoot = null;
+  }
+  function focusJourney(root) {
+    focusedRoot = root;
+    const request = ++focusRequest;
+    const visible = () => {
+      if (!root.isConnected) return false;
+      const rect = root.getBoundingClientRect();
+      const viewport = window.visualViewport;
+      const top = viewport?.offsetTop || 0;
+      return rect.bottom > top && rect.top < top + (viewport?.height || window.innerHeight);
+    };
+    const apply = () => {
+      if (!disposed && request === focusRequest && focusedRoot === root && visible())
+        window.TDBSliderFocus?.focus(root, visible);
+    };
+    // Input focus can precede the deferred map module or its first network load.
+    if (window.TDBSliderFocus) apply();
+    else
+      tdbEnsureSliderFocus()
+        .then(apply)
+        .catch(() => {});
+  }
+  for (const type of ['pointerdown', 'focusin'])
+    document.addEventListener(
+      type,
+      (event) => {
+        const root = event.target.closest?.('[data-tdb-journey]');
+        if (root) focusJourney(root);
+        else leaveJourney();
+      },
+      { capture: true, passive: true, signal: lifecycle.signal },
+    );
+  document.addEventListener(
+    'keydown',
+    (event) => {
+      if (event.key === 'Escape') leaveJourney();
+    },
+    { signal: lifecycle.signal },
+  );
+  window.addEventListener('pagehide', leaveJourney, { signal: lifecycle.signal });
   function prepare() {
     if (disposed) return Promise.resolve();
     if (flight) return flight;
@@ -3537,6 +3584,7 @@ function prepareJourneyLoader() {
     refresh: () => watch?.refresh(),
     destroy() {
       disposed = true;
+      leaveJourney();
       lifecycle.abort();
       watch?.destroy();
       window.TDBJourney?.destroy();

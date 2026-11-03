@@ -1,9 +1,9 @@
-/* TDB shared slider focus v1.4.0. Shared gesture and magnetic section focus. */
+/* TDB shared slider focus v1.4.1. Shared gesture and magnetic section focus. */
 (() => {
   'use strict';
   const e = document.documentElement;
   if (e.dataset.tdbSliderFocusReady) return;
-  e.dataset.tdbSliderFocusReady = '1.4.0';
+  e.dataset.tdbSliderFocusReady = '1.4.1';
   let viewportWidth = window.innerWidth;
   const t = 'input,textarea,select,[contenteditable="true"]',
     n = '[data-tdb-sg-overlay],.tdb-sg-filter-dock';
@@ -278,6 +278,10 @@
     (window.TDBSliderFocus = Object.freeze({
       focus(target, hold) {
         if (target?.isConnected) v(target, hold);
+      },
+      release(target) {
+        // A late popup/map cleanup must not release a newer interaction.
+        if (target && i?.slider === target) w();
       },
       resume(e) {
         if (!e || Math.abs(window.scrollY - e.y) > 8) return;

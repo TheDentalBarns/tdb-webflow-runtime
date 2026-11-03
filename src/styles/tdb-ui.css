@@ -426,6 +426,31 @@ html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-contro
 .tdb-hero-toggle:focus-visible .tdb-hero-toggle-art{outline:2px solid currentColor;outline-offset:4px}
 @media(prefers-reduced-motion:reduce){html:not([data-tdb-motion='full']) .tdb-hero-toggle::before{animation:none!important;opacity:0}}
 
+/* Available before deferred map/card styles, including the first input tap.
+ * The site's fluid rem is below 16px on phones. Keep editable map controls
+ * readable without asking Safari to magnify the page when they receive focus.
+ */
+@media (max-width: 991px), (pointer: coarse) {
+  .tdb-journey .tdb-journey-input {
+    font-size: max(16px, 1rem);
+    min-height: 48px;
+  }
+}
+
+/* Repeated control taps are activations. Native panning and pinch zoom remain
+ * available; the marquee separately owns horizontal dragging on its track.
+ */
+.tdb-partner-logo,
+.tdb-partner-prev,
+.tdb-partner-next,
+.tdb-partner-close,
+.tdb-partner-tooltip .tdb-service-discover {
+  touch-action: manipulation;
+}
+.tdb-partner-tooltip .tdb-partner-swiper {
+  touch-action: pan-y pinch-zoom;
+}
+
 /* Home's distant carousel filters rest without changing layout or motion.
  * Existing horizontal IG culling still owns each individual card.
  */

@@ -13,7 +13,7 @@
 
   const pace = window.TDBMotionProfile?.pace || 1;
   const coastRate = window.TDBMotionProfile?.physics.coast || 4.2;
-  const VERSION = '0.15.4';
+  const VERSION = '0.15.5';
   const assetBase = new URL('./', document.currentScript.src);
   if (window.TDBLogoMarquee) return;
   const DEFAULTS = {
@@ -58,6 +58,10 @@
     chromeHolds.add(card);
     // Reuse carousel chrome motion. A true hold predicate prevents scroll
     // thresholds from releasing focus while someone reads the partner card.
+    if (window.TDBSliderFocus?.release) {
+      window.TDBSliderFocus.focus(card, () => chromeHolds.has(card));
+      return;
+    }
     window.TDBNavScroll?.focus(
       () => {},
       () => chromeHolds.size > 0,
@@ -67,6 +71,10 @@
   function releaseChrome(card) {
     chromeHolds.delete(card);
     if (chromeHolds.size) return;
+    if (window.TDBSliderFocus?.release) {
+      window.TDBSliderFocus.release(card);
+      return;
+    }
     window.TDBNavScroll?.release();
     document.documentElement.classList.remove('tdb-slider-focus');
   }
@@ -173,7 +181,7 @@
     });
     track.setAttribute(INIT_ATTR, VERSION);
     track.style.willChange = 'transform';
-    track.style.touchAction = 'pan-y';
+    track.style.touchAction = 'pan-y pinch-zoom';
     prepareVisibleLogos(track);
 
     originals.forEach((item, index) => {
@@ -289,6 +297,8 @@
     let pointerId = null;
     let pressedItem = null;
     let touchClickUntil = 0;
+    let touchActivation = null;
+    let multiTouch = false;
     let lastPointerX = 0;
     let suppressNextClick = false;
     let wheelSettleTimer = 0;
@@ -923,7 +933,13 @@
       } else restart();
     }
     function onPointerDown(event) {
+      touchActivation = null;
+      if (event.pointerType === 'touch' && event.isPrimary === false) {
+        multiTouch = true;
+        return;
+      }
       if (!ready || event.button > 0 || event.isPrimary === false || pointerId !== null) return;
+      multiTouch = false;
       // A new gesture supersedes any delayed activation. Restore the real logo
       // before the track can move, rather than leaving a closing spotlight behind.
       requestGeneration++;
@@ -948,7 +964,7 @@
       suppressNextClick = false;
     }
     function onPointerMove(event) {
-      if (event.pointerId !== pointerId) return;
+      if (event.pointerId !== pointerId || multiTouch) return;
       const dx = event.clientX - startX,
         dy = event.clientY - startY;
       if (!horizontal) {
@@ -1038,7 +1054,10 @@
       try {
         track.releasePointerCapture(id);
       } catch (_) {}
-      if (moved) {
+      if (multiTouch) {
+        suppressNextClick = true;
+        if (!openCard) resume();
+      } else if (moved) {
         suppressNextClick = true;
         if (openCard) {
           settleOpenCard();
@@ -1059,6 +1078,7 @@
       } else if (event.type === 'pointerup' && event.pointerType === 'touch' && tappedItem) {
         // iOS may retarget or omit click after implicit pointer capture.
         touchClickUntil = performance.now() + 800;
+        touchActivation = tappedItem;
         suppressNextClick = true;
         select(tappedItem);
       } else if (event.type !== 'pointerup') {
@@ -1067,6 +1087,23 @@
         suppressNextClick = true;
         if (!openCard) resume();
       }
+    }
+    function onTouchEnd(event) {
+      // WebKit releases have allowed double-tap zoom even with manipulation.
+      // This stationary logo tap is already activated by pointerup. Consume
+      // its native touch default, not a second click, and leave drags/pinches
+      // alone. Also cover browsers dispatching touchend before pointerup.
+      const item = touchActivation || (!horizontal && !dragging ? pressedItem : null);
+      touchActivation = null;
+      if (
+        item &&
+        !multiTouch &&
+        event.touches.length === 0 &&
+        event.changedTouches.length === 1 &&
+        event.target.closest?.(CONFIG.itemSelector) === item &&
+        event.cancelable
+      )
+        event.preventDefault();
     }
     function onClick(event) {
       // A touch activation has already been handled on pointerup.
@@ -1292,6 +1329,81 @@
         if (direction > 0) swiper.slideNext(window.TDBMotion.duration());
         else swiper.slidePrev(window.TDBMotion.duration());
       };
+      // On affected iOS versions CSS manipulation alone can still allow smart
+      // zoom after a previous zoom. Own only stationary single-finger taps on
+      // these three controls, then suppress their compatibility click.
+      const controlSelector = '.tdb-partner-prev,.tdb-partner-next,.tdb-partner-close';
+      let controlTouch = null,
+        controlClickUntil = 0;
+      shell.addEventListener(
+        'pointerdown',
+        (event) => {
+          controlTouch = null;
+          const control = event.target.closest(controlSelector);
+          if (event.pointerType === 'touch' && event.isPrimary !== false && control)
+            controlTouch = { control, id: event.pointerId, x: event.clientX, y: event.clientY };
+        },
+        { signal, passive: true },
+      );
+      shell.addEventListener(
+        'pointermove',
+        (event) => {
+          if (
+            controlTouch?.id === event.pointerId &&
+            Math.hypot(event.clientX - controlTouch.x, event.clientY - controlTouch.y) >
+              CONFIG.dragClickThreshold
+          )
+            controlTouch = null;
+        },
+        { signal, passive: true },
+      );
+      for (const type of ['pointercancel', 'touchcancel'])
+        shell.addEventListener(
+          type,
+          () => {
+            controlTouch = null;
+          },
+          { signal, passive: true },
+        );
+      shell.addEventListener(
+        'touchend',
+        (event) => {
+          const tap = controlTouch;
+          controlTouch = null;
+          if (
+            !tap ||
+            !event.cancelable ||
+            event.touches.length ||
+            event.changedTouches.length !== 1 ||
+            event.target.closest(controlSelector) !== tap.control
+          )
+            return;
+          event.preventDefault();
+          controlClickUntil = performance.now() + 800;
+          if (tap.control.matches('.tdb-partner-close')) {
+            closeCard(true);
+            resume();
+          } else {
+            selectArrow(tap.control);
+            advance(tap.control.matches('.tdb-partner-prev') ? -1 : 1);
+          }
+        },
+        { signal, passive: false },
+      );
+      shell.addEventListener(
+        'click',
+        (event) => {
+          if (
+            event.detail &&
+            performance.now() < controlClickUntil &&
+            event.target.closest(controlSelector)
+          ) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          }
+        },
+        { signal, capture: true },
+      );
       shell.querySelector('.tdb-partner-prev').addEventListener(
         'click',
         (event) => {
@@ -1398,6 +1510,11 @@
     track.addEventListener('pointermove', onPointerMove, { signal, passive: false });
     window.addEventListener('pointerup', endPointer, { signal });
     track.addEventListener('pointercancel', endPointer, { signal });
+    track.addEventListener('touchend', onTouchEnd, { signal, passive: false });
+    track.addEventListener('touchcancel', () => (touchActivation = null), {
+      signal,
+      passive: true,
+    });
     // Touch starts with implicit capture on the logo/image. Moving capture to
     // the track emits a bubbling lostpointercapture from that child. It is a
     // handoff, not a release: keep following the finger until the track loses it.

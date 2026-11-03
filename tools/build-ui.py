@@ -25,6 +25,7 @@ GLOBAL_SOURCES = [
     ROOT / 'src/styles/tdb-controls-base.css',
     ROOT / 'src/styles/tdb-feed-holders.css',
     ROOT / 'src/styles/tdb-hero-compact.css',
+    ROOT / 'src/styles/tdb-touch-controls.css',
     ROOT / 'src/styles/tdb-home-paint-window.css',
 ]
 
