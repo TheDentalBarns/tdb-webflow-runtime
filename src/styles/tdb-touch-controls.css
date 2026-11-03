@@ -1,4 +1,4 @@
-/* Available before deferred map/card styles, including the first input tap.
+/* Available before deferred map styles, including the first input tap.
  * The site's fluid rem is below 16px on phones. Keep editable map controls
  * readable without asking Safari to magnify the page when they receive focus.
  */
@@ -9,16 +9,3 @@
   }
 }
 
-/* Repeated control taps are activations. Native panning and pinch zoom remain
- * available; the marquee separately owns horizontal dragging on its track.
- */
-.tdb-partner-logo,
-.tdb-partner-prev,
-.tdb-partner-next,
-.tdb-partner-close,
-.tdb-partner-tooltip .tdb-service-discover {
-  touch-action: manipulation;
-}
-.tdb-partner-tooltip .tdb-partner-swiper {
-  touch-action: pan-y pinch-zoom;
-}

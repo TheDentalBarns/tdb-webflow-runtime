@@ -4,18 +4,12 @@ const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
-async function fixture({
-  delayed = false,
-  reduced = false,
-  source,
-  sharedFocus = false,
-  count = 2,
-} = {}) {
+async function fixture({ delayed = false, reduced = false, source } = {}) {
   const dom = new JSDOM(
     `<!doctype html><body>
     <section class="section_logo-features"><div class="logo-slider">
     <div class="partner-featured_component">
-      ${Array.from({ length: count }, (_, index) => index)
+      ${[0, 1]
         .map(
           (
             i,
@@ -44,7 +38,6 @@ async function fixture({
   w.TDBMotion = { reduced: w.matchMedia(), duration: () => 500, ddText: () => ({ destroy() {} }) };
   w.TDBMotion.reduced.matches = reduced;
   w.TDBNavScroll = { focus() {}, release() {} };
-  if (sharedFocus) w.eval(fs.readFileSync('src/shared/slider-focus.js', 'utf8'));
   w.TDBFeatureLoading = { watchIntent() {} };
   w.KeyframeEffect = class {
     getComputedTiming() {
@@ -105,7 +98,6 @@ async function fixture({
       new Promise((resolve) => {
         decode = resolve;
       });
-  let advances = 0;
   w.TDBSwiper = {
     create(el, params) {
       const sw = {
@@ -122,14 +114,6 @@ async function fixture({
         },
         slideTo(i) {
           this.slideToLoop(i);
-        },
-        slideNext() {
-          advances++;
-          this.slideToLoop((this.realIndex + 1) % this.slides.length);
-        },
-        slidePrev() {
-          advances++;
-          this.slideToLoop((this.realIndex + this.slides.length - 1) % this.slides.length);
         },
       };
       sw.slides.forEach((slide, i) => {
@@ -168,9 +152,9 @@ async function fixture({
       clientY: options.y ?? 400,
     });
     Object.defineProperties(e, {
-      pointerId: { value: options.id ?? 1 },
+      pointerId: { value: 1 },
       pointerType: { value: options.pointerType || 'mouse' },
-      isPrimary: { value: options.primary !== false },
+      isPrimary: { value: true },
       ...(options.time === undefined ? {} : { timeStamp: { value: options.time } }),
     });
     target.dispatchEvent(e);
@@ -193,18 +177,8 @@ async function fixture({
     animations,
     status,
     pointer,
-    touchEnd(target = logos[0], remaining = 0, changed = 1) {
-      const event = new w.Event('touchend', { bubbles: true, cancelable: true });
-      Object.defineProperties(event, {
-        touches: { value: Array.from({ length: remaining }, () => ({})) },
-        changedTouches: { value: Array.from({ length: changed }, () => ({})) },
-      });
-      target.dispatchEvent(event);
-      return event;
-    },
     frame,
     writes: () => writes,
-    advances: () => advances,
     decode: () => decode?.(),
     click: (node) =>
       node.dispatchEvent(new w.MouseEvent('click', { bubbles: true, cancelable: true })),
@@ -247,11 +221,7 @@ test('drag bursts render once per frame and retain the latest position without i
       writes = f.writes();
     for (const x of [120, 150, 140, 190]) f.pointer('pointermove', x);
     assert.equal(f.writes(), writes, 'input events defer visual writes');
-    // Loop wrapping can round the same position by about 1e-14px.
-    assert.ok(
-      Math.abs(f.status().currentX - (before + 90)) < 1e-9,
-      'all deltas, including reversals, retained',
-    );
+    assert.equal(f.status().currentX, before + 90, 'all deltas, including reversals, retained');
     f.frame();
     assert.equal(f.writes(), writes + 1);
     const rendered = f.track.style.transform;
@@ -373,81 +343,6 @@ test('vertical gestures remain native and never queue horizontal drag writes', a
   }
 });
 
-test('stationary touch activations consume Safari zoom defaults without duplicating clicks', async () => {
-  const f = await fixture();
-  try {
-    assert.equal(f.track.style.touchAction, 'pan-y pinch-zoom');
-    for (let i = 0; i < 12; i++) {
-      const logo = f.logos[i % 2];
-      f.pointer('pointerdown', 100, logo, { pointerType: 'touch' });
-      f.pointer('pointerup', 100, logo, { pointerType: 'touch' });
-      assert.equal(f.touchEnd(logo).defaultPrevented, true);
-      await tick();
-      assert.equal(f.status().selected, logo.dataset.tdbLogoIndex);
-      assert.equal(f.click(logo), false, 'compatibility click is already owned by pointerup');
-      assert.equal(f.status().selected, logo.dataset.tdbLogoIndex);
-    }
-  } finally {
-    f.close();
-  }
-});
-
-test('touchend before pointerup still leaves activation with the existing pointer owner', async () => {
-  const f = await fixture();
-  try {
-    f.pointer('pointerdown', 100, f.logos[0], { pointerType: 'touch' });
-    assert.equal(f.touchEnd().defaultPrevented, true);
-    assert.equal(f.status().selected, null);
-    f.pointer('pointerup', 100, f.logos[0], { pointerType: 'touch' });
-    await tick();
-    assert.equal(f.status().selected, f.logos[0].dataset.tdbLogoIndex);
-  } finally {
-    f.close();
-  }
-});
-
-test('the tap guard leaves vertical scrolling, horizontal dragging and pinching alone', async () => {
-  const f = await fixture();
-  try {
-    f.pointer('pointerdown', 100, f.logos[0], { pointerType: 'touch' });
-    f.pointer('pointermove', 102, f.track, { y: 450, pointerType: 'touch' });
-    f.pointer('pointerup', 102, f.logos[0], { y: 450, pointerType: 'touch' });
-    assert.equal(f.touchEnd().defaultPrevented, false);
-
-    f.pointer('pointerdown', 100, f.logos[0], { pointerType: 'touch' });
-    f.pointer('pointermove', 160, f.track, { pointerType: 'touch' });
-    f.pointer('pointerup', 160, f.logos[0], { pointerType: 'touch' });
-    assert.equal(f.touchEnd().defaultPrevented, false);
-
-    f.pointer('pointerdown', 100, f.logos[0], { pointerType: 'touch' });
-    f.pointer('pointerdown', 130, f.logos[0], { pointerType: 'touch', id: 2, primary: false });
-    assert.equal(
-      f.pointer('pointermove', 180, f.track, { pointerType: 'touch' }).defaultPrevented,
-      false,
-    );
-    f.pointer('pointerup', 180, f.logos[0], { pointerType: 'touch' });
-    assert.equal(f.touchEnd(f.logos[0], 1).defaultPrevented, false);
-    assert.equal(f.touchEnd().defaultPrevented, false);
-    assert.equal(f.status().selected, null);
-  } finally {
-    f.close();
-  }
-});
-
-test('cancellation and teardown leave no touch default suppression behind', async () => {
-  const f = await fixture();
-  try {
-    f.pointer('pointerdown', 100, f.logos[0], { pointerType: 'touch' });
-    f.pointer('pointercancel', 100, f.logos[0], { pointerType: 'touch' });
-    assert.equal(f.touchEnd().defaultPrevented, false);
-    f.pointer('pointerdown', 100, f.logos[0], { pointerType: 'touch' });
-    f.w.TDBLogoMarquee.destroy();
-    assert.equal(f.touchEnd().defaultPrevented, false);
-  } finally {
-    f.close();
-  }
-});
-
 test('destroy cancels an unrendered drag and restores the native track', async () => {
   const f = await fixture();
   try {
@@ -478,67 +373,6 @@ test('rapid close then another selection remains paused after stale transitions 
     assert.equal(f.shell.getAttribute('aria-hidden'), 'false');
     assert.equal(f.status().paused, true, 'old close callback cannot restart a newly opened card');
     assert.equal(f.status().selected, '1');
-  } finally {
-    f.close();
-  }
-});
-
-test('rapid partner control taps advance once each and keep shared chrome hidden', async () => {
-  const f = await fixture({ sharedFocus: true });
-  try {
-    f.click(f.logos[0]);
-    await tick();
-    const next = f.shell.querySelector('.tdb-partner-next');
-    const focused = () => f.d.documentElement.classList.contains('tdb-slider-focus');
-    assert(focused());
-    for (let i = 0; i < 20; i++) {
-      f.pointer('pointerdown', 100, next, { pointerType: 'touch' });
-      f.pointer('pointerup', 100, next, { pointerType: 'touch' });
-      assert(f.touchEnd(next).defaultPrevented);
-      next.dispatchEvent(
-        new f.w.MouseEvent('click', { bubbles: true, cancelable: true, detail: 1 }),
-      );
-      assert.equal(f.advances(), i + 1);
-      assert(focused());
-    }
-    f.click(next);
-    assert.equal(f.advances(), 21, 'keyboard activation remains available');
-    f.pointer('pointerdown', 100, next, { pointerType: 'touch' });
-    f.pointer('pointermove', 130, next, { pointerType: 'touch' });
-    assert.equal(f.touchEnd(next).defaultPrevented, false, 'a drag is left native');
-    f.pointer('pointerdown', 100, next, { pointerType: 'touch' });
-    f.pointer('pointerdown', 120, next, { pointerType: 'touch', id: 2, primary: false });
-    assert.equal(f.touchEnd(next).defaultPrevented, false, 'a pinch is left native');
-    assert.equal(f.advances(), 21);
-    f.w.TDBSliderFocus.focus(f.d.querySelector('#outside'));
-    f.click(f.shell.querySelector('.tdb-partner-close'));
-    for (const animation of f.animations) animation.finish();
-    await tick();
-    assert(focused(), 'the previous popup cannot release a newer focus owner');
-    f.w.TDBSliderFocus.release(f.d.querySelector('#outside'));
-    assert.equal(focused(), false);
-  } finally {
-    f.close();
-  }
-});
-
-test('rapid arrows keep the logos travelling with the tooltip across complete loops', async () => {
-  const f = await fixture({ count: 20 });
-  try {
-    f.click(f.logos[0]);
-    await tick();
-    let target = f.status().targetX;
-    // All inputs land before the next animation frame: the visible track is
-    // behind the requested slide by more than half a loop, in both directions.
-    for (const direction of [...Array(45).fill(1), ...Array(50).fill(-1), 1, -1, 1, -1]) {
-      f.click(f.shell.querySelector(direction > 0 ? '.tdb-partner-next' : '.tdb-partner-prev'));
-      const next = f.status().targetX;
-      assert(
-        Math.abs(next - (target - direction * 160)) < 1e-9,
-        `requested ${direction > 0 ? 'next' : 'previous'} partner must retain its travel direction`,
-      );
-      target = next;
-    }
   } finally {
     f.close();
   }

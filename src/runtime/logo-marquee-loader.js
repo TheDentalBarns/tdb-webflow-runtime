@@ -40,7 +40,6 @@
         if (disposed) return;
         if (!window.TDBModules) throw Error('Shared registry unavailable');
         return Promise.all([
-          typeof tdbEnsureSliderFocus === 'function' ? tdbEnsureSliderFocus() : null,
           window.TDBModules.load(new URL('tdb-motion.js', base).href, {
             ready: () =>
               typeof window.TDBMotion?.ddText === 'function' &&
