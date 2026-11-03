@@ -32,6 +32,8 @@ the physical-phone flashing and process crash were not reproduced here.
   interaction, Escape, pagehide and teardown release it. Normal scroll thresholds
   may restore chrome after the map leaves the visible viewport. Late module
   loading cannot hide chrome after the user has already left the map.
+  Native input focus established before runtime startup is adopted on startup,
+  so the first tap is covered even during deferred initialization.
 
 The accepted motion configuration, blur radius, carousel speed, animations,
 accordion/navigation/fade families and previous Home paint guard remain intact.
@@ -39,7 +41,9 @@ No viewport zoom restriction or document-wide touch prevention was added.
 
 ## Validation
 
-- Full build and verification: 876 tests, 873 pass, 3 existing skips, 0 failures.
+- Full build and verification: 877 tests, 874 pass, 3 existing skips, 0 failures.
+  Stabilized one pre-existing drag assertion against 1e-14px floating-point
+  rounding, using a 1e-9px tolerance; no production motion changed for this.
 - Targeted gesture/lifecycle coverage: repeated logo/control taps, exactly-once
   advancement, compatibility clicks, keyboard, scroll/pinch/cancel, late focus
   loading, teardown, and stale-owner release.
@@ -48,6 +52,9 @@ No viewport zoom restriction or document-wide touch prevention was added.
   Escape and outside interaction restore shared focus.
 - Twelve successive partner next actions keep the popup open and badge hidden.
   Authored glass remains saturate(1.5) blur(20px); track and popup retain pinch.
+- Published Home: sixteen alternating arrow clicks also retain the open popup,
+  hidden badge and 20px glass. Published Location loads the actual Google map;
+  input interaction hides the announcement and review badge.
 - Google Maps requires its authorized staging origin; localhost does not validate
   map tiles/routing. No route request or personal postcode was submitted.
 

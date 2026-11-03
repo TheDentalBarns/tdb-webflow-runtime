@@ -3590,6 +3590,10 @@ function prepareJourneyLoader() {
       window.TDBJourney?.destroy();
     },
   });
+  // The native postcode field can receive focus before the consent-released
+  // runtime starts. Adopt that live focus rather than requiring another tap.
+  const initialFocus = document.activeElement?.closest?.('[data-tdb-journey]');
+  if (initialFocus) focusJourney(initialFocus);
 }
 
 /* Definition-only: consent-released runtime starts each loader in its own turn. */

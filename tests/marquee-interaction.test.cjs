@@ -241,7 +241,11 @@ test('drag bursts render once per frame and retain the latest position without i
       writes = f.writes();
     for (const x of [120, 150, 140, 190]) f.pointer('pointermove', x);
     assert.equal(f.writes(), writes, 'input events defer visual writes');
-    assert.equal(f.status().currentX, before + 90, 'all deltas, including reversals, retained');
+    // Loop wrapping can round the same position by about 1e-14px.
+    assert.ok(
+      Math.abs(f.status().currentX - (before + 90)) < 1e-9,
+      'all deltas, including reversals, retained',
+    );
     f.frame();
     assert.equal(f.writes(), writes + 1);
     const rendered = f.track.style.transform;

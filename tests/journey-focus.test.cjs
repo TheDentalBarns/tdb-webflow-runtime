@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
-function fixture(deferred = false) {
+function fixture(deferred = false, initialFocus = false) {
   const dom = new JSDOM(
     '<div data-tdb-journey><input><div data-tdb-journey-map tabindex="0"></div></div><button>Outside</button>',
     { runScripts: 'outside-only', pretendToBeVisual: true },
@@ -27,6 +27,7 @@ function fixture(deferred = false) {
       })
     : Promise.resolve();
   w.tdbEnsureSliderFocus = () => flight;
+  if (initialFocus) input.focus();
   w.eval(fs.readFileSync('src/runtime/journey-loader.js', 'utf8') + '\nprepareJourneyLoader();');
   return {
     w,
@@ -86,6 +87,19 @@ test('leaving before focus code loads cancels the late hide request', async () =
     f.close();
   }
 });
+test('a postcode focused before runtime startup is adopted after shared focus loads', async () => {
+  const f = fixture(true, true);
+  try {
+    assert.equal(f.d.activeElement, f.input);
+    f.ready();
+    await tick();
+    assert(f.focused(), 'no second tap is required');
+    assert.equal(f.d.activeElement, f.input);
+  } finally {
+    f.close();
+  }
+});
+
 test('map teardown cannot release a newer carousel owner', () => {
   const f = fixture();
   try {
