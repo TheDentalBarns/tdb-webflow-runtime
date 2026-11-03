@@ -7,9 +7,10 @@ const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const dropdown = id => `<div class="navbar10_menu-dropdown"><button id="${id}" class="navbar10_dropdown-toggle w-dropdown-toggle" aria-expanded="false">${id}</button><nav class="w-dropdown-list navbar10_dropdown-list"><div class="navbar10_container"><div class="navbar10_dropdown-content-left"><a href="/about-us">About</a></div><div class="navbar10_dropdown-content-right"><img class="navbar10_blog-item-image" loading="lazy" src="https://example.test/${id}.webp" sizes="100vw"></div></div></nav></div>`;
-function fixture(width = 448, consent = true, registry = true) {
+function fixture(width = 448, consent = true, registry = true, transparent = true) {
   const dom = new JSDOM(`<!doctype html><html><head></head><body style="overflow:clip"><main>Page</main><div class="navbar10_component w-nav" transparent-nav="true" data-tdb-navbar-native data-duration="500" fs-scrolldisable-element="smart-nav"><div class="tdb-nav-bar-glass"></div><a class="navbar10_logo-link"></a><div class="navbar_line"></div><button class="w-nav-button navbar10_menu-button" aria-expanded="false">Menu</button><div class="w-nav-overlay"><nav class="w-nav-menu navbar10_menu"><div class="navbar10_menu-left">${dropdown('services')}${dropdown('discover')}</div><div class="navbar10_menu-right">First visit</div></nav></div><div class="tdb-desktop-nav-backdrop"></div></div></body></html>`, { runScripts: 'outside-only', pretendToBeVisual: true, url: 'https://dentalbarns.webflow.io/' });
   const w = dom.window, d = w.document, queries = new Map(), animations = [];
+  d.querySelector('.navbar10_component').setAttribute('transparent-nav', String(transparent));
   // Deployment supplies these fixed rules in the early shared style block.
   const critical = d.createElement('style');
   critical.textContent = 'body{overflow:visible}' + read('dist/tdb-scroll-lock.css');
@@ -87,6 +88,90 @@ for (const width of [448, 834, 1363]) test(`transparent navbar keeps the mobile 
   } finally { f.dom.window.close(); }
 });
 
+for (const width of [448, 834, 1363]) {
+  for (const [page, transparent] of [['/', true], ['/location', true], ['/dental-cost-lichfield', false], ['/services/example', false]]) {
+    test(`shared scroll and announcement handoff at ${width}px on ${page}`, async () => {
+      const f = fixture(width, true, true, transparent);
+      f.dom.reconfigure({ url: 'https://dentalbarns.webflow.io' + page });
+      const frames = new Map(); let serial = 0;
+      f.w.requestAnimationFrame = fn => { frames.set(++serial, fn); return serial; };
+      f.w.cancelAnimationFrame = id => frames.delete(id);
+      const drain = async () => {
+        for (let turn = 0; turn < 10; turn++) {
+          await flush();
+          if (!frames.size) break;
+          const jobs = [...frames.values()]; frames.clear(); jobs.forEach(fn => fn());
+        }
+      };
+      const scroll = async y => { f.w.scrollY = y; f.w.dispatchEvent(new f.w.Event('scroll')); await drain(); };
+      try {
+        f.enhance(); await drain();
+        const shell = f.d.createElement('div');
+        shell.id = 'tdb-elfsight-timer-shell';
+        shell.setAttribute('data-tdb-announcement', ''); shell.setAttribute('data-placement', 'floating');
+        f.d.body.append(shell);
+        f.w.TDBRuntimePageState = { hadInteraction: true };
+        f.w.requestIdleCallback = fn => fn();
+        f.w.TDBAnnouncementLoader = { load: async () => ({ mount() {} }) };
+        f.w.eval(read('src/runtime/page-position.js') + '\n' + read('src/banner/floating-loader.js') + '\nprepareFloatingAnnouncement();');
+        await drain();
+        const bannerHidden = () => f.d.documentElement.classList.contains('tdb-timer-hidden');
+        assert(bannerHidden(), 'banner retains its existing initial reveal distance');
+        assert.equal(f.nav.style.position, 'absolute');
+        await scroll(600); await scroll(400);
+        assert.equal(f.nav.style.position, 'absolute', 'all appearances stay in the hero before 75vh');
+        await scroll(5000);
+        assert.equal(bannerHidden(), false, 'scrolling the original nav off screen must allow the banner');
+        await scroll(4800);
+        assert.equal(f.nav.style.position, 'fixed');
+        assert.equal(f.nav.style.transform, 'translateY(0)');
+        assert.equal(bannerHidden(), true, 'the announcement yields when any navbar returns');
+        if (!transparent) {
+          assert.equal(f.nav.classList.contains('is-trans'), false, 'glass appearance does not enter transparent colour states');
+          assert.equal(f.d.documentElement.classList.contains('tdb-nav-at-top'), false);
+          assert.equal(f.w.TDBNavScroll.clearSurface, false);
+        }
+        await scroll(5100);
+        assert.equal(f.nav.style.transform, 'translateY(-100%)');
+        assert.equal(bannerHidden(), false, 'banner returns when the navbar leaves');
+        await scroll(4900);
+        await f.open(); await drain(); await scroll(5400);
+        assert.equal(f.nav.style.transform, 'translateY(0)', 'open menus keep every appearance present');
+        assert.equal(bannerHidden(), true);
+        await f.closeStart(); await f.closeEnd(); await drain(); await scroll(5700);
+        assert.equal(f.nav.style.transform, 'translateY(-100%)');
+        assert.equal(bannerHidden(), false);
+        await scroll(400);
+        assert.equal(f.nav.style.position, 'absolute');
+        await scroll(0);
+        assert.equal(f.nav.style.transform, 'translateY(0)');
+        assert.equal(f.w.TDBNavScroll.floatingVisible, false);
+        assert.equal(bannerHidden(), true);
+      } finally { f.dom.window.close(); }
+    });
+  }
+}
+
+test('a rapid reversal cancels an unpainted sticky reveal', async () => {
+  const f = fixture(448, true, true, false);
+  const frames = new Map(); let serial = 0;
+  f.w.requestAnimationFrame = fn => { frames.set(++serial, fn); return serial; };
+  f.w.cancelAnimationFrame = id => frames.delete(id);
+  const frame = () => { const jobs = [...frames.values()]; frames.clear(); jobs.forEach(fn => fn()); };
+  const scrollFrame = y => { f.w.scrollY = y; f.w.dispatchEvent(new f.w.Event('scroll')); frame(); };
+  try {
+    f.enhance(); await flush(); frame();
+    scrollFrame(2000); scrollFrame(1800);
+    assert.equal(f.nav.style.position, 'fixed');
+    // Execute the next scroll update before the scheduled reveal paints.
+    f.w.scrollY = 2200; f.w.dispatchEvent(new f.w.Event('scroll'));
+    const latest = [...frames.entries()].at(-1); frames.delete(latest[0]); latest[1]();
+    frame();
+    assert.equal(f.nav.style.transform, 'translateY(-100%)');
+    assert.equal(f.w.TDBNavScroll.floatingVisible, false);
+  } finally { f.dom.window.close(); }
+});
+
 test('basic navigation locks before consent, retains lock through closing, and preserves document state', async () => {
   const f = fixture(448, false);
   try {
@@ -147,7 +232,7 @@ test('open menu survives consent handoff; enhancement begins only after the nati
     await f.open(); f.enhance();
     assert.equal(f.w.TDBNavbar, undefined); assert.equal(f.w.TDBNavbarLoader.status().waitingForClose, true);
     await f.closeStart(); assert.equal(f.w.TDBNavbar, undefined);
-    await f.closeEnd(); assert.equal(f.w.TDBNavbar.version, '1.7.0'); assert.equal(f.w.TDBScrollLock.active, false);
+    await f.closeEnd(); assert.equal(f.w.TDBNavbar.version, '1.8.0'); assert.equal(f.w.TDBScrollLock.active, false);
   } finally { f.dom.window.close(); }
 });
 

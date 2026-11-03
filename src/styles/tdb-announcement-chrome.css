@@ -42,13 +42,11 @@ html:has(#tdb-vip-drawer:is(.is-open,.is-closing)) #tdb-elfsight-timer-shell{
   transition:transform var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-peek-ease,var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))),visibility 0s linear var(--tdb-peek-duration,calc(420ms * var(--tdb-fade-pace,1)))!important;
 }
 
-@media (min-width:992px) {
-  /* Use the navbar's own settled state; do not create a competing scroll threshold. */
-  html:has(.navbar10_component:is([style*="translateY(0)"],[style*="translateY(0px)"])) #tdb-elfsight-timer-shell {
+  /* All layouts yield to the shared controller's explicit visibility signal. */
+  html:has(.navbar10_component[data-tdb-nav-floating-visible]) #tdb-elfsight-timer-shell {
     transform:translate3d(0,-100%,0)!important;
     opacity:1!important;
     visibility:hidden!important;
     pointer-events:none!important;
     transition:transform var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-peek-ease,var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))),visibility 0s var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1)))!important;
   }
-}

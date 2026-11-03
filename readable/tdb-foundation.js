@@ -1171,6 +1171,7 @@
         'aria-expanded',
         'data-nav-menu-open',
         'data-tdb-desktop-dropdown',
+        'data-tdb-nav-floating-visible',
       ],
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });

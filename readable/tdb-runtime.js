@@ -926,8 +926,6 @@ function prepareFloatingAnnouncement() {
   (() => {
     const root = document.documentElement;
     const shellId = 'tdb-elfsight-timer-shell';
-    const mobileQuery = matchMedia('(max-width:767px)');
-    const desktopQuery = matchMedia('(min-width:992px)');
     const path = location.pathname.replace(/\/+$/, '') || '/';
     const revealViewports = path === '/' || path === '/location' ? 4 : 1;
     let viewportHeight = 0;
@@ -937,38 +935,33 @@ function prepareFloatingAnnouncement() {
       shell._t = 1;
       let frame = 0;
       const navbar = document.querySelector('.navbar10_component');
+      let navbarVisible = false;
       const updateViewportHeight = (h = innerHeight || root.clientHeight || 0) => {
         viewportHeight = viewportHeight ? Math.min(viewportHeight, h) : h;
       };
       const updateState = (scrollTop = window.scrollY ?? root.scrollTop ?? 0) => {
         frame = 0;
-        const mobileNavbarVisible =
-          mobileQuery.matches &&
-          navbar &&
-          (navbar.classList.contains('z-hold') ||
-            (navbar.classList.contains('is-trans') &&
-              !(navbar.style.transform || '').includes('-100%')));
-        // Match the existing desktop Home CSS so a hidden banner also pauses.
-        const desktopNavbarVisible =
-          path === '/' &&
-          desktopQuery.matches &&
-          navbar?.matches('[style*="translateY(0)"],[style*="translateY(0px)"]');
         root.classList.toggle(
           'tdb-timer-hidden',
-          scrollTop < viewportHeight * revealViewports ||
-            mobileNavbarVisible ||
-            desktopNavbarVisible,
+          scrollTop < viewportHeight * revealViewports || navbarVisible,
         );
       };
       const requestUpdate = () => {
         if (!frame) frame = requestAnimationFrame(() => updateState());
       };
       updateViewportHeight(position.height);
+      // Subscribe to the existing shared observer. Appearance classes, paths and
+      // serialized transform strings do not determine whether the nav is showing.
       if (navbar)
-        new MutationObserver(requestUpdate).observe(navbar, {
-          attributes: true,
-          attributeFilter: ['class', 'style'],
-        });
+        window.TDBNavbarState.forNav(navbar).watch(
+          () =>
+            navbar.hasAttribute('data-tdb-nav-floating-visible') ||
+            !!navbar.querySelector('.w-nav-button.w--open,.w-dropdown-toggle.w--open'),
+          (visible) => {
+            navbarVisible = visible;
+            requestUpdate();
+          },
+        );
       addEventListener('scroll', requestUpdate, { passive: true });
       addEventListener(
         'resize',
@@ -986,9 +979,6 @@ function prepareFloatingAnnouncement() {
         },
         { passive: true },
       );
-      mobileQuery.addEventListener
-        ? mobileQuery.addEventListener('change', requestUpdate)
-        : mobileQuery.addListener(requestUpdate);
       updateState(position.y);
     }
 
