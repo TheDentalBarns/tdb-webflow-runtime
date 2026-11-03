@@ -4,12 +4,18 @@ const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
-async function fixture({ delayed = false, reduced = false, source, sharedFocus = false } = {}) {
+async function fixture({
+  delayed = false,
+  reduced = false,
+  source,
+  sharedFocus = false,
+  count = 2,
+} = {}) {
   const dom = new JSDOM(
     `<!doctype html><body>
     <section class="section_logo-features"><div class="logo-slider">
     <div class="partner-featured_component">
-      ${[0, 1]
+      ${Array.from({ length: count }, (_, index) => index)
         .map(
           (
             i,
@@ -511,6 +517,28 @@ test('rapid partner control taps advance once each and keep shared chrome hidden
     assert(focused(), 'the previous popup cannot release a newer focus owner');
     f.w.TDBSliderFocus.release(f.d.querySelector('#outside'));
     assert.equal(focused(), false);
+  } finally {
+    f.close();
+  }
+});
+
+test('rapid arrows keep the logos travelling with the tooltip across complete loops', async () => {
+  const f = await fixture({ count: 20 });
+  try {
+    f.click(f.logos[0]);
+    await tick();
+    let target = f.status().targetX;
+    // All inputs land before the next animation frame: the visible track is
+    // behind the requested slide by more than half a loop, in both directions.
+    for (const direction of [...Array(45).fill(1), ...Array(50).fill(-1), 1, -1, 1, -1]) {
+      f.click(f.shell.querySelector(direction > 0 ? '.tdb-partner-next' : '.tdb-partner-prev'));
+      const next = f.status().targetX;
+      assert(
+        Math.abs(next - (target - direction * 160)) < 1e-9,
+        `requested ${direction > 0 ? 'next' : 'previous'} partner must retain its travel direction`,
+      );
+      target = next;
+    }
   } finally {
     f.close();
   }

@@ -3,7 +3,7 @@
 
   const pace = window.TDBMotionProfile?.pace || 1;
   const coastRate = window.TDBMotionProfile?.physics.coast || 4.2;
-  const VERSION = '0.15.5';
+  const VERSION = '0.15.6';
   const assetBase = new URL('./', document.currentScript.src);
   if (window.TDBLogoMarquee) return;
   const DEFAULTS = {
@@ -862,8 +862,16 @@
       selected = item.dataset.tdbLogoIndex;
       const box = item.getBoundingClientRect();
       const view = viewport.getBoundingClientRect();
+      // Swiper advances from its requested slide, even before travel finishes.
+      // Keep that same route through the loop: choosing the shortest route from
+      // the lagging visual position can reverse the logos during a rapid burst.
+      const routeFrom = openCard && centreAnimation ? targetX : currentX;
       targetX =
-        currentX + shortestDelta(view.left + view.width / 2 - box.left - box.width / 2, loopWidth);
+        routeFrom +
+        shortestDelta(
+          view.left + view.width / 2 - box.left - box.width / 2 + currentX - routeFrom,
+          loopWidth,
+        );
       centreAnimation?.cancel();
       centreAnimation = null;
       if (reduceMotion()) {
