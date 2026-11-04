@@ -550,10 +550,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "e3ee5bf6924b946691569510446d1ef8bc0cd35eeadb10453fa7ab5eb7023960",
-      "raw": 80836,
-      "gzip": 22292,
-      "brotli": 19395
+      "sha256": "25a4500b46fc348c1cc71801369d0c08023cee19fbd9f714b73eb14369c308d6",
+      "raw": 80883,
+      "gzip": 22300,
+      "brotli": 19416
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -568,10 +568,10 @@
       "sources": [
         "src/shared/slider-focus.js"
       ],
-      "sha256": "2e9f6afdc317b01af9ac5192969724b8c8f360824d3d54f4832cb9ceb4715b2b",
+      "sha256": "f9b36dfb12edbca557cfeb88e76a60cc1adb2592d4329350143e95742dbc13fa",
       "raw": 6234,
       "gzip": 2423,
-      "brotli": 2156
+      "brotli": 2154
     },
     "dist/tdb-smile-feed.js": {
       "sources": [
@@ -689,18 +689,6 @@
       "raw": 10077,
       "gzip": 3700,
       "brotli": 3200
-    },
-    "dist/tdb-calculator.css": {
-      "sha256": "11a0713095f603c8b81f3cbc61a991926500959acf712fa4744c3d5a7b8a1f33",
-      "raw": 36201,
-      "gzip": 7944,
-      "brotli": 6979
-    },
-    "dist/tdb-ui.css": {
-      "sha256": "0c1133886357c897a711c99ab31aabeec76ddfb9e1762139a8a257de78ed046e",
-      "raw": 23278,
-      "gzip": 4470,
-      "brotli": 3970
     }
   }
 }

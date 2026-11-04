@@ -1,19 +1,21 @@
 # TDB content feed — Instagram, Smile Gallery and Reviews staging trials
 
-## Pricing / Happy Patients — prepared 4 November 2026, deployment held
+## Pricing / Happy Patients — live CMS connection, 4 November 2026
 
 The existing Media Gallery already contains the nine patient posts in the
-**Happy Patients** category (`6ab7b9fabdfdf7aa5db3558f`). They remain drafts.
-No duplicate collection or records are required. The prepared route
+**Happy Patients** category (`6ab7b9fabdfdf7aa5db3558f`). The owner approved
+publishing these nine existing records; all nine were published at 15:28 UTC.
+No duplicate collection or records were created. The route
 `/tdb-content/v1/instagram-patients.json` uses the same published-only projection
-and a separate `instagram:patients:v1` cache. It has not been deployed to Cloudflare.
+and a separate `instagram:patients:v1` cache. It is deployed in the existing
+availability Worker (version `6732f763`), preserving its other modules and bindings.
 
-Until the deployment hold is lifted and those records are approved for publishing,
-Pricing's shared Deferred Instagram Feed uses `tdb-instagram-smiles.json`, a
-versioned snapshot of the nine posts already displayed on the page. It is not a
-live CMS connection. On release, publish the approved Visible patient records,
-deploy the prepared service, then change the component's endpoint prop to the
-patients route. Keep the feed key `happy-patients`; no page script is needed.
+Pricing's shared Deferred Instagram Feed now points to the patients route on
+`https://tdb-public-availability.david-070.workers.dev`, with feed key
+`happy-patients`. The public endpoint returned all nine published posts. The
+previous versioned snapshot remains available for rollback. Consent, proximity,
+native carousel rendering and motion use the existing shared modules; no page
+script is needed. CMS publication is shared; the page release is staging only.
 
 ## Location / Behind the Barns — 29 October 2026
 

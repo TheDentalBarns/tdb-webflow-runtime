@@ -1825,7 +1825,10 @@ function prepareTooltipLoader() {
 
 function prepareSliderFocusLoader() {
   function start() {
-    const selector = '.highlight-swiper_component,.parallax-swiper_component,.swiper,.w-slider';
+    // Deferred feeds exist as holders before their native carousel is inserted.
+    // Keep delegated intent available even when a page has no other sliders.
+    const selector =
+      '.highlight-swiper_component,.parallax-swiper_component,.swiper,.w-slider,[data-tdb-ig-placeholder],[data-tdb-ig-native]';
     const sliders = [...document.querySelectorAll(selector)].filter(
       (slider) => !slider.closest('.logo-slider'),
     );

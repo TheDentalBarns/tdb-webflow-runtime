@@ -1,9 +1,9 @@
-/* TDB shared slider focus v1.4.2. Shared gesture and magnetic section focus. */
+/* TDB shared slider focus v1.4.3. Shared gesture and magnetic section focus. */
 (() => {
   'use strict';
   const e = document.documentElement;
   if (e.dataset.tdbSliderFocusReady) return;
-  e.dataset.tdbSliderFocusReady = '1.4.2';
+  e.dataset.tdbSliderFocusReady = '1.4.3';
   let viewportWidth = window.innerWidth;
   const t = 'input,textarea,select,[contenteditable="true"]',
     n = '[data-tdb-sg-overlay],.tdb-sg-filter-dock';
@@ -75,7 +75,6 @@
         .forEach((e) => e.click()));
   }
   function v(t, hold) {
-    if (document.body?.dataset.tdbChromeFocus === 'off') return;
     if (t && !f(t) && !h()) {
       if ((b(), !i)) {
         const e = document.querySelector('.navbar10_component');
@@ -278,6 +277,9 @@
     }),
     (window.TDBSliderFocus = Object.freeze({
       focus(target, hold) {
+        // Page opt-out suppresses automatic section focus, not a visitor's
+        // explicit carousel click, keyboard navigation or horizontal gesture.
+        if (document.body?.dataset.tdbChromeFocus === 'off') return;
         if (target?.isConnected) v(target, hold);
       },
       release(target) {
