@@ -378,6 +378,8 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
 [data-tdb-disclosure-trigger][aria-expanded="true"]+[data-tdb-price-panel]{height:auto}
 /* Clip the shared reveal lift without creating a scroll container for sticky rows. */
 [data-tdb-price-section]>[data-tdb-disclosure-panel]{opacity:1;overflow:clip;padding-top:var(--tdb-disclosure-gap,20px);padding-right:0;min-width:0;width:100%}
+/* Release finished reveal layers so sticky glass can sample the content below. */
+[data-tdb-price-section]>[data-tdb-disclosure-panel]>[data-tdb-disclosure-reveal],[data-tdb-price-panel]>[data-tdb-disclosure-reveal]{animation-fill-mode:backwards}
 /* Retire the legacy mobile navbar offset in both collapsed and expanded rows. */
 [data-tdb-disclosure-trigger][data-tdb-price-trigger]{position:relative;top:auto;z-index:auto}
 [data-tdb-disclosure-trigger][data-tdb-price-trigger][aria-expanded="true"]{position:sticky;top:0;z-index:3;background-color:var(--_tdb-navbar---bar-glass,#f9f2e6d6);-webkit-backdrop-filter:saturate(150%) blur(20px);backdrop-filter:saturate(150%) blur(20px)}
@@ -390,7 +392,9 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
 [data-tdb-price-panel] [data-tdb-page-break-image]{margin-top:0}
 /* Webflow omits an empty CMS image. Its frame and spacing must disappear with it. */
 [data-tdb-price-panel]>[data-tdb-disclosure-reveal]:has(>[data-tdb-page-break]):not(:has([data-tdb-page-break-image][src]:not([src=""]))){display:none}
-[data-tdb-price-panel]:not(:has([data-tdb-page-break-image][src]:not([src=""]))){grid-template-columns:minmax(0,1fr)}
+@media(min-width:992px){
+  [data-tdb-price-panel]:not(:has([data-tdb-page-break-image][src]:not([src=""])))>[data-tdb-disclosure-reveal]{grid-column:2}
+}
 @media(max-width:767px){
   /* Expand the existing clipping boundary so the sticky glass reaches both edges. */
   [data-tdb-price-section]>[data-tdb-disclosure-panel]{width:100vw;margin-left:calc(50% - 50vw);padding-left:5vw;padding-right:5vw}

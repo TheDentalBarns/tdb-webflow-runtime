@@ -154,8 +154,52 @@
     (e.matches?.('[data-tdb-disclosure-trigger]') && a(e),
       e.querySelectorAll('[data-tdb-disclosure-trigger]').forEach(a));
   }
+  // Reveal the native target before Webflow/the browser handles the anchor scroll.
+  function openHash(hash) {
+    let id;
+    try {
+      id = decodeURIComponent(hash.slice(1));
+    } catch {
+      return;
+    }
+    if (!id) return;
+    const target = document.getElementById(id);
+    if (!target?.matches('[data-tdb-price-section]')) return;
+    const trigger = target.querySelector(':scope > [data-tdb-disclosure-trigger]');
+    if (trigger && trigger.getAttribute('aria-expanded') !== 'true') a(trigger)?.set(true);
+  }
+  document.addEventListener(
+    'click',
+    (event) => {
+      if (
+        event.defaultPrevented ||
+        event.button > 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      )
+        return;
+      const link = event.target.closest?.('a[href]');
+      if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self'))
+        return;
+      const url = new URL(link.href, location.href);
+      if (
+        url.origin === location.origin &&
+        url.pathname === location.pathname &&
+        url.search === location.search
+      )
+        openHash(url.hash);
+    },
+    true,
+  );
+  window.addEventListener('hashchange', () => openHash(location.hash));
+  function start() {
+    r();
+    openHash(location.hash);
+  }
   ((window.TDBDisclosure = Object.freeze({
-    version: '1.2.2',
+    version: '1.2.3',
     observe: function (e, t, n = () => 'true' === e.getAttribute('aria-expanded')) {
       let a;
       function r() {
@@ -173,8 +217,8 @@
     refresh: r,
   })),
     'loading' === document.readyState
-      ? document.addEventListener('DOMContentLoaded', () => r(), { once: !0 })
-      : r());
+      ? document.addEventListener('DOMContentLoaded', start, { once: !0 })
+      : start());
 })();
 /* Price sections use the same disclosure and navbar controllers. Opening a
  * treatment owns focus only while that category is visible and expanded. */

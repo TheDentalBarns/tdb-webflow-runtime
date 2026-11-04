@@ -5,6 +5,19 @@ const path = require('node:path');
 const { JSDOM } = require('jsdom');
 const source = fs.readFileSync(path.join(__dirname, '../src/navbar/native-foundation.js'), 'utf8');
 
+test('same-page category anchors open their target before scrolling without claiming chrome focus', () => {
+  const dom = new JSDOM('<a href="#General-Dentistry">General</a><section id="General-Dentistry" data-tdb-price-section><button data-tdb-disclosure-trigger aria-expanded="false">General Dentistry</button><div data-tdb-disclosure-panel>Prices</div></section>', {runScripts:'outside-only',url:'https://dentalbarns.webflow.io/dental-cost-lichfield'});
+  const w=dom.window, trigger=w.document.querySelector('button');
+  w.eval(source);w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
+  w.document.querySelector('a').addEventListener('click', e=>{assert.equal(trigger.getAttribute('aria-expanded'),'true');e.preventDefault();});
+  w.document.querySelector('a').click();
+  assert(!w.document.documentElement.classList.contains('tdb-slider-focus'));
+  w.TDBDisclosure.mount(trigger).set(false);
+  w.history.replaceState(null,'','#General-Dentistry');w.dispatchEvent(new w.Event('hashchange'));
+  assert.equal(trigger.getAttribute('aria-expanded'),'true');
+  dom.window.close();
+});
+
 test('only expanded treatments protect chrome, and category collapse or leaving the section releases it', () => {
   const dom = new JSDOM(
     '<section data-tdb-price-section data-tdb-disclosure-item><button data-tdb-disclosure-trigger aria-expanded="true">Category</button><div data-tdb-disclosure-panel><div data-tdb-disclosure-item><button data-tdb-disclosure-trigger data-tdb-price-trigger aria-expanded="false">Treatment</button><div data-tdb-disclosure-panel>Price details</div></div></div></section>',
