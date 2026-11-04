@@ -2,3 +2,8 @@
 
 /* Native reading-state geometry for the shared quotation artwork. */
 .tdb-review-drawer_static-mark.is-reading{position:static;transform:none;width:min(100%,23rem)}
+
+/* Carry the native arrow's base styling with the lazily loaded drawer. */
+.tdb-review-drawer_root .carousel-arrow{box-sizing:border-box;display:flex;justify-content:center;align-items:center;flex-shrink:0;width:3rem;height:3rem;padding:0;border:1px solid currentColor;border-radius:50%;cursor:pointer;appearance:none;transition:background-color calc(300ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease),color calc(300ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease),border-color calc(300ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease)}
+.tdb-review-drawer_root .carousel-arrow-icon{display:block;width:1rem;height:1rem;flex-shrink:0;background:currentColor;pointer-events:none;-webkit-mask:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg") center/contain no-repeat;mask:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg") center/contain no-repeat}
+.tdb-review-drawer_root .carousel-arrow-icon.is-previous{transform:rotate(180deg)}

@@ -494,10 +494,10 @@ test('starting routes reorder the journey, retain controls and collapse to eithe
     const hygiene = h.root.querySelector('[data-hygiene]');
     const quantity = h.root.querySelector('[data-qty=bonding]');
     const signatureTarget = h.root.querySelector('[data-date=target]').value;
-    assert.equal(h.root.querySelector('[data-output=total]').textContent, 'From £1,240');
+    assert.equal(h.root.querySelector('[data-output=total]').textContent, '£1,240');
     choose('[data-assessment=design]');
     assert.equal(h.root.querySelector('[data-node=assessment]'), assessment);
-    assert.equal(h.root.querySelector('[data-output=total]').textContent, 'From £1,240');
+    assert.equal(h.root.querySelector('[data-output=total]').textContent, '£1,240');
     const designTarget = h.root.querySelector('[data-date=target]').value;
     assert.equal((core.parseDate(designTarget) - core.parseDate(signatureTarget)) / 86400000, 49);
     assert.equal(h.root.querySelector('[data-node=header]'), nativeHeader);
@@ -547,7 +547,7 @@ test('starting routes reorder the journey, retain controls and collapse to eithe
     choose('[data-hygiene]');
     assert.equal(h.root.querySelector('[data-hygiene]'), hygiene);
     assert.equal(h.root.querySelector('[data-qty=bonding]'), quantity);
-    assert.equal(h.root.querySelector('[data-output=total]').textContent, 'From £1,435');
+    assert.equal(h.root.querySelector('[data-output=total]').textContent, '£1,435');
     assert.equal(
       (core.parseDate(h.root.querySelector('[data-date=target]').value) -
         core.parseDate(designTarget)) /
@@ -559,10 +559,10 @@ test('starting routes reorder the journey, retain controls and collapse to eithe
     assert(h.root.querySelector('[data-panel=treatments]>[data-tdb-disclosure-panel]').hidden);
     assert.equal(h.root.querySelector('[data-node=hygiene]'), null);
     assert.equal(h.root.querySelector('[data-node=timeline]'), null);
-    assert.equal(h.root.querySelector('[data-output=total]').textContent, 'From £225');
+    assert.equal(h.root.querySelector('[data-output=total]').textContent, '£225');
     assert.equal(h.root.querySelector('[data-output=duration]').textContent, '60 minutes');
     choose('[data-assessment=signature]');
-    assert.equal(h.root.querySelector('[data-output=total]').textContent, 'From £450');
+    assert.equal(h.root.querySelector('[data-output=total]').textContent, '£450');
     assert.equal(h.root.querySelector('[data-output=duration]').textContent, '90 minutes');
     assert.equal(
       h.root.querySelector('[data-action=resume-estimate]').textContent,
@@ -571,9 +571,9 @@ test('starting routes reorder the journey, retain controls and collapse to eithe
     choose('[data-action=resume-estimate]');
     assert.equal(h.root.querySelector('[data-tdb-calc-native-entry]').hidden, false);
     assert.equal(h.root.querySelector('[data-qty=bonding]').value, '2');
-    assert.equal(h.root.querySelector('[data-output=total]').textContent, 'From £1,435');
+    assert.equal(h.root.querySelector('[data-output=total]').textContent, '£1,435');
     choose('[data-action=start-assessment]');
-    assert.equal(h.root.querySelector('[data-output=total]').textContent, 'From £450');
+    assert.equal(h.root.querySelector('[data-output=total]').textContent, '£450');
     choose('[data-action=reset]');
     assert.equal(h.root.querySelector('[data-tdb-calc-native-entry]').hidden, false);
     await tick();
@@ -689,6 +689,51 @@ test('reset forgets calculator chrome protection, including programmatic intro f
   }
 });
 
+test('refresh preserves the last available date and status until the new date is ready', async () => {
+  const h = setup();
+  try {
+    h.w.document.body.insertAdjacentHTML('beforeend', feed);
+    let liveDay = core.iso(core.addDays(new Date(), 90));
+    h.w.TDBAvailability.snapshot = () => ({
+      state: 'ready',
+      fresh: true,
+      checkedAt: Date.now(),
+      data: { nextSlot: liveDay + 'T10:00:00Z' },
+    });
+    h.w.TDBAvailability.assessmentSlot = () => ({
+      day: liveDay,
+      time: '10:00',
+      at: Date.parse(liveDay + 'T10:00:00Z'),
+    });
+    h.run('src/calculator/core.js');
+    h.run('src/calculator/ui.js');
+    h.change('cosmetic');
+    await h.w.TDBCalculator.mount(h.root);
+    await tick();
+    h.root.querySelector('[data-action=start-design]').click();
+    const card = h.root.querySelector('[data-output=availability]');
+    const original = card.textContent;
+    let resolveRead;
+    h.w.TDBAvailability.read = () =>
+      new Promise((resolve) => {
+        resolveRead = resolve;
+      });
+    card.querySelector('[data-action=availability]').click();
+    await tick();
+    assert(h.root.hasAttribute('data-availability-loading'));
+    assert.equal(card.textContent, original);
+    assert.equal(card.querySelector('[data-action=availability]').disabled, true);
+    liveDay = core.iso(core.addDays(core.parseDate(liveDay), 7));
+    resolveRead();
+    await tick();
+    assert.equal(h.root.hasAttribute('data-availability-loading'), false);
+    assert.notEqual(card.textContent, original);
+    assert.equal(card.querySelector('[data-action=availability]').disabled, false);
+  } finally {
+    h.dom.window.close();
+  }
+});
+
 test('shared tickers keep appointment copy stable and settle the latest price and date after rapid switches', async () => {
   const h = setup();
   try {
@@ -759,14 +804,14 @@ test('shared tickers keep appointment copy stable and settle the latest price an
     assert.equal(assessment.querySelector('[data-output=assessment-date]'), date);
     assert(animations.some((a) => a.options.duration === 777));
     for (const animation of animations) animation.onfinish?.();
-    assert.equal(price.textContent, 'From £225');
-    assert.equal(h.root.querySelector('[data-output=total]').textContent, 'From £225');
+    assert.equal(price.textContent, '£225');
+    assert.equal(h.root.querySelector('[data-output=total]').textContent, '£225');
     assert.equal(h.root.querySelector('[data-output=duration]').textContent, '60 minutes');
     assert.equal(date.textContent, date.dataset.tickerText);
     assert.equal(h.root.querySelectorAll('.tdbc-ticker-incoming').length, 0);
     h.w.TDBMotion.reduced.matches = true;
     assessment.querySelector('[data-assessment=signature]').click();
-    assert.equal(price.textContent, 'From £450');
+    assert.equal(price.textContent, '£450');
     assert.equal(h.root.querySelectorAll('.tdbc-ticker-incoming').length, 0);
   } finally {
     h.dom.window.close();

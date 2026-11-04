@@ -65,10 +65,7 @@
   const AVAILABILITY_TTL = 5 * 60 * 1000;
   const futureSlot = () => (availability.slot?.at > Date.now() ? availability.slot : null);
   const availabilityLive = () =>
-    !!futureSlot() &&
-    !availability.error &&
-    !availability.pending &&
-    Date.now() - availability.checked < AVAILABILITY_TTL;
+    !!futureSlot() && !availability.error && Date.now() - availability.checked < AVAILABILITY_TTL;
   const planningStart = (estimate) => C.assessmentStart(estimate, futureSlot()?.day || today());
   const TIMELINE_LOADING = 'Updating your timeline';
   const assessmentDateText = (day) =>
@@ -86,34 +83,33 @@
       base = planningStart({ assessment: route }),
       later = !!slot && !!start && start !== base,
       live = !design && availabilityLive() && !later;
-    const status = availability.pending
-      ? 'Checking live availability'
-      : availability.error
-        ? slot
-          ? later
-            ? 'Couldn’t refresh — showing previous estimate'
-            : 'Couldn’t refresh — showing last checked availability'
-          : 'Unable to check live availability'
-        : design && slot
-          ? 'Typical wait · about six weeks after live assessment availability'
-          : later
-            ? 'Illustrative assessment date'
-            : live
-              ? 'Live availability'
-              : slot
-                ? 'Last checked over five minutes ago'
-                : 'No live appointment date available';
-    const day = design ? (slot ? start || base : null) : later ? start : slot?.day,
-      date = availability.pending
+    const status =
+      availability.pending && !slot
         ? 'Checking live availability'
-        : day
-          ? assessmentDateText(day)
+        : availability.error
+          ? slot
+            ? later
+              ? 'Couldn’t refresh — showing previous estimate'
+              : 'Couldn’t refresh — showing last checked availability'
+            : 'Unable to check live availability'
+          : design && slot
+            ? 'Typical wait · about six weeks after live assessment availability'
+            : later
+              ? 'Illustrative assessment date'
+              : live
+                ? 'Live availability'
+                : slot
+                  ? 'Last checked over five minutes ago'
+                  : 'No live appointment date available';
+    const day = design ? (slot ? start || base : null) : later ? start : slot?.day,
+      date = day
+        ? assessmentDateText(day)
+        : availability.pending
+          ? 'Checking live availability'
           : 'Please enquire';
     const detail =
       status +
-      (!availability.pending && day
-        ? ': ' + date + (!design && !later && slot ? ' · ' + slot.time : '')
-        : '') +
+      (day ? ': ' + date + (!design && !later && slot ? ' · ' + slot.time : '') : '') +
       '*';
     return (
       '<span class="text-style-tagline-restored">' +
@@ -365,11 +361,13 @@
   function priceText(e) {
     return !e.lines.length
       ? 'Choose your treatments'
-      : (!e.complete ? 'Priced items: from ' : 'From ') + range(e.min, e.max);
+      : (!e.complete ? 'Priced items: ' : '') + range(e.min, e.max);
   }
   function recordPrice(r) {
     return r?.valid
-      ? 'From ' + currency(r.min) + (r.unit ? ' / ' + r.unit : '')
+      ? ([C.IDS.assessment, C.IDS.design].includes(r.id) ? '' : 'From ') +
+          currency(r.min) +
+          (r.unit ? ' / ' + r.unit : '')
       : 'Price to confirm';
   }
   function name(o) {
@@ -1403,7 +1401,7 @@
                     ? 'Included'
                     : l.min === null
                       ? 'To confirm'
-                      : esc('From ' + range(l.min, l.max))) +
+                      : esc(range(l.min, l.max))) +
                   '</strong></li>',
               )
               .join('') +
@@ -1536,11 +1534,11 @@
       const warning =
         '<div id="' +
         id +
-        '-deadline" class="tdbc-timing-warning text-size-small"><p>' +
+        '-deadline" class="tdbc-timing-warning text-size-small"><p>Your selected plan needs a little more time. We’re no strangers to deadlines: being based at a wedding venue, we see plenty of brides and grooms and have become experienced at exploring what may be possible for the day that matters. Let’s talk about the date, your priorities and the options for getting you closer to your smile in time.</p><p class="tdbc-assessment-tip"><span class="tdbc-diamond" aria-hidden="true">◇</span><span>' +
         (e.assessment === 'design'
           ? 'A Signature Assessment could save up to two months* by bringing Smile Design and your comprehensive examination together. Contact us to explore an earlier start.'
           : 'You’ve already selected the fastest way to get started with a Signature Assessment. Contact us to talk through your date and what may be possible.') +
-        '</p><p>Your selected plan needs a little more time. We’re no strangers to deadlines: being based at a wedding venue, we see plenty of brides and grooms and have become experienced at exploring what may be possible for the day that matters. Let’s talk about the date, your priorities and the options for getting you closer to your smile in time.</p>' +
+        '</span></p>' +
         (e.assessment === 'design'
           ? '<p class="tdbc-help text-size-tiny">*Based on the typical six-week Smile Design wait, followed by 1–2 weeks for a separate check-up. Appointment availability and your confirmed plan may change this.</p>'
           : '') +
@@ -1687,12 +1685,12 @@
       }
       roll(
         'target-display',
-        pending ? TIMELINE_LOADING : dateText(t.finishMin),
+        pending && !futureSlot() ? TIMELINE_LOADING : dateText(t.finishMin),
         Date.parse(t.finishMin) || 0,
       );
       set(
         'completion-range',
-        pending
+        pending && !futureSlot()
           ? 'Checking your assessment date before updating the estimates.'
           : t.finishMin === t.finishMax
             ? 'Earliest estimated finish for your selected plan.'
@@ -1783,7 +1781,11 @@
                   ? 'Included'
                   : l.min === null
                     ? 'To confirm'
-                    : tag + esc('From ' + range(l.min, l.max))) +
+                    : tag +
+                      esc(
+                        (['assessment', 'design'].includes(l.key) ? '' : 'From ') +
+                          range(l.min, l.max),
+                      )) +
                 '</strong></div>',
             )
             .join('') +

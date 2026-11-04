@@ -6,3 +6,4 @@
 [data-tdb-price-panel]{--tdb-disclosure-display:grid}
 [data-tdb-disclosure-trigger][aria-expanded="true"]+[data-tdb-price-panel]{height:auto}
 [data-tdb-price-section]>[data-tdb-disclosure-panel]{opacity:1}
+[data-tdb-price-section]>[data-tdb-compact-chevron]::after{width:1rem;height:1rem;flex:0 0 1rem;opacity:.5}
