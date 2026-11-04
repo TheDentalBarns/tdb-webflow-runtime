@@ -7,8 +7,10 @@
 .tdbc-shell{width:100%;margin-inline:auto}
 .tdbc-header{max-width:48rem;margin-bottom:2rem}.tdbc-header>p:first-child{margin-bottom:1rem}.tdbc-header h2{margin:0 0 1.5rem}
 .tdbc-main{width:100%}.tdbc-main:not(:has(.tdbc-footnote))>[data-node=step-1]{padding-bottom:0}.tdbc-step{padding:3rem 0;margin:0;border:0;border-top:1px solid var(--base-color-brand--orange-3);min-width:0}
+/* Step padding owns the space at section boundaries, without a final text margin. */
+.tdbc-step>:last-child,.tdbc-step>[data-output=timeline]>:last-child{margin-bottom:0}
 .tdbc-step-heading{display:flex;align-items:center;gap:1rem;margin:0 0 1rem}.tdbc-number{display:grid;place-items:center;flex:0 0 2.5rem;width:2.5rem;height:2.5rem;background:var(--base-color-brand--orange-3);color:var(--base-color-neutral--neutral-darker);letter-spacing:normal}
-.tdbc-help{color:var(--calc-muted)}.tdb-calc p{margin:0 0 1rem}.tdbc-categories{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.5rem}
+.tdbc-help{color:var(--calc-muted)}.tdb-calc p{margin:0 0 1rem}.tdbc-categories{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0}
 /* The same 6px dark-cream live pulse used by the assessment banners. */
 .tdb-calc [data-availability-status]{position:relative;padding-left:16px}
 .tdb-calc [data-availability-status]::before,.tdb-calc [data-availability-status]::after{content:'';position:absolute;left:0;top:calc(50% - 3px);width:6px;height:6px;border-radius:50%;background:#888;pointer-events:none}
@@ -45,6 +47,7 @@
 .tdbc-category .w-form-label{margin-bottom:0}
 .tdbc-entry-status:empty{display:none}
 .tdbc-treatment-group{margin:2rem 0 0;min-width:0}.tdbc-treatment-group>[role=heading]{margin:0 0 2rem}
+.tdbc-step-header+.tdbc-treatment-group{margin-top:0}
 .tdbc-option{padding:1rem 0;border-bottom:1px solid var(--calc-line)}.tdbc-option:last-child{border-bottom:0}
 .tdbc-option-row{position:relative;display:flex;align-items:center;gap:.5rem}.tdb-calc .tdbc-option-label{flex:1;min-height:3rem}.tdbc-option-label>span:not(.form_checkbox-icon):not(.tdbc-chevron){flex:1;min-width:0}
 /* Shared data-tdb-chevron feedback owns rotation and timing; this is geometry
@@ -69,6 +72,8 @@
 html[data-tdb-control-motion] .tdb-calc [data-tdb-disclosure-item][data-tdb-disclosure-interacted]>[data-tdb-disclosure-panel]:not([hidden])>[data-tdb-disclosure-reveal]{animation-fill-mode:backwards;opacity:1;transform:none}
 .tdbc-expand.is-expanded{padding-bottom:var(--tdb-disclosure-gap,20px)}
 .tdbc-expand.is-entering{padding-bottom:0}
+/* Numbered steps already supply their own boundary space; nested options retain the shared opening gap. */
+.tdbc-main>.tdbc-expand{padding-bottom:0}
 .tdbc-option-controls{padding:1.25rem 0 .25rem 2rem;background:transparent}.tdbc-option-controls>label,.tdbc-finance-controls>label,.tdbc-date-controls>label,.tdbc-step>label{display:block;margin:0 0 .75rem;font-weight:400}
 .tdbc-quantity{display:flex;width:10rem;min-height:2.75rem;margin:0;border:1px solid var(--calc-line)}.tdbc-quantity button{flex:0 0 2.75rem;border:0;background:transparent;color:inherit;cursor:pointer;font:inherit}
 .tdbc-quantity input{width:4.5rem;min-width:0;border:0!important;background:transparent!important;text-align:center;padding:0!important;margin:0!important;appearance:textfield}.tdbc-quantity input::-webkit-inner-spin-button{appearance:none}
@@ -93,13 +98,13 @@ html[data-tdb-control-motion] .tdb-calc [data-tdb-disclosure-item][data-tdb-disc
 .tdbc-summary .tdbc-vip{width:100%;margin:1rem 0 1.25rem;border-color:currentColor}.tdbc-summary .tdbc-vip:hover{background:var(--base-color-brand--orange-1);color:var(--calc-ink)}
 .tdbc-text-button{border:0;border-bottom:1px solid currentColor;background:transparent;color:inherit;font-family:inherit;padding:.375rem 0;min-height:2.75rem;cursor:pointer}.tdbc-actions{display:flex;gap:1.5rem;flex-wrap:wrap}
 .tdbc-notice,.tdbc-warning{padding:1.25rem;border-left:1px solid var(--calc-line);background:var(--calc-dark-cream);color:var(--calc-ink);margin:1.25rem 0!important}.tdbc-optional{float:right;color:var(--calc-muted)}
-.tdbc-target-card,.tdbc-date-result{position:relative;padding:2.5rem;margin-top:2rem}
-.tdbc-target-card{background:var(--base-color-neutral--neutral-darker);color:var(--base-color-brand--orange-1);--calc-muted:var(--base-color-brand--orange-2)}
+.tdbc-target-card,.tdbc-date-result{position:relative;padding:2.5rem}
+.tdbc-target-card{background:var(--calc-ink);color:var(--base-color-brand--orange-1);--calc-muted:var(--base-color-brand--orange-2)}
 .tdbc-target-card>label{display:block;margin-bottom:1.25rem;color:var(--base-color-brand--orange-3)}.tdbc-completion-note{display:grid;margin-bottom:1rem}.tdbc-completion-note>p{grid-area:1 / 1;margin:0}.tdbc-completion-reserve{visibility:hidden;pointer-events:none;user-select:none!important}
 .tdbc-target-field{position:relative;color:var(--base-color-brand--orange-1)}.tdbc-target-field output{position:absolute;left:0;right:2rem;top:.25rem;pointer-events:none}.tdbc-target-field:focus-within output{visibility:hidden}.tdbc-target-card .tdbc-target-field input[type=date]{color:transparent}.tdbc-target-card .tdbc-target-field input[type=date]:focus{color:inherit}.tdbc-target-card input[type=date]{border:0;border-bottom:1px solid var(--base-color-brand--orange-3);color:inherit;color-scheme:dark;padding:.25rem 0 .75rem;margin:0 0 1rem;font:inherit;background:transparent;min-width:0;letter-spacing:normal}
 .tdbc-date-controls{position:static;padding-top:.5rem}.tdbc-date-controls .tdbc-range-labels{margin-bottom:.5rem}.tdbc-deadline-dock{margin:1rem 0 1.5rem}.tdbc-sooner-toggle{font:inherit}.tdbc-deadline-dock>[data-panel=deadline]{margin-inline:-2.5rem;background:var(--calc-dark-cream)}
 .tdbc-timing-warning{padding:1.5rem 2.5rem;background:transparent;color:var(--calc-ink)}.tdbc-timing-warning .tdbc-bridal-tip{border-color:color-mix(in srgb,var(--calc-ink) 24%,transparent)}.tdbc-timing-warning p{margin:0}
-.tdbc-date-result{background:var(--calc-dark-cream)}.tdbc-date-result>.text-style-tagline-restored{margin-bottom:1.25rem;color:var(--calc-ink)}.tdbc-date-result span{color:var(--calc-muted);display:block}.tdbc-date-result strong{font-weight:400;display:block;margin:.5rem 0}.tdbc-date-result p{margin:0}
+.tdbc-date-result{margin-top:2rem;background:var(--calc-dark-cream)}.tdbc-date-result>.text-style-tagline-restored{margin-bottom:1.25rem;color:var(--calc-ink)}.tdbc-date-result span{color:var(--calc-muted);display:block}.tdbc-date-result strong{font-weight:400;display:block;margin:.5rem 0}.tdbc-date-result p{margin:0}
 .tdbc-timeline{position:relative;list-style:none;margin:2rem 0;padding:0}.tdbc-timeline::before{content:'';position:absolute;top:0;bottom:0;left:.28125rem;width:1px;background:var(--calc-line)}.tdbc-timeline li{position:relative;display:flex;gap:1.25rem;min-height:4.75rem;padding-bottom:1.5rem}.tdbc-dot{position:relative;flex:0 0 .5625rem;width:.5625rem;height:.5625rem;border:1px solid var(--calc-ink);background:var(--calc-cream);margin-top:.4375rem;z-index:1}.tdbc-timeline small{color:var(--calc-muted);display:block;margin-bottom:.375rem}.tdbc-timeline strong{font-weight:400;display:block}.tdbc-timeline p{margin:.5rem 0 0}
 .tdbc-footnote{padding-top:1.5rem;margin-top:1.5rem;color:var(--calc-muted)}.tdbc-footnote .tdbc-actions{margin-top:1.5rem}
 .tdbc-live{position:fixed;inset:0 0 auto;z-index:1000;display:flex;align-items:center;width:100%;height:6rem;margin:0;border:0;background:color-mix(in srgb,var(--base-color-neutral--neutral-darker) 94%,transparent);color:var(--base-color-brand--orange-1);-webkit-backdrop-filter:saturate(150%) blur(20px);backdrop-filter:saturate(150%) blur(20px)}
@@ -140,7 +145,7 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
    A native view timeline makes the same effect work for CMS-generated headings. */
 
 /* Match the native opening step with one uninterrupted dark panel. */
-.tdbc-step-header{position:relative;padding:.75rem 1rem .75rem 3.5rem;margin-bottom:1rem;border:1px solid var(--base-color-neutral--neutral-darker);background:var(--base-color-neutral--neutral-darker);color:var(--base-color-brand--orange-1)}
+.tdbc-step-header{position:relative;padding:.75rem 1rem .75rem 3.5rem;margin-bottom:1.5rem;border:1px solid var(--base-color-neutral--neutral-darker);background:var(--base-color-neutral--neutral-darker);color:var(--base-color-brand--orange-1)}
 .tdbc-step-header .tdbc-step-heading{display:block;min-height:2lh;margin:0 0 1rem;color:inherit}
 .tdbc-step-header .tdbc-number{position:absolute;inset:0 auto 0 0;height:auto;background:transparent;color:inherit}
 .tdb-calc .tdbc-step-header .tdbc-step-intro{min-height:2lh;margin:0;color:color-mix(in srgb,var(--base-color-brand--orange-1) 70%,transparent)}

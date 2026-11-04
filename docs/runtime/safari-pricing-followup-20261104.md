@@ -136,6 +136,26 @@ closed Signature Assessment at header top -0.41px and reopened at 0px without
 changing scrollY (3130). Physical iPhone Safari crash/reopening verification remains
 outstanding; desktop browser checks cannot certify that issue resolved.
 
+## Calculator step spacing and date surface
+
+The numbered calculator steps now own their outer spacing. Final help-text
+margins no longer add a second gap, and the top-level treatment/journey reveal
+wrappers no longer add another 20px below already padded sections. Nested option
+accordions retain their shared 20px opening gap and existing motion.
+
+Each numbered heading supplies the same 1.5rem gap before its first content.
+The previous category, treatment-group and target-card top margins no longer
+compete with it. The target-date control card uses the existing black ink token,
+matching the selectable option cards; numbered headings retain their charcoal.
+Only the existing calculator source stylesheet and generated copy change.
+
+Browser measurements at 320px, 390px and 1440px found identical heading-to-content
+and previous-content-to-heading gaps across all five steps, with no horizontal
+overflow. The option reveal still measured 20px. Full verification retained
+923 tests: 920 passed, three existing skips, no failures. Generated parity,
+formatting and the locked Swiper artifact check passed. Staging pins for the
+shared entry, standalone calculator and existing template loaders move together.
+
 ## Rollback
 
 Restore the four site install references together to
