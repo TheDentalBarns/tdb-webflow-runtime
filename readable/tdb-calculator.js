@@ -782,6 +782,7 @@
     dialog = null,
     drawerView = null,
     lastTrigger = null,
+    drawerScrollTop = 0,
     oldOverflow = '',
     oldPadding = '',
     scrollWasStopped = false;
@@ -2059,13 +2060,16 @@
         ) +
         (e.hygieneIncluded
           ? '<p class="text-size-small">Airflow® hygiene is included with your aligner package.</p>'
-          : '<label class="tdbc-manual form_checkbox text-size-small"><input type="checkbox" data-control="hygiene" data-hygiene ' +
+          : '<div class="tdbc-start-choices"><label class="tdbc-category form_checkbox ' +
+            (state.hygiene ? 'is-selected' : '') +
+            '"><input type="checkbox" data-control="hygiene" data-hygiene ' +
             (state.hygiene ? 'checked' : '') +
             '>' +
             check(state.hygiene) +
-            '<span>Add a hygiene allowance · ' +
+            '<span><span class="text-style-tagline-restored">Add a hygiene allowance</span><small class="text-size-tiny">Recommended where needed. Include this allowance in your estimate.</small><small class="text-size-tiny tdbc-appointment-price">' +
+            tag +
             esc(recordPrice(r)) +
-            '</span></label><p class="tdbc-help text-size-tiny">Recommended where needed. Add this allowance to include it in your estimate.</p>') +
+            '</small></span></label></div>') +
         '<p class="tdbc-help text-size-tiny">Any additional periodontal care will be discussed after assessment.</p></section>'
       );
     }
@@ -2930,6 +2934,7 @@
       return;
     }
     makeDialog();
+    const reopenPosition = dialog.open ? dialog.scrollTop : drawerScrollTop;
     const initialConfig = configFrom(trigger);
     if (!drawerView.ready) {
       drawerView.config = initialConfig;
@@ -2955,8 +2960,6 @@
       dialog.showModal();
     }
     dialog.dispatchEvent(new Event('tdbc-layout'));
-    dialog.scrollTop = 0;
-    dialog.querySelector('[data-tdb-calc-close]').focus({ preventScroll: true });
     if (!drawerView.ready) {
       drawerView.config = config;
       await drawerView.init();
@@ -2965,9 +2968,16 @@
       drawerView.render();
       save();
     }
+    // showModal may focus a control and scroll before the saved estimate has
+    // settled. Restore once after rendering, rather than reset every reopening.
+    dialog.scrollTop = drawerView.context ? 0 : reopenPosition;
+    dialog.querySelector('[data-tdb-calc-close]').focus({ preventScroll: true });
   }
   function close(restore = true) {
     if (!dialog?.open) return;
+    cancelAnimationFrame(estimateScrollFrame);
+    estimateScrollFrame = 0;
+    drawerScrollTop = dialog.scrollTop;
     dialog.style.setProperty('--tdbc-close-scroll', dialog.scrollTop + 'px');
     releaseFocus();
     dialog.close();

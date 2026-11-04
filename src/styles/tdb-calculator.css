@@ -64,6 +64,9 @@
    The calculator retains control state; shared CSS owns the visual feedback. */
 .tdbc-expand{display:block;padding-bottom:0}
 .tdbc-expand-inner{min-height:0}
+/* Finished disclosure animations must release their backdrop root, so nested
+   information glass can blur the neighbouring text after the reveal settles. */
+html[data-tdb-control-motion] .tdb-calc [data-tdb-disclosure-item][data-tdb-disclosure-interacted]>[data-tdb-disclosure-panel]:not([hidden])>[data-tdb-disclosure-reveal]{animation-fill-mode:backwards;opacity:1;transform:none}
 .tdbc-expand.is-expanded{padding-bottom:var(--tdb-disclosure-gap,20px)}
 .tdbc-expand.is-entering{padding-bottom:0}
 .tdbc-option-controls{padding:1.25rem 0 .25rem 2rem;background:transparent}.tdbc-option-controls>label,.tdbc-finance-controls>label,.tdbc-date-controls>label,.tdbc-step>label{display:block;margin:0 0 .75rem;font-weight:400}

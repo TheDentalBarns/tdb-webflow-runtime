@@ -78,11 +78,56 @@ Full verification: 922 tests, 919 passed, three existing skips, zero failures.
 Generated-source parity, locked custom Swiper build/check, formatting and diff
 whitespace checks passed. Browser verification after publication is recorded below.
 
+## Follow-up from the staging review
+
+All six Pricing category bands now have a native SVG tag immediately before the
+label. The existing tag path is reused with a Designer combo class inheriting
+the heading colour. No script creates these icons. Cosmetic's inner label has
+the distinct `Cosmetic-Dentistry-label` ID; the hero link now targets the category
+wrapper directly. Browser inspection found one matching category ID, not two.
+
+Webflow's Pricings collection received optional Feature 14–16 fields. Both
+Signature Assessment records include Dürr VistaCam iX HD Smart intraoral/IR
+images, AI-assisted X-ray analysis and AI-assisted scan analysis. The shared
+Pricing item component exposes these through optional native CMS-bound rows.
+Both Smile Design records retain their original eight inclusions; empty extra
+rows stay hidden. The calculator reads the same rendered CMS inclusions.
+The £450 assessment, £225 deposit and £225 Smile Design fee are unchanged.
+
+The hygiene allowance now reuses the calculator's existing appointment-choice
+card, checkbox, typography and price icon. Its optional selection and estimate
+math are unchanged. In an actual staging reproduction, information panels still
+computed a 20px backdrop blur, but their two ancestor disclosure reveals retained
+`animation-fill-mode: both` and transforms after finishing. A calculator-scoped
+CSS rule releases those finished layers while preserving the opening animation.
+The separate Home/Location paint guard never targets calculator tooltips.
+
+The calculator drawer previously reset `scrollTop` on every opening. It now
+restores the last reading position after rendering/modal focus, and cancels an
+unfinished estimate-scroll animation on close. A new-context notice still starts
+at the top. A regression test simulates modal focus resetting the scroller and
+checks restored position, selected treatments, quantity and keyboard focus.
+
+The standalone calculator page was still pinned to the old `0ca09e55` controller
+and a different CSS release. Its existing controller, stylesheet and loader
+references are advanced together with this follow-up. There are no new script
+tags, dependencies or requests. Calculator behavior continues to use the existing
+externally hosted shared runtime; it is not a purely native Webflow implementation.
+
+Follow-up verification: 923 tests, 920 passed, three existing skips, zero failures;
+generated parity, formatting and whitespace checks passed. A direct browser click
+closed Signature Assessment at header top -0.41px and reopened at 0px without
+changing scrollY (3130). Physical iPhone Safari crash/reopening verification remains
+outstanding; desktop browser checks cannot certify that issue resolved.
+
 ## Rollback
 
 Restore the four site install references together to
 `19e50835d505534c3b962d74c67183aaf0289611` and publish staging only.
 The previous exact site custom code is privately retained outside the repository.
 Move `Cosmetic-Dentistry` back to the inner text node above and clear the wrapper's
-domId if reverting the native anchor move. No other Designer styles or CMS data
-were modified. Revert source normally; do not rewrite shared history.
+domId if reverting the native anchor move. The native category tags and optional
+CMS inclusion rows are separate reversible changes; retain their content unless
+those changes are also being reverted. Restore the saved standalone calculator
+page code if reverting its version alignment. Revert source normally; do not
+rewrite shared history.

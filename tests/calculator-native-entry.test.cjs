@@ -215,6 +215,37 @@ test('drawer opening remains independent of an untouched native inline entry', a
   }
 });
 
+test('reopening a saved drawer restores its reading position after modal focus and keeps choices', async () => {
+  const h = setup();
+  try {
+    h.w.document.body.insertAdjacentHTML('beforeend', feed);
+    h.run('src/calculator/core.js');
+    h.run('src/calculator/ui.js');
+    const trigger = h.w.document.getElementById('drawer');
+    await h.w.TDBCalculator.open(trigger);
+    const drawer = h.w.document.querySelector('dialog');
+    drawer.querySelector('[data-category=cosmetic]').click();
+    drawer.querySelector('[data-select=gumline]').click();
+    drawer.querySelector('[data-action=plus][data-key=gumline]').click();
+    drawer.scrollTop = 780;
+    h.w.TDBCalculator.close();
+    assert.equal(h.w.document.activeElement, trigger);
+    drawer.showModal = function () {
+      this.open = true;
+      this.scrollTop = 0;
+    };
+    await h.w.TDBCalculator.open(trigger);
+    assert.equal(drawer.scrollTop, 780);
+    assert.equal(drawer.querySelector('[data-qty=gumline]').value, '2');
+    assert.equal(drawer.querySelector('[data-select=gumline]').checked, true);
+    assert.equal(h.w.document.activeElement, drawer.querySelector('[data-tdb-calc-close]'));
+    h.w.TDBCalculator.close();
+    await tick();
+  } finally {
+    h.dom.window.close();
+  }
+});
+
 for (const retainChrome of [false, true])
   test(
     'inline viewport and interaction respect chrome policy; drawers keep modal focus: ' +
