@@ -376,8 +376,11 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
 [data-tdb-disclosure-item]:has(>[data-tdb-disclosure-trigger][aria-expanded="true"]){padding-bottom:var(--tdb-disclosure-gap,20px)}
 [data-tdb-price-panel]{--tdb-disclosure-display:grid}
 [data-tdb-disclosure-trigger][aria-expanded="true"]+[data-tdb-price-panel]{height:auto}
-[data-tdb-price-section]>[data-tdb-disclosure-panel]{opacity:1}
-[data-tdb-price-section]>[data-tdb-compact-chevron]::after{width:1rem;height:1rem;flex:0 0 1rem;opacity:.5}
+/* Category panels must not become scroll containers for their sticky rows. */
+[data-tdb-price-section]>[data-tdb-disclosure-panel]{opacity:1;overflow:visible}
+[data-tdb-price-trigger][aria-expanded="true"]{position:sticky;top:0;z-index:3}
+/* Match the native pricing chevron's visible size and centre within its 2rem slot. */
+[data-tdb-price-section]>[data-tdb-compact-chevron]::after{width:1.5rem;height:1.5rem;flex:0 0 1.5rem;margin-inline:.25rem;opacity:1}
 
 /* External navbar active states; closed geometry lives in Designer. */
 [data-tdb-navbar-native] .navbar10_menu-button[data-tdb-expanded="true"] .menu-icon1_line-top{translate:0 8px;rotate:-45deg}
