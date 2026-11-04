@@ -1338,7 +1338,10 @@
             (state.hygiene ? 'checked' : '') +
             '>' +
             check(state.hygiene) +
-            '<span><span class="text-style-tagline-restored">Add a hygiene allowance</span><small class="text-size-tiny">Recommended where needed. Include this allowance in your estimate.</small><small class="text-size-tiny tdbc-appointment-price">' +
+            '<span><span class="text-style-tagline-restored">Add a hygiene allowance</span><small class="text-size-tiny">Recommended where needed. Include this allowance in your estimate.</small><small class="text-size-tiny tdbc-appointment-duration">' +
+            clock +
+            esc((r?.appointmentMinutes || 45) + ' minutes') +
+            '</small><small class="text-size-tiny tdbc-appointment-price">' +
             tag +
             esc(recordPrice(r)) +
             '</small></span></label></div>') +

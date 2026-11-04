@@ -156,6 +156,23 @@ overflow. The option reveal still measured 20px. Full verification retained
 formatting and the locked Swiper artifact check passed. Staging pins for the
 shared entry, standalone calculator and existing template loaders move together.
 
+## Calculator card alignment, hygiene time and estimate surface
+
+The native Cosmetic/Restorative checkbox labels inherited Webflow's float
+clearfix pseudo-elements. In the shared flex card these became extra items,
+adding another gap before the selection square. The existing calculator
+stylesheet now suppresses those unused clearfixes and gives native/generated
+card squares the same 1.125rem dimensions. Card padding and section spacing
+remain shared across categories, starting appointments and hygiene.
+
+The hygiene allowance reuses the existing clock mask and appointment-duration
+row, reading its CMS appointment minutes with a 45-minute fallback. Selection,
+price and timing calculations are unchanged. The interactive estimate card and
+its total area now use the existing black ink token, matching the target-date
+and option cards; numbered headings retain charcoal. These changes extend the
+existing calculator controller and stylesheet, adding no module, dependency,
+asset request or page-level code.
+
 ## Rollback
 
 Restore the four site install references together to
