@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "feed": "instagram",
+  "source": "published-smile-snapshot",
+  "importedAt": "2026-09-26",
+  "posts": [
+    {
+      "url": "https://www.instagram.com/p/DTYX7VtCf9L",
+      "date": "2026-01-11",
+      "image": {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8befdb632c2750c66e7df_tdb-instagram-dtyx7vtcf9l-w1080-optimized.webp",
+        "alt": "Seeing our patients happy makes us happy. 🤍"
+      },
+      "mediaType": "image",
+      "likes": 12,
+      "comments": null,
+      "shares": null
+    },
+    {
+      "url": "https://www.instagram.com/p/DPBnSXhDnMC",
+      "date": "2025-09-25",
+      "image": {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8befd8e33b22d56743f00_tdb-instagram-dpbnsxhdnmc-w1080-optimized.webp",
+        "alt": "Patient Spotlight: Sarah! ✨"
+      },
+      "mediaType": "image",
+      "likes": 17,
+      "comments": null,
+      "shares": null
+    },
+    {
+      "url": "https://www.instagram.com/p/DOvkOjeiZgE",
+      "date": "2025-09-18",
+      "image": {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8befde75f7974c6bf2c84_tdb-instagram-dovkojeizge-w1080-optimized.webp",
+        "alt": "Patient Spotlight: Vivienne! ✨"
+      },
+      "mediaType": "image",
+      "likes": 9,
+      "comments": null,
+      "shares": null
+    },
+    {
+      "url": "https://www.instagram.com/p/DOdiqgsjoPl",
+      "date": "2025-09-11",
+      "image": {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8befdf868ab0f3413efef_tdb-instagram-dodiqgsjopl-w1080-optimized.webp",
+        "alt": "Patient Spotlight: Laura! ✨"
+      },
+      "mediaType": "image",
+      "likes": 15,
+      "comments": null,
+      "shares": null
+    },
+    {
+      "url": "https://www.instagram.com/p/DN5fiBADNvx",
+      "date": "2025-08-28",
+      "image": {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8befd471f589e1cd25540_tdb-instagram-dn5fibadnvx-w1080-optimized.webp",
+        "alt": "Patient Spotlight: Felix! ✨"
+      },
+      "mediaType": "image",
+      "likes": 16,
+      "comments": null,
+      "shares": null
+    },
+    {
+      "url": "https://www.instagram.com/p/DNqBdbmOw7m",
+      "date": "2025-08-22",
+      "image": {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8befcd8a8aabd306a7bcb_tdb-instagram-dnqbdbmow7m-w1080-optimized.webp",
+        "alt": "Patient Spotlight: Anita! ✨"
+      },
+      "mediaType": "image",
+      "likes": 34,
+      "comments": null,
+      "shares": null
+    },
+    {
+      "url": "https://www.instagram.com/p/DFTE8zMTNyd",
+      "date": "2025-01-26",
+      "image": {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8befea5df481e8d4bfa9a_tdb-instagram-dfte8zmtnyd-w1080-optimized.webp",
+        "alt": "Journey Arch – Saskia"
+      },
+      "mediaType": "image",
+      "likes": 18,
+      "comments": 1,
+      "shares": null
+    },
+    {
+      "url": "https://www.instagram.com/p/DCj-360RjHI",
+      "date": "2024-11-19",
+      "image": {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8befe0ce15fad2ba96a7d_tdb-instagram-dcj-360rjhi-w1080-optimized.webp",
+        "alt": "Smile Arch - Racheal"
+      },
+      "mediaType": "image",
+      "likes": 16,
+      "comments": 2,
+      "shares": null
+    },
+    {
+      "url": "https://www.instagram.com/p/DB4P2IFpmjP",
+      "date": "2024-11-02",
+      "image": {
+        "src": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8befe1263e5c913aefa63_tdb-instagram-db4p2ifpmjp-w1080-optimized.webp",
+        "alt": "Journey Arch - @andyscottonpeters"
+      },
+      "mediaType": "image",
+      "likes": 22,
+      "comments": 1,
+      "shares": null
+    }
+  ]
+}

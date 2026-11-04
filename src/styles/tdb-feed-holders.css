@@ -10,7 +10,7 @@
 @media(prefers-reduced-motion:reduce){html:not([data-tdb-motion='full']) [aria-busy='true']>:is(.tdb-ig-holding-image,.tdb-smile-holding-image,.tdb-review-holding-image)::after{animation:none}}
 
 /* Designer shows native mask assets; the published runtime releases them at proximity. */
-[data-tdb-native-holder-icon]{-webkit-mask-image:linear-gradient(transparent,transparent);mask-image:linear-gradient(transparent,transparent)}
+[data-tdb-native-holder-icon],:root [data-tdb-lazy-mask]{-webkit-mask-image:linear-gradient(transparent,transparent);mask-image:linear-gradient(transparent,transparent)}
 
 /* Native pseudo artwork stays visible in Designer. On published pages the same
  * proximity loader releases its URL without adding an icon element. */

@@ -147,6 +147,16 @@ async function main() {
       `${check ? 'Checked' : 'Built'} ${destination}: ${report[output].raw} B (${report[output].gzip} B gzip)`,
     );
   }
+  // The staging smile feed uses the same versioned release while its live endpoint is on hold.
+  if (!readable && outputs.includes('dist/tdb-instagram-deferred.js')) {
+    const snapshot = 'dist/tdb-instagram-smiles.json';
+    const json = read('src/instagram/smiles-snapshot.json');
+    JSON.parse(json);
+    if (check) {
+      if (!fs.existsSync(path.join(root, snapshot)) || read(snapshot) !== json)
+        throw Error(snapshot + ' is stale');
+    } else fs.writeFileSync(path.join(root, snapshot), json);
+  }
   if (all && !readable) {
     const destination = 'config/build-artifacts.json';
     const code =

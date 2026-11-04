@@ -2949,6 +2949,9 @@ function prepareLazyIconMasks() {
   if (window.TDBLazyIconMasks) return;
   const base = 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/';
   const assets = {
+    price: '6ac8e18e6a41113d6b28c57d_tdb-price-tag.svg',
+    clock: '6ac8c58089197784d522c2a2_tdb-review-clock-brand.svg',
+    diamond: '6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg',
     ig: '6ac8c5438b7e68a92fade1e2_tdb-icon-instagram.svg',
     smile: '6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg',
     review: '6ac7b973bb15c9b9f29a8d18_tdb-review-quote.svg',

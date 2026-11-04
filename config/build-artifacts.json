@@ -213,10 +213,10 @@
       "sources": [
         "src/instagram/deferred.js"
       ],
-      "sha256": "840f345652e503622727165dd295bcf203a577d947ab5b9f3ab698b7d76e823a",
-      "raw": 11978,
-      "gzip": 3848,
-      "brotli": 3312
+      "sha256": "06e8638a39824c6bdba2c8de08957cd0cbec418a9cd25ce39548824fb19215d9",
+      "raw": 12252,
+      "gzip": 3952,
+      "brotli": 3388
     },
     "dist/tdb-instagram-feed.js": {
       "sources": [
@@ -550,10 +550,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "237646133e775089f1659103e34f65c40ccdf9d37e145ba10611d5ec2471762d",
-      "raw": 80662,
-      "gzip": 22243,
-      "brotli": 19359
+      "sha256": "e3ee5bf6924b946691569510446d1ef8bc0cd35eeadb10453fa7ab5eb7023960",
+      "raw": 80836,
+      "gzip": 22292,
+      "brotli": 19395
     },
     "dist/tdb-service-awards.js": {
       "sources": [

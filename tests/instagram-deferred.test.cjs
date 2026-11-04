@@ -102,6 +102,28 @@ test('feed endpoint cannot send a request to another origin',async()=>{
  await e.prepare();assert.equal(f.requests.length,0);assert.equal(e.mounts(),0);e.close();
 });
 
+test('published patient snapshot stays consent gated and resolves within its own release',async()=>{
+ const e=setup({allowed:false}),f=useFeed(e);
+ e.holder.setAttribute('data-tdb-ig-placeholder','happy-patients');
+ e.holder.setAttribute('data-tdb-ig-feed','tdb-instagram-smiles.json');
+ Object.assign(f.payload,JSON.parse(fs.readFileSync('src/instagram/smiles-snapshot.json','utf8')));
+ delete f.payload.checkedAt;
+ await e.prepare();assert.equal(f.requests.length,0);assert.equal(e.loads.length,0);
+ e.permit(true);await e.prepare();
+ assert.equal(f.requests[0].url,'https://cdn.example/dist/tdb-instagram-smiles.json');
+ const root=e.holder.querySelector('[data-tdb-ig-native="happy-patients"]');
+ assert.equal(root.getAttribute('aria-label'),'Happy Patients Instagram gallery');
+ assert.equal(root.querySelectorAll('[data-ig-slide]').length,9);
+ assert.equal(root.querySelector('[data-ig-next]').getAttribute('aria-label'),'Next patient smile post');
+ assert.equal(e.mounts(),1);e.close();
+});
+test('snapshot exception does not allow arbitrary paths, feeds or provenance',async()=>{
+ for(const [key,path,origin] of [['awards','tdb-instagram-smiles.json','published-smile-snapshot'],['happy-patients','other.json','published-smile-snapshot'],['happy-patients','tdb-instagram-smiles.json','unverified']]){
+  const e=setup(),f=useFeed(e);e.holder.setAttribute('data-tdb-ig-placeholder',key);e.holder.setAttribute('data-tdb-ig-feed',path);f.payload.source=origin;
+  await e.prepare();assert.equal(e.mounts(),0);assert.equal(f.preloads.length,0);e.close();
+ }
+});
+
 test('Practice feed uses the shared renderer with its own accessible labels; other paths stay blocked',async()=>{
  const e=setup(),f=useFeed(e);
  e.holder.setAttribute('data-tdb-ig-placeholder','the-practice');

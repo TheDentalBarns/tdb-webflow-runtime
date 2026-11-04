@@ -10,8 +10,12 @@
   const cancelled = () => new DOMException('Cancelled', 'AbortError');
   const feedTemplate = __TDB_IG_TEMPLATE__;
   async function feedRoot(endpoint, key, signal) {
-    const url = new URL(endpoint, location.href);
+    // Versioned existing patient posts can use the shared renderer while the
+    // Cloudflare/CMS rollout is held. This is one fixed same-release asset.
+    const snapshot = endpoint === 'tdb-instagram-smiles.json' && key === 'happy-patients';
+    const url = new URL(endpoint, snapshot ? base : location.href);
     if (
+      !snapshot && (
       ![location.origin, 'https://tdb-public-availability.david-070.workers.dev'].includes(
         url.origin,
       ) ||
@@ -21,11 +25,13 @@
       url.username ||
       url.password ||
       url.search ||
-      url.hash
+      url.hash)
     )
       throw Error('Instagram feed must use the configured endpoint');
-    url.protocol = 'https:';
-    url.host = 'tdb-public-availability.david-070.workers.dev';
+    if (!snapshot) {
+      url.protocol = 'https:';
+      url.host = 'tdb-public-availability.david-070.workers.dev';
+    }
     const controller = new AbortController();
     const abort = () => controller.abort();
     signal.addEventListener('abort', abort, { once: true });
@@ -51,9 +57,10 @@
     if (
       payload?.version !== 1 ||
       payload.feed !== 'instagram' ||
-      !Number.isSafeInteger(payload.checkedAt) ||
+      (!snapshot && (!Number.isSafeInteger(payload.checkedAt) ||
       payload.checkedAt > Date.now() + 60000 ||
-      Date.now() - payload.checkedAt >= 3600000 ||
+      Date.now() - payload.checkedAt >= 3600000)) ||
+      (snapshot && payload.source !== 'published-smile-snapshot') ||
       !Array.isArray(payload.posts) ||
       !payload.posts.length ||
       payload.posts.length > 20
@@ -69,17 +76,17 @@
     const practice = url.pathname === '/tdb-content/v1/instagram-practice.json';
     root.setAttribute(
       'aria-label',
-      practice ? 'Behind the Barns Instagram gallery' : 'Awards Instagram gallery',
+      snapshot ? 'Happy Patients Instagram gallery' : practice ? 'Behind the Barns Instagram gallery' : 'Awards Instagram gallery',
     );
     root
       .querySelector('[data-ig-prev]')
       .setAttribute(
         'aria-label',
-        practice ? 'Previous behind-the-scenes post' : 'Previous awards post',
+        snapshot ? 'Previous patient smile post' : practice ? 'Previous behind-the-scenes post' : 'Previous awards post',
       );
     root
       .querySelector('[data-ig-next]')
-      .setAttribute('aria-label', practice ? 'Next behind-the-scenes post' : 'Next awards post');
+      .setAttribute('aria-label', snapshot ? 'Next patient smile post' : practice ? 'Next behind-the-scenes post' : 'Next awards post');
     const track = root.querySelector('[data-ig-track]');
     const card = track.querySelector('[data-ig-slide]');
     card.remove();
@@ -101,7 +108,7 @@
         image.username ||
         image.password ||
         image.port ||
-        !image.pathname.startsWith('/67837ee85ee175873126e461/') ||
+        !(image.pathname.startsWith('/67837ee85ee175873126e461/') || (snapshot && image.pathname.startsWith('/677cf86cf9952f978d94d80c/'))) ||
         typeof post.image.alt !== 'string' ||
         post.image.alt.length > 2000 ||
         typeof post.mediaType !== 'string' ||
