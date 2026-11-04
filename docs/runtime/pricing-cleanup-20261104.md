@@ -29,7 +29,18 @@ The UI stylesheet is 22,632 bytes minified, down from 24,102 bytes. This is an o
 - Tests cover cancellation of either ticker animation, stale callbacks and sequence settlement; disclosure focus retained on close/geometry callbacks and released by the shared scroll controller; default authored disclosure state and calculator loading dependencies.
 - Three stale test expectations were updated to the current loader/API contract. The marquee drag test now allows sub-nanopixel floating-point rounding while retaining all movement and write-count assertions; marquee source did not change.
 
-The release must verify native Webflow CSS (including Safari's backdrop-filter prefix), fresh/saved consent, narrow-phone output sizing, desktop/mobile price open/close/re-entry, General Dentistry anchor expansion, FAQ defaults, review/VIP/feed controls, and Home/Location smoke checks. Physical iPhone Safari remains a separate user check.
+## Staging verification
+
+Runtime `19e50835d505534c3b962d74c67183aaf0289611` is published on `dentalbarns.webflow.io` only. All 71 declared assets matched the tested local files byte for byte on jsDelivr. All four global install references use this SHA. Custom-domain publication dates remain 1 October 2026.
+
+- Published native CSS includes both backdrop-filter prefixes and the shared `--tdb-disclosure-gap` reference. All six categories were exercised at 320px and 1440px: sticky headers span the viewport with 20px blur/150% saturation, compact open headings, and shared chrome focus.
+- Closing a price retained focus while stationary; subsequent upward scrolling released it. Returning to an expanded category reacquired the hold. The General Dentistry hero link opened its category.
+- At 320px, eight rapid 60/90-minute switches settled with one visible, untransformed value and no horizontal overflow. Week/month changes also settled. Reset released the calculator focus hold.
+- Empty CMS image frames rendered at zero height; desktop details remained in column two. A populated image changed its shared parallax transform while scrolling.
+- Review open/next/close, VIP handle open/close and the Happy Patients next-slide focus hold worked. The feed loaded through the existing deferred/native modules. Home and Location mobile navigation smoke checks passed; the menu boundaries have zero bottom border and no shadow. The only visible border inside Location's opened Services menu belonged to the outlined First visit button.
+- Fresh published Pricing starts with all 31 treatment items closed, Cosmetic category open and the first FAQ open. All 31 treatment detail texts are unchanged in the server HTML; the original price-schema footer is unchanged and generates the Dentist schema. No matched IX2 events were reintroduced.
+
+Browser checks used the desktop Chromium engine at phone widths. They do not reproduce physical iPhone Safari's compositor, and the reported disappearing value still needs confirmation on that device. First-decision consent/dependency behaviour is covered by the existing automated loader checks; this browser pass used saved consent.
 
 ## Rollback
 
