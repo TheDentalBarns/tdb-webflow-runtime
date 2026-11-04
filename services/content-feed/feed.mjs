@@ -12,6 +12,7 @@ import {
 export const COLLECTION = '6ab7b3c409814bb83c9902de';
 export const CATEGORY = '6ab7b743e5d9f17124ef7ab3';
 export const PRACTICE_CATEGORY = '6ab7b41d76a5f592a5b6dd3f';
+export const PATIENTS_CATEGORY = '6ab7b9fabdfdf7aa5db3558f';
 export const SMILE_COLLECTION = '69a07fdcd392dc2c0d92967f';
 const FRESH_MS = 300000;
 const MAX_AGE_MS = 3600000;
@@ -209,6 +210,13 @@ const FEEDS = {
     key: 'instagram:practice:v1',
     collection: COLLECTION,
     project: (items) => ({ posts: projectInstagram(items, PRACTICE_CATEGORY) }),
+    valid: (snapshot) => Array.isArray(snapshot.posts) && snapshot.posts.length <= 20,
+  },
+  '/tdb-content/v1/instagram-patients.json': {
+    name: 'instagram',
+    key: 'instagram:patients:v1',
+    collection: COLLECTION,
+    project: (items) => ({ posts: projectInstagram(items, PATIENTS_CATEGORY) }),
     valid: (snapshot) => Array.isArray(snapshot.posts) && snapshot.posts.length <= 20,
   },
   '/tdb-content/v1/smiles.json': {

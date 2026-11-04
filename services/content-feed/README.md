@@ -1,5 +1,20 @@
 # TDB content feed — Instagram, Smile Gallery and Reviews staging trials
 
+## Pricing / Happy Patients — prepared 4 November 2026, deployment held
+
+The existing Media Gallery already contains the nine patient posts in the
+**Happy Patients** category (`6ab7b9fabdfdf7aa5db3558f`). They remain drafts.
+No duplicate collection or records are required. The prepared route
+`/tdb-content/v1/instagram-patients.json` uses the same published-only projection
+and a separate `instagram:patients:v1` cache. It has not been deployed to Cloudflare.
+
+Until the deployment hold is lifted and those records are approved for publishing,
+Pricing's shared Deferred Instagram Feed uses `tdb-instagram-smiles.json`, a
+versioned snapshot of the nine posts already displayed on the page. It is not a
+live CMS connection. On release, publish the approved Visible patient records,
+deploy the prepared service, then change the component's endpoint prop to the
+patients route. Keep the feed key `happy-patients`; no page script is needed.
+
 ## Location / Behind the Barns — 29 October 2026
 
 `GET /tdb-content/v1/instagram-practice.json` uses the same Media Gallery

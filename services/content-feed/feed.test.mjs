@@ -8,6 +8,7 @@ import {
   COLLECTION,
   CATEGORY,
   PRACTICE_CATEGORY,
+  PATIENTS_CATEGORY,
   SMILE_COLLECTION,
 } from './feed.mjs';
 
@@ -135,6 +136,17 @@ const page = (items, total = items.length, offset = 0) =>
   Response.json({ items, pagination: { total, offset, limit: 100 } });
 const request = (path = '/tdb-content/v1/instagram.json', method = 'GET') =>
   new Request('https://dentalbarns.webflow.io' + path, { method });
+test('Patient feed reuses Media Gallery while excluding drafts and other categories', async () => {
+  const rows = [item('award'), item('patient', {categories:[PATIENTS_CATEGORY]}),
+    item('hidden', {categories:[PATIENTS_CATEGORY],visible:false}),
+    item('draft', {categories:[PATIENTS_CATEGORY]}, {lastPublished:null})];
+  const saved = new Map();
+  const env = {WEBFLOW_API_TOKEN:'test',CONTENT_FEEDS:{get:async key=>saved.get(key),put:async(key,value)=>saved.set(key,JSON.parse(value))}};
+  const handle=createFeedService({fetcher:async()=>page(rows)});
+  const result=await(await handle(request('/tdb-content/v1/instagram-patients.json'),env)).json();
+  assert.deepEqual(result.posts.map(p=>p.url),['https://www.instagram.com/p/patient/']);
+  assert.deepEqual([...saved.keys()],['instagram:patients:v1']);
+});
 test('Practice feed projects the latest eligible posts and never shares the Awards cache', async () => {
   const practice = Array.from({ length: 22 }, (_, i) => item('practice' + i, {
     categories: [PRACTICE_CATEGORY], 'display-order': 0,

@@ -20,9 +20,11 @@
       (![location.origin, 'https://tdb-public-availability.david-070.workers.dev'].includes(
         url.origin,
       ) ||
-        !['/tdb-content/v1/instagram.json', '/tdb-content/v1/instagram-practice.json'].includes(
-          url.pathname,
-        ) ||
+        ![
+          '/tdb-content/v1/instagram.json',
+          '/tdb-content/v1/instagram-practice.json',
+          '/tdb-content/v1/instagram-patients.json',
+        ].includes(url.pathname) ||
         url.username ||
         url.password ||
         url.search ||
@@ -76,9 +78,10 @@
     root.setAttribute('data-tdb-ig-native', key);
     // Both CMS feeds use the same layout; only the content and accessible name vary.
     const practice = url.pathname === '/tdb-content/v1/instagram-practice.json';
+    const patients = snapshot || url.pathname === '/tdb-content/v1/instagram-patients.json';
     root.setAttribute(
       'aria-label',
-      snapshot
+      patients
         ? 'Happy Patients Instagram gallery'
         : practice
           ? 'Behind the Barns Instagram gallery'
@@ -88,7 +91,7 @@
       .querySelector('[data-ig-prev]')
       .setAttribute(
         'aria-label',
-        snapshot
+        patients
           ? 'Previous patient smile post'
           : practice
             ? 'Previous behind-the-scenes post'
@@ -98,7 +101,7 @@
       .querySelector('[data-ig-next]')
       .setAttribute(
         'aria-label',
-        snapshot
+        patients
           ? 'Next patient smile post'
           : practice
             ? 'Next behind-the-scenes post'

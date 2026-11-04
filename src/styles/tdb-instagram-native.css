@@ -13,3 +13,6 @@
    Native/no-JS and explicit loading fallback remain visible. */
 .ig-native_feed[data-tdb-ig-ready]:not([data-ig-loading-fallback]) .ig-native_slide:is(:not([data-ig-image-ready]),[data-ig-paint-hidden]){visibility:hidden}
 .ig-native_feed[data-tdb-ig-ready]:not([data-ig-loading-fallback]) .ig-native_slide:is(:not([data-ig-image-ready]),[data-ig-paint-hidden]) .ig-native_glass{-webkit-backdrop-filter:none;backdrop-filter:none}
+/* Deferred markup must carry the existing native carousel control geometry even
+ * when Webflow omits unused template classes from a page stylesheet. */
+.carousel-arrow.ig-native_arrow{display:flex;box-sizing:border-box;width:3rem;height:3rem;min-width:0;min-height:0;padding:0;justify-content:center;align-items:center;flex-shrink:0;border:1px solid currentColor;border-radius:50%;pointer-events:auto;cursor:pointer;appearance:none;-webkit-backdrop-filter:blur(var(--effects--blur,20px));backdrop-filter:blur(var(--effects--blur,20px));transition:background-color calc(300ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease),color calc(300ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease),border-color calc(300ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease)}
