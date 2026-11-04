@@ -377,14 +377,26 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
 [data-tdb-price-panel]{--tdb-disclosure-display:grid}
 [data-tdb-disclosure-trigger][aria-expanded="true"]+[data-tdb-price-panel]{height:auto}
 /* Clip the shared reveal lift without creating a scroll container for sticky rows. */
-[data-tdb-price-section]>[data-tdb-disclosure-panel]{opacity:1;overflow:clip;padding-right:0;min-width:0;width:100%}
+[data-tdb-price-section]>[data-tdb-disclosure-panel]{opacity:1;overflow:clip;padding-top:var(--tdb-disclosure-gap,20px);padding-right:0;min-width:0;width:100%}
 /* Retire the legacy mobile navbar offset in both collapsed and expanded rows. */
 [data-tdb-disclosure-trigger][data-tdb-price-trigger]{position:relative;top:auto;z-index:auto}
 [data-tdb-disclosure-trigger][data-tdb-price-trigger][aria-expanded="true"]{position:sticky;top:0;z-index:3}
+/* The summary spans the two desktop columns and leaves the compact open header. */
+[data-tdb-price-trigger]>[schema-price="description"]{grid-column:1 / -1}
+[data-tdb-price-trigger][aria-expanded="true"]>[schema-price="description"]{display:none}
 /* Category bands replace the first divider; retain dividers between treatments. */
-[data-tdb-price-section]>[data-tdb-disclosure-panel]>.w-dyn-items>.w-dyn-item:first-child [data-tdb-price-trigger]{border-top-width:0}
+[data-tdb-price-section]>[data-tdb-disclosure-panel]>.w-dyn-items>.w-dyn-item:first-child>[data-tdb-disclosure-item]{border-top-width:0}
 /* Shared photo motion requires the native overscan frame without legacy image margins. */
 [data-tdb-price-panel] [data-tdb-page-break-image]{margin-top:0}
+/* Webflow omits an empty CMS image. Its frame and spacing must disappear with it. */
+[data-tdb-price-panel]>[data-tdb-disclosure-reveal]:has(>[data-tdb-page-break]):not(:has([data-tdb-page-break-image][src]:not([src=""]))){display:none}
+[data-tdb-price-panel]:not(:has([data-tdb-page-break-image][src]:not([src=""]))){grid-template-columns:minmax(0,1fr)}
+@media(max-width:767px){
+  /* Expand the existing clipping boundary so the sticky glass reaches both edges. */
+  [data-tdb-price-section]>[data-tdb-disclosure-panel]{width:100vw;margin-left:calc(50% - 50vw);padding-left:5vw;padding-right:5vw}
+  [data-tdb-disclosure-trigger][data-tdb-price-trigger]{width:100vw;margin-left:calc(50% - 50vw);padding-left:5vw;padding-right:5vw}
+  [data-tdb-disclosure-trigger][data-tdb-price-trigger][aria-expanded="true"]{background-color:var(--_tdb-navbar---bar-glass,#f9f2e6d6);-webkit-backdrop-filter:saturate(150%) blur(20px);backdrop-filter:saturate(150%) blur(20px)}
+}
 
 /* External navbar active states; closed geometry lives in Designer. */
 [data-tdb-navbar-native] .navbar10_menu-button[data-tdb-expanded="true"] .menu-icon1_line-top{translate:0 8px;rotate:-45deg}

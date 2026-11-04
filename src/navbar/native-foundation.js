@@ -113,7 +113,9 @@
       if (next === active) return;
       if (!next) return release();
       active = next;
-      window.TDBVIPDrawer?.close?.();
+      // The shared focus class moves the handle away without discarding its
+      // scroll pose. Only close a fully open form; a peek must survive release.
+      if (document.querySelector('#tdb-vip-drawer.is-open')) window.TDBVIPDrawer?.close?.();
       window.TDBNavScroll?.focus(release, () => !!active && eligible(active));
       document.documentElement.classList.add('tdb-slider-focus');
     }

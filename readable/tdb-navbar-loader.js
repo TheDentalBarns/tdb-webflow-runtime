@@ -123,6 +123,7 @@
         r.classList.toggle('is-open', e),
         t.closest('[data-tdb-disclosure-item]')?.classList.toggle('is-open', e),
         t.querySelector('[data-tdb-chevron]')?.classList.toggle('is-open', e));
+      t.dispatchEvent(new CustomEvent('tdb:disclosure-change', { bubbles: true }));
     }
     (t.setAttribute('aria-controls', n(r)), r.setAttribute('aria-labelledby', n(t)));
     const d = (e) => {
@@ -174,6 +175,56 @@
     'loading' === document.readyState
       ? document.addEventListener('DOMContentLoaded', () => r(), { once: !0 })
       : r());
+})();
+/* Price sections use the same disclosure and navbar controllers. Opening a
+ * treatment owns focus only while that category is visible and expanded. */
+(() => {
+  function start() {
+    const sections = [...document.querySelectorAll('[data-tdb-price-section]')];
+    if (!sections.length) return;
+    let active = null;
+    const eligible = (section) => {
+      const rect = section.getBoundingClientRect();
+      return (
+        rect.height > 0 &&
+        rect.bottom > 0 &&
+        rect.top < innerHeight &&
+        [...section.querySelectorAll('[data-tdb-price-trigger][aria-expanded="true"]')].some(
+          (trigger) => !trigger.closest('[hidden],[inert]'),
+        )
+      );
+    };
+    function release() {
+      if (!active) return;
+      active = null;
+      window.TDBNavScroll?.release({ respectDirection: true });
+      document.documentElement.classList.remove('tdb-slider-focus');
+    }
+    function sync() {
+      const next = sections.find(eligible);
+      if (next === active) return;
+      if (!next) return release();
+      active = next;
+      // The shared focus class moves the handle away without discarding its
+      // scroll pose. Only close a fully open form; a peek must survive release.
+      if (document.querySelector('#tdb-vip-drawer.is-open')) window.TDBVIPDrawer?.close?.();
+      window.TDBNavScroll?.focus(release, () => !!active && eligible(active));
+      document.documentElement.classList.add('tdb-slider-focus');
+    }
+    document.addEventListener('tdb:disclosure-change', (event) => {
+      if (event.target.closest('[data-tdb-price-section]')) sync();
+    });
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(sync);
+      sections.forEach((section) => observer.observe(section));
+    } else {
+      window.addEventListener('scroll', sync, { passive: true });
+    }
+    window.addEventListener('pagehide', release);
+  }
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  else start();
 })();
 /* Mirror native Webflow state without motion or an extra observer. */
 (() => {

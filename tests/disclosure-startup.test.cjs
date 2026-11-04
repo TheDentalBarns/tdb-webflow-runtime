@@ -59,6 +59,38 @@ test('only expanded treatments protect chrome, and category collapse or leaving 
   assert.equal(releases, 3);
   dom.window.close();
 });
+test('treatment focus preserves the VIP handle pose through repeated open and close cycles', () => {
+  const dom = new JSDOM(
+    '<div id="tdb-vip-drawer" class="is-peeking"></div><section data-tdb-price-section><div data-tdb-disclosure-item><button data-tdb-disclosure-trigger data-tdb-price-trigger aria-expanded="false">Treatment</button><div data-tdb-disclosure-panel>Details</div></div></section>',
+    { runScripts: 'outside-only' },
+  );
+  const w = dom.window;
+  const drawer = w.document.getElementById('tdb-vip-drawer');
+  const trigger = w.document.querySelector('button');
+  w.document.querySelector('section').getBoundingClientRect = () => ({ top: 100, bottom: 600, height: 500 });
+  let closes = 0;
+  w.TDBVIPDrawer = { close() { closes++; drawer.classList.remove('is-peeking', 'is-open'); } };
+  w.TDBNavScroll = { focus() {}, release() {} };
+  w.eval(source);
+  w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
+  for (let cycle = 0; cycle < 3; cycle++) {
+    trigger.click();
+    assert(w.document.documentElement.classList.contains('tdb-slider-focus'));
+    assert(drawer.classList.contains('is-peeking'), 'focus hides the handle without resetting its scroll state');
+    trigger.click();
+    assert(!w.document.documentElement.classList.contains('tdb-slider-focus'));
+    assert(drawer.classList.contains('is-peeking'), 'releasing focus restores the existing handle pose');
+  }
+  assert.equal(closes, 0);
+  drawer.classList.remove('is-peeking');
+  trigger.click();
+  trigger.click();
+  assert(!drawer.classList.contains('is-peeking'), 'a previously hidden handle stays under normal scroll control');
+  drawer.classList.add('is-open');
+  trigger.click();
+  assert.equal(closes, 1, 'an open form is still dismissed');
+  dom.window.close();
+});
 function fixture(open) {
   const dom = new JSDOM(
     `<!doctype html><div data-tdb-disclosure-item class="faq3_accordion is-disclosure${open ? ' is-open' : ''}"><div role="button" tabindex="0" data-tdb-disclosure-trigger aria-expanded="${open}"><span data-tdb-chevron class="tdb-disclosure-chevron${open ? ' is-open' : ''}"></span></div><div data-tdb-disclosure-panel class="tdb-disclosure-panel${open ? ' is-open' : ''}"><a href="#">Answer</a></div></div>`,
