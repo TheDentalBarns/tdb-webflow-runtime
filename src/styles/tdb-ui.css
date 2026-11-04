@@ -375,6 +375,8 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
 [data-tdb-disclosure-trigger]:not(:where(.tdb-disclosure-trigger,.tdb-home-awards-question)):focus-visible{outline:1px solid currentColor;outline-offset:4px}
 [data-tdb-disclosure-item]:has(>[data-tdb-disclosure-trigger][aria-expanded="true"]){padding-bottom:var(--tdb-disclosure-gap,20px)}
 [data-tdb-price-panel]{--tdb-disclosure-display:grid}
+[data-tdb-disclosure-trigger][aria-expanded="true"]+[data-tdb-price-panel]{height:auto}
+[data-tdb-price-section]>[data-tdb-disclosure-panel]{opacity:1}
 
 /* External navbar active states; closed geometry lives in Designer. */
 [data-tdb-navbar-native] .navbar10_menu-button[data-tdb-expanded="true"] .menu-icon1_line-top{translate:0 8px;rotate:-45deg}

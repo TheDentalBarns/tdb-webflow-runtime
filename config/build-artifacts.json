@@ -691,16 +691,16 @@
       "brotli": 3200
     },
     "dist/tdb-calculator.css": {
-      "sha256": "8222e920d217e3de1bbf2f61555da3fc05a147eaa8c17c2765d10c3643e8f447",
-      "raw": 35775,
-      "gzip": 7845,
-      "brotli": 6889
+      "sha256": "11a0713095f603c8b81f3cbc61a991926500959acf712fa4744c3d5a7b8a1f33",
+      "raw": 36201,
+      "gzip": 7944,
+      "brotli": 6979
     },
     "dist/tdb-ui.css": {
-      "sha256": "251ae5b88efdc35491dae5f5c3270d8c01c64f62c1a97ad22a9b9ae0e148ed80",
-      "raw": 21572,
-      "gzip": 4133,
-      "brotli": 3662
+      "sha256": "8e504d991ffdf95a4669744465be387d6ae066b2f7071d2b4bed308478ecbedd",
+      "raw": 21722,
+      "gzip": 4154,
+      "brotli": 3683
     }
   }
 }
