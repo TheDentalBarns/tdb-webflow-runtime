@@ -183,16 +183,16 @@
     const sections = [...document.querySelectorAll('[data-tdb-price-section]')];
     if (!sections.length) return;
     let active = null;
+    let frame = 0;
     const eligible = (section) => {
-      const rect = section.getBoundingClientRect();
-      return (
-        rect.height > 0 &&
-        rect.bottom > 0 &&
-        rect.top < innerHeight &&
-        [...section.querySelectorAll('[data-tdb-price-trigger][aria-expanded="true"]')].some(
+      if (
+        ![...section.querySelectorAll('[data-tdb-price-trigger][aria-expanded="true"]')].some(
           (trigger) => !trigger.closest('[hidden],[inert]'),
         )
-      );
+      )
+        return false;
+      const rect = section.getBoundingClientRect();
+      return rect.height > 0 && rect.bottom > 0 && rect.top < innerHeight;
     };
     function release() {
       if (!active) return;
@@ -202,7 +202,11 @@
     }
     function sync() {
       const next = sections.find(eligible);
-      if (next === active) return;
+      if (
+        next === active &&
+        (!next || document.documentElement.classList.contains('tdb-slider-focus'))
+      )
+        return;
       if (!next) return release();
       active = next;
       // The shared focus class moves the handle away without discarding its
@@ -211,16 +215,30 @@
       window.TDBNavScroll?.focus(release, () => !!active && eligible(active));
       document.documentElement.classList.add('tdb-slider-focus');
     }
+    function schedule() {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        sync();
+      });
+    }
     document.addEventListener('tdb:disclosure-change', (event) => {
       if (event.target.closest('[data-tdb-price-section]')) sync();
     });
     if ('IntersectionObserver' in window) {
       const observer = new IntersectionObserver(sync);
       sections.forEach((section) => observer.observe(section));
-    } else {
-      window.addEventListener('scroll', sync, { passive: true });
     }
-    window.addEventListener('pagehide', release);
+    // An observer may enter at the exact edge (zero visible area) and then
+    // emit nothing as the section moves further in. Recheck on scroll in
+    // either direction; closed categories never need a geometry read.
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule, { passive: true });
+    window.addEventListener('pagehide', () => {
+      cancelAnimationFrame(frame);
+      frame = 0;
+      release();
+    });
   }
   if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', start, { once: true });

@@ -380,7 +380,7 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
 [data-tdb-price-section]>[data-tdb-disclosure-panel]{opacity:1;overflow:clip;padding-top:var(--tdb-disclosure-gap,20px);padding-right:0;min-width:0;width:100%}
 /* Retire the legacy mobile navbar offset in both collapsed and expanded rows. */
 [data-tdb-disclosure-trigger][data-tdb-price-trigger]{position:relative;top:auto;z-index:auto}
-[data-tdb-disclosure-trigger][data-tdb-price-trigger][aria-expanded="true"]{position:sticky;top:0;z-index:3}
+[data-tdb-disclosure-trigger][data-tdb-price-trigger][aria-expanded="true"]{position:sticky;top:0;z-index:3;background-color:var(--_tdb-navbar---bar-glass,#f9f2e6d6);-webkit-backdrop-filter:saturate(150%) blur(20px);backdrop-filter:saturate(150%) blur(20px)}
 /* The summary spans the two desktop columns and leaves the compact open header. */
 [data-tdb-price-trigger]>[schema-price="description"]{grid-column:1 / -1}
 [data-tdb-price-trigger][aria-expanded="true"]>[schema-price="description"]{display:none}
@@ -395,7 +395,6 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
   /* Expand the existing clipping boundary so the sticky glass reaches both edges. */
   [data-tdb-price-section]>[data-tdb-disclosure-panel]{width:100vw;margin-left:calc(50% - 50vw);padding-left:5vw;padding-right:5vw}
   [data-tdb-disclosure-trigger][data-tdb-price-trigger]{width:100vw;margin-left:calc(50% - 50vw);padding-left:5vw;padding-right:5vw}
-  [data-tdb-disclosure-trigger][data-tdb-price-trigger][aria-expanded="true"]{background-color:var(--_tdb-navbar---bar-glass,#f9f2e6d6);-webkit-backdrop-filter:saturate(150%) blur(20px);backdrop-filter:saturate(150%) blur(20px)}
 }
 
 /* External navbar active states; closed geometry lives in Designer. */

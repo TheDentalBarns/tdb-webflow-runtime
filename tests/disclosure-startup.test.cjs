@@ -91,6 +91,46 @@ test('treatment focus preserves the VIP handle pose through repeated open and cl
   assert.equal(closes, 1, 'an open form is still dismissed');
   dom.window.close();
 });
+test('expanded prices reacquire focus after entering from either exact viewport edge', () => {
+  const dom = new JSDOM(
+    '<section data-tdb-price-section><div data-tdb-disclosure-item><button data-tdb-disclosure-trigger data-tdb-price-trigger aria-expanded="false">Treatment</button><div data-tdb-disclosure-panel>Details</div></div></section>',
+    { runScripts: 'outside-only' },
+  );
+  const w = dom.window;
+  const html = w.document.documentElement;
+  const section = w.document.querySelector('section');
+  let top = 100, bottom = 600, observer, queued, holds = 0;
+  section.getBoundingClientRect = () => ({ top, bottom, height: bottom - top });
+  w.IntersectionObserver = class { constructor(fn) { observer = fn; } observe() {} };
+  w.requestAnimationFrame = fn => { queued = fn; return 1; };
+  w.cancelAnimationFrame = () => { queued = null; };
+  w.TDBNavScroll = { focus() { holds++; }, release() {} };
+  w.eval(source);
+  w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
+  w.document.querySelector('button').click();
+  assert(html.classList.contains('tdb-slider-focus'));
+  for (const edge of ['above', 'below']) {
+    if (edge === 'above') { top = -501; bottom = -1; }
+    else { top = w.innerHeight + 1; bottom = top + 500; }
+    observer();
+    assert(!html.classList.contains('tdb-slider-focus'));
+    if (edge === 'above') { top = -500; bottom = 0; }
+    else { top = w.innerHeight; bottom = top + 500; }
+    observer();
+    assert(!html.classList.contains('tdb-slider-focus'), 'zero-area entry does not yet hold chrome');
+    if (edge === 'above') { top++; bottom++; }
+    else { top--; bottom--; }
+    w.dispatchEvent(new w.Event('scroll'));
+    const flush = queued; queued = null; flush();
+    assert(html.classList.contains('tdb-slider-focus'), 'scroll restores focus even without another observer event');
+  }
+  assert.equal(holds, 3);
+  html.classList.remove('tdb-slider-focus');
+  w.dispatchEvent(new w.Event('scroll'));
+  queued();
+  assert(html.classList.contains('tdb-slider-focus'), 'another controller release cannot leave a visible expanded section unprotected');
+  dom.window.close();
+});
 function fixture(open) {
   const dom = new JSDOM(
     `<!doctype html><div data-tdb-disclosure-item class="faq3_accordion is-disclosure${open ? ' is-open' : ''}"><div role="button" tabindex="0" data-tdb-disclosure-trigger aria-expanded="${open}"><span data-tdb-chevron class="tdb-disclosure-chevron${open ? ' is-open' : ''}"></span></div><div data-tdb-disclosure-panel class="tdb-disclosure-panel${open ? ' is-open' : ''}"><a href="#">Answer</a></div></div>`,
