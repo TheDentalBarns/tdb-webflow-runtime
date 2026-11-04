@@ -5,8 +5,10 @@
 [data-tdb-disclosure-item]:has(>[data-tdb-disclosure-trigger][aria-expanded="true"]){padding-bottom:var(--tdb-disclosure-gap,20px)}
 [data-tdb-price-panel]{--tdb-disclosure-display:grid}
 [data-tdb-disclosure-trigger][aria-expanded="true"]+[data-tdb-price-panel]{height:auto}
-/* Category panels must not become scroll containers for their sticky rows. */
-[data-tdb-price-section]>[data-tdb-disclosure-panel]{opacity:1;overflow:visible}
-[data-tdb-price-trigger][aria-expanded="true"]{position:sticky;top:0;z-index:3}
-/* Match the native pricing chevron's visible size and centre within its 2rem slot. */
-[data-tdb-price-section]>[data-tdb-compact-chevron]::after{width:1.5rem;height:1.5rem;flex:0 0 1.5rem;margin-inline:.25rem;opacity:1}
+/* Clip the shared reveal lift without creating a scroll container for sticky rows. */
+[data-tdb-price-section]>[data-tdb-disclosure-panel]{opacity:1;overflow:clip;padding-right:0;min-width:0;width:100%}
+/* Retire the legacy mobile navbar offset in both collapsed and expanded rows. */
+[data-tdb-disclosure-trigger][data-tdb-price-trigger]{position:relative;top:auto;z-index:auto}
+[data-tdb-disclosure-trigger][data-tdb-price-trigger][aria-expanded="true"]{position:sticky;top:0;z-index:3}
+/* Category bands replace the first divider; retain dividers between treatments. */
+[data-tdb-price-section]>[data-tdb-disclosure-panel]>.w-dyn-items>.w-dyn-item:first-child [data-tdb-price-trigger]{border-top-width:0}
