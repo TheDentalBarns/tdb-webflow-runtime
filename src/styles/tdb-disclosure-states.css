@@ -12,3 +12,5 @@
 [data-tdb-disclosure-trigger][data-tdb-price-trigger][aria-expanded="true"]{position:sticky;top:0;z-index:3}
 /* Category bands replace the first divider; retain dividers between treatments. */
 [data-tdb-price-section]>[data-tdb-disclosure-panel]>.w-dyn-items>.w-dyn-item:first-child [data-tdb-price-trigger]{border-top-width:0}
+/* Shared photo motion requires the native overscan frame without legacy image margins. */
+[data-tdb-price-panel] [data-tdb-page-break-image]{margin-top:0}
