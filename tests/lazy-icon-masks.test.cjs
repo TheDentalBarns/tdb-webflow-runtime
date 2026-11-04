@@ -45,7 +45,7 @@ test('platform artwork stays inert until proximity and preserves colours as imag
    const node=d.createElement(tag);node.dataset.tdbLazyPlatform=platform;d.body.append(node);f.w.TDBLazyIconMasks.refresh();
    assert(!node.hasAttribute('src'));assert(!node.style.backgroundImage);assert(f.ios[0].nodes.has(node));
    f.ios[0].fn([{target:node,isIntersecting:false}]);assert(!node.hasAttribute('src'));assert(!node.style.backgroundImage);
-   f.ios[0].fn([{target:node,isIntersecting:true}]);assert.match(tag==='img'?node.src:node.style.backgroundImage,new RegExp('tdb-review-'+platform+'\\.svg'));assert(!node.style.maskImage);
+   f.ios[0].fn([{target:node,isIntersecting:true}]);assert.match(tag==='img'?node.src:node.style.backgroundImage,new RegExp('tdb-review-'+platform+(platform==='facebook'?'-cutout':'')+'\\.svg'));assert(!node.style.maskImage);
   }
  }finally{f.close()}
 });

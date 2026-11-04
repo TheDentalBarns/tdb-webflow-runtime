@@ -36,8 +36,14 @@
 .tdb-calc .form_checkbox input[type=checkbox],.tdb-calc .form_checkbox input[type=radio]{position:absolute;opacity:0;width:1px;height:1px;margin:0}
 .tdb-calc .form_checkbox-icon{position:relative;flex-shrink:0;margin:0;float:none}
 .tdb-calc .form_checkbox:has(input:focus-visible){outline:2px solid currentColor;outline-offset:4px}
-.tdb-calc .tdbc-category{padding:1.5rem;border:1px solid var(--calc-line);min-height:6rem;transition:border-color calc(200ms * var(--tdb-motion-pace,1))}
-.tdb-calc .tdbc-category.is-selected{border-color:var(--calc-ink)}.tdbc-category small,.tdbc-option-label small{display:block;color:var(--calc-muted);margin-top:.375rem}
+.tdb-calc .tdbc-category{position:relative;display:flex;align-items:center;gap:.875rem;margin:0;padding:1.5rem;border:1px solid var(--calc-ink);min-height:6rem;background:var(--calc-ink);color:var(--calc-cream);cursor:pointer;transition:border-color calc(200ms * var(--tdb-motion-pace,1))}
+.tdb-calc .tdbc-category.is-selected{border-color:var(--calc-dark-cream);box-shadow:inset 0 0 0 1px var(--calc-dark-cream)}.tdbc-category small,.tdbc-option-label small{display:block;color:var(--calc-muted);margin-top:.375rem}
+.tdb-calc .tdbc-category small,.tdbc-category-detail{color:rgba(249,243,231,.7)}
+.tdbc-category .form_checkbox-icon{border-color:currentColor;background-color:transparent}
+.tdbc-category:has(input:checked) .form_checkbox-icon{background-color:#f9f3e7;box-shadow:inset 0 0 0 3px #000;background-image:none}
+.tdbc-category:has(input:focus-visible){outline:2px solid #000;outline-offset:4px}
+.tdbc-category .w-form-label{margin-bottom:0}
+.tdbc-entry-status:empty{display:none}
 .tdbc-treatment-group{margin:2rem 0 0;min-width:0}.tdbc-treatment-group>[role=heading]{margin:0 0 2rem}
 .tdbc-option{padding:1rem 0;border-bottom:1px solid var(--calc-line)}.tdbc-option:last-child{border-bottom:0}
 .tdbc-option-row{position:relative;display:flex;align-items:center;gap:.5rem}.tdb-calc .tdbc-option-label{flex:1;min-height:3rem}.tdbc-option-label>span:not(.form_checkbox-icon):not(.tdbc-chevron){flex:1;min-width:0}

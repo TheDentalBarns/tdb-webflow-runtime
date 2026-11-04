@@ -1092,6 +1092,7 @@
   // Keep real controls and expansion panels mounted while their values change.
   // This preserves keyboard focus, slider drags and the site's open/close motion.
   function patch(parent, html) {
+    const focused = parent.contains(document.activeElement) ? document.activeElement : null;
     const template = document.createElement('template');
     template.innerHTML = html;
     const key = (n) =>
@@ -1129,7 +1130,7 @@
           if (node !== at) dst.insertBefore(node, at || null);
           if (node.nodeType === 3) {
             if (node.textContent !== fresh.textContent) node.textContent = fresh.textContent;
-          } else if (node.nodeType === 1) {
+          } else if (node.nodeType === 1 && !node.hasAttribute('data-tdb-calc-static')) {
             for (const a of [...node.attributes])
               if (!fresh.hasAttribute(a.name) && !['data-dd-ready', 'style'].includes(a.name))
                 node.removeAttribute(a.name);
@@ -1153,6 +1154,9 @@
       while (dst.childNodes.length > i) dst.lastChild.remove();
     }
     children(parent, template.content);
+    // Moving a retained ancestor can blur its control, including in WebKit.
+    if (focused?.isConnected && document.activeElement !== focused && !focused.closest('[inert]'))
+      focused.focus({ preventScroll: true });
   }
   let focusedView = null,
     focusEpoch = 0;
@@ -1255,6 +1259,8 @@
       this.id = 'tdbc-' + ++sequence;
       this.context = null;
       this.ready = false;
+      this.nativeEntry = root.querySelector('[data-tdb-calc-native-entry]');
+      this.adoptNativeChoice = !!this.nativeEntry;
       this.breakdown = true;
       this.visible = false;
       this.suspended = false;
@@ -1418,11 +1424,29 @@
       this.root.setAttribute('aria-busy', 'true');
       try {
         await getRecords();
+        if (this.adoptNativeChoice) {
+          // Read after the request: every choice made while loading is retained.
+          state.categories = [...this.nativeEntry.querySelectorAll('input[data-category]:checked')]
+            .map((input) => input.dataset.category)
+            .filter((category) => this.config[category]);
+          C.OPTIONS.filter((option) => !state.categories.includes(option.category)).forEach(
+            (option) => delete state.selected[option.key],
+          );
+          state = C.normaliseState(state);
+          this.adoptNativeChoice = false;
+        }
         this.ready = true;
         contextual(this, this.config);
         this.render();
         renderAll(this);
       } catch (_) {
+        if (this.nativeEntry) {
+          const status = this.nativeEntry.querySelector('[data-tdb-calc-status]');
+          if (status)
+            status.textContent =
+              'Current prices could not load. Choose again to retry, or browse the fees below.';
+          throw _;
+        }
         this.root.innerHTML =
           '<div class="tdbc-shell"><h2 class="heading-style-h3">Explore your treatment costs</h2><p>We couldn’t load the current prices. Please try again or view our fee guide.</p><button type="button" class="button is-secondary" data-action="retry">Try again</button> <a href="' +
           PRICE_PATH +
@@ -1554,10 +1578,23 @@
           '<div class="tdbc-main" data-node="main">' +
           form +
           '</div></div><footer class="tdbc-section-footer" data-node="section-footer"><div class="container-large"><div class="max-width-xsmall"><p class="text-style-tagline-restored tdbc-dd-fade">We believe everyone deserves to feel good about their smile</p></div></div></footer>' +
-          (this.mode === 'inline'
+          (this.mode === 'inline' && this.root.getAttribute('data-tdb-calc-price-guide') !== 'false'
             ? '<section class="tdbc-price-guide container-large padding-section-large" data-node="price-guide-intro"><header class="tdbc-header"><p class="text-style-tagline-restored tdbc-dd-fade">CLEAR PRICES, CONSIDERED CARE</p><h2 class="heading-style-h3">Your full treatment price guide</h2><p class="text-size-small">Explore our fees treatment by treatment, from everyday care to a change in your smile.</p></header></section>'
             : ''),
       );
+      if (this.nativeEntry) {
+        this.nativeEntry.querySelectorAll('input[data-category]').forEach((input) => {
+          input.checked = state.categories.includes(input.dataset.category);
+          const card = input.closest('.tdbc-category');
+          card.hidden = !this.config[input.dataset.category];
+          card.classList.toggle('is-selected', input.checked);
+          card
+            .querySelector('.form_checkbox-icon')
+            ?.classList.toggle('w--redirected-checked', input.checked);
+        });
+        const status = this.nativeEntry.querySelector('[data-tdb-calc-status]');
+        if (status) status.textContent = '';
+      }
       this.outputs();
     }
     option(o, e) {
@@ -2705,6 +2742,30 @@
     if (link) link.click();
     else location.assign('/vip?interest=' + encodeURIComponent(interest));
   }
+  const inlineViews = new WeakMap();
+  function mount(root) {
+    if (!root?.matches('[data-tdb-calculator="inline"]'))
+      return Promise.reject(new Error('Inline calculator mount required'));
+    let view = inlineViews.get(root);
+    if (!view) {
+      view = new View(root, configFrom(root), 'inline');
+      inlineViews.set(root, view);
+    }
+    if (view.ready) return Promise.resolve(view);
+    if (view.mounting) return view.mounting;
+    root.setAttribute('data-tdb-calc-ready', 'true');
+    view.mounting = view
+      .init()
+      .then(() => view)
+      .catch((error) => {
+        root.removeAttribute('data-tdb-calc-ready');
+        throw error;
+      })
+      .finally(() => {
+        view.mounting = null;
+      });
+    return view.mounting;
+  }
   function start() {
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && views.length) {
@@ -2719,9 +2780,8 @@
       }
     });
     document.querySelectorAll('[data-tdb-calculator="inline"]').forEach((root) => {
-      if (root.hasAttribute('data-tdb-calc-ready')) return;
-      root.setAttribute('data-tdb-calc-ready', 'true');
-      new View(root, configFrom(root), 'inline').init();
+      if (root.getAttribute('data-tdb-calc-load') === 'interaction') return;
+      mount(root).catch(() => {});
     });
     // Dismissing a tooltip consumes the whole first tap, before page/menu handlers.
     // A new pointer gesture clears the guard even if the previous one was a drag.
@@ -2817,6 +2877,17 @@
         event.button > 0
       )
         return;
+      if (!a.hasAttribute('data-tdb-calc-open')) {
+        const target = new URL(a.href, location.href);
+        const inline = document.getElementById('treatment-calculator');
+        if (
+          target.origin === location.origin &&
+          target.pathname === location.pathname &&
+          target.hash === '#treatment-calculator' &&
+          inline?.getAttribute('data-tdb-calc-load') === 'interaction'
+        )
+          return;
+      }
       event.preventDefault();
       open(a);
     });
@@ -2825,10 +2896,11 @@
     version: C.VERSION,
     open,
     close,
+    mount,
     preload: getRecords,
     refresh: () => {
       records = null;
-      for (const v of views) v.init();
+      for (const v of views) v.init().catch(() => {});
     },
   });
   if (document.readyState === 'loading')

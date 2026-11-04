@@ -9,7 +9,7 @@ function prepareLazyIconMasks() {
     review: '6ac7b973bb15c9b9f29a8d18_tdb-review-quote.svg',
     star: '6ac7b973280ebf1329ec59f0_tdb-review-star.svg',
     google: '6ac7b972653444187f404ca8_tdb-review-google.svg',
-    facebook: '6ac7b973ba7906fe700055be_tdb-review-facebook.svg',
+    facebook: '6aeb0738a98b779d9638dfe0_tdb-review-facebook-cutout.svg',
     yell: '6ac7b973ba7906fe700055e8_tdb-review-yell.svg',
     doctify: '6ac7b973dd39bbf3927772e6_tdb-review-doctify.svg',
   };

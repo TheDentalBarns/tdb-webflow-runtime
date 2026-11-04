@@ -634,7 +634,7 @@ function tdbReadPagePosition(event) {
   window.TDBModuleBootstrap = Object.freeze({ ensure });
 })();
 
-/* TDB Treatment Calculator loader v1.6.0. URLs are immutable release pins. */
+/* TDB Treatment Calculator loader v1.7.0. Native entry, inline and drawer loading. */
 (function () {
   'use strict';
   if (window.__tdbCalculatorLoader) return;
@@ -648,7 +648,6 @@ function tdbReadPagePosition(event) {
     if (loading) return loading;
     loading = window.TDBModuleBootstrap.ensure(scriptURL)
       .then(async (modules) => {
-        // Preserve CSS-before-execution: the controller measures its native UI.
         await modules.load(styleURL, { type: 'style', timeout: 15000 });
         await modules.load(scriptURL, {
           ready: () => typeof window.TDBCalculator?.open === 'function',
@@ -656,50 +655,103 @@ function tdbReadPagePosition(event) {
         });
         return window.TDBCalculator;
       })
-      .catch((e) => {
+      .catch((error) => {
         loading = null;
-        throw e;
+        throw error;
       });
     return loading;
   }
   function start() {
-    const mount = document.querySelector('[data-tdb-calculator="inline"]');
-    if (mount) {
-      if ('IntersectionObserver' in window) {
-        const observer = new IntersectionObserver(
-          (entries) => {
-            if (entries.some((e) => e.isIntersecting)) {
-              observer.disconnect();
-              load().catch(() => {
-                const p = mount.querySelector('[data-tdb-calc-fallback]');
-                if (p)
-                  p.textContent =
-                    'The calculator could not load. Please refresh, or browse our treatment fees below.';
-              });
-            }
-          },
-          { rootMargin: '500px' },
-        );
-        observer.observe(mount);
-      } else load().catch(() => {});
+    const pending = new WeakMap();
+    const deferred = (root) => root?.getAttribute('data-tdb-calc-load') === 'interaction';
+    const localEntry = (link) => {
+      if (!link || link.hasAttribute('data-tdb-calc-open')) return null;
+      const url = new URL(link.href || '', location.href);
+      if (
+        url.origin !== location.origin ||
+        url.pathname !== location.pathname ||
+        url.hash !== '#treatment-calculator'
+      )
+        return null;
+      const root = document.getElementById('treatment-calculator');
+      return deferred(root) ? root : null;
+    };
+    const status = (root, message) => {
+      const node = root.querySelector('[data-tdb-calc-status],[data-tdb-calc-fallback]');
+      if (node) node.textContent = message;
+    };
+    function activate(root) {
+      if (pending.has(root)) return pending.get(root);
+      root.setAttribute('aria-busy', 'true');
+      status(root, 'Loading current prices…');
+      const request = load()
+        .then((api) => api.mount(root))
+        .catch(() => {
+          status(
+            root,
+            'Current prices could not load. Choose again to retry, or browse the fees below.',
+          );
+        })
+        .finally(() => {
+          pending.delete(root);
+          root.removeAttribute('aria-busy');
+        });
+      pending.set(root, request);
+      return request;
     }
+    document.querySelectorAll('[data-tdb-calculator="inline"]').forEach((root) => {
+      if (deferred(root)) return;
+      if (
+        root.getAttribute('data-tdb-calc-load') === 'immediate' ||
+        !('IntersectionObserver' in window)
+      ) {
+        activate(root);
+        return;
+      }
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            observer.disconnect();
+            activate(root);
+          }
+        },
+        { rootMargin: '500px' },
+      );
+      observer.observe(root);
+    });
+    document.addEventListener('change', (event) => {
+      const input = event.target.closest?.('input[data-category]');
+      const root = input?.closest('[data-tdb-calculator="inline"]');
+      if (!deferred(root) || root.hasAttribute('data-tdb-calc-ready')) return;
+      input.closest('.tdbc-category')?.classList.toggle('is-selected', input.checked);
+      activate(root);
+    });
+    // Native checkbox forms are local controls, never a Webflow submission.
+    document.addEventListener(
+      'submit',
+      (event) => {
+        if (event.target.closest('[data-tdb-calc-native-entry]')) event.preventDefault();
+      },
+      true,
+    );
     document.addEventListener(
       'click',
-      (e) => {
-        const link = e.target.closest?.(selector);
+      (event) => {
+        const link = event.target.closest?.(selector);
         if (
           !link ||
+          localEntry(link) ||
           window.TDBCalculator ||
-          e.defaultPrevented ||
-          e.metaKey ||
-          e.ctrlKey ||
-          e.shiftKey ||
-          e.altKey ||
-          e.button > 0
+          event.defaultPrevented ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey ||
+          event.button > 0
         )
           return;
-        e.preventDefault();
-        e.stopImmediatePropagation();
+        event.preventDefault();
+        event.stopImmediatePropagation();
         if (link.getAttribute('aria-busy') === 'true') return;
         link.setAttribute('aria-busy', 'true');
         load()
@@ -718,26 +770,30 @@ function tdbReadPagePosition(event) {
     if ('IntersectionObserver' in window) {
       const near = new IntersectionObserver(
         (entries) => {
-          if (entries.some((e) => e.isIntersecting)) {
+          if (entries.some((entry) => entry.isIntersecting)) {
             near.disconnect();
             warm();
           }
         },
         { rootMargin: '800px' },
       );
-      document.querySelectorAll(selector).forEach((el) => near.observe(el));
+      document.querySelectorAll(selector).forEach((link) => {
+        if (!localEntry(link) && !document.querySelector('[data-tdb-calc-load="interaction"]'))
+          near.observe(link);
+      });
     }
     document.addEventListener(
       'pointerover',
-      (e) => {
-        if (e.target.closest?.(selector)) warm();
+      (event) => {
+        const link = event.target.closest?.(selector);
+        if (link && !localEntry(link)) warm();
       },
       { passive: true },
     );
-    document.addEventListener('focusin', (e) => {
-      if (e.target.closest?.(selector)) warm();
+    document.addEventListener('focusin', (event) => {
+      const link = event.target.closest?.(selector);
+      if (link && !localEntry(link)) warm();
     });
-    // Delegation also supports FAQ links inserted after initial page rendering.
   }
   if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', start, { once: true });
@@ -2885,7 +2941,7 @@ function prepareLazyIconMasks() {
     review: '6ac7b973bb15c9b9f29a8d18_tdb-review-quote.svg',
     star: '6ac7b973280ebf1329ec59f0_tdb-review-star.svg',
     google: '6ac7b972653444187f404ca8_tdb-review-google.svg',
-    facebook: '6ac7b973ba7906fe700055be_tdb-review-facebook.svg',
+    facebook: '6aeb0738a98b779d9638dfe0_tdb-review-facebook-cutout.svg',
     yell: '6ac7b973ba7906fe700055e8_tdb-review-yell.svg',
     doctify: '6ac7b973dd39bbf3927772e6_tdb-review-doctify.svg',
   };

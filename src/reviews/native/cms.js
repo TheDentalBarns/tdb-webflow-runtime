@@ -34,7 +34,7 @@
     Google:
       'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b972653444187f404ca8_tdb-review-google.svg',
     Facebook:
-      'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973ba7906fe700055be_tdb-review-facebook.svg',
+      'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeb0738a98b779d9638dfe0_tdb-review-facebook-cutout.svg',
     Yell: 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973ba7906fe700055e8_tdb-review-yell.svg',
     Doctify:
       'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973dd39bbf3927772e6_tdb-review-doctify.svg',

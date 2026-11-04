@@ -44,20 +44,20 @@
         "src/shared/module-bootstrap.js",
         "src/calculator/loader.js"
       ],
-      "sha256": "cedb4403ec9bdf37ae8cf7afc420d44899016437524f6714f7842651cb337a0f",
-      "raw": 3106,
-      "gzip": 1296,
-      "brotli": 1107
+      "sha256": "ea52a58ec0b1db4c2035d826d4841af440eafbf14661690348aea991b9403d6e",
+      "raw": 4285,
+      "gzip": 1682,
+      "brotli": 1436
     },
     "dist/tdb-calculator.js": {
       "sources": [
         "src/calculator/core.js",
         "src/calculator/ui.js"
       ],
-      "sha256": "22bc8f3aeca7bddae2d8861e998f9ad55e4b69f482016ede79c8d3086a183a65",
-      "raw": 67634,
-      "gzip": 22468,
-      "brotli": 19491
+      "sha256": "9229a84bcc0bd29a832b1b54e862c452b078ba4b6b7960233658e21d80ef25a7",
+      "raw": 69666,
+      "gzip": 23079,
+      "brotli": 19968
     },
     "dist/tdb-consent-startup.min.js": {
       "sources": [
@@ -416,19 +416,19 @@
         "src/reviews/native/cms.js",
         "src/reviews/native/quote-adapter.js"
       ],
-      "sha256": "2b1c682fd28cc6c4627d47e254ea4be576b548436bc5a739c8668bde54ed371e",
-      "raw": 24210,
-      "gzip": 8218,
-      "brotli": 7301
+      "sha256": "eddf04bc6113f668173712e10695c3dd5e8d86928e13fd5e627f16ae121c908d",
+      "raw": 24217,
+      "gzip": 8242,
+      "brotli": 7293
     },
     "dist/tdb-review-drawer-template.js": {
       "sources": [
         "src/templates/review-drawer.js"
       ],
-      "sha256": "8bccc1802860cf9b48d25fa131dc761732c13368fff2a5219fa56e1acf6b3697",
-      "raw": 32341,
-      "gzip": 3560,
-      "brotli": 2972
+      "sha256": "3d24e2feec5a0a95d06dc281df3ff83460c64dc2c0b36c66586c138fb5d62d5c",
+      "raw": 32348,
+      "gzip": 3582,
+      "brotli": 2993
     },
     "dist/tdb-review-introduction.js": {
       "sources": [
@@ -550,10 +550,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "1305ee0758337b07a7d9f127eed14c9679dc452be550f5257382701b57d30879",
-      "raw": 79268,
-      "gzip": 21865,
-      "brotli": 19083
+      "sha256": "7e62dcd9d01942a87a18909b922f060e964b6809100dbf04e05fa140f7b6a10b",
+      "raw": 80454,
+      "gzip": 22211,
+      "brotli": 19345
     },
     "dist/tdb-service-awards.js": {
       "sources": [
