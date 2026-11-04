@@ -73,6 +73,18 @@
       name: String(f.name || '').trim(),
       label: String(f.label || f.name || '').trim(),
       tooltip: String(f.tooltip || '').trim(),
+      checklist: [
+        ...new Set(
+          (Array.isArray(f.checklist) ? f.checklist : [])
+            .filter((item) => typeof item === 'string')
+            .map((item) => item.trim())
+            .filter(Boolean),
+        ),
+      ],
+      appointmentMinutes:
+        finite(f.appointmentMinutes) && Number(f.appointmentMinutes) > 0
+          ? Number(f.appointmentMinutes)
+          : null,
       rawPrice: String(f.price || ''),
       valid,
       min: valid ? price.min : null,
@@ -524,15 +536,32 @@
           [...new Set(assumed)].join(', ') +
           '. Your dentist will confirm the timing.',
       );
-    return { stages, unknown: [], notes };
+    return {
+      stages,
+      unknown: [],
+      notes,
+      checkupWait: e.assessment === 'design' ? { min: 7, max: 14 } : null,
+    };
   }
   function schedule(plan, start) {
     if (!parseDate(start)) throw new RangeError('Invalid assessment date');
     const initial = parseDate(start);
-    let low = addDays(initial, 14),
-      high = addDays(initial, 14),
-      lastLow = initial,
-      lastHigh = initial;
+    const checkup = plan.checkupWait
+      ? {
+          startMin: iso(addDays(initial, plan.checkupWait.min)),
+          startMax: iso(addDays(initial, plan.checkupWait.max)),
+        }
+      : null;
+    const preparation = {
+      startMin: checkup?.startMin || start,
+      startMax: checkup?.startMax || start,
+      endMin: iso(addDays(parseDate(checkup?.startMin || start), 14)),
+      endMax: iso(addDays(parseDate(checkup?.startMax || start), 14)),
+    };
+    let low = parseDate(preparation.endMin),
+      high = parseDate(preparation.endMax),
+      lastLow = parseDate(preparation.startMin),
+      lastHigh = parseDate(preparation.startMax);
     const stages = plan.stages.map((s) => {
       if (s.minGap) {
         low = new Date(Math.max(low, addDays(lastLow, s.minGap)));
@@ -552,7 +581,15 @@
         endMax: iso(high),
       };
     });
-    return { start, stages, finishMin: iso(low), finishMax: iso(high), reliable: true };
+    return {
+      start,
+      checkup,
+      preparation,
+      stages,
+      finishMin: iso(low),
+      finishMax: iso(high),
+      reliable: true,
+    };
   }
   function suggestedStart(plan, target, which) {
     const end = parseDate(target);
@@ -603,9 +640,8 @@
     if (!e.required)
       return e.assessmentLine
         ? e.lines.length === 1
-          ? e.assessment === 'design'
-            ? '60 minutes'
-            : '90 minutes'
+          ? (records[IDS[e.assessment === 'design' ? 'design' : 'assessment']]
+              ?.appointmentMinutes || (e.assessment === 'design' ? 60 : 90)) + ' minutes'
           : 'Assessment only'
         : 'Choose treatments';
     const p = plan(records, e),

@@ -62,9 +62,18 @@ test('Smile Design starts exactly six calendar weeks after live assessment avail
   assert.equal(C.assessmentStart(design, '2028-02-01'), '2028-03-14');
   const first = C.completionTimeline(records, signature, C.assessmentStart(signature, live));
   const second = C.completionTimeline(records, design, C.assessmentStart(design, live));
-  assert.equal((C.parseDate(second.finishMin) - C.parseDate(first.finishMin)) / 86400000, 42);
+  assert.equal((C.parseDate(second.finishMin) - C.parseDate(first.finishMin)) / 86400000, 49);
+  assert.equal((C.parseDate(second.finishMax) - C.parseDate(first.finishMax)) / 86400000, 56);
+  assert.equal(first.checkup, null);
+  assert.deepEqual(second.checkup, { startMin: '2027-02-05', startMax: '2027-02-12' });
+  assert.deepEqual(second.preparation, {
+    startMin: '2027-02-05',
+    startMax: '2027-02-12',
+    endMin: '2027-02-19',
+    endMax: '2027-02-26',
+  });
   assert.equal(C.duration(records, signature, live), '4 weeks');
-  assert.equal(C.duration(records, design, live), '10 weeks');
+  assert.equal(C.duration(records, design, live), '11–12 weeks');
   const earlier = C.completionTimeline(
     records,
     design,
@@ -74,6 +83,12 @@ test('Smile Design starts exactly six calendar weeks after live assessment avail
   );
   assert.equal(earlier.tooSoon, true);
   assert.equal(earlier.finishMin, second.finishMin);
+  const delayed = C.completionTimeline(records, design, C.assessmentStart(design, live), 21);
+  assert.equal((C.parseDate(delayed.checkup.startMin) - C.parseDate(delayed.start)) / 86400000, 7);
+  const target = C.iso(C.addDays(C.parseDate(second.finishMin), 30));
+  const later = C.completionTimeline(records, design, C.assessmentStart(design, live), 0, target);
+  assert.equal(later.finishMin, target);
+  assert.equal((C.parseDate(later.checkup.startMax) - C.parseDate(later.start)) / 86400000, 14);
 });
 
 test('included aligner hygiene stays free and appointment-only state survives normalization', () => {

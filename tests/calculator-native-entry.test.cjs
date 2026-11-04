@@ -206,6 +206,7 @@ test('drawer opening remains independent of an untouched native inline entry', a
     h.run('src/calculator/ui.js');
     await h.w.TDBCalculator.open(h.w.document.getElementById('drawer'));
     assert.equal(h.w.document.querySelector('dialog').open, true);
+    assert(h.w.document.querySelector('dialog .tdbc-shell > .tdbc-live'));
     assert.equal(h.root.hasAttribute('data-tdb-calc-ready'), false);
     assert.equal(h.root.querySelector('h2').textContent, 'Authored heading');
     h.w.TDBCalculator.close();
@@ -421,7 +422,13 @@ test('starting routes reorder the journey, retain controls and collapse to eithe
       Object.entries(core.IDS)
         .map(
           ([key, id]) =>
-            `<div data-tdb-calc-record="${id}" data-label="${key}" data-price="£${prices[key] || 100}"></div>`,
+            `<div class="w-dyn-item"><div schema-type="pricing-block">
+            <div class="pricing-info_icon-wrapper">${key === 'assessment' ? 90 : 60} minutes</div>
+            <div class="pricing-checbox">${key === 'assessment' ? 'Comprehensive new-patient dental examination' : 'Understanding your goals, concerns and priorities'}</div>
+            <div class="pricing-checbox">${key === 'assessment' ? 'Personalised written report' : 'Clear recommendation for the next clinical step'}</div>
+            <div class="pricing-checbox" visible=""></div>
+            <div class="w-condition-invisible"><div class="pricing-checbox">Unpublished inclusion</div></div>
+            </div><div data-tdb-calc-record="${id}" data-label="${key}" data-price="£${prices[key] || 100}"></div></div>`,
         )
         .join(''),
     );
@@ -456,6 +463,30 @@ test('starting routes reorder the journey, retain controls and collapse to eithe
     );
     assert(h.root.querySelector('[data-node=timeline] .tdbc-step-intro').textContent.trim());
     const assessment = h.root.querySelector('[data-node=assessment]');
+    const nativeHeader = h.root.querySelector('[data-node=header]');
+    assert.equal(h.root.querySelector('.tdbc-live').parentElement, h.root);
+    assert.equal(nativeHeader.parentElement, h.root.querySelector('.tdbc-shell'));
+    assert.equal(nativeHeader.textContent, 'Authored heading');
+    assert.match(
+      assessment.querySelector('.tdbc-included').textContent,
+      /Comprehensive new-patient/,
+    );
+    assert.equal(assessment.querySelectorAll('.tdbc-included li').length, 2);
+    const durationRows = [...assessment.querySelectorAll('.tdbc-appointment-duration')];
+    assert.deepEqual(
+      durationRows.map((row) => row.textContent),
+      ['90 minutes', '60 minutes'],
+    );
+    assert(durationRows.every((row) => row.querySelector('svg')));
+    choose('[data-action=sooner]');
+    assert.match(
+      h.root.querySelector('.tdbc-timing-warning').textContent,
+      /already selected the fastest/,
+    );
+    assert.match(
+      h.root.querySelector('.tdbc-timing-warning').textContent,
+      /We’re no strangers to deadlines/,
+    );
     const hygiene = h.root.querySelector('[data-hygiene]');
     const quantity = h.root.querySelector('[data-qty=bonding]');
     const signatureTarget = h.root.querySelector('[data-date=target]').value;
@@ -464,7 +495,39 @@ test('starting routes reorder the journey, retain controls and collapse to eithe
     assert.equal(h.root.querySelector('[data-node=assessment]'), assessment);
     assert.equal(h.root.querySelector('[data-output=total]').textContent, '£1,240');
     const designTarget = h.root.querySelector('[data-date=target]').value;
-    assert.equal((core.parseDate(designTarget) - core.parseDate(signatureTarget)) / 86400000, 42);
+    assert.equal((core.parseDate(designTarget) - core.parseDate(signatureTarget)) / 86400000, 49);
+    assert.equal(h.root.querySelector('[data-node=header]'), nativeHeader);
+    assert.match(
+      assessment.querySelector('.tdbc-included').textContent,
+      /Understanding your goals/,
+    );
+    assert.doesNotMatch(
+      assessment.querySelector('.tdbc-included').textContent,
+      /examination|written report|Unpublished/,
+    );
+    assert.match(assessment.textContent, /does not include a comprehensive dental examination/);
+    choose('[data-action=stage][data-key=checkup]');
+    assert.match(
+      h.root.querySelector('[data-stage=checkup]').textContent,
+      /1–2 weeks after Smile Design/,
+    );
+    assert.match(
+      h.root.querySelector('[data-stage=checkup]').textContent,
+      /Included in the combined starting cost/,
+    );
+    choose('[data-action=sooner]');
+    assert.match(
+      h.root.querySelector('.tdbc-timing-warning').textContent,
+      /could save up to two months/,
+    );
+    assert.match(
+      h.root.querySelector('.tdbc-timing-warning').textContent,
+      /six-week Smile Design wait, followed by 1–2 weeks/,
+    );
+    assert.match(
+      h.root.querySelector('.tdbc-timing-warning').textContent,
+      /We’re no strangers to deadlines/,
+    );
     assert.equal(
       h.root.querySelector('[data-output=availability]').dataset.assessmentRoute,
       'design',
@@ -490,6 +553,10 @@ test('starting routes reorder the journey, retain controls and collapse to eithe
     choose('[data-assessment=signature]');
     assert.equal(h.root.querySelector('[data-output=total]').textContent, '£450');
     assert.equal(h.root.querySelector('[data-output=duration]').textContent, '90 minutes');
+    assert.equal(
+      h.root.querySelector('[data-action=resume-estimate]').textContent,
+      'Return to full treatment estimate',
+    );
     choose('[data-action=resume-estimate]');
     assert.equal(h.root.querySelector('[data-tdb-calc-native-entry]').hidden, false);
     assert.equal(h.root.querySelector('[data-qty=bonding]').value, '2');
@@ -499,6 +566,45 @@ test('starting routes reorder the journey, retain controls and collapse to eithe
     choose('[data-action=reset]');
     assert.equal(h.root.querySelector('[data-tdb-calc-native-entry]').hidden, false);
     await tick();
+  } finally {
+    h.dom.window.close();
+  }
+});
+
+test('drawer reads appointment checklists and duration from fetched price cards as escaped text', async () => {
+  const h = setup();
+  try {
+    h.w.fetch = async (url) => {
+      assert.equal(url, '/dental-cost-lichfield');
+      return {
+        ok: true,
+        text: async () => `
+        <div class="w-dyn-item"><div schema-type="pricing-block">
+          <div class="pricing-checbox">Comprehensive examination</div>
+        </div><div data-tdb-calc-record="${core.IDS.assessment}" data-price="£450"></div></div>
+        <div class="w-dyn-item"><div schema-type="pricing-block">
+          <div class="pricing-info_icon-wrapper">75 minutes</div>
+          <div class="pricing_btm-accordion" style="height:0">
+            <div class="pricing-checbox">Explore &lt;your goals&gt; &amp; priorities</div>
+            <div class="pricing-checbox" hidden>Hidden item</div>
+          </div>
+        </div><div data-tdb-calc-record="${core.IDS.design}" data-price="£225"></div></div>`,
+      };
+    };
+    h.run('src/calculator/core.js');
+    h.run('src/calculator/ui.js');
+    await h.w.TDBCalculator.open(h.w.document.getElementById('drawer'));
+    const drawer = h.w.document.querySelector('dialog');
+    drawer.querySelector('[data-category=cosmetic]').click();
+    drawer.querySelector('[data-action=start-design]').click();
+    assert.deepEqual(
+      [...drawer.querySelectorAll('.tdbc-included li')].map((e) => e.textContent),
+      ['Explore <your goals> & priorities'],
+    );
+    assert.equal(drawer.querySelector('.tdbc-included your'), null);
+    assert.equal(drawer.querySelector('[data-output=duration]').textContent, '75 minutes');
+    assert.equal(h.root.querySelector('h2').textContent, 'Authored heading');
+    h.w.TDBCalculator.close();
   } finally {
     h.dom.window.close();
   }

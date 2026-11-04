@@ -73,6 +73,18 @@
       name: String(f.name || '').trim(),
       label: String(f.label || f.name || '').trim(),
       tooltip: String(f.tooltip || '').trim(),
+      checklist: [
+        ...new Set(
+          (Array.isArray(f.checklist) ? f.checklist : [])
+            .filter((item) => typeof item === 'string')
+            .map((item) => item.trim())
+            .filter(Boolean),
+        ),
+      ],
+      appointmentMinutes:
+        finite(f.appointmentMinutes) && Number(f.appointmentMinutes) > 0
+          ? Number(f.appointmentMinutes)
+          : null,
       rawPrice: String(f.price || ''),
       valid,
       min: valid ? price.min : null,
@@ -524,15 +536,32 @@
           [...new Set(assumed)].join(', ') +
           '. Your dentist will confirm the timing.',
       );
-    return { stages, unknown: [], notes };
+    return {
+      stages,
+      unknown: [],
+      notes,
+      checkupWait: e.assessment === 'design' ? { min: 7, max: 14 } : null,
+    };
   }
   function schedule(plan, start) {
     if (!parseDate(start)) throw new RangeError('Invalid assessment date');
     const initial = parseDate(start);
-    let low = addDays(initial, 14),
-      high = addDays(initial, 14),
-      lastLow = initial,
-      lastHigh = initial;
+    const checkup = plan.checkupWait
+      ? {
+          startMin: iso(addDays(initial, plan.checkupWait.min)),
+          startMax: iso(addDays(initial, plan.checkupWait.max)),
+        }
+      : null;
+    const preparation = {
+      startMin: checkup?.startMin || start,
+      startMax: checkup?.startMax || start,
+      endMin: iso(addDays(parseDate(checkup?.startMin || start), 14)),
+      endMax: iso(addDays(parseDate(checkup?.startMax || start), 14)),
+    };
+    let low = parseDate(preparation.endMin),
+      high = parseDate(preparation.endMax),
+      lastLow = parseDate(preparation.startMin),
+      lastHigh = parseDate(preparation.startMax);
     const stages = plan.stages.map((s) => {
       if (s.minGap) {
         low = new Date(Math.max(low, addDays(lastLow, s.minGap)));
@@ -552,7 +581,15 @@
         endMax: iso(high),
       };
     });
-    return { start, stages, finishMin: iso(low), finishMax: iso(high), reliable: true };
+    return {
+      start,
+      checkup,
+      preparation,
+      stages,
+      finishMin: iso(low),
+      finishMax: iso(high),
+      reliable: true,
+    };
   }
   function suggestedStart(plan, target, which) {
     const end = parseDate(target);
@@ -603,9 +640,8 @@
     if (!e.required)
       return e.assessmentLine
         ? e.lines.length === 1
-          ? e.assessment === 'design'
-            ? '60 minutes'
-            : '90 minutes'
+          ? (records[IDS[e.assessment === 'design' ? 'design' : 'assessment']]
+              ?.appointmentMinutes || (e.assessment === 'design' ? 60 : 90)) + ' minutes'
           : 'Assessment only'
         : 'Choose treatments';
     const p = plan(records, e),
@@ -949,6 +985,24 @@
         'tier3max',
       ])
         f[key] = el.getAttribute('data-' + key) || '';
+      // Use the same published appointment details as the native price cards.
+      // Closed accordions still contain valid content; only CMS-hidden rows are excluded.
+      const priceCard =
+        el.closest('[schema-type="pricing-block"]') ||
+        el.closest('.w-dyn-item')?.querySelector('[schema-type="pricing-block"]');
+      if (priceCard) {
+        f.checklist = [...priceCard.querySelectorAll('.pricing-checbox')]
+          .filter(
+            (row) =>
+              !row.closest('[hidden],.w-condition-invisible') && row.getAttribute('visible') !== '',
+          )
+          .map((row) => row.textContent.replace(/\s+/g, ' ').trim())
+          .filter(Boolean);
+        const duration = [...priceCard.querySelectorAll('.pricing-info_icon-wrapper')]
+          .map((row) => row.textContent.trim().match(/^(\d+)\s+minutes$/i))
+          .find(Boolean);
+        f.appointmentMinutes = duration?.[1];
+      }
       for (const key of ['whitening', 'hygiene'])
         f[key] = [...doc.querySelectorAll('[data-tdb-calc-included="' + key + '"]')].some(
           (marker) =>
@@ -1615,7 +1669,7 @@
           ? '<footer class="tdbc-footnote" data-node="footnote"><p class="text-size-tiny">A guide to possibilities, subject to assessment and your confirmed treatment plan. Your selections stay in this tab for up to four hours.</p><div class="tdbc-actions">' +
             actionButton('reset', 'Restart estimate', true) +
             (state.assessmentOnly
-              ? actionButton('resume-estimate', 'Return to treatment estimate', false, false)
+              ? actionButton('resume-estimate', 'Return to full treatment estimate', false, false)
               : '') +
             '</div>' +
             (!state.assessmentOnly
@@ -1631,36 +1685,39 @@
               : '') +
             '</footer>'
           : '');
+      const banner =
+        '<div class="tdbc-live ' +
+        'padding-global ' +
+        (showBanner ? 'has-estimate ' : '') +
+        (hasEstimate ? 'is-populated' : '') +
+        '" data-node="live" aria-hidden="' +
+        !showBanner +
+        '" ' +
+        (showBanner ? '' : 'inert') +
+        '><div class="tdbc-live-button container-large"><button type="button" class="tdbc-live-copy tdbc-live-target" data-action="estimate" aria-disabled="' +
+        !hasEstimate +
+        '" aria-label="View your full estimate"><span class="text-size-tiny">Your estimate</span><span class="tdbc-live-value text-size-small">' +
+        tag +
+        '<strong data-output="live">' +
+        esc(priceText(e)) +
+        '</strong></span></button><button type="button" class="tdbc-live-copy tdbc-live-target" data-action="timeline" aria-label="View your target completion date"><span class="text-size-tiny">Estimated duration</span><span class="tdbc-live-value text-size-small">' +
+        clock +
+        '<span data-output="duration">' +
+        esc(C.duration(records, e, today())) +
+        '</span></span></button><button type="button" data-action="estimate" aria-label="View estimate" class="tdbc-live-target tdbc-arrow-target"><span class="icon-embed-xxsmall is-down w-embed tdbc-scroll-arrow">' +
+        arrow +
+        '</span></button></div>' +
+        '</div>';
       patch(
         this.root,
-        '<div class="tdbc-shell container-large padding-section-large" data-node="shell"><header class="tdbc-header" data-node="header" tabindex="-1"><p class="text-style-tagline-restored tdbc-dd-fade">YOUR SMILE, YOUR POSSIBILITIES</p><h2 class="heading-style-h3"' +
+        (this.mode === 'inline' ? banner : '') +
+          '<div class="tdbc-shell container-large padding-section-large" data-node="shell"><header class="tdbc-header" data-node="header" tabindex="-1"><p class="text-style-tagline-restored tdbc-dd-fade">YOUR SMILE, YOUR POSSIBILITIES</p><h2 class="heading-style-h3"' +
           (this.mode === 'drawer' ? ' id="tdbc-dialog-title"' : '') +
           '>Explore your treatment costs</h2><p class="text-size-small">Start with what matters to you. We’ll bring together a guide to your investment and timing.</p></header>' +
           (this.context
             ? '<div class="tdbc-notice text-size-small" data-node="context"><p>Your existing estimate is saved. Continue with it, or start with the options from this page.</p><div class="tdbc-actions"><button type="button" data-action="keep" class="tdbc-text-button">Keep my estimate</button><button type="button" data-action="context" class="tdbc-text-button">Start with these options</button></div></div>'
             : '') +
-          ('<div class="tdbc-live ' +
-            'padding-global ' +
-            (showBanner ? 'has-estimate ' : '') +
-            (hasEstimate ? 'is-populated' : '') +
-            '" data-node="live" aria-hidden="' +
-            !showBanner +
-            '" ' +
-            (showBanner ? '' : 'inert') +
-            '><div class="tdbc-live-button container-large"><button type="button" class="tdbc-live-copy tdbc-live-target" data-action="estimate" aria-disabled="' +
-            !hasEstimate +
-            '" aria-label="View your full estimate"><span class="text-size-tiny">Your estimate</span><span class="tdbc-live-value text-size-small">' +
-            tag +
-            '<strong data-output="live">' +
-            esc(priceText(e)) +
-            '</strong></span></button><button type="button" class="tdbc-live-copy tdbc-live-target" data-action="timeline" aria-label="View your target completion date"><span class="text-size-tiny">Estimated duration</span><span class="tdbc-live-value text-size-small">' +
-            clock +
-            '<span data-output="duration">' +
-            esc(C.duration(records, e, today())) +
-            '</span></span></button><button type="button" data-action="estimate" aria-label="View estimate" class="tdbc-live-target tdbc-arrow-target"><span class="icon-embed-xxsmall is-down w-embed tdbc-scroll-arrow">' +
-            arrow +
-            '</span></button></div>' +
-            '</div>') +
+          (this.mode === 'drawer' ? banner : '') +
           '<div class="tdbc-main" data-node="main">' +
           form +
           '</div></div>' +
@@ -1883,7 +1940,8 @@
     assessment(e) {
       const a = records[C.IDS.assessment],
         d = records[C.IDS.design],
-        design = e.assessment === 'design';
+        design = e.assessment === 'design',
+        chosen = design ? d : a;
       return (
         '<section class="tdbc-step tdbc-assessment" data-node="assessment">' +
         step('03', 'Where to start?', 'Choose the first appointment that feels right for you.') +
@@ -1916,6 +1974,9 @@
               label +
               '</span><small class="text-size-tiny">' +
               detail +
+              '</small><small class="text-size-tiny tdbc-appointment-duration">' +
+              clock +
+              esc((record?.appointmentMinutes || (route === 'design' ? 60 : 90)) + ' minutes') +
               '</small><small class="text-size-tiny">' +
               esc(recordPrice(record)) +
               (route === 'design' && e.required ? ' first appointment' : '') +
@@ -1925,22 +1986,24 @@
           .join('') +
         '</div>' +
         '<ul class="tdbc-included text-size-small">' +
-        (design && !e.required
-          ? [
-              'Explore your smile and goals with Dr Keely',
-              '3D scanning & clinical photography',
-              'A recommendation for your next clinical step',
-            ]
-          : [
-              'Smile Design',
-              'Comprehensive examination & appropriate diagnostics',
-              'Itemised plan, costs & written report',
-            ]
+        (chosen?.checklist?.length
+          ? chosen.checklist
+          : design
+            ? [
+                'Explore your smile and goals with Dr Keely',
+                '3D scanning & clinical photography',
+                'A recommendation for your next clinical step',
+              ]
+            : [
+                'Smile Design',
+                'Comprehensive examination & appropriate diagnostics',
+                'Itemised plan, costs & written report',
+              ]
         )
           .map(
             (t) =>
               '<li><span class="tdbc-included-mark" aria-hidden="true"></span><span>' +
-              t +
+              esc(t) +
               '</span></li>',
           )
           .join('') +
@@ -1959,7 +2022,7 @@
         '</span></div>' +
         '<p class="tdbc-help text-size-tiny">' +
         (design
-          ? 'Allow around six weeks after the live Signature Assessment date for Smile Design. A check-up follows before treatment; the combined starting cost stays the same.'
+          ? 'Smile Design does not include a comprehensive dental examination or a formal clinical treatment plan. Allow around six weeks after the live Signature Assessment date for Smile Design, then 1–2 weeks for your check-up before treatment. The combined starting cost stays the same.'
           : 'Smile Design and your examination are included together, counted once in your estimate.') +
         '</p>' +
         (!e.required ? availabilityBlock('', e.assessment) : '') +
@@ -2001,7 +2064,7 @@
         (e.required
           ? '<p class="tdbc-help text-size-tiny">' +
             (e.assessment === 'design'
-              ? 'Includes the typical six-week Smile Design wait, then two weeks for your check-up and planning.'
+              ? 'Includes the typical six-week Smile Design wait, 1–2 weeks for your check-up, then two weeks for planning.'
               : 'Includes two weeks after your assessment for planning.') +
             ' Timing is confirmed with your treatment plan.</p>'
           : '') +
@@ -2164,7 +2227,14 @@
       const warning =
         '<div id="' +
         id +
-        '-deadline" class="tdbc-timing-warning text-size-small"><p>Your selected plan needs a little more time. We’re no strangers to deadlines: being based at a wedding venue, we see plenty of brides and grooms and have become experienced at exploring what may be possible for the day that matters. Let’s talk about the date, your priorities and the options for getting you closer to your smile in time.</p>' +
+        '-deadline" class="tdbc-timing-warning text-size-small"><p>' +
+        (e.assessment === 'design'
+          ? 'A Signature Assessment could save up to two months* by bringing Smile Design and your comprehensive examination together. Contact us to explore an earlier start.'
+          : 'You’ve already selected the fastest way to get started with a Signature Assessment. Contact us to talk through your date and what may be possible.') +
+        '</p><p>Your selected plan needs a little more time. We’re no strangers to deadlines: being based at a wedding venue, we see plenty of brides and grooms and have become experienced at exploring what may be possible for the day that matters. Let’s talk about the date, your priorities and the options for getting you closer to your smile in time.</p>' +
+        (e.assessment === 'design'
+          ? '<p class="tdbc-help text-size-tiny">*Based on the typical six-week Smile Design wait, followed by 1–2 weeks for a separate check-up. Appointment availability and your confirmed plan may change this.</p>'
+          : '') +
         wedding +
         '</div>';
       return (
@@ -2325,17 +2395,29 @@
           costKeys: ['assessment'],
           description:
             e.assessment === 'design'
-              ? 'Explore your smile first. Your check-up follows before treatment; both appointments share the same total starting cost.'
+              ? 'Explore your smile and goals. Your comprehensive check-up is a separate appointment at least one week later; both appointments share the same total starting cost.'
               : 'Smile Design, examination and your treatment plan.',
         },
+        ...(t.checkup
+          ? [
+              {
+                key: 'checkup',
+                label: 'Comprehensive check-up',
+                ...t.checkup,
+                appointment: true,
+                costKeys: [],
+                costNote: 'Included in the combined starting cost shown above.',
+                description:
+                  'Your comprehensive examination and treatment plan, usually 1–2 weeks after Smile Design and before treatment begins.',
+              },
+            ]
+          : []),
         {
           key: 'prepare',
-          label: e.assessment === 'design' ? 'Check-up & preparation' : 'Prepare for treatment',
-          startMin: t.start,
-          endMax: C.iso(C.addDays(C.parseDate(t.start), 14)),
+          label: 'Prepare for treatment',
+          ...t.preparation,
           costKeys: [],
           description:
-            (e.assessment === 'design' ? 'Complete your check-up and treatment plan. ' : '') +
             'Plan your appointments. Arrange finance if needed · allow 14 days for cooling-off.',
         },
         ...t.stages,
@@ -2374,7 +2456,9 @@
           (stage.sharedFee
             ? '<p class="tdbc-help text-size-tiny">Your total treatment fee, counted once in the estimate; preparation and fitting are included.</p>'
             : !lines.length
-              ? '<p class="tdbc-help text-size-tiny">Planning allowance · no additional treatment fee.</p>'
+              ? '<p class="tdbc-help text-size-tiny">' +
+                esc(stage.costNote || 'Planning allowance · no additional treatment fee.') +
+                '</p>'
               : '') +
           '</div>';
         html +=
