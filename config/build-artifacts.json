@@ -44,20 +44,20 @@
         "src/shared/module-bootstrap.js",
         "src/calculator/loader.js"
       ],
-      "sha256": "ea52a58ec0b1db4c2035d826d4841af440eafbf14661690348aea991b9403d6e",
-      "raw": 4285,
-      "gzip": 1682,
-      "brotli": 1436
+      "sha256": "7e1e7df09d4fa2d7f8b556bccd61034c9a091282f7158bddeadadb2f044bca9b",
+      "raw": 4493,
+      "gzip": 1744,
+      "brotli": 1498
     },
     "dist/tdb-calculator.js": {
       "sources": [
         "src/calculator/core.js",
         "src/calculator/ui.js"
       ],
-      "sha256": "a065e2bcd42524e068617fe61918f6c7370ca7229b85d27d748f9386abc508b0",
-      "raw": 76042,
-      "gzip": 25028,
-      "brotli": 21583
+      "sha256": "7ae6229e872fb054975e95c8b17c755686dff769803f44c82f538612281c1740",
+      "raw": 75803,
+      "gzip": 24853,
+      "brotli": 21459
     },
     "dist/tdb-consent-startup.min.js": {
       "sources": [
@@ -172,10 +172,10 @@
         "src/navbar/navbar-mobile-lock.js",
         "src/navbar/navbar-loader.js"
       ],
-      "sha256": "ff1140859d86c4c0576b6246e5e5e6ccbe2a8bbcd7827a2e3cbfd911667ed162",
-      "raw": 27746,
-      "gzip": 8770,
-      "brotli": 7841
+      "sha256": "119409faae80013a8a47a39fd64e13a6b97c7097ef1bb7b108a4099c14e84b36",
+      "raw": 28876,
+      "gzip": 9080,
+      "brotli": 8130
     },
     "dist/tdb-gallery.js": {
       "sources": [
@@ -550,10 +550,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "7e62dcd9d01942a87a18909b922f060e964b6809100dbf04e05fa140f7b6a10b",
-      "raw": 80454,
-      "gzip": 22211,
-      "brotli": 19345
+      "sha256": "237646133e775089f1659103e34f65c40ccdf9d37e145ba10611d5ec2471762d",
+      "raw": 80662,
+      "gzip": 22243,
+      "brotli": 19359
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -691,10 +691,16 @@
       "brotli": 3200
     },
     "dist/tdb-calculator.css": {
-      "sha256": "ec8864a84525cdad1f5f93aecfcdd0a0bc91faa07aee3c9184bbe266cdcc6020",
-      "raw": 34477,
-      "gzip": 7502,
-      "brotli": 6581
+      "sha256": "8222e920d217e3de1bbf2f61555da3fc05a147eaa8c17c2765d10c3643e8f447",
+      "raw": 35775,
+      "gzip": 7845,
+      "brotli": 6889
+    },
+    "dist/tdb-ui.css": {
+      "sha256": "251ae5b88efdc35491dae5f5c3270d8c01c64f62c1a97ad22a9b9ae0e148ed80",
+      "raw": 21572,
+      "gzip": 4133,
+      "brotli": 3662
     }
   }
 }

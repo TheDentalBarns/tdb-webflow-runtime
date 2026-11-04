@@ -212,12 +212,31 @@
     if (assessment !== 'none')
       add(
         'assessment',
-        required || assessment === 'signature' ? 'assessment' : 'design',
+        assessment === 'signature' ? 'assessment' : 'design',
         1,
         null,
         false,
-        required && assessment === 'design' ? 'Smile Design & check-up' : undefined,
+        assessment === 'design' ? 'Smile Design' : undefined,
       );
+    if (required && assessment === 'design') {
+      const checkup = add(
+        'checkup',
+        'assessment',
+        1,
+        null,
+        false,
+        'Premium New Patient Assessment',
+      );
+      const design = records[IDS.design];
+      if (checkup.min !== null && design?.valid && checkup.min >= design.min) {
+        checkup.min -= design.min;
+        checkup.max -= design.min;
+        checkup.record = { ...checkup.record, tiers: [] };
+      } else {
+        checkup.min = checkup.max = null;
+        if (!missing.includes(checkup.label)) missing.push(checkup.label);
+      }
+    }
     for (const o of selected) {
       const v = state.selected[o.key];
       add(
@@ -237,6 +256,7 @@
       add('trial', 'trial', state.selected.veneers.arches.length);
     const order = [
       'assessment',
+      'checkup',
       'hygiene',
       'extractions',
       'replacement',
@@ -294,7 +314,9 @@
   function finance(estimate, deposit, term) {
     if (!estimate.complete || !estimate.lines.length) return null;
     // The upfront payment includes the assessment once. At least £250 remains to finance.
-    const minimumDeposit = estimate.assessmentLine?.min || 0,
+    const minimumDeposit =
+        (estimate.assessmentLine?.min || 0) +
+        (estimate.lines.find((line) => line.key === 'checkup')?.min || 0),
       minimumBorrowing = 25000;
     if (!minimumDeposit || estimate.min - minimumDeposit < minimumBorrowing) return null;
     const limit = estimate.min - minimumBorrowing;
@@ -752,10 +774,8 @@
     );
     return p.year + '-' + p.month + '-' + p.day;
   };
-  const clock =
-    '<svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path fill="currentColor" d="M128 28a100 100 0 1 0 100 100A100.11 100.11 0 0 0 128 28m0 192a92 92 0 1 1 92-92a92.1 92.1 0 0 1-92 92m60-92a4 4 0 0 1-4 4h-56a4 4 0 0 1-4-4V72a4 4 0 0 1 8 0v52h52a4 4 0 0 1 4 4"></path></svg>';
-  const tag =
-    '<svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path fill="currentColor" d="M241.91 137.42L142.59 38.1a13.94 13.94 0 0 0-9.9-4.1H40a6 6 0 0 0-6 6v92.69a13.94 13.94 0 0 0 4.1 9.9l99.32 99.32a14 14 0 0 0 19.8 0l84.69-84.69a14 14 0 0 0 0-19.8m-8.49 11.31l-84.69 84.69a2 2 0 0 1-2.83 0L46.59 134.1a2 2 0 0 1-.59-1.41V46h86.69a2 2 0 0 1 1.41.59l99.32 99.31a2 2 0 0 1 0 2.83M94 84a10 10 0 1 1-10-10a10 10 0 0 1 10 10"></path></svg>';
+  const clock = '<span class="tdbc-shared-icon is-clock" aria-hidden="true"></span>';
+  const tag = '<span class="tdbc-shared-icon is-price" aria-hidden="true"></span>';
   let state = C.newState(),
     records = null,
     loadPromise = null,
@@ -766,6 +786,7 @@
     oldPadding = '',
     scrollWasStopped = false;
   const views = [];
+  const valueTickers = new WeakMap();
   let sequence = 0;
   const availability = { slot: null, checked: 0, pending: null, error: false, timer: 0 };
   const AVAILABILITY_TTL = 5 * 60 * 1000;
@@ -826,7 +847,11 @@
       (design
         ? 'Start with Smile Design around'
         : 'Start with your Signature Assessment ✦ ' + (later ? 'on' : 'as soon as')) +
-      '</span><div data-availability-details><div class="tdbc-availability-date-row"><strong class="heading-style-h4" data-output="assessment-date">' +
+      '</span><div data-availability-details><div class="tdbc-availability-date-row"><strong class="heading-style-h4" data-output="assessment-date" data-ticker-text="' +
+      esc(date) +
+      '" data-ticker-value="' +
+      (day ? Date.parse(day) : 0) +
+      '">' +
       esc(date) +
       '</strong><button type="button" data-action="availability" aria-label="Refresh live availability" ' +
       (availability.pending ? 'disabled aria-busy="true"' : '') +
@@ -994,7 +1019,9 @@
         f.checklist = [...priceCard.querySelectorAll('.pricing-checbox')]
           .filter(
             (row) =>
-              !row.closest('[hidden],.w-condition-invisible') && row.getAttribute('visible') !== '',
+              !row.matches('[hidden]') &&
+              !row.closest('.w-condition-invisible') &&
+              row.getAttribute('visible') !== '',
           )
           .map((row) => row.textContent.replace(/\s+/g, ' ').trim())
           .filter(Boolean);
@@ -1065,12 +1092,11 @@
   function priceText(e) {
     return !e.lines.length
       ? 'Choose your treatments'
-      : (!e.complete ? 'Priced items: ' : e.starting && e.min === e.max ? 'From ' : '') +
-          range(e.min, e.max);
+      : (!e.complete ? 'Priced items: from ' : 'From ') + range(e.min, e.max);
   }
   function recordPrice(r) {
     return r?.valid
-      ? (r.from ? 'From ' : '') + currency(r.min) + (r.unit ? ' / ' + r.unit : '')
+      ? 'From ' + currency(r.min) + (r.unit ? ' / ' + r.unit : '')
       : 'Price to confirm';
   }
   function name(o) {
@@ -1246,9 +1272,15 @@
               node.disabled = fresh.disabled;
             }
             if (
-              !['live', 'total', 'duration', 'duration-summary'].includes(
-                node.getAttribute('data-output'),
-              )
+              ![
+                'live',
+                'total',
+                'duration',
+                'duration-summary',
+                'appointment-price',
+                'assessment-date',
+                'target-display',
+              ].includes(node.getAttribute('data-output'))
             )
               children(node, fresh);
           }
@@ -1269,11 +1301,11 @@
   function releaseFocus(forget = false) {
     if (!focusedView) return;
     if (forget === true) focusedView.engaged = false;
+    window.TDBNavScroll?.release({ respectDirection: true });
     focusedView.root.classList.remove('is-focused');
     document.documentElement.classList.remove('tdbc-chrome-away');
     focusedView = null;
     ++focusEpoch;
-    window.TDBNavScroll?.release();
   }
   function focusView(view, restore = false, interacted = false) {
     if (view.suspended) return;
@@ -1407,7 +1439,9 @@
         },
         { passive: true },
       );
-      root.addEventListener('focusin', () => {
+      root.addEventListener('focusin', (event) => {
+        // Reset returns keyboard focus to the intro, not to an active form control.
+        if (event.target.closest('.tdbc-header')) return;
         this.suspended = false;
         focusView(this, false, true);
       });
@@ -1940,8 +1974,32 @@
     assessment(e) {
       const a = records[C.IDS.assessment],
         d = records[C.IDS.design],
-        design = e.assessment === 'design',
-        chosen = design ? d : a;
+        design = e.assessment === 'design';
+      const shared = d?.checklist?.length
+        ? d.checklist
+        : ['Smile Design with Dr Keely Thorne', '3D scanning & clinical photography'];
+      const common = new Set(shared.map((text) => text.trim().toLowerCase()));
+      const additional = (
+        a?.checklist?.length
+          ? a.checklist
+          : [
+              'Comprehensive examination & appropriate diagnostics',
+              'Itemised plan, costs & written report',
+            ]
+      ).filter((text) => !common.has(text.trim().toLowerCase()));
+      const checklist = (items, extra = false) =>
+        '<ul class="tdbc-included text-size-small' +
+        (extra ? ' tdbc-included-additional' + (design ? ' is-unavailable' : '') : '') +
+        '">' +
+        items
+          .map(
+            (text) =>
+              '<li><span class="tdbc-included-mark" aria-hidden="true"></span><span>' +
+              esc(text) +
+              '</span></li>',
+          )
+          .join('') +
+        '</ul>';
       return (
         '<section class="tdbc-step tdbc-assessment" data-node="assessment">' +
         step('03', 'Where to start?', 'Choose the first appointment that feels right for you.') +
@@ -1977,7 +2035,8 @@
               '</small><small class="text-size-tiny tdbc-appointment-duration">' +
               clock +
               esc((record?.appointmentMinutes || (route === 'design' ? 60 : 90)) + ' minutes') +
-              '</small><small class="text-size-tiny">' +
+              '</small><small class="text-size-tiny tdbc-appointment-price">' +
+              tag +
               esc(recordPrice(record)) +
               (route === 'design' && e.required ? ' first appointment' : '') +
               '</small></span></label>'
@@ -1985,45 +2044,20 @@
           })
           .join('') +
         '</div>' +
-        '<ul class="tdbc-included text-size-small">' +
-        (chosen?.checklist?.length
-          ? chosen.checklist
-          : design
-            ? [
-                'Explore your smile and goals with Dr Keely',
-                '3D scanning & clinical photography',
-                'A recommendation for your next clinical step',
-              ]
-            : [
-                'Smile Design',
-                'Comprehensive examination & appropriate diagnostics',
-                'Itemised plan, costs & written report',
-              ]
-        )
-          .map(
-            (t) =>
-              '<li><span class="tdbc-included-mark" aria-hidden="true"></span><span>' +
-              esc(t) +
-              '</span></li>',
-          )
-          .join('') +
-        '</ul><div class="tdbc-assessment-price"><strong class="heading-style-h4">' +
-        esc(recordPrice(design && !e.required ? d : a)) +
+        checklist(shared) +
+        (additional.length
+          ? '<p class="tdbc-included-label text-size-tiny">' +
+            'Additional examination benefits' +
+            '</p>' +
+            checklist(additional, true)
+          : '') +
+        '<div class="tdbc-assessment-price"><strong class="heading-style-h4" data-output="appointment-price">' +
+        esc(recordPrice(design ? d : a)) +
         '</strong><span class="text-size-tiny">' +
-        esc(
-          design && e.required
-            ? 'Smile Design and your later check-up · the same total starting cost'
-            : design
-              ? 'Standalone Smile Design appointment'
-              : a?.bookingDeposit !== null && a?.bookingDeposit !== undefined
-                ? currency(a.bookingDeposit) + ' booking deposit, included in the total'
-                : 'Booking details confirmed with your appointment',
-        ) +
+        'Your first appointment' +
         '</span></div>' +
         '<p class="tdbc-help text-size-tiny">' +
-        (design
-          ? 'Smile Design does not include a comprehensive dental examination or a formal clinical treatment plan. Allow around six weeks after the live Signature Assessment date for Smile Design, then 1–2 weeks for your check-up before treatment. The combined starting cost stays the same.'
-          : 'Smile Design and your examination are included together, counted once in your estimate.') +
+        'Signature Assessment includes Smile Design and your examination together. With Smile Design, your Premium New Patient Assessment follows 1–2 weeks later, from £225 separately. Both routes start from £450 before treatment.' +
         '</p>' +
         (!e.required ? availabilityBlock('', e.assessment) : '') +
         '</section>'
@@ -2054,9 +2088,11 @@
       return (
         '<section class="tdbc-summary" data-output="summary" id="' +
         this.id +
-        '-estimate" data-node="estimate" tabindex="-1" aria-label="Your estimated investment"><div class="tdbc-summary-total"><p class="text-style-tagline-restored">Your estimated investment</p><div class="tdbc-total heading-style-h3" data-output="total">' +
+        '-estimate" data-node="estimate" tabindex="-1" aria-label="Your estimated investment"><div class="tdbc-summary-total"><p class="text-style-tagline-restored">Your estimated investment</p><div class="tdbc-total heading-style-h3">' +
+        tag +
+        '<span data-output="total">' +
         esc(priceText(e)) +
-        '</div><p class="tdbc-summary-duration text-size-small">' +
+        '</span></div><p class="tdbc-summary-duration text-size-small">' +
         clock +
         '<span>Estimated duration: <span data-output="duration-summary">' +
         esc(C.duration(records, e, today())) +
@@ -2094,7 +2130,7 @@
                     ? 'Included'
                     : l.min === null
                       ? 'To confirm'
-                      : esc(range(l.min, l.max))) +
+                      : esc('From ' + range(l.min, l.max))) +
                   '</strong></li>',
               )
               .join('') +
@@ -2303,18 +2339,39 @@
       const durationValue = durationNumbers.length
         ? Number(durationNumbers[durationNumbers.length - 1]) * durationUnit
         : 0;
-      const roll = (key, text, value) =>
-        window.TDBTicker
-          ? window.TDBTicker.update(
-              this.root.querySelector('[data-output="' + key + '"]'),
-              text,
-              value,
-            )
-          : set(key, text);
+      const roll = (
+        key,
+        text,
+        value,
+        slot = this.root.querySelector('[data-output="' + key + '"]'),
+      ) => {
+        if (!slot) return;
+        if (!window.TDBNativeTicker || !window.TDBMotion) {
+          if (slot.textContent !== text) slot.textContent = text;
+          return;
+        }
+        let ticker = valueTickers.get(slot);
+        if (!ticker) {
+          ticker = {
+            value,
+            api: window.TDBNativeTicker.mount(slot, {
+              valueClass: 'tdbc-ticker-value',
+              incomingClass: 'tdbc-ticker-incoming',
+            }),
+          };
+          valueTickers.set(slot, ticker);
+          ticker.api.update(text, 1, false);
+          return;
+        }
+        ticker.api.update(text, value < ticker.value ? -1 : 1);
+        ticker.value = value;
+      };
       roll('live', priceText(e), e.min + e.max);
       roll('total', priceText(e), e.min + e.max);
       roll('duration', durationText, durationValue);
       roll('duration-summary', durationText, durationValue);
+      const appointment = records[C.IDS[e.assessment === 'design' ? 'design' : 'assessment']];
+      roll('appointment-price', recordPrice(appointment), appointment?.min || 0);
       set('deposit', currency(f?.deposit || 0));
       set('term', state.term + ' months');
       const facts = this.root.querySelector('[data-output="finance"]');
@@ -2355,7 +2412,11 @@
         slider.value = String(t.offset);
         slider.setAttribute('aria-valuetext', pending ? TIMELINE_LOADING : dateText(t.finishMin));
       }
-      set('target-display', pending ? TIMELINE_LOADING : dateText(t.finishMin));
+      roll(
+        'target-display',
+        pending ? TIMELINE_LOADING : dateText(t.finishMin),
+        Date.parse(t.finishMin) || 0,
+      );
       set(
         'completion-range',
         pending
@@ -2378,6 +2439,9 @@
         patch(tOut, this.timelineOutput(e));
         this.queueTimelineFocus();
       }
+      this.root.querySelectorAll('[data-output=assessment-date]').forEach((slot) => {
+        roll('assessment-date', slot.dataset.tickerText, Number(slot.dataset.tickerValue), slot);
+      });
     }
     timelineOutput(e) {
       const t = C.completionTimeline(records, e, planningStart(e), state.delay);
@@ -2395,18 +2459,17 @@
           costKeys: ['assessment'],
           description:
             e.assessment === 'design'
-              ? 'Explore your smile and goals. Your comprehensive check-up is a separate appointment at least one week later; both appointments share the same total starting cost.'
+              ? 'Explore your smile and goals. Your Premium New Patient Assessment is booked and priced separately, usually 1–2 weeks later.'
               : 'Smile Design, examination and your treatment plan.',
         },
         ...(t.checkup
           ? [
               {
                 key: 'checkup',
-                label: 'Comprehensive check-up',
+                label: 'Premium New Patient Assessment',
                 ...t.checkup,
                 appointment: true,
-                costKeys: [],
-                costNote: 'Included in the combined starting cost shown above.',
+                costKeys: ['checkup'],
                 description:
                   'Your comprehensive examination and treatment plan, usually 1–2 weeks after Smile Design and before treatment begins.',
               },
@@ -2447,9 +2510,7 @@
                   ? 'Included'
                   : l.min === null
                     ? 'To confirm'
-                    : esc(
-                        (l.from || l.record?.tiers?.length ? 'From ' : '') + range(l.min, l.max),
-                      )) +
+                    : tag + esc('From ' + range(l.min, l.max))) +
                 '</strong></div>',
             )
             .join('') +
@@ -2691,6 +2752,11 @@
       }
       if (!this.ready) return;
       if (action === 'reset') {
+        releaseFocus(true);
+        for (const view of views) {
+          view.engaged = false;
+          view.suspended = false;
+        }
         state = C.newState();
         this.context = null;
         this.breakdown = true;

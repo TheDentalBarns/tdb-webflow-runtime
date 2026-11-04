@@ -63,6 +63,7 @@
   window.__tdbCalculatorLoader = true;
   const scriptURL = new URL('tdb-calculator.js', document.currentScript.src).href;
   const styleURL = new URL('tdb-calculator.css', document.currentScript.src).href;
+  const moduleRoot = new URL('.', scriptURL);
   const selector = '[data-tdb-calc-open],a[href$="#treatment-calculator"]';
   let loading = null;
   function load() {
@@ -70,7 +71,19 @@
     if (loading) return loading;
     loading = window.TDBModuleBootstrap.ensure(scriptURL)
       .then(async (modules) => {
-        await modules.load(styleURL, { type: 'style', timeout: 15000 });
+        await Promise.all([
+          modules.load(styleURL, { type: 'style', timeout: 15000 }),
+          modules
+            .load(new URL('tdb-motion.js', moduleRoot), {
+              ready: () => Boolean(window.TDBMotion),
+            })
+            .then(() =>
+              modules.load(new URL('tdb-ticker.js', moduleRoot), {
+                ready: () => Boolean(window.TDBNativeTicker),
+              }),
+            )
+            .catch(() => {}),
+        ]);
         await modules.load(scriptURL, {
           ready: () => typeof window.TDBCalculator?.open === 'function',
           timeout: 15000,

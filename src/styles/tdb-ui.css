@@ -367,12 +367,14 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
 [data-tdb-chevron]{transform:rotate(0deg)}[aria-expanded="true"]>[data-tdb-chevron]{transform:rotate(var(--tdb-chevron-open-angle,180deg))}
 
 [data-tdb-compact-chevron]::after{transform:rotate(0deg)}[data-tdb-compact-chevron][aria-expanded="true"]::after{transform:rotate(var(--tdb-chevron-open-angle,180deg))}
+[data-tdb-chevron].is-open{transform:rotate(var(--tdb-chevron-open-angle,180deg))}
 
 /* External disclosure states; native Home classes own keyboard focus. */
 [data-tdb-disclosure-panel][hidden]{display:none !important}
 [data-tdb-disclosure-trigger][aria-expanded="true"] + [data-tdb-disclosure-panel]{display:var(--tdb-disclosure-display,block)}
 [data-tdb-disclosure-trigger]:not(:where(.tdb-disclosure-trigger,.tdb-home-awards-question)):focus-visible{outline:1px solid currentColor;outline-offset:4px}
 [data-tdb-disclosure-item]:has(>[data-tdb-disclosure-trigger][aria-expanded="true"]){padding-bottom:var(--tdb-disclosure-gap,20px)}
+[data-tdb-price-panel]{--tdb-disclosure-display:grid}
 
 /* External navbar active states; closed geometry lives in Designer. */
 [data-tdb-navbar-native] .navbar10_menu-button[data-tdb-expanded="true"] .menu-icon1_line-top{translate:0 8px;rotate:-45deg}
@@ -426,7 +428,7 @@ html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-contro
 .tdb-hero-toggle:focus-visible .tdb-hero-toggle-art{outline:2px solid currentColor;outline-offset:4px}
 @media(prefers-reduced-motion:reduce){html:not([data-tdb-motion='full']) .tdb-hero-toggle::before{animation:none!important;opacity:0}}
 
-/* Available before deferred map/card styles, including the first input tap.
+/* Available before deferred map styles, including the first input tap.
  * The site's fluid rem is below 16px on phones. Keep editable map controls
  * readable without asking Safari to magnify the page when they receive focus.
  */
@@ -435,20 +437,6 @@ html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-contro
     font-size: max(16px, 1rem);
     min-height: 48px;
   }
-}
-
-/* Repeated control taps are activations. Native panning and pinch zoom remain
- * available; the marquee separately owns horizontal dragging on its track.
- */
-.tdb-partner-logo,
-.tdb-partner-prev,
-.tdb-partner-next,
-.tdb-partner-close,
-.tdb-partner-tooltip .tdb-service-discover {
-  touch-action: manipulation;
-}
-.tdb-partner-tooltip .tdb-partner-swiper {
-  touch-action: pan-y pinch-zoom;
 }
 
 /* Home's distant carousel filters rest without changing layout or motion.

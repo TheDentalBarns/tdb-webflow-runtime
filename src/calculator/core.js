@@ -219,7 +219,14 @@
         assessment === 'design' ? 'Smile Design' : undefined,
       );
     if (required && assessment === 'design') {
-      const checkup = add('checkup', 'assessment', 1, null, false, 'Comprehensive check-up');
+      const checkup = add(
+        'checkup',
+        'assessment',
+        1,
+        null,
+        false,
+        'Premium New Patient Assessment',
+      );
       const design = records[IDS.design];
       if (checkup.min !== null && design?.valid && checkup.min >= design.min) {
         checkup.min -= design.min;

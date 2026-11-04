@@ -2,3 +2,4 @@
 [data-tdb-chevron]{transform:rotate(0deg)}[aria-expanded="true"]>[data-tdb-chevron]{transform:rotate(var(--tdb-chevron-open-angle,180deg))}
 
 [data-tdb-compact-chevron]::after{transform:rotate(0deg)}[data-tdb-compact-chevron][aria-expanded="true"]::after{transform:rotate(var(--tdb-chevron-open-angle,180deg))}
+[data-tdb-chevron].is-open{transform:rotate(var(--tdb-chevron-open-angle,180deg))}

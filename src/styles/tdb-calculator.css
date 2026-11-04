@@ -204,6 +204,15 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 .tdbc-start-choices{margin-bottom:1.5rem}
 .tdbc-start-choices .tdbc-category{align-items:flex-start}
 .tdbc-start-choices .form_checkbox-icon{margin-top:.25rem}
+.tdb-calc [data-output]:is([data-output=live],[data-output=total],[data-output=duration],[data-output=duration-summary],[data-output=appointment-price],[data-output=assessment-date],[data-output=target-display]){position:relative;display:inline-block;height:1.45em;line-height:1.45;overflow:hidden;vertical-align:bottom;white-space:nowrap}
+.tdbc-ticker-value{display:block;white-space:nowrap}
+.tdbc-ticker-incoming{position:absolute;inset:0;display:block;white-space:nowrap}
+.tdbc-assessment-price [data-output=appointment-price]{flex:0 0 12ch;width:12ch}
+.tdbc-shared-icon{display:inline-block;flex:0 0 1.25rem;width:1.25rem;height:1.25rem;background:var(--base-color-brand--orange-3,#d6cab4);mask:var(--tdbc-icon) center/contain no-repeat;-webkit-mask:var(--tdbc-icon) center/contain no-repeat}
+.tdbc-shared-icon.is-clock{--tdbc-icon:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c58089197784d522c2a2_tdb-review-clock-brand.svg")}
+.tdbc-shared-icon.is-price{--tdbc-icon:url("https://s3.amazonaws.com/webflow-prod-assets/677cf86cf9952f978d94d80c/6ac8e18e6a41113d6b28c57d_tdb-price-tag.svg")}
+.tdbc-appointment-price,.tdbc-stage-cost>strong,.tdbc-total{display:flex;align-items:center;gap:.5rem}
+.tdbc-total .tdbc-shared-icon{flex-basis:1.75rem;width:1.75rem;height:1.75rem}
 .tdbc-start-choices .tdbc-appointment-duration{display:flex;align-items:center;gap:.5rem}
 .tdbc-appointment-duration svg{width:1.25rem;height:1.25rem;flex:0 0 1.25rem}
 @media(max-width:767px){.tdb-calc[data-tdb-calculator=inline]>.tdbc-shell,.tdb-calc[data-tdb-calculator=inline]>.tdbc-price-guide{width:90%}.tdbc-start-choices{grid-template-columns:1fr}}
