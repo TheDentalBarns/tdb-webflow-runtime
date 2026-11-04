@@ -9,7 +9,7 @@ const entry = `<section id="treatment-calculator" data-tdb-calculator="inline" d
   <div class="tdbc-main" data-node="main"><section data-node="step-1" data-tdb-calc-static data-tdb-calc-native-entry>
   <h3>Authored opening question</h3><form>${['cosmetic', 'restorative'].map((key) => `<label class="tdbc-category"><input type="checkbox" data-category="${key}" data-control="category-${key}"><span class="form_checkbox-icon"></span><span>${key}</span></label>`).join('')}</form>
   <p data-tdb-calc-status role="status"></p></section></div></div>
-  <footer data-node="section-footer" data-tdb-calc-static>Authored footer</footer></section>
+  </section>
   <section id="headphones">Native page break</section><a id="jump" href="#treatment-calculator">Calculator</a><button id="drawer" data-tdb-calc-open>Open drawer</button>`;
 const feed = Object.entries(core.IDS)
   .map(
@@ -167,6 +167,7 @@ test('controller preserves native nodes, adopts changes during fetch, and resets
     assert.equal(h.root.querySelectorAll('input[data-category]:checked').length, 2);
     assert.equal(h.root.querySelectorAll('[data-node=step-2]').length, 1);
     assert.equal(h.root.querySelector('[data-node=price-guide-intro]'), null);
+    assert.equal(h.root.querySelector('[data-node=section-footer]'), null);
     assert.equal(h.root.nextElementSibling.id, 'headphones');
     h.root.querySelector('[data-action=reset]').click();
     assert.equal(h.root.querySelectorAll('input[data-category]:checked').length, 0);
@@ -264,3 +265,153 @@ for (const retainChrome of [false, true])
       }
     },
   );
+
+test('interaction-led embed acquires chrome only on intent and uses the usual release controls', async () => {
+  const h = setup();
+  try {
+    h.w.document.body.dataset.tdbChromeFocus = 'off';
+    h.root.dataset.tdbCalcFocus = 'interaction';
+    h.w.document.body.insertAdjacentHTML('beforeend', feed);
+    let release,
+      hold,
+      focusCalls = 0;
+    h.w.TDBNavScroll = {
+      focus(onRelease, isHeld) {
+        release = onRelease;
+        hold = isHeld;
+        focusCalls++;
+      },
+      release() {},
+    };
+    h.run('src/calculator/core.js');
+    h.run('src/calculator/ui.js');
+    await h.w.TDBCalculator.mount(h.root);
+    const observer = h.observers.find((o) => o.targets.includes(h.root));
+    const away = () => h.w.document.documentElement.classList.contains('tdbc-chrome-away');
+    observer.callback([{ isIntersecting: true }]);
+    assert.equal(away(), false);
+    assert.equal(focusCalls, 0);
+    const tap = (node) => node.dispatchEvent(new h.w.Event('pointerdown', { bubbles: true }));
+    tap(h.root);
+    assert(away());
+    assert.equal(hold(), false, 'normal scrolling can release an interaction-led form');
+    release();
+    observer.callback([{ isIntersecting: true }]);
+    assert.equal(
+      away(),
+      false,
+      'viewport observations cannot reacquire focus after scroll release',
+    );
+    h.root.querySelector('input').focus();
+    assert(away(), 'keyboard interaction has the same chrome behavior');
+    h.w.document.dispatchEvent(new h.w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    assert.equal(away(), false);
+    tap(h.root);
+    tap(h.w.document.getElementById('headphones'));
+    assert.equal(away(), false, 'outside interaction releases chrome');
+    tap(h.root);
+    h.w.dispatchEvent(new h.w.Event('pagehide'));
+    assert.equal(away(), false);
+  } finally {
+    h.dom.window.close();
+  }
+});
+
+test('first lazy choice acquires chrome only if the user is still on the visible form', async () => {
+  for (const stillOnForm of [true, false]) {
+    const h = setup();
+    try {
+      h.w.document.body.dataset.tdbChromeFocus = 'off';
+      h.root.dataset.tdbCalcFocus = 'interaction';
+      h.root.getBoundingClientRect = () => ({ height: 700, top: 100, bottom: 800 });
+      let finish;
+      h.w.fetch = () =>
+        new Promise((resolve) => {
+          finish = () => resolve({ ok: true, text: async () => feed });
+        });
+      h.run('src/calculator/core.js');
+      h.run('src/calculator/ui.js');
+      h.change('cosmetic').focus();
+      const pending = h.w.TDBCalculator.mount(h.root);
+      if (!stillOnForm) h.w.document.getElementById('drawer').focus();
+      finish();
+      await pending;
+      assert.equal(
+        h.w.document.documentElement.classList.contains('tdbc-chrome-away'),
+        stillOnForm,
+      );
+    } finally {
+      h.dom.window.close();
+    }
+  }
+});
+
+test('basic navigation releases interaction focus on scroll before enhancement is ready', async () => {
+  const h = setup();
+  try {
+    h.root.dataset.tdbCalcFocus = 'interaction';
+    h.w.document.body.insertAdjacentHTML('beforeend', feed);
+    h.run('src/calculator/core.js');
+    h.run('src/calculator/ui.js');
+    await h.w.TDBCalculator.mount(h.root);
+    let frame;
+    h.w.requestAnimationFrame = (fn) => {
+      frame = fn;
+      return 1;
+    };
+    h.w.cancelAnimationFrame = () => {
+      frame = null;
+    };
+    h.w.scrollY = 1000;
+    h.root.dispatchEvent(new h.w.Event('pointerdown', { bubbles: true }));
+    h.w.scrollY = 850;
+    h.w.dispatchEvent(new h.w.Event('scroll'));
+    frame();
+    assert.equal(h.w.document.documentElement.classList.contains('tdbc-chrome-away'), false);
+  } finally {
+    h.dom.window.close();
+  }
+});
+
+test('calculator panels reuse disclosure motion and shared chevrons without replaying on quantity updates', async () => {
+  const h = setup();
+  try {
+    h.w.document.body.insertAdjacentHTML('beforeend', feed);
+    h.run('src/navbar/native-foundation.js');
+    h.run('src/calculator/core.js');
+    h.run('src/calculator/ui.js');
+    h.change('cosmetic');
+    await h.w.TDBCalculator.mount(h.root);
+    h.w.TDBDisclosure.refresh();
+    const trigger = h.root.querySelector('[data-action=option][data-key=bonding]');
+    const panel = h.root.querySelector('[data-panel=option-bonding]');
+    const inner = panel.querySelector('[data-tdb-disclosure-panel]');
+    const reveal = inner.querySelector('[data-tdb-disclosure-reveal]');
+    assert(trigger.querySelector('[data-tdb-chevron]'));
+    assert(panel.hasAttribute('data-tdb-disclosure-item'));
+    assert(inner.hidden);
+    trigger.click();
+    assert.equal(trigger.getAttribute('aria-expanded'), 'true');
+    assert.equal(inner.hidden, false);
+    assert(panel.hasAttribute('data-tdb-disclosure-interacted'));
+    h.root.querySelector('[data-action=plus][data-key=bonding]').click();
+    assert.equal(panel.querySelector('[data-tdb-disclosure-reveal]'), reveal);
+    assert(panel.hasAttribute('data-tdb-disclosure-interacted'));
+    // The runtime can clear startup markers. An ordinary value render must not
+    // put one back and unexpectedly restart a reveal already in view.
+    panel.removeAttribute('data-tdb-disclosure-interacted');
+    h.root.querySelector('[data-action=plus][data-key=bonding]').click();
+    assert.equal(panel.hasAttribute('data-tdb-disclosure-interacted'), false);
+    for (let i = 0; i < 10; i++) trigger.click();
+    assert.equal(trigger.getAttribute('aria-expanded'), 'true');
+    assert.equal(inner.hidden, false);
+    trigger.click();
+    assert(inner.hidden);
+    assert.equal(panel.getAttribute('aria-hidden'), 'true');
+    assert.equal(h.root.querySelector('[data-w-id]'), null);
+    assert.equal(h.root.querySelector('[data-node=section-footer]'), null);
+    await tick();
+  } finally {
+    h.dom.window.close();
+  }
+});

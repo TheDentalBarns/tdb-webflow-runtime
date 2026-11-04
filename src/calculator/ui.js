@@ -364,7 +364,7 @@
   const arrow =
     '<svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path fill="currentColor" d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10z"/></svg>';
   const chevron =
-    '<span class="tdbc-chevron" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path fill="currentColor" d="M16.5303 20.8839C16.2374 21.1768 15.7626 21.1768 15.4697 20.8839L7.82318 13.2374C7.53029 12.9445 7.53029 12.4697 7.82318 12.1768L8.17674 11.8232C8.46963 11.5303 8.9445 11.5303 9.2374 11.8232L16 18.5858L22.7626 11.8232C23.0555 11.5303 23.5303 11.5303 23.8232 11.8232L24.1768 12.1768C24.4697 12.4697 24.4697 12.9445 24.1768 13.2374L16.5303 20.8839Z"/></svg></span>';
+    '<span class="tdbc-chevron" data-tdb-chevron aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path fill="currentColor" d="M16.5303 20.8839C16.2374 21.1768 15.7626 21.1768 15.4697 20.8839L7.82318 13.2374C7.53029 12.9445 7.53029 12.4697 7.82318 12.1768L8.17674 11.8232C8.46963 11.5303 8.9445 11.5303 9.2374 11.8232L16 18.5858L22.7626 11.8232C23.0555 11.5303 23.5303 11.5303 23.8232 11.8232L24.1768 12.1768C24.4697 12.4697 24.4697 12.9445 24.1768 13.2374L16.5303 20.8839Z"/></svg></span>';
   // Smile Gallery filter control: light strokes, rotating mark and close cross.
   const infoIcon =
     '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><g class="tdbc-info-mark"><path d="M12 10.5V17M10.5 10.5H12M10.5 17h3"/><circle cx="12" cy="7" r=".6" fill="currentColor" stroke="none"/></g><path class="tdbc-info-close-mark" d="M6 6l12 12M18 6 6 18"/></svg>';
@@ -426,7 +426,7 @@
   const expand = (key, on, html) =>
     '<div class="tdbc-expand ' +
     (on ? 'is-expanded' : '') +
-    '" data-node="expand-' +
+    '" data-tdb-disclosure-item data-node="expand-' +
     key +
     '" data-panel="' +
     key +
@@ -434,9 +434,21 @@
     !on +
     '" ' +
     (on ? '' : 'inert') +
-    '><div class="tdbc-expand-inner"><div class="tdbc-expand-body">' +
+    '><div class="tdbc-expand-inner" data-tdb-disclosure-panel' +
+    (on ? '' : ' hidden') +
+    '><div class="tdbc-expand-body" data-tdb-disclosure-reveal>' +
     html +
     '</div></div></div>';
+  function setExpanded(panel, open) {
+    if (!panel) return;
+    if (panel.classList.contains('is-expanded') !== open)
+      panel.setAttribute('data-tdb-disclosure-interacted', '');
+    panel.classList.remove('is-entering');
+    panel.classList.toggle('is-expanded', open);
+    panel.setAttribute('aria-hidden', String(!open));
+    panel.inert = !open;
+    panel.querySelector(':scope > [data-tdb-disclosure-panel]').hidden = !open;
+  }
   // Keep real controls and expansion panels mounted while their values change.
   // This preserves keyboard focus, slider drags and the site's open/close motion.
   function patch(parent, html) {
@@ -468,6 +480,7 @@
               ...node.querySelectorAll('.tdbc-expand.is-expanded'),
             ];
             panels.forEach((el) => {
+              el.setAttribute('data-tdb-disclosure-interacted', '');
               el.classList.add('is-entering');
               requestAnimationFrame(() =>
                 requestAnimationFrame(() => el.classList.remove('is-entering')),
@@ -479,11 +492,20 @@
           if (node.nodeType === 3) {
             if (node.textContent !== fresh.textContent) node.textContent = fresh.textContent;
           } else if (node.nodeType === 1 && !node.hasAttribute('data-tdb-calc-static')) {
+            const disclosure = node.matches('.tdbc-expand'),
+              wasOpen = disclosure && node.classList.contains('is-expanded');
             for (const a of [...node.attributes])
-              if (!fresh.hasAttribute(a.name) && !['data-dd-ready', 'style'].includes(a.name))
+              if (
+                !fresh.hasAttribute(a.name) &&
+                !['data-dd-ready', 'style', 'data-tdb-disclosure-interacted'].includes(a.name)
+              )
                 node.removeAttribute(a.name);
             for (const a of fresh.attributes)
               if (node.getAttribute(a.name) !== a.value) node.setAttribute(a.name, a.value);
+            // Shared FAQ motion runs only when the panel changes state, so a
+            // quantity update cannot restart its reveal or move keyboard focus.
+            if (disclosure && wasOpen !== node.classList.contains('is-expanded'))
+              node.setAttribute('data-tdb-disclosure-interacted', '');
             if (node instanceof HTMLInputElement) {
               if (node.value !== fresh.value) node.value = fresh.value;
               node.checked = fresh.checked;
@@ -507,21 +529,31 @@
       focused.focus({ preventScroll: true });
   }
   let focusedView = null,
-    focusEpoch = 0;
+    focusEpoch = 0,
+    stopFocusScroll = null;
+  const interactionFocus = (view) =>
+    view?.mode === 'inline' && view.root.getAttribute('data-tdb-calc-focus') === 'interaction';
   function releaseFocus() {
     if (!focusedView) return;
+    stopFocusScroll?.();
+    stopFocusScroll = null;
     focusedView.root.classList.remove('is-focused');
     document.documentElement.classList.remove('tdbc-chrome-away');
     focusedView = null;
     ++focusEpoch;
     window.TDBNavScroll?.release();
   }
-  function focusView(view, restore = false) {
+  function focusView(view, restore = false, interacted = false) {
     if (view.suspended) return;
-    // Native page configuration can retain the navbar while browsing an embed.
-    // Leave modal focus intact; the inline estimate stays available in the page.
-    if (view.mode === 'inline' && document.body?.dataset.tdbChromeFocus === 'off') return;
-    if (focusedView === view && !restore) return;
+    // A form can opt into focus on intent while other page sections retain chrome.
+    // Merely entering its viewport must never acquire or reacquire that focus.
+    const interactive = interactionFocus(view);
+    if (interactive && !interacted && focusedView !== view) return;
+    if (!interactive && view.mode === 'inline' && document.body?.dataset.tdbChromeFocus === 'off')
+      return;
+    if (focusedView === view && !restore && !interacted) return;
+    stopFocusScroll?.();
+    stopFocusScroll = null;
     const epoch = ++focusEpoch;
     if (focusedView) focusedView.root.classList.remove('is-focused');
     focusedView = view;
@@ -548,10 +580,43 @@
     }
     window.TDBNavScroll?.focus(
       () => {
-        if (epoch === focusEpoch && !view.visible && view.mode !== 'drawer') releaseFocus();
+        if (epoch === focusEpoch && view.mode !== 'drawer' && (interactive || !view.visible))
+          releaseFocus();
       },
-      () => view.visible || view.mode === 'drawer',
+      () => view.mode === 'drawer' || (interactive ? Boolean(view.dateDrag) : view.visible),
     );
+    // Basic navigation can still be waiting for consent/enhancement. Retain the
+    // same scroll-release distances without loading a second controller.
+    if (interactive && !window.TDBNavScroll) {
+      let y = Math.max(window.scrollY || 0, 0),
+        up = 0,
+        down = 0,
+        frame = 0;
+      const check = () => {
+        frame = 0;
+        if (focusedView !== view) return;
+        const next = Math.max(window.scrollY || 0, 0),
+          delta = next - y;
+        y = next;
+        if (view.dateDrag) up = down = 0;
+        else if (delta > 0) {
+          up = 0;
+          down += delta;
+        } else if (delta < 0) {
+          down = 0;
+          up -= delta;
+        }
+        if (up > 120 || down > 140 || (next <= 40 && delta < 0)) releaseFocus();
+      };
+      const queue = () => {
+        if (!frame) frame = requestAnimationFrame(check);
+      };
+      window.addEventListener('scroll', queue, { passive: true });
+      stopFocusScroll = () => {
+        window.removeEventListener('scroll', queue);
+        if (frame) cancelAnimationFrame(frame);
+      };
+    }
   }
   function syncViewportFocus() {
     const active =
@@ -635,7 +700,7 @@
         'pointerdown',
         (event) => {
           this.suspended = false;
-          focusView(this);
+          focusView(this, false, true);
           if (event.target.dataset.range === 'completion')
             this.dateDrag = { pointer: event.pointerId, x: event.clientX, slider: event.target };
         },
@@ -643,7 +708,7 @@
       );
       root.addEventListener('focusin', () => {
         this.suspended = false;
-        focusView(this);
+        focusView(this, false, true);
       });
       root.addEventListener('keydown', (event) => {
         if (
@@ -692,11 +757,7 @@
       this.timingWarning = open;
       this.root.querySelector('[data-action=sooner]')?.setAttribute('aria-expanded', String(open));
       const panel = this.root.querySelector('[data-panel=deadline]');
-      if (panel) {
-        panel.classList.toggle('is-expanded', open);
-        panel.setAttribute('aria-hidden', String(!open));
-        panel.inert = !open;
-      }
+      setExpanded(panel, open);
       this.queueTimelineFocus();
     }
     showTimingWarning() {
@@ -771,6 +832,7 @@
       syncViewportFocus();
     }
     async init() {
+      const firstNativeChoice = this.adoptNativeChoice;
       getAvailability();
       this.root.setAttribute('aria-busy', 'true');
       try {
@@ -790,6 +852,17 @@
         contextual(this, this.config);
         this.render();
         renderAll(this);
+        // Adopt the first native choice after lazy loading, but never a late
+        // response after the user has already moved elsewhere on the page.
+        if (
+          firstNativeChoice &&
+          interactionFocus(this) &&
+          this.root.contains(document.activeElement)
+        ) {
+          const box = this.root.getBoundingClientRect();
+          if (box.height > 0 && box.top < innerHeight && box.bottom > 0)
+            focusView(this, false, true);
+        }
       } catch (_) {
         if (this.nativeEntry) {
           const status = this.nativeEntry.querySelector('[data-tdb-calc-status]');
@@ -928,7 +1001,7 @@
             '</div>') +
           '<div class="tdbc-main" data-node="main">' +
           form +
-          '</div></div><footer class="tdbc-section-footer" data-node="section-footer"><div class="container-large"><div class="max-width-xsmall"><p class="text-style-tagline-restored tdbc-dd-fade">We believe everyone deserves to feel good about their smile</p></div></div></footer>' +
+          '</div></div>' +
           (this.mode === 'inline' && this.root.getAttribute('data-tdb-calc-price-guide') !== 'false'
             ? '<section class="tdbc-price-guide container-large padding-section-large" data-node="price-guide-intro"><header class="tdbc-header"><p class="text-style-tagline-restored tdbc-dd-fade">CLEAR PRICES, CONSIDERED CARE</p><h2 class="heading-style-h3">Your full treatment price guide</h2><p class="text-size-small">Explore our fees treatment by treatment, from everyday care to a change in your smile.</p></header></section>'
             : ''),
@@ -1754,7 +1827,7 @@
           action === 'estimate' ? '.tdbc-summary' : '[data-node="timeline"]',
         );
         if (target) {
-          focusView(this);
+          focusView(this, false, true);
           target.setAttribute('tabindex', '-1');
           target.focus({ preventScroll: true });
           const offset = parseFloat(getComputedStyle(document.documentElement).fontSize) * 7;
@@ -1787,11 +1860,7 @@
         this.bridalOpen = !this.bridalOpen;
         el.setAttribute('aria-expanded', String(this.bridalOpen));
         const panel = this.root.querySelector('[data-panel=bridal]');
-        if (panel) {
-          panel.classList.toggle('is-expanded', this.bridalOpen);
-          panel.setAttribute('aria-hidden', String(!this.bridalOpen));
-          panel.inert = !this.bridalOpen;
-        }
+        setExpanded(panel, this.bridalOpen);
         this.queueTimelineFocus();
         return;
       }
@@ -1861,11 +1930,7 @@
         }
         el.setAttribute('aria-expanded', String(open));
         const panel = this.root.querySelector('[data-panel="option-' + key + '"]');
-        if (panel) {
-          panel.classList.toggle('is-expanded', open);
-          panel.setAttribute('aria-hidden', String(!open));
-          panel.inert = !open;
-        }
+        setExpanded(panel, open);
         this.queueTimelineFocus();
         return;
       } else if (action === 'breakdown') this.breakdown = !this.breakdown;
@@ -2155,7 +2220,7 @@
       // Other page controllers can release shared focus on an outside tap.
       // Reassert the visible calculator's hold rather than treating dismissal as exit.
       if (owner && (owner.visible || (owner.mode === 'drawer' && dialog?.open)))
-        focusView(owner, true);
+        focusView(owner, true, true);
       else syncViewportFocus();
     };
     window.addEventListener(
@@ -2166,7 +2231,9 @@
           dismissTooltipTap(event);
           return;
         }
-        syncViewportFocus();
+        if (interactionFocus(focusedView) && !focusedView.root.contains(event.target))
+          releaseFocus();
+        else syncViewportFocus();
       },
       { capture: true, passive: false },
     );
@@ -2212,10 +2279,16 @@
           for (const v of views) v.dismissTimingWarning();
           event.preventDefault();
           event.stopImmediatePropagation();
+        } else if (event.key === 'Escape' && interactionFocus(focusedView)) {
+          releaseFocus();
         }
       },
       true,
     );
+    document.addEventListener('focusin', (event) => {
+      if (interactionFocus(focusedView) && !focusedView.root.contains(event.target)) releaseFocus();
+    });
+    window.addEventListener('pagehide', releaseFocus);
     document.addEventListener('click', (event) => {
       const a = event.target.closest(SELECTOR);
       if (

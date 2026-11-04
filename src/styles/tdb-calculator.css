@@ -37,7 +37,7 @@
 .tdb-calc .form_checkbox-icon{position:relative;flex-shrink:0;margin:0;float:none}
 .tdb-calc .form_checkbox:has(input:focus-visible){outline:2px solid currentColor;outline-offset:4px}
 .tdb-calc .tdbc-category{position:relative;display:flex;align-items:center;gap:.875rem;margin:0;padding:1.5rem;border:1px solid var(--calc-ink);min-height:6rem;background:var(--calc-ink);color:var(--calc-cream);cursor:pointer;transition:border-color calc(200ms * var(--tdb-motion-pace,1))}
-.tdb-calc .tdbc-category.is-selected{border-color:var(--calc-dark-cream);box-shadow:inset 0 0 0 1px var(--calc-dark-cream)}.tdbc-category small,.tdbc-option-label small{display:block;color:var(--calc-muted);margin-top:.375rem}
+.tdb-calc .tdbc-category.is-selected{border-color:var(--calc-ink);box-shadow:none}.tdbc-category small,.tdbc-option-label small{display:block;color:var(--calc-muted);margin-top:.375rem}
 .tdb-calc .tdbc-category small,.tdbc-category-detail{color:rgba(249,243,231,.7)}
 .tdbc-category .form_checkbox-icon{border-color:currentColor;background-color:transparent}
 .tdbc-category:has(input:checked) .form_checkbox-icon{background-color:#f9f3e7;box-shadow:inset 0 0 0 3px #000;background-image:none}
@@ -47,8 +47,10 @@
 .tdbc-treatment-group{margin:2rem 0 0;min-width:0}.tdbc-treatment-group>[role=heading]{margin:0 0 2rem}
 .tdbc-option{padding:1rem 0;border-bottom:1px solid var(--calc-line)}.tdbc-option:last-child{border-bottom:0}
 .tdbc-option-row{position:relative;display:flex;align-items:center;gap:.5rem}.tdb-calc .tdbc-option-label{flex:1;min-height:3rem}.tdbc-option-label>span:not(.form_checkbox-icon):not(.tdbc-chevron){flex:1;min-width:0}
-.tdbc-chevron{display:block;flex:0 0 1.5rem;width:1.5rem;height:1.5rem;transform:rotate(0);transition:transform calc(400ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease)}
-.tdbc-chevron svg{width:100%;height:100%;display:block}.tdbc-option-label:has(input[aria-expanded=true]) .tdbc-chevron,.tdbc-finance-toggle:has(input[aria-expanded=true]) .tdbc-chevron,[aria-expanded=true]>.tdbc-chevron{transform:rotate(180deg)}
+/* Shared data-tdb-chevron feedback owns rotation and timing; this is geometry
+   and the same accordion-family scope used by the disclosure panels. */
+.tdbc-chevron{display:block;flex:0 0 1.5rem;width:1.5rem;height:1.5rem;--tdb-motion-pace:var(--tdb-accordion-pace,1);--tdb-motion-ease-control:var(--tdb-accordion-ease-control,ease)}
+.tdbc-chevron svg{width:100%;height:100%;display:block}.tdbc-finance-toggle:has(input[aria-expanded=true])>[data-tdb-chevron]{transform:rotate(var(--tdb-chevron-open-angle,180deg))}
 /* Gallery filter reveal: clipping, a small move, 20px glass and the existing cream. */
 .tdbc-info{flex:0 0 2.75rem}.tdbc-info-button{position:relative;display:grid;place-items:center;width:2.75rem;height:2.75rem;min-width:44px;min-height:44px;padding:0;border:1px solid color-mix(in srgb,var(--base-color-brand--orange-3) 85%,transparent);border-radius:50%;background:transparent;color:var(--base-color-brand--orange-3);transition:background-color calc(300ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease),color calc(300ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease),border-color calc(300ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease);cursor:pointer;touch-action:manipulation}.tdbc-info-button svg{display:block;width:1.35rem;height:1.35rem;pointer-events:none}
 .tdbc-info-button[aria-expanded=true]{background:color-mix(in srgb,var(--base-color-brand--orange-2) 84%,transparent);color:var(--base-color-brand--black);-webkit-backdrop-filter:saturate(150%) blur(20px);backdrop-filter:saturate(150%) blur(20px)}
@@ -57,12 +59,13 @@
 
 .tdbc-info-panel{position:absolute;right:0;top:calc(100% + .375rem);width:min(23.75rem,100%);z-index:20;padding:1.25rem;border:1px solid var(--calc-line);background:color-mix(in srgb,var(--calc-dark-cream) 84%,transparent);color:var(--calc-ink);-webkit-backdrop-filter:saturate(150%) blur(20px);backdrop-filter:saturate(150%) blur(20px);opacity:0;visibility:hidden;pointer-events:none;clip-path:inset(0 0 100%);transform:translate3d(0,-.5rem,0);transition:clip-path calc(420ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,cubic-bezier(.4,0,.2,1)),transform calc(420ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,cubic-bezier(.4,0,.2,1)),opacity calc(250ms * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,ease),visibility 0s calc(420ms * var(--tdb-fade-pace,1));user-select:text!important}
 .tdbc-info.is-open .tdbc-info-panel{opacity:1;visibility:visible;pointer-events:auto;clip-path:inset(0);transform:translate3d(0,0,0);transition-delay:0s}.tdbc-option:has(.tdbc-info.is-open){position:relative;z-index:25}.tdbc-quantity-row{position:relative;display:flex;align-items:center;gap:.5rem;margin:.75rem 0 1rem}.tdbc-quantity-row .tdbc-info-panel{left:0;right:auto;width:min(23.75rem,100%)}
-/* Native FAQ/price accordions open the space immediately; only the contents
-   fade for 300ms and move -20px to rest for 400ms (outQuart). Closing is instant. */
-.tdbc-expand{display:grid;grid-template-rows:0fr;visibility:hidden}
-.tdbc-expand-inner{min-height:0;overflow:hidden}.tdbc-expand-body{opacity:0;transform:translateY(-20px);transition:none}
-.tdbc-expand.is-expanded{grid-template-rows:1fr;visibility:visible}.tdbc-expand.is-expanded>.tdbc-expand-inner{overflow:visible}.tdbc-expand.is-expanded>.tdbc-expand-inner>.tdbc-expand-body{opacity:1;transform:none;transition:opacity calc(300ms * var(--tdb-fade-pace,1)) linear,transform calc(400ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,cubic-bezier(.165,.84,.44,1))}
-.tdbc-expand.is-entering>.tdbc-expand-inner>.tdbc-expand-body{opacity:0;transform:translateY(-20px)}
+/* Existing disclosure attributes reuse Home awards / Location FAQ motion:
+   a 20px opening gap, 300ms fade and 400ms lift on the accordion family clock.
+   The calculator retains control state; shared CSS owns the visual feedback. */
+.tdbc-expand{display:block;padding-bottom:0}
+.tdbc-expand-inner{min-height:0}
+.tdbc-expand.is-expanded{padding-bottom:var(--tdb-disclosure-gap,20px)}
+.tdbc-expand.is-entering{padding-bottom:0}
 .tdbc-option-controls{padding:1.25rem 0 .25rem 2rem;background:transparent}.tdbc-option-controls>label,.tdbc-finance-controls>label,.tdbc-date-controls>label,.tdbc-step>label{display:block;margin:0 0 .75rem;font-weight:400}
 .tdbc-quantity{display:flex;width:10rem;min-height:2.75rem;margin:0;border:1px solid var(--calc-line)}.tdbc-quantity button{flex:0 0 2.75rem;border:0;background:transparent;color:inherit;cursor:pointer;font:inherit}
 .tdbc-quantity input{width:4.5rem;min-width:0;border:0!important;background:transparent!important;text-align:center;padding:0!important;margin:0!important;appearance:textfield}.tdbc-quantity input::-webkit-inner-spin-button{appearance:none}
@@ -107,10 +110,10 @@
 .tdb-calc :is(button,a,input,summary):focus-visible,.tdbc-dialog button:focus-visible{outline:2px solid currentColor;outline-offset:4px}.tdb-calc button:disabled{opacity:.4;cursor:default}
 /* Existing shared navbar controller owns focus and scroll release. Include its
    travel rules so calculator-first visits do not have to load slider scripts. */
-html.tdbc-chrome-away .navbar10_component{transform:translateY(calc(-1 * var(--tdb-slider-nav-away,100%)))!important;pointer-events:none!important;transition:transform calc(420ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))!important}
-html.tdbc-chrome-away .navbar-bg_layer{transform:translateY(-100%)!important;pointer-events:none!important;transition:transform calc(420ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))!important}
-html.tdbc-chrome-away #tdb-vip-drawer{transform:translate3d(0,100%,0)!important;pointer-events:none!important;transition:transform calc(420ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))!important}
-html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb,html.tdbc-chrome-away .eapps-countdown-timer-position-bar{transform:translate3d(0,-100%,0)!important;visibility:hidden!important;pointer-events:none!important;transition:transform calc(420ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,cubic-bezier(.4,0,.2,1)),visibility 0s calc(420ms * var(--tdb-fade-pace,1))!important}
+html.tdbc-chrome-away .navbar10_component{transform:translateY(calc(-1 * var(--tdb-slider-nav-away,100%)))!important;pointer-events:none!important;transition:transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1))!important}
+html.tdbc-chrome-away .navbar-bg_layer{transform:translateY(-100%)!important;pointer-events:none!important;transition:transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1))!important}
+html.tdbc-chrome-away #tdb-vip-drawer{transform:translate3d(0,100%,0)!important;pointer-events:none!important;transition:transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1))!important}
+html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-app-4fa0f002-95b0-40d5-b89d-0f5e97471efb,html.tdbc-chrome-away .eapps-countdown-timer-position-bar{transform:translate3d(0,-100%,0)!important;visibility:hidden!important;pointer-events:none!important;transition:transform var(--tdb-peek-duration,420ms) var(--tdb-peek-ease,cubic-bezier(.4,0,.2,1)),visibility 0s var(--tdb-peek-duration,420ms)!important}
 @media(max-width:767px){.tdbc-header{margin-bottom:2rem}.tdbc-step{padding:2.5rem 0}.tdbc-categories{gap:.75rem}.tdb-calc .tdbc-category{padding:1rem .75rem;align-items:flex-start}.tdbc-category .form_checkbox-icon{margin-top:.25rem}.tdbc-step-heading{gap:.75rem}.tdbc-number{flex-basis:2.25rem;width:2.25rem;height:2.25rem}.tdbc-summary-total,.tdbc-target-card,.tdbc-date-result{padding:1.5rem}.tdbc-summary-details{padding:1rem 1.5rem 1.5rem}.tdbc-option-controls{padding-left:0}.tdbc-live-button{padding:.75rem 5%;gap:.75rem}.tdbc-live-copy{gap:.375rem}.tdbc-footnote .tdbc-actions{flex-direction:column;align-items:stretch}.tdbc-footnote .button{margin:0}.tdbc-dialog,.tdbc-dialog .tdbc-live{width:100%}.tdbc-dialog{height:100dvh}.tdbc-drawer-bar{padding:.75rem 3%;padding-top:max(.75rem,env(safe-area-inset-top))}.tdbc-dialog .tdbc-shell{padding-top:2rem}.tdbc-assessment-price{gap:1rem}.tdbc-finance-facts>div{flex-wrap:wrap}.tdbc-finance-facts dd{margin-left:auto}.tdbc-section-footer{margin-inline:-5.55556%;padding:2rem 5.55556%}}
 @media(max-width:380px){.tdbc-categories:not(form){grid-template-columns:1fr}.tdb-calc .tdbc-category{min-height:4.5rem}.tdbc-live-button{gap:.5rem}.tdbc-live-value{gap:.375rem}.tdbc-live-close{flex-basis:2.75rem;margin-right:0}.tdbc-total{font-size:1.75rem}}
 
@@ -132,10 +135,10 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 /* Existing Webflow action list a-52, “DD - Text Effect”: opacity 0/.5/.5/.1.
    A native view timeline makes the same effect work for CMS-generated headings. */
 
-/* Match the native opening step: dark panel, cream strip and consistent contrast. */
-.tdbc-step-header{position:relative;padding:.75rem 1rem .75rem 3.5rem;margin-bottom:1rem;border:1px solid var(--base-color-brand--orange-3);background:var(--base-color-neutral--neutral-darker);color:var(--base-color-brand--orange-1)}
+/* Match the native opening step with one uninterrupted dark panel. */
+.tdbc-step-header{position:relative;padding:.75rem 1rem .75rem 3.5rem;margin-bottom:1rem;border:1px solid var(--base-color-neutral--neutral-darker);background:var(--base-color-neutral--neutral-darker);color:var(--base-color-brand--orange-1)}
 .tdbc-step-header .tdbc-step-heading{display:block;min-height:2lh;margin:0 0 1rem;color:inherit}
-.tdbc-step-header .tdbc-number{position:absolute;inset:0 auto 0 0;height:auto;background:var(--base-color-brand--orange-1);color:var(--base-color-neutral--neutral-darker)}
+.tdbc-step-header .tdbc-number{position:absolute;inset:0 auto 0 0;height:auto;background:transparent;color:inherit}
 .tdb-calc .tdbc-step-header .tdbc-step-intro{min-height:2lh;margin:0;color:color-mix(in srgb,var(--base-color-brand--orange-1) 70%,transparent)}
 @media(max-width:767px){.tdbc-step-header{padding-left:3rem}}
 
