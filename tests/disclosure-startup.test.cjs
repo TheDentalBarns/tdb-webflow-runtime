@@ -5,13 +5,13 @@ const path = require('node:path');
 const { JSDOM } = require('jsdom');
 const source = fs.readFileSync(path.join(__dirname, '../src/navbar/native-foundation.js'), 'utf8');
 
-test('same-page category anchors open their target before scrolling without claiming chrome focus', () => {
+test('same-page category anchors open their target and hold chrome before native scrolling', () => {
   const dom = new JSDOM('<a href="#General-Dentistry">General</a><section id="General-Dentistry" data-tdb-price-section><button data-tdb-disclosure-trigger aria-expanded="false">General Dentistry</button><div data-tdb-disclosure-panel>Prices</div></section>', {runScripts:'outside-only',url:'https://dentalbarns.webflow.io/dental-cost-lichfield'});
   const w=dom.window, trigger=w.document.querySelector('button');
   w.eval(source);w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
   w.document.querySelector('a').addEventListener('click', e=>{assert.equal(trigger.getAttribute('aria-expanded'),'true');e.preventDefault();});
   w.document.querySelector('a').click();
-  assert(!w.document.documentElement.classList.contains('tdb-slider-focus'));
+  assert(w.document.documentElement.classList.contains('tdb-slider-focus'));
   w.TDBDisclosure.mount(trigger).set(false);
   w.history.replaceState(null,'','#General-Dentistry');w.dispatchEvent(new w.Event('hashchange'));
   assert.equal(trigger.getAttribute('aria-expanded'),'true');
@@ -220,4 +220,46 @@ test('programmatic setup and disabled controls cannot enable startup motion', ()
   assert.equal(panel.hidden, false);
   assert.equal(item.hasAttribute('data-tdb-disclosure-interacted'), false);
   dom.window.close();
+});
+
+test('nested category anchors hold through arrival, release on departure and cancel interrupted journeys', () => {
+  const dom = new JSDOM('<a href="#Cosmetic-Dentistry">Cosmetic</a><section data-tdb-price-section><button data-tdb-disclosure-trigger aria-expanded="false"><span id="Cosmetic-Dentistry">Cosmetic</span></button><div data-tdb-disclosure-panel>Prices</div></section>', {runScripts:'outside-only',url:'https://dentalbarns.webflow.io/dental-cost-lichfield'});
+  const w=dom.window, d=w.document, section=d.querySelector('section'), trigger=d.querySelector('button');
+  let top=5000, observe, hold, releases=0;
+  section.getBoundingClientRect=()=>({top,bottom:top+1500,height:1500});
+  w.IntersectionObserver=class {constructor(fn){observe=fn}observe(){}};
+  w.TDBNavScroll={focus(_,held){hold=held},release(){releases++}};
+  w.eval(source);d.dispatchEvent(new w.Event('DOMContentLoaded'));
+  d.querySelector('a').addEventListener('click',e=>e.preventDefault());
+  d.querySelector('a').click();assert.equal(trigger.getAttribute('aria-expanded'),'true');assert(hold());
+  observe();assert(d.documentElement.classList.contains('tdb-slider-focus'),'offscreen native journey remains held');
+  top=0;observe();assert(hold());
+  top=-1600;observe();assert(!d.documentElement.classList.contains('tdb-slider-focus'));assert.equal(releases,1);
+  top=5000;d.querySelector('a').click();assert(hold());
+  d.dispatchEvent(new w.WheelEvent('wheel',{deltaY:-20,bubbles:true}));
+  assert(!d.documentElement.classList.contains('tdb-slider-focus'));assert.equal(releases,2);
+  dom.window.close();
+});
+
+test('sticky collapse preserves the clicked header with native scrolling and Lenis', () => {
+  for(const lenis of [false,true]){
+    const f=fixture(true), {w,trigger,panel,dom}=f;
+    w.scrollY=4600;let moves=0;
+    trigger.getBoundingClientRect=()=>({top:panel.hidden ? 4263-w.scrollY : 0,height:100});
+    const move=top=>{moves++;w.scrollY=top};
+    w.scrollTo=options=>{assert.equal(options.behavior,'instant');move(options.top)};
+    if(lenis)w.lenis={scrollTo(top,options){assert(options.immediate&&options.force);move(top)}};
+    trigger.click();assert.equal(moves,1);assert.equal(w.scrollY,4263);assert.equal(trigger.getBoundingClientRect().top,0);
+    assert.equal(panel.hidden,true);
+    // A geometry-neutral open does not manufacture another scroll.
+    trigger.click();assert.equal(moves,1);
+    dom.window.close();
+  }
+});
+
+test('initial hash arrival hides chrome even when disclosure mounting ran first',()=>{
+  const dom=new JSDOM('<section id="General-Dentistry" data-tdb-price-section><button data-tdb-disclosure-trigger aria-expanded="false">General</button><div data-tdb-disclosure-panel>Prices</div></section>',{runScripts:'outside-only',url:'https://dentalbarns.webflow.io/dental-cost-lichfield#General-Dentistry'});
+  const w=dom.window;w.eval(source);w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
+  assert.equal(w.document.querySelector('button').getAttribute('aria-expanded'),'true');
+  assert(w.document.documentElement.classList.contains('tdb-slider-focus'));dom.window.close();
 });

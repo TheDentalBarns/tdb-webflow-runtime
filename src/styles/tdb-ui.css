@@ -452,10 +452,17 @@ html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-contro
   }
 }
 
-/* Home's distant carousel filters rest without changing layout or motion.
+/* Home/Location's distant carousels rest without changing layout or motion.
  * Existing horizontal IG culling still owns each individual card.
  */
 @media (max-width: 991px) {
+  /* Retire the image/reflection surfaces as well as blur. Visibility preserves
+     measured geometry, image sources, loaded content and carousel position. */
+  [data-tdb-home-paint-idle] .swiper-wrapper,
+  [data-tdb-home-paint-idle] .swiper-wrapper * {
+    visibility: hidden !important;
+    will-change: auto !important;
+  }
   [data-tdb-home-paint-idle] .tdb-service-card::after,
   [data-tdb-home-paint-idle] .tdb-treatment-blur,
   [data-tdb-home-paint-idle] .ig-native_glass {

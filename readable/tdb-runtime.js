@@ -3735,14 +3735,14 @@ const TDBFeatureStartup = (() => {
   return Object.freeze({ start });
 })();
 
-/* Home's large carousel backdrops only need surfaces near the viewport.
+/* Shared Home/Location carousel surfaces only need painting near the viewport.
  * Keep layout, images, Swiper state and all visible motion owned by their
  * existing controllers. This guard never unloads or remounts a carousel.
  */
 function createHomePaintWindow() {
   'use strict';
   if (
-    !document.querySelector('[data-tdb-smile-placeholder="home"]') ||
+    !document.querySelector('.tdb-service-parallax') ||
     typeof IntersectionObserver !== 'function'
   )
     return null;

@@ -1225,7 +1225,8 @@
         ? a
         : document.getElementById(t.getAttribute('aria-controls'));
     if (!r?.hasAttribute('data-tdb-disclosure-panel')) return null;
-    function i(e) {
+    function i(e, keepAnchor = false) {
+      const before = keepAnchor ? t.getBoundingClientRect() : null;
       (!(e = Boolean(e)) && r.contains(document.activeElement) && t.focus({ preventScroll: !0 }),
         (r.hidden = !e),
         (r.inert = !e),
@@ -1235,6 +1236,17 @@
         r.classList.toggle('is-open', e),
         t.closest('[data-tdb-disclosure-item]')?.classList.toggle('is-open', e),
         t.querySelector('[data-tdb-chevron]')?.classList.toggle('is-open', e));
+      // Sticky price headers return to normal flow when their panel closes.
+      // Correct that layout displacement before notifying the chrome owner, so
+      // the resulting scroll is not counted as a new navigation gesture.
+      if (before?.height > 0) {
+        const delta = t.getBoundingClientRect().top - before.top;
+        if (Math.abs(delta) > 0.5) {
+          const top = Math.max(0, window.scrollY + delta);
+          if (window.lenis?.scrollTo) window.lenis.scrollTo(top, { immediate: true, force: true });
+          else window.scrollTo({ top, behavior: 'instant' });
+        }
+      }
       t.dispatchEvent(new CustomEvent('tdb:disclosure-change', { bubbles: true }));
     }
     (t.setAttribute('aria-controls', n(r)), r.setAttribute('aria-labelledby', n(t)));
@@ -1245,7 +1257,7 @@
           t
             .closest('[data-tdb-disclosure-item]')
             ?.setAttribute('data-tdb-disclosure-interacted', ''),
-          i('true' !== t.getAttribute('aria-expanded')));
+          i('true' !== t.getAttribute('aria-expanded'), true));
       },
       o = 'BUTTON' === t.tagName,
       s = (e) => {
@@ -1275,10 +1287,11 @@
       return;
     }
     if (!id) return;
-    const target = document.getElementById(id);
-    if (!target?.matches('[data-tdb-price-section]')) return;
+    const target = document.getElementById(id)?.closest('[data-tdb-price-section]');
+    if (!target) return;
     const trigger = target.querySelector(':scope > [data-tdb-disclosure-trigger]');
     if (trigger && trigger.getAttribute('aria-expanded') !== 'true') a(trigger)?.set(true);
+    target.dispatchEvent(new CustomEvent('tdb:price-anchor', { bubbles: true }));
   }
   document.addEventListener(
     'click',
@@ -1311,7 +1324,7 @@
     openHash(location.hash);
   }
   ((window.TDBDisclosure = Object.freeze({
-    version: '1.2.3',
+    version: '1.2.4',
     observe: function (e, t, n = () => 'true' === e.getAttribute('aria-expanded')) {
       let a;
       function r() {
@@ -1327,6 +1340,7 @@
     },
     mount: a,
     refresh: r,
+    openHash,
   })),
     'loading' === document.readyState
       ? document.addEventListener('DOMContentLoaded', start, { once: !0 })
@@ -1339,27 +1353,37 @@
     const sections = [...document.querySelectorAll('[data-tdb-price-section]')];
     if (!sections.length) return;
     let active = null;
+    let anchor = null;
+    let approaching = false;
     let waitingForScroll = false;
     let frame = 0;
     const eligible = (section) => {
       if (
+        !(
+          section === anchor &&
+          section.querySelector(':scope > [data-tdb-disclosure-trigger][aria-expanded="true"]')
+        ) &&
         ![...section.querySelectorAll('[data-tdb-price-trigger][aria-expanded="true"]')].some(
           (trigger) => !trigger.closest('[hidden],[inert]'),
         )
       )
         return false;
       const rect = section.getBoundingClientRect();
-      return rect.height > 0 && rect.bottom > 0 && rect.top < innerHeight;
+      const visible = rect.height > 0 && rect.bottom > 0 && rect.top < innerHeight;
+      if (section === anchor && visible) approaching = false;
+      return visible || (section === anchor && approaching);
     };
     function release() {
       if (!active) return;
       active = null;
+      anchor = null;
+      approaching = false;
       waitingForScroll = false;
       window.TDBNavScroll?.release({ respectDirection: true });
       document.documentElement.classList.remove('tdb-slider-focus');
     }
     function sync() {
-      const next = sections.find(eligible);
+      const next = (anchor && eligible(anchor) && anchor) || sections.find(eligible);
       if (
         !waitingForScroll &&
         next === active &&
@@ -1382,6 +1406,28 @@
         sync();
       });
     }
+    document.addEventListener('tdb:price-anchor', (event) => {
+      if (!sections.includes(event.target)) return;
+      anchor = event.target;
+      approaching = true;
+      sync();
+    });
+    // Native anchor scrolling owns movement/history/focus. A fresh gesture can
+    // interrupt that journey; never leave an offscreen destination holding chrome.
+    function interruptAnchor(event) {
+      if (
+        !approaching ||
+        (event.type === 'keydown' &&
+          !['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ', 'Escape'].includes(
+            event.key,
+          ))
+      )
+        return;
+      approaching = false;
+      sync();
+    }
+    for (const type of ['pointerdown', 'touchstart', 'wheel', 'keydown'])
+      document.addEventListener(type, interruptAnchor, { capture: true, passive: true });
     document.addEventListener('tdb:disclosure-change', (event) => {
       if (!event.target.closest('[data-tdb-price-section]')) return;
       if (active && !sections.some(eligible)) {
@@ -1418,6 +1464,9 @@
       frame = 0;
       release();
     });
+    // The first disclosure pass may have opened a deep link before this owner
+    // was listening. Replay only the current hash after all listeners exist.
+    window.TDBDisclosure?.openHash(location.hash);
   }
   if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', start, { once: true });
