@@ -96,7 +96,7 @@
 .tdbc-date-controls{position:static;padding-top:.5rem}.tdbc-date-controls .tdbc-range-labels{margin-bottom:.5rem}.tdbc-deadline-dock{margin:1rem 0 1.5rem}.tdbc-sooner-toggle{font:inherit}.tdbc-deadline-dock>[data-panel=deadline]{margin-inline:-2.5rem;background:var(--calc-dark-cream)}
 .tdbc-timing-warning{padding:1.5rem 2.5rem;background:transparent;color:var(--calc-ink)}.tdbc-timing-warning .tdbc-bridal-tip{border-color:color-mix(in srgb,var(--calc-ink) 24%,transparent)}.tdbc-timing-warning p{margin:0}
 .tdbc-date-result{background:var(--calc-dark-cream)}.tdbc-date-result>.text-style-tagline-restored{margin-bottom:1.25rem;color:var(--calc-ink)}.tdbc-date-result span{color:var(--calc-muted);display:block}.tdbc-date-result strong{font-weight:400;display:block;margin:.5rem 0}.tdbc-date-result p{margin:0}
-.tdbc-timeline{list-style:none;margin:2rem 0;padding:0}.tdbc-timeline li{position:relative;display:flex;gap:1.25rem;min-height:4.75rem;padding-bottom:1.5rem}.tdbc-timeline li:not(:last-child):before{content:'';position:absolute;top:.5rem;bottom:-.5rem;left:.25rem;width:1px;background:var(--calc-line)}.tdbc-dot{flex:0 0 .5625rem;width:.5625rem;height:.5625rem;border:1px solid var(--calc-ink);background:var(--calc-cream);margin-top:.4375rem;z-index:1}.tdbc-timeline small{color:var(--calc-muted);display:block;margin-bottom:.375rem}.tdbc-timeline strong{font-weight:400;display:block}.tdbc-timeline p{margin:.5rem 0 0}
+.tdbc-timeline{position:relative;list-style:none;margin:2rem 0;padding:0}.tdbc-timeline::before{content:'';position:absolute;top:0;bottom:0;left:.28125rem;width:1px;background:var(--calc-line)}.tdbc-timeline li{position:relative;display:flex;gap:1.25rem;min-height:4.75rem;padding-bottom:1.5rem}.tdbc-dot{position:relative;flex:0 0 .5625rem;width:.5625rem;height:.5625rem;border:1px solid var(--calc-ink);background:var(--calc-cream);margin-top:.4375rem;z-index:1}.tdbc-timeline small{color:var(--calc-muted);display:block;margin-bottom:.375rem}.tdbc-timeline strong{font-weight:400;display:block}.tdbc-timeline p{margin:.5rem 0 0}
 .tdbc-footnote{padding-top:1.5rem;margin-top:1.5rem;color:var(--calc-muted)}.tdbc-footnote .tdbc-actions{margin-top:1.5rem}
 .tdbc-live{position:fixed;inset:0 0 auto;z-index:1000;display:flex;align-items:center;width:100%;height:6rem;margin:0;border:0;background:color-mix(in srgb,var(--base-color-neutral--neutral-darker) 94%,transparent);color:var(--base-color-brand--orange-1);-webkit-backdrop-filter:saturate(150%) blur(20px);backdrop-filter:saturate(150%) blur(20px)}
 .tdbc-live-button{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:center;gap:1.5rem;width:100%;height:100%;margin:0 auto;padding:.75rem 3%;border:0;background:transparent;color:inherit;cursor:pointer;text-align:left}
@@ -191,3 +191,17 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 
 /* Separate banner destinations; preserve shared banner geometry. */
 .tdbc-live-target{margin:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;min-height:44px}.tdbc-arrow-target{display:flex;align-items:center;justify-content:center;min-width:44px}.tdbc-live-target:focus-visible{outline:1px solid currentColor;outline-offset:4px}
+
+/* The inline bar shares the form's grid area, so it overlays without changing
+   layout and native sticky positioning keeps it inside the section boundaries. */
+.tdb-calc[data-tdb-calculator=inline]>.tdbc-shell{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"intro" "notice" "form"}
+.tdb-calc[data-tdb-calculator=inline]>.tdbc-shell>.tdbc-header{grid-area:intro}
+.tdb-calc[data-tdb-calculator=inline]>.tdbc-shell>.tdbc-notice{grid-area:notice}
+.tdb-calc[data-tdb-calculator=inline]>.tdbc-shell>.tdbc-main{grid-area:form;min-width:0}
+.tdb-calc[data-tdb-calculator=inline]>.tdbc-shell>.tdbc-live{grid-area:form;align-self:start;position:sticky;inset:0 auto auto;width:100%;padding-inline:2.5rem}
+.tdb-calc[data-tdb-calculator=inline] .tdbc-live-button{padding-inline:0}
+.tdb-calc .tdbc-start-only-intro{margin-top:2rem}
+.tdbc-start-choices{margin-bottom:1.5rem}
+.tdbc-start-choices .tdbc-category{align-items:flex-start}
+.tdbc-start-choices .form_checkbox-icon{margin-top:.25rem}
+@media(max-width:767px){.tdb-calc[data-tdb-calculator=inline]>.tdbc-shell>.tdbc-live{padding-inline:1.5rem}.tdbc-start-choices{grid-template-columns:1fr}}

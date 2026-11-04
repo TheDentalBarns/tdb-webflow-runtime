@@ -266,7 +266,7 @@ for (const retainChrome of [false, true])
     },
   );
 
-test('interaction-led embed acquires chrome only on intent and uses the usual release controls', async () => {
+test('interaction-led embed holds chrome within its section after intent, with explicit exit controls', async () => {
   const h = setup();
   try {
     h.w.document.body.dataset.tdbChromeFocus = 'off';
@@ -294,18 +294,19 @@ test('interaction-led embed acquires chrome only on intent and uses the usual re
     const tap = (node) => node.dispatchEvent(new h.w.Event('pointerdown', { bubbles: true }));
     tap(h.root);
     assert(away());
-    assert.equal(hold(), false, 'normal scrolling can release an interaction-led form');
+    assert.equal(hold(), true, 'scrolling within the calculator keeps its chrome protected');
     release();
+    assert(away(), 'a navbar scroll release cannot expose menus over the active calculator');
+    observer.callback([{ isIntersecting: false }]);
+    assert.equal(away(), false, 'leaving the section releases chrome');
     observer.callback([{ isIntersecting: true }]);
-    assert.equal(
-      away(),
-      false,
-      'viewport observations cannot reacquire focus after scroll release',
-    );
+    assert(away(), 'returning to an interacted calculator restores its protected area');
     h.root.querySelector('input').focus();
     assert(away(), 'keyboard interaction has the same chrome behavior');
     h.w.document.dispatchEvent(new h.w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     assert.equal(away(), false);
+    observer.callback([{ isIntersecting: true }]);
+    assert.equal(away(), false, 'Escape remains an explicit release');
     tap(h.root);
     tap(h.w.document.getElementById('headphones'));
     assert.equal(away(), false, 'outside interaction releases chrome');
@@ -346,7 +347,7 @@ test('first lazy choice acquires chrome only if the user is still on the visible
   }
 });
 
-test('basic navigation releases interaction focus on scroll before enhancement is ready', async () => {
+test('basic navigation holds focus until the calculator leaves the viewport before enhancement is ready', async () => {
   const h = setup();
   try {
     h.root.dataset.tdbCalcFocus = 'interaction';
@@ -354,19 +355,14 @@ test('basic navigation releases interaction focus on scroll before enhancement i
     h.run('src/calculator/core.js');
     h.run('src/calculator/ui.js');
     await h.w.TDBCalculator.mount(h.root);
-    let frame;
-    h.w.requestAnimationFrame = (fn) => {
-      frame = fn;
-      return 1;
-    };
-    h.w.cancelAnimationFrame = () => {
-      frame = null;
-    };
+    const observer = h.observers.find((o) => o.targets.includes(h.root));
+    observer.callback([{ isIntersecting: true }]);
     h.w.scrollY = 1000;
     h.root.dispatchEvent(new h.w.Event('pointerdown', { bubbles: true }));
     h.w.scrollY = 850;
     h.w.dispatchEvent(new h.w.Event('scroll'));
-    frame();
+    assert.equal(h.w.document.documentElement.classList.contains('tdbc-chrome-away'), true);
+    observer.callback([{ isIntersecting: false }]);
     assert.equal(h.w.document.documentElement.classList.contains('tdbc-chrome-away'), false);
   } finally {
     h.dom.window.close();
@@ -411,6 +407,130 @@ test('calculator panels reuse disclosure motion and shared chevrons without repl
     assert.equal(h.root.querySelector('[data-w-id]'), null);
     assert.equal(h.root.querySelector('[data-node=section-footer]'), null);
     await tick();
+  } finally {
+    h.dom.window.close();
+  }
+});
+
+test('starting routes reorder the journey, retain controls and collapse to either appointment-only estimate', async () => {
+  const h = setup();
+  try {
+    const prices = { assessment: 450, design: 225, bonding: 395, hygiene: 195 };
+    h.w.document.body.insertAdjacentHTML(
+      'beforeend',
+      Object.entries(core.IDS)
+        .map(
+          ([key, id]) =>
+            `<div data-tdb-calc-record="${id}" data-label="${key}" data-price="£${prices[key] || 100}"></div>`,
+        )
+        .join(''),
+    );
+    const liveDay = core.iso(core.addDays(new Date(), 90));
+    const slot = { day: liveDay, time: '10:00', at: Date.parse(liveDay + 'T10:00:00Z') };
+    h.w.TDBAvailability.snapshot = () => ({
+      state: 'ready',
+      fresh: true,
+      checkedAt: Date.now(),
+      data: { nextSlot: liveDay + 'T10:00:00Z' },
+    });
+    h.w.TDBAvailability.assessmentSlot = () => slot;
+    h.run('src/calculator/core.js');
+    h.run('src/calculator/ui.js');
+    h.change('cosmetic');
+    await h.w.TDBCalculator.mount(h.root);
+    await tick();
+    const choose = (selector) => h.root.querySelector(selector).click();
+    choose('[data-select=bonding]');
+    choose('[data-action=plus][data-key=bonding]');
+    const order = [
+      ...h.root.querySelectorAll(
+        '[data-panel=journey]>[data-tdb-disclosure-panel]>[data-tdb-disclosure-reveal]>section',
+      ),
+    ].map((e) => e.dataset.node);
+    assert.deepEqual(order, ['assessment', 'hygiene', 'timeline', 'estimate']);
+    assert.match(h.root.querySelector('[data-node=assessment] h3').textContent, /03Where to start/);
+    assert.match(h.root.querySelector('[data-node=hygiene] h3').textContent, /04Hygiene/);
+    assert.match(
+      h.root.querySelector('[data-node=timeline] h3').textContent,
+      /05A date to look forward/,
+    );
+    assert(h.root.querySelector('[data-node=timeline] .tdbc-step-intro').textContent.trim());
+    const assessment = h.root.querySelector('[data-node=assessment]');
+    const hygiene = h.root.querySelector('[data-hygiene]');
+    const quantity = h.root.querySelector('[data-qty=bonding]');
+    const signatureTarget = h.root.querySelector('[data-date=target]').value;
+    assert.equal(h.root.querySelector('[data-output=total]').textContent, '£1,240');
+    choose('[data-assessment=design]');
+    assert.equal(h.root.querySelector('[data-node=assessment]'), assessment);
+    assert.equal(h.root.querySelector('[data-output=total]').textContent, '£1,240');
+    const designTarget = h.root.querySelector('[data-date=target]').value;
+    assert.equal((core.parseDate(designTarget) - core.parseDate(signatureTarget)) / 86400000, 42);
+    assert.equal(
+      h.root.querySelector('[data-output=availability]').dataset.assessmentRoute,
+      'design',
+    );
+    assert.equal(h.root.querySelector('[data-availability-status]').dataset.live, 'false');
+    choose('[data-hygiene]');
+    assert.equal(h.root.querySelector('[data-hygiene]'), hygiene);
+    assert.equal(h.root.querySelector('[data-qty=bonding]'), quantity);
+    assert.equal(h.root.querySelector('[data-output=total]').textContent, '£1,435');
+    assert.equal(
+      (core.parseDate(h.root.querySelector('[data-date=target]').value) -
+        core.parseDate(designTarget)) /
+        86400000,
+      7,
+    );
+    choose('[data-action=start-design]');
+    assert(h.root.querySelector('[data-tdb-calc-native-entry]').hidden);
+    assert(h.root.querySelector('[data-panel=treatments]>[data-tdb-disclosure-panel]').hidden);
+    assert.equal(h.root.querySelector('[data-node=hygiene]'), null);
+    assert.equal(h.root.querySelector('[data-node=timeline]'), null);
+    assert.equal(h.root.querySelector('[data-output=total]').textContent, '£225');
+    assert.equal(h.root.querySelector('[data-output=duration]').textContent, '60 minutes');
+    choose('[data-assessment=signature]');
+    assert.equal(h.root.querySelector('[data-output=total]').textContent, '£450');
+    assert.equal(h.root.querySelector('[data-output=duration]').textContent, '90 minutes');
+    choose('[data-action=resume-estimate]');
+    assert.equal(h.root.querySelector('[data-tdb-calc-native-entry]').hidden, false);
+    assert.equal(h.root.querySelector('[data-qty=bonding]').value, '2');
+    assert.equal(h.root.querySelector('[data-output=total]').textContent, '£1,435');
+    choose('[data-action=start-assessment]');
+    assert.equal(h.root.querySelector('[data-output=total]').textContent, '£450');
+    choose('[data-action=reset]');
+    assert.equal(h.root.querySelector('[data-tdb-calc-native-entry]').hidden, false);
+    await tick();
+  } finally {
+    h.dom.window.close();
+  }
+});
+
+test('availability refresh uses shared motion timing and finishes complete turns', async () => {
+  const h = setup();
+  try {
+    h.w.document.body.insertAdjacentHTML('beforeend', feed);
+    const durations = [],
+      iterations = [];
+    h.w.TDBMotionProfile = { time: (n) => n * 2 };
+    h.w.Element.prototype.animate = function (_frames, options) {
+      durations.push(options.duration);
+      return {
+        currentTime: 1500,
+        effect: { updateTiming: (x) => iterations.push(x.iterations) },
+        finished: Promise.resolve(),
+        cancel() {},
+      };
+    };
+    h.run('src/calculator/core.js');
+    h.run('src/calculator/ui.js');
+    h.change('cosmetic');
+    await h.w.TDBCalculator.mount(h.root);
+    await tick();
+    h.root.querySelector('[data-action=start-assessment]').click();
+    h.root.querySelector('[data-action=availability]').click();
+    await tick();
+    assert(durations.includes(1400));
+    assert(iterations.includes(2));
+    assert.equal(h.root.querySelector('[data-action=availability]').disabled, false);
   } finally {
     h.dom.window.close();
   }

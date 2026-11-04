@@ -70,7 +70,7 @@
     !availability.error &&
     !availability.pending &&
     Date.now() - availability.checked < AVAILABILITY_TTL;
-  const planningStart = () => futureSlot()?.day || today();
+  const planningStart = (estimate) => C.assessmentStart(estimate, futureSlot()?.day || today());
   const TIMELINE_LOADING = 'Updating your timeline';
   const assessmentDateText = (day) =>
     dateText(day).replace(/^\d+/, (n) => {
@@ -81,10 +81,12 @@
     });
   const refreshIcon =
     '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path vector-effect="non-scaling-stroke" d="M17.656854 17.656854A8 8 0 1 1 17.656854 6.343146L19.071068 7.757359M15.571068 7.757359h3.5v-3.5"/></svg>';
-  function availabilityMarkup(start = '') {
+  function availabilityMarkup(start = '', route = 'signature') {
     const slot = futureSlot(),
-      later = !!slot && !!start && start !== slot.day,
-      live = availabilityLive() && !later;
+      design = route === 'design',
+      base = planningStart({ assessment: route }),
+      later = !!slot && !!start && start !== base,
+      live = !design && availabilityLive() && !later;
     const status = availability.pending
       ? 'Checking live availability'
       : availability.error
@@ -93,14 +95,16 @@
             ? 'Couldn’t refresh — showing previous estimate'
             : 'Couldn’t refresh — showing last checked availability'
           : 'Unable to check live availability'
-        : later
-          ? 'Illustrative assessment date'
-          : live
-            ? 'Live availability'
-            : slot
-              ? 'Last checked over five minutes ago'
-              : 'No live appointment date available';
-    const day = later ? start : slot?.day,
+        : design && slot
+          ? 'Typical wait · about six weeks after live assessment availability'
+          : later
+            ? 'Illustrative assessment date'
+            : live
+              ? 'Live availability'
+              : slot
+                ? 'Last checked over five minutes ago'
+                : 'No live appointment date available';
+    const day = design ? (slot ? start || base : null) : later ? start : slot?.day,
       date = availability.pending
         ? 'Checking live availability'
         : day
@@ -109,12 +113,14 @@
     const detail =
       status +
       (!availability.pending && day
-        ? ': ' + date + (!later && slot ? ' · ' + slot.time : '')
+        ? ': ' + date + (!design && !later && slot ? ' · ' + slot.time : '')
         : '') +
       '*';
     return (
-      '<span class="text-style-tagline-restored">Start with your Signature Assessment ✦ ' +
-      (later ? 'on' : 'as soon as') +
+      '<span class="text-style-tagline-restored">' +
+      (design
+        ? 'Start with Smile Design around'
+        : 'Start with your Signature Assessment ✦ ' + (later ? 'on' : 'as soon as')) +
       '</span><div data-availability-details><div class="tdbc-availability-date-row"><strong class="heading-style-h4" data-output="assessment-date">' +
       esc(date) +
       '</strong><button type="button" data-action="availability" aria-label="Refresh live availability" ' +
@@ -126,18 +132,22 @@
       '" aria-live="polite">' +
       esc(detail) +
       '</span></div><p class="tdbc-help text-size-tiny">*' +
-      (slot && !later
-        ? 'Our diary updates live, and this time is not reserved.'
-        : 'This is an illustrative date, not a reserved appointment.') +
+      (design
+        ? 'An approximate waiting time, confirmed when appointments are released.'
+        : slot && !later
+          ? 'Our diary updates live, and this time is not reserved.'
+          : 'This is an illustrative date, not a reserved appointment.') +
       ' Join VIP to receive your booking link and secure your appointment.' +
       '</p>'
     );
   }
-  const availabilityBlock = (start = '') =>
+  const availabilityBlock = (start = '', route = 'signature') =>
     '<div class="tdbc-date-result text-size-small" data-output="availability" data-assessment-start="' +
     esc(start) +
+    '" data-assessment-route="' +
+    route +
     '">' +
-    availabilityMarkup(start) +
+    availabilityMarkup(start, route) +
     '</div>';
   function updateAvailability() {
     clearTimeout(availability.timer);
@@ -173,13 +183,14 @@
       applyAvailability(cached);
       return Promise.resolve();
     }
-    const spins = [];
+    const spins = [],
+      spinDuration = window.TDBMotionProfile?.time(700) ?? 700;
     async function finishTurns() {
       await Promise.all(
         spins.map(async (spin) => {
           try {
             spin.effect.updateTiming({
-              iterations: Math.max(2, Math.ceil((spin.currentTime || 0) / 700)),
+              iterations: Math.max(2, Math.ceil((spin.currentTime || 0) / spinDuration)),
             });
             await spin.finished;
           } catch (_) {}
@@ -217,7 +228,7 @@
         if (typeof icon.animate === 'function')
           spins.push(
             icon.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], {
-              duration: 700,
+              duration: spinDuration,
               easing: 'linear',
               iterations: Infinity,
             }),
@@ -529,14 +540,12 @@
       focused.focus({ preventScroll: true });
   }
   let focusedView = null,
-    focusEpoch = 0,
-    stopFocusScroll = null;
+    focusEpoch = 0;
   const interactionFocus = (view) =>
     view?.mode === 'inline' && view.root.getAttribute('data-tdb-calc-focus') === 'interaction';
-  function releaseFocus() {
+  function releaseFocus(forget = false) {
     if (!focusedView) return;
-    stopFocusScroll?.();
-    stopFocusScroll = null;
+    if (forget === true) focusedView.engaged = false;
     focusedView.root.classList.remove('is-focused');
     document.documentElement.classList.remove('tdbc-chrome-away');
     focusedView = null;
@@ -548,12 +557,11 @@
     // A form can opt into focus on intent while other page sections retain chrome.
     // Merely entering its viewport must never acquire or reacquire that focus.
     const interactive = interactionFocus(view);
-    if (interactive && !interacted && focusedView !== view) return;
+    if (interactive && !interacted && !view.engaged && focusedView !== view) return;
+    if (interacted) view.engaged = true;
     if (!interactive && view.mode === 'inline' && document.body?.dataset.tdbChromeFocus === 'off')
       return;
     if (focusedView === view && !restore && !interacted) return;
-    stopFocusScroll?.();
-    stopFocusScroll = null;
     const epoch = ++focusEpoch;
     if (focusedView) focusedView.root.classList.remove('is-focused');
     focusedView = view;
@@ -580,43 +588,12 @@
     }
     window.TDBNavScroll?.focus(
       () => {
-        if (epoch === focusEpoch && view.mode !== 'drawer' && (interactive || !view.visible))
-          releaseFocus();
+        if (epoch === focusEpoch && view.mode !== 'drawer' && !view.visible) releaseFocus();
       },
-      () => view.mode === 'drawer' || (interactive ? Boolean(view.dateDrag) : view.visible),
+      () => view.mode === 'drawer' || view.visible || Boolean(view.dateDrag),
     );
-    // Basic navigation can still be waiting for consent/enhancement. Retain the
-    // same scroll-release distances without loading a second controller.
-    if (interactive && !window.TDBNavScroll) {
-      let y = Math.max(window.scrollY || 0, 0),
-        up = 0,
-        down = 0,
-        frame = 0;
-      const check = () => {
-        frame = 0;
-        if (focusedView !== view) return;
-        const next = Math.max(window.scrollY || 0, 0),
-          delta = next - y;
-        y = next;
-        if (view.dateDrag) up = down = 0;
-        else if (delta > 0) {
-          up = 0;
-          down += delta;
-        } else if (delta < 0) {
-          down = 0;
-          up -= delta;
-        }
-        if (up > 120 || down > 140 || (next <= 40 && delta < 0)) releaseFocus();
-      };
-      const queue = () => {
-        if (!frame) frame = requestAnimationFrame(check);
-      };
-      window.addEventListener('scroll', queue, { passive: true });
-      stopFocusScroll = () => {
-        window.removeEventListener('scroll', queue);
-        if (frame) cancelAnimationFrame(frame);
-      };
-    }
+    // The section observer releases inline focus at its boundary, including
+    // before navbar enhancement is ready. Scroll direction alone is not an exit.
   }
   function syncViewportFocus() {
     const active =
@@ -679,6 +656,7 @@
       this.adoptNativeChoice = !!this.nativeEntry;
       this.breakdown = true;
       this.visible = false;
+      this.engaged = false;
       this.suspended = false;
       this.timingWarning = false;
       this.dateDrag = null;
@@ -890,11 +868,13 @@
       }
       const active = state.categories.length > 0,
         selected = e.selected.length,
-        hasEstimate = active && e.lines.length > 0,
+        hasEstimate = (active || state.assessmentOnly) && e.lines.length > 0,
         available = C.allowedOptions(this.config),
         showBanner = hasEstimate || this.mode === 'drawer';
       const form =
-        '<section class="tdbc-step" data-node="step-1" aria-labelledby="' +
+        '<section class="tdbc-step" data-node="step-1" ' +
+        (state.assessmentOnly ? 'hidden ' : '') +
+        'aria-labelledby="' +
         id +
         '-explore"><div id="' +
         id +
@@ -925,7 +905,7 @@
         '</div></section>' +
         expand(
           'treatments',
-          active,
+          active && !state.assessmentOnly,
           '<section class="tdbc-step" data-node="step-2">' +
             step(
               '02',
@@ -957,17 +937,30 @@
           'journey',
           hasEstimate,
           hasEstimate
-            ? (selected ? this.timelineControls(e) : '') +
-                this.assessment(e) +
-                (e.cosmetic ? this.hygiene(e) : '') +
+            ? this.assessment(e) +
+                (selected ? this.hygiene(e) + this.timelineControls(e) : '') +
                 this.summary(e)
             : '',
         ) +
-        (active
+        (active || state.assessmentOnly
           ? '<footer class="tdbc-footnote" data-node="footnote"><p class="text-size-tiny">A guide to possibilities, subject to assessment and your confirmed treatment plan. Your selections stay in this tab for up to four hours.</p><div class="tdbc-actions">' +
             actionButton('reset', 'Restart estimate', true) +
-            actionButton('start-assessment', 'Prefer to start with an assessment?', false, false) +
-            '</div></footer>'
+            (state.assessmentOnly
+              ? actionButton('resume-estimate', 'Return to treatment estimate', false, false)
+              : '') +
+            '</div>' +
+            (!state.assessmentOnly
+              ? '<p class="text-size-small tdbc-start-only-intro">Prefer to start with an appointment?</p><div class="tdbc-actions">' +
+                actionButton(
+                  'start-assessment',
+                  'Signature Assessment <span aria-hidden="true">✦</span> only',
+                  false,
+                  false,
+                ) +
+                actionButton('start-design', 'Smile Design only', false, false) +
+                '</div>'
+              : '') +
+            '</footer>'
           : '');
       patch(
         this.root,
@@ -1007,6 +1000,7 @@
             : ''),
       );
       if (this.nativeEntry) {
+        this.nativeEntry.hidden = state.assessmentOnly;
         this.nativeEntry.querySelectorAll('input[data-category]').forEach((input) => {
           input.checked = state.categories.includes(input.dataset.category);
           const card = input.closest('.tdbc-category');
@@ -1219,20 +1213,61 @@
     }
     assessment(e) {
       const a = records[C.IDS.assessment],
-        d = records[C.IDS.design];
+        d = records[C.IDS.design],
+        design = e.assessment === 'design';
       return (
         '<section class="tdbc-step tdbc-assessment" data-node="assessment">' +
-        step(
-          e.required ? '04' : '03',
-          esc(a?.label || 'Signature Assessment'),
-          'Smile Design and a comprehensive examination, together with Dr Keely.',
-        ) +
-        '<ul class="tdbc-included text-size-small">' +
+        step('03', 'Where to start?', 'Choose the first appointment that feels right for you.') +
+        '<div class="tdbc-categories tdbc-start-choices" role="radiogroup" aria-label="Your starting appointment">' +
         [
-          'Smile Design',
-          'Comprehensive examination & appropriate diagnostics',
-          'Itemised plan, costs & written report',
+          [
+            'signature',
+            'Signature Assessment ✦',
+            'Smile Design and a comprehensive check-up together.',
+            a,
+          ],
+          ['design', 'Smile Design', 'Explore your smile first, with a check-up to follow.', d],
         ]
+          .map(([route, label, detail, record]) => {
+            const on = e.assessment === route;
+            return (
+              '<label class="tdbc-category form_checkbox ' +
+              (on ? 'is-selected' : '') +
+              '"><input type="radio" name="' +
+              this.id +
+              '-assessment" data-control="assessment-' +
+              route +
+              '" data-assessment="' +
+              route +
+              '" ' +
+              (on ? 'checked' : '') +
+              '>' +
+              check(on) +
+              '<span><span class="text-style-tagline-restored">' +
+              label +
+              '</span><small class="text-size-tiny">' +
+              detail +
+              '</small><small class="text-size-tiny">' +
+              esc(recordPrice(record)) +
+              (route === 'design' && e.required ? ' first appointment' : '') +
+              '</small></span></label>'
+            );
+          })
+          .join('') +
+        '</div>' +
+        '<ul class="tdbc-included text-size-small">' +
+        (design && !e.required
+          ? [
+              'Explore your smile and goals with Dr Keely',
+              '3D scanning & clinical photography',
+              'A recommendation for your next clinical step',
+            ]
+          : [
+              'Smile Design',
+              'Comprehensive examination & appropriate diagnostics',
+              'Itemised plan, costs & written report',
+            ]
+        )
           .map(
             (t) =>
               '<li><span class="tdbc-included-mark" aria-hidden="true"></span><span>' +
@@ -1241,31 +1276,24 @@
           )
           .join('') +
         '</ul><div class="tdbc-assessment-price"><strong class="heading-style-h4">' +
-        esc(recordPrice(a)) +
+        esc(recordPrice(design && !e.required ? d : a)) +
         '</strong><span class="text-size-tiny">' +
         esc(
-          a?.bookingDeposit !== null && a?.bookingDeposit !== undefined
-            ? currency(a.bookingDeposit) + ' booking deposit, included in the total'
-            : 'Booking details confirmed with your appointment',
+          design && e.required
+            ? 'Smile Design and your later check-up · the same total starting cost'
+            : design
+              ? 'Standalone Smile Design appointment'
+              : a?.bookingDeposit !== null && a?.bookingDeposit !== undefined
+                ? currency(a.bookingDeposit) + ' booking deposit, included in the total'
+                : 'Booking details confirmed with your appointment',
         ) +
         '</span></div>' +
-        (e.required
-          ? '<p class="tdbc-help text-size-tiny">Included once in your estimate. Smile Design and your examination are bundled together.</p>'
-          : '<label class="tdbc-manual form_checkbox text-size-small"><input type="checkbox" data-control="assessment" data-assessment="signature" ' +
-            (state.assessment === 'signature' ? 'checked' : '') +
-            '>' +
-            check(state.assessment === 'signature') +
-            '<span>Include Signature Assessment</span></label>' +
-            (d?.valid
-              ? '<label class="tdbc-manual form_checkbox text-size-small"><input type="checkbox" data-control="design" data-assessment="design" ' +
-                (state.assessment === 'design' ? 'checked' : '') +
-                '>' +
-                check(state.assessment === 'design') +
-                '<span>Explore Smile Design only · ' +
-                esc(recordPrice(d)) +
-                '</span></label>'
-              : '')) +
-        (!e.required && e.assessment !== 'design' ? availabilityBlock() : '') +
+        '<p class="tdbc-help text-size-tiny">' +
+        (design
+          ? 'Allow around six weeks after the live Signature Assessment date for Smile Design. A check-up follows before treatment; the combined starting cost stays the same.'
+          : 'Smile Design and your examination are included together, counted once in your estimate.') +
+        '</p>' +
+        (!e.required ? availabilityBlock('', e.assessment) : '') +
         '</section>'
       );
     }
@@ -1274,9 +1302,9 @@
       return (
         '<section class="tdbc-step" data-node="hygiene">' +
         step(
-          '05',
-          'Healthy foundations',
-          'We’ll review your gum health before cosmetic treatment.',
+          '04',
+          'Hygiene — a healthy start',
+          'Allow for healthy teeth and gums before your treatment begins.',
         ) +
         (e.hygieneIncluded
           ? '<p class="text-size-small">Airflow® hygiene is included with your aligner package.</p>'
@@ -1302,7 +1330,11 @@
         esc(C.duration(records, e, today())) +
         '</span></span></p>' +
         (e.required
-          ? '<p class="tdbc-help text-size-tiny">Includes two weeks after your assessment for planning. Timing is confirmed with your treatment plan.</p>'
+          ? '<p class="tdbc-help text-size-tiny">' +
+            (e.assessment === 'design'
+              ? 'Includes the typical six-week Smile Design wait, then two weeks for your check-up and planning.'
+              : 'Includes two weeks after your assessment for planning.') +
+            ' Timing is confirmed with your treatment plan.</p>'
           : '') +
         '</div><div class="tdbc-summary-details"><div class="tdbc-breakdown"><button type="button" class="tdbc-disclosure text-style-tagline-restored" data-action="breakdown" aria-expanded="' +
         this.breakdown +
@@ -1345,7 +1377,7 @@
         (e.cosmetic && !e.hygieneIncluded && !state.hygiene
           ? '<p class="tdbc-help text-size-tiny">Hygiene, if needed, is additional.</p>'
           : '') +
-        (this.config.finance ? this.financeControls(e) : '') +
+        (this.config.finance && !state.assessmentOnly ? this.financeControls(e) : '') +
         '<a class="button is-icon is-secondary is-alternate tdbc-vip w-inline-block" href="/vip" data-action="vip"><span>Join VIP</span><span class="icon-embed-xxsmall is-up w-embed">' +
         arrow +
         '</span></a><p class="tdbc-help text-size-tiny">Discuss your options and take the next step with us.</p></div></section>'
@@ -1420,7 +1452,11 @@
                 f.deposit / 100 +
                 '" data-control="deposit-number" data-deposit-number><p class="tdbc-help text-size-tiny">Includes your ' +
                 esc(currency(f.assessment)) +
-                ' Signature Assessment, counted once in the total.</p><label class="text-size-small" for="' +
+                ' ' +
+                esc(
+                  e.assessment === 'design' ? 'Smile Design and check-up' : 'Signature Assessment',
+                ) +
+                ', counted once in the total.</p><label class="text-size-small" for="' +
                 this.id +
                 '-term">Repayment term <output data-output="term">' +
                 state.term +
@@ -1438,7 +1474,7 @@
       );
     }
     timelineControls(e) {
-      const t = C.completionTimeline(records, e, planningStart(), state.delay),
+      const t = C.completionTimeline(records, e, planningStart(e), state.delay),
         id = this.id;
       const wedding =
         '<div class="tdbc-bridal-tip"><button type="button" class="tdbc-disclosure tdbc-bridal-toggle" data-action="bridal" aria-expanded="' +
@@ -1464,7 +1500,11 @@
         '</div>';
       return (
         '<section class="tdbc-step" data-node="timeline">' +
-        step('03', 'A date to look forward to') +
+        step(
+          '05',
+          'A date to look forward to',
+          'See how your appointments could unfold, or explore a date that matters to you.',
+        ) +
         '<div class="tdbc-target-card"><label class="text-style-tagline-restored" for="' +
         id +
         '-target">Target completion date*</label><div class="tdbc-target-field heading-style-h4"><output data-output="target-display" aria-hidden="true">' +
@@ -1558,7 +1598,7 @@
               .join('') +
             '</dl>',
         );
-      const t = C.completionTimeline(records, e, planningStart(), state.delay),
+      const t = C.completionTimeline(records, e, planningStart(e), state.delay),
         target = this.root.querySelector('[data-date="target"]'),
         slider = this.root.querySelector('[data-range="completion"]');
       if (target) {
@@ -1587,7 +1627,12 @@
       );
       this.root
         .querySelectorAll('[data-output=availability]')
-        .forEach((node) => patch(node, availabilityMarkup(node.dataset.assessmentStart)));
+        .forEach((node) =>
+          patch(
+            node,
+            availabilityMarkup(node.dataset.assessmentStart, node.dataset.assessmentRoute),
+          ),
+        );
       const tOut = this.root.querySelector('[data-output="timeline"]');
       if (tOut) {
         tOut.setAttribute('aria-busy', String(pending));
@@ -1596,30 +1641,38 @@
       }
     }
     timelineOutput(e) {
-      const t = C.completionTimeline(records, e, planningStart(), state.delay);
+      const t = C.completionTimeline(records, e, planningStart(e), state.delay);
       const stages = [
         {
           key: 'assessment',
-          label: e.assessmentLine?.label || 'Signature Assessment ✦',
+          label:
+            e.assessment === 'design'
+              ? 'Smile Design'
+              : e.assessmentLine?.label || 'Signature Assessment ✦',
           startMin: t.start,
           startMax: t.start,
           endMax: t.start,
           appointment: true,
           costKeys: ['assessment'],
-          description: 'Smile Design, examination and your treatment plan.',
+          description:
+            e.assessment === 'design'
+              ? 'Explore your smile first. Your check-up follows before treatment; both appointments share the same total starting cost.'
+              : 'Smile Design, examination and your treatment plan.',
         },
         {
           key: 'prepare',
-          label: 'Prepare for treatment',
+          label: e.assessment === 'design' ? 'Check-up & preparation' : 'Prepare for treatment',
           startMin: t.start,
           endMax: C.iso(C.addDays(C.parseDate(t.start), 14)),
           costKeys: [],
           description:
+            (e.assessment === 'design' ? 'Complete your check-up and treatment plan. ' : '') +
             'Plan your appointments. Arrange finance if needed · allow 14 days for cooling-off.',
         },
         ...t.stages,
       ];
-      let html = availabilityBlock(t.start) + '<ol class="tdbc-timeline text-size-small">';
+      let html =
+        availabilityBlock(t.start, e.assessment) + '<ol class="tdbc-timeline text-size-small">';
       for (const stage of stages) {
         const on = this.stageOpen.has(stage.key),
           lines = e.lines.filter((l) => stage.costKeys.includes(l.key)),
@@ -1703,6 +1756,7 @@
       const el = event.target;
       if (!this.ready) return;
       if (el.dataset.category) {
+        state.assessmentOnly = false;
         const k = el.dataset.category;
         if (el.checked) state.categories = [...new Set([...state.categories, k])];
         else {
@@ -1754,9 +1808,12 @@
           state.delay = 0;
           this.dismissTimingWarning();
         }
-      } else if (el.dataset.assessment)
-        state.assessment = el.checked ? el.dataset.assessment : 'none';
-      else if (el.hasAttribute('data-hygiene')) {
+      } else if (el.dataset.assessment) {
+        if (el.checked) state.assessment = el.dataset.assessment;
+        state.start = '';
+        state.delay = 0;
+        this.dismissTimingWarning();
+      } else if (el.hasAttribute('data-hygiene')) {
         state.hygiene = el.checked;
         state.start = '';
         state.delay = 0;
@@ -1767,7 +1824,7 @@
         const t = C.completionTimeline(
           records,
           C.estimate(records, state, this.config),
-          planningStart(),
+          planningStart(C.estimate(records, state, this.config)),
           state.delay,
           el.value,
         );
@@ -1824,7 +1881,11 @@
       }
       if (action === 'estimate' || action === 'timeline') {
         const target = this.root.querySelector(
-          action === 'estimate' ? '.tdbc-summary' : '[data-node="timeline"]',
+          action === 'estimate'
+            ? '.tdbc-summary'
+            : state.assessmentOnly
+              ? '[data-node="assessment"]'
+              : '[data-node="timeline"]',
         );
         if (target) {
           focusView(this, false, true);
@@ -1894,15 +1955,12 @@
         renderAll();
         this.scrollToStart();
         return;
-      } else if (action === 'start-assessment') {
-        const categories = state.categories;
-        state = C.newState();
-        state.categories = categories;
-        state.assessment = 'signature';
+      } else if (action === 'start-assessment' || action === 'start-design') {
+        state.assessmentOnly = true;
+        state.assessment = action === 'start-design' ? 'design' : 'signature';
+        state.finance = false;
+        state.delay = 0;
         this.stageOpen.clear();
-        this.optionClosed.clear();
-        this.optionPreview.clear();
-        this.optionDrafts = {};
         this.activeStage = 'assessment';
         this.timelineManual = false;
         this.bridalOpen = false;
@@ -1910,6 +1968,13 @@
         renderAll();
         const section = this.root.querySelector('[data-node=assessment]');
         section?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+        return;
+      } else if (action === 'resume-estimate') {
+        state.assessmentOnly = false;
+        renderAll();
+        this.root
+          .querySelector('[data-node=step-2]')
+          ?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
         return;
       } else if (action === 'stage') {
         this.activeStage = el.dataset.key;
@@ -2232,7 +2297,7 @@
           return;
         }
         if (interactionFocus(focusedView) && !focusedView.root.contains(event.target))
-          releaseFocus();
+          releaseFocus(true);
         else syncViewportFocus();
       },
       { capture: true, passive: false },
@@ -2280,13 +2345,14 @@
           event.preventDefault();
           event.stopImmediatePropagation();
         } else if (event.key === 'Escape' && interactionFocus(focusedView)) {
-          releaseFocus();
+          releaseFocus(true);
         }
       },
       true,
     );
     document.addEventListener('focusin', (event) => {
-      if (interactionFocus(focusedView) && !focusedView.root.contains(event.target)) releaseFocus();
+      if (interactionFocus(focusedView) && !focusedView.root.contains(event.target))
+        releaseFocus(true);
     });
     window.addEventListener('pagehide', releaseFocus);
     document.addEventListener('click', (event) => {

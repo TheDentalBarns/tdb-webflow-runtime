@@ -95,6 +95,7 @@
       categories: [],
       selected: {},
       assessment: 'none',
+      assessmentOnly: false,
       hygiene: false,
       finance: false,
       deposit: 0,
@@ -143,6 +144,7 @@
     s.assessment = ['none', 'design', 'signature'].includes(raw.assessment)
       ? raw.assessment
       : 'none';
+    s.assessmentOnly = raw.assessmentOnly === true && s.assessment !== 'none';
     s.hygiene = raw.hygiene === true;
     s.finance = raw.finance === true;
     s.deposit = finite(raw.deposit) ? clamp(Math.round(Number(raw.deposit)), 0, 100000000) : 0;
@@ -158,7 +160,7 @@
   function estimate(records, raw, config = {}) {
     const state = normaliseState(raw),
       options = allowedOptions(config),
-      selected = options.filter((o) => own(state.selected, o.key));
+      selected = state.assessmentOnly ? [] : options.filter((o) => own(state.selected, o.key));
     const lines = [],
       missing = [],
       a = records[IDS.aligners];
@@ -167,7 +169,8 @@
     const whitenIncluded = aligners && !!a?.includesWhitening,
       hygieneIncluded = aligners && !!a?.includesHygiene;
     const required = selected.length > 0,
-      assessment = required ? 'signature' : state.assessment;
+      assessment =
+        state.assessment === 'design' ? 'design' : required ? 'signature' : state.assessment;
     function add(key, recordKey, quantity = 1, tier = null, included = false, label) {
       const r = records[IDS[recordKey]];
       const l = {
@@ -195,7 +198,14 @@
       return l;
     }
     if (assessment !== 'none')
-      add('assessment', assessment === 'signature' ? 'assessment' : 'design');
+      add(
+        'assessment',
+        required || assessment === 'signature' ? 'assessment' : 'design',
+        1,
+        null,
+        false,
+        required && assessment === 'design' ? 'Smile Design & check-up' : undefined,
+      );
     for (const o of selected) {
       const v = state.selected[o.key];
       add(
@@ -209,7 +219,7 @@
     }
     if (whitenIncluded && !state.selected.whitening)
       add('whitening-included', 'whitening', 1, null, true);
-    if (cosmetic && (hygieneIncluded || state.hygiene))
+    if (required && (hygieneIncluded || state.hygiene))
       add('hygiene', 'hygiene', 1, null, hygieneIncluded);
     if (selected.some((o) => o.key === 'veneers'))
       add('trial', 'trial', state.selected.veneers.arches.length);
@@ -345,6 +355,12 @@
     return wall(at) === desired ? { day, time, at } : null;
   }
   const addDays = (d, n) => new Date(d.getTime() + n * 86400000);
+  // Smile Design follows the same live assessment anchor with its typical wait.
+  function assessmentStart(estimate, liveDay) {
+    const date = parseDate(liveDay);
+    if (!date) throw new RangeError('Invalid live assessment date');
+    return iso(addDays(date, estimate.assessment === 'design' ? 42 : 0));
+  }
   function addMonths(date, n) {
     const d = new Date(date),
       day = d.getUTCDate();
@@ -593,7 +609,7 @@
           : 'Assessment only'
         : 'Choose treatments';
     const p = plan(records, e),
-      s = schedule(p, today);
+      s = schedule(p, assessmentStart(e, today));
 
     const days = (d) => Math.round((parseDate(d) - parseDate(today)) / 86400000);
     const months = p.stages.some((stage) => stage.timing.unit === 'months'),
@@ -638,6 +654,7 @@
     finance,
     parseDate,
     assessmentSlot,
+    assessmentStart,
     iso,
     addDays,
     addMonths,
