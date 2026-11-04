@@ -115,3 +115,26 @@ test('map teardown cannot release a newer carousel owner', () => {
     f.close();
   }
 });
+
+test('page chrome opt-out ignores map and shared section focus without stealing input focus', () => {
+  const f = fixture();
+  try {
+    f.d.body.dataset.tdbChromeFocus = 'off';
+    let calls = 0;
+    f.w.TDBNavScroll.focus = () => {
+      calls++;
+    };
+    f.input.focus();
+    f.tap(f.root.querySelector('[data-tdb-journey-map]'));
+    f.w.TDBSliderFocus.focus(f.d.querySelector('button'));
+    assert.equal(f.d.activeElement, f.input);
+    assert.equal(f.focused(), false);
+    assert.equal(calls, 0);
+    delete f.d.body.dataset.tdbChromeFocus;
+    f.w.TDBSliderFocus.focus(f.root);
+    assert(f.focused(), 'existing focus behavior remains the default on other pages');
+    assert.equal(calls, 1);
+  } finally {
+    f.close();
+  }
+});

@@ -132,24 +132,12 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 /* Existing Webflow action list a-52, “DD - Text Effect”: opacity 0/.5/.5/.1.
    A native view timeline makes the same effect work for CMS-generated headings. */
 
-/* Numbered section headers reserve two heading and two introductory lines. */
-.tdbc-step-header{position:relative;padding:.75rem 1rem .75rem 3.5rem;margin-bottom:1rem;border:1px solid transparent}
-.tdbc-step-header .tdbc-step-heading{display:block;min-height:2lh;margin:0 0 1rem}
-.tdbc-step-header .tdbc-number{position:absolute;inset:0 auto 0 0;height:auto}
-.tdb-calc .tdbc-step-header .tdbc-step-intro{min-height:2lh;margin:0;color:var(--calc-muted)}
+/* Match the native opening step: dark panel, cream strip and consistent contrast. */
+.tdbc-step-header{position:relative;padding:.75rem 1rem .75rem 3.5rem;margin-bottom:1rem;border:1px solid var(--base-color-brand--orange-3);background:var(--base-color-neutral--neutral-darker);color:var(--base-color-brand--orange-1)}
+.tdbc-step-header .tdbc-step-heading{display:block;min-height:2lh;margin:0 0 1rem;color:inherit}
+.tdbc-step-header .tdbc-number{position:absolute;inset:0 auto 0 0;height:auto;background:var(--base-color-brand--orange-1);color:var(--base-color-neutral--neutral-darker)}
+.tdb-calc .tdbc-step-header .tdbc-step-intro{min-height:2lh;margin:0;color:color-mix(in srgb,var(--base-color-brand--orange-1) 70%,transparent)}
 @media(max-width:767px){.tdbc-step-header{padding-left:3rem}}
-
-/* Keep the cream border fixed; smoothly change the number box and numeral in scroll focus. */
-.tdbc-step-header::before{content:"";position:absolute;inset:-1px;border:1px solid currentColor;color:var(--base-color-brand--orange-3);pointer-events:none}
-.tdbc-step-header .tdbc-number{background:transparent;isolation:isolate}
-.tdbc-step-header .tdbc-number::before{content:"";position:absolute;inset:0;z-index:-1;background:currentColor;color:var(--base-color-brand--orange-3);pointer-events:none}
-@keyframes tdbc-step-frame{0%,15%{color:var(--base-color-brand--orange-3)}40%,100%{color:var(--base-color-neutral--neutral-darker)}}
-@keyframes tdbc-step-numeral{0%,15%{color:var(--base-color-neutral--neutral-darker)}40%,100%{color:var(--base-color-brand--orange-1)}}
-@supports (animation-timeline: view()) {
- .tdbc-step-header{view-timeline:--tdbc-step block}
- .tdbc-step-header .tdbc-number::before{animation:tdbc-step-frame var(--tdb-motion-ease-control,ease-in-out) both;animation-timeline:--tdbc-step;animation-range:entry 0% exit 0%}
- .tdbc-step-header .tdbc-number{animation:tdbc-step-numeral var(--tdb-motion-ease-control,ease-in-out) both;animation-timeline:--tdbc-step;animation-range:entry 0% exit 0%}
-}
 
 .tdbc-price-guide .tdbc-header{margin-bottom:0}.tdbc-price-guide{border-bottom:1px solid var(--calc-line)}
 

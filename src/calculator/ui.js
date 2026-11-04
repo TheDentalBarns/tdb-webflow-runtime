@@ -518,6 +518,9 @@
   }
   function focusView(view, restore = false) {
     if (view.suspended) return;
+    // Native page configuration can retain the navbar while browsing an embed.
+    // Leave modal focus intact; the inline estimate stays available in the page.
+    if (view.mode === 'inline' && document.body?.dataset.tdbChromeFocus === 'off') return;
     if (focusedView === view && !restore) return;
     const epoch = ++focusEpoch;
     if (focusedView) focusedView.root.classList.remove('is-focused');

@@ -3,6 +3,8 @@
  .navbar-bg_layer { display: none; opacity: 0; transition: opacity calc(0.3s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-panel,ease); pointer-events: none; }
  .navbar-bg_layer.is-visible { display: block; opacity: 1; pointer-events: auto; }
  @media screen and (max-width: 767px) { .navbar10_logo-link, .menu-icon5 { transition: filter var(--tdb-nav-detail-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-motion-ease-panel,cubic-bezier(0.4, 0, 0.2, 1)); }
+ /* Opaque native mobile variants keep their cream surface throughout menu motion. */
+ .navbar10_component[transparent-nav="false"] { --_tdb-navbar---bar-glass: var(--base-color-brand--orange-1, #f9f2e6); --_tdb-navbar---menu-glass: var(--base-color-brand--orange-1, #f9f2e6); }
  .navbar_line { visibility: visible; z-index: 3; }
  .navbar10_component.is-trans, .navbar10_component.z-hold { border-bottom: 0 !important; }
  html:is(.tdb-nav-at-top, .tdb-nav-clear-cycle):has(:is(.navbar10_menu-button.w--open, .w-nav-button.w--open)) .navbar10_component { background-color: var(--base-color-brand--orange-1, #f9f2e6) !important; }

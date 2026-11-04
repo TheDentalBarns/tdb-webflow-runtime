@@ -212,3 +212,55 @@ test('drawer opening remains independent of an untouched native inline entry', a
     h.dom.window.close();
   }
 });
+
+for (const retainChrome of [false, true])
+  test(
+    'inline viewport and interaction respect chrome policy; drawers keep modal focus: ' +
+      retainChrome,
+    async () => {
+      const h = setup();
+      try {
+        if (retainChrome) h.w.document.body.dataset.tdbChromeFocus = 'off';
+        h.w.document.body.insertAdjacentHTML('beforeend', feed);
+        let focusCalls = 0;
+        h.w.TDBNavScroll = {
+          focus() {
+            focusCalls++;
+          },
+          release() {},
+        };
+        h.run('src/calculator/core.js');
+        h.run('src/calculator/ui.js');
+        h.change('cosmetic');
+        await h.w.TDBCalculator.mount(h.root);
+        const observer = h.observers.find((o) => o.targets.includes(h.root));
+        observer.callback([{ isIntersecting: true }]);
+        h.root.dispatchEvent(new h.w.Event('pointerdown', { bubbles: true }));
+        h.root.querySelector('input').focus();
+        assert.equal(
+          h.w.document.documentElement.classList.contains('tdbc-chrome-away'),
+          !retainChrome,
+        );
+        assert.equal(
+          h.root.classList.contains('is-focused'),
+          !retainChrome,
+          'inline sticky estimate cannot cover a retained navbar',
+        );
+        assert.equal(focusCalls > 0, !retainChrome);
+        assert(
+          h.root.querySelector('[data-node=step-2]'),
+          'the calculator still renders the selected category',
+        );
+        await h.w.TDBCalculator.open(h.w.document.getElementById('drawer'));
+        assert.equal(h.w.document.querySelector('dialog').open, true);
+        assert(h.w.document.documentElement.classList.contains('tdbc-chrome-away'));
+        h.w.TDBCalculator.close();
+        assert.equal(
+          h.w.document.documentElement.classList.contains('tdbc-chrome-away'),
+          !retainChrome,
+        );
+      } finally {
+        h.dom.window.close();
+      }
+    },
+  );
