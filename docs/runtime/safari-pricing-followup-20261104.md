@@ -113,6 +113,22 @@ and a different CSS release. Its existing controller, stylesheet and loader
 references are advanced together with this follow-up. There are no new script
 tags, dependencies or requests. Calculator behavior continues to use the existing
 externally hosted shared runtime; it is not a purely native Webflow implementation.
+The existing calculator loader references on the Services, Treatments and Areas
+CMS templates are advanced too, so treatment-page estimate drawers receive the
+same correction. Their script count is unchanged.
+
+Staging confirmed the blur fix: the gumline quantity tooltip retains its 20px
+blur, the two finished ancestor animations compute `backwards`/`transform: none`,
+and the underlying paragraph is blurred. All six category icons compute the
+same `rgba(0, 0, 0, 0.55)` as their labels and sit to the left. The optional hygiene
+card has the same black background as the appointment cards and adds £195 once.
+
+A real treatment-page drawer test retained scrollTop 1217 on close/reopen and
+page scrollY 4713, but exposed a second defect: fixed estimate/close controls
+temporarily appeared at -1217px/-1107px during the opening transform. The estimate
+strip is now a direct child of the drawer root and both controls use native
+sticky positioning. This removes the containing-block switch and the previous
+scripted closing offset, preserving the outer slide animation and reading position.
 
 Follow-up verification: 923 tests, 920 passed, three existing skips, zero failures;
 generated parity, formatting and whitespace checks passed. A direct browser click

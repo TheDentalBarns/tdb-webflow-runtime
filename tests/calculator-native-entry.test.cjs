@@ -206,7 +206,7 @@ test('drawer opening remains independent of an untouched native inline entry', a
     h.run('src/calculator/ui.js');
     await h.w.TDBCalculator.open(h.w.document.getElementById('drawer'));
     assert.equal(h.w.document.querySelector('dialog').open, true);
-    assert(h.w.document.querySelector('dialog .tdbc-shell > .tdbc-live'));
+    assert(h.w.document.querySelector('dialog .tdbc-drawer-root > .tdbc-live'));
     assert.equal(h.root.hasAttribute('data-tdb-calc-ready'), false);
     assert.equal(h.root.querySelector('h2').textContent, 'Authored heading');
     h.w.TDBCalculator.close();
