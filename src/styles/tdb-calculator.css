@@ -211,7 +211,7 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 .tdbc-assessment-price [data-output=appointment-price]{flex:0 0 12ch;width:12ch}
 .tdbc-shared-icon{display:inline-block;flex:0 0 1.25rem;width:1.25rem;height:1.25rem;background:var(--base-color-brand--orange-3,#d6cab4);mask:var(--tdbc-icon) center/contain no-repeat;-webkit-mask:var(--tdbc-icon) center/contain no-repeat}
 .tdbc-shared-icon.is-clock{--tdbc-icon:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c58089197784d522c2a2_tdb-review-clock-brand.svg")}
-.tdbc-shared-icon.is-price{--tdbc-icon:url("https://s3.amazonaws.com/webflow-prod-assets/677cf86cf9952f978d94d80c/6ac8e18e6a41113d6b28c57d_tdb-price-tag.svg")}
+.tdbc-shared-icon.is-price{--tdbc-icon:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8e18e6a41113d6b28c57d_tdb-price-tag.svg")}
 .tdbc-appointment-price,.tdbc-stage-cost>strong,.tdbc-total{display:flex;align-items:center;gap:.5rem}
 .tdbc-total .tdbc-shared-icon{flex-basis:1.25rem;width:1.25rem;height:1.25rem}
 .tdbc-start-choices .tdbc-appointment-price{display:flex;align-items:center;gap:.5rem}
@@ -219,8 +219,6 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 /* Paint over a fractional sticky edge without adding a layer or changing its bounds. */
 .tdb-calc[data-tdb-calculator=inline]>.tdbc-live{transform:none;box-shadow:0 -2px 0 color-mix(in srgb,var(--base-color-neutral--neutral-darker,#222) 94%,transparent)}
 .tdbc-start-choices .tdbc-appointment-duration{display:flex;align-items:center;gap:.5rem}
-.tdbc-timing-warning>.tdbc-assessment-tip{display:flex;align-items:flex-start;gap:.75rem;margin-top:1.5rem}
-.tdbc-assessment-tip>.tdbc-diamond{flex:0 0 1.25rem;margin-top:.15rem}
 .tdbc-timing-warning>.tdbc-help{margin-top:1rem}
 @media(max-width:479px){.tdbc-live-button{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 44px;gap:.5rem}.tdbc-live-value{gap:.375rem;font-size:clamp(.8rem,3vw,1rem)}.tdbc-live-copy>.text-size-tiny{font-size:.75rem}.tdbc-live-value>.tdbc-shared-icon{flex-basis:1rem;width:1rem;height:1rem}}
 .tdbc-appointment-duration svg{width:1.25rem;height:1.25rem;flex:0 0 1.25rem}

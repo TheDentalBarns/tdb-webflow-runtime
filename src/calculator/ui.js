@@ -694,6 +694,7 @@
       this.timelineManual = false;
       this.timelineFrame = 0;
       this.bridalOpen = false;
+      this.assessmentTipOpen = false;
       this.liveText = null;
       this.liveAnimation = null;
       root.classList.add('tdb-calc', 'padding-global');
@@ -978,7 +979,7 @@
               : '') +
             '</div>' +
             (!state.assessmentOnly
-              ? '<p class="text-size-small tdbc-start-only-intro">Prefer to start with an appointment?</p><div class="tdbc-actions">' +
+              ? '<p class="text-size-small tdbc-start-only-intro">Prefer us to guide you? Start with a conversation, and we’ll explore the next steps together.</p><div class="tdbc-actions">' +
                 actionButton(
                   'start-assessment',
                   'Signature Assessment <span aria-hidden="true">✦</span> only',
@@ -1531,17 +1532,24 @@
             '-bridal">Aim to finish your smile treatment before your makeup trials where possible. The shade of your teeth can influence the balance of your makeup, so it helps to see the finished look together.</p>',
         ) +
         '</div>';
+      const assessmentTip =
+        '<div class="tdbc-bridal-tip"><button type="button" class="tdbc-disclosure tdbc-bridal-toggle" data-action="assessment-tip" aria-expanded="' +
+        this.assessmentTipOpen + '" aria-controls="' + id + '-assessment-tip"><span><span class="tdbc-diamond" aria-hidden="true">◇</span> ' +
+        (e.assessment === 'design' ? 'Save up to two months' : 'The fastest way to start') +
+        '</span>' + chevron + '</button>' +
+        expand('assessment-tip', this.assessmentTipOpen,
+          '<div id="' + id + '-assessment-tip"><p>' +
+          (e.assessment === 'design'
+            ? 'A Signature Assessment could save up to two months* by bringing Smile Design and your comprehensive examination together. Contact us to explore an earlier start.'
+            : 'You’ve already selected the fastest way to get started with a Signature Assessment. Contact us to talk through your date and what may be possible.') +
+          '</p>' + (e.assessment === 'design'
+            ? '<p class="tdbc-help text-size-tiny">*Based on the typical six-week Smile Design wait, followed by 1–2 weeks for a separate check-up. Appointment availability and your confirmed plan may change this.</p>'
+            : '') + '</div>') + '</div>';
       const warning =
         '<div id="' +
         id +
-        '-deadline" class="tdbc-timing-warning text-size-small"><p>Your selected plan needs a little more time. We’re no strangers to deadlines: being based at a wedding venue, we see plenty of brides and grooms and have become experienced at exploring what may be possible for the day that matters. Let’s talk about the date, your priorities and the options for getting you closer to your smile in time.</p><p class="tdbc-assessment-tip"><span class="tdbc-diamond" aria-hidden="true">◇</span><span>' +
-        (e.assessment === 'design'
-          ? 'A Signature Assessment could save up to two months* by bringing Smile Design and your comprehensive examination together. Contact us to explore an earlier start.'
-          : 'You’ve already selected the fastest way to get started with a Signature Assessment. Contact us to talk through your date and what may be possible.') +
-        '</span></p>' +
-        (e.assessment === 'design'
-          ? '<p class="tdbc-help text-size-tiny">*Based on the typical six-week Smile Design wait, followed by 1–2 weeks for a separate check-up. Appointment availability and your confirmed plan may change this.</p>'
-          : '') +
+        '-deadline" class="tdbc-timing-warning text-size-small"><p>Your selected plan needs a little more time. We’re no strangers to deadlines: being based at a wedding venue, we see plenty of brides and grooms and have become experienced at exploring what may be possible for the day that matters. Let’s talk about the date, your priorities and the options for getting you closer to your smile in time.</p>' +
+        assessmentTip +
         wedding +
         '</div>';
       return (
@@ -2006,11 +2014,12 @@
         this.setTimingWarning(!this.timingWarning);
         return;
       }
-      if (action === 'bridal') {
-        this.bridalOpen = !this.bridalOpen;
-        el.setAttribute('aria-expanded', String(this.bridalOpen));
-        const panel = this.root.querySelector('[data-panel=bridal]');
-        setExpanded(panel, this.bridalOpen);
+      if (action === 'bridal' || action === 'assessment-tip') {
+        const key = action === 'bridal' ? 'bridalOpen' : 'assessmentTipOpen';
+        this[key] = !this[key];
+        el.setAttribute('aria-expanded', String(this[key]));
+        const panel = this.root.querySelector('[data-panel="' + action + '"]');
+        setExpanded(panel, this[key]);
         this.queueTimelineFocus();
         return;
       }
@@ -2042,6 +2051,7 @@
         this.activeStage = 'assessment';
         this.timelineManual = false;
         this.bridalOpen = false;
+        this.assessmentTipOpen = false;
         this.dismissTimingWarning();
         try {
           sessionStorage.removeItem(STORAGE);
@@ -2058,6 +2068,7 @@
         this.activeStage = 'assessment';
         this.timelineManual = false;
         this.bridalOpen = false;
+        this.assessmentTipOpen = false;
         this.dismissTimingWarning();
         renderAll();
         const section = this.root.querySelector('[data-node=assessment]');

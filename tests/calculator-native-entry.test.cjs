@@ -531,6 +531,17 @@ test('starting routes reorder the journey, retain controls and collapse to eithe
       h.root.querySelector('.tdbc-timing-warning').textContent,
       /could save up to two months/,
     );
+    const tip = h.root.querySelector('[data-action="assessment-tip"]');
+    assert.match(tip.textContent, /Save up to two months/);
+    assert.equal(tip.getAttribute('aria-expanded'), 'false');
+    const tipPanel = h.root.querySelector('[data-panel="assessment-tip"]>[data-tdb-disclosure-panel]');
+    assert.equal(tipPanel.hidden, true);
+    choose('[data-action="assessment-tip"]');
+    assert.equal(tip.getAttribute('aria-expanded'), 'true');
+    assert.equal(tipPanel.hidden, false);
+    assert.equal(h.root.querySelector('[data-action="bridal"]').getAttribute('aria-expanded'), 'false');
+    choose('[data-action="assessment-tip"]');
+    assert.equal(tip.getAttribute('aria-expanded'), 'false');
     assert.match(
       h.root.querySelector('.tdbc-timing-warning').textContent,
       /six-week Smile Design wait, followed by 1–2 weeks/,
