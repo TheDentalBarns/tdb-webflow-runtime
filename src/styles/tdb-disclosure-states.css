@@ -4,33 +4,16 @@
 [data-tdb-disclosure-trigger]:not(:where(.tdb-disclosure-trigger,.tdb-home-awards-question)):focus-visible{outline:1px solid currentColor;outline-offset:4px}
 [data-tdb-disclosure-item]:has(>[data-tdb-disclosure-trigger][aria-expanded="true"]){padding-bottom:var(--tdb-disclosure-gap,20px)}
 [data-tdb-price-panel]{--tdb-disclosure-display:grid}
-/* Existing pricing presentation moves out of the retired page compatibility sheet. */
-.pricing_top-accordion>.heading-style-h4{font-size:1.25rem}
-.pricing_top-accordion>.text-size-small{color:rgba(0,0,0,.55)}
-.pricing-list-info_wrapper>.testimonial15_divider{background-color:var(--base-color-brand--orange-2);height:1.25em;margin:0;align-self:center}
-.pricing-info_icon-wrapper>.icon-embed-xsmall{flex-shrink:0;color:var(--base-color-brand--orange-3)}
 [data-tdb-disclosure-trigger][aria-expanded="true"]+[data-tdb-price-panel]{height:auto}
-/* Clip the shared reveal lift without creating a scroll container for sticky rows. */
-[data-tdb-price-section]>[data-tdb-disclosure-panel]{opacity:1;overflow:clip;padding-top:var(--tdb-disclosure-gap,20px);min-width:0;width:100vw;margin-left:calc(50% - 50vw);padding-left:calc(50vw - 50%);padding-right:calc(50vw - 50%)}
 /* Release finished reveal layers so sticky glass can sample the content below. */
 html[data-tdb-control-motion] [data-tdb-price-section][data-tdb-disclosure-item][data-tdb-disclosure-interacted]>[data-tdb-disclosure-panel]:not([hidden])>[data-tdb-disclosure-reveal],html[data-tdb-control-motion] [data-tdb-disclosure-item][data-tdb-disclosure-interacted]>[data-tdb-disclosure-panel][data-tdb-price-panel]:not([hidden])>[data-tdb-disclosure-reveal]{animation-fill-mode:backwards;opacity:1;transform:none}
-/* Retire the legacy mobile navbar offset in both collapsed and expanded rows. */
-[data-tdb-disclosure-trigger][data-tdb-price-trigger]{position:relative;top:auto;z-index:auto}
-[data-tdb-disclosure-trigger][data-tdb-price-trigger][aria-expanded="true"]{position:sticky;top:0;z-index:3;width:100vw;margin-left:calc(50% - 50vw);padding-left:calc(50vw - 50%);padding-right:calc(50vw - 50%);background-color:var(--_tdb-navbar---bar-glass,#f9f2e6d6);-webkit-backdrop-filter:saturate(150%) blur(20px);backdrop-filter:saturate(150%) blur(20px)}
-/* The summary spans the two desktop columns and leaves the compact open header. */
-[data-tdb-price-trigger]>[schema-price="description"]{grid-column:1 / -1}
+/* Native component states own the sticky glass, typography and full-width frame.
+   This shared state rule keeps the expanded header compact. */
 [data-tdb-price-trigger][aria-expanded="true"]>[schema-price="description"]{display:none}
 /* Category bands replace the first divider; retain dividers between treatments. */
 [data-tdb-price-section]>[data-tdb-disclosure-panel]>.w-dyn-items>.w-dyn-item:first-child>[data-tdb-disclosure-item]{border-top-width:0}
-/* Shared photo motion requires the native overscan frame without legacy image margins. */
-[data-tdb-price-panel] [data-tdb-page-break-image]{margin-top:0}
 /* Webflow omits an empty CMS image. Its frame and spacing must disappear with it. */
 [data-tdb-price-panel]>[data-tdb-disclosure-reveal]:has(>[data-tdb-page-break]):not(:has([data-tdb-page-break-image][src]:not([src=""]))){display:none}
 @media(min-width:992px){
   [data-tdb-price-panel]:not(:has([data-tdb-page-break-image][src]:not([src=""])))>[data-tdb-disclosure-reveal]{grid-column:2}
-}
-@media(max-width:767px){
-  /* Expand the existing clipping boundary so the sticky glass reaches both edges. */
-  [data-tdb-price-section]>[data-tdb-disclosure-panel]{width:100vw;margin-left:calc(50% - 50vw);padding-left:5vw;padding-right:5vw}
-  [data-tdb-disclosure-trigger][data-tdb-price-trigger]{width:100vw;margin-left:calc(50% - 50vw);padding-left:5vw;padding-right:5vw}
 }

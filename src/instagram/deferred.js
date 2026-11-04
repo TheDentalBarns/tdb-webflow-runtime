@@ -15,17 +15,19 @@
     const snapshot = endpoint === 'tdb-instagram-smiles.json' && key === 'happy-patients';
     const url = new URL(endpoint, snapshot ? base : location.href);
     if (
-      !snapshot && (
-      ![location.origin, 'https://tdb-public-availability.david-070.workers.dev'].includes(
+      !snapshot &&
+      (![location.origin, 'https://tdb-public-availability.david-070.workers.dev'].includes(
         url.origin,
       ) ||
-      !['/tdb-content/v1/instagram.json', '/tdb-content/v1/instagram-practice.json', '/tdb-content/v1/instagram-patients.json'].includes(
-        url.pathname,
-      ) ||
-      url.username ||
-      url.password ||
-      url.search ||
-      url.hash)
+        ![
+          '/tdb-content/v1/instagram.json',
+          '/tdb-content/v1/instagram-practice.json',
+          '/tdb-content/v1/instagram-patients.json',
+        ].includes(url.pathname) ||
+        url.username ||
+        url.password ||
+        url.search ||
+        url.hash)
     )
       throw Error('Instagram feed must use the configured endpoint');
     if (!snapshot) {
@@ -57,9 +59,10 @@
     if (
       payload?.version !== 1 ||
       payload.feed !== 'instagram' ||
-      (!snapshot && (!Number.isSafeInteger(payload.checkedAt) ||
-      payload.checkedAt > Date.now() + 60000 ||
-      Date.now() - payload.checkedAt >= 3600000)) ||
+      (!snapshot &&
+        (!Number.isSafeInteger(payload.checkedAt) ||
+          payload.checkedAt > Date.now() + 60000 ||
+          Date.now() - payload.checkedAt >= 3600000)) ||
       (snapshot && payload.source !== 'published-smile-snapshot') ||
       !Array.isArray(payload.posts) ||
       !payload.posts.length ||
@@ -77,17 +80,32 @@
     const patients = snapshot || url.pathname === '/tdb-content/v1/instagram-patients.json';
     root.setAttribute(
       'aria-label',
-      patients ? 'Happy Patients Instagram gallery' : practice ? 'Behind the Barns Instagram gallery' : 'Awards Instagram gallery',
+      patients
+        ? 'Happy Patients Instagram gallery'
+        : practice
+          ? 'Behind the Barns Instagram gallery'
+          : 'Awards Instagram gallery',
     );
     root
       .querySelector('[data-ig-prev]')
       .setAttribute(
         'aria-label',
-        patients ? 'Previous patient smile post' : practice ? 'Previous behind-the-scenes post' : 'Previous awards post',
+        patients
+          ? 'Previous patient smile post'
+          : practice
+            ? 'Previous behind-the-scenes post'
+            : 'Previous awards post',
       );
     root
       .querySelector('[data-ig-next]')
-      .setAttribute('aria-label', patients ? 'Next patient smile post' : practice ? 'Next behind-the-scenes post' : 'Next awards post');
+      .setAttribute(
+        'aria-label',
+        patients
+          ? 'Next patient smile post'
+          : practice
+            ? 'Next behind-the-scenes post'
+            : 'Next awards post',
+      );
     const track = root.querySelector('[data-ig-track]');
     const card = track.querySelector('[data-ig-slide]');
     card.remove();
@@ -109,7 +127,10 @@
         image.username ||
         image.password ||
         image.port ||
-        !(image.pathname.startsWith('/67837ee85ee175873126e461/') || (snapshot && image.pathname.startsWith('/677cf86cf9952f978d94d80c/'))) ||
+        !(
+          image.pathname.startsWith('/67837ee85ee175873126e461/') ||
+          (snapshot && image.pathname.startsWith('/677cf86cf9952f978d94d80c/'))
+        ) ||
         typeof post.image.alt !== 'string' ||
         post.image.alt.length > 2000 ||
         typeof post.mediaType !== 'string' ||

@@ -54,10 +54,10 @@
         "src/calculator/core.js",
         "src/calculator/ui.js"
       ],
-      "sha256": "f06fb12e486237381d9e233246bbcb226a78bb639daa1a2d0c1135470276a29c",
-      "raw": 76519,
-      "gzip": 25025,
-      "brotli": 21597
+      "sha256": "1499fe0947ea1f4be10a210c8c8c85196402610c3a8d8c262ca8323cbec87c1d",
+      "raw": 76203,
+      "gzip": 24902,
+      "brotli": 21516
     },
     "dist/tdb-consent-startup.min.js": {
       "sources": [
@@ -172,10 +172,10 @@
         "src/navbar/navbar-mobile-lock.js",
         "src/navbar/navbar-loader.js"
       ],
-      "sha256": "8366127af2216bd79c3ab9d07f5957a6a3ba15e7847bfa7823d9fc1ee0604e01",
-      "raw": 29902,
-      "gzip": 9336,
-      "brotli": 8356
+      "sha256": "aefeb01b081605d2a0eb0e8782727174bc7ef6886860407ed926ae067a457cfe",
+      "raw": 30063,
+      "gzip": 9383,
+      "brotli": 8393
     },
     "dist/tdb-gallery.js": {
       "sources": [
@@ -323,10 +323,10 @@
         "src/navbar/navbar-mobile-lock.js",
         "src/navbar/navbar-loader.js"
       ],
-      "sha256": "b8df31d35a7c372b0093bc193b3a51595cc6b6b8508198380f596bf1de848774",
-      "raw": 10349,
-      "gzip": 3425,
-      "brotli": 3045
+      "sha256": "03638a5d88cf7962b2af1e2e02be432c05cdcf270e669a31f5d6ab04c51e9ccc",
+      "raw": 10510,
+      "gzip": 3480,
+      "brotli": 3084
     },
     "dist/tdb-navbar.min.js": {
       "sources": [
@@ -610,10 +610,10 @@
       "sources": [
         "src/shared/native-ticker.js"
       ],
-      "sha256": "216153891df9d0b8093aed7ea55cf8ee8c8736f372876681adbf32e56f98fd15",
-      "raw": 2958,
-      "gzip": 1239,
-      "brotli": 1079
+      "sha256": "335f4ef6ecb05f80d3bd0c38643f19ceb779af0f74fe942d9757888817598184",
+      "raw": 3004,
+      "gzip": 1262,
+      "brotli": 1105
     },
     "dist/tdb-tooltips.js": {
       "sources": [

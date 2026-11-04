@@ -18,7 +18,7 @@ test('same-page category anchors open their target before scrolling without clai
   dom.window.close();
 });
 
-test('only expanded treatments protect chrome, and category collapse or leaving the section releases it', () => {
+test('closing a treatment or category waits for shared scroll release; leaving an open section releases it', () => {
   const dom = new JSDOM(
     '<section data-tdb-price-section data-tdb-disclosure-item><button data-tdb-disclosure-trigger aria-expanded="true">Category</button><div data-tdb-disclosure-panel><div data-tdb-disclosure-item><button data-tdb-disclosure-trigger data-tdb-price-trigger aria-expanded="false">Treatment</button><div data-tdb-disclosure-panel>Price details</div></div></div></section>',
     { runScripts: 'outside-only' },
@@ -29,7 +29,8 @@ test('only expanded treatments protect chrome, and category collapse or leaving 
     callback,
     holds = 0,
     releases = 0,
-    hold;
+    hold,
+    scrollRelease;
   section.getBoundingClientRect = () => ({
     top: visible ? 100 : -1000,
     bottom: visible ? 600 : -400,
@@ -45,6 +46,7 @@ test('only expanded treatments protect chrome, and category collapse or leaving 
     focus(_release, held) {
       holds++;
       hold = held;
+      scrollRelease = _release;
     },
     release(options) {
       assert(options.respectDirection);
@@ -59,16 +61,25 @@ test('only expanded treatments protect chrome, and category collapse or leaving 
   assert.equal(holds, 1);
   assert(hold());
   w.document.querySelector('button').click();
+  assert.equal(releases, 0, 'collapse is not scroll intent');
+  assert.equal(hold(), false, 'normal navigation distance counters resume');
+  callback();
+  assert.equal(releases, 0, 'collapse geometry cannot unpark chrome');
+  scrollRelease();
   assert.equal(releases, 1);
   w.document.querySelector('button').click();
-  assert.equal(holds, 2);
+  assert.equal(holds, 3);
   visible = false;
   callback();
   assert.equal(releases, 2);
   visible = true;
   callback();
-  assert.equal(holds, 3);
+  assert.equal(holds, 4);
   w.document.querySelector('[data-tdb-price-trigger]').click();
+  assert.equal(releases, 2);
+  callback();
+  assert.equal(releases, 2);
+  scrollRelease();
   assert.equal(releases, 3);
   dom.window.close();
 });
@@ -83,7 +94,8 @@ test('treatment focus preserves the VIP handle pose through repeated open and cl
   w.document.querySelector('section').getBoundingClientRect = () => ({ top: 100, bottom: 600, height: 500 });
   let closes = 0;
   w.TDBVIPDrawer = { close() { closes++; drawer.classList.remove('is-peeking', 'is-open'); } };
-  w.TDBNavScroll = { focus() {}, release() {} };
+  let scrollRelease;
+  w.TDBNavScroll = { focus(release) { scrollRelease = release; }, release() {} };
   w.eval(source);
   w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
   for (let cycle = 0; cycle < 3; cycle++) {
@@ -91,6 +103,8 @@ test('treatment focus preserves the VIP handle pose through repeated open and cl
     assert(w.document.documentElement.classList.contains('tdb-slider-focus'));
     assert(drawer.classList.contains('is-peeking'), 'focus hides the handle without resetting its scroll state');
     trigger.click();
+    assert(w.document.documentElement.classList.contains('tdb-slider-focus'), 'closing alone keeps chrome parked');
+    scrollRelease();
     assert(!w.document.documentElement.classList.contains('tdb-slider-focus'));
     assert(drawer.classList.contains('is-peeking'), 'releasing focus restores the existing handle pose');
   }

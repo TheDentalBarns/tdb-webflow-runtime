@@ -79,17 +79,26 @@ test('calculator first click waits for CSS, shares concurrent intent and opens o
     click();
     click();
     await tick();
-    assert.equal(f.d.scripts.length, 0, 'controller execution waits for CSS');
+    assert.equal(f.d.scripts.length, 1, 'shared motion prepares alongside CSS');
+    assert.equal(f.d.scripts[0].src, root + 'tdb-motion.js');
     assert.equal(trigger.getAttribute('aria-busy'), 'true');
     const css = f.d.querySelector('link');
     assert.ok(css.href.endsWith('/tdb-calculator.css'));
     f.finish(css);
     await tick();
     assert.equal(f.d.scripts.length, 1);
-    assert.equal(f.d.scripts[0].src, root + 'tdb-calculator.js');
+    f.w.TDBMotion = {};
+    f.finish(f.d.scripts[0]);
+    await tick();
+    assert.equal(f.d.scripts[1].src, root + 'tdb-ticker.js');
+    f.w.TDBNativeTicker = {};
+    f.finish(f.d.scripts[1]);
+    await tick();
+    assert.equal(f.d.scripts.length, 3);
+    assert.equal(f.d.scripts[2].src, root + 'tdb-calculator.js');
     const opens = [];
     f.w.TDBCalculator = { open: (source) => opens.push(source) };
-    f.finish(f.d.scripts[0]);
+    f.finish(f.d.scripts[2]);
     await tick();
     assert.deepEqual(opens, [trigger]);
     assert.equal(trigger.hasAttribute('aria-busy'), false);
@@ -123,7 +132,7 @@ test('calculator keeps modified navigation native and detects a missing controll
     // Hover preparation fails harmlessly; the native link remains available.
     trigger.dispatchEvent(new f.w.Event('pointerover', { bubbles: true }));
     await tick();
-    assert.equal(calls.length, 2);
+    assert.deepEqual(calls, [root + 'tdb-calculator.css', root + 'tdb-motion.js', root + 'tdb-calculator.js']);
     assert.equal(trigger.getAttribute('href'), '#treatment-calculator');
     assert.equal(trigger.hasAttribute('aria-busy'), false);
   } finally {

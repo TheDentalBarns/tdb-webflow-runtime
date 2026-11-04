@@ -11,7 +11,7 @@ test('bundled native foundation preserves disclosure state, keyboard access and 
   try {
     w.eval(read('dist/tdb-navbar-loader.js'));
     d.dispatchEvent(new w.Event('DOMContentLoaded'));
-    assert.equal(w.TDBDisclosure.version, '1.2.2');
+    assert.equal(typeof w.TDBDisclosure.mount, 'function');
     assert.equal(w.TDBNavbarNative.version, '2.0.0');
     assert.equal(d.querySelectorAll('style[data-tdb-native-control-css]').length, 0);
     const [button, link] = d.querySelectorAll('[data-tdb-disclosure-trigger]');

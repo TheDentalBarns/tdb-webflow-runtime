@@ -1215,7 +1215,10 @@
     template.innerHTML = html;
     const key = (n) =>
       n.nodeType === 1
-        ? n.getAttribute('data-node') || n.id || n.getAttribute('data-control')
+        ? n.getAttribute('data-node') ||
+          n.id ||
+          n.getAttribute('data-control') ||
+          (n.hasAttribute('data-output') ? 'output:' + n.getAttribute('data-output') : null)
         : null;
     function children(dst, src) {
       const old = [...dst.childNodes],
@@ -1422,8 +1425,6 @@
       this.timelineFrame = 0;
       this.bridalOpen = false;
       this.assessmentTipOpen = false;
-      this.liveText = null;
-      this.liveAnimation = null;
       root.classList.add('tdb-calc', 'padding-global');
       root.addEventListener('change', (e) => this.change(e));
       root.addEventListener('input', (e) => this.input(e));
@@ -1539,21 +1540,6 @@
         if (current) button.setAttribute('aria-current', 'step');
         else button.removeAttribute('aria-current');
       }
-    }
-    animateLive(value) {
-      const changed = this.liveText !== null && this.liveText !== value;
-      this.liveText = value;
-      if (!changed) return;
-      const el = this.root.querySelector('[data-output="live"]');
-      if (!el?.animate) return;
-      this.liveAnimation?.cancel();
-      this.liveAnimation = el.animate(
-        [
-          { opacity: 0.55, transform: 'translateY(2px)' },
-          { opacity: 1, transform: 'translateY(0)' },
-        ],
-        { duration: 240, easing: 'cubic-bezier(.4,0,.2,1)' },
-      );
     }
     scrollToStart() {
       const header = this.root.querySelector('.tdbc-header');

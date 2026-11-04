@@ -65,22 +65,47 @@
   // Reveal the native target before Webflow/the browser handles the anchor scroll.
   function openHash(hash) {
     let id;
-    try { id = decodeURIComponent(hash.slice(1)); } catch { return; }
+    try {
+      id = decodeURIComponent(hash.slice(1));
+    } catch {
+      return;
+    }
     if (!id) return;
     const target = document.getElementById(id);
     if (!target?.matches('[data-tdb-price-section]')) return;
     const trigger = target.querySelector(':scope > [data-tdb-disclosure-trigger]');
     if (trigger && trigger.getAttribute('aria-expanded') !== 'true') a(trigger)?.set(true);
   }
-  document.addEventListener('click', (event) => {
-    if (event.defaultPrevented || event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    const link = event.target.closest?.('a[href]');
-    if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self')) return;
-    const url = new URL(link.href, location.href);
-    if (url.origin === location.origin && url.pathname === location.pathname && url.search === location.search) openHash(url.hash);
-  }, true);
+  document.addEventListener(
+    'click',
+    (event) => {
+      if (
+        event.defaultPrevented ||
+        event.button > 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      )
+        return;
+      const link = event.target.closest?.('a[href]');
+      if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self'))
+        return;
+      const url = new URL(link.href, location.href);
+      if (
+        url.origin === location.origin &&
+        url.pathname === location.pathname &&
+        url.search === location.search
+      )
+        openHash(url.hash);
+    },
+    true,
+  );
   window.addEventListener('hashchange', () => openHash(location.hash));
-  function start() { r(); openHash(location.hash); }
+  function start() {
+    r();
+    openHash(location.hash);
+  }
   ((window.TDBDisclosure = Object.freeze({
     version: '1.2.3',
     observe: function (e, t, n = () => 'true' === e.getAttribute('aria-expanded')) {
@@ -110,6 +135,7 @@
     const sections = [...document.querySelectorAll('[data-tdb-price-section]')];
     if (!sections.length) return;
     let active = null;
+    let waitingForScroll = false;
     let frame = 0;
     const eligible = (section) => {
       if (
@@ -124,18 +150,21 @@
     function release() {
       if (!active) return;
       active = null;
+      waitingForScroll = false;
       window.TDBNavScroll?.release({ respectDirection: true });
       document.documentElement.classList.remove('tdb-slider-focus');
     }
     function sync() {
       const next = sections.find(eligible);
       if (
+        !waitingForScroll &&
         next === active &&
         (!next || document.documentElement.classList.contains('tdb-slider-focus'))
       )
         return;
-      if (!next) return release();
+      if (!next) return waitingForScroll ? undefined : release();
       active = next;
+      waitingForScroll = false;
       // The shared focus class moves the handle away without discarding its
       // scroll pose. Only close a fully open form; a peek must survive release.
       if (document.querySelector('#tdb-vip-drawer.is-open')) window.TDBVIPDrawer?.close?.();
@@ -150,7 +179,19 @@
       });
     }
     document.addEventListener('tdb:disclosure-change', (event) => {
-      if (event.target.closest('[data-tdb-price-section]')) sync();
+      if (!event.target.closest('[data-tdb-price-section]')) return;
+      if (active && !sections.some(eligible)) {
+        // Closing changes layout, not scroll intent. Leave every chrome surface
+        // parked and restart the shared navigation distance counters. Observer
+        // callbacks caused by the collapse must not reveal them either.
+        waitingForScroll = true;
+        window.TDBNavScroll?.focus(
+          release,
+          () => !waitingForScroll && !!active && eligible(active),
+        );
+        return;
+      }
+      sync();
     });
     if ('IntersectionObserver' in window) {
       const observer = new IntersectionObserver(sync);
@@ -159,7 +200,14 @@
     // An observer may enter at the exact edge (zero visible area) and then
     // emit nothing as the section moves further in. Recheck on scroll in
     // either direction; closed categories never need a geometry read.
-    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (waitingForScroll && !window.TDBNavScroll) return release();
+        schedule();
+      },
+      { passive: true },
+    );
     window.addEventListener('resize', schedule, { passive: true });
     window.addEventListener('pagehide', () => {
       cancelAnimationFrame(frame);
