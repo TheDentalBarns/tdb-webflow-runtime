@@ -212,12 +212,24 @@
     if (assessment !== 'none')
       add(
         'assessment',
-        required || assessment === 'signature' ? 'assessment' : 'design',
+        assessment === 'signature' ? 'assessment' : 'design',
         1,
         null,
         false,
-        required && assessment === 'design' ? 'Smile Design & check-up' : undefined,
+        assessment === 'design' ? 'Smile Design' : undefined,
       );
+    if (required && assessment === 'design') {
+      const checkup = add('checkup', 'assessment', 1, null, false, 'Comprehensive check-up');
+      const design = records[IDS.design];
+      if (checkup.min !== null && design?.valid && checkup.min >= design.min) {
+        checkup.min -= design.min;
+        checkup.max -= design.min;
+        checkup.record = { ...checkup.record, tiers: [] };
+      } else {
+        checkup.min = checkup.max = null;
+        if (!missing.includes(checkup.label)) missing.push(checkup.label);
+      }
+    }
     for (const o of selected) {
       const v = state.selected[o.key];
       add(
@@ -237,6 +249,7 @@
       add('trial', 'trial', state.selected.veneers.arches.length);
     const order = [
       'assessment',
+      'checkup',
       'hygiene',
       'extractions',
       'replacement',
@@ -294,7 +307,9 @@
   function finance(estimate, deposit, term) {
     if (!estimate.complete || !estimate.lines.length) return null;
     // The upfront payment includes the assessment once. At least £250 remains to finance.
-    const minimumDeposit = estimate.assessmentLine?.min || 0,
+    const minimumDeposit =
+        (estimate.assessmentLine?.min || 0) +
+        (estimate.lines.find((line) => line.key === 'checkup')?.min || 0),
       minimumBorrowing = 25000;
     if (!minimumDeposit || estimate.min - minimumDeposit < minimumBorrowing) return null;
     const limit = estimate.min - minimumBorrowing;

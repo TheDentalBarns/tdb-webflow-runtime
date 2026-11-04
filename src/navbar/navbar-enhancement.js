@@ -140,6 +140,7 @@
           w = null,
           h = 0,
           y = '',
+          scrollDirection = 0,
           revealFrame = 0,
           k = 0,
           _ = [],
@@ -211,6 +212,7 @@
           i = Math.max(scrollY || e.scrollTop || 0, 0);
           const o = i - s,
             b = i < r;
+          if (o) scrollDirection = Math.sign(o);
           l?.isDragging()
             ? (d = c = 0)
             : o > 0
@@ -262,7 +264,7 @@
           ((o = innerWidth), (r = scrollPolicy.revealViewports * innerHeight), z(), A());
         }
         ((window.TDBNavScroll = Object.freeze({
-          version: '1.3.0',
+          version: '1.3.1',
           policy: scrollPolicy,
           get floatingVisible() {
             return t.hasAttribute('data-tdb-nav-floating-visible');
@@ -279,7 +281,16 @@
               (d = c = 0),
               e.classList.contains('tdb-slider-focus') || e.classList.add('tdb-slider-focus'));
           },
-          release() {
+          release({ respectDirection = false } = {}) {
+            // A held section can hide a previously visible navbar while its
+            // distance counters are paused. Settle the underlying pose before
+            // releasing that hold, so a downward exit reveals only the banner.
+            if (respectDirection && scrollDirection > 0 && i >= r && !m && !v && !p) {
+              t.style.position = 'fixed';
+              f = u = 1;
+              x('translateY(-100%)');
+              T();
+            }
             ((l = null),
               e.classList.contains('tdb-slider-focus') && e.classList.remove('tdb-slider-focus'));
           },

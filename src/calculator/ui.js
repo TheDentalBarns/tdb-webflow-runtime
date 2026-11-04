@@ -289,7 +289,9 @@
         f.checklist = [...priceCard.querySelectorAll('.pricing-checbox')]
           .filter(
             (row) =>
-              !row.closest('[hidden],.w-condition-invisible') && row.getAttribute('visible') !== '',
+              !row.matches('[hidden]') &&
+              !row.closest('.w-condition-invisible') &&
+              row.getAttribute('visible') !== '',
           )
           .map((row) => row.textContent.replace(/\s+/g, ' ').trim())
           .filter(Boolean);
@@ -564,11 +566,11 @@
   function releaseFocus(forget = false) {
     if (!focusedView) return;
     if (forget === true) focusedView.engaged = false;
+    window.TDBNavScroll?.release({ respectDirection: true });
     focusedView.root.classList.remove('is-focused');
     document.documentElement.classList.remove('tdbc-chrome-away');
     focusedView = null;
     ++focusEpoch;
-    window.TDBNavScroll?.release();
   }
   function focusView(view, restore = false, interacted = false) {
     if (view.suspended) return;
@@ -1235,8 +1237,32 @@
     assessment(e) {
       const a = records[C.IDS.assessment],
         d = records[C.IDS.design],
-        design = e.assessment === 'design',
-        chosen = design ? d : a;
+        design = e.assessment === 'design';
+      const shared = d?.checklist?.length
+        ? d.checklist
+        : ['Smile Design with Dr Keely Thorne', '3D scanning & clinical photography'];
+      const common = new Set(shared.map((text) => text.trim().toLowerCase()));
+      const additional = (
+        a?.checklist?.length
+          ? a.checklist
+          : [
+              'Comprehensive examination & appropriate diagnostics',
+              'Itemised plan, costs & written report',
+            ]
+      ).filter((text) => !common.has(text.trim().toLowerCase()));
+      const checklist = (items, extra = false) =>
+        '<ul class="tdbc-included text-size-small' +
+        (extra ? ' tdbc-included-additional' + (design ? ' is-unavailable' : '') : '') +
+        '">' +
+        items
+          .map(
+            (text) =>
+              '<li><span class="tdbc-included-mark" aria-hidden="true"></span><span>' +
+              esc(text) +
+              '</span></li>',
+          )
+          .join('') +
+        '</ul>';
       return (
         '<section class="tdbc-step tdbc-assessment" data-node="assessment">' +
         step('03', 'Where to start?', 'Choose the first appointment that feels right for you.') +
@@ -1280,29 +1306,16 @@
           })
           .join('') +
         '</div>' +
-        '<ul class="tdbc-included text-size-small">' +
-        (chosen?.checklist?.length
-          ? chosen.checklist
-          : design
-            ? [
-                'Explore your smile and goals with Dr Keely',
-                '3D scanning & clinical photography',
-                'A recommendation for your next clinical step',
-              ]
-            : [
-                'Smile Design',
-                'Comprehensive examination & appropriate diagnostics',
-                'Itemised plan, costs & written report',
-              ]
-        )
-          .map(
-            (t) =>
-              '<li><span class="tdbc-included-mark" aria-hidden="true"></span><span>' +
-              esc(t) +
-              '</span></li>',
-          )
-          .join('') +
-        '</ul><div class="tdbc-assessment-price"><strong class="heading-style-h4">' +
+        checklist(shared) +
+        (additional.length
+          ? '<p class="tdbc-included-label text-size-tiny">' +
+            (design
+              ? 'Included with Signature Assessment · not included in Smile Design'
+              : 'Also included with Signature Assessment') +
+            '</p>' +
+            checklist(additional, true)
+          : '') +
+        '<div class="tdbc-assessment-price"><strong class="heading-style-h4">' +
         esc(recordPrice(design && !e.required ? d : a)) +
         '</strong><span class="text-size-tiny">' +
         esc(
@@ -1690,7 +1703,7 @@
           costKeys: ['assessment'],
           description:
             e.assessment === 'design'
-              ? 'Explore your smile and goals. Your comprehensive check-up is a separate appointment at least one week later; both appointments share the same total starting cost.'
+              ? 'Explore your smile and goals. Your comprehensive check-up is booked and priced separately, usually 1–2 weeks later.'
               : 'Smile Design, examination and your treatment plan.',
         },
         ...(t.checkup
@@ -1700,8 +1713,7 @@
                 label: 'Comprehensive check-up',
                 ...t.checkup,
                 appointment: true,
-                costKeys: [],
-                costNote: 'Included in the combined starting cost shown above.',
+                costKeys: ['checkup'],
                 description:
                   'Your comprehensive examination and treatment plan, usually 1–2 weeks after Smile Design and before treatment begins.',
               },

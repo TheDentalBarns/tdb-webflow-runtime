@@ -28,8 +28,10 @@ test('both starting routes retain the same full assessment cost and charge hygie
   assert.equal(signature.min, 124000);
   assert.equal(design.min, signature.min);
   assert.equal(design.assessment, 'design');
-  assert.equal(design.assessmentLine.min, 45000);
-  assert.equal(design.assessmentLine.label, 'Smile Design & check-up');
+  assert.equal(design.assessmentLine.min, 22500);
+  assert.equal(design.assessmentLine.label, 'Smile Design');
+  assert.equal(design.lines.find((line) => line.key === 'checkup').min, 22500);
+  assert.equal(C.finance(design, 0, 12).minimumDeposit, 45000);
   state.hygiene = true;
   assert.equal(C.estimate(records, state).min, 143500);
   state.categories = ['restorative'];

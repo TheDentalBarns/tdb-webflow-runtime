@@ -152,6 +152,29 @@ for (const width of [448, 834, 1363]) {
   }
 }
 
+test('downward exit from a held section releases only the assessment banner', async () => {
+  const f = fixture(448, true, true, false);
+  const frames = new Map(); let serial = 0;
+  f.w.requestAnimationFrame = fn => { frames.set(++serial, fn); return serial; };
+  f.w.cancelAnimationFrame = id => frames.delete(id);
+  const drain = () => { for (let turn = 0; frames.size && turn < 10; turn++) { const jobs = [...frames.values()]; frames.clear(); jobs.forEach(fn => fn()); } };
+  const scroll = y => { f.w.scrollY = y; f.w.dispatchEvent(new f.w.Event('scroll')); drain(); };
+  try {
+    f.enhance(); await flush(); drain();
+    scroll(3000); scroll(2800);
+    assert.equal(f.w.TDBNavScroll.floatingVisible, true);
+    f.w.TDBNavScroll.focus(() => {}, () => true);
+    scroll(3200); scroll(5000);
+    assert(f.d.documentElement.classList.contains('tdb-slider-focus'));
+    f.w.TDBNavScroll.release({ respectDirection: true });
+    assert.equal(f.nav.style.transform, 'translateY(-100%)');
+    assert.equal(f.w.TDBNavScroll.floatingVisible, false);
+    assert.equal(f.d.documentElement.classList.contains('tdb-slider-focus'), false);
+    scroll(4800);
+    assert.equal(f.w.TDBNavScroll.floatingVisible, true, 'normal upward navigation resumes');
+  } finally { f.dom.window.close(); }
+});
+
 test('a rapid reversal cancels an unpainted sticky reveal', async () => {
   const f = fixture(448, true, true, false);
   const frames = new Map(); let serial = 0;

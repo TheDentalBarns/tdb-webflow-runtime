@@ -468,10 +468,14 @@ test('starting routes reorder the journey, retain controls and collapse to eithe
     assert.equal(nativeHeader.parentElement, h.root.querySelector('.tdbc-shell'));
     assert.equal(nativeHeader.textContent, 'Authored heading');
     assert.match(
-      assessment.querySelector('.tdbc-included').textContent,
+      assessment.querySelector('.tdbc-included-additional').textContent,
       /Comprehensive new-patient/,
     );
-    assert.equal(assessment.querySelectorAll('.tdbc-included li').length, 2);
+    assert.equal(assessment.querySelectorAll('.tdbc-included li').length, 4);
+    assert.equal(
+      assessment.querySelector('.tdbc-included-additional').classList.contains('is-unavailable'),
+      false,
+    );
     const durationRows = [...assessment.querySelectorAll('.tdbc-appointment-duration')];
     assert.deepEqual(
       durationRows.map((row) => row.textContent),
@@ -506,6 +510,13 @@ test('starting routes reorder the journey, retain controls and collapse to eithe
       /examination|written report|Unpublished/,
     );
     assert.match(assessment.textContent, /does not include a comprehensive dental examination/);
+    assert(
+      assessment.querySelector('.tdbc-included-additional').classList.contains('is-unavailable'),
+    );
+    assert.match(
+      assessment.querySelector('.tdbc-included-additional').textContent,
+      /Comprehensive new-patient/,
+    );
     choose('[data-action=stage][data-key=checkup]');
     assert.match(
       h.root.querySelector('[data-stage=checkup]').textContent,
@@ -513,7 +524,7 @@ test('starting routes reorder the journey, retain controls and collapse to eithe
     );
     assert.match(
       h.root.querySelector('[data-stage=checkup]').textContent,
-      /Included in the combined starting cost/,
+      /Comprehensive check-up£225/,
     );
     choose('[data-action=sooner]');
     assert.match(
@@ -599,8 +610,9 @@ test('drawer reads appointment checklists and duration from fetched price cards 
     drawer.querySelector('[data-action=start-design]').click();
     assert.deepEqual(
       [...drawer.querySelectorAll('.tdbc-included li')].map((e) => e.textContent),
-      ['Explore <your goals> & priorities'],
+      ['Explore <your goals> & priorities', 'Comprehensive examination'],
     );
+    assert(drawer.querySelector('.tdbc-included-additional').classList.contains('is-unavailable'));
     assert.equal(drawer.querySelector('.tdbc-included your'), null);
     assert.equal(drawer.querySelector('[data-output=duration]').textContent, '75 minutes');
     assert.equal(h.root.querySelector('h2').textContent, 'Authored heading');
