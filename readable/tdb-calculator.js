@@ -1401,6 +1401,50 @@
     });
   }
 
+  function holdNativeEntryPosition(view) {
+    const anchor = view.nativeEntry;
+    if (view.mode !== 'inline' || !anchor) return null;
+    const before = anchor.getBoundingClientRect();
+    if (!before.height || before.bottom <= 0 || before.top >= innerHeight) return null;
+    // Restoring a saved plan can add several screens below the native cards.
+    // Do not let the browser anchor to the following image as that happens.
+    const page = document.documentElement,
+      gate = new AbortController();
+    let frame = 0;
+    page.classList.add('tdbc-preserve-native-entry');
+    const release = () => {
+      gate.abort();
+      cancelAnimationFrame(frame);
+      page.classList.remove('tdbc-preserve-native-entry');
+    };
+    for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown', 'pagehide'])
+      window.addEventListener(type, release, { passive: true, signal: gate.signal });
+    const correct = () => {
+      if (gate.signal.aborted) return;
+      if (!anchor.isConnected) return release();
+      const delta = anchor.getBoundingClientRect().top - before.top;
+      if (Math.abs(delta) < 0.5) return;
+      const top = Math.max(0, window.scrollY + delta);
+      if (window.lenis?.scrollTo) {
+        window.lenis.resize?.();
+        window.lenis.scrollTo(top, { immediate: true, force: true });
+      } else window.scrollTo({ top, behavior: 'instant' });
+    };
+    return () => {
+      correct();
+      // Cover first-paint anchoring and the existing two-frame disclosure setup.
+      // A new gesture cancels the hold, so this never fights deliberate scrolling.
+      frame = requestAnimationFrame(() => {
+        correct();
+        if (gate.signal.aborted) return;
+        frame = requestAnimationFrame(() => {
+          correct();
+          release();
+        });
+      });
+    };
+  }
+
   class View {
     constructor(root, config, mode) {
       this.root = root;
@@ -1611,8 +1655,13 @@
         }
         this.ready = true;
         contextual(this, this.config);
-        this.render();
-        renderAll(this);
+        const settleEntry = firstNativeChoice ? holdNativeEntryPosition(this) : null;
+        try {
+          this.render();
+          renderAll(this);
+        } finally {
+          settleEntry?.();
+        }
         // Adopt the first native choice after lazy loading, but never a late
         // response after the user has already moved elsewhere on the page.
         if (
@@ -1650,6 +1699,7 @@
         return this.render();
       }
       const active = state.categories.length > 0,
+        insetTreatments = !!this.root.closest('[data-tdb-calc-option-inset="category"]'),
         selected = e.selected.length,
         hasEstimate = (active || state.assessmentOnly) && e.lines.length > 0,
         available = C.allowedOptions(this.config),
@@ -1704,8 +1754,14 @@
                   k +
                   '" aria-label="' +
                   k +
-                  ' treatments"><div role="heading" aria-level="4" class="text-style-tagline-restored tdbc-dd-fade">' +
+                  ' treatments"><div role="heading" aria-level="4" class="text-style-tagline-restored ' +
+                  (insetTreatments ? 'tdbc-treatment-heading' : 'tdbc-dd-fade') +
+                  '">' +
+                  (insetTreatments
+                    ? '<span class="tdbc-shared-icon is-diamond" aria-hidden="true"></span><span class="tdbc-dd-fade">'
+                    : '') +
                   (k === 'cosmetic' ? 'Cosmetic treatments' : 'Restorative treatments') +
+                  (insetTreatments ? '</span>' : '') +
                   '</div>' +
                   available
                     .filter((o) => o.category === k)

@@ -1,0 +1,612 @@
+{
+  "published": {
+    "home": {
+      "elements": 1132,
+      "quoteVariants": [
+        "tdb-team-quotes w-variant-145fd169-3d6f-074f-534c-891ac8dc1195",
+        "tdb-team-quotes w-variant-0e153d65-6c6d-a729-88b7-e4b6657800e8"
+      ],
+      "calculatorInsetCount": 0,
+      "runtimePresent": true,
+      "native": [
+        {
+          "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.83c8c71a2.min.css",
+          "bytes": 31593,
+          "balancedVariantPresent": false,
+          "hasMobileBalance": false
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cf86df9952f978d94d8a9.99dfaa1bb.opt.min.css",
+          "bytes": 210713,
+          "balancedVariantPresent": true,
+          "hasMobileBalance": true
+        }
+      ]
+    },
+    "location": {
+      "elements": 1013,
+      "quoteVariants": [
+        "tdb-team-quotes w-variant-145fd169-3d6f-074f-534c-891ac8dc1195"
+      ],
+      "calculatorInsetCount": 0,
+      "runtimePresent": true,
+      "native": [
+        {
+          "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.83c8c71a2.min.css",
+          "bytes": 31593,
+          "balancedVariantPresent": false,
+          "hasMobileBalance": false
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cfb8a0f25478449823c5f.63ec5a5ee.opt.min.css",
+          "bytes": 213079,
+          "balancedVariantPresent": true,
+          "hasMobileBalance": true
+        }
+      ]
+    },
+    "pricing": {
+      "elements": 4150,
+      "quoteVariants": [
+        "tdb-team-quotes w-variant-97683fe5-f283-3cee-fe08-fcc693b7771c"
+      ],
+      "calculatorInsetCount": 1,
+      "runtimePresent": true,
+      "native": [
+        {
+          "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.shared.83c8c71a2.min.css",
+          "bytes": 31593,
+          "balancedVariantPresent": false,
+          "hasMobileBalance": false
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/css/dentalbarns.webflow.677cfbbb752fa1bb44264481.842be9a95.opt.min.css",
+          "bytes": 170419,
+          "balancedVariantPresent": true,
+          "hasMobileBalance": true
+        }
+      ]
+    }
+  },
+  "responsiveRules": [
+    {
+      "page": "home",
+      "selector": ".tdb-team-quotes:where(.w-variant-145fd169-3d6f-074f-534c-891ac8dc1195),.tdb-team-quotes:where(.w-variant-0e153d65-6c6d-a729-88b7-e4b6657800e8),.tdb-team-quotes:where(.w-variant-97683fe5-f283-3cee-fe08-fcc693b7771c)",
+      "media": "base",
+      "value": "calc(11px - 2.375rem)"
+    },
+    {
+      "page": "home",
+      "selector": ".tdb-team-quotes_position:where(.w-variant-97683fe5-f283-3cee-fe08-fcc693b7771c)",
+      "media": "base",
+      "value": "calc(2.375rem - 11px)"
+    },
+    {
+      "page": "home",
+      "selector": ".tdb-team-quotes_position:where(.w-variant-145fd169-3d6f-074f-534c-891ac8dc1195),.tdb-team-quotes_position:where(.w-variant-0e153d65-6c6d-a729-88b7-e4b6657800e8)",
+      "media": "base",
+      "value": "calc(2.375rem - 11px)"
+    },
+    {
+      "page": "home",
+      "selector": ".tdb-team-quotes:where(.w-variant-145fd169-3d6f-074f-534c-891ac8dc1195),.tdb-team-quotes:where(.w-variant-0e153d65-6c6d-a729-88b7-e4b6657800e8),.tdb-team-quotes:where(.w-variant-97683fe5-f283-3cee-fe08-fcc693b7771c)",
+      "media": "screen and (max-width:479px)",
+      "value": "calc(11px - .375rem)"
+    },
+    {
+      "page": "home",
+      "selector": ".tdb-team-quotes_position:where(.w-variant-145fd169-3d6f-074f-534c-891ac8dc1195),.tdb-team-quotes_position:where(.w-variant-0e153d65-6c6d-a729-88b7-e4b6657800e8),.tdb-team-quotes_position:where(.w-variant-97683fe5-f283-3cee-fe08-fcc693b7771c)",
+      "media": "screen and (max-width:479px)",
+      "value": "calc(.375rem - 11px)"
+    },
+    {
+      "page": "location",
+      "selector": ".tdb-team-quotes:where(.w-variant-145fd169-3d6f-074f-534c-891ac8dc1195),.tdb-team-quotes:where(.w-variant-0e153d65-6c6d-a729-88b7-e4b6657800e8),.tdb-team-quotes:where(.w-variant-97683fe5-f283-3cee-fe08-fcc693b7771c)",
+      "media": "base",
+      "value": "calc(11px - 2.375rem)"
+    },
+    {
+      "page": "location",
+      "selector": ".tdb-team-quotes_position:where(.w-variant-97683fe5-f283-3cee-fe08-fcc693b7771c)",
+      "media": "base",
+      "value": "calc(2.375rem - 11px)"
+    },
+    {
+      "page": "location",
+      "selector": ".tdb-team-quotes_position:where(.w-variant-145fd169-3d6f-074f-534c-891ac8dc1195),.tdb-team-quotes_position:where(.w-variant-0e153d65-6c6d-a729-88b7-e4b6657800e8)",
+      "media": "base",
+      "value": "calc(2.375rem - 11px)"
+    },
+    {
+      "page": "location",
+      "selector": ".tdb-team-quotes:where(.w-variant-145fd169-3d6f-074f-534c-891ac8dc1195),.tdb-team-quotes:where(.w-variant-0e153d65-6c6d-a729-88b7-e4b6657800e8),.tdb-team-quotes:where(.w-variant-97683fe5-f283-3cee-fe08-fcc693b7771c)",
+      "media": "screen and (max-width:479px)",
+      "value": "calc(11px - .375rem)"
+    },
+    {
+      "page": "location",
+      "selector": ".tdb-team-quotes_position:where(.w-variant-145fd169-3d6f-074f-534c-891ac8dc1195),.tdb-team-quotes_position:where(.w-variant-0e153d65-6c6d-a729-88b7-e4b6657800e8),.tdb-team-quotes_position:where(.w-variant-97683fe5-f283-3cee-fe08-fcc693b7771c)",
+      "media": "screen and (max-width:479px)",
+      "value": "calc(.375rem - 11px)"
+    },
+    {
+      "page": "pricing",
+      "selector": ".tdb-team-quotes:where(.w-variant-145fd169-3d6f-074f-534c-891ac8dc1195),.tdb-team-quotes:where(.w-variant-0e153d65-6c6d-a729-88b7-e4b6657800e8),.tdb-team-quotes:where(.w-variant-97683fe5-f283-3cee-fe08-fcc693b7771c)",
+      "media": "base",
+      "value": "calc(11px - 2.375rem)"
+    },
+    {
+      "page": "pricing",
+      "selector": ".tdb-team-quotes_position:where(.w-variant-97683fe5-f283-3cee-fe08-fcc693b7771c)",
+      "media": "base",
+      "value": "calc(2.375rem - 11px)"
+    },
+    {
+      "page": "pricing",
+      "selector": ".tdb-team-quotes_position:where(.w-variant-145fd169-3d6f-074f-534c-891ac8dc1195),.tdb-team-quotes_position:where(.w-variant-0e153d65-6c6d-a729-88b7-e4b6657800e8)",
+      "media": "base",
+      "value": "calc(2.375rem - 11px)"
+    },
+    {
+      "page": "pricing",
+      "selector": ".tdb-team-quotes:where(.w-variant-145fd169-3d6f-074f-534c-891ac8dc1195),.tdb-team-quotes:where(.w-variant-0e153d65-6c6d-a729-88b7-e4b6657800e8),.tdb-team-quotes:where(.w-variant-97683fe5-f283-3cee-fe08-fcc693b7771c)",
+      "media": "screen and (max-width:479px)",
+      "value": "calc(11px - .375rem)"
+    },
+    {
+      "page": "pricing",
+      "selector": ".tdb-team-quotes_position:where(.w-variant-145fd169-3d6f-074f-534c-891ac8dc1195),.tdb-team-quotes_position:where(.w-variant-0e153d65-6c6d-a729-88b7-e4b6657800e8),.tdb-team-quotes_position:where(.w-variant-97683fe5-f283-3cee-fe08-fcc693b7771c)",
+      "media": "screen and (max-width:479px)",
+      "value": "calc(.375rem - 11px)"
+    }
+  ],
+  "cdn": {
+    "commit": "77c3eef9deb21936eb091f7d3ab20c1e9336d841",
+    "assets": [
+      {
+        "path": "dist/tdb-announcement.js",
+        "bytes": 11845,
+        "sha256": "0cfd83c1ac24220aee8d65a8531ea38d936ddcc3d94a0a87f76192b5fad89128"
+      },
+      {
+        "path": "dist/tdb-attribution.min.js",
+        "bytes": 10809,
+        "sha256": "6c51d1ec75b00732b776383f27e2e2dbd138f0307186e32cffae18d53cefb8b3"
+      },
+      {
+        "path": "dist/tdb-availability-header.js",
+        "bytes": 2237,
+        "sha256": "c7ff2f1df98428b33acfd1f12e10b9c2c141ea1387e94b66c45c931c3c0a3ef6"
+      },
+      {
+        "path": "dist/tdb-availability.js",
+        "bytes": 6508,
+        "sha256": "c5d94442a3e79ef4ee64c824548eaa73acde0852a078c03675ef77023f85b106"
+      },
+      {
+        "path": "dist/tdb-calculator-loader.js",
+        "bytes": 4493,
+        "sha256": "7e1e7df09d4fa2d7f8b556bccd61034c9a091282f7158bddeadadb2f044bca9b"
+      },
+      {
+        "path": "dist/tdb-calculator.js",
+        "bytes": 76809,
+        "sha256": "9811fbfa6cbef1bc0fb2e68a083648d9914e41cdeb9bea14a120a2bc91234bdb"
+      },
+      {
+        "path": "dist/tdb-drawer.js",
+        "bytes": 12245,
+        "sha256": "5e9ce815012c0b5589c8bc37c4f0093a4e67442a3f365d0c60dcf5eef4d8935d"
+      },
+      {
+        "path": "dist/tdb-filters.js",
+        "bytes": 7240,
+        "sha256": "7acbd6e6634aa18871147104c92fbccead5979b2031e891316a96ded78a9a645"
+      },
+      {
+        "path": "dist/tdb-five-senses-loader.js",
+        "bytes": 17747,
+        "sha256": "a67a78bd9bd33a7edb189b1941d97f38cb4d3e15425f12ae9f3740b05107bd43"
+      },
+      {
+        "path": "dist/tdb-five-senses.js",
+        "bytes": 56463,
+        "sha256": "c34037a4526b7826d54d05e798fc86867df06e423801f92f39f5891266558b18"
+      },
+      {
+        "path": "dist/tdb-foundation.js",
+        "bytes": 32801,
+        "sha256": "10739a31adcc7ae84ef6a691de22e997e708a98a0ff3fcd0c5330811fa522267"
+      },
+      {
+        "path": "dist/tdb-gallery.js",
+        "bytes": 17056,
+        "sha256": "41694171cac9823d311b12a228e835d377f1bc9c553e153edf25e0537e777ad1"
+      },
+      {
+        "path": "dist/tdb-hold-audio.js",
+        "bytes": 8373,
+        "sha256": "e48cabeb9020c85d41bba0848aa89d9df5e7ef0e57ca919d193e3822cebefeb1"
+      },
+      {
+        "path": "dist/tdb-journey.js",
+        "bytes": 27012,
+        "sha256": "c836858b435cf464d0dc7b85432a77440c041984acfbd9cc81fbe7db02cc8155"
+      },
+      {
+        "path": "dist/tdb-instagram-deferred.js",
+        "bytes": 12354,
+        "sha256": "e02474c7d19160f234da034ff0e3f0159ded5461c623c1f06b0bd85f735659d1"
+      },
+      {
+        "path": "dist/tdb-instagram-native.min.js",
+        "bytes": 15012,
+        "sha256": "c2d19e349a9ad9e1926b5d2a9d3682331990730ffad09042ff8572879ca1a82a"
+      },
+      {
+        "path": "dist/tdb-lenis.min.js",
+        "bytes": 17741,
+        "sha256": "64390df0f8535953a445b37981a8bc940943f9d9f4daa5f21be8fa1fb71bae5d"
+      },
+      {
+        "path": "dist/tdb-logo-marquee.min.js",
+        "bytes": 26871,
+        "sha256": "ef8e1f6024ab22fef6ff9dc7e10fd60ef3a5dcd73b061b4e4da71c039f0f6cab"
+      },
+      {
+        "path": "dist/tdb-motion.js",
+        "bytes": 25107,
+        "sha256": "0436da3ed0e1378d782209c5b2b90803148a11f825768e1bc7b07a287bf2dab6"
+      },
+      {
+        "path": "dist/tdb-navbar.min.js",
+        "bytes": 24576,
+        "sha256": "f6ea3bd5d71319317546ef88551f1ac99d3dfa9546edc8841b834d36dbfa9611"
+      },
+      {
+        "path": "dist/tdb-parallax.js",
+        "bytes": 45050,
+        "sha256": "e388ee7f1ec87926ffde2896bfd8e4ce6b180c257853a2c6cce773e497c1d1da"
+      },
+      {
+        "path": "dist/tdb-partner-card.js",
+        "bytes": 5698,
+        "sha256": "56bd01f9958302482695e4aabdd1c015f5fc64df028dbf87755faf831be70c72"
+      },
+      {
+        "path": "dist/tdb-quote-carousel.js",
+        "bytes": 7928,
+        "sha256": "2d4b9e860382252e88b838dfed4387899b23cdabec469b2baa72c5de7e1da99b"
+      },
+      {
+        "path": "dist/tdb-rendered-progress.js",
+        "bytes": 864,
+        "sha256": "99c3728adf8d591a4a5bcce372233e1de8e63b01e77567437924a4307d262288"
+      },
+      {
+        "path": "dist/tdb-review-availability.js",
+        "bytes": 1741,
+        "sha256": "a93832234af39edac766d2c9878a5d0a88882aa0e63d8b6e59712361805d76b0"
+      },
+      {
+        "path": "dist/tdb-review-cards.js",
+        "bytes": 16150,
+        "sha256": "a7393c642840ce2d615a50975a029596f4fab56607ce0817af0f4a674571041f"
+      },
+      {
+        "path": "dist/tdb-review-cms.js",
+        "bytes": 24352,
+        "sha256": "cd8d37cedd6d89838d56274873eb20debf6faedb9a5e847613855d2248b0febd"
+      },
+      {
+        "path": "dist/tdb-review-drawer-template.js",
+        "bytes": 32348,
+        "sha256": "3d24e2feec5a0a95d06dc281df3ff83460c64dc2c0b36c66586c138fb5d62d5c"
+      },
+      {
+        "path": "dist/tdb-review-introduction.js",
+        "bytes": 4668,
+        "sha256": "af7d0a301ea84f730818bbb79d828467ba3dcf28d62b5ed7916a03a902a483f9"
+      },
+      {
+        "path": "dist/tdb-review-list-loader.js",
+        "bytes": 3528,
+        "sha256": "88ff8cbe119a6e4ae1897b85374c0e3991973edec7eb77e5111bfffd5b0ecf1c"
+      },
+      {
+        "path": "dist/tdb-review-list.js",
+        "bytes": 12189,
+        "sha256": "c7cd603e607b184080f52da44c83747320c1c51843de272d0d1b022797a0aad3"
+      },
+      {
+        "path": "dist/tdb-review-widget.js",
+        "bytes": 1248,
+        "sha256": "29197d0f0216f1c65e5369d62bcfe63a7945525707f33cc9c285b918f4ecbf7d"
+      },
+      {
+        "path": "dist/tdb-reviews-loader.js",
+        "bytes": 11381,
+        "sha256": "578b8f1790df2f41a4c4a0e51e29285bb8ed90656997e5875db97a0227a457ad"
+      },
+      {
+        "path": "dist/tdb-reviews.js",
+        "bytes": 20386,
+        "sha256": "4d6f364dcae663e8e0e93209f998cad6c934493232bf7f2d020fc972157c534f"
+      },
+      {
+        "path": "dist/tdb-runtime.js",
+        "bytes": 80869,
+        "sha256": "08c8fc064cc4d186130628148cd908c84724a6eb78bc6db78e378111118f96ac"
+      },
+      {
+        "path": "dist/tdb-service-awards.js",
+        "bytes": 2644,
+        "sha256": "e21e0e4812e88e6b334424c16ca11ca3b13ab4057df91a17a0d01540662138e5"
+      },
+      {
+        "path": "dist/tdb-slider-focus.js",
+        "bytes": 6234,
+        "sha256": "f9b36dfb12edbca557cfeb88e76a60cc1adb2592d4329350143e95742dbc13fa"
+      },
+      {
+        "path": "dist/tdb-smile-feed.js",
+        "bytes": 12153,
+        "sha256": "4b2702c7baa1519f5c445354a92f0b281e02ea81fe4bb8d19995b0a4ca3ae2f2"
+      },
+      {
+        "path": "dist/tdb-smile-gallery.min.js",
+        "bytes": 28098,
+        "sha256": "fd6de63b5f9482c790c2b298a5bbf6ad11e69667223180a996b41df8d354829a"
+      },
+      {
+        "path": "dist/tdb-start.min.js",
+        "bytes": 12405,
+        "sha256": "73058d6185fa0c3b379835311af810589a26dbb40b0a7c1c959cd0b802eb9620"
+      },
+      {
+        "path": "dist/tdb-swiper-8.4.7.min.js",
+        "bytes": 98893,
+        "sha256": "d184676c26b4b3c9d015cd3c95dfefb94b61699e69f104b77ef0e0a62d6f2f74"
+      },
+      {
+        "path": "dist/tdb-ticker.js",
+        "bytes": 3004,
+        "sha256": "335f4ef6ecb05f80d3bd0c38643f19ceb779af0f74fe942d9757888817598184"
+      },
+      {
+        "path": "dist/tdb-tooltips.js",
+        "bytes": 2900,
+        "sha256": "2bbb6d1f91ad9e7d00aeeb3955a293a133093e7c33e8edba8a62888b1b920e18"
+      },
+      {
+        "path": "dist/tdb-usp-drawer-template.js",
+        "bytes": 14919,
+        "sha256": "4ca480ca99db5432007fd2daa1bea69359a6d2ea0c155a05359c89009d9b1c09"
+      },
+      {
+        "path": "dist/tdb-usp-drawer.js",
+        "bytes": 8265,
+        "sha256": "d839142499099d3f98682c71d03c7757cf39fcfe2c84e80d9f432f457f9e6001"
+      },
+      {
+        "path": "dist/tdb-vimeo-loader.js",
+        "bytes": 2429,
+        "sha256": "2707e9d01f436c580b75b9f824f040d38209b720c8367167a3412341656f9e55"
+      },
+      {
+        "path": "dist/tdb-vimeo.js",
+        "bytes": 20349,
+        "sha256": "56567a857cda7189547e3b38c6013e1b38267ec1454ea61825ca99224eeb0561"
+      },
+      {
+        "path": "dist/tdb-vip-content.js",
+        "bytes": 7108,
+        "sha256": "092a7ba03daade96df22df3d57edd7e906fb8eab6f65595c8bac6ae54a12e96e"
+      },
+      {
+        "path": "dist/tdb-vip-drawer.js",
+        "bytes": 9565,
+        "sha256": "cbe402f8685c8628f07e2d55d92249c092d8b3c8557780a152d8491f1b45989e"
+      },
+      {
+        "path": "dist/tdb-vip-form.js",
+        "bytes": 10077,
+        "sha256": "af62460fe2ad281c8ae2af00fdbceb5c2719637fc5133161aaebe565057425f4"
+      },
+      {
+        "path": "dist/tdb-ui.css",
+        "bytes": 23878,
+        "sha256": "43c8f6457d46deac8721307fbf484ab4f0312c68ec28ab4356494f6bd0f9903c"
+      },
+      {
+        "path": "dist/tdb-journey.css",
+        "bytes": 7183,
+        "sha256": "d5c742edfeb6601170cbb6f4f3c65c22b3a72c3a9ccdf1add2740d95477c0b9d"
+      },
+      {
+        "path": "dist/tdb-control-motion.css",
+        "bytes": 5918,
+        "sha256": "549fc816c9f039c1c43c7983ddb2cdcb5cee6e293a4ebf63415bd205d0afb180"
+      },
+      {
+        "path": "dist/tdb-scroll-lock.css",
+        "bytes": 160,
+        "sha256": "119a6e4e4cb742fd4b61cf5516b0c9d9730fb86febaeba1d8d495825b7d6c81c"
+      },
+      {
+        "path": "dist/tdb-announcement.css",
+        "bytes": 8727,
+        "sha256": "49b78ae1ab3b5801f15b19e447d9c22115932ffbf35645c9da3e6ce5199c4dbd"
+      },
+      {
+        "path": "dist/tdb-slider-ui.css",
+        "bytes": 3589,
+        "sha256": "f16ea2680bc0ce08c3a024bca9b5eeeb2c431e3edef9533d7b53f8c8c29d6abe"
+      },
+      {
+        "path": "dist/tdb-vip.css",
+        "bytes": 10713,
+        "sha256": "647bc0887f10cc6686692cb8cca5ce49bb1fef2af4526d35dd15cac169446de1"
+      },
+      {
+        "path": "dist/tdb-vip-chrome.css",
+        "bytes": 833,
+        "sha256": "9dc133aa1ff006729895949e99c8a6df38c641f87d969410ba295e83eb02cba8"
+      },
+      {
+        "path": "dist/tdb-calculator.css",
+        "bytes": 37241,
+        "sha256": "498322b6d266685d002352a1229771f8c0b48f51538a3be5778a791bb506a823"
+      },
+      {
+        "path": "dist/tdb-instagram-native.css",
+        "bytes": 12574,
+        "sha256": "f89a769db7f85efe7ec0e39d27f860218d12f3790ff6c0a2409578c93a94bce8"
+      },
+      {
+        "path": "dist/tdb-smile-feed.css",
+        "bytes": 22238,
+        "sha256": "b5db8b5ac00627cda2aee069d7962f9efe643a5c50257746a872ef49a2c6b271"
+      },
+      {
+        "path": "dist/tdb-partner-card.css",
+        "bytes": 13111,
+        "sha256": "51f490d093f2b5c60da513b7c01ee0802998d055bee1498dbb50c627328f2ae3"
+      },
+      {
+        "path": "dist/tdb-five-senses.css",
+        "bytes": 15794,
+        "sha256": "1ee0851fdda1a441a25ce8358879dfbb43ae1c3257acd2f61ed3f38fed1f3c65"
+      },
+      {
+        "path": "dist/tdb-drawer.css",
+        "bytes": 2496,
+        "sha256": "1e3e11a1807bd728410735072b02480fa10b1e6acadbaec4492f203bbdac0fc5"
+      },
+      {
+        "path": "dist/tdb-review-drawer.css",
+        "bytes": 28025,
+        "sha256": "1c5b047c73e4b1122a2d955efd67335fdaab78efbf205e88c408b0c4fa8e44ae"
+      },
+      {
+        "path": "dist/tdb-usp-drawer.css",
+        "bytes": 7744,
+        "sha256": "c86e366f23c7c9f5812db161167cb85efdad9fc017a0390a55e5ac4e3187f14a"
+      },
+      {
+        "path": "dist/tdb-review-cards.css",
+        "bytes": 13476,
+        "sha256": "b41838db06422f33389a09be5831586bc23d1559a88e28c9ca0d0404172759e6"
+      },
+      {
+        "path": "dist/tdb-review-widget.css",
+        "bytes": 2808,
+        "sha256": "f1b98a43088b4e4de710f654108c56e12a09aa638566e17fe5cbb47167be3b61"
+      },
+      {
+        "path": "dist/tdb-vip-content.css",
+        "bytes": 10616,
+        "sha256": "8e59e3675e73e0498602a3180e8212a62a66e72bbdaf5be6149519b86ebeb0c3"
+      },
+      {
+        "path": "dist/tdb-vimeo.css",
+        "bytes": 8189,
+        "sha256": "41595b2676f219dd23164da374d0f0b162b838279d0769060a59106ac1a31d5a"
+      },
+      {
+        "path": "assets/five-senses/surgery-clinical-clean.webp",
+        "bytes": 74292,
+        "sha256": "2f203455ed0f7e63b1fc947c920fdf63830959ff909e7222069f12575ac69d4a"
+      }
+    ]
+  },
+  "measurements": {
+    "pricing": {
+      "classes": "tdb-team-quotes w-variant-97683fe5-f283-3cee-fe08-fcc693b7771c is-enhanced",
+      "content": {
+        "bottom": 418.953125,
+        "height": 138.046875,
+        "top": 280.90625,
+        "width": 566.953125
+      },
+      "decoration": {
+        "bottom": 142.296875,
+        "height": 17.890625,
+        "top": 124.40625,
+        "width": 104.4375
+      },
+      "frame": {
+        "bottom": 590.734375,
+        "height": 466.328125,
+        "top": 124.40625,
+        "width": 566.953125
+      },
+      "insetEnabled": "category",
+      "lowerGap": 138.59375,
+      "overflow": false,
+      "pagination": {
+        "bottom": 579.921875,
+        "height": 22.375,
+        "top": 557.546875,
+        "width": 25.921875
+      },
+      "paginationMargin": "24.4349px",
+      "quote": "We talked in detail about the elements of my reference smile that I was drawn to, but equally about what would work with my own teeth, smile and individual proportions.\n\nNATASJA GIBB",
+      "quoteMargin": "-24.4349px",
+      "rootSize": "14.9199px",
+      "upperGap": 138.609375,
+      "viewport": {
+        "bottom": 522.3125,
+        "height": 344.75,
+        "top": 177.5625,
+        "width": 566.953125
+      }
+    },
+    "home": [
+      {
+        "author": "DAVID DREW, OWNER & CO-FOUNDER",
+        "frameHeight": 561.59375,
+        "label": "From our team",
+        "lowerGap": 138.859375,
+        "upperGap": 138.890625,
+        "variant": "tdb-team-quotes w-variant-145fd169-3d6f-074f-534c-891ac8dc1195 is-enhanced",
+        "viewportHeight": 344.75
+      },
+      {
+        "author": "NATASJA GIBB",
+        "frameHeight": 561.59375,
+        "label": "Featured patient reviews",
+        "lowerGap": 153.265625,
+        "upperGap": 153.296875,
+        "variant": "tdb-team-quotes w-variant-0e153d65-6c6d-a729-88b7-e4b6657800e8 is-enhanced",
+        "viewportHeight": 344.75
+      }
+    ],
+    "location": [
+      {
+        "author": "DAVID DREW, OWNER & CO-FOUNDER",
+        "frameHeight": 561.59375,
+        "label": "From our team",
+        "lowerGap": 124.1875,
+        "upperGap": 124.203125,
+        "variant": "tdb-team-quotes w-variant-145fd169-3d6f-074f-534c-891ac8dc1195 is-enhanced",
+        "viewportHeight": 344.75
+      }
+    ]
+  },
+  "tests": {
+    "tests": 934,
+    "passed": 931,
+    "skipped": 3,
+    "failed": 0
+  },
+  "publish": {
+    "task": "79d9409a-9bd2-486e-8a67-8ceb7b5e6b70",
+    "stagingTime": "2026-11-05T12:30:37.503Z",
+    "productionTime": "2026-10-01T10:10:45.669Z"
+  },
+  "limitations": [
+    "Mobile visual testing not completed",
+    "Physical Safari not tested"
+  ]
+}

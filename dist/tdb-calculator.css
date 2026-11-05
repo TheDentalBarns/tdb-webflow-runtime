@@ -1,5 +1,6 @@
 /* TDB Treatment Calculator v1.5.4. Site tokens, typography and existing control classes. */
 [data-tdb-calculator=inline]{scroll-margin-top:0;background:var(--base-color-brand--orange-1)}
+html.tdbc-preserve-native-entry{overflow-anchor:none}
 .tdb-calc,.tdbc-dialog{--calc-cream:var(--base-color-brand--orange-1);--calc-dark-cream:var(--base-color-brand--orange-2);--calc-ink:var(--base-color-brand--black);--calc-line:var(--base-color-brand--orange-3);--calc-muted:var(--base-color-neutral--neutral);font-family:var(--font-family--primary);color:var(--calc-ink);box-sizing:border-box}
 .tdb-calc *,.tdbc-dialog *{box-sizing:border-box}
 .tdb-calc [hidden],.tdbc-dialog [hidden]{display:none!important}
@@ -55,6 +56,14 @@
    edge, including their 1px border. Keep the row dividers full width. */
 [data-tdb-calc-option-inset=category] .tdbc-option{padding-inline:calc(1.5rem + 1px)}
 @media(max-width:767px){[data-tdb-calc-option-inset=category] .tdbc-option{padding-inline:calc(.75rem + 1px)}}
+/* Group panels follow the existing calculator content width. Only their text
+   uses the shared fade; the cream panel and brand diamond stay legible. */
+[data-tdb-calc-option-inset=category] .tdbc-treatment-heading{display:flex;align-items:center;gap:.875rem;padding:1rem calc(1.5rem + 1px);margin:0 0 .5rem;background:var(--calc-dark-cream);color:var(--calc-ink)}
+[data-tdb-calc-option-inset=category] .tdbc-treatment-heading>.tdbc-shared-icon{flex-basis:1.125rem;width:1.125rem;height:1.125rem;background:currentColor}
+/* The final treatment already supplies its own row/disclosure space. Avoid
+   adding the numbered step's bottom padding again before the next divider. */
+[data-tdb-calc-option-inset=category] .tdbc-step[data-node=step-2]{padding-bottom:0}
+@media(max-width:767px){[data-tdb-calc-option-inset=category] .tdbc-treatment-heading{padding-inline:calc(.75rem + 1px)}}
 .tdbc-option-row{position:relative;display:flex;align-items:center;gap:.5rem}.tdb-calc .tdbc-option-label{flex:1;min-height:3rem}.tdbc-option-label>span:not(.form_checkbox-icon):not(.tdbc-chevron){flex:1;min-width:0}
 /* Shared data-tdb-chevron feedback owns rotation and timing; this is geometry
    and the same accordion-family scope used by the disclosure panels. */
@@ -220,6 +229,7 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 .tdbc-shared-icon{display:inline-block;flex:0 0 1.25rem;width:1.25rem;height:1.25rem;background:var(--base-color-brand--orange-3,#d6cab4);mask:var(--tdbc-icon) center/contain no-repeat;-webkit-mask:var(--tdbc-icon) center/contain no-repeat}
 .tdbc-shared-icon.is-clock{--tdbc-icon:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c58089197784d522c2a2_tdb-review-clock-brand.svg")}
 .tdbc-shared-icon.is-price{--tdbc-icon:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8e18e6a41113d6b28c57d_tdb-price-tag.svg")}
+.tdbc-shared-icon.is-diamond{--tdbc-icon:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg")}
 .tdbc-appointment-price,.tdbc-stage-cost>strong,.tdbc-total{display:flex;align-items:center;gap:.5rem}
 .tdbc-total .tdbc-shared-icon{flex-basis:1.25rem;width:1.25rem;height:1.25rem}
 .tdbc-start-choices .tdbc-appointment-price{display:flex;align-items:center;gap:.5rem}

@@ -198,6 +198,98 @@ test('failed price fetch keeps native entry and mount retries without duplicate 
     h.dom.window.close();
   }
 });
+for (const mode of ['native', 'lenis', 'new-gesture', 'offscreen'])
+  test(
+    'saved-plan hydration preserves the native entry without trapping scroll: ' + mode,
+    async () => {
+      const h = setup();
+      try {
+        const saved = core.newState();
+        saved.categories = ['restorative'];
+        saved.selected = { onlays: { qty: 2 }, extractions: { qty: 1 } };
+        saved.assessment = 'signature';
+        h.w.sessionStorage.setItem(
+          'tdb-treatment-estimate-v1',
+          JSON.stringify({ version: 1, at: Date.now(), state: saved }),
+        );
+        h.w.document.body.insertAdjacentHTML('beforeend', feed);
+        const anchor = h.root.querySelector('[data-tdb-calc-native-entry]'),
+          frames = new Map(),
+          calls = [];
+        let frameId = 0;
+        h.w.scrollY = mode === 'offscreen' ? 5000 : 1000;
+        anchor.getBoundingClientRect = () => ({
+          top: 1200 - h.w.scrollY,
+          bottom: 1600 - h.w.scrollY,
+          height: 400,
+        });
+        h.w.requestAnimationFrame = (callback) => {
+          frames.set(++frameId, callback);
+          return frameId;
+        };
+        h.w.cancelAnimationFrame = (id) => frames.delete(id);
+        const nativeInsert = h.root.insertBefore.bind(h.root);
+        h.root.insertBefore = (node, before) => {
+          const result = nativeInsert(node, before);
+          if (node.matches?.('.tdbc-live') && mode !== 'offscreen') {
+            assert(h.w.document.documentElement.classList.contains('tdbc-preserve-native-entry'));
+            // Simulate a browser anchoring to content below a newly restored plan.
+            h.w.scrollY += 4800;
+          }
+          return result;
+        };
+        h.w.scrollTo = ({ top, behavior }) => {
+          calls.push({ top, behavior });
+          h.w.scrollY = top;
+        };
+        if (mode === 'lenis')
+          h.w.lenis = {
+            resize: () => calls.push('resize'),
+            scrollTo: (top, options) => {
+              calls.push({ top, ...options });
+              h.w.scrollY = top;
+            },
+          };
+        h.run('src/calculator/core.js');
+        h.run('src/calculator/ui.js');
+        const choice = h.change('restorative');
+        // Touch browsers need not focus a checkbox to preserve its position.
+        if (mode === 'lenis') choice.focus();
+        await h.w.TDBCalculator.mount(h.root);
+        await tick();
+        assert.equal(h.w.scrollY, mode === 'offscreen' ? 5000 : 1000);
+        assert(h.root.querySelector('[data-select=onlays]').checked);
+        assert(h.root.querySelector('[data-select=extractions]').checked);
+        assert.equal(h.root.querySelector('[data-qty=onlays]').value, '2');
+        if (mode === 'new-gesture') {
+          h.w.dispatchEvent(new h.w.WheelEvent('wheel'));
+          h.w.scrollY = 1500;
+        }
+        for (let count = 0; frames.size && count < 10; count++) {
+          const pending = [...frames.values()];
+          frames.clear();
+          pending.forEach((callback) => callback());
+        }
+        assert.equal(frames.size, 0);
+        assert.equal(
+          h.w.scrollY,
+          mode === 'new-gesture' ? 1500 : mode === 'offscreen' ? 5000 : 1000,
+        );
+        assert.equal(
+          h.w.document.documentElement.classList.contains('tdbc-preserve-native-entry'),
+          false,
+        );
+        if (mode === 'offscreen') assert.deepEqual(calls, []);
+        else if (mode === 'lenis') {
+          assert.deepEqual(calls, ['resize', { top: 1000, immediate: true, force: true }]);
+          assert.equal(h.w.document.activeElement, choice);
+        } else assert.deepEqual(calls, [{ top: 1000, behavior: 'instant' }]);
+      } finally {
+        h.dom.window.close();
+      }
+    },
+  );
+
 test('drawer opening remains independent of an untouched native inline entry', async () => {
   const h = setup();
   try {
