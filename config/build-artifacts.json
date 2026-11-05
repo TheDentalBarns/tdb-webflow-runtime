@@ -170,14 +170,13 @@
         "src/navbar/navbar-state.js",
         "src/navbar/native-foundation.js",
         "src/pricing/sticky-categories.js",
-        "src/services/native-content.js",
         "src/navbar/navbar-mobile-lock.js",
         "src/navbar/navbar-loader.js"
       ],
-      "sha256": "d17b0a67ab39f9438894bbe5a88cdbc90effa96316849bcf1e7ddd2b662b16e3",
-      "raw": 35832,
-      "gzip": 11115,
-      "brotli": 9954
+      "sha256": "10739a31adcc7ae84ef6a691de22e997e708a98a0ff3fcd0c5330811fa522267",
+      "raw": 32801,
+      "gzip": 10085,
+      "brotli": 9057
     },
     "dist/tdb-gallery.js": {
       "sources": [
@@ -567,6 +566,15 @@
       "raw": 2644,
       "gzip": 1155,
       "brotli": 947
+    },
+    "dist/tdb-service-content.js": {
+      "sources": [
+        "src/services/native-content.js"
+      ],
+      "sha256": "9e9f8d5b38aedc5a92a361e741d4e165fa6aaf012ce047803ff835e73cbd8cec",
+      "raw": 3033,
+      "gzip": 1354,
+      "brotli": 1134
     },
     "dist/tdb-slider-focus.js": {
       "sources": [

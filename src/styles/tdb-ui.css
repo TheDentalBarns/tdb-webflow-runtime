@@ -413,9 +413,8 @@ html[data-tdb-control-motion] [data-tdb-price-section][data-tdb-disclosure-item]
 /* Native Designer classes own layout; shared disclosures and motion own state. */
 [data-tdb-service-faq] [data-tdb-disclosure-item]{--tdb-disclosure-gap:0px}
 [data-tdb-faq-heading][aria-expanded="true"]{position:sticky;top:0;z-index:5;transform:translateY(var(--tdb-price-category-push,0px))}
-[data-tdb-faq-question][aria-expanded="true"]{position:sticky;top:0;z-index:6;background:rgba(248,242,231,.8);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+[data-tdb-faq-question][aria-expanded="true"]{position:sticky;top:0;z-index:6;background:rgba(248,242,231,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 [data-tdb-faq-question]::after,[data-tdb-faq-heading]::after{content:"";flex:none;width:.75rem;height:.75rem;margin-left:auto;background:currentColor;clip-path:polygon(10% 30%,50% 70%,90% 30%,100% 40%,50% 90%,0% 40%)}
-[data-tdb-service-faq] .faq3_content-left{position:static}
 [data-tdb-service-process] [data-process-step]{scroll-margin-top:9rem}
 [data-tdb-service-process] .service-process_item{color:#aaa;transition:color var(--tdb-reveal-out,calc(200ms * var(--tdb-fade-pace,1))) linear}
 [data-tdb-service-process] [data-tdb-process-reached]{color:#ebe2d2}
