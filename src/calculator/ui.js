@@ -836,14 +836,14 @@
           bar && (this.mode === 'drawer' || this.root.classList.contains('is-focused'))
             ? bar.getBoundingClientRect().height
             : 0,
-        step = this.root.querySelector('.tdbc-step'),
-        // Steps already own their heading's responsive top padding. Other
-        // destinations, such as the summary, need the same space outside them.
-        gap =
-          target.matches('.tdbc-step') || !step
-            ? 0
-            : parseFloat(getComputedStyle(step).paddingTop) || 0,
-        offset = barHeight + gap;
+        step = this.root.querySelector('.tdbc-step:not([data-node="step-1"])') || target,
+        gap = parseFloat(getComputedStyle(step).paddingTop) || 0,
+        inset = target.matches('.tdbc-step')
+          ? parseFloat(getComputedStyle(target).paddingTop) || 0
+          : 0,
+        // Most steps already own this responsive space. The standalone opening
+        // step removes its padding; reserve the same gap when navigating to it.
+        offset = barHeight + Math.max(0, gap - inset);
       if (this.mode === 'drawer' && dialog)
         scrollEstimate(
           dialog,

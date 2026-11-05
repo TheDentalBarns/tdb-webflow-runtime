@@ -669,13 +669,19 @@ test('drawer reads appointment checklists and duration from fetched price cards 
   }
 });
 
-for (const mode of ['native', 'lenis', 'drawer', 'no-bar'])
+for (const mode of ['native', 'lenis', 'drawer', 'no-bar', 'standalone'])
   test(
     'route buttons reveal the correct heading below the actual estimate bar: ' + mode,
     async () => {
       const h = setup();
       try {
         h.w.document.body.insertAdjacentHTML('beforeend', feed);
+        h.w.document.head.insertAdjacentHTML(
+          'beforeend',
+          '<style>.tdbc-step{padding-top:40px}' +
+            (mode === 'standalone' ? '[data-node="step-1"]{padding-top:0}' : '') +
+            '</style>',
+        );
         if (mode === 'no-bar') h.w.document.body.dataset.tdbChromeFocus = 'off';
         const frames = new Map(),
           calls = [];
@@ -736,7 +742,9 @@ for (const mode of ['native', 'lenis', 'drawer', 'no-bar'])
           root.querySelector('[data-action=' + action + ']').click();
           flush();
           const target = root.querySelector('[data-node=' + destination + ']'),
-            offset = mode === 'no-bar' ? 0 : barHeight,
+            offset =
+              (mode === 'no-bar' ? 0 : barHeight) +
+              (mode === 'standalone' && destination === 'step-1' ? 40 : 0),
             top = target.getBoundingClientRect().top;
           assert.equal(h.w.document.activeElement, target.querySelector('h3'));
           if (drawer) {
