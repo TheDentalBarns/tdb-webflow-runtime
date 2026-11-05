@@ -1563,19 +1563,20 @@
           bar && (this.mode === 'drawer' || this.root.classList.contains('is-focused'))
             ? bar.getBoundingClientRect().height
             : 0,
-        step = this.root.querySelector('.tdbc-step:not([data-node="step-1"])') || target,
-        gap = parseFloat(getComputedStyle(step).paddingTop) || 0,
-        inset = target.matches('.tdbc-step')
-          ? parseFloat(getComputedStyle(target).paddingTop) || 0
-          : 0,
-        // Most steps already own this responsive space. The standalone opening
-        // step removes its padding; reserve the same gap when navigating to it.
-        offset = barHeight + Math.max(0, gap - inset);
+        shell = this.root.querySelector('.tdbc-shell') || this.root,
+        // Match the visible side gutter, including the inline container's
+        // percentage width. Land on the panel, not its larger section padding.
+        gap = Math.max(
+          0,
+          shell.getBoundingClientRect().left - this.root.getBoundingClientRect().left,
+        ),
+        panel = target.querySelector('.tdbc-step-header') || target,
+        offset = barHeight + gap;
       if (this.mode === 'drawer' && dialog)
         scrollEstimate(
           dialog,
           dialog.scrollTop +
-            target.getBoundingClientRect().top -
+            panel.getBoundingClientRect().top -
             dialog.getBoundingClientRect().top -
             offset,
         );
@@ -1584,10 +1585,10 @@
         // before Lenis receives its scroll/resize event. Rebase both its limit
         // and animation origin, then use the updated document coordinate.
         window.lenis.resize?.();
-        window.lenis.scrollTo(window.scrollY + target.getBoundingClientRect().top - offset);
+        window.lenis.scrollTo(window.scrollY + panel.getBoundingClientRect().top - offset);
       } else
         window.scrollTo({
-          top: window.scrollY + target.getBoundingClientRect().top - offset,
+          top: window.scrollY + panel.getBoundingClientRect().top - offset,
           behavior: 'smooth',
         });
     }

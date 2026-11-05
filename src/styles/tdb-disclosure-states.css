@@ -10,6 +10,9 @@ html[data-tdb-control-motion] [data-tdb-price-section][data-tdb-disclosure-item]
 /* Native component states own the sticky glass, typography and full-width frame.
    This shared state rule keeps the expanded header compact. */
 [data-tdb-price-trigger][aria-expanded="true"]>[schema-price="description"]{display:none}
+/* Opening a different treatment may release a category held above the viewport.
+   Only that click-driven return eases; ordinary sticky scrolling stays direct. */
+[data-tdb-price-section]>[data-tdb-price-returning]{transition:transform var(--tdb-reveal-move-in,calc(400ms * var(--tdb-motion-pace,1))) var(--tdb-reveal-ease,var(--tdb-motion-ease-control,cubic-bezier(.165,.84,.44,1)))}
 /* Category bands replace the first divider; retain dividers between treatments. */
 [data-tdb-price-section]>[data-tdb-disclosure-panel]>.w-dyn-items>.w-dyn-item:first-child>[data-tdb-disclosure-item]{border-top-width:0}
 /* Webflow omits an empty CMS image. Its frame and spacing must disappear with it. */

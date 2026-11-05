@@ -1394,7 +1394,7 @@
     let approaching = false;
     let waitingForScroll = false;
     let frame = 0;
-    function pushCategoryHeadings() {
+    function pushCategoryHeadings(returningHeading) {
       // Read all geometry before writing. Native sticky positioning owns the
       // pin; this collision offset only makes room for an expanded treatment.
       const positions = [...categories.values()].map((category) => {
@@ -1422,10 +1422,26 @@
         return { heading, value: `${Math.round(push * 100) / 100}px` };
       });
       for (const { heading, value } of positions) {
-        if (heading && heading.style.getPropertyValue('--tdb-price-category-push') !== value)
+        if (heading && heading.style.getPropertyValue('--tdb-price-category-push') !== value) {
+          if (
+            heading === returningHeading &&
+            parseFloat(value) >
+              (parseFloat(heading.style.getPropertyValue('--tdb-price-category-push')) || 0)
+          )
+            heading.setAttribute('data-tdb-price-returning', '');
           heading.style.setProperty('--tdb-price-category-push', value);
+        }
       }
     }
+    function clearCategoryReturns() {
+      for (const { heading } of categories.values())
+        heading?.removeAttribute('data-tdb-price-returning');
+    }
+    for (const { heading } of categories.values())
+      heading?.addEventListener('transitionend', (event) => {
+        if (event.target === heading && event.propertyName === 'transform')
+          heading.removeAttribute('data-tdb-price-returning');
+      });
     const eligible = (section) => {
       const { heading, treatments } = categories.get(section);
       const categoryOpen = heading?.getAttribute('aria-expanded') === 'true';
@@ -1452,8 +1468,8 @@
       window.TDBNavScroll?.release({ respectDirection: true });
       document.documentElement.classList.remove('tdb-slider-focus');
     }
-    function sync() {
-      pushCategoryHeadings();
+    function sync(returningHeading) {
+      pushCategoryHeadings(returningHeading);
       const next = (anchor && eligible(anchor) && anchor) || sections.find(eligible);
       if (
         !waitingForScroll &&
@@ -1487,13 +1503,16 @@
     // interrupt that journey; never leave an offscreen destination holding chrome.
     function interruptAnchor(event) {
       if (
-        !approaching ||
-        (event.type === 'keydown' &&
-          !['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ', 'Escape'].includes(
-            event.key,
-          ))
+        event.type === 'keydown' &&
+        !['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ', 'Escape'].includes(
+          event.key,
+        )
       )
         return;
+      // A click-driven return can ease into place; a fresh scroll gesture must
+      // immediately resume the existing geometry-driven sticky handover.
+      clearCategoryReturns();
+      if (!approaching) return;
       approaching = false;
       sync();
     }
@@ -1502,7 +1521,15 @@
     document.addEventListener('tdb:disclosure-change', (event) => {
       const category = categories.get(event.target.closest('[data-tdb-price-section]'));
       if (!category) return;
+      let returningHeading = null;
+      category.heading?.removeAttribute('data-tdb-price-returning');
       if (event.target.hasAttribute('data-tdb-price-trigger')) {
+        if (
+          event.target.getAttribute('aria-expanded') === 'true' &&
+          category.closing &&
+          category.closing !== event.target
+        )
+          returningHeading = category.heading;
         // Closing is not scroll intent. Keep the row the user just pressed
         // uncovered until it naturally clears the sticky category's band.
         category.closing =
@@ -1523,7 +1550,7 @@
         );
         return;
       }
-      sync();
+      sync(returningHeading);
     });
     if ('IntersectionObserver' in window) {
       const observer = new IntersectionObserver(sync);
@@ -1544,6 +1571,7 @@
     window.addEventListener('pagehide', () => {
       cancelAnimationFrame(frame);
       frame = 0;
+      clearCategoryReturns();
       release();
     });
     // The first disclosure pass may have opened a deep link before this owner

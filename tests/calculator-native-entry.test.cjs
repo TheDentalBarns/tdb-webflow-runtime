@@ -671,11 +671,14 @@ test('drawer reads appointment checklists and duration from fetched price cards 
 
 for (const mode of ['native', 'lenis', 'drawer', 'no-bar', 'standalone'])
   test(
-    'route buttons reveal the correct heading below the actual estimate bar: ' + mode,
+    'route buttons match the side gutter below the actual estimate bar: ' + mode,
     async () => {
       const h = setup();
       try {
         h.w.document.body.insertAdjacentHTML('beforeend', feed);
+        const openingHeading = h.root.querySelector('[data-node="step-1"] h3');
+        openingHeading.outerHTML =
+          '<div class="tdbc-step-header">' + openingHeading.outerHTML + '</div>';
         h.w.document.head.insertAdjacentHTML(
           'beforeend',
           '<style>.tdbc-step{padding-top:40px}' +
@@ -687,6 +690,7 @@ for (const mode of ['native', 'lenis', 'drawer', 'no-bar', 'standalone'])
           calls = [];
         let frame = 0,
           barHeight = 72.5,
+          sideGutter = 30,
           lenisPosition = 2500;
         h.w.requestAnimationFrame = (callback) => {
           frames.set(++frame, callback);
@@ -702,9 +706,19 @@ for (const mode of ['native', 'lenis', 'drawer', 'no-bar', 'standalone'])
           assert.equal(frames.size, 0);
         };
         h.w.HTMLElement.prototype.getBoundingClientRect = function () {
-          const top = this.matches('dialog') ? 12 : this.dataset.node === 'step-1' ? 280 : 480;
+          const step = this.closest('.tdbc-step');
+          const sectionTop = step?.dataset.node === 'step-1' ? 280 : 480;
+          const panelInset = mode === 'standalone' && step?.dataset.node === 'step-1' ? 0 : 41;
+          const top = this.matches('dialog')
+            ? 12
+            : this.classList.contains('tdbc-step-header')
+              ? sectionTop + panelInset
+              : this.dataset.node === 'step-1'
+                ? 280
+                : 480;
           const height = this.classList.contains('tdbc-live') ? barHeight : 200;
-          return { top, bottom: top + height, left: 0, right: 400, width: 400, height };
+          const left = this.classList.contains('tdbc-shell') ? 50 + sideGutter : 50;
+          return { top, bottom: top + height, left, right: left + 400, width: 400, height };
         };
         h.w.scrollY = 1000;
         h.w.scrollTo = (options) => calls.push(options);
@@ -714,8 +728,7 @@ for (const mode of ['native', 'lenis', 'drawer', 'no-bar', 'standalone'])
             resize: () => {
               lenisPosition = h.w.scrollY;
             },
-            scrollTo: (target, options) =>
-              calls.push({ target, origin: lenisPosition, ...options }),
+            scrollTo: (target, options) => calls.push({ target, origin: lenisPosition, ...options }),
           };
         h.run('src/calculator/core.js');
         h.run('src/calculator/ui.js');
@@ -742,18 +755,18 @@ for (const mode of ['native', 'lenis', 'drawer', 'no-bar', 'standalone'])
           ['start-design', 'assessment', 'design'],
           ['resume-estimate', 'step-1'],
         ]) {
-          // A responsive/updated bar must be measured for each action, not cached.
+          // Responsive gutters and bar heights must be measured on each action.
           barHeight += 11.25;
+          sideGutter += 3.5;
           lenisPosition += 1000;
           if (drawer) drawer.scrollTop = 500;
           calls.length = 0;
           root.querySelector('[data-action=' + action + ']').click();
           flush();
           const target = root.querySelector('[data-node=' + destination + ']'),
-            offset =
-              (mode === 'no-bar' ? 0 : barHeight) +
-              (mode === 'standalone' && destination === 'step-1' ? 40 : 0),
-            top = target.getBoundingClientRect().top;
+            panel = target.querySelector('.tdbc-step-header'),
+            offset = (mode === 'no-bar' ? 0 : barHeight) + sideGutter,
+            top = panel.getBoundingClientRect().top;
           assert.equal(h.w.document.activeElement, target.querySelector('h3'));
           if (drawer) {
             assert.equal(drawer.scrollTop, 500 + top - 12 - offset);
@@ -761,11 +774,7 @@ for (const mode of ['native', 'lenis', 'drawer', 'no-bar', 'standalone'])
           } else if (mode === 'lenis') {
             assert.equal(calls.length, 1);
             assert.equal(calls[0].target, 1000 + top - offset);
-            assert.equal(
-              calls[0].origin,
-              1000,
-              'layout shrink must not reuse the old scroll origin',
-            );
+            assert.equal(calls[0].origin, 1000, 'layout shrink must not reuse the old scroll origin');
           } else {
             assert.equal(calls.length, 1);
             assert.equal(calls[0].top, 1000 + top - offset);

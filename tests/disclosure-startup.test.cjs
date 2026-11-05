@@ -58,6 +58,40 @@ test('same-page category anchors open their target and hold chrome before native
   dom.window.close();
 });
 
+test('opening another treatment slides a held category back and then restores direct sticky scrolling', () => {
+  const css = fs.readFileSync(path.join(__dirname, '..', 'src/styles/tdb-disclosure-states.css'), 'utf8');
+  const item = (name) => '<article data-tdb-disclosure-item><button data-tdb-disclosure-trigger data-tdb-price-trigger aria-expanded="false">'+name+'</button><div data-tdb-disclosure-panel>Details</div></article>';
+  const dom = new JSDOM('<style>'+css+'</style><section data-tdb-price-section data-tdb-disclosure-item><button data-tdb-disclosure-trigger aria-expanded="true">Category</button><div data-tdb-disclosure-panel>'+item('First')+item('Next')+'</div></section>', {runScripts:'outside-only'});
+  const w=dom.window, d=w.document, section=d.querySelector('section'), heading=section.querySelector('button');
+  const [first,next]=d.querySelectorAll('article button');
+  let nextTop=140, queued;
+  section.getBoundingClientRect=()=>({top:-100,bottom:1600,height:1700});
+  heading.getBoundingClientRect=()=>({height:60});
+  first.parentElement.getBoundingClientRect=()=>({top:0,bottom:300});
+  next.parentElement.getBoundingClientRect=()=>({top:nextTop,bottom:nextTop+400});
+  w.requestAnimationFrame=fn=>{queued=fn;return 1;};w.cancelAnimationFrame=()=>{};
+  w.scrollTo=()=>assert.fail('a category return must not move the page');
+  w.TDBNavScroll={focus(){},release(){}};
+  w.eval(source);d.dispatchEvent(new w.Event('DOMContentLoaded'));
+  const push=()=>heading.style.getPropertyValue('--tdb-price-category-push');
+  const returning=()=>heading.hasAttribute('data-tdb-price-returning');
+  const scroll=()=>{w.dispatchEvent(new w.Event('scroll'));const fn=queued;queued=null;fn();};
+  first.click();assert.equal(push(),'-60px');
+  first.click();assert.equal(push(),'-60px');assert(!returning(),'collapse does not reveal the category');
+  first.click();assert.equal(push(),'-60px');assert(!returning(),'reopening the same row does not reveal the category');
+  first.click();next.click();
+  assert.equal(push(),'0px');assert(returning());
+  assert.match(w.getComputedStyle(heading).transition,/^transform /,'the category return has a transform transition');
+  scroll();assert(returning(),'layout correction scrolls do not cancel the click transition');
+  const finished=new w.Event('transitionend');Object.defineProperty(finished,'propertyName',{value:'transform'});
+  heading.dispatchEvent(finished);assert(!returning());
+  nextTop=40;scroll();assert.equal(push(),'-20px');assert(!returning(),'subsequent sticky motion follows scroll directly');
+  next.click();nextTop=140;first.click();first.click();next.click();assert(returning());
+  d.dispatchEvent(new w.Event('wheel'));assert(!returning(),'a fresh user scroll gesture takes over immediately');
+  nextTop=40;scroll();assert.equal(push(),'-20px');
+  dom.window.close();
+});
+
 test('closing a treatment or category waits for shared scroll release; leaving an open section releases it', () => {
   const dom = new JSDOM(
     '<section data-tdb-price-section data-tdb-disclosure-item><button data-tdb-disclosure-trigger aria-expanded="true">Category</button><div data-tdb-disclosure-panel><div data-tdb-disclosure-item><button data-tdb-disclosure-trigger data-tdb-price-trigger aria-expanded="false">Treatment</button><div data-tdb-disclosure-panel>Price details</div></div></div></section>',
