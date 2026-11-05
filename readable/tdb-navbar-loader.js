@@ -234,6 +234,32 @@
       ? document.addEventListener('DOMContentLoaded', start, { once: !0 })
       : start());
 })();
+/* Mirror native Webflow state without motion or an extra observer. */
+(() => {
+  'use strict';
+  if (window.TDBNavbarNative) return;
+  function start() {
+    document.querySelectorAll('[data-tdb-navbar-native]').forEach((nav) => {
+      const state = window.TDBNavbarState.forNav(nav);
+      nav.querySelectorAll('.navbar10_dropdown-toggle,.navbar10_menu-button').forEach((control) => {
+        state.watch(
+          () => control.classList.contains('w--open'),
+          (expanded) => {
+            control.setAttribute('data-tdb-expanded', String(expanded));
+            const spacer = control.closest('.navbar10_menu-dropdown')?.nextElementSibling;
+            if (spacer?.matches('.accordion-spacer'))
+              spacer.setAttribute('data-tdb-expanded', String(expanded));
+          },
+        );
+      });
+    });
+  }
+  window.TDBNavbarNative = Object.freeze({ version: '2.0.0' });
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  else start();
+})();
+
 /* Native sticky category and treatment headers share the disclosure/navbar
  * controllers. An approaching open treatment pushes its category out of view. */
 (() => {
@@ -412,31 +438,6 @@
     // was listening. Replay only the current hash after all listeners exist.
     window.TDBDisclosure?.openHash(location.hash);
   }
-  if (document.readyState === 'loading')
-    document.addEventListener('DOMContentLoaded', start, { once: true });
-  else start();
-})();
-/* Mirror native Webflow state without motion or an extra observer. */
-(() => {
-  'use strict';
-  if (window.TDBNavbarNative) return;
-  function start() {
-    document.querySelectorAll('[data-tdb-navbar-native]').forEach((nav) => {
-      const state = window.TDBNavbarState.forNav(nav);
-      nav.querySelectorAll('.navbar10_dropdown-toggle,.navbar10_menu-button').forEach((control) => {
-        state.watch(
-          () => control.classList.contains('w--open'),
-          (expanded) => {
-            control.setAttribute('data-tdb-expanded', String(expanded));
-            const spacer = control.closest('.navbar10_menu-dropdown')?.nextElementSibling;
-            if (spacer?.matches('.accordion-spacer'))
-              spacer.setAttribute('data-tdb-expanded', String(expanded));
-          },
-        );
-      });
-    });
-  }
-  window.TDBNavbarNative = Object.freeze({ version: '2.0.0' });
   if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();

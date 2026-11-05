@@ -3,7 +3,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { JSDOM } = require('jsdom');
-const source = fs.readFileSync(path.join(__dirname, '../src/navbar/native-foundation.js'), 'utf8');
+const source = ['src/navbar/native-foundation.js', 'src/pricing/sticky-categories.js']
+  .map((file) => fs.readFileSync(path.join(__dirname, '..', file), 'utf8'))
+  .join('\n;\n');
 
 test('sticky categories hold chrome at its edge and yield smoothly to an open treatment without scrolling', () => {
   const dom = new JSDOM(

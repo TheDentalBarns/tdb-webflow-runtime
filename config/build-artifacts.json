@@ -169,12 +169,13 @@
         "src/shared/phone-landscape.js",
         "src/navbar/navbar-state.js",
         "src/navbar/native-foundation.js",
+        "src/pricing/sticky-categories.js",
         "src/navbar/navbar-mobile-lock.js",
         "src/navbar/navbar-loader.js"
       ],
-      "sha256": "eced42071a745ed08119124ab55e7c4e5243600e6dadcdabe8a751d6bf511ec5",
+      "sha256": "0c777eb761c9a1590d5283fc931ac6956ce24636f350c5e80190becf2dcd1aa6",
       "raw": 32216,
-      "gzip": 9968,
+      "gzip": 9969,
       "brotli": 8936
     },
     "dist/tdb-gallery.js": {
@@ -320,13 +321,14 @@
         "src/shared/phone-landscape.js",
         "src/navbar/navbar-state.js",
         "src/navbar/native-foundation.js",
+        "src/pricing/sticky-categories.js",
         "src/navbar/navbar-mobile-lock.js",
         "src/navbar/navbar-loader.js"
       ],
-      "sha256": "cecdbf8943695b7bc150e374893f157fd2aa8f7e4a6c6136924a4c2bc00bde79",
+      "sha256": "382bf3c5a65988fcf0d7de0e05aee60baec47e4b6e7c49c0c486d045b889f14b",
       "raw": 12663,
-      "gzip": 4149,
-      "brotli": 3693
+      "gzip": 4152,
+      "brotli": 3706
     },
     "dist/tdb-navbar.min.js": {
       "sources": [
