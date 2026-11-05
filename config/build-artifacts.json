@@ -172,10 +172,10 @@
         "src/navbar/navbar-mobile-lock.js",
         "src/navbar/navbar-loader.js"
       ],
-      "sha256": "e145ffde78f084806f01148af78f4ade2c71d39451b462e0cf05e5334f7e65a7",
-      "raw": 30973,
-      "gzip": 9622,
-      "brotli": 8631
+      "sha256": "2263f6c73a8e6b25ba812f7aa8eaeca88abda1477892b6c0beb3ac85b25afc19",
+      "raw": 31824,
+      "gzip": 9875,
+      "brotli": 8867
     },
     "dist/tdb-gallery.js": {
       "sources": [
@@ -323,10 +323,10 @@
         "src/navbar/navbar-mobile-lock.js",
         "src/navbar/navbar-loader.js"
       ],
-      "sha256": "2160cdc5ab026748f6a2e464023a326ca90710d89246d542f26d2e04205e7402",
-      "raw": 11420,
-      "gzip": 3794,
-      "brotli": 3372
+      "sha256": "9499fcb37d324ea054dc76ba61de2c47b54750de370e5a4557bc151ec6a6603b",
+      "raw": 12271,
+      "gzip": 4044,
+      "brotli": 3608
     },
     "dist/tdb-navbar.min.js": {
       "sources": [

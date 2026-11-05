@@ -1346,32 +1346,72 @@
       ? document.addEventListener('DOMContentLoaded', start, { once: !0 })
       : start());
 })();
-/* Price sections use the same disclosure and navbar controllers. Opening a
- * treatment owns focus only while that category is visible and expanded. */
+/* Native sticky category and treatment headers share the disclosure/navbar
+ * controllers. An approaching open treatment pushes its category out of view. */
 (() => {
   function start() {
     const sections = [...document.querySelectorAll('[data-tdb-price-section]')];
     if (!sections.length) return;
+    const navbar = document.querySelector('.navbar10_component');
+    const categories = new Map(
+      sections.map((section) => [
+        section,
+        {
+          heading: section.querySelector(':scope > [data-tdb-disclosure-trigger]'),
+          treatments: [...section.querySelectorAll('[data-tdb-price-trigger]')],
+        },
+      ]),
+    );
     let active = null;
     let anchor = null;
     let approaching = false;
     let waitingForScroll = false;
     let frame = 0;
+    function pushCategoryHeadings() {
+      // Read all geometry before writing. Native sticky positioning owns the
+      // pin; this collision offset only makes room for an expanded treatment.
+      const positions = [...categories.values()].map(({ heading, treatments }) => {
+        let push = 0;
+        if (heading?.getAttribute('aria-expanded') === 'true') {
+          const height = heading.offsetHeight;
+          for (const trigger of treatments) {
+            if (
+              trigger.getAttribute('aria-expanded') !== 'true' ||
+              trigger.closest('[hidden],[inert]')
+            )
+              continue;
+            const item = trigger.closest('[data-tdb-disclosure-item]');
+            if (!item) continue;
+            const rect = item.getBoundingClientRect();
+            push = Math.min(
+              push,
+              -Math.min(height, Math.max(0, height - rect.top), Math.max(0, rect.bottom)),
+            );
+          }
+        }
+        return { heading, value: `${Math.round(push * 100) / 100}px` };
+      });
+      for (const { heading, value } of positions) {
+        if (heading && heading.style.getPropertyValue('--tdb-price-category-push') !== value)
+          heading.style.setProperty('--tdb-price-category-push', value);
+      }
+    }
     const eligible = (section) => {
-      if (
-        !(
-          section === anchor &&
-          section.querySelector(':scope > [data-tdb-disclosure-trigger][aria-expanded="true"]')
-        ) &&
-        ![...section.querySelectorAll('[data-tdb-price-trigger][aria-expanded="true"]')].some(
-          (trigger) => !trigger.closest('[hidden],[inert]'),
-        )
-      )
-        return false;
+      const { heading, treatments } = categories.get(section);
+      const categoryOpen = heading?.getAttribute('aria-expanded') === 'true';
+      const treatmentOpen = treatments.some(
+        (trigger) =>
+          trigger.getAttribute('aria-expanded') === 'true' && !trigger.closest('[hidden],[inert]'),
+      );
+      if (!categoryOpen && !treatmentOpen) return false;
       const rect = section.getBoundingClientRect();
       const visible = rect.height > 0 && rect.bottom > 0 && rect.top < innerHeight;
       if (section === anchor && visible) approaching = false;
-      return visible || (section === anchor && approaching);
+      const categoryAtChrome = categoryOpen && rect.top <= (navbar?.offsetHeight || 0);
+      return (
+        (visible && (treatmentOpen || categoryAtChrome || section === anchor)) ||
+        (section === anchor && approaching)
+      );
     };
     function release() {
       if (!active) return;
@@ -1383,6 +1423,7 @@
       document.documentElement.classList.remove('tdb-slider-focus');
     }
     function sync() {
+      pushCategoryHeadings();
       const next = (anchor && eligible(anchor) && anchor) || sections.find(eligible);
       if (
         !waitingForScroll &&

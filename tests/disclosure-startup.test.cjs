@@ -5,6 +5,40 @@ const path = require('node:path');
 const { JSDOM } = require('jsdom');
 const source = fs.readFileSync(path.join(__dirname, '../src/navbar/native-foundation.js'), 'utf8');
 
+test('sticky categories hold chrome at its edge and yield smoothly to an open treatment without scrolling', () => {
+  const dom = new JSDOM(
+    '<nav class="navbar10_component"></nav><section data-tdb-price-section data-tdb-disclosure-item><button data-tdb-disclosure-trigger aria-expanded="true">Category</button><div data-tdb-disclosure-panel><article data-tdb-disclosure-item><button data-tdb-disclosure-trigger data-tdb-price-trigger aria-expanded="false">Treatment</button><div data-tdb-disclosure-panel>Details</div></article></div></section>',
+    { runScripts: 'outside-only' },
+  );
+  const w = dom.window, d = w.document, section = d.querySelector('section');
+  const heading = section.querySelector('button'), treatment = d.querySelector('article button');
+  Object.defineProperty(d.querySelector('nav'), 'offsetHeight', { value: 80 });
+  Object.defineProperty(heading, 'offsetHeight', { value: 60 });
+  let sectionTop = 81, sectionBottom = 1600, itemTop = 400, itemBottom = 1200, queued;
+  section.getBoundingClientRect = () => ({ top: sectionTop, bottom: sectionBottom, height: sectionBottom - sectionTop });
+  d.querySelector('article').getBoundingClientRect = () => ({ top: itemTop, bottom: itemBottom });
+  w.requestAnimationFrame = fn => { queued = fn; return 1; };
+  w.cancelAnimationFrame = () => {};
+  w.scrollTo = () => assert.fail('sticky handover must not move the page');
+  w.TDBNavScroll = { focus() {}, release() {} };
+  w.eval(source); d.dispatchEvent(new w.Event('DOMContentLoaded'));
+  const scroll = () => { w.dispatchEvent(new w.Event('scroll')); const fn = queued; queued = null; fn(); };
+  const held = () => d.documentElement.classList.contains('tdb-slider-focus');
+  const push = () => heading.style.getPropertyValue('--tdb-price-category-push');
+  scroll(); assert.equal(held(), false, 'category has not reached the chrome');
+  sectionTop = 80; scroll(); assert.equal(held(), true);
+  treatment.click(); assert.equal(push(), '0px', 'opening a lower item does not hide the category');
+  for (const [top, expected] of [[60, '0px'], [40, '-20px'], [0, '-60px'], [-400, '-60px']]) {
+    itemTop = top; scroll(); assert.equal(push(), expected); assert(held());
+  }
+  itemBottom = 30; scroll(); assert.equal(push(), '-30px', 'category returns as the open item leaves');
+  itemBottom = 0; scroll(); assert.equal(push(), '0px');
+  itemTop = -100; itemBottom = 500; scroll(); assert.equal(push(), '-60px');
+  treatment.click(); assert.equal(push(), '0px', 'closing restores the category immediately'); assert(held());
+  sectionTop = 81; scroll(); assert.equal(held(), false, 'scrolling above the category restores normal chrome control');
+  dom.window.close();
+});
+
 test('same-page category anchors open their target and hold chrome before native scrolling', () => {
   const dom = new JSDOM('<a href="#General-Dentistry">General</a><section id="General-Dentistry" data-tdb-price-section><button data-tdb-disclosure-trigger aria-expanded="false">General Dentistry</button><div data-tdb-disclosure-panel>Prices</div></section>', {runScripts:'outside-only',url:'https://dentalbarns.webflow.io/dental-cost-lichfield'});
   const w=dom.window, trigger=w.document.querySelector('button');
