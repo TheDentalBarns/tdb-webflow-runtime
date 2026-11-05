@@ -1,0 +1,315 @@
+{
+  "date": "2026-11-05",
+  "scope": {
+    "quotePages": [
+      "Home",
+      "Location",
+      "Pricing"
+    ],
+    "calculatorPages": [
+      "Pricing"
+    ],
+    "stagingOnly": true
+  },
+  "quote": {
+    "createdVariants": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"label\":\"Create opt-in balanced owner quote spacing\",\"action\":\"create_variant\",\"result\":[{\"id\":\"145fd169-3d6f-074f-534c-891ac8dc1195\",\"name\":\"Balanced spacing\",\"isSelected\":false}]}"
+        },
+        {
+          "type": "text",
+          "text": "{\"label\":\"Create opt-in balanced review quote spacing\",\"action\":\"create_variant\",\"result\":[{\"id\":\"0e153d65-6c6d-a729-88b7-e4b6657800e8\",\"name\":\"Balanced spacing\",\"isSelected\":false}]}"
+        },
+        {
+          "type": "text",
+          "text": "{\"label\":\"Copy image review variant for scoped spacing change\",\"action\":\"duplicate_variant\",\"result\":[{\"id\":\"97683fe5-f283-3cee-fe08-fcc693b7771c\",\"name\":\"On image • balanced spacing\",\"isSelected\":false}]}"
+        }
+      ],
+      "structuredContent": null,
+      "isError": false
+    },
+    "styleActions": [
+      {
+        "label": "Balance quote block on desktop 145fd169-3d6f-074f-534c-891ac8dc1195",
+        "set_variant_styles": {
+          "variant_id": "145fd169-3d6f-074f-534c-891ac8dc1195",
+          "style_name": "tdb-team-quotes",
+          "breakpoint_id": "main",
+          "properties": [
+            {
+              "property_name": "margin-top",
+              "property_value": "calc(11px - 2.375rem)"
+            }
+          ]
+        }
+      },
+      {
+        "label": "Preserve pagination position on desktop 145fd169-3d6f-074f-534c-891ac8dc1195",
+        "set_variant_styles": {
+          "variant_id": "145fd169-3d6f-074f-534c-891ac8dc1195",
+          "style_name": "tdb-team-quotes_position",
+          "breakpoint_id": "main",
+          "properties": [
+            {
+              "property_name": "margin-top",
+              "property_value": "calc(2.375rem - 11px)"
+            }
+          ]
+        }
+      },
+      {
+        "label": "Balance quote block on mobile 145fd169-3d6f-074f-534c-891ac8dc1195",
+        "set_variant_styles": {
+          "variant_id": "145fd169-3d6f-074f-534c-891ac8dc1195",
+          "style_name": "tdb-team-quotes",
+          "breakpoint_id": "tiny",
+          "properties": [
+            {
+              "property_name": "margin-top",
+              "property_value": "calc(11px - .375rem)"
+            }
+          ]
+        }
+      },
+      {
+        "label": "Preserve pagination position on mobile 145fd169-3d6f-074f-534c-891ac8dc1195",
+        "set_variant_styles": {
+          "variant_id": "145fd169-3d6f-074f-534c-891ac8dc1195",
+          "style_name": "tdb-team-quotes_position",
+          "breakpoint_id": "tiny",
+          "properties": [
+            {
+              "property_name": "margin-top",
+              "property_value": "calc(.375rem - 11px)"
+            }
+          ]
+        }
+      },
+      {
+        "label": "Balance quote block on desktop 0e153d65-6c6d-a729-88b7-e4b6657800e8",
+        "set_variant_styles": {
+          "variant_id": "0e153d65-6c6d-a729-88b7-e4b6657800e8",
+          "style_name": "tdb-team-quotes",
+          "breakpoint_id": "main",
+          "properties": [
+            {
+              "property_name": "margin-top",
+              "property_value": "calc(11px - 2.375rem)"
+            }
+          ]
+        }
+      },
+      {
+        "label": "Preserve pagination position on desktop 0e153d65-6c6d-a729-88b7-e4b6657800e8",
+        "set_variant_styles": {
+          "variant_id": "0e153d65-6c6d-a729-88b7-e4b6657800e8",
+          "style_name": "tdb-team-quotes_position",
+          "breakpoint_id": "main",
+          "properties": [
+            {
+              "property_name": "margin-top",
+              "property_value": "calc(2.375rem - 11px)"
+            }
+          ]
+        }
+      },
+      {
+        "label": "Balance quote block on mobile 0e153d65-6c6d-a729-88b7-e4b6657800e8",
+        "set_variant_styles": {
+          "variant_id": "0e153d65-6c6d-a729-88b7-e4b6657800e8",
+          "style_name": "tdb-team-quotes",
+          "breakpoint_id": "tiny",
+          "properties": [
+            {
+              "property_name": "margin-top",
+              "property_value": "calc(11px - .375rem)"
+            }
+          ]
+        }
+      },
+      {
+        "label": "Preserve pagination position on mobile 0e153d65-6c6d-a729-88b7-e4b6657800e8",
+        "set_variant_styles": {
+          "variant_id": "0e153d65-6c6d-a729-88b7-e4b6657800e8",
+          "style_name": "tdb-team-quotes_position",
+          "breakpoint_id": "tiny",
+          "properties": [
+            {
+              "property_name": "margin-top",
+              "property_value": "calc(.375rem - 11px)"
+            }
+          ]
+        }
+      },
+      {
+        "label": "Balance quote block on desktop 97683fe5-f283-3cee-fe08-fcc693b7771c",
+        "set_variant_styles": {
+          "variant_id": "97683fe5-f283-3cee-fe08-fcc693b7771c",
+          "style_name": "tdb-team-quotes",
+          "breakpoint_id": "main",
+          "properties": [
+            {
+              "property_name": "margin-top",
+              "property_value": "calc(11px - 2.375rem)"
+            }
+          ]
+        }
+      },
+      {
+        "label": "Preserve pagination position on desktop 97683fe5-f283-3cee-fe08-fcc693b7771c",
+        "set_variant_styles": {
+          "variant_id": "97683fe5-f283-3cee-fe08-fcc693b7771c",
+          "style_name": "tdb-team-quotes_position",
+          "breakpoint_id": "main",
+          "properties": [
+            {
+              "property_name": "margin-top",
+              "property_value": "calc(2.375rem - 11px)"
+            }
+          ]
+        }
+      },
+      {
+        "label": "Balance quote block on mobile 97683fe5-f283-3cee-fe08-fcc693b7771c",
+        "set_variant_styles": {
+          "variant_id": "97683fe5-f283-3cee-fe08-fcc693b7771c",
+          "style_name": "tdb-team-quotes",
+          "breakpoint_id": "tiny",
+          "properties": [
+            {
+              "property_name": "margin-top",
+              "property_value": "calc(11px - .375rem)"
+            }
+          ]
+        }
+      },
+      {
+        "label": "Preserve pagination position on mobile 97683fe5-f283-3cee-fe08-fcc693b7771c",
+        "set_variant_styles": {
+          "variant_id": "97683fe5-f283-3cee-fe08-fcc693b7771c",
+          "style_name": "tdb-team-quotes_position",
+          "breakpoint_id": "tiny",
+          "properties": [
+            {
+              "property_name": "margin-top",
+              "property_value": "calc(.375rem - 11px)"
+            }
+          ]
+        }
+      }
+    ],
+    "instanceActions": [
+      {
+        "pageId": "677cf86df9952f978d94d8a9",
+        "action": {
+          "label": "Apply balanced quote spacing only on Home Owner Quotes",
+          "set_component_instance_prop_values": {
+            "element_id": {
+              "component": "677cf86df9952f978d94d8a9",
+              "element": "de5a60ab-b9bb-67af-7cc1-11c4d0146736"
+            },
+            "values": [
+              {
+                "prop_id": "a2e8859a-7214-66b4-8cad-4a098c6fac79",
+                "type": "string",
+                "string_value": "145fd169-3d6f-074f-534c-891ac8dc1195"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "pageId": "677cf86df9952f978d94d8a9",
+        "action": {
+          "label": "Apply balanced quote spacing only on Home Review Carousel",
+          "set_component_instance_prop_values": {
+            "element_id": {
+              "component": "677cf86df9952f978d94d8a9",
+              "element": "295fb315-8295-6a8c-a936-9165b5e35167"
+            },
+            "values": [
+              {
+                "prop_id": "896fb913-4864-85e9-cd9a-a18626fc9ede",
+                "type": "string",
+                "string_value": "0e153d65-6c6d-a729-88b7-e4b6657800e8"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "pageId": "677cfb8a0f25478449823c5f",
+        "action": {
+          "label": "Apply balanced quote spacing only on Location Owner Quotes",
+          "set_component_instance_prop_values": {
+            "element_id": {
+              "component": "677cfb8a0f25478449823c5f",
+              "element": "74701c5e-0464-bf6f-4329-e4b8179870ee"
+            },
+            "values": [
+              {
+                "prop_id": "a2e8859a-7214-66b4-8cad-4a098c6fac79",
+                "type": "string",
+                "string_value": "145fd169-3d6f-074f-534c-891ac8dc1195"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "pageId": "677cfbbb752fa1bb44264481",
+        "action": {
+          "label": "Apply balanced quote spacing only on Pricing Review Carousel",
+          "set_component_instance_prop_values": {
+            "element_id": {
+              "component": "677cfbbb752fa1bb44264481",
+              "element": "5ee77335-e5ea-fff7-ce03-bf11b7ffd5f7"
+            },
+            "values": [
+              {
+                "prop_id": "896fb913-4864-85e9-cd9a-a18626fc9ede",
+                "type": "string",
+                "string_value": "97683fe5-f283-3cee-fe08-fcc693b7771c"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "calculator": {
+    "componentId": "753062ad-9d80-105d-d2a0-2dbd8260ceae",
+    "pageId": "677cfbbb752fa1bb44264481",
+    "wrapperBefore": {
+      "element": "f3a6c255-9ed7-32a9-be96-9b7f1e282565",
+      "styles": [
+        "main-wrapper"
+      ],
+      "attributes": {}
+    },
+    "attributeAction": {
+      "label": "Opt Pricing into padded treatment rows only",
+      "set_attributes": {
+        "id": {
+          "component": "677cfbbb752fa1bb44264481",
+          "element": "f3a6c255-9ed7-32a9-be96-9b7f1e282565"
+        },
+        "attributes": [
+          {
+            "name": "data-tdb-calc-option-inset",
+            "value": "category"
+          }
+        ]
+      }
+    },
+    "source": "src/styles/tdb-calculator.css",
+    "setting": "data-tdb-calc-option-inset=category",
+    "desktop": "calc(1.5rem + 1px)",
+    "mobile": "calc(.75rem + 1px) below 768px",
+    "nativeCustomPropertyUnsupported": true,
+    "unusedVariantRemoved": "ba16e981-34a2-dacd-add2-4998e11e5887"
+  },
+  "previousRuntime": "6d385310a21e18d680df878267fbd163ae447cf4"
+}
