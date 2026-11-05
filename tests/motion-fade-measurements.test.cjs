@@ -148,6 +148,24 @@ for (const bundle of [false, true]) {
     }
   });
 
+  test(`${label}: anchor arrival reveals staged text while retaining already visible text`, () => {
+    const e = fixture(bundle, 1, { mode: 'viewport', preset: 'standard' });
+    try {
+      const box = e.boxes[0];
+      box.top = 1200;
+      e.flush();
+      assert.equal(box.node.style.opacity, '0');
+      e.scroll(900, false);
+      e.settle();
+      assert.equal(box.node.style.opacity, '0.5');
+      e.scroll(950, false);
+      e.settle();
+      assert.equal(box.node.style.opacity, '0.5', 'preserve painted text on programmatic movement');
+    } finally {
+      e.close();
+    }
+  });
+
   test(`${label}: Vimeo late mount, restoration, resize and reduced motion preserve readable fallback`, () => {
     const e = fixture(bundle, 1, { mode: 'native', preset: 'vimeo' });
     try {

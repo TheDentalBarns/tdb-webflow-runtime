@@ -6,7 +6,7 @@ const { JSDOM } = require('jsdom');
 for (const file of ['src/shared/motion.js', 'dist/tdb-motion.js']) {
   test(`${file}: service journey follows current step, centres mobile rail once and cleans up`, () => {
     const dom = new JSDOM(
-      `<section data-tdb-service-process><nav class="service-process_sticky">${[1, 2, 3].map((i) => `<a class="service-process_item" href="#step-${i}">${i}</a>`).join('')}<div class="service-process_timeline"></div></nav>${[1, 2, 3].map((i) => `<article id="step-${i}"></article>`).join('')}</section>`,
+      `<section data-tdb-service-process><nav class="service-process_sticky"><div class="service-process-mobile-container">${[1, 2, 3].map((i) => `<a class="service-process_item" href="#step-${i}">${i}</a>`).join('')}<div class="service-process_timeline"></div></div></nav>${[1, 2, 3].map((i) => `<article id="step-${i}"></article>`).join('')}</section>`,
       {
         url: 'https://example.test/services/signature-assessment',
         runScripts: 'outside-only',
@@ -31,6 +31,9 @@ for (const file of ['src/shared/motion.js', 'dist/tdb-motion.js']) {
     w.cancelAnimationFrame = (id) => frames.delete(id);
     w.innerHeight = 800;
     rail.getBoundingClientRect = () => ({ top: 0, left: 0, width: 400, height: 80, bottom: 80 });
+    const timeline = root.querySelector('.service-process_timeline');
+    timeline.getBoundingClientRect = () => ({ left: 0, width: 0, height: 2 });
+    timeline.parentElement.getBoundingClientRect = () => ({ left: 0, right: 900, width: 900 });
     Object.defineProperties(rail, { clientWidth: { value: 400 }, scrollWidth: { value: 900 } });
     rail.scrollTo = (value) => centres.push(value.left);
     [...rail.querySelectorAll('a')].forEach((link, i) => {
@@ -42,11 +45,12 @@ for (const file of ['src/shared/motion.js', 'dist/tdb-motion.js']) {
         bottom: 30,
       });
     });
+    const starts = [200, 1200, 2800], heights = [1000, 1600, 800];
     [...root.querySelectorAll('article')].forEach((step, i) => {
       step.getBoundingClientRect = () => ({
-        top: 200 + i * 1000 - w.scrollY,
-        bottom: 1200 + i * 1000 - w.scrollY,
-        height: 1000,
+        top: starts[i] - w.scrollY,
+        bottom: starts[i] + heights[i] - w.scrollY,
+        height: heights[i],
         width: 400,
         left: 0,
       });
@@ -67,12 +71,25 @@ for (const file of ['src/shared/motion.js', 'dist/tdb-motion.js']) {
     assert.equal(rail.querySelector('[aria-current]').textContent, '2');
     assert.equal(rail.querySelectorAll('[data-tdb-process-reached]').length, 2);
     const width = parseFloat(root.querySelector('.service-process_timeline').style.width);
-    assert.ok(width > 40 && width < 43);
+    assert.equal(width, 495, 'line interpolates between actual markers, using this section height');
     const calls = centres.length;
     w.scrollY = 1201;
     w.dispatchEvent(new w.Event('scroll'));
     flush();
     assert.equal(centres.length, calls, 'no repeated horizontal scroll for the same step');
+    for (const [i, start] of starts.entries()) {
+      w.scrollY = start - 240 - 1;
+      w.dispatchEvent(new w.Event('scroll'));
+      flush();
+      assert.equal(rail.querySelectorAll('[data-tdb-process-reached]').length, i,
+        'a marker stays grey before its section arrives');
+      w.scrollY = start - 240;
+      w.dispatchEvent(new w.Event('scroll'));
+      flush();
+      assert.equal(parseFloat(timeline.style.width), 150 + i * 300,
+        'the leading edge of each section maps exactly to its marker');
+      assert.equal(rail.querySelectorAll('[data-tdb-process-reached]').length, i + 1);
+    }
     w.scrollY = 0;
     w.dispatchEvent(new w.Event('pageshow'));
     flush();

@@ -1,4 +1,4 @@
-/* TDB shared motion v1.24.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.24.1. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -312,7 +312,12 @@
             // Keyboard focus, anchors and restoration can bring an offscreen
             // player into view without wheel/touch intent. Reveal that arrival;
             // retain the painted opacity only when it was already in view.
-            if (state.preset === 'vimeo' && state.geometrySeen && !state.visible && g.visible)
+            if (
+              (state.preset === 'vimeo' || state.value === 0) &&
+              state.geometrySeen &&
+              !state.visible &&
+              g.visible
+            )
               state.value = ddOpacity(g.progress, state.preset);
             retain(state, g.progress, g.low, g.high, g.range);
           } else if (userScroll) {
@@ -1211,7 +1216,11 @@
     const rail = root.querySelector('.service-process_sticky');
     const timeline = root.querySelector('.service-process_timeline');
     const entries = [...(rail?.querySelectorAll('.service-process_item[href^="#"]') || [])]
-      .map((link) => ({ link, step: document.getElementById(link.hash.slice(1)) }))
+      .map((link) => ({
+        link,
+        dot: link.querySelector('.service-process-dot_wrapper') || link,
+        step: document.getElementById(link.hash.slice(1)),
+      }))
       .filter(({ step }) => step && root.contains(step));
     if (!entries.length) return { refresh() {}, destroy() {} };
     const controller = new AbortController(),
@@ -1226,15 +1235,29 @@
       const band = frame.rect(rail);
       const edge = band.height + frame.height * 0.2;
       const rects = entries.map(({ step }) => frame.rect(step));
-      let next = 0;
+      let next = -1;
       rects.forEach((rect, index) => {
         if (rect.top <= edge) next = index;
       });
-      const span = Math.max(1, rects.at(-1).bottom - rects[0].top);
-      const progress = Math.min(1, Math.max(0, (edge - rects[0].top) / span));
+      // Each section's leading edge maps to its actual marker, rather than a
+      // fraction of the whole journey. Unequal section heights and the mobile
+      // rail therefore cannot make the line and highlighted marker disagree.
+      const track = frame.rect(timeline?.parentElement || rail);
+      const origin = timeline ? frame.rect(timeline).left : track.left;
+      const extent = Math.max(1, track.right - origin || track.width);
+      const markers = entries.map(({ dot }) => {
+        const rect = frame.rect(dot);
+        return Math.max(0, Math.min(extent, rect.left + rect.width / 2 - origin));
+      });
+      const start = next < 0 ? rects[0].top - frame.height : rects[next].top;
+      const end = next + 1 < rects.length ? rects[next + 1].top : rects.at(-1).bottom;
+      const from = next < 0 ? 0 : markers[next];
+      const to = next + 1 < markers.length ? markers[next + 1] : extent;
+      const fraction = Math.min(1, Math.max(0, (edge - start) / Math.max(1, end - start)));
+      const width = from + (to - from) * fraction;
       const changed = next !== active;
       let left;
-      if (changed && mobile.matches) {
+      if (changed && next >= 0 && mobile.matches) {
         const link = frame.rect(entries[next].link);
         left = Math.max(
           0,
@@ -1245,7 +1268,7 @@
         );
       }
       return () => {
-        if (timeline) timeline.style.width = `${Math.round(progress * 10000) / 100}%`;
+        if (timeline) timeline.style.width = `${Math.round(width * 100) / 100}px`;
         if (!changed) return;
         active = next;
         entries.forEach(({ link }, index) => {
@@ -1348,7 +1371,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.24.0',
+    version: '1.24.1',
     profile,
     time,
     easing,
