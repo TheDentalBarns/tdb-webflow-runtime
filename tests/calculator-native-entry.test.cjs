@@ -686,7 +686,8 @@ for (const mode of ['native', 'lenis', 'drawer', 'no-bar', 'standalone'])
         const frames = new Map(),
           calls = [];
         let frame = 0,
-          barHeight = 72.5;
+          barHeight = 72.5,
+          lenisPosition = 2500;
         h.w.requestAnimationFrame = (callback) => {
           frames.set(++frame, callback);
           return frame;
@@ -709,7 +710,13 @@ for (const mode of ['native', 'lenis', 'drawer', 'no-bar', 'standalone'])
         h.w.scrollTo = (options) => calls.push(options);
         h.w.Element.prototype.scrollIntoView = () => assert.fail('must use the shared offset');
         if (mode === 'lenis')
-          h.w.lenis = { scrollTo: (target, options) => calls.push({ target, ...options }) };
+          h.w.lenis = {
+            resize: () => {
+              lenisPosition = h.w.scrollY;
+            },
+            scrollTo: (target, options) =>
+              calls.push({ target, origin: lenisPosition, ...options }),
+          };
         h.run('src/calculator/core.js');
         h.run('src/calculator/ui.js');
         let root = h.root,
@@ -737,6 +744,7 @@ for (const mode of ['native', 'lenis', 'drawer', 'no-bar', 'standalone'])
         ]) {
           // A responsive/updated bar must be measured for each action, not cached.
           barHeight += 11.25;
+          lenisPosition += 1000;
           if (drawer) drawer.scrollTop = 500;
           calls.length = 0;
           root.querySelector('[data-action=' + action + ']').click();
@@ -752,8 +760,12 @@ for (const mode of ['native', 'lenis', 'drawer', 'no-bar', 'standalone'])
             assert.equal(calls.length, 0, 'the background page must not scroll');
           } else if (mode === 'lenis') {
             assert.equal(calls.length, 1);
-            assert.equal(calls[0].target, target);
-            assert.equal(calls[0].offset, -offset);
+            assert.equal(calls[0].target, 1000 + top - offset);
+            assert.equal(
+              calls[0].origin,
+              1000,
+              'layout shrink must not reuse the old scroll origin',
+            );
           } else {
             assert.equal(calls.length, 1);
             assert.equal(calls[0].top, 1000 + top - offset);

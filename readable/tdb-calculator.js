@@ -1579,8 +1579,13 @@
             dialog.getBoundingClientRect().top -
             offset,
         );
-      else if (window.lenis?.scrollTo) window.lenis.scrollTo(target, { offset: -offset });
-      else
+      else if (window.lenis?.scrollTo) {
+        // Switching routes can shrink the document and move native scroll
+        // before Lenis receives its scroll/resize event. Rebase both its limit
+        // and animation origin, then use the updated document coordinate.
+        window.lenis.resize?.();
+        window.lenis.scrollTo(window.scrollY + target.getBoundingClientRect().top - offset);
+      } else
         window.scrollTo({
           top: window.scrollY + target.getBoundingClientRect().top - offset,
           behavior: 'smooth',
