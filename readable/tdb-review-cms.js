@@ -1134,7 +1134,7 @@
   });
 })();
 
-/* TDB review quote adapter v2.1.2. Native component + shared quote carousel. */
+/* TDB review quote adapter v2.2.0. Native component + shared quote carousel. */
 (() => {
   'use strict';
   if (window.TDBReviewQuotes) return;
@@ -1145,6 +1145,7 @@
     const track = root.querySelector('[data-tdb-team-track]');
     // Selection order is supplied by the consumer; no fixed names or feed positions.
     const records = data.featured.map((id) => data.getCached(id)).filter(Boolean);
+    const nativeSelection = root.hasAttribute('data-tdb-review-native-selection');
     if (!records.length) return { destroy() {} };
     // Hydrate the authored cards in place; never replace the component or its layout.
     // Only CMS count changes require adding/removing a card.
@@ -1155,8 +1156,9 @@
     records.forEach((record, index) => {
       const card = track.children[index];
       card.dataset.reviewId = record.id;
-      card.querySelector('[data-tdb-team-text]').textContent =
-        record.displayExcerpt ?? record.excerpt;
+      if (!nativeSelection)
+        card.querySelector('[data-tdb-team-text]').textContent =
+          record.displayExcerpt ?? record.excerpt;
       card.querySelector('[data-tdb-quotes-name]').textContent = record.name;
       const source = card.querySelector('[data-tdb-quotes-source]'),
         asset = platformAsset(record.platform);
@@ -1188,6 +1190,6 @@
     instances.set(root, api);
     return api;
   }
-  window.TDBReviewQuotes = Object.freeze({ version: '2.1.2', mount });
+  window.TDBReviewQuotes = Object.freeze({ version: '2.2.0', mount });
   window.TDBSwiper?.register('review-testimonials', window.TDBReviewQuotes);
 })();

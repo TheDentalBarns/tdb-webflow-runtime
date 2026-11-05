@@ -101,12 +101,8 @@
         "/services/signature-assessment",
         "/services/smile-design"
       ],
-      "features": [
-        "calculator",
-        "instagram",
-        "process",
-        "smile-hero"
-      ]
+      "features": [],
+      "ownership": "Native Services components and shared runtime. Keep only the pinned calculator loader in the template footer; do not reinstall legacy inline handlers."
     },
     "6aa3efd54f3f705caf98c687": {
       "paths": [

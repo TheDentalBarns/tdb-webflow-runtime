@@ -48,6 +48,17 @@ function setup(html='<section data-tdb-review-introduction><button data-tdb-revi
     close(){w.TDBReviewLoader?.destroy();w.TDBReviewFeatureLoader?.destroy();w.close();}};
 }
 const drawerFiles=/tdb-(drawer|filters|reviews|review-drawer)/;
+test('service quote loader fetches the native CMS identities without replacing shared feed selection',async()=>{
+ const e=setup('<section data-tdb-review-quotes data-tdb-review-native-selection><span data-tdb-review-record-id>native-one</span><span data-tdb-review-record-id>native-two</span><span data-tdb-review-record-id>native-three</span></section>');
+ const fetched=[];let mounted;
+ e.data.featured=['general-one'];e.data.fetchRecords=async ids=>fetched.push([...ids]);
+ e.w.TDBSwiper.mount=(kind,root,data)=>{mounted=data;return {destroy(){}}};
+ try{e.run();e.near(e.w.document.querySelector('section'));await tick();
+  assert.deepEqual(fetched,[['native-one','native-two','native-three']]);
+  assert.deepEqual([...mounted.featured],['native-one','native-two','native-three']);
+  assert.deepEqual(e.data.featured,['general-one']);
+ }finally{e.close()}
+});
 for (const cached of [true, false]) test('native excerpt survives contextual cross-post selection and opens its own review: '+cached,async()=>{
  const e=setup('<section data-tdb-review-introduction data-tdb-review-topic="location"><button data-tdb-review-trigger><blockquote data-tdb-review-excerpt data-tdb-review-id="native-lead">Native Location excerpt</blockquote><span data-tdb-review-author>Native author</span></button></section><div data-tdb-review-lazy></div>');
  const root=e.w.document.querySelector('section'),quote=root.querySelector('blockquote'),author=root.querySelector('span');

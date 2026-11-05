@@ -316,7 +316,21 @@
         const content = isHolder ? await window.TDBReviewCards.create(root, { signal }) : root;
         if (isHolder) state.content = content;
         current();
-        if (type === 'quotes') await data.fetchRecords(data.featured, { signal });
+        let componentData = data;
+        if (type === 'quotes') {
+          if (root.hasAttribute('data-tdb-review-native-selection')) {
+            // The native Services list already owns relevance and order. Fetch
+            // only those published identities so enhancement cannot replace it
+            // with a general feed trio or advance the full review drawer.
+            const featured = [...root.querySelectorAll('[data-tdb-review-record-id]')]
+              .map((node) => node.textContent.trim())
+              .filter(Boolean);
+            if (!featured.length || new Set(featured).size !== featured.length)
+              throw Error('Native review selection is incomplete');
+            componentData = { ...data, featured };
+          }
+          await data.fetchRecords(componentData.featured, { signal });
+        }
         if (type === 'introduction') {
           if (data.power) hydratePower(root, data);
           else await data.ensureIdentity?.(root, { signal });
@@ -351,7 +365,7 @@
             : window.TDBSwiper.mount(
                 type === 'cards' ? 'review-cards' : 'review-testimonials',
                 content,
-                data,
+                componentData,
                 callbacks,
               );
         if (!state.instance) throw Error('Review component did not mount');

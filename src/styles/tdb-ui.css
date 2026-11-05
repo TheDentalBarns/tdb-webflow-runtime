@@ -410,6 +410,33 @@ html[data-tdb-control-motion] [data-tdb-price-section][data-tdb-disclosure-item]
   [data-tdb-price-panel]:not(:has([data-tdb-page-break-image][src]:not([src=""])))>[data-tdb-disclosure-reveal]{grid-column:2}
 }
 
+/* Native Designer classes own layout; shared disclosures and motion own state. */
+[data-tdb-service-faq] [data-tdb-disclosure-item]{--tdb-disclosure-gap:0px}
+[data-tdb-faq-heading][aria-expanded="true"]{position:sticky;top:0;z-index:5;transform:translateY(var(--tdb-price-category-push,0px))}
+[data-tdb-faq-question][aria-expanded="true"]{position:sticky;top:0;z-index:6;background:rgba(248,242,231,.8);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+[data-tdb-faq-question]::after,[data-tdb-faq-heading]::after{content:"";flex:none;width:.75rem;height:.75rem;margin-left:auto;background:currentColor;clip-path:polygon(10% 30%,50% 70%,90% 30%,100% 40%,50% 90%,0% 40%)}
+[data-tdb-service-faq] .faq3_content-left{position:static}
+[data-tdb-service-process] [data-process-step]{scroll-margin-top:9rem}
+[data-tdb-service-process] .service-process_item{color:#aaa;transition:color var(--tdb-reveal-out,calc(200ms * var(--tdb-fade-pace,1))) linear}
+[data-tdb-service-process] [data-tdb-process-reached]{color:#ebe2d2}
+[data-tdb-service-process] .service-process-mobile-container{transform:none!important;will-change:auto}
+[data-tdb-service-process] .service-process_timeline{width:0%}
+
+/* Shared visibility for CMS-controlled service calls to action. */
+
+[data-tdb-experience-entry] h2{margin:1.5rem 0 2rem}
+[data-tdb-experience-entry] .button{margin-top:1.5rem;width:fit-content}
+[data-tdb-experience-entry] img{filter:brightness(0)}
+
+
+[data-tdb-service-calculator],[data-tdb-service-experience]{display:none}
+body:has([data-tdb-calculator-enabled]:not(.w-condition-invisible)) [data-tdb-service-calculator],body:has([data-tdb-experience-enabled]:not(.w-condition-invisible)) [data-tdb-service-experience]{display:block}
+[data-tdb-calculator-enabled],[data-tdb-experience-enabled]{display:none!important}
+
+
+[data-tdb-experience-entry] :focus-visible{outline:1px solid var(--base-color-brand--orange-3,#d6cab4)!important;outline-offset:4px}
+[data-tdb-experience-entry] .button{display:inline-flex;width:fit-content;max-width:100%;justify-self:start;align-self:flex-start;flex:0 0 auto}
+
 /* External navbar active states; closed geometry lives in Designer. */
 [data-tdb-navbar-native] .navbar10_menu-button[data-tdb-expanded="true"] .menu-icon1_line-top{translate:0 8px;rotate:-45deg}
 [data-tdb-navbar-native] .navbar10_menu-button[data-tdb-expanded="true"] .menu-icon1_line-bottom{translate:0 -8px;rotate:45deg}

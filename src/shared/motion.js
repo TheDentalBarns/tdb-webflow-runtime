@@ -1,4 +1,4 @@
-/* TDB shared motion v1.23.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.24.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -1203,6 +1203,144 @@
     };
   }
 
+  // Native service steps share the DD/parallax read/write scheduler. The rail
+  // scrolls only when the active step changes; there is no continuous timer.
+  const serviceJourneys = new WeakMap();
+  function serviceJourney(root) {
+    if (serviceJourneys.has(root)) return serviceJourneys.get(root);
+    const rail = root.querySelector('.service-process_sticky');
+    const timeline = root.querySelector('.service-process_timeline');
+    const entries = [...(rail?.querySelectorAll('.service-process_item[href^="#"]') || [])]
+      .map((link) => ({ link, step: document.getElementById(link.hash.slice(1)) }))
+      .filter(({ step }) => step && root.contains(step));
+    if (!entries.length) return { refresh() {}, destroy() {} };
+    const controller = new AbortController(),
+      { signal } = controller;
+    const mobile = matchMedia('(max-width:767px)');
+    let active = -1,
+      visible = true;
+    const previousWidth = timeline?.style.width || '';
+    rail.setAttribute('data-tdb-process-nav', '');
+    function read(frame) {
+      if (!visible || document.hidden || !root.isConnected) return;
+      const band = frame.rect(rail);
+      const edge = band.height + frame.height * 0.2;
+      const rects = entries.map(({ step }) => frame.rect(step));
+      let next = 0;
+      rects.forEach((rect, index) => {
+        if (rect.top <= edge) next = index;
+      });
+      const span = Math.max(1, rects.at(-1).bottom - rects[0].top);
+      const progress = Math.min(1, Math.max(0, (edge - rects[0].top) / span));
+      const changed = next !== active;
+      let left;
+      if (changed && mobile.matches) {
+        const link = frame.rect(entries[next].link);
+        left = Math.max(
+          0,
+          Math.min(
+            rail.scrollWidth - rail.clientWidth,
+            rail.scrollLeft + link.left - band.left + link.width / 2 - band.width / 2,
+          ),
+        );
+      }
+      return () => {
+        if (timeline) timeline.style.width = `${Math.round(progress * 10000) / 100}%`;
+        if (!changed) return;
+        active = next;
+        entries.forEach(({ link }, index) => {
+          link.toggleAttribute('data-tdb-process-reached', index <= active);
+          if (index === active) link.setAttribute('aria-current', 'step');
+          else link.removeAttribute('aria-current');
+        });
+        if (left !== undefined)
+          rail.scrollTo({ left, behavior: reduced.matches ? 'instant' : 'smooth' });
+      };
+    }
+    const schedule = () => requestMotionFrame(read);
+    const observer =
+      typeof IntersectionObserver === 'function'
+        ? new IntersectionObserver(
+            (items) => {
+              visible = items.some((item) => item.isIntersecting);
+              if (visible) schedule();
+              else cancelMotionFrame(read);
+            },
+            { rootMargin: '100px 0px' },
+          )
+        : null;
+    observer?.observe(root);
+    window.addEventListener('scroll', schedule, { passive: true, signal });
+    window.addEventListener(
+      'resize',
+      () => {
+        active = -1;
+        schedule();
+      },
+      { passive: true, signal },
+    );
+    window.addEventListener('pageshow', schedule, { signal });
+    window.addEventListener('pagehide', () => cancelMotionFrame(read), { signal });
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        if (document.hidden) cancelMotionFrame(read);
+        else schedule();
+      },
+      { signal },
+    );
+    rail.addEventListener(
+      'click',
+      (event) => {
+        if (
+          event.defaultPrevented ||
+          event.button ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.altKey ||
+          event.shiftKey
+        )
+          return;
+        const link = event.target.closest('.service-process_item[href^="#"]');
+        const entry = entries.find((item) => item.link === link);
+        if (!entry) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const top = Math.max(
+          0,
+          window.scrollY +
+            entry.step.getBoundingClientRect().top -
+            rail.getBoundingClientRect().height,
+        );
+        if (location.hash !== link.hash) history.pushState(null, '', link.hash);
+        if (window.lenis?.scrollTo) window.lenis.scrollTo(top, { immediate: reduced.matches });
+        else window.scrollTo({ top, behavior: reduced.matches ? 'instant' : 'smooth' });
+      },
+      { capture: true, signal },
+    );
+    const api = {
+      refresh() {
+        active = -1;
+        schedule();
+      },
+      destroy() {
+        controller.abort();
+        observer?.disconnect();
+        cancelMotionFrame(read);
+        if (timeline) timeline.style.width = previousWidth;
+        rail.removeAttribute('data-tdb-process-nav');
+        entries.forEach(({ link }) => {
+          link.removeAttribute('aria-current');
+          link.removeAttribute('data-tdb-process-reached');
+        });
+        serviceJourneys.delete(root);
+      },
+    };
+    serviceJourneys.set(root, api);
+    schedule();
+    return api;
+  }
+
   // Compatibility for older immutable tdb-sliders.js pins during migration.
   // All Swiper behaviour is implemented once, inside the custom Swiper asset.
   function bindSwiper(swiper) {
@@ -1210,7 +1348,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.23.0',
+    version: '1.24.0',
     profile,
     time,
     easing,
@@ -1222,6 +1360,7 @@
     ddRegion,
     ddOpacity,
     pageBreaks,
+    serviceJourney,
     reviews,
     fadeController,
     filterToggle,

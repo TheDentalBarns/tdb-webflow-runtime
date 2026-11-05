@@ -27,6 +27,22 @@ test('native review root and authored cards survive hydration, selected review o
  }finally{t.close()}
 });
 
+test('service CMS selection retains its exact excerpt through enhancement and remount',async()=>{
+ const t=await setup();try{
+  t.api.destroy();
+  t.root.setAttribute('data-tdb-review-native-selection','');
+  const cards=[...t.root.querySelectorAll('[data-tdb-team-slide]')];
+  cards.forEach((card,i)=>card.querySelector('[data-tdb-team-text]').textContent='Native service excerpt '+i);
+  t.remount();
+  for(let i=0;i<3;i++){
+   t.api.swiper.slideToLoop(i,0);await t.flush();
+   const active=t.api.swiper.slides[t.api.swiper.activeIndex];
+   assert.equal(active.querySelector('[data-tdb-team-text]').textContent,'Native service excerpt '+i);
+   t.click();await t.flush();assert.equal(t.calls.at(-1).reviewId,'review-'+i);
+  }
+ }finally{t.close()}
+});
+
 test('first quote is visible synchronously while automatic entry is still pending', async () => {
  const t = await setup();
  try {

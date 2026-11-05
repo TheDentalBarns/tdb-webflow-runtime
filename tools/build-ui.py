@@ -22,6 +22,8 @@ GLOBAL_SOURCES = [
     ROOT / 'src/styles/tdb-consent-states.css',
     ROOT / 'src/styles/tdb-chevron-states.css',
     ROOT / 'src/styles/tdb-disclosure-states.css',
+    ROOT / 'src/styles/tdb-service-states.css',
+    ROOT / 'src/styles/tdb-service-entry-states.css',
     ROOT / 'src/styles/tdb-navbar-control-states.css',
     ROOT / 'src/styles/tdb-controls-base.css',
     ROOT / 'src/styles/tdb-feed-holders.css',
