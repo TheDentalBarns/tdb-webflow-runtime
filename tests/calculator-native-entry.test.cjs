@@ -565,12 +565,17 @@ test('starting routes reorder the journey, retain controls and collapse to eithe
     const tip = h.root.querySelector('[data-action="assessment-tip"]');
     assert.match(tip.textContent, /Save up to two months/);
     assert.equal(tip.getAttribute('aria-expanded'), 'false');
-    const tipPanel = h.root.querySelector('[data-panel="assessment-tip"]>[data-tdb-disclosure-panel]');
+    const tipPanel = h.root.querySelector(
+      '[data-panel="assessment-tip"]>[data-tdb-disclosure-panel]',
+    );
     assert.equal(tipPanel.hidden, true);
     choose('[data-action="assessment-tip"]');
     assert.equal(tip.getAttribute('aria-expanded'), 'true');
     assert.equal(tipPanel.hidden, false);
-    assert.equal(h.root.querySelector('[data-action="bridal"]').getAttribute('aria-expanded'), 'false');
+    assert.equal(
+      h.root.querySelector('[data-action="bridal"]').getAttribute('aria-expanded'),
+      'false',
+    );
     choose('[data-action="assessment-tip"]');
     assert.equal(tip.getAttribute('aria-expanded'), 'false');
     assert.match(
@@ -663,6 +668,109 @@ test('drawer reads appointment checklists and duration from fetched price cards 
     h.dom.window.close();
   }
 });
+
+for (const mode of ['native', 'lenis', 'drawer', 'no-bar'])
+  test(
+    'route buttons reveal the correct heading below the actual estimate bar: ' + mode,
+    async () => {
+      const h = setup();
+      try {
+        h.w.document.body.insertAdjacentHTML('beforeend', feed);
+        if (mode === 'no-bar') h.w.document.body.dataset.tdbChromeFocus = 'off';
+        const frames = new Map(),
+          calls = [];
+        let frame = 0,
+          barHeight = 72.5;
+        h.w.requestAnimationFrame = (callback) => {
+          frames.set(++frame, callback);
+          return frame;
+        };
+        h.w.cancelAnimationFrame = (id) => frames.delete(id);
+        const flush = () => {
+          for (let count = 0; frames.size && count < 20; count++) {
+            const pending = [...frames.values()];
+            frames.clear();
+            pending.forEach((callback) => callback(h.w.performance.now() + 1000));
+          }
+          assert.equal(frames.size, 0);
+        };
+        h.w.HTMLElement.prototype.getBoundingClientRect = function () {
+          const top = this.matches('dialog') ? 12 : this.dataset.node === 'step-1' ? 280 : 480;
+          const height = this.classList.contains('tdbc-live') ? barHeight : 200;
+          return { top, bottom: top + height, left: 0, right: 400, width: 400, height };
+        };
+        h.w.scrollY = 1000;
+        h.w.scrollTo = (options) => calls.push(options);
+        h.w.Element.prototype.scrollIntoView = () => assert.fail('must use the shared offset');
+        if (mode === 'lenis')
+          h.w.lenis = { scrollTo: (target, options) => calls.push({ target, ...options }) };
+        h.run('src/calculator/core.js');
+        h.run('src/calculator/ui.js');
+        let root = h.root,
+          drawer;
+        if (mode === 'drawer') {
+          await h.w.TDBCalculator.open(h.w.document.getElementById('drawer'));
+          drawer = h.w.document.querySelector('dialog');
+          root = drawer.querySelector('.tdbc-drawer-root');
+          Object.defineProperty(drawer, 'scrollHeight', { value: 5000 });
+          Object.defineProperty(drawer, 'clientHeight', { value: 700 });
+          root.querySelector('[data-category=cosmetic]').click();
+        } else {
+          h.root.querySelector('[data-node=step-1]').classList.add('tdbc-step');
+          h.change('cosmetic');
+          await h.w.TDBCalculator.mount(h.root);
+        }
+        root.querySelector('[data-select=whitening]').click();
+        flush();
+        const choice = root.querySelector('[data-category=cosmetic]');
+        for (const [action, destination, route] of [
+          ['start-assessment', 'assessment', 'signature'],
+          ['resume-estimate', 'step-1'],
+          ['start-design', 'assessment', 'design'],
+          ['resume-estimate', 'step-1'],
+        ]) {
+          // A responsive/updated bar must be measured for each action, not cached.
+          barHeight += 11.25;
+          if (drawer) drawer.scrollTop = 500;
+          calls.length = 0;
+          root.querySelector('[data-action=' + action + ']').click();
+          flush();
+          const target = root.querySelector('[data-node=' + destination + ']'),
+            offset = mode === 'no-bar' ? 0 : barHeight,
+            top = target.getBoundingClientRect().top;
+          assert.equal(h.w.document.activeElement, target.querySelector('h3'));
+          if (drawer) {
+            assert.equal(drawer.scrollTop, 500 + top - 12 - offset);
+            assert.equal(calls.length, 0, 'the background page must not scroll');
+          } else if (mode === 'lenis') {
+            assert.equal(calls.length, 1);
+            assert.equal(calls[0].target, target);
+            assert.equal(calls[0].offset, -offset);
+          } else {
+            assert.equal(calls.length, 1);
+            assert.equal(calls[0].top, 1000 + top - offset);
+          }
+          if (route) {
+            assert(root.querySelector('[data-assessment=' + route + ']').checked);
+            assert(choice.closest('[data-node=step-1]').hidden);
+          } else {
+            assert.equal(root.querySelector('[data-category=cosmetic]'), choice);
+            assert(choice.checked, 'returning keeps the category choice');
+            assert(
+              root.querySelector('[data-select=whitening]').checked,
+              'returning keeps treatment selections',
+            );
+            assert.equal(choice.closest('[data-node=step-1]').hidden, false);
+          }
+        }
+        if (drawer) h.w.TDBCalculator.close();
+        await tick();
+        flush();
+      } finally {
+        h.dom.window.close();
+      }
+    },
+  );
 
 test('availability refresh uses shared motion timing and finishes complete turns', async () => {
   const h = setup();

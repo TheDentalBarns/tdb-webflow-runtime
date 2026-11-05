@@ -825,6 +825,40 @@
       header?.focus({ preventScroll: true });
       syncViewportFocus();
     }
+    scrollToSection(target) {
+      if (!target) return;
+      focusView(this, false, true);
+      const heading = target.querySelector('.tdbc-step-heading,h3') || target;
+      heading.setAttribute('tabindex', '-1');
+      heading.focus({ preventScroll: true });
+      const bar = this.root.querySelector('.tdbc-live.has-estimate'),
+        barHeight =
+          bar && (this.mode === 'drawer' || this.root.classList.contains('is-focused'))
+            ? bar.getBoundingClientRect().height
+            : 0,
+        step = this.root.querySelector('.tdbc-step'),
+        // Steps already own their heading's responsive top padding. Other
+        // destinations, such as the summary, need the same space outside them.
+        gap =
+          target.matches('.tdbc-step') || !step
+            ? 0
+            : parseFloat(getComputedStyle(step).paddingTop) || 0,
+        offset = barHeight + gap;
+      if (this.mode === 'drawer' && dialog)
+        scrollEstimate(
+          dialog,
+          dialog.scrollTop +
+            target.getBoundingClientRect().top -
+            dialog.getBoundingClientRect().top -
+            offset,
+        );
+      else if (window.lenis?.scrollTo) window.lenis.scrollTo(target, { offset: -offset });
+      else
+        window.scrollTo({
+          top: window.scrollY + target.getBoundingClientRect().top - offset,
+          behavior: 'smooth',
+        });
+    }
     async init() {
       const firstNativeChoice = this.adoptNativeChoice;
       getAvailability();
@@ -1989,26 +2023,7 @@
               ? '[data-node="assessment"]'
               : '[data-node="timeline"]',
         );
-        if (target) {
-          focusView(this, false, true);
-          target.setAttribute('tabindex', '-1');
-          target.focus({ preventScroll: true });
-          const offset = parseFloat(getComputedStyle(document.documentElement).fontSize) * 7;
-          if (this.mode === 'drawer' && dialog)
-            scrollEstimate(
-              dialog,
-              dialog.scrollTop +
-                target.getBoundingClientRect().top -
-                dialog.getBoundingClientRect().top -
-                offset,
-            );
-          else if (window.lenis?.scrollTo) window.lenis.scrollTo(target, { offset: -offset });
-          else
-            window.scrollTo({
-              top: window.scrollY + target.getBoundingClientRect().top - offset,
-              behavior: 'smooth',
-            });
-        }
+        this.scrollToSection(target);
         return;
       }
       if (action === 'close') {
@@ -2076,15 +2091,12 @@
         this.assessmentTipOpen = false;
         this.dismissTimingWarning();
         renderAll();
-        const section = this.root.querySelector('[data-node=assessment]');
-        section?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+        this.scrollToSection(this.root.querySelector('[data-node=assessment]'));
         return;
       } else if (action === 'resume-estimate') {
         state.assessmentOnly = false;
         renderAll();
-        this.root
-          .querySelector('[data-node=step-2]')
-          ?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+        this.scrollToSection(this.root.querySelector('[data-node=step-1]'));
         return;
       } else if (action === 'stage') {
         this.activeStage = el.dataset.key;

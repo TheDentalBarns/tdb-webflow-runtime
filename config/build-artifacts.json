@@ -54,10 +54,10 @@
         "src/calculator/core.js",
         "src/calculator/ui.js"
       ],
-      "sha256": "edecddcfa9a0c05d20aa9b70bd240a1286d870d879466bce55aa9ce396b2a3ce",
-      "raw": 76440,
-      "gzip": 24963,
-      "brotli": 21533
+      "sha256": "63775c9e2f9abb91a23a8aefcd4ea383ca94825e7d19f307e4fd9f50f6f668c4",
+      "raw": 76688,
+      "gzip": 25024,
+      "brotli": 21560
     },
     "dist/tdb-consent-startup.min.js": {
       "sources": [
