@@ -61,6 +61,21 @@ test('all original UI and slider declarations survive the split', () => {
   assert(!read('dist/tdb-ui.css').includes("data-vimeo-ui='playing'"), 'playback states remain in the consent-gated video stylesheet');
   assert(read('dist/tdb-ui.css').includes('.tdb-consent'), 'consent states returned to the shared stylesheet in the later consent release');
 });
+test('pricing focus clears native chrome before any carousel stylesheet loads', () => {
+  const dom = new JSDOM('<!doctype html><html><head><style>'+read('dist/tdb-ui.css')+'</style></head><body><nav class="navbar10_component"></nav><div class="navbar-bg_layer"></div><aside id="tdb-vip-drawer"></aside></body></html>');
+  const w = dom.window;
+  const chrome = [...w.document.querySelectorAll('nav,.navbar-bg_layer,aside')];
+  for (const node of chrome) assert.equal(w.getComputedStyle(node).pointerEvents, 'auto');
+  w.document.documentElement.classList.add('tdb-slider-focus');
+  for (const node of chrome) {
+    const style = w.getComputedStyle(node);
+    assert.equal(style.pointerEvents, 'none', node.className || node.id);
+    assert.match(style.transform, /translate/, 'focused chrome leaves the viewport');
+  }
+  w.document.documentElement.classList.remove('tdb-slider-focus');
+  for (const node of chrome) assert.equal(w.getComputedStyle(node).pointerEvents, 'auto');
+  w.close();
+});
 // Vimeo ownership and recovery are exercised in vimeo-consent-gate.test.cjs.
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 test('announcement waits for both state bundles before requesting its engines',async()=>{

@@ -1,4 +1,5 @@
-/* Carousel focus hides native chrome until its existing release trigger fires. */
+/* Shared pricing/carousel focus hides native chrome until its owner releases.
+ * Load with global UI: direct pricing anchors must not wait for a carousel. */
 html.tdb-slider-focus .navbar10_component {
   transform: translateY(calc(-1 * var(--tdb-slider-nav-away,100%))) !important;
   pointer-events: none !important;

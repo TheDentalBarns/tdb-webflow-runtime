@@ -9,6 +9,7 @@ GLOBAL_SOURCES = [
     ROOT / 'src/styles/tdb-viewport-base.css',
     ROOT / 'src/styles/tdb-native-motion.css',
     ROOT / 'src/styles/tdb-chrome-motion.css',
+    ROOT / 'src/styles/tdb-slider-chrome.css',
     ROOT / 'src/styles/tdb-runtime-ui.css',
     ROOT / 'src/styles/tdb-selection.css',
     ROOT / 'src/styles/tdb-video-feedback.css',

@@ -28,11 +28,7 @@ const bundles = {
     'tdb-announcement-chrome.css',
     'tdb-announcement-states.css',
   ],
-  'tdb-slider-ui.css': [
-    'tdb-slider-chrome.css',
-    'tdb-slider-ui.css',
-    'tdb-carousel-arrow-states.css',
-  ],
+  'tdb-slider-ui.css': ['tdb-slider-ui.css', 'tdb-carousel-arrow-states.css'],
 };
 for (const [output, sources] of Object.entries(bundles)) {
   const requested = process.argv.slice(2).filter((arg) => !arg.startsWith('--'));
