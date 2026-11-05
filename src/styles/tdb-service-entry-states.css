@@ -1,14 +1,8 @@
-/* Shared visibility for CMS-controlled service calls to action. */
+/* Presentation for the existing 5 Senses entry component.
+ * Services call-to-action visibility is bound natively to the CMS switches. */
 
 [data-tdb-experience-entry] h2{margin:1.5rem 0 2rem}
 [data-tdb-experience-entry] .button{margin-top:1.5rem;width:fit-content}
 [data-tdb-experience-entry] img{filter:brightness(0)}
-
-
-[data-tdb-service-calculator],[data-tdb-service-experience]{display:none}
-body:has([data-tdb-calculator-enabled]:not(.w-condition-invisible)) [data-tdb-service-calculator],body:has([data-tdb-experience-enabled]:not(.w-condition-invisible)) [data-tdb-service-experience]{display:block}
-[data-tdb-calculator-enabled],[data-tdb-experience-enabled]{display:none!important}
-
-
 [data-tdb-experience-entry] :focus-visible{outline:1px solid var(--base-color-brand--orange-3,#d6cab4)!important;outline-offset:4px}
 [data-tdb-experience-entry] .button{display:inline-flex;width:fit-content;max-width:100%;justify-self:start;align-self:flex-start;flex:0 0 auto}
