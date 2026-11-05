@@ -44,20 +44,20 @@
         "src/shared/module-bootstrap.js",
         "src/calculator/loader.js"
       ],
-      "sha256": "7e1e7df09d4fa2d7f8b556bccd61034c9a091282f7158bddeadadb2f044bca9b",
-      "raw": 4493,
-      "gzip": 1744,
-      "brotli": 1498
+      "sha256": "265cc793e22424c1184ae38682b26052e47f8d8e6bfcbd7f951a8b6c78c90734",
+      "raw": 5171,
+      "gzip": 2018,
+      "brotli": 1747
     },
     "dist/tdb-calculator.js": {
       "sources": [
         "src/calculator/core.js",
         "src/calculator/ui.js"
       ],
-      "sha256": "76b54e8d2099153b0b312d1c493297bdba374f14c386455e29c877ad429448ac",
-      "raw": 77998,
-      "gzip": 25363,
-      "brotli": 21871
+      "sha256": "327b35e64221d335f7504943fa7048ed5824fbef0a9ac8bfa20db449fcd22ae8",
+      "raw": 78116,
+      "gzip": 25436,
+      "brotli": 21897
     },
     "dist/tdb-consent-startup.min.js": {
       "sources": [
@@ -552,10 +552,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "08c8fc064cc4d186130628148cd908c84724a6eb78bc6db78e378111118f96ac",
-      "raw": 80869,
-      "gzip": 22297,
-      "brotli": 19415
+      "sha256": "4b3df6c6c9a4ba73cf5c50afa972a021fd50064973ffa71f2d38a2edfe2dd431",
+      "raw": 81547,
+      "gzip": 22500,
+      "brotli": 19581
     },
     "dist/tdb-service-awards.js": {
       "sources": [

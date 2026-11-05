@@ -1402,10 +1402,12 @@
   }
 
   function holdNativeEntryPosition(view) {
-    const anchor = view.nativeEntry;
-    if (view.mode !== 'inline' || !anchor) return null;
+    const anchor = view.nativeEntry,
+      intent = view.entryPosition;
+    if (view.mode !== 'inline' || !anchor || intent?.signal.aborted) return null;
     const before = anchor.getBoundingClientRect();
     if (!before.height || before.bottom <= 0 || before.top >= innerHeight) return null;
+    const originalTop = intent?.anchor === anchor ? intent.top : before.top;
     // Restoring a saved plan can add several screens below the native cards.
     // Do not let the browser anchor to the following image as that happens.
     const page = document.documentElement,
@@ -1413,6 +1415,7 @@
     let frame = 0;
     page.classList.add('tdbc-preserve-native-entry');
     const release = () => {
+      if (gate.signal.aborted) return;
       gate.abort();
       cancelAnimationFrame(frame);
       page.classList.remove('tdbc-preserve-native-entry');
@@ -1422,7 +1425,7 @@
     const correct = () => {
       if (gate.signal.aborted) return;
       if (!anchor.isConnected) return release();
-      const delta = anchor.getBoundingClientRect().top - before.top;
+      const delta = anchor.getBoundingClientRect().top - originalTop;
       if (Math.abs(delta) < 0.5) return;
       const top = Math.max(0, window.scrollY + delta);
       if (window.lenis?.scrollTo) {
@@ -3140,7 +3143,7 @@
     else location.assign('/vip?interest=' + encodeURIComponent(interest));
   }
   const inlineViews = new WeakMap();
-  function mount(root) {
+  function mount(root, options = {}) {
     if (!root?.matches('[data-tdb-calculator="inline"]'))
       return Promise.reject(new Error('Inline calculator mount required'));
     let view = inlineViews.get(root);
@@ -3150,6 +3153,7 @@
     }
     if (view.ready) return Promise.resolve(view);
     if (view.mounting) return view.mounting;
+    view.entryPosition = options.entryPosition;
     root.setAttribute('data-tdb-calc-ready', 'true');
     view.mounting = view
       .init()

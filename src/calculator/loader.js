@@ -59,10 +59,39 @@
     };
     function activate(root) {
       if (pending.has(root)) return pending.get(root);
+      const entry = root.querySelector('[data-tdb-calc-native-entry]'),
+        box = entry?.getBoundingClientRect(),
+        gate = new AbortController(),
+        style = document.documentElement.style,
+        previousAnchor = style.getPropertyValue('overflow-anchor'),
+        previousPriority = style.getPropertyPriority('overflow-anchor'),
+        entryPosition =
+          deferred(root) && box?.height && box.bottom > 0 && box.top < innerHeight
+            ? { anchor: entry, top: box.top, signal: gate.signal }
+            : null;
+      const release = () => {
+        if (gate.signal.aborted) return;
+        gate.abort();
+        if (entryPosition && style.getPropertyValue('overflow-anchor') === 'none') {
+          if (previousAnchor)
+            style.setProperty('overflow-anchor', previousAnchor, previousPriority);
+          else style.removeProperty('overflow-anchor');
+        }
+      };
+      if (entryPosition) {
+        // Protect the native cards before even the loading message or feature
+        // stylesheet changes layout. The calculator owns the final correction.
+        style.setProperty('overflow-anchor', 'none');
+        for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown', 'pagehide'])
+          window.addEventListener(type, release, {
+            passive: true,
+            signal: gate.signal,
+          });
+      }
       root.setAttribute('aria-busy', 'true');
       status(root, 'Loading current prices…');
       const request = load()
-        .then((api) => api.mount(root))
+        .then((api) => api.mount(root, { entryPosition }))
         .catch(() => {
           status(
             root,
@@ -70,6 +99,7 @@
           );
         })
         .finally(() => {
+          release();
           pending.delete(root);
           root.removeAttribute('aria-busy');
         });

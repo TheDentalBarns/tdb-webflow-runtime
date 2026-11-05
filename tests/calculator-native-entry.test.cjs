@@ -139,6 +139,63 @@ test('rapid choices share one load and a failed request can be retried', async (
     h.dom.window.close();
   }
 });
+for (const mode of ['success', 'failure', 'cancel'])
+  test('native loading preserves the first-click position and releases its guard: ' + mode, async () => {
+    const h = setup();
+    try {
+      const anchor = h.root.querySelector('[data-tdb-calc-native-entry]'),
+        style = h.w.document.documentElement.style;
+      let top = 200,
+        finish,
+        intent,
+        cancelledAtMount;
+      anchor.getBoundingClientRect = () => ({ top, bottom: top + 400, height: 400 });
+      style.setProperty('overflow-anchor', 'auto', 'important');
+      h.w.TDBModuleBootstrap = {
+        ensure: () => new Promise((resolve, reject) => {
+          finish = () => mode === 'failure' ? reject(Error('offline')) : resolve({
+            load: async (url) => {
+              if (String(url).endsWith('tdb-calculator.js'))
+                h.w.TDBCalculator = {
+                  open() {},
+                  mount: async (root, options) => {
+                    intent = options.entryPosition;
+                    cancelledAtMount = intent.signal.aborted;
+                  },
+                };
+            },
+          });
+        }),
+      };
+      h.run('src/calculator/loader.js');
+      h.change('restorative');
+      assert.equal(style.getPropertyValue('overflow-anchor'), 'none');
+      assert.match(h.root.textContent, /Loading current prices/);
+      // The feature stylesheet changes layout before the controller can render.
+      top = 185;
+      if (mode === 'cancel') h.w.dispatchEvent(new h.w.WheelEvent('wheel'));
+      finish();
+      await tick();
+      await tick();
+      if (mode !== 'failure') {
+        assert.equal(intent.anchor, anchor);
+        assert.equal(intent.top, 200);
+        assert.equal(cancelledAtMount, mode === 'cancel');
+        assert.equal(intent.signal.aborted, true);
+      } else assert.match(h.root.textContent, /Choose again to retry/);
+      assert.equal(style.getPropertyValue('overflow-anchor'), 'auto');
+      assert.equal(style.getPropertyPriority('overflow-anchor'), 'important');
+      assert.equal(h.root.hasAttribute('aria-busy'), false);
+      // A later gesture must not restore an obsolete inline-style snapshot.
+      style.setProperty('overflow-anchor', 'none', 'important');
+      h.w.dispatchEvent(new h.w.WheelEvent('wheel'));
+      assert.equal(style.getPropertyValue('overflow-anchor'), 'none');
+      assert.equal(style.getPropertyPriority('overflow-anchor'), 'important');
+    } finally {
+      h.dom.window.close();
+    }
+  });
+
 test('controller preserves native nodes, adopts changes during fetch, and resets both cards', async () => {
   const h = setup();
   try {
@@ -198,7 +255,7 @@ test('failed price fetch keeps native entry and mount retries without duplicate 
     h.dom.window.close();
   }
 });
-for (const mode of ['native', 'lenis', 'new-gesture', 'offscreen'])
+for (const mode of ['native', 'lenis', 'new-gesture', 'offscreen', 'early-intent'])
   test(
     'saved-plan hydration preserves the native entry without trapping scroll: ' + mode,
     async () => {
@@ -255,9 +312,15 @@ for (const mode of ['native', 'lenis', 'new-gesture', 'offscreen'])
         const choice = h.change('restorative');
         // Touch browsers need not focus a checkbox to preserve its position.
         if (mode === 'lenis') choice.focus();
-        await h.w.TDBCalculator.mount(h.root);
+        const expectedTop = mode === 'early-intent' ? 985 : 1000;
+        await h.w.TDBCalculator.mount(
+          h.root,
+          mode === 'early-intent'
+            ? { entryPosition: { anchor, top: 215, signal: new h.w.AbortController().signal } }
+            : {},
+        );
         await tick();
-        assert.equal(h.w.scrollY, mode === 'offscreen' ? 5000 : 1000);
+        assert.equal(h.w.scrollY, mode === 'offscreen' ? 5000 : expectedTop);
         assert(h.root.querySelector('[data-select=onlays]').checked);
         assert(h.root.querySelector('[data-select=extractions]').checked);
         assert.equal(h.root.querySelector('[data-qty=onlays]').value, '2');
@@ -273,7 +336,7 @@ for (const mode of ['native', 'lenis', 'new-gesture', 'offscreen'])
         assert.equal(frames.size, 0);
         assert.equal(
           h.w.scrollY,
-          mode === 'new-gesture' ? 1500 : mode === 'offscreen' ? 5000 : 1000,
+          mode === 'new-gesture' ? 1500 : mode === 'offscreen' ? 5000 : expectedTop,
         );
         assert.equal(
           h.w.document.documentElement.classList.contains('tdbc-preserve-native-entry'),
@@ -283,7 +346,7 @@ for (const mode of ['native', 'lenis', 'new-gesture', 'offscreen'])
         else if (mode === 'lenis') {
           assert.deepEqual(calls, ['resize', { top: 1000, immediate: true, force: true }]);
           assert.equal(h.w.document.activeElement, choice);
-        } else assert.deepEqual(calls, [{ top: 1000, behavior: 'instant' }]);
+        } else assert.deepEqual(calls, [{ top: expectedTop, behavior: 'instant' }]);
       } finally {
         h.dom.window.close();
       }
