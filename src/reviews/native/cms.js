@@ -416,6 +416,8 @@
       return window.TDBReviewJSON.load(feed, {
         signal,
         resolveIdentity,
+        // Reserve review one only when a separate opening quotation uses it.
+        reserveLead: Boolean(introduction?.querySelector('[data-tdb-review-excerpt]')),
         context: location.pathname + ':' + override + ':' + topic + ':' + lead,
         order: (index, snapshot) =>
           (topic &&

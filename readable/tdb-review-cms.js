@@ -357,7 +357,7 @@
       12000,
     );
   }
-  function session(snapshot, url, { resolveIdentity, order }) {
+  function session(snapshot, url, { resolveIdentity, order, reserveLead }) {
     const index = order ? order(snapshot.index, snapshot) : snapshot.index.slice();
     const editorial = index.some((row) => row.displayTopic);
     if (
@@ -374,7 +374,9 @@
     let cursor = 0;
     const data = {
       records,
-      featured: editorial ? index.slice(1, 4).map((row) => row.id) : snapshot.featured,
+      featured: editorial
+        ? index.slice(reserveLead ? 1 : 0, reserveLead ? 4 : 3).map((row) => row.id)
+        : snapshot.featured,
       power: editorial ? index[0]?.id || '' : '',
       displayTotal: index.length,
       average: snapshot.average,
@@ -475,7 +477,10 @@
     };
     return data;
   }
-  function load(source, { signal, resolveIdentity, order, context = 'default' } = {}) {
+  function load(
+    source,
+    { signal, resolveIdentity, order, context = 'default', reserveLead = false } = {},
+  ) {
     try {
       check(signal);
       const url = new URL(source, location.href);
@@ -493,12 +498,12 @@
       url.protocol = 'https:';
       url.host = 'tdb-public-availability.david-070.workers.dev';
       url.pathname = route;
-      const key = 'session:' + url.href + ':' + context,
+      const key = 'session:' + url.href + ':' + context + ':' + Boolean(reserveLead),
         cached = sessions.get(key);
       if (cached && Date.now() - cached.at < 60000) return Promise.resolve(cached.data);
       return shared(key, signal, async (sessionSignal) => {
         const snapshot = manifest(await requestJSON(url, sessionSignal));
-        const data = session(snapshot, url, { resolveIdentity, order });
+        const data = session(snapshot, url, { resolveIdentity, order, reserveLead });
         await data.loadMore({ signal: sessionSignal });
         check(sessionSignal);
         sessions.set(key, { data, at: Date.now() });
@@ -929,6 +934,8 @@
       return window.TDBReviewJSON.load(feed, {
         signal,
         resolveIdentity,
+        // Reserve review one only when a separate opening quotation uses it.
+        reserveLead: Boolean(introduction?.querySelector('[data-tdb-review-excerpt]')),
         context: location.pathname + ':' + override + ':' + topic + ':' + lead,
         order: (index, snapshot) =>
           (topic &&

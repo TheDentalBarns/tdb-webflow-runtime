@@ -48,6 +48,7 @@ test('CMS context shares power, trio and unlimited ranked index while downloadin
     s.contexts=[{id:'nervous',paths:['/services/nervous-patient-care'],topics:['nervous']}];
   });
   try {
+    w.document.body.insertAdjacentHTML('beforeend', '<section data-tdb-review-introduction><blockquote data-tdb-review-excerpt></blockquote><span data-tdb-review-author></span></section>');
     const data=await w.TDBReviewCMS.load();
     assert.equal(data.records.length,20);
     assert.equal(data.power,'review-70');
@@ -90,6 +91,55 @@ async function setup(page = '/', editSnapshot) {
     dom.window.eval(fs.readFileSync(path.join(__dirname, '../src/reviews/native', file), 'utf8'));
   return { w: dom.window, calls, network, snapshot };
 }
+
+test('editorial trio starts at one without an opening quote; ratings alone do not reserve it', async () => {
+  for (const markup of ['', '<section data-tdb-review-introduction><button data-tdb-review-trigger>Read our reviews</button></section>']) {
+    const { w } = await setup('/dental-cost-lichfield', s => {
+      s.contexts = [{ id: 'pricing', paths: ['/dental-cost-lichfield'], topics: ['general'] }];
+    });
+    try {
+      w.document.body.insertAdjacentHTML('beforeend', markup);
+      const data = await w.TDBReviewCMS.load();
+      assert.deepEqual(Array.from(data.featured), ['review-1', 'review-2', 'review-3']);
+      assert.equal(data.power, 'review-1');
+      assert.equal(data.filterIndex.length, 45);
+    } finally { w.close(); }
+  }
+});
+
+test('opening quote presence separates cached trio selections without changing the full review order', async () => {
+  const { w } = await setup('/location', s => {
+    s.contexts = [{ id: 'location', paths: ['/location'], topics: ['general'] }];
+  });
+  try {
+    const root = w.document.createElement('section');
+    root.setAttribute('data-tdb-review-introduction', '');
+    w.document.body.append(root);
+    const without = await w.TDBReviewCMS.load();
+    assert.deepEqual(Array.from(without.featured), ['review-1', 'review-2', 'review-3']);
+    root.innerHTML = '<blockquote data-tdb-review-excerpt></blockquote><span data-tdb-review-author></span>';
+    const withLead = await w.TDBReviewCMS.load();
+    assert.notEqual(withLead, without);
+    assert.deepEqual(Array.from(withLead.featured), ['review-2', 'review-3', 'review-4']);
+    assert.deepEqual(Array.from(withLead.filterIndex, row => row.id), Array.from(without.filterIndex, row => row.id));
+    assert.equal(await w.TDBReviewCMS.load(), withLead);
+    root.replaceChildren();
+    assert.equal(await w.TDBReviewCMS.load(), without);
+  } finally { w.close(); }
+});
+
+test('short editorial lists keep their first review when there is no opening quote', async () => {
+  const { w } = await setup('/dental-cost-lichfield', s => {
+    s.records = s.records.slice(0, 2);
+    s.total = 2;
+    s.featured = ['review-1', 'review-2'];
+    s.contexts = [{ id: 'pricing', paths: ['/dental-cost-lichfield'], topics: ['general'] }];
+  });
+  try {
+    const data = await w.TDBReviewCMS.load();
+    assert.deepEqual(Array.from(data.featured), ['review-1', 'review-2']);
+  } finally { w.close(); }
+});
 
 test('explicit introduction topic uses ranked topic excerpts while retaining the complete review total', async () => {
   const { w } = await setup('/location', s => {
@@ -159,6 +209,7 @@ test('JSON downloads only 20 bodies, arbitrary selected IDs preserve caller orde
   const { w, calls } = await setup();
   try {
     const d = await w.TDBReviewCMS.load();
+    assert.deepEqual(Array.from(d.featured), ['review-1', 'review-25'], 'legacy featured selection stays unchanged');
     assert.equal(d.records.length, 20);
     assert.equal(d.filterIndex.length, 45);
     assert.equal(d.getCached('review-25'), undefined);
