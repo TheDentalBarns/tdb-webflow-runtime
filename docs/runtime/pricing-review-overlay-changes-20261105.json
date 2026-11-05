@@ -1,0 +1,273 @@
+{
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "677cfbbb752fa1bb44264481",
+  "wrapperId": "10e655ed-6222-3a57-cf85-d15e2d056256",
+  "variantStyleActions": [
+    {
+      "label": "Page Break Wrapper main",
+      "set_variant_styles": {
+        "variant_id": "10700323-20e3-bbe9-acce-02b6ac8f02c1",
+        "style_name": "Page Break Wrapper",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "height",
+            "property_value": "clamp(32rem, 65vh, 46rem)"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Page Break Wrapper medium",
+      "set_variant_styles": {
+        "variant_id": "10700323-20e3-bbe9-acce-02b6ac8f02c1",
+        "style_name": "Page Break Wrapper",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "height",
+            "property_value": "clamp(32rem, 65vh, 42rem)"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Page Break Wrapper small",
+      "set_variant_styles": {
+        "variant_id": "10700323-20e3-bbe9-acce-02b6ac8f02c1",
+        "style_name": "Page Break Wrapper",
+        "breakpoint_id": "small",
+        "properties": [
+          {
+            "property_name": "height",
+            "property_value": "clamp(34rem, 75svh, 44rem)"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Page Break Wrapper tiny",
+      "set_variant_styles": {
+        "variant_id": "10700323-20e3-bbe9-acce-02b6ac8f02c1",
+        "style_name": "Page Break Wrapper",
+        "breakpoint_id": "tiny",
+        "properties": [
+          {
+            "property_name": "height",
+            "property_value": "clamp(34rem, 75svh, 44rem)"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Page Break Image main",
+      "set_variant_styles": {
+        "variant_id": "10700323-20e3-bbe9-acce-02b6ac8f02c1",
+        "style_name": "Page Break Image",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "height",
+            "property_value": "calc(100% + 4vh)"
+          },
+          {
+            "property_name": "object-fit",
+            "property_value": "cover"
+          },
+          {
+            "property_name": "object-position",
+            "property_value": "50% 56%"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Page Break Image tiny",
+      "set_variant_styles": {
+        "variant_id": "10700323-20e3-bbe9-acce-02b6ac8f02c1",
+        "style_name": "Page Break Image",
+        "breakpoint_id": "tiny",
+        "properties": [
+          {
+            "property_name": "height",
+            "property_value": "calc(100% + 4vh)"
+          },
+          {
+            "property_name": "object-position",
+            "property_value": "55% 50%"
+          }
+        ]
+      }
+    },
+    {
+      "label": "section_standard-testimonial main",
+      "set_variant_styles": {
+        "variant_id": "adef231b-171f-72aa-ca94-1f52d7214ab4",
+        "style_name": "section_standard-testimonial",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "position",
+            "property_value": "absolute"
+          },
+          {
+            "property_name": "top",
+            "property_value": "0"
+          },
+          {
+            "property_name": "right",
+            "property_value": "0"
+          },
+          {
+            "property_name": "bottom",
+            "property_value": "0"
+          },
+          {
+            "property_name": "left",
+            "property_value": "0"
+          },
+          {
+            "property_name": "width",
+            "property_value": "100%"
+          },
+          {
+            "property_name": "height",
+            "property_value": "100%"
+          },
+          {
+            "property_name": "display",
+            "property_value": "flex"
+          },
+          {
+            "property_name": "align-items",
+            "property_value": "center"
+          },
+          {
+            "property_name": "justify-content",
+            "property_value": "center"
+          },
+          {
+            "property_name": "z-index",
+            "property_value": "1"
+          },
+          {
+            "property_name": "background-color",
+            "property_value": "transparent"
+          },
+          {
+            "property_name": "background-image",
+            "property_value": "linear-gradient(180deg, rgba(20,16,11,0.14) 0%, rgba(20,16,11,0.51) 38%, rgba(20,16,11,0.53) 66%, rgba(20,16,11,0.32) 100%)"
+          }
+        ]
+      }
+    },
+    {
+      "label": "padding-section-large main",
+      "set_variant_styles": {
+        "variant_id": "adef231b-171f-72aa-ca94-1f52d7214ab4",
+        "style_name": "padding-section-large",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "padding-top",
+            "property_value": "3rem"
+          },
+          {
+            "property_name": "padding-bottom",
+            "property_value": "3rem"
+          },
+          {
+            "property_name": "width",
+            "property_value": "100%"
+          }
+        ]
+      }
+    },
+    {
+      "label": "padding-section-large small",
+      "set_variant_styles": {
+        "variant_id": "adef231b-171f-72aa-ca94-1f52d7214ab4",
+        "style_name": "padding-section-large",
+        "breakpoint_id": "small",
+        "properties": [
+          {
+            "property_name": "padding-top",
+            "property_value": "2rem"
+          },
+          {
+            "property_name": "padding-bottom",
+            "property_value": "2rem"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-team-quotes_frame main",
+      "set_variant_styles": {
+        "variant_id": "adef231b-171f-72aa-ca94-1f52d7214ab4",
+        "style_name": "tdb-team-quotes_frame",
+        "breakpoint_id": "main",
+        "properties": [
+          {
+            "property_name": "min-height",
+            "property_value": "0"
+          },
+          {
+            "property_name": "height",
+            "property_value": "auto"
+          },
+          {
+            "property_name": "max-width",
+            "property_value": "38rem"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tdb-team-quotes_frame medium",
+      "set_variant_styles": {
+        "variant_id": "adef231b-171f-72aa-ca94-1f52d7214ab4",
+        "style_name": "tdb-team-quotes_frame",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "max-width",
+            "property_value": "38rem"
+          },
+          {
+            "property_name": "min-height",
+            "property_value": "0"
+          }
+        ]
+      }
+    },
+    {
+      "label": "White overlay copy",
+      "set_variant_styles": {
+        "variant_id": "adef231b-171f-72aa-ca94-1f52d7214ab4",
+        "style_name": "section_standard-testimonial",
+        "properties": [
+          {
+            "property_name": "color",
+            "variable_as_value": "relume-variable-color-neutral-2"
+          }
+        ]
+      }
+    },
+    {
+      "label": "White overlay numbering",
+      "set_variant_styles": {
+        "variant_id": "adef231b-171f-72aa-ca94-1f52d7214ab4",
+        "style_name": "tdb-team-quotes_position",
+        "properties": [
+          {
+            "property_name": "color",
+            "variable_as_value": "relume-variable-color-neutral-2"
+          }
+        ]
+      }
+    }
+  ],
+  "publishedAt": "2026-11-05T11:40:20.511Z",
+  "runtimeCommit": "c598db4610ecc61bb62fafec1278a63d8a8db7c2"
+}
