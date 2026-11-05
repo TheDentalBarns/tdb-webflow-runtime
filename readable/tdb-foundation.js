@@ -1359,6 +1359,7 @@
         {
           heading: section.querySelector(':scope > [data-tdb-disclosure-trigger]'),
           treatments: [...section.querySelectorAll('[data-tdb-price-trigger]')],
+          closing: null,
         },
       ]),
     );
@@ -1370,19 +1371,22 @@
     function pushCategoryHeadings() {
       // Read all geometry before writing. Native sticky positioning owns the
       // pin; this collision offset only makes room for an expanded treatment.
-      const positions = [...categories.values()].map(({ heading, treatments }) => {
+      const positions = [...categories.values()].map((category) => {
+        const { heading, treatments } = category;
         let push = 0;
         if (heading?.getAttribute('aria-expanded') === 'true') {
-          const height = heading.offsetHeight;
+          const height = heading.getBoundingClientRect().height;
           for (const trigger of treatments) {
             if (
-              trigger.getAttribute('aria-expanded') !== 'true' ||
+              (trigger.getAttribute('aria-expanded') !== 'true' && trigger !== category.closing) ||
               trigger.closest('[hidden],[inert]')
             )
               continue;
             const item = trigger.closest('[data-tdb-disclosure-item]');
             if (!item) continue;
             const rect = item.getBoundingClientRect();
+            if (trigger === category.closing && (rect.top >= height || rect.bottom <= 0))
+              category.closing = null;
             push = Math.min(
               push,
               -Math.min(height, Math.max(0, height - rect.top), Math.max(0, rect.bottom)),
@@ -1470,7 +1474,18 @@
     for (const type of ['pointerdown', 'touchstart', 'wheel', 'keydown'])
       document.addEventListener(type, interruptAnchor, { capture: true, passive: true });
     document.addEventListener('tdb:disclosure-change', (event) => {
-      if (!event.target.closest('[data-tdb-price-section]')) return;
+      const category = categories.get(event.target.closest('[data-tdb-price-section]'));
+      if (!category) return;
+      if (event.target.hasAttribute('data-tdb-price-trigger')) {
+        // Closing is not scroll intent. Keep the row the user just pressed
+        // uncovered until it naturally clears the sticky category's band.
+        category.closing =
+          event.target.getAttribute('aria-expanded') === 'false' &&
+          parseFloat(category.heading?.style.getPropertyValue('--tdb-price-category-push')) < 0
+            ? event.target
+            : null;
+      } else if (category.heading?.getAttribute('aria-expanded') !== 'true')
+        category.closing = null;
       if (active && !sections.some(eligible)) {
         // Closing changes layout, not scroll intent. Leave every chrome surface
         // parked and restart the shared navigation distance counters. Observer

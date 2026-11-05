@@ -13,7 +13,7 @@ test('sticky categories hold chrome at its edge and yield smoothly to an open tr
   const w = dom.window, d = w.document, section = d.querySelector('section');
   const heading = section.querySelector('button'), treatment = d.querySelector('article button');
   Object.defineProperty(d.querySelector('nav'), 'offsetHeight', { value: 80 });
-  Object.defineProperty(heading, 'offsetHeight', { value: 60 });
+  heading.getBoundingClientRect = () => ({ height: 60 });
   let sectionTop = 81, sectionBottom = 1600, itemTop = 400, itemBottom = 1200, queued;
   section.getBoundingClientRect = () => ({ top: sectionTop, bottom: sectionBottom, height: sectionBottom - sectionTop });
   d.querySelector('article').getBoundingClientRect = () => ({ top: itemTop, bottom: itemBottom });
@@ -34,7 +34,11 @@ test('sticky categories hold chrome at its edge and yield smoothly to an open tr
   itemBottom = 30; scroll(); assert.equal(push(), '-30px', 'category returns as the open item leaves');
   itemBottom = 0; scroll(); assert.equal(push(), '0px');
   itemTop = -100; itemBottom = 500; scroll(); assert.equal(push(), '-60px');
-  treatment.click(); assert.equal(push(), '0px', 'closing restores the category immediately'); assert(held());
+  treatment.click(); assert.equal(push(), '-60px', 'closing keeps the pressed row uncovered'); assert(held());
+  treatment.click(); assert.equal(push(), '-60px', 'the same row can be reopened without a jump');
+  treatment.click(); itemTop = 40; itemBottom = 130; scroll(); assert.equal(push(), '-20px');
+  itemTop = 60; itemBottom = 150; scroll(); assert.equal(push(), '0px', 'scrolling restores the category when the closed row clears it');
+  itemTop = 0; itemBottom = 90; scroll(); assert.equal(push(), '0px', 'a fully cleared closed row no longer pushes the category');
   sectionTop = 81; scroll(); assert.equal(held(), false, 'scrolling above the category restores normal chrome control');
   dom.window.close();
 });
