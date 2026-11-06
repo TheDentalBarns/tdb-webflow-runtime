@@ -2982,8 +2982,8 @@ function prepareLazyIconMasks() {
   if (window.TDBLazyIconMasks) return;
   const base = 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/';
   const assets = {
-    price: '6aedc99d6cd163be1e50db78_tdb-price-tag-refined.svg',
-    clock: '6aedc99d71e33b006f6323e3_tdb-clock-refined.svg',
+    price: '6aeddc626c94d2870769382e_tdb-price-small-1px.svg',
+    clock: '6aeddc636dd65bf4f700d266_tdb-clock-small-1px.svg',
     diamond: '6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg',
     ig: '6ac8c5438b7e68a92fade1e2_tdb-icon-instagram.svg',
     smile: '6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg',
@@ -3012,19 +3012,19 @@ function prepareLazyIconMasks() {
     facebook: footerAssets.facebook,
   };
   const journeyAssets = {
-    clock: '6aedc99d71e33b006f6323e3_tdb-clock-refined.svg',
-    distance: '6ae1ea46056eef9c12179a64_tdb-journey-distance.svg',
+    clock: '6aeddc636dd65bf4f700d266_tdb-clock-small-1px.svg',
+    distance: '6aede0796da67bba174f8087_tdb-journey-small-1px.svg',
     globe: '6ac9040240c896d539d1903d_tdb-globe.svg',
-    parking: '6aedc99cb5456ab693fb229f_tdb-parking-refined.svg',
+    parking: '6aede07abdf3a8e23f6374a5_tdb-parking-small-1px.svg',
     barn: '6838407c2087a6de2a8b1068_the-dental-barns-blackbrook-lichfield-barn-door-icon-dark.svg.svg',
   };
   const pseudoAssets = {
-    price: '6aedc99d6cd163be1e50db78_tdb-price-tag-refined.svg',
-    clock: '6aedc99d71e33b006f6323e3_tdb-clock-refined.svg',
+    price: '6aeddc62f7494347e6196f6b_tdb-price-large-1px.svg',
+    clock: '6aeddc636dd65bf4f700d287_tdb-clock-large-1px.svg',
     diamond: assets.diamond,
     address: contactAssets.address,
     tranquil: '6aedc99cd3232709b0b646d3_tdb-tranquil-refined.svg',
-    parking: journeyAssets.parking,
+    parking: '6aedc99cb5456ab693fb229f_tdb-parking-refined.svg',
     discreet: '6aedc99cde9b978b6158a69f_tdb-discreet-refined.svg',
     play: '6ae0c5c81332cf18d9261ca0_232b700aafbc0337a2adaf88a7f72074_tdb-control-play.svg',
     pause: '6ae0c5c877076aee400c6838_7b1d9ef44a4b54195aca3dfd22e245f5_tdb-control-pause.svg',

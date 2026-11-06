@@ -1,0 +1,10 @@
+{
+  "baseline": "44498acfe06e9a501aa1271d80e51e0df9d482dd",
+  "scope": "Separate small and large price-tag, clock and wellness-lotus masters; small diamond, location-pin, calculator, journey and parking masters. Trophy added to the cream awards heading.",
+  "componentSpacing": "The shared native benefit row distributes complete icon/text pairs using space-between. Existing 1rem inner and 2rem minimum outer gaps remain. Icon boxes stay 3rem square without flex shrinking; mobile stacking remains.",
+  "stroke": "1 CSS px, applied to each stroked shape with vector-effect=non-scaling-stroke. Existing placement sizes and colours remain owned by their current native styles or module CSS.",
+  "opticalSizes": "Small 24-unit masters simplify the lotus and open the tag hole. Large price/clock use 64 units; the large lotus retains its layered 192-unit silhouette. Large decorative diamonds remain unchanged.",
+  "validation": "Pixel measurements at 13.625, 17.0312, 21, 44.2845 and 64 CSS px in inline SVG, image, background and mask contexts, at device pixel ratios 1 and 2. Observed stroke coverage 0.996 to 1.000 CSS px, allowing raster antialiasing.",
+  "deployment": "Webflow staging only; native image sources, SVG artwork, embed code, mask/background image properties, and existing runtime artwork owners.",
+  "rollback": "Restore the baseline runtime pins and native artwork snapshots saved in the local icon-optical-sizes-20261106 evidence folder."
+}
