@@ -38,7 +38,7 @@ function prepareLazyIconMasks() {
     distance: '6aede0796da67bba174f8087_tdb-journey-small-1px.svg',
     globe: '6ac9040240c896d539d1903d_tdb-globe.svg',
     parking: '6aede07abdf3a8e23f6374a5_tdb-parking-small-1px.svg',
-    barn: '6838407c2087a6de2a8b1068_the-dental-barns-blackbrook-lichfield-barn-door-icon-dark.svg.svg',
+    barn: '6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg',
   };
   const pseudoAssets = {
     price: '6aeddc62f7494347e6196f6b_tdb-price-large-1px.svg',

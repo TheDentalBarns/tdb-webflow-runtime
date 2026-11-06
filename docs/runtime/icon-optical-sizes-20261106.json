@@ -6,5 +6,8 @@
   "opticalSizes": "Small 24-unit masters simplify the lotus and open the tag hole. Large price/clock use 64 units; the large lotus retains its layered 192-unit silhouette. Large decorative diamonds remain unchanged.",
   "validation": "Pixel measurements at 13.625, 17.0312, 21, 44.2845 and 64 CSS px in inline SVG, image, background and mask contexts, at device pixel ratios 1 and 2. Observed stroke coverage 0.996 to 1.000 CSS px, allowing raster antialiasing.",
   "deployment": "Webflow staging only; native image sources, SVG artwork, embed code, mask/background image properties, and existing runtime artwork owners.",
-  "rollback": "Restore the baseline runtime pins and native artwork snapshots saved in the local icon-optical-sizes-20261106 evidence folder."
+  "rollback": "Restore the baseline runtime pins and native artwork snapshots saved in the local icon-optical-sizes-20261106 evidence folder.",
+  "colourInheritance": "FAQ price, clock, small diamond and location artwork uses native masks with an explicit black colour to match the chevrons, per final preference. The cream award trophy is also black. The review drawer treatment mask uses the simple small diamond with currentColor.",
+  "smallBarn": "Dedicated one-pixel simplified arch for journey controls and small partner badges.",
+  "galleryLotus": "Single rule owner: src/styles/tdb-icon-artwork.css, composed once into the existing global tdb-ui.css. Native shared component, gallery page and deferred template carry data-tdb-icon=\"lotus-small\". Their former artwork, colour, transform and box rules are removed. The one mask rule inherits label colour and sizes its surface directly, retaining a 1 CSS px stroke. Card layout and existing context margins remain with their components."
 }
