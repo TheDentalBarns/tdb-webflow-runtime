@@ -26,6 +26,7 @@ GLOBAL_SOURCES = [
     ROOT / 'src/styles/tdb-service-entry-states.css',
     ROOT / 'src/styles/tdb-navbar-control-states.css',
     ROOT / 'src/styles/tdb-controls-base.css',
+    ROOT / 'src/styles/tdb-lazy-service-icons.css',
     ROOT / 'src/styles/tdb-feed-holders.css',
     ROOT / 'src/styles/tdb-icon-artwork.css',
     ROOT / 'src/styles/tdb-hero-compact.css',
@@ -36,6 +37,7 @@ GLOBAL_SOURCES = [
 # Inline in the Webflow head; preserve global source order and never include readiness.
 CRITICAL_SOURCES = [
     ROOT / 'src/styles/tdb-controls-base.css',
+    ROOT / 'src/styles/tdb-lazy-service-icons.css',
 ]
 
 VIP_SOURCES = [

@@ -444,6 +444,12 @@ html[data-tdb-control-motion] [data-tdb-price-section][data-tdb-disclosure-item]
 
 html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-control-motion]) [data-tdb-disclosure-item]{transition:none!important}
 
+/* Inline before first paint as well as in shared UI: the asynchronous sheet
+ * alone arrives too late to prevent native mask requests. Designer keeps the
+ * artwork and geometry; no-JS pages retain the authored native icons. */
+:root.w-mod-js .tdb-calculator-icon[data-calculator-icon]{-webkit-mask-image:var(--tdb-calculator-artwork,linear-gradient(transparent,transparent));mask-image:var(--tdb-calculator-artwork,linear-gradient(transparent,transparent))}
+:root.w-mod-js .tdb-service-faq-heading[data-tdb-native-pseudo-icon]::before{-webkit-mask-image:var(--tdb-pseudo-artwork,linear-gradient(transparent,transparent));mask-image:var(--tdb-pseudo-artwork,linear-gradient(transparent,transparent))}
+
 /* Designer owns native feed holder dimensions and artwork. The early sheet
  * only coordinates loading feedback and parks assets until preparation. */
 
