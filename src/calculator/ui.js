@@ -1114,6 +1114,9 @@
           '<div class="tdbc-main" data-node="main">' +
           form +
           '</div></div>' +
+          (this.mode === 'drawer'
+            ? '<footer class="tdbc-section-footer" data-node="section-footer"><div class="container-large"><div class="max-width-xsmall"><p class="text-style-tagline-restored tdbc-dd-fade">We believe everyone deserves to feel good about their smile</p></div></div></footer>'
+            : '') +
           (this.mode === 'inline' && this.root.getAttribute('data-tdb-calc-price-guide') !== 'false'
             ? '<section class="tdbc-price-guide container-large padding-section-large" data-node="price-guide-intro"><header class="tdbc-header"><p class="text-style-tagline-restored tdbc-dd-fade">CLEAR PRICES, CONSIDERED CARE</p><h2 class="heading-style-h3">Your full treatment price guide</h2><p class="text-size-small">Explore our fees treatment by treatment, from everyday care to a change in your smile.</p></header></section>'
             : ''),
