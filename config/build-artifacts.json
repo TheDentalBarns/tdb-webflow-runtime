@@ -54,10 +54,10 @@
         "src/calculator/core.js",
         "src/calculator/ui.js"
       ],
-      "sha256": "5d88974bfb843c81dd4102875f3d255749426f217bb6d853997fd10277551149",
-      "raw": 77893,
-      "gzip": 25372,
-      "brotli": 21910
+      "sha256": "389c5f21d2c67a2f92763121c33aec6186c2c6e1de3a401a3e43b1192ffaceb0",
+      "raw": 78222,
+      "gzip": 25445,
+      "brotli": 21980
     },
     "dist/tdb-consent-startup.min.js": {
       "sources": [
@@ -135,20 +135,20 @@
       "sources": [
         "src/five-senses/loader.js"
       ],
-      "sha256": "a67a78bd9bd33a7edb189b1941d97f38cb4d3e15425f12ae9f3740b05107bd43",
-      "raw": 17747,
-      "gzip": 5944,
-      "brotli": 5258
+      "sha256": "d02c7cb8fa4824bbe486cc70327f1a976c9ab0f8b717251da43dcac4d36b9c10",
+      "raw": 18089,
+      "gzip": 6085,
+      "brotli": 5381
     },
     "dist/tdb-five-senses.js": {
       "sources": [
         "src/five-senses/scene-renderer.js",
         "src/five-senses/five-senses.js"
       ],
-      "sha256": "c34037a4526b7826d54d05e798fc86867df06e423801f92f39f5891266558b18",
-      "raw": 56463,
-      "gzip": 20411,
-      "brotli": 17874
+      "sha256": "303f625273ae99df05d1779303cd495a8d096621bc7bfda5b4eda199cd70d010",
+      "raw": 56582,
+      "gzip": 20496,
+      "brotli": 17962
     },
     "dist/tdb-forms.min.js": {
       "sources": [
@@ -311,10 +311,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "1f85796cbb93f51d24db3a76b075732e6ac156c5d5e05d1fc435cf3bfbce5f27",
-      "raw": 28078,
-      "gzip": 9750,
-      "brotli": 8855
+      "sha256": "09f9a1a737b908ace4ec4a0fdbe3666f364a2413b75d0ef528d104abf95b5752",
+      "raw": 28234,
+      "gzip": 9803,
+      "brotli": 8897
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -566,15 +566,6 @@
       "raw": 2644,
       "gzip": 1155,
       "brotli": 947
-    },
-    "dist/tdb-service-content.js": {
-      "sources": [
-        "src/services/native-content.js"
-      ],
-      "sha256": "9e9f8d5b38aedc5a92a361e741d4e165fa6aaf012ce047803ff835e73cbd8cec",
-      "raw": 3033,
-      "gzip": 1354,
-      "brotli": 1134
     },
     "dist/tdb-slider-focus.js": {
       "sources": [

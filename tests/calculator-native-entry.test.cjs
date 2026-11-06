@@ -416,6 +416,107 @@ test('calculator uses shared Escape/backdrop dismissal and restores the page aft
   }
 });
 
+test('closing the calculator hides its estimate banner and native controls together', async () => {
+  const h = setup();
+  try {
+    for (const file of ['tdb-drawer.css', 'tdb-calculator.css']) {
+      const style = h.w.document.createElement('style');
+      style.textContent = fs.readFileSync('src/styles/' + file, 'utf8');
+      h.w.document.head.append(style);
+    }
+    h.w.document.body.insertAdjacentHTML('beforeend', feed);
+    h.run('src/calculator/core.js');
+    h.run('src/calculator/ui.js');
+    const trigger = h.w.document.getElementById('drawer');
+    await h.w.TDBCalculator.open(trigger);
+    const shell = h.w.document.querySelector('[data-tdb-drawer=calculator]');
+    const banner = shell.querySelector('.tdbc-live');
+    const panel = shell.querySelector('[data-tdb-calc-panel]');
+    const reading = panel.querySelector('.tdbc-drawer-root');
+    assert.equal(h.w.getComputedStyle(panel).height, '100%');
+    assert.equal(h.w.getComputedStyle(reading).minHeight, '100%');
+    assert.equal(h.w.getComputedStyle(reading).display, 'flex');
+    assert.equal(reading.lastElementChild.dataset.node, 'section-footer');
+    assert.match(reading.lastElementChild.textContent, /We believe everyone deserves/);
+    assert.equal(h.root.querySelector('[data-node=section-footer]'), null, 'footer is drawer-only');
+    const categoryControl = shell.querySelector('[data-category=cosmetic]');
+    assert.equal(h.w.getComputedStyle(banner).visibility, 'visible');
+    shell.querySelector('[data-category=cosmetic]').click();
+    shell.querySelector('[data-select=whitening]').click();
+    shell.querySelector('[data-tdb-calc-close]').click();
+    await tick();
+    assert.equal(shell.hidden, true);
+    assert.equal(h.w.getComputedStyle(shell).display, 'none');
+    assert.equal(shell.contains(banner), true);
+    assert.equal(shell.contains(categoryControl), true);
+    assert.equal(h.w.document.querySelectorAll('[data-tdb-drawer=calculator]').length, 1);
+    await h.w.TDBCalculator.open(trigger);
+    assert.notEqual(h.w.getComputedStyle(shell).display, 'none');
+    assert.equal(shell.querySelector('[data-select=whitening]').checked, true);
+    await h.w.TDBCalculator.close();
+    assert.equal(h.w.getComputedStyle(shell).display, 'none');
+  } finally {
+    h.dom.window.close();
+  }
+});
+
+for (const startingCategory of ['', 'cosmetic', 'restorative']) {
+  test(`drawer starts with the authored category (${startingCategory || 'neither'}) without selecting treatments`, async () => {
+    const h = setup();
+    try {
+      h.w.document.body.insertAdjacentHTML('beforeend', feed);
+      h.run('src/calculator/core.js');
+      h.run('src/calculator/ui.js');
+      const trigger = h.w.document.getElementById('drawer');
+      // Page context also covers calculator links outside the supporting CTA.
+      const context = startingCategory === 'restorative' ? h.w.document.body : trigger;
+      context.setAttribute('data-tdb-calc-start-category', startingCategory);
+      await h.w.TDBCalculator.open(trigger);
+      const shell = h.w.document.querySelector('[data-tdb-drawer=calculator]');
+      assert.deepEqual(
+        [...shell.querySelectorAll('[data-category]:checked')].map((el) => el.dataset.category),
+        startingCategory ? [startingCategory] : [],
+      );
+      assert.equal(shell.querySelectorAll('[data-select]:checked').length, 0);
+      if (startingCategory) shell.querySelector(`[data-category=${startingCategory}]`).click();
+      await h.w.TDBCalculator.close();
+      await h.w.TDBCalculator.open(trigger);
+      assert.equal(
+        shell.querySelectorAll('[data-category]:checked').length,
+        0,
+        'clearing the default persists on reopen',
+      );
+    } finally {
+      h.dom.window.close();
+    }
+  });
+}
+
+test('a saved category takes priority over the CMS starting category', async () => {
+  const h = setup();
+  try {
+    h.w.sessionStorage.setItem(
+      'tdb-treatment-estimate-v1',
+      JSON.stringify({
+        version: 1,
+        at: Date.now(),
+        state: { ...core.newState(), categories: ['restorative'] },
+      }),
+    );
+    h.w.document.body.insertAdjacentHTML('beforeend', feed);
+    h.run('src/calculator/core.js');
+    h.run('src/calculator/ui.js');
+    const trigger = h.w.document.getElementById('drawer');
+    trigger.setAttribute('data-tdb-calc-start-category', 'cosmetic');
+    await h.w.TDBCalculator.open(trigger);
+    const shell = h.w.document.querySelector('[data-tdb-drawer=calculator]');
+    assert.equal(shell.querySelector('[data-category=restorative]').checked, true);
+    assert.equal(shell.querySelector('[data-category=cosmetic]').checked, false);
+  } finally {
+    h.dom.window.close();
+  }
+});
+
 test('VIP can open above the shared calculator and return to the preserved estimate', async () => {
   const h = setup();
   try {

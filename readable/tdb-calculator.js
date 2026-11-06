@@ -778,6 +778,7 @@
   const clock = '<span class="tdbc-shared-icon is-clock" aria-hidden="true"></span>';
   const tag = '<span class="tdbc-shared-icon is-price" aria-hidden="true"></span>';
   let state = C.newState(),
+    hasSessionState = false,
     records = null,
     loadPromise = null,
     dialog = null,
@@ -967,9 +968,10 @@
   }
   try {
     const stored = JSON.parse(sessionStorage.getItem(STORAGE) || 'null');
-    if (stored?.version === 1 && Date.now() - stored.at < TTL)
+    if (stored?.version === 1 && Date.now() - stored.at < TTL) {
       state = C.normaliseState(stored.state);
-    else sessionStorage.removeItem(STORAGE);
+      hasSessionState = true;
+    } else sessionStorage.removeItem(STORAGE);
   } catch (_) {
     /* Storage is optional. */
   }
@@ -1074,6 +1076,11 @@
     const host = el.closest('[data-tdb-calc-entry]') || el,
       config = {
         preselect: el.getAttribute('data-treatment') || host.getAttribute('data-treatment') || '',
+        startingCategory:
+          el.getAttribute('data-tdb-calc-start-category') ||
+          host.getAttribute('data-tdb-calc-start-category') ||
+          document.body.getAttribute('data-tdb-calc-start-category') ||
+          '',
       };
     const nativeConfig = host.querySelector('[data-tdb-calc-config]');
     for (const key of ['cosmetic', 'restorative', 'finance']) {
@@ -1107,6 +1114,14 @@
   }
   function contextual(view, config) {
     const hasEstimate = Object.keys(state.selected).length || state.assessment !== 'none';
+    // CMS defaults are first-visit suggestions, never a replacement for saved
+    // choices (including a visitor deliberately clearing both categories).
+    if (!hasSessionState && !hasEstimate && !state.categories.length) {
+      const category = config.startingCategory;
+      if (['cosmetic', 'restorative'].includes(category) && config[category] !== false)
+        state.categories = [category];
+    }
+    hasSessionState = true;
     view.config = { ...config };
     view.context = null;
     const restricted = C.estimate(records, state, config).hiddenSelections.length > 0;

@@ -38,7 +38,6 @@
     "dist/tdb-review-widget.js",
     "dist/tdb-reviews-loader.js",
     "dist/tdb-reviews.js",
-    "dist/tdb-service-content.js",
     "dist/tdb-runtime.js",
     "dist/tdb-service-awards.js",
     "dist/tdb-slider-focus.js",

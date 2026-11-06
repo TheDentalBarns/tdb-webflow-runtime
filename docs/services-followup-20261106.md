@@ -26,7 +26,7 @@ The calculator now opens through `TDBDrawer`, with shared motion, backdrop, focu
 
 The original “We believe everyone deserves to feel good about their smile” footer is restored only in drawer mode, using its existing dark footer styling. Inline calculator embeds do not render it.
 
-The separate Services footer `tdb-calculator-loader.js` include was redundant: the shared runtime already contains that definition. It was removed. The calculator UI/CSS/data still load on intent. `tdb-service-content.js` is intentional service-specific glue for VideoObject structured data and the existing Smile Design waitlist link adjustment; it does not load images or reviews.
+The separate Services footer `tdb-calculator-loader.js` include was redundant: the shared runtime already contains that definition. It was removed. The calculator UI/CSS/data still load on intent. The later CMS pass also retires `tdb-service-content.js`: the journey now owns `src/embeds/service-video-metadata.html`, which derives VideoObjects from its existing native CMS-bound headings, descriptions, poster and Vimeo attributes without loading media. The Smile Design waitlist text/link are native CMS bindings, with no URL-specific runtime rewrite.
 
 FAQ category artwork and gallery placeholders use the existing proximity/consent icon loader instead of eager native CSS URLs. The price, clock, diamond and address entries reuse existing shared asset URLs. Data-URI artwork is embedded, not a remote request; repeated uses of one URL are not separate asset downloads.
 
@@ -35,3 +35,17 @@ FAQ category artwork and gallery placeholders use the existing proximity/consent
 Build parity passes. The focused calculator, drawer, review JSON/lifecycle and lazy icon suite passes 91 tests. The preceding full serial run passed 947 tests with three skips and no failures. Published-source verification is recorded separately in the workspace evidence folder `../services-hero-20261105/`.
 
 The page-break quote shell still uses shared classes/controllers around its native service-filtered CMS list; it is not yet an instance of the shared Review Carousel definition. Its Designer first-slide display still needs visual confirmation. No computer control was used in this pass. Publish only to the Webflow staging subdomain, not custom domains.
+
+## Service display settings and drawer follow-up
+
+The user approved replacing the legacy Review Link reference at the Services 60-field limit. Its complete prior schema and values are backed up in `../services-hero-20261105/services-cms-before-display-settings.json`. The replacement reference `service-display-settings` links eight records in Service Display Settings (`6aedd460f014a26543339e49`). It owns the service symbol, secondary hero button text/link/down arrow, supporting-image switch and calculator starting category. Existing Section 3 Image values are preserved.
+
+Native bindings now supply lotus artwork on Nervous Patient Care and diamond artwork elsewhere, including the centred intro and both background benefit strips. The shared Benefit Strip's **On dark** variant gives the artwork darker cream independently of its CMS image. The light introduction retains its normal image colour.
+
+Nervous Patient Care's Five Senses section is an instance of the same dark supporting CTA as the cost section. It has one lotus button with `data-tdb-senses-open`, a square treatment-chair image and shared parallax. Calculator/link/wellness button visibility is authored natively; the inactive buttons are omitted from published HTML. The small lotus follows the shared one-pixel optical artwork and inherits button colour. Nervous and General Dentistry use their original CMS lounge images in the shared square frame where a smile gallery can later be enabled.
+
+Calculator starting categories are cosmetic for Cosmetic Dentistry and Smile Design, restorative for General Dentistry, and empty for Signature Assessment and Nervous Patient Care. No treatment is preselected. A restored session, including a deliberate empty selection, takes precedence. The drawer fills the viewport; spare height remains cream above its drawer-only belief footer. Shared closed roots use `display:none`, so descendants with `visibility:visible` cannot leak through after closing. Reopening preserves the estimate and reading position.
+
+The service hero opts into `data-tdb-parallax-reset-top`. Shared motion restores its authored start opacity at the page top even after a fast non-gesture scroll; normal mid-page restoration remains unchanged. Source and built tests cover the return from a fully faded offscreen hero.
+
+The staging HTML checks cover all five main services: a single correct supporting CTA, both restored CMS images, the chosen categories, no Lorem ipsum, no external service-content script, native Smile Design waitlist copy/link and five VideoObject records. These are source/unit checks, not a visual browser pass.

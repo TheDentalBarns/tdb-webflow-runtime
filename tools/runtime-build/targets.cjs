@@ -25,7 +25,6 @@ module.exports = {
   'dist/tdb-attribution.min.js': ['src/attribution/attribution.js'],
   'dist/tdb-lenis.min.js': ['vendor/lenis/lenis.js'],
   'dist/tdb-service-awards.js': ['src/service-awards/service-awards.js'],
-  'dist/tdb-service-content.js': ['src/services/native-content.js'],
   'dist/tdb-announcement.js': ['src/banner/announcement.js'],
   'dist/tdb-review-widget.js': ['src/reviews/widget.js'],
   'dist/tdb-availability.js': ['src/shared/availability.js'],

@@ -93,7 +93,7 @@ test('normal morph completes; close releases lock, restores focus and carries au
  e.w.document.querySelector('.tdb-senses-persistent-close').click();await tick();
  assert.equal(e.w.document.querySelector('dialog'),null);assert.equal(e.stats().releases,1);
  assert.equal(e.w.document.activeElement.id,'open');
- const audioButton=e.w.document.querySelector('.tdb-senses-page-audio');assert.ok(audioButton);audioButton.click();assert.equal(e.audio.muted,true);
+ const audioButton=e.w.document.querySelector('.tdb-senses-page-audio');assert.ok(audioButton);assert.equal(e.audio.muted,false);assert.equal(e.stats().stops,0);audioButton.click();assert.equal(e.audio.muted,true);audioButton.click();assert.equal(e.audio.muted,false);
  e.w.TDBFiveSensesEntry.destroy();assert.equal(e.w.document.querySelector('.tdb-senses-page-audio'),null);e.close();
 });
 test('missing start aborts partial mount and provides retry; closing remains available',async()=>{

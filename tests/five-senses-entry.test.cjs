@@ -7,7 +7,7 @@ function setup(search=''){
  w.requestAnimationFrame=fn=>{frames.push(fn);return frames.length;};w.cancelAnimationFrame=()=>{};
  w.HTMLDialogElement.prototype.showModal=function(){assert(w.document.querySelector('style[data-tdb-senses-shell]'),'loading CSS exists before modal paint');this.open=true;showed++;};
  w.HTMLDialogElement.prototype.close=function(){this.open=false;};
- w.Element.prototype.animate=function(){let finish;const motion={finished:new Promise(resolve=>finish=resolve),cancel(){},finish:()=>finish()};motions.push(motion);return motion;};
+ w.Element.prototype.animate=function(keyframes,options){let finish;const motion={keyframes,options,finished:new Promise(resolve=>finish=resolve),cancel(){this.cancelled=true;},finish:()=>finish()};motions.push(motion);return motion;};
  return {w,dom,frames,motions,get showed(){return showed;},load:()=>w.eval(fs.readFileSync('dist/tdb-five-senses-loader.js','utf8'))};
 }
 test('ordinary homepage installs no dormant shell CSS; first open installs once and remains cancellable',async()=>{
@@ -20,6 +20,33 @@ test('ordinary homepage installs no dormant shell CSS; first open installs once 
   f.w.dispatchEvent(new f.w.Event('pagehide'));assert.equal(f.w.document.querySelector('dialog'),null);
  }finally{f.w.close();}
 });
+test('exit fades in place using the shared fade pace and retains the page lock until fully transparent',async()=>{
+ const f=setup();try{
+  f.w.TDBMotionProfile={forFamily(name){assert.equal(name,'fade');return {time:ms=>ms*1.5,easing:()=> 'linear'};}};
+  f.load();const opener=f.w.document.querySelector('a');f.w.TDBFiveSensesEntry.open(opener);
+  const entrance=f.motions[0],dialog=f.w.document.querySelector('dialog');dialog.querySelector('button').click();
+  const exit=f.motions.at(-1);assert.equal(entrance.cancelled,true);
+  assert.deepEqual(JSON.parse(JSON.stringify(exit.keyframes)),[{opacity:1},{opacity:0}]);
+  assert.equal(exit.options.duration,750);assert.equal(exit.options.easing,'linear');
+  assert.equal(dialog.isConnected,true);assert(f.w.TDBScrollLock.active);
+  assert.notEqual(f.w.document.activeElement,opener);
+  exit.finish();await Promise.resolve();await Promise.resolve();
+  assert.equal(dialog.isConnected,false);assert(!f.w.TDBScrollLock.active);assert.equal(f.w.document.activeElement,opener);
+  await new Promise(resolve=>setImmediate(resolve));
+ }finally{f.w.close();}
+});
+
+test('reduced motion closes immediately without leaving an invisible modal or page lock',async()=>{
+ const f=setup();try{
+  f.w.TDBMotionPolicy={reduced:{matches:true}};f.load();const opener=f.w.document.querySelector('a');
+  f.w.TDBFiveSensesEntry.open(opener);const before=f.motions.length;
+  f.w.document.querySelector('dialog button').click();
+  assert.equal(f.motions.length,before);assert.equal(f.w.document.querySelector('dialog'),null);
+  assert(!f.w.TDBScrollLock.active);assert.equal(f.w.document.activeElement,opener);
+  await new Promise(resolve=>setImmediate(resolve));
+ }finally{f.w.close();}
+});
+
 test('controller remains definition-only even on a legacy automatic-entry URL',()=>{
  const f=setup('?five-senses=1');try{f.load();assert.equal(f.showed,0);assert.equal(f.w.location.search,'?five-senses=1');assert.equal(f.w.document.querySelector('[data-tdb-senses-shell]'),null);f.w.dispatchEvent(new f.w.Event('pagehide'));}finally{f.w.close();}
 });

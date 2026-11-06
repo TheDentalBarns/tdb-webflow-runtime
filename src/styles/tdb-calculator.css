@@ -128,8 +128,8 @@ html[data-tdb-control-motion] .tdb-calc [data-tdb-disclosure-item][data-tdb-disc
 .tdbc-live-close{flex:0 0 3rem;min-height:44px;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;margin-right:.5rem}
 .tdbc-live{transform:translate3d(0,-100%,0);visibility:hidden;opacity:0;pointer-events:none;transition:transform calc(420ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,cubic-bezier(.4,0,.2,1)),opacity calc(420ms * var(--tdb-fade-pace,1)) var(--tdb-motion-ease-fade,cubic-bezier(.4,0,.2,1)),visibility 0s calc(420ms * var(--tdb-fade-pace,1));overflow-anchor:none}.tdb-calc.is-focused .tdbc-live.has-estimate{transform:translate3d(0,0,0);visibility:visible;opacity:1;pointer-events:auto;transition-delay:0s}
 .tdbc-section-footer{margin:0 -3.19149%;padding:2.5rem 3.19149%;background:var(--base-color-neutral--neutral-darker);color:var(--base-color-brand--orange-3)}.tdbc-section-footer p{margin:0;color:var(--base-color-brand--orange-3)}
-.tdb-drawer_panel.tdbc-dialog{padding:0;border:0;border-radius:0;inset:0 0 auto auto;margin:0;height:auto;max-height:100dvh;background:var(--calc-cream);overflow-y:auto;overscroll-behavior:contain;color:var(--calc-ink)}
-.tdbc-drawer-root{padding-top:0;padding-bottom:0}.tdbc-dialog .tdbc-shell{padding-top:2rem}.tdbc-dialog .tdbc-live{left:auto;width:min(60rem,94vw)}
+.tdb-drawer_panel.tdbc-dialog{padding:0;border:0;border-radius:0;inset:0 0 0 auto;margin:0;height:100%;max-height:none;background:var(--calc-cream);overflow-y:auto;overscroll-behavior:contain;color:var(--calc-ink)}
+.tdbc-drawer-root{padding-top:0;padding-bottom:0;min-height:100%;display:flex;flex-direction:column}.tdbc-dialog .tdbc-shell{padding-top:2rem;flex:1 0 auto}.tdbc-dialog .tdbc-live{left:auto;width:min(60rem,94vw);flex-shrink:0}.tdbc-dialog .tdbc-section-footer{flex-shrink:0}
 .tdbc-sr{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;padding:0!important}
 .tdb-calc :is(button,a,input,summary):focus-visible,.tdbc-dialog button:focus-visible{outline:2px solid currentColor;outline-offset:4px}.tdb-calc button:disabled{opacity:.4;cursor:default}
 /* Existing shared navbar controller owns focus and scroll release. Include its
@@ -186,7 +186,8 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 .tdbc-drawer-close-dock .tdb-drawer_close{position:static;pointer-events:auto;color:var(--calc-ink);background:color-mix(in srgb,var(--calc-dark-cream) 84%,transparent);backdrop-filter:saturate(150%) blur(20px);-webkit-backdrop-filter:saturate(150%) blur(20px)}
 .tdbc-drawer-close-dock button:hover{background:var(--calc-line)}
 
-/* Pop-outs fit their content and always retain the estimate strip. */
+/* Full-height pop-outs retain the estimate strip and let their footer sit below
+   spare cream space when the starting form is shorter than the viewport. */
 .tdbc-dialog .tdbc-live-button{padding-inline:0}
 
 /* The existing VIP drawer sits in its own top layer above a preserved calculator. */
@@ -229,6 +230,8 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 .tdbc-shared-icon.is-diamond{--tdbc-icon:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc640ce35bc2256782dc_tdb-diamond-small-1px.svg")}
 .tdbc-appointment-price,.tdbc-stage-cost>strong,.tdbc-total{display:flex;align-items:center;gap:.5rem}
 .tdbc-total .tdbc-shared-icon{flex-basis:1.25rem;width:1.25rem;height:1.25rem}
+/* Centre the tag against the visible numerals, below their line-box midpoint. */
+.tdbc-total>.tdbc-shared-icon.is-price{transform:translateY(2px)}
 .tdbc-start-choices .tdbc-appointment-price{display:flex;align-items:center;gap:.5rem}
 .tdbc-total [data-output=total]{min-width:0;font-size:clamp(1.25rem,4.4vw,2.5rem)}
 /* Paint over a fractional sticky edge without adding a layer or changing its bounds. */
