@@ -466,9 +466,18 @@ html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-contro
 [data-tdb-review-placeholder]>.tdb-review-embed-progress{visibility:hidden}
 
 /* One artwork rule for native and deferred gallery clinician icons.
- * Card layout and label colour remain with their existing components.
+ * Card layout remains with the existing components.
  * Size the mask surface directly: scaling an image also scales its 1px stroke.
  */
+/* The carousel's existing metadata grey belongs to the whole clinician row,
+ * so its label and artwork inherit the same colour in every placement.
+ */
+.tdb-smile-static-facts .tdb-smile-fact.is-clinician {
+  color: #888;
+}
+.tdb-smile-static-facts .tdb-smile-fact.is-clinician .tdb-smile-fact-ticker {
+  color: inherit;
+}
 [data-tdb-icon="lotus-small"] {
   display: block;
   position: relative;
