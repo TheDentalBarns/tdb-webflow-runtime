@@ -465,6 +465,30 @@ html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-contro
 /* Park the native progress bar until the existing lazy carousel borrows it. */
 [data-tdb-review-placeholder]>.tdb-review-embed-progress{visibility:hidden}
 
+/* One artwork rule for native and deferred gallery clinician icons.
+ * Card layout and label colour remain with their existing components.
+ * Size the mask surface directly: scaling an image also scales its 1px stroke.
+ */
+[data-tdb-icon="lotus-small"] {
+  display: block;
+  position: relative;
+  flex: 0 0 1rem;
+  width: 1rem;
+  height: 1rem;
+}
+[data-tdb-icon="lotus-small"]::before {
+  content: "";
+  position: absolute;
+  display: block;
+  left: 50%;
+  top: 50%;
+  width: 130%;
+  height: 130%;
+  transform: translate(-50%, -50%);
+  background-color: currentColor;
+  mask: url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc643eed49cd4fac61a6_tdb-lotus-small-1px.svg") center / contain no-repeat;
+}
+
 /* Compact hero preserves the existing full-frame hit area and glass owner. */
 @keyframes tdbHeroControlEnter{from{opacity:0}to{opacity:1}}
 [data-vimeo-hero-shell] .tdb-hero-toggle-art{animation:tdbHeroControlEnter calc(200ms * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-out) calc(100ms * var(--tdb-motion-pace,1)) backwards}
