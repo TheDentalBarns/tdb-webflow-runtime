@@ -1,4 +1,4 @@
-/* Shared VIP form behaviour v1.2.0. Designer owns markup and all visual states.
+/* Shared VIP form behaviour v1.2.1. Designer owns markup and all visual states.
  * Reuses TDBForms for validation/phone handling and Webflow for submission.
  * Original form IDs, field names, option values and attribution are preserved.
  */
@@ -144,7 +144,7 @@
     : /\/services\/smile-design$/.test(path)
       ? 'Join the Smile Design Waitlist'
       : /\/services\/(?:fast-track|signature-assessment)$/.test(path)
-        ? 'View Available Appointments'
+        ? 'Secure your appointment'
         : /\/(?:treatments|areas|pricing)\//.test(path) &&
             /veneers|bonding|invisalign|clear-aligners|whitening/.test(path)
           ? 'Start with a Signature Assessment ✦'
@@ -294,7 +294,7 @@
     },
   });
   window.TDBVIPForm = Object.freeze({
-    version: '1.2.0',
+    version: '1.2.1',
     refresh: () => {
       scan(document);
       document.querySelectorAll(SELECT).forEach(render);
