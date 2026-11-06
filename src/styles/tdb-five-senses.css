@@ -21,7 +21,7 @@
 .tdb-senses-room span{width:27px;height:1px;background:currentColor;opacity:.65}
 .tdb-senses-utilities{display:flex;align-items:center;gap:16px}
 .tdb-senses-close,.tdb-senses-motion{display:grid;place-items:center;width:44px;height:44px;padding:7px;border:0;border-radius:50%;color:inherit;background:transparent;cursor:pointer}
-.tdb-senses-close svg{width:30px;height:30px;filter:drop-shadow(0 1px 5px #0008)}
+.tdb-senses-close img{display:block;width:18.3873px;height:18.3873px;filter:brightness(0) invert(1) drop-shadow(0 1px 5px #0008)}
 .tdb-senses-motion{width:38px;height:38px;opacity:.72}
 .tdb-senses-motion svg{width:24px;height:24px}
 .tdb-senses-motion[hidden]{display:none}

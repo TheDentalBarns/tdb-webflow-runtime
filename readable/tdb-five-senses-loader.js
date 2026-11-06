@@ -96,7 +96,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-loading-anchor .tdb-senses-loading-tex
 
 dialog[data-tdb-senses-shell] .tdb-senses-loading-text{color:#f5f1e6!important;font:inherit}
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close{position:absolute;z-index:40;top:max(22px,env(safe-area-inset-top));right:var(--tdb-senses-gutter);display:grid;place-items:center;width:44px;height:44px;padding:7px;margin:0;border:0;border-radius:50%;background:transparent!important;color:#fff!important;cursor:pointer;-webkit-tap-highlight-color:transparent}
-dialog[data-tdb-senses-shell] .tdb-senses-persistent-close svg{width:30px;height:30px;filter:drop-shadow(0 1px 5px #0008)}
+dialog[data-tdb-senses-shell] .tdb-senses-persistent-close img{display:block;width:18.3873px;height:18.3873px;filter:brightness(0) invert(1) drop-shadow(0 1px 5px #0008)}
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus:not(:focus-visible){outline:none}
 dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline:1px solid #fff;outline-offset:2px}
 @media(max-width:600px){dialog[data-tdb-senses-shell]{--tdb-senses-gutter:5vw}dialog[data-tdb-senses-shell] .tdb-senses-persistent-close{top:max(17px,env(safe-area-inset-top))}}
@@ -406,15 +406,26 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
     session.dialog.inert = true;
     session.dialog.dataset.sensesClosing = '';
     session.dialog.querySelectorAll('audio,video').forEach((media) => media.pause());
-    // Keep the dialog, focus trap and page lock until its exit has finished.
-    const motion = session.dialog.animate(
-      [
-        { transform: 'translate3d(0,0,0)', opacity: 1 },
-        { transform: 'translate3d(0,100%,0)', opacity: 1 },
-      ],
-      { duration: 500, easing: 'ease', fill: 'forwards' },
-    );
-    session.closeTimer = setTimeout(() => dispose(session), 600);
+    session.entrance?.cancel();
+    const profile = window.TDBMotionProfile?.forFamily?.('fade') || window.TDBMotionProfile;
+    const reduced = (
+      window.TDBMotionPolicy?.reduced ||
+      window.TDBMotion?.reduced ||
+      window.matchMedia?.('(prefers-reduced-motion: reduce)')
+    )?.matches;
+    const duration = reduced ? 0 : (profile?.time(500) ?? 500);
+    if (!duration || !session.dialog.animate) {
+      dispose(session);
+      return;
+    }
+    // Reveal the stationary page beneath; retain its lock and audio handoff
+    // until the experience has completely faded away.
+    const motion = session.dialog.animate([{ opacity: 1 }, { opacity: 0 }], {
+      duration,
+      easing: profile?.easing('fade', 'ease') ?? 'ease',
+      fill: 'forwards',
+    });
+    session.closeTimer = setTimeout(() => dispose(session), duration + 100);
     motion.finished.catch(() => {}).then(() => dispose(session));
   }
   function loading(session, error = false) {
@@ -429,7 +440,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
       control.className = 'tdb-senses-loading-close tdb-senses-persistent-close';
       control.setAttribute('aria-label', 'Close experience');
       control.innerHTML =
-        '<svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1"><path d="m9 9 14 14M23 9 9 23"/></svg>';
+        '<img src="https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac903f5a05e10347d13d4a5_tdb-close.svg" width="18" height="18" alt="" aria-hidden="true">';
       control.addEventListener('click', () => close(session));
       session.closeControl = control;
     }
@@ -604,7 +615,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
       }),
     );
     if (!automatic)
-      dialog.animate(
+      session.entrance = dialog.animate(
         [
           { transform: 'translate3d(0,20%,0)', opacity: 0 },
           { transform: 'translate3d(0,0,0)', opacity: 1 },

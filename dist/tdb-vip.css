@@ -361,7 +361,6 @@ html.tdb-vip-menu-away .navbar-bg_layer {
 
   #tdb-vip-drawer .tdb-vip-drawer-handle {
     align-items: center;
-    padding-inline: var(--tdb-vip-desktop-page-gutter) !important;
     cursor: pointer;
   }
 

@@ -135,20 +135,20 @@
       "sources": [
         "src/five-senses/loader.js"
       ],
-      "sha256": "a67a78bd9bd33a7edb189b1941d97f38cb4d3e15425f12ae9f3740b05107bd43",
-      "raw": 17747,
-      "gzip": 5944,
-      "brotli": 5258
+      "sha256": "d02c7cb8fa4824bbe486cc70327f1a976c9ab0f8b717251da43dcac4d36b9c10",
+      "raw": 18089,
+      "gzip": 6085,
+      "brotli": 5381
     },
     "dist/tdb-five-senses.js": {
       "sources": [
         "src/five-senses/scene-renderer.js",
         "src/five-senses/five-senses.js"
       ],
-      "sha256": "c34037a4526b7826d54d05e798fc86867df06e423801f92f39f5891266558b18",
-      "raw": 56463,
-      "gzip": 20411,
-      "brotli": 17874
+      "sha256": "303f625273ae99df05d1779303cd495a8d096621bc7bfda5b4eda199cd70d010",
+      "raw": 56582,
+      "gzip": 20496,
+      "brotli": 17962
     },
     "dist/tdb-forms.min.js": {
       "sources": [
