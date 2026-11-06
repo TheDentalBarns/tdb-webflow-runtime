@@ -52,6 +52,14 @@ function prepareLazyIconMasks() {
     pause: '6ae0c5c877076aee400c6838_7b1d9ef44a4b54195aca3dfd22e245f5_tdb-control-pause.svg',
     spinner: '6ad9b3739924db6726de4586_tdb-control-spinner.svg',
   };
+  // Service FAQs use the small artwork authored in Designer, not the larger
+  // location feature icons that share these semantic hooks.
+  const serviceFAQAssets = {
+    price: assets.price,
+    clock: assets.clock,
+    diamond: '6aeddc640ce35bc2256782dc_tdb-diamond-small-1px.svg',
+    address: '6aeddc65afde554858c3126e_tdb-location-small-1px.svg',
+  };
   const seen = new WeakSet(),
     pending = new Set();
   let disposed = false;
@@ -60,8 +68,18 @@ function prepareLazyIconMasks() {
     if (!node.isConnected) return;
     if (node.hasAttribute('data-tdb-native-pseudo-icon')) {
       const kind = node.dataset.tdbNativePseudoIcon;
-      const file = Object.hasOwn(pseudoAssets, kind) && pseudoAssets[kind];
+      const artwork = node.classList.contains('tdb-service-faq-heading')
+        ? serviceFAQAssets
+        : pseudoAssets;
+      const file = Object.hasOwn(artwork, kind) && artwork[kind];
       if (file) node.style.setProperty('--tdb-pseudo-artwork', 'url("' + base + file + '")');
+      return;
+    }
+    if (node.matches('.tdb-calculator-icon[data-calculator-icon]')) {
+      node.style.setProperty(
+        '--tdb-calculator-artwork',
+        'url("' + base + '6aeddc65306b47b79562b402_tdb-calculator-small-1px.svg' + '")',
+      );
       return;
     }
     if (node.hasAttribute('data-tdb-journey-icon')) {
@@ -153,7 +171,7 @@ function prepareLazyIconMasks() {
     if (!allowed()) return;
     document
       .querySelectorAll(
-        '[data-tdb-lazy-barns],[data-tdb-compact-speaker],[data-tdb-journey-icon],[data-tdb-native-pseudo-icon],.tdb-contact-item,.footer1_social-link[class*="tdb-footer-"],[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
+        '[data-tdb-lazy-barns],[data-tdb-compact-speaker],[data-tdb-journey-icon],[data-tdb-native-pseudo-icon],.tdb-calculator-icon[data-calculator-icon],.tdb-contact-item,.footer1_social-link[class*="tdb-footer-"],[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
       )
       .forEach((node) => {
         if (seen.has(node)) return;

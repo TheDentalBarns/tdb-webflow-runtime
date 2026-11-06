@@ -130,3 +130,51 @@ test('journey clock, distance and universal globe masks remain deferred and add 
   assert.equal(node.childElementCount,0);
  }}finally{f.close()}
 });
+
+function serviceIcons(f) {
+ const d=f.w.document,calculator=d.createElement('div');
+ calculator.className='tdb-calculator-icon';calculator.setAttribute('data-calculator-icon','');
+ const faqs=['price','clock','diamond','address'].map(kind=>{
+  const n=d.createElement('div');n.className='tdb-service-faq-heading';n.dataset.tdbNativePseudoIcon=kind;return n;
+ });
+ d.body.append(calculator,...faqs);
+ return [calculator,...faqs];
+}
+
+test('calculator and service FAQs release their exact native artwork only at consent and proximity',()=>{
+ const f=fixture({allowed:false});try{
+  const nodes=serviceIcons(f),properties=['--tdb-calculator-artwork',...Array(4).fill('--tdb-pseudo-artwork')];
+  const artwork=()=>nodes.map((n,i)=>n.style.getPropertyValue(properties[i]));
+  f.w.TDBLazyIconMasks.refresh();assert(nodes.every(n=>!f.ios[0].nodes.has(n)));
+  f.permit(true);assert(nodes.every(n=>f.ios[0].nodes.has(n)));assert(artwork().every(x=>!x));
+  f.ios[0].fn([{target:nodes[0],isIntersecting:false}]);assert(artwork().every(x=>!x));
+  f.ios[0].fn([{target:nodes[0],isIntersecting:true}]);assert.match(artwork()[0],/6aeddc65306b47b79562b402_tdb-calculator-small-1px.svg/);assert(artwork().slice(1).every(x=>!x));
+  f.permit(false);f.ios[0].fn(nodes.slice(1).map(target=>({target,isIntersecting:true})));assert(artwork().slice(1).every(x=>!x));
+  f.permit(true);
+  for(const [i,file] of ['6aeddc626c94d2870769382e_tdb-price-small-1px.svg','6aeddc636dd65bf4f700d266_tdb-clock-small-1px.svg','6aeddc640ce35bc2256782dc_tdb-diamond-small-1px.svg','6aeddc65afde554858c3126e_tdb-location-small-1px.svg'].entries())assert(artwork()[i+1].endsWith(file+'")'));
+  assert(nodes.every(n=>n.childElementCount===0&&!n.style.width&&!n.style.height&&!n.style.maskImage));
+  const location=f.w.document.createElement('div');location.className='tdb-location-icon';location.dataset.tdbNativePseudoIcon='address';f.w.document.body.append(location);f.w.TDBLazyIconMasks.refresh();f.ios[0].fn([{target:location,isIntersecting:true}]);assert.match(location.style.getPropertyValue('--tdb-pseudo-artwork'),/tdb-contact-address.svg/);
+  const inline=f.w.document.createElement('span');inline.setAttribute('data-calculator-icon','');inline.innerHTML='<svg></svg>';f.w.document.body.append(inline);f.w.TDBLazyIconMasks.refresh();assert(!f.ios[0].nodes.has(inline),'legacy inline calculator SVGs are already request-free');
+ }finally{f.close()}
+});
+
+test('service icons retain the no-observer fallback and discard removed or disposed targets',()=>{
+ const fallback=fixture({observer:false});try{const nodes=serviceIcons(fallback);fallback.w.TDBLazyIconMasks.refresh();assert(nodes.every(n=>n.getAttribute('style').includes('.svg')))}finally{fallback.close()}
+ const f=fixture();try{
+  const [calculator,faq]=serviceIcons(f);f.w.TDBLazyIconMasks.refresh();calculator.remove();f.ios[0].fn([{target:calculator,isIntersecting:true}]);assert.equal(calculator.getAttribute('style'),null);
+  f.w.TDBLazyIconMasks.destroy();f.ios[0].fn([{target:faq,isIntersecting:true}]);assert.equal(faq.getAttribute('style'),null);
+ }finally{f.close()}
+});
+
+test('critical and shared CSS both suppress the initial native service icon URLs without owning geometry',()=>{
+ const postcss=require('postcss');
+ for(const file of ['dist/tdb-ui-critical.css','dist/tdb-ui.css']){
+  const rules=[];postcss.parse(fs.readFileSync(file,'utf8')).walkRules(rule=>{if(rule.selector.includes('[data-calculator-icon]')||rule.selector.includes('.tdb-service-faq-heading[data-tdb-native-pseudo-icon]'))rules.push(rule)});
+  assert.equal(rules.length,2,file);
+  for(const rule of rules){
+   assert.equal(rule.parent.type,'root');assert.match(rule.selector,/:root\.w-mod-js/, 'native icons remain available without JavaScript');
+   assert.deepEqual(rule.nodes.map(n=>n.prop),['-webkit-mask-image','mask-image']);
+   for(const declaration of rule.nodes){assert.doesNotMatch(declaration.value,/url\(/);assert.match(declaration.value,/var\(--tdb-(calculator|pseudo)-artwork,linear-gradient\(transparent,transparent\)\)/)}
+  }
+ }
+});

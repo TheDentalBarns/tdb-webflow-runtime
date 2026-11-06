@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-06",
+  "base": "7cc9ac45e32dd878c6d1ce5a44a8f361c12992bf",
+  "scope": "Defer the existing native calculator mask and four service FAQ masks; retain the main logo preload.",
+  "owner": "Existing prepareLazyIconMasks consent gate and 400px IntersectionObserver; no new observer or startup dependency.",
+  "native": "No Designer changes. Exact small SVGs, dimensions, colours, layout and disclosure controls are preserved. Legacy inline calculator SVGs are excluded.",
+  "critical": "Include the same two loading-only mask rules in critical inline CSS and shared UI. Transparent masks prevent first-paint asset requests before asynchronous UI arrives. The w-mod-js guard preserves native artwork without JavaScript.",
+  "cost": {
+    "criticalCssAddedRawBytes": 471,
+    "runtimeAddedRawBytes": 439,
+    "runtimeAddedGzipBytes": 153,
+    "note": "Byte deltas are build sizes, not a measured speed improvement. Shared UI also includes the critical mask rules."
+  },
+  "validation": {
+    "behavioralSuite": "965 passed, 3 skipped",
+    "focusedChecks": "22 passed, including exact service artwork, consent, proximity, teardown, no-observer fallback, inline-SVG exclusion and critical/shared CSS coverage",
+    "buildParity": "All manifest outputs and UI parity passed; Swiper rebuilt and patched artifact checks passed",
+    "format": "Passed with Windows end-of-line auto",
+    "mainReconciliation": "Current main is an ancestor of the installed release; no missing main commits",
+    "stagingEvidence": "Saved separately with exact site code, served release pins, network waterfall and desktop/mobile observations"
+  },
+  "rollback": "Restore the private saved site head and footer (four original release pins and original inline critical CSS); publish only the Webflow staging subdomain."
+}
