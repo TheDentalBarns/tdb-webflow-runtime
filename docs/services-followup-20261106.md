@@ -24,6 +24,8 @@ It uses the existing shared deferred review template, drawer controller, filters
 
 The calculator now opens through `TDBDrawer`, with shared motion, backdrop, focus/scroll handling and close artwork. Its own stylesheet keeps calculator presentation. The drawer enables the existing Pricing category/inset treatment; price data is unchanged. Nested VIP return preserves the calculator choices and scroll position.
 
+The original “We believe everyone deserves to feel good about their smile” footer is restored only in drawer mode, using its existing dark footer styling. Inline calculator embeds do not render it.
+
 The separate Services footer `tdb-calculator-loader.js` include was redundant: the shared runtime already contains that definition. It was removed. The calculator UI/CSS/data still load on intent. `tdb-service-content.js` is intentional service-specific glue for VideoObject structured data and the existing Smile Design waitlist link adjustment; it does not load images or reviews.
 
 FAQ category artwork and gallery placeholders use the existing proximity/consent icon loader instead of eager native CSS URLs. The price, clock, diamond and address entries reuse existing shared asset URLs. Data-URI artwork is embedded, not a remote request; repeated uses of one URL are not separate asset downloads.
