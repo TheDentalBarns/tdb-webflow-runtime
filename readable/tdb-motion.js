@@ -1,4 +1,4 @@
-/* TDB shared motion v1.24.1. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.24.2. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -1208,8 +1208,8 @@
     };
   }
 
-  // Native service steps share the DD/parallax read/write scheduler. The rail
-  // scrolls only when the active step changes; there is no continuous timer.
+  // Native service steps share the DD/parallax read/write scheduler. On mobile,
+  // the rail follows the line continuously, using scroll events rather than a timer.
   const serviceJourneys = new WeakMap();
   function serviceJourney(root) {
     if (serviceJourneys.has(root)) return serviceJourneys.get(root);
@@ -1256,19 +1256,23 @@
       const fraction = Math.min(1, Math.max(0, (edge - start) / Math.max(1, end - start)));
       const width = from + (to - from) * fraction;
       const changed = next !== active;
-      let left;
-      if (changed && next >= 0 && mobile.matches) {
-        const link = frame.rect(entries[next].link);
+      let left = mobile.matches ? undefined : 0;
+      if (mobile.matches && (!reduced.matches || changed)) {
+        const focus = reduced.matches ? (next < 0 ? 0 : markers[next]) : width;
         left = Math.max(
           0,
           Math.min(
             rail.scrollWidth - rail.clientWidth,
-            rail.scrollLeft + link.left - band.left + link.width / 2 - band.width / 2,
+            rail.scrollLeft + origin - band.left + focus - band.width / 2,
           ),
         );
       }
       return () => {
         if (timeline) timeline.style.width = `${Math.round(width * 100) / 100}px`;
+        // A smooth scroll here would lag behind the page and restart every frame.
+        // Reduced motion centres only a newly reached marker, without animation.
+        if (left !== undefined && Math.abs(left - rail.scrollLeft) > 0.25)
+          rail.scrollTo({ left, behavior: 'instant' });
         if (!changed) return;
         active = next;
         entries.forEach(({ link }, index) => {
@@ -1276,8 +1280,6 @@
           if (index === active) link.setAttribute('aria-current', 'step');
           else link.removeAttribute('aria-current');
         });
-        if (left !== undefined)
-          rail.scrollTo({ left, behavior: reduced.matches ? 'instant' : 'smooth' });
       };
     }
     const schedule = () => requestMotionFrame(read);
@@ -1371,7 +1373,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.24.1',
+    version: '1.24.2',
     profile,
     time,
     easing,
