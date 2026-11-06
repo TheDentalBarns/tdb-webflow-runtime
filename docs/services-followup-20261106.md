@@ -4,7 +4,7 @@ Signature Assessment remains the Services template acceptance page. This pass us
 
 ## Native Designer ownership
 
-- Cost region `7e742d52-f378-4939-7a64-7218fa2807ce` uses `.tdb-service-cost-region` with relative positioning and z-index 9998. It paints above the normal navigation (999) and assessment announcement (998), while the subsequent background can expose them again. Dialogs and the open navigation overlay retain their higher stacking levels.
+- Common supporting CTA region `7e742d52-f378-4939-7a64-7218fa2807d0` uses `.tdb-service-cost-region` with relative positioning and z-index 9998. Both the calculator and Five Senses branches paint above the normal navigation (999) and assessment announcement (998), while the subsequent background can expose them again. Dialogs and the open navigation overlay retain their higher stacking levels.
 - The consultation image on supporting CTA `4893a05d-5e2e-8d3f-2721-eb585ca97082` explicitly uses lazy loading, asynchronous decoding and low fetch priority. The existing journey poster using the same URL was already lazy.
 - Shared supporting CTA image width and the journey media width use the same 90rem container, 3% desktop gutters and 5rem column gap. The supporting image remains square with shared parallax.
 - Investment is the one expanded FAQ category in Designer. All questions and the remaining categories are closed. The introduction now starts with “Ask away. We’re open.”

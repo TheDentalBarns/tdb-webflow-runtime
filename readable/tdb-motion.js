@@ -731,14 +731,17 @@
           const previous = state.y;
           state.geometry = g.signature;
           state.y = clamp(state.y, g.low, g.high);
-          if (state.resetAtTop && scroll <= 1) {
-            // A rapid jump or browser "back to top" can arrive without a live
-            // input gesture. The opening hero must regain its authored start
-            // state, rather than retain the exit fade beneath a transparent nav.
+          if (scroll > 1) state.hasLeftTop = true;
+          if (state.resetAtTop && scroll <= 1 && state.hasLeftTop) {
+            // Recover only after leaving the top. Initial mounting and image/font
+            // loads must keep the already painted crop, so phased entry does not
+            // acquire a second translation. A later non-gesture return still
+            // restores the exit fade beneath the transparent navigation.
             state.y = g.target;
             state.alpha = g.alpha;
             state.revealAlpha = g.reveal;
             state.correction = null;
+            state.hasLeftTop = false;
           } else if (!g.visible) {
             // The browser may restore scroll after this first render. Keep the
             // prepaint snapshot until that happens or the user starts scrolling.
@@ -943,6 +946,7 @@
         exitFrame: exitRange || reveal ? wrapper.querySelector('[data-tdb-parallax-frame]') : null,
         imageProgress: wrapper.getAttribute?.('data-tdb-parallax-progress') === 'image',
         resetAtTop: wrapper.hasAttribute?.('data-tdb-parallax-reset-top'),
+        hasLeftTop: false,
         alpha:
           fadeTargets.length && fadeEnds[0] !== fadeFrom[0]
             ? clamp((initial - fadeEnds[0]) / (fadeFrom[0] - fadeEnds[0]), 0, 1)

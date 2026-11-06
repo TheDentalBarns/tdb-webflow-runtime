@@ -49,9 +49,13 @@ test('content poster opt-in leaves iframe, controls and unrelated videos outside
  api.destroy();assert.equal(e.owners[0].destroyed,true);e.dom.window.close();
 });
 
-test('shared Scroll media variant owns photo or ambient video independently of the section overlay', async () => {
- for(const [home, media] of [[true,'<img class="header111_background-image">'],[false,'<div class="vimeo-bg" data-vimeo-ambient-init><iframe></iframe><img class="vimeo-bg__placeholder"></div>']]) {
-  const section='<header class="section_header111" data-wf--component-1---bg-image--variant="scroll-media" data-tdb-page-break="bg-image" data-tdb-parallax-mode="opacity"><h2>Title</h2><a>Action</a><div class="header111_background-image-wrapper"><div data-tdb-parallax-fade></div>'+media+'</div></header>';
+test('shared Scroll media variants own photo or ambient video independently of the section overlay', async () => {
+ for(const [home, variant, media, targetClass] of [
+  [true,'scroll-media','<img class="header111_background-image">','header111_background-image'],
+  [false,'scroll-media','<div class="vimeo-bg" data-vimeo-ambient-init><iframe></iframe><img class="vimeo-bg__placeholder"></div>','vimeo-bg'],
+  [false,'service-scroll-media','<img class="header111_background-image">','header111_background-image'],
+ ]) {
+  const section='<header class="section_header111" data-wf--component-1---bg-image--variant="'+variant+'" data-tdb-page-break="bg-image" data-tdb-parallax-mode="opacity"><h2>Title</h2><a>Action</a><div class="header111_background-image-wrapper"><div data-tdb-parallax-fade></div>'+media+'</div></header>';
   const e=setup(home?'<main data-tdb-home-photo-parallax>'+section+'</main>':section);
   const api=e.start();assert.equal(e.calls.length,0,'preserve preparation proximity');
   e.observers[0].near();await api.refresh();await api.refresh();
@@ -63,7 +67,7 @@ test('shared Scroll media variant owns photo or ambient video independently of t
   assert.equal(photo.frame,'.header111_background-image-wrapper');
   assert.equal(photo.allowEdges,false,'clip to native crop');
   const targets=[...root.querySelectorAll(photo.selector)];assert.equal(targets.length,1);
-  assert.equal(targets[0].className,home?'header111_background-image':'vimeo-bg');
+  assert.equal(targets[0].className,targetClass);
   assert.equal(targets.some(n=>['H2','A','IFRAME'].includes(n.tagName)),false);
   api.destroy();assert.equal(e.owners[0].destroyed,true);e.dom.window.close();
  }

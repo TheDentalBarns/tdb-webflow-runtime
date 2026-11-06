@@ -54,7 +54,7 @@ function preparePageBreakLoader() {
     // section overlay keeps its separate opacity owner and the copy stays still.
     document
       .querySelectorAll(
-        '.section_header111[data-wf--component-1---bg-image--variant="scroll-media"]',
+        '.section_header111[data-wf--component-1---bg-image--variant="scroll-media"],.section_header111[data-wf--component-1---bg-image--variant="service-scroll-media"]',
       )
       .forEach((wrapper) =>
         add(

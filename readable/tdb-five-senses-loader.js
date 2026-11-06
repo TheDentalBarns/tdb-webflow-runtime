@@ -104,6 +104,7 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
 .tdb-senses-page-audio::backdrop{background:transparent;pointer-events:none}
 .tdb-senses-page-audio svg{display:block;width:1.75rem;height:1.75rem}
 .tdb-senses-page-audio:focus-visible{outline:2px solid #f5f1e6;outline-offset:4px}
+@media(min-width:992px){.tdb-senses-page-audio{right:2vw}}
 `;
     document.head.append(shellStyle);
   }
@@ -418,13 +419,19 @@ dialog[data-tdb-senses-shell] .tdb-senses-persistent-close:focus-visible{outline
       dispose(session);
       return;
     }
-    // Reveal the stationary page beneath; retain its lock and audio handoff
-    // until the experience has completely faded away.
-    const motion = session.dialog.animate([{ opacity: 1 }, { opacity: 0 }], {
-      duration,
-      easing: profile?.easing('fade', 'ease') ?? 'ease',
-      fill: 'forwards',
-    });
+    // One slide-and-fade exit at every viewport width. Keep the page locked
+    // until it finishes, then hand the soundscape back to the page control.
+    const motion = session.dialog.animate(
+      [
+        { transform: 'translate3d(0,0,0)', opacity: 1 },
+        { transform: 'translate3d(0,100%,0)', opacity: 0 },
+      ],
+      {
+        duration,
+        easing: profile?.easing('fade', 'ease') ?? 'ease',
+        fill: 'forwards',
+      },
+    );
     session.closeTimer = setTimeout(() => dispose(session), duration + 100);
     motion.finished.catch(() => {}).then(() => dispose(session));
   }

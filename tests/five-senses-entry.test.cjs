@@ -20,13 +20,14 @@ test('ordinary homepage installs no dormant shell CSS; first open installs once 
   f.w.dispatchEvent(new f.w.Event('pagehide'));assert.equal(f.w.document.querySelector('dialog'),null);
  }finally{f.w.close();}
 });
-test('exit fades in place using the shared fade pace and retains the page lock until fully transparent',async()=>{
+for (const width of [390, 1440]) test(`exit slides down and fades at ${width}px using the shared pace, keeping the page locked until complete`,async()=>{
  const f=setup();try{
+  Object.defineProperty(f.w,'innerWidth',{value:width,configurable:true});
   f.w.TDBMotionProfile={forFamily(name){assert.equal(name,'fade');return {time:ms=>ms*1.5,easing:()=> 'linear'};}};
   f.load();const opener=f.w.document.querySelector('a');f.w.TDBFiveSensesEntry.open(opener);
   const entrance=f.motions[0],dialog=f.w.document.querySelector('dialog');dialog.querySelector('button').click();
   const exit=f.motions.at(-1);assert.equal(entrance.cancelled,true);
-  assert.deepEqual(JSON.parse(JSON.stringify(exit.keyframes)),[{opacity:1},{opacity:0}]);
+  assert.deepEqual(JSON.parse(JSON.stringify(exit.keyframes)),[{transform:'translate3d(0,0,0)',opacity:1},{transform:'translate3d(0,100%,0)',opacity:0}]);
   assert.equal(exit.options.duration,750);assert.equal(exit.options.easing,'linear');
   assert.equal(dialog.isConnected,true);assert(f.w.TDBScrollLock.active);
   assert.notEqual(f.w.document.activeElement,opener);
