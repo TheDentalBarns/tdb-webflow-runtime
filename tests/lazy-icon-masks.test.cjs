@@ -23,11 +23,11 @@ test('native pseudo artwork waits for consent and proximity without changing geo
   f.w.TDBLazyIconMasks.refresh();assert(nodes.every(n=>!f.ios[0].nodes.has(n)));
   f.permit(true);assert(nodes.every(n=>f.ios[0].nodes.has(n)));
   assert(nodes.every(n=>!n.style.getPropertyValue('--tdb-pseudo-artwork')));
-  f.ios[0].fn([{target:nodes[0],isIntersecting:true}]);assert.match(nodes[0].style.getPropertyValue('--tdb-pseudo-artwork'),/tdb-location-tranquil\.svg/);
+  f.ios[0].fn([{target:nodes[0],isIntersecting:true}]);assert.match(nodes[0].style.getPropertyValue('--tdb-pseudo-artwork'),/tdb-tranquil-refined\.svg/);
   assert(nodes.slice(1).every(n=>!n.style.getPropertyValue('--tdb-pseudo-artwork')));
   f.permit(false);f.ios[0].fn(nodes.slice(1).map(target=>({target,isIntersecting:true})));
   assert(nodes.slice(1).every(n=>!n.style.getPropertyValue('--tdb-pseudo-artwork')));
-  f.permit(true);for(let i=0;i<nodes.length;i++){assert.match(nodes[i].style.getPropertyValue('--tdb-pseudo-artwork'),new RegExp('tdb-(location|control)-'+kinds[i]+'\\.svg'));assert.equal(nodes[i].childElementCount,0);assert.equal(nodes[i].className,'native-art');assert.equal(nodes[i].style.maskImage,'')}
+  f.permit(true);for(let i=0;i<nodes.length;i++){assert.match(nodes[i].style.getPropertyValue('--tdb-pseudo-artwork'),new RegExp('tdb-(?:control-)?'+kinds[i]+'(?:-refined)?\\.svg'));assert.equal(nodes[i].childElementCount,0);assert.equal(nodes[i].className,'native-art');assert.equal(nodes[i].style.maskImage,'')}
   const unknown=f.w.document.createElement('div');unknown.dataset.tdbNativePseudoIcon='constructor';f.w.document.body.append(unknown);f.w.TDBLazyIconMasks.refresh();f.ios[0].fn([{target:unknown,isIntersecting:true}]);assert.equal(unknown.style.getPropertyValue('--tdb-pseudo-artwork'),'');
  }finally{f.close()}
 });
@@ -126,7 +126,7 @@ test('journey clock, distance and universal globe masks remain deferred and add 
   const node=f.w.document.createElement('span');node.dataset.tdbJourneyIcon=kind;f.w.document.body.append(node);f.w.TDBLazyIconMasks.refresh();
   assert.equal(node.style.getPropertyValue('--tdb-journey-icon'),'');
   f.ios[0].fn([{target:node,isIntersecting:true}]);
-  assert.match(node.style.getPropertyValue('--tdb-journey-icon'),new RegExp('tdb-(review-clock-brand|journey-distance|globe)\\.svg'));
+  assert.match(node.style.getPropertyValue('--tdb-journey-icon'),new RegExp('tdb-(clock-refined|journey-distance|globe)\\.svg'));
   assert.equal(node.childElementCount,0);
  }}finally{f.close()}
 });
