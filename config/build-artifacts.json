@@ -254,10 +254,10 @@
         "src/shared/value-ticker.js",
         "src/reviews/legacy/drawer.js"
       ],
-      "sha256": "3de5d538b67ada6ff34da04a5b0780fc3107ca1d05566a93a69569bd0622ecbe",
-      "raw": 45198,
-      "gzip": 14070,
-      "brotli": 12475
+      "sha256": "0ce88ba4fdaf345f5ed69b12a686b14b3ddd73014935c814117cc0cc78c5fe95",
+      "raw": 45252,
+      "gzip": 14092,
+      "brotli": 12490
     },
     "dist/tdb-lenis.min.js": {
       "sources": [
@@ -406,10 +406,10 @@
       "sources": [
         "src/reviews/native/cards.js"
       ],
-      "sha256": "a5570eadaefbe053a734eecaf534a7ba700d76056ea213679d9ab6a80e6701ad",
-      "raw": 16145,
-      "gzip": 5496,
-      "brotli": 4891
+      "sha256": "debb5c7e73abc084c1eb7a0f15d8b8a5ee7f27d7b7197f93c909e624346b0467",
+      "raw": 16147,
+      "gzip": 5499,
+      "brotli": 4879
     },
     "dist/tdb-review-cms.js": {
       "sources": [
@@ -427,10 +427,10 @@
       "sources": [
         "src/templates/review-drawer.js"
       ],
-      "sha256": "02baa382cfc326bf2ba4ae53c6c8cc43a48b5033f3470a36e282929340eb1c1d",
-      "raw": 32343,
-      "gzip": 3583,
-      "brotli": 2991
+      "sha256": "d7953e60dbabd9be6fcb8740ef48fc3808dc9b6d10ae6f94dc4d50f0aff0c0a9",
+      "raw": 32345,
+      "gzip": 3584,
+      "brotli": 3002
     },
     "dist/tdb-review-introduction.js": {
       "sources": [
@@ -553,10 +553,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "64209241193222e6e4bc972d4e6d1dc8e0f67debeae4b25c15481d646463ed52",
-      "raw": 82865,
-      "gzip": 22766,
-      "brotli": 19770
+      "sha256": "936fc69e4ac9c5083d292ad752e8b01991083e01d3e061b25d188a277ba40e42",
+      "raw": 82911,
+      "gzip": 22822,
+      "brotli": 19812
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -589,10 +589,10 @@
       "sources": [
         "src/smile-gallery/feed.js"
       ],
-      "sha256": "5e341be5b4cf52b0197247b93ce5e990b7ff7830cf4c88775b794996e690c74e",
-      "raw": 12158,
-      "gzip": 4161,
-      "brotli": 3608
+      "sha256": "36ec648726d48bcd33ec0713cd2d1f9e06c61fbb3adcc432db111ceb25c42e4b",
+      "raw": 12157,
+      "gzip": 4142,
+      "brotli": 3594
     },
     "dist/tdb-smile-gallery.min.js": {
       "sources": [

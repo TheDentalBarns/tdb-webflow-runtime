@@ -124,7 +124,7 @@
     s.setAttribute('aria-hidden', 'true');
     s.setAttribute('focusable', 'false');
     s.innerHTML =
-      '<path fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" d="M230.4 128a102.4 102.4 0 1 0-204.8 0a102.4 102.4 0 1 0 204.8 0 M128 64v64l38.4 25.6"/>';
+      '<path fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" transform="scale(10.666666666666666)" d="M21.6 12a9.6 9.6 0 1 0-19.2 0a9.6 9.6 0 1 0 19.2 0 M12 6v6l3.6 2.4"/>';
     return s;
   };
   let dataPromise,

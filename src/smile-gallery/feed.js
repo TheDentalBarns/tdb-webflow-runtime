@@ -5,7 +5,7 @@
   const base = new URL('./', document.currentScript.src);
   const templateHTML = __TDB_SMILE_TEMPLATE__;
   const diamond =
-    'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aedd3aae05de5a2af3b0571_tdb-diamond-outline-black.svg';
+    'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc640ce35bc2256782dc_tdb-diamond-small-1px.svg';
   const records = new Map(),
     presentations = new WeakMap();
   let disposed = false,

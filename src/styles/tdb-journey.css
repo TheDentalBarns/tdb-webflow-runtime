@@ -30,9 +30,9 @@ gmp-advanced-marker:focus-visible .tdb-journey-arrival-pin { outline: 2px solid 
 .tdb-journey-arrival-pin:is([data-kind="coffee"],[data-kind="flowers"],[data-kind="wellness"])::after { content: ''; width: 1.2rem; height: 1.2rem; background: currentColor; mask: var(--tdb-arrival-icon) center/contain no-repeat; }
 .tdb-journey-arrival-pin[data-kind="coffee"] { --tdb-arrival-icon: url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ae45f25138b78beb8b78f1e_tdb-map-coffee.svg'); }
 .tdb-journey-arrival-pin[data-kind="flowers"] { --tdb-arrival-icon: url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ae45f2668ebba0bcd427fa3_tdb-map-flowers.svg'); }
-.tdb-journey-arrival-pin[data-kind="wellness"] { --tdb-arrival-icon: url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b9746219384b25f0e78d_tdb-review-lotus.svg'); }
+.tdb-journey-arrival-pin[data-kind="wellness"] { --tdb-arrival-icon: url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc643eed49cd4fac61a6_tdb-lotus-small-1px.svg'); }
 .tdb-journey-arrival-pin[data-kind="approach"]::after { content: ''; width: 1.15rem; height: 1.15rem; background: currentColor; mask: url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ae2124223c07a12ee6449f5_tdb-walking.svg') center/contain no-repeat; }
-.tdb-journey-arrival-pin[data-kind="parking"]::before { content: ''; width: 1.1rem; height: 1.4rem; background: currentColor; mask: url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aedc99cb5456ab693fb229f_tdb-parking-refined.svg') center/contain no-repeat; }
+.tdb-journey-arrival-pin[data-kind="parking"]::before { content: ''; width: 1.1rem; height: 1.4rem; background: currentColor; mask: url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede07abdf3a8e23f6374a5_tdb-parking-small-1px.svg') center/contain no-repeat; }
 /* Only the Google-owned pin overlay is themed; native page geometry stays in Designer. */
 .tdb-journey-map .gm-style-iw-c:has(.tdb-journey-place) { padding: 0 !important; border: 1px solid rgba(255,255,255,.3); border-radius: 1rem; background: rgba(0,0,0,.8); -webkit-backdrop-filter: blur(var(--effects--blur,20px)); backdrop-filter: blur(var(--effects--blur,20px)); }
 .tdb-journey-map .gm-style-iw-t:has(.tdb-journey-place) .gm-style-iw-tc::after { background: rgba(0,0,0,.8); }
