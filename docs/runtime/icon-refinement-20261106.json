@@ -1,6 +1,6 @@
 {
   "date": "2026-11-06",
-  "base": "4a3167e60686af42acfe36f9e7a0b72fe7a2a6fd",
+  "base": "6e10ce9b81dd86558e648a192a37d234355cc50a",
   "scope": "Staging icon artwork only; preserve geometry, bindings, loading and motion.",
   "architecture": "https://chatgpt.com/space/page_c22eaec26d7c819197df9524f243acbd",
   "assets": {
@@ -39,8 +39,10 @@
   "validation": {
     "suite": "947 passed, 3 skipped",
     "buildParity": "passed",
-    "format": "Windows-correct quoted Prettier command",
+    "format": "Passed with end-of-line auto for Windows checkout; committed source normalizes to LF.",
     "browser": "Recorded in local deployment evidence; acceptance requires unchanged geometry and expected artwork on desktop/mobile"
   },
-  "rollback": "Restore saved native properties/defaults, exact saved page code and all four prior site runtime pins; publish staging only. Old shared assets remain available."
+  "rollback": "Restore saved native properties/defaults, exact saved page code and all four prior site runtime pins; publish staging only. Old shared assets remain available.",
+  "originalBase": "4a3167e60686af42acfe36f9e7a0b72fe7a2a6fd",
+  "reconciliation": "Merged the latest staging calculator footer release before deployment; current main is an ancestor."
 }
