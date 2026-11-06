@@ -37,17 +37,17 @@ function prepareLazyIconMasks() {
     clock: '6ac8c58089197784d522c2a2_tdb-review-clock-brand.svg',
     distance: '6ae1ea46056eef9c12179a64_tdb-journey-distance.svg',
     globe: '6ac9040240c896d539d1903d_tdb-globe.svg',
-    parking: '6ac8f79471bd2b763b1aad60_tdb-location-parking.svg',
+    parking: '6aedc99cb5456ab693fb229f_tdb-parking-refined.svg',
     barn: '6838407c2087a6de2a8b1068_the-dental-barns-blackbrook-lichfield-barn-door-icon-dark.svg.svg',
   };
   const pseudoAssets = {
-    price: assets.price,
-    clock: assets.clock,
+    price: '6aedc99d6cd163be1e50db78_tdb-price-tag-refined.svg',
+    clock: '6aedc99d71e33b006f6323e3_tdb-clock-refined.svg',
     diamond: assets.diamond,
     address: contactAssets.address,
-    tranquil: '6ac8f79434fb7c6214d2e0af_tdb-location-tranquil.svg',
+    tranquil: '6aedc99cd3232709b0b646d3_tdb-tranquil-refined.svg',
     parking: journeyAssets.parking,
-    discreet: '6ac8f795d857a42b8d46b51f_tdb-location-discreet.svg',
+    discreet: '6aedc99cde9b978b6158a69f_tdb-discreet-refined.svg',
     play: '6ae0c5c81332cf18d9261ca0_232b700aafbc0337a2adaf88a7f72074_tdb-control-play.svg',
     pause: '6ae0c5c877076aee400c6838_7b1d9ef44a4b54195aca3dfd22e245f5_tdb-control-pause.svg',
     spinner: '6ad9b3739924db6726de4586_tdb-control-spinner.svg',
@@ -124,7 +124,9 @@ function prepareLazyIconMasks() {
       return;
     }
     const kind = node.dataset.tdbNativeHolderIcon || node.dataset.tdbLazyMask || 'star';
-    const file = assets[{ instagram: 'ig', reviews: 'review' }[kind] || kind];
+    const file = node.classList.contains('tdb-location-icon')
+      ? pseudoAssets[kind]
+      : assets[{ instagram: 'ig', reviews: 'review' }[kind] || kind];
     if (!file) return;
     const artwork = 'url("' + base + file + '")';
     node.style.maskImage = node.classList.contains('tdb-summary-stars')

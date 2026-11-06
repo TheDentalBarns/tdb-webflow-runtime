@@ -1,6 +1,6 @@
 (() => {
   const icon =
-    '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="1"/><path d="M8 6h8v4H8zM8 14h1m3 0h1m3 0h0M8 18h1m3 0h1m3 0h0"/></svg>';
+    '<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="6" width="36" height="52" rx="3"/><rect x="21" y="14" width="22" height="13" rx="1"/><path d="M22 36h3m6.5 0h3M22 44h3m6.5 0h3M22 52h3m6.5 0h3M41 36h2m-2 8h2m-1 0v8"/></svg>';
   function update() {
     document
       .querySelectorAll(

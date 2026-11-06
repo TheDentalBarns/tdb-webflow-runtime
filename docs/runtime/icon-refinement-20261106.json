@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-06",
+  "base": "4a3167e60686af42acfe36f9e7a0b72fe7a2a6fd",
+  "scope": "Staging icon artwork only; preserve geometry, bindings, loading and motion.",
+  "architecture": "https://chatgpt.com/space/page_c22eaec26d7c819197df9524f243acbd",
+  "assets": {
+    "tranquil": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aedc99cd3232709b0b646d3_tdb-tranquil-refined.svg",
+    "parking": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aedc99cb5456ab693fb229f_tdb-parking-refined.svg",
+    "discreet": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aedc99cde9b978b6158a69f_tdb-discreet-refined.svg",
+    "price": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aedc99d6cd163be1e50db78_tdb-price-tag-refined.svg",
+    "clock": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aedc99d71e33b006f6323e3_tdb-clock-refined.svg",
+    "diamond": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aedc99d89d08a0a92a849fb_tdb-diamond-outline.svg",
+    "calculator": "https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aedc99e71e33b006f632464_tdb-calculator-refined.svg"
+  },
+  "owners": {
+    "images": [
+      "Benefit Strip",
+      "Component 1 - Bg image"
+    ],
+    "nativeMasks": [
+      ".tdb-location-icon.is-tranquil:before",
+      ".tdb-location-icon.is-parking:before",
+      ".tdb-location-icon.is-discreet:before",
+      ".tdb-location-icon.is-price",
+      ".tdb-location-icon.is-clock",
+      ".tdb-calculator-icon"
+    ],
+    "windowRemoval": "Only is-tranquil/is-parking/is-discreet ::after display none",
+    "calculatorVariant": "3d07033d-9928-5c74-a72f-75cb3555ff9c / icon-embed-xxsmall",
+    "runtime": "Existing consent/proximity lazy artwork owner; existing page calculator SVG string",
+    "diamond": "Separate library asset for FAQ use; faceted brand diamond preserved"
+  },
+  "assessment": {
+    "startup": "No new startup dependency or controller",
+    "interaction": "No event, motion, form, consent or calculator changes",
+    "polish": "Fine-line outlines consistent with diamond; calculator 1.5/64 optical weight for buttons",
+    "maintenance": "Versioned SVGs plus Webflow shared image defaults and native mask references"
+  },
+  "validation": {
+    "suite": "947 passed, 3 skipped",
+    "buildParity": "passed",
+    "format": "Windows-correct quoted Prettier command",
+    "browser": "Recorded in local deployment evidence; acceptance requires unchanged geometry and expected artwork on desktop/mobile"
+  },
+  "rollback": "Restore saved native properties/defaults, exact saved page code and all four prior site runtime pins; publish staging only. Old shared assets remain available."
+}
