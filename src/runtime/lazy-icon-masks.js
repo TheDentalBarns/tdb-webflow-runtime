@@ -41,6 +41,10 @@ function prepareLazyIconMasks() {
     barn: '6838407c2087a6de2a8b1068_the-dental-barns-blackbrook-lichfield-barn-door-icon-dark.svg.svg',
   };
   const pseudoAssets = {
+    price: assets.price,
+    clock: assets.clock,
+    diamond: assets.diamond,
+    address: contactAssets.address,
     tranquil: '6ac8f79434fb7c6214d2e0af_tdb-location-tranquil.svg',
     parking: journeyAssets.parking,
     discreet: '6ac8f795d857a42b8d46b51f_tdb-location-discreet.svg',

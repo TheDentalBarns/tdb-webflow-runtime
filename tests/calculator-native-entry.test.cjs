@@ -63,7 +63,16 @@ function setup() {
     snapshot: () => ({ state: 'unavailable' }),
     assessmentSlot: () => null,
   };
-  w.TDBModules = { load: async () => {} };
+  const reduced = new w.EventTarget();
+  reduced.matches = false;
+  w.matchMedia = () => reduced;
+  w.TDBMotion = { duration: () => 0, reduced };
+  w.TDBModules = {
+    async load(url) {
+      if (String(url).endsWith('/tdb-drawer.js'))
+        w.eval(fs.readFileSync('dist/tdb-drawer.js', 'utf8'));
+    },
+  };
   const root = w.document.querySelector('section');
   const change = (key, checked = true) => {
     const input = root.querySelector(`[data-category=${key}]`);
@@ -140,61 +149,68 @@ test('rapid choices share one load and a failed request can be retried', async (
   }
 });
 for (const mode of ['success', 'failure', 'cancel'])
-  test('native loading preserves the first-click position and releases its guard: ' + mode, async () => {
-    const h = setup();
-    try {
-      const anchor = h.root.querySelector('[data-tdb-calc-native-entry]'),
-        style = h.w.document.documentElement.style;
-      let top = 200,
-        finish,
-        intent,
-        cancelledAtMount;
-      anchor.getBoundingClientRect = () => ({ top, bottom: top + 400, height: 400 });
-      style.setProperty('overflow-anchor', 'auto', 'important');
-      h.w.TDBModuleBootstrap = {
-        ensure: () => new Promise((resolve, reject) => {
-          finish = () => mode === 'failure' ? reject(Error('offline')) : resolve({
-            load: async (url) => {
-              if (String(url).endsWith('tdb-calculator.js'))
-                h.w.TDBCalculator = {
-                  open() {},
-                  mount: async (root, options) => {
-                    intent = options.entryPosition;
-                    cancelledAtMount = intent.signal.aborted;
-                  },
-                };
-            },
-          });
-        }),
-      };
-      h.run('src/calculator/loader.js');
-      h.change('restorative');
-      assert.equal(style.getPropertyValue('overflow-anchor'), 'none');
-      assert.match(h.root.textContent, /Loading current prices/);
-      // The feature stylesheet changes layout before the controller can render.
-      top = 185;
-      if (mode === 'cancel') h.w.dispatchEvent(new h.w.WheelEvent('wheel'));
-      finish();
-      await tick();
-      await tick();
-      if (mode !== 'failure') {
-        assert.equal(intent.anchor, anchor);
-        assert.equal(intent.top, 200);
-        assert.equal(cancelledAtMount, mode === 'cancel');
-        assert.equal(intent.signal.aborted, true);
-      } else assert.match(h.root.textContent, /Choose again to retry/);
-      assert.equal(style.getPropertyValue('overflow-anchor'), 'auto');
-      assert.equal(style.getPropertyPriority('overflow-anchor'), 'important');
-      assert.equal(h.root.hasAttribute('aria-busy'), false);
-      // A later gesture must not restore an obsolete inline-style snapshot.
-      style.setProperty('overflow-anchor', 'none', 'important');
-      h.w.dispatchEvent(new h.w.WheelEvent('wheel'));
-      assert.equal(style.getPropertyValue('overflow-anchor'), 'none');
-      assert.equal(style.getPropertyPriority('overflow-anchor'), 'important');
-    } finally {
-      h.dom.window.close();
-    }
-  });
+  test(
+    'native loading preserves the first-click position and releases its guard: ' + mode,
+    async () => {
+      const h = setup();
+      try {
+        const anchor = h.root.querySelector('[data-tdb-calc-native-entry]'),
+          style = h.w.document.documentElement.style;
+        let top = 200,
+          finish,
+          intent,
+          cancelledAtMount;
+        anchor.getBoundingClientRect = () => ({ top, bottom: top + 400, height: 400 });
+        style.setProperty('overflow-anchor', 'auto', 'important');
+        h.w.TDBModuleBootstrap = {
+          ensure: () =>
+            new Promise((resolve, reject) => {
+              finish = () =>
+                mode === 'failure'
+                  ? reject(Error('offline'))
+                  : resolve({
+                      load: async (url) => {
+                        if (String(url).endsWith('tdb-calculator.js'))
+                          h.w.TDBCalculator = {
+                            open() {},
+                            mount: async (root, options) => {
+                              intent = options.entryPosition;
+                              cancelledAtMount = intent.signal.aborted;
+                            },
+                          };
+                      },
+                    });
+            }),
+        };
+        h.run('src/calculator/loader.js');
+        h.change('restorative');
+        assert.equal(style.getPropertyValue('overflow-anchor'), 'none');
+        assert.match(h.root.textContent, /Loading current prices/);
+        // The feature stylesheet changes layout before the controller can render.
+        top = 185;
+        if (mode === 'cancel') h.w.dispatchEvent(new h.w.WheelEvent('wheel'));
+        finish();
+        await tick();
+        await tick();
+        if (mode !== 'failure') {
+          assert.equal(intent.anchor, anchor);
+          assert.equal(intent.top, 200);
+          assert.equal(cancelledAtMount, mode === 'cancel');
+          assert.equal(intent.signal.aborted, true);
+        } else assert.match(h.root.textContent, /Choose again to retry/);
+        assert.equal(style.getPropertyValue('overflow-anchor'), 'auto');
+        assert.equal(style.getPropertyPriority('overflow-anchor'), 'important');
+        assert.equal(h.root.hasAttribute('aria-busy'), false);
+        // A later gesture must not restore an obsolete inline-style snapshot.
+        style.setProperty('overflow-anchor', 'none', 'important');
+        h.w.dispatchEvent(new h.w.WheelEvent('wheel'));
+        assert.equal(style.getPropertyValue('overflow-anchor'), 'none');
+        assert.equal(style.getPropertyPriority('overflow-anchor'), 'important');
+      } finally {
+        h.dom.window.close();
+      }
+    },
+  );
 
 test('controller preserves native nodes, adopts changes during fetch, and resets both cards', async () => {
   const h = setup();
@@ -360,11 +376,84 @@ test('drawer opening remains independent of an untouched native inline entry', a
     h.run('src/calculator/core.js');
     h.run('src/calculator/ui.js');
     await h.w.TDBCalculator.open(h.w.document.getElementById('drawer'));
-    assert.equal(h.w.document.querySelector('dialog').open, true);
-    assert(h.w.document.querySelector('dialog .tdbc-drawer-root > .tdbc-live'));
+    assert.equal(h.w.document.querySelector('[data-tdb-drawer=calculator]').hidden, false);
+    assert(h.w.document.querySelector('[data-tdb-calc-panel] .tdbc-drawer-root > .tdbc-live'));
     assert.equal(h.root.hasAttribute('data-tdb-calc-ready'), false);
     assert.equal(h.root.querySelector('h2').textContent, 'Authored heading');
-    h.w.TDBCalculator.close();
+    await h.w.TDBCalculator.close();
+  } finally {
+    h.dom.window.close();
+  }
+});
+
+test('calculator uses shared Escape/backdrop dismissal and restores the page after repeated opens', async () => {
+  const h = setup();
+  try {
+    h.w.document.body.insertAdjacentHTML('beforeend', feed);
+    h.run('src/calculator/core.js');
+    h.run('src/calculator/ui.js');
+    const trigger = h.w.document.getElementById('drawer');
+    await Promise.all([h.w.TDBCalculator.open(trigger), h.w.TDBCalculator.open(trigger)]);
+    const shell = h.w.document.querySelector('[data-tdb-drawer=calculator]');
+    assert.equal(h.w.document.querySelectorAll('[data-tdb-drawer=calculator]').length, 1);
+    assert.equal(h.root.inert, true);
+    shell
+      .querySelector('[data-tdb-calc-close]')
+      .dispatchEvent(
+        new h.w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+      );
+    await tick();
+    assert.equal(shell.hidden, true);
+    assert.notEqual(h.root.inert, true);
+    assert.equal(h.w.document.activeElement, trigger);
+    await h.w.TDBCalculator.open(trigger);
+    shell.querySelector('[data-tdb-drawer-backdrop]').click();
+    await tick();
+    assert.equal(shell.hidden, true);
+    assert.equal(h.w.document.activeElement, trigger);
+  } finally {
+    h.dom.window.close();
+  }
+});
+
+test('VIP can open above the shared calculator and return to the preserved estimate', async () => {
+  const h = setup();
+  try {
+    h.w.document.body.insertAdjacentHTML(
+      'beforeend',
+      feed + '<div id="tdb-vip-drawer"><button>VIP form</button></div>',
+    );
+    const vip = h.w.document.getElementById('tdb-vip-drawer');
+    h.w.TDBVIPInterest = { fromCalculator() {} };
+    h.w.TDBVIPDrawer = {
+      reset() {},
+      open() {
+        vip.classList.add('is-open');
+        vip.querySelector('button').focus();
+      },
+      close() {
+        vip.classList.remove('is-open');
+      },
+    };
+    h.run('src/calculator/core.js');
+    h.run('src/calculator/ui.js');
+    await h.w.TDBCalculator.open(h.w.document.getElementById('drawer'));
+    const panel = h.w.document.querySelector('[data-tdb-calc-panel]');
+    panel.querySelector('[data-category=cosmetic]').click();
+    panel.querySelector('[data-select=whitening]').click();
+    panel.scrollTop = 600;
+    const invoker = panel.querySelector('[data-action=vip]');
+    invoker.click();
+    assert.equal(h.w.document.activeElement, vip.querySelector('button'));
+    assert(panel.contains(vip), 'VIP remains inside the shared focus boundary');
+    h.w.TDBVIPDrawer.close();
+    await tick();
+    assert.equal(vip.parentElement, h.w.document.body);
+    assert.equal(panel.scrollTop, 600);
+    assert.equal(panel.querySelector('[data-select=whitening]').checked, true);
+    assert.equal(h.w.document.activeElement, invoker);
+    await h.w.TDBCalculator.close();
+    assert.notEqual(h.root.inert, true);
   } finally {
     h.dom.window.close();
   }
@@ -378,23 +467,20 @@ test('reopening a saved drawer restores its reading position after modal focus a
     h.run('src/calculator/ui.js');
     const trigger = h.w.document.getElementById('drawer');
     await h.w.TDBCalculator.open(trigger);
-    const drawer = h.w.document.querySelector('dialog');
+    const drawer = h.w.document.querySelector('[data-tdb-calc-panel]');
     drawer.querySelector('[data-category=cosmetic]').click();
     drawer.querySelector('[data-select=gumline]').click();
     drawer.querySelector('[data-action=plus][data-key=gumline]').click();
     drawer.scrollTop = 780;
-    h.w.TDBCalculator.close();
+    await h.w.TDBCalculator.close();
     assert.equal(h.w.document.activeElement, trigger);
-    drawer.showModal = function () {
-      this.open = true;
-      this.scrollTop = 0;
-    };
+    drawer.scrollTop = 0;
     await h.w.TDBCalculator.open(trigger);
     assert.equal(drawer.scrollTop, 780);
     assert.equal(drawer.querySelector('[data-qty=gumline]').value, '2');
     assert.equal(drawer.querySelector('[data-select=gumline]').checked, true);
     assert.equal(h.w.document.activeElement, drawer.querySelector('[data-tdb-calc-close]'));
-    h.w.TDBCalculator.close();
+    await h.w.TDBCalculator.close();
     await tick();
   } finally {
     h.dom.window.close();
@@ -440,9 +526,9 @@ for (const retainChrome of [false, true])
           'the calculator still renders the selected category',
         );
         await h.w.TDBCalculator.open(h.w.document.getElementById('drawer'));
-        assert.equal(h.w.document.querySelector('dialog').open, true);
+        assert.equal(h.w.document.querySelector('[data-tdb-drawer=calculator]').hidden, false);
         assert(h.w.document.documentElement.classList.contains('tdbc-chrome-away'));
-        h.w.TDBCalculator.close();
+        await h.w.TDBCalculator.close();
         assert.equal(
           h.w.document.documentElement.classList.contains('tdbc-chrome-away'),
           !retainChrome,
@@ -807,7 +893,7 @@ test('drawer reads appointment checklists and duration from fetched price cards 
     h.run('src/calculator/core.js');
     h.run('src/calculator/ui.js');
     await h.w.TDBCalculator.open(h.w.document.getElementById('drawer'));
-    const drawer = h.w.document.querySelector('dialog');
+    const drawer = h.w.document.querySelector('[data-tdb-calc-panel]');
     drawer.querySelector('[data-category=cosmetic]').click();
     drawer.querySelector('[data-action=start-design]').click();
     assert.deepEqual(
@@ -818,143 +904,140 @@ test('drawer reads appointment checklists and duration from fetched price cards 
     assert.equal(drawer.querySelector('.tdbc-included your'), null);
     assert.equal(drawer.querySelector('[data-output=duration]').textContent, '75 minutes');
     assert.equal(h.root.querySelector('h2').textContent, 'Authored heading');
-    h.w.TDBCalculator.close();
+    await h.w.TDBCalculator.close();
   } finally {
     h.dom.window.close();
   }
 });
 
 for (const mode of ['native', 'lenis', 'drawer', 'no-bar', 'standalone'])
-  test(
-    'route buttons match the side gutter below the actual estimate bar: ' + mode,
-    async () => {
-      const h = setup();
-      try {
-        h.w.document.body.insertAdjacentHTML('beforeend', feed);
-        const openingHeading = h.root.querySelector('[data-node="step-1"] h3');
-        openingHeading.outerHTML =
-          '<div class="tdbc-step-header">' + openingHeading.outerHTML + '</div>';
-        h.w.document.head.insertAdjacentHTML(
-          'beforeend',
-          '<style>.tdbc-step{padding-top:40px}' +
-            (mode === 'standalone' ? '[data-node="step-1"]{padding-top:0}' : '') +
-            '</style>',
-        );
-        if (mode === 'no-bar') h.w.document.body.dataset.tdbChromeFocus = 'off';
-        const frames = new Map(),
-          calls = [];
-        let frame = 0,
-          barHeight = 72.5,
-          sideGutter = 30,
-          lenisPosition = 2500;
-        h.w.requestAnimationFrame = (callback) => {
-          frames.set(++frame, callback);
-          return frame;
-        };
-        h.w.cancelAnimationFrame = (id) => frames.delete(id);
-        const flush = () => {
-          for (let count = 0; frames.size && count < 20; count++) {
-            const pending = [...frames.values()];
-            frames.clear();
-            pending.forEach((callback) => callback(h.w.performance.now() + 1000));
-          }
-          assert.equal(frames.size, 0);
-        };
-        h.w.HTMLElement.prototype.getBoundingClientRect = function () {
-          const step = this.closest('.tdbc-step');
-          const sectionTop = step?.dataset.node === 'step-1' ? 280 : 480;
-          const panelInset = mode === 'standalone' && step?.dataset.node === 'step-1' ? 0 : 41;
-          const top = this.matches('dialog')
-            ? 12
-            : this.classList.contains('tdbc-step-header')
-              ? sectionTop + panelInset
-              : this.dataset.node === 'step-1'
-                ? 280
-                : 480;
-          const height = this.classList.contains('tdbc-live') ? barHeight : 200;
-          const left = this.classList.contains('tdbc-shell') ? 50 + sideGutter : 50;
-          return { top, bottom: top + height, left, right: left + 400, width: 400, height };
-        };
-        h.w.scrollY = 1000;
-        h.w.scrollTo = (options) => calls.push(options);
-        h.w.Element.prototype.scrollIntoView = () => assert.fail('must use the shared offset');
-        if (mode === 'lenis')
-          h.w.lenis = {
-            resize: () => {
-              lenisPosition = h.w.scrollY;
-            },
-            scrollTo: (target, options) => calls.push({ target, origin: lenisPosition, ...options }),
-          };
-        h.run('src/calculator/core.js');
-        h.run('src/calculator/ui.js');
-        let root = h.root,
-          drawer;
-        if (mode === 'drawer') {
-          await h.w.TDBCalculator.open(h.w.document.getElementById('drawer'));
-          drawer = h.w.document.querySelector('dialog');
-          root = drawer.querySelector('.tdbc-drawer-root');
-          Object.defineProperty(drawer, 'scrollHeight', { value: 5000 });
-          Object.defineProperty(drawer, 'clientHeight', { value: 700 });
-          root.querySelector('[data-category=cosmetic]').click();
-        } else {
-          h.root.querySelector('[data-node=step-1]').classList.add('tdbc-step');
-          h.change('cosmetic');
-          await h.w.TDBCalculator.mount(h.root);
+  test('route buttons match the side gutter below the actual estimate bar: ' + mode, async () => {
+    const h = setup();
+    try {
+      h.w.document.body.insertAdjacentHTML('beforeend', feed);
+      const openingHeading = h.root.querySelector('[data-node="step-1"] h3');
+      openingHeading.outerHTML =
+        '<div class="tdbc-step-header">' + openingHeading.outerHTML + '</div>';
+      h.w.document.head.insertAdjacentHTML(
+        'beforeend',
+        '<style>.tdbc-step{padding-top:40px}' +
+          (mode === 'standalone' ? '[data-node="step-1"]{padding-top:0}' : '') +
+          '</style>',
+      );
+      if (mode === 'no-bar') h.w.document.body.dataset.tdbChromeFocus = 'off';
+      const frames = new Map(),
+        calls = [];
+      let frame = 0,
+        barHeight = 72.5,
+        sideGutter = 30,
+        lenisPosition = 2500;
+      h.w.requestAnimationFrame = (callback) => {
+        frames.set(++frame, callback);
+        return frame;
+      };
+      h.w.cancelAnimationFrame = (id) => frames.delete(id);
+      const flush = () => {
+        for (let count = 0; frames.size && count < 20; count++) {
+          const pending = [...frames.values()];
+          frames.clear();
+          pending.forEach((callback) => callback(h.w.performance.now() + 1000));
         }
-        root.querySelector('[data-select=whitening]').click();
-        flush();
-        const choice = root.querySelector('[data-category=cosmetic]');
-        for (const [action, destination, route] of [
-          ['start-assessment', 'assessment', 'signature'],
-          ['resume-estimate', 'step-1'],
-          ['start-design', 'assessment', 'design'],
-          ['resume-estimate', 'step-1'],
-        ]) {
-          // Responsive gutters and bar heights must be measured on each action.
-          barHeight += 11.25;
-          sideGutter += 3.5;
-          lenisPosition += 1000;
-          if (drawer) drawer.scrollTop = 500;
-          calls.length = 0;
-          root.querySelector('[data-action=' + action + ']').click();
-          flush();
-          const target = root.querySelector('[data-node=' + destination + ']'),
-            panel = target.querySelector('.tdbc-step-header'),
-            offset = (mode === 'no-bar' ? 0 : barHeight) + sideGutter,
-            top = panel.getBoundingClientRect().top;
-          assert.equal(h.w.document.activeElement, target.querySelector('h3'));
-          if (drawer) {
-            assert.equal(drawer.scrollTop, 500 + top - 12 - offset);
-            assert.equal(calls.length, 0, 'the background page must not scroll');
-          } else if (mode === 'lenis') {
-            assert.equal(calls.length, 1);
-            assert.equal(calls[0].target, 1000 + top - offset);
-            assert.equal(calls[0].origin, 1000, 'layout shrink must not reuse the old scroll origin');
-          } else {
-            assert.equal(calls.length, 1);
-            assert.equal(calls[0].top, 1000 + top - offset);
-          }
-          if (route) {
-            assert(root.querySelector('[data-assessment=' + route + ']').checked);
-            assert(choice.closest('[data-node=step-1]').hidden);
-          } else {
-            assert.equal(root.querySelector('[data-category=cosmetic]'), choice);
-            assert(choice.checked, 'returning keeps the category choice');
-            assert(
-              root.querySelector('[data-select=whitening]').checked,
-              'returning keeps treatment selections',
-            );
-            assert.equal(choice.closest('[data-node=step-1]').hidden, false);
-          }
-        }
-        if (drawer) h.w.TDBCalculator.close();
-        await tick();
-        flush();
-      } finally {
-        h.dom.window.close();
+        assert.equal(frames.size, 0);
+      };
+      h.w.HTMLElement.prototype.getBoundingClientRect = function () {
+        const step = this.closest('.tdbc-step');
+        const sectionTop = step?.dataset.node === 'step-1' ? 280 : 480;
+        const panelInset = mode === 'standalone' && step?.dataset.node === 'step-1' ? 0 : 41;
+        const top = this.matches('[data-tdb-calc-panel]')
+          ? 12
+          : this.classList.contains('tdbc-step-header')
+            ? sectionTop + panelInset
+            : this.dataset.node === 'step-1'
+              ? 280
+              : 480;
+        const height = this.classList.contains('tdbc-live') ? barHeight : 200;
+        const left = this.classList.contains('tdbc-shell') ? 50 + sideGutter : 50;
+        return { top, bottom: top + height, left, right: left + 400, width: 400, height };
+      };
+      h.w.scrollY = 1000;
+      h.w.scrollTo = (options) => calls.push(options);
+      h.w.Element.prototype.scrollIntoView = () => assert.fail('must use the shared offset');
+      if (mode === 'lenis')
+        h.w.lenis = {
+          resize: () => {
+            lenisPosition = h.w.scrollY;
+          },
+          scrollTo: (target, options) => calls.push({ target, origin: lenisPosition, ...options }),
+        };
+      h.run('src/calculator/core.js');
+      h.run('src/calculator/ui.js');
+      let root = h.root,
+        drawer;
+      if (mode === 'drawer') {
+        await h.w.TDBCalculator.open(h.w.document.getElementById('drawer'));
+        drawer = h.w.document.querySelector('[data-tdb-calc-panel]');
+        root = drawer.querySelector('.tdbc-drawer-root');
+        Object.defineProperty(drawer, 'scrollHeight', { value: 5000 });
+        Object.defineProperty(drawer, 'clientHeight', { value: 700 });
+        root.querySelector('[data-category=cosmetic]').click();
+      } else {
+        h.root.querySelector('[data-node=step-1]').classList.add('tdbc-step');
+        h.change('cosmetic');
+        await h.w.TDBCalculator.mount(h.root);
       }
-    },
-  );
+      root.querySelector('[data-select=whitening]').click();
+      flush();
+      const choice = root.querySelector('[data-category=cosmetic]');
+      for (const [action, destination, route] of [
+        ['start-assessment', 'assessment', 'signature'],
+        ['resume-estimate', 'step-1'],
+        ['start-design', 'assessment', 'design'],
+        ['resume-estimate', 'step-1'],
+      ]) {
+        // Responsive gutters and bar heights must be measured on each action.
+        barHeight += 11.25;
+        sideGutter += 3.5;
+        lenisPosition += 1000;
+        if (drawer) drawer.scrollTop = 500;
+        calls.length = 0;
+        root.querySelector('[data-action=' + action + ']').click();
+        flush();
+        const target = root.querySelector('[data-node=' + destination + ']'),
+          panel = target.querySelector('.tdbc-step-header'),
+          offset = (mode === 'no-bar' ? 0 : barHeight) + sideGutter,
+          top = panel.getBoundingClientRect().top;
+        assert.equal(h.w.document.activeElement, target.querySelector('h3'));
+        if (drawer) {
+          assert.equal(drawer.scrollTop, 500 + top - 12 - offset);
+          assert.equal(calls.length, 0, 'the background page must not scroll');
+        } else if (mode === 'lenis') {
+          assert.equal(calls.length, 1);
+          assert.equal(calls[0].target, 1000 + top - offset);
+          assert.equal(calls[0].origin, 1000, 'layout shrink must not reuse the old scroll origin');
+        } else {
+          assert.equal(calls.length, 1);
+          assert.equal(calls[0].top, 1000 + top - offset);
+        }
+        if (route) {
+          assert(root.querySelector('[data-assessment=' + route + ']').checked);
+          assert(choice.closest('[data-node=step-1]').hidden);
+        } else {
+          assert.equal(root.querySelector('[data-category=cosmetic]'), choice);
+          assert(choice.checked, 'returning keeps the category choice');
+          assert(
+            root.querySelector('[data-select=whitening]').checked,
+            'returning keeps treatment selections',
+          );
+          assert.equal(choice.closest('[data-node=step-1]').hidden, false);
+        }
+      }
+      if (drawer) await h.w.TDBCalculator.close();
+      await tick();
+      flush();
+    } finally {
+      h.dom.window.close();
+    }
+  });
 
 test('availability refresh uses shared motion timing and finishes complete turns', async () => {
   const h = setup();
