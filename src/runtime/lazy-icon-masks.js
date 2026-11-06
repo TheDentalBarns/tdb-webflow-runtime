@@ -4,8 +4,8 @@ function prepareLazyIconMasks() {
   if (window.TDBLazyIconMasks) return;
   const base = 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/';
   const assets = {
-    price: '6ac8e18e6a41113d6b28c57d_tdb-price-tag.svg',
-    clock: '6ac8c58089197784d522c2a2_tdb-review-clock-brand.svg',
+    price: '6aedc99d6cd163be1e50db78_tdb-price-tag-refined.svg',
+    clock: '6aedc99d71e33b006f6323e3_tdb-clock-refined.svg',
     diamond: '6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg',
     ig: '6ac8c5438b7e68a92fade1e2_tdb-icon-instagram.svg',
     smile: '6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg',
@@ -34,7 +34,7 @@ function prepareLazyIconMasks() {
     facebook: footerAssets.facebook,
   };
   const journeyAssets = {
-    clock: '6ac8c58089197784d522c2a2_tdb-review-clock-brand.svg',
+    clock: '6aedc99d71e33b006f6323e3_tdb-clock-refined.svg',
     distance: '6ae1ea46056eef9c12179a64_tdb-journey-distance.svg',
     globe: '6ac9040240c896d539d1903d_tdb-globe.svg',
     parking: '6aedc99cb5456ab693fb229f_tdb-parking-refined.svg',

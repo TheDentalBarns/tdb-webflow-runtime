@@ -151,7 +151,10 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 .tdbc-stage-detail{padding:0 0 1rem}.tdbc-stage-cost{display:flex;justify-content:space-between;gap:1rem;border-top:1px solid var(--calc-line);margin-top:1rem;padding-top:.75rem}.tdbc-stage-cost>strong{white-space:nowrap}.tdbc-stage-cost small{margin-top:.375rem}
 .tdbc-finance-info{position:relative;width:100%}.tdb-calc .tdbc-finance-disabled{display:flex;align-items:center;width:100%;height:auto;min-height:4rem;padding:.75rem 0;border:0;border-radius:0;background:none;text-align:left;color:var(--base-color-neutral--neutral);font:inherit}
 .tdbc-finance-disabled>span:not(.form_checkbox-icon):not(.tdbc-finance-info-symbol){flex:1}.tdbc-finance-info-symbol{display:grid;place-items:center;flex:0 0 2.75rem;width:2.75rem;height:2.75rem;border:1px solid var(--base-color-brand--orange-3);border-radius:50%}.tdbc-finance-disabled>svg{width:1.5rem;height:1.5rem;flex:0 0 1.5rem}.tdbc-finance-disabled small{display:block;margin-top:.375rem}.tdbc-finance-disabled .form_checkbox-icon{border-color:currentColor}.tdbc-finance-info .tdbc-info-panel{width:100%}
-.tdbc-bridal-tip{margin-top:1rem;border-top:1px solid var(--base-color-brand--orange-3)}.tdbc-bridal-toggle{font:inherit;padding:.875rem 0}.tdbc-bridal-toggle>span:first-child{display:flex;align-items:center;gap:.5rem}.tdbc-diamond{font-size:1.5rem;line-height:1}.tdbc-bridal-tip p{margin:.5rem 0 0}
+.tdbc-bridal-tip{margin-top:1rem;border-top:1px solid var(--base-color-brand--orange-3)}.tdbc-bridal-toggle{font:inherit;padding:.875rem 0}.tdbc-bridal-toggle>span:first-child{display:flex;align-items:center;gap:.5rem}.tdbc-diamond{font-size:1.5rem;line-height:1}
+/* Keep the existing glyph metrics while painting the shared outline. */
+.tdbc-diamond{background-color:currentColor;mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aedd3aae05de5a2af3b0571_tdb-diamond-outline-black.svg");mask-position:center;mask-size:contain;mask-repeat:no-repeat}.tdbc-diamond>span{visibility:hidden}
+.tdbc-bridal-tip p{margin:.5rem 0 0}
 .tdbc-assessment{scroll-margin-top:7rem}
 @media(max-width:767px){.tdbc-deadline-dock>[data-panel=deadline]{margin-inline:-1.5rem}.tdbc-timing-warning{padding:1.5rem}.tdb-calc .tdbc-step-intro{margin-left:3rem}.tdbc-stage-cost{flex-wrap:wrap}.tdbc-stage-cost>strong{margin-left:auto}.tdbc-footnote .button{white-space:normal}}
 
@@ -221,9 +224,9 @@ html.tdbc-chrome-away #tdb-elfsight-timer-shell,html.tdbc-chrome-away .elfsight-
 .tdbc-live-value [data-output]{flex:1;min-width:0}
 .tdbc-assessment-price [data-output=appointment-price]{flex:0 0 12ch;width:12ch}
 .tdbc-shared-icon{display:inline-block;flex:0 0 1.25rem;width:1.25rem;height:1.25rem;background:var(--base-color-brand--orange-3,#d6cab4);mask:var(--tdbc-icon) center/contain no-repeat;-webkit-mask:var(--tdbc-icon) center/contain no-repeat}
-.tdbc-shared-icon.is-clock{--tdbc-icon:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c58089197784d522c2a2_tdb-review-clock-brand.svg")}
-.tdbc-shared-icon.is-price{--tdbc-icon:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8e18e6a41113d6b28c57d_tdb-price-tag.svg")}
-.tdbc-shared-icon.is-diamond{--tdbc-icon:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg")}
+.tdbc-shared-icon.is-clock{--tdbc-icon:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aedc99d71e33b006f6323e3_tdb-clock-refined.svg")}
+.tdbc-shared-icon.is-price{--tdbc-icon:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aedc99d6cd163be1e50db78_tdb-price-tag-refined.svg")}
+.tdbc-shared-icon.is-diamond{--tdbc-icon:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aedd3aae05de5a2af3b0571_tdb-diamond-outline-black.svg")}
 .tdbc-appointment-price,.tdbc-stage-cost>strong,.tdbc-total{display:flex;align-items:center;gap:.5rem}
 .tdbc-total .tdbc-shared-icon{flex-basis:1.25rem;width:1.25rem;height:1.25rem}
 .tdbc-start-choices .tdbc-appointment-price{display:flex;align-items:center;gap:.5rem}

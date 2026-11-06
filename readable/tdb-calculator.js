@@ -2344,7 +2344,7 @@
         this.bridalOpen +
         '" aria-controls="' +
         id +
-        '-bridal"><span><span class="tdbc-diamond" aria-hidden="true">◇</span> Planning a wedding?</span>' +
+        '-bridal"><span><span class="tdbc-diamond" aria-hidden="true"><span>◇</span></span> Planning a wedding?</span>' +
         chevron +
         '</button>' +
         expand(
@@ -2360,7 +2360,7 @@
         this.assessmentTipOpen +
         '" aria-controls="' +
         id +
-        '-assessment-tip"><span><span class="tdbc-diamond" aria-hidden="true">◇</span> ' +
+        '-assessment-tip"><span><span class="tdbc-diamond" aria-hidden="true"><span>◇</span></span> ' +
         (e.assessment === 'design' ? 'Save up to two months' : 'The fastest way to start') +
         '</span>' +
         chevron +

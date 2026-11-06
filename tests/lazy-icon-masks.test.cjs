@@ -126,7 +126,7 @@ test('journey clock, distance and universal globe masks remain deferred and add 
   const node=f.w.document.createElement('span');node.dataset.tdbJourneyIcon=kind;f.w.document.body.append(node);f.w.TDBLazyIconMasks.refresh();
   assert.equal(node.style.getPropertyValue('--tdb-journey-icon'),'');
   f.ios[0].fn([{target:node,isIntersecting:true}]);
-  assert.match(node.style.getPropertyValue('--tdb-journey-icon'),new RegExp('tdb-(review-clock-brand|journey-distance|globe)\\.svg'));
+  assert.match(node.style.getPropertyValue('--tdb-journey-icon'),new RegExp('tdb-(clock-refined|journey-distance|globe)\\.svg'));
   assert.equal(node.childElementCount,0);
  }}finally{f.close()}
 });

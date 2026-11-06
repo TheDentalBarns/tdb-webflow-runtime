@@ -1,0 +1,10 @@
+{
+  "date": "2026-11-06",
+  "baseline": "33e3ede1f04d296f735526ff5dc40ff415bc05da",
+  "scope": "Staging artwork only: all price tags and clocks, existing refined calculators, small utility diamonds, and the Location FAQ pin.",
+  "nativeOwners": "Existing image assets, SVG geometry, embed code and artwork-only style properties. Dimensions, spacing, filters, colours, bindings and interaction attributes are retained.",
+  "runtimeOwners": "Existing lazy artwork resolver, calculator CSS, smile feed templates and review templates; no new hydration or loading path.",
+  "preservedDiamonds": "Benefit strips, centred introductions, large finance benefit artwork and smile gallery placeholder branding retain the faceted diamond.",
+  "rollback": "Restore the baseline four runtime pins and the saved native artwork settings from the local icon-unification-20261106 evidence directory; publish only the Webflow staging subdomain.",
+  "validation": "Build parity, existing automated checks, before/after desktop and mobile style measurements, published page sweep and interactive drawer/filter/gallery checks. Evidence stays outside the public repository."
+}
