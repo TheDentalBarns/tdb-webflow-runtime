@@ -1145,7 +1145,9 @@
     const track = root.querySelector('[data-tdb-team-track]');
     // Selection order is supplied by the consumer; no fixed names or feed positions.
     const records = data.featured.map((id) => data.getCached(id)).filter(Boolean);
-    const nativeSelection = root.hasAttribute('data-tdb-review-native-selection');
+    const nativeSelection =
+      root.hasAttribute('data-tdb-review-native-selection') ||
+      !!root.querySelector('[data-tdb-review-record-id]');
     if (!records.length) return { destroy() {} };
     // Hydrate the authored cards in place; never replace the component or its layout.
     // Only CMS count changes require adding/removing a card.

@@ -318,11 +318,12 @@
         current();
         let componentData = data;
         if (type === 'quotes') {
-          if (root.hasAttribute('data-tdb-review-native-selection')) {
-            // The native Services list already owns relevance and order. Fetch
+          const nativeRecords = root.querySelectorAll('[data-tdb-review-record-id]');
+          if (nativeRecords.length || root.hasAttribute('data-tdb-review-native-selection')) {
+            // Native cards in the shared component slot own relevance and order. Fetch
             // only those published identities so enhancement cannot replace it
             // with a general feed trio or advance the full review drawer.
-            const featured = [...root.querySelectorAll('[data-tdb-review-record-id]')]
+            const featured = [...nativeRecords]
               .map((node) => node.textContent.trim())
               .filter(Boolean);
             if (!featured.length || new Set(featured).size !== featured.length)

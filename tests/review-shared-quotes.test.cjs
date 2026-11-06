@@ -27,12 +27,16 @@ test('native review root and authored cards survive hydration, selected review o
  }finally{t.close()}
 });
 
-test('service CMS selection retains its exact excerpt through enhancement and remount',async()=>{
+for(const legacyMarker of [true,false]) test('CMS slot retains its exact excerpt through enhancement and remount: '+legacyMarker,async()=>{
  const t=await setup();try{
   t.api.destroy();
-  t.root.setAttribute('data-tdb-review-native-selection','');
+  if(legacyMarker)t.root.setAttribute('data-tdb-review-native-selection','');
   const cards=[...t.root.querySelectorAll('[data-tdb-team-slide]')];
-  cards.forEach((card,i)=>card.querySelector('[data-tdb-team-text]').textContent='Native service excerpt '+i);
+  cards.forEach((card,i)=>{
+   card.querySelector('[data-tdb-team-text]').textContent='Native service excerpt '+i;
+   const record=t.w.document.createElement('span');record.hidden=true;
+   record.setAttribute('data-tdb-review-record-id','');record.textContent='review-'+i;card.append(record);
+  });
   t.remount();
   for(let i=0;i<3;i++){
    t.api.swiper.slideToLoop(i,0);await t.flush();

@@ -48,8 +48,8 @@ function setup(html='<section data-tdb-review-introduction><button data-tdb-revi
     close(){w.TDBReviewLoader?.destroy();w.TDBReviewFeatureLoader?.destroy();w.close();}};
 }
 const drawerFiles=/tdb-(drawer|filters|reviews|review-drawer)/;
-test('service quote loader fetches the native CMS identities without replacing shared feed selection',async()=>{
- const e=setup('<section data-tdb-review-quotes data-tdb-review-native-selection><span data-tdb-review-record-id>native-one</span><span data-tdb-review-record-id>native-two</span><span data-tdb-review-record-id>native-three</span></section>');
+for(const legacyMarker of [true,false]) test('slotted CMS quote identities keep native order without changing shared feed selection: '+legacyMarker,async()=>{
+ const e=setup(`<section data-tdb-review-quotes ${legacyMarker?'data-tdb-review-native-selection':''}><div class="w-slot"><div data-tdb-team-viewport><span data-tdb-review-record-id>native-one</span><span data-tdb-review-record-id>native-two</span><span data-tdb-review-record-id>native-three</span></div></div></section>`);
  const fetched=[];let mounted;
  e.data.featured=['general-one'];e.data.fetchRecords=async ids=>fetched.push([...ids]);
  e.w.TDBSwiper.mount=(kind,root,data)=>{mounted=data;return {destroy(){}}};
