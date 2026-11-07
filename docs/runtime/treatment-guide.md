@@ -26,7 +26,15 @@ The Treatments template uses the shared awards module with three native Featured
 
 ## Verification
 
-Native-layout preview checks at 1440, 768, 390 and 320px preserve card height before and after enhancement and across all five chapters, with no horizontal overflow. Tests cover native artwork preservation, transient-pressure teardown, annulus-only gestures, spring frames, reduced motion, twelve-o'clock crossing, chapter synchronisation and focus return. Published staging checks must confirm the actual Webflow output as well as these isolated checks. Physical iPhone Safari remains a separate validation; asset sizes are not a measurement of TBT or whole-page CLS.
+Native-layout preview and actual published staging checks at 1440, 768, 390 and 320px preserve card height before and after deliberately delayed enhancement and across all five chapters: maximum measured height change 0px, no wheel-related Layout Shift entries and no horizontal overflow. The shared drawer opens the selected chapter, closes hidden and inert, releases scrolling and restores focus to the native control. Disabled JavaScript and a deliberately failed drawer request both retain the native chapter disclosure. First-drag recovery and pressure rendering were exercised at desktop and mobile viewport widths. These are component checks, not a claim of zero whole-page CLS or a physical iPhone Safari result.
+
+All six published Treatment CMS pages contain one native guide, five native chapters and their three verified Featured Award references. The two draft records remain drafts. A fresh Signature Assessment load at 1440 and 390px requested no treatment-guide, calculator or retired service-content scripts, with no page errors or horizontal overflow.
+
+The eight Services pages and two sampled Treatment pages have no matching active IX2 event targets, no retired service-content tag, no direct calculator-loader tag and no placeholder copy. They use the shared JSON review feed. Webflow still emits its historical IX2-bearing bundle and Services retains six unused Vimeo markers; this pass does not claim all IX2 bytes or old configuration are removed. Treatments also retains its previously installed secondary-layout migration stylesheet, outside this wheel migration.
+
+The required build and custom Swiper artifact check pass. Full suite: 991 tests, 988 passing, three skipped, zero failures. The equivalent Windows-safe formatting command reports only the existing unrelated `src/smile-gallery/feed.js` warning. All 74 declared active release assets were verified byte-for-byte on jsDelivr. Private screenshots, network recordings, native snapshots and checks are under the workspace's `wheel-designer-20261107` evidence folder.
+
+Staging runtime: `609b7c312a861ce3f590f3b6c47cea18cf0cb411`. Webflow subdomain-only publish task: `4b6e5f5a-8325-498b-b3df-4d7c622a8907`. No production custom domain was published.
 
 ## Release and rollback
 
