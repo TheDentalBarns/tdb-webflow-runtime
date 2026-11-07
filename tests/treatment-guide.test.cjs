@@ -29,6 +29,10 @@ function wheel() {
     disconnect() {}
   };
   w.TDBMotionPolicy = { reduced: { matches: false } };
+  const cardChanges = [];
+  w.TDBTreatmentGuideCard = {
+    mount: () => ({ update: (index) => cardChanges.push(index), destroy() {} }),
+  };
   w.matchMedia = () => ({ matches: true });
   let time = 0,
     id = 0;
@@ -75,6 +79,7 @@ function wheel() {
     ball,
     menu,
     choices,
+    cardChanges,
     api,
     pressure,
     segments,
@@ -177,10 +182,10 @@ test('re-grabbing lightens the selected sector and releases its pressure shading
     assert.equal(Number(t.segments[0].style.opacity), 1, 'pointerdown must not snap the shade');
     t.tick(2);
     assert.ok(
-      Number(t.segments[0].style.opacity) < 1 && Number(t.segments[0].style.opacity) > 0.12,
+      Number(t.segments[0].style.opacity) < 1 && Number(t.segments[0].style.opacity) > 0.72,
     );
     t.tick(30);
-    assert.ok(Number(t.segments[0].style.opacity) < 0.14);
+    assert.ok(Math.abs(Number(t.segments[0].style.opacity) - 0.72) < 0.02);
     assert.ok(Number(t.pressure.style.opacity) > 0.99);
     t.pointer('pointerup', ...t.point(0));
     t.tick(2);
@@ -188,6 +193,31 @@ test('re-grabbing lightens the selected sector and releases its pressure shading
     t.tick(160);
     assert.ok(Number(t.segments[0].style.opacity) > 0.99);
     assert.ok(Number(t.pressure.style.opacity) < 0.001);
+  } finally {
+    t.dispose();
+  }
+});
+test('dragging fades the filled sector with its card before release', () => {
+  const t = wheel();
+  try {
+    t.tick(100);
+    t.pointer('pointerdown', ...t.point(72));
+    assert.equal(t.menu.getAttribute('aria-valuenow'), '2');
+    assert.equal(t.cardChanges.at(-1), 1);
+    assert.equal(Number(t.segments[1].style.opacity), 0, 'selection must ease into its fill');
+    t.tick(2);
+    assert.ok(Number(t.segments[0].style.opacity) > 0);
+    assert.ok(Number(t.segments[1].style.opacity) > 0);
+    t.tick(50);
+    assert.ok(Number(t.segments[1].style.opacity) >= 0.71);
+    assert.ok(Number(t.segments[0].style.opacity) < 0.01);
+    t.pointer('pointermove', ...t.point(144));
+    assert.equal(t.menu.getAttribute('aria-valuenow'), '3');
+    assert.equal(t.cardChanges.at(-1), 2);
+    t.tick(15);
+    assert.ok(Number(t.segments[2].style.opacity) > Number(t.segments[1].style.opacity));
+    assert.equal(t.root.classList.contains('is-wheel-dragging'), true);
+    t.pointer('pointerup', ...t.point(144));
   } finally {
     t.dispose();
   }

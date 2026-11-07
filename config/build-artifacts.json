@@ -632,20 +632,20 @@
       "sources": [
         "src/treatment-guide/drawer.js"
       ],
-      "sha256": "c7be906638816012117b3e5b475e686d41c1eb7b21cdaddeafce6ce5b47a7da9",
-      "raw": 8760,
-      "gzip": 3378,
-      "brotli": 2945
+      "sha256": "dd0f740267b449f74a21f13016f6cc7a5e9c148037e993be785c43e076eb6777",
+      "raw": 8800,
+      "gzip": 3381,
+      "brotli": 2936
     },
     "dist/tdb-treatment-guide-wheel.js": {
       "sources": [
         "src/treatment-guide/card.js",
         "src/treatment-guide/wheel.js"
       ],
-      "sha256": "2eceed088c569818608f078a60691b7df5678921c62a6d8220f6db75ecf8bea6",
-      "raw": 13892,
-      "gzip": 5124,
-      "brotli": 4621
+      "sha256": "f6835a509926a38cef9ff712dec1b98ec91f302eb66eb807b8e5f415f5966d17",
+      "raw": 14457,
+      "gzip": 5259,
+      "brotli": 4738
     },
     "dist/tdb-usp-drawer-template.js": {
       "sources": [

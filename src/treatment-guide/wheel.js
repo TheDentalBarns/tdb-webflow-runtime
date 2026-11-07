@@ -51,7 +51,7 @@
     ring.setAttribute('data-tdb-guide-pad', '');
     const id = `tdb-guide-pressure-${++serial}`;
     const defs = document.createElementNS(svg.namespaceURI, 'defs');
-    defs.innerHTML = `<radialGradient id="${id}-shade"><stop class="treatment-guide_pressure-dark" offset="0" stop-opacity=".17"/><stop class="treatment-guide_pressure-dark" offset=".48" stop-opacity=".07"/><stop class="treatment-guide_pressure-dark" offset="1" stop-opacity="0"/></radialGradient><radialGradient id="${id}-light"><stop class="treatment-guide_pressure-light" offset="0" stop-opacity=".5"/><stop class="treatment-guide_pressure-light" offset="1" stop-opacity="0"/></radialGradient><clipPath id="${id}-clip"><path clip-rule="evenodd" d="M500 0A500 500 0 1 1 500 1000A500 500 0 1 1 500 0M500 360A140 140 0 1 0 500 640A140 140 0 1 0 500 360"/></clipPath>`;
+    defs.innerHTML = `<radialGradient id="${id}-shade"><stop class="treatment-guide_pressure-core" offset="0" stop-opacity=".85"/><stop class="treatment-guide_pressure-dark" offset=".38" stop-opacity=".9"/><stop class="treatment-guide_pressure-dark" offset=".72" stop-opacity=".45"/><stop class="treatment-guide_pressure-dark" offset="1" stop-opacity="0"/></radialGradient><radialGradient id="${id}-light"><stop class="treatment-guide_pressure-light" offset="0" stop-opacity=".5"/><stop class="treatment-guide_pressure-light" offset="1" stop-opacity="0"/></radialGradient><clipPath id="${id}-clip"><path clip-rule="evenodd" d="M500 0A500 500 0 1 1 500 1000A500 500 0 1 1 500 0M500 360A140 140 0 1 0 500 640A140 140 0 1 0 500 360"/></clipPath>`;
     svg.append(defs, ring);
     const point = (radius, angle) =>
       `${500 + Math.sin(angle) * radius} ${500 - Math.cos(angle) * radius}`;
@@ -86,6 +86,19 @@
       svg.append(line);
     }
     menu.prepend(svg);
+    const iconLayer = document.createElement('div');
+    iconLayer.className = 'treatment-guide_wheel-icons';
+    iconLayer.setAttribute('aria-hidden', 'true');
+    const icons = choices.map((_, i) => {
+      const icon = window.TDBTreatmentGuideCard?.createArtwork?.(i);
+      if (!icon) return null;
+      icon.classList.add('treatment-guide_segment-icon');
+      icon.style.left = `${50 + Math.sin(i * step) * 32}%`;
+      icon.style.top = `${50 - Math.cos(i * step) * 32}%`;
+      iconLayer.append(icon);
+      return icon;
+    });
+    menu.append(iconLayer);
     menu.setAttribute('role', 'slider');
     menu.setAttribute('aria-label', 'Treatment guide wheel');
     menu.setAttribute('aria-valuemin', '1');
@@ -148,12 +161,13 @@
       );
       let unsettled = false;
       segments.forEach((segment, i) => {
-        const proximity = Math.abs(wrap(angle - i * step)) / step,
-          glow = drag ? Math.max(0, 1 - proximity) * 0.12 : i === active ? 1 : 0;
+        // The whole sector follows the selected card while the pressure follows the spring.
+        const glow = i === active ? (drag ? 0.72 : 1) : 0;
         weights[i] += (glow - weights[i]) * (reduced() ? 1 : 1 - Math.exp(-dt * 11));
         if (Math.abs(glow - weights[i]) > 0.002) unsettled = true;
         else weights[i] = glow;
         segment.style.opacity = weights[i].toFixed(4);
+        if (icons[i]) icons[i].style.opacity = (0.28 + weights[i] * 0.7).toFixed(4);
       });
       const pressed = drag ? 1 : 0;
       pressureOpacity += (pressed - pressureOpacity) * (reduced() ? 1 : 1 - Math.exp(-dt * 12));
@@ -405,6 +419,7 @@
           if (value == null) menu.removeAttribute(name);
           else menu.setAttribute(name, value);
         svg.remove();
+        iconLayer.remove();
         root.classList.remove('is-click-wheel', 'is-ivory-guide', 'is-wheel-dragging');
         if (original.size) root.style.setProperty('--tdb-guide-dial-size', original.size);
         else root.style.removeProperty('--tdb-guide-dial-size');

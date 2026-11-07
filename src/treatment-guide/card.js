@@ -9,6 +9,14 @@ window.TDBTreatmentGuideCard ||= (() => {
     ['barn-window', '6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg'],
   ];
   let warmed = false;
+  function createArtwork(index) {
+    const [name, file] = artwork[index] || artwork[0];
+    const art = document.createElement('span');
+    art.className = 'treatment-guide_icon-art';
+    art.dataset.guideArtwork = name;
+    art.style.setProperty('--tdb-guide-artwork', `url("${artworkBase + file}")`);
+    return art;
+  }
   function controls(navigate, label) {
     const group = document.createElement('div');
     group.className = 'treatment-guide_arrows';
@@ -90,11 +98,8 @@ window.TDBTreatmentGuideCard ||= (() => {
       valueClass: 'treatment-guide_icon-value',
       incomingClass: 'treatment-guide_icon-incoming',
       render(node, value) {
-        const [name, file] = artwork[Number(value)] || artwork[0];
-        const art = document.createElement('span');
-        art.className = 'treatment-guide_icon-art';
-        art.style.setProperty('--tdb-guide-artwork', `url("${artworkBase + file}")`);
-        node.dataset.guideButtonIcon = name;
+        const art = createArtwork(Number(value));
+        node.dataset.guideButtonIcon = art.dataset.guideArtwork;
         node.replaceChildren(art);
       },
     });
@@ -187,5 +192,5 @@ window.TDBTreatmentGuideCard ||= (() => {
       },
     };
   }
-  return Object.freeze({ mount, controls });
+  return Object.freeze({ mount, controls, createArtwork });
 })();
