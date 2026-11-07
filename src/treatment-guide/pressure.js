@@ -132,6 +132,10 @@
     }
     return {
       layer,
+      destroy() {
+        layer.remove();
+        defs.remove();
+      },
       render(x, y, depth) {
         const translate = `translate(${x} ${y})`,
           scale = `scale(${0.8 + 0.2 * depth})`;

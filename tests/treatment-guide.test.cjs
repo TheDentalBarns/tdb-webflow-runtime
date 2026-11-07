@@ -3,23 +3,41 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const read = (file) => fs.readFileSync(__dirname + '/../' + file, 'utf8');
+
+test('native chapter disclosure remains available when enhancement is not permitted', () => {
+  const dom = new JSDOM(
+    '<section data-tdb-guide><details><summary data-tdb-guide-open>Learn more</summary><p>CMS chapter</p></details></section>',
+    { runScripts: 'outside-only' },
+  );
+  const w = dom.window;
+  w.TDBConsent = { allows: () => false };
+  w.TDBFeatureLoading = { watchIntent() {} };
+  w.eval(read('src/runtime/treatment-guide-loader.js'));
+  w.prepareTreatmentGuideLoader();
+  const click = new w.MouseEvent('click', { bubbles: true, cancelable: true });
+  w.document.querySelector('summary').dispatchEvent(click);
+  assert.equal(click.defaultPrevented, false);
+  w.TDBTreatmentGuideLoader.destroy();
+  w.close();
+});
 test('rounded wedge masks reproduce from their colour-free source', () => {
   require('node:child_process').execFileSync(process.execPath, [
-    __dirname + '/../tools/runtime-build/build-guide-pressure.cjs', '--check',
+    __dirname + '/../tools/runtime-build/build-guide-pressure.cjs',
+    '--check',
   ]);
 });
 function wheel() {
   const dom = new JSDOM(
-    `<section data-tdb-guide><nav>${Array.from({ length: 5 }, (_, i) => `<a href="#" data-tdb-guide-choice="${i}" class="${i === 0 ? 'w--current' : ''}">Chapter ${i + 1}</a>`).join('')}</nav><div class="art"><div class="treatment-guide_orbit"></div><span data-tdb-guide-number>01</span><a data-tdb-guide-ball tabindex="-1" aria-hidden="true"><span></span></a></div></section>`,
+    `<section data-tdb-guide><nav>${Array.from({ length: 5 }, (_, i) => `<a href="#" data-tdb-guide-choice="${i}" class="${i === 0 ? 'w--current' : ''}">Chapter ${i + 1}</a>`).join('')}</nav><div class="treatment-guide_dial-art">${read('tests/fixtures/treatment-guide-native.svg')}</div></section>`,
     { runScripts: 'outside-only', pretendToBeVisual: true },
   );
   const w = dom.window,
     root = w.document.querySelector('section'),
-    ball = root.querySelector('[data-tdb-guide-ball]'),
+    artwork = root.querySelector('.treatment-guide_finger-pad'),
     choices = [...root.querySelectorAll('[data-tdb-guide-choice]')],
     menu = root.querySelector('nav');
   menu.className = 'treatment-guide_wheel';
-  root.querySelector('.art').getBoundingClientRect = () => ({
+  root.querySelector('.treatment-guide_dial-art').getBoundingClientRect = () => ({
     left: 0,
     top: 0,
     width: 400,
@@ -95,7 +113,7 @@ function wheel() {
   return {
     w,
     root,
-    ball,
+    artwork,
     menu,
     choices,
     cardChanges,
@@ -367,31 +385,32 @@ test('five equal sectors start with a complete segment centred at twelve', () =>
   const t = wheel();
   try {
     assert.equal(t.segments.length, 5);
-    const lines = [...t.root.querySelectorAll('.treatment-guide_finger-pad>line')];
+    const lines = [...t.root.querySelectorAll('.treatment-guide_divider')];
     assert.equal(lines.length, 5);
     lines.forEach((line, i) => {
       const a = ((i + 0.5) * Math.PI * 2) / 5;
-      assert.ok(Math.abs(Number(line.getAttribute('x2')) - (500 + Math.sin(a) * 500)) < 0.001);
-      assert.ok(Math.abs(Number(line.getAttribute('y2')) - (500 - Math.cos(a) * 500)) < 0.001);
-      assert.ok(
-        Math.abs(
-          Math.hypot(Number(line.getAttribute('x1')) - 500, Number(line.getAttribute('y1')) - 500) -
-            140,
-        ) < 0.001,
-      );
+      const [x1, y1, x2, y2] = line
+        .getAttribute('d')
+        .match(/[\d.]+/g)
+        .map(Number);
+      assert.ok(Math.abs(x2 - (500 + Math.sin(a) * 500)) < 0.001);
+      assert.ok(Math.abs(y2 - (500 - Math.cos(a) * 500)) < 0.001);
+      assert.ok(Math.abs(Math.hypot(x1 - 500, y1 - 500) - 140) < 0.001);
     });
   } finally {
     t.dispose();
   }
 });
-test('teardown restores authored wheel semantics and removes its injected artwork', () => {
+test('teardown preserves native wheel artwork and removes only transient pressure layers', () => {
   const t = wheel();
   t.api.destroy();
-  assert.equal(t.ball.getAttribute('tabindex'), '-1');
-  assert.equal(t.ball.getAttribute('aria-hidden'), 'true');
   assert.equal(t.menu.getAttribute('role'), null);
   assert.equal(t.menu.getAttribute('tabindex'), null);
-  assert.equal(t.root.querySelector('.treatment-guide_finger-pad'), null);
+  assert.equal(t.root.querySelector('.treatment-guide_finger-pad'), t.artwork);
+  assert.equal(t.root.querySelector('.treatment-guide_pressure'), null);
+  assert.equal(t.root.querySelector('.treatment-guide_pressure-contact'), null);
+  assert.equal(t.artwork.querySelector('defs'), null);
+  assert.equal(t.artwork.querySelectorAll('.treatment-guide_divider').length, 5);
   t.w.close();
 });
 
@@ -401,10 +420,14 @@ test('rounded press stays behind the dividers and fully disappears after release
     const svg = t.root.querySelector('.treatment-guide_finger-pad');
     const edge = svg.querySelector('.treatment-guide_pressure-contact');
     const layer = edge.parentElement;
-    const lines = [...svg.querySelectorAll(':scope > line')];
+    const lines = [...svg.querySelectorAll('.treatment-guide_divider')];
     assert.ok(lines.every((line) => layer.compareDocumentPosition(line) & 4));
     assert.equal(Number(edge.style.opacity), 0);
-    assert.ok([...t.pressure.querySelectorAll('circle')].every((circle) => !circle.hasAttribute('cx') && !circle.hasAttribute('cy')));
+    assert.ok(
+      [...t.pressure.querySelectorAll('circle')].every(
+        (circle) => !circle.hasAttribute('cx') && !circle.hasAttribute('cy'),
+      ),
+    );
     t.pointer('pointerdown', 320, 40);
     t.tick(45);
     assert.equal(edge.style.opacity, t.pressure.style.opacity);

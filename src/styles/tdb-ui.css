@@ -410,6 +410,15 @@ html[data-tdb-control-motion] [data-tdb-price-section][data-tdb-disclosure-item]
   [data-tdb-price-panel]:not(:has([data-tdb-page-break-image][src]:not([src=""])))>[data-tdb-disclosure-reveal]{grid-column:2}
 }
 
+/* Native Webflow tabs reserve every chapter's intrinsic size in Designer.
+ * These selection states also work when the optional wheel module is unavailable. */
+[data-tdb-guide] .treatment-guide_content:has(>.w--tab-active)>.treatment-guide_panel:not(.w--tab-active){visibility:hidden;pointer-events:none}
+[data-tdb-guide] .treatment-guide_panel.w--tab-active{visibility:visible;pointer-events:auto}
+[data-tdb-guide] .treatment-guide_choice:not(.w--current){opacity:.28}
+[data-tdb-guide] .treatment-guide_choice.w--current{opacity:.98}
+[data-tdb-guide] .treatment-guide_learn-more::-webkit-details-marker{display:none}
+[data-tdb-guide]:has(details[open]) .treatment-guide_arrows{visibility:hidden}
+
 /* Native Designer classes own layout; shared disclosures and motion own state. */
 [data-tdb-faq-heading][aria-expanded="true"]{position:sticky;top:0;z-index:5;transform:translateY(var(--tdb-price-category-push,0px))}
 [data-tdb-faq-question][aria-expanded="true"]{position:sticky;top:0;z-index:6;width:100vw;margin-left:calc(50% - 50vw);padding-left:calc(50vw - 50%);padding-right:calc(50vw - 50%);background:var(--_tdb-navbar---bar-glass,#f9f2e6d6);backdrop-filter:saturate(150%) blur(20px);-webkit-backdrop-filter:saturate(150%) blur(20px)}

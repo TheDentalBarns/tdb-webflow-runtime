@@ -85,7 +85,7 @@ function prepareTreatmentGuideLoader() {
     'click',
     (event) => {
       const trigger = event.target.closest?.('[data-tdb-guide] [data-tdb-guide-open]');
-      if (!trigger || event.defaultPrevented) return;
+      if (!trigger || event.defaultPrevented || !allowed()) return;
       event.preventDefault();
       open(trigger);
     },
@@ -95,8 +95,8 @@ function prepareTreatmentGuideLoader() {
   document.addEventListener(
     'pointerdown',
     (event) => {
-      const ball = event.target.closest?.('[data-tdb-guide-ball]');
-      const root = ball?.closest('[data-tdb-guide]');
+      const surface = event.target.closest?.('[data-tdb-guide-pad], [data-tdb-guide-choice]');
+      const root = surface?.closest('[data-tdb-guide]');
       if (!root || owners.has(root) || event.button !== 0 || !allowed()) return;
       event.preventDefault();
       const seed = (gesture = {
@@ -108,7 +108,7 @@ function prepareTreatmentGuideLoader() {
         startY: event.clientY,
         down: true,
       });
-      ball.setPointerCapture?.(event.pointerId);
+      root.setPointerCapture?.(event.pointerId);
       wheel(root)
         .then((api) => {
           if (gesture !== seed || !api) return;

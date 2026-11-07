@@ -1,4 +1,4 @@
-/* Ivory segment wheel; native labels and bound panes remain the fallback. */
+/* Pressure and interaction only; the resting wheel and CMS card live in Designer. */
 (() => {
   'use strict';
   if (window.TDBTreatmentGuideWheel) return;
@@ -10,22 +10,18 @@
   function mount(root) {
     if (instances.has(root)) return instances.get(root);
     const choices = [...root.querySelectorAll('[data-tdb-guide-choice]')],
-      ball = root.querySelector('[data-tdb-guide-ball]'),
-      art = ball?.parentElement;
-    const orbit = root.querySelector('.treatment-guide_orbit'),
-      menu = root.querySelector('.treatment-guide_wheel');
-    if (!ball || choices.length !== 5 || !orbit || !menu)
+      art = root.querySelector('.treatment-guide_dial-art');
+    const menu = root.querySelector('.treatment-guide_wheel'),
+      svg = art?.querySelector('.treatment-guide_finger-pad'),
+      segments = [...(svg?.querySelectorAll('[data-guide-segment]') || [])];
+    if (!art || choices.length !== 5 || segments.length !== 5 || !menu)
       throw Error('Treatment guide structure missing');
     const events = new AbortController(),
       signal = events.signal;
     const original = {
-      style: ball.getAttribute('style'),
-      tabindex: ball.getAttribute('tabindex'),
-      hidden: ball.getAttribute('aria-hidden'),
       menuRole: menu.getAttribute('role'),
       menuLabel: menu.getAttribute('aria-label'),
       menuTab: menu.getAttribute('tabindex'),
-      size: root.style.getPropertyValue('--tdb-guide-dial-size'),
     };
     const reduced = () =>
       Boolean(window.TDBMotionPolicy?.reduced?.matches || window.TDBMotion?.reduced?.matches);
@@ -36,66 +32,15 @@
     );
     const weights = choices.map((_, i) => (i === active ? 1 : 0)),
       card = window.TDBTreatmentGuideCard?.mount(root, active, navigate);
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', '0 0 1000 1000');
-    svg.setAttribute('aria-hidden', 'true');
-    svg.setAttribute('focusable', 'false');
-    svg.classList.add('treatment-guide_finger-pad');
-    const ring = document.createElementNS(svg.namespaceURI, 'circle');
-    ring.setAttribute('cx', '500');
-    ring.setAttribute('cy', '500');
-    ring.setAttribute('r', '320');
-    ring.setAttribute('fill', 'none');
-    ring.setAttribute('stroke-width', '360');
-    ring.setAttribute('data-tdb-guide-pad', '');
     const indentation = window.TDBTreatmentGuidePressure.create(svg);
-    svg.append(ring);
-    const point = (radius, angle) =>
-      `${500 + Math.sin(angle) * radius} ${500 - Math.cos(angle) * radius}`;
-    const segments = choices.map((_, i) => {
-      const path = document.createElementNS(svg.namespaceURI, 'path'),
-        from = (i - 0.5) * step,
-        to = (i + 0.5) * step;
-      path.classList.add('treatment-guide_segment');
-      path.setAttribute('data-guide-segment', String(i));
-      path.setAttribute(
-        'd',
-        `M${point(500, from)}A500 500 0 0 1 ${point(500, to)}L${point(140, to)}A140 140 0 0 0 ${point(140, from)}Z`,
-      );
-      svg.append(path);
-      return path;
-    });
-    svg.append(indentation.layer);
-    for (let i = 0; i < 5; i++) {
-      const line = document.createElementNS(svg.namespaceURI, 'line'),
-        a = (i + 0.5) * step;
-      line.setAttribute('x1', String(500 + Math.sin(a) * 140));
-      line.setAttribute('y1', String(500 - Math.cos(a) * 140));
-      line.setAttribute('x2', String(500 + Math.sin(a) * 500));
-      line.setAttribute('y2', String(500 - Math.cos(a) * 500));
-      line.setAttribute('vector-effect', 'non-scaling-stroke');
-      svg.append(line);
-    }
-    menu.prepend(svg);
-    const iconLayer = document.createElement('div');
-    iconLayer.className = 'treatment-guide_wheel-icons';
-    iconLayer.setAttribute('aria-hidden', 'true');
-    const icons = choices.map((_, i) => {
-      const icon = window.TDBTreatmentGuideCard?.createArtwork?.(i);
-      if (!icon) return null;
-      icon.classList.add('treatment-guide_segment-icon');
-      icon.style.left = `${50 + Math.sin(i * step) * 32}%`;
-      icon.style.top = `${50 - Math.cos(i * step) * 32}%`;
-      iconLayer.append(icon);
-      return icon;
-    });
-    menu.append(iconLayer);
+    svg.insertBefore(indentation.layer, svg.querySelector('.treatment-guide_divider'));
+    const icons = choices;
     menu.setAttribute('role', 'slider');
     menu.setAttribute('aria-label', 'Treatment guide wheel');
     menu.setAttribute('aria-valuemin', '1');
     menu.setAttribute('aria-valuemax', '5');
     menu.tabIndex = 0;
-    root.classList.add('is-click-wheel', 'is-ivory-guide');
+    root.classList.add('is-click-wheel');
     let radius = 100,
       outer = 140,
       cx = 0,
@@ -192,7 +137,6 @@
       cy = box.top + box.height / 2;
       radius = box.width * 0.32;
       outer = box.width / 2;
-      root.style.setProperty('--tdb-guide-dial-size', `${box.width}px`);
       start();
     }
     function radialOffset(distance) {
@@ -281,13 +225,12 @@
     function begin(event) {
       if ((event.button != null && event.button !== 0) || drag) return;
       if (event.target?.closest?.('[data-tdb-guide-nav]')) return;
-      const onBall = event.target?.closest?.('[data-tdb-guide-ball]');
-      if (!onBall && !menu.contains(event.target)) return;
+      if (!menu.contains(event.target) && !svg.contains(event.target)) return;
       measure();
       const px = event.clientX - cx,
         py = event.clientY - cy,
         distance = Math.hypot(px, py);
-      if (!onBall && (distance < 2 * radius - outer - 4 || distance > outer + 4)) return;
+      if (distance < 2 * radius - outer - 4 || distance > outer + 4) return;
       event.preventDefault?.();
       stopPreview(true);
       const pointerAngle = Math.atan2(px, -py);
@@ -356,8 +299,9 @@
       'click',
       (event) => {
         if (
-          event.target.closest?.('[data-tdb-guide-ball]') ||
-          (event.isTrusted && performance.now() < suppressUntil && menu.contains(event.target))
+          event.isTrusted &&
+          performance.now() < suppressUntil &&
+          (menu.contains(event.target) || svg.contains(event.target))
         ) {
           event.preventDefault();
           event.stopImmediatePropagation();
@@ -368,7 +312,7 @@
     root.addEventListener(
       'dragstart',
       (event) => {
-        if (menu.contains(event.target) || ball.contains(event.target)) event.preventDefault();
+        if (menu.contains(event.target) || svg.contains(event.target)) event.preventDefault();
       },
       { signal },
     );
@@ -454,8 +398,6 @@
       },
       { signal },
     );
-    ball.setAttribute('aria-hidden', 'true');
-    ball.tabIndex = -1;
     measure();
     select(active, false);
     render(1);
@@ -488,16 +430,8 @@
         ])
           if (value == null) menu.removeAttribute(name);
           else menu.setAttribute(name, value);
-        svg.remove();
-        iconLayer.remove();
-        root.classList.remove(
-          'is-click-wheel',
-          'is-ivory-guide',
-          'is-wheel-dragging',
-          'is-wheel-previewing',
-        );
-        if (original.size) root.style.setProperty('--tdb-guide-dial-size', original.size);
-        else root.style.removeProperty('--tdb-guide-dial-size');
+        indentation.destroy();
+        root.classList.remove('is-click-wheel', 'is-wheel-dragging', 'is-wheel-previewing');
         for (const attribute of [
           'aria-valuemin',
           'aria-valuemax',
@@ -506,14 +440,8 @@
         ])
           menu.removeAttribute(attribute);
         root.removeAttribute('data-tdb-guide-fallback');
-        choices.forEach((choice) => choice.style.removeProperty('color'));
-        for (const [name, value] of [
-          ['style', original.style],
-          ['tabindex', original.tabindex],
-          ['aria-hidden', original.hidden],
-        ])
-          if (value == null) ball.removeAttribute(name);
-          else ball.setAttribute(name, value);
+        choices.forEach((choice) => choice.style.removeProperty('opacity'));
+        segments.forEach((segment) => segment.style.removeProperty('opacity'));
         instances.delete(root);
       },
     };

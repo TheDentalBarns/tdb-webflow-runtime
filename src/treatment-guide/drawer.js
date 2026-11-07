@@ -284,11 +284,7 @@
     }
     const drawer = window.TDBDrawer.mount(shell, {
       hideChrome: true,
-      returnFocus: () =>
-        (!section.hasAttribute('data-tdb-guide-fallback') &&
-          section.querySelector('[data-tdb-guide-card] [data-tdb-guide-open]')) ||
-        section.querySelector('.w--tab-active [data-tdb-guide-open]') ||
-        source,
+      returnFocus: () => section.querySelector('.w--tab-active [data-tdb-guide-open]') || source,
       onOpen() {
         reading.clear();
         reading.setMode();
