@@ -1,5 +1,14 @@
 /* Temporary presentation patch. Native bound panes remain the source and fallback. */
 window.TDBTreatmentGuideCard ||= (() => {
+  const artworkBase = 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/';
+  const artwork = [
+    ['diamond', '6aeddc640ce35bc2256782dc_tdb-diamond-small-1px.svg'],
+    ['thumbprint', '6aef3d06504a979ca9cd538b_tdb-thumbprint-small-1px.svg'],
+    ['lotus', '6aeddc643eed49cd4fac61a6_tdb-lotus-small-1px.svg'],
+    ['quotation', '6ac7b973bb15c9b9f29a8d18_tdb-review-quote.svg'],
+    ['barn-window', '6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg'],
+  ];
+  let warmed = false;
   function controls(navigate, label) {
     const group = document.createElement('div');
     group.className = 'treatment-guide_arrows';
@@ -35,6 +44,8 @@ window.TDBTreatmentGuideCard ||= (() => {
     card.className = 'treatment-guide_teaser treatment-guide_card';
     card.setAttribute('data-tdb-guide-card', '');
     const pagination = clone(panes[0].querySelector('[data-tdb-guide-pagination]'));
+    pagination.setAttribute('data-guide-centre-pagination', '');
+    root.querySelector('.treatment-guide_centre').append(pagination);
     const titles = document.createElement('div'),
       summaries = document.createElement('div');
     titles.className = 'treatment-guide_title-stage';
@@ -55,12 +66,38 @@ window.TDBTreatmentGuideCard ||= (() => {
     explore.className = 'button treatment-guide_learn-more';
     explore.setAttribute('data-tdb-guide-open', '');
     explore.setAttribute('aria-haspopup', 'dialog');
-    explore.textContent = 'Learn more';
-    const top = document.createElement('div');
-    top.className = 'treatment-guide_card-top';
-    top.append(pagination, controls(navigate, 'Treatment guide chapters'));
-    card.append(top, titles, summaries, explore);
+    const label = document.createElement('span'),
+      icon = document.createElement('span');
+    label.textContent = 'Learn more';
+    icon.className = 'treatment-guide_cta-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = String(initial);
+    explore.append(label, icon);
+    const footer = document.createElement('div');
+    footer.className = 'treatment-guide_card-footer';
+    footer.append(explore, controls(navigate, 'Treatment guide chapters'));
+    card.append(titles, summaries, footer);
     content.append(card);
+    if (!warmed) {
+      warmed = true;
+      artwork.forEach(([, file]) => {
+        const image = new Image();
+        image.src = artworkBase + file;
+        image.decode().catch(() => {});
+      });
+    }
+    const iconTicker = window.TDBNativeTicker.mount(icon, {
+      valueClass: 'treatment-guide_icon-value',
+      incomingClass: 'treatment-guide_icon-incoming',
+      render(node, value) {
+        const [name, file] = artwork[Number(value)] || artwork[0];
+        const art = document.createElement('span');
+        art.className = 'treatment-guide_icon-art';
+        art.style.setProperty('--tdb-guide-artwork', `url("${artworkBase + file}")`);
+        node.dataset.guideButtonIcon = name;
+        node.replaceChildren(art);
+      },
+    });
     const ticker = window.TDBNativeTicker.mount(
       pagination.querySelector('[data-tdb-guide-position]'),
       {
@@ -87,6 +124,7 @@ window.TDBTreatmentGuideCard ||= (() => {
       );
       pagination.setAttribute('aria-label', `${index + 1} of ${rows.length}`);
       ticker.update(String(index + 1).padStart(2, '0'), direction, animate);
+      iconTicker.update(String(index), direction, animate);
       rows.forEach((row, i) => {
         for (const node of [row.title, row.summary]) {
           node.style.opacity = i === index ? '1' : '0';
@@ -143,6 +181,8 @@ window.TDBTreatmentGuideCard ||= (() => {
         disposed = true;
         stop();
         ticker.destroy();
+        iconTicker.destroy();
+        pagination.remove();
         card.remove();
       },
     };
@@ -150,7 +190,7 @@ window.TDBTreatmentGuideCard ||= (() => {
   return Object.freeze({ mount, controls });
 })();
 
-/* Click-wheel trial; native labels and bound panes remain the fallback. */
+/* Ivory segment wheel; native labels and bound panes remain the fallback. */
 (() => {
   'use strict';
   if (window.TDBTreatmentGuideWheel) return;
@@ -159,14 +199,14 @@ window.TDBTreatmentGuideCard ||= (() => {
     step = turn / 5;
   const wrap = (angle) => Math.atan2(Math.sin(angle), Math.cos(angle));
   const chapter = (angle) => ((Math.round(angle / step) % 5) + 5) % 5;
+  let serial = 0;
   function mount(root) {
     if (instances.has(root)) return instances.get(root);
     const choices = [...root.querySelectorAll('[data-tdb-guide-choice]')],
       ball = root.querySelector('[data-tdb-guide-ball]'),
       art = ball?.parentElement;
     const orbit = root.querySelector('.treatment-guide_orbit'),
-      menu = root.querySelector('.treatment-guide_wheel'),
-      number = root.querySelector('[data-tdb-guide-number]');
+      menu = root.querySelector('.treatment-guide_wheel');
     if (!ball || choices.length !== 5 || !orbit || !menu)
       throw Error('Treatment guide structure missing');
     const events = new AbortController(),
@@ -177,34 +217,18 @@ window.TDBTreatmentGuideCard ||= (() => {
       hidden: ball.getAttribute('aria-hidden'),
       menuRole: menu.getAttribute('role'),
       menuLabel: menu.getAttribute('aria-label'),
+      menuTab: menu.getAttribute('tabindex'),
+      size: root.style.getPropertyValue('--tdb-guide-dial-size'),
     };
     const reduced = () =>
       Boolean(window.TDBMotionPolicy?.reduced?.matches || window.TDBMotion?.reduced?.matches);
     const elapsed = (ms) => window.TDBMotionProfile?.elapsed(ms) ?? ms;
-    const rgb = (color) => {
-      const values = color.match(/[\d.]+/g)?.map(Number) || [0, 0, 0];
-      return [...values.slice(0, 3), values[3] ?? 1];
-    };
     let active = Math.max(
       0,
       choices.findIndex((choice) => choice.classList.contains('w--current')),
     );
-    const muted = rgb(
-        getComputedStyle(
-          choices.find((choice) => !choice.classList.contains('w--current')) || choices[0],
-        ).color,
-      ),
-      ink = rgb(getComputedStyle(choices[active]).color);
     const weights = choices.map((_, i) => (i === active ? 1 : 0)),
       card = window.TDBTreatmentGuideCard?.mount(root, active, navigate);
-    const wheelControls = window.TDBTreatmentGuideCard?.controls(
-      navigate,
-      'Wheel chapter controls',
-    );
-    if (wheelControls) {
-      wheelControls.classList.add('is-on-wheel');
-      menu.append(wheelControls);
-    }
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '0 0 1000 1000');
     svg.setAttribute('aria-hidden', 'true');
@@ -213,25 +237,53 @@ window.TDBTreatmentGuideCard ||= (() => {
     const ring = document.createElementNS(svg.namespaceURI, 'circle');
     ring.setAttribute('cx', '500');
     ring.setAttribute('cy', '500');
-    ring.setAttribute('r', '370');
+    ring.setAttribute('r', '320');
     ring.setAttribute('fill', 'none');
-    ring.setAttribute('stroke-width', '260');
+    ring.setAttribute('stroke-width', '360');
     ring.setAttribute('data-tdb-guide-pad', '');
-    svg.append(ring);
+    const id = `tdb-guide-pressure-${++serial}`;
+    const defs = document.createElementNS(svg.namespaceURI, 'defs');
+    defs.innerHTML = `<radialGradient id="${id}-shade"><stop class="treatment-guide_pressure-dark" offset="0" stop-opacity=".17"/><stop class="treatment-guide_pressure-dark" offset=".48" stop-opacity=".07"/><stop class="treatment-guide_pressure-dark" offset="1" stop-opacity="0"/></radialGradient><radialGradient id="${id}-light"><stop class="treatment-guide_pressure-light" offset="0" stop-opacity=".5"/><stop class="treatment-guide_pressure-light" offset="1" stop-opacity="0"/></radialGradient><clipPath id="${id}-clip"><path clip-rule="evenodd" d="M500 0A500 500 0 1 1 500 1000A500 500 0 1 1 500 0M500 360A140 140 0 1 0 500 640A140 140 0 1 0 500 360"/></clipPath>`;
+    svg.append(defs, ring);
+    const point = (radius, angle) =>
+      `${500 + Math.sin(angle) * radius} ${500 - Math.cos(angle) * radius}`;
+    const segments = choices.map((_, i) => {
+      const path = document.createElementNS(svg.namespaceURI, 'path'),
+        from = (i - 0.5) * step,
+        to = (i + 0.5) * step;
+      path.classList.add('treatment-guide_segment');
+      path.setAttribute('data-guide-segment', String(i));
+      path.setAttribute(
+        'd',
+        `M${point(500, from)}A500 500 0 0 1 ${point(500, to)}L${point(140, to)}A140 140 0 0 0 ${point(140, from)}Z`,
+      );
+      svg.append(path);
+      return path;
+    });
+    const pressureClip = document.createElementNS(svg.namespaceURI, 'g'),
+      pressure = document.createElementNS(svg.namespaceURI, 'g');
+    pressureClip.setAttribute('clip-path', `url(#${id}-clip)`);
+    pressure.classList.add('treatment-guide_pressure');
+    pressure.innerHTML = `<circle cy="25" r="110" fill="url(#${id}-light)"/><circle r="100" fill="url(#${id}-shade)"/>`;
+    pressureClip.append(pressure);
+    svg.append(pressureClip);
     for (let i = 0; i < 5; i++) {
       const line = document.createElementNS(svg.namespaceURI, 'line'),
-        a = i * step;
-      line.setAttribute('x1', String(500 + Math.sin(a) * 240));
-      line.setAttribute('y1', String(500 - Math.cos(a) * 240));
+        a = (i + 0.5) * step;
+      line.setAttribute('x1', String(500 + Math.sin(a) * 140));
+      line.setAttribute('y1', String(500 - Math.cos(a) * 140));
       line.setAttribute('x2', String(500 + Math.sin(a) * 500));
       line.setAttribute('y2', String(500 - Math.cos(a) * 500));
       line.setAttribute('vector-effect', 'non-scaling-stroke');
       svg.append(line);
     }
     menu.prepend(svg);
-    menu.setAttribute('role', 'group');
+    menu.setAttribute('role', 'slider');
     menu.setAttribute('aria-label', 'Treatment guide wheel');
-    root.classList.add('is-click-wheel');
+    menu.setAttribute('aria-valuemin', '1');
+    menu.setAttribute('aria-valuemax', '5');
+    menu.tabIndex = 0;
+    root.classList.add('is-click-wheel', 'is-ivory-guide');
     let radius = 100,
       outer = 140,
       cx = 0,
@@ -247,7 +299,8 @@ window.TDBTreatmentGuideCard ||= (() => {
       last = 0,
       visible = true,
       disposed = false,
-      suppressUntil = 0;
+      suppressUntil = 0,
+      pressureOpacity = 0;
     function interact() {
       window.TDBSliderFocus?.focus(root, () => Boolean(drag));
     }
@@ -262,45 +315,43 @@ window.TDBTreatmentGuideCard ||= (() => {
       if (previous !== index)
         card?.update(index, direction || (wrap((index - previous) * step) < 0 ? -1 : 1));
       if (notify && !choices[index].classList.contains('w--current')) choices[index].click();
-      if (number) number.textContent = String(index + 1).padStart(2, '0');
-      ball.setAttribute('aria-valuenow', String(index + 1));
-      ball.setAttribute('aria-valuetext', choices[index].textContent.trim());
+      menu.setAttribute('aria-valuenow', String(index + 1));
+      menu.setAttribute('aria-valuetext', choices[index].textContent.trim());
       if (!drag) target = angle + wrap(index * step - angle);
       start();
     }
     function measure() {
-      const box = art.getBoundingClientRect(),
-        path = orbit.getBoundingClientRect();
-      if (!box.width || !path.width) return;
+      const box = art.getBoundingClientRect();
+      if (!box.width) return;
       cx = box.left + box.width / 2;
       cy = box.top + box.height / 2;
-      radius = path.width / 2;
+      radius = box.width * 0.32;
       outer = box.width / 2;
-      const inner = Math.max(0, ((2 * radius - outer) / outer) * 500);
-      [...svg.querySelectorAll('line')].forEach((line, i) => {
-        line.setAttribute('x1', String(500 + Math.sin(i * step) * inner));
-        line.setAttribute('y1', String(500 - Math.cos(i * step) * inner));
-      });
+      root.style.setProperty('--tdb-guide-dial-size', `${box.width}px`);
       start();
     }
     function render(dt) {
       const distance = radius + radial,
         x = Math.sin(angle) * distance,
         y = -Math.cos(angle) * distance;
-      ball.style.transform = `translate3d(${x.toFixed(3)}px,${(y + radius).toFixed(3)}px,0)`;
+      pressure.setAttribute(
+        'transform',
+        `translate(${500 + (x / outer) * 500} ${500 + (y / outer) * 500})`,
+      );
       let unsettled = false;
-      choices.forEach((choice, i) => {
+      segments.forEach((segment, i) => {
         const proximity = Math.abs(wrap(angle - i * step)) / step,
-          glow = drag ? Math.max(i === active ? 0.6 : 0, 1 - proximity) : i === active ? 1 : 0;
+          glow = drag ? Math.max(0, 1 - proximity) * 0.12 : i === active ? 1 : 0;
         weights[i] += (glow - weights[i]) * (reduced() ? 1 : 1 - Math.exp(-dt * 11));
         if (Math.abs(glow - weights[i]) > 0.002) unsettled = true;
-        choice.style.color = `rgba(${muted
-          .map((value, j) => {
-            const result = value + (ink[j] - value) * weights[i];
-            return j === 3 ? result.toFixed(4) : Math.round(result);
-          })
-          .join(',')})`;
+        else weights[i] = glow;
+        segment.style.opacity = weights[i].toFixed(4);
       });
+      const pressed = drag ? 1 : 0;
+      pressureOpacity += (pressed - pressureOpacity) * (reduced() ? 1 : 1 - Math.exp(-dt * 12));
+      if (Math.abs(pressed - pressureOpacity) > 0.002) unsettled = true;
+      else pressureOpacity = pressed;
+      pressure.style.opacity = pressureOpacity.toFixed(4);
       return unsettled;
     }
     function frame(now) {
@@ -464,7 +515,7 @@ window.TDBTreatmentGuideCard ||= (() => {
     choices.forEach((choice) =>
       selection.observe(choice, { attributes: true, attributeFilter: ['class'] }),
     );
-    ball.addEventListener(
+    menu.addEventListener(
       'keydown',
       (event) => {
         const keys = {
@@ -479,7 +530,7 @@ window.TDBTreatmentGuideCard ||= (() => {
         event.preventDefault();
         interact();
         select(keys[event.key]);
-        ball.focus({ preventScroll: true });
+        menu.focus({ preventScroll: true });
       },
       { signal },
     );
@@ -512,11 +563,8 @@ window.TDBTreatmentGuideCard ||= (() => {
       },
       { signal },
     );
-    ball.removeAttribute('aria-hidden');
-    ball.tabIndex = 0;
-    ball.setAttribute('role', 'slider');
-    ball.setAttribute('aria-valuemin', '1');
-    ball.setAttribute('aria-valuemax', '5');
+    ball.setAttribute('aria-hidden', 'true');
+    ball.tabIndex = -1;
     measure();
     select(active, false);
     render(1);
@@ -527,7 +575,7 @@ window.TDBTreatmentGuideCard ||= (() => {
           pointerId: seed.pointerId,
           clientX: seed.startX,
           clientY: seed.startY,
-          target: ball,
+          target: menu,
         });
         move(seed);
         if (!seed.down) end(seed, seed.cancelled);
@@ -540,16 +588,25 @@ window.TDBTreatmentGuideCard ||= (() => {
         selection.disconnect();
         intersection.disconnect();
         card?.destroy();
-        wheelControls?.remove();
         window.TDBSliderFocus?.release(root);
         for (const [name, value] of [
           ['role', original.menuRole],
           ['aria-label', original.menuLabel],
+          ['tabindex', original.menuTab],
         ])
           if (value == null) menu.removeAttribute(name);
           else menu.setAttribute(name, value);
         svg.remove();
-        root.classList.remove('is-click-wheel', 'is-wheel-dragging');
+        root.classList.remove('is-click-wheel', 'is-ivory-guide', 'is-wheel-dragging');
+        if (original.size) root.style.setProperty('--tdb-guide-dial-size', original.size);
+        else root.style.removeProperty('--tdb-guide-dial-size');
+        for (const attribute of [
+          'aria-valuemin',
+          'aria-valuemax',
+          'aria-valuenow',
+          'aria-valuetext',
+        ])
+          menu.removeAttribute(attribute);
         root.removeAttribute('data-tdb-guide-fallback');
         choices.forEach((choice) => choice.style.removeProperty('color'));
         for (const [name, value] of [
