@@ -18,7 +18,7 @@
   function validText(value, max) {
     return typeof value === 'string' && value.length <= max;
   }
-  async function readFeed(endpoint, signal) {
+  async function readFeed(endpoint, signal, treatment = '') {
     const url = new URL(endpoint, location.href);
     if (
       ![location.origin, 'https://tdb-public-availability.david-070.workers.dev'].includes(
@@ -31,6 +31,12 @@
       url.hash
     )
       throw Error('Smile feed must use its configured endpoint');
+    if (treatment) {
+      if (!['veneers', 'composite-bonding', 'invisalign', 'teeth-whitening',
+        'clear-aligners', 'airflow-hygiene-therapy'].includes(treatment))
+        throw Error('Unknown Smile treatment context');
+      url.pathname = `/tdb-content/v1/smiles-${treatment}.json`;
+    }
     url.protocol = 'https:';
     url.host = 'tdb-public-availability.david-070.workers.dev';
     const controller = new AbortController(),
@@ -58,6 +64,7 @@
     if (
       payload?.version !== 1 ||
       payload.feed !== 'smiles' ||
+      (payload.treatment || '') !== treatment ||
       !Number.isSafeInteger(payload.checkedAt) ||
       payload.checkedAt > Date.now() + 60000 ||
       Date.now() - payload.checkedAt >= 3600000 ||
@@ -306,7 +313,8 @@
     holder.setAttribute('aria-busy', 'true');
     record.flight = (async () => {
       const [payload] = await Promise.all([
-        readFeed(holder.getAttribute('data-tdb-smile-feed'), signal).then(async (payload) => {
+        readFeed(holder.getAttribute('data-tdb-smile-feed'), signal,
+          (holder.getAttribute('data-tdb-smile-treatment') || '').trim()).then(async (payload) => {
           check(holder, signal);
           // Match the other deferred feed: only entry images, parallel with assets.
           await Promise.all(

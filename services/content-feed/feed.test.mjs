@@ -5,6 +5,7 @@ import {
   createFeedService,
   projectInstagram,
   projectSmiles,
+  SMILE_TREATMENTS,
   COLLECTION,
   CATEGORY,
   PRACTICE_CATEGORY,
@@ -33,6 +34,55 @@ const smile = (id = 'smile1', fields = {}, extra = {}) => ({
     ...fields,
   },
   ...extra,
+});
+test('Treatment smiles preserve references and priority then newest-first order independently of featured', () => {
+  const refs = ['678a8a4699de45047ec331a7'];
+  const rows = [
+    smile('blank-old', { featured: false, 'treatment-s-carried-out': refs }),
+    smile('pin-old', { 'veneers-priority': 1, 'treatment-s-carried-out': refs }),
+    smile('pin-new', { 'veneers-priority': 1, 'treatment-s-carried-out': refs }, { createdOn: '2026-02-01T00:00:00Z' }),
+    smile('blank-new', { featured: false, 'treatment-s-carried-out': refs }, { createdOn: '2026-03-01T00:00:00Z' }),
+    smile('other-featured'),
+    smile('unpublished', { 'treatment-s-carried-out': refs }, { lastPublished: null }),
+    smile('archived', { 'treatment-s-carried-out': refs }, { isArchived: true }),
+  ];
+  const before = JSON.stringify(rows), result = projectSmiles(rows, 'veneers');
+  assert.deepEqual(result.cases.map(x => x.id), ['pin-new', 'pin-old', 'blank-new', 'blank-old']);
+  assert.equal(result.total, 4);
+  assert.equal(result.treatment, 'veneers');
+  assert.equal(JSON.stringify(rows), before);
+  assert.ok(projectSmiles(rows).cases.some(x => x.id === 'other-featured'));
+  assert.ok(!projectSmiles(rows).cases.some(x => x.id === 'blank-new'));
+  assert.throws(() => projectSmiles(rows, 'unknown'));
+  assert.throws(() => projectSmiles(rows, '__proto__'));
+  assert.deepEqual(projectSmiles(rows, 'clear-aligners').cases, []);
+  assert.ok(!JSON.stringify(result).includes('PRIVATE'));
+});
+
+test('Treatment routes keep separate cached selections and reject unconfigured contexts', async () => {
+  const saved = new Map(), calls = [], rows = Object.entries(SMILE_TREATMENTS).map(([slug, context]) =>
+    smile(slug, { featured: false, 'treatment-s-carried-out': [context.id] }));
+  rows.push(smile('home', { 'treatment-s-carried-out': [] }));
+  const env = { WEBFLOW_API_TOKEN: 'test-secret', CONTENT_FEEDS: {
+    get: async key => saved.get(key), put: async (key, value) => saved.set(key, JSON.parse(value)),
+  } };
+  const handle = createFeedService({ fetcher: async url => { calls.push(url); return page(rows); } });
+  for (const slug of Object.keys(SMILE_TREATMENTS)) {
+    const response = await handle(request(`/tdb-content/v1/smiles-${slug}.json`), env);
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.treatment, slug);
+    assert.deepEqual(body.cases.map(x => x.id), [slug]);
+  }
+  const home = await (await handle(request('/tdb-content/v1/smiles.json'), env)).json();
+  assert.deepEqual(home.cases.map(x => x.id), ['home']);
+  assert.equal(home.treatment, undefined);
+  const count = calls.length;
+  await handle(request('/tdb-content/v1/smiles-veneers.json'), env);
+  assert.equal(calls.length, count);
+  assert.equal(saved.size, Object.keys(SMILE_TREATMENTS).length + 1);
+  assert.equal((await handle(request('/tdb-content/v1/smiles-unknown.json'), env)).status, 404);
+  assert.ok(calls.every(url => url.includes('/items/live?')));
 });
 test('Smile projection preserves native order and labels without exposing source records', () => {
   const result = projectSmiles([

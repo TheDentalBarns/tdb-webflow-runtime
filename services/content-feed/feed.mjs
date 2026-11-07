@@ -14,6 +14,15 @@ export const CATEGORY = '6ab7b743e5d9f17124ef7ab3';
 export const PRACTICE_CATEGORY = '6ab7b41d76a5f592a5b6dd3f';
 export const PATIENTS_CATEGORY = '6ab7b9fabdfdf7aa5db3558f';
 export const SMILE_COLLECTION = '69a07fdcd392dc2c0d92967f';
+// Explicit CMS treatment references; a context never falls back to featured cases.
+export const SMILE_TREATMENTS = {
+  veneers: { id: '678a8a4699de45047ec331a7', priority: 'veneers-priority' },
+  'composite-bonding': { id: '678a8a2fd292f9ea2a228b3c', priority: 'composite-bonding-priority' },
+  invisalign: { id: '678a8a0fc4638735effb336e', priority: 'invisalign-priority' },
+  'teeth-whitening': { id: '678a8a3bb9789257faea7f25' },
+  'clear-aligners': { id: '68d264b7dfa02ef34b8c4b01' },
+  'airflow-hygiene-therapy': { id: '678a8a519ea063ea8979f273' },
+};
 const FRESH_MS = 300000;
 const MAX_AGE_MS = 3600000;
 const RETRY_MS = 30000;
@@ -119,20 +128,29 @@ export function projectInstagram(items, category = CATEGORY) {
   });
 }
 
-export function projectSmiles(items) {
+export function projectSmiles(items, treatment = '') {
   if (!Array.isArray(items)) fail();
+  if (treatment && !Object.hasOwn(SMILE_TREATMENTS, treatment)) fail();
+  const context = treatment ? SMILE_TREATMENTS[treatment] : null;
   const published = items.filter((item) => item?.lastPublished && item.isArchived === false);
   // Match the native Home list: blank priorities first, then ascending priority,
   // with creation order resolving ties. The /live endpoint excludes unpublished cases.
-  const selected = published.filter((item) => item.fieldData?.featured === true);
+  const selected = published.filter((item) => context
+    ? Array.isArray(item.fieldData?.['treatment-s-carried-out']) &&
+      item.fieldData['treatment-s-carried-out'].includes(context.id)
+    : item.fieldData?.featured === true);
   selected.sort((a, b) => {
-    const priority = (item) =>
-      Number.isFinite(item.fieldData['pin-priority']) ? item.fieldData['pin-priority'] : -Infinity;
+    // Treatment lists were created-newest-first, then stably sorted by the
+    // authored treatment priority (blank last). Preserve that published order.
+    const priority = (item) => {
+      const value = item.fieldData[context ? context.priority : 'pin-priority'];
+      return Number.isFinite(value) ? value : context ? 999999 : -Infinity;
+    };
     const x = priority(a),
       y = priority(b);
     return (
       (x < y ? -1 : x > y ? 1 : 0) ||
-      (Date.parse(a.createdOn) || 0) - (Date.parse(b.createdOn) || 0) ||
+      (context ? -1 : 1) * ((Date.parse(a.createdOn) || 0) - (Date.parse(b.createdOn) || 0)) ||
       String(a.id).localeCompare(String(b.id))
     );
   });
@@ -174,7 +192,7 @@ export function projectSmiles(items) {
       treatments,
     };
   });
-  return { cases, total: published.length };
+  return context ? { cases, total: selected.length, treatment } : { cases, total: published.length };
 }
 
 const FEEDS = {
@@ -231,6 +249,16 @@ const FEEDS = {
       snapshot.total >= snapshot.cases.length,
   },
 };
+
+for (const treatment of Object.keys(SMILE_TREATMENTS)) {
+  FEEDS[`/tdb-content/v1/smiles-${treatment}.json`] = {
+    ...FEEDS['/tdb-content/v1/smiles.json'],
+    key: `smiles:treatment:${treatment}:v1`,
+    project: (items) => projectSmiles(items, treatment),
+    valid: (snapshot) => snapshot.treatment === treatment &&
+      FEEDS['/tdb-content/v1/smiles.json'].valid(snapshot),
+  };
+}
 
 async function readPublished(fetcher, token, feed) {
   if (feed.collections) {

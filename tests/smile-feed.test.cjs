@@ -51,6 +51,23 @@ test('one shared set of labels/details; seven lean cards; data stays text and on
  await x.prepare();assert.equal(x.mounts(),1);
  x.w.TDBSmileFeed.destroy();assert.equal(x.holder.children.length,1);assert.equal(x.holder.dataset.smileState,undefined);x.close();
 });
+
+test('shared gallery treatment prop selects its scoped feed and rejects wrong context without changing Home',async()=>{
+ const x=setup();try{
+  x.holder.setAttribute('data-tdb-smile-treatment','veneers');x.payload.treatment='veneers';
+  await x.prepare();assert.equal(x.mounts(),1);
+  assert.equal(x.requests[0].url,'https://tdb-public-availability.david-070.workers.dev/tdb-content/v1/smiles-veneers.json');
+ }finally{x.close();}
+ const home=setup();try{await home.prepare();assert.equal(home.mounts(),1);assert.ok(home.requests[0].url.endsWith('/smiles.json'));}finally{home.close();}
+ for(const context of ['veneers','unknown','../reviews','__proto__']){
+  const bad=setup();try{
+   bad.holder.setAttribute('data-tdb-smile-treatment',context);await bad.prepare();
+   assert.equal(bad.mounts(),0);assert.equal(bad.images.length,0);
+   if(context!=='veneers')assert.equal(bad.requests.length,0);
+   assert.equal(bad.holder.querySelector('a').getAttribute('href'),'/smile-gallery');
+  }finally{bad.close();}
+ }
+});
 test('Shared feed preparation mounts directly after dependencies without a second proximity gate',async()=>{
  let release;const x=setup({sliderGate:new Promise(r=>release=r)});try{
   const preparing=x.prepare();await tick();assert.equal(x.mounts(),0);release();await preparing;
