@@ -8,6 +8,7 @@ const TDBFeatureStartup = (() => {
     prepareUSPDrawerLoader,
     preparePageBreakLoader,
     prepareServiceProcessLoader,
+    prepareTreatmentGuideLoader,
     prepareJourneyLoader,
     prepareFiveSensesLauncher,
     prepareReviewFeatureLoader,

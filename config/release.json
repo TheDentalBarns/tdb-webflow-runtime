@@ -46,6 +46,8 @@
     "dist/tdb-start.min.js",
     "dist/tdb-swiper-8.4.7.min.js",
     "dist/tdb-ticker.js",
+    "dist/tdb-treatment-guide-wheel.js",
+    "dist/tdb-treatment-guide-drawer.js",
     "dist/tdb-tooltips.js",
     "dist/tdb-usp-drawer-template.js",
     "dist/tdb-usp-drawer.js",
@@ -56,6 +58,7 @@
     "dist/tdb-vip-form.js"
   ],
   "styles": [
+    "dist/tdb-treatment-guide.css",
     "dist/tdb-ui.css",
     "dist/tdb-journey.css",
     "dist/tdb-control-motion.css",

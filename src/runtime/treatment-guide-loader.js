@@ -1,0 +1,163 @@
+/* Presence/consent gate only. Native Webflow tabs and details remain the fallback. */
+function prepareTreatmentGuideLoader() {
+  if (window.TDBTreatmentGuideLoader) return;
+  const roots = [...document.querySelectorAll('[data-tdb-guide]')];
+  if (!roots.length) return;
+  const events = new AbortController(),
+    owners = new Map(),
+    pending = new WeakSet();
+  let disposed = false,
+    gesture = null;
+  const allowed = () => !disposed && (!window.TDBConsent || window.TDBConsent.allows());
+  async function wheel(root) {
+    if (!allowed()) return;
+    await window.TDBModules.load(new URL('tdb-motion.js', TDBRuntimeModuleRoot));
+    await window.TDBModules.load(new URL('tdb-ticker.js', TDBRuntimeModuleRoot));
+    await window.TDBModules.load(new URL('tdb-treatment-guide-wheel.js', TDBRuntimeModuleRoot), {
+      ready: () => Boolean(window.TDBTreatmentGuideWheel),
+    });
+    if (allowed() && root.isConnected && !owners.has(root))
+      owners.set(root, window.TDBTreatmentGuideWheel.mount(root));
+    return owners.get(root);
+  }
+  async function drawer(root) {
+    if (!allowed()) throw new DOMException('Cancelled', 'AbortError');
+    await window.TDBModules.load(new URL('tdb-treatment-guide-drawer.js', TDBRuntimeModuleRoot), {
+      ready: () => Boolean(window.TDBTreatmentGuideDrawer),
+    });
+    if (!allowed()) throw new DOMException('Cancelled', 'AbortError');
+    return window.TDBTreatmentGuideDrawer.prepare(root);
+  }
+  async function open(trigger) {
+    if (!allowed() || pending.has(trigger)) return;
+    const root = trigger.closest('[data-tdb-guide]');
+    if (!root) return;
+    pending.add(trigger);
+    try {
+      let api;
+      await window.TDBModules.withBusy(
+        trigger,
+        async () => {
+          api = await drawer(root);
+        },
+        {
+          signal: events.signal,
+          onError(error) {
+            throw error;
+          },
+        },
+      );
+      if (allowed() && trigger.isConnected) {
+        trigger.closest('details').open = false;
+        await api.open(
+          Number(trigger.closest('[data-tdb-guide-panel]').dataset.tdbGuidePanel),
+          trigger,
+        );
+      }
+    } catch (error) {
+      if (allowed() && trigger.isConnected) trigger.closest('details').open = true;
+      if (error.name !== 'AbortError')
+        console.warn('Treatment guide: using native chapter content.', error);
+    } finally {
+      pending.delete(trigger);
+    }
+  }
+  document.addEventListener(
+    'click',
+    (event) => {
+      const trigger = event.target.closest?.('[data-tdb-guide] [data-tdb-guide-open]');
+      if (!trigger || event.defaultPrevented) return;
+      event.preventDefault();
+      open(trigger);
+    },
+    { signal: events.signal },
+  );
+  // Capture a first drag while the small wheel module is still downloading.
+  document.addEventListener(
+    'pointerdown',
+    (event) => {
+      const ball = event.target.closest?.('[data-tdb-guide-ball]');
+      const root = ball?.closest('[data-tdb-guide]');
+      if (!root || owners.has(root) || event.button !== 0 || !allowed()) return;
+      event.preventDefault();
+      const seed = (gesture = {
+        root,
+        pointerId: event.pointerId,
+        clientX: event.clientX,
+        clientY: event.clientY,
+        startX: event.clientX,
+        startY: event.clientY,
+        down: true,
+      });
+      ball.setPointerCapture?.(event.pointerId);
+      wheel(root)
+        .then((api) => {
+          if (gesture !== seed || !api) return;
+          gesture = null;
+          api.resume(seed);
+        })
+        .catch(() => {
+          if (gesture === seed) gesture = null;
+        });
+    },
+    { capture: true, signal: events.signal },
+  );
+  for (const type of ['pointermove', 'pointerup', 'pointercancel'])
+    document.addEventListener(
+      type,
+      (event) => {
+        if (!gesture || event.pointerId !== gesture.pointerId) return;
+        gesture.clientX = event.clientX;
+        gesture.clientY = event.clientY;
+        if (type !== 'pointermove') {
+          gesture.down = false;
+          gesture.cancelled = type === 'pointercancel';
+        }
+      },
+      { capture: true, passive: true, signal: events.signal },
+    );
+  for (const root of roots) {
+    window.TDBFeatureLoading?.watchIntent({
+      selector: '[data-tdb-guide]',
+      root: root.parentElement,
+      signal: events.signal,
+      prepare: () => wheel(root),
+    });
+    // The drawer's heavier dependencies are prepared only on actual control intent.
+    for (const type of ['pointerover', 'focusin'])
+      root.addEventListener(
+        type,
+        (event) => {
+          if (event.target.closest('[data-tdb-guide-open]')) drawer(root).catch(() => {});
+        },
+        { passive: true, signal: events.signal },
+      );
+  }
+  const observer =
+    !window.TDBFeatureLoading && 'IntersectionObserver' in window
+      ? new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries)
+              if (entry.isIntersecting)
+                wheel(entry.target)
+                  .then(() => observer.unobserve(entry.target))
+                  .catch(() => {});
+          },
+          { rootMargin: '700px 0px' },
+        )
+      : null;
+  if (observer) roots.forEach((root) => observer.observe(root));
+  window.TDBTreatmentGuideLoader = Object.freeze({
+    open,
+    wheel,
+    destroy() {
+      disposed = true;
+      events.abort();
+      observer?.disconnect();
+      gesture = null;
+      owners.forEach((api) => api.destroy());
+      owners.clear();
+      roots.forEach((root) => window.TDBTreatmentGuideDrawer?.destroy(root));
+    },
+  });
+}

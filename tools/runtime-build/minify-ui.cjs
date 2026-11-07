@@ -8,6 +8,7 @@ const root = path.resolve(__dirname, '../..');
 const bundles = {
   'tdb-journey.css': ['tdb-journey.css'],
   'tdb-drawer.css': ['tdb-drawer.css'],
+  'tdb-treatment-guide.css': ['tdb-treatment-guide.css'],
   'tdb-usp-drawer.css': ['tdb-pagination.css', 'tdb-usp-drawer.css'],
   'tdb-review-drawer.css': ['tdb-pagination.css', 'tdb-review-drawer.css'],
   'tdb-partner-card.css': ['tdb-partner-card.css'],

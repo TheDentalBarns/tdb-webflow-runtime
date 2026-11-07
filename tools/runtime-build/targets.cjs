@@ -84,6 +84,8 @@ module.exports = {
   'dist/tdb-smile-feed.js': ['src/smile-gallery/feed.js'],
   'dist/tdb-instagram-native.min.js': ['src/instagram/native.js'],
   'dist/tdb-ticker.js': ['src/shared/native-ticker.js'],
+  'dist/tdb-treatment-guide-wheel.js': ['src/treatment-guide/wheel.js'],
+  'dist/tdb-treatment-guide-drawer.js': ['src/treatment-guide/drawer.js'],
   'dist/tdb-runtime.js': [
     'src/runtime/release-root.js',
     'src/shared/feature-loading.js',
@@ -115,6 +117,7 @@ module.exports = {
     'src/runtime/smile-feature-loader.js',
     'src/runtime/page-break-loader.js',
     'src/runtime/service-process-loader.js',
+    'src/runtime/treatment-guide-loader.js',
     'src/runtime/journey-loader.js',
     'src/runtime/features-startup.js',
     'src/runtime/home-paint-window.js',

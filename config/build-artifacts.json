@@ -98,10 +98,10 @@
         "src/shared/drawer-reading.js",
         "src/shared/drawer.js"
       ],
-      "sha256": "5e9ce815012c0b5589c8bc37c4f0093a4e67442a3f365d0c60dcf5eef4d8935d",
-      "raw": 12245,
-      "gzip": 4474,
-      "brotli": 3999
+      "sha256": "9ef4e9dcc6c6331a9cc74db46a50d316a0df7820e17a5053dbf6bfa607ddba46",
+      "raw": 12281,
+      "gzip": 4490,
+      "brotli": 4009
     },
     "dist/tdb-filters.js": {
       "sources": [
@@ -547,16 +547,17 @@
         "src/runtime/smile-feature-loader.js",
         "src/runtime/page-break-loader.js",
         "src/runtime/service-process-loader.js",
+        "src/runtime/treatment-guide-loader.js",
         "src/runtime/journey-loader.js",
         "src/runtime/features-startup.js",
         "src/runtime/home-paint-window.js",
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "868891eb06a24ae67e3b5da34aef4905d549330dedf19f221f25a1e32f0de7f4",
-      "raw": 83391,
-      "gzip": 22947,
-      "brotli": 19914
+      "sha256": "ac856a38d736f8c2e8b02fc2cb46d949d643fb5e8086516572b0a9de09c2ada8",
+      "raw": 86903,
+      "gzip": 23718,
+      "brotli": 20464
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -626,6 +627,24 @@
       "raw": 2900,
       "gzip": 1327,
       "brotli": 1176
+    },
+    "dist/tdb-treatment-guide-drawer.js": {
+      "sources": [
+        "src/treatment-guide/drawer.js"
+      ],
+      "sha256": "b10440fa493d265176797b09ddd6262782130e3e3e2763a8d5f2078d7927a6d0",
+      "raw": 6909,
+      "gzip": 2655,
+      "brotli": 2301
+    },
+    "dist/tdb-treatment-guide-wheel.js": {
+      "sources": [
+        "src/treatment-guide/wheel.js"
+      ],
+      "sha256": "6a720cc2559e2ea696dd92a6106fed51193bbd3f7214880fcb1173a855a0ba36",
+      "raw": 5880,
+      "gzip": 2616,
+      "brotli": 2360
     },
     "dist/tdb-usp-drawer-template.js": {
       "sources": [

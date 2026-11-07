@@ -255,6 +255,7 @@
     window.TDBUSPDrawerLoader?.destroy();
     window.TDBPageBreaks?.destroy();
     window.TDBServiceProcessLoader?.destroy();
+    window.TDBTreatmentGuideLoader?.destroy();
     window.TDBJourneyLoader?.destroy();
     window.TDBFiveSensesLauncher?.destroy();
     window.TDBHoldAudioLoader?.destroy();

@@ -4,7 +4,10 @@
   if (window.TDBDrawer) return;
   const instances = new WeakMap();
   let active = null;
-  function mount(root, { onOpen, onClose, hideChrome = false } = {}) {
+  function mount(
+    root,
+    { onOpen, onClose, hideChrome = false, returnFocus = (source) => source } = {},
+  ) {
     if (instances.has(root)) return instances.get(root);
     const panel = root.querySelector('[data-tdb-drawer-panel]'),
       backdrop = root.querySelector('[data-tdb-drawer-backdrop]'),
@@ -167,7 +170,8 @@
       unlock();
       state = 'closed';
       if (active === api) active = null;
-      if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+      const focusTarget = returnFocus(trigger);
+      if (focusTarget?.isConnected) focusTarget.focus({ preventScroll: true });
     }
     // Match the existing VIP/announcement touch pulse without delaying drawer closure.
     function pulseClose(event) {

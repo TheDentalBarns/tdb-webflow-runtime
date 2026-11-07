@@ -39,6 +39,14 @@
   );
   function intent(event) {
     if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) return;
+    const guideTrigger = event.target.closest?.('[data-tdb-guide] [data-tdb-guide-open]');
+    if (guideTrigger && !window.TDBTreatmentGuideLoader) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      prepareTreatmentGuideLoader();
+      if (!event.repeat) window.TDBTreatmentGuideLoader.open(guideTrigger);
+      return;
+    }
     const uspZone = event.target.closest?.('[data-tdb-usp-trigger-zone]');
     const uspTrigger =
       uspZone?.closest('[data-tdb-usp]') && uspZone.querySelector('[data-tdb-usp-launch]');
