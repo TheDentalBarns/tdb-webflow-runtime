@@ -18,7 +18,7 @@
 .treatment-guide_pressure-dark{stop-color:var(--tdb-guide-selected)}
 .treatment-guide_pressure-light{stop-color:var(--tdb-guide-paper)}
 .treatment-guide_wheel-icons{position:absolute;inset:0;z-index:1;pointer-events:none;color:var(--tdb-guide-paper)}
-.treatment-guide_wheel-icons .treatment-guide_segment-icon{position:absolute;transform:translate(-50%,-50%);width:6%;height:6%;min-width:1.2rem;min-height:1.2rem;max-width:1.75rem;max-height:1.75rem;opacity:.28;pointer-events:none}
+.treatment-guide_wheel-icons .treatment-guide_segment-icon{position:absolute;transform:translate(-50%,-50%);width:9%;height:9%;min-width:1.75rem;min-height:1.75rem;max-width:2.75rem;max-height:2.75rem;opacity:.28;pointer-events:none}
 [data-tdb-guide].is-wheel-dragging .treatment-guide_finger-pad>[data-tdb-guide-pad]{cursor:grabbing}
 [data-tdb-guide].is-ivory-guide:not([data-tdb-guide-fallback]) .treatment-guide_content>.treatment-guide_panel{display:none!important}
 .treatment-guide_card{display:none}

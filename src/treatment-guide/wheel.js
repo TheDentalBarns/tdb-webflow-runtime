@@ -53,6 +53,15 @@
     const defs = document.createElementNS(svg.namespaceURI, 'defs');
     defs.innerHTML = `<radialGradient id="${id}-shade"><stop class="treatment-guide_pressure-core" offset="0" stop-opacity=".85"/><stop class="treatment-guide_pressure-dark" offset=".38" stop-opacity=".9"/><stop class="treatment-guide_pressure-dark" offset=".72" stop-opacity=".45"/><stop class="treatment-guide_pressure-dark" offset="1" stop-opacity="0"/></radialGradient><radialGradient id="${id}-light"><stop class="treatment-guide_pressure-light" offset="0" stop-opacity=".5"/><stop class="treatment-guide_pressure-light" offset="1" stop-opacity="0"/></radialGradient><clipPath id="${id}-clip"><path clip-rule="evenodd" d="M500 0A500 500 0 1 1 500 1000A500 500 0 1 1 500 0M500 360A140 140 0 1 0 500 640A140 140 0 1 0 500 360"/></clipPath>`;
     svg.append(defs, ring);
+    const rim = document.createElementNS(svg.namespaceURI, 'linearGradient');
+    rim.setAttribute('id', `${id}-rim`);
+    rim.setAttribute('x1', '0');
+    rim.setAttribute('y1', '0');
+    rim.setAttribute('x2', '.65');
+    rim.setAttribute('y2', '1');
+    rim.innerHTML =
+      '<stop class="treatment-guide_pressure-core" offset="0" stop-opacity=".4"/><stop class="treatment-guide_pressure-dark" offset=".5" stop-opacity=".06"/><stop class="treatment-guide_pressure-light" offset="1" stop-opacity=".65"/>';
+    defs.append(rim);
     const point = (radius, angle) =>
       `${500 + Math.sin(angle) * radius} ${500 - Math.cos(angle) * radius}`;
     const segments = choices.map((_, i) => {
@@ -72,7 +81,7 @@
       pressure = document.createElementNS(svg.namespaceURI, 'g');
     pressureClip.setAttribute('clip-path', `url(#${id}-clip)`);
     pressure.classList.add('treatment-guide_pressure');
-    pressure.innerHTML = `<circle cy="25" r="110" fill="url(#${id}-light)"/><circle r="100" fill="url(#${id}-shade)"/>`;
+    pressure.innerHTML = `<circle cy="25" r="110" fill="url(#${id}-light)"/><circle r="100" fill="url(#${id}-shade)"/><circle class="treatment-guide_pressure-rim" r="100" fill="none" stroke="url(#${id}-rim)" stroke-width="1" vector-effect="non-scaling-stroke"/>`;
     pressureClip.append(pressure);
     svg.append(pressureClip);
     for (let i = 0; i < 5; i++) {
@@ -121,8 +130,60 @@
       visible = true,
       disposed = false,
       suppressUntil = 0,
-      pressureOpacity = 0;
+      pressureOpacity = 0,
+      preview = null,
+      previewTimer = 0,
+      previewEligible = false,
+      previewPlayed = false,
+      interacted = false;
+    function stopPreview(permanent = false) {
+      if (permanent) interacted = true;
+      clearTimeout(previewTimer);
+      previewTimer = 0;
+      if (!preview) return;
+      angle = preview.angle;
+      target = angle + wrap(active * step - angle);
+      velocity = 0;
+      preview = null;
+      root.classList.remove('is-wheel-previewing');
+      if (!visible || document.hidden || reduced()) {
+        angle = target;
+        pressureOpacity = 0;
+        render(1);
+      }
+      start();
+    }
+    function preparePreview() {
+      if (
+        disposed ||
+        interacted ||
+        previewPlayed ||
+        previewTimer ||
+        !previewEligible ||
+        document.hidden ||
+        reduced() ||
+        drag
+      )
+        return;
+      previewTimer = setTimeout(() => {
+        previewTimer = 0;
+        if (
+          disposed ||
+          interacted ||
+          previewPlayed ||
+          !previewEligible ||
+          document.hidden ||
+          reduced()
+        )
+          return;
+        previewPlayed = true;
+        preview = { elapsed: 0, origin: angle, angle };
+        root.classList.add('is-wheel-previewing');
+        start();
+      }, 550);
+    }
     function interact() {
+      stopPreview(true);
       window.TDBSliderFocus?.focus(root, () => Boolean(drag));
     }
     function navigate(direction) {
@@ -132,6 +193,7 @@
     function select(index, notify = true, direction) {
       index = ((index % 5) + 5) % 5;
       const previous = active;
+      if (previous !== index) stopPreview(true);
       active = index;
       if (previous !== index)
         card?.update(index, direction || (wrap((index - previous) * step) < 0 ? -1 : 1));
@@ -151,10 +213,16 @@
       root.style.setProperty('--tdb-guide-dial-size', `${box.width}px`);
       start();
     }
+    function radialOffset(distance) {
+      // Keep the 100-unit pressure circle inside both edges of the annulus.
+      const reach = Math.max(0, outer - radius - outer * 0.2);
+      return Math.max(-reach, Math.min(reach, distance - radius));
+    }
     function render(dt) {
-      const distance = radius + radial,
-        x = Math.sin(angle) * distance,
-        y = -Math.cos(angle) * distance;
+      const distance = radius + radialOffset(radius + radial),
+        shownAngle = preview?.angle ?? angle,
+        x = Math.sin(shownAngle) * distance,
+        y = -Math.cos(shownAngle) * distance;
       pressure.setAttribute(
         'transform',
         `translate(${500 + (x / outer) * 500} ${500 + (y / outer) * 500})`,
@@ -162,14 +230,14 @@
       let unsettled = false;
       segments.forEach((segment, i) => {
         // The whole sector follows the selected card while the pressure follows the spring.
-        const glow = i === active ? (drag ? 0.72 : 1) : 0;
+        const glow = i === active ? (drag ? 0.72 : preview ? 0.85 : 1) : 0;
         weights[i] += (glow - weights[i]) * (reduced() ? 1 : 1 - Math.exp(-dt * 11));
         if (Math.abs(glow - weights[i]) > 0.002) unsettled = true;
         else weights[i] = glow;
         segment.style.opacity = weights[i].toFixed(4);
         if (icons[i]) icons[i].style.opacity = (0.28 + weights[i] * 0.7).toFixed(4);
       });
-      const pressed = drag ? 1 : 0;
+      const pressed = drag ? 1 : preview ? 0.65 : 0;
       pressureOpacity += (pressed - pressureOpacity) * (reduced() ? 1 : 1 - Math.exp(-dt * 12));
       if (Math.abs(pressed - pressureOpacity) > 0.002) unsettled = true;
       else pressureOpacity = pressed;
@@ -185,6 +253,21 @@
       const ms = Math.min(40, last ? now - last : 16);
       last = now;
       const dt = Math.max(0.001, (drag ? ms : elapsed(ms)) / 1000);
+      if (preview) {
+        if (reduced()) stopPreview();
+        else {
+          preview.elapsed += elapsed(ms);
+          const ease = (value) => (1 - Math.cos(Math.PI * Math.min(1, Math.max(0, value)))) / 2;
+          const progress =
+            preview.elapsed < 1200
+              ? ease(preview.elapsed / 1200)
+              : preview.elapsed < 1500
+                ? 1
+                : 1 - ease((preview.elapsed - 1500) / 1300);
+          preview.angle = preview.origin + step * 2 * progress;
+          if (preview.elapsed >= 2800) stopPreview();
+        }
+      }
       if (reduced() && !drag) {
         angle = target;
         radial = 0;
@@ -203,6 +286,7 @@
       }
       const colors = render(dt);
       if (
+        preview ||
         Math.abs(target - angle) > 0.0001 ||
         Math.abs(velocity) > 0.0004 ||
         Math.abs(radialTarget - radial) > 0.025 ||
@@ -226,6 +310,7 @@
         distance = Math.hypot(px, py);
       if (!onBall && (distance < 2 * radius - outer - 4 || distance > outer + 4)) return;
       event.preventDefault?.();
+      stopPreview(true);
       const pointerAngle = Math.atan2(px, -py);
       target = angle + wrap(pointerAngle - angle);
       drag = {
@@ -237,10 +322,7 @@
         velocity: 0,
         moved: false,
       };
-      radialTarget =
-        Math.tanh((distance - radius) / Math.max(1, outer - radius)) *
-        Math.max(0, outer - radius) *
-        0.18;
+      radialTarget = radialOffset(distance);
       root.classList.add('is-wheel-dragging');
       interact();
       root.setPointerCapture?.(event.pointerId);
@@ -260,10 +342,7 @@
       drag.time = now;
       if (Math.hypot(event.clientX - drag.px, event.clientY - drag.py) > 5) drag.moved = true;
       if (Math.hypot(px, py) > outer * 0.15) target += delta;
-      radialTarget =
-        Math.tanh((Math.hypot(px, py) - radius) / Math.max(1, outer - radius)) *
-        Math.max(0, outer - radius) *
-        0.18;
+      radialTarget = radialOffset(Math.hypot(px, py));
       select(chapter(target), true, delta < 0 ? -1 : 1);
       start();
     }
@@ -283,6 +362,7 @@
       start();
     }
     root.addEventListener('pointerdown', begin, { signal });
+    root.addEventListener('focusin', () => stopPreview(true), { signal });
     document.addEventListener('pointermove', move, { passive: true, signal });
     document.addEventListener('pointerup', (event) => end(event), { signal });
     document.addEventListener('pointercancel', (event) => end(event, true), { signal });
@@ -358,17 +438,23 @@
     );
     const observer = new ResizeObserver(measure);
     observer.observe(art);
-    const intersection = new IntersectionObserver((entries) => {
-      visible = entries[0].isIntersecting;
-      if (visible) {
-        measure();
-        start();
-      } else {
-        cancelAnimationFrame(raf);
-        raf = 0;
-        last = 0;
-      }
-    });
+    const intersection = new IntersectionObserver(
+      (entries) => {
+        visible = entries[0].isIntersecting;
+        previewEligible = visible && entries[0].intersectionRatio >= 0.55;
+        if (!previewEligible) stopPreview();
+        if (visible) {
+          measure();
+          preparePreview();
+          start();
+        } else {
+          cancelAnimationFrame(raf);
+          raf = 0;
+          last = 0;
+        }
+      },
+      { threshold: [0, 0.55] },
+    );
     intersection.observe(art);
     window.addEventListener(
       'scroll',
@@ -381,7 +467,11 @@
       'visibilitychange',
       () => {
         if (document.hidden && drag) end({ pointerId: drag.id }, true);
-        if (!document.hidden) start();
+        if (document.hidden) stopPreview();
+        else {
+          preparePreview();
+          start();
+        }
       },
       { signal },
     );
@@ -404,6 +494,7 @@
       },
       destroy() {
         disposed = true;
+        clearTimeout(previewTimer);
         cancelAnimationFrame(raf);
         events.abort();
         observer.disconnect();
@@ -420,7 +511,12 @@
           else menu.setAttribute(name, value);
         svg.remove();
         iconLayer.remove();
-        root.classList.remove('is-click-wheel', 'is-ivory-guide', 'is-wheel-dragging');
+        root.classList.remove(
+          'is-click-wheel',
+          'is-ivory-guide',
+          'is-wheel-dragging',
+          'is-wheel-previewing',
+        );
         if (original.size) root.style.setProperty('--tdb-guide-dial-size', original.size);
         else root.style.removeProperty('--tdb-guide-dial-size');
         for (const attribute of [

@@ -24,7 +24,11 @@ function wheel() {
     observe() {}
     disconnect() {}
   };
+  let observeVisibility;
   w.IntersectionObserver = class {
+    constructor(callback) {
+      observeVisibility = callback;
+    }
     observe() {}
     disconnect() {}
   };
@@ -37,6 +41,9 @@ function wheel() {
   let time = 0,
     id = 0;
   const frames = new Map();
+  const timers = new Map();
+  w.setTimeout = (fn, delay) => (timers.set(++id, { fn, due: time + delay }), id);
+  w.clearTimeout = (id) => timers.delete(id);
   w.requestAnimationFrame = (fn) => (frames.set(++id, fn), id);
   w.cancelAnimationFrame = (id) => frames.delete(id);
   Object.defineProperty(w.performance, 'now', { value: () => time });
@@ -53,6 +60,11 @@ function wheel() {
   function tick(count = 1) {
     for (let i = 0; i < count; i++) {
       time += 16;
+      for (const [key, timer] of timers) {
+        if (timer.due > time) continue;
+        timers.delete(key);
+        timer.fn();
+      }
       const list = [...frames.values()];
       frames.clear();
       list.forEach((fn) => fn(time));
@@ -87,6 +99,10 @@ function wheel() {
     pointer,
     position,
     point,
+    view(ratio = 1) {
+      observeVisibility([{ isIntersecting: ratio > 0, intersectionRatio: ratio }]);
+    },
+    pendingWork: () => frames.size + timers.size,
     dispose() {
       api.destroy();
       w.close();
@@ -114,6 +130,120 @@ test('segment wheel keeps radial elasticity and eases back without teleporting',
   } finally {
     t.dispose();
   }
+});
+test('the pressure circle reaches both pad edges and stays contained beyond the finger guards', () => {
+  const t = wheel();
+  try {
+    t.pointer('pointerdown', ...t.point(90));
+    t.pointer('pointermove', 800, 200);
+    t.tick(80);
+    const outer = Math.hypot(...t.position());
+    assert.ok(Math.abs(outer + 40 - 200) < 0.01);
+    t.pointer('pointermove', 250, 200);
+    const travel = [];
+    for (let i = 0; i < 80; i++) {
+      t.tick();
+      const distance = Math.hypot(...t.position());
+      travel.push(distance);
+      assert.ok(distance >= 96 - 0.001 && distance <= 160 + 0.001);
+    }
+    assert.ok(travel[0] > 96 && travel[0] < 160, 'the edge-to-edge move must ease');
+    assert.ok(new Set(travel.map((n) => n.toFixed(2))).size > 3);
+    assert.ok(Math.abs(travel.at(-1) - 40 - 56) < 0.01);
+    t.pointer('pointerup', 250, 200);
+    t.tick(160);
+    assert.ok(Math.abs(Math.hypot(...t.position()) - 128) < 0.01);
+  } finally {
+    t.dispose();
+  }
+});
+test('the entrance hint sweeps down-right and back once without changing the reader chapter', () => {
+  const t = wheel();
+  try {
+    t.view(0.3);
+    t.tick(45);
+    assert.equal(t.root.classList.contains('is-wheel-previewing'), false);
+    t.view();
+    t.tick(40);
+    assert.equal(t.root.classList.contains('is-wheel-previewing'), true);
+    const start = t.position();
+    t.tick(80);
+    const far = t.position();
+    assert.ok(far[0] > 60 && far[1] > 60);
+    assert.ok(far[1] > start[1]);
+    assert.equal(t.menu.getAttribute('aria-valuenow'), '1');
+    assert.deepEqual(t.cardChanges, []);
+    t.tick(160);
+    assert.equal(t.root.classList.contains('is-wheel-previewing'), false);
+    assert.ok(Math.abs(t.position()[0]) < 0.01);
+    assert.ok(Math.abs(t.position()[1] + 128) < 0.01);
+    assert.equal(Number(t.pressure.style.opacity), 0);
+    t.view(0);
+    t.view();
+    t.tick(200);
+    assert.equal(t.root.classList.contains('is-wheel-previewing'), false);
+    assert.equal(t.pendingWork(), 0);
+  } finally {
+    t.dispose();
+  }
+});
+test('touch and keyboard focus take over the hint immediately', () => {
+  const t = wheel();
+  try {
+    t.view();
+    t.tick(80);
+    assert.equal(t.root.classList.contains('is-wheel-previewing'), true);
+    t.pointer('pointerdown', ...t.point(72));
+    assert.equal(t.root.classList.contains('is-wheel-previewing'), false);
+    assert.equal(t.menu.getAttribute('aria-valuenow'), '2');
+    t.pointer('pointerup', ...t.point(72));
+    t.tick(200);
+    t.view(0);
+    t.view();
+    t.tick(80);
+    assert.equal(t.root.classList.contains('is-wheel-previewing'), false);
+  } finally {
+    t.dispose();
+  }
+  const keyboard = wheel();
+  try {
+    keyboard.view();
+    keyboard.tick(10);
+    keyboard.menu.focus();
+    keyboard.tick(200);
+    assert.equal(keyboard.root.classList.contains('is-wheel-previewing'), false);
+    assert.equal(Number(keyboard.pressure.style.opacity), 0);
+  } finally {
+    keyboard.dispose();
+  }
+});
+test('the hint cancels offscreen, respects reduced motion and leaves no work after teardown', () => {
+  const t = wheel();
+  try {
+    t.w.TDBMotionPolicy.reduced.matches = true;
+    t.view();
+    t.tick(250);
+    assert.equal(t.root.classList.contains('is-wheel-previewing'), false);
+    assert.equal(Number(t.pressure.style.opacity), 0);
+    t.w.TDBMotionPolicy.reduced.matches = false;
+    t.view();
+    t.tick(80);
+    assert.equal(t.root.classList.contains('is-wheel-previewing'), true);
+    t.view(0);
+    t.tick(100);
+    assert.equal(t.root.classList.contains('is-wheel-previewing'), false);
+    assert.equal(Number(t.pressure.style.opacity), 0);
+    assert.equal(t.pendingWork(), 0);
+  } finally {
+    t.dispose();
+  }
+  const pending = wheel();
+  pending.view();
+  pending.tick(10);
+  pending.api.destroy();
+  pending.tick(100);
+  assert.equal(pending.pendingWork(), 0);
+  pending.w.close();
 });
 test('pad gestures select chapters while the centre remains available to scroll', () => {
   const t = wheel();
