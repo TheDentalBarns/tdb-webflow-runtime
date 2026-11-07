@@ -250,15 +250,8 @@ window.TDBTreatmentGuideCard ||= (() => {
     const defs = document.createElementNS(svg.namespaceURI, 'defs');
     defs.innerHTML = `<radialGradient id="${id}-shade"><stop class="treatment-guide_pressure-core" offset="0" stop-opacity=".85"/><stop class="treatment-guide_pressure-dark" offset=".38" stop-opacity=".9"/><stop class="treatment-guide_pressure-dark" offset=".72" stop-opacity=".45"/><stop class="treatment-guide_pressure-dark" offset="1" stop-opacity="0"/></radialGradient><radialGradient id="${id}-light"><stop class="treatment-guide_pressure-light" offset="0" stop-opacity=".5"/><stop class="treatment-guide_pressure-light" offset="1" stop-opacity="0"/></radialGradient><clipPath id="${id}-clip"><path clip-rule="evenodd" d="M500 0A500 500 0 1 1 500 1000A500 500 0 1 1 500 0M500 360A140 140 0 1 0 500 640A140 140 0 1 0 500 360"/></clipPath>`;
     svg.append(defs, ring);
-    const rim = document.createElementNS(svg.namespaceURI, 'linearGradient');
-    rim.setAttribute('id', `${id}-rim`);
-    rim.setAttribute('x1', '0');
-    rim.setAttribute('y1', '0');
-    rim.setAttribute('x2', '.65');
-    rim.setAttribute('y2', '1');
-    rim.innerHTML =
-      '<stop class="treatment-guide_pressure-core" offset="0" stop-opacity=".4"/><stop class="treatment-guide_pressure-dark" offset=".5" stop-opacity=".06"/><stop class="treatment-guide_pressure-light" offset="1" stop-opacity=".65"/>';
-    defs.append(rim);
+    defs.innerHTML += `<radialGradient id="${id}-contact" gradientUnits="userSpaceOnUse" cx="500" cy="500" r="500"><stop class="treatment-guide_pressure-core" offset=".28" stop-opacity=".6"/><stop class="treatment-guide_pressure-core" offset=".4" stop-opacity="0"/><stop class="treatment-guide_pressure-core" offset=".84" stop-opacity="0"/><stop class="treatment-guide_pressure-core" offset="1" stop-opacity=".6"/></radialGradient><radialGradient id="${id}-falloff"><stop offset="0" stop-color="white"/><stop offset=".55" stop-color="white" stop-opacity=".8"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient><mask id="${id}-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="1000" style="mask-type:alpha"><g class="treatment-guide_pressure-mask"><circle r="220" fill="url(#${id}-falloff)"/></g></mask>`;
+    const pressureMask = defs.querySelector('.treatment-guide_pressure-mask');
     const point = (radius, angle) =>
       `${500 + Math.sin(angle) * radius} ${500 - Math.cos(angle) * radius}`;
     const segments = choices.map((_, i) => {
@@ -278,8 +271,15 @@ window.TDBTreatmentGuideCard ||= (() => {
       pressure = document.createElementNS(svg.namespaceURI, 'g');
     pressureClip.setAttribute('clip-path', `url(#${id}-clip)`);
     pressure.classList.add('treatment-guide_pressure');
-    pressure.innerHTML = `<circle cy="25" r="110" fill="url(#${id}-light)"/><circle r="100" fill="url(#${id}-shade)"/><circle class="treatment-guide_pressure-rim" r="100" fill="none" stroke="url(#${id}-rim)" stroke-width="1" vector-effect="non-scaling-stroke"/>`;
-    pressureClip.append(pressure);
+    pressure.innerHTML = `<circle cy="40" r="220" fill="url(#${id}-light)"/><circle r="200" fill="url(#${id}-shade)"/>`;
+    const contact = document.createElementNS(svg.namespaceURI, 'circle');
+    contact.classList.add('treatment-guide_pressure-contact');
+    contact.setAttribute('cx', '500');
+    contact.setAttribute('cy', '500');
+    contact.setAttribute('r', '500');
+    contact.setAttribute('fill', `url(#${id}-contact)`);
+    contact.setAttribute('mask', `url(#${id}-mask)`);
+    pressureClip.append(pressure, contact);
     svg.append(pressureClip);
     for (let i = 0; i < 5; i++) {
       const line = document.createElementNS(svg.namespaceURI, 'line'),
@@ -377,7 +377,7 @@ window.TDBTreatmentGuideCard ||= (() => {
         preview = { elapsed: 0, origin: angle, angle };
         root.classList.add('is-wheel-previewing');
         start();
-      }, 550);
+      }, 400);
     }
     function interact() {
       stopPreview(true);
@@ -411,8 +411,8 @@ window.TDBTreatmentGuideCard ||= (() => {
       start();
     }
     function radialOffset(distance) {
-      // Keep the 100-unit pressure circle inside both edges of the annulus.
-      const reach = Math.max(0, outer - radius - outer * 0.2);
+      // The glow follows the finger to the boundary; its mask conforms to the annulus.
+      const reach = Math.max(0, outer - radius);
       return Math.max(-reach, Math.min(reach, distance - radius));
     }
     function render(dt) {
@@ -420,14 +420,14 @@ window.TDBTreatmentGuideCard ||= (() => {
         shownAngle = preview?.angle ?? angle,
         x = Math.sin(shownAngle) * distance,
         y = -Math.cos(shownAngle) * distance;
-      pressure.setAttribute(
-        'transform',
-        `translate(${500 + (x / outer) * 500} ${500 + (y / outer) * 500})`,
-      );
+      const transform = `translate(${500 + (x / outer) * 500} ${500 + (y / outer) * 500})`;
+      pressure.setAttribute('transform', transform);
+      pressureMask.setAttribute('transform', transform);
       let unsettled = false;
+      const focus = preview ? chapter(shownAngle) : active;
       segments.forEach((segment, i) => {
-        // The whole sector follows the selected card while the pressure follows the spring.
-        const glow = i === active ? (drag ? 0.72 : preview ? 0.85 : 1) : 0;
+        // The preview hints at each sector without changing the reader's chapter.
+        const glow = i === focus ? (drag ? 0.72 : 1) : 0;
         weights[i] += (glow - weights[i]) * (reduced() ? 1 : 1 - Math.exp(-dt * 11));
         if (Math.abs(glow - weights[i]) > 0.002) unsettled = true;
         else weights[i] = glow;
@@ -439,6 +439,7 @@ window.TDBTreatmentGuideCard ||= (() => {
       if (Math.abs(pressed - pressureOpacity) > 0.002) unsettled = true;
       else pressureOpacity = pressed;
       pressure.style.opacity = pressureOpacity.toFixed(4);
+      contact.style.opacity = pressureOpacity.toFixed(4);
       return unsettled;
     }
     function frame(now) {
@@ -456,13 +457,13 @@ window.TDBTreatmentGuideCard ||= (() => {
           preview.elapsed += elapsed(ms);
           const ease = (value) => (1 - Math.cos(Math.PI * Math.min(1, Math.max(0, value)))) / 2;
           const progress =
-            preview.elapsed < 1200
-              ? ease(preview.elapsed / 1200)
-              : preview.elapsed < 1500
+            preview.elapsed < 950
+              ? ease(preview.elapsed / 950)
+              : preview.elapsed < 1100
                 ? 1
-                : 1 - ease((preview.elapsed - 1500) / 1300);
+                : 1 - ease((preview.elapsed - 1100) / 1100);
           preview.angle = preview.origin + step * 2 * progress;
-          if (preview.elapsed >= 2800) stopPreview();
+          if (preview.elapsed >= 2200) stopPreview();
         }
       }
       if (reduced() && !drag) {

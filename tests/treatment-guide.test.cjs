@@ -131,25 +131,25 @@ test('segment wheel keeps radial elasticity and eases back without teleporting',
     t.dispose();
   }
 });
-test('the pressure circle reaches both pad edges and stays contained beyond the finger guards', () => {
+test('the pressure centre reaches both ring boundaries and eases between them', () => {
   const t = wheel();
   try {
     t.pointer('pointerdown', ...t.point(90));
     t.pointer('pointermove', 800, 200);
     t.tick(80);
     const outer = Math.hypot(...t.position());
-    assert.ok(Math.abs(outer + 40 - 200) < 0.01);
+    assert.ok(Math.abs(outer - 200) < 0.01);
     t.pointer('pointermove', 250, 200);
     const travel = [];
     for (let i = 0; i < 80; i++) {
       t.tick();
       const distance = Math.hypot(...t.position());
       travel.push(distance);
-      assert.ok(distance >= 96 - 0.001 && distance <= 160 + 0.001);
+      assert.ok(distance >= 56 - 0.001 && distance <= 200 + 0.001);
     }
-    assert.ok(travel[0] > 96 && travel[0] < 160, 'the edge-to-edge move must ease');
+    assert.ok(travel[0] > 56 && travel[0] < 200, 'the edge-to-edge move must ease');
     assert.ok(new Set(travel.map((n) => n.toFixed(2))).size > 3);
-    assert.ok(Math.abs(travel.at(-1) - 40 - 56) < 0.01);
+    assert.ok(Math.abs(travel.at(-1) - 56) < 0.01);
     t.pointer('pointerup', 250, 200);
     t.tick(160);
     assert.ok(Math.abs(Math.hypot(...t.position()) - 128) < 0.01);
@@ -167,12 +167,16 @@ test('the entrance hint sweeps down-right and back once without changing the rea
     t.tick(40);
     assert.equal(t.root.classList.contains('is-wheel-previewing'), true);
     const start = t.position();
-    t.tick(80);
+    t.tick(16);
+    assert.ok(Number(t.segments[1].style.opacity) > 0.8);
+    assert.equal(t.menu.getAttribute('aria-valuenow'), '1');
+    t.tick(39);
     const far = t.position();
     assert.ok(far[0] > 60 && far[1] > 60);
     assert.ok(far[1] > start[1]);
     assert.equal(t.menu.getAttribute('aria-valuenow'), '1');
     assert.deepEqual(t.cardChanges, []);
+    assert.ok(Number(t.segments[2].style.opacity) > 0.9);
     t.tick(160);
     assert.equal(t.root.classList.contains('is-wheel-previewing'), false);
     assert.ok(Math.abs(t.position()[0]) < 0.01);

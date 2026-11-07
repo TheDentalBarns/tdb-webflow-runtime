@@ -60,7 +60,7 @@
         <button class="tdb-drawer_close" data-tdb-drawer-close type="button" aria-label="Close treatment guide"><span class="tdb-drawer_close-icon" aria-hidden="true"></span></button>
         <div class="tdb-usp_content">
           <header class="tdb-usp_header"><div class="tdb-usp_brand"><div class="tdb-guide_treatment"></div><span class="tdb-usp_rule" aria-hidden="true"></span><h2 class="tdb-usp_title"></h2></div></header>
-          <div class="tdb-guide_static-intro"><div class="tdb-guide_intro-card"><div class="tdb-guide_static-mark" aria-hidden="true"><span class="tdb-guide_intro-rule"></span><span class="tdb-guide_icon-slot" data-guide-icon>0</span><span class="tdb-guide_intro-rule"></span></div><div class="tdb-guide_intro-copy"><p class="tdb-guide_intro"></p></div></div></div>
+          <div class="tdb-guide_intro-overlay"><div class="tdb-guide_static-intro is-stationary"><div class="tdb-guide_intro-card"><div class="tdb-guide_static-mark" aria-hidden="true"><span class="tdb-guide_intro-rule"></span><span class="tdb-guide_icon-slot" data-guide-icon>0</span><span class="tdb-guide_intro-rule"></span></div><div class="tdb-guide_intro-copy"><p class="tdb-guide_intro"></p></div></div></div></div>
           <div class="tdb-usp_viewport" role="group" aria-roledescription="carousel" aria-label="Treatment guide chapters"><div class="tdb-usp_track"></div></div>
           <footer class="tdb-usp_footer"><div class="tdb-review-drawer_position" role="status" aria-live="polite" aria-atomic="true"><span class="tdb-pagination-number" data-guide-position>01</span><span class="tdb-pagination-rule" aria-hidden="true"></span><span class="tdb-pagination-number">05</span></div><div class="tdb-usp_arrows"><button class="carousel-arrow tdb-review-drawer_nav-button" type="button" data-guide-prev aria-label="Previous chapter"><span class="carousel-arrow-icon is-previous" aria-hidden="true"></span></button><button class="carousel-arrow tdb-review-drawer_nav-button" type="button" data-guide-next aria-label="Next chapter"><span class="carousel-arrow-icon" aria-hidden="true"></span></button></div></footer>
         </div>
@@ -78,6 +78,7 @@
       header = root.querySelector('header'),
       footer = root.querySelector('footer');
     const staticIntro = root.querySelector('.tdb-guide_static-intro'),
+      introOverlay = root.querySelector('.tdb-guide_intro-overlay'),
       intro = root.querySelector('.tdb-guide_intro');
     const viewport = root.querySelector('.tdb-usp_viewport'),
       track = root.querySelector('.tdb-usp_track'),
@@ -138,7 +139,9 @@
           )
             node.removeAttribute(attr.name);
       content.append(body);
-      slide.append(content);
+      const space = document.createElement('div');
+      space.className = 'tdb-guide_intro-space';
+      slide.append(space, content);
       track.append(slide);
     });
     const controller = new AbortController(),
@@ -149,7 +152,38 @@
       activeSlide,
       landscape = false,
       lastIndex = -1,
+      introMoving = false,
+      parkedTop = 0,
       source;
+    // As in the review drawer, ordinary reading uses native flow. The shared
+    // artwork/intro only parks in an overlay during a horizontal transition.
+    function parkIntro() {
+      parkedTop = landscape ? 0 : activeSlide?.scrollTop || 0;
+      if (staticIntro.parentNode !== introOverlay) introOverlay.append(staticIntro);
+      staticIntro.classList.add('is-stationary');
+      staticIntro.style.translate = parkedTop ? `0px ${-parkedTop}px` : '';
+    }
+    function attachIntro() {
+      const slot = activeSlide?.querySelector('.tdb-guide_intro-space');
+      if (!slot) return;
+      if (staticIntro.parentNode !== slot) slot.append(staticIntro);
+      staticIntro.classList.remove('is-stationary');
+      staticIntro.style.translate = '';
+    }
+    function settleIntro(animate = true) {
+      introMoving = false;
+      attachIntro();
+      fades.to(staticIntro, 1, animate ? window.TDBMotion.defaults.fadeIn : 0);
+    }
+    function beginReadingTransition() {
+      if (!swiper || introMoving) return;
+      save();
+      reading.capture();
+      parkIntro();
+      introMoving = true;
+      if (reading.scroll()?.scrollTop > 0)
+        fades.to(staticIntro, 0, window.TDBMotion.defaults.fadeOut);
+    }
     const reading = window.TDBDrawerReading.mount({
       pane: root,
       footer,
@@ -161,6 +195,7 @@
       onMode: (value) => {
         landscape = value;
       },
+      onRestore: () => (introMoving ? parkIntro() : attachIntro()),
       nodes: () => [
         root,
         header,
@@ -174,6 +209,13 @@
       durationRoot: root,
       durationProperty: '--tdb-usp-duration',
     });
+    root.addEventListener(
+      'scroll',
+      (event) => {
+        if (introMoving && event.target === reading.scroll()) parkIntro();
+      },
+      { capture: true, passive: true, signal: controller.signal },
+    );
     function save() {
       if (activeSlide)
         scroll.set(Number(activeSlide.dataset.guideSlide), reading.scroll().scrollTop);
@@ -187,6 +229,9 @@
       const selected = swiper.slides[swiper.activeIndex];
       if (selected !== activeSlide) selected.scrollTop = landscape ? 0 : scroll.get(index) || 0;
       activeSlide = selected;
+      if (introMoving && !landscape && selected.scrollTop !== parkedTop)
+        fades.to(staticIntro, 0, window.TDBMotion.defaults.fadeOut);
+      if (!introMoving) attachIntro();
       if (lastIndex !== index) {
         lastIndex = index;
         // Native tabs still own the page. This also drives the optional wheel.
@@ -215,12 +260,9 @@
         observer: false,
         updateOnWindowResize: false,
         on: {
-          beforeTransitionStart() {
-            save();
-            reading.capture();
-          },
+          beforeTransitionStart: beginReadingTransition,
           touchStart: save,
-          sliderFirstMove: reading.capture,
+          sliderFirstMove: beginReadingTransition,
           transitionStart: reading.apply,
         },
       });
@@ -231,11 +273,13 @@
       });
       window.TDBCarouselVisibility.bind(swiper, { activeOnly: true });
       reading.bind();
+      swiper.on('beforeLoopFix', parkIntro);
       swiper.on('loopFix', () => reflect(false));
       window.TDBSwiper.onSettled(swiper, () => {
         reading.apply();
         reading.clear();
         reflect(false);
+        settleIntro();
       });
     }
     const drawer = window.TDBDrawer.mount(shell, {
@@ -248,10 +292,13 @@
       onOpen() {
         reading.clear();
         reading.setMode();
+        introMoving = false;
+        parkIntro();
         createSwiper();
         swiper.update();
         swiper.slideToLoop(requested, 0, false);
         reflect(false);
+        settleIntro(false);
         if (landscape) root.scrollTop = scroll.get(requested) || 0;
         source?.setAttribute('aria-expanded', 'true');
       },
@@ -264,6 +311,7 @@
         clearTimeout(introTimer);
         intro.textContent = records[Math.max(0, shownIntro)].summary;
         fades.to(intro, 1, 0);
+        settleIntro(false);
         source?.setAttribute('aria-expanded', 'false');
       },
     });
@@ -275,8 +323,7 @@
       signal: controller.signal,
       enabled: () => Boolean(swiper) && !['closed', 'closing'].includes(drawer.state),
       navigate(delta) {
-        save();
-        reading.capture();
+        beginReadingTransition();
         direction = delta;
         if (delta < 0) swiper.slidePrev();
         else swiper.slideNext();
