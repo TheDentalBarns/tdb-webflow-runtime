@@ -19,3 +19,11 @@
 /* Keep the stationary holder behind the decoded cards until their fade completes. */
 [data-tdb-smile-placeholder][data-smile-state="ready"]>.tdb-smile-holding-image{visibility:hidden;pointer-events:none;transition:visibility 0s linear var(--tdb-reveal-fade-in,calc(300ms * var(--tdb-fade-pace,1)))}
 [data-tdb-smile-placeholder]:not([data-smile-state="ready"])>[data-tdb-smile-feed-root] *{pointer-events:none!important}
+/* The native component variant themes the deferred cards as well as its holder. */
+[data-wf--discover-smiles-deferred-gallery--variant="contained-dark"] [data-tdb-smile-feed-root] .layout423_card.text-color-alternate.smile.tdb-smile-card,
+[data-wf--discover-smiles-deferred-gallery--variant="contained-dark"] [data-tdb-smile-feed-root] .tdb-smile-card::before,
+[data-wf--discover-smiles-deferred-gallery--variant="contained-dark"] [data-tdb-smile-feed-root] .tdb-smile-card::after{background:#000}
+[data-wf--discover-smiles-deferred-gallery--variant="contained-dark"] [data-tdb-smile-feed-root] .tdb-smile-heading,
+[data-wf--discover-smiles-deferred-gallery--variant="contained-dark"] [data-tdb-smile-feed-root] .tdb-smile-facts.tdb-smile-static-facts{color:#f9f2e6}
+[data-wf--discover-smiles-deferred-gallery--variant="contained-dark"] [data-tdb-smile-feed-root] .tdb-smile-fact-icon.tdb-smile-static-asset,
+[data-wf--discover-smiles-deferred-gallery--variant="contained-dark"] [data-tdb-smile-feed-root] .tdb-smile-treatment-icon{filter:invert(1)}

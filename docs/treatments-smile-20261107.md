@@ -1,8 +1,11 @@
 # Treatment smile galleries
 
 The Treatments template reuses `Discover Smiles — deferred gallery`, the same
-Webflow component and JavaScript module as Home and Services. The Contained
-variant fits the two-column benefit section. Shared component edits reach all
+Webflow component and JavaScript module as Home and Services. The Contained dark
+variant has a black native holder and black deferred card, with light text and
+icons. Treatments retain their previous gallery width and section proportions.
+The shared benefit dividers use 30% currentColor so they remain visible on both
+light Services and dark Treatments backgrounds. Shared component edits reach all
 instances; instance content and variant overrides remain local.
 
 The optional `Treatment slug` component prop binds `data-tdb-smile-treatment`
@@ -17,8 +20,9 @@ ascending, blank last, then creation date descending preserve the previous
 native treatment-gallery order. The existing `/smiles.json` behavior and all
 other feeds are unchanged. No raw CMS records or credentials are returned.
 
-The Treatments benefit disclosures use the shared custom disclosure / chevron
-modules. Their native CMS text, image, icon and section visibility bindings are
+The Treatments benefit disclosures use shared styles and custom disclosure /
+chevron modules; the surrounding CMS sections are page-level markup, not linked
+component definitions. Their native CMS text, image, icon and section visibility bindings are
 preserved. The legacy FAQ trigger classes are removed only from this section.
 
 Validation before staging publication: 970 tests passed, 3 skipped, none failed;
