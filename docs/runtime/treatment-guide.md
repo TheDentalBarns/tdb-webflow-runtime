@@ -6,7 +6,7 @@ The Treatments template has one reusable `Treatment Guide — wheel` component. 
 
 Designer owns the section spacing, responsive card grid, native SVG dial, chapter icon masks, centre pagination, five bound chapter panes, Learn more controls and shared carousel arrows. The desktop card has two columns; tablet and phone have one. The five panes overlap in native grid tracks and all contribute their intrinsic title and summary height. Hidden panes use visibility, not display removal. This reserves space before enhancement and across chapter changes. Native title frames clip horizontal text travel. No runtime height measurement or replacement card is required.
 
-The treatment name, introduction, chapter titles and full bodies retain their CMS bindings. Short chapter summaries are shared component properties. Native Webflow tabs and closed details remain usable if the optional modules cannot load. The first chapter is visible in Designer. Each native Learn more control opens its own chapter. The drawer returns focus to the newly active native control.
+The treatment name, introduction, chapter titles and full bodies retain their CMS bindings. Each treatment's five short summaries come from a linked Treatment Guide Summaries CMS entry through the component's summary properties. They render in native Webflow HTML before JavaScript runs. Native Webflow tabs and closed details remain usable if the optional modules cannot load. The first chapter is visible in Designer. Each native Learn more control opens its own chapter. The drawer returns focus to the newly active native control.
 
 `src/runtime/treatment-guide-loader.js` retains presence, consent, proximity and intent gates. It prepares the small wheel near the section and resumes a first drag while preparation finishes. Drawer dependencies wait for Learn more intent. No guide assets are requested on pages without the component.
 
@@ -23,6 +23,16 @@ The one-time hint starts only when at least 55% of the dial is visible and stops
 ## Related CMS cleanup
 
 The Treatments template uses the shared awards module with three native Featured Award references per treatment. The approved migration replaced three unused award-topic text fields and preserved draft records. There is one guide and one relevant trio per published treatment, with no runtime content substitution.
+
+## Treatment-specific summaries
+
+The six published treatments have five distinct summaries each: Technology, Process, Aftercare, Questions and Practice. Each gives a useful detail from the existing full CMS chapter, followed where appropriate by an invitation to read further. Keep them concise, varied and factual; do not replace the full chapters or add unsubstantiated treatment claims.
+
+Treatments was at 59 fields. The single `treatment-guide-summaries` Reference uses its final available field and links to the Treatment Guide Summaries collection (`6aef7da258cb9e56916c25ad`). Its five PlainText fields are `technology-summary`, `process-summary`, `aftercare-summary`, `questions-summary` and `practice-summary`. Edit the linked entry to change the short wheel copy. The two incomplete draft Treatments records remain drafts and have no new summary entry.
+
+The wheel instance on the Treatments template binds each `Guide N — summary` property through the reference field. For MCP updates, `set_component_instance_prop_values.values[]` uses `type: "bindable"`, `binding_source_type: "cms"`, `binding_collection_id` and `binding_field_id`. The referenced field ID is `<reference-field-id>:::<summary-field-id>` as returned by `get_bindable_sources`. No loader fetch, route-based copy map or runtime text substitution is involved. The installed runtime remains unchanged.
+
+CMS summaries published to the Webflow subdomain only on 7 November 2026, task `e59719a4-4301-4aa1-be4d-b29917933bde`. All 30 summaries match the returned staging HTML. All six treatment pages pass at 1440, 390 and 320px: no text/button overlap or horizontal overflow, 0px card-height change across deliberately delayed enhancement and all five panels, no measured wheel-related layout shifts and no page errors in the completed checks. One initial mobile check timed out waiting for the consent-gated loader; that case passed on a fresh run with an explicit wait for the consent control. Private before/after CMS snapshots, binding IDs and screenshots are in the workspace's `wheel-copy-20261107` folder; do not commit those exports.
 
 ## Verification
 
