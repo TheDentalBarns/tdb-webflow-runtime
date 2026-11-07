@@ -1,6 +1,26 @@
 /* Temporary presentation patch. Native bound panes remain the source and fallback. */
 window.TDBTreatmentGuideCard ||= (() => {
-  function mount(root, initial) {
+  function controls(navigate, label) {
+    const group = document.createElement('div');
+    group.className = 'treatment-guide_arrows';
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', label);
+    for (const direction of [-1, 1]) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'carousel-arrow treatment-guide_nav';
+      button.dataset.tdbGuideNav = String(direction);
+      button.setAttribute('aria-label', direction < 0 ? 'Previous chapter' : 'Next chapter');
+      const icon = document.createElement('span');
+      icon.className = 'carousel-arrow-icon' + (direction < 0 ? ' is-previous' : '');
+      icon.setAttribute('aria-hidden', 'true');
+      button.append(icon);
+      button.addEventListener('click', () => navigate(direction));
+      group.append(button);
+    }
+    return group;
+  }
+  function mount(root, initial, navigate) {
     const panes = [...root.querySelectorAll('[data-tdb-guide-panel]')],
       content = root.querySelector('.treatment-guide_content');
     if (panes.length !== 5 || !content) return null;
@@ -30,14 +50,16 @@ window.TDBTreatmentGuideCard ||= (() => {
       summaries.append(summary);
       return { title, summary };
     });
-    const source = panes[0].querySelector('[data-tdb-guide-open]'),
-      explore = document.createElement('button');
+    const explore = document.createElement('button');
     explore.type = 'button';
-    explore.className = source.className;
+    explore.className = 'button treatment-guide_learn-more';
     explore.setAttribute('data-tdb-guide-open', '');
     explore.setAttribute('aria-haspopup', 'dialog');
-    explore.append(...[...source.childNodes].map((node) => node.cloneNode(true)));
-    card.append(pagination, titles, summaries, explore);
+    explore.textContent = 'Learn more';
+    const top = document.createElement('div');
+    top.className = 'treatment-guide_card-top';
+    top.append(pagination, controls(navigate, 'Treatment guide chapters'));
+    card.append(top, titles, summaries, explore);
     content.append(card);
     const ticker = window.TDBNativeTicker.mount(
       pagination.querySelector('[data-tdb-guide-position]'),
@@ -59,7 +81,10 @@ window.TDBTreatmentGuideCard ||= (() => {
       stop();
       active = index;
       explore.dataset.tdbGuideTarget = String(index);
-      explore.setAttribute('aria-label', 'Explore ' + rows[index].title.textContent.trim());
+      explore.setAttribute(
+        'aria-label',
+        'Learn more about ' + rows[index].title.textContent.trim(),
+      );
       pagination.setAttribute('aria-label', `${index + 1} of ${rows.length}`);
       ticker.update(String(index + 1).padStart(2, '0'), direction, animate);
       rows.forEach((row, i) => {
@@ -122,7 +147,7 @@ window.TDBTreatmentGuideCard ||= (() => {
       },
     };
   }
-  return Object.freeze({ mount });
+  return Object.freeze({ mount, controls });
 })();
 
 /* Click-wheel trial; native labels and bound panes remain the fallback. */
@@ -150,6 +175,8 @@ window.TDBTreatmentGuideCard ||= (() => {
       style: ball.getAttribute('style'),
       tabindex: ball.getAttribute('tabindex'),
       hidden: ball.getAttribute('aria-hidden'),
+      menuRole: menu.getAttribute('role'),
+      menuLabel: menu.getAttribute('aria-label'),
     };
     const reduced = () =>
       Boolean(window.TDBMotionPolicy?.reduced?.matches || window.TDBMotion?.reduced?.matches);
@@ -169,7 +196,15 @@ window.TDBTreatmentGuideCard ||= (() => {
       ),
       ink = rgb(getComputedStyle(choices[active]).color);
     const weights = choices.map((_, i) => (i === active ? 1 : 0)),
-      card = window.TDBTreatmentGuideCard?.mount(root, active);
+      card = window.TDBTreatmentGuideCard?.mount(root, active, navigate);
+    const wheelControls = window.TDBTreatmentGuideCard?.controls(
+      navigate,
+      'Wheel chapter controls',
+    );
+    if (wheelControls) {
+      wheelControls.classList.add('is-on-wheel');
+      menu.append(wheelControls);
+    }
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '0 0 1000 1000');
     svg.setAttribute('aria-hidden', 'true');
@@ -185,15 +220,17 @@ window.TDBTreatmentGuideCard ||= (() => {
     svg.append(ring);
     for (let i = 0; i < 5; i++) {
       const line = document.createElementNS(svg.namespaceURI, 'line'),
-        a = (i + 0.5) * step;
-      line.setAttribute('x1', String(500 + Math.sin(a) * 260));
-      line.setAttribute('y1', String(500 - Math.cos(a) * 260));
-      line.setAttribute('x2', String(500 + Math.sin(a) * 480));
-      line.setAttribute('y2', String(500 - Math.cos(a) * 480));
+        a = i * step;
+      line.setAttribute('x1', String(500 + Math.sin(a) * 240));
+      line.setAttribute('y1', String(500 - Math.cos(a) * 240));
+      line.setAttribute('x2', String(500 + Math.sin(a) * 500));
+      line.setAttribute('y2', String(500 - Math.cos(a) * 500));
       line.setAttribute('vector-effect', 'non-scaling-stroke');
       svg.append(line);
     }
     menu.prepend(svg);
+    menu.setAttribute('role', 'group');
+    menu.setAttribute('aria-label', 'Treatment guide wheel');
     root.classList.add('is-click-wheel');
     let radius = 100,
       outer = 140,
@@ -211,6 +248,13 @@ window.TDBTreatmentGuideCard ||= (() => {
       visible = true,
       disposed = false,
       suppressUntil = 0;
+    function interact() {
+      window.TDBSliderFocus?.focus(root, () => Boolean(drag));
+    }
+    function navigate(direction) {
+      interact();
+      select(active + direction, true, direction);
+    }
     function select(index, notify = true, direction) {
       index = ((index % 5) + 5) % 5;
       const previous = active;
@@ -232,6 +276,11 @@ window.TDBTreatmentGuideCard ||= (() => {
       cy = box.top + box.height / 2;
       radius = path.width / 2;
       outer = box.width / 2;
+      const inner = Math.max(0, ((2 * radius - outer) / outer) * 500);
+      [...svg.querySelectorAll('line')].forEach((line, i) => {
+        line.setAttribute('x1', String(500 + Math.sin(i * step) * inner));
+        line.setAttribute('y1', String(500 - Math.cos(i * step) * inner));
+      });
       start();
     }
     function render(dt) {
@@ -295,6 +344,7 @@ window.TDBTreatmentGuideCard ||= (() => {
     }
     function begin(event) {
       if ((event.button != null && event.button !== 0) || drag) return;
+      if (event.target?.closest?.('[data-tdb-guide-nav]')) return;
       const onBall = event.target?.closest?.('[data-tdb-guide-ball]');
       if (!onBall && !menu.contains(event.target)) return;
       measure();
@@ -319,6 +369,7 @@ window.TDBTreatmentGuideCard ||= (() => {
         Math.max(0, outer - radius) *
         0.18;
       root.classList.add('is-wheel-dragging');
+      interact();
       root.setPointerCapture?.(event.pointerId);
       select(chapter(target));
       start();
@@ -390,7 +441,21 @@ window.TDBTreatmentGuideCard ||= (() => {
       { signal },
     );
     choices.forEach((choice, index) =>
-      choice.addEventListener('click', () => select(index, false), { signal }),
+      choice.addEventListener(
+        'click',
+        (event) => {
+          if (event.isTrusted) interact();
+          select(index, false);
+        },
+        { signal },
+      ),
+    );
+    root.addEventListener(
+      'click',
+      (event) => {
+        if (event.target.closest?.('[data-tdb-guide-open]')) interact();
+      },
+      { signal },
     );
     const selection = new MutationObserver(() => {
       const index = choices.findIndex((choice) => choice.classList.contains('w--current'));
@@ -412,6 +477,7 @@ window.TDBTreatmentGuideCard ||= (() => {
         };
         if (!(event.key in keys)) return;
         event.preventDefault();
+        interact();
         select(keys[event.key]);
         ball.focus({ preventScroll: true });
       },
@@ -474,6 +540,14 @@ window.TDBTreatmentGuideCard ||= (() => {
         selection.disconnect();
         intersection.disconnect();
         card?.destroy();
+        wheelControls?.remove();
+        window.TDBSliderFocus?.release(root);
+        for (const [name, value] of [
+          ['role', original.menuRole],
+          ['aria-label', original.menuLabel],
+        ])
+          if (value == null) menu.removeAttribute(name);
+          else menu.setAttribute(name, value);
         svg.remove();
         root.classList.remove('is-click-wheel', 'is-wheel-dragging');
         root.removeAttribute('data-tdb-guide-fallback');

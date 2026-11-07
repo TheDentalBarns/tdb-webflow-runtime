@@ -1,6 +1,26 @@
 /* Temporary presentation patch. Native bound panes remain the source and fallback. */
 window.TDBTreatmentGuideCard ||= (() => {
-  function mount(root, initial) {
+  function controls(navigate, label) {
+    const group = document.createElement('div');
+    group.className = 'treatment-guide_arrows';
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', label);
+    for (const direction of [-1, 1]) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'carousel-arrow treatment-guide_nav';
+      button.dataset.tdbGuideNav = String(direction);
+      button.setAttribute('aria-label', direction < 0 ? 'Previous chapter' : 'Next chapter');
+      const icon = document.createElement('span');
+      icon.className = 'carousel-arrow-icon' + (direction < 0 ? ' is-previous' : '');
+      icon.setAttribute('aria-hidden', 'true');
+      button.append(icon);
+      button.addEventListener('click', () => navigate(direction));
+      group.append(button);
+    }
+    return group;
+  }
+  function mount(root, initial, navigate) {
     const panes = [...root.querySelectorAll('[data-tdb-guide-panel]')],
       content = root.querySelector('.treatment-guide_content');
     if (panes.length !== 5 || !content) return null;
@@ -30,14 +50,16 @@ window.TDBTreatmentGuideCard ||= (() => {
       summaries.append(summary);
       return { title, summary };
     });
-    const source = panes[0].querySelector('[data-tdb-guide-open]'),
-      explore = document.createElement('button');
+    const explore = document.createElement('button');
     explore.type = 'button';
-    explore.className = source.className;
+    explore.className = 'button treatment-guide_learn-more';
     explore.setAttribute('data-tdb-guide-open', '');
     explore.setAttribute('aria-haspopup', 'dialog');
-    explore.append(...[...source.childNodes].map((node) => node.cloneNode(true)));
-    card.append(pagination, titles, summaries, explore);
+    explore.textContent = 'Learn more';
+    const top = document.createElement('div');
+    top.className = 'treatment-guide_card-top';
+    top.append(pagination, controls(navigate, 'Treatment guide chapters'));
+    card.append(top, titles, summaries, explore);
     content.append(card);
     const ticker = window.TDBNativeTicker.mount(
       pagination.querySelector('[data-tdb-guide-position]'),
@@ -59,7 +81,10 @@ window.TDBTreatmentGuideCard ||= (() => {
       stop();
       active = index;
       explore.dataset.tdbGuideTarget = String(index);
-      explore.setAttribute('aria-label', 'Explore ' + rows[index].title.textContent.trim());
+      explore.setAttribute(
+        'aria-label',
+        'Learn more about ' + rows[index].title.textContent.trim(),
+      );
       pagination.setAttribute('aria-label', `${index + 1} of ${rows.length}`);
       ticker.update(String(index + 1).padStart(2, '0'), direction, animate);
       rows.forEach((row, i) => {
@@ -122,5 +147,5 @@ window.TDBTreatmentGuideCard ||= (() => {
       },
     };
   }
-  return Object.freeze({ mount });
+  return Object.freeze({ mount, controls });
 })();

@@ -554,10 +554,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "e9ba856ee1a9358e59cfba97572bcf8afaeb97b51fa6f0fb7fa52362e7a263ac",
-      "raw": 87287,
-      "gzip": 23807,
-      "brotli": 20541
+      "sha256": "8c42de0bfdd9ff9609e189ae3580b1ab3452f6cd781677852f03be8966114802",
+      "raw": 89321,
+      "gzip": 24560,
+      "brotli": 21207
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -614,10 +614,10 @@
       "sources": [
         "src/shared/native-ticker.js"
       ],
-      "sha256": "335f4ef6ecb05f80d3bd0c38643f19ceb779af0f74fe942d9757888817598184",
-      "raw": 3004,
-      "gzip": 1262,
-      "brotli": 1105
+      "sha256": "19fd301bbbe916431c2c0e91827443182d9b494d623bbaf129bd57a010d99050",
+      "raw": 2962,
+      "gzip": 1286,
+      "brotli": 1120
     },
     "dist/tdb-tooltips.js": {
       "sources": [
@@ -632,20 +632,20 @@
       "sources": [
         "src/treatment-guide/drawer.js"
       ],
-      "sha256": "e8eb5ce1e50031875cd552f65f874fec01937d590a0f2c0ae3bdd2e5fae03319",
-      "raw": 7017,
-      "gzip": 2678,
-      "brotli": 2329
+      "sha256": "c7be906638816012117b3e5b475e686d41c1eb7b21cdaddeafce6ce5b47a7da9",
+      "raw": 8760,
+      "gzip": 3378,
+      "brotli": 2945
     },
     "dist/tdb-treatment-guide-wheel.js": {
       "sources": [
         "src/treatment-guide/card.js",
         "src/treatment-guide/wheel.js"
       ],
-      "sha256": "e2458df4a8137a731bcba4ddc1445dc0d987e2a9d08cdd47479ac632d32d4ceb",
-      "raw": 9880,
-      "gzip": 3917,
-      "brotli": 3535
+      "sha256": "dd2310cd29dea484df2fb867f5390890abdb41dd46e4c7a359355d3344c15b9c",
+      "raw": 11441,
+      "gzip": 4337,
+      "brotli": 3893
     },
     "dist/tdb-usp-drawer-template.js": {
       "sources": [

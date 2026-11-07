@@ -36,3 +36,18 @@ test('either cancelled ticker animation settles the latest duration and ignores 
     dom.window.close();
   }
 });
+
+test('artwork uses the shared ticker without losing its current icon when interrupted', () => {
+  const dom = new JSDOM('<span data-icons>diamond</span>', {runScripts:'outside-only'});
+  const w=dom.window, slot=w.document.querySelector('span'), animations=[];
+  w.TDBMotion={reduced:new w.EventTarget(),defaults:{ticker:400},easing:(_,fallback)=>fallback};
+  w.Element.prototype.animate=function(){const animation={onfinish:null,oncancel:null,cancel(){this.oncancel?.()}};animations.push(animation);return animation};
+  w.eval(source);
+  const ticker=w.TDBNativeTicker.mount(slot,{render(node,name){const icon=w.document.createElement('i');icon.dataset.icon=name;node.replaceChildren(icon)}});
+  assert.equal(slot.querySelector('i').dataset.icon,'diamond');
+  ticker.update('thumbprint');assert.deepEqual([...slot.querySelectorAll('i')].map(i=>i.dataset.icon),['diamond','thumbprint']);
+  ticker.update('lotus');animations.at(-1).cancel();
+  assert.equal(slot.children.length,1);assert.equal(slot.querySelector('i').dataset.icon,'lotus');assert.equal(slot.textContent,'');
+  ticker.sequence(['quotation','barn-window']);animations.at(-1).onfinish();assert.equal(slot.querySelector('i').dataset.icon,'barn-window');
+  ticker.destroy();assert.equal(slot.querySelector('i').dataset.icon,'barn-window');w.close();
+});

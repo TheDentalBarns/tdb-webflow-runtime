@@ -1,4 +1,4 @@
-/* TDB native value tickers v1.4.1. Layout and initial text belong to Webflow. */
+/* TDB native value tickers v1.5.0. Optional artwork renderer shares the same motion. */
 (() => {
   'use strict';
   if (window.TDBNativeTicker) return;
@@ -21,6 +21,10 @@
       (node) => node !== authoredValue && node.classList.contains(incomingClass),
     );
     let text = (authoredValue || slot).textContent.trim();
+    const paint = (node, value) => {
+      if (options.render) options.render(node, value);
+      else node.textContent = value;
+    };
     const make = (className) => {
       const node =
         template?.querySelector('.' + className)?.cloneNode(true) || document.createElement('span');
@@ -28,7 +32,7 @@
       return node;
     };
     const value = authoredValue || make(valueClass);
-    value.textContent = text;
+    paint(value, text);
     if (!authoredValue) slot.replaceChildren(value);
     if (authoredIncoming) authoredIncoming.setAttribute('aria-hidden', 'true');
 
@@ -41,7 +45,7 @@
         animation.oncancel = null;
         animation.cancel();
       });
-      value.textContent = text;
+      paint(value, text);
       if (previous.incoming !== authoredIncoming) previous.incoming.remove();
     }
     function watch(transition) {
@@ -61,11 +65,11 @@
       const old = text;
       text = next;
       if (!animate || motion.matches || !value.animate || !slot.isConnected) {
-        value.textContent = next;
+        paint(value, next);
         return;
       }
       const incoming = authoredIncoming || make(incomingClass);
-      incoming.textContent = next;
+      paint(incoming, next);
       incoming.setAttribute('aria-hidden', 'true');
       if (incoming.parentElement !== slot) slot.append(incoming);
       const sign = direction < 0 ? -1 : 1;
@@ -77,7 +81,7 @@
         easing: window.TDBMotionProfile?.easing('control', 'ease-in-out') || 'ease-in-out',
         fill: 'both',
       };
-      value.textContent = old;
+      paint(value, old);
       const transition = { incoming, animations: [] };
       pending = transition;
       try {
@@ -110,7 +114,7 @@
       if (rows.length === 1) return;
       text = rows.at(-1);
       if (!animate || motion.matches || !value.animate || !slot.isConnected || rows.length > 32) {
-        value.textContent = text;
+        paint(value, text);
         return;
       }
       // One bounded strip, one uninterrupted travel curve. No per-value timers
@@ -122,7 +126,7 @@
       track.replaceChildren(
         ...(down ? [...rows].reverse() : rows).map((label) => {
           const row = make(valueClass);
-          row.textContent = label;
+          paint(row, label);
           row.style.height = '100%';
           return row;
         }),
@@ -165,14 +169,14 @@
         motion.removeEventListener('change', onMotion);
         // Keep the settled number; never rewind to the understated initial value.
         slot.replaceChildren(...originalNodes);
-        if (authoredValue) authoredValue.textContent = text;
-        else if (slot.children.length === 1) slot.firstElementChild.textContent = text;
-        else slot.textContent = text;
+        if (authoredValue) paint(authoredValue, text);
+        else if (slot.children.length === 1) paint(slot.firstElementChild, text);
+        else paint(slot, text);
         instances.delete(slot);
       },
     });
     instances.set(slot, api);
     return api;
   }
-  window.TDBNativeTicker = Object.freeze({ version: '1.4.1', mount });
+  window.TDBNativeTicker = Object.freeze({ version: '1.5.0', mount });
 })();

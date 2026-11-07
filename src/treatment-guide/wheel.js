@@ -23,6 +23,8 @@
       style: ball.getAttribute('style'),
       tabindex: ball.getAttribute('tabindex'),
       hidden: ball.getAttribute('aria-hidden'),
+      menuRole: menu.getAttribute('role'),
+      menuLabel: menu.getAttribute('aria-label'),
     };
     const reduced = () =>
       Boolean(window.TDBMotionPolicy?.reduced?.matches || window.TDBMotion?.reduced?.matches);
@@ -42,7 +44,15 @@
       ),
       ink = rgb(getComputedStyle(choices[active]).color);
     const weights = choices.map((_, i) => (i === active ? 1 : 0)),
-      card = window.TDBTreatmentGuideCard?.mount(root, active);
+      card = window.TDBTreatmentGuideCard?.mount(root, active, navigate);
+    const wheelControls = window.TDBTreatmentGuideCard?.controls(
+      navigate,
+      'Wheel chapter controls',
+    );
+    if (wheelControls) {
+      wheelControls.classList.add('is-on-wheel');
+      menu.append(wheelControls);
+    }
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '0 0 1000 1000');
     svg.setAttribute('aria-hidden', 'true');
@@ -58,15 +68,17 @@
     svg.append(ring);
     for (let i = 0; i < 5; i++) {
       const line = document.createElementNS(svg.namespaceURI, 'line'),
-        a = (i + 0.5) * step;
-      line.setAttribute('x1', String(500 + Math.sin(a) * 260));
-      line.setAttribute('y1', String(500 - Math.cos(a) * 260));
-      line.setAttribute('x2', String(500 + Math.sin(a) * 480));
-      line.setAttribute('y2', String(500 - Math.cos(a) * 480));
+        a = i * step;
+      line.setAttribute('x1', String(500 + Math.sin(a) * 240));
+      line.setAttribute('y1', String(500 - Math.cos(a) * 240));
+      line.setAttribute('x2', String(500 + Math.sin(a) * 500));
+      line.setAttribute('y2', String(500 - Math.cos(a) * 500));
       line.setAttribute('vector-effect', 'non-scaling-stroke');
       svg.append(line);
     }
     menu.prepend(svg);
+    menu.setAttribute('role', 'group');
+    menu.setAttribute('aria-label', 'Treatment guide wheel');
     root.classList.add('is-click-wheel');
     let radius = 100,
       outer = 140,
@@ -84,6 +96,13 @@
       visible = true,
       disposed = false,
       suppressUntil = 0;
+    function interact() {
+      window.TDBSliderFocus?.focus(root, () => Boolean(drag));
+    }
+    function navigate(direction) {
+      interact();
+      select(active + direction, true, direction);
+    }
     function select(index, notify = true, direction) {
       index = ((index % 5) + 5) % 5;
       const previous = active;
@@ -105,6 +124,11 @@
       cy = box.top + box.height / 2;
       radius = path.width / 2;
       outer = box.width / 2;
+      const inner = Math.max(0, ((2 * radius - outer) / outer) * 500);
+      [...svg.querySelectorAll('line')].forEach((line, i) => {
+        line.setAttribute('x1', String(500 + Math.sin(i * step) * inner));
+        line.setAttribute('y1', String(500 - Math.cos(i * step) * inner));
+      });
       start();
     }
     function render(dt) {
@@ -168,6 +192,7 @@
     }
     function begin(event) {
       if ((event.button != null && event.button !== 0) || drag) return;
+      if (event.target?.closest?.('[data-tdb-guide-nav]')) return;
       const onBall = event.target?.closest?.('[data-tdb-guide-ball]');
       if (!onBall && !menu.contains(event.target)) return;
       measure();
@@ -192,6 +217,7 @@
         Math.max(0, outer - radius) *
         0.18;
       root.classList.add('is-wheel-dragging');
+      interact();
       root.setPointerCapture?.(event.pointerId);
       select(chapter(target));
       start();
@@ -263,7 +289,21 @@
       { signal },
     );
     choices.forEach((choice, index) =>
-      choice.addEventListener('click', () => select(index, false), { signal }),
+      choice.addEventListener(
+        'click',
+        (event) => {
+          if (event.isTrusted) interact();
+          select(index, false);
+        },
+        { signal },
+      ),
+    );
+    root.addEventListener(
+      'click',
+      (event) => {
+        if (event.target.closest?.('[data-tdb-guide-open]')) interact();
+      },
+      { signal },
     );
     const selection = new MutationObserver(() => {
       const index = choices.findIndex((choice) => choice.classList.contains('w--current'));
@@ -285,6 +325,7 @@
         };
         if (!(event.key in keys)) return;
         event.preventDefault();
+        interact();
         select(keys[event.key]);
         ball.focus({ preventScroll: true });
       },
@@ -347,6 +388,14 @@
         selection.disconnect();
         intersection.disconnect();
         card?.destroy();
+        wheelControls?.remove();
+        window.TDBSliderFocus?.release(root);
+        for (const [name, value] of [
+          ['role', original.menuRole],
+          ['aria-label', original.menuLabel],
+        ])
+          if (value == null) menu.removeAttribute(name);
+          else menu.setAttribute(name, value);
         svg.remove();
         root.classList.remove('is-click-wheel', 'is-wheel-dragging');
         root.removeAttribute('data-tdb-guide-fallback');
