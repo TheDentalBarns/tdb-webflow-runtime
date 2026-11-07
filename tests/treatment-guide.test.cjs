@@ -7,8 +7,9 @@ function wheel() {
   const dom = new JSDOM(`<section data-tdb-guide><nav>${Array.from({length:5},(_,i)=>`<a href="#" data-tdb-guide-choice="${i}" class="${i===0?'w--current':''}" style="color:${i===0?'rgb(0,0,0)':'rgb(110,110,110)'}">Chapter ${i+1}</a>`).join('')}</nav><div class="art"><div class="treatment-guide_orbit"></div><span data-tdb-guide-number>01</span><a data-tdb-guide-ball tabindex="-1" aria-hidden="true"><span style="background-color:rgb(0,0,0)"></span></a></div></section>`,{runScripts:'outside-only',pretendToBeVisual:true});
   const w=dom.window, root=w.document.querySelector('section'), ball=root.querySelector('[data-tdb-guide-ball]');
   const choices=[...root.querySelectorAll('[data-tdb-guide-choice]')];
+  const menu=root.querySelector('nav');menu.className='treatment-guide_wheel';
   root.querySelector('.art').getBoundingClientRect=()=>({left:0,top:0,width:400,height:400});
-  root.querySelector('.treatment-guide_orbit').getBoundingClientRect=()=>({left:104,top:104,width:192,height:192});
+  root.querySelector('.treatment-guide_orbit').getBoundingClientRect=()=>({left:52,top:52,width:296,height:296});
   w.ResizeObserver=class{observe(){}disconnect(){}};
   w.IntersectionObserver=class{observe(){}disconnect(){}};
   w.TDBMotionPolicy={reduced:{matches:false}};
@@ -20,17 +21,35 @@ function wheel() {
   for(const choice of choices)choice.addEventListener('click',e=>{e.preventDefault();choices.forEach(c=>c.classList.toggle('w--current',c===choice));choice.focus()});
   w.eval(read('src/treatment-guide/wheel.js'));const api=w.TDBTreatmentGuideWheel.mount(root);
   function tick(count=1){for(let i=0;i<count;i++){time+=16;const list=[...frames.values()];frames.clear();list.forEach(fn=>fn(time))}}
-  function pointer(type,x,y){const e=new w.Event(type,{bubbles:true,cancelable:true});Object.assign(e,{pointerId:1,clientX:x,clientY:y,button:0});ball.dispatchEvent(e)}
+  function pointer(type,x,y,target=ball){const e=new w.Event(type,{bubbles:true,cancelable:true});Object.assign(e,{pointerId:1,clientX:x,clientY:y,button:0});target.dispatchEvent(e);return e}
   const position=()=>ball.style.transform.match(/-?[\d.]+(?=px)/g).map(Number);
-  return{w,root,ball,choices,api,tick,pointer,position,dispose(){api.destroy();w.close()}};
+  return{w,root,ball,menu,choices,api,tick,pointer,position,dispose(){api.destroy();w.close()}};
 }
-test('wheel stretches beyond the track and returns through multiple spring positions',()=>{
+test('click wheel allows a little radial elasticity and eases back to the middle of the pad',()=>{
  const t=wheel();try{
   t.pointer('pointerdown',200,104);t.pointer('pointermove',380,180);t.tick(30);
   assert.ok(t.position()[0]>150);
   const before=t.position();t.pointer('pointerup',380,180);assert.deepEqual(t.position(),before,'release must not teleport');
   const frames=[];for(let i=0;i<10;i++){t.tick(5);frames.push(t.position().join(','))}assert.ok(new Set(frames).size>5);
-  t.tick(180);const [x,dy]=t.position();assert.ok(Math.abs(Math.hypot(x,dy-96)-96)<.05);
+  t.tick(180);const [x,dy]=t.position();assert.ok(Math.abs(Math.hypot(x,dy-148)-148)<.05);
+ }finally{t.dispose()}
+});
+test('a gesture can start on the pad away from the marker while the centre remains available to scroll',()=>{
+ const t=wheel();try{
+  const centre=t.pointer('pointerdown',200,200,t.menu);assert.equal(centre.defaultPrevented,false);
+  assert.equal(t.ball.getAttribute('aria-valuenow'),'1');
+  const angle=72*Math.PI/180;t.pointer('pointerdown',200+Math.sin(angle)*148,200-Math.cos(angle)*148,t.menu);
+  assert.equal(t.ball.getAttribute('aria-valuenow'),'2');t.tick(30);
+  t.pointer('pointerup',340,154,t.menu);t.tick(180);
+  const [x,dy]=t.position();assert.ok(Math.abs(Math.hypot(x,dy-148)-148)<.05);
+ }finally{t.dispose()}
+});
+test('crossing twelve o clock continues around the short arc without an extra rotation',()=>{
+ const t=wheel();try{
+  const point=degrees=>[200+Math.sin(degrees*Math.PI/180)*148,200-Math.cos(degrees*Math.PI/180)*148];
+  t.pointer('pointerdown',...point(350),t.menu);t.tick(30);
+  t.pointer('pointermove',...point(370),t.menu);t.tick(30);
+  const [x,dy]=t.position();assert.ok(x>0&&Math.abs(dy)<8);assert.equal(t.ball.getAttribute('aria-valuenow'),'1');
  }finally{t.dispose()}
 });
 test('ball keyboard keeps focus and native keyboard tab changes update the wheel',async()=>{

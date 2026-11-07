@@ -11,6 +11,9 @@ function prepareTreatmentGuideLoader() {
   const allowed = () => !disposed && (!window.TDBConsent || window.TDBConsent.allows());
   async function wheel(root) {
     if (!allowed()) return;
+    await window.TDBModules.load(new URL('tdb-treatment-guide.css', TDBRuntimeModuleRoot), {
+      type: 'style',
+    });
     await window.TDBModules.load(new URL('tdb-motion.js', TDBRuntimeModuleRoot));
     await window.TDBModules.load(new URL('tdb-ticker.js', TDBRuntimeModuleRoot));
     await window.TDBModules.load(new URL('tdb-treatment-guide-wheel.js', TDBRuntimeModuleRoot), {
@@ -48,14 +51,29 @@ function prepareTreatmentGuideLoader() {
         },
       );
       if (allowed() && trigger.isConnected) {
-        trigger.closest('details').open = false;
+        const details = trigger.closest('details');
+        if (details) details.open = false;
         await api.open(
-          Number(trigger.closest('[data-tdb-guide-panel]').dataset.tdbGuidePanel),
+          Number(
+            trigger.dataset.tdbGuideTarget ??
+              trigger.closest('[data-tdb-guide-panel]')?.dataset.tdbGuidePanel,
+          ),
           trigger,
         );
       }
     } catch (error) {
-      if (allowed() && trigger.isConnected) trigger.closest('details').open = true;
+      if (allowed() && trigger.isConnected) {
+        const details =
+          trigger.closest('details') ||
+          root.querySelector(`[data-tdb-guide-panel="${trigger.dataset.tdbGuideTarget}"] details`);
+        if (details) {
+          details.open = true;
+          if (trigger.hasAttribute('data-tdb-guide-target')) {
+            root.setAttribute('data-tdb-guide-fallback', '');
+            details.querySelector('summary')?.focus({ preventScroll: true });
+          }
+        }
+      }
       if (error.name !== 'AbortError')
         console.warn('Treatment guide: using native chapter content.', error);
     } finally {

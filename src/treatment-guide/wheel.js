@@ -1,23 +1,22 @@
-/* Optional spring wheel. Native tabs own selection/content; no CMS text is copied here. */
+/* Click-wheel trial; native labels and bound panes remain the fallback. */
 (() => {
   'use strict';
   if (window.TDBTreatmentGuideWheel) return;
-  const instances = new WeakMap();
+  const instances = new WeakMap(),
+    turn = Math.PI * 2,
+    step = turn / 5;
+  const wrap = (angle) => Math.atan2(Math.sin(angle), Math.cos(angle));
+  const chapter = (angle) => ((Math.round(angle / step) % 5) + 5) % 5;
   function mount(root) {
     if (instances.has(root)) return instances.get(root);
-    const choices = [...root.querySelectorAll('[data-tdb-guide-choice]')];
-    const ball = root.querySelector('[data-tdb-guide-ball]');
-    const art = ball?.parentElement,
-      orbit = root.querySelector('.treatment-guide_orbit');
-    const number = root.querySelector('[data-tdb-guide-number]');
-    const positions = [...root.querySelectorAll('[data-tdb-guide-position]')].map((slot) =>
-      window.TDBNativeTicker?.mount(slot, {
-        valueClass: 'treatment-guide_number-value',
-        incomingClass: 'treatment-guide_number-incoming',
-      }),
-    );
-    if (!ball || choices.length !== 5 || !orbit)
-      throw Error('Treatment guide wheel structure missing');
+    const choices = [...root.querySelectorAll('[data-tdb-guide-choice]')],
+      ball = root.querySelector('[data-tdb-guide-ball]'),
+      art = ball?.parentElement;
+    const orbit = root.querySelector('.treatment-guide_orbit'),
+      menu = root.querySelector('.treatment-guide_wheel'),
+      number = root.querySelector('[data-tdb-guide-number]');
+    if (!ball || choices.length !== 5 || !orbit || !menu)
+      throw Error('Treatment guide structure missing');
     const events = new AbortController(),
       signal = events.signal;
     const original = {
@@ -29,92 +28,103 @@
       Boolean(window.TDBMotionPolicy?.reduced?.matches || window.TDBMotion?.reduced?.matches);
     const elapsed = (ms) => window.TDBMotionProfile?.elapsed(ms) ?? ms;
     const rgb = (color) => {
-      const values = color.match(/[\d.]+/g)?.map(Number) || [100, 100, 100];
+      const values = color.match(/[\d.]+/g)?.map(Number) || [0, 0, 0];
       return [...values.slice(0, 3), values[3] ?? 1];
     };
-    const muted = rgb(
-      getComputedStyle(choices.find((c) => !c.classList.contains('w--current')) || choices[0])
-        .color,
-    );
-    const ink = rgb(getComputedStyle(ball.firstElementChild || ball).backgroundColor);
     let active = Math.max(
       0,
-      choices.findIndex((c) => c.classList.contains('w--current')),
+      choices.findIndex((choice) => choice.classList.contains('w--current')),
     );
+    const muted = rgb(
+        getComputedStyle(
+          choices.find((choice) => !choice.classList.contains('w--current')) || choices[0],
+        ).color,
+      ),
+      ink = rgb(getComputedStyle(choices[active]).color);
+    const weights = choices.map((_, i) => (i === active ? 1 : 0)),
+      card = window.TDBTreatmentGuideCard?.mount(root, active);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 1000 1000');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    svg.classList.add('treatment-guide_finger-pad');
+    const ring = document.createElementNS(svg.namespaceURI, 'circle');
+    ring.setAttribute('cx', '500');
+    ring.setAttribute('cy', '500');
+    ring.setAttribute('r', '370');
+    ring.setAttribute('fill', 'none');
+    ring.setAttribute('stroke-width', '260');
+    ring.setAttribute('data-tdb-guide-pad', '');
+    svg.append(ring);
+    for (let i = 0; i < 5; i++) {
+      const line = document.createElementNS(svg.namespaceURI, 'line'),
+        a = (i + 0.5) * step;
+      line.setAttribute('x1', String(500 + Math.sin(a) * 260));
+      line.setAttribute('y1', String(500 - Math.cos(a) * 260));
+      line.setAttribute('x2', String(500 + Math.sin(a) * 480));
+      line.setAttribute('y2', String(500 - Math.cos(a) * 480));
+      line.setAttribute('vector-effect', 'non-scaling-stroke');
+      svg.append(line);
+    }
+    menu.prepend(svg);
+    root.classList.add('is-click-wheel');
     let radius = 100,
+      outer = 140,
       cx = 0,
       cy = 0,
-      x = 0,
-      y = -radius,
-      vx = 0,
-      vy = 0;
-    let tx = 0,
-      ty = -radius,
-      drag = null,
+      angle = active * step,
+      target = angle,
+      velocity = 0,
+      radial = 0,
+      radialTarget = 0,
+      radialVelocity = 0;
+    let drag = null,
       raf = 0,
       last = 0,
       visible = true,
-      disposed = false;
-    const weights = choices.map((_, i) => (i === active ? 1 : 0));
-    const home = (index) => ({
-      x: Math.sin((index * Math.PI * 2) / 5) * radius,
-      y: -Math.cos((index * Math.PI * 2) / 5) * radius,
-    });
-    const nearest = (px, py) =>
-      ((Math.round(Math.atan2(px, -py) / ((Math.PI * 2) / 5)) % 5) + 5) % 5;
-    function select(index, notify = true) {
+      disposed = false,
+      suppressUntil = 0;
+    function select(index, notify = true, direction) {
       index = ((index % 5) + 5) % 5;
       const previous = active;
       active = index;
-      if (previous !== index && positions[index]) {
-        positions[index].update(String(previous + 1).padStart(2, '0'), 1, false);
-        positions[index].update(String(index + 1).padStart(2, '0'), index > previous ? 1 : -1);
-      }
+      if (previous !== index)
+        card?.update(index, direction || (wrap((index - previous) * step) < 0 ? -1 : 1));
       if (notify && !choices[index].classList.contains('w--current')) choices[index].click();
       if (number) number.textContent = String(index + 1).padStart(2, '0');
       ball.setAttribute('aria-valuenow', String(index + 1));
       ball.setAttribute('aria-valuetext', choices[index].textContent.trim());
-      if (!drag) ({ x: tx, y: ty } = home(active));
+      if (!drag) target = angle + wrap(index * step - angle);
       start();
     }
     function measure() {
       const box = art.getBoundingClientRect(),
-        ring = orbit.getBoundingClientRect();
-      if (!box.width || !ring.width) return;
+        path = orbit.getBoundingClientRect();
+      if (!box.width || !path.width) return;
       cx = box.left + box.width / 2;
       cy = box.top + box.height / 2;
-      const scale = ring.width / 2 / radius;
-      radius = ring.width / 2;
-      x *= scale;
-      y *= scale;
-      vx *= scale;
-      vy *= scale;
-      if (!drag) ({ x: tx, y: ty } = home(active));
+      radius = path.width / 2;
+      outer = box.width / 2;
       start();
     }
     function render(dt) {
+      const distance = radius + radial,
+        x = Math.sin(angle) * distance,
+        y = -Math.cos(angle) * distance;
       ball.style.transform = `translate3d(${x.toFixed(3)}px,${(y + radius).toFixed(3)}px,0)`;
-      const speed = Math.hypot(vx, vy);
-      const core = ball.firstElementChild;
-      if (core) core.style.transform = `scale(${(1 + Math.min(0.14, speed / 9000)).toFixed(3)})`;
       let unsettled = false;
-      for (let i = 0; i < 5; i++) {
-        const point = home(i),
-          distance = Math.hypot(x - point.x, y - point.y) / radius;
-        const glow = drag
-          ? Math.max(i === active ? 0.6 : 0, 1 - distance / 1.05)
-          : i === active
-            ? 1
-            : 0;
+      choices.forEach((choice, i) => {
+        const proximity = Math.abs(wrap(angle - i * step)) / step,
+          glow = drag ? Math.max(i === active ? 0.6 : 0, 1 - proximity) : i === active ? 1 : 0;
         weights[i] += (glow - weights[i]) * (reduced() ? 1 : 1 - Math.exp(-dt * 11));
         if (Math.abs(glow - weights[i]) > 0.002) unsettled = true;
-        choices[i].style.color = `rgba(${muted
-          .map((c, j) => {
-            const value = c + (ink[j] - c) * weights[i];
-            return j === 3 ? value.toFixed(4) : Math.round(value);
+        choice.style.color = `rgba(${muted
+          .map((value, j) => {
+            const result = value + (ink[j] - value) * weights[i];
+            return j === 3 ? result.toFixed(4) : Math.round(result);
           })
           .join(',')})`;
-      }
+      });
       return unsettled;
     }
     function frame(now) {
@@ -127,88 +137,134 @@
       last = now;
       const dt = Math.max(0.001, (drag ? ms : elapsed(ms)) / 1000);
       if (reduced() && !drag) {
-        x = tx;
-        y = ty;
-        vx = vy = 0;
+        angle = target;
+        radial = 0;
+        velocity = radialVelocity = 0;
       } else {
         const steps = Math.max(1, Math.ceil(dt * 120)),
-          h = dt / steps;
-        const stiffness = drag ? 900 : 180,
+          h = dt / steps,
+          k = drag ? 900 : 170,
           damping = drag ? 47 : 22;
         for (let i = 0; i < steps; i++) {
-          vx += ((tx - x) * stiffness - vx * damping) * h;
-          vy += ((ty - y) * stiffness - vy * damping) * h;
-          x += vx * h;
-          y += vy * h;
+          velocity += ((target - angle) * k - velocity * damping) * h;
+          angle += velocity * h;
+          radialVelocity += ((radialTarget - radial) * k - radialVelocity * damping) * h;
+          radial += radialVelocity * h;
         }
       }
       const colors = render(dt);
-      if (Math.hypot(tx - x, ty - y) > 0.025 || Math.hypot(vx, vy) > 0.06 || colors) start();
-      else {
-        last = 0;
-      }
+      if (
+        Math.abs(target - angle) > 0.0001 ||
+        Math.abs(velocity) > 0.0004 ||
+        Math.abs(radialTarget - radial) > 0.025 ||
+        Math.abs(radialVelocity) > 0.06 ||
+        colors
+      )
+        start();
+      else last = 0;
     }
     function start() {
       if (!raf && !disposed && visible && !document.hidden) raf = requestAnimationFrame(frame);
     }
     function begin(event) {
       if ((event.button != null && event.button !== 0) || drag) return;
-      event.preventDefault?.();
+      const onBall = event.target?.closest?.('[data-tdb-guide-ball]');
+      if (!onBall && !menu.contains(event.target)) return;
       measure();
+      const px = event.clientX - cx,
+        py = event.clientY - cy,
+        distance = Math.hypot(px, py);
+      if (!onBall && (distance < 2 * radius - outer - 4 || distance > outer + 4)) return;
+      event.preventDefault?.();
+      const pointerAngle = Math.atan2(px, -py);
+      target = angle + wrap(pointerAngle - angle);
       drag = {
         id: event.pointerId,
-        ox: x - (event.clientX - cx),
-        oy: y - (event.clientY - cy),
         px: event.clientX,
         py: event.clientY,
+        previous: pointerAngle,
         time: performance.now(),
-        vx: 0,
-        vy: 0,
+        velocity: 0,
+        moved: false,
       };
-      ball.style.cursor = 'grabbing';
-      ball.setPointerCapture?.(event.pointerId);
+      radialTarget =
+        Math.tanh((distance - radius) / Math.max(1, outer - radius)) *
+        Math.max(0, outer - radius) *
+        0.18;
+      root.classList.add('is-wheel-dragging');
+      root.setPointerCapture?.(event.pointerId);
+      select(chapter(target));
       start();
     }
     function move(event) {
       if (!drag || drag.id !== event.pointerId) return;
-      const now = performance.now(),
+      const px = event.clientX - cx,
+        py = event.clientY - cy,
+        pointerAngle = Math.atan2(px, -py),
+        delta = wrap(pointerAngle - drag.previous),
+        now = performance.now(),
         dt = Math.max(8, now - drag.time) / 1000;
-      drag.vx = drag.vx * 0.35 + ((event.clientX - drag.px) / dt) * 0.65;
-      drag.vy = drag.vy * 0.35 + ((event.clientY - drag.py) / dt) * 0.65;
-      drag.px = event.clientX;
-      drag.py = event.clientY;
+      drag.velocity = drag.velocity * 0.4 + (delta / dt) * 0.6;
+      drag.previous = pointerAngle;
       drag.time = now;
-      tx = event.clientX - cx + drag.ox;
-      ty = event.clientY - cy + drag.oy;
-      const distance = Math.hypot(tx, ty),
-        limit = radius * 2.05;
-      if (distance > limit) {
-        const factor = (limit + Math.sqrt((distance - limit) * radius * 0.25)) / distance;
-        tx *= factor;
-        ty *= factor;
-      }
-      if (Math.hypot(tx, ty) > radius * 0.3) select(nearest(tx, ty));
+      if (Math.hypot(event.clientX - drag.px, event.clientY - drag.py) > 5) drag.moved = true;
+      if (Math.hypot(px, py) > outer * 0.15) target += delta;
+      radialTarget =
+        Math.tanh((Math.hypot(px, py) - radius) / Math.max(1, outer - radius)) *
+        Math.max(0, outer - radius) *
+        0.18;
+      select(chapter(target), true, delta < 0 ? -1 : 1);
       start();
     }
     function end(event, cancelled = false) {
       if (!drag || drag.id !== event.pointerId) return;
-      const freshness = Math.max(0, 1 - (performance.now() - drag.time) / 140);
-      const dx = Math.max(-1800, Math.min(1800, drag.vx * freshness));
-      const dy = Math.max(-1800, Math.min(1800, drag.vy * freshness));
-      const chosen = cancelled ? active : nearest(tx + dx * 0.105, ty + dy * 0.105);
+      const freshness = Math.max(0, 1 - (performance.now() - drag.time) / 140),
+        momentum = cancelled ? 0 : Math.max(-8, Math.min(8, drag.velocity * freshness));
+      const destination = Math.round((target + (cancelled ? 0 : momentum * 0.14)) / step) * step;
+      if (drag.moved) suppressUntil = performance.now() + 450;
       drag = null;
-      if (!cancelled) {
-        vx += dx * 0.35;
-        vy += dy * 0.35;
-      }
-      ball.style.cursor = 'grab';
-      if (ball.hasPointerCapture?.(event.pointerId)) ball.releasePointerCapture(event.pointerId);
-      select(chosen);
+      radialTarget = 0;
+      velocity += momentum * 0.45;
+      root.classList.remove('is-wheel-dragging');
+      if (root.hasPointerCapture?.(event.pointerId)) root.releasePointerCapture(event.pointerId);
+      select(chapter(destination), true, momentum < 0 ? -1 : 1);
+      target = destination;
+      start();
     }
+    root.addEventListener('pointerdown', begin, { signal });
+    document.addEventListener('pointermove', move, { passive: true, signal });
+    document.addEventListener('pointerup', (event) => end(event), { signal });
+    document.addEventListener('pointercancel', (event) => end(event, true), { signal });
+    root.addEventListener(
+      'lostpointercapture',
+      (event) => {
+        if (event.target === root) end(event, true);
+      },
+      { signal },
+    );
+    root.addEventListener(
+      'click',
+      (event) => {
+        if (
+          event.target.closest?.('[data-tdb-guide-ball]') ||
+          (event.isTrusted && performance.now() < suppressUntil && menu.contains(event.target))
+        ) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      },
+      { capture: true, signal },
+    );
+    root.addEventListener(
+      'dragstart',
+      (event) => {
+        if (menu.contains(event.target) || ball.contains(event.target)) event.preventDefault();
+      },
+      { signal },
+    );
     choices.forEach((choice, index) =>
       choice.addEventListener('click', () => select(index, false), { signal }),
     );
-    // Webflow also changes tabs through its own arrow-key handler, without a click.
     const selection = new MutationObserver(() => {
       const index = choices.findIndex((choice) => choice.classList.contains('w--current'));
       if (index >= 0 && index !== active) select(index, false);
@@ -216,13 +272,6 @@
     choices.forEach((choice) =>
       selection.observe(choice, { attributes: true, attributeFilter: ['class'] }),
     );
-    ball.addEventListener('pointerdown', begin, { signal });
-    document.addEventListener('pointermove', move, { passive: true, signal });
-    document.addEventListener('pointerup', (event) => end(event), { signal });
-    document.addEventListener('pointercancel', (event) => end(event, true), { signal });
-    ball.addEventListener('lostpointercapture', (event) => end(event, true), { signal });
-    ball.addEventListener('dragstart', (event) => event.preventDefault(), { signal });
-    ball.addEventListener('click', (event) => event.preventDefault(), { signal });
     ball.addEventListener(
       'keydown',
       (event) => {
@@ -276,13 +325,17 @@
     ball.setAttribute('aria-valuemin', '1');
     ball.setAttribute('aria-valuemax', '5');
     measure();
-    ({ x, y } = home(active));
     select(active, false);
     render(1);
     const api = {
       select,
       resume(seed) {
-        begin({ pointerId: seed.pointerId, clientX: seed.startX, clientY: seed.startY });
+        begin({
+          pointerId: seed.pointerId,
+          clientX: seed.startX,
+          clientY: seed.startY,
+          target: ball,
+        });
         move(seed);
         if (!seed.down) end(seed, seed.cancelled);
       },
@@ -292,8 +345,11 @@
         events.abort();
         observer.disconnect();
         selection.disconnect();
-        positions.forEach((ticker) => ticker?.destroy());
         intersection.disconnect();
+        card?.destroy();
+        svg.remove();
+        root.classList.remove('is-click-wheel', 'is-wheel-dragging');
+        root.removeAttribute('data-tdb-guide-fallback');
         choices.forEach((choice) => choice.style.removeProperty('color'));
         for (const [name, value] of [
           ['style', original.style],
@@ -302,7 +358,6 @@
         ])
           if (value == null) ball.removeAttribute(name);
           else ball.setAttribute(name, value);
-        ball.firstElementChild?.style.removeProperty('transform');
         instances.delete(root);
       },
     };
