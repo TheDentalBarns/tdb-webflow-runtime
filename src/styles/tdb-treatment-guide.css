@@ -5,9 +5,9 @@
 [data-tdb-guide].is-ivory-guide .treatment-guide_wheel,[data-tdb-guide].is-ivory-guide .treatment-guide_dial-art{grid-area:1 / 1 / 2 / 2!important;position:relative;inset:0;justify-self:center;align-self:start;width:100%;max-width:30rem;height:auto;aspect-ratio:1;margin:0;padding:0}
 [data-tdb-guide].is-ivory-guide .treatment-guide_wheel{z-index:2}
 [data-tdb-guide].is-ivory-guide .treatment-guide_wheel:focus-visible{outline:1px solid var(--tdb-guide-selected);outline-offset:.65rem;border-radius:50%}
-[data-tdb-guide].is-ivory-guide .treatment-guide_dial-art{z-index:1;pointer-events:none}
+[data-tdb-guide].is-ivory-guide .treatment-guide_dial-art{z-index:3;pointer-events:none}
 [data-tdb-guide].is-ivory-guide .treatment-guide_content{grid-area:1 / 2 / 2 / 3!important;width:100%;max-width:none;height:var(--tdb-guide-dial-size,30rem);margin:0;padding:0 0 0 3rem;border-left:1px solid var(--tdb-guide-selected);border-top:0}
-[data-tdb-guide].is-ivory-guide .treatment-guide_centre{position:absolute;top:50%;left:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:28%;height:28%;gap:0;align-items:center;justify-content:center;border-radius:50%;background:var(--tdb-guide-selected)}
+[data-tdb-guide].is-ivory-guide .treatment-guide_centre{position:absolute;top:50%;left:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:calc(28% + 1px);height:calc(28% + 1px);gap:0;align-items:center;justify-content:center;border-radius:50%;background:var(--tdb-guide-paper);box-shadow:inset 0 0 0 .75px color-mix(in srgb,var(--tdb-guide-selected) 55%,transparent),0 1px 4px color-mix(in srgb,var(--tdb-guide-surface) 8%,transparent)}
 [data-tdb-guide].is-ivory-guide .treatment-guide_centre>:not([data-guide-centre-pagination]),[data-tdb-guide].is-ivory-guide .treatment-guide_orbit,[data-tdb-guide].is-ivory-guide .treatment-guide_ball,[data-tdb-guide].is-ivory-guide .treatment-guide_choice{display:none}
 .treatment-guide_finger-pad{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;touch-action:none;z-index:0;overflow:visible}
 .treatment-guide_finger-pad>[data-tdb-guide-pad]{stroke:var(--tdb-guide-pad);pointer-events:stroke;touch-action:none;cursor:grab}
