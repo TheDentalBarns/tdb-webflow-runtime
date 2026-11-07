@@ -640,12 +640,14 @@
     "dist/tdb-treatment-guide-wheel.js": {
       "sources": [
         "src/treatment-guide/card.js",
+        "src/treatment-guide/pressure-masks.js",
+        "src/treatment-guide/pressure.js",
         "src/treatment-guide/wheel.js"
       ],
-      "sha256": "3e125986588ec81411f808d40bb9bcf25c0aba4af5edf354023934e0a0903ffa",
-      "raw": 16582,
-      "gzip": 5891,
-      "brotli": 5299
+      "sha256": "11cb7d83ac98963186696430d774eea8530d594211d19e5d2e3f7d1e9a586240",
+      "raw": 36277,
+      "gzip": 21446,
+      "brotli": 19984
     },
     "dist/tdb-usp-drawer-template.js": {
       "sources": [

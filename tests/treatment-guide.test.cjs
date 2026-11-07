@@ -3,6 +3,11 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const read = (file) => fs.readFileSync(__dirname + '/../' + file, 'utf8');
+test('rounded wedge masks reproduce from their colour-free source', () => {
+  require('node:child_process').execFileSync(process.execPath, [
+    __dirname + '/../tools/runtime-build/build-guide-pressure.cjs', '--check',
+  ]);
+});
 function wheel() {
   const dom = new JSDOM(
     `<section data-tdb-guide><nav>${Array.from({ length: 5 }, (_, i) => `<a href="#" data-tdb-guide-choice="${i}" class="${i === 0 ? 'w--current' : ''}">Chapter ${i + 1}</a>`).join('')}</nav><div class="art"><div class="treatment-guide_orbit"></div><span data-tdb-guide-number>01</span><a data-tdb-guide-ball tabindex="-1" aria-hidden="true"><span></span></a></div></section>`,
@@ -53,6 +58,8 @@ function wheel() {
       choices.forEach((c) => c.classList.toggle('w--current', c === choice));
       choice.focus();
     });
+  w.eval(read('src/treatment-guide/pressure-masks.js'));
+  w.eval(read('src/treatment-guide/pressure.js'));
   w.eval(read('src/treatment-guide/wheel.js'));
   const api = w.TDBTreatmentGuideWheel.mount(root),
     pressure = root.querySelector('.treatment-guide_pressure'),
@@ -386,6 +393,30 @@ test('teardown restores authored wheel semantics and removes its injected artwor
   assert.equal(t.menu.getAttribute('tabindex'), null);
   assert.equal(t.root.querySelector('.treatment-guide_finger-pad'), null);
   t.w.close();
+});
+
+test('rounded press stays behind the dividers and fully disappears after release', () => {
+  const t = wheel();
+  try {
+    const svg = t.root.querySelector('.treatment-guide_finger-pad');
+    const edge = svg.querySelector('.treatment-guide_pressure-contact');
+    const layer = edge.parentElement;
+    const lines = [...svg.querySelectorAll(':scope > line')];
+    assert.ok(lines.every((line) => layer.compareDocumentPosition(line) & 4));
+    assert.equal(Number(edge.style.opacity), 0);
+    assert.ok([...t.pressure.querySelectorAll('circle')].every((circle) => !circle.hasAttribute('cx') && !circle.hasAttribute('cy')));
+    t.pointer('pointerdown', 320, 40);
+    t.tick(45);
+    assert.equal(edge.style.opacity, t.pressure.style.opacity);
+    assert.equal(Number(edge.style.opacity), 1);
+    t.pointer('pointerup', 320, 40);
+    t.tick(180);
+    assert.equal(Number(edge.style.opacity), 0);
+    assert.equal(Number(t.pressure.style.opacity), 0);
+    assert.equal(t.pendingWork(), 0);
+  } finally {
+    t.dispose();
+  }
 });
 test('drawer can return focus to a newly selected chapter after the launch pane hides', async () => {
   const dom = new JSDOM(

@@ -15,9 +15,10 @@
 .treatment-guide_finger-pad>line{stroke:var(--tdb-guide-paper);stroke-width:1px;pointer-events:none}
 .treatment-guide_pressure{pointer-events:none;opacity:0}
 .treatment-guide_pressure-contact{pointer-events:none;opacity:0}
-.treatment-guide_pressure-core{stop-color:color-mix(in srgb,var(--tdb-guide-selected) 92%,var(--tdb-guide-ink))}
-.treatment-guide_pressure-dark{stop-color:var(--tdb-guide-selected)}
-.treatment-guide_pressure-light{stop-color:var(--tdb-guide-paper)}
+.treatment-guide_pressure-core{stop-color:oklch(from var(--tdb-guide-selected) calc(l - .035) c h)}
+.treatment-guide_pressure-light{stop-color:var(--tdb-guide-pad)}
+.treatment-guide_pressure-edge-dark{fill:oklch(from var(--tdb-guide-selected) calc(l - .035) c h)}
+.treatment-guide_pressure-edge-light{fill:var(--tdb-guide-pad)}
 .treatment-guide_wheel-icons{position:absolute;inset:0;z-index:1;pointer-events:none;color:var(--base-color-neutral--neutral-darker)}
 .treatment-guide_wheel-icons .treatment-guide_segment-icon{position:absolute;transform:translate(-50%,-50%);width:9%;height:9%;min-width:1.75rem;min-height:1.75rem;max-width:2.75rem;max-height:2.75rem;opacity:.28;pointer-events:none}
 [data-tdb-guide].is-wheel-dragging .treatment-guide_finger-pad>[data-tdb-guide-pad]{cursor:grabbing}

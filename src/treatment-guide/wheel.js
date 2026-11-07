@@ -7,7 +7,6 @@
     step = turn / 5;
   const wrap = (angle) => Math.atan2(Math.sin(angle), Math.cos(angle));
   const chapter = (angle) => ((Math.round(angle / step) % 5) + 5) % 5;
-  let serial = 0;
   function mount(root) {
     if (instances.has(root)) return instances.get(root);
     const choices = [...root.querySelectorAll('[data-tdb-guide-choice]')],
@@ -49,12 +48,8 @@
     ring.setAttribute('fill', 'none');
     ring.setAttribute('stroke-width', '360');
     ring.setAttribute('data-tdb-guide-pad', '');
-    const id = `tdb-guide-pressure-${++serial}`;
-    const defs = document.createElementNS(svg.namespaceURI, 'defs');
-    defs.innerHTML = `<radialGradient id="${id}-shade"><stop class="treatment-guide_pressure-core" offset="0" stop-opacity=".85"/><stop class="treatment-guide_pressure-dark" offset=".38" stop-opacity=".9"/><stop class="treatment-guide_pressure-dark" offset=".72" stop-opacity=".45"/><stop class="treatment-guide_pressure-dark" offset="1" stop-opacity="0"/></radialGradient><radialGradient id="${id}-light"><stop class="treatment-guide_pressure-light" offset="0" stop-opacity=".5"/><stop class="treatment-guide_pressure-light" offset="1" stop-opacity="0"/></radialGradient><clipPath id="${id}-clip"><path clip-rule="evenodd" d="M500 0A500 500 0 1 1 500 1000A500 500 0 1 1 500 0M500 360A140 140 0 1 0 500 640A140 140 0 1 0 500 360"/></clipPath>`;
-    svg.append(defs, ring);
-    defs.innerHTML += `<radialGradient id="${id}-contact" gradientUnits="userSpaceOnUse" cx="500" cy="500" r="500"><stop class="treatment-guide_pressure-core" offset=".28" stop-opacity=".6"/><stop class="treatment-guide_pressure-core" offset=".4" stop-opacity="0"/><stop class="treatment-guide_pressure-core" offset=".84" stop-opacity="0"/><stop class="treatment-guide_pressure-core" offset="1" stop-opacity=".6"/></radialGradient><radialGradient id="${id}-falloff"><stop offset="0" stop-color="white"/><stop offset=".55" stop-color="white" stop-opacity=".8"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient><mask id="${id}-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="1000" style="mask-type:alpha"><g class="treatment-guide_pressure-mask"><circle r="220" fill="url(#${id}-falloff)"/></g></mask>`;
-    const pressureMask = defs.querySelector('.treatment-guide_pressure-mask');
+    const indentation = window.TDBTreatmentGuidePressure.create(svg);
+    svg.append(ring);
     const point = (radius, angle) =>
       `${500 + Math.sin(angle) * radius} ${500 - Math.cos(angle) * radius}`;
     const segments = choices.map((_, i) => {
@@ -70,20 +65,7 @@
       svg.append(path);
       return path;
     });
-    const pressureClip = document.createElementNS(svg.namespaceURI, 'g'),
-      pressure = document.createElementNS(svg.namespaceURI, 'g');
-    pressureClip.setAttribute('clip-path', `url(#${id}-clip)`);
-    pressure.classList.add('treatment-guide_pressure');
-    pressure.innerHTML = `<circle cy="40" r="220" fill="url(#${id}-light)"/><circle r="200" fill="url(#${id}-shade)"/>`;
-    const contact = document.createElementNS(svg.namespaceURI, 'circle');
-    contact.classList.add('treatment-guide_pressure-contact');
-    contact.setAttribute('cx', '500');
-    contact.setAttribute('cy', '500');
-    contact.setAttribute('r', '500');
-    contact.setAttribute('fill', `url(#${id}-contact)`);
-    contact.setAttribute('mask', `url(#${id}-mask)`);
-    pressureClip.append(pressure, contact);
-    svg.append(pressureClip);
+    svg.append(indentation.layer);
     for (let i = 0; i < 5; i++) {
       const line = document.createElementNS(svg.namespaceURI, 'line'),
         a = (i + 0.5) * step;
@@ -214,7 +196,7 @@
       start();
     }
     function radialOffset(distance) {
-      // The glow follows the finger to the boundary; its mask conforms to the annulus.
+      // The indentation follows the finger to either boundary of the annulus.
       const reach = Math.max(0, outer - radius);
       return Math.max(-reach, Math.min(reach, distance - radius));
     }
@@ -223,9 +205,6 @@
         shownAngle = preview?.angle ?? angle,
         x = Math.sin(shownAngle) * distance,
         y = -Math.cos(shownAngle) * distance;
-      const transform = `translate(${500 + (x / outer) * 500} ${500 + (y / outer) * 500})`;
-      pressure.setAttribute('transform', transform);
-      pressureMask.setAttribute('transform', transform);
       let unsettled = false;
       const focus = preview ? chapter(shownAngle) : active;
       segments.forEach((segment, i) => {
@@ -241,8 +220,7 @@
       pressureOpacity += (pressed - pressureOpacity) * (reduced() ? 1 : 1 - Math.exp(-dt * 12));
       if (Math.abs(pressed - pressureOpacity) > 0.002) unsettled = true;
       else pressureOpacity = pressed;
-      pressure.style.opacity = pressureOpacity.toFixed(4);
-      contact.style.opacity = pressureOpacity.toFixed(4);
+      indentation.render(500 + (x / outer) * 500, 500 + (y / outer) * 500, pressureOpacity);
       return unsettled;
     }
     function frame(now) {

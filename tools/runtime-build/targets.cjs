@@ -86,6 +86,8 @@ module.exports = {
   'dist/tdb-ticker.js': ['src/shared/native-ticker.js'],
   'dist/tdb-treatment-guide-wheel.js': [
     'src/treatment-guide/card.js',
+    'src/treatment-guide/pressure-masks.js',
+    'src/treatment-guide/pressure.js',
     'src/treatment-guide/wheel.js',
   ],
   'dist/tdb-treatment-guide-drawer.js': ['src/treatment-guide/drawer.js'],
