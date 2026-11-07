@@ -1,6 +1,6 @@
-/* Approved Ivory trial. Designer still owns source typography, bindings and fallback. */
-[data-tdb-guide].is-ivory-guide{--tdb-guide-paper:var(--base-color-brand--orange-1);--tdb-guide-pad:var(--base-color-brand--orange-2);--tdb-guide-selected:var(--base-color-brand--orange-3);--tdb-guide-ink:var(--base-color-brand--black)}
-[data-tdb-guide].is-ivory-guide .treatment-guide_layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:3rem;padding:3rem;border:1px solid var(--tdb-guide-selected);background:var(--tdb-guide-paper);height:auto}
+/* Ivory/charcoal colour trial. Designer still owns source typography, bindings and fallback. */
+[data-tdb-guide].is-ivory-guide{--tdb-guide-paper:var(--base-color-brand--orange-1);--tdb-guide-pad:var(--base-color-brand--orange-2);--tdb-guide-selected:var(--base-color-brand--orange-3);--tdb-guide-ink:var(--base-color-brand--black);--tdb-guide-surface:var(--base-color-neutral--neutral-darker)}
+[data-tdb-guide].is-ivory-guide .treatment-guide_layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:3rem;padding:3rem;border:1px solid var(--tdb-guide-selected);background:var(--tdb-guide-surface);color:var(--tdb-guide-paper);height:auto}
 [data-tdb-guide].is-ivory-guide .treatment-guide_tabs{display:contents}
 [data-tdb-guide].is-ivory-guide .treatment-guide_wheel,[data-tdb-guide].is-ivory-guide .treatment-guide_dial-art{grid-area:1 / 1 / 2 / 2!important;position:relative;inset:0;justify-self:center;align-self:start;width:100%;max-width:30rem;height:auto;aspect-ratio:1;margin:0;padding:0}
 [data-tdb-guide].is-ivory-guide .treatment-guide_wheel{z-index:2}
@@ -18,7 +18,7 @@
 .treatment-guide_pressure-core{stop-color:color-mix(in srgb,var(--tdb-guide-selected) 92%,var(--tdb-guide-ink))}
 .treatment-guide_pressure-dark{stop-color:var(--tdb-guide-selected)}
 .treatment-guide_pressure-light{stop-color:var(--tdb-guide-paper)}
-.treatment-guide_wheel-icons{position:absolute;inset:0;z-index:1;pointer-events:none;color:var(--tdb-guide-paper)}
+.treatment-guide_wheel-icons{position:absolute;inset:0;z-index:1;pointer-events:none;color:var(--base-color-neutral--neutral-darker)}
 .treatment-guide_wheel-icons .treatment-guide_segment-icon{position:absolute;transform:translate(-50%,-50%);width:9%;height:9%;min-width:1.75rem;min-height:1.75rem;max-width:2.75rem;max-height:2.75rem;opacity:.28;pointer-events:none}
 [data-tdb-guide].is-wheel-dragging .treatment-guide_finger-pad>[data-tdb-guide-pad]{cursor:grabbing}
 [data-tdb-guide].is-ivory-guide:not([data-tdb-guide-fallback]) .treatment-guide_content>.treatment-guide_panel{display:none!important}
@@ -28,16 +28,17 @@
 [data-tdb-guide][data-tdb-guide-fallback] .treatment-guide_content{height:auto}
 .treatment-guide_title-stage,.treatment-guide_summary-stage{display:grid;width:100%;overflow:hidden;align-items:start;flex-shrink:0}
 .treatment-guide_title-stage>.treatment-guide_title,.treatment-guide_summary-stage>.treatment-guide_summary{grid-area:1/1;min-width:0;pointer-events:none;margin:0}
-[data-tdb-guide].is-ivory-guide .treatment-guide_card .treatment-guide_summary{color:var(--base-color-neutral--neutral)}
+[data-tdb-guide].is-ivory-guide .treatment-guide_title{color:var(--tdb-guide-paper)}
+[data-tdb-guide].is-ivory-guide .treatment-guide_card .treatment-guide_summary{color:var(--tdb-guide-selected)}
 .treatment-guide_card-footer{display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%;margin-top:auto;padding-top:1rem;flex-shrink:0}
 .treatment-guide_arrows{display:flex;gap:.75rem;align-items:center;flex-shrink:0}
-[data-tdb-guide] .treatment-guide_nav{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:max(3rem,44px);height:max(3rem,44px);padding:0;border:1px solid var(--base-color-brand--orange-3);border-radius:50%;color:var(--base-color-neutral--neutral);background:transparent;cursor:pointer;touch-action:manipulation}
-[data-tdb-guide] .treatment-guide_nav:hover,[data-tdb-guide] .treatment-guide_nav:focus-visible{color:var(--base-color-brand--black);background:color-mix(in srgb,var(--base-color-brand--orange-3) 20%,transparent)}
+[data-tdb-guide] .treatment-guide_nav{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:max(3rem,44px);height:max(3rem,44px);padding:0;border:1px solid var(--base-color-brand--orange-3);border-radius:50%;color:var(--base-color-brand--orange-3);background:transparent;cursor:pointer;touch-action:manipulation}
+[data-tdb-guide] .treatment-guide_nav:hover,[data-tdb-guide] .treatment-guide_nav:focus-visible{color:var(--base-color-brand--orange-1);background:color-mix(in srgb,var(--base-color-brand--orange-3) 20%,transparent)}
 [data-tdb-guide] .treatment-guide_nav:focus-visible{outline:1px solid currentColor;outline-offset:3px}
 [data-tdb-guide] .treatment-guide_nav .carousel-arrow-icon{display:block;width:1rem;height:1rem;background:currentColor;pointer-events:none;-webkit-mask:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg") center/contain no-repeat;mask:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg") center/contain no-repeat}
 [data-tdb-guide] .treatment-guide_nav .is-previous{transform:rotate(180deg)}
 [data-tdb-guide].is-ivory-guide .treatment-guide_learn-more{display:inline-flex;align-items:center;justify-content:center;gap:.75rem;min-height:44px;padding-left:1rem;padding-right:1rem;flex-shrink:0;margin:0;white-space:nowrap}
-[data-guide-centre-pagination]{display:flex;align-items:center;justify-content:center;gap:.4rem!important;white-space:nowrap;font-size:max(.75rem,11px);line-height:1.5;color:var(--base-color-neutral--neutral)}
+[data-guide-centre-pagination]{display:flex;align-items:center;justify-content:center;gap:.4rem!important;white-space:nowrap;font-size:max(.75rem,11px);line-height:1.5;color:var(--tdb-guide-paper)}
 [data-guide-centre-pagination] .tdb-pagination-rule{width:1.1rem;flex:0 0 1.1rem}
 [data-guide-centre-pagination] [data-tdb-guide-position]{position:relative;display:block;width:2.4ch;height:1.5em;overflow:hidden}
 .treatment-guide_number-value,.treatment-guide_number-incoming{position:absolute;inset:0;display:block;width:100%;height:100%;line-height:inherit}

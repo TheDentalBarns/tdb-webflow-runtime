@@ -71,7 +71,7 @@ window.TDBTreatmentGuideCard ||= (() => {
     });
     const explore = document.createElement('button');
     explore.type = 'button';
-    explore.className = 'button treatment-guide_learn-more';
+    explore.className = 'button is-alternate treatment-guide_learn-more';
     explore.setAttribute('data-tdb-guide-open', '');
     explore.setAttribute('aria-haspopup', 'dialog');
     const label = document.createElement('span'),
