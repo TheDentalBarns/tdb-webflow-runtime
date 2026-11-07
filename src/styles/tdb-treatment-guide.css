@@ -7,7 +7,7 @@
 [data-tdb-guide].is-ivory-guide .treatment-guide_wheel:focus-visible{outline:1px solid var(--tdb-guide-selected);outline-offset:.65rem;border-radius:50%}
 [data-tdb-guide].is-ivory-guide .treatment-guide_dial-art{z-index:1;pointer-events:none}
 [data-tdb-guide].is-ivory-guide .treatment-guide_content{grid-area:1 / 2 / 2 / 3!important;width:100%;max-width:none;height:var(--tdb-guide-dial-size,30rem);margin:0;padding:0 0 0 3rem;border-left:1px solid var(--tdb-guide-selected);border-top:0}
-[data-tdb-guide].is-ivory-guide .treatment-guide_centre{position:absolute;top:50%;left:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:28%;height:28%;gap:0;align-items:center;justify-content:center}
+[data-tdb-guide].is-ivory-guide .treatment-guide_centre{position:absolute;top:50%;left:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:28%;height:28%;gap:0;align-items:center;justify-content:center;border-radius:50%;background:var(--tdb-guide-selected)}
 [data-tdb-guide].is-ivory-guide .treatment-guide_centre>:not([data-guide-centre-pagination]),[data-tdb-guide].is-ivory-guide .treatment-guide_orbit,[data-tdb-guide].is-ivory-guide .treatment-guide_ball,[data-tdb-guide].is-ivory-guide .treatment-guide_choice{display:none}
 .treatment-guide_finger-pad{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;touch-action:none;z-index:0;overflow:visible}
 .treatment-guide_finger-pad>[data-tdb-guide-pad]{stroke:var(--tdb-guide-pad);pointer-events:stroke;touch-action:none;cursor:grab}
@@ -38,7 +38,7 @@
 [data-tdb-guide] .treatment-guide_nav .carousel-arrow-icon{display:block;width:1rem;height:1rem;background:currentColor;pointer-events:none;-webkit-mask:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg") center/contain no-repeat;mask:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg") center/contain no-repeat}
 [data-tdb-guide] .treatment-guide_nav .is-previous{transform:rotate(180deg)}
 [data-tdb-guide].is-ivory-guide .treatment-guide_learn-more{display:inline-flex;align-items:center;justify-content:center;gap:.75rem;min-height:44px;padding-left:1rem;padding-right:1rem;flex-shrink:0;margin:0;white-space:nowrap}
-[data-guide-centre-pagination]{display:flex;align-items:center;justify-content:center;gap:.4rem!important;white-space:nowrap;font-size:max(.75rem,11px);line-height:1.5;color:var(--tdb-guide-paper)}
+[data-guide-centre-pagination]{display:flex;align-items:center;justify-content:center;gap:.4rem!important;white-space:nowrap;font-size:max(.75rem,11px);line-height:1.5;color:var(--base-color-neutral--neutral-darker)}
 [data-guide-centre-pagination] .tdb-pagination-rule{width:1.1rem;flex:0 0 1.1rem}
 [data-guide-centre-pagination] [data-tdb-guide-position]{position:relative;display:block;width:2.4ch;height:1.5em;overflow:hidden}
 .treatment-guide_number-value,.treatment-guide_number-incoming{position:absolute;inset:0;display:block;width:100%;height:100%;line-height:inherit}
