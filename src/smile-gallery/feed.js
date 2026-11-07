@@ -4,8 +4,6 @@
   if (window.TDBSmileFeed) return;
   const base = new URL('./', document.currentScript.src);
   const templateHTML = __TDB_SMILE_TEMPLATE__;
-  const diamond =
-    'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc640ce35bc2256782dc_tdb-diamond-small-1px.svg';
   const records = new Map(),
     presentations = new WeakMap();
   let disposed = false,
@@ -200,16 +198,14 @@
       treatments.replaceChildren(
         ...item.treatments.map((label) => {
           const row = document.createElement('div'),
-            image = document.createElement('img'),
+            icon = document.createElement('span'),
             text = document.createElement('span');
           row.className = 'treatment-smile tdb-smile-treatment';
-          image.crossOrigin = 'anonymous';
-          image.src = diamond;
-          image.alt = '';
-          image.className = 'tdb-smile-treatment-icon';
+          icon.setAttribute('aria-hidden', 'true');
+          icon.className = 'tdb-smile-treatment-icon';
           text.className = 'paragraph-smile tdb-smile-treatment-name';
           text.textContent = label;
-          row.append(image, text);
+          row.append(icon, text);
           return row;
         }),
       );

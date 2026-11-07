@@ -25,5 +25,12 @@
 [data-wf--discover-smiles-deferred-gallery--variant="contained-dark"] [data-tdb-smile-feed-root] .tdb-smile-card::after{background:#000}
 [data-wf--discover-smiles-deferred-gallery--variant="contained-dark"] [data-tdb-smile-feed-root] .tdb-smile-heading,
 [data-wf--discover-smiles-deferred-gallery--variant="contained-dark"] [data-tdb-smile-feed-root] .tdb-smile-facts.tdb-smile-static-facts{color:#f9f2e6}
-[data-wf--discover-smiles-deferred-gallery--variant="contained-dark"] [data-tdb-smile-feed-root] .tdb-smile-fact-icon.tdb-smile-static-asset,
-[data-wf--discover-smiles-deferred-gallery--variant="contained-dark"] [data-tdb-smile-feed-root] .tdb-smile-treatment-icon{filter:invert(1)}
+/* Small artwork is a currentColor mask, so source SVG tints cannot leak into themes. */
+[data-wf--discover-smiles-deferred-gallery--variant="contained-dark"] [data-tdb-smile-feed-root]{--tdb-smile-icon-ink:#d6cab4;--tdb-smile-control-ink:#d6cab4}
+[data-tdb-smile-feed-root] .tdb-smile-fact-icon,
+[data-tdb-smile-feed-root] .tdb-smile-treatment-icon{display:block;background-color:currentColor;color:var(--tdb-smile-icon-ink,#888);mask-position:center;mask-size:contain;mask-repeat:no-repeat;filter:none;opacity:1}
+[data-tdb-smile-feed-root] [data-tdb-smile-icon="price"]{mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc626c94d2870769382e_tdb-price-small-1px.svg")}
+[data-tdb-smile-feed-root] [data-tdb-smile-icon="clock"]{mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc636dd65bf4f700d266_tdb-clock-small-1px.svg")}
+[data-tdb-smile-feed-root] .tdb-smile-treatment-icon{mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc640ce35bc2256782dc_tdb-diamond-small-1px.svg")}
+[data-tdb-smile-feed-root] .tdb-smile-clinician-icon{color:var(--tdb-smile-icon-ink,#888)}
+[data-tdb-smile-feed-root] .tdb-smile-buttons .carousel-arrow{color:var(--tdb-smile-control-ink,#000);border-color:currentColor}

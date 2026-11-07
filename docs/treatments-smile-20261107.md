@@ -4,6 +4,9 @@ The Treatments template reuses `Discover Smiles — deferred gallery`, the same
 Webflow component and JavaScript module as Home and Services. The Contained dark
 variant has a black native holder and black deferred card, with light text and
 icons. Treatments retain their previous gallery width and section proportions.
+Small price, clock, lotus and treatment icons use currentColor masks, with one
+cream colour on dark cards and metadata grey on light cards. Dark navigation
+arrows use that same cream; source SVG colours are never inverted.
 The shared benefit dividers use 30% currentColor so they remain visible on both
 light Services and dark Treatments backgrounds. Shared component edits reach all
 instances; instance content and variant overrides remain local.
