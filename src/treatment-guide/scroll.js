@@ -140,7 +140,7 @@
         contentBox = content.getBoundingClientRect(),
         viewport = window.visualViewport,
         height = Math.min(innerHeight, viewport?.height || innerHeight),
-        gap = innerWidth * 0.05,
+        gap = horizontal ? 0 : innerWidth * 0.05,
         offset = wheelBox.top - cardBox.top,
         needed = Math.max(wheelBox.bottom, contentBox.bottom) - wheelBox.top + gap + 12;
       const nextRadius = Math.max(0, wheelBox.width / 2 - 2.5);
@@ -181,10 +181,7 @@
       const styles = {
         '--tdb-guide-pin-top': pinTop + 'px',
         '--tdb-guide-scroll-travel': runway + 'px',
-        '--tdb-guide-background-start':
-          (horizontal
-            ? offset + wheelBox.height + (rim?.getBoundingClientRect().height || 5)
-            : offset + wheelBox.height / 2) + 'px',
+        '--tdb-guide-background-start': offset + wheelBox.height * (horizontal ? 1 : 0.5) + 'px',
         height: cardHeight + runway + 'px',
       };
       for (const [name, value] of Object.entries(styles))
@@ -215,7 +212,7 @@
           ? centre?.getBoundingClientRect().bottom || wheelBox.bottom
           : wheelBox.bottom;
         clearChrome(wheelBox.width > 0 && wheelBox.top < viewHeight && headerBottom > 0);
-        if (canArm && wheelBox.top >= innerWidth * 0.05) measure();
+        if (canArm && wheelBox.top >= (horizontal ? 0 : innerWidth * 0.05)) measure();
       }
       // All geometry reads precede any scroll/paint writes. Sticky wheel position
       // is derived from this one track rect and the cached dimensions.

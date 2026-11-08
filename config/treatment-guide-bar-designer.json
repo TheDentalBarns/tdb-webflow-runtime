@@ -21,7 +21,8 @@
       "border-right-width": "0px",
       "border-bottom-width": "0px",
       "border-left-width": "0px",
-      "isolation": "isolate"
+      "isolation": "isolate",
+      "margin-top": "0px"
     },
     "treatment-guide_wheel": {
       "width": "100vw",
@@ -48,13 +49,14 @@
       "height": "6rem",
       "max-width": "none",
       "aspect-ratio": "auto",
-      "margin-bottom": "calc(8rem + 5px)",
+      "margin-bottom": "8rem",
       "grid-column-start": "1",
       "grid-column-end": "2",
       "grid-row-start": "1",
       "grid-row-end": "2",
       "margin-left": "calc(50% - 50vw)",
-      "margin-right": "calc(50% - 50vw)"
+      "margin-right": "calc(50% - 50vw)",
+      "z-index": "4"
     },
     "treatment-guide_finger-pad": {
       "display": "none"
@@ -79,7 +81,7 @@
     },
     "treatment-guide_centre": {
       "left": "5vw",
-      "top": "calc(100% + 2rem + 5px)",
+      "top": "calc(100% + 2rem)",
       "right": "5vw",
       "bottom": "auto",
       "width": "90vw",
@@ -100,8 +102,8 @@
     "treatment-guide_rim": {
       "left": "0px",
       "right": "0px",
-      "top": "100%",
-      "bottom": "auto",
+      "top": "auto",
+      "bottom": "0px",
       "height": "5px",
       "border-top-left-radius": "0px",
       "border-top-right-radius": "0px",
@@ -127,7 +129,7 @@
       "grid-row-end": "3"
     },
     "treatment-guide_arch-body": {
-      "top": "calc(6rem + 5px)",
+      "top": "6rem",
       "display": "block"
     },
     "is-chapter-1": {},
@@ -199,7 +201,7 @@
       "treatment-guide_choice"
     ]
   },
-  "authoringNote": "Native tabs are static flex items, with all retired circular left/top coordinates removed from their exact combo styles. Progress top is 100%, with zero gap under the 6rem strip. Cream remains above the progress line; charcoal starts at 6rem + 5px.",
+  "authoringNote": "Native tabs are static flex items with retired circular offsets removed. The 5px progress track sits inside the bottom of the 6rem strip. The art layer paints above the tabs without intercepting input. Charcoal starts at 6rem. The horizontal guide pins at 0px with no top padding or spacer.",
   "removedComboProperties": {
     "is-chapter-1": [
       "left",

@@ -154,10 +154,12 @@ test('horizontal progress uses the same scroll endpoints and animates five back 
     const fill = t.root.querySelector('.tdb-guide-linear-progress');
     const fraction = () => parseFloat(fill.style.transform.slice(7));
     assert.equal(t.root.querySelector('svg'), null);
-    assert.equal(t.track.style.getPropertyValue('--tdb-guide-background-start'), '380px');
+    assert.equal(t.track.style.getPropertyValue('--tdb-guide-background-start'), '375px');
+    assert.equal(t.track.style.getPropertyValue('--tdb-guide-pin-top'), '-20px');
     for (let i = 1; i <= 5; i++) {
-      t.move(1000.5 + i * 312);
+      t.move(1020 + i * 312);
       t.tick();
+      assert.equal(t.root.querySelector('.treatment-guide_dial-art').getBoundingClientRect().top, 0);
       assert.ok(Math.abs(fraction() - i / 5) < 0.00001);
       assert.equal(t.current(), i - 1);
     }

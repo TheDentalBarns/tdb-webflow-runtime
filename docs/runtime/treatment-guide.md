@@ -1,6 +1,6 @@
 # Native treatment guide
 
-The Treatments template has one reusable `Treatment Guide — wheel` component (its legacy Designer name). The current staging presentation is a native six-rem horizontal chapter strip, with linear progress underneath and an icon ticker between two rules. It retains the charcoal card, five chapters, detailed artwork and shared drawer. Earlier circular trials are documented below for rollback.
+The Treatments template has one reusable `Treatment Guide — wheel` component (its legacy Designer name). The current staging presentation is a native six-rem horizontal chapter strip, with linear progress inside its bottom edge and an icon ticker between two rules. It retains the charcoal card, five chapters, detailed artwork and shared drawer. Earlier circular trials are documented below for rollback.
 
 ## Ownership
 
@@ -152,3 +152,9 @@ The shared selected-tab state keeps the focused segment in orange-3, overriding 
 The strip and its five-pixel progress track now span the viewport at every breakpoint. The card has zero top padding and no border; its 5vw side padding applies to the icon row, text and controls. The progress track begins at `top: 100%` of the six-rem strip, removing the charcoal gap. Cream fills the card's upper area and its sticky top gap. The native charcoal body and the static scroll-runway background both begin below the progress line. The icon row moves up by the removed gap and retains equal horizontal rules.
 
 Native chapter links are now static flex items in DOM order, with equal widths. The five combo classes no longer contain circular `left`/`top` coordinates. Static layout also ignores those offsets if an older rule is present, so numbers cannot fall back into an orbit or leave the strip. Scroll intervals, the 5vw sticky position, linear fill, arrows, horizontal scrubbing and the compact drawer retain their existing behaviour. Verification checks viewport-edge alignment, zero bar-to-progress gap, all five number bounds through scrolling/gestures, cream above the progress line, stale circular-rule resistance and following-parallax coverage.
+
+### Inset strip progress and zero-offset pin — 8 November 2026
+
+The horizontal strip now pins at `0px`, with no top padding or cream cap. Its 5px progress track sits inside the bottom edge of the numbered segments, matching the inset parallax treatment. Designer moves the existing progress container to `bottom:0`, raises its decorative art layer above the tabs, and removes the former external 5px allowance from the icon spacing and charcoal start. The layer remains transparent to pointer input, so chapter taps and scrubbing work across the strip.
+
+The scroll controller uses the same zero gap for fit checks, arming and sticky geometry. Charcoal starts exactly at the strip bottom, including the static runway. Native scrolling, segment endpoints, arrow animation and short-screen fallback retain their existing mechanics. Circular presentation retains its previous 5vw offset for rollback.
