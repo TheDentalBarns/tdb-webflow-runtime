@@ -97,6 +97,12 @@ function setup(options = {}) {
     width: 355,
     height: 265,
   });
+  if (options.horizontal) {
+    const centre = w.document.createElement('div');
+    centre.className = 'treatment-guide_centre';
+    layout.append(centre);
+    centre.getBoundingClientRect = () => ({ top: cardTop() + 400, bottom: cardTop() + 450 });
+  }
   w.eval(source);
   const api = w.TDBTreatmentGuideScroll.mount(root, {
     horizontal: options.horizontal,
@@ -163,6 +169,21 @@ test('horizontal progress uses the same scroll endpoints and animates five back 
     assert.equal(fraction(), 0.2);
     assert.equal(t.current(), 0);
     assert.equal(t.track.getAttribute('style'), style);
+  } finally {
+    t.close();
+  }
+});
+
+test('short-screen horizontal guide keeps menus clear until the icon row has left', () => {
+  const t = setup({ horizontal: true, height: 500 });
+  try {
+    assert.equal(t.api.enabled, false);
+    t.move(1410);
+    t.tick();
+    assert.equal(t.owners(), 1, 'bar is above the viewport but its icon row is visible');
+    t.move(1451);
+    t.tick();
+    assert.equal(t.owners(), 0);
   } finally {
     t.close();
   }

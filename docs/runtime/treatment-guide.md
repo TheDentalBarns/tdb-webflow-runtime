@@ -145,4 +145,4 @@ Horizontal finger movement scrubs one chapter per fifth of the strip's width. A 
 
 Browser checks cover six-rem geometry, equal segment targets, centred ticker/rules, scrolling and endpoint animations, 5→1 wrap, touch taps, horizontal drag/reversal, native vertical panning, short landscape fallback and desktop layout. Physical-device behaviour remains a separate check from Chromium/WebKit automation. Rollback requires restoring both the native property snapshot and the matching prior runtime pin.
 
-The full verification suite for this revision completed with 1,021 passes, three skips and no failures. Preview checks passed in Chromium at 320, 390 and 1440px, and WebKit at 390px portrait and 844px landscape.
+The shared selected-tab state keeps the focused segment in orange-3, overriding Webflow's transparent current-tab background. Menu clearance includes the icon row below the strip, also in the short-screen fallback. Preview and published checks passed in Chromium at 320, 390 and 1440px, and WebKit at 390px portrait and 844px landscape; Chromium also verified image coverage and parallax movement after release.

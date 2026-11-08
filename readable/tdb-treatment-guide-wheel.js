@@ -414,6 +414,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     if (!root.hasAttribute('data-tdb-guide-scroll')) return null;
     const layout = root.querySelector('.treatment-guide_layout'),
       art = root.querySelector('.treatment-guide_dial-art'),
+      centre = root.querySelector('.treatment-guide_centre'),
       content = root.querySelector('.treatment-guide_content'),
       rim = root.querySelector('.treatment-guide_rim');
     if (!layout || !art || !content) return null;
@@ -579,8 +580,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       wheelSize = horizontal
         ? Math.max(
             wheelBox.height,
-            (root.querySelector('.treatment-guide_centre')?.getBoundingClientRect().bottom ||
-              wheelBox.bottom) - wheelBox.top,
+            (centre?.getBoundingClientRect().bottom || wheelBox.bottom) - wheelBox.top,
           )
         : wheelBox.height;
       pinTop = gap - offset;
@@ -616,7 +616,10 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       const viewHeight = Math.min(innerHeight, window.visualViewport?.height || innerHeight);
       if (!enabled) {
         const wheelBox = art.getBoundingClientRect();
-        clearChrome(wheelBox.width > 0 && wheelBox.top < viewHeight && wheelBox.bottom > 0);
+        const headerBottom = horizontal
+          ? centre?.getBoundingClientRect().bottom || wheelBox.bottom
+          : wheelBox.bottom;
+        clearChrome(wheelBox.width > 0 && wheelBox.top < viewHeight && headerBottom > 0);
         if (canArm && wheelBox.top >= innerWidth * 0.05) measure();
       }
       // All geometry reads precede any scroll/paint writes. Sticky wheel position
