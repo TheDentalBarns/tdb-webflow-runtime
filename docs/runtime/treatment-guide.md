@@ -36,6 +36,13 @@ Source, readable/minified modules, CSS and generated metadata ship together. All
 
 On tablet and phone the native charcoal card follows the wheel with a semicircular top. A dedicated inline-size container and padding `(100cqw - 2px) / 22` reserve 5% of the wheel diameter inside the border on each side and above. Desktop retains the two-column layout. The five native choices show 01–05 while their hidden chapter headings preserve accessible labels.
 
-The former visible centre count is now a 64%-size artwork ticker using the existing detailed diamond, thumbprint, lotus, quotation and barn-window assets from the drawer. Designer owns its slot and asset classes. `data-tdb-guide-centre-icon` opts into the artwork renderer; the previous numeric markup remains supported for older published pages. The shared ticker owns directional movement and interruption handling; card teardown restores the native centre artwork. The position and chapter title remain available through the pagination aria-label and wheel slider semantics.
+The former visible centre count is now a 64%-size artwork ticker using the existing detailed diamond, thumbprint, lotus, quotation and barn-window assets from the drawer. Designer owns its slot, dimensions and initial diamond. The deferred guide CSS owns the five dynamic artwork mappings so Webflow cannot omit styles for the four icons absent from initial HTML. `data-tdb-guide-centre-icon` opts into the artwork renderer; the previous numeric markup remains supported for older published pages. The shared ticker owns directional movement and interruption handling; card teardown restores the native centre artwork. The position and chapter title remain available through the pagination aria-label and wheel slider semantics.
 
 Publish this review to staging only. Rollback requires both the prior component styling/markup and prior immutable runtime reference, as with the original migration.
+
+
+### Native fade conflict and complete artwork — 8 November 2026
+
+The native TabsWrapper still exported 400ms incoming and 200ms outgoing fades. During advancement the custom renderer exposed the incoming pane immediately, then Webflow reset that pane to zero opacity at roughly 200ms; the outgoing title also regained panel opacity when the native fade completed. Author both `data-duration-in` and `data-duration-out` as zero on this component. Native tabs retain selection/fallback semantics while the shared chapter animations own motion. Do not suppress chapter/title/ticker animation to mask this conflict.
+
+The four dynamically selected centre classes were omitted from published Webflow CSS. Their shared asset mappings now ship in the proximity-loaded guide CSS, using `data-guide-artwork` selectors. The native centre slot has 0.75 opacity. Verify actual computed masks and loaded SVGs for every chapter, not only the data attributes or first diamond.
