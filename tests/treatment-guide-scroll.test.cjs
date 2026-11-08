@@ -12,7 +12,7 @@ function setup(options = {}) {
   const w = dom.window,
     root = w.document.querySelector('section'),
     layout = root.firstElementChild;
-  w.innerWidth = 390;
+  w.innerWidth = options.width || 390;
   w.innerHeight = options.height || 844;
   w.scrollY = options.y || 0;
   const reduced = new w.EventTarget();
@@ -56,6 +56,13 @@ function setup(options = {}) {
   };
   if (options.lenis)
     w.lenis = {
+      on(name, callback) {
+        assert.equal(name, 'scroll');
+        this.paintScroll = callback;
+        return () => {
+          this.paintScroll = null;
+        };
+      },
       scrollTo(top, config) {
         assert.equal(config.immediate, true);
         assert.equal(config.force, true);
@@ -65,7 +72,14 @@ function setup(options = {}) {
     };
   const cardTop = () =>
     root.classList.contains('is-guide-scroll-enabled')
-      ? Math.max(-15, 1000 - w.scrollY)
+      ? Math.max(
+          parseFloat(
+            root
+              .querySelector('.tdb-guide-scroll-track')
+              .style.getPropertyValue('--tdb-guide-pin-top'),
+          ) || 0,
+          1000 - w.scrollY,
+        )
       : 1000 - w.scrollY;
   layout.getBoundingClientRect = () => ({
     top: cardTop(),
@@ -132,21 +146,21 @@ test('native scroll holds chrome across five chapters, then releases in both dir
     assert.equal(t.api.enabled, true);
     assert.equal(t.owners(), 0);
     for (let i = 0; i < 5; i++) {
-      t.move(1015 + i * 312 + 10);
+      t.move(1000.5 + i * 312 + 10);
       t.tick();
       assert.equal(t.current(), i);
       assert.equal(t.api.pinned, true);
       assert.equal(t.owners(), 1);
     }
     assert.deepEqual(t.changes, [0, 1, 2, 3, 4]);
-    t.move(1015 + 1561);
+    t.move(1000.5 + 1561);
     t.tick();
     assert.equal(t.api.pinned, false);
     assert.equal(t.owners(), 0);
-    t.move(1015 + 3 * 312);
+    t.move(1000.5 + 3 * 312);
     t.tick();
     assert.equal(t.current(), 3);
-    t.move(1014);
+    t.move(999.5);
     t.tick();
     assert.equal(t.current(), 0);
     assert.equal(t.owners(), 0);
@@ -169,18 +183,18 @@ test('manual selection synchronises scroll progress through the existing Lenis o
     t.setIndex(3);
     t.tick();
     assert.equal(t.current(), 3);
-    assert.ok(Math.abs(t.w.scrollY - (1015 + 3.15 * 312)) < 0.01);
+    assert.ok(Math.abs(t.w.scrollY - (1000.5 + 3.15 * 312)) < 0.01);
     assert.equal(
       t.root.querySelector('.tdb-guide-scroll-progress circle').style.strokeDashoffset,
       '37.000',
     );
     assert.equal(t.owners(), 1);
     t.w.TDBScrollLock.active = true;
-    t.move(1015 + 312);
+    t.move(1000.5 + 312);
     t.tick();
     assert.equal(t.current(), 3, 'a modal owns reading while open');
     t.w.TDBScrollLock.active = false;
-    t.move(1015 + 312);
+    t.move(1000.5 + 312);
     t.tick();
     assert.equal(t.current(), 1);
   } finally {
@@ -196,7 +210,7 @@ test('rim fills continuously across the entire scroll journey and unwinds on rev
     assert.equal(arc.getAttribute('stroke-width'), '5');
     assert.equal(arc.style.strokeDashoffset, '100.000');
     for (const fraction of [0, 0.125, 0.2, 0.5, 0.8, 0.999, 1, 1.2, 0.45, -0.1]) {
-      t.move(1015 + fraction * 1560);
+      t.move(1000.5 + fraction * 1560);
       t.tick();
       assert.ok(
         Math.abs(
@@ -214,6 +228,65 @@ test('rim fills continuously across the entire scroll journey and unwinds on rev
     assert.ok(t.root.querySelector('.treatment-guide_rim'), 'native rim survives teardown');
   } finally {
     t.close();
+  }
+});
+
+test('wheel pins at 5vw and keeps progress when the viewport gap changes', () => {
+  for (const width of [320, 390, 768, 1440]) {
+    const t = setup({ width, height: 1200 });
+    try {
+      const gap = width * 0.05;
+      const start = 1020 - gap;
+      const distance = Math.max(240, Math.min(480, width * 0.8));
+      const art = t.root.querySelector('.treatment-guide_dial-art');
+      const arc = t.root.querySelector('.tdb-guide-scroll-progress circle');
+      t.move(start + distance * 2.5);
+      t.tick();
+      assert.equal(art.getBoundingClientRect().top, gap);
+      assert.equal(arc.style.strokeDashoffset, '50.000');
+      t.w.innerWidth = width + 40;
+      t.w.dispatchEvent(new t.w.Event('resize'));
+      t.tick();
+      assert.equal(art.getBoundingClientRect().top, (width + 40) * 0.05);
+      assert.equal(arc.style.strokeDashoffset, '50.000');
+      assert.equal(t.api.pinned, true);
+    } finally {
+      t.close();
+    }
+  }
+});
+
+test('the full 5vw gap must fit above the controls before pinning', () => {
+  const t = setup({ height: 665 });
+  try {
+    // Content spans 640px. The old 5px gap fit; 19.5px plus 12px below does not.
+    assert.equal(t.api.enabled, false);
+  } finally {
+    t.close();
+  }
+});
+
+test('progress paints in the native or Lenis scroll event at any speed without a trailing frame', () => {
+  for (const lenis of [false, true]) {
+    const t = setup({ lenis });
+    try {
+      const arc = t.root.querySelector('.tdb-guide-scroll-progress circle');
+      for (const pixels of [1, 2, 15, 249, 1200, 600, 599, 1560, 0]) {
+        if (lenis) {
+          // Lenis has rendered the position, before the next native scroll event.
+          t.w.scrollY = 1000.5 + pixels;
+          t.w.lenis.paintScroll();
+        } else t.move(1000.5 + pixels);
+        const expected = 100 * (1 - pixels / 1560);
+        assert.ok(Math.abs(Number(arc.style.strokeDashoffset) - expected) < 0.001);
+        t.tick();
+        assert.ok(Math.abs(Number(arc.style.strokeDashoffset) - expected) < 0.001);
+      }
+      t.api.destroy();
+      if (lenis) assert.equal(t.w.lenis.paintScroll, null);
+    } finally {
+      t.close();
+    }
   }
 });
 
@@ -237,7 +310,7 @@ test('rotation and teardown remove consumed travel without throwing the reader p
   for (const destroy of [false, true]) {
     const t = setup();
     try {
-      t.move(1015 + 2 * 312);
+      t.move(1000.5 + 2 * 312);
       t.tick();
       if (destroy) t.api.destroy();
       else {
@@ -245,7 +318,7 @@ test('rotation and teardown remove consumed travel without throwing the reader p
         t.w.dispatchEvent(new t.w.Event('resize'));
         t.tick();
       }
-      assert.equal(t.w.scrollY, 1015);
+      assert.equal(t.w.scrollY, 1000.5);
       assert.equal(t.owners(), 0);
       assert.equal(t.root.classList.contains('is-guide-scroll-enabled'), false);
       if (destroy) assert.equal(t.layout.parentElement, t.root);

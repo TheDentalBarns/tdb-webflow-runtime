@@ -52,6 +52,8 @@
       lastIndex = -1,
       radius = -1,
       painted = '',
+      lenis = null,
+      unbindLenis = null,
       releaseChrome = null;
     function paintProgress(fraction) {
       if (!arc) return;
@@ -59,6 +61,20 @@
       if (offset === painted) return;
       painted = offset;
       arc.style.strokeDashoffset = offset;
+    }
+    function bindLenis() {
+      if (lenis === window.lenis) return;
+      unbindLenis?.();
+      lenis = window.lenis;
+      unbindLenis = lenis?.on?.('scroll', onScroll);
+    }
+    function onScroll() {
+      bindLenis();
+      // Sample rendered travel in the scroll owner's event, without another
+      // animation frame or easing curve between the input and the ring.
+      if (enabled && !suspended && !document.hidden)
+        paintProgress((window.scrollY - start) / runway);
+      schedule();
     }
     function scrollTo(top) {
       if (window.lenis?.scrollTo) window.lenis.scrollTo(top, { immediate: true, force: true });
@@ -97,8 +113,9 @@
         contentBox = content.getBoundingClientRect(),
         viewport = window.visualViewport,
         height = Math.min(innerHeight, viewport?.height || innerHeight),
+        gap = innerWidth * 0.05,
         offset = wheelBox.top - cardBox.top,
-        needed = Math.max(wheelBox.bottom, contentBox.bottom) - wheelBox.top + 17;
+        needed = Math.max(wheelBox.bottom, contentBox.bottom) - wheelBox.top + gap + 12;
       const nextRadius = Math.max(0, wheelBox.width / 2 - 2.5);
       if (arc && nextRadius !== radius) {
         radius = nextRadius;
@@ -112,11 +129,12 @@
         (!viewport || viewport.scale <= 1);
       if (!fits) return disable();
       // Do not insert scroll travel above a restored reading position.
-      if (!enabled && wheelBox.top < 5) return;
+      if (!enabled && wheelBox.top < gap) return;
       const fraction = enabled ? Math.max(0, Math.min(5, (window.scrollY - start) / distance)) : 0;
       const oldDistance = distance;
+      const oldPinTop = pinTop;
       const margin = getComputedStyle(layout).marginBottom;
-      pinTop = 5 - offset;
+      pinTop = gap - offset;
       distance = Math.max(240, Math.min(480, innerWidth * 0.8));
       runway = distance * 5;
       track.style.setProperty('--tdb-guide-pin-top', pinTop + 'px');
@@ -126,15 +144,17 @@
       root.classList.add('is-guide-scroll-enabled');
       enabled = true;
       start = track.getBoundingClientRect().top + window.scrollY - pinTop;
-      if (pinned && oldDistance !== distance) scrollTo(start + fraction * distance);
+      if (pinned && (oldDistance !== distance || oldPinTop !== pinTop))
+        scrollTo(start + fraction * distance);
     }
     function update() {
       raf = 0;
       if (disposed || suspended || document.hidden) return hold(false);
+      bindLenis();
       if (resize) measure();
       if (!enabled) {
         // A restored page can arm on its next approach from above.
-        if (art.getBoundingClientRect().top >= 5) measure();
+        if (art.getBoundingClientRect().top >= innerWidth * 0.05) measure();
         if (!enabled) return;
       }
       start = track.getBoundingClientRect().top + window.scrollY - pinTop;
@@ -159,7 +179,7 @@
     const observer = new ResizeObserver(() => schedule(true));
     observer.observe(layout);
     observer.observe(art);
-    window.addEventListener('scroll', () => schedule(), { passive: true, signal });
+    window.addEventListener('scroll', onScroll, { passive: true, signal });
     window.addEventListener('resize', () => schedule(true), { passive: true, signal });
     window.visualViewport?.addEventListener('resize', () => schedule(true), {
       passive: true,
@@ -218,6 +238,7 @@
         if (disposed) return;
         disposed = true;
         events.abort();
+        unbindLenis?.();
         observer.disconnect();
         cancelAnimationFrame(raf);
         disable();
