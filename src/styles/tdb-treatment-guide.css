@@ -24,7 +24,7 @@
 .tdb-guide-scroll-progress circle{transition:none}
 /* No entry/exit overlap, including fast arrivals and late-mounted banners.
  * The shared chrome owner still owns transforms and the return animation. */
-html:has([data-tdb-guide].is-guide-chrome-away) :is(.navbar10_component,.navbar10_component *,.navbar-bg_layer,.tdb-announcement,#tdb-elfsight-timer-shell,#tdb-vip-drawer){visibility:hidden!important;pointer-events:none!important}
+html:has([data-tdb-guide].is-guide-chrome-away) :is(.navbar10_component,.navbar10_component *,.navbar-bg_layer,.tdb-announcement,#tdb-elfsight-timer-shell,#tdb-vip-drawer){visibility:hidden!important;pointer-events:none!important;transition:none!important}
 
 /* Ticker-generated artwork must ship with the widget: Designer omits unused classes. */
 .treatment-guide_centre-icon [data-guide-artwork="diamond"]{-webkit-mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg");mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg")}
