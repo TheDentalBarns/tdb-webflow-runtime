@@ -449,6 +449,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     }
     let enabled = false,
       pinned = false,
+      chromeAway = false,
       rotating = false,
       rotationY = 0,
       suspended = false,
@@ -497,11 +498,18 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       if (value) {
         controls.interact();
         window.TDBSliderFocus?.release(root);
-        releaseChrome = window.TDBSiteChrome?.acquire();
       } else {
+        window.TDBSliderFocus?.release(root);
+      }
+    }
+    function clearChrome(value) {
+      if (chromeAway === value) return;
+      chromeAway = value;
+      root.classList.toggle('is-guide-chrome-away', value);
+      if (value) releaseChrome = window.TDBSiteChrome?.acquire();
+      else {
         releaseChrome?.();
         releaseChrome = null;
-        window.TDBSliderFocus?.release(root);
       }
     }
     function disable() {
@@ -560,12 +568,21 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     }
     function update() {
       raf = 0;
-      if (disposed || suspended || document.hidden) return hold(false);
+      if (disposed || suspended || document.hidden) {
+        hold(false);
+        clearChrome(false);
+        return;
+      }
       bindLenis();
       if (resize) measure();
+      const wheelBox = art.getBoundingClientRect();
+      const viewHeight = Math.min(innerHeight, window.visualViewport?.height || innerHeight);
+      // Clear the menus on approach, and keep them clear until the entire wheel
+      // has left. Pin release alone must not bring a banner over the dial.
+      clearChrome(wheelBox.width > 0 && wheelBox.top < viewHeight && wheelBox.bottom > 0);
       if (!enabled) {
         // A restored page can arm on its next approach from above.
-        if (art.getBoundingClientRect().top >= innerWidth * 0.05) measure();
+        if (wheelBox.top >= innerWidth * 0.05) measure();
         if (!enabled) return;
       }
       start = track.getBoundingClientRect().top + window.scrollY - pinTop;
@@ -612,6 +629,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       () => {
         suspended = true;
         hold(false);
+        clearChrome(false);
       },
       { signal },
     );
@@ -626,8 +644,10 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     document.addEventListener(
       'visibilitychange',
       () => {
-        if (document.hidden) hold(false);
-        else schedule(true);
+        if (document.hidden) {
+          hold(false);
+          clearChrome(false);
+        } else schedule(true);
       },
       { signal },
     );
@@ -669,6 +689,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         observer.disconnect();
         cancelAnimationFrame(raf);
         disable();
+        clearChrome(false);
         progress?.remove();
         track.replaceWith(layout);
       },

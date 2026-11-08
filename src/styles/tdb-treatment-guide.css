@@ -22,8 +22,9 @@
 .tdb-guide-scroll-progress{position:absolute;inset:0;display:none;width:100%;height:100%;opacity:.75;pointer-events:none;transform:rotate(-90deg);transform-origin:50% 50%}
 .is-guide-scroll-enabled .tdb-guide-scroll-progress{display:block}
 .tdb-guide-scroll-progress circle{transition:none}
-/* A late-loading booking banner follows the same shared chrome motion. */
-html:has([data-tdb-guide].is-guide-scroll-pinned) #tdb-elfsight-timer-shell{transform:translate3d(0,-100%,0)!important;opacity:1!important;visibility:hidden!important;pointer-events:none!important;transition:transform var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-peek-ease,var(--tdb-motion-ease-control,cubic-bezier(.4,0,.2,1))),visibility 0s var(--tdb-peek-duration,calc(420ms * var(--tdb-fade-pace,1)))!important}
+/* No entry/exit overlap, including fast arrivals and late-mounted banners.
+ * The shared chrome owner still owns transforms and the return animation. */
+html:has([data-tdb-guide].is-guide-chrome-away) :is(.navbar10_component,.navbar10_component *,.navbar-bg_layer,.tdb-announcement,#tdb-elfsight-timer-shell,#tdb-vip-drawer){visibility:hidden!important;pointer-events:none!important}
 
 /* Ticker-generated artwork must ship with the widget: Designer omits unused classes. */
 .treatment-guide_centre-icon [data-guide-artwork="diamond"]{-webkit-mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg");mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg")}

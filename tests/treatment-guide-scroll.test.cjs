@@ -70,17 +70,13 @@ function setup(options = {}) {
         move(top);
       },
     };
-  const cardTop = () =>
-    root.classList.contains('is-guide-scroll-enabled')
-      ? Math.max(
-          parseFloat(
-            root
-              .querySelector('.tdb-guide-scroll-track')
-              .style.getPropertyValue('--tdb-guide-pin-top'),
-          ) || 0,
-          1000 - w.scrollY,
-        )
-      : 1000 - w.scrollY;
+  const cardTop = () => {
+    if (!root.classList.contains('is-guide-scroll-enabled')) return 1000 - w.scrollY;
+    const style = root.querySelector('.tdb-guide-scroll-track').style;
+    const top = parseFloat(style.getPropertyValue('--tdb-guide-pin-top')) || 0;
+    const travel = parseFloat(style.getPropertyValue('--tdb-guide-scroll-travel')) || 0;
+    return Math.min(Math.max(top, 1000 - w.scrollY), 1000 + travel - w.scrollY);
+  };
   layout.getBoundingClientRect = () => ({
     top: cardTop(),
     bottom: cardTop() + 760,
@@ -140,7 +136,7 @@ function setup(options = {}) {
   };
 }
 
-test('native scroll holds chrome across five chapters, then releases in both directions', () => {
+test('native scroll releases pinning in both directions while visible wheel keeps menus clear', () => {
   const t = setup();
   try {
     assert.equal(t.api.enabled, true);
@@ -156,20 +152,57 @@ test('native scroll holds chrome across five chapters, then releases in both dir
     t.move(1000.5 + 1561);
     t.tick();
     assert.equal(t.api.pinned, false);
-    assert.equal(t.owners(), 0);
+    assert.equal(t.owners(), 1);
     t.move(1000.5 + 3 * 312);
     t.tick();
     assert.equal(t.current(), 3);
     t.move(999.5);
     t.tick();
     assert.equal(t.current(), 0);
-    assert.equal(t.owners(), 0);
+    assert.equal(t.owners(), 1);
     // This feature must not intercept or cancel browser gestures.
     for (const name of ['wheel', 'touchmove']) {
       const event = new t.w.Event(name, { bubbles: true, cancelable: true });
       t.root.dispatchEvent(event);
       assert.equal(event.defaultPrevented, false);
     }
+  } finally {
+    t.close();
+  }
+});
+
+test('menus clear on wheel entry and return only after its final edge leaves, including reverse', () => {
+  const t = setup();
+  try {
+    const otherRelease = t.w.TDBSiteChrome.acquire();
+    t.move(177); // First pixel of the wheel has entered the 844px viewport.
+    t.tick();
+    assert.equal(t.api.pinned, false);
+    assert.equal(t.owners(), 2);
+    assert.equal(t.root.classList.contains('is-guide-chrome-away'), true);
+    t.move(2561); // Pinning has finished, but the wheel is still visible.
+    t.tick();
+    assert.equal(t.api.pinned, false);
+    assert.equal(t.owners(), 2);
+    t.move(2934);
+    t.tick();
+    assert.equal(t.owners(), 2);
+    t.move(2936);
+    t.tick();
+    assert.equal(t.owners(), 1);
+    assert.equal(t.root.classList.contains('is-guide-chrome-away'), false);
+    t.move(2900);
+    t.tick();
+    assert.equal(t.owners(), 2);
+    t.move(175);
+    t.tick();
+    assert.equal(t.owners(), 1);
+    t.move(1100);
+    t.tick();
+    t.api.destroy();
+    assert.equal(t.owners(), 1, 'teardown leaves the other chrome owner intact');
+    assert.equal(t.root.classList.contains('is-guide-chrome-away'), false);
+    otherRelease();
   } finally {
     t.close();
   }
@@ -298,7 +331,7 @@ test('short/reduced-motion screens retain the native card with no extra scroll t
       assert.equal(t.track.style.paddingBottom, '');
       t.move(1150);
       t.tick();
-      assert.equal(t.owners(), 0);
+      assert.equal(t.owners(), 1, 'the visible fallback wheel also keeps menus clear');
       assert.deepEqual(t.changes, []);
     } finally {
       t.close();
@@ -351,7 +384,7 @@ test('rotation and teardown remove consumed travel without throwing the reader p
         t.tick();
       }
       assert.equal(t.w.scrollY, 1000.5);
-      assert.equal(t.owners(), 0);
+      assert.equal(t.owners(), destroy ? 0 : 1);
       assert.equal(t.root.classList.contains('is-guide-scroll-enabled'), false);
       if (destroy) assert.equal(t.layout.parentElement, t.root);
     } finally {
@@ -396,6 +429,9 @@ test('Escape, pagehide and reduced-motion changes release only this guide owner'
     t.reduced.dispatchEvent(new t.w.Event('change'));
     t.tick();
     assert.equal(t.api.enabled, false);
+    assert.equal(t.owners(), 1);
+    t.move(1600);
+    t.tick();
     assert.equal(t.owners(), 0);
   } finally {
     t.close();
