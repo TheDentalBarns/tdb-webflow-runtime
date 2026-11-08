@@ -160,9 +160,28 @@
       "treatment-guide_dial-art",
       "treatment-guide_content",
       "treatment-guide_arrows",
-      "treatment-guide_arch-body"
+      "treatment-guide_arch-body",
+      "treatment-guide_pagination"
     ]
   },
   "preserved": "CMS bindings, native tabs/details, existing mobile side/footer padding and drawer",
-  "runtime": "Native layout reserves space; bar.js owns only selection, pointer gestures and transient gradient paint. scroll.js owns sticky enhancement and linear progress."
+  "runtime": "Native layout reserves space; bar.js owns only selection, pointer gestures and transient gradient paint. scroll.js owns sticky enhancement and linear progress.",
+  "comboStyleParents": {
+    "is-chapter-1": [
+      "treatment-guide_choice"
+    ],
+    "is-chapter-2": [
+      "treatment-guide_choice"
+    ],
+    "is-chapter-3": [
+      "treatment-guide_choice"
+    ],
+    "is-chapter-4": [
+      "treatment-guide_choice"
+    ],
+    "is-chapter-5": [
+      "treatment-guide_choice"
+    ]
+  },
+  "authoringNote": "Pass parent_style_names when updating chapter combo classes. Identically named unused root-level combos are not the guide styles."
 }
