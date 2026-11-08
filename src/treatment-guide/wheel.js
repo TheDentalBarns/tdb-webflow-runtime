@@ -310,8 +310,8 @@
       root.classList.remove('is-wheel-dragging');
       if (root.hasPointerCapture?.(event.pointerId)) root.releasePointerCapture(event.pointerId);
       if (scrollRotation) {
-        // Keep the independent ring where the finger left it, without a
-        // chapter snap or any page movement.
+        // Keep the scroll-linked ring where the finger left it, without
+        // a second chapter snap or extra momentum.
         scrollGuide.endRotation();
         if (tapped) {
           const index = chapter(target);
@@ -445,7 +445,7 @@
     window.addEventListener(
       'scroll',
       () => {
-        if (drag) measure();
+        if (drag && !drag.scroll) measure();
       },
       { passive: true, signal },
     );

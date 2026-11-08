@@ -1,106 +1,3 @@
-/* TDBScrollLock v1.0.4. Shared, independently releasable scroll-lock owners.
- * No body positioning or scroll reset: keep the document and navbar geometry.
- * Touch/wheel containment allows nested scrollers and prevents edge chaining.
- */
-(() => {
-  'use strict';
-  if (window.TDBScrollLock) return;
-  const owners = new Map();
-  const html = document.documentElement;
-  let previousLenis,
-    touch = null;
-  function roots() {
-    return [...owners.values()]
-      .flatMap((options) =>
-        typeof options.allow === 'function' ? options.allow() : options.allow || [],
-      )
-      .filter(Boolean);
-  }
-  function canScroll(target, dx, dy) {
-    const allowed = roots();
-    const horizontal = Math.abs(dx) > Math.abs(dy);
-    const delta = horizontal ? dx : dy;
-    if (!delta) return true;
-    let node = target instanceof Element ? target : target?.parentElement;
-    for (
-      ;
-      node && allowed.some((root) => root === node || root.contains(node));
-      node = node.parentElement
-    ) {
-      const css = getComputedStyle(node);
-      if (!/(auto|scroll|overlay)/.test(horizontal ? css.overflowX : css.overflowY)) continue;
-      const position = horizontal ? node.scrollLeft : node.scrollTop;
-      const extent = horizontal
-        ? node.scrollWidth - node.clientWidth
-        : node.scrollHeight - node.clientHeight;
-      if (extent > 1 && (delta < 0 ? position > 0 : position < extent - 1)) return true;
-    }
-    return false;
-  }
-  function wheel(event) {
-    if (!event.ctrlKey && !canScroll(event.target, event.deltaX, event.deltaY))
-      event.preventDefault();
-  }
-  function start(event) {
-    touch =
-      event.touches.length === 1 ? [event.touches[0].clientX, event.touches[0].clientY] : null;
-  }
-  function move(event) {
-    if (!touch || event.touches.length !== 1) return;
-    const point = event.touches[0];
-    const dx = touch[0] - point.clientX,
-      dy = touch[1] - point.clientY;
-    touch = [point.clientX, point.clientY];
-    if (!canScroll(event.target, dx, dy)) event.preventDefault();
-  }
-  function lock() {
-    // Measure the unlocked page before lock writes.
-    const gap = Math.max(0, innerWidth - html.clientWidth);
-    const padding = parseFloat(getComputedStyle(document.body).paddingRight) || 0;
-    if (!document.querySelector('style[data-tdb-scroll-lock-css]')) {
-      const style = document.createElement('style');
-      style.setAttribute('data-tdb-scroll-lock-css', '');
-      style.textContent =
-        'html.tdb-scroll-locked {\n  overflow: hidden !important;\n  overscroll-behavior: none;\n}\nhtml.tdb-scroll-locked body {\n  padding-right: var(--tdb-scroll-lock-padding) !important;\n}';
-      document.head.append(style);
-    }
-    previousLenis = document.body.getAttribute('data-lenis-prevent');
-    html.style.setProperty('--tdb-scroll-lock-padding', `${padding + gap}px`);
-    document.body.setAttribute('data-lenis-prevent', '');
-    html.classList.add('tdb-scroll-locked');
-    document.addEventListener('wheel', wheel, { capture: true, passive: false });
-    document.addEventListener('touchstart', start, { capture: true, passive: true });
-    document.addEventListener('touchmove', move, { capture: true, passive: false });
-  }
-  function unlock() {
-    html.classList.remove('tdb-scroll-locked');
-    html.style.removeProperty('--tdb-scroll-lock-padding');
-    if (document.body.getAttribute('data-lenis-prevent') === '') {
-      if (previousLenis === null) document.body.removeAttribute('data-lenis-prevent');
-      else document.body.setAttribute('data-lenis-prevent', previousLenis);
-    }
-    document.removeEventListener('wheel', wheel, true);
-    document.removeEventListener('touchstart', start, true);
-    document.removeEventListener('touchmove', move, true);
-    touch = null;
-  }
-  function acquire(options = {}) {
-    const token = {};
-    if (!owners.size) lock();
-    owners.set(token, options);
-    return () => {
-      if (owners.delete(token) && !owners.size) unlock();
-    };
-  }
-  window.TDBScrollLock = Object.freeze({
-    version: '1.0.4',
-    acquire,
-    get active() {
-      return owners.size > 0;
-    },
-  });
-})();
-
 /* Shared site chrome v1.1.0. Independently owned, reversible nav/banner/VIP motion. */
 (() => {
   'use strict';
@@ -509,11 +406,10 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
   window.TDBTreatmentGuidePressure = Object.freeze({ create });
 })();
 
-/* Chapter progress owns no scroll travel. The shared lock holds one page position. */
+/* Native sticky travel. Read geometry first, then paint once per animation frame. */
 (() => {
   'use strict';
   if (window.TDBTreatmentGuideScroll) return;
-  const clamp = (value) => (value < 1e-8 ? 0 : value > 1 - 1e-8 ? 1 : value);
   function mount(root, controls) {
     if (!root.hasAttribute('data-tdb-guide-scroll')) return null;
     const layout = root.querySelector('.treatment-guide_layout'),
@@ -524,9 +420,15 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     const events = new AbortController(),
       { signal } = events,
       reduced = matchMedia('(prefers-reduced-motion: reduce)'),
-      svgNS = 'http://www.w3.org/2000/svg',
-      progress = rim && document.createElementNS(svgNS, 'svg'),
-      arc = progress && document.createElementNS(svgNS, 'circle');
+      coarse = matchMedia('(pointer: coarse)'),
+      track = document.createElement('div');
+    track.className = 'tdb-guide-scroll-track';
+    layout.before(track);
+    track.append(layout);
+    // Designer owns the resting 5px rim. Only the moving fill is enhancement paint.
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const progress = rim && document.createElementNS(svgNS, 'svg');
+    const arc = progress && document.createElementNS(svgNS, 'circle');
     if (progress) {
       progress.setAttribute('class', 'tdb-guide-scroll-progress');
       progress.setAttribute('aria-hidden', 'true');
@@ -550,40 +452,61 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       pinned = false,
       chromeAway = false,
       rotating = false,
+      rotationY = 0,
+      rotationPending = false,
       suspended = false,
       disposed = false,
       raf = 0,
       resize = true,
+      pinTop = 0,
+      cardHeight = 0,
+      wheelOffset = 0,
+      wheelSize = 0,
+      measuredWidth = 0,
+      canArm = false,
+      distance = 0,
+      runway = 0,
       start = 0,
-      distance = 312,
-      anchor = 0,
-      lastY = window.scrollY,
-      amount = controls.current() ? (controls.current() + 1) / 5 : 0,
+      lastIndex = -1,
       radius = -1,
       painted = '',
+      shownFraction = 0,
       animation = null,
-      touch = null,
-      releaseHold = null,
-      releaseChrome = null,
-      aligning = false,
-      releasedAt = null;
-    const motionReduced = () => reduced.matches || window.TDBMotion?.reduced?.matches;
-    const blocked = () =>
-      Boolean(root.closest('[inert]') || (!releaseHold && window.TDBScrollLock?.active));
-    const editable = (target) =>
-      target?.closest?.(
-        'input,textarea,select,[contenteditable="true"],[role="dialog"],[data-tdb-drawer]',
-      );
-    function paint() {
+      lenis = null,
+      unbindLenis = null,
+      releaseChrome = null;
+    function paintProgress(fraction) {
+      shownFraction = Math.max(0, Math.min(1, fraction));
       if (!arc) return;
-      const offset = (100 * (1 - amount)).toFixed(3);
+      const offset = (100 * (1 - shownFraction)).toFixed(3);
       if (offset === painted) return;
       painted = offset;
       arc.style.strokeDashoffset = offset;
     }
-    function selectProgress() {
-      const index = Math.max(0, Math.min(4, Math.ceil(amount * 5 - 0.000001) - 1));
-      if (controls.current() !== index) controls.select(index);
+    function bindLenis() {
+      if (lenis === window.lenis) return;
+      unbindLenis?.();
+      lenis = window.lenis;
+      unbindLenis = lenis?.on?.('scroll', onScroll);
+    }
+    function onScroll() {
+      // Native and Lenis events may both arrive in one frame. Neither writes layout.
+      schedule();
+    }
+    function scrollTo(top) {
+      if (window.lenis?.scrollTo) window.lenis.scrollTo(top, { immediate: true, force: true });
+      else window.scrollTo({ top, behavior: 'instant' });
+    }
+    function hold(value) {
+      if (pinned === value) return;
+      pinned = value;
+      root.classList.toggle('is-guide-scroll-pinned', value);
+      if (value) {
+        controls.interact();
+        window.TDBSliderFocus?.release(root);
+      } else {
+        window.TDBSliderFocus?.release(root);
+      }
     }
     function clearChrome(value) {
       if (chromeAway === value) return;
@@ -595,245 +518,184 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         releaseChrome = null;
       }
     }
-    function release() {
-      if (!pinned) return;
-      pinned = false;
-      root.classList.remove('is-guide-scroll-pinned');
-      releaseHold?.();
-      releaseHold = null;
-      lastY = window.scrollY;
-      releasedAt = lastY;
-      window.TDBSliderFocus?.release(root);
-    }
-    function hold() {
-      if (pinned || !enabled || blocked() || !window.TDBScrollLock?.acquire) return false;
-      // One alignment on entry; no scroll calls during chapter progress or release.
-      aligning = true;
-      if (window.lenis?.scrollTo) window.lenis.scrollTo(start, { immediate: true, force: true });
-      else if (Math.abs(window.scrollY - start) > 0.5)
-        window.scrollTo({ top: start, behavior: 'instant' });
-      aligning = false;
-      anchor = lastY = window.scrollY;
-      releasedAt = null;
-      releaseHold = window.TDBScrollLock.acquire();
-      pinned = true;
-      root.classList.add('is-guide-scroll-pinned');
-      controls.interact();
-      window.TDBSliderFocus?.release(root);
-      return true;
+    function disable() {
+      if (!enabled) return;
+      // Removing the extra travel must not throw a rotated phone past the card.
+      const travelled = Math.max(0, Math.min(runway, window.scrollY - start));
+      hold(false);
+      rotating = false;
+      rotationPending = false;
+      animation = null;
+      enabled = false;
+      root.classList.remove('is-guide-scroll-enabled');
+      paintProgress((controls.current() + 1) / 5);
+      track.removeAttribute('style');
+      if (travelled) scrollTo(window.scrollY - travelled);
+      lastIndex = -1;
     }
     function measure() {
       resize = false;
-      const wheel = art.getBoundingClientRect(),
-        text = content.getBoundingClientRect(),
+      const cardBox = layout.getBoundingClientRect(),
+        wheelBox = art.getBoundingClientRect(),
+        contentBox = content.getBoundingClientRect(),
         viewport = window.visualViewport,
-        gap = innerWidth * 0.05,
         height = Math.min(innerHeight, viewport?.height || innerHeight),
-        nextRadius = Math.max(0, wheel.width / 2 - 2.5);
+        gap = innerWidth * 0.05,
+        offset = wheelBox.top - cardBox.top,
+        needed = Math.max(wheelBox.bottom, contentBox.bottom) - wheelBox.top + gap + 12;
+      const nextRadius = Math.max(0, wheelBox.width / 2 - 2.5);
       if (arc && nextRadius !== radius) {
         radius = nextRadius;
         arc.setAttribute('r', String(radius));
       }
-      start = wheel.top + window.scrollY - gap;
-      distance = Math.max(240, Math.min(480, innerWidth * 0.8));
-      enabled =
-        wheel.width > 0 &&
-        Math.max(wheel.bottom, text.bottom) - wheel.top + gap + 12 <= height &&
-        !motionReduced() &&
+      const eligible =
+        wheelBox.width > 0 &&
+        !reduced.matches &&
+        !window.TDBMotion?.reduced?.matches &&
         (!viewport || viewport.scale <= 1);
-      root.classList.toggle('is-guide-scroll-enabled', enabled);
-      if (pinned && (!enabled || Math.abs(start - anchor) > 1)) release();
+      // Mobile browser bars resize only the viewport height. Keep the established
+      // range; removing/reinserting it mid-swipe moves every following section.
+      const fits =
+        eligible &&
+        (needed <= height || (enabled && coarse.matches && measuredWidth === innerWidth));
+      canArm = fits;
+      measuredWidth = innerWidth;
+      if (!fits) return disable();
+      // Do not insert scroll travel above a restored reading position.
+      if (!enabled && wheelBox.top < gap) return;
+      const fraction = enabled ? Math.max(0, Math.min(5, (window.scrollY - start) / distance)) : 0;
+      const oldDistance = distance;
+      const oldPinTop = pinTop;
+      const margin = getComputedStyle(layout).marginBottom;
+      cardHeight = cardBox.height;
+      wheelOffset = offset;
+      wheelSize = wheelBox.height;
+      pinTop = gap - offset;
+      distance = Math.max(240, Math.min(480, innerWidth * 0.8));
+      runway = distance * 5;
+      const styles = {
+        '--tdb-guide-pin-top': pinTop + 'px',
+        '--tdb-guide-scroll-travel': runway + 'px',
+        '--tdb-guide-background-start': offset + wheelBox.height / 2 + 'px',
+        height: cardHeight + runway + 'px',
+      };
+      for (const [name, value] of Object.entries(styles))
+        if (track.style.getPropertyValue(name) !== value) track.style.setProperty(name, value);
+      if (!enabled) track.style.marginBottom = margin;
+      root.classList.add('is-guide-scroll-enabled');
+      enabled = true;
+      start = track.getBoundingClientRect().top + window.scrollY - pinTop;
+      if (pinned && (oldDistance !== distance || oldPinTop !== pinTop)) {
+        animation = null;
+        scrollTo(start + fraction * distance);
+      }
     }
     function update(now) {
       raf = 0;
-      if (disposed || suspended || document.hidden || aligning) return;
+      if (disposed || suspended || document.hidden) {
+        animation = null;
+        hold(false);
+        clearChrome(false);
+        return;
+      }
+      bindLenis();
       if (resize) measure();
-      const wheel = art.getBoundingClientRect();
-      clearChrome(
-        wheel.width > 0 &&
-          wheel.top < Math.min(innerHeight, window.visualViewport?.height || innerHeight) &&
-          wheel.bottom > 0,
-      );
-      if (blocked()) animation = null;
-      if (animation) {
+      const viewHeight = Math.min(innerHeight, window.visualViewport?.height || innerHeight);
+      if (!enabled) {
+        const wheelBox = art.getBoundingClientRect();
+        clearChrome(wheelBox.width > 0 && wheelBox.top < viewHeight && wheelBox.bottom > 0);
+        if (canArm && wheelBox.top >= innerWidth * 0.05) measure();
+      }
+      // All geometry reads precede any scroll/paint writes. Sticky wheel position
+      // is derived from this one track rect and the cached dimensions.
+      const trackTop = enabled ? track.getBoundingClientRect().top + window.scrollY : 0;
+      if (enabled) start = trackTop - pinTop;
+      if (window.TDBScrollLock?.active || root.closest('[inert]')) {
+        animation = null;
+        rotationPending = false;
+      }
+      const destination = animation?.index;
+      if (rotationPending && enabled) {
+        rotationPending = false;
+        scrollTo(rotationY);
+      } else if (animation) {
         const ms = animation.last == null ? 0 : Math.max(0, now - animation.last);
         animation.elapsed += window.TDBMotionProfile?.elapsed(ms) ?? ms;
         animation.last = now;
-        const fraction = motionReduced() ? 1 : Math.min(1, animation.elapsed / 480);
-        amount =
-          animation.from +
-          ((animation.to - animation.from) * (1 - Math.cos(Math.PI * fraction))) / 2;
-        paint();
-        if (fraction === 1) {
-          amount = animation.to;
-          animation = null;
-          paint();
-          if (amount === 1) release();
-        } else schedule();
+        const fraction =
+          reduced.matches || window.TDBMotion?.reduced?.matches
+            ? 1
+            : Math.min(1, animation.elapsed / 480);
+        const ease = (1 - Math.cos(Math.PI * fraction)) / 2;
+        const value = animation.from + (animation.to - animation.from) * ease;
+        if (animation.scroll) scrollTo(value);
+        else paintProgress(value);
+        if (fraction === 1) animation = null;
+        else schedule();
       }
+      if (!enabled) return;
+      const wheelTop =
+        Math.min(Math.max(pinTop, trackTop - window.scrollY), trackTop + runway - window.scrollY) +
+        wheelOffset;
+      clearChrome(wheelTop < viewHeight && wheelTop + wheelSize > 0);
+      const progress = window.scrollY - start;
+      const inside = progress >= -1 && progress < runway - 1;
+      const wasPinned = pinned;
+      if (inside || wasPinned) paintProgress(runway - progress <= 1 ? 1 : progress / runway);
+      hold(inside);
+      if (window.TDBScrollLock?.active) return;
+      // A divider belongs to the chapter just completed; allow native pixel rounding.
+      const index =
+        destination ?? Math.max(0, Math.min(4, Math.ceil((progress - 0.5) / distance) - 1));
+      if ((inside || wasPinned) && (lastIndex !== index || controls.current() !== index)) {
+        lastIndex = index;
+        controls.select(index);
+      }
+      if (!inside) lastIndex = -1;
     }
     function schedule(needsMeasure = false) {
       if (disposed) return;
       resize ||= needsMeasure;
       if (!raf) raf = requestAnimationFrame(update);
     }
-    function onScroll() {
-      if (disposed || suspended || document.hidden || aligning) return;
-      if (resize) measure();
-      const y = window.scrollY,
-        previous = lastY;
-      lastY = y;
-      if (pinned) {
-        // Respect anchors, focus navigation and external restoration; never fight them.
-        if (Math.abs(y - anchor) > 1) release();
-      } else if (releasedAt != null) {
-        if (Math.abs(y - releasedAt) > 2) releasedAt = null;
-      } else if (enabled && !blocked()) {
-        const wheel = art.getBoundingClientRect();
-        if (
-          wheel.bottom > 0 &&
-          wheel.top < innerHeight &&
-          ((previous < start && y >= start && amount < 1) ||
-            (previous > start && y <= start && amount > 0))
-        )
-          hold();
-      }
-      schedule();
-    }
-    function advance(delta) {
-      animation = null;
-      amount = clamp(amount + delta);
-      paint();
-      selectProgress();
-      if (pinned && ((delta > 0 && amount === 1) || (delta < 0 && amount === 0))) release();
-    }
-    function input(delta, event) {
-      if (!delta || suspended || document.hidden || blocked() || editable(event.target)) return;
-      if (resize) measure();
-      if (!pinned && enabled) {
-        if (releasedAt != null) return;
-        const y = window.scrollY;
-        if (delta > 0 && amount < 1 && y <= start && y + delta >= start) {
-          const rest = delta - (start - y);
-          if (hold()) {
-            event.preventDefault();
-            advance(rest / (distance * 5));
-          }
-          return;
-        }
-        if (delta < 0 && amount > 0 && y >= start && y + delta <= start) {
-          const rest = delta - (start - y);
-          if (hold()) {
-            event.preventDefault();
-            advance(rest / (distance * 5));
-          }
-          return;
-        }
-      }
-      if (!pinned) return;
-      event.preventDefault();
-      advance(delta / (distance * 5));
-    }
     const observer = new ResizeObserver(() => schedule(true));
     observer.observe(layout);
     observer.observe(art);
     window.addEventListener('scroll', onScroll, { passive: true, signal });
+    const interrupt = () => {
+      animation = null;
+    };
+    for (const type of ['wheel', 'touchstart', 'pointerdown'])
+      window.addEventListener(type, interrupt, { capture: true, passive: true, signal });
     window.addEventListener('resize', () => schedule(true), { passive: true, signal });
     window.visualViewport?.addEventListener('resize', () => schedule(true), {
       passive: true,
       signal,
     });
     reduced.addEventListener('change', () => schedule(true), { signal });
-    root.addEventListener(
-      'toggle',
-      (event) => {
-        if (event.target.open) release();
-        schedule(true);
-      },
-      { capture: true, signal },
-    );
-    document.addEventListener(
-      'wheel',
-      (event) => {
-        if (event.ctrlKey || event.metaKey || Math.abs(event.deltaX) > Math.abs(event.deltaY))
-          return;
-        input(
-          event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1),
-          event,
-        );
-      },
-      { capture: true, passive: false, signal },
-    );
-    document.addEventListener(
-      'touchstart',
-      (event) => {
-        touch =
-          event.touches.length === 1 && !rotating && !editable(event.target)
-            ? event.touches[0].clientY
-            : null;
-      },
-      { capture: true, passive: true, signal },
-    );
-    document.addEventListener(
-      'touchmove',
-      (event) => {
-        if (touch == null || event.touches.length !== 1 || rotating) return;
-        const y = event.touches[0].clientY,
-          delta = touch - y;
-        touch = y;
-        input(delta, event);
-      },
-      { capture: true, passive: false, signal },
-    );
-    for (const type of ['touchend', 'touchcancel'])
-      document.addEventListener(
-        type,
-        () => {
-          touch = null;
-        },
-        { passive: true, signal },
-      );
+    root.addEventListener('toggle', () => schedule(true), { capture: true, signal });
     document.addEventListener(
       'keydown',
       (event) => {
-        if (!pinned || event.defaultPrevented || blocked() || editable(event.target)) return;
-        if (event.key === 'Escape') {
-          animation = null;
-          release();
-          return;
-        }
-        const delta = {
-          ArrowDown: 40,
-          ArrowUp: -40,
-          PageDown: distance,
-          PageUp: -distance,
-          ' ': event.shiftKey ? -distance : distance,
-          Home: -distance * 5,
-          End: distance * 5,
-        }[event.key];
-        if (delta) input(delta, event);
+        if (
+          ['Escape', 'ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(
+            event.key,
+          )
+        )
+          interrupt();
+        if (event.key !== 'Escape' || !pinned || window.TDBScrollLock?.active) return;
+        scrollTo(start + runway + 1);
+        schedule();
       },
-      { signal },
+      { capture: true, signal },
     );
-    document.addEventListener(
-      'focusin',
-      (event) => {
-        if (pinned && !root.contains(event.target) && !blocked()) release();
-      },
-      { signal },
-    );
-    function suspend() {
-      animation = null;
-      rotating = false;
-      touch = null;
-      release();
-      clearChrome(false);
-    }
     window.addEventListener(
       'pagehide',
       () => {
         suspended = true;
-        suspend();
+        animation = null;
+        hold(false);
+        clearChrome(false);
       },
       { signal },
     );
@@ -841,7 +703,6 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       'pageshow',
       () => {
         suspended = false;
-        lastY = window.scrollY;
         schedule(true);
       },
       { signal },
@@ -849,16 +710,16 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     document.addEventListener(
       'visibilitychange',
       () => {
-        if (document.hidden) suspend();
-        else {
-          lastY = window.scrollY;
-          schedule(true);
-        }
+        if (document.hidden) {
+          animation = null;
+          hold(false);
+          clearChrome(false);
+        } else schedule(true);
       },
       { signal },
     );
     root.classList.add('is-guide-progress-ready');
-    paint();
+    paintProgress(controls.current() ? (controls.current() + 1) / 5 : 0);
     schedule(true);
     return {
       get enabled() {
@@ -868,31 +729,54 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         return pinned;
       },
       manual(index) {
-        if (blocked()) return;
-        if (index < 4 && !pinned && Math.abs(window.scrollY - start) <= 1) hold();
-        animation = { from: amount, to: (index + 1) / 5, elapsed: 0, last: null };
+        if (window.TDBScrollLock?.active || root.closest('[inert]')) return;
+        const linked =
+          enabled && window.scrollY >= start - 1 && window.scrollY <= start + runway + 1;
+        lastIndex = index;
+        animation = {
+          index,
+          scroll: linked,
+          from: linked ? window.scrollY : shownFraction,
+          to: linked ? start + (index + 1) * distance : (index + 1) / 5,
+          elapsed: 0,
+          last: null,
+        };
         schedule();
       },
       beginRotation() {
         animation = null;
-        rotating = !blocked();
+        rotationPending = false;
+        if (resize) measure();
+        rotating =
+          enabled &&
+          window.scrollY >= start - 1 &&
+          window.scrollY <= start + runway + 1 &&
+          !window.TDBScrollLock?.active;
+        rotationY = window.scrollY;
         return rotating;
       },
       rotate(chapters) {
-        if (rotating && !blocked()) advance(chapters / 5);
+        if (!rotating || !enabled || window.TDBScrollLock?.active) return;
+        rotationY = Math.max(start, Math.min(start + runway, rotationY + chapters * distance));
+        rotationPending = true;
+        schedule();
       },
       endRotation() {
         rotating = false;
+        schedule();
       },
       destroy() {
         if (disposed) return;
         disposed = true;
         events.abort();
+        unbindLenis?.();
         observer.disconnect();
         cancelAnimationFrame(raf);
-        suspend();
-        root.classList.remove('is-guide-progress-ready', 'is-guide-scroll-enabled');
+        disable();
+        clearChrome(false);
+        root.classList.remove('is-guide-progress-ready');
         progress?.remove();
+        track.replaceWith(layout);
       },
     };
   }
@@ -1211,8 +1095,8 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       root.classList.remove('is-wheel-dragging');
       if (root.hasPointerCapture?.(event.pointerId)) root.releasePointerCapture(event.pointerId);
       if (scrollRotation) {
-        // Keep the independent ring where the finger left it, without a
-        // chapter snap or any page movement.
+        // Keep the scroll-linked ring where the finger left it, without
+        // a second chapter snap or extra momentum.
         scrollGuide.endRotation();
         if (tapped) {
           const index = chapter(target);
@@ -1346,7 +1230,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     window.addEventListener(
       'scroll',
       () => {
-        if (drag) measure();
+        if (drag && !drag.scroll) measure();
       },
       { passive: true, signal },
     );
