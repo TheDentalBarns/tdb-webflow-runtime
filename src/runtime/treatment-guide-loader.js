@@ -110,14 +110,11 @@ function prepareTreatmentGuideLoader() {
       const surface = event.target.closest?.('[data-tdb-guide-pad], [data-tdb-guide-choice]');
       const root = surface?.closest('[data-tdb-guide]');
       if (!root || owners.has(root) || event.button !== 0 || !allowed()) return;
-      if (event.pointerType === 'touch' && root.hasAttribute('data-tdb-guide-scroll')) {
-        wheel(root).catch(() => {});
-        return;
-      }
       event.preventDefault();
       const seed = (gesture = {
         root,
         pointerId: event.pointerId,
+        pointerType: event.pointerType,
         clientX: event.clientX,
         clientY: event.clientY,
         startX: event.clientX,
@@ -152,6 +149,20 @@ function prepareTreatmentGuideLoader() {
       { capture: true, passive: true, signal: events.signal },
     );
   for (const root of roots) {
+    for (const type of ['touchstart', 'touchmove'])
+      root.addEventListener(
+        type,
+        (event) => {
+          if (
+            gesture?.down &&
+            gesture.root === root &&
+            gesture.pointerType === 'touch' &&
+            event.touches.length === 1
+          )
+            event.preventDefault();
+        },
+        { passive: false, signal: events.signal },
+      );
     prepareExitImage(root);
     window.TDBFeatureLoading?.watchIntent({
       selector: '[data-tdb-guide]',

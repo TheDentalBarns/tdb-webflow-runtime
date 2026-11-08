@@ -16,10 +16,14 @@
 .is-guide-scroll-enabled .tdb-guide-scroll-track>.treatment-guide_layout{position:sticky;top:var(--tdb-guide-pin-top);margin-bottom:0}
 .is-guide-scroll-enabled .treatment-guide_wheel{touch-action:pan-y pinch-zoom}
 .is-guide-scroll-enabled .treatment-guide_finger-pad,.is-guide-scroll-enabled .treatment-guide_pad,.is-guide-scroll-enabled .treatment-guide_choice{touch-action:none}
-.is-guide-scroll-enabled .treatment-guide_centre{pointer-events:auto;touch-action:pan-y pinch-zoom}
+.tdb-guide-touch-surface{position:absolute;inset:0;z-index:0;border-radius:50%;pointer-events:auto;touch-action:none}
+.is-click-wheel .treatment-guide_centre{z-index:1;pointer-events:auto;touch-action:pan-y pinch-zoom}
+@media screen and (max-width:991px){
+  .is-guide-scroll-enabled .tdb-guide-scroll-track::after{content:"";position:absolute;top:var(--tdb-guide-tail-top);bottom:0;left:calc(50% - 50vw);width:100vw;background:var(--base-color-neutral--neutral-darker,#222);pointer-events:none}
+}
 /* Match the services slider's 5px translucent track and stronger moving fill. */
 .is-guide-scroll-enabled .treatment-guide_rim{box-shadow:inset 0 0 0 5px #a79b8630}
-.tdb-guide-scroll-progress{position:absolute;inset:0;display:none;width:100%;height:100%;opacity:.75;pointer-events:none;transform:rotate(-90deg);transform-origin:50% 50%}
+.tdb-guide-scroll-progress{position:absolute;inset:0;display:none;width:100%;height:100%;opacity:.75;pointer-events:none;transform:rotate(-126deg);transform-origin:50% 50%}
 .is-guide-scroll-enabled .tdb-guide-scroll-progress{display:block}
 .tdb-guide-scroll-progress circle{transition:none}
 /* No entry/exit overlap, including fast arrivals and late-mounted banners.

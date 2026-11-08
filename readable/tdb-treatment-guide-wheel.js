@@ -457,17 +457,22 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       raf = 0,
       resize = true,
       pinTop = 0,
+      cardHeight = 0,
       distance = 0,
       runway = 0,
       start = 0,
       lastIndex = -1,
       radius = -1,
       painted = '',
+      animation = null,
       lenis = null,
       unbindLenis = null,
       releaseChrome = null;
     function paintProgress(fraction) {
+      const travel = Math.max(0, Math.min(runway, fraction * runway));
+      track.style.setProperty('--tdb-guide-tail-top', cardHeight + travel + 'px');
       if (!arc) return;
+      if (runway - travel <= 1) fraction = 1;
       const offset = (100 * (1 - Math.max(0, Math.min(1, fraction)))).toFixed(3);
       if (offset === painted) return;
       painted = offset;
@@ -518,6 +523,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       const travelled = Math.max(0, Math.min(runway, window.scrollY - start));
       hold(false);
       rotating = false;
+      animation = null;
       enabled = false;
       root.classList.remove('is-guide-scroll-enabled');
       paintProgress(0);
@@ -553,22 +559,26 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       const oldDistance = distance;
       const oldPinTop = pinTop;
       const margin = getComputedStyle(layout).marginBottom;
+      cardHeight = cardBox.height;
       pinTop = gap - offset;
       distance = Math.max(240, Math.min(480, innerWidth * 0.8));
       runway = distance * 5;
       track.style.setProperty('--tdb-guide-pin-top', pinTop + 'px');
       track.style.setProperty('--tdb-guide-scroll-travel', runway + 'px');
-      track.style.height = cardBox.height + runway + 'px';
+      track.style.height = cardHeight + runway + 'px';
       if (!enabled) track.style.marginBottom = margin;
       root.classList.add('is-guide-scroll-enabled');
       enabled = true;
       start = track.getBoundingClientRect().top + window.scrollY - pinTop;
-      if (pinned && (oldDistance !== distance || oldPinTop !== pinTop))
+      if (pinned && (oldDistance !== distance || oldPinTop !== pinTop)) {
+        animation = null;
         scrollTo(start + fraction * distance);
+      }
     }
-    function update() {
+    function update(now) {
       raf = 0;
       if (disposed || suspended || document.hidden) {
+        animation = null;
         hold(false);
         clearChrome(false);
         return;
@@ -586,13 +596,27 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         if (!enabled) return;
       }
       start = track.getBoundingClientRect().top + window.scrollY - pinTop;
+      if (window.TDBScrollLock?.active) animation = null;
+      const destination = animation?.index;
+      if (animation) {
+        const ms = animation.last == null ? 0 : Math.max(0, now - animation.last);
+        animation.elapsed += window.TDBMotionProfile?.elapsed(ms) ?? ms;
+        animation.last = now;
+        const fraction = Math.min(1, animation.elapsed / 480);
+        const ease = (1 - Math.cos(Math.PI * fraction)) / 2;
+        scrollTo(animation.from + (animation.to - animation.from) * ease);
+        if (fraction === 1) animation = null;
+        else schedule();
+      }
       const progress = window.scrollY - start;
       paintProgress(progress / runway);
-      const inside = progress >= -0.5 && progress < runway;
+      const inside = progress >= -1 && progress < runway - 1;
       const wasPinned = pinned;
       hold(inside);
       if (window.TDBScrollLock?.active) return;
-      const index = Math.max(0, Math.min(4, Math.floor(Math.max(0, progress) / distance)));
+      // A divider belongs to the chapter just completed; allow native pixel rounding.
+      const index =
+        destination ?? Math.max(0, Math.min(4, Math.ceil((progress - 0.5) / distance) - 1));
       if ((inside || wasPinned) && (lastIndex !== index || controls.current() !== index)) {
         lastIndex = index;
         controls.select(index);
@@ -608,6 +632,11 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     observer.observe(layout);
     observer.observe(art);
     window.addEventListener('scroll', onScroll, { passive: true, signal });
+    const interrupt = () => {
+      animation = null;
+    };
+    for (const type of ['wheel', 'touchstart', 'pointerdown'])
+      window.addEventListener(type, interrupt, { capture: true, passive: true, signal });
     window.addEventListener('resize', () => schedule(true), { passive: true, signal });
     window.visualViewport?.addEventListener('resize', () => schedule(true), {
       passive: true,
@@ -618,16 +647,23 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     document.addEventListener(
       'keydown',
       (event) => {
+        if (
+          ['Escape', 'ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(
+            event.key,
+          )
+        )
+          interrupt();
         if (event.key !== 'Escape' || !pinned || window.TDBScrollLock?.active) return;
         scrollTo(start + runway + 1);
         schedule();
       },
-      { signal },
+      { capture: true, signal },
     );
     window.addEventListener(
       'pagehide',
       () => {
         suspended = true;
+        animation = null;
         hold(false);
         clearChrome(false);
       },
@@ -645,6 +681,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       'visibilitychange',
       () => {
         if (document.hidden) {
+          animation = null;
           hold(false);
           clearChrome(false);
         } else schedule(true);
@@ -660,13 +697,31 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         return pinned;
       },
       manual(index) {
-        if (!pinned) return;
+        if (
+          !enabled ||
+          window.scrollY < start - 1 ||
+          window.scrollY > start + runway + 1 ||
+          window.TDBScrollLock?.active
+        )
+          return;
         lastIndex = index;
-        scrollTo(start + (index + 0.15) * distance);
+        animation = {
+          index,
+          from: window.scrollY,
+          to: start + (index + 1) * distance,
+          elapsed: 0,
+          last: null,
+        };
         schedule();
       },
       beginRotation() {
-        rotating = enabled && pinned && !window.TDBScrollLock?.active;
+        animation = null;
+        if (resize) measure();
+        rotating =
+          enabled &&
+          window.scrollY >= start - 1 &&
+          window.scrollY <= start + runway + 1 &&
+          !window.TDBScrollLock?.active;
         rotationY = window.scrollY;
         return rotating;
       },
@@ -753,6 +808,11 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       card = window.TDBTreatmentGuideCard?.mount(root, active, navigate);
     const indentation = window.TDBTreatmentGuidePressure.create(svg);
     svg.insertBefore(indentation.layer, svg.querySelector('.treatment-guide_divider'));
+    // HTML hit testing is consistent on Safari, including the gaps between SVG paths.
+    const surface = document.createElement('div');
+    surface.className = 'tdb-guide-touch-surface';
+    surface.setAttribute('aria-hidden', 'true');
+    art.append(surface);
     const icons = choices;
     menu.setAttribute('role', 'slider');
     menu.setAttribute('aria-label', 'Treatment guide wheel');
@@ -945,7 +1005,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     function begin(event) {
       if ((event.button != null && event.button !== 0) || drag) return;
       if (event.target?.closest?.('[data-tdb-guide-nav]')) return;
-      if (!menu.contains(event.target) && !svg.contains(event.target)) return;
+      if (!menu.contains(event.target) && !art.contains(event.target)) return;
       measure();
       const px = event.clientX - cx,
         py = event.clientY - cy,
@@ -957,6 +1017,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       target = angle + wrap(pointerAngle - angle);
       drag = {
         id: event.pointerId,
+        pointerType: event.pointerType,
         px: event.clientX,
         py: event.clientY,
         previous: pointerAngle,
@@ -967,9 +1028,9 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       radialTarget = radialOffset(distance);
       root.classList.add('is-wheel-dragging');
       interact();
-      root.setPointerCapture?.(event.pointerId);
-      select(chapter(target));
+      if (event.capture !== false) root.setPointerCapture?.(event.pointerId);
       drag.scroll = scrollGuide?.beginRotation() || false;
+      if (!drag.scroll) select(chapter(target));
       start();
     }
     function move(event) {
@@ -996,6 +1057,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         momentum = cancelled ? 0 : Math.max(-8, Math.min(8, drag.velocity * freshness));
       const destination = Math.round((target + (cancelled ? 0 : momentum * 0.14)) / step) * step;
       const scrollRotation = drag.scroll;
+      const tapped = !cancelled && !drag.moved;
       if (drag.moved) suppressUntil = performance.now() + 450;
       drag = null;
       radialTarget = 0;
@@ -1006,6 +1068,11 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         // Keep page travel exactly where the finger left it. The pressure can
         // settle without another chapter jump or a second scroll momentum.
         scrollGuide.endRotation();
+        if (tapped) {
+          const index = chapter(target);
+          if (index === active) scrollGuide.manual(index);
+          else select(index);
+        }
         target = angle + wrap(active * step - angle);
       } else {
         select(chapter(destination), true, momentum < 0 ? -1 : 1);
@@ -1014,6 +1081,14 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       start();
     }
     root.addEventListener('pointerdown', begin, { signal });
+    for (const type of ['touchstart', 'touchmove'])
+      root.addEventListener(
+        type,
+        (event) => {
+          if (drag?.pointerType === 'touch' && event.touches.length === 1) event.preventDefault();
+        },
+        { passive: false, signal },
+      );
     root.addEventListener('focusin', () => stopPreview(true), { signal });
     document.addEventListener('pointermove', move, { passive: true, signal });
     document.addEventListener(
@@ -1043,7 +1118,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         if (
           event.isTrusted &&
           performance.now() < suppressUntil &&
-          (menu.contains(event.target) || svg.contains(event.target))
+          (menu.contains(event.target) || art.contains(event.target))
         ) {
           event.preventDefault();
           event.stopImmediatePropagation();
@@ -1054,7 +1129,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     root.addEventListener(
       'dragstart',
       (event) => {
-        if (menu.contains(event.target) || svg.contains(event.target)) event.preventDefault();
+        if (menu.contains(event.target) || art.contains(event.target)) event.preventDefault();
       },
       { signal },
     );
@@ -1157,6 +1232,8 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       resume(seed) {
         begin({
           pointerId: seed.pointerId,
+          pointerType: seed.pointerType,
+          capture: seed.down,
           clientX: seed.startX,
           clientY: seed.startY,
           target: menu,
@@ -1191,6 +1268,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
           if (value == null) menu.removeAttribute(name);
           else menu.setAttribute(name, value);
         indentation.destroy();
+        surface.remove();
         root.classList.remove('is-click-wheel', 'is-wheel-dragging', 'is-wheel-previewing');
         for (const attribute of [
           'aria-valuemin',

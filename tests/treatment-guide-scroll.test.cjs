@@ -22,7 +22,8 @@ function setup(options = {}) {
   w.TDBScrollLock = { active: false };
   let owners = 0,
     active = 0,
-    frameId = 0;
+    frameId = 0,
+    time = 0;
   const frames = new Map(),
     changes = [],
     scrolls = [];
@@ -106,10 +107,13 @@ function setup(options = {}) {
   });
   const track = root.querySelector('.tdb-guide-scroll-track');
   track.getBoundingClientRect = () => ({ top: 1000 - w.scrollY, width: 390 });
-  const tick = () => {
-    const list = [...frames.values()];
-    frames.clear();
-    list.forEach((fn) => fn(0));
+  const tick = (count = 1) => {
+    for (let i = 0; i < count; i++) {
+      time += 16;
+      const list = [...frames.values()];
+      frames.clear();
+      list.forEach((fn) => fn(time));
+    }
   };
   tick();
   return {
@@ -153,7 +157,7 @@ test('native scroll releases pinning in both directions while visible wheel keep
     t.tick();
     assert.equal(t.api.pinned, false);
     assert.equal(t.owners(), 1);
-    t.move(1000.5 + 3 * 312);
+    t.move(1000.5 + 3 * 312 + 1);
     t.tick();
     assert.equal(t.current(), 3);
     t.move(999.5);
@@ -208,26 +212,31 @@ test('menus clear on wheel entry and return only after its final edge leaves, in
   }
 });
 
-test('manual selection synchronises scroll progress through the existing Lenis owner', () => {
+test('manual selection animates to the selected divider through the existing Lenis owner', () => {
   const t = setup({ lenis: true });
   try {
     t.move(1100);
     t.tick();
     t.setIndex(3);
     t.tick();
+    assert.equal(t.w.scrollY, 1100, 'selection starts without jumping');
+    t.tick(12);
+    assert.ok(t.w.scrollY > 1100 && t.w.scrollY < 1000.5 + 4 * 312);
+    assert.equal(t.current(), 3, 'the destination chapter stays selected during travel');
+    t.tick(40);
     assert.equal(t.current(), 3);
-    assert.ok(Math.abs(t.w.scrollY - (1000.5 + 3.15 * 312)) < 0.01);
+    assert.ok(Math.abs(t.w.scrollY - (1000.5 + 4 * 312)) < 0.01);
     assert.equal(
       t.root.querySelector('.tdb-guide-scroll-progress circle').style.strokeDashoffset,
-      '37.000',
+      '20.000',
     );
     assert.equal(t.owners(), 1);
     t.w.TDBScrollLock.active = true;
-    t.move(1000.5 + 312);
+    t.move(1000.5 + 312 + 1);
     t.tick();
     assert.equal(t.current(), 3, 'a modal owns reading while open');
     t.w.TDBScrollLock.active = false;
-    t.move(1000.5 + 312);
+    t.move(1000.5 + 312 + 1);
     t.tick();
     assert.equal(t.current(), 1);
   } finally {
@@ -259,6 +268,80 @@ test('rim fills continuously across the entire scroll journey and unwinds on rev
     t.api.destroy();
     assert.equal(t.root.querySelector('.tdb-guide-scroll-progress'), null);
     assert.ok(t.root.querySelector('.treatment-guide_rim'), 'native rim survives teardown');
+  } finally {
+    t.close();
+  }
+});
+
+test('remaining scroll space starts exactly below the sticky card throughout forward and reverse travel', () => {
+  const t = setup();
+  try {
+    for (const fraction of [-0.1, 0, 0.5, 0.9, 0.95, 0.99, 1, 1.1, 0.4]) {
+      t.move(1000.5 + fraction * 1560);
+      t.tick();
+      const top = parseFloat(t.track.style.getPropertyValue('--tdb-guide-tail-top'));
+      assert.equal(top, 760 + Math.max(0, Math.min(1, fraction)) * 1560);
+      assert.ok(top <= parseFloat(t.track.style.height));
+    }
+    t.api.destroy();
+    assert.equal(t.track.getAttribute('style'), null);
+  } finally {
+    t.close();
+  }
+});
+
+test('arrow motion can complete and reverse the journey, or yield immediately to finger input', () => {
+  const t = setup();
+  try {
+    t.move(1100);
+    t.tick();
+    t.setIndex(4);
+    t.tick(40);
+    assert.equal(t.w.scrollY, 2560.5);
+    assert.equal(t.current(), 4);
+    assert.equal(t.api.pinned, false);
+    t.setIndex(3);
+    t.tick(40);
+    assert.equal(t.w.scrollY, 2248.5);
+    assert.equal(t.current(), 3);
+    assert.equal(t.api.pinned, true);
+    for (const input of ['wheel', 'touchstart', 'pointerdown']) {
+      t.setIndex(0);
+      t.tick(8);
+      const y = t.w.scrollY;
+      t.w.dispatchEvent(new t.w.Event(input));
+      t.tick(40);
+      assert.equal(t.w.scrollY, y, input);
+    }
+    t.setIndex(4);
+    t.tick(8);
+    assert.equal(t.api.beginRotation(), true);
+    t.api.rotate(-0.1);
+    const y = t.w.scrollY;
+    t.tick(40);
+    assert.equal(t.w.scrollY, y);
+  } finally {
+    t.close();
+  }
+});
+
+test('whole-pixel Safari scroll rounding still completes the ring and releases the pin', () => {
+  const t = setup();
+  try {
+    t.track.getBoundingClientRect = () => ({ top: 1000.25 - t.w.scrollY, width: 390 });
+    t.move(1100);
+    t.tick();
+    t.w.scrollTo = ({ top }) => t.move(Math.floor(top));
+    t.setIndex(4);
+    t.tick(40);
+    assert.equal(t.w.scrollY, 2560);
+    assert.equal(t.api.pinned, false);
+    assert.equal(t.root.querySelector('circle').style.strokeDashoffset, '0.000');
+    assert.equal(
+      t.api.beginRotation(),
+      true,
+      'reverse rotation can start at the completed divider',
+    );
   } finally {
     t.close();
   }

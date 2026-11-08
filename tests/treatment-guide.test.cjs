@@ -196,14 +196,127 @@ test('touch rotation overrides scroll progress and releases without a second cha
     assert.ok(Math.abs(t.scrollRotation.moves[0] - 0.5) < 0.001);
     assert.ok(Math.abs(t.scrollRotation.moves[1] + 0.25) < 0.001);
     touch('pointerup', 72);
-    assert.equal(t.menu.getAttribute('aria-valuenow'), '2');
+    assert.equal(
+      t.menu.getAttribute('aria-valuenow'),
+      '1',
+      'touch down does not jump to the touched sector',
+    );
     assert.equal(t.scrollRotation.ends, 1);
     assert.equal(t.root.classList.contains('is-wheel-dragging'), false);
     touch('pointerdown', 144);
     touch('pointercancel', 160);
     touch('pointerup', 144);
-    assert.equal(t.menu.getAttribute('aria-valuenow'), '3');
+    assert.equal(t.menu.getAttribute('aria-valuenow'), '1', 'cancellation does not jump chapters');
     assert.equal(t.scrollRotation.ends, 2);
+  } finally {
+    t.dispose();
+  }
+});
+
+test('HTML touch surface reserves only a one-finger annulus drag, leaving the centre and pinch native', () => {
+  const t = wheel(false, true);
+  try {
+    const surface = t.root.querySelector('.tdb-guide-touch-surface');
+    assert.ok(surface);
+    const touch = (count = 1) => {
+      const e = new t.w.Event('touchmove', { bubbles: true, cancelable: true });
+      Object.assign(e, { touches: Array(count).fill({}) });
+      surface.dispatchEvent(e);
+      return e.defaultPrevented;
+    };
+    const down = (x, y) => {
+      const e = new t.w.Event('pointerdown', { bubbles: true, cancelable: true });
+      Object.assign(e, { pointerId: 1, pointerType: 'touch', button: 0, clientX: x, clientY: y });
+      surface.dispatchEvent(e);
+      return e.defaultPrevented;
+    };
+    assert.equal(down(200, 200), false);
+    assert.equal(touch(), false);
+    assert.equal(down(...t.point(72)), true);
+    assert.equal(touch(), true);
+    assert.equal(touch(2), false);
+    t.pointer('pointerup', ...t.point(72), surface);
+    assert.equal(touch(), false);
+    t.api.destroy();
+    assert.equal(t.root.querySelector('.tdb-guide-touch-surface'), null);
+  } finally {
+    t.dispose();
+  }
+});
+
+test('first touch survives deferred wheel loading with its pointer type and latest position', async () => {
+  const dom = new JSDOM(
+    '<section data-tdb-guide data-tdb-guide-scroll><div data-tdb-guide-pad></div></section>',
+    { runScripts: 'outside-only' },
+  );
+  const w = dom.window,
+    pad = w.document.querySelector('[data-tdb-guide-pad]');
+  let loaded, seed;
+  const wait = new Promise((resolve) => {
+    loaded = resolve;
+  });
+  w.TDBFeatureLoading = { watchIntent() {} };
+  w.TDBRuntimeModuleRoot = 'https://example.org/dist/';
+  w.TDBModules = { load: () => wait };
+  w.TDBTreatmentGuideWheel = {
+    mount: () => ({
+      resume: (value) => {
+        seed = value;
+      },
+      destroy() {},
+    }),
+  };
+  w.eval(read('src/runtime/treatment-guide-loader.js'));
+  w.prepareTreatmentGuideLoader();
+  try {
+    for (const [type, x] of [
+      ['pointerdown', 10],
+      ['pointermove', 30],
+    ]) {
+      const event = new w.Event(type, { bubbles: true, cancelable: true });
+      Object.assign(event, {
+        button: 0,
+        pointerId: 7,
+        pointerType: 'touch',
+        clientX: x,
+        clientY: 20,
+      });
+      pad.dispatchEvent(event);
+    }
+    const touch = new w.Event('touchmove', { bubbles: true, cancelable: true });
+    Object.assign(touch, { touches: [{}] });
+    pad.dispatchEvent(touch);
+    assert.equal(touch.defaultPrevented, true);
+    loaded();
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(seed.pointerType, 'touch');
+    assert.equal(seed.startX, 10);
+    assert.equal(seed.clientX, 30);
+    assert.equal(seed.down, true);
+  } finally {
+    w.TDBTreatmentGuideLoader.destroy();
+    w.close();
+  }
+});
+
+test('a tap released before the wheel loads can replay without capturing an inactive pointer', () => {
+  const t = wheel();
+  try {
+    t.root.setPointerCapture = () => {
+      throw new Error('pointer is no longer active');
+    };
+    const [clientX, clientY] = t.point(144);
+    t.api.resume({
+      pointerId: 2,
+      pointerType: 'touch',
+      startX: clientX,
+      startY: clientY,
+      clientX,
+      clientY,
+      down: false,
+    });
+    assert.equal(t.menu.getAttribute('aria-valuenow'), '3');
+    assert.equal(t.root.classList.contains('is-wheel-dragging'), false);
   } finally {
     t.dispose();
   }

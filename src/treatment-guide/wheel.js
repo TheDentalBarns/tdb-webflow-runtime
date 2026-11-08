@@ -53,6 +53,11 @@
       card = window.TDBTreatmentGuideCard?.mount(root, active, navigate);
     const indentation = window.TDBTreatmentGuidePressure.create(svg);
     svg.insertBefore(indentation.layer, svg.querySelector('.treatment-guide_divider'));
+    // HTML hit testing is consistent on Safari, including the gaps between SVG paths.
+    const surface = document.createElement('div');
+    surface.className = 'tdb-guide-touch-surface';
+    surface.setAttribute('aria-hidden', 'true');
+    art.append(surface);
     const icons = choices;
     menu.setAttribute('role', 'slider');
     menu.setAttribute('aria-label', 'Treatment guide wheel');
@@ -245,7 +250,7 @@
     function begin(event) {
       if ((event.button != null && event.button !== 0) || drag) return;
       if (event.target?.closest?.('[data-tdb-guide-nav]')) return;
-      if (!menu.contains(event.target) && !svg.contains(event.target)) return;
+      if (!menu.contains(event.target) && !art.contains(event.target)) return;
       measure();
       const px = event.clientX - cx,
         py = event.clientY - cy,
@@ -257,6 +262,7 @@
       target = angle + wrap(pointerAngle - angle);
       drag = {
         id: event.pointerId,
+        pointerType: event.pointerType,
         px: event.clientX,
         py: event.clientY,
         previous: pointerAngle,
@@ -267,9 +273,9 @@
       radialTarget = radialOffset(distance);
       root.classList.add('is-wheel-dragging');
       interact();
-      root.setPointerCapture?.(event.pointerId);
-      select(chapter(target));
+      if (event.capture !== false) root.setPointerCapture?.(event.pointerId);
       drag.scroll = scrollGuide?.beginRotation() || false;
+      if (!drag.scroll) select(chapter(target));
       start();
     }
     function move(event) {
@@ -296,6 +302,7 @@
         momentum = cancelled ? 0 : Math.max(-8, Math.min(8, drag.velocity * freshness));
       const destination = Math.round((target + (cancelled ? 0 : momentum * 0.14)) / step) * step;
       const scrollRotation = drag.scroll;
+      const tapped = !cancelled && !drag.moved;
       if (drag.moved) suppressUntil = performance.now() + 450;
       drag = null;
       radialTarget = 0;
@@ -306,6 +313,11 @@
         // Keep page travel exactly where the finger left it. The pressure can
         // settle without another chapter jump or a second scroll momentum.
         scrollGuide.endRotation();
+        if (tapped) {
+          const index = chapter(target);
+          if (index === active) scrollGuide.manual(index);
+          else select(index);
+        }
         target = angle + wrap(active * step - angle);
       } else {
         select(chapter(destination), true, momentum < 0 ? -1 : 1);
@@ -314,6 +326,14 @@
       start();
     }
     root.addEventListener('pointerdown', begin, { signal });
+    for (const type of ['touchstart', 'touchmove'])
+      root.addEventListener(
+        type,
+        (event) => {
+          if (drag?.pointerType === 'touch' && event.touches.length === 1) event.preventDefault();
+        },
+        { passive: false, signal },
+      );
     root.addEventListener('focusin', () => stopPreview(true), { signal });
     document.addEventListener('pointermove', move, { passive: true, signal });
     document.addEventListener(
@@ -343,7 +363,7 @@
         if (
           event.isTrusted &&
           performance.now() < suppressUntil &&
-          (menu.contains(event.target) || svg.contains(event.target))
+          (menu.contains(event.target) || art.contains(event.target))
         ) {
           event.preventDefault();
           event.stopImmediatePropagation();
@@ -354,7 +374,7 @@
     root.addEventListener(
       'dragstart',
       (event) => {
-        if (menu.contains(event.target) || svg.contains(event.target)) event.preventDefault();
+        if (menu.contains(event.target) || art.contains(event.target)) event.preventDefault();
       },
       { signal },
     );
@@ -457,6 +477,8 @@
       resume(seed) {
         begin({
           pointerId: seed.pointerId,
+          pointerType: seed.pointerType,
+          capture: seed.down,
           clientX: seed.startX,
           clientY: seed.startY,
           target: menu,
@@ -491,6 +513,7 @@
           if (value == null) menu.removeAttribute(name);
           else menu.setAttribute(name, value);
         indentation.destroy();
+        surface.remove();
         root.classList.remove('is-click-wheel', 'is-wheel-dragging', 'is-wheel-previewing');
         for (const attribute of [
           'aria-valuemin',
