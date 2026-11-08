@@ -10,11 +10,19 @@
 .treatment-guide_number-value,.treatment-guide_number-incoming{position:absolute;inset:0;display:block;width:100%;height:100%;line-height:inherit}
 .treatment-guide_icon-value,.treatment-guide_icon-incoming{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
 
+/* Transient scroll travel only; the native card and its rim remain Designer-owned. */
+.tdb-guide-scroll-track{display:contents}
+.is-guide-scroll-enabled .tdb-guide-scroll-track{display:block;position:relative;overflow-anchor:none}
+.is-guide-scroll-enabled .tdb-guide-scroll-track>.treatment-guide_layout{position:sticky;top:var(--tdb-guide-pin-top);margin-bottom:0}
+.is-guide-scroll-enabled .treatment-guide_wheel,.is-guide-scroll-enabled .treatment-guide_finger-pad,.is-guide-scroll-enabled .treatment-guide_pad,.is-guide-scroll-enabled .treatment-guide_choice{touch-action:pan-y pinch-zoom}
+/* A late-loading booking banner follows the same shared chrome motion. */
+html:has([data-tdb-guide].is-guide-scroll-pinned) #tdb-elfsight-timer-shell{transform:translate3d(0,-100%,0)!important;opacity:1!important;visibility:hidden!important;pointer-events:none!important;transition:transform var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-peek-ease,var(--tdb-motion-ease-control,cubic-bezier(.4,0,.2,1))),visibility 0s var(--tdb-peek-duration,calc(420ms * var(--tdb-fade-pace,1)))!important}
+
 /* Ticker-generated artwork must ship with the widget: Designer omits unused classes. */
 .treatment-guide_centre-icon [data-guide-artwork="diamond"]{-webkit-mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg");mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg")}
 .treatment-guide_centre-icon [data-guide-artwork="thumbprint"]{-webkit-mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/678aba69d9fd592a6d93970f_Logo%20Icon%20-%2024%2048_Core%20Value%20Thumb%20Print%20192.svg");mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/678aba69d9fd592a6d93970f_Logo%20Icon%20-%2024%2048_Core%20Value%20Thumb%20Print%20192.svg")}
 .treatment-guide_centre-icon [data-guide-artwork="lotus"]{-webkit-mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc640ce35bc2256782a5_tdb-lotus-large-1px.svg");mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc640ce35bc2256782a5_tdb-lotus-large-1px.svg")}
-.treatment-guide_centre-icon [data-guide-artwork="quotation"]{-webkit-mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6af00c69bc81729e8db6e74a_tdb-question-large-1px.svg");mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6af00c69bc81729e8db6e74a_tdb-question-large-1px.svg")}
+.treatment-guide_centre-icon [data-guide-artwork="quotation"]{-webkit-mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6af04339aeef0714dbeb77ef_tdb-question-outlined.svg");mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6af04339aeef0714dbeb77ef_tdb-question-outlined.svg")}
 .treatment-guide_centre-icon [data-guide-artwork="barn"]{-webkit-mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6af00c698ad39b2309912520_tdb-barn-window-hero-logo.svg");mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6af00c698ad39b2309912520_tdb-barn-window-hero-logo.svg")}
 
 /* Established deferred drawer internals. */

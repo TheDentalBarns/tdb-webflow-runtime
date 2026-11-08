@@ -43,6 +43,8 @@
     const reduced = () =>
       Boolean(window.TDBMotionPolicy?.reduced?.matches || window.TDBMotion?.reduced?.matches);
     const elapsed = (ms) => window.TDBMotionProfile?.elapsed(ms) ?? ms;
+    let scrollGuide = null,
+      scrollSelecting = false;
     let active = Math.max(
       0,
       choices.findIndex((choice) => choice.classList.contains('w--current')),
@@ -69,6 +71,7 @@
       radialTarget = 0,
       radialVelocity = 0;
     let drag = null,
+      scrollTouch = null,
       raf = 0,
       last = 0,
       visible = true,
@@ -128,7 +131,7 @@
     }
     function interact() {
       stopPreview(true);
-      window.TDBSliderFocus?.focus(root, () => Boolean(drag));
+      if (!scrollGuide?.pinned) window.TDBSliderFocus?.focus(root, () => Boolean(drag));
     }
     function navigate(direction) {
       interact();
@@ -142,6 +145,7 @@
       if (previous !== index)
         card?.update(index, direction || (wrap((index - previous) * step) < 0 ? -1 : 1));
       if (notify && !choices[index].classList.contains('w--current')) choices[index].click();
+      if (previous !== index && !scrollSelecting) scrollGuide?.manual(index);
       menu.setAttribute('aria-valuenow', String(index + 1));
       menu.setAttribute('aria-valuetext', choices[index].textContent.trim());
       if (!drag) target = angle + wrap(index * step - angle);
@@ -248,6 +252,12 @@
         py = event.clientY - cy,
         distance = Math.hypot(px, py);
       if (distance < 2 * radius - outer - 4 || distance > outer + 4) return;
+      // Leave vertical swipes to the browser during the scroll trial. A tap
+      // anywhere on a sector still selects it, without claiming pointer capture.
+      if (event.pointerType === 'touch' && scrollGuide?.enabled) {
+        scrollTouch = { id: event.pointerId, x: event.clientX, y: event.clientY };
+        return;
+      }
       event.preventDefault?.();
       stopPreview(true);
       const pointerAngle = Math.atan2(px, -py);
@@ -303,8 +313,30 @@
     root.addEventListener('pointerdown', begin, { signal });
     root.addEventListener('focusin', () => stopPreview(true), { signal });
     document.addEventListener('pointermove', move, { passive: true, signal });
-    document.addEventListener('pointerup', (event) => end(event), { signal });
-    document.addEventListener('pointercancel', (event) => end(event, true), { signal });
+    document.addEventListener(
+      'pointerup',
+      (event) => {
+        if (scrollTouch?.id === event.pointerId) {
+          const tap = scrollTouch;
+          scrollTouch = null;
+          if (Math.hypot(event.clientX - tap.x, event.clientY - tap.y) < 8) {
+            measure();
+            interact();
+            select(chapter(Math.atan2(event.clientX - cx, cy - event.clientY)));
+          }
+        }
+        end(event);
+      },
+      { signal },
+    );
+    document.addEventListener(
+      'pointercancel',
+      (event) => {
+        if (scrollTouch?.id === event.pointerId) scrollTouch = null;
+        end(event, true);
+      },
+      { signal },
+    );
     root.addEventListener(
       'lostpointercapture',
       (event) => {
@@ -407,6 +439,7 @@
       'visibilitychange',
       () => {
         if (document.hidden && drag) end({ pointerId: drag.id }, true);
+        if (document.hidden) scrollTouch = null;
         if (document.hidden) stopPreview();
         else {
           preparePreview();
@@ -418,6 +451,15 @@
     measure();
     select(active, false);
     render(1);
+    scrollGuide = window.TDBTreatmentGuideScroll?.mount(root, {
+      interact: () => stopPreview(true),
+      current: () => active,
+      select(index) {
+        scrollSelecting = true;
+        select(index);
+        scrollSelecting = false;
+      },
+    });
     const api = {
       select,
       resume(seed) {
@@ -438,6 +480,7 @@
         observer.disconnect();
         selection.disconnect();
         intersection.disconnect();
+        scrollGuide?.destroy();
         card?.destroy();
         if (tabs) {
           for (const [name, value] of tabAttributes)

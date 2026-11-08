@@ -26,7 +26,7 @@ test('rounded wedge masks reproduce from their colour-free source', () => {
     '--check',
   ]);
 });
-function wheel(withNativeTabs = false) {
+function wheel(withNativeTabs = false, scrollTrial = false) {
   const dom = new JSDOM(
     `<section data-tdb-guide><nav>${Array.from({ length: 5 }, (_, i) => `<a href="#" data-tdb-guide-choice="${i}" class="${i === 0 ? 'w--current' : ''}">Chapter ${i + 1}</a>`).join('')}</nav><div class="treatment-guide_dial-art">${read('tests/fixtures/treatment-guide-native.svg')}</div></section>`,
     { runScripts: 'outside-only', pretendToBeVisual: true },
@@ -56,6 +56,10 @@ function wheel(withNativeTabs = false) {
     disconnect() {}
   };
   w.TDBMotionPolicy = { reduced: { matches: false } };
+  if (scrollTrial)
+    w.TDBTreatmentGuideScroll = {
+      mount: () => ({ enabled: true, pinned: true, manual() {}, destroy() {} }),
+    };
   const cardChanges = [];
   w.TDBTreatmentGuideCard = {
     mount: () => ({ update: (index) => cardChanges.push(index), destroy() {} }),
@@ -143,6 +147,29 @@ function wheel(withNativeTabs = false) {
     },
   };
 }
+test('scroll trial leaves touch swipes native while preserving whole-sector taps', () => {
+  const t = wheel(false, true);
+  try {
+    const touch = (type, degrees) => {
+      const [clientX, clientY] = t.point(degrees);
+      const event = new t.w.Event(type, { bubbles: true, cancelable: true });
+      Object.assign(event, { pointerId: 7, pointerType: 'touch', button: 0, clientX, clientY });
+      t.menu.dispatchEvent(event);
+      return event;
+    };
+    assert.equal(touch('pointerdown', 72).defaultPrevented, false);
+    assert.equal(t.root.classList.contains('is-wheel-dragging'), false);
+    touch('pointerup', 72);
+    assert.equal(t.menu.getAttribute('aria-valuenow'), '2');
+    touch('pointerdown', 144);
+    touch('pointercancel', 160);
+    touch('pointerup', 144);
+    assert.equal(t.menu.getAttribute('aria-valuenow'), '2');
+  } finally {
+    t.dispose();
+  }
+});
+
 test('segment wheel keeps radial elasticity and eases back without teleporting', () => {
   const t = wheel();
   try {

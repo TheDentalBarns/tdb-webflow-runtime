@@ -418,6 +418,7 @@ html[data-tdb-control-motion] [data-tdb-price-section][data-tdb-disclosure-item]
 [data-tdb-guide] .treatment-guide_choice.w--current{opacity:.98}
 [data-tdb-guide] .treatment-guide_learn-more::-webkit-details-marker{display:none}
 [data-tdb-guide]:has(details[open]) .treatment-guide_arrows{visibility:hidden}
+[data-tdb-guide-scroll]:not(.is-click-wheel) :is(.treatment-guide_pad,.treatment-guide_choice){touch-action:pan-y pinch-zoom}
 
 /* Native Designer classes own layout; shared disclosures and motion own state. */
 [data-tdb-faq-heading][aria-expanded="true"]{position:sticky;top:0;z-index:5;transform:translateY(var(--tdb-price-category-push,0px))}

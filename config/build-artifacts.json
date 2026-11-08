@@ -554,10 +554,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "b09b74a310550139b41e88d8cfc6a77b1ba7ad319fb43c9fc0f4df4747187dbd",
-      "raw": 87398,
-      "gzip": 23824,
-      "brotli": 20572
+      "sha256": "d5e47879c466a0a17d152a58a5e26af24bf73a2d740756091f7abc9310342a6f",
+      "raw": 87497,
+      "gzip": 23848,
+      "brotli": 20578
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -632,22 +632,24 @@
       "sources": [
         "src/treatment-guide/drawer.js"
       ],
-      "sha256": "264262b7270e594ed36a482df957a74155c92805b3013c0825a7d405794aa174",
-      "raw": 9581,
-      "gzip": 3668,
-      "brotli": 3189
+      "sha256": "da6745003edb69765712bbcf4d0e458b50c24f86c659dd02412a0639d751b0e4",
+      "raw": 9580,
+      "gzip": 3676,
+      "brotli": 3194
     },
     "dist/tdb-treatment-guide-wheel.js": {
       "sources": [
+        "src/shared/site-chrome.js",
         "src/treatment-guide/card.js",
         "src/treatment-guide/pressure-masks.js",
         "src/treatment-guide/pressure.js",
+        "src/treatment-guide/scroll.js",
         "src/treatment-guide/wheel.js"
       ],
-      "sha256": "5855667eef15fcd6f14221d4f576a9e072f2f83f5ad4ff413202e42e3e776dba",
-      "raw": 33103,
-      "gzip": 20354,
-      "brotli": 19044
+      "sha256": "cfe4a7a60c8e89f05386a7a0051b1d2ba1b91e1c62553320e362161a0ae5a3d8",
+      "raw": 39181,
+      "gzip": 22556,
+      "brotli": 20880
     },
     "dist/tdb-usp-drawer-template.js": {
       "sources": [

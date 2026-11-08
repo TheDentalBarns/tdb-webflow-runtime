@@ -1,3 +1,109 @@
+/* Shared site chrome v1.1.0. Independently owned, reversible nav/banner/VIP motion. */
+(() => {
+  'use strict';
+  if (window.TDBSiteChrome) return;
+  const owners = new Set();
+  let animations = [];
+  function timing() {
+    const profile = window.TDBMotionProfile?.forFamily?.('navigation') || window.TDBMotionProfile;
+    if (profile)
+      return {
+        duration: window.TDBMotion.reduced.matches ? 0 : profile.time(420),
+        easing: profile.easing('panel', 'cubic-bezier(.4,0,.2,1)'),
+        fill: 'both',
+      };
+    const css = getComputedStyle(document.documentElement);
+    const clock = css.getPropertyValue('--tdb-peek-duration').trim();
+    const duration = /^\d*\.?\d+(ms|s)$/.test(clock)
+      ? parseFloat(clock) * (clock.endsWith('ms') ? 1 : 1000)
+      : 420;
+    const easing = css.getPropertyValue('--tdb-peek-ease').trim() || 'cubic-bezier(.4,0,.2,1)';
+    return { duration: window.TDBMotion.reduced.matches ? 0 : duration, easing, fill: 'both' };
+  }
+  function cancel() {
+    animations.forEach(({ animation }) => animation.cancel());
+    animations = [];
+  }
+  function hide() {
+    const nodes = [
+      ...document.querySelectorAll(
+        '.navbar10_component,.navbar-bg_layer,.tdb-announcement,#tdb-elfsight-timer-shell,#tdb-vip-drawer',
+      ),
+    ];
+    // A new owner can interrupt the return motion. Capture the visible poses,
+    // then measure the native layout without our previous animation applied.
+    const from = new Map(nodes.map((node) => [node, getComputedStyle(node).transform]));
+    cancel();
+    const nav = document.querySelector('.navbar10_component');
+    // Measure every starting pose before starting any animation.
+    const poses = nodes.map((node) => {
+      const rect = node.getBoundingClientRect();
+      const height =
+        node === nav
+          ? Math.max(
+              rect.height,
+              ...[
+                ...node.querySelectorAll(
+                  '.w-nav-overlay,.navbar10_menu[data-nav-menu-open],.navbar10_dropdown-list.w--open',
+                ),
+              ]
+                .filter((n) => n.getClientRects().length)
+                .map((n) => n.getBoundingClientRect().bottom - rect.top),
+            )
+          : rect.height;
+      return {
+        node,
+        from: from.get(node),
+        y: node.id === 'tdb-vip-drawer' ? height : -Math.max(height, rect.bottom),
+      };
+    });
+    animations = poses
+      .filter((pose) => pose.node.animate)
+      .map(({ node, from, y }) => ({
+        node,
+        animation: node.animate(
+          [{ transform: from }, { transform: `translateY(${y}px)` }],
+          timing(),
+        ),
+      }));
+    animations.forEach(({ animation }) => animation.finished.catch(() => {}));
+    if (document.querySelector('#tdb-vip-drawer.is-open,#tdb-vip-drawer.is-peeking'))
+      window.TDBVIPDrawer?.close?.();
+  }
+  function show() {
+    const poses = animations.map(({ node }) => ({ node, from: getComputedStyle(node).transform }));
+    cancel();
+    // settleBackground may have closed a menu while chrome was hidden. Return
+    // to that current native pose, rather than reversing to the stale open menu.
+    const targets = poses.map((pose) => ({ ...pose, to: getComputedStyle(pose.node).transform }));
+    const returning = targets.map(({ node, from, to }) => ({
+      node,
+      animation: node.animate([{ transform: from }, { transform: to }], timing()),
+    }));
+    animations = returning;
+    Promise.allSettled(returning.map(({ animation }) => animation.finished)).then(() => {
+      if (animations === returning && !owners.size) cancel();
+    });
+  }
+  function settleBackground() {
+    window.TDBVIPDrawer?.reset?.();
+    document.querySelector('.navbar10_menu-button[aria-expanded="true"]')?.click();
+    document
+      .querySelectorAll('.navbar10_dropdown-toggle[aria-expanded="true"]')
+      .forEach((node) => node.click());
+  }
+  function acquire() {
+    const owner = {};
+    if (!owners.size) hide();
+    owners.add(owner);
+    return () => {
+      if (!owners.delete(owner) || owners.size) return;
+      show();
+    };
+  }
+  window.TDBSiteChrome = Object.freeze({ version: '1.1.0', acquire, settleBackground });
+})();
+
 /* Enhance the native CMS card. Designer owns every resting element and its space. */
 window.TDBTreatmentGuideCard ||= (() => {
   function mount(root, initial, navigate) {
@@ -300,6 +406,196 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
   window.TDBTreatmentGuidePressure = Object.freeze({ create });
 })();
 
+/* Opt-in chapter pinning. Native scrolling owns travel; no wheel/touch lock. */
+(() => {
+  'use strict';
+  if (window.TDBTreatmentGuideScroll) return;
+  function mount(root, controls) {
+    if (!root.hasAttribute('data-tdb-guide-scroll')) return null;
+    const layout = root.querySelector('.treatment-guide_layout'),
+      art = root.querySelector('.treatment-guide_dial-art'),
+      content = root.querySelector('.treatment-guide_content');
+    if (!layout || !art || !content) return null;
+    const events = new AbortController(),
+      { signal } = events,
+      reduced = matchMedia('(prefers-reduced-motion: reduce)'),
+      track = document.createElement('div');
+    track.className = 'tdb-guide-scroll-track';
+    layout.before(track);
+    track.append(layout);
+    let enabled = false,
+      pinned = false,
+      suspended = false,
+      disposed = false,
+      raf = 0,
+      resize = true,
+      pinTop = 0,
+      distance = 0,
+      runway = 0,
+      start = 0,
+      lastIndex = -1,
+      releaseChrome = null;
+    function scrollTo(top) {
+      if (window.lenis?.scrollTo) window.lenis.scrollTo(top, { immediate: true, force: true });
+      else window.scrollTo({ top, behavior: 'instant' });
+    }
+    function hold(value) {
+      if (pinned === value) return;
+      pinned = value;
+      root.classList.toggle('is-guide-scroll-pinned', value);
+      if (value) {
+        controls.interact();
+        window.TDBSliderFocus?.release(root);
+        releaseChrome = window.TDBSiteChrome?.acquire();
+      } else {
+        releaseChrome?.();
+        releaseChrome = null;
+        window.TDBSliderFocus?.release(root);
+      }
+    }
+    function disable() {
+      if (!enabled) return;
+      // Removing the extra travel must not throw a rotated phone past the card.
+      const travelled = Math.max(0, Math.min(runway, window.scrollY - start));
+      hold(false);
+      enabled = false;
+      root.classList.remove('is-guide-scroll-enabled');
+      track.removeAttribute('style');
+      if (travelled) scrollTo(window.scrollY - travelled);
+      lastIndex = -1;
+    }
+    function measure() {
+      resize = false;
+      const cardBox = layout.getBoundingClientRect(),
+        wheelBox = art.getBoundingClientRect(),
+        contentBox = content.getBoundingClientRect(),
+        viewport = window.visualViewport,
+        height = Math.min(innerHeight, viewport?.height || innerHeight),
+        offset = wheelBox.top - cardBox.top,
+        needed = Math.max(wheelBox.bottom, contentBox.bottom) - wheelBox.top + 17;
+      const fits =
+        wheelBox.width > 0 &&
+        needed <= height &&
+        !reduced.matches &&
+        !window.TDBMotion?.reduced?.matches &&
+        (!viewport || viewport.scale <= 1);
+      if (!fits) return disable();
+      // Do not insert scroll travel above a restored reading position.
+      if (!enabled && wheelBox.top < 5) return;
+      const fraction = enabled ? Math.max(0, Math.min(5, (window.scrollY - start) / distance)) : 0;
+      const oldDistance = distance;
+      const margin = getComputedStyle(layout).marginBottom;
+      pinTop = 5 - offset;
+      distance = Math.max(240, Math.min(480, innerWidth * 0.8));
+      runway = distance * 5;
+      track.style.setProperty('--tdb-guide-pin-top', pinTop + 'px');
+      track.style.setProperty('--tdb-guide-scroll-travel', runway + 'px');
+      track.style.height = cardBox.height + runway + 'px';
+      if (!enabled) track.style.marginBottom = margin;
+      root.classList.add('is-guide-scroll-enabled');
+      enabled = true;
+      start = track.getBoundingClientRect().top + window.scrollY - pinTop;
+      if (pinned && oldDistance !== distance) scrollTo(start + fraction * distance);
+    }
+    function update() {
+      raf = 0;
+      if (disposed || suspended || document.hidden) return hold(false);
+      if (resize) measure();
+      if (!enabled) {
+        // A restored page can arm on its next approach from above.
+        if (art.getBoundingClientRect().top >= 5) measure();
+        if (!enabled) return;
+      }
+      start = track.getBoundingClientRect().top + window.scrollY - pinTop;
+      const progress = window.scrollY - start;
+      const inside = progress >= -0.5 && progress < runway;
+      const wasPinned = pinned;
+      hold(inside);
+      if (window.TDBScrollLock?.active) return;
+      const index = Math.max(0, Math.min(4, Math.floor(Math.max(0, progress) / distance)));
+      if ((inside || wasPinned) && (lastIndex !== index || controls.current() !== index)) {
+        lastIndex = index;
+        controls.select(index);
+      }
+      if (!inside) lastIndex = -1;
+    }
+    function schedule(needsMeasure = false) {
+      if (disposed) return;
+      resize ||= needsMeasure;
+      if (!raf) raf = requestAnimationFrame(update);
+    }
+    const observer = new ResizeObserver(() => schedule(true));
+    observer.observe(layout);
+    observer.observe(art);
+    window.addEventListener('scroll', () => schedule(), { passive: true, signal });
+    window.addEventListener('resize', () => schedule(true), { passive: true, signal });
+    window.visualViewport?.addEventListener('resize', () => schedule(true), {
+      passive: true,
+      signal,
+    });
+    reduced.addEventListener('change', () => schedule(true), { signal });
+    root.addEventListener('toggle', () => schedule(true), { capture: true, signal });
+    document.addEventListener(
+      'keydown',
+      (event) => {
+        if (event.key !== 'Escape' || !pinned || window.TDBScrollLock?.active) return;
+        scrollTo(start + runway + 1);
+        schedule();
+      },
+      { signal },
+    );
+    window.addEventListener(
+      'pagehide',
+      () => {
+        suspended = true;
+        hold(false);
+      },
+      { signal },
+    );
+    window.addEventListener(
+      'pageshow',
+      () => {
+        suspended = false;
+        schedule(true);
+      },
+      { signal },
+    );
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        if (document.hidden) hold(false);
+        else schedule(true);
+      },
+      { signal },
+    );
+    schedule(true);
+    return {
+      get enabled() {
+        return enabled;
+      },
+      get pinned() {
+        return pinned;
+      },
+      manual(index) {
+        if (!pinned) return;
+        lastIndex = index;
+        scrollTo(start + (index + 0.15) * distance);
+        schedule();
+      },
+      destroy() {
+        if (disposed) return;
+        disposed = true;
+        events.abort();
+        observer.disconnect();
+        cancelAnimationFrame(raf);
+        disable();
+        track.replaceWith(layout);
+      },
+    };
+  }
+  window.TDBTreatmentGuideScroll = Object.freeze({ mount });
+})();
+
 /* Pressure and interaction only; the resting wheel and CMS card live in Designer. */
 (() => {
   'use strict';
@@ -345,6 +641,8 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     const reduced = () =>
       Boolean(window.TDBMotionPolicy?.reduced?.matches || window.TDBMotion?.reduced?.matches);
     const elapsed = (ms) => window.TDBMotionProfile?.elapsed(ms) ?? ms;
+    let scrollGuide = null,
+      scrollSelecting = false;
     let active = Math.max(
       0,
       choices.findIndex((choice) => choice.classList.contains('w--current')),
@@ -371,6 +669,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       radialTarget = 0,
       radialVelocity = 0;
     let drag = null,
+      scrollTouch = null,
       raf = 0,
       last = 0,
       visible = true,
@@ -430,7 +729,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     }
     function interact() {
       stopPreview(true);
-      window.TDBSliderFocus?.focus(root, () => Boolean(drag));
+      if (!scrollGuide?.pinned) window.TDBSliderFocus?.focus(root, () => Boolean(drag));
     }
     function navigate(direction) {
       interact();
@@ -444,6 +743,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       if (previous !== index)
         card?.update(index, direction || (wrap((index - previous) * step) < 0 ? -1 : 1));
       if (notify && !choices[index].classList.contains('w--current')) choices[index].click();
+      if (previous !== index && !scrollSelecting) scrollGuide?.manual(index);
       menu.setAttribute('aria-valuenow', String(index + 1));
       menu.setAttribute('aria-valuetext', choices[index].textContent.trim());
       if (!drag) target = angle + wrap(index * step - angle);
@@ -550,6 +850,12 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         py = event.clientY - cy,
         distance = Math.hypot(px, py);
       if (distance < 2 * radius - outer - 4 || distance > outer + 4) return;
+      // Leave vertical swipes to the browser during the scroll trial. A tap
+      // anywhere on a sector still selects it, without claiming pointer capture.
+      if (event.pointerType === 'touch' && scrollGuide?.enabled) {
+        scrollTouch = { id: event.pointerId, x: event.clientX, y: event.clientY };
+        return;
+      }
       event.preventDefault?.();
       stopPreview(true);
       const pointerAngle = Math.atan2(px, -py);
@@ -605,8 +911,30 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     root.addEventListener('pointerdown', begin, { signal });
     root.addEventListener('focusin', () => stopPreview(true), { signal });
     document.addEventListener('pointermove', move, { passive: true, signal });
-    document.addEventListener('pointerup', (event) => end(event), { signal });
-    document.addEventListener('pointercancel', (event) => end(event, true), { signal });
+    document.addEventListener(
+      'pointerup',
+      (event) => {
+        if (scrollTouch?.id === event.pointerId) {
+          const tap = scrollTouch;
+          scrollTouch = null;
+          if (Math.hypot(event.clientX - tap.x, event.clientY - tap.y) < 8) {
+            measure();
+            interact();
+            select(chapter(Math.atan2(event.clientX - cx, cy - event.clientY)));
+          }
+        }
+        end(event);
+      },
+      { signal },
+    );
+    document.addEventListener(
+      'pointercancel',
+      (event) => {
+        if (scrollTouch?.id === event.pointerId) scrollTouch = null;
+        end(event, true);
+      },
+      { signal },
+    );
     root.addEventListener(
       'lostpointercapture',
       (event) => {
@@ -709,6 +1037,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       'visibilitychange',
       () => {
         if (document.hidden && drag) end({ pointerId: drag.id }, true);
+        if (document.hidden) scrollTouch = null;
         if (document.hidden) stopPreview();
         else {
           preparePreview();
@@ -720,6 +1049,15 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     measure();
     select(active, false);
     render(1);
+    scrollGuide = window.TDBTreatmentGuideScroll?.mount(root, {
+      interact: () => stopPreview(true),
+      current: () => active,
+      select(index) {
+        scrollSelecting = true;
+        select(index);
+        scrollSelecting = false;
+      },
+    });
     const api = {
       select,
       resume(seed) {
@@ -740,6 +1078,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         observer.disconnect();
         selection.disconnect();
         intersection.disconnect();
+        scrollGuide?.destroy();
         card?.destroy();
         if (tabs) {
           for (const [name, value] of tabAttributes)
