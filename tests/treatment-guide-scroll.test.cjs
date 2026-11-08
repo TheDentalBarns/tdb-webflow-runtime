@@ -306,6 +306,38 @@ test('short/reduced-motion screens retain the native card with no extra scroll t
   }
 });
 
+test('finger rotation scrubs the same travel, can finish the section, and stops on release', () => {
+  const t = setup({ lenis: true });
+  try {
+    assert.equal(t.api.beginRotation(), false);
+    t.move(1000.5 + 156);
+    t.tick();
+    assert.equal(t.api.beginRotation(), true);
+    t.api.rotate(0.25);
+    assert.equal(t.w.scrollY, 1000.5 + 156 + 78);
+    assert.equal(t.root.querySelector('circle').style.strokeDashoffset, '85.000');
+    t.api.rotate(-0.1);
+    t.tick();
+    assert.equal(t.root.querySelector('circle').style.strokeDashoffset, '87.000');
+    t.api.rotate(10);
+    t.tick();
+    assert.equal(t.w.scrollY, 1000.5 + 1560);
+    assert.equal(t.api.pinned, false);
+    assert.equal(t.current(), 4);
+    assert.equal(t.root.querySelector('circle').style.strokeDashoffset, '0.000');
+    t.api.rotate(-0.25);
+    t.tick();
+    assert.equal(t.api.pinned, true);
+    t.api.endRotation();
+    const y = t.w.scrollY;
+    t.api.rotate(1);
+    t.tick();
+    assert.equal(t.w.scrollY, y);
+  } finally {
+    t.close();
+  }
+});
+
 test('rotation and teardown remove consumed travel without throwing the reader past the card', () => {
   for (const destroy of [false, true]) {
     const t = setup();

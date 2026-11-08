@@ -41,6 +41,8 @@
     }
     let enabled = false,
       pinned = false,
+      rotating = false,
+      rotationY = 0,
       suspended = false,
       disposed = false,
       raf = 0,
@@ -99,6 +101,7 @@
       // Removing the extra travel must not throw a rotated phone past the card.
       const travelled = Math.max(0, Math.min(runway, window.scrollY - start));
       hold(false);
+      rotating = false;
       enabled = false;
       root.classList.remove('is-guide-scroll-enabled');
       paintProgress(0);
@@ -232,6 +235,22 @@
         if (!pinned) return;
         lastIndex = index;
         scrollTo(start + (index + 0.15) * distance);
+        schedule();
+      },
+      beginRotation() {
+        rotating = enabled && pinned && !window.TDBScrollLock?.active;
+        rotationY = window.scrollY;
+        return rotating;
+      },
+      rotate(chapters) {
+        if (!rotating || !enabled || window.TDBScrollLock?.active) return;
+        rotationY = Math.max(start, Math.min(start + runway, rotationY + chapters * distance));
+        scrollTo(rotationY);
+        paintProgress((window.scrollY - start) / runway);
+        schedule();
+      },
+      endRotation() {
+        rotating = false;
         schedule();
       },
       destroy() {

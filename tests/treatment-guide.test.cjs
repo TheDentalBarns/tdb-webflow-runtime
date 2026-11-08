@@ -26,6 +26,28 @@ test('rounded wedge masks reproduce from their colour-free source', () => {
     '--check',
   ]);
 });
+test('scroll guide warms only its adjacent exit image after consent and restores loading ownership', () => {
+  for (const allowed of [true, false]) {
+    const dom = new JSDOM(
+      '<img id="before" loading="lazy"><section data-tdb-guide data-tdb-guide-scroll></section><section><div data-tdb-page-break><img id="exit" loading="lazy"></div></section><section data-tdb-page-break><img id="later" loading="lazy"></section>',
+      { runScripts: 'outside-only' },
+    );
+    const w = dom.window;
+    w.TDBConsent = { allows: () => allowed };
+    w.TDBFeatureLoading = { watchIntent() {} };
+    w.eval(read('src/runtime/treatment-guide-loader.js'));
+    w.prepareTreatmentGuideLoader();
+    assert.equal(
+      w.document.querySelector('#exit').getAttribute('loading'),
+      allowed ? 'eager' : 'lazy',
+    );
+    assert.equal(w.document.querySelector('#before').getAttribute('loading'), 'lazy');
+    assert.equal(w.document.querySelector('#later').getAttribute('loading'), 'lazy');
+    w.TDBTreatmentGuideLoader.destroy();
+    assert.equal(w.document.querySelector('#exit').getAttribute('loading'), 'lazy');
+    w.close();
+  }
+});
 function wheel(withNativeTabs = false, scrollTrial = false) {
   const dom = new JSDOM(
     `<section data-tdb-guide><nav>${Array.from({ length: 5 }, (_, i) => `<a href="#" data-tdb-guide-choice="${i}" class="${i === 0 ? 'w--current' : ''}">Chapter ${i + 1}</a>`).join('')}</nav><div class="treatment-guide_dial-art">${read('tests/fixtures/treatment-guide-native.svg')}</div></section>`,
@@ -56,9 +78,18 @@ function wheel(withNativeTabs = false, scrollTrial = false) {
     disconnect() {}
   };
   w.TDBMotionPolicy = { reduced: { matches: false } };
+  const scrollRotation = { moves: [], ends: 0 };
   if (scrollTrial)
     w.TDBTreatmentGuideScroll = {
-      mount: () => ({ enabled: true, pinned: true, manual() {}, destroy() {} }),
+      mount: () => ({
+        enabled: true,
+        pinned: true,
+        manual() {},
+        destroy() {},
+        beginRotation: () => true,
+        rotate: (chapters) => scrollRotation.moves.push(chapters),
+        endRotation: () => scrollRotation.ends++,
+      }),
     };
   const cardChanges = [];
   w.TDBTreatmentGuideCard = {
@@ -130,6 +161,7 @@ function wheel(withNativeTabs = false, scrollTrial = false) {
     menu,
     choices,
     cardChanges,
+    scrollRotation,
     api,
     pressure,
     segments,
@@ -147,7 +179,7 @@ function wheel(withNativeTabs = false, scrollTrial = false) {
     },
   };
 }
-test('scroll trial leaves touch swipes native while preserving whole-sector taps', () => {
+test('touch rotation overrides scroll progress and releases without a second chapter jump', () => {
   const t = wheel(false, true);
   try {
     const touch = (type, degrees) => {
@@ -157,14 +189,21 @@ test('scroll trial leaves touch swipes native while preserving whole-sector taps
       t.menu.dispatchEvent(event);
       return event;
     };
-    assert.equal(touch('pointerdown', 72).defaultPrevented, false);
-    assert.equal(t.root.classList.contains('is-wheel-dragging'), false);
+    assert.equal(touch('pointerdown', 72).defaultPrevented, true);
+    assert.equal(t.root.classList.contains('is-wheel-dragging'), true);
+    touch('pointermove', 108);
+    touch('pointermove', 90);
+    assert.ok(Math.abs(t.scrollRotation.moves[0] - 0.5) < 0.001);
+    assert.ok(Math.abs(t.scrollRotation.moves[1] + 0.25) < 0.001);
     touch('pointerup', 72);
     assert.equal(t.menu.getAttribute('aria-valuenow'), '2');
+    assert.equal(t.scrollRotation.ends, 1);
+    assert.equal(t.root.classList.contains('is-wheel-dragging'), false);
     touch('pointerdown', 144);
     touch('pointercancel', 160);
     touch('pointerup', 144);
-    assert.equal(t.menu.getAttribute('aria-valuenow'), '2');
+    assert.equal(t.menu.getAttribute('aria-valuenow'), '3');
+    assert.equal(t.scrollRotation.ends, 2);
   } finally {
     t.dispose();
   }

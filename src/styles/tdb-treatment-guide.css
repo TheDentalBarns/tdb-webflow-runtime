@@ -14,7 +14,9 @@
 .tdb-guide-scroll-track{display:contents}
 .is-guide-scroll-enabled .tdb-guide-scroll-track{display:block;position:relative;overflow-anchor:none}
 .is-guide-scroll-enabled .tdb-guide-scroll-track>.treatment-guide_layout{position:sticky;top:var(--tdb-guide-pin-top);margin-bottom:0}
-.is-guide-scroll-enabled .treatment-guide_wheel,.is-guide-scroll-enabled .treatment-guide_finger-pad,.is-guide-scroll-enabled .treatment-guide_pad,.is-guide-scroll-enabled .treatment-guide_choice{touch-action:pan-y pinch-zoom}
+.is-guide-scroll-enabled .treatment-guide_wheel{touch-action:pan-y pinch-zoom}
+.is-guide-scroll-enabled .treatment-guide_finger-pad,.is-guide-scroll-enabled .treatment-guide_pad,.is-guide-scroll-enabled .treatment-guide_choice{touch-action:none}
+.is-guide-scroll-enabled .treatment-guide_centre{pointer-events:auto;touch-action:pan-y pinch-zoom}
 /* Match the services slider's 5px translucent track and stronger moving fill. */
 .is-guide-scroll-enabled .treatment-guide_rim{box-shadow:inset 0 0 0 5px #a79b8630}
 .tdb-guide-scroll-progress{position:absolute;inset:0;display:none;width:100%;height:100%;opacity:.75;pointer-events:none;transform:rotate(-90deg);transform-origin:50% 50%}

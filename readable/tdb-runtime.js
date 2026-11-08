@@ -3652,12 +3652,24 @@ function prepareTreatmentGuideLoader() {
   if (!roots.length) return;
   const events = new AbortController(),
     owners = new Map(),
+    imageLoading = new Map(),
     pending = new WeakSet();
   let disposed = false,
     gesture = null;
   const allowed = () => !disposed && (!window.TDBConsent || window.TDBConsent.allows());
+  function prepareExitImage(root) {
+    if (!allowed() || !root.hasAttribute('data-tdb-guide-scroll')) return;
+    // Pinning adds travel before this image. Its native lazy threshold can then
+    // miss a fast exit or a turn through the wheel; warm only the adjacent break.
+    const image = root.nextElementSibling?.querySelector('[data-tdb-page-break] img');
+    if (!image || image.getAttribute('loading') !== 'lazy') return;
+    imageLoading.set(image, image.getAttribute('loading'));
+    image.setAttribute('loading', 'eager');
+    image.decode?.().catch(() => {});
+  }
   async function wheel(root) {
     if (!allowed()) return;
+    prepareExitImage(root);
     await window.TDBModules.load(new URL('tdb-treatment-guide.css', TDBRuntimeModuleRoot), {
       type: 'style',
     });
@@ -3787,6 +3799,7 @@ function prepareTreatmentGuideLoader() {
       { capture: true, passive: true, signal: events.signal },
     );
   for (const root of roots) {
+    prepareExitImage(root);
     window.TDBFeatureLoading?.watchIntent({
       selector: '[data-tdb-guide]',
       root: root.parentElement,
@@ -3827,6 +3840,8 @@ function prepareTreatmentGuideLoader() {
       gesture = null;
       owners.forEach((api) => api.destroy());
       owners.clear();
+      imageLoading.forEach((loading, image) => image.setAttribute('loading', loading));
+      imageLoading.clear();
       roots.forEach((root) => window.TDBTreatmentGuideDrawer?.destroy(root));
     },
   });

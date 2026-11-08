@@ -449,6 +449,8 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     }
     let enabled = false,
       pinned = false,
+      rotating = false,
+      rotationY = 0,
       suspended = false,
       disposed = false,
       raf = 0,
@@ -507,6 +509,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       // Removing the extra travel must not throw a rotated phone past the card.
       const travelled = Math.max(0, Math.min(runway, window.scrollY - start));
       hold(false);
+      rotating = false;
       enabled = false;
       root.classList.remove('is-guide-scroll-enabled');
       paintProgress(0);
@@ -642,6 +645,22 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         scrollTo(start + (index + 0.15) * distance);
         schedule();
       },
+      beginRotation() {
+        rotating = enabled && pinned && !window.TDBScrollLock?.active;
+        rotationY = window.scrollY;
+        return rotating;
+      },
+      rotate(chapters) {
+        if (!rotating || !enabled || window.TDBScrollLock?.active) return;
+        rotationY = Math.max(start, Math.min(start + runway, rotationY + chapters * distance));
+        scrollTo(rotationY);
+        paintProgress((window.scrollY - start) / runway);
+        schedule();
+      },
+      endRotation() {
+        rotating = false;
+        schedule();
+      },
       destroy() {
         if (disposed) return;
         disposed = true;
@@ -731,7 +750,6 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       radialTarget = 0,
       radialVelocity = 0;
     let drag = null,
-      scrollTouch = null,
       raf = 0,
       last = 0,
       visible = true,
@@ -912,12 +930,6 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         py = event.clientY - cy,
         distance = Math.hypot(px, py);
       if (distance < 2 * radius - outer - 4 || distance > outer + 4) return;
-      // Leave vertical swipes to the browser during the scroll trial. A tap
-      // anywhere on a sector still selects it, without claiming pointer capture.
-      if (event.pointerType === 'touch' && scrollGuide?.enabled) {
-        scrollTouch = { id: event.pointerId, x: event.clientX, y: event.clientY };
-        return;
-      }
       event.preventDefault?.();
       stopPreview(true);
       const pointerAngle = Math.atan2(px, -py);
@@ -936,6 +948,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       interact();
       root.setPointerCapture?.(event.pointerId);
       select(chapter(target));
+      drag.scroll = scrollGuide?.beginRotation() || false;
       start();
     }
     function move(event) {
@@ -952,7 +965,8 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       if (Math.hypot(event.clientX - drag.px, event.clientY - drag.py) > 5) drag.moved = true;
       if (Math.hypot(px, py) > outer * 0.15) target += delta;
       radialTarget = radialOffset(Math.hypot(px, py));
-      select(chapter(target), true, delta < 0 ? -1 : 1);
+      if (drag.scroll) scrollGuide.rotate(delta / step);
+      else select(chapter(target), true, delta < 0 ? -1 : 1);
       start();
     }
     function end(event, cancelled = false) {
@@ -960,14 +974,22 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       const freshness = Math.max(0, 1 - (performance.now() - drag.time) / 140),
         momentum = cancelled ? 0 : Math.max(-8, Math.min(8, drag.velocity * freshness));
       const destination = Math.round((target + (cancelled ? 0 : momentum * 0.14)) / step) * step;
+      const scrollRotation = drag.scroll;
       if (drag.moved) suppressUntil = performance.now() + 450;
       drag = null;
       radialTarget = 0;
       velocity += momentum * 0.45;
       root.classList.remove('is-wheel-dragging');
       if (root.hasPointerCapture?.(event.pointerId)) root.releasePointerCapture(event.pointerId);
-      select(chapter(destination), true, momentum < 0 ? -1 : 1);
-      target = destination;
+      if (scrollRotation) {
+        // Keep page travel exactly where the finger left it. The pressure can
+        // settle without another chapter jump or a second scroll momentum.
+        scrollGuide.endRotation();
+        target = angle + wrap(active * step - angle);
+      } else {
+        select(chapter(destination), true, momentum < 0 ? -1 : 1);
+        target = destination;
+      }
       start();
     }
     root.addEventListener('pointerdown', begin, { signal });
@@ -976,15 +998,6 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     document.addEventListener(
       'pointerup',
       (event) => {
-        if (scrollTouch?.id === event.pointerId) {
-          const tap = scrollTouch;
-          scrollTouch = null;
-          if (Math.hypot(event.clientX - tap.x, event.clientY - tap.y) < 8) {
-            measure();
-            interact();
-            select(chapter(Math.atan2(event.clientX - cx, cy - event.clientY)));
-          }
-        }
         end(event);
       },
       { signal },
@@ -992,7 +1005,6 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     document.addEventListener(
       'pointercancel',
       (event) => {
-        if (scrollTouch?.id === event.pointerId) scrollTouch = null;
         end(event, true);
       },
       { signal },
@@ -1099,7 +1111,6 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       'visibilitychange',
       () => {
         if (document.hidden && drag) end({ pointerId: drag.id }, true);
-        if (document.hidden) scrollTouch = null;
         if (document.hidden) stopPreview();
         else {
           preparePreview();
