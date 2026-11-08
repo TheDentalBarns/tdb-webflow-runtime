@@ -37,11 +37,12 @@ html:has([data-tdb-guide].is-guide-chrome-away) :is(.navbar10_component,.navbar1
 [data-tdb-guide-shell] .tdb-usp_slide{padding-top:calc(12rem + env(safe-area-inset-top,0px))}
 [data-tdb-guide-shell] .tdb-usp_slide-content{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;min-height:0;max-width:34rem;margin:0 auto}
 [data-tdb-guide-shell] .tdb-guide_intro-overlay{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none}
-[data-tdb-guide-shell] .tdb-guide_intro-space{height:17rem}
-[data-tdb-guide-shell] .tdb-guide_static-intro{position:relative;height:17rem;padding:1.5rem 0;background:var(--base-color-brand--orange-1);pointer-events:none}
+[data-tdb-guide-shell] .tdb-guide_intro-space{height:11rem}
+[data-tdb-guide-shell] .tdb-guide_static-intro{position:relative;height:11rem;padding:1.5rem 0;background:var(--base-color-brand--orange-1);pointer-events:none}
 [data-tdb-guide-shell] .tdb-guide_static-intro.is-stationary{position:absolute;top:calc(12rem + env(safe-area-inset-top,0px));left:0;right:0;padding-left:2.5rem;padding-right:2.5rem}
-[data-tdb-guide-shell] .tdb-guide_intro-card{height:14rem;display:flex;align-items:center;justify-content:center;padding:0 1.25rem;background:var(--base-color-brand--orange-2);overflow:hidden}
-[data-tdb-guide-shell] .tdb-guide_static-mark{display:flex;align-items:center;justify-content:center;color:var(--base-color-brand--orange-3,#d6cab4);flex-shrink:0}
+[data-tdb-guide-shell] .tdb-guide_intro-card{height:8rem;display:flex;align-items:center;justify-content:center;padding:0 1.25rem;background:var(--base-color-brand--orange-2);overflow:hidden}
+[data-tdb-guide-shell] .tdb-guide_static-mark{display:flex;align-items:center;justify-content:center;gap:1.25rem;width:min(100%,23rem);color:var(--base-color-brand--orange-3,#d6cab4);flex-shrink:0}
+[data-tdb-guide-shell] .tdb-guide_intro-rule{display:block;flex:1;height:1px;background:currentColor}
 [data-tdb-guide-shell] .tdb-guide_icon-slot{position:relative;display:block;width:5rem;height:5rem;flex-shrink:0;overflow:hidden}
 [data-tdb-guide-shell] .tdb-guide_icon-value,[data-tdb-guide-shell] .tdb-guide_icon-incoming{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
 [data-tdb-guide-shell] .tdb-guide_icon-art{display:block;width:100%;height:100%;background:currentColor;-webkit-mask:var(--tdb-guide-artwork) center/contain no-repeat;mask:var(--tdb-guide-artwork) center/contain no-repeat}

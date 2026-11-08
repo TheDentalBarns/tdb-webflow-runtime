@@ -120,3 +120,7 @@ The thin rim is now independent progress paint and remains available before the 
 The guide bundle includes the existing idempotent shared scroll lock so the hold does not depend on opening a drawer first. The old sticky wrapper, synthetic runway, scroll-linked ring, and temporary charcoal tail are removed. The following review image retains its existing preload and parallax owner.
 
 Validation covers unchanged native document geometry; progress before pinning; a constant scroll position through arrows, wheel input and rotation; endpoint release; drawer coexistence; and short-screen/lifecycle escape paths. Browser checks measure the following image's crop while held and its coverage/motion on actual scroll after release. Physical iPhone verification remains separate from Chromium/WebKit testing.
+
+### Compact drawer icon panel — 8 November 2026
+
+The drawer's cream icon card is now 8rem tall, reduced from 14rem. The matching native-flow spacer and stationary intro both shrink from 17rem to 11rem, retaining 1.5rem above and below the card. This brings the treatment body closer without leaving the previous empty reading space. The centred 5rem artwork keeps its size, and the original two 1px horizontal rules return on either side in the existing orange-3 colour. The rules are decorative and share the mark's `aria-hidden` container. Icon ticker and drawer reading/transition ownership are unchanged.
