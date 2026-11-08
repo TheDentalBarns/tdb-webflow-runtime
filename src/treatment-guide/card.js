@@ -29,12 +29,27 @@ window.TDBTreatmentGuideCard ||= (() => {
       row.button.setAttribute('aria-label', 'Learn more about ' + row.title.textContent.trim());
       return ticker;
     });
+    const centreIcon = pagination.querySelector('[data-tdb-guide-centre-icon]');
+    const centreBefore = centreIcon
+      ? [...centreIcon.childNodes].map((node) => node.cloneNode(true))
+      : null;
     const ticker = window.TDBNativeTicker.mount(
-      pagination.querySelector('[data-tdb-guide-position]'),
-      {
-        valueClass: 'treatment-guide_number-value',
-        incomingClass: 'treatment-guide_number-incoming',
-      },
+      centreIcon || pagination.querySelector('[data-tdb-guide-position]'),
+      centreIcon
+        ? {
+            valueClass: 'treatment-guide_icon-value',
+            incomingClass: 'treatment-guide_icon-incoming',
+            render(node, value) {
+              const icon = artwork[Number(value) || 0].cloneNode(true);
+              icon.className =
+                'treatment-guide_icon-art treatment-guide_centre-' + icon.dataset.guideArtwork;
+              node.replaceChildren(icon);
+            },
+          }
+        : {
+            valueClass: 'treatment-guide_number-value',
+            incomingClass: 'treatment-guide_number-incoming',
+          },
     );
     for (const button of root.querySelectorAll('[data-tdb-guide-nav]'))
       button.addEventListener('click', () => navigate(Number(button.dataset.tdbGuideNav)), {
@@ -52,8 +67,15 @@ window.TDBTreatmentGuideCard ||= (() => {
       const previous = active;
       stop();
       active = index;
-      pagination.setAttribute('aria-label', `${index + 1} of ${rows.length}`);
-      ticker.update(String(index + 1).padStart(2, '0'), direction, animate);
+      pagination.setAttribute(
+        'aria-label',
+        `${index + 1} of ${rows.length}: ${rows[index].title.textContent.trim()}`,
+      );
+      ticker.update(
+        centreIcon ? String(index) : String(index + 1).padStart(2, '0'),
+        direction,
+        animate,
+      );
       iconTickers[index].update(String(previous), direction, false);
       iconTickers[index].update(String(index), direction, animate);
       rows.forEach((row, i) => {
@@ -107,6 +129,7 @@ window.TDBTreatmentGuideCard ||= (() => {
         stop();
         events.abort();
         ticker.destroy();
+        if (centreIcon) centreIcon.replaceChildren(...centreBefore);
         iconTickers.forEach((ticker, i) => {
           ticker.destroy();
           rows[i].icon.replaceChildren(artwork[i]);

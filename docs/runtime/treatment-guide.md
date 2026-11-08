@@ -4,13 +4,13 @@ The Treatments template has one reusable `Treatment Guide — wheel` component. 
 
 ## Ownership
 
-Designer owns the section spacing, responsive card grid, native SVG dial, chapter icon masks, centre pagination, five bound chapter panes, Learn more controls and shared carousel arrows. The desktop card has two columns; tablet and phone have one. The five panes overlap in native grid tracks and all contribute their intrinsic title and summary height. Hidden panes use visibility, not display removal. This reserves space before enhancement and across chapter changes. Native title frames clip horizontal text travel. No runtime height measurement or replacement card is required.
+Designer owns the section spacing, responsive card grid, native SVG dial, chapter icon masks, centre chapter artwork, five bound chapter panes, Learn more controls and shared carousel arrows. The desktop card has two columns; tablet and phone have one. The five panes overlap in native grid tracks and all contribute their intrinsic title and summary height. Hidden panes use visibility, not display removal. This reserves space before enhancement and across chapter changes. Native title frames clip horizontal text travel. No runtime height measurement or replacement card is required.
 
 The treatment name, introduction, chapter titles and full bodies retain their CMS bindings. Short chapter summaries are shared component properties. Native Webflow tabs and closed details remain usable if the optional modules cannot load. The first chapter is visible in Designer. Each native Learn more control opens its own chapter. The drawer returns focus to the newly active native control.
 
 `src/runtime/treatment-guide-loader.js` retains presence, consent, proximity and intent gates. It prepares the small wheel near the section and resumes a first drag while preparation finishes. Drawer dependencies wait for Learn more intent. No guide assets are requested on pages without the component.
 
-`src/treatment-guide/wheel.js` enhances the authored dial with pointer and keyboard selection, momentum, spring release and the one-time entrance hint. `card.js` updates the existing panes, pagination and small artwork tickers. `pressure.js` inserts only transient pressure paint and removes it on teardown; the native dial and controls remain intact. Work settles after release and pauses offscreen or when the document is hidden.
+`src/treatment-guide/wheel.js` enhances the authored dial with pointer and keyboard selection, momentum, spring release and the one-time entrance hint. `card.js` updates the existing panes, accessible chapter position, centre artwork and small CTA artwork tickers. `pressure.js` inserts only transient pressure paint and removes it on teardown; the native dial and controls remain intact. Work settles after release and pauses offscreen or when the document is hidden.
 
 `src/styles/tdb-treatment-guide-states.css` supplies early selected-tab and fallback state rules through the shared UI build. The deferred `tdb-treatment-guide.css` contains pressure/ticker paint and established drawer-specific internals. Its former card-layout override has been removed. The shared drawer, motion policy, ticker, reading state and carousel dependencies remain shared external modules.
 
@@ -31,3 +31,11 @@ Native-layout preview checks at 1440, 768, 390 and 320px preserve card height be
 ## Release and rollback
 
 Source, readable/minified modules, CSS and generated metadata ship together. All four install references use one immutable commit. Publish only the Webflow staging subdomain. Private evidence retains the exact pre-change component and site custom-code snapshots; never commit those CMS exports or full HTML backups. A rollback of this migration needs both the matching native component and runtime, not only the old script pin. Production publication is outside this pass.
+
+## Arched card design review — 8 November 2026
+
+On tablet and phone the native charcoal card follows the wheel with a semicircular top. A dedicated inline-size container and padding `(100cqw - 2px) / 22` reserve 5% of the wheel diameter inside the border on each side and above. Desktop retains the two-column layout. The five native choices show 01–05 while their hidden chapter headings preserve accessible labels.
+
+The former visible centre count is now a 64%-size artwork ticker using the existing detailed diamond, thumbprint, lotus, quotation and barn-window assets from the drawer. Designer owns its slot and asset classes. `data-tdb-guide-centre-icon` opts into the artwork renderer; the previous numeric markup remains supported for older published pages. The shared ticker owns directional movement and interruption handling; card teardown restores the native centre artwork. The position and chapter title remain available through the pagination aria-label and wheel slider semantics.
+
+Publish this review to staging only. Rollback requires both the prior component styling/markup and prior immutable runtime reference, as with the original migration.

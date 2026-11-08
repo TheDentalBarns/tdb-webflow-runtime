@@ -468,3 +468,48 @@ test('drawer can return focus to a newly selected chapter after the launch pane 
     w.close();
   }
 });
+
+for (const centre of [true, false]) {
+  test(`card keeps ${centre ? 'centre artwork' : 'legacy position'} synchronised and restores its native fallback`, () => {
+    const keys = ['diamond', 'thumbprint', 'lotus', 'quotation', 'barn'];
+    const native = centre
+      ? '<span data-guide-artwork="diamond" class="treatment-guide_icon-art treatment-guide_centre-diamond"></span>'
+      : '01';
+    const dom = new JSDOM(
+      `<section><div data-tdb-guide-pagination><span ${centre ? 'data-tdb-guide-centre-icon' : 'data-tdb-guide-position'}>${native}</span></div><div class="treatment-guide_content">${keys.map((key, i) => `<div data-tdb-guide-panel="${i}"><h3 data-tdb-guide-title>${key}</h3><p data-tdb-guide-summary>Summary ${i}</p><button data-tdb-guide-open><span class="treatment-guide_cta-icon"><span data-guide-artwork="${key}" class="treatment-guide_icon-art is-guide-${key}"></span></span></button></div>`).join('')}</div></section>`,
+      { runScripts: 'outside-only' },
+    );
+    const w = dom.window;
+    w.TDBMotion = { reduced: { matches: true, addEventListener() {}, removeEventListener() {} } };
+    w.eval(read('src/shared/native-ticker.js'));
+    w.eval(read('src/treatment-guide/card.js'));
+    const root = w.document.querySelector('section');
+    const slot = root.querySelector(
+      centre ? '[data-tdb-guide-centre-icon]' : '[data-tdb-guide-position]',
+    );
+    const original = slot.innerHTML;
+    const card = w.TDBTreatmentGuideCard.mount(root, 0, () => {});
+    for (const i of [2, 4, 1, 3, 0]) {
+      card.update(i, -1);
+      assert.equal(
+        root.querySelector('[data-tdb-guide-pagination]').getAttribute('aria-label'),
+        `${i + 1} of 5: ${keys[i]}`,
+      );
+      if (centre) {
+        assert.equal(slot.querySelector('[data-guide-artwork]').dataset.guideArtwork, keys[i]);
+        assert.ok(
+          slot.firstElementChild.firstElementChild.classList.contains(
+            'treatment-guide_centre-' + keys[i],
+          ),
+        );
+      } else assert.equal(slot.textContent, String(i + 1).padStart(2, '0'));
+      assert.equal(
+        root.querySelector(`[data-tdb-guide-panel="${i}"]`).getAttribute('aria-hidden'),
+        'false',
+      );
+    }
+    card.destroy();
+    assert.equal(slot.innerHTML, original);
+    w.close();
+  });
+}
