@@ -110,3 +110,13 @@ An enhancement-only, transparent HTML surface receives annulus gestures instead 
 On full-width tablet/phone layouts, a transient neutral-darker tail fills the remaining scroll runway below the currently rendered sticky card. Its top follows cached card height plus consumed travel; it never paints behind the wheel's cream upper half. This prevents the shrinking cream strip before the adjacent review image. The tail disappears with enhancement and does not alter native card or section spacing.
 
 Validation includes endpoint animation and cancellation, completion/reverse, first-touch replay, scoped touch prevention, tail geometry, Chromium circular touch input and centre scrolling, plus WebKit rendered layout and touch taps. These engine checks do not replace a physical iPhone drag check.
+
+### Stationary chapter hold — 8 November 2026
+
+The guide no longer adds a scroll track or translates chapter progress into page movement. Its document height and the position of the following parallax section remain native and constant. On reaching the wheel's 5vw alignment point, the existing shared scroll-lock owner holds the viewport at that single position. Only entry can align the page once. Chapter advancement and release make no scroll calls, change no section heights, and add no body positioning.
+
+The thin rim is now independent progress paint and remains available before the hold starts, after release, and on short-screen/reduced-motion fallbacks. Arrows and chapter taps animate to the selected segment's endpoint. While held, vertical wheel/touch/scroll-key input updates a local fraction using the same distance per chapter; annulus rotation uses the same fraction at 72 degrees per chapter. These inputs interrupt arrow animation. Completing the ring releases the shared lock at the unchanged page position. Reverse input can unwind it, while Escape, external focus/navigation, resize, lifecycle changes and teardown release this owner without compensation scrolls. Drawer locks remain independently owned.
+
+The guide bundle includes the existing idempotent shared scroll lock so the hold does not depend on opening a drawer first. The old sticky wrapper, synthetic runway, scroll-linked ring, and temporary charcoal tail are removed. The following review image retains its existing preload and parallax owner.
+
+Validation covers unchanged native document geometry; progress before pinning; a constant scroll position through arrows, wheel input and rotation; endpoint release; drawer coexistence; and short-screen/lifecycle escape paths. Browser checks measure the following image's crop while held and its coverage/motion on actual scroll after release. Physical iPhone verification remains separate from Chromium/WebKit testing.

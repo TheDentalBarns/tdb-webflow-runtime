@@ -3,7 +3,6 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const source = fs.readFileSync(__dirname + '/../src/treatment-guide/scroll.js', 'utf8');
-
 function setup(options = {}) {
   const dom = new JSDOM(
     '<section data-tdb-guide data-tdb-guide-scroll><div class="treatment-guide_layout" style="margin-bottom:-100px"><div class="treatment-guide_dial-art"><div class="treatment-guide_rim"></div></div><div class="treatment-guide_content"></div></div></section>',
@@ -15,33 +14,47 @@ function setup(options = {}) {
   w.innerWidth = options.width || 390;
   w.innerHeight = options.height || 844;
   w.scrollY = options.y || 0;
+  if (options.zoom) {
+    w.visualViewport = new w.EventTarget();
+    Object.assign(w.visualViewport, { scale: options.zoom, height: w.innerHeight });
+  }
   const reduced = new w.EventTarget();
   reduced.matches = !!options.reduced;
   w.matchMedia = () => reduced;
   w.TDBMotion = { reduced: { matches: false } };
-  w.TDBScrollLock = { active: false };
-  let owners = 0,
+  let locks = 0,
+    chrome = 0,
     active = 0,
-    frameId = 0,
-    time = 0;
+    time = 0,
+    id = 0;
   const frames = new Map(),
-    changes = [],
-    scrolls = [];
-  w.TDBSiteChrome = {
+    scrolls = [],
+    changes = [];
+  w.TDBScrollLock = {
+    get active() {
+      return locks > 0;
+    },
     acquire() {
-      owners++;
+      locks++;
       let live = true;
       return () => {
-        if (live) owners--;
+        if (live) locks--;
+        live = false;
+      };
+    },
+  };
+  w.TDBSiteChrome = {
+    acquire() {
+      chrome++;
+      let live = true;
+      return () => {
+        if (live) chrome--;
         live = false;
       };
     },
   };
   w.TDBSliderFocus = { release() {} };
-  w.requestAnimationFrame = (fn) => {
-    frames.set(++frameId, fn);
-    return frameId;
-  };
+  w.requestAnimationFrame = (fn) => (frames.set(++id, fn), id);
   w.cancelAnimationFrame = (id) => frames.delete(id);
   w.ResizeObserver = class {
     observe() {}
@@ -57,13 +70,6 @@ function setup(options = {}) {
   };
   if (options.lenis)
     w.lenis = {
-      on(name, callback) {
-        assert.equal(name, 'scroll');
-        this.paintScroll = callback;
-        return () => {
-          this.paintScroll = null;
-        };
-      },
       scrollTo(top, config) {
         assert.equal(config.immediate, true);
         assert.equal(config.force, true);
@@ -71,42 +77,33 @@ function setup(options = {}) {
         move(top);
       },
     };
-  const cardTop = () => {
-    if (!root.classList.contains('is-guide-scroll-enabled')) return 1000 - w.scrollY;
-    const style = root.querySelector('.tdb-guide-scroll-track').style;
-    const top = parseFloat(style.getPropertyValue('--tdb-guide-pin-top')) || 0;
-    const travel = parseFloat(style.getPropertyValue('--tdb-guide-scroll-travel')) || 0;
-    return Math.min(Math.max(top, 1000 - w.scrollY), 1000 + travel - w.scrollY);
-  };
   layout.getBoundingClientRect = () => ({
-    top: cardTop(),
-    bottom: cardTop() + 760,
+    top: 1000 - w.scrollY,
+    bottom: 1760 - w.scrollY,
     width: 390,
     height: 760,
   });
-  layout.querySelector('.treatment-guide_dial-art').getBoundingClientRect = () => ({
-    top: cardTop() + 20,
-    bottom: cardTop() + 375,
+  root.querySelector('.treatment-guide_dial-art').getBoundingClientRect = () => ({
+    top: 1020 - w.scrollY,
+    bottom: 1375 - w.scrollY,
     width: 355,
     height: 355,
   });
-  layout.querySelector('.treatment-guide_content').getBoundingClientRect = () => ({
-    top: cardTop() + 395,
-    bottom: cardTop() + 660,
+  root.querySelector('.treatment-guide_content').getBoundingClientRect = () => ({
+    top: 1395 - w.scrollY,
+    bottom: 1660 - w.scrollY,
     width: 355,
     height: 265,
   });
   w.eval(source);
   const api = w.TDBTreatmentGuideScroll.mount(root, {
+    current: () => active,
     select(index) {
       active = index;
       changes.push(index);
     },
-    current: () => active,
     interact() {},
   });
-  const track = root.querySelector('.tdb-guide-scroll-track');
-  track.getBoundingClientRect = () => ({ top: 1000 - w.scrollY, width: 390 });
   const tick = (count = 1) => {
     for (let i = 0; i < count; i++) {
       time += 16;
@@ -115,21 +112,35 @@ function setup(options = {}) {
       list.forEach((fn) => fn(time));
     }
   };
+  const input = (delta, props = {}) => {
+    const e = new w.WheelEvent('wheel', {
+      deltaY: delta,
+      bubbles: true,
+      cancelable: true,
+      ...props,
+    });
+    root.dispatchEvent(e);
+    tick();
+    return e;
+  };
   tick();
   return {
     w,
     root,
     layout,
-    track,
     api,
-    changes,
-    scrolls,
     reduced,
     move,
     tick,
-    owners: () => owners,
+    input,
+    scrolls,
+    changes,
+    start: () => 1020 - w.innerWidth * 0.05,
+    locks: () => locks,
+    chrome: () => chrome,
     current: () => active,
-    setIndex: (index) => {
+    offset: () => parseFloat(root.querySelector('circle').style.strokeDashoffset),
+    manual(index) {
       active = index;
       api.manual(index);
     },
@@ -139,384 +150,331 @@ function setup(options = {}) {
     },
   };
 }
-
-test('native scroll releases pinning in both directions while visible wheel keeps menus clear', () => {
+test('pinning holds one real position and never inserts or changes native layout', () => {
   const t = setup();
   try {
-    assert.equal(t.api.enabled, true);
-    assert.equal(t.owners(), 0);
-    for (let i = 0; i < 5; i++) {
-      t.move(1000.5 + i * 312 + 10);
-      t.tick();
+    const before = t.layout.outerHTML;
+    assert.equal(t.root.querySelector('.tdb-guide-scroll-track'), null);
+    t.move(t.start() + 5);
+    t.tick();
+    assert.equal(t.api.pinned, true);
+    assert.equal(t.locks(), 1);
+    assert.equal(t.w.scrollY, t.start());
+    assert.equal(t.layout.parentElement, t.root);
+    assert.equal(t.layout.getAttribute('style'), 'margin-bottom:-100px');
+    const calls = t.scrolls.length;
+    for (let i = 0; i < 4; i++) {
+      assert.equal(t.input(312).defaultPrevented, true);
+      assert.equal(t.w.scrollY, t.start());
       assert.equal(t.current(), i);
-      assert.equal(t.api.pinned, true);
-      assert.equal(t.owners(), 1);
+      assert.equal(t.offset(), 80 - i * 20);
     }
-    assert.deepEqual(t.changes, [0, 1, 2, 3, 4]);
-    t.move(1000.5 + 1561);
-    t.tick();
+    assert.equal(t.input(312).defaultPrevented, true);
+    assert.equal(t.current(), 4);
+    assert.equal(t.offset(), 0);
     assert.equal(t.api.pinned, false);
-    assert.equal(t.owners(), 1);
-    t.move(1000.5 + 3 * 312 + 1);
-    t.tick();
-    assert.equal(t.current(), 3);
-    t.move(999.5);
-    t.tick();
-    assert.equal(t.current(), 0);
-    assert.equal(t.owners(), 1);
-    // This feature must not intercept or cancel browser gestures.
-    for (const name of ['wheel', 'touchmove']) {
-      const event = new t.w.Event(name, { bubbles: true, cancelable: true });
-      t.root.dispatchEvent(event);
-      assert.equal(event.defaultPrevented, false);
-    }
+    assert.equal(t.locks(), 0);
+    assert.equal(t.scrolls.length, calls);
+    assert.equal(t.input(100).defaultPrevented, false, 'the following gesture can leave normally');
+    assert.ok(before.includes('margin-bottom:-100px'));
   } finally {
     t.close();
   }
 });
-
-test('menus clear on wheel entry and return only after its final edge leaves, including reverse', () => {
-  const t = setup();
-  try {
-    const otherRelease = t.w.TDBSiteChrome.acquire();
-    t.move(177); // First pixel of the wheel has entered the 844px viewport.
-    t.tick();
-    assert.equal(t.api.pinned, false);
-    assert.equal(t.owners(), 2);
-    assert.equal(t.root.classList.contains('is-guide-chrome-away'), true);
-    t.move(2561); // Pinning has finished, but the wheel is still visible.
-    t.tick();
-    assert.equal(t.api.pinned, false);
-    assert.equal(t.owners(), 2);
-    t.move(2934);
-    t.tick();
-    assert.equal(t.owners(), 2);
-    t.move(2936);
-    t.tick();
-    assert.equal(t.owners(), 1);
-    assert.equal(t.root.classList.contains('is-guide-chrome-away'), false);
-    t.move(2900);
-    t.tick();
-    assert.equal(t.owners(), 2);
-    t.move(175);
-    t.tick();
-    assert.equal(t.owners(), 1);
-    t.move(1100);
-    t.tick();
-    t.api.destroy();
-    assert.equal(t.owners(), 1, 'teardown leaves the other chrome owner intact');
-    assert.equal(t.root.classList.contains('is-guide-chrome-away'), false);
-    otherRelease();
-  } finally {
-    t.close();
-  }
-});
-
-test('manual selection animates to the selected divider through the existing Lenis owner', () => {
+test('wheel input aligns once at 5vw and its remaining distance advances only the ring', () => {
   const t = setup({ lenis: true });
   try {
-    t.move(1100);
+    t.move(t.start() - 40);
     t.tick();
-    t.setIndex(3);
-    t.tick();
-    assert.equal(t.w.scrollY, 1100, 'selection starts without jumping');
-    t.tick(12);
-    assert.ok(t.w.scrollY > 1100 && t.w.scrollY < 1000.5 + 4 * 312);
-    assert.equal(t.current(), 3, 'the destination chapter stays selected during travel');
-    t.tick(40);
-    assert.equal(t.current(), 3);
-    assert.ok(Math.abs(t.w.scrollY - (1000.5 + 4 * 312)) < 0.01);
-    assert.equal(
-      t.root.querySelector('.tdb-guide-scroll-progress circle').style.strokeDashoffset,
-      '20.000',
-    );
-    assert.equal(t.owners(), 1);
-    t.w.TDBScrollLock.active = true;
-    t.move(1000.5 + 312 + 1);
-    t.tick();
-    assert.equal(t.current(), 3, 'a modal owns reading while open');
-    t.w.TDBScrollLock.active = false;
-    t.move(1000.5 + 312 + 1);
-    t.tick();
-    assert.equal(t.current(), 1);
-  } finally {
-    t.close();
-  }
-});
-
-test('rim fills continuously across the entire scroll journey and unwinds on reverse travel', () => {
-  const t = setup();
-  try {
-    const arc = t.root.querySelector('.tdb-guide-scroll-progress circle');
-    assert.equal(arc.getAttribute('r'), '175');
-    assert.equal(arc.getAttribute('stroke-width'), '5');
-    assert.equal(arc.style.strokeDashoffset, '100.000');
-    for (const fraction of [0, 0.125, 0.2, 0.5, 0.8, 0.999, 1, 1.2, 0.45, -0.1]) {
-      t.move(1000.5 + fraction * 1560);
-      t.tick();
-      assert.ok(
-        Math.abs(
-          Number(arc.style.strokeDashoffset) - 100 * (1 - Math.max(0, Math.min(1, fraction))),
-        ) < 0.001,
-      );
-      if (fraction === 0.999) assert.equal(t.api.pinned, true);
-      if (fraction === 1) {
-        assert.equal(t.api.pinned, false);
-        assert.equal(arc.style.strokeDashoffset, '0.000');
-      }
-    }
-    t.api.destroy();
-    assert.equal(t.root.querySelector('.tdb-guide-scroll-progress'), null);
-    assert.ok(t.root.querySelector('.treatment-guide_rim'), 'native rim survives teardown');
-  } finally {
-    t.close();
-  }
-});
-
-test('remaining scroll space starts exactly below the sticky card throughout forward and reverse travel', () => {
-  const t = setup();
-  try {
-    for (const fraction of [-0.1, 0, 0.5, 0.9, 0.95, 0.99, 1, 1.1, 0.4]) {
-      t.move(1000.5 + fraction * 1560);
-      t.tick();
-      const top = parseFloat(t.track.style.getPropertyValue('--tdb-guide-tail-top'));
-      assert.equal(top, 760 + Math.max(0, Math.min(1, fraction)) * 1560);
-      assert.ok(top <= parseFloat(t.track.style.height));
-    }
-    t.api.destroy();
-    assert.equal(t.track.getAttribute('style'), null);
-  } finally {
-    t.close();
-  }
-});
-
-test('arrow motion can complete and reverse the journey, or yield immediately to finger input', () => {
-  const t = setup();
-  try {
-    t.move(1100);
-    t.tick();
-    t.setIndex(4);
-    t.tick(40);
-    assert.equal(t.w.scrollY, 2560.5);
-    assert.equal(t.current(), 4);
-    assert.equal(t.api.pinned, false);
-    t.setIndex(3);
-    t.tick(40);
-    assert.equal(t.w.scrollY, 2248.5);
-    assert.equal(t.current(), 3);
+    assert.equal(t.input(196).defaultPrevented, true);
     assert.equal(t.api.pinned, true);
-    for (const input of ['wheel', 'touchstart', 'pointerdown']) {
-      t.setIndex(0);
-      t.tick(8);
-      const y = t.w.scrollY;
-      t.w.dispatchEvent(new t.w.Event(input));
-      t.tick(40);
-      assert.equal(t.w.scrollY, y, input);
-    }
-    t.setIndex(4);
-    t.tick(8);
-    assert.equal(t.api.beginRotation(), true);
-    t.api.rotate(-0.1);
-    const y = t.w.scrollY;
-    t.tick(40);
-    assert.equal(t.w.scrollY, y);
+    assert.equal(t.w.scrollY, t.start());
+    assert.equal(t.offset(), 90);
+    const calls = t.scrolls.length;
+    t.input(156);
+    assert.equal(t.offset(), 80);
+    assert.equal(t.scrolls.length, calls);
   } finally {
     t.close();
   }
 });
 
-test('whole-pixel Safari scroll rounding still completes the ring and releases the pin', () => {
+test('fractional input completes cleanly, while horizontal scrolling and zoom are not consumed', () => {
   const t = setup();
   try {
-    t.track.getBoundingClientRect = () => ({ top: 1000.25 - t.w.scrollY, width: 390 });
-    t.move(1100);
+    t.move(t.start());
     t.tick();
-    t.w.scrollTo = ({ top }) => t.move(Math.floor(top));
-    t.setIndex(4);
-    t.tick(40);
-    assert.equal(t.w.scrollY, 2560);
+    assert.equal(t.input(20, { deltaX: 60 }).defaultPrevented, false);
+    assert.equal(t.input(20, { ctrlKey: true }).defaultPrevented, false);
+    assert.equal(t.offset(), 100);
+    for (let i = 0; i < 10; i++) t.input(156);
+    assert.equal(t.offset(), 0);
     assert.equal(t.api.pinned, false);
-    assert.equal(t.root.querySelector('circle').style.strokeDashoffset, '0.000');
-    assert.equal(
-      t.api.beginRotation(),
-      true,
-      'reverse rotation can start at the completed divider',
-    );
+    assert.equal(t.w.scrollY, t.start());
   } finally {
     t.close();
   }
 });
-
-test('wheel pins at 5vw and keeps progress when the viewport gap changes', () => {
-  for (const width of [320, 390, 768, 1440]) {
-    const t = setup({ width, height: 1200 });
-    try {
-      const gap = width * 0.05;
-      const start = 1020 - gap;
-      const distance = Math.max(240, Math.min(480, width * 0.8));
-      const art = t.root.querySelector('.treatment-guide_dial-art');
-      const arc = t.root.querySelector('.tdb-guide-scroll-progress circle');
-      t.move(start + distance * 2.5);
-      t.tick();
-      assert.equal(art.getBoundingClientRect().top, gap);
-      assert.equal(arc.style.strokeDashoffset, '50.000');
-      t.w.innerWidth = width + 40;
-      t.w.dispatchEvent(new t.w.Event('resize'));
-      t.tick();
-      assert.equal(art.getBoundingClientRect().top, (width + 40) * 0.05);
-      assert.equal(arc.style.strokeDashoffset, '50.000');
-      assert.equal(t.api.pinned, true);
-    } finally {
-      t.close();
-    }
-  }
-});
-
-test('the full 5vw gap must fit above the controls before pinning', () => {
-  const t = setup({ height: 665 });
-  try {
-    // Content spans 640px. The old 5px gap fit; 19.5px plus 12px below does not.
-    assert.equal(t.api.enabled, false);
-  } finally {
-    t.close();
-  }
-});
-
-test('progress paints in the native or Lenis scroll event at any speed without a trailing frame', () => {
-  for (const lenis of [false, true]) {
-    const t = setup({ lenis });
-    try {
-      const arc = t.root.querySelector('.tdb-guide-scroll-progress circle');
-      for (const pixels of [1, 2, 15, 249, 1200, 600, 599, 1560, 0]) {
-        if (lenis) {
-          // Lenis has rendered the position, before the next native scroll event.
-          t.w.scrollY = 1000.5 + pixels;
-          t.w.lenis.paintScroll();
-        } else t.move(1000.5 + pixels);
-        const expected = 100 * (1 - pixels / 1560);
-        assert.ok(Math.abs(Number(arc.style.strokeDashoffset) - expected) < 0.001);
-        t.tick();
-        assert.ok(Math.abs(Number(arc.style.strokeDashoffset) - expected) < 0.001);
-      }
-      t.api.destroy();
-      if (lenis) assert.equal(t.w.lenis.paintScroll, null);
-    } finally {
-      t.close();
-    }
-  }
-});
-
-test('short/reduced-motion screens retain the native card with no extra scroll travel', () => {
-  for (const options of [{ height: 390 }, { reduced: true }]) {
+test('manual controls animate segment endpoints before arrival and on non-pinning screens', () => {
+  for (const options of [{}, { height: 390 }, { reduced: true }]) {
     const t = setup(options);
     try {
-      assert.equal(t.api.enabled, false);
-      assert.equal(t.track.style.paddingBottom, '');
-      t.move(1150);
+      assert.ok(t.root.classList.contains('is-guide-progress-ready'));
+      t.manual(2);
       t.tick();
-      assert.equal(t.owners(), 1, 'the visible fallback wheel also keeps menus clear');
-      assert.deepEqual(t.changes, []);
+      if (!options.reduced) {
+        assert.equal(t.offset(), 100);
+        t.tick(12);
+        assert.ok(t.offset() < 100 && t.offset() > 40);
+      }
+      t.tick(40);
+      assert.equal(t.offset(), 40);
+      assert.equal(t.current(), 2);
+      assert.equal(t.w.scrollY, 0);
+      assert.deepEqual(t.scrolls, []);
+      assert.equal(t.api.pinned, false);
+    } finally {
+      t.close();
+    }
+  }
+});
+test('arrows finish and release without moving the page; reversing at the same point can hold again', () => {
+  const t = setup();
+  try {
+    t.move(t.start());
+    t.tick();
+    const calls = t.scrolls.length;
+    t.manual(4);
+    t.tick(40);
+    assert.equal(t.offset(), 0);
+    assert.equal(t.api.pinned, false);
+    assert.equal(t.w.scrollY, t.start());
+    assert.equal(t.scrolls.length, calls);
+    t.manual(3);
+    t.tick(40);
+    assert.equal(t.offset(), 20);
+    assert.equal(t.api.pinned, true);
+    assert.equal(t.w.scrollY, t.start());
+  } finally {
+    t.close();
+  }
+});
+test('rotation and scroll gestures share progress, interrupt animation and never scroll the document', () => {
+  const t = setup();
+  try {
+    t.move(t.start());
+    t.tick();
+    t.manual(3);
+    t.tick(8);
+    const before = t.offset(),
+      calls = t.scrolls.length;
+    assert.equal(t.api.beginRotation(), true);
+    t.api.rotate(0.5);
+    assert.ok(Math.abs(t.offset() - (before - 10)) < 0.001);
+    t.api.rotate(-0.25);
+    const stopped = t.offset();
+    t.api.endRotation();
+    t.tick(40);
+    assert.equal(t.offset(), stopped);
+    t.input(156);
+    assert.ok(Math.abs(t.offset() - (stopped - 10)) < 0.001);
+    assert.equal(t.scrolls.length, calls);
+    assert.equal(t.w.scrollY, t.start());
+    t.api.beginRotation();
+    t.api.rotate(10);
+    t.api.endRotation();
+    assert.equal(t.offset(), 0);
+    assert.equal(t.api.pinned, false);
+  } finally {
+    t.close();
+  }
+});
+test('single-finger vertical input drives progress while annulus rotation and pinch are not double counted', () => {
+  const t = setup();
+  try {
+    t.move(t.start());
+    t.tick();
+    const touch = (type, y, count = 1) => {
+      const e = new t.w.Event(type, { bubbles: true, cancelable: true });
+      Object.assign(e, { touches: Array(count).fill({ clientY: y }) });
+      t.root.dispatchEvent(e);
+      return e;
+    };
+    touch('touchstart', 400);
+    assert.equal(touch('touchmove', 244).defaultPrevented, true);
+    assert.equal(t.offset(), 90);
+    touch('touchstart', 400, 2);
+    assert.equal(touch('touchmove', 200, 2).defaultPrevented, false);
+    assert.equal(t.offset(), 90);
+    t.api.beginRotation();
+    touch('touchstart', 400);
+    touch('touchmove', 200);
+    assert.equal(t.offset(), 90);
+    t.api.rotate(0.5);
+    assert.equal(t.offset(), 80);
+    assert.equal(t.w.scrollY, t.start());
+  } finally {
+    t.close();
+  }
+});
+test('reverse travel holds at the same point and unwinds without a synthetic page runway', () => {
+  const t = setup();
+  try {
+    t.move(t.start());
+    t.tick();
+    t.input(1560);
+    t.move(t.start() + 300);
+    t.tick();
+    t.move(t.start() - 3);
+    t.tick();
+    assert.equal(t.api.pinned, true);
+    assert.equal(t.w.scrollY, t.start());
+    t.input(-780);
+    assert.equal(t.offset(), 50);
+    t.input(-780);
+    assert.equal(t.offset(), 100);
+    assert.equal(t.api.pinned, false);
+    assert.equal(t.input(-40).defaultPrevented, false);
+  } finally {
+    t.close();
+  }
+});
+test('menus clear for the complete visible wheel, independent of hold and fallback', () => {
+  for (const height of [844, 390]) {
+    const t = setup({ height });
+    try {
+      t.move(1020 - height + 1);
+      t.tick();
+      assert.equal(t.chrome(), 1);
+      t.move(1400);
+      t.tick(); // First arrival may align if it crosses the hold point.
+      if (t.api.pinned) {
+        t.manual(4);
+        t.tick(40);
+        t.move(1400);
+        t.tick();
+      }
+      assert.equal(t.chrome(), 0);
+      t.move(1300);
+      t.tick();
+      assert.equal(t.chrome(), 1);
+    } finally {
+      t.close();
+    }
+  }
+});
+test('restored positions, short screens, reduced motion and zoom do not trap navigation', () => {
+  for (const options of [{ y: 1800 }, { height: 390 }, { reduced: true }, { zoom: 2 }]) {
+    const t = setup(options);
+    try {
+      assert.equal(t.api.pinned, false);
+      assert.equal(t.locks(), 0);
+      assert.deepEqual(t.scrolls, []);
+      if (!options.y) {
+        t.move(t.start());
+        t.tick();
+        assert.equal(t.api.pinned, false);
+        assert.equal(t.api.enabled, false);
+      }
+      t.manual(2);
+      t.tick(40);
+      assert.equal(t.offset(), 40);
     } finally {
       t.close();
     }
   }
 });
 
-test('finger rotation scrubs the same travel, can finish the section, and stops on release', () => {
-  const t = setup({ lenis: true });
+test('navigation beyond the guide does not snap the page back to its hold point', () => {
+  const t = setup();
   try {
-    assert.equal(t.api.beginRotation(), false);
-    t.move(1000.5 + 156);
+    t.move(5000);
     t.tick();
-    assert.equal(t.api.beginRotation(), true);
-    t.api.rotate(0.25);
-    assert.equal(t.w.scrollY, 1000.5 + 156 + 78);
-    assert.equal(t.root.querySelector('circle').style.strokeDashoffset, '85.000');
-    t.api.rotate(-0.1);
-    t.tick();
-    assert.equal(t.root.querySelector('circle').style.strokeDashoffset, '87.000');
-    t.api.rotate(10);
-    t.tick();
-    assert.equal(t.w.scrollY, 1000.5 + 1560);
+    assert.equal(t.w.scrollY, 5000);
     assert.equal(t.api.pinned, false);
-    assert.equal(t.current(), 4);
-    assert.equal(t.root.querySelector('circle').style.strokeDashoffset, '0.000');
-    t.api.rotate(-0.25);
-    t.tick();
-    assert.equal(t.api.pinned, true);
-    t.api.endRotation();
-    const y = t.w.scrollY;
-    t.api.rotate(1);
-    t.tick();
-    assert.equal(t.w.scrollY, y);
+    assert.deepEqual(t.scrolls, []);
   } finally {
     t.close();
   }
 });
-
-test('rotation and teardown remove consumed travel without throwing the reader past the card', () => {
-  for (const destroy of [false, true]) {
+test('resize, teardown and pagehide release only the guide lock, without scroll compensation', () => {
+  for (const action of ['resize', 'destroy', 'pagehide']) {
     const t = setup();
     try {
-      t.move(1000.5 + 2 * 312);
+      t.move(t.start());
       t.tick();
-      if (destroy) t.api.destroy();
-      else {
+      const other = t.w.TDBScrollLock.acquire(),
+        y = t.w.scrollY,
+        calls = t.scrolls.length;
+      if (action === 'resize') {
         t.w.innerHeight = 390;
         t.w.dispatchEvent(new t.w.Event('resize'));
         t.tick();
-      }
-      assert.equal(t.w.scrollY, 1000.5);
-      assert.equal(t.owners(), destroy ? 0 : 1);
-      assert.equal(t.root.classList.contains('is-guide-scroll-enabled'), false);
-      if (destroy) assert.equal(t.layout.parentElement, t.root);
+      } else if (action === 'pagehide') t.w.dispatchEvent(new t.w.Event('pagehide'));
+      else t.api.destroy();
+      assert.equal(t.locks(), 1);
+      assert.equal(t.w.scrollY, y);
+      assert.equal(t.scrolls.length, calls);
+      assert.equal(t.api.pinned, false);
+      other();
     } finally {
       t.close();
     }
   }
 });
-
-test('restored positions do not get extra content inserted above them; return can arm the trial', () => {
-  const t = setup({ y: 2100 });
+test('drawer ownership pauses the guide while its own independent hold survives', () => {
+  const t = setup();
   try {
-    assert.equal(t.api.enabled, false);
-    assert.equal(t.w.scrollY, 2100);
-    t.move(800);
+    const other = t.w.TDBScrollLock.acquire();
+    t.move(t.start());
     t.tick();
-    assert.equal(t.api.enabled, true);
-    t.move(1020);
+    assert.equal(t.api.pinned, false);
+    other();
+    t.move(t.start() - 10);
+    t.move(t.start());
     t.tick();
     assert.equal(t.api.pinned, true);
+    const drawer = t.w.TDBScrollLock.acquire();
+    t.root.setAttribute('inert', '');
+    const before = t.offset();
+    t.input(312);
+    t.manual(3);
+    t.tick(40);
+    assert.equal(t.offset(), before);
+    t.root.removeAttribute('inert');
+    drawer();
+    assert.equal(t.locks(), 1);
+    t.input(312);
+    assert.equal(t.offset(), 80);
   } finally {
     t.close();
   }
 });
-
-test('Escape, pagehide and reduced-motion changes release only this guide owner', () => {
-  const t = setup();
-  try {
-    t.move(1100);
-    t.tick();
-    t.w.document.dispatchEvent(new t.w.KeyboardEvent('keydown', { key: 'Escape' }));
-    t.tick();
-    assert.equal(t.api.pinned, false);
-    assert.equal(t.current(), 4);
-    t.move(1100);
-    t.tick();
-    t.w.dispatchEvent(new t.w.Event('pagehide'));
-    assert.equal(t.owners(), 0);
-    t.w.dispatchEvent(new t.w.Event('pageshow'));
-    t.tick();
-    assert.equal(t.owners(), 1);
-    t.reduced.matches = true;
-    t.reduced.dispatchEvent(new t.w.Event('change'));
-    t.tick();
-    assert.equal(t.api.enabled, false);
-    assert.equal(t.owners(), 1);
-    t.move(1600);
-    t.tick();
-    assert.equal(t.owners(), 0);
-  } finally {
-    t.close();
+test('Escape, outside focus and external anchors release the hold without resetting progress or position', () => {
+  for (const kind of ['escape', 'focus', 'anchor']) {
+    const t = setup();
+    try {
+      t.move(t.start());
+      t.tick();
+      t.input(312);
+      const before = t.offset(),
+        calls = t.scrolls.length;
+      if (kind === 'escape')
+        t.w.document.dispatchEvent(
+          new t.w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+        );
+      else if (kind === 'focus')
+        t.w.document.body.dispatchEvent(new t.w.Event('focusin', { bubbles: true }));
+      else t.move(t.start() + 500);
+      assert.equal(t.api.pinned, false);
+      assert.equal(t.locks(), 0);
+      assert.equal(t.offset(), before);
+      assert.equal(t.scrolls.length, calls);
+      t.move(t.w.scrollY - 10);
+      t.tick();
+      assert.equal(t.api.pinned, false, 'first departure is not recaptured');
+    } finally {
+      t.close();
+    }
   }
 });

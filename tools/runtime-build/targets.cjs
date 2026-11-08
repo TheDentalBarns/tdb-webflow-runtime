@@ -85,6 +85,7 @@ module.exports = {
   'dist/tdb-instagram-native.min.js': ['src/instagram/native.js'],
   'dist/tdb-ticker.js': ['src/shared/native-ticker.js'],
   'dist/tdb-treatment-guide-wheel.js': [
+    'src/shared/scroll-lock.js',
     'src/shared/site-chrome.js',
     'src/treatment-guide/card.js',
     'src/treatment-guide/pressure-masks.js',
