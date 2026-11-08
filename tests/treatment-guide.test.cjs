@@ -26,7 +26,7 @@ test('rounded wedge masks reproduce from their colour-free source', () => {
     '--check',
   ]);
 });
-function wheel() {
+function wheel(withNativeTabs = false) {
   const dom = new JSDOM(
     `<section data-tdb-guide><nav>${Array.from({ length: 5 }, (_, i) => `<a href="#" data-tdb-guide-choice="${i}" class="${i === 0 ? 'w--current' : ''}">Chapter ${i + 1}</a>`).join('')}</nav><div class="treatment-guide_dial-art">${read('tests/fixtures/treatment-guide-native.svg')}</div></section>`,
     { runScripts: 'outside-only', pretendToBeVisual: true },
@@ -76,6 +76,15 @@ function wheel() {
       choices.forEach((c) => c.classList.toggle('w--current', c === choice));
       choice.focus();
     });
+  if (withNativeTabs) {
+    const tabs = w.document.createElement('div');
+    tabs.className = 'treatment-guide_tabs';
+    tabs.setAttribute('data-duration-in', '400');
+    tabs.setAttribute('data-duration-out', '200');
+    root.append(tabs);
+    const state = { config: { intro: 400, outro: 200, immediate: false, easing: 'ease' } };
+    w.jQuery = { data: (element, key) => (element === tabs && key === '.w-tabs' ? state : null) };
+  }
   w.eval(read('src/treatment-guide/pressure-masks.js'));
   w.eval(read('src/treatment-guide/pressure.js'));
   w.eval(read('src/treatment-guide/wheel.js'));
@@ -513,3 +522,19 @@ for (const centre of [true, false]) {
     w.close();
   });
 }
+
+test('enhanced guide disables only its native tab fades and restores them on teardown', () => {
+  const t = wheel(true);
+  const tabs = t.root.querySelector('.treatment-guide_tabs');
+  const config = t.w.jQuery.data(tabs, '.w-tabs').config;
+  assert.deepEqual({ ...config }, { intro: 0, outro: 0, immediate: true, easing: 'ease' });
+  assert.equal(tabs.getAttribute('data-duration-in'), '0');
+  assert.equal(tabs.getAttribute('data-duration-out'), '0');
+  t.api.select(2);
+  assert.equal(t.choices[2].classList.contains('w--current'), true);
+  t.api.destroy();
+  assert.deepEqual({ ...config }, { intro: 400, outro: 200, immediate: false, easing: 'ease' });
+  assert.equal(tabs.getAttribute('data-duration-in'), '400');
+  assert.equal(tabs.getAttribute('data-duration-out'), '200');
+  t.w.close();
+});

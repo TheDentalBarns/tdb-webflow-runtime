@@ -318,6 +318,23 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       segments = [...(svg?.querySelectorAll('[data-guide-segment]') || [])];
     if (!art || choices.length !== 5 || segments.length !== 5 || !menu)
       throw Error('Treatment guide structure missing');
+    // Webflow exports its built-in tab durations even when custom attributes
+    // override them in Designer. Keep native tab selection/ARIA, but give the
+    // card renderer sole ownership of animation while this wheel is mounted.
+    const tabs = root.querySelector('.treatment-guide_tabs');
+    const tabState = () => tabs && window.jQuery?.data?.(tabs, '.w-tabs');
+    const tabAttributes =
+      tabs &&
+      ['data-duration-in', 'data-duration-out'].map((name) => [name, tabs.getAttribute(name)]);
+    const tabMotion = tabs && {
+      intro: Number.parseInt(tabAttributes[0][1], 10) || 0,
+      outro: Number.parseInt(tabAttributes[1][1], 10) || 0,
+    };
+    if (tabs) {
+      for (const [name] of tabAttributes) tabs.setAttribute(name, '0');
+      const config = tabState()?.config;
+      if (config) Object.assign(config, { intro: 0, outro: 0, immediate: true });
+    }
     const events = new AbortController(),
       signal = events.signal;
     const original = {
@@ -724,6 +741,14 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         selection.disconnect();
         intersection.disconnect();
         card?.destroy();
+        if (tabs) {
+          for (const [name, value] of tabAttributes)
+            if (value === null) tabs.removeAttribute(name);
+            else tabs.setAttribute(name, value);
+          const config = tabState()?.config;
+          if (config)
+            Object.assign(config, tabMotion, { immediate: !tabMotion.intro && !tabMotion.outro });
+        }
         window.TDBSliderFocus?.release(root);
         for (const [name, value] of [
           ['role', original.menuRole],
