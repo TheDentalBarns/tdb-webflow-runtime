@@ -632,10 +632,10 @@
       "sources": [
         "src/treatment-guide/drawer.js"
       ],
-      "sha256": "da6745003edb69765712bbcf4d0e458b50c24f86c659dd02412a0639d751b0e4",
-      "raw": 9580,
-      "gzip": 3676,
-      "brotli": 3194
+      "sha256": "0f32bcc66bebbe5c9298f7dd3a5cff817858e22b6521199d4ee65eed3cb4bbc5",
+      "raw": 8872,
+      "gzip": 3493,
+      "brotli": 3047
     },
     "dist/tdb-treatment-guide-wheel.js": {
       "sources": [

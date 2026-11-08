@@ -46,7 +46,6 @@
     if (instances.has(section)) return instances.get(section);
     const records = [...section.querySelectorAll('[data-tdb-guide-panel]')].map((pane) => ({
       title: pane.querySelector('[data-tdb-guide-title]').textContent.trim(),
-      summary: pane.querySelector('[data-tdb-guide-summary]').textContent.trim(),
       body: pane.querySelector('[data-tdb-guide-body]'),
     }));
     if (records.length !== 5 || records.some((record) => !record.body))
@@ -60,7 +59,7 @@
         <button class="tdb-drawer_close" data-tdb-drawer-close type="button" aria-label="Close treatment guide"><span class="tdb-drawer_close-icon" aria-hidden="true"></span></button>
         <div class="tdb-usp_content">
           <header class="tdb-usp_header"><div class="tdb-usp_brand"><div class="tdb-guide_treatment"></div><span class="tdb-usp_rule" aria-hidden="true"></span><h2 class="tdb-usp_title"></h2></div></header>
-          <div class="tdb-guide_intro-overlay"><div class="tdb-guide_static-intro is-stationary"><div class="tdb-guide_intro-card"><div class="tdb-guide_static-mark" aria-hidden="true"><span class="tdb-guide_intro-rule"></span><span class="tdb-guide_icon-slot" data-guide-icon>0</span><span class="tdb-guide_intro-rule"></span></div><div class="tdb-guide_intro-copy"><p class="tdb-guide_intro"></p></div></div></div></div>
+          <div class="tdb-guide_intro-overlay"><div class="tdb-guide_static-intro is-stationary"><div class="tdb-guide_intro-card"><div class="tdb-guide_static-mark" aria-hidden="true"><span class="tdb-guide_icon-slot" data-guide-icon></span></div></div></div></div>
           <div class="tdb-usp_viewport" role="group" aria-roledescription="carousel" aria-label="Treatment guide chapters"><div class="tdb-usp_track"></div></div>
           <footer class="tdb-usp_footer"><div class="tdb-review-drawer_position" role="status" aria-live="polite" aria-atomic="true"><span class="tdb-pagination-number" data-guide-position>01</span><span class="tdb-pagination-rule" aria-hidden="true"></span><span class="tdb-pagination-number">05</span></div><div class="tdb-usp_arrows"><button class="carousel-arrow tdb-review-drawer_nav-button" type="button" data-guide-prev aria-label="Previous chapter"><span class="carousel-arrow-icon is-previous" aria-hidden="true"></span></button><button class="carousel-arrow tdb-review-drawer_nav-button" type="button" data-guide-next aria-label="Next chapter"><span class="carousel-arrow-icon" aria-hidden="true"></span></button></div></footer>
         </div>
@@ -78,8 +77,7 @@
       header = root.querySelector('header'),
       footer = root.querySelector('footer');
     const staticIntro = root.querySelector('.tdb-guide_static-intro'),
-      introOverlay = root.querySelector('.tdb-guide_intro-overlay'),
-      intro = root.querySelector('.tdb-guide_intro');
+      introOverlay = root.querySelector('.tdb-guide_intro-overlay');
     const viewport = root.querySelector('.tdb-usp_viewport'),
       track = root.querySelector('.tdb-usp_track'),
       title = root.querySelector('h2');
@@ -102,23 +100,6 @@
       },
     });
     const fades = window.TDBMotion.fadeController();
-    let introTimer = 0,
-      shownIntro = -1;
-    function reflectIntro(index, animate) {
-      if (shownIntro === index) return;
-      shownIntro = index;
-      clearTimeout(introTimer);
-      if (!animate || window.TDBMotion.reduced.matches) {
-        intro.textContent = records[index].summary;
-        fades.to(intro, 1, 0);
-        return;
-      }
-      fades.to(intro, 0, window.TDBMotion.defaults.fadeOut);
-      introTimer = setTimeout(() => {
-        intro.textContent = records[index].summary;
-        fades.to(intro, 1, window.TDBMotion.defaults.fadeIn);
-      }, window.TDBMotion.defaults.fadeOut + window.TDBMotion.defaults.entryDelay);
-    }
     records.forEach((record, index) => {
       const slide = document.createElement('article');
       slide.className = 'tdb-usp_slide';
@@ -225,7 +206,6 @@
       ticker.update(String(index + 1).padStart(2, '0'), direction, animate);
       titleTicker.update(`${index + 1}. ${records[index].title}`, direction, animate);
       iconTicker.update(String(index), direction, animate);
-      reflectIntro(index, animate);
       const selected = swiper.slides[swiper.activeIndex];
       if (selected !== activeSlide) selected.scrollTop = landscape ? 0 : scroll.get(index) || 0;
       activeSlide = selected;
@@ -304,9 +284,6 @@
         ticker.settle();
         titleTicker.settle();
         iconTicker.settle();
-        clearTimeout(introTimer);
-        intro.textContent = records[Math.max(0, shownIntro)].summary;
-        fades.to(intro, 1, 0);
         settleIntro(false);
         source?.setAttribute('aria-expanded', 'false');
       },
@@ -340,7 +317,6 @@
         ticker.destroy();
         titleTicker.destroy();
         iconTicker.destroy();
-        clearTimeout(introTimer);
         fades.destroy();
         shell.remove();
         instances.delete(section);
