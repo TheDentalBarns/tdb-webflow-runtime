@@ -414,7 +414,8 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     if (!root.hasAttribute('data-tdb-guide-scroll')) return null;
     const layout = root.querySelector('.treatment-guide_layout'),
       art = root.querySelector('.treatment-guide_dial-art'),
-      content = root.querySelector('.treatment-guide_content');
+      content = root.querySelector('.treatment-guide_content'),
+      rim = root.querySelector('.treatment-guide_rim');
     if (!layout || !art || !content) return null;
     const events = new AbortController(),
       { signal } = events,
@@ -423,6 +424,29 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     track.className = 'tdb-guide-scroll-track';
     layout.before(track);
     track.append(layout);
+    // Designer owns the resting 5px rim. Only the moving fill is enhancement paint.
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const progress = rim && document.createElementNS(svgNS, 'svg');
+    const arc = progress && document.createElementNS(svgNS, 'circle');
+    if (progress) {
+      progress.setAttribute('class', 'tdb-guide-scroll-progress');
+      progress.setAttribute('aria-hidden', 'true');
+      progress.setAttribute('focusable', 'false');
+      for (const [name, value] of Object.entries({
+        cx: '50%',
+        cy: '50%',
+        fill: 'none',
+        stroke: 'currentColor',
+        'stroke-width': '5',
+        pathLength: '100',
+        'stroke-dasharray': '100 100',
+        'stroke-dashoffset': '100',
+        'stroke-linecap': 'butt',
+      }))
+        arc.setAttribute(name, value);
+      progress.append(arc);
+      rim.append(progress);
+    }
     let enabled = false,
       pinned = false,
       suspended = false,
@@ -434,7 +458,16 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       runway = 0,
       start = 0,
       lastIndex = -1,
+      radius = -1,
+      painted = '',
       releaseChrome = null;
+    function paintProgress(fraction) {
+      if (!arc) return;
+      const offset = (100 * (1 - Math.max(0, Math.min(1, fraction)))).toFixed(3);
+      if (offset === painted) return;
+      painted = offset;
+      arc.style.strokeDashoffset = offset;
+    }
     function scrollTo(top) {
       if (window.lenis?.scrollTo) window.lenis.scrollTo(top, { immediate: true, force: true });
       else window.scrollTo({ top, behavior: 'instant' });
@@ -460,6 +493,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       hold(false);
       enabled = false;
       root.classList.remove('is-guide-scroll-enabled');
+      paintProgress(0);
       track.removeAttribute('style');
       if (travelled) scrollTo(window.scrollY - travelled);
       lastIndex = -1;
@@ -473,6 +507,11 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         height = Math.min(innerHeight, viewport?.height || innerHeight),
         offset = wheelBox.top - cardBox.top,
         needed = Math.max(wheelBox.bottom, contentBox.bottom) - wheelBox.top + 17;
+      const nextRadius = Math.max(0, wheelBox.width / 2 - 2.5);
+      if (arc && nextRadius !== radius) {
+        radius = nextRadius;
+        arc.setAttribute('r', String(radius));
+      }
       const fits =
         wheelBox.width > 0 &&
         needed <= height &&
@@ -508,6 +547,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       }
       start = track.getBoundingClientRect().top + window.scrollY - pinTop;
       const progress = window.scrollY - start;
+      paintProgress(progress / runway);
       const inside = progress >= -0.5 && progress < runway;
       const wasPinned = pinned;
       hold(inside);
@@ -589,6 +629,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         observer.disconnect();
         cancelAnimationFrame(raf);
         disable();
+        progress?.remove();
         track.replaceWith(layout);
       },
     };

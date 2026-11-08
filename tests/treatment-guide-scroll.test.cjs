@@ -6,7 +6,7 @@ const source = fs.readFileSync(__dirname + '/../src/treatment-guide/scroll.js', 
 
 function setup(options = {}) {
   const dom = new JSDOM(
-    '<section data-tdb-guide data-tdb-guide-scroll><div class="treatment-guide_layout" style="margin-bottom:-100px"><div class="treatment-guide_dial-art"></div><div class="treatment-guide_content"></div></div></section>',
+    '<section data-tdb-guide data-tdb-guide-scroll><div class="treatment-guide_layout" style="margin-bottom:-100px"><div class="treatment-guide_dial-art"><div class="treatment-guide_rim"></div></div><div class="treatment-guide_content"></div></div></section>',
     { runScripts: 'outside-only', pretendToBeVisual: true },
   );
   const w = dom.window,
@@ -170,6 +170,10 @@ test('manual selection synchronises scroll progress through the existing Lenis o
     t.tick();
     assert.equal(t.current(), 3);
     assert.ok(Math.abs(t.w.scrollY - (1015 + 3.15 * 312)) < 0.01);
+    assert.equal(
+      t.root.querySelector('.tdb-guide-scroll-progress circle').style.strokeDashoffset,
+      '37.000',
+    );
     assert.equal(t.owners(), 1);
     t.w.TDBScrollLock.active = true;
     t.move(1015 + 312);
@@ -179,6 +183,35 @@ test('manual selection synchronises scroll progress through the existing Lenis o
     t.move(1015 + 312);
     t.tick();
     assert.equal(t.current(), 1);
+  } finally {
+    t.close();
+  }
+});
+
+test('rim fills continuously across the entire scroll journey and unwinds on reverse travel', () => {
+  const t = setup();
+  try {
+    const arc = t.root.querySelector('.tdb-guide-scroll-progress circle');
+    assert.equal(arc.getAttribute('r'), '175');
+    assert.equal(arc.getAttribute('stroke-width'), '5');
+    assert.equal(arc.style.strokeDashoffset, '100.000');
+    for (const fraction of [0, 0.125, 0.2, 0.5, 0.8, 0.999, 1, 1.2, 0.45, -0.1]) {
+      t.move(1015 + fraction * 1560);
+      t.tick();
+      assert.ok(
+        Math.abs(
+          Number(arc.style.strokeDashoffset) - 100 * (1 - Math.max(0, Math.min(1, fraction))),
+        ) < 0.001,
+      );
+      if (fraction === 0.999) assert.equal(t.api.pinned, true);
+      if (fraction === 1) {
+        assert.equal(t.api.pinned, false);
+        assert.equal(arc.style.strokeDashoffset, '0.000');
+      }
+    }
+    t.api.destroy();
+    assert.equal(t.root.querySelector('.tdb-guide-scroll-progress'), null);
+    assert.ok(t.root.querySelector('.treatment-guide_rim'), 'native rim survives teardown');
   } finally {
     t.close();
   }

@@ -74,3 +74,9 @@ Validation covers all five chapters and reverse/release behaviour, native and Le
 ### Drawer icon panel — 8 November 2026
 
 The drawer's cream panel now contains only the chapter icon, centred in a 5rem slot. The short blurb and flanking rules are removed from the drawer template, along with the unused summary lookup, text-fade timer and copy styles. The panel retains its existing height and reading-transition behaviour. Chapter headings, full CMS body content, icon ticker, navigation and the summaries on the page card retain their existing roles.
+
+### Continuous scroll-progress rim — 8 November 2026
+
+The outer rim now follows the service parallax's 5px progress treatment: a translucent track and a stronger moving fill. The service slider uses a white track at about 19% opacity and its cream menu-glass fill at 75%; the wheel adapts those opacities to its existing taupe `#a79b86` so progress stays legible against the cream dial. This replaces the previous 5vw band on every breakpoint. Designer owns the unchanged wheel dimensions and a 5px inset rim; the optional scroll controller adds only a small decorative SVG fill.
+
+The arc starts at twelve o'clock and fills clockwise according to actual scroll distance divided by the complete five-chapter travel. It reaches 100% exactly at release, stays full below the guide, and unwinds when scrolling back. It does not reset at chapter boundaries. Manual chapter choices use the same scroll position, so their progress remains consistent. The existing scroll-frame callback paints a normalised SVG stroke without an extra animation loop or a lagging CSS transition. Resize updates the radius, keeping the stroke 5 CSS pixels and entirely inside the wheel. Short-screen/reduced-motion fallbacks show the ordinary thin rim; teardown removes only the optional progress paint.
