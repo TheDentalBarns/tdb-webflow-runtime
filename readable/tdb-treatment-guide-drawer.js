@@ -13,8 +13,8 @@
       '678aba69d9fd592a6d93970f_Logo%20Icon%20-%2024%2048_Core%20Value%20Thumb%20Print%20192.svg',
     ],
     ['lotus', '6aeddc640ce35bc2256782a5_tdb-lotus-large-1px.svg'],
-    ['quotation', '6ac7b973bb15c9b9f29a8d18_tdb-review-quote.svg'],
-    ['barn-window', '6ac9119d7e007fc273d48477_tdb-barn-window-light.min.svg'],
+    ['quotation', '6af00c69bc81729e8db6e74a_tdb-question-large-1px.svg'],
+    ['barn-window', '6af00c698ad39b2309912520_tdb-barn-window-hero-logo.svg'],
   ];
   let dependencies;
   function code() {
