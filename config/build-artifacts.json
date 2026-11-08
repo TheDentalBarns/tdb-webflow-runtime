@@ -554,10 +554,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "655aa2aa52dbd8cf8a82cbe389f79c207d037aaedca2295b3b572c0445edccab",
-      "raw": 87965,
-      "gzip": 23994,
-      "brotli": 20742
+      "sha256": "28e9e9fa6413201550ca53ccbf14d39d8fd144a7127633d59402edf056af1c35",
+      "raw": 88098,
+      "gzip": 24063,
+      "brotli": 20754
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -644,12 +644,13 @@
         "src/treatment-guide/pressure-masks.js",
         "src/treatment-guide/pressure.js",
         "src/treatment-guide/scroll.js",
+        "src/treatment-guide/bar.js",
         "src/treatment-guide/wheel.js"
       ],
-      "sha256": "276b1e667f98af426a608013d3af7c195353870bafea244ae961a0d2e066be7a",
-      "raw": 42244,
-      "gzip": 23747,
-      "brotli": 21913
+      "sha256": "7d9aaaf0a8da3b2025723b4f880842d051a9e3d79cea2291552d859cfab97dfe",
+      "raw": 48891,
+      "gzip": 25395,
+      "brotli": 23279
     },
     "dist/tdb-usp-drawer-template.js": {
       "sources": [

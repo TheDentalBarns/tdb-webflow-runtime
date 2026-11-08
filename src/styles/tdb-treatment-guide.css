@@ -26,6 +26,16 @@
 .is-guide-progress-ready .treatment-guide_rim{box-shadow:inset 0 0 0 5px #a79b8630}
 .tdb-guide-scroll-progress{position:absolute;inset:0;display:block;width:100%;height:100%;opacity:.75;pointer-events:none;transform:rotate(-126deg);transform-origin:50% 50%}
 .tdb-guide-scroll-progress circle{transition:none}
+/* Linear presentation: only progress and transient pressure are runtime paint. */
+[data-tdb-guide].is-guide-bar .treatment-guide_wheel:focus-visible{border-radius:0}
+.is-guide-bar .treatment-guide_wheel{overflow:hidden;isolation:isolate}
+.is-guide-bar .treatment-guide_choice,.is-guide-bar.is-guide-scroll-enabled .treatment-guide_choice{touch-action:pan-y pinch-zoom}
+.is-guide-bar .treatment-guide_rim{box-shadow:none;background:#a79b8630}
+.tdb-guide-linear-progress{position:absolute;inset:0;background:currentColor;opacity:.75;transform:scaleX(0);transform-origin:left center;pointer-events:none}
+.tdb-guide-bar-pressure{position:absolute;left:0;top:0;bottom:0;width:40%;z-index:4;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,oklch(from var(--tdb-guide-selected) calc(l - .035) c h) 0%,var(--tdb-guide-selected) 22%,transparent 70%)}
+@media screen and (max-width:991px){
+  .is-guide-bar.is-guide-scroll-enabled .treatment-guide_layout,.is-guide-bar.is-guide-scroll-enabled .treatment-guide_layout::before{background-color:var(--base-color-neutral--neutral-darker,#222)}
+}
 /* No entry/exit overlap, including fast arrivals and late-mounted banners.
  * The shared chrome owner still owns transforms and the return animation. */
 html:has([data-tdb-guide].is-guide-chrome-away) :is(.navbar10_component,.navbar10_component *,.navbar-bg_layer,.tdb-announcement,#tdb-elfsight-timer-shell,#tdb-vip-drawer){visibility:hidden!important;pointer-events:none!important;transition:none!important}

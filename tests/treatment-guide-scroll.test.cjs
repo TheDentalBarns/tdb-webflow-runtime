@@ -99,6 +99,7 @@ function setup(options = {}) {
   });
   w.eval(source);
   const api = w.TDBTreatmentGuideScroll.mount(root, {
+    horizontal: options.horizontal,
     select(index) {
       active = index;
       changes.push(index);
@@ -140,6 +141,32 @@ function setup(options = {}) {
     },
   };
 }
+
+test('horizontal progress uses the same scroll endpoints and animates five back to one', () => {
+  const t = setup({ horizontal: true });
+  try {
+    const fill = t.root.querySelector('.tdb-guide-linear-progress');
+    const fraction = () => parseFloat(fill.style.transform.slice(7));
+    assert.equal(t.root.querySelector('svg'), null);
+    assert.equal(t.track.style.getPropertyValue('--tdb-guide-background-start'), '0px');
+    for (let i = 1; i <= 5; i++) {
+      t.move(1000.5 + i * 312);
+      t.tick();
+      assert.ok(Math.abs(fraction() - i / 5) < 0.00001);
+      assert.equal(t.current(), i - 1);
+    }
+    const style = t.track.getAttribute('style');
+    t.setIndex(0);
+    t.tick(12);
+    assert.ok(fraction() > 0.2 && fraction() < 1);
+    t.tick(30);
+    assert.equal(fraction(), 0.2);
+    assert.equal(t.current(), 0);
+    assert.equal(t.track.getAttribute('style'), style);
+  } finally {
+    t.close();
+  }
+});
 
 test('native scroll releases pinning in both directions while visible wheel keeps menus clear', () => {
   const t = setup();

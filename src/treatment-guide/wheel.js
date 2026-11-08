@@ -9,6 +9,10 @@
   const chapter = (angle) => ((Math.round(angle / step) % 5) + 5) % 5;
   function mount(root) {
     if (instances.has(root)) return instances.get(root);
+    // Designer's non-square presentation uses linear gestures and the same card/scroll owner.
+    const nativeArt = root.querySelector('.treatment-guide_dial-art');
+    if (nativeArt && getComputedStyle(nativeArt).aspectRatio === 'auto')
+      return window.TDBTreatmentGuideBar.mount(root);
     const choices = [...root.querySelectorAll('[data-tdb-guide-choice]')],
       art = root.querySelector('.treatment-guide_dial-art');
     const menu = root.querySelector('.treatment-guide_wheel'),

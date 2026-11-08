@@ -90,6 +90,7 @@ module.exports = {
     'src/treatment-guide/pressure-masks.js',
     'src/treatment-guide/pressure.js',
     'src/treatment-guide/scroll.js',
+    'src/treatment-guide/bar.js',
     'src/treatment-guide/wheel.js',
   ],
   'dist/tdb-treatment-guide-drawer.js': ['src/treatment-guide/drawer.js'],

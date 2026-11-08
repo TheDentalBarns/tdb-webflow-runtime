@@ -110,9 +110,12 @@ function prepareTreatmentGuideLoader() {
       const surface = event.target.closest?.('[data-tdb-guide-pad], [data-tdb-guide-choice]');
       const root = surface?.closest('[data-tdb-guide]');
       if (!root || owners.has(root) || event.button !== 0 || !allowed()) return;
-      event.preventDefault();
+      const art = root.querySelector('.treatment-guide_dial-art');
+      const horizontal = art && getComputedStyle(art).aspectRatio === 'auto';
+      if (!horizontal) event.preventDefault();
       const seed = (gesture = {
         root,
+        horizontal,
         pointerId: event.pointerId,
         pointerType: event.pointerType,
         clientX: event.clientX,
@@ -121,7 +124,7 @@ function prepareTreatmentGuideLoader() {
         startY: event.clientY,
         down: true,
       });
-      root.setPointerCapture?.(event.pointerId);
+      if (!horizontal) root.setPointerCapture?.(event.pointerId);
       wheel(root)
         .then((api) => {
           if (gesture !== seed || !api) return;
@@ -157,6 +160,7 @@ function prepareTreatmentGuideLoader() {
             gesture?.down &&
             gesture.root === root &&
             gesture.pointerType === 'touch' &&
+            !gesture.horizontal &&
             event.touches.length === 1
           )
             event.preventDefault();

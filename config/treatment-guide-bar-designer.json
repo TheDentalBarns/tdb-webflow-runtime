@@ -1,0 +1,168 @@
+{
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "678507292f3f5412bfe2b4fa",
+  "componentId": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+  "presentation": "horizontal",
+  "nativeModeSignal": ".treatment-guide_dial-art has aspect-ratio:auto",
+  "nativeBaseProperties": {
+    "treatment-guide_layout": {
+      "grid-template-columns": "minmax(0,1fr)",
+      "column-gap": "2rem",
+      "row-gap": "2rem",
+      "background-color": "#222222"
+    },
+    "treatment-guide_wheel": {
+      "width": "100%",
+      "height": "6rem",
+      "max-width": "none",
+      "aspect-ratio": "auto",
+      "grid-column-start": "1",
+      "grid-column-end": "2",
+      "grid-row-start": "1",
+      "grid-row-end": "2",
+      "background-color": "#ebe2d2"
+    },
+    "treatment-guide_dial-art": {
+      "width": "100%",
+      "height": "6rem",
+      "max-width": "none",
+      "aspect-ratio": "auto",
+      "margin-bottom": "9rem",
+      "grid-column-start": "1",
+      "grid-column-end": "2",
+      "grid-row-start": "1",
+      "grid-row-end": "2"
+    },
+    "treatment-guide_finger-pad": {
+      "display": "none"
+    },
+    "treatment-guide_choice": {
+      "width": "20%",
+      "height": "100%",
+      "max-width": "none",
+      "max-height": "none",
+      "min-width": "0px",
+      "min-height": "0px",
+      "transform": "none",
+      "background-color": "#d6cab4",
+      "border-right-style": "solid",
+      "border-right-width": "1px",
+      "border-right-color": "#f9f2e6",
+      "touch-action": "pan-y pinch-zoom"
+    },
+    "treatment-guide_centre": {
+      "left": "0px",
+      "top": "calc(100% + 3rem)",
+      "right": "0px",
+      "bottom": "auto",
+      "width": "100%",
+      "height": "5rem",
+      "transform": "none",
+      "border-radius": "0px",
+      "background-color": "transparent",
+      "box-shadow": "none"
+    },
+    "treatment-guide_centre-icon": {
+      "width": "4.5rem",
+      "height": "4.5rem",
+      "flex-shrink": "0"
+    },
+    "treatment-guide_pagination": {
+      "column-gap": "1.5rem"
+    },
+    "treatment-guide_rim": {
+      "left": "0px",
+      "right": "0px",
+      "top": "calc(100% + 1rem)",
+      "bottom": "auto",
+      "height": "5px",
+      "border-top-left-radius": "0px",
+      "border-top-right-radius": "0px",
+      "border-bottom-left-radius": "0px",
+      "border-bottom-right-radius": "0px",
+      "box-shadow": "none",
+      "background-color": "#a79b8630"
+    },
+    "treatment-guide_content": {
+      "grid-column-start": "1",
+      "grid-column-end": "2",
+      "grid-row-start": "2",
+      "grid-row-end": "3",
+      "padding-left": "0px",
+      "padding-top": "0px",
+      "border-left-width": "0px",
+      "border-top-width": "0px"
+    },
+    "treatment-guide_arrows": {
+      "grid-column-start": "1",
+      "grid-column-end": "2",
+      "grid-row-start": "2",
+      "grid-row-end": "3"
+    },
+    "treatment-guide_arch-body": {
+      "top": "0px"
+    },
+    "is-chapter-1": {
+      "left": "0%",
+      "top": "0px"
+    },
+    "is-chapter-2": {
+      "left": "20%",
+      "top": "0px"
+    },
+    "is-chapter-3": {
+      "left": "40%",
+      "top": "0px"
+    },
+    "is-chapter-4": {
+      "left": "60%",
+      "top": "0px"
+    },
+    "is-chapter-5": {
+      "left": "80%",
+      "top": "0px"
+    },
+    "treatment-guide_page-rule": {
+      "display": "block",
+      "width": "auto",
+      "height": "1px",
+      "flex-grow": "1",
+      "flex-shrink": "1",
+      "flex-basis": "0px",
+      "min-width": "0px",
+      "order": "-1",
+      "opacity": "1",
+      "background-color": "#d6cab4"
+    },
+    "treatment-guide_pagination-total": {
+      "display": "block",
+      "width": "auto",
+      "height": "1px",
+      "flex-grow": "1",
+      "flex-shrink": "1",
+      "flex-basis": "0px",
+      "min-width": "0px",
+      "font-size": "0px",
+      "line-height": "0",
+      "background-color": "#d6cab4",
+      "color": "transparent"
+    }
+  },
+  "repeatAtBreakpoints": {
+    "breakpoints": [
+      "medium",
+      "small",
+      "tiny"
+    ],
+    "styles": [
+      "treatment-guide_layout",
+      "treatment-guide_wheel",
+      "treatment-guide_dial-art",
+      "treatment-guide_content",
+      "treatment-guide_arrows",
+      "treatment-guide_arch-body"
+    ]
+  },
+  "preserved": "CMS bindings, native tabs/details, existing mobile side/footer padding and drawer",
+  "runtime": "Native layout reserves space; bar.js owns only selection, pointer gestures and transient gradient paint. scroll.js owns sticky enhancement and linear progress."
+}

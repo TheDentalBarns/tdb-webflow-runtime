@@ -18,26 +18,32 @@
     layout.before(track);
     track.append(layout);
     // Designer owns the resting 5px rim. Only the moving fill is enhancement paint.
+    const horizontal = Boolean(controls.horizontal);
     const svgNS = 'http://www.w3.org/2000/svg';
-    const progress = rim && document.createElementNS(svgNS, 'svg');
-    const arc = progress && document.createElementNS(svgNS, 'circle');
+    const progress =
+      rim && (horizontal ? document.createElement('div') : document.createElementNS(svgNS, 'svg'));
+    const arc = progress && (horizontal ? progress : document.createElementNS(svgNS, 'circle'));
     if (progress) {
-      progress.setAttribute('class', 'tdb-guide-scroll-progress');
+      progress.setAttribute(
+        'class',
+        horizontal ? 'tdb-guide-linear-progress' : 'tdb-guide-scroll-progress',
+      );
       progress.setAttribute('aria-hidden', 'true');
       progress.setAttribute('focusable', 'false');
-      for (const [name, value] of Object.entries({
-        cx: '50%',
-        cy: '50%',
-        fill: 'none',
-        stroke: 'currentColor',
-        'stroke-width': '5',
-        pathLength: '100',
-        'stroke-dasharray': '100 100',
-        'stroke-dashoffset': '100',
-        'stroke-linecap': 'butt',
-      }))
-        arc.setAttribute(name, value);
-      progress.append(arc);
+      if (!horizontal)
+        for (const [name, value] of Object.entries({
+          cx: '50%',
+          cy: '50%',
+          fill: 'none',
+          stroke: 'currentColor',
+          'stroke-width': '5',
+          pathLength: '100',
+          'stroke-dasharray': '100 100',
+          'stroke-dashoffset': '100',
+          'stroke-linecap': 'butt',
+        }))
+          arc.setAttribute(name, value);
+      if (!horizontal) progress.append(arc);
       rim.append(progress);
     }
     let enabled = false,
@@ -73,7 +79,8 @@
       const offset = (100 * (1 - shownFraction)).toFixed(3);
       if (offset === painted) return;
       painted = offset;
-      arc.style.strokeDashoffset = offset;
+      if (horizontal) arc.style.transform = `scaleX(${shownFraction.toFixed(5)})`;
+      else arc.style.strokeDashoffset = offset;
     }
     function bindLenis() {
       if (lenis === window.lenis) return;
@@ -136,7 +143,7 @@
         offset = wheelBox.top - cardBox.top,
         needed = Math.max(wheelBox.bottom, contentBox.bottom) - wheelBox.top + gap + 12;
       const nextRadius = Math.max(0, wheelBox.width / 2 - 2.5);
-      if (arc && nextRadius !== radius) {
+      if (arc && !horizontal && nextRadius !== radius) {
         radius = nextRadius;
         arc.setAttribute('r', String(radius));
       }
@@ -161,14 +168,20 @@
       const margin = getComputedStyle(layout).marginBottom;
       cardHeight = cardBox.height;
       wheelOffset = offset;
-      wheelSize = wheelBox.height;
+      wheelSize = horizontal
+        ? Math.max(
+            wheelBox.height,
+            (root.querySelector('.treatment-guide_centre')?.getBoundingClientRect().bottom ||
+              wheelBox.bottom) - wheelBox.top,
+          )
+        : wheelBox.height;
       pinTop = gap - offset;
       distance = Math.max(240, Math.min(480, innerWidth * 0.8));
       runway = distance * 5;
       const styles = {
         '--tdb-guide-pin-top': pinTop + 'px',
         '--tdb-guide-scroll-travel': runway + 'px',
-        '--tdb-guide-background-start': offset + wheelBox.height / 2 + 'px',
+        '--tdb-guide-background-start': (horizontal ? 0 : offset + wheelBox.height / 2) + 'px',
         height: cardHeight + runway + 'px',
       };
       for (const [name, value] of Object.entries(styles))
