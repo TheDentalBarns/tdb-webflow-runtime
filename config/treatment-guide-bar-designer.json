@@ -9,10 +9,22 @@
       "grid-template-columns": "minmax(0,1fr)",
       "column-gap": "2rem",
       "row-gap": "2rem",
-      "background-color": "#222222"
+      "background-color": "#f9f2e6",
+      "width": "100vw",
+      "max-width": "none",
+      "margin-left": "calc(50% - 50vw)",
+      "margin-right": "calc(50% - 50vw)",
+      "padding-top": "0px",
+      "padding-left": "5vw",
+      "padding-right": "5vw",
+      "border-top-width": "0px",
+      "border-right-width": "0px",
+      "border-bottom-width": "0px",
+      "border-left-width": "0px",
+      "isolation": "isolate"
     },
     "treatment-guide_wheel": {
-      "width": "100%",
+      "width": "100vw",
       "height": "6rem",
       "max-width": "none",
       "aspect-ratio": "auto",
@@ -20,18 +32,29 @@
       "grid-column-end": "2",
       "grid-row-start": "1",
       "grid-row-end": "2",
-      "background-color": "#ebe2d2"
+      "background-color": "#ebe2d2",
+      "display": "flex",
+      "flex-direction": "row",
+      "align-items": "stretch",
+      "justify-content": "flex-start",
+      "flex-wrap": "nowrap",
+      "column-gap": "0px",
+      "row-gap": "0px",
+      "margin-left": "calc(50% - 50vw)",
+      "margin-right": "calc(50% - 50vw)"
     },
     "treatment-guide_dial-art": {
-      "width": "100%",
+      "width": "100vw",
       "height": "6rem",
       "max-width": "none",
       "aspect-ratio": "auto",
-      "margin-bottom": "9rem",
+      "margin-bottom": "calc(8rem + 5px)",
       "grid-column-start": "1",
       "grid-column-end": "2",
       "grid-row-start": "1",
-      "grid-row-end": "2"
+      "grid-row-end": "2",
+      "margin-left": "calc(50% - 50vw)",
+      "margin-right": "calc(50% - 50vw)"
     },
     "treatment-guide_finger-pad": {
       "display": "none"
@@ -48,14 +71,18 @@
       "border-right-style": "solid",
       "border-right-width": "1px",
       "border-right-color": "#f9f2e6",
-      "touch-action": "pan-y pinch-zoom"
+      "touch-action": "pan-y pinch-zoom",
+      "position": "static",
+      "flex-grow": "1",
+      "flex-shrink": "1",
+      "flex-basis": "0%"
     },
     "treatment-guide_centre": {
-      "left": "0px",
-      "top": "calc(100% + 3rem)",
-      "right": "0px",
+      "left": "5vw",
+      "top": "calc(100% + 2rem + 5px)",
+      "right": "5vw",
       "bottom": "auto",
-      "width": "100%",
+      "width": "90vw",
       "height": "5rem",
       "transform": "none",
       "border-radius": "0px",
@@ -73,7 +100,7 @@
     "treatment-guide_rim": {
       "left": "0px",
       "right": "0px",
-      "top": "calc(100% + 1rem)",
+      "top": "100%",
       "bottom": "auto",
       "height": "5px",
       "border-top-left-radius": "0px",
@@ -100,28 +127,14 @@
       "grid-row-end": "3"
     },
     "treatment-guide_arch-body": {
-      "top": "0px"
+      "top": "calc(6rem + 5px)",
+      "display": "block"
     },
-    "is-chapter-1": {
-      "left": "0%",
-      "top": "0px"
-    },
-    "is-chapter-2": {
-      "left": "20%",
-      "top": "0px"
-    },
-    "is-chapter-3": {
-      "left": "40%",
-      "top": "0px"
-    },
-    "is-chapter-4": {
-      "left": "60%",
-      "top": "0px"
-    },
-    "is-chapter-5": {
-      "left": "80%",
-      "top": "0px"
-    },
+    "is-chapter-1": {},
+    "is-chapter-2": {},
+    "is-chapter-3": {},
+    "is-chapter-4": {},
+    "is-chapter-5": {},
     "treatment-guide_page-rule": {
       "display": "block",
       "width": "auto",
@@ -161,10 +174,13 @@
       "treatment-guide_content",
       "treatment-guide_arrows",
       "treatment-guide_arch-body",
-      "treatment-guide_pagination"
+      "treatment-guide_pagination",
+      "treatment-guide_choice",
+      "treatment-guide_rim",
+      "treatment-guide_centre"
     ]
   },
-  "preserved": "CMS bindings, native tabs/details, existing mobile side/footer padding and drawer",
+  "preserved": "CMS bindings, native tabs/details, five-rem icon row and existing footer padding/drawer; strip and progress are edge-to-edge with 5vw content padding.",
   "runtime": "Native layout reserves space; bar.js owns only selection, pointer gestures and transient gradient paint. scroll.js owns sticky enhancement and linear progress.",
   "comboStyleParents": {
     "is-chapter-1": [
@@ -183,5 +199,27 @@
       "treatment-guide_choice"
     ]
   },
-  "authoringNote": "Pass parent_style_names when updating chapter combo classes. Identically named unused root-level combos are not the guide styles."
+  "authoringNote": "Native tabs are static flex items, with all retired circular left/top coordinates removed from their exact combo styles. Progress top is 100%, with zero gap under the 6rem strip. Cream remains above the progress line; charcoal starts at 6rem + 5px.",
+  "removedComboProperties": {
+    "is-chapter-1": [
+      "left",
+      "top"
+    ],
+    "is-chapter-2": [
+      "left",
+      "top"
+    ],
+    "is-chapter-3": [
+      "left",
+      "top"
+    ],
+    "is-chapter-4": [
+      "left",
+      "top"
+    ],
+    "is-chapter-5": [
+      "left",
+      "top"
+    ]
+  }
 }

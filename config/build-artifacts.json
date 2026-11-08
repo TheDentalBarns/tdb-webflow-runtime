@@ -647,10 +647,10 @@
         "src/treatment-guide/bar.js",
         "src/treatment-guide/wheel.js"
       ],
-      "sha256": "ec0a32139d6f5797ca740f9a824be53f9b3ba30110d99a72ebbfa95f6b9724e0",
-      "raw": 48937,
-      "gzip": 25414,
-      "brotli": 23265
+      "sha256": "96ad8b36de6cb1b2d5adfc5b4758fa3a014333da34f13b63ee00f66f0f1386ff",
+      "raw": 48985,
+      "gzip": 25427,
+      "brotli": 23281
     },
     "dist/tdb-usp-drawer-template.js": {
       "sources": [

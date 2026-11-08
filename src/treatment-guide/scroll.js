@@ -181,7 +181,10 @@
       const styles = {
         '--tdb-guide-pin-top': pinTop + 'px',
         '--tdb-guide-scroll-travel': runway + 'px',
-        '--tdb-guide-background-start': (horizontal ? 0 : offset + wheelBox.height / 2) + 'px',
+        '--tdb-guide-background-start':
+          (horizontal
+            ? offset + wheelBox.height + (rim?.getBoundingClientRect().height || 5)
+            : offset + wheelBox.height / 2) + 'px',
         height: cardHeight + runway + 'px',
       };
       for (const [name, value] of Object.entries(styles))

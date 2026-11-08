@@ -33,9 +33,9 @@
 .is-guide-bar .treatment-guide_rim{box-shadow:none;background:#a79b8630}
 .tdb-guide-linear-progress{position:absolute;inset:0;background:currentColor;opacity:.75;transform:scaleX(0);transform-origin:left center;pointer-events:none}
 .tdb-guide-bar-pressure{position:absolute;left:0;top:0;bottom:0;width:40%;z-index:4;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,oklch(from var(--tdb-guide-selected) calc(l - .035) c h) 0%,var(--tdb-guide-selected) 22%,transparent 70%)}
-@media screen and (max-width:991px){
-  .is-guide-bar.is-guide-scroll-enabled .treatment-guide_layout,.is-guide-bar.is-guide-scroll-enabled .treatment-guide_layout::before{background-color:var(--base-color-neutral--neutral-darker,#222)}
-}
+.is-guide-bar.is-guide-scroll-enabled .tdb-guide-scroll-track::before{content:"";position:absolute;z-index:0;top:var(--tdb-guide-background-start);bottom:0;left:calc(50% - 50vw);width:100vw;background:var(--base-color-neutral--neutral-darker,#222);pointer-events:none}
+.is-guide-bar.is-guide-scroll-enabled .treatment-guide_layout{background-color:var(--base-color-brand--orange-1,#f9f2e6)}
+.is-guide-bar.is-guide-scroll-enabled .treatment-guide_layout::before{content:"";position:absolute;bottom:100%;left:0;right:0;height:calc(max(0px,var(--tdb-guide-pin-top)) + 1px);background:var(--base-color-brand--orange-1,#f9f2e6);pointer-events:none}
 /* No entry/exit overlap, including fast arrivals and late-mounted banners.
  * The shared chrome owner still owns transforms and the return animation. */
 html:has([data-tdb-guide].is-guide-chrome-away) :is(.navbar10_component,.navbar10_component *,.navbar-bg_layer,.tdb-announcement,#tdb-elfsight-timer-shell,#tdb-vip-drawer){visibility:hidden!important;pointer-events:none!important;transition:none!important}
