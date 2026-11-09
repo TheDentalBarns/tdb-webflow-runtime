@@ -176,9 +176,9 @@ function setup(options = {}) {
     tick,
     owners: () => owners,
     current: () => active,
-    setIndex: (index) => {
+    setIndex: (index, travel) => {
       active = index;
-      api.manual(index);
+      api.manual(index, travel);
     },
     close() {
       api.destroy();
@@ -437,6 +437,35 @@ test('manual selection animates to the selected divider through the existing Len
     assert.equal(t.current(), 1);
   } finally {
     t.close();
+  }
+});
+
+test('manual progress follows the heading animation phase through forward, reverse and unlinked travel', () => {
+  for (const linked of [true, false]) {
+    const t = setup({ horizontal: true });
+    try {
+      if (linked) { t.move(1020 + 312); t.tick(); }
+      const fill = t.root.querySelector('.tdb-guide-linear-progress');
+      const fraction = () => parseFloat(fill.style.transform.slice(7));
+      for (const index of [3, 0]) {
+        const from = fraction(), to = (index + 1) / 5;
+        const timing = { localTime: 0, endTime: 500, progress: 0 };
+        t.setIndex(index, { effect: { getComputedTiming: () => timing } });
+        t.tick();
+        // The heading has eased ahead; the progress line must sample that phase,
+        // not apply a second clock, pace multiplier or cosine easing.
+        Object.assign(timing, { localTime: 250, progress: 0.76 });
+        t.tick();
+        assert.ok(Math.abs(fraction() - (from + (to - from) * 0.76)) < 0.00001);
+        assert.equal(t.current(), index);
+        Object.assign(timing, { localTime: 500, progress: null });
+        t.tick();
+        assert.equal(fraction(), to, 'fill-none heading still settles at its endpoint');
+      }
+      if (!linked) assert.equal(t.w.scrollY, 0);
+    } finally {
+      t.close();
+    }
   }
 });
 

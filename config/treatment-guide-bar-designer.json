@@ -70,9 +70,9 @@
       "min-width": "0px",
       "min-height": "0px",
       "transform": "none",
-      "background-color": "#d6cab4",
+      "background-color": "#ebe2d2",
       "border-right-style": "solid",
-      "border-right-width": "1px",
+      "border-right-width": "0px",
       "border-right-color": "#f9f2e6",
       "touch-action": "pan-y pinch-zoom",
       "position": "static",
@@ -111,8 +111,8 @@
     "treatment-guide_rim": {
       "left": "0px",
       "right": "0px",
-      "top": "auto",
-      "bottom": "0px",
+      "top": "0px",
+      "bottom": "auto",
       "height": "5px",
       "border-top-left-radius": "0px",
       "border-top-right-radius": "0px",
@@ -222,6 +222,9 @@
     },
     "is-guide-barn": {
       "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
+    },
+    "treatment-guide_chapter-number": {
+      "color": "#222222"
     }
   },
   "repeatAtBreakpoints": {
@@ -249,11 +252,12 @@
       "treatment-guide_centre-icon",
       "treatment-guide_page-rule",
       "treatment-guide_pagination-total",
-      "treatment-guide_learn-more"
+      "treatment-guide_learn-more",
+      "treatment-guide_chapter-number"
     ]
   },
   "preserved": "CMS bindings, native tabs/details, title/blurb/icon order, 5vw side margins, scroll progress, drawer and touch navigation.",
-  "runtime": "Native layout reserves space; bar.js owns only selection, pointer gestures and transient gradient paint. scroll.js owns sticky enhancement and linear progress.",
+  "runtime": "Native layout reserves space; bar.js owns only number emphasis, selection and pointer gestures. scroll.js owns sticky enhancement and linear progress, sampling the heading animation for manual chapter changes.",
   "comboStyleParents": {
     "is-chapter-1": [
       "treatment-guide_choice"
@@ -278,7 +282,7 @@
       "treatment-guide_icon-art"
     ]
   },
-  "authoringNote": "Native grid: equal 6rem header/footer rows, equal flexible spacers, and the title/blurb/4rem icon group centred between them. 5vw side margins and 7rem desktop/8rem mobile copy gaps remain. Existing responsive bottom padding follows the footer outside the pinned viewport. Runtime supplies a stable 100svh stage height; it does not translate the body or controls. Button barn artwork uses the existing small icon; centre and drawer retain the detailed window.",
+  "authoringNote": "Native grid: equal 6rem header/footer rows, equal flexible spacers, and the title/blurb/4rem icon group centred between them. 5vw side margins and 7rem desktop/8rem mobile copy gaps remain. Existing responsive bottom padding follows the footer outside the pinned viewport. Runtime supplies a stable 100svh stage height; it does not translate the body or controls. Button barn artwork uses the existing small icon; centre and drawer retain the detailed window. The strip uses the marquee orange-2 colour throughout, without segment dividers. Number opacity carries focus; the progress track sits at the strip top.",
   "removedComboProperties": {
     "is-chapter-1": [
       "left",

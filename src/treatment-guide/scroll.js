@@ -290,13 +290,17 @@
         scrollTo(rotationY);
       } else if (animation) {
         const ms = animation.last == null ? 0 : Math.max(0, now - animation.last);
-        animation.elapsed += window.TDBMotionProfile?.elapsed(ms) ?? ms;
+        animation.elapsed += ms;
         animation.last = now;
+        const timing = animation.travel?.effect.getComputedTiming();
         const fraction =
           reduced.matches || window.TDBMotion?.reduced?.matches
             ? 1
-            : Math.min(1, animation.elapsed / 480);
-        const ease = (1 - Math.cos(Math.PI * fraction)) / 2;
+            : timing?.localTime != null
+              ? Math.min(1, timing.localTime / timing.endTime)
+              : Math.min(1, animation.elapsed / animation.duration);
+        const ease =
+          fraction === 1 ? 1 : (timing?.progress ?? (1 - Math.cos(Math.PI * fraction)) / 2);
         const value = animation.from + (animation.to - animation.from) * ease;
         if (animation.scroll) scrollTo(value);
         else paintProgress(value);
@@ -400,7 +404,7 @@
       get pinned() {
         return pinned;
       },
-      manual(index) {
+      manual(index, travel) {
         if (window.TDBScrollLock?.active || root.closest('[inert]')) return;
         const linked =
           enabled && window.scrollY >= start - 1 && window.scrollY <= start + runway + 1;
@@ -412,6 +416,11 @@
           to: linked ? start + (index + 1) * distance : (index + 1) / 5,
           elapsed: 0,
           last: null,
+          travel,
+          duration:
+            window.TDBMotion?.duration?.(content.clientWidth) ??
+            window.TDBMotionProfile?.time(480) ??
+            480,
         };
         schedule();
       },

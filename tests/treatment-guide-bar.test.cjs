@@ -118,7 +118,7 @@ test('horizontal drag advances one interval per fifth of the strip and can rever
     t.pointer('pointermove', 90);
     t.tick();
     assert.deepEqual(t.moves, [1, -0.5]);
-    assert.ok(parseFloat(t.root.querySelector('.tdb-guide-bar-pressure').style.opacity) > 0);
+    assert.equal(t.root.querySelector('.tdb-guide-bar-pressure'), null);
     t.pointer('pointerup', 90);
     t.tick(180);
     assert.equal(t.ends(), 1);

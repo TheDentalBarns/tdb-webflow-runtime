@@ -46,10 +46,6 @@
     menu.setAttribute('aria-valuemax', '5');
     menu.tabIndex = 0;
     root.classList.add('is-guide-bar', 'is-click-wheel');
-    const pressure = document.createElement('div');
-    pressure.className = 'tdb-guide-bar-pressure';
-    pressure.setAttribute('aria-hidden', 'true');
-    menu.append(pressure);
     let active = Math.max(
       0,
       choices.findIndex((choice) => choice.classList.contains('w--current')),
@@ -62,10 +58,7 @@
       last = 0;
     let visible = true,
       disposed = false,
-      suppressUntil = 0,
-      x = (active + 0.5) / 5,
-      target = x,
-      opacity = 0;
+      suppressUntil = 0;
     const weights = choices.map((_, i) => (i === active ? 1 : 0));
     const reduced = () =>
       Boolean(window.TDBMotionPolicy?.reduced?.matches || window.TDBMotion?.reduced?.matches);
@@ -84,19 +77,14 @@
       last = now;
       const dt = (window.TDBMotionProfile?.elapsed(ms) ?? ms) / 1000;
       const ease = reduced() ? 1 : 1 - Math.exp(-dt * 15);
-      const pressing = drag?.claimed ? 0.8 : Math.abs(target - x) > 0.003 ? 0.35 : 0;
-      x += (target - x) * (drag?.claimed ? 1 : ease);
-      opacity += (pressing - opacity) * ease;
-      let moving = Math.abs(target - x) > 0.0001 || Math.abs(pressing - opacity) > 0.002;
+      let moving = false;
       weights.forEach((weight, i) => {
         const goal = i === active ? 1 : 0;
         weights[i] = weight + (goal - weight) * ease;
         if (Math.abs(goal - weights[i]) > 0.002) moving = true;
         else weights[i] = goal;
-        choices[i].style.opacity = (0.28 + weights[i] * 0.7).toFixed(4);
+        choices[i].style.opacity = (0.28 + weights[i] * 0.72).toFixed(4);
       });
-      pressure.style.transform = `translate3d(${(x * geometry.width - geometry.width * 0.2).toFixed(3)}px,0,0)`;
-      pressure.style.opacity = opacity < 0.002 ? '0' : opacity.toFixed(4);
       if (moving) schedule();
       else last = 0;
     }
@@ -115,12 +103,13 @@
       index = clamp(index, 0, 4);
       const previous = active;
       active = index;
-      if (previous !== index) card?.update(index, direction || Math.sign(index - previous));
+      const travel =
+        previous !== index ? card?.update(index, direction || Math.sign(index - previous)) : null;
       if (notify && !choices[index].classList.contains('w--current')) choices[index].click();
-      if (previous !== index && !scrollSelecting && !drag?.claimed) scrollGuide?.manual(index);
+      if (previous !== index && !scrollSelecting && !drag?.claimed)
+        scrollGuide?.manual(index, travel);
       menu.setAttribute('aria-valuenow', String(index + 1));
       menu.setAttribute('aria-valuetext', choices[index].textContent.trim());
-      if (!drag?.claimed) target = (index + 0.5) / 5;
       schedule();
     }
     function begin(event) {
@@ -155,7 +144,7 @@
       }
       const delta = (event.clientX - drag.previous) / Math.max(1, geometry.width);
       drag.previous = event.clientX;
-      target = clamp((event.clientX - geometry.left) / Math.max(1, geometry.width), 0, 1);
+      const target = clamp((event.clientX - geometry.left) / Math.max(1, geometry.width), 0, 1);
       if (drag.scroll) scrollGuide.rotate(delta * 5);
       else select(Math.min(4, Math.floor(target * 5)), true, delta < 0 ? -1 : 1);
       schedule();
@@ -171,7 +160,6 @@
       }
       if (root.hasPointerCapture?.(event.pointerId)) root.releasePointerCapture(event.pointerId);
       root.classList.remove('is-wheel-dragging');
-      target = (active + 0.5) / 5;
       schedule();
     }
     menu.addEventListener('pointerdown', begin, { passive: true, signal });
@@ -312,7 +300,6 @@
         selection.disconnect();
         scrollGuide?.destroy();
         card?.destroy();
-        pressure.remove();
         root.classList.remove('is-guide-bar', 'is-click-wheel', 'is-wheel-dragging');
         choices.forEach((choice) => choice.style.removeProperty('opacity'));
         before.forEach(([name, value]) =>

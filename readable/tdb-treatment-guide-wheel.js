@@ -291,11 +291,12 @@ window.TDBTreatmentGuideCard ||= (() => {
           ],
           { duration, easing },
         ),
-        next.title.animate(
-          [{ transform: `translateX(${direction * 100}%)` }, { transform: 'translateX(0)' }],
-          { duration, easing },
-        ),
       );
+      const incoming = next.title.animate(
+        [{ transform: `translateX(${direction * 100}%)` }, { transform: 'translateX(0)' }],
+        { duration, easing },
+      );
+      animations.push(incoming);
       // The shared controller samples the current opacity on interruption.
       // Only retain the outgoing pane's visibility locally; motion.js owns fades.
       rows.forEach((row, i) => {
@@ -319,6 +320,8 @@ window.TDBTreatmentGuideCard ||= (() => {
         },
         duration + (direction < 0 ? motion.carousel.previousDelay : motion.carousel.nextDelay),
       );
+      // Arrow-driven progress samples this same animation's eased phase.
+      return incoming;
     }
     update(initial, 1, false);
     return {
@@ -792,13 +795,17 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         scrollTo(rotationY);
       } else if (animation) {
         const ms = animation.last == null ? 0 : Math.max(0, now - animation.last);
-        animation.elapsed += window.TDBMotionProfile?.elapsed(ms) ?? ms;
+        animation.elapsed += ms;
         animation.last = now;
+        const timing = animation.travel?.effect.getComputedTiming();
         const fraction =
           reduced.matches || window.TDBMotion?.reduced?.matches
             ? 1
-            : Math.min(1, animation.elapsed / 480);
-        const ease = (1 - Math.cos(Math.PI * fraction)) / 2;
+            : timing?.localTime != null
+              ? Math.min(1, timing.localTime / timing.endTime)
+              : Math.min(1, animation.elapsed / animation.duration);
+        const ease =
+          fraction === 1 ? 1 : (timing?.progress ?? (1 - Math.cos(Math.PI * fraction)) / 2);
         const value = animation.from + (animation.to - animation.from) * ease;
         if (animation.scroll) scrollTo(value);
         else paintProgress(value);
@@ -902,7 +909,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       get pinned() {
         return pinned;
       },
-      manual(index) {
+      manual(index, travel) {
         if (window.TDBScrollLock?.active || root.closest('[inert]')) return;
         const linked =
           enabled && window.scrollY >= start - 1 && window.scrollY <= start + runway + 1;
@@ -914,6 +921,11 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
           to: linked ? start + (index + 1) * distance : (index + 1) / 5,
           elapsed: 0,
           last: null,
+          travel,
+          duration:
+            window.TDBMotion?.duration?.(content.clientWidth) ??
+            window.TDBMotionProfile?.time(480) ??
+            480,
         };
         schedule();
       },
@@ -1006,10 +1018,6 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     menu.setAttribute('aria-valuemax', '5');
     menu.tabIndex = 0;
     root.classList.add('is-guide-bar', 'is-click-wheel');
-    const pressure = document.createElement('div');
-    pressure.className = 'tdb-guide-bar-pressure';
-    pressure.setAttribute('aria-hidden', 'true');
-    menu.append(pressure);
     let active = Math.max(
       0,
       choices.findIndex((choice) => choice.classList.contains('w--current')),
@@ -1022,10 +1030,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       last = 0;
     let visible = true,
       disposed = false,
-      suppressUntil = 0,
-      x = (active + 0.5) / 5,
-      target = x,
-      opacity = 0;
+      suppressUntil = 0;
     const weights = choices.map((_, i) => (i === active ? 1 : 0));
     const reduced = () =>
       Boolean(window.TDBMotionPolicy?.reduced?.matches || window.TDBMotion?.reduced?.matches);
@@ -1044,19 +1049,14 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       last = now;
       const dt = (window.TDBMotionProfile?.elapsed(ms) ?? ms) / 1000;
       const ease = reduced() ? 1 : 1 - Math.exp(-dt * 15);
-      const pressing = drag?.claimed ? 0.8 : Math.abs(target - x) > 0.003 ? 0.35 : 0;
-      x += (target - x) * (drag?.claimed ? 1 : ease);
-      opacity += (pressing - opacity) * ease;
-      let moving = Math.abs(target - x) > 0.0001 || Math.abs(pressing - opacity) > 0.002;
+      let moving = false;
       weights.forEach((weight, i) => {
         const goal = i === active ? 1 : 0;
         weights[i] = weight + (goal - weight) * ease;
         if (Math.abs(goal - weights[i]) > 0.002) moving = true;
         else weights[i] = goal;
-        choices[i].style.opacity = (0.28 + weights[i] * 0.7).toFixed(4);
+        choices[i].style.opacity = (0.28 + weights[i] * 0.72).toFixed(4);
       });
-      pressure.style.transform = `translate3d(${(x * geometry.width - geometry.width * 0.2).toFixed(3)}px,0,0)`;
-      pressure.style.opacity = opacity < 0.002 ? '0' : opacity.toFixed(4);
       if (moving) schedule();
       else last = 0;
     }
@@ -1075,12 +1075,13 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       index = clamp(index, 0, 4);
       const previous = active;
       active = index;
-      if (previous !== index) card?.update(index, direction || Math.sign(index - previous));
+      const travel =
+        previous !== index ? card?.update(index, direction || Math.sign(index - previous)) : null;
       if (notify && !choices[index].classList.contains('w--current')) choices[index].click();
-      if (previous !== index && !scrollSelecting && !drag?.claimed) scrollGuide?.manual(index);
+      if (previous !== index && !scrollSelecting && !drag?.claimed)
+        scrollGuide?.manual(index, travel);
       menu.setAttribute('aria-valuenow', String(index + 1));
       menu.setAttribute('aria-valuetext', choices[index].textContent.trim());
-      if (!drag?.claimed) target = (index + 0.5) / 5;
       schedule();
     }
     function begin(event) {
@@ -1115,7 +1116,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       }
       const delta = (event.clientX - drag.previous) / Math.max(1, geometry.width);
       drag.previous = event.clientX;
-      target = clamp((event.clientX - geometry.left) / Math.max(1, geometry.width), 0, 1);
+      const target = clamp((event.clientX - geometry.left) / Math.max(1, geometry.width), 0, 1);
       if (drag.scroll) scrollGuide.rotate(delta * 5);
       else select(Math.min(4, Math.floor(target * 5)), true, delta < 0 ? -1 : 1);
       schedule();
@@ -1131,7 +1132,6 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       }
       if (root.hasPointerCapture?.(event.pointerId)) root.releasePointerCapture(event.pointerId);
       root.classList.remove('is-wheel-dragging');
-      target = (active + 0.5) / 5;
       schedule();
     }
     menu.addEventListener('pointerdown', begin, { passive: true, signal });
@@ -1272,7 +1272,6 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         selection.disconnect();
         scrollGuide?.destroy();
         card?.destroy();
-        pressure.remove();
         root.classList.remove('is-guide-bar', 'is-click-wheel', 'is-wheel-dragging');
         choices.forEach((choice) => choice.style.removeProperty('opacity'));
         before.forEach(([name, value]) =>

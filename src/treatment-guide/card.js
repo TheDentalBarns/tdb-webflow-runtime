@@ -105,11 +105,12 @@ window.TDBTreatmentGuideCard ||= (() => {
           ],
           { duration, easing },
         ),
-        next.title.animate(
-          [{ transform: `translateX(${direction * 100}%)` }, { transform: 'translateX(0)' }],
-          { duration, easing },
-        ),
       );
+      const incoming = next.title.animate(
+        [{ transform: `translateX(${direction * 100}%)` }, { transform: 'translateX(0)' }],
+        { duration, easing },
+      );
+      animations.push(incoming);
       // The shared controller samples the current opacity on interruption.
       // Only retain the outgoing pane's visibility locally; motion.js owns fades.
       rows.forEach((row, i) => {
@@ -133,6 +134,8 @@ window.TDBTreatmentGuideCard ||= (() => {
         },
         duration + (direction < 0 ? motion.carousel.previousDelay : motion.carousel.nextDelay),
       );
+      // Arrow-driven progress samples this same animation's eased phase.
+      return incoming;
     }
     update(initial, 1, false);
     return {
