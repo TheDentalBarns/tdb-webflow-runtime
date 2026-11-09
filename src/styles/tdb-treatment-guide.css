@@ -36,13 +36,10 @@
 .is-guide-bar.is-guide-scroll-enabled .tdb-guide-scroll-track::before{content:"";position:absolute;z-index:0;top:var(--tdb-guide-background-start);bottom:0;left:calc(50% - 50vw);width:100vw;background:var(--base-color-neutral--neutral-darker,#222);pointer-events:none}
 .is-guide-bar.is-guide-scroll-enabled .treatment-guide_layout{background-color:var(--base-color-brand--orange-1,#f9f2e6);min-height:var(--tdb-guide-stage-height);align-content:start}
 .is-guide-bar.is-guide-scroll-enabled :is(.treatment-guide_centre,.treatment-guide_content,.treatment-guide_arrows){transform:translateY(var(--tdb-guide-card-shift,0px))}
-.is-guide-bar.is-guide-footer-docked.is-guide-scroll-enabled .treatment-guide_content{transform:none}
-.is-guide-bar.is-guide-footer-docked.is-guide-scroll-enabled :is(.treatment-guide_title-clip,.treatment-guide_summary){transform:translateY(var(--tdb-guide-card-shift,0px))}
-.is-guide-bar.is-guide-footer-docked.is-guide-scroll-enabled :is(.treatment-guide_details,.treatment-guide_arrows){transform:translateY(var(--tdb-guide-footer-shift,0px))}
+.is-guide-bar.is-guide-footer-docked.is-guide-scroll-enabled .treatment-guide_layout{min-height:calc(var(--tdb-guide-stage-height) + var(--tdb-guide-bottom-padding,0px))}
+.is-guide-bar.is-guide-footer-docked.is-guide-scroll-enabled :is(.treatment-guide_content,.treatment-guide_centre,.treatment-guide_arrows){transform:none}
 .is-guide-bar.is-guide-scroll-enabled .treatment-guide_layout::before{content:none}
-/* No entry/exit overlap, including fast arrivals and late-mounted banners.
- * The shared chrome owner still owns transforms and the return animation. */
-html:has([data-tdb-guide].is-guide-chrome-away) :is(.navbar10_component,.navbar10_component *,.navbar-bg_layer,.tdb-announcement,#tdb-elfsight-timer-shell,#tdb-vip-drawer){visibility:hidden!important;pointer-events:none!important;transition:none!important}
+/* TDBSiteChrome owns the same animated menu exit/return as other components. */
 
 /* Ticker-generated artwork must ship with the widget: Designer omits unused classes. */
 .treatment-guide_centre-icon [data-guide-artwork="diamond"]{-webkit-mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg");mask-image:url("https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg")}

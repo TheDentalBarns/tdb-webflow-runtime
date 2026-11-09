@@ -751,7 +751,7 @@ test('card uses shared motion clocks and cancels stale text reveals on rapid nav
     runEntry = () => {
       assert.equal(timers.size, 1);
       const [id, timer] = [...timers][0];
-      assert.equal(timer.delay, w.TDBMotion.defaults.entryDelay);
+      assert.equal(timer.delay, 777 + w.TDBMotion.carousel.nextDelay);
       timers.delete(id);
       timer.fn();
     };
@@ -765,16 +765,17 @@ test('card uses shared motion clocks and cancels stale text reveals on rapid nav
   );
   runEntry();
   const entry = animations.findLast((a) => a.node === summaries[1]);
-  assert.equal(entry.options.duration, w.TDBMotion.defaults.fadeIn);
+  assert.equal(entry.options.duration, w.TDBMotion.carousel.copyIn);
   assert.equal(entry.options.easing, 'linear', 'fade uses its own shared motion family');
   // Model an interrupted fade halfway through: the shared controller must
   // continue from the painted value rather than flashing the outgoing copy to 1.
   const computed = w.getComputedStyle.bind(w);
   w.getComputedStyle = (node) => (node === summaries[1] ? { opacity: '0.42' } : computed(node));
-  card.update(2);
+  card.update(2, -1);
+  assert.equal([...timers.values()][0].delay, 777 + w.TDBMotion.carousel.previousDelay);
   const outgoing = animations.findLast((a) => a.node === summaries[1] && 'opacity' in a.frames[0]);
   assert.equal(outgoing.frames[0].opacity, 0.42);
-  assert.equal(outgoing.options.duration, w.TDBMotion.defaults.fadeOut);
+  assert.equal(outgoing.options.duration, w.TDBMotion.carousel.copyOut);
   card.update(3);
   runEntry();
   assert.equal(summaries[2].style.opacity, '0', 'cancelled chapter cannot reappear later');

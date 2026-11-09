@@ -88,27 +88,29 @@ function setup(options = {}) {
             .style.getPropertyValue('--tdb-guide-card-shift'),
         ) || 0
       : 0;
-  const footerShift = () =>
+  // Emulate the native grid's equal flex rows around a 300px copy/icon group.
+  const gridStage = () =>
     parseFloat(
       root
         .querySelector('.tdb-guide-scroll-track')
-        ?.style.getPropertyValue('--tdb-guide-footer-shift'),
-    ) || 0;
+        ?.style.getPropertyValue('--tdb-guide-stage-height'),
+    ) || 516;
+  const gridBodyTop = () => (gridStage() - 300) / 2;
   layout.getBoundingClientRect = () => ({
     top: cardTop(),
-    bottom: cardTop() + 760,
+    bottom: cardTop() + (options.docked ? gridStage() + (options.bottomPadding || 0) : 760),
     width: 390,
-    height: 760,
+    height: options.docked ? gridStage() + (options.bottomPadding || 0) : 760,
   });
   layout.querySelector('.treatment-guide_dial-art').getBoundingClientRect = () => ({
-    top: cardTop() + 20,
-    bottom: cardTop() + 375,
+    top: cardTop() + (options.docked ? 0 : 20),
+    bottom: cardTop() + (options.docked ? 96 : 375),
     width: 355,
-    height: 355,
+    height: options.docked ? 96 : 355,
   });
   layout.querySelector('.treatment-guide_content').getBoundingClientRect = () => ({
-    top: cardTop() + 395 + (options.docked ? 0 : cardShift()),
-    bottom: cardTop() + (options.docked ? 716 : 660 + cardShift()),
+    top: cardTop() + (options.docked ? gridBodyTop() : 395 + cardShift()),
+    bottom: cardTop() + (options.docked ? gridStage() : 660 + cardShift()),
     width: 355,
     height: 265,
   });
@@ -117,8 +119,8 @@ function setup(options = {}) {
     centre.className = 'treatment-guide_centre';
     layout.append(centre);
     centre.getBoundingClientRect = () => ({
-      top: cardTop() + (options.docked ? 550 : 400) + cardShift(),
-      bottom: cardTop() + (options.docked ? 600 : 450) + cardShift(),
+      top: cardTop() + (options.docked ? gridBodyTop() + 250 : 400 + cardShift()),
+      bottom: cardTop() + (options.docked ? gridBodyTop() + 300 : 450 + cardShift()),
     });
   }
   if (options.docked) {
@@ -130,8 +132,8 @@ function setup(options = {}) {
     layout.append(arrows);
     for (const el of [footer, arrows])
       el.getBoundingClientRect = () => ({
-        top: cardTop() + 620 + footerShift(),
-        bottom: cardTop() + 716 + footerShift(),
+        top: cardTop() + gridStage() - 96,
+        bottom: cardTop() + gridStage(),
         height: 96,
       });
   }
@@ -255,7 +257,7 @@ test('horizontal card stays centred below its zero-pinned strip without resize f
   }
 });
 
-test('bottom controls retain native padding and a stable small viewport through toolbar changes', () => {
+test('native grid centres the body between six-rem rows and keeps section padding below the footer', () => {
   const t = setup({
     horizontal: true,
     docked: true,
@@ -264,7 +266,7 @@ test('bottom controls retain native padding and a stable small viewport through 
     bottomPadding: 48,
   });
   try {
-    t.move(1020 + 312 * 2.5);
+    t.move(1000 + 312 * 2.5);
     t.tick();
     const footer = t.root.querySelector('.treatment-guide_details');
     const geometry = () =>
@@ -282,11 +284,15 @@ test('bottom controls retain native padding and a stable small viewport through 
       t.w.innerHeight = height;
       t.w.dispatchEvent(new t.w.Event('resize'));
       t.tick();
-      assert.equal(footer.getBoundingClientRect().top, 740 - 48 - 96);
-      assert.equal(footer.getBoundingClientRect().bottom, 740 - 48);
+      assert.equal(footer.getBoundingClientRect().top, 740 - 96);
+      assert.equal(footer.getBoundingClientRect().bottom, 740);
+      assert.equal(
+        t.layout.getBoundingClientRect().bottom - footer.getBoundingClientRect().bottom,
+        48,
+      );
       assert.equal(
         t.root.querySelector('.treatment-guide_arrows').getBoundingClientRect().top,
-        740 - 48 - 96,
+        740 - 96,
       );
       assert.deepEqual(
         geometry(),
@@ -295,8 +301,14 @@ test('bottom controls retain native padding and a stable small viewport through 
       );
       assert.equal(t.track.getAttribute('style'), style);
       assert.equal(t.w.scrollY, y);
-      const shift = parseFloat(t.track.style.getPropertyValue('--tdb-guide-card-shift'));
-      assert.equal((395 + 600) / 2 - 20 + shift, (355 + 740 - 48 - 96) / 2);
+      assert.equal(t.track.style.getPropertyValue('--tdb-guide-card-shift'), '');
+      assert.equal(t.track.style.getPropertyValue('--tdb-guide-footer-shift'), '');
+      assert.equal(
+        (t.root.querySelector('.treatment-guide_content').getBoundingClientRect().top +
+          t.root.querySelector('.treatment-guide_centre').getBoundingClientRect().bottom) /
+          2,
+        740 / 2,
+      );
     }
     t.w.innerWidth = 844;
     t.w.innerHeight = 390;

@@ -2,8 +2,12 @@
 (() => {
   'use strict';
   if (window.TDBSiteChrome) return;
+  const selector =
+    '.navbar10_component,.navbar-bg_layer,.tdb-announcement,#tdb-elfsight-timer-shell,#tdb-vip-drawer';
   const owners = new Set();
-  let animations = [];
+  let animations = [],
+    arrivals = null,
+    sizes = null;
   function timing() {
     const profile = window.TDBMotionProfile?.forFamily?.('navigation') || window.TDBMotionProfile;
     if (profile)
@@ -25,11 +29,7 @@
     animations = [];
   }
   function hide() {
-    const nodes = [
-      ...document.querySelectorAll(
-        '.navbar10_component,.navbar-bg_layer,.tdb-announcement,#tdb-elfsight-timer-shell,#tdb-vip-drawer',
-      ),
-    ];
+    const nodes = [...document.querySelectorAll(selector)];
     // A new owner can interrupt the return motion. Capture the visible poses,
     // then measure the native layout without our previous animation applied.
     const from = new Map(nodes.map((node) => [node, getComputedStyle(node).transform]));
@@ -54,13 +54,16 @@
       return {
         node,
         from: from.get(node),
+        height,
         y: node.id === 'tdb-vip-drawer' ? height : -Math.max(height, rect.bottom),
       };
     });
     animations = poses
       .filter((pose) => pose.node.animate)
-      .map(({ node, from, y }) => ({
+      .map(({ node, from, y, height }) => ({
         node,
+        y,
+        height,
         animation: node.animate(
           [{ transform: from }, { transform: `translateY(${y}px)` }],
           timing(),
@@ -69,6 +72,71 @@
     animations.forEach(({ animation }) => animation.finished.catch(() => {}));
     if (document.querySelector('#tdb-vip-drawer.is-open,#tdb-vip-drawer.is-peeking'))
       window.TDBVIPDrawer?.close?.();
+  }
+  function resizeHidden() {
+    if (!owners.size) return;
+    const changes = animations.flatMap((entry) => {
+      const { node } = entry;
+      if (!node.isConnected) return [];
+      const from = getComputedStyle(node).transform,
+        matrix = from.match(/matrix(3d)?\(([^)]+)\)/),
+        shift = matrix
+          ? Number(matrix[2].split(',')[matrix[1] ? 13 : 5])
+          : parseFloat(from.match(/translateY\(([^)]+)/)?.[1]) || 0,
+        rect = node.getBoundingClientRect(),
+        height = node.matches('.navbar10_component')
+          ? Math.max(
+              rect.height,
+              ...[
+                ...node.querySelectorAll(
+                  '.w-nav-overlay,.navbar10_menu[data-nav-menu-open],.navbar10_dropdown-list.w--open',
+                ),
+              ]
+                .filter((n) => n.getClientRects().length)
+                .map((n) => n.getBoundingClientRect().bottom - rect.top),
+            )
+          : rect.height,
+        y = node.id === 'tdb-vip-drawer' ? height : -Math.max(height, rect.bottom - shift);
+      return Math.abs(y - entry.y) > 0.5 ? [{ entry, from, y, height }] : [];
+    });
+    for (const { entry, from, y, height } of changes) {
+      // An empty lazy shell gains height after its contents arrive. Park it
+      // before paint; a bar already moving continues from its visible pose.
+      const moving = entry.height > 0 && entry.animation.playState === 'running';
+      entry.animation.cancel();
+      const transform = `translateY(${y}px)`;
+      entry.animation = entry.node.animate(
+        [{ transform: moving ? from : transform }, { transform }],
+        { ...timing(), ...(moving ? {} : { duration: 0 }) },
+      );
+      entry.animation.finished.catch(() => {});
+      entry.y = y;
+      entry.height = height;
+    }
+  }
+  function parkArrivals() {
+    if (!owners.size) return;
+    const known = new Set(animations.map(({ node }) => node));
+    // Lazy banners may mount after an owner has moved the existing chrome away.
+    // Reserve their hidden pose before first paint, then share the normal return.
+    const poses = [...document.querySelectorAll(selector)]
+      .filter((node) => !known.has(node) && node.animate)
+      .map((node) => {
+        const rect = node.getBoundingClientRect();
+        return {
+          node,
+          height: rect.height,
+          y: node.id === 'tdb-vip-drawer' ? rect.height : -Math.max(rect.height, rect.bottom),
+        };
+      });
+    for (const { node, y, height } of poses) {
+      const transform = `translateY(${y}px)`;
+      const animation = node.animate([{ transform }, { transform }], { ...timing(), duration: 0 });
+      animation.finished.catch(() => {});
+      animations.push({ node, animation, y, height });
+      sizes?.observe(node);
+    }
+    resizeHidden();
   }
   function show() {
     const poses = animations.map(({ node }) => ({ node, from: getComputedStyle(node).transform }));
@@ -94,10 +162,22 @@
   }
   function acquire() {
     const owner = {};
-    if (!owners.size) hide();
+    if (!owners.size) {
+      hide();
+      if (typeof ResizeObserver === 'function') {
+        sizes = new ResizeObserver(resizeHidden);
+        animations.forEach(({ node }) => sizes.observe(node));
+      }
+      arrivals = new MutationObserver(parkArrivals);
+      arrivals.observe(document.documentElement, { childList: true, subtree: true });
+    }
     owners.add(owner);
     return () => {
       if (!owners.delete(owner) || owners.size) return;
+      arrivals.disconnect();
+      arrivals = null;
+      sizes?.disconnect();
+      sizes = null;
       show();
     };
   }
@@ -221,16 +301,24 @@ window.TDBTreatmentGuideCard ||= (() => {
       rows.forEach((row, i) => {
         if (i !== previous) fades.to(row.summary, 0, 0);
       });
-      fades.to(old.summary, 0, motion.defaults.fadeOut);
+      fades.to(old.summary, 0, motion.carousel.copyOut, motion.carousel.copyEaseOut);
       animations.push(
         old.summary.animate([{ visibility: 'visible' }, { visibility: 'visible' }], {
-          duration: motion.defaults.fadeOut,
+          duration: motion.carousel.copyOut,
         }),
       );
-      entryTimer = setTimeout(() => {
-        entryTimer = 0;
-        fades.to(next.summary, 1, motion.reduced.matches ? 0 : motion.defaults.fadeIn);
-      }, motion.defaults.entryDelay);
+      entryTimer = setTimeout(
+        () => {
+          entryTimer = 0;
+          fades.to(
+            next.summary,
+            1,
+            motion.reduced.matches ? 0 : motion.carousel.copyIn,
+            motion.carousel.copyEaseIn,
+          );
+        },
+        duration + (direction < 0 ? motion.carousel.previousDelay : motion.carousel.nextDelay),
+      );
     }
     update(initial, 1, false);
     return {
@@ -487,7 +575,6 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       pinTop = 0,
       cardHeight = 0,
       cardShift = 0,
-      footerShift = 0,
       stageHeight = 0,
       wheelOffset = 0,
       wheelSize = 0,
@@ -559,7 +646,6 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       enabled = false;
       root.classList.remove('is-guide-scroll-enabled');
       cardShift = 0;
-      footerShift = 0;
       stageHeight = 0;
       paintProgress((controls.current() + 1) / 5);
       track.removeAttribute('style');
@@ -577,7 +663,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         footerHeight = docked ? Math.max(footerBox.height, arrowsBox?.height || 0) : 0,
         layoutStyle = getComputedStyle(layout),
         bottomPadding = parseFloat(layoutStyle.paddingBottom) || 0,
-        footerSpace = docked ? footerHeight + bottomPadding : 0,
+        footerSpace = docked ? footerHeight : 0,
         viewport = window.visualViewport,
         height = Math.min(innerHeight, viewport?.height || innerHeight),
         stableHeight =
@@ -624,27 +710,26 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       const oldPinTop = pinTop;
       const margin = layoutStyle.marginBottom;
       stageHeight = stableHeight;
-      // Centre the copy/icon group between the strip and the bottom control area.
-      // Read the unshifted geometry so ResizeObserver never feeds paint back in.
-      cardShift = horizontal
-        ? offset +
-          wheelBox.height +
-          (stageHeight - footerSpace - wheelBox.height - bodyHeight) / 2 -
-          bodyTop
-        : 0;
-      if (docked) {
-        const footerTop = footerBox.top - cardBox.top - footerShift;
-        footerShift = offset + stageHeight - footerSpace - footerTop;
-      }
-      cardHeight = horizontal
-        ? Math.max(
-            (docked ? contentBox.bottom - cardBox.top : bodyBottom) + bottomPadding,
-            offset + stageHeight,
-          )
-        : cardBox.height;
+      // The native seven-row grid centres the body between equal header/footer
+      // rows. Legacy layouts alone need a paint offset; never translate the grid.
+      cardShift =
+        horizontal && !docked
+          ? offset +
+            wheelBox.height +
+            (stageHeight - footerSpace - wheelBox.height - bodyHeight) / 2 -
+            bodyTop
+          : 0;
+      cardHeight = docked
+        ? offset + stageHeight + bottomPadding
+        : horizontal
+          ? Math.max(
+              (docked ? contentBox.bottom - cardBox.top : bodyBottom) + bottomPadding,
+              offset + stageHeight,
+            )
+          : cardBox.height;
       wheelOffset = offset;
       wheelSize = horizontal
-        ? Math.max(wheelBox.height, centreBottom + cardShift - offset, docked ? stageHeight : 0)
+        ? Math.max(wheelBox.height, centreBottom + cardShift - offset, docked ? cardHeight : 0)
         : wheelBox.height;
       pinTop = gap - offset;
       distance = Math.max(240, Math.min(480, innerWidth * 0.8));
@@ -657,8 +742,8 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       };
       if (horizontal) {
         styles['--tdb-guide-stage-height'] = offset + stageHeight + 'px';
-        styles['--tdb-guide-card-shift'] = cardShift + 'px';
-        if (docked) styles['--tdb-guide-footer-shift'] = footerShift + 'px';
+        if (docked) styles['--tdb-guide-bottom-padding'] = bottomPadding + 'px';
+        else styles['--tdb-guide-card-shift'] = cardShift + 'px';
       }
       for (const [name, value] of Object.entries(styles))
         if (track.style.getPropertyValue(name) !== value) track.style.setProperty(name, value);

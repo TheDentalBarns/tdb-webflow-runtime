@@ -8,7 +8,7 @@
     "treatment-guide_layout": {
       "grid-template-columns": "minmax(0,1fr)",
       "column-gap": "2rem",
-      "row-gap": "2rem",
+      "row-gap": "0px",
       "background-color": "#f9f2e6",
       "width": "100vw",
       "max-width": "none",
@@ -23,7 +23,7 @@
       "border-left-width": "0px",
       "isolation": "isolate",
       "margin-top": "0px",
-      "grid-template-rows": "6rem auto auto 4rem 6rem"
+      "grid-template-rows": "6rem minmax(12px,1fr) auto auto 4rem minmax(12px,1fr) 6rem"
     },
     "treatment-guide_wheel": {
       "width": "100vw",
@@ -94,8 +94,8 @@
       "position": "relative",
       "grid-column-start": "1",
       "grid-column-end": "2",
-      "grid-row-start": "4",
-      "grid-row-end": "5",
+      "grid-row-start": "5",
+      "grid-row-end": "6",
       "align-self": "start",
       "justify-self": "center",
       "margin": "0px"
@@ -124,8 +124,8 @@
     "treatment-guide_content": {
       "grid-column-start": "1",
       "grid-column-end": "2",
-      "grid-row-start": "2",
-      "grid-row-end": "6",
+      "grid-row-start": "3",
+      "grid-row-end": "8",
       "padding-left": "0px",
       "padding-top": "0px",
       "border-left-width": "0px",
@@ -137,8 +137,8 @@
     "treatment-guide_arrows": {
       "grid-column-start": "1",
       "grid-column-end": "2",
-      "grid-row-start": "5",
-      "grid-row-end": "6",
+      "grid-row-start": "7",
+      "grid-row-end": "8",
       "height": "6rem",
       "align-items": "center",
       "box-sizing": "border-box",
@@ -180,7 +180,7 @@
     },
     "treatment-guide_details": {
       "padding-top": "0px",
-      "grid-row-start": "4",
+      "grid-row-start": "5",
       "height": "6rem",
       "display": "flex",
       "align-items": "center",
@@ -193,17 +193,19 @@
     },
     "treatment-guide_summary": {
       "text-align": "center",
-      "margin-bottom": "5rem"
+      "margin-bottom": "7rem",
+      "grid-row-start": "2"
     },
     "treatment-guide_panel": {
       "grid-row-start": "1",
-      "grid-row-end": "5"
+      "grid-row-end": "6"
     },
     "treatment-guide_title-clip": {
       "width": "100%",
       "max-width": "52rem",
       "justify-self": "center",
-      "margin-bottom": "5rem"
+      "margin-bottom": "7rem",
+      "grid-row-start": "1"
     },
     "treatment-guide_learn-more": {
       "background-color": "rgba(0,0,0,0.3)",
@@ -217,6 +219,9 @@
       "border-bottom-left-radius": ".3125rem",
       "border-bottom-right-radius": ".3125rem",
       "backdrop-filter": "saturate(150%) blur(20px)"
+    },
+    "is-guide-barn": {
+      "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
     }
   },
   "repeatAtBreakpoints": {
@@ -268,9 +273,12 @@
     "treatment-guide_learn-more": [
       "button",
       "is-alternate"
+    ],
+    "is-guide-barn": [
+      "treatment-guide_icon-art"
     ]
   },
-  "authoringNote": "The strip stays full width and pins at 0px. Title, blurb and icon use the service introduction order and spacing: 5vw sides, 7rem desktop and 8rem tablet/phone gaps between copy and icon, and a 4rem icon row without flanking rules. Native subgrid reserves all five chapters. Runtime centres the copy and icon between the strip and a separate 6rem control row above the existing responsive bottom padding during pinning. Touch devices retain a measured 100svh stage through browser-bar changes. In normal flow, the controls follow 2rem below the icon. The CTA mirrors the existing treatment Discover button: dark translucent fill, white text and outline.",
+  "authoringNote": "Native grid: equal 6rem header/footer rows, equal flexible spacers, and the title/blurb/4rem icon group centred between them. 5vw side margins and 7rem desktop/8rem mobile copy gaps remain. Existing responsive bottom padding follows the footer outside the pinned viewport. Runtime supplies a stable 100svh stage height; it does not translate the body or controls. Button barn artwork uses the existing small icon; centre and drawer retain the detailed window.",
   "removedComboProperties": {
     "is-chapter-1": [
       "left",
@@ -296,26 +304,110 @@
   "breakpointOverrides": {
     "medium": {
       "treatment-guide_title-clip": {
-        "margin-bottom": "6rem"
+        "margin-bottom": "8rem",
+        "grid-row-start": "1"
       },
       "treatment-guide_summary": {
-        "margin-bottom": "6rem"
+        "margin-bottom": "8rem",
+        "grid-row-start": "2"
+      },
+      "treatment-guide_layout": {
+        "grid-template-rows": "6rem minmax(12px,1fr) auto auto 4rem minmax(12px,1fr) 6rem",
+        "row-gap": "0px"
+      },
+      "treatment-guide_content": {
+        "grid-row-start": "3",
+        "grid-row-end": "8"
+      },
+      "treatment-guide_panel": {
+        "grid-row-start": "1",
+        "grid-row-end": "6"
+      },
+      "treatment-guide_centre": {
+        "grid-row-start": "5",
+        "grid-row-end": "6"
+      },
+      "treatment-guide_arrows": {
+        "grid-row-start": "7",
+        "grid-row-end": "8"
+      },
+      "treatment-guide_details": {
+        "grid-row-start": "5"
+      },
+      "is-guide-barn": {
+        "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
       }
     },
     "small": {
       "treatment-guide_title-clip": {
-        "margin-bottom": "6rem"
+        "margin-bottom": "8rem",
+        "grid-row-start": "1"
       },
       "treatment-guide_summary": {
-        "margin-bottom": "6rem"
+        "margin-bottom": "8rem",
+        "grid-row-start": "2"
+      },
+      "treatment-guide_layout": {
+        "grid-template-rows": "6rem minmax(12px,1fr) auto auto 4rem minmax(12px,1fr) 6rem",
+        "row-gap": "0px"
+      },
+      "treatment-guide_content": {
+        "grid-row-start": "3",
+        "grid-row-end": "8"
+      },
+      "treatment-guide_panel": {
+        "grid-row-start": "1",
+        "grid-row-end": "6"
+      },
+      "treatment-guide_centre": {
+        "grid-row-start": "5",
+        "grid-row-end": "6"
+      },
+      "treatment-guide_arrows": {
+        "grid-row-start": "7",
+        "grid-row-end": "8"
+      },
+      "treatment-guide_details": {
+        "grid-row-start": "5"
+      },
+      "is-guide-barn": {
+        "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
       }
     },
     "tiny": {
       "treatment-guide_title-clip": {
-        "margin-bottom": "6rem"
+        "margin-bottom": "8rem",
+        "grid-row-start": "1"
       },
       "treatment-guide_summary": {
-        "margin-bottom": "6rem"
+        "margin-bottom": "8rem",
+        "grid-row-start": "2"
+      },
+      "treatment-guide_layout": {
+        "grid-template-rows": "6rem minmax(12px,1fr) auto auto 4rem minmax(12px,1fr) 6rem",
+        "row-gap": "0px"
+      },
+      "treatment-guide_content": {
+        "grid-row-start": "3",
+        "grid-row-end": "8"
+      },
+      "treatment-guide_panel": {
+        "grid-row-start": "1",
+        "grid-row-end": "6"
+      },
+      "treatment-guide_centre": {
+        "grid-row-start": "5",
+        "grid-row-end": "6"
+      },
+      "treatment-guide_arrows": {
+        "grid-row-start": "7",
+        "grid-row-end": "8"
+      },
+      "treatment-guide_details": {
+        "grid-row-start": "5"
+      },
+      "is-guide-barn": {
+        "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
       }
     }
   },

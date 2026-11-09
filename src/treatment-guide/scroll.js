@@ -73,7 +73,6 @@
       pinTop = 0,
       cardHeight = 0,
       cardShift = 0,
-      footerShift = 0,
       stageHeight = 0,
       wheelOffset = 0,
       wheelSize = 0,
@@ -145,7 +144,6 @@
       enabled = false;
       root.classList.remove('is-guide-scroll-enabled');
       cardShift = 0;
-      footerShift = 0;
       stageHeight = 0;
       paintProgress((controls.current() + 1) / 5);
       track.removeAttribute('style');
@@ -163,7 +161,7 @@
         footerHeight = docked ? Math.max(footerBox.height, arrowsBox?.height || 0) : 0,
         layoutStyle = getComputedStyle(layout),
         bottomPadding = parseFloat(layoutStyle.paddingBottom) || 0,
-        footerSpace = docked ? footerHeight + bottomPadding : 0,
+        footerSpace = docked ? footerHeight : 0,
         viewport = window.visualViewport,
         height = Math.min(innerHeight, viewport?.height || innerHeight),
         stableHeight =
@@ -210,27 +208,26 @@
       const oldPinTop = pinTop;
       const margin = layoutStyle.marginBottom;
       stageHeight = stableHeight;
-      // Centre the copy/icon group between the strip and the bottom control area.
-      // Read the unshifted geometry so ResizeObserver never feeds paint back in.
-      cardShift = horizontal
-        ? offset +
-          wheelBox.height +
-          (stageHeight - footerSpace - wheelBox.height - bodyHeight) / 2 -
-          bodyTop
-        : 0;
-      if (docked) {
-        const footerTop = footerBox.top - cardBox.top - footerShift;
-        footerShift = offset + stageHeight - footerSpace - footerTop;
-      }
-      cardHeight = horizontal
-        ? Math.max(
-            (docked ? contentBox.bottom - cardBox.top : bodyBottom) + bottomPadding,
-            offset + stageHeight,
-          )
-        : cardBox.height;
+      // The native seven-row grid centres the body between equal header/footer
+      // rows. Legacy layouts alone need a paint offset; never translate the grid.
+      cardShift =
+        horizontal && !docked
+          ? offset +
+            wheelBox.height +
+            (stageHeight - footerSpace - wheelBox.height - bodyHeight) / 2 -
+            bodyTop
+          : 0;
+      cardHeight = docked
+        ? offset + stageHeight + bottomPadding
+        : horizontal
+          ? Math.max(
+              (docked ? contentBox.bottom - cardBox.top : bodyBottom) + bottomPadding,
+              offset + stageHeight,
+            )
+          : cardBox.height;
       wheelOffset = offset;
       wheelSize = horizontal
-        ? Math.max(wheelBox.height, centreBottom + cardShift - offset, docked ? stageHeight : 0)
+        ? Math.max(wheelBox.height, centreBottom + cardShift - offset, docked ? cardHeight : 0)
         : wheelBox.height;
       pinTop = gap - offset;
       distance = Math.max(240, Math.min(480, innerWidth * 0.8));
@@ -243,8 +240,8 @@
       };
       if (horizontal) {
         styles['--tdb-guide-stage-height'] = offset + stageHeight + 'px';
-        styles['--tdb-guide-card-shift'] = cardShift + 'px';
-        if (docked) styles['--tdb-guide-footer-shift'] = footerShift + 'px';
+        if (docked) styles['--tdb-guide-bottom-padding'] = bottomPadding + 'px';
+        else styles['--tdb-guide-card-shift'] = cardShift + 'px';
       }
       for (const [name, value] of Object.entries(styles))
         if (track.style.getPropertyValue(name) !== value) track.style.setProperty(name, value);

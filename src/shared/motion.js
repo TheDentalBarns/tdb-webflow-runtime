@@ -1063,6 +1063,10 @@
   // Components select the appropriate choreography. These values preserve the
   // established review fades, including forward/backward and cancelled drags.
   const carousel = Object.freeze({
+    copyIn: fadeTime(400),
+    copyOut: fadeTime(150),
+    copyEaseIn: easing('fade', 'ease-in'),
+    copyEaseOut: easing('fade', 'ease-out'),
     nextDelay: time(100),
     previousDelay: time(140),
     settleDelay: time(60),
@@ -1082,7 +1086,7 @@
   });
   function fadeController() {
     const states = new Map();
-    function to(node, target, milliseconds = reviews.fade) {
+    function to(node, target, milliseconds = reviews.fade, curve = easing('fade', 'ease-out')) {
       if (!node) return;
       const old = states.get(node);
       if (old?.target === target && (milliseconds !== 0 || !old.animation)) return;
@@ -1095,7 +1099,7 @@
       if (milliseconds > 0 && Math.abs(from - target) > 0.001 && node.animate) {
         const animation = node.animate([{ opacity: from }, { opacity: target }], {
           duration: milliseconds,
-          easing: easing('fade', 'ease-out'),
+          easing: curve,
         });
         state.animation = animation;
         animation.onfinish = () => {

@@ -11,7 +11,11 @@ function chromeFixture() {
   let nativePose = 'matrix(1, 0, 0, 1, 0, 0)';
   const css = w.getComputedStyle.bind(w);
   w.getComputedStyle = node => node === nav ? {transform: [...animations].reverse().find(a => !a.cancelled)?.pose || nativePose} : css(node);
-  nav.getBoundingClientRect = () => ({top:20,bottom:120,height:100});
+  nav.getBoundingClientRect = () => {
+    const pose = w.getComputedStyle(nav).transform;
+    const shift = pose.startsWith('matrix(') ? Number(pose.slice(7,-1).split(',')[5]) : parseFloat(pose.match(/translateY\(([^)]+)/)?.[1]) || 0;
+    return {top:20+shift,bottom:120+shift,height:100};
+  };
   w.TDBMotion = {reduced:{matches:false}};
   nav.animate = (frames, options) => {
     let resolve, reject;
@@ -50,6 +54,74 @@ test('a rapid reopen continues from the visible return pose; old completion cann
     await flush();assert.equal(hiding.cancelled,false);
     hiding.finish();releaseAgain();f.animations[3].finish();await flush();
   } finally {f.close();}
+});
+
+test('late banners inherit the hidden chrome state and return only after the final owner', async () => {
+  const f = chromeFixture();
+  try {
+    const first = f.w.TDBSiteChrome.acquire(), second = f.w.TDBSiteChrome.acquire();
+    f.animations[0].finish();
+    const banner = f.w.document.createElement('aside');
+    banner.className = 'tdb-announcement';
+    banner.getBoundingClientRect = () => ({ top: 100, bottom: 180, height: 80 });
+    const motions = [];
+    banner.animate = (frames, options) => {
+      const animation = { frames, options, finished: Promise.resolve(), cancel() {} };
+      motions.push(animation);
+      return animation;
+    };
+    f.w.document.body.append(banner);
+    await flush();
+    assert.equal(motions.length, 1);
+    assert.equal(motions[0].frames[0].transform, 'translateY(-180px)');
+    assert.equal(motions[0].frames[1].transform, 'translateY(-180px)');
+    assert.equal(motions[0].options.duration, 0, 'new chrome cannot flash over an active component');
+    banner.append(f.w.document.createElement('span'));
+    await flush();
+    assert.equal(motions.length, 1, 'content changes cannot create duplicate animation owners');
+    first();
+    assert.equal(motions.length, 1);
+    second();
+    assert.equal(motions.length, 2);
+    assert.equal(motions[1].options.duration, 420, 'late banner shares the animated return');
+    const after = f.w.document.createElement('aside');
+    after.className = 'tdb-announcement';
+    after.animate = () => { throw Error('observer remained after release'); };
+    f.w.document.body.append(after);
+    await flush();
+  } finally { f.close(); }
+});
+
+test('a hidden empty announcement shell follows its eventual height without covering controls', () => {
+  const f = chromeFixture();
+  try {
+    let onSize, disconnected = false, height = 0;
+    f.w.ResizeObserver = class { constructor(fn) { onSize = fn; } observe() {} disconnect() { disconnected = true; } };
+    const shell = f.w.document.createElement('div'), motions = [];
+    shell.id = 'tdb-elfsight-timer-shell';
+    const computed = f.w.getComputedStyle;
+    f.w.getComputedStyle = node => node === shell ? { transform: motions.findLast(a => !a.cancelled)?.frames[1].transform || 'none' } : computed(node);
+    shell.getBoundingClientRect = () => {
+      const shift = parseFloat(f.w.getComputedStyle(shell).transform.match(/translateY\(([^)]+)/)?.[1]) || 0;
+      return { height, top: shift, bottom: height + shift };
+    };
+    shell.animate = (frames, options) => {
+      const animation = { frames, options, finished: Promise.resolve(), cancel() { this.cancelled = true; } };
+      motions.push(animation);return animation;
+    };
+    f.w.document.body.append(shell);
+    const release = f.w.TDBSiteChrome.acquire();
+    f.animations[0].finish();
+    height = 80;
+    onSize();
+    assert.equal(motions[1].frames[0].transform, 'translateY(-80px)');
+    assert.equal(motions[1].frames[1].transform, 'translateY(-80px)');
+    assert.equal(motions[1].options.duration, 0);
+    assert.equal(shell.getBoundingClientRect().bottom, 0, 'invisible shell cannot intercept guide taps');
+    onSize();assert.equal(motions.length, 2, 'no resize feedback');
+    release();assert.equal(disconnected, true);
+    assert.equal(motions[2].options.duration, 420);
+  } finally { f.close(); }
 });
 
 test('VIP permits its mobile scroller under a menu lock and releases only its own lease', () => {

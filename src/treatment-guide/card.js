@@ -115,16 +115,24 @@ window.TDBTreatmentGuideCard ||= (() => {
       rows.forEach((row, i) => {
         if (i !== previous) fades.to(row.summary, 0, 0);
       });
-      fades.to(old.summary, 0, motion.defaults.fadeOut);
+      fades.to(old.summary, 0, motion.carousel.copyOut, motion.carousel.copyEaseOut);
       animations.push(
         old.summary.animate([{ visibility: 'visible' }, { visibility: 'visible' }], {
-          duration: motion.defaults.fadeOut,
+          duration: motion.carousel.copyOut,
         }),
       );
-      entryTimer = setTimeout(() => {
-        entryTimer = 0;
-        fades.to(next.summary, 1, motion.reduced.matches ? 0 : motion.defaults.fadeIn);
-      }, motion.defaults.entryDelay);
+      entryTimer = setTimeout(
+        () => {
+          entryTimer = 0;
+          fades.to(
+            next.summary,
+            1,
+            motion.reduced.matches ? 0 : motion.carousel.copyIn,
+            motion.carousel.copyEaseIn,
+          );
+        },
+        duration + (direction < 0 ? motion.carousel.previousDelay : motion.carousel.nextDelay),
+      );
     }
     update(initial, 1, false);
     return {
