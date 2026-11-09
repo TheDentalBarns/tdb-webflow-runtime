@@ -3,6 +3,6 @@
 [data-tdb-guide] .treatment-guide_content:has(>.w--tab-active)>.treatment-guide_panel:not(.w--tab-active){visibility:hidden;pointer-events:none}
 [data-tdb-guide] .treatment-guide_panel.w--tab-active{visibility:visible;pointer-events:auto}
 [data-tdb-guide] .treatment-guide_choice:not(.w--current){opacity:.28}
-[data-tdb-guide] .treatment-guide_choice.w--current{opacity:.98;background-color:var(--base-color-brand--orange-3,#d6cab4)}
+[data-tdb-guide] .treatment-guide_choice.w--current{opacity:.98;background-color:var(--base-color-neutral--neutral-darker,#222);color:var(--base-color-brand--orange-1,#f9f2e6)}
 [data-tdb-guide] .treatment-guide_learn-more::-webkit-details-marker{display:none}
 [data-tdb-guide]:has(details[open]) .treatment-guide_arrows{visibility:hidden}
