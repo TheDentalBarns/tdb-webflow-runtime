@@ -166,6 +166,12 @@
     },
     "treatment-guide_details": {
       "padding-top": "1.5rem"
+    },
+    "treatment-guide_title": {
+      "text-align": "center"
+    },
+    "treatment-guide_summary": {
+      "text-align": "center"
     }
   },
   "repeatAtBreakpoints": {
@@ -185,7 +191,9 @@
       "treatment-guide_choice",
       "treatment-guide_rim",
       "treatment-guide_centre",
-      "treatment-guide_details"
+      "treatment-guide_details",
+      "treatment-guide_title",
+      "treatment-guide_summary"
     ]
   },
   "preserved": "CMS bindings, native tabs/details, five-rem icon row and existing footer padding/drawer; strip and progress are edge-to-edge with 5vw content padding.",
