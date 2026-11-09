@@ -14,6 +14,7 @@ function setup(options = {}) {
     layout = root.firstElementChild;
   w.innerWidth = options.width || 390;
   w.innerHeight = options.height || 844;
+  if (options.bottomPadding) layout.style.paddingBottom = options.bottomPadding + 'px';
   w.scrollY = options.y || 0;
   const reduced = new w.EventTarget();
   reduced.matches = !!options.reduced;
@@ -145,6 +146,11 @@ function setup(options = {}) {
     interact() {},
   });
   const track = root.querySelector('.tdb-guide-scroll-track');
+  const viewportMeter = track.querySelector(':scope > span');
+  if (viewportMeter && options.smallHeight)
+    viewportMeter.getBoundingClientRect = () => ({
+      height: w.innerWidth === (options.width || 390) ? options.smallHeight : w.innerHeight,
+    });
   track.getBoundingClientRect = () => ({ top: 1000 - w.scrollY, width: 390 });
   const tick = (count = 1) => {
     for (let i = 0; i < count; i++) {
@@ -249,8 +255,14 @@ test('horizontal card stays centred below its zero-pinned strip without resize f
   }
 });
 
-test('bottom controls follow the visible viewport while scroll geometry stays fixed', () => {
-  const t = setup({ horizontal: true, docked: true, coarse: true });
+test('bottom controls retain native padding and a stable small viewport through toolbar changes', () => {
+  const t = setup({
+    horizontal: true,
+    docked: true,
+    coarse: true,
+    smallHeight: 740,
+    bottomPadding: 48,
+  });
   try {
     t.move(1020 + 312 * 2.5);
     t.tick();
@@ -263,25 +275,28 @@ test('bottom controls follow the visible viewport while scroll geometry stays fi
         '--tdb-guide-stage-height',
       ].map((k) => t.track.style.getPropertyValue(k));
     const before = geometry(),
+      style = t.track.getAttribute('style'),
       y = t.w.scrollY;
-    for (const height of [844, 740, 800, 844]) {
+    assert.equal(t.track.querySelector(':scope > span').style.height, '100svh');
+    for (const height of [844, 740, 800, 900, 740]) {
       t.w.innerHeight = height;
       t.w.dispatchEvent(new t.w.Event('resize'));
       t.tick();
-      assert.equal(footer.getBoundingClientRect().top, height - 96);
-      assert.equal(footer.getBoundingClientRect().bottom, height);
+      assert.equal(footer.getBoundingClientRect().top, 740 - 48 - 96);
+      assert.equal(footer.getBoundingClientRect().bottom, 740 - 48);
       assert.equal(
         t.root.querySelector('.treatment-guide_arrows').getBoundingClientRect().top,
-        height - 96,
+        740 - 48 - 96,
       );
       assert.deepEqual(
         geometry(),
         before,
-        'browser bars move paint, not the following page sections',
+        'browser bars cannot move the card or following page sections',
       );
+      assert.equal(t.track.getAttribute('style'), style);
       assert.equal(t.w.scrollY, y);
       const shift = parseFloat(t.track.style.getPropertyValue('--tdb-guide-card-shift'));
-      assert.equal((395 + 600) / 2 - 20 + shift, (355 + height - 96) / 2);
+      assert.equal((395 + 600) / 2 - 20 + shift, (355 + 740 - 48 - 96) / 2);
     }
     t.w.innerWidth = 844;
     t.w.innerHeight = 390;

@@ -438,13 +438,13 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     const horizontal = Boolean(controls.horizontal);
     const docked = horizontal && Boolean(footer && centre);
     root.classList.toggle('is-guide-footer-docked', docked);
-    // Reserve the large mobile viewport once, so expanding browser chrome never
-    // makes the dock extend past the card into the following parallax section.
+    // The small viewport includes browser chrome. Keep that measured height
+    // for this mobile orientation so toolbar animation cannot move the card.
     const viewportMeter = docked && coarse.matches ? document.createElement('span') : null;
     if (viewportMeter) {
       viewportMeter.setAttribute('aria-hidden', 'true');
       viewportMeter.style.cssText =
-        'position:absolute;top:0;left:0;width:0;height:100vh;height:100lvh;visibility:hidden;pointer-events:none';
+        'position:absolute;top:0;left:0;width:0;height:100svh;visibility:hidden;pointer-events:none';
       track.append(viewportMeter);
     }
     const svgNS = 'http://www.w3.org/2000/svg';
@@ -576,12 +576,14 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         footerBox = footer?.getBoundingClientRect(),
         footerHeight = docked ? Math.max(footerBox.height, arrowsBox?.height || 0) : 0,
         layoutStyle = getComputedStyle(layout),
+        bottomPadding = parseFloat(layoutStyle.paddingBottom) || 0,
+        footerSpace = docked ? footerHeight + bottomPadding : 0,
         viewport = window.visualViewport,
         height = Math.min(innerHeight, viewport?.height || innerHeight),
         stableHeight =
           enabled && coarse.matches && measuredWidth === innerWidth
-            ? Math.max(stageHeight, height)
-            : Math.max(height, viewportMeter?.getBoundingClientRect().height || 0),
+            ? stageHeight
+            : viewportMeter?.getBoundingClientRect().height || height,
         gap = horizontal ? 0 : innerWidth * 0.05,
         offset = wheelBox.top - cardBox.top,
         bodyTop = docked
@@ -595,7 +597,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
             cardShift,
         bodyHeight = bodyBottom - bodyTop,
         needed = horizontal
-          ? wheelBox.height + bodyHeight + footerHeight + 24
+          ? wheelBox.height + bodyHeight + footerSpace + 24
           : Math.max(wheelBox.bottom, contentBox.bottom) - wheelBox.top + gap + 12;
       const nextRadius = Math.max(0, wheelBox.width / 2 - 2.5);
       if (arc && !horizontal && nextRadius !== radius) {
@@ -611,7 +613,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       // range; removing/reinserting it mid-swipe moves every following section.
       const fits =
         eligible &&
-        (needed <= height || (enabled && coarse.matches && measuredWidth === innerWidth));
+        (needed <= stableHeight || (enabled && coarse.matches && measuredWidth === innerWidth));
       canArm = fits;
       measuredWidth = innerWidth;
       if (!fits) return disable();
@@ -627,23 +629,22 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       cardShift = horizontal
         ? offset +
           wheelBox.height +
-          ((docked ? height - footerHeight : stageHeight) - wheelBox.height - bodyHeight) / 2 -
+          (stageHeight - footerSpace - wheelBox.height - bodyHeight) / 2 -
           bodyTop
         : 0;
       if (docked) {
         const footerTop = footerBox.top - cardBox.top - footerShift;
-        footerShift = offset + height - footerHeight - footerTop;
+        footerShift = offset + stageHeight - footerSpace - footerTop;
       }
       cardHeight = horizontal
         ? Math.max(
-            (docked ? contentBox.bottom - cardBox.top : bodyBottom) +
-              (parseFloat(layoutStyle.paddingBottom) || 0),
+            (docked ? contentBox.bottom - cardBox.top : bodyBottom) + bottomPadding,
             offset + stageHeight,
           )
         : cardBox.height;
       wheelOffset = offset;
       wheelSize = horizontal
-        ? Math.max(wheelBox.height, centreBottom + cardShift - offset, docked ? height : 0)
+        ? Math.max(wheelBox.height, centreBottom + cardShift - offset, docked ? stageHeight : 0)
         : wheelBox.height;
       pinTop = gap - offset;
       distance = Math.max(240, Math.min(480, innerWidth * 0.8));

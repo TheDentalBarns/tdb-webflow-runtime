@@ -270,7 +270,7 @@
       "is-alternate"
     ]
   },
-  "authoringNote": "The strip stays full width and pins at 0px. Title, blurb and icon use the service introduction order and spacing: 5vw sides, 7rem desktop and 8rem tablet/phone gaps between copy and icon, and a 4rem icon row without flanking rules. Native subgrid reserves all five chapters. Runtime centres the copy and icon between the strip and a separate 6rem control row at the visible viewport bottom during pinning. In normal flow, the controls follow 2rem below the icon. The CTA mirrors the existing treatment Discover button: dark translucent fill, white text and outline.",
+  "authoringNote": "The strip stays full width and pins at 0px. Title, blurb and icon use the service introduction order and spacing: 5vw sides, 7rem desktop and 8rem tablet/phone gaps between copy and icon, and a 4rem icon row without flanking rules. Native subgrid reserves all five chapters. Runtime centres the copy and icon between the strip and a separate 6rem control row above the existing responsive bottom padding during pinning. Touch devices retain a measured 100svh stage through browser-bar changes. In normal flow, the controls follow 2rem below the icon. The CTA mirrors the existing treatment Discover button: dark translucent fill, white text and outline.",
   "removedComboProperties": {
     "is-chapter-1": [
       "left",

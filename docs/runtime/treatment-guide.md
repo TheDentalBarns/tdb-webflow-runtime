@@ -184,3 +184,9 @@ The controller translates the copy/icon group and footer separately. Changes in 
 ### Shared card text motion — 9 November 2026
 
 The card blurb uses `TDBMotion.fadeController()` with the shared `fadeOut`, `entryDelay` and `fadeIn` values. An interrupted outgoing fade continues from its painted opacity; changing chapters cancels any pending reveal. Heading travel takes its duration and easing directly from `TDBMotion`, and the icons retain the shared native ticker. The card defines no independent text timing values. Reduced motion settles immediately, and teardown cancels pending reveals and restores native opacity.
+
+### Stable viewport and restored bottom padding — 9 November 2026
+
+The 6rem controls row now sits above the layout's existing responsive bottom padding. The controller reads that Designer padding rather than consuming it when positioning the controls. Short screens keep the same padding in normal flow.
+
+On touch devices, a `100svh` measurement establishes the card height for the current width/orientation. Both the copy/icon group and controls retain that height when browser bars expand or collapse; `visualViewport.height` no longer moves them. Width changes remeasure the layout, and devices without small-viewport units retain the initial measured visible height. The scroll runway and following parallax retain their established geometry during toolbar changes.
