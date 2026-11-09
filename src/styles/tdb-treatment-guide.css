@@ -34,7 +34,8 @@
 .tdb-guide-linear-progress{position:absolute;inset:0;background:currentColor;opacity:.75;transform:scaleX(0);transform-origin:left center;pointer-events:none}
 .tdb-guide-bar-pressure{position:absolute;left:0;top:0;bottom:0;width:40%;z-index:4;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,oklch(from var(--tdb-guide-selected) calc(l - .035) c h) 0%,var(--tdb-guide-selected) 22%,transparent 70%)}
 .is-guide-bar.is-guide-scroll-enabled .tdb-guide-scroll-track::before{content:"";position:absolute;z-index:0;top:var(--tdb-guide-background-start);bottom:0;left:calc(50% - 50vw);width:100vw;background:var(--base-color-neutral--neutral-darker,#222);pointer-events:none}
-.is-guide-bar.is-guide-scroll-enabled .treatment-guide_layout{background-color:var(--base-color-brand--orange-1,#f9f2e6)}
+.is-guide-bar.is-guide-scroll-enabled .treatment-guide_layout{background-color:var(--base-color-brand--orange-1,#f9f2e6);min-height:var(--tdb-guide-stage-height);align-content:start}
+.is-guide-bar.is-guide-scroll-enabled :is(.treatment-guide_centre,.treatment-guide_content,.treatment-guide_arrows){transform:translateY(var(--tdb-guide-card-shift,0px))}
 .is-guide-bar.is-guide-scroll-enabled .treatment-guide_layout::before{content:none}
 /* No entry/exit overlap, including fast arrivals and late-mounted banners.
  * The shared chrome owner still owns transforms and the return animation. */

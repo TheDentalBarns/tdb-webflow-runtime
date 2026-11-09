@@ -120,7 +120,9 @@
       "padding-left": "0px",
       "padding-top": "0px",
       "border-left-width": "0px",
-      "border-top-width": "0px"
+      "border-top-width": "0px",
+      "row-gap": "2rem",
+      "min-height": "21rem"
     },
     "treatment-guide_arrows": {
       "grid-column-start": "1",
@@ -161,6 +163,9 @@
       "line-height": "0",
       "background-color": "#d6cab4",
       "color": "transparent"
+    },
+    "treatment-guide_details": {
+      "padding-top": "1.5rem"
     }
   },
   "repeatAtBreakpoints": {
@@ -179,7 +184,8 @@
       "treatment-guide_pagination",
       "treatment-guide_choice",
       "treatment-guide_rim",
-      "treatment-guide_centre"
+      "treatment-guide_centre",
+      "treatment-guide_details"
     ]
   },
   "preserved": "CMS bindings, native tabs/details, five-rem icon row and existing footer padding/drawer; strip and progress are edge-to-edge with 5vw content padding.",
@@ -201,7 +207,7 @@
       "treatment-guide_choice"
     ]
   },
-  "authoringNote": "Native tabs are static flex items with retired circular offsets removed. The 5px progress track sits inside the bottom of the 6rem strip. The art layer paints above the tabs without intercepting input. Charcoal starts at 6rem. The horizontal guide pins at 0px with no top padding or spacer.",
+  "authoringNote": "Native tabs are static flex items with retired circular offsets removed. The 5px progress track sits inside the bottom of the 6rem strip. The art layer paints above the tabs without intercepting input. Charcoal starts at 6rem. The horizontal guide pins at 0px with no top padding or spacer. While scroll enhancement is enabled, the icon/card/controls are centred together beneath the strip using one stable viewport height; content and controls retain their native grid tracks. Selected chapter uses the original taupe background and charcoal number.",
   "removedComboProperties": {
     "is-chapter-1": [
       "left",

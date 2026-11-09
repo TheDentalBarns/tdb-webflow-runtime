@@ -416,6 +416,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       art = root.querySelector('.treatment-guide_dial-art'),
       centre = root.querySelector('.treatment-guide_centre'),
       content = root.querySelector('.treatment-guide_content'),
+      arrows = root.querySelector('.treatment-guide_arrows'),
       rim = root.querySelector('.treatment-guide_rim');
     if (!layout || !art || !content) return null;
     const events = new AbortController(),
@@ -467,6 +468,8 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       resize = true,
       pinTop = 0,
       cardHeight = 0,
+      cardShift = 0,
+      stageHeight = 0,
       wheelOffset = 0,
       wheelSize = 0,
       measuredWidth = 0,
@@ -536,6 +539,8 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       animation = null;
       enabled = false;
       root.classList.remove('is-guide-scroll-enabled');
+      cardShift = 0;
+      stageHeight = 0;
       paintProgress((controls.current() + 1) / 5);
       track.removeAttribute('style');
       if (travelled) scrollTo(window.scrollY - travelled);
@@ -546,11 +551,21 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       const cardBox = layout.getBoundingClientRect(),
         wheelBox = art.getBoundingClientRect(),
         contentBox = content.getBoundingClientRect(),
+        centreBox = centre?.getBoundingClientRect(),
+        arrowsBox = arrows?.getBoundingClientRect(),
+        layoutStyle = getComputedStyle(layout),
         viewport = window.visualViewport,
         height = Math.min(innerHeight, viewport?.height || innerHeight),
+        stableHeight =
+          enabled && coarse.matches && measuredWidth === innerWidth ? stageHeight : height,
         gap = horizontal ? 0 : innerWidth * 0.05,
         offset = wheelBox.top - cardBox.top,
-        needed = Math.max(wheelBox.bottom, contentBox.bottom) - wheelBox.top + gap + 12;
+        bodyTop = (centreBox?.top ?? contentBox.top) - cardBox.top - cardShift,
+        bodyBottom = Math.max(contentBox.bottom, arrowsBox?.bottom || 0) - cardBox.top - cardShift,
+        bodyHeight = bodyBottom - bodyTop,
+        needed = horizontal
+          ? wheelBox.height + bodyHeight + 24
+          : Math.max(wheelBox.bottom, contentBox.bottom) - wheelBox.top + gap + 12;
       const nextRadius = Math.max(0, wheelBox.width / 2 - 2.5);
       if (arc && !horizontal && nextRadius !== radius) {
         radius = nextRadius;
@@ -574,13 +589,21 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       const fraction = enabled ? Math.max(0, Math.min(5, (window.scrollY - start) / distance)) : 0;
       const oldDistance = distance;
       const oldPinTop = pinTop;
-      const margin = getComputedStyle(layout).marginBottom;
-      cardHeight = cardBox.height;
+      const margin = layoutStyle.marginBottom;
+      stageHeight = stableHeight;
+      // Centre the complete icon/card/control group beneath the fixed strip.
+      // Read the unshifted geometry so ResizeObserver never feeds paint back in.
+      cardShift = horizontal
+        ? offset + wheelBox.height + (stageHeight - wheelBox.height - bodyHeight) / 2 - bodyTop
+        : 0;
+      cardHeight = horizontal
+        ? Math.max(bodyBottom + (parseFloat(layoutStyle.paddingBottom) || 0), offset + stageHeight)
+        : cardBox.height;
       wheelOffset = offset;
       wheelSize = horizontal
         ? Math.max(
             wheelBox.height,
-            (centre?.getBoundingClientRect().bottom || wheelBox.bottom) - wheelBox.top,
+            bodyTop + (centreBox ? centreBox.bottom - centreBox.top : 0) + cardShift - offset,
           )
         : wheelBox.height;
       pinTop = gap - offset;
@@ -592,6 +615,10 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         '--tdb-guide-background-start': offset + wheelBox.height * (horizontal ? 1 : 0.5) + 'px',
         height: cardHeight + runway + 'px',
       };
+      if (horizontal) {
+        styles['--tdb-guide-stage-height'] = offset + stageHeight + 'px';
+        styles['--tdb-guide-card-shift'] = cardShift + 'px';
+      }
       for (const [name, value] of Object.entries(styles))
         if (track.style.getPropertyValue(name) !== value) track.style.setProperty(name, value);
       if (!enabled) track.style.marginBottom = margin;
@@ -677,6 +704,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     const observer = new ResizeObserver(() => schedule(true));
     observer.observe(layout);
     observer.observe(art);
+    observer.observe(content);
     window.addEventListener('scroll', onScroll, { passive: true, signal });
     const interrupt = () => {
       animation = null;

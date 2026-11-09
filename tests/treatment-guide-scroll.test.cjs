@@ -79,6 +79,14 @@ function setup(options = {}) {
     const travel = parseFloat(style.getPropertyValue('--tdb-guide-scroll-travel')) || 0;
     return Math.min(Math.max(top, 1000 - w.scrollY), 1000 + travel - w.scrollY);
   };
+  const cardShift = () =>
+    options.horizontal && root.classList.contains('is-guide-scroll-enabled')
+      ? parseFloat(
+          root
+            .querySelector('.tdb-guide-scroll-track')
+            .style.getPropertyValue('--tdb-guide-card-shift'),
+        ) || 0
+      : 0;
   layout.getBoundingClientRect = () => ({
     top: cardTop(),
     bottom: cardTop() + 760,
@@ -92,8 +100,8 @@ function setup(options = {}) {
     height: 355,
   });
   layout.querySelector('.treatment-guide_content').getBoundingClientRect = () => ({
-    top: cardTop() + 395,
-    bottom: cardTop() + 660,
+    top: cardTop() + 395 + cardShift(),
+    bottom: cardTop() + 660 + cardShift(),
     width: 355,
     height: 265,
   });
@@ -101,7 +109,10 @@ function setup(options = {}) {
     const centre = w.document.createElement('div');
     centre.className = 'treatment-guide_centre';
     layout.append(centre);
-    centre.getBoundingClientRect = () => ({ top: cardTop() + 400, bottom: cardTop() + 450 });
+    centre.getBoundingClientRect = () => ({
+      top: cardTop() + 400 + cardShift(),
+      bottom: cardTop() + 450 + cardShift(),
+    });
   }
   w.eval(source);
   const api = w.TDBTreatmentGuideScroll.mount(root, {
@@ -159,7 +170,10 @@ test('horizontal progress uses the same scroll endpoints and animates five back 
     for (let i = 1; i <= 5; i++) {
       t.move(1020 + i * 312);
       t.tick();
-      assert.equal(t.root.querySelector('.treatment-guide_dial-art').getBoundingClientRect().top, 0);
+      assert.equal(
+        t.root.querySelector('.treatment-guide_dial-art').getBoundingClientRect().top,
+        0,
+      );
       assert.ok(Math.abs(fraction() - i / 5) < 0.00001);
       assert.equal(t.current(), i - 1);
     }
@@ -171,6 +185,43 @@ test('horizontal progress uses the same scroll endpoints and animates five back 
     assert.equal(fraction(), 0.2);
     assert.equal(t.current(), 0);
     assert.equal(t.track.getAttribute('style'), style);
+  } finally {
+    t.close();
+  }
+});
+
+test('horizontal card stays centred below its zero-pinned strip without resize feedback or toolbar jumps', () => {
+  const t = setup({ horizontal: true, coarse: true });
+  try {
+    t.move(1020 + 312 * 2.5);
+    t.tick();
+    const centre = t.root.querySelector('.treatment-guide_centre');
+    const content = t.root.querySelector('.treatment-guide_content');
+    const strip = t.root.querySelector('.treatment-guide_dial-art');
+    const groupMidpoint = () =>
+      (centre.getBoundingClientRect().top + content.getBoundingClientRect().bottom) / 2;
+    assert.equal(strip.getBoundingClientRect().top, 0);
+    assert.equal(groupMidpoint(), (strip.getBoundingClientRect().bottom + 844) / 2);
+    const style = t.track.getAttribute('style');
+    for (const height of [844, 844, 740, 630, 844]) {
+      t.w.innerHeight = height;
+      t.w.dispatchEvent(new t.w.Event('resize'));
+      t.tick();
+      assert.equal(
+        t.track.getAttribute('style'),
+        style,
+        'centering reads unshifted geometry and freezes the established mobile viewport',
+      );
+    }
+    t.setIndex(4);
+    t.tick(40);
+    assert.equal(t.track.getAttribute('style'), style, 'chapter changes do not resize the stage');
+    t.w.innerWidth = 844;
+    t.w.innerHeight = 390;
+    t.w.dispatchEvent(new t.w.Event('resize'));
+    t.tick();
+    assert.equal(t.api.enabled, false);
+    assert.equal(t.track.style.getPropertyValue('--tdb-guide-card-shift'), '');
   } finally {
     t.close();
   }
