@@ -9,6 +9,7 @@
       centre = root.querySelector('.treatment-guide_centre'),
       content = root.querySelector('.treatment-guide_content'),
       arrows = root.querySelector('.treatment-guide_arrows'),
+      footer = root.querySelector('.treatment-guide_details'),
       rim = root.querySelector('.treatment-guide_rim');
     if (!layout || !art || !content) return null;
     const events = new AbortController(),
@@ -21,6 +22,17 @@
     track.append(layout);
     // Designer owns the resting 5px rim. Only the moving fill is enhancement paint.
     const horizontal = Boolean(controls.horizontal);
+    const docked = horizontal && Boolean(footer && centre);
+    root.classList.toggle('is-guide-footer-docked', docked);
+    // Reserve the large mobile viewport once, so expanding browser chrome never
+    // makes the dock extend past the card into the following parallax section.
+    const viewportMeter = docked && coarse.matches ? document.createElement('span') : null;
+    if (viewportMeter) {
+      viewportMeter.setAttribute('aria-hidden', 'true');
+      viewportMeter.style.cssText =
+        'position:absolute;top:0;left:0;width:0;height:100vh;height:100lvh;visibility:hidden;pointer-events:none';
+      track.append(viewportMeter);
+    }
     const svgNS = 'http://www.w3.org/2000/svg';
     const progress =
       rim && (horizontal ? document.createElement('div') : document.createElementNS(svgNS, 'svg'));
@@ -61,6 +73,7 @@
       pinTop = 0,
       cardHeight = 0,
       cardShift = 0,
+      footerShift = 0,
       stageHeight = 0,
       wheelOffset = 0,
       wheelSize = 0,
@@ -132,6 +145,7 @@
       enabled = false;
       root.classList.remove('is-guide-scroll-enabled');
       cardShift = 0;
+      footerShift = 0;
       stageHeight = 0;
       paintProgress((controls.current() + 1) / 5);
       track.removeAttribute('style');
@@ -145,23 +159,29 @@
         contentBox = content.getBoundingClientRect(),
         centreBox = centre?.getBoundingClientRect(),
         arrowsBox = arrows?.getBoundingClientRect(),
+        footerBox = footer?.getBoundingClientRect(),
+        footerHeight = docked ? Math.max(footerBox.height, arrowsBox?.height || 0) : 0,
         layoutStyle = getComputedStyle(layout),
         viewport = window.visualViewport,
         height = Math.min(innerHeight, viewport?.height || innerHeight),
         stableHeight =
-          enabled && coarse.matches && measuredWidth === innerWidth ? stageHeight : height,
+          enabled && coarse.matches && measuredWidth === innerWidth
+            ? Math.max(stageHeight, height)
+            : Math.max(height, viewportMeter?.getBoundingClientRect().height || 0),
         gap = horizontal ? 0 : innerWidth * 0.05,
         offset = wheelBox.top - cardBox.top,
-        bodyTop =
-          Math.min(centreBox?.top ?? contentBox.top, contentBox.top) - cardBox.top - cardShift,
+        bodyTop = docked
+          ? contentBox.top - cardBox.top
+          : Math.min(centreBox?.top ?? contentBox.top, contentBox.top) - cardBox.top - cardShift,
         centreBottom = (centreBox?.bottom ?? wheelBox.bottom) - cardBox.top - cardShift,
-        bodyBottom =
-          Math.max(contentBox.bottom, centreBox?.bottom || 0, arrowsBox?.bottom || 0) -
-          cardBox.top -
-          cardShift,
+        bodyBottom = docked
+          ? centreBottom
+          : Math.max(contentBox.bottom, centreBox?.bottom || 0, arrowsBox?.bottom || 0) -
+            cardBox.top -
+            cardShift,
         bodyHeight = bodyBottom - bodyTop,
         needed = horizontal
-          ? wheelBox.height + bodyHeight + 24
+          ? wheelBox.height + bodyHeight + footerHeight + 24
           : Math.max(wheelBox.bottom, contentBox.bottom) - wheelBox.top + gap + 12;
       const nextRadius = Math.max(0, wheelBox.width / 2 - 2.5);
       if (arc && !horizontal && nextRadius !== radius) {
@@ -188,17 +208,28 @@
       const oldPinTop = pinTop;
       const margin = layoutStyle.marginBottom;
       stageHeight = stableHeight;
-      // Centre the complete icon/card/control group beneath the fixed strip.
+      // Centre the copy/icon group between the strip and the bottom control area.
       // Read the unshifted geometry so ResizeObserver never feeds paint back in.
       cardShift = horizontal
-        ? offset + wheelBox.height + (stageHeight - wheelBox.height - bodyHeight) / 2 - bodyTop
+        ? offset +
+          wheelBox.height +
+          ((docked ? height - footerHeight : stageHeight) - wheelBox.height - bodyHeight) / 2 -
+          bodyTop
         : 0;
+      if (docked) {
+        const footerTop = footerBox.top - cardBox.top - footerShift;
+        footerShift = offset + height - footerHeight - footerTop;
+      }
       cardHeight = horizontal
-        ? Math.max(bodyBottom + (parseFloat(layoutStyle.paddingBottom) || 0), offset + stageHeight)
+        ? Math.max(
+            (docked ? contentBox.bottom - cardBox.top : bodyBottom) +
+              (parseFloat(layoutStyle.paddingBottom) || 0),
+            offset + stageHeight,
+          )
         : cardBox.height;
       wheelOffset = offset;
       wheelSize = horizontal
-        ? Math.max(wheelBox.height, centreBottom + cardShift - offset)
+        ? Math.max(wheelBox.height, centreBottom + cardShift - offset, docked ? height : 0)
         : wheelBox.height;
       pinTop = gap - offset;
       distance = Math.max(240, Math.min(480, innerWidth * 0.8));
@@ -212,6 +243,7 @@
       if (horizontal) {
         styles['--tdb-guide-stage-height'] = offset + stageHeight + 'px';
         styles['--tdb-guide-card-shift'] = cardShift + 'px';
+        if (docked) styles['--tdb-guide-footer-shift'] = footerShift + 'px';
       }
       for (const [name, value] of Object.entries(styles))
         if (track.style.getPropertyValue(name) !== value) track.style.setProperty(name, value);
@@ -238,7 +270,10 @@
       if (!enabled) {
         const wheelBox = art.getBoundingClientRect();
         const headerBottom = horizontal
-          ? centre?.getBoundingClientRect().bottom || wheelBox.bottom
+          ? Math.max(
+              centre?.getBoundingClientRect().bottom || wheelBox.bottom,
+              docked ? footer.getBoundingClientRect().bottom : 0,
+            )
           : wheelBox.bottom;
         clearChrome(wheelBox.width > 0 && wheelBox.top < viewHeight && headerBottom > 0);
         if (canArm && wheelBox.top >= (horizontal ? 0 : innerWidth * 0.05)) measure();
@@ -299,6 +334,7 @@
     observer.observe(layout);
     observer.observe(art);
     observer.observe(content);
+    if (docked) observer.observe(footer);
     window.addEventListener('scroll', onScroll, { passive: true, signal });
     const interrupt = () => {
       animation = null;
@@ -413,6 +449,7 @@
         disable();
         clearChrome(false);
         root.classList.remove('is-guide-progress-ready');
+        root.classList.remove('is-guide-footer-docked');
         progress?.remove();
         track.replaceWith(layout);
       },

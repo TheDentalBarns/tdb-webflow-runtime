@@ -172,3 +172,11 @@ The card title and blurb also use native `text-align:center` at every breakpoint
 The card now follows the Signature Assessment introduction shown in the reference: centred title, then blurb, then icon. It keeps the same 5vw side margins, with 7rem between these items on desktop and 8rem on tablet/phone. The icon slot is 4rem, matching that reference; the existing rules and icon ticker remain. The controls follow 2rem below the icon.
 
 Designer moves the existing icon container into the layout grid. The five native panels share four subgrid rows for title, summary, icon space and controls, so the longest chapter still reserves space for every selection. The numbered strip and inset progress remain at 0px. The scroll measurement centres the full content group regardless of the icon's order, and retains menu clearance until the icon has left the viewport.
+
+### Bottom control area and charcoal CTA — 9 November 2026
+
+The icon's flanking rules are hidden. Learn more and the navigation arrows share a 6rem control area at the bottom of the visible viewport during pinning, with safe-area padding inside that height. The title, blurb and icon remain centred between the top strip and that control area. Each existing native chapter still owns its CTA and drawer trigger; no duplicated fixed controls are added.
+
+The CTA takes the treatment carousel's Discover button colours: a 30% black translucent fill with white text and a thin white outline, replacing the white fill. Its minimum tap target and icon ticker remain.
+
+The controller translates the copy/icon group and footer separately. Changes in mobile browser-bar height update these visual positions while preserving the established scroll-track height, progress range and following parallax geometry. Short screens retain normal document flow.

@@ -23,7 +23,7 @@
       "border-left-width": "0px",
       "isolation": "isolate",
       "margin-top": "0px",
-      "grid-template-rows": "6rem auto auto 4rem auto"
+      "grid-template-rows": "6rem auto auto 4rem 6rem"
     },
     "treatment-guide_wheel": {
       "width": "100vw",
@@ -138,7 +138,11 @@
       "grid-column-start": "1",
       "grid-column-end": "2",
       "grid-row-start": "5",
-      "grid-row-end": "6"
+      "grid-row-end": "6",
+      "height": "6rem",
+      "align-items": "center",
+      "box-sizing": "border-box",
+      "padding-bottom": "env(safe-area-inset-bottom, 0px)"
     },
     "treatment-guide_arch-body": {
       "top": "6rem",
@@ -150,7 +154,7 @@
     "is-chapter-4": {},
     "is-chapter-5": {},
     "treatment-guide_page-rule": {
-      "display": "block",
+      "display": "none",
       "width": "auto",
       "height": "1px",
       "flex-grow": "1",
@@ -162,7 +166,7 @@
       "background-color": "#d6cab4"
     },
     "treatment-guide_pagination-total": {
-      "display": "block",
+      "display": "none",
       "width": "auto",
       "height": "1px",
       "flex-grow": "1",
@@ -176,7 +180,13 @@
     },
     "treatment-guide_details": {
       "padding-top": "0px",
-      "grid-row-start": "4"
+      "grid-row-start": "4",
+      "height": "6rem",
+      "display": "flex",
+      "align-items": "center",
+      "justify-content": "flex-start",
+      "box-sizing": "border-box",
+      "padding-bottom": "env(safe-area-inset-bottom, 0px)"
     },
     "treatment-guide_title": {
       "text-align": "center"
@@ -194,6 +204,19 @@
       "max-width": "52rem",
       "justify-self": "center",
       "margin-bottom": "5rem"
+    },
+    "treatment-guide_learn-more": {
+      "background-color": "rgba(0,0,0,0.3)",
+      "color": "#ffffff",
+      "border-top-color": "#ffffff",
+      "border-right-color": "#ffffff",
+      "border-bottom-color": "#ffffff",
+      "border-left-color": "#ffffff",
+      "border-top-left-radius": ".3125rem",
+      "border-top-right-radius": ".3125rem",
+      "border-bottom-left-radius": ".3125rem",
+      "border-bottom-right-radius": ".3125rem",
+      "backdrop-filter": "saturate(150%) blur(20px)"
     }
   },
   "repeatAtBreakpoints": {
@@ -218,10 +241,13 @@
       "treatment-guide_summary",
       "treatment-guide_panel",
       "treatment-guide_title-clip",
-      "treatment-guide_centre-icon"
+      "treatment-guide_centre-icon",
+      "treatment-guide_page-rule",
+      "treatment-guide_pagination-total",
+      "treatment-guide_learn-more"
     ]
   },
-  "preserved": "CMS bindings, native tabs/details, five-rem icon row and existing footer padding/drawer; strip and progress are edge-to-edge with 5vw content padding.",
+  "preserved": "CMS bindings, native tabs/details, title/blurb/icon order, 5vw side margins, scroll progress, drawer and touch navigation.",
   "runtime": "Native layout reserves space; bar.js owns only selection, pointer gestures and transient gradient paint. scroll.js owns sticky enhancement and linear progress.",
   "comboStyleParents": {
     "is-chapter-1": [
@@ -238,9 +264,13 @@
     ],
     "is-chapter-5": [
       "treatment-guide_choice"
+    ],
+    "treatment-guide_learn-more": [
+      "button",
+      "is-alternate"
     ]
   },
-  "authoringNote": "The strip stays full width and pins at 0px. Title, blurb and icon use the service introduction order and spacing: 5vw sides, 7rem desktop and 8rem tablet/phone gaps between copy and icon, a 4rem icon row, then controls 2rem below. Native subgrid reserves all five chapters. Runtime centres this whole group without changing the strip or progress geometry.",
+  "authoringNote": "The strip stays full width and pins at 0px. Title, blurb and icon use the service introduction order and spacing: 5vw sides, 7rem desktop and 8rem tablet/phone gaps between copy and icon, and a 4rem icon row without flanking rules. Native subgrid reserves all five chapters. Runtime centres the copy and icon between the strip and a separate 6rem control row at the visible viewport bottom during pinning. In normal flow, the controls follow 2rem below the icon. The CTA mirrors the existing treatment Discover button: dark translucent fill, white text and outline.",
   "removedComboProperties": {
     "is-chapter-1": [
       "left",

@@ -87,6 +87,12 @@ function setup(options = {}) {
             .style.getPropertyValue('--tdb-guide-card-shift'),
         ) || 0
       : 0;
+  const footerShift = () =>
+    parseFloat(
+      root
+        .querySelector('.tdb-guide-scroll-track')
+        ?.style.getPropertyValue('--tdb-guide-footer-shift'),
+    ) || 0;
   layout.getBoundingClientRect = () => ({
     top: cardTop(),
     bottom: cardTop() + 760,
@@ -100,8 +106,8 @@ function setup(options = {}) {
     height: 355,
   });
   layout.querySelector('.treatment-guide_content').getBoundingClientRect = () => ({
-    top: cardTop() + 395 + cardShift(),
-    bottom: cardTop() + 660 + cardShift(),
+    top: cardTop() + 395 + (options.docked ? 0 : cardShift()),
+    bottom: cardTop() + (options.docked ? 716 : 660 + cardShift()),
     width: 355,
     height: 265,
   });
@@ -110,9 +116,23 @@ function setup(options = {}) {
     centre.className = 'treatment-guide_centre';
     layout.append(centre);
     centre.getBoundingClientRect = () => ({
-      top: cardTop() + 400 + cardShift(),
-      bottom: cardTop() + 450 + cardShift(),
+      top: cardTop() + (options.docked ? 550 : 400) + cardShift(),
+      bottom: cardTop() + (options.docked ? 600 : 450) + cardShift(),
     });
+  }
+  if (options.docked) {
+    const footer = w.document.createElement('div'),
+      arrows = w.document.createElement('div');
+    footer.className = 'treatment-guide_details';
+    arrows.className = 'treatment-guide_arrows';
+    layout.querySelector('.treatment-guide_content').append(footer);
+    layout.append(arrows);
+    for (const el of [footer, arrows])
+      el.getBoundingClientRect = () => ({
+        top: cardTop() + 620 + footerShift(),
+        bottom: cardTop() + 716 + footerShift(),
+        height: 96,
+      });
   }
   w.eval(source);
   const api = w.TDBTreatmentGuideScroll.mount(root, {
@@ -224,6 +244,51 @@ test('horizontal card stays centred below its zero-pinned strip without resize f
     t.tick();
     assert.equal(t.api.enabled, false);
     assert.equal(t.track.style.getPropertyValue('--tdb-guide-card-shift'), '');
+  } finally {
+    t.close();
+  }
+});
+
+test('bottom controls follow the visible viewport while scroll geometry stays fixed', () => {
+  const t = setup({ horizontal: true, docked: true, coarse: true });
+  try {
+    t.move(1020 + 312 * 2.5);
+    t.tick();
+    const footer = t.root.querySelector('.treatment-guide_details');
+    const geometry = () =>
+      [
+        'height',
+        '--tdb-guide-scroll-travel',
+        '--tdb-guide-pin-top',
+        '--tdb-guide-stage-height',
+      ].map((k) => t.track.style.getPropertyValue(k));
+    const before = geometry(),
+      y = t.w.scrollY;
+    for (const height of [844, 740, 800, 844]) {
+      t.w.innerHeight = height;
+      t.w.dispatchEvent(new t.w.Event('resize'));
+      t.tick();
+      assert.equal(footer.getBoundingClientRect().top, height - 96);
+      assert.equal(footer.getBoundingClientRect().bottom, height);
+      assert.equal(
+        t.root.querySelector('.treatment-guide_arrows').getBoundingClientRect().top,
+        height - 96,
+      );
+      assert.deepEqual(
+        geometry(),
+        before,
+        'browser bars move paint, not the following page sections',
+      );
+      assert.equal(t.w.scrollY, y);
+      const shift = parseFloat(t.track.style.getPropertyValue('--tdb-guide-card-shift'));
+      assert.equal((395 + 600) / 2 - 20 + shift, (355 + height - 96) / 2);
+    }
+    t.w.innerWidth = 844;
+    t.w.innerHeight = 390;
+    t.w.dispatchEvent(new t.w.Event('resize'));
+    t.tick();
+    assert.equal(t.api.enabled, false);
+    assert.equal(t.track.style.getPropertyValue('--tdb-guide-footer-shift'), '');
   } finally {
     t.close();
   }
