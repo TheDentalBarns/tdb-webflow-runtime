@@ -120,6 +120,8 @@ window.TDBTreatmentGuideCard ||= (() => {
         icon: pane.querySelector('.treatment-guide_cta-icon'),
       }));
     if (rows.some((row) => !row.title || !row.summary || !row.button || !row.icon)) return null;
+    const motion = window.TDBMotion,
+      fades = motion.fadeController();
     // Reuse the Designer artwork inside a fixed-size ticker slot, not another card.
     const artwork = rows.map((row) => row.icon.firstElementChild.cloneNode(true));
     const iconTickers = rows.map((row, index) => {
@@ -163,8 +165,11 @@ window.TDBTreatmentGuideCard ||= (() => {
       });
     let active = initial,
       animations = [],
+      entryTimer = 0,
       disposed = false;
     const stop = () => {
+      clearTimeout(entryTimer);
+      entryTimer = 0;
       animations.forEach((animation) => animation.cancel());
       animations = [];
     };
@@ -189,10 +194,12 @@ window.TDBTreatmentGuideCard ||= (() => {
         row.pane.style.pointerEvents = i === index ? 'auto' : 'none';
         row.pane.setAttribute('aria-hidden', String(i !== index));
       });
-      const motion = window.TDBMotion;
-      if (!animate || motion?.reduced?.matches || !content.animate) return;
-      const duration = motion?.duration(content.clientWidth) || 400,
-        easing = motion?.easing('travel', 'cubic-bezier(.3,0,.2,1)') || 'ease',
+      if (!animate || motion.reduced.matches || !content.animate) {
+        rows.forEach((row) => fades.to(row.summary, 1, 0));
+        return;
+      }
+      const duration = motion.duration(content.clientWidth),
+        easing = motion.easing('travel', 'cubic-bezier(.3,0,.2,1)'),
         old = rows[previous],
         next = rows[index];
       // Only text travels; the native tracks, pagination and controls do not move.
@@ -209,23 +216,21 @@ window.TDBTreatmentGuideCard ||= (() => {
           { duration, easing },
         ),
       );
-      const fade = motion?.defaults || {},
-        fadeEase = motion?.easing('fade', 'ease-out') || 'ease-out';
+      // The shared controller samples the current opacity on interruption.
+      // Only retain the outgoing pane's visibility locally; motion.js owns fades.
+      rows.forEach((row, i) => {
+        if (i !== previous) fades.to(row.summary, 0, 0);
+      });
+      fades.to(old.summary, 0, motion.defaults.fadeOut);
       animations.push(
-        old.summary.animate(
-          [
-            { opacity: 1, visibility: 'visible' },
-            { opacity: 0, visibility: 'visible' },
-          ],
-          { duration: fade.fadeOut || 120, easing: fadeEase },
-        ),
-        next.summary.animate([{ opacity: 0 }, { opacity: 1 }], {
-          duration: fade.fadeIn || 350,
-          delay: fade.entryDelay || 100,
-          easing: fadeEase,
-          fill: 'backwards',
+        old.summary.animate([{ visibility: 'visible' }, { visibility: 'visible' }], {
+          duration: motion.defaults.fadeOut,
         }),
       );
+      entryTimer = setTimeout(() => {
+        entryTimer = 0;
+        fades.to(next.summary, 1, motion.reduced.matches ? 0 : motion.defaults.fadeIn);
+      }, motion.defaults.entryDelay);
     }
     update(initial, 1, false);
     return {
@@ -233,6 +238,7 @@ window.TDBTreatmentGuideCard ||= (() => {
       destroy() {
         disposed = true;
         stop();
+        fades.destroy();
         events.abort();
         ticker.destroy();
         if (centreIcon) centreIcon.replaceChildren(...centreBefore);

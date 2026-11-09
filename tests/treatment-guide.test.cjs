@@ -668,7 +668,11 @@ for (const centre of [true, false]) {
       { runScripts: 'outside-only' },
     );
     const w = dom.window;
-    w.TDBMotion = { reduced: { matches: true, addEventListener() {}, removeEventListener() {} } };
+    w.TDBMotionPolicy = {
+      reduced: { matches: true, addEventListener() {}, removeEventListener() {} },
+    };
+    w.matchMedia = () => ({ matches: false });
+    w.eval(read('src/shared/motion.js'));
     w.eval(read('src/shared/native-ticker.js'));
     w.eval(read('src/treatment-guide/card.js'));
     const root = w.document.querySelector('section');
@@ -701,6 +705,93 @@ for (const centre of [true, false]) {
     w.close();
   });
 }
+
+test('card uses shared motion clocks and cancels stale text reveals on rapid navigation', () => {
+  const dom = new JSDOM(
+    `<section><div data-tdb-guide-pagination><span data-tdb-guide-position>01</span></div><div class="treatment-guide_content">${Array.from({ length: 5 }, (_, i) => `<div data-tdb-guide-panel="${i}"><h3 data-tdb-guide-title>Chapter ${i}</h3><p data-tdb-guide-summary style="opacity:.85">Summary ${i}</p><button data-tdb-guide-open><span class="treatment-guide_cta-icon"><span data-guide-artwork="diamond"></span></span></button></div>`).join('')}</div></section>`,
+    { runScripts: 'outside-only' },
+  );
+  const w = dom.window,
+    reduced = { matches: false, addEventListener() {}, removeEventListener() {} },
+    animations = [],
+    timers = new Map();
+  let timerId = 0;
+  w.matchMedia = () => ({ matches: false });
+  w.TDBMotionPolicy = { reduced };
+  w.TDBMotionProfile = {
+    time: (value) => value * 2,
+    horizontal: () => 777,
+    easing: () => 'ease-in',
+    forFamily: () => ({ time: (value) => value * 3, easing: () => 'linear' }),
+  };
+  w.setTimeout = (fn, delay) => {
+    timers.set(++timerId, { fn, delay });
+    return timerId;
+  };
+  w.clearTimeout = (id) => timers.delete(id);
+  w.HTMLElement.prototype.animate = function (frames, options) {
+    const animation = {
+      node: this,
+      frames,
+      options,
+      cancelled: false,
+      cancel() {
+        this.cancelled = true;
+      },
+    };
+    animations.push(animation);
+    return animation;
+  };
+  w.eval(read('src/shared/motion.js'));
+  w.eval(read('src/shared/native-ticker.js'));
+  w.eval(read('src/treatment-guide/card.js'));
+  const root = w.document.querySelector('section'),
+    summaries = [...root.querySelectorAll('[data-tdb-guide-summary]')],
+    card = w.TDBTreatmentGuideCard.mount(root, 0, () => {}),
+    runEntry = () => {
+      assert.equal(timers.size, 1);
+      const [id, timer] = [...timers][0];
+      assert.equal(timer.delay, w.TDBMotion.defaults.entryDelay);
+      timers.delete(id);
+      timer.fn();
+    };
+  card.update(1);
+  const titleMotion = animations.filter((a) => a.node.hasAttribute('data-tdb-guide-title'));
+  assert.ok(titleMotion.every((a) => a.options.duration === 777 && a.options.easing === 'ease-in'));
+  assert.equal(
+    summaries[1].style.opacity,
+    '0',
+    'incoming text stays hidden during shared entry delay',
+  );
+  runEntry();
+  const entry = animations.findLast((a) => a.node === summaries[1]);
+  assert.equal(entry.options.duration, w.TDBMotion.defaults.fadeIn);
+  assert.equal(entry.options.easing, 'linear', 'fade uses its own shared motion family');
+  // Model an interrupted fade halfway through: the shared controller must
+  // continue from the painted value rather than flashing the outgoing copy to 1.
+  const computed = w.getComputedStyle.bind(w);
+  w.getComputedStyle = (node) => (node === summaries[1] ? { opacity: '0.42' } : computed(node));
+  card.update(2);
+  const outgoing = animations.findLast((a) => a.node === summaries[1] && 'opacity' in a.frames[0]);
+  assert.equal(outgoing.frames[0].opacity, 0.42);
+  assert.equal(outgoing.options.duration, w.TDBMotion.defaults.fadeOut);
+  card.update(3);
+  runEntry();
+  assert.equal(summaries[2].style.opacity, '0', 'cancelled chapter cannot reappear later');
+  assert.equal(summaries[3].style.opacity, '1');
+  reduced.matches = true;
+  const count = animations.length;
+  card.update(4);
+  assert.equal(animations.length, count, 'reduced motion settles without animations');
+  assert.equal(timers.size, 0);
+  reduced.matches = false;
+  card.update(0);
+  card.destroy();
+  assert.equal(timers.size, 0, 'teardown cancels the pending reveal');
+  assert.ok(summaries.every((node) => node.style.opacity === '0.85'));
+  assert.ok(animations.every((animation) => animation.cancelled));
+  w.close();
+});
 
 test('enhanced guide disables only its native tab fades and restores them on teardown', () => {
   const t = wheel(true);

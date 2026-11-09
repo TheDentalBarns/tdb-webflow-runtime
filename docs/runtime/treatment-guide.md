@@ -180,3 +180,7 @@ The icon's flanking rules are hidden. Learn more and the navigation arrows share
 The CTA takes the treatment carousel's Discover button colours: a 30% black translucent fill with white text and a thin white outline, replacing the white fill. Its minimum tap target and icon ticker remain.
 
 The controller translates the copy/icon group and footer separately. Changes in mobile browser-bar height update these visual positions while preserving the established scroll-track height, progress range and following parallax geometry. Short screens retain normal document flow.
+
+### Shared card text motion — 9 November 2026
+
+The card blurb uses `TDBMotion.fadeController()` with the shared `fadeOut`, `entryDelay` and `fadeIn` values. An interrupted outgoing fade continues from its painted opacity; changing chapters cancels any pending reveal. Heading travel takes its duration and easing directly from `TDBMotion`, and the icons retain the shared native ticker. The card defines no independent text timing values. Reduced motion settles immediately, and teardown cancels pending reveals and restores native opacity.
