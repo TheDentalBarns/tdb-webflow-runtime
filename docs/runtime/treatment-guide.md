@@ -166,3 +166,9 @@ The chapter selection returns to its previous orange-3/taupe tile with a charcoa
 The optional scroll enhancement reserves at least one viewport for the card and measures the whole group, including all five intrinsic chapter rows. One shared translation centres the icon, content and arrows; child ticker/text animations retain their own transforms. Measurements subtract the previous translation to avoid resize feedback. A touch viewport's height is held constant until its width changes, keeping mobile browser-bar movement from shifting the card or following parallax. Short screens retain normal unpinned flow; teardown removes only the enhancement dimensions and translation.
 
 The card title and blurb also use native `text-align:center` at every breakpoint. The control row retains its existing alignment.
+
+### Service introduction layout — 9 November 2026
+
+The card now follows the Signature Assessment introduction shown in the reference: centred title, then blurb, then icon. It keeps the same 5vw side margins, with 7rem between these items on desktop and 8rem on tablet/phone. The icon slot is 4rem, matching that reference; the existing rules and icon ticker remain. The controls follow 2rem below the icon.
+
+Designer moves the existing icon container into the layout grid. The five native panels share four subgrid rows for title, summary, icon space and controls, so the longest chapter still reserves space for every selection. The numbered strip and inset progress remain at 0px. The scroll measurement centres the full content group regardless of the icon's order, and retains menu clearance until the icon has left the viewport.

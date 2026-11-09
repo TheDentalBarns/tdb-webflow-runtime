@@ -152,8 +152,13 @@
           enabled && coarse.matches && measuredWidth === innerWidth ? stageHeight : height,
         gap = horizontal ? 0 : innerWidth * 0.05,
         offset = wheelBox.top - cardBox.top,
-        bodyTop = (centreBox?.top ?? contentBox.top) - cardBox.top - cardShift,
-        bodyBottom = Math.max(contentBox.bottom, arrowsBox?.bottom || 0) - cardBox.top - cardShift,
+        bodyTop =
+          Math.min(centreBox?.top ?? contentBox.top, contentBox.top) - cardBox.top - cardShift,
+        centreBottom = (centreBox?.bottom ?? wheelBox.bottom) - cardBox.top - cardShift,
+        bodyBottom =
+          Math.max(contentBox.bottom, centreBox?.bottom || 0, arrowsBox?.bottom || 0) -
+          cardBox.top -
+          cardShift,
         bodyHeight = bodyBottom - bodyTop,
         needed = horizontal
           ? wheelBox.height + bodyHeight + 24
@@ -193,10 +198,7 @@
         : cardBox.height;
       wheelOffset = offset;
       wheelSize = horizontal
-        ? Math.max(
-            wheelBox.height,
-            bodyTop + (centreBox ? centreBox.bottom - centreBox.top : 0) + cardShift - offset,
-          )
+        ? Math.max(wheelBox.height, centreBottom + cardShift - offset)
         : wheelBox.height;
       pinTop = gap - offset;
       distance = Math.max(240, Math.min(480, innerWidth * 0.8));

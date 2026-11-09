@@ -22,7 +22,8 @@
       "border-bottom-width": "0px",
       "border-left-width": "0px",
       "isolation": "isolate",
-      "margin-top": "0px"
+      "margin-top": "0px",
+      "grid-template-rows": "6rem auto auto 4rem auto"
     },
     "treatment-guide_wheel": {
       "width": "100vw",
@@ -49,7 +50,7 @@
       "height": "6rem",
       "max-width": "none",
       "aspect-ratio": "auto",
-      "margin-bottom": "8rem",
+      "margin-bottom": "0px",
       "grid-column-start": "1",
       "grid-column-end": "2",
       "grid-row-start": "1",
@@ -80,20 +81,28 @@
       "flex-basis": "0%"
     },
     "treatment-guide_centre": {
-      "left": "5vw",
-      "top": "calc(100% + 2rem)",
-      "right": "5vw",
+      "left": "auto",
+      "top": "auto",
+      "right": "auto",
       "bottom": "auto",
-      "width": "90vw",
-      "height": "5rem",
+      "width": "100%",
+      "height": "4rem",
       "transform": "none",
       "border-radius": "0px",
       "background-color": "transparent",
-      "box-shadow": "none"
+      "box-shadow": "none",
+      "position": "relative",
+      "grid-column-start": "1",
+      "grid-column-end": "2",
+      "grid-row-start": "4",
+      "grid-row-end": "5",
+      "align-self": "start",
+      "justify-self": "center",
+      "margin": "0px"
     },
     "treatment-guide_centre-icon": {
-      "width": "4.5rem",
-      "height": "4.5rem",
+      "width": "4rem",
+      "height": "4rem",
       "flex-shrink": "0"
     },
     "treatment-guide_pagination": {
@@ -116,19 +125,20 @@
       "grid-column-start": "1",
       "grid-column-end": "2",
       "grid-row-start": "2",
-      "grid-row-end": "3",
+      "grid-row-end": "6",
       "padding-left": "0px",
       "padding-top": "0px",
       "border-left-width": "0px",
       "border-top-width": "0px",
-      "row-gap": "2rem",
-      "min-height": "21rem"
+      "row-gap": "normal",
+      "min-height": "0px",
+      "grid-template-rows": "subgrid"
     },
     "treatment-guide_arrows": {
       "grid-column-start": "1",
       "grid-column-end": "2",
-      "grid-row-start": "2",
-      "grid-row-end": "3"
+      "grid-row-start": "5",
+      "grid-row-end": "6"
     },
     "treatment-guide_arch-body": {
       "top": "6rem",
@@ -165,13 +175,25 @@
       "color": "transparent"
     },
     "treatment-guide_details": {
-      "padding-top": "1.5rem"
+      "padding-top": "0px",
+      "grid-row-start": "4"
     },
     "treatment-guide_title": {
       "text-align": "center"
     },
     "treatment-guide_summary": {
-      "text-align": "center"
+      "text-align": "center",
+      "margin-bottom": "5rem"
+    },
+    "treatment-guide_panel": {
+      "grid-row-start": "1",
+      "grid-row-end": "5"
+    },
+    "treatment-guide_title-clip": {
+      "width": "100%",
+      "max-width": "52rem",
+      "justify-self": "center",
+      "margin-bottom": "5rem"
     }
   },
   "repeatAtBreakpoints": {
@@ -193,7 +215,10 @@
       "treatment-guide_centre",
       "treatment-guide_details",
       "treatment-guide_title",
-      "treatment-guide_summary"
+      "treatment-guide_summary",
+      "treatment-guide_panel",
+      "treatment-guide_title-clip",
+      "treatment-guide_centre-icon"
     ]
   },
   "preserved": "CMS bindings, native tabs/details, five-rem icon row and existing footer padding/drawer; strip and progress are edge-to-edge with 5vw content padding.",
@@ -215,7 +240,7 @@
       "treatment-guide_choice"
     ]
   },
-  "authoringNote": "Native tabs are static flex items with retired circular offsets removed. The 5px progress track sits inside the bottom of the 6rem strip. The art layer paints above the tabs without intercepting input. Charcoal starts at 6rem. The horizontal guide pins at 0px with no top padding or spacer. While scroll enhancement is enabled, the icon/card/controls are centred together beneath the strip using one stable viewport height; content and controls retain their native grid tracks. Selected chapter uses the original taupe background and charcoal number.",
+  "authoringNote": "The strip stays full width and pins at 0px. Title, blurb and icon use the service introduction order and spacing: 5vw sides, 7rem desktop and 8rem tablet/phone gaps between copy and icon, a 4rem icon row, then controls 2rem below. Native subgrid reserves all five chapters. Runtime centres this whole group without changing the strip or progress geometry.",
   "removedComboProperties": {
     "is-chapter-1": [
       "left",
@@ -237,5 +262,37 @@
       "left",
       "top"
     ]
+  },
+  "breakpointOverrides": {
+    "medium": {
+      "treatment-guide_title-clip": {
+        "margin-bottom": "6rem"
+      },
+      "treatment-guide_summary": {
+        "margin-bottom": "6rem"
+      }
+    },
+    "small": {
+      "treatment-guide_title-clip": {
+        "margin-bottom": "6rem"
+      },
+      "treatment-guide_summary": {
+        "margin-bottom": "6rem"
+      }
+    },
+    "tiny": {
+      "treatment-guide_title-clip": {
+        "margin-bottom": "6rem"
+      },
+      "treatment-guide_summary": {
+        "margin-bottom": "6rem"
+      }
+    }
+  },
+  "structure": {
+    "centreParent": "treatment-guide_layout",
+    "centreAfter": "treatment-guide_dial-art",
+    "centreBefore": "treatment-guide_arrows",
+    "reason": "Icon shares the card grid below title and summary; all existing icon ticker children are preserved."
   }
 }

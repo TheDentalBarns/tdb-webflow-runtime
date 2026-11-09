@@ -199,7 +199,9 @@ test('horizontal card stays centred below its zero-pinned strip without resize f
     const content = t.root.querySelector('.treatment-guide_content');
     const strip = t.root.querySelector('.treatment-guide_dial-art');
     const groupMidpoint = () =>
-      (centre.getBoundingClientRect().top + content.getBoundingClientRect().bottom) / 2;
+      (Math.min(centre.getBoundingClientRect().top, content.getBoundingClientRect().top) +
+        content.getBoundingClientRect().bottom) /
+      2;
     assert.equal(strip.getBoundingClientRect().top, 0);
     assert.equal(groupMidpoint(), (strip.getBoundingClientRect().bottom + 844) / 2);
     const style = t.track.getAttribute('style');
