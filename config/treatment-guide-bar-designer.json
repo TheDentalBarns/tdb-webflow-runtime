@@ -241,18 +241,34 @@
       "font-size": "1rem"
     },
     "treatment-guide_section-spacing": {
-      "padding-top": "7rem",
+      "padding-top": "0px",
       "padding-bottom": "0px"
     },
     "treatment-guide_intro-title-gap": {
-      "margin-bottom": "7rem"
-    },
-    "treatment-guide_intro-heading": {
-      "margin-top": "0px",
-      "margin-bottom": "0px"
+      "margin-bottom": "0px",
+      "display": "contents"
     },
     "treatment-guide_nav": {
       "pointer-events": "auto"
+    },
+    "treatment-guide_intro-copy": {
+      "width": "100%",
+      "font-size": "0.875rem",
+      "line-height": "1.5",
+      "font-weight": "400",
+      "margin-top": "0px",
+      "margin-bottom": "0px"
+    },
+    "treatment-guide_intro-diamond": {
+      "display": "block",
+      "width": "4rem",
+      "height": "4rem",
+      "flex-shrink": "0",
+      "background-color": "currentColor",
+      "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg\")",
+      "mask-size": "contain",
+      "mask-position": "center",
+      "mask-repeat": "no-repeat"
     }
   },
   "repeatAtBreakpoints": {
@@ -281,7 +297,7 @@
     ]
   },
   "preserved": "CMS bindings, native tabs/details, 5vw side margins, shared heading/copy and small CTA icon animations, scroll progress, drawer and touch navigation.",
-  "runtime": "Native layout reserves the same height before and after enhancement; bar.js owns number emphasis, selection, keyboard activation and pointer gestures. Enhanced tabs suppress their fallback fragment links. scroll.js owns sticky enhancement and linear progress, sampling the heading animation for manual chapter changes. On desktop it offsets the actual adjacent review image through the remaining travel, keeping it flush beneath the shorter card.",
+  "runtime": "Native layout reserves the same height before and after enhancement; bar.js owns number emphasis, selection, keyboard activation and pointer gestures. Enhanced tabs suppress fallback fragment links while preserving explicit focus targets. scroll.js owns sticky enhancement and linear progress, sampling the heading animation for manual chapter changes. On desktop one native sticky wrapper contains the card and the actual following image; no scroll-frame image repositioning is used. Mobile, fallback and teardown restore the image to its original sibling position.",
   "comboStyleParents": {
     "is-chapter-1": ["treatment-guide_choice"],
     "is-chapter-2": ["treatment-guide_choice"],
@@ -290,10 +306,9 @@
     "is-chapter-5": ["treatment-guide_choice"],
     "treatment-guide_learn-more": ["button", "is-alternate"],
     "is-guide-barn": ["treatment-guide_icon-art"],
-    "treatment-guide_intro-heading": ["heading-style-h2"],
     "treatment-guide_nav": ["carousel-arrow"]
   },
-  "authoringNote": "Designer owns all resting spacing and height. Desktop has a minimum 14rem above the heading and below the centred Learn more CTA, with 7rem heading/copy/CTA gaps; it uses its intrinsic height rather than filling the viewport. Copy uses the same 52rem maximum as the intro. Desktop 3rem arrows sit at the left and right 5vw insets, vertically centred in the charcoal area. Tablet and mobile use a native 100svh minimum, 8rem copy gaps and minimum outer spaces; their arrows have a separate 6rem native row before the lower space. The standalone large icon is hidden, retaining its markup for circular rollback; each native CTA occupies its former row and keeps the small artwork ticker. The 5px progress line sits at the bottom of the six-rem number strip, above charcoal. Intro spacing, 1rem numbers, zero outer bottom padding and flush image boundary are preserved. Runtime never expands this authored stage; screens shorter than its intrinsic content retain ordinary scrolling.",
+  "authoringNote": "Designer owns all resting spacing and height. Desktop has a minimum 14rem above the heading and below the centred Learn more CTA, with 7rem heading/copy/CTA gaps; it uses its intrinsic height rather than filling the viewport. Copy uses the same 52rem maximum as the intro. Desktop 3rem arrows sit at the left and right 5vw insets, vertically centred in the charcoal area. Tablet and mobile use a native 100svh minimum, 8rem copy gaps and minimum outer spaces; their arrows have a separate 6rem native row before the lower space. The standalone large icon is hidden, retaining its markup for circular rollback; each native CTA occupies its former row and keeps the small artwork ticker. The 5px progress line sits at the bottom of the six-rem number strip, above charcoal. The introduction uses the shared Services centred-intro layout and heading, with its diamond below the copy; 14rem outer spacing and 7rem gaps on desktop/tablet, 16rem outer spacing and 8rem gaps on phone. One-rem numbers, zero outer bottom padding and the flush image boundary are preserved. Runtime never expands this authored stage; screens shorter than its intrinsic content retain ordinary scrolling.",
   "removedComboProperties": {
     "is-chapter-1": ["left", "top"],
     "is-chapter-2": ["left", "top"],
@@ -356,11 +371,12 @@
         "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
       },
       "treatment-guide_section-spacing": {
-        "padding-top": "6rem",
+        "padding-top": "0px",
         "padding-bottom": "0px"
       },
       "treatment-guide_intro-title-gap": {
-        "margin-bottom": "8rem"
+        "margin-bottom": "0px",
+        "display": "contents"
       },
       "treatment-guide_rim": {
         "top": "auto",
@@ -424,11 +440,12 @@
         "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
       },
       "treatment-guide_section-spacing": {
-        "padding-top": "4rem",
+        "padding-top": "0px",
         "padding-bottom": "0px"
       },
       "treatment-guide_intro-title-gap": {
-        "margin-bottom": "8rem"
+        "margin-bottom": "0px",
+        "display": "contents"
       },
       "treatment-guide_rim": {
         "top": "auto",
@@ -492,11 +509,12 @@
         "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
       },
       "treatment-guide_section-spacing": {
-        "padding-top": "8rem",
+        "padding-top": "0px",
         "padding-bottom": "0px"
       },
       "treatment-guide_intro-title-gap": {
-        "margin-bottom": "8rem"
+        "margin-bottom": "0px",
+        "display": "contents"
       },
       "treatment-guide_rim": {
         "top": "auto",
@@ -515,7 +533,28 @@
     "styleAssignments": {
       "5a45f055-97a1-453d-701b-d71c77ed23ef": ["treatment-guide_section-spacing"],
       "9a5c4e2d-695b-7f3e-16c1-dffa405f48cd": ["treatment-guide_intro-title-gap"],
-      "9a5c4e2d-695b-7f3e-16c1-dffa405f48cc": ["heading-style-h2", "treatment-guide_intro-heading"]
+      "9a5c4e2d-695b-7f3e-16c1-dffa405f48cc": ["tdb-centred-intro-heading"],
+      "9a5c4e2d-695b-7f3e-16c1-dffa405f48d1": ["treatment-guide_intro-title-gap"],
+      "9a5c4e2d-695b-7f3e-16c1-dffa405f48cf": ["tdb-centred-intro-inner"],
+      "9a5c4e2d-695b-7f3e-16c1-dffa405f48ce": ["treatment-guide_intro-copy"],
+      "84679c6d-aa9c-a773-5260-8bcc7e0afa3e": ["tdb-centred-intro-decoration"],
+      "bee5fd1f-af42-f217-826e-63fc5bd2bc24": ["treatment-guide_intro-diamond"]
     }
+  },
+  "introduction": {
+    "reference": "Services / Clarity before you decide",
+    "innerStyle": "tdb-centred-intro-inner",
+    "headingStyle": "tdb-centred-intro-heading",
+    "decorationStyle": "tdb-centred-intro-decoration",
+    "desktopAndTablet": {
+      "outerSpacing": "14rem",
+      "gap": "7rem"
+    },
+    "phone": {
+      "outerSpacing": "16rem",
+      "gap": "8rem"
+    },
+    "diamondSize": "4rem",
+    "note": "Original CMS-bound heading and paragraph remain in place. Existing spacing wrappers use display:contents; the shared flex layout owns all vertical spacing. Copy matches the reference 0.875rem/1.5 typography with paragraph margins reset."
   }
 }

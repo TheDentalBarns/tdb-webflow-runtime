@@ -39,7 +39,8 @@
 .is-guide-bar.is-guide-footer-docked.is-guide-scroll-enabled:not(.is-guide-native-stage) .treatment-guide_layout{min-height:calc(var(--tdb-guide-stage-height) + var(--tdb-guide-bottom-padding,0px))}
 .is-guide-bar.is-guide-footer-docked.is-guide-scroll-enabled :is(.treatment-guide_content,.treatment-guide_centre,.treatment-guide_arrows){transform:none}
 .is-guide-bar.is-guide-scroll-enabled .treatment-guide_layout::before{content:none}
-@media screen and (min-width:992px){.tdb-guide-scroll-exit{translate:0 var(--tdb-guide-exit-offset,0px)}}
+.tdb-guide-sticky-stage{position:sticky;top:var(--tdb-guide-pin-top);z-index:1;width:100vw;margin-inline:calc(50% - 50vw)}
+.tdb-guide-sticky-stage>.treatment-guide_layout{margin:0}
 /* TDBSiteChrome owns the same animated menu exit/return as other components. */
 
 /* Ticker-generated artwork must ship with the widget: Designer omits unused classes. */
@@ -62,9 +63,8 @@
 [data-tdb-guide-shell] .tdb-guide_intro-space{height:11rem}
 [data-tdb-guide-shell] .tdb-guide_static-intro{position:relative;height:11rem;padding:1.5rem 0;background:var(--base-color-brand--orange-1);pointer-events:none}
 [data-tdb-guide-shell] .tdb-guide_static-intro.is-stationary{position:absolute;top:calc(12rem + env(safe-area-inset-top,0px));left:0;right:0;padding-left:2.5rem;padding-right:2.5rem}
-[data-tdb-guide-shell] .tdb-guide_intro-card{height:8rem;display:flex;align-items:center;justify-content:center;padding:0 1.25rem;background:var(--base-color-brand--orange-2);overflow:hidden}
-[data-tdb-guide-shell] .tdb-guide_static-mark{display:flex;align-items:center;justify-content:center;gap:1.25rem;width:min(100%,23rem);color:var(--base-color-brand--orange-3,#d6cab4);flex-shrink:0}
-[data-tdb-guide-shell] .tdb-guide_intro-rule{display:block;flex:1;height:1px;background:currentColor}
+[data-tdb-guide-shell] .tdb-guide_intro-card{height:8rem;display:flex;align-items:center;justify-content:center;padding:0 1.25rem;overflow:hidden}
+[data-tdb-guide-shell] .tdb-guide_static-mark{display:flex;align-items:center;justify-content:center;color:var(--base-color-brand--black,#000);flex-shrink:0}
 [data-tdb-guide-shell] .tdb-guide_icon-slot{position:relative;display:block;width:5rem;height:5rem;flex-shrink:0;overflow:hidden}
 [data-tdb-guide-shell] .tdb-guide_icon-value,[data-tdb-guide-shell] .tdb-guide_icon-incoming{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
 [data-tdb-guide-shell] .tdb-guide_icon-art{display:block;width:100%;height:100%;background:currentColor;-webkit-mask:var(--tdb-guide-artwork) center/contain no-repeat;mask:var(--tdb-guide-artwork) center/contain no-repeat}

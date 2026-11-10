@@ -31,7 +31,7 @@
       nativeStage && root.nextElementSibling?.matches('.tdb-review-image-break')
         ? root.nextElementSibling
         : null;
-    const exitOffsetBefore = exitImage?.style.getPropertyValue('--tdb-guide-exit-offset') || '';
+    const exitAnchor = exitImage && document.createComment('treatment guide image position');
     root.classList.toggle('is-guide-footer-docked', docked);
     root.classList.toggle('is-guide-native-stage', nativeStage);
     // The small viewport includes browser chrome. Keep that measured height
@@ -97,27 +97,25 @@
       shownFraction = 0,
       animation = null,
       entryIndex = null,
-      exitOffset = null,
+      stickyStage = null,
       lenis = null,
       unbindLenis = null,
       releaseChrome = null;
-    function clearExit() {
-      if (!exitImage || exitOffset === null) return;
-      exitImage.classList.remove('tdb-guide-scroll-exit');
-      if (exitOffsetBefore)
-        exitImage.style.setProperty('--tdb-guide-exit-offset', exitOffsetBefore);
-      else exitImage.style.removeProperty('--tdb-guide-exit-offset');
-      exitOffset = null;
-    }
-    function paintExit(progress) {
-      if (!exitImage || innerWidth < 992) return clearExit();
-      // Keep the actual neighbouring image/reviews beneath the short desktop
-      // card. Its native DOM, height and inner parallax owner remain untouched.
-      const value = -Math.max(0, Math.min(runway, runway - progress));
-      if (value === exitOffset) return;
-      exitOffset = value;
-      exitImage.classList.add('tdb-guide-scroll-exit');
-      exitImage.style.setProperty('--tdb-guide-exit-offset', value + 'px');
+    function groupExit(join) {
+      if (join && !stickyStage) {
+        // One native sticky surface keeps the card/image seam solid even when
+        // browser scrolling runs ahead of JavaScript animation frames.
+        stickyStage = document.createElement('div');
+        stickyStage.className = 'tdb-guide-sticky-stage';
+        exitImage.before(exitAnchor);
+        track.append(stickyStage);
+        stickyStage.append(layout, exitImage);
+      } else if (!join && stickyStage) {
+        stickyStage.before(layout);
+        exitAnchor.replaceWith(exitImage);
+        stickyStage.remove();
+        stickyStage = null;
+      }
     }
     function paintProgress(fraction) {
       shownFraction = Math.max(0, Math.min(1, fraction));
@@ -172,7 +170,7 @@
       rotationPending = false;
       animation = null;
       enabled = false;
-      clearExit();
+      groupExit(false);
       root.classList.remove('is-guide-scroll-enabled');
       cardShift = 0;
       stageHeight = 0;
@@ -184,6 +182,7 @@
     function measure() {
       resize = false;
       const cardBox = layout.getBoundingClientRect(),
+        exitHeight = exitImage?.getBoundingClientRect().height || 0,
         wheelBox = art.getBoundingClientRect(),
         contentBox = content.getBoundingClientRect(),
         centreBox =
@@ -239,6 +238,7 @@
       if (!fits) return disable();
       // Do not insert scroll travel above a restored reading position.
       if (!enabled && wheelBox.top < gap) return;
+      const joinImage = Boolean(exitImage && innerWidth >= 992);
       const fraction = enabled ? Math.max(0, Math.min(5, (window.scrollY - start) / distance)) : 0;
       const oldDistance = distance;
       const oldPinTop = pinTop;
@@ -274,7 +274,7 @@
         '--tdb-guide-pin-top': pinTop + 'px',
         '--tdb-guide-scroll-travel': runway + 'px',
         '--tdb-guide-background-start': offset + wheelBox.height * (horizontal ? 1 : 0.5) + 'px',
-        height: cardHeight + runway + 'px',
+        height: cardHeight + runway + (joinImage ? exitHeight : 0) + 'px',
       };
       if (horizontal) {
         styles['--tdb-guide-stage-height'] = offset + stageHeight + 'px';
@@ -283,6 +283,7 @@
       }
       for (const [name, value] of Object.entries(styles))
         if (track.style.getPropertyValue(name) !== value) track.style.setProperty(name, value);
+      groupExit(joinImage);
       if (!enabled) track.style.marginBottom = margin;
       root.classList.add('is-guide-scroll-enabled');
       enabled = true;
@@ -363,7 +364,6 @@
         wheelOffset;
       clearChrome(wheelTop < viewHeight && wheelTop + wheelSize > 0);
       const progress = window.scrollY - start;
-      paintExit(progress);
       const inside = progress >= -1 && progress < runway - 1;
       const wasPinned = pinned;
       if (inside || wasPinned) paintProgress(runway - progress <= 1 ? 1 : progress / runway);
@@ -388,6 +388,7 @@
     observer.observe(art);
     observer.observe(content);
     if (docked) observer.observe(footer);
+    if (exitImage) observer.observe(exitImage);
     window.addEventListener('scroll', onScroll, { passive: true, signal });
     const interrupt = () => {
       animation = null;

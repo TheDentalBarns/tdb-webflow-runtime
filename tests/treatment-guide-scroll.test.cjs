@@ -17,6 +17,7 @@ function setup(options = {}) {
   const exitImage = options.exitImage ? w.document.createElement('section') : null;
   if (exitImage) {
     exitImage.className = 'tdb-review-image-break';
+    exitImage.getBoundingClientRect = () => ({ height: 650 });
     root.after(exitImage);
   }
   if (options.bottomPadding) layout.style.paddingBottom = options.bottomPadding + 'px';
@@ -412,7 +413,7 @@ test('the centred CTA replaces hidden artwork in sticky geometry and preserves n
   }
 });
 
-test('desktop keeps its native card height and the real image flush through forward and reverse progress', () => {
+test('desktop shares one native sticky surface with the real image and restores its DOM on mobile and teardown', () => {
   const t = setup({
     horizontal: true,
     docked: true,
@@ -423,19 +424,26 @@ test('desktop keeps its native card height and the real image flush through forw
     exitImage: true,
   });
   try {
-    assert.equal(t.track.style.height, '3180px', 'travel adds no viewport-height expansion');
+    assert.equal(
+      t.track.style.height,
+      '3830px',
+      'track includes the real image once and adds no card expansion',
+    );
     assert.equal(t.layout.getBoundingClientRect().height, 780);
-    const offset = () => parseFloat(t.exitImage.style.getPropertyValue('--tdb-guide-exit-offset'));
+    const stage = t.layout.parentElement;
+    assert.equal(stage.className, 'tdb-guide-sticky-stage');
+    assert.equal(t.exitImage.previousElementSibling, t.layout);
+    const imageHTML = t.exitImage.outerHTML;
     for (const y of [900, 1000, 1480, 2440, 3400, 3500, 2440, 1000, 900]) {
       t.move(y);
       t.tick();
-      const imageTop = 1000 + 780 + 2400 - y + offset();
-      assert.equal(imageTop, t.layout.getBoundingClientRect().bottom);
+      assert.equal(t.exitImage.parentElement, stage);
       assert.equal(
-        t.exitImage.previousElementSibling,
-        t.root,
-        'the actual image and reviews stay in their native DOM',
+        t.exitImage.outerHTML,
+        imageHTML,
+        'scrolling never repositions or transforms the image in JavaScript',
       );
+      assert.equal(stage.getAttribute('style'), null);
     }
     t.w.innerHeight = 900;
     t.w.dispatchEvent(new t.w.Event('resize'));
@@ -443,12 +451,23 @@ test('desktop keeps its native card height and the real image flush through forw
     assert.equal(t.api.enabled, true);
     assert.equal(
       t.track.style.height,
-      '3180px',
+      '3830px',
       'a smaller desktop viewport cannot grow or rebuild the card',
     );
+    t.w.innerWidth = 390;
+    t.w.dispatchEvent(new t.w.Event('resize'));
+    t.tick(4);
+    assert.equal(t.exitImage.previousElementSibling, t.root);
+    assert.equal(t.layout.parentElement, t.track);
+    assert.equal(t.track.querySelector('.tdb-guide-sticky-stage'), null);
+    t.w.innerWidth = 1440;
+    t.w.dispatchEvent(new t.w.Event('resize'));
+    t.tick(4);
+    assert.equal(t.exitImage.previousElementSibling, t.layout);
     t.api.destroy();
+    assert.equal(t.exitImage.previousElementSibling, t.root);
     assert.equal(t.exitImage.className, 'tdb-review-image-break');
-    assert.equal(t.exitImage.style.getPropertyValue('--tdb-guide-exit-offset'), '');
+    assert.equal(t.root.querySelector('.tdb-guide-sticky-stage'), null);
   } finally {
     t.close();
   }
