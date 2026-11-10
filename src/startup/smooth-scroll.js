@@ -118,6 +118,8 @@
           virtualScroll: ({ event }) => {
             // Some browsers swallow the finishing click. A normal wheel after
             // native movement has settled resumes smoothing on that same event.
+            // Its button state also recovers a pointerup consumed by the browser.
+            if (nativeAutoscroll && event.type === 'wheel') middleHeld = Boolean(event.buttons & 4);
             if (
               nativeAutoscroll &&
               !middleHeld &&

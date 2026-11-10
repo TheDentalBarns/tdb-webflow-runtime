@@ -75,8 +75,13 @@ function setup({
       }),
     );
   const up = () => main.dispatchEvent(new w.MouseEvent('pointerup', { bubbles: true, button: 1 }));
-  const wheel = () => {
-    const event = new w.WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: 300 });
+  const wheel = (buttons = 0) => {
+    const event = new w.WheelEvent('wheel', {
+      bubbles: true,
+      cancelable: true,
+      deltaY: 300,
+      buttons,
+    });
     main.dispatchEvent(event);
     return event;
   };
@@ -263,6 +268,21 @@ test('second middle click and hold-and-drag release both restore smoothing', asy
   }
 });
 
+test('a normal wheel recovers when the browser consumed pointerup as well as the finishing click', async () => {
+  const f = setup();
+  try {
+    await tick();
+    f.pointer(1);
+    f.scroll(2400);
+    f.advance(181);
+    assert.equal(f.wheel().defaultPrevented, true);
+    assert.equal(f.w.TDBSmoothScroll.nativeAutoscroll, false);
+    assert.equal(f.w.lenis.targetScroll, 2700);
+  } finally {
+    f.close();
+  }
+});
+
 test('held middle button, nested scrollend and a previous Lenis completion cannot release an active gesture', async () => {
   const f = setup();
   try {
@@ -270,7 +290,7 @@ test('held middle button, nested scrollend and a previous Lenis completion canno
     f.pointer(1);
     f.advance(500);
     f.w.dispatchEvent(new f.w.Event('scrollend'));
-    assert.equal(f.wheel().defaultPrevented, false);
+    assert.equal(f.wheel(4).defaultPrevented, false);
     f.up();
     f.w.document.querySelector('main').dispatchEvent(new f.w.Event('scrollend', { bubbles: true }));
     f.w.dispatchEvent(new f.w.CustomEvent('scrollend', { detail: { lenisScrollEnd: true } }));

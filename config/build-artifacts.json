@@ -609,10 +609,10 @@
         "src/startup/smooth-scroll.js",
         "src/startup/start.js"
       ],
-      "sha256": "660dde5ff51a2798c679f5787368bec0ef9b955e90d74ef9e17a1cc9854b93e9",
-      "raw": 15603,
-      "gzip": 5708,
-      "brotli": 5102
+      "sha256": "3da12ad12cebce7a803f96f7e3f2c64bb056e5d2f12c988bf94a527451700f29",
+      "raw": 15649,
+      "gzip": 5721,
+      "brotli": 5116
     },
     "dist/tdb-ticker.js": {
       "sources": [
