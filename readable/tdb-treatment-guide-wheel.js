@@ -576,6 +576,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       rim.append(progress);
     }
     let enabled = false,
+      completed = false,
       pinned = false,
       chromeAway = false,
       rotating = false,
@@ -668,7 +669,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     }
     function disable() {
       if (!enabled) return;
-      // Removing the extra travel must not throw a rotated phone past the card.
+      // Remove synthetic travel without moving the visible card or following image.
       const travelled = Math.max(0, Math.min(runway, window.scrollY - start));
       hold(false);
       rotating = false;
@@ -686,6 +687,12 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     }
     function measure() {
       resize = false;
+      // Once the five chapters are complete, this visit stays in natural flow,
+      // including reverse scrolling, viewport changes and back/forward restores.
+      if (completed) {
+        canArm = false;
+        return disable();
+      }
       const cardBox = layout.getBoundingClientRect(),
         exitHeight = exitImage?.getBoundingClientRect().height || 0,
         wheelBox = art.getBoundingClientRect(),
@@ -882,6 +889,14 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         controls.select(index);
       }
       if (!inside) lastIndex = -1;
+      if (!blocked && progress >= runway - 1) {
+        completed = true;
+        canArm = false;
+        entryIndex = null;
+        if (controls.current() !== 4) controls.select(4);
+        disable();
+        schedule();
+      }
     }
     function schedule(needsMeasure = false) {
       if (disposed) return;
@@ -966,7 +981,9 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         const linked =
           enabled && window.scrollY >= start - 1 && window.scrollY <= start + runway + 1;
         entryIndex =
-          !linked && art.getBoundingClientRect().top > (horizontal ? 0 : innerWidth * 0.05)
+          !completed &&
+          !linked &&
+          art.getBoundingClientRect().top > (horizontal ? 0 : innerWidth * 0.05)
             ? index
             : null;
         lastIndex = index;

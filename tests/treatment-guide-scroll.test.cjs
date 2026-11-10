@@ -309,7 +309,7 @@ test('horizontal card stays centred below its zero-pinned strip without resize f
         'centering reads unshifted geometry and freezes the established mobile viewport',
       );
     }
-    t.setIndex(4);
+    t.setIndex(3);
     t.tick(40);
     assert.equal(t.track.getAttribute('style'), style, 'chapter changes do not resize the stage');
     t.w.innerWidth = 844;
@@ -434,7 +434,7 @@ test('desktop shares one native sticky surface with the real image and restores 
     assert.equal(stage.className, 'tdb-guide-sticky-stage');
     assert.equal(t.exitImage.previousElementSibling, t.layout);
     const imageHTML = t.exitImage.outerHTML;
-    for (const y of [900, 1000, 1480, 2440, 3400, 3500, 2440, 1000, 900]) {
+    for (const y of [900, 1000, 1480, 2440, 3398, 2440, 1000, 900]) {
       t.move(y);
       t.tick();
       assert.equal(t.exitImage.parentElement, stage);
@@ -504,6 +504,92 @@ test('refreshing below the desktop card cannot arm travel or change its height u
   }
 });
 
+test('a completed native guide keeps its viewport position and never rearms during the same visit', () => {
+  for (const width of [390, 1440]) {
+    for (const lenis of [false, true]) {
+      const t = setup({
+        horizontal: true,
+        docked: true,
+        centredCta: true,
+        width,
+        height: 1000,
+        naturalHeight: 780,
+        exitImage: true,
+        lenis,
+      });
+      try {
+        const distance = Math.min(480, width * 0.8);
+        for (let index = 0; index < 5; index++) {
+          t.move(1000 + (index + 0.5) * distance);
+          t.tick();
+          assert.equal(t.current(), index);
+          assert.equal(t.api.pinned, true);
+        }
+        t.move(1000 + distance * 5 + 80);
+        const visibleTop = t.layout.getBoundingClientRect().top;
+        t.tick(3);
+        assert.equal(t.w.scrollY, 1080);
+        assert.equal(t.layout.getBoundingClientRect().top, visibleTop, 'completion does not jump');
+        assert.equal(t.track.getAttribute('style'), null);
+        assert.equal(t.exitImage.previousElementSibling, t.root);
+        assert.equal(t.root.querySelector('.tdb-guide-sticky-stage'), null);
+        const writes = t.scrolls.length;
+        for (const y of [1600, 1100, 900, 0, 1000, 2000]) {
+          t.move(y);
+          t.w.dispatchEvent(new t.w.Event('resize'));
+          t.w.dispatchEvent(new t.w.Event('pagehide'));
+          t.w.dispatchEvent(new t.w.Event('pageshow'));
+          t.tick(3);
+          assert.equal(t.api.enabled, false);
+          assert.equal(t.api.pinned, false);
+          assert.equal(t.current(), 4);
+          assert.equal(t.w.scrollY, y);
+        }
+        t.move(900);
+        t.tick();
+        t.setIndex(1);
+        t.tick(40);
+        assert.equal(t.current(), 1, 'manual chapter navigation remains available');
+        assert.equal(
+          t.root.querySelector('.tdb-guide-linear-progress').style.transform,
+          'scaleX(0.40000)',
+        );
+        t.move(1100);
+        t.tick(3);
+        assert.equal(t.current(), 1, 'natural scrolling does not override the manual choice');
+        assert.equal(
+          t.scrolls.length,
+          writes,
+          'neither return scrolling nor controls move the page',
+        );
+      } finally {
+        t.close();
+      }
+    }
+  }
+});
+
+test('completion waits for the drawer scroll lock before removing travel', () => {
+  const t = setup({ horizontal: true, docked: true, centredCta: true });
+  try {
+    t.move(1000);
+    t.tick();
+    t.w.TDBScrollLock.active = true;
+    t.move(2580);
+    t.tick();
+    assert.equal(t.api.enabled, true);
+    assert.equal(t.w.scrollY, 2580);
+    t.w.TDBScrollLock.active = false;
+    t.move(2580);
+    t.tick(3);
+    assert.equal(t.api.enabled, false);
+    assert.equal(t.w.scrollY, 1020);
+    assert.equal(t.current(), 4);
+  } finally {
+    t.close();
+  }
+});
+
 test('short-screen horizontal guide keeps menus clear until the icon row has left', () => {
   const t = setup({ horizontal: true, height: 500 });
   try {
@@ -519,7 +605,7 @@ test('short-screen horizontal guide keeps menus clear until the icon row has lef
   }
 });
 
-test('native scroll releases pinning in both directions while visible wheel keeps menus clear', () => {
+test('completing all five chapters releases travel and reverse scrolling keeps the final chapter', () => {
   const t = setup();
   try {
     assert.equal(t.api.enabled, true);
@@ -538,10 +624,13 @@ test('native scroll releases pinning in both directions while visible wheel keep
     assert.equal(t.owners(), 1);
     t.move(1000.5 + 3 * 312 + 1);
     t.tick();
-    assert.equal(t.current(), 3);
+    assert.equal(t.current(), 4);
     t.move(999.5);
     t.tick();
-    assert.equal(t.current(), 0);
+    assert.equal(t.current(), 4);
+    assert.equal(t.api.enabled, false);
+    assert.equal(t.api.pinned, false);
+    assert.equal(t.track.getAttribute('style'), null);
     assert.equal(t.owners(), 1);
     // This feature must not intercept or cancel browser gestures.
     for (const name of ['wheel', 'touchmove']) {
@@ -567,14 +656,14 @@ test('menus clear on wheel entry and return only after its final edge leaves, in
     t.tick();
     assert.equal(t.api.pinned, false);
     assert.equal(t.owners(), 2);
-    t.move(2934);
+    t.move(1374);
     t.tick();
     assert.equal(t.owners(), 2);
-    t.move(2936);
+    t.move(1376);
     t.tick();
     assert.equal(t.owners(), 1);
     assert.equal(t.root.classList.contains('is-guide-chrome-away'), false);
-    t.move(2900);
+    t.move(1340);
     t.tick();
     assert.equal(t.owners(), 2);
     t.move(175);
@@ -663,7 +752,7 @@ test('rim fills continuously across the entire scroll journey and unwinds on rev
     assert.equal(arc.getAttribute('r'), '175');
     assert.equal(arc.getAttribute('stroke-width'), '5');
     assert.equal(arc.style.strokeDashoffset, '100.000');
-    for (const fraction of [0, 0.125, 0.2, 0.5, 0.8, 0.999, 1, 1.2, 0.45, -0.1]) {
+    for (const fraction of [0, 0.125, 0.2, 0.5, 0.8, 0.999, 0.45, -0.1, 1]) {
       t.move(1000.5 + fraction * 1560);
       t.tick();
       assert.ok(
@@ -690,7 +779,7 @@ test('the sticky track and charcoal background keep fixed geometry through forwa
   try {
     const style = t.track.getAttribute('style');
     assert.equal(t.track.style.getPropertyValue('--tdb-guide-background-start'), '197.5px');
-    for (const fraction of [-0.1, 0, 0.5, 0.9, 0.95, 0.99, 1, 1.1, 0.4]) {
+    for (const fraction of [-0.1, 0, 0.5, 0.9, 0.95, 0.99, 0.4]) {
       t.move(1000.5 + fraction * 1560);
       t.tick();
       assert.equal(t.track.getAttribute('style'), style, 'no scroll-driven layout mutations');
@@ -702,20 +791,20 @@ test('the sticky track and charcoal background keep fixed geometry through forwa
   }
 });
 
-test('arrow motion can complete and reverse the journey, or yield immediately to finger input', () => {
+test('arrow motion can reverse an unfinished journey and yield immediately to finger input', () => {
   const t = setup();
   try {
     t.move(1100);
     t.tick();
-    t.setIndex(4);
-    t.tick(40);
-    assert.equal(t.w.scrollY, 2560.5);
-    assert.equal(t.current(), 4);
-    assert.equal(t.api.pinned, false);
     t.setIndex(3);
     t.tick(40);
     assert.equal(t.w.scrollY, 2248.5);
     assert.equal(t.current(), 3);
+    assert.equal(t.api.pinned, true);
+    t.setIndex(2);
+    t.tick(40);
+    assert.equal(t.w.scrollY, 1936.5);
+    assert.equal(t.current(), 2);
     assert.equal(t.api.pinned, true);
     for (const input of ['wheel', 'touchstart', 'pointerdown']) {
       t.setIndex(0);
@@ -747,14 +836,10 @@ test('whole-pixel Safari scroll rounding still completes the ring and releases t
     t.w.scrollTo = ({ top }) => t.move(Math.floor(top));
     t.setIndex(4);
     t.tick(40);
-    assert.equal(t.w.scrollY, 2560);
+    assert.equal(t.w.scrollY, 1000);
     assert.equal(t.api.pinned, false);
     assert.equal(t.root.querySelector('circle').style.strokeDashoffset, '0.000');
-    assert.equal(
-      t.api.beginRotation(),
-      true,
-      'reverse rotation can start at the completed divider',
-    );
+    assert.equal(t.api.beginRotation(), false, 'completed travel cannot be restarted by rotation');
   } finally {
     t.close();
   }
@@ -800,7 +885,7 @@ test('native and Lenis events coalesce into the next rendered frame without easi
     const t = setup({ lenis });
     try {
       const arc = t.root.querySelector('.tdb-guide-scroll-progress circle');
-      for (const pixels of [1, 2, 15, 249, 1200, 600, 599, 1560, 0]) {
+      for (const pixels of [1, 2, 15, 249, 1200, 600, 599, 0, 1560]) {
         const before = arc.style.strokeDashoffset;
         if (lenis) {
           // Lenis has rendered the position, before the next native scroll event.
@@ -921,7 +1006,7 @@ test('choosing five before pinning finishes the journey without resetting or rep
     t.tick();
     assert.equal(t.current(), 4, 'the latest choice wins even if its animation was interrupted');
     assert.equal(t.api.pinned, false);
-    assert.equal(t.w.scrollY, 1000 + 5 * 312 + 10, 'entry preserves the scroll overshoot');
+    assert.equal(t.w.scrollY, 1010, 'completion removes travel and preserves the scroll overshoot');
     assert.equal(
       t.root.querySelector('.tdb-guide-linear-progress').style.transform,
       'scaleX(1.00000)',
@@ -929,7 +1014,7 @@ test('choosing five before pinning finishes the journey without resetting or rep
     assert.ok(!t.changes.includes(0), 'chapter one never flashes during entry');
     t.move(1000 + 4 * 312 - 2);
     t.tick();
-    assert.equal(t.current(), 3, 'returning through the card does not reapply the old click');
+    assert.equal(t.current(), 4, 'returning through the card stays in natural flow');
   } finally {
     t.close();
   }
@@ -948,7 +1033,7 @@ test('a pre-pin choice waits for the drawer to release scrolling', () => {
     t.w.TDBScrollLock.active = false;
     t.move(1000);
     t.tick();
-    assert.equal(t.w.scrollY, 1000 + 5 * 312);
+    assert.equal(t.w.scrollY, 1000);
     assert.equal(t.current(), 4);
   } finally {
     t.close();
@@ -990,13 +1075,13 @@ test('finger rotation scrubs the same travel, can finish the section, and stops 
     assert.equal(t.root.querySelector('circle').style.strokeDashoffset, '87.000');
     t.api.rotate(10);
     t.tick();
-    assert.equal(t.w.scrollY, 1000.5 + 1560);
+    assert.equal(t.w.scrollY, 1000.5);
     assert.equal(t.api.pinned, false);
     assert.equal(t.current(), 4);
     assert.equal(t.root.querySelector('circle').style.strokeDashoffset, '0.000');
     t.api.rotate(-0.25);
     t.tick();
-    assert.equal(t.api.pinned, true);
+    assert.equal(t.api.pinned, false);
     t.api.endRotation();
     const y = t.w.scrollY;
     t.api.rotate(1);
