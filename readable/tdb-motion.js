@@ -1383,6 +1383,231 @@
     return api;
   }
 
+  // Discrete chapters share the site timing and read/write scheduler. Scroll
+  // remains native outside the introduction, including both end boundaries.
+  const steppedIntros = new WeakMap();
+  function steppedIntro(root) {
+    if (steppedIntros.has(root)) return steppedIntros.get(root);
+    const photo = root.querySelector('[data-tdb-intro-photo]');
+    const doors = root.querySelector('[data-tdb-intro-doors]');
+    const copy = root.querySelector('[data-tdb-intro-copy]');
+    if (!photo || !doors || !copy) throw Error('Introduction requires its native layers');
+    const fills = [...root.querySelectorAll('[data-tdb-intro-progress]')];
+    const links = fills.map((fill) => fill.closest('a'));
+    const next = root.querySelector('[data-tdb-intro-next]');
+    const nodes = [photo, doors, copy, ...fills];
+    const before = nodes.map((node) => node.getAttribute('style'));
+    const controller = new AbortController();
+    const { signal } = controller;
+    const animations = new Map();
+    const states = [
+      [1, 0, 0],
+      [0.48, 0.82, 0],
+      [0, 0.78, 0],
+      [0, 0.075, 1],
+    ];
+    let active = -1,
+      start = 0,
+      step = innerHeight,
+      inside = false;
+    let movingUntil = 0,
+      lastWheel = -Infinity,
+      wheelSum = 0,
+      settleTimer;
+    let navigating = false,
+      disposed = false,
+      gestureUsed = false;
+    const travel = () => (reduced.matches ? 0 : time(620));
+    function animate(node, property, value, immediate) {
+      const from = getComputedStyle(node)[property];
+      animations.get(node)?.cancel();
+      node.style[property] = value;
+      if (!immediate && !reduced.matches && node.animate) {
+        const animation = node.animate([{ [property]: from }, { [property]: value }], {
+          duration: travel(),
+          easing: easing('travel', 'cubic-bezier(.22,.68,0,1)'),
+        });
+        animations.set(node, animation);
+        animation.onfinish = () => animations.delete(node);
+      }
+    }
+    function paint(index, immediate = false) {
+      if (index === active) return;
+      active = index;
+      [photo, doors, copy].forEach((node, i) =>
+        animate(node, 'opacity', String(states[index][i]), immediate),
+      );
+      // Keep the heading in the accessibility tree while its decorative reveal runs.
+      fills.forEach((fill, i) => {
+        animate(fill, 'transform', `scaleY(${index > i ? 1 : 0})`, immediate);
+        if (index === i + 1) links[i]?.setAttribute('aria-current', 'step');
+        else links[i]?.removeAttribute('aria-current');
+      });
+      if (next) next.style.opacity = index === 3 ? '0' : '1';
+      if (next) next.inert = index === 3;
+      root.dataset.tdbIntroState = String(index + 1);
+    }
+    function read(frame) {
+      const box = frame.rect(root);
+      start = frame.scroll + box.top;
+      step = Math.max(1, (box.height - frame.rect(root.firstElementChild).height) / 3);
+      inside = frame.scroll >= start - 2 && frame.scroll <= start + 3 * step + 2;
+      const index = Math.max(0, Math.min(3, Math.round((frame.scroll - start) / step)));
+      if (navigating && performance.now() < movingUntil) return;
+      navigating = false;
+      return () => paint(index, active < 0);
+    }
+    const schedule = () => requestMotionFrame(read);
+    function goTo(index) {
+      if (disposed) return;
+      const target = Math.max(0, Math.min(3, index));
+      navigating = true;
+      movingUntil = performance.now() + travel() + 100;
+      paint(target);
+      const top = start + target * step;
+      if (window.lenis?.scrollTo)
+        window.lenis.scrollTo(top, { duration: travel() / 1000, force: true });
+      else window.scrollTo({ top, behavior: reduced.matches ? 'instant' : 'smooth' });
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(schedule, travel() + 130);
+    }
+    const blocked = (event) =>
+      event.defaultPrevented ||
+      document.documentElement.classList.contains('tdb-scroll-locked') ||
+      event.target?.closest?.(
+        'input,textarea,select,[contenteditable="true"],[role="dialog"],.navbar_menu',
+      );
+    function settle() {
+      if (!inside || navigating || disposed) return;
+      const index = Math.max(0, Math.min(3, Math.round((window.scrollY - start) / step)));
+      if (Math.abs(window.scrollY - start - index * step) > 3) goTo(index);
+    }
+    window.addEventListener(
+      'wheel',
+      (event) => {
+        if (
+          !inside ||
+          blocked(event) ||
+          event.ctrlKey ||
+          Math.abs(event.deltaX) > Math.abs(event.deltaY)
+        )
+          return;
+        const now = performance.now(),
+          direction = Math.sign(event.deltaY);
+        const quiet = now - lastWheel > 160;
+        lastWheel = now;
+        if (quiet) {
+          wheelSum = 0;
+          gestureUsed = false;
+        }
+        // At a settled end, the next gesture leaves the sequence normally.
+        if (
+          now >= movingUntil &&
+          !gestureUsed &&
+          ((active === 3 && direction > 0) || (active === 0 && direction < 0))
+        )
+          return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (now < movingUntil || gestureUsed) return;
+        wheelSum +=
+          event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1);
+        if (Math.abs(wheelSum) < 12) return;
+        goTo(active + Math.sign(wheelSum));
+        gestureUsed = true;
+        wheelSum = 0;
+      },
+      { passive: false, capture: true, signal },
+    );
+    window.addEventListener(
+      'keydown',
+      (event) => {
+        if (
+          !inside ||
+          blocked(event) ||
+          event.target?.closest?.('a,button') ||
+          event.altKey ||
+          event.metaKey ||
+          event.ctrlKey
+        )
+          return;
+        const direction = ['ArrowDown', 'PageDown', ' '].includes(event.key)
+          ? event.shiftKey
+            ? -1
+            : 1
+          : ['ArrowUp', 'PageUp'].includes(event.key)
+            ? -1
+            : 0;
+        if (!direction || active + direction < 0 || active + direction > 3) return;
+        event.preventDefault();
+        if (performance.now() >= movingUntil) goTo(active + direction);
+      },
+      { signal },
+    );
+    root.addEventListener(
+      'click',
+      (event) => {
+        const link = event.target.closest('a');
+        const index = links.indexOf(link);
+        if (index < 0 && link !== next) return;
+        if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+          return;
+        event.preventDefault();
+        event.stopPropagation();
+        goTo(index >= 0 ? index + 1 : Math.min(3, active + 1));
+      },
+      { capture: true, signal },
+    );
+    window.addEventListener(
+      'scroll',
+      () => {
+        schedule();
+        if (navigating) return;
+        clearTimeout(settleTimer);
+        settleTimer = setTimeout(settle, 160);
+      },
+      { passive: true, signal },
+    );
+    window.addEventListener('scrollend', settle, { signal });
+    window.addEventListener('resize', schedule, { passive: true, signal });
+    window.addEventListener('pageshow', schedule, { signal });
+    window.addEventListener(
+      'pagehide',
+      () => {
+        clearTimeout(settleTimer);
+        cancelMotionFrame(read);
+      },
+      { signal },
+    );
+    const api = {
+      goTo,
+      refresh: schedule,
+      status: () => ({ state: active + 1, inside, start, step }),
+      destroy() {
+        disposed = true;
+        controller.abort();
+        clearTimeout(settleTimer);
+        cancelMotionFrame(read);
+        animations.forEach((animation) => animation.cancel());
+        nodes.forEach((node, i) =>
+          before[i] === null
+            ? node.removeAttribute('style')
+            : node.setAttribute('style', before[i]),
+        );
+        if (next) {
+          next.style.removeProperty('opacity');
+          next.inert = false;
+        }
+        links.forEach((link) => link?.removeAttribute('aria-current'));
+        root.removeAttribute('data-tdb-intro-state');
+        steppedIntros.delete(root);
+      },
+    };
+    steppedIntros.set(root, api);
+    schedule();
+    return api;
+  }
+
   // Compatibility for older immutable tdb-sliders.js pins during migration.
   // All Swiper behaviour is implemented once, inside the custom Swiper asset.
   function bindSwiper(swiper) {
@@ -1403,6 +1628,7 @@
     ddOpacity,
     pageBreaks,
     serviceJourney,
+    steppedIntro,
     reviews,
     fadeController,
     filterToggle,

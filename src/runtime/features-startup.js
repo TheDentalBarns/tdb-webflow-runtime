@@ -7,6 +7,7 @@ const TDBFeatureStartup = (() => {
     prepareBrevoConsent,
     prepareUSPDrawerLoader,
     preparePageBreakLoader,
+    prepareAboutIntroLoader,
     prepareServiceProcessLoader,
     prepareTreatmentGuideLoader,
     prepareJourneyLoader,

@@ -104,6 +104,7 @@ module.exports = {
   ],
   'dist/tdb-treatment-guide-drawer.js': ['src/treatment-guide/drawer.js'],
   'dist/tdb-runtime.js': [
+    'src/runtime/about-intro-loader.js',
     'src/runtime/release-root.js',
     'src/shared/feature-loading.js',
     'src/shared/script-assets.js',

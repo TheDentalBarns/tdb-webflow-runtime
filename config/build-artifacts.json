@@ -314,10 +314,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "3446eb8f0838bc7af978bff18aedf06b0de00bfca280947847a29d9ff2ec3d1e",
-      "raw": 28482,
-      "gzip": 9890,
-      "brotli": 8976
+      "sha256": "5361d84198c360b0e925230fa6aa45aab74307f52dd983b7c75ca6601d70f253",
+      "raw": 32309,
+      "gzip": 11098,
+      "brotli": 10060
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -520,6 +520,7 @@
     },
     "dist/tdb-runtime.js": {
       "sources": [
+        "src/runtime/about-intro-loader.js",
         "src/runtime/release-root.js",
         "src/shared/feature-loading.js",
         "src/shared/script-assets.js",
@@ -556,10 +557,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "0ec9079a8b9b1f0f0b78c83314dfcf0e4bdf1dfe532c2119f920e31388a93dec",
-      "raw": 87186,
-      "gzip": 23815,
-      "brotli": 20562
+      "sha256": "bc9e275ec81b71c49cd893c19072c0483d82937c35da96d1605ba8a2810c062d",
+      "raw": 87963,
+      "gzip": 24003,
+      "brotli": 20688
     },
     "dist/tdb-service-awards.js": {
       "sources": [
