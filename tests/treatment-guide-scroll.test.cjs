@@ -14,6 +14,11 @@ function setup(options = {}) {
     layout = root.firstElementChild;
   w.innerWidth = options.width || 390;
   w.innerHeight = options.height || 844;
+  const exitImage = options.exitImage ? w.document.createElement('section') : null;
+  if (exitImage) {
+    exitImage.className = 'tdb-review-image-break';
+    root.after(exitImage);
+  }
   if (options.bottomPadding) layout.style.paddingBottom = options.bottomPadding + 'px';
   w.scrollY = options.y || 0;
   const reduced = new w.EventTarget();
@@ -94,13 +99,18 @@ function setup(options = {}) {
       : 0;
   // Emulate the native grid's equal flex rows around a 300px copy/icon group.
   const gridStage = () =>
-    parseFloat(
-      root
-        .querySelector('.tdb-guide-scroll-track')
-        ?.style.getPropertyValue('--tdb-guide-stage-height'),
-    ) ||
-    options.naturalHeight ||
-    516;
+    options.centredCta
+      ? Math.max(
+          options.naturalHeight || 516,
+          w.innerWidth < 992 ? options.smallHeight || w.innerHeight : 0,
+        )
+      : parseFloat(
+          root
+            .querySelector('.tdb-guide-scroll-track')
+            ?.style.getPropertyValue('--tdb-guide-stage-height'),
+        ) ||
+        options.naturalHeight ||
+        516;
   const gridBodyTop = () => (gridStage() - 300) / 2;
   layout.getBoundingClientRect = () => ({
     top: cardTop(),
@@ -185,6 +195,7 @@ function setup(options = {}) {
     root,
     layout,
     track,
+    exitImage,
     api,
     changes,
     scrolls,
@@ -398,6 +409,79 @@ test('the centred CTA replaces hidden artwork in sticky geometry and preserves n
     } finally {
       t.close();
     }
+  }
+});
+
+test('desktop keeps its native card height and the real image flush through forward and reverse progress', () => {
+  const t = setup({
+    horizontal: true,
+    docked: true,
+    centredCta: true,
+    width: 1440,
+    height: 1000,
+    naturalHeight: 780,
+    exitImage: true,
+  });
+  try {
+    assert.equal(t.track.style.height, '3180px', 'travel adds no viewport-height expansion');
+    assert.equal(t.layout.getBoundingClientRect().height, 780);
+    const offset = () => parseFloat(t.exitImage.style.getPropertyValue('--tdb-guide-exit-offset'));
+    for (const y of [900, 1000, 1480, 2440, 3400, 3500, 2440, 1000, 900]) {
+      t.move(y);
+      t.tick();
+      const imageTop = 1000 + 780 + 2400 - y + offset();
+      assert.equal(imageTop, t.layout.getBoundingClientRect().bottom);
+      assert.equal(
+        t.exitImage.previousElementSibling,
+        t.root,
+        'the actual image and reviews stay in their native DOM',
+      );
+    }
+    t.w.innerHeight = 900;
+    t.w.dispatchEvent(new t.w.Event('resize'));
+    t.tick(4);
+    assert.equal(t.api.enabled, true);
+    assert.equal(
+      t.track.style.height,
+      '3180px',
+      'a smaller desktop viewport cannot grow or rebuild the card',
+    );
+    t.api.destroy();
+    assert.equal(t.exitImage.className, 'tdb-review-image-break');
+    assert.equal(t.exitImage.style.getPropertyValue('--tdb-guide-exit-offset'), '');
+  } finally {
+    t.close();
+  }
+});
+
+test('refreshing below the desktop card cannot arm travel or change its height until the reader returns above it', () => {
+  const t = setup({
+    horizontal: true,
+    docked: true,
+    centredCta: true,
+    width: 1440,
+    height: 1000,
+    naturalHeight: 780,
+    exitImage: true,
+    y: 3000,
+  });
+  try {
+    for (const y of [3000, 2200, 1500, 1050]) {
+      t.move(y);
+      t.w.dispatchEvent(new t.w.Event('resize'));
+      t.tick(3);
+      assert.equal(t.api.enabled, false);
+      assert.equal(t.layout.getBoundingClientRect().height, 780);
+      assert.equal(t.track.getAttribute('style'), null);
+      assert.equal(t.exitImage.className, 'tdb-review-image-break');
+    }
+    assert.deepEqual(t.scrolls, [], 'enhancement never changes the restored reading position');
+    t.move(900);
+    t.tick(3);
+    assert.equal(t.api.enabled, true);
+    assert.equal(t.layout.getBoundingClientRect().height, 780);
+  } finally {
+    t.close();
   }
 });
 

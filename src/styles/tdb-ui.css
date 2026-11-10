@@ -319,13 +319,13 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
 }
 
 /* Native pressed feedback: hold while pressed, release with the pointer. */
-.button.is-secondary.is-alternate:not(:disabled):not([aria-disabled="true"]):active {
+:is(.button.is-secondary.is-alternate,.button.is-alternate.treatment-guide_learn-more):not(:disabled):not([aria-disabled="true"]):active {
   background-color: var(--base-color-brand--orange-1);
   color: var(--base-color-brand--black);
   opacity: 1;
 }
 @media (hover: hover) and (pointer: fine) {
-  .button.is-secondary.is-alternate:not(:disabled):not([aria-disabled="true"]):hover {
+  :is(.button.is-secondary.is-alternate,.button.is-alternate.treatment-guide_learn-more):not(:disabled):not([aria-disabled="true"]):hover {
     background-color: var(--base-color-brand--orange-1);
     color: var(--base-color-brand--black);
     opacity: 1;

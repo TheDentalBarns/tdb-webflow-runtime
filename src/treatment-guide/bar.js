@@ -36,6 +36,13 @@
       'aria-valuetext',
     ];
     const before = attributes.map((name) => [name, menu.getAttribute(name)]);
+    const hrefs = choices.map((choice) => choice.getAttribute('href'));
+    const removeFragmentTargets = () =>
+      choices.forEach((choice) => {
+        if (choice.hasAttribute('href')) choice.removeAttribute('href');
+      });
+    // Enhanced tabs change chapters in place; native fragment URLs are fallback only.
+    removeFragmentTargets();
     const total = root.querySelector('.treatment-guide_pagination-total');
     const totalHidden = total?.getAttribute('aria-hidden');
     total?.setAttribute('aria-hidden', 'true');
@@ -209,26 +216,32 @@
     menu.addEventListener(
       'keydown',
       (event) => {
-        const index = {
-          ArrowRight: Math.min(4, active + 1),
-          ArrowLeft: Math.max(0, active - 1),
-          Home: 0,
-          End: 4,
-        }[event.key];
+        const choice = event.target.closest?.('[data-tdb-guide-choice]');
+        const activate = choice && (event.key === 'Enter' || event.key === ' ');
+        const index = activate
+          ? choices.indexOf(choice)
+          : {
+              ArrowRight: Math.min(4, active + 1),
+              ArrowLeft: Math.max(0, active - 1),
+              Home: 0,
+              End: 4,
+            }[event.key];
         if (index == null || blocked()) return;
         event.preventDefault();
         interact();
+        if (activate && active === index) scrollGuide?.manual(index);
         select(index);
-        menu.focus({ preventScroll: true });
+        (activate ? choice : menu).focus({ preventScroll: true });
       },
       { signal },
     );
     const selection = new MutationObserver(() => {
+      removeFragmentTargets();
       const index = choices.findIndex((choice) => choice.classList.contains('w--current'));
       if (index >= 0 && index !== active) select(index, false);
     });
     choices.forEach((choice) =>
-      selection.observe(choice, { attributes: true, attributeFilter: ['class'] }),
+      selection.observe(choice, { attributes: true, attributeFilter: ['class', 'href'] }),
     );
     const resize = new ResizeObserver(measure);
     resize.observe(menu);
@@ -302,6 +315,9 @@
         card?.destroy();
         root.classList.remove('is-guide-bar', 'is-click-wheel', 'is-wheel-dragging');
         choices.forEach((choice) => choice.style.removeProperty('opacity'));
+        choices.forEach((choice, i) =>
+          hrefs[i] == null ? choice.removeAttribute('href') : choice.setAttribute('href', hrefs[i]),
+        );
         before.forEach(([name, value]) =>
           value == null ? menu.removeAttribute(name) : menu.setAttribute(name, value),
         );

@@ -104,6 +104,34 @@ function setup(linked = true) {
   };
 }
 
+test('enhanced chapter tabs have no fragment link preview and retain keyboard activation and fallback targets', async () => {
+  const t = setup();
+  try {
+    assert.ok(t.choices.every((choice) => !choice.hasAttribute('href')));
+    for (const [index, key] of [
+      [3, 'Enter'],
+      [1, ' '],
+    ]) {
+      t.choices[index].dispatchEvent(
+        new t.w.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }),
+      );
+      assert.equal(t.menu.getAttribute('aria-valuenow'), String(index + 1));
+      assert.equal(t.choices[index].classList.contains('w--current'), true);
+    }
+    t.choices[0].setAttribute('href', '#w-tabs-0-data-w-pane-0');
+    await new Promise((resolve) => t.w.setTimeout(resolve, 0));
+    assert.equal(
+      t.choices[0].hasAttribute('href'),
+      false,
+      'Webflow redraw cannot restore a link preview',
+    );
+    t.api.destroy();
+    assert.ok(t.choices.every((choice) => choice.getAttribute('href') === '#'));
+  } finally {
+    t.close();
+  }
+});
+
 test('horizontal drag advances one interval per fifth of the strip and can reverse without a release snap', () => {
   const t = setup();
   try {

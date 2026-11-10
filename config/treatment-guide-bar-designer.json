@@ -12,6 +12,7 @@
       "background-color": "#f9f2e6",
       "width": "100vw",
       "max-width": "none",
+      "min-height": "0px",
       "margin-left": "calc(50% - 50vw)",
       "margin-right": "calc(50% - 50vw)",
       "padding-top": "0px",
@@ -280,7 +281,7 @@
     ]
   },
   "preserved": "CMS bindings, native tabs/details, 5vw side margins, shared heading/copy and small CTA icon animations, scroll progress, drawer and touch navigation.",
-  "runtime": "Native layout reserves space; bar.js owns only number emphasis, selection and pointer gestures. scroll.js owns sticky enhancement and linear progress, sampling the heading animation for manual chapter changes.",
+  "runtime": "Native layout reserves the same height before and after enhancement; bar.js owns number emphasis, selection, keyboard activation and pointer gestures. Enhanced tabs suppress their fallback fragment links. scroll.js owns sticky enhancement and linear progress, sampling the heading animation for manual chapter changes. On desktop it offsets the actual adjacent review image through the remaining travel, keeping it flush beneath the shorter card.",
   "comboStyleParents": {
     "is-chapter-1": ["treatment-guide_choice"],
     "is-chapter-2": ["treatment-guide_choice"],
@@ -292,7 +293,7 @@
     "treatment-guide_intro-heading": ["heading-style-h2"],
     "treatment-guide_nav": ["carousel-arrow"]
   },
-  "authoringNote": "Designer owns all resting spacing. Desktop has a minimum 14rem above the heading and below the centred Learn more CTA, with 7rem heading/copy/CTA gaps. Copy uses the same 52rem maximum as the intro. Desktop 3rem arrows sit at the left and right 5vw insets, vertically centred in the charcoal area. Tablet and mobile use 8rem copy gaps and minimum outer spaces; their arrows have a separate 6rem native row before the lower space. The standalone large icon is hidden, retaining its markup for circular rollback; each native CTA occupies its former row and keeps the small artwork ticker. The 5px progress line sits at the bottom of the six-rem number strip, above charcoal. Intro spacing, 1rem numbers, zero outer bottom padding and flush image boundary are preserved. Runtime only expands flexible rows when the complete card fits the viewport.",
+  "authoringNote": "Designer owns all resting spacing and height. Desktop has a minimum 14rem above the heading and below the centred Learn more CTA, with 7rem heading/copy/CTA gaps; it uses its intrinsic height rather than filling the viewport. Copy uses the same 52rem maximum as the intro. Desktop 3rem arrows sit at the left and right 5vw insets, vertically centred in the charcoal area. Tablet and mobile use a native 100svh minimum, 8rem copy gaps and minimum outer spaces; their arrows have a separate 6rem native row before the lower space. The standalone large icon is hidden, retaining its markup for circular rollback; each native CTA occupies its former row and keeps the small artwork ticker. The 5px progress line sits at the bottom of the six-rem number strip, above charcoal. Intro spacing, 1rem numbers, zero outer bottom padding and flush image boundary are preserved. Runtime never expands this authored stage; screens shorter than its intrinsic content retain ordinary scrolling.",
   "removedComboProperties": {
     "is-chapter-1": ["left", "top"],
     "is-chapter-2": ["left", "top"],
@@ -314,6 +315,7 @@
         "justify-self": "center"
       },
       "treatment-guide_layout": {
+        "min-height": "100svh",
         "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem 6rem minmax(8rem,1fr)",
         "row-gap": "0px",
         "padding-bottom": "0px",
@@ -381,6 +383,7 @@
         "justify-self": "center"
       },
       "treatment-guide_layout": {
+        "min-height": "100svh",
         "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem 6rem minmax(8rem,1fr)",
         "row-gap": "0px",
         "padding-bottom": "0px",
@@ -448,6 +451,7 @@
         "justify-self": "center"
       },
       "treatment-guide_layout": {
+        "min-height": "100svh",
         "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem 6rem minmax(8rem,1fr)",
         "row-gap": "0px",
         "padding-bottom": "0px",

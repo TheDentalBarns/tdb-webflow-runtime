@@ -26,7 +26,14 @@
     // Designer owns the resting 5px rim. Only the moving fill is enhancement paint.
     const horizontal = Boolean(controls.horizontal);
     const docked = horizontal && Boolean(footer && centre);
+    const nativeStage = docked && getComputedStyle(centre).display === 'none';
+    const exitImage =
+      nativeStage && root.nextElementSibling?.matches('.tdb-review-image-break')
+        ? root.nextElementSibling
+        : null;
+    const exitOffsetBefore = exitImage?.style.getPropertyValue('--tdb-guide-exit-offset') || '';
     root.classList.toggle('is-guide-footer-docked', docked);
+    root.classList.toggle('is-guide-native-stage', nativeStage);
     // The small viewport includes browser chrome. Keep that measured height
     // for this mobile orientation so toolbar animation cannot move the card.
     const viewportMeter = docked && coarse.matches ? document.createElement('span') : null;
@@ -90,9 +97,28 @@
       shownFraction = 0,
       animation = null,
       entryIndex = null,
+      exitOffset = null,
       lenis = null,
       unbindLenis = null,
       releaseChrome = null;
+    function clearExit() {
+      if (!exitImage || exitOffset === null) return;
+      exitImage.classList.remove('tdb-guide-scroll-exit');
+      if (exitOffsetBefore)
+        exitImage.style.setProperty('--tdb-guide-exit-offset', exitOffsetBefore);
+      else exitImage.style.removeProperty('--tdb-guide-exit-offset');
+      exitOffset = null;
+    }
+    function paintExit(progress) {
+      if (!exitImage || innerWidth < 992) return clearExit();
+      // Keep the actual neighbouring image/reviews beneath the short desktop
+      // card. Its native DOM, height and inner parallax owner remain untouched.
+      const value = -Math.max(0, Math.min(runway, runway - progress));
+      if (value === exitOffset) return;
+      exitOffset = value;
+      exitImage.classList.add('tdb-guide-scroll-exit');
+      exitImage.style.setProperty('--tdb-guide-exit-offset', value + 'px');
+    }
     function paintProgress(fraction) {
       shownFraction = Math.max(0, Math.min(1, fraction));
       if (!arc) return;
@@ -146,6 +172,7 @@
       rotationPending = false;
       animation = null;
       enabled = false;
+      clearExit();
       root.classList.remove('is-guide-scroll-enabled');
       cardShift = 0;
       stageHeight = 0;
@@ -226,14 +253,16 @@
             (stageHeight - footerSpace - wheelBox.height - bodyHeight) / 2 -
             bodyTop
           : 0;
-      cardHeight = docked
-        ? offset + stageHeight + bottomPadding
-        : horizontal
-          ? Math.max(
-              (docked ? contentBox.bottom - cardBox.top : bodyBottom) + bottomPadding,
-              offset + stageHeight,
-            )
-          : cardBox.height;
+      cardHeight = nativeStage
+        ? cardBox.height
+        : docked
+          ? offset + stageHeight + bottomPadding
+          : horizontal
+            ? Math.max(
+                (docked ? contentBox.bottom - cardBox.top : bodyBottom) + bottomPadding,
+                offset + stageHeight,
+              )
+            : cardBox.height;
       wheelOffset = offset;
       wheelSize = horizontal
         ? Math.max(wheelBox.height, centreBottom + cardShift - offset, docked ? cardHeight : 0)
@@ -334,6 +363,7 @@
         wheelOffset;
       clearChrome(wheelTop < viewHeight && wheelTop + wheelSize > 0);
       const progress = window.scrollY - start;
+      paintExit(progress);
       const inside = progress >= -1 && progress < runway - 1;
       const wasPinned = pinned;
       if (inside || wasPinned) paintProgress(runway - progress <= 1 ? 1 : progress / runway);
@@ -482,6 +512,7 @@
         clearChrome(false);
         root.classList.remove('is-guide-progress-ready');
         root.classList.remove('is-guide-footer-docked');
+        root.classList.remove('is-guide-native-stage');
         progress?.remove();
         track.replaceWith(layout);
       },
