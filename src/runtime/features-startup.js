@@ -25,7 +25,6 @@ const TDBFeatureStartup = (() => {
     prepareCarouselStyles,
     prepareTooltipLoader,
     prepareSliderFocusLoader,
-    prepareSmoothScroll,
     updateNativeFooterDates,
   ];
   function start(schedule, active = () => true) {

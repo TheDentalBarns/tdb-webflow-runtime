@@ -190,7 +190,7 @@ window.TDBTreatmentGuideCard ||= (() => {
     const panes = [...root.querySelectorAll('[data-tdb-guide-panel]')],
       content = root.querySelector('.treatment-guide_content'),
       pagination = root.querySelector('[data-tdb-guide-pagination]');
-    if (panes.length !== 5 || !content || !pagination) return null;
+    if (panes.length !== 5 || !content) return null;
     const events = new AbortController(),
       rows = panes.map((pane) => ({
         pane,
@@ -217,28 +217,33 @@ window.TDBTreatmentGuideCard ||= (() => {
       row.button.setAttribute('aria-label', 'Learn more about ' + row.title.textContent.trim());
       return ticker;
     });
-    const centreIcon = pagination.querySelector('[data-tdb-guide-centre-icon]');
+    // The strip announces its own selection. Only older circular markup has
+    // separate centre pagination; do not retain hidden artwork for the strip.
+    const centreIcon = pagination?.querySelector('[data-tdb-guide-centre-icon]');
     const centreBefore = centreIcon
       ? [...centreIcon.childNodes].map((node) => node.cloneNode(true))
       : null;
-    const ticker = window.TDBNativeTicker.mount(
-      centreIcon || pagination.querySelector('[data-tdb-guide-position]'),
-      centreIcon
-        ? {
-            valueClass: 'treatment-guide_icon-value',
-            incomingClass: 'treatment-guide_icon-incoming',
-            render(node, value) {
-              const icon = artwork[Number(value) || 0].cloneNode(true);
-              icon.className =
-                'treatment-guide_icon-art treatment-guide_centre-' + icon.dataset.guideArtwork;
-              node.replaceChildren(icon);
+    const tickerSlot = centreIcon || pagination?.querySelector('[data-tdb-guide-position]');
+    const ticker =
+      tickerSlot &&
+      window.TDBNativeTicker.mount(
+        tickerSlot,
+        centreIcon
+          ? {
+              valueClass: 'treatment-guide_icon-value',
+              incomingClass: 'treatment-guide_icon-incoming',
+              render(node, value) {
+                const icon = artwork[Number(value) || 0].cloneNode(true);
+                icon.className =
+                  'treatment-guide_icon-art treatment-guide_centre-' + icon.dataset.guideArtwork;
+                node.replaceChildren(icon);
+              },
+            }
+          : {
+              valueClass: 'treatment-guide_number-value',
+              incomingClass: 'treatment-guide_number-incoming',
             },
-          }
-        : {
-            valueClass: 'treatment-guide_number-value',
-            incomingClass: 'treatment-guide_number-incoming',
-          },
-    );
+      );
     for (const button of root.querySelectorAll('[data-tdb-guide-nav]'))
       button.addEventListener('click', () => navigate(Number(button.dataset.tdbGuideNav)), {
         signal: events.signal,
@@ -258,11 +263,11 @@ window.TDBTreatmentGuideCard ||= (() => {
       const previous = active;
       stop();
       active = index;
-      pagination.setAttribute(
+      pagination?.setAttribute(
         'aria-label',
         `${index + 1} of ${rows.length}: ${rows[index].title.textContent.trim()}`,
       );
-      ticker.update(
+      ticker?.update(
         centreIcon ? String(index) : String(index + 1).padStart(2, '0'),
         direction,
         animate,
@@ -331,7 +336,7 @@ window.TDBTreatmentGuideCard ||= (() => {
         stop();
         fades.destroy();
         events.abort();
-        ticker.destroy();
+        ticker?.destroy();
         if (centreIcon) centreIcon.replaceChildren(...centreBefore);
         iconTickers.forEach((ticker, i) => {
           ticker.destroy();
@@ -530,8 +535,10 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     track.append(layout);
     // Designer owns the resting 5px rim. Only the moving fill is enhancement paint.
     const horizontal = Boolean(controls.horizontal);
-    const docked = horizontal && Boolean(footer && centre);
-    const nativeStage = docked && getComputedStyle(centre).display === 'none';
+    const docked = horizontal && Boolean(footer);
+    // The strip's obsolete centre artwork may be absent, not just hidden.
+    // Its CTA still belongs to the authored grid: never expand it to the viewport.
+    const nativeStage = docked && (!centre || getComputedStyle(centre).display === 'none');
     const exitImage =
       nativeStage && root.nextElementSibling?.matches('.tdb-review-image-break')
         ? root.nextElementSibling

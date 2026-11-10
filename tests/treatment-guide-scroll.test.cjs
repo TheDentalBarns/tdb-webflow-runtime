@@ -131,7 +131,7 @@ function setup(options = {}) {
     width: 355,
     height: 265,
   });
-  if (options.horizontal) {
+  if (options.horizontal && !options.withoutCentre) {
     const centre = w.document.createElement('div');
     centre.className = 'treatment-guide_centre';
     layout.append(centre);
@@ -413,11 +413,54 @@ test('the centred CTA replaces hidden artwork in sticky geometry and preserves n
   }
 });
 
+test('removing obsolete centre markup preserves compact desktop and full-height mobile geometry', () => {
+  for (const { width, height, naturalHeight } of [
+    { width: 1906, height: 1924, naturalHeight: 952 },
+    { width: 390, height: 844, naturalHeight: 700 },
+  ]) {
+    const t = setup({
+      horizontal: true,
+      docked: true,
+      centredCta: true,
+      withoutCentre: true,
+      width,
+      height,
+      naturalHeight,
+      exitImage: true,
+      coarse: width < 992,
+    });
+    try {
+      const desktop = width >= 992;
+      const cardHeight = desktop ? naturalHeight : height;
+      const travel = Math.min(480, width * 0.8) * 5;
+      assert.equal(t.root.querySelector('.treatment-guide_centre'), null);
+      assert.equal(t.root.classList.contains('is-guide-native-stage'), true);
+      assert.equal(t.root.classList.contains('is-guide-footer-docked'), true);
+      assert.equal(t.api.enabled, true);
+      assert.equal(t.layout.getBoundingClientRect().height, cardHeight);
+      assert.equal(t.track.style.height, cardHeight + travel + (desktop ? 650 : 0) + 'px');
+      assert.equal(t.track.style.getPropertyValue('--tdb-guide-card-shift'), '');
+      assert.equal(!!t.track.querySelector('.tdb-guide-sticky-stage'), desktop);
+      t.move(1000);
+      t.tick();
+      assert.equal(t.api.pinned, true);
+      assert.equal(t.layout.getBoundingClientRect().height, cardHeight);
+      t.w.innerHeight = height + 200;
+      t.w.dispatchEvent(new t.w.Event('resize'));
+      t.tick(3);
+      if (desktop) assert.equal(t.track.style.height, cardHeight + travel + 650 + 'px');
+    } finally {
+      t.close();
+    }
+  }
+});
+
 test('desktop shares one native sticky surface with the real image and restores its DOM on mobile and teardown', () => {
   const t = setup({
     horizontal: true,
     docked: true,
     centredCta: true,
+    withoutCentre: true,
     width: 1440,
     height: 1000,
     naturalHeight: 780,
@@ -478,6 +521,7 @@ test('refreshing below the desktop card cannot arm travel or change its height u
     horizontal: true,
     docked: true,
     centredCta: true,
+    withoutCentre: true,
     width: 1440,
     height: 1000,
     naturalHeight: 780,

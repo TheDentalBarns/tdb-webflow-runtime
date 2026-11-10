@@ -25,8 +25,10 @@
     track.append(layout);
     // Designer owns the resting 5px rim. Only the moving fill is enhancement paint.
     const horizontal = Boolean(controls.horizontal);
-    const docked = horizontal && Boolean(footer && centre);
-    const nativeStage = docked && getComputedStyle(centre).display === 'none';
+    const docked = horizontal && Boolean(footer);
+    // The strip's obsolete centre artwork may be absent, not just hidden.
+    // Its CTA still belongs to the authored grid: never expand it to the viewport.
+    const nativeStage = docked && (!centre || getComputedStyle(centre).display === 'none');
     const exitImage =
       nativeStage && root.nextElementSibling?.matches('.tdb-review-image-break')
         ? root.nextElementSibling
