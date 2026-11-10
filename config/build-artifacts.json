@@ -635,10 +635,10 @@
         "src/treatment-guide/scroll.js",
         "src/treatment-guide/bar.js"
       ],
-      "sha256": "f7e6293bcef0dbeb5ab8749526bc9c0efd8701ca0e0b9005e47e9bdc6a5011cd",
-      "raw": 22573,
-      "gzip": 7987,
-      "brotli": 7181
+      "sha256": "aa479e65ac8b1927360208a74fbbebdc54326af3d0778dc4c1eda46b7150de3b",
+      "raw": 22576,
+      "gzip": 7990,
+      "brotli": 7186
     },
     "dist/tdb-treatment-guide-drawer.js": {
       "sources": [
@@ -659,10 +659,10 @@
         "src/treatment-guide/bar.js",
         "src/treatment-guide/wheel.js"
       ],
-      "sha256": "b727b607f8b7f3ecb64344962352bba2d5dccf29065a5ccc86e86eca4a85ba38",
-      "raw": 53373,
-      "gzip": 27047,
-      "brotli": 24598
+      "sha256": "ffd6906de45a04ba539088a335a0a235d21c47fdecca4ec81892c2a546aa53e1",
+      "raw": 53376,
+      "gzip": 27051,
+      "brotli": 24603
     },
     "dist/tdb-usp-drawer-template.js": {
       "sources": [
