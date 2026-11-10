@@ -308,7 +308,7 @@
     "is-guide-barn": ["treatment-guide_icon-art"],
     "treatment-guide_nav": ["carousel-arrow"]
   },
-  "authoringNote": "Designer owns all resting spacing and height. Desktop has a minimum 14rem above the heading and below the centred Learn more CTA, with 7rem heading/copy/CTA gaps; it uses its intrinsic height rather than filling the viewport. Copy uses the same 52rem maximum as the intro. Desktop 3rem arrows sit at the left and right 5vw insets, vertically centred in the charcoal area. Tablet and mobile use a native 100svh minimum, 8rem copy gaps and minimum outer spaces; tablet arrows have a separate 6rem native row before the lower space. Phone keeps that spacing but hides the embedded arrows in Designer at small and tiny breakpoints. Drawer arrows remain visible at every breakpoint. The standalone large icon is hidden, retaining its markup for circular rollback; each native CTA occupies its former row and keeps the small artwork ticker. The 5px progress line sits at the bottom of the six-rem number strip, above charcoal. The introduction uses the shared Services centred-intro layout and heading, with its diamond below the copy; 14rem outer spacing and 7rem gaps on desktop/tablet, 16rem outer spacing and 8rem gaps on phone. One-rem numbers, zero outer bottom padding and the flush image boundary are preserved. Runtime never expands this authored stage; screens shorter than its intrinsic content retain ordinary scrolling.",
+  "authoringNote": "Designer owns all resting spacing and height. Desktop has a minimum 14rem above the heading and below the centred Learn more CTA, with 7rem heading/copy/CTA gaps; it uses its intrinsic height rather than filling the viewport. Copy uses the same 52rem maximum as the intro. Desktop 3rem arrows sit at the left and right 5vw insets, vertically centred in the charcoal area. Tablet and mobile use a native 100svh minimum, 8rem copy gaps and minimum outer spaces; tablet arrows have a separate 6rem native row before the lower space. Phone keeps that spacing but hides the embedded arrows in Designer at small and tiny breakpoints. Drawer arrows remain visible at every breakpoint. The obsolete hidden centre artwork and pagination have been removed; each native CTA occupies its former row and keeps the small artwork ticker. The 5px progress line sits at the bottom of the six-rem number strip, above charcoal. The introduction uses the shared Services centred-intro layout and heading, with its diamond below the copy; 14rem outer spacing and 7rem gaps on desktop/tablet, 16rem outer spacing and 8rem gaps on phone. One-rem numbers, zero outer bottom padding and the flush image boundary are preserved. Runtime never expands this authored stage; screens shorter than its intrinsic content retain ordinary scrolling.",
   "removedComboProperties": {
     "is-chapter-1": ["left", "top"],
     "is-chapter-2": ["left", "top"],
@@ -528,10 +528,7 @@
     }
   },
   "structure": {
-    "centreParent": "treatment-guide_layout",
-    "centreAfter": "treatment-guide_dial-art",
-    "centreBefore": "treatment-guide_arrows",
-    "reason": "Legacy centre artwork remains hidden for rollback. The native pane CTA now shares the title and summary subgrid; desktop arrows span the charcoal rows, tablet arrows retain their own row; phone keeps the row as spacing while its embedded arrows are hidden.",
+    "reason": "The horizontal strip owns its accessible selection; its hidden circular centre artwork is removed. The native pane CTA keeps its small artwork ticker; desktop arrows span the charcoal rows and mobile embed arrows remain hidden.",
     "styleAssignments": {
       "5a45f055-97a1-453d-701b-d71c77ed23ef": ["treatment-guide_section-spacing"],
       "9a5c4e2d-695b-7f3e-16c1-dffa405f48cd": ["treatment-guide_intro-title-gap"],
@@ -541,7 +538,8 @@
       "9a5c4e2d-695b-7f3e-16c1-dffa405f48ce": ["treatment-guide_intro-copy"],
       "84679c6d-aa9c-a773-5260-8bcc7e0afa3e": ["tdb-centred-intro-decoration"],
       "bee5fd1f-af42-f217-826e-63fc5bd2bc24": ["treatment-guide_intro-diamond"]
-    }
+    },
+    "removedCentreElement": "1aa5ddde-2b10-598d-c6fe-e42806d6f9f4"
   },
   "introduction": {
     "reference": "Services / Clarity before you decide",
@@ -558,5 +556,6 @@
     },
     "diamondSize": "4rem",
     "note": "Original CMS-bound heading and paragraph remain in place. Existing spacing wrappers use display:contents; the shared flex layout owns all vertical spacing. Copy matches the reference 0.875rem/1.5 typography with paragraph margins reset."
-  }
+  },
+  "artworkLoading": "Critical mask guards retain native no-JS artwork. The existing lazy icon owner releases section-level artwork variables at 400px proximity after consent; CTA ticker clones inherit those variables. Drawer artwork remains demand-loaded."
 }

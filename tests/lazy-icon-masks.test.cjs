@@ -1,5 +1,69 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),{JSDOM}=require('jsdom');
 const source=fs.readFileSync('src/runtime/lazy-icon-masks.js','utf8');
+test('guide artwork waits for consent and section proximity, and survives ticker clones', () => {
+  const f = fixture({ allowed: false });
+  try {
+    const root = f.w.document.createElement('section');
+    root.setAttribute('data-tdb-guide', '');
+    root.innerHTML =
+      '<div class="treatment-guide_intro-diamond"></div><span class="treatment-guide_cta-icon"><span data-guide-artwork="thumbprint"></span></span>';
+    f.w.document.body.append(root);
+    f.w.TDBLazyIconMasks.refresh();
+    assert(!f.ios[0].nodes.has(root));
+    f.permit(true);
+    assert(f.ios[0].nodes.has(root));
+    assert.equal(root.getAttribute('style'), null);
+    f.ios[0].fn([{ target: root, isIntersecting: false }]);
+    assert.equal(root.getAttribute('style'), null);
+    f.ios[0].fn([{ target: root, isIntersecting: true }]);
+    for (const key of ['intro', 'diamond', 'thumbprint', 'lotus', 'quotation', 'barn'])
+      assert.match(
+        root.style.getPropertyValue('--tdb-guide-' + key + '-artwork'),
+        /^url\("https:\/\/cdn\.prod\.website-files\.com\/.+\.svg"\)$/,
+      );
+    assert.match(
+      root.style.getPropertyValue('--tdb-guide-thumbprint-artwork'),
+      /6aef3d06504a979ca9cd538b_tdb-thumbprint-small-1px/,
+    );
+    const before = root.getAttribute('style'),
+      icon = root.querySelector('[data-guide-artwork]');
+    icon.replaceWith(icon.cloneNode(true));
+    f.w.TDBLazyIconMasks.refresh();
+    assert.equal(root.getAttribute('style'), before);
+    assert(!root.querySelector('[data-guide-artwork]').hasAttribute('style'));
+    assert(!f.ios[0].nodes.has(root), 'the persistent section owns artwork, not each ticker clone');
+  } finally {
+    f.close();
+  }
+});
+
+test('guide native mask URLs are guarded in both critical and shared CSS without changing layout', () => {
+  const postcss = require('postcss');
+  for (const file of ['dist/tdb-ui-critical.css', 'dist/tdb-ui.css']) {
+    const rules = [];
+    postcss.parse(fs.readFileSync(file, 'utf8')).walkRules((rule) => {
+      if (
+        rule.selector.includes(':root.w-mod-js') &&
+        /treatment-guide_(intro-diamond|cta-icon)/.test(rule.selector)
+      )
+        rules.push(rule);
+    });
+    assert.equal(rules.length, 6, file);
+    for (const rule of rules) {
+      assert.deepEqual(
+        rule.nodes.map((n) => n.prop),
+        ['-webkit-mask-image', 'mask-image'],
+      );
+      for (const declaration of rule.nodes) {
+        assert.doesNotMatch(declaration.value, /url\(/);
+        assert.match(
+          declaration.value,
+          /var\(--tdb-guide-[a-z]+-artwork,linear-gradient\(transparent,transparent\)\)/,
+        );
+      }
+    }
+  }
+});
 function fixture({allowed=true,observer=true}={}) {
   const dom=new JSDOM('<div data-tdb-native-holder-icon="instagram"></div><div data-tdb-native-holder-icon="smile"></div><div data-tdb-native-holder-icon="reviews"></div><div data-tdb-lazy-mask="review"></div><div class="tdb-review-summary-star-direct"></div>',{runScripts:'outside-only'}),w=dom.window,nodes=[...w.document.querySelectorAll('div')],ios=[];
   let notify;

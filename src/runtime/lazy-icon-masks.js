@@ -60,12 +60,28 @@ function prepareLazyIconMasks() {
     diamond: '6aeddc640ce35bc2256782dc_tdb-diamond-small-1px.svg',
     address: '6aeddc65afde554858c3126e_tdb-location-small-1px.svg',
   };
+  // Inherit artwork from the section so ticker clones never restart a request
+  // or lose their icon during a chapter change. Native classes keep the no-JS
+  // fallback; the critical mask guards suppress their eager requests with JS.
+  const guideAssets = {
+    intro: assets.diamond,
+    diamond: serviceFAQAssets.diamond,
+    thumbprint: '6aef3d06504a979ca9cd538b_tdb-thumbprint-small-1px.svg',
+    lotus: '6aeddc643eed49cd4fac61a6_tdb-lotus-small-1px.svg',
+    quotation: '6af04339aeef0714dbeb77ef_tdb-question-outlined.svg',
+    barn: journeyAssets.barn,
+  };
   const seen = new WeakSet(),
     pending = new Set();
   let disposed = false;
   const allowed = () => !disposed && Boolean(window.TDBConsent?.allows());
   function reveal(node) {
     if (!node.isConnected) return;
+    if (node.hasAttribute('data-tdb-guide')) {
+      for (const [kind, file] of Object.entries(guideAssets))
+        node.style.setProperty('--tdb-guide-' + kind + '-artwork', 'url("' + base + file + '")');
+      return;
+    }
     if (node.hasAttribute('data-tdb-native-pseudo-icon')) {
       const kind = node.dataset.tdbNativePseudoIcon;
       const artwork = node.classList.contains('tdb-service-faq-heading')
@@ -171,7 +187,7 @@ function prepareLazyIconMasks() {
     if (!allowed()) return;
     document
       .querySelectorAll(
-        '[data-tdb-lazy-barns],[data-tdb-compact-speaker],[data-tdb-journey-icon],[data-tdb-native-pseudo-icon],.tdb-calculator-icon[data-calculator-icon],.tdb-contact-item,.footer1_social-link[class*="tdb-footer-"],[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
+        '[data-tdb-guide],[data-tdb-lazy-barns],[data-tdb-compact-speaker],[data-tdb-journey-icon],[data-tdb-native-pseudo-icon],.tdb-calculator-icon[data-calculator-icon],.tdb-contact-item,.footer1_social-link[class*="tdb-footer-"],[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
       )
       .forEach((node) => {
         if (seen.has(node)) return;

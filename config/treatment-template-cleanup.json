@@ -1,0 +1,20 @@
+{
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "678507292f3f5412bfe2b4fa",
+  "nativeStyles": {
+    "header137_image-wrapper": {
+      "main": { "position": "relative", "width": "90%", "flex-shrink": "0" }
+    },
+    "treatment-hero-image-overlay": {
+      "main": { "left": "0px", "top": "0px", "width": "100%", "pointer-events": "none" }
+    },
+    "pricing_item": { "tiny": { "width": "100%" } },
+    "pricing-list-info_wrapper": { "tiny": { "max-width": "80vw" } },
+    "pricing-info_icon-wrapper": { "tiny": { "max-width": "40vw" } },
+    "pricing-item_image": { "tiny": { "margin-top": "2rem" } }
+  },
+  "removedPageStylesheet": "tdb-layouts-owned-0374b764c1.css",
+  "removedStylesheetCommit": "cb0e3bab26faa21683547c56431cd1afc2be63d3",
+  "removedEmptyComponentInstance": "0591e85e-ba9f-e674-ca0d-45a652cb95ec",
+  "migrationNote": "The remaining layout194 tablet gaps already exist natively using column-gap/row-gap aliases. Pricing headings already have a native one-column tablet layout; their modern is-native-disclosure combo overrides the old tiny width/top declarations. Only effective non-duplicate mobile sizing/spacing is migrated. Native tablet and phone hero overrides are preserved."
+}
