@@ -37,12 +37,15 @@
     ];
     const before = attributes.map((name) => [name, menu.getAttribute(name)]);
     const hrefs = choices.map((choice) => choice.getAttribute('href'));
-    const removeFragmentTargets = () =>
+    const tabIndexes = choices.map((choice) => choice.getAttribute('tabindex'));
+    const syncChoiceTargets = () =>
       choices.forEach((choice) => {
         if (choice.hasAttribute('href')) choice.removeAttribute('href');
+        const tabIndex = choice.classList.contains('w--current') ? '0' : '-1';
+        if (choice.getAttribute('tabindex') !== tabIndex) choice.setAttribute('tabindex', tabIndex);
       });
     // Enhanced tabs change chapters in place; native fragment URLs are fallback only.
-    removeFragmentTargets();
+    syncChoiceTargets();
     const total = root.querySelector('.treatment-guide_pagination-total');
     const totalHidden = total?.getAttribute('aria-hidden');
     total?.setAttribute('aria-hidden', 'true');
@@ -113,6 +116,7 @@
       const travel =
         previous !== index ? card?.update(index, direction || Math.sign(index - previous)) : null;
       if (notify && !choices[index].classList.contains('w--current')) choices[index].click();
+      syncChoiceTargets();
       if (previous !== index && !scrollSelecting && !drag?.claimed)
         scrollGuide?.manual(index, travel);
       menu.setAttribute('aria-valuenow', String(index + 1));
@@ -236,12 +240,15 @@
       { signal },
     );
     const selection = new MutationObserver(() => {
-      removeFragmentTargets();
+      syncChoiceTargets();
       const index = choices.findIndex((choice) => choice.classList.contains('w--current'));
       if (index >= 0 && index !== active) select(index, false);
     });
     choices.forEach((choice) =>
-      selection.observe(choice, { attributes: true, attributeFilter: ['class', 'href'] }),
+      selection.observe(choice, {
+        attributes: true,
+        attributeFilter: ['class', 'href', 'tabindex'],
+      }),
     );
     const resize = new ResizeObserver(measure);
     resize.observe(menu);
@@ -317,6 +324,11 @@
         choices.forEach((choice) => choice.style.removeProperty('opacity'));
         choices.forEach((choice, i) =>
           hrefs[i] == null ? choice.removeAttribute('href') : choice.setAttribute('href', hrefs[i]),
+        );
+        choices.forEach((choice, i) =>
+          tabIndexes[i] == null
+            ? choice.removeAttribute('tabindex')
+            : choice.setAttribute('tabindex', tabIndexes[i]),
         );
         before.forEach(([name, value]) =>
           value == null ? menu.removeAttribute(name) : menu.setAttribute(name, value),

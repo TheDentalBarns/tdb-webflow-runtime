@@ -108,6 +108,11 @@ test('enhanced chapter tabs have no fragment link preview and retain keyboard ac
   const t = setup();
   try {
     assert.ok(t.choices.every((choice) => !choice.hasAttribute('href')));
+    // Native Webflow removes tabindex from the selected anchor, assuming href
+    // still makes it focusable. The enhanced in-place control needs explicit 0.
+    t.choices.forEach((choice) =>
+      choice.addEventListener('click', () => choice.removeAttribute('tabindex')),
+    );
     for (const [index, key] of [
       [3, 'Enter'],
       [1, ' '],
@@ -117,6 +122,8 @@ test('enhanced chapter tabs have no fragment link preview and retain keyboard ac
       );
       assert.equal(t.menu.getAttribute('aria-valuenow'), String(index + 1));
       assert.equal(t.choices[index].classList.contains('w--current'), true);
+      assert.equal(t.w.document.activeElement, t.choices[index]);
+      assert.equal(t.choices[index].getAttribute('tabindex'), '0');
     }
     t.choices[0].setAttribute('href', '#w-tabs-0-data-w-pane-0');
     await new Promise((resolve) => t.w.setTimeout(resolve, 0));
@@ -127,6 +134,7 @@ test('enhanced chapter tabs have no fragment link preview and retain keyboard ac
     );
     t.api.destroy();
     assert.ok(t.choices.every((choice) => choice.getAttribute('href') === '#'));
+    assert.ok(t.choices.every((choice) => !choice.hasAttribute('tabindex')));
   } finally {
     t.close();
   }
