@@ -124,9 +124,14 @@ function setup(options = {}) {
     const centre = w.document.createElement('div');
     centre.className = 'treatment-guide_centre';
     layout.append(centre);
+    if (options.centredCta) centre.style.display = 'none';
     centre.getBoundingClientRect = () => ({
-      top: cardTop() + (options.docked ? gridBodyTop() + 250 : 400 + cardShift()),
-      bottom: cardTop() + (options.docked ? gridBodyTop() + 300 : 450 + cardShift()),
+      top: options.centredCta
+        ? 0
+        : cardTop() + (options.docked ? gridBodyTop() + 250 : 400 + cardShift()),
+      bottom: options.centredCta
+        ? 0
+        : cardTop() + (options.docked ? gridBodyTop() + 300 : 450 + cardShift()),
     });
   }
   if (options.docked) {
@@ -141,6 +146,12 @@ function setup(options = {}) {
         top: cardTop() + gridStage() - 96,
         bottom: cardTop() + gridStage(),
         height: 96,
+      });
+    if (options.centredCta)
+      footer.getBoundingClientRect = () => ({
+        top: cardTop() + gridBodyTop() + 250,
+        bottom: cardTop() + gridBodyTop() + 300,
+        height: 50,
       });
   }
   w.eval(source);
@@ -361,6 +372,32 @@ test('native grid centres the body between six-rem rows and keeps section paddin
     assert.equal(t.track.style.getPropertyValue('--tdb-guide-footer-shift'), '');
   } finally {
     t.close();
+  }
+});
+
+test('the centred CTA replaces hidden artwork in sticky geometry and preserves native lower space', () => {
+  for (const height of [844, 500]) {
+    const t = setup({ horizontal: true, docked: true, centredCta: true, height });
+    try {
+      assert.equal(t.api.enabled, height === 844, 'the complete authored card must fit');
+      t.move(1000);
+      t.tick();
+      assert.equal(t.current(), 0);
+      assert.equal(t.owners(), 1);
+      const cta = t.root.querySelector('.treatment-guide_details').getBoundingClientRect();
+      assert.ok(t.layout.getBoundingClientRect().bottom - cta.bottom > 100);
+      assert.equal(t.layout.style.minHeight, '', 'resting layout stays native');
+      if (height === 500) {
+        t.move(1490);
+        t.tick();
+        assert.equal(t.owners(), 1, 'chrome stays clear through the lower charcoal padding');
+        t.move(1520);
+        t.tick();
+        assert.equal(t.owners(), 0);
+      }
+    } finally {
+      t.close();
+    }
   }
 });
 
@@ -741,6 +778,77 @@ test('manual progress remains available before entry and in short or reduced-mot
     } finally {
       t.close();
     }
+  }
+});
+
+test('a pre-pin chapter choice survives wheel input and joins its completed scroll divider', () => {
+  for (const lenis of [false, true]) {
+    const t = setup({ horizontal: true, docked: true, lenis });
+    try {
+      t.setIndex(2);
+      t.tick(40);
+      assert.equal(t.w.scrollY, 0, 'choosing a chapter does not scroll the page early');
+      t.w.dispatchEvent(new t.w.Event('wheel'));
+      t.move(1000);
+      t.tick();
+      assert.equal(t.current(), 2);
+      assert.equal(t.w.scrollY, 1000 + 3 * 312);
+      assert.equal(t.api.pinned, true);
+      t.move(t.w.scrollY + 2);
+      t.tick();
+      assert.equal(t.current(), 3, 'forward travel continues from the chosen chapter');
+      t.move(1000 + 2 * 312 - 2);
+      t.tick();
+      assert.equal(t.current(), 1, 'reverse travel still follows the earlier chapters');
+    } finally {
+      t.close();
+    }
+  }
+});
+
+test('choosing five before pinning finishes the journey without resetting or replaying on return', () => {
+  const t = setup({ horizontal: true, docked: true });
+  try {
+    t.setIndex(1);
+    t.tick(4);
+    t.setIndex(4);
+    t.tick(4);
+    t.w.dispatchEvent(new t.w.Event('wheel'));
+    t.move(1010);
+    t.tick();
+    assert.equal(t.current(), 4, 'the latest choice wins even if its animation was interrupted');
+    assert.equal(t.api.pinned, false);
+    assert.equal(t.w.scrollY, 1000 + 5 * 312 + 10, 'entry preserves the scroll overshoot');
+    assert.equal(
+      t.root.querySelector('.tdb-guide-linear-progress').style.transform,
+      'scaleX(1.00000)',
+    );
+    assert.ok(!t.changes.includes(0), 'chapter one never flashes during entry');
+    t.move(1000 + 4 * 312 - 2);
+    t.tick();
+    assert.equal(t.current(), 3, 'returning through the card does not reapply the old click');
+  } finally {
+    t.close();
+  }
+});
+
+test('a pre-pin choice waits for the drawer to release scrolling', () => {
+  const t = setup({ horizontal: true, docked: true });
+  try {
+    t.setIndex(4);
+    t.tick(40);
+    t.w.TDBScrollLock.active = true;
+    t.move(1000);
+    t.tick();
+    assert.equal(t.w.scrollY, 1000);
+    assert.equal(t.current(), 4);
+    t.w.TDBScrollLock.active = false;
+    t.move(1000);
+    t.tick();
+    assert.equal(t.w.scrollY, 1000 + 5 * 312);
+    assert.equal(t.current(), 4);
+  } finally {
+    t.close();
   }
 });
 

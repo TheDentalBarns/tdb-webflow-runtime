@@ -89,6 +89,7 @@
       painted = '',
       shownFraction = 0,
       animation = null,
+      entryIndex = null,
       lenis = null,
       unbindLenis = null,
       releaseChrome = null;
@@ -158,13 +159,16 @@
       const cardBox = layout.getBoundingClientRect(),
         wheelBox = art.getBoundingClientRect(),
         contentBox = content.getBoundingClientRect(),
-        centreBox = centre?.getBoundingClientRect(),
+        centreBox =
+          centre && getComputedStyle(centre).display !== 'none'
+            ? centre.getBoundingClientRect()
+            : null,
         arrowsBox = arrows?.getBoundingClientRect(),
         footerBox = footer?.getBoundingClientRect(),
         footerHeight = docked ? Math.max(footerBox.height, arrowsBox?.height || 0) : 0,
         layoutStyle = getComputedStyle(layout),
         bottomPadding = parseFloat(layoutStyle.paddingBottom) || 0,
-        footerSpace = docked ? footerHeight : 0,
+        footerSpace = docked && centreBox ? footerHeight : 0,
         viewport = window.visualViewport,
         height = Math.min(innerHeight, viewport?.height || innerHeight),
         stableHeight =
@@ -176,7 +180,10 @@
         bodyTop = docked
           ? contentBox.top - cardBox.top
           : Math.min(centreBox?.top ?? contentBox.top, contentBox.top) - cardBox.top - cardShift,
-        centreBottom = (centreBox?.bottom ?? wheelBox.bottom) - cardBox.top - cardShift,
+        centreBottom =
+          (centreBox?.bottom ?? (docked ? footerBox.bottom : wheelBox.bottom)) -
+          cardBox.top -
+          cardShift,
         bodyBottom = docked
           ? centreBottom
           : Math.max(contentBox.bottom, centreBox?.bottom || 0, arrowsBox?.bottom || 0) -
@@ -210,8 +217,8 @@
       const oldPinTop = pinTop;
       const margin = layoutStyle.marginBottom;
       stageHeight = stableHeight;
-      // The native seven-row grid centres the body between equal header/footer
-      // rows. Legacy layouts alone need a paint offset; never translate the grid.
+      // Native flexible rows centre the heading, copy and CTA. Legacy layouts
+      // alone need a paint offset; never translate the authored grid.
       cardShift =
         horizontal && !docked
           ? offset +
@@ -270,10 +277,9 @@
       if (!enabled) {
         const wheelBox = art.getBoundingClientRect();
         const headerBottom = horizontal
-          ? Math.max(
-              centre?.getBoundingClientRect().bottom || wheelBox.bottom,
-              docked ? footer.getBoundingClientRect().bottom : 0,
-            )
+          ? docked
+            ? layout.getBoundingClientRect().bottom
+            : centre?.getBoundingClientRect().bottom || wheelBox.bottom
           : wheelBox.bottom;
         clearChrome(wheelBox.width > 0 && wheelBox.top < viewHeight && headerBottom > 0);
         if (canArm && wheelBox.top >= (horizontal ? 0 : innerWidth * 0.05)) measure();
@@ -282,9 +288,23 @@
       // is derived from this one track rect and the cached dimensions.
       const trackTop = enabled ? track.getBoundingClientRect().top + window.scrollY : 0;
       if (enabled) start = trackTop - pinTop;
-      if (window.TDBScrollLock?.active || root.closest('[inert]')) {
+      const blocked = window.TDBScrollLock?.active || root.closest('[inert]');
+      if (blocked) {
         animation = null;
         rotationPending = false;
+      }
+      // A choice made above the strip has already completed that chapter.
+      // Join its divider only on entry, preserving any native scroll overshoot.
+      // Keep this intent separate from animation, which finger input may cancel.
+      if (enabled && entryIndex !== null && !blocked) {
+        const progress = window.scrollY - start;
+        if (progress >= runway - 1) entryIndex = null;
+        else if (progress >= -1) {
+          animation = null;
+          scrollTo(start + (entryIndex + 1) * distance + Math.max(0, progress));
+          paintProgress((entryIndex + 1) / 5);
+          entryIndex = null;
+        }
       }
       const destination = animation?.index;
       if (rotationPending && enabled) {
@@ -409,6 +429,10 @@
         if (window.TDBScrollLock?.active || root.closest('[inert]')) return;
         const linked =
           enabled && window.scrollY >= start - 1 && window.scrollY <= start + runway + 1;
+        entryIndex =
+          !linked && art.getBoundingClientRect().top > (horizontal ? 0 : innerWidth * 0.05)
+            ? index
+            : null;
         lastIndex = index;
         animation = {
           index,

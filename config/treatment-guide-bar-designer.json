@@ -100,7 +100,8 @@
       "grid-row-end": "6",
       "align-self": "start",
       "justify-self": "center",
-      "margin": "0px"
+      "margin": "0px",
+      "display": "none"
     },
     "treatment-guide_centre-icon": {
       "width": "4rem",
@@ -113,8 +114,8 @@
     "treatment-guide_rim": {
       "left": "0px",
       "right": "0px",
-      "top": "0px",
-      "bottom": "auto",
+      "top": "auto",
+      "bottom": "0px",
       "height": "5px",
       "border-top-left-radius": "0px",
       "border-top-right-radius": "0px",
@@ -127,7 +128,7 @@
       "grid-column-start": "1",
       "grid-column-end": "2",
       "grid-row-start": "3",
-      "grid-row-end": "7",
+      "grid-row-end": "6",
       "padding-left": "0px",
       "padding-top": "0px",
       "border-left-width": "0px",
@@ -139,13 +140,17 @@
     "treatment-guide_arrows": {
       "grid-column-start": "1",
       "grid-column-end": "2",
-      "grid-row-start": "6",
+      "grid-row-start": "2",
       "grid-row-end": "7",
-      "height": "6rem",
+      "height": "3rem",
       "align-items": "center",
       "box-sizing": "border-box",
-      "padding-bottom": "env(safe-area-inset-bottom, 0px)",
-      "align-self": "end"
+      "padding-bottom": "0px",
+      "align-self": "center",
+      "justify-self": "stretch",
+      "width": "100%",
+      "justify-content": "space-between",
+      "pointer-events": "none"
     },
     "treatment-guide_arch-body": {
       "top": "6rem",
@@ -183,14 +188,14 @@
     },
     "treatment-guide_details": {
       "padding-top": "0px",
-      "grid-row-start": "4",
-      "height": "6rem",
+      "grid-row-start": "3",
+      "height": "4rem",
       "display": "flex",
       "align-items": "center",
-      "justify-content": "flex-start",
+      "justify-content": "center",
       "box-sizing": "border-box",
-      "padding-bottom": "env(safe-area-inset-bottom, 0px)",
-      "align-self": "end"
+      "padding-bottom": "0px",
+      "align-self": "center"
     },
     "treatment-guide_title": {
       "text-align": "center"
@@ -198,11 +203,14 @@
     "treatment-guide_summary": {
       "text-align": "center",
       "margin-bottom": "7rem",
-      "grid-row-start": "2"
+      "grid-row-start": "2",
+      "width": "100%",
+      "max-width": "52rem",
+      "justify-self": "center"
     },
     "treatment-guide_panel": {
       "grid-row-start": "1",
-      "grid-row-end": "5"
+      "grid-row-end": "4"
     },
     "treatment-guide_title-clip": {
       "width": "100%",
@@ -241,14 +249,13 @@
     "treatment-guide_intro-heading": {
       "margin-top": "0px",
       "margin-bottom": "0px"
+    },
+    "treatment-guide_nav": {
+      "pointer-events": "auto"
     }
   },
   "repeatAtBreakpoints": {
-    "breakpoints": [
-      "medium",
-      "small",
-      "tiny"
-    ],
+    "breakpoints": ["medium", "small", "tiny"],
     "styles": [
       "treatment-guide_layout",
       "treatment-guide_wheel",
@@ -272,57 +279,26 @@
       "treatment-guide_chapter-number"
     ]
   },
-  "preserved": "CMS bindings, native tabs/details, title/blurb/icon order, 5vw side margins, scroll progress, drawer and touch navigation.",
+  "preserved": "CMS bindings, native tabs/details, 5vw side margins, shared heading/copy and small CTA icon animations, scroll progress, drawer and touch navigation.",
   "runtime": "Native layout reserves space; bar.js owns only number emphasis, selection and pointer gestures. scroll.js owns sticky enhancement and linear progress, sampling the heading animation for manual chapter changes.",
   "comboStyleParents": {
-    "is-chapter-1": [
-      "treatment-guide_choice"
-    ],
-    "is-chapter-2": [
-      "treatment-guide_choice"
-    ],
-    "is-chapter-3": [
-      "treatment-guide_choice"
-    ],
-    "is-chapter-4": [
-      "treatment-guide_choice"
-    ],
-    "is-chapter-5": [
-      "treatment-guide_choice"
-    ],
-    "treatment-guide_learn-more": [
-      "button",
-      "is-alternate"
-    ],
-    "is-guide-barn": [
-      "treatment-guide_icon-art"
-    ],
-    "treatment-guide_intro-heading": [
-      "heading-style-h2"
-    ]
+    "is-chapter-1": ["treatment-guide_choice"],
+    "is-chapter-2": ["treatment-guide_choice"],
+    "is-chapter-3": ["treatment-guide_choice"],
+    "is-chapter-4": ["treatment-guide_choice"],
+    "is-chapter-5": ["treatment-guide_choice"],
+    "treatment-guide_learn-more": ["button", "is-alternate"],
+    "is-guide-barn": ["treatment-guide_icon-art"],
+    "treatment-guide_intro-heading": ["heading-style-h2"],
+    "treatment-guide_nav": ["carousel-arrow"]
   },
-  "authoringNote": "Designer owns all resting spacing. Desktop has at least 14rem above and below the title/blurb/icon group, matching Services, with the 6rem controls row included in the lower space. Tablet and mobile use an 8rem minimum above/below and 8rem copy gaps. Desktop copy gaps are 7rem. The intro heading uses the same copy gap. Scoped section spacing has no bottom padding, and the card has no negative bottom margin, so charcoal meets the next image. Number size is 1rem on every breakpoint. Runtime may expand the native flexible rows for a viewport that fits the complete card; it never compresses the authored spacing. The uniform orange-2 strip, 5vw side insets, 4rem centre art and CMS bindings remain.",
+  "authoringNote": "Designer owns all resting spacing. Desktop has a minimum 14rem above the heading and below the centred Learn more CTA, with 7rem heading/copy/CTA gaps. Copy uses the same 52rem maximum as the intro. Desktop 3rem arrows sit at the left and right 5vw insets, vertically centred in the charcoal area. Tablet and mobile use 8rem copy gaps and minimum outer spaces; their arrows have a separate 6rem native row before the lower space. The standalone large icon is hidden, retaining its markup for circular rollback; each native CTA occupies its former row and keeps the small artwork ticker. The 5px progress line sits at the bottom of the six-rem number strip, above charcoal. Intro spacing, 1rem numbers, zero outer bottom padding and flush image boundary are preserved. Runtime only expands flexible rows when the complete card fits the viewport.",
   "removedComboProperties": {
-    "is-chapter-1": [
-      "left",
-      "top"
-    ],
-    "is-chapter-2": [
-      "left",
-      "top"
-    ],
-    "is-chapter-3": [
-      "left",
-      "top"
-    ],
-    "is-chapter-4": [
-      "left",
-      "top"
-    ],
-    "is-chapter-5": [
-      "left",
-      "top"
-    ]
+    "is-chapter-1": ["left", "top"],
+    "is-chapter-2": ["left", "top"],
+    "is-chapter-3": ["left", "top"],
+    "is-chapter-4": ["left", "top"],
+    "is-chapter-5": ["left", "top"]
   },
   "breakpointOverrides": {
     "medium": {
@@ -332,34 +308,47 @@
       },
       "treatment-guide_summary": {
         "margin-bottom": "8rem",
-        "grid-row-start": "2"
+        "grid-row-start": "2",
+        "width": "100%",
+        "max-width": "52rem",
+        "justify-self": "center"
       },
       "treatment-guide_layout": {
-        "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem minmax(8rem,1fr)",
+        "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem 6rem minmax(8rem,1fr)",
         "row-gap": "0px",
         "padding-bottom": "0px",
         "margin-bottom": "0px"
       },
       "treatment-guide_content": {
         "grid-row-start": "3",
-        "grid-row-end": "7"
+        "grid-row-end": "6"
       },
       "treatment-guide_panel": {
         "grid-row-start": "1",
-        "grid-row-end": "5"
+        "grid-row-end": "4"
       },
       "treatment-guide_centre": {
         "grid-row-start": "5",
-        "grid-row-end": "6"
+        "grid-row-end": "6",
+        "display": "none"
       },
       "treatment-guide_arrows": {
         "grid-row-start": "6",
         "grid-row-end": "7",
-        "align-self": "end"
+        "align-self": "center",
+        "justify-self": "end",
+        "width": "auto",
+        "height": "6rem",
+        "justify-content": "flex-end",
+        "padding-bottom": "0px",
+        "pointer-events": "none"
       },
       "treatment-guide_details": {
-        "grid-row-start": "4",
-        "align-self": "end"
+        "grid-row-start": "3",
+        "align-self": "center",
+        "height": "4rem",
+        "justify-content": "center",
+        "padding-bottom": "0px"
       },
       "is-guide-barn": {
         "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
@@ -370,6 +359,13 @@
       },
       "treatment-guide_intro-title-gap": {
         "margin-bottom": "8rem"
+      },
+      "treatment-guide_rim": {
+        "top": "auto",
+        "bottom": "0px"
+      },
+      "treatment-guide_nav": {
+        "pointer-events": "auto"
       }
     },
     "small": {
@@ -379,34 +375,47 @@
       },
       "treatment-guide_summary": {
         "margin-bottom": "8rem",
-        "grid-row-start": "2"
+        "grid-row-start": "2",
+        "width": "100%",
+        "max-width": "52rem",
+        "justify-self": "center"
       },
       "treatment-guide_layout": {
-        "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem minmax(8rem,1fr)",
+        "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem 6rem minmax(8rem,1fr)",
         "row-gap": "0px",
         "padding-bottom": "0px",
         "margin-bottom": "0px"
       },
       "treatment-guide_content": {
         "grid-row-start": "3",
-        "grid-row-end": "7"
+        "grid-row-end": "6"
       },
       "treatment-guide_panel": {
         "grid-row-start": "1",
-        "grid-row-end": "5"
+        "grid-row-end": "4"
       },
       "treatment-guide_centre": {
         "grid-row-start": "5",
-        "grid-row-end": "6"
+        "grid-row-end": "6",
+        "display": "none"
       },
       "treatment-guide_arrows": {
         "grid-row-start": "6",
         "grid-row-end": "7",
-        "align-self": "end"
+        "align-self": "center",
+        "justify-self": "end",
+        "width": "auto",
+        "height": "6rem",
+        "justify-content": "flex-end",
+        "padding-bottom": "0px",
+        "pointer-events": "none"
       },
       "treatment-guide_details": {
-        "grid-row-start": "4",
-        "align-self": "end"
+        "grid-row-start": "3",
+        "align-self": "center",
+        "height": "4rem",
+        "justify-content": "center",
+        "padding-bottom": "0px"
       },
       "is-guide-barn": {
         "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
@@ -417,6 +426,13 @@
       },
       "treatment-guide_intro-title-gap": {
         "margin-bottom": "8rem"
+      },
+      "treatment-guide_rim": {
+        "top": "auto",
+        "bottom": "0px"
+      },
+      "treatment-guide_nav": {
+        "pointer-events": "auto"
       }
     },
     "tiny": {
@@ -426,34 +442,47 @@
       },
       "treatment-guide_summary": {
         "margin-bottom": "8rem",
-        "grid-row-start": "2"
+        "grid-row-start": "2",
+        "width": "100%",
+        "max-width": "52rem",
+        "justify-self": "center"
       },
       "treatment-guide_layout": {
-        "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem minmax(8rem,1fr)",
+        "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem 6rem minmax(8rem,1fr)",
         "row-gap": "0px",
         "padding-bottom": "0px",
         "margin-bottom": "0px"
       },
       "treatment-guide_content": {
         "grid-row-start": "3",
-        "grid-row-end": "7"
+        "grid-row-end": "6"
       },
       "treatment-guide_panel": {
         "grid-row-start": "1",
-        "grid-row-end": "5"
+        "grid-row-end": "4"
       },
       "treatment-guide_centre": {
         "grid-row-start": "5",
-        "grid-row-end": "6"
+        "grid-row-end": "6",
+        "display": "none"
       },
       "treatment-guide_arrows": {
         "grid-row-start": "6",
         "grid-row-end": "7",
-        "align-self": "end"
+        "align-self": "center",
+        "justify-self": "end",
+        "width": "auto",
+        "height": "6rem",
+        "justify-content": "flex-end",
+        "padding-bottom": "0px",
+        "pointer-events": "none"
       },
       "treatment-guide_details": {
-        "grid-row-start": "4",
-        "align-self": "end"
+        "grid-row-start": "3",
+        "align-self": "center",
+        "height": "4rem",
+        "justify-content": "center",
+        "padding-bottom": "0px"
       },
       "is-guide-barn": {
         "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
@@ -464,6 +493,13 @@
       },
       "treatment-guide_intro-title-gap": {
         "margin-bottom": "8rem"
+      },
+      "treatment-guide_rim": {
+        "top": "auto",
+        "bottom": "0px"
+      },
+      "treatment-guide_nav": {
+        "pointer-events": "auto"
       }
     }
   },
@@ -471,18 +507,11 @@
     "centreParent": "treatment-guide_layout",
     "centreAfter": "treatment-guide_dial-art",
     "centreBefore": "treatment-guide_arrows",
-    "reason": "Icon shares the card grid below title and summary; all existing icon ticker children are preserved.",
+    "reason": "Legacy centre artwork remains hidden for rollback. The native pane CTA now shares the title and summary subgrid; desktop arrows span the charcoal rows, mobile arrows retain their own row.",
     "styleAssignments": {
-      "5a45f055-97a1-453d-701b-d71c77ed23ef": [
-        "treatment-guide_section-spacing"
-      ],
-      "9a5c4e2d-695b-7f3e-16c1-dffa405f48cd": [
-        "treatment-guide_intro-title-gap"
-      ],
-      "9a5c4e2d-695b-7f3e-16c1-dffa405f48cc": [
-        "heading-style-h2",
-        "treatment-guide_intro-heading"
-      ]
+      "5a45f055-97a1-453d-701b-d71c77ed23ef": ["treatment-guide_section-spacing"],
+      "9a5c4e2d-695b-7f3e-16c1-dffa405f48cd": ["treatment-guide_intro-title-gap"],
+      "9a5c4e2d-695b-7f3e-16c1-dffa405f48cc": ["heading-style-h2", "treatment-guide_intro-heading"]
     }
   }
 }
