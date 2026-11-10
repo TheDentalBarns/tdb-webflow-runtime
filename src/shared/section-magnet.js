@@ -53,6 +53,7 @@
   function blocked() {
     if (
       document.hidden ||
+      window.TDBSmoothScroll?.nativeAutoscroll ||
       !desktop.matches ||
       reduced.matches ||
       document.documentElement.matches('.w-editor,.tdb-sg-locked,.tdb-sg-chrome-away') ||
@@ -185,7 +186,12 @@
   function input(event) {
     // Keep phone/tablet scrolling native, including landscape. A touch on a
     // hybrid laptop also cancels the desktop spring without arming a return.
-    if (!desktop.matches || event.type === 'touchstart' || event.pointerType === 'touch') {
+    if (
+      !desktop.matches ||
+      window.TDBSmoothScroll?.nativeAutoscroll ||
+      event.type === 'touchstart' ||
+      event.pointerType === 'touch'
+    ) {
       reset(true);
       return;
     }

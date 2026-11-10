@@ -7,6 +7,7 @@ module.exports = {
     'src/shared/modules.js',
     'src/loaders/hold-audio-loader.js',
     'src/reviews/native/summary-visibility.js',
+    'src/startup/smooth-scroll.js',
     'src/startup/start.js',
   ],
   'dist/tdb-foundation.js': [
@@ -117,7 +118,6 @@ module.exports = {
     'src/vip-drawer/loader.js',
     'src/runtime/deferred-ui.js',
     'src/sliders/loader.js',
-    'src/runtime/smooth-scroll.js',
     'src/runtime/footer-date.js',
     'src/shared/carousel-arrow-feedback.js',
     'src/forms/loader.js',

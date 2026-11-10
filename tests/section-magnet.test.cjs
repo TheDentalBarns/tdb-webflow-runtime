@@ -117,6 +117,17 @@ function fixture({
   };
 }
 
+test('middle-button native autoscroll never arms a section correction', () => {
+  const f = fixture({ lenis: true });
+  try {
+    f.w.TDBSmoothScroll = { nativeAutoscroll: true };
+    f.gesture(800, 950);
+    for (let i=0;i<20;i++) f.advance(100);
+    assert.equal(f.writes.length, 0);
+    assert.equal(f.focuses.length, 0);
+  } finally { f.w.close(); }
+});
+
 test('centres from either direction with the native or Lenis scroll owner', () => {
   for (const lenis of [false, true])
     for (const [from, to] of [

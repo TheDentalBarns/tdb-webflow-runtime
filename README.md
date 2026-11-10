@@ -32,6 +32,7 @@ The agreed validation target is staging Home. Other pages with legacy custom cod
 | Stage | Owner | Gate |
 | --- | --- | --- |
 | Release root, motion policy, dependency registry | `tdb-start.min.js` | One deferred footer entry |
+| Desktop smooth scrolling | Entry-owned Lenis loader | Immediate; no consent, font, load or idle gate. Native middle-button autoscroll takes priority. |
 | Scroll lock, consent, essential navbar | `tdb-foundation.js` | Immediately when the DOM is ready; no font, animation-frame or settling timer gate |
 | Shared runtime and lightweight launchers | `tdb-runtime.js` | Existing cookie decision and closed banner; idle turns retained |
 | Carousels, reviews, IG, tooltips, forms, VIP | Feature modules | Existing proximity, visibility, consent and intent gates |
