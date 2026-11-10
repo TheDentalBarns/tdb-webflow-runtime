@@ -28,58 +28,7 @@
   function unique(values) {
     return [...new Set((values || []).filter(Boolean))];
   }
-  function safeDecode(value) {
-    try {
-      return decodeURIComponent(value);
-    } catch {
-      return value;
-    }
-  }
-  function normaliseCategories(value, action) {
-    let categories = value;
-    if (typeof categories === 'string') {
-      try {
-        categories = JSON.parse(categories);
-      } catch {
-        categories = categories.split(',');
-      }
-    }
-    if (!Array.isArray(categories)) categories = [];
-    categories = unique(categories.map(String));
-    if (action === 'accept' && categories.length === 0) categories = ALL_CATEGORIES.slice();
-    if (!categories.includes('strict')) categories.push('strict');
-    return categories;
-  }
-  function readDecision() {
-    const row = document.cookie.split('; ').find((item) => item.startsWith(`${COOKIE_NAME}=`));
-    if (!row)
-      return {
-        action: undefined,
-        categories: STRICT_ONLY.slice(),
-      };
-    const raw = row.slice(COOKIE_NAME.length + 1);
-    let data = null;
-    for (const candidate of [raw, safeDecode(raw)]) {
-      try {
-        data = JSON.parse(candidate);
-        break;
-      } catch {}
-    }
-    if (!data || typeof data !== 'object')
-      return {
-        action: undefined,
-        categories: STRICT_ONLY.slice(),
-      };
-    let action = data.action ?? data.a;
-    if (action === 'acceptall') action = 'accept';
-    if (!['accept', 'reject'].includes(action)) action = undefined;
-    const state = {
-      action: action,
-      categories: normaliseCategories(data.categories ?? data.c, action),
-    };
-    if (data.key) state.key = data.key;
-    return state;
-  }
+  const readDecision = window.TDBConsentDecision.read;
   function writeDecision(action, categories) {
     const storedCategories =
         action === 'accept' ? unique(categories.filter((category) => category !== 'strict')) : [],

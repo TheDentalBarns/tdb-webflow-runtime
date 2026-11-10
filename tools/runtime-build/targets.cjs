@@ -7,12 +7,14 @@ module.exports = {
     'src/shared/modules.js',
     'src/loaders/hold-audio-loader.js',
     'src/reviews/native/summary-visibility.js',
+    'src/shared/consent-decision.js',
     'src/startup/smooth-scroll.js',
     'src/startup/start.js',
   ],
   'dist/tdb-foundation.js': [
     'src/shared/content-preconnect.js',
     'src/shared/scroll-lock.js',
+    'src/shared/consent-decision.js',
     'src/consent/banner.js',
     'src/shared/hero-control-motion.js',
     'src/consent/consent.js',
@@ -142,6 +144,7 @@ module.exports = {
   'dist/tdb-consent.min.js': ['src/consent/consent.js'],
   'dist/tdb-consent.js': [
     'src/shared/scroll-lock.js',
+    'src/shared/consent-decision.js',
     'src/consent/banner.js',
     'src/shared/modules.js',
     'src/consent/consent.js',
@@ -201,7 +204,11 @@ module.exports = {
     'src/logo-marquee/logo-marquee.js',
   ],
   'dist/tdb-usp-drawer.js': ['src/usp/drawer.js'],
-  'dist/tdb-consent-startup.min.js': ['src/shared/scroll-lock.js', 'src/consent/banner.js'],
+  'dist/tdb-consent-startup.min.js': [
+    'src/shared/scroll-lock.js',
+    'src/shared/consent-decision.js',
+    'src/consent/banner.js',
+  ],
   'dist/tdb-navbar-loader.js': [
     'src/shared/phone-landscape.js',
     'src/navbar/navbar-state.js',
