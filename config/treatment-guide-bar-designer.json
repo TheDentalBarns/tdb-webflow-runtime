@@ -308,7 +308,7 @@
     "is-guide-barn": ["treatment-guide_icon-art"],
     "treatment-guide_nav": ["carousel-arrow"]
   },
-  "authoringNote": "Designer owns all resting spacing and height. Desktop has a minimum 14rem above the heading and below the centred Learn more CTA, with 7rem heading/copy/CTA gaps; it uses its intrinsic height rather than filling the viewport. Copy uses the same 52rem maximum as the intro. Desktop 3rem arrows sit at the left and right 5vw insets, vertically centred in the charcoal area. Tablet and mobile use a native 100svh minimum, 8rem copy gaps and minimum outer spaces; their arrows have a separate 6rem native row before the lower space. The standalone large icon is hidden, retaining its markup for circular rollback; each native CTA occupies its former row and keeps the small artwork ticker. The 5px progress line sits at the bottom of the six-rem number strip, above charcoal. The introduction uses the shared Services centred-intro layout and heading, with its diamond below the copy; 14rem outer spacing and 7rem gaps on desktop/tablet, 16rem outer spacing and 8rem gaps on phone. One-rem numbers, zero outer bottom padding and the flush image boundary are preserved. Runtime never expands this authored stage; screens shorter than its intrinsic content retain ordinary scrolling.",
+  "authoringNote": "Designer owns all resting spacing and height. Desktop has a minimum 14rem above the heading and below the centred Learn more CTA, with 7rem heading/copy/CTA gaps; it uses its intrinsic height rather than filling the viewport. Copy uses the same 52rem maximum as the intro. Desktop 3rem arrows sit at the left and right 5vw insets, vertically centred in the charcoal area. Tablet and mobile use a native 100svh minimum, 8rem copy gaps and minimum outer spaces; tablet arrows have a separate 6rem native row before the lower space. Phone keeps that spacing but hides the embedded arrows in Designer at small and tiny breakpoints. Drawer arrows remain visible at every breakpoint. The standalone large icon is hidden, retaining its markup for circular rollback; each native CTA occupies its former row and keeps the small artwork ticker. The 5px progress line sits at the bottom of the six-rem number strip, above charcoal. The introduction uses the shared Services centred-intro layout and heading, with its diamond below the copy; 14rem outer spacing and 7rem gaps on desktop/tablet, 16rem outer spacing and 8rem gaps on phone. One-rem numbers, zero outer bottom padding and the flush image boundary are preserved. Runtime never expands this authored stage; screens shorter than its intrinsic content retain ordinary scrolling.",
   "removedComboProperties": {
     "is-chapter-1": ["left", "top"],
     "is-chapter-2": ["left", "top"],
@@ -427,7 +427,8 @@
         "height": "6rem",
         "justify-content": "flex-end",
         "padding-bottom": "0px",
-        "pointer-events": "none"
+        "pointer-events": "none",
+        "display": "none"
       },
       "treatment-guide_details": {
         "grid-row-start": "3",
@@ -496,7 +497,8 @@
         "height": "6rem",
         "justify-content": "flex-end",
         "padding-bottom": "0px",
-        "pointer-events": "none"
+        "pointer-events": "none",
+        "display": "none"
       },
       "treatment-guide_details": {
         "grid-row-start": "3",
@@ -529,7 +531,7 @@
     "centreParent": "treatment-guide_layout",
     "centreAfter": "treatment-guide_dial-art",
     "centreBefore": "treatment-guide_arrows",
-    "reason": "Legacy centre artwork remains hidden for rollback. The native pane CTA now shares the title and summary subgrid; desktop arrows span the charcoal rows, mobile arrows retain their own row.",
+    "reason": "Legacy centre artwork remains hidden for rollback. The native pane CTA now shares the title and summary subgrid; desktop arrows span the charcoal rows, tablet arrows retain their own row; phone keeps the row as spacing while its embedded arrows are hidden.",
     "styleAssignments": {
       "5a45f055-97a1-453d-701b-d71c77ed23ef": ["treatment-guide_section-spacing"],
       "9a5c4e2d-695b-7f3e-16c1-dffa405f48cd": ["treatment-guide_intro-title-gap"],

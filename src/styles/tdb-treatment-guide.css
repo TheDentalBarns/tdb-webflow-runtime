@@ -74,7 +74,6 @@
 [data-tdb-guide-shell] .tdb-usp_copy a{text-decoration:underline;text-underline-offset:.2em}
 @media screen and (max-width:767px){
   [data-tdb-guide-shell] .tdb-drawer_panel{width:100%;max-width:100%;min-width:0}
-  [data-tdb-guide-shell] .tdb-usp_arrows{display:none}
   [data-tdb-guide-shell] .tdb-usp_brand{column-gap:1.25rem;padding:0}
   [data-tdb-guide-shell] .tdb-guide_treatment,[data-tdb-guide-shell] .tdb-usp_title{font-size:.9rem}
   [data-tdb-guide-shell] .tdb-usp_slide{padding-top:calc(12rem + env(safe-area-inset-top,0px))}
