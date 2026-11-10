@@ -64,7 +64,8 @@
 [data-tdb-guide-shell] .tdb-guide_static-intro{position:relative;height:11rem;padding:1.5rem 0;background:var(--base-color-brand--orange-1);pointer-events:none}
 [data-tdb-guide-shell] .tdb-guide_static-intro.is-stationary{position:absolute;top:calc(12rem + env(safe-area-inset-top,0px));left:0;right:0;padding-left:2.5rem;padding-right:2.5rem}
 [data-tdb-guide-shell] .tdb-guide_intro-card{height:8rem;display:flex;align-items:center;justify-content:center;padding:0 1.25rem;overflow:hidden}
-[data-tdb-guide-shell] .tdb-guide_static-mark{display:flex;align-items:center;justify-content:center;color:var(--base-color-brand--black,#000);flex-shrink:0}
+/* Match the USP icons' combined image and wrapper opacity (0.5 x 0.5). */
+[data-tdb-guide-shell] .tdb-guide_static-mark{display:flex;align-items:center;justify-content:center;color:var(--base-color-brand--black,#000);opacity:.25;flex-shrink:0}
 [data-tdb-guide-shell] .tdb-guide_icon-slot{position:relative;display:block;width:5rem;height:5rem;flex-shrink:0;overflow:hidden}
 [data-tdb-guide-shell] .tdb-guide_icon-value,[data-tdb-guide-shell] .tdb-guide_icon-incoming{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
 [data-tdb-guide-shell] .tdb-guide_icon-art{display:block;width:100%;height:100%;background:currentColor;-webkit-mask:var(--tdb-guide-artwork) center/contain no-repeat;mask:var(--tdb-guide-artwork) center/contain no-repeat}
