@@ -23,7 +23,7 @@
       "border-left-width": "0px",
       "isolation": "isolate",
       "margin-top": "0px",
-      "grid-template-rows": "6rem minmax(14rem,1fr) auto auto 4rem minmax(8rem,1fr) 6rem",
+      "grid-template-rows": "6rem minmax(14rem,1fr) auto auto 4rem minmax(14rem,1fr)",
       "padding-bottom": "0px",
       "margin-bottom": "0px"
     },
@@ -127,7 +127,7 @@
       "grid-column-start": "1",
       "grid-column-end": "2",
       "grid-row-start": "3",
-      "grid-row-end": "8",
+      "grid-row-end": "7",
       "padding-left": "0px",
       "padding-top": "0px",
       "border-left-width": "0px",
@@ -139,12 +139,13 @@
     "treatment-guide_arrows": {
       "grid-column-start": "1",
       "grid-column-end": "2",
-      "grid-row-start": "7",
-      "grid-row-end": "8",
+      "grid-row-start": "6",
+      "grid-row-end": "7",
       "height": "6rem",
       "align-items": "center",
       "box-sizing": "border-box",
-      "padding-bottom": "env(safe-area-inset-bottom, 0px)"
+      "padding-bottom": "env(safe-area-inset-bottom, 0px)",
+      "align-self": "end"
     },
     "treatment-guide_arch-body": {
       "top": "6rem",
@@ -182,13 +183,14 @@
     },
     "treatment-guide_details": {
       "padding-top": "0px",
-      "grid-row-start": "5",
+      "grid-row-start": "4",
       "height": "6rem",
       "display": "flex",
       "align-items": "center",
       "justify-content": "flex-start",
       "box-sizing": "border-box",
-      "padding-bottom": "env(safe-area-inset-bottom, 0px)"
+      "padding-bottom": "env(safe-area-inset-bottom, 0px)",
+      "align-self": "end"
     },
     "treatment-guide_title": {
       "text-align": "center"
@@ -200,7 +202,7 @@
     },
     "treatment-guide_panel": {
       "grid-row-start": "1",
-      "grid-row-end": "6"
+      "grid-row-end": "5"
     },
     "treatment-guide_title-clip": {
       "width": "100%",
@@ -333,29 +335,31 @@
         "grid-row-start": "2"
       },
       "treatment-guide_layout": {
-        "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem minmax(2rem,1fr) 6rem",
+        "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem minmax(8rem,1fr)",
         "row-gap": "0px",
         "padding-bottom": "0px",
         "margin-bottom": "0px"
       },
       "treatment-guide_content": {
         "grid-row-start": "3",
-        "grid-row-end": "8"
+        "grid-row-end": "7"
       },
       "treatment-guide_panel": {
         "grid-row-start": "1",
-        "grid-row-end": "6"
+        "grid-row-end": "5"
       },
       "treatment-guide_centre": {
         "grid-row-start": "5",
         "grid-row-end": "6"
       },
       "treatment-guide_arrows": {
-        "grid-row-start": "7",
-        "grid-row-end": "8"
+        "grid-row-start": "6",
+        "grid-row-end": "7",
+        "align-self": "end"
       },
       "treatment-guide_details": {
-        "grid-row-start": "5"
+        "grid-row-start": "4",
+        "align-self": "end"
       },
       "is-guide-barn": {
         "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
@@ -378,29 +382,31 @@
         "grid-row-start": "2"
       },
       "treatment-guide_layout": {
-        "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem minmax(2rem,1fr) 6rem",
+        "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem minmax(8rem,1fr)",
         "row-gap": "0px",
         "padding-bottom": "0px",
         "margin-bottom": "0px"
       },
       "treatment-guide_content": {
         "grid-row-start": "3",
-        "grid-row-end": "8"
+        "grid-row-end": "7"
       },
       "treatment-guide_panel": {
         "grid-row-start": "1",
-        "grid-row-end": "6"
+        "grid-row-end": "5"
       },
       "treatment-guide_centre": {
         "grid-row-start": "5",
         "grid-row-end": "6"
       },
       "treatment-guide_arrows": {
-        "grid-row-start": "7",
-        "grid-row-end": "8"
+        "grid-row-start": "6",
+        "grid-row-end": "7",
+        "align-self": "end"
       },
       "treatment-guide_details": {
-        "grid-row-start": "5"
+        "grid-row-start": "4",
+        "align-self": "end"
       },
       "is-guide-barn": {
         "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
@@ -423,29 +429,31 @@
         "grid-row-start": "2"
       },
       "treatment-guide_layout": {
-        "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem minmax(2rem,1fr) 6rem",
+        "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem minmax(8rem,1fr)",
         "row-gap": "0px",
         "padding-bottom": "0px",
         "margin-bottom": "0px"
       },
       "treatment-guide_content": {
         "grid-row-start": "3",
-        "grid-row-end": "8"
+        "grid-row-end": "7"
       },
       "treatment-guide_panel": {
         "grid-row-start": "1",
-        "grid-row-end": "6"
+        "grid-row-end": "5"
       },
       "treatment-guide_centre": {
         "grid-row-start": "5",
         "grid-row-end": "6"
       },
       "treatment-guide_arrows": {
-        "grid-row-start": "7",
-        "grid-row-end": "8"
+        "grid-row-start": "6",
+        "grid-row-end": "7",
+        "align-self": "end"
       },
       "treatment-guide_details": {
-        "grid-row-start": "5"
+        "grid-row-start": "4",
+        "align-self": "end"
       },
       "is-guide-barn": {
         "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
