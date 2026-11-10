@@ -46,6 +46,7 @@
     "dist/tdb-start.min.js",
     "dist/tdb-swiper-8.4.7.min.js",
     "dist/tdb-ticker.js",
+    "dist/tdb-treatment-guide-bar.js",
     "dist/tdb-treatment-guide-wheel.js",
     "dist/tdb-treatment-guide-drawer.js",
     "dist/tdb-tooltips.js",

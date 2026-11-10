@@ -519,7 +519,10 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
     if (!layout || !art || !content) return null;
     const events = new AbortController(),
       { signal } = events,
-      reduced = matchMedia('(prefers-reduced-motion: reduce)'),
+      reduced =
+        window.TDBMotion?.reduced ||
+        window.TDBMotionPolicy?.reduced ||
+        matchMedia('(prefers-reduced-motion: reduce)'),
       coarse = matchMedia('(pointer: coarse)'),
       track = document.createElement('div');
     track.className = 'tdb-guide-scroll-track';
@@ -686,23 +689,22 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
             cardShift,
         bodyHeight = bodyBottom - bodyTop,
         needed = horizontal
-          ? wheelBox.height + bodyHeight + footerSpace + 24
+          ? Math.max(
+              wheelBox.height + bodyHeight + footerSpace + 24,
+              docked ? cardBox.height - bottomPadding : 0,
+            )
           : Math.max(wheelBox.bottom, contentBox.bottom) - wheelBox.top + gap + 12;
       const nextRadius = Math.max(0, wheelBox.width / 2 - 2.5);
       if (arc && !horizontal && nextRadius !== radius) {
         radius = nextRadius;
         arc.setAttribute('r', String(radius));
       }
-      const eligible =
-        wheelBox.width > 0 &&
-        !reduced.matches &&
-        !window.TDBMotion?.reduced?.matches &&
-        (!viewport || viewport.scale <= 1);
+      const eligible = wheelBox.width > 0 && !reduced.matches && (!viewport || viewport.scale <= 1);
       // Mobile browser bars resize only the viewport height. Keep the established
       // range; removing/reinserting it mid-swipe moves every following section.
       const fits =
         eligible &&
-        (needed <= stableHeight || (enabled && coarse.matches && measuredWidth === innerWidth));
+        (needed <= stableHeight + 1 || (enabled && coarse.matches && measuredWidth === innerWidth));
       canArm = fits;
       measuredWidth = innerWidth;
       if (!fits) return disable();
@@ -798,12 +800,11 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
         animation.elapsed += ms;
         animation.last = now;
         const timing = animation.travel?.effect.getComputedTiming();
-        const fraction =
-          reduced.matches || window.TDBMotion?.reduced?.matches
-            ? 1
-            : timing?.localTime != null
-              ? Math.min(1, timing.localTime / timing.endTime)
-              : Math.min(1, animation.elapsed / animation.duration);
+        const fraction = reduced.matches
+          ? 1
+          : timing?.localTime != null
+            ? Math.min(1, timing.localTime / timing.endTime)
+            : Math.min(1, animation.elapsed / animation.duration);
         const ease =
           fraction === 1 ? 1 : (timing?.progress ?? (1 - Math.cos(Math.PI * fraction)) / 2);
         const value = animation.from + (animation.to - animation.from) * ease;

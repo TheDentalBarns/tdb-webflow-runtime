@@ -20,6 +20,44 @@ test('native chapter disclosure remains available when enhancement is not permit
   w.TDBTreatmentGuideLoader.destroy();
   w.close();
 });
+test('the loader selects the native strip without downloading the circular controller', async () => {
+  for (const horizontal of [true, false]) {
+    const dom = new JSDOM(
+      `<section data-tdb-guide><div class="treatment-guide_dial-art" style="aspect-ratio:${horizontal ? 'auto' : '1'}"></div></section>`,
+      { runScripts: 'outside-only' },
+    );
+    const w = dom.window,
+      requested = [],
+      mounted = [];
+    w.TDBFeatureLoading = { watchIntent() {} };
+    w.TDBRuntimeModuleRoot = 'https://example.org/dist/';
+    w.TDBModules = { load: async (url) => requested.push(new URL(url).pathname.split('/').pop()) };
+    for (const name of ['Bar', 'Wheel'])
+      w['TDBTreatmentGuide' + name] = {
+        mount() {
+          mounted.push(name);
+          return { destroy() {} };
+        },
+      };
+    w.eval(read('src/runtime/treatment-guide-loader.js'));
+    w.prepareTreatmentGuideLoader();
+    try {
+      await w.TDBTreatmentGuideLoader.wheel(w.document.querySelector('section'));
+      const expected = horizontal ? 'bar' : 'wheel';
+      assert.deepEqual(mounted, [horizontal ? 'Bar' : 'Wheel']);
+      assert.ok(requested.includes(`tdb-treatment-guide-${expected}.js`));
+      assert.equal(
+        requested.includes(`tdb-treatment-guide-${horizontal ? 'wheel' : 'bar'}.js`),
+        false,
+      );
+      assert.equal(requested.includes('tdb-treatment-guide-drawer.js'), false);
+    } finally {
+      w.TDBTreatmentGuideLoader.destroy();
+      w.close();
+    }
+  }
+});
+
 test('rounded wedge masks reproduce from their colour-free source', () => {
   require('node:child_process').execFileSync(process.execPath, [
     __dirname + '/../tools/runtime-build/build-guide-pressure.cjs',

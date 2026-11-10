@@ -20,7 +20,11 @@ function setup(options = {}) {
   reduced.matches = !!options.reduced;
   w.matchMedia = (query) =>
     query === '(pointer: coarse)' ? { matches: !!options.coarse } : reduced;
-  w.TDBMotion = { reduced: { matches: false } };
+  w.TDBMotion = { reduced };
+  if (options.fullMotion) {
+    w.eval(fs.readFileSync(__dirname + '/../src/shared/motion-policy.js', 'utf8'));
+    w.TDBMotion.reduced = w.TDBMotionPolicy.reduced;
+  }
   w.TDBScrollLock = { active: false };
   let owners = 0,
     active = 0,
@@ -94,7 +98,9 @@ function setup(options = {}) {
       root
         .querySelector('.tdb-guide-scroll-track')
         ?.style.getPropertyValue('--tdb-guide-stage-height'),
-    ) || 516;
+    ) ||
+    options.naturalHeight ||
+    516;
   const gridBodyTop = () => (gridStage() - 300) / 2;
   layout.getBoundingClientRect = () => ({
     top: cardTop(),
@@ -186,6 +192,43 @@ function setup(options = {}) {
     },
   };
 }
+
+test('the shared full-motion policy keeps strip pinning and heading-synchronised progress on reduced-motion devices', () => {
+  const t = setup({ horizontal: true, docked: true, reduced: true, fullMotion: true });
+  try {
+    assert.equal(t.reduced.matches, true, 'the browser preference remains unchanged');
+    assert.equal(t.api.enabled, true, 'the owner-approved shared policy controls enhancement');
+    t.move(1000);
+    t.tick();
+    assert.equal(t.api.pinned, true);
+    const timing = { localTime: 250, endTime: 500, progress: 0.4 };
+    t.setIndex(3, { effect: { getComputedTiming: () => timing } });
+    t.tick();
+    const fill = t.root.querySelector('.tdb-guide-linear-progress');
+    assert.ok(Math.abs(parseFloat(fill.style.transform.slice(7)) - 0.32) < 0.00001);
+    Object.assign(timing, { localTime: 500, progress: null });
+    t.tick();
+    assert.equal(parseFloat(fill.style.transform.slice(7)), 0.8);
+  } finally {
+    t.close();
+  }
+});
+
+test('native card spacing must fit before pinning so its controls remain reachable', () => {
+  const t = setup({ horizontal: true, docked: true, naturalHeight: 900, height: 844 });
+  try {
+    assert.equal(t.api.enabled, false);
+    assert.equal(t.track.style.height, '');
+    t.setIndex(2);
+    t.tick(40);
+    assert.equal(
+      parseFloat(t.root.querySelector('.tdb-guide-linear-progress').style.transform.slice(7)),
+      0.6,
+    );
+  } finally {
+    t.close();
+  }
+});
 
 test('horizontal progress uses the same scroll endpoints and animates five back to one', () => {
   const t = setup({ horizontal: true });
@@ -444,11 +487,15 @@ test('manual progress follows the heading animation phase through forward, rever
   for (const linked of [true, false]) {
     const t = setup({ horizontal: true });
     try {
-      if (linked) { t.move(1020 + 312); t.tick(); }
+      if (linked) {
+        t.move(1020 + 312);
+        t.tick();
+      }
       const fill = t.root.querySelector('.tdb-guide-linear-progress');
       const fraction = () => parseFloat(fill.style.transform.slice(7));
       for (const index of [3, 0]) {
-        const from = fraction(), to = (index + 1) / 5;
+        const from = fraction(),
+          to = (index + 1) / 5;
         const timing = { localTime: 0, endTime: 500, progress: 0 };
         t.setIndex(index, { effect: { getComputedTiming: () => timing } });
         t.tick();

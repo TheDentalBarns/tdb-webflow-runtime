@@ -3676,11 +3676,16 @@ function prepareTreatmentGuideLoader() {
     await window.TDBModules.load(new URL('tdb-motion.js', TDBRuntimeModuleRoot));
     await window.TDBModules.load(new URL('tdb-ticker.js', TDBRuntimeModuleRoot));
     await window.TDBModules.load(new URL('tdb-slider-focus.js', TDBRuntimeModuleRoot));
-    await window.TDBModules.load(new URL('tdb-treatment-guide-wheel.js', TDBRuntimeModuleRoot), {
-      ready: () => Boolean(window.TDBTreatmentGuideWheel),
+    const art = root.querySelector('.treatment-guide_dial-art');
+    const horizontal = art && getComputedStyle(art).aspectRatio === 'auto';
+    const controller = () =>
+      horizontal ? window.TDBTreatmentGuideBar : window.TDBTreatmentGuideWheel;
+    const file = horizontal ? 'tdb-treatment-guide-bar.js' : 'tdb-treatment-guide-wheel.js';
+    await window.TDBModules.load(new URL(file, TDBRuntimeModuleRoot), {
+      ready: () => Boolean(controller()),
     });
     if (allowed() && root.isConnected && !owners.has(root))
-      owners.set(root, window.TDBTreatmentGuideWheel.mount(root));
+      owners.set(root, controller().mount(root));
     return owners.get(root);
   }
   async function drawer(root) {

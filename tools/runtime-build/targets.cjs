@@ -84,6 +84,12 @@ module.exports = {
   'dist/tdb-smile-feed.js': ['src/smile-gallery/feed.js'],
   'dist/tdb-instagram-native.min.js': ['src/instagram/native.js'],
   'dist/tdb-ticker.js': ['src/shared/native-ticker.js'],
+  'dist/tdb-treatment-guide-bar.js': [
+    'src/shared/site-chrome.js',
+    'src/treatment-guide/card.js',
+    'src/treatment-guide/scroll.js',
+    'src/treatment-guide/bar.js',
+  ],
   'dist/tdb-treatment-guide-wheel.js': [
     'src/shared/site-chrome.js',
     'src/treatment-guide/card.js',

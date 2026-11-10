@@ -55,7 +55,7 @@
 [data-tdb-guide-shell] .tdb-guide_treatment,[data-tdb-guide-shell] .tdb-usp_title{font-size:1rem;line-height:1.5;font-weight:400;letter-spacing:.06em;text-transform:uppercase;overflow-wrap:break-word;height:4.5em}
 [data-tdb-guide-shell] .tdb-guide_treatment{display:flex;align-items:center;justify-content:flex-end;text-align:right}
 [data-tdb-guide-shell] .tdb-usp_slide{padding-top:calc(12rem + env(safe-area-inset-top,0px))}
-[data-tdb-guide-shell] .tdb-usp_slide-content{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;min-height:0;max-width:34rem;margin:0 auto}
+[data-tdb-guide-shell] .tdb-usp_slide-content{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;min-height:0;max-width:none;margin:0}
 [data-tdb-guide-shell] .tdb-guide_intro-overlay{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none}
 [data-tdb-guide-shell] .tdb-guide_intro-space{height:11rem}
 [data-tdb-guide-shell] .tdb-guide_static-intro{position:relative;height:11rem;padding:1.5rem 0;background:var(--base-color-brand--orange-1);pointer-events:none}

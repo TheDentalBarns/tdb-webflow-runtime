@@ -23,7 +23,9 @@
       "border-left-width": "0px",
       "isolation": "isolate",
       "margin-top": "0px",
-      "grid-template-rows": "6rem minmax(12px,1fr) auto auto 4rem minmax(12px,1fr) 6rem"
+      "grid-template-rows": "6rem minmax(14rem,1fr) auto auto 4rem minmax(8rem,1fr) 6rem",
+      "padding-bottom": "0px",
+      "margin-bottom": "0px"
     },
     "treatment-guide_wheel": {
       "width": "100vw",
@@ -224,7 +226,19 @@
       "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
     },
     "treatment-guide_chapter-number": {
-      "color": "#222222"
+      "color": "#222222",
+      "font-size": "1rem"
+    },
+    "treatment-guide_section-spacing": {
+      "padding-top": "7rem",
+      "padding-bottom": "0px"
+    },
+    "treatment-guide_intro-title-gap": {
+      "margin-bottom": "7rem"
+    },
+    "treatment-guide_intro-heading": {
+      "margin-top": "0px",
+      "margin-bottom": "0px"
     }
   },
   "repeatAtBreakpoints": {
@@ -280,9 +294,12 @@
     ],
     "is-guide-barn": [
       "treatment-guide_icon-art"
+    ],
+    "treatment-guide_intro-heading": [
+      "heading-style-h2"
     ]
   },
-  "authoringNote": "Native grid: equal 6rem header/footer rows, equal flexible spacers, and the title/blurb/4rem icon group centred between them. 5vw side margins and 7rem desktop/8rem mobile copy gaps remain. Existing responsive bottom padding follows the footer outside the pinned viewport. Runtime supplies a stable 100svh stage height; it does not translate the body or controls. Button barn artwork uses the existing small icon; centre and drawer retain the detailed window. The strip uses the marquee orange-2 colour throughout, without segment dividers. Number opacity carries focus; the progress track sits at the strip top.",
+  "authoringNote": "Designer owns all resting spacing. Desktop has at least 14rem above and below the title/blurb/icon group, matching Services, with the 6rem controls row included in the lower space. Tablet and mobile use an 8rem minimum above/below and 8rem copy gaps. Desktop copy gaps are 7rem. The intro heading uses the same copy gap. Scoped section spacing has no bottom padding, and the card has no negative bottom margin, so charcoal meets the next image. Number size is 1rem on every breakpoint. Runtime may expand the native flexible rows for a viewport that fits the complete card; it never compresses the authored spacing. The uniform orange-2 strip, 5vw side insets, 4rem centre art and CMS bindings remain.",
   "removedComboProperties": {
     "is-chapter-1": [
       "left",
@@ -316,8 +333,10 @@
         "grid-row-start": "2"
       },
       "treatment-guide_layout": {
-        "grid-template-rows": "6rem minmax(12px,1fr) auto auto 4rem minmax(12px,1fr) 6rem",
-        "row-gap": "0px"
+        "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem minmax(2rem,1fr) 6rem",
+        "row-gap": "0px",
+        "padding-bottom": "0px",
+        "margin-bottom": "0px"
       },
       "treatment-guide_content": {
         "grid-row-start": "3",
@@ -340,6 +359,13 @@
       },
       "is-guide-barn": {
         "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
+      },
+      "treatment-guide_section-spacing": {
+        "padding-top": "6rem",
+        "padding-bottom": "0px"
+      },
+      "treatment-guide_intro-title-gap": {
+        "margin-bottom": "8rem"
       }
     },
     "small": {
@@ -352,8 +378,10 @@
         "grid-row-start": "2"
       },
       "treatment-guide_layout": {
-        "grid-template-rows": "6rem minmax(12px,1fr) auto auto 4rem minmax(12px,1fr) 6rem",
-        "row-gap": "0px"
+        "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem minmax(2rem,1fr) 6rem",
+        "row-gap": "0px",
+        "padding-bottom": "0px",
+        "margin-bottom": "0px"
       },
       "treatment-guide_content": {
         "grid-row-start": "3",
@@ -376,6 +404,13 @@
       },
       "is-guide-barn": {
         "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
+      },
+      "treatment-guide_section-spacing": {
+        "padding-top": "4rem",
+        "padding-bottom": "0px"
+      },
+      "treatment-guide_intro-title-gap": {
+        "margin-bottom": "8rem"
       }
     },
     "tiny": {
@@ -388,8 +423,10 @@
         "grid-row-start": "2"
       },
       "treatment-guide_layout": {
-        "grid-template-rows": "6rem minmax(12px,1fr) auto auto 4rem minmax(12px,1fr) 6rem",
-        "row-gap": "0px"
+        "grid-template-rows": "6rem minmax(8rem,1fr) auto auto 4rem minmax(2rem,1fr) 6rem",
+        "row-gap": "0px",
+        "padding-bottom": "0px",
+        "margin-bottom": "0px"
       },
       "treatment-guide_content": {
         "grid-row-start": "3",
@@ -412,6 +449,13 @@
       },
       "is-guide-barn": {
         "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
+      },
+      "treatment-guide_section-spacing": {
+        "padding-top": "8rem",
+        "padding-bottom": "0px"
+      },
+      "treatment-guide_intro-title-gap": {
+        "margin-bottom": "8rem"
       }
     }
   },
@@ -419,6 +463,18 @@
     "centreParent": "treatment-guide_layout",
     "centreAfter": "treatment-guide_dial-art",
     "centreBefore": "treatment-guide_arrows",
-    "reason": "Icon shares the card grid below title and summary; all existing icon ticker children are preserved."
+    "reason": "Icon shares the card grid below title and summary; all existing icon ticker children are preserved.",
+    "styleAssignments": {
+      "5a45f055-97a1-453d-701b-d71c77ed23ef": [
+        "treatment-guide_section-spacing"
+      ],
+      "9a5c4e2d-695b-7f3e-16c1-dffa405f48cd": [
+        "treatment-guide_intro-title-gap"
+      ],
+      "9a5c4e2d-695b-7f3e-16c1-dffa405f48cc": [
+        "heading-style-h2",
+        "treatment-guide_intro-heading"
+      ]
+    }
   }
 }
