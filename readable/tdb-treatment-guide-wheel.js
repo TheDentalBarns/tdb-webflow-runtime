@@ -508,7 +508,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
   window.TDBTreatmentGuidePressure = Object.freeze({ create });
 })();
 
-/* Native sticky travel. Read geometry first, then paint once per animation frame. */
+/* Treatment guide scroll v1.1.0. Read geometry, then paint once per animation frame. */
 (() => {
   'use strict';
   if (window.TDBTreatmentGuideScroll) return;
@@ -757,7 +757,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       if (!fits) return disable();
       // Do not insert scroll travel above a restored reading position.
       if (!enabled && wheelBox.top < gap) return;
-      const joinImage = Boolean(exitImage && innerWidth >= 992);
+      const joinImage = Boolean(exitImage);
       const fraction = enabled ? Math.max(0, Math.min(5, (window.scrollY - start) / distance)) : 0;
       const oldDistance = distance;
       const oldPinTop = pinTop;
@@ -1048,7 +1048,7 @@ window.TDBTreatmentGuidePressureMasks = Object.freeze({"dark":"data:image/png;ba
       },
     };
   }
-  window.TDBTreatmentGuideScroll = Object.freeze({ mount });
+  window.TDBTreatmentGuideScroll = Object.freeze({ version: '1.1.0', mount });
 })();
 
 /* Linear interaction for the Designer-owned six-rem chapter strip. */
