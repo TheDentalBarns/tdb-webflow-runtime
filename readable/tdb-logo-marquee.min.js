@@ -247,6 +247,7 @@
         const entry = entries.find((entry) => entry.index === Number(item.dataset.tdbLogoIndex));
         if (!entry) return;
         const name =
+          entry.slide.getAttribute('data-tdb-partner-name') ||
           entry.slide.querySelector('.text-style-tagline-restored')?.textContent.trim() ||
           'Partner';
         item.setAttribute('aria-label', name + ': centre and show details');
@@ -470,7 +471,7 @@
       const imageHeight = Math.max(
         ...entries.map(({ slide }) => {
           const image = slide.querySelector(CONFIG.tooltipImageSelector);
-          const width = slide.querySelector('.tooltip2_image-wrapper').clientWidth;
+          const width = slide.querySelector('.tooltip2_image-wrapper')?.clientWidth || 0;
           return width * (image?.naturalWidth ? image.naturalHeight / image.naturalWidth : 1);
         }),
       );
@@ -486,6 +487,10 @@
       if (!openCard || switching || !swiper) return;
       const entry = entries[swiper.realIndex];
       if (!entry) return;
+      shell.toggleAttribute(
+        'data-tdb-partner-articles',
+        entry.slide.hasAttribute('data-tdb-partner-articles'),
+      );
       track
         .querySelectorAll('[aria-expanded="true"]')
         .forEach((item) => item.setAttribute('aria-expanded', 'false'));
@@ -518,6 +523,7 @@
           else visitButton.setAttribute(name, value);
         }
         const name =
+          entry.slide.getAttribute('data-tdb-partner-name') ||
           entry.slide.querySelector('.text-style-tagline-restored')?.textContent.trim() ||
           'partner';
         visitButton.setAttribute(
@@ -1373,9 +1379,12 @@
         'keydown',
         (event) => {
           if (event.key === 'Tab' && openCard && !event.shiftKey && event.target === openItem) {
-            if (visitButton?.getAttribute('href')) {
+            const target = visitButton?.getAttribute('href')
+              ? visitButton
+              : entries[swiper?.realIndex]?.slide.querySelector('a[href]');
+            if (target) {
               event.preventDefault();
-              visitButton.focus({ preventScroll: true });
+              target.focus({ preventScroll: true });
             }
           }
           if (event.key === 'Escape' && (openCard || pendingItem)) {

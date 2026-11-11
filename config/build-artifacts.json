@@ -276,20 +276,20 @@
         "src/logo-marquee/partner-controls-style.js",
         "src/logo-marquee/logo-marquee.js"
       ],
-      "sha256": "ef8e1f6024ab22fef6ff9dc7e10fd60ef3a5dcd73b061b4e4da71c039f0f6cab",
-      "raw": 26871,
-      "gzip": 8676,
-      "brotli": 7840
+      "sha256": "689b81a8a65c855bef0156f628097aec4113bacd54b82d1d77145f1f4397d5fa",
+      "raw": 27130,
+      "gzip": 8746,
+      "brotli": 7897
     },
     "dist/tdb-logo-marquee.min.js": {
       "sources": [
         "src/logo-marquee/partner-controls-style.js",
         "src/logo-marquee/logo-marquee.js"
       ],
-      "sha256": "ef8e1f6024ab22fef6ff9dc7e10fd60ef3a5dcd73b061b4e4da71c039f0f6cab",
-      "raw": 26871,
-      "gzip": 8676,
-      "brotli": 7840
+      "sha256": "689b81a8a65c855bef0156f628097aec4113bacd54b82d1d77145f1f4397d5fa",
+      "raw": 27130,
+      "gzip": 8746,
+      "brotli": 7897
     },
     "dist/tdb-modules.js": {
       "sources": [
@@ -364,10 +364,10 @@
       "sources": [
         "src/logo-marquee/partner-card.js"
       ],
-      "sha256": "56bd01f9958302482695e4aabdd1c015f5fc64df028dbf87755faf831be70c72",
-      "raw": 5698,
-      "gzip": 2140,
-      "brotli": 1798
+      "sha256": "5154a497d37f5c8cf41c061932a88b6b39b0ac517ef9bc2cdada442fab02fcac",
+      "raw": 6332,
+      "gzip": 2285,
+      "brotli": 1925
     },
     "dist/tdb-quote-carousel.js": {
       "sources": [

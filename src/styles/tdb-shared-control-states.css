@@ -38,3 +38,7 @@
 .tdb-announcement:active .tdb-announcement-circle {
   box-shadow: inset 0 0 0 2rem color-mix(in srgb, var(--base-color-brand--orange-1, #f9f2e6) 30%, transparent);
 }
+/* Blog categories use text emphasis; pointer focus must not draw a click box. */
+.tdb-blog-category-bar .tdb-blog-filter:is(:focus-within,[data-wf-focus-within],:focus-visible){outline:none;box-shadow:none}
+.tdb-blog-category-bar .tdb-blog-filter:focus-visible,
+.tdb-blog-category-bar .tdb-blog-filter:has(input:focus-visible) .tdb-blog-filter-label{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.4em}
