@@ -5,7 +5,7 @@ const path = require('node:path');
 const {JSDOM} = require('jsdom');
 const read = name => fs.readFileSync(path.join(__dirname, '..', name), 'utf8');
 
-function fixture(file, width = 1440, initialHeight = 1200, pace) {
+function fixture(file, width = 1440, initialHeight = 1200, pace, introEnd = 0) {
   const dom = new JSDOM(`<a id="cta" href="#VIP">Join VIP</a>
     <nav class="navbar10_component"></nav><div id="tdb-vip-drawer" data-tdb-vip-native="1">
     <a class="tdb-vip-drawer-handle"><span class="tdb-vip-drawer-label"></span><span class="tdb-vip-arrow-content"></span></a>
@@ -38,6 +38,13 @@ function fixture(file, width = 1440, initialHeight = 1200, pace) {
     const config={...JSON.parse(read('config/motion.json')),pace};
     w.eval(read('src/shared/motion-profile.js').replace('__TDB_MOTION_PROFILE__',JSON.stringify(config)));
   }
+  if(introEnd) {
+    const intro=w.document.createElement('section');
+    intro.setAttribute('data-tdb-stepped-intro','');
+    w.__introEnd=introEnd;
+    intro.getBoundingClientRect=()=>({bottom:w.__introEnd-w.scrollY});
+    w.document.body.prepend(intro);
+  }
   w.eval(read(file));
   const drawer = w.document.getElementById('tdb-vip-drawer');
   function tick(ms) {
@@ -57,6 +64,33 @@ function fixture(file, width = 1440, initialHeight = 1200, pace) {
 }
 
 for (const file of ['dist/tdb-vip-drawer.js']) {
+  test('VIP handle stays absent through the entire intro and on return, while explicit opening works',()=>{
+    for(const width of [390,1440]) {
+      const f=fixture(file,width,844,undefined,4000),{w,drawer}=f;
+      const scroll=y=>{w.scrollY=y;w.dispatchEvent(new w.Event('scroll'));f.tick(20);};
+      try {
+        assert.equal(drawer.style.visibility,'hidden');
+        for(const y of [1000,2000,3000,2800,3800,3200]) {
+          scroll(y);
+          assert.equal(w.TDBVIPDrawer.status().state,0);
+          assert.equal(drawer.style.visibility,'hidden');
+        }
+        w.TDBVIPDrawer.resumeScroll({peek:true,up:200});
+        assert.equal(w.TDBVIPDrawer.status().state,0,'deferred startup cannot reveal the handle over the intro');
+        scroll(4500);scroll(4300);
+        assert.equal(w.TDBVIPDrawer.status().state,1,'normal upward reveal works after the intro');
+        assert.equal(drawer.style.visibility,'');
+        scroll(3900);
+        assert.equal(w.TDBVIPDrawer.status().state,0);
+        assert.equal(drawer.style.visibility,'hidden','hide immediately on return, without a closing slide over the intro');
+        f.open();assert.equal(w.TDBVIPDrawer.status().state,2);
+        assert.equal(drawer.style.visibility,'','an intentional nav CTA still opens the drawer');
+        f.close();f.finish();assert.equal(drawer.style.visibility,'hidden');
+        w.__introEnd=3000;f.resize(700);
+        assert.equal(drawer.style.visibility,'','responsive section boundaries are remeasured');
+      } finally {f.destroy();}
+    }
+  });
   test('slower shared profile keeps VIP close guards until the full responsive motion settles',()=>{
     for(const width of [390,1440]) {
       const f=fixture(file,width,844,1.5);

@@ -124,13 +124,21 @@
           hideDistance: 140,
         });
         // Explicit page opt-in: keep the About navigation available throughout
-        // its pinned introduction, then resume the normal site scroll policy.
+        // its pinned chapters. At the final chapter it joins the page and
+        // scrolls away with that screen before normal floating navigation resumes.
         const pinnedIntro = document.querySelector(
           '[data-tdb-stepped-intro][data-tdb-intro-pin-nav]',
         );
-        let pinnedUntil = 0;
+        const originalTop = t.style.top;
+        let pinnedUntil = 0,
+          pinnedRelease = 0;
         const measurePinnedIntro = () => {
           pinnedUntil = pinnedIntro ? scrollY + pinnedIntro.getBoundingClientRect().bottom : 0;
+          pinnedRelease = Math.max(
+            0,
+            pinnedUntil -
+              (pinnedIntro?.firstElementChild?.getBoundingClientRect().height || innerHeight),
+          );
         };
         measurePinnedIntro();
         if (pinnedIntro) {
@@ -227,8 +235,10 @@
         function B() {
           i = Math.max(scrollY || e.scrollTop || 0, 0);
           if (pinnedIntro && i < pinnedUntil) {
-            t.style.position = 'fixed';
-            f = 1;
+            const attached = i >= pinnedRelease;
+            t.style.position = attached ? 'absolute' : 'fixed';
+            t.style.top = attached ? `${pinnedRelease}px` : originalTop;
+            f = attached ? 0 : 1;
             u = 0;
             d = c = 0;
             s = i;
@@ -237,6 +247,7 @@
             h = 0;
             return;
           }
+          if (pinnedIntro) t.style.top = originalTop;
           const o = i - s,
             b = i < r;
           if (o) scrollDirection = Math.sign(o);
