@@ -409,10 +409,10 @@
       "sources": [
         "src/reviews/native/cards.js"
       ],
-      "sha256": "debb5c7e73abc084c1eb7a0f15d8b8a5ee7f27d7b7197f93c909e624346b0467",
-      "raw": 16147,
-      "gzip": 5499,
-      "brotli": 4879
+      "sha256": "efea8a26dcd78bf7e94c60d76e611810b19785eec99b809ea11b7aad414a8771",
+      "raw": 16282,
+      "gzip": 5557,
+      "brotli": 4945
     },
     "dist/tdb-review-cms.js": {
       "sources": [
@@ -557,10 +557,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "11099e44c53b5cb9a5dc2478dbda8c4d798a337f5b5a22249966589e02d9a936",
-      "raw": 88814,
-      "gzip": 24317,
-      "brotli": 20928
+      "sha256": "b9fed53e57e196da3104914558863ab4638d1024c11babfdbf49da59cef5219e",
+      "raw": 88879,
+      "gzip": 24331,
+      "brotli": 20937
     },
     "dist/tdb-service-awards.js": {
       "sources": [

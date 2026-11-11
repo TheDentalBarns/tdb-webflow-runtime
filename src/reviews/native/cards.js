@@ -360,7 +360,11 @@
     // The authored bar stays in Designer's holder between lazy mounts. Borrow
     // the real nodes for the active footer; the shared sampler still owns travel.
     const progressHost = root.closest('[data-tdb-review-placeholder]'),
-      nativeProgress = progressHost?.querySelector(':scope > .tdb-review-embed-progress'),
+      nativeProgress = progressHost?.querySelector(
+        ':scope > [data-tdb-native-holder] > .tdb-review-embed-progress, :scope > .tdb-review-embed-progress',
+      ),
+      nativeProgressParent = nativeProgress?.parentNode,
+      nativeProgressNext = nativeProgress?.nextSibling,
       fallbackProgress = $('[data-tdb-cards-progress]');
     if (nativeProgress) fallbackProgress.replaceWith(nativeProgress);
     const progress = nativeProgress || fallbackProgress,
@@ -627,7 +631,10 @@
         progressSampler.destroy();
         if (nativeProgress) {
           nativeProgress.replaceWith(fallbackProgress);
-          progressHost.append(nativeProgress);
+          nativeProgressParent.insertBefore(
+            nativeProgress,
+            nativeProgressNext?.parentNode === nativeProgressParent ? nativeProgressNext : null,
+          );
           if (originalMarkerStyle === null) marker.removeAttribute('style');
           else marker.setAttribute('style', originalMarkerStyle);
         }

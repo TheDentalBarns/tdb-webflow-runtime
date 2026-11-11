@@ -5,11 +5,14 @@ const path=require('node:path');
 const {JSDOM}=require(process.env.TDB_JSDOM_PATH||'jsdom');
 const source=fs.readFileSync(path.join(__dirname,'../src/reviews/native/cards.js'),'utf8');
 const card=i=>`<article class="tdb-review-cards_slide" data-review-id="r-${i}"><span data-cards-render="name">Reviewer ${i}</span><blockquote data-cards-render="excerpt">Excerpt ${i}</blockquote><div data-cards-render="text" style="line-height:20px">Body ${i}</div><span data-cards-render="date">17 July 2024</span><span data-cards-render="rating"></span><a data-tdb-cards-open>Read more</a></article>`;
-test('appends measure only new bodies; a resize during movement is applied on settle',async()=>{
+for (const nestedProgress of [false,true]) test(`native progress ${nestedProgress?'inside the card':'in the legacy holder'} survives mount, movement and disposal`,async()=>{
  const dom=new JSDOM(`<section data-tdb-review-cards><div data-tdb-cards-viewport style="padding-left:0px;padding-right:0px"><div data-tdb-cards-track>${Array.from({length:8},(_,i)=>card(i+1)).join('')}</div></div><p data-tdb-cards-status></p><nav data-tdb-cards-navigation><span data-tdb-cards-current></span><span data-tdb-cards-total></span><a data-tdb-cards-prev></a><a data-tdb-cards-next></a><span data-tdb-cards-progress><span></span></span></nav></section>`,{url:'https://fixture.test/',runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window,root=w.document.querySelector('section'),track=root.querySelector('[data-tdb-cards-track]'),viewport=root.querySelector('[data-tdb-cards-viewport]');
  const holder=w.document.createElement('div');holder.setAttribute('data-tdb-review-placeholder','');root.before(holder);holder.append(root);
- const nativeBar=w.document.createElement('div');nativeBar.className='tdb-review-embed-progress';nativeBar.setAttribute('data-tdb-cards-progress','');nativeBar.innerHTML='<span></span>';holder.append(nativeBar);
+ const nativeCard=w.document.createElement('div');nativeCard.setAttribute('data-tdb-native-holder','');holder.prepend(nativeCard);
+ const nativeParent=nestedProgress?nativeCard:holder;
+ const nativeBar=w.document.createElement('div');nativeBar.className='tdb-review-embed-progress';nativeBar.setAttribute('data-tdb-cards-progress','');nativeBar.innerHTML='<span></span>';nativeParent.append(nativeBar);
+ const nativeNext=w.document.createComment('native sibling');nativeParent.append(nativeNext);
  const measurements=new Map(),resizes=[];let bodyHeight=125,swiper,settled,opened;
  class Observer{constructor(fn){this.fn=fn;}observe(){}disconnect(){this.disconnected=true;}}
  w.IntersectionObserver=Observer;w.ResizeObserver=class extends Observer{constructor(fn){super(fn);resizes.push(this);}};
@@ -41,6 +44,6 @@ test('appends measure only new bodies; a resize during movement is applied on se
   swiper.animating=true;bodyHeight=145;swiper.params.on.resize();assert(initial.every(n=>measurements.get(n)===1));
   swiper.animating=false;settled('programmatic');assert(initial.every(n=>measurements.get(n)===2));assert([...root.querySelectorAll('.tdb-review-cards_body-preview')].every(n=>n.style.maxHeight==='140px'));
   api.destroy();assert.equal(track.children.length,8);assert.equal(root.querySelectorAll('.tdb-review-cards_body-preview').length,0);assert.equal(resizes.length,0,'the card adapter reuses the engine resize observer');
-  assert.equal(nativeBar.parentElement,holder,'native bar survives lazy content disposal');assert.equal(nativeBar.firstElementChild.getAttribute('style'),null);
+  assert.equal(nativeBar.parentElement,nativeParent,'native bar returns to its authored card after lazy content disposal');assert.equal(nativeBar.nextSibling,nativeNext,'native sibling order is preserved');assert.equal(nativeBar.firstElementChild.getAttribute('style'),null);
  }finally{dom.window.close();}
 });
