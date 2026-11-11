@@ -78,9 +78,9 @@
         "/first-visit"
       ],
       "features": [
-        "instagram",
-        "process"
-      ]
+        "instagram"
+      ],
+      "ownership": "The native service process uses shared TDBMotion.serviceJourney. Do not reinstall the obsolete inline process-navigation handler."
     },
     "6aaafc00c9c28643c83637b8": {
       "paths": [
