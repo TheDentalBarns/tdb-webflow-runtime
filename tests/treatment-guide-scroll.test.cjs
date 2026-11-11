@@ -103,7 +103,7 @@ function setup(options = {}) {
     options.centredCta
       ? Math.max(
           options.naturalHeight || 516,
-          w.innerWidth < 992 ? options.smallHeight || w.innerHeight : 0,
+          w.innerWidth < 992 && !options.compact ? options.smallHeight || w.innerHeight : 0,
         )
       : parseFloat(
           root
@@ -413,7 +413,7 @@ test('the centred CTA replaces hidden artwork in sticky geometry and preserves n
   }
 });
 
-test('removing obsolete centre markup preserves compact desktop and full-height mobile geometry', () => {
+test('compact native cards retain their authored height and image peek at desktop and mobile widths', () => {
   for (const { width, height, naturalHeight } of [
     { width: 1906, height: 1924, naturalHeight: 952 },
     { width: 390, height: 844, naturalHeight: 700 },
@@ -426,21 +426,22 @@ test('removing obsolete centre markup preserves compact desktop and full-height 
       width,
       height,
       naturalHeight,
+      compact: true,
       exitImage: true,
       coarse: width < 992,
     });
     try {
       const desktop = width >= 992;
-      const cardHeight = desktop ? naturalHeight : height;
+      const cardHeight = naturalHeight;
       const travel = Math.min(480, width * 0.8) * 5;
       assert.equal(t.root.querySelector('.treatment-guide_centre'), null);
       assert.equal(t.root.classList.contains('is-guide-native-stage'), true);
       assert.equal(t.root.classList.contains('is-guide-footer-docked'), true);
       assert.equal(t.api.enabled, true);
       assert.equal(t.layout.getBoundingClientRect().height, cardHeight);
-      assert.equal(t.track.style.height, cardHeight + travel + (desktop ? 650 : 0) + 'px');
+      assert.equal(t.track.style.height, cardHeight + travel + 650 + 'px');
       assert.equal(t.track.style.getPropertyValue('--tdb-guide-card-shift'), '');
-      assert.equal(!!t.track.querySelector('.tdb-guide-sticky-stage'), desktop);
+      assert.equal(!!t.track.querySelector('.tdb-guide-sticky-stage'), true);
       t.move(1000);
       t.tick();
       assert.equal(t.api.pinned, true);
@@ -455,7 +456,7 @@ test('removing obsolete centre markup preserves compact desktop and full-height 
   }
 });
 
-test('desktop shares one native sticky surface with the real image and restores its DOM on mobile and teardown', () => {
+test('the real image stays joined across responsive widths and returns to normal flow when the card cannot fit or is destroyed', () => {
   const t = setup({
     horizontal: true,
     docked: true,
@@ -464,6 +465,7 @@ test('desktop shares one native sticky surface with the real image and restores 
     width: 1440,
     height: 1000,
     naturalHeight: 780,
+    compact: true,
     exitImage: true,
   });
   try {
@@ -500,9 +502,16 @@ test('desktop shares one native sticky surface with the real image and restores 
     t.w.innerWidth = 390;
     t.w.dispatchEvent(new t.w.Event('resize'));
     t.tick(4);
+    assert.equal(t.exitImage.previousElementSibling, t.layout);
+    assert.equal(t.layout.parentElement, stage);
+    assert.equal(t.track.querySelector('.tdb-guide-sticky-stage'), stage);
+    t.w.innerHeight = 450;
+    t.w.dispatchEvent(new t.w.Event('resize'));
+    t.tick(4);
     assert.equal(t.exitImage.previousElementSibling, t.root);
     assert.equal(t.layout.parentElement, t.track);
     assert.equal(t.track.querySelector('.tdb-guide-sticky-stage'), null);
+    t.w.innerHeight = 1000;
     t.w.innerWidth = 1440;
     t.w.dispatchEvent(new t.w.Event('resize'));
     t.tick(4);
