@@ -56,7 +56,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.8.1';
+  const VERSION = '0.8.2';
   const mobileQuery = matchMedia('(max-width:767px)');
   const desktopQuery = matchMedia('(min-width:768px)');
   const drawer = document.getElementById('tdb-vip-drawer');
@@ -125,7 +125,7 @@
   let lastMode = mobileQuery.matches ? 'mobile' : 'desktop';
   let releaseScroll = null;
   let opening = null;
-  let openIntent = 0;
+  let pendingOpen = false;
   // Only a live drawer needs cancelable document input. Retain its nested
   // consent exception, and release the guard with the shared scroll lease.
   function guardScroll(event) {
@@ -260,7 +260,8 @@
   }
 
   function reset() {
-    openIntent++;
+    pendingOpen = false;
+    handle.removeAttribute('aria-busy');
     clearTimeout(timer);
     clearTimeout(keyboardTimer);
     state = up = down = 0;
@@ -282,7 +283,8 @@
   }
 
   function closeDrawer() {
-    openIntent++;
+    pendingOpen = false;
+    handle.removeAttribute('aria-busy');
     if (state === 2) {
       blurField();
       state = 3;
@@ -305,17 +307,18 @@
       drawer.hasAttribute('data-tdb-vip-content-ready')
     )
       return revealDrawer();
-    if (opening) return opening;
-    const intent = ++openIntent;
+    pendingOpen = true;
     handle.setAttribute('aria-busy', 'true');
+    if (opening) return opening;
     opening = window.TDBVIPDrawerLoader.prepareContent()
       .then(() => {
-        if (intent === openIntent) revealDrawer();
+        if (pendingOpen) revealDrawer();
       })
       .catch(() => {
-        if (intent === openIntent) window.TDBVIPDrawerLoader.fallback();
+        if (pendingOpen) window.TDBVIPDrawerLoader.fallback();
       })
       .finally(() => {
+        pendingOpen = false;
         opening = null;
         handle.removeAttribute('aria-busy');
       });
@@ -323,6 +326,7 @@
   }
 
   function revealDrawer() {
+    pendingOpen = false;
     clearTimeout(timer);
     // Native display:none keeps these lazy images out of the initial fetch.
     // Release once, before measuring/opening; preserve artwork during closing.
@@ -384,7 +388,7 @@
 
   function mobileScrollCheck() {
     const y = pageY();
-    if (holdIntroduction(y)) return;
+    if (holdIntroduction(y) || holdPendingOpen(y)) return;
     const delta = y - lastY;
     if (delta > 0) {
       up = 0;
@@ -409,7 +413,7 @@
       return;
     }
     const y = pageY();
-    if (holdIntroduction(y)) return;
+    if (holdIntroduction(y) || holdPendingOpen(y)) return;
     const delta = y - lastY;
     if (delta > 0) {
       up = 0;
@@ -424,6 +428,15 @@
     if (near && state !== 0) reset();
     lastY = y;
     tick = 0;
+  }
+
+  function holdPendingOpen(y) {
+    if (!pendingOpen) return false;
+    // A tap owns the next reveal while content prepares. Residual scrolling
+    // must not dismiss the peek and discard that tap; explicit close still cancels.
+    lastY = y;
+    up = down = tick = 0;
+    return true;
   }
 
   drawer.addEventListener('transitionend', (event) => {
@@ -585,7 +598,7 @@
     new IntersectionObserver(
       ([entry]) => {
         near = entry.isIntersecting;
-        if (near && state !== 2 && state !== 3 && state !== 0) reset();
+        if (near && !pendingOpen && state !== 2 && state !== 3 && state !== 0) reset();
       },
       { rootMargin: '120px 0px' },
     ).observe(vipSection);

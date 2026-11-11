@@ -6,7 +6,7 @@ const read = p => fs.readFileSync(p, 'utf8');
 const tick = () => new Promise(r => setImmediate(r));
 const root = 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@'+'a'.repeat(40)+'/dist/';
 
-function setup(lazy = true) {
+function setup(lazy = true, width = 1440) {
   const dom = new JSDOM(`<html data-wf-page="home"><body>
     <a id="open" href="#VIP">Join VIP</a>
     <section id="VIP"><div class="w-form"><form id="email-form"><input name="Name" value="Kept"><input type="submit" value="Please wait..." disabled></form></div></section>
@@ -16,7 +16,8 @@ function setup(lazy = true) {
     </div></body></html>`, {url:'https://dentalbarns.webflow.io/',runScripts:'outside-only',pretendToBeVisual:true});
   const w = dom.window, d = w.document, drawer = d.getElementById('tdb-vip-drawer');
   w.jQuery = require('jquery')(w);
-  w.matchMedia = q=>({matches:q.includes('min-width'),addEventListener(){}});
+  Object.defineProperty(w,'innerWidth',{value:width});
+  w.matchMedia = q=>({matches:q.includes('max-width')?width<=767:q.includes('min-width')&&width>=768,addEventListener(){}});
   w.scrollTo = ()=>{};
   w.HTMLElement.prototype.scrollIntoView = ()=>{};
   w.TDBConsent = {allows:category=>!category};
@@ -94,6 +95,41 @@ test('Escape cancels a delayed opening without discarding prepared form; next op
     release();await opening;
     assert.equal(x.w.TDBVIPDrawer.status().state,0);
     await x.w.TDBVIPDrawer.open();
+    assert.equal(x.w.TDBVIPDrawer.status().state,2);
+    assert.equal(x.drawer.querySelectorAll('form').length,1);
+  }finally{x.close();}
+});
+
+test('a handle tap survives residual scrolling while its content prepares',async()=>{
+  for(const width of [390,1440]) {
+    const x=setup(true,width);try{
+      x.d.getElementById('VIP').getBoundingClientRect=()=>({top:10000,bottom:11000});
+      await x.w.TDBVIPDrawerLoader.load();
+      let release;x.gates.set('tdb-vip-content.css',new Promise(r=>release=r));
+      x.w.scrollY=1500;
+      x.w.TDBVIPDrawer.resumeScroll({peek:true,up:200});
+      assert.equal(x.w.TDBVIPDrawer.status().state,1);
+      const handle=x.drawer.querySelector('.tdb-vip-drawer-handle');
+      handle.click();const opening=x.w.TDBVIPDrawer.open();
+      x.w.scrollY=1700;x.w.dispatchEvent(new x.w.Event('scroll'));
+      await new Promise(r=>setTimeout(r,30));
+      assert.equal(x.w.TDBVIPDrawer.status().state,1,'scroll settling must not dismiss a requested opening');
+      assert.equal(handle.getAttribute('aria-busy'),'true');
+      release();await opening;
+      assert.equal(x.w.TDBVIPDrawer.status().state,2,'the first tap still opens the prepared drawer');
+      assert.equal(x.requests.filter(p=>p==='tdb-vip-content.css').length,1);
+    }finally{x.close();}
+  }
+});
+
+test('a fresh request after Escape reuses the pending load and honours the latest intent',async()=>{
+  const x=setup(true,390);try{
+    await x.w.TDBVIPDrawerLoader.load();
+    let release;x.gates.set('tdb-vip-content.css',new Promise(r=>release=r));
+    const first=x.w.TDBVIPDrawer.open();
+    x.d.dispatchEvent(new x.w.KeyboardEvent('keydown',{key:'Escape'}));
+    const second=x.w.TDBVIPDrawer.open();assert.equal(first,second);
+    release();await second;
     assert.equal(x.w.TDBVIPDrawer.status().state,2);
     assert.equal(x.drawer.querySelectorAll('form').length,1);
   }finally{x.close();}

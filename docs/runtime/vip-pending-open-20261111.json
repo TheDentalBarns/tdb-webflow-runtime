@@ -1,0 +1,58 @@
+{
+  "date": "2026-11-11",
+  "scope": "Shared VIP drawer; staging only",
+  "architectureReference": "https://chatgpt.com/space/page_c22eaec26d7c819197df9524f243acbd",
+  "owner": "src/vip-drawer/vip-drawer.js; native Designer geometry and appearance remain unchanged",
+  "loadingPhase": "Deferred VIP interaction; existing announcement, form and CSS readiness gates",
+  "observedDefect": "On mobile emulation, a tap on a peeking handle followed by 200px of continued scroll while content CSS was delayed 3.5s reset the drawer to hidden and discarded the opening request.",
+  "change": "Keep explicit opening intent separate from the content-loading promise. Automatic scroll/near-footer peek dismissal waits until the request settles. Escape/reset cancels intent; a subsequent request can reuse the same pending load.",
+  "readiness": "Open only after the existing prepareContent promise completes. Existing failure fallback and scroll-lock acquisition remain unchanged.",
+  "acceptance": [
+    "Two new regression cases fail before the fix and pass afterwards",
+    "Matched mobile browser trace changes from peek -> hidden to peek -> open, with no downward reversal",
+    "Warm mobile handle opening and closing still works",
+    "Desktop/mobile About navigation, VIP, review drawer, smile gallery and FAQ checks pass",
+    "1076 tests passed, 3 existing skips, 0 failures",
+    "Full build including patched Swiper passed",
+    "Windows-equivalent Prettier check with existing line endings passed; git diff --check passed"
+  ],
+  "cost": {
+    "initialBytesAdded": 0,
+    "requestsAdded": 0,
+    "deferredVipRawDelta": 103,
+    "deferredVipGzipDelta": 29,
+    "cssChanged": false
+  },
+  "fourPerspectives": {
+    "startup": "No new initial work or dependencies",
+    "interaction": "Preserves the first tap through scrolling and loading",
+    "polish": "Preserves the existing shared panel curve and native appearance",
+    "maintenance": "One intent flag reuses the existing loading flight; no page-specific patch"
+  },
+  "limitations": [
+    "Physical iPhone Safari was not tested",
+    "The observed scroll/loading cancellation is confirmed; other device-specific jump causes are not ruled out"
+  ],
+  "rollback": {
+    "release": "8f307b445ab9a71c5916f03c77d64e2b66728e22",
+    "procedure": "Restore the four shared install references together and publish only the Webflow subdomain"
+  },
+  "nativeMetadata": {
+    "components": [
+      "Discover Smiles — deferred gallery",
+      "Deferred Instagram Feed"
+    ],
+    "creatorAndCopyright": "User confirmed The Dental Barns ownership including David's Instagram posts",
+    "license": "Existing Website Terms of Service PDF, section 9",
+    "acquireLicensePage": "https://www.thedentalbarns.co.uk/contact",
+    "validation": {
+      "pages": 23,
+      "feeds": 44,
+      "records": 582,
+      "parseErrors": 0,
+      "missingFields": 0,
+      "existingCmsContentPreserved": true
+    },
+    "runtimeCodeAdded": false
+  }
+}
