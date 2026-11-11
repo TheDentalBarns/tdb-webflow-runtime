@@ -11,6 +11,9 @@
   const label = drawer.querySelector('.tdb-vip-drawer-label');
   const body = drawer.querySelector('.tdb-vip-drawer-body');
   if (!handle || !label || !body) return;
+  const introduction = document.querySelector('[data-tdb-stepped-intro]');
+  const originalVisibility = drawer.style.visibility;
+  let introductionEnd = 0;
   const panelMotion = window.TDBPanelMotion.bind(drawer, '--tdb-vip-drawer');
 
   drawer.dataset.tdbVipUnifiedInit = 'true';
@@ -82,6 +85,41 @@
   }
 
   const pageY = () => Math.max(scrollY, html.scrollTop, 0);
+  const withinIntroduction = (y = pageY()) => Boolean(introduction && y < introductionEnd);
+  function syncIntroVisibility() {
+    if (!introduction) return;
+    // Suppress automatic chrome throughout the intro, including the last
+    // screen's exit. An explicit Join VIP action can still open the drawer.
+    const visibility =
+      withinIntroduction() && state !== 2 && state !== 3 ? 'hidden' : originalVisibility;
+    if (drawer.style.visibility !== visibility) drawer.style.visibility = visibility;
+  }
+  function holdIntroduction(y) {
+    if (!withinIntroduction(y) || state === 2 || state === 3) {
+      syncIntroVisibility();
+      return false;
+    }
+    if (state === 1) {
+      state = 0;
+      render();
+    } else syncIntroVisibility();
+    up = down = 0;
+    lastY = y;
+    tick = 0;
+    return true;
+  }
+  function measureIntroduction() {
+    if (!introduction) return;
+    introductionEnd = pageY() + introduction.getBoundingClientRect().bottom;
+    holdIntroduction(pageY());
+  }
+  if (introduction) {
+    measureIntroduction();
+    addEventListener('load', measureIntroduction, { once: true });
+    addEventListener('resize', measureIntroduction, { passive: true });
+    if (typeof ResizeObserver === 'function')
+      new ResizeObserver(measureIntroduction).observe(introduction);
+  }
 
   function setViewportHeight() {
     drawer.style.setProperty('--tdb-vh', `${innerHeight}px`);
@@ -151,6 +189,7 @@
   }
 
   function render() {
+    syncIntroVisibility();
     drawer.classList.toggle('is-peeking', state === 1);
     drawer.classList.toggle('is-open', state === 2);
     drawer.classList.toggle('is-closing', state === 3);
@@ -179,6 +218,7 @@
     guardInput(false);
     drawer.style.setProperty('--tdb-vip-visual-top', '0px');
     drawer.classList.remove('is-peeking', 'is-open', 'is-closing');
+    syncIntroVisibility();
     handle.setAttribute('aria-expanded', 'false');
     html.classList.remove('tdb-vip-desktop-open', 'tdb-vip-menu-away');
     lastY = routeY = pageY();
@@ -199,7 +239,7 @@
   }
 
   function peek() {
-    if (state || near) return;
+    if (state || near || withinIntroduction()) return;
     state = 1;
     render();
   }
@@ -289,6 +329,7 @@
 
   function mobileScrollCheck() {
     const y = pageY();
+    if (holdIntroduction(y)) return;
     const delta = y - lastY;
     if (delta > 0) {
       up = 0;
@@ -313,6 +354,7 @@
       return;
     }
     const y = pageY();
+    if (holdIntroduction(y)) return;
     const delta = y - lastY;
     if (delta > 0) {
       up = 0;

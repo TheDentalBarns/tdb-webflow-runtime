@@ -338,10 +338,10 @@
         "src/shared/panel-motion.js",
         "src/navbar/navbar-enhancement.js"
       ],
-      "sha256": "4615883985f41d68fa99a42da4cc67fb501353cbe342c7105c891bd71c316107",
-      "raw": 24971,
-      "gzip": 6657,
-      "brotli": 5967
+      "sha256": "665357388273abe97a718a4a7a6803475d5313cd9ca650ebd6bce91d8dd48863",
+      "raw": 25148,
+      "gzip": 6736,
+      "brotli": 6037
     },
     "dist/tdb-parallax.js": {
       "sources": [
@@ -720,10 +720,10 @@
         "src/shared/panel-motion.js",
         "src/vip-drawer/vip-drawer.js"
       ],
-      "sha256": "cbe402f8685c8628f07e2d55d92249c092d8b3c8557780a152d8491f1b45989e",
-      "raw": 9565,
-      "gzip": 3510,
-      "brotli": 3081
+      "sha256": "78e1e7a7e70dcaa5326f1557a9146eb9218567bb0623cb6938f7d7a8aea27105",
+      "raw": 10179,
+      "gzip": 3705,
+      "brotli": 3280
     },
     "dist/tdb-vip-form.js": {
       "sources": [

@@ -143,7 +143,7 @@ function fixture(width = 448, consent = true, registry = true, transparent = tru
 }
 
 for (const width of [448, 1363])
-  test(`About introduction pins navigation until the full section exits at ${width}px`, async () => {
+  test(`About navigation attaches to the final screen and scrolls away with it at ${width}px`, async () => {
     const f = fixture(width);
     const intro = f.d.createElement('section');
     intro.setAttribute('data-tdb-stepped-intro', '');
@@ -173,14 +173,26 @@ for (const width of [448, 1363])
       f.enhance();
       await flush();
       drain();
-      for (const y of [0, 874, 1748, 2622, 3400]) {
+      for (const y of [0, 874, 1748, 2600]) {
         scroll(y);
         assert.equal(f.nav.style.position, 'fixed');
         assert.equal(f.nav.style.transform, 'translateY(0)');
       }
+      for (const y of [2622, 2800, 3400]) {
+        scroll(y);
+        assert.equal(f.nav.style.position, 'absolute');
+        assert.equal(f.nav.style.top, '2622px');
+        assert.equal(f.nav.style.transform, 'translateY(0)');
+      }
       scroll(3800);
-      assert.equal(f.nav.style.transform, 'translateY(-100%)');
+      assert.equal(f.nav.style.top, '', 'normal document position is restored outside the intro');
+      scroll(3600);
+      assert.equal(f.nav.style.position, 'fixed', 'ordinary scroll-up navigation returns below the intro');
+      scroll(3300);
+      assert.equal(f.nav.style.position, 'absolute', 'returning into the exit screen reattaches the nav');
       scroll(2500);
+      assert.equal(f.nav.style.position, 'fixed');
+      assert.equal(f.nav.style.top, '');
       assert.equal(f.nav.style.transform, 'translateY(0)');
     } finally {
       f.dom.window.close();
