@@ -616,6 +616,12 @@
     const interactive = interactionFocus(view);
     if (interactive && !interacted && !view.engaged && focusedView !== view) return;
     if (interacted) view.engaged = true;
+    // Resource pages retain their hero/navigation until the form reaches the
+    // viewport top. Returning above that boundary also releases the estimate bar.
+    if (view.focusAtTop && !view.visible) {
+      if (focusedView === view) releaseFocus();
+      return;
+    }
     if (!interactive && view.mode === 'inline' && document.body?.dataset.tdbChromeFocus === 'off')
       return;
     if (focusedView === view && !restore && !interacted) return;
@@ -667,7 +673,7 @@
       if (!visible) view.suspended = false;
       syncViewportFocus();
     };
-    if ('IntersectionObserver' in window) {
+    if ('IntersectionObserver' in window && !view.focusAtTop) {
       view.observer = new IntersectionObserver((entries) => update(entries[0].isIntersecting), {
         threshold: 0,
       });
@@ -677,7 +683,9 @@
       const check = () => {
         pending = false;
         const b = view.root.getBoundingClientRect();
-        update(b.height > 0 && b.top < innerHeight && b.bottom > 0);
+        update(
+          b.height > 0 && (view.focusAtTop ? b.top <= 0 : b.top < innerHeight) && b.bottom > 0,
+        );
       };
       const queue = () => {
         if (!pending) {
@@ -753,6 +761,8 @@
       this.root = root;
       this.config = config;
       this.mode = mode;
+      this.focusAtTop =
+        mode === 'inline' && root.getAttribute('data-tdb-calc-focus-start') === 'top';
       this.id = 'tdbc-' + ++sequence;
       this.context = null;
       this.ready = false;

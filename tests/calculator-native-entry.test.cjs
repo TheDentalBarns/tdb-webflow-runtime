@@ -695,6 +695,52 @@ test('interaction-led embed holds chrome within its section after intent, with e
   }
 });
 
+for (const bundle of ['src/calculator/ui.js', 'dist/tdb-calculator.js'])
+  test(`${bundle}: a top-boundary calculator releases its estimate bar when returning to the hero`, async () => {
+    const h = setup();
+    try {
+      h.root.dataset.tdbCalcFocus = 'interaction';
+      h.root.dataset.tdbCalcFocusStart = 'top';
+      h.w.document.body.insertAdjacentHTML('beforeend', feed);
+      let top = 200;
+      h.root.getBoundingClientRect = () => ({ top, bottom: top + 2200, height: 2200 });
+      const releases = [];
+      h.w.TDBNavScroll = { focus() {}, release: (options) => releases.push(options) };
+      h.run('src/calculator/core.js');
+      h.run(bundle);
+      await h.w.TDBCalculator.mount(h.root);
+      h.change('cosmetic');
+      h.root.querySelector('[data-select=whitening]').click();
+      h.root.dispatchEvent(new h.w.Event('pointerdown', { bubbles: true }));
+      const away = () => h.w.document.documentElement.classList.contains('tdbc-chrome-away');
+      const scroll = async (value) => {
+        top = value;
+        h.w.dispatchEvent(new h.w.Event('scroll'));
+        await new Promise((resolve) => h.w.requestAnimationFrame(resolve));
+      };
+      assert.equal(away(), false, 'early interaction does not cover the hero');
+      await scroll(-20);
+      assert(away(), 'engaged form owns chrome after passing the viewport top');
+      assert(h.root.classList.contains('is-focused'));
+      assert(h.root.querySelector('.tdbc-live').classList.contains('has-estimate'));
+      await scroll(20);
+      assert.equal(away(), false, 'the section remains visible but its header has returned');
+      assert.equal(h.root.classList.contains('is-focused'), false);
+      assert.equal(releases.length, 1);
+      assert.equal(releases[0].respectDirection, true);
+      assert(
+        h.root.querySelector('[data-select=whitening]').checked,
+        'scrolling keeps the estimate',
+      );
+      await scroll(-20);
+      assert(away(), 'returning to the form resumes the existing engagement');
+      await scroll(-2300);
+      assert.equal(away(), false, 'the lower section boundary also releases chrome');
+    } finally {
+      h.dom.window.close();
+    }
+  });
+
 test('first lazy choice acquires chrome only if the user is still on the visible form', async () => {
   for (const stillOnForm of [true, false]) {
     const h = setup();
