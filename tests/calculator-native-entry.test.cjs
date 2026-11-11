@@ -626,9 +626,12 @@ for (const retainChrome of [false, true])
           h.root.querySelector('[data-node=step-2]'),
           'the calculator still renders the selected category',
         );
+        const inlineFocusCalls = focusCalls;
         await h.w.TDBCalculator.open(h.w.document.getElementById('drawer'));
         assert.equal(h.w.document.querySelector('[data-tdb-drawer=calculator]').hidden, false);
-        assert(h.w.document.documentElement.classList.contains('tdbc-chrome-away'));
+        assert.equal(h.w.document.documentElement.classList.contains('tdbc-chrome-away'), false);
+        assert.equal(focusCalls, inlineFocusCalls, 'the drawer owns modal chrome motion');
+        assert(h.w.document.querySelector('.tdbc-drawer-root').classList.contains('is-focused'));
         await h.w.TDBCalculator.close();
         assert.equal(
           h.w.document.documentElement.classList.contains('tdbc-chrome-away'),

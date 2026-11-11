@@ -1320,14 +1320,24 @@
   function releaseFocus(forget = false) {
     if (!focusedView) return;
     if (forget === true) focusedView.engaged = false;
-    window.TDBNavScroll?.release({ respectDirection: true });
+    if (focusedView.mode === 'inline') {
+      window.TDBNavScroll?.release({ respectDirection: true });
+      document.documentElement.classList.remove('tdbc-chrome-away');
+    }
     focusedView.root.classList.remove('is-focused');
-    document.documentElement.classList.remove('tdbc-chrome-away');
     focusedView = null;
     ++focusEpoch;
   }
   function focusView(view, restore = false, interacted = false) {
     if (view.suspended) return;
+    // The shared drawer owns modal chrome motion. Inline !important transforms
+    // would override its Web Animation and jump the bars straight to the end.
+    if (view.mode === 'drawer') {
+      if (focusedView !== view) releaseFocus();
+      focusedView = view;
+      view.root.classList.add('is-focused');
+      return;
+    }
     // A form can opt into focus on intent while other page sections retain chrome.
     // Merely entering its viewport must never acquire or reacquire that focus.
     const interactive = interactionFocus(view);

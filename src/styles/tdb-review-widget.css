@@ -39,7 +39,8 @@ html { --tdb-review-widget-ready: 1; }
 }
 /* Share carousel/map focus. Keep the review boundary's own visibility state
  * intact so releasing focus restores the badge only where it belongs. */
-html:is(.tdb-slider-focus,.tdbc-chrome-away) .tdb-review-widget {
+html:is(.tdb-slider-focus,.tdbc-chrome-away) .tdb-review-widget,
+html:has([data-tdb-drawer="calculator"]:not([hidden])) .tdb-review-widget {
   transform: translate3d(-101%,0,0);
   visibility: hidden;
   pointer-events: none;
