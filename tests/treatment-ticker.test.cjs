@@ -15,7 +15,7 @@ function fixture(withLocation = false, withCategory = false) {
     </div></div><div data-tdb-treatment-position><span data-tdb-treatment-current>01</span><span data-tdb-treatment-total>06</span></div></div>
     <div data-tdb-treatment-facts><img alt="" src="price.svg">${slot('data-tdb-treatment-price')}<img alt="" src="clock.svg">${slot('data-tdb-treatment-duration')}</div>
     ${withLocation ? `<div data-tdb-partner-facts><span data-tdb-journey-icon="barn"></span>${slot('data-tdb-treatment-location', 'Unit 4')}</div>` : ''}
-    ${withCategory ? `<div data-tdb-treatment-facts>${slot('data-tdb-treatment-category')}</div>` : ''}
+    ${withCategory ? `<div data-tdb-treatment-facts><img data-tdb-treatment-category-icon alt="">${slot('data-tdb-treatment-category')}</div>` : ''}
   </section>`,
     { runScripts: 'outside-only', url: 'https://example.test/' },
   );
@@ -102,13 +102,20 @@ test('optional partner location follows CMS slide order without stale labels or 
     assert.equal(f.value('location'), 'The Cottage');
     f.select(2);
     f.finish();
-    assert.equal(f.value('location'), '', 'missing location cannot retain the previous partner unit');
+    assert.equal(
+      f.value('location'),
+      '',
+      'missing location cannot retain the previous partner unit',
+    );
     f.select(0);
     f.select(1);
     f.select(0);
     f.finish();
     assert.equal(f.value('location'), 'Unit 4');
-    assert.equal(f.w.document.querySelector('[data-tdb-treatment-location]').firstElementChild, label);
+    assert.equal(
+      f.w.document.querySelector('[data-tdb-treatment-location]').firstElementChild,
+      label,
+    );
     assert.equal(f.w.document.querySelector('[data-tdb-journey-icon]'), icon);
     assert.equal(f.value('price'), 'From £4,195');
   } finally {
@@ -127,12 +134,20 @@ test('technology category follows native CMS text, rapid selection and empty fie
   const f = fixture(false, true);
   try {
     assert.equal(f.value('category'), 'Patient comfort');
+    const icon = f.w.document.querySelector('[data-tdb-treatment-category-icon]');
+    assert.match(icon.src, /lotus-small/);
     f.select(1);
     f.finish();
     assert.equal(f.value('category'), 'Diagnostics');
+    assert.match(icon.src, /diagnostics-small/);
     f.select(2);
     f.finish();
-    assert.equal(f.value('category'), '', 'missing category must not retain a previous technology label');
+    assert.equal(
+      f.value('category'),
+      '',
+      'missing category must not retain a previous technology label',
+    );
+    assert.equal(icon.hidden, true, 'unknown categories must not show a stale icon');
     f.select(0);
     f.select(1);
     f.finish();

@@ -187,9 +187,12 @@
     if (document.hidden) saveDD();
   });
   const ddClamp = (value) => Math.max(0, Math.min(1, value));
-  const ddCeiling = (preset) => (preset === 'orange' || preset === 'vimeo' ? 1 : 0.5);
+  const ddCeiling = (preset) => (['orange', 'vimeo', 'image'].includes(preset) ? 1 : 0.5);
   function ddOpacity(progress, preset = 'standard') {
     const p = ddClamp(progress);
+    // Decorative photography reaches its full native colour and holds it.
+    // Text keeps the established half-opacity treatment.
+    if (preset === 'image') return Math.min(1, p / 0.3);
     if (preset === 'orange') return p < 0.5 ? 0.3 + p * 1.4 : p <= 0.75 ? 1 : 1 - (p - 0.75) * 2;
     // Native Vimeo Video Scroll: 0/0, 30/1, 75/1, 95/0.8, then hold.
     // This is scroll progress, so the shared clock does not scale its geometry.
@@ -247,12 +250,15 @@
       const width = frame.width;
       const measurements = [...states].map((state) => {
         const node = state.node,
-          rect = frame.rect(node),
+          rect = frame.rect(state.frame),
           // Non-empty bounds already prove a CSS box exists. Only empty bounds
           // need a fragment query to distinguish zero-area boxes from no box.
-          hasBox = rect.width > 0 || rect.height > 0 || node.getClientRects().length > 0;
-        const style = hasBox || state.pendingInitial ? getComputedStyle(node) : null;
-        const shown = hasBox && style.visibility !== 'hidden';
+          hasBox = rect.width > 0 || rect.height > 0 || state.frame.getClientRects().length > 0;
+        const inViewport = hasBox && rect.bottom > origin && rect.top < origin + height;
+        // Offscreen copy needs its position, not a computed-style lookup on
+        // every scroll frame. Read visibility again before it enters view.
+        const style = inViewport || state.pendingInitial ? getComputedStyle(node) : null;
+        const shown = hasBox && (!style || style.visibility !== 'hidden');
         const initialValue = state.pendingInitial ? Number.parseFloat(style.opacity) : null;
         const total = state.mode === 'region' ? height + rect.height : height;
         const range =
@@ -270,7 +276,7 @@
           low,
           high,
           range,
-          visible: shown && rect.bottom > origin && rect.top < origin + height,
+          visible: shown && inViewport,
           signature: [rect.top - origin + scroll, rect.height, height, low, high, width],
         };
       });
@@ -313,10 +319,11 @@
             // player into view without wheel/touch intent. Reveal that arrival;
             // retain the painted opacity only when it was already in view.
             if (
-              (state.preset === 'vimeo' || state.value === 0) &&
-              state.geometrySeen &&
-              !state.visible &&
-              g.visible
+              (state.preset === 'image' && distance !== 0 && !userScroll) ||
+              ((state.preset === 'vimeo' || state.value === 0) &&
+                state.geometrySeen &&
+                !state.visible &&
+                g.visible)
             )
               state.value = ddOpacity(g.progress, state.preset);
             retain(state, g.progress, g.low, g.high, g.range);
@@ -449,6 +456,9 @@
       const owner = ddRoot(root);
       const state = {
         node,
+        // Parallax moves the photograph inside this stationary native frame.
+        // Its movement must not keep rebasing the independent opacity reveal.
+        frame: preset === 'image' ? node.closest('[data-tdb-page-break]') || node : node,
         owner,
         mode,
         preset,
@@ -480,7 +490,7 @@
             progress = state.progress;
           if (atPosition) {
             const root = state.owner.root,
-              rect = frame.rect(node);
+              rect = frame.rect(state.frame);
             const height = root ? root.clientHeight : frame.height;
             const origin = root ? frame.rect(root).top + root.clientTop : 0;
             const range =
@@ -716,7 +726,16 @@
         distance = lastScroll === null ? 0 : scroll - lastScroll;
       const userScroll = distance !== 0 && intent.active(scroll);
       // Read every rect first, then write. Each wrapper is independent.
-      const measurements = states.map((state) => [state, geometry(state, scroll, frame)]);
+      const measurements = [];
+      for (const state of states) {
+        const box = frame.rect(state.wrapper);
+        const side = box.top >= frame.height ? 1 : box.bottom <= 0 ? -1 : 0;
+        // Once an offscreen section has settled at an edge, its image crop and
+        // transforms need no further measurement until it approaches the view.
+        if (!layout && side && side === state.offscreenSide && state.geometry) continue;
+        state.offscreenSide = side;
+        measurements.push([state, geometry(state, scroll, frame)]);
+      }
       return () => {
         for (const [state, g] of measurements) {
           const mobilePage = touchViewport();
@@ -965,9 +984,14 @@
     }
     let resize;
     if (states.length) {
+      const resizeSchedule = () => {
+        // Offscreen crops still need to pick up responsive geometry changes.
+        for (const state of states) state.offscreenSide = 0;
+        schedule();
+      };
       intent = scrollIntent(window, () => window.scrollY, signal, lastScroll);
       window.addEventListener('scroll', schedule, { passive: true, signal });
-      window.addEventListener('resize', schedule, { passive: true, signal });
+      window.addEventListener('resize', resizeSchedule, { passive: true, signal });
       window.addEventListener(
         'pageshow',
         () => {
@@ -998,7 +1022,7 @@
       window.addEventListener('load', refresh, { signal });
       reduced.addEventListener('change', refresh, { signal });
       if (typeof ResizeObserver !== 'undefined') {
-        resize = new ResizeObserver(schedule);
+        resize = new ResizeObserver(resizeSchedule);
         resize.observe(document.documentElement);
         if (document.body) resize.observe(document.body);
         for (const state of states) {
@@ -1395,7 +1419,7 @@
     const fills = [...root.querySelectorAll('[data-tdb-intro-progress]')];
     const links = fills.map((fill) => fill.closest('a'));
     const next = root.querySelector('[data-tdb-intro-next]');
-    const nodes = [photo, doors, copy, ...fills];
+    const nodes = [photo, doors, copy, ...links.filter(Boolean)];
     const before = nodes.map((node) => node.getAttribute('style'));
     const controller = new AbortController();
     const { signal } = controller;
@@ -1439,7 +1463,9 @@
       );
       // Keep the heading in the accessibility tree while its decorative reveal runs.
       fills.forEach((fill, i) => {
-        animate(fill, 'transform', `scaleY(${index === i ? 1 : 0.32})`, immediate);
+        // Animate the hit-area height so adjacent pills move as one compact
+        // group. The native line stays exactly 3px wide, without scale rounding.
+        if (links[i]) animate(links[i], 'height', index === i ? '100px' : '44px', immediate);
         if (index === i) links[i]?.setAttribute('aria-current', 'step');
         else links[i]?.removeAttribute('aria-current');
       });
@@ -1475,7 +1501,7 @@
       event.defaultPrevented ||
       document.documentElement.classList.contains('tdb-scroll-locked') ||
       event.target?.closest?.(
-        'input,textarea,select,[contenteditable="true"],[role="dialog"],.navbar_menu',
+        'input,textarea,select,[contenteditable="true"],[role="dialog"],.navbar_menu,.navbar10_component',
       );
     function settle() {
       const y = window.scrollY;
