@@ -314,10 +314,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "7f1390106f98b6a927e29cb2d95bd7aa1b8b6d9f99972b87be13241878a61f4b",
-      "raw": 33549,
-      "gzip": 11461,
-      "brotli": 10378
+      "sha256": "90d427014b42c04a75093e923243571923973b09396c406acb256e76669685a8",
+      "raw": 34156,
+      "gzip": 11691,
+      "brotli": 10586
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [

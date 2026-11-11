@@ -1419,7 +1419,7 @@
     const fills = [...root.querySelectorAll('[data-tdb-intro-progress]')];
     const links = fills.map((fill) => fill.closest('a'));
     const next = root.querySelector('[data-tdb-intro-next]');
-    const nodes = [photo, doors, copy, ...links.filter(Boolean)];
+    const nodes = [photo, doors, copy, ...links.filter(Boolean), ...fills];
     const before = nodes.map((node) => node.getAttribute('style'));
     const controller = new AbortController();
     const { signal } = controller;
@@ -1443,17 +1443,24 @@
       disposed = false,
       wheelContinued = false;
     const travel = () => (reduced.matches ? 0 : time(620));
-    function animate(node, property, value, immediate) {
-      const from = getComputedStyle(node)[property];
+    function animate(node, property, value, immediate, from = getComputedStyle(node)[property]) {
       animations.get(node)?.cancel();
       node.style[property] = value;
       if (!immediate && !reduced.matches && node.animate) {
         const animation = node.animate([{ [property]: from }, { [property]: value }], {
           duration: travel(),
           easing: easing('travel', 'cubic-bezier(.22,.68,0,1)'),
+          fill: 'backwards',
         });
+        // Touch-driven scroll can flush styles before WAAPI resolves a pending
+        // start. Apply the first frame immediately on the shared document clock
+        // so the underlying end value never flashes before the animation.
+        if (document.timeline?.currentTime != null)
+          animation.startTime = document.timeline.currentTime;
         animations.set(node, animation);
-        animation.onfinish = () => animations.delete(node);
+        animation.onfinish = () => {
+          if (animations.get(node) === animation) animations.delete(node);
+        };
       }
     }
     function paint(index, immediate = false) {
@@ -1462,11 +1469,51 @@
       [photo, doors, copy].forEach((node, i) =>
         animate(node, 'opacity', String(states[index][i]), immediate),
       );
-      // Keep the heading in the accessibility tree while its decorative reveal runs.
+      // Lay out the compact group once per chapter. Move each pill's centre
+      // and reveal its fixed-size line with a clip, rather than relaying out
+      // the sticky intro on every height-animation frame during a held touch.
+      const origins =
+        !immediate && !reduced.matches
+          ? fills.map((fill, i) => {
+              const box = links[i]?.getBoundingClientRect();
+              return {
+                centre: box ? box.top + box.height / 2 : 0,
+                clip: getComputedStyle(fill).clipPath,
+              };
+            })
+          : null;
+      links.forEach((link, i) => {
+        if (!link) return;
+        animations.get(link)?.cancel();
+        animations.delete(link);
+        link.style.transform = 'none';
+        link.style.height = index === i ? '100px' : '44px';
+      });
+      const centres =
+        origins &&
+        links.map((link) => {
+          const box = link?.getBoundingClientRect();
+          return box ? box.top + box.height / 2 : 0;
+        });
       fills.forEach((fill, i) => {
-        // Animate the hit-area height so adjacent pills move as one compact
-        // group. The native line stays exactly 3px wide, without scale rounding.
-        if (links[i]) animate(links[i], 'height', index === i ? '100px' : '44px', immediate);
+        // Keep a 3px-wide, 84px-tall line; the inactive reveal is 28px tall.
+        // Vertical translation and a rounded inset preserve width and spacing.
+        fill.style.height = '84px';
+        animate(
+          fill,
+          'clipPath',
+          `inset(${index === i ? 0 : 28}px 0px round 999px)`,
+          immediate,
+          origins?.[i].clip,
+        );
+        if (links[i])
+          animate(
+            links[i],
+            'transform',
+            'translateY(0px)',
+            immediate,
+            `translateY(${origins ? origins[i].centre - centres[i] : 0}px)`,
+          );
         if (index === i) links[i]?.setAttribute('aria-current', 'step');
         else links[i]?.removeAttribute('aria-current');
       });

@@ -11,6 +11,11 @@ for (const file of ['src/shared/motion.js', 'dist/tdb-motion.js']) {
     const w = dom.window,
       root = w.document.querySelector('section'),
       frames = new Map();
+    const animations = [];
+    w.Element.prototype.animate = function (keyframes, options) {
+      animations.push({ node: this, keyframes, options });
+      return { cancel() {} };
+    };
     let id = 0,
       now = 0;
     w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
@@ -73,6 +78,23 @@ for (const file of ['src/shared/motion.js', 'dist/tdb-motion.js']) {
     assert(
       [...root.querySelectorAll('[data-tdb-intro-progress]')].every((n) => !n.style.transform),
       'pill lines never scale horizontally or vertically',
+    );
+    assert(
+      animations.every(({ keyframes }) => keyframes.every((frame) => !('height' in frame))),
+      'pill motion never animates layout height',
+    );
+    assert(
+      animations.some(({ keyframes }) => keyframes.some((frame) => 'clipPath' in frame)),
+      'pill lines reveal through a rounded clip',
+    );
+    assert(
+      animations.every(({ options }) => options.fill === 'backwards'),
+      'the first animation frame covers the underlying end value during startup',
+    );
+    assert.deepEqual(
+      [...root.querySelectorAll('[data-tdb-intro-progress]')].map((n) => n.style.height),
+      ['84px', '84px', '84px', '84px'],
+      'line geometry stays fixed while its visible length changes',
     );
     now += 1000;
     assert.equal(wheel(100).defaultPrevented, false, 'last chapter permits normal page scrolling');
@@ -155,6 +177,12 @@ for (const file of ['src/shared/motion.js', 'dist/tdb-motion.js']) {
     owner.destroy();
     assert.equal(root.hasAttribute('data-tdb-intro-state'), false);
     assert.equal(root.querySelector('[data-tdb-intro-photo]').hasAttribute('style'), false);
+    assert(
+      [...root.querySelectorAll('[data-tdb-intro-progress]')].every(
+        (n) => !n.hasAttribute('style'),
+      ),
+      'pill clipping and fixed geometry are restored on cleanup',
+    );
     assert.equal(frames.size, 0);
     dom.window.close();
   });
