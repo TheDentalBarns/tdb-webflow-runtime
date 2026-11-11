@@ -14,7 +14,19 @@ function prepareAboutIntroLoader() {
       .then(() => {
         if (!disposed) roots.forEach((root) => owners.push(window.TDBMotion.steppedIntro(root)));
       })
-      .catch((error) => console.warn('TDB About: keeping the native introduction.', error))
+      .catch((error) => {
+        if (disposed) return;
+        // A failed download must still expose the authored heading and story.
+        roots.forEach((root) => {
+          for (const [layer, opacity] of [
+            ['photo', '0'],
+            ['doors', '.075'],
+            ['copy', '1'],
+          ])
+            root.querySelector(`[data-tdb-intro-${layer}]`)?.style.setProperty('opacity', opacity);
+        });
+        console.warn('TDB About: keeping the native introduction readable.', error);
+      })
       .finally(() => {
         flight = null;
       });
@@ -1073,6 +1085,7 @@ function prepareFloatingAnnouncement() {
     const shellId = 'tdb-elfsight-timer-shell';
     const path = location.pathname.replace(/\/+$/, '') || '/';
     const revealViewports = path === '/' || path === '/location' ? 4 : 1;
+    const introduction = document.querySelector('[data-tdb-stepped-intro]');
     let viewportHeight = 0;
 
     function attachTimerState(shell, position) {
@@ -1088,7 +1101,9 @@ function prepareFloatingAnnouncement() {
         frame = 0;
         root.classList.toggle(
           'tdb-timer-hidden',
-          scrollTop < viewportHeight * revealViewports || navbarVisible,
+          scrollTop < viewportHeight * revealViewports ||
+            Boolean(introduction && introduction.getBoundingClientRect().bottom > 0) ||
+            navbarVisible,
         );
       };
       const requestUpdate = () => {
@@ -2610,6 +2625,23 @@ function prepareUSPDrawerLoader() {
         )
       : null;
 
+  const pulseSections = new Map();
+  const syncPulse = (section, near) =>
+    section.style.setProperty('--tdb-pulse-state', near && !document.hidden ? 'running' : 'paused');
+  const pulseVisibility =
+    'IntersectionObserver' in window
+      ? new IntersectionObserver(
+          (entries) => {
+            if (disposed) return;
+            for (const { target, isIntersecting } of entries) {
+              pulseSections.set(target, isIntersecting);
+              syncPulse(target, isIntersecting);
+            }
+          },
+          { rootMargin: '100px' },
+        )
+      : null;
+
   function refresh(root = document) {
     if (disposed) return;
     const sections = [
@@ -2619,6 +2651,11 @@ function prepareUSPDrawerLoader() {
     for (const section of sections) {
       if (seen.has(section)) continue;
       seen.add(section);
+      if (pulseVisibility) {
+        pulseSections.set(section, false);
+        syncPulse(section, false);
+        pulseVisibility.observe(section);
+      }
       section.querySelectorAll('[data-tdb-usp-launch]').forEach((trigger) => {
         trigger.setAttribute('role', 'button');
         trigger.setAttribute('aria-disabled', 'false');
@@ -2708,6 +2745,11 @@ function prepareUSPDrawerLoader() {
   }
   for (const type of ['click', 'keydown'])
     document.addEventListener(type, activate, { capture: true, signal: events.signal });
+  document.addEventListener(
+    'visibilitychange',
+    () => pulseSections.forEach((near, section) => syncPulse(section, near)),
+    { signal: events.signal },
+  );
   window.TDBFeatureLoading?.watchIntent({
     selector: '[data-tdb-usp] [data-tdb-usp-trigger-zone]',
     signal: events.signal,
@@ -2731,6 +2773,9 @@ function prepareUSPDrawerLoader() {
       disposed = true;
       events.abort();
       proximity?.disconnect();
+      pulseVisibility?.disconnect();
+      pulseSections.forEach((_, section) => section.style.removeProperty('--tdb-pulse-state'));
+      pulseSections.clear();
     },
   });
   refresh();
@@ -4061,14 +4106,15 @@ const TDBFeatureStartup = (() => {
   return Object.freeze({ start });
 })();
 
-/* Shared Home/Location carousel surfaces only need painting near the viewport.
+/* Shared carousel surfaces only need painting near the viewport.
  * Keep layout, images, Swiper state and all visible motion owned by their
  * existing controllers. This guard never unloads or remounts a carousel.
  */
 function createHomePaintWindow() {
   'use strict';
+  const allViewports = Boolean(document.querySelector('[data-tdb-paint-window="all"]'));
   if (
-    !document.querySelector('.tdb-service-parallax') ||
+    (!allViewports && !document.querySelector('.tdb-service-parallax')) ||
     typeof IntersectionObserver !== 'function'
   )
     return null;
@@ -4076,7 +4122,7 @@ function createHomePaintWindow() {
   const mobile = matchMedia('(max-width: 991px)'),
     roots = [
       ...document.querySelectorAll(
-        '.tdb-service-parallax,[data-tdb-treatment],[data-tdb-ig-placeholder]',
+        '.tdb-service-parallax,[data-tdb-treatment],[data-tdb-treatment-layout],[data-tdb-ig-placeholder]',
       ),
     ],
     states = new Map(roots.map((root) => [root, { timer: 0, frame: 0 }])),
@@ -4115,7 +4161,7 @@ function createHomePaintWindow() {
   }
   function sync() {
     reset();
-    if (disposed || !mobile.matches || !roots.length) return;
+    if (disposed || (!allViewports && !mobile.matches) || !roots.length) return;
     const current = new IntersectionObserver(
       (entries) => {
         if (disposed || observer !== current) return;

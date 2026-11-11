@@ -5,6 +5,7 @@ function prepareFloatingAnnouncement() {
     const shellId = 'tdb-elfsight-timer-shell';
     const path = location.pathname.replace(/\/+$/, '') || '/';
     const revealViewports = path === '/' || path === '/location' ? 4 : 1;
+    const introduction = document.querySelector('[data-tdb-stepped-intro]');
     let viewportHeight = 0;
 
     function attachTimerState(shell, position) {
@@ -20,7 +21,9 @@ function prepareFloatingAnnouncement() {
         frame = 0;
         root.classList.toggle(
           'tdb-timer-hidden',
-          scrollTop < viewportHeight * revealViewports || navbarVisible,
+          scrollTop < viewportHeight * revealViewports ||
+            Boolean(introduction && introduction.getBoundingClientRect().bottom > 0) ||
+            navbarVisible,
         );
       };
       const requestUpdate = () => {

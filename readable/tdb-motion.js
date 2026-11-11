@@ -1439,8 +1439,8 @@
       );
       // Keep the heading in the accessibility tree while its decorative reveal runs.
       fills.forEach((fill, i) => {
-        animate(fill, 'transform', `scaleY(${index > i ? 1 : 0})`, immediate);
-        if (index === i + 1) links[i]?.setAttribute('aria-current', 'step');
+        animate(fill, 'transform', `scaleY(${index === i ? 1 : 0.32})`, immediate);
+        if (index === i) links[i]?.setAttribute('aria-current', 'step');
         else links[i]?.removeAttribute('aria-current');
       });
       if (next) next.style.opacity = index === 3 ? '0' : '1';
@@ -1478,9 +1478,12 @@
         'input,textarea,select,[contenteditable="true"],[role="dialog"],.navbar_menu',
       );
     function settle() {
-      if (!inside || navigating || disposed) return;
-      const index = Math.max(0, Math.min(3, Math.round((window.scrollY - start) / step)));
-      if (Math.abs(window.scrollY - start - index * step) > 3) goTo(index);
+      const y = window.scrollY;
+      // scrollend can precede our batched geometry read. Check the current
+      // position, so an anchor jump or an exit cannot reuse stale containment.
+      if (!inside || navigating || disposed || y < start - 2 || y > start + 3 * step + 2) return;
+      const index = Math.max(0, Math.min(3, Math.round((y - start) / step)));
+      if (Math.abs(y - start - index * step) > 3) goTo(index);
     }
     window.addEventListener(
       'wheel',
@@ -1519,6 +1522,43 @@
       },
       { passive: false, capture: true, signal },
     );
+    let touch = null;
+    root.addEventListener(
+      'touchstart',
+      (event) => {
+        if (!inside || blocked(event) || event.touches.length !== 1) return;
+        const point = event.touches[0];
+        touch = { x: point.clientX, y: point.clientY, used: false };
+      },
+      { passive: true, signal },
+    );
+    root.addEventListener(
+      'touchmove',
+      (event) => {
+        if (!touch || blocked(event) || event.touches.length !== 1) return;
+        const point = event.touches[0];
+        const delta = touch.y - point.clientY;
+        if (Math.abs(point.clientX - touch.x) > Math.abs(delta)) return;
+        const direction = Math.sign(delta);
+        if (!touch.used && ((active === 3 && direction > 0) || (active === 0 && direction < 0)))
+          return;
+        if (Math.abs(delta) < 12) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (touch.used || performance.now() < movingUntil) return;
+        touch.used = true;
+        goTo(active + direction);
+      },
+      { passive: false, capture: true, signal },
+    );
+    for (const name of ['touchend', 'touchcancel'])
+      root.addEventListener(
+        name,
+        () => {
+          touch = null;
+        },
+        { passive: true, signal },
+      );
     window.addEventListener(
       'keydown',
       (event) => {
@@ -1554,7 +1594,7 @@
           return;
         event.preventDefault();
         event.stopPropagation();
-        goTo(index >= 0 ? index + 1 : Math.min(3, active + 1));
+        goTo(index >= 0 ? index : Math.min(3, active + 1));
       },
       { capture: true, signal },
     );

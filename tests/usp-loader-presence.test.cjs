@@ -57,7 +57,22 @@ test('late sections work through delegated activation and repeated refresh binds
  const f=fixture({present:false});try{f.start();f.d.body.insertAdjacentHTML('beforeend',markup());f.trigger().click();await tick();await tick();assert.equal(f.opens.length,1);f.w.TDBUSPDrawer.refresh();f.w.TDBUSPDrawer.refresh();f.trigger().click();await tick();assert.equal(f.opens.length,2);f.d.body.insertAdjacentHTML('beforeend',markup('two'));const t=f.d.querySelector('#two [data-tdb-usp-launch]');t.click();await tick();await tick();assert.equal(f.opens.length,3);assert.equal(f.opens[2].section.id,'two')}finally{f.close()}
 });
 test('non-lazy sections retain 500px proximity preparation',async()=>{
- const f=fixture({lazy:false});try{f.start();assert.equal(f.ios[0].options.rootMargin,'500px');const s=f.d.querySelector('section');f.ios[0].fn([{isIntersecting:true,target:s}]);await tick();const own=f.ios.find((o,i)=>i>0&&o.nodes.has(s));assert(own);own.fn([{isIntersecting:true,target:s}]);await tick();assert(f.requests.includes('tdb-motion.js'));assert(!f.requests.includes('tdb-usp-drawer-template.js'))}finally{f.close()}
+ const f=fixture({lazy:false});try{f.start();assert.equal(f.ios[0].options.rootMargin,'500px');const s=f.d.querySelector('section');f.ios[0].fn([{isIntersecting:true,target:s}]);await tick();const own=f.ios.find((o,i)=>i>0&&o.options.rootMargin!=='100px'&&o.nodes.has(s));assert(own);own.fn([{isIntersecting:true,target:s}]);await tick();assert(f.requests.includes('tdb-motion.js'));assert(!f.requests.includes('tdb-usp-drawer-template.js'))}finally{f.close()}
+});
+
+test('offscreen USP pulses pause and resume without changing the pulse contract or loading content',()=>{
+ const f=fixture();try{
+  f.start();const section=f.d.querySelector('section'),observer=f.ios.find(o=>o.options.rootMargin==='100px');
+  assert.equal(section.style.getPropertyValue('--tdb-pulse-state'),'paused');
+  observer.fn([{target:section,isIntersecting:true}]);
+  assert.equal(section.style.getPropertyValue('--tdb-pulse-state'),'running');
+  Object.defineProperty(f.d,'hidden',{value:true,configurable:true});f.d.dispatchEvent(new f.w.Event('visibilitychange'));
+  assert.equal(section.style.getPropertyValue('--tdb-pulse-state'),'paused');
+  Object.defineProperty(f.d,'hidden',{value:false,configurable:true});f.d.dispatchEvent(new f.w.Event('visibilitychange'));
+  assert.equal(section.style.getPropertyValue('--tdb-pulse-state'),'running');
+  observer.fn([{target:section,isIntersecting:false}]);assert.equal(section.style.getPropertyValue('--tdb-pulse-state'),'paused');
+  assert.deepEqual(f.requests,[]);f.w.TDBUSPDrawerLoader.destroy();assert.equal(observer.nodes.size,0);assert.equal(section.style.getPropertyValue('--tdb-pulse-state'),'');
+ }finally{f.close()}
 });
 test('already discovered adapter handles clicks without a new loader request',async()=>{
  const f=fixture();try{f.adapter();f.start();f.trigger().click();await tick();assert.equal(f.opens.length,1);assert(!f.requests.includes('tdb-usp-drawer.js'))}finally{f.close()}

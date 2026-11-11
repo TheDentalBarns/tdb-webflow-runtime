@@ -205,6 +205,7 @@ html { --tdb-ui-ready: 1; }
 [data-tdb-pulse] {
   pointer-events: none;
   animation: tdbBtnPulseOpacity calc(2.4s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in-out) infinite alternate;
+  animation-play-state: var(--tdb-pulse-state,running);
 }
 [aria-busy='true'] [data-tdb-pulse],
 [aria-expanded='true'] [data-tdb-pulse],
@@ -285,6 +286,7 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
 }
 [data-tdb-compact-pulse]::before {
   animation: tdbBtnPulseOpacity calc(2.4s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in-out) infinite alternate;
+  animation-play-state: var(--tdb-pulse-state,running);
 }
 [data-tdb-compact-pulse]:is([data-tdb-pulse='false'],[aria-busy='true'],[aria-expanded='true'],[data-tdb-loading='true'])::before,
 :is([aria-busy='true'],[aria-expanded='true'],[data-tdb-loading='true']) [data-tdb-compact-pulse]::before {
@@ -547,10 +549,10 @@ html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-contro
   }
 }
 
-/* Home/Location's distant carousels rest without changing layout or motion.
+/* Distant carousels rest without changing layout or motion.
  * Existing horizontal IG culling still owns each individual card.
+ * The shared observer controls which viewports opt into this lifecycle.
  */
-@media (max-width: 991px) {
   /* Retire the image/reflection surfaces as well as blur. Visibility preserves
      measured geometry, image sources, loaded content and carousel position. */
   [data-tdb-home-paint-idle] .swiper-wrapper,
@@ -571,7 +573,6 @@ html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-contro
   [data-tdb-home-paint-resuming] .ig-native_glass {
     transition: none !important;
   }
-}
 
 /* Only the explicit staging test URL creates this readout. */
 .tdb-scroll-test {

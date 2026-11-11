@@ -14,7 +14,19 @@ function prepareAboutIntroLoader() {
       .then(() => {
         if (!disposed) roots.forEach((root) => owners.push(window.TDBMotion.steppedIntro(root)));
       })
-      .catch((error) => console.warn('TDB About: keeping the native introduction.', error))
+      .catch((error) => {
+        if (disposed) return;
+        // A failed download must still expose the authored heading and story.
+        roots.forEach((root) => {
+          for (const [layer, opacity] of [
+            ['photo', '0'],
+            ['doors', '.075'],
+            ['copy', '1'],
+          ])
+            root.querySelector(`[data-tdb-intro-${layer}]`)?.style.setProperty('opacity', opacity);
+        });
+        console.warn('TDB About: keeping the native introduction readable.', error);
+      })
       .finally(() => {
         flight = null;
       });

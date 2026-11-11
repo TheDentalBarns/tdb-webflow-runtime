@@ -4,6 +4,7 @@
 [data-tdb-pulse] {
   pointer-events: none;
   animation: tdbBtnPulseOpacity calc(2.4s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in-out) infinite alternate;
+  animation-play-state: var(--tdb-pulse-state,running);
 }
 [aria-busy='true'] [data-tdb-pulse],
 [aria-expanded='true'] [data-tdb-pulse],
@@ -84,6 +85,7 @@ html:not([data-tdb-control-motion]) [data-tdb-compact-chevron]::after{transition
 }
 [data-tdb-compact-pulse]::before {
   animation: tdbBtnPulseOpacity calc(2.4s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-control,ease-in-out) infinite alternate;
+  animation-play-state: var(--tdb-pulse-state,running);
 }
 [data-tdb-compact-pulse]:is([data-tdb-pulse='false'],[aria-busy='true'],[aria-expanded='true'],[data-tdb-loading='true'])::before,
 :is([aria-busy='true'],[aria-expanded='true'],[data-tdb-loading='true']) [data-tdb-compact-pulse]::before {

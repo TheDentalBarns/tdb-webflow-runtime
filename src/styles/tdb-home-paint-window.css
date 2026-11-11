@@ -1,7 +1,7 @@
-/* Home/Location's distant carousels rest without changing layout or motion.
+/* Distant carousels rest without changing layout or motion.
  * Existing horizontal IG culling still owns each individual card.
+ * The shared observer controls which viewports opt into this lifecycle.
  */
-@media (max-width: 991px) {
   /* Retire the image/reflection surfaces as well as blur. Visibility preserves
      measured geometry, image sources, loaded content and carousel position. */
   [data-tdb-home-paint-idle] .swiper-wrapper,
@@ -22,7 +22,6 @@
   [data-tdb-home-paint-resuming] .ig-native_glass {
     transition: none !important;
   }
-}
 
 /* Only the explicit staging test URL creates this readout. */
 .tdb-scroll-test {

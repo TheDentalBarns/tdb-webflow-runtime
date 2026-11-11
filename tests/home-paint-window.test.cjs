@@ -4,9 +4,9 @@ const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const source = fs.readFileSync('src/runtime/home-paint-window.js', 'utf8');
 const idle = 'data-tdb-home-paint-idle', resuming = 'data-tdb-home-paint-resuming';
-function setup({home = true, mobile = true, supported = true, galleries = true} = {}) {
+function setup({home = true, mobile = true, supported = true, galleries = true, allViewports = false} = {}) {
   const dom = new JSDOM(`<html data-wf-page="${home ? '677cf86df9952f978d94d8a9' : '677cfb8a0f25478449823c5f'}"><body>
-    <div class="${galleries ? 'tdb-service-parallax' : 'pricing-gallery'}"><div class="tdb-service-card"><img src="/service.jpg"></div></div>
+    <div ${allViewports ? 'data-tdb-paint-window="all"' : ''} class="${galleries ? 'tdb-service-parallax' : 'pricing-gallery'}"><div class="tdb-service-card"><img src="/service.jpg"></div></div>
     <div data-tdb-treatment><div class="tdb-treatment-blur"></div></div>
     <div data-tdb-ig-placeholder><div class="ig-native_glass"></div></div>
     <div class="tdb-smile-placeholder" ${home ? 'data-tdb-smile-placeholder="home"' : ''}></div><nav></nav></body></html>`, {runScripts:'outside-only',pretendToBeVisual:true});
@@ -41,6 +41,13 @@ test('Location shares the same distant-surface lifecycle without a Home marker',
   const f=setup({home:false});try{
     assert.equal(f.ios.length,1);assert.equal(f.ios[0].nodes.size,3);
     f.notify(false);f.advance(180);assert.equal(f.d.querySelectorAll(`[${idle}]`).length,3);
+    f.notify(true);f.frame();f.frame();assert(!f.d.querySelector(`[${idle}],[${resuming}]`));
+  }finally{f.close()}
+});
+test('About can opt into the same offscreen lifecycle on desktop without a service carousel',()=>{
+  const f=setup({home:false,galleries:false,mobile:false,allViewports:true});try{
+    assert.equal(f.ios.length,1);assert.equal(f.ios[0].nodes.size,2);
+    f.notify(false);f.advance(180);assert.equal(f.d.querySelectorAll(`[${idle}]`).length,2);
     f.notify(true);f.frame();f.frame();assert(!f.d.querySelector(`[${idle}],[${resuming}]`));
   }finally{f.close()}
 });

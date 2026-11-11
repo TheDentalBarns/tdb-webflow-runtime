@@ -1,11 +1,12 @@
-/* Shared Home/Location carousel surfaces only need painting near the viewport.
+/* Shared carousel surfaces only need painting near the viewport.
  * Keep layout, images, Swiper state and all visible motion owned by their
  * existing controllers. This guard never unloads or remounts a carousel.
  */
 function createHomePaintWindow() {
   'use strict';
+  const allViewports = Boolean(document.querySelector('[data-tdb-paint-window="all"]'));
   if (
-    !document.querySelector('.tdb-service-parallax') ||
+    (!allViewports && !document.querySelector('.tdb-service-parallax')) ||
     typeof IntersectionObserver !== 'function'
   )
     return null;
@@ -13,7 +14,7 @@ function createHomePaintWindow() {
   const mobile = matchMedia('(max-width: 991px)'),
     roots = [
       ...document.querySelectorAll(
-        '.tdb-service-parallax,[data-tdb-treatment],[data-tdb-ig-placeholder]',
+        '.tdb-service-parallax,[data-tdb-treatment],[data-tdb-treatment-layout],[data-tdb-ig-placeholder]',
       ),
     ],
     states = new Map(roots.map((root) => [root, { timer: 0, frame: 0 }])),
@@ -52,7 +53,7 @@ function createHomePaintWindow() {
   }
   function sync() {
     reset();
-    if (disposed || !mobile.matches || !roots.length) return;
+    if (disposed || (!allViewports && !mobile.matches) || !roots.length) return;
     const current = new IntersectionObserver(
       (entries) => {
         if (disposed || observer !== current) return;

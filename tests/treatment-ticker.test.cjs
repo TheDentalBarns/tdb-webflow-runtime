@@ -3,18 +3,19 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 
-function fixture(withLocation = false) {
+function fixture(withLocation = false, withCategory = false) {
   const slot = (attr, value = '') =>
     `<span ${attr}><span class="tdb-smile-fact-value">${value}</span><span class="tdb-smile-fact-value" aria-hidden="true"></span></span>`;
   const dom = new JSDOM(
     `<section data-tdb-treatment-layout>
     <div data-tdb-treatment-postage><div class="swiper"><div class="swiper-wrapper">
-      <article><h3 class="tdb-treatment-title">Treatment B</h3><a data-tdb-treatment-price-source="4195" data-tdb-treatment-duration-source="6–18 months" data-tdb-treatment-location-source="Unit 4"></a></article>
-      <article><h3 class="tdb-treatment-title">Treatment A</h3><a data-tdb-treatment-price-source="£995" data-tdb-treatment-duration-source="Several weeks" data-tdb-treatment-location-source="The Cottage"></a></article>
+      <article><h3 class="tdb-treatment-title">Treatment B</h3><a data-tdb-treatment-price-source="4195" data-tdb-treatment-duration-source="6–18 months" data-tdb-treatment-location-source="Unit 4"></a><p hidden data-tdb-treatment-category-source>Patient comfort</p></article>
+      <article><h3 class="tdb-treatment-title">Treatment A</h3><a data-tdb-treatment-price-source="£995" data-tdb-treatment-duration-source="Several weeks" data-tdb-treatment-location-source="The Cottage"></a><p hidden data-tdb-treatment-category-source>Diagnostics</p></article>
       <article><h3 class="tdb-treatment-title">Treatment C</h3><a data-tdb-treatment-price-source="" data-tdb-treatment-duration-source=""></a></article>
     </div></div><div data-tdb-treatment-position><span data-tdb-treatment-current>01</span><span data-tdb-treatment-total>06</span></div></div>
     <div data-tdb-treatment-facts><img alt="" src="price.svg">${slot('data-tdb-treatment-price')}<img alt="" src="clock.svg">${slot('data-tdb-treatment-duration')}</div>
     ${withLocation ? `<div data-tdb-partner-facts><span data-tdb-journey-icon="barn"></span>${slot('data-tdb-treatment-location', 'Unit 4')}</div>` : ''}
+    ${withCategory ? `<div data-tdb-treatment-facts>${slot('data-tdb-treatment-category')}</div>` : ''}
   </section>`,
     { runScripts: 'outside-only', url: 'https://example.test/' },
   );
@@ -119,6 +120,25 @@ test('optional partner location follows CMS slide order without stale labels or 
     assert.equal(home.value('price'), 'From £4,195');
   } finally {
     home.dom.window.close();
+  }
+});
+
+test('technology category follows native CMS text, rapid selection and empty fields', () => {
+  const f = fixture(false, true);
+  try {
+    assert.equal(f.value('category'), 'Patient comfort');
+    f.select(1);
+    f.finish();
+    assert.equal(f.value('category'), 'Diagnostics');
+    f.select(2);
+    f.finish();
+    assert.equal(f.value('category'), '', 'missing category must not retain a previous technology label');
+    f.select(0);
+    f.select(1);
+    f.finish();
+    assert.equal(f.value('category'), 'Diagnostics');
+  } finally {
+    f.dom.window.close();
   }
 });
 

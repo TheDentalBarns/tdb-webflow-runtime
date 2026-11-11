@@ -26,6 +26,23 @@ function prepareUSPDrawerLoader() {
         )
       : null;
 
+  const pulseSections = new Map();
+  const syncPulse = (section, near) =>
+    section.style.setProperty('--tdb-pulse-state', near && !document.hidden ? 'running' : 'paused');
+  const pulseVisibility =
+    'IntersectionObserver' in window
+      ? new IntersectionObserver(
+          (entries) => {
+            if (disposed) return;
+            for (const { target, isIntersecting } of entries) {
+              pulseSections.set(target, isIntersecting);
+              syncPulse(target, isIntersecting);
+            }
+          },
+          { rootMargin: '100px' },
+        )
+      : null;
+
   function refresh(root = document) {
     if (disposed) return;
     const sections = [
@@ -35,6 +52,11 @@ function prepareUSPDrawerLoader() {
     for (const section of sections) {
       if (seen.has(section)) continue;
       seen.add(section);
+      if (pulseVisibility) {
+        pulseSections.set(section, false);
+        syncPulse(section, false);
+        pulseVisibility.observe(section);
+      }
       section.querySelectorAll('[data-tdb-usp-launch]').forEach((trigger) => {
         trigger.setAttribute('role', 'button');
         trigger.setAttribute('aria-disabled', 'false');
@@ -124,6 +146,11 @@ function prepareUSPDrawerLoader() {
   }
   for (const type of ['click', 'keydown'])
     document.addEventListener(type, activate, { capture: true, signal: events.signal });
+  document.addEventListener(
+    'visibilitychange',
+    () => pulseSections.forEach((near, section) => syncPulse(section, near)),
+    { signal: events.signal },
+  );
   window.TDBFeatureLoading?.watchIntent({
     selector: '[data-tdb-usp] [data-tdb-usp-trigger-zone]',
     signal: events.signal,
@@ -147,6 +174,9 @@ function prepareUSPDrawerLoader() {
       disposed = true;
       events.abort();
       proximity?.disconnect();
+      pulseVisibility?.disconnect();
+      pulseSections.forEach((_, section) => section.style.removeProperty('--tdb-pulse-state'));
+      pulseSections.clear();
     },
   });
   refresh();
