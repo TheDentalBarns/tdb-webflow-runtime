@@ -29,9 +29,8 @@
       "paths": [
         "/about-us"
       ],
-      "features": [
-        "instagram"
-      ]
+      "features": [],
+      "ownership": "Native About components and shared runtime, including deferred Instagram. Keep the page footer metadata-only; do not reinstall legacy inline handlers."
     },
     "699058c919f4a1adcc157cb3": {
       "paths": [
