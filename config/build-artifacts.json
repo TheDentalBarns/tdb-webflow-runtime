@@ -529,6 +529,7 @@
         "src/runtime/page-position.js",
         "src/shared/module-bootstrap.js",
         "src/calculator/loader.js",
+        "src/shared/availability-header.js",
         "src/shared/feature-css.js",
         "src/banner/loader.js",
         "src/banner/floating-loader.js",
@@ -557,10 +558,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "11099e44c53b5cb9a5dc2478dbda8c4d798a337f5b5a22249966589e02d9a936",
-      "raw": 88814,
-      "gzip": 24317,
-      "brotli": 20928
+      "sha256": "28c30a3df1d02e437018b3ce075f60e012a4fdf27a610634cfba67de5957440d",
+      "raw": 91050,
+      "gzip": 25104,
+      "brotli": 21564
     },
     "dist/tdb-service-awards.js": {
       "sources": [
