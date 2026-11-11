@@ -188,8 +188,17 @@ for (const width of [448, 1363])
       assert.equal(f.nav.style.top, '', 'normal document position is restored outside the intro');
       scroll(3600);
       assert.equal(f.nav.style.position, 'fixed', 'ordinary scroll-up navigation returns below the intro');
-      scroll(3300);
-      assert.equal(f.nav.style.position, 'absolute', 'returning into the exit screen reattaches the nav');
+      for (const y of [3497, 3495, 3300, 2623]) {
+        scroll(y);
+        assert.equal(f.nav.style.position, 'fixed', 'returning into the final screen keeps the bar visible');
+        assert.equal(f.nav.style.top, '', 'the bar stays at the viewport top during the handoff');
+        assert.equal(f.nav.style.transform, 'translateY(0)');
+        assert.equal(f.w.TDBNavScroll.clearSurface, false, 'the returning bar keeps its glass surface');
+      }
+      scroll(2622);
+      assert.equal(f.nav.style.position, 'absolute', 'the bar attaches when its anchor reaches the top');
+      assert.equal(f.nav.style.top, '2622px');
+      assert.equal(f.w.TDBNavScroll.clearSurface, true, 'the intro returns to its plain navigation');
       scroll(2500);
       assert.equal(f.nav.style.position, 'fixed');
       assert.equal(f.nav.style.top, '');
