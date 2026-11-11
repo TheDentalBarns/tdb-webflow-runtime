@@ -1432,6 +1432,7 @@
     ];
     let active = -1,
       start = 0,
+      end = 0,
       step = innerHeight,
       inside = false;
     let movingUntil = 0,
@@ -1440,7 +1441,7 @@
       settleTimer;
     let navigating = false,
       disposed = false,
-      gestureUsed = false;
+      wheelContinued = false;
     const travel = () => (reduced.matches ? 0 : time(620));
     function animate(node, property, value, immediate) {
       const from = getComputedStyle(node)[property];
@@ -1469,13 +1470,12 @@
         if (index === i) links[i]?.setAttribute('aria-current', 'step');
         else links[i]?.removeAttribute('aria-current');
       });
-      if (next) next.style.opacity = index === 3 ? '0' : '1';
-      if (next) next.inert = index === 3;
       root.dataset.tdbIntroState = String(index + 1);
     }
     function read(frame) {
       const box = frame.rect(root);
       start = frame.scroll + box.top;
+      end = start + box.height;
       step = Math.max(1, (box.height - frame.rect(root.firstElementChild).height) / 3);
       inside = frame.scroll >= start - 2 && frame.scroll <= start + 3 * step + 2;
       const index = Math.max(0, Math.min(3, Math.round((frame.scroll - start) / step)));
@@ -1484,18 +1484,20 @@
       return () => paint(index, active < 0);
     }
     const schedule = () => requestMotionFrame(read);
-    function goTo(index) {
+    function navigate(top, target) {
       if (disposed) return;
-      const target = Math.max(0, Math.min(3, index));
       navigating = true;
       movingUntil = performance.now() + travel() + 100;
       paint(target);
-      const top = start + target * step;
       if (window.lenis?.scrollTo)
         window.lenis.scrollTo(top, { duration: travel() / 1000, force: true });
       else window.scrollTo({ top, behavior: reduced.matches ? 'instant' : 'smooth' });
       clearTimeout(settleTimer);
       settleTimer = setTimeout(schedule, travel() + 130);
+    }
+    function goTo(index) {
+      const target = Math.max(0, Math.min(3, index));
+      navigate(start + target * step, target);
     }
     const blocked = (event) =>
       event.defaultPrevented ||
@@ -1523,27 +1525,34 @@
           return;
         const now = performance.now(),
           direction = Math.sign(event.deltaY);
+        if (!direction) return;
         const quiet = now - lastWheel > 160;
         lastWheel = now;
         if (quiet) {
           wheelSum = 0;
-          gestureUsed = false;
+          wheelContinued = false;
         }
-        // At a settled end, the next gesture leaves the sequence normally.
+        // A settled boundary releases immediately, even within a continuous
+        // wheel stream. Requiring a quiet gap here makes the page feel stuck.
         if (
           now >= movingUntil &&
-          !gestureUsed &&
           ((active === 3 && direction > 0) || (active === 0 && direction < 0))
         )
           return;
         event.preventDefault();
         event.stopPropagation();
-        if (now < movingUntil || gestureUsed) return;
+        if (now < movingUntil) {
+          wheelSum = 0;
+          return;
+        }
+        if (Math.sign(wheelSum) !== direction) wheelSum = 0;
         wheelSum +=
           event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1);
-        if (Math.abs(wheelSum) < 12) return;
+        // Continued input may advance after the current transition. Require
+        // fresh travel so tiny trackpad momentum tails cannot queue chapters.
+        if (Math.abs(wheelSum) < (wheelContinued ? 48 : 12)) return;
         goTo(active + Math.sign(wheelSum));
-        gestureUsed = true;
+        wheelContinued = true;
         wheelSum = 0;
       },
       { passive: false, capture: true, signal },
@@ -1554,7 +1563,7 @@
       (event) => {
         if (!inside || blocked(event) || event.touches.length !== 1) return;
         const point = event.touches[0];
-        touch = { x: point.clientX, y: point.clientY, used: false };
+        touch = { x: point.clientX, y: point.clientY, captured: false };
       },
       { passive: true, signal },
     );
@@ -1566,13 +1575,26 @@
         const delta = touch.y - point.clientY;
         if (Math.abs(point.clientX - touch.x) > Math.abs(delta)) return;
         const direction = Math.sign(delta);
-        if (!touch.used && ((active === 3 && direction > 0) || (active === 0 && direction < 0)))
-          return;
-        if (Math.abs(delta) < 12) return;
+        const moving = performance.now() < movingUntil;
+        const leaving =
+          !inside || (active === 3 && direction > 0) || (active === 0 && direction < 0);
+        if (!moving && leaving && !touch.captured) return;
+        if (!moving && !leaving && Math.abs(delta) < 12) return;
         event.preventDefault();
         event.stopPropagation();
-        if (touch.used || performance.now() < movingUntil) return;
-        touch.used = true;
+        touch.captured = true;
+        touch.x = point.clientX;
+        touch.y = point.clientY;
+        // Consume movement during the transition, then accept fresh movement
+        // without demanding a finger lift. Once this drag has been captured,
+        // keep its exit moving too: the browser cannot resume a cancelled pan.
+        if (moving) return;
+        if (leaving) {
+          const top = Math.max(0, window.scrollY + delta);
+          if (window.lenis?.scrollTo) window.lenis.scrollTo(top, { immediate: true, force: true });
+          else window.scrollTo({ top, behavior: 'instant' });
+          return;
+        }
         goTo(active + direction);
       },
       { passive: false, capture: true, signal },
@@ -1620,7 +1642,8 @@
           return;
         event.preventDefault();
         event.stopPropagation();
-        goTo(index >= 0 ? index : Math.min(3, active + 1));
+        if (link === next && active === 3) navigate(end, 3);
+        else goTo(index >= 0 ? index : active + 1);
       },
       { capture: true, signal },
     );
@@ -1660,10 +1683,6 @@
             ? node.removeAttribute('style')
             : node.setAttribute('style', before[i]),
         );
-        if (next) {
-          next.style.removeProperty('opacity');
-          next.inert = false;
-        }
         links.forEach((link) => link?.removeAttribute('aria-current'));
         root.removeAttribute('data-tdb-intro-state');
         steppedIntros.delete(root);
