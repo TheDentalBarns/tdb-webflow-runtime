@@ -113,6 +113,7 @@ module.exports = {
     'src/runtime/page-position.js',
     'src/shared/module-bootstrap.js',
     'src/calculator/loader.js',
+    'src/shared/availability-header.js',
     'src/shared/feature-css.js',
     'src/banner/loader.js',
     'src/banner/floating-loader.js',
