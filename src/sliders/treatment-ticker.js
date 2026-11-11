@@ -15,6 +15,13 @@ window.TDBTreatmentTicker ||= (() => {
     const duration = owner.querySelector('[data-tdb-treatment-duration]');
     const partnerLocation = owner.querySelector('[data-tdb-treatment-location]');
     const category = owner.querySelector('[data-tdb-treatment-category]');
+    const categoryIcon = owner.querySelector('[data-tdb-treatment-category-icon]');
+    const categoryArtwork = {
+      'patient comfort': '6aeddc643eed49cd4fac61a6_tdb-lotus-small-1px.svg',
+      diagnostics: '6af43b858a9478379bba1dac_tdb-diagnostics-small-1px.svg',
+      'preventive care': '6af43b86e3a73e975db4882e_tdb-preventive-care-small-1px.svg',
+      'clinical environment': '6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg',
+    };
     const slots = [current, price, duration, partnerLocation, category];
     if (!slots.some(Boolean)) return null;
     const sliderViewport = root.querySelector(':scope > .swiper');
@@ -81,6 +88,14 @@ window.TDBTreatmentTicker ||= (() => {
       tickers.forEach((ticker, i) =>
         ticker?.update(values[i], direction, animate && previous !== null),
       );
+      if (categoryIcon) {
+        const artwork = categoryArtwork[values[4].toLowerCase()];
+        categoryIcon.hidden = !artwork;
+        if (artwork) {
+          const src = 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/' + artwork;
+          if (categoryIcon.getAttribute('src') !== src) categoryIcon.setAttribute('src', src);
+        }
+      }
       if (total) total.textContent = String(originals.length).padStart(2, '0');
       position?.setAttribute('aria-label', `${index + 1} of ${originals.length}`);
       previous = index;

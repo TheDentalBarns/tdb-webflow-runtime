@@ -29,16 +29,23 @@ function fixture(bundle = false, count = 49, options = {}) {
     const node = w.document.createElement('p');
     node.textContent = 'Patient care';
     node.style.opacity = '0.8';
-    w.document.querySelector('main').append(node);
-    const box = { node, top: 200 + i * 900, width: 300, height: 40, exists: true };
+    const frame = options.parallax ? w.document.createElement('div') : node;
+    if (frame !== node) {
+      frame.setAttribute('data-tdb-page-break', 'sensory');
+      frame.append(node);
+    }
+    w.document.querySelector('main').append(frame);
+    const box = { node, frame, shift: 0, top: 200 + i * 900, width: 300, height: 40, exists: true };
     boxes.push(box);
-    node.getBoundingClientRect = () => {
+    const rect = (shift) => {
       reads.rect++;
-      const top = box.exists ? box.top - w.scrollY : 0;
+      const top = box.exists ? box.top - w.scrollY + shift : 0;
       const width = box.exists ? box.width : 0,
         height = box.exists ? box.height : 0;
       return { top, bottom: top + height, left: 0, right: width, width, height };
     };
+    node.getBoundingClientRect = () => rect(box.shift);
+    if (frame !== node) frame.getBoundingClientRect = () => rect(0);
     node.getClientRects = () => {
       reads.fragments++;
       return box.exists ? [{}] : [];
@@ -81,6 +88,40 @@ function fixture(bundle = false, count = 49, options = {}) {
 
 for (const bundle of [false, true]) {
   const label = bundle ? 'bundle' : 'source';
+  test(`${label}: decorative images fade to full opacity and hold through the viewport`, () => {
+    const e = fixture(bundle, 1, { mode: 'native', preset: 'image', parallax: true });
+    try {
+      const box = e.boxes[0];
+      box.top = 1200;
+      box.height = 400;
+      e.flush();
+      assert.equal(box.node.style.opacity, '0');
+      e.scroll(550);
+      e.settle();
+      assert.ok(Number(box.node.style.opacity) > 0 && Number(box.node.style.opacity) < 1);
+      box.shift = -24;
+      e.scroll(900);
+      e.settle();
+      assert.equal(box.node.style.opacity, '1');
+      e.scroll(1300);
+      e.settle();
+      assert.equal(box.node.style.opacity, '1', 'the image must not inherit the text fade ceiling');
+      e.scroll(0);
+      e.settle();
+      assert.equal(box.node.style.opacity, '0', 'returning above the image resets the entrance');
+      e.scroll(550);
+      e.settle();
+      e.scroll(900, false);
+      e.settle();
+      assert.equal(
+        box.node.style.opacity,
+        '1',
+        'a scroll jump reveals the image at its destination',
+      );
+    } finally {
+      e.close();
+    }
+  });
   test(`${label}: Vimeo scroll fade matches native keyframes in both directions without moving the poster`, () => {
     const e = fixture(bundle, 1, { mode: 'native', preset: 'vimeo' });
     try {
@@ -200,7 +241,7 @@ for (const bundle of [false, true]) {
       e.reads.rect = e.reads.fragments = e.reads.styles = 0;
       for (let i = 1; i <= 120; i++) e.scroll(i * 20);
       assert.equal(e.reads.rect, 49 * 120, 'positions remain fresh every frame');
-      assert.equal(e.reads.styles, 49 * 120, 'visibility checks remain fresh');
+      assert.ok(e.reads.styles <= 2 * 120, 'computed visibility is limited to visible content');
       assert.equal(e.reads.fragments, 0, 'positive bounds already prove a CSS box exists');
       e.settle();
       e.owner.destroy();

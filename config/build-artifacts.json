@@ -314,10 +314,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "165795f11b6580803cbe3718c3306c6c504bc934ca0119b801b34bcd933f8deb",
-      "raw": 32946,
-      "gzip": 11264,
-      "brotli": 10199
+      "sha256": "0219dadddeb76b9a06eb16d24ecc4fb478371b3af66d39203777e3b0b6301e1e",
+      "raw": 33343,
+      "gzip": 11396,
+      "brotli": 10325
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -338,10 +338,10 @@
         "src/shared/panel-motion.js",
         "src/navbar/navbar-enhancement.js"
       ],
-      "sha256": "f6ea3bd5d71319317546ef88551f1ac99d3dfa9546edc8841b834d36dbfa9611",
-      "raw": 24576,
-      "gzip": 6524,
-      "brotli": 5835
+      "sha256": "4615883985f41d68fa99a42da4cc67fb501353cbe342c7105c891bd71c316107",
+      "raw": 24971,
+      "gzip": 6657,
+      "brotli": 5967
     },
     "dist/tdb-parallax.js": {
       "sources": [
@@ -355,10 +355,10 @@
         "src/sliders/treatment-plugin.js",
         "src/sliders/parallax-plugin.js"
       ],
-      "sha256": "be50c3700c04c49046b64e16b55ae8b61523e79b5b515c5a1f40beb88eb2478d",
-      "raw": 45172,
-      "gzip": 14029,
-      "brotli": 12663
+      "sha256": "34b7297f2ca41711c6d9253ab013ae20710df12842b8585ab367986cfa5f5868",
+      "raw": 45717,
+      "gzip": 14342,
+      "brotli": 12941
     },
     "dist/tdb-partner-card.js": {
       "sources": [
