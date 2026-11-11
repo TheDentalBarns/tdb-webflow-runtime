@@ -5,7 +5,7 @@ const { JSDOM } = require('jsdom');
 for (const file of ['src/shared/motion.js', 'dist/tdb-motion.js']) {
   test(`${file}: introduction visits four chapters, reverses and releases boundaries`, () => {
     const dom = new JSDOM(
-      `<section data-tdb-stepped-intro><div><img data-tdb-intro-photo><img data-tdb-intro-doors><div data-tdb-intro-copy>Story</div>${[0, 1, 2, 3].map((i) => `<a href="#${i}"><span data-tdb-intro-progress></span></a>`).join('')}<a data-tdb-intro-next href="#1">Scroll</a></div></section>`,
+      `<section data-tdb-stepped-intro><div><img data-tdb-intro-photo><img data-tdb-intro-doors><div data-tdb-intro-copy>Story</div>${[0, 1, 2, 3].map((i) => `<a href="#${i}"><span data-tdb-intro-progress></span></a>`).join('')}<div data-tdb-intro-prompts><a data-tdb-intro-next href="#1">Scroll</a><a href="#next-section">Continue reading</a></div></div></section>`,
       { runScripts: 'outside-only', pretendToBeVisual: true },
     );
     const w = dom.window,
@@ -67,8 +67,9 @@ for (const file of ['src/shared/motion.js', 'dist/tdb-motion.js']) {
     assert.equal(root.querySelector('[data-tdb-intro-copy]').style.opacity, '1');
     assert.equal(root.querySelector('[aria-current="step"]').getAttribute('href'), '#3');
     const discover = root.querySelector('[data-tdb-intro-next]');
-    assert.notEqual(discover.style.opacity, '0', 'scroll cue remains visible on the final chapter');
-    assert(!discover.inert, 'scroll cue remains usable on the final chapter');
+    const prompts = root.querySelector('[data-tdb-intro-prompts]');
+    assert.equal(prompts.style.opacity, '0', 'both prompts fade away as the story appears');
+    assert(prompts.inert, 'invisible prompt links are removed from keyboard and pointer interaction');
     assert.deepEqual(
       [...root.querySelectorAll('[data-tdb-intro-progress]')].map(
         (n) => n.parentElement.style.height,
@@ -102,6 +103,8 @@ for (const file of ['src/shared/motion.js', 'dist/tdb-motion.js']) {
     wheel(-100);
     assert.equal(owner.status().state, 3);
     assert.equal(root.querySelector('[data-tdb-intro-doors]').style.opacity, '0.78');
+    assert.equal(prompts.style.opacity, '1', 'reverse scrolling restores both prompts');
+    assert.equal(prompts.inert, false);
     now += 1000;
     owner.refresh();
     flush();
@@ -159,8 +162,10 @@ for (const file of ['src/shared/motion.js', 'dist/tdb-motion.js']) {
     }
     assert.deepEqual([...visited], [1, 2, 3, 4], 'uninterrupted wheel input visits every chapter');
     assert.equal(wheel(80).defaultPrevented, false, 'continuous wheel input releases the end');
+    const settledY = w.scrollY;
     discover.dispatchEvent(new w.MouseEvent('click', { bubbles: true, cancelable: true }));
-    assert.equal(w.scrollY, 3200, 'final scroll cue goes to the next section');
+    assert.equal(w.scrollY, settledY, 'the hidden final cue cannot trigger navigation');
+    w.scrollTo({ top: 3200 });
     now += 1000;
     flush();
     assert.equal(owner.status().inside, false);
@@ -177,6 +182,8 @@ for (const file of ['src/shared/motion.js', 'dist/tdb-motion.js']) {
     owner.destroy();
     assert.equal(root.hasAttribute('data-tdb-intro-state'), false);
     assert.equal(root.querySelector('[data-tdb-intro-photo]').hasAttribute('style'), false);
+    assert.equal(prompts.hasAttribute('style'), false, 'prompt style is restored on cleanup');
+    assert(!prompts.inert, 'prompt interaction is restored on cleanup');
     assert(
       [...root.querySelectorAll('[data-tdb-intro-progress]')].every(
         (n) => !n.hasAttribute('style'),

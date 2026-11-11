@@ -24,6 +24,11 @@ function prepareAboutIntroLoader() {
             ['copy', '1'],
           ])
             root.querySelector(`[data-tdb-intro-${layer}]`)?.style.setProperty('opacity', opacity);
+          const prompts = root.querySelector('[data-tdb-intro-prompts]');
+          if (prompts) {
+            prompts.style.opacity = '0';
+            prompts.inert = true;
+          }
         });
         console.warn('TDB About: keeping the native introduction readable.', error);
       })

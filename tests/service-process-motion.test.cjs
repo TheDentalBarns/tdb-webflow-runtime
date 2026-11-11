@@ -6,7 +6,7 @@ const { JSDOM } = require('jsdom');
 for (const file of ['src/shared/motion.js', 'dist/tdb-motion.js']) {
   test(`${file}: service journey continuously follows the line on mobile and cleans up`, () => {
     const dom = new JSDOM(
-      `<section data-tdb-service-process><nav class="service-process_sticky"><div class="service-process-mobile-container">${[1, 2, 3].map((i) => `<a class="service-process_item" href="#step-${i}">${i}</a>`).join('')}<div class="service-process_timeline"></div></div></nav>${[1, 2, 3].map((i) => `<article id="step-${i}"></article>`).join('')}</section>`,
+      `<section data-tdb-service-process><div><a data-tdb-process-discover href="#step-1">Discover</a><a data-tdb-process-continue href="#after-process">Continue reading</a></div><nav class="service-process_sticky"><div class="service-process-mobile-container">${[1, 2, 3].map((i) => `<a class="service-process_item" href="#step-${i}">${i}</a>`).join('')}<div class="service-process_timeline"></div></div></nav>${[1, 2, 3].map((i) => `<article id="step-${i}"></article>`).join('')}</section><section id="after-process"></section>`,
       {
         url: 'https://example.test/services/signature-assessment',
         runScripts: 'outside-only',
@@ -121,11 +121,24 @@ for (const file of ['src/shared/motion.js', 'dist/tdb-motion.js']) {
       '1',
       'restored geometry is read again',
     );
+    const navigations = [];
+    w.lenis = { scrollTo: (top) => navigations.push(top) };
+    w.document.getElementById('after-process').getBoundingClientRect = () => ({ top: 4000 });
+    const discover = root.querySelector('[data-tdb-process-discover]');
+    const continuing = root.querySelector('[data-tdb-process-continue]');
+    discover.click();
+    assert.equal(navigations.at(-1), 120, 'discover enters step one below the sticky rail');
+    continuing.click();
+    assert.equal(navigations.at(-1), 4000, 'continue skips to the authored next-section anchor');
+    discover.dispatchEvent(new w.MouseEvent('click', { bubbles: true, ctrlKey: true }));
+    assert.equal(navigations.length, 2, 'modified links preserve native browser behavior');
     w.dispatchEvent(new w.Event('scroll'));
     owner.destroy();
     assert.equal(frames.size, 0);
     assert.equal(rail.hasAttribute('data-tdb-process-nav'), false);
     assert.equal(rail.querySelector('[aria-current]'), null);
+    discover.click();
+    assert.equal(navigations.length, 2, 'the shared prompt handler is removed on teardown');
     dom.window.close();
   });
 }

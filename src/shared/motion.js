@@ -1355,7 +1355,7 @@
       },
       { signal },
     );
-    rail.addEventListener(
+    root.addEventListener(
       'click',
       (event) => {
         if (
@@ -1367,16 +1367,23 @@
           event.shiftKey
         )
           return;
-        const link = event.target.closest('.service-process_item[href^="#"]');
-        const entry = entries.find((item) => item.link === link);
-        if (!entry) return;
+        const link = event.target.closest(
+          '.service-process_item[href^="#"],[data-tdb-process-discover],[data-tdb-process-continue]',
+        );
+        if (!link || !root.contains(link)) return;
+        const entry = link.hasAttribute('data-tdb-process-discover')
+          ? entries[0]
+          : entries.find((item) => item.link === link);
+        const continuing = link.hasAttribute('data-tdb-process-continue');
+        const target = continuing ? document.getElementById(link.hash.slice(1)) : entry?.step;
+        if (!target) return;
         event.preventDefault();
         event.stopPropagation();
         const top = Math.max(
           0,
           window.scrollY +
-            entry.step.getBoundingClientRect().top -
-            rail.getBoundingClientRect().height,
+            target.getBoundingClientRect().top -
+            (continuing ? 0 : rail.getBoundingClientRect().height),
         );
         if (location.hash !== link.hash) history.pushState(null, '', link.hash);
         if (window.lenis?.scrollTo) window.lenis.scrollTo(top, { immediate: reduced.matches });
@@ -1419,7 +1426,16 @@
     const fills = [...root.querySelectorAll('[data-tdb-intro-progress]')];
     const links = fills.map((fill) => fill.closest('a'));
     const next = root.querySelector('[data-tdb-intro-next]');
-    const nodes = [photo, doors, copy, ...links.filter(Boolean), ...fills];
+    const prompts = root.querySelector('[data-tdb-intro-prompts]');
+    const promptsWereInert = prompts?.inert;
+    const nodes = [
+      photo,
+      doors,
+      copy,
+      ...links.filter(Boolean),
+      ...fills,
+      ...[prompts].filter(Boolean),
+    ];
     const before = nodes.map((node) => node.getAttribute('style'));
     const controller = new AbortController();
     const { signal } = controller;
@@ -1469,6 +1485,10 @@
       [photo, doors, copy].forEach((node, i) =>
         animate(node, 'opacity', String(states[index][i]), immediate),
       );
+      if (prompts) {
+        animate(prompts, 'opacity', index === 3 ? '0' : '1', immediate);
+        prompts.inert = index === 3;
+      }
       // Lay out the compact group once per chapter. Move each pill's centre
       // and reveal its fixed-size line with a clip, rather than relaying out
       // the sticky intro on every height-animation frame during a held touch.
@@ -1685,6 +1705,7 @@
         const link = event.target.closest('a');
         const index = links.indexOf(link);
         if (index < 0 && link !== next) return;
+        if (prompts?.inert && prompts.contains(link)) return;
         if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
           return;
         event.preventDefault();
@@ -1731,6 +1752,7 @@
             : node.setAttribute('style', before[i]),
         );
         links.forEach((link) => link?.removeAttribute('aria-current'));
+        if (prompts) prompts.inert = promptsWereInert;
         root.removeAttribute('data-tdb-intro-state');
         steppedIntros.delete(root);
       },
@@ -1747,7 +1769,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.24.2',
+    version: '1.24.3',
     profile,
     time,
     easing,
