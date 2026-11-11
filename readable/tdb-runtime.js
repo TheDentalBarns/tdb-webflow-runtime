@@ -3267,6 +3267,10 @@ function prepareLazyIconMasks() {
       ? Array(5).fill(artwork).join(',')
       : artwork;
     node.style.webkitMaskImage = node.style.maskImage;
+    // The native review placeholder starts empty in Designer as well as on
+    // the page. Reveal its mask only after the consent and proximity gates.
+    // Use opacity so the holder's later visibility:hidden still hides it.
+    if (node.dataset.tdbNativeHolderIcon === 'reviews') node.style.opacity = '1';
   }
   const observer =
     'IntersectionObserver' in window

@@ -80,6 +80,15 @@ test('native masks have no URL before proximity; only approaching icons get one'
   }finally{f.close()}
 });
 
+test('review placeholder mask stays transparent until consent and proximity, then inherits holder hiding',()=>{
+ const f=fixture({allowed:false});try{
+  const icon=f.nodes[2],holder=f.w.document.createElement('div');icon.before(holder);holder.append(icon);icon.style.opacity='0';
+  f.ios[0].fn([{target:icon,isIntersecting:true}]);assert.equal(icon.style.opacity,'0');assert.equal(icon.style.maskImage,'');
+  f.permit(true);assert.equal(icon.style.opacity,'1');assert.match(icon.style.maskImage,/tdb-review-quote.svg/);
+  assert.equal(icon.style.visibility,'','does not override the loaded holder visibility');
+ }finally{f.close()}
+});
+
 test('native pseudo artwork waits for consent and proximity without changing geometry or adding DOM',()=>{
  const f=fixture({allowed:false});try{
   const kinds=['tranquil','parking','discreet','play','pause','spinner'];

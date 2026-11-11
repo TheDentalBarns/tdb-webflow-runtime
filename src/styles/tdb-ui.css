@@ -488,7 +488,8 @@ html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-contro
 :is(.tdb-location-icon,.vimeo-player__btn,.vimeo-player__loading)[data-tdb-native-pseudo-icon]::before{-webkit-mask-image:var(--tdb-pseudo-artwork,linear-gradient(transparent,transparent));mask-image:var(--tdb-pseudo-artwork,linear-gradient(transparent,transparent))}
 
 /* Park the native progress bar until the existing lazy carousel borrows it. */
-[data-tdb-review-placeholder]>.tdb-review-embed-progress{visibility:hidden}
+[data-tdb-review-placeholder]>.tdb-review-embed-progress,
+[data-tdb-review-placeholder]>[data-tdb-native-holder]>.tdb-review-embed-progress{visibility:hidden}
 
 /* One artwork rule for native and deferred gallery clinician icons.
  * Card layout remains with the existing components.
