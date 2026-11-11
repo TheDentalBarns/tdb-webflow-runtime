@@ -197,7 +197,7 @@ for (const choice of [{ action: 'acceptall' }, { a: 'accept', c: 'performance,ta
     },
   );
 
-test('middle-button native travel stays free in either direction, then scrollend restores smoothing', async () => {
+test('middle-button travel and a stationary autoscroll pause retain native input until exit', async () => {
   const f = setup();
   try {
     await tick();
@@ -216,7 +216,32 @@ test('middle-button native travel stays free in either direction, then scrollend
       assert.equal(f.w.lenis.animate.isRunning, false);
     }
     f.w.dispatchEvent(new f.w.Event('scrollend'));
+    assert.equal(f.w.TDBSmoothScroll.nativeAutoscroll, true);
+    assert.equal(f.wheel().defaultPrevented, false);
+    f.pointer(0);
     assert.equal(f.w.TDBSmoothScroll.nativeAutoscroll, false);
+    assert.equal(f.wheel().defaultPrevented, true);
+  } finally {
+    f.close();
+  }
+});
+
+test('a delayed scrollend from interrupted wheel inertia cannot release a new middle-click gesture', async () => {
+  const f = setup();
+  try {
+    await tick();
+    f.wheel();
+    f.pointer(1);
+    f.up();
+    f.w.dispatchEvent(new f.w.Event('scrollend'));
+    f.advance(600);
+    assert.equal(f.w.TDBSmoothScroll.nativeAutoscroll, true);
+    f.scroll(800);
+    f.advance(16);
+    assert.equal(f.wheel().defaultPrevented, false);
+    assert.equal(f.w.lenis.animate.isRunning, false);
+    assert.equal(f.w.lenis.targetScroll, 800);
+    f.pointer(0);
     assert.equal(f.wheel().defaultPrevented, true);
   } finally {
     f.close();
