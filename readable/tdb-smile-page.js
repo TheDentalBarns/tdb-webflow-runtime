@@ -1,4 +1,4 @@
-/* Smile Gallery v1.0.0. Native page shell, shared feed/cards, drawer, filters and tickers. */
+/* Smile Gallery v2.0.0. Native page shell, shared feed/cards, drawer, filters and tickers. */
 (() => {
   'use strict';
   if (window.TDBSmilePage) return;
@@ -30,6 +30,8 @@
       const image = node.querySelector('[data-tdb-sg-image]');
       if (!image?.src || !text('title')) throw Error('Incomplete gallery case');
       return {
+        node,
+        item: node.closest('.w-dyn-item') || node,
         id: image.getAttribute('src'),
         title: text('title'),
         description: text('description'),
@@ -61,6 +63,90 @@
     });
     return flight;
   }
+  function comparison(photo, original, listen) {
+    const before = document.createElement('div');
+    const after = document.createElement('div');
+    before.className = 'smile-comparison_before';
+    after.className = 'smile-comparison_after';
+    const images = [before, after].map((layer) => {
+      const image = document.createElement('img');
+      image.alt = '';
+      image.draggable = false;
+      image.loading = 'lazy';
+      layer.append(image);
+      return image;
+    });
+    const range = document.createElement('input');
+    Object.assign(range, { type: 'range', min: '0', max: '100', value: '50' });
+    range.className = 'smile-comparison_range';
+    range.setAttribute('aria-label', 'Reveal before and after smile');
+    const handle = document.createElement('span');
+    handle.className = 'smile-comparison_handle';
+    handle.setAttribute('aria-hidden', 'true');
+    photo.dataset.smileComparison = 'true';
+    original.hidden = true;
+    original.draggable = false;
+    photo.append(after, before, handle, range);
+    let dragging = false,
+      moved = false,
+      originX = 0;
+    const update = () => {
+      const value = Math.round(Math.max(0, Math.min(100, Number(range.value))));
+      photo.style.setProperty('--smile-reveal', value + '%');
+      range.setAttribute('aria-valuetext', value + '% before, ' + (100 - value) + '% after');
+    };
+    const position = (event) => {
+      const bounds = photo.getBoundingClientRect();
+      range.value = String(((event.clientX - bounds.left) / bounds.width) * 100);
+      update();
+    };
+    listen(range, 'pointerdown', (event) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      originX = event.clientX;
+      dragging = true;
+      moved = false;
+      range.focus({ preventScroll: true });
+      range.setPointerCapture?.(event.pointerId);
+    });
+    listen(range, 'pointermove', (event) => {
+      if (!dragging) return;
+      if (Math.abs(event.clientX - originX) > 3) moved = true;
+      if (moved) {
+        event.preventDefault();
+        position(event);
+      }
+    });
+    const finish = (event) => {
+      dragging = false;
+      if (range.hasPointerCapture?.(event.pointerId)) range.releasePointerCapture(event.pointerId);
+    };
+    listen(range, 'pointerup', finish);
+    listen(range, 'pointercancel', finish);
+    listen(range, 'input', update);
+    listen(range, 'keydown', (event) => event.stopPropagation());
+    listen(photo, 'dragstart', (event) => event.preventDefault());
+    const refresh = () => {
+      for (const image of images) {
+        const src = original.getAttribute('src');
+        if (src) image.src = src;
+      }
+      range.value = '50';
+      moved = false;
+      update();
+    };
+    refresh();
+    return {
+      refresh,
+      dragged: () => moved,
+      destroy() {
+        for (const element of [before, after, handle, range]) element.remove();
+        original.hidden = false;
+        delete photo.dataset.smileComparison;
+        photo.style.removeProperty('--smile-reveal');
+      },
+    };
+  }
   async function initialize(page) {
     // Webflow exports its native controls as links/blocks. Keep their authored
     // content and styles, but give interactive controls native button behavior.
@@ -78,12 +164,12 @@
       window.TDBModules.load(new URL(name, base), { ready, type });
     const stage = page.querySelector('[data-smile-page-stage]');
     const status = page.querySelector('[data-smile-page-status]');
-    const fallback = stage.firstElementChild;
+
     const cleanup = [];
     const dispose = () => {
       lifecycle.abort();
       for (const release of cleanup.reverse()) release();
-      fallback.hidden = false;
+
       page.removeAttribute('data-smile-page-ready');
       instance = null;
     };
@@ -91,8 +177,6 @@
     page.querySelector('[data-smile-page-retry]').hidden = true;
     try {
       await Promise.all([
-        load('tdb-smile-feed.js', () => !!window.TDBSmileFeed),
-        load('tdb-smile-feed.css', undefined, 'style'),
         load('tdb-smile-page.css', undefined, 'style'),
         load('tdb-drawer.js', () => !!window.TDBDrawer),
         load('tdb-drawer.css', undefined, 'style'),
@@ -100,20 +184,6 @@
         load('tdb-ticker.js', () => !!window.TDBNativeTicker),
       ]);
       if (!window.TDBConsent?.allows()) throw new DOMException('Cancelled', 'AbortError');
-      // Gallery preparation may start before the independent slider startup turn.
-      if (!window.TDBSliderLoader)
-        await new Promise((resolve, reject) => {
-          const timer = setTimeout(() => reject(Error('Carousel unavailable')), 15000);
-          window.addEventListener(
-            'tdb:slider-loader-ready',
-            () => {
-              clearTimeout(timer);
-              resolve();
-            },
-            { once: true, signal },
-          );
-        });
-      await window.TDBSliderLoader.prepare('gallery');
       const payload = nativeCases();
       if (!window.TDBConsent?.allows()) throw new DOMException('Cancelled', 'AbortError');
       const saved = getSaved(),
@@ -133,12 +203,9 @@
       let clinician = url.searchParams.get('clinician') || saved.clinician || '';
       if (!clinicians.includes(clinician)) clinician = '';
       let cases = [],
-        root,
-        swiper,
         currentId = saved.currentId,
         drawerIndex = 0,
-        stageVisible = true,
-        renderSerial = 0;
+        stageVisible = true;
       const filterHome = page.querySelector('[data-smile-filter-home]');
       const dock = page.querySelector('[data-smile-filter-dock]');
       const panel = dock.querySelector('[data-smile-filter-panel]');
@@ -153,11 +220,11 @@
       const matches = (item, selection = chosen, doctor = clinician) =>
         (!doctor || item.clinician === doctor) &&
         [...selection].every((value) => item.treatments.some((t) => slug(t) === value));
-      const persist = (display = mode) => {
+      const persist = (display = mode, reopen = false) => {
         try {
           sessionStorage.setItem(
             key,
-            JSON.stringify({ display, treatments: [...chosen], clinician, currentId }),
+            JSON.stringify({ display, treatments: [...chosen], clinician, currentId, reopen }),
           );
         } catch {}
       };
@@ -192,6 +259,7 @@
         );
       panel.querySelectorAll('[name="smile-display"]').forEach((input) => {
         input.checked = input.value === mode;
+        input.setAttribute('aria-label', input.value === 'slider' ? 'Slider' : 'Before / after');
       });
       const draft = () => ({
         treatments: new Set(
@@ -216,15 +284,21 @@
         incomingClass: 'smile-page-count_value',
       });
       cleanup.push(() => counter.destroy());
+      const drawerPhoto = reading.querySelector('.smile-page_drawer-photo');
+      const drawerImage = drawerPhoto.querySelector('img');
+      const drawerComparison =
+        mode === 'slider' ? comparison(drawerPhoto, drawerImage, listen) : null;
+      if (drawerComparison) cleanup.push(drawerComparison.destroy);
       const paintCase = (index, direction = 1) => {
         if (!cases.length) return;
         drawerIndex = (index + cases.length) % cases.length;
         const item = cases[drawerIndex];
         currentId = item.id;
         persist();
-        const image = reading.querySelector('img');
+        const image = drawerImage;
         image.src = item.image.src;
         image.alt = item.image.alt;
+        drawerComparison?.refresh();
         for (const field of ['title', 'description', 'price', 'duration', 'clinician'])
           reading.querySelector(`[data-smile-case-${field}]`).textContent = item[field];
         reading.querySelector('[data-smile-case-treatments]').replaceChildren(
@@ -242,7 +316,6 @@
           `Smile ${drawerIndex + 1} of ${cases.length}: ${item.title}`;
         previous.disabled = next.disabled = cases.length < 2;
         reading.scrollTop = 0;
-        if (swiper && swiper.realIndex !== drawerIndex) swiper.slideToLoop(drawerIndex, 0);
       };
       const drawer = window.TDBDrawer.mount(drawerRoot, {
         hideChrome: true,
@@ -258,8 +331,7 @@
           dock.classList.toggle('is-offscreen', !stageVisible);
         },
         returnFocus: () =>
-          stage.querySelector('.swiper-slide-active .tdb-smile-card') ||
-          page.querySelector('[data-smile-open-case]'),
+          cases[drawerIndex]?.node.querySelector('[data-smile-grid-photo]') || toggle,
       });
       cleanup.push(() => {
         drawer.destroy();
@@ -289,130 +361,64 @@
         panel.querySelector('[name="smile-clinician"][value=""]').checked = true;
         updateCount();
       });
-      const release = () => {
-        if (root) {
-          window.TDBSmileFeed.releaseView(root);
-          root = null;
-          swiper = null;
-        }
-      };
-      cleanup.push(release);
       const openCase = (index, source) => {
         if (!cases.length) return;
         paintCase(index);
         drawer.open(source);
       };
-      const addComparison = (view) => {
-        for (const slide of view.querySelectorAll('.swiper-slide')) {
-          const picture = slide.querySelector('.layout423_image-wrapper');
-          const range = document.createElement('input');
-          range.type = 'range';
-          range.min = '0';
-          range.max = '100';
-          range.value = '50';
-          range.className = 'smile-page-comparison_range swiper-no-swiping';
-          range.setAttribute('aria-label', 'Reveal before and after smile');
-          range.setAttribute('aria-valuetext', '50% before, 50% after');
-          const handle = document.createElement('span');
-          handle.className = 'smile-page-comparison_handle';
-          handle.setAttribute('aria-hidden', 'true');
-          picture.append(handle, range);
-        }
-      };
+      const comparisons = new Map();
+      for (const item of payload.cases) {
+        item.item.parentElement.append(item.item);
+        const photo = item.node.querySelector('[data-smile-grid-photo]');
+        photo.setAttribute('aria-label', 'View case: ' + item.title);
+        photo.setAttribute('aria-haspopup', 'dialog');
+        photo.setAttribute('aria-controls', drawerPanel.id);
+        const image = photo.querySelector('img');
+        image.draggable = false;
+        if (mode === 'slider') comparisons.set(photo, comparison(photo, image, listen));
+      }
+      window.TDBLazyIconMasks?.refresh();
+      cleanup.push(() => {
+        for (const item of payload.cases) item.item.hidden = false;
+        for (const control of comparisons.values()) control.destroy();
+      });
       async function render() {
-        const serial = ++renderSerial;
-        release();
         cases = payload.cases.filter((item) => matches(item));
-        status.textContent = `${cases.length} smile${cases.length === 1 ? '' : 's'}`;
-        page.querySelector('[data-smile-open-case]').hidden = !cases.length;
+        for (const item of payload.cases) item.item.hidden = !cases.includes(item);
+        status.textContent = cases.length + (cases.length === 1 ? ' smile' : ' smiles');
         page.querySelector('[data-smile-empty]').hidden = !!cases.length;
-        fallback.hidden = true;
         if (!cases.length) {
           await drawer.close(true);
           persist();
           return;
         }
-        root = window.TDBSmileFeed.createView({ ...payload, total: cases.length, cases });
-        root.dataset.tdbSmileStandalone = '';
-        root.dataset.smileDisplay = mode;
-        // Prevent the embedded hover-description overlay; this page opens the full case drawer.
-        root.querySelectorAll('.tdb-smile-card').forEach((card) => {
-          card.setAttribute('aria-haspopup', 'dialog');
-          card.setAttribute('aria-controls', drawerPanel.id);
-        });
-        if (mode === 'slider') addComparison(root);
-        stage.append(root);
-        window.TDBLazyIconMasks?.refresh();
-        await window.TDBSliderLoader.load(root);
-        if (serial !== renderSerial || signal.aborted) return;
-        window.TDBSwiper.mount('gallery', root);
-        swiper = root.querySelector('.swiper').swiper;
-        if (!swiper) throw Error('Carousel did not mount');
         const index = Math.max(
           0,
           cases.findIndex((item) => item.id === currentId),
         );
-        swiper.slideToLoop(index, 0);
-        const trackCurrent = () => {
-          currentId = cases[swiper.realIndex]?.id;
-          persist();
-        };
-        swiper.on('slideChange', trackCurrent);
-        trackCurrent();
-        root
-          .querySelectorAll('.tdb-smile-card')
-          .forEach((card) => card.setAttribute('aria-controls', drawerPanel.id));
+        currentId = cases[index].id;
         if (!drawerRoot.hidden) paintCase(index);
+        persist();
       }
-      listen(stage, 'input', (event) => {
-        const range = event.target.closest('.smile-page-comparison_range');
-        if (!range) return;
-        const value = Math.max(0, Math.min(100, Number(range.value)));
-        range.parentElement.style.setProperty('--smile-reveal', `${value}%`);
-        range.setAttribute('aria-valuetext', `${value}% before, ${100 - value}% after`);
+      listen(stage, 'click', (event) => {
+        const photo = event.target.closest('[data-smile-grid-photo]');
+        if (!photo) return;
+        event.preventDefault();
+        if (comparisons.get(photo)?.dragged()) return;
+        const index = cases.findIndex((item) => item.node.contains(photo));
+        if (index >= 0) openCase(index, photo);
       });
-      for (const type of ['pointerover', 'pointermove', 'focusin', 'focusout'])
-        listen(
-          stage,
-          type,
-          (event) => {
-            if (event.target.closest('.tdb-smile-card')) event.stopPropagation();
-          },
-          { capture: true },
-        );
-      listen(
-        stage,
-        'click',
-        (event) => {
-          const card = event.target.closest('.tdb-smile-card');
-          if (!card) return;
+      listen(stage, 'keydown', (event) => {
+        if (event.target.matches('input')) return;
+        const photo = event.target.closest('[data-smile-grid-photo]');
+        if (photo && ['Enter', ' '].includes(event.key)) {
           event.preventDefault();
-          event.stopImmediatePropagation();
-          if (event.target.closest('.smile-page-comparison_range') || !swiper?.allowClick) return;
-          openCase(Number(card.closest('.swiper-slide').dataset.smileIndex), card);
-        },
-        { capture: true },
-      );
-      listen(
-        stage,
-        'keydown',
-        (event) => {
-          if (event.target.matches('.smile-page-comparison_range')) {
-            event.stopPropagation();
-            return;
-          }
-          const card = event.target.closest('.tdb-smile-card');
-          if (card && ['Enter', ' '].includes(event.key)) {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            openCase(Number(card.closest('.swiper-slide').dataset.smileIndex), card);
-          }
-        },
-        { capture: true },
-      );
-      listen(page.querySelector('[data-smile-open-case]'), 'click', (event) =>
-        openCase(swiper?.realIndex || 0, event.currentTarget),
-      );
+          openCase(
+            cases.findIndex((item) => item.node.contains(photo)),
+            photo,
+          );
+        }
+      });
       listen(previous, 'click', () => paintCase(drawerIndex - 1, -1));
       listen(next, 'click', () => paintCase(drawerIndex + 1));
       listen(drawerPanel, 'keydown', (event) => {
@@ -428,7 +434,7 @@
         chosen = selection.treatments;
         clinician = selection.clinician;
         filters.setCount(chosen.size + Number(!!clinician));
-        persist(selection.display);
+        persist(selection.display, !drawerRoot.hidden);
         if (selection.display !== mode) {
           const destination = new URL(location.href);
           destination.searchParams.set('display', selection.display);
@@ -455,7 +461,7 @@
           dock.classList.toggle('is-offscreen', !stageVisible);
           if (!stageVisible) filters.reset();
         },
-        { threshold: 0.05 },
+        { threshold: 0 },
       );
       cleanup.push(() => observer.disconnect());
       observer.observe(stage);
@@ -463,6 +469,13 @@
       updateCount();
       page.dataset.smilePageReady = 'true';
       page.removeAttribute('aria-busy');
+      if (saved.reopen && cases.length)
+        openCase(
+          Math.max(
+            0,
+            cases.findIndex((item) => item.id === saved.currentId),
+          ),
+        );
       const unsubscribe = window.TDBConsent.subscribe(() => {
         if (!window.TDBConsent.allows()) instance?.destroy();
       });
@@ -477,7 +490,7 @@
     }
   }
   window.TDBSmilePage = Object.freeze({
-    version: '1.0.0',
+    version: '2.0.0',
     mount,
     destroy() {
       instance?.destroy();

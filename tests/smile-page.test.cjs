@@ -15,10 +15,11 @@ function setup({ display = '', allowed = true, fail = false } = {}) {
     ['C', 'From £2,000', 'Whitening', 'Dr A'],
   ];
   const cms = '<div data-smile-page-source>' + records.map(([title, price, treatment, doctor]) =>
-    `<div data-tdb-sg-case><img data-tdb-sg-image src="https://cdn.prod.website-files.com/smile-${title}.webp" alt="Smile ${title}"><span data-tdb-sg-title>${title}</span><span data-tdb-sg-description>Details ${title}</span><span data-tdb-sg-price-value>${price}</span><span data-tdb-sg-duration-value>6 months</span><span data-tdb-sg-clinician-value>${doctor}</span><span data-tdb-sg-treatment-name>${treatment}</span></div>`,
+    `<div data-tdb-sg-case><div data-smile-grid-photo role="button" tabindex="0"><img data-tdb-sg-image src="https://cdn.prod.website-files.com/smile-${title}.webp" alt="Smile ${title}"></div><span data-tdb-sg-title>${title}</span><span data-tdb-sg-description>Details ${title}</span><span data-tdb-sg-price-value>${price}</span><span data-tdb-sg-duration-value>6 months</span><span data-tdb-sg-clinician-value>${doctor}</span><span data-tdb-sg-treatment-name>${treatment}</span></div>`,
   ).join('') + '</div>';
-  const dom = new JSDOM(page + cms, { url: 'https://dentalbarns.webflow.io/smile-gallery' + display, runScripts: 'outside-only', virtualConsole: new VirtualConsole() });
+  const dom = new JSDOM(page, { url: 'https://dentalbarns.webflow.io/smile-gallery' + display, runScripts: 'outside-only', virtualConsole: new VirtualConsole() });
   const w = dom.window, d = w.document, subscriptions = new Set();
+  d.querySelector('[data-smile-page-stage]').innerHTML = cms;
   for (const original of d.querySelectorAll('button')) {
     const native = d.createElement('div');
     for (const attr of original.attributes) native.setAttribute(attr.name, attr.value);
@@ -54,11 +55,11 @@ test('standalone mounts all native CMS cases by price and opens the original squ
   const x = setup();
   try {
     await x.w.TDBSmilePage.mount();
-    assert.equal(x.d.querySelectorAll('.tdb-smile-card').length, 3);
-    assert.equal(x.d.querySelector('[data-smile-open-case]').tagName, 'BUTTON');
+    assert.equal(x.d.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length, 3);
+    assert.equal(x.d.querySelector('[data-smile-filter-toggle]').tagName, 'BUTTON');
     assert.equal(x.d.querySelector('[data-smile-case-next]').tagName, 'BUTTON');
     assert.equal(x.d.querySelector('[data-smile-page-status]').textContent, '3 smiles');
-    x.d.querySelector('.tdb-smile-card').click();
+    x.d.querySelector('[data-smile-grid-photo]').click();
     assert.equal(x.opened, 1);
     assert.equal(x.d.querySelector('[data-smile-case-title]').textContent, 'B');
     assert.match(x.d.querySelector('[data-smile-case-image]').src, /smile-B/);
@@ -74,13 +75,13 @@ test('comparison input reveals images without opening the drawer; mode choice su
   const x = setup({ display: '?display=slider' });
   try {
     await x.w.TDBSmilePage.mount();
-    const range = x.d.querySelector('.smile-page-comparison_range');
-    range.value = '27'; range.dispatchEvent(new x.w.Event('input', { bubbles: true })); range.click();
+    const range = x.d.querySelector('.smile-comparison_range');
+    range.value = '27'; range.dispatchEvent(new x.w.Event('input', { bubbles: true }));
     assert.equal(x.opened, 0);
     assert.equal(range.getAttribute('aria-valuetext'), '27% before, 73% after');
     assert.equal(range.parentElement.style.getPropertyValue('--smile-reveal'), '27%');
-    x.d.querySelector('[data-smile-open-case]').click();
-    assert.equal(x.d.querySelectorAll('[data-smile-case-drawer] input[type="range"]').length, 0);
+    x.d.querySelector('[data-smile-grid-photo]').click();
+    assert.equal(x.d.querySelectorAll('[data-smile-case-drawer] input[type="range"]').length, 1);
     x.d.querySelector('[name="smile-display"][value="before-after"]').checked = true;
     x.d.querySelector('[data-smile-filter-apply]').click();
     await tick();
@@ -94,25 +95,41 @@ test('empty filter results recover and consent teardown permits a clean remount'
     x.d.querySelectorAll('[name="smile-treatment"]').forEach(input => input.checked = true);
     x.d.querySelector('[data-smile-filter-apply]').click(); await tick();
     assert.equal(x.d.querySelector('[data-smile-empty]').hidden, false);
-    assert.equal(x.d.querySelectorAll('.tdb-smile-card').length, 0);
+    assert.equal(x.d.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length, 0);
     x.d.querySelector('[data-smile-filter-reset]').click();
     x.d.querySelector('[data-smile-filter-apply]').click(); await tick();
-    assert.equal(x.d.querySelectorAll('.tdb-smile-card').length, 3);
+    assert.equal(x.d.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length, 3);
     x.permit(false);
     assert.equal(x.destroyed, 1);
-    assert.equal(x.d.querySelectorAll('[data-tdb-smile-feed-root]').length, 0);
+    assert.equal(x.d.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length, 3);
     x.permit(true); await x.w.TDBSmilePage.mount();
-    assert.equal(x.d.querySelectorAll('[data-tdb-smile-feed-root]').length, 1);
+    assert.equal(x.d.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length, 3);
   } finally { x.close(); }
 });
-test('failed startup keeps the holding photo and hides retry after recovery', async () => {
+test('failed startup keeps the native grid and hides retry after recovery', async () => {
   const x = setup({ fail: true });
   try {
     await assert.rejects(x.w.TDBSmilePage.mount());
-    assert.equal(x.d.querySelector('.smile-page_holding').hidden, false);
+    assert.equal(x.d.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length, 3);
     assert.equal(x.d.querySelector('[data-smile-page-retry]').hidden, false);
     x.fix(); await x.w.TDBSmilePage.mount();
     assert.equal(x.d.querySelector('[data-smile-page-retry]').hidden, true);
-    assert.equal(x.d.querySelectorAll('[data-tdb-smile-feed-root]').length, 1);
+    assert.equal(x.d.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length, 3);
+  } finally { x.close(); }
+});
+test('dragging comparison suppresses opening a case and the next click still opens it', async () => {
+  const x = setup({ display: '?display=slider' });
+  try {
+    await x.w.TDBSmilePage.mount();
+    const photo = x.d.querySelector('[data-smile-grid-photo]');
+    const range = photo.querySelector('input');
+    photo.getBoundingClientRect = () => ({ left: 0, width: 400 });
+    const pointer = (type, clientX) => range.dispatchEvent(new x.w.MouseEvent(type, { bubbles: true, cancelable: true, button: 0, clientX }));
+    pointer('pointerdown', 200); pointer('pointermove', 320); pointer('pointerup', 320); range.click();
+    assert.equal(range.value, '80');
+    assert.equal(x.opened, 0);
+    assert.ok([...photo.querySelectorAll('img')].every(image => !image.draggable));
+    pointer('pointerdown', 320); pointer('pointerup', 320); range.click();
+    assert.equal(x.opened, 1);
   } finally { x.close(); }
 });

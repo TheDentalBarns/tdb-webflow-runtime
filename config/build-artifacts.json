@@ -585,10 +585,10 @@
       "sources": [
         "src/smile-gallery/feed.js"
       ],
-      "sha256": "3fb3cebc32e6889e3fc27be31c141d52efa07edc65c3614f98cb0ddfda9b668a",
-      "raw": 12200,
-      "gzip": 4127,
-      "brotli": 3583
+      "sha256": "b101a9432177f70d8bc4a722d676359b30cde3f48f20d004b3c3ba265a4896a0",
+      "raw": 12081,
+      "gzip": 4105,
+      "brotli": 3579
     },
     "dist/tdb-smile-gallery.min.js": {
       "sources": [
@@ -603,10 +603,10 @@
       "sources": [
         "src/smile-gallery/standalone.js"
       ],
-      "sha256": "2126a15552075b608d75237c3d56d381e1a5ffa836a8e8444b461042c86fe7f1",
-      "raw": 11338,
-      "gzip": 4153,
-      "brotli": 3672
+      "sha256": "cdc742da78f199a772ec557692e5ed9b1b926c675342cd2c8690684b80b535ac",
+      "raw": 11415,
+      "gzip": 4227,
+      "brotli": 3766
     },
     "dist/tdb-start.min.js": {
       "sources": [
