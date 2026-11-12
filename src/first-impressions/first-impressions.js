@@ -1,4 +1,4 @@
-/* First Impressions v2.0.0. Native holding frames and CMS records, shared gallery motion. */
+/* First Impressions v2.1.0. Native holding frame, published CMS JSON and shared gallery motion. */
 (() => {
   'use strict';
   if (window.TDBFirstImpressions) return;
@@ -7,7 +7,8 @@
     document.currentScript?.src || window.TDBRelease?.base || location.href,
   );
   const instances = new Map(),
-    pending = new Map();
+    pending = new Map(),
+    controllers = new Map();
   let dependencies,
     disposed = false;
   const allowed = () => !disposed && Boolean(window.TDBConsent?.allows());
@@ -59,6 +60,109 @@
           datetime: validDate ? (monthOnly ? month : date.toISOString().slice(0, 10)) : '',
         },
       ];
+    });
+  }
+  async function readFeed(endpoint, signal) {
+    const url = new URL(endpoint, location.href);
+    if (
+      !['https://tdb-public-availability.david-070.workers.dev', location.origin].includes(
+        url.origin,
+      ) ||
+      url.pathname !== '/tdb-content/v1/first-impressions.json' ||
+      url.username ||
+      url.password ||
+      url.search ||
+      url.hash
+    )
+      throw Error('First Impressions feed must use its configured endpoint');
+    url.protocol = 'https:';
+    url.host = 'tdb-public-availability.david-070.workers.dev';
+    const controller = new AbortController(),
+      abort = () => controller.abort();
+    signal.addEventListener('abort', abort, { once: true });
+    if (signal.aborted) abort();
+    const timer = setTimeout(abort, 10000);
+    let payload;
+    try {
+      const response = await fetch(url, {
+        credentials: 'omit',
+        redirect: 'error',
+        signal: controller.signal,
+        headers: { Accept: 'application/json' },
+      });
+      if (!response.ok || !response.headers.get('Content-Type')?.includes('application/json'))
+        throw Error('First Impressions feed unavailable');
+      const body = await response.text();
+      if (body.length > 524288) throw Error('First Impressions feed too large');
+      payload = JSON.parse(body);
+    } finally {
+      clearTimeout(timer);
+      signal.removeEventListener('abort', abort);
+    }
+    if (
+      payload?.version !== 1 ||
+      payload.feed !== 'first-impressions' ||
+      !Number.isSafeInteger(payload.checkedAt) ||
+      payload.checkedAt > Date.now() + 60000 ||
+      Date.now() - payload.checkedAt >= 3600000 ||
+      !Array.isArray(payload.cards) ||
+      !payload.cards.length ||
+      payload.cards.length > 100
+    )
+      throw Error('First Impressions feed has no current cards');
+    const ids = new Set(),
+      validText = (value, max) => typeof value === 'string' && value.length <= max;
+    return payload.cards.map((item) => {
+      const image = new URL(item.image?.src);
+      const exactDate =
+        typeof item.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(item.date)
+          ? new Date(item.date + 'T00:00:00Z')
+          : null;
+      if (
+        !validText(item.id, 80) ||
+        !item.id ||
+        ids.has(item.id) ||
+        !validText(item.initials, 40) ||
+        !item.initials ||
+        !validText(item.image.alt, 2000) ||
+        !Array.isArray(item.words) ||
+        item.words.length !== 3 ||
+        item.words.some((word) => !validText(word, 100) || !word.trim()) ||
+        typeof item.verified !== 'boolean' ||
+        (item.date !== '' &&
+          (!exactDate ||
+            !Number.isFinite(exactDate.getTime()) ||
+            exactDate.toISOString().slice(0, 10) !== item.date)) ||
+        (item.month !== '' &&
+          (typeof item.month !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(item.month))) ||
+        image.protocol !== 'https:' ||
+        image.hostname !== 'cdn.prod.website-files.com' ||
+        image.username ||
+        image.password ||
+        image.port ||
+        !image.pathname.startsWith('/67837ee85ee175873126e461/')
+      )
+        throw Error('Invalid First Impressions feed record');
+      ids.add(item.id);
+      const monthOnly = !exactDate && !!item.month,
+        date = exactDate || (monthOnly ? new Date(item.month + '-01T00:00:00Z') : null);
+      return {
+        src: image.href,
+        srcset: '',
+        alt: item.image.alt,
+        words: item.words.join(' · '),
+        initials: item.initials,
+        verified: item.verified,
+        datetime: exactDate ? item.date : monthOnly ? item.month : '',
+        date: date
+          ? new Intl.DateTimeFormat(
+              'en-GB',
+              monthOnly
+                ? { month: 'long', year: 'numeric', timeZone: 'UTC' }
+                : { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' },
+            ).format(date)
+          : '',
+      };
     });
   }
   function ready() {
@@ -286,7 +390,7 @@
       observer = new MutationObserver(reveal);
       observer.observe(root, { attributes: true, attributeFilter: ['data-tdb-slider-first-view'] });
       holder?.setAttribute('hidden', '');
-      root.setAttribute('data-fi-ready', '2.0.0');
+      root.setAttribute('data-fi-ready', '2.1.0');
       sync();
       reveal();
       const api = Object.freeze({ swiper, destroy });
@@ -301,30 +405,45 @@
     if (!allowed() || !root.isConnected) return;
     if (instances.has(root)) return instances.get(root);
     if (pending.has(root)) return pending.get(root);
+    const controller = new AbortController();
+    controllers.set(root, controller);
     const flight = (async () => {
-      const records = readCards();
+      const endpoint = root.getAttribute('data-tdb-fi-feed');
+      const records = endpoint ? await readFeed(endpoint, controller.signal) : readCards();
       if (!records.length) throw Error('No published First Impressions cards');
+      if (!allowed() || controller.signal.aborted || !root.isConnected) return;
       await ready();
-      if (!allowed() || !root.isConnected) return;
+      if (!allowed() || controller.signal.aborted || !root.isConnected) return;
       // Keep the native holding frame until its first portrait can actually paint.
       const image = new Image();
       image.src = records[0].src;
       await image.decode();
-      if (!allowed() || !root.isConnected) return;
+      if (!allowed() || controller.signal.aborted || !root.isConnected) return;
       return mount(root, records);
-    })().finally(() => pending.delete(root));
+    })().finally(() => {
+      if (pending.get(root) === flight) pending.delete(root);
+      if (controllers.get(root) === controller) controllers.delete(root);
+    });
     pending.set(root, flight);
     return flight;
   }
   const unsubscribe = window.TDBConsent?.subscribe(() => {
-    if (!allowed()) for (const instance of [...instances.values()]) instance.destroy();
+    if (!allowed()) {
+      for (const controller of controllers.values()) controller.abort();
+      controllers.clear();
+      pending.clear();
+      for (const instance of [...instances.values()]) instance.destroy();
+    }
   });
   window.TDBFirstImpressions = Object.freeze({
-    version: '2.0.0',
+    version: '2.1.0',
     prepare,
     destroy() {
       disposed = true;
       unsubscribe?.();
+      for (const controller of controllers.values()) controller.abort();
+      controllers.clear();
+      pending.clear();
       for (const instance of [...instances.values()]) instance.destroy();
     },
   });

@@ -26,6 +26,70 @@ function setup() {
   return { w, root, loads, api: w.TDBFirstImpressions, mounts: () => mounts,
     permission(value) { permitted = value; callback?.(); }, decode(fn) { decode = fn; }, close() { w.TDBFirstImpressions.destroy(); dom.window.close(); } };
 }
+const feedPayload = () => ({ version: 1, feed: 'first-impressions', checkedAt: Date.now(), cards: [
+  { id: 'jh', initials: 'JH', words: ['Calm', 'Relaxing', 'Great'], verified: true,
+    date: '', month: '2026-07', image: { src: 'https://cdn.prod.website-files.com/67837ee85ee175873126e461/jh.webp', alt: 'Handwritten JH card' } },
+  { id: 'ec', initials: 'EC', words: ['Calming', 'Refreshments', 'Kindness'], verified: false,
+    date: '2026-07-14', month: '2026-07', image: { src: 'https://cdn.prod.website-files.com/67837ee85ee175873126e461/ec.webp', alt: 'Handwritten EC card' } },
+] });
+function useJSON(s, fetcher = async () => Response.json(feedPayload())) {
+  s.root.setAttribute('data-tdb-fi-feed', '/tdb-content/v1/first-impressions.json');
+  s.w.document.querySelector('[data-tdb-first-impressions-feed]').remove();
+  s.w.fetch = fetcher;
+}
+
+test('JSON cards load without any source Collection List, after consent, once per preparation', async () => {
+  const s = setup(), requests = [];
+  useJSON(s, async (url, options) => { requests.push({ url: String(url), options }); return Response.json(feedPayload()); });
+  s.permission(false); await s.api.prepare(s.root); assert.equal(requests.length, 0);
+  s.permission(true); await Promise.all([s.api.prepare(s.root), s.api.prepare(s.root)]);
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].url, 'https://tdb-public-availability.david-070.workers.dev/tdb-content/v1/first-impressions.json');
+  assert.equal(requests[0].options.credentials, 'omit');
+  assert.equal(s.mounts(), 1);
+  assert.equal(s.root.querySelectorAll('.tdb-fi-card').length, 2);
+  assert.equal(s.root.querySelector('.tdb-fi-words').textContent, 'Calm · Relaxing · Great');
+  assert.equal(s.root.querySelector('.tdb-fi-date').dateTime, '2026-07');
+  assert.equal(s.root.querySelector('.tdb-fi-date-value').textContent, 'July 2026');
+  assert.equal(s.root.querySelector('.tdb-fi-verified').hidden, false);
+  assert.equal(s.root.querySelector('.tdb-fi-photo').alt, 'Handwritten EC card');
+  s.close();
+});
+
+test('Invalid JSON leaves the holding frame intact and can retry without rendering stale or unsafe records', async () => {
+  const s = setup(); let payload;
+  useJSON(s, async () => Response.json(payload));
+  for (const change of [p => { p.checkedAt -= 3600001; }, p => { p.cards[0].image.src = 'https://other.example/x.webp'; },
+    p => { p.cards[0].month = '2026-13'; }, p => { p.cards[0].date = '2026-02-30'; },
+    p => { p.cards[0].words = []; }, p => { p.cards[0].verified = 'true'; },
+    p => { p.cards[1].id = p.cards[0].id; }]) {
+    payload = feedPayload(); change(payload);
+    await assert.rejects(s.api.prepare(s.root));
+    assert.equal(s.mounts(), 0);
+    assert.equal(s.root.querySelector('[data-tdb-native-holder]').hidden, false);
+  }
+  payload = feedPayload(); await s.api.prepare(s.root); assert.equal(s.mounts(), 1); s.close();
+});
+
+test('Consent withdrawal aborts an in-flight feed and a new grant can retry immediately', async () => {
+  const s = setup(); let signal;
+  useJSON(s, (_url, options) => new Promise((_resolve, reject) => {
+    signal = options.signal; signal.addEventListener('abort', () => reject(new s.w.DOMException('Cancelled', 'AbortError')));
+  }));
+  const flight = s.api.prepare(s.root), rejected = assert.rejects(flight, { name: 'AbortError' });
+  s.permission(false); assert.equal(signal.aborted, true);
+  s.w.fetch = async () => Response.json(feedPayload()); s.permission(true);
+  await s.api.prepare(s.root); await rejected; assert.equal(s.mounts(), 1); s.close();
+});
+
+test('A revoked image preparation cannot mount after consent has been granted again', async () => {
+  const s = setup(); useJSON(s); let release;
+  s.decode(() => new Promise(resolve => { release = resolve; }));
+  const first = s.api.prepare(s.root); await new Promise(setImmediate);
+  s.permission(false); s.permission(true); s.decode(() => Promise.resolve());
+  await s.api.prepare(s.root); release(); await first;
+  assert.equal(s.mounts(), 1); s.close();
+});
 test('First Impressions waits for permission and an actual image before replacing its native holding frame', async () => {
   const s = setup();
   s.permission(false); await s.api.prepare(s.root); assert.equal(s.loads.length, 0);

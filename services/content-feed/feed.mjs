@@ -14,6 +14,7 @@ export const CATEGORY = '6ab7b743e5d9f17124ef7ab3';
 export const PRACTICE_CATEGORY = '6ab7b41d76a5f592a5b6dd3f';
 export const PATIENTS_CATEGORY = '6ab7b9fabdfdf7aa5db3558f';
 export const SMILE_COLLECTION = '69a07fdcd392dc2c0d92967f';
+export const FIRST_IMPRESSIONS_COLLECTION = '6ab78cf13064e85727165c73';
 // Explicit CMS treatment references; a context never falls back to featured cases.
 export const SMILE_TREATMENTS = {
   veneers: { id: '678a8a4699de45047ec331a7', priority: 'veneers-priority' },
@@ -195,7 +196,43 @@ export function projectSmiles(items, treatment = '') {
   return context ? { cases, total: selected.length, treatment } : { cases, total: published.length };
 }
 
+export function projectFirstImpressions(items) {
+  if (!Array.isArray(items)) fail();
+  const selected = items.filter((item) => item?.lastPublished && item.isArchived === false);
+  selected.sort((a, b) => {
+    const order = (item) => Number.isFinite(item.fieldData?.['display-order'])
+      ? item.fieldData['display-order'] : Infinity;
+    const x = order(a), y = order(b);
+    return (x < y ? -1 : x > y ? 1 : 0) || String(a.id).localeCompare(String(b.id));
+  });
+  const seen = new Set();
+  return { cards: selected.slice(0, 100).map((item) => {
+    const f = item.fieldData || {}, id = text(item.id, 80);
+    const words = ['word-one', 'word-two', 'word-three'].map((key) => text(f[key], 100));
+    const initials = text(f.initials, 40), month = text(f['review-month'], 7);
+    if (!id || seen.has(id) || !initials || words.some((word) => !word) ||
+      (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month))) fail();
+    seen.add(id);
+    return {
+      id, words, initials,
+      image: {
+        src: safeURL(f['card-image']?.url, 'image'),
+        alt: text(f['image-description'] || f['card-image']?.alt ||
+          initials + '’s handwritten first-visit card: ' + words.join(', ')),
+      },
+      verified: f['verified-patient'] === true,
+      date: date(f['review-date']),
+      month,
+    };
+  }) };
+}
+
 const FEEDS = {
+  '/tdb-content/v1/first-impressions.json': {
+    name: 'first-impressions', key: 'first-impressions:published:v1',
+    collection: FIRST_IMPRESSIONS_COLLECTION, project: projectFirstImpressions,
+    valid: (snapshot) => Array.isArray(snapshot.cards) && snapshot.cards.length <= 100,
+  },
   '/tdb-content/v2/partners.json': {
     name: 'partners', key: 'partners:related-articles:v2',
     collections: [PARTNER_COLLECTION, BLOG_COLLECTION], project: projectPartnerArticles,

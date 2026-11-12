@@ -1,5 +1,20 @@
 # TDB content feed — Instagram, Smile Gallery and Reviews staging trials
 
+## First Impressions — 12 November 2026
+
+`GET /tdb-content/v1/first-impressions.json` reads the published First Impressions
+collection (`6ab78cf13064e85727165c73`). Cards follow ascending **Display order**,
+then a stable ID order. The public projection contains only the three words,
+initials, verified switch, image and alt text, and the authored review date/month.
+Month-only reviews remain month-only; the renderer never invents a day.
+
+The native First Impressions component uses `data-tdb-fi-feed` and one Designer
+holding card. After consent and proximity, the shared carousel fetches JSON and
+decodes its first portrait before replacing the holder. It no longer needs a
+page-level CMS Collection List. CMS edits still require publication, and the
+existing five-minute refresh and one-hour failure fallback apply. Legacy roots
+without the endpoint attribute retain their on-page source path for rollback.
+
 ## Press partners — CMS article references
 
 `GET /tdb-content/v2/partners.json` joins the published Partner and Blog

@@ -118,10 +118,10 @@
       "sources": [
         "src/first-impressions/first-impressions.js"
       ],
-      "sha256": "1edb4912df4cead9c473de8b36e08a55ac0cf50a1b916c01d3d81d7888545d03",
-      "raw": 7013,
-      "gzip": 2991,
-      "brotli": 2625
+      "sha256": "398eb1da262516af8ba504e93e383b7b103877ae70993bcd126bb8c20d705143",
+      "raw": 9723,
+      "gzip": 3935,
+      "brotli": 3475
     },
     "dist/tdb-first-visit-power-snippets.js": {
       "sources": [
