@@ -19,6 +19,12 @@ function setup({ display = '', allowed = true, fail = false } = {}) {
   ).join('') + '</div>';
   const dom = new JSDOM(page + cms, { url: 'https://dentalbarns.webflow.io/smile-gallery' + display, runScripts: 'outside-only', virtualConsole: new VirtualConsole() });
   const w = dom.window, d = w.document, subscriptions = new Set();
+  for (const original of d.querySelectorAll('button')) {
+    const native = d.createElement('div');
+    for (const attr of original.attributes) native.setAttribute(attr.name, attr.value);
+    native.append(...original.childNodes);
+    original.replaceWith(native);
+  }
   let opened = 0, destroyed = 0, loadFails = fail;
   Object.defineProperty(d, 'currentScript', { value: { src: 'https://cdn.example/dist/tdb-smile-page.js' } });
   w.TDBMotion = { reduced: { matches: false } };
@@ -49,6 +55,8 @@ test('standalone mounts all native CMS cases by price and opens the original squ
   try {
     await x.w.TDBSmilePage.mount();
     assert.equal(x.d.querySelectorAll('.tdb-smile-card').length, 3);
+    assert.equal(x.d.querySelector('[data-smile-open-case]').tagName, 'BUTTON');
+    assert.equal(x.d.querySelector('[data-smile-case-next]').tagName, 'BUTTON');
     assert.equal(x.d.querySelector('[data-smile-page-status]').textContent, '3 smiles');
     x.d.querySelector('.tdb-smile-card').click();
     assert.equal(x.opened, 1);

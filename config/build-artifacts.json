@@ -603,10 +603,10 @@
       "sources": [
         "src/smile-gallery/standalone.js"
       ],
-      "sha256": "66cc61b3c674aee24f34415ee6094f3b605b7bff913cd1fa8d86d3fe756c6ed3",
-      "raw": 11026,
-      "gzip": 4036,
-      "brotli": 3565
+      "sha256": "2126a15552075b608d75237c3d56d381e1a5ffa836a8e8444b461042c86fe7f1",
+      "raw": 11338,
+      "gzip": 4153,
+      "brotli": 3672
     },
     "dist/tdb-start.min.js": {
       "sources": [

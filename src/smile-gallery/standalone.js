@@ -62,6 +62,16 @@
     return flight;
   }
   async function initialize(page) {
+    // Webflow exports its native controls as links/blocks. Keep their authored
+    // content and styles, but give interactive controls native button behavior.
+    for (const scope of [page, document.querySelector('[data-smile-case-drawer]')])
+      for (const control of scope.querySelectorAll('[type="button"]:not(button)')) {
+        const button = document.createElement('button');
+        for (const { name, value } of control.attributes)
+          if (name !== 'href') button.setAttribute(name, value);
+        button.append(...control.childNodes);
+        control.replaceWith(button);
+      }
     const lifecycle = new AbortController(),
       { signal } = lifecycle;
     const load = (name, ready, type) =>
