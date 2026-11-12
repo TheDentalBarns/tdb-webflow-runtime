@@ -364,10 +364,10 @@
       "sources": [
         "src/logo-marquee/partner-card.js"
       ],
-      "sha256": "02c13575e9f8210a61d45fb19c65650237fa57f1d377214cf55e79bc456151f8",
-      "raw": 7083,
-      "gzip": 2611,
-      "brotli": 2237
+      "sha256": "2b24c4ea4200122e198751c78e9d45e72aad4749394174f3fc850b9edabdbfc1",
+      "raw": 7766,
+      "gzip": 2860,
+      "brotli": 2437
     },
     "dist/tdb-quote-carousel.js": {
       "sources": [

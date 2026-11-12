@@ -2,7 +2,7 @@
   'use strict';
   if (window.TDBPartnerCard) return;
   const endpoint =
-    'https://tdb-public-availability.david-070.workers.dev/tdb-content/v1/partners.json';
+    'https://tdb-public-availability.david-070.workers.dev/tdb-content/v2/partners.json';
   let flight;
   const validText = (v, max) => typeof v === 'string' && v.length <= max;
   function safeURL(value, image = false) {
@@ -61,10 +61,37 @@
   function source(record) {
     const t = document.createElement('template');
     const body = richText(record.body);
-    const links = [...body.querySelectorAll('a[href]')];
+    const related = record.articles !== undefined;
+    let links = [...body.querySelectorAll('a[href]')];
+    if (related) {
+      if (!Array.isArray(record.articles) || record.articles.length > 1000)
+        throw Error('Invalid related articles');
+      links = record.articles.map((article) => {
+        if (
+          !validText(article.title, 1000) ||
+          !article.title.trim() ||
+          !validText(article.path, 1000)
+        )
+          throw Error('Invalid related article');
+        const url = new URL(article.path, location.origin);
+        if (
+          !article.path.startsWith('/post/') ||
+          url.origin !== location.origin ||
+          !/^\/post\/[^/]+$/.test(url.pathname) ||
+          url.search ||
+          url.hash ||
+          /[\\/]/.test(decodeURIComponent(url.pathname.slice(6)))
+        )
+          throw Error('Invalid article path');
+        const link = document.createElement('a');
+        link.setAttribute('href', article.path);
+        link.textContent = article.title;
+        return link;
+      });
+    }
     const prose = body.cloneNode(true);
     prose.querySelectorAll('a[href]').forEach((link) => link.remove());
-    const articles = links.length > 0 && !prose.textContent.trim();
+    const articles = related || (links.length > 0 && !prose.textContent.trim());
     t.innerHTML =
       '<div class="tdb-partner-source"><div class="tooltip2_card-wrapper"><div class="tooltip2_image-wrapper"><img class="tooltip2_image" loading="lazy" data-tdb-partner-image-sizes="12.1rem"></div><div class="tdb-partner-copy"><div class="margin-bottom margin-xxsmall"><div class="text-style-tagline-restored"></div></div><div class="text-rich-text is-tooltip tdb-partner-copy-body w-richtext"></div></div></div><a class="tdb-partner-link-source" data-tdb-partner-link aria-hidden="true" tabindex="-1" target="_blank" rel="noopener noreferrer"></a></div>';
     const root = t.content.firstElementChild,
@@ -95,8 +122,10 @@
         if (seen.has(link.href)) continue;
         seen.add(link.href);
         const item = document.createElement('li');
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
+        if (!related) {
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+        }
         const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         icon.setAttribute('class', 'tdb-partner-article-icon');
         icon.setAttribute('viewBox', '0 0 24 24');
@@ -109,6 +138,10 @@
         list.append(item);
       }
       copy.append(list);
+      if (related && !links.length) {
+        copy.textContent = 'No published articles yet.';
+        image.style.objectFit = 'contain';
+      }
     } else copy.append(body);
     const link = root.querySelector('[data-tdb-partner-link]');
     if (record.link) link.href = safeURL(record.link);
@@ -171,7 +204,7 @@
     return flight;
   }
   window.TDBPartnerCard = Object.freeze({
-    version: '1.4.0',
+    version: '1.5.0',
     async prepare(host, items) {
       const records = await read();
       const sources = items.map((item) => {

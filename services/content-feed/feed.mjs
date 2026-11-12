@@ -1,4 +1,4 @@
-import { PARTNER_COLLECTION, projectPartners } from './partners.mjs';
+import { PARTNER_COLLECTION, BLOG_COLLECTION, projectPartners, projectPartnerArticles } from './partners.mjs';
 import {
   projectReviews,
   REVIEW_COLLECTIONS,
@@ -196,6 +196,11 @@ export function projectSmiles(items, treatment = '') {
 }
 
 const FEEDS = {
+  '/tdb-content/v2/partners.json': {
+    name: 'partners', key: 'partners:related-articles:v2',
+    collections: [PARTNER_COLLECTION, BLOG_COLLECTION], project: projectPartnerArticles,
+    valid: (snapshot) => Array.isArray(snapshot.partners) && snapshot.partners.length <= 1000,
+  },
   '/tdb-content/v1/partners.json': {
     name: 'partners', key: 'partners:published:v1', collection: PARTNER_COLLECTION,
     project: projectPartners,

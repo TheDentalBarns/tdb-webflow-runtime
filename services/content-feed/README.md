@@ -1,5 +1,22 @@
 # TDB content feed — Instagram, Smile Gallery and Reviews staging trials
 
+## Press partners — CMS article references
+
+`GET /tdb-content/v2/partners.json` joins the published Partner and Blog
+collections. For each Press partner, **Related articles** selects the Blog
+records shown in its card. The feed uses their current titles and relative
+`/post/{slug}` paths, sorts them newest first by CMS creation date, and uses the
+newest selected article's thumbnail (or main image). Unpublished, archived and
+missing articles are omitted. With no published articles, the card shows the
+publisher logo and an empty-state message. The **Visit press** button still uses
+the Partner's website link.
+
+Publishing article edits updates the title, URL and thumbnail on the next feed
+refresh; the existing five-minute freshness and one-hour failure fallback apply.
+Article links stay on the current site's origin and open in the current tab.
+Brand partner content and the legacy v1 route are preserved. The v2 cache has a
+separate key, so the feed can be deployed before updating the frontend pin.
+
 ## Pricing / Happy Patients — live CMS connection, 4 November 2026
 
 The existing Media Gallery already contains the nine patient posts in the

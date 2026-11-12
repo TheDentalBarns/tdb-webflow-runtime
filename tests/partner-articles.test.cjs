@@ -93,3 +93,103 @@ test('press cards share brand images, headings and website CTA while retaining p
     w.close();
   }
 });
+
+test('CMS-related articles retain the current site origin and open internal posts in the same tab', async () => {
+  for (const origin of ['https://dentalbarns.webflow.io', 'https://www.thedentalbarns.co.uk']) {
+    const w = new JSDOM('<div id="host"></div>', {
+      url: origin + '/blog',
+      runScripts: 'outside-only',
+    }).window;
+    try {
+      const asset = 'https://cdn.prod.website-files.com/67837ee85ee175873126e461/';
+      w.fetch = async (url) => {
+        assert.ok(url.endsWith('/tdb-content/v2/partners.json'));
+        return Response.json({
+          version: 1,
+          feed: 'partners',
+          checkedAt: Date.now(),
+          partners: [
+            {
+              id: 'related',
+              slug: 'press-related',
+              name: 'Publisher',
+              body: '<p><a href="https://old.example/">Old link</a></p>',
+              logo: asset + 'logo.svg',
+              image: asset + 'latest.webp',
+              imageAlt: 'Newest story',
+              link: 'https://publisher.example/',
+              articles: [
+                { title: 'Current CMS title', path: '/post/newest-story' },
+                { title: 'Earlier CMS title', path: '/post/earlier-story' },
+              ],
+            },
+          ],
+        });
+      };
+      w.eval(fs.readFileSync('src/logo-marquee/partner-card.js', 'utf8'));
+      const item = w.document.createElement('div');
+      item.dataset.itemId = 'related';
+      const {
+        sources: [card],
+      } = await w.TDBPartnerCard.prepare(w.document.querySelector('#host'), [item]);
+      w.document.querySelector('#host').append(card);
+      const links = Array.from(card.querySelectorAll('.tdb-partner-article-links a'));
+      assert.deepEqual(
+        links.map((a) => a.href),
+        [origin + '/post/newest-story', origin + '/post/earlier-story'],
+      );
+      assert.deepEqual(
+        links.map((a) => a.textContent.trim()),
+        ['Current CMS title', 'Earlier CMS title'],
+      );
+      assert.ok(links.every((a) => !a.target));
+      assert.ok(links.every((a) => a.querySelector('svg[aria-hidden="true"]')));
+      assert.equal(card.querySelector('.tooltip2_image').src, asset + 'latest.webp');
+      assert.equal(card.querySelector('[data-tdb-partner-link]').target, '_blank');
+      assert.equal(card.textContent.includes('Old link'), false);
+    } finally {
+      w.close();
+    }
+  }
+});
+
+test('related article paths reject external, traversal and query URLs', async () => {
+  for (const path of [
+    'https://other.example/post/story',
+    '//other.example/post/story',
+    '/post/../private',
+    '/post/%2fprivate',
+    '/post/story?token=private',
+  ]) {
+    const w = new JSDOM('<div id="host"></div>', {
+      url: 'https://dentalbarns.webflow.io/blog',
+      runScripts: 'outside-only',
+    }).window;
+    try {
+      const asset = 'https://cdn.prod.website-files.com/67837ee85ee175873126e461/';
+      w.fetch = async () =>
+        Response.json({
+          version: 1,
+          feed: 'partners',
+          checkedAt: Date.now(),
+          partners: [
+            {
+              id: 'related',
+              slug: 'press-related',
+              name: 'Publisher',
+              body: '',
+              logo: asset + 'logo.svg',
+              image: asset + 'image.webp',
+              imageAlt: '',
+              link: 'https://publisher.example/',
+              articles: [{ title: 'Title', path }],
+            },
+          ],
+        });
+      w.eval(fs.readFileSync('src/logo-marquee/partner-card.js', 'utf8'));
+      await assert.rejects(w.TDBPartnerCard.prepare(w.document.querySelector('#host'), []));
+    } finally {
+      w.close();
+    }
+  }
+});
