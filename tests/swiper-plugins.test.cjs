@@ -49,6 +49,29 @@ test('one engine mounts each plugin once, keeps its options and can remount afte
   } finally {dom.window.close();}
 });
 
+test('native list slides retain their required roles through real Swiper mounting and loop navigation', () => {
+  const {dom,w}=setup();
+  try {
+    w.eval(read('dist/tdb-parallax.js'));w.eval(read('dist/tdb-gallery.js'));
+    for(const [name,kind] of [['parallax','parallax'],['gallery','highlight']]) {
+      const {root,viewport}=carousel(w,kind),track=viewport.querySelector('.swiper-wrapper');
+      track.setAttribute('role','list');
+      for(const slide of track.children)slide.setAttribute('role','listitem');
+      const s=w.TDBSwiper.mount(name,root);
+      s.slideNext(0);s.slidePrev(0);
+      assert.equal(track.getAttribute('role'),'list');
+      assert.ok([...track.children].every(slide=>slide.getAttribute('role')==='listitem'),name+' must preserve list children, including loop copies');
+      assert.ok([...track.children].every(slide=>slide.hasAttribute('aria-label')),name+' must retain accessible slide labels');
+      s.destroy(true,true);
+    }
+    const {viewport}=carousel(w,'highlight'),track=viewport.querySelector('.swiper-wrapper');
+    track.setAttribute('role','presentation');
+    const s=w.TDBSwiper.create(viewport,{});
+    assert.ok([...track.children].every(slide=>slide.getAttribute('role')==='group'),'non-list galleries retain group semantics');
+    s.destroy(true,true);
+  } finally {dom.window.close();}
+});
+
 test('shared gallery prune destroys detached Smile, Instagram and legacy sliders and allows remount', () => {
   const { dom, w } = setup();
   try {

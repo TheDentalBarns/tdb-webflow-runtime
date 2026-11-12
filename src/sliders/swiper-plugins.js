@@ -1,4 +1,4 @@
-/* TDB carousel plugin controller v1.0.0. Bundled into our custom Swiper build. */
+/* TDB carousel plugin controller v1.0.1. Bundled into our custom Swiper build. */
 // This file is inserted inside TDBSwiper's closure by the custom-engine build.
 const plugins = new Map();
 const pluginInstances = new WeakMap();
@@ -9,6 +9,14 @@ function create(viewport, options, { bind = true } = {}) {
   if (existing && !existing.destroyed) {
     if (bind) bindSwiper(existing);
     return existing;
+  }
+  // Preserve native CMS list semantics when Swiper assigns its slide roles.
+  if (
+    options.a11y !== false &&
+    options.a11y?.enabled !== false &&
+    viewport.querySelector('.swiper-wrapper')?.getAttribute('role') === 'list'
+  ) {
+    options = { ...options, a11y: { ...options.a11y, slideRole: 'listitem' } };
   }
   const swiper = new window.Swiper(viewport, options);
   if (bind) bindSwiper(swiper);
