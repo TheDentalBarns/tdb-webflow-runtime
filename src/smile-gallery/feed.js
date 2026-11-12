@@ -388,8 +388,15 @@
     if (!allowed()) records.forEach((record, holder) => reset(holder, record));
   });
   window.TDBSmileFeed = Object.freeze({
-    version: '1.1.0',
+    version: '1.2.0',
     prepare,
+    createView: build,
+    releaseView(root) {
+      presentations.get(root)?.destroy();
+      root.remove();
+      window.TDBSwiper?.prune();
+      window.TDBSmileCards?.prune();
+    },
     presentation: (root) => presentations.get(root),
     destroy() {
       if (disposed) return;

@@ -3550,6 +3550,7 @@ function prepareSmileFeatureLoader() {
     seen = new WeakSet(),
     lifecycle = new AbortController();
   let flight,
+    pageFlight,
     disposed = false;
   const allowed = () => !disposed && Boolean(window.TDBConsent?.allows());
   const observer =
@@ -3570,6 +3571,16 @@ function prepareSmileFeatureLoader() {
     if (!allowed()) {
       for (const holder of near) holder.removeAttribute('aria-busy');
       return;
+    }
+    if (document.querySelector('[data-tdb-smile-page]') && !pageFlight) {
+      pageFlight = window.TDBModules.load(new URL('tdb-smile-page.js', TDBRuntimeModuleRoot), {
+        ready: () => Boolean(window.TDBSmilePage),
+      })
+        .then(() => allowed() && window.TDBSmilePage.mount())
+        .catch(() => console.warn('TDB Smile Gallery: retaining the holding image.'))
+        .finally(() => {
+          pageFlight = null;
+        });
     }
     document.querySelectorAll('[data-tdb-smile-placeholder]').forEach((holder) => {
       if (seen.has(holder)) return;
@@ -3623,6 +3634,7 @@ function prepareSmileFeatureLoader() {
       for (const holder of near) holder.removeAttribute('aria-busy');
       near.clear();
       window.TDBSmileFeed?.destroy();
+      window.TDBSmilePage?.destroy();
     },
   });
   if (!unsubscribe) refresh();

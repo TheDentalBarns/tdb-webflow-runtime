@@ -558,10 +558,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "2f0c40f92590302652722525e9dd3b0c0d3fd0b4a1d32073463b1e40646a8e37",
-      "raw": 93002,
-      "gzip": 25430,
-      "brotli": 21840
+      "sha256": "81433c1ea195ff82b599a5f6d3752ed5a0218fa57099079c03b373b5888742ad",
+      "raw": 93347,
+      "gzip": 25473,
+      "brotli": 21865
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -585,10 +585,10 @@
       "sources": [
         "src/smile-gallery/feed.js"
       ],
-      "sha256": "b101a9432177f70d8bc4a722d676359b30cde3f48f20d004b3c3ba265a4896a0",
-      "raw": 12081,
-      "gzip": 4105,
-      "brotli": 3579
+      "sha256": "3fb3cebc32e6889e3fc27be31c141d52efa07edc65c3614f98cb0ddfda9b668a",
+      "raw": 12200,
+      "gzip": 4127,
+      "brotli": 3583
     },
     "dist/tdb-smile-gallery.min.js": {
       "sources": [
@@ -598,6 +598,15 @@
       "raw": 28098,
       "gzip": 9239,
       "brotli": 8298
+    },
+    "dist/tdb-smile-page.js": {
+      "sources": [
+        "src/smile-gallery/standalone.js"
+      ],
+      "sha256": "66cc61b3c674aee24f34415ee6094f3b605b7bff913cd1fa8d86d3fe756c6ed3",
+      "raw": 11026,
+      "gzip": 4036,
+      "brotli": 3565
     },
     "dist/tdb-start.min.js": {
       "sources": [

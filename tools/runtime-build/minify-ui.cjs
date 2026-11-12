@@ -16,6 +16,7 @@ const bundles = {
   'tdb-five-senses.css': ['tdb-five-senses.css'],
   'tdb-instagram-native.css': ['tdb-pagination.css', 'tdb-instagram-native.css'],
   'tdb-smile-feed.css': ['tdb-pagination.css', 'tdb-smile-feed.css'],
+  'tdb-smile-page.css': ['tdb-smile-page.css'],
   'tdb-review-widget.css': ['tdb-review-widget.css'],
   'tdb-review-cards.css': ['tdb-pagination.css', 'tdb-review-cards.css'],
   'tdb-scroll-lock.css': ['tdb-scroll-lock.css'],
