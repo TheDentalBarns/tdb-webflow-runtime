@@ -90,10 +90,21 @@
       card.setAttribute('data-tdb-partner-articles', '');
       const list = document.createElement('ul');
       list.className = 'tdb-partner-article-links';
+      const seen = new Set();
       for (const link of links) {
+        if (seen.has(link.href)) continue;
+        seen.add(link.href);
         const item = document.createElement('li');
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
+        const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        icon.setAttribute('class', 'tdb-partner-article-icon');
+        icon.setAttribute('viewBox', '0 0 24 24');
+        icon.setAttribute('aria-hidden', 'true');
+        icon.setAttribute('focusable', 'false');
+        icon.innerHTML =
+          '<g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 .1l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7-.1l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7"/></g>';
+        link.append(document.createTextNode('\u00a0'), icon);
         item.append(link);
         list.append(item);
       }
@@ -160,7 +171,7 @@
     return flight;
   }
   window.TDBPartnerCard = Object.freeze({
-    version: '1.3.0',
+    version: '1.4.0',
     async prepare(host, items) {
       const records = await read();
       const sources = items.map((item) => {
@@ -179,6 +190,15 @@
       d.innerHTML =
         '<div aria-hidden="true" class="tdb-partner-overlay"></div><img alt="" class="tdb-partner-spotlight" loading="lazy"/><div aria-hidden="true" aria-label="Partner details" class="tdb-partner-tooltip" role="region"><div class="tdb-partner-backdrop"></div><div aria-hidden="true" class="tdb-partner-tint"></div><div class="tdb-partner-content"><div class="tdb-partner-header"><a aria-label="Close partner details" class="carousel-arrow tdb-service-arrow tdb-partner-close w-button" href="#" role="button" tabindex="0" type="button"><img alt="" aria-hidden="true" class="tdb-partner-icon" height="16" loading="lazy" src="https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac903f5a05e10347d13d4a5_tdb-close.svg" width="16"/></a></div><div class="tdb-partner-swiper"><div class="tdb-partner-slides"></div></div><div class="tdb-partner-footer"><div class="tdb-partner-visit-slot"><a class="tdb-service-discover w-inline-block" data-tdb-partner-visit="" href="#"><div>Visit partner</div><div class="icon-embed-xxsmall w-embed"><img alt="" aria-hidden="true" class="tdb-partner-icon" height="16" loading="lazy" src="https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac9040240c896d539d1903d_tdb-globe.svg" width="16"/></div></a></div><div class="tdb-partner-controls"><a aria-label="Previous partner" class="carousel-arrow tdb-service-arrow tdb-partner-prev w-button" href="#" role="button" tabindex="0" type="button"><span class="tdb-partner-prev-icon"><img crossorigin="anonymous" alt="" aria-hidden="true" class="tdb-partner-icon" height="16" loading="lazy" src="https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg" width="16"/></span></a><a aria-label="Next partner" class="carousel-arrow tdb-service-arrow tdb-partner-next w-button" href="#" role="button" tabindex="0" type="button"><img crossorigin="anonymous" alt="" aria-hidden="true" class="tdb-partner-icon" height="16" loading="lazy" src="https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg" width="16"/></a></div></div></div></div>';
       for (const t of d.content.children) t.setAttribute('data-tdb-partner-surface', '');
+      // Size both marquees against the same published copy, without downloading
+      // unrelated images. This keeps short press lists aligned with brand cards.
+      const sizing = document.createElement('div');
+      sizing.className = 'tdb-partner-sizing';
+      sizing.setAttribute('aria-hidden', 'true');
+      sizing.inert = true;
+      for (const record of new Set(records.values()))
+        sizing.append(record.querySelector('.tdb-partner-copy').cloneNode(true));
+      d.content.querySelector('.tdb-partner-swiper').append(sizing);
       return { fragment: d.content, sources };
     },
   });

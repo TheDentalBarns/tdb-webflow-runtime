@@ -462,13 +462,23 @@
         ...entries.map(({ slide }) => {
           const image = slide.querySelector(CONFIG.tooltipImageSelector);
           const width = slide.querySelector('.tooltip2_image-wrapper')?.clientWidth || 0;
-          if (slide.hasAttribute('data-tdb-partner-articles')) return width;
-          return width * (image?.naturalWidth ? image.naturalHeight / image.naturalWidth : 1);
+          // Retain the brand card's portrait-sized image slot for every group.
+          // A press thumbnail is square within that slot, not a shorter slot.
+          const ratio = slide.hasAttribute('data-tdb-partner-articles')
+            ? 1
+            : image?.naturalWidth
+              ? image.naturalHeight / image.naturalWidth
+              : 1;
+          return width * Math.max(1.5, ratio);
         }),
       );
-      const textHeight = Math.max(
-        ...entries.map(({ slide }) => slide.querySelector('.tdb-partner-copy').scrollHeight),
-      );
+      const sizing = shell.querySelector('.tdb-partner-sizing');
+      if (sizing)
+        sizing.style.width = shell.querySelector('.tdb-partner-swiper').clientWidth + 'px';
+      const copies = sizing
+        ? Array.from(sizing.children)
+        : entries.map(({ slide }) => slide.querySelector('.tdb-partner-copy'));
+      const textHeight = Math.max(...copies.map((copy) => copy.getBoundingClientRect().height));
       shell.style.setProperty('--tdb-partner-image-height', Math.ceil(imageHeight) + 'px');
       shell.style.setProperty('--tdb-partner-text-height', Math.ceil(textHeight) + 'px');
       swiper?.update();

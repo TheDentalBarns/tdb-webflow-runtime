@@ -20,7 +20,7 @@ test('press cards share brand images, headings and website CTA while retaining p
             id: 'id-a',
             slug: 'press-a',
             name: 'Publisher A',
-            body: '<p><a href="https://a.example/one">First article</a></p><p><a href="https://a.example/two">Second article</a></p>',
+            body: '<p><a href="https://a.example/one">First article</a></p><p><a href="https://a.example/two">Second article</a></p><p><a href="https://a.example/one">First article again</a></p>',
             logo: asset + 'a.svg',
             image: asset + 'a.svg',
             imageAlt: 'A',
@@ -80,6 +80,13 @@ test('press cards share brand images, headings and website CTA while retaining p
     }
     assert.equal(a.querySelector('[data-tdb-partner-link]').href, 'https://a.example/');
     assert.equal(b.querySelector('[data-tdb-partner-link]').href, 'https://b.example/');
+    assert.equal(a.querySelectorAll('.tdb-partner-article-icon[aria-hidden="true"]').length, 2);
+    assert.equal(b.querySelectorAll('.tdb-partner-article-icon[aria-hidden="true"]').length, 1);
+    const sizing = prepared.fragment.querySelector('.tdb-partner-sizing');
+    assert.equal(sizing.getAttribute('aria-hidden'), 'true');
+    assert.equal(sizing.inert, true);
+    assert.equal(sizing.children.length, 3);
+    assert.equal(sizing.querySelectorAll('img').length, 0);
     assert.ok(brand.querySelector('img'));
     assert.equal(brand.querySelector('[data-tdb-partner-link]').href, 'https://brand.example/');
   } finally {
