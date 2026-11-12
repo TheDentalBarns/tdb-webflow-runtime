@@ -58,3 +58,12 @@ selection; cancelled touches and horizontal or vertical drags never select.
 Validation: CMS reorder/missing values, rapid selection, static icons, reduced
 motion, finite drag boundaries and reversal, eased return, loop opt-in and disposal
 are covered by the treatment tests.
+
+The Technology variant's category text comes from the rendered CMS item. Its
+category icon currently uses the shared category-to-artwork mapping in
+`src/sliders/treatment-ticker.js`, rather than a separate CMS image field. When
+that artwork changes, it now uses `TDBNativeTicker` with the same timing, easing
+and direction as the category text. Consecutive items with the same artwork do
+not animate the icon. Empty categories hide it; rapid reversals and cancellation
+settle the latest artwork. The authored image is preserved and unwrapped on
+disposal. Treatment price and partner location icons remain static.

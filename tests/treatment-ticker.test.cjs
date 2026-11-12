@@ -188,6 +188,76 @@ test('rapid treatment selection animates only values, retains native nodes/icons
   }
 });
 
+test('changed category artwork ticks with its label and unchanged artwork stays still', () => {
+  const f = fixture(false, true);
+  try {
+    const icon = f.w.document.querySelector('[data-tdb-treatment-category-icon]');
+    const iconSlot = icon.closest('.tdb-treatment-icon-ticker');
+    const labelSlot = f.w.document.querySelector('[data-tdb-treatment-category]');
+    const iconMotion = () =>
+      f.animations.filter((a) => a.node.classList.contains('tdb-treatment-icon-value'));
+    assert.equal(iconMotion().length, 0, 'initial artwork must not animate');
+    f.select(1);
+    const movingIcon = iconMotion();
+    const movingLabel = f.animations.filter((a) => a.node.parentElement === labelSlot);
+    assert.equal(movingIcon.length, 2);
+    assert.deepEqual(
+      movingIcon.map((a) => a.frames),
+      movingLabel.map((a) => a.frames),
+    );
+    assert.deepEqual(
+      movingIcon.map((a) => a.options),
+      movingLabel.map((a) => a.options),
+    );
+    assert.match(icon.src, /lotus-small/, 'outgoing artwork remains in place during the tick');
+    assert.match(iconSlot.lastElementChild.querySelector('img').src, /diagnostics-small/);
+    assert.equal(iconSlot.querySelectorAll('[data-tdb-treatment-category-icon]').length, 1);
+    f.finish();
+    assert.match(icon.src, /diagnostics-small/);
+    assert.equal(iconSlot.children.length, 1);
+    f.swiper.slides[2].append(
+      f.swiper.slides[1].querySelector('[data-tdb-treatment-category-source]').cloneNode(true),
+    );
+    const before = iconMotion().length;
+    f.select(2);
+    f.finish();
+    assert.equal(iconMotion().length, before, 'two items in the same category keep a still icon');
+    f.controller.dispose();
+    assert.equal(f.w.document.querySelector('.tdb-treatment-icon-ticker'), null);
+    assert.equal(f.w.document.querySelector('[data-tdb-treatment-category-icon]'), icon);
+    assert.match(icon.src, /diagnostics-small/);
+  } finally {
+    f.dom.window.close();
+  }
+});
+
+test('reversed or cancelled category ticks settle the latest artwork without stale callbacks', () => {
+  const f = fixture(false, true);
+  try {
+    const icon = f.w.document.querySelector('[data-tdb-treatment-category-icon]');
+    const iconSlot = icon.closest('.tdb-treatment-icon-ticker');
+    const iconMotion = () =>
+      f.animations.filter((a) => a.node.classList.contains('tdb-treatment-icon-value'));
+    f.select(1);
+    const staleFinish = iconMotion().at(-1).onfinish;
+    f.select(0);
+    assert.equal(iconMotion().at(-1).frames[0].transform, 'translateY(-100%)');
+    staleFinish();
+    assert.equal(iconSlot.children.length, 2, 'stale completion must not cancel the current tick');
+    iconMotion().at(-1).oncancel();
+    assert.match(icon.src, /lotus-small/);
+    assert.equal(iconSlot.children.length, 1);
+    f.select(2);
+    assert.equal(iconSlot.hidden, true);
+    f.select(1);
+    f.finish();
+    assert.equal(iconSlot.hidden, false);
+    assert.match(icon.src, /diagnostics-small/);
+  } finally {
+    f.dom.window.close();
+  }
+});
+
 test('desktop uses the same ticker; reduced motion stays immediate and disposal unbinds the slider', () => {
   const f = fixture();
   try {

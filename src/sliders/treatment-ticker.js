@@ -1,5 +1,6 @@
 /* Native Designer slots; CMS facts come from each rendered treatment item.
- * No feed request or duplicated price table. Only the value spans animate.
+ * No feed request or duplicated price table. Changed values and category artwork
+ * share the native ticker; unchanged treatment and partner icons stay still.
  */
 window.TDBTreatmentTicker ||= (() => {
   const instances = new WeakMap();
@@ -30,7 +31,10 @@ window.TDBTreatmentTicker ||= (() => {
       mounted = false,
       disposed = false,
       previous = null,
-      loading;
+      loading,
+      iconSlot,
+      iconTicker,
+      previousArtwork = '';
     const tickers = [];
     const clean = (text) =>
       String(text || '')
@@ -90,11 +94,16 @@ window.TDBTreatmentTicker ||= (() => {
       );
       if (categoryIcon) {
         const artwork = categoryArtwork[values[4].toLowerCase()];
-        categoryIcon.hidden = !artwork;
-        if (artwork) {
-          const src = 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/' + artwork;
-          if (categoryIcon.getAttribute('src') !== src) categoryIcon.setAttribute('src', src);
-        }
+        const src = artwork
+          ? 'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/' + artwork
+          : '';
+        iconSlot.hidden = !src;
+        iconTicker.update(
+          src,
+          direction,
+          animate && previous !== null && !!previousArtwork && !!src,
+        );
+        previousArtwork = src;
       }
       if (total) total.textContent = String(originals.length).padStart(2, '0');
       position?.setAttribute('aria-label', `${index + 1} of ${originals.length}`);
@@ -102,6 +111,33 @@ window.TDBTreatmentTicker ||= (() => {
     }
     function mount() {
       if (mounted || disposed || !window.TDBNativeTicker || !window.TDBMotion) return;
+      if (categoryIcon) {
+        // Keep the Designer image and its artwork styling. Only the transient
+        // ticker viewport and incoming value are enhancement-owned.
+        iconSlot = document.createElement('span');
+        iconSlot.className = 'tdb-treatment-icon-ticker';
+        iconSlot.setAttribute('aria-hidden', 'true');
+        const value = document.createElement('span');
+        value.className = 'tdb-treatment-icon-value';
+        categoryIcon.before(iconSlot);
+        iconSlot.append(value);
+        value.append(categoryIcon);
+        iconTicker = window.TDBNativeTicker.mount(iconSlot, {
+          valueClass: 'tdb-treatment-icon-value',
+          incomingClass: 'tdb-treatment-icon-value',
+          render(node, src) {
+            let image = node.querySelector('img');
+            if (!image) {
+              image = categoryIcon.cloneNode(false);
+              image.removeAttribute('id');
+              image.removeAttribute('data-tdb-treatment-category-icon');
+              node.append(image);
+            }
+            image.hidden = !src;
+            if (src && image.getAttribute('src') !== src) image.setAttribute('src', src);
+          },
+        });
+      }
       slots.forEach((slot, i) => {
         tickers[i] =
           slot &&
@@ -159,6 +195,8 @@ window.TDBTreatmentTicker ||= (() => {
       }
       mobile.removeEventListener('change', resize);
       tickers.forEach((ticker) => ticker?.destroy());
+      iconTicker?.destroy();
+      iconSlot?.replaceWith(categoryIcon);
       instances.delete(root);
     }
     mobile.addEventListener('change', resize);
