@@ -576,8 +576,11 @@
       const updateDock = () => {
         if (dock.classList.contains('is-in-drawer')) return;
         const bounds = filterHome.getBoundingClientRect();
-        dock.classList.toggle('is-floating', bounds.bottom < 0);
-        dock.classList.toggle('is-offscreen', bounds.bottom < 0 && !stageVisible);
+        const chromeHeight =
+          6 * (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16);
+        const pastAnchor = bounds.top < chromeHeight;
+        dock.classList.toggle('is-floating', pastAnchor);
+        dock.classList.toggle('is-offscreen', pastAnchor && !stageVisible);
       };
       const drawer = window.TDBDrawer.mount(drawerRoot, {
         hideChrome: true,
