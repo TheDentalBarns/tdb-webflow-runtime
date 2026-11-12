@@ -8,12 +8,12 @@ async function fixture({ delayed = false, reduced = false, source } = {}) {
   const dom = new JSDOM(
     `<!doctype html><body>
     <section class="section_logo-features"><div class="logo-slider">
-    <div class="partner-featured_component">
+    <div class="partner-featured_component" role="list" aria-label="Partner brands">
       ${[0, 1]
         .map(
           (
             i,
-          ) => `<div class="tdb-partner-logo"><img class="logo_image" src="https://example.test/${i}.svg">
+          ) => `<div class="tdb-partner-logo" role="listitem"><img class="logo_image" src="https://example.test/${i}.svg">
       <div class="tdb-partner-source"><div class="tooltip2_card-wrapper"><div class="tooltip2_image-wrapper"><img class="tooltip2_image"></div><div class="tdb-partner-copy">Partner ${i}</div></div><a data-tdb-partner-link href="https://example.test"></a></div></div>`,
         )
         .join('')}
@@ -188,6 +188,41 @@ async function fixture({ delayed = false, reduced = false, source } = {}) {
     },
   };
 }
+
+test('interactive brand buttons have a group owner and restore native list semantics on teardown', async () => {
+  const f = await fixture();
+  try {
+    const originals = () => [
+      ...f.track.querySelectorAll('.tdb-partner-logo:not([data-tdb-logo-marquee-clone])'),
+    ];
+    const assertEnhanced = () => {
+      assert.equal(f.track.getAttribute('role'), 'group');
+      assert.equal(f.track.getAttribute('aria-label'), 'Partner brands');
+      assert(
+        originals().every((node) => node.getAttribute('role') === 'button' && node.tabIndex === 0),
+      );
+      assert(
+        [...f.track.querySelectorAll('[data-tdb-logo-marquee-clone]')].every(
+          (node) => node.getAttribute('aria-hidden') === 'true' && node.tabIndex === -1,
+        ),
+      );
+    };
+    assertEnhanced();
+    f.w.TDBLogoMarquee.destroy();
+    assert.equal(f.track.getAttribute('role'), 'list');
+    assert(
+      originals().every(
+        (node) => node.getAttribute('role') === 'listitem' && !node.hasAttribute('tabindex'),
+      ),
+    );
+    assert.equal(f.track.querySelector('[data-tdb-logo-marquee-clone]'), null);
+    f.w.TDBLogoMarquee.start();
+    await tick();
+    assertEnhanced();
+  } finally {
+    f.close();
+  }
+});
 
 test('close then immediate drag restores the moving logo before the track moves', async () => {
   const f = await fixture();

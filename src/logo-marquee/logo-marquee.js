@@ -3,7 +3,7 @@
 
   const pace = window.TDBMotionProfile?.pace || 1;
   const coastRate = window.TDBMotionProfile?.physics.coast || 4.2;
-  const VERSION = '0.15.4';
+  const VERSION = '0.15.5';
   const assetBase = new URL('./', document.currentScript.src);
   if (window.TDBLogoMarquee) return;
   const DEFAULTS = {
@@ -146,7 +146,7 @@
         ),
       );
     }
-    remember(track, ['style', INIT_ATTR]);
+    remember(track, ['style', 'role', INIT_ATTR]);
     originals.forEach((item) => {
       remember(item, [
         'role',
@@ -162,6 +162,9 @@
         .forEach((img) => remember(img, ['loading', 'decoding', 'draggable']));
     });
     track.setAttribute(INIT_ATTR, VERSION);
+    // Enhanced logos are buttons; their CMS list container must become a group.
+    // Teardown restores the authored list alongside each original list item.
+    track.setAttribute('role', 'group');
     track.style.willChange = 'transform';
     track.style.touchAction = 'pan-y';
     prepareVisibleLogos(track);

@@ -84,9 +84,8 @@
       "paths": [
         "/five-senses-experience"
       ],
-      "features": [
-        "instagram"
-      ]
+      "features": [],
+      "ownership": "Native Resource hero/availability, shared Supporting CTA experience, backgrounds, Brand marquee, awards and Footer own Five Senses. The single release runtime owns consent, navigation, reviews, VIP and the demand-loaded Five Senses launcher/controller. Keep page head/footer empty; do not reinstall legacy Instagram, availability, standalone styling or branding scripts."
     },
     "6785071ede094cc233e0c72b": {
       "paths": [
