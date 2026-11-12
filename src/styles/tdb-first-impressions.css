@@ -1,67 +1,331 @@
-/* First Impressions — CMS portraits with the shared translucent button blur. */
-[data-tdb-first-impressions-feed]{display:none!important}
-.tdb-first-impressions{--fi-paper:var(--base-color-brand--orange-1,#f9f2e6);--fi-ink:var(--base-color-brand--black,#000);--fi-cream:var(--base-color-brand--orange-3,#d6cab4);--fi-card-width:min(30vw,28rem);--fi-card-height:calc(var(--fi-card-width) * 4 / 3);--fi-gap:20px;position:relative;width:100%;overflow:visible;background:transparent;color:var(--fi-ink);isolation:isolate}
-.tdb-first-impressions *{box-sizing:border-box}
-.tdb-fi-viewport{position:relative;width:100vw;margin-inline:calc(50% - 50vw);height:var(--fi-card-height);overflow:hidden;overflow:clip;touch-action:pan-y pinch-zoom;outline-offset:-3px;cursor:grab}
-.tdb-fi-viewport:active{cursor:grabbing}
-.tdb-fi-card{position:absolute;top:0;left:calc((100% - var(--fi-card-width)) / 2);width:var(--fi-card-width);height:var(--fi-card-height);aspect-ratio:3/4;margin:0;overflow:hidden;background:var(--fi-paper);opacity:.5;transition:opacity 300ms ease;contain:layout paint}
-.tdb-fi-card.is-current{opacity:1}
+/* First Impressions: deferred CMS portraits and fixed metadata over mirrored glass.
+ * Designer owns the holding frame and left focus; shared gallery owns movement. */
+[data-tdb-first-impressions-feed] {
+  display: none !important;
+}
+.tdb-first-impressions {
+  --fi-paper: var(--base-color-brand--orange-1, #f9f2e6);
+  --fi-ink: var(--base-color-brand--black, #000);
+  --fi-card-width: min(30vw, 28rem);
+  --fi-photo-height: calc(var(--fi-card-width) * 4 / 3);
+  --fi-card-height: calc(var(--fi-photo-height) + 12rem);
+  position: relative;
+  width: 100%;
+  overflow: visible;
+  background: transparent;
+  color: var(--fi-ink);
+  isolation: isolate;
+  column-gap: 20px;
+}
+.tdb-first-impressions * {
+  box-sizing: border-box;
+}
+.tdb-fi-viewport {
+  position: relative;
+  height: var(--fi-card-height);
+  touch-action: pan-y pinch-zoom;
+  outline-offset: -3px;
+  cursor: grab;
+}
+.tdb-first-impressions .tdb-fi-viewport {
+  width: var(--fi-card-width);
+  margin: 0;
+  overflow: visible;
+}
+.tdb-fi-viewport:active {
+  cursor: grabbing;
+}
+.tdb-fi-track {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transition-property: transform;
+}
+.tdb-fi-card {
+  aspect-ratio: auto;
+  margin: 0;
+  overflow: hidden;
+  background: var(--fi-paper);
+  opacity: 0.5;
+  transition: opacity 300ms ease;
+  contain: layout paint;
+}
+.tdb-first-impressions .tdb-fi-card {
+  position: relative;
+  top: auto;
+  left: auto;
+  flex: none;
+  width: var(--fi-card-width);
+  height: var(--fi-card-height);
+  transform: none;
+}
+.tdb-fi-card.is-current {
+  opacity: 1;
+}
+.tdb-fi-card[aria-hidden='true'] {
+  pointer-events: none;
+}
+.tdb-fi-card > img {
+  display: block;
+  position: absolute;
+  top: 6rem;
+  left: 0;
+  width: 100%;
+  height: var(--fi-photo-height);
+  aspect-ratio: 3/4;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
 
+/* Only the fixed header/footer carry live labels; portraits contain no copied text. */
+.tdb-fi-banner {
+  inset: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.45rem;
+  text-align: left;
+}
+.tdb-fi-fixed-banner,
+.tdb-fi-navigation {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  width: var(--fi-card-width);
+  transform: none;
+  height: 6rem;
+  padding: 0.75rem calc(var(--fi-card-width) * 0.05);
+  margin: 0;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: #fff;
+}
+.tdb-fi-fixed-banner {
+  top: 0;
+  right: auto;
+  pointer-events: none;
+}
+.tdb-fi-words {
+  margin: 0;
+  text-align: center;
+  font: inherit;
+  font-size: 1.125rem;
+  line-height: 1.4;
+  font-weight: 400;
+  overflow-wrap: normal;
+}
+.tdb-fi-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  min-height: 1.25rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+.tdb-fi-initials {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.tdb-fi-verified {
+  display: inline-flex;
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 0.95rem;
+  color: inherit;
+  background: url(../assets/first-impressions/verified.svg) center/contain no-repeat;
+}
+.tdb-fi-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: inherit;
+  opacity: 1;
+  white-space: nowrap;
+}
+.tdb-fi-verified[hidden],
+.tdb-fi-date[hidden],
+.tdb-fi-holding-row[hidden] {
+  display: none;
+}
+.tdb-fi-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  bottom: 0;
+  min-height: 6rem;
+}
+.tdb-first-impressions .swiper-buttons-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: static;
+  margin: 0;
+  padding: 0;
+}
+.tdb-first-impressions :is(button, [tabindex]):focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 3px;
+}
+.tdb-fi-fixed-banner .tdb-fi-words {
+  opacity: 0;
+  transition: opacity 150ms ease-out;
+}
+.tdb-fi-fixed-banner .tdb-fi-words.is-ready {
+  opacity: 1;
+  transition: opacity 400ms ease-in;
+}
+.tdb-fi-ticker {
+  position: relative;
+  display: inline-block;
+  height: 1.5em;
+  overflow: hidden;
+  vertical-align: middle;
+  line-height: 1.5;
+}
+.tdb-fi-ticker-value {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  width: 100%;
+  height: 100%;
+  white-space: nowrap;
+}
+.tdb-fi-initial-value,
+.tdb-fi-date-value {
+  opacity: 0;
+  color: rgba(255, 255, 255, 0.7);
+}
+.tdb-fi-initial-value.is-ready,
+.tdb-fi-date-value.is-ready {
+  opacity: 1;
+}
+.tdb-fi-initial-value .tdb-fi-ticker-value {
+  text-align: center;
+}
+.tdb-fi-count {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 1;
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
+.tdb-fi-count-current {
+  width: 2.4ch;
+  text-align: center;
+}
+.tdb-fi-count-rule {
+  width: 1.8em;
+  height: 1px;
+  background: currentColor;
+}
 
-.tdb-fi-card>img{display:block;width:100%;height:100%;aspect-ratio:3/4;object-fit:contain;user-select:none;-webkit-user-drag:none}
-.tdb-fi-banner{position:absolute;z-index:2;inset:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:.45rem;width:100%;height:6rem;margin:0;padding:.75rem 5%;background:transparent;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#fff;text-align:left}
-.tdb-fi-words{margin:0;text-align:center;font:inherit;font-size:1.125rem;line-height:1.4;font-weight:400;overflow-wrap:normal}
-.tdb-fi-meta{display:flex;align-items:center;justify-content:center;gap:.8rem;min-height:1.25rem;font-size:.8rem;line-height:1.4}
-.tdb-fi-initials{display:inline-flex;align-items:center;gap:.4rem;letter-spacing:.1em;text-transform:uppercase}
-.tdb-fi-verified{display:inline-flex;width:.95rem;height:.95rem;flex:0 0 .95rem;color:inherit}
-.tdb-fi-verified svg{display:block;width:100%;height:100%}
-.tdb-fi-date{display:inline-flex;align-items:center;gap:.35rem;color:inherit;opacity:.8;white-space:nowrap}
-.tdb-fi-date svg{width:.9rem;height:.9rem}
-.tdb-fi-navigation{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:max(3rem,44px);margin-top:1.5rem;padding:0;background:transparent}
-.tdb-fi-count{color:var(--fi-ink);opacity:.25;font:inherit;font-size:.875rem;line-height:1.5;letter-spacing:.15em}
-.tdb-first-impressions .swiper-buttons-wrapper{display:flex;align-items:center;gap:1rem;position:static;margin:0;padding:0}
-.tdb-first-impressions .slider-arrow{position:static;margin:0;background:transparent;color:var(--fi-ink);touch-action:manipulation}
-.tdb-first-impressions .slider-arrow svg{display:block;width:1rem;height:1rem}
-.tdb-first-impressions .swiper-btn-prev svg{transform:rotate(180deg)}
-.tdb-first-impressions :is(button,[tabindex]):focus-visible{outline:1px solid currentColor;outline-offset:3px}
-@media(max-width:767px){.tdb-first-impressions{--fi-card-width:90vw;--fi-gap:2vw}.tdb-fi-banner{height:6rem}.tdb-fi-words{font-size:1.1rem}}
-/* Stationary glass panels over the centre portrait; no extra navigation height. */
-.tdb-fi-fixed-banner,.tdb-fi-navigation{position:absolute;z-index:3;left:50%;width:var(--fi-card-width);transform:translateX(-50%);height:6rem;padding:.75rem calc(var(--fi-card-width) * .05);margin:0;background:transparent;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#fff}
-.tdb-fi-fixed-banner{top:0;right:auto;pointer-events:none}
-.tdb-fi-navigation{bottom:0;min-height:6rem}
-.tdb-fi-card.is-current>.tdb-fi-banner{visibility:hidden}
-.tdb-fi-card .tdb-fi-words,.tdb-fi-card .tdb-fi-meta{visibility:hidden}
-.tdb-fi-fixed-banner .tdb-fi-words{opacity:0;transition:opacity 150ms ease-out}
-.tdb-fi-fixed-banner .tdb-fi-words.is-ready{opacity:1;transition:opacity 400ms ease-in}
-.tdb-fi-ticker{position:relative;display:inline-block;height:1.5em;overflow:hidden;vertical-align:middle;line-height:1.5}
-.tdb-fi-ticker-value{position:absolute;inset:0;display:grid;align-content:center;width:100%;height:100%;white-space:nowrap}
-.tdb-fi-initial-value,.tdb-fi-date-value{opacity:0;color:rgba(255,255,255,.7)}
-.tdb-fi-initial-value.is-ready,.tdb-fi-date-value.is-ready{opacity:1}
-.tdb-fi-date{opacity:1}
-.tdb-fi-date[hidden]{display:none}
-.tdb-fi-count{display:flex;align-items:center;gap:.5em;color:rgba(255,255,255,.7);opacity:1;font-variant-numeric:tabular-nums;letter-spacing:.06em}
-.tdb-fi-count-current{width:2.4ch;text-align:center}
-.tdb-fi-count-rule{width:1.8em;height:1px;background:currentColor}
-.tdb-first-impressions .slider-arrow{color:#fff}
+/* The portrait remains contained; only the decorative copies are flipped and blurred. */
+.tdb-fi-image-strip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6rem;
+  overflow: hidden;
+  pointer-events: none;
+}
+.tdb-fi-image-strip.is-top {
+  top: 0;
+}
+.tdb-fi-image-strip.is-bottom {
+  bottom: 0;
+}
+.tdb-fi-reflection {
+  position: absolute;
+  inset: 0 3px;
+  overflow: hidden;
+  clip-path: inset(0);
+}
+.tdb-fi-reflection-photo {
+  position: absolute;
+  left: -3px;
+  display: block;
+  width: calc(100% + 6px);
+  height: var(--fi-photo-height);
+  max-width: none;
+  object-fit: contain;
+  transform: scaleY(-1);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.tdb-fi-image-strip.is-top .tdb-fi-reflection-photo {
+  bottom: 0;
+}
+.tdb-fi-image-strip.is-bottom .tdb-fi-reflection-photo {
+  top: 0;
+}
+.tdb-fi-glass {
+  position: absolute;
+  inset: 0 -3px;
+  background: transparent;
+  backdrop-filter: saturate(150%) blur(20px);
+  -webkit-backdrop-filter: saturate(150%) blur(20px);
+}
 
-/* Moving mirrored extensions retain the entire original portrait. */
-.tdb-first-impressions{--fi-photo-height:calc(var(--fi-card-width) * 4 / 3);--fi-card-height:calc(var(--fi-photo-height) + 12rem)}
-.tdb-fi-card{aspect-ratio:auto}
-.tdb-fi-card>img{position:absolute;top:6rem;left:0;height:var(--fi-photo-height);width:100%;object-fit:contain}
-.tdb-fi-card>.tdb-fi-banner{display:none}
-.tdb-fi-image-strip{position:absolute;left:0;right:0;height:6rem;overflow:hidden;pointer-events:none}
-.tdb-fi-image-strip.is-top{top:0}
-.tdb-fi-image-strip.is-bottom{bottom:0}
-.tdb-fi-reflection{position:absolute;inset:0 3px;overflow:hidden;clip-path:inset(0)}
-.tdb-fi-reflection-photo{position:absolute;left:-3px;display:block;width:calc(100% + 6px);height:var(--fi-photo-height);max-width:none;object-fit:contain;transform:scaleY(-1);user-select:none;-webkit-user-drag:none}
-.tdb-fi-image-strip.is-top .tdb-fi-reflection-photo{bottom:0}
-.tdb-fi-image-strip.is-bottom .tdb-fi-reflection-photo{top:0}
-.tdb-fi-glass{position:absolute;inset:0 -3px;background:transparent;backdrop-filter:saturate(150%) blur(20px);-webkit-backdrop-filter:saturate(150%) blur(20px)}
-.tdb-fi-fixed-banner,.tdb-fi-navigation{backdrop-filter:none;-webkit-backdrop-filter:none}
-.tdb-fi-initial-value .tdb-fi-ticker-value{text-align:center}
-
-/* Shared gallery owns horizontal movement; Designer retains the left focus and holding geometry. */
-/* Match the native Instagram controls, including the button element's reset. */
-.tdb-first-impressions .carousel-arrow.tdb-fi-arrow{color:inherit;font:inherit;background-color:transparent;border-color:currentColor;appearance:none}
-.tdb-first-impressions .carousel-arrow.tdb-fi-arrow:hover{color:var(--base-color-brand--orange-3,#d6cab4);background-color:#fff3;border-color:currentColor}
-.tdb-first-impressions{column-gap:20px}.tdb-first-impressions .tdb-fi-viewport{width:var(--fi-card-width);margin:0;overflow:visible}.tdb-fi-track{display:flex;width:100%;height:100%;position:relative;transition-property:transform}.tdb-first-impressions .tdb-fi-card{position:relative;top:auto;left:auto;flex:none;width:var(--fi-card-width);height:var(--fi-card-height);transform:none}.tdb-fi-fixed-banner,.tdb-fi-navigation{left:0;transform:none}.tdb-fi-card[aria-hidden=true]{pointer-events:none}.tdb-fi-verified[hidden],.tdb-fi-date[hidden],.tdb-fi-holding-row[hidden]{display:none}.tdb-fi-arrow.carousel-arrow{color:#fff;position:relative}.tdb-fi-arrow-icon{display:block;width:1rem;height:1rem;background:currentColor;mask:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg) center/contain no-repeat;-webkit-mask:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg) center/contain no-repeat}.tdb-fi-arrow.swiper-btn-prev .tdb-fi-arrow-icon{transform:rotate(180deg)}.tdb-fi-verified{background:url(../assets/first-impressions/verified.svg) center/contain no-repeat}.tdb-fi-clock{display:block;width:.9rem;height:.9rem;background:currentColor;mask:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc636dd65bf4f700d266_tdb-clock-small-1px.svg) center/contain no-repeat;-webkit-mask:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc636dd65bf4f700d266_tdb-clock-small-1px.svg) center/contain no-repeat}@media(max-width:767px){.tdb-first-impressions{column-gap:2vw}}
+/* Use the native Instagram button reset and the existing shared artwork. */
+.tdb-first-impressions .carousel-arrow.tdb-fi-arrow {
+  color: inherit;
+  font: inherit;
+  background-color: transparent;
+  border-color: currentColor;
+  appearance: none;
+}
+.tdb-first-impressions .carousel-arrow.tdb-fi-arrow:hover {
+  color: var(--base-color-brand--orange-3, #d6cab4);
+  background-color: #fff3;
+  border-color: currentColor;
+}
+.tdb-fi-arrow.carousel-arrow {
+  color: #fff;
+  position: relative;
+}
+.tdb-fi-arrow-icon {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+  background: currentColor;
+  mask: url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg)
+    center/contain no-repeat;
+  -webkit-mask: url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8c5037ecf8cf1ab74a93a_tdb-arrow.svg)
+    center/contain no-repeat;
+}
+.tdb-fi-arrow.swiper-btn-prev .tdb-fi-arrow-icon {
+  transform: rotate(180deg);
+}
+.tdb-fi-clock {
+  display: block;
+  width: 0.9rem;
+  height: 0.9rem;
+  background: currentColor;
+  mask: url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc636dd65bf4f700d266_tdb-clock-small-1px.svg)
+    center/contain no-repeat;
+  -webkit-mask: url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc636dd65bf4f700d266_tdb-clock-small-1px.svg)
+    center/contain no-repeat;
+}
+@media (max-width: 767px) {
+  .tdb-first-impressions {
+    --fi-card-width: 90vw;
+    column-gap: 2vw;
+  }
+  .tdb-fi-words {
+    font-size: 1.1rem;
+  }
+}
