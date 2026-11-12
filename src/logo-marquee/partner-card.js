@@ -64,24 +64,7 @@
     const links = [...body.querySelectorAll('a[href]')];
     const prose = body.cloneNode(true);
     prose.querySelectorAll('a[href]').forEach((link) => link.remove());
-    // A CMS body made solely of links is an article list, with no photo or website CTA.
-    if (links.length && !prose.textContent.trim()) {
-      t.innerHTML =
-        '<div class="tdb-partner-source"><div class="tooltip2_card-wrapper" data-tdb-partner-articles><div class="tdb-partner-copy"><ul class="tdb-partner-article-links"></ul></div></div></div>';
-      const root = t.content.firstElementChild;
-      root
-        .querySelector('.tooltip2_card-wrapper')
-        .setAttribute('data-tdb-partner-name', record.name);
-      const list = root.querySelector('ul');
-      for (const link of links) {
-        const item = document.createElement('li');
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        item.append(link);
-        list.append(item);
-      }
-      return root;
-    }
+    const articles = links.length > 0 && !prose.textContent.trim();
     t.innerHTML =
       '<div class="tdb-partner-source"><div class="tooltip2_card-wrapper"><div class="tooltip2_image-wrapper"><img class="tooltip2_image" loading="lazy" data-tdb-partner-image-sizes="12.1rem"></div><div class="tdb-partner-copy"><div class="margin-bottom margin-xxsmall"><div class="text-style-tagline-restored"></div></div><div class="text-rich-text is-tooltip tdb-partner-copy-body w-richtext"></div></div></div><a class="tdb-partner-link-source" data-tdb-partner-link aria-hidden="true" tabindex="-1" target="_blank" rel="noopener noreferrer"></a></div>';
     const root = t.content.firstElementChild,
@@ -99,7 +82,23 @@
     image.src = safeURL(record.image, true);
     image.alt = record.imageAlt;
     root.querySelector('.text-style-tagline-restored').textContent = record.name;
-    root.querySelector('.tdb-partner-copy-body').append(body);
+    const card = root.querySelector('.tooltip2_card-wrapper');
+    card.setAttribute('data-tdb-partner-name', record.name);
+    const copy = root.querySelector('.tdb-partner-copy-body');
+    // Press entries share the brand card, with a square story image and article list.
+    if (articles) {
+      card.setAttribute('data-tdb-partner-articles', '');
+      const list = document.createElement('ul');
+      list.className = 'tdb-partner-article-links';
+      for (const link of links) {
+        const item = document.createElement('li');
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        item.append(link);
+        list.append(item);
+      }
+      copy.append(list);
+    } else copy.append(body);
     const link = root.querySelector('[data-tdb-partner-link]');
     if (record.link) link.href = safeURL(record.link);
     else link.remove();
@@ -161,7 +160,7 @@
     return flight;
   }
   window.TDBPartnerCard = Object.freeze({
-    version: '1.2.0',
+    version: '1.3.0',
     async prepare(host, items) {
       const records = await read();
       const sources = items.map((item) => {

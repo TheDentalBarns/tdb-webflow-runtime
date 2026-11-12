@@ -462,6 +462,7 @@
         ...entries.map(({ slide }) => {
           const image = slide.querySelector(CONFIG.tooltipImageSelector);
           const width = slide.querySelector('.tooltip2_image-wrapper')?.clientWidth || 0;
+          if (slide.hasAttribute('data-tdb-partner-articles')) return width;
           return width * (image?.naturalWidth ? image.naturalHeight / image.naturalWidth : 1);
         }),
       );
@@ -506,6 +507,11 @@
       });
       if (visitButton) {
         const href = entry.link?.getAttribute('href');
+        const label = visitButton.querySelector('div');
+        if (label)
+          label.textContent = entry.slide.hasAttribute('data-tdb-partner-articles')
+            ? 'Visit press'
+            : 'Visit partner';
         visitButton.style.display = href ? '' : 'none';
         for (const name of ['href', 'target', 'rel']) {
           const value = entry.link?.getAttribute(name);
