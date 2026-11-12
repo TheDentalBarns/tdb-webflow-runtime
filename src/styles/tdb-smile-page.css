@@ -3,7 +3,7 @@
 .smile-page_intro{max-width:42rem;text-align:center;margin:0 auto 3rem;display:flex;flex-direction:column;gap:1.25rem}
 .smile-page_intro p{margin:0;line-height:1.7}
 .smile-page_stage{width:100%;max-width:36rem;margin:0 auto;position:relative;min-height:20rem;overflow:hidden}
-.smile-page_holding{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.smile-page_holding{background-image:url("https://cdn.prod.website-files.com/67837ee85ee175873126e461/6a4cf2364e0ca82c483100c1_69a2f24f0c9d6e3d540f4020_tdb-invisalign-composite-bonding-before-after-sutton-coldfield-003.webp");background-size:cover;background-position:center;width:100%;aspect-ratio:1;object-fit:cover;display:block}
 .smile-page_status{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;text-align:center;margin:1.5rem 0}
 .smile-page_actions{display:flex;justify-content:center;gap:1rem;align-items:center;margin-top:1.5rem}
 .smile-page_hint{text-align:center;font-size:.75rem;opacity:.6;margin-top:1rem}
