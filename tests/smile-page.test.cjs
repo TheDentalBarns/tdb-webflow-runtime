@@ -251,6 +251,13 @@ test('main-page filter opens inside the shared modal drawer', async () => {
     assert.equal(x.d.querySelector('[data-smile-case-drawer]').hidden, false);
     assert.ok(x.d.querySelector('[data-tdb-drawer-panel] [data-smile-filter-panel]'));
     assert.equal(x.d.activeElement.textContent, 'Filter smiles');
+    x.d.querySelector('[data-smile-filter-panel] [data-smile-group-toggle="display"]').click();
+    assert.equal(
+      x.d
+        .querySelector('[data-smile-embedded-filter] [data-smile-group-toggle="display"]')
+        .getAttribute('aria-expanded'),
+      'false',
+    );
   } finally {
     x.close();
   }

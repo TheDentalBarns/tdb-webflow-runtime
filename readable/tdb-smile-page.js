@@ -411,13 +411,18 @@
         }
       };
       const disclosures = (form) =>
-        [...form.querySelectorAll('[data-smile-filter-group]')].map((group) => ({
-          key: group.dataset.smileFilterGroup,
-          group,
-          button: group.querySelector('[data-smile-group-toggle]'),
-          body: group.querySelector('[data-smile-options]'),
-          chevron: group.querySelector('.smile-filter_chevron'),
-        }));
+        [...form.querySelectorAll('[data-smile-filter-group]')]
+          .filter(
+            (group) =>
+              group.closest('[data-smile-filter-panel], [data-smile-embedded-filter]') === form,
+          )
+          .map((group) => ({
+            key: group.dataset.smileFilterGroup,
+            group,
+            button: group.querySelector('[data-smile-group-toggle]'),
+            body: group.querySelector('[data-smile-options]'),
+            chevron: group.querySelector('.smile-filter_chevron'),
+          }));
       for (const entry of disclosures(embedded)) {
         entry.body.id = 'smile-embedded-' + entry.key;
         entry.button.setAttribute('aria-controls', entry.body.id);
