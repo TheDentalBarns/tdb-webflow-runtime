@@ -15,3 +15,5 @@ Patient gender is an optional CMS Option field, patient-gender (31846f55395fc8a2
 Page: 6aa3efd54f3f705caf98c687. Card: ef21cb20-7533-d828-8155-4b58c9acc87f. Grid: ca2ea2e5-6e53-7ac0-b7cd-70dd6706d676. Drawer: ffe6a3e4-7dcd-b467-f10e-56a43d9786fd. Filter sheet: 1c935484-2174-4934-b00b-1b5783a76008. Embedded controls: c7d97289-51e4-ac49-c1ed-6f34000bb99c.
 
 The countryside location instance's old accessibility artwork was replaced with the shared current asset 6aedc99cb5456ab693fb229f. Shared Resource hero, availability, booking, partners, awards and footer follow the calculator framework. The belief strip remains removed. Publication is limited to dentalbarns.webflow.io.
+
+Validation: build checks passed; 1,108 tests passed and three skipped, including native grid preservation, slider dragging, in-place mode changes, modal ownership, sorting mixed duration units, recorded gender filtering/reset, and consent teardown/remount.
