@@ -77,10 +77,8 @@
       "paths": [
         "/first-visit"
       ],
-      "features": [
-        "instagram"
-      ],
-      "ownership": "The native service process uses shared TDBMotion.serviceJourney. Do not reinstall the obsolete inline process-navigation handler."
+      "features": [],
+      "ownership": "Native shared components and the single release runtime own First Visit. First Impressions and Instagram use their deferred CMS JSON feeds; the service process uses TDBMotion.serviceJourney. Keep page head/footer empty; do not reinstall legacy Instagram or process-navigation handlers."
     },
     "6aaafc00c9c28643c83637b8": {
       "paths": [

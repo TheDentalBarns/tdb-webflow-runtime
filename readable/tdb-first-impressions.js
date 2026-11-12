@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  /* First Impressions v2.1.0. Native holding frame, published CMS JSON and shared gallery motion. */
+  /* First Impressions v2.1.1. Native holding frame, published CMS JSON and shared gallery motion. */
   (() => {
     'use strict';
     if (window.TDBFirstImpressions) return;
@@ -234,6 +234,7 @@
         track = node('div', 'tdb-fi-track swiper-wrapper');
       viewport.append(track);
       viewport.tabIndex = 0;
+      viewport.setAttribute('role', 'group');
       viewport.setAttribute(
         'aria-label',
         'First visit cards. Use left and right arrow keys to change card.',
@@ -259,6 +260,7 @@
       header.append(words, meta);
       const nav = node('div', 'tdb-fi-navigation'),
         count = node('div', 'tdb-fi-count');
+      count.setAttribute('role', 'img');
       const current = node('span', 'tdb-fi-ticker tdb-fi-count-current'),
         rule = node('span', 'tdb-fi-count-rule');
       rule.setAttribute('aria-hidden', 'true');
@@ -402,7 +404,7 @@
           attributeFilter: ['data-tdb-slider-first-view'],
         });
         holder?.setAttribute('hidden', '');
-        root.setAttribute('data-fi-ready', '2.1.0');
+        root.setAttribute('data-fi-ready', '2.1.1');
         sync();
         reveal();
         const api = Object.freeze({ swiper, destroy });
@@ -448,7 +450,7 @@
       }
     });
     window.TDBFirstImpressions = Object.freeze({
-      version: '2.1.0',
+      version: '2.1.1',
       prepare,
       destroy() {
         disposed = true;
