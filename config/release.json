@@ -12,14 +12,15 @@
     "dist/tdb-calculator.js",
     "dist/tdb-drawer.js",
     "dist/tdb-filters.js",
+    "dist/tdb-first-impressions.js",
     "dist/tdb-five-senses-loader.js",
     "dist/tdb-five-senses.js",
     "dist/tdb-foundation.js",
     "dist/tdb-gallery.js",
     "dist/tdb-hold-audio.js",
-    "dist/tdb-journey.js",
     "dist/tdb-instagram-deferred.js",
     "dist/tdb-instagram-native.min.js",
+    "dist/tdb-journey.js",
     "dist/tdb-lenis.min.js",
     "dist/tdb-logo-marquee.min.js",
     "dist/tdb-motion.js",
@@ -46,10 +47,10 @@
     "dist/tdb-start.min.js",
     "dist/tdb-swiper-8.4.7.min.js",
     "dist/tdb-ticker.js",
-    "dist/tdb-treatment-guide-bar.js",
-    "dist/tdb-treatment-guide-wheel.js",
-    "dist/tdb-treatment-guide-drawer.js",
     "dist/tdb-tooltips.js",
+    "dist/tdb-treatment-guide-bar.js",
+    "dist/tdb-treatment-guide-drawer.js",
+    "dist/tdb-treatment-guide-wheel.js",
     "dist/tdb-usp-drawer-template.js",
     "dist/tdb-usp-drawer.js",
     "dist/tdb-vimeo-loader.js",
@@ -79,10 +80,12 @@
     "dist/tdb-review-cards.css",
     "dist/tdb-review-widget.css",
     "dist/tdb-vip-content.css",
-    "dist/tdb-vimeo.css"
+    "dist/tdb-vimeo.css",
+    "dist/tdb-first-impressions.css"
   ],
   "assets": [
-    "assets/five-senses/surgery-clinical-clean.webp"
+    "assets/five-senses/surgery-clinical-clean.webp",
+    "assets/first-impressions/verified.svg"
   ],
   "compatibilityOnly": [
     "dist/tdb-consent.js",
@@ -91,7 +94,6 @@
     "dist/tdb-navbar-loader.js",
     "dist/tdb-home-desktop-instagram.js",
     "dist/tdb-instagram-feed.js",
-    "dist/tdb-first-impressions.js",
     "dist/tdb-first-visit-power-snippets.js",
     "dist/tdb-legacy-review-drawer.js",
     "dist/tdb-review-quotes.js",
@@ -105,11 +107,15 @@
   ],
   "compatibilityFallbacks": {
     "dist/tdb-modules.js": {
-      "sources": ["src/shared/module-bootstrap.js"],
+      "sources": [
+        "src/shared/module-bootstrap.js"
+      ],
       "reason": "Direct legacy entries can bootstrap the registry when the current startup has not installed it."
     },
     "dist/tdb-review-quote-adapter.min.js": {
-      "sources": ["src/reviews/native/loader.js"],
+      "sources": [
+        "src/reviews/native/loader.js"
+      ],
       "reason": "A deliberately retained older CMS bundle may need the quote adapter; the current CMS bundle already includes it."
     }
   },

@@ -116,13 +116,12 @@
     },
     "dist/tdb-first-impressions.js": {
       "sources": [
-        "src/shared/value-ticker.js",
         "src/first-impressions/first-impressions.js"
       ],
-      "sha256": "dcc7b5343a96c4e9173bd4627f9822bb162ab87861ff28d02706c525c2d41e52",
-      "raw": 10777,
-      "gzip": 4354,
-      "brotli": 3873
+      "sha256": "1edb4912df4cead9c473de8b36e08a55ac0cf50a1b916c01d3d81d7888545d03",
+      "raw": 7013,
+      "gzip": 2991,
+      "brotli": 2625
     },
     "dist/tdb-first-visit-power-snippets.js": {
       "sources": [
@@ -188,10 +187,10 @@
         "src/smile-gallery/explore-count.js",
         "src/sliders/gallery-plugin.js"
       ],
-      "sha256": "41694171cac9823d311b12a228e835d377f1bc9c553e153edf25e0537e777ad1",
-      "raw": 17056,
-      "gzip": 5996,
-      "brotli": 5345
+      "sha256": "46420290efe598c55373cfe7ce841d5e2975414f5d75c374c371adede54275cc",
+      "raw": 17218,
+      "gzip": 6009,
+      "brotli": 5366
     },
     "dist/tdb-hold-audio.js": {
       "sources": [
@@ -548,6 +547,7 @@
         "src/runtime/review-feature-loader.js",
         "src/runtime/lazy-icon-masks.js",
         "src/runtime/instagram-feature-loader.js",
+        "src/runtime/first-impressions-loader.js",
         "src/runtime/smile-feature-loader.js",
         "src/runtime/page-break-loader.js",
         "src/runtime/service-process-loader.js",
@@ -558,10 +558,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "380cfc57b67a9bc74c2bee25faf92ff1ee81d58155bf0626e06ab001581aec55",
-      "raw": 91203,
-      "gzip": 25142,
-      "brotli": 21625
+      "sha256": "2f0c40f92590302652722525e9dd3b0c0d3fd0b4a1d32073463b1e40646a8e37",
+      "raw": 93002,
+      "gzip": 25430,
+      "brotli": 21840
     },
     "dist/tdb-service-awards.js": {
       "sources": [

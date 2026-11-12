@@ -6,6 +6,7 @@ const path = require('node:path');
 const CleanCSS = require('clean-css');
 const root = path.resolve(__dirname, '../..');
 const bundles = {
+  'tdb-first-impressions.css': ['tdb-first-impressions.css'],
   'tdb-journey.css': ['tdb-journey.css'],
   'tdb-drawer.css': ['tdb-drawer.css'],
   'tdb-treatment-guide.css': ['tdb-treatment-guide.css'],

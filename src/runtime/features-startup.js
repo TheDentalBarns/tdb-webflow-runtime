@@ -15,6 +15,7 @@ const TDBFeatureStartup = (() => {
     prepareReviewFeatureLoader,
     prepareReviewWidgetLoader,
     prepareInstagramFeatureLoader,
+    prepareFirstImpressionsFeatureLoader,
     prepareSmileFeatureLoader,
     prepareAttributionLoader,
     prepareFormsLoader,

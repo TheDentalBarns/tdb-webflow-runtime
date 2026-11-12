@@ -70,10 +70,7 @@ module.exports = {
   'dist/tdb-review-drawer-template.js': ['src/templates/review-drawer.js'],
   'dist/tdb-smile-gallery.min.js': ['src/smile-gallery/gallery-page.js'],
   'dist/tdb-tooltips.js': ['src/tooltips/tooltips.js'],
-  'dist/tdb-first-impressions.js': [
-    'src/shared/value-ticker.js',
-    'src/first-impressions/first-impressions.js',
-  ],
+  'dist/tdb-first-impressions.js': ['src/first-impressions/first-impressions.js'],
   'dist/tdb-first-visit-power-snippets.js': ['src/reviews/legacy/first-visit-power-snippets.js'],
   'dist/tdb-legacy-review-drawer.js': [
     'src/shared/value-ticker.js',
@@ -132,6 +129,7 @@ module.exports = {
     'src/runtime/review-feature-loader.js',
     'src/runtime/lazy-icon-masks.js',
     'src/runtime/instagram-feature-loader.js',
+    'src/runtime/first-impressions-loader.js',
     'src/runtime/smile-feature-loader.js',
     'src/runtime/page-break-loader.js',
     'src/runtime/service-process-loader.js',

@@ -575,7 +575,8 @@ function createGalleryExploreCount() {
     (t.setAttribute(e, 'true'), (t.dataset.tdbSliderType = i));
   }
   function o(e, t) {
-    if (e.hasAttribute('data-tdb-ig-native')) return window.TDBSwiper.nativeGap(e, t);
+    if (e.matches('[data-tdb-ig-native],[data-tdb-first-impressions]'))
+      return window.TDBSwiper.nativeGap(e, t);
     if (e.classList.contains('tdb-smile-carousel'))
       return window.TDBSwiper.nativeGap(e, t, '.swiper-slide.smile');
     if (!matchMedia('(min-width:992px)').matches) return t;
@@ -600,7 +601,9 @@ function createGalleryExploreCount() {
     const t = r(e),
       n = e.querySelector('.swiper-count');
     if (!t || 'function' != typeof window.Swiper) return;
-    const c = e.classList.contains('tdb-smile-carousel') || e.hasAttribute('data-tdb-ig-native'),
+    const c =
+        e.classList.contains('tdb-smile-carousel') ||
+        e.matches('[data-tdb-ig-native],[data-tdb-first-impressions]'),
       u = t.querySelectorAll('.swiper-wrapper > .swiper-slide:not(.swiper-slide-duplicate)').length,
       p = window.TDBSwiper.create(
         t,
@@ -662,7 +665,7 @@ function createGalleryExploreCount() {
       n && (n.textContent = `${p.realIndex + 1} of ${u}`);
     }
     var w;
-    ((e.hasAttribute('data-tdb-ig-native') ||
+    ((e.matches('[data-tdb-ig-native],[data-tdb-first-impressions]') ||
       e.classList.contains('tdb-smile-carousel') ||
       e.matches('.section_smile-gallery [data-tdb-smile-slider]')) &&
       (function (e, t, i) {
@@ -670,7 +673,9 @@ function createGalleryExploreCount() {
             const n = o(e, i());
             ((t.params.spaceBetween = n), (t.originalParams.spaceBetween = n));
           },
-          r = e.hasAttribute('data-tdb-ig-native') ? 'beforeResize' : 'beforeResize breakpoint';
+          r = e.matches('[data-tdb-ig-native],[data-tdb-first-impressions]')
+            ? 'beforeResize'
+            : 'beforeResize breakpoint';
         (t.on(r, n), t.on('beforeDestroy', () => t.off(r, n)));
       })(e, p, () => d(e)),
       (w = p),
@@ -680,7 +685,7 @@ function createGalleryExploreCount() {
       })(e, t, p, '--tdb-carousel-duration', () => window.innerWidth),
       n && (b(), p.on('slideChange', b)),
       p.params.loop &&
-        (!e.matches('[data-tdb-smile-slider],[data-tdb-ig-native]') &&
+        (!e.matches('[data-tdb-smile-slider],[data-tdb-ig-native],[data-tdb-first-impressions]') &&
           (function (e, t) {
             const i = new WeakMap(),
               n = new Map(),
@@ -833,7 +838,7 @@ function createGalleryExploreCount() {
       const i = r(e)?.swiper;
       return (
         i &&
-          e.matches('[data-tdb-smile-slider],[data-tdb-ig-native]') &&
+          e.matches('[data-tdb-smile-slider],[data-tdb-ig-native],[data-tdb-first-impressions]') &&
           window.TDBCarouselVisibility.bind(i, {
             overflowViewport: !0,
           }),
