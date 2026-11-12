@@ -2,6 +2,8 @@
 
 The reported First Impressions `aria-prohibited-attr` failure is fixed on [staging](https://dentalbarns.webflow.io/first-visit). A subsequent rendered-page check also exposed a shared carousel list-role mismatch; that is fixed in the shared Swiper owner. The page has no matching published IX2 event targets, but it is not an IX2-free download.
 
+The later [First Impressions CSS cleanup](first-visit-css-cleanup-20261112.md) records the subsequent staging release, byte savings and responsive before/after verification. The release details below describe the accessibility pass.
+
 ## Scope and release
 
 Reviewed against the current branch's README, release/rollback procedure, loading policy, motion profile, shared native layout guidance, Home engineering rules and [Services audit](../services-audit-20261106.md), together with the project's Architecture reference. The branch contains the fetched `main`; there were no incoming `main` commits to merge.
