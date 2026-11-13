@@ -169,8 +169,9 @@
     const api = window.TDBPowerSnippets;
     if (!api) return;
     const homeDesktop = () =>
-      document.documentElement.dataset.wfPage === '677cf86df9952f978d94d8a9' &&
-      matchMedia('(min-width:992px)').matches;
+      ['677cf86df9952f978d94d8a9', '6af752b08255837b44bbd82c'].includes(
+        document.documentElement.dataset.wfPage,
+      ) && matchMedia('(min-width:992px)').matches;
     const style = document.createElement('style');
     style.dataset.tdbReviewDrawerStyles = '1.9.9-native-mark';
     style.textContent =
@@ -333,7 +334,9 @@
       body.setAttribute('aria-label', 'Full review by ' + r.name);
       body.append(el('p', '', r.text));
       if (options.embedded) {
-        const homeReview = document.documentElement.dataset.wfPage === '677cf86df9952f978d94d8a9';
+        const homeReview = ['677cf86df9952f978d94d8a9', '6af752b08255837b44bbd82c'].includes(
+          document.documentElement.dataset.wfPage,
+        );
         // The page card is a fixed preview; complete reviews remain in the shared drawer.
         slide.removeAttribute('tabindex');
         slide.removeAttribute('data-lenis-prevent');
@@ -1206,7 +1209,9 @@
       arrows.append(previous, following);
       nav.append(count, arrows);
       root.replaceChildren(viewport, nav);
-      const useStaticQuote = document.documentElement.dataset.wfPage === '677cf86df9952f978d94d8a9';
+      const useStaticQuote = ['677cf86df9952f978d94d8a9', '6af752b08255837b44bbd82c'].includes(
+        document.documentElement.dataset.wfPage,
+      );
       const staticLayer = useStaticQuote ? el('div', 'tdb-ri-static-layer') : null,
         staticPanels = new Map();
       if (staticLayer) {

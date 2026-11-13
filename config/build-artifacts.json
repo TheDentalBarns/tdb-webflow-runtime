@@ -218,10 +218,10 @@
         "src/instagram/legacy-renderer.js",
         "src/instagram/home-desktop-instagram.js"
       ],
-      "sha256": "2c3ff7a2b958a61cc998e646cecb4cb1ecf752268d0a5cf7c9f130c62a7e3686",
-      "raw": 12818,
-      "gzip": 5211,
-      "brotli": 4613
+      "sha256": "c505a75fbd5885dd292ba8ae338bd614f1878cfc03e61fb1738cb944f2adc883",
+      "raw": 12855,
+      "gzip": 5240,
+      "brotli": 4635
     },
     "dist/tdb-instagram-deferred.js": {
       "sources": [
@@ -239,10 +239,10 @@
         "src/instagram/legacy-renderer.js",
         "src/instagram/instagram-feed-bundle.js"
       ],
-      "sha256": "5cc261f32494311dd43ed029e1aacb0762c641755b627d978f34c70ab19ddad4",
-      "raw": 65326,
-      "gzip": 14456,
-      "brotli": 11997
+      "sha256": "2b3ac6c56f378ebce56580b7fa221211e1d1123ac84ebf401ac383c0cf011184",
+      "raw": 65363,
+      "gzip": 14479,
+      "brotli": 12079
     },
     "dist/tdb-instagram-native.min.js": {
       "sources": [
@@ -267,10 +267,10 @@
         "src/shared/value-ticker.js",
         "src/reviews/legacy/drawer.js"
       ],
-      "sha256": "0ce88ba4fdaf345f5ed69b12a686b14b3ddd73014935c814117cc0cc78c5fe95",
-      "raw": 45252,
-      "gzip": 14092,
-      "brotli": 12490
+      "sha256": "49367e0646a5f9eb6393d8c6d0e7dd790b6e11bc9d3421bb084d16baed9e9a0c",
+      "raw": 45364,
+      "gzip": 14114,
+      "brotli": 12540
     },
     "dist/tdb-lenis.min.js": {
       "sources": [

@@ -439,7 +439,9 @@ function tdbStartLegacyInstagram(data, { version = '0.6.4', homeDesktop = false 
           motionPreference.matches &&
           !(
             homeDesktop &&
-            document.documentElement.dataset.wfPage === '677cf86df9952f978d94d8a9' &&
+            ['677cf86df9952f978d94d8a9', '6af752b08255837b44bbd82c'].includes(
+              document.documentElement.dataset.wfPage,
+            ) &&
             matchMedia('(min-width:992px)').matches
           )
         );

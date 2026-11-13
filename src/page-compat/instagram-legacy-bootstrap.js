@@ -33,8 +33,9 @@
   if (!mounts.length) return;
   const script = document.createElement('script');
   script.src =
-    document.documentElement.dataset.wfPage === '677cf86df9952f978d94d8a9' &&
-    matchMedia('(min-width:992px)').matches
+    ['677cf86df9952f978d94d8a9', '6af752b08255837b44bbd82c'].includes(
+      document.documentElement.dataset.wfPage,
+    ) && matchMedia('(min-width:992px)').matches
       ? 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@37ca9147f41e4ab45af4e3619147f1de4048f2e6/dist/tdb-home-desktop-instagram.js'
       : 'https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@37ca9147f41e4ab45af4e3619147f1de4048f2e6/dist/tdb-instagram-feed.js';
   script.dataset.tdbInstagramJs = '0.6.4';
