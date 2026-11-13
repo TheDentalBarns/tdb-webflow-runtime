@@ -44,10 +44,10 @@
         "src/shared/module-bootstrap.js",
         "src/blog/filters.js"
       ],
-      "sha256": "73bd1b8e105ac3e7cd4590e940840b872ace14bad7ce8d6ba35452ff47aee5c7",
-      "raw": 8627,
-      "gzip": 3238,
-      "brotli": 2843
+      "sha256": "a085ba660b6467c6be11098e100d611aba9a1766b6c3f7b6d8f1d9ef2349a26f",
+      "raw": 8661,
+      "gzip": 3266,
+      "brotli": 2868
     },
     "dist/tdb-calculator-loader.js": {
       "sources": [
@@ -559,6 +559,7 @@
         "src/runtime/instagram-feature-loader.js",
         "src/runtime/first-impressions-loader.js",
         "src/runtime/smile-feature-loader.js",
+        "src/runtime/blog-feature-loader.js",
         "src/runtime/page-break-loader.js",
         "src/runtime/service-process-loader.js",
         "src/runtime/treatment-guide-loader.js",
@@ -568,10 +569,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "0abaaf8e92d198bb5419702e8fb6782a5cf3a26db9d70e155726e99cac2735a7",
-      "raw": 93601,
-      "gzip": 25519,
-      "brotli": 21920
+      "sha256": "5f8573ec50dfcaa086478d28359ab3e300293cd7b771bc38dc30ebbf3ac66e1d",
+      "raw": 94477,
+      "gzip": 25651,
+      "brotli": 22037
     },
     "dist/tdb-service-awards.js": {
       "sources": [

@@ -264,6 +264,7 @@
     window.TDBLazyIconMasks?.destroy();
     window.TDBInstagramFeatureLoader?.destroy();
     window.TDBSmileFeatureLoader?.destroy();
+    window.TDBBlogFeatureLoader?.destroy();
     for (const cancel of [...cancellations]) cancel();
     mounted.forEach((owner) => owner.destroy());
     mounted.clear();
