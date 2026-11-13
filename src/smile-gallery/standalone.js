@@ -527,13 +527,15 @@
       let reservedWidth = 0;
       const reserveCase = () => {
         const copy = reading.querySelector('.smile-page_drawer-copy');
-        if (!copy.clientWidth || copy.clientWidth === reservedWidth) return;
-        reservedWidth = copy.clientWidth;
+        const width = copy.getBoundingClientRect().width;
+        if (!width || width === reservedWidth) return;
+        reservedWidth = width;
         const measure = document.createElement('div');
         Object.assign(measure.style, {
           position: 'absolute',
           visibility: 'hidden',
           pointerEvents: 'none',
+          display: 'flow-root',
           width: reservedWidth + 'px',
         });
         measure.setAttribute('aria-hidden', 'true');
@@ -543,6 +545,8 @@
           const sample = target.cloneNode(false);
           sample.removeAttribute('data-smile-case-' + field);
           sample.style.minHeight = '0';
+          sample.style.margin = '0';
+          sample.style.width = target.getBoundingClientRect().width + 'px';
           measure.replaceChildren(sample);
           let height = 0;
           for (const item of payload.cases) {
@@ -557,12 +561,19 @@
             else sample.textContent = item[field];
             height = Math.max(height, sample.getBoundingClientRect().height);
           }
-          target.style.minHeight = height + 'px';
+          target.style.minHeight = Math.ceil(height) + 'px';
         }
         measure.remove();
       };
       const outgoingCaseNodes = new Set();
       cleanup.push(() => outgoingCaseNodes.forEach((node) => node.remove()));
+      // Keep the same cream gutter between images as at the sides of the drawer.
+      const slidePosition = (node, direction) =>
+        'translateX(' +
+        (node === drawerPhoto
+          ? `calc(${direction * 100}% ${direction > 0 ? '+' : '-'} var(--smile-case-gutter))`
+          : direction * 100 + '%') +
+        ')';
       const paintCase = (index, direction = 1, transition = true) => {
         if (!cases.length) return;
         for (const node of outgoingCaseNodes) {
@@ -627,10 +638,7 @@
             outgoingCaseNodes.add(copy);
             animate(
               copy,
-              [
-                { transform: 'translateX(0)' },
-                { transform: 'translateX(' + direction * -100 + '%)' },
-              ],
+              [{ transform: 'translateX(0)' }, { transform: slidePosition(node, -direction) }],
               motion.duration?.(reading.clientWidth) || 650,
               'travel',
             ).finally(() => {
@@ -641,10 +649,7 @@
           for (const node of slideNodes)
             animate(
               node,
-              [
-                { transform: 'translateX(' + direction * 100 + '%)' },
-                { transform: 'translateX(0)' },
-              ],
+              [{ transform: slidePosition(node, direction) }, { transform: 'translateX(0)' }],
               motion.duration?.(reading.clientWidth) || 650,
               'travel',
             );
