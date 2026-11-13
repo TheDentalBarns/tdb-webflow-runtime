@@ -477,10 +477,10 @@
         "src/shared/module-bootstrap.js",
         "src/reviews/native/archive.js"
       ],
-      "sha256": "03f633934ae5dce1655696815bd70ce3abba799e596e06eebb7383ca2b21bf09",
-      "raw": 11067,
-      "gzip": 4479,
-      "brotli": 3976
+      "sha256": "023fda194570f7cc18184f37e11db07a75febc9830a825d6404bd05d145b029c",
+      "raw": 11901,
+      "gzip": 4745,
+      "brotli": 4224
     },
     "dist/tdb-review-quote-adapter.js": {
       "sources": [

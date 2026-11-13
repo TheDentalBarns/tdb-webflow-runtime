@@ -1,0 +1,18 @@
+/* One control contract for Reviews, Smile Gallery and Articles, in embeds and
+ * drawers. Composed into their existing CSS bundles; no extra runtime request.
+ * Legacy class names are adapters to this shared component, not separate skins. */
+:is(.tdb-review-filter_mark,.smile-page-filter_option input,[data-blog-filter-options] .tdb-blog-filter input){box-sizing:border-box;appearance:none;-webkit-appearance:none;position:relative;display:flex;align-items:center;justify-content:center;flex:none;width:1.15rem;height:1.15rem;min-width:1.15rem;min-height:1.15rem;padding:0;margin:0;border:1px solid #8e877a;border-radius:50%;background:transparent;opacity:1;clip:auto;clip-path:none}
+:is(.tdb-review-filter_mark.is-checked,.smile-page-filter_option input:checked,[data-blog-filter-options] .tdb-blog-filter input:checked){color:#ebe2d2;background-color:#000;border-color:#000}
+:is(.smile-page-filter_option input,[data-blog-filter-options] .tdb-blog-filter input)::before{content:'';position:absolute;inset:0;margin:auto;width:.8rem;height:.8rem;background:#ebe2d2;opacity:0;mask:url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7bbee217f11c57334fb11_tdb-review-tick-17e3f2.svg') center/contain no-repeat}
+:is(.smile-page-filter_option input:checked,[data-blog-filter-options] .tdb-blog-filter input:checked)::before{opacity:1}
+.tdb-review-filter_tick{opacity:0;width:.8rem;height:.8rem;display:block}
+.tdb-review-filter_tick.is-checked{opacity:1}
+.tdb-review-filter_mark{order:-1}
+.tdb-review-filter_tick.tdb-native-mask-tick{background-color:currentColor;overflow:hidden;mask:url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7bbee217f11c57334fb11_tdb-review-tick-17e3f2.svg') center/contain no-repeat}
+:is(.tdb-review-filter_action-label,.smile-filter_action-label){display:inline-flex;align-items:center;column-gap:.3em}
+:is(.tdb-review-filter_count-frame,.smile-filter_count-frame){display:inline-grid;grid-template-rows:1.4em;grid-template-columns:1fr;width:3ch;min-width:3ch;max-width:3ch;flex:none;text-align:center;font-variant-numeric:tabular-nums}
+:is(.tdb-review-filter_count-reserve,.smile-filter_count-reserve){white-space:nowrap;visibility:hidden;grid-area:1/1/2/2}
+:is(.tdb-review-filter_count,.smile-filter_count){grid-area:1/1/2/2;position:relative;display:block;width:100%;height:1.4em;line-height:1.4em;overflow:hidden}
+:is(.tdb-review-filter_count,.smile-filter_count) .review-number_value{position:relative;display:block;width:100%;height:100%;white-space:nowrap}
+:is(.tdb-review-filter_count,.smile-filter_count) .review-number_incoming{position:absolute;inset:0;display:block;width:100%;height:100%;white-space:nowrap;transform:translateY(100%)}
+:is([data-review-page-plural],[data-tdb-filter-apply-plural],[data-smile-count-plural],[data-blog-filter-plural],.smile-filter_plural).is-singular{visibility:hidden}

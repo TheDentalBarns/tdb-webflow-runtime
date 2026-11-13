@@ -124,6 +124,16 @@
     const q = (name, parent = root) => parent.querySelector(`[data-review-page-${name}]`);
     const list = root.querySelector('.reviews-page_grid');
     const original = [...list.children];
+    const lastReview = root.dataset.reviewPageLast || '';
+    const order = (index, selection) => {
+      const result = cms.ordered(index, selection);
+      return lastReview
+        ? [
+            ...result.filter((record) => record.id !== lastReview),
+            ...result.filter((record) => record.id === lastReview),
+          ]
+        : result;
+    };
     const template = original[0]?.cloneNode(true);
     if (!template) throw Error('Native review card template is missing');
     // Preserve published CMS cards until the first successful request. Clones need no CMS flags.
@@ -185,6 +195,25 @@
       filtering = false,
       origin,
       moving;
+    let replacing = false,
+      replacement,
+      fading;
+    const fade = async (opacity, duration) => {
+      const from = getComputedStyle(list).opacity;
+      fading?.cancel();
+      list.style.opacity = String(opacity);
+      if (!list.animate || window.TDBMotion.reduced.matches) return;
+      const animation = list.animate([{ opacity: from }, { opacity }], {
+        duration,
+        easing: window.TDBMotion.easing?.('fade') || 'ease',
+      });
+      fading = animation;
+      await animation.finished.catch(() => {});
+      if (fading === animation) {
+        animation.cancel();
+        fading = null;
+      }
+    };
     const animations = new Set();
     const animate = (node, frames) => {
       if (!node.animate || window.TDBMotion.reduced.matches) return;
@@ -317,7 +346,7 @@
         }
         const count = cms.matching(index, selection).length;
         tickers[i].update(String(count), 1, !!data);
-        q('plural', form).hidden = count === 1;
+        q('plural', form).classList.toggle('is-singular', count === 1);
         const action = q(i ? 'apply' : 'view', form);
         action.setAttribute('aria-label', `View ${count} ${count === 1 ? 'review' : 'reviews'}`);
       });
@@ -366,13 +395,13 @@
       q('historic', node).hidden = !record.historic;
       q('response', node).hidden = !(record.showResponse && record.response);
       q('response-text', node).textContent = record.showResponse ? record.response || '' : '';
-      q('number', node).textContent = `${String(position).padStart(2, '0')} / ${ordered.length}`;
-      const trigger = node.querySelector('[data-tdb-review-trigger]');
-      trigger.setAttribute('aria-label', `Read more: ${record.name}’s review`);
+      q('current', node).textContent = String(position).padStart(2, '0');
+      q('total', node).textContent = String(ordered.length).padStart(2, '0');
+      q('number', node).setAttribute('aria-label', `Review ${position} of ${ordered.length}`);
       return node;
     }
     function updateProgress() {
-      more.hidden = rendered >= ordered.length;
+      more.hidden = rendered >= ordered.length && !failed;
       more.disabled = !!pending;
       more.textContent = pending
         ? 'Loading reviews…'
@@ -389,7 +418,12 @@
       sticky.refresh();
     }
     async function loadMore(token = revision, replace = false) {
-      if (disposed || token !== revision || pending || (!replace && rendered >= ordered.length))
+      if (
+        disposed ||
+        token !== revision ||
+        pending ||
+        (!replace && (replacing || rendered >= ordered.length))
+      )
         return;
       const offset = replace ? 0 : rendered,
         batch = ordered.slice(offset, offset + 20);
@@ -402,6 +436,7 @@
           batch.map((record) => record.id),
           { signal: request.signal },
         );
+        if (replace && replacement) await replacement;
         if (disposed || token !== revision) return;
         const nodes = records.map((record, i) => card(record, offset + i + 1));
         if (replace) list.replaceChildren(...nodes);
@@ -409,9 +444,19 @@
         rendered = offset + records.length;
         if (pagination) pagination.hidden = true;
         root.dataset.reviewPageReady = 'true';
+        if (replace) {
+          replacing = false;
+          list.style.minHeight = '';
+          await fade(1, window.TDBMotion.defaults?.fadeIn || 350);
+        }
       } catch (error) {
         if (token !== revision || disposed || error.name === 'AbortError') return;
         failed = true;
+        if (replace) {
+          replacing = false;
+          list.style.minHeight = '';
+          await fade(1, window.TDBMotion.defaults?.fadeIn || 350);
+        }
       } finally {
         if (pending === request) {
           pending = null;
@@ -425,16 +470,20 @@
       try {
         sessionStorage.setItem(storageKey, JSON.stringify(state));
       } catch {}
-      revision++;
+      const token = ++revision;
       pending?.abort();
       pending = null;
       rendered = 0;
-      ordered = cms.ordered(index, state);
+      ordered = order(index, state);
       sync();
-      // A changed filter must never leave unrelated old reviews under the new count.
-      list.replaceChildren();
-      await loadMore(revision, true);
-      if (scroll && !disposed) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Retain the old geometry while fetching. Commit the next cards only once
+      // faded out; a later selection owns both the request and the reveal.
+      replacing = true;
+      list.style.minHeight = list.getBoundingClientRect().height + 'px';
+      replacement = fade(0, window.TDBMotion.defaults?.fadeOut || 120);
+      await loadMore(token, true);
+      if (scroll && !disposed && token === revision)
+        list.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     forms.forEach((form, i) => {
       listen(form, 'click', (event) => {
@@ -491,7 +540,7 @@
     try {
       data = await cms.load({ signal });
       index = await data.loadIndex({ signal });
-      ordered = cms.ordered(index, state);
+      ordered = order(index, state);
       sync();
       await loadMore(revision, true);
     } catch (error) {
@@ -525,6 +574,9 @@
         lifecycle.abort();
         pending?.abort();
         observer?.disconnect();
+        fading?.cancel();
+        list.style.opacity = '';
+        list.style.minHeight = '';
         filters.destroy();
         drawer.destroy();
         sticky.destroy();

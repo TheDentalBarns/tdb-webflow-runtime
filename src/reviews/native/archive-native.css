@@ -5,8 +5,8 @@
 
 .reviews-page_filter-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
 .reviews-page_cms{width:100%;padding:0;margin:0}
-.reviews-page_grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2rem;align-items:start}
-.reviews-page_item{min-width:0;width:100%;height:auto;padding:0;opacity:1;position:relative}
+.reviews-page_grid{display:block;column-count:3;column-gap:2rem}
+.reviews-page_item{break-inside:avoid;margin-bottom:2rem;display:inline-block;min-width:0;width:100%;height:auto;padding:0;opacity:1;position:relative}
 .reviews-page_card{display:flex;flex-direction:column;background-color:#fff;color:#222;position:relative;overflow:hidden}
 .reviews-page_quote{height:14rem;display:flex;flex-direction:column;justify-content:space-evenly;align-items:center;padding:1rem;color:#fff;position:relative;overflow:hidden;isolation:isolate}
 .reviews-page_excerpt{font-size:1.05rem;line-height:1.45;font-weight:400;text-align:center;max-width:100%;margin:0}
@@ -18,7 +18,7 @@
 .reviews-page_platform{display:block;width:1.5rem;height:1.5rem;background-size:contain;background-repeat:no-repeat;background-position:center}
 .reviews-page_text{font-size:.9375rem;line-height:1.7;white-space:pre-wrap;overflow:visible;max-height:none}
 .reviews-page_card-footer{position:relative;isolation:isolate;overflow:hidden;min-height:3.5rem;padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;color:#fff}
-.reviews-page_number{font-size:.75rem;line-height:1.5;letter-spacing:.05em;font-variant-numeric:tabular-nums}
+.reviews-page_number{display:flex;align-items:center;column-gap:.65rem;font-size:.75rem;line-height:1.5;letter-spacing:.05em;font-variant-numeric:tabular-nums}
 .reviews-page_more{font-size:.8rem;line-height:1.5;text-decoration:underline;color:inherit;cursor:pointer}
 .reviews-page_note{font-size:.75rem;line-height:1.5;color:#807565;margin:0}
 .reviews-page_response{font-size:.875rem;line-height:1.7;border-top:1px solid #d6cab4;padding-top:1rem;white-space:pre-wrap}
@@ -26,8 +26,8 @@
 .reviews-page_load{display:flex;align-items:center;justify-content:center;padding:1rem 0}
 .reviews-page_empty{text-align:center;padding:3rem 1rem;margin:0}
 .reviews-page_hidden{display:none}
-@media screen and (max-width: 991px){.reviews-page_grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media screen and (max-width: 767px){.reviews-page_grid{grid-template-columns:1fr;gap:2rem}.reviews-page_quote{height:auto;min-height:14rem;gap:1.5rem;padding:1.5rem 1rem}.reviews-page_excerpt{max-width:32rem}}
+@media screen and (max-width: 991px){.reviews-page_grid{column-count:2}}
+@media screen and (max-width: 767px){.reviews-page_grid{column-count:1}.reviews-page_quote{height:auto;min-height:14rem;gap:1.5rem;padding:1.5rem 1rem}.reviews-page_excerpt{max-width:32rem}}
 
 .reviews-page_icon-google{background-image:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b972653444187f404ca8_tdb-review-google.svg);background-position:center;background-repeat:no-repeat;background-size:contain;display:block}
 .reviews-page_icon-yell{background-image:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973ba7906fe700055e8_tdb-review-yell.svg);background-position:center;background-repeat:no-repeat;background-size:contain;display:block}
@@ -36,3 +36,4 @@
 
 /* Full lotus uses the same reserved artwork size as the Smile Gallery intro. */
 .resource-intro_lotus{display:block;width:4rem;height:3rem;object-fit:contain}
+.reviews-page_date::before{content:"";display:block;width:1rem;height:1rem;flex-shrink:0;background-color:currentColor;mask-image:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc636dd65bf4f700d266_tdb-clock-small-1px.svg);mask-size:contain;mask-position:center;mask-repeat:no-repeat}

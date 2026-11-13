@@ -3,10 +3,12 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const tick = () => new Promise((resolve) => setTimeout(resolve, 30));
-async function setup() {
+async function setup({lastReview}={}) {
   const dom = new JSDOM(fs.readFileSync('src/reviews/native/archive.html', 'utf8') + fs.readFileSync('src/reviews/native/archive-drawer.html', 'utf8'), { runScripts: 'outside-only', pretendToBeVisual: true, url: 'https://dentalbarns.webflow.io/reviews' });
   const w = dom.window, d = w.document;
-  d.querySelector('[data-review-page-list-home]').innerHTML = `<div data-tdb-review-cms="v1"><div class="reviews-page_grid"><article class="reviews-page_item w-dyn-item"><div class="reviews-page_card"><div data-tdb-review-field="featured-excerpt"></div><div data-tdb-review-field="reviewer-display-name">Published fallback</div><div data-tdb-review-field="display-date"></div><div data-review-page-stars>${[0,1,2,3,4].map(n=>`<span data-tdb-star="${n}"></span>`).join('')}</div><a data-cards-platform-logo></a><div data-tdb-review-field="full-review">Native text</div><p data-review-page-historic></p><div data-review-page-response><div data-review-page-response-text></div></div><span data-review-page-number></span><a data-tdb-review-trigger href="#patient-reviews">Read more</a></div></article></div><div class="w-pagination-wrapper"><a href="?page=2">Next</a></div></div>`;
+  if(lastReview)d.querySelector('[data-tdb-review-archive]').dataset.reviewPageLast=lastReview;
+  else d.querySelector('[data-tdb-review-archive]').removeAttribute('data-review-page-last');
+  d.querySelector('[data-review-page-list-home]').innerHTML = `<div data-tdb-review-cms="v1"><div class="reviews-page_grid"><article class="reviews-page_item w-dyn-item"><div class="reviews-page_card"><div data-tdb-review-field="featured-excerpt"></div><div data-tdb-review-field="reviewer-display-name">Published fallback</div><div data-tdb-review-field="display-date"></div><div data-review-page-stars>${[0,1,2,3,4].map(n=>`<span data-tdb-star="${n}"></span>`).join('')}</div><a data-cards-platform-logo></a><div data-tdb-review-field="full-review">Native text</div><p data-review-page-historic></p><div data-review-page-response><div data-review-page-response-text></div></div><span data-review-page-number><span data-review-page-current></span><span class="tdb-pagination-rule" aria-hidden="true"></span><span data-review-page-total></span></span></div></article></div><div class="w-pagination-wrapper"><a href="?page=2">Next</a></div></div>`;
   const records = Array.from({length:91},(_,i)=>({id:'r'+i,name:'Patient '+i,text:'Full text '+i+'\n'+('Complete review paragraph. '.repeat(30)),excerpt:'Excerpt '+i,displayDate:'January '+(2000+i),date:`${2000+i}-01-01`,rating:i===90?null:i===89?1:5,platform:i%2?'Google':'Facebook',topics:i%2?['nervous','comfort']:['bonding'],historic:i===90,showResponse:i===89,response:i===89?'The full practice response.':'',url:'https://example.com/review/'+i}));
   Object.defineProperty(d, 'currentScript', { value: {src:'https://cdn.example/dist/tdb-review-page.js'} });
   w.HTMLElement.prototype.scrollIntoView = function(){};
@@ -40,7 +42,10 @@ test('all 91 reviews load incrementally with complete text, numbering, responses
     for(let i=0;i<4;i++)await x.api.loadMore();
     const cards=x.visible();assert.equal(cards.length,91);assert.equal(new Set(cards.map(n=>n.dataset.reviewId)).size,91);
     cards.forEach((n,i)=>assert.equal(n.querySelector('[data-tdb-review-field="full-review"]').textContent,x.records[i].text));
-    assert.equal(cards[90].querySelector('[data-review-page-number]').textContent,'91 / 91');
+    assert.equal(cards[90].querySelector('[data-review-page-current]').textContent,'91');
+    assert.equal(cards[90].querySelector('[data-review-page-total]').textContent,'91');
+    assert.equal(cards[90].querySelector('[data-review-page-number]').getAttribute('aria-label'),'Review 91 of 91');
+    assert.equal(cards[90].querySelector('[data-tdb-review-trigger]'),null);
     assert.equal(cards[89].querySelector('[data-review-page-response]').hidden,false);
     assert.equal(cards[90].querySelector('[data-review-page-historic]').hidden,false);
     assert.equal(cards[90].querySelector('[data-review-page-stars]').hidden,true);
@@ -90,5 +95,34 @@ test('lowest-first includes low and unrated reviews and destroy restores the nat
     assert.equal(x.d.querySelector('[data-tdb-review-field="full-review"]').textContent,'Native text');
     assert.equal(x.d.querySelector('.w-pagination-wrapper').hidden,false);
     assert.equal(x.d.querySelector('.tdb-filter-sticky-rail'),null);
+  }finally{x.close();}
+});
+
+test('the designated final review remains last in every sort, without dropping it from rating filters',async()=>{
+  const x=await setup({lastReview:'r89'});try{
+    for(const sort of ['recommended','lowest','highest','recent','oldest']){
+      await x.choose('sort',sort);
+      for(let i=0;i<4;i++)await x.api.loadMore();
+      assert.equal(x.visible().length,91);
+      assert.equal(x.visible().at(-1).dataset.reviewId,'r89');
+      assert.equal(x.visible().at(-1).querySelector('[data-review-page-response]').hidden,false);
+    }
+    await x.choose('rating','1');
+    assert.deepEqual(x.visible().map(n=>n.dataset.reviewId),['r89']);
+    assert.equal(x.d.querySelector('[data-review-page-plural]').classList.contains('is-singular'),true);
+    assert.equal(x.d.querySelector('[data-review-page-plural]').hidden,false);
+  }finally{x.close();}
+});
+
+test('replacement keeps the current cards until the next batch is ready instead of clearing the page',async()=>{
+  const x=await setup();try{
+    const original=x.visible();
+    const release=x.hold();
+    await x.choose('rating','1');
+    assert.equal(x.visible()[0],original[0]);
+    assert.equal(x.d.querySelector('.reviews-page_grid').style.opacity,'0');
+    release();await tick();
+    assert.deepEqual(x.visible().map(n=>n.dataset.reviewId),['r89']);
+    assert.equal(x.d.querySelector('.reviews-page_grid').style.opacity,'1');
   }finally{x.close();}
 });

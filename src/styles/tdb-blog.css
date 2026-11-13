@@ -13,9 +13,6 @@
 [data-blog-filter-options] .tdb-blog-filter-list{display:block;white-space:normal;overflow:visible}
 [data-blog-filter-options] .tdb-blog-filter{display:flex;align-items:center;gap:.75rem;min-height:3.5rem;padding:.65rem 0;margin:0;border:0;color:#666;font-size:.875rem;line-height:1.4;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
 [data-blog-filter-options] .tdb-blog-filter::before,[data-blog-filter-options] .tdb-blog-filter::after{content:none}
-[data-blog-filter-options] .tdb-blog-filter input{display:block;position:relative;opacity:1;appearance:none;-webkit-appearance:none;width:1.15rem;height:1.15rem;min-width:1.15rem;min-height:1.15rem;flex:none;padding:0;margin:0;border:1px solid #8e877a;border-radius:50%;background:transparent;clip:auto;clip-path:none}
-[data-blog-filter-options] .tdb-blog-filter input::before{content:'';position:absolute;top:50%;left:50%;width:.55rem;height:.55rem;border-radius:50%;background:#6d675b;transform:translate(-50%,-50%) scale(0);transition:transform .2s}
-[data-blog-filter-options] .tdb-blog-filter input:checked::before{transform:translate(-50%,-50%) scale(1)}
 [data-blog-filter-options] .tdb-blog-filter-label{margin:0;white-space:normal}
 [data-blog-filter-options] .tdb-blog-filter{justify-content:flex-start;text-align:left;outline:none;box-shadow:none}
 [data-blog-filter-options] .tdb-blog-filter:has(input:focus-visible) .tdb-blog-filter-label{text-decoration:underline;text-underline-offset:.4em}
