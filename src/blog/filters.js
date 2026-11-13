@@ -3,28 +3,39 @@
   'use strict';
   if (window.TDBBlogFilters) return;
   const base = new URL('./', document.currentScript.src);
-  let instance, flight;
+  let instance,
+    flight,
+    generation = 0;
   async function mount() {
     if (instance || flight) return flight;
     const root = document.querySelector('[data-tdb-blog-page]');
-    if (!root) return;
-    flight = initialize(root).finally(() => {
+    if (!root || !window.TDBConsent?.allows()) return;
+    const current = generation;
+    const check = () => {
+      if (current !== generation || !window.TDBConsent?.allows())
+        throw new DOMException('Cancelled', 'AbortError');
+    };
+    flight = initialize(root, check).finally(() => {
       flight = null;
     });
     return flight;
   }
-  async function initialize(root) {
+  async function initialize(root, check) {
+    check();
     const modules = await window.TDBModuleBootstrap.ensure(base);
+    check();
     const load = (name, ready, type) => modules.load(new URL(name, base), { ready, type });
     await load('tdb-motion.js', () => !!window.TDBMotion);
+    check();
     await Promise.all([
-      load('tdb-smile-page.css', undefined, 'style'),
+      load('tdb-filters.css', undefined, 'style'),
       load('tdb-blog.css', undefined, 'style'),
       load('tdb-drawer.css', undefined, 'style'),
       load('tdb-drawer.js', () => !!window.TDBDrawer),
       load('tdb-filters.js', () => !!window.TDBFilters),
       load('tdb-ticker.js', () => !!window.TDBNativeTicker),
     ]);
+    check();
     for (const control of root.querySelectorAll('[type="button"]:not(button)')) {
       const button = document.createElement('button');
       for (const { name, value } of control.attributes)
@@ -315,10 +326,8 @@
   window.TDBBlogFilters = Object.freeze({
     mount,
     destroy() {
+      generation++;
       instance?.destroy();
     },
   });
-  if (document.readyState === 'loading')
-    document.addEventListener('DOMContentLoaded', () => mount().catch(() => {}), { once: true });
-  else mount().catch(() => {});
 })();

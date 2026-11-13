@@ -29,7 +29,7 @@ function setup({
     records
       .map(
         ([title, price, treatment, doctor, duration, gender]) =>
-          `<div data-tdb-sg-case><div data-smile-grid-photo role="button" tabindex="0"><img data-tdb-sg-image src="https://cdn.prod.website-files.com/smile-${title}.webp" srcset="https://cdn.prod.website-files.com/smile-${title}-500.webp 500w, https://cdn.prod.website-files.com/smile-${title}.webp 1080w" sizes="(max-width: 640px) 100vw, 33vw" alt="Smile ${title}"></div><span data-tdb-sg-title>${title}</span><span data-tdb-sg-description>Details ${title}</span><span data-tdb-sg-price-value>${price}</span><span data-tdb-sg-duration-value>${duration}</span><span data-tdb-sg-clinician-value>${doctor}</span><span data-tdb-sg-gender-value>${gender}</span>${[
+          `<div data-tdb-sg-case><div data-smile-grid-photo role="button" tabindex="-1" aria-disabled="true"><img data-tdb-sg-image src="https://cdn.prod.website-files.com/smile-${title}.webp" srcset="https://cdn.prod.website-files.com/smile-${title}-500.webp 500w, https://cdn.prod.website-files.com/smile-${title}.webp 1080w" sizes="(max-width: 640px) 100vw, 33vw" alt="Smile ${title}"></div><span data-tdb-sg-title>${title}</span><span data-tdb-sg-description>Details ${title}</span><span data-tdb-sg-price-value>${price}</span><span data-tdb-sg-duration-value>${duration}</span><span data-tdb-sg-clinician-value>${doctor}</span><span data-tdb-sg-gender-value>${gender}</span>${[
             treatment,
           ]
             .flat()
@@ -48,6 +48,7 @@ function setup({
     d = w.document,
     subscriptions = new Set();
   d.querySelector('[data-smile-page-stage]').innerHTML = cms;
+  d.querySelector('[data-tdb-smile-page]').setAttribute('aria-busy', 'true');
   if (nativePreview) {
     for (const card of d.querySelectorAll('[data-tdb-sg-case]')) {
       const photo = card.querySelector('[data-smile-grid-photo]');
@@ -69,9 +70,15 @@ function setup({
       icon.className = 'smile-grid_icon';
       card.append(icon);
       const treatments = d.createElement('div');
+      treatments.className = 'smile-grid_treatments';
       treatments.setAttribute('data-smile-grid-treatments', '');
       treatments.append(...card.querySelectorAll('[data-tdb-sg-treatment-name]'));
       card.append(treatments);
+      card.querySelector('[data-tdb-sg-title]').className = 'smile-grid_title';
+      for (const value of card.querySelectorAll(
+        '[data-tdb-sg-price-value],[data-tdb-sg-duration-value],[data-tdb-sg-clinician-value]',
+      ))
+        value.className = 'smile-grid_value';
     }
   }
   for (const original of d.querySelectorAll('button')) {
@@ -203,11 +210,6 @@ function setup({
       };
     },
   };
-  w.eval(
-    fs
-      .readFileSync('src/smile-gallery/head.html', 'utf8')
-      .match(/<script[^>]*>([\s\S]*?)<\/script>/)[1],
-  );
   w.eval(feed);
   w.eval(source);
   return {
@@ -676,24 +678,26 @@ test('stale patient preferences are cleared and both count buttons retain ticker
   }
 });
 
-test('filter dock uses native sticky bounds and never rewrites position on scroll', async () => {
+test('filter dock starts at the smile results and never rewrites position on scroll', async () => {
   const x = setup();
   try {
     await x.w.TDBSmilePage.mount();
     const root = x.d.querySelector('[data-tdb-smile-page]'),
+      stage = x.d.querySelector('[data-smile-page-stage]'),
       home = x.d.querySelector('[data-smile-filter-home]'),
       dock = x.d.querySelector('[data-smile-filter-dock]'),
       landing = x.d.querySelector('[data-smile-filter-landing]'),
       anchor = root.querySelector('.tdb-filter-sticky-anchor'),
       rail = anchor.parentElement;
     root.getBoundingClientRect = () => ({ top: 100 });
+    stage.getBoundingClientRect = () => ({ top: 900 });
     home.getBoundingClientRect = () => ({ top: 760 });
     landing.getBoundingClientRect = () => ({ top: 1500, height: 96 });
     anchor.getBoundingClientRect = () => ({ height: 48 });
     x.w.dispatchEvent(new x.w.Event('resize'));
     await new Promise((r) => setTimeout(r, 25));
-    assert.equal(rail.style.top, '0px');
-    assert.equal(rail.style.height, '1472px');
+    assert.equal(rail.style.top, '800px');
+    assert.equal(rail.style.height, '672px');
     assert.equal(rail.style.clipPath, '');
     assert.equal(anchor.style.position, 'sticky');
     assert.equal(anchor.style.top, '');
@@ -719,7 +723,8 @@ test('filter dock uses native sticky bounds and never rewrites position on scrol
   }
 });
 
-test('default and saved displays reserve their shape before runtime, with URL precedence and a failure fallback', async () => {
+test('native initial state is untouched until mount; saved displays respect URL precedence and failures reveal CMS content', async () => {
+  assert.doesNotMatch(fs.readFileSync('src/smile-gallery/head.html', 'utf8'), /<script\b/i);
   for (const [display, saved, expected] of [
     ['', null, 'slider'],
     ['', { display: 'before-after' }, 'before-after'],
@@ -729,12 +734,22 @@ test('default and saved displays reserve their shape before runtime, with URL pr
   ]) {
     const x = setup({ display, saved, allowed: false });
     try {
-      assert.equal(x.d.documentElement.dataset.smileDisplay, expected);
+      assert.equal(x.d.documentElement.dataset.smileDisplay, undefined);
+      assert.equal(
+        x.d.querySelector('[data-smile-page-stage]').dataset.smileContentReady,
+        undefined,
+      );
+      assert.equal(x.d.querySelector('[data-smile-grid-photo]').tabIndex, -1);
       assert.equal(x.d.querySelectorAll('.smile-comparison_control').length, 0);
       x.fix();
       x.permit(true);
       await x.w.TDBSmilePage.mount();
       assert.equal(x.d.documentElement.dataset.smileDisplay, expected);
+      assert.equal(x.d.querySelector('[data-smile-page-stage]').dataset.smileContentReady, 'true');
+      assert.equal(
+        x.d.querySelector('[data-smile-grid-photo]').hasAttribute('aria-disabled'),
+        false,
+      );
       assert.equal(
         x.d.querySelectorAll('.smile-comparison_control').length,
         expected === 'slider' ? 4 : 0,
@@ -746,8 +761,10 @@ test('default and saved displays reserve their shape before runtime, with URL pr
   const x = setup({ display: '?display=slider', fail: true });
   try {
     await assert.rejects(x.w.TDBSmilePage.mount());
-    assert.equal(x.d.documentElement.dataset.smileDisplay, 'slider');
+    assert.equal(x.d.documentElement.dataset.smileDisplay, undefined);
+    assert.equal(x.d.querySelector('[data-smile-page-stage]').dataset.smileContentReady, 'true');
     assert.equal(x.d.querySelector('[data-tdb-sg-image]').hidden, false);
+    assert.equal(x.d.querySelector('[data-smile-grid-photo]').tabIndex, -1);
   } finally {
     x.close();
   }
@@ -801,6 +818,9 @@ test('native before/after previews become sliders without adding image layers, a
     assert.equal(photo.querySelector('[data-smile-divider]'), divider);
     assert.equal(divider.classList.contains('smile-comparison_handle'), false);
     assert.equal(photo.querySelector('[role="slider"]'), null);
+    assert.equal(photo.tabIndex, -1);
+    assert.equal(photo.getAttribute('aria-disabled'), 'true');
+    assert.equal(x.d.querySelector('[data-smile-page-stage]').dataset.smileContentReady, undefined);
   } finally {
     x.close();
   }
@@ -809,9 +829,10 @@ test('native before/after previews become sliders without adding image layers, a
 test('saved filtering finishes before content is revealed; photo frames, labels and fact icons never fade', async () => {
   const x = setup({ nativePreview: true, saved: { treatments: ['bonding'] } });
   try {
-    assert.equal(x.d.documentElement.dataset.smilePending, 'true');
+    assert.equal(x.d.querySelector('[data-smile-page-stage]').dataset.smileContentReady, undefined);
+    assert.equal(x.d.querySelector('[data-tdb-smile-page]').getAttribute('aria-busy'), 'true');
     await x.w.TDBSmilePage.mount();
-    assert.equal(x.d.documentElement.hasAttribute('data-smile-pending'), false);
+    assert.equal(x.d.querySelector('[data-smile-page-stage]').dataset.smileContentReady, 'true');
     assert.equal(x.d.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length, 1);
     assert.equal(
       x.d.querySelector('[data-tdb-sg-case]:not([hidden]) [data-tdb-sg-title]').textContent,
@@ -834,6 +855,31 @@ test('saved filtering finishes before content is revealed; photo frames, labels 
     assert.ok(
       x.animations.some(({ node }) => node === photo.querySelector('.smile-grid_before-image')),
     );
+  } finally {
+    x.close();
+  }
+});
+
+test('view results honours native header clearance without triggering a second delegated anchor scroll', async () => {
+  const x = setup();
+  try {
+    await x.w.TDBSmilePage.mount();
+    const stage = x.d.querySelector('[data-smile-page-stage]');
+    stage.style.scrollMarginTop = '96px';
+    let delegated = false;
+    let destination;
+    x.d.addEventListener('click', () => {
+      delegated = true;
+    });
+    x.w.lenis = {
+      scrollTo: (node, options) => {
+        destination = { node, options };
+      },
+    };
+    x.d.querySelector('[data-smile-view-results]').click();
+    assert.equal(delegated, false);
+    assert.equal(destination.node, stage);
+    assert.equal(destination.options.offset, -96);
   } finally {
     x.close();
   }

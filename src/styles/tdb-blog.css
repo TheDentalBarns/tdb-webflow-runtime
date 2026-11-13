@@ -1,10 +1,6 @@
-/* Section-bound filter button with a single cream landing bar. */
-[data-tdb-blog-page]{position:relative}
-.tdb-blog-filter-bar:not([data-blog-filter-landing]){display:none}
-.tdb-blog-filter-bar{width:100%;height:6rem;padding:1.5rem 5%;background:#ebe2d2;position:relative}
-[data-blog-filter-home]{width:3rem;height:3rem;margin-inline:auto;position:relative}
+/* Consent-released article filter states and generated options.
+ * Designer owns the page, hidden shell, metadata and cream landing bar. */
 [data-blog-ready] .smile-page_filter-dock{visibility:visible;pointer-events:auto}
-[data-blog-filter-landing]{margin-top:3rem}
 .tdb-blog-filter-drawer .tdb-drawer_panel{width:calc(100% - 5rem);max-width:80rem;left:50%;right:auto;transform:translateX(-50%);background:transparent;box-shadow:none}
 [data-blog-filter-panel]{inset:calc(6rem + clamp(1.5rem,6dvh,4rem)) 0 0}
 [data-blog-filter-panel]>.smile-filter_groups{display:block;flex:1}
@@ -23,11 +19,14 @@
 [data-blog-filter-options] .tdb-blog-filter.is-disabled{opacity:.3;cursor:default}
 [data-blog-filter-options] .tdb-blog-filter input:disabled{cursor:default}
 [data-blog-post-list]>.w-dyn-item[hidden]{display:none!important}
-[data-blog-meta]:not([data-blog-meta="category"]){display:none}
 .tdb-blog-icon-publication{background:none;border:1px solid currentColor;width:1rem;height:1.2rem;position:relative}
 .tdb-blog-icon-publication::after{content:'';position:absolute;inset:.25rem .15rem;border-top:1px solid;border-bottom:1px solid}
 .tdb-blog-icon-product{background:none;border:1px solid currentColor;width:1rem;height:1rem;transform:rotate(30deg);position:relative}
 .tdb-blog-icon-product::after{content:'';position:absolute;left:50%;top:0;bottom:0;border-left:1px solid}
+/* These two groups are generated after consent, so Webflow does not emit their
+ * unused native icon classes in the Blog's page-specific stylesheet. */
+[data-blog-filter-panel] .smile-icon-lotus{mask-image:url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc643eed49cd4fac61a6_tdb-lotus-small-1px.svg')}
+[data-blog-filter-panel] .smile-icon-display{background:linear-gradient(90deg,currentColor 0 1px,transparent 1px calc(50% - .5px),currentColor calc(50% - .5px) calc(50% + .5px),transparent calc(50% + .5px) calc(100% - 1px),currentColor calc(100% - 1px));border-top:1px solid;border-bottom:1px solid;height:.85rem}
 [data-blog-filter-options] [fs-list-element=clear],[data-blog-filter-options] .w-radio-input:not(input){display:none}
 [data-blog-filter-plural].is-singular{visibility:hidden}
 @media(max-width:767px){.tdb-blog-filter-drawer .tdb-drawer_panel{width:100%}.tdb-blog-filter-drawer .smile-filter_heading,.tdb-blog-filter-drawer .smile-filter_groups,.tdb-blog-filter-drawer .smile-filter_actions{padding-left:5vw;padding-right:5vw}.tdb-blog-filter-drawer .smile-filter_actions .button{max-width:calc(50% - 2.5rem);padding-left:.9rem;padding-right:.9rem}}

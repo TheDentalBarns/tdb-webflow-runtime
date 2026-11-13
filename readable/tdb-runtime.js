@@ -3119,6 +3119,9 @@ function prepareLazyIconMasks() {
     price: '6aeddc626c94d2870769382e_tdb-price-small-1px.svg',
     clock: '6aeddc636dd65bf4f700d266_tdb-clock-small-1px.svg',
     diamond: '6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg',
+    'diamond-small': '6aeddc640ce35bc2256782dc_tdb-diamond-small-1px.svg',
+    lotus: '6aeddc643eed49cd4fac61a6_tdb-lotus-small-1px.svg',
+    chevron: '6ac7bbeef3f863de97d242c8_tdb-review-chevron-4eaa8e.svg',
     ig: '6ac8c5438b7e68a92fade1e2_tdb-icon-instagram.svg',
     smile: '6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg',
     review: '6ac7b973bb15c9b9f29a8d18_tdb-review-quote.svg',
@@ -3188,6 +3191,11 @@ function prepareLazyIconMasks() {
   let disposed = false;
   const allowed = () => !disposed && Boolean(window.TDBConsent?.allows());
   function reveal(node) {
+    if (node.hasAttribute('data-tdb-deferred-mask')) {
+      const file = assets[node.dataset.tdbDeferredMask];
+      if (file) node.style.setProperty('--tdb-mask-artwork', 'url("' + base + file + '")');
+      return;
+    }
     if (!node.isConnected) return;
     if (node.hasAttribute('data-tdb-guide')) {
       for (const [kind, file] of Object.entries(guideAssets))
@@ -3303,7 +3311,7 @@ function prepareLazyIconMasks() {
     if (!allowed()) return;
     document
       .querySelectorAll(
-        '[data-tdb-guide],[data-tdb-lazy-barns],[data-tdb-compact-speaker],[data-tdb-journey-icon],[data-tdb-native-pseudo-icon],.tdb-calculator-icon[data-calculator-icon],.tdb-contact-item,.footer1_social-link[class*="tdb-footer-"],[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
+        '[data-tdb-deferred-mask],[data-tdb-guide],[data-tdb-lazy-barns],[data-tdb-compact-speaker],[data-tdb-journey-icon],[data-tdb-native-pseudo-icon],.tdb-calculator-icon[data-calculator-icon],.tdb-contact-item,.footer1_social-link[class*="tdb-footer-"],[data-tdb-native-holder-icon],[data-tdb-lazy-mask],[data-tdb-lazy-platform],.tdb-quotes_source,.tdb-review-summary-star-direct,.tdb-quote-decoration-stars,.tdb-quote-star-asset',
       )
       .forEach((node) => {
         if (seen.has(node)) return;
@@ -3644,6 +3652,49 @@ function prepareSmileFeatureLoader() {
       window.TDBSmilePage?.destroy();
     },
   });
+  if (!unsubscribe) refresh();
+}
+
+/* Definition-only. Article filters follow the shared cookie-decision gate. */
+function prepareBlogFeatureLoader() {
+  'use strict';
+  if (window.TDBBlogFeatureLoader || !document.querySelector('[data-tdb-blog-page]')) return;
+  const lifecycle = new AbortController();
+  let flight,
+    disposed = false,
+    unsubscribe;
+  const allowed = () => !disposed && Boolean(window.TDBConsent?.allows());
+  function refresh() {
+    if (!allowed()) {
+      window.TDBBlogFilters?.destroy();
+      return;
+    }
+    if (!flight)
+      flight = window.TDBModules.load(new URL('tdb-blog.js', TDBRuntimeModuleRoot), {
+        ready: () => Boolean(window.TDBBlogFilters),
+      })
+        .then(() => allowed() && window.TDBBlogFilters.mount())
+        .catch((error) => {
+          if (error.name !== 'AbortError') console.warn('TDB article filters unavailable.', error);
+        })
+        .finally(() => {
+          flight = null;
+        });
+    return flight;
+  }
+  window.TDBBlogFeatureLoader = Object.freeze({
+    refresh,
+    destroy() {
+      if (disposed) return;
+      disposed = true;
+      lifecycle.abort();
+      unsubscribe?.();
+      window.TDBBlogFilters?.destroy();
+    },
+  });
+  for (const type of ['online', 'pageshow'])
+    window.addEventListener(type, refresh, { signal: lifecycle.signal });
+  unsubscribe = window.TDBConsent?.subscribe(refresh);
   if (!unsubscribe) refresh();
 }
 
@@ -4280,6 +4331,7 @@ const TDBFeatureStartup = (() => {
     prepareInstagramFeatureLoader,
     prepareFirstImpressionsFeatureLoader,
     prepareSmileFeatureLoader,
+    prepareBlogFeatureLoader,
     prepareAttributionLoader,
     prepareFormsLoader,
     prepareCarouselArrowFeedback,
@@ -4830,6 +4882,7 @@ function createHomeScrollTest() {
     window.TDBLazyIconMasks?.destroy();
     window.TDBInstagramFeatureLoader?.destroy();
     window.TDBSmileFeatureLoader?.destroy();
+    window.TDBBlogFeatureLoader?.destroy();
     for (const cancel of [...cancellations]) cancel();
     mounted.forEach((owner) => owner.destroy());
     mounted.clear();
