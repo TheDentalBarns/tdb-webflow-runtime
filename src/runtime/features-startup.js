@@ -17,6 +17,7 @@ const TDBFeatureStartup = (() => {
     prepareInstagramFeatureLoader,
     prepareFirstImpressionsFeatureLoader,
     prepareSmileFeatureLoader,
+    prepareBlogFeatureLoader,
     prepareAttributionLoader,
     prepareFormsLoader,
     prepareCarouselArrowFeedback,

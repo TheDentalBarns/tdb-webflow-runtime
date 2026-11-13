@@ -11,6 +11,7 @@ async function setup() {
   });
   const w = dom.window,
     d = w.document;
+  w.TDBConsent = { allows: () => true };
   d.querySelector('[data-blog-filter-options]').innerHTML =
     '<form data-blog-category-form>' +
     ['Behind the Scenes', 'In the Press', 'Insights']

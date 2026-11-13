@@ -133,6 +133,7 @@ module.exports = {
     'src/runtime/instagram-feature-loader.js',
     'src/runtime/first-impressions-loader.js',
     'src/runtime/smile-feature-loader.js',
+    'src/runtime/blog-feature-loader.js',
     'src/runtime/page-break-loader.js',
     'src/runtime/service-process-loader.js',
     'src/runtime/treatment-guide-loader.js',
