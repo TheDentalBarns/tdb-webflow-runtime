@@ -1,0 +1,2245 @@
+/* One immutable motion profile, installed by the existing startup entry.
+ * config/motion.json also generates the CSS tokens. No requests, observers,
+ * computed-style reads or additional animation loop are needed here.
+ */
+(() => {
+  'use strict';
+  if (window.TDBMotionProfile) return;
+  const config = {
+    pace: 1.25,
+    character: 'soft',
+    families: {
+      navigation: { pace: 1, character: 'current' },
+      accordion: { pace: 1, character: 'current' },
+      fade: { pace: 1, character: 'current' },
+    },
+    distance: { base: 400, reference: 375, desktopBreakpoint: 992, desktopMin: 650, maximum: 950 },
+    physics: { coast: 4.2, edgeSpring: 14, marqueeDesktop: 40, marqueeMobile: 22 },
+    characters: {
+      current: {},
+      soft: {
+        travel: 'cubic-bezier(.45,0,.25,1)',
+        panel: 'cubic-bezier(.4,0,.2,1)',
+        release: 'cubic-bezier(.25,.55,.3,1)',
+        fade: 'ease-in-out',
+        control: 'cubic-bezier(.4,0,.2,1)',
+      },
+    },
+  };
+  const { distance } = config;
+  const physics = Object.freeze(config.physics);
+  function createProfile({ pace, character }) {
+    const curves = Object.freeze(config.characters[character]);
+    const time = (milliseconds) => Math.round(milliseconds * pace);
+    const easing = (role, original) => curves[role] || original;
+    // Clamp distance before applying this family's independent pace.
+    const horizontal = (width = innerWidth) =>
+      time(
+        matchMedia('(min-width:' + distance.desktopBreakpoint + 'px)').matches
+          ? Math.round(
+              Math.min(
+                distance.maximum,
+                Math.max(
+                  distance.desktopMin,
+                  distance.base * Math.sqrt(width / distance.reference),
+                ),
+              ),
+            )
+          : distance.base,
+      );
+    const vertical = (
+      height = document.documentElement.clientHeight || innerHeight || distance.reference,
+    ) =>
+      time(
+        Math.round(
+          Math.min(
+            distance.maximum,
+            Math.max(distance.base, distance.base * Math.sqrt(height / distance.reference)),
+          ),
+        ),
+      );
+    return Object.freeze({
+      pace,
+      character,
+      time,
+      easing,
+      horizontal,
+      vertical,
+      physics,
+      elapsed: (milliseconds) => milliseconds / pace,
+    });
+  }
+  const content = createProfile(config);
+  const families = Object.freeze(
+    Object.fromEntries(
+      Object.entries(config.families || {}).map(([name, settings]) => [
+        name,
+        createProfile(settings),
+      ]),
+    ),
+  );
+  const forFamily = (name) => families[name] || content;
+  // Set the same generated tokens once at startup, so deferred CSS and early JS
+  // cannot briefly use different profiles. There are no layout reads here.
+  const rootStyle = document.documentElement.style;
+  rootStyle.setProperty('--tdb-motion-pace', String(content.pace));
+  for (const [role, curve] of Object.entries(config.characters[content.character]))
+    if (role !== 'fade' || !families.fade)
+      rootStyle.setProperty('--tdb-motion-ease-' + role, curve);
+  for (const name of ['navigation', 'accordion', 'fade']) {
+    const family = forFamily(name);
+    rootStyle.setProperty('--tdb-' + name + '-pace', String(family.pace));
+    for (const role of ['travel', 'panel', 'release', 'fade', 'control'])
+      rootStyle.setProperty('--tdb-' + name + '-ease-' + role, family.easing(role, 'initial'));
+  }
+  if (families.fade)
+    rootStyle.setProperty('--tdb-motion-ease-fade', families.fade.easing('fade', 'initial'));
+  window.TDBMotionProfile = Object.freeze({
+    version: '1.1.0',
+    ...content,
+    easing: (role, original) =>
+      (role === 'fade' ? forFamily('fade') : content).easing(role, original),
+    families,
+    forFamily,
+  });
+})();
+
+/* TDB motion policy v1.0.0. Owner-approved full motion for design review.
+ * Inline the minified artifact at the start of the Webflow site head. This
+ * small policy does not fetch or eagerly initialize the shared motion module.
+ * It changes TDB's behavior only; the browser's media queries remain intact.
+ */
+(() => {
+  'use strict';
+  if (window.TDBMotionPolicy) return;
+  const reduced = Object.freeze({
+    matches: false,
+    addEventListener() {},
+    removeEventListener() {},
+    addListener() {},
+    removeListener() {},
+  });
+  window.TDBMotionPolicy = Object.freeze({ version: '1.0.0', mode: 'full', reduced });
+  document.documentElement.dataset.tdbMotion = 'full';
+})();
+
+/* TDB shared motion v1.24.2. Full-motion policy, timing and reusable effects. */
+(() => {
+  'use strict';
+  if (window.TDBMotion) return;
+
+  // Standalone consumers share the same full-motion default as the early site policy.
+  const reduced =
+    window.TDBMotionPolicy?.reduced ||
+    Object.freeze({
+      matches: false,
+      addEventListener() {},
+      removeEventListener() {},
+      addListener() {},
+      removeListener() {},
+    });
+
+  const profile = window.TDBMotionProfile;
+  const fadeProfile = profile?.forFamily?.('fade') || profile;
+  const time = (value) => profile?.time(value) ?? value;
+  const fadeTime = (value) => fadeProfile?.time(value) ?? value;
+  const easing = (role, value) =>
+    (role === 'fade' ? fadeProfile : profile)?.easing(role, value) || value;
+  const defaults = Object.freeze({
+    base: time(400),
+    desktopMin: time(650),
+    desktopMax: time(950),
+    referenceWidth: 375,
+    fadeOut: fadeTime(120),
+    fadeIn: fadeTime(350),
+    entryDelay: fadeTime(100),
+    ticker: time(400),
+    tickerRapid: time(160),
+    tickerFlow: time(1400),
+    mapTravel: time(2000),
+  });
+  function duration(width = innerWidth) {
+    if (profile) return profile.horizontal(width);
+    return matchMedia('(min-width:992px)').matches
+      ? Math.round(
+          Math.min(
+            defaults.desktopMax,
+            Math.max(
+              defaults.desktopMin,
+              defaults.base * Math.sqrt(width / defaults.referenceWidth),
+            ),
+          ),
+        )
+      : defaults.base;
+  }
+
+  // Continue an input-led scroll while momentum events keep arriving. A new
+  // navigation or an ended gesture must not authorise browser restoration.
+  function scrollIntent(target, position, signal, initialPosition) {
+    let inputUntil = -1,
+      movingUntil = -1,
+      held = false,
+      observed = initialPosition,
+      lastMovementUser = false;
+    const active = () => held || performance.now() <= Math.max(inputUntil, movingUntil);
+    const endScroll = () => {
+      inputUntil = movingUntil = -1;
+      held = false;
+    };
+    // Lifecycle resets only invalidate intent. The next scroll event/render
+    // supplies fresh geometry; hiding/restoring a page need not flush layout.
+    const reset = () => {
+      endScroll();
+      observed = null;
+      lastMovementUser = false;
+    };
+    const input = (event) => {
+      if (
+        event.type === 'keydown' &&
+        (!['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key) ||
+          event.target?.closest?.('input,textarea,select,[contenteditable="true"]'))
+      )
+        return;
+      inputUntil = performance.now() + 2000;
+      if (event.type === 'pointerdown') held = true;
+    };
+    const end = () => {
+      if (held || inputUntil >= 0) inputUntil = performance.now() + 2000;
+      held = false;
+    };
+    for (const name of ['wheel', 'touchstart', 'touchmove', 'pointerdown', 'keydown'])
+      target.addEventListener(name, input, { signal, passive: true, capture: true });
+    for (const name of ['pointerup', 'pointercancel', 'touchend', 'touchcancel'])
+      window.addEventListener(name, end, { signal, passive: true });
+    target.addEventListener(
+      'scroll',
+      () => {
+        const next = position();
+        if (next !== observed) {
+          lastMovementUser = active();
+          if (lastMovementUser) movingUntil = performance.now() + 250;
+        }
+        observed = next;
+      },
+      { signal, passive: true },
+    );
+    target.addEventListener('scrollend', endScroll, { signal, passive: true });
+    window.addEventListener('pagehide', reset, { signal });
+    window.addEventListener('pageshow', reset, { signal });
+    document.addEventListener('visibilitychange', reset, { signal });
+    return {
+      active: (currentPosition) => active() || (lastMovementUser && observed === currentPosition),
+    };
+  }
+  const coarsePointer = matchMedia('(pointer: coarse)');
+  const touchViewport = () => coarsePointer.matches;
+
+  // DD roots and page-break clients measure in one frame, before any of them
+  // mutate styles. Separate rAF callbacks still interleave reads and writes.
+  const motionReads = new Set();
+  let motionFrame = 0;
+  const reportFrameError = (error) => {
+    setTimeout(() => {
+      throw error;
+    }, 0);
+  };
+  // A snapshot lives only for this read phase. Never reuse geometry across
+  // frames: sticky elements, carousel transforms and restored scroll can move.
+  function frameMeasurements() {
+    let scroll, height, width, documentHeight;
+    const rectangles = new Map();
+    return {
+      get scroll() {
+        return (scroll ??= window.scrollY);
+      },
+      get height() {
+        return (height ??= window.innerHeight);
+      },
+      get width() {
+        return (width ??= window.innerWidth);
+      },
+      get documentHeight() {
+        return (documentHeight ??= document.documentElement.scrollHeight);
+      },
+      rect(node) {
+        if (!rectangles.has(node)) rectangles.set(node, node.getBoundingClientRect());
+        return rectangles.get(node);
+      },
+    };
+  }
+  function flushMotionFrame() {
+    motionFrame = 0;
+    const reads = [...motionReads],
+      writes = [],
+      frame = frameMeasurements();
+    motionReads.clear();
+    for (const read of reads) {
+      try {
+        const write = read(frame);
+        if (write) writes.push(write);
+      } catch (error) {
+        reportFrameError(error);
+      }
+    }
+    for (const write of writes) {
+      try {
+        write();
+      } catch (error) {
+        reportFrameError(error);
+      }
+    }
+  }
+  function requestMotionFrame(read) {
+    motionReads.add(read);
+    if (!motionFrame) motionFrame = requestAnimationFrame(flushMotionFrame);
+  }
+  function cancelMotionFrame(read) {
+    motionReads.delete(read);
+    if (!motionReads.size && motionFrame) {
+      cancelAnimationFrame(motionFrame);
+      motionFrame = 0;
+    }
+  }
+
+  // One opacity owner per node and one scheduler per scroll root. A visible
+  // first paint is retained; scroll, rather than elapsed time, consumes the
+  // initial difference. Layout changes and browser restoration rebase it.
+  const ddNodes = new Map(),
+    ddRoots = new Map();
+  const saveDD = () => window.TDBDDMemory?.save(ddNodes.values());
+  window.addEventListener('pagehide', saveDD);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) saveDD();
+  });
+  const ddClamp = (value) => Math.max(0, Math.min(1, value));
+  const ddCeiling = (preset) => (['orange', 'vimeo', 'image'].includes(preset) ? 1 : 0.5);
+  function ddOpacity(progress, preset = 'standard') {
+    const p = ddClamp(progress);
+    // Decorative photography reaches its full native colour and holds it.
+    // Text keeps the established half-opacity treatment.
+    if (preset === 'image') return Math.min(1, p / 0.3);
+    if (preset === 'orange') return p < 0.5 ? 0.3 + p * 1.4 : p <= 0.75 ? 1 : 1 - (p - 0.75) * 2;
+    // Native Vimeo Video Scroll: 0/0, 30/1, 75/1, 95/0.8, then hold.
+    // This is scroll progress, so the shared clock does not scale its geometry.
+    if (preset === 'vimeo') return p < 0.3 ? p / 0.3 : p <= 0.75 ? 1 : Math.max(0.8, 1.75 - p);
+    return p < 0.5 ? p : p <= 0.75 ? 0.5 : 0.5 - (p - 0.75) * 1.6;
+  }
+  function ddRoot(root) {
+    if (ddRoots.has(root)) return ddRoots.get(root);
+    const states = new Set(),
+      events = new AbortController(),
+      { signal } = events;
+    const target = root || window,
+      scrollTop = () => (root ? root.scrollTop : window.scrollY);
+    let queued = false,
+      layout = true,
+      disposed = false,
+      suspended = false;
+    // Registration may follow another component's DOM writes. Establish the
+    // scroll baseline with the first scheduled measurement, not during mount.
+    let lastScroll = null;
+    const intent = scrollIntent(target, scrollTop, signal, lastScroll);
+    const schedule = () => {
+      if (!queued && !disposed && !suspended && !document.hidden && states.size) {
+        queued = true;
+        requestMotionFrame(measure);
+      }
+    };
+    const refresh = () => {
+      layout = true;
+      schedule();
+    };
+    function retain(state, progress, low = 0, high = 1, range = 1) {
+      state.progress = state.targetProgress = progress;
+      state.ceiling = Math.max(state.value, ddCeiling(state.preset));
+      state.desired = state.value;
+      state.correction = {
+        anchor: progress,
+        low,
+        high,
+        range,
+        offset: state.value - ddOpacity(progress, state.preset),
+        weight: 1,
+      };
+    }
+    function measure(frame) {
+      queued = false;
+      if (disposed || suspended || document.hidden) return;
+      const scroll = root ? root.scrollTop : frame.scroll,
+        distance = lastScroll === null ? 0 : scroll - lastScroll;
+      const userScroll = distance !== 0 && intent.active(scroll);
+      const height = root ? root.clientHeight : frame.height;
+      if (!height) return;
+      const origin = root ? frame.rect(root).top + root.clientTop : 0;
+      const maximumScroll = Math.max(0, (root ? root.scrollHeight : frame.documentHeight) - height);
+      const width = frame.width;
+      const measurements = [...states].map((state) => {
+        const node = state.node,
+          rect = frame.rect(state.frame),
+          // Non-empty bounds already prove a CSS box exists. Only empty bounds
+          // need a fragment query to distinguish zero-area boxes from no box.
+          hasBox = rect.width > 0 || rect.height > 0 || state.frame.getClientRects().length > 0;
+        const inViewport = hasBox && rect.bottom > origin && rect.top < origin + height;
+        // Offscreen copy needs its position, not a computed-style lookup on
+        // every scroll frame. Read visibility again before it enters view.
+        const style = inViewport || state.pendingInitial ? getComputedStyle(node) : null;
+        const shown = hasBox && (!style || style.visibility !== 'hidden');
+        const initialValue = state.pendingInitial ? Number.parseFloat(style.opacity) : null;
+        const total = state.mode === 'region' ? height + rect.height : height;
+        const range =
+          state.mode === 'native' ? Math.min(height + rect.height, frame.documentHeight) : total;
+        const progress = ddClamp((height - (rect.top - origin)) / Math.max(1, range));
+        const low = ddClamp((height - (rect.top - origin + scroll)) / Math.max(1, range));
+        const high = ddClamp(
+          (height - (rect.top - origin + scroll) + maximumScroll) / Math.max(1, range),
+        );
+        return {
+          state,
+          shown,
+          initialValue,
+          progress,
+          low,
+          high,
+          range,
+          visible: shown && inViewport,
+          signature: [rect.top - origin + scroll, rect.height, height, low, high, width],
+        };
+      });
+      return () => {
+        let moving = false;
+        for (const g of measurements) {
+          const state = g.state;
+          if (state.pendingInitial) {
+            state.value = state.desired = Number.isFinite(g.initialValue) ? g.initialValue : 1;
+            state.pendingInitial = false;
+          }
+          if (!g.shown) {
+            state.geometry = null;
+            continue;
+          }
+          // Mobile browser chrome changes the visible height without changing
+          // the document layout. Keep scrolling through it; still rebase width,
+          // element geometry, nested-root resizing and explicit refreshes.
+          const mobilePage = !root && touchViewport();
+          const changed =
+            layout ||
+            !state.geometry ||
+            g.signature.some(
+              (v, i) => !(mobilePage && i >= 2 && i <= 4) && Math.abs(v - state.geometry[i]) > 0.5,
+            );
+          state.geometry = g.signature;
+          if (reduced.matches) {
+            state.node.style.opacity = state.original;
+            state.value = Number.parseFloat(getComputedStyle(state.node).opacity) || 0;
+            retain(state, g.progress, g.low, g.high, g.range);
+            continue;
+          }
+          if (!g.visible && !state.restored && !state.geometrySeen) {
+            state.progress = state.targetProgress = g.progress;
+            state.correction = null;
+            state.value = state.desired = ddOpacity(g.progress, state.preset);
+            state.ceiling = ddCeiling(state.preset);
+          } else if (changed || (distance !== 0 && !userScroll)) {
+            // Keyboard focus, anchors and restoration can bring an offscreen
+            // player into view without wheel/touch intent. Reveal that arrival;
+            // retain the painted opacity only when it was already in view.
+            if (
+              (state.preset === 'image' && distance !== 0 && !userScroll) ||
+              ((state.preset === 'vimeo' || state.value === 0) &&
+                state.geometrySeen &&
+                !state.visible &&
+                g.visible)
+            )
+              state.value = ddOpacity(g.progress, state.preset);
+            retain(state, g.progress, g.low, g.high, g.range);
+          } else if (userScroll) {
+            state.targetProgress = g.progress;
+            if (!g.visible) {
+              state.progress = g.progress;
+              state.correction = null;
+              state.value = state.desired = ddOpacity(g.progress, state.preset);
+            } else {
+              const c = state.correction;
+              if (c) {
+                // Use reachable endpoints: short case drawers and the page footer
+                // may never carry a caption completely outside their viewport.
+                const before = c.anchor > c.low ? (g.progress - c.low) / (c.anchor - c.low) : 1;
+                const after = c.anchor < c.high ? (c.high - g.progress) / (c.high - c.anchor) : 1;
+                const available =
+                  (g.progress >= c.anchor ? c.high - c.anchor : c.anchor - c.low) * c.range;
+                const travel = Math.max(80, Math.min(height * 0.5, available));
+                c.weight = ddClamp(
+                  Math.max(
+                    c.weight - Math.abs(distance) / travel,
+                    Math.min(c.weight, before, after),
+                  ),
+                );
+              }
+              state.progress =
+                state.mode === 'viewport'
+                  ? g.progress
+                  : state.progress + (g.progress - state.progress) * 0.5;
+              const normal = ddOpacity(state.progress, state.preset);
+              state.desired = Math.min(
+                state.ceiling,
+                ddClamp(normal + (c ? c.offset * c.weight : 0)),
+              );
+            }
+          } else if (
+            !changed &&
+            Math.abs(state.progress - state.targetProgress) >= 0.0001 &&
+            state.mode !== 'viewport'
+          ) {
+            state.progress += (state.targetProgress - state.progress) * 0.5;
+            if (Math.abs(state.targetProgress - state.progress) < 0.0001)
+              state.progress = state.targetProgress;
+            state.desired = Math.min(
+              state.ceiling,
+              ddClamp(
+                ddOpacity(state.progress, state.preset) +
+                  (state.correction ? state.correction.offset * state.correction.weight : 0),
+              ),
+            );
+          }
+          // Settling is permitted only after a user scroll established a target.
+          // It never pays down the startup correction by itself.
+          state.value =
+            state.mode === 'viewport'
+              ? state.value + (state.desired - state.value) * 0.5
+              : state.desired;
+          if (Math.abs(state.desired - state.value) < 0.0001) state.value = state.desired;
+          else moving = true;
+          if (Math.abs(state.progress - state.targetProgress) >= 0.0001) moving = true;
+          const opacity = String(ddClamp(state.value));
+          if (state.node.style.opacity !== opacity) state.node.style.opacity = opacity;
+          state.visible = g.visible;
+        }
+        for (const state of states) if (state.geometry) state.geometrySeen = true;
+        lastScroll = scroll;
+        layout = false;
+        if (moving) schedule();
+      };
+    }
+    target.addEventListener('scroll', schedule, { signal, passive: true });
+    window.addEventListener('resize', schedule, { signal, passive: true });
+    window.addEventListener('load', refresh, { signal });
+    window.addEventListener(
+      'pagehide',
+      () => {
+        suspended = true;
+        cancelMotionFrame(measure);
+        queued = false;
+      },
+      { signal },
+    );
+    window.addEventListener(
+      'pageshow',
+      () => {
+        suspended = false;
+        lastScroll = null;
+        refresh();
+      },
+      { signal },
+    );
+    document.addEventListener('visibilitychange', refresh, { signal });
+    reduced.addEventListener('change', refresh, { signal });
+    let resize;
+    if (typeof ResizeObserver !== 'undefined') {
+      resize = new ResizeObserver(schedule);
+      resize.observe(root || document.documentElement);
+    }
+    document.fonts?.ready.then(() => {
+      if (!disposed) refresh();
+    });
+    const api = {
+      root,
+      states,
+      schedule,
+      refresh,
+      resize,
+      destroy() {
+        disposed = true;
+        events.abort();
+        resize?.disconnect();
+        cancelMotionFrame(measure);
+        queued = false;
+        ddRoots.delete(root);
+      },
+    };
+    ddRoots.set(root, api);
+    return api;
+  }
+  function ddText(nodes, { root = null, mode = 'viewport', preset = 'standard' } = {}) {
+    const list = new Set(nodes);
+    for (const node of list) {
+      const existing = ddNodes.get(node);
+      if (existing) {
+        existing.clients++;
+        continue;
+      }
+      const restored = window.TDBDDMemory?.take(node) || false;
+      const owner = ddRoot(root);
+      const state = {
+        node,
+        // Parallax moves the photograph inside this stationary native frame.
+        // Its movement must not keep rebasing the independent opacity reveal.
+        frame: preset === 'image' ? node.closest('[data-tdb-page-break]') || node : node,
+        owner,
+        mode,
+        preset,
+        restored,
+        clients: 1,
+        original: node.style.opacity,
+        value: null,
+        desired: null,
+        pendingInitial: true,
+        progress: 0,
+        geometry: null,
+      };
+      ddNodes.set(node, state);
+      owner.states.add(state);
+      owner.resize?.observe(node);
+      owner.schedule();
+    }
+    let destroyed = false;
+    return Object.freeze({
+      enter(nodes = list, { atPosition = false } = {}) {
+        // A slide entrance is an explicit new visual state, not page restoration.
+        // Measure the whole batch before resetting any opacity.
+        const frame = frameMeasurements(),
+          entries = [];
+        for (const node of nodes) {
+          const state = ddNodes.get(node);
+          if (!state || !list.has(node)) continue;
+          let value = 1,
+            progress = state.progress;
+          if (atPosition) {
+            const root = state.owner.root,
+              rect = frame.rect(state.frame);
+            const height = root ? root.clientHeight : frame.height;
+            const origin = root ? frame.rect(root).top + root.clientTop : 0;
+            const range =
+              state.mode === 'viewport'
+                ? height
+                : state.mode === 'native'
+                  ? Math.min(height + rect.height, frame.documentHeight)
+                  : height + rect.height;
+            progress = ddClamp((height - (rect.top - origin)) / Math.max(1, range));
+            value = ddOpacity(progress, state.preset);
+          }
+          entries.push({ node, state, value, progress });
+        }
+        for (const { node, state, value, progress } of entries) {
+          state.pendingInitial = false;
+          state.progress = progress;
+          state.value = state.desired = value;
+          state.ceiling = Math.max(value, ddCeiling(state.preset));
+          state.restored = false;
+          state.geometry = null;
+          state.geometrySeen = true;
+          node.style.opacity = String(value);
+          state.owner.refresh();
+        }
+      },
+      refresh() {
+        for (const node of list) ddNodes.get(node)?.owner.refresh();
+      },
+      destroy() {
+        if (destroyed) return;
+        destroyed = true;
+        for (const node of list) {
+          const state = ddNodes.get(node);
+          if (!state || --state.clients) continue;
+          node.style.opacity = state.original;
+          state.owner.resize?.unobserve(node);
+          state.owner.states.delete(state);
+          ddNodes.delete(node);
+          if (!state.owner.states.size) state.owner.destroy();
+        }
+      },
+    });
+  }
+  function ddRegion(nodes, { root = null, preset = 'standard', mode = 'region' } = {}) {
+    return ddText(nodes, { root, preset, mode });
+  }
+
+  // Scroll effects share one owner. Layout/crop/start states stay in Designer.
+  // Opacity-only sections use the same progress, scheduler and reload lifecycle.
+  // A visible first frame is retained; only actual scrolling pays down its
+  // initial offset. No animation clock, startup tween or trailing rAF loop.
+  const pageBreakClients = new Map();
+  function pageBreaks(wrappers) {
+    const controller = new AbortController(),
+      { signal } = controller;
+    const states = [],
+      owned = [];
+    const memory = window.TDBPageBreakMemory;
+    const remember = () => memory?.save(states.filter((state) => !state.translate));
+    let queued = false,
+      layout = true,
+      suspended = false,
+      disposed = false,
+      released = false;
+    let lastScroll = null;
+    let intent;
+    const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
+    const yOf = (node) => {
+      const transform = getComputedStyle(node).transform;
+      return transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m42;
+    };
+    const schedule = () => {
+      if (!queued && !disposed && !suspended && !document.hidden) {
+        queued = true;
+        requestMotionFrame(measure);
+      }
+    };
+    const refresh = () => {
+      states.forEach(syncTargets);
+      layout = true;
+      schedule();
+    };
+    // A carousel's images share one vertical position. Its horizontal Swiper
+    // transform remains untouched, including on loop clones and after resize.
+    function syncTargets(state) {
+      if (!state.translate) return;
+      const targets = [...state.wrapper.querySelectorAll(state.targetSelector)];
+      for (const [node, original] of state.originalTranslations) {
+        if (!targets.includes(node)) {
+          node.style.translate = original;
+          state.originalTranslations.delete(node);
+        }
+      }
+      for (const node of targets) {
+        if (!state.originalTranslations.has(node))
+          state.originalTranslations.set(
+            node,
+            node.closest('.swiper-slide-duplicate') ? '' : node.style.translate,
+          );
+      }
+      state.targets = targets;
+    }
+    function retain(state, progress, target, alpha, reveal) {
+      state.correction =
+        Math.abs(state.y - target) < 0.001 &&
+        Math.abs(state.alpha - alpha) < 0.001 &&
+        Math.abs(state.revealAlpha - reveal) < 0.001
+          ? null
+          : {
+              anchor: progress,
+              offset: state.y - target,
+              alpha: state.alpha - alpha,
+              reveal: state.revealAlpha - reveal,
+              weight: 1,
+            };
+    }
+    function curveAt(points, progress) {
+      for (let i = 1; i < points.length; i++) {
+        if (progress <= points[i][0]) {
+          const [x, y] = points[i - 1],
+            [nextX, nextY] = points[i];
+          return y + (nextY - y) * clamp((progress - x) / (nextX - x), 0, 1);
+        }
+      }
+      return points[points.length - 1][1];
+    }
+    function geometry(state, scroll, frame) {
+      const box = frame.rect(state.wrapper);
+      const crop = state.cropFrame ? frame.rect(state.cropFrame) : box;
+      // Opt-in full-frame photos share their native resting scale with CSS.
+      // Cache only the scale, not the position: scroll/resize still use today's
+      // crop. No animated rect reads or new moving wrapper are needed.
+      if (
+        state.restingScale &&
+        (layout ||
+          !state.geometry ||
+          crop.width !== state.cropWidth ||
+          box.height !== state.geometry[1] ||
+          frame.height !== state.geometry[3] ||
+          frame.width !== state.geometry[7])
+      ) {
+        state.cropWidth = crop.width;
+        state.nativeScale = Number(
+          getComputedStyle(state.targets[0] || state.node).getPropertyValue(state.restingScale),
+        );
+      }
+      const restingHeight =
+        state.nativeScale >= 1 && Number.isFinite(state.nativeScale)
+          ? crop.height * state.nativeScale
+          : 0;
+      const representative =
+        !restingHeight && state.translate
+          ? state.targets.find((node) => frame.rect(node).height > 0) || state.node
+          : state.node;
+      const image = restingHeight
+        ? {
+            height: restingHeight,
+            top: crop.top - (restingHeight - crop.height) / 2 + state.y,
+            bottom: crop.bottom + (restingHeight - crop.height) / 2 + state.y,
+          }
+        : state.translate
+          ? frame.rect(representative)
+          : state.opacityOnly
+            ? box
+            : frame.rect(state.node);
+      const view = frame.height;
+      // Subtract our translation when measuring crop. Never measure progress
+      // against the moving image (which would feed back into its own progress).
+      const top = image.top - state.y,
+        bottom = image.bottom - state.y;
+      const cropLow = Math.min(0, crop.bottom - bottom);
+      const cropHigh = Math.max(0, crop.top - top);
+      const pixels = (value) =>
+        value[0] * (value[1] === '%' ? image.height / 100 : value[1] === 'vh' ? view / 100 : 1);
+      const bounded = (value) =>
+        state.allowEdges ? pixels(value) : clamp(pixels(value), cropLow, cropHigh);
+      const from = bounded(state.from),
+        to = bounded(state.to);
+      const low = Math.min(from, to),
+        high = Math.max(from, to);
+      const progressHeight = state.imageProgress ? image.height : box.height;
+      // Optional exit timing uses the native sticky frame's stable height.
+      // Example: darken while 1.3 -> 1 frame-heights of the section remain.
+      const frameHeight = state.exitFrame ? frame.rect(state.exitFrame).height : view;
+      const progress = clamp((view - box.top) / (view + progressHeight), 0, 1);
+      const fadeProgress = state.exitRange
+        ? clamp(
+            (state.exitRange[0] * frameHeight - box.bottom) /
+              Math.max(1, (state.exitRange[0] - state.exitRange[1]) * frameHeight),
+            0,
+            1,
+          )
+        : progress;
+      return {
+        low,
+        high,
+        progress,
+        target: from + (to - from) * progress,
+        alpha: state.curve
+          ? curveAt(state.curve, fadeProgress)
+          : state.fade
+            ? 1 - clamp((fadeProgress - state.fade[0]) / (state.fade[1] - state.fade[0]), 0, 1)
+            : 1,
+        // Opt-in image reveal: enter after the section reaches the top;
+        // disappear over the final frame fraction, independently of its backdrop.
+        reveal: state.reveal
+          ? Math.min(
+              clamp(-box.top / (state.reveal[0] * frameHeight), 0, 1),
+              clamp(
+                (box.bottom - state.reveal[2] * frameHeight) / (state.reveal[1] * frameHeight),
+                0,
+                1,
+              ),
+            )
+          : 1,
+        visible: box.bottom > 0 && box.top < view && box.height > 0,
+        signature: [
+          box.top + scroll,
+          box.height,
+          image.height,
+          view,
+          low,
+          high,
+          frameHeight,
+          frame.width,
+        ],
+      };
+    }
+    function measure(frame = frameMeasurements()) {
+      queued = false;
+      if (disposed || suspended || document.hidden) return;
+      const scroll = frame.scroll,
+        distance = lastScroll === null ? 0 : scroll - lastScroll;
+      const userScroll = distance !== 0 && intent.active(scroll);
+      // Read every rect first, then write. Each wrapper is independent.
+      const measurements = [];
+      for (const state of states) {
+        const box = frame.rect(state.wrapper);
+        const side = box.top >= frame.height ? 1 : box.bottom <= 0 ? -1 : 0;
+        // Once an offscreen section has settled at an edge, its image crop and
+        // transforms need no further measurement until it approaches the view.
+        if (!layout && side && side === state.offscreenSide && state.geometry) continue;
+        state.offscreenSide = side;
+        measurements.push([state, geometry(state, scroll, frame)]);
+      }
+      return () => {
+        for (const [state, g] of measurements) {
+          const mobilePage = touchViewport();
+          const changed =
+            layout ||
+            !state.geometry ||
+            g.signature.some(
+              (n, i) =>
+                !(mobilePage && ((i >= 3 && i <= 5) || (i === 6 && !state.exitFrame))) &&
+                Math.abs(n - state.geometry[i]) > 0.5,
+            );
+          const previous = state.y;
+          state.geometry = g.signature;
+          state.y = clamp(state.y, g.low, g.high);
+          if (scroll > 1) state.hasLeftTop = true;
+          if (state.resetAtTop && scroll <= 1 && state.hasLeftTop) {
+            // Recover only after leaving the top. Initial mounting and image/font
+            // loads must keep the already painted crop, so phased entry does not
+            // acquire a second translation. A later non-gesture return still
+            // restores the exit fade beneath the transparent navigation.
+            state.y = g.target;
+            state.alpha = g.alpha;
+            state.revealAlpha = g.reveal;
+            state.correction = null;
+            state.hasLeftTop = false;
+          } else if (!g.visible) {
+            // The browser may restore scroll after this first render. Keep the
+            // prepaint snapshot until that happens or the user starts scrolling.
+            if (!state.restored || userScroll) {
+              state.y = g.target;
+              state.alpha = g.alpha;
+              state.revealAlpha = g.reveal;
+            }
+            state.correction = null;
+          } else if (changed || (distance !== 0 && !userScroll)) {
+            // Resize/layout movement and browser scroll restoration are not a
+            // user's first scroll pass. Rebase at the currently painted position.
+            retain(state, g.progress, g.target, g.alpha, g.reveal);
+          } else if (userScroll) {
+            const correction = state.correction;
+            if (correction) {
+              // The envelope only shrinks. Reversing through the original anchor
+              // never restores consumed offset or causes a discontinuity.
+              const before = correction.anchor > 0 ? g.progress / correction.anchor : 1;
+              const after = correction.anchor < 1 ? (1 - g.progress) / (1 - correction.anchor) : 1;
+              correction.weight = clamp(Math.min(correction.weight, before, after), 0, 1);
+            }
+            const desired = g.target + (correction ? correction.offset * correction.weight : 0);
+            state.alpha = clamp(
+              g.alpha + (correction ? correction.alpha * correction.weight : 0),
+              0,
+              1,
+            );
+            state.revealAlpha = clamp(
+              g.reveal + (correction ? correction.reveal * correction.weight : 0),
+              0,
+              1,
+            );
+            // Near an exit the available distance can be tiny. Cap visible speed;
+            // any last fraction is aligned on the first fully off-screen frame.
+            const step = Math.abs(distance) * 0.15;
+            state.y = clamp(clamp(desired, previous - step, previous + step), g.low, g.high);
+            if (correction && correction.weight === 0 && Math.abs(state.y - g.target) < 0.001)
+              state.correction = null;
+          }
+          if (reduced.matches) {
+            state.y = clamp(0, g.low, g.high);
+            state.correction = null;
+            state.alpha = 1;
+            state.revealAlpha = 1;
+          }
+          state.progress = g.progress;
+          state.visible = g.visible;
+          if (g.visible || userScroll) state.restored = false;
+        }
+        for (const state of states) {
+          const value = `translate3d(0, ${state.y.toFixed(4)}px, 0)`;
+          if (state.translate) {
+            const translation = `0px ${state.y.toFixed(4)}px`;
+            for (const node of state.targets)
+              if (node.style.translate !== translation) node.style.translate = translation;
+          } else if (!state.opacityOnly && state.node.style.transform !== value)
+            state.node.style.transform = value;
+          if (state.reveal && state.node.style.opacity !== String(state.revealAlpha))
+            state.node.style.opacity = String(state.revealAlpha);
+          state.fadeTargets.forEach((target, i) => {
+            const alpha = state.fadeEnds[i] + (state.fadeFrom[i] - state.fadeEnds[i]) * state.alpha;
+            const value =
+              state.fadeProperties[i] === 'backgroundColor'
+                ? `rgba(0, 0, 0, ${alpha})`
+                : String(alpha);
+            if (target.style[state.fadeProperties[i]] !== value)
+              target.style[state.fadeProperties[i]] = value;
+          });
+        }
+        lastScroll = scroll;
+        layout = false;
+      };
+    }
+    for (const input of new Set(wrappers)) {
+      const options = input.wrapper ? input : null;
+      const wrapper = options ? options.wrapper : input;
+      const existing = pageBreakClients.get(input);
+      if (existing) {
+        existing.clients++;
+        owned.push(existing);
+        continue;
+      }
+      const translate = Boolean(options?.selector);
+      const opacityOnly =
+        !translate && wrapper.getAttribute?.('data-tdb-parallax-mode') === 'opacity';
+      const node = translate
+        ? wrapper.querySelector(options.selector)
+        : opacityOnly
+          ? wrapper
+          : wrapper.querySelector('[data-tdb-page-break-image]') || wrapper.querySelector('img');
+      if (!node) continue;
+      const distance = (name, fallback) => {
+        const match = /^(-?(?:\d+(?:\.\d+)?|\.\d+))(vh|%|px)$/.exec(
+          wrapper.getAttribute?.(name)?.trim() || fallback,
+        );
+        return match && Number.isFinite(+match[1]) ? [+match[1], match[2]] : distance('', fallback);
+      };
+      const fadeStart = translate
+        ? NaN
+        : Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-fade-start'));
+      const fadeEnd = translate
+        ? NaN
+        : Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-fade-end'));
+      const fade =
+        fadeStart >= 0 && fadeEnd <= 1 && fadeEnd > fadeStart ? [fadeStart, fadeEnd] : null;
+      const points = (wrapper.getAttribute?.('data-tdb-parallax-fade-curve') || '')
+        .split(',')
+        .map((pair) => pair.split(':').map(Number));
+      const curve =
+        !translate &&
+        points.length > 1 &&
+        points.every(
+          (point, i) =>
+            point.length === 2 &&
+            point.every((value) => Number.isFinite(value) && value >= 0 && value <= 1) &&
+            (!i || point[0] > points[i - 1][0]),
+        )
+          ? points
+          : null;
+      // Explicitly scoped selectors preserve coupled fades whose painted target
+      // is outside the measured frame (for example a matching footer logo).
+      // Without both opt-ins, existing page breaks retain descendant ownership.
+      const fadeSelector = wrapper.getAttribute?.('data-tdb-parallax-fade-selector');
+      const fadeScope = fadeSelector && wrapper.closest('[data-tdb-parallax-scope]');
+      const fadeTargets =
+        fade || curve
+          ? [
+              ...(fadeScope || wrapper).querySelectorAll(
+                fadeScope ? fadeSelector : '[data-tdb-parallax-fade]',
+              ),
+            ]
+          : [];
+      const defaultFadeEnd = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-fade-to'));
+      const fadeEnds = fadeTargets.map((target) => {
+        const value = Number.parseFloat(target.getAttribute('data-tdb-parallax-fade'));
+        return Number.isFinite(value)
+          ? clamp(value, 0, 1)
+          : fadeScope && Number.isFinite(defaultFadeEnd)
+            ? clamp(defaultFadeEnd, 0, 1)
+            : 0;
+      });
+      const fadeFrom = fadeTargets.map((target) => {
+        const value = Number.parseFloat(target.getAttribute('data-tdb-parallax-fade-from'));
+        return Number.isFinite(value) ? clamp(value, 0, 1) : 1;
+      });
+      const fadeProperties = fadeTargets.map((target) =>
+        target.getAttribute('data-tdb-parallax-fade-property') === 'black'
+          ? 'backgroundColor'
+          : 'opacity',
+      );
+      const painted = fadeTargets.length
+        ? getComputedStyle(fadeTargets[0])[fadeProperties[0]]
+        : '1';
+      const initial =
+        fadeProperties[0] === 'backgroundColor'
+          ? painted.startsWith('rgba')
+            ? Number.parseFloat(painted.split(',')[3])
+            : 1
+          : Number.parseFloat(painted);
+      const snapshot = translate ? null : memory?.take(node);
+      const exitStart = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-exit-start'));
+      const exitEnd = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-exit-end'));
+      const exitRange =
+        wrapper.getAttribute?.('data-tdb-parallax-progress') === 'exit' &&
+        Number.isFinite(exitStart) &&
+        exitStart > exitEnd &&
+        exitEnd >= 0
+          ? [exitStart, exitEnd]
+          : null;
+      const revealIn = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-reveal-in'));
+      const revealOut = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-reveal-out'));
+      const revealEnd = Number.parseFloat(
+        wrapper.getAttribute?.('data-tdb-parallax-reveal-out-end'),
+      );
+      const reveal =
+        !translate &&
+        !opacityOnly &&
+        Number.isFinite(revealIn) &&
+        revealIn > 0 &&
+        Number.isFinite(revealOut) &&
+        revealOut > 0
+          ? [revealIn, revealOut, Number.isFinite(revealEnd) && revealEnd >= 0 ? revealEnd : 0]
+          : null;
+      const state = {
+        key: input,
+        wrapper,
+        node,
+        translate,
+        targetSelector: options?.selector,
+        restingScale: options?.restingScale,
+        cropFrame: options?.frame ? wrapper.querySelector(options.frame) : null,
+        targets: [],
+        originalTranslations: new Map(),
+        opacityOnly,
+        reveal,
+        revealAlpha: reveal
+          ? clamp(Number.parseFloat(getComputedStyle(node).opacity) || 0, 0, 1)
+          : 1,
+        originalImageOpacity: snapshot ? snapshot.originalImageOpacity : node.style.opacity,
+        y: translate
+          ? Number.parseFloat(getComputedStyle(node).translate?.split(' ')[1]) || 0
+          : opacityOnly
+            ? 0
+            : yOf(node),
+        original: snapshot ? snapshot.original : node.style.transform,
+        restored: Boolean(snapshot),
+        correction: null,
+        fade,
+        curve,
+        fadeTargets,
+        fadeEnds,
+        fadeFrom,
+        fadeProperties,
+        allowEdges:
+          options?.allowEdges || wrapper.getAttribute?.('data-tdb-parallax-crop') === 'allow',
+        exitRange,
+        exitFrame: exitRange || reveal ? wrapper.querySelector('[data-tdb-parallax-frame]') : null,
+        imageProgress: wrapper.getAttribute?.('data-tdb-parallax-progress') === 'image',
+        resetAtTop: wrapper.hasAttribute?.('data-tdb-parallax-reset-top'),
+        hasLeftTop: false,
+        alpha:
+          fadeTargets.length && fadeEnds[0] !== fadeFrom[0]
+            ? clamp((initial - fadeEnds[0]) / (fadeFrom[0] - fadeEnds[0]), 0, 1)
+            : 1,
+        originalOpacity:
+          snapshot?.originalOpacity ||
+          fadeTargets.map((target, i) => target.style[fadeProperties[i]]),
+        from: opacityOnly ? [0, 'px'] : distance('data-tdb-parallax-from', '-2vh'),
+        to: opacityOnly ? [0, 'px'] : distance('data-tdb-parallax-to', '2vh'),
+      };
+      syncTargets(state);
+      states.push(state);
+      const owner = { clients: 1, wrapper: input, release: () => release(state), refresh };
+      pageBreakClients.set(input, owner);
+      owned.push(owner);
+    }
+    let resize;
+    if (states.length) {
+      const resizeSchedule = () => {
+        // Offscreen crops still need to pick up responsive geometry changes.
+        for (const state of states) state.offscreenSide = 0;
+        schedule();
+      };
+      intent = scrollIntent(window, () => window.scrollY, signal, lastScroll);
+      window.addEventListener('scroll', schedule, { passive: true, signal });
+      window.addEventListener('resize', resizeSchedule, { passive: true, signal });
+      window.addEventListener(
+        'pageshow',
+        () => {
+          suspended = false;
+          lastScroll = null;
+          refresh();
+        },
+        { signal },
+      );
+      window.addEventListener(
+        'pagehide',
+        () => {
+          remember();
+          suspended = true;
+          cancelMotionFrame(measure);
+          queued = false;
+        },
+        { signal },
+      );
+      document.addEventListener(
+        'visibilitychange',
+        () => {
+          if (document.hidden) remember();
+          else refresh();
+        },
+        { signal },
+      );
+      window.addEventListener('load', refresh, { signal });
+      reduced.addEventListener('change', refresh, { signal });
+      if (typeof ResizeObserver !== 'undefined') {
+        resize = new ResizeObserver(resizeSchedule);
+        resize.observe(document.documentElement);
+        if (document.body) resize.observe(document.body);
+        for (const state of states) {
+          resize.observe(state.wrapper);
+          resize.observe(state.node);
+        }
+      }
+      for (const state of states) state.node.addEventListener('load', refresh, { signal });
+      document.fonts?.ready.then(() => {
+        if (!disposed) refresh();
+      });
+      // Apply synchronously: visible images keep their current translation;
+      // off-screen images are positioned before the next paint.
+      measure()?.();
+    } else controller.abort();
+    function release(state) {
+      const index = states.indexOf(state);
+      if (index !== -1) states.splice(index, 1);
+      state.node.removeEventListener('load', refresh);
+      resize?.unobserve(state.wrapper);
+      resize?.unobserve(state.node);
+      if (state.translate) {
+        for (const [node, original] of state.originalTranslations) node.style.translate = original;
+      } else if (!state.opacityOnly) state.node.style.transform = state.original;
+      if (state.reveal) state.node.style.opacity = state.originalImageOpacity;
+      state.fadeTargets.forEach((target, i) => {
+        target.style[state.fadeProperties[i]] = state.originalOpacity[i];
+      });
+      if (!states.length) {
+        disposed = true;
+        controller.abort();
+        resize?.disconnect();
+        cancelMotionFrame(measure);
+        queued = false;
+      }
+    }
+    return Object.freeze({
+      refresh: () => {
+        if (!released)
+          for (const refresh of new Set(owned.map((owner) => owner.refresh))) refresh();
+      },
+      status: () =>
+        states.map((state) => ({
+          progress: state.progress,
+          y: state.y,
+          alpha: state.alpha,
+          visible: state.visible,
+          correcting: Boolean(state.correction),
+        })),
+      destroy() {
+        if (released) return;
+        released = true;
+        for (const owner of owned)
+          if (!--owner.clients) {
+            owner.release();
+            pageBreakClients.delete(owner.wrapper);
+          }
+      },
+    });
+  }
+
+  // Components select the appropriate choreography. These values preserve the
+  // established review fades, including forward/backward and cancelled drags.
+  const carousel = Object.freeze({
+    copyIn: fadeTime(400),
+    copyOut: fadeTime(150),
+    copyEaseIn: easing('fade', 'ease-in'),
+    copyEaseOut: easing('fade', 'ease-out'),
+    nextDelay: time(100),
+    previousDelay: time(140),
+    settleDelay: time(60),
+    entryStart: time(120),
+    entryRetry: 100,
+    entryFallback: time(300),
+  });
+  const reviews = Object.freeze({
+    fade: fadeTime(400),
+    summaryHold: time(600),
+    openDelay: time(500),
+    nextDelay: carousel.nextDelay,
+    previousDelay: carousel.previousDelay,
+    cardDelay: carousel.settleDelay,
+    initialDelay: time(100),
+    easing: easing('travel', 'ease'),
+  });
+  function fadeController() {
+    const states = new Map();
+    function to(node, target, milliseconds = reviews.fade, curve = easing('fade', 'ease-out')) {
+      if (!node) return;
+      const old = states.get(node);
+      if (old?.target === target && (milliseconds !== 0 || !old.animation)) return;
+      const from = Number.parseFloat(getComputedStyle(node).opacity) || 0;
+      const original = old ? old.original : node.style.opacity;
+      old?.animation?.cancel();
+      node.style.opacity = String(target);
+      const state = { target, original, animation: null };
+      states.set(node, state);
+      if (milliseconds > 0 && Math.abs(from - target) > 0.001 && node.animate) {
+        const animation = node.animate([{ opacity: from }, { opacity: target }], {
+          duration: milliseconds,
+          easing: curve,
+        });
+        state.animation = animation;
+        animation.onfinish = () => {
+          if (states.get(node) === state) state.animation = null;
+        };
+      }
+    }
+    return Object.freeze({
+      to,
+      destroy() {
+        states.forEach((state, node) => {
+          state.animation?.cancel();
+          node.style.opacity = state.original;
+        });
+        states.clear();
+      },
+    });
+  }
+
+  // Filter-to-X visual toggle. Native SVG lines/styles define the starting artwork.
+  // The consumer decides whether a filter panel exists; this helper owns only the icon.
+  let filterMaskSequence = 0;
+  function filterToggle(button, { onChange } = {}) {
+    const lines = button
+      ? ['top', 'middle', 'bottom'].map((part) =>
+          button.querySelector('[data-tdb-filter-line="' + part + '"]'),
+        )
+      : [];
+    if (lines.length !== 3 || lines.some((line) => !line))
+      return { set() {}, reset() {}, destroy() {} };
+    const controller = new AbortController(),
+      { signal } = controller;
+    const svg = lines[0].ownerSVGElement,
+      mask = svg.querySelector('[data-tdb-filter-mask]'),
+      paint = svg.querySelector('[data-tdb-filter-paint]');
+    // Paint currentColor once through the union of opaque strokes, avoiding alpha buildup.
+    const maskId = mask?.id,
+      paintMask = paint?.getAttribute('mask');
+    if (mask && paint) {
+      mask.id = 'tdb-filter-shape-live-' + ++filterMaskSequence;
+      paint.setAttribute('mask', 'url(#' + mask.id + ')');
+    }
+    const view = svg.viewBox.baseVal;
+    const cx = view.x + view.width / 2,
+      cy = view.y + view.height / 2,
+      length = Math.min(view.width, view.height) * 0.8;
+    const targets = lines.map((line, index) => {
+      const x1 = +line.getAttribute('x1'),
+        x2 = +line.getAttribute('x2');
+      const y1 = +line.getAttribute('y1'),
+        y2 = +line.getAttribute('y2');
+      return index === 1
+        ? 'scaleX(0)'
+        : 'translate(' +
+            (cx - (x1 + x2) / 2) +
+            'px,' +
+            (cy - (y1 + y2) / 2) +
+            'px) rotate(' +
+            (index === 0 ? 45 : -45) +
+            'deg) scaleX(' +
+            length / Math.hypot(x2 - x1, y2 - y1) +
+            ')';
+    });
+    let pressed = false,
+      animations = [];
+    function set(value, immediate = false) {
+      const current = lines.map((line, index) => {
+        const transform = getComputedStyle(line).transform;
+        // Keep the middle line as a scale function: a zero-width matrix is singular
+        // and cannot interpolate smoothly back to the identity matrix.
+        return {
+          transform:
+            index === 1
+              ? 'scaleX(' + (transform === 'none' ? 1 : new DOMMatrix(transform).a) + ')'
+              : transform,
+        };
+      });
+      animations.forEach((animation) => animation.cancel());
+      const changed = pressed !== value;
+      pressed = value;
+      button.setAttribute('aria-pressed', String(value));
+      animations = lines.map((line, index) =>
+        line.animate(
+          [
+            current[index],
+            {
+              transform: value ? targets[index] : index === 1 ? 'scaleX(1)' : 'none',
+            },
+          ],
+          {
+            duration: immediate || reduced.matches ? 0 : time(300),
+            easing: easing('control', 'ease-in-out'),
+            fill: 'both',
+          },
+        ),
+      );
+      if (changed) onChange?.(value, immediate);
+    }
+    const toggle = (event) => {
+      if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) return;
+      event.preventDefault();
+      if (button.getAttribute('aria-disabled') !== 'true') set(!pressed);
+    };
+    button.setAttribute('aria-pressed', 'false');
+    button.addEventListener('click', toggle, { signal });
+    button.addEventListener('keydown', toggle, { signal });
+    reduced.addEventListener('change', () => set(pressed, true), { signal });
+    return {
+      set,
+      reset(immediate = false) {
+        if (pressed) set(false, immediate);
+      },
+      destroy() {
+        controller.abort();
+        animations.forEach((animation) => animation.cancel());
+        button.setAttribute('aria-pressed', 'false');
+        if (mask && paint) {
+          mask.id = maskId;
+          if (paintMask === null) paint.removeAttribute('mask');
+          else paint.setAttribute('mask', paintMask);
+        }
+      },
+    };
+  }
+
+  // Native service steps share the DD/parallax read/write scheduler. On mobile,
+  // the rail follows the line continuously, using scroll events rather than a timer.
+  const serviceJourneys = new WeakMap();
+  function serviceJourney(root) {
+    if (serviceJourneys.has(root)) return serviceJourneys.get(root);
+    const rail = root.querySelector('.service-process_sticky');
+    const timeline = root.querySelector('.service-process_timeline');
+    const entries = [...(rail?.querySelectorAll('.service-process_item[href^="#"]') || [])]
+      .map((link) => ({
+        link,
+        dot: link.querySelector('.service-process-dot_wrapper') || link,
+        step: document.getElementById(link.hash.slice(1)),
+      }))
+      .filter(({ step }) => step && root.contains(step));
+    if (!entries.length) return { refresh() {}, destroy() {} };
+    const controller = new AbortController(),
+      { signal } = controller;
+    const mobile = matchMedia('(max-width:767px)');
+    let active = -1,
+      visible = true;
+    const previousWidth = timeline?.style.width || '';
+    rail.setAttribute('data-tdb-process-nav', '');
+    function read(frame) {
+      if (!visible || document.hidden || !root.isConnected) return;
+      const band = frame.rect(rail);
+      const edge = band.height + frame.height * 0.2;
+      const rects = entries.map(({ step }) => frame.rect(step));
+      let next = -1;
+      rects.forEach((rect, index) => {
+        if (rect.top <= edge) next = index;
+      });
+      // Each section's leading edge maps to its actual marker, rather than a
+      // fraction of the whole journey. Unequal section heights and the mobile
+      // rail therefore cannot make the line and highlighted marker disagree.
+      const track = frame.rect(timeline?.parentElement || rail);
+      const origin = timeline ? frame.rect(timeline).left : track.left;
+      const extent = Math.max(1, track.right - origin || track.width);
+      const markers = entries.map(({ dot }) => {
+        const rect = frame.rect(dot);
+        return Math.max(0, Math.min(extent, rect.left + rect.width / 2 - origin));
+      });
+      const start = next < 0 ? rects[0].top - frame.height : rects[next].top;
+      const end = next + 1 < rects.length ? rects[next + 1].top : rects.at(-1).bottom;
+      const from = next < 0 ? 0 : markers[next];
+      const to = next + 1 < markers.length ? markers[next + 1] : extent;
+      const fraction = Math.min(1, Math.max(0, (edge - start) / Math.max(1, end - start)));
+      const width = from + (to - from) * fraction;
+      const changed = next !== active;
+      let left = mobile.matches ? undefined : 0;
+      if (mobile.matches && (!reduced.matches || changed)) {
+        const focus = reduced.matches ? (next < 0 ? 0 : markers[next]) : width;
+        left = Math.max(
+          0,
+          Math.min(
+            rail.scrollWidth - rail.clientWidth,
+            rail.scrollLeft + origin - band.left + focus - band.width / 2,
+          ),
+        );
+      }
+      return () => {
+        if (timeline) timeline.style.width = `${Math.round(width * 100) / 100}px`;
+        // A smooth scroll here would lag behind the page and restart every frame.
+        // Reduced motion centres only a newly reached marker, without animation.
+        if (left !== undefined && Math.abs(left - rail.scrollLeft) > 0.25)
+          rail.scrollTo({ left, behavior: 'instant' });
+        if (!changed) return;
+        active = next;
+        entries.forEach(({ link }, index) => {
+          link.toggleAttribute('data-tdb-process-reached', index <= active);
+          if (index === active) link.setAttribute('aria-current', 'step');
+          else link.removeAttribute('aria-current');
+        });
+      };
+    }
+    const schedule = () => requestMotionFrame(read);
+    const observer =
+      typeof IntersectionObserver === 'function'
+        ? new IntersectionObserver(
+            (items) => {
+              visible = items.some((item) => item.isIntersecting);
+              if (visible) schedule();
+              else cancelMotionFrame(read);
+            },
+            { rootMargin: '100px 0px' },
+          )
+        : null;
+    observer?.observe(root);
+    window.addEventListener('scroll', schedule, { passive: true, signal });
+    window.addEventListener(
+      'resize',
+      () => {
+        active = -1;
+        schedule();
+      },
+      { passive: true, signal },
+    );
+    window.addEventListener('pageshow', schedule, { signal });
+    window.addEventListener('pagehide', () => cancelMotionFrame(read), { signal });
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        if (document.hidden) cancelMotionFrame(read);
+        else schedule();
+      },
+      { signal },
+    );
+    root.addEventListener(
+      'click',
+      (event) => {
+        if (
+          event.defaultPrevented ||
+          event.button ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.altKey ||
+          event.shiftKey
+        )
+          return;
+        const link = event.target.closest(
+          '.service-process_item[href^="#"],[data-tdb-process-discover],[data-tdb-process-continue]',
+        );
+        if (!link || !root.contains(link)) return;
+        const entry = link.hasAttribute('data-tdb-process-discover')
+          ? entries[0]
+          : entries.find((item) => item.link === link);
+        const continuing = link.hasAttribute('data-tdb-process-continue');
+        const target = continuing ? document.getElementById(link.hash.slice(1)) : entry?.step;
+        if (!target) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const top = Math.max(
+          0,
+          window.scrollY +
+            target.getBoundingClientRect().top -
+            (continuing ? 0 : rail.getBoundingClientRect().height),
+        );
+        if (location.hash !== link.hash) history.pushState(null, '', link.hash);
+        if (window.lenis?.scrollTo) window.lenis.scrollTo(top, { immediate: reduced.matches });
+        else window.scrollTo({ top, behavior: reduced.matches ? 'instant' : 'smooth' });
+      },
+      { capture: true, signal },
+    );
+    const api = {
+      refresh() {
+        active = -1;
+        schedule();
+      },
+      destroy() {
+        controller.abort();
+        observer?.disconnect();
+        cancelMotionFrame(read);
+        if (timeline) timeline.style.width = previousWidth;
+        rail.removeAttribute('data-tdb-process-nav');
+        entries.forEach(({ link }) => {
+          link.removeAttribute('aria-current');
+          link.removeAttribute('data-tdb-process-reached');
+        });
+        serviceJourneys.delete(root);
+      },
+    };
+    serviceJourneys.set(root, api);
+    schedule();
+    return api;
+  }
+
+  // Discrete chapters share the site timing and read/write scheduler. Scroll
+  // remains native outside the introduction, including both end boundaries.
+  const steppedIntros = new WeakMap();
+  function steppedIntro(root) {
+    if (steppedIntros.has(root)) return steppedIntros.get(root);
+    const photo = root.querySelector('[data-tdb-intro-photo]');
+    const doors = root.querySelector('[data-tdb-intro-doors]');
+    const copy = root.querySelector('[data-tdb-intro-copy]');
+    if (!photo || !doors || !copy) throw Error('Introduction requires its native layers');
+    const fills = [...root.querySelectorAll('[data-tdb-intro-progress]')];
+    const links = fills.map((fill) => fill.closest('a'));
+    const next = root.querySelector('[data-tdb-intro-next]');
+    const prompts = root.querySelector('[data-tdb-intro-prompts]');
+    const promptsWereInert = prompts?.inert;
+    const nodes = [
+      photo,
+      doors,
+      copy,
+      ...links.filter(Boolean),
+      ...fills,
+      ...[prompts].filter(Boolean),
+    ];
+    const before = nodes.map((node) => node.getAttribute('style'));
+    const controller = new AbortController();
+    const { signal } = controller;
+    const animations = new Map();
+    const states = [
+      [1, 0, 0],
+      [0.48, 0.82, 0],
+      [0, 0.78, 0],
+      [0, 0.075, 1],
+    ];
+    let active = -1,
+      start = 0,
+      end = 0,
+      step = innerHeight,
+      inside = false;
+    let movingUntil = 0,
+      lastWheel = -Infinity,
+      wheelSum = 0,
+      settleTimer;
+    let navigating = false,
+      disposed = false,
+      wheelContinued = false;
+    const travel = () => (reduced.matches ? 0 : time(620));
+    function animate(node, property, value, immediate, from = getComputedStyle(node)[property]) {
+      animations.get(node)?.cancel();
+      node.style[property] = value;
+      if (!immediate && !reduced.matches && node.animate) {
+        const animation = node.animate([{ [property]: from }, { [property]: value }], {
+          duration: travel(),
+          easing: easing('travel', 'cubic-bezier(.22,.68,0,1)'),
+          fill: 'backwards',
+        });
+        // Touch-driven scroll can flush styles before WAAPI resolves a pending
+        // start. Apply the first frame immediately on the shared document clock
+        // so the underlying end value never flashes before the animation.
+        if (document.timeline?.currentTime != null)
+          animation.startTime = document.timeline.currentTime;
+        animations.set(node, animation);
+        animation.onfinish = () => {
+          if (animations.get(node) === animation) animations.delete(node);
+        };
+      }
+    }
+    function paint(index, immediate = false) {
+      if (index === active) return;
+      active = index;
+      [photo, doors, copy].forEach((node, i) =>
+        animate(node, 'opacity', String(states[index][i]), immediate),
+      );
+      if (prompts) {
+        animate(prompts, 'opacity', index === 3 ? '0' : '1', immediate);
+        prompts.inert = index === 3;
+      }
+      // Lay out the compact group once per chapter. Move each pill's centre
+      // and reveal its fixed-size line with a clip, rather than relaying out
+      // the sticky intro on every height-animation frame during a held touch.
+      const origins =
+        !immediate && !reduced.matches
+          ? fills.map((fill, i) => {
+              const box = links[i]?.getBoundingClientRect();
+              return {
+                centre: box ? box.top + box.height / 2 : 0,
+                clip: getComputedStyle(fill).clipPath,
+              };
+            })
+          : null;
+      links.forEach((link, i) => {
+        if (!link) return;
+        animations.get(link)?.cancel();
+        animations.delete(link);
+        link.style.transform = 'none';
+        link.style.height = index === i ? '100px' : '44px';
+      });
+      const centres =
+        origins &&
+        links.map((link) => {
+          const box = link?.getBoundingClientRect();
+          return box ? box.top + box.height / 2 : 0;
+        });
+      fills.forEach((fill, i) => {
+        // Keep a 3px-wide, 84px-tall line; the inactive reveal is 28px tall.
+        // Vertical translation and a rounded inset preserve width and spacing.
+        fill.style.height = '84px';
+        animate(
+          fill,
+          'clipPath',
+          `inset(${index === i ? 0 : 28}px 0px round 999px)`,
+          immediate,
+          origins?.[i].clip,
+        );
+        if (links[i])
+          animate(
+            links[i],
+            'transform',
+            'translateY(0px)',
+            immediate,
+            `translateY(${origins ? origins[i].centre - centres[i] : 0}px)`,
+          );
+        if (index === i) links[i]?.setAttribute('aria-current', 'step');
+        else links[i]?.removeAttribute('aria-current');
+      });
+      root.dataset.tdbIntroState = String(index + 1);
+    }
+    function read(frame) {
+      const box = frame.rect(root);
+      start = frame.scroll + box.top;
+      end = start + box.height;
+      step = Math.max(1, (box.height - frame.rect(root.firstElementChild).height) / 3);
+      inside = frame.scroll >= start - 2 && frame.scroll <= start + 3 * step + 2;
+      const index = Math.max(0, Math.min(3, Math.round((frame.scroll - start) / step)));
+      if (navigating && performance.now() < movingUntil) return;
+      navigating = false;
+      return () => paint(index, active < 0);
+    }
+    const schedule = () => requestMotionFrame(read);
+    function navigate(top, target) {
+      if (disposed) return;
+      navigating = true;
+      movingUntil = performance.now() + travel() + 100;
+      paint(target);
+      if (window.lenis?.scrollTo)
+        window.lenis.scrollTo(top, { duration: travel() / 1000, force: true });
+      else window.scrollTo({ top, behavior: reduced.matches ? 'instant' : 'smooth' });
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(schedule, travel() + 130);
+    }
+    function goTo(index) {
+      const target = Math.max(0, Math.min(3, index));
+      navigate(start + target * step, target);
+    }
+    const blocked = (event) =>
+      event.defaultPrevented ||
+      document.documentElement.classList.contains('tdb-scroll-locked') ||
+      event.target?.closest?.(
+        'input,textarea,select,[contenteditable="true"],[role="dialog"],.navbar_menu,.navbar10_component',
+      );
+    function settle() {
+      const y = window.scrollY;
+      // scrollend can precede our batched geometry read. Check the current
+      // position, so an anchor jump or an exit cannot reuse stale containment.
+      if (!inside || navigating || disposed || y < start - 2 || y > start + 3 * step + 2) return;
+      const index = Math.max(0, Math.min(3, Math.round((y - start) / step)));
+      if (Math.abs(y - start - index * step) > 3) goTo(index);
+    }
+    window.addEventListener(
+      'wheel',
+      (event) => {
+        if (
+          !inside ||
+          blocked(event) ||
+          event.ctrlKey ||
+          Math.abs(event.deltaX) > Math.abs(event.deltaY)
+        )
+          return;
+        const now = performance.now(),
+          direction = Math.sign(event.deltaY);
+        if (!direction) return;
+        const quiet = now - lastWheel > 160;
+        lastWheel = now;
+        if (quiet) {
+          wheelSum = 0;
+          wheelContinued = false;
+        }
+        // A settled boundary releases immediately, even within a continuous
+        // wheel stream. Requiring a quiet gap here makes the page feel stuck.
+        if (
+          now >= movingUntil &&
+          ((active === 3 && direction > 0) || (active === 0 && direction < 0))
+        )
+          return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (now < movingUntil) {
+          wheelSum = 0;
+          return;
+        }
+        if (Math.sign(wheelSum) !== direction) wheelSum = 0;
+        wheelSum +=
+          event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1);
+        // Continued input may advance after the current transition. Require
+        // fresh travel so tiny trackpad momentum tails cannot queue chapters.
+        if (Math.abs(wheelSum) < (wheelContinued ? 48 : 12)) return;
+        goTo(active + Math.sign(wheelSum));
+        wheelContinued = true;
+        wheelSum = 0;
+      },
+      { passive: false, capture: true, signal },
+    );
+    let touch = null;
+    root.addEventListener(
+      'touchstart',
+      (event) => {
+        if (!inside || blocked(event) || event.touches.length !== 1) return;
+        const point = event.touches[0];
+        touch = { x: point.clientX, y: point.clientY, captured: false };
+      },
+      { passive: true, signal },
+    );
+    root.addEventListener(
+      'touchmove',
+      (event) => {
+        if (!touch || blocked(event) || event.touches.length !== 1) return;
+        const point = event.touches[0];
+        const delta = touch.y - point.clientY;
+        if (Math.abs(point.clientX - touch.x) > Math.abs(delta)) return;
+        const direction = Math.sign(delta);
+        const moving = performance.now() < movingUntil;
+        const leaving =
+          !inside || (active === 3 && direction > 0) || (active === 0 && direction < 0);
+        if (!moving && leaving && !touch.captured) return;
+        if (!moving && !leaving && Math.abs(delta) < 12) return;
+        event.preventDefault();
+        event.stopPropagation();
+        touch.captured = true;
+        touch.x = point.clientX;
+        touch.y = point.clientY;
+        // Consume movement during the transition, then accept fresh movement
+        // without demanding a finger lift. Once this drag has been captured,
+        // keep its exit moving too: the browser cannot resume a cancelled pan.
+        if (moving) return;
+        if (leaving) {
+          const top = Math.max(0, window.scrollY + delta);
+          if (window.lenis?.scrollTo) window.lenis.scrollTo(top, { immediate: true, force: true });
+          else window.scrollTo({ top, behavior: 'instant' });
+          return;
+        }
+        goTo(active + direction);
+      },
+      { passive: false, capture: true, signal },
+    );
+    for (const name of ['touchend', 'touchcancel'])
+      root.addEventListener(
+        name,
+        () => {
+          touch = null;
+        },
+        { passive: true, signal },
+      );
+    window.addEventListener(
+      'keydown',
+      (event) => {
+        if (
+          !inside ||
+          blocked(event) ||
+          event.target?.closest?.('a,button') ||
+          event.altKey ||
+          event.metaKey ||
+          event.ctrlKey
+        )
+          return;
+        const direction = ['ArrowDown', 'PageDown', ' '].includes(event.key)
+          ? event.shiftKey
+            ? -1
+            : 1
+          : ['ArrowUp', 'PageUp'].includes(event.key)
+            ? -1
+            : 0;
+        if (!direction || active + direction < 0 || active + direction > 3) return;
+        event.preventDefault();
+        if (performance.now() >= movingUntil) goTo(active + direction);
+      },
+      { signal },
+    );
+    root.addEventListener(
+      'click',
+      (event) => {
+        const link = event.target.closest('a');
+        const index = links.indexOf(link);
+        if (index < 0 && link !== next) return;
+        if (prompts?.inert && prompts.contains(link)) return;
+        if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+          return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (link === next && active === 3) navigate(end, 3);
+        else goTo(index >= 0 ? index : active + 1);
+      },
+      { capture: true, signal },
+    );
+    window.addEventListener(
+      'scroll',
+      () => {
+        schedule();
+        if (navigating) return;
+        clearTimeout(settleTimer);
+        settleTimer = setTimeout(settle, 160);
+      },
+      { passive: true, signal },
+    );
+    window.addEventListener('scrollend', settle, { signal });
+    window.addEventListener('resize', schedule, { passive: true, signal });
+    window.addEventListener('pageshow', schedule, { signal });
+    window.addEventListener(
+      'pagehide',
+      () => {
+        clearTimeout(settleTimer);
+        cancelMotionFrame(read);
+      },
+      { signal },
+    );
+    const api = {
+      goTo,
+      refresh: schedule,
+      status: () => ({ state: active + 1, inside, start, step }),
+      destroy() {
+        disposed = true;
+        controller.abort();
+        clearTimeout(settleTimer);
+        cancelMotionFrame(read);
+        animations.forEach((animation) => animation.cancel());
+        nodes.forEach((node, i) =>
+          before[i] === null
+            ? node.removeAttribute('style')
+            : node.setAttribute('style', before[i]),
+        );
+        links.forEach((link) => link?.removeAttribute('aria-current'));
+        if (prompts) prompts.inert = promptsWereInert;
+        root.removeAttribute('data-tdb-intro-state');
+        steppedIntros.delete(root);
+      },
+    };
+    steppedIntros.set(root, api);
+    schedule();
+    return api;
+  }
+
+  // Compatibility for older immutable tdb-sliders.js pins during migration.
+  // All Swiper behaviour is implemented once, inside the custom Swiper asset.
+  function bindSwiper(swiper) {
+    if (!window.TDBSwiper) throw Error('TDB Swiper behaviour must load before binding a slider');
+    return window.TDBSwiper.bindSwiper(swiper);
+  }
+  window.TDBMotion = Object.freeze({
+    version: '1.24.3',
+    profile,
+    time,
+    easing,
+    reduced,
+    defaults,
+    carousel,
+    duration,
+    ddText,
+    ddRegion,
+    ddOpacity,
+    pageBreaks,
+    serviceJourney,
+    steppedIntro,
+    reviews,
+    fadeController,
+    filterToggle,
+    bindSwiper,
+  });
+})();
+
+/* Opt-in section snapping. Runs inside tdb-motion, never adds page styles.
+ * Proximity capture with an elastic return and a wider breakaway threshold.
+ * Native gestures stay free; only the released position snaps into place.
+ */
+(() => {
+  'use strict';
+  if (window.TDBSectionMagnet) return;
+  const roots = [...document.querySelectorAll('[data-tdb-magnet]')];
+  if (!roots.length) return;
+  const reduced =
+    window.TDBMotion?.reduced ||
+    window.TDBMotionPolicy?.reduced ||
+    matchMedia('(prefers-reduced-motion: reduce)');
+  const desktop = matchMedia('(min-width: 768px) and (hover: hover) and (pointer: fine)');
+  const controller = new AbortController(),
+    { signal } = controller;
+  let timer = 0,
+    raf = 0,
+    active = null,
+    centred = null;
+  let armed = false,
+    held = false,
+    anchorUntil = 0,
+    lastInput = 0;
+  let startY = window.scrollY,
+    lastY = window.scrollY;
+  const editable = 'input,textarea,select,[contenteditable="true"]';
+  const captureRadius = () => Math.min(240, innerHeight * 0.26);
+  const releaseRadius = () => Math.min(360, innerHeight * 0.4);
+  const spring = (p) => {
+    const damping = 0.72,
+      frequency = 7.5,
+      root = Math.sqrt(1 - damping * damping),
+      phase = frequency * root * p;
+    return (
+      1 -
+      Math.exp(-damping * frequency * p) * (Math.cos(phase) + (damping / root) * Math.sin(phase))
+    );
+  };
+  const springEnd = spring(1);
+  function modalOpen() {
+    return [...document.querySelectorAll('[aria-modal="true"]')].some((node) => {
+      if (node.closest('[hidden],[aria-hidden="true"],[inert]')) return false;
+      const style = getComputedStyle(node);
+      return (
+        style.display !== 'none' &&
+        style.visibility !== 'hidden' &&
+        style.visibility !== 'collapse' &&
+        node.getClientRects().length > 0
+      );
+    });
+  }
+  function blocked() {
+    if (
+      document.hidden ||
+      window.TDBSmoothScroll?.nativeAutoscroll ||
+      !desktop.matches ||
+      reduced.matches ||
+      document.documentElement.matches('.w-editor,.tdb-sg-locked,.tdb-sg-chrome-away') ||
+      modalOpen() ||
+      getComputedStyle(document.documentElement).overflowY === 'hidden'
+    )
+      return true;
+    const body = getComputedStyle(document.body);
+    return (
+      body.overflowY === 'hidden' ||
+      body.position === 'fixed' ||
+      document.activeElement?.matches?.(editable)
+    );
+  }
+  function geometry(node) {
+    const box = node.getBoundingClientRect();
+    const treatment = node.dataset.tdbMagnet === 'treatment';
+    // Designer's scroll margin is the breathing room above the treatment image.
+    // Copy length must not move that landing point or resize the authored frame.
+    const inset = treatment
+      ? Math.max(0, parseFloat(getComputedStyle(node).scrollMarginTop) || 0)
+      : 0;
+    const height = box.bottom - box.top;
+    const allowed = treatment
+      ? innerHeight - inset
+      : node.dataset.tdbMagnet === 'frame'
+        ? innerHeight * 1.12
+        : innerHeight - 32;
+    return {
+      node,
+      top: box.top,
+      bottom: box.bottom,
+      height,
+      delta: treatment ? box.top - inset : (box.top + box.bottom - innerHeight) / 2,
+      fits: box.width > 0 && height > 0 && height <= allowed,
+    };
+  }
+  function stop() {
+    clearTimeout(timer);
+    timer = 0;
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+    if (active?.lenis && window.lenis === active.lenis)
+      active.lenis.scrollTo(window.scrollY, { immediate: true, force: true });
+    active = null;
+  }
+  function reset(clearCentre = false) {
+    stop();
+    armed = false;
+    held = false;
+    if (clearCentre === true) centred = null;
+    startY = lastY = window.scrollY;
+  }
+  function settle() {
+    timer = 0;
+    if (!armed || held || active || performance.now() < anchorUntil || blocked()) return;
+    // Let fast inertia finish, but take over the last slow Lenis tail instead
+    // of waiting through another full scroll-end debounce before returning.
+    const lenis = window.lenis;
+    if (
+      performance.now() - lastInput < 120 ||
+      (lenis?.isScrolling && (!Number.isFinite(lenis.velocity) || Math.abs(lenis.velocity) > 1.5))
+    ) {
+      timer = setTimeout(settle, 80);
+      return;
+    }
+    const travel = window.scrollY - startY;
+    if (Math.abs(travel) < 0.5) {
+      armed = false;
+      return;
+    }
+    const candidates = roots.map(geometry);
+    const heldCentre = candidates.find((g) => g.node === centred);
+    if (!heldCentre?.fits || Math.abs(heldCentre.delta) > releaseRadius()) centred = null;
+    const chosen = candidates
+      .filter(
+        (g) =>
+          g.fits && Math.abs(g.delta) <= (g.node === centred ? releaseRadius() : captureRadius()),
+      )
+      .sort((a, b) => Math.abs(a.delta) - Math.abs(b.delta));
+    const target = chosen.find((g) => g.node === centred) || chosen[0];
+    if (!target) {
+      // The slow tail may still cross into the capture range. Keep observing
+      // it until Lenis finishes, rather than discarding that final approach.
+      if (lenis?.isScrolling) timer = setTimeout(settle, 80);
+      else armed = false;
+      return;
+    }
+    armed = false;
+    centred = target.node;
+    const from = window.scrollY;
+    const destination = Math.max(
+      0,
+      Math.min(from + target.delta, document.documentElement.scrollHeight - innerHeight),
+    );
+    if (Math.abs(destination - from) < 2) {
+      if (lenis?.isScrolling) lenis.scrollTo(destination, { immediate: true, force: true });
+      return;
+    }
+    const duration =
+        window.TDBMotionProfile?.time(
+          Math.min(950, 600 + Math.sqrt(Math.abs(destination - from)) * 18),
+        ) ?? Math.min(950, 600 + Math.sqrt(Math.abs(destination - from)) * 18),
+      started = performance.now();
+    active = { node: target.node, lenis: window.lenis || null };
+    // Share the slider's existing chrome lifetime. Its own correction must
+    // not be mistaken for the visitor scrolling away from the section.
+    window.TDBSliderFocus?.focus(target.node, () => Boolean(active));
+    const step = (now) => {
+      raf = 0;
+      if (!active || blocked()) return reset();
+      const p = Math.min(1, (now - started) / duration);
+      // A damped spring crosses the centre slightly, then settles. Use time,
+      // not frame increments, so the elastic feel is stable at 60/120 Hz.
+      const y = from + (destination - from) * (p === 1 ? 1 : spring(p) / springEnd);
+      // Use the site's existing scroll owner; never race its inertia.
+      if (active.lenis) active.lenis.scrollTo(y, { immediate: true, force: true });
+      else window.scrollTo({ top: y, behavior: 'instant' });
+      if (p < 1) raf = requestAnimationFrame(step);
+      else {
+        active = null;
+        // Scroll observers can batch the final correction into one delivery.
+        // Rebase their browsing distance at the settled position as well.
+        window.TDBSliderFocus?.focus(target.node);
+        startY = lastY = window.scrollY;
+      }
+    };
+    raf = requestAnimationFrame(step);
+  }
+  function input(event) {
+    // Keep phone/tablet scrolling native, including landscape. A touch on a
+    // hybrid laptop also cancels the desktop spring without arming a return.
+    if (
+      !desktop.matches ||
+      window.TDBSmoothScroll?.nativeAutoscroll ||
+      event.type === 'touchstart' ||
+      event.pointerType === 'touch'
+    ) {
+      reset(true);
+      return;
+    }
+    if (event.type === 'keydown') {
+      // Keep keyboard navigation literal and cancel a correction immediately.
+      reset(true);
+      anchorUntil = performance.now() + 1000;
+      return;
+    }
+    if (
+      event.type === 'wheel' &&
+      (event.ctrlKey || Math.abs(event.deltaX) >= Math.abs(event.deltaY))
+    ) {
+      reset();
+      return;
+    }
+    if (event.target?.closest?.(editable)) return reset();
+    if (event.type === 'pointerdown') {
+      reset();
+      held = true;
+      return;
+    }
+    const wasActive = !!active;
+    stop();
+    if (!centred)
+      centred = roots.map(geometry).find((g) => g.fits && Math.abs(g.delta) <= 3)?.node || null;
+    if (!armed || wasActive) startY = window.scrollY;
+    armed = true;
+    lastInput = performance.now();
+    timer = setTimeout(settle, 120);
+  }
+  function released() {
+    held = false;
+    if (armed) {
+      clearTimeout(timer);
+      timer = setTimeout(settle, 120);
+    }
+  }
+  function scroll() {
+    const y = window.scrollY;
+    if (active) {
+      lastY = y;
+      return;
+    }
+    if (armed && y !== lastY) {
+      if (window.lenis?.isScrolling === 'smooth') {
+        if (!timer) timer = setTimeout(settle, 80);
+      } else {
+        clearTimeout(timer);
+        timer = setTimeout(settle, 120);
+      }
+    }
+    if (centred && Math.abs(geometry(centred).delta) > releaseRadius()) centred = null;
+    lastY = y;
+  }
+  for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown'])
+    document.addEventListener(type, input, { signal, capture: true, passive: true });
+  for (const type of ['pointerup', 'pointercancel', 'touchend', 'touchcancel'])
+    window.addEventListener(type, released, { signal, passive: true });
+  window.addEventListener('scroll', scroll, { signal, passive: true });
+  document.addEventListener(
+    'scrollend',
+    () => {
+      if (armed && !active) {
+        clearTimeout(timer);
+        timer = setTimeout(settle, 120);
+      }
+    },
+    { signal, passive: true },
+  );
+  document.addEventListener(
+    'click',
+    (event) => {
+      reset();
+      if (event.target.closest?.('a[href*="#"]')) {
+        anchorUntil = performance.now() + 2000;
+      }
+    },
+    { signal, capture: true, passive: true },
+  );
+  const resetContext = () => reset(true);
+  document.addEventListener('visibilitychange', resetContext, { signal });
+  window.addEventListener('resize', resetContext, { signal, passive: true });
+  window.addEventListener('pagehide', resetContext, { signal });
+  reduced.addEventListener('change', resetContext, { signal });
+  desktop.addEventListener('change', resetContext, { signal });
+  window.TDBSectionMagnet = Object.freeze({
+    version: '1.4.0',
+    destroy() {
+      reset();
+      controller.abort();
+    },
+  });
+})();
+
+/* Opt-in native entry fades, sharing the motion profile and fade controller.
+ * Static styles author the starting opacity. No markup or layout is rewritten.
+ * Loaded only by the standalone motion entry on migrated legacy pages.
+ */
+(() => {
+  'use strict';
+  function start() {
+    const nodes = document.querySelectorAll(
+      '[data-tdb-motion-enter]:not([data-tdb-motion-entered])',
+    );
+    if (!nodes.length || !window.TDBMotion?.fadeController) return;
+    const controller = window.TDBMotion.fadeController();
+    nodes.forEach((node) => {
+      const duration = Number.parseFloat(node.getAttribute('data-tdb-motion-enter'));
+      if (!Number.isFinite(duration) || duration < 0) return;
+      node.setAttribute('data-tdb-motion-entered', '');
+      controller.to(node, 1, window.TDBMotion.time(duration), 'linear');
+    });
+  }
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  else start();
+})();

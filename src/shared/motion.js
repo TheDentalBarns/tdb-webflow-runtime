@@ -881,11 +881,27 @@
         )
           ? points
           : null;
+      // Explicitly scoped selectors preserve coupled fades whose painted target
+      // is outside the measured frame (for example a matching footer logo).
+      // Without both opt-ins, existing page breaks retain descendant ownership.
+      const fadeSelector = wrapper.getAttribute?.('data-tdb-parallax-fade-selector');
+      const fadeScope = fadeSelector && wrapper.closest('[data-tdb-parallax-scope]');
       const fadeTargets =
-        fade || curve ? [...wrapper.querySelectorAll('[data-tdb-parallax-fade]')] : [];
+        fade || curve
+          ? [
+              ...(fadeScope || wrapper).querySelectorAll(
+                fadeScope ? fadeSelector : '[data-tdb-parallax-fade]',
+              ),
+            ]
+          : [];
+      const defaultFadeEnd = Number.parseFloat(wrapper.getAttribute?.('data-tdb-parallax-fade-to'));
       const fadeEnds = fadeTargets.map((target) => {
         const value = Number.parseFloat(target.getAttribute('data-tdb-parallax-fade'));
-        return Number.isFinite(value) ? clamp(value, 0, 1) : 0;
+        return Number.isFinite(value)
+          ? clamp(value, 0, 1)
+          : fadeScope && Number.isFinite(defaultFadeEnd)
+            ? clamp(defaultFadeEnd, 0, 1)
+            : 0;
       });
       const fadeFrom = fadeTargets.map((target) => {
         const value = Number.parseFloat(target.getAttribute('data-tdb-parallax-fade-from'));
