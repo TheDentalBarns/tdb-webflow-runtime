@@ -145,7 +145,6 @@
     }
     const pagination = root.querySelector('.w-pagination-wrapper');
     const more = q('more'),
-      sentinel = q('load-home'),
       status = q('status'),
       noResults = q('empty');
     const embedded = q('embedded'),
@@ -191,13 +190,60 @@
       pending,
       failed = false,
       disposed = false,
-      observer,
       filtering = false,
       origin,
       moving;
     let replacing = false,
       replacement,
       fading;
+    // Webflow owns the responsive columns, gaps and card appearance. Only the
+    // natural text heights need measurement to stack each lane independently.
+    // Assign lanes in ranking order (1, 2, 3 / 4, 5, 6), never by shortest lane.
+    let layoutFrame = 0,
+      layoutWidth = 0;
+    function layout() {
+      layoutFrame = 0;
+      if (disposed || !root.dataset.reviewPageReady) return;
+      const cards = [...list.children];
+      // Clear previous placement before reading a narrower breakpoint, otherwise
+      // old column 3 cells would create an unintended implicit third column.
+      cards.forEach((node) => {
+        node.style.gridColumn = '';
+        node.style.gridRow = '';
+      });
+      const style = getComputedStyle(list);
+      const columns = style.gridTemplateColumns.trim().split(/\s+/).filter(Boolean).length;
+      layoutWidth = list.getBoundingClientRect().width;
+      list.classList.toggle('is-masonry', columns > 1);
+      if (columns < 2) return;
+      const gap = parseFloat(style.columnGap) || 0;
+      const heights = cards.map((node) =>
+        Math.ceil(node.querySelector('.reviews-page_card').getBoundingClientRect().height),
+      );
+      const rows = Array(columns).fill(1);
+      cards.forEach((node, i) => {
+        const column = i % columns;
+        const height = Math.max(1, heights[i]);
+        node.style.gridColumn = String(column + 1);
+        node.style.gridRow = `${rows[column]} / span ${height}`;
+        rows[column] += height + Math.round(gap);
+      });
+    }
+    const scheduleLayout = () => {
+      if (!layoutFrame && !disposed) layoutFrame = requestAnimationFrame(layout);
+    };
+    const resize = window.ResizeObserver
+      ? new ResizeObserver((entries) => {
+          if (
+            entries.some(
+              (entry) => entry.target !== list || entry.contentRect.width !== layoutWidth,
+            )
+          )
+            scheduleLayout();
+        })
+      : null;
+    resize?.observe(list);
+    listen(window, 'resize', scheduleLayout);
     const fade = async (opacity, duration) => {
       const from = getComputedStyle(list).opacity;
       fading?.cancel();
@@ -439,11 +485,16 @@
         if (replace && replacement) await replacement;
         if (disposed || token !== revision) return;
         const nodes = records.map((record, i) => card(record, offset + i + 1));
-        if (replace) list.replaceChildren(...nodes);
-        else list.append(...nodes);
+        if (replace) {
+          resize?.disconnect();
+          list.replaceChildren(...nodes);
+          resize?.observe(list);
+        } else list.append(...nodes);
+        nodes.forEach((node) => resize?.observe(node.querySelector('.reviews-page_card')));
         rendered = offset + records.length;
         if (pagination) pagination.hidden = true;
         root.dataset.reviewPageReady = 'true';
+        layout();
         if (replace) {
           replacing = false;
           list.style.minHeight = '';
@@ -545,6 +596,8 @@
       await loadMore(revision, true);
     } catch (error) {
       lifecycle.abort();
+      resize?.disconnect();
+      cancelAnimationFrame(layoutFrame);
       filters.destroy();
       drawer.destroy();
       sticky.destroy();
@@ -553,15 +606,6 @@
       status.textContent =
         'The published reviews are shown below. Reload to try the filters again.';
       throw error;
-    }
-    if ('IntersectionObserver' in window) {
-      observer = new IntersectionObserver(
-        (entries) => {
-          if (entries.some((entry) => entry.isIntersecting) && !failed) loadMore();
-        },
-        { rootMargin: '900px 0px' },
-      );
-      observer.observe(sentinel);
     }
     instance = {
       loadMore: () => loadMore(),
@@ -573,7 +617,9 @@
         revision++;
         lifecycle.abort();
         pending?.abort();
-        observer?.disconnect();
+        resize?.disconnect();
+        cancelAnimationFrame(layoutFrame);
+        list.classList.remove('is-masonry');
         fading?.cancel();
         list.style.opacity = '';
         list.style.minHeight = '';

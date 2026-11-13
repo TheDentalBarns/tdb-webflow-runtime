@@ -5,8 +5,9 @@
 
 .reviews-page_filter-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
 .reviews-page_cms{width:100%;padding:0;margin:0}
-.reviews-page_grid{display:block;column-count:3;column-gap:2rem}
-.reviews-page_item{break-inside:avoid;margin-bottom:2rem;display:inline-block;min-width:0;width:100%;height:auto;padding:0;opacity:1;position:relative}
+.reviews-page_grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:auto;column-count:auto;column-gap:2rem;row-gap:2rem;align-items:start}
+.reviews-page_grid.is-masonry{grid-auto-rows:1px;row-gap:0}
+.reviews-page_item{break-inside:avoid;margin-bottom:0;display:block;min-width:0;width:100%;height:auto;padding:0;opacity:1;position:relative}
 .reviews-page_card{display:flex;flex-direction:column;background-color:#fff;color:#222;position:relative;overflow:hidden}
 .reviews-page_quote{height:14rem;display:flex;flex-direction:column;justify-content:space-evenly;align-items:center;padding:1rem;color:#fff;position:relative;overflow:hidden;isolation:isolate}
 .reviews-page_excerpt{font-size:1.05rem;line-height:1.45;font-weight:400;text-align:center;max-width:100%;margin:0}
@@ -26,8 +27,8 @@
 .reviews-page_load{display:flex;align-items:center;justify-content:center;padding:1rem 0}
 .reviews-page_empty{text-align:center;padding:3rem 1rem;margin:0}
 .reviews-page_hidden{display:none}
-@media screen and (max-width: 991px){.reviews-page_grid{column-count:2}}
-@media screen and (max-width: 767px){.reviews-page_grid{column-count:1}.reviews-page_quote{height:auto;min-height:14rem;gap:1.5rem;padding:1.5rem 1rem}.reviews-page_excerpt{max-width:32rem}}
+@media screen and (max-width: 991px){.reviews-page_grid{grid-template-columns:repeat(2,minmax(0,1fr));column-count:auto}}
+@media screen and (max-width: 767px){.reviews-page_grid{grid-template-columns:minmax(0,1fr);column-count:auto}.reviews-page_quote{height:auto;min-height:14rem;gap:1.5rem;padding:1.5rem 1rem}.reviews-page_excerpt{max-width:32rem}}
 
 .reviews-page_icon-google{background-image:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b972653444187f404ca8_tdb-review-google.svg);background-position:center;background-repeat:no-repeat;background-size:contain;display:block}
 .reviews-page_icon-yell{background-image:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973ba7906fe700055e8_tdb-review-yell.svg);background-position:center;background-repeat:no-repeat;background-size:contain;display:block}

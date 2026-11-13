@@ -5,6 +5,8 @@
 [data-review-page-ready] .smile-page_filter-dock{visibility:visible;pointer-events:auto}
 [data-review-page-filter-home]{height:0;position:relative}
 .reviews-page_grid{scroll-margin-top:7rem}
+/* Measured row placements only; native Webflow styles own columns and gaps. */
+.reviews-page_grid.is-masonry{grid-auto-rows:1px;row-gap:0}
 .reviews-page_embedded-groups .tdb-review-filter_groups{padding:0}
 .reviews-page_embedded-groups .tdb-review-filter_group:first-child{border-top:1px solid #d6cab4}
 [data-review-page-filter-drawer] .tdb-drawer_panel{background:transparent;box-shadow:none}

@@ -34,12 +34,17 @@ async function setup({lastReview}={}) {
   for(const file of ['src/shared/filters.js','src/shared/drawer.js','src/reviews/native/archive.js'])w.eval(fs.readFileSync(file,'utf8'));
   const api = await w.TDBReviewPage.mount();
   const choose = async(group,value,modal=false)=>{d.querySelector(`${modal?'[data-review-page-panel]':'[data-review-page-embedded]'} [data-review-page-group="${group}"][data-review-page-value="${value}"]`).click();await tick();};
-  return {w,d,api,records,calls,choose,locked:()=>locked,fail:()=>{fail=true;},hold:()=>{let resolve;deferred=new Promise(r=>resolve=r);return resolve;},visible:()=>[...d.querySelector('.reviews-page_grid').children],intersect:()=>intersection([{isIntersecting:true}]),close:()=>{w.TDBReviewPage.destroy();w.close();}};
+  return {w,d,api,records,calls,choose,locked:()=>locked,fail:()=>{fail=true;},hold:()=>{let resolve;deferred=new Promise(r=>resolve=r);return resolve;},visible:()=>[...d.querySelector('.reviews-page_grid').children],intersect:()=>intersection?.([{isIntersecting:true}]),close:()=>{w.TDBReviewPage.destroy();w.close();}};
 }
 test('all 91 reviews load incrementally with complete text, numbering, responses and identity',async()=>{
   const x=await setup();try{
     assert.equal(x.visible().length,20);assert.equal(x.calls[0].length,20);
-    for(let i=0;i<4;i++)await x.api.loadMore();
+    x.intersect();x.w.dispatchEvent(new x.w.Event('scroll'));await tick();
+    assert.equal(x.visible().length,20);assert.equal(x.calls.length,1);
+    for(let i=0;i<4;i++){
+      x.d.querySelector('[data-review-page-more]').click();await tick();
+      assert.equal(x.visible().length,Math.min(40+i*20,91));
+    }
     const cards=x.visible();assert.equal(cards.length,91);assert.equal(new Set(cards.map(n=>n.dataset.reviewId)).size,91);
     cards.forEach((n,i)=>assert.equal(n.querySelector('[data-tdb-review-field="full-review"]').textContent,x.records[i].text));
     assert.equal(cards[90].querySelector('[data-review-page-current]').textContent,'91');
@@ -124,5 +129,30 @@ test('replacement keeps the current cards until the next batch is ready instead 
     release();await tick();
     assert.deepEqual(x.visible().map(n=>n.dataset.reviewId),['r89']);
     assert.equal(x.d.querySelector('.reviews-page_grid').style.opacity,'1');
+  }finally{x.close();}
+});
+
+test('desktop lanes follow left-to-right order and appending leaves existing card positions stable',async()=>{
+  const x=await setup();try{
+    const grid=x.d.querySelector('.reviews-page_grid');
+    grid.style.gridTemplateColumns='300px 300px 300px';
+    grid.style.columnGap='30px';
+    const originalRect=x.w.HTMLElement.prototype.getBoundingClientRect;
+    x.w.HTMLElement.prototype.getBoundingClientRect=function(){
+      if(this.matches('.reviews-page_card'))return {height:100+(Number(this.parentElement.dataset.reviewId.slice(1))%3)*100};
+      return originalRect.call(this);
+    };
+    x.w.dispatchEvent(new x.w.Event('resize'));await tick();
+    assert.deepEqual(x.visible().slice(0,6).map(n=>n.style.gridColumn),['1','2','3','1','2','3']);
+    assert.deepEqual(x.visible().slice(0,6).map(n=>n.style.gridRow),['1 / span 100','1 / span 200','1 / span 300','131 / span 100','231 / span 200','331 / span 300']);
+    const before=x.visible().map(n=>[n.style.gridColumn,n.style.gridRow]);
+    x.d.querySelector('[data-review-page-more]').click();await tick();
+    assert.equal(x.visible().length,40);
+    assert.deepEqual(x.visible().slice(0,20).map(n=>[n.style.gridColumn,n.style.gridRow]),before);
+    grid.style.gridTemplateColumns='300px';
+    x.w.dispatchEvent(new x.w.Event('resize'));await tick();
+    assert.equal(grid.classList.contains('is-masonry'),false);
+    assert.ok(x.visible().every(n=>!n.style.gridColumn&&!n.style.gridRow));
+    assert.deepEqual(x.visible().slice(0,4).map(n=>n.dataset.reviewId),['r0','r1','r2','r3']);
   }finally{x.close();}
 });
