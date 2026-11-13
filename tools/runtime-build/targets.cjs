@@ -12,6 +12,7 @@ module.exports = {
     'src/startup/start.js',
   ],
   'dist/tdb-foundation.js': [
+    'src/shared/motion-policy.js',
     'src/shared/content-preconnect.js',
     'src/shared/scroll-lock.js',
     'src/shared/consent-decision.js',

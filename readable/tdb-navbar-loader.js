@@ -264,6 +264,7 @@
  * controllers. An approaching open treatment pushes its category out of view. */
 (() => {
   function start() {
+    if (window.TDBMotionPolicy?.pageEffects?.stickyPricing === false) return;
     const sections = [...document.querySelectorAll('[data-tdb-price-section]')];
     if (!sections.length) return;
     const navbar = document.querySelector('.navbar10_component');

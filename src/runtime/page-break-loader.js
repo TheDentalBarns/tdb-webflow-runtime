@@ -2,6 +2,8 @@
 function preparePageBreakLoader() {
   'use strict';
   if (window.TDBPageBreaks) return;
+  // Decide before discovery, proximity observation or a motion-module request.
+  if (window.TDBMotionPolicy?.pageEffects?.imageParallax === false) return;
   const selector = '[data-tdb-page-break]';
   const pending = new Set(),
     mounted = new Set(),

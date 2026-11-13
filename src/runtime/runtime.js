@@ -167,6 +167,7 @@
   }
   function refresh() {
     if (disposed) return Promise.resolve();
+    if (window.TDBMotionPolicy?.pageEffects?.textReveals === false) return Promise.resolve();
     dirty = true;
     if (pending) return pending;
     pending = (async () => {

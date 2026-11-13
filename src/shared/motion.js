@@ -492,6 +492,25 @@
     return api;
   }
   function ddText(nodes, { root = null, mode = 'viewport', preset = 'standard' } = {}) {
+    if (window.TDBMotionPolicy?.pageEffects?.textReveals === false) {
+      const list = new Set(nodes);
+      let disposed = false;
+      const show = (targets = list) => {
+        if (disposed) return;
+        for (const node of targets) {
+          if (node.style.opacity !== '1') node.style.opacity = '1';
+        }
+      };
+      show();
+      return Object.freeze({
+        enter: show,
+        refresh: () => show(),
+        destroy() {
+          disposed = true;
+          list.clear();
+        },
+      });
+    }
     const list = new Set(nodes);
     for (const node of list) {
       const existing = ddNodes.get(node);
@@ -591,6 +610,8 @@
   // initial offset. No animation clock, startup tween or trailing rAF loop.
   const pageBreakClients = new Map();
   function pageBreaks(wrappers) {
+    if (window.TDBMotionPolicy?.pageEffects?.imageParallax === false)
+      return Object.freeze({ refresh() {}, destroy() {}, status: () => [] });
     const controller = new AbortController(),
       { signal } = controller;
     const states = [],
