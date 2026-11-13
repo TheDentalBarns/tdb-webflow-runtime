@@ -1,4 +1,5 @@
-/* Smile Gallery: native CMS grid, shared drawer and review-style filters. */
+/* Smile Gallery interaction module. Loaded by standalone.js, never in page head.
+   Designer owns the initial grid, embedded filter, artwork and landing bar. */
 /* Webflow owns the initial cream holding state, grid and reserved card slots.
    These rules only reveal prepared content and handle later user transitions. */
 [data-smile-content-ready] :is(.smile-grid_image,.smile-grid_before-image,.smile-grid_divider,.smile-grid_title,.smile-grid_treatments,.smile-grid_value){opacity:1}
@@ -10,8 +11,6 @@ html[data-smile-display="before-after"] .smile-grid_photo,html[data-smile-displa
 html[data-smile-display="before-after"] .smile-grid_image{top:0;height:100%;object-fit:contain}
 html[data-smile-display="before-after"] .smile-grid_before-image,html[data-smile-display="before-after"] .smile-grid_divider{display:none}
 html[data-smile-display="before-after"] .smile-grid_label-before{top:calc(50% - 2rem);bottom:auto;left:auto;right:1rem}
-
-.smile-page_explore-form{min-width:0;margin:0}
 
 [data-smile-filter-home]{height:3rem;position:relative}
 .smile-page_filter-dock{position:absolute;z-index:10;bottom:0;left:50%;transform:translateX(-50%);visibility:hidden;pointer-events:none}
@@ -35,30 +34,13 @@ html[data-smile-display="before-after"] .smile-grid_label-before{top:calc(50% - 
 
 .smile-filter_form,.smile-page_filter-panel form,.smile-page_filter-panel>.w-form{display:flex;flex-direction:column;flex:1;min-height:0;margin:0}
 .smile-filter_groups{padding:0 2.5rem;flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
-.smile-filter_group{border-top:1px solid #d6cab4;min-width:0;padding-bottom:0}
 .smile-filter_group.is-expanded{padding-bottom:20px}
-.smile-filter_group-toggle{display:flex;width:100%;min-height:3.75rem;align-items:center;gap:1rem;padding:.75rem 0;background:none;border:0;color:#666;cursor:pointer;text-align:left}
-.smile-filter_label{display:flex;align-items:center;gap:.625rem;font-size:.875rem;line-height:1.4;letter-spacing:.1em;text-transform:uppercase;flex:none}
-.smile-filter_selection{font-size:.875rem;line-height:1.4;text-align:right;margin-left:auto;min-width:0;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.smile-filter_chevron{flex:none;width:1rem;height:1rem;background:currentColor;mask:url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7bbeef3f863de97d242c8_tdb-review-chevron-4eaa8e.svg') center/contain no-repeat}
-.smile-filter_options{display:flex;flex-direction:column;padding-left:2rem;overflow:hidden}
 .smile-filter_options.is-collapsed{display:none}
 .smile-page-filter_option{display:flex;align-items:center;gap:.75rem;min-height:3.5rem;padding:.65rem 0;color:#666;font-size:.875rem;font-weight:400;line-height:1.4;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin:0}
 .smile-page-filter_option:has(:checked){color:#222}
-
-.smile-icon{display:block;width:1.15rem;height:1.15rem;flex:none;background:currentColor;mask-size:contain;mask-position:center;mask-repeat:no-repeat}
-.smile-icon-price{mask-image:url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc626c94d2870769382e_tdb-price-small-1px.svg')}
-.smile-icon-clock{mask-image:url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc636dd65bf4f700d266_tdb-clock-small-1px.svg')}
-.smile-icon-diamond{mask-image:url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc640ce35bc2256782dc_tdb-diamond-small-1px.svg')}
-.smile-icon-lotus{mask-image:url('https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeddc643eed49cd4fac61a6_tdb-lotus-small-1px.svg')}
-.smile-icon-display{background:linear-gradient(90deg,currentColor 0 1px,transparent 1px calc(50% - .5px),currentColor calc(50% - .5px) calc(50% + .5px),transparent calc(50% + .5px) calc(100% - 1px),currentColor calc(100% - 1px));border-top:1px solid;border-bottom:1px solid;height:.85rem}
 .smile-page_drawer-label{position:absolute;z-index:3;right:1rem;bottom:1rem;color:#f9f2e6;font-size:.7rem;line-height:1.4;font-weight:400;letter-spacing:.08em;text-transform:uppercase;pointer-events:none;text-shadow:none}
 .smile-page_drawer-label-before{top:calc(50% - 2rem);bottom:auto}
 .smile-grid_image[hidden],[data-smile-comparison]>img[hidden],.smile-grid_item[hidden],[data-tdb-sg-case][hidden],.smile-page_section [hidden]{display:none!important}
-.smile-page_status{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;text-align:center;margin:3rem 0 1rem}
-.smile-page_actions{display:flex;justify-content:center;gap:1rem;align-items:center}
-.smile-page_hint{text-align:center;font-size:.75rem;color:#888;margin:1rem 0 0}
-.smile-page_empty{text-align:center;padding:3rem 1.25rem}
 .smile-page_drawer-header{position:absolute;top:0;left:0;right:0;height:calc(6rem + env(safe-area-inset-top,0px));background:#222;color:#d6cab4;display:flex;align-items:center;padding:env(safe-area-inset-top,0px) 6.5rem 0 2.5rem;z-index:2}
 .smile-page_drawer-heading{font-size:1rem;letter-spacing:.08em;text-transform:uppercase;font-weight:400;margin:0}
 
@@ -102,26 +84,15 @@ html[data-smile-display="before-after"] .smile-grid_label-before{top:calc(50% - 
 .smile-comparison_control:is(:focus,:focus-visible),.smile-comparison_open:is(:focus,:focus-visible){outline:none!important;box-shadow:none!important}
 [data-smile-comparison]:has(.smile-comparison_control:focus-visible) .smile-comparison_handle{width:4px}
 .smile-grid_card:has(.smile-comparison_open:focus-visible) .smile-grid_title{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.25em}
-
-@media(max-width:991px){.smile-page_explore-inner{gap:2rem}}
-@media(max-width:767px){.smile-page_explore-inner{grid-template-columns:1fr}.smile-page_explore-copy p:last-child{margin-bottom:0}.smile-filter_heading{padding:1.25rem}.smile-filter_groups{padding:0 1.25rem}.smile-filter_actions{padding-left:1.25rem;padding-right:1.25rem}.smile-filter_label,.smile-filter_selection,.smile-page-filter_option{font-size:.75rem}.smile-filter_selection{max-width:48%}.smile-page_drawer-header{padding-left:1.25rem}.smile-page_drawer-reading{padding:1.25rem}.smile-page_drawer-footer{padding-left:1.25rem;padding-right:1.25rem}.smile-page_case-title{font-size:1.15rem}.smile-page_drawer-photo{margin-bottom:1.5rem}.smile-page_case-facts{flex-wrap:wrap;gap:1.25rem}.smile-page_case-fact{font-size:.75rem}.smile-page_case-description{min-height:0}.smile-page_case-fact:last-child{flex-basis:100%}}
+@media(max-width:767px){.smile-page_explore-copy p:last-child{margin-bottom:0}.smile-filter_heading{padding:1.25rem}.smile-filter_groups{padding:0 1.25rem}.smile-filter_actions{padding-left:1.25rem;padding-right:1.25rem}.smile-filter_label,.smile-filter_selection,.smile-page-filter_option{font-size:.75rem}.smile-page_drawer-header{padding-left:1.25rem}.smile-page_drawer-reading{padding:1.25rem}.smile-page_drawer-footer{padding-left:1.25rem;padding-right:1.25rem}.smile-page_case-title{font-size:1.15rem}.smile-page_drawer-photo{margin-bottom:1.5rem}.smile-page_case-facts{flex-wrap:wrap;gap:1.25rem}.smile-page_case-fact{font-size:.75rem}.smile-page_case-description{min-height:0}.smile-page_case-fact:last-child{flex-basis:100%}}
 
 .smile-page-filter_option:has(input:disabled){opacity:.35;cursor:default}
 
 /* Shared review button sizing; only the names of the count hooks differ. */
-.smile-page_explore-copy{display:flex;flex-direction:column;align-items:flex-start;gap:1.5rem;max-width:34rem}
-.smile-page_explore-tagline{font-size:.875rem;line-height:1.5;letter-spacing:.12em;text-transform:uppercase}
-.smile-page_explore-title{font-size:2rem;line-height:1.3;font-weight:300;letter-spacing:.1em;text-transform:uppercase;margin:0}
-.smile-page_explore-blurb{font-size:.875rem;line-height:1.7;color:#777;margin:0}
 .button.is-review-filter-action{white-space:nowrap;flex-shrink:0;justify-content:center;align-items:center;min-height:44px;display:inline-flex;transition-property:background-color,color,opacity,transform;transition-duration:calc(.15s * var(--tdb-motion-pace,1))}
 .button.is-review-filter-action.is-disabled{opacity:.35;pointer-events:none;cursor:default;transform:none}
 .button.is-review-filter-action:active{transform:scale(.98)}
 .button.is-review-filter-action:focus-visible{outline-offset:3px;outline:2px solid}
-.smile-page_explore-cta{margin:0}
-.smile-filter_action-label{display:inline-flex;align-items:center;column-gap:.3em}
-.smile-filter_count-frame{display:inline-grid;grid-template-rows:1.4em;grid-template-columns:1fr;min-width:3ch;text-align:center;font-variant-numeric:tabular-nums}
-.smile-filter_count-reserve{white-space:nowrap;visibility:hidden;grid-area:1/1/2/2}
-.smile-filter_count{grid-area:1/1/2/2;width:100%;height:1.4em;display:block;position:relative;overflow:hidden}
 .smile-filter_count .review-number_value{display:block;position:relative;width:100%;height:100%}
 .smile-filter_count .review-number_incoming{display:block;position:absolute;inset:0;width:100%;height:100%}
 .smile-filter_plural.is-singular{visibility:hidden}
@@ -131,24 +102,14 @@ html[data-smile-display="before-after"] .smile-grid_label-before{top:calc(50% - 
 .smile-page_filter-panel{z-index:1}
 .is-filter-only .tdb-drawer_panel{width:calc(100% - 5rem);max-width:80rem;left:50%;right:auto;transform:translateX(-50%);background:transparent}
 .is-filter-only .smile-page_drawer-header,.is-filter-only .smile-page_drawer-footer,.is-filter-only .smile-page_drawer-reading,.is-filter-only [data-tdb-drawer-close],.is-filter-only .smile-page_filter-shade{visibility:hidden}
-@media(max-width:767px){.smile-page_explore-title{font-size:1.75rem}.is-filter-only .tdb-drawer_panel{width:100%}.smile-filter_actions .button{max-width:44%;padding-left:.9rem;padding-right:.9rem}}
+@media(max-width:767px){.is-filter-only .tdb-drawer_panel{width:100%}.smile-filter_actions .button{max-width:44%;padding-left:.9rem;padding-right:.9rem}}
 @media(max-height:480px){.smile-page_filter-panel{top:1rem}.smile-filter_heading{padding-top:.5rem;padding-bottom:.5rem}}
-
-.smile-page_explore-stack{display:flex;flex-direction:column;align-items:flex-start;gap:1.5rem}
 
 [data-smile-count-plural].is-singular{visibility:hidden}
 .is-filter-only .tdb-drawer_panel{box-shadow:none}
 
-@media(max-width:767px){.smile-page_explore-actions{bottom:1.5rem;right:1.25rem}}
-
 .smile-page_explore-copy .button.is-review-filter-action{margin:0;align-self:flex-start}
-
-.smile-page_explore{width:100vw;margin-left:calc(50% - 50vw);background:#ebe2d2;margin-bottom:4rem;position:relative}
-.smile-page_explore-inner{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:2rem 4rem;max-width:90rem;margin:0 auto}
-.smile-page_explore-actions{display:flex;justify-content:space-between;align-items:center;grid-column:1/-1;grid-row:2;position:relative;inset:auto;padding:0;min-height:3rem}
-.smile-page_dock-anchor{grid-column:1/-1;grid-row:2;align-self:center;justify-self:center;position:relative;width:3rem;height:3rem;pointer-events:none}
 .tdb-filter-sticky-anchor>.smile-page_filter-dock{position:relative;left:auto;bottom:auto;transform:none;width:3rem;height:3rem}
-.smile-page_filter-landing{width:100vw;height:5.5rem;margin:3rem 0 0 calc(50% - 50vw);background:#ebe2d2;position:relative}
 .smile-page-filter_option input{appearance:none;-webkit-appearance:none;box-sizing:border-box;width:1.15rem;height:1.15rem;min-width:1.15rem;min-height:1.15rem;border:1px solid #8e877a;border-radius:50%;flex:none;margin:0;padding:0;background:transparent;position:relative;display:block}
 .smile-page-filter_option input::before{content:"";position:absolute;top:50%;left:50%;width:.55rem;height:.55rem;border-radius:50%;background:#6d675b;transform:translate(-50%,-50%) scale(0);transition:transform .2s}
 .smile-page-filter_option input:checked::before{transform:translate(-50%,-50%) scale(1)}
@@ -168,13 +129,9 @@ html[data-smile-display="before-after"] .smile-grid_label-before{top:calc(50% - 
 .smile-page_case-outgoing{pointer-events:none!important;position:absolute!important;margin:0!important}
 .smile-filter_actions .button{margin:0;max-width:calc(50% - 2.5rem)}
 @media(max-width:767px){
- .smile-page_filter-landing{height:6rem;margin-top:2rem}
  /* Section spacing is authored in the native Webflow smile-page_explore class. */
- .smile-page_explore-inner{grid-template-columns:1fr;grid-template-rows:auto auto auto;gap:2rem}
- .smile-page_explore-actions{grid-row:3;inset:auto}
  .smile-page_explore-actions [data-smile-view-results]{order:0}
  .smile-page_explore-actions .button{max-width:calc(50% - 2.5rem);padding-left:.9rem;padding-right:.9rem}
- .smile-page_dock-anchor{grid-row:3}
  .smile-filter_heading{padding:1.5rem 5vw}
  .smile-filter_groups{padding:0 5vw}
  .smile-filter_actions{padding-left:5vw;padding-right:5vw;height:calc(6rem + env(safe-area-inset-bottom,0px))}

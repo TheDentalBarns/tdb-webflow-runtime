@@ -1,5 +1,21 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),{JSDOM}=require('jsdom');
 const source=fs.readFileSync('src/runtime/lazy-icon-masks.js','utf8');
+
+test('native gallery masks use one shared artwork source after consent and proximity',()=>{
+ const f=fixture({allowed:false});try{
+  const kinds=['diamond-small','price','clock','lotus','chevron'];
+  const nodes=kinds.map(kind=>{const n=f.w.document.createElement('div');n.dataset.tdbDeferredMask=kind;n.className='native-gallery-icon';f.w.document.body.append(n);return n});
+  f.w.TDBLazyIconMasks.refresh();assert(nodes.every(n=>!f.ios[0].nodes.has(n)));
+  f.permit(true);assert(nodes.every(n=>f.ios[0].nodes.has(n)));
+  assert(nodes.every(n=>!n.style.getPropertyValue('--tdb-mask-artwork')));
+  f.ios[0].fn([{target:nodes[0],isIntersecting:true}]);
+  assert.match(nodes[0].style.getPropertyValue('--tdb-mask-artwork'),/tdb-diamond-small-1px.svg/);
+  assert(nodes.slice(1).every(n=>!n.style.getPropertyValue('--tdb-mask-artwork')));
+  assert.equal(nodes[0].style.width,'');assert.equal(nodes[0].childElementCount,0);
+  f.ios[0].fn(nodes.slice(1).map(target=>({target,isIntersecting:true})));
+  for(const node of nodes)assert.match(node.style.getPropertyValue('--tdb-mask-artwork'),/cdn.prod.website-files.com/);
+ }finally{f.close()}
+});
 test('guide artwork waits for consent and section proximity, and survives ticker clones', () => {
   const f = fixture({ allowed: false });
   try {
