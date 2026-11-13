@@ -13,3 +13,5 @@ Validation covers 91 unique full-text records across five batches, drawer draft/
 The shared native Navbar New component contains Reviews as the final Discover link, after 5 Senses Experience. This is a native page link. Filter options update the existing shared mark/tick state classes; Reset retains the shared `data-tdb-filter-reset` styling hook. The embedded action order/classes match Smile Gallery: Reset left and View reviews right. The shared stylesheet no longer overrides the Designer-owned Explore section padding (7rem desktop, 5rem mobile).
 
 The floating filter uses the shared sticky dock with the review content as its upper boundary and the native bottom landing as its lower boundary, matching Smile Gallery. It rests at the first review when scrolling back above the results instead of following the introduction upward.
+
+Both Reset controls use the existing shared disabled styling and are inactive at the default filter/sort values. The embedded control follows the applied selection, while the drawer control follows its draft; opening a disclosure alone does not enable Reset.

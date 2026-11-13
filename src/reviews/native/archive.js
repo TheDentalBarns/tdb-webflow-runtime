@@ -352,6 +352,13 @@
     function sync() {
       forms.forEach((form, i) => {
         const selection = i ? draft : state;
+        const reset = q('reset', form);
+        const unchanged =
+          selection.sort === 'recommended' && groups.every((key) => !selection[key].length);
+        reset.disabled = unchanged;
+        reset.setAttribute('aria-disabled', String(unchanged));
+        reset.tabIndex = unchanged ? -1 : 0;
+        reset.classList.toggle('is-disabled', unchanged);
         for (const option of form.querySelectorAll('[data-review-page-group]')) {
           const key = option.dataset.reviewPageGroup,
             value = option.dataset.reviewPageValue;
@@ -565,6 +572,7 @@
         const reset = event.target.closest('[data-review-page-reset]');
         if (reset && form.contains(reset)) {
           event.preventDefault();
+          if (reset.getAttribute('aria-disabled') === 'true') return;
           if (i) {
             draft = emptyState();
             filters.collapseAll();

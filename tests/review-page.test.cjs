@@ -114,6 +114,38 @@ test('shared disclosures, filter drawer drafts, count, apply and reset retain co
     assert.ok(x.visible().every(n=>Number(n.dataset.reviewId.slice(1))%2===1));
   }finally{x.close();}
 });
+test('Reset is inactive at defaults and follows applied or draft selections independently',async()=>{
+  const x=await setup();try{
+    const embedded=x.d.querySelector('[data-review-page-embedded] [data-review-page-reset]');
+    const draft=x.d.querySelector('[data-review-page-panel] [data-review-page-reset]');
+    const inactive=(button,value)=>{
+      assert.equal(button.getAttribute('aria-disabled'),String(value));
+      assert.equal(button.classList.contains('is-disabled'),value);
+      assert.equal(button.tabIndex,value?-1:0);
+    };
+    inactive(embedded,true);inactive(draft,true);
+    embedded.click();await tick();assert.equal(x.calls.length,1);
+    x.d.querySelector('[data-review-page-embedded] [data-review-page-disclosure="treatment"]').click();
+    await tick();inactive(embedded,true);
+    for(const [group,value] of [['treatment','bonding'],['experience','nervous'],['platform','Google'],['rating','5'],['sort','recent']]){
+      await x.choose(group,value);inactive(embedded,false);
+      embedded.click();await tick();inactive(embedded,true);
+    }
+    x.d.querySelector('[data-review-page-toggle]').click();await tick();
+    await x.choose('experience','nervous',true);
+    inactive(draft,false);inactive(embedded,true);
+    draft.click();await tick();inactive(draft,true);inactive(embedded,true);
+    await x.choose('sort','recent',true);
+    x.d.querySelector('[data-review-page-apply]').click();await tick();await tick();
+    inactive(embedded,false);
+    x.d.querySelector('[data-review-page-toggle]').click();await tick();inactive(draft,false);
+    draft.click();await tick();inactive(draft,true);inactive(embedded,false);
+    x.d.querySelector('[data-review-page-toggle]').click();await tick();
+    inactive(draft,false);inactive(embedded,false);
+    embedded.click();await tick();inactive(embedded,true);inactive(draft,true);
+  }finally{x.close();}
+});
+
 test('late batches cannot overwrite a newly selected filter; failed batches can be retried',async()=>{
   const x=await setup();try{
     const release=x.hold();const old=x.api.loadMore();await x.choose('rating','1');release();await old;
