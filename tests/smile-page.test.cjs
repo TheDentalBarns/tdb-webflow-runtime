@@ -663,7 +663,9 @@ test('filter dock uses native sticky bounds and never rewrites position on scrol
     assert.equal(rail.style.height, '1472px');
     assert.equal(rail.style.clipPath, '');
     assert.equal(anchor.style.position, 'sticky');
-    assert.match(anchor.style.top, /100dvh/);
+    assert.equal(anchor.style.top, '');
+    assert.equal(anchor.style.bottom, '1.25rem');
+    assert.equal(rail.style.justifyContent, 'flex-end');
     const position = rail.style.cssText;
     home.getBoundingClientRect = () => {
       throw Error('scroll must not measure the home');
