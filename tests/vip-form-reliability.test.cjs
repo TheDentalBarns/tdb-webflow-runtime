@@ -21,6 +21,25 @@ test('successful reset uses native defaults and does not resurrect a manual choi
 test('cancelled reset preserves selection and field state',async()=>{
  const x=setup();try{x.load();x.select.value='Smile Design';x.select.dispatchEvent(new x.w.Event('change',{bubbles:true}));x.form.addEventListener('reset',e=>e.preventDefault());x.form.reset();await flush();assert.equal(x.select.value,'Smile Design');assert(x.select.classList.contains('is-filled'));}finally{x.w.close();}
 });
+
+test('two native VIP instances with unique IDs reset and report success independently',async()=>{
+ const html=['vip-inline-form','email-form'].map(id=>markup().replace('id="email-form"',`id="${id}" data-tdb-vip-form`)).join('');
+ const x=setup('/vip/instagram',html);
+ try {
+  let leads=0;x.w.fbq=()=>leads++;x.w.TDBConsent.allows=category=>category==='performance';
+  x.w.HTMLElement.prototype.getClientRects=()=>[{}];x.load();
+  const forms=[...x.w.document.querySelectorAll('form')];
+  for(const form of forms){const select=form.querySelector('select');select.value='Smile Design';select.dispatchEvent(new x.w.Event('change',{bubbles:true}));}
+  forms[0].reset();await flush();
+  assert.equal(forms[0].querySelector('select').value,'');assert(forms[0].querySelector('button').disabled);
+  assert.equal(forms[1].querySelector('select').value,'Smile Design','reset remains scoped to the selected form');
+  for(const form of forms){form.closest('.w-form').querySelector('.w-form-done').style.display='block';await flush();}
+  assert.equal(leads,2,'one consented lead for each successful form');
+  x.w.TDBVIPForm.refresh();
+  for(const done of x.w.document.querySelectorAll('.w-form-done'))done.classList.add('changed');
+  await flush();assert.equal(leads,2,'refresh cannot duplicate success tracking');
+ } finally {x.w.close();}
+});
 for(const legacy of ['Fast Track','Signature Assessment ✦'])test('normalises '+legacy+' without losing selection',()=>{
  const x=setup('/',markup(`<option selected>${legacy}</option><option>Invisalign</option>`));try{x.load();assert.equal(x.select.value,'Signature Assessment');assert.equal(x.select.selectedOptions[0].textContent,'Signature Assessment ✦');assert([...x.select.options].some(o=>o.value==='Smile Design'));}finally{x.w.close();}
 });
