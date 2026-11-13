@@ -156,3 +156,68 @@ test('desktop lanes follow left-to-right order and appending leaves existing car
     assert.deepEqual(x.visible().slice(0,4).map(n=>n.dataset.reviewId),['r0','r1','r2','r3']);
   }finally{x.close();}
 });
+
+function batchMotion(x){
+  const home=x.d.querySelector('[data-review-page-list-home]');
+  home.getBoundingClientRect=()=>({height:x.visible().length*100});
+  x.w.TDBMotion.reduced.matches=false;
+  x.w.TDBMotion.duration=()=>730;
+  x.w.TDBMotion.defaults={fadeIn:260};
+  x.w.TDBMotion.easing=()=> 'ease-in-out';
+  const animations=[];
+  x.w.HTMLElement.prototype.animate=function(frames,options){
+    if(this!==home&&!this.matches('.reviews-page_item'))return {finished:Promise.resolve(),cancel(){}};
+    let finish,reject;
+    const finished=new Promise((resolve,no)=>{finish=resolve;reject=no;});
+    const animation={node:this,frames,options,finished,finish,cancel(){reject(new x.w.DOMException('Cancelled','AbortError'));}};
+    animations.push(animation);
+    return animation;
+  };
+  return {home,animations};
+}
+
+test('Load more expands before fading only the new batch and prevents overlapping loads',async()=>{
+  const x=await setup();try{
+    const {home,animations}=batchMotion(x), original=x.visible();
+    const more=x.d.querySelector('[data-review-page-more]');
+    const loading=x.api.loadMore();await tick();
+    assert.equal(x.visible().length,40);
+    assert.deepEqual(x.visible().slice(0,20),original);
+    assert.ok(original.every(n=>!n.style.opacity&&!n.inert));
+    const added=x.visible().slice(20);
+    assert.ok(added.every(n=>n.style.opacity==='0'&&n.inert));
+    assert.equal(animations.length,1);
+    assert.equal(animations[0].node,home);
+    assert.deepEqual(JSON.parse(JSON.stringify(animations[0].frames)),[{height:'2000px'},{height:'4000px'}]);
+    assert.equal(animations[0].options.duration,730);
+    assert.equal(more.disabled,true);
+    await x.api.loadMore();assert.equal(x.calls.length,2);
+    animations[0].finish();await tick();
+    assert.equal(animations.length,21);
+    assert.deepEqual(animations.slice(1).map(a=>a.node),added);
+    assert.ok(animations.slice(1).every(a=>a.options.duration===260));
+    assert.equal(more.disabled,true);
+    animations.slice(1).forEach(a=>a.finish());await loading;
+    assert.ok(added.every(n=>!n.style.opacity&&!n.inert));
+    assert.equal(home.style.overflow,'');
+    assert.equal(more.disabled,false);
+  }finally{x.close();}
+});
+
+test('resizing or selecting a filter during expansion releases hidden cards and cancels the stale reveal',async()=>{
+  for(const action of ['resize','filter']){
+    const x=await setup();try{
+      const {home,animations}=batchMotion(x);
+      const loading=x.api.loadMore();await tick();
+      const added=x.visible().slice(20);
+      if(action==='resize')x.w.dispatchEvent(new x.w.Event('resize'));
+      else await x.choose('rating','1');
+      await loading;await tick();
+      assert.equal(animations.length,1);
+      assert.ok(added.every(n=>!n.style.opacity&&!n.inert));
+      assert.equal(home.style.overflow,'');
+      assert.equal(x.visible().length,action==='resize'?40:1);
+      assert.equal(x.d.querySelector('[data-review-page-more]').disabled,false);
+    }finally{x.close();}
+  }
+});

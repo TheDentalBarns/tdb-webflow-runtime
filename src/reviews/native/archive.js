@@ -65,6 +65,7 @@
     const listen = (node, type, fn) => node.addEventListener(type, fn, { signal });
     const q = (name, parent = root) => parent.querySelector(`[data-review-page-${name}]`);
     const list = root.querySelector('.reviews-page_grid');
+    const listHome = q('list-home');
     const original = [...list.children];
     const lastReview = root.dataset.reviewPageLast || '';
     const order = (index, selection) => {
@@ -137,7 +138,72 @@
       moving;
     let replacing = false,
       replacement,
-      fading;
+      fading,
+      batchReveal;
+    function cancelBatchReveal() {
+      const batch = batchReveal;
+      if (!batch) return;
+      batchReveal = null;
+      batch.animations.forEach((animation) => animation.cancel());
+      listHome.style.overflow = batch.overflow;
+      batch.nodes.forEach((node) => {
+        node.style.opacity = '';
+        node.inert = false;
+      });
+    }
+    function prepareBatchReveal(nodes) {
+      if (!nodes.length || !listHome.animate || window.TDBMotion.reduced.matches) return;
+      const batch = {
+        nodes,
+        height: listHome.getBoundingClientRect().height,
+        overflow: listHome.style.overflow,
+        animations: [],
+      };
+      batchReveal = batch;
+      listHome.style.overflow = 'clip';
+      nodes.forEach((node) => {
+        node.style.opacity = '0';
+        node.inert = true;
+      });
+      return batch;
+    }
+    async function revealBatch(batch, token) {
+      if (!batch) return;
+      const current = () => batchReveal === batch && token === revision && !disposed;
+      const play = (node, frames, duration, easing) => {
+        const animation = node.animate(frames, { duration, easing, fill: 'both' });
+        batch.animations.push(animation);
+        return animation.finished.catch(() => {});
+      };
+      try {
+        const height = listHome.getBoundingClientRect().height;
+        if (height > batch.height) {
+          await play(
+            listHome,
+            [{ height: `${batch.height}px` }, { height: `${height}px` }],
+            window.TDBMotion.duration?.(innerWidth) || 650,
+            window.TDBMotion.easing?.('panel') || 'cubic-bezier(.4,0,.2,1)',
+          );
+        }
+        if (!current()) return;
+        // Expansion completes before any newly loaded card becomes visible.
+        batch.animations.forEach((animation) => animation.cancel());
+        batch.animations = [];
+        listHome.style.overflow = batch.overflow;
+        await Promise.all(
+          batch.nodes.map((node) =>
+            play(
+              node,
+              [{ opacity: 0 }, { opacity: 1 }],
+              window.TDBMotion.defaults?.fadeIn || 350,
+              window.TDBMotion.easing?.('fade') || 'ease',
+            ),
+          ),
+        );
+      } finally {
+        if (batchReveal === batch) cancelBatchReveal();
+      }
+    }
     // Webflow owns the responsive columns, gaps and card appearance. Only the
     // natural text heights need measurement to stack each lane independently.
     // Assign lanes in ranking order (1, 2, 3 / 4, 5, 6), never by shortest lane.
@@ -185,7 +251,10 @@
         })
       : null;
     resize?.observe(list);
-    listen(window, 'resize', scheduleLayout);
+    listen(window, 'resize', () => {
+      cancelBatchReveal();
+      scheduleLayout();
+    });
     const fade = async (opacity, duration) => {
       const from = getComputedStyle(list).opacity;
       fading?.cancel();
@@ -417,6 +486,7 @@
         batch = ordered.slice(offset, offset + 20);
       failed = false;
       const request = new AbortController();
+      let reveal;
       pending = request;
       updateProgress();
       try {
@@ -427,6 +497,7 @@
         if (replace && replacement) await replacement;
         if (disposed || token !== revision) return;
         const nodes = records.map((record, i) => card(record, offset + i + 1));
+        reveal = replace ? null : prepareBatchReveal(nodes);
         if (replace) {
           resize?.disconnect();
           list.replaceChildren(...nodes);
@@ -441,7 +512,7 @@
           replacing = false;
           list.style.minHeight = '';
           await fade(1, window.TDBMotion.defaults?.fadeIn || 350);
-        }
+        } else await revealBatch(reveal, token);
       } catch (error) {
         if (token !== revision || disposed || error.name === 'AbortError') return;
         failed = true;
@@ -451,6 +522,7 @@
           await fade(1, window.TDBMotion.defaults?.fadeIn || 350);
         }
       } finally {
+        if (reveal && batchReveal === reveal) cancelBatchReveal();
         if (pending === request) {
           pending = null;
           updateProgress();
@@ -464,6 +536,7 @@
         sessionStorage.setItem(storageKey, JSON.stringify(state));
       } catch {}
       const token = ++revision;
+      cancelBatchReveal();
       pending?.abort();
       pending = null;
       rendered = 0;
@@ -559,6 +632,7 @@
         revision++;
         lifecycle.abort();
         pending?.abort();
+        cancelBatchReveal();
         resize?.disconnect();
         cancelAnimationFrame(layoutFrame);
         list.classList.remove('is-masonry');
