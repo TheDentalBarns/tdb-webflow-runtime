@@ -156,7 +156,7 @@ function prepareVIPDrawerLoader() {
     return contentPromise;
   }
   function fallbackToForm() {
-    const section = Array.from(document.querySelectorAll('#VIP')).find(
+    const section = Array.from(document.querySelectorAll('#VIP-inline, #VIP')).find(
       (node) => !drawer.contains(node),
     );
     if (section) {

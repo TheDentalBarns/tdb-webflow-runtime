@@ -538,7 +538,9 @@
 
   addEventListener('hashchange', routeVipHash);
 
-  const vipSection = [...document.querySelectorAll('#VIP')].find((node) => !drawer.contains(node));
+  const vipSection = [...document.querySelectorAll('#VIP-inline, #VIP')].find(
+    (node) => !drawer.contains(node),
+  );
   if (vipSection && 'IntersectionObserver' in window) {
     new IntersectionObserver(
       ([entry]) => {

@@ -72,6 +72,17 @@ test('ordinary scroll does not prepare VIP; explicit shell preparation leaves co
   }finally{x.close();}
 });
 
+test('unique first-form anchor keeps drawer proximity and fallback on the inline form',async()=>{
+ const x=setup();try{
+  const inline=x.d.getElementById('VIP');inline.id='VIP-inline';
+  const footer=x.d.createElement('section');footer.id='VIP';x.d.body.append(footer);
+  const observed=[];x.w.IntersectionObserver=class{constructor(cb){this.cb=cb;}observe(n){observed.push(n);}disconnect(){}};
+  let scrolled=null;x.w.HTMLElement.prototype.scrollIntoView=function(){scrolled=this;};
+  await x.w.TDBVIPDrawerLoader.load();assert(observed.includes(inline),'proximity follows the first inline form');assert(!observed.includes(footer));
+  x.w.TDBVIPDrawerLoader.fallback();assert.equal(scrolled,inline,'failed drawer opening falls back to the first form');
+ }finally{x.close();}
+});
+
 test('first trigger click awaits content and CSS, then preserves the full slide entrance',async()=>{
   const x=setup();try{
     let release;x.gates.set('tdb-vip-content.css',new Promise(r=>release=r));

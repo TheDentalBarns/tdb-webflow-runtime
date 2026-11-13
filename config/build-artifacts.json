@@ -579,10 +579,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "4b2d5852893fcc23fb68376cf30f4e37a8c3ca96aa6adf16fedd5dece0cf9187",
-      "raw": 94850,
-      "gzip": 25730,
-      "brotli": 22119
+      "sha256": "6ee9c862c584101cfa7cb38f5e326d94e549097f7a18dfeb52918c560f26bc58",
+      "raw": 94863,
+      "gzip": 25737,
+      "brotli": 22107
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -751,9 +751,9 @@
         "src/shared/panel-motion.js",
         "src/vip-drawer/vip-drawer.js"
       ],
-      "sha256": "74e623cd98ee9062c8d46d09d7277dd3dd9b3d7dbd7fd075bed88eda0f4315c0",
-      "raw": 10282,
-      "gzip": 3735,
+      "sha256": "0164d31d86cfd88608bfee9ff767195cf111c4c9cc19c3b882313871d9facbdc",
+      "raw": 10295,
+      "gzip": 3743,
       "brotli": 3312
     },
     "dist/tdb-vip-form.js": {
