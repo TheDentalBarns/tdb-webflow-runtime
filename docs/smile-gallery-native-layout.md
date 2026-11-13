@@ -13,8 +13,9 @@ Webflow page: `6aa3efd54f3f705caf98c687`.
   zero, so Designer shows the cream holding frame and fixed Before/After labels.
 - `smile-grid_header` and `smile-grid_treatments`: native reserved height for
   titles and up to four treatments. Fact cells use three equal columns with
-  fixed separators. Diamonds and price/clock/clinician icons are native images
-  using the shared SVG assets.
+  fixed separators. Diamonds and price/clock/clinician icons are native mask
+  slots using the shared SVG assets. The same mask URLs serve cards and filters,
+  avoiding mixed image/mask fetch modes for identical artwork.
 - Images, titles, treatment lists and fact values start with native opacity zero.
   Fact icons, labels, separators and frames remain visible. The photos start
   unfocusable and disabled until the gallery is ready.
@@ -40,3 +41,16 @@ Native breakpoint and holding-state rendering is also verified using published
 Webflow styles without the runtime or the no-JavaScript fallback, matching the
 Designer canvas. Published no-JavaScript fallback and normal interactions are
 checked separately.
+
+The embedded filter's layout, typography, icon appearance, count slots and lower
+landing bar are authored in Webflow, including tablet/mobile breakpoints.
+`tdb-smile-page.css` is an interaction module loaded by `standalone.js` through
+the shared dependency registry, not an eager page-head stylesheet. It contains
+the prepared-content states, comparison controls, generated options and drawer
+interaction styles. Do not put native initial-layout corrections back into it.
+
+`data-tdb-deferred-mask` uses the existing shared 400px artwork proximity policy.
+The tiny critical guard replaces only the network-bearing mask URL with a
+transparent mask until release; geometry and appearance remain native. Designer
+and no-JavaScript pages retain the authored artwork. Runtime changes only the
+artwork variable, never the icon's size, position or markup.

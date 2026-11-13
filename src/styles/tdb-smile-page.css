@@ -1,4 +1,5 @@
-/* Smile Gallery: native CMS grid, shared drawer and review-style filters. */
+/* Smile Gallery interaction module. Loaded by standalone.js, never in page head.
+   Designer owns the initial grid, embedded filter, artwork and landing bar. */
 /* Webflow owns the initial cream holding state, grid and reserved card slots.
    These rules only reveal prepared content and handle later user transitions. */
 [data-smile-content-ready] :is(.smile-grid_image,.smile-grid_before-image,.smile-grid_divider,.smile-grid_title,.smile-grid_treatments,.smile-grid_value){opacity:1}
@@ -11,17 +12,11 @@ html[data-smile-display="before-after"] .smile-grid_image{top:0;height:100%;obje
 html[data-smile-display="before-after"] .smile-grid_before-image,html[data-smile-display="before-after"] .smile-grid_divider{display:none}
 html[data-smile-display="before-after"] .smile-grid_label-before{top:calc(50% - 2rem);bottom:auto;left:auto;right:1rem}
 
-.smile-page_explore-form{min-width:0;margin:0}
-
 [data-smile-filter-home]{height:3rem;position:relative}
 [data-smile-page-ready] .smile-page_filter-dock{visibility:visible;pointer-events:auto}
 .smile-page_drawer-label{position:absolute;z-index:3;right:1rem;bottom:1rem;color:#f9f2e6;font-size:.7rem;line-height:1.4;font-weight:400;letter-spacing:.08em;text-transform:uppercase;pointer-events:none;text-shadow:none}
 .smile-page_drawer-label-before{top:calc(50% - 2rem);bottom:auto}
 .smile-grid_image[hidden],[data-smile-comparison]>img[hidden],.smile-grid_item[hidden],[data-tdb-sg-case][hidden],.smile-page_section [hidden]{display:none!important}
-.smile-page_status{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;text-align:center;margin:3rem 0 1rem}
-.smile-page_actions{display:flex;justify-content:center;gap:1rem;align-items:center}
-.smile-page_hint{text-align:center;font-size:.75rem;color:#888;margin:1rem 0 0}
-.smile-page_empty{text-align:center;padding:3rem 1.25rem}
 .smile-page_drawer-header{position:absolute;top:0;left:0;right:0;height:calc(6rem + env(safe-area-inset-top,0px));background:#222;color:#d6cab4;display:flex;align-items:center;padding:env(safe-area-inset-top,0px) 6.5rem 0 2.5rem;z-index:2}
 .smile-page_drawer-heading{font-size:1rem;letter-spacing:.08em;text-transform:uppercase;font-weight:400;margin:0}
 
@@ -64,37 +59,20 @@ html[data-smile-display="before-after"] .smile-grid_label-before{top:calc(50% - 
 .smile-comparison_control:is(:focus,:focus-visible),.smile-comparison_open:is(:focus,:focus-visible){outline:none!important;box-shadow:none!important}
 [data-smile-comparison]:has(.smile-comparison_control:focus-visible) .smile-comparison_handle{width:4px}
 .smile-grid_card:has(.smile-comparison_open:focus-visible) .smile-grid_title{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.25em}
-
-@media(max-width:991px){.smile-page_explore-inner{gap:2rem}}
-@media(max-width:767px){.smile-page_explore-inner{grid-template-columns:1fr}.smile-page_explore-copy p:last-child{margin-bottom:0}.smile-page_drawer-header{padding-left:1.25rem}.smile-page_drawer-reading{padding:1.25rem}.smile-page_drawer-footer{padding-left:1.25rem;padding-right:1.25rem}.smile-page_case-title{font-size:1.15rem}.smile-page_drawer-photo{margin-bottom:1.5rem}.smile-page_case-facts{flex-wrap:wrap;gap:1.25rem}.smile-page_case-fact{font-size:.75rem}.smile-page_case-description{min-height:0}.smile-page_case-fact:last-child{flex-basis:100%}}
+@media(max-width:767px){.smile-page_explore-copy p:last-child{margin-bottom:0}.smile-page_drawer-header{padding-left:1.25rem}.smile-page_drawer-reading{padding:1.25rem}.smile-page_drawer-footer{padding-left:1.25rem;padding-right:1.25rem}.smile-page_case-title{font-size:1.15rem}.smile-page_drawer-photo{margin-bottom:1.5rem}.smile-page_case-facts{flex-wrap:wrap;gap:1.25rem}.smile-page_case-fact{font-size:.75rem}.smile-page_case-description{min-height:0}.smile-page_case-fact:last-child{flex-basis:100%}}
 
 /* Shared review button sizing; only the names of the count hooks differ. */
-.smile-page_explore-copy{display:flex;flex-direction:column;align-items:flex-start;gap:1.5rem;max-width:34rem}
-.smile-page_explore-tagline{font-size:.875rem;line-height:1.5;letter-spacing:.12em;text-transform:uppercase}
-.smile-page_explore-title{font-size:2rem;line-height:1.3;font-weight:300;letter-spacing:.1em;text-transform:uppercase;margin:0}
-.smile-page_explore-blurb{font-size:.875rem;line-height:1.7;color:#777;margin:0}
-.smile-page_explore-cta{margin:0}
 [data-smile-filter-group][hidden]{display:none}
 .smile-page_filter-shade{position:absolute;inset:0;background:#0008;pointer-events:auto}
 .smile-page_filter-shade.is-closed{display:none}
 .is-filter-only .tdb-drawer_panel{width:calc(100% - 5rem);max-width:80rem;left:50%;right:auto;transform:translateX(-50%);background:transparent}
 .is-filter-only .smile-page_drawer-header,.is-filter-only .smile-page_drawer-footer,.is-filter-only .smile-page_drawer-reading,.is-filter-only [data-tdb-drawer-close],.is-filter-only .smile-page_filter-shade{visibility:hidden}
-@media(max-width:767px){.smile-page_explore-title{font-size:1.75rem}.is-filter-only .tdb-drawer_panel{width:100%}}
-
-.smile-page_explore-stack{display:flex;flex-direction:column;align-items:flex-start;gap:1.5rem}
+@media(max-width:767px){.is-filter-only .tdb-drawer_panel{width:100%}}
 
 [data-smile-count-plural].is-singular{visibility:hidden}
 .is-filter-only .tdb-drawer_panel{box-shadow:none}
 
-@media(max-width:767px){.smile-page_explore-actions{bottom:1.5rem;right:1.25rem}}
-
 .smile-page_explore-copy .button.is-review-filter-action{margin:0;align-self:flex-start}
-
-.smile-page_explore{width:100vw;margin-left:calc(50% - 50vw);background:#ebe2d2;margin-bottom:4rem;position:relative}
-.smile-page_explore-inner{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:2rem 4rem;max-width:90rem;margin:0 auto}
-.smile-page_explore-actions{display:flex;justify-content:space-between;align-items:center;grid-column:1/-1;grid-row:2;position:relative;inset:auto;padding:0;min-height:3rem}
-.smile-page_dock-anchor{grid-column:1/-1;grid-row:2;align-self:center;justify-self:center;position:relative;width:3rem;height:3rem;pointer-events:none}
-.smile-page_filter-landing{width:100vw;height:5.5rem;margin:3rem 0 0 calc(50% - 50vw);background:#ebe2d2;position:relative}
 .smile-page_drawer-reading{--smile-case-gutter:2.5rem;position:absolute;top:calc(6rem + env(safe-area-inset-top,0px));bottom:calc(5.5rem + env(safe-area-inset-bottom,0px));left:0;right:0;overflow:auto;overflow-x:hidden;overscroll-behavior:contain;padding:var(--smile-case-gutter)}
 .smile-page_drawer-copy{max-width:none;margin:0;overflow:hidden;position:relative}
 .smile-page_case-title{font-size:1rem;line-height:1.6;font-weight:400;text-transform:uppercase;letter-spacing:.04em;margin:0 0 1.25rem;min-height:0}
@@ -109,13 +87,9 @@ html[data-smile-display="before-after"] .smile-grid_label-before{top:calc(50% - 
 .smile-page_case-fact .smile-page_fact-slot{text-align:left;flex:0 1 auto}
 .smile-page_case-outgoing{pointer-events:none!important;position:absolute!important;margin:0!important}
 @media(max-width:767px){
- .smile-page_filter-landing{height:6rem;margin-top:2rem}
  /* Section spacing is authored in the native Webflow smile-page_explore class. */
- .smile-page_explore-inner{grid-template-columns:1fr;grid-template-rows:auto auto auto;gap:2rem}
- .smile-page_explore-actions{grid-row:3;inset:auto}
  .smile-page_explore-actions [data-smile-view-results]{order:0}
  .smile-page_explore-actions .button{max-width:calc(50% - 2.5rem);padding-left:.9rem;padding-right:.9rem}
- .smile-page_dock-anchor{grid-row:3}
  .smile-page_drawer-header{padding-left:5vw}
  .smile-page_drawer-reading{--smile-case-gutter:5vw;padding:1.5rem var(--smile-case-gutter);bottom:calc(6rem + env(safe-area-inset-bottom,0px))}
  .smile-page_drawer-media{margin-bottom:1.5rem}

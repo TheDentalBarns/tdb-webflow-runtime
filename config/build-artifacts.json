@@ -569,10 +569,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "5f8573ec50dfcaa086478d28359ab3e300293cd7b771bc38dc30ebbf3ac66e1d",
-      "raw": 94477,
-      "gzip": 25651,
-      "brotli": 22037
+      "sha256": "4b2d5852893fcc23fb68376cf30f4e37a8c3ca96aa6adf16fedd5dece0cf9187",
+      "raw": 94850,
+      "gzip": 25730,
+      "brotli": 22119
     },
     "dist/tdb-service-awards.js": {
       "sources": [
