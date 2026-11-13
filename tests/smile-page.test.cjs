@@ -125,6 +125,7 @@ function setup({ display = '', allowed = true, fail = false, saved = null } = {}
           if (!root.hidden) {
             root.hidden = true;
             options.onClose();
+            options.onClosed?.();
           }
           return Promise.resolve();
         },
@@ -426,13 +427,17 @@ test('filter button pins at the footer without a jump and leaves with the galler
     bottom = 748;
     await scroll();
     assert.equal(dock.classList.contains('is-floating'), true);
-    assert.equal(dock.style.getPropertyValue('--smile-dock-top'), '700px');
+    assert.equal(dock.style.getPropertyValue('--smile-dock-lift'), '0px');
     bottom = 500;
     await scroll();
-    assert.equal(dock.style.getPropertyValue('--smile-dock-top'), '700px');
+    assert.equal(dock.style.getPropertyValue('--smile-dock-lift'), '0px');
+    x.w.innerHeight -= 32;
+    x.w.dispatchEvent(new x.w.Event('resize'));
+    assert.equal(dock.style.getPropertyValue('--smile-dock-lift'), '0px', 'toolbar resizing keeps the CSS bottom anchor');
+    x.w.innerHeight += 32;
     end = 500;
     await scroll();
-    assert.equal(dock.style.getPropertyValue('--smile-dock-top'), '432px');
+    assert.equal(dock.style.getPropertyValue('--smile-dock-lift'), '-268px');
     assert.equal(dock.classList.contains('is-offscreen'), false);
     let target;
     x.w.lenis = {

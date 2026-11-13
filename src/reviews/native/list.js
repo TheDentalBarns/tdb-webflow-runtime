@@ -32,6 +32,12 @@
     const options = [...panel.querySelectorAll('[data-tdb-filter-group]')],
       apply = panel.querySelector('[data-tdb-filter-apply]'),
       reset = panel.querySelector('[data-tdb-filter-reset]');
+    const resetHome = document.createComment('review-filter-reset');
+    const filterActions = panel.querySelector('.tdb-review-filter_actions');
+    if (filterActions && reset.parentElement !== filterActions) {
+      reset.before(resetHome);
+      filterActions.prepend(reset);
+    }
     const applyCount = apply.querySelector('[data-tdb-filter-apply-count]'),
       countTicker = window.TDBNativeTicker.mount(applyCount);
     const disclosures = [...panel.querySelectorAll('[data-tdb-filter-disclosure]')].map(
@@ -583,6 +589,7 @@
         revision++;
         ctrl.abort();
         filter.destroy();
+        if (resetHome.parentNode) resetHome.replaceWith(reset);
         countTicker.destroy();
         resize.disconnect();
         prefetchObserver.disconnect();

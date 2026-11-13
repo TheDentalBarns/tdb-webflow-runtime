@@ -500,7 +500,7 @@
   let active = null;
   function mount(
     root,
-    { onOpen, onClose, hideChrome = false, returnFocus = (source) => source } = {},
+    { onOpen, onClose, onClosed, hideChrome = false, returnFocus = (source) => source } = {},
   ) {
     if (instances.has(root)) return instances.get(root);
     const panel = root.querySelector('[data-tdb-drawer-panel]'),
@@ -603,12 +603,14 @@
         if (backdrop)
           animations.push(
             backdrop.animate([{ opacity: opening ? 0 : 1 }, { opacity: opening ? 1 : 0 }], {
-              duration: Math.min(
-                duration,
-                (window.TDBMotionProfile?.forFamily?.('fade') || window.TDBMotionProfile)?.time(
-                  300,
-                ) ?? 300,
-              ),
+              duration: slidePanel
+                ? Math.min(
+                    duration,
+                    (window.TDBMotionProfile?.forFamily?.('fade') || window.TDBMotionProfile)?.time(
+                      300,
+                    ) ?? 300,
+                  )
+                : duration,
               fill: 'both',
             }),
           );
@@ -664,6 +666,7 @@
       root.inert = true;
       root.setAttribute('aria-hidden', 'true');
       stop();
+      onClosed?.();
       restore();
       unlock();
       state = 'closed';

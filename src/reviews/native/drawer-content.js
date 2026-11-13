@@ -81,6 +81,11 @@
       filterApply = $('[data-tdb-filter-apply]'),
       filterActions = $('.tdb-review-filter_actions');
     const filterReset = filterPanel?.querySelector('[data-tdb-filter-reset]');
+    const resetHome = document.createComment('review-filter-reset');
+    if (filterReset && filterActions && filterReset.parentElement !== filterActions) {
+      filterReset.before(resetHome);
+      filterActions.prepend(filterReset);
+    }
     const filterApplyCount = filterApply?.querySelector('[data-tdb-filter-apply-count]'),
       filterApplyReserve = filterApply?.querySelector('[data-tdb-filter-count-reserve]'),
       filterApplyPlural = filterApply?.querySelector('[data-tdb-filter-apply-plural]');
@@ -1181,6 +1186,7 @@
         queryController?.abort();
         clearTimeout(filterPrimeTimer);
         filter?.destroy();
+        if (resetHome.parentNode) resetHome.replaceWith(filterReset);
         unsubscribe?.();
         drawer.destroy();
         reading.destroy();

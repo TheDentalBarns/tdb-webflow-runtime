@@ -256,8 +256,7 @@
       let cases = [],
         currentId = saved.currentId,
         drawerIndex = 0,
-        filteringFromPage = false,
-        closingTimer;
+        filteringFromPage = false;
       const filterHome = page.querySelector('[data-smile-filter-home]');
       const embedded = page.querySelector('[data-smile-embedded-filter]');
       const dock = page.querySelector('[data-smile-filter-dock]');
@@ -271,14 +270,19 @@
       const previous = drawerRoot.querySelector('[data-smile-case-previous]');
       const next = drawerRoot.querySelector('[data-smile-case-next]');
       const motion = window.TDBMotion;
-      const animations = new Set();
-      const animate = async (node, frames, duration) => {
+      const animations = new Set(),
+        nodeAnimations = new WeakMap();
+      const animate = async (node, frames, duration, family = 'fade') => {
         if (!node?.animate || motion.reduced.matches || signal.aborted) return;
+        nodeAnimations.get(node)?.cancel();
         const animation = node.animate(frames, {
           duration,
-          easing: motion.easing?.('fade', 'ease') || 'ease',
+          easing:
+            motion.easing?.(family, family === 'travel' ? 'cubic-bezier(.3,0,.2,1)' : 'ease') ||
+            'ease',
           fill: 'both',
         });
+        nodeAnimations.set(node, animation);
         animations.add(animation);
         try {
           await animation.finished;
@@ -286,10 +290,10 @@
         } finally {
           animation.cancel();
           animations.delete(animation);
+          if (nodeAnimations.get(node) === animation) nodeAnimations.delete(node);
         }
       };
       cleanup.push(() => {
-        clearTimeout(closingTimer);
         for (const a of animations) a.cancel();
       });
       const fadeOut = motion.defaults?.fadeOut || 120,
@@ -534,7 +538,7 @@
         });
         measure.setAttribute('aria-hidden', 'true');
         reading.append(measure);
-        for (const field of ['title', 'description']) {
+        for (const field of ['title', 'treatments']) {
           const target = reading.querySelector('[data-smile-case-' + field + ']');
           const sample = target.cloneNode(false);
           sample.removeAttribute('data-smile-case-' + field);
@@ -542,15 +546,50 @@
           measure.replaceChildren(sample);
           let height = 0;
           for (const item of payload.cases) {
-            sample.textContent = item[field];
+            if (field === 'treatments')
+              sample.replaceChildren(
+                ...item.treatments.map((text) => {
+                  const li = document.createElement('li');
+                  li.textContent = text;
+                  return li;
+                }),
+              );
+            else sample.textContent = item[field];
             height = Math.max(height, sample.getBoundingClientRect().height);
           }
           target.style.minHeight = height + 'px';
         }
         measure.remove();
       };
+      const outgoingCaseNodes = new Set();
+      cleanup.push(() => outgoingCaseNodes.forEach((node) => node.remove()));
       const paintCase = (index, direction = 1, transition = true) => {
         if (!cases.length) return;
+        for (const node of outgoingCaseNodes) {
+          nodeAnimations.get(node)?.cancel();
+          node.remove();
+        }
+        outgoingCaseNodes.clear();
+        const slideNodes = [drawerPhoto, reading.querySelector('[data-smile-case-title]')];
+        const outgoing = transition
+          ? slideNodes.map((node) => {
+              const copy = node.cloneNode(true);
+              copy.classList.add('smile-page_case-outgoing');
+              copy.setAttribute('aria-hidden', 'true');
+              copy.inert = true;
+              for (const child of [copy, ...copy.querySelectorAll('[id],input')]) {
+                child.removeAttribute('id');
+                if (child.matches('input')) child.remove();
+              }
+              Object.assign(copy.style, {
+                left: node.offsetLeft + 'px',
+                top: node.offsetTop + 'px',
+                width: node.clientWidth + 'px',
+                height: node.clientHeight + 'px',
+              });
+              return [node, copy];
+            })
+          : [];
         drawerIndex = (index + cases.length) % cases.length;
         const item = cases[drawerIndex];
         currentId = item.id;
@@ -583,16 +622,33 @@
         previous.disabled = next.disabled = cases.length < 2;
         reading.scrollTop = 0;
         if (transition) {
-          animate(
-            reading.querySelector('[data-smile-case-title]'),
-            [
-              { opacity: 0, transform: 'translateX(' + direction * 2 + 'rem)' },
-              { opacity: 1, transform: 'translateX(0)' },
-            ],
-            motion.duration?.(reading.clientWidth) || 650,
-          );
+          for (const [node, copy] of outgoing) {
+            node.parentElement.append(copy);
+            outgoingCaseNodes.add(copy);
+            animate(
+              copy,
+              [
+                { transform: 'translateX(0)' },
+                { transform: 'translateX(' + direction * -100 + '%)' },
+              ],
+              motion.duration?.(reading.clientWidth) || 650,
+              'travel',
+            ).finally(() => {
+              copy.remove();
+              outgoingCaseNodes.delete(copy);
+            });
+          }
+          for (const node of slideNodes)
+            animate(
+              node,
+              [
+                { transform: 'translateX(' + direction * 100 + '%)' },
+                { transform: 'translateX(0)' },
+              ],
+              motion.duration?.(reading.clientWidth) || 650,
+              'travel',
+            );
           for (const node of [
-            drawerPhoto,
             reading.querySelector('[data-smile-case-description]'),
             reading.querySelector('[data-smile-case-treatments]'),
           ])
@@ -607,23 +663,60 @@
         const footerTop = innerHeight - 1.25 * rem - height;
         const naturalTop = bounds.bottom - height;
         const pinned = naturalTop <= footerTop;
+        // CSS bottom owns the mobile viewport edge. Only scroll the control away
+        // when the gallery itself ends; browser toolbar resizing cannot leave a stale top.
         dock.style.setProperty(
-          '--smile-dock-top',
-          Math.min(footerTop, stage.getBoundingClientRect().bottom - height - 1.25 * rem) + 'px',
+          '--smile-dock-lift',
+          Math.min(0, stage.getBoundingClientRect().bottom - height - 1.25 * rem - footerTop) +
+            'px',
         );
         dock.classList.toggle('is-floating', pinned);
         dock.classList.remove('is-offscreen');
       };
+      let toggleOrigin;
+      const moveToggle = (from) => {
+        if (!from) return;
+        const to = toggle.getBoundingClientRect();
+        animate(
+          toggle,
+          [
+            { translate: `${from.left - to.left}px ${from.top - to.top}px` },
+            { translate: '0px 0px' },
+          ],
+          motion.duration?.(innerWidth) || 650,
+          'travel',
+        );
+      };
       const drawer = window.TDBDrawer.mount(drawerRoot, {
         hideChrome: true,
         onOpen() {
+          const from = toggleOrigin || toggle.getBoundingClientRect();
+          toggleOrigin = null;
           drawerPanel.append(dock);
           dock.classList.add('is-in-drawer');
           dock.classList.remove('is-offscreen', 'is-floating');
           reserveCase();
+          if (filteringFromPage) moveToggle(from);
         },
         onClose() {
-          clearTimeout(closingTimer);
+          if (filteringFromPage) {
+            filters.set(false);
+            // Move to the page resting position while the filter slides down.
+            const from = toggle.getBoundingClientRect();
+            const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+            const bottom = Math.min(
+              innerHeight - 1.25 * rem,
+              stage.getBoundingClientRect().bottom - 1.25 * rem,
+            );
+            animate(
+              toggle,
+              [{ translate: '0px 0px' }, { translate: `0px ${bottom - from.bottom}px` }],
+              motion.duration?.(innerWidth) || 650,
+              'travel',
+            );
+          } else filters.reset();
+        },
+        onClosed() {
           filteringFromPage = false;
           filters.reset();
           filterHome.append(dock);
@@ -653,22 +746,17 @@
         labels: { open: 'Open smile filters', close: 'Close smile filters' },
         onChange(open) {
           dock.classList.toggle('is-expanded', open);
-          clearTimeout(closingTimer);
           if (open) {
             syncForms();
             if (drawerRoot.hidden) {
               filteringFromPage = true;
+              toggleOrigin = toggle.getBoundingClientRect();
               drawerRoot.classList.add('is-filter-only');
               drawer.open(toggle, { animatePanel: false });
               panel.querySelector('h3').focus({ preventScroll: true });
             }
           } else if (filteringFromPage) {
-            closingTimer = setTimeout(
-              () => {
-                if (!signal.aborted && !filters.isOpen) drawer.close(true);
-              },
-              motion.reduced.matches ? 0 : motion.duration?.(innerWidth) || 650,
-            );
+            drawer.close();
           }
         },
       });

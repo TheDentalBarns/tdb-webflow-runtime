@@ -10,7 +10,7 @@ function setup(){
   let resolve,reject;const animation={node,frames,options,currentTime:0,playbackRate:1,reversals:0,reverse(){this.playbackRate=-this.playbackRate;this.reversals++;if(this.done){this.done=false;this.finished=new Promise((a,b)=>{resolve=a;reject=b})}},done:false,cancelled:false,finished:new Promise((a,b)=>{resolve=a;reject=b}),finish(){if(!this.done){this.done=true;resolve()}},cancel(){this.cancelled=true;if(!this.done){this.done=true;reject(new w.DOMException('Cancelled','AbortError'))}}};
   animations.push(animation);return animation;
  };
- w.eval(code);const api=w.TDBDrawer.mount(root,{onOpen(){events.push('open')},onClose(){events.push('close')}});
+ w.eval(code);const api=w.TDBDrawer.mount(root,{onOpen(){events.push('open')},onClose(){events.push('close')},onClosed(){events.push('closed')}});
  return{w,doc,root,panel,backdrop,trigger,animations,events,api,finish(){animations.filter(a=>!a.done).forEach(a=>a.finish())},dispose(){api.destroy();w.close()}};
 }
 test('backdrop, Escape and repeated close calls cannot restart a closing drawer',async()=>{
@@ -99,7 +99,11 @@ test('filter-only shell dims and locks without a horizontal panel animation',asy
  const t=setup();try{
   const opening=t.api.open(t.trigger,{animatePanel:false});
   assert.equal(t.animations.length,1);assert.equal(t.animations[0].node,t.backdrop);assert.equal(t.w.TDBScrollLock.active,true);
-  t.finish();await opening;const closing=t.api.close();t.finish();await closing;
+  assert.equal(t.animations[0].options.duration,600,'backdrop follows the complete filter travel');
+  t.finish();await opening;const closing=t.api.close();
+  assert.equal(t.root.hidden,false);assert.equal(t.events.includes('closed'),false,'consumer placement stays intact throughout exit');
+  assert.equal(t.animations.at(-1).options.duration,600);
+  t.finish();await closing;assert.equal(t.events.filter(x=>x==='closed').length,1);
   assert.equal(t.root.hidden,true);assert.equal(t.w.TDBScrollLock.active,false);assert.equal(t.doc.activeElement,t.trigger);
  }finally{t.dispose();}
 });
