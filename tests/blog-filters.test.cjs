@@ -192,7 +192,7 @@ test('the button is bounded by the section and its only cream landing bar', asyn
     await new Promise((resolve) => setTimeout(resolve, 25));
     assert.equal(anchor.parentElement.style.top, '0px');
     assert.equal(anchor.parentElement.style.height, '1472px');
-    assert.equal(anchor.parentElement.style.clipPath, 'inset(0)');
+    assert.equal(anchor.parentElement.style.clipPath, '');
     assert.equal(x.d.querySelectorAll('.tdb-blog-filter-bar').length, 1);
   } finally {
     x.close();

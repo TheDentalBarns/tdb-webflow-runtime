@@ -500,6 +500,8 @@
   }
   // Native sticky positioning stays on the compositor during touch scrolling.
   // Only layout changes require measuring the two authored landing points.
+  // Keep the rail unclipped so the button can blur the page behind it.
+  // The sticky containing block already bounds its travel to this section.
   function mountDock({ root, home, landing, dock, start = home }) {
     const rail = document.createElement('div'),
       anchor = document.createElement('div');
@@ -513,7 +515,6 @@
       width: '100%',
       pointerEvents: 'none',
       zIndex: '10001',
-      clipPath: 'inset(0)',
     });
     Object.assign(anchor.style, {
       position: 'sticky',
