@@ -606,3 +606,24 @@ html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-contro
   font: inherit;
   pointer-events: auto;
 }
+
+/* VIP landing-page presentation.
+ * A native data-tdb-vip-page attribute on the page body opts in.
+ * Included once by the shared UI build; other pages keep their normal glass.
+ */
+@layer tdb-vip-pages {
+  [data-tdb-vip-page],
+  [data-tdb-vip-page] *,
+  [data-tdb-vip-page]::before,
+  [data-tdb-vip-page]::after,
+  [data-tdb-vip-page] *::before,
+  [data-tdb-vip-page] *::after,
+  [data-tdb-vip-page] *::backdrop {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  [data-tdb-vip-page] :is(.ig-native_bar, .ig-native_glass) {
+    background-color: #fff !important;
+  }
+}
