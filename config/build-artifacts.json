@@ -88,19 +88,19 @@
         "src/shared/modules.js",
         "src/consent/consent.js"
       ],
-      "sha256": "4a93328b6f18f1907dd4c825a527e156f3e6130d2291f04b3add21c041ec1ed4",
-      "raw": 22544,
-      "gzip": 7693,
-      "brotli": 6882
+      "sha256": "636e8f19509276b3e98c8a069d98c17b10b8986a8bed0122bafe02717bcb0a44",
+      "raw": 22513,
+      "gzip": 7692,
+      "brotli": 6881
     },
     "dist/tdb-consent.min.js": {
       "sources": [
         "src/consent/consent.js"
       ],
-      "sha256": "913aa4846d76e9358c0e377699d4c32aebfdfc3638b8893a19ac130684687ccc",
-      "raw": 8186,
-      "gzip": 3108,
-      "brotli": 2739
+      "sha256": "382b300fbe3045e491605a2effba87fa46a240e28d0fb76c96092bb61fb72d33",
+      "raw": 8155,
+      "gzip": 3111,
+      "brotli": 2732
     },
     "dist/tdb-drawer.js": {
       "sources": [
@@ -185,10 +185,10 @@
         "src/navbar/navbar-mobile-lock.js",
         "src/navbar/navbar-loader.js"
       ],
-      "sha256": "8ac53c004e0204db951fda29c95c67f4db8fe32c3e947b0295bd3e52e2574eab",
-      "raw": 33008,
-      "gzip": 10127,
-      "brotli": 9079
+      "sha256": "4555abf4dc6966a7c717b6efadb900618219dc7dc25586d4f84fd97e50b8de7f",
+      "raw": 32977,
+      "gzip": 10126,
+      "brotli": 9077
     },
     "dist/tdb-gallery.js": {
       "sources": [
@@ -256,10 +256,10 @@
       "sources": [
         "src/journey/journey.js"
       ],
-      "sha256": "c836858b435cf464d0dc7b85432a77440c041984acfbd9cc81fbe7db02cc8155",
-      "raw": 27012,
-      "gzip": 9889,
-      "brotli": 8724
+      "sha256": "54d4a383c66d65c422edd48b9510fd7bf798bc91b248ece1a0ab659ea0514d92",
+      "raw": 27002,
+      "gzip": 9885,
+      "brotli": 8704
     },
     "dist/tdb-legacy-review-drawer.js": {
       "sources": [

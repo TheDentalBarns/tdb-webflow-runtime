@@ -10,7 +10,9 @@
     authFailed = false,
     disposed = false,
     unsubscribe;
-  const permitted = () => !disposed && Boolean(window.TDBConsent?.allows('functionality'));
+  // Essential-only includes the visit planner; optional media and analytics
+  // continue to use their own category permissions.
+  const permitted = () => !disposed && Boolean(window.TDBConsent?.allows());
   const colour = (root, token) => getComputedStyle(root).getPropertyValue(token).trim();
   const nearby = (node) => {
     const r = node.getBoundingClientRect();
@@ -1113,7 +1115,7 @@
     if (!permitted()) {
       message(
         owner,
-        'Enable functional cookies to see your journey here, or open directions in Google Maps.',
+        'Choose your cookie preferences to see your journey here, or open directions in Google Maps.',
       );
       window.openCookieSettingsPanel?.();
       return;
@@ -1285,7 +1287,7 @@
     }
   }
   window.TDBJourney = Object.freeze({
-    version: '1.8.1',
+    version: '1.8.2',
     refresh,
     submit,
     owns: (root) => owners.has(root),

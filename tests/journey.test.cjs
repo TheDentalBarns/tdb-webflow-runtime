@@ -5,15 +5,15 @@ const { JSDOM } = require('jsdom');
 const source = fs.readFileSync('src/journey/journey.js', 'utf8');
 const tick = () => new Promise(resolve => setImmediate(resolve));
 function deferred() { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; }
-function fixture({ allowed = true, routeFlight, placeFlight, rich = false, options = false, clock } = {}) {
+function fixture({ allowed = true, functional = true, routeFlight, placeFlight, rich = false, options = false, clock } = {}) {
   const resultMarkup = rich ? '<span data-tdb-journey-time><span data-tdb-journey-time-value>00</span><span data-tdb-journey-time-unit>min</span></span><span data-tdb-journey-detail><span data-tdb-journey-distance-value>00.0</span><span data-tdb-journey-distance-unit>miles</span></span><span data-tdb-journey-note>Native result placeholder</span>' : 'Native result placeholder';
   const dom = new JSDOM(`<div data-tdb-journey data-tdb-maps-key="test" data-tdb-map-id="map"><form><input name="origin"><button>Find</button></form><p data-tdb-journey-status>${resultMarkup}</p><a class="tdb-journey-directions" href="https://www.google.com/maps/dir/?api=1">Directions</a><div data-tdb-journey-map><p>Native map placeholder</p></div></div>`, { runScripts: 'outside-only', url: 'https://example.test/location', pretendToBeVisual: true });
   const w = dom.window, root = w.document.querySelector('[data-tdb-journey]');
-  let notify, permission = allowed, prompt = 0;
+  let notify, permission = allowed, functionalPermission = functional, prompt = 0;
   const calls = [], maps = [], lines = [], markers = [], infos = [], placesCalls = [];
   root.dataset.tdbMapsPlaceId='verified-business';
   const result = () => ({ routes: [{ path: [{ lat: 52.6, lng: -1.8 }], durationMillis: 780000, distanceMeters: 12000, createPolylines() { const line = { setOptions() {}, setMap(map) { this.map = map; } }; lines.push(line); return [line]; } }] });
-  w.TDBConsent = { allows: () => permission, subscribe(fn) { notify = fn; fn(); return () => {}; } };
+  w.TDBConsent = { allows: category => permission && (!category || category === 'strict' || (category === 'functionality' && functionalPermission)), subscribe(fn) { notify = fn; fn(); return () => {}; } };
   w.openCookieSettingsPanel = () => { prompt++; };
   w.google = { maps: { event: { clearInstanceListeners() {} }, async importLibrary(kind) {
     if (kind === 'maps') return { InfoWindow: class {constructor(options){this.options=options;infos.push(this)}open(options){this.openOptions=options}close(){this.closed=true}}, Map: class { constructor(node,options) { this.options=options; maps.push(this); node.textContent = 'Google map'; } fitBounds() {this.fitted=true} getMapTypeId(){return this.type||this.options.mapTypeId} getZoom(){return this.zoom??this.options.zoom} setZoom(zoom){this.zoom=zoom} setMapTypeId(type){this.type=type} } };
@@ -40,7 +40,7 @@ function fixture({ allowed = true, routeFlight, placeFlight, rich = false, optio
   }
   w.eval(source);
   return { w, root, calls, maps, lines, markers, infos, placesCalls, result, output: () => root.querySelector('[data-tdb-journey-status]').textContent,
-    permission(value) { permission = value; notify(); }, prompt: () => prompt,
+    permission(value, functionality = functionalPermission) { permission = value; functionalPermission = functionality; notify(); }, prompt: () => prompt,
     close() { w.TDBJourney.destroy(); dom.window.close(); } };
 }
 test('route appears in the embedded map; minimal fields, traffic-aware estimates, repeated searches deduplicate', async () => {
@@ -57,7 +57,7 @@ test('route appears in the embedded map; minimal fields, traffic-aware estimates
   assert.equal(f.calls.length, 1);
   f.close();
 });
-test('functional consent gates Google; the first search is retained through explicit consent', async () => {
+test('a cookie decision gates Google; the first search is retained through that decision', async () => {
   const f = fixture({ allowed: false });
   await f.w.TDBJourney.submit(f.root, 'Tamworth');
   assert.equal(f.maps.length, 0); assert.equal(f.calls.length, 0); assert.equal(f.prompt(), 1);
@@ -66,6 +66,30 @@ test('functional consent gates Google; the first search is retained through expl
   f.permission(false);
   assert.match(f.root.querySelector('[data-tdb-journey-map]').textContent, /Native map placeholder/);
   assert.equal(f.lines[0].map, null);
+  f.close();
+});
+test('essential-only loads the map and calculates a journey without reopening preferences', async () => {
+  const f = fixture({ functional: false });
+  await tick();
+  assert.equal(f.maps.length, 1);
+  assert.equal(f.root.dataset.journeyMap, 'ready');
+  await f.w.TDBJourney.submit(f.root, 'Sutton Coldfield');
+  assert.equal(f.calls.length, 1);
+  assert.match(f.output(), /Around 13 minutes by car/);
+  assert.equal(f.prompt(), 0);
+  assert.equal(f.w.TDBConsent.allows('functionality'), false);
+  f.close();
+});
+test('switching from full to essential-only keeps the current route and map available', async () => {
+  const f = fixture();
+  await f.w.TDBJourney.submit(f.root, 'Tamworth');
+  const map = f.maps[0];
+  f.permission(true, false);
+  await tick();
+  assert.equal(f.maps.length, 1);
+  assert.equal(f.lines[0].map, map);
+  assert.equal(f.root.dataset.journeyMap, 'ready');
+  assert.match(f.output(), /Tamworth/);
   f.close();
 });
 test('typing a new origin invalidates an outstanding result and prevents duplicate inflight requests', async () => {
@@ -88,7 +112,7 @@ test('consent withdrawal suppresses a late response; failure retains a useful di
   assert.match(g.output(), /could not calculate/);
   assert.match(g.root.querySelector('a').href, /origin=Unknown\+postcode/); g.close();
 });
-test('SDK requests do not start without functional consent', async () => {
+test('SDK requests do not start before a cookie decision', async () => {
   const f = fixture({ allowed: false }); delete f.w.google;
   let requests = 0; f.w.TDBModules = { load() { requests++; return Promise.reject(Error('offline')); } };
   await f.w.TDBJourney.submit(f.root, 'Tamworth'); assert.equal(requests, 0);
