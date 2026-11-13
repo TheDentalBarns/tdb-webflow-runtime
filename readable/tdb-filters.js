@@ -443,6 +443,9 @@
       { signal, capture: true },
     );
     panel.id ||= 'tdb-filters-' + ++sequence;
+    // Native embeds can omit the initial state class; mount always starts closed.
+    panel.classList.add(names.closed);
+    backdrop?.classList.add(names.closed);
     panel.inert = true;
     panel.setAttribute('aria-hidden', 'true');
     toggle.setAttribute('aria-controls', panel.id);

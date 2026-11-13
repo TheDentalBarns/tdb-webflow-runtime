@@ -13,7 +13,25 @@ test('outside dismissal consumes the entire closing gesture and releases listene
   abort.abort();outside.click();assert.equal(opens,2);assert.equal(active,true);
  }finally{w.close();}
 });
-// The fixture is the unchanged filters source from deployed carousel cohort fe41fd2.
+test('a native filter without initial state classes hides its shade until opened and restores on teardown', () => {
+ const dom=new JSDOM('<button>Filter</button><div id="shade"></div><aside>Options</aside>',{runScripts:'outside-only'}),w=dom.window;
+ try {
+  const reduced=new w.EventTarget();reduced.matches=true;
+  w.TDBMotion={reduced,filterToggle:()=>({set(){},destroy(){}})};
+  w.eval(source('filters'));
+  const panel=w.document.querySelector('aside'),backdrop=w.document.querySelector('#shade');
+  const filters=w.TDBFilters.mount(panel,{toggle:w.document.querySelector('button'),backdrop});
+  assert.equal(panel.classList.contains('is-closed'),true);
+  assert.equal(backdrop.classList.contains('is-closed'),true);
+  filters.set(true);
+  assert.equal(backdrop.classList.contains('is-closed'),false);
+  filters.set(false);
+  assert.equal(backdrop.classList.contains('is-closed'),true);
+  filters.destroy();
+  assert.equal(panel.classList.contains('is-closed'),false);
+  assert.equal(backdrop.classList.contains('is-closed'),false);
+ } finally {w.close();}
+});
 
 test('embedded and modal accordions share 20px spacing and travel without sharing state', async () => {
  const dom = new JSDOM('<style>.group{padding-bottom:0}.group.is-expanded{padding-bottom:20px}</style><section id="embed"><div class="group"><button aria-expanded="false">Treatments</button><div class="options is-collapsed">Options</div><i></i></div></section><section id="modal"><div class="group"><button aria-expanded="false">Treatments</button><div class="options is-collapsed">Options</div><i></i></div></section>', {runScripts:'outside-only'}), w=dom.window;
