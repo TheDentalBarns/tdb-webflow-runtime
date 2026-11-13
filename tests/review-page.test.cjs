@@ -62,6 +62,36 @@ test('all 91 reviews load incrementally with complete text, numbering, responses
     assert.deepEqual(x.calls.map(c=>c.length),[20,20,20,20,11]);
   }finally{x.close();}
 });
+test('filter travel starts at the review content and follows the lower landing as content grows',async()=>{
+  const x=await setup();try{
+    const root=x.d.querySelector('[data-tdb-review-archive]');
+    const content=x.d.querySelector('[data-review-page-list-home]');
+    const landing=x.d.querySelector('[data-review-page-landing]');
+    const anchor=x.d.querySelector('.tdb-filter-sticky-anchor');
+    const rail=x.d.querySelector('.tdb-filter-sticky-rail');
+    let scroll=0, end=1600;
+    root.getBoundingClientRect=()=>({top:100-scroll});
+    content.getBoundingClientRect=()=>({top:700-scroll});
+    landing.getBoundingClientRect=()=>({top:end-scroll,height:80});
+    anchor.getBoundingClientRect=()=>({height:48});
+    x.w.dispatchEvent(new x.w.Event('resize'));await tick();
+    assert.equal(rail.style.top,'600px');
+    assert.equal(rail.style.height,'964px');
+    scroll=450;
+    x.w.dispatchEvent(new x.w.Event('resize'));await tick();
+    assert.equal(rail.style.top,'600px');
+    assert.equal(rail.style.height,'964px');
+    end=2600;
+    await x.api.loadMore();
+    assert.equal(rail.style.top,'600px');
+    assert.equal(rail.style.height,'1964px');
+    x.d.querySelector('[data-review-page-toggle]').click();await tick();
+    x.d.querySelector('[data-review-page-toggle]').click();await tick();
+    assert.equal(anchor.contains(x.d.querySelector('[data-review-page-dock]')),true);
+    assert.equal(rail.style.top,'600px');
+  }finally{x.close();}
+});
+
 test('shared disclosures, filter drawer drafts, count, apply and reset retain correct content',async()=>{
   const x=await setup();try{
     const d=x.d;

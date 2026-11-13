@@ -293,7 +293,8 @@
     const embeddedDisclosures = window.TDBFilters.mountDisclosures(embedded, {
       disclosures: disclosures(embedded),
     });
-    const sticky = window.TDBFilters.mountDock({ root, start: root, home, landing, dock });
+    // Match Smile Gallery: the first review is the upper resting point, not the intro.
+    const sticky = window.TDBFilters.mountDock({ root, start: listHome, home, landing, dock });
     const drawer = window.TDBDrawer.mount(dialog, {
       hideChrome: true,
       onOpen() {
