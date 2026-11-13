@@ -1,9 +1,15 @@
 /* Smile Gallery: native CMS grid, shared drawer and review-style filters. */
-/* Native Webflow classes own the grid, image crops and reserved card slots.
-   Loading/filter/resize states hide only content, never the card structure. */
-:is(html[data-smile-pending] [data-smile-page-stage],[data-smile-page-stage][data-smile-pending]) :is(.smile-grid_image,.smile-grid_before-image,.smile-grid_divider,.smile-comparison_before,.smile-comparison_after,.smile-comparison_handle,[data-tdb-sg-title],[data-smile-grid-treatments],[data-tdb-sg-price-value],[data-tdb-sg-duration-value],[data-tdb-sg-clinician-value]){opacity:0}
-:is(html[data-smile-pending] [data-smile-page-stage],[data-smile-page-stage][data-smile-pending]) [data-smile-grid-photo]{pointer-events:none}
+/* Webflow owns the initial cream holding state, grid and reserved card slots.
+   These rules only reveal prepared content and handle later user transitions. */
+[data-smile-content-ready] :is(.smile-grid_image,.smile-grid_before-image,.smile-grid_divider,.smile-grid_title,.smile-grid_treatments,.smile-grid_value){opacity:1}
+[data-smile-page-ready] [data-smile-content-ready] [data-smile-grid-photo]{pointer-events:auto}
+[data-smile-page-stage][data-smile-pending] :is(.smile-grid_image,.smile-grid_before-image,.smile-grid_divider,.smile-comparison_before,.smile-comparison_after,.smile-comparison_handle,[data-tdb-sg-title],[data-smile-grid-treatments],[data-tdb-sg-price-value],[data-tdb-sg-duration-value],[data-tdb-sg-clinician-value]){opacity:0}
+[data-smile-page-stage][data-smile-pending] [data-smile-grid-photo]{pointer-events:none}
 [data-smile-image-ready="false"] :is(.smile-grid_image,.smile-grid_before-image,.smile-grid_divider,.smile-comparison_before,.smile-comparison_after,.smile-comparison_handle){opacity:0}
+html[data-smile-display="before-after"] .smile-grid_photo,html[data-smile-display="before-after"] .smile-page_drawer-photo{aspect-ratio:1}
+html[data-smile-display="before-after"] .smile-grid_image{top:0;height:100%;object-fit:contain}
+html[data-smile-display="before-after"] .smile-grid_before-image,html[data-smile-display="before-after"] .smile-grid_divider{display:none}
+html[data-smile-display="before-after"] .smile-grid_label-before{top:calc(50% - 2rem);bottom:auto;left:auto;right:1rem}
 
 .smile-page_explore-form{min-width:0;margin:0}
 

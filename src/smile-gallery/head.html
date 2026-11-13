@@ -1,13 +1,7 @@
-<script data-tdb-smile-first-paint>
-(()=>{let saved={};try{saved=JSON.parse(sessionStorage.getItem('tdb-smile-gallery-view'))||{}}catch{}const root=document.documentElement,display=new URL(location.href).searchParams.get('display')||saved.display;root.dataset.smileDisplay=display==='before-after'?'before-after':'slider';root.dataset.smilePending='true';setTimeout(()=>{if(!document.querySelector('[data-smile-page-ready]'))delete root.dataset.smilePending},8000)})();
-</script>
-<style data-tdb-smile-first-paint>
-/* Designer owns the default rectangles and responsive grid. Only display and
-   loading states live here, before the deferred runtime starts. */
-html[data-smile-display="before-after"] .smile-grid_photo,html[data-smile-display="before-after"] .smile-page_drawer-photo{aspect-ratio:1}
-html[data-smile-display="before-after"] .smile-grid_image{top:0;height:100%;object-fit:contain}
-html[data-smile-display="before-after"] .smile-grid_before-image,html[data-smile-display="before-after"] .smile-grid_divider{display:none}
-html[data-smile-display="before-after"] .smile-grid_label-before{top:calc(50% - 2rem);bottom:auto;left:auto;right:1rem}
-html[data-smile-pending] [data-smile-page-stage] :is(.smile-grid_image,.smile-grid_before-image,.smile-grid_divider,[data-tdb-sg-title],[data-smile-grid-treatments],[data-tdb-sg-price-value],[data-tdb-sg-duration-value],[data-tdb-sg-clinician-value]){opacity:0}
-html[data-smile-pending] [data-smile-grid-photo]{pointer-events:none}
+<!-- The initial cream holding state is authored in Webflow's native styles.
+     No startup script changes visibility or layout before the gallery mounts. -->
+<noscript data-tdb-smile-nojs>
+<style>
+.smile-grid_image,.smile-grid_before-image,.smile-grid_divider,.smile-grid_title,.smile-grid_treatments,.smile-grid_value{opacity:1}
 </style>
+</noscript>

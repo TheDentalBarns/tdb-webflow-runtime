@@ -250,10 +250,15 @@
       for (const release of cleanup.reverse()) release();
 
       page.removeAttribute('data-smile-page-ready');
-      delete document.documentElement.dataset.smilePending;
+      delete stage.dataset.smileContentReady;
       delete stage.dataset.smilePending;
+      for (const photo of stage.querySelectorAll('[data-smile-grid-photo]')) {
+        photo.tabIndex = -1;
+        photo.setAttribute('aria-disabled', 'true');
+      }
       instance = null;
     };
+    delete stage.dataset.smileContentReady;
     page.setAttribute('aria-busy', 'true');
     page.querySelector('[data-smile-page-retry]').hidden = true;
     try {
@@ -390,7 +395,7 @@
             .map((node) => animate(node, [{ opacity: from }, { opacity: to }], duration)),
         );
       const revealContents = () => {
-        delete document.documentElement.dataset.smilePending;
+        stage.dataset.smileContentReady = 'true';
         delete stage.dataset.smilePending;
         return fadeContents(0, 1, fadeIn);
       };
@@ -911,6 +916,8 @@
       for (const item of payload.cases) {
         item.item.parentElement.append(item.item);
         const photo = item.node.querySelector('[data-smile-grid-photo]');
+        photo.tabIndex = 0;
+        photo.removeAttribute('aria-disabled');
         photo.setAttribute('aria-label', 'View case: ' + item.title);
         photo.setAttribute('aria-haspopup', 'dialog');
         photo.setAttribute('aria-controls', drawerPanel.id);
@@ -1099,6 +1106,7 @@
       instance = { destroy: dispose };
     } catch (error) {
       dispose();
+      stage.dataset.smileContentReady = 'true';
       page.removeAttribute('aria-busy');
       status.textContent = 'The gallery could not load. Please try again.';
       page.querySelector('[data-smile-page-retry]').hidden = false;
