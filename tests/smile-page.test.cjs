@@ -860,6 +860,31 @@ test('saved filtering finishes before content is revealed; photo frames, labels 
   }
 });
 
+test('view results honours native header clearance without triggering a second delegated anchor scroll', async () => {
+  const x = setup();
+  try {
+    await x.w.TDBSmilePage.mount();
+    const stage = x.d.querySelector('[data-smile-page-stage]');
+    stage.style.scrollMarginTop = '96px';
+    let delegated = false;
+    let destination;
+    x.d.addEventListener('click', () => {
+      delegated = true;
+    });
+    x.w.lenis = {
+      scrollTo: (node, options) => {
+        destination = { node, options };
+      },
+    };
+    x.d.querySelector('[data-smile-view-results]').click();
+    assert.equal(delegated, false);
+    assert.equal(destination.node, stage);
+    assert.equal(destination.options.offset, -96);
+  } finally {
+    x.close();
+  }
+});
+
 test('only width changes hold content for a layout fade; mobile toolbar height changes do not', async () => {
   const x = setup({ nativePreview: true });
   try {

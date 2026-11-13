@@ -1020,9 +1020,12 @@
       listen(apply, 'click', () => select(panel, true));
       listen(embedded.querySelector('[data-smile-view-results]'), 'click', (event) => {
         event.preventDefault();
+        // Do not let Webflow's delegated anchor handler scroll again without
+        // the header clearance authored on the native results container.
+        event.stopPropagation();
         if (window.lenis?.scrollTo)
           window.lenis.scrollTo(stage, {
-            offset: -6 * (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16),
+            offset: -(parseFloat(getComputedStyle(stage).scrollMarginTop) || 0),
             immediate: motion.reduced.matches,
           });
         else
