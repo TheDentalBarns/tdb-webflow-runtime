@@ -793,7 +793,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '0.7.1';
+  const VERSION = '0.7.2';
   const base = new URL('./', document.currentScript.src);
   const GA_MEASUREMENT_ID = 'G-GCWCSWR50M';
   const META_PIXEL_ID = '1326762815429148';
@@ -815,17 +815,17 @@
   let quotePresent = false,
     quoteFlight = null;
   const pendingQuotes = new Map();
-  // The map's native reserved space is also its consent entry point. This
-  // belongs in foundation: the journey module may not have been released yet.
+  // The journey planner is available after either cookie choice, including
+  // essential-only. Before a decision, its reserved space opens the banner.
   const mapGates = new Map();
   const mapGateAttributes = ['role', 'tabindex', 'aria-label', 'aria-haspopup'];
   function syncMapGates() {
-    const blocked = !allows('functionality');
+    const blocked = !allows();
     for (const [canvas, original] of mapGates) {
       if (blocked) {
         canvas.setAttribute('role', 'button');
         canvas.setAttribute('tabindex', '0');
-        canvas.setAttribute('aria-label', 'Open cookie preferences to enable the interactive map');
+        canvas.setAttribute('aria-label', 'Choose cookie preferences to use the interactive map');
         canvas.setAttribute('aria-haspopup', 'dialog');
       } else if (canvas.getAttribute('aria-haspopup') === 'dialog') {
         for (const [name, value] of original)
@@ -835,7 +835,7 @@
     }
   }
   function mapConsentIntent(event) {
-    if (allows('functionality')) return;
+    if (allows()) return;
     const canvas = event.target.closest?.('[data-tdb-journey-map]');
     if (!mapGates.has(canvas)) return;
     if (

@@ -22,8 +22,8 @@ function fixture(choice = {}) {
     close() { w.close(); }
   };
 }
-for (const choice of [{}, rejected]) test('map opens shared consent with ' + (choice.action || 'no decision') + ', before the journey module exists', () => {
-  const f = fixture(choice);
+test('map opens shared consent before a decision and before the journey module exists', () => {
+  const f = fixture();
   assert.equal(f.w.TDBJourney, undefined);
   assert.equal(f.canvas.getAttribute('role'), 'button');
   assert.equal(f.canvas.tabIndex, 0);
@@ -35,7 +35,7 @@ for (const choice of [{}, rejected]) test('map opens shared consent with ' + (ch
   f.close();
 });
 test('Enter and Space open consent once; other/repeated keys and external directions are left alone', () => {
-  const f = fixture(rejected);
+  const f = fixture();
   assert.equal(f.key('Enter').defaultPrevented, true);
   assert.equal(f.key(' ').defaultPrevented, true);
   assert.equal(f.key('ArrowDown').defaultPrevented, false);
@@ -46,22 +46,23 @@ test('Enter and Space open consent once; other/repeated keys and external direct
   assert.equal(f.shown(), 2);
   f.close();
 });
-test('acceptance restores map semantics; revocation restores consent entry without new DOM', () => {
-  const f = fixture(rejected), elements = f.d.querySelectorAll('*').length;
-  f.choose(accepted);
+test('essential-only restores map semantics without reopening consent or changing categories', () => {
+  const f = fixture(), elements = f.d.querySelectorAll('*').length;
+  f.choose(rejected);
   assert.equal(f.canvas.getAttribute('role'), 'region');
   assert.equal(f.canvas.getAttribute('aria-label'), 'Map to The Dental Barns');
   assert.equal(f.canvas.hasAttribute('tabindex'), false);
   assert.equal(f.canvas.hasAttribute('aria-haspopup'), false);
   f.click(); f.key('Enter');
   assert.equal(f.shown(), 0);
-  f.choose(rejected); f.choose(rejected); f.click();
-  assert.equal(f.shown(), 1);
+  assert.equal(f.w.TDBConsent.allows('functionality'), false);
+  f.choose(accepted); f.choose(rejected); f.click();
+  assert.equal(f.shown(), 0);
   assert.equal(f.d.querySelectorAll('*').length, elements);
   f.close();
 });
-test('saved functional consent leaves the canvas untouched from startup', () => {
-  const f = fixture(accepted);
+for (const choice of [accepted, rejected]) test('saved ' + choice.action + ' leaves the canvas untouched from startup', () => {
+  const f = fixture(choice);
   assert.equal(f.canvas.getAttribute('role'), 'region');
   assert.equal(f.canvas.hasAttribute('tabindex'), false);
   f.click();
