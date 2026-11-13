@@ -21,6 +21,7 @@
 [data-blog-filter-options] .tdb-blog-filter:has(input:focus-visible) .tdb-blog-filter-label{text-decoration:underline;text-underline-offset:.4em}
 [data-blog-filter-toggle] [data-tdb-filter-line]{transform-box:fill-box;transform-origin:center}
 .tdb-blog-filter-drawer [data-tdb-drawer-close]{display:none}
+.tdb-blog-filter-drawer .smile-filter_actions .button{margin:0}
 [data-blog-filter-options] .tdb-blog-filter:has(:checked){color:#222}
 [data-blog-filter-options] .tdb-blog-filter.is-disabled{opacity:.3;cursor:default}
 [data-blog-filter-options] .tdb-blog-filter input:disabled{cursor:default}
