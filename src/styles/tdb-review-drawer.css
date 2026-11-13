@@ -10,6 +10,6 @@
 
 /* Shared filter actions: Reset left, View right, centred filter control. */
 .tdb-review-filter_actions{justify-content:space-between}
-.tdb-review-filter_actions [data-tdb-filter-reset]{margin-right:auto;margin-left:0}
-.tdb-review-filter_actions [data-tdb-filter-apply]{margin-left:auto}
-@media(max-width:767px){.tdb-review-filter_heading{padding-left:5vw;padding-right:5vw}.tdb-review-filter_groups,.tdb-review-filter_actions{padding-left:5vw;padding-right:5vw}.tdb-review-filter_actions [data-tdb-filter-reset]{max-width:calc(50% - 2.5rem);padding-left:.9rem;padding-right:.9rem}}
+.is-review-filter-action[data-tdb-filter-reset]{margin-right:auto;margin-left:0}
+.is-review-filter-action[data-tdb-filter-apply]{margin-left:auto}
+@media(max-width:767px){.tdb-review-filter_heading{padding-left:5vw;padding-right:5vw}.tdb-review-filter_groups,.tdb-review-filter_actions{padding-left:5vw;padding-right:5vw}.is-review-filter-action[data-tdb-filter-reset]{max-width:calc(50% - 2.5rem);padding-left:.9rem;padding-right:.9rem}}
