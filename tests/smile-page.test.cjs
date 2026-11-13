@@ -11,7 +11,14 @@ const feed = fs
     JSON.stringify(fs.readFileSync('src/smile-gallery/template.html', 'utf8')),
   );
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
-function setup({ display = '', allowed = true, fail = false, saved = null, cases } = {}) {
+function setup({
+  display = '',
+  allowed = true,
+  fail = false,
+  saved = null,
+  cases,
+  nativePreview = false,
+} = {}) {
   const records = cases || [
     ['A', 'From £3,000', 'Aligners', 'Dr A', '2 hours', 'Male'],
     ['B', 'From £1,000', 'Bonding', 'Dr B', '6–8 weeks', 'Female'],
@@ -41,6 +48,32 @@ function setup({ display = '', allowed = true, fail = false, saved = null, cases
     d = w.document,
     subscriptions = new Set();
   d.querySelector('[data-smile-page-stage]').innerHTML = cms;
+  if (nativePreview) {
+    for (const card of d.querySelectorAll('[data-tdb-sg-case]')) {
+      const photo = card.querySelector('[data-smile-grid-photo]');
+      const original = photo.querySelector('img');
+      original.className = 'smile-grid_image';
+      const before = original.cloneNode();
+      before.removeAttribute('data-tdb-sg-image');
+      before.setAttribute('data-smile-before-image', '');
+      before.className = 'smile-grid_before-image';
+      const divider = d.createElement('div');
+      divider.className = 'smile-grid_divider';
+      divider.setAttribute('data-smile-divider', '');
+      photo.append(before, divider);
+      const label = d.createElement('span');
+      label.className = 'smile-grid_label';
+      label.textContent = 'After';
+      photo.append(label);
+      const icon = d.createElement('img');
+      icon.className = 'smile-grid_icon';
+      card.append(icon);
+      const treatments = d.createElement('div');
+      treatments.setAttribute('data-smile-grid-treatments', '');
+      treatments.append(...card.querySelectorAll('[data-tdb-sg-treatment-name]'));
+      card.append(treatments);
+    }
+  }
   for (const original of d.querySelectorAll('button')) {
     const native = d.createElement('div');
     for (const attr of original.attributes) native.setAttribute(attr.name, attr.value);
@@ -745,6 +778,82 @@ test('slider layers reuse responsive sources and the drawer requests an appropri
       x.d.querySelector('.smile-page_drawer-photo .smile-comparison_after img').srcset,
       drawer.srcset,
     );
+  } finally {
+    x.close();
+  }
+});
+
+test('native before/after previews become sliders without adding image layers, and survive teardown', async () => {
+  const x = setup({ nativePreview: true });
+  try {
+    const photo = x.d.querySelector('[data-smile-grid-photo]');
+    const originalImages = [...photo.querySelectorAll('img')];
+    const divider = photo.querySelector('[data-smile-divider]');
+    await x.w.TDBSmilePage.mount();
+    assert.deepEqual([...photo.querySelectorAll('img')], originalImages);
+    assert.equal(photo.querySelector('.smile-comparison_handle'), divider);
+    assert.equal(photo.querySelector('[data-tdb-sg-image]').hidden, false);
+    const range = photo.querySelector('[role="slider"]');
+    range.dispatchEvent(new x.w.KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    assert.equal(photo.style.getPropertyValue('--smile-reveal'), '100%');
+    x.permit(false);
+    assert.deepEqual([...photo.querySelectorAll('img')], originalImages);
+    assert.equal(photo.querySelector('[data-smile-divider]'), divider);
+    assert.equal(divider.classList.contains('smile-comparison_handle'), false);
+    assert.equal(photo.querySelector('[role="slider"]'), null);
+  } finally {
+    x.close();
+  }
+});
+
+test('saved filtering finishes before content is revealed; photo frames, labels and fact icons never fade', async () => {
+  const x = setup({ nativePreview: true, saved: { treatments: ['bonding'] } });
+  try {
+    assert.equal(x.d.documentElement.dataset.smilePending, 'true');
+    await x.w.TDBSmilePage.mount();
+    assert.equal(x.d.documentElement.hasAttribute('data-smile-pending'), false);
+    assert.equal(x.d.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length, 1);
+    assert.equal(
+      x.d.querySelector('[data-tdb-sg-case]:not([hidden]) [data-tdb-sg-title]').textContent,
+      'B',
+    );
+    assert.ok(x.animations.some(({ node }) => node.matches('[data-tdb-sg-title]')));
+    assert.ok(
+      x.animations.every(
+        ({ node }) =>
+          !node.matches(
+            '[data-smile-page-stage],[data-smile-grid-photo],.smile-grid_label,.smile-grid_icon',
+          ),
+      ),
+    );
+    const photo = x.d.querySelector('[data-tdb-sg-case]:not([hidden]) [data-smile-grid-photo]');
+    assert.equal(photo.dataset.smileImageReady, 'false');
+    photo.querySelector('[data-tdb-sg-image]').dispatchEvent(new x.w.Event('load'));
+    await tick();
+    assert.equal(photo.dataset.smileImageReady, 'true');
+    assert.ok(
+      x.animations.some(({ node }) => node === photo.querySelector('.smile-grid_before-image')),
+    );
+  } finally {
+    x.close();
+  }
+});
+
+test('only width changes hold content for a layout fade; mobile toolbar height changes do not', async () => {
+  const x = setup({ nativePreview: true });
+  try {
+    await x.w.TDBSmilePage.mount();
+    const stage = x.d.querySelector('[data-smile-page-stage]');
+    Object.defineProperty(x.w, 'innerHeight', { value: 650, configurable: true });
+    x.w.dispatchEvent(new x.w.Event('resize'));
+    assert.equal(stage.hasAttribute('data-smile-pending'), false);
+    Object.defineProperty(x.w, 'innerWidth', { value: 390, configurable: true });
+    x.w.dispatchEvent(new x.w.Event('resize'));
+    assert.equal(stage.dataset.smilePending, 'true');
+    await new Promise((resolve) => setTimeout(resolve, 180));
+    assert.equal(stage.hasAttribute('data-smile-pending'), false);
+    assert.equal(x.d.querySelector('[data-smile-grid-photo]').style.aspectRatio, '');
+    assert.equal(x.d.querySelector('[data-smile-grid-treatments]').style.minHeight, '');
   } finally {
     x.close();
   }

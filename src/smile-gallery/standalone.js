@@ -73,19 +73,22 @@
       register(node, type, handler, options);
       registrations.push(() => node.removeEventListener(type, handler, options));
     };
-    const before = document.createElement('div');
-    const after = document.createElement('div');
-    before.className = 'smile-comparison_before';
-    after.className = 'smile-comparison_after';
-    const images = [before, after].map((layer) => {
-      const image = document.createElement('img');
-      image.alt = '';
-      image.draggable = false;
-      image.loading = 'lazy';
-      image.decoding = 'async';
-      layer.append(image);
-      return image;
-    });
+    const nativeBefore = photo.querySelector('[data-smile-before-image]');
+    const before = nativeBefore ? null : document.createElement('div');
+    const after = nativeBefore ? null : document.createElement('div');
+    if (before) before.className = 'smile-comparison_before';
+    if (after) after.className = 'smile-comparison_after';
+    const images = nativeBefore
+      ? [nativeBefore, original]
+      : [before, after].map((layer) => {
+          const image = document.createElement('img');
+          image.alt = '';
+          image.draggable = false;
+          image.loading = 'lazy';
+          image.decoding = 'async';
+          layer.append(image);
+          return image;
+        });
     // A native range covering the photo steals Android taps and changes value
     // before a vertical pan is recognised. Only the divider is a drag target.
     const range = document.createElement('div');
@@ -108,13 +111,16 @@
       photo.removeAttribute('tabindex');
       photo.append(opener);
     }
-    const handle = document.createElement('span');
-    handle.className = 'smile-comparison_handle';
+    const nativeHandle = photo.querySelector('[data-smile-divider]');
+    const handle = nativeHandle || document.createElement('span');
+    handle.classList.add('smile-comparison_handle');
     handle.setAttribute('aria-hidden', 'true');
     photo.dataset.smileComparison = 'true';
-    original.hidden = true;
+    original.hidden = !nativeBefore;
     original.draggable = false;
-    photo.append(after, before, handle, range);
+    if (!nativeBefore) photo.append(after, before);
+    if (!nativeHandle) photo.append(handle);
+    photo.append(range);
     let active = false,
       dragging = false,
       moved = false,
@@ -191,7 +197,7 @@
         const src = original.getAttribute('src');
         image.sizes = original.sizes;
         image.srcset = original.srcset;
-        if (src) image.src = src;
+        if (src && image.getAttribute('src') !== src) image.src = src;
       }
       moved = false;
       update(50);
@@ -207,7 +213,9 @@
       },
       destroy() {
         for (const remove of registrations) remove();
-        for (const element of [before, after, handle, range, opener]) element?.remove();
+        for (const element of [before, after, nativeHandle ? null : handle, range, opener])
+          element?.remove();
+        nativeHandle?.classList.remove('smile-comparison_handle');
         for (const [name, value] of attributes)
           if (value === null) photo.removeAttribute(name);
           else photo.setAttribute(name, value);
@@ -242,6 +250,8 @@
       for (const release of cleanup.reverse()) release();
 
       page.removeAttribute('data-smile-page-ready');
+      delete document.documentElement.dataset.smilePending;
+      delete stage.dataset.smilePending;
       instance = null;
     };
     page.setAttribute('aria-busy', 'true');
@@ -362,6 +372,48 @@
         fadeIn = motion.defaults?.fadeIn || 350;
       const listen = (node, type, fn, options = {}) =>
         node.addEventListener(type, fn, { signal, ...options });
+      const imageParts =
+        '.smile-grid_image,.smile-grid_before-image,.smile-grid_divider,.smile-comparison_before,.smile-comparison_after,.smile-comparison_handle';
+      const contentParts =
+        imageParts +
+        ',[data-tdb-sg-title],[data-smile-grid-treatments],[data-tdb-sg-price-value],[data-tdb-sg-duration-value],[data-tdb-sg-clinician-value]';
+      const fadeContents = (from, to, duration, scope = stage, selector = contentParts) =>
+        Promise.all(
+          [...scope.querySelectorAll(selector)]
+            .filter((node) => {
+              if (node.closest('[hidden]')) return false;
+              if (node.matches(imageParts) && node.closest('[data-smile-image-ready="false"]'))
+                return false;
+              const bounds = node.getBoundingClientRect();
+              return bounds.bottom >= 0 && bounds.top <= innerHeight;
+            })
+            .map((node) => animate(node, [{ opacity: from }, { opacity: to }], duration)),
+        );
+      const revealContents = () => {
+        delete document.documentElement.dataset.smilePending;
+        delete stage.dataset.smilePending;
+        return fadeContents(0, 1, fadeIn);
+      };
+      // Photos keep their native cream frame until the shared source has decoded.
+      // Lazy images are not requested early merely to prepare the comparison.
+      for (const item of payload.cases) {
+        const photo = item.node.querySelector('[data-smile-grid-photo]');
+        const image = photo.querySelector('[data-tdb-sg-image]');
+        photo.dataset.smileImageReady = 'false';
+        const ready = async () => {
+          if (photo.dataset.smileImageReady === 'true') return;
+          try {
+            await image.decode?.();
+          } catch {}
+          if (signal.aborted) return;
+          photo.dataset.smileImageReady = 'true';
+          if (page.dataset.smilePageReady && !stage.dataset.smilePending)
+            fadeContents(0, 1, fadeIn, photo, imageParts);
+        };
+        listen(image, 'load', ready);
+        if (image.complete && image.naturalWidth) ready();
+        cleanup.push(() => delete photo.dataset.smileImageReady);
+      }
       const matches = (item, selection = chosen, doctor = clinician, patient = gender) =>
         (!doctor || item.clinician === doctor) &&
         (!patient || item.gender === patient) &&
@@ -584,19 +636,8 @@
       };
       const treatmentHeight =
         Math.max(...payload.cases.map((item) => item.treatments.length)) * 1.3 + 2.25;
-      page.style.setProperty('--smile-treatment-space', treatmentHeight + 'rem');
       reading.style.setProperty('--smile-treatment-space', treatmentHeight + 'rem');
-      // Reserve actual authored copy geometry at the current width, including
-      // longer titles and wrapped treatment names from the CMS.
-      const reserveCards = () => {
-        for (const selector of ['.smile-grid_header', '.smile-grid_treatments']) {
-          const slots = [...stage.querySelectorAll(selector)];
-          for (const slot of slots) slot.style.minHeight = '';
-          if (innerWidth <= 640) continue;
-          const height = Math.max(0, ...slots.map((slot) => slot.getBoundingClientRect().height));
-          for (const slot of slots) slot.style.minHeight = height + 'px';
-        }
-      };
+      // Card geometry belongs to the native Designer styles at every breakpoint.
       let reservedWidth = 0;
       const reserveCase = () => {
         const copy = reading.querySelector('.smile-page_drawer-copy');
@@ -913,18 +954,21 @@
         persist();
       }
       let renderRevision = 0;
+      let selecting = false;
       async function select(form, closeFilter = false) {
         const selection = draft(form),
           token = ++renderRevision,
           changed = selection.display !== mode;
+        selecting = true;
         if (closeFilter) filters.set(false);
         await Promise.all([
-          animate(stage, [{ opacity: 1 }, { opacity: 0 }], fadeOut),
+          fadeContents(1, 0, fadeOut),
           !drawerRoot.hidden
             ? animate(drawerPhoto, [{ opacity: 1 }, { opacity: 0 }], fadeOut)
             : null,
         ]);
         if (signal.aborted || token !== renderRevision) return;
+        stage.dataset.smilePending = 'true';
         chosen = selection.treatments;
         clinician = selection.clinician;
         mode = selection.display;
@@ -944,7 +988,8 @@
         if (gender) destination.searchParams.set('gender', gender);
         else destination.searchParams.delete('gender');
         history.replaceState(history.state, '', destination.href);
-        await animate(stage, [{ opacity: 0 }, { opacity: 1 }], fadeIn);
+        selecting = false;
+        await revealContents();
         updateDock();
       }
       for (const form of forms) {
@@ -1014,21 +1059,30 @@
           paintCase(drawerIndex + direction, direction);
         }
       });
+      let layoutWidth = innerWidth,
+        resizeTimer;
+      cleanup.push(() => clearTimeout(resizeTimer));
       listen(
         window,
         'resize',
         () => {
           updateDock();
-          reserveCards();
-          reserveCase();
+          // Browser toolbar height changes must not blank the gallery on Android.
+          if (innerWidth === layoutWidth) return;
+          layoutWidth = innerWidth;
+          stage.dataset.smilePending = 'true';
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(() => {
+            if (signal.aborted) return;
+            reserveCase();
+            if (!selecting) revealContents();
+          }, 160);
         },
         { passive: true },
       );
       await render();
-      reserveCards();
       document.fonts?.ready.then(() => {
         if (!signal.aborted) {
-          reserveCards();
           reservedWidth = 0;
           reserveCase();
         }
@@ -1037,6 +1091,7 @@
       updateDock();
       page.dataset.smilePageReady = 'true';
       page.removeAttribute('aria-busy');
+      await revealContents();
       const unsubscribe = window.TDBConsent.subscribe(() => {
         if (!window.TDBConsent.allows()) instance?.destroy();
       });
