@@ -227,6 +227,12 @@
                 ? selection[key].includes(value)
                 : !selection[key].length;
           option.classList.toggle('is-selected', selected);
+          // The shared native review controls own the mark and tick appearance.
+          // Keep their existing state classes in step with the accessible selection.
+          for (const mark of option.querySelectorAll(
+            '.tdb-review-filter_mark,.tdb-review-filter_tick',
+          ))
+            mark.classList.toggle('is-checked', selected);
           option.setAttribute(
             option.getAttribute('role') === 'checkbox' ? 'aria-checked' : 'aria-pressed',
             String(selected),

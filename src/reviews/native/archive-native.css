@@ -33,3 +33,6 @@
 .reviews-page_icon-yell{background-image:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973ba7906fe700055e8_tdb-review-yell.svg);background-position:center;background-repeat:no-repeat;background-size:contain;display:block}
 .reviews-page_icon-facebook{background-image:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeb0738a98b779d9638dfe0_tdb-review-facebook-cutout.svg);background-position:center;background-repeat:no-repeat;background-size:contain;display:block}
 .reviews-page_icon-doctify{background-image:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973dd39bbf3927772e6_tdb-review-doctify.svg);background-position:center;background-repeat:no-repeat;background-size:contain;display:block}
+
+/* Full lotus uses the same reserved artwork size as the Smile Gallery intro. */
+.resource-intro_lotus{display:block;width:4rem;height:3rem;object-fit:contain}

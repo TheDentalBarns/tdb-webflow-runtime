@@ -56,12 +56,17 @@ test('shared disclosures, filter drawer drafts, count, apply and reset retain co
     await tick();assert.equal(d.querySelector('[data-review-page-embedded] [data-review-page-disclosure="treatment"]').getAttribute('aria-expanded'),'true');
     d.querySelector('[data-review-page-toggle]').click();await tick();assert.equal(x.locked(),true);
     await x.choose('rating','1',true);
+    const ratingOption = d.querySelector('[data-review-page-panel] [data-review-page-group="rating"][data-review-page-value="1"]');
+    const allRatings = d.querySelector('[data-review-page-panel] [data-review-page-group="rating"][data-review-page-value=""]');
+    assert.ok([...ratingOption.querySelectorAll('.tdb-review-filter_mark,.tdb-review-filter_tick')].every(n=>n.classList.contains('is-checked')));
+    assert.ok([...allRatings.querySelectorAll('.tdb-review-filter_mark,.tdb-review-filter_tick')].every(n=>!n.classList.contains('is-checked')));
     assert.equal(d.querySelector('[data-review-page-apply]').getAttribute('aria-label'),'View 1 review');
     assert.equal(x.visible().length,20);
     d.querySelector('[data-review-page-apply]').click();await tick();await tick();
     assert.equal(x.locked(),false);assert.equal(x.visible().length,1);assert.equal(x.visible()[0].dataset.reviewId,'r89');
     d.querySelector('[data-review-page-embedded] [data-review-page-reset]').click();await tick();
     assert.equal(x.visible().length,20);
+    assert.ok([...allRatings.querySelectorAll('.tdb-review-filter_mark,.tdb-review-filter_tick')].every(n=>n.classList.contains('is-checked')));
     await x.choose('experience','nervous');await x.choose('experience','comfort');
     assert.ok(x.visible().every(n=>Number(n.dataset.reviewId.slice(1))%2===1));
   }finally{x.close();}

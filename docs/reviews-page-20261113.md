@@ -1,6 +1,6 @@
 # Dedicated reviews page
 
-Webflow page `6ac2a9ad6562ccc6531a8310`, `/reviews`, uses the Smile Gallery resource hero, availability, supporting components and footer. Review Summary and the shared Review Carousel provide the opening drawer entry points. The native review CMS retains its first 20 full reviews and pagination as a fallback.
+Webflow page `6ac2a9ad6562ccc6531a8310`, `/reviews`, uses the Smile Gallery resource hero, availability, supporting components and footer. The hero badge and standalone review carousel were removed after review. The centred introduction shares Smile Gallery's title and paragraph classes and uses the existing full lotus asset. The native review CMS retains its first 20 full reviews and pagination as a fallback.
 
 `src/reviews/native/archive.html` and `archive-drawer.html` record the native filter structure. The existing drawer template supplied the actual treatment, experience, platform, sort and rating choices. `archive-native.css` records Designer-owned layout; breakpoint properties were also set using the style API. CMS bindings for author, excerpt, date and complete text remain native.
 
@@ -9,3 +9,5 @@ Webflow page `6ac2a9ad6562ccc6531a8310`, `/reviews`, uses the Smile Gallery reso
 Only page head/footer code is pinned for this feature. Site-wide runtime pins and custom production domains are outside this release. The page keeps its existing staging noindex directive.
 
 Validation covers 91 unique full-text records across five batches, drawer draft/apply/reset behavior, the shared disclosure/scroll lock, low/unrated sorting, request races, retry after a failed batch, and restoration of native markup on teardown.
+
+The shared native Navbar New component contains Reviews as the final Discover link, after 5 Senses Experience. This is a native page link. Filter options update the existing shared mark/tick state classes; Reset retains the shared `data-tdb-filter-reset` styling hook. The embedded action order/classes match Smile Gallery: Reset left and View reviews right. The shared stylesheet no longer overrides the Designer-owned Explore section padding (7rem desktop, 5rem mobile).
