@@ -654,8 +654,9 @@ test('filter dock uses native sticky bounds and never rewrites position on scrol
     anchor.getBoundingClientRect = () => ({ height: 48 });
     x.w.dispatchEvent(new x.w.Event('resize'));
     await new Promise((r) => setTimeout(r, 25));
-    assert.equal(rail.style.top, '660px');
-    assert.equal(rail.style.height, '812px');
+    assert.equal(rail.style.top, '0px');
+    assert.equal(rail.style.height, '1472px');
+    assert.equal(rail.style.clipPath, 'inset(0)');
     assert.equal(anchor.style.position, 'sticky');
     assert.match(anchor.style.top, /100dvh/);
     const position = rail.style.cssText;

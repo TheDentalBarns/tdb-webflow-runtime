@@ -500,7 +500,7 @@
   }
   // Native sticky positioning stays on the compositor during touch scrolling.
   // Only layout changes require measuring the two authored landing points.
-  function mountDock({ root, home, landing, dock }) {
+  function mountDock({ root, home, landing, dock, start = home }) {
     const rail = document.createElement('div'),
       anchor = document.createElement('div');
     rail.className = 'tdb-filter-sticky-rail';
@@ -513,6 +513,7 @@
       width: '100%',
       pointerEvents: 'none',
       zIndex: '10001',
+      clipPath: 'inset(0)',
     });
     Object.assign(anchor.style, {
       position: 'sticky',
@@ -527,12 +528,13 @@
     anchor.append(dock);
     let frame;
     function refresh() {
-      const start = home.getBoundingClientRect(),
+      const startBounds = start.getBoundingClientRect(),
         end = landing.getBoundingClientRect(),
         bounds = root.getBoundingClientRect();
       const height = anchor.getBoundingClientRect().height;
-      rail.style.top = start.top - bounds.top + 'px';
-      rail.style.height = Math.max(height, end.top + (end.height + height) / 2 - start.top) + 'px';
+      rail.style.top = startBounds.top - bounds.top + 'px';
+      rail.style.height =
+        Math.max(height, end.top + (end.height + height) / 2 - startBounds.top) + 'px';
     }
     function schedule() {
       if (frame) return;
@@ -542,7 +544,7 @@
       });
     }
     const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(schedule) : null;
-    for (const node of [root, home, landing]) observer?.observe(node);
+    for (const node of new Set([root, home, landing, start])) observer?.observe(node);
     window.addEventListener('resize', schedule, { passive: true });
     refresh();
     return {
@@ -563,7 +565,7 @@
     };
   }
   window.TDBFilters = Object.freeze({
-    version: '1.3.0',
+    version: '1.4.0',
     mount,
     mountDisclosures,
     dismissOutside,

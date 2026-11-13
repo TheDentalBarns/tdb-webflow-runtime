@@ -1,4 +1,4 @@
-/* Blog categories retain their native CMS/Finsweet bindings. Shared filter UI. */
+/* Native CMS articles and metadata, with the shared filter and drawer UI. */
 (() => {
   'use strict';
   if (window.TDBBlogFilters) return;
@@ -41,14 +41,119 @@
     const heading = panel.querySelector('h3');
     const dialog = root.querySelector('[data-blog-filter-drawer]');
     const dialogPanel = dialog.querySelector('[data-tdb-drawer-panel]');
-    const form = panel.querySelector('[fs-list-element="filters"]');
-    const list = root.querySelector('[fs-list-element="list"]');
+    const form = panel.querySelector('[data-blog-category-form]');
+    const list = root.querySelector('[data-blog-post-list]');
     const reset = panel.querySelector('[data-blog-filter-reset]');
     const apply = panel.querySelector('[data-blog-filter-apply]');
-    const summary = panel.querySelector('[data-blog-filter-summary]');
-    const group = panel.querySelector('[data-blog-filter-group]');
+    const category = panel.querySelector('[data-blog-filter-group]');
+    const definitions = [
+      { key: 'category', label: 'Category', all: 'All categories' },
+      { key: 'author', label: 'Author', all: 'All authors', icon: 'smile-icon-lotus' },
+      {
+        key: 'source',
+        label: 'Article origin',
+        all: 'Internal & external',
+        icon: 'smile-icon-display',
+      },
+      {
+        key: 'publication',
+        label: 'Publication',
+        all: 'All publications',
+        icon: 'tdb-blog-icon-publication',
+      },
+      { key: 'product', label: 'Product', all: 'All products', icon: 'tdb-blog-icon-product' },
+    ];
+    const keyFor = (text) => text.trim().replace(/\s+/g, ' ').toLocaleLowerCase('en-GB');
+    const selected = Object.fromEntries(definitions.map(({ key }) => [key, new Set()]));
+    const choices = Object.fromEntries(definitions.map(({ key }) => [key, new Map()]));
+    const items = [...list.children].filter((item) => item.matches('.w-dyn-item'));
+    const originalHidden = items.map((item) => item.hidden);
+    const index = items.map((item) => {
+      const values = {};
+      for (const { key } of definitions) {
+        values[key] = new Set();
+        for (const node of item.querySelectorAll(`[data-blog-meta="${key}"]`)) {
+          const labels =
+            key === 'product' ? node.textContent.split(/\||\r?\n/) : [node.textContent];
+          for (const text of labels) {
+            const label = text.trim().replace(/\s+/g, ' '),
+              value = keyFor(label);
+            if (!value) continue;
+            values[key].add(value);
+            if (!choices[key].has(value)) choices[key].set(value, label);
+          }
+        }
+      }
+      return { item, values };
+    });
+    const generated = [],
+      restorers = [];
+    for (const input of form.querySelectorAll('input')) {
+      const label = input
+        .closest('label')
+        ?.querySelector('.tdb-blog-filter-label')
+        ?.textContent.trim();
+      if (!label) continue;
+      const old = {
+        type: input.type,
+        value: input.value,
+        name: input.name,
+        checked: input.checked,
+      };
+      restorers.push(() => {
+        Object.assign(input, old);
+        input.disabled = false;
+        input.removeAttribute('aria-disabled');
+        delete input.dataset.blogFilterField;
+        input.closest('label').classList.remove('is-disabled');
+      });
+      input.type = 'checkbox';
+      input.name = 'blog-category';
+      input.value = keyFor(label);
+      input.checked = false;
+      input.dataset.blogFilterField = 'category';
+      choices.category.set(input.value, label);
+    }
+    for (const definition of definitions.slice(1)) {
+      const group = document.createElement('section');
+      group.className = 'smile-filter_group';
+      group.dataset.blogFilterGroup = definition.key;
+      group.innerHTML =
+        '<button type="button" class="smile-filter_group-toggle" aria-expanded="false"><span class="smile-filter_label"><span aria-hidden="true" class="smile-icon"></span><span data-blog-group-label></span></span><span class="smile-filter_selection" data-blog-filter-summary></span><span aria-hidden="true" class="smile-filter_chevron"></span></button><div class="smile-filter_options is-collapsed" data-blog-filter-options></div>';
+      group.querySelector('[data-blog-group-label]').textContent = definition.label;
+      group.querySelector('.smile-icon').classList.add(definition.icon);
+      const options = group.querySelector('[data-blog-filter-options]');
+      for (const [value, text] of [...choices[definition.key]].sort((a, b) =>
+        a[1].localeCompare(b[1], 'en-GB'),
+      )) {
+        const label = document.createElement('label'),
+          input = document.createElement('input'),
+          span = document.createElement('span');
+        label.className = 'tdb-blog-filter';
+        input.type = 'checkbox';
+        input.name = 'blog-' + definition.key;
+        input.value = value;
+        input.dataset.blogFilterField = definition.key;
+        span.className = 'tdb-blog-filter-label';
+        span.textContent = text;
+        label.append(input, span);
+        options.append(label);
+      }
+      category.parentElement.append(group);
+      generated.push(group);
+    }
+    const groups = [category, ...generated];
+    const inputs = [...panel.querySelectorAll('[data-blog-filter-field]')];
+    const matches = (record, except) =>
+      definitions.every(
+        ({ key }) =>
+          key === except ||
+          !selected[key].size ||
+          [...selected[key]].some((value) => record.values[key].has(value)),
+      );
     const sticky = window.TDBFilters.mountDock({
       root,
+      start: root,
       dock,
       home: root.querySelector('[data-blog-filter-home]'),
       landing: root.querySelector('[data-blog-filter-landing]'),
@@ -122,15 +227,13 @@
       heading,
       badge: dock.querySelector('[data-blog-filter-badge]'),
       escapeRoot: document,
-      disclosures: [
-        {
-          key: 'category',
-          group,
-          button: group.querySelector('button'),
-          body: group.querySelector('[data-blog-filter-options]'),
-          chevron: group.querySelector('.smile-filter_chevron'),
-        },
-      ],
+      disclosures: groups.map((group, i) => ({
+        key: definitions[i].key,
+        group,
+        button: group.querySelector('button'),
+        body: group.querySelector('[data-blog-filter-options]'),
+        chevron: group.querySelector('.smile-filter_chevron'),
+      })),
       labels: { open: 'Open blog filters', close: 'Close blog filters' },
       onChange(open) {
         dock.classList.toggle('is-expanded', open);
@@ -141,20 +244,33 @@
       },
     });
     function update() {
-      const selected = form.querySelector('input:checked');
-      const label = selected
-        ?.closest('label')
-        ?.querySelector('.tdb-blog-filter-label')
-        ?.textContent.trim();
-      summary.textContent = label || 'All categories';
-      filters.setCount(selected ? 1 : 0);
-      reset.disabled = !selected;
-      reset.classList.toggle('is-disabled', !selected);
-      reset.setAttribute('aria-disabled', String(!selected));
-      const total = [...list.children].filter(
-        (item) =>
-          item.matches('.w-dyn-item') && !item.hidden && getComputedStyle(item).display !== 'none',
-      ).length;
+      let selectionCount = 0,
+        total = 0;
+      for (const [i, { key, all }] of definitions.entries()) {
+        selectionCount += selected[key].size;
+        groups[i].querySelector('[data-blog-filter-summary]').textContent = selected[key].size
+          ? [...selected[key]].map((value) => choices[key].get(value)).join(', ')
+          : all;
+      }
+      for (const record of index) {
+        record.item.hidden = !matches(record);
+        if (!record.item.hidden) total++;
+      }
+      for (const input of inputs) {
+        const key = input.dataset.blogFilterField;
+        input.checked = selected[key].has(input.value);
+        // Count this option against the other groups. Selected options always
+        // stay enabled so a visitor can remove them, even after CMS updates.
+        input.disabled =
+          !input.checked &&
+          !index.some((record) => matches(record, key) && record.values[key].has(input.value));
+        input.setAttribute('aria-disabled', String(input.disabled));
+        input.closest('label').classList.toggle('is-disabled', input.disabled);
+      }
+      filters.setCount(selectionCount);
+      reset.disabled = selectionCount === 0;
+      reset.classList.toggle('is-disabled', !selectionCount);
+      reset.setAttribute('aria-disabled', String(!selectionCount));
       ticker.update(String(total), count !== null && total < count ? -1 : 1, count !== null);
       count = total;
       apply.setAttribute('aria-label', `View ${total} ${total === 1 ? 'post' : 'posts'}`);
@@ -162,31 +278,35 @@
       sticky.refresh();
     }
     listen(form, 'submit', (event) => event.preventDefault());
-    listen(form, 'change', update);
+    listen(panel, 'change', (event) => {
+      const input = event.target.closest('[data-blog-filter-field]');
+      if (!input || input.disabled) return;
+      const values = selected[input.dataset.blogFilterField];
+      if (input.checked) values.add(input.value);
+      else values.delete(input.value);
+      update();
+    });
     listen(reset, 'click', () => {
-      form.querySelector('[fs-list-element="clear"]').click();
+      Object.values(selected).forEach((values) => values.clear());
       filters.collapseAll();
       update();
     });
     listen(apply, 'click', () => filters.set(false));
-    const observer = new MutationObserver(update);
-    observer.observe(list, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class', 'style', 'hidden'],
-    });
     update();
     root.dataset.blogReady = 'true';
     instance = {
       destroy() {
-        observer.disconnect();
         lifecycle.abort();
         moving?.cancel();
         filters.destroy();
         drawer.destroy();
         ticker.destroy();
         sticky.destroy();
+        generated.forEach((group) => group.remove());
+        restorers.forEach((restore) => restore());
+        items.forEach((item, i) => {
+          item.hidden = originalHidden[i];
+        });
         delete root.dataset.blogReady;
         instance = null;
       },
