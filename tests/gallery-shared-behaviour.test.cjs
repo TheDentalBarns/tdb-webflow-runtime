@@ -14,3 +14,21 @@ test('outside dismissal consumes the entire closing gesture and releases listene
  }finally{w.close();}
 });
 // The fixture is the unchanged filters source from deployed carousel cohort fe41fd2.
+
+test('embedded and modal accordions share 20px spacing and travel without sharing state', async () => {
+ const dom = new JSDOM('<style>.group{padding-bottom:0}.group.is-expanded{padding-bottom:20px}</style><section id="embed"><div class="group"><button aria-expanded="false">Treatments</button><div class="options is-collapsed">Options</div><i></i></div></section><section id="modal"><div class="group"><button aria-expanded="false">Treatments</button><div class="options is-collapsed">Options</div><i></i></div></section>', {runScripts:'outside-only'}), w=dom.window;
+ try {
+  const reduced=new w.EventTarget();reduced.matches=false;w.TDBMotion={reduced};const animations=[];
+  w.HTMLElement.prototype.animate=function(frames,options){animations.push({node:this,frames,options});return {finished:Promise.resolve(),cancel(){}};};
+  w.eval(source('filters'));
+  const mount=(id)=>{const root=w.document.querySelector(id),group=root.querySelector('.group');return w.TDBFilters.mountDisclosures(root,{disclosures:[{key:'treatment',group,button:group.querySelector('button'),body:group.querySelector('.options'),chevron:group.querySelector('i')}]});};
+  const embedded=mount('#embed'),modal=mount('#modal');
+  w.document.querySelector('#embed button').click();
+  assert.equal(embedded.hasExpandedDisclosures,true);assert.equal(modal.hasExpandedDisclosures,false);
+  const padding=animations.find(a=>a.frames[1].paddingBottom);assert.equal(padding.frames[1].paddingBottom,'20px');assert.equal(padding.options.duration,300);
+  const travel=animations.find(a=>a.frames[0].transform==='translateY(-20px)');assert.equal(travel.options.duration,400);
+  assert.equal(w.document.querySelector('#embed .options').inert,false);
+  const count=animations.length;reduced.matches=true;reduced.dispatchEvent(new w.Event('change'));embedded.collapseAll();assert.equal(animations.length,count);
+  embedded.destroy();modal.destroy();w.document.querySelector('#embed button').click();assert.equal(w.document.querySelector('#embed button').getAttribute('aria-expanded'),'false');
+ } finally {w.close();}
+});

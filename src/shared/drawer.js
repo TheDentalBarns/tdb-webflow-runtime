@@ -17,6 +17,7 @@
       { signal } = ctrl,
       motion = window.TDBMotion.reduced;
     let state = 'closed',
+      slidePanel = true,
       trigger,
       saved = [],
       releaseScroll,
@@ -88,21 +89,23 @@
       const duration = motion.matches ? 0 : window.TDBMotion.duration(innerWidth);
       const closed = 'translateX(100%)';
       if (duration && panel.animate) {
-        animations = [
-          panel.animate(
-            [
-              { transform: opening ? closed : 'translate(0)' },
-              { transform: opening ? 'translate(0)' : closed },
-            ],
-            {
-              duration,
-              easing:
-                window.TDBMotionProfile?.easing('panel', 'cubic-bezier(.4,0,.2,1)') ||
-                'cubic-bezier(.4,0,.2,1)',
-              fill: 'both',
-            },
-          ),
-        ];
+        animations = slidePanel
+          ? [
+              panel.animate(
+                [
+                  { transform: opening ? closed : 'translate(0)' },
+                  { transform: opening ? 'translate(0)' : closed },
+                ],
+                {
+                  duration,
+                  easing:
+                    window.TDBMotionProfile?.easing('panel', 'cubic-bezier(.4,0,.2,1)') ||
+                    'cubic-bezier(.4,0,.2,1)',
+                  fill: 'both',
+                },
+              ),
+            ]
+          : [];
         if (backdrop)
           animations.push(
             backdrop.animate([{ opacity: opening ? 0 : 1 }, { opacity: opening ? 1 : 0 }], {
@@ -119,11 +122,12 @@
       }
       return rev === revision;
     }
-    async function open(source) {
+    async function open(source, { animatePanel = true } = {}) {
       if (state !== 'closed') return;
       active?.close(true);
       active = api;
       trigger = source;
+      slidePanel = animatePanel;
       state = 'opening';
       lift();
       root.hidden = false;

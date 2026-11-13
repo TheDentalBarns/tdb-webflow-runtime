@@ -11,7 +11,7 @@ const feed = fs
     JSON.stringify(fs.readFileSync('src/smile-gallery/template.html', 'utf8')),
   );
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
-function setup({ display = '', allowed = true, fail = false } = {}) {
+function setup({ display = '', allowed = true, fail = false, saved = null } = {}) {
   const records = [
     ['A', 'From £3,000', 'Aligners', 'Dr A', '2 hours', 'Male'],
     ['B', 'From £1,000', 'Bonding', 'Dr B', '6–8 weeks', 'Female'],
@@ -22,7 +22,7 @@ function setup({ display = '', allowed = true, fail = false } = {}) {
     records
       .map(
         ([title, price, treatment, doctor, duration, gender]) =>
-          `<div data-tdb-sg-case><div data-smile-grid-photo role="button" tabindex="0"><img data-tdb-sg-image src="https://cdn.prod.website-files.com/smile-${title}.webp" alt="Smile ${title}"></div><span data-tdb-sg-title>${title}</span><span data-tdb-sg-description>Details ${title}</span><span data-tdb-sg-price-value>${price}</span><span data-tdb-sg-duration-value>${duration}</span><span data-tdb-sg-clinician-value>${doctor}</span><span data-tdb-sg-gender-value>${gender}</span><span data-tdb-sg-treatment-name>${treatment}</span></div>`,
+          `<div data-tdb-sg-case><div data-smile-grid-photo role="button" tabindex="0"><img data-tdb-sg-image src="https://cdn.prod.website-files.com/smile-${title}.webp" srcset="https://cdn.prod.website-files.com/smile-${title}-500.webp 500w, https://cdn.prod.website-files.com/smile-${title}.webp 1080w" sizes="(max-width: 640px) 100vw, 33vw" alt="Smile ${title}"></div><span data-tdb-sg-title>${title}</span><span data-tdb-sg-description>Details ${title}</span><span data-tdb-sg-price-value>${price}</span><span data-tdb-sg-duration-value>${duration}</span><span data-tdb-sg-clinician-value>${doctor}</span><span data-tdb-sg-gender-value>${gender}</span><span data-tdb-sg-treatment-name>${treatment}</span></div>`,
       )
       .join('') +
     '</div>';
@@ -48,7 +48,13 @@ function setup({ display = '', allowed = true, fail = false } = {}) {
   Object.defineProperty(d, 'currentScript', {
     value: { src: 'https://cdn.example/dist/tdb-smile-page.js' },
   });
-  w.TDBMotion = { reduced: { matches: false } };
+  const reduced = new w.EventTarget();
+  reduced.matches = false;
+  w.TDBMotion = { reduced };
+  w.HTMLElement.prototype.animate = () => ({ finished: Promise.resolve(), cancel() {} });
+  if (saved) w.sessionStorage.setItem('tdb-smile-gallery-view', JSON.stringify(saved));
+  w.eval(fs.readFileSync('src/shared/filters.js', 'utf8'));
+  const mountDisclosures = w.TDBFilters.mountDisclosures;
   w.matchMedia = () => ({ matches: false });
   w.TDBConsent = {
     allows: () => allowed,
@@ -86,10 +92,12 @@ function setup({ display = '', allowed = true, fail = false } = {}) {
     },
   };
   w.TDBFilters = {
+    mountDisclosures,
     mount(panel, options) {
       const api = {
         isOpen: false,
         setCount() {},
+        collapseAll() {},
         set(value) {
           if (this.isOpen === value) return;
           this.isOpen = value;
@@ -140,6 +148,11 @@ function setup({ display = '', allowed = true, fail = false } = {}) {
       };
     },
   };
+  w.eval(
+    fs
+      .readFileSync('src/smile-gallery/head.html', 'utf8')
+      .match(/<script[^>]*>([\s\S]*?)<\/script>/)[1],
+  );
   w.eval(feed);
   w.eval(source);
   return {
@@ -249,6 +262,7 @@ test('main-page filter opens inside the shared modal drawer', async () => {
     x.d.querySelector('[data-smile-filter-toggle]').click();
     assert.equal(x.opened, 1);
     assert.equal(x.d.querySelector('[data-smile-case-drawer]').hidden, false);
+    assert.ok(x.d.querySelector('[data-smile-case-drawer]').classList.contains('is-filter-only'));
     assert.ok(x.d.querySelector('[data-tdb-drawer-panel] [data-smile-filter-panel]'));
     assert.equal(x.d.activeElement.textContent, 'Filter smiles');
     x.d.querySelector('[data-smile-filter-panel] [data-smile-group-toggle="display"]').click();
@@ -326,7 +340,7 @@ test('dragging comparison suppresses opening a case and the next click still ope
   }
 });
 
-test('sorts prices and mixed duration units, filters recorded gender, and resets', async () => {
+test('sorts prices and mixed duration units while deferred gender is ignored', async () => {
   const x = setup();
   try {
     await x.w.TDBSmilePage.mount();
@@ -349,14 +363,143 @@ test('sorts prices and mixed duration units, filters recorded gender, and resets
     await choose('order', 'duration-desc');
     assert.deepEqual(titles(), ['B', 'C', 'A']);
     await choose('gender', 'male');
-    assert.deepEqual(titles(), ['A']);
-    await choose('gender', 'female');
-    assert.deepEqual(titles(), ['B']);
+    assert.deepEqual(titles(), ['B', 'C', 'A']);
+    assert.ok(
+      [...x.d.querySelectorAll('[data-smile-filter-group="gender"]')].every(
+        (group) => group.hidden,
+      ),
+    );
     x.d.querySelector('[data-smile-embedded-filter] [data-smile-filter-reset]').click();
     await tick();
     assert.deepEqual(titles(), ['B', 'C', 'A']);
     assert.equal(x.d.querySelector('[name="smile-order"][value="price-asc"]').checked, true);
     assert.equal(new URL(x.w.location.href).searchParams.has('gender'), false);
+  } finally {
+    x.close();
+  }
+});
+
+test('stale patient preferences are cleared and both count buttons retain ticker slots', async () => {
+  const x = setup({ display: '?gender=male', saved: { gender: 'female' } });
+  try {
+    await x.w.TDBSmilePage.mount();
+    assert.equal(x.d.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length, 3);
+    assert.equal(new URL(x.w.location.href).searchParams.has('gender'), false);
+    const cta = x.d.querySelector('[data-smile-view-results]');
+    assert.equal(cta.getAttribute('aria-label'), 'View 3 smiles');
+    const option = x.d.querySelector('[name="embedded-smile-treatment"][value="bonding"]');
+    option.checked = true;
+    option.dispatchEvent(new x.w.Event('change', { bubbles: true }));
+    await tick();
+    assert.equal(cta.getAttribute('aria-label'), 'View 1 smile');
+    assert.equal(cta.querySelector('[data-smile-action-count]').textContent, '1');
+    assert.equal(
+      x.d.querySelector('[data-smile-filter-apply]').getAttribute('aria-label'),
+      'View 1 smile',
+    );
+    assert.equal(cta.querySelector('[data-smile-count-reserve]').textContent, '3');
+    assert.ok(cta.querySelector('[data-smile-count-plural]').classList.contains('is-singular'));
+  } finally {
+    x.close();
+  }
+});
+
+test('filter button pins at the footer without a jump and leaves with the gallery', async () => {
+  const x = setup();
+  try {
+    await x.w.TDBSmilePage.mount();
+    const home = x.d.querySelector('[data-smile-filter-home]'),
+      dock = x.d.querySelector('[data-smile-filter-dock]'),
+      button = x.d.querySelector('[data-smile-filter-toggle]'),
+      stage = x.d.querySelector('[data-smile-page-stage]');
+    button.getBoundingClientRect = () => ({ height: 48 });
+    let bottom = 760,
+      end = 1500;
+    home.getBoundingClientRect = () => ({ bottom });
+    stage.getBoundingClientRect = () => ({ bottom: end });
+    const scroll = async () => {
+      x.w.dispatchEvent(new x.w.Event('scroll'));
+      await new Promise((r) => setTimeout(r, 25));
+    };
+    await scroll();
+    assert.equal(dock.classList.contains('is-floating'), false);
+    bottom = 748;
+    await scroll();
+    assert.equal(dock.classList.contains('is-floating'), true);
+    assert.equal(dock.style.getPropertyValue('--smile-dock-top'), '700px');
+    bottom = 500;
+    await scroll();
+    assert.equal(dock.style.getPropertyValue('--smile-dock-top'), '700px');
+    end = 500;
+    await scroll();
+    assert.equal(dock.style.getPropertyValue('--smile-dock-top'), '432px');
+    assert.equal(dock.classList.contains('is-offscreen'), false);
+    let target;
+    x.w.lenis = {
+      scrollTo(node) {
+        target = node;
+      },
+    };
+    x.d.querySelector('[data-smile-view-results]').click();
+    assert.equal(target, stage);
+  } finally {
+    x.close();
+  }
+});
+
+test('saved slider reserves its shape before consent or runtime, with URL precedence and a failure fallback', async () => {
+  for (const [display, saved, expected] of [
+    ['', { display: 'slider' }, 'slider'],
+    ['?display=before-after', { display: 'slider' }, 'before-after'],
+    ['?display=slider', { display: 'before-after' }, 'slider'],
+  ]) {
+    const x = setup({ display, saved, allowed: false });
+    try {
+      assert.equal(x.d.documentElement.dataset.smileDisplay, expected);
+      assert.equal(x.d.querySelectorAll('.smile-comparison_range').length, 0);
+      x.fix();
+      x.permit(true);
+      await x.w.TDBSmilePage.mount();
+      assert.equal(x.d.documentElement.dataset.smileDisplay, expected);
+    } finally {
+      x.close();
+    }
+  }
+  const x = setup({ display: '?display=slider', fail: true });
+  try {
+    await assert.rejects(x.w.TDBSmilePage.mount());
+    assert.equal(x.d.documentElement.dataset.smileDisplay, 'slider');
+    assert.equal(x.d.querySelector('[data-tdb-sg-image]').hidden, false);
+  } finally {
+    x.close();
+  }
+});
+
+test('slider layers reuse responsive sources and the drawer requests an appropriate image size', async () => {
+  const x = setup({ display: '?display=slider' });
+  try {
+    await x.w.TDBSmilePage.mount();
+    const photo = x.d.querySelector('[data-smile-grid-photo]');
+    const original = photo.querySelector('[data-tdb-sg-image]');
+    for (const image of photo.querySelectorAll(
+      '.smile-comparison_before img, .smile-comparison_after img',
+    )) {
+      assert.equal(image.src, original.src);
+      assert.equal(image.srcset, original.srcset);
+      assert.equal(image.sizes, original.sizes);
+      assert.equal(image.loading, 'lazy');
+      assert.equal(image.decoding, 'async');
+    }
+    photo.click();
+    const drawer = x.d.querySelector('[data-smile-case-image]');
+    assert.equal(drawer.srcset, original.srcset);
+    assert.match(drawer.sizes, /75rem/);
+    x.d.querySelector('[data-smile-case-next]').click();
+    assert.match(drawer.srcset, /smile-C/);
+    assert.equal(
+      x.d.querySelector('.smile-page_drawer-photo .smile-comparison_after img').srcset,
+      drawer.srcset,
+    );
   } finally {
     x.close();
   }

@@ -1,4 +1,4 @@
-/* Smile Gallery v2.1.0. Native CMS grid, review-style filters, comparisons and shared motion. */
+/* Smile Gallery v2.2.0. Native CMS grid, review-style filters, comparisons and shared motion. */
 (() => {
   'use strict';
   if (window.TDBSmilePage) return;
@@ -35,7 +35,7 @@
         id: image.getAttribute('src'),
         title: text('title'),
         description: text('description'),
-        image: { src: image.src, alt: image.alt },
+        image: { src: image.src, alt: image.alt, srcset: image.srcset, sizes: image.sizes },
         price: text('price-value'),
         duration: text('duration-value'),
         clinician: text('clinician-value'),
@@ -82,6 +82,7 @@
       image.alt = '';
       image.draggable = false;
       image.loading = 'lazy';
+      image.decoding = 'async';
       layer.append(image);
       return image;
     });
@@ -138,6 +139,8 @@
     const refresh = () => {
       for (const image of images) {
         const src = original.getAttribute('src');
+        image.sizes = original.sizes;
+        image.srcset = original.srcset;
         if (src) image.src = src;
       }
       range.value = '50';
@@ -173,6 +176,7 @@
     const load = (name, ready, type) =>
       window.TDBModules.load(new URL(name, base), { ready, type });
     const stage = page.querySelector('[data-smile-page-stage]');
+    stage.id ||= 'smile-gallery-results';
     const status = page.querySelector('[data-smile-page-status]');
 
     const cleanup = [];
@@ -219,8 +223,12 @@
       };
       let order = url.searchParams.get('order') || saved.order || 'price-asc';
       if (!orders[order]) order = 'price-asc';
-      let gender = url.searchParams.get('gender') || saved.gender || '';
-      if (!['male', 'female'].includes(gender)) gender = '';
+      // Patient filtering is deferred; stale saved links must still show every smile.
+      let gender = '';
+      if (url.searchParams.has('gender')) {
+        url.searchParams.delete('gender');
+        history.replaceState(history.state, '', url.href);
+      }
       const numericPrice = (item) =>
         Number(item.price.replace(/,/g, '').match(/\d+(?:\.\d+)?/)?.[0] || Infinity);
       // Compare the starting estimate of ranges; normalize mixed CMS units to minutes.
@@ -248,7 +256,6 @@
       let cases = [],
         currentId = saved.currentId,
         drawerIndex = 0,
-        stageVisible = true,
         filteringFromPage = false,
         closingTimer;
       const filterHome = page.querySelector('[data-smile-filter-home]');
@@ -322,6 +329,7 @@
       };
       for (const [index, form] of forms.entries()) {
         const prefix = index ? 'embedded-' : '';
+        form.querySelector('[data-smile-filter-group="gender"]').hidden = true;
         form
           .querySelector('[data-smile-options="order"]')
           .replaceChildren(
@@ -375,18 +383,48 @@
         clinician: form.querySelector('[data-smile-option="clinician"]:checked')?.value || '',
         display: form.querySelector('[data-smile-option="display"]:checked')?.value || mode,
         order: form.querySelector('[data-smile-option="order"]:checked')?.value || order,
-        gender: form.querySelector('[data-smile-option="gender"]:checked')?.value || '',
+        gender: '',
       });
+      const actionCounts = new Map(
+        forms.map((form) => {
+          const button =
+            form === embedded ? embedded.querySelector('[data-smile-view-results]') : apply;
+          const ticker = window.TDBNativeTicker.mount(
+            button.querySelector('[data-smile-action-count]'),
+          );
+          button.querySelector('[data-smile-count-reserve]').textContent = String(payload.total);
+          cleanup.push(() => ticker.destroy());
+          return [form, { button, ticker, shown: null }];
+        }),
+      );
       const updateCount = (form) => {
         const selection = draft(form),
           total = payload.cases.filter((item) =>
             matches(item, selection.treatments, selection.clinician, selection.gender),
           ).length;
-        form
-          .querySelector('[data-smile-filter-apply]')
-          ?.replaceChildren(
-            document.createTextNode('View ' + total + (total === 1 ? ' smile' : ' smiles')),
-          );
+        const action = actionCounts.get(form);
+        action.ticker.update(
+          String(total),
+          action.shown !== null && total < action.shown ? -1 : 1,
+          action.shown !== null,
+        );
+        action.shown = total;
+        action.button.setAttribute(
+          'aria-label',
+          'View ' + total + (total === 1 ? ' smile' : ' smiles'),
+        );
+        action.button
+          .querySelector('[data-smile-count-plural]')
+          .classList.toggle('is-singular', total === 1);
+        const reset = form.querySelector('[data-smile-filter-reset]');
+        const unchanged =
+          !selection.treatments.size &&
+          !selection.clinician &&
+          selection.order === 'price-asc' &&
+          selection.display === 'before-after';
+        reset.disabled = unchanged;
+        reset.setAttribute('aria-disabled', String(unchanged));
+        reset.classList.toggle('is-disabled', unchanged);
         const selectedNames = treatments.filter((t) => selection.treatments.has(slug(t)));
         for (const [name, text] of Object.entries({
           treatment: selectedNames.join(', ') || 'All treatments',
@@ -414,6 +452,7 @@
         [...form.querySelectorAll('[data-smile-filter-group]')]
           .filter(
             (group) =>
+              !group.hidden &&
               group.closest('[data-smile-filter-panel], [data-smile-embedded-filter]') === form,
           )
           .map((group) => ({
@@ -423,29 +462,10 @@
             body: group.querySelector('[data-smile-options]'),
             chevron: group.querySelector('.smile-filter_chevron'),
           }));
-      for (const entry of disclosures(embedded)) {
-        entry.body.id = 'smile-embedded-' + entry.key;
-        entry.button.setAttribute('aria-controls', entry.body.id);
-        listen(entry.button, 'click', () => {
-          const open = entry.button.getAttribute('aria-expanded') !== 'true';
-          for (const other of disclosures(embedded)) {
-            const active = other.key === entry.key && open;
-            other.button.setAttribute('aria-expanded', String(active));
-            other.group.classList.toggle('is-expanded', active);
-            other.body.classList.toggle('is-collapsed', !active);
-            other.chevron.style.transform = active ? 'rotate(180deg)' : '';
-          }
-          if (open)
-            animate(
-              entry.body,
-              [
-                { opacity: 0, transform: 'translateY(-20px)' },
-                { opacity: 1, transform: 'translateY(0)' },
-              ],
-              motion.defaults?.base || 400,
-            );
-        });
-      }
+      const embeddedAccordion = window.TDBFilters.mountDisclosures(embedded, {
+        disclosures: disclosures(embedded),
+      });
+      cleanup.push(() => embeddedAccordion.destroy());
       const counter = window.TDBNativeTicker.mount(
         drawerRoot.querySelector('[data-smile-case-count]'),
         {
@@ -472,6 +492,7 @@
       const comparisons = new Map();
       let drawerComparison;
       const applyDisplay = () => {
+        document.documentElement.dataset.smileDisplay = mode;
         for (const control of comparisons.values()) control.destroy();
         comparisons.clear();
         drawerComparison?.destroy();
@@ -534,6 +555,11 @@
         const item = cases[drawerIndex];
         currentId = item.id;
         persist();
+        drawerImage.loading = 'lazy';
+        drawerImage.decoding = 'async';
+        drawerImage.sizes =
+          '(max-width: 767px) calc(100vw - 2.5rem), (max-width: 1200px) calc(100vw - 5rem), 75rem';
+        drawerImage.srcset = item.image.srcset;
         drawerImage.src = item.image.src;
         drawerImage.alt = item.image.alt;
         drawerComparison?.refresh();
@@ -576,11 +602,17 @@
       const updateDock = () => {
         if (dock.classList.contains('is-in-drawer')) return;
         const bounds = filterHome.getBoundingClientRect();
-        const chromeHeight =
-          6 * (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16);
-        const pastAnchor = bounds.top < chromeHeight;
-        dock.classList.toggle('is-floating', pastAnchor);
-        dock.classList.toggle('is-offscreen', pastAnchor && !stageVisible);
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        const height = toggle.getBoundingClientRect().height;
+        const footerTop = innerHeight - 1.25 * rem - height;
+        const naturalTop = bounds.bottom - height;
+        const pinned = naturalTop <= footerTop;
+        dock.style.setProperty(
+          '--smile-dock-top',
+          Math.min(footerTop, stage.getBoundingClientRect().bottom - height - 1.25 * rem) + 'px',
+        );
+        dock.classList.toggle('is-floating', pinned);
+        dock.classList.remove('is-offscreen');
       };
       const drawer = window.TDBDrawer.mount(drawerRoot, {
         hideChrome: true,
@@ -596,6 +628,7 @@
           filters.reset();
           filterHome.append(dock);
           dock.classList.remove('is-in-drawer');
+          drawerRoot.classList.remove('is-filter-only');
           updateDock();
         },
         returnFocus: (source) =>
@@ -610,6 +643,7 @@
       });
       const filters = window.TDBFilters.mount(panel, {
         toggle,
+        backdrop: dock.querySelector('[data-smile-filter-shade]'),
         heading: panel.querySelector('h3'),
         badge: dock.querySelector('[data-smile-filter-badge]'),
         blockedControls: [close, previous, next],
@@ -624,15 +658,8 @@
             syncForms();
             if (drawerRoot.hidden) {
               filteringFromPage = true;
-              paintCase(
-                Math.max(
-                  0,
-                  cases.findIndex((item) => item.id === currentId),
-                ),
-                1,
-                false,
-              );
-              drawer.open(toggle);
+              drawerRoot.classList.add('is-filter-only');
+              drawer.open(toggle, { animatePanel: false });
               panel.querySelector('h3').focus({ preventScroll: true });
             }
           } else if (filteringFromPage) {
@@ -678,7 +705,6 @@
         for (const item of payload.cases) item.item.hidden = !cases.includes(item);
         const count = cases.length + (cases.length === 1 ? ' smile' : ' smiles');
         status.textContent = count;
-        embedded.querySelector('[data-smile-embedded-count]').textContent = count;
         page.querySelector('[data-smile-empty]').hidden = !!cases.length;
         if (!cases.length) {
           await drawer.close(true);
@@ -740,11 +766,26 @@
           form.querySelector('[data-smile-option="clinician"][value=""]').checked = true;
           form.querySelector('[data-smile-option="gender"][value=""]').checked = true;
           form.querySelector('[data-smile-option="order"][value="price-asc"]').checked = true;
+          form.querySelector('[data-smile-option="display"][value="before-after"]').checked = true;
+          (form === embedded ? embeddedAccordion : filters).collapseAll();
           updateCount(form);
           if (form === embedded) select(form);
         });
       }
       listen(apply, 'click', () => select(panel, true));
+      listen(embedded.querySelector('[data-smile-view-results]'), 'click', (event) => {
+        event.preventDefault();
+        if (window.lenis?.scrollTo)
+          window.lenis.scrollTo(stage, {
+            offset: -6 * (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16),
+            immediate: motion.reduced.matches,
+          });
+        else
+          stage.scrollIntoView({
+            behavior: motion.reduced.matches ? 'instant' : 'smooth',
+            block: 'start',
+          });
+      });
       const openCase = (index, source) => {
         if (!cases.length) return;
         filteringFromPage = false;
@@ -804,8 +845,7 @@
         { passive: true },
       );
       const observer = new IntersectionObserver(
-        (entries) => {
-          stageVisible = entries.some((entry) => entry.isIntersecting);
+        () => {
           updateDock();
         },
         { threshold: 0 },
@@ -842,7 +882,7 @@
     }
   }
   window.TDBSmilePage = Object.freeze({
-    version: '2.1.0',
+    version: '2.2.0',
     mount,
     destroy() {
       instance?.destroy();

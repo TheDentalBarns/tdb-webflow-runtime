@@ -100,19 +100,19 @@
         "src/shared/drawer-reading.js",
         "src/shared/drawer.js"
       ],
-      "sha256": "f2783c88250d606e22e15adc1459d347b57a4de9798ac435caad4dcf1a466a77",
-      "raw": 14008,
-      "gzip": 4999,
-      "brotli": 4471
+      "sha256": "82b7bcae65236a68aa0a698e5d104277fa9b879a5d8d702d59c07ce17befdd9a",
+      "raw": 14045,
+      "gzip": 5018,
+      "brotli": 4495
     },
     "dist/tdb-filters.js": {
       "sources": [
         "src/shared/filters.js"
       ],
-      "sha256": "7acbd6e6634aa18871147104c92fbccead5979b2031e891316a96ded78a9a645",
-      "raw": 7240,
-      "gzip": 2915,
-      "brotli": 2608
+      "sha256": "9a74d14458d795d8bce7b7d22841ae47043c634ee67843201537453e97739769",
+      "raw": 8017,
+      "gzip": 3072,
+      "brotli": 2746
     },
     "dist/tdb-first-impressions.js": {
       "sources": [
@@ -603,10 +603,10 @@
       "sources": [
         "src/smile-gallery/standalone.js"
       ],
-      "sha256": "03bea88643bd10f6bed297e5bfc783c2c054a162b13b7ebda7a30f743c0cecfd",
-      "raw": 18372,
-      "gzip": 6414,
-      "brotli": 5743
+      "sha256": "f5c6d5f9fc9e762c1e8fe689e38595f9bc3dcbe6f610661e4c6b3613110ad3ad",
+      "raw": 19526,
+      "gzip": 6808,
+      "brotli": 6095
     },
     "dist/tdb-start.min.js": {
       "sources": [

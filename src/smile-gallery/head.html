@@ -1,0 +1,8 @@
+<script data-tdb-smile-first-paint>
+(()=>{let saved={};try{saved=JSON.parse(sessionStorage.getItem('tdb-smile-gallery-view'))||{}}catch{}const display=new URL(location.href).searchParams.get('display')||saved.display;document.documentElement.dataset.smileDisplay=display==='slider'?'slider':'before-after'})();
+</script>
+<style data-tdb-smile-first-paint>
+html[data-smile-display="slider"] .smile-grid_photo,html[data-smile-display="slider"] .smile-page_drawer-photo{aspect-ratio:2/1}
+html[data-smile-display="slider"] .smile-grid_photo:not([data-smile-comparison])>img{position:absolute;top:-100%;left:0;width:100%;height:200%;max-width:none;object-fit:fill}
+html[data-smile-display="slider"] .smile-grid_photo:not([data-smile-comparison]) .smile-grid_label-before{visibility:hidden}
+</style>

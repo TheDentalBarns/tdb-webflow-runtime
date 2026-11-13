@@ -94,3 +94,12 @@ test('Reviews to a nested USP drawer transfers the page layer and restores nativ
   api.destroy();
  }finally{t.dispose()}
 });
+
+test('filter-only shell dims and locks without a horizontal panel animation',async()=>{
+ const t=setup();try{
+  const opening=t.api.open(t.trigger,{animatePanel:false});
+  assert.equal(t.animations.length,1);assert.equal(t.animations[0].node,t.backdrop);assert.equal(t.w.TDBScrollLock.active,true);
+  t.finish();await opening;const closing=t.api.close();t.finish();await closing;
+  assert.equal(t.root.hidden,true);assert.equal(t.w.TDBScrollLock.active,false);assert.equal(t.doc.activeElement,t.trigger);
+ }finally{t.dispose();}
+});
