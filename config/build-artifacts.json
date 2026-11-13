@@ -119,10 +119,10 @@
       "sources": [
         "src/shared/filters.js"
       ],
-      "sha256": "c7b448ac7869e68d21e7bea73add2495f93e4870a9ee1f51ffb908509022c92f",
-      "raw": 9311,
-      "gzip": 3569,
-      "brotli": 3180
+      "sha256": "c8b1faea9d722e08aaca26c9933b78948e529193de5313e1f66796edff1529c2",
+      "raw": 9371,
+      "gzip": 3597,
+      "brotli": 3195
     },
     "dist/tdb-first-impressions.js": {
       "sources": [

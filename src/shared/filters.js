@@ -502,6 +502,8 @@
   // Only layout changes require measuring the two authored landing points.
   // Keep the rail unclipped so the button can blur the page behind it.
   // The sticky containing block already bounds its travel to this section.
+  // Anchor to the bottom edge itself: dynamic viewport units can update only
+  // after Android's browser toolbar finishes moving, making a top inset jump.
   function mountDock({ root, home, landing, dock, start = home }) {
     const rail = document.createElement('div'),
       anchor = document.createElement('div');
@@ -513,14 +515,18 @@
       position: 'absolute',
       left: '0',
       width: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
       pointerEvents: 'none',
       zIndex: '10001',
     });
     Object.assign(anchor.style, {
       position: 'sticky',
-      top: 'calc(100dvh - 1.25rem - 3rem)',
+      bottom: '1.25rem',
       width: '3rem',
       height: '3rem',
+      flexShrink: '0',
       marginInline: 'auto',
       pointerEvents: 'none',
     });
