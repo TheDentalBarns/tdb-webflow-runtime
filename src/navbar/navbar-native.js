@@ -1,5 +1,5 @@
 /* TDB navbar native foundation v1.1.1. Inline in HEAD, before Webflow's runtime.
- * The former navbar IX2 event bindings have been removed in Designer.
+ * Shared disclosure motion owns the authored navbar transitions.
  * Native Webflow controls, the existing consent gate and enhanced navbar remain.
  */
 (() => {

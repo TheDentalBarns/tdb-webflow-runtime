@@ -19,7 +19,7 @@
     if (/^\/vip\//.test(path)) return 'vip';
     return 'default';
   }
-  // Matches the existing IX2 “DD - Text Effect” opacity keyframes.
+  // Preserves the authored “DD - Text Effect” opacity keyframes.
   function opacityAtProgress(progress) {
     const p = Math.max(0, Math.min(1, progress));
     return p < 0.5 ? p : p <= 0.75 ? 0.5 : 0.5 - (p - 0.75) * 1.6;

@@ -7,7 +7,7 @@
   --tdb-nav-out-quart: var(--tdb-motion-ease-panel,cubic-bezier(.165, .84, .44, 1));
 }
 
-/* Separate CSS transform properties preserve IX2's independent move/rotate clocks. */
+/* Separate CSS transform properties preserve independent move/rotate clocks. */
 [data-tdb-navbar-native] :is(.menu-icon1_line-top, .menu-icon1_line-bottom) {
   translate: 0 0;
   rotate: 0deg;
@@ -78,7 +78,7 @@
   to { transform: translateY(0); }
 }
 
-/* Sample the original IX2 polynomial curves (maximum interpolation error <0.12%). */
+/* Preserve the authored polynomial curves (maximum interpolation error <0.12%). */
 @supports (transition-timing-function: linear(0, 1)) {
   [data-tdb-navbar-native] {
     --tdb-nav-quint: var(--tdb-motion-ease-panel,linear(0,0,0,0.000004,0.000015,0.000047,0.000116,0.00025,0.000488,0.00088,0.00149,0.0024,0.003708,0.005533,0.008014,0.011316,0.015625,0.021158,0.028157,0.036897,0.047684,0.060858,0.076795,0.095909,0.118652,0.145519,0.177046,0.213815,0.256454,0.30564,0.362098,0.426608,0.5,0.573392,0.637902,0.69436,0.743546,0.786185,0.822954,0.854481,0.881348,0.904091,0.923205,0.939142,0.952316,0.963103,0.971843,0.978842,0.984375,0.988684,0.991986,0.994467,0.996292,0.9976,0.99851,0.99912,0.999512,0.99975,0.999884,0.999953,0.999985,0.999996,1,1,1));

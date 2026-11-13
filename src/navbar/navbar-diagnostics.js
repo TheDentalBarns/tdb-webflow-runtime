@@ -8,7 +8,7 @@
   )
     return;
   function init() {
-    const nav = document.querySelector('[data-tdb-navbar-native],[data-tdb-nav-ix2-comparison]');
+    const nav = document.querySelector('[data-tdb-navbar-native]');
     const button = nav?.querySelector('.navbar10_menu-button');
     if (!nav || !button) return;
     const host = document.createElement('aside');
@@ -23,10 +23,7 @@
       pre{font:inherit;white-space:pre-wrap;margin:0 0 8px}
       button{background:#fff;color:#111;border:0;border-radius:3px;padding:8px;font:12px sans-serif;margin-right:8px;cursor:pointer}
     </style><section aria-label="Navbar edge measurements"><strong>Navbar edge measurements</strong><pre>Scroll to the affected area, then open the main menu.</pre><button type="button">Copy measurements</button><button type="button">Hide</button></section>`;
-    const mode = nav.hasAttribute('data-tdb-nav-ix2-comparison')
-      ? 'IX2 comparison'
-      : 'Current native';
-    shadow.querySelector('strong').textContent = `${mode} — navbar edges`;
+    shadow.querySelector('strong').textContent = 'Current native — navbar edges';
     const output = shadow.querySelector('pre');
     const [copy, hide] = shadow.querySelectorAll('button');
     document.body.append(host);

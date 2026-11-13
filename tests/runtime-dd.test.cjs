@@ -9,7 +9,7 @@ function fixture({choice, runtime=false, count=19, idle=true, lcp=true, ready='c
   const markup=Array.from({length:count},(_,i)=>'<p data-tdb-dd-page="viewport" id="dd-'+i+'" style="opacity:1">Text '+i+'</p>').join('');
   const dom=new JSDOM('<!doctype html><html><body>'+read('src/consent/banner.html')+markup+
     '<div class="tdbc-dialog"><span class="tdbc-dd-fade" id="calculator"></span><div class="tdbc-section-footer"><span class="tdbc-dd-fade" id="excluded"></span></div></div>'+
-    '<div data-tdb-quotes-template><p data-tdb-dd-page id="template"></p></div><p data-tdb-dd-page data-tdb-dd-legacy data-w-id="ix" id="legacy"></p></body></html>',
+    '<div data-tdb-quotes-template><p data-tdb-dd-page id="template"></p></div></body></html>',
     {url:'https://dentalbarns.webflow.io/',runScripts:'outside-only',pretendToBeVisual:true});
   const w=dom.window,d=w.document,timers=new Map(),idles=new Map(),mounts=[],destroyed=[],observations=[];
   let now=0,next=0,current=null,idleTurn=0,docReady=ready;

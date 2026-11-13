@@ -21,9 +21,9 @@ test('built CSS preserves descendant selectors and separate hamburger clocks', (
   const d=dom.window.document, line=d.querySelector('.menu-icon1_line-top');
   const rules=[...d.styleSheets[0].cssRules].filter(r=>r.selectorText);
   assert(rules.some(r=>line.matches(r.selectorText) && r.style.getPropertyValue('translate')==='0 0'));
-  assert(rules.some(r=>line.matches(r.selectorText) && r.style.getPropertyValue('transition').includes('translate 600ms')));
+  assert(rules.some(r=>line.matches(r.selectorText) && r.style.getPropertyValue('transition').includes('translate calc(600ms * var(--tdb-motion-pace,1))')));
   d.querySelector('.w-nav-button').setAttribute('data-tdb-expanded','true');
-  assert(rules.some(r=>line.matches(r.selectorText) && r.style.getPropertyValue('transition-duration')==='400ms,600ms'));
+  assert(rules.some(r=>line.matches(r.selectorText) && r.style.getPropertyValue('transition-duration')==='calc(400ms * var(--tdb-motion-pace,1)),calc(600ms * var(--tdb-motion-pace,1))'));
   assert(rules.some(r=>line.matches(r.selectorText) && r.style.getPropertyValue('rotate')==='-45deg'));
   dom.window.close();
 });

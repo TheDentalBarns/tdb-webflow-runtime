@@ -1678,7 +1678,7 @@ export class SceneRenderer {
 
 /* TDB Five Senses v0.24.1 — Surgery photographic proof of concept.
  * One registered scene, real old/new photographic circular masking.
- * No IX2, Swiper, analytics, persistence, or document-wide discovery loops.
+ * No Swiper, analytics, persistence, or document-wide discovery loops.
  */
 const DURATION = globalThis.TDBMotionProfile?.time(1200) ?? 1200;
 const OFF_DURATION = globalThis.TDBMotionProfile?.time(800) ?? 800;

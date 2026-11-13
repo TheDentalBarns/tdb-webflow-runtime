@@ -4724,8 +4724,7 @@ function createHomeScrollTest() {
       node.isConnected &&
       node.matches(selector) &&
       !node.closest('template,[data-tdb-quotes-template]') &&
-      !node.matches('.tdbc-dialog .tdbc-section-footer .tdbc-dd-fade') &&
-      !(node.hasAttribute('data-tdb-dd-legacy') && node.hasAttribute('data-w-id'))
+      !node.matches('.tdbc-dialog .tdbc-section-footer .tdbc-dd-fade')
     );
   }
   const renderReady = initialRender();
