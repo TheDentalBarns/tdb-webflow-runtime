@@ -1,5 +1,5 @@
 <script data-tdb-smile-first-paint>
-(()=>{let saved={};try{saved=JSON.parse(sessionStorage.getItem('tdb-smile-gallery-view'))||{}}catch{}const display=new URL(location.href).searchParams.get('display')||saved.display;document.documentElement.dataset.smileDisplay=display==='slider'?'slider':'before-after'})();
+(()=>{let saved={};try{saved=JSON.parse(sessionStorage.getItem('tdb-smile-gallery-view'))||{}}catch{}const display=new URL(location.href).searchParams.get('display')||saved.display;document.documentElement.dataset.smileDisplay=display==='before-after'?'before-after':'slider'})();
 </script>
 <style data-tdb-smile-first-paint>
 html[data-smile-display="slider"] .smile-grid_photo,html[data-smile-display="slider"] .smile-page_drawer-photo{aspect-ratio:2/1}

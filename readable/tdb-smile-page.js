@@ -259,7 +259,9 @@
       const saved = getSaved(),
         url = new URL(location.href);
       let mode =
-        (url.searchParams.get('display') || saved.display) === 'slider' ? 'slider' : 'before-after';
+        (url.searchParams.get('display') || saved.display) === 'before-after'
+          ? 'before-after'
+          : 'slider';
       const treatments = [...new Set(payload.cases.flatMap((item) => item.treatments))].sort();
       const clinicians = [
         ...new Set(payload.cases.map((item) => item.clinician).filter(Boolean)),
@@ -496,7 +498,7 @@
           !selection.treatments.size &&
           !selection.clinician &&
           selection.order === 'price-asc' &&
-          selection.display === 'before-after';
+          selection.display === 'slider';
         reset.disabled = unchanged;
         reset.setAttribute('aria-disabled', String(unchanged));
         reset.classList.toggle('is-disabled', unchanged);
@@ -957,7 +959,7 @@
           form.querySelector('[data-smile-option="clinician"][value=""]').checked = true;
           form.querySelector('[data-smile-option="gender"][value=""]').checked = true;
           form.querySelector('[data-smile-option="order"][value="price-asc"]').checked = true;
-          form.querySelector('[data-smile-option="display"][value="before-after"]').checked = true;
+          form.querySelector('[data-smile-option="display"][value="slider"]').checked = true;
           (form === embedded ? embeddedAccordion : filters).collapseAll();
           updateCount(form);
           if (form === embedded) select(form);

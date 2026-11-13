@@ -200,8 +200,8 @@ function setup({ display = '', allowed = true, fail = false, saved = null, cases
     },
   };
 }
-test('standalone mounts all native CMS cases by price and opens the original square image', async () => {
-  const x = setup();
+test('standalone mounts all native CMS cases by price and opens the selected square image', async () => {
+  const x = setup({ display: '?display=before-after' });
   try {
     await x.w.TDBSmilePage.mount();
     assert.equal(x.d.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length, 3);
@@ -313,6 +313,11 @@ test('empty filter results recover and consent teardown permits a clean remount'
     x.d.querySelector('[data-smile-filter-apply]').click();
     await tick();
     assert.equal(x.d.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length, 3);
+    assert.equal(x.d.documentElement.dataset.smileDisplay, 'slider');
+    assert.equal(
+      x.d.querySelector('[data-smile-filter-panel] [data-smile-filter-reset]').disabled,
+      true,
+    );
     x.permit(false);
     assert.equal(x.destroyed, 1);
     assert.equal(x.d.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length, 3);
@@ -679,8 +684,10 @@ test('filter dock uses native sticky bounds and never rewrites position on scrol
   }
 });
 
-test('saved slider reserves its shape before consent or runtime, with URL precedence and a failure fallback', async () => {
+test('default and saved displays reserve their shape before runtime, with URL precedence and a failure fallback', async () => {
   for (const [display, saved, expected] of [
+    ['', null, 'slider'],
+    ['', { display: 'before-after' }, 'before-after'],
     ['', { display: 'slider' }, 'slider'],
     ['?display=before-after', { display: 'slider' }, 'before-after'],
     ['?display=slider', { display: 'before-after' }, 'slider'],
@@ -693,6 +700,10 @@ test('saved slider reserves its shape before consent or runtime, with URL preced
       x.permit(true);
       await x.w.TDBSmilePage.mount();
       assert.equal(x.d.documentElement.dataset.smileDisplay, expected);
+      assert.equal(
+        x.d.querySelectorAll('.smile-comparison_control').length,
+        expected === 'slider' ? 4 : 0,
+      );
     } finally {
       x.close();
     }
