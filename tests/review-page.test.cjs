@@ -13,7 +13,10 @@ async function setup({lastReview}={}) {
   Object.defineProperty(d, 'currentScript', { value: {src:'https://cdn.example/dist/tdb-review-page.js'} });
   w.HTMLElement.prototype.scrollIntoView = function(){};
   const reduced = new w.EventTarget(); reduced.matches = true;
-  w.TDBMotion = {reduced,filterToggle:()=>({set(){},destroy(){}})};
+  w.TDBMotionPolicy = {reduced};
+  w.matchMedia = () => ({matches:false});
+  w.eval(fs.readFileSync('src/shared/motion.js','utf8'));
+  w.TDBMotion = {...w.TDBMotion,filterToggle:()=>({set(){},destroy(){}})};
   let locked = false;
   w.TDBScrollLock = {acquire:()=>{locked=true;return()=>{locked=false;};}};
   w.TDBSiteChrome = {acquire:()=>()=>{},settleBackground(){}};
@@ -161,7 +164,6 @@ function batchMotion(x){
   const home=x.d.querySelector('[data-review-page-list-home]');
   home.getBoundingClientRect=()=>({height:x.visible().length*100});
   x.w.TDBMotion.reduced.matches=false;
-  x.w.TDBMotion.duration=()=>730;
   x.w.TDBMotion.defaults={fadeIn:260};
   x.w.TDBMotion.easing=()=> 'ease-in-out';
   const animations=[];
@@ -189,7 +191,7 @@ test('Load more expands before fading only the new batch and prevents overlappin
     assert.equal(animations.length,1);
     assert.equal(animations[0].node,home);
     assert.deepEqual(JSON.parse(JSON.stringify(animations[0].frames)),[{height:'2000px'},{height:'4000px'}]);
-    assert.equal(animations[0].options.duration,730);
+    assert.equal(animations[0].options.duration,x.w.TDBMotion.duration());
     assert.equal(more.disabled,true);
     await x.api.loadMore();assert.equal(x.calls.length,2);
     animations[0].finish();await tick();

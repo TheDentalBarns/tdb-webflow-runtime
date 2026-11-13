@@ -962,10 +962,16 @@
       }
       let renderRevision = 0;
       let selecting = false;
+      let heightChange;
+      cleanup.push(() => heightChange?.abort());
       async function select(form, closeFilter = false) {
         const selection = draft(form),
           token = ++renderRevision,
-          changed = selection.display !== mode;
+          changed = selection.display !== mode,
+          fromHeight = stage.getBoundingClientRect().height;
+        heightChange?.abort();
+        const transition = new AbortController();
+        heightChange = transition;
         selecting = true;
         if (closeFilter) filters.set(false);
         await Promise.all([
@@ -984,6 +990,7 @@
         if (changed) applyDisplay();
         filters.setCount(chosen.size + Number(!!clinician) + Number(!!gender));
         await render();
+        if (signal.aborted || token !== renderRevision) return;
         syncForms();
         const destination = new URL(location.href);
         destination.searchParams.set('display', mode);
@@ -995,7 +1002,10 @@
         if (gender) destination.searchParams.set('gender', gender);
         else destination.searchParams.delete('gender');
         history.replaceState(history.state, '', destination.href);
+        const settled = await motion.resizeHeight(stage, fromHeight, { signal: transition.signal });
+        if (signal.aborted || token !== renderRevision) return;
         selecting = false;
+        if (!settled) return;
         await revealContents();
         updateDock();
       }
@@ -1080,6 +1090,7 @@
           // Browser toolbar height changes must not blank the gallery on Android.
           if (innerWidth === layoutWidth) return;
           layoutWidth = innerWidth;
+          heightChange?.abort();
           stage.dataset.smilePending = 'true';
           clearTimeout(resizeTimer);
           resizeTimer = setTimeout(() => {

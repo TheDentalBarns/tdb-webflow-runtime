@@ -36,6 +36,12 @@ images fade after decoding without eagerly loading the full gallery. Mobile
 browser toolbar height changes do not trigger this transition. A failed runtime
 load reveals the native CMS content as a readable fallback, with inactive controls.
 
+Filter and display updates now follow the approved result-loading sequence:
+fade outgoing content, settle the native results height through shared
+`TDBMotion.resizeHeight`, then gently fade in the updated content. This changes
+neither the Designer holding state nor the number of matching cases shown.
+See [the shared motion convention](runtime/motion-profile.md#result-loading-and-updates).
+
 Validation: focused gallery/blog interaction tests and generated-build checks.
 Native breakpoint and holding-state rendering is also verified using published
 Webflow styles without the runtime or the no-JavaScript fallback, matching the

@@ -323,10 +323,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "f166b88bcab7d8ac0ea48fc0b7561910c175573b76c37d1835c5b8a6d827e625",
-      "raw": 34566,
-      "gzip": 11824,
-      "brotli": 10700
+      "sha256": "c8a9a64215419f634199bdccbd50ca71a83161af2b55a833eb6fb5949ec24ce4",
+      "raw": 35490,
+      "gzip": 12183,
+      "brotli": 11013
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -477,10 +477,10 @@
         "src/shared/module-bootstrap.js",
         "src/reviews/native/archive.js"
       ],
-      "sha256": "613ff4b1d1cf26a455ff5f8de3ef4f8cdbb7d99d96a276ccfe422a925c417478",
-      "raw": 13919,
-      "gzip": 5370,
-      "brotli": 4808
+      "sha256": "bbcf5180e585cb699bd3e5bab0c5187f5e2162b42e9276c99096cc2bbaa0a53a",
+      "raw": 13660,
+      "gzip": 5319,
+      "brotli": 4758
     },
     "dist/tdb-review-quote-adapter.js": {
       "sources": [
@@ -624,10 +624,10 @@
       "sources": [
         "src/smile-gallery/standalone.js"
       ],
-      "sha256": "6bba33ee18020d53712b29a1a98ed4a1ac9f40fc7aa08d40122da8ad88fba80d",
-      "raw": 24459,
-      "gzip": 8276,
-      "brotli": 7423
+      "sha256": "ee5fe357d6672157fea079f5e6f12f73ae6b26e6d4939240c11dc08f270ba0e8",
+      "raw": 24684,
+      "gzip": 8343,
+      "brotli": 7493
     },
     "dist/tdb-start.min.js": {
       "sources": [

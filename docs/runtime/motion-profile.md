@@ -19,6 +19,27 @@ Released stamp-strip movement and marquee motion use scaled elapsed time, retain
 
 Pace is a visual motion control, not a multiplier for every timer on the site. Countdown dates, video/audio playback, network retries, input sampling, gesture thresholds, reading/autoplay hold intervals and progress tied to those intervals stay on real time. Scroll-linked parallax positions and direct scroll input keep their existing geometry and response. Legacy Webflow IX2 interactions and third-party widgets are outside this profile. Five Senses ambient scene/media timelines retain their own clocks; its UI reveals use the profile.
 
+## Result loading and updates
+
+The approved sequence is **expand first, then gently fade in** (13 November 2026).
+Use it for new result batches and for filtered/display updates whose height changes.
+Do not reveal the incoming content while the container is still changing height.
+
+Capture the native container height before updating its children, then await
+`TDBMotion.resizeHeight(container, previousHeight, { signal })`. It uses the shared
+responsive content duration and panel easing, restores automatic height/overflow,
+and returns whether it completed. Only then start the shared `defaults.fadeIn`
+opacity animation. Cancel on superseding filters, width changes or disposal.
+Unchanged height and reduced motion complete immediately. No startup layout or
+Designer styling belongs in this helper.
+
+For appended batches, hold and fade only the new cards; existing positions and
+scroll position remain stable. For replacements, fade the outgoing variable
+content, settle height, then fade the new content. Native cream frames, labels,
+icons and separators remain visible. Lazy images still reveal only after decoding.
+Reviews and Smile Gallery both use this shared height phase. Initial Smile Gallery
+rendering retains its native holding state; all matching smiles remain on the page.
+
 ## Ownership and build
 
 - `src/shared/motion-profile.js` is installed once by the existing startup bundle. It exposes immutable `TDBMotionProfile`, and sets the matching root CSS tokens once so early JS and deferred CSS agree. It adds no request, observer, layout read or animation loop.

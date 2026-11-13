@@ -95,7 +95,11 @@ function setup({
   });
   const reduced = new w.EventTarget();
   reduced.matches = false;
+  w.TDBMotionPolicy = { reduced };
+  w.matchMedia = () => ({ matches: false });
+  w.eval(fs.readFileSync('src/shared/motion.js', 'utf8'));
   w.TDBMotion = {
+    resizeHeight: w.TDBMotion.resizeHeight,
     reduced,
     duration: () => 500,
     carousel: {
@@ -903,4 +907,77 @@ test('only width changes hold content for a layout fade; mobile toolbar height c
   } finally {
     x.close();
   }
+});
+
+function holdGalleryHeight(x) {
+  const stage = x.d.querySelector('[data-smile-page-stage]');
+  stage.getBoundingClientRect = () => ({
+    height: stage.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length *
+      (x.d.documentElement.dataset.smileDisplay === 'before-after' ? 200 : 100),
+  });
+  const original = x.w.HTMLElement.prototype.animate;
+  const heights = [];
+  x.w.HTMLElement.prototype.animate = function (frames, options) {
+    if (this !== stage) return original.call(this, frames, options);
+    let finish, reject;
+    const finished = new Promise((resolve, fail) => { finish = resolve; reject = fail; });
+    const animation = { frames, options, finish, finished, cancel() {
+      reject(new x.w.DOMException('Cancelled', 'AbortError'));
+    } };
+    heights.push(animation);
+    return animation;
+  };
+  const choose = (name, value) => {
+    const input = x.d.querySelector(`[name="embedded-smile-${name}"][value="${value}"]`);
+    input.checked = true;
+    input.dispatchEvent(new x.w.Event('change', { bubbles: true }));
+  };
+  return { stage, heights, choose };
+}
+
+test('filter and display updates settle the gallery height before revealing content', async () => {
+  const x = setup({ nativePreview: true });
+  try {
+    await x.w.TDBSmilePage.mount();
+    const { stage, heights, choose } = holdGalleryHeight(x);
+    for (const [name, value, from, to] of [
+      ['treatment', 'bonding', 300, 100],
+      ['display', 'before-after', 100, 200],
+    ]) {
+      x.animations.length = 0;
+      choose(name, value); await tick();
+      assert.equal(stage.dataset.smilePending, 'true');
+      assert.equal(stage.style.overflow, 'clip');
+      const height = heights.at(-1);
+      assert.deepEqual(JSON.parse(JSON.stringify(height.frames)), [{height:`${from}px`},{height:`${to}px`}]);
+      assert.ok(x.animations.every(a => a.frames.at(-1).opacity !== 1), 'new content is held throughout height movement');
+      height.finish(); await tick();
+      assert.equal(stage.dataset.smilePending, undefined);
+      assert.equal(stage.style.overflow, '');
+      assert.ok(x.animations.some(a => a.node.matches('[data-tdb-sg-title]') && a.frames.at(-1).opacity === 1));
+      assert.ok(x.animations.every(a => !a.node.matches('.smile-grid_label,.smile-grid_icon,[data-smile-grid-photo]')));
+    }
+  } finally { x.close(); }
+});
+
+test('a superseded gallery expansion cannot reveal stale content; width resize clears the hold', async () => {
+  const x = setup({ nativePreview: true });
+  try {
+    await x.w.TDBSmilePage.mount();
+    const { stage, heights, choose } = holdGalleryHeight(x);
+    choose('display', 'before-after'); await tick();
+    const previous = heights[0];
+    choose('display', 'slider'); await tick();
+    previous.finish(); await tick();
+    assert.equal(stage.dataset.smilePending, 'true');
+    heights[1].finish(); await tick();
+    assert.equal(stage.dataset.smilePending, undefined);
+    assert.equal(x.d.documentElement.dataset.smileDisplay, 'slider');
+    choose('display', 'before-after'); await tick();
+    Object.defineProperty(x.w, 'innerWidth', { value: 390, configurable: true });
+    x.w.dispatchEvent(new x.w.Event('resize'));
+    await new Promise(resolve => setTimeout(resolve, 180));
+    assert.equal(stage.dataset.smilePending, undefined);
+    assert.equal(stage.style.overflow, '');
+  } finally { x.close(); }
 });

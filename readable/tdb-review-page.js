@@ -202,8 +202,8 @@
       const batch = batchReveal;
       if (!batch) return;
       batchReveal = null;
+      batch.controller.abort();
       batch.animations.forEach((animation) => animation.cancel());
-      listHome.style.overflow = batch.overflow;
       batch.nodes.forEach((node) => {
         node.style.opacity = '';
         node.inert = false;
@@ -214,11 +214,10 @@
       const batch = {
         nodes,
         height: listHome.getBoundingClientRect().height,
-        overflow: listHome.style.overflow,
+        controller: new AbortController(),
         animations: [],
       };
       batchReveal = batch;
-      listHome.style.overflow = 'clip';
       nodes.forEach((node) => {
         node.style.opacity = '0';
         node.inert = true;
@@ -234,20 +233,11 @@
         return animation.finished.catch(() => {});
       };
       try {
-        const height = listHome.getBoundingClientRect().height;
-        if (height > batch.height) {
-          await play(
-            listHome,
-            [{ height: `${batch.height}px` }, { height: `${height}px` }],
-            window.TDBMotion.duration?.(innerWidth) || 650,
-            window.TDBMotion.easing?.('panel') || 'cubic-bezier(.4,0,.2,1)',
-          );
-        }
-        if (!current()) return;
+        const settled = await window.TDBMotion.resizeHeight(listHome, batch.height, {
+          signal: batch.controller.signal,
+        });
+        if (!settled || !current()) return;
         // Expansion completes before any newly loaded card becomes visible.
-        batch.animations.forEach((animation) => animation.cancel());
-        batch.animations = [];
-        listHome.style.overflow = batch.overflow;
         await Promise.all(
           batch.nodes.map((node) =>
             play(

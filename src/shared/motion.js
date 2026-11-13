@@ -1,4 +1,4 @@
-/* TDB shared motion v1.24.2. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.24.4. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -46,6 +46,53 @@
           ),
         )
       : defaults.base;
+  }
+
+  // Result updates settle their native height before the caller fades content in.
+  // Capture fromHeight before changing the children; no initial layout is authored here.
+  const heightMotions = new WeakMap();
+  async function resizeHeight(node, fromHeight, { signal } = {}) {
+    heightMotions.get(node)?.();
+    if (signal?.aborted) return false;
+    const toHeight = node.getBoundingClientRect().height;
+    if (!node.animate || reduced.matches || Math.abs(toHeight - fromHeight) < 0.5) return true;
+    const style = getComputedStyle(node);
+    const inset =
+      style.boxSizing === 'border-box'
+        ? 0
+        : ['paddingTop', 'paddingBottom', 'borderTopWidth', 'borderBottomWidth'].reduce(
+            (sum, name) => sum + (parseFloat(style[name]) || 0),
+            0,
+          );
+    const overflow = node.style.getPropertyValue('overflow');
+    const priority = node.style.getPropertyPriority('overflow');
+    let animation;
+    const cancel = () => {
+      animation?.cancel();
+      if (heightMotions.get(node) !== cancel) return;
+      if (overflow) node.style.setProperty('overflow', overflow, priority);
+      else node.style.removeProperty('overflow');
+      heightMotions.delete(node);
+    };
+    heightMotions.set(node, cancel);
+    node.style.overflow = 'clip';
+    try {
+      animation = node.animate(
+        [
+          { height: `${Math.max(0, fromHeight - inset)}px` },
+          { height: `${Math.max(0, toHeight - inset)}px` },
+        ],
+        { duration: duration(), easing: easing('panel', 'cubic-bezier(.4,0,.2,1)'), fill: 'both' },
+      );
+      signal?.addEventListener('abort', cancel, { once: true });
+      await animation.finished;
+      return !signal?.aborted && heightMotions.get(node) === cancel;
+    } catch {
+      return false;
+    } finally {
+      signal?.removeEventListener('abort', cancel);
+      cancel();
+    }
   }
 
   // Continue an input-led scroll while momentum events keep arriving. A new
@@ -1769,7 +1816,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.24.3',
+    version: '1.24.4',
     profile,
     time,
     easing,
@@ -1777,6 +1824,7 @@
     defaults,
     carousel,
     duration,
+    resizeHeight,
     ddText,
     ddRegion,
     ddOpacity,

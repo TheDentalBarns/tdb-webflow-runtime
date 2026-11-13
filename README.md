@@ -4,6 +4,8 @@ One repository, one immutable release and one Webflow JavaScript entry. Formatte
 
 Motion pace and character are configured together in `config/motion.json`. See the [shared motion profile](docs/runtime/motion-profile.md) for responsive scaling, scope and seasonal tuning. The consolidated baseline keeps `pace: 1` and `character: "current"`.
 
+Result loading follows the shared [expand-then-fade convention](docs/runtime/motion-profile.md#result-loading-and-updates): settle the native container height first, then softly reveal the new content. Reviews and Smile Gallery share this behavior.
+
 ## Install
 
 Use the same **40-character Git commit** for the head stylesheet and footer entry. Never use `main`, `latest`, per-file pins or page release overrides.
