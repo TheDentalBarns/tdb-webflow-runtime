@@ -1867,9 +1867,9 @@
       patch(
         this.root,
         banner +
-          '<div class="tdbc-shell container-large padding-section-large" data-node="shell"><header class="tdbc-header" data-node="header" tabindex="-1"><p class="text-style-tagline-restored tdbc-dd-fade">YOUR SMILE, YOUR POSSIBILITIES</p><h2 class="heading-style-h3"' +
+          '<div class="tdbc-shell container-large padding-section-large" data-node="shell"><header class="tdbc-header" data-node="header" tabindex="-1"><p class="text-style-tagline-restored tdbc-entry-copy tdbc-dd-fade">YOUR SMILE, YOUR POSSIBILITIES</p><h2 class="heading-style-h3"' +
           (this.mode === 'drawer' ? ' id="tdbc-dialog-title"' : '') +
-          '>Explore your treatment costs</h2><p class="text-size-small">Start with what matters to you. We’ll bring together a guide to your investment and timing.</p></header>' +
+          '>Explore your treatment costs</h2><p class="text-size-small tdbc-entry-copy">Start with what matters to you. We’ll bring together a guide to your investment and timing.</p></header>' +
           (this.context
             ? '<div class="tdbc-notice text-size-small" data-node="context"><p>Your existing estimate is saved. Continue with it, or start with the options from this page.</p><div class="tdbc-actions"><button type="button" data-action="keep" class="tdbc-text-button">Keep my estimate</button><button type="button" data-action="context" class="tdbc-text-button">Start with these options</button></div></div>'
             : '') +

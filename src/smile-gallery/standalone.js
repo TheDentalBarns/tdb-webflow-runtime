@@ -99,7 +99,10 @@
     photo.append(after, before, handle, range);
     let dragging = false,
       moved = false,
-      originX = 0;
+      originX = 0,
+      originY = 0,
+      axis = null,
+      pointerId;
     const update = () => {
       const value = Math.round(Math.max(0, Math.min(100, Number(range.value))));
       photo.style.setProperty('--smile-reveal', value + '%');
@@ -111,24 +114,37 @@
       update();
     };
     listen(range, 'pointerdown', (event) => {
-      if (event.button !== 0) return;
+      if (event.button !== 0 || event.isPrimary === false) return;
+      // Prevent the native range jump, while touch-action keeps vertical panning native.
       event.preventDefault();
       originX = event.clientX;
+      originY = event.clientY;
+      pointerId = event.pointerId;
+      axis = null;
       dragging = true;
       moved = false;
-      range.focus({ preventScroll: true });
-      range.setPointerCapture?.(event.pointerId);
     });
     listen(range, 'pointermove', (event) => {
-      if (!dragging) return;
-      if (Math.abs(event.clientX - originX) > 3) moved = true;
-      if (moved) {
-        event.preventDefault();
-        position(event);
+      if (!dragging || event.pointerId !== pointerId) return;
+      if (!axis) {
+        const x = Math.abs(event.clientX - originX),
+          y = Math.abs(event.clientY - originY);
+        if (Math.max(x, y) < 8) return;
+        moved = true;
+        axis = x > y * 1.2 ? 'horizontal' : 'vertical';
+        if (axis === 'horizontal') {
+          range.focus({ preventScroll: true });
+          range.setPointerCapture?.(event.pointerId);
+        }
       }
+      if (axis !== 'horizontal') return;
+      event.preventDefault();
+      position(event);
     });
     const finish = (event) => {
+      if (event.pointerId !== pointerId) return;
       dragging = false;
+      if (event.type === 'pointercancel') moved = true;
       if (range.hasPointerCapture?.(event.pointerId)) range.releasePointerCapture(event.pointerId);
     };
     listen(range, 'pointerup', finish);
@@ -260,6 +276,7 @@
       const filterHome = page.querySelector('[data-smile-filter-home]');
       const embedded = page.querySelector('[data-smile-embedded-filter]');
       const dock = page.querySelector('[data-smile-filter-dock]');
+      const landing = page.querySelector('[data-smile-filter-landing]');
       const panel = dock.querySelector('[data-smile-filter-panel]');
       const toggle = dock.querySelector('[data-smile-filter-toggle]');
       const apply = panel.querySelector('[data-smile-filter-apply]');
@@ -272,14 +289,16 @@
       const motion = window.TDBMotion;
       const animations = new Set(),
         nodeAnimations = new WeakMap();
-      const animate = async (node, frames, duration, family = 'fade') => {
+      const animate = async (node, frames, duration, family = 'fade', options = {}) => {
         if (!node?.animate || motion.reduced.matches || signal.aborted) return;
         nodeAnimations.get(node)?.cancel();
         const animation = node.animate(frames, {
           duration,
           easing:
+            options.easing ||
             motion.easing?.(family, family === 'travel' ? 'cubic-bezier(.3,0,.2,1)' : 'ease') ||
             'ease',
+          delay: options.delay || 0,
           fill: 'both',
         });
         nodeAnimations.set(node, animation);
@@ -406,6 +425,17 @@
           total = payload.cases.filter((item) =>
             matches(item, selection.treatments, selection.clinician, selection.gender),
           ).length;
+        // Keep selected treatments available to remove; disable only impossible additions.
+        for (const input of form.querySelectorAll('[data-smile-option="treatment"]')) {
+          const next = new Set(selection.treatments).add(input.value);
+          input.disabled =
+            !input.checked &&
+            !payload.cases.some((item) => matches(item, next, selection.clinician));
+        }
+        for (const input of form.querySelectorAll('[data-smile-option="clinician"]'))
+          input.disabled =
+            !input.checked &&
+            !payload.cases.some((item) => matches(item, selection.treatments, input.value));
         const action = actionCounts.get(form);
         action.ticker.update(
           String(total),
@@ -563,6 +593,24 @@
           }
           target.style.minHeight = Math.ceil(height) + 'px';
         }
+        // Reserve each value's widest label so its neighbouring icon stays still.
+        for (const field of ['price', 'duration', 'clinician']) {
+          const slot = reading.querySelector('[data-smile-case-' + field + ']');
+          const sample = document.createElement('span');
+          sample.className = 'smile-page-fact_value';
+          Object.assign(sample.style, {
+            display: 'inline-block',
+            font: getComputedStyle(slot).font,
+            letterSpacing: getComputedStyle(slot).letterSpacing,
+          });
+          measure.replaceChildren(sample);
+          let width = 0;
+          for (const item of payload.cases) {
+            sample.textContent = item[field];
+            width = Math.max(width, sample.getBoundingClientRect().width);
+          }
+          slot.style.width = Math.ceil(width) + 'px';
+        }
         measure.remove();
       };
       const outgoingCaseNodes = new Set();
@@ -582,12 +630,19 @@
         }
         outgoingCaseNodes.clear();
         const slideNodes = [drawerPhoto, reading.querySelector('[data-smile-case-title]')];
+        const fadeNodes = [
+          reading.querySelector('[data-smile-case-treatments]'),
+          reading.querySelector('[data-smile-case-description]'),
+        ];
+        const travelTime = motion.duration?.(reading.clientWidth) || 650;
         const outgoing = transition
-          ? slideNodes.map((node) => {
+          ? [...slideNodes, ...fadeNodes].map((node) => {
               const copy = node.cloneNode(true);
               copy.classList.add('smile-page_case-outgoing');
               copy.setAttribute('aria-hidden', 'true');
               copy.inert = true;
+              for (const field of ['title', 'treatments', 'description'])
+                copy.removeAttribute('data-smile-case-' + field);
               for (const child of [copy, ...copy.querySelectorAll('[id],input')]) {
                 child.removeAttribute('id');
                 if (child.matches('input')) child.remove();
@@ -595,12 +650,14 @@
               Object.assign(copy.style, {
                 left: node.offsetLeft + 'px',
                 top: node.offsetTop + 'px',
-                width: node.clientWidth + 'px',
-                height: node.clientHeight + 'px',
+                width: node.getBoundingClientRect().width + 'px',
+                height: node.getBoundingClientRect().height + 'px',
+                opacity: getComputedStyle(node).opacity,
               });
               return [node, copy];
             })
           : [];
+        for (const node of [...slideNodes, ...fadeNodes]) nodeAnimations.get(node)?.cancel();
         drawerIndex = (index + cases.length) % cases.length;
         const item = cases[drawerIndex];
         currentId = item.id;
@@ -636,12 +693,21 @@
           for (const [node, copy] of outgoing) {
             node.parentElement.append(copy);
             outgoingCaseNodes.add(copy);
-            animate(
-              copy,
-              [{ transform: 'translateX(0)' }, { transform: slidePosition(node, -direction) }],
-              motion.duration?.(reading.clientWidth) || 650,
-              'travel',
-            ).finally(() => {
+            const leaving = slideNodes.includes(node)
+              ? animate(
+                  copy,
+                  [{ transform: 'translateX(0)' }, { transform: slidePosition(node, -direction) }],
+                  travelTime,
+                  'travel',
+                )
+              : animate(
+                  copy,
+                  [{ opacity: copy.style.opacity }, { opacity: 0 }],
+                  motion.carousel.copyOut,
+                  'fade',
+                  { easing: motion.carousel.copyEaseOut },
+                );
+            leaving.finally(() => {
               copy.remove();
               outgoingCaseNodes.delete(copy);
             });
@@ -650,32 +716,43 @@
             animate(
               node,
               [{ transform: slidePosition(node, direction) }, { transform: 'translateX(0)' }],
-              motion.duration?.(reading.clientWidth) || 650,
+              travelTime,
               'travel',
             );
-          for (const node of [
-            reading.querySelector('[data-smile-case-description]'),
-            reading.querySelector('[data-smile-case-treatments]'),
-          ])
-            animate(node, [{ opacity: 0 }, { opacity: 1 }], fadeIn);
+          for (const node of fadeNodes)
+            animate(node, [{ opacity: 0 }, { opacity: 1 }], motion.carousel.copyIn, 'fade', {
+              easing: motion.carousel.copyEaseIn,
+              delay:
+                travelTime +
+                (direction < 0 ? motion.carousel.previousDelay : motion.carousel.nextDelay),
+            });
         }
       };
-      const updateDock = () => {
-        if (dock.classList.contains('is-in-drawer')) return;
+      const pageDockPosition = () => {
         const bounds = filterHome.getBoundingClientRect();
         const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
         const height = toggle.getBoundingClientRect().height;
         const footerTop = innerHeight - 1.25 * rem - height;
         const naturalTop = bounds.bottom - height;
         const pinned = naturalTop <= footerTop;
+        const end = landing.getBoundingClientRect();
+        return {
+          pinned,
+          footerTop,
+          height,
+          top: pinned ? Math.min(footerTop, end.top + (end.height - height) / 2) : naturalTop,
+        };
+      };
+      const updateDock = () => {
+        if (dock.classList.contains('is-in-drawer')) return;
+        const position = pageDockPosition();
         // CSS bottom owns the mobile viewport edge. Only scroll the control away
-        // when the gallery itself ends; browser toolbar resizing cannot leave a stale top.
+        // once it reaches the dedicated cream bar beneath the gallery.
         dock.style.setProperty(
           '--smile-dock-lift',
-          Math.min(0, stage.getBoundingClientRect().bottom - height - 1.25 * rem - footerTop) +
-            'px',
+          Math.min(0, position.top - position.footerTop) + 'px',
         );
-        dock.classList.toggle('is-floating', pinned);
+        dock.classList.toggle('is-floating', position.pinned);
         dock.classList.remove('is-offscreen');
       };
       let toggleOrigin;
@@ -708,11 +785,8 @@
             filters.set(false);
             // Move to the page resting position while the filter slides down.
             const from = toggle.getBoundingClientRect();
-            const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-            const bottom = Math.min(
-              innerHeight - 1.25 * rem,
-              stage.getBoundingClientRect().bottom - 1.25 * rem,
-            );
+            const position = pageDockPosition();
+            const bottom = position.top + position.height;
             animate(
               toggle,
               [{ translate: '0px 0px' }, { translate: `0px ${bottom - from.bottom}px` }],

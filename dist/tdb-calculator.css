@@ -7,6 +7,7 @@ html.tdbc-preserve-native-entry{overflow-anchor:none}
 .tdb-calc input{user-select:text!important;-webkit-user-select:text!important}
 .tdbc-shell{width:100%;margin-inline:auto}
 .tdbc-header{max-width:48rem;margin-bottom:2rem}.tdbc-header>p:first-child{margin-bottom:1rem}.tdbc-header h2{margin:0 0 1.5rem}
+.tdbc-header>.tdbc-entry-copy{color:var(--base-color-neutral--neutral,#888)}
 .tdbc-main{width:100%}.tdbc-main:not(:has(.tdbc-footnote))>[data-node=step-1]{padding-bottom:0}.tdbc-step{padding:3rem 0;margin:0;border:0;border-top:1px solid var(--base-color-brand--orange-3);min-width:0}
 /* Step padding owns the space at section boundaries, without a final text margin. */
 .tdbc-step>:last-child,.tdbc-step>[data-output=timeline]>:last-child{margin-bottom:0}

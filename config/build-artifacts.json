@@ -54,10 +54,10 @@
         "src/calculator/core.js",
         "src/calculator/ui.js"
       ],
-      "sha256": "08b833e8e2994f3713c2dec77638adca7a4165ea346188b60adfb51d61040c2e",
-      "raw": 78505,
-      "gzip": 25539,
-      "brotli": 22050
+      "sha256": "a1868d42b742377ac441d0ae17795b9f33a7bad5033f4067616bbdbe6c8dceb3",
+      "raw": 78537,
+      "gzip": 25552,
+      "brotli": 22076
     },
     "dist/tdb-consent-startup.min.js": {
       "sources": [
@@ -603,10 +603,10 @@
       "sources": [
         "src/smile-gallery/standalone.js"
       ],
-      "sha256": "97391aab3f8d4b3cc32689ec6d446961c6f774b1948e4fca876a2230dc635141",
-      "raw": 21096,
-      "gzip": 7271,
-      "brotli": 6531
+      "sha256": "0f72057e75541d3310a973ddadc1ff06dcf3bbd8c269e8ffff92947e784d2cca",
+      "raw": 22642,
+      "gzip": 7718,
+      "brotli": 6925
     },
     "dist/tdb-start.min.js": {
       "sources": [

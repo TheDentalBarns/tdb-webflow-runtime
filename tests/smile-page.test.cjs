@@ -11,8 +11,8 @@ const feed = fs
     JSON.stringify(fs.readFileSync('src/smile-gallery/template.html', 'utf8')),
   );
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
-function setup({ display = '', allowed = true, fail = false, saved = null } = {}) {
-  const records = [
+function setup({ display = '', allowed = true, fail = false, saved = null, cases } = {}) {
+  const records = cases || [
     ['A', 'From £3,000', 'Aligners', 'Dr A', '2 hours', 'Male'],
     ['B', 'From £1,000', 'Bonding', 'Dr B', '6–8 weeks', 'Female'],
     ['C', 'From £2,000', 'Whitening', 'Dr A', '180 minutes', ''],
@@ -22,7 +22,12 @@ function setup({ display = '', allowed = true, fail = false, saved = null } = {}
     records
       .map(
         ([title, price, treatment, doctor, duration, gender]) =>
-          `<div data-tdb-sg-case><div data-smile-grid-photo role="button" tabindex="0"><img data-tdb-sg-image src="https://cdn.prod.website-files.com/smile-${title}.webp" srcset="https://cdn.prod.website-files.com/smile-${title}-500.webp 500w, https://cdn.prod.website-files.com/smile-${title}.webp 1080w" sizes="(max-width: 640px) 100vw, 33vw" alt="Smile ${title}"></div><span data-tdb-sg-title>${title}</span><span data-tdb-sg-description>Details ${title}</span><span data-tdb-sg-price-value>${price}</span><span data-tdb-sg-duration-value>${duration}</span><span data-tdb-sg-clinician-value>${doctor}</span><span data-tdb-sg-gender-value>${gender}</span><span data-tdb-sg-treatment-name>${treatment}</span></div>`,
+          `<div data-tdb-sg-case><div data-smile-grid-photo role="button" tabindex="0"><img data-tdb-sg-image src="https://cdn.prod.website-files.com/smile-${title}.webp" srcset="https://cdn.prod.website-files.com/smile-${title}-500.webp 500w, https://cdn.prod.website-files.com/smile-${title}.webp 1080w" sizes="(max-width: 640px) 100vw, 33vw" alt="Smile ${title}"></div><span data-tdb-sg-title>${title}</span><span data-tdb-sg-description>Details ${title}</span><span data-tdb-sg-price-value>${price}</span><span data-tdb-sg-duration-value>${duration}</span><span data-tdb-sg-clinician-value>${doctor}</span><span data-tdb-sg-gender-value>${gender}</span>${[
+            treatment,
+          ]
+            .flat()
+            .map((name) => `<span data-tdb-sg-treatment-name>${name}</span>`)
+            .join('')}</div>`,
       )
       .join('') +
     '</div>';
@@ -50,8 +55,23 @@ function setup({ display = '', allowed = true, fail = false, saved = null } = {}
   });
   const reduced = new w.EventTarget();
   reduced.matches = false;
-  w.TDBMotion = { reduced };
-  w.HTMLElement.prototype.animate = () => ({ finished: Promise.resolve(), cancel() {} });
+  w.TDBMotion = {
+    reduced,
+    duration: () => 500,
+    carousel: {
+      copyOut: 150,
+      copyIn: 400,
+      nextDelay: 100,
+      previousDelay: 140,
+      copyEaseIn: 'ease-in',
+      copyEaseOut: 'ease-out',
+    },
+  };
+  const animations = [];
+  w.HTMLElement.prototype.animate = function (frames, options) {
+    animations.push({ node: this, frames, options });
+    return { finished: Promise.resolve(), cancel() {} };
+  };
   if (saved) w.sessionStorage.setItem('tdb-smile-gallery-view', JSON.stringify(saved));
   w.eval(fs.readFileSync('src/shared/filters.js', 'utf8'));
   const mountDisclosures = w.TDBFilters.mountDisclosures;
@@ -159,6 +179,7 @@ function setup({ display = '', allowed = true, fail = false, saved = null } = {}
   return {
     w,
     d,
+    animations,
     get opened() {
       return opened;
     },
@@ -341,6 +362,132 @@ test('dragging comparison suppresses opening a case and the next click still ope
   }
 });
 
+test('vertical scrolling never moves the comparison, while a fresh horizontal gesture does', async () => {
+  const x = setup({ display: '?display=slider' });
+  try {
+    await x.w.TDBSmilePage.mount();
+    const photo = x.d.querySelector('[data-smile-grid-photo]');
+    const range = photo.querySelector('input');
+    photo.getBoundingClientRect = () => ({ left: 0, width: 400 });
+    const pointer = (type, clientX, clientY) => {
+      const event = new x.w.MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        button: 0,
+        clientX,
+        clientY,
+      });
+      range.dispatchEvent(event);
+      return event;
+    };
+    pointer('pointerdown', 200, 200);
+    assert.equal(range.value, '50', 'touching the image must not jump the divider');
+    assert.equal(pointer('pointermove', 204, 240).defaultPrevented, false);
+    assert.equal(
+      pointer('pointermove', 350, 245).defaultPrevented,
+      false,
+      'vertical intent remains locked despite later sideways drift',
+    );
+    pointer('pointerup', 350, 245);
+    range.click();
+    assert.equal(range.value, '50');
+    assert.equal(x.opened, 0, 'scrolling must not open the case');
+    pointer('pointerdown', 200, 200);
+    assert.equal(pointer('pointermove', 320, 204).defaultPrevented, true);
+    pointer('pointerup', 320, 204);
+    assert.equal(range.value, '80');
+    pointer('pointerdown', 320, 204);
+    pointer('pointercancel', 320, 240);
+    pointer('pointermove', 100, 240);
+    assert.equal(range.value, '80', 'a cancelled touch cannot continue dragging');
+  } finally {
+    x.close();
+  }
+});
+
+test('unavailable combinations are disabled while valid additions and deselection remain available', async () => {
+  const x = setup({
+    cases: [
+      ['A', 'From £3,000', ['Aligners', 'Whitening'], 'Dr A', '2 hours', ''],
+      ['B', 'From £1,000', ['Bonding', 'Whitening'], 'Dr B', '2 hours', ''],
+      ['C', 'From £2,000', ['Bonding'], 'Dr A', '2 hours', ''],
+    ],
+  });
+  try {
+    await x.w.TDBSmilePage.mount();
+    const option = (prefix, group, value) =>
+      x.d.querySelector(`[name="${prefix}smile-${group}"][value="${value}"]`);
+    const choose = async (input, checked = true) => {
+      input.checked = checked;
+      input.dispatchEvent(new x.w.Event('change', { bubbles: true }));
+      await tick();
+    };
+    await choose(option('embedded-', 'treatment', 'aligners'));
+    assert.equal(option('embedded-', 'treatment', 'bonding').disabled, true);
+    assert.equal(option('embedded-', 'treatment', 'whitening').disabled, false);
+    assert.equal(option('embedded-', 'treatment', 'aligners').disabled, false);
+    assert.equal(option('embedded-', 'clinician', 'Dr B').disabled, true);
+    x.d.querySelector('[data-smile-filter-toggle]').click();
+    assert.equal(
+      option('', 'treatment', 'bonding').disabled,
+      true,
+      'modal starts with the same availability',
+    );
+    await choose(option('', 'treatment', 'aligners'), false);
+    assert.equal(
+      option('', 'treatment', 'bonding').disabled,
+      false,
+      'removing a choice restores possibilities in the draft',
+    );
+    assert.equal(
+      option('embedded-', 'treatment', 'bonding').disabled,
+      true,
+      'an unapplied modal draft does not change the grid',
+    );
+    x.d.querySelector('[data-smile-filter-apply]').click();
+    await tick();
+    assert.equal(option('embedded-', 'treatment', 'bonding').disabled, false);
+    await choose(option('embedded-', 'clinician', 'Dr B'));
+    assert.equal(option('embedded-', 'treatment', 'aligners').disabled, true);
+    x.d.querySelector('[data-smile-embedded-filter] [data-smile-filter-reset]').click();
+    await tick();
+    assert.ok(
+      [...x.d.querySelectorAll('[name="embedded-smile-treatment"]')].every(
+        (input) => !input.disabled,
+      ),
+    );
+  } finally {
+    x.close();
+  }
+});
+
+test('new treatments and their diamonds remain hidden until the shared carousel travel finishes', async () => {
+  const x = setup();
+  try {
+    await x.w.TDBSmilePage.mount();
+    x.d.querySelector('[data-smile-grid-photo]').click();
+    x.animations.length = 0;
+    x.d.querySelector('[data-smile-case-next]').click();
+    const incoming = x.animations.find((a) => a.node.hasAttribute('data-smile-case-treatments'));
+    assert.deepEqual(JSON.parse(JSON.stringify(incoming.frames)), [{ opacity: 0 }, { opacity: 1 }]);
+    assert.equal(incoming.options.fill, 'both', 'the first frame applies throughout the delay');
+    assert.equal(incoming.options.delay, 600);
+    assert.equal(incoming.options.duration, 400);
+    assert.equal(incoming.options.easing, 'ease-in');
+    const outgoing = x.animations.find((a) =>
+      a.node.matches('.smile-page_case-outgoing.smile-page_case-treatments'),
+    );
+    assert.ok(
+      outgoing,
+      'the previous treatment list fades as one unit, including its diamond pseudo-elements',
+    );
+    assert.equal(outgoing.options.duration, 150);
+    assert.equal(outgoing.options.easing, 'ease-out');
+  } finally {
+    x.close();
+  }
+});
+
 test('sorts prices and mixed duration units while deferred gender is ignored', async () => {
   const x = setup();
   try {
@@ -412,12 +559,13 @@ test('filter button pins at the footer without a jump and leaves with the galler
     const home = x.d.querySelector('[data-smile-filter-home]'),
       dock = x.d.querySelector('[data-smile-filter-dock]'),
       button = x.d.querySelector('[data-smile-filter-toggle]'),
-      stage = x.d.querySelector('[data-smile-page-stage]');
+      stage = x.d.querySelector('[data-smile-page-stage]'),
+      landing = x.d.querySelector('[data-smile-filter-landing]');
     button.getBoundingClientRect = () => ({ height: 48 });
     let bottom = 760,
       end = 1500;
     home.getBoundingClientRect = () => ({ bottom });
-    stage.getBoundingClientRect = () => ({ bottom: end });
+    landing.getBoundingClientRect = () => ({ top: end, height: 96 });
     const scroll = async () => {
       x.w.dispatchEvent(new x.w.Event('scroll'));
       await new Promise((r) => setTimeout(r, 25));
@@ -433,11 +581,20 @@ test('filter button pins at the footer without a jump and leaves with the galler
     assert.equal(dock.style.getPropertyValue('--smile-dock-lift'), '0px');
     x.w.innerHeight -= 32;
     x.w.dispatchEvent(new x.w.Event('resize'));
-    assert.equal(dock.style.getPropertyValue('--smile-dock-lift'), '0px', 'toolbar resizing keeps the CSS bottom anchor');
+    assert.equal(
+      dock.style.getPropertyValue('--smile-dock-lift'),
+      '0px',
+      'toolbar resizing keeps the CSS bottom anchor',
+    );
     x.w.innerHeight += 32;
     end = 500;
     await scroll();
-    assert.equal(dock.style.getPropertyValue('--smile-dock-lift'), '-268px');
+    assert.equal(dock.style.getPropertyValue('--smile-dock-lift'), '-176px');
+    assert.equal(
+      700 - 176 + 24,
+      end + 48,
+      'the button parks at the centre of the cream landing bar',
+    );
     assert.equal(dock.classList.contains('is-offscreen'), false);
     let target;
     x.w.lenis = {
