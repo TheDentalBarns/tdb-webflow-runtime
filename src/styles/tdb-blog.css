@@ -16,6 +16,10 @@
 [data-blog-filter-options] .tdb-blog-filter input::before{content:'';position:absolute;top:50%;left:50%;width:.55rem;height:.55rem;border-radius:50%;background:#6d675b;transform:translate(-50%,-50%) scale(0);transition:transform .2s}
 [data-blog-filter-options] .tdb-blog-filter input:checked::before{transform:translate(-50%,-50%) scale(1)}
 [data-blog-filter-options] .tdb-blog-filter-label{margin:0;white-space:normal}
+[data-blog-filter-options] .tdb-blog-filter{justify-content:flex-start;text-align:left;outline:none;box-shadow:none}
+[data-blog-filter-options] .tdb-blog-filter:has(input:focus-visible) .tdb-blog-filter-label{text-decoration:underline;text-underline-offset:.4em}
+[data-blog-filter-toggle] [data-tdb-filter-line]{transform-box:fill-box;transform-origin:center}
+.tdb-blog-filter-drawer [data-tdb-drawer-close]{display:none}
 [data-blog-filter-options] .tdb-blog-filter:has(:checked){color:#222}
 [data-blog-filter-options] [fs-list-element=clear],[data-blog-filter-options] .w-radio-input:not(input){display:none}
 [data-blog-filter-plural].is-singular{visibility:hidden}

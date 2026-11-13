@@ -201,7 +201,7 @@
       refresh,
       ignoreClick(event) {
         const ignore =
-          range.contains(event.target) || (moved && (event.detail > 0 || !!event.pointerType));
+          moved && (range.contains(event.target) || event.detail > 0 || !!event.pointerType);
         moved = false;
         return ignore;
       },

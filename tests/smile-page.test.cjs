@@ -469,6 +469,28 @@ test('touch pan cancellation never moves the divider or blocks the next image ta
   }
 });
 
+test('a short tap on the divider opens the case without moving its value', async () => {
+  const x = setup({ display: '?display=slider' });
+  try {
+    await x.w.TDBSmilePage.mount();
+    const slider = x.d.querySelector('[data-smile-grid-photo] [role=slider]');
+    for (const type of ['pointerdown', 'pointerup', 'click'])
+      slider.dispatchEvent(
+        new x.w.MouseEvent(type, {
+          bubbles: true,
+          detail: 1,
+          button: 0,
+          clientX: 180,
+          clientY: 100,
+        }),
+      );
+    assert.equal(slider.getAttribute('aria-valuenow'), '50');
+    assert.equal(x.opened, 1);
+  } finally {
+    x.close();
+  }
+});
+
 test('unavailable combinations are disabled while valid additions and deselection remain available', async () => {
   const x = setup({
     cases: [
