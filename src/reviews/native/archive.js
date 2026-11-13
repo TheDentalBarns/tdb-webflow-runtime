@@ -41,7 +41,15 @@
         'tdb-review-cards.css',
         'tdb-review-drawer.css',
         'tdb-drawer.css',
-      ].map((name) => load(name, undefined, 'style')),
+      ].map((name) =>
+        // The page head owns these blocking style links. Adopt an already loaded
+        // sheet before the shared registry resolves assets to the site release.
+        load(
+          name,
+          () => [...document.styleSheets].some((sheet) => sheet.href?.endsWith('/' + name)),
+          'style',
+        ),
+      ),
     ]);
     // Webflow's native builder represents button markup as a block. Restore button semantics.
     for (const control of root.querySelectorAll('[type="button"]:not(button)')) {

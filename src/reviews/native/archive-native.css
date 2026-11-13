@@ -28,3 +28,8 @@
 .reviews-page_hidden{display:none}
 @media screen and (max-width: 991px){.reviews-page_grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media screen and (max-width: 767px){.reviews-page_grid{grid-template-columns:1fr;gap:2rem}.reviews-page_quote{height:auto;min-height:14rem;gap:1.5rem;padding:1.5rem 1rem}.reviews-page_excerpt{max-width:32rem}}
+
+.reviews-page_icon-google{background-image:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b972653444187f404ca8_tdb-review-google.svg);background-position:center;background-repeat:no-repeat;background-size:contain;display:block}
+.reviews-page_icon-yell{background-image:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973ba7906fe700055e8_tdb-review-yell.svg);background-position:center;background-repeat:no-repeat;background-size:contain;display:block}
+.reviews-page_icon-facebook{background-image:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aeb0738a98b779d9638dfe0_tdb-review-facebook-cutout.svg);background-position:center;background-repeat:no-repeat;background-size:contain;display:block}
+.reviews-page_icon-doctify{background-image:url(https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac7b973dd39bbf3927772e6_tdb-review-doctify.svg);background-position:center;background-repeat:no-repeat;background-size:contain;display:block}

@@ -1,5 +1,7 @@
 /* Review archive states; layout and full-text styling are authored in Webflow. */
 [data-tdb-review-archive] [hidden]{display:none!important}
+[data-tdb-review-archive]:not([data-review-page-ready]) :is([data-review-page-historic],[data-review-page-response],[data-review-page-empty]){display:none}
+[data-review-page-more]:not(button){display:none}
 [data-review-page-ready] .smile-page_filter-dock{visibility:visible;pointer-events:auto}
 [data-review-page-filter-home]{height:0;position:relative}
 .reviews-page_grid{scroll-margin-top:7rem}
