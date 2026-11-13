@@ -1,13 +1,14 @@
 /* Shared VIP form behaviour v1.2.1. Designer owns markup and all visual states.
  * Reuses TDBForms for validation/phone handling and Webflow for submission.
- * Original form IDs, field names, option values and attribution are preserved.
+ * Field names, option values and attribution are preserved; native instances
+ * can provide unique DOM IDs through the shared form marker.
  */
 (() => {
   'use strict';
   if (window.TDBVIPForm) return;
   const SELECT =
     'select[name="Treatment-Of-Interest"],select[name="Treatment of Interest"],select[name="Treatment Of Interest"]';
-  const FORMS = '#email-form, #vip-drawer-form';
+  const FORMS = '#email-form, #vip-drawer-form, form[data-tdb-vip-form]';
   const SHARE = '[data-tdb-vip-share]';
   const seen = new WeakSet(),
     tracked = new WeakSet();
