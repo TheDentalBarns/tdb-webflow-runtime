@@ -59,6 +59,7 @@ module.exports = {
   'dist/tdb-review-introduction.js': ['src/reviews/native/introduction.js'],
   'dist/tdb-review-quotes.js': ['src/reviews/native/quotes.js'],
   'dist/tdb-review-list.js': ['src/reviews/native/list.js'],
+  'dist/tdb-review-page.js': ['src/shared/module-bootstrap.js', 'src/reviews/native/archive.js'],
   'dist/tdb-review-list-loader.js': [
     'src/shared/module-bootstrap.js',
     'src/reviews/native/list-loader.js',

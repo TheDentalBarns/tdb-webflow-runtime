@@ -472,6 +472,16 @@
       "gzip": 4679,
       "brotli": 4166
     },
+    "dist/tdb-review-page.js": {
+      "sources": [
+        "src/shared/module-bootstrap.js",
+        "src/reviews/native/archive.js"
+      ],
+      "sha256": "ef962c2b786ff6989edfc4f023141ff52cdb3b6d1df5d888f09259385772662b",
+      "raw": 10891,
+      "gzip": 4429,
+      "brotli": 3924
+    },
     "dist/tdb-review-quote-adapter.js": {
       "sources": [
         "src/reviews/native/quote-adapter.js"
