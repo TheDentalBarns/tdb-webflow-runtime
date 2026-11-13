@@ -185,7 +185,10 @@ for (const mode of ['success', 'failure', 'cancel'])
         h.run('src/calculator/loader.js');
         h.change('restorative');
         assert.equal(style.getPropertyValue('overflow-anchor'), 'none');
-        assert.match(h.root.textContent, /Loading current prices/);
+        const status = h.root.querySelector('[data-tdb-calc-status]');
+        assert.equal(status.textContent, '');
+        assert.equal(status.getAttribute('aria-label'), 'Loading current prices');
+        assert.equal(status.hasAttribute('data-loading'), true);
         // The feature stylesheet changes layout before the controller can render.
         top = 185;
         if (mode === 'cancel') h.w.dispatchEvent(new h.w.WheelEvent('wheel'));
@@ -201,6 +204,8 @@ for (const mode of ['success', 'failure', 'cancel'])
         assert.equal(style.getPropertyValue('overflow-anchor'), 'auto');
         assert.equal(style.getPropertyPriority('overflow-anchor'), 'important');
         assert.equal(h.root.hasAttribute('aria-busy'), false);
+        assert.equal(status.hasAttribute('data-loading'), false);
+        assert.equal(status.isConnected, true);
         // A later gesture must not restore an obsolete inline-style snapshot.
         style.setProperty('overflow-anchor', 'none', 'important');
         h.w.dispatchEvent(new h.w.WheelEvent('wheel'));

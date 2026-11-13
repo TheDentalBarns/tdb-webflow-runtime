@@ -39,15 +39,25 @@
       "gzip": 2684,
       "brotli": 2392
     },
+    "dist/tdb-blog.js": {
+      "sources": [
+        "src/shared/module-bootstrap.js",
+        "src/blog/filters.js"
+      ],
+      "sha256": "a145241af2db28c68b9ddb4b264da3fa680ebee11bf820d7e2662866494c6f35",
+      "raw": 5567,
+      "gzip": 2225,
+      "brotli": 1944
+    },
     "dist/tdb-calculator-loader.js": {
       "sources": [
         "src/shared/module-bootstrap.js",
         "src/calculator/loader.js"
       ],
-      "sha256": "265cc793e22424c1184ae38682b26052e47f8d8e6bfcbd7f951a8b6c78c90734",
-      "raw": 5171,
-      "gzip": 2018,
-      "brotli": 1747
+      "sha256": "2879394974509147b930631b40a3f86e961586cb21dfb3146a571cf08534b18a",
+      "raw": 5425,
+      "gzip": 2066,
+      "brotli": 1796
     },
     "dist/tdb-calculator.js": {
       "sources": [
@@ -109,10 +119,10 @@
       "sources": [
         "src/shared/filters.js"
       ],
-      "sha256": "6066bcb78de249276ed27a4b95a9d64311fd94734991e1d0d140e35461b15409",
-      "raw": 8070,
-      "gzip": 3076,
-      "brotli": 2748
+      "sha256": "ef370836803becfc8296cc16f45ee80a4792f7907cdbb324fdf1b8a7d4daca29",
+      "raw": 9289,
+      "gzip": 3556,
+      "brotli": 3175
     },
     "dist/tdb-first-impressions.js": {
       "sources": [
@@ -558,10 +568,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "81433c1ea195ff82b599a5f6d3752ed5a0218fa57099079c03b373b5888742ad",
-      "raw": 93347,
-      "gzip": 25473,
-      "brotli": 21865
+      "sha256": "0abaaf8e92d198bb5419702e8fb6782a5cf3a26db9d70e155726e99cac2735a7",
+      "raw": 93601,
+      "gzip": 25519,
+      "brotli": 21920
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -603,10 +613,10 @@
       "sources": [
         "src/smile-gallery/standalone.js"
       ],
-      "sha256": "0f72057e75541d3310a973ddadc1ff06dcf3bbd8c269e8ffff92947e784d2cca",
-      "raw": 22642,
-      "gzip": 7718,
-      "brotli": 6925
+      "sha256": "7f8c914eee1c3af98a98620b971790716f8bdc5f2af611519d7b12c471a41141",
+      "raw": 22959,
+      "gzip": 7827,
+      "brotli": 7024
     },
     "dist/tdb-start.min.js": {
       "sources": [

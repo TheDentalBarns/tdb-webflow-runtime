@@ -74,7 +74,7 @@ function setup({ display = '', allowed = true, fail = false, saved = null, cases
   };
   if (saved) w.sessionStorage.setItem('tdb-smile-gallery-view', JSON.stringify(saved));
   w.eval(fs.readFileSync('src/shared/filters.js', 'utf8'));
-  const mountDisclosures = w.TDBFilters.mountDisclosures;
+  const { mountDisclosures, mountDock } = w.TDBFilters;
   w.matchMedia = () => ({ matches: false });
   w.TDBConsent = {
     allows: () => allowed,
@@ -113,6 +113,7 @@ function setup({ display = '', allowed = true, fail = false, saved = null, cases
   };
   w.TDBFilters = {
     mountDisclosures,
+    mountDock,
     mount(panel, options) {
       const api = {
         isOpen: false,
@@ -225,14 +226,15 @@ test('comparison changes in place in both views and persists its display mode', 
   const x = setup({ display: '?display=slider' });
   try {
     await x.w.TDBSmilePage.mount();
-    const range = x.d.querySelector('.smile-comparison_range');
-    range.value = '27';
-    range.dispatchEvent(new x.w.Event('input', { bubbles: true }));
+    const range = x.d.querySelector('.smile-comparison_control');
+    range.dispatchEvent(new x.w.KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+    for (let i = 0; i < 27; i++)
+      range.dispatchEvent(new x.w.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
     assert.equal(x.opened, 0);
     assert.equal(range.getAttribute('aria-valuetext'), '27% before, 73% after');
     assert.equal(range.parentElement.style.getPropertyValue('--smile-reveal'), '27%');
     x.d.querySelector('[data-smile-grid-photo]').click();
-    assert.equal(x.d.querySelectorAll('[data-smile-case-drawer] input[type="range"]').length, 1);
+    assert.equal(x.d.querySelectorAll('[data-smile-case-drawer] [role="slider"]').length, 1);
     x.d.querySelector('[name="smile-display"][value="before-after"]').checked = true;
     x.d.querySelector('[data-smile-filter-apply]').click();
     await tick();
@@ -240,7 +242,7 @@ test('comparison changes in place in both views and persists its display mode', 
       JSON.parse(x.w.sessionStorage.getItem('tdb-smile-gallery-view')).display,
       'before-after',
     );
-    assert.equal(x.d.querySelectorAll('.smile-comparison_range').length, 0);
+    assert.equal(x.d.querySelectorAll('.smile-comparison_control').length, 0);
     assert.equal(x.d.querySelector('[data-smile-case-drawer]').hidden, false);
     assert.equal(new URL(x.w.location.href).searchParams.get('display'), 'before-after');
     assert.equal(
@@ -262,12 +264,12 @@ test('embedded filters update every image in place and preserve the selected cas
       await tick();
     };
     await select('slider');
-    assert.equal(x.d.querySelectorAll('.smile-comparison_range').length, 4);
+    assert.equal(x.d.querySelectorAll('.smile-comparison_control').length, 4);
     assert.equal(x.d.querySelector('[name="smile-display"][value="slider"]').checked, true);
     await select('before-after');
-    assert.equal(x.d.querySelectorAll('.smile-comparison_range').length, 0);
+    assert.equal(x.d.querySelectorAll('.smile-comparison_control').length, 0);
     await select('slider');
-    assert.equal(x.d.querySelectorAll('.smile-comparison_range').length, 4);
+    assert.equal(x.d.querySelectorAll('.smile-comparison_control').length, 4);
     x.d.querySelector('[data-smile-grid-photo]').click();
     assert.equal(x.d.querySelector('[data-smile-case-title]').textContent, 'B');
     x.d.querySelector('[data-smile-case-next]').click();
@@ -307,7 +309,7 @@ test('empty filter results recover and consent teardown permits a clean remount'
     await tick();
     assert.equal(x.d.querySelector('[data-smile-empty]').hidden, false);
     assert.equal(x.d.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length, 0);
-    x.d.querySelector('[data-smile-filter-reset]').click();
+    x.d.querySelector('[data-smile-filter-panel] [data-smile-filter-reset]').click();
     x.d.querySelector('[data-smile-filter-apply]').click();
     await tick();
     assert.equal(x.d.querySelectorAll('[data-tdb-sg-case]:not([hidden])').length, 3);
@@ -340,7 +342,7 @@ test('dragging comparison suppresses opening a case and the next click still ope
   try {
     await x.w.TDBSmilePage.mount();
     const photo = x.d.querySelector('[data-smile-grid-photo]');
-    const range = photo.querySelector('input');
+    const range = photo.querySelector('[role=slider]');
     photo.getBoundingClientRect = () => ({ left: 0, width: 400 });
     const pointer = (type, clientX) =>
       range.dispatchEvent(
@@ -350,12 +352,17 @@ test('dragging comparison suppresses opening a case and the next click still ope
     pointer('pointermove', 320);
     pointer('pointerup', 320);
     range.click();
-    assert.equal(range.value, '80');
+    assert.equal(range.getAttribute('aria-valuenow'), '80');
     assert.equal(x.opened, 0);
     assert.ok([...photo.querySelectorAll('img')].every((image) => !image.draggable));
-    pointer('pointerdown', 320);
-    pointer('pointerup', 320);
-    range.click();
+    const opener = photo.querySelector('button');
+    opener.dispatchEvent(
+      new x.w.MouseEvent('pointerdown', { bubbles: true, button: 0, clientX: 60 }),
+    );
+    opener.dispatchEvent(
+      new x.w.MouseEvent('pointerup', { bubbles: true, button: 0, clientX: 60 }),
+    );
+    opener.click();
     assert.equal(x.opened, 1);
   } finally {
     x.close();
@@ -367,7 +374,7 @@ test('vertical scrolling never moves the comparison, while a fresh horizontal ge
   try {
     await x.w.TDBSmilePage.mount();
     const photo = x.d.querySelector('[data-smile-grid-photo]');
-    const range = photo.querySelector('input');
+    const range = photo.querySelector('[role=slider]');
     photo.getBoundingClientRect = () => ({ left: 0, width: 400 });
     const pointer = (type, clientX, clientY) => {
       const event = new x.w.MouseEvent(type, {
@@ -381,7 +388,11 @@ test('vertical scrolling never moves the comparison, while a fresh horizontal ge
       return event;
     };
     pointer('pointerdown', 200, 200);
-    assert.equal(range.value, '50', 'touching the image must not jump the divider');
+    assert.equal(
+      range.getAttribute('aria-valuenow'),
+      '50',
+      'touching the image must not jump the divider',
+    );
     assert.equal(pointer('pointermove', 204, 240).defaultPrevented, false);
     assert.equal(
       pointer('pointermove', 350, 245).defaultPrevented,
@@ -390,16 +401,69 @@ test('vertical scrolling never moves the comparison, while a fresh horizontal ge
     );
     pointer('pointerup', 350, 245);
     range.click();
-    assert.equal(range.value, '50');
+    assert.equal(range.getAttribute('aria-valuenow'), '50');
     assert.equal(x.opened, 0, 'scrolling must not open the case');
     pointer('pointerdown', 200, 200);
     assert.equal(pointer('pointermove', 320, 204).defaultPrevented, true);
     pointer('pointerup', 320, 204);
-    assert.equal(range.value, '80');
+    assert.equal(range.getAttribute('aria-valuenow'), '80');
     pointer('pointerdown', 320, 204);
     pointer('pointercancel', 320, 240);
     pointer('pointermove', 100, 240);
-    assert.equal(range.value, '80', 'a cancelled touch cannot continue dragging');
+    assert.equal(
+      range.getAttribute('aria-valuenow'),
+      '80',
+      'a cancelled touch cannot continue dragging',
+    );
+  } finally {
+    x.close();
+  }
+});
+
+test('touch pan cancellation never moves the divider or blocks the next image tap', async () => {
+  const x = setup({ display: '?display=slider' });
+  try {
+    await x.w.TDBSmilePage.mount();
+    const photo = x.d.querySelector('[data-smile-grid-photo]'),
+      opener = photo.querySelector('button'),
+      slider = photo.querySelector('[role=slider]');
+    photo.getBoundingClientRect = () => ({ width: 400 });
+    const pointer = (target, type, clientX, clientY) => {
+      const event = new x.w.MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        button: 0,
+        clientX,
+        clientY,
+      });
+      Object.defineProperties(event, { pointerId: { value: 12 }, pointerType: { value: 'touch' } });
+      target.dispatchEvent(event);
+      return event;
+    };
+    assert.equal(
+      photo.querySelector('input[type=range]'),
+      null,
+      'native range cannot intercept Android scrolling',
+    );
+    assert.equal(pointer(opener, 'pointerdown', 50, 100).defaultPrevented, false);
+    pointer(opener, 'pointermove', 80, 150);
+    pointer(opener, 'pointercancel', 80, 150);
+    opener.dispatchEvent(new x.w.MouseEvent('click', { bubbles: true, detail: 1 }));
+    assert.equal(x.opened, 0);
+    assert.equal(slider.getAttribute('aria-valuenow'), '50');
+    pointer(opener, 'pointerdown', 50, 100);
+    pointer(opener, 'pointerup', 50, 100);
+    opener.dispatchEvent(new x.w.MouseEvent('click', { bubbles: true, detail: 1 }));
+    assert.equal(x.opened, 1, 'a fresh image tap opens the case');
+    pointer(slider, 'pointerdown', 180, 100);
+    assert.equal(slider.getAttribute('aria-valuenow'), '50');
+    pointer(slider, 'pointermove', 220, 101);
+    pointer(slider, 'pointerup', 220, 101);
+    assert.equal(
+      slider.getAttribute('aria-valuenow'),
+      '60',
+      'grabbing the edge of the 44px target uses relative movement without jumping',
+    );
   } finally {
     x.close();
   }
@@ -552,58 +616,41 @@ test('stale patient preferences are cleared and both count buttons retain ticker
   }
 });
 
-test('filter button pins at the footer without a jump and leaves with the gallery', async () => {
+test('filter dock uses native sticky bounds and never rewrites position on scroll', async () => {
   const x = setup();
   try {
     await x.w.TDBSmilePage.mount();
-    const home = x.d.querySelector('[data-smile-filter-home]'),
+    const root = x.d.querySelector('[data-tdb-smile-page]'),
+      home = x.d.querySelector('[data-smile-filter-home]'),
       dock = x.d.querySelector('[data-smile-filter-dock]'),
-      button = x.d.querySelector('[data-smile-filter-toggle]'),
-      stage = x.d.querySelector('[data-smile-page-stage]'),
-      landing = x.d.querySelector('[data-smile-filter-landing]');
-    button.getBoundingClientRect = () => ({ height: 48 });
-    let bottom = 760,
-      end = 1500;
-    home.getBoundingClientRect = () => ({ bottom });
-    landing.getBoundingClientRect = () => ({ top: end, height: 96 });
-    const scroll = async () => {
-      x.w.dispatchEvent(new x.w.Event('scroll'));
-      await new Promise((r) => setTimeout(r, 25));
-    };
-    await scroll();
-    assert.equal(dock.classList.contains('is-floating'), false);
-    bottom = 748;
-    await scroll();
-    assert.equal(dock.classList.contains('is-floating'), true);
-    assert.equal(dock.style.getPropertyValue('--smile-dock-lift'), '0px');
-    bottom = 500;
-    await scroll();
-    assert.equal(dock.style.getPropertyValue('--smile-dock-lift'), '0px');
-    x.w.innerHeight -= 32;
+      landing = x.d.querySelector('[data-smile-filter-landing]'),
+      anchor = root.querySelector('.tdb-filter-sticky-anchor'),
+      rail = anchor.parentElement;
+    root.getBoundingClientRect = () => ({ top: 100 });
+    home.getBoundingClientRect = () => ({ top: 760 });
+    landing.getBoundingClientRect = () => ({ top: 1500, height: 96 });
+    anchor.getBoundingClientRect = () => ({ height: 48 });
     x.w.dispatchEvent(new x.w.Event('resize'));
-    assert.equal(
-      dock.style.getPropertyValue('--smile-dock-lift'),
-      '0px',
-      'toolbar resizing keeps the CSS bottom anchor',
-    );
-    x.w.innerHeight += 32;
-    end = 500;
-    await scroll();
-    assert.equal(dock.style.getPropertyValue('--smile-dock-lift'), '-176px');
-    assert.equal(
-      700 - 176 + 24,
-      end + 48,
-      'the button parks at the centre of the cream landing bar',
-    );
-    assert.equal(dock.classList.contains('is-offscreen'), false);
-    let target;
-    x.w.lenis = {
-      scrollTo(node) {
-        target = node;
-      },
+    await new Promise((r) => setTimeout(r, 25));
+    assert.equal(rail.style.top, '660px');
+    assert.equal(rail.style.height, '812px');
+    assert.equal(anchor.style.position, 'sticky');
+    assert.match(anchor.style.top, /100dvh/);
+    const position = rail.style.cssText;
+    home.getBoundingClientRect = () => {
+      throw Error('scroll must not measure the home');
     };
-    x.d.querySelector('[data-smile-view-results]').click();
-    assert.equal(target, stage);
+    x.w.dispatchEvent(new x.w.Event('scroll'));
+    await new Promise((r) => setTimeout(r, 25));
+    assert.equal(rail.style.cssText, position);
+    home.getBoundingClientRect = () => ({ top: 760 });
+    x.d.querySelector('[data-smile-filter-toggle]').click();
+    assert.equal(dock.parentElement.hasAttribute('data-tdb-drawer-panel'), true);
+    x.d.querySelector('[data-smile-filter-toggle]').click();
+    assert.equal(dock.parentElement, anchor);
+    x.permit(false);
+    assert.equal(root.querySelector('.tdb-filter-sticky-rail'), null);
+    assert.equal(dock.parentElement, home);
   } finally {
     x.close();
   }
@@ -618,7 +665,7 @@ test('saved slider reserves its shape before consent or runtime, with URL preced
     const x = setup({ display, saved, allowed: false });
     try {
       assert.equal(x.d.documentElement.dataset.smileDisplay, expected);
-      assert.equal(x.d.querySelectorAll('.smile-comparison_range').length, 0);
+      assert.equal(x.d.querySelectorAll('.smile-comparison_control').length, 0);
       x.fix();
       x.permit(true);
       await x.w.TDBSmilePage.mount();

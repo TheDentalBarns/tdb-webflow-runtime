@@ -49,7 +49,10 @@ html.tdbc-preserve-native-entry{overflow-anchor:none}
 .tdbc-category:has(input:checked) .form_checkbox-icon{background-color:#f9f3e7;box-shadow:inset 0 0 0 3px #000;background-image:none}
 .tdbc-category:has(input:focus-visible){outline:2px solid #000;outline-offset:4px}
 .tdbc-category .w-form-label{margin-bottom:0}
-.tdbc-entry-status:empty{display:none}
+.tdb-calc .tdbc-entry-status{display:block;min-height:1.5rem;position:relative;margin:3rem 0 0}
+.tdbc-entry-status[data-loading]::before{content:'';display:block;width:1.25rem;height:1.25rem;margin:0 auto;border:1px solid var(--calc-line,#d6cab4);border-top-color:var(--calc-muted,#888);border-radius:50%;animation:tdbc-price-loading 1s linear infinite}
+@keyframes tdbc-price-loading{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.tdbc-entry-status[data-loading]::before{animation:none}}
 .tdbc-treatment-group{margin:2rem 0 0;min-width:0}.tdbc-treatment-group>[role=heading]{margin:0 0 2rem}
 .tdbc-step-header+.tdbc-treatment-group{margin-top:0}
 .tdbc-option{padding:1rem 0;border-bottom:1px solid var(--calc-line)}.tdbc-option:last-child{border-bottom:0}

@@ -86,10 +86,28 @@
       layer.append(image);
       return image;
     });
-    const range = document.createElement('input');
-    Object.assign(range, { type: 'range', min: '0', max: '100', value: '50' });
-    range.className = 'smile-comparison_range';
+    // A native range covering the photo steals Android taps and changes value
+    // before a vertical pan is recognised. Only the divider is a drag target.
+    const range = document.createElement('div');
+    range.className = 'smile-comparison_control';
+    range.tabIndex = 0;
+    range.setAttribute('role', 'slider');
+    range.setAttribute('aria-valuemin', '0');
+    range.setAttribute('aria-valuemax', '100');
+    range.setAttribute('aria-orientation', 'horizontal');
     range.setAttribute('aria-label', 'Reveal before and after smile');
+    const attributes = ['role', 'tabindex'].map((name) => [name, photo.getAttribute(name)]);
+    let opener;
+    if (photo.matches('[data-smile-grid-photo]')) {
+      opener = document.createElement('button');
+      opener.type = 'button';
+      opener.className = 'smile-comparison_open';
+      for (const name of ['aria-label', 'aria-haspopup', 'aria-controls'])
+        if (photo.hasAttribute(name)) opener.setAttribute(name, photo.getAttribute(name));
+      photo.setAttribute('role', 'group');
+      photo.removeAttribute('tabindex');
+      photo.append(opener);
+    }
     const handle = document.createElement('span');
     handle.className = 'smile-comparison_handle';
     handle.setAttribute('aria-hidden', 'true');
@@ -97,60 +115,76 @@
     original.hidden = true;
     original.draggable = false;
     photo.append(after, before, handle, range);
-    let dragging = false,
+    let active = false,
+      dragging = false,
       moved = false,
+      value = 50,
+      originValue = 50,
       originX = 0,
       originY = 0,
       axis = null,
       pointerId;
-    const update = () => {
-      const value = Math.round(Math.max(0, Math.min(100, Number(range.value))));
+    const update = (next) => {
+      value = Math.round(Math.max(0, Math.min(100, next)));
       photo.style.setProperty('--smile-reveal', value + '%');
+      range.setAttribute('aria-valuenow', String(value));
       range.setAttribute('aria-valuetext', value + '% before, ' + (100 - value) + '% after');
     };
-    const position = (event) => {
-      const bounds = photo.getBoundingClientRect();
-      range.value = String(((event.clientX - bounds.left) / bounds.width) * 100);
-      update();
-    };
-    listen(range, 'pointerdown', (event) => {
+    listen(photo, 'pointerdown', (event) => {
       if (event.button !== 0 || event.isPrimary === false) return;
-      // Prevent the native range jump, while touch-action keeps vertical panning native.
-      event.preventDefault();
+      // Do not cancel touchstart: native vertical scrolling and button clicks
+      // remain available. Horizontal dragging starts only after axis detection.
       originX = event.clientX;
       originY = event.clientY;
+      originValue = value;
       pointerId = event.pointerId;
       axis = null;
-      dragging = true;
+      active = true;
+      dragging = range.contains(event.target);
       moved = false;
     });
-    listen(range, 'pointermove', (event) => {
-      if (!dragging || event.pointerId !== pointerId) return;
+    listen(photo, 'pointermove', (event) => {
+      if (!active || event.pointerId !== pointerId) return;
       if (!axis) {
         const x = Math.abs(event.clientX - originX),
           y = Math.abs(event.clientY - originY);
         if (Math.max(x, y) < 8) return;
         moved = true;
         axis = x > y * 1.2 ? 'horizontal' : 'vertical';
-        if (axis === 'horizontal') {
+        if (axis === 'horizontal' && dragging) {
           range.focus({ preventScroll: true });
           range.setPointerCapture?.(event.pointerId);
         }
       }
-      if (axis !== 'horizontal') return;
+      if (axis !== 'horizontal' || !dragging) return;
       event.preventDefault();
-      position(event);
+      const width = photo.getBoundingClientRect().width;
+      if (width) update(originValue + ((event.clientX - originX) / width) * 100);
     });
     const finish = (event) => {
       if (event.pointerId !== pointerId) return;
-      dragging = false;
+      active = dragging = false;
       if (event.type === 'pointercancel') moved = true;
       if (range.hasPointerCapture?.(event.pointerId)) range.releasePointerCapture(event.pointerId);
     };
-    listen(range, 'pointerup', finish);
-    listen(range, 'pointercancel', finish);
-    listen(range, 'input', update);
-    listen(range, 'keydown', (event) => event.stopPropagation());
+    listen(photo, 'pointerup', finish);
+    listen(photo, 'pointercancel', finish);
+    listen(range, 'keydown', (event) => {
+      event.stopPropagation();
+      const next = {
+        ArrowLeft: value - 1,
+        ArrowDown: value - 1,
+        ArrowRight: value + 1,
+        ArrowUp: value + 1,
+        PageDown: value - 10,
+        PageUp: value + 10,
+        Home: 0,
+        End: 100,
+      }[event.key];
+      if (next === undefined) return;
+      event.preventDefault();
+      update(next);
+    });
     listen(photo, 'dragstart', (event) => event.preventDefault());
     const refresh = () => {
       for (const image of images) {
@@ -159,17 +193,24 @@
         image.srcset = original.srcset;
         if (src) image.src = src;
       }
-      range.value = '50';
       moved = false;
-      update();
+      update(50);
     };
     refresh();
     return {
       refresh,
-      dragged: () => moved,
+      ignoreClick(event) {
+        const ignore =
+          range.contains(event.target) || (moved && (event.detail > 0 || !!event.pointerType));
+        moved = false;
+        return ignore;
+      },
       destroy() {
         for (const remove of registrations) remove();
-        for (const element of [before, after, handle, range]) element.remove();
+        for (const element of [before, after, handle, range, opener]) element?.remove();
+        for (const [name, value] of attributes)
+          if (value === null) photo.removeAttribute(name);
+          else photo.setAttribute(name, value);
         original.hidden = false;
         delete photo.dataset.smileComparison;
         photo.style.removeProperty('--smile-reveal');
@@ -728,33 +769,14 @@
             });
         }
       };
-      const pageDockPosition = () => {
-        const bounds = filterHome.getBoundingClientRect();
-        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-        const height = toggle.getBoundingClientRect().height;
-        const footerTop = innerHeight - 1.25 * rem - height;
-        const naturalTop = bounds.bottom - height;
-        const pinned = naturalTop <= footerTop;
-        const end = landing.getBoundingClientRect();
-        return {
-          pinned,
-          footerTop,
-          height,
-          top: pinned ? Math.min(footerTop, end.top + (end.height - height) / 2) : naturalTop,
-        };
-      };
-      const updateDock = () => {
-        if (dock.classList.contains('is-in-drawer')) return;
-        const position = pageDockPosition();
-        // CSS bottom owns the mobile viewport edge. Only scroll the control away
-        // once it reaches the dedicated cream bar beneath the gallery.
-        dock.style.setProperty(
-          '--smile-dock-lift',
-          Math.min(0, position.top - position.footerTop) + 'px',
-        );
-        dock.classList.toggle('is-floating', position.pinned);
-        dock.classList.remove('is-offscreen');
-      };
+      const stickyDock = window.TDBFilters.mountDock({
+        root: page,
+        home: filterHome,
+        landing,
+        dock,
+      });
+      cleanup.push(() => stickyDock.destroy());
+      const updateDock = () => stickyDock.refresh();
       let toggleOrigin;
       const moveToggle = (from) => {
         if (!from) return;
@@ -785,8 +807,7 @@
             filters.set(false);
             // Move to the page resting position while the filter slides down.
             const from = toggle.getBoundingClientRect();
-            const position = pageDockPosition();
-            const bottom = position.top + position.height;
+            const bottom = stickyDock.anchor.getBoundingClientRect().bottom;
             animate(
               toggle,
               [{ translate: '0px 0px' }, { translate: `0px ${bottom - from.bottom}px` }],
@@ -798,7 +819,7 @@
         onClosed() {
           filteringFromPage = false;
           filters.reset();
-          filterHome.append(dock);
+          stickyDock.restore();
           dock.classList.remove('is-in-drawer');
           drawerRoot.classList.remove('is-filter-only');
           updateDock();
@@ -806,7 +827,9 @@
         returnFocus: (source) =>
           source === toggle
             ? toggle
-            : cases[drawerIndex]?.node.querySelector('[data-smile-grid-photo]') || toggle,
+            : cases[drawerIndex]?.node.querySelector(
+                '.smile-comparison_open, [data-smile-grid-photo]:not([data-smile-comparison])',
+              ) || toggle,
       });
       cleanup.push(() => {
         drawer.destroy();
@@ -963,12 +986,12 @@
         const photo = event.target.closest('[data-smile-grid-photo]');
         if (!photo) return;
         event.preventDefault();
-        if (comparisons.get(photo)?.dragged()) return;
+        if (comparisons.get(photo)?.ignoreClick(event)) return;
         const index = cases.findIndex((item) => item.node.contains(photo));
-        if (index >= 0) openCase(index, photo);
+        if (index >= 0) openCase(index, photo.querySelector('.smile-comparison_open') || photo);
       });
       listen(stage, 'keydown', (event) => {
-        if (event.target.matches('input')) return;
+        if (event.target.matches('input,button,[role="slider"]')) return;
         const photo = event.target.closest('[data-smile-grid-photo]');
         if (photo && ['Enter', ' '].includes(event.key)) {
           event.preventDefault();
@@ -988,19 +1011,6 @@
           paintCase(drawerIndex + direction, direction);
         }
       });
-      let scrollFrame;
-      listen(
-        window,
-        'scroll',
-        () => {
-          if (scrollFrame) return;
-          scrollFrame = requestAnimationFrame(() => {
-            scrollFrame = null;
-            updateDock();
-          });
-        },
-        { passive: true },
-      );
       listen(
         window,
         'resize',
@@ -1011,17 +1021,6 @@
         },
         { passive: true },
       );
-      const observer = new IntersectionObserver(
-        () => {
-          updateDock();
-        },
-        { threshold: 0 },
-      );
-      cleanup.push(() => {
-        observer.disconnect();
-        cancelAnimationFrame(scrollFrame);
-      });
-      observer.observe(stage);
       await render();
       reserveCards();
       document.fonts?.ready.then(() => {

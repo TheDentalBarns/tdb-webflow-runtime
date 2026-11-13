@@ -752,9 +752,13 @@ function tdbReadPagePosition(event) {
       const root = document.getElementById('treatment-calculator');
       return deferred(root) ? root : null;
     };
-    const status = (root, message) => {
+    const status = (root, message, busy = false) => {
       const node = root.querySelector('[data-tdb-calc-status],[data-tdb-calc-fallback]');
-      if (node) node.textContent = message;
+      if (!node) return;
+      node.toggleAttribute('data-loading', busy);
+      node.textContent = busy ? '' : message;
+      if (busy) node.setAttribute('aria-label', message);
+      else node.removeAttribute('aria-label');
     };
     function activate(root) {
       if (pending.has(root)) return pending.get(root);
@@ -788,7 +792,7 @@ function tdbReadPagePosition(event) {
           });
       }
       root.setAttribute('aria-busy', 'true');
-      status(root, 'Loading current prices…');
+      status(root, 'Loading current prices', true);
       const request = load()
         .then((api) => api.mount(root, { entryPosition }))
         .catch(() => {
@@ -799,6 +803,9 @@ function tdbReadPagePosition(event) {
         })
         .finally(() => {
           release();
+          const node = root.querySelector('[data-tdb-calc-status],[data-tdb-calc-fallback]');
+          node?.removeAttribute('data-loading');
+          node?.removeAttribute('aria-label');
           pending.delete(root);
           root.removeAttribute('aria-busy');
         });

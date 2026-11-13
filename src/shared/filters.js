@@ -498,5 +498,75 @@
     instances.set(panel, api);
     return api;
   }
-  window.TDBFilters = Object.freeze({ version: '1.2.0', mount, mountDisclosures, dismissOutside });
+  // Native sticky positioning stays on the compositor during touch scrolling.
+  // Only layout changes require measuring the two authored landing points.
+  function mountDock({ root, home, landing, dock }) {
+    const rail = document.createElement('div'),
+      anchor = document.createElement('div');
+    rail.className = 'tdb-filter-sticky-rail';
+    anchor.className = 'tdb-filter-sticky-anchor';
+    const position = root.style.position;
+    if (getComputedStyle(root).position === 'static') root.style.position = 'relative';
+    Object.assign(rail.style, {
+      position: 'absolute',
+      left: '0',
+      width: '100%',
+      pointerEvents: 'none',
+      zIndex: '10001',
+    });
+    Object.assign(anchor.style, {
+      position: 'sticky',
+      top: 'calc(100dvh - 1.25rem - 3rem)',
+      width: '3rem',
+      height: '3rem',
+      marginInline: 'auto',
+      pointerEvents: 'none',
+    });
+    root.append(rail);
+    rail.append(anchor);
+    anchor.append(dock);
+    let frame;
+    function refresh() {
+      const start = home.getBoundingClientRect(),
+        end = landing.getBoundingClientRect(),
+        bounds = root.getBoundingClientRect();
+      const height = anchor.getBoundingClientRect().height;
+      rail.style.top = start.top - bounds.top + 'px';
+      rail.style.height = Math.max(height, end.top + (end.height + height) / 2 - start.top) + 'px';
+    }
+    function schedule() {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        refresh();
+      });
+    }
+    const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(schedule) : null;
+    for (const node of [root, home, landing]) observer?.observe(node);
+    window.addEventListener('resize', schedule, { passive: true });
+    refresh();
+    return {
+      anchor,
+      refresh,
+      restore() {
+        anchor.append(dock);
+        refresh();
+      },
+      destroy() {
+        observer?.disconnect();
+        window.removeEventListener('resize', schedule);
+        cancelAnimationFrame(frame);
+        home.append(dock);
+        rail.remove();
+        root.style.position = position;
+      },
+    };
+  }
+  window.TDBFilters = Object.freeze({
+    version: '1.3.0',
+    mount,
+    mountDisclosures,
+    dismissOutside,
+    mountDock,
+  });
 })();
