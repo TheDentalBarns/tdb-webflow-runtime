@@ -678,24 +678,26 @@ test('stale patient preferences are cleared and both count buttons retain ticker
   }
 });
 
-test('filter dock uses native sticky bounds and never rewrites position on scroll', async () => {
+test('filter dock starts at the smile results and never rewrites position on scroll', async () => {
   const x = setup();
   try {
     await x.w.TDBSmilePage.mount();
     const root = x.d.querySelector('[data-tdb-smile-page]'),
+      stage = x.d.querySelector('[data-smile-page-stage]'),
       home = x.d.querySelector('[data-smile-filter-home]'),
       dock = x.d.querySelector('[data-smile-filter-dock]'),
       landing = x.d.querySelector('[data-smile-filter-landing]'),
       anchor = root.querySelector('.tdb-filter-sticky-anchor'),
       rail = anchor.parentElement;
     root.getBoundingClientRect = () => ({ top: 100 });
+    stage.getBoundingClientRect = () => ({ top: 900 });
     home.getBoundingClientRect = () => ({ top: 760 });
     landing.getBoundingClientRect = () => ({ top: 1500, height: 96 });
     anchor.getBoundingClientRect = () => ({ height: 48 });
     x.w.dispatchEvent(new x.w.Event('resize'));
     await new Promise((r) => setTimeout(r, 25));
-    assert.equal(rail.style.top, '0px');
-    assert.equal(rail.style.height, '1472px');
+    assert.equal(rail.style.top, '800px');
+    assert.equal(rail.style.height, '672px');
     assert.equal(rail.style.clipPath, '');
     assert.equal(anchor.style.position, 'sticky');
     assert.equal(anchor.style.top, '');

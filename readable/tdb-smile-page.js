@@ -819,7 +819,7 @@
       };
       const stickyDock = window.TDBFilters.mountDock({
         root: page,
-        start: page,
+        start: stage,
         home: filterHome,
         landing,
         dock,
