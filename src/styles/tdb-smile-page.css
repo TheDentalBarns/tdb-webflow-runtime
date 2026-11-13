@@ -174,3 +174,5 @@
 .is-filter-only .tdb-drawer_panel{box-shadow:none}
 .smile-page_filter-dock:not(.is-expanded) .smile-page_filter-shade{display:none}
 @media(max-width:767px){.smile-page_explore-actions{bottom:1.5rem;right:1.25rem}}
+
+.smile-page_explore-copy .button.is-review-filter-action{margin:0;align-self:flex-start}
