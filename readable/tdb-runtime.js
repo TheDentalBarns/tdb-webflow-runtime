@@ -2562,14 +2562,13 @@ function prepareFormsLoader() {
   document.addEventListener('submit', onSubmit, true);
   window.addEventListener('tdb:vip-open-intent', loadSafely);
   function start() {
-    // Keep the native pricing button; route the implant offer to its existing form context.
+    // Keep the native pricing button and its existing VIP drawer destination.
     document.querySelectorAll('[schema-price="title"]').forEach((title) => {
       if (title.textContent.trim() !== 'Precision Implants') return;
       const button = title
         .closest('.w-dyn-item')
         ?.querySelector('.pricing_btm-accordion [data-wf--button---primary--variant]');
       if (!button) return;
-      button.setAttribute('href', '/vip/become-a-patient?interest=Implants');
       const label = button.firstElementChild;
       if (label) label.textContent = 'Join the Implant Waiting List';
     });

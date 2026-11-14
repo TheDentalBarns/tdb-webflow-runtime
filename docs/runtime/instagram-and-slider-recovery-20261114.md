@@ -22,8 +22,10 @@ animation duration, easing, blur or manual controls were changed.
 - `TDBParallaxPlugin` owns entrance recovery, using its existing bounded timer
   and `TDBSwiper.firstView`. It adds no scroll listener or continuous polling.
 - Designer continues to own native slides, image frames, captions and spacing.
-- This release is based on `6efe2030bc248ea8918511e3f07e7a613d7951dc`, preserving
-  the existing implants enquiry/waiting-list changes. Current main is an ancestor.
+- This release includes `ddabbb532b9812fa18dfc3d2663e8364a9bdc70c`, preserving
+  the existing implants enquiry/waiting-list changes and the newer pricing VIP
+  drawer handover fix found during the final installation check. Current main
+  is an ancestor.
 
 ## Evidence and acceptance
 
@@ -44,6 +46,7 @@ animation duration, easing, blur or manual controls were changed.
   controlled interruption. No performance or physical-device improvement is
   inferred from these functional checks.
 - Runtime build parity and the full suite pass: 1,175 passed, three existing
+  skips. After including the newer pricing fix, 1,176 pass with the same three
   skips. The locked Swiper build and security/size checks pass; its output is
   unchanged. Source formatting passes for changed files. The full formatting
   check flags the unchanged `tools/runtime-build/minify-ui.cjs` baseline file.
@@ -60,6 +63,6 @@ bytes and repeat the queue/interruption checks without overriding runtime
 responses. Production domains are excluded.
 
 Rollback restores the saved head/footer blocks and republishes staging only.
-The saved installation uses `b67d3cb11b0596ca2298763141d54756498581cc`; the newer
-`6efe2030bc248ea8918511e3f07e7a613d7951dc` also remains available when preserving
-its waiting-list additions. No native page edits need to be undone.
+The final saved installation uses `ddabbb532b9812fa18dfc3d2663e8364a9bdc70c`;
+the earlier `b67d3cb11b0596ca2298763141d54756498581cc` snapshot is retained only
+as historical evidence. No native page edits need to be undone.
