@@ -1,4 +1,4 @@
-/* Shared VIP form behaviour v1.2.1. Designer owns markup and all visual states.
+/* Shared VIP form behaviour v1.2.2. Designer owns markup and all visual states.
  * Reuses TDBForms for validation/phone handling and Webflow for submission.
  * Field names, option values and attribution are preserved; native instances
  * can provide unique DOM IDs through the shared form marker.
@@ -13,6 +13,7 @@
   const seen = new WeakSet(),
     tracked = new WeakSet();
   const successObservers = new WeakSet();
+  const originalFormCopy = new WeakMap();
   const path = location.pathname.toLowerCase().replace(/\/$/, '');
   const acquisition =
     /^\/vip\/(?:become-a-patient|instagram|x|pinterest|youtube|facebook|google|tiktok)$/.test(path);
@@ -26,6 +27,7 @@
     'Composite Bonding',
     'Veneers',
     'Whitening',
+    'Implants',
   ];
   const requested = new URLSearchParams(location.search).get('interest');
 
@@ -36,6 +38,7 @@
     const routes = [
       [/signature-assessment|fast-track|smile-assessment/, 'Signature Assessment'],
       [/smile-design/, 'Smile Design'],
+      [/dental-implants|precision-implants/, 'Implants'],
       [/nervous/, 'Nervous Patient Care'],
       [/invisalign|clear-aligners/, 'Invisalign'],
       [/composite-bonding/, 'Composite Bonding'],
@@ -65,6 +68,8 @@
       design = new Option('Smile Design', 'Smile Design');
       select.append(design);
     }
+    if (![...select.options].some((option) => option.value === 'Implants'))
+      select.append(new Option('Implants', 'Implants'));
     const unsure = [...select.options].find((o) => /not sure|don.t know/i.test(o.textContent));
     if (unsure && select.lastElementChild !== unsure) select.append(unsure);
     select.value = assessmentValue(previous) ? 'Signature Assessment' : previous;
@@ -77,6 +82,42 @@
       select.closest('section');
     const intro = wrapper?.querySelector('[data-tdb-vip-intro]');
     if (!intro) return;
+    const title = wrapper.querySelector('.vip-form_top .text-style-tagline');
+    const buttons = [...wrapper.querySelectorAll('input[type="submit"]')];
+    if (!originalFormCopy.has(wrapper))
+      originalFormCopy.set(wrapper, {
+        title: title?.textContent === 'Implant Waiting List' ? 'Join VIP' : title?.textContent,
+        buttons: buttons.map((button) => ({
+          value:
+            button.value === 'Join the Implant Waiting List'
+              ? 'Request an Appointment'
+              : button.value,
+          defaultValue:
+            button.defaultValue === 'Join the Implant Waiting List'
+              ? 'Request an Appointment'
+              : button.defaultValue,
+        })),
+      });
+    const originals = originalFormCopy.get(wrapper);
+    const implant = select.value === 'Implants';
+    if (title) {
+      const text = implant ? 'Implant Waiting List' : originals.title;
+      if (title.textContent !== text) title.textContent = text;
+    }
+    buttons.forEach((button, index) => {
+      const value = implant ? 'Join the Implant Waiting List' : originals.buttons[index].value;
+      const defaultValue = implant
+        ? 'Join the Implant Waiting List'
+        : originals.buttons[index].defaultValue;
+      if (button.value !== value) button.value = value;
+      if (button.defaultValue !== defaultValue) button.defaultValue = defaultValue;
+    });
+    if (implant) {
+      const copy =
+        'Dental implant treatment is coming to The Dental Barns in January 2027. Join our implant waiting list and we will contact you with details of assessments and appointment availability.';
+      if (intro.textContent !== copy) intro.textContent = copy;
+      return;
+    }
     if (acquisition) {
       const copy =
         'Your access to exclusive appointment releases and bespoke care at The Dental Barns, including Signature Assessment ✦ appointments and Smile Design consultations with Dr Keely.';
@@ -140,16 +181,19 @@
     render(select);
   }
 
-  const drawerLabel = acquisition
-    ? 'Reserve my place'
-    : /\/services\/smile-design$/.test(path)
-      ? 'Join the Smile Design Waitlist'
-      : /\/services\/(?:fast-track|signature-assessment)$/.test(path)
-        ? 'Secure your appointment'
-        : /\/(?:treatments|areas|pricing)\//.test(path) &&
-            /veneers|bonding|invisalign|clear-aligners|whitening/.test(path)
-          ? 'Start with a Signature Assessment ✦'
-          : 'Join VIP';
+  const drawerLabel =
+    preferred === 'Implants'
+      ? 'Join the Implant Waiting List'
+      : acquisition
+        ? 'Reserve my place'
+        : /\/services\/smile-design$/.test(path)
+          ? 'Join the Smile Design Waitlist'
+          : /\/services\/(?:fast-track|signature-assessment)$/.test(path)
+            ? 'Secure your appointment'
+            : /\/(?:treatments|areas|pricing)\//.test(path) &&
+                /veneers|bonding|invisalign|clear-aligners|whitening/.test(path)
+              ? 'Start with a Signature Assessment ✦'
+              : 'Join VIP';
   function updateDrawerLabel() {
     const drawer = document.getElementById('tdb-vip-drawer');
     const text = drawer?.querySelector('.tdb-vip-drawer-label');
@@ -285,7 +329,7 @@
 
   window.TDBVIPInterest = Object.freeze({
     fromCalculator(value) {
-      preferred = value === 'Smile Design' ? 'Smile Design' : 'Signature Assessment';
+      preferred = ['Smile Design', 'Implants'].includes(value) ? value : 'Signature Assessment';
       document.querySelectorAll(SELECT).forEach((select) => {
         if ([...select.options].some((option) => option.value === preferred))
           select.value = preferred;
@@ -295,7 +339,7 @@
     },
   });
   window.TDBVIPForm = Object.freeze({
-    version: '1.2.1',
+    version: '1.2.2',
     refresh: () => {
       scan(document);
       document.querySelectorAll(SELECT).forEach(render);

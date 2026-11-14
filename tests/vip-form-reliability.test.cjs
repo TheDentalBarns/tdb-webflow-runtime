@@ -49,6 +49,17 @@ test('missing assessment option does not block Smile Design or unsure ordering',
 test('calculator action deliberately updates both forms without later refresh overwriting',()=>{
  const x=setup();try{x.load();x.w.TDBVIPInterest.fromCalculator('Smile Design');x.w.TDBVIPForm.refresh();assert.equal(x.select.value,'Smile Design');}finally{x.w.close();}
 });
+
+for(const route of ['/treatments/dental-implants','/pricing/precision-implants','/vip/become-a-patient?interest=Implants'])test('implant enquiry context and copy: '+route,()=>{
+ const html=markup().replace('<p data-tdb-vip-intro>','<div class="vip-form_top"><div class="text-style-tagline">Join VIP</div></div><p data-tdb-vip-intro>').replace('<button type="submit" name="action" value="enquire">Send</button>','<input type="submit" value="Request an Appointment">');
+ const x=setup(route,html);
+ try{x.load();assert.equal(x.select.value,'Implants');assert.equal([...x.select.options].filter(o=>o.value==='Implants').length,1);assert.match(x.w.document.querySelector('[data-tdb-vip-intro]').textContent,/January 2027/);assert.equal(x.form.querySelector('[type="submit"]').value,'Join the Implant Waiting List');assert.equal(new x.w.FormData(x.form).get('Treatment-Of-Interest'),'Implants');x.w.TDBVIPForm.refresh();assert.equal([...x.select.options].filter(o=>o.value==='Implants').length,1);x.select.value='Invisalign';x.select.dispatchEvent(new x.w.Event('change',{bubbles:true}));assert.equal(x.form.querySelector('[type="submit"]').value,route.startsWith('/vip/')?'Reserve my place':'Request an Appointment');assert(!x.w.document.querySelector('[data-tdb-vip-intro]').textContent.includes('January 2027'));}finally{x.w.close();}
+});
+
+test('Implants is available on unrelated forms without replacing an existing selection',()=>{
+ const x=setup('/contact',markup('<option selected>Invisalign</option><option>I’m not sure</option>'));
+ try{x.load();assert.equal(x.select.value,'Invisalign');assert([...x.select.options].some(o=>o.value==='Implants'));assert.equal(x.select.lastElementChild.textContent,'I’m not sure');x.w.TDBVIPInterest.fromCalculator('Implants');assert.equal(x.select.value,'Implants');}finally{x.w.close();}
+});
 for(const consent of [false,true])test('lead reporting obeys current permission: '+consent,async()=>{
  const x=setup('/');try{let sent=0;x.w.fbq=()=>sent++;x.w.TDBConsent.allows=category=>consent&&category==='performance';x.w.HTMLElement.prototype.getClientRects=()=>[{}];x.load();const done=x.w.document.querySelector('.w-form-done');done.style.display='block';await flush();assert.equal(sent,consent?1:0);x.w.TDBConsent.allows=()=>true;done.classList.add('changed');await flush();assert.equal(sent,consent?1:0,'no retroactive or duplicate lead');}finally{x.w.close();}
 });

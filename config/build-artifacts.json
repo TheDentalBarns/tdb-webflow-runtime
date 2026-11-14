@@ -762,10 +762,10 @@
         "src/forms/forms.js",
         "src/forms/vip-form.js"
       ],
-      "sha256": "8d24347dcbb290365cb56f01ca2685da29181925aa95d79aa6def95bb2ba893f",
-      "raw": 10098,
-      "gzip": 3699,
-      "brotli": 3203
+      "sha256": "52e309a6d76ba9f2cd73f1c605809ee11137078ef8b51f674406940e98e67d81",
+      "raw": 11308,
+      "gzip": 4038,
+      "brotli": 3490
     }
   }
 }
