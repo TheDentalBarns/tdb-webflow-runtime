@@ -365,10 +365,10 @@
         "src/sliders/treatment-plugin.js",
         "src/sliders/parallax-plugin.js"
       ],
-      "sha256": "872e5e8fa7d6338278473dec6530dbe14da2d774253e06243bce76bbe40810f9",
-      "raw": 46306,
-      "gzip": 14507,
-      "brotli": 13081
+      "sha256": "0f5becb9c2b39feafe8ca814147825bb34e7fb63bfa33f748018dc4f47a33d5d",
+      "raw": 46623,
+      "gzip": 14621,
+      "brotli": 13162
     },
     "dist/tdb-partner-card.js": {
       "sources": [
@@ -580,10 +580,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "9f70e7931fdaed95e7bf928bc1dedbc51a4917f7216fcaaac1eb457a9ca97a28",
-      "raw": 95552,
-      "gzip": 25940,
-      "brotli": 22290
+      "sha256": "3f4fa95f30c04f084957c3b086aa1da031693cb0a663a9fdb3507f12ead97d58",
+      "raw": 95639,
+      "gzip": 25961,
+      "brotli": 22302
     },
     "dist/tdb-service-awards.js": {
       "sources": [

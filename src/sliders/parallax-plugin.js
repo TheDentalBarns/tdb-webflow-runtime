@@ -296,6 +296,7 @@
       P = 0,
       L = 0,
       k = 0;
+    let entryTarget = null;
     (x.on('beforeLoopFix', () => {
       M = !0;
     }),
@@ -403,9 +404,28 @@
           z(!1),
           F(y));
       };
+    function finishEntry() {
+      if (!I || x.destroyed) return;
+      // A cancelled CSS transition can leave Swiper's target ahead of its
+      // rendered track. The existing entry deadline must settle the image too,
+      // rather than only clearing the pending classes and waiting for a click.
+      // Once a visitor owns a drag, its normal release owns the destination.
+      const dragging = x.touchEventsData?.isTouched && x.touchEventsData?.isMoved;
+      if (
+        !dragging &&
+        x.realIndex === entryTarget &&
+        (x.animating || Math.abs(x.getTranslate() - x.translate) > 1)
+      ) {
+        x.slideTo(x.activeIndex, 0, true);
+        x.setTransition(0);
+        x.setTranslate(x.rtlTranslate ? -x.translate : x.translate);
+        x.transitionEnd();
+      }
+      W();
+    }
     ((D = window.TDBSwiper.firstView(e, {
       target: t,
-      observe: !1,
+      observe: !h,
       frames: h ? 0 : 2,
       delay: () => (h ? 0 : window.TDBMotion.carousel.entryStart),
       immediate: h,
@@ -416,6 +436,7 @@
         (x.update(),
           x.params.loop && 'function' == typeof x.loopFix && x.loopFix(),
           x.slideNext(x.params.speed, !0),
+          (entryTarget = x.realIndex),
           (L = setTimeout(() => {
             ((L = 0),
               !I ||
@@ -428,13 +449,16 @@
                   }),
                 ));
           }, window.TDBMotion.carousel.entryRetry)),
-          (k = setTimeout(W, x.params.speed + y + window.TDBMotion.carousel.entryFallback)));
+          (k = setTimeout(
+            finishEntry,
+            x.params.speed + y + window.TDBMotion.carousel.entryFallback,
+          )));
       },
     })),
       x.on('touchStart slideChange', () => D?.cancel('interaction')));
   }
   const m = Object.freeze({
-    version: '1.3.2',
+    version: '1.3.3',
     selector: e,
     beforeObserve(e) {
       window.TDBParallax?.refresh(e);
