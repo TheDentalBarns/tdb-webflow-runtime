@@ -192,6 +192,37 @@ test('treatment focus preserves the VIP handle pose through repeated open and cl
   assert.equal(closes, 1, 'an open form is still dismissed');
   dom.window.close();
 });
+test('pricing yields to VIP links through loading, form use, closure and repeated openings', () => {
+  const dom = new JSDOM('<div id="tdb-vip-drawer"><input><button aria-busy="false">Close</button></div><section data-tdb-price-section><article data-tdb-disclosure-item><button data-tdb-disclosure-trigger data-tdb-price-trigger aria-expanded="false">Treatment</button><div data-tdb-disclosure-panel><a href="#VIP"><span>Join VIP</span></a></div></article></section>', {runScripts:'outside-only'});
+  const w=dom.window, d=w.document, html=d.documentElement, drawer=d.getElementById('tdb-vip-drawer'), section=d.querySelector('section');
+  const trigger=section.querySelector('button'), link=section.querySelector('a'), field=drawer.querySelector('input');
+  section.getBoundingClientRect=()=>({top:100,bottom:600,height:500});
+  let queued, observer, closes=0;
+  w.requestAnimationFrame=fn=>{queued=fn;return 1;};w.cancelAnimationFrame=()=>{};
+  w.IntersectionObserver=class{constructor(fn){observer=fn;}observe(){}};
+  w.TDBNavScroll={focus(){},release(){}};
+  w.TDBVIPDrawer={close(){closes++;}};
+  w.eval(source);d.dispatchEvent(new w.Event('DOMContentLoaded'));
+  link.addEventListener('click',e=>e.preventDefault());
+  const held=()=>html.classList.contains('tdb-slider-focus');
+  const refresh=()=>{w.dispatchEvent(new w.Event('resize'));queued();observer();};
+  trigger.click();assert(held());
+  for(let cycle=0;cycle<2;cycle++){
+    link.querySelector('span').click();assert(!held(),'VIP intent releases the pricing hold before loading');
+    refresh();assert(!held(),'lazy loading and layout callbacks cannot reacquire the hold');
+    drawer.classList.add('is-open');
+    field.dispatchEvent(new w.Event('pointerdown',{bubbles:true}));
+    field.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));
+    refresh();assert(!held(),'using the form keeps it visible');
+    drawer.classList.replace('is-open','is-closing');
+    d.dispatchEvent(new w.Event('wheel',{bubbles:true}));refresh();assert(!held());
+    drawer.classList.remove('is-closing');refresh();assert(!held(),'closing does not immediately repark chrome');
+  }
+  section.dispatchEvent(new w.Event('wheel',{bubbles:true}));refresh();assert(held(),'fresh background scrolling restores normal pricing focus');
+  w.dispatchEvent(new w.CustomEvent('tdb:vip-open-intent'));assert(!held(),'deferred and programmatic intent uses the same handover');
+  refresh();assert(!held());assert.equal(closes,0,'pricing never closes an explicitly requested enquiry');
+  dom.window.close();
+});
 test('expanded prices reacquire focus after entering from either exact viewport edge', () => {
   const dom = new JSDOM(
     '<section data-tdb-price-section><div data-tdb-disclosure-item><button data-tdb-disclosure-trigger data-tdb-price-trigger aria-expanded="false">Treatment</button><div data-tdb-disclosure-panel>Details</div></div></section>',

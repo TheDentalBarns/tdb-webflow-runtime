@@ -283,6 +283,8 @@
     let approaching = false;
     let waitingForScroll = false;
     let frame = 0;
+    let vipIntent = false;
+    const vipTrigger = '#tdb-vip-drawer, [href*="#vip" i], [data-vip-open]';
     function pushCategoryHeadings(returningHeading) {
       // Read all geometry before writing. Native sticky positioning owns the
       // pin; this collision offset only makes room for an expanded treatment.
@@ -359,6 +361,9 @@
     }
     function sync(returningHeading) {
       pushCategoryHeadings(returningHeading);
+      // An explicit enquiry takes priority over parking chrome for pricing.
+      // Layout/resize callbacks during opening must not hide the form again.
+      if (vipIntent) return;
       const next = (anchor && eligible(anchor) && anchor) || sections.find(eligible);
       if (
         !waitingForScroll &&
@@ -382,6 +387,13 @@
         sync();
       });
     }
+    function yieldToVIP(event) {
+      if (event.type !== 'tdb:vip-open-intent' && !event.target.closest?.(vipTrigger)) return;
+      vipIntent = true;
+      release();
+    }
+    document.addEventListener('click', yieldToVIP, true);
+    window.addEventListener('tdb:vip-open-intent', yieldToVIP);
     document.addEventListener('tdb:price-anchor', (event) => {
       if (!sections.includes(event.target)) return;
       anchor = event.target;
@@ -401,6 +413,17 @@
       // A click-driven return can ease into place; a fresh scroll gesture must
       // immediately resume the existing geometry-driven sticky handover.
       clearCategoryReturns();
+      if (vipIntent) {
+        if (
+          event.target.closest?.(vipTrigger) ||
+          document.querySelector(
+            '#tdb-vip-drawer.is-open, #tdb-vip-drawer.is-closing, #tdb-vip-drawer [aria-busy="true"]',
+          )
+        )
+          return;
+        // Resume pricing only on a fresh background gesture after the enquiry.
+        vipIntent = false;
+      }
       if (!approaching) return;
       approaching = false;
       sync();
