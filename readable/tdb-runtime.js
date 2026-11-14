@@ -2561,6 +2561,20 @@ function prepareFormsLoader() {
   for (const type of ['input', 'change']) document.addEventListener(type, rememberInput, true);
   document.addEventListener('submit', onSubmit, true);
   window.addEventListener('tdb:vip-open-intent', loadSafely);
+  document.addEventListener(
+    'click',
+    (event) => {
+      const button = event.target.closest?.(
+        '.pricing_btm-accordion [data-wf--button---primary--variant]',
+      );
+      const title = button
+        ?.closest('[schema-type="pricing-block"]')
+        ?.querySelector('[schema-price="title"]');
+      if (title?.textContent.trim() === 'Precision Implants')
+        window.TDBVIPInterest.fromCalculator('Implants');
+    },
+    true,
+  );
   function start() {
     // Keep the native pricing button and its existing VIP drawer destination.
     document.querySelectorAll('[schema-price="title"]').forEach((title) => {

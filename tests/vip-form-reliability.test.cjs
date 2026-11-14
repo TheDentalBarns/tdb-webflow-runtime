@@ -66,8 +66,8 @@ for(const consent of [false,true])test('lead reporting obeys current permission:
 test('share fallback supports focused child and avoids key-repeat activation',()=>{
  const x=setup('/',markup()+'<a data-tdb-vip-share role="button" tabindex="0"><span tabindex="0">Share</span></a>');try{let shares=0;x.w.navigator.share=async()=>shares++;x.load();const child=x.w.document.querySelector('[data-tdb-vip-share] span');for(const key of ['Enter',' '])child.dispatchEvent(new x.w.KeyboardEvent('keydown',{key,bubbles:true,cancelable:true}));child.dispatchEvent(new x.w.KeyboardEvent('keydown',{key:' ',repeat:true,bubbles:true,cancelable:true}));assert.equal(shares,2);}finally{x.w.close();}
 });
-function withLoader(){
- const x=setup();let calls=0,resolve,reject;const observers=[];
+function withLoader(route,html){
+ const x=setup(route,html);let calls=0,resolve,reject;const observers=[];
  x.w.IntersectionObserver=class{constructor(cb){this.cb=cb;observers.push(this);}observe(){}disconnect(){}};
  x.w.TDBModules={load(){calls++;return new Promise((a,b)=>{resolve=()=>{x.load();a();};reject=b;});}};
  x.w.eval(`const TDBRuntimeModuleRoot=new URL('https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@release/dist/');\n${loader}\nprepareFormsLoader();`);
@@ -91,6 +91,11 @@ test('native validation still blocks an invalid form after deferred preparation'
 });
 test('calculator intent before loading is applied after readiness',async()=>{
  const x=withLoader();try{x.w.TDBVIPInterest.fromCalculator('Smile Design');x.resolve();await flush();assert.equal(x.select.value,'Smile Design');}finally{x.w.close();}
+});
+for(const ready of [false,true])test('implant pricing button retains its drawer link and sets implant intent, forms ready: '+ready,async()=>{
+ const price='<div class="w-dyn-item" schema-type="pricing-block"><div schema-price="title">Precision Implants</div><div class="pricing_btm-accordion"><a href="#VIP" data-wf--button---primary--variant="base"><span>Join VIP</span></a></div></div>';
+ const x=withLoader('/dental-cost-lichfield',markup()+price);
+ try{const button=x.w.document.querySelector('a');assert.equal(button.textContent,'Join the Implant Waiting List');assert.equal(button.getAttribute('href'),'#VIP');if(ready){x.near();x.resolve();await flush();x.select.value='Invisalign';}x.w.document.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();},true);button.firstElementChild.click();if(!ready){assert.equal(x.calls(),1);x.resolve();await flush();}assert.equal(x.select.value,'Implants');assert.match(x.w.document.querySelector('[data-tdb-vip-intro]').textContent,/January 2027/);x.w.TDBVIPForm.refresh();assert.equal(x.select.value,'Implants');}finally{x.w.close();}
 });
 test('combined and legacy bundles cannot duplicate the forms owner',()=>{
  const x=setup();try{x.load();const owner=x.w.TDBForms;x.w.eval(fs.readFileSync('dist/tdb-forms.min.js','utf8'));assert.equal(x.w.TDBForms,owner);}finally{x.w.close();}
