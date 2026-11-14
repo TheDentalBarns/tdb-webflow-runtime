@@ -53,6 +53,46 @@ function prepareAboutIntroLoader() {
   mount();
 }
 
+/* Native panels, artwork, copy and links work without this scroll enhancement. */
+function prepareHeroCampaignLoader() {
+  if (window.TDBHeroCampaign) return;
+  const root = document.querySelector('[data-tdb-campaign-hero]');
+  if (!root?.querySelector('[data-tdb-campaign-panel]')) return;
+  let owner,
+    flight,
+    disposed = false;
+  function mount() {
+    if (disposed || flight || owner) return flight;
+    flight = window.TDBModules.load(new URL('tdb-motion.js', TDBRuntimeModuleRoot).href, {
+      ready: () => typeof window.TDBMotion?.campaignHero === 'function',
+    })
+      .then(() => {
+        if (!disposed) owner = window.TDBMotion.campaignHero(root);
+      })
+      .catch((error) => {
+        console.warn('TDB campaign hero: retaining native panels and links.', error);
+      })
+      .finally(() => {
+        flight = null;
+      });
+    return flight;
+  }
+  window.TDBHeroCampaign = Object.freeze({
+    refresh() {
+      owner?.refresh();
+      return mount();
+    },
+    status: () => owner?.status() || { ready: false },
+    destroy() {
+      disposed = true;
+      window.removeEventListener('online', mount);
+      owner?.destroy();
+    },
+  });
+  window.addEventListener('online', mount);
+  mount();
+}
+
 /* Captured while the classic script executes; asynchronous features share it. */
 const TDBRuntimeModuleRoot = new URL(window.TDBRelease?.base || './', document.currentScript.src);
 
@@ -3746,6 +3786,9 @@ function preparePageBreakLoader() {
     retryAt = 0;
 
   function eligible(node) {
+    const element = node.wrapper || node;
+    if (element.closest('[data-tdb-campaign-hero]')?.querySelector('[data-tdb-campaign-panel]'))
+      return false;
     if (node.wrapper) return node.wrapper.isConnected && node.wrapper.querySelector(node.selector);
     return (
       node.isConnected &&
@@ -4352,6 +4395,7 @@ const TDBFeatureStartup = (() => {
     prepareBrevoConsent,
     prepareUSPDrawerLoader,
     preparePageBreakLoader,
+    prepareHeroCampaignLoader,
     prepareAboutIntroLoader,
     prepareServiceProcessLoader,
     prepareTreatmentGuideLoader,
@@ -4903,6 +4947,7 @@ function createHomeScrollTest() {
     window.TDBLogoMarqueeLoader?.destroy();
     window.TDBUSPDrawerLoader?.destroy();
     window.TDBPageBreaks?.destroy();
+    window.TDBHeroCampaign?.destroy();
     window.TDBServiceProcessLoader?.destroy();
     window.TDBTreatmentGuideLoader?.destroy();
     window.TDBJourneyLoader?.destroy();

@@ -17,6 +17,9 @@ function preparePageBreakLoader() {
     retryAt = 0;
 
   function eligible(node) {
+    const element = node.wrapper || node;
+    if (element.closest('[data-tdb-campaign-hero]')?.querySelector('[data-tdb-campaign-panel]'))
+      return false;
     if (node.wrapper) return node.wrapper.isConnected && node.wrapper.querySelector(node.selector);
     return (
       node.isConnected &&

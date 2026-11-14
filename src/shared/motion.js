@@ -1,4 +1,4 @@
-/* TDB shared motion v1.24.4. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.25.0. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -1830,6 +1830,244 @@
     return api;
   }
 
+  // Native sticky media and normal-flow campaign copy do the covering. This
+  // owner only scrolls/fades the first panel's copy and updates chapter markers.
+  const campaignHeroes = new WeakMap();
+  function campaignHero(root) {
+    if (campaignHeroes.has(root)) return campaignHeroes.get(root);
+    const panel = root.querySelector('[data-tdb-campaign-panel]');
+    const opening = root.querySelector('[data-tdb-campaign-opening]');
+    const copy = opening?.querySelector('[data-vimeo-hero-content]');
+    if (!panel || !opening || !copy) return null;
+    const controller = new AbortController(),
+      { signal } = controller;
+    const rail = root.querySelector('[data-tdb-campaign-rail]');
+    const links = [...root.querySelectorAll('[data-tdb-campaign-step]')];
+    const markers = links.map((link) => link.firstElementChild);
+    const nodes = [copy, rail, ...links, ...markers].filter(Boolean);
+    const styles = nodes.map((node) => node.getAttribute('style'));
+    const current = links.map((link) => link.getAttribute('aria-current'));
+    const openingInert = opening.inert;
+    const railInert = rail?.inert;
+    let disposed = false,
+      suspended = false,
+      active = 0,
+      progress = 0;
+    const clamp = (value) => Math.max(0, Math.min(1, value));
+    function read(frame) {
+      if (disposed || suspended || document.hidden) return;
+      const box = frame.rect(root),
+        first = frame.rect(opening),
+        second = frame.rect(panel);
+      const travelled = clamp(-box.top / Math.max(1, first.height));
+      const leaving = clamp((box.bottom - frame.height * 0.5) / (frame.height * 0.5));
+      const y = Math.min(Math.max(0, -box.top), first.height);
+      return () => {
+        progress = travelled;
+        active = second.top <= frame.height * 0.5 ? 1 : 0;
+        copy.style.translate = `0 ${-y}px`;
+        copy.style.opacity = String(1 - clamp(travelled / 0.75));
+        opening.inert = openingInert || second.top <= 1;
+        if (rail) {
+          rail.style.opacity = String(leaving);
+          rail.inert = railInert || leaving === 0;
+        }
+        markers.forEach((marker, index) => {
+          if (!marker) return;
+          const weight = index === 0 ? 1 - travelled : travelled;
+          // The About Us pills use a 100px active target, 44px inactive
+          // target and a 3px line with 8px breathing room at either end.
+          links[index].style.height = `${44 + 56 * weight}px`;
+          marker.style.height = '84px';
+          marker.style.clipPath = `inset(${28 * (1 - weight)}px 0px round 999px)`;
+          marker.style.transform = 'none';
+          marker.style.opacity = String(0.4 + 0.6 * weight);
+          if (index === active) links[index].setAttribute('aria-current', 'step');
+          else links[index].removeAttribute('aria-current');
+        });
+      };
+    }
+    const schedule = () => {
+      if (!disposed && !suspended && !document.hidden) requestMotionFrame(read);
+    };
+    // Snap only the released gesture between these two native panels. Never
+    // capture scrolling through the rest of Home, keyboard navigation or
+    // browser restoration, and let new input interrupt a running snap.
+    let settleTimer = 0,
+      gestureStart = null,
+      held = false,
+      snapping = false;
+    const blocked = () =>
+      disposed ||
+      suspended ||
+      document.hidden ||
+      window.TDBScrollLock?.active ||
+      window.TDBSmoothScroll?.nativeAutoscroll ||
+      document.querySelector('.navbar10_menu-button.w--open') ||
+      document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
+    function resetGesture() {
+      clearTimeout(settleTimer);
+      settleTimer = 0;
+      gestureStart = null;
+      held = false;
+      snapping = false;
+    }
+    function navigate(top) {
+      resetGesture();
+      snapping = true;
+      if (window.lenis?.scrollTo)
+        window.lenis.scrollTo(top, {
+          duration: duration() / 1000,
+          onComplete: () => {
+            snapping = false;
+          },
+        });
+      else {
+        window.scrollTo({ top, behavior: reduced.matches ? 'instant' : 'smooth' });
+        snapping = false;
+      }
+    }
+    function settle() {
+      settleTimer = 0;
+      if (gestureStart === null || held || blocked()) return resetGesture();
+      if (window.lenis?.isScrolling && Math.abs(window.lenis.velocity) > 1.5) {
+        settleTimer = setTimeout(settle, 80);
+        return;
+      }
+      const y = window.scrollY,
+        start = y + root.getBoundingClientRect().top,
+        end = y + panel.getBoundingClientRect().top,
+        distance = end - start;
+      if (y <= start + 2 || y >= end - 2 || distance <= 0) return resetGesture();
+      const travel = y - gestureStart,
+        threshold = Math.min(64, distance * 0.08);
+      let destination = y - start < distance / 2 ? start : end;
+      if (Math.abs(gestureStart - start) < 4 && travel > threshold) destination = end;
+      if (Math.abs(gestureStart - end) < 4 && travel < -threshold) destination = start;
+      navigate(destination);
+    }
+    function input(event) {
+      if (event.type === 'keydown' || event.type === 'pointerdown') {
+        resetGesture();
+        return;
+      }
+      if (
+        blocked() ||
+        event.defaultPrevented ||
+        event.ctrlKey ||
+        event.target?.closest?.('input,textarea,select,button,a,[contenteditable="true"],nav') ||
+        (event.type === 'wheel' && Math.abs(event.deltaX) >= Math.abs(event.deltaY))
+      )
+        return;
+      if (snapping && window.lenis?.scrollTo)
+        window.lenis.scrollTo(window.scrollY, { immediate: true });
+      snapping = false;
+      if (gestureStart === null) gestureStart = window.scrollY;
+      held = event.type === 'touchstart' || event.type === 'touchmove';
+      clearTimeout(settleTimer);
+      if (!held) settleTimer = setTimeout(settle, 160);
+    }
+    for (const name of ['wheel', 'touchstart', 'touchmove', 'pointerdown', 'keydown'])
+      document.addEventListener(name, input, { passive: true, signal });
+    for (const name of ['touchend', 'touchcancel'])
+      window.addEventListener(
+        name,
+        () => {
+          held = false;
+          if (gestureStart !== null) settleTimer = setTimeout(settle, 160);
+        },
+        { passive: true, signal },
+      );
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (gestureStart !== null && !held && !snapping) {
+          clearTimeout(settleTimer);
+          settleTimer = setTimeout(settle, 160);
+        }
+      },
+      { passive: true, signal },
+    );
+    window.addEventListener('resize', resetGesture, { passive: true, signal });
+    document.addEventListener('visibilitychange', resetGesture, { signal });
+    root.addEventListener(
+      'click',
+      (event) => {
+        const link = event.target.closest?.('[data-tdb-campaign-step]');
+        const index = links.indexOf(link);
+        if (
+          index < 0 ||
+          event.defaultPrevented ||
+          event.button ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          event.altKey ||
+          rail?.inert
+        )
+          return;
+        event.preventDefault();
+        event.stopPropagation();
+        const target = index === 0 ? root : panel;
+        const top = window.scrollY + target.getBoundingClientRect().top;
+        navigate(top);
+      },
+      { capture: true, signal },
+    );
+    window.addEventListener('scroll', schedule, { passive: true, signal });
+    window.addEventListener('resize', schedule, { passive: true, signal });
+    window.addEventListener('load', schedule, { signal });
+    window.addEventListener(
+      'pagehide',
+      () => {
+        suspended = true;
+        resetGesture();
+        cancelMotionFrame(read);
+      },
+      { signal },
+    );
+    window.addEventListener(
+      'pageshow',
+      () => {
+        suspended = false;
+        schedule();
+      },
+      { signal },
+    );
+    document.addEventListener('visibilitychange', schedule, { signal });
+    const resize = typeof ResizeObserver === 'function' ? new ResizeObserver(schedule) : null;
+    resize?.observe(root);
+    resize?.observe(opening);
+    const api = Object.freeze({
+      refresh: schedule,
+      status: () => ({ ready: !disposed, active, progress }),
+      destroy() {
+        if (disposed) return;
+        disposed = true;
+        controller.abort();
+        resetGesture();
+        resize?.disconnect();
+        cancelMotionFrame(read);
+        nodes.forEach((node, i) =>
+          styles[i] === null
+            ? node.removeAttribute('style')
+            : node.setAttribute('style', styles[i]),
+        );
+        links.forEach((link, i) =>
+          current[i] === null
+            ? link.removeAttribute('aria-current')
+            : link.setAttribute('aria-current', current[i]),
+        );
+        opening.inert = openingInert;
+        if (rail) rail.inert = railInert;
+        campaignHeroes.delete(root);
+      },
+    });
+    campaignHeroes.set(root, api);
+    schedule();
+    return api;
+  }
+
   // Compatibility for older immutable tdb-sliders.js pins during migration.
   // All Swiper behaviour is implemented once, inside the custom Swiper asset.
   function bindSwiper(swiper) {
@@ -1837,7 +2075,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.24.4',
+    version: '1.25.0',
     profile,
     time,
     easing,
@@ -1852,6 +2090,7 @@
     pageBreaks,
     serviceJourney,
     steppedIntro,
+    campaignHero,
     reviews,
     fadeController,
     filterToggle,

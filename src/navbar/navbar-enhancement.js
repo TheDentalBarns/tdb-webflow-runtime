@@ -127,7 +127,7 @@
         // its pinned chapters. At the final chapter it joins the page and
         // scrolls away with that screen before normal floating navigation resumes.
         const pinnedIntro = document.querySelector(
-          '[data-tdb-stepped-intro][data-tdb-intro-pin-nav]',
+          '[data-tdb-stepped-intro][data-tdb-intro-pin-nav], [data-tdb-campaign-hero]:has([data-tdb-campaign-panel])',
         );
         const originalTop = t.style.top;
         let pinnedUntil = 0,
@@ -235,7 +235,7 @@
         function B() {
           i = Math.max(scrollY || e.scrollTop || 0, 0);
           if (pinnedIntro && i < pinnedUntil) {
-            const attached = i >= pinnedRelease;
+            const attached = !pinnedIntro.matches('[data-tdb-campaign-hero]') && i >= pinnedRelease;
             // A visible floating bar returning from below must not attach to
             // the final chapter while its anchor is still above the viewport.
             // Keep its glass surface until that anchor reaches the top again.

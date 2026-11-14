@@ -254,6 +254,7 @@
     window.TDBLogoMarqueeLoader?.destroy();
     window.TDBUSPDrawerLoader?.destroy();
     window.TDBPageBreaks?.destroy();
+    window.TDBHeroCampaign?.destroy();
     window.TDBServiceProcessLoader?.destroy();
     window.TDBTreatmentGuideLoader?.destroy();
     window.TDBJourneyLoader?.destroy();

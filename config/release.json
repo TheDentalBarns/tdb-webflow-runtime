@@ -1,5 +1,5 @@
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "entry": "dist/tdb-start.min.js",
   "repository": "TheDentalBarns/tdb-webflow-runtime",
   "resolution": "All runtime assets resolve relative to the entry commit. No page IDs, cohort roots or per-file pins.",

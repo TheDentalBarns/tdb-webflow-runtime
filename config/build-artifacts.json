@@ -324,10 +324,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "9f3eff921bbab17a077663790b6e726dbfcf8dbf88f5e6ca45f8242cf73d3d1c",
-      "raw": 35860,
-      "gzip": 12286,
-      "brotli": 11103
+      "sha256": "45fb8450bfd526cb14522061a5c81c75d534a64590225e7477c64fad5e919024",
+      "raw": 40176,
+      "gzip": 13349,
+      "brotli": 12023
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -348,10 +348,10 @@
         "src/shared/panel-motion.js",
         "src/navbar/navbar-enhancement.js"
       ],
-      "sha256": "b81a14e565ad9115b094baa0614e6f0641bc186f4c7e8f9f62c60fdec7d9730a",
-      "raw": 25000,
-      "gzip": 6722,
-      "brotli": 6019
+      "sha256": "fda5a36d37de088b0bc1edf2e49a241f9650aa2fb20e0e5e9b7423a6fc54c687",
+      "raw": 25097,
+      "gzip": 6753,
+      "brotli": 6044
     },
     "dist/tdb-parallax.js": {
       "sources": [
@@ -541,6 +541,7 @@
     "dist/tdb-runtime.js": {
       "sources": [
         "src/runtime/about-intro-loader.js",
+        "src/runtime/hero-campaign-loader.js",
         "src/runtime/release-root.js",
         "src/shared/feature-loading.js",
         "src/shared/script-assets.js",
@@ -580,10 +581,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "3f4fa95f30c04f084957c3b086aa1da031693cb0a663a9fdb3507f12ead97d58",
-      "raw": 95639,
-      "gzip": 25961,
-      "brotli": 22302
+      "sha256": "57d3a6b0c34593dd6f3746c1cd8b865edc465a66770e3162f97f625e90f6eee8",
+      "raw": 96548,
+      "gzip": 26120,
+      "brotli": 22405
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -642,10 +643,10 @@
         "src/startup/smooth-scroll.js",
         "src/startup/start.js"
       ],
-      "sha256": "2499ca2eec6b6e55752f846131ef349e4dc5fbced9a2db716e77ad4c2b7caf95",
+      "sha256": "43d012d7f00706c829f7c2061d7ef9cc36162e51f7073c711183da36d5d5ea36",
       "raw": 15649,
-      "gzip": 5743,
-      "brotli": 5138
+      "gzip": 5744,
+      "brotli": 5136
     },
     "dist/tdb-ticker.js": {
       "sources": [
