@@ -3384,13 +3384,14 @@ function prepareInstagramFeatureLoader() {
     });
     for (const holder of near) if (!holder.isConnected) near.delete(holder);
     if (!near.size || deferredFlight) return;
-    for (const holder of near)
+    const batch = new Set(near);
+    for (const holder of batch)
       if (holder.getAttribute('data-ig-state') !== 'ready')
         holder.setAttribute('aria-busy', 'true');
     deferredFlight = Promise.resolve()
       .then(() => {
         if (!allowed()) {
-          for (const holder of near) holder.removeAttribute('aria-busy');
+          for (const holder of batch) holder.removeAttribute('aria-busy');
           return;
         }
         return window.TDBModules.load(new URL('tdb-instagram-deferred.js', TDBRuntimeModuleRoot), {
@@ -3402,15 +3403,19 @@ function prepareInstagramFeatureLoader() {
         if (disposed) window.TDBInstagramDeferred?.destroy();
         else if (allowed())
           return Promise.all(
-            [...near].map((holder) => window.TDBInstagramDeferred?.prepare(holder)),
+            [...batch].map((holder) => window.TDBInstagramDeferred?.prepare(holder)),
           );
       })
       .catch((error) => {
         if (!disposed) console.warn('TDB Instagram: retaining the holding image.', error);
       })
       .finally(() => {
-        for (const holder of near) holder.removeAttribute('aria-busy');
+        for (const holder of batch) holder.removeAttribute('aria-busy');
         deferredFlight = null;
+        // A later proximity callback may queue a holder while this batch runs.
+        // Drain only newly queued holders; failed batches need an ordinary retry.
+        if (allowed() && [...near].some((holder) => holder.isConnected && !batch.has(holder)))
+          deferred();
       });
     return deferredFlight;
   }
