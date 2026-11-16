@@ -33,10 +33,14 @@ two About Us style markers, focus exclusion for covered content, and bounded
 gesture snapping between the two heroes. It uses the shared frame scheduler,
 motion policy/timing and Lenis scroll owner. The first background does not
 parallax. Campaign copy is ordinary document content and scrolls with its image.
-Released wheel/touch gestures settle onto a hero; scrolling below the campaign,
+Approximately 100vh of wheel input advances a chapter. Below the threshold,
+only the pills respond. Once triggered, the transition completes smoothly;
+it does not rest halfway between heroes. Touch includes short flick momentum.
+The campaign panel is natively 100lvh. Scrolling below the campaign,
 keyboard navigation, restoration and scroll-locked menus/dialogs stay free.
 
-The existing navbar owner keeps the menu fixed over the complete hero stack.
+The existing navbar owner keeps the menu fixed during the cover transition,
+then attaches it to the second hero at the top and lets it scroll off with it.
 Other pages, including About, retain their existing navigation behavior.
 Normal Home page-break parallax excludes this stack while enabled and resumes
 when its campaign panel is omitted. Runtime teardown restores authored styles,
@@ -49,7 +53,7 @@ there is no continuous animation loop when the visitor stops scrolling.
 
 ## Release and rollback
 
-Runtime release 2.1.0 is based on the actual deployed immutable release
+Runtime release 2.1.1 is based on the actual deployed immutable release
 `55f76b394bf4aedfaba35ced87bf12631c07a70c`, not unshipped main-branch changes.
 All first-party site script/style/preload references move together to the
 same new commit. This pilot is published only to `dentalbarns.webflow.io`.

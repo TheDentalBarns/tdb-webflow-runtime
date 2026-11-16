@@ -5,7 +5,7 @@ const { JSDOM } = require('jsdom');
 
 function setup(code) {
   const dom = new JSDOM(`<main data-tdb-campaign-hero>
-    <div data-tdb-campaign-opening><div data-vimeo-hero-content style="color:white">Logo</div><iframe></iframe></div>
+    <div data-tdb-campaign-opening><div data-vimeo-hero-content style="color:white">Logo</div><iframe></iframe><button data-tdb-hero-toggle></button></div>
     <section data-tdb-campaign-panel><h2>Campaign</h2><a href="/implants">Discover</a></section>
     <nav data-tdb-campaign-rail><a href="#first" data-tdb-campaign-step="0" aria-current="step"><span></span></a><a href="#second" data-tdb-campaign-step="1"><span></span></a></nav>
   </main>`, { runScripts:'outside-only', pretendToBeVisual:true });
@@ -34,7 +34,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     assert.equal(e.w.TDBMotion.campaignHero(e.root),owner,'one owner per root');
     e.scroll(400);
     assert.equal(e.copy.style.translate,'0 -400px');
-    assert.ok(Math.abs(Number(e.copy.style.opacity)-1/3)<.001);
+    assert.ok(Math.abs(Number(e.copy.style.opacity)-2/3)<.001);
     assert.equal(e.links[1].getAttribute('aria-current'),'step');
     assert.equal(e.root.querySelector('iframe').getAttribute('style'),null);
     assert.equal(e.panel.getAttribute('style'),null,'native second panel handles scrolling');
@@ -55,22 +55,39 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     const modified=new e.w.MouseEvent('click',{bubbles:true,cancelable:true,ctrlKey:true});
     e.links[0].dispatchEvent(modified);assert.equal(modified.defaultPrevented,false);assert.equal(e.jumps.length,1);
     e.w.dispatchEvent(new e.w.Event('pagehide'));e.scroll(400);assert.equal(e.copy.style.opacity,'1');
-    e.w.dispatchEvent(new e.w.Event('pageshow'));e.flush();assert.ok(Number(e.copy.style.opacity)<.5);
+    e.w.dispatchEvent(new e.w.Event('pageshow'));e.flush();assert.ok(Number(e.copy.style.opacity)<1);
     owner.destroy();e.panel.remove();assert.equal(e.w.TDBMotion.campaignHero(e.root),null,'campaign off keeps the original hero');
     e.dom.window.close();
   });
-  test(`${file}: a released hero gesture snaps forward and back but leaves the page below free`,async()=>{
+  test(`${file}: one viewport of wheel intent changes only pills until a complete chapter transition`,async()=>{
     const e=setup(fs.readFileSync(file,'utf8')), owner=e.w.TDBMotion.campaignHero(e.root);
-    const wheel=delta=>e.root.dispatchEvent(new e.w.WheelEvent('wheel',{deltaY:delta,bubbles:true}));
-    wheel(120);e.scroll(120);await new Promise(r=>setTimeout(r,200));
-    assert.equal(e.jumps.at(-1)[0],800,'small intentional gesture advances to the second hero');
-    e.scroll(800);wheel(-120);e.scroll(680);await new Promise(r=>setTimeout(r,200));
+    const wheel=delta=>{const event=new e.w.WheelEvent('wheel',{deltaY:delta,bubbles:true,cancelable:true});e.root.querySelector('[data-tdb-hero-toggle]').dispatchEvent(event);e.flush();return event;};
+    const hint=wheel(120);
+    assert.equal(hint.defaultPrevented,true,'the full-video play target still permits section navigation');
+    assert.equal(hint.lenisStopPropagation,true,'the same input must not also be applied by Lenis');
+    assert.equal(e.jumps.length,0);assert.equal(e.w.scrollY,0);assert.equal(e.copy.style.opacity,'1');
+    assert.ok(parseFloat(e.links[1].style.height)>44,'pill shows intent without moving the hero');
+    wheel(680);assert.equal(e.jumps.at(-1)[0],800,'one viewport of intent advances to the second hero');
+    assert.equal(e.jumps.at(-1)[1].lock,true,'a transition completes rather than pausing halfway');
+    await new Promise(r=>setTimeout(r,200));e.scroll(800);wheel(-800);
     assert.equal(e.jumps.at(-1)[0],0,'reverse gesture returns to the opening hero');
+    await new Promise(r=>setTimeout(r,200));
     const count=e.jumps.length;
-    e.scroll(1000);wheel(120);e.scroll(1120);await new Promise(r=>setTimeout(r,200));
+    e.scroll(1000);assert.equal(wheel(120).defaultPrevented,false);e.scroll(1120);await new Promise(r=>setTimeout(r,200));
     assert.equal(e.jumps.length,count,'rest of page retains normal scroll');
-    e.scroll(0);e.w.TDBScrollLock={active:true};wheel(120);e.scroll(120);
+    e.scroll(0);e.w.TDBScrollLock={active:true};wheel(800);e.scroll(120);
     await new Promise(r=>setTimeout(r,200));assert.equal(e.jumps.length,count,'dialogs suppress snapping');
+    owner.destroy();e.dom.window.close();
+  });
+  test(`${file}: remaining touch movement cannot carry a triggered slide past its landing`,()=>{
+    const e=setup(fs.readFileSync(file,'utf8')), owner=e.w.TDBMotion.campaignHero(e.root);
+    e.w.lenis.scrollTo=(...args)=>e.jumps.push(args);
+    const touch=(type,y)=>{const event=new e.w.Event(type,{bubbles:true,cancelable:true});event.touches=[{clientY:y}];e.root.dispatchEvent(event);return event;};
+    touch('touchstart',700);touch('touchmove',500);touch('touchmove',300);
+    assert.equal(e.jumps.at(-1)[0],800);
+    const tail=touch('touchmove',240);
+    assert.equal(tail.defaultPrevented,true);assert.equal(tail.lenisStopPropagation,true);
+    assert.equal(e.jumps.length,1);
     owner.destroy();e.dom.window.close();
   });
 }

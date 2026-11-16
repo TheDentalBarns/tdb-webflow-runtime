@@ -1860,13 +1860,14 @@
         first = frame.rect(opening),
         second = frame.rect(panel);
       const travelled = clamp(-box.top / Math.max(1, first.height));
+      const markerProgress = clamp(travelled + (pressure / scrollDistance()) * 0.12);
       const leaving = clamp((box.bottom - frame.height * 0.5) / (frame.height * 0.5));
       const y = Math.min(Math.max(0, -box.top), first.height);
       return () => {
         progress = travelled;
         active = second.top <= frame.height * 0.5 ? 1 : 0;
         copy.style.translate = `0 ${-y}px`;
-        copy.style.opacity = String(1 - clamp(travelled / 0.75));
+        copy.style.opacity = String(1 - clamp((travelled - 0.25) / 0.75));
         opening.inert = openingInert || second.top <= 1;
         if (rail) {
           rail.style.opacity = String(leaving);
@@ -1874,7 +1875,7 @@
         }
         markers.forEach((marker, index) => {
           if (!marker) return;
-          const weight = index === 0 ? 1 - travelled : travelled;
+          const weight = index === 0 ? 1 - markerProgress : markerProgress;
           // The About Us pills use a 100px active target, 44px inactive
           // target and a 3px line with 8px breathing room at either end.
           links[index].style.height = `${44 + 56 * weight}px`;
@@ -1890,13 +1891,20 @@
     const schedule = () => {
       if (!disposed && !suspended && !document.hidden) requestMotionFrame(read);
     };
-    // Snap only the released gesture between these two native panels. Never
-    // capture scrolling through the rest of Home, keyboard navigation or
-    // browser restoration, and let new input interrupt a running snap.
+    // One viewport of wheel intent advances one chapter. Before that threshold
+    // only the pills respond; the page never rests between the two heroes.
+    // The second hero releases forward scrolling back to the normal page.
     let settleTimer = 0,
+      finishTimer = 0,
       gestureStart = null,
       held = false,
-      snapping = false;
+      snapping = false,
+      pressure = 0,
+      quietUntil = 0,
+      touchY = null,
+      touchTime = 0,
+      touchVelocity = 0;
+    const scrollDistance = () => Math.max(120, innerHeight);
     const blocked = () =>
       disposed ||
       suspended ||
@@ -1907,24 +1915,39 @@
       document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
     function resetGesture() {
       clearTimeout(settleTimer);
+      clearTimeout(finishTimer);
       settleTimer = 0;
+      finishTimer = 0;
       gestureStart = null;
       held = false;
       snapping = false;
+      pressure = 0;
+      quietUntil = 0;
+      touchY = null;
+      touchVelocity = 0;
     }
     function navigate(top) {
+      const feedback = pressure;
       resetGesture();
+      pressure = feedback;
       snapping = true;
+      const finish = () => {
+        clearTimeout(finishTimer);
+        snapping = false;
+        pressure = 0;
+        quietUntil = performance.now() + 180;
+        schedule();
+      };
       if (window.lenis?.scrollTo)
         window.lenis.scrollTo(top, {
           duration: duration() / 1000,
-          onComplete: () => {
-            snapping = false;
-          },
+          lock: true,
+          force: true,
+          onComplete: finish,
         });
       else {
         window.scrollTo({ top, behavior: reduced.matches ? 'instant' : 'smooth' });
-        snapping = false;
+        finishTimer = setTimeout(finish, duration() + 200);
       }
     }
     function settle() {
@@ -1946,34 +1969,112 @@
       if (Math.abs(gestureStart - end) < 4 && travel < -threshold) destination = start;
       navigate(destination);
     }
-    function input(event) {
-      if (event.type === 'keydown' || event.type === 'pointerdown') {
-        resetGesture();
-        return;
+    function captureStep(delta, event) {
+      if (!delta) return false;
+      const consume = () => {
+        if (!event) return;
+        event.preventDefault();
+        // Lenis deliberately does not consult defaultPrevented. Use its
+        // nested-scroll handoff flag so it cannot also apply this gesture.
+        event.lenisStopPropagation = true;
+      };
+      if (snapping || performance.now() < quietUntil) {
+        consume();
+        quietUntil = performance.now() + 180;
+        return true;
       }
+      const y = window.scrollY,
+        start = y + root.getBoundingClientRect().top,
+        end = y + panel.getBoundingClientRect().top,
+        first = Math.abs(y - start) <= 3,
+        second = Math.abs(y - end) <= 3;
+      if ((first && (delta > 0 || pressure > 0)) || (second && (delta < 0 || pressure < 0))) {
+        consume();
+        const limit = scrollDistance();
+        pressure = first
+          ? Math.max(0, Math.min(limit, pressure + delta))
+          : Math.min(0, Math.max(-limit, pressure + delta));
+        schedule();
+        if (Math.abs(pressure) >= limit) navigate(first ? end : start);
+        return true;
+      }
+      // A native return from the body lands on the second hero first.
+      if (delta < 0 && y > end && y + delta <= end) {
+        consume();
+        navigate(end);
+        return true;
+      }
+      pressure = 0;
+      if (y > start + 3 && y < end - 3) {
+        consume();
+        navigate(delta > 0 ? end : start);
+        return true;
+      }
+      return false;
+    }
+    function input(event) {
       if (
         blocked() ||
         event.defaultPrevented ||
         event.ctrlKey ||
-        event.target?.closest?.('input,textarea,select,button,a,[contenteditable="true"],nav') ||
+        event.target?.closest?.('input,textarea,select,[contenteditable="true"],nav') ||
         (event.type === 'wheel' && Math.abs(event.deltaX) >= Math.abs(event.deltaY))
       )
         return;
-      if (snapping && window.lenis?.scrollTo)
-        window.lenis.scrollTo(window.scrollY, { immediate: true });
-      snapping = false;
+      if (event.type === 'touchmove' && (snapping || performance.now() < quietUntil)) {
+        event.preventDefault();
+        event.lenisStopPropagation = true;
+        touchY = event.touches[0]?.clientY ?? null;
+        touchTime = performance.now();
+        quietUntil = touchTime + 180;
+        return;
+      }
+      if (event.type === 'touchstart') {
+        touchY = event.touches[0]?.clientY ?? null;
+        touchTime = performance.now();
+        touchVelocity = 0;
+        held = true;
+        return;
+      }
+      let delta;
+      if (event.type === 'touchmove') {
+        if (touchY === null || !event.touches[0]) return;
+        const next = event.touches[0].clientY,
+          now = performance.now();
+        delta = (touchY - next) * 2;
+        touchVelocity = delta / Math.max(16, now - touchTime);
+        touchY = next;
+        touchTime = now;
+      } else
+        delta =
+          event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1);
+      if (captureStep(delta, event)) return;
       if (gestureStart === null) gestureStart = window.scrollY;
-      held = event.type === 'touchstart' || event.type === 'touchmove';
       clearTimeout(settleTimer);
       if (!held) settleTimer = setTimeout(settle, 160);
     }
-    for (const name of ['wheel', 'touchstart', 'touchmove', 'pointerdown', 'keydown'])
-      document.addEventListener(name, input, { passive: true, signal });
+    document.addEventListener('touchstart', input, { passive: true, capture: true, signal });
+    for (const name of ['wheel', 'touchmove'])
+      document.addEventListener(name, input, { passive: false, capture: true, signal });
+    document.addEventListener(
+      'keydown',
+      () => {
+        if (!snapping) {
+          resetGesture();
+          schedule();
+        }
+      },
+      { signal },
+    );
     for (const name of ['touchend', 'touchcancel'])
       window.addEventListener(
         name,
         () => {
           held = false;
+          if (!snapping && !blocked() && performance.now() - touchTime < 100 && pressure)
+            captureStep(touchVelocity * 250);
+          touchY = null;
+          touchVelocity = 0;
           if (gestureStart !== null) settleTimer = setTimeout(settle, 160);
         },
         { passive: true, signal },
