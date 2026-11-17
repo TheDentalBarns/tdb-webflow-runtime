@@ -1,4 +1,4 @@
-/* TDB shared motion v1.25.0. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.25.1. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -1837,7 +1837,11 @@
     if (campaignHeroes.has(root)) return campaignHeroes.get(root);
     const panel = root.querySelector('[data-tdb-campaign-panel]');
     const opening = root.querySelector('[data-tdb-campaign-opening]');
-    const copy = opening?.querySelector('[data-vimeo-hero-content]');
+    const copyWrapper = opening?.querySelector('[data-vimeo-hero-content]');
+    // The native foreground already sits above the video. Transforming its
+    // unpositioned padding parent traps that foreground behind the media,
+    // even when the transform is zero on an untouched page.
+    const copy = copyWrapper?.querySelector('.hero-vimeo_content') || copyWrapper;
     if (!panel || !opening || !copy) return null;
     const controller = new AbortController(),
       { signal } = controller;
@@ -1891,11 +1895,11 @@
     const schedule = () => {
       if (!disposed && !suspended && !document.hidden) requestMotionFrame(read);
     };
-    // One viewport of wheel intent advances one chapter. Before that threshold
+    // About two wheel scrolls advance the opening chapter. Before that threshold
     // only the pills respond; the page never rests between the two heroes.
     // The second hero releases forward scrolling back to the normal page.
     let settleTimer = 0,
-      finishTimer = 0,
+      scrollFrame = 0,
       gestureStart = null,
       held = false,
       snapping = false,
@@ -1904,7 +1908,8 @@
       touchY = null,
       touchTime = 0,
       touchVelocity = 0;
-    const scrollDistance = () => Math.max(120, innerHeight);
+    const scrollDistance = () => Math.max(120, innerHeight * (2 / 3));
+    const slideDuration = () => duration() * 2;
     const blocked = () =>
       disposed ||
       suspended ||
@@ -1915,9 +1920,9 @@
       document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
     function resetGesture() {
       clearTimeout(settleTimer);
-      clearTimeout(finishTimer);
+      cancelAnimationFrame(scrollFrame);
       settleTimer = 0;
-      finishTimer = 0;
+      scrollFrame = 0;
       gestureStart = null;
       held = false;
       snapping = false;
@@ -1932,7 +1937,8 @@
       pressure = feedback;
       snapping = true;
       const finish = () => {
-        clearTimeout(finishTimer);
+        cancelAnimationFrame(scrollFrame);
+        scrollFrame = 0;
         snapping = false;
         pressure = 0;
         quietUntil = performance.now() + 180;
@@ -1940,14 +1946,30 @@
       };
       if (window.lenis?.scrollTo)
         window.lenis.scrollTo(top, {
-          duration: duration() / 1000,
+          duration: slideDuration() / 1000,
           lock: true,
           force: true,
           onComplete: finish,
         });
-      else {
-        window.scrollTo({ top, behavior: reduced.matches ? 'instant' : 'smooth' });
-        finishTimer = setTimeout(finish, duration() + 200);
+      else if (reduced.matches) {
+        window.scrollTo({ top, behavior: 'instant' });
+        finish();
+      } else {
+        // Native smooth-scroll has a browser-chosen duration. Phones use a
+        // finite animation with the same easing as the site's Lenis owner.
+        const from = window.scrollY,
+          started = performance.now(),
+          milliseconds = slideDuration();
+        const step = (now) => {
+          scrollFrame = 0;
+          if (disposed || suspended || document.hidden) return;
+          const p = clamp((now - started) / milliseconds);
+          const eased = p === 1 ? 1 : Math.min(1, 1.001 - 2 ** (-10 * p));
+          window.scrollTo({ top: from + (top - from) * eased, behavior: 'instant' });
+          if (p < 1) scrollFrame = requestAnimationFrame(step);
+          else finish();
+        };
+        scrollFrame = requestAnimationFrame(step);
       }
     }
     function settle() {
@@ -1988,7 +2010,15 @@
         end = y + panel.getBoundingClientRect().top,
         first = Math.abs(y - start) <= 3,
         second = Math.abs(y - end) <= 3;
-      if ((first && (delta > 0 || pressure > 0)) || (second && (delta < 0 || pressure < 0))) {
+      // The second hero has no additional runway: one upward gesture returns
+      // to the opening, while a downward gesture continues into the page.
+      if (second && delta < 0) {
+        consume();
+        pressure = -scrollDistance();
+        navigate(start);
+        return true;
+      }
+      if (first && (delta > 0 || pressure > 0)) {
         consume();
         const limit = scrollDistance();
         pressure = first
@@ -2176,7 +2206,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.25.0',
+    version: '1.25.1',
     profile,
     time,
     easing,
