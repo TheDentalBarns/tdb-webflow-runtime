@@ -498,3 +498,14 @@ introduced. The navbar bundle grows by 20 gzip bytes.
 The complete build, generated parity, formatting and existing test suite pass:
 1,256 tests, 1,253 passes and three existing skips. Rollback uses all four install
 pins at `dd42964caba67c0fbf84200519fc0c765dc17dcd` and a staging-only publish.
+
+Published release: `77433fbf38573c0d48579b5d74a23ba0d21339c4`, staging only,
+17 November at 15:32 UTC. All 86 declared CDN files match the committed bytes.
+Browser sampling at 1280×720 captured 265 observations across forward and reverse
+transitions with no colour mismatch between the navbar and any of the five
+labels. Intermediate colours progressed together in both directions. Services
+and Discover opened and closed successfully and retained hover opacity. At
+390×844 the menu opened with consistent black labels and closed over the dark
+campaign state. No console errors were recorded. Production publication times
+remain 14 November at 15:29 UTC. This verifies browser behaviour and responsive
+layout, not physical Android performance.
