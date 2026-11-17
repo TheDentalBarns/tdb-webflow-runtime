@@ -3,10 +3,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 
-function setup(code,{width=1024,height=800,coarse=false,profile=false}={}) {
+function setup(file,{width=1024,height=800,coarse=false,profile=false}={}) {
   const dom = new JSDOM(`<main data-tdb-campaign-hero>
-    <div data-tdb-campaign-opening><div data-vimeo-hero-content><div class="hero-vimeo_content" style="color:white">Logo</div></div><iframe></iframe><button data-tdb-hero-toggle></button></div>
-    <section data-tdb-campaign-panel><img class="tdb-campaign-image"><div class="tdb-campaign-copy" style="color:white"><h2>Campaign</h2><a href="/implants">Discover</a></div></section>
+    <div data-tdb-campaign-opening><div data-vimeo-hero-content><div class="hero-vimeo_content" style="color:white">Logo</div></div><iframe></iframe><button data-tdb-hero-toggle data-vimeo-controls-layer></button></div>
+    <section data-tdb-campaign-panel><img class="tdb-campaign-image"><button data-vimeo-controls-layer aria-label="Play campaign"></button><div class="tdb-campaign-copy" style="color:white"><h2>Campaign</h2><a href="/implants">Discover</a></div></section>
     <nav data-tdb-campaign-rail><a href="#first" data-tdb-campaign-step="0" aria-current="step"><span></span></a><a href="#second" data-tdb-campaign-step="1"><span></span></a></nav>
   </main>`, { runScripts:'outside-only', pretendToBeVisual:true });
   const w=dom.window, root=w.document.querySelector('main'), opening=root.firstElementChild,
@@ -25,7 +25,8 @@ function setup(code,{width=1024,height=800,coarse=false,profile=false}={}) {
   Object.defineProperty(panel,'offsetTop',{get:()=>panel.getBoundingClientRect().top+w.scrollY});
   w.lenis={scrollTo:(...args)=>{jumps.push(args);args[1]?.onComplete?.();}};
   if(profile)w.eval(fs.readFileSync('src/shared/motion-profile.js','utf8').replace('__TDB_MOTION_PROFILE__',fs.readFileSync('config/motion.json','utf8')));
-  w.eval(code);
+  w.eval(fs.readFileSync(file.startsWith('src/') ? 'src/shared/motion.js' : 'dist/tdb-motion.js','utf8'));
+  w.eval(fs.readFileSync(file,'utf8'));
   const flush=(now=0)=>{const tasks=[...queue.values()];queue.clear();tasks.forEach(cb=>cb(now));};
   const scroll=y=>{w.scrollY=y;w.dispatchEvent(new w.Event('scroll'));flush();};
   return {dom,w,root,opening,panel,copy,campaignCopy,rail,links,queue,jumps,flush,scroll};
@@ -50,10 +51,10 @@ function compositor(e) {
   return {animations,scrolls,flight:()=>animations.filter(a=>a.node===e.panel).at(-1)};
 }
 
-for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
+for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js']) {
   test(`${file}: cover progress fades and scrolls copy, preserves media, reverses and becomes idle`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8')), owner=e.w.TDBMotion.campaignHero(e.root);
-    assert.equal(e.w.TDBMotion.campaignHero(e.root),owner,'one owner per root');
+    const e=setup(file), owner=e.w.TDBCampaignHero.mount(e.root);
+    assert.equal(e.w.TDBCampaignHero.mount(e.root),owner,'one owner per root');
     e.flush();
     assert.equal(e.root.querySelector('[data-vimeo-hero-content]').getAttribute('style'),null,'unpositioned padding must not create a stacking context behind the video');
     assert.equal(e.copy.style.opacity,'1','logo remains visible before any input');
@@ -80,7 +81,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     e.dom.window.close();
   });
   test(`${file}: native destinations are enhanced once; lifecycle suspends and resumes`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8')), owner=e.w.TDBMotion.campaignHero(e.root);
+    const e=setup(file), owner=e.w.TDBCampaignHero.mount(e.root);
     e.flush();
     e.links[1].click();assert.equal(e.jumps.length,1);assert.equal(e.jumps[0][0],800);
     assert.equal(e.jumps[0][1].duration,e.w.TDBMotion.duration()/1000,'desktop keeps its established timing');
@@ -89,11 +90,11 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     e.links[0].dispatchEvent(modified);assert.equal(modified.defaultPrevented,false);assert.equal(e.jumps.length,1);
     e.w.dispatchEvent(new e.w.Event('pagehide'));e.scroll(400);assert.equal(e.copy.style.opacity,'1');
     e.w.dispatchEvent(new e.w.Event('pageshow'));e.flush();assert.ok(Number(e.copy.style.opacity)<1);
-    owner.destroy();e.panel.remove();assert.equal(e.w.TDBMotion.campaignHero(e.root),null,'campaign off keeps the original hero');
+    owner.destroy();e.panel.remove();assert.equal(e.w.TDBCampaignHero.mount(e.root),null,'campaign off keeps the original hero');
     e.dom.window.close();
   });
   test(`${file}: two opening wheel inputs advance, one upward input returns, and the second hero has no runway`,async()=>{
-    const e=setup(fs.readFileSync(file,'utf8')), owner=e.w.TDBMotion.campaignHero(e.root);
+    const e=setup(file), owner=e.w.TDBCampaignHero.mount(e.root);
     const wheel=delta=>{const event=new e.w.WheelEvent('wheel',{deltaY:delta,bubbles:true,cancelable:true});e.root.querySelector('[data-tdb-hero-toggle]').dispatchEvent(event);e.flush();return event;};
     const hint=wheel(270);
     assert.equal(hint.defaultPrevented,true,'the full-video play target still permits section navigation');
@@ -114,7 +115,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     owner.destroy();e.dom.window.close();
   });
   test(`${file}: a held swipe waits for release and cannot carry a slide past its landing`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8')), owner=e.w.TDBMotion.campaignHero(e.root);
+    const e=setup(file), owner=e.w.TDBCampaignHero.mount(e.root);
     e.w.lenis.scrollTo=(...args)=>e.jumps.push(args);
     const touch=(type,y)=>mobileTouch(e,type,y);
     touch('touchstart',700);touch('touchmove',500);touch('touchmove',300);
@@ -128,11 +129,11 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     owner.destroy();e.dom.window.close();
   });
   test(`${file}: settled wheel chapters reverse immediately both ways without repeating the opening runway`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8'));
+    const e=setup(file);
     let now=0;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
     e.w.lenis.scrollTo=(...args)=>e.jumps.push(args);
-    const owner=e.w.TDBMotion.campaignHero(e.root);
+    const owner=e.w.TDBCampaignHero.mount(e.root);
     const wheel=delta=>{const event=new e.w.WheelEvent('wheel',{deltaY:delta,bubbles:true,cancelable:true});e.root.dispatchEvent(event);return event;};
     const finish=()=>{const [top,options]=e.jumps.at(-1);e.scroll(top);options.onComplete();};
     wheel(270);assert.equal(e.jumps.length,0,'fresh load still has an initial runway');
@@ -151,15 +152,15 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     finish();now+=200;
     assert.equal(wheel(120).defaultPrevented,false,'the second hero releases normal onward scrolling');
     owner.destroy();
-    e.scroll(0);const fresh=e.w.TDBMotion.campaignHero(e.root), freshCount=e.jumps.length;
+    e.scroll(0);const fresh=e.w.TDBCampaignHero.mount(e.root), freshCount=e.jumps.length;
     wheel(120);assert.equal(e.jumps.length,freshCount,'a fresh owner starts with the initial runway again');
     fresh.destroy();e.dom.window.close();
   });
   test(`${file}: touch reversals after landing bypass the quiet period in both directions`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8'));
+    const e=setup(file);
     Object.defineProperty(e.w.performance,'now',{value:()=>0});
     e.w.lenis.scrollTo=(...args)=>e.jumps.push(args);
-    const owner=e.w.TDBMotion.campaignHero(e.root);
+    const owner=e.w.TDBCampaignHero.mount(e.root);
     const touch=(type,y)=>{const event=new e.w.Event(type,{bubbles:true,cancelable:true});event.touches=y==null?[]:[{clientY:y}];e.root.dispatchEvent(event);return event;};
     const finish=()=>{const [top,options]=e.jumps.at(-1);e.scroll(top);options.onComplete();};
     touch('touchstart',700);touch('touchmove',400);touch('touchend');finish();
@@ -173,12 +174,12 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     owner.destroy();e.dom.window.close();
   });
   test(`${file}: native phone scrolling takes a full second, eases both ends and cancels on teardown`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8'),{width:390,coarse:true,profile:true});
+    const e=setup(file,{width:390,coarse:true,profile:true});
     delete e.w.lenis;
     let now=0;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
     e.w.scrollTo=({top})=>{e.w.scrollY=top;e.jumps.push(top);};
-    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();e.links[1].click();
+    const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();e.links[1].click();
     now=200;e.flush(now);const early=e.w.scrollY;
     assert.ok(early>0&&early<160,'gentle acceleration');
     now=500;e.flush(now);assert.equal(e.w.scrollY,400,'halfway through at the previous mobile completion time');
@@ -190,18 +191,18 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
   });
   test(`${file}: phone, tablet and coarse-pointer slides use the slower timing without changing desktop`,()=>{
     for(const device of [{width:390},{width:820},{width:1280,coarse:true},{width:1280,coarse:false}]){
-      const e=setup(fs.readFileSync(file,'utf8'),{...device,profile:true});
-      const owner=e.w.TDBMotion.campaignHero(e.root);e.links[1].click();
+      const e=setup(file,{...device,profile:true});
+      const owner=e.w.TDBCampaignHero.mount(e.root);e.links[1].click();
       assert.equal(e.jumps[0][1].duration,device.width<992||device.coarse?1:e.w.TDBMotion.duration()/1000);
       owner.destroy();e.dom.window.close();
     }
   });
   test(`${file}: pills animate continuously inside a fixed rail and fade through the exit`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8'));
+    const e=setup(file);
     let now=0;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
     e.w.lenis.scrollTo=(...args)=>e.jumps.push(args);
-    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();
+    const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
     const wheel=delta=>{e.root.dispatchEvent(new e.w.WheelEvent('wheel',{deltaY:delta,bubbles:true,cancelable:true}));owner.refresh();e.flush(now);};
     const opacity=()=>parseFloat(e.links[1].firstElementChild.style.opacity);
     const stationary=()=>e.links.forEach(link=>{
@@ -233,12 +234,15 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     owner.destroy();e.dom.window.close();
   });
   test(`${file}: touch follows the local panel and compositor flights scroll only at landing`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8'),{width:390,coarse:true,profile:true});
+    const e=setup(file,{width:390,coarse:true,profile:true});
     const c=compositor(e);
     let now=0;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
-    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();
+    const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
     mobileTouch(e,'touchstart',600);now=100;mobileTouch(e,'touchmove',440);e.flush(now);
+    const openingControl=e.opening.querySelector('[data-vimeo-controls-layer]'),campaignControl=e.panel.querySelector('[data-vimeo-controls-layer]');
+    assert.equal(openingControl.style.translate,'0 -160px','opening playback control travels with its departing chapter');
+    assert.equal(campaignControl.getAttribute('style'),null,'incoming control stays inside its own moving media panel');
     assert.equal(e.panel.style.transform,'translate3d(0,-160px,0)');
     assert.equal(e.copy.style.translate,'0 -160px');
     assert.equal(e.copy.style.opacity,'0.8');
@@ -247,7 +251,9 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     mobileTouch(e,'touchend');
     assert.deepEqual(Array.from(c.flight().frames,f=>f.transform),['translate3d(0,-160px,0)','translate3d(0,-800px,0)']);
     assert.equal(c.flight().options.duration,800,'remaining distance retains the slower full-height pace');
-    assert.equal(c.animations.length,7,'one panel, two foregrounds and four pill transforms');
+    assert.equal(c.animations.length,8,'one panel, two foregrounds, opening control and four pill transforms');
+    assert.deepEqual(Array.from(c.animations.find(a=>a.node===openingControl).frames,f=>f.translate),['0 -160px','0 -800px']);
+    assert.ok(!c.animations.some(a=>a.node===campaignControl),'the second control must not be independently pinned or parallaxed');
     const copyFrames=c.animations.find(a=>a.node===e.copy).frames;
     assert.equal(copyFrames[0].translate,'0 -160px');assert.equal(copyFrames.at(-1).opacity,'0');
     assert.equal(copyFrames[0].opacity,'0.8','logo continues fading from the exact drag progress');
@@ -258,7 +264,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     for(let frame=1;frame<=60;frame++){now+=16;e.flush(now);}
     assert.equal(c.scrolls.length,0,'no whole-document scroll writes during the animation');
     assert.equal(e.queue.size,0,'the compositor flight needs no JavaScript frame loop');
-    e.links[0].click();assert.equal(c.animations.length,7,'a pill click does not interrupt the current flight');
+    e.links[0].click();assert.equal(c.animations.length,8,'a pill click does not interrupt the current flight');
     c.flight().onfinish();e.flush(now);
     assert.deepEqual(c.scrolls,[800]);assert.equal(e.panel.getAttribute('style'),null);
     assert.equal(e.copy.style.translate,'0 -800px');assert.equal(e.copy.style.opacity,'0');
@@ -271,6 +277,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     mobileTouch(e,'touchend');assert.equal(c.flight().frames.at(-1).transform,'translate3d(0,800px,0)');
     assert.equal(c.animations.filter(a=>a.node===e.campaignCopy).at(-1).frames.at(-1).translate,'0 200px');
     c.flight().onfinish();e.flush(now);assert.deepEqual(c.scrolls,[800,0]);assert.equal(e.copy.style.opacity,'1');
+    assert.equal(openingControl.style.translate,'0 0px');
     assert.equal(e.campaignCopy.style.translate,'0 200px');
     // A long drag must use the native anchor, not the transformed panel rect.
     const nativeRect=e.panel.getBoundingClientRect;
@@ -288,9 +295,9 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
   });
   test(`${file}: mobile release commits at 20% of the visible height and returns below it at any speed`,()=>{
     for(const height of [600,800,1000]){
-      const e=setup(fs.readFileSync(file,'utf8'),{width:390,height,coarse:true,profile:true}),c=compositor(e);
+      const e=setup(file,{width:390,height,coarse:true,profile:true}),c=compositor(e);
       let now=0;Object.defineProperty(e.w.performance,'now',{value:()=>now});
-      const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();
+      const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
       const release=(from,to,elapsed)=>{
         mobileTouch(e,'touchstart',from);now+=elapsed;mobileTouch(e,'touchmove',to);e.flush(now);
         assert.equal(e.queue.size,0,'held drag becomes idle between finger movements');
@@ -317,9 +324,9 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
   });
   test(`${file}: an early native scroll settles when the deferred hero owner arrives`,async()=>{
     for(const initial of [80,200]){
-      const e=setup(fs.readFileSync(file,'utf8'),{width:390,coarse:true,profile:true}),c=compositor(e);
+      const e=setup(file,{width:390,coarse:true,profile:true}),c=compositor(e);
       e.w.scrollY=initial;
-      const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();
+      const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
       await new Promise(r=>setTimeout(r,200));
       const destination=initial<160?0:800,flight=c.flight();
       assert.ok(flight,'an early partial scroll cannot remain stranded between chapters');
@@ -339,9 +346,9 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
   });
   test(`${file}: a touch already moving when the owner loads keeps its preview and release threshold`,()=>{
     for(const remaining of [60,100]){
-      const e=setup(fs.readFileSync(file,'utf8'),{width:390,coarse:true,profile:true}),c=compositor(e);
+      const e=setup(file,{width:390,coarse:true,profile:true}),c=compositor(e);
       e.w.scrollY=80;
-      const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();
+      const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
       assert.equal(mobileTouch(e,'touchmove',600).defaultPrevented,true,'adopt the touch whose start preceded module loading');
       e.flush();assert.equal(e.panel.style.transform,'translate3d(0,0px,0)');
       mobileTouch(e,'touchmove',600-remaining);e.flush();
@@ -356,10 +363,55 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
       owner.destroy();e.dom.window.close();
     }
   });
+  test(`${file}: repeated native swipes recover through browser chrome resize at the same 20% threshold`,async()=>{
+    const e=setup(file,{width:390,coarse:true,profile:true}),c=compositor(e);
+    const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
+    for(const [origin,travel,destination] of [[0,100,0],[0,200,800],[800,-100,800],[800,-200,0],[0,200,800]]){
+      assert.equal(e.w.scrollY,origin);
+      mobileTouch(e,'touchstart',400);
+      mobileTouch(e,'touchmove',400-travel,180,1,false);
+      e.scroll(origin+travel);mobileTouch(e,'touchend');
+      e.w.innerHeight=760;e.w.dispatchEvent(new e.w.Event('resize'));e.flush();
+      await new Promise(r=>setTimeout(r,200));
+      const flight=c.flight();assert.ok(flight&&!flight.cancelled,'native movement must settle after chrome resize');
+      assert.equal(flight.frames.at(-1).transform,`translate3d(0,${origin+travel-destination}px,0)`);
+      flight.onfinish();e.flush();assert.equal(e.w.scrollY,destination);
+      e.w.innerHeight=800;e.w.dispatchEvent(new e.w.Event('resize'));e.flush();
+    }
+    owner.destroy();e.dom.window.close();
+  });
+  test(`${file}: native movement after mount and after later landings cannot strand a partial hero`,async()=>{
+    const e=setup(file,{width:390,coarse:true,profile:true}),c=compositor(e);
+    const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
+    for(const [position,destination] of [[80,0],[200,800],[700,800],[600,0],[180,800]]){
+      e.scroll(position);await new Promise(r=>setTimeout(r,200));
+      const flight=c.flight();assert.ok(flight&&!flight.cancelled,'scroll recovery is not limited to the mount-time probe');
+      flight.onfinish();e.flush();assert.equal(e.w.scrollY,destination);
+    }
+    // Keyboard scroll is deliberately free, even inside the hero.
+    e.root.dispatchEvent(new e.w.KeyboardEvent('keydown',{key:'ArrowUp',bubbles:true}));
+    const count=c.animations.length;e.scroll(700);await new Promise(r=>setTimeout(r,200));
+    assert.equal(c.animations.length,count);
+    owner.destroy();e.dom.window.close();
+  });
+  test(`${file}: release is observed when a descendant stops bubbling, and a late touch can resume a partial return`,()=>{
+    const e=setup(file,{width:390,coarse:true,profile:true}),c=compositor(e);
+    const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
+    e.root.addEventListener('touchend',event=>event.stopPropagation());
+    mobileTouch(e,'touchstart',600);mobileTouch(e,'touchmove',400);e.flush();mobileTouch(e,'touchend');
+    assert.ok(c.flight(),'release must not depend on bubbling through other controls');
+    c.flight().onfinish();e.flush();assert.equal(e.w.scrollY,800);
+    e.scroll(720);
+    mobileTouch(e,'touchmove',400);e.flush();
+    mobileTouch(e,'touchmove',500);e.flush();mobileTouch(e,'touchend');
+    assert.equal(c.flight().frames.at(-1).transform,'translate3d(0,720px,0)');
+    c.flight().onfinish();e.flush();assert.equal(e.w.scrollY,0);
+    owner.destroy();e.dom.window.close();
+  });
   test(`${file}: short carousel drags return smoothly and cancellation restores the native panel`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8'),{width:390,coarse:true,profile:true}),c=compositor(e);
+    const e=setup(file,{width:390,coarse:true,profile:true}),c=compositor(e);
     let now=0;Object.defineProperty(e.w.performance,'now',{value:()=>now});
-    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();
+    const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
     mobileTouch(e,'touchstart',600);now=300;mobileTouch(e,'touchmove',570);e.flush(now);mobileTouch(e,'touchend');
     assert.equal(c.flight().frames[0].transform,'translate3d(0,-30px,0)');
     assert.equal(c.flight().frames[1].transform,'translate3d(0,0px,0)');
@@ -372,21 +424,21 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     assert.equal(e.campaignCopy.style.translate,'0 200px');
     mobileTouch(e,'touchstart',600);mobileTouch(e,'touchmove',500);e.flush(now);mobileTouch(e,'touchcancel');e.flush(now);
     assert.equal(e.panel.getAttribute('style'),null);assert.equal(e.copy.style.translate,'0 0px');
-    assert.equal(c.animations.length,7,'touchcancel never creates a new flight');
+    assert.equal(c.animations.length,8,'touchcancel never creates a new flight');
     mobileTouch(e,'touchstart',600);mobileTouch(e,'touchmove',500);e.flush(now);
     mobileTouch(e,'touchmove',500,180,2);e.flush(now);
     assert.equal(e.panel.getAttribute('style'),null,'pinch returns the preview to native layout');
     owner.destroy();e.dom.window.close();
   });
   test(`${file}: carousel resize, hidden-tab return and teardown cannot leave a half slide`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8'),{width:390,coarse:true,profile:true}),c=compositor(e);
+    const e=setup(file,{width:390,coarse:true,profile:true}),c=compositor(e);
     let now=0,height=800,hidden=false;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
     Object.defineProperty(e.w.document,'hidden',{get:()=>hidden});
     e.root.getBoundingClientRect=()=>({top:-e.w.scrollY,bottom:height*2-e.w.scrollY,height:height*2});
     e.opening.getBoundingClientRect=()=>({top:Math.min(0,height-e.w.scrollY),height});
     e.panel.getBoundingClientRect=()=>({top:height-e.w.scrollY,height});
-    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();e.links[1].click();
+    const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();e.links[1].click();
     assert.equal(c.flight().options.duration,1000);
     height=e.w.innerHeight=700;e.w.dispatchEvent(new e.w.Event('resize'));e.flush(now);
     assert.equal(e.w.scrollY,700);assert.equal(e.panel.getAttribute('style'),null);assert.ok(c.flight().cancelled);
@@ -404,7 +456,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     e.dom.window.close();
   });
   test(`${file}: a native mobile slide reuses geometry and paints copy in the same frame`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8'),{width:390,coarse:true,profile:true});
+    const e=setup(file,{width:390,coarse:true,profile:true});
     delete e.w.lenis;
     let now=0,measurements=0,resizeCallback;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
@@ -414,7 +466,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     }
     e.w.ResizeObserver=class{constructor(callback){resizeCallback=callback;}observe(){}disconnect(){}};
     e.w.scrollTo=({top})=>{e.w.scrollY=top;e.w.dispatchEvent(new e.w.Event('scroll'));};
-    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();e.links[1].click();
+    const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();e.links[1].click();
     const initialReads=measurements;
     for(let frame=1;frame<=60;frame++){
       now=frame*1000/60;e.flush(now);
@@ -432,13 +484,13 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     owner.destroy();e.dom.window.close();
   });
   test(`${file}: a hidden tab retains its native slide and catches up when frames resume`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8'));
+    const e=setup(file);
     delete e.w.lenis;
     let now=0, hidden=false;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
     Object.defineProperty(e.w.document,'hidden',{get:()=>hidden});
     e.w.scrollTo=({top})=>{e.w.scrollY=top;};
-    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();e.links[1].click();
+    const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();e.links[1].click();
     now=e.w.TDBMotion.duration()/4;e.flush(now);const partial=e.w.scrollY;
     assert.ok(partial>0&&partial<800);
     e.w.dispatchEvent(new e.w.Event('blur'));hidden=true;e.w.document.dispatchEvent(new e.w.Event('visibilitychange'));
@@ -450,11 +502,11 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     owner.destroy();e.dom.window.close();
   });
   test(`${file}: one deliberate vertical swipe advances; the same finger cannot overshoot and the next swipe scrolls onward`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8'));
+    const e=setup(file);
     let now=0;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
     e.w.lenis.scrollTo=(...args)=>e.jumps.push(args);
-    const owner=e.w.TDBMotion.campaignHero(e.root);
+    const owner=e.w.TDBCampaignHero.mount(e.root);
     mobileTouch(e,'touchstart',600);now=200;mobileTouch(e,'touchmove',570);
     assert.equal(e.jumps.length,0,'a small slow movement does not trigger a slide');
     now=300;mobileTouch(e,'touchend');assert.equal(e.jumps.length,0);
@@ -472,11 +524,11 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     owner.destroy();e.dom.window.close();
   });
   test(`${file}: short flicks do not bypass the threshold; taps, cancellations and non-vertical gestures remain native`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8'));
+    const e=setup(file);
     let now=0;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
     e.w.lenis.scrollTo=(...args)=>e.jumps.push(args);
-    const owner=e.w.TDBMotion.campaignHero(e.root);
+    const owner=e.w.TDBCampaignHero.mount(e.root);
     mobileTouch(e,'touchstart',600);mobileTouch(e,'touchend');assert.equal(e.jumps.length,0,'tap');
     mobileTouch(e,'touchstart',600);assert.equal(mobileTouch(e,'touchmove',590,260).defaultPrevented,false);mobileTouch(e,'touchend');
     mobileTouch(e,'touchstart',600,10);assert.equal(mobileTouch(e,'touchmove',520,10).defaultPrevented,false);mobileTouch(e,'touchend');
@@ -495,7 +547,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     owner.destroy();e.dom.window.close();
   });
   test(`${file}: native slides finish at the remeasured chapter after viewport height changes or rotation`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8'));
+    const e=setup(file);
     delete e.w.lenis;
     let now=0,height=800;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
@@ -504,7 +556,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     e.opening.getBoundingClientRect=()=>rect(Math.min(0,height-e.w.scrollY),height);
     e.panel.getBoundingClientRect=()=>rect(height-e.w.scrollY,height);
     e.w.scrollTo=({top})=>{e.w.scrollY=top;};
-    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();e.links[1].click();
+    const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();e.links[1].click();
     const duration=e.w.TDBMotion.duration();now=duration/4;e.flush(now);
     height=e.w.innerHeight=700;e.w.dispatchEvent(new e.w.Event('resize'));
     assert.ok(e.queue.size>0,'browser chrome resize must not cancel the slide');
@@ -519,9 +571,9 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     owner.destroy();e.dom.window.close();
   });
   test(`${file}: browser chrome resize preserves the current gesture threshold and updates the next`,()=>{
-    const e=setup(fs.readFileSync(file,'utf8'));
+    const e=setup(file);
     e.w.lenis.scrollTo=(...args)=>e.jumps.push(args);
-    const owner=e.w.TDBMotion.campaignHero(e.root);
+    const owner=e.w.TDBCampaignHero.mount(e.root);
     mobileTouch(e,'touchstart',600);mobileTouch(e,'touchmove',580);
     e.w.innerHeight=700;e.w.dispatchEvent(new e.w.Event('resize'));
     mobileTouch(e,'touchmove',441);

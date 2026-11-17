@@ -47,6 +47,7 @@ module.exports = {
     'src/instagram/instagram-feed-bundle.js',
   ],
   'dist/tdb-motion-policy.js': ['src/shared/motion-policy.js'],
+  'dist/tdb-hero-campaign.js': ['src/components/hero-campaign.js'],
   'dist/tdb-motion.js': ['src/shared/motion.js', 'src/shared/section-magnet.js'],
   'dist/tdb-filters.js': ['src/shared/filters.js'],
   'dist/tdb-slider-focus.js': ['src/shared/slider-focus.js'],

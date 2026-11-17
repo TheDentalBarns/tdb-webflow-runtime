@@ -12,8 +12,10 @@ Home instance: `0aea8c9d-e128-5eab-dda9-c6a949f9fe7a`.
 - **Campaign image**, **Image description**, **Eyebrow**, **Campaign heading**,
   **Supporting text**, **CTA label**, **CTA destination** and **Campaign section
   label** are native instance properties. Copy and CTA work without JavaScript.
-- **Use campaign video** defaults off. Set **Campaign Vimeo ID** before enabling
-  it. The same image is the video poster; video uses the existing shared Vimeo
+- **Use campaign video** defaults off. Set **Campaign Vimeo ID — landscape** and
+  **Campaign Vimeo ID — portrait** before enabling it. Landscape is used above
+  991px and portrait on tablet/mobile, matching the existing opening hero.
+  The same image is the video poster; video uses the existing shared Vimeo
   consent, pause and lazy loading behavior. Its play button belongs to its own
   video shell. No new Vimeo player or custom playback implementation is added.
 
@@ -28,13 +30,14 @@ image/poster, copy, buttons, styles and responsive layout. The existing shared
 Hero — Vimeo instance and its assets stay intact inside the opening wrapper.
 The new heading is an H2; this does not introduce another H1.
 
-`TDBMotion.campaignHero` owns transient panel/copy motion, the
+`TDBCampaignHero.mount` in `src/components/hero-campaign.js` owns transient panel/copy motion, the
 two marker animations, focus exclusion for covered content, and bounded
 gesture snapping between the two heroes. It uses the shared frame scheduler,
 motion policy/timing and Lenis scroll owner. The first background does not
 parallax. Campaign copy enters with a quarter-screen offset relative to its image,
 settles at its authored position and then scrolls normally with the page. The
-opening logo travels upward over the stationary first background and fades
+opening playback control travels upward with its departing chapter; the campaign
+control stays inside its own moving video shell. The opening logo travels upward over the stationary first background and fades
 directly with slide progress, remaining fully visible at the untouched opening.
 Approximately two wheel inputs (two-thirds of a viewport of accumulated input)
 advance the opening chapter only after a fresh load. After the first completed
@@ -97,12 +100,12 @@ ARIA state and inert state and removes gesture/timer/frame ownership.
 
 No new inline head CSS or page-level custom code is required. No analytics,
 form, content feed or production-domain settings are changed. The campaign
-loads the existing shared motion module only when the native campaign exists;
+loads `tdb-hero-campaign.js` and the shared motion dependency together only when the native campaign exists;
 there is no continuous animation loop when the visitor stops scrolling.
 
 ## Release and rollback
 
-Runtime release 2.1.11 is based on the actual deployed immutable release
+Runtime release 2.1.12 is based on the actual deployed immutable release
 `55f76b394bf4aedfaba35ced87bf12631c07a70c`, not unshipped main-branch changes.
 All first-party site script/style/preload references move together to the
 same new commit. This pilot is published only to `dentalbarns.webflow.io`.
@@ -272,3 +275,65 @@ size is unchanged. No new requests, nodes or native styles are introduced.
 
 Rollback: restore runtime `b620d6e4dd95dad6418cc04a225c167258cfa848` in all global
 release references and publish staging only. No native style rollback is needed.
+
+
+## Gesture recovery, ownership and two Vimeo formats — 17 November 2026 (2.1.12)
+
+The missed mobile snap was not confined to first load. Reproductions identified
+three uncovered paths: native movement arriving after the mount-time probe;
+height-only browser chrome resize clearing a pending native settle; and a child
+control stopping release-event bubbling. The old source and bundle fail all six
+regression checks; the replacement passes them in both source and bundle form.
+Recovery now retains the last settled chapter, applies the same captured 20%
+threshold in either direction, and observes touch release in capture phase.
+Late touches can adopt a partial position after any landing. Keyboard navigation,
+page restoration, sideways/edge gestures and zoom stay outside recovery. Recovery
+uses a bounded quiet-period timer; there is no perpetual frame loop or idle poll.
+The opening control translates with the departing chapter, including compositor
+flights; incoming playback controls inherit the panel movement without copy parallax.
+
+### Authoritative locations
+
+| Concern | Owner |
+| --- | --- |
+| Content, campaign toggle, full-height panels, poster/crops, CTA, responsive layout | Webflow **Home — Seasonal hero** component |
+| Landscape and portrait video IDs; optional video visibility | Native component properties and conditional video wrapper |
+| Swipe state, chapter snapping, parallax and pill animation | src/components/hero-campaign.js → dist/tdb-hero-campaign.js |
+| Timing, motion policy, pointer detection and read/write frame batching | src/shared/motion.js, config/motion.json |
+| Presence gate, shared module registry, mounting/retry/disposal | src/runtime/hero-campaign-loader.js → dist/tdb-runtime.js |
+| Playback, visibility, consent and responsive player selection | Existing src/components/vimeo.js and src/loaders/vimeo-loader.js |
+| Header attachment | Existing navbar owner |
+
+This follows the [Home architecture standard](https://chatgpt.com/space/page_c22eaec26d7c819197df9524f243acbd):
+complex feature state stays with its feature, while genuine timing/frame primitives
+stay shared. The experiment previously lived inside TDBMotion.campaignHero; it is
+now a separate feature asset. Its DOM hook is [data-tdb-campaign-hero] with a native
+[data-tdb-campaign-panel]. The consent-released runtime prepares both dependencies
+in parallel, then mounts once. Missing/disabled campaign requests no hero module.
+Native panels, image, text and anchor links are the failure/no-JS fallback. Teardown
+aborts listeners, timers, frame work and finite animations, restores authored
+styles/ARIA/inert state and disconnects its ResizeObserver. No extra CSS bundle,
+new scheduler, Omega/Swiper library or page custom-code patch is introduced.
+
+The portrait video adds four native elements inside the existing optional wrapper
+(player root, iframe wrapper, empty iframe and poster), omitted while video is off.
+Both empty IDs are deliberately retained until the actual campaign films arrive.
+No provider iframe URL is authored eagerly. The existing single control chooses
+the visible player; both formats retain the shared consent/visibility gates.
+Two scoped native media combo classes preserve the previous 100% cover geometry.
+The image remains the default campaign on staging.
+
+Controlled comparison with 2.1.11: shared motion falls from 45,689 to 35,930 raw
+bytes (15,404 to 12,326 gzip). The feature asset is 10,955 raw / 4,273 gzip bytes
+and adds one request only when the campaign exists. Combined changed startup,
+runtime, motion and feature assets grow by 1,337 raw / 1,213 gzip bytes. This is
+ownership and reliability work, not a measured device FPS or loading-speed claim.
+
+Validation: 1,232 tests, 1,229 passed, three existing skips, zero failures;
+source/build parity passes. Targeted coverage includes repeated up/down native
+recovery, short returns, release capture, hidden-tab completion, compositor
+landing, control attachment, loader deduplication/failure/disposal and campaign-off
+gating. Physical Android swipe feel remains a user-device check. Roll back all
+four install pins to 972a95661abd35ac9b174bf1a8c972b1e5759665 for the previous
+runtime, or switch Show campaign off for the original single hero. The added
+portrait property is inert while Use campaign video remains off.

@@ -63,11 +63,16 @@ function prepareHeroCampaignLoader() {
     disposed = false;
   function mount() {
     if (disposed || flight || owner) return flight;
-    flight = window.TDBModules.load(new URL('tdb-motion.js', TDBRuntimeModuleRoot).href, {
-      ready: () => typeof window.TDBMotion?.campaignHero === 'function',
-    })
+    flight = Promise.all([
+      window.TDBModules.load(new URL('tdb-motion.js', TDBRuntimeModuleRoot).href, {
+        ready: () => Boolean(window.TDBMotion?.frames),
+      }),
+      window.TDBModules.load(new URL('tdb-hero-campaign.js', TDBRuntimeModuleRoot).href, {
+        ready: () => typeof window.TDBCampaignHero?.mount === 'function',
+      }),
+    ])
       .then(() => {
-        if (!disposed) owner = window.TDBMotion.campaignHero(root);
+        if (!disposed) owner = window.TDBCampaignHero.mount(root);
       })
       .catch((error) => {
         console.warn('TDB campaign hero: retaining native panels and links.', error);
