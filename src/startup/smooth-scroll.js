@@ -12,12 +12,15 @@
     nativeScrollAt = 0,
     started = false;
   const reset = () => window.lenis?.reset();
-  function release() {
+  function release(rebase = false) {
+    const wasNative = nativeAutoscroll;
     nativeAutoscroll = false;
     middleHeld = false;
     middleOrigin = null;
     middleDragged = false;
-    reset();
+    // Ordinary clicks and window blur must not cancel an owned scroll.
+    // Rebase only when handing back native input or restoring a page.
+    if (wasNative || rebase === true) reset();
   }
   document.addEventListener(
     'pointerdown',
@@ -73,13 +76,13 @@
           event.key,
         )
       )
-        release();
+        release(true);
     },
     { capture: true, passive: true },
   );
   window.addEventListener('blur', release);
-  window.addEventListener('pagehide', release);
-  window.addEventListener('pageshow', release);
+  window.addEventListener('pagehide', () => release(true));
+  window.addEventListener('pageshow', () => release(true));
   window.TDBSmoothScroll = Object.freeze({
     get nativeAutoscroll() {
       return nativeAutoscroll;

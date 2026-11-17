@@ -55,7 +55,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     const e=setup(fs.readFileSync(file,'utf8')), owner=e.w.TDBMotion.campaignHero(e.root);
     e.flush();
     e.links[1].click();assert.equal(e.jumps.length,1);assert.equal(e.jumps[0][0],800);
-    assert.equal(e.jumps[0][1].duration,e.w.TDBMotion.duration()*2/1000,'slide takes one-third less time than the previous three-times duration');
+    assert.equal(e.jumps[0][1].duration,e.w.TDBMotion.duration()/1000,'slide takes half the previous duration');
     assert.equal(e.jumps[0][1].easing(.5),.5,'movement is still halfway at half time instead of appearing settled while locked');
     const modified=new e.w.MouseEvent('click',{bubbles:true,cancelable:true,ctrlKey:true});
     e.links[0].dispatchEvent(modified);assert.equal(modified.defaultPrevented,false);assert.equal(e.jumps.length,1);
@@ -71,7 +71,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     assert.equal(hint.defaultPrevented,true,'the full-video play target still permits section navigation');
     assert.equal(hint.lenisStopPropagation,true,'the same input must not also be applied by Lenis');
     assert.equal(e.jumps.length,0);assert.equal(e.w.scrollY,0);assert.equal(e.copy.style.opacity,'1');
-    assert.ok(parseFloat(e.links[1].style.height)>44,'pill shows intent without moving the hero');
+    assert.ok(e.queue.size>0,'pill eases intent without moving the hero');
     wheel(270);assert.equal(e.jumps.at(-1)[0],800,'two wheel inputs cross the shorter opening threshold');
     assert.equal(e.jumps.at(-1)[1].lock,true,'a transition completes rather than pausing halfway');
     await new Promise(r=>setTimeout(r,200));e.scroll(800);wheel(-120);
@@ -146,10 +146,48 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
     e.w.scrollTo=({top})=>{e.w.scrollY=top;e.jumps.push(top);};
     const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();e.links[1].click();
-    now=e.w.TDBMotion.duration();e.flush(now);
+    now=e.w.TDBMotion.duration()/2;e.flush(now);
     assert.ok(e.w.scrollY>0&&e.w.scrollY<800,'still travelling at half time');
     now*=2;e.flush(now);e.flush(now);assert.equal(e.w.scrollY,800);assert.equal(e.queue.size,0);
     e.links[0].click();assert.ok(e.queue.size>0);owner.destroy();assert.equal(e.queue.size,0);
     e.dom.window.close();
+  });
+  test(`${file}: pill hint eases in and remains continuous when either slide starts or finishes`,()=>{
+    const e=setup(fs.readFileSync(file,'utf8'));
+    let now=0;
+    Object.defineProperty(e.w.performance,'now',{value:()=>now});
+    e.w.lenis.scrollTo=(...args)=>e.jumps.push(args);
+    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();
+    const wheel=delta=>{e.root.dispatchEvent(new e.w.WheelEvent('wheel',{deltaY:delta,bubbles:true,cancelable:true}));owner.refresh();e.flush(now);};
+    const height=()=>parseFloat(e.links[1].style.height);
+    wheel(270);assert.equal(height(),44,'no jump on the first wheel input');
+    now=80;e.flush(now);const middle=height();assert.ok(middle>44&&middle<48.1);
+    now=160;e.flush(now);const hinted=height();assert.ok(hinted>middle);assert.equal(e.queue.size,0,'hint animation stops when settled');
+    wheel(270);assert.equal(height(),hinted,'crossing the threshold preserves the displayed pill size');
+    e.scroll(400);assert.ok(height()>hinted&&height()<100);
+    e.scroll(800);assert.equal(height(),100);e.jumps.at(-1)[1].onComplete();e.flush(now);assert.equal(height(),100);
+    wheel(-120);assert.equal(height(),100,'reverse input has no negative pressure jump');
+    e.scroll(400);assert.ok(height()>44&&height()<100);
+    e.scroll(0);e.jumps.at(-1)[1].onComplete();e.flush(now);assert.equal(height(),44);
+    wheel(120);assert.equal(height(),44,'down again also starts continuously');
+    owner.destroy();e.dom.window.close();
+  });
+  test(`${file}: a hidden tab retains its native slide and catches up when frames resume`,()=>{
+    const e=setup(fs.readFileSync(file,'utf8'));
+    delete e.w.lenis;
+    let now=0, hidden=false;
+    Object.defineProperty(e.w.performance,'now',{value:()=>now});
+    Object.defineProperty(e.w.document,'hidden',{get:()=>hidden});
+    e.w.scrollTo=({top})=>{e.w.scrollY=top;};
+    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();e.links[1].click();
+    now=e.w.TDBMotion.duration()/4;e.flush(now);const partial=e.w.scrollY;
+    assert.ok(partial>0&&partial<800);
+    e.w.dispatchEvent(new e.w.Event('blur'));hidden=true;e.w.document.dispatchEvent(new e.w.Event('visibilitychange'));
+    assert.ok(e.queue.size>0,'losing visibility must not cancel the pending slide frame');
+    now=e.w.TDBMotion.duration()*2;hidden=false;e.w.document.dispatchEvent(new e.w.Event('visibilitychange'));
+    e.flush(now);e.flush(now);assert.equal(e.w.scrollY,800);assert.equal(e.copy.style.opacity,'0');assert.equal(e.queue.size,0);
+    e.root.dispatchEvent(new e.w.WheelEvent('wheel',{deltaY:-120,bubbles:true,cancelable:true}));
+    now+=e.w.TDBMotion.duration();e.flush(now);e.flush(now);assert.equal(e.w.scrollY,0,'immediate reversal remains available after returning');
+    owner.destroy();e.dom.window.close();
   });
 }

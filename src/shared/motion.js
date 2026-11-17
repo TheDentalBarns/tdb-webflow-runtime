@@ -1,4 +1,4 @@
-/* TDB shared motion v1.25.3. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.25.4. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -1864,7 +1864,11 @@
         first = frame.rect(opening),
         second = frame.rect(panel);
       const travelled = clamp(-box.top / Math.max(1, first.height));
-      const markerProgress = clamp(travelled + (pressure / scrollDistance()) * 0.12);
+      const hintPhase = clamp((performance.now() - hintStarted) / Math.max(1, time(160)));
+      if (!snapping) openingHint = hintFrom + (hintTarget - hintFrom) * slideEase(hintPhase);
+      // Carry the opening hint into the cover continuously. Reversals begin
+      // at the current endpoint rather than adding a sudden pressure offset.
+      const markerProgress = clamp(travelled + (1 - travelled) * openingHint);
       const leaving = clamp((box.bottom - frame.height * 0.5) / (frame.height * 0.5));
       const y = Math.min(Math.max(0, -box.top), first.height);
       return () => {
@@ -1890,6 +1894,7 @@
           if (index === active) links[index].setAttribute('aria-current', 'step');
           else links[index].removeAttribute('aria-current');
         });
+        if (!snapping && hintPhase < 1 && openingHint !== hintTarget) schedule();
       };
     }
     const schedule = () => {
@@ -1907,12 +1912,16 @@
       hasSettledChapter = false,
       lastTravelDirection = 0,
       pressure = 0,
+      openingHint = 0,
+      hintFrom = 0,
+      hintTarget = 0,
+      hintStarted = 0,
       quietUntil = 0,
       touchY = null,
       touchTime = 0,
       touchVelocity = 0;
     const scrollDistance = () => Math.max(120, innerHeight * (2 / 3));
-    const slideDuration = () => duration() * 2;
+    const slideDuration = () => duration();
     // Spread the movement across the duration instead of racing to an almost
     // finished position and keeping input locked through a long easing tail.
     const slideEase = (p) => p * p * (3 - 2 * p);
@@ -1933,15 +1942,16 @@
       held = false;
       snapping = false;
       pressure = 0;
+      openingHint = hintFrom = hintTarget = 0;
       quietUntil = 0;
       touchY = null;
       touchVelocity = 0;
     }
     function navigate(top) {
-      const feedback = pressure,
+      const feedback = openingHint,
         direction = Math.sign(top - window.scrollY);
       resetGesture();
-      pressure = feedback;
+      openingHint = hintFrom = hintTarget = feedback;
       lastTravelDirection = direction;
       snapping = true;
       const finish = () => {
@@ -1950,6 +1960,7 @@
         snapping = false;
         if (direction) hasSettledChapter = true;
         pressure = 0;
+        openingHint = hintFrom = hintTarget = 0;
         quietUntil = performance.now() + 180;
         schedule();
       };
@@ -1972,7 +1983,7 @@
           milliseconds = slideDuration();
         const step = (now) => {
           scrollFrame = 0;
-          if (disposed || suspended || document.hidden) return;
+          if (disposed || suspended) return;
           const p = clamp((now - started) / milliseconds);
           const eased = slideEase(p);
           window.scrollTo({ top: from + (top - from) * eased, behavior: 'instant' });
@@ -2030,7 +2041,6 @@
       // to the opening, while a downward gesture continues into the page.
       if (second && delta < 0) {
         consume();
-        pressure = -scrollDistance();
         navigate(start);
         return true;
       }
@@ -2039,8 +2049,13 @@
         const limit = scrollDistance();
         pressure =
           hasSettledChapter && delta > 0 ? limit : Math.max(0, Math.min(limit, pressure + delta));
-        schedule();
         if (pressure >= limit) navigate(end);
+        else {
+          hintFrom = openingHint;
+          hintTarget = (pressure / limit) * 0.12;
+          hintStarted = performance.now();
+          schedule();
+        }
         return true;
       }
       // A native return from the body lands on the second hero first.
@@ -2135,7 +2150,15 @@
       { passive: true, signal },
     );
     window.addEventListener('resize', resetGesture, { passive: true, signal });
-    document.addEventListener('visibilitychange', resetGesture, { signal });
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        // Background tabs can suspend rAF. Retain the in-flight destination
+        // so the next frame catches up instead of abandoning a half slide.
+        if (!snapping) resetGesture();
+      },
+      { signal },
+    );
     root.addEventListener(
       'click',
       (event) => {
@@ -2221,7 +2244,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.25.3',
+    version: '1.25.4',
     profile,
     time,
     easing,
