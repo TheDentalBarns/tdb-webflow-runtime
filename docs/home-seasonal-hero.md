@@ -42,8 +42,8 @@ Downward input leaves the second hero without an additional runway.
 Below the opening threshold,
 only the pills respond. Once triggered, the transition completes smoothly;
 it does not rest halfway between heroes. Touch includes short flick momentum.
-The slide duration is three times the site's standard motion duration (50%
-longer than release 2.1.2), including on phones with native scrolling. A smooth
+The slide duration is twice the site's standard motion duration (one-third
+shorter than release 2.1.3), including on phones with native scrolling. A smooth
 ease-in/out spreads movement across that duration instead of appearing to
 finish early while input remains locked. The existing foreground layer owns logo motion;
 the unpositioned padding wrapper stays untransformed so it cannot paint the
@@ -64,7 +64,7 @@ there is no continuous animation loop when the visitor stops scrolling.
 
 ## Release and rollback
 
-Runtime release 2.1.3 is based on the actual deployed immutable release
+Runtime release 2.1.4 is based on the actual deployed immutable release
 `55f76b394bf4aedfaba35ced87bf12631c07a70c`, not unshipped main-branch changes.
 All first-party site script/style/preload references move together to the
 same new commit. This pilot is published only to `dentalbarns.webflow.io`.

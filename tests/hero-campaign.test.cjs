@@ -55,7 +55,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     const e=setup(fs.readFileSync(file,'utf8')), owner=e.w.TDBMotion.campaignHero(e.root);
     e.flush();
     e.links[1].click();assert.equal(e.jumps.length,1);assert.equal(e.jumps[0][0],800);
-    assert.equal(e.jumps[0][1].duration,e.w.TDBMotion.duration()*3/1000,'slide lasts 50% longer than the previous two-times duration');
+    assert.equal(e.jumps[0][1].duration,e.w.TDBMotion.duration()*2/1000,'slide takes one-third less time than the previous three-times duration');
     assert.equal(e.jumps[0][1].easing(.5),.5,'movement is still halfway at half time instead of appearing settled while locked');
     const modified=new e.w.MouseEvent('click',{bubbles:true,cancelable:true,ctrlKey:true});
     e.links[0].dispatchEvent(modified);assert.equal(modified.defaultPrevented,false);assert.equal(e.jumps.length,1);
@@ -139,16 +139,16 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     assert.equal(e.jumps.length,3);assert.equal(e.jumps.at(-1)[0],800);
     owner.destroy();e.dom.window.close();
   });
-  test(`${file}: native phone scrolling uses the slower duration and cancels its finite animation on teardown`,()=>{
+  test(`${file}: native phone scrolling uses the same slide duration and cancels its finite animation on teardown`,()=>{
     const e=setup(fs.readFileSync(file,'utf8'));
     delete e.w.lenis;
     let now=0;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
     e.w.scrollTo=({top})=>{e.w.scrollY=top;e.jumps.push(top);};
     const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();e.links[1].click();
-    now=e.w.TDBMotion.duration()*2;e.flush(now);
-    assert.ok(e.w.scrollY>0&&e.w.scrollY<800,'still travelling at the former completion time');
-    now*=1.5;e.flush(now);e.flush(now);assert.equal(e.w.scrollY,800);assert.equal(e.queue.size,0);
+    now=e.w.TDBMotion.duration();e.flush(now);
+    assert.ok(e.w.scrollY>0&&e.w.scrollY<800,'still travelling at half time');
+    now*=2;e.flush(now);e.flush(now);assert.equal(e.w.scrollY,800);assert.equal(e.queue.size,0);
     e.links[0].click();assert.ok(e.queue.size>0);owner.destroy();assert.equal(e.queue.size,0);
     e.dom.window.close();
   });

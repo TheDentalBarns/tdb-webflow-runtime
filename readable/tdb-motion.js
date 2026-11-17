@@ -1,4 +1,4 @@
-/* TDB shared motion v1.25.2. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.25.3. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -1912,7 +1912,7 @@
       touchTime = 0,
       touchVelocity = 0;
     const scrollDistance = () => Math.max(120, innerHeight * (2 / 3));
-    const slideDuration = () => duration() * 3;
+    const slideDuration = () => duration() * 2;
     // Spread the movement across the duration instead of racing to an almost
     // finished position and keeping input locked through a long easing tail.
     const slideEase = (p) => p * p * (3 - 2 * p);
@@ -2221,7 +2221,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.25.2',
+    version: '1.25.3',
     profile,
     time,
     easing,
