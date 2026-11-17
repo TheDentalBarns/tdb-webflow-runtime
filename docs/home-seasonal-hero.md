@@ -29,7 +29,7 @@ Hero — Vimeo instance and its assets stay intact inside the opening wrapper.
 The new heading is an H2; this does not introduce another H1.
 
 `TDBMotion.campaignHero` owns only scroll-driven copy translation/opacity, the
-two About Us style markers, focus exclusion for covered content, and bounded
+two marker fades, focus exclusion for covered content, and bounded
 gesture snapping between the two heroes. It uses the shared frame scheduler,
 motion policy/timing and Lenis scroll owner. The first background does not
 parallax. Campaign copy is ordinary document content and scrolls with its image.
@@ -57,13 +57,20 @@ the unpositioned padding wrapper stays untransformed so it cannot paint the
 logo behind the video at idle. The campaign panel is natively 100lvh. Scrolling below the campaign,
 keyboard navigation, restoration and scroll-locked menus/dialogs stay free.
 
-The opening pill hint eases over a short finite animation and blends into the
-slide without a size jump at either endpoint. Ordinary clicks and window blur
+The pill rail stays fixed at the right-hand viewport centre and fades out as
+the campaign leaves. Native campaign combo styles retain the About Us line
+appearance with two equal 72px hit targets and 56px lines. Neither position,
+length nor clipping is animated. Opacity alone identifies the active chapter;
+the opening hint eases its brightness and blends into the slide continuously.
+Ordinary clicks and window blur
 do not reset an owned scroll. Hidden tabs retain an in-flight destination so
 the animation catches up when browser frames resume. Actual page navigation
 still releases the old page's scroll ownership.
-Native slide destinations are remeasured while travelling, so mobile browser
-height changes and rotation cannot cancel the animation or leave a half slide.
+Document anchors are cached until resize, observed hero/panel size changes,
+load, restoration or explicit refresh. Native scroll and foreground updates
+share the existing motion frame, eliminating the separate scroll rAF loop and
+per-frame geometry reads. Mobile browser height changes and rotation invalidate
+the anchors without cancelling an owned slide or leaving it halfway.
 Height-only changes also preserve a finger gesture that has already started.
 
 The existing navbar owner keeps the menu fixed during the cover transition,
@@ -80,7 +87,7 @@ there is no continuous animation loop when the visitor stops scrolling.
 
 ## Release and rollback
 
-Runtime release 2.1.7 is based on the actual deployed immutable release
+Runtime release 2.1.8 is based on the actual deployed immutable release
 `55f76b394bf4aedfaba35ced87bf12631c07a70c`, not unshipped main-branch changes.
 All first-party site script/style/preload references move together to the
 same new commit. This pilot is published only to `dentalbarns.webflow.io`.
@@ -97,3 +104,39 @@ teardown and the off state. Browser checks cover desktop, tablet, phone and
 landscape, native anchors, normal lower-page scrolling and staging publication.
 The campaign-off native output was published and verified to omit panel and
 rail while retaining the original hero before restoring the enabled pilot.
+
+## Stationary pills and mobile frame work — 17 November 2026
+
+Reference: [Home architecture and engineering standard](https://chatgpt.com/space/page_c22eaec26d7c819197df9524f243acbd).
+The user reported Android frame-rate drops after approving the revised swipe
+response and one-second timing. Confirmed source costs were continuously changing
+pill heights/clipping, repeated geometry measurements, redundant style/ARIA writes
+and separate scroll/foreground animation callbacks. These are removed locally;
+this is not a measured physical-device FPS claim.
+
+Designer remains authoritative for the rail position and fixed pill geometry.
+The campaign-only combo overrides leave About Us unchanged. Runtime still owns
+the fades, logo travel and snapping, through the existing native-panel presence
+gate and shared motion module; there is no new element, request, startup gate or
+global stylesheet. Timing, consent, video controls and normal body scroll remain
+as previously reviewed. No permanent compositor layers or broad containment are
+introduced. Native fallback retains the two working chapter anchors.
+Controlled build comparison with 2.1.7: the changed startup and deferred motion
+bundles have no net raw-byte increase; deferred motion adds 143 gzip bytes.
+Native positioning rules are a separate small blocking-CSS change. No HTML node,
+image payload or network-request count changes are attributed to this refinement.
+
+Acceptance checks include opacity-only markers through both directions and exit,
+no additional geometry reads across a simulated 60-frame native slide, foreground
+position matching that frame's scroll, resize invalidation, lifecycle cleanup,
+one-swipe reversals and unchanged wheel runway. Browser checks separately verify
+native sizes/position, full-height landings and onward scrolling. Physical Android
+performance remains a device check; these source and browser checks do not certify
+an FPS target.
+
+Rollback pairs runtime `8d720f0baba140d229a0dd3f0b4c87b1f5c8c845` with the preceding
+native campaign rules: rail absolute, bottom 0, height auto; progress sticky at
+50svh/right auto; step 44px with first-child 100px; marker 84px. Remove the added
+combo position/top/right and marker transform/clip overrides, and the muted
+marker transform override. Publish only staging. Published native CSS before
+the change is captured beside the working checkout as `pill-perf-before-*.css`.

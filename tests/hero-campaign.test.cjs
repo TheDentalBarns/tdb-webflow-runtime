@@ -177,24 +177,60 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
       owner.destroy();e.dom.window.close();
     }
   });
-  test(`${file}: pill hint eases in and remains continuous when either slide starts or finishes`,()=>{
+  test(`${file}: stationary pills fade continuously through hints, slides and the exit`,()=>{
     const e=setup(fs.readFileSync(file,'utf8'));
     let now=0;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
     e.w.lenis.scrollTo=(...args)=>e.jumps.push(args);
     const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();
     const wheel=delta=>{e.root.dispatchEvent(new e.w.WheelEvent('wheel',{deltaY:delta,bubbles:true,cancelable:true}));owner.refresh();e.flush(now);};
-    const height=()=>parseFloat(e.links[1].style.height);
-    wheel(270);assert.equal(height(),44,'no jump on the first wheel input');
-    now=80;e.flush(now);const middle=height();assert.ok(middle>44&&middle<48.1);
-    now=160;e.flush(now);const hinted=height();assert.ok(hinted>middle);assert.equal(e.queue.size,0,'hint animation stops when settled');
-    wheel(270);assert.equal(height(),hinted,'crossing the threshold preserves the displayed pill size');
-    e.scroll(400);assert.ok(height()>hinted&&height()<100);
-    e.scroll(800);assert.equal(height(),100);e.jumps.at(-1)[1].onComplete();e.flush(now);assert.equal(height(),100);
-    wheel(-120);assert.equal(height(),100,'reverse input has no negative pressure jump');
-    e.scroll(400);assert.ok(height()>44&&height()<100);
-    e.scroll(0);e.jumps.at(-1)[1].onComplete();e.flush(now);assert.equal(height(),44);
-    wheel(120);assert.equal(height(),44,'down again also starts continuously');
+    const opacity=()=>parseFloat(e.links[1].firstElementChild.style.opacity);
+    const stationary=()=>e.links.forEach(link=>{
+      assert.equal(link.getAttribute('style'),null,'native hit-target geometry is never animated');
+      const marker=link.firstElementChild;
+      for(const property of ['height','clipPath','transform','translate'])assert.equal(marker.style[property],'','marker geometry remains native');
+    });
+    stationary();wheel(270);assert.equal(opacity(),.4,'no brightness jump on the first wheel input');
+    now=80;e.flush(now);const middle=opacity();assert.ok(middle>.4&&middle<.44);stationary();
+    now=160;e.flush(now);const hinted=opacity();assert.ok(hinted>middle);assert.equal(e.queue.size,0,'hint animation stops when settled');
+    wheel(270);assert.equal(opacity(),hinted,'crossing the threshold preserves the displayed fade');
+    e.scroll(400);assert.ok(opacity()>hinted&&opacity()<1);stationary();
+    e.scroll(800);assert.equal(opacity(),1);e.jumps.at(-1)[1].onComplete();e.flush(now);assert.equal(opacity(),1);
+    wheel(-120);assert.equal(opacity(),1,'reverse input has no brightness jump');
+    e.scroll(400);assert.ok(opacity()>.4&&opacity()<1);
+    e.scroll(0);e.jumps.at(-1)[1].onComplete();e.flush(now);assert.equal(opacity(),.4);
+    wheel(120);assert.equal(opacity(),.4,'down again also starts continuously');
+    e.scroll(800);e.jumps.at(-1)[1].onComplete();
+    e.scroll(1000);assert.equal(e.rail.style.opacity,'0.5');stationary();
+    e.scroll(1200);assert.equal(e.rail.style.opacity,'0');assert.equal(e.rail.inert,true);stationary();
+    e.scroll(1000);assert.equal(e.rail.style.opacity,'0.5');assert.ok(!e.rail.inert);
+    owner.destroy();e.dom.window.close();
+  });
+  test(`${file}: a native mobile slide reuses geometry and paints copy in the same frame`,()=>{
+    const e=setup(fs.readFileSync(file,'utf8'),{width:390,coarse:true,profile:true});
+    delete e.w.lenis;
+    let now=0,measurements=0,resizeCallback;
+    Object.defineProperty(e.w.performance,'now',{value:()=>now});
+    for(const node of [e.root,e.opening,e.panel]){
+      const read=node.getBoundingClientRect;
+      node.getBoundingClientRect=()=>{measurements++;return read();};
+    }
+    e.w.ResizeObserver=class{constructor(callback){resizeCallback=callback;}observe(){}disconnect(){}};
+    e.w.scrollTo=({top})=>{e.w.scrollY=top;e.w.dispatchEvent(new e.w.Event('scroll'));};
+    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();e.links[1].click();
+    const initialReads=measurements;
+    for(let frame=1;frame<=60;frame++){
+      now=frame*1000/60;e.flush(now);
+      assert.ok(Math.abs(parseFloat(e.copy.style.translate.split(' ')[1])+e.w.scrollY)<.001,'foreground follows the scroll written in this frame');
+      assert.ok(e.queue.size<=1,'one shared animation frame remains scheduled');
+    }
+    e.flush(now);e.flush(now);
+    assert.equal(e.w.scrollY,800);assert.equal(measurements,initialReads,'no repeated layout measurements throughout 60 animation frames');
+    assert.equal(e.queue.size,0,'no work remains after landing');
+    resizeCallback();e.flush(now);assert.equal(measurements,initialReads+3,'observed layout changes are remeasured once');
+    const afterResize=measurements;
+    for(let y=820;y<=1400;y+=20)e.scroll(y);
+    assert.equal(measurements,afterResize,'ordinary page scrolling also reuses document anchors');
     owner.destroy();e.dom.window.close();
   });
   test(`${file}: a hidden tab retains its native slide and catches up when frames resume`,()=>{

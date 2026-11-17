@@ -1,4 +1,4 @@
-/* TDB shared motion v1.25.6. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.25.7. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -1856,56 +1856,90 @@
     let disposed = false,
       suspended = false,
       active = 0,
-      progress = 0;
+      progress = 0,
+      layout = null;
     const clamp = (value) => Math.max(0, Math.min(1, value));
-    function read(frame) {
-      if (disposed || suspended || document.hidden) return;
+    function measure(frame) {
+      if (layout) return layout;
+      frame ||= frameMeasurements();
       const box = frame.rect(root),
         first = frame.rect(opening),
         second = frame.rect(panel);
-      const travelled = clamp(-box.top / Math.max(1, first.height));
+      // These are document anchors, not moving viewport rectangles. Scrolling
+      // changes their screen position but not this geometry. Invalidate on
+      // real layout changes instead of forcing a layout read every slide frame.
+      return (layout = {
+        start: frame.scroll + box.top,
+        end: frame.scroll + second.top,
+        bottom: frame.scroll + box.bottom,
+        height: first.height,
+      });
+    }
+    const style = (node, property, value) => {
+      if (node.style[property] !== value) node.style[property] = value;
+    };
+    function read(frame) {
+      if (disposed || suspended || document.hidden) return;
+      const box = measure(frame),
+        slide = nativeSlide,
+        phase = slide ? clamp((performance.now() - slide.started) / slide.milliseconds) : 0,
+        scroll = slide
+          ? slide.from + (box[slide.destination] - slide.from) * slideEase(phase)
+          : frame.scroll;
+      const travelled = clamp((scroll - box.start) / Math.max(1, box.height));
       const hintPhase = clamp((performance.now() - hintStarted) / Math.max(1, time(160)));
       if (!snapping) openingHint = hintFrom + (hintTarget - hintFrom) * slideEase(hintPhase);
       // Carry the opening hint into the cover continuously. Reversals begin
       // at the current endpoint rather than adding a sudden pressure offset.
       const markerProgress = clamp(travelled + (1 - travelled) * openingHint);
-      const leaving = clamp((box.bottom - frame.height * 0.5) / (frame.height * 0.5));
-      const y = Math.min(Math.max(0, -box.top), first.height);
+      const leaving = clamp((box.bottom - scroll - frame.height * 0.5) / (frame.height * 0.5));
+      const y = Math.min(Math.max(0, scroll - box.start), box.height);
       return () => {
+        // Native scrolling and its foreground use one shared frame. Keeping a
+        // second rAF loop made the copy/pills trail the media by a frame.
+        if (slide) window.scrollTo({ top: scroll, behavior: 'instant' });
         progress = travelled;
-        active = second.top <= frame.height * 0.5 ? 1 : 0;
-        copy.style.translate = `0 ${-y}px`;
-        copy.style.opacity = String(1 - clamp((travelled - 0.25) / 0.75));
-        opening.inert = openingInert || second.top <= 1;
+        active = box.end - scroll <= frame.height * 0.5 ? 1 : 0;
+        style(copy, 'translate', `0 ${-y}px`);
+        style(copy, 'opacity', String(1 - clamp((travelled - 0.25) / 0.75)));
+        const covered = openingInert || box.end - scroll <= 1;
+        if (opening.inert !== covered) opening.inert = covered;
         if (rail) {
-          rail.style.opacity = String(leaving);
-          rail.inert = railInert || leaving === 0;
+          style(rail, 'opacity', String(leaving));
+          const hidden = railInert || leaving === 0;
+          if (rail.inert !== hidden) rail.inert = hidden;
         }
         markers.forEach((marker, index) => {
           if (!marker) return;
           const weight = index === 0 ? 1 - markerProgress : markerProgress;
-          // The About Us pills use a 100px active target, 44px inactive
-          // target and a 3px line with 8px breathing room at either end.
-          links[index].style.height = `${44 + 56 * weight}px`;
-          marker.style.height = '84px';
-          marker.style.clipPath = `inset(${28 * (1 - weight)}px 0px round 999px)`;
-          marker.style.transform = 'none';
-          marker.style.opacity = String(0.4 + 0.6 * weight);
-          if (index === active) links[index].setAttribute('aria-current', 'step');
-          else links[index].removeAttribute('aria-current');
+          // Native styles keep both targets and lines stationary. Only opacity
+          // follows progress; no per-frame height, clipping or layout changes.
+          style(marker, 'opacity', String(0.4 + 0.6 * weight));
+          if (index === active) {
+            if (links[index].getAttribute('aria-current') !== 'step')
+              links[index].setAttribute('aria-current', 'step');
+          } else if (links[index].hasAttribute('aria-current'))
+            links[index].removeAttribute('aria-current');
         });
-        if (!snapping && hintPhase < 1 && openingHint !== hintTarget) schedule();
+        if (slide && nativeSlide === slide) {
+          if (phase < 1) schedule();
+          else slide.finish();
+        } else if (!snapping && hintPhase < 1 && openingHint !== hintTarget) schedule();
       };
     }
     const schedule = () => {
       if (!disposed && !suspended && !document.hidden) requestMotionFrame(read);
+    };
+    const invalidate = () => {
+      layout = null;
+      schedule();
     };
     // Only the first visit needs about two wheel scrolls to advance the opening.
     // After a chapter settles, either hero is ready for a one-gesture reversal.
     // Before the initial threshold only the pills respond.
     // The second hero releases forward scrolling back to the normal page.
     let settleTimer = 0,
-      scrollFrame = 0,
+      nativeSlide = null,
       gestureStart = null,
       held = false,
       snapping = false,
@@ -1936,9 +1970,8 @@
       document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
     function resetGesture() {
       clearTimeout(settleTimer);
-      cancelAnimationFrame(scrollFrame);
       settleTimer = 0;
-      scrollFrame = 0;
+      nativeSlide = null;
       gestureStart = null;
       held = false;
       snapping = false;
@@ -1951,9 +1984,8 @@
       const feedback = openingHint,
         direction = Math.sign(top - window.scrollY),
         touch = touchGesture,
-        firstTop = window.scrollY + root.getBoundingClientRect().top,
-        secondTop = window.scrollY + panel.getBoundingClientRect().top,
-        destination = Math.abs(top - firstTop) < Math.abs(top - secondTop) ? root : panel;
+        box = measure(),
+        destination = Math.abs(top - box.start) < Math.abs(top - box.end) ? 'start' : 'end';
       resetGesture();
       touchGesture = touch;
       held = Boolean(touch);
@@ -1961,8 +1993,7 @@
       lastTravelDirection = direction;
       snapping = true;
       const finish = () => {
-        cancelAnimationFrame(scrollFrame);
-        scrollFrame = 0;
+        nativeSlide = null;
         snapping = false;
         if (direction) hasSettledChapter = true;
         pressure = 0;
@@ -1984,22 +2015,14 @@
       } else {
         // Native smooth-scroll has a browser-chosen duration. Phones use a
         // finite animation with the same duration and easing as this Lenis slide.
-        const from = window.scrollY,
-          started = performance.now(),
-          milliseconds = slideDuration();
-        const step = (now) => {
-          scrollFrame = 0;
-          if (disposed || suspended) return;
-          const p = clamp((now - started) / milliseconds);
-          const eased = slideEase(p);
-          // Mobile browser controls and rotation can change the viewport
-          // during travel. Keep the chapter, not an obsolete pixel target.
-          const target = window.scrollY + destination.getBoundingClientRect().top;
-          window.scrollTo({ top: from + (target - from) * eased, behavior: 'instant' });
-          if (p < 1) scrollFrame = requestAnimationFrame(step);
-          else finish();
+        nativeSlide = {
+          from: window.scrollY,
+          started: performance.now(),
+          milliseconds: slideDuration(),
+          destination,
+          finish,
         };
-        scrollFrame = requestAnimationFrame(step);
+        schedule();
       }
     }
     function settle() {
@@ -2010,8 +2033,7 @@
         return;
       }
       const y = window.scrollY,
-        start = y + root.getBoundingClientRect().top,
-        end = y + panel.getBoundingClientRect().top,
+        { start, end } = measure(),
         distance = end - start;
       if (y <= start + 2 || y >= end - 2 || distance <= 0) return resetGesture();
       const travel = y - gestureStart,
@@ -2042,8 +2064,7 @@
       }
       quietUntil = 0;
       const y = window.scrollY,
-        start = y + root.getBoundingClientRect().top,
-        end = y + panel.getBoundingClientRect().top,
+        { start, end } = measure(),
         first = Math.abs(y - start) <= 3,
         second = Math.abs(y - end) <= 3;
       // The second hero has no additional runway: one upward gesture returns
@@ -2110,8 +2131,9 @@
         gestureStart = null;
         held = true;
         if (!snapping) quietUntil = pressure = 0;
-        const first = root.getBoundingClientRect().top,
-          second = panel.getBoundingClientRect().top;
+        const box = measure(),
+          first = box.start - window.scrollY,
+          second = box.end - window.scrollY;
         touchGesture = {
           x,
           y,
@@ -2245,10 +2267,11 @@
     window.addEventListener(
       'resize',
       () => {
+        invalidate();
         const widthChanged = Math.abs(innerWidth - viewportWidth) > 1;
         viewportWidth = innerWidth;
-        // Height-only browser chrome changes are not new gestures. Native slides
-        // remeasure their destination on each frame, including after rotation.
+        // Height-only browser chrome changes are not new gestures. The next
+        // slide frame remeasures the invalidated destination after rotation too.
         if ((snapping && !window.lenis?.scrollTo) || (touchGesture && !widthChanged)) return;
         resetGesture();
       },
@@ -2260,6 +2283,7 @@
         // Background tabs can suspend rAF. Retain the in-flight destination
         // so the next frame catches up instead of abandoning a half slide.
         if (!snapping) resetGesture();
+        if (!document.hidden) invalidate();
       },
       { signal },
     );
@@ -2288,8 +2312,7 @@
       { capture: true, signal },
     );
     window.addEventListener('scroll', schedule, { passive: true, signal });
-    window.addEventListener('resize', schedule, { passive: true, signal });
-    window.addEventListener('load', schedule, { signal });
+    window.addEventListener('load', invalidate, { signal });
     window.addEventListener(
       'pagehide',
       () => {
@@ -2303,16 +2326,17 @@
       'pageshow',
       () => {
         suspended = false;
-        schedule();
+        invalidate();
       },
       { signal },
     );
     document.addEventListener('visibilitychange', schedule, { signal });
-    const resize = typeof ResizeObserver === 'function' ? new ResizeObserver(schedule) : null;
+    const resize = typeof ResizeObserver === 'function' ? new ResizeObserver(invalidate) : null;
     resize?.observe(root);
     resize?.observe(opening);
+    resize?.observe(panel);
     const api = Object.freeze({
-      refresh: schedule,
+      refresh: invalidate,
       status: () => ({ ready: !disposed, active, progress }),
       destroy() {
         if (disposed) return;
@@ -2348,7 +2372,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.25.6',
+    version: '1.25.7',
     profile,
     time,
     easing,
