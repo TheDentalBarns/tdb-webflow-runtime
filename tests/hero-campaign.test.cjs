@@ -5,12 +5,12 @@ const { JSDOM } = require('jsdom');
 
 function setup(code) {
   const dom = new JSDOM(`<main data-tdb-campaign-hero>
-    <div data-tdb-campaign-opening><div data-vimeo-hero-content style="color:white">Logo</div><iframe></iframe><button data-tdb-hero-toggle></button></div>
+    <div data-tdb-campaign-opening><div data-vimeo-hero-content><div class="hero-vimeo_content" style="color:white">Logo</div></div><iframe></iframe><button data-tdb-hero-toggle></button></div>
     <section data-tdb-campaign-panel><h2>Campaign</h2><a href="/implants">Discover</a></section>
     <nav data-tdb-campaign-rail><a href="#first" data-tdb-campaign-step="0" aria-current="step"><span></span></a><a href="#second" data-tdb-campaign-step="1"><span></span></a></nav>
   </main>`, { runScripts:'outside-only', pretendToBeVisual:true });
   const w=dom.window, root=w.document.querySelector('main'), opening=root.firstElementChild,
-    panel=root.querySelector('section'), copy=root.querySelector('[data-vimeo-hero-content]'),
+    panel=root.querySelector('section'), copy=root.querySelector('.hero-vimeo_content'),
     rail=root.querySelector('nav'), links=[...rail.querySelectorAll('a')], queue=new Map(), jumps=[];
   let seq=0;
   w.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){}});
@@ -23,7 +23,7 @@ function setup(code) {
   panel.getBoundingClientRect=()=>rect(800-w.scrollY,800);
   w.lenis={scrollTo:(...args)=>{jumps.push(args);args[1]?.onComplete?.();}};
   w.eval(code);
-  const flush=()=>{const tasks=[...queue.values()];queue.clear();tasks.forEach(cb=>cb());};
+  const flush=(now=0)=>{const tasks=[...queue.values()];queue.clear();tasks.forEach(cb=>cb(now));};
   const scroll=y=>{w.scrollY=y;w.dispatchEvent(new w.Event('scroll'));flush();};
   return {dom,w,root,opening,panel,copy,rail,links,queue,jumps,flush,scroll};
 }
@@ -32,6 +32,9 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
   test(`${file}: cover progress fades and scrolls copy, preserves media, reverses and becomes idle`,()=>{
     const e=setup(fs.readFileSync(file,'utf8')), owner=e.w.TDBMotion.campaignHero(e.root);
     assert.equal(e.w.TDBMotion.campaignHero(e.root),owner,'one owner per root');
+    e.flush();
+    assert.equal(e.root.querySelector('[data-vimeo-hero-content]').getAttribute('style'),null,'unpositioned padding must not create a stacking context behind the video');
+    assert.equal(e.copy.style.opacity,'1','logo remains visible before any input');
     e.scroll(400);
     assert.equal(e.copy.style.translate,'0 -400px');
     assert.ok(Math.abs(Number(e.copy.style.opacity)-2/3)<.001);
@@ -52,6 +55,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     const e=setup(fs.readFileSync(file,'utf8')), owner=e.w.TDBMotion.campaignHero(e.root);
     e.flush();
     e.links[1].click();assert.equal(e.jumps.length,1);assert.equal(e.jumps[0][0],800);
+    assert.equal(e.jumps[0][1].duration,e.w.TDBMotion.duration()*2/1000,'slide takes twice the previous duration');
     const modified=new e.w.MouseEvent('click',{bubbles:true,cancelable:true,ctrlKey:true});
     e.links[0].dispatchEvent(modified);assert.equal(modified.defaultPrevented,false);assert.equal(e.jumps.length,1);
     e.w.dispatchEvent(new e.w.Event('pagehide'));e.scroll(400);assert.equal(e.copy.style.opacity,'1');
@@ -59,20 +63,21 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     owner.destroy();e.panel.remove();assert.equal(e.w.TDBMotion.campaignHero(e.root),null,'campaign off keeps the original hero');
     e.dom.window.close();
   });
-  test(`${file}: one viewport of wheel intent changes only pills until a complete chapter transition`,async()=>{
+  test(`${file}: two opening wheel inputs advance, one upward input returns, and the second hero has no runway`,async()=>{
     const e=setup(fs.readFileSync(file,'utf8')), owner=e.w.TDBMotion.campaignHero(e.root);
     const wheel=delta=>{const event=new e.w.WheelEvent('wheel',{deltaY:delta,bubbles:true,cancelable:true});e.root.querySelector('[data-tdb-hero-toggle]').dispatchEvent(event);e.flush();return event;};
-    const hint=wheel(120);
+    const hint=wheel(270);
     assert.equal(hint.defaultPrevented,true,'the full-video play target still permits section navigation');
     assert.equal(hint.lenisStopPropagation,true,'the same input must not also be applied by Lenis');
     assert.equal(e.jumps.length,0);assert.equal(e.w.scrollY,0);assert.equal(e.copy.style.opacity,'1');
     assert.ok(parseFloat(e.links[1].style.height)>44,'pill shows intent without moving the hero');
-    wheel(680);assert.equal(e.jumps.at(-1)[0],800,'one viewport of intent advances to the second hero');
+    wheel(270);assert.equal(e.jumps.at(-1)[0],800,'two wheel inputs cross the shorter opening threshold');
     assert.equal(e.jumps.at(-1)[1].lock,true,'a transition completes rather than pausing halfway');
-    await new Promise(r=>setTimeout(r,200));e.scroll(800);wheel(-800);
+    await new Promise(r=>setTimeout(r,200));e.scroll(800);wheel(-120);
     assert.equal(e.jumps.at(-1)[0],0,'reverse gesture returns to the opening hero');
     await new Promise(r=>setTimeout(r,200));
     const count=e.jumps.length;
+    e.scroll(800);assert.equal(wheel(120).defaultPrevented,false,'downward scrolling leaves the second hero immediately');
     e.scroll(1000);assert.equal(wheel(120).defaultPrevented,false);e.scroll(1120);await new Promise(r=>setTimeout(r,200));
     assert.equal(e.jumps.length,count,'rest of page retains normal scroll');
     e.scroll(0);e.w.TDBScrollLock={active:true};wheel(800);e.scroll(120);
@@ -89,5 +94,18 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     assert.equal(tail.defaultPrevented,true);assert.equal(tail.lenisStopPropagation,true);
     assert.equal(e.jumps.length,1);
     owner.destroy();e.dom.window.close();
+  });
+  test(`${file}: native phone scrolling uses the slower duration and cancels its finite animation on teardown`,()=>{
+    const e=setup(fs.readFileSync(file,'utf8'));
+    delete e.w.lenis;
+    let now=0;
+    Object.defineProperty(e.w.performance,'now',{value:()=>now});
+    e.w.scrollTo=({top})=>{e.w.scrollY=top;e.jumps.push(top);};
+    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();e.links[1].click();
+    now=e.w.TDBMotion.duration();e.flush(now);
+    assert.ok(e.w.scrollY>0&&e.w.scrollY<800,'still travelling at the former completion time');
+    now*=2;e.flush(now);e.flush(now);assert.equal(e.w.scrollY,800);assert.equal(e.queue.size,0);
+    e.links[0].click();assert.ok(e.queue.size>0);owner.destroy();assert.equal(e.queue.size,0);
+    e.dom.window.close();
   });
 }

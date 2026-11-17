@@ -33,10 +33,16 @@ two About Us style markers, focus exclusion for covered content, and bounded
 gesture snapping between the two heroes. It uses the shared frame scheduler,
 motion policy/timing and Lenis scroll owner. The first background does not
 parallax. Campaign copy is ordinary document content and scrolls with its image.
-Approximately 100vh of wheel input advances a chapter. Below the threshold,
+Approximately two wheel inputs (two-thirds of a viewport of accumulated input)
+advance the opening chapter. A single upward gesture from the second hero
+returns to the opening; downward input leaves the second hero immediately.
+Below the opening threshold,
 only the pills respond. Once triggered, the transition completes smoothly;
 it does not rest halfway between heroes. Touch includes short flick momentum.
-The campaign panel is natively 100lvh. Scrolling below the campaign,
+The slide duration is twice the site's standard motion duration, including on
+phones with native scrolling. The existing foreground layer owns logo motion;
+the unpositioned padding wrapper stays untransformed so it cannot paint the
+logo behind the video at idle. The campaign panel is natively 100lvh. Scrolling below the campaign,
 keyboard navigation, restoration and scroll-locked menus/dialogs stay free.
 
 The existing navbar owner keeps the menu fixed during the cover transition,
@@ -53,7 +59,7 @@ there is no continuous animation loop when the visitor stops scrolling.
 
 ## Release and rollback
 
-Runtime release 2.1.1 is based on the actual deployed immutable release
+Runtime release 2.1.2 is based on the actual deployed immutable release
 `55f76b394bf4aedfaba35ced87bf12631c07a70c`, not unshipped main-branch changes.
 All first-party site script/style/preload references move together to the
 same new commit. This pilot is published only to `dentalbarns.webflow.io`.
