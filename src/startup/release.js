@@ -7,7 +7,7 @@
   const base = new URL('./', entry.src).href;
   const commit = entry.src.match(/tdb-webflow-runtime@([a-f0-9]{40})\//)?.[1] || null;
   window.TDBRelease = Object.freeze({
-    version: '2.1.2',
+    version: '2.1.13',
     commit,
     base,
     asset: (filename) => new URL(filename, base).href,

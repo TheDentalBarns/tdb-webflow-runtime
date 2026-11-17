@@ -1,4 +1,4 @@
-/* TDB Vimeo loader 2.0.0. Released by the shared functionality-consent gate.
+/* TDB Vimeo loader 2.1.0. Released by the shared functionality-consent gate.
  * Owns proximity and preparation; the coordinator owns permission and settings.
  * Webflow owns the static frame. The controller owns playback.
  */
@@ -122,9 +122,14 @@
     return prepare();
   }
   window.TDBVimeoLoader = Object.freeze({
-    version: '2.0.0',
+    version: '2.1.0',
     prepare,
     play,
+    // Explicit feature intent only. Untouched-page loading remains unchanged.
+    warm(root) {
+      if (!permitted() || document.readyState !== 'complete') return;
+      return prepare().then((controller) => controller?.warm?.(root));
+    },
     status: () => ({
       present: roots.length,
       permitted: permitted(),

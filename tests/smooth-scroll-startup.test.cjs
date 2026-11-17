@@ -197,6 +197,33 @@ for (const choice of [{ action: 'acceptall' }, { a: 'accept', c: 'performance,ta
     },
   );
 
+test('clicking outside the page or on its background preserves an owned slide through completion', async () => {
+  const f = setup();
+  try {
+    await tick();
+    let completed = 0;
+    f.w.lenis.scrollTo(1200, { duration: .8, lock: true, onComplete: () => completed++ });
+    f.w.lenis.raf(1000);
+    f.w.lenis.raf(1200);
+    const partial = f.w.scrollY;
+    assert.ok(partial > 400 && partial < 1200);
+    f.w.dispatchEvent(new f.w.Event('blur'));
+    f.pointer(0);
+    assert.equal(f.w.lenis.animate.isRunning, true);
+    assert.equal(f.w.lenis.isLocked, true);
+    assert.equal(f.w.scrollY, partial, 'click and blur do not move or restart the slide');
+    f.w.lenis.raf(2000);
+    assert.equal(f.w.scrollY, 1200);
+    assert.equal(completed, 1);
+    assert.equal(f.w.lenis.isLocked, false);
+    f.pointer(1);
+    f.w.dispatchEvent(new f.w.Event('blur'));
+    assert.equal(f.w.TDBSmoothScroll.nativeAutoscroll, false, 'blur still releases actual native autoscroll');
+  } finally {
+    f.close();
+  }
+});
+
 test('middle-button travel and a stationary autoscroll pause retain native input until exit', async () => {
   const f = setup();
   try {

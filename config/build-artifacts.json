@@ -203,6 +203,15 @@
       "gzip": 6009,
       "brotli": 5366
     },
+    "dist/tdb-hero-campaign.js": {
+      "sources": [
+        "src/components/hero-campaign.js"
+      ],
+      "sha256": "5e6fbf8291e7276ed73ddf463cf00e1108136dda5a8f2938092e6c22d4c221a6",
+      "raw": 12882,
+      "gzip": 5042,
+      "brotli": 4581
+    },
     "dist/tdb-hold-audio.js": {
       "sources": [
         "src/components/hold-audio.js"
@@ -324,10 +333,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "818d0fd02a493350c9e98e28514fa513ddf3c6b1a1654715ffe2ef2f6e3ccf03",
-      "raw": 41757,
-      "gzip": 13862,
-      "brotli": 12516
+      "sha256": "44d01a39823b5081c1886bdeb39632c1cd3b95bb490d17964f9bfb99c200da63",
+      "raw": 35930,
+      "gzip": 12321,
+      "brotli": 11140
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -348,10 +357,10 @@
         "src/shared/panel-motion.js",
         "src/navbar/navbar-enhancement.js"
       ],
-      "sha256": "d06307dcb084d579f3f9ef0324dc5da5df33912ae496919479a06fdb98bfd45b",
-      "raw": 25151,
-      "gzip": 6766,
-      "brotli": 6054
+      "sha256": "706c52b72efc0ffaabc19859c2717171c74d4f6b0b43bcc00d554078bfa91fb4",
+      "raw": 26037,
+      "gzip": 6867,
+      "brotli": 6154
     },
     "dist/tdb-parallax.js": {
       "sources": [
@@ -581,10 +590,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "57d3a6b0c34593dd6f3746c1cd8b865edc465a66770e3162f97f625e90f6eee8",
-      "raw": 96548,
-      "gzip": 26120,
-      "brotli": 22405
+      "sha256": "4602bb6c821eb04aa8bbded5cfa69a7a6438881b8681609c98313f5f5113516e",
+      "raw": 96689,
+      "gzip": 26136,
+      "brotli": 22426
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -643,10 +652,10 @@
         "src/startup/smooth-scroll.js",
         "src/startup/start.js"
       ],
-      "sha256": "62516873d83011031438289ad7a068a96c6b7882d5916f7d4c0158052a4468b2",
-      "raw": 15649,
-      "gzip": 5748,
-      "brotli": 5140
+      "sha256": "f1a50eab1a2c2852fd28e21d32536b23f831304b96741f54be38c39896cd6038",
+      "raw": 15695,
+      "gzip": 5765,
+      "brotli": 5171
     },
     "dist/tdb-ticker.js": {
       "sources": [
@@ -724,19 +733,19 @@
       "sources": [
         "src/loaders/vimeo-loader.js"
       ],
-      "sha256": "2707e9d01f436c580b75b9f824f040d38209b720c8367167a3412341656f9e55",
-      "raw": 2429,
-      "gzip": 1118,
-      "brotli": 961
+      "sha256": "ae28958e3998bf370f2e76fd20d39138b49a398abab3e6ba79bbab7a2503f588",
+      "raw": 2512,
+      "gzip": 1161,
+      "brotli": 992
     },
     "dist/tdb-vimeo.js": {
       "sources": [
         "src/components/vimeo.js"
       ],
-      "sha256": "56567a857cda7189547e3b38c6013e1b38267ec1454ea61825ca99224eeb0561",
-      "raw": 20349,
-      "gzip": 5742,
-      "brotli": 5082
+      "sha256": "3e7df9293811ab2202b52abd8759bf0414dc273fe2f8a24366436caa74d6d4e9",
+      "raw": 20848,
+      "gzip": 5951,
+      "brotli": 5252
     },
     "dist/tdb-vip-content.js": {
       "sources": [
