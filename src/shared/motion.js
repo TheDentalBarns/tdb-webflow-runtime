@@ -1,4 +1,4 @@
-/* TDB shared motion v1.25.9. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.25.10. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -1843,12 +1843,13 @@
     // even when the transform is zero on an untouched page.
     const copy = copyWrapper?.querySelector('.hero-vimeo_content') || copyWrapper;
     if (!panel || !opening || !copy) return null;
+    const campaignCopy = panel.querySelector('.tdb-campaign-copy');
     const controller = new AbortController(),
       { signal } = controller;
     const rail = root.querySelector('[data-tdb-campaign-rail]');
     const links = [...root.querySelectorAll('[data-tdb-campaign-step]')];
     const markers = links.map((link) => link.firstElementChild);
-    const nodes = [copy, panel, rail, ...links, ...markers].filter(Boolean);
+    const nodes = [copy, campaignCopy, panel, rail, ...links, ...markers].filter(Boolean);
     const styles = nodes.map((node) => node.getAttribute('style'));
     const current = links.map((link) => link.getAttribute('aria-current'));
     const openingInert = opening.inert;
@@ -1905,7 +1906,12 @@
         progress = travelled;
         active = box.end - scroll <= frame.height * 0.5 ? 1 : 0;
         style(copy, 'translate', `0 ${-y}px`);
-        style(copy, 'opacity', String(1 - clamp((travelled - 0.25) / 0.75)));
+        style(copy, 'opacity', String(1 - travelled));
+        // The incoming foreground catches up from a quarter-screen offset.
+        // Only the copy moves within the panel; media and playback controls keep their
+        // native positions, and normal page scrolling starts at a zero offset.
+        if (campaignCopy)
+          style(campaignCopy, 'translate', `0 ${(1 - travelled) * box.height * 0.25}px`);
         const covered = openingInert || box.end - scroll <= 1;
         if (opening.inert !== covered) opening.inert = covered;
         if (rail) {
@@ -2039,20 +2045,20 @@
         { transform: `translate3d(0,${physical - visualFrom}px,0)` },
         { transform: `translate3d(0,${physical - to}px,0)` },
       ]);
-      const offsets = [0, 1],
-        fadeBoundary = (0.25 - fromProgress) / (toProgress - fromProgress);
-      if (fadeBoundary > 0 && fadeBoundary < 1) offsets.splice(1, 0, fadeBoundary);
       animate(
         copy,
-        offsets.map((offset) => {
-          const p = fromProgress + (toProgress - fromProgress) * offset;
-          return {
-            offset,
-            translate: `0 ${-p * box.height}px`,
-            opacity: String(1 - clamp((p - 0.25) / 0.75)),
-          };
-        }),
+        [fromProgress, toProgress].map((p) => ({
+          translate: `0 ${-p * box.height}px`,
+          opacity: String(1 - p),
+        })),
       );
+      if (campaignCopy)
+        animate(
+          campaignCopy,
+          [fromProgress, toProgress].map((p) => ({
+            translate: `0 ${(1 - p) * box.height * 0.25}px`,
+          })),
+        );
       const fromMarker = clamp(fromProgress + (1 - fromProgress) * openingHint);
       links.forEach((link) =>
         animate(link, [
@@ -2539,7 +2545,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.25.9',
+    version: '1.25.10',
     profile,
     time,
     easing,

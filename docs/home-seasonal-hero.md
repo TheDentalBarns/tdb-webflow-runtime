@@ -32,7 +32,10 @@ The new heading is an H2; this does not introduce another H1.
 two marker animations, focus exclusion for covered content, and bounded
 gesture snapping between the two heroes. It uses the shared frame scheduler,
 motion policy/timing and Lenis scroll owner. The first background does not
-parallax. Campaign copy is ordinary document content and scrolls with its image.
+parallax. Campaign copy enters with a quarter-screen offset relative to its image,
+settles at its authored position and then scrolls normally with the page. The
+opening logo travels upward over the stationary first background and fades
+directly with slide progress, remaining fully visible at the untouched opening.
 Approximately two wheel inputs (two-thirds of a viewport of accumulated input)
 advance the opening chapter only after a fresh load. After the first completed
 transition, one gesture switches back in either direction, including down again
@@ -99,7 +102,7 @@ there is no continuous animation loop when the visitor stops scrolling.
 
 ## Release and rollback
 
-Runtime release 2.1.10 is based on the actual deployed immutable release
+Runtime release 2.1.11 is based on the actual deployed immutable release
 `55f76b394bf4aedfaba35ced87bf12631c07a70c`, not unshipped main-branch changes.
 All first-party site script/style/preload references move together to the
 same new commit. This pilot is published only to `dentalbarns.webflow.io`.
@@ -232,3 +235,40 @@ version adds one byte. There are no additional requests, nodes or native styles.
 
 Rollback: restore runtime `41a9edad4c43c87f1e65829afc8e6937fc1c089d` in all global
 release references and publish staging only. Native pill styles remain as 2.1.9.
+
+## Foreground parallax — 17 November 2026 (2.1.11)
+
+The user requested Omega's foreground depth for the text and logo. Its native
+hero CSS offsets incoming content by 25% of a full slide and fades outgoing
+text/logo according to outgoing progress. The existing TDB opening logo already
+travels upward with its foreground over the static video; its opacity now follows
+that progress directly rather than waiting until the first quarter of the slide.
+The campaign's heading, supporting copy and CTA enter from a 25%-height offset
+within the moving panel, catch up at landing and retrace that path on reversal.
+Reference: [Omega hero styles](https://www.omegawatches.com/static/version1794588356/frontend/Omega/default/default/css/styles-m.min.css).
+
+The shared campaign owner animates the existing native `.tdb-campaign-copy`
+element. Designer remains authoritative for its settled layout. No wrapper,
+native style change, page CSS or loading gate is added. The opening logo's native
+foreground remains the transform target; its padding parent stays untouched to
+preserve the video stacking order. Authored styles are restored on teardown.
+
+Touch preview and native scrolling update both foregrounds through the shared
+frame. Mobile completion adds one synchronized compositor animation for campaign
+copy to the existing panel/logo/pill flight, with no per-frame document scroll
+or new geometry reads. The foreground offset becomes zero at the second chapter
+and remains zero through onward page scrolling. Media, video controls, fixed pill
+rail, menu attachment, 20% touch threshold and soft short-drag return retain their
+existing owners and timing.
+
+Expanded source and bundle checks cover initial visibility, quarter-height
+entry, outgoing logo fade, both directions, short-drag return, synchronized
+foreground frames, native onward scrolling, viewport changes and style restoration.
+Physical Android rendering remains a handset check.
+
+`npm run verify`: 1,224 tests, 1,221 passed, three existing skips, no failures.
+Compared with 2.1.10, motion adds 54 raw bytes and saves 12 gzip bytes; startup
+size is unchanged. No new requests, nodes or native styles are introduced.
+
+Rollback: restore runtime `b620d6e4dd95dad6418cc04a225c167258cfa848` in all global
+release references and publish staging only. No native style rollback is needed.

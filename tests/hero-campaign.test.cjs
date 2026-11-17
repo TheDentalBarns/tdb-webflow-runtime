@@ -6,11 +6,11 @@ const { JSDOM } = require('jsdom');
 function setup(code,{width=1024,height=800,coarse=false,profile=false}={}) {
   const dom = new JSDOM(`<main data-tdb-campaign-hero>
     <div data-tdb-campaign-opening><div data-vimeo-hero-content><div class="hero-vimeo_content" style="color:white">Logo</div></div><iframe></iframe><button data-tdb-hero-toggle></button></div>
-    <section data-tdb-campaign-panel><h2>Campaign</h2><a href="/implants">Discover</a></section>
+    <section data-tdb-campaign-panel><img class="tdb-campaign-image"><div class="tdb-campaign-copy" style="color:white"><h2>Campaign</h2><a href="/implants">Discover</a></div></section>
     <nav data-tdb-campaign-rail><a href="#first" data-tdb-campaign-step="0" aria-current="step"><span></span></a><a href="#second" data-tdb-campaign-step="1"><span></span></a></nav>
   </main>`, { runScripts:'outside-only', pretendToBeVisual:true });
   const w=dom.window, root=w.document.querySelector('main'), opening=root.firstElementChild,
-    panel=root.querySelector('section'), copy=root.querySelector('.hero-vimeo_content'),
+    panel=root.querySelector('section'), copy=root.querySelector('.hero-vimeo_content'),campaignCopy=panel.querySelector('.tdb-campaign-copy'),
     rail=root.querySelector('nav'), links=[...rail.querySelectorAll('a')], queue=new Map(), jumps=[];
   let seq=0;
   w.innerWidth=width;
@@ -28,7 +28,7 @@ function setup(code,{width=1024,height=800,coarse=false,profile=false}={}) {
   w.eval(code);
   const flush=(now=0)=>{const tasks=[...queue.values()];queue.clear();tasks.forEach(cb=>cb(now));};
   const scroll=y=>{w.scrollY=y;w.dispatchEvent(new w.Event('scroll'));flush();};
-  return {dom,w,root,opening,panel,copy,rail,links,queue,jumps,flush,scroll};
+  return {dom,w,root,opening,panel,copy,campaignCopy,rail,links,queue,jumps,flush,scroll};
 }
 
 function mobileTouch(e,type,y,x=180,count=1,cancelable=true) {
@@ -57,18 +57,24 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     e.flush();
     assert.equal(e.root.querySelector('[data-vimeo-hero-content]').getAttribute('style'),null,'unpositioned padding must not create a stacking context behind the video');
     assert.equal(e.copy.style.opacity,'1','logo remains visible before any input');
+    assert.equal(e.campaignCopy.style.translate,'0 200px','campaign copy starts a quarter-screen below its native position');
     e.scroll(400);
     assert.equal(e.copy.style.translate,'0 -400px');
-    assert.ok(Math.abs(Number(e.copy.style.opacity)-2/3)<.001);
+    assert.equal(e.copy.style.opacity,'0.5','outgoing logo fades directly with slide progress');
+    assert.equal(e.campaignCopy.style.translate,'0 100px','incoming copy moves independently of its image');
     assert.equal(e.links[1].getAttribute('aria-current'),'step');
     assert.equal(e.root.querySelector('iframe').getAttribute('style'),null);
     assert.equal(e.panel.getAttribute('style'),null,'native second panel handles scrolling');
     assert.equal(e.queue.size,0,'no perpetual requestAnimationFrame loop');
     e.scroll(800);assert.equal(e.copy.style.opacity,'0');assert.equal(e.opening.inert,true);
+    assert.equal(e.campaignCopy.style.translate,'0 0px','text and CTA settle at their native position');
     e.scroll(1600);assert.equal(e.rail.inert,true);assert.equal(e.rail.style.opacity,'0');
+    assert.equal(e.campaignCopy.style.translate,'0 0px','onward scrolling adds no extra parallax');
+    e.scroll(400);assert.equal(e.campaignCopy.style.translate,'0 100px');assert.equal(e.copy.style.opacity,'0.5');
     e.scroll(0);assert.equal(e.copy.style.opacity,'1');assert.ok(!e.opening.inert);assert.ok(!e.rail.inert);
     assert.equal(e.links[0].getAttribute('aria-current'),'step');
     owner.destroy();assert.equal(e.copy.getAttribute('style'),'color:white');
+    assert.equal(e.campaignCopy.getAttribute('style'),'color:white');
     assert.equal(e.rail.getAttribute('style'),null);assert.equal(e.links[1].getAttribute('aria-current'),null);
     e.scroll(300);assert.equal(e.queue.size,0);assert.equal(e.copy.style.translate,'');
     e.dom.window.close();
@@ -235,27 +241,37 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     mobileTouch(e,'touchstart',600);now=100;mobileTouch(e,'touchmove',440);e.flush(now);
     assert.equal(e.panel.style.transform,'translate3d(0,-160px,0)');
     assert.equal(e.copy.style.translate,'0 -160px');
+    assert.equal(e.copy.style.opacity,'0.8');
+    assert.equal(e.campaignCopy.style.translate,'0 160px');
     assert.equal(e.w.scrollY,0);assert.equal(c.animations.length,0,'the held finger previews before settling');
     mobileTouch(e,'touchend');
     assert.deepEqual(Array.from(c.flight().frames,f=>f.transform),['translate3d(0,-160px,0)','translate3d(0,-800px,0)']);
     assert.equal(c.flight().options.duration,800,'remaining distance retains the slower full-height pace');
-    assert.equal(c.animations.length,6,'one panel, foreground and four pill transforms');
+    assert.equal(c.animations.length,7,'one panel, two foregrounds and four pill transforms');
     const copyFrames=c.animations.find(a=>a.node===e.copy).frames;
     assert.equal(copyFrames[0].translate,'0 -160px');assert.equal(copyFrames.at(-1).opacity,'0');
-    assert.ok(copyFrames.some(f=>f.translate==='0 -200px'&&f.opacity==='1'),'logo fades only after its first quarter');
+    assert.equal(copyFrames[0].opacity,'0.8','logo continues fading from the exact drag progress');
+    const incoming=c.animations.find(a=>a.node===e.campaignCopy);
+    assert.deepEqual(Array.from(incoming.frames,f=>f.translate),['0 160px','0 0px']);
+    assert.equal(incoming.options,c.flight().options,'copy and panel share their timing');
+    assert.equal(e.panel.querySelector('img').getAttribute('style'),null,'media has no foreground parallax');
     for(let frame=1;frame<=60;frame++){now+=16;e.flush(now);}
     assert.equal(c.scrolls.length,0,'no whole-document scroll writes during the animation');
     assert.equal(e.queue.size,0,'the compositor flight needs no JavaScript frame loop');
-    e.links[0].click();assert.equal(c.animations.length,6,'a pill click does not interrupt the current flight');
+    e.links[0].click();assert.equal(c.animations.length,7,'a pill click does not interrupt the current flight');
     c.flight().onfinish();e.flush(now);
     assert.deepEqual(c.scrolls,[800]);assert.equal(e.panel.getAttribute('style'),null);
     assert.equal(e.copy.style.translate,'0 -800px');assert.equal(e.copy.style.opacity,'0');
+    assert.equal(e.campaignCopy.style.translate,'0 0px');
     assert.equal(e.links[1].getAttribute('aria-current'),'step');
     assert.ok(c.animations.every(a=>a.cancelled),'native endpoint takes over from filled animations');
     mobileTouch(e,'touchstart',400);now+=100;mobileTouch(e,'touchmove',560);e.flush(now);
     assert.equal(e.panel.style.transform,'translate3d(0,160px,0)');assert.equal(e.w.scrollY,800);
+    assert.ok(Math.abs(parseFloat(e.campaignCopy.style.translate.split(' ')[1])-40)<.001,'reverse drag retraces the same foreground offset');
     mobileTouch(e,'touchend');assert.equal(c.flight().frames.at(-1).transform,'translate3d(0,800px,0)');
+    assert.equal(c.animations.filter(a=>a.node===e.campaignCopy).at(-1).frames.at(-1).translate,'0 200px');
     c.flight().onfinish();e.flush(now);assert.deepEqual(c.scrolls,[800,0]);assert.equal(e.copy.style.opacity,'1');
+    assert.equal(e.campaignCopy.style.translate,'0 200px');
     // A long drag must use the native anchor, not the transformed panel rect.
     const nativeRect=e.panel.getBoundingClientRect;
     Object.defineProperty(e.panel,'getBoundingClientRect',{value:()=>{
@@ -349,10 +365,14 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     assert.equal(c.flight().frames[1].transform,'translate3d(0,0px,0)');
     assert.equal(c.flight().options.duration,500,'short cancelled intent has a softer half-second return');
     assert.equal(c.flight().options.easing,'cubic-bezier(0.22,1,0.36,1)');
+    const returningCopy=c.animations.find(a=>a.node===e.campaignCopy);
+    assert.equal(returningCopy.frames[0].translate,'0 192.5px');
+    assert.equal(returningCopy.frames.at(-1).translate,'0 200px');
     c.flight().onfinish();e.flush(now);assert.equal(e.w.scrollY,0);assert.equal(e.copy.style.opacity,'1');
+    assert.equal(e.campaignCopy.style.translate,'0 200px');
     mobileTouch(e,'touchstart',600);mobileTouch(e,'touchmove',500);e.flush(now);mobileTouch(e,'touchcancel');e.flush(now);
     assert.equal(e.panel.getAttribute('style'),null);assert.equal(e.copy.style.translate,'0 0px');
-    assert.equal(c.animations.length,6,'touchcancel never creates a new flight');
+    assert.equal(c.animations.length,7,'touchcancel never creates a new flight');
     mobileTouch(e,'touchstart',600);mobileTouch(e,'touchmove',500);e.flush(now);
     mobileTouch(e,'touchmove',500,180,2);e.flush(now);
     assert.equal(e.panel.getAttribute('style'),null,'pinch returns the preview to native layout');
@@ -380,6 +400,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     e.links[1].click();const destroyed=c.flight();owner.destroy();destroyed.onfinish();
     assert.ok(destroyed.cancelled);assert.equal(c.scrolls.length,2);assert.equal(e.queue.size,0);
     assert.equal(e.copy.getAttribute('style'),'color:white');assert.equal(e.panel.getAttribute('style'),null);
+    assert.equal(e.campaignCopy.getAttribute('style'),'color:white');
     e.dom.window.close();
   });
   test(`${file}: a native mobile slide reuses geometry and paints copy in the same frame`,()=>{
@@ -398,6 +419,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     for(let frame=1;frame<=60;frame++){
       now=frame*1000/60;e.flush(now);
       assert.ok(Math.abs(parseFloat(e.copy.style.translate.split(' ')[1])+e.w.scrollY)<.001,'foreground follows the scroll written in this frame');
+      assert.ok(Math.abs(parseFloat(e.campaignCopy.style.translate.split(' ')[1])-(800-e.w.scrollY)*.25)<.001,'incoming parallax stays in that same frame');
       assert.ok(e.queue.size<=1,'one shared animation frame remains scheduled');
     }
     e.flush(now);e.flush(now);
@@ -493,6 +515,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     now=duration*2;e.flush(now);owner.refresh();e.flush(now);
     assert.equal(e.w.scrollY,0,'rotation during the return still lands on the first hero');
     assert.equal(e.copy.style.opacity,'1');assert.equal(e.queue.size,0);
+    assert.equal(e.campaignCopy.style.translate,'0 97.5px','rotation remeasures the quarter-screen offset');
     owner.destroy();e.dom.window.close();
   });
   test(`${file}: browser chrome resize preserves the current gesture threshold and updates the next`,()=>{
