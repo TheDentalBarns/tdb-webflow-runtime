@@ -5,8 +5,8 @@ const { JSDOM } = require('jsdom');
 
 function setup(file,{width=1024,height=800,coarse=false,profile=false}={}) {
   const dom = new JSDOM(`<main data-tdb-campaign-hero>
-    <div data-tdb-campaign-opening><div data-vimeo-hero-content><div class="hero-vimeo_content" style="color:white">Logo</div></div><iframe></iframe><button data-tdb-hero-toggle data-vimeo-controls-layer></button></div>
-    <section data-tdb-campaign-panel><img class="tdb-campaign-image"><button data-vimeo-controls-layer aria-label="Play campaign"></button><div class="tdb-campaign-copy" style="color:white"><h2>Campaign</h2><a href="/implants">Discover</a></div></section>
+    <div data-tdb-campaign-opening><div data-vimeo-hero-content><div class="hero-vimeo_content" style="color:white">Logo</div></div><iframe></iframe><button data-tdb-hero-toggle data-vimeo-controls-layer><span class="tdb-hero-toggle-art"></span></button></div>
+    <section data-tdb-campaign-panel><img class="tdb-campaign-image"><button data-vimeo-controls-layer aria-label="Play campaign"><span class="tdb-hero-toggle-art"></span></button><div class="tdb-campaign-copy" style="color:white"><h2>Campaign</h2><a href="/implants">Discover</a></div></section>
     <nav data-tdb-campaign-rail><a href="#first" data-tdb-campaign-step="0" aria-current="step"><span></span></a><a href="#second" data-tdb-campaign-step="1"><span></span></a></nav>
   </main>`, { runScripts:'outside-only', pretendToBeVisual:true });
   const w=dom.window, root=w.document.querySelector('main'), opening=root.firstElementChild,
@@ -22,6 +22,10 @@ function setup(file,{width=1024,height=800,coarse=false,profile=false}={}) {
   root.getBoundingClientRect=()=>rect(-w.scrollY,height*2);
   opening.getBoundingClientRect=()=>rect(Math.min(0,height-w.scrollY),height);
   panel.getBoundingClientRect=()=>rect(height-w.scrollY,height);
+  for(const [section,control] of [[opening,opening.querySelector('[data-vimeo-controls-layer]')],[panel,panel.querySelector('[data-vimeo-controls-layer]')]]){
+    control.getBoundingClientRect=()=>rect(section.getBoundingClientRect().top+(parseFloat(control.style.translate.split(' ')[1])||0),height);
+    control.firstElementChild.getBoundingClientRect=()=>rect(control.getBoundingClientRect().top+height-80,60);
+  }
   Object.defineProperty(panel,'offsetTop',{get:()=>panel.getBoundingClientRect().top+w.scrollY});
   w.lenis={scrollTo:(...args)=>{jumps.push(args);args[1]?.onComplete?.();}};
   if(profile)w.eval(fs.readFileSync('src/shared/motion-profile.js','utf8').replace('__TDB_MOTION_PROFILE__',fs.readFileSync('config/motion.json','utf8')));
@@ -79,6 +83,22 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     assert.equal(e.rail.getAttribute('style'),null);assert.equal(e.links[1].getAttribute('aria-current'),null);
     e.scroll(300);assert.equal(e.queue.size,0);assert.equal(e.copy.style.translate,'');
     e.dom.window.close();
+  });
+  test(`${file}: each playback control fades out at 6rem from the viewport top and restores on return`,()=>{
+    for(const [height,rem] of [[800,16],[600,20]]){
+      const e=setup(file,{height});e.w.document.documentElement.style.fontSize=rem+'px';
+      const openingControl=e.opening.querySelector('[data-vimeo-controls-layer]'),campaignControl=e.panel.querySelector('[data-vimeo-controls-layer]');
+      const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
+      const clearAfter=height-80-rem*6;
+      assert.equal(openingControl.style.opacity,'1');assert.equal(campaignControl.style.opacity,'1');
+      e.scroll(clearAfter/2);assert.equal(openingControl.style.opacity,'0.5');
+      e.scroll(clearAfter);assert.equal(openingControl.firstElementChild.getBoundingClientRect().top,rem*6);assert.equal(openingControl.style.opacity,'0');
+      assert.equal(campaignControl.style.opacity,'1','the incoming video does not inherit the opening fade');
+      e.scroll(height+clearAfter/2);assert.equal(campaignControl.style.opacity,'0.5');
+      e.scroll(height+clearAfter);assert.equal(campaignControl.style.opacity,'0');
+      e.scroll(height);assert.equal(campaignControl.style.opacity,'1');e.scroll(0);assert.equal(openingControl.style.opacity,'1');
+      owner.destroy();assert.equal(openingControl.getAttribute('style'),null);assert.equal(campaignControl.getAttribute('style'),null);e.dom.window.close();
+    }
   });
   test(`${file}: native destinations are enhanced once; lifecycle suspends and resumes`,()=>{
     const e=setup(file), owner=e.w.TDBCampaignHero.mount(e.root);
@@ -173,27 +193,21 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     assert.equal(e.jumps.length,3);assert.equal(e.jumps.at(-1)[0],800);
     owner.destroy();e.dom.window.close();
   });
-  test(`${file}: native phone scrolling takes a full second, eases both ends and cancels on teardown`,()=>{
-    const e=setup(file,{width:390,coarse:true,profile:true});
-    delete e.w.lenis;
-    let now=0;
+  test(`${file}: native phone scrolling matches the 500ms CSS ease and cancels on teardown`,()=>{
+    const e=setup(file,{width:390,coarse:true,profile:true});delete e.w.lenis;let now=0;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
     e.w.scrollTo=({top})=>{e.w.scrollY=top;e.jumps.push(top);};
     const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();e.links[1].click();
-    now=200;e.flush(now);const early=e.w.scrollY;
-    assert.ok(early>0&&early<160,'gentle acceleration');
-    now=500;e.flush(now);assert.equal(e.w.scrollY,400,'halfway through at the previous mobile completion time');
-    now=800;e.flush(now);assert.ok(e.w.scrollY>640&&e.w.scrollY<800,'still easing toward the landing');
-    assert.ok(Math.abs(800-e.w.scrollY-early)<.001,'matching acceleration and deceleration');
-    now=1000;e.flush(now);e.flush(now);assert.equal(e.w.scrollY,800);assert.equal(e.queue.size,0);
-    e.links[0].click();assert.ok(e.queue.size>0);owner.destroy();assert.equal(e.queue.size,0);
-    e.dom.window.close();
+    now=100;e.flush(now);assert.ok(e.w.scrollY>220&&e.w.scrollY<250);
+    now=250;e.flush(now);assert.ok(e.w.scrollY>630&&e.w.scrollY<650,'CSS ease has travelled about 80% at half time');
+    now=500;e.flush(now);e.flush(now);assert.equal(e.w.scrollY,800);assert.equal(e.queue.size,0);
+    e.links[0].click();assert.ok(e.queue.size>0);owner.destroy();assert.equal(e.queue.size,0);e.dom.window.close();
   });
-  test(`${file}: phone, tablet and coarse-pointer slides use the slower timing without changing desktop`,()=>{
-    for(const device of [{width:390},{width:820},{width:1280,coarse:true},{width:1280,coarse:false}]){
+  test(`${file}: phone and tablet use Omega breakpoints without scaling the durations or changing desktop`,()=>{
+    for(const device of [{width:390},{width:639},{width:640},{width:820},{width:1280,coarse:true},{width:1280,coarse:false}]){
       const e=setup(file,{...device,profile:true});
       const owner=e.w.TDBCampaignHero.mount(e.root);e.links[1].click();
-      assert.equal(e.jumps[0][1].duration,device.width<992||device.coarse?1:e.w.TDBMotion.duration()/1000);
+      assert.equal(e.jumps[0][1].duration,device.width<992||device.coarse?(device.width<=639?.5:1):e.w.TDBMotion.duration()/1000);
       owner.destroy();e.dom.window.close();
     }
   });
@@ -242,7 +256,7 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     mobileTouch(e,'touchstart',600);now=100;mobileTouch(e,'touchmove',440);e.flush(now);
     const openingControl=e.opening.querySelector('[data-vimeo-controls-layer]'),campaignControl=e.panel.querySelector('[data-vimeo-controls-layer]');
     assert.equal(openingControl.style.translate,'0 -160px','opening playback control travels with its departing chapter');
-    assert.equal(campaignControl.getAttribute('style'),null,'incoming control stays inside its own moving media panel');
+    assert.equal(campaignControl.style.opacity,'1');assert.equal(campaignControl.style.translate,'','incoming control stays inside its own moving media panel');
     assert.equal(e.panel.style.transform,'translate3d(0,-160px,0)');
     assert.equal(e.copy.style.translate,'0 -160px');
     assert.equal(e.copy.style.opacity,'0.8');
@@ -250,9 +264,9 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     assert.equal(e.w.scrollY,0);assert.equal(c.animations.length,0,'the held finger previews before settling');
     mobileTouch(e,'touchend');
     assert.deepEqual(Array.from(c.flight().frames,f=>f.transform),['translate3d(0,-160px,0)','translate3d(0,-800px,0)']);
-    assert.equal(c.flight().options.duration,800,'remaining distance retains the slower full-height pace');
+    assert.equal(c.flight().options.duration,500,'release uses the full Omega duration regardless of remaining distance');
     assert.equal(c.animations.length,8,'one panel, two foregrounds, opening control and four pill transforms');
-    assert.deepEqual(Array.from(c.animations.find(a=>a.node===openingControl).frames,f=>f.translate),['0 -160px','0 -800px']);
+    const controlFrames=c.animations.find(a=>a.node===openingControl).frames;assert.equal(controlFrames[0].translate,'0 -160px');assert.equal(controlFrames.at(-1).translate,'0 -800px');assert.equal(controlFrames[1].translate,'0 -624px');assert.equal(controlFrames[1].opacity,'0');assert.ok(Math.abs(controlFrames[1].offset-.725)<.00001);
     assert.ok(!c.animations.some(a=>a.node===campaignControl),'the second control must not be independently pinned or parallaxed');
     const copyFrames=c.animations.find(a=>a.node===e.copy).frames;
     assert.equal(copyFrames[0].translate,'0 -160px');assert.equal(copyFrames.at(-1).opacity,'0');
@@ -293,50 +307,45 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     mobileTouch(e,'touchend');assert.equal(c.scrolls.length,3);
     owner.destroy();assert.equal(e.panel.getAttribute('style'),null);e.dom.window.close();
   });
-  test(`${file}: mobile release commits at 20% of the visible height and returns below it at any speed`,()=>{
+  test(`${file}: Omega quick flicks advance and held drags snap at half the actual slide in both directions`,()=>{
     for(const height of [600,800,1000]){
-      const e=setup(file,{width:390,height,coarse:true,profile:true}),c=compositor(e);
-      let now=0;Object.defineProperty(e.w.performance,'now',{value:()=>now});
-      const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
-      const release=(from,to,elapsed)=>{
-        mobileTouch(e,'touchstart',from);now+=elapsed;mobileTouch(e,'touchmove',to);e.flush(now);
-        assert.equal(e.queue.size,0,'held drag becomes idle between finger movements');
-        mobileTouch(e,'touchend');return c.flight();
+      const e=setup(file,{width:390,height,coarse:true,profile:true}),c=compositor(e);let now=0;
+      Object.defineProperty(e.w.performance,'now',{value:()=>now});const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
+      const release=(direction,distance,elapsed)=>{
+        mobileTouch(e,'touchstart',height*.5);now+=elapsed;mobileTouch(e,'touchmove',height*.5-direction*distance);e.flush(now);mobileTouch(e,'touchend');return c.flight();
       };
-      for(const elapsed of [60,600])for(const distance of [height*.1,height*.2-1]){
-        const flight=release(height*.8,height*.8-distance,elapsed);
-        assert.equal(flight.frames[0].transform,`translate3d(0,${-distance}px,0)`);
-        assert.equal(flight.frames.at(-1).transform,'translate3d(0,0px,0)','10% and just-under-20% drags return, including fast flicks');
-        assert.equal(flight.options.duration,500);assert.equal(e.w.scrollY,0);
-        flight.onfinish();e.flush(now);assert.equal(e.w.scrollY,0);assert.equal(e.copy.style.opacity,'1');
+      for(const direction of [1,-1]){
+        const origin=direction===1?0:height;
+        for(const distance of [height*.2,height*.5-1]){
+          const flight=release(direction,distance,301);assert.equal(flight.frames.at(-1).transform,'translate3d(0,0px,0)');
+          assert.equal(flight.options.duration,500);assert.equal(flight.options.easing,'ease');flight.onfinish();e.flush();assert.equal(e.w.scrollY,origin);
+        }
+        const flight=release(direction,height*.5,301);assert.equal(flight.frames.at(-1).transform,`translate3d(0,${-direction*height}px,0)`);
+        flight.onfinish();e.flush();assert.equal(e.w.scrollY,height-origin);
       }
-      const forward=release(height*.8,height*.6,60);
-      assert.equal(forward.frames.at(-1).transform,`translate3d(0,${-height}px,0)`,'20% advances on each viewport size');
-      forward.onfinish();e.flush(now);assert.equal(e.w.scrollY,height);
-      const shortReverse=release(height*.4,height*.5,60);
-      assert.equal(shortReverse.frames.at(-1).transform,'translate3d(0,0px,0)','a short reverse returns to chapter two');
-      shortReverse.onfinish();e.flush(now);assert.equal(e.w.scrollY,height);
-      const reverse=release(height*.4,height*.6,600);
-      assert.equal(reverse.frames.at(-1).transform,`translate3d(0,${height}px,0)`,'one qualifying reverse remains available immediately');
-      reverse.onfinish();e.flush(now);assert.equal(e.w.scrollY,0);
+      for(const direction of [1,-1]){
+        const flight=release(direction,6,300);assert.equal(flight.frames.at(-1).transform,`translate3d(0,${-direction*height}px,0)`);
+        flight.onfinish();e.flush();assert.equal(e.w.scrollY,direction===1?height:0);
+      }
+      const count=c.animations.length;release(1,5,100);assert.equal(c.animations.length,count,'5px jitter does not start a slide');
       owner.destroy();e.dom.window.close();
     }
   });
   test(`${file}: an early native scroll settles when the deferred hero owner arrives`,async()=>{
-    for(const initial of [80,200]){
+    for(const initial of [80,500]){
       const e=setup(file,{width:390,coarse:true,profile:true}),c=compositor(e);
       e.w.scrollY=initial;
       const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
       await new Promise(r=>setTimeout(r,200));
-      const destination=initial<160?0:800,flight=c.flight();
+      const destination=initial<400?0:800,flight=c.flight();
       assert.ok(flight,'an early partial scroll cannot remain stranded between chapters');
       assert.equal(flight.frames[0].transform,'translate3d(0,0px,0)');
       assert.equal(flight.frames.at(-1).transform,`translate3d(0,${initial-destination}px,0)`);
       assert.equal(e.w.scrollY,initial,'the recovery also avoids per-frame document scrolling');
-      if(initial<160)assert.equal(flight.options.duration,500);
+      if(initial<400)assert.equal(flight.options.duration,500);
       flight.onfinish();e.flush();assert.equal(e.w.scrollY,destination);
       assert.equal(e.panel.getAttribute('style'),null);assert.equal(e.copy.style.opacity,destination===0?'1':'0');
-      if(initial<160){
+      if(initial<400){
         const count=c.animations.length;
         e.root.dispatchEvent(new e.w.WheelEvent('wheel',{deltaY:100,bubbles:true,cancelable:true}));
         assert.equal(c.animations.length,count,'returning an early short scroll does not consume the initial wheel runway');
@@ -345,7 +354,7 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     }
   });
   test(`${file}: a touch already moving when the owner loads keeps its preview and release threshold`,()=>{
-    for(const remaining of [60,100]){
+    for(const remaining of [60,350]){
       const e=setup(file,{width:390,coarse:true,profile:true}),c=compositor(e);
       e.w.scrollY=80;
       const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
@@ -356,19 +365,20 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
       assert.equal(e.copy.style.translate,`0 ${-80-remaining}px`);
       assert.equal(c.animations.length,0,'the moving finger still owns the preview');
       mobileTouch(e,'touchend');
-      const destination=80+remaining<160?0:800;
+      const destination=80+remaining<400?0:800;
       assert.equal(c.flight().frames.at(-1).transform,`translate3d(0,${80-destination}px,0)`);
       if(destination===0)assert.equal(c.flight().options.duration,500);
       c.flight().onfinish();e.flush();assert.equal(e.w.scrollY,destination);
       owner.destroy();e.dom.window.close();
     }
   });
-  test(`${file}: repeated native swipes recover through browser chrome resize at the same 20% threshold`,async()=>{
+  test(`${file}: repeated held native swipes recover through browser chrome resize at the halfway threshold`,async()=>{
     const e=setup(file,{width:390,coarse:true,profile:true}),c=compositor(e);
     const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
-    for(const [origin,travel,destination] of [[0,100,0],[0,200,800],[800,-100,800],[800,-200,0],[0,200,800]]){
+    for(const [origin,travel,destination] of [[0,100,0],[0,400,800],[800,-100,800],[800,-400,0],[0,400,800]]){
       assert.equal(e.w.scrollY,origin);
-      mobileTouch(e,'touchstart',400);
+      let now=0;Object.defineProperty(e.w.performance,'now',{value:()=>now,configurable:true});
+      mobileTouch(e,'touchstart',400);now=400;
       mobileTouch(e,'touchmove',400-travel,180,1,false);
       e.scroll(origin+travel);mobileTouch(e,'touchend');
       e.w.innerHeight=760;e.w.dispatchEvent(new e.w.Event('resize'));e.flush();
@@ -380,10 +390,24 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     }
     owner.destroy();e.dom.window.close();
   });
+  test(`${file}: native settling preserves the flick duration captured at finger release`,async()=>{
+    const e=setup(file,{width:390,coarse:true,profile:true}),c=compositor(e);
+    let now=0;Object.defineProperty(e.w.performance,'now',{value:()=>now});
+    const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
+    for(const [origin,travel,destination] of [[0,24,800],[800,-24,0]]){
+      mobileTouch(e,'touchstart',400);now+=280;
+      mobileTouch(e,'touchmove',400-travel,180,1,false);e.scroll(origin+travel);
+      mobileTouch(e,'touchend');now+=200;
+      await new Promise(r=>setTimeout(r,200));
+      const flight=c.flight();assert.ok(flight&&!flight.cancelled);
+      flight.onfinish();e.flush();assert.equal(e.w.scrollY,destination,'the settling delay does not turn a quick flick into a held swipe');
+    }
+    owner.destroy();e.dom.window.close();
+  });
   test(`${file}: native movement after mount and after later landings cannot strand a partial hero`,async()=>{
     const e=setup(file,{width:390,coarse:true,profile:true}),c=compositor(e);
     const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
-    for(const [position,destination] of [[80,0],[200,800],[700,800],[600,0],[180,800]]){
+    for(const [position,destination] of [[80,0],[500,800],[700,800],[300,0],[500,800]]){
       e.scroll(position);await new Promise(r=>setTimeout(r,200));
       const flight=c.flight();assert.ok(flight&&!flight.cancelled,'scroll recovery is not limited to the mount-time probe');
       flight.onfinish();e.flush();assert.equal(e.w.scrollY,destination);
@@ -403,7 +427,7 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     c.flight().onfinish();e.flush();assert.equal(e.w.scrollY,800);
     e.scroll(720);
     mobileTouch(e,'touchmove',400);e.flush();
-    mobileTouch(e,'touchmove',500);e.flush();mobileTouch(e,'touchend');
+    mobileTouch(e,'touchmove',750);e.flush();mobileTouch(e,'touchend');
     assert.equal(c.flight().frames.at(-1).transform,'translate3d(0,720px,0)');
     c.flight().onfinish();e.flush();assert.equal(e.w.scrollY,0);
     owner.destroy();e.dom.window.close();
@@ -412,11 +436,11 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     const e=setup(file,{width:390,coarse:true,profile:true}),c=compositor(e);
     let now=0;Object.defineProperty(e.w.performance,'now',{value:()=>now});
     const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
-    mobileTouch(e,'touchstart',600);now=300;mobileTouch(e,'touchmove',570);e.flush(now);mobileTouch(e,'touchend');
+    mobileTouch(e,'touchstart',600);now=301;mobileTouch(e,'touchmove',570);e.flush(now);mobileTouch(e,'touchend');
     assert.equal(c.flight().frames[0].transform,'translate3d(0,-30px,0)');
     assert.equal(c.flight().frames[1].transform,'translate3d(0,0px,0)');
-    assert.equal(c.flight().options.duration,500,'short cancelled intent has a softer half-second return');
-    assert.equal(c.flight().options.easing,'cubic-bezier(0.22,1,0.36,1)');
+    assert.equal(c.flight().options.duration,500,'a held short drag uses Omega’s half-second return');
+    assert.equal(c.flight().options.easing,'ease');
     const returningCopy=c.animations.find(a=>a.node===e.campaignCopy);
     assert.equal(returningCopy.frames[0].translate,'0 192.5px');
     assert.equal(returningCopy.frames.at(-1).translate,'0 200px');
@@ -439,7 +463,7 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     e.opening.getBoundingClientRect=()=>({top:Math.min(0,height-e.w.scrollY),height});
     e.panel.getBoundingClientRect=()=>({top:height-e.w.scrollY,height});
     const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();e.links[1].click();
-    assert.equal(c.flight().options.duration,1000);
+    assert.equal(c.flight().options.duration,500);
     height=e.w.innerHeight=700;e.w.dispatchEvent(new e.w.Event('resize'));e.flush(now);
     assert.equal(e.w.scrollY,700);assert.equal(e.panel.getAttribute('style'),null);assert.ok(c.flight().cancelled);
     e.links[0].click();hidden=true;e.w.document.dispatchEvent(new e.w.Event('visibilitychange'));
@@ -469,7 +493,7 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();e.links[1].click();
     const initialReads=measurements;
     for(let frame=1;frame<=60;frame++){
-      now=frame*1000/60;e.flush(now);
+      now=frame*500/60;e.flush(now);
       assert.ok(Math.abs(parseFloat(e.copy.style.translate.split(' ')[1])+e.w.scrollY)<.001,'foreground follows the scroll written in this frame');
       assert.ok(Math.abs(parseFloat(e.campaignCopy.style.translate.split(' ')[1])-(800-e.w.scrollY)*.25)<.001,'incoming parallax stays in that same frame');
       assert.ok(e.queue.size<=1,'one shared animation frame remains scheduled');
@@ -477,7 +501,7 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     e.flush(now);e.flush(now);
     assert.equal(e.w.scrollY,800);assert.equal(measurements,initialReads,'no repeated layout measurements throughout 60 animation frames');
     assert.equal(e.queue.size,0,'no work remains after landing');
-    resizeCallback();e.flush(now);assert.equal(measurements,initialReads+3,'observed layout changes are remeasured once');
+    resizeCallback();e.flush(now);assert.equal(measurements,initialReads+7,'observed layout changes remeasure the native panels and both control positions once');
     const afterResize=measurements;
     for(let y=820;y<=1400;y+=20)e.scroll(y);
     assert.equal(measurements,afterResize,'ordinary page scrolling also reuses document anchors');
@@ -509,8 +533,8 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     const owner=e.w.TDBCampaignHero.mount(e.root);
     mobileTouch(e,'touchstart',600);now=200;mobileTouch(e,'touchmove',570);
     assert.equal(e.jumps.length,0,'a small slow movement does not trigger a slide');
-    now=300;mobileTouch(e,'touchend');assert.equal(e.jumps.length,0);
-    mobileTouch(e,'touchstart',600);now+=400;mobileTouch(e,'touchmove',440);
+    now=301;mobileTouch(e,'touchend');assert.equal(e.jumps.length,0);
+    mobileTouch(e,'touchstart',600);now+=400;mobileTouch(e,'touchmove',200);
     assert.equal(e.jumps.length,0,'even a qualifying swipe waits for finger release');
     now+=400;mobileTouch(e,'touchend');
     assert.equal(e.jumps.length,1);assert.equal(e.jumps[0][0],800,'one comfortable swipe replaces the mouse-wheel runway');
@@ -523,7 +547,7 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     mobileTouch(e,'touchend');
     owner.destroy();e.dom.window.close();
   });
-  test(`${file}: short flicks do not bypass the threshold; taps, cancellations and non-vertical gestures remain native`,()=>{
+  test(`${file}: quick flicks advance while taps, cancellations and non-vertical gestures remain native`,()=>{
     const e=setup(file);
     let now=0;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
@@ -541,9 +565,9 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     assert.equal(e.jumps.length,0,'drawing a qualifying swipe back before release cancels its intent');
     mobileTouch(e,'touchstart',600);now+=60;mobileTouch(e,'touchmove',576);
     assert.equal(e.jumps.length,0);mobileTouch(e,'touchend');
-    assert.equal(e.jumps.length,0,'a 24px fast flick still releases below the 20% threshold');
+    assert.equal(e.jumps.length,1,'a 24px fast flick advances like Omega');
     mobileTouch(e,'touchstart',600);now+=60;mobileTouch(e,'touchmove',440);mobileTouch(e,'touchend');
-    assert.equal(e.jumps.length,1);assert.equal(e.jumps[0][0],800,'a 20% flick commits on release');
+    assert.equal(e.jumps.length,1);assert.equal(e.jumps.at(-1)[0],800,'another flick during the unfinished transition stays consumed');
     owner.destroy();e.dom.window.close();
   });
   test(`${file}: native slides finish at the remeasured chapter after viewport height changes or rotation`,()=>{
@@ -570,17 +594,12 @@ for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js'
     assert.equal(e.campaignCopy.style.translate,'0 97.5px','rotation remeasures the quarter-screen offset');
     owner.destroy();e.dom.window.close();
   });
-  test(`${file}: browser chrome resize preserves the current gesture threshold and updates the next`,()=>{
-    const e=setup(file);
-    e.w.lenis.scrollTo=(...args)=>e.jumps.push(args);
+  test(`${file}: browser chrome does not move the halfway snap point during a held swipe`,()=>{
+    const e=setup(file,{width:390,coarse:true,profile:true});let now=0;Object.defineProperty(e.w.performance,'now',{value:()=>now});
     const owner=e.w.TDBCampaignHero.mount(e.root);
-    mobileTouch(e,'touchstart',600);mobileTouch(e,'touchmove',580);
-    e.w.innerHeight=700;e.w.dispatchEvent(new e.w.Event('resize'));
-    mobileTouch(e,'touchmove',441);
-    assert.equal(e.jumps.length,0);mobileTouch(e,'touchend');
-    assert.equal(e.jumps.length,0,'159px stays below the captured 160px threshold after height shrinks');
-    mobileTouch(e,'touchstart',600);mobileTouch(e,'touchmove',460);mobileTouch(e,'touchend');
-    assert.equal(e.jumps.length,1);assert.equal(e.jumps[0][0],800);
+    mobileTouch(e,'touchstart',600);now=400;e.w.innerHeight=600;e.w.dispatchEvent(new e.w.Event('resize'));
+    mobileTouch(e,'touchmove',201);mobileTouch(e,'touchend');assert.equal(e.jumps.length,0,'399px stays below half an 800px panel');
+    mobileTouch(e,'touchstart',600);now=800;mobileTouch(e,'touchmove',200);mobileTouch(e,'touchend');assert.equal(e.jumps.at(-1)[0],800);
     owner.destroy();e.dom.window.close();
   });
 }

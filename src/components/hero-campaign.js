@@ -1,4 +1,4 @@
-/* Seasonal hero v1.0.0. Native content, bounded gestures and local compositor motion. */
+/* Seasonal hero v1.1.0. Native content, bounded gestures and local compositor motion. */
 (() => {
   'use strict';
   if (window.TDBCampaignHero) return;
@@ -26,14 +26,22 @@
     if (!panel || !opening || !copy) return null;
     const campaignCopy = panel.querySelector('.tdb-campaign-copy');
     const openingControls = opening.querySelector('[data-vimeo-controls-layer]');
+    const campaignControls = panel.querySelector('[data-vimeo-controls-layer]');
     const controller = new AbortController(),
       { signal } = controller;
     const rail = root.querySelector('[data-tdb-campaign-rail]');
     const links = [...root.querySelectorAll('[data-tdb-campaign-step]')];
     const markers = links.map((link) => link.firstElementChild);
-    const nodes = [copy, campaignCopy, openingControls, panel, rail, ...links, ...markers].filter(
-      Boolean,
-    );
+    const nodes = [
+      copy,
+      campaignCopy,
+      openingControls,
+      campaignControls,
+      panel,
+      rail,
+      ...links,
+      ...markers,
+    ].filter(Boolean);
     const styles = nodes.map((node) => node.getAttribute('style'));
     const current = links.map((link) => link.getAttribute('aria-current'));
     const openingInert = opening.inert;
@@ -50,6 +58,15 @@
       frame ||= frameMeasurements();
       const box = frame.rect(root),
         first = frame.rect(opening);
+      const clearTop = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) * 6;
+      const controlPosition = (control) => {
+        if (!control) return null;
+        const art = control.querySelector('.tdb-hero-toggle-art,.vimeo-player__btn') || control;
+        // The icon is bottom-aligned inside a full-panel button. Measuring the
+        // button's top would hide it before any movement. Relative rectangles
+        // remove both finger-preview and compositor transforms from this cache.
+        return { top: frame.rect(art).top - frame.rect(control).top + control.offsetTop, clearTop };
+      };
       // These are document anchors, not moving viewport rectangles. Scrolling
       // changes their screen position but not this geometry. Invalidate on
       // real layout changes instead of forcing a layout read every slide frame.
@@ -60,8 +77,17 @@
         end: frame.scroll + box.top + panel.offsetTop,
         bottom: frame.scroll + box.bottom,
         height: first.height,
+        openingControl: controlPosition(openingControls),
+        campaignControl: controlPosition(campaignControls),
       });
     }
+    const controlOpacity = (position, travel) =>
+      position
+        ? clamp(
+            (position.top - travel - position.clearTop) /
+              Math.max(1, position.top - position.clearTop),
+          )
+        : 1;
     const style = (node, property, value) => {
       if (node.style[property] !== value) node.style[property] = value;
     };
@@ -71,7 +97,7 @@
         slide = nativeSlide,
         phase = slide ? clamp((performance.now() - slide.started) / slide.milliseconds) : 0,
         scroll = slide
-          ? slide.from + (box[slide.destination] - slide.from) * slideEase(phase)
+          ? slide.from + (box[slide.destination] - slide.from) * slide.ease(phase)
           : (previewScroll ?? frame.scroll);
       const travelled = clamp((scroll - box.start) / Math.max(1, box.height));
       if (!snapping && previewScroll === null) {
@@ -95,7 +121,16 @@
         active = box.end - scroll <= frame.height * 0.5 ? 1 : 0;
         style(copy, 'translate', `0 ${-y}px`);
         style(copy, 'opacity', String(1 - travelled));
-        if (openingControls) style(openingControls, 'translate', `0 ${-y}px`);
+        if (openingControls) {
+          style(openingControls, 'translate', `0 ${-y}px`);
+          style(openingControls, 'opacity', String(controlOpacity(box.openingControl, y)));
+        }
+        if (campaignControls)
+          style(
+            campaignControls,
+            'opacity',
+            String(controlOpacity(box.campaignControl, Math.max(0, scroll - box.end))),
+          );
         // The incoming foreground catches up from a quarter-screen offset.
         // Incoming media and its playback control keep their native positions
         // inside the moving panel. Normal scrolling starts at zero copy offset.
@@ -160,12 +195,27 @@
       touchGesture = null,
       viewportWidth = innerWidth;
     const scrollDistance = () => Math.max(120, innerHeight * (2 / 3));
-    // A full-height touch transition needs more time than the site's short
-    // mobile UI movements. Keep the established desktop wheel timing intact.
-    const slideDuration = () => (touchViewport() || innerWidth < 992 ? time(800) : duration());
+    const mobile = () => touchViewport() || innerWidth < 992;
+    // Omega's module uses 500ms through 639px and 1000ms above it. These are
+    // final durations, without another site-profile or remaining-distance scale.
+    const slideDuration = () => (mobile() ? (innerWidth <= 639 ? 500 : 1000) : duration());
     // Spread the movement across the duration instead of racing to an almost
     // finished position and keeping input locked through a long easing tail.
     const slideEase = (p) => p * p * (3 - 2 * p);
+    // CSS ease for the native-scroll fallback; WAAPI uses the same CSS curve.
+    const mobileEase = (p) => {
+      if (p <= 0 || p >= 1) return clamp(p);
+      let low = 0,
+        high = 1,
+        t = p;
+      for (let i = 0; i < 16; i++) {
+        t = (low + high) / 2;
+        const x = 0.75 * t * (1 - t) + t * t * t;
+        if (x < p) low = t;
+        else high = t;
+      }
+      return 0.3 * t * (1 - t) * (1 - t) + 3 * t * t * (1 - t) + t * t * t;
+    };
     const carouselAvailable = () =>
       (touchViewport() || innerWidth < 992) && !window.lenis?.scrollTo && !!panel.animate;
     function restorePanel() {
@@ -181,7 +231,7 @@
       if (moving || previewScroll !== null) restorePanel();
       previewScroll = null;
     }
-    function startCarousel(destination, visualFrom, finish, returning) {
+    function startCarousel(destination, visualFrom, finish) {
       const box = measure(),
         physical = window.scrollY,
         to = box[destination];
@@ -191,14 +241,10 @@
       const span = Math.max(1, box.end - box.start),
         fromProgress = clamp((visualFrom - box.start) / span),
         toProgress = destination === 'end' ? 1 : 0,
-        // An uncommitted drag has its own soft return. Distance-scaling the
-        // full slide made short releases snap back too abruptly.
-        milliseconds = returning
-          ? time(400)
-          : slideDuration() * Math.max(0.22, Math.abs(to - visualFrom) / span),
+        milliseconds = slideDuration(),
         options = {
           duration: milliseconds,
-          easing: returning ? 'cubic-bezier(0.22,1,0.36,1)' : 'cubic-bezier(0.333333,0,0.666667,1)',
+          easing: 'ease',
           fill: 'both',
         },
         animations = [];
@@ -243,13 +289,23 @@
           opacity: String(1 - p),
         })),
       );
-      if (openingControls)
+      if (openingControls) {
+        const points = [fromProgress, toProgress];
+        const clearAt = (box.openingControl.top - box.openingControl.clearTop) / box.height;
+        if (clearAt > Math.min(...points) && clearAt < Math.max(...points))
+          points.splice(1, 0, clearAt);
         animate(
           openingControls,
-          [fromProgress, toProgress].map((p) => ({
+          points.map((p, index) => ({
+            offset:
+              fromProgress === toProgress
+                ? index
+                : (p - fromProgress) / (toProgress - fromProgress),
             translate: `0 ${-p * box.height}px`,
+            opacity: String(controlOpacity(box.openingControl, p * box.height)),
           })),
         );
+      }
       if (campaignCopy)
         animate(
           campaignCopy,
@@ -325,12 +381,11 @@
         quietUntil = performance.now() + 180;
         schedule();
       };
-      if (!reduced.matches && startCarousel(destination, visualFrom, finish, direction === 0))
-        return;
+      if (!reduced.matches && startCarousel(destination, visualFrom, finish)) return;
       if (window.lenis?.scrollTo)
         window.lenis.scrollTo(top, {
           duration: slideDuration() / 1000,
-          easing: slideEase,
+          easing: mobile() ? mobileEase : slideEase,
           lock: true,
           force: true,
           onComplete: finish,
@@ -345,6 +400,7 @@
           from: window.scrollY,
           started: performance.now(),
           milliseconds: slideDuration(),
+          ease: mobile() ? mobileEase : slideEase,
           destination,
           finish,
         };
@@ -366,7 +422,7 @@
       if (y <= start + 2 || y >= end - 2 || distance <= 0) return resetGesture();
       if (touchRecovery) {
         const origin = touchRecovery.origin === 'end' ? end : start;
-        const advance = Math.abs(y - origin) >= touchRecovery.threshold;
+        const advance = shouldAdvance(touchRecovery, y - origin);
         return navigate(advance ? (origin === start ? end : start) : origin, origin);
       }
       const travel = y - gestureStart,
@@ -393,7 +449,11 @@
         y < box.end - 3
       ) {
         gestureStart = box[lastAnchor];
-        touchRecovery = { origin: lastAnchor, threshold: Math.min(innerHeight, box.height) * 0.2 };
+        touchRecovery = {
+          origin: lastAnchor,
+          threshold: (box.end - box.start) * 0.5,
+          started: null,
+        };
       }
       if (gestureStart !== null) {
         clearTimeout(settleTimer);
@@ -465,6 +525,15 @@
       hintStarted = performance.now();
       schedule();
     }
+    function shouldAdvance(gesture, distance) {
+      if (Math.abs(distance) <= 5) return false;
+      // Unknown/native-only strokes have no trustworthy flick duration; settle
+      // them by position. Captured releases retain elapsed time before inertia.
+      const elapsed =
+        gesture.elapsed ??
+        (gesture.started === null ? Infinity : performance.now() - gesture.started);
+      return elapsed <= 300 || Math.abs(distance) >= gesture.threshold;
+    }
     function touchInput(event) {
       if (event.touches.length !== 1) {
         recoverNative = false;
@@ -508,15 +577,17 @@
                 ? lastAnchor
                 : null;
         const anchor = origin ? box[origin] : physical;
-        const threshold = Math.max(1, Math.min(innerHeight, box.height)) * 0.2;
-        touchRecovery = origin ? { origin, threshold } : null;
+        const threshold = Math.max(1, box.end - box.start) * 0.5;
+        const started = adopting ? null : performance.now();
+        touchRecovery = origin ? { origin, threshold, started } : null;
         touchGesture = {
           x,
           y: y + physical - anchor,
           lastY: y,
-          // Capture the visible height once. Browser chrome must not change
+          // Capture the native slide span once. Browser chrome must not change
           // the release threshold halfway through a finger gesture.
           threshold,
+          started,
           scroll: anchor,
           origin: origin === 'start' ? 0 : origin === 'end' ? 1 : -1,
           axis: null,
@@ -543,7 +614,7 @@
         delta = touch.lastY - y;
       touch.lastY = y;
       touch.distance = dy;
-      if (!touch.axis && Math.max(Math.abs(dx), Math.abs(dy)) >= 8) {
+      if (!touch.axis && Math.max(Math.abs(dx), Math.abs(dy)) > 5) {
         touch.axis = Math.abs(dy) > Math.abs(dx) ? 'vertical' : 'native';
         if (touch.axis === 'native') {
           recoverNative = false;
@@ -625,9 +696,12 @@
         name,
         (event) => {
           const touch = touchGesture;
+          if (touchRecovery && touch?.started !== null && touch?.started !== undefined)
+            touchRecovery.elapsed = performance.now() - touch.started;
           touchGesture = null;
           held = false;
           if (event.type === 'touchcancel' || event.touches?.length) {
+            if (touchRecovery) touchRecovery.elapsed = Infinity;
             // Native touch cancellation can still leave momentum in the
             // document. Retain its origin until that movement has settled.
             if (event.touches?.length) recoverNative = false;
@@ -646,7 +720,7 @@
             touch?.target &&
             !touch.committed &&
             touch.axis === 'vertical' &&
-            Math.abs(touch.distance) >= touch.threshold
+            shouldAdvance(touch, touch.distance)
           )
             // A finger-follow preview transforms the panel's visible rectangle.
             // Navigate to its native anchor, regardless of how far it was dragged.
@@ -786,7 +860,11 @@
     // opening scroll after input settles; a continuing touch is adopted above.
     const initial = measure();
     if (window.scrollY > initial.start + 3 && window.scrollY < initial.end - 3) {
-      touchRecovery = { origin: 'start', threshold: Math.min(innerHeight, initial.height) * 0.2 };
+      touchRecovery = {
+        origin: 'start',
+        threshold: (initial.end - initial.start) * 0.5,
+        started: null,
+      };
       gestureStart = initial.start;
       settleTimer = setTimeout(settle, 160);
     }
@@ -794,5 +872,5 @@
     return api;
   }
 
-  window.TDBCampaignHero = Object.freeze({ version: '1.0.0', mount: campaignHero });
+  window.TDBCampaignHero = Object.freeze({ version: '1.1.0', mount: campaignHero });
 })();

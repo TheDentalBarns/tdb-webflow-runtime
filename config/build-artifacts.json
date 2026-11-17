@@ -207,10 +207,10 @@
       "sources": [
         "src/components/hero-campaign.js"
       ],
-      "sha256": "5fa141e047e41638b97bbff9ed5d35877114bc8e418e2685fd9c791e180551a3",
-      "raw": 10955,
-      "gzip": 4268,
-      "brotli": 3881
+      "sha256": "fd6ab676e289d25df2d0dd610fccf98ed0c9c148f4fb6300c24d093706eea7fa",
+      "raw": 11986,
+      "gzip": 4675,
+      "brotli": 4253
     },
     "dist/tdb-hold-audio.js": {
       "sources": [
@@ -652,9 +652,9 @@
         "src/startup/smooth-scroll.js",
         "src/startup/start.js"
       ],
-      "sha256": "da7c6527b6aabebbe21d903b116b0dce096d7dd5465fbcceb348aac07f8b6bf2",
+      "sha256": "f1a50eab1a2c2852fd28e21d32536b23f831304b96741f54be38c39896cd6038",
       "raw": 15695,
-      "gzip": 5764,
+      "gzip": 5765,
       "brotli": 5171
     },
     "dist/tdb-ticker.js": {

@@ -37,7 +37,9 @@ motion policy/timing and Lenis scroll owner. The first background does not
 parallax. Campaign copy enters with a quarter-screen offset relative to its image,
 settles at its authored position and then scrolls normally with the page. The
 opening playback control travels upward with its departing chapter; the campaign
-control stays inside its own moving video shell. The opening logo travels upward over the stationary first background and fades
+control stays inside its own moving video shell. Each control fades as its icon
+rises, reaching zero opacity at 6rem from the viewport top. Its fade restores on
+return. The opening logo travels upward over the stationary first background and fades
 directly with slide progress, remaining fully visible at the untouched opening.
 Approximately two wheel inputs (two-thirds of a viewport of accumulated input)
 advance the opening chapter only after a fresh load. After the first completed
@@ -47,25 +49,23 @@ opposite-direction input is accepted immediately after the slide settles.
 Downward input leaves the second hero without an additional runway.
 Below the opening threshold,
 only the pills respond. Once triggered, the transition completes smoothly;
-it does not rest halfway between heroes. Touch uses its own gesture handling:
-one vertical swipe covering 20% of the visible viewport changes chapter on finger
-release. Faster flicks below that distance also return to the starting chapter.
-The height is captured at touchstart, so moving browser chrome does not change
-the threshold mid-gesture. On native touch viewports, the panel
+it does not rest halfway between heroes. Touch follows Omega's release rules:
+vertical movement activates beyond 5px. A quick swipe lasting at most 300ms
+advances; a longer held swipe must cover at least half the native slide span or
+returns to its starting chapter. The span is captured at touchstart, so moving
+browser chrome does not change the threshold mid-gesture. On native touch viewports, the panel
 and foreground follow the finger locally while the document stays at its chapter
 anchor. On release, Web Animations completes the panel/copy/pill transforms and
 opacity on the compositor, then commits document scroll once at the destination.
-A short withdrawn drag settles back to its starting chapter over a softer 500ms
-ease-out (400ms base under the shared motion profile). Taps, sideways gestures, multi-touch
-zoom, screen-edge navigation and cancelled or withdrawn swipes do not trigger
-slides. Touches made during a slide stay consumed until release; a fresh forward
-swipe from the second hero scrolls the page immediately.
-Touch devices and viewports below 992px use an 800ms base duration, scaled to
-1000ms by the current shared motion profile, scaled by the distance remaining
-after a touch preview (minimum 220ms). Desktop timing remains at the site's
-standard motion duration (half the duration of release 2.1.4). A smooth
-ease-in/out spreads movement across that duration instead of appearing to
-finish early while input remains locked. The existing foreground layer owns logo motion;
+A held drag below halfway settles back using the same timing as an advance.
+Taps, sideways gestures, multi-touch zoom and screen-edge navigation stay native;
+cancelled touches do not create flick momentum. Touches made during a slide stay
+consumed until release; a fresh forward swipe from the second hero scrolls the
+page immediately. Mobile release animations use Omega's final 500ms duration
+through 639px, and 1000ms above that breakpoint, with CSS `ease` in both directions.
+Neither the shared motion multiplier nor the distance remaining changes these
+mobile durations. Desktop wheel timing remains at the site's standard motion
+duration (half the duration of release 2.1.4). The existing foreground layer owns logo motion;
 the unpositioned padding wrapper stays untransformed so it cannot paint the
 logo behind the video at idle. The campaign panel is natively 100lvh. Scrolling below the campaign,
 keyboard navigation, restoration and scroll-locked menus/dialogs stay free.
@@ -105,7 +105,7 @@ there is no continuous animation loop when the visitor stops scrolling.
 
 ## Release and rollback
 
-Runtime release 2.1.12 is based on the actual deployed immutable release
+Runtime release 2.1.13 is based on the actual deployed immutable release
 `55f76b394bf4aedfaba35ced87bf12631c07a70c`, not unshipped main-branch changes.
 All first-party site script/style/preload references move together to the
 same new commit. This pilot is published only to `dentalbarns.webflow.io`.
@@ -337,3 +337,48 @@ gating. Physical Android swipe feel remains a user-device check. Roll back all
 four install pins to 972a95661abd35ac9b174bf1a8c972b1e5759665 for the previous
 runtime, or switch Show campaign off for the original single hero. The added
 portrait property is inert while Use campaign video remains off.
+
+## Omega mobile timing and control clearance — 17 November 2026 (2.1.13)
+
+The user requested Omega's mobile speeds and release thresholds. Its
+[hero module](https://www.omegawatches.com/static/version1794588356/frontend/Omega/default/default/Reflet_PageBuilder/js/content-type/module_51.min.js)
+sets 500ms through 639px and 1000ms above that breakpoint. Its
+[Swiper bundle](https://www.omegawatches.com/static/version1794588356/frontend/Omega/default/default/js/vendor/swiper-bundle.min.js)
+uses a 5px activation threshold, quick swipes through 300ms, and a 0.5 slide ratio
+for longer held swipes. The [wrapper styles](https://www.omegawatches.com/static/version1794588356/frontend/Omega/default/default/css/styles-m.min.css)
+use the initial CSS transition timing function, `ease`.
+
+The feature now uses these mobile durations and release rules, superseding the
+20% and distance-scaled tuning documented in earlier releases. Advance and return
+both use the complete configured duration after release. Native-scroll recovery
+preserves the measured finger-release time across its settling delay; unknown
+gestures use position alone. The native slide span is captured at touchstart,
+so browser chrome cannot move the halfway threshold during a gesture. Desktop
+wheel timing and opening runway keep their previous behavior.
+
+TDB retains its native full-height panel anchors and the requested 100lvh second
+hero. Omega uses 100svh minus its message strip, so viewport geometry is not
+identical. No Omega/Swiper library is imported. The existing feature owner,
+shared scheduler, native fallback, loading gate and consent owners remain.
+
+Playback controls now fade with their own video's departure. The icon's native
+position determines its fade: it starts fully visible and reaches zero opacity
+at 6rem from the viewport top. The opening control's compositor keyframes include
+that clearance point; the optional campaign control uses the same rule during
+normal onward scrolling. Reverse movement restores opacity. Geometry is cached
+until a real layout change, and teardown restores both controls' authored styles.
+No Designer edit, added element, new request or extra animation loop is needed.
+
+Validation: `npm run verify` passes 1,233 of 1,236 tests, with three existing skips
+and zero failures; formatting and source/build parity pass. Source and bundle
+coverage includes 639/640px timing, CSS easing, quick and held swipes in both
+directions, half-slide boundaries, 5px jitter, repeated native recovery, browser
+chrome changes, preserved flick timing after native settling, and 6rem control
+clearance at different root font sizes. These checks do not certify physical
+Android gesture feel or frame rate.
+
+Compared with 2.1.12, the deferred hero asset grows by 1,031 raw / 404 gzip bytes;
+startup size is unchanged. Roll back all four global install pins to
+`c4398b2a056f5115d5e8b3f4d2c2513643b34856` and publish staging only. No native
+component rollback is required. The campaign image remains active until the
+landscape and portrait Vimeo IDs are supplied and video is enabled.
