@@ -1,4 +1,4 @@
-/* TDB shared motion v1.25.1. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.25.2. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -1895,21 +1895,27 @@
     const schedule = () => {
       if (!disposed && !suspended && !document.hidden) requestMotionFrame(read);
     };
-    // About two wheel scrolls advance the opening chapter. Before that threshold
-    // only the pills respond; the page never rests between the two heroes.
+    // Only the first visit needs about two wheel scrolls to advance the opening.
+    // After a chapter settles, either hero is ready for a one-gesture reversal.
+    // Before the initial threshold only the pills respond.
     // The second hero releases forward scrolling back to the normal page.
     let settleTimer = 0,
       scrollFrame = 0,
       gestureStart = null,
       held = false,
       snapping = false,
+      hasSettledChapter = false,
+      lastTravelDirection = 0,
       pressure = 0,
       quietUntil = 0,
       touchY = null,
       touchTime = 0,
       touchVelocity = 0;
     const scrollDistance = () => Math.max(120, innerHeight * (2 / 3));
-    const slideDuration = () => duration() * 2;
+    const slideDuration = () => duration() * 3;
+    // Spread the movement across the duration instead of racing to an almost
+    // finished position and keeping input locked through a long easing tail.
+    const slideEase = (p) => p * p * (3 - 2 * p);
     const blocked = () =>
       disposed ||
       suspended ||
@@ -1932,14 +1938,17 @@
       touchVelocity = 0;
     }
     function navigate(top) {
-      const feedback = pressure;
+      const feedback = pressure,
+        direction = Math.sign(top - window.scrollY);
       resetGesture();
       pressure = feedback;
+      lastTravelDirection = direction;
       snapping = true;
       const finish = () => {
         cancelAnimationFrame(scrollFrame);
         scrollFrame = 0;
         snapping = false;
+        if (direction) hasSettledChapter = true;
         pressure = 0;
         quietUntil = performance.now() + 180;
         schedule();
@@ -1947,6 +1956,7 @@
       if (window.lenis?.scrollTo)
         window.lenis.scrollTo(top, {
           duration: slideDuration() / 1000,
+          easing: slideEase,
           lock: true,
           force: true,
           onComplete: finish,
@@ -1956,7 +1966,7 @@
         finish();
       } else {
         // Native smooth-scroll has a browser-chosen duration. Phones use a
-        // finite animation with the same easing as the site's Lenis owner.
+        // finite animation with the same duration and easing as this Lenis slide.
         const from = window.scrollY,
           started = performance.now(),
           milliseconds = slideDuration();
@@ -1964,7 +1974,7 @@
           scrollFrame = 0;
           if (disposed || suspended || document.hidden) return;
           const p = clamp((now - started) / milliseconds);
-          const eased = p === 1 ? 1 : Math.min(1, 1.001 - 2 ** (-10 * p));
+          const eased = slideEase(p);
           window.scrollTo({ top: from + (top - from) * eased, behavior: 'instant' });
           if (p < 1) scrollFrame = requestAnimationFrame(step);
           else finish();
@@ -2000,11 +2010,17 @@
         // nested-scroll handoff flag so it cannot also apply this gesture.
         event.lenisStopPropagation = true;
       };
-      if (snapping || performance.now() < quietUntil) {
+      // Suppress the old gesture's momentum, never a deliberate reversal once
+      // settled. This also keeps the opening ready after returning from below.
+      if (
+        snapping ||
+        (performance.now() < quietUntil && Math.sign(delta) === lastTravelDirection)
+      ) {
         consume();
         quietUntil = performance.now() + 180;
         return true;
       }
+      quietUntil = 0;
       const y = window.scrollY,
         start = y + root.getBoundingClientRect().top,
         end = y + panel.getBoundingClientRect().top,
@@ -2021,11 +2037,10 @@
       if (first && (delta > 0 || pressure > 0)) {
         consume();
         const limit = scrollDistance();
-        pressure = first
-          ? Math.max(0, Math.min(limit, pressure + delta))
-          : Math.min(0, Math.max(-limit, pressure + delta));
+        pressure =
+          hasSettledChapter && delta > 0 ? limit : Math.max(0, Math.min(limit, pressure + delta));
         schedule();
-        if (Math.abs(pressure) >= limit) navigate(first ? end : start);
+        if (pressure >= limit) navigate(end);
         return true;
       }
       // A native return from the body lands on the second hero first.
@@ -2051,7 +2066,7 @@
         (event.type === 'wheel' && Math.abs(event.deltaX) >= Math.abs(event.deltaY))
       )
         return;
-      if (event.type === 'touchmove' && (snapping || performance.now() < quietUntil)) {
+      if (event.type === 'touchmove' && snapping) {
         event.preventDefault();
         event.lenisStopPropagation = true;
         touchY = event.touches[0]?.clientY ?? null;
@@ -2206,7 +2221,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.25.1',
+    version: '1.25.2',
     profile,
     time,
     easing,

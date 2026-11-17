@@ -324,10 +324,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "818d0fd02a493350c9e98e28514fa513ddf3c6b1a1654715ffe2ef2f6e3ccf03",
-      "raw": 41757,
-      "gzip": 13862,
-      "brotli": 12516
+      "sha256": "c47579ba3db5a0a5ee1317cf4aac0404d2cd67c73650b48c70dbd19ccceeb55e",
+      "raw": 41767,
+      "gzip": 13891,
+      "brotli": 12540
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -643,7 +643,7 @@
         "src/startup/smooth-scroll.js",
         "src/startup/start.js"
       ],
-      "sha256": "62516873d83011031438289ad7a068a96c6b7882d5916f7d4c0158052a4468b2",
+      "sha256": "8b809640f8c93a143eac080a681260e86d2d08ffb4a8207d68b1c4b9c919c283",
       "raw": 15649,
       "gzip": 5748,
       "brotli": 5140
