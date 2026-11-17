@@ -18,6 +18,13 @@ Home instance: `0aea8c9d-e128-5eab-dda9-c6a949f9fe7a`.
   The same image is the video poster; video uses the existing shared Vimeo
   consent, pause and lazy loading behavior. Its play button belongs to its own
   video shell. No new Vimeo player or custom playback implementation is added.
+- **Variant** offers **White text** (base) and **Black text**. These are native
+  Designer variants. The campaign foreground, CTA text/border and background
+  veil follow the selected variant; there is no JavaScript color override.
+
+The staging instance currently enables campaign video with portrait ID
+`1247633429`, landscape ID `1247634748`, and **Black text** selected. Both formats
+use the existing campaign play/pause control and retain its scroll fade.
 
 The initial image is the existing digital smile-planning WebP asset
 `697a0c20536733e7ff791d25` (116,092 bytes before responsive image selection).
@@ -382,3 +389,34 @@ startup size is unchanged. Roll back all four global install pins to
 `c4398b2a056f5115d5e8b3f4d2c2513643b34856` and publish staging only. No native
 component rollback is required. The campaign image remains active until the
 landscape and portrait Vimeo IDs are supplied and video is enabled.
+
+### Native video activation and text variants (same runtime)
+
+The user's supplied 22-second films are now assigned to the Home instance:
+[portrait](https://vimeo.com/1247633429) at tablet/mobile widths and
+[landscape](https://vimeo.com/1247634748) above 991px. **Use campaign video** is on.
+Each responsive player is inside the existing campaign shell; its shared native
+button selects the visible player and switches between play and pause through
+the established Vimeo owner. Consent, visibility and offscreen playback gates
+continue to apply. No runtime code or loading gate was added for these films.
+
+Native **Variant** prop `7c6e6d35-1ac8-cee0-20b7-0ec2d5c21b07` selects **White text**
+(`base`) or **Black text** (`cac1661b-a79c-d281-fd1c-97ebb3e64497`). The black variant
+sets the campaign panel's inherited foreground to black and replaces its dark
+shade with a light veil. The campaign CTA combo class inherits its foreground,
+and its existing currentColor border follows. The opening hero retains its
+authored colors. This choice is stored and editable in Designer, not in a
+page script, runtime attribute toggle or injected stylesheet.
+
+The immutable runtime remains 2.1.13 at
+`50796602c6dfcee8e5d7afa1d3db733530aaa804`. Revert this native follow-up by choosing
+**White text** and disabling **Use campaign video**, then publish staging only.
+The configured IDs may remain for later reuse. Native state and publication
+evidence are saved alongside the working checkout.
+
+Staging browser validation at 390×844 and 1280×720 confirms the correct visible
+Vimeo ID, successful playback, pause and resume, and a black heading, CTA and
+control. The campaign control reaches zero opacity during onward scrolling and
+the existing player pauses offscreen. Initial playback correctly requests
+functionality consent. No browser console errors were observed. This native
+configuration change does not alter the previously verified runtime build.
