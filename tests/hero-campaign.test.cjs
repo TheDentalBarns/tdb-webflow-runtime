@@ -22,6 +22,7 @@ function setup(code,{width=1024,coarse=false,profile=false}={}) {
   root.getBoundingClientRect=()=>rect(-w.scrollY,1600);
   opening.getBoundingClientRect=()=>rect(Math.min(0,800-w.scrollY),800);
   panel.getBoundingClientRect=()=>rect(800-w.scrollY,800);
+  Object.defineProperty(panel,'offsetTop',{get:()=>panel.getBoundingClientRect().top+w.scrollY});
   w.lenis={scrollTo:(...args)=>{jumps.push(args);args[1]?.onComplete?.();}};
   if(profile)w.eval(fs.readFileSync('src/shared/motion-profile.js','utf8').replace('__TDB_MOTION_PROFILE__',fs.readFileSync('config/motion.json','utf8')));
   w.eval(code);
@@ -35,6 +36,18 @@ function mobileTouch(e,type,y,x=180,count=1,cancelable=true) {
   event.touches=y==null?[]:Array.from({length:count},(_,i)=>({clientX:x+i*30,clientY:y,identifier:i}));
   e.root.dispatchEvent(event);
   return event;
+}
+
+function compositor(e) {
+  delete e.w.lenis;
+  const animations=[],scrolls=[];
+  e.w.Element.prototype.animate=function(frames,options){
+    const animation={node:this,frames,options,cancelled:false,cancel(){this.cancelled=true;}};
+    animations.push(animation);
+    return animation;
+  };
+  e.w.scrollTo=({top})=>{scrolls.push(top);e.w.scrollY=top;e.w.dispatchEvent(new e.w.Event('scroll'));};
+  return {animations,scrolls,flight:()=>animations.filter(a=>a.node===e.panel).at(-1)};
 }
 
 for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
@@ -177,7 +190,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
       owner.destroy();e.dom.window.close();
     }
   });
-  test(`${file}: stationary pills fade continuously through hints, slides and the exit`,()=>{
+  test(`${file}: pills animate continuously inside a fixed rail and fade through the exit`,()=>{
     const e=setup(fs.readFileSync(file,'utf8'));
     let now=0;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
@@ -186,16 +199,23 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     const wheel=delta=>{e.root.dispatchEvent(new e.w.WheelEvent('wheel',{deltaY:delta,bubbles:true,cancelable:true}));owner.refresh();e.flush(now);};
     const opacity=()=>parseFloat(e.links[1].firstElementChild.style.opacity);
     const stationary=()=>e.links.forEach(link=>{
-      assert.equal(link.getAttribute('style'),null,'native hit-target geometry is never animated');
+      assert.equal(link.style.height,'','native hit-target layout never changes');
+      assert.match(link.style.transform,/^translate3d\(0,[-\d.]+px,0\)$/,'pills move locally within their fixed rail');
       const marker=link.firstElementChild;
-      for(const property of ['height','clipPath','transform','translate'])assert.equal(marker.style[property],'','marker geometry remains native');
+      for(const property of ['height','clipPath','translate'])assert.equal(marker.style[property],'','no per-frame layout or clipping');
+      assert.match(marker.style.transform,/^scaleY\([\d.]+\)$/,'pill length uses compositor scaling');
+      for(const property of ['top','transform','translate'])assert.equal(e.rail.style[property],'','rail never travels with the panel');
     });
-    stationary();wheel(270);assert.equal(opacity(),.4,'no brightness jump on the first wheel input');
+    stationary();assert.equal(e.links[0].style.transform,'translate3d(0,14px,0)');
+    assert.equal(e.links[0].firstElementChild.style.transform,'scaleY(1)');
+    wheel(270);assert.equal(opacity(),.4,'no brightness jump on the first wheel input');
     now=80;e.flush(now);const middle=opacity();assert.ok(middle>.4&&middle<.44);stationary();
     now=160;e.flush(now);const hinted=opacity();assert.ok(hinted>middle);assert.equal(e.queue.size,0,'hint animation stops when settled');
     wheel(270);assert.equal(opacity(),hinted,'crossing the threshold preserves the displayed fade');
     e.scroll(400);assert.ok(opacity()>hinted&&opacity()<1);stationary();
     e.scroll(800);assert.equal(opacity(),1);e.jumps.at(-1)[1].onComplete();e.flush(now);assert.equal(opacity(),1);
+    assert.equal(e.links[1].style.transform,'translate3d(0,-14px,0)');
+    assert.equal(e.links[1].firstElementChild.style.transform,'scaleY(1)');
     wheel(-120);assert.equal(opacity(),1,'reverse input has no brightness jump');
     e.scroll(400);assert.ok(opacity()>.4&&opacity()<1);
     e.scroll(0);e.jumps.at(-1)[1].onComplete();e.flush(now);assert.equal(opacity(),.4);
@@ -205,6 +225,91 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     e.scroll(1200);assert.equal(e.rail.style.opacity,'0');assert.equal(e.rail.inert,true);stationary();
     e.scroll(1000);assert.equal(e.rail.style.opacity,'0.5');assert.ok(!e.rail.inert);
     owner.destroy();e.dom.window.close();
+  });
+  test(`${file}: touch follows the local panel and compositor flights scroll only at landing`,()=>{
+    const e=setup(fs.readFileSync(file,'utf8'),{width:390,coarse:true,profile:true});
+    const c=compositor(e);
+    let now=0;
+    Object.defineProperty(e.w.performance,'now',{value:()=>now});
+    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();
+    mobileTouch(e,'touchstart',600);now=100;mobileTouch(e,'touchmove',500);e.flush(now);
+    assert.equal(e.panel.style.transform,'translate3d(0,-100px,0)');
+    assert.equal(e.copy.style.translate,'0 -100px');
+    assert.equal(e.w.scrollY,0);assert.equal(c.animations.length,0,'the held finger previews before settling');
+    mobileTouch(e,'touchend');
+    assert.deepEqual(Array.from(c.flight().frames,f=>f.transform),['translate3d(0,-100px,0)','translate3d(0,-800px,0)']);
+    assert.equal(c.flight().options.duration,875,'remaining distance retains the slower full-height pace');
+    assert.equal(c.animations.length,6,'one panel, foreground and four pill transforms');
+    const copyFrames=c.animations.find(a=>a.node===e.copy).frames;
+    assert.equal(copyFrames[0].translate,'0 -100px');assert.equal(copyFrames.at(-1).opacity,'0');
+    assert.ok(copyFrames.some(f=>f.translate==='0 -200px'&&f.opacity==='1'),'logo fades only after its first quarter');
+    for(let frame=1;frame<=60;frame++){now+=16;e.flush(now);}
+    assert.equal(c.scrolls.length,0,'no whole-document scroll writes during the animation');
+    assert.equal(e.queue.size,0,'the compositor flight needs no JavaScript frame loop');
+    e.links[0].click();assert.equal(c.animations.length,6,'a pill click does not interrupt the current flight');
+    c.flight().onfinish();e.flush(now);
+    assert.deepEqual(c.scrolls,[800]);assert.equal(e.panel.getAttribute('style'),null);
+    assert.equal(e.copy.style.translate,'0 -800px');assert.equal(e.copy.style.opacity,'0');
+    assert.equal(e.links[1].getAttribute('aria-current'),'step');
+    assert.ok(c.animations.every(a=>a.cancelled),'native endpoint takes over from filled animations');
+    mobileTouch(e,'touchstart',400);now+=100;mobileTouch(e,'touchmove',500);e.flush(now);
+    assert.equal(e.panel.style.transform,'translate3d(0,100px,0)');assert.equal(e.w.scrollY,800);
+    mobileTouch(e,'touchend');assert.equal(c.flight().frames.at(-1).transform,'translate3d(0,800px,0)');
+    c.flight().onfinish();e.flush(now);assert.deepEqual(c.scrolls,[800,0]);assert.equal(e.copy.style.opacity,'1');
+    // A long drag must use the native anchor, not the transformed panel rect.
+    const nativeRect=e.panel.getBoundingClientRect;
+    Object.defineProperty(e.panel,'getBoundingClientRect',{value:()=>{
+      const box=nativeRect(),shift=parseFloat(e.panel.style.transform.split(',')[1])||0;
+      return {...box,top:box.top+shift,bottom:box.bottom+shift};
+    }});
+    mobileTouch(e,'touchstart',700);now+=100;mobileTouch(e,'touchmove',100);e.flush(now);mobileTouch(e,'touchend');
+    assert.equal(c.flight().frames.at(-1).transform,'translate3d(0,-800px,0)','one immediate forward swipe reverses again');
+    c.flight().onfinish();e.flush(now);
+    mobileTouch(e,'touchstart',600);now+=100;
+    assert.equal(mobileTouch(e,'touchmove',500).defaultPrevented,false,'fresh forward swipe releases native scrolling at chapter two');
+    mobileTouch(e,'touchend');assert.equal(c.scrolls.length,3);
+    owner.destroy();assert.equal(e.panel.getAttribute('style'),null);e.dom.window.close();
+  });
+  test(`${file}: short carousel drags return smoothly and cancellation restores the native panel`,()=>{
+    const e=setup(fs.readFileSync(file,'utf8'),{width:390,coarse:true,profile:true}),c=compositor(e);
+    let now=0;Object.defineProperty(e.w.performance,'now',{value:()=>now});
+    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();
+    mobileTouch(e,'touchstart',600);now=300;mobileTouch(e,'touchmove',570);e.flush(now);mobileTouch(e,'touchend');
+    assert.equal(c.flight().frames[0].transform,'translate3d(0,-30px,0)');
+    assert.equal(c.flight().frames[1].transform,'translate3d(0,0px,0)');
+    assert.equal(c.flight().options.duration,220,'short cancelled intent has a bounded return');
+    c.flight().onfinish();e.flush(now);assert.equal(e.w.scrollY,0);assert.equal(e.copy.style.opacity,'1');
+    mobileTouch(e,'touchstart',600);mobileTouch(e,'touchmove',500);e.flush(now);mobileTouch(e,'touchcancel');e.flush(now);
+    assert.equal(e.panel.getAttribute('style'),null);assert.equal(e.copy.style.translate,'0 0px');
+    assert.equal(c.animations.length,6,'touchcancel never creates a new flight');
+    mobileTouch(e,'touchstart',600);mobileTouch(e,'touchmove',500);e.flush(now);
+    mobileTouch(e,'touchmove',500,180,2);e.flush(now);
+    assert.equal(e.panel.getAttribute('style'),null,'pinch returns the preview to native layout');
+    owner.destroy();e.dom.window.close();
+  });
+  test(`${file}: carousel resize, hidden-tab return and teardown cannot leave a half slide`,()=>{
+    const e=setup(fs.readFileSync(file,'utf8'),{width:390,coarse:true,profile:true}),c=compositor(e);
+    let now=0,height=800,hidden=false;
+    Object.defineProperty(e.w.performance,'now',{value:()=>now});
+    Object.defineProperty(e.w.document,'hidden',{get:()=>hidden});
+    e.root.getBoundingClientRect=()=>({top:-e.w.scrollY,bottom:height*2-e.w.scrollY,height:height*2});
+    e.opening.getBoundingClientRect=()=>({top:Math.min(0,height-e.w.scrollY),height});
+    e.panel.getBoundingClientRect=()=>({top:height-e.w.scrollY,height});
+    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();e.links[1].click();
+    assert.equal(c.flight().options.duration,1000);
+    height=e.w.innerHeight=700;e.w.dispatchEvent(new e.w.Event('resize'));e.flush(now);
+    assert.equal(e.w.scrollY,700);assert.equal(e.panel.getAttribute('style'),null);assert.ok(c.flight().cancelled);
+    e.links[0].click();hidden=true;e.w.document.dispatchEvent(new e.w.Event('visibilitychange'));
+    now=1500;e.w.dispatchEvent(new e.w.Event('blur'));hidden=false;e.w.document.dispatchEvent(new e.w.Event('visibilitychange'));e.flush(now);
+    assert.equal(e.w.scrollY,0);assert.equal(e.copy.style.opacity,'1');assert.ok(c.flight().cancelled);
+    e.links[1].click();const interrupted=c.flight();e.w.dispatchEvent(new e.w.Event('pagehide'));
+    assert.ok(interrupted.cancelled);assert.equal(e.panel.getAttribute('style'),null);
+    interrupted.onfinish();assert.equal(c.scrolls.length,2,'late completion after pagehide has no effect');
+    e.w.dispatchEvent(new e.w.Event('pageshow'));e.flush(now);assert.equal(e.copy.style.opacity,'1');
+    e.links[1].click();const destroyed=c.flight();owner.destroy();destroyed.onfinish();
+    assert.ok(destroyed.cancelled);assert.equal(c.scrolls.length,2);assert.equal(e.queue.size,0);
+    assert.equal(e.copy.getAttribute('style'),'color:white');assert.equal(e.panel.getAttribute('style'),null);
+    e.dom.window.close();
   });
   test(`${file}: a native mobile slide reuses geometry and paints copy in the same frame`,()=>{
     const e=setup(fs.readFileSync(file,'utf8'),{width:390,coarse:true,profile:true});

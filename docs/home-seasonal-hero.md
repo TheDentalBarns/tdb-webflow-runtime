@@ -28,8 +28,8 @@ image/poster, copy, buttons, styles and responsive layout. The existing shared
 Hero — Vimeo instance and its assets stay intact inside the opening wrapper.
 The new heading is an H2; this does not introduce another H1.
 
-`TDBMotion.campaignHero` owns only scroll-driven copy translation/opacity, the
-two marker fades, focus exclusion for covered content, and bounded
+`TDBMotion.campaignHero` owns transient panel/copy motion, the
+two marker animations, focus exclusion for covered content, and bounded
 gesture snapping between the two heroes. It uses the shared frame scheduler,
 motion policy/timing and Lenis scroll owner. The first background does not
 parallax. Campaign copy is ordinary document content and scrolls with its image.
@@ -43,13 +43,17 @@ Below the opening threshold,
 only the pills respond. Once triggered, the transition completes smoothly;
 it does not rest halfway between heroes. Touch uses its own gesture handling:
 one 48px vertical swipe changes chapter on finger release, or a deliberate short
-flick of at least 20px commits on release. While held, the opening pills show
-intent without starting the page transition. Taps, sideways gestures, multi-touch
+flick of at least 20px commits on release. On native touch viewports, the panel
+and foreground follow the finger locally while the document stays at its chapter
+anchor. On release, Web Animations completes the panel/copy/pill transforms and
+opacity on the compositor, then commits document scroll once at the destination.
+A short withdrawn drag settles back to its starting chapter. Taps, sideways gestures, multi-touch
 zoom, screen-edge navigation and cancelled or withdrawn swipes do not trigger
 slides. Touches made during a slide stay consumed until release; a fresh forward
 swipe from the second hero scrolls the page immediately.
 Touch devices and viewports below 992px use an 800ms base duration, scaled to
-1000ms by the current shared motion profile. Desktop timing remains at the site's
+1000ms by the current shared motion profile, scaled by the distance remaining
+after a touch preview (minimum 220ms). Desktop timing remains at the site's
 standard motion duration (half the duration of release 2.1.4). A smooth
 ease-in/out spreads movement across that duration instead of appearing to
 finish early while input remains locked. The existing foreground layer owns logo motion;
@@ -59,18 +63,23 @@ keyboard navigation, restoration and scroll-locked menus/dialogs stay free.
 
 The pill rail stays fixed at the right-hand viewport centre and fades out as
 the campaign leaves. Native campaign combo styles retain the About Us line
-appearance with two equal 72px hit targets and 56px lines. Neither position,
-length nor clipping is animated. Opacity alone identifies the active chapter;
-the opening hint eases its brightness and blends into the slide continuously.
+appearance with two equal 72px hit targets and 84px base lines. Local translation
+and scaling animate between the original 84px active and 28px inactive pills;
+opacity identifies the active chapter. No height or clipping changes happen
+per frame. The opening hint eases into the slide continuously. The rail itself
+never moves with the departing second panel; only its opacity fades out.
 Ordinary clicks and window blur
 do not reset an owned scroll. Hidden tabs retain an in-flight destination so
 the animation catches up when browser frames resume. Actual page navigation
 still releases the old page's scroll ownership.
 Document anchors are cached until resize, observed hero/panel size changes,
 load, restoration or explicit refresh. Native scroll and foreground updates
-share the existing motion frame, eliminating the separate scroll rAF loop and
-per-frame geometry reads. Mobile browser height changes and rotation invalidate
-the anchors without cancelling an owned slide or leaving it halfway.
+share the existing motion frame where native scrolling is used, eliminating the
+separate scroll rAF loop and per-frame geometry reads. Mobile compositor flights
+need no JavaScript frame loop after release. Native scroll remains the fallback
+without Web Animations and when returning from the body. Mobile browser height
+changes and rotation remeasure and settle a compositor flight at its chosen
+chapter instead of leaving it halfway.
 Height-only changes also preserve a finger gesture that has already started.
 
 The existing navbar owner keeps the menu fixed during the cover transition,
@@ -87,7 +96,7 @@ there is no continuous animation loop when the visitor stops scrolling.
 
 ## Release and rollback
 
-Runtime release 2.1.8 is based on the actual deployed immutable release
+Runtime release 2.1.9 is based on the actual deployed immutable release
 `55f76b394bf4aedfaba35ced87bf12631c07a70c`, not unshipped main-branch changes.
 All first-party site script/style/preload references move together to the
 same new commit. This pilot is published only to `dentalbarns.webflow.io`.
@@ -105,7 +114,7 @@ landscape, native anchors, normal lower-page scrolling and staging publication.
 The campaign-off native output was published and verified to omit panel and
 rail while retaining the original hero before restoring the enabled pilot.
 
-## Stationary pills and mobile frame work — 17 November 2026
+## Stationary pills and mobile frame work — 17 November 2026 (2.1.8)
 
 Reference: [Home architecture and engineering standard](https://chatgpt.com/space/page_c22eaec26d7c819197df9524f243acbd).
 The user reported Android frame-rate drops after approving the revised swipe
@@ -140,3 +149,38 @@ native campaign rules: rail absolute, bottom 0, height auto; progress sticky at
 combo position/top/right and marker transform/clip overrides, and the muted
 marker transform override. Publish only staging. Published native CSS before
 the change is captured beside the working checkout as `pill-perf-before-*.css`.
+
+## Fixed rail, animated pills and touch carousel — 17 November 2026 (2.1.9)
+
+The user's clarification restores animated pills while retaining the fixed rail.
+The supplied Omega HTML and its official `Reflet_PageBuilder/js/content-type/module_51.min.js`
+confirm a vertical Swiper carousel with transform-driven touch, a completed
+transition before edge release, and local animated bullets. This implementation
+uses the existing native TDB panels and browser Web Animations rather than adding
+Swiper, copied vendor code, a wrapper, or another loading gate.
+
+Designer keeps the rail fixed and owns the 72px hit targets, 84px base markers,
+initial +14px step translation and inactive one-third marker scale. Runtime owns
+only transient transforms/opacity and the final native scroll handoff. First
+media, navbar ownership, video controls, campaign toggle and normal onward
+scrolling retain their existing contracts. Desktop keeps its reviewed timing and
+opening runway. No permanent layer promotion or broad containment is added.
+
+Regression checks cover finger-follow preview without document scrolling, no
+JavaScript animation loop during the released flight, a single native scroll at
+landing, immediate reversals, long drags using untransformed anchors, short-drag
+return, touch cancellation, pinch, resize, hidden-tab completion and teardown.
+Source and built bundle tests also retain desktop/fallback and fixed-rail exit
+coverage. Browser verification checks local panel movement, fixed rail position,
+full-height landing and onward scrolling. Physical Android FPS still requires a
+device check; these checks do not certify a frame-rate target.
+
+`npm run verify`: 1,218 tests, 1,215 passed, three existing skips, no failures.
+Compared with 2.1.8, the deferred motion bundle adds 2,068 raw bytes / 704 gzip
+bytes; startup size is unchanged. There are no additional requests or elements.
+
+Rollback pairs runtime `dcc082296b4538771271cfc5451da3aaaec82df0` with the 2.1.8
+native campaign combo rules: step transform none, marker height 56px and transform
+none, muted marker transform none. Keep the fixed rail and 72px targets. Publish
+only staging. The 2.1.8 head/footer and native styles are retained in the local
+release evidence.

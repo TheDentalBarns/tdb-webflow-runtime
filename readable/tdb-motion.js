@@ -1,4 +1,4 @@
-/* TDB shared motion v1.25.7. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.25.8. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -1830,8 +1830,8 @@
     return api;
   }
 
-  // Native sticky media and normal-flow campaign copy do the covering. This
-  // owner only scrolls/fades the first panel's copy and updates chapter markers.
+  // Native sticky media and normal-flow campaign copy own the layout. Touch
+  // previews and completes a local panel flight, then returns to native flow.
   const campaignHeroes = new WeakMap();
   function campaignHero(root) {
     if (campaignHeroes.has(root)) return campaignHeroes.get(root);
@@ -1848,11 +1848,12 @@
     const rail = root.querySelector('[data-tdb-campaign-rail]');
     const links = [...root.querySelectorAll('[data-tdb-campaign-step]')];
     const markers = links.map((link) => link.firstElementChild);
-    const nodes = [copy, rail, ...links, ...markers].filter(Boolean);
+    const nodes = [copy, panel, rail, ...links, ...markers].filter(Boolean);
     const styles = nodes.map((node) => node.getAttribute('style'));
     const current = links.map((link) => link.getAttribute('aria-current'));
     const openingInert = opening.inert;
     const railInert = rail?.inert;
+    const panelTransform = panel.style.transform;
     let disposed = false,
       suspended = false,
       active = 0,
@@ -1863,14 +1864,15 @@
       if (layout) return layout;
       frame ||= frameMeasurements();
       const box = frame.rect(root),
-        first = frame.rect(opening),
-        second = frame.rect(panel);
+        first = frame.rect(opening);
       // These are document anchors, not moving viewport rectangles. Scrolling
       // changes their screen position but not this geometry. Invalidate on
       // real layout changes instead of forcing a layout read every slide frame.
       return (layout = {
         start: frame.scroll + box.top,
-        end: frame.scroll + second.top,
+        // The native panel is a direct child of this positioned root. offsetTop
+        // stays stable while the mobile carousel translates the visual panel.
+        end: frame.scroll + box.top + panel.offsetTop,
         bottom: frame.scroll + box.bottom,
         height: first.height,
       });
@@ -1885,7 +1887,7 @@
         phase = slide ? clamp((performance.now() - slide.started) / slide.milliseconds) : 0,
         scroll = slide
           ? slide.from + (box[slide.destination] - slide.from) * slideEase(phase)
-          : frame.scroll;
+          : (previewScroll ?? frame.scroll);
       const travelled = clamp((scroll - box.start) / Math.max(1, box.height));
       const hintPhase = clamp((performance.now() - hintStarted) / Math.max(1, time(160)));
       if (!snapping) openingHint = hintFrom + (hintTarget - hintFrom) * slideEase(hintPhase);
@@ -1898,6 +1900,8 @@
         // Native scrolling and its foreground use one shared frame. Keeping a
         // second rAF loop made the copy/pills trail the media by a frame.
         if (slide) window.scrollTo({ top: scroll, behavior: 'instant' });
+        if (previewScroll !== null)
+          style(panel, 'transform', `translate3d(0,${frame.scroll - previewScroll}px,0)`);
         progress = travelled;
         active = box.end - scroll <= frame.height * 0.5 ? 1 : 0;
         style(copy, 'translate', `0 ${-y}px`);
@@ -1912,8 +1916,10 @@
         markers.forEach((marker, index) => {
           if (!marker) return;
           const weight = index === 0 ? 1 - markerProgress : markerProgress;
-          // Native styles keep both targets and lines stationary. Only opacity
-          // follows progress; no per-frame height, clipping or layout changes.
+          // The rail stays fixed. Compositor transforms reproduce the About Us
+          // long/short pill animation without changing layout or clipping.
+          style(links[index], 'transform', `translate3d(0,${14 - 28 * markerProgress}px,0)`);
+          style(marker, 'transform', `scaleY(${(28 + 56 * weight) / 84})`);
           style(marker, 'opacity', String(0.4 + 0.6 * weight));
           if (index === active) {
             if (links[index].getAttribute('aria-current') !== 'step')
@@ -1928,7 +1934,7 @@
       };
     }
     const schedule = () => {
-      if (!disposed && !suspended && !document.hidden) requestMotionFrame(read);
+      if (!disposed && !suspended && !document.hidden && !carousel) requestMotionFrame(read);
     };
     const invalidate = () => {
       layout = null;
@@ -1940,6 +1946,8 @@
     // The second hero releases forward scrolling back to the normal page.
     let settleTimer = 0,
       nativeSlide = null,
+      carousel = null,
+      previewScroll = null,
       gestureStart = null,
       held = false,
       snapping = false,
@@ -1960,6 +1968,109 @@
     // Spread the movement across the duration instead of racing to an almost
     // finished position and keeping input locked through a long easing tail.
     const slideEase = (p) => p * p * (3 - 2 * p);
+    const carouselAvailable = () =>
+      (touchViewport() || innerWidth < 992) && !window.lenis?.scrollTo && !!panel.animate;
+    function restorePanel() {
+      if (panelTransform) panel.style.transform = panelTransform;
+      else panel.style.removeProperty('transform');
+      if (!panel.style.length && styles[nodes.indexOf(panel)] === null)
+        panel.removeAttribute('style');
+    }
+    function cancelCarousel() {
+      const moving = carousel;
+      carousel = null;
+      moving?.animations.forEach((animation) => animation.cancel());
+      if (moving || previewScroll !== null) restorePanel();
+      previewScroll = null;
+    }
+    function startCarousel(destination, visualFrom, finish) {
+      const box = measure(),
+        physical = window.scrollY,
+        to = box[destination],
+        first = Math.abs(physical - box.start) <= 3,
+        second = Math.abs(physical - box.end) <= 3;
+      if (!carouselAvailable() || (!first && !second)) return false;
+      const span = Math.max(1, box.end - box.start),
+        fromProgress = clamp((visualFrom - box.start) / span),
+        toProgress = destination === 'end' ? 1 : 0,
+        milliseconds = slideDuration() * Math.max(0.22, Math.abs(to - visualFrom) / span),
+        options = {
+          duration: milliseconds,
+          easing: 'cubic-bezier(0.333333,0,0.666667,1)',
+          fill: 'both',
+        },
+        animations = [];
+      // Native transform animations run between frames on the browser's
+      // compositor. The document scrolls once, at the completed landing.
+      const animate = (node, frames) => {
+        const animation = node.animate(frames, options);
+        if (document.timeline?.currentTime != null)
+          animation.startTime = document.timeline.currentTime;
+        animations.push(animation);
+        return animation;
+      };
+      const moving = {
+        animations,
+        started: performance.now(),
+        milliseconds,
+        finish() {
+          if (carousel !== moving) return;
+          carousel = null;
+          previewScroll = null;
+          restorePanel();
+          layout = null;
+          const target = measure()[destination];
+          window.scrollTo({ top: target, behavior: 'instant' });
+          // Set the native landing underneath the animation before releasing
+          // its fill, so the normal page takes over without a visible jump.
+          read(frameMeasurements())?.();
+          animations.forEach((animation) => animation.cancel());
+          finish();
+        },
+      };
+      carousel = moving;
+      cancelMotionFrame(read);
+      const panelAnimation = animate(panel, [
+        { transform: `translate3d(0,${physical - visualFrom}px,0)` },
+        { transform: `translate3d(0,${physical - to}px,0)` },
+      ]);
+      const offsets = [0, 1],
+        fadeBoundary = (0.25 - fromProgress) / (toProgress - fromProgress);
+      if (fadeBoundary > 0 && fadeBoundary < 1) offsets.splice(1, 0, fadeBoundary);
+      animate(
+        copy,
+        offsets.map((offset) => {
+          const p = fromProgress + (toProgress - fromProgress) * offset;
+          return {
+            offset,
+            translate: `0 ${-p * box.height}px`,
+            opacity: String(1 - clamp((p - 0.25) / 0.75)),
+          };
+        }),
+      );
+      const fromMarker = clamp(fromProgress + (1 - fromProgress) * openingHint);
+      links.forEach((link) =>
+        animate(link, [
+          { transform: `translate3d(0,${14 - 28 * fromMarker}px,0)` },
+          { transform: `translate3d(0,${14 - 28 * toProgress}px,0)` },
+        ]),
+      );
+      markers.forEach((marker, index) => {
+        if (!marker) return;
+        animate(
+          marker,
+          [fromMarker, toProgress].map((p) => {
+            const weight = index === 0 ? 1 - p : p;
+            return {
+              transform: `scaleY(${(28 + 56 * weight) / 84})`,
+              opacity: String(0.4 + 0.6 * weight),
+            };
+          }),
+        );
+      });
+      panelAnimation.onfinish = moving.finish;
+      return true;
+    }
     const blocked = () =>
       disposed ||
       suspended ||
@@ -1970,6 +2081,7 @@
       document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
     function resetGesture() {
       clearTimeout(settleTimer);
+      cancelCarousel();
       settleTimer = 0;
       nativeSlide = null;
       gestureStart = null;
@@ -1982,6 +2094,7 @@
     }
     function navigate(top) {
       const feedback = openingHint,
+        visualFrom = previewScroll ?? window.scrollY,
         direction = Math.sign(top - window.scrollY),
         touch = touchGesture,
         box = measure(),
@@ -2001,6 +2114,7 @@
         quietUntil = performance.now() + 180;
         schedule();
       };
+      if (!reduced.matches && startCarousel(destination, visualFrom, finish)) return;
       if (window.lenis?.scrollTo)
         window.lenis.scrollTo(top, {
           duration: slideDuration() / 1000,
@@ -2114,7 +2228,10 @@
         held = false;
         gestureStart = null;
         clearTimeout(settleTimer);
-        if (!snapping) touchHint(0);
+        if (!snapping) {
+          cancelCarousel();
+          touchHint(0);
+        }
         return;
       }
       const point = event.touches[0],
@@ -2170,6 +2287,8 @@
       if (touch.axis === 'native') return;
       if (!event.cancelable) {
         touch.axis = 'native';
+        cancelCarousel();
+        schedule();
         if (gestureStart === null) gestureStart = touch.scroll;
         return;
       }
@@ -2179,13 +2298,21 @@
       if (target) {
         consume();
         if (!touch.axis) return;
-        // Track intent without moving the page under a held finger. Start the
-        // owned slide on release so Android's touch scroll cannot fight it.
-        if (touch.origin === 0) touchHint(clamp(dy / 48) * 0.12);
+        // Touch follows the panel locally, like a vertical carousel. The page
+        // stays at its chapter anchor until the released slide has landed.
+        if (carouselAvailable()) {
+          const box = measure();
+          previewScroll = Math.max(box.start, Math.min(box.end, touch.scroll + dy));
+          schedule();
+        } else if (touch.origin === 0) touchHint(clamp(dy / 48) * 0.12);
         return;
       }
       // The second hero releases a forward swipe to native page scrolling.
       // Returning from the body still lands on the second chapter first.
+      if (previewScroll !== null) {
+        cancelCarousel();
+        schedule();
+      }
       if (hintTarget) touchHint(0);
       if (touch.axis === 'vertical') {
         if (captureStep(delta, event)) {
@@ -2235,7 +2362,10 @@
           if (event.type === 'touchcancel' || event.touches?.length) {
             gestureStart = null;
             clearTimeout(settleTimer);
-            if (!snapping) touchHint(0);
+            if (!snapping) {
+              cancelCarousel();
+              touchHint(0);
+            }
             return;
           }
           if (
@@ -2248,8 +2378,16 @@
               (Math.abs(touch.distance) >= 20 &&
                 Math.abs(touch.distance) / Math.max(16, performance.now() - touch.started) >= 0.35))
           )
-            navigate(window.scrollY + touch.target.getBoundingClientRect().top);
-          else if (!snapping) touchHint(0);
+            // A finger-follow preview transforms the panel's visible rectangle.
+            // Navigate to its native anchor, regardless of how far it was dragged.
+            navigate(measure()[touch.target === panel ? 'end' : 'start']);
+          else if (!snapping) {
+            if (previewScroll !== null && touch && !blocked()) navigate(touch.scroll);
+            else {
+              cancelCarousel();
+              touchHint(0);
+            }
+          }
           if (gestureStart !== null) settleTimer = setTimeout(settle, 160);
         },
         { passive: true, signal },
@@ -2267,9 +2405,12 @@
     window.addEventListener(
       'resize',
       () => {
-        invalidate();
         const widthChanged = Math.abs(innerWidth - viewportWidth) > 1;
         viewportWidth = innerWidth;
+        // A compositor flight has no intermediate document scroll to preserve.
+        // Settle its chosen chapter against the resized native layout atomically.
+        if (carousel) return carousel.finish();
+        invalidate();
         // Height-only browser chrome changes are not new gestures. The next
         // slide frame remeasures the invalidated destination after rotation too.
         if ((snapping && !window.lenis?.scrollTo) || (touchGesture && !widthChanged)) return;
@@ -2282,6 +2423,12 @@
       () => {
         // Background tabs can suspend rAF. Retain the in-flight destination
         // so the next frame catches up instead of abandoning a half slide.
+        if (
+          carousel &&
+          !document.hidden &&
+          performance.now() - carousel.started >= carousel.milliseconds
+        )
+          return carousel.finish();
         if (!snapping) resetGesture();
         if (!document.hidden) invalidate();
       },
@@ -2305,6 +2452,7 @@
           return;
         event.preventDefault();
         event.stopPropagation();
+        if (carousel) return;
         const target = index === 0 ? root : panel;
         const top = window.scrollY + target.getBoundingClientRect().top;
         navigate(top);
@@ -2372,7 +2520,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.25.7',
+    version: '1.25.8',
     profile,
     time,
     easing,
