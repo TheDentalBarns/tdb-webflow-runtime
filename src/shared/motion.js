@@ -1,4 +1,4 @@
-/* TDB shared motion v1.25.5. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.25.6. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -1920,7 +1920,9 @@
       touchGesture = null,
       viewportWidth = innerWidth;
     const scrollDistance = () => Math.max(120, innerHeight * (2 / 3));
-    const slideDuration = () => duration();
+    // A full-height touch transition needs more time than the site's short
+    // mobile UI movements. Keep the established desktop wheel timing intact.
+    const slideDuration = () => (touchViewport() || innerWidth < 992 ? time(800) : duration());
     // Spread the movement across the duration instead of racing to an almost
     // finished position and keeping input locked through a long easing tail.
     const slideEase = (p) => p * p * (3 - 2 * p);
@@ -2155,10 +2157,9 @@
       if (target) {
         consume();
         if (!touch.axis) return;
-        if (Math.abs(dy) >= 48) {
-          touch.committed = true;
-          navigate(window.scrollY + target.getBoundingClientRect().top);
-        } else if (touch.origin === 0) touchHint(clamp(dy / 48) * 0.12);
+        // Track intent without moving the page under a held finger. Start the
+        // owned slide on release so Android's touch scroll cannot fight it.
+        if (touch.origin === 0) touchHint(clamp(dy / 48) * 0.12);
         return;
       }
       // The second hero releases a forward swipe to native page scrolling.
@@ -2221,8 +2222,9 @@
             touch?.target &&
             !touch.committed &&
             touch.axis === 'vertical' &&
-            Math.abs(touch.distance) >= 20 &&
-            Math.abs(touch.distance) / Math.max(16, performance.now() - touch.started) >= 0.35
+            (Math.abs(touch.distance) >= 48 ||
+              (Math.abs(touch.distance) >= 20 &&
+                Math.abs(touch.distance) / Math.max(16, performance.now() - touch.started) >= 0.35))
           )
             navigate(window.scrollY + touch.target.getBoundingClientRect().top);
           else if (!snapping) touchHint(0);
@@ -2346,7 +2348,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.25.5',
+    version: '1.25.6',
     profile,
     time,
     easing,
