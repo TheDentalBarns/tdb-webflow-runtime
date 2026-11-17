@@ -53,31 +53,16 @@ test('guide artwork waits for consent and section proximity, and survives ticker
   }
 });
 
-test('guide native mask URLs are guarded in both critical and shared CSS without changing layout', () => {
+test('guide masks are owned by Designer without critical or shared CSS overrides', () => {
   const postcss = require('postcss');
   for (const file of ['dist/tdb-ui-critical.css', 'dist/tdb-ui.css']) {
     const rules = [];
     postcss.parse(fs.readFileSync(file, 'utf8')).walkRules((rule) => {
-      if (
-        rule.selector.includes(':root.w-mod-js') &&
-        /treatment-guide_(intro-diamond|cta-icon)/.test(rule.selector)
-      )
+      if (/treatment-guide_(intro-diamond|cta-icon)/.test(rule.selector) &&
+          rule.nodes.some(node => node.type === 'decl' && /mask/.test(node.prop)))
         rules.push(rule);
     });
-    assert.equal(rules.length, 6, file);
-    for (const rule of rules) {
-      assert.deepEqual(
-        rule.nodes.map((n) => n.prop),
-        ['-webkit-mask-image', 'mask-image'],
-      );
-      for (const declaration of rule.nodes) {
-        assert.doesNotMatch(declaration.value, /url\(/);
-        assert.match(
-          declaration.value,
-          /var\(--tdb-guide-[a-z]+-artwork,linear-gradient\(transparent,transparent\)\)/,
-        );
-      }
-    }
+    assert.equal(rules.length, 0, file);
   }
 });
 function fixture({allowed=true,observer=true}={}) {
@@ -255,15 +240,10 @@ test('service icons retain the no-observer fallback and discard removed or dispo
  }finally{f.close()}
 });
 
-test('critical and shared CSS both suppress the initial native service icon URLs without owning geometry',()=>{
+test('calculator, FAQ and gallery native mask styling stays out of critical and shared CSS',()=>{
  const postcss=require('postcss');
  for(const file of ['dist/tdb-ui-critical.css','dist/tdb-ui.css']){
-  const rules=[];postcss.parse(fs.readFileSync(file,'utf8')).walkRules(rule=>{if(rule.selector.includes('[data-calculator-icon]')||rule.selector.includes('.tdb-service-faq-heading[data-tdb-native-pseudo-icon]'))rules.push(rule)});
-  assert.equal(rules.length,2,file);
-  for(const rule of rules){
-   assert.equal(rule.parent.type,'root');assert.match(rule.selector,/:root\.w-mod-js/, 'native icons remain available without JavaScript');
-   assert.deepEqual(rule.nodes.map(n=>n.prop),['-webkit-mask-image','mask-image']);
-   for(const declaration of rule.nodes){assert.doesNotMatch(declaration.value,/url\(/);assert.match(declaration.value,/var\(--tdb-(calculator|pseudo)-artwork,linear-gradient\(transparent,transparent\)\)/)}
-  }
+  const rules=[];postcss.parse(fs.readFileSync(file,'utf8')).walkRules(rule=>{if(/\[data-calculator-icon\]|\.tdb-service-faq-heading|\[data-tdb-deferred-mask\]/.test(rule.selector)&&rule.nodes.some(n=>n.type==='decl'&&/mask/.test(n.prop)))rules.push(rule)});
+  assert.equal(rules.length,0,file);
  }
 });

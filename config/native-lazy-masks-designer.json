@@ -1,0 +1,390 @@
+{
+  "approved": "2026-11-17",
+  "owner": "Webflow Designer classes and pseudo-elements",
+  "loading": "Existing TDBLazyIconMasks; after consent and 400px proximity",
+  "fallback": "Transparent reserved decorative icon slots in Designer and without JavaScript; user approved.",
+  "actions": [
+    {
+      "label": "Native calculator mask",
+      "update_style": {
+        "style_name": "tdb-calculator-icon",
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-calculator-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Move treatment-guide_intro-diamond mask ownership to Designer",
+      "update_style": {
+        "style_name": "treatment-guide_intro-diamond",
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-guide-intro-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Move smile-page_intro-diamond mask ownership to Designer",
+      "update_style": {
+        "style_name": "smile-page_intro-diamond",
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-mask-artwork, linear-gradient(transparent, transparent))"
+          },
+          {
+            "property_name": "mask-position",
+            "property_value": "center"
+          },
+          {
+            "property_name": "mask-size",
+            "property_value": "contain"
+          },
+          {
+            "property_name": "mask-repeat",
+            "property_value": "no-repeat"
+          }
+        ],
+        "remove_properties": [
+          "mask"
+        ]
+      }
+    },
+    {
+      "label": "Move smile-filter_chevron mask ownership to Designer",
+      "update_style": {
+        "style_name": "smile-filter_chevron",
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-mask-artwork, linear-gradient(transparent, transparent))"
+          },
+          {
+            "property_name": "mask-position",
+            "property_value": "center"
+          },
+          {
+            "property_name": "mask-size",
+            "property_value": "contain"
+          },
+          {
+            "property_name": "mask-repeat",
+            "property_value": "no-repeat"
+          }
+        ],
+        "remove_properties": [
+          "mask"
+        ]
+      }
+    },
+    {
+      "label": "Move smile-grid_treatment-icon mask ownership to Designer",
+      "update_style": {
+        "style_name": "smile-grid_treatment-icon",
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-mask-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Use lazy native guide diamond mask",
+      "update_style": {
+        "style_name": "is-guide-diamond",
+        "parent_style_names": [
+          "treatment-guide_icon-art"
+        ],
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-guide-diamond-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Use lazy native guide thumbprint mask",
+      "update_style": {
+        "style_name": "is-guide-thumbprint",
+        "parent_style_names": [
+          "treatment-guide_icon-art"
+        ],
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-guide-thumbprint-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Use lazy native guide lotus mask",
+      "update_style": {
+        "style_name": "is-guide-lotus",
+        "parent_style_names": [
+          "treatment-guide_icon-art"
+        ],
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-guide-lotus-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Use lazy native guide quotation mask",
+      "update_style": {
+        "style_name": "is-guide-quotation",
+        "parent_style_names": [
+          "treatment-guide_icon-art"
+        ],
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-guide-quotation-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Use lazy native guide barn mask",
+      "update_style": {
+        "style_name": "is-guide-barn",
+        "parent_style_names": [
+          "treatment-guide_icon-art"
+        ],
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-guide-barn-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Keep guide barn mask lazy at medium",
+      "update_style": {
+        "style_name": "is-guide-barn",
+        "parent_style_names": [
+          "treatment-guide_icon-art"
+        ],
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-guide-barn-artwork, linear-gradient(transparent, transparent))"
+          }
+        ],
+        "breakpoint_id": "medium"
+      }
+    },
+    {
+      "label": "Keep guide barn mask lazy at small",
+      "update_style": {
+        "style_name": "is-guide-barn",
+        "parent_style_names": [
+          "treatment-guide_icon-art"
+        ],
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-guide-barn-artwork, linear-gradient(transparent, transparent))"
+          }
+        ],
+        "breakpoint_id": "small"
+      }
+    },
+    {
+      "label": "Keep guide barn mask lazy at tiny",
+      "update_style": {
+        "style_name": "is-guide-barn",
+        "parent_style_names": [
+          "treatment-guide_icon-art"
+        ],
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-guide-barn-artwork, linear-gradient(transparent, transparent))"
+          }
+        ],
+        "breakpoint_id": "tiny"
+      }
+    },
+    {
+      "label": "Use native lazy FAQ investment mask",
+      "update_style": {
+        "style_name": "is-investment",
+        "parent_style_names": [
+          "tdb-service-faq-heading"
+        ],
+        "pseudo": "before",
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-pseudo-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Use native lazy FAQ procedure mask",
+      "update_style": {
+        "style_name": "is-procedure",
+        "parent_style_names": [
+          "tdb-service-faq-heading"
+        ],
+        "pseudo": "before",
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-pseudo-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Use native lazy FAQ results mask",
+      "update_style": {
+        "style_name": "is-results",
+        "parent_style_names": [
+          "tdb-service-faq-heading"
+        ],
+        "pseudo": "before",
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-pseudo-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Use native lazy FAQ location mask",
+      "update_style": {
+        "style_name": "is-location",
+        "parent_style_names": [
+          "tdb-service-faq-heading"
+        ],
+        "pseudo": "before",
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-pseudo-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Keep Smile filter diamond mask native and lazy",
+      "update_style": {
+        "style_name": "smile-icon-diamond",
+        "parent_style_names": [
+          "smile-icon"
+        ],
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-mask-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Keep Smile filter lotus mask native and lazy",
+      "update_style": {
+        "style_name": "smile-icon-lotus",
+        "parent_style_names": [
+          "smile-icon"
+        ],
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-mask-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Keep Smile filter clock mask native and lazy",
+      "update_style": {
+        "style_name": "smile-icon-clock",
+        "parent_style_names": [
+          "smile-icon"
+        ],
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-mask-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Keep Smile filter price mask native and lazy",
+      "update_style": {
+        "style_name": "smile-icon-price",
+        "parent_style_names": [
+          "smile-icon"
+        ],
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-mask-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Keep Smile card price mask native and lazy",
+      "update_style": {
+        "style_name": "is-price",
+        "parent_style_names": [
+          "smile-grid_icon"
+        ],
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-mask-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Keep Smile card clock mask native and lazy",
+      "update_style": {
+        "style_name": "is-clock",
+        "parent_style_names": [
+          "smile-grid_icon"
+        ],
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-mask-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Keep Smile card lotus mask native and lazy",
+      "update_style": {
+        "style_name": "is-lotus",
+        "parent_style_names": [
+          "smile-grid_icon"
+        ],
+        "properties": [
+          {
+            "property_name": "mask-image",
+            "property_value": "var(--tdb-mask-artwork, linear-gradient(transparent, transparent))"
+          }
+        ]
+      }
+    }
+  ]
+}
