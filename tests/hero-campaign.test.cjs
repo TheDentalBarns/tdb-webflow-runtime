@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 
-function setup(code,{width=1024,coarse=false,profile=false}={}) {
+function setup(code,{width=1024,height=800,coarse=false,profile=false}={}) {
   const dom = new JSDOM(`<main data-tdb-campaign-hero>
     <div data-tdb-campaign-opening><div data-vimeo-hero-content><div class="hero-vimeo_content" style="color:white">Logo</div></div><iframe></iframe><button data-tdb-hero-toggle></button></div>
     <section data-tdb-campaign-panel><h2>Campaign</h2><a href="/implants">Discover</a></section>
@@ -17,11 +17,11 @@ function setup(code,{width=1024,coarse=false,profile=false}={}) {
   w.matchMedia=query=>({matches:query==='(pointer: coarse)'?coarse:query==='(min-width:992px)'?w.innerWidth>=992:false,addEventListener(){},removeEventListener(){}});
   w.requestAnimationFrame=cb=>{queue.set(++seq,cb);return seq;};
   w.cancelAnimationFrame=id=>queue.delete(id);
-  w.innerHeight=800;
+  w.innerHeight=height;
   const rect=(top,height)=>({top,bottom:top+height,left:0,right:1200,width:1200,height});
-  root.getBoundingClientRect=()=>rect(-w.scrollY,1600);
-  opening.getBoundingClientRect=()=>rect(Math.min(0,800-w.scrollY),800);
-  panel.getBoundingClientRect=()=>rect(800-w.scrollY,800);
+  root.getBoundingClientRect=()=>rect(-w.scrollY,height*2);
+  opening.getBoundingClientRect=()=>rect(Math.min(0,height-w.scrollY),height);
+  panel.getBoundingClientRect=()=>rect(height-w.scrollY,height);
   Object.defineProperty(panel,'offsetTop',{get:()=>panel.getBoundingClientRect().top+w.scrollY});
   w.lenis={scrollTo:(...args)=>{jumps.push(args);args[1]?.onComplete?.();}};
   if(profile)w.eval(fs.readFileSync('src/shared/motion-profile.js','utf8').replace('__TDB_MOTION_PROFILE__',fs.readFileSync('config/motion.json','utf8')));
@@ -157,11 +157,11 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     const touch=(type,y)=>{const event=new e.w.Event(type,{bubbles:true,cancelable:true});event.touches=y==null?[]:[{clientY:y}];e.root.dispatchEvent(event);return event;};
     const finish=()=>{const [top,options]=e.jumps.at(-1);e.scroll(top);options.onComplete();};
     touch('touchstart',700);touch('touchmove',400);touch('touchend');finish();
-    touch('touchstart',400);touch('touchmove',460);
+    touch('touchstart',400);touch('touchmove',560);
     assert.equal(e.jumps.length,1);touch('touchend');
     assert.equal(e.jumps.length,2);assert.equal(e.jumps.at(-1)[0],0);
     finish();
-    touch('touchstart',460);touch('touchmove',400);
+    touch('touchstart',560);touch('touchmove',400);
     assert.equal(e.jumps.length,2);touch('touchend');
     assert.equal(e.jumps.length,3);assert.equal(e.jumps.at(-1)[0],800);
     owner.destroy();e.dom.window.close();
@@ -232,16 +232,16 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     let now=0;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
     const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();
-    mobileTouch(e,'touchstart',600);now=100;mobileTouch(e,'touchmove',500);e.flush(now);
-    assert.equal(e.panel.style.transform,'translate3d(0,-100px,0)');
-    assert.equal(e.copy.style.translate,'0 -100px');
+    mobileTouch(e,'touchstart',600);now=100;mobileTouch(e,'touchmove',440);e.flush(now);
+    assert.equal(e.panel.style.transform,'translate3d(0,-160px,0)');
+    assert.equal(e.copy.style.translate,'0 -160px');
     assert.equal(e.w.scrollY,0);assert.equal(c.animations.length,0,'the held finger previews before settling');
     mobileTouch(e,'touchend');
-    assert.deepEqual(Array.from(c.flight().frames,f=>f.transform),['translate3d(0,-100px,0)','translate3d(0,-800px,0)']);
-    assert.equal(c.flight().options.duration,875,'remaining distance retains the slower full-height pace');
+    assert.deepEqual(Array.from(c.flight().frames,f=>f.transform),['translate3d(0,-160px,0)','translate3d(0,-800px,0)']);
+    assert.equal(c.flight().options.duration,800,'remaining distance retains the slower full-height pace');
     assert.equal(c.animations.length,6,'one panel, foreground and four pill transforms');
     const copyFrames=c.animations.find(a=>a.node===e.copy).frames;
-    assert.equal(copyFrames[0].translate,'0 -100px');assert.equal(copyFrames.at(-1).opacity,'0');
+    assert.equal(copyFrames[0].translate,'0 -160px');assert.equal(copyFrames.at(-1).opacity,'0');
     assert.ok(copyFrames.some(f=>f.translate==='0 -200px'&&f.opacity==='1'),'logo fades only after its first quarter');
     for(let frame=1;frame<=60;frame++){now+=16;e.flush(now);}
     assert.equal(c.scrolls.length,0,'no whole-document scroll writes during the animation');
@@ -252,8 +252,8 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     assert.equal(e.copy.style.translate,'0 -800px');assert.equal(e.copy.style.opacity,'0');
     assert.equal(e.links[1].getAttribute('aria-current'),'step');
     assert.ok(c.animations.every(a=>a.cancelled),'native endpoint takes over from filled animations');
-    mobileTouch(e,'touchstart',400);now+=100;mobileTouch(e,'touchmove',500);e.flush(now);
-    assert.equal(e.panel.style.transform,'translate3d(0,100px,0)');assert.equal(e.w.scrollY,800);
+    mobileTouch(e,'touchstart',400);now+=100;mobileTouch(e,'touchmove',560);e.flush(now);
+    assert.equal(e.panel.style.transform,'translate3d(0,160px,0)');assert.equal(e.w.scrollY,800);
     mobileTouch(e,'touchend');assert.equal(c.flight().frames.at(-1).transform,'translate3d(0,800px,0)');
     c.flight().onfinish();e.flush(now);assert.deepEqual(c.scrolls,[800,0]);assert.equal(e.copy.style.opacity,'1');
     // A long drag must use the native anchor, not the transformed panel rect.
@@ -270,6 +270,76 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     mobileTouch(e,'touchend');assert.equal(c.scrolls.length,3);
     owner.destroy();assert.equal(e.panel.getAttribute('style'),null);e.dom.window.close();
   });
+  test(`${file}: mobile release commits at 20% of the visible height and returns below it at any speed`,()=>{
+    for(const height of [600,800,1000]){
+      const e=setup(fs.readFileSync(file,'utf8'),{width:390,height,coarse:true,profile:true}),c=compositor(e);
+      let now=0;Object.defineProperty(e.w.performance,'now',{value:()=>now});
+      const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();
+      const release=(from,to,elapsed)=>{
+        mobileTouch(e,'touchstart',from);now+=elapsed;mobileTouch(e,'touchmove',to);e.flush(now);
+        assert.equal(e.queue.size,0,'held drag becomes idle between finger movements');
+        mobileTouch(e,'touchend');return c.flight();
+      };
+      for(const elapsed of [60,600])for(const distance of [height*.1,height*.2-1]){
+        const flight=release(height*.8,height*.8-distance,elapsed);
+        assert.equal(flight.frames[0].transform,`translate3d(0,${-distance}px,0)`);
+        assert.equal(flight.frames.at(-1).transform,'translate3d(0,0px,0)','10% and just-under-20% drags return, including fast flicks');
+        assert.equal(flight.options.duration,500);assert.equal(e.w.scrollY,0);
+        flight.onfinish();e.flush(now);assert.equal(e.w.scrollY,0);assert.equal(e.copy.style.opacity,'1');
+      }
+      const forward=release(height*.8,height*.6,60);
+      assert.equal(forward.frames.at(-1).transform,`translate3d(0,${-height}px,0)`,'20% advances on each viewport size');
+      forward.onfinish();e.flush(now);assert.equal(e.w.scrollY,height);
+      const shortReverse=release(height*.4,height*.5,60);
+      assert.equal(shortReverse.frames.at(-1).transform,'translate3d(0,0px,0)','a short reverse returns to chapter two');
+      shortReverse.onfinish();e.flush(now);assert.equal(e.w.scrollY,height);
+      const reverse=release(height*.4,height*.6,600);
+      assert.equal(reverse.frames.at(-1).transform,`translate3d(0,${height}px,0)`,'one qualifying reverse remains available immediately');
+      reverse.onfinish();e.flush(now);assert.equal(e.w.scrollY,0);
+      owner.destroy();e.dom.window.close();
+    }
+  });
+  test(`${file}: an early native scroll settles when the deferred hero owner arrives`,async()=>{
+    for(const initial of [80,200]){
+      const e=setup(fs.readFileSync(file,'utf8'),{width:390,coarse:true,profile:true}),c=compositor(e);
+      e.w.scrollY=initial;
+      const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();
+      await new Promise(r=>setTimeout(r,200));
+      const destination=initial<160?0:800,flight=c.flight();
+      assert.ok(flight,'an early partial scroll cannot remain stranded between chapters');
+      assert.equal(flight.frames[0].transform,'translate3d(0,0px,0)');
+      assert.equal(flight.frames.at(-1).transform,`translate3d(0,${initial-destination}px,0)`);
+      assert.equal(e.w.scrollY,initial,'the recovery also avoids per-frame document scrolling');
+      if(initial<160)assert.equal(flight.options.duration,500);
+      flight.onfinish();e.flush();assert.equal(e.w.scrollY,destination);
+      assert.equal(e.panel.getAttribute('style'),null);assert.equal(e.copy.style.opacity,destination===0?'1':'0');
+      if(initial<160){
+        const count=c.animations.length;
+        e.root.dispatchEvent(new e.w.WheelEvent('wheel',{deltaY:100,bubbles:true,cancelable:true}));
+        assert.equal(c.animations.length,count,'returning an early short scroll does not consume the initial wheel runway');
+      }
+      owner.destroy();e.dom.window.close();
+    }
+  });
+  test(`${file}: a touch already moving when the owner loads keeps its preview and release threshold`,()=>{
+    for(const remaining of [60,100]){
+      const e=setup(fs.readFileSync(file,'utf8'),{width:390,coarse:true,profile:true}),c=compositor(e);
+      e.w.scrollY=80;
+      const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();
+      assert.equal(mobileTouch(e,'touchmove',600).defaultPrevented,true,'adopt the touch whose start preceded module loading');
+      e.flush();assert.equal(e.panel.style.transform,'translate3d(0,0px,0)');
+      mobileTouch(e,'touchmove',600-remaining);e.flush();
+      assert.equal(e.panel.style.transform,`translate3d(0,${-remaining}px,0)`);
+      assert.equal(e.copy.style.translate,`0 ${-80-remaining}px`);
+      assert.equal(c.animations.length,0,'the moving finger still owns the preview');
+      mobileTouch(e,'touchend');
+      const destination=80+remaining<160?0:800;
+      assert.equal(c.flight().frames.at(-1).transform,`translate3d(0,${80-destination}px,0)`);
+      if(destination===0)assert.equal(c.flight().options.duration,500);
+      c.flight().onfinish();e.flush();assert.equal(e.w.scrollY,destination);
+      owner.destroy();e.dom.window.close();
+    }
+  });
   test(`${file}: short carousel drags return smoothly and cancellation restores the native panel`,()=>{
     const e=setup(fs.readFileSync(file,'utf8'),{width:390,coarse:true,profile:true}),c=compositor(e);
     let now=0;Object.defineProperty(e.w.performance,'now',{value:()=>now});
@@ -277,7 +347,8 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     mobileTouch(e,'touchstart',600);now=300;mobileTouch(e,'touchmove',570);e.flush(now);mobileTouch(e,'touchend');
     assert.equal(c.flight().frames[0].transform,'translate3d(0,-30px,0)');
     assert.equal(c.flight().frames[1].transform,'translate3d(0,0px,0)');
-    assert.equal(c.flight().options.duration,220,'short cancelled intent has a bounded return');
+    assert.equal(c.flight().options.duration,500,'short cancelled intent has a softer half-second return');
+    assert.equal(c.flight().options.easing,'cubic-bezier(0.22,1,0.36,1)');
     c.flight().onfinish();e.flush(now);assert.equal(e.w.scrollY,0);assert.equal(e.copy.style.opacity,'1');
     mobileTouch(e,'touchstart',600);mobileTouch(e,'touchmove',500);e.flush(now);mobileTouch(e,'touchcancel');e.flush(now);
     assert.equal(e.panel.getAttribute('style'),null);assert.equal(e.copy.style.translate,'0 0px');
@@ -356,7 +427,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     now+=e.w.TDBMotion.duration();e.flush(now);e.flush(now);assert.equal(e.w.scrollY,0,'immediate reversal remains available after returning');
     owner.destroy();e.dom.window.close();
   });
-  test(`${file}: one short vertical swipe advances; the same finger cannot overshoot and the next swipe scrolls onward`,()=>{
+  test(`${file}: one deliberate vertical swipe advances; the same finger cannot overshoot and the next swipe scrolls onward`,()=>{
     const e=setup(fs.readFileSync(file,'utf8'));
     let now=0;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
@@ -365,7 +436,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     mobileTouch(e,'touchstart',600);now=200;mobileTouch(e,'touchmove',570);
     assert.equal(e.jumps.length,0,'a small slow movement does not trigger a slide');
     now=300;mobileTouch(e,'touchend');assert.equal(e.jumps.length,0);
-    mobileTouch(e,'touchstart',600);now+=400;mobileTouch(e,'touchmove',548);
+    mobileTouch(e,'touchstart',600);now+=400;mobileTouch(e,'touchmove',440);
     assert.equal(e.jumps.length,0,'even a qualifying swipe waits for finger release');
     now+=400;mobileTouch(e,'touchend');
     assert.equal(e.jumps.length,1);assert.equal(e.jumps[0][0],800,'one comfortable swipe replaces the mouse-wheel runway');
@@ -378,7 +449,7 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     mobileTouch(e,'touchend');
     owner.destroy();e.dom.window.close();
   });
-  test(`${file}: a short deliberate flick works; taps, cancellations and non-vertical gestures remain native`,()=>{
+  test(`${file}: short flicks do not bypass the threshold; taps, cancellations and non-vertical gestures remain native`,()=>{
     const e=setup(fs.readFileSync(file,'utf8'));
     let now=0;
     Object.defineProperty(e.w.performance,'now',{value:()=>now});
@@ -392,11 +463,13 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     assert.equal(e.jumps.length,0,'horizontal, edge, pinch and already-native gestures are not hijacked');
     mobileTouch(e,'touchstart',600);now+=40;mobileTouch(e,'touchmove',520);mobileTouch(e,'touchcancel');
     assert.equal(e.jumps.length,0,'touchcancel must not create flick momentum');
-    mobileTouch(e,'touchstart',600);now+=100;mobileTouch(e,'touchmove',520);now+=100;mobileTouch(e,'touchmove',596);mobileTouch(e,'touchend');
+    mobileTouch(e,'touchstart',600);now+=100;mobileTouch(e,'touchmove',400);now+=100;mobileTouch(e,'touchmove',596);mobileTouch(e,'touchend');
     assert.equal(e.jumps.length,0,'drawing a qualifying swipe back before release cancels its intent');
     mobileTouch(e,'touchstart',600);now+=60;mobileTouch(e,'touchmove',576);
     assert.equal(e.jumps.length,0);mobileTouch(e,'touchend');
-    assert.equal(e.jumps.length,1);assert.equal(e.jumps[0][0],800,'a 24px deliberate flick commits on release');
+    assert.equal(e.jumps.length,0,'a 24px fast flick still releases below the 20% threshold');
+    mobileTouch(e,'touchstart',600);now+=60;mobileTouch(e,'touchmove',440);mobileTouch(e,'touchend');
+    assert.equal(e.jumps.length,1);assert.equal(e.jumps[0][0],800,'a 20% flick commits on release');
     owner.destroy();e.dom.window.close();
   });
   test(`${file}: native slides finish at the remeasured chapter after viewport height changes or rotation`,()=>{
@@ -422,14 +495,16 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     assert.equal(e.copy.style.opacity,'1');assert.equal(e.queue.size,0);
     owner.destroy();e.dom.window.close();
   });
-  test(`${file}: a height-only resize keeps an in-progress touch gesture`,()=>{
+  test(`${file}: browser chrome resize preserves the current gesture threshold and updates the next`,()=>{
     const e=setup(fs.readFileSync(file,'utf8'));
     e.w.lenis.scrollTo=(...args)=>e.jumps.push(args);
     const owner=e.w.TDBMotion.campaignHero(e.root);
     mobileTouch(e,'touchstart',600);mobileTouch(e,'touchmove',580);
     e.w.innerHeight=700;e.w.dispatchEvent(new e.w.Event('resize'));
-    mobileTouch(e,'touchmove',548);
+    mobileTouch(e,'touchmove',441);
     assert.equal(e.jumps.length,0);mobileTouch(e,'touchend');
+    assert.equal(e.jumps.length,0,'159px stays below the captured 160px threshold after height shrinks');
+    mobileTouch(e,'touchstart',600);mobileTouch(e,'touchmove',460);mobileTouch(e,'touchend');
     assert.equal(e.jumps.length,1);assert.equal(e.jumps[0][0],800);
     owner.destroy();e.dom.window.close();
   });

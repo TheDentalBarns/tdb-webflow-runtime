@@ -1,4 +1,4 @@
-/* TDB shared motion v1.25.8. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.25.9. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -1949,6 +1949,7 @@
       carousel = null,
       previewScroll = null,
       gestureStart = null,
+      initialRecovery = false,
       held = false,
       snapping = false,
       hasSettledChapter = false,
@@ -1983,20 +1984,24 @@
       if (moving || previewScroll !== null) restorePanel();
       previewScroll = null;
     }
-    function startCarousel(destination, visualFrom, finish) {
+    function startCarousel(destination, visualFrom, finish, returning) {
       const box = measure(),
         physical = window.scrollY,
-        to = box[destination],
-        first = Math.abs(physical - box.start) <= 3,
-        second = Math.abs(physical - box.end) <= 3;
-      if (!carouselAvailable() || (!first && !second)) return false;
+        to = box[destination];
+      // An early native scroll may precede this deferred owner. It can settle
+      // from between the chapter anchors using the same local transforms.
+      if (!carouselAvailable() || physical < box.start - 3 || physical > box.end + 3) return false;
       const span = Math.max(1, box.end - box.start),
         fromProgress = clamp((visualFrom - box.start) / span),
         toProgress = destination === 'end' ? 1 : 0,
-        milliseconds = slideDuration() * Math.max(0.22, Math.abs(to - visualFrom) / span),
+        // An uncommitted drag has its own soft return. Distance-scaling the
+        // full slide made short releases snap back too abruptly.
+        milliseconds = returning
+          ? time(400)
+          : slideDuration() * Math.max(0.22, Math.abs(to - visualFrom) / span),
         options = {
           duration: milliseconds,
-          easing: 'cubic-bezier(0.333333,0,0.666667,1)',
+          easing: returning ? 'cubic-bezier(0.22,1,0.36,1)' : 'cubic-bezier(0.333333,0,0.666667,1)',
           fill: 'both',
         },
         animations = [];
@@ -2085,6 +2090,7 @@
       settleTimer = 0;
       nativeSlide = null;
       gestureStart = null;
+      initialRecovery = false;
       held = false;
       snapping = false;
       pressure = 0;
@@ -2092,10 +2098,10 @@
       quietUntil = 0;
       touchGesture = null;
     }
-    function navigate(top) {
+    function navigate(top, origin = window.scrollY) {
       const feedback = openingHint,
         visualFrom = previewScroll ?? window.scrollY,
-        direction = Math.sign(top - window.scrollY),
+        direction = Math.sign(top - origin),
         touch = touchGesture,
         box = measure(),
         destination = Math.abs(top - box.start) < Math.abs(top - box.end) ? 'start' : 'end';
@@ -2114,7 +2120,8 @@
         quietUntil = performance.now() + 180;
         schedule();
       };
-      if (!reduced.matches && startCarousel(destination, visualFrom, finish)) return;
+      if (!reduced.matches && startCarousel(destination, visualFrom, finish, direction === 0))
+        return;
       if (window.lenis?.scrollTo)
         window.lenis.scrollTo(top, {
           duration: slideDuration() / 1000,
@@ -2147,9 +2154,11 @@
         return;
       }
       const y = window.scrollY,
-        { start, end } = measure(),
+        { start, end, height } = measure(),
         distance = end - start;
       if (y <= start + 2 || y >= end - 2 || distance <= 0) return resetGesture();
+      if (initialRecovery)
+        return navigate(y - start >= Math.min(innerHeight, height) * 0.2 ? end : start, start);
       const travel = y - gestureStart,
         threshold = Math.min(64, distance * 0.08);
       let destination = y - start < distance / 2 ? start : end;
@@ -2237,7 +2246,8 @@
       const point = event.touches[0],
         x = point.clientX ?? innerWidth / 2,
         y = point.clientY;
-      if (event.type === 'touchstart') {
+      const adopting = event.type === 'touchmove' && !touchGesture && initialRecovery;
+      if (event.type === 'touchstart' || adopting) {
         // Preserve native edge navigation and multi-finger zoom gestures.
         if (x < 24 || x > innerWidth - 24) {
           touchGesture = null;
@@ -2251,19 +2261,22 @@
         const box = measure(),
           first = box.start - window.scrollY,
           second = box.end - window.scrollY;
+        initialRecovery = false;
         touchGesture = {
           x,
-          y,
+          y: adopting ? y + window.scrollY - box.start : y,
           lastY: y,
-          started: performance.now(),
-          scroll: window.scrollY,
-          origin: Math.abs(first) <= 3 ? 0 : Math.abs(second) <= 3 ? 1 : -1,
+          // Capture the visible height once. Browser chrome must not change
+          // the release threshold halfway through a finger gesture.
+          threshold: Math.max(1, Math.min(innerHeight, box.height)) * 0.2,
+          scroll: adopting ? box.start : window.scrollY,
+          origin: adopting || Math.abs(first) <= 3 ? 0 : Math.abs(second) <= 3 ? 1 : -1,
           axis: null,
           distance: 0,
           target: null,
           committed: snapping,
         };
-        return;
+        if (!adopting) return;
       }
       const touch = touchGesture;
       if (!touch) return;
@@ -2304,7 +2317,7 @@
           const box = measure();
           previewScroll = Math.max(box.start, Math.min(box.end, touch.scroll + dy));
           schedule();
-        } else if (touch.origin === 0) touchHint(clamp(dy / 48) * 0.12);
+        } else if (touch.origin === 0) touchHint(clamp(dy / touch.threshold) * 0.12);
         return;
       }
       // The second hero releases a forward swipe to native page scrolling.
@@ -2374,15 +2387,13 @@
             touch?.target &&
             !touch.committed &&
             touch.axis === 'vertical' &&
-            (Math.abs(touch.distance) >= 48 ||
-              (Math.abs(touch.distance) >= 20 &&
-                Math.abs(touch.distance) / Math.max(16, performance.now() - touch.started) >= 0.35))
+            Math.abs(touch.distance) >= touch.threshold
           )
             // A finger-follow preview transforms the panel's visible rectangle.
             // Navigate to its native anchor, regardless of how far it was dragged.
-            navigate(measure()[touch.target === panel ? 'end' : 'start']);
+            navigate(measure()[touch.target === panel ? 'end' : 'start'], touch.scroll);
           else if (!snapping) {
-            if (previewScroll !== null && touch && !blocked()) navigate(touch.scroll);
+            if (previewScroll !== null && touch && !blocked()) navigate(touch.scroll, touch.scroll);
             else {
               cancelCarousel();
               touchHint(0);
@@ -2509,6 +2520,14 @@
       },
     });
     campaignHeroes.set(root, api);
+    // User input can arrive before this deferred module. Recover a partial
+    // opening scroll after input settles; a continuing touch is adopted above.
+    const initial = measure();
+    if (window.scrollY > initial.start + 3 && window.scrollY < initial.end - 3) {
+      initialRecovery = true;
+      gestureStart = initial.start;
+      settleTimer = setTimeout(settle, 160);
+    }
     schedule();
     return api;
   }
@@ -2520,7 +2539,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.25.8',
+    version: '1.25.9',
     profile,
     time,
     easing,

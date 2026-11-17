@@ -324,10 +324,10 @@
         "src/shared/motion.js",
         "src/shared/section-magnet.js"
       ],
-      "sha256": "7289a1a041d3d557bd24f3a1ffcd66a947bd0647367769088ca8242286bc6291",
-      "raw": 45384,
-      "gzip": 15292,
-      "brotli": 13789
+      "sha256": "6554ea00c9d73093165a93e5e77265045d3947b65311f0170dec6f3332cefe82",
+      "raw": 45635,
+      "gzip": 15401,
+      "brotli": 13896
     },
     "dist/tdb-navbar-loader.js": {
       "sources": [
@@ -643,10 +643,10 @@
         "src/startup/smooth-scroll.js",
         "src/startup/start.js"
       ],
-      "sha256": "ac98d8501e1210d38ee06eea31c85c3c0334922bda1ae5595c372329480d7142",
-      "raw": 15694,
-      "gzip": 5763,
-      "brotli": 5163
+      "sha256": "6a2790f891c23fb97e8e3536ac04981b9b8a95541e314f445e3dfc5f211d9bfa",
+      "raw": 15695,
+      "gzip": 5764,
+      "brotli": 5161
     },
     "dist/tdb-ticker.js": {
       "sources": [

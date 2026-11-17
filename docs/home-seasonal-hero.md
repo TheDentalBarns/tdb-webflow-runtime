@@ -42,12 +42,15 @@ Downward input leaves the second hero without an additional runway.
 Below the opening threshold,
 only the pills respond. Once triggered, the transition completes smoothly;
 it does not rest halfway between heroes. Touch uses its own gesture handling:
-one 48px vertical swipe changes chapter on finger release, or a deliberate short
-flick of at least 20px commits on release. On native touch viewports, the panel
+one vertical swipe covering 20% of the visible viewport changes chapter on finger
+release. Faster flicks below that distance also return to the starting chapter.
+The height is captured at touchstart, so moving browser chrome does not change
+the threshold mid-gesture. On native touch viewports, the panel
 and foreground follow the finger locally while the document stays at its chapter
 anchor. On release, Web Animations completes the panel/copy/pill transforms and
 opacity on the compositor, then commits document scroll once at the destination.
-A short withdrawn drag settles back to its starting chapter. Taps, sideways gestures, multi-touch
+A short withdrawn drag settles back to its starting chapter over a softer 500ms
+ease-out (400ms base under the shared motion profile). Taps, sideways gestures, multi-touch
 zoom, screen-edge navigation and cancelled or withdrawn swipes do not trigger
 slides. Touches made during a slide stay consumed until release; a fresh forward
 swipe from the second hero scrolls the page immediately.
@@ -96,7 +99,7 @@ there is no continuous animation loop when the visitor stops scrolling.
 
 ## Release and rollback
 
-Runtime release 2.1.9 is based on the actual deployed immutable release
+Runtime release 2.1.10 is based on the actual deployed immutable release
 `55f76b394bf4aedfaba35ced87bf12631c07a70c`, not unshipped main-branch changes.
 All first-party site script/style/preload references move together to the
 same new commit. This pilot is published only to `dentalbarns.webflow.io`.
@@ -184,3 +187,48 @@ native campaign combo rules: step transform none, marker height 56px and transfo
 none, muted marker transform none. Keep the fixed rail and 72px targets. Publish
 only staging. The 2.1.8 head/footer and native styles are retained in the local
 release evidence.
+
+## Proportional touch release and soft return — 17 November 2026 (2.1.10)
+
+The supplied Omega hero configuration loads Swiper 12.2.0 with `followFinger`
+behaviour and touch release at its edges. Its library decides at touchend whether
+to advance or return: held drags use `longSwipesRatio` (default 0.5) after
+`longSwipesMs` (300ms), while shorter gestures use the separate short-swipe path.
+Its default `resistanceRatio` of 0.85 concerns travel beyond an outer slide edge;
+the hero's `touchReleaseOnEdges: true` suppresses that edge resistance to let the
+document continue. The snap-back within the two heroes is a release decision
+and slide transition, rather than a 20vh CSS threshold or an overshooting spring.
+Sources: [hero module](https://www.omegawatches.com/static/version1794588356/frontend/Omega/default/default/Reflet_PageBuilder/js/content-type/module_51.min.js),
+[Swiper bundle](https://www.omegawatches.com/static/version1794588356/frontend/Omega/default/default/js/vendor/swiper-bundle.min.js).
+
+The TDB tuning follows the user's requested approximate 20vh commitment point,
+not Omega's default 50% held-drag setting. It replaces the previous fixed 48px
+and 20px flick thresholds. Sub-threshold touch previews now return with a 500ms
+ease-out, independent of their short distance, rather than the 220ms minimum
+used before. Finger-follow transforms, forward slide pacing, desktop wheel
+runway, fixed animated pills, native onward scroll and lifecycle ownership stay
+with their existing owners. No native Webflow style or markup changes are needed.
+
+A staging reload followed immediately by a 10%-height scroll reproduced the
+reported first-load pause: the page remained at 84.67px on an 844px viewport
+after the deferred motion owner mounted. The owner now recovers a partial native
+opening scroll after input settles, using the same 20% decision. If the touch
+is still moving when the module arrives, it adopts that gesture and continues
+the local preview before deciding on release. Settling from between anchors
+uses compositor transforms too, with one native scroll at landing. A short
+initial recovery does not count as a completed chapter or consume the initial
+desktop wheel runway. No extra startup dependency or input owner is introduced.
+
+Regression coverage checks 10%, just below 20% and exactly 20% on 600px, 800px
+and 1000px viewports, fast and held releases, both directions, immediate next
+gestures, a height-only resize without a moving threshold, input preceding the
+deferred owner, and a touch already moving when that owner arrives. This supplements
+the existing compositor, fallback, desktop and teardown checks. Physical Android
+gesture feel remains a handset check.
+
+`npm run verify`: 1,224 tests, 1,221 passed, three existing skips, no failures.
+Compared with 2.1.9, deferred motion adds 251 raw / 108 gzip bytes and the startup
+version adds one byte. There are no additional requests, nodes or native styles.
+
+Rollback: restore runtime `41a9edad4c43c87f1e65829afc8e6937fc1c089d` in all global
+release references and publish staging only. Native pill styles remain as 2.1.9.
