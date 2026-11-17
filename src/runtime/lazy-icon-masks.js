@@ -64,8 +64,8 @@ function prepareLazyIconMasks() {
     address: '6aeddc65afde554858c3126e_tdb-location-small-1px.svg',
   };
   // Inherit artwork from the section so ticker clones never restart a request
-  // or lose their icon during a chapter change. Native classes keep the no-JS
-  // fallback; the critical mask guards suppress their eager requests with JS.
+  // or lose their icon during a chapter change. Designer owns the transparent
+  // native mask fallback; artwork stays deferred without head or UI overrides.
   const guideAssets = {
     intro: assets.diamond,
     diamond: serviceFAQAssets.diamond,

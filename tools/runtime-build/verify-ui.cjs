@@ -15,6 +15,10 @@ function assertCriticalContract(css) {
   const values = new Map([...guards.keys()].map((selector) => [selector, new Map()]));
   tree.walkDecls((decl) => {
     assert.notEqual(decl.prop, '--tdb-ui-ready', 'Inline CSS must not announce full UI readiness');
+    assert.ok(
+      !/^(-webkit-)?mask(?:-|$)/.test(decl.prop),
+      'Native icon masks must stay out of the inline head',
+    );
   });
   tree.walkAtRules('property', (rule) => {
     assert.notEqual(

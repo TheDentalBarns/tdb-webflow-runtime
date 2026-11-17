@@ -234,7 +234,7 @@
       "backdrop-filter": "saturate(150%) blur(20px)"
     },
     "is-guide-barn": {
-      "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
+      "mask-image": "var(--tdb-guide-barn-artwork, linear-gradient(transparent, transparent))"
     },
     "treatment-guide_chapter-number": {
       "color": "#222222",
@@ -265,7 +265,7 @@
       "height": "4rem",
       "flex-shrink": "0",
       "background-color": "currentColor",
-      "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6ac8f795d857a42b8d46b54c_tdb-exceptional-diamond.svg\")",
+      "mask-image": "var(--tdb-guide-intro-artwork, linear-gradient(transparent, transparent))",
       "mask-size": "contain",
       "mask-position": "center",
       "mask-repeat": "no-repeat"
@@ -368,7 +368,7 @@
         "padding-bottom": "0px"
       },
       "is-guide-barn": {
-        "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
+        "mask-image": "var(--tdb-guide-barn-artwork, linear-gradient(transparent, transparent))"
       },
       "treatment-guide_section-spacing": {
         "padding-top": "0px",
@@ -438,7 +438,7 @@
         "padding-bottom": "0px"
       },
       "is-guide-barn": {
-        "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
+        "mask-image": "var(--tdb-guide-barn-artwork, linear-gradient(transparent, transparent))"
       },
       "treatment-guide_section-spacing": {
         "padding-top": "0px",
@@ -508,7 +508,7 @@
         "padding-bottom": "0px"
       },
       "is-guide-barn": {
-        "mask-image": "url(\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6aede540e466c56cbce09cd0_tdb-barn-small-1px.svg\")"
+        "mask-image": "var(--tdb-guide-barn-artwork, linear-gradient(transparent, transparent))"
       },
       "treatment-guide_section-spacing": {
         "padding-top": "0px",
@@ -557,5 +557,5 @@
     "diamondSize": "4rem",
     "note": "Original CMS-bound heading and paragraph remain in place. Existing spacing wrappers use display:contents; the shared flex layout owns all vertical spacing. Copy matches the reference 0.875rem/1.5 typography with paragraph margins reset."
   },
-  "artworkLoading": "Critical mask guards retain native no-JS artwork. The existing lazy icon owner releases section-level artwork variables at 400px proximity after consent; CTA ticker clones inherit those variables. Drawer artwork remains demand-loaded."
+  "artworkLoading": "Designer owns the transparent native mask fallback. Decorative icon slots are intentionally empty in Designer and without JavaScript, as approved on 17 November 2026. The existing lazy icon owner releases section-level artwork variables at 400px proximity after consent; CTA ticker clones inherit those variables. No mask overrides remain in the head or shared UI. Drawer artwork remains demand-loaded."
 }

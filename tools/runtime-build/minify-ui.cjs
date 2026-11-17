@@ -11,7 +11,11 @@ const bundles = {
   'tdb-drawer.css': ['tdb-drawer.css'],
   'tdb-treatment-guide.css': ['tdb-treatment-guide.css'],
   'tdb-usp-drawer.css': ['tdb-pagination.css', 'tdb-usp-drawer.css'],
-  'tdb-review-drawer.css': ['tdb-pagination.css', 'tdb-review-drawer.css', 'tdb-filter-controls.css'],
+  'tdb-review-drawer.css': [
+    'tdb-pagination.css',
+    'tdb-review-drawer.css',
+    'tdb-filter-controls.css',
+  ],
   'tdb-partner-card.css': ['tdb-partner-card.css'],
   'tdb-five-senses.css': ['tdb-five-senses.css'],
   'tdb-instagram-native.css': ['tdb-pagination.css', 'tdb-instagram-native.css'],
