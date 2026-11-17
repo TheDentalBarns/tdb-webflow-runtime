@@ -1,4 +1,4 @@
-/* TDB Vimeo 1.3.0. Migrated from tdb-vimeo-js v1.0.1.
+/* TDB Vimeo 1.4.0. Migrated from tdb-vimeo-js v1.0.1.
  * Hero, ambient and content share playback cancellation and page suspension.
  * Loaded and initialised by tdb-vimeo-loader.js after functionality consent.
  */
@@ -288,7 +288,7 @@
       return vimeoApiPromise;
     }
 
-    function buildBackgroundVimeoSrc(videoId) {
+    function buildBackgroundVimeoSrc(videoId, warm) {
       const base = [
         'api=1',
         'background=1',
@@ -301,6 +301,7 @@
         'dnt=1',
       ];
 
+      if (warm) base.push('preload=auto');
       return 'https://player.vimeo.com/video/' + videoId + '?' + base.join('&');
     }
 
@@ -569,7 +570,25 @@
       scheduleCoverResizeRefresh();
     }
 
-    async function getOrCreateBackgroundPlayer(playerRoot, mode) {
+    function canWarmHero(playerRoot) {
+      const connection = navigator.connection;
+      if (
+        document.readyState !== 'complete' ||
+        !pageIsActive() ||
+        !hasFunctionalityConsent() ||
+        connection?.saveData ||
+        /^(slow-2g|2g|3g)$/.test(connection?.effectiveType || '') ||
+        !playerRoot.isConnected ||
+        ensureHeroState(playerRoot).pausedByUser
+      )
+        return false;
+      const shell = playerRoot._heroShell;
+      if (!shell || getVisibleHeroPlayer(shell) !== playerRoot) return false;
+      const rect = shell.getBoundingClientRect();
+      return rect.bottom > 0 && rect.top <= innerHeight * 2;
+    }
+
+    async function getOrCreateBackgroundPlayer(playerRoot, mode, warm = false) {
       if (playerRoot._vimeoPlayerPromise) return playerRoot._vimeoPlayerPromise;
       if (playerRoot._vimeoPlayer) return playerRoot._vimeoPlayer;
 
@@ -582,11 +601,11 @@
 
         await loadVimeoPlayerAPI();
         if (!hasFunctionalityConsent()) throw new Error('Vimeo permission changed');
-        if (!canPlay(playerRoot, mode)) return null;
+        if (!canPlay(playerRoot, mode) && !(warm && canWarmHero(playerRoot))) return null;
 
         iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture; encrypted-media');
 
-        const src = buildBackgroundVimeoSrc(videoId);
+        const src = buildBackgroundVimeoSrc(videoId, warm);
         if (iframe.getAttribute('src') !== src) {
           iframe.setAttribute('src', src);
         }
@@ -1614,6 +1633,16 @@
     }
 
     const api = Object.freeze({
+      warm(shell) {
+        if (!heroShells.includes(shell)) return;
+        const playerRoot = getVisibleHeroPlayer(shell);
+        if (!playerRoot) return;
+        attachHeroToShell(playerRoot, shell);
+        if (!canWarmHero(playerRoot)) return;
+        // Prepare the selected breakpoint only, with autoplay still disabled.
+        // Visibility/user intent remains the only authority to play or reveal.
+        return getOrCreateBackgroundPlayer(playerRoot, 'hero', true).catch(() => null);
+      },
       play(root) {
         if (root.matches('[data-vimeo-content-init]')) return playContent(root);
         const shell = root.closest('[data-vimeo-hero-shell]');
@@ -1635,7 +1664,7 @@
     return instance;
   }
   window.TDBVimeo = Object.freeze({
-    version: '1.3.0',
+    version: '1.4.0',
     init,
     get initialised() {
       return !!instance;

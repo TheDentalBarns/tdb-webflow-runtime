@@ -9,13 +9,13 @@ Home instance: `0aea8c9d-e128-5eab-dda9-c6a949f9fe7a`.
 - **Show campaign** enables the second hero and right-hand section navigation.
   Turning it off omits both from the published HTML, restores the normal first
   hero behavior and adds no empty scroll space. Publish to staging to preview.
-- **Campaign image**, **Image description**, **Eyebrow**, **Campaign heading**,
+- **Campaign image — landscape**, **Campaign image — portrait**, **Image description**, **Eyebrow**, **Campaign heading**,
   **Supporting text**, **CTA label**, **CTA destination** and **Campaign section
   label** are native instance properties. Copy and CTA work without JavaScript.
 - **Use campaign video** defaults off. Set **Campaign Vimeo ID — landscape** and
   **Campaign Vimeo ID — portrait** before enabling it. Landscape is used above
   991px and portrait on tablet/mobile, matching the existing opening hero.
-  The same image is the video poster; video uses the existing shared Vimeo
+  Each orientation's image is also its video poster; video uses the existing shared Vimeo
   consent, pause and lazy loading behavior. Its play button belongs to its own
   video shell. No new Vimeo player or custom playback implementation is added.
 - **Variant** offers **White text** (base) and **Black text**. These are native
@@ -26,8 +26,11 @@ The staging instance currently enables campaign video with portrait ID
 `1247633429`, landscape ID `1247634748`, and **Black text** selected. Both formats
 use the existing campaign play/pause control and retain its scroll fade.
 
-The initial image is the existing digital smile-planning WebP asset
-`697a0c20536733e7ff791d25` (116,092 bytes before responsive image selection).
+The current holding images are the user's diamonds artwork, converted to WebP
+at quality 95 without resizing: landscape `6afc6821c66914e1851711be`
+(3840×2160, 393,574 bytes), portrait `6afc679ce01c23256bd2ed41`
+(2160×3840, 383,482 bytes). Landscape appears above 991px, portrait at and below
+991px. The image-only fallback and both video posters use these native props.
 The campaign CTA points to `/treatments/dental-implants`.
 
 ## Ownership and motion
@@ -101,6 +104,11 @@ Height-only changes also preserve a finger gesture that has already started.
 The existing navbar owner keeps the menu fixed during the cover transition,
 then attaches it to the second hero at the top and lets it scroll off with it.
 Other pages, including About, retain their existing navigation behavior.
+The campaign's Designer text variant also determines the menu foreground. The
+menu stays white over the opening, transitions to dark as a black-text campaign
+reaches the menu's lower edge, and restores on the reverse journey. Its normal
+open, hover and floating surfaces keep their existing ownership. The campaign
+module changes a transient navbar state; the navbar module owns its state CSS.
 Normal Home page-break parallax excludes this stack while enabled and resumes
 when its campaign panel is omitted. Runtime teardown restores authored styles,
 ARIA state and inert state and removes gesture/timer/frame ownership.
@@ -112,8 +120,8 @@ there is no continuous animation loop when the visitor stops scrolling.
 
 ## Release and rollback
 
-Runtime release 2.1.13 is based on the actual deployed immutable release
-`55f76b394bf4aedfaba35ced87bf12631c07a70c`, not unshipped main-branch changes.
+Runtime release 2.1.14 is based on the actual deployed immutable release
+`50796602c6dfcee8e5d7afa1d3db733530aaa804`, with current main already reconciled.
 All first-party site script/style/preload references move together to the
 same new commit. This pilot is published only to `dentalbarns.webflow.io`.
 
@@ -420,3 +428,42 @@ control. The campaign control reaches zero opacity during onward scrolling and
 the existing player pauses offscreen. Initial playback correctly requests
 functionality consent. No browser console errors were observed. This native
 configuration change does not alter the previously verified runtime build.
+
+## Holding artwork, menu contrast and video preparation — 17 November 2026 (2.1.14)
+
+The two full-resolution quality-95 WebPs replace the temporary planning photo.
+The native portrait image property is c6b3d3ff-8d0b-c023-966c-a3f2c884aeca;
+landscape retains 31d937e0-5535-dce1-dd11-ad624295fdfb. Separate responsive
+native stills and video posters are bound to these fields. The treatment item
+6af86147179b3f8bf4983384 uses the landscape artwork in **Section 1 - bg Image**
+(section-1---bg-image-3); replace it normally in CMS. Other treatment fields
+are unchanged. All changes are staged, with no direct CMS live publication.
+
+The CTA uses the site glass treatment: saturate(150%) blur(20px). The native
+video shell has z-index 0 to contain its full-frame control beneath copy at
+z-index 2, and the decorative shade ignores pointer input. This corrects the
+desktop CTA click interception without redirecting events in JavaScript.
+
+Hero 1.2.0 reads the native campaign foreground when layout is measured, keeps
+the opening menu light, and changes the navbar state only when the incoming
+panel crosses its lower edge. One bounded timer follows mobile compositor
+flights, including reversal and cancellation; there is no extra animation loop.
+Navbar state CSS owns the foreground effect and preserves native menu surfaces.
+
+Vimeo loader 2.1.0 and controller 1.4.0 expose a reusable warm method. Campaign
+wheel/swipe/pill intent requests preparation only after document load and
+functionality consent. The controller selects one visible breakpoint, skips
+Save-Data and 2G/3G connections, hidden pages and distant shells, and rechecks
+permission after SDK loading. It creates the paused player with Vimeo
+preload=auto; it never plays or removes the holding image until the normal
+visibility/playback owner permits it. The opening video retains its existing
+consent/proximity gates. Untouched pages trigger no new speculative player.
+See [Vimeo player parameters](https://help.vimeo.com/hc/en-us/articles/12426260232977-About-Player-Parameters).
+
+The four changed deferred JS assets add 700 gzip bytes in local build estimates;
+startup and shared blocking UI CSS are unchanged. This is not a Lighthouse
+score or physical-device performance measurement. Formatting, build parity and
+the complete suite passed: 1,256 tests, 1,253 passes, three existing skips.
+New cases cover first-load/scroll/reversal menu colour, mobile timer cleanup,
+intent-only preparation, native orientation selection, consent withdrawal,
+network saving gates, poster retention and reuse on visible playback.

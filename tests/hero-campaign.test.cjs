@@ -56,6 +56,44 @@ function compositor(e) {
 }
 
 for(const file of ['src/components/hero-campaign.js','dist/tdb-hero-campaign.js']) {
+  test(`${file}: campaign menu tone follows Designer colour only at the header crossing and restores`,()=>{
+    const e=setup(file), nav=e.w.document.createElement('header');
+    nav.className='navbar10_component';nav.setAttribute('transparent-nav','true');
+    nav.getBoundingClientRect=()=>({top:0,bottom:80,height:80});e.w.document.body.prepend(nav);
+    e.panel.style.color='black';
+    const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();
+    assert.equal(nav.getAttribute('data-tdb-campaign-nav'),'light');
+    e.scroll(719);assert.equal(nav.getAttribute('data-tdb-campaign-nav'),'light','white while the first hero is behind the menu');
+    e.scroll(721);assert.equal(nav.getAttribute('data-tdb-campaign-nav'),'dark');
+    e.scroll(1000);assert.equal(nav.getAttribute('data-tdb-campaign-nav'),'dark','dark as the attached menu leaves with the campaign');
+    e.scroll(1600);assert.equal(nav.getAttribute('data-tdb-campaign-nav'),'light','normal nav owner resumes below the hero');
+    e.scroll(800);assert.equal(nav.getAttribute('data-tdb-campaign-nav'),'dark');
+    e.scroll(0);assert.equal(nav.getAttribute('data-tdb-campaign-nav'),'light');
+    e.panel.style.color='white';owner.refresh();e.flush();e.scroll(800);
+    assert.equal(nav.getAttribute('data-tdb-campaign-nav'),'light','future white campaigns keep white navigation');
+    owner.destroy();assert.equal(nav.hasAttribute('data-tdb-campaign-nav'),false);e.w.close();
+  });
+  test(`${file}: touch colour crossing follows the compositor and cancelled flights cannot change it later`,()=>{
+    const e=setup(file,{width:390,coarse:true}), nav=e.w.document.createElement('header');
+    nav.className='navbar10_component';nav.setAttribute('transparent-nav','true');nav.getBoundingClientRect=()=>({height:80});
+    e.w.document.body.prepend(nav);e.panel.style.color='black';const c=compositor(e),timers=new Map();let id=0;
+    e.w.setTimeout=(fn,delay)=>{timers.set(++id,{fn,delay});return id;};e.w.clearTimeout=id=>timers.delete(id);
+    const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();e.links[1].click();
+    assert.equal(nav.getAttribute('data-tdb-campaign-nav'),'light','starting the slide must not darken the opening');
+    const crossing=[...timers.values()].find(t=>t.delay>250&&t.delay<500);assert(crossing);
+    crossing.fn();assert.equal(nav.getAttribute('data-tdb-campaign-nav'),'dark');c.flight().onfinish();
+    e.links[0].click();assert.equal(nav.getAttribute('data-tdb-campaign-nav'),'dark');
+    c.flight().onfinish();assert.equal(nav.getAttribute('data-tdb-campaign-nav'),'light');
+    owner.destroy();assert.equal(timers.size,0);e.w.close();
+  });
+  test(`${file}: next-video preparation starts with intent, never with mount or passive scroll`,()=>{
+    const e=setup(file), calls=[],video=e.w.document.createElement('div');video.setAttribute('data-vimeo-hero-shell','');e.panel.append(video);
+    e.w.TDBVimeoLoader={warm:root=>calls.push(root)};
+    const owner=e.w.TDBCampaignHero.mount(e.root);e.flush();e.scroll(10);
+    assert.equal(calls.length,0);e.scroll(0);
+    e.root.dispatchEvent(new e.w.WheelEvent('wheel',{deltaY:120,bubbles:true,cancelable:true}));
+    assert.equal(calls[0],video);owner.destroy();e.w.close();
+  });
   test(`${file}: cover progress fades and scrolls copy, preserves media, reverses and becomes idle`,()=>{
     const e=setup(file), owner=e.w.TDBCampaignHero.mount(e.root);
     assert.equal(e.w.TDBCampaignHero.mount(e.root),owner,'one owner per root');

@@ -1,4 +1,4 @@
-/* Seasonal hero v1.1.0. Native content, bounded gestures and local compositor motion. */
+/* Seasonal hero v1.2.0. Native content, bounded gestures and local compositor motion. */
 (() => {
   'use strict';
   if (window.TDBCampaignHero) return;
@@ -27,6 +27,11 @@
     const campaignCopy = panel.querySelector('.tdb-campaign-copy');
     const openingControls = opening.querySelector('[data-vimeo-controls-layer]');
     const campaignControls = panel.querySelector('[data-vimeo-controls-layer]');
+    const campaignVideo = panel.querySelector('[data-vimeo-hero-shell]');
+    const nav = document.querySelector('.navbar10_component[transparent-nav="true"]');
+    const navAttribute = 'data-tdb-campaign-nav';
+    const originalNavTone = nav?.getAttribute(navAttribute);
+    let navTimer = 0;
     const controller = new AbortController(),
       { signal } = controller;
     const rail = root.querySelector('[data-tdb-campaign-rail]');
@@ -79,7 +84,22 @@
         height: first.height,
         openingControl: controlPosition(openingControls),
         campaignControl: controlPosition(campaignControls),
+        navHeight: nav ? frame.rect(nav).height : 0,
+        // Designer's foreground variant is the single source of colour choice.
+        darkNav:
+          (getComputedStyle(panel).color.match(/[\d.]+/g) || [])
+            .slice(0, 3)
+            .reduce((sum, value) => sum + Number(value), 0) < 384,
       });
+    }
+    function syncNav(scroll, box) {
+      const dark = box.darkNav && scroll >= box.end - box.navHeight && scroll < box.bottom;
+      const tone = dark ? 'dark' : 'light';
+      if (nav && nav.getAttribute(navAttribute) !== tone) nav.setAttribute(navAttribute, tone);
+    }
+    function warmCampaign() {
+      if (campaignVideo && window.scrollY < measure().bottom)
+        window.TDBVimeoLoader?.warm?.(campaignVideo);
     }
     const controlOpacity = (position, travel) =>
       position
@@ -118,6 +138,7 @@
         if (previewScroll !== null)
           style(panel, 'transform', `translate3d(0,${frame.scroll - previewScroll}px,0)`);
         progress = travelled;
+        syncNav(scroll, box);
         active = box.end - scroll <= frame.height * 0.5 ? 1 : 0;
         style(copy, 'translate', `0 ${-y}px`);
         style(copy, 'opacity', String(1 - travelled));
@@ -225,6 +246,7 @@
         panel.removeAttribute('style');
     }
     function cancelCarousel() {
+      clearTimeout(navTimer);
       const moving = carousel;
       carousel = null;
       moving?.animations.forEach((animation) => animation.cancel());
@@ -264,6 +286,7 @@
         finish() {
           if (carousel !== moving) return;
           carousel = null;
+          clearTimeout(navTimer);
           previewScroll = null;
           restorePanel();
           layout = null;
@@ -278,6 +301,23 @@
       };
       carousel = moving;
       cancelMotionFrame(read);
+      // The touch flight changes no document scroll until landing. Schedule
+      // one colour crossing at the same eased position; no new frame loop.
+      syncNav(visualFrom, box);
+      const crossing = box.end - box.navHeight;
+      if (visualFrom < crossing !== to < crossing) {
+        const fraction = (crossing - visualFrom) / (to - visualFrom);
+        let low = 0,
+          high = 1;
+        for (let i = 0; i < 16; i++) {
+          const middle = (low + high) / 2;
+          if (mobileEase(middle) < fraction) low = middle;
+          else high = middle;
+        }
+        navTimer = setTimeout(() => {
+          if (carousel === moving) syncNav(to, box);
+        }, high * milliseconds);
+      }
       const panelAnimation = animate(panel, [
         { transform: `translate3d(0,${physical - visualFrom}px,0)` },
         { transform: `translate3d(0,${physical - to}px,0)` },
@@ -669,6 +709,7 @@
         (event.type === 'wheel' && Math.abs(event.deltaX) >= Math.abs(event.deltaY))
       )
         return;
+      if (event.type === 'wheel' || event.type === 'touchstart') warmCampaign();
       if (event.type === 'touchstart' || event.type === 'touchmove') return touchInput(event);
       const delta =
         event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1);
@@ -798,6 +839,7 @@
         event.preventDefault();
         event.stopPropagation();
         if (carousel) return;
+        warmCampaign();
         const target = index === 0 ? root : panel;
         const top = window.scrollY + target.getBoundingClientRect().top;
         navigate(top);
@@ -852,6 +894,10 @@
         );
         opening.inert = openingInert;
         if (rail) rail.inert = railInert;
+        if (nav) {
+          if (originalNavTone == null) nav.removeAttribute(navAttribute);
+          else nav.setAttribute(navAttribute, originalNavTone);
+        }
         campaignHeroes.delete(root);
       },
     });
@@ -872,5 +918,5 @@
     return api;
   }
 
-  window.TDBCampaignHero = Object.freeze({ version: '1.1.0', mount: campaignHero });
+  window.TDBCampaignHero = Object.freeze({ version: '1.2.0', mount: campaignHero });
 })();

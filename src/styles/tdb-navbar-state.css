@@ -1,5 +1,11 @@
 .navbar10_component { transition: transform var(--tdb-peek-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-peek-ease,var(--tdb-motion-ease-panel,cubic-bezier(.4,0,.2,1))), background-color var(--tdb-nav-detail-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-motion-ease-panel,cubic-bezier(0.4, 0, 0.2, 1)); will-change: transform; }
  .navbar10_component.z-hold { z-index: 10000 !important; }
+ /* A campaign changes foreground only. Native hover/open/floating surfaces
+    retain their own appearance. The hero module owns this transient state. */
+ .navbar10_component[data-tdb-campaign-nav] { transition-property: transform, background-color, color; }
+ .navbar10_component[data-tdb-campaign-nav="dark"]:not(.is-trans),
+ .navbar10_component[data-tdb-campaign-nav="dark"]:not(.is-trans) .navbar10_link { color: var(--base-color-brand--black, #000); }
+ .navbar10_component[data-tdb-campaign-nav="dark"]:not(.is-trans) :is(.navbar10_logo-link, .menu-icon5, #nav-button-link) { filter: none; }
  .navbar-bg_layer { display: none; opacity: 0; transition: opacity calc(0.3s * var(--tdb-motion-pace,1)) var(--tdb-motion-ease-panel,ease); pointer-events: none; }
  .navbar-bg_layer.is-visible { display: block; opacity: 1; pointer-events: auto; }
  @media screen and (max-width: 767px) { .navbar10_logo-link, .menu-icon5 { transition: filter var(--tdb-nav-detail-duration,calc(420ms * var(--tdb-motion-pace,1))) var(--tdb-motion-ease-panel,cubic-bezier(0.4, 0, 0.2, 1)); }
