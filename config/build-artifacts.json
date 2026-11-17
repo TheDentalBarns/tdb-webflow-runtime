@@ -542,10 +542,10 @@
         "src/reviews/native/quote-mark.js",
         "src/reviews/native/drawer-content.js"
       ],
-      "sha256": "80caffa08756ac3af9732fb8cb7bb541359de2ffa76faf405e448457a36921ea",
-      "raw": 20537,
-      "gzip": 7273,
-      "brotli": 6543
+      "sha256": "26b126ea8722cb12a6d202668b371eeda6fcf2ecfb8e0f1fdf8cbd591495d845",
+      "raw": 20539,
+      "gzip": 7274,
+      "brotli": 6544
     },
     "dist/tdb-runtime.js": {
       "sources": [
@@ -652,7 +652,7 @@
         "src/startup/smooth-scroll.js",
         "src/startup/start.js"
       ],
-      "sha256": "f1a50eab1a2c2852fd28e21d32536b23f831304b96741f54be38c39896cd6038",
+      "sha256": "7a728bf92b53cca290a81f49d920986c9a222703757b51759f05782387ba4e32",
       "raw": 15695,
       "gzip": 5765,
       "brotli": 5171
