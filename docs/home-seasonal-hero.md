@@ -480,3 +480,21 @@ the menu stayed white while only the landscape campaign iframe prepared with
 `preload=auto`; its UI remained idle. The untouched load had no campaign iframe
 source. No browser console errors were observed. No fresh Lighthouse comparison
 or physical Android frame-rate measurement was performed.
+
+## Campaign navigation fade — 17 November 2026 (2.1.15)
+
+Services and Discover inherited the navbar colour animation while Pricing,
+Location and Join VIP had a separate explicit black target and a shorter
+transition. Returning to the opening panel also retargeted inherited child
+transitions during the parent's fade. All five labels now inherit one animated
+foreground from the navbar, using the shared navigation detail duration and
+curve. Label transitions retain native hover opacity only. The campaign state
+remains owned by the hero module; the adjustment lives in
+`src/styles/tdb-navbar-state.css`, bundled into the existing navbar JavaScript.
+Native hover/open surfaces and pages without the campaign state retain their
+existing ownership. No additional listeners, animation frames or requests are
+introduced. The navbar bundle grows by 20 gzip bytes.
+
+The complete build, generated parity, formatting and existing test suite pass:
+1,256 tests, 1,253 passes and three existing skips. Rollback uses all four install
+pins at `dd42964caba67c0fbf84200519fc0c765dc17dcd` and a staging-only publish.
