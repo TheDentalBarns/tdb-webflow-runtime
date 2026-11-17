@@ -41,7 +41,12 @@ opposite-direction input is accepted immediately after the slide settles.
 Downward input leaves the second hero without an additional runway.
 Below the opening threshold,
 only the pills respond. Once triggered, the transition completes smoothly;
-it does not rest halfway between heroes. Touch includes short flick momentum.
+it does not rest halfway between heroes. Touch uses its own gesture handling:
+one 48px vertical swipe changes chapter, or a deliberate short flick of at least
+20px commits on release. Taps, sideways gestures, multi-touch zoom, screen-edge
+navigation and cancelled touches do not trigger slides. The rest of a committed
+finger stroke stays consumed until release; a fresh forward swipe from the
+second hero scrolls the page immediately.
 The slide uses the site's standard motion duration (half the duration of
 release 2.1.4), including on phones with native scrolling. A smooth
 ease-in/out spreads movement across that duration instead of appearing to
@@ -55,6 +60,9 @@ slide without a size jump at either endpoint. Ordinary clicks and window blur
 do not reset an owned scroll. Hidden tabs retain an in-flight destination so
 the animation catches up when browser frames resume. Actual page navigation
 still releases the old page's scroll ownership.
+Native slide destinations are remeasured while travelling, so mobile browser
+height changes and rotation cannot cancel the animation or leave a half slide.
+Height-only changes also preserve a finger gesture that has already started.
 
 The existing navbar owner keeps the menu fixed during the cover transition,
 then attaches it to the second hero at the top and lets it scroll off with it.
@@ -70,7 +78,7 @@ there is no continuous animation loop when the visitor stops scrolling.
 
 ## Release and rollback
 
-Runtime release 2.1.5 is based on the actual deployed immutable release
+Runtime release 2.1.6 is based on the actual deployed immutable release
 `55f76b394bf4aedfaba35ced87bf12631c07a70c`, not unshipped main-branch changes.
 All first-party site script/style/preload references move together to the
 same new commit. This pilot is published only to `dentalbarns.webflow.io`.

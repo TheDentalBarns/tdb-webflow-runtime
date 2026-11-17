@@ -1,4 +1,4 @@
-/* TDB shared motion v1.25.4. Full-motion policy, timing and reusable effects. */
+/* TDB shared motion v1.25.5. Full-motion policy, timing and reusable effects. */
 (() => {
   'use strict';
   if (window.TDBMotion) return;
@@ -1917,9 +1917,8 @@
       hintTarget = 0,
       hintStarted = 0,
       quietUntil = 0,
-      touchY = null,
-      touchTime = 0,
-      touchVelocity = 0;
+      touchGesture = null,
+      viewportWidth = innerWidth;
     const scrollDistance = () => Math.max(120, innerHeight * (2 / 3));
     const slideDuration = () => duration();
     // Spread the movement across the duration instead of racing to an almost
@@ -1944,13 +1943,18 @@
       pressure = 0;
       openingHint = hintFrom = hintTarget = 0;
       quietUntil = 0;
-      touchY = null;
-      touchVelocity = 0;
+      touchGesture = null;
     }
     function navigate(top) {
       const feedback = openingHint,
-        direction = Math.sign(top - window.scrollY);
+        direction = Math.sign(top - window.scrollY),
+        touch = touchGesture,
+        firstTop = window.scrollY + root.getBoundingClientRect().top,
+        secondTop = window.scrollY + panel.getBoundingClientRect().top,
+        destination = Math.abs(top - firstTop) < Math.abs(top - secondTop) ? root : panel;
       resetGesture();
+      touchGesture = touch;
+      held = Boolean(touch);
       openingHint = hintFrom = hintTarget = feedback;
       lastTravelDirection = direction;
       snapping = true;
@@ -1986,7 +1990,10 @@
           if (disposed || suspended) return;
           const p = clamp((now - started) / milliseconds);
           const eased = slideEase(p);
-          window.scrollTo({ top: from + (top - from) * eased, behavior: 'instant' });
+          // Mobile browser controls and rotation can change the viewport
+          // during travel. Keep the chapter, not an obsolete pixel target.
+          const target = window.scrollY + destination.getBoundingClientRect().top;
+          window.scrollTo({ top: from + (target - from) * eased, behavior: 'instant' });
           if (p < 1) scrollFrame = requestAnimationFrame(step);
           else finish();
         };
@@ -2072,6 +2079,99 @@
       }
       return false;
     }
+    function touchHint(value) {
+      hintFrom = openingHint;
+      hintTarget = value;
+      hintStarted = performance.now();
+      schedule();
+    }
+    function touchInput(event) {
+      if (event.touches.length !== 1) {
+        touchGesture = null;
+        held = false;
+        gestureStart = null;
+        clearTimeout(settleTimer);
+        if (!snapping) touchHint(0);
+        return;
+      }
+      const point = event.touches[0],
+        x = point.clientX ?? innerWidth / 2,
+        y = point.clientY;
+      if (event.type === 'touchstart') {
+        // Preserve native edge navigation and multi-finger zoom gestures.
+        if (x < 24 || x > innerWidth - 24) {
+          touchGesture = null;
+          held = false;
+          return;
+        }
+        clearTimeout(settleTimer);
+        gestureStart = null;
+        held = true;
+        if (!snapping) quietUntil = pressure = 0;
+        const first = root.getBoundingClientRect().top,
+          second = panel.getBoundingClientRect().top;
+        touchGesture = {
+          x,
+          y,
+          lastY: y,
+          started: performance.now(),
+          scroll: window.scrollY,
+          origin: Math.abs(first) <= 3 ? 0 : Math.abs(second) <= 3 ? 1 : -1,
+          axis: null,
+          distance: 0,
+          target: null,
+          committed: snapping,
+        };
+        return;
+      }
+      const touch = touchGesture;
+      if (!touch) return;
+      const consume = () => {
+        if (!event.cancelable) return;
+        event.preventDefault();
+        event.lenisStopPropagation = true;
+      };
+      // A long finger stroke must never advance twice or run beyond a landing.
+      if (snapping || touch.committed) {
+        consume();
+        return;
+      }
+      const dx = x - touch.x,
+        dy = touch.y - y,
+        delta = touch.lastY - y;
+      touch.lastY = y;
+      touch.distance = dy;
+      if (!touch.axis && Math.max(Math.abs(dx), Math.abs(dy)) >= 8)
+        touch.axis = Math.abs(dy) > Math.abs(dx) ? 'vertical' : 'native';
+      if (touch.axis === 'native') return;
+      if (!event.cancelable) {
+        touch.axis = 'native';
+        if (gestureStart === null) gestureStart = touch.scroll;
+        return;
+      }
+      const target =
+        touch.origin === 0 && dy > 0 ? panel : touch.origin === 1 && dy < 0 ? root : null;
+      touch.target = target;
+      if (target) {
+        consume();
+        if (!touch.axis) return;
+        if (Math.abs(dy) >= 48) {
+          touch.committed = true;
+          navigate(window.scrollY + target.getBoundingClientRect().top);
+        } else if (touch.origin === 0) touchHint(clamp(dy / 48) * 0.12);
+        return;
+      }
+      // The second hero releases a forward swipe to native page scrolling.
+      // Returning from the body still lands on the second chapter first.
+      if (hintTarget) touchHint(0);
+      if (touch.axis === 'vertical') {
+        if (captureStep(delta, event)) {
+          touch.committed = snapping;
+          return;
+        }
+        if (gestureStart === null) gestureStart = touch.scroll;
+      }
+    }
     function input(event) {
       if (
         blocked() ||
@@ -2081,33 +2181,9 @@
         (event.type === 'wheel' && Math.abs(event.deltaX) >= Math.abs(event.deltaY))
       )
         return;
-      if (event.type === 'touchmove' && snapping) {
-        event.preventDefault();
-        event.lenisStopPropagation = true;
-        touchY = event.touches[0]?.clientY ?? null;
-        touchTime = performance.now();
-        quietUntil = touchTime + 180;
-        return;
-      }
-      if (event.type === 'touchstart') {
-        touchY = event.touches[0]?.clientY ?? null;
-        touchTime = performance.now();
-        touchVelocity = 0;
-        held = true;
-        return;
-      }
-      let delta;
-      if (event.type === 'touchmove') {
-        if (touchY === null || !event.touches[0]) return;
-        const next = event.touches[0].clientY,
-          now = performance.now();
-        delta = (touchY - next) * 2;
-        touchVelocity = delta / Math.max(16, now - touchTime);
-        touchY = next;
-        touchTime = now;
-      } else
-        delta =
-          event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1);
+      if (event.type === 'touchstart' || event.type === 'touchmove') return touchInput(event);
+      const delta =
+        event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1);
       if (captureStep(delta, event)) return;
       if (gestureStart === null) gestureStart = window.scrollY;
       clearTimeout(settleTimer);
@@ -2129,12 +2205,27 @@
     for (const name of ['touchend', 'touchcancel'])
       window.addEventListener(
         name,
-        () => {
+        (event) => {
+          const touch = touchGesture;
+          touchGesture = null;
           held = false;
-          if (!snapping && !blocked() && performance.now() - touchTime < 100 && pressure)
-            captureStep(touchVelocity * 250);
-          touchY = null;
-          touchVelocity = 0;
+          if (event.type === 'touchcancel' || event.touches?.length) {
+            gestureStart = null;
+            clearTimeout(settleTimer);
+            if (!snapping) touchHint(0);
+            return;
+          }
+          if (
+            !snapping &&
+            !blocked() &&
+            touch?.target &&
+            !touch.committed &&
+            touch.axis === 'vertical' &&
+            Math.abs(touch.distance) >= 20 &&
+            Math.abs(touch.distance) / Math.max(16, performance.now() - touch.started) >= 0.35
+          )
+            navigate(window.scrollY + touch.target.getBoundingClientRect().top);
+          else if (!snapping) touchHint(0);
           if (gestureStart !== null) settleTimer = setTimeout(settle, 160);
         },
         { passive: true, signal },
@@ -2149,7 +2240,18 @@
       },
       { passive: true, signal },
     );
-    window.addEventListener('resize', resetGesture, { passive: true, signal });
+    window.addEventListener(
+      'resize',
+      () => {
+        const widthChanged = Math.abs(innerWidth - viewportWidth) > 1;
+        viewportWidth = innerWidth;
+        // Height-only browser chrome changes are not new gestures. Native slides
+        // remeasure their destination on each frame, including after rotation.
+        if ((snapping && !window.lenis?.scrollTo) || (touchGesture && !widthChanged)) return;
+        resetGesture();
+      },
+      { passive: true, signal },
+    );
     document.addEventListener(
       'visibilitychange',
       () => {
@@ -2244,7 +2346,7 @@
     return window.TDBSwiper.bindSwiper(swiper);
   }
   window.TDBMotion = Object.freeze({
-    version: '1.25.4',
+    version: '1.25.5',
     profile,
     time,
     easing,

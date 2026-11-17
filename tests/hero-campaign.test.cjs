@@ -28,6 +28,13 @@ function setup(code) {
   return {dom,w,root,opening,panel,copy,rail,links,queue,jumps,flush,scroll};
 }
 
+function mobileTouch(e,type,y,x=180,count=1,cancelable=true) {
+  const event=new e.w.Event(type,{bubbles:true,cancelable});
+  event.touches=y==null?[]:Array.from({length:count},(_,i)=>({clientX:x+i*30,clientY:y,identifier:i}));
+  e.root.dispatchEvent(event);
+  return event;
+}
+
 for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
   test(`${file}: cover progress fades and scrolls copy, preserves media, reverses and becomes idle`,()=>{
     const e=setup(fs.readFileSync(file,'utf8')), owner=e.w.TDBMotion.campaignHero(e.root);
@@ -132,10 +139,10 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     const touch=(type,y)=>{const event=new e.w.Event(type,{bubbles:true,cancelable:true});event.touches=y==null?[]:[{clientY:y}];e.root.dispatchEvent(event);return event;};
     const finish=()=>{const [top,options]=e.jumps.at(-1);e.scroll(top);options.onComplete();};
     touch('touchstart',700);touch('touchmove',400);touch('touchend');finish();
-    touch('touchstart',400);touch('touchmove',420);
+    touch('touchstart',400);touch('touchmove',460);
     assert.equal(e.jumps.length,2);assert.equal(e.jumps.at(-1)[0],0);
     touch('touchend');finish();
-    touch('touchstart',420);touch('touchmove',400);
+    touch('touchstart',460);touch('touchmove',400);
     assert.equal(e.jumps.length,3);assert.equal(e.jumps.at(-1)[0],800);
     owner.destroy();e.dom.window.close();
   });
@@ -188,6 +195,77 @@ for(const file of ['src/shared/motion.js','dist/tdb-motion.js']) {
     e.flush(now);e.flush(now);assert.equal(e.w.scrollY,800);assert.equal(e.copy.style.opacity,'0');assert.equal(e.queue.size,0);
     e.root.dispatchEvent(new e.w.WheelEvent('wheel',{deltaY:-120,bubbles:true,cancelable:true}));
     now+=e.w.TDBMotion.duration();e.flush(now);e.flush(now);assert.equal(e.w.scrollY,0,'immediate reversal remains available after returning');
+    owner.destroy();e.dom.window.close();
+  });
+  test(`${file}: one short vertical swipe advances; the same finger cannot overshoot and the next swipe scrolls onward`,()=>{
+    const e=setup(fs.readFileSync(file,'utf8'));
+    let now=0;
+    Object.defineProperty(e.w.performance,'now',{value:()=>now});
+    e.w.lenis.scrollTo=(...args)=>e.jumps.push(args);
+    const owner=e.w.TDBMotion.campaignHero(e.root);
+    mobileTouch(e,'touchstart',600);now=200;mobileTouch(e,'touchmove',570);
+    assert.equal(e.jumps.length,0,'a small slow movement does not trigger a slide');
+    now=300;mobileTouch(e,'touchend');assert.equal(e.jumps.length,0);
+    mobileTouch(e,'touchstart',600);now+=100;mobileTouch(e,'touchmove',548);
+    assert.equal(e.jumps.length,1);assert.equal(e.jumps[0][0],800,'one comfortable swipe replaces the mouse-wheel runway');
+    e.scroll(800);e.jumps[0][1].onComplete();now+=500;
+    assert.equal(mobileTouch(e,'touchmove',400).defaultPrevented,true,'the rest of the original stroke stays consumed even after landing');
+    assert.equal(e.jumps.length,1);
+    mobileTouch(e,'touchend');mobileTouch(e,'touchstart',600);
+    assert.equal(mobileTouch(e,'touchmove',548).defaultPrevented,false,'a fresh forward swipe immediately releases the normal page');
+    mobileTouch(e,'touchend');
+    owner.destroy();e.dom.window.close();
+  });
+  test(`${file}: a short deliberate flick works; taps, cancellations and non-vertical gestures remain native`,()=>{
+    const e=setup(fs.readFileSync(file,'utf8'));
+    let now=0;
+    Object.defineProperty(e.w.performance,'now',{value:()=>now});
+    e.w.lenis.scrollTo=(...args)=>e.jumps.push(args);
+    const owner=e.w.TDBMotion.campaignHero(e.root);
+    mobileTouch(e,'touchstart',600);mobileTouch(e,'touchend');assert.equal(e.jumps.length,0,'tap');
+    mobileTouch(e,'touchstart',600);assert.equal(mobileTouch(e,'touchmove',590,260).defaultPrevented,false);mobileTouch(e,'touchend');
+    mobileTouch(e,'touchstart',600,10);assert.equal(mobileTouch(e,'touchmove',520,10).defaultPrevented,false);mobileTouch(e,'touchend');
+    mobileTouch(e,'touchstart',600,180,2);assert.equal(mobileTouch(e,'touchmove',500,180,2).defaultPrevented,false);mobileTouch(e,'touchend');
+    mobileTouch(e,'touchstart',600);mobileTouch(e,'touchmove',500,180,1,false);mobileTouch(e,'touchend');
+    assert.equal(e.jumps.length,0,'horizontal, edge, pinch and already-native gestures are not hijacked');
+    mobileTouch(e,'touchstart',600);now+=40;mobileTouch(e,'touchmove',576);mobileTouch(e,'touchcancel');
+    assert.equal(e.jumps.length,0,'touchcancel must not create flick momentum');
+    mobileTouch(e,'touchstart',600);now+=60;mobileTouch(e,'touchmove',576);
+    assert.equal(e.jumps.length,0);mobileTouch(e,'touchend');
+    assert.equal(e.jumps.length,1);assert.equal(e.jumps[0][0],800,'a 24px deliberate flick commits on release');
+    owner.destroy();e.dom.window.close();
+  });
+  test(`${file}: native slides finish at the remeasured chapter after viewport height changes or rotation`,()=>{
+    const e=setup(fs.readFileSync(file,'utf8'));
+    delete e.w.lenis;
+    let now=0,height=800;
+    Object.defineProperty(e.w.performance,'now',{value:()=>now});
+    const rect=(top,size)=>({top,bottom:top+size,height:size,left:0,right:390,width:390});
+    e.root.getBoundingClientRect=()=>rect(-e.w.scrollY,height*2);
+    e.opening.getBoundingClientRect=()=>rect(Math.min(0,height-e.w.scrollY),height);
+    e.panel.getBoundingClientRect=()=>rect(height-e.w.scrollY,height);
+    e.w.scrollTo=({top})=>{e.w.scrollY=top;};
+    const owner=e.w.TDBMotion.campaignHero(e.root);e.flush();e.links[1].click();
+    const duration=e.w.TDBMotion.duration();now=duration/4;e.flush(now);
+    height=e.w.innerHeight=700;e.w.dispatchEvent(new e.w.Event('resize'));
+    assert.ok(e.queue.size>0,'browser chrome resize must not cancel the slide');
+    now=duration;e.flush(now);owner.refresh();e.flush(now);
+    assert.equal(e.w.scrollY,700);assert.equal(e.panel.getBoundingClientRect().top,0);assert.equal(e.copy.style.opacity,'0');
+    e.links[0].click();now+=duration/4;e.flush(now);
+    height=e.w.innerHeight=390;e.w.innerWidth=844;e.w.dispatchEvent(new e.w.Event('resize'));
+    now=duration*2;e.flush(now);owner.refresh();e.flush(now);
+    assert.equal(e.w.scrollY,0,'rotation during the return still lands on the first hero');
+    assert.equal(e.copy.style.opacity,'1');assert.equal(e.queue.size,0);
+    owner.destroy();e.dom.window.close();
+  });
+  test(`${file}: a height-only resize keeps an in-progress touch gesture`,()=>{
+    const e=setup(fs.readFileSync(file,'utf8'));
+    e.w.lenis.scrollTo=(...args)=>e.jumps.push(args);
+    const owner=e.w.TDBMotion.campaignHero(e.root);
+    mobileTouch(e,'touchstart',600);mobileTouch(e,'touchmove',580);
+    e.w.innerHeight=700;e.w.dispatchEvent(new e.w.Event('resize'));
+    mobileTouch(e,'touchmove',548);
+    assert.equal(e.jumps.length,1);assert.equal(e.jumps[0][0],800);
     owner.destroy();e.dom.window.close();
   });
 }
