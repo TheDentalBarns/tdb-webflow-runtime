@@ -467,3 +467,16 @@ the complete suite passed: 1,256 tests, 1,253 passes, three existing skips.
 New cases cover first-load/scroll/reversal menu colour, mobile timer cleanup,
 intent-only preparation, native orientation selection, consent withdrawal,
 network saving gates, poster retention and reuse on visible playback.
+
+Published staging release: `dd42964caba67c0fbf84200519fc0c765dc17dcd`.
+All 86 declared CDN assets match committed bytes. Staging publication completed
+at 15:12 UTC on 17 November; production domains retain their 14 November publish.
+Browser checks at 1280×720 and 390×844 confirmed correct stills with essential-only
+consent, full-height portrait layout, the black menu over the campaign and white
+menu over the opening, native menu appearance, CTA blur and actual navigation
+to the implants page, and independent video pause/resume in both orientations.
+On the first short desktop wheel input, document scroll remained at zero and
+the menu stayed white while only the landscape campaign iframe prepared with
+`preload=auto`; its UI remained idle. The untouched load had no campaign iframe
+source. No browser console errors were observed. No fresh Lighthouse comparison
+or physical Android frame-rate measurement was performed.
