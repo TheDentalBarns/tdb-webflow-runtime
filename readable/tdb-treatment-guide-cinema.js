@@ -384,6 +384,7 @@ window.TDBTreatmentGuideCard ||= (() => {
     const blurs = photos.map((photo) => photo.querySelector('.tdb-treatment-blur'));
     const photoBefore = photos.map((photo) => photo.getAttribute('style'));
     const blurBefore = blurs.map((blur) => blur?.getAttribute('class'));
+    const blurStyleBefore = blurs.map((blur) => blur?.getAttribute('style'));
     const parallax = root.querySelector('[data-tdb-cinema-parallax]');
     const media = root.querySelector('.tdb-cinema-media');
     const progress = root.querySelector('[data-tdb-cinema-progress]');
@@ -487,6 +488,10 @@ window.TDBTreatmentGuideCard ||= (() => {
         // Preserve the native href for no-module fallback; enhanced clicks cancel it.
         panes[index].classList.toggle('w--tab-active', index === active);
         photos[index].style.visibility = index === active ? 'visible' : 'hidden';
+        // Explicit child visibility avoids stale inherited values when a
+        // composited crop is interrupted and becomes current again.
+        images[index].style.visibility = index === active ? 'visible' : 'hidden';
+        if (blurs[index]) blurs[index].style.visibility = index === active ? 'visible' : 'hidden';
         blurs[index]?.classList.toggle('is-current', index === active);
       });
       if (next)
@@ -532,8 +537,8 @@ window.TDBTreatmentGuideCard ||= (() => {
           ),
           images[previous].animate(
             [
-              { transform: outgoing.image },
-              { transform: `translateX(${direction * amount(previous)}%)` },
+              { transform: outgoing.image, visibility: 'visible' },
+              { transform: `translateX(${direction * amount(previous)}%)`, visibility: 'visible' },
             ],
             timing,
           ),
@@ -553,12 +558,18 @@ window.TDBTreatmentGuideCard ||= (() => {
                 transform: incoming.visible
                   ? incoming.image
                   : `translateX(${-direction * amount(index)}%)`,
+                visibility: 'visible',
               },
-              { transform: 'translateX(0)' },
+              { transform: 'translateX(0)', visibility: 'visible' },
             ],
             timing,
           ),
         );
+        for (const i of [previous, index])
+          if (blurs[i]?.animate)
+            animations.push(
+              blurs[i].animate([{ visibility: 'visible' }, { visibility: 'visible' }], timing),
+            );
       }
     }
     function updateProgress(position, animate = false) {
@@ -759,7 +770,14 @@ window.TDBTreatmentGuideCard ||= (() => {
         choices.forEach((choice, index) => restore(choice, attrs[index]));
         images.forEach((image, index) => restore(image, imageBefore[index]));
         photos.forEach((photo, index) => restore(photo, [['style', photoBefore[index]]]));
-        blurs.forEach((blur, index) => blur && restore(blur, [['class', blurBefore[index]]]));
+        blurs.forEach(
+          (blur, index) =>
+            blur &&
+            restore(blur, [
+              ['class', blurBefore[index]],
+              ['style', blurStyleBefore[index]],
+            ]),
+        );
         if (parallax) restore(parallax, [['style', parallaxBefore]]);
         if (progress) restore(progress, [['style', progressBefore]]);
         restore(tabs, tabAttrs);

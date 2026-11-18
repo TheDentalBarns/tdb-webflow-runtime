@@ -234,6 +234,8 @@ test('photos use the existing carousel parallax ratio, shared clock and adjacent
   assert.equal(outgoingCrop.keyframes.at(-1).transform, 'translateX(-100%)');
   assert.equal(outgoingImage.keyframes.at(-1).transform, 'translateX(30%)');
   assert.equal(incomingImage.keyframes[0].transform, 'translateX(-30%)');
+  assert.equal(incomingImage.keyframes[0].visibility, 'visible');
+  assert.equal(outgoingImage.keyframes.at(-1).visibility, 'visible');
   assert.equal(outgoingCrop.timing, outgoingImage.timing);
   assert.equal(incomingImage.timing.duration, 500);
   assert.equal(t.root.querySelector('[data-tdb-cinema-photo="0"] .is-current'), null);
@@ -242,6 +244,8 @@ test('photos use the existing carousel parallax ratio, shared clock and adjacent
   t.flush();
   assert.equal(outgoingCrop.cancelled, true);
   assert.equal(outgoingImage.cancelled, true);
+  assert.equal(t.root.querySelector('[data-tdb-cinema-photo="0"] img').style.visibility, 'visible');
+  assert.equal(t.root.querySelector('[data-tdb-cinema-photo="1"] img').style.visibility, 'hidden');
   t.api.destroy();
   assert.equal(t.root.querySelector('[data-tdb-cinema-photo]').getAttribute('style'), null);
   assert.equal(t.root.querySelector('.tdb-treatment-blur.is-current'), null);

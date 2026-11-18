@@ -1,4 +1,4 @@
-# Treatment guide Cinema — staging v2.1.24
+# Treatment guide Cinema — staging v2.1.25
 
 The treatment template keeps its five CMS titles, summaries and full chapter drawers. Phones retain a 40lvh image; desktop uses up to 60lvh, retaining at least 25rem for the content and controls on shorter screens. The lower area blends from black to the existing #222 charcoal. The shared native ticker displays only the current number at the top right. The five bottom numbers remain padded across the width. The underline fills continuously with vertical scroll, and each chapter changes at the next fifth of the track. Number clicks animate the line to the selected chapter using the shared motion clock.
 
