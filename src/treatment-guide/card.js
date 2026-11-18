@@ -14,6 +14,8 @@ window.TDBTreatmentGuideCard ||= (() => {
         icon: pane.querySelector('.treatment-guide_cta-icon'),
       }));
     if (rows.some((row) => !row.title || !row.summary || !row.button || !row.icon)) return null;
+    const cinema = root.hasAttribute('data-tdb-guide-cinema');
+    const titleVisibility = rows.map((row) => row.title.style.visibility);
     const motion = window.TDBMotion,
       fades = motion.fadeController();
     // Reuse the Designer artwork inside a fixed-size ticker slot, not another card.
@@ -92,6 +94,8 @@ window.TDBTreatmentGuideCard ||= (() => {
         row.pane.style.visibility = i === index ? 'visible' : 'hidden';
         row.pane.style.pointerEvents = i === index ? 'auto' : 'none';
         row.pane.setAttribute('aria-hidden', String(i !== index));
+        // Explicit selected text visibility survives interrupted ancestor animations.
+        if (cinema) row.title.style.visibility = i === index ? 'visible' : 'hidden';
       });
       if (!animate || motion.reduced.matches || !content.animate) {
         rows.forEach((row) => fades.to(row.summary, 1, 0));
@@ -112,7 +116,10 @@ window.TDBTreatmentGuideCard ||= (() => {
         ),
       );
       const incoming = next.title.animate(
-        [{ transform: `translateX(${direction * 100}%)` }, { transform: 'translateX(0)' }],
+        [
+          { transform: `translateX(${direction * 100}%)`, visibility: 'visible' },
+          { transform: 'translateX(0)', visibility: 'visible' },
+        ],
         { duration, easing },
       );
       animations.push(incoming);
@@ -161,6 +168,11 @@ window.TDBTreatmentGuideCard ||= (() => {
           pane.style.removeProperty('pointer-events');
           pane.removeAttribute('aria-hidden');
         });
+        if (cinema)
+          rows.forEach((row, i) => {
+            if (titleVisibility[i]) row.title.style.visibility = titleVisibility[i];
+            else row.title.style.removeProperty('visibility');
+          });
       },
     };
   }

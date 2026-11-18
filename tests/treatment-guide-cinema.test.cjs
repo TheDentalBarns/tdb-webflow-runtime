@@ -50,6 +50,27 @@ function setup() {
     destroyed = 0,
     height = 800;
   const updates = [];
+  const media = w.document.createElement('div');
+  media.className = 'tdb-cinema-media';
+  const parallax = w.document.createElement('div');
+  parallax.setAttribute('data-tdb-cinema-parallax', '');
+  media.append(parallax);
+  root.querySelectorAll('.tdb-cinema-image').forEach((image) => parallax.append(image));
+  stage.prepend(media);
+  media.getBoundingClientRect = () => ({ height: height * 0.4 });
+  const progress = w.document.createElement('div');
+  progress.setAttribute('data-tdb-cinema-progress', '');
+  stage.append(progress);
+  const progressMoves = [];
+  progress.animate = (keyframes, timing) => {
+    const record = { keyframes, timing, cancelled: false };
+    progressMoves.push(record);
+    return {
+      cancel() {
+        record.cancelled = true;
+      },
+    };
+  };
   Object.defineProperty(w, 'scrollY', { get: () => y });
   track.getBoundingClientRect = () => ({ top: 1000 - y, height: 4000 });
   stage.getBoundingClientRect = () => ({ top: 0, height });
@@ -111,6 +132,9 @@ function setup() {
     flush,
     scroll,
     frames,
+    parallax,
+    progress,
+    progressMoves,
     get y() {
       return y;
     },
@@ -131,6 +155,29 @@ function setup() {
     },
   };
 }
+test('image entrance parallax stops at the pin and the underline uses shared travel motion', () => {
+  const t = setup();
+  t.scroll(600);
+  assert.equal(t.parallax.style.transform, 'translateY(19.200px)');
+  t.scroll(1002);
+  assert.equal(t.parallax.style.transform, 'translateY(0.000px)');
+  t.root.querySelector('[data-tdb-guide-choice="3"]').click();
+  t.flush();
+  assert.equal(t.parallax.style.transform, 'translateY(0.000px)');
+  assert.equal(t.progress.style.transform, 'translateX(300%)');
+  assert.equal(t.progressMoves.at(-1).timing.duration, 500);
+  assert.equal(t.progressMoves.at(-1).keyframes.at(-1).transform, 'translateX(300%)');
+  t.root.querySelector('[data-tdb-guide-choice="1"]').click();
+  t.flush();
+  assert.equal(t.progressMoves.at(-2).cancelled, true);
+  assert.equal(t.progress.style.transform, 'translateX(100%)');
+  assert.equal(t.root.querySelectorAll('.tdb-cinema-image')[1].style.visibility, 'visible');
+  t.api.destroy();
+  assert.equal(t.parallax.getAttribute('style'), null);
+  assert.equal(t.progress.getAttribute('style'), null);
+  assert.equal(t.frames.size, 0);
+  t.w.close();
+});
 test('native vertical position reaches every chapter, holds the fifth, and supports reversal', () => {
   const t = setup();
   for (let i = 0; i < 5; i++) {

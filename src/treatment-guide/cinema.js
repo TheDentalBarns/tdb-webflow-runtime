@@ -12,8 +12,13 @@
     const tabs = root.querySelector('.tdb-cinema-tabs');
     const choices = [...root.querySelectorAll('[data-tdb-guide-choice]')];
     const panes = [...root.querySelectorAll('[data-tdb-guide-panel]')];
-    const images = panes.map((pane) => pane.querySelector('.tdb-cinema-image'));
-    if (!track || !stage || choices.length !== 5 || panes.length !== 5 || images.some((x) => !x))
+    const images = [...root.querySelectorAll('.tdb-cinema-image')];
+    const parallax = root.querySelector('[data-tdb-cinema-parallax]');
+    const media = root.querySelector('.tdb-cinema-media');
+    const progress = root.querySelector('[data-tdb-cinema-progress]');
+    const parallaxBefore = parallax?.getAttribute('style');
+    const progressBefore = progress?.getAttribute('style');
+    if (!track || !stage || choices.length !== 5 || panes.length !== 5 || images.length !== 5)
       throw Error('Cinema native structure missing');
     const events = new AbortController(),
       { signal } = events;
@@ -52,9 +57,12 @@
     let start = 0,
       step = 1,
       runway = 1,
-      stageHeight = 1;
+      stageHeight = 1,
+      mediaHeight = 0;
     let animations = [],
-      releaseChrome = null;
+      releaseChrome = null,
+      progressAnimation = null,
+      lastParallax = '';
     const blocked = () => Boolean(window.TDBScrollLock?.active || root.closest('[inert]'));
     const card = window.TDBTreatmentGuideCard.mount(root, active, (direction) =>
       manual(clamp(active + direction, 0, 4)),
@@ -98,6 +106,7 @@
         choice.setAttribute('tabindex', index === active ? '0' : '-1');
         // Preserve the native href for no-module fallback; enhanced clicks cancel it.
         panes[index].classList.toggle('w--tab-active', index === active);
+        images[index].style.visibility = index === active ? 'visible' : 'hidden';
       });
       if (next)
         next.innerHTML =
@@ -109,17 +118,28 @@
       if (index === active) return;
       const previous = active,
         direction = Math.sign(index - previous);
+      const progressFrom = progress && getComputedStyle(progress).transform;
+      progressAnimation?.cancel();
       animations.forEach((animation) => animation.cancel());
       animations = [];
       active = index;
       warm(index);
       syncTabs();
       card.update(index, direction, animate);
+      const timing = {
+        duration: motion.duration(stage.clientWidth),
+        easing: motion.easing('travel', 'cubic-bezier(.3,0,.2,1)'),
+      };
+      if (progress) {
+        const target = `translateX(${index * 100}%)`;
+        progress.style.transform = target;
+        if (animate && !motion.reduced.matches && progress.animate)
+          progressAnimation = progress.animate(
+            [{ transform: progressFrom }, { transform: target }],
+            timing,
+          );
+      }
       if (animate && !motion.reduced.matches && images[index].animate) {
-        const timing = {
-          duration: motion.duration(stage.clientWidth),
-          easing: motion.easing('travel', 'cubic-bezier(.3,0,.2,1)'),
-        };
         animations.push(
           images[previous].animate(
             [
@@ -131,7 +151,10 @@
         );
         animations.push(
           images[index].animate(
-            [{ transform: `translateX(${direction * 100}%)` }, { transform: 'translateX(0)' }],
+            [
+              { transform: `translateX(${direction * 100}%)`, visibility: 'visible' },
+              { transform: 'translateX(0)', visibility: 'visible' },
+            ],
             timing,
           ),
         );
@@ -141,6 +164,7 @@
       const rect = track.getBoundingClientRect();
       start = rect.top + window.scrollY;
       stageHeight = stage.getBoundingClientRect().height;
+      mediaHeight = media?.getBoundingClientRect().height || 0;
       runway = Math.max(1, rect.height - stageHeight);
       // Five equal reading beats, including a full hold for the last chapter.
       step = runway / 5;
@@ -183,7 +207,20 @@
       raf = 0;
       if (disposed || document.hidden) return;
       if (dirty) measure();
+      else start = track.getBoundingClientRect().top + window.scrollY;
       const position = window.scrollY - start;
+      // Entrance parallax is scroll-linked and stops exactly when the stage pins.
+      // The authored 12% overscan keeps the photo covering its 40lvh frame.
+      if (parallax) {
+        const offset = motion.reduced.matches
+          ? 0
+          : clamp(-position / stageHeight, 0, 1) * mediaHeight * 0.12;
+        const value = `translateY(${offset.toFixed(3)}px)`;
+        if (value !== lastParallax) {
+          parallax.style.transform = value;
+          lastParallax = value;
+        }
+      }
       const pinned = position >= -1 && position < runway;
       if (pinned && !releaseChrome) releaseChrome = window.TDBSiteChrome?.acquire();
       else if (!pinned && releaseChrome) {
@@ -280,6 +317,7 @@
     );
     intersection.observe(track);
     syncTabs();
+    if (progress) progress.style.transform = `translateX(${active * 100}%)`;
     warm(active);
     measure();
     schedule();
@@ -297,10 +335,13 @@
         resize.disconnect();
         intersection.disconnect();
         animations.forEach((animation) => animation.cancel());
+        progressAnimation?.cancel();
         releaseChrome?.();
         card.destroy();
         choices.forEach((choice, index) => restore(choice, attrs[index]));
         images.forEach((image, index) => restore(image, imageBefore[index]));
+        if (parallax) restore(parallax, [['style', parallaxBefore]]);
+        if (progress) restore(progress, [['style', progressBefore]]);
         restore(tabs, tabAttrs);
         if (tabConfig) Object.assign(tabConfig, configBefore);
         if (next) next.innerHTML = nextBefore;
