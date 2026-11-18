@@ -28,7 +28,14 @@
   }
   function read() {
     const undecided = { action: undefined, categories: ['strict'] };
-    const row = document.cookie.split('; ').find((item) => item.startsWith(`${COOKIE_NAME}=`));
+    let row;
+    try {
+      row = document.cookie.split('; ').find((item) => item.startsWith(`${COOKIE_NAME}=`));
+    } catch {
+      // Restricted webviews can deny cookie access entirely. Start undecided,
+      // without aborting the banner or the rest of the essential foundation.
+      return undecided;
+    }
     if (!row) return undecided;
     const raw = row.slice(COOKIE_NAME.length + 1);
     let data = null;

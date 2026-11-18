@@ -1,8 +1,8 @@
-/* Native TDB consent v4.0.9. Browser helper CSS is delivered by early tdb-ui.css. */
+/* Native TDB consent v4.0.10. Browser helper CSS is delivered by early tdb-ui.css. */
 (() => {
   'use strict';
   if (window.CookieScript?.instance?.__tdbNative) return;
-  const VERSION = '4.0.9',
+  const VERSION = '4.0.10',
     COOKIE_NAME = 'CookieScriptConsent',
     COOKIE_DAYS = 30,
     ALL_CATEGORIES = ['performance', 'strict', 'targeting', 'functionality'],
@@ -24,12 +24,24 @@
     interactionLocked = false,
     releaseLock = null,
     refs = null,
-    textAnimations = [];
+    textAnimations = [],
+    visitDecision = null;
   function unique(values) {
     return [...new Set((values || []).filter(Boolean))];
   }
-  const readDecision = window.TDBConsentDecision.read;
+  function readDecision() {
+    return visitDecision
+      ? { action: visitDecision.action, categories: visitDecision.categories.slice() }
+      : window.TDBConsentDecision.read();
+  }
   function writeDecision(action, categories) {
+    // An explicit choice applies to this visit even when a webview silently
+    // drops cookie writes. It also takes precedence over an older saved choice
+    // if storage becomes unavailable when someone withdraws permission.
+    visitDecision = {
+      action,
+      categories: action === 'accept' ? unique(categories) : STRICT_ONLY.slice(),
+    };
     const storedCategories =
         action === 'accept' ? unique(categories.filter((category) => category !== 'strict')) : [],
       value = encodeURIComponent(
@@ -41,7 +53,11 @@
       ),
       expires = new Date(Date.now() + COOKIE_DAYS * 864e5).toUTCString(),
       secure = location.protocol === 'https:' ? '; Secure' : '';
-    document.cookie = `${COOKIE_NAME}=${value}; Expires=${expires}; Path=/; SameSite=Lax${secure}`;
+    try {
+      document.cookie = `${COOKIE_NAME}=${value}; Expires=${expires}; Path=/; SameSite=Lax${secure}`;
+    } catch {
+      // Persistence is optional; the in-memory decision and close events are not.
+    }
   }
   function dispatch(name, detail) {
     document.dispatchEvent(
@@ -387,8 +403,12 @@
       dispatch('CookieScriptLoaded');
     },
     getCookieValueForQueryArg() {
-      const row = document.cookie.split('; ').find((item) => item.startsWith(`${COOKIE_NAME}=`));
-      return row ? `${COOKIE_NAME}=${encodeURIComponent(row.slice(COOKIE_NAME.length + 1))}` : '';
+      try {
+        const row = document.cookie.split('; ').find((item) => item.startsWith(`${COOKIE_NAME}=`));
+        return row ? `${COOKIE_NAME}=${encodeURIComponent(row.slice(COOKIE_NAME.length + 1))}` : '';
+      } catch {
+        return '';
+      }
     },
   };
   window.CookieScript = window.CookieScript || function CookieScript() {};
