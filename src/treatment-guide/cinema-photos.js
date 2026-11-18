@@ -1,0 +1,195 @@
+/* Native frames own widths, gaps and crops. This controller only populates
+ * their images and animates the measured strip with the shared carousel clock. */
+window.TDBTreatmentGuideCinemaPhotos ||= (() => {
+  const clamp = (value) => Math.max(-1, Math.min(1, value));
+  function mount(root, initial) {
+    const rail = root.querySelector('[data-tdb-cinema-rail]');
+    const media = root.querySelector('.tdb-cinema-media');
+    const photos = [...root.querySelectorAll('[data-tdb-cinema-photo]')];
+    const panes = [...root.querySelectorAll('[data-tdb-guide-panel]')];
+    const frames = [...rail.children].filter((node) =>
+      node.matches('[data-tdb-cinema-photo], [data-tdb-cinema-preview]'),
+    );
+    if (photos.length !== 5 || panes.length !== 5) throw Error('Cinema native photos missing');
+    const images = photos.map((photo) => photo.querySelector('.tdb-cinema-image'));
+    const frameImages = frames.map((frame) => frame.querySelector('.tdb-cinema-image'));
+    if (frameImages.some((image) => !image)) throw Error('Cinema native image missing');
+    const blurs = frames.map((frame) => frame.querySelector('.tdb-treatment-blur'));
+    const motion = window.TDBMotion;
+    const events = new AbortController();
+    const saved = [rail, ...frames, ...frameImages, ...blurs.filter(Boolean)].map((node) => [
+      node,
+      ['style', 'class', 'src', 'srcset', 'sizes', 'alt', 'loading'].map((name) => [
+        name,
+        node.getAttribute(name),
+      ]),
+    ]);
+    const fallbackSources = images.map((image) => image.getAttribute('src'));
+    const clockBefore = media.style.getPropertyValue('--tdb-parallax-duration');
+    const clockPriority = media.style.getPropertyPriority('--tdb-parallax-duration');
+    const previews = frames
+      .filter((frame) => frame.hasAttribute('data-tdb-cinema-preview'))
+      .map((frame) => ({
+        index: Number(frame.dataset.tdbCinemaPreview),
+        image: frame.querySelector('.tdb-cinema-image'),
+      }));
+    let active = initial,
+      request = 0,
+      disposed = false,
+      geometry = '',
+      offsets = [],
+      animations = [];
+    const jobs = [],
+      decoded = [];
+    const ready = (image) => image.complete && image.naturalWidth > 0;
+    const decode = (image) => {
+      if (image.decode) return image.decode();
+      if (ready(image)) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        image.addEventListener('load', resolve, { once: true, signal: events.signal });
+        image.addEventListener('error', reject, { once: true, signal: events.signal });
+      });
+    };
+    function mirror(index) {
+      const source = images[index];
+      return previews
+        .filter((preview) => preview.index === index)
+        .map(({ image }) => {
+          for (const name of ['src', 'srcset', 'sizes']) {
+            const value = source.getAttribute(name);
+            if (value == null) image.removeAttribute(name);
+            else image.setAttribute(name, value);
+          }
+          image.alt = '';
+          image.loading = 'eager';
+          return image;
+        });
+    }
+    images.forEach((image, index) => {
+      const source = panes[index].querySelector('[data-tdb-guide-body] img[src]');
+      if (source) {
+        image.src = source.getAttribute('src');
+        image.removeAttribute('srcset');
+        image.removeAttribute('sizes');
+        image.alt = source.alt || image.alt;
+      } else if (
+        index === 0 &&
+        /airflow/i.test(root.querySelector('[data-tdb-guide-treatment]')?.textContent || '')
+      ) {
+        image.src =
+          'https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6af5a352c97c5a25289b96fc_ems-airflow-prophylaxis-master-dental-barns-lichfield.webp';
+        image.removeAttribute('srcset');
+        image.removeAttribute('sizes');
+        image.alt = 'EMS AIRFLOW Prophylaxis Master used for hygiene care at The Dental Barns.';
+      }
+      image.loading = 'eager';
+      mirror(index);
+    });
+    function load(index) {
+      if (decoded[index]) return Promise.resolve(true);
+      if (jobs[index]) return jobs[index];
+      const image = images[index];
+      const mirrors = previews.filter((preview) => preview.index === index).map((p) => p.image);
+      if ([image, ...mirrors].every((node) => ready(node) && !node.decode)) {
+        decoded[index] = true;
+        return Promise.resolve(true);
+      }
+      jobs[index] = decode(image)
+        .catch(async (error) => {
+          if (
+            disposed ||
+            !fallbackSources[index] ||
+            image.getAttribute('src') === fallbackSources[index]
+          )
+            throw error;
+          image.src = fallbackSources[index];
+          image.removeAttribute('srcset');
+          image.removeAttribute('sizes');
+          await decode(image);
+        })
+        .then(async () => {
+          if (disposed) return false;
+          await Promise.all(mirror(index).map(decode));
+          return (decoded[index] = ready(image));
+        })
+        .catch(() => false);
+      return jobs[index];
+    }
+    function travel(index, animate) {
+      const from = getComputedStyle(rail).transform || 'none';
+      const imageFrom = frameImages.map((image) => getComputedStyle(image).transform || 'none');
+      animations.forEach((animation) => animation.cancel());
+      animations = [];
+      const timing = {
+        duration: motion.duration(rail.clientWidth),
+        easing: motion.easing('travel', 'cubic-bezier(.3,0,.2,1)'),
+      };
+      const targetFrame = frames.indexOf(photos[index]);
+      const target = `translateX(${-offsets[targetFrame]}px)`;
+      rail.style.transform = target;
+      const moving = animate && !motion.reduced.matches && rail.animate;
+      if (moving)
+        animations.push(rail.animate([{ transform: from }, { transform: target }], timing));
+      frameImages.forEach((image, i) => {
+        const amount = parseFloat(image.getAttribute('data-swiper-parallax-x')) || 30;
+        const target = `translateX(${clamp(targetFrame - i) * amount}%)`;
+        image.style.transform = target;
+        if (moving)
+          animations.push(
+            image.animate([{ transform: imageFrom[i] }, { transform: target }], timing),
+          );
+        blurs[i]?.classList.toggle('is-current', frames[i] === photos[index]);
+      });
+      active = index;
+      root.dataset.tdbCinemaImageIndex = String(index + 1);
+    }
+    function measure() {
+      const left = rail.getBoundingClientRect().left;
+      offsets = frames.map((frame) => frame.getBoundingClientRect().left - left);
+      const next = [rail.clientWidth, ...offsets].map((value) => value.toFixed(3)).join(',');
+      media.style.setProperty('--tdb-parallax-duration', motion.duration(rail.clientWidth) + 'ms');
+      // Never continue an old pixel matrix after the native width/gap changes.
+      if (geometry && next !== geometry) travel(active, false);
+      geometry = next;
+    }
+    frames.forEach((frame, index) => {
+      frame.classList.add('is-cinema-ready');
+      frame.style.visibility = 'visible';
+      frameImages[index].style.visibility = 'visible';
+      if (blurs[index]) blurs[index].style.visibility = 'visible';
+    });
+    measure();
+    travel(initial, false);
+    images.forEach((image, index) => load(index));
+    return {
+      measure,
+      select(index, animate) {
+        const generation = ++request;
+        const crossed = Array.from(
+          { length: Math.abs(index - active) + 1 },
+          (_, n) => Math.min(index, active) + n,
+        );
+        // Include both visible edge previews before moving the image strip.
+        const needed = [...new Set([...crossed, (index + 4) % 5, (index + 1) % 5])];
+        if (needed.every((i) => decoded[i])) return travel(index, animate);
+        Promise.all(needed.map(load)).then((ready) => {
+          if (!disposed && generation === request && ready.every(Boolean)) travel(index, animate);
+        });
+      },
+      destroy() {
+        disposed = true;
+        events.abort();
+        animations.forEach((animation) => animation.cancel());
+        for (const [node, attributes] of saved)
+          for (const [name, value] of attributes)
+            if (value == null) node.removeAttribute(name);
+            else node.setAttribute(name, value);
+        if (clockBefore)
+          media.style.setProperty('--tdb-parallax-duration', clockBefore, clockPriority);
+        else media.style.removeProperty('--tdb-parallax-duration');
+        delete root.dataset.tdbCinemaImageIndex;
+      },
+    };
+  }
+  return Object.freeze({ mount });
+})();

@@ -108,6 +108,7 @@ module.exports = {
   'dist/tdb-treatment-guide-cinema.js': [
     'src/shared/site-chrome.js',
     'src/treatment-guide/card.js',
+    'src/treatment-guide/cinema-photos.js',
     'src/treatment-guide/cinema.js',
   ],
   'dist/tdb-runtime.js': [

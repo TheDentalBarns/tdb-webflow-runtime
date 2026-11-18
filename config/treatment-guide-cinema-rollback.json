@@ -828,16 +828,6 @@
       "element": "bc276f70-ebc6-44d3-a4cd-ca3e53e5f508"
     }
   ],
-  "siteCode": [
-    {
-      "location": "head",
-      "content": "<link rel=\"preload\" as=\"image\" href=\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6acf67dcf7d349005ac6277f_the-dental-barns-logo-white.svg\" type=\"image/svg+xml\" fetchpriority=\"high\" data-tdb-logo-preload=\"early\" />\n<link rel=\"preconnect\" href=\"https://d3e54v103j8qbb.cloudfront.net\" crossorigin>\n<link rel=\"preload\" href=\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6acf6e4606b1bbe4a811fef4_subset-SweetSansPro-Light.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<link rel=\"preload\" href=\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6acf6e6d02aa05799b9e9ff7_subset-SweetSansPro-Regular.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<link rel=\"preload\" as=\"script\" href=\"https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0d9eeefe08096d002261734431de9f082f57c45c/dist/tdb-foundation.js\" fetchpriority=\"low\" data-tdb-foundation-preload>\n<script data-tdb-viewport>document.querySelector('meta[name=\"viewport\"]').setAttribute('content','width=device-width, initial-scale=1, viewport-fit=cover');</script>\n<meta name=\"theme-color\" content=\"#000000\" />\n<meta name=\"color-scheme\" content=\"dark light\" />\n<style data-tdb-critical-base>html{font-size: calc(0.75rem + 0.20834vw);}@media screen and (max-width: 1440px){html{font-size: calc(0.84385rem + 0.10406vw);}}@media screen and (max-width: 479px){html{font-size: calc(0.74974rem + 0.41841vw);}}html{background:#000}html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}button,input,select,textarea{-webkit-appearance:none}[data-vimeo-hero-content],[data-vimeo-hero-content]>*,[data-vimeo-hero-shell] .video-overlay-layer,[data-vimeo-hero-shell] .vimeo-bg__placeholder{pointer-events:none}[data-vimeo-hero-content] :is(a,button,[role=button],input,select,textarea){pointer-events:auto}</style>\n<style data-tdb-ui-critical=\"5079660\">\n[data-tdb-navbar-native]:not([data-tdb-nav-enhanced]),[data-tdb-navbar-native]:not([data-tdb-nav-enhanced]) *{transition:none!important;animation:none!important}html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-control-motion]) [data-tdb-disclosure-item]{transition:none!important}\n</style>\n<link rel=\"stylesheet\" data-tdb-ui-css href=\"https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0d9eeefe08096d002261734431de9f082f57c45c/dist/tdb-ui.css\" media=\"print\" onload=\"this.onload=null;this.media='all';this.dataset.tdbLoaded='true';delete this.dataset.tdbLoadFailed\" onerror=\"this.dataset.tdbLoadFailed='true'\">\n<noscript><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0d9eeefe08096d002261734431de9f082f57c45c/dist/tdb-ui.css\"></noscript>\n"
-    },
-    {
-      "location": "footer",
-      "content": "<script defer data-tdb-start data-tdb-availability-feed=\"https://tdb-public-availability.david-070.workers.dev/\" src=\"https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0d9eeefe08096d002261734431de9f082f57c45c/dist/tdb-start.min.js\"></script>\n<noscript>\n<img height=\"1\" width=\"1\" style=\"display:none\" src=\"https://www.facebook.com/tr?id=1326762815429148&ev=PageView&noscript=1\" alt=\"\" />\n</noscript>\n"
-    }
-  ],
   "styleActions": [
     {
       "label": "Restore original guide art display",
@@ -930,5 +920,7 @@
         }
       }
     }
-  ]
+  ],
+  "siteCodeBackup": "before.json",
+  "restoreDesktopFirst": "config/treatment-guide-cinema-desktop-rollback.json"
 }

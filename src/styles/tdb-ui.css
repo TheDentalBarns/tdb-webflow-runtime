@@ -431,7 +431,6 @@ html[data-tdb-control-motion] [data-tdb-price-section][data-tdb-disclosure-item]
 [data-tdb-guide-cinema] .tdb-cinema-choice.w--current{opacity:1;background-color:transparent;border-bottom-color:currentColor}
 [data-tdb-guide-cinema] .tdb-cinema-choice:focus-visible{outline:1px solid currentColor;outline-offset:-3px}
 [data-tdb-guide-cinema] .tdb-cinema-image{backface-visibility:hidden}
-[data-tdb-guide-cinema] .tdb-cinema-details[open]{position:absolute;inset:5rem 5vw 10rem;height:auto;display:block;overflow:auto;z-index:6;background:#222;padding:1.5rem}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="0"].w--tab-active) [data-tdb-cinema-photo="0"]{visibility:visible}
 [data-tdb-guide-cinema]:not([data-tdb-cinema-ready]):has([data-tdb-guide-panel="0"].w--tab-active) [data-tdb-cinema-photo="0"] .tdb-treatment-blur{backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px)}
 [data-tdb-guide-cinema]:has([data-tdb-guide-panel="0"].w--tab-active) .tdb-cinema-progress{transform:scaleX(0.2)}

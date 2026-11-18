@@ -691,12 +691,13 @@
       "sources": [
         "src/shared/site-chrome.js",
         "src/treatment-guide/card.js",
+        "src/treatment-guide/cinema-photos.js",
         "src/treatment-guide/cinema.js"
       ],
-      "sha256": "a8369362449aa909365d9fca52b23465733a33e1a4567a1e2cf3b527b72b9c91",
-      "raw": 16273,
-      "gzip": 5701,
-      "brotli": 5114
+      "sha256": "75cd9bc15c200f1efb1a293405aa99ecee8f6cfc5b384e3f851c9b944de24719",
+      "raw": 16764,
+      "gzip": 5876,
+      "brotli": 5267
     },
     "dist/tdb-treatment-guide-drawer.js": {
       "sources": [

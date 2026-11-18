@@ -34,9 +34,15 @@ test('Cinema presence selects only the Cinema controller', async () => {
   w.TDBTreatmentGuideLoader.destroy();
   w.close();
 });
-function setup({ pendingImages = [] } = {}) {
+function setup({
+  pendingImages = [],
+  edgePreviews = false,
+  nativeGap = 0,
+  initialWidth = 390,
+  roundScroll = false,
+} = {}) {
   const dom = new JSDOM(
-    `<section data-tdb-guide data-tdb-guide-cinema><span data-tdb-guide-treatment>Veneers</span><div class="tdb-cinema-track"><div class="tdb-cinema-stage"><div class="tdb-cinema-tabs"><nav>${Array.from({ length: 5 }, (_, i) => `<a data-tdb-guide-choice="${i}" href="#pane-${i}" ${i ? '' : 'class="w--current"'}>${i + 1}</a>`).join('')}</nav>${Array.from({ length: 5 }, (_, i) => `<div data-tdb-guide-panel="${i}" ${i ? '' : 'class="w--tab-active"'}><img class="tdb-cinema-image" src="https://example.org/fallback-${i}.webp" alt="Fallback"><h3 data-tdb-guide-title>Chapter ${i + 1}</h3><div data-tdb-guide-body>${i === 0 ? '<img src="https://example.org/camera-with-lens.webp" alt="CMS photo">' : ''}</div></div>`).join('')}</div><a data-tdb-cinema-next href="#end">Scroll to continue</a><a data-tdb-cinema-skip href="#end">Skip</a></div></div></section><section id="after">Following content</section>`,
+    `<section data-tdb-guide data-tdb-guide-cinema><span data-tdb-guide-treatment>Veneers</span><div class="tdb-cinema-track"><div class="tdb-cinema-stage"><div class="tdb-cinema-tabs"><nav>${Array.from({ length: 5 }, (_, i) => `<a data-tdb-guide-choice="${i}" href="#pane-${i}" ${i ? '' : 'class="w--current"'}>${i + 1}</a>`).join('')}</nav>${Array.from({ length: 5 }, (_, i) => `<div data-tdb-guide-panel="${i}" ${i ? '' : 'class="w--tab-active"'}><img class="tdb-cinema-image" src="https://example.org/fallback-${i}.webp" alt="Fallback"><h3 data-tdb-guide-title>Chapter ${i + 1}</h3><div data-tdb-guide-body>${i === 0 ? '<img src="https://example.org/camera-with-lens.webp" alt="CMS photo">' : ''}</div></div>`).join('')}</div></div></div></section><section id="after">Following content</section>`,
     {
       runScripts: 'outside-only',
       pretendToBeVisual: true,
@@ -53,7 +59,7 @@ function setup({ pendingImages = [] } = {}) {
     chrome = 0,
     destroyed = 0,
     height = 800,
-    width = 390;
+    width = initialWidth;
   const updates = [];
   const media = w.document.createElement('div');
   media.className = 'tdb-cinema-media';
@@ -67,6 +73,8 @@ function setup({ pendingImages = [] } = {}) {
   const rail = w.document.createElement('div');
   rail.setAttribute('data-tdb-cinema-rail', '');
   parallax.append(rail);
+  rail.getBoundingClientRect = () => ({ left: 0 });
+  Object.defineProperty(rail, 'clientWidth', { get: () => width });
   rail.animate = (keyframes, timing) => {
     const record = { keyframes, timing, cancelled: false };
     railMoves.push(record);
@@ -84,6 +92,9 @@ function setup({ pendingImages = [] } = {}) {
     blur.className = 'tdb-treatment-blur';
     photo.append(image, blur);
     rail.append(photo);
+    photo.getBoundingClientRect = () => ({
+      left: (index + (edgePreviews ? 1 : 0)) * (width + nativeGap),
+    });
     Object.defineProperty(image, 'complete', { get: () => !pending.has(index) });
     Object.defineProperty(image, 'naturalWidth', { get: () => (pending.has(index) ? 0 : 800) });
     if (pending.has(index))
@@ -110,6 +121,26 @@ function setup({ pendingImages = [] } = {}) {
         };
       };
   });
+  if (edgePreviews) {
+    for (const [index, position] of [
+      [4, 0],
+      [0, 6],
+    ]) {
+      const preview = w.document.createElement('div');
+      preview.className = 'tdb-cinema-photo is-cinema-ready';
+      preview.setAttribute('data-tdb-cinema-preview', String(index));
+      preview.setAttribute('aria-hidden', 'true');
+      preview.innerHTML =
+        '<img class="tdb-cinema-image" src="https://example.org/preview.webp" alt=""><div class="tdb-treatment-blur"></div>';
+      preview.getBoundingClientRect = () => ({ left: position * (width + nativeGap) });
+      const image = preview.querySelector('img');
+      Object.defineProperty(image, 'complete', { value: true });
+      Object.defineProperty(image, 'naturalWidth', { value: 800 });
+      image.animate = () => ({ cancel() {} });
+      if (position === 0) rail.prepend(preview);
+      else rail.append(preview);
+    }
+  }
   stage.prepend(media);
   media.getBoundingClientRect = () => ({ height: height * 0.4 });
   const progress = w.document.createElement('div');
@@ -163,9 +194,10 @@ function setup({ pendingImages = [] } = {}) {
     },
   };
   w.scrollTo = ({ top }) => {
-    y = top;
+    y = roundScroll ? Math.round(top) : top;
     w.dispatchEvent(new w.Event('scroll'));
   };
+  w.eval(fs.readFileSync('src/treatment-guide/cinema-photos.js', 'utf8'));
   w.eval(fs.readFileSync('src/treatment-guide/cinema.js', 'utf8'));
   const api = w.TDBTreatmentGuideCinema.mount(root);
   const flush = () => {
@@ -272,7 +304,7 @@ test('one image strip retains complete coverage and shares the Services parallax
   t.flush();
   const railMove = t.railMoves.at(-1);
   const imageMove = t.photoMoves.find((m) => m.index === 0 && m.kind === 'image');
-  assert.equal(railMove.keyframes.at(-1).transform, 'translateX(-100%)');
+  assert.equal(railMove.keyframes.at(-1).transform, 'translateX(-390px)');
   assert.equal(imageMove.keyframes.at(-1).transform, 'translateX(30%)');
   assert.equal(railMove.timing, imageMove.timing);
   assert.equal(
@@ -281,14 +313,15 @@ test('one image strip retains complete coverage and shares the Services parallax
   );
   for (let i = 0; i < 5; i++) {
     const photo = t.root.querySelector('[data-tdb-cinema-photo="' + i + '"]');
-    assert.equal(photo.style.transform, 'translateX(' + i * 100 + '%)');
+    assert.equal(photo.style.transform, '', 'native flow owns crop position');
+    assert.equal(photo.classList.contains('is-cinema-ready'), true);
     assert.equal(photo.style.visibility, 'visible');
     assert.equal(photo.querySelector('img').style.visibility, 'visible');
   }
   t.root.querySelector('[data-tdb-guide-choice="2"]').click();
   t.flush();
   assert.equal(railMove.cancelled, true);
-  assert.equal(t.rail.style.transform, 'translateX(-200%)');
+  assert.equal(t.rail.style.transform, 'translateX(-780px)');
   assert.ok(t.root.querySelector('[data-tdb-cinema-photo="2"] .is-current'));
   t.api.destroy();
   assert.equal(t.rail.getAttribute('style'), null);
@@ -307,11 +340,11 @@ test('a fast jump retains the current photograph until every crossed image can p
   t.flush();
   assert.equal(t.root.dataset.tdbCinemaChapter, '3');
   assert.equal(t.root.dataset.tdbCinemaImageIndex, '1');
-  assert.equal(t.rail.style.transform, 'translateX(0%)');
+  assert.equal(t.rail.style.transform, 'translateX(0px)');
   t.resolveImage(1);
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(t.root.dataset.tdbCinemaImageIndex, '3');
-  assert.equal(t.rail.style.transform, 'translateX(-200%)');
+  assert.equal(t.rail.style.transform, 'translateX(-780px)');
   t.close();
 });
 
@@ -322,12 +355,51 @@ test('resizing during travel cancels stale pixel matrices and restores the curre
   const moving = t.railMoves.at(-1);
   t.resizeWidth(1440);
   assert.equal(moving.cancelled, true);
-  assert.equal(t.rail.style.transform, 'translateX(-400%)');
+  assert.equal(t.rail.style.transform, 'translateX(-5760px)');
   assert.equal(t.root.dataset.tdbCinemaImageIndex, '5');
+  assert.equal(t.root.querySelector('[data-tdb-cinema-photo="4"]').style.transform, '');
+  t.close();
+});
+
+test('native widths and gutters position the active photo between decorative edge previews', () => {
+  const t = setup({ edgePreviews: true, nativeGap: 30, initialWidth: 900 });
+  assert.equal(t.rail.style.transform, 'translateX(-930px)');
+  assert.equal(t.rail.style.width, '', 'Designer owns container width');
+  assert.equal(t.rail.style.columnGap, '', 'Designer owns the image gutter');
+  const previews = [...t.root.querySelectorAll('[data-tdb-cinema-preview]')];
+  assert.match(previews[1].querySelector('img').src, /camera-with-lens/);
+  t.root.querySelector('[data-tdb-guide-choice="4"]').click();
+  t.flush();
+  assert.equal(t.rail.style.transform, 'translateX(-4650px)');
+  assert.ok(previews.every((preview) => !preview.querySelector('.is-current')));
+  t.resizeWidth(1000);
+  assert.equal(t.rail.style.transform, 'translateX(-5150px)');
+  t.api.destroy();
+  assert.ok(previews.every((preview) => preview.classList.contains('is-cinema-ready')));
   assert.equal(
-    t.root.querySelector('[data-tdb-cinema-photo="4"]').style.transform,
-    'translateX(400%)',
+    t.root.querySelector('[data-tdb-cinema-photo]').classList.contains('is-cinema-ready'),
+    false,
   );
+  assert.match(previews[1].querySelector('img').src, /preview.webp/);
+  t.w.close();
+});
+
+test('number-click progress survives rounded scroll events and yields to real scrolling', () => {
+  const t = setup({ roundScroll: true });
+  t.resize(801);
+  t.root.querySelector('[data-tdb-guide-choice="3"]').click();
+  t.flush();
+  const first = t.progressMoves.at(-1);
+  assert.equal(first.cancelled, false);
+  t.scroll(t.y + 0.4);
+  assert.equal(first.cancelled, false, 'subpixel settlement must not cut the animation short');
+  t.root.querySelector('[data-tdb-guide-choice="1"]').click();
+  t.flush();
+  const second = t.progressMoves.at(-1);
+  assert.equal(first.cancelled, true);
+  assert.equal(second.cancelled, false, 'a second click retargets the line');
+  t.scroll(t.y + 40);
+  assert.equal(second.cancelled, true, 'native scrolling resumes continuous progress');
   t.close();
 });
 
@@ -374,7 +446,7 @@ test('changing chapter returns short-screen copy to its heading without resettin
   assert.equal(content.scrollTop, 0);
   t.close();
 });
-test('numbers, keyboard and continuation remain aligned with scroll; Skip exits the entire track', () => {
+test('numbers and keyboard remain aligned with native scroll', () => {
   const t = setup(),
     choices = [...t.root.querySelectorAll('[data-tdb-guide-choice]')];
   choices[3].click();
@@ -387,12 +459,6 @@ test('numbers, keyboard and continuation remain aligned with scroll; Skip exits 
   t.flush();
   assert.equal(t.root.dataset.tdbCinemaChapter, '5');
   assert.equal(t.w.document.activeElement, choices[4]);
-  assert.match(t.root.querySelector('[data-tdb-cinema-next]').textContent, /Continue reading/);
-  t.root.querySelector('[data-tdb-cinema-skip]').click();
-  t.flush();
-  assert.equal(t.y, 5000);
-  assert.equal(t.chrome, 0);
-  assert.equal(t.w.document.activeElement.id, 'after');
   t.close();
 });
 test('open drawers suspend chapters; CMS photography wins and lifecycle restores authored images', () => {

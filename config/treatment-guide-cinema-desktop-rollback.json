@@ -1,0 +1,324 @@
+{
+  "runtime": "628b31c0fdbce57925140acb7961b1440e357d7c",
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "678507292f3f5412bfe2b4fa",
+  "scopeComponentId": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+  "siteCodeBackup": "before-desktop-site-code.json",
+  "nativeBackup": "before-desktop-width.json",
+  "styleActions": [
+    {
+      "label": "Restore tdb-cinema-rail",
+      "update_style": {
+        "style_name": "tdb-cinema-rail",
+        "properties": [
+          {
+            "property_name": "width",
+            "property_value": "100%"
+          },
+          {
+            "property_name": "display",
+            "property_value": "block"
+          },
+          {
+            "property_name": "column-gap",
+            "property_value": "normal"
+          },
+          {
+            "property_name": "margin-left",
+            "property_value": "0px"
+          },
+          {
+            "property_name": "margin-right",
+            "property_value": "0px"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-cinema-content",
+      "update_style": {
+        "style_name": "tdb-cinema-content",
+        "properties": [
+          {
+            "property_name": "width",
+            "property_value": "auto"
+          },
+          {
+            "property_name": "margin-left",
+            "property_value": "5vw"
+          },
+          {
+            "property_name": "margin-right",
+            "property_value": "5vw"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-cinema-details",
+      "update_style": {
+        "style_name": "tdb-cinema-details",
+        "properties": [
+          {
+            "property_name": "left",
+            "property_value": "5vw"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-cinema-numbers",
+      "update_style": {
+        "style_name": "tdb-cinema-numbers",
+        "properties": [
+          {
+            "property_name": "left",
+            "property_value": "3vw"
+          },
+          {
+            "property_name": "right",
+            "property_value": "3vw"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-cinema-progress",
+      "update_style": {
+        "style_name": "tdb-cinema-progress",
+        "properties": [
+          {
+            "property_name": "left",
+            "property_value": "3vw"
+          },
+          {
+            "property_name": "width",
+            "property_value": "94vw"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore tdb-cinema-pagination",
+      "update_style": {
+        "style_name": "tdb-cinema-pagination",
+        "properties": [
+          {
+            "property_name": "right",
+            "property_value": "5vw"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore mobile tdb-cinema-rail",
+      "update_style": {
+        "style_name": "tdb-cinema-rail",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "width",
+            "property_value": "100%"
+          },
+          {
+            "property_name": "column-gap",
+            "property_value": "normal"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore mobile tdb-cinema-content",
+      "update_style": {
+        "style_name": "tdb-cinema-content",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "width",
+            "property_value": "auto"
+          },
+          {
+            "property_name": "margin-left",
+            "property_value": "5vw"
+          },
+          {
+            "property_name": "margin-right",
+            "property_value": "5vw"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore mobile tdb-cinema-details",
+      "update_style": {
+        "style_name": "tdb-cinema-details",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "left",
+            "property_value": "5vw"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore mobile tdb-cinema-numbers",
+      "update_style": {
+        "style_name": "tdb-cinema-numbers",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "left",
+            "property_value": "3vw"
+          },
+          {
+            "property_name": "right",
+            "property_value": "3vw"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore mobile tdb-cinema-progress",
+      "update_style": {
+        "style_name": "tdb-cinema-progress",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "left",
+            "property_value": "3vw"
+          },
+          {
+            "property_name": "width",
+            "property_value": "94vw"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore mobile tdb-cinema-pagination",
+      "update_style": {
+        "style_name": "tdb-cinema-pagination",
+        "breakpoint_id": "medium",
+        "properties": [
+          {
+            "property_name": "right",
+            "property_value": "5vw"
+          }
+        ]
+      }
+    }
+  ],
+  "elementActions": [
+    {
+      "label": "Restore original CMS body position",
+      "move_element": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed240c"
+        },
+        "anchor_element_id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "966439af-96bf-d103-405e-451885c76b81"
+        },
+        "creation_position": "append",
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore original CMS body position",
+      "move_element": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed2418"
+        },
+        "anchor_element_id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5c0f54ad-d26d-b83c-3839-fab6090bb01d"
+        },
+        "creation_position": "append",
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore original CMS body position",
+      "move_element": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed2424"
+        },
+        "anchor_element_id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "1d971a8e-e818-f861-bf0b-2dc19a1ca04f"
+        },
+        "creation_position": "append",
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore original CMS body position",
+      "move_element": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed242d"
+        },
+        "anchor_element_id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "09ce5586-8529-b79a-a277-fe607e3521d3"
+        },
+        "creation_position": "append",
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore original CMS body position",
+      "move_element": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed2436"
+        },
+        "anchor_element_id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5ced6c28-40cf-3283-8f4e-b8885e766cdb"
+        },
+        "creation_position": "append",
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    }
+  ],
+  "removeAfterMovingBodies": [
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "872bef9a-8cb1-a687-a139-320c8833f110"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "82d0c0fc-5379-8c95-be66-3d4e44fb9060"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "868af74b-9208-7a7f-d8cd-7f38ea7a23e1"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "d9f81432-b59b-7747-fa4d-1ec03b84a3af"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "92745677-2e9e-b08f-6217-3d171f178c1e"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "9f03e99e-e16b-e06e-4f5b-ca5e24b6091c"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "db1e806f-ed12-7c2f-6333-f768d41f0011"
+    }
+  ],
+  "notes": [
+    "Restore native styles, unwrap the CMS bodies, remove only the new previews/wrappers, restore all four runtime references from the private site-code backup, and publish staging only.",
+    "The retired hidden Scroll/Skip and /05 nodes do not need recreating for a visual rollback; 2.1.28 supports their absence.",
+    "For older rollbacks, perform these native restoration steps first, then the chosen earlier manifest."
+  ]
+}
