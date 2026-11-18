@@ -23,6 +23,10 @@ test('Cinema presence selects only the Cinema controller', async () => {
   await w.TDBTreatmentGuideLoader.wheel(w.document.querySelector('section'));
   assert.equal(mounted, 1);
   assert.ok(requested.includes('/dist/tdb-treatment-guide-cinema.js'));
+  assert.ok(
+    requested.indexOf('/dist/tdb-slider-ui.css') <
+      requested.indexOf('/dist/tdb-treatment-guide-cinema.js'),
+  );
   assert.equal(
     requested.some((path) => /guide-(wheel|bar|drawer)\.js/.test(path)),
     false,
@@ -296,11 +300,11 @@ test('a fast jump retains the current photograph until every crossed image can p
   t.root.querySelector('[data-tdb-guide-choice="2"]').click();
   t.flush();
   assert.equal(t.root.dataset.tdbCinemaChapter, '3');
-  assert.equal(t.root.dataset.tdbCinemaPhoto, '1');
+  assert.equal(t.root.dataset.tdbCinemaImageIndex, '1');
   assert.equal(t.rail.style.transform, 'translateX(0%)');
   t.resolveImage(1);
   await new Promise((resolve) => setImmediate(resolve));
-  assert.equal(t.root.dataset.tdbCinemaPhoto, '3');
+  assert.equal(t.root.dataset.tdbCinemaImageIndex, '3');
   assert.equal(t.rail.style.transform, 'translateX(-200%)');
   t.close();
 });

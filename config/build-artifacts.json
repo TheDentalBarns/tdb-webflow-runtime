@@ -590,10 +590,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "3312ff8c7e3e8c20a472f03f9c58a794bc02e311cf6b52fdecffa913d8d95104",
-      "raw": 97046,
-      "gzip": 26186,
-      "brotli": 22469
+      "sha256": "6e3da815381b9ad32003df2352b72cd805b8743a8bc3fd31715e25243d049bef",
+      "raw": 97210,
+      "gzip": 26214,
+      "brotli": 22499
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -693,10 +693,10 @@
         "src/treatment-guide/card.js",
         "src/treatment-guide/cinema.js"
       ],
-      "sha256": "8b20c68bf44ad84f059d9f82f9e78164f18aa99086c46140d949e5f9f33e1015",
-      "raw": 16209,
-      "gzip": 5677,
-      "brotli": 5092
+      "sha256": "a274e9e01dd8157a714a25a8f87098aba97528bff334ec9880e6aed093ddd0be",
+      "raw": 16219,
+      "gzip": 5680,
+      "brotli": 5090
     },
     "dist/tdb-treatment-guide-drawer.js": {
       "sources": [

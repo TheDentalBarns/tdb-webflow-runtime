@@ -30,6 +30,13 @@ function prepareTreatmentGuideLoader() {
     await window.TDBModules.load(new URL('tdb-ticker.js', TDBRuntimeModuleRoot));
     await window.TDBModules.load(new URL('tdb-slider-focus.js', TDBRuntimeModuleRoot));
     if (root.hasAttribute('data-tdb-guide-cinema')) {
+      // Reuse the exact Services/Treatments blur transition sheet before paint,
+      // rather than waiting for another carousel elsewhere on the page to load it.
+      if (window.TDBFeatureCSS?.carousel) await window.TDBFeatureCSS.carousel();
+      else
+        await window.TDBModules.load(new URL('tdb-slider-ui.css', TDBRuntimeModuleRoot), {
+          type: 'style',
+        });
       await window.TDBModules.load(new URL('tdb-treatment-guide-cinema.js', TDBRuntimeModuleRoot), {
         ready: () => Boolean(window.TDBTreatmentGuideCinema),
       });

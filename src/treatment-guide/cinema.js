@@ -204,7 +204,7 @@
         }
       });
       photoIndex = index;
-      root.dataset.tdbCinemaPhoto = String(index + 1);
+      root.dataset.tdbCinemaImageIndex = String(index + 1);
     }
     function requestPhoto(index, animate) {
       const request = ++photoRequest;
@@ -450,7 +450,7 @@
           media?.style.setProperty('--tdb-parallax-duration', blurClockBefore, blurClockPriority);
         else media?.style.removeProperty('--tdb-parallax-duration');
         delete root.dataset.tdbCinemaReady;
-        delete root.dataset.tdbCinemaPhoto;
+        delete root.dataset.tdbCinemaImageIndex;
         if (progress) restore(progress, [['style', progressBefore]]);
         restore(tabs, tabAttrs);
         if (tabConfig) Object.assign(tabConfig, configBefore);
