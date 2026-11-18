@@ -1,5 +1,5 @@
 {
-  "version": "2.1.19",
+  "version": "2.1.20",
   "entry": "dist/tdb-start.min.js",
   "repository": "TheDentalBarns/tdb-webflow-runtime",
   "resolution": "All runtime assets resolve relative to the entry commit. No page IDs, cohort roots or per-file pins.",
@@ -61,7 +61,8 @@
     "dist/tdb-vimeo.js",
     "dist/tdb-vip-content.js",
     "dist/tdb-vip-drawer.js",
-    "dist/tdb-vip-form.js"
+    "dist/tdb-vip-form.js",
+    "dist/tdb-treatment-guide-cinema.js"
   ],
   "styles": [
     "dist/tdb-treatment-guide.css",

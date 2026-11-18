@@ -1,0 +1,837 @@
+{
+  "siteId": "677cf86cf9952f978d94d80c",
+  "pageId": "678507292f3f5412bfe2b4fa",
+  "actions": [
+    {
+      "label": "Restore treatment-guide_layout",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed23f0"
+        },
+        "style_names": [
+          "treatment-guide_layout"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_tabs",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed23f8"
+        },
+        "style_names": [
+          "treatment-guide_tabs"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_wheel",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed23f9"
+        },
+        "style_names": [
+          "treatment-guide_wheel"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_choice",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed23fa"
+        },
+        "style_names": [
+          "treatment-guide_choice",
+          "is-chapter-1"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_chapter-number",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "e1c24f61-02f8-5023-0742-0d44e3408295"
+        },
+        "style_names": [
+          "treatment-guide_chapter-number"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_choice",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed23fc"
+        },
+        "style_names": [
+          "treatment-guide_choice",
+          "is-chapter-2"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_chapter-number",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "64eb21ae-1c35-70e2-96b4-77647587bdde"
+        },
+        "style_names": [
+          "treatment-guide_chapter-number"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_choice",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed23fe"
+        },
+        "style_names": [
+          "treatment-guide_choice",
+          "is-chapter-3"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_chapter-number",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "667f4a3f-00f8-882f-5438-b4741badda3e"
+        },
+        "style_names": [
+          "treatment-guide_chapter-number"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_choice",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed2400"
+        },
+        "style_names": [
+          "treatment-guide_choice",
+          "is-chapter-4"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_chapter-number",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "7e73da1f-114c-fa7c-7833-af92b9e3ce63"
+        },
+        "style_names": [
+          "treatment-guide_chapter-number"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_choice",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed2402"
+        },
+        "style_names": [
+          "treatment-guide_choice",
+          "is-chapter-5"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_chapter-number",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "4f52e57f-eaac-35bf-3dc2-49be2d2d0325"
+        },
+        "style_names": [
+          "treatment-guide_chapter-number"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_content",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed2404"
+        },
+        "style_names": [
+          "treatment-guide_content"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_panel",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed2405"
+        },
+        "style_names": [
+          "treatment-guide_panel"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_teaser",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "966439af-96bf-d103-405e-451885c76b82"
+        },
+        "style_names": [
+          "treatment-guide_teaser"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_title-clip",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "7b9b30b1-6a59-5c26-2be4-9d899132e062"
+        },
+        "style_names": [
+          "treatment-guide_title-clip"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_title",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "966439af-96bf-d103-405e-451885c76b77"
+        },
+        "style_names": [
+          "treatment-guide_title"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_summary",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "966439af-96bf-d103-405e-451885c76b79"
+        },
+        "style_names": [
+          "treatment-guide_summary"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_details",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "966439af-96bf-d103-405e-451885c76b81"
+        },
+        "style_names": [
+          "treatment-guide_details"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_panel",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed2411"
+        },
+        "style_names": [
+          "treatment-guide_panel"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_teaser",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5c0f54ad-d26d-b83c-3839-fab6090bb01e"
+        },
+        "style_names": [
+          "treatment-guide_teaser"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_title-clip",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "029053df-5d7e-12d4-9501-ab9ad014b40a"
+        },
+        "style_names": [
+          "treatment-guide_title-clip"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_title",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5c0f54ad-d26d-b83c-3839-fab6090bb013"
+        },
+        "style_names": [
+          "treatment-guide_title"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_summary",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5c0f54ad-d26d-b83c-3839-fab6090bb015"
+        },
+        "style_names": [
+          "treatment-guide_summary"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_details",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5c0f54ad-d26d-b83c-3839-fab6090bb01d"
+        },
+        "style_names": [
+          "treatment-guide_details"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_panel",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed241d"
+        },
+        "style_names": [
+          "treatment-guide_panel"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_teaser",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "1d971a8e-e818-f861-bf0b-2dc19a1ca050"
+        },
+        "style_names": [
+          "treatment-guide_teaser"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_title-clip",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "9e12aeec-4605-7d26-a498-51153df1829d"
+        },
+        "style_names": [
+          "treatment-guide_title-clip"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_title",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "1d971a8e-e818-f861-bf0b-2dc19a1ca045"
+        },
+        "style_names": [
+          "treatment-guide_title"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_summary",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "1d971a8e-e818-f861-bf0b-2dc19a1ca047"
+        },
+        "style_names": [
+          "treatment-guide_summary"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_details",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "1d971a8e-e818-f861-bf0b-2dc19a1ca04f"
+        },
+        "style_names": [
+          "treatment-guide_details"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_panel",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed2429"
+        },
+        "style_names": [
+          "treatment-guide_panel"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_teaser",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "09ce5586-8529-b79a-a277-fe607e3521d4"
+        },
+        "style_names": [
+          "treatment-guide_teaser"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_title-clip",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "697a3920-44c7-5596-a8c9-cb6367a1d217"
+        },
+        "style_names": [
+          "treatment-guide_title-clip"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_title",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "09ce5586-8529-b79a-a277-fe607e3521c9"
+        },
+        "style_names": [
+          "treatment-guide_title"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_summary",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "09ce5586-8529-b79a-a277-fe607e3521cb"
+        },
+        "style_names": [
+          "treatment-guide_summary"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_details",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "09ce5586-8529-b79a-a277-fe607e3521d3"
+        },
+        "style_names": [
+          "treatment-guide_details"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_panel",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed2432"
+        },
+        "style_names": [
+          "treatment-guide_panel"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_teaser",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5ced6c28-40cf-3283-8f4e-b8885e766cdc"
+        },
+        "style_names": [
+          "treatment-guide_teaser"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_title-clip",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "de17b05e-f1f8-c95e-d935-bd91fd7d45f8"
+        },
+        "style_names": [
+          "treatment-guide_title-clip"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_title",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5ced6c28-40cf-3283-8f4e-b8885e766cd1"
+        },
+        "style_names": [
+          "treatment-guide_title"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_summary",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5ced6c28-40cf-3283-8f4e-b8885e766cd3"
+        },
+        "style_names": [
+          "treatment-guide_summary"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore treatment-guide_details",
+      "set_style": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5ced6c28-40cf-3283-8f4e-b8885e766cdb"
+        },
+        "style_names": [
+          "treatment-guide_details"
+        ],
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore CTA parent 1",
+      "move_element": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "966439af-96bf-d103-405e-451885c76b81"
+        },
+        "anchor_element_id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "966439af-96bf-d103-405e-451885c76b82"
+        },
+        "creation_position": "append",
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore CTA parent 2",
+      "move_element": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5c0f54ad-d26d-b83c-3839-fab6090bb01d"
+        },
+        "anchor_element_id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5c0f54ad-d26d-b83c-3839-fab6090bb01e"
+        },
+        "creation_position": "append",
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore CTA parent 3",
+      "move_element": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "1d971a8e-e818-f861-bf0b-2dc19a1ca04f"
+        },
+        "anchor_element_id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "1d971a8e-e818-f861-bf0b-2dc19a1ca050"
+        },
+        "creation_position": "append",
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore CTA parent 4",
+      "move_element": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "09ce5586-8529-b79a-a277-fe607e3521d3"
+        },
+        "anchor_element_id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "09ce5586-8529-b79a-a277-fe607e3521d4"
+        },
+        "creation_position": "append",
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore CTA parent 5",
+      "move_element": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5ced6c28-40cf-3283-8f4e-b8885e766cdb"
+        },
+        "anchor_element_id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5ced6c28-40cf-3283-8f4e-b8885e766cdc"
+        },
+        "creation_position": "append",
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    },
+    {
+      "label": "Restore original details attributes",
+      "set_attributes": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "966439af-96bf-d103-405e-451885c76b81"
+        },
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+        "attributes": [
+          {
+            "name": "data-tdb-guide-details",
+            "value": ""
+          },
+          {
+            "name": "class",
+            "value": "treatment-guide_details"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore original details attributes",
+      "set_attributes": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5c0f54ad-d26d-b83c-3839-fab6090bb01d"
+        },
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+        "attributes": [
+          {
+            "name": "data-tdb-guide-details",
+            "value": ""
+          },
+          {
+            "name": "class",
+            "value": "treatment-guide_details"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore original details attributes",
+      "set_attributes": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "1d971a8e-e818-f861-bf0b-2dc19a1ca04f"
+        },
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+        "attributes": [
+          {
+            "name": "data-tdb-guide-details",
+            "value": ""
+          },
+          {
+            "name": "class",
+            "value": "treatment-guide_details"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore original details attributes",
+      "set_attributes": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "09ce5586-8529-b79a-a277-fe607e3521d3"
+        },
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+        "attributes": [
+          {
+            "name": "data-tdb-guide-details",
+            "value": ""
+          },
+          {
+            "name": "class",
+            "value": "treatment-guide_details"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore original details attributes",
+      "set_attributes": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5ced6c28-40cf-3283-8f4e-b8885e766cdb"
+        },
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+        "attributes": [
+          {
+            "name": "data-tdb-guide-details",
+            "value": ""
+          },
+          {
+            "name": "class",
+            "value": "treatment-guide_details"
+          }
+        ]
+      }
+    },
+    {
+      "label": "Restore tabs parent",
+      "move_element": {
+        "id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed23f8"
+        },
+        "anchor_element_id": {
+          "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+          "element": "5a45f055-97a1-453d-701b-d71c77ed23f0"
+        },
+        "creation_position": "append",
+        "scope_component_id": "5a45f055-97a1-453d-701b-d71c77ed23ec"
+      }
+    }
+  ],
+  "removeAfterMovingTabs": [
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "5a14c165-9d20-6c67-3be3-6fc0e5f49758"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "1f993975-34cc-19d9-15ec-8c000de58cb3"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "a38cea17-2ba1-3753-96f8-83373f6bd68a"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "0045a2a2-919c-bb67-e6e0-e15eaba5098c"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "1504bae7-863d-d8cf-cf93-a7661cb27642"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "20de4109-4a5d-d20e-0f45-28f68f73333c"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "006177d9-93ed-a9d3-898c-6856e431238f"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "27e5fa04-9620-0672-5357-69779e7258d4"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "99f1fe61-e04c-7e55-6261-886ec7699ad5"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "b17b1e5c-3c60-5ddf-5d25-82c7b6adba8d"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "2ec5cfc5-4235-4047-7d65-2ee4daecd70e"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "458bd793-b2d4-aafe-eb82-04eda1ea9e69"
+    },
+    {
+      "component": "5a45f055-97a1-453d-701b-d71c77ed23ec",
+      "element": "f254b7bb-4abf-a19d-54ea-6ba17a9c345e"
+    }
+  ],
+  "siteCode": [
+    {
+      "location": "head",
+      "content": "<link rel=\"preload\" as=\"image\" href=\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6acf67dcf7d349005ac6277f_the-dental-barns-logo-white.svg\" type=\"image/svg+xml\" fetchpriority=\"high\" data-tdb-logo-preload=\"early\" />\n<link rel=\"preconnect\" href=\"https://d3e54v103j8qbb.cloudfront.net\" crossorigin>\n<link rel=\"preload\" href=\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6acf6e4606b1bbe4a811fef4_subset-SweetSansPro-Light.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<link rel=\"preload\" href=\"https://cdn.prod.website-files.com/677cf86cf9952f978d94d80c/6acf6e6d02aa05799b9e9ff7_subset-SweetSansPro-Regular.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<link rel=\"preload\" as=\"script\" href=\"https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0d9eeefe08096d002261734431de9f082f57c45c/dist/tdb-foundation.js\" fetchpriority=\"low\" data-tdb-foundation-preload>\n<script data-tdb-viewport>document.querySelector('meta[name=\"viewport\"]').setAttribute('content','width=device-width, initial-scale=1, viewport-fit=cover');</script>\n<meta name=\"theme-color\" content=\"#000000\" />\n<meta name=\"color-scheme\" content=\"dark light\" />\n<style data-tdb-critical-base>html{font-size: calc(0.75rem + 0.20834vw);}@media screen and (max-width: 1440px){html{font-size: calc(0.84385rem + 0.10406vw);}}@media screen and (max-width: 479px){html{font-size: calc(0.74974rem + 0.41841vw);}}html{background:#000}html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}button,input,select,textarea{-webkit-appearance:none}[data-vimeo-hero-content],[data-vimeo-hero-content]>*,[data-vimeo-hero-shell] .video-overlay-layer,[data-vimeo-hero-shell] .vimeo-bg__placeholder{pointer-events:none}[data-vimeo-hero-content] :is(a,button,[role=button],input,select,textarea){pointer-events:auto}</style>\n<style data-tdb-ui-critical=\"5079660\">\n[data-tdb-navbar-native]:not([data-tdb-nav-enhanced]),[data-tdb-navbar-native]:not([data-tdb-nav-enhanced]) *{transition:none!important;animation:none!important}html:not([data-tdb-control-motion]) [data-tdb-chevron],html:not([data-tdb-control-motion]) [data-tdb-disclosure-item]{transition:none!important}\n</style>\n<link rel=\"stylesheet\" data-tdb-ui-css href=\"https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0d9eeefe08096d002261734431de9f082f57c45c/dist/tdb-ui.css\" media=\"print\" onload=\"this.onload=null;this.media='all';this.dataset.tdbLoaded='true';delete this.dataset.tdbLoadFailed\" onerror=\"this.dataset.tdbLoadFailed='true'\">\n<noscript><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0d9eeefe08096d002261734431de9f082f57c45c/dist/tdb-ui.css\"></noscript>\n"
+    },
+    {
+      "location": "footer",
+      "content": "<script defer data-tdb-start data-tdb-availability-feed=\"https://tdb-public-availability.david-070.workers.dev/\" src=\"https://cdn.jsdelivr.net/gh/TheDentalBarns/tdb-webflow-runtime@0d9eeefe08096d002261734431de9f082f57c45c/dist/tdb-start.min.js\"></script>\n<noscript>\n<img height=\"1\" width=\"1\" style=\"display:none\" src=\"https://www.facebook.com/tr?id=1326762815429148&ev=PageView&noscript=1\" alt=\"\" />\n</noscript>\n"
+    }
+  ]
+}

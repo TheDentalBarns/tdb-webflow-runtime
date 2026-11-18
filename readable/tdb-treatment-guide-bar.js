@@ -188,7 +188,7 @@
 window.TDBTreatmentGuideCard ||= (() => {
   function mount(root, initial, navigate) {
     const panes = [...root.querySelectorAll('[data-tdb-guide-panel]')],
-      content = root.querySelector('.treatment-guide_content'),
+      content = root.querySelector('.tdb-cinema-content, .treatment-guide_content'),
       pagination = root.querySelector('[data-tdb-guide-pagination]');
     if (panes.length !== 5 || !content) return null;
     const events = new AbortController(),

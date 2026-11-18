@@ -6,3 +6,11 @@
 [data-tdb-guide] .treatment-guide_choice.w--current{opacity:1;background-color:var(--base-color-brand--orange-2,#ebe2d2)}
 [data-tdb-guide] .treatment-guide_learn-more::-webkit-details-marker{display:none}
 [data-tdb-guide]:has(details[open]) .treatment-guide_arrows{visibility:hidden}
+
+/* Cinema selection states; all dimensions, placement and typography are native. */
+[data-tdb-guide-cinema] .tdb-cinema-panel.w--tab-active{visibility:visible;pointer-events:auto}
+[data-tdb-guide-cinema] .tdb-cinema-choice{opacity:.45}
+[data-tdb-guide-cinema] .tdb-cinema-choice.w--current{opacity:1;background-color:transparent;border-bottom-color:currentColor}
+[data-tdb-guide-cinema] .tdb-cinema-choice:focus-visible{outline:1px solid currentColor;outline-offset:-3px}
+[data-tdb-guide-cinema] .tdb-cinema-image{backface-visibility:hidden}
+[data-tdb-guide-cinema] .tdb-cinema-details[open]{position:absolute;inset:5rem 5vw 10rem;height:auto;display:block;overflow:auto;z-index:6;background:#222;padding:1.5rem}

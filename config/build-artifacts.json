@@ -590,10 +590,10 @@
         "src/runtime/home-scroll-test.js",
         "src/runtime/runtime.js"
       ],
-      "sha256": "4602bb6c821eb04aa8bbded5cfa69a7a6438881b8681609c98313f5f5113516e",
-      "raw": 96689,
-      "gzip": 26136,
-      "brotli": 22426
+      "sha256": "3312ff8c7e3e8c20a472f03f9c58a794bc02e311cf6b52fdecffa913d8d95104",
+      "raw": 97046,
+      "gzip": 26186,
+      "brotli": 22469
     },
     "dist/tdb-service-awards.js": {
       "sources": [
@@ -682,10 +682,21 @@
         "src/treatment-guide/scroll.js",
         "src/treatment-guide/bar.js"
       ],
-      "sha256": "48e2a0f1e5d2d1851396dd19656b0ecc79bc755a159ae62fbcb4cf9488b90986",
-      "raw": 22575,
-      "gzip": 7985,
-      "brotli": 7222
+      "sha256": "535e14c85bcd3730334513fb7fa63ba94cc02b85f9d1dde3698bcab12ae27fc7",
+      "raw": 22596,
+      "gzip": 7998,
+      "brotli": 7187
+    },
+    "dist/tdb-treatment-guide-cinema.js": {
+      "sources": [
+        "src/shared/site-chrome.js",
+        "src/treatment-guide/card.js",
+        "src/treatment-guide/cinema.js"
+      ],
+      "sha256": "31fe6a6cec6a557d4b7c8c80aef29fa50d6e0d16709d0f7b0dd747145e371745",
+      "raw": 13009,
+      "gzip": 4774,
+      "brotli": 4274
     },
     "dist/tdb-treatment-guide-drawer.js": {
       "sources": [
@@ -706,10 +717,10 @@
         "src/treatment-guide/bar.js",
         "src/treatment-guide/wheel.js"
       ],
-      "sha256": "2e7701f1e55c91602e1bd5967126938c17ca9d4e220a3970d36989aa320d5311",
-      "raw": 53375,
-      "gzip": 27049,
-      "brotli": 24602
+      "sha256": "d07090f90ddf009178a33f7d62d0816828e4d82bde2b265805383a4f0d4cdea9",
+      "raw": 53396,
+      "gzip": 27065,
+      "brotli": 24584
     },
     "dist/tdb-usp-drawer-template.js": {
       "sources": [

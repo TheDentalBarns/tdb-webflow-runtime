@@ -425,6 +425,14 @@ html[data-tdb-control-motion] [data-tdb-price-section][data-tdb-disclosure-item]
 [data-tdb-guide] .treatment-guide_learn-more::-webkit-details-marker{display:none}
 [data-tdb-guide]:has(details[open]) .treatment-guide_arrows{visibility:hidden}
 
+/* Cinema selection states; all dimensions, placement and typography are native. */
+[data-tdb-guide-cinema] .tdb-cinema-panel.w--tab-active{visibility:visible;pointer-events:auto}
+[data-tdb-guide-cinema] .tdb-cinema-choice{opacity:.45}
+[data-tdb-guide-cinema] .tdb-cinema-choice.w--current{opacity:1;background-color:transparent;border-bottom-color:currentColor}
+[data-tdb-guide-cinema] .tdb-cinema-choice:focus-visible{outline:1px solid currentColor;outline-offset:-3px}
+[data-tdb-guide-cinema] .tdb-cinema-image{backface-visibility:hidden}
+[data-tdb-guide-cinema] .tdb-cinema-details[open]{position:absolute;inset:5rem 5vw 10rem;height:auto;display:block;overflow:auto;z-index:6;background:#222;padding:1.5rem}
+
 /* Native Designer classes own layout; shared disclosures and motion own state. */
 [data-tdb-faq-heading][aria-expanded="true"]{position:sticky;top:0;z-index:5;transform:translateY(var(--tdb-price-category-push,0px))}
 [data-tdb-faq-question][aria-expanded="true"]{position:sticky;top:0;z-index:6;width:100vw;margin-left:calc(50% - 50vw);padding-left:calc(50vw - 50%);padding-right:calc(50vw - 50%);background:var(--_tdb-navbar---bar-glass,#f9f2e6d6);backdrop-filter:saturate(150%) blur(20px);-webkit-backdrop-filter:saturate(150%) blur(20px)}

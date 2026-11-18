@@ -4059,6 +4059,14 @@ function prepareTreatmentGuideLoader() {
     await window.TDBModules.load(new URL('tdb-motion.js', TDBRuntimeModuleRoot));
     await window.TDBModules.load(new URL('tdb-ticker.js', TDBRuntimeModuleRoot));
     await window.TDBModules.load(new URL('tdb-slider-focus.js', TDBRuntimeModuleRoot));
+    if (root.hasAttribute('data-tdb-guide-cinema')) {
+      await window.TDBModules.load(new URL('tdb-treatment-guide-cinema.js', TDBRuntimeModuleRoot), {
+        ready: () => Boolean(window.TDBTreatmentGuideCinema),
+      });
+      if (allowed() && root.isConnected && !owners.has(root))
+        owners.set(root, window.TDBTreatmentGuideCinema.mount(root));
+      return owners.get(root);
+    }
     const art = root.querySelector('.treatment-guide_dial-art');
     const horizontal = art && getComputedStyle(art).aspectRatio === 'auto';
     const controller = () =>
@@ -4145,6 +4153,11 @@ function prepareTreatmentGuideLoader() {
       const surface = event.target.closest?.('[data-tdb-guide-pad], [data-tdb-guide-choice]');
       const root = surface?.closest('[data-tdb-guide]');
       if (!root || owners.has(root) || event.button !== 0 || !allowed()) return;
+      // Cinema uses native vertical scrolling and tabs; never seize its first touch.
+      if (root.hasAttribute('data-tdb-guide-cinema')) {
+        wheel(root).catch(() => {});
+        return;
+      }
       const art = root.querySelector('.treatment-guide_dial-art');
       const horizontal = art && getComputedStyle(art).aspectRatio === 'auto';
       if (!horizontal) event.preventDefault();

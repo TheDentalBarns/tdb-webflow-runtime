@@ -105,6 +105,11 @@ module.exports = {
     'src/treatment-guide/wheel.js',
   ],
   'dist/tdb-treatment-guide-drawer.js': ['src/treatment-guide/drawer.js'],
+  'dist/tdb-treatment-guide-cinema.js': [
+    'src/shared/site-chrome.js',
+    'src/treatment-guide/card.js',
+    'src/treatment-guide/cinema.js',
+  ],
   'dist/tdb-runtime.js': [
     'src/runtime/about-intro-loader.js',
     'src/runtime/hero-campaign-loader.js',
