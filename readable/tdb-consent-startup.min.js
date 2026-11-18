@@ -162,11 +162,11 @@
   window.TDBConsentDecision = Object.freeze({ read });
 })();
 
-/* Native TDB consent v4.0.10. Browser helper CSS is delivered by early tdb-ui.css. */
+/* Native TDB consent v4.0.11. Browser helper CSS is delivered by early tdb-ui.css. */
 (() => {
   'use strict';
   if (window.CookieScript?.instance?.__tdbNative) return;
-  const VERSION = '4.0.10',
+  const VERSION = '4.0.11',
     COOKIE_NAME = 'CookieScriptConsent',
     COOKIE_DAYS = 30,
     ALL_CATEGORIES = ['performance', 'strict', 'targeting', 'functionality'],
@@ -222,6 +222,15 @@
     } catch {
       // Persistence is optional; the in-memory decision and close events are not.
     }
+    const saved = window.TDBConsentDecision.read();
+    if (
+      saved.action === action &&
+      saved.categories.length === visitDecision.categories.length &&
+      visitDecision.categories.every((category) => saved.categories.includes(category))
+    )
+      // Keep cross-tab changes and cookie deletion authoritative where storage
+      // works. Retain memory only when the explicit choice could not be saved.
+      visitDecision = null;
   }
   function dispatch(name, detail) {
     document.dispatchEvent(

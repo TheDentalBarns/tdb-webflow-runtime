@@ -544,3 +544,27 @@ The icon filters progressed to white and no console errors were recorded.
 Production publication times remain 14 November at 15:29 UTC. Physical Android
 testing was not available; the mobile path was verified in the browser and
 the paired source/bundle regression tests.
+
+## Consent relationship, 18 November 2026
+
+The single `tdb-start.min.js` entry starts the essential foundation. Its native
+consent banner and coordinator release the local runtime after either explicit
+choice and the banner's closing animation. The runtime's campaign loader mounts
+the hero only when the enabled native component is present.
+
+The local carousel, pills, copy/logo parallax and navbar behaviour do not require
+functionality permission. Essential only uses those enhancements with native
+posters, text and CTA links. The existing Vimeo loader/player separately require
+functionality permission before creating provider frames; proximity, visibility
+and interaction still control when permitted videos are prepared. Revoking
+optional permission restores stills while retaining the local hero interaction.
+
+Before a decision, the authored content and links remain available; the enhanced
+carousel has not yet started. Release 2.1.19 retains an explicit choice for the
+current document even when cookie storage is blocked, preventing the shared
+runtime (and journey map) from remaining indefinitely undecided. It does not
+infer permission or add a hero-specific consent system.
+
+If the independent Brevo tracker has already started, withdrawing targeting
+permission retains its existing full-page reload to stop that tracker. This is
+separate from the hero/Vimeo teardown and restarts the page with the saved choice.

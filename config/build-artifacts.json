@@ -75,10 +75,10 @@
         "src/shared/consent-decision.js",
         "src/consent/banner.js"
       ],
-      "sha256": "60194efe898d42c9edab7cc57197de30aa83aaab8057bf7dc75b4755b265bd9f",
-      "raw": 10852,
-      "gzip": 3827,
-      "brotli": 3410
+      "sha256": "4a36e5bb9629c84f75298f332f99423abbbff904a63dd40bc6af826ab56cdefd",
+      "raw": 11007,
+      "gzip": 3872,
+      "brotli": 3453
     },
     "dist/tdb-consent.js": {
       "sources": [
@@ -88,10 +88,10 @@
         "src/shared/modules.js",
         "src/consent/consent.js"
       ],
-      "sha256": "7aab6f5565f7929edc69507ebcd6c8fef058ee113b32f81d5631ae432dc3b147",
-      "raw": 22709,
-      "gzip": 7746,
-      "brotli": 6925
+      "sha256": "b6604ccca601b21e279cba2b69f83621b906c693844274e2e89e240efa681342",
+      "raw": 22864,
+      "gzip": 7788,
+      "brotli": 6959
     },
     "dist/tdb-consent.min.js": {
       "sources": [
@@ -186,10 +186,10 @@
         "src/navbar/navbar-mobile-lock.js",
         "src/navbar/navbar-loader.js"
       ],
-      "sha256": "8963030991ba8f1bf95fa78e076f93fb2c53cb13e3fa2fbd2f71d6cd65bcdebd",
-      "raw": 34088,
-      "gzip": 10450,
-      "brotli": 9369
+      "sha256": "5a5f2f208e2fe53b684d42ed85d202fd7583ac6c274b73632589ce9d5277d271",
+      "raw": 34243,
+      "gzip": 10491,
+      "brotli": 9410
     },
     "dist/tdb-gallery.js": {
       "sources": [
@@ -652,7 +652,7 @@
         "src/startup/smooth-scroll.js",
         "src/startup/start.js"
       ],
-      "sha256": "f38b75e546e82cc5a38131a5a93ab9d4e3ac4453983e9451c3e44d1d37af4572",
+      "sha256": "9a35ece76e86c7be15e0ed20b1271d57d7290b2654292f5d593765312c756586",
       "raw": 15720,
       "gzip": 5772,
       "brotli": 5169

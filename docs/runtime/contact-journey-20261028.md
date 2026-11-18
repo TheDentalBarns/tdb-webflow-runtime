@@ -2,7 +2,17 @@
 
 The shared Contact us definition owns the contact links, native journey form, reserved result space and map frame. Home has no instance and gains no DOM. Six decorative icon embeds and wrappers have been removed; pseudo-element masks reuse canonical Webflow SVG Assets (including the existing footer Instagram/Facebook artwork). The mobile link now has a working `tel:+447488893573` destination.
 
-The former Elfsight embed contained only its widget ID. It is replaced by an in-page Google Maps and Routes enhancement. Native GET form submission and the separate directions link remain useful without JavaScript. Google code is conditional on proximity and functional consent. A deliberate submit requests one traffic-aware driving route with only path, duration and distance. Origin text is kept only in the form/current memory; this module writes no storage or analytics. Failed requests retain the external directions link. Consent withdrawal removes map/route DOM and invalidates pending results; it cannot recall already transmitted requests.
+The former Elfsight embed contained only its widget ID. It is replaced by an in-page Google Maps and Routes enhancement. Native GET form submission and the separate directions link remain useful without JavaScript. Google code is conditional on proximity and either explicit consent choice, including Essential only. A deliberate submit requests one traffic-aware driving route with only path, duration and distance. Origin text is kept only in the form/current memory; this module writes no storage or analytics. Failed requests retain the external directions link. Switching from Accept all to Essential only preserves the map and route; an undecided state removes them and invalidates pending results. Already transmitted requests cannot be recalled.
+
+As of 2.1.19, the shared native banner also retains an explicit choice in memory
+when cookie access fails or writes are silently discarded. The journey continues
+through the existing consent API; it has no separate permission or persistence
+implementation. See [restricted-storage release notes](../releases/2026-11-18-consent-storage.md).
+
+The map owner itself preserves the route when optional consent is withdrawn.
+The independent Brevo tracking owner may reload the whole page to stop an
+already-started tracker. That existing reload resets form input and the route;
+the map then loads again under Essential only.
 
 ## Ownership
 

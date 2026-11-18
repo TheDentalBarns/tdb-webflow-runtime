@@ -31,7 +31,8 @@ function fixture(source, storage, saved) {
     requests = [],
     timers = new Map();
   let now = 0,
-    sequence = 0;
+    sequence = 0,
+    cookie = saved ? 'CookieScriptConsent=' + encodeURIComponent(JSON.stringify(saved)) : '';
   Object.defineProperty(d, 'readyState', { value: 'complete' });
   Object.defineProperty(d, 'currentScript', {
     value: { src: 'https://cdn.test/dist/tdb-foundation.js' },
@@ -39,10 +40,11 @@ function fixture(source, storage, saved) {
   Object.defineProperty(d, 'cookie', {
     get() {
       if (storage === 'throws') throw new w.DOMException('Storage is unavailable', 'SecurityError');
-      return saved ? 'CookieScriptConsent=' + encodeURIComponent(JSON.stringify(saved)) : '';
+      return cookie;
     },
-    set() {
+    set(value) {
       if (storage === 'throws') throw new w.DOMException('Storage is unavailable', 'SecurityError');
+      if (storage === 'available') cookie = value.split(';')[0];
       // Some embedded browsers silently discard cookie writes.
     },
   });
@@ -90,6 +92,27 @@ function fixture(source, storage, saved) {
 }
 
 for (const [name, source] of Object.entries(sources)) {
+  test(`${name}: successful persistence keeps later cross-tab changes authoritative`, () => {
+    const f = fixture(source, 'available');
+    try {
+      f.run();
+      f.api().acceptAllAction();
+      f.advance(470);
+      assert.equal(f.w.TDBConsent.allows('functionality'), true);
+      f.d.cookie =
+        'CookieScriptConsent=' +
+        encodeURIComponent(JSON.stringify({ action: 'reject', categories: [] }));
+      f.w.TDBConsent.refresh();
+      assert.equal(f.api().currentState().action, 'reject');
+      assert.equal(f.w.TDBConsent.allows('functionality'), false);
+      f.d.cookie = 'CookieScriptConsent=';
+      f.w.TDBConsent.refresh();
+      assert.equal(f.api().currentState().action, undefined);
+      assert.equal(f.w.TDBConsent.allows(), false);
+    } finally {
+      f.close();
+    }
+  });
   for (const storage of ['ignored', 'throws']) {
     test(`${name}: ${storage} cookies retain explicit choices and release the essential-only map`, () => {
       const f = fixture(source, storage);
