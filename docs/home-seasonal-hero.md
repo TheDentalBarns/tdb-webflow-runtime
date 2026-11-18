@@ -532,3 +532,15 @@ the previous handoff and pass with the synchronization. Build, Swiper, generated
 parity, formatting and all 1,263 tests pass: 1,260 passes and three existing skips.
 Rollback uses all four pins at `2d105d899adb5a1f22a627e220bc14b9add8f757`, then
 publishes staging only.
+
+Published staging commit: `46a4124eda1380e4ef111c6d9651e891cb451386` at 09:28 UTC
+on 18 November. All 86 declared CDN assets match the committed bytes. A fresh
+390×844 load used the mobile compositor path, with document scroll unchanged
+until each landing. Before the fix, return sampling caught the navbar at 844px
+for one rendering interval after document scroll reached zero. After the fix,
+all 180 forward and 200 return observations kept its viewport top at zero;
+the return changed to fixed positioning in the same observation as scroll zero.
+The icon filters progressed to white and no console errors were recorded.
+Production publication times remain 14 November at 15:29 UTC. Physical Android
+testing was not available; the mobile path was verified in the browser and
+the paired source/bundle regression tests.
