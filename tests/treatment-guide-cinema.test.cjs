@@ -40,6 +40,7 @@ function setup({
   nativeGap = 0,
   initialWidth = 390,
   roundScroll = false,
+  nativeFallbackLayers = false,
 } = {}) {
   const dom = new JSDOM(
     `<section data-tdb-guide data-tdb-guide-cinema><span data-tdb-guide-treatment>Veneers</span><div class="tdb-cinema-track"><div class="tdb-cinema-stage"><div class="tdb-cinema-tabs"><nav>${Array.from({ length: 5 }, (_, i) => `<a data-tdb-guide-choice="${i}" href="#pane-${i}" ${i ? '' : 'class="w--current"'}>${i + 1}</a>`).join('')}</nav>${Array.from({ length: 5 }, (_, i) => `<div data-tdb-guide-panel="${i}" ${i ? '' : 'class="w--tab-active"'}><img class="tdb-cinema-image" src="https://example.org/fallback-${i}.webp" alt="Fallback"><h3 data-tdb-guide-title>Chapter ${i + 1}</h3><div data-tdb-guide-body>${i === 0 ? '<img src="https://example.org/camera-with-lens.webp" alt="CMS photo">' : ''}</div></div>`).join('')}</div></div></div></section><section id="after">Following content</section>`,
@@ -125,6 +126,18 @@ function setup({
           },
         };
       };
+    if (nativeFallbackLayers) {
+      const fallback = image.cloneNode();
+      fallback.setAttribute('data-tdb-cinema-fallback', String(index));
+      fallback.src = `https://example.org/underlay-${index}.webp`;
+      Object.defineProperty(fallback, 'complete', { value: true });
+      Object.defineProperty(fallback, 'naturalWidth', { value: 800 });
+      fallback.animate = image.animate;
+      photo.prepend(fallback);
+      if (index === 1) {
+        image.setAttribute('src', '');
+      }
+    }
   });
   if (edgePreviews) {
     for (const [index, position] of [
@@ -141,6 +154,15 @@ function setup({
       Object.defineProperty(image, 'complete', { value: true });
       Object.defineProperty(image, 'naturalWidth', { value: 800 });
       image.animate = () => ({ cancel() {} });
+      if (nativeFallbackLayers) {
+        const fallback = image.cloneNode();
+        fallback.src = `https://example.org/edge-underlay-${index}.webp`;
+        Object.defineProperty(fallback, 'complete', { value: true });
+        Object.defineProperty(fallback, 'naturalWidth', { value: 800 });
+        fallback.animate = image.animate;
+        preview.prepend(fallback);
+        if (index === 4) image.setAttribute('src', '');
+      }
       if (position === 0) rail.prepend(preview);
       else rail.append(preview);
     }
@@ -465,6 +487,30 @@ test('numbers and keyboard remain aligned with native scroll', () => {
   assert.equal(t.w.document.activeElement, choices[4]);
   t.close();
 });
+test('empty native CMS slots animate their Designer underlay without rewriting image URLs', () => {
+  const t = setup({ nativeFallbackLayers: true, edgePreviews: true });
+  const first = t.root.querySelector('[data-tdb-cinema-photo="0"]');
+  const second = t.root.querySelector('[data-tdb-cinema-photo="1"]');
+  assert.equal(first.querySelector('[data-tdb-cinema-fallback]').style.transform, '');
+  assert.equal(
+    first.querySelector('img:not([data-tdb-cinema-fallback])').style.transform,
+    'translateX(0%)',
+  );
+  t.root.querySelector('[data-tdb-guide-choice="1"]').click();
+  assert.equal(t.root.dataset.tdbCinemaImageIndex, '2');
+  assert.equal(
+    second.querySelector('[data-tdb-cinema-fallback]').style.transform,
+    'translateX(0%)',
+  );
+  assert.equal(second.querySelector('img:not([data-tdb-cinema-fallback])').getAttribute('src'), '');
+  assert.match(second.querySelector('[data-tdb-cinema-fallback]').src, /underlay-1/);
+  const previews = t.root.querySelectorAll('[data-tdb-cinema-preview]');
+  assert.notEqual(previews[0].querySelector('img').style.transform, '');
+  assert.equal(previews[1].querySelector('img').style.transform, '');
+  assert.notEqual(previews[1].querySelectorAll('img')[1].style.transform, '');
+  t.close();
+});
+
 test('open drawers suspend chapters; native CMS images survive lifecycle without rich-text substitution', () => {
   const t = setup(),
     img = t.root.querySelector('.tdb-cinema-image');

@@ -5,37 +5,47 @@
   "componentId": "5a45f055-97a1-453d-701b-d71c77ed23ec",
   "restoreStaticImages": [
     {
-      "element": "5a14c165-9d20-6c67-3be3-6fc0e5f49758",
+      "element": "fae2cbeb-fa0b-1e08-6cc6-234ef8703ae4",
       "assetId": "6af5a067a3d3440e03054be7"
     },
     {
-      "element": "1f993975-34cc-19d9-15ec-8c000de58cb3",
+      "element": "5479c1ee-01f4-8c25-8334-b8b7a862fbfe",
       "assetId": "6afd92a79bb3ea4d71dbc1e2"
     },
     {
-      "element": "a38cea17-2ba1-3753-96f8-83373f6bd68a",
+      "element": "036d39c9-2d2e-792e-0bea-da516cb492fb",
       "assetId": "696a3cd828033c589019ed7f"
     },
     {
-      "element": "0045a2a2-919c-bb67-e6e0-e15eaba5098c",
+      "element": "ecb67cee-eb7f-7cf0-de88-d0c786ede70e",
       "assetId": "6afd92a713a8ba591963e9af"
     },
     {
-      "element": "1504bae7-863d-d8cf-cf93-a7661cb27642",
+      "element": "81730bc8-af0a-0572-347b-0f3caaeabb86",
       "assetId": "6afd92a728122f76dc772722"
     },
     {
-      "element": "fe34a638-ea72-2281-2d73-968ae20875d8",
+      "element": "248088fa-34f5-6813-c8ed-43836a129475",
       "assetId": "6afd92a728122f76dc772722"
     },
     {
-      "element": "51c01e96-e72a-715c-7df0-353cb4a06a51",
+      "element": "57ea26c1-40f1-ea54-e6fc-92fe9885783c",
       "assetId": "6af5a067a3d3440e03054be7"
     }
   ],
   "instructions": [
+    "After restoring static assetId values to the seven current image nodes, remove only the seven native fallback layers listed here.",
     "Restore the seven static assetId settings with set_image_asset. Restore the five original altText overrides from the private backup.",
     "Keep the five optional CMS fields and their item data; do not delete photos uploaded since this migration. Unused props may remain for retry.",
     "For a complete 2.1.29 rollback also apply treatment-guide-cinema-exit-rollback.json; restore all four runtime pins together and publish staging only."
+  ],
+  "removeFallbackElements": [
+    "aad5ed52-caa4-a3ce-bc32-081e5f3d450c",
+    "25b40d58-55ff-2224-5ff9-2d0bc933b917",
+    "963a0619-233c-1413-4ce0-24a4fe2f3133",
+    "63a095ef-7f30-99d7-1902-ebce69561cd6",
+    "b7f97635-1999-9ae4-efff-e6698e18877d",
+    "a3ba9d22-64ac-81b1-81a7-904b1843b8f8",
+    "9b66514b-1e96-472d-bd7c-94100f01f0a1"
   ]
 }

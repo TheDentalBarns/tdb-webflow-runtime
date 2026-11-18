@@ -694,10 +694,10 @@
         "src/treatment-guide/cinema-photos.js",
         "src/treatment-guide/cinema.js"
       ],
-      "sha256": "c0f74adfc08ff0bbfea7d40cd1a99bad6f633b3aaa9b7d8f852d9d30c6d4e0af",
-      "raw": 15801,
-      "gzip": 5476,
-      "brotli": 4919
+      "sha256": "df6270cbc6e0e6bdeb2056a0608ff5647d34d7b96400e5bb20ea7d71e29eb115",
+      "raw": 15858,
+      "gzip": 5532,
+      "brotli": 4958
     },
     "dist/tdb-treatment-guide-drawer.js": {
       "sources": [

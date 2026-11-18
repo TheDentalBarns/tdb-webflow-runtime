@@ -2,6 +2,14 @@
  * This controller decodes and animates the native strip with the shared carousel clock. */
 window.TDBTreatmentGuideCinemaPhotos ||= (() => {
   const clamp = (value) => Math.max(-1, Math.min(1, value));
+  // An empty CMS binding leaves its authored fallback underlay in place.
+  const nativeImage = (frame) =>
+    [...frame.querySelectorAll('.tdb-cinema-image')]
+      .reverse()
+      .find(
+        (image) =>
+          image.getAttribute('src')?.trim() && !image.classList.contains('w-dyn-bind-empty'),
+      );
   function mount(root, initial) {
     const rail = root.querySelector('[data-tdb-cinema-rail]');
     const media = root.querySelector('.tdb-cinema-media');
@@ -11,8 +19,8 @@ window.TDBTreatmentGuideCinemaPhotos ||= (() => {
       node.matches('[data-tdb-cinema-photo], [data-tdb-cinema-preview]'),
     );
     if (photos.length !== 5 || panes.length !== 5) throw Error('Cinema native photos missing');
-    const images = photos.map((photo) => photo.querySelector('.tdb-cinema-image'));
-    const frameImages = frames.map((frame) => frame.querySelector('.tdb-cinema-image'));
+    const images = photos.map(nativeImage);
+    const frameImages = frames.map(nativeImage);
     if (frameImages.some((image) => !image)) throw Error('Cinema native image missing');
     const blurs = frames.map((frame) => frame.querySelector('.tdb-treatment-blur'));
     const motion = window.TDBMotion;
@@ -30,7 +38,7 @@ window.TDBTreatmentGuideCinemaPhotos ||= (() => {
       .filter((frame) => frame.hasAttribute('data-tdb-cinema-preview'))
       .map((frame) => ({
         index: Number(frame.dataset.tdbCinemaPreview),
-        image: frame.querySelector('.tdb-cinema-image'),
+        image: nativeImage(frame),
       }));
     let active = initial,
       request = 0,

@@ -12,8 +12,9 @@
       "type": "Image",
       "required": false,
       "propId": "ad18c984-b9c4-a61c-bb1f-6d594dcae20a",
-      "defaultAssetId": "6af5a067a3d3440e03054be7",
-      "elementId": "5a14c165-9d20-6c67-3be3-6fc0e5f49758"
+      "elementId": "fae2cbeb-fa0b-1e08-6cc6-234ef8703ae4",
+      "fallbackAssetId": "6af5a067a3d3440e03054be7",
+      "fallbackElementId": "aad5ed52-caa4-a3ce-bc32-081e5f3d450c"
     },
     {
       "id": "d6c27f6f70bcea53ace1cd6c0957f8f3",
@@ -22,8 +23,9 @@
       "type": "Image",
       "required": false,
       "propId": "0246195c-dbc2-918c-8693-3a812a23703f",
-      "defaultAssetId": "6afd92a79bb3ea4d71dbc1e2",
-      "elementId": "1f993975-34cc-19d9-15ec-8c000de58cb3"
+      "elementId": "5479c1ee-01f4-8c25-8334-b8b7a862fbfe",
+      "fallbackAssetId": "6afd92a79bb3ea4d71dbc1e2",
+      "fallbackElementId": "25b40d58-55ff-2224-5ff9-2d0bc933b917"
     },
     {
       "id": "53f66890735e4662361f6e27850e74e0",
@@ -32,8 +34,9 @@
       "type": "Image",
       "required": false,
       "propId": "4e7b80c5-49ef-887b-a665-86a8363db2c8",
-      "defaultAssetId": "696a3cd828033c589019ed7f",
-      "elementId": "a38cea17-2ba1-3753-96f8-83373f6bd68a"
+      "elementId": "036d39c9-2d2e-792e-0bea-da516cb492fb",
+      "fallbackAssetId": "696a3cd828033c589019ed7f",
+      "fallbackElementId": "963a0619-233c-1413-4ce0-24a4fe2f3133"
     },
     {
       "id": "6a617be74f4db6a35f5237ae2085f3e8",
@@ -42,8 +45,9 @@
       "type": "Image",
       "required": false,
       "propId": "1092fa28-c000-18c5-8527-ac8e366b350c",
-      "defaultAssetId": "6afd92a713a8ba591963e9af",
-      "elementId": "0045a2a2-919c-bb67-e6e0-e15eaba5098c"
+      "elementId": "ecb67cee-eb7f-7cf0-de88-d0c786ede70e",
+      "fallbackAssetId": "6afd92a713a8ba591963e9af",
+      "fallbackElementId": "63a095ef-7f30-99d7-1902-ebce69561cd6"
     },
     {
       "id": "a1962abb3e6b298f37f4d5238be8dcdd",
@@ -52,17 +56,18 @@
       "type": "Image",
       "required": false,
       "propId": "4416b708-f147-77e5-c8be-8c5188b66536",
-      "defaultAssetId": "6afd92a728122f76dc772722",
-      "elementId": "1504bae7-863d-d8cf-cf93-a7661cb27642"
+      "elementId": "81730bc8-af0a-0572-347b-0f3caaeabb86",
+      "fallbackAssetId": "6afd92a728122f76dc772722",
+      "fallbackElementId": "b7f97635-1999-9ae4-efff-e6698e18877d"
     }
   ],
   "previews": [
     {
-      "elementId": "fe34a638-ea72-2281-2d73-968ae20875d8",
+      "elementId": "248088fa-34f5-6813-c8ed-43836a129475",
       "propId": "4416b708-f147-77e5-c8be-8c5188b66536"
     },
     {
-      "elementId": "51c01e96-e72a-715c-7df0-353cb4a06a51",
+      "elementId": "57ea26c1-40f1-ea54-e6fc-92fe9885783c",
       "propId": "ad18c984-b9c4-a61c-bb1f-6d594dcae20a"
     }
   ],
@@ -72,5 +77,15 @@
     "designer": "Native props, bindings, fallback defaults, structure, typography, crop and responsive layout",
     "javascript": "Decode readiness and shared animation only"
   },
-  "privateBackup": "../before-native-cms-images.json"
+  "privateBackup": "../before-native-cms-images.json",
+  "nativeFallbackElements": [
+    "aad5ed52-caa4-a3ce-bc32-081e5f3d450c",
+    "25b40d58-55ff-2224-5ff9-2d0bc933b917",
+    "963a0619-233c-1413-4ce0-24a4fe2f3133",
+    "63a095ef-7f30-99d7-1902-ebce69561cd6",
+    "b7f97635-1999-9ae4-efff-e6698e18877d",
+    "a3ba9d22-64ac-81b1-81a7-904b1843b8f8",
+    "9b66514b-1e96-472d-bd7c-94100f01f0a1"
+  ],
+  "fallbackBehavior": "Native static image underlay. Empty CMS image layers leave the underlay visible; JavaScript animates the populated native layer without copying image sources."
 }
