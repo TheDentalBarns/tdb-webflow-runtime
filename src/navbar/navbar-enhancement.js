@@ -304,14 +304,20 @@
             g?.());
         }
         function A() {
-          h || ((h = 1), requestAnimationFrame(B));
+          h || (h = requestAnimationFrame(B));
         }
         function C() {
           ((o = innerWidth), (r = scrollPolicy.revealViewports * innerHeight), z(), A());
         }
         ((window.TDBNavScroll = Object.freeze({
-          version: '1.3.2',
+          version: '1.4.0',
           policy: scrollPolicy,
+          // Programmatic landings must reconcile the attached/fixed pose in
+          // the same task as scrollTo, before the browser can paint the jump.
+          sync() {
+            cancelAnimationFrame(h);
+            B();
+          },
           get floatingVisible() {
             return t.hasAttribute('data-tdb-nav-floating-visible');
           },
@@ -940,7 +946,7 @@
         );
       })(),
       (window.TDBNavbar = Object.freeze({
-        version: '1.8.0',
+        version: '1.8.1',
       })));
   };
   window.TDBNavbarLoader ? window.TDBNavbarLoader.register(t) : t();

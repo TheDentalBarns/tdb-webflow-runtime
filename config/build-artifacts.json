@@ -207,10 +207,10 @@
       "sources": [
         "src/components/hero-campaign.js"
       ],
-      "sha256": "5e6fbf8291e7276ed73ddf463cf00e1108136dda5a8f2938092e6c22d4c221a6",
-      "raw": 12882,
-      "gzip": 5042,
-      "brotli": 4581
+      "sha256": "3da6334f511070ce0a9039cb55c2cf7c6ee67f590f2f5de72caaaf9baa9b8e4e",
+      "raw": 12912,
+      "gzip": 5056,
+      "brotli": 4592
     },
     "dist/tdb-hold-audio.js": {
       "sources": [
@@ -357,10 +357,10 @@
         "src/shared/panel-motion.js",
         "src/navbar/navbar-enhancement.js"
       ],
-      "sha256": "706c52b72efc0ffaabc19859c2717171c74d4f6b0b43bcc00d554078bfa91fb4",
-      "raw": 26037,
-      "gzip": 6867,
-      "brotli": 6154
+      "sha256": "0812d9e0db0932e09eb804a04f6e03cb7297e9eafdadc51404aa652b514e8d63",
+      "raw": 26071,
+      "gzip": 6877,
+      "brotli": 6161
     },
     "dist/tdb-parallax.js": {
       "sources": [
@@ -652,7 +652,7 @@
         "src/startup/smooth-scroll.js",
         "src/startup/start.js"
       ],
-      "sha256": "7a728bf92b53cca290a81f49d920986c9a222703757b51759f05782387ba4e32",
+      "sha256": "2ee285336e529312cfb22f9f603d12be46a6d2dee2b10320a415cd2a854229f0",
       "raw": 15695,
       "gzip": 5765,
       "brotli": 5171

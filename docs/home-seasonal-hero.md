@@ -509,3 +509,26 @@ and Discover opened and closed successfully and retained hover opacity. At
 campaign state. No console errors were recorded. Production publication times
 remain 14 November at 15:29 UTC. This verifies browser behaviour and responsive
 layout, not physical Android performance.
+
+## Mobile navigation landing — 18 November 2026 (2.1.17)
+
+On the mobile compositor path, returning to the opening hero moved the document
+to zero before the navbar's scheduled scroll frame changed its attached pose.
+Browser sampling reproduced the navbar momentarily at viewport top 844px while
+the first hero was already fully visible. The icon colour fade itself remained
+monotonic; both icons briefly left the viewport together.
+
+Navbar scroll 1.4.0 exposes `sync()` to reconcile its existing scroll policy
+immediately after a programmatic landing, cancelling its queued frame. Hero
+1.2.1 calls that owner once after the compositor flight's instant scroll and
+before releasing the animation. Navbar positioning remains owned by the navbar;
+there are no new per-frame callbacks, listeners, styles or loading requests.
+The existing colour fade, mobile slide duration and swipe thresholds remain.
+
+The currently installed 2.1.16 review-drawer release was merged before this fix.
+Four source/bundle regression cases at 390px and 834px verify both landings and
+repeat reversals before queued scroll work, then after it. These fail against
+the previous handoff and pass with the synchronization. Build, Swiper, generated
+parity, formatting and all 1,263 tests pass: 1,260 passes and three existing skips.
+Rollback uses all four pins at `2d105d899adb5a1f22a627e220bc14b9add8f757`, then
+publishes staging only.

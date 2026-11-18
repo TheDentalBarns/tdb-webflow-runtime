@@ -560,7 +560,7 @@ test('open menu survives consent handoff; enhancement begins only after the nati
     await f.closeStart();
     assert.equal(f.w.TDBNavbar, undefined);
     await f.closeEnd();
-    assert.equal(f.w.TDBNavbar.version, '1.8.0');
+    assert.equal(f.w.TDBNavbar.version, '1.8.1');
     assert.equal(f.w.TDBScrollLock.active, false);
   } finally {
     f.dom.window.close();
@@ -699,6 +699,93 @@ test('Finsweet is skipped for a claimed native navbar and retained for a separat
     }
   }
 });
+
+for (const width of [390, 834])
+  for (const heroFile of ['src/components/hero-campaign.js', 'dist/tdb-hero-campaign.js'])
+    test(`${heroFile}: campaign landing keeps the navbar in view before the next frame at ${width}px`, async () => {
+      const f = fixture(width),
+        height = f.w.innerHeight;
+      const intro = f.d.querySelector('main');
+      intro.setAttribute('data-tdb-campaign-hero', '');
+      intro.innerHTML = `<div data-tdb-campaign-opening><div data-vimeo-hero-content><div class="hero-vimeo_content">Logo</div></div></div>
+        <section data-tdb-campaign-panel style="color:black">Campaign</section>
+        <nav data-tdb-campaign-rail><a href="#first" data-tdb-campaign-step="0"><span></span></a><a href="#second" data-tdb-campaign-step="1"><span></span></a></nav>`;
+      const panel = intro.querySelector('section'),
+        opening = intro.firstElementChild;
+      const rect = (top, height) => ({
+        top,
+        bottom: top + height,
+        height,
+        width,
+        left: 0,
+        right: width,
+      });
+      intro.getBoundingClientRect = () => rect(-f.w.scrollY, height * 2);
+      opening.getBoundingClientRect = () => rect(-f.w.scrollY, height);
+      panel.getBoundingClientRect = () => rect(height - f.w.scrollY, height);
+      Object.defineProperty(panel, 'offsetTop', { get: () => height });
+      const frames = new Map();
+      let id = 0,
+        owner;
+      f.w.requestAnimationFrame = (fn) => {
+        frames.set(++id, fn);
+        return id;
+      };
+      f.w.cancelAnimationFrame = (id) => frames.delete(id);
+      const drain = () => {
+        for (let turn = 0; frames.size && turn < 10; turn++) {
+          const jobs = [...frames.values()];
+          frames.clear();
+          jobs.forEach((fn) => fn(0));
+        }
+      };
+      f.w.scrollTo = ({ top }) => {
+        f.w.scrollY = top;
+        f.w.dispatchEvent(new f.w.Event('scroll'));
+      };
+      try {
+        f.w.eval(read('dist/tdb-motion.js'));
+        f.enhance();
+        await flush();
+        drain();
+        f.w.eval(read(heroFile));
+        owner = f.w.TDBCampaignHero.mount(intro);
+        drain();
+        const links = [...intro.querySelectorAll('a')];
+        for (let cycle = 0; cycle < 2; cycle++) {
+          links[1].click();
+          f.animations.findLast((a) => a.element === panel).onfinish();
+          assert.equal(f.w.scrollY, height);
+          assert.equal(
+            f.nav.style.position,
+            'absolute',
+            'forward landing attaches before queued scroll work',
+          );
+          assert.equal(f.nav.style.top, `${height}px`);
+          drain();
+          links[0].click();
+          f.animations.findLast((a) => a.element === panel).onfinish();
+          assert.equal(f.w.scrollY, 0);
+          assert.equal(
+            f.nav.style.position,
+            'fixed',
+            'return landing cannot leave the bar one screen below the viewport',
+          );
+          assert.equal(f.nav.style.top, '');
+          assert.equal(f.nav.style.transform, 'translateY(0)');
+          assert.equal(f.nav.getAttribute('data-tdb-campaign-nav'), 'light');
+          drain();
+          assert.equal(
+            f.nav.style.position,
+            'fixed',
+            'queued observers preserve the completed pose',
+          );
+        }
+      } finally {
+        owner?.destroy();
+        f.dom.window.close();
+      }
+    });
 
 test('pagehide releases the mobile lock and pageshow restores an open native menu', async () => {
   const f = fixture();

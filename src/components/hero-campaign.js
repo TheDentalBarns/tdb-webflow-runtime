@@ -1,4 +1,4 @@
-/* Seasonal hero v1.2.0. Native content, bounded gestures and local compositor motion. */
+/* Seasonal hero v1.2.1. Native content, bounded gestures and local compositor motion. */
 (() => {
   'use strict';
   if (window.TDBCampaignHero) return;
@@ -292,6 +292,9 @@
           layout = null;
           const target = measure()[destination];
           window.scrollTo({ top: target, behavior: 'instant' });
+          // The navbar joins the final panel in document flow. Returning to
+          // the opening must pin it before this new scroll position paints.
+          window.TDBNavScroll?.sync?.();
           // Set the native landing underneath the animation before releasing
           // its fill, so the normal page takes over without a visible jump.
           read(frameMeasurements())?.();
@@ -918,5 +921,5 @@
     return api;
   }
 
-  window.TDBCampaignHero = Object.freeze({ version: '1.2.0', mount: campaignHero });
+  window.TDBCampaignHero = Object.freeze({ version: '1.2.1', mount: campaignHero });
 })();
